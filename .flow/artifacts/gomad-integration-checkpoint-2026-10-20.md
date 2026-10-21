@@ -1414,7 +1414,8 @@ declared execution timeout, and the installation owns fuel and memory.
   inserts writable ancestor directories.
 - Rust qualifies semantically and matches Go: deterministic, success, exact
   replays.
-- The linked peak is 6.2 GiB, almost all in-process Wasmtime compilation; the
+- The linked peak is 6,203,392,000 bytes (5.777 GiB; earlier misreported as
+  "6.2 GiB", which was decimal GB), almost all in-process Wasmtime compilation; the
   guest peak is only 141 MiB. That exceeds the operator 2 GiB and warm-helper
   4 GiB ceilings, so those checks are unattributed and pending, and the cell
   exits 3. It is not a pass.
@@ -1455,10 +1456,28 @@ Evidence: `/home/agent/wt/evidence/fn232-qualify/d/`.
   rule. The accounting corpus gains 9 phase cases (38 total). They are authored
   but not yet run: the conductor window is closed and no build has been done
   beyond a `-j1` clippy check (clean).
-- *Expectation for onebox.* The earlier unattributed run measured a 6.2 GiB
+- *Expectation for onebox.* The earlier unattributed run measured a 5.777 GiB
+  (6,203,392,000-byte)
   lifetime peak with a 141 MiB guest peak. If the attributed store window is
   still above 4 GiB, the warm check stays an upper-bound pending item, because
   no linked execution runs without compiling. Splitting compilation from
   execution would need a helper-owned boundary. If the window exceeds the cold
   6 GiB ceiling, that is a real owner-level question. I will report the
   numbers after the window.
+
+**Unit correction, 2026-10-21.** All memory limits and checks compare bytes
+against binary ceilings: 6 GiB = 6,442,450,944 bytes. Two figures I reported
+were decimal GB labelled as GiB:
+
+- The onebox lifetime peak, given as "6.2 GiB", is 6,203,392,000 bytes =
+  5.777 GiB. It is under the 6 GiB cold ceiling.
+- The corpus case described as a "6.1 GiB window" encoded 6,100 MiB =
+  5.957 GiB.
+
+The corpus now has two cases with binary-unit pins in
+`qualify-accounting-check.py`:
+
+- the measured onebox shape, 5.777 GiB: cold within, warm pending;
+- a true 6.1 GiB (6,549,825,126-byte) window: cold exceeded.
+
+The lane writes every memory check in bytes and GiB to `memory.txt`.

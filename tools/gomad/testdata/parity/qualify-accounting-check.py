@@ -134,9 +134,16 @@ def oracle(case):
     return expected
 
 
+def gib(value):
+    return f'{value} B ({value / GIB:.3f} GiB)'
+
+
 def check(case, row):
     expected = oracle(case)
     name = case['name']
+    if row.get('budget'):
+        for item in row['budget']['checks']:
+            print(f"{name}: {item['name']}: {gib(item['observed'])} vs {gib(item['limit'])}: {item['status']}")
     if expected['interval_failure'] is not None:
         equal(row['cost'], None, name + '.cost_refused')
         equal(row['budget'], None, name + '.budget_refused')
@@ -190,6 +197,16 @@ def observations_cost_valid(case, executes, replays):
             and replays == len(case['runs']) and observations['preparation_wall_nanos'] > 0)
 
 
+def unit_pins(rows):
+    """Binary-unit regression pins: a measured 5.777 GiB window passes the
+    6 GiB cold ceiling; a 6.1 GiB window (6.55 GB) must exceed it."""
+    statuses = {row['name']: {item['name']: item['status'] for item in row['budget']['checks']} for row in rows if row['budget']}
+    equal(6 * GIB, 6_442_450_944, 'units.cold_ceiling')
+    equal(statuses['phases-onebox-measured-5.78GiB-warm-pending']['individual cold helper peak RSS'], 'within', 'units.measured_window')
+    equal(statuses['phases-onebox-measured-5.78GiB-warm-pending']['individual warm helper peak RSS'], 'unattributed', 'units.measured_warm')
+    equal(statuses['phases-window-6.1GiB-cold-exceeded']['individual cold helper peak RSS'], 'exceeded', 'units.cold_exceeded')
+
+
 def main():
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument('--binary', type=Path, required=True, help='determinism-fixture gomad binary')
@@ -213,6 +230,7 @@ def main():
     equal([row['name'] for row in rows], [case['name'] for case in corpus['cases']], 'accounting.cases')
     for case, row in zip(corpus['cases'], rows):
         check(case, row)
+    unit_pins(rows)
     view = dict(schema='gomad.qualify-accounting-golden/v1', cases=rows)
     golden = CORPUS / 'goldens-qualify/accounting.json'
     regenerate = os.environ.get('GOMAD_GOLDEN_REGENERATE') == '1'

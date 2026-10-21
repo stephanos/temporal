@@ -237,6 +237,16 @@ def go_scenario_reference(run, args, case, installation, go_spec):
                 classification=classification)
 
 
+def log_memory(args, name, result):
+    """Records every memory check in bytes and binary GiB beside the receipts."""
+    lines = [f"{name}: {item['name']} [{item['quantity']}]: {item['observed']} B ({item['observed'] / (1 << 30):.3f} GiB)"
+             f" vs {item['limit']} B ({item['limit'] / (1 << 30):.3f} GiB): {item['status']}"
+             for item in (result['budget'] or {}).get('checks', [])]
+    with (args.work / 'memory.txt').open('a') as stream:
+        stream.write(''.join(line + '\n' for line in lines))
+    print('\n'.join(lines))
+
+
 def unattributed(result, response):
     """Linked-process peaks over a former operator-only or helper-only ceiling
     stay pending (never passed and never charged to one owner)."""
@@ -439,6 +449,7 @@ def main():
             response = parity.decode(rust.stdout)
             equal(len(rust.stdout) <= 8 << 10, True, 'response.bound')
             path, result = authenticate(response, root)
+            log_memory(args, f'rust-qualify-{case["name"]}-{attempt}', result)
             equal(rust.returncode, expected_status(case, result, response, rust), f'rust-qualify-{case["name"]}-{attempt}.status')
             report = run(f'rust-report-{case["name"]}-{attempt}', [args.binary, '--installation', '/missing/report-installation.json',
                          'report', '--result', path], 0)
@@ -477,6 +488,7 @@ def main():
                    'qualify', '--spec', final_spec], None)
         response = parity.decode(rust.stdout)
         path, result = authenticate(response, root)
+        log_memory(args, f'rust-canonical-{case["name"]}', result)
         equal(rust.returncode, expected_status(case, result, response, rust), f'rust-canonical-{case["name"]}.status')
         equal(result['integrated_source_manifest'], sources.read_text(), 'canonical.source_manifest')
         equal((result['manifest']['fuel'], result['manifest']['memory_bytes']),

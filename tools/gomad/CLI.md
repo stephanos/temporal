@@ -642,8 +642,8 @@ host repair, and its replay of a one-box Temporal trace fails
 (`choice trace malformed`). The `onebox` cell therefore runs as its own
 invocation (`--qualify-cells onebox`) against a Go reference built from a
 v4-repaired `gomad` revision. On this host the Rust one-box cell qualifies
-semantically, matching Go's verdict. Before phase attribution, its 6.2 GiB
-lifetime linked peak, almost all in-process Wasmtime compilation (the guest
+semantically, matching Go's verdict. Before phase attribution, its lifetime
+linked peak of 6,203,392,000 bytes (5.777 GiB, 6.20 GB), almost all in-process Wasmtime compilation (the guest
 peak is 141 MiB), left the operator and warm checks unattributed, and the
 command exited 3. With phase attribution, the operator phases and store windows
 are checked against their own ceilings. The attributed onebox run is pending the
