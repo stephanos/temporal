@@ -303,6 +303,7 @@ Owner decision 2026-10-21: an exhausted limit must not be silent. Found in fn-22
 
 | Name / ID | Status | Description |
 | --- | --- | --- |
+| [fn-235-gomad-fail-cluster-runs-fast-and.1](.flow/tasks/fn-235-gomad-fail-cluster-runs-fast-and.1.md) | 🚧 In progress | Classify broker capacity exhaustion and end manual cluster runs promptly with retained partial evidence |
 | [fn-235-gomad-fail-cluster-runs-fast-and.2](.flow/tasks/fn-235-gomad-fail-cluster-runs-fast-and.2.md) | 🚧 In progress | Measure and remove superlinear World inspection commitment cost in long cluster runs |
 
 ### WASM host-side execution cost profile — [fn-185](.flow/specs/fn-185-gomad-wasm-host-side-execution-cost.md)

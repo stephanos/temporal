@@ -759,3 +759,25 @@ Existing open-owner worktrees remain retained; fn230-sites is newly active.
 Disk is approximately 9.7 GiB free on the build filesystem and 37 GiB on host.
 Shared Cargo ownership is serialized; retained evidence and unrelated user
 `.turbo/` remain untouched. No push, PR or CI execution is authorized or performed.
+
+### Subsequent acceptance correction
+
+The fn-235.1 closure above is superseded by a newly observed concurrent-start R3
+regression and the task has been reopened. Byte-transparent capture of the
+original failing alternate Go API case proves the helper emits complete
+inspection evidence for admitted peer b1 with start boundary 136 and terminal 0.
+That peer was aborted before entering guest code; zero calls/memory and
+configured/finished false are correct facts and must remain unchanged. Go and
+linked Rust validators correctly reject the invalid complete coordinates.
+Replay owner is repairing the shared terminal-finalization seam, with the actual
+failing case preserved; no Go validator weakening or reference substitution is
+authorized. A separate legitimate failed-prefix Rust lifecycle admission defect
+also remains under diagnosis. Earlier passing capacity, deadlock, detached replay
+and ringpop results remain scoped evidence, not proof of the new edge case.
+
+Completed clean producer source checkout fn232-simulation-producer was removed
+after owner confirmation and open-file checks; its branch and external receipts
+remain. Old fn232-simulation is still retained because a tracked fixture edit was
+found. Its entire changed file matches integrated source byte-for-byte, but the
+uncommitted edit was not discarded. Current active sources and raw evidence were
+preserved. Build filesystem free space is approximately 8.4 GiB.
