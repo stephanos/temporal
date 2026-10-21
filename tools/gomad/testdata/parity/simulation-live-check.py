@@ -38,7 +38,8 @@ def main():
         receipts.append(dict(name=name, argv=list(map(str, command)), status=result.returncode,
                              stdout_sha256=digest(result.stdout), stderr_sha256=digest(result.stderr)))
         (args.work / 'commands.json').write_bytes(encode(receipts))
-        assert result.returncode in statuses, (name, result.returncode, result.stderr.decode(errors='replace'))
+        assert result.returncode in statuses, (name, result.returncode,
+            result.stdout.decode(errors='replace'), result.stderr.decode(errors='replace'))
         return result.stdout
 
     identity = args.work / 'identity'
