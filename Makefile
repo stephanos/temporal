@@ -1468,6 +1468,7 @@ model-check: $(PROTOC_GEN_GO) $(API_BINPB)
 	@printf $(COLOR) "Check model (fmt, clippy, docs, tests)..."
 	@if [ "$${UMPIRE_BACKENDS:-}" = require ]; then printf '%s\n' 'TLC backend required: real source-lifted agreement and semantic controls'; else printf '%s\n' 'TLC backend skipped: no execution/agreement evidence; use UMPIRE_BACKENDS=require'; fi
 	@$(call RUST_MODEL_STEP,timing-controls) /bin/bash $(CURDIR)/model/scripts/test-time-gate.sh
+	@$(call RUST_MODEL_STEP,guest-build-controls) python3 -m unittest discover -s model/scripts/tests -p 'test_*.py'
 	@$(call RUST_MODEL_STEP,capability-controls) /bin/bash $(CURDIR)/model/scripts/test-capabilities.sh
 	@cd model && $(call RUST_MODEL_STEP,source-boundary) mise exec -- cargo test -p umpire-temporal-tests --test boundary --quiet
 	@$(call RUST_MODEL_STEP,protobuf-freshness) /bin/bash $(CURDIR)/model/scripts/proto-go.sh --check
@@ -1478,9 +1479,9 @@ model-check: $(PROTOC_GEN_GO) $(API_BINPB)
 	@cd model && $(call RUST_MODEL_STEP,tests) mise exec -- cargo test --workspace --quiet
 	@cd model && $(call RUST_MODEL_STEP,wasm32-wasip1) mise exec -- cargo build --target wasm32-wasip1 -p umpire-dsl -p umpire-checker --quiet
 	@cd model && $(call RUST_MODEL_STEP,core-wasm-clippy) mise exec -- cargo clippy --target wasm32-wasip1 -p umpire-dsl -p umpire-checker --lib --locked -- -D warnings
-	@cd model && $(call RUST_MODEL_STEP,wasm-guest) mise exec -- cargo build -p umpire-stock-guest -p umpire-control-guest -p umpire-temporal-guest --all-features --target wasm32-wasip1 --release --locked --quiet
-	@cd model && target="$${CARGO_TARGET_DIR:-$$PWD/target}" && case "$$target" in /*) ;; *) target="$$PWD/$$target" ;; esac && UMPIRE_WASM="$$target/wasm32-wasip1/release/umpire_stock_guest.wasm" UMPIRE_STATEFUL_WASM="$$target/wasm32-wasip1/release/stateful_control.wasm" CGO_ENABLED=0 $(call RUST_MODEL_STEP,go-host) mise exec -- go -C "$$PWD/umpire/hosts/go" test -tags test_dep -count=1 ./...
-	@cd model && target="$${CARGO_TARGET_DIR:-$$PWD/target}" && case "$$target" in /*) ;; *) target="$$PWD/$$target" ;; esac && UMPIRE_TEMPORAL_WASM="$$target/wasm32-wasip1/release/umpire_temporal_guest.wasm" CGO_ENABLED=0 $(call RUST_MODEL_STEP,temporal-go-host) mise exec -- go -C "$$PWD/temporal/hosts/go" test -tags test_dep -count=1 ./...
+	@$(call RUST_MODEL_STEP,wasm-guest) /bin/bash $(CURDIR)/model/scripts/tests/build-guests.sh
+	@cd model && target="$${CARGO_TARGET_DIR:-$$PWD/target}" && case "$$target" in /*) ;; *) target="$$PWD/$$target" ;; esac && UMPIRE_WASM="$$target/wasm32-wasip1/guest/umpire_stock_guest.wasm" UMPIRE_STATEFUL_WASM="$$target/wasm32-wasip1/guest/stateful_control.wasm" UMPIRE_CAUGHT_PANIC_WASM="$$target/wasm32-wasip1/guest/caught_panic_control.wasm" UMPIRE_OVERFLOW_WASM="$$target/wasm32-wasip1/guest/overflow_control.wasm" UMPIRE_PANIC_NATIVE="$$target/panic-native" CGO_ENABLED=0 $(call RUST_MODEL_STEP,go-host) mise exec -- go -C "$$PWD/umpire/hosts/go" test -tags test_dep -count=1 ./...
+	@cd model && target="$${CARGO_TARGET_DIR:-$$PWD/target}" && case "$$target" in /*) ;; *) target="$$PWD/$$target" ;; esac && UMPIRE_TEMPORAL_WASM="$$target/wasm32-wasip1/guest/umpire_temporal_guest.wasm" CGO_ENABLED=0 $(call RUST_MODEL_STEP,temporal-go-host) mise exec -- go -C "$$PWD/temporal/hosts/go" test -tags test_dep -count=1 ./...
 
 model-fmt:
 	@$(RUST_MODEL_CARGO) fmt --all

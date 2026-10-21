@@ -1,0 +1,17 @@
+#!/usr/bin/env bash
+set -euo pipefail
+cd "$(dirname "$0")/../.."
+target=${CARGO_TARGET_DIR:-$PWD/target}
+mkdir -p "$target"
+target=$(cd "$target" && pwd -P)
+export CARGO_TARGET_DIR="$target"
+for pair in \
+  umpire-stock-guest:umpire_stock_guest \
+  umpire-control-guest:stateful_control \
+  umpire-temporal-guest:umpire_temporal_guest \
+  umpire-caught-panic-guest:caught_panic_control \
+  umpire-overflow-guest:overflow_control; do
+  bash scripts/guest.sh "${pair%%:*}" "$target/wasm32-wasip1/guest/${pair#*:}.wasm"
+done
+mise exec -- cargo run --locked --profile guest -p umpire-caught-panic-guest \
+  --bin panic-control-reports -- "$target/panic-native"

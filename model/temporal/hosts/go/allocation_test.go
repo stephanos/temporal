@@ -6,6 +6,7 @@ import (
 
 	"github.com/tetratelabs/wazero"
 	"github.com/tetratelabs/wazero/api"
+	"github.com/tetratelabs/wazero/experimental"
 	"github.com/tetratelabs/wazero/imports/wasi_snapshot_preview1"
 	enumspb "go.temporal.io/api/enums/v1"
 	"google.golang.org/protobuf/proto"
@@ -21,7 +22,9 @@ type rawGuest struct {
 func newRawGuest(t *testing.T) *rawGuest {
 	t.Helper()
 	ctx := context.Background()
-	runtime := wazero.NewRuntimeWithConfig(ctx, wazero.NewRuntimeConfig().WithMemoryLimitPages(1024))
+	runtime := wazero.NewRuntimeWithConfig(ctx, wazero.NewRuntimeConfigInterpreter().
+		WithCoreFeatures(api.CoreFeaturesV2|experimental.CoreFeaturesExceptionHandling).
+		WithMemoryLimitPages(1024))
 	t.Cleanup(func() {
 		if err := runtime.Close(ctx); err != nil {
 			t.Error(err)

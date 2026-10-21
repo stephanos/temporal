@@ -12,13 +12,15 @@ import (
 
 	"github.com/tetratelabs/wazero"
 	"github.com/tetratelabs/wazero/api"
+	"github.com/tetratelabs/wazero/experimental"
 	"google.golang.org/protobuf/proto"
 	modelv1 "umpire.local/model/umpire/model/v1"
 )
 
 func TestGuestExports(t *testing.T) {
 	ctx := context.Background()
-	r := wazero.NewRuntime(ctx)
+	r := wazero.NewRuntimeWithConfig(ctx, wazero.NewRuntimeConfigInterpreter().
+		WithCoreFeatures(api.CoreFeaturesV2|experimental.CoreFeaturesExceptionHandling))
 	defer func() {
 		if err := r.Close(ctx); err != nil {
 			t.Error(err)
@@ -577,7 +579,7 @@ func guestBytes(t testing.TB) []byte {
 		if target == "" {
 			target = "../../../target"
 		}
-		path = filepath.Join(target, "wasm32-wasip1/release/umpire_stock_guest.wasm")
+		path = filepath.Join(target, "wasm32-wasip1/guest/umpire_stock_guest.wasm")
 	}
 	data, err := os.ReadFile(path)
 	if err != nil {
