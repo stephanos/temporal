@@ -1,0 +1,123 @@
+{
+  "effort": "high",
+  "findings": {
+    "backend": "codex",
+    "baseSha": "6875191ef7d7ea191549150812c3b7b36507215c",
+    "headSha": "5e7fdb915fe54e03b533113c05a1d7e4403046d6",
+    "items": [
+      {
+        "body": "The specified witness cannot reproduce the existing goldens. Current `expected/rows.snap.txt` includes ScheduleToStart and StartToClose edges reaching TimedOut. R4 selects a world with no timeouts, and R5 disables Tick there. Adding `attempt` and action inputs also changes the state/action renderings pinned by those snapshots. The epic acknowledges this conflict but leaves the impossible acceptance criterion intact.",
+        "classification": "introduced",
+        "confidence": 100,
+        "firstSeenReceiptId": "review-bf539facb712e2da93abc548f50e3e2e18ee0e768cee7d73c17a663121ea18c6",
+        "id": "finding-f8efb300df0d5792df9e4954136be88d",
+        "lastSeenReceiptId": "review-91cdb26645eab06772c137f0bb55933f338755048fea0eee82a9c57be8272bac",
+        "ordinal": 1,
+        "rIds": [
+          "R4",
+          "R5"
+        ],
+        "severity": "P0",
+        "status": "fixed",
+        "suggestion": "Resolve the compatibility witness before the activity rewrite. State an executable check that satisfies the recorded compatibility decision, including deadline edges and rendering identity, and reconcile it across R4, R5 and task .3.",
+        "title": "The specified witness cannot reproduce the existing goldens"
+      },
+      {
+        "body": "Task .5 still instructs the implementer to read cancellation type from Start options. The current Start request mirror has no such field, and the epic explicitly confirms that neither the request nor standalone SDK options supplies it. Consequently, the task cannot construct `asynchronous_cancel` from its stated evidence without inventing a value or source.",
+        "classification": "introduced",
+        "confidence": 100,
+        "firstSeenReceiptId": "review-bf539facb712e2da93abc548f50e3e2e18ee0e768cee7d73c17a663121ea18c6",
+        "id": "finding-6fbf1a0a05ccd75fb42ee3da171661a0",
+        "lastSeenReceiptId": "review-91cdb26645eab06772c137f0bb55933f338755048fea0eee82a9c57be8272bac",
+        "ordinal": 3,
+        "rIds": [
+          "R6"
+        ],
+        "severity": "P1",
+        "status": "fixed",
+        "suggestion": "Identify the authorized evidence source and its transport before task .5, then update its construction contract and tests. Merely recording this as an open question does not make the current construction instruction executable.",
+        "title": "Task"
+      },
+      {
+        "body": "The task requires reading an observed Start request but defines no route for delivering it. `Observation` contains only method and response/error; `StartActivityExecutionResponse` supplies no activity options. Furthermore, `Realize::observe` cannot replace the runtime\u2019s private machine, and `Runtime::prepare` discards transactions on refusals. Implementing the task as a realization mapper cannot install the selected World or return Unsupported while committing the required freeze. The epic\u2019s transactional-admission requirements are absent from the task\u2019s approach and acceptance controls.",
+        "classification": "introduced",
+        "confidence": 75,
+        "firstSeenReceiptId": "review-bf539facb712e2da93abc548f50e3e2e18ee0e768cee7d73c17a663121ea18c6",
+        "id": "finding-f21416d253876339b8ec69873af8c40a",
+        "lastSeenReceiptId": "review-91cdb26645eab06772c137f0bb55933f338755048fea0eee82a9c57be8272bac",
+        "ordinal": 2,
+        "rIds": [
+          "R6"
+        ],
+        "severity": "P1",
+        "status": "fixed",
+        "suggestion": "Specify how the actual request and successful result reach admission within the envelope constraint. Carry World installation, exploration invalidation, admission-specific freezing and publication rollback into task .5, with controls for failed starts, failed publication and subsequent operations.",
+        "title": "The task requires reading an observed Start request but defines no route for delivering it"
+      },
+      {
+        "body": "The task requires an expired-deadline fact without defining or assigning the necessary authoring support. Generated machines currently hard-code `Fact = ()`, require handlers to return nothing, and emit empty fact vectors. The lifter likewise emits `__umpire_facts' = <<>>`. Changing only the activity state and handlers cannot meet R5; emitting facts only natively also breaks backend replay\u2019s outcome/fact comparison.",
+        "classification": "introduced",
+        "confidence": 75,
+        "firstSeenReceiptId": "review-bf539facb712e2da93abc548f50e3e2e18ee0e768cee7d73c17a663121ea18c6",
+        "id": "finding-0fe2015bc23056417b1b1e46d82f070e",
+        "lastSeenReceiptId": "review-91cdb26645eab06772c137f0bb55933f338755048fea0eee82a9c57be8272bac",
+        "ordinal": 4,
+        "rIds": [
+          "R5"
+        ],
+        "severity": "P1",
+        "status": "fixed",
+        "suggestion": "Specify the narrow deadline-fact authoring contract and include its macro, source-lowering and replay work. Require matching native/TLC facts for each expiration and empty facts for ordinary transitions.",
+        "title": "The task requires an expired-deadline fact without defining or assigning the necessary authoring support"
+      },
+      {
+        "body": "Task .4 introduces `Option<Ticks>` and requires TLC verification, but no task specifies their source representation or expression lowering. The current lifter admits scalar integers, bools, fieldless enums and vectors; `Environment::ty` refuses `Option<Ticks>`. Task .7 binds values using that existing representation, while .2\u2019s native range-newtype support does not establish optional-value lifting. Following the stated approaches leaves the timeout Model refused by TLC.",
+        "classification": "introduced",
+        "confidence": 75,
+        "firstSeenReceiptId": "review-bf539facb712e2da93abc548f50e3e2e18ee0e768cee7d73c17a663121ea18c6",
+        "id": "finding-977cb609f850d1d6ef9ba6272f7e4052",
+        "lastSeenReceiptId": "review-91cdb26645eab06772c137f0bb55933f338755048fea0eee82a9c57be8272bac",
+        "ordinal": 5,
+        "rIds": [
+          "R3",
+          "R5"
+        ],
+        "severity": "P1",
+        "status": "fixed",
+        "suggestion": "Assign the concrete `Option<Ticks>` admission, binding, expression and decoding behavior within the existing tasks, with None/Some backend controls. Define the bounded tick representation without introducing general-purpose algebraic-type support.",
+        "title": "Task"
+      },
+      {
+        "body": "Architecture places `#[domain]` on the variant, while API Contracts and task .2 place it on fields. These produce different authoring syntax and different meanings for multi-field variants.",
+        "classification": "introduced",
+        "confidence": 100,
+        "firstSeenReceiptId": "review-bf539facb712e2da93abc548f50e3e2e18ee0e768cee7d73c17a663121ea18c6",
+        "id": "finding-3c29cd5d4ed2b281a3ed45265cbbb170",
+        "lastSeenReceiptId": "review-91cdb26645eab06772c137f0bb55933f338755048fea0eee82a9c57be8272bac",
+        "ordinal": 6,
+        "rIds": [
+          "R2"
+        ],
+        "severity": "P2",
+        "status": "fixed",
+        "suggestion": "Choose one placement, define the iterator item type, and align the epic, task and compile controls.",
+        "title": "Architecture places `#[domain]` on the variant, while API Contracts and task"
+      }
+    ],
+    "reviewKind": "plan",
+    "round": 2,
+    "schemaVersion": 1,
+    "sourceReceiptId": "review-91cdb26645eab06772c137f0bb55933f338755048fea0eee82a9c57be8272bac",
+    "supersedesReceiptId": "review-bf539facb712e2da93abc548f50e3e2e18ee0e768cee7d73c17a663121ea18c6"
+  },
+  "id": "fn-227-parameterized-models-declared-worlds",
+  "mode": "codex",
+  "model": "gpt-6.1-sol",
+  "review": "Prior finding #1: fixed\nPrior finding #2: fixed\nPrior finding #3: fixed\nPrior finding #4: fixed\nPrior finding #5: fixed\nPrior finding #6: fixed\n\nThe updated epic and tasks consistently cover the approved lifecycle-refinement witness, request capture, transactional admission, protocol-sourced cancellation, optional deadline facts, bounded optional values and field-level domains. No new blocking findings identified.\n\nVerification is stated through compile/refusal controls, native goldens, independent TLC translation, mutation tests, replay and live SDK evidence. Task scopes and prerequisite ordering are explicit. Overlapping Touches\u2014including .2/.9 and .8/.10\u2014require the recorded serial scheduling. Live timing logs, publication/allocation controls, privacy checks and performance reporting cover observability and non-functional requirements.\n\nmaintainability:\n  duplication: none identified\n  structure: none identified\n\n```json\n{\"unaddressed\":[]}\n```\n\n<verdict>SHIP</verdict> - Plan is solid, ready to implement\n",
+  "review_reservation_id": "355c7b5e51cb4f8ab36a336ed949ce6c",
+  "session_id": "01a15ea6-c45d-7d01-b74c-ea7c7829f57e",
+  "spec": "codex:gpt-6.1-sol:high",
+  "timestamp": "2026-10-21T16:24:48.428225Z",
+  "type": "plan_review",
+  "verdict": "SHIP"
+}

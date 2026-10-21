@@ -1,5 +1,7 @@
 # Parameterized Models: declared worlds, action inputs, and the activity Model with retries and timeouts (model, temporal)
 
+> HTML render lens: local `.flow/artifacts/fn-227-parameterized-models-declared-worlds/spec.html` - regenerable, markdown is the record. <!-- flow-next:artifact-link -->
+
 ## Conversation Evidence
 
 > user (2026-10-20): "for model/ ie umpire; after the filed specs what should we do next?"
@@ -105,11 +107,13 @@ Rejected: a sibling activity Model beside the six-phase one (breadth over depth,
 
 The three owner contract decisions are resolved. The intentional task set now has twelve checkpoints, preserving all seven original IDs and every R-ID. Independent input-source/fairness, facts, optional values, phase/rejection admission and request capture are separately assigned before their consumers. The source/native bounds distinction is explicit: checked scalar construction and consumer-owned admission do not imply automatic native range validation. Current task briefs supersede earlier engineering notes that proposed such validation or still called the approved amendments pending.
 
-Native World is complete. Independent source World work may proceed under its task-scoped gates, while the revised parent plan awaits its next formal verdict. Later input/activity/live tasks require their recorded dependencies and review/admission checks. No implementation may reconstruct request evidence, fabricate a Start cancellation field, weaken old laws, substitute native exploration for independent source semantics or count union fairness as exact-payload fairness.
+Native World is complete, and the revised parent plan passed formal review. Independent source World is next under its task-scoped gates. Later input/activity/live tasks require their recorded dependencies and review/admission checks. No implementation may reconstruct request evidence, fabricate a Start cancellation field, weaken old laws, substitute native exploration for independent source semantics or count union fairness as exact-payload fairness.
 
 ## Plan review follow-up
 
-The first formal plan review returned NEEDS_WORK on 2026-10-21, session 01a15ea6-c45d-7d01-b74c-ea7c7829f57e, actual gpt-6.1-sol/high. It reported six findings across R2-R6 and no maintainability findings. Field-level domain placement is consistent. Follow-up parallel scouts supplied source-grounded contracts for zero-or-one deadline facts, bounded optional ticks and whole-Runtime admission through Temporal Dispatch. The owner approved the three amendments, and the revised twelve-task decomposition assigns their support and consumer controls. A subsequent plan verdict is still required before activity/live admission. Native task .1 completed independently; its SHIP implementation review is separate from this parent plan review. Preserve both review histories and counters.
+The first formal plan review returned NEEDS_WORK on 2026-10-21, session 01a15ea6-c45d-7d01-b74c-ea7c7829f57e, actual gpt-6.1-sol/high. It reported six findings across R2-R6 and no maintainability findings. Field-level domain placement is consistent. Follow-up parallel scouts supplied source-grounded contracts for zero-or-one deadline facts, bounded optional ticks and whole-Runtime admission through Temporal Dispatch. The owner approved the three amendments, and the revised twelve-task decomposition assigns their support and consumer controls. Native task .1 completed independently; its SHIP implementation review is separate from the parent plan review.
+
+Round two returned SHIP at 2026-10-21T16:24:48.428225Z on the same session, actual gpt-6.1-sol/high. The reviewer marked all six prior findings fixed, found no new blockers and reported no maintainability findings. Task prerequisites, scope and serial scheduling remain binding. Both review rounds are retained; the CLI's normal SHIP transition owns the cumulative counter reset, with no manual reset or force override.
 
 The reviewer independently confirmed that the original literal witness was impossible because the old graph has enabled deadline actions and the new Model adds state/input spelling. The approved replacement is an executable semantic-refinement witness with the compatibility World specified in R4, a stated state/action/fact projection and exact comparison against the retained old lifecycle graph. Preserve the original graph/goldens as evidence. Hiding fields, keeping files without a proof, or removing old edges does not discharge the amended requirement. The retry checkpoint establishes its projection with the retained deadline behavior; the timeout checkpoint re-runs the proof with the final one-tick compatibility World.
 

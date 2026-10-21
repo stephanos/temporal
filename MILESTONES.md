@@ -106,8 +106,8 @@ The realization reads the world from the observed start
 request and the live slice proves one retry then completion. The lifter admits `impl Phased` and
 `reject!` so TLC checks the activity Model.
 The native World checkpoint is complete locally with SHIP review, all three final gates
-and unchanged original artifacts. Source/TLC binding in .7 is next; parent plan review
-remains NEEDS_WORK. Final timing was 93.288s against the 30s soft target, with a 5.035s inner loop.
+and unchanged original artifacts. Source/TLC binding in .7 is next; the revised parent
+plan passed SHIP review. Final timing was 93.288s against the 30s soft target, with a 5.035s inner loop.
 On 2026-10-21 the owner approved all three contract amendments: lifecycle refinement
 in place of impossible old-byte equality; cooperative cancellation with explicit protocol
 evidence; and optional actual-request Observation evidence at tag 4. Heartbeat signals a
@@ -115,7 +115,7 @@ pending request without closing, and completion/failure races remain. Preserve o
 evidence and prove the stated projection, including the final one-tick compatibility World.
 The twelve-task decomposition separates native/source inputs, facts, optional ticks,
 phase/rejection lifting and request capture from their activity/live consumers.
-It still needs the next parent plan verdict before those consumers are admitted.
+The review passed; each consumer still waits for its declared support dependencies.
 [Spec](.flow/specs/fn-227-parameterized-models-declared-worlds.md).
 
 | Name | Status | What |

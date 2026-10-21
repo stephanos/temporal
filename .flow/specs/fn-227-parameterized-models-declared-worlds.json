@@ -15,9 +15,9 @@
     "fn-227-parameterized-models-declared-worlds.1": 0
   },
   "next_task": 1,
-  "plan_review_rounds": 1,
-  "plan_review_status": "needs_work",
-  "plan_reviewed_at": "2026-10-21T13:34:37.865039Z",
+  "plan_review_rounds": 0,
+  "plan_review_status": "ship",
+  "plan_reviewed_at": "2026-10-21T16:24:48.439136Z",
   "review_attempts": [
     {
       "artifact_sha256": "fbc6e5606200a2340951ed2b5a57f3fbe5fa41fdaba1af53df9461d76b3c8e38",
@@ -239,10 +239,96 @@
       "task": "fn-227-parameterized-models-declared-worlds.1",
       "timestamp": "2026-10-21T15:48:14.377915Z",
       "verdict": "SHIP"
+    },
+    {
+      "artifact_sha256": "77b899dda4890090d3bbbbb24e85a06fcb8dff219e1592d62409982f37576fc8",
+      "backend": "codex",
+      "base_sha": "6875191ef7d7ea191549150812c3b7b36507215c",
+      "counter_kind": "plan",
+      "effort": "high",
+      "failure_class": null,
+      "finalized": {
+        "digest": "complete",
+        "receipt": "complete",
+        "status": "complete"
+      },
+      "findings_digest": {
+        "backend": "codex",
+        "digest_truncated": false,
+        "items": [
+          {
+            "chainRoot": "finding-f8efb300df0d5792df9e4954136be88d",
+            "classification": "introduced",
+            "findingId": "finding-f8efb300df0d5792df9e4954136be88d",
+            "firstSeenThisRound": false,
+            "severity": "P0",
+            "status": "fixed"
+          },
+          {
+            "chainRoot": "finding-6fbf1a0a05ccd75fb42ee3da171661a0",
+            "classification": "introduced",
+            "findingId": "finding-6fbf1a0a05ccd75fb42ee3da171661a0",
+            "firstSeenThisRound": false,
+            "severity": "P1",
+            "status": "fixed"
+          },
+          {
+            "chainRoot": "finding-f21416d253876339b8ec69873af8c40a",
+            "classification": "introduced",
+            "findingId": "finding-f21416d253876339b8ec69873af8c40a",
+            "firstSeenThisRound": false,
+            "severity": "P1",
+            "status": "fixed"
+          },
+          {
+            "chainRoot": "finding-0fe2015bc23056417b1b1e46d82f070e",
+            "classification": "introduced",
+            "findingId": "finding-0fe2015bc23056417b1b1e46d82f070e",
+            "firstSeenThisRound": false,
+            "severity": "P1",
+            "status": "fixed"
+          },
+          {
+            "chainRoot": "finding-977cb609f850d1d6ef9ba6272f7e4052",
+            "classification": "introduced",
+            "findingId": "finding-977cb609f850d1d6ef9ba6272f7e4052",
+            "firstSeenThisRound": false,
+            "severity": "P1",
+            "status": "fixed"
+          },
+          {
+            "chainRoot": "finding-3c29cd5d4ed2b281a3ed45265cbbb170",
+            "classification": "introduced",
+            "findingId": "finding-3c29cd5d4ed2b281a3ed45265cbbb170",
+            "firstSeenThisRound": false,
+            "severity": "P2",
+            "status": "fixed"
+          }
+        ],
+        "reviewKind": "plan"
+      },
+      "forced": false,
+      "hash_epoch": 0,
+      "head_sha": "5e7fdb915fe54e03b533113c05a1d7e4403046d6",
+      "head_sha_observed": true,
+      "kind": "plan",
+      "model": "gpt-6.1-sol",
+      "outcome": "verdict",
+      "output_bytes": 1026,
+      "output_sha256": "a96ea777ac43e24441e1c9675df85f2c42aa91928728cc90643c5957058787b1",
+      "reservation_id": "355c7b5e51cb4f8ab36a336ed949ce6c",
+      "round_consumed": true,
+      "scope": "plan",
+      "superseded_by": null,
+      "task": null,
+      "timestamp": "2026-10-21T16:24:48.432337Z",
+      "verdict": "SHIP"
     }
   ],
   "review_hash_epoch": {
-    "impl:fn-227-parameterized-models-declared-worlds.1": 1
+    "impl:fn-227-parameterized-models-declared-worlds.1": 1,
+    "plan": 1,
+    "plan#completion": 0
   },
   "review_pending_rounds": {},
   "review_reservations": {},
@@ -264,5 +350,5 @@
     "mergeBaseTracker": null,
     "url": null
   },
-  "updated_at": "2026-10-21T16:21:26.070408Z"
+  "updated_at": "2026-10-21T16:28:06.795647Z"
 }

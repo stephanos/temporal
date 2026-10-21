@@ -41,7 +41,10 @@ existential source operator would let a stale payload discharge another
 payload's fairness. I therefore owns finite concrete specialization and a real
 starvation control; P/.4 consume it, including rejection and retry cases.
 
-The revised parent still awaits formal re-review on its original session and
-counter. Overlapping source/guest/codegen/cache ownership remains serial despite
+The revised parent passed round-two SHIP on its original session at
+2026-10-21T16:24:48.428225Z, actual gpt-6.1-sol/high. All six earlier findings
+were fixed, with no new blockers or maintainability findings. The normal CLI
+SHIP transition reset the cumulative counter; both rounds remain in history.
+Overlapping source/guest/codegen/cache ownership remains serial despite
 dependency-level parallel candidates. All canonical writes used Flow CLI;
 drafts and read-only investigation reports remain ignored under .flow/tmp.
