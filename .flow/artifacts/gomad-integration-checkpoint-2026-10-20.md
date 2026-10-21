@@ -1040,3 +1040,24 @@ integrated7d44. fn232.3 remains in_progress until SHIP. The store-fix donor
 worktree is clean ate9d5, with no live worker commands and its shared RELEASE
 Cargo lease released. Retain that tree until review resolves. Other open
 tasks and acceptance gaps remain unchanged; no new task was admitted.
+
+Independent re-review returned SHIP for .3 R3/R14 with no new findings.
+The retained receipt is `/home/agent/wt/evidence/fn232-store-fix/independent-review.md`,
+SHA256 `1cce228760eeac7e079cb1a4fd7abfebf4c0a41d43d04288af512f1ac076a7f3`.
+Root read the receipt, completed .3 through Flow, verified done and committed
+its task receipt/milestone removal at47d27e1d8f. Flow spec validation remains
+valid with zero errors/warnings; tracker sync remains inactive. fn232.2/.3/.4/.5
+are done. fn232 itself remains open with .1/.6/.7/.8/.9 in_progress and
+.10-.13 todo. Minimizer own-scope ACCEPT still does not waive its expressly
+retained .8 acceptance prerequisite.
+
+Root removed its clean inactive `/home/agent/wt/fn232-store-fix` worktree after
+the worker and reviewer finished, `lsof +D` found no open files, and git cherry
+confirmed all three donor patches equivalent to integrated commits. Git's
+worktree registry was pruned. The branch `fn232-store-fix` remains ate9d5 and
+required raw/binary/review evidence remains under open fn232 ownership. The
+checkout can be recreated from Git; no required evidence was deleted. No Cargo
+lease remains assigned. Registered worktrees are the preceding list minus
+fn232-store-fix, with their previously recorded open-owner retention reasons.
+Free space is24GiB overlay/32GiB host. Unrelated `tools/gomad/.turbo/` remains
+untouched. No push, PR, CI dispatch or qualification claim occurred.
