@@ -107,6 +107,9 @@ feed binding, native checking and same-World TLC replay across all five CFG fami
 new `parameterized_world` fixture and unchanged baseline goldens and guest. Its second review
 passed after World integers outside TLC's `.cfg` range became located refusals. Final timing
 was 52.327s against the 30s soft target, with a 7.362s inner loop.
+Native `Finite`, World-dependent `#[domain]` inputs and checked catalog admission (.2) are
+complete locally with SHIP review, required/timing gates and the refreshed guest's live slice
+and gap proof; timing 56.276s gate, 9.852s inner loop (just under its 10s target).
 On 2026-10-21 the owner approved all three contract amendments: lifecycle refinement
 in place of impossible old-byte equality; cooperative cancellation with explicit protocol
 evidence; and optional actual-request Observation evidence at tag 4. Heartbeat signals a
@@ -119,8 +122,7 @@ The review passed; each consumer still waits for its declared support dependenci
 
 | Name | Status | What |
 | --- | --- | --- |
-| fn-227.2 | 🔄 in progress | After .1 and .7: native `Finite`, typed World-dependent domains and checked catalog admission (R2) |
-| fn-227.8 | ⬜ todo | After .2 and .7: independent source inputs, exact-payload fairness and `action_inputs` TLC proof (R2, R3) |
+| fn-227.8 | 🔄 in progress | After .2 and .7: independent source inputs, exact-payload fairness and `action_inputs` TLC proof (R2, R3) |
 | fn-227.11 | ⬜ todo | After .8: source `Phased`/`reject!` and closure laws, with unchanged activity behavior (R3) |
 | fn-227.3 | ⬜ todo | After .2 and .11: activity attempts/retryable failure and retained-lifecycle refinement (R3, R4) |
 | fn-227.9 | ⬜ todo | After .7: optional handler facts through native adapters, independent source and TLC replay (R3, R5) |

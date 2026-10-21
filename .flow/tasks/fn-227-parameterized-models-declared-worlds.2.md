@@ -61,9 +61,16 @@ If linked guest bytes change, use the existing `make umpire-guest` builder, reta
 - [ ] Quick/full gates, old-artifact comparison, timings and any changed-guest live proof are retained. Native .2 is a checkpoint only: I remains required for the shared action_inputs fixture, source lowering, exact-payload source fairness, TLC and final R2/R3 evidence.
 
 ## Done summary
-TBD
+Native `Finite` (bool, fieldless enums, one-range integer newtypes via `derive(Finite)` with `try_new`/`contains`), World-dependent action domains through field `#[domain(path)]` with `ActorValue` and `actions_in(&world)` (wildcards without a World refuse at compile time), and checked catalog admission: `Machine::checked_catalog(limit)` counts every domain before constructing actions (default 4096; `Checker::explore_within`, `Space::catalog_limit`), threaded through checker, progress revalidation, suite, wasm runtime (existing `Budget` refusal) and backend. Overflow and over-limit are distinct refusals; no handler runs on refusal; empty variants report vacuity.
 
+Owner-behalf decisions (reviewed sound): bool is Finite, so `non_unit_internal.stderr` loses its bool error; outcome filters keep `T: Actor`; `#[domain]` requires a declared World; no silent fallback without a World; lazy Finite re-enumeration.
+
+Follow-ups carried forward (review, non-blocking): M1 `path!` outcome filters on actors with `#[domain]` fields need the bound relaxed to `ActorValue` when .8/.3 first needs it (regenerating `path_language_outcome_state.stderr`); L1 strengthen the progress-revalidation limit test; L2 newtype range parser accepts only literals; L3 hand-written huge Finite hangs admission; L4 missing tests (empty range, non-literal bound, enum-level `#[domain]`, backend replay through checked catalog, fault/internal actor with `#[domain]`); L5 `.internal()` ambiguity if both traits imported.
+
+Review: SHIP (.flow/tmp/fn2272-review.md). Gates: Quick default/required; `UMPIRE_BACKENDS=require make model-check` 416s; `make model-time` 56.276s gate / 9.852s inner loop; `make umpire-check-model-slice` 94s; `make umpire-check-model-gaps` 401s. Guest refreshed to 3,332,182 bytes, sha256 81cc0594d0e5c99fb2ae4deeae387347513c7defce2c69b7623537b8ed1dc5b0.
+
+stage: plan-sync - skipped(config: planSync.enabled != true)
 ## Evidence
-- Commits:
-- Tests:
+- Commits: cabe589636, cba0503137
+- Tests: mise exec -- cargo test --workspace, UMPIRE_BACKENDS=require make model-check, make model-time, make umpire-check-model-slice, make umpire-check-model-gaps
 - PRs:
