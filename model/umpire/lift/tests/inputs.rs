@@ -300,6 +300,9 @@ fn unsupported_input_sources_refuse_by_location() -> Result<(), Box<dyn std::err
             "#[invariant]",
             "#[postcondition(after = User::Take)] fn after(&self) { check!(true); }\n#[invariant]",
         ),
+        // Generated relation names collide with an authored variant or obligation prefix.
+        ("Hold,", "Hold, Set_At,"),
+        ("const limit: u8 = 3;", "const limit: u8 = 3; const Fair_paints_User_Set_9: u8 = 0;"),
     ] {
         let source = INPUTS.replace(from, to);
         assert_ne!(source, INPUTS, "mutation target missing: {from}");
@@ -308,5 +311,44 @@ fn unsupported_input_sources_refuse_by_location() -> Result<(), Box<dyn std::err
             .ok_or_else(|| format!("unsupported input source admitted: {to}"))?;
         located(&error);
     }
+    Ok(())
+}
+
+#[test]
+fn the_catalog_limit_admits_its_boundary_and_refuses_one_more()
+-> Result<(), Box<dyn std::error::Error>> {
+    // Nine static actions plus the World-sized Take variant.
+    let boundary = INPUTS.replace("Hold,", "Hold, Big(#[inputs(0..=4086)] u16),");
+    let lifted = Lift::parse("picks/model.rs", &boundary)?;
+    let big = |actions: &mut Vec<Concrete>| {
+        actions.extend((0..=4086).map(|value| Concrete {
+            action: "User::Big".into(),
+            fields: vec![("0".into(), Literal::Int(value))],
+        }));
+    };
+    let mut selected = binding(0);
+    big(&mut selected.actions);
+    assert_eq!(Tla::emit(&lifted.bind(&selected)?)?.metadata.catalog.len(), 4096);
+    let mut over = binding(1);
+    big(&mut over.actions);
+    let error = lifted.bind(&over).err().ok_or("4097 actions admitted")?;
+    located(&error);
+    assert!(error.message.contains("has 4097 concrete actions, above the limit 4096"), "{error}");
+    let error = Lift::parse("picks/model.rs", &boundary.replace("0..=4086", "0..=4087"))
+        .err()
+        .ok_or("4097 static actions admitted")?;
+    located(&error);
+    assert!(error.message.contains("has 4097 concrete actions"), "{error}");
+    Ok(())
+}
+
+#[test]
+fn internal_payload_actors_keep_their_classification() -> Result<(), Box<dyn std::error::Error>> {
+    let source =
+        INPUTS.replace("#[derive(Action)] enum User", "#[derive(Action)] #[internal] enum User");
+    let module = Tla::emit(&Lift::parse("picks/model.rs", &source)?.bind(&binding(2))?)?;
+    assert!(module.metadata.actions.iter().all(|action| action.internal));
+    assert_eq!(module.metadata.actions[0].fields.len(), 2);
+    assert!(!module.tla.contains("WF_vars(User_Set)"));
     Ok(())
 }
