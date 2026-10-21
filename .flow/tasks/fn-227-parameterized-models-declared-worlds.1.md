@@ -41,9 +41,26 @@ Full from repository root: `make model-check`, `UMPIRE_BACKENDS=require make mod
 - [ ] Computed starts preserve whole-state correlation, stable first occurrence, duplicate deduplication and empty starts without irrelevant Default bounds. Trybuild pins duplicate World, mixed starts (including empty static ranges) and wrong-position World; old field-start expansions remain byte-identical.
 - [ ] Explicit native suite binding retains one owned World through verify/refuted/find/cover/sample and retained Runs, including empty starts and after the source variable leaves scope. Two values of one World type change starts/guards and a claim verdict; mismatched World/state fails typing. Quick/full gates and old-artifact baseline comparison pass, timings and any regenerated-guest live proof are retained. Source/TLC completion remains assigned to the dependent source task.
 ## Done summary
-TBD
+Native model authors can declare a typed World, use computed correlated starts and trailing World callbacks, and retain one owned World through suite queries and Run rows. The additive Associated bridge preserves manual/unit registration, while Space<S, W = ()> preserves legacy unconstrained configuration, inference and auto-traits.
 
+Tier: session (jev-unavailable(no_key)); project implementer pin retained
+
+Baseline was fresh green for the literal Quick command and all three full gates. Final Quick, formatting, strict scoped clippy, make model-check, UMPIRE_BACKENDS=require make model-check and make model-time all exited 0. Required-backend wall time was 182.436s. Final timing was 93.288s for the gate (30s soft target missed) and 5.035s for the inner loop (10s met). All three normal full-gate receipts were checked HONORED at 155a7b29; no full gate was skipped.
+
+All 571 original artifacts and 101 original UI diagnostics match their pinned hashes and Git metadata. The guest remains 3,329,990 bytes with SHA-256 10724102d03e1659f28b07c3a0c848d2cac5876668f3be9261d0a3b65023cf06. The gaps golden remains 879,197 bytes with SHA-256 a3974ea8da0f3c46234770068fe0f163d5e17529b275cea086c2292a124284a0. No regenerated-guest live gate or cross-OS identity proof is claimed.
+
+Full commands, raw-log paths/hashes, RED/GREEN controls and audit reports are retained under .flow/artifacts/fn-227-parameterized-models-declared-worlds/task-1-{verification,audits,review-resolution}.md. Permanent formal receipts and verbatim reports are task-1-review-round1-* and task-1-review-round2-*. The canonical continuity receipt is /tmp/impl-review-receipt-8f37faba39e2-fn-227-parameterized-models-declared-worlds.1.json.
+
+stage: impl-review - ran [2026-10-21T15:18:48.593876Z..2026-10-21T15:48:14.374964Z] (codex:gpt-6.1-sol:high; NEEDS_WORK then SHIP; two rounds, same-family review)
+stage: quality-audits - ran (correctness and standards; frozen-range reports and rechecks preserved)
+stage: memory - ran (bug/build-errors/preserve-generic-declaration-context-in-2026-10-21)
+stage: plan-sync - skipped(config: planSync.enabled=false)
+stage: qa - skipped(config: pipeline.qa=off)
+
+Base is a76c3581620c39d8ccb760bc4af34d4c24b1d618; executable source ends at f0adb5afdb659614cf418a7f420106a85718ba06. Interleaved bbf0835fbf3f536a954adae8dca3ef19795627d4 and 155a7b295990f457cd85ec9e77ecfd18a1cc96eb are root-owned parent-contract and foreign fn232 evidence/documentation commits, excluded from native ownership. The evidence range retains this provenance; the later closure receipt is committed separately.
+
+Only this native checkpoint is complete. Source lifting, private-field projection and the shared native/TLC fixture remain task .7; parent R1/R3 and the parent plan stay open. Authored field privacy is preserved with no reflection/getter catalog. Both task worktrees were integrated and removed normally, foreign fn233 files were preserved, and all worker commands are terminal. Root's explicit incremental-cache cleanup sublease is recorded in .flow/tmp/fn2271-incremental-cleanup.md; final free space was 34GiB. Source/index/cache leases return to root at handback.
 ## Evidence
-- Commits:
-- Tests:
+- Commits: c3d85d9cf9387b3aaa7fdf44b5c399c91d4c6530, b5b91b4f82d46ea3e4c40b11e0a7b77bc5d1e865, 9147fbdf6b81869bc8141ac120458509ac5f30b3, 8d429e97409b1537ecb347c359129bffafa63f78, f0adb5afdb659614cf418a7f420106a85718ba06, bbf0835fbf3f536a954adae8dca3ef19795627d4, 155a7b295990f457cd85ec9e77ecfd18a1cc96eb, bc6afeba8e37262d8908a92019ced32ac005a34b
+- Tests: cd model && mise exec -- cargo test -p umpire-dsl-macros -p umpire-dsl -p umpire-suite, cd model && cargo clippy -p umpire-dsl-macros -p umpire-dsl -p umpire-suite --all-targets --all-features -- -D warnings, cd model && cargo fmt --all --check, make model-check, UMPIRE_BACKENDS=require make model-check, make model-time, sha256sum -c .flow/artifacts/fn-227-parameterized-models-declared-worlds/original-artifacts.sha256, sha256sum -c .flow/tmp/fn2271-original-ui.sha256, git diff --check
 - PRs:
