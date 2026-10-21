@@ -149,6 +149,9 @@ pub struct Model {
     nodes: BTreeMap<String, history::NodeSnapshot>,
     links: BTreeMap<String, history::Link>,
     pub(crate) live: BTreeMap<String, Domain>,
+    #[cfg(not(test))]
+    transitions: Vec<history::Transition>,
+    #[cfg(test)]
     pub(crate) transitions: Vec<history::Transition>,
     inspection_history: history::InspectionHistory,
     listeners: Vec<Listener>,
