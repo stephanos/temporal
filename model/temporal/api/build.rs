@@ -9,6 +9,7 @@ use std::{
 use umpire_temporal_annotate_syntax::{
     catalogs,
     descriptor::{self, Coverage},
+    realization::catalog_inputs as declaration_inputs,
     services::{Classification, classifications},
 };
 
@@ -76,36 +77,30 @@ fn catalog_inputs(
     coverage: &mut Coverage,
     service_classifications: &mut Vec<Classification>,
 ) -> io::Result<()> {
-    println!("cargo:rerun-if-changed={}", path.display());
     if !path.exists() {
+        println!("cargo:rerun-if-changed={}", path.display());
         return Ok(());
     }
-    let mut entries: Vec<_> = fs::read_dir(path)?.collect::<Result<_, _>>()?;
-    entries.sort_by_key(fs::DirEntry::path);
-    for entry in entries {
-        let path = entry.path();
-        if entry.file_type()?.is_dir() {
-            catalog_inputs(&path, coverage, service_classifications)?;
-        } else if path
-            .file_name()
-            .is_some_and(|name| name == "api.rs" || name == "enum_inventory.rs")
+    let inputs = declaration_inputs(path).map_err(io::Error::other)?;
+    for directory in inputs.directories {
+        println!("cargo:rerun-if-changed={}", directory.display());
+    }
+    for path in inputs.files {
+        println!("cargo:rerun-if-changed={}", path.display());
+        let source = fs::read_to_string(&path)?;
+        for catalog in catalogs(&source)
+            .map_err(|error| io::Error::other(format!("{}: {error}", path.display())))?
         {
-            println!("cargo:rerun-if-changed={}", path.display());
-            let source = fs::read_to_string(&path)?;
-            for catalog in catalogs(&source)
-                .map_err(|error| io::Error::other(format!("{}: {error}", path.display())))?
-            {
-                let projected = catalog.coverage();
-                coverage.messages.extend(projected.messages);
-                coverage.enums.extend(projected.enums);
-                coverage.services.extend(projected.services);
-            }
-            for classification in classifications(&source)
-                .map_err(|error| io::Error::other(format!("{}: {error}", path.display())))?
-            {
-                coverage.services.push(classification.coverage.clone());
-                service_classifications.push(classification);
-            }
+            let projected = catalog.coverage();
+            coverage.messages.extend(projected.messages);
+            coverage.enums.extend(projected.enums);
+            coverage.services.extend(projected.services);
+        }
+        for classification in classifications(&source)
+            .map_err(|error| io::Error::other(format!("{}: {error}", path.display())))?
+        {
+            coverage.services.push(classification.coverage.clone());
+            service_classifications.push(classification);
         }
     }
     Ok(())

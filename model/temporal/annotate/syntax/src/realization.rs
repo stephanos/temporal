@@ -141,6 +141,22 @@ pub struct ClassifiedField {
     pub reason: Option<String>,
 }
 
+/// Catalog sources and the directories whose additions must invalidate generation.
+#[derive(Debug, Default)]
+pub struct CatalogInputs {
+    /// Admitted source files in deterministic discovery order.
+    pub files: Vec<PathBuf>,
+    /// Every visited directory, including those with no catalog file yet.
+    pub directories: Vec<PathBuf>,
+}
+
+/// Discover the shared catalog filename policy and all directory freshness inputs.
+pub fn catalog_inputs(root: &Path) -> Result<CatalogInputs, String> {
+    let mut inputs = CatalogInputs::default();
+    collect_catalog_inputs(root, &mut inputs)?;
+    Ok(inputs)
+}
+
 impl Schema {
     /// Build from descriptors and the existing parsed annotation declarations.
     pub fn new(bytes: &[u8], catalogs: &[Catalog]) -> Result<Self, String> {
@@ -233,8 +249,7 @@ impl Schema {
 
     /// Load precisely the annotation inputs used by API generation, returning tracked paths.
     pub fn load(root: &Path, descriptor: &Path) -> Result<(Self, Vec<PathBuf>), String> {
-        let mut inputs = Vec::new();
-        catalog_inputs(root, &mut inputs)?;
+        let mut inputs = catalog_inputs(root)?.files;
         let mut catalogs = Vec::new();
         for path in &inputs {
             let source =
@@ -457,7 +472,8 @@ fn overlaps(left: &str, right: &str) -> bool {
         || right.starts_with(&format!("{left}."))
 }
 
-fn catalog_inputs(root: &Path, inputs: &mut Vec<PathBuf>) -> Result<(), String> {
+fn collect_catalog_inputs(root: &Path, inputs: &mut CatalogInputs) -> Result<(), String> {
+    inputs.directories.push(root.to_owned());
     let mut entries: Vec<_> = fs::read_dir(root)
         .map_err(|error| error.to_string())?
         .collect::<Result<_, _>>()
@@ -466,12 +482,12 @@ fn catalog_inputs(root: &Path, inputs: &mut Vec<PathBuf>) -> Result<(), String> 
     for entry in entries {
         let path = entry.path();
         if entry.file_type().map_err(|error| error.to_string())?.is_dir() {
-            catalog_inputs(&path, inputs)?;
+            collect_catalog_inputs(&path, inputs)?;
         } else if path
             .file_name()
             .is_some_and(|name| name == "api.rs" || name == "enum_inventory.rs")
         {
-            inputs.push(path);
+            inputs.files.push(path);
         }
     }
     Ok(())
@@ -695,5 +711,32 @@ mod tests {
         assert_eq!(schema.response_methods("test.Response"), Vec::<String>::new());
         assert_eq!(schema.request_methods("test.Missing"), Vec::<String>::new());
         Ok(())
+    }
+
+    #[test]
+    fn catalog_discovery_tracks_empty_directories_and_only_admitted_filenames()
+    -> Result<(), Box<dyn std::error::Error>> {
+        let root =
+            std::env::temp_dir().join(format!("umpire-realization-inputs-{}", std::process::id()));
+        fs::create_dir(&root)?;
+        let result = (|| -> Result<(), Box<dyn std::error::Error>> {
+            fs::create_dir(root.join("empty"))?;
+            fs::create_dir(root.join("nested"))?;
+            fs::write(root.join("api.rs"), "catalog source")?;
+            fs::write(root.join("noise.rs"), "not a catalog")?;
+            fs::write(root.join("nested/enum_inventory.rs"), "enum source")?;
+            let actual = catalog_inputs(&root)?;
+            if actual.files != [root.join("api.rs"), root.join("nested/enum_inventory.rs")]
+                || actual.directories != [root.clone(), root.join("empty"), root.join("nested")]
+            {
+                return Err(format!(
+                    "catalog discovery omitted sources or directory freshness inputs: {actual:?}"
+                )
+                .into());
+            }
+            Ok(())
+        })();
+        fs::remove_dir_all(root)?;
+        result
     }
 }
