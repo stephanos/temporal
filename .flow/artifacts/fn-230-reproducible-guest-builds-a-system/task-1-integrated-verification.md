@@ -69,3 +69,15 @@ DESIGN remains 999 lines. macOS and cross-OS identity remain open under fn-232;
 task .2 owns committing the Temporal artifact, embedding and freshness integration.
 Tracker is inactive, plan-sync is disabled, and QA is off. No Model, ABI, protocol,
 Realization, original Go/SDK panic semantics or third-party version changed here.
+
+## Post-review verification
+
+The required Phase-5 cumulative classifier returned FULL (exit 1) against the
+original task base. The final `make model-check` exited 0, including host suites
+0.353/7.018 s, captured in `verify-model-check.log`. The final `make model-time`
+exited 0, captured in `verify-model-time.log`. Its full gate took 159.170 s
+(30 s soft target missed), and its edited-checker inner loop took 1.694 s
+(10 s soft target met). Native tests consumed 98.642 s and guest builds 50.483 s.
+After both commands terminated, the stock and Temporal gate files again compared
+equal to the fresh proof. Receipt writes again refused foreign `MILESTONES.md`
+dirt. No full gate was skipped and no source changed after the reviewed checkpoint.

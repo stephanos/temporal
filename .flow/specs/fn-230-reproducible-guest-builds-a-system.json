@@ -1,11 +1,65 @@
 {
   "branch_name": "fn-230-reproducible-guest-builds-a-system",
+  "completion_review_status": "unknown",
+  "completion_reviewed_at": null,
   "created_at": "2026-10-20T19:23:54.786719Z",
+  "default_impl": null,
+  "default_review": null,
+  "default_sync": null,
   "depends_on_epics": [],
   "id": "fn-230-reproducible-guest-builds-a-system",
+  "impl_review_rounds": {
+    "fn-230-reproducible-guest-builds-a-system.1": 0
+  },
   "next_task": 1,
+  "plan_review_rounds": 0,
   "plan_review_status": "unknown",
   "plan_reviewed_at": null,
+  "review_attempts": [
+    {
+      "artifact_sha256": "89b93ef8f8b8bafd1adbc4665fd18fff34c43a5bde224c5dc9e9b99e3283f6b3",
+      "backend": "codex",
+      "base_sha": "b27d38ecd059f1b160e6a0285c7d0deed66935b5",
+      "counter_kind": "impl",
+      "effort": "high",
+      "failure_class": null,
+      "finalized": {
+        "digest": "complete",
+        "receipt": "complete",
+        "status": "not_applicable"
+      },
+      "findings_digest": {
+        "backend": "codex",
+        "digest_truncated": false,
+        "items": [],
+        "reviewKind": "implementation"
+      },
+      "forced": false,
+      "hash_epoch": 0,
+      "head_sha": "3ba18ed020422e423897c972620560bb86afe2f4",
+      "head_sha_observed": true,
+      "kind": "impl",
+      "model": "gpt-6.1-sol",
+      "outcome": "verdict",
+      "output_bytes": 158,
+      "output_sha256": "6ff70da3d83706800ca3cabc6ba62603ba0485fcf5259d27f1be54ce68686975",
+      "reservation_id": "a1b31280a66d4bf29b4909d84cb8a1e9",
+      "round_consumed": true,
+      "scope": "impl:fn-230-reproducible-guest-builds-a-system.1",
+      "superseded_by": null,
+      "task": "fn-230-reproducible-guest-builds-a-system.1",
+      "timestamp": "2026-10-21T07:03:19.697733Z",
+      "verdict": "SHIP"
+    }
+  ],
+  "review_hash_epoch": {
+    "impl:fn-230-reproducible-guest-builds-a-system.1": 1
+  },
+  "review_pending_rounds": {},
+  "review_reservations": {},
+  "review_transport_failures": {
+    "impl:fn-230-reproducible-guest-builds-a-system.1": 0
+  },
   "spec_path": ".flow/specs/fn-230-reproducible-guest-builds-a-system.md",
   "status": "open",
   "title": "Reproducible guest builds: a system-agnostic wasm build step, the committed Temporal guest, and the freshness gate (model, temporal)",
@@ -20,5 +74,5 @@
     "mergeBaseTracker": null,
     "url": null
   },
-  "updated_at": "2026-10-21T01:13:04.801692Z"
+  "updated_at": "2026-10-21T07:03:19.702247Z"
 }
