@@ -72,7 +72,7 @@ impl<M: Machine> Result<M> {
         world: &M,
         selector: &Progress<M>,
     ) -> std::result::Result<ClaimResult<M::State, M::Action>, Refusal> {
-        if world.actions() != self.actions {
+        if world.checked_catalog(self.catalog_limit)?.actions() != self.actions {
             return Err(Refusal::ProgressCatalogChanged);
         }
         let mut matches = self.progress.iter().filter(|claim| claim.name == selector.name);

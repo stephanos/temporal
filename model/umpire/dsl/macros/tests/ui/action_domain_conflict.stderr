@@ -1,0 +1,5 @@
+error: User::Set field `0` declares both #[inputs] and #[domain]; declare one domain
+ --> tests/ui/action_domain_conflict.rs:5:9
+  |
+5 |     Set(#[inputs(0..=2)] #[domain(sizes)] u8),
+  |         ^^^^^^^^^^^^^^^^

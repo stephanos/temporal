@@ -1,0 +1,5 @@
+error: User::Set field `0` #[domain] requires the World of a #[machine] module that declares #[derive(World)]
+ --> tests/ui/action_domain_without_world.rs:9:9
+  |
+9 |     Set(#[domain(sizes)] u8),
+  |         ^^^^^^^^^^^^^^^^

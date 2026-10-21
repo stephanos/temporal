@@ -1,0 +1,5 @@
+error: User::Set field `0` has duplicate #[domain] declarations
+ --> tests/ui/action_domain_duplicate.rs:5:26
+  |
+5 |     Set(#[domain(sizes)] #[domain(other)] u8),
+  |                          ^^^^^^^^^^^^^^^^

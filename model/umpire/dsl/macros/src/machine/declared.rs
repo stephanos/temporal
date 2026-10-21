@@ -326,7 +326,7 @@ fn machine_generics(
     state: &syn::ItemStruct,
     world: &syn::ItemStruct,
     actor_items: &[syn::ItemEnum],
-    actor_types: &[syn::Type],
+    actor_types: &[(syn::Type, bool)],
     computed: bool,
     implementations: &[syn::Generics],
 ) -> (syn::Generics, syn::Generics) {
@@ -361,15 +361,11 @@ fn machine_generics(
                 .push(syn::parse_quote!(#ty: ::core::default::Default));
         }
     }
-    for actor in actor_types {
-        generics
-            .make_where_clause()
-            .predicates
-            .push(syn::parse_quote!(#actor: ::umpire_dsl::Actor));
-        action_generics
-            .make_where_clause()
-            .predicates
-            .push(syn::parse_quote!(#actor: ::umpire_dsl::Actor));
+    for (actor, dependent) in actor_types {
+        let capability =
+            if *dependent { quote!(::umpire_dsl::ActorValue) } else { quote!(::umpire_dsl::Actor) };
+        generics.make_where_clause().predicates.push(syn::parse_quote!(#actor: #capability));
+        action_generics.make_where_clause().predicates.push(syn::parse_quote!(#actor: #capability));
     }
     (generics, action_generics)
 }
@@ -511,17 +507,20 @@ pub(super) fn expand(
     let actor_items = actor_declarations(items, &state_item, &registration)?;
     let actor_types: Vec<_> =
         actor_items.iter().map(|item| typed(&item.ident, &item.generics)).collect();
-    let (generics, action_generics) = machine_generics(
+    let typed_actors: Vec<_> =
+        actor_types.iter().cloned().zip(bind_worlds(items, &actor_items, &world)?).collect();
+    let (mut generics, action_generics) = machine_generics(
         &state_item,
         &world,
         &actor_items,
-        &actor_types,
+        &typed_actors,
         computed,
         &implementations,
     );
-    let (implementation, _, constraints) = generics.split_for_impl();
     let (_, action_arguments, _) = action_generics.split_for_impl();
     let action_type = quote!(Action #action_arguments);
+    let admission = admission(&actor_items, &typed_actors, &world, &action_type, &mut generics);
+    let (implementation, _, constraints) = generics.split_for_impl();
     let (projection_implementation, _, projection_constraints) = action_generics.split_for_impl();
     let visibility = &state_item.vis;
     let carrier = action_carrier(visibility, &action_generics, &actors, &actor_types);
@@ -554,6 +553,7 @@ pub(super) fn expand(
         quote!(<#state_type>::starts())
     };
     let Registrations { order, .. } = &registration;
+    let (catalog, classification) = catalog_routes(&typed_actors, &actors, admission.as_ref());
     let generated = quote! {
         #carrier
         #(#projections)*
@@ -564,20 +564,9 @@ pub(super) fn expand(
             type Outcome = #outcome;
             type Fact = ();
             fn starts(&self) -> ::std::vec::Vec<Self::State> { #start }
-            fn actions(&self) -> ::std::vec::Vec<Self::Action> {
-                let mut actions = ::std::vec::Vec::new();
-                #(actions.extend(<#actor_types as ::umpire_dsl::Actor>::actions().into_iter().map(Action::#actors));)*
-                actions
-            }
+            #catalog
             fn outcome_catalog(&self) -> Option<::std::vec::Vec<::umpire_dsl::OutcomeClass<Self::Outcome>>> { Some(#outcome_catalog) }
-            fn fault_catalog(&self) -> Option<::std::vec::Vec<Self::Action>> {
-                let mut actions = ::std::vec::Vec::new();
-                #(actions.extend(<#actor_types as ::umpire_dsl::Actor>::actions().into_iter().filter(::umpire_dsl::Actor::fault).map(Action::#actors));)*
-                Some(actions)
-            }
-            fn internal(&self, action: &Self::Action) -> bool {
-                match action { #(Action::#actors(value) => ::umpire_dsl::Actor::internal(value)),* }
-            }
+            #classification
             #step
             fn invariants(&self) -> ::std::vec::Vec<::umpire_dsl::Claim<Self>> { ::std::vec![#(#invariants),*] }
             fn postconditions(&self) -> ::std::vec::Vec<::umpire_dsl::StepClaim<Self>> { ::std::vec![#(#posts),*] }
@@ -591,6 +580,139 @@ pub(super) fn expand(
     };
     items.extend(syn::parse2::<syn::File>(generated)?.items);
     Ok(quote!(#input))
+}
+
+/// Names the machine's World in each World-dependent actor's own generic parameters, so its
+/// derived domains receive the concrete World type.
+fn bind_worlds(
+    items: &mut [Item],
+    actors: &[syn::ItemEnum],
+    world: &syn::ItemStruct,
+) -> manyhow::Result<Vec<bool>> {
+    let dependent: Vec<_> = actors.iter().map(super::world_dependent).collect();
+    for (declaration, _) in actors.iter().zip(&dependent).filter(|(_, dependent)| **dependent) {
+        let Some(original) = items.iter_mut().find_map(|item| match item {
+            Item::Enum(item) if item.ident == declaration.ident => Some(item),
+            _ => None,
+        }) else {
+            unreachable!("registered actor is declared")
+        };
+        let mut arguments = Vec::new();
+        for parameter in &world.generics.params {
+            let name = parameter_name(parameter);
+            let Some((own, _)) = original
+                .generics
+                .params
+                .iter()
+                .zip(&declaration.generics.params)
+                .find(|(_, renamed)| parameter_name(renamed) == name)
+            else {
+                manyhow::bail!(
+                    &original.ident,
+                    "a World-dependent actor must declare the World's generic parameter {name}"
+                );
+            };
+            arguments.push(match own {
+                syn::GenericParam::Type(own) => {
+                    let ident = &own.ident;
+                    quote!(#ident)
+                }
+                syn::GenericParam::Const(own) => {
+                    let ident = &own.ident;
+                    quote!(#ident)
+                }
+                syn::GenericParam::Lifetime(own) => {
+                    let lifetime = &own.lifetime;
+                    quote!(#lifetime)
+                }
+            });
+        }
+        let ident = &world.ident;
+        let ty =
+            if arguments.is_empty() { quote!(#ident) } else { quote!(#ident<#(#arguments),*>) };
+        original.attrs.push(syn::parse_quote!(#[__umpire_world(#ty)]));
+    }
+    Ok(dependent)
+}
+
+/// The catalog and classification methods. World-dependent actors enumerate from the
+/// machine's World; static actors keep their exact static catalog calls.
+fn catalog_routes(
+    typed: &[(syn::Type, bool)],
+    actors: &[syn::Ident],
+    admission: Option<&TokenStream>,
+) -> (TokenStream, TokenStream) {
+    let (lists, capabilities): (Vec<_>, Vec<_>) = typed
+        .iter()
+        .map(|(ty, dependent)| {
+            if *dependent {
+                (
+                    quote!(<#ty as ::umpire_dsl::path_build::ActorCatalog<Self>>::actions(self)),
+                    quote!(::umpire_dsl::ActorValue),
+                )
+            } else {
+                (quote!(<#ty as ::umpire_dsl::Actor>::actions()), quote!(::umpire_dsl::Actor))
+            }
+        })
+        .unzip();
+    (
+        quote! {
+            fn actions(&self) -> ::std::vec::Vec<Self::Action> {
+                let mut actions = ::std::vec::Vec::new();
+                #(actions.extend(#lists.into_iter().map(Action::#actors));)*
+                actions
+            }
+            #admission
+        },
+        quote! {
+            fn fault_catalog(&self) -> Option<::std::vec::Vec<Self::Action>> {
+                let mut actions = ::std::vec::Vec::new();
+                #(actions.extend(#lists.into_iter().filter(#capabilities::fault).map(Action::#actors));)*
+                Some(actions)
+            }
+            fn internal(&self, action: &Self::Action) -> bool {
+                match action { #(Action::#actors(value) => #capabilities::internal(value)),* }
+            }
+        },
+    )
+}
+
+/// The counting `checked_catalog` override for input-bearing machines, adding the bounds it
+/// needs to the machine's generics.
+fn admission(
+    actor_items: &[syn::ItemEnum],
+    actor_types: &[(syn::Type, bool)],
+    world: &syn::ItemStruct,
+    action: &TokenStream,
+    generics: &mut syn::Generics,
+) -> Option<TokenStream> {
+    let actors: Vec<_> =
+        actor_items.iter().zip(actor_types).map(|(item, (ty, _))| (item, ty.clone())).collect();
+    let (admission, bounds) = super::catalog_admission(&actors)?;
+    let world = typed(&world.ident, &world.generics);
+    let clause = generics.make_where_clause();
+    for mut bound in bounds {
+        syn::visit_mut::VisitMut::visit_where_predicate_mut(
+            &mut SelfWorld(world.clone()),
+            &mut bound,
+        );
+        clause.predicates.push(bound);
+    }
+    clause.predicates.push(syn::parse_quote!(#action: 'static));
+    Some(admission)
+}
+
+struct SelfWorld(syn::Type);
+
+impl syn::visit_mut::VisitMut for SelfWorld {
+    fn visit_type_mut(&mut self, ty: &mut syn::Type) {
+        if matches!(ty, syn::Type::Path(path) if path.qself.is_none() && path.path.is_ident("Self"))
+        {
+            *ty = self.0.clone();
+        } else {
+            syn::visit_mut::visit_type_mut(self, ty);
+        }
+    }
 }
 
 fn invariants(registration: &Registrations) -> Vec<TokenStream> {

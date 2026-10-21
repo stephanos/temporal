@@ -2,6 +2,8 @@
 
 #[path = "../src/action.rs"]
 mod action;
+#[path = "../src/finite.rs"]
+mod finite;
 #[path = "../src/machine.rs"]
 mod machine;
 #[path = "../src/path.rs"]

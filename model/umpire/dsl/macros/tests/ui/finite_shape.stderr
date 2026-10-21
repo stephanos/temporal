@@ -1,0 +1,23 @@
+error: Finite derives for a fieldless enum or a struct with one #[inputs(lo..=hi)] integer field; give a variant with fields to derive(Action)
+ --> tests/ui/finite_shape.rs:5:5
+  |
+5 |     Some(bool),
+  |     ^^^^^^^^^^
+
+error: range bound 300 does not fit the field's integer type
+ --> tests/ui/finite_shape.rs:9:26
+  |
+9 | struct Wide(#[inputs(0..=300)] u8);
+  |                          ^^^
+
+error: a Finite newtype's field must be a primitive integer type
+  --> tests/ui/finite_shape.rs:12:30
+   |
+12 | struct Text(#[inputs(0..=3)] String);
+   |                              ^^^^^^
+
+error: Finite derives for a fieldless enum or a struct with one #[inputs(lo..=hi)] integer field
+  --> tests/ui/finite_shape.rs:15:14
+   |
+15 | struct Plain(u8);
+   |              ^^

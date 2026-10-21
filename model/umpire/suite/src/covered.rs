@@ -1,4 +1,3 @@
-use umpire_checker::Checker;
 use umpire_dsl::{Alternative, Associated, IntoWorldPath, Machine, Path};
 
 use crate::{
@@ -123,7 +122,7 @@ where
     let alternatives = admit::<S>(&path, space.alternative_budget(), Some(cases))?;
     let world = space.world();
     let rooted = Rooted { world: world.as_ref(), starts: space.starts().to_vec(), query: None };
-    let explored = Checker::explore(&rooted, space.state_budget())?;
+    let explored = rooted.explore(space.state_budget(), space.catalog_limit())?;
     if explored.counts.cut {
         return Err(Refusal::Cut { budget: space.state_budget() });
     }
@@ -138,7 +137,7 @@ where
         witnesses.push((index, found));
     }
     let header = format!("cover: {} alternatives, {} cases\n", alternatives.len(), witnesses.len());
-    assemble::<S>(&world, &explored, &alternatives, witnesses, header)
+    assemble::<S>(&world, &explored, &alternatives, witnesses, header, space.catalog_limit())
 }
 
 /// Performs a finite seeded experiment of actual pattern-admitted random walks.
@@ -161,7 +160,7 @@ where
     }
     let world = space.world();
     let rooted = Rooted { world: world.as_ref(), starts: space.starts().to_vec(), query: None };
-    let explored = Checker::explore(&rooted, space.state_budget())?;
+    let explored = rooted.explore(space.state_budget(), space.catalog_limit())?;
     if explored.counts.cut {
         return Err(Refusal::Cut { budget: space.state_budget() });
     }
@@ -184,7 +183,7 @@ where
         space.walk_bound(),
         alternatives.len(),
     );
-    assemble::<S>(&world, &explored, &alternatives, witnesses, header)
+    assemble::<S>(&world, &explored, &alternatives, witnesses, header, space.catalog_limit())
 }
 
 fn charge(records: &mut usize, count: usize) -> Result<(), Refusal> {
@@ -201,6 +200,7 @@ fn assemble<S: Associated>(
     alternatives: &[Choice<S>],
     witnesses: Vec<(usize, Witness<Rooted<'_, S::World>>)>,
     mut expansion: String,
+    catalog_limit: usize,
 ) -> Result<Covered<S>, Refusal> {
     let mut observations = Vec::with_capacity(witnesses.len());
     for (case, (index, witness)) in witnesses.iter().enumerate() {
@@ -245,7 +245,7 @@ fn assemble<S: Associated>(
         append(&mut expansion, format_args!("; final {final_state}\n"));
         observations.push(observation);
     }
-    let coverage = coverage(world.as_ref(), &observations)?;
+    let coverage = coverage(world.as_ref(), catalog_limit, &observations)?;
     let runs = witnesses
         .into_iter()
         .map(|(_, witness)| Run::retained(world.clone(), witness.trace))
@@ -267,7 +267,7 @@ where
     let alternatives = admit::<S>(path, space.alternative_budget(), None)?;
     let world = space.world();
     let rooted = Rooted { world: world.as_ref(), starts: space.starts().to_vec(), query: None };
-    let explored = Checker::explore(&rooted, space.state_budget())?;
+    let explored = rooted.explore(space.state_budget(), space.catalog_limit())?;
     let graph = Graph::new(&explored)?;
     let mut best = None;
     let mut refusal = None;

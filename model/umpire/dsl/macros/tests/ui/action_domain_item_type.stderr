@@ -1,0 +1,19 @@
+error[E0308]: mismatched types
+  --> tests/ui/action_domain_item_type.rs:19:22
+   |
+19 |         Set(#[domain(names)] u8),
+   |                      ^^^^^ expected `InputDomain<u8>`, found `InputDomain<&str>`
+   |
+   = note: expected struct `InputDomain<u8>`
+              found struct `InputDomain<&'static str>`
+
+error[E0308]: mismatched types
+  --> tests/ui/action_domain_item_type.rs:17:14
+   |
+17 |     #[derive(Action)]
+   |              ^^^^^^ expected `u8`, found `&str`
+18 |     pub enum User {
+19 |         Set(#[domain(names)] u8),
+   |                              -- expected due to this
+   |
+   = note: this error originates in the derive macro `Action` (in Nightly builds, run with -Z macro-backtrace for more info)

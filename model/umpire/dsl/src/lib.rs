@@ -3,8 +3,10 @@
 #![warn(missing_docs)]
 
 mod action;
+mod catalog;
 pub mod claim;
 pub mod closable;
+mod finite;
 mod machine;
 pub mod outcome;
 mod path;
@@ -15,8 +17,10 @@ mod phased;
 mod progress;
 mod scope;
 
-pub use action::{Actor, ActorProjection, RegisteredActor};
+pub use action::{Actor, ActorProjection, ActorValue, RegisteredActor};
+pub use catalog::{ActionCatalog, CATALOG_LIMIT, CatalogError, CatalogVariant};
 pub use claim::{Claim, Hole, StepCheckPredicate, StepClaim, StepPredicate, Verdict};
+pub use finite::Finite;
 pub use machine::{Associated, Machine, Registered, Step, StepError, Steps};
 pub use outcome::{Outcome, OutcomeClass, Rejection};
 #[doc(hidden)]
@@ -33,7 +37,7 @@ pub use progress::{Progress, ProgressEvaluation, ProgressEvaluator};
 pub use scope::{Assumption, AssumptionExt, Scope};
 #[doc(hidden)]
 pub use umpire_dsl_macros::__path_parse;
-pub use umpire_dsl_macros::{Action, State, World, machine};
+pub use umpire_dsl_macros::{Action, Finite, State, World, machine};
 
 /// The checker's aggregate claim result, distinct from a domain's step outcome.
 #[derive(Clone, Copy, Debug, PartialEq, Eq)]

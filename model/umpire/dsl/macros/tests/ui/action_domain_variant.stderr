@@ -1,0 +1,5 @@
+error: #[domain] belongs on one variant field, not the variant
+ --> tests/ui/action_domain_variant.rs:5:5
+  |
+5 |     #[domain(sizes)]
+  |     ^^^^^^^^^^^^^^^^

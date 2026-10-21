@@ -71,16 +71,19 @@ pub(crate) struct WitnessObservation<'a, M: Machine> {
 
 pub(crate) fn coverage<M: Machine>(
     world: &M,
+    catalog_limit: usize,
     traces: &[WitnessObservation<'_, M>],
 ) -> Result<Coverage, Refusal> {
-    catch_unwind(AssertUnwindSafe(|| observe(world, traces))).unwrap_or_else(|panic| {
-        let failure = panic
-            .downcast_ref::<String>()
-            .map(String::as_str)
-            .or_else(|| panic.downcast_ref::<&str>().copied())
-            .unwrap_or("non-string panic");
-        Err(metadata(format!("callback panicked: {failure}")))
-    })
+    catch_unwind(AssertUnwindSafe(|| observe(world, catalog_limit, traces))).unwrap_or_else(
+        |panic| {
+            let failure = panic
+                .downcast_ref::<String>()
+                .map(String::as_str)
+                .or_else(|| panic.downcast_ref::<&str>().copied())
+                .unwrap_or("non-string panic");
+            Err(metadata(format!("callback panicked: {failure}")))
+        },
+    )
 }
 
 fn metadata(detail: impl Into<String>) -> Refusal {
@@ -89,9 +92,11 @@ fn metadata(detail: impl Into<String>) -> Refusal {
 
 fn observe<M: Machine>(
     world: &M,
+    catalog_limit: usize,
     traces: &[WitnessObservation<'_, M>],
 ) -> Result<Coverage, Refusal> {
-    let actions = world.actions();
+    let actions =
+        world.checked_catalog(catalog_limit).map_err(umpire_checker::Refusal::from)?.into_actions();
     let mut action_ordinals = HashMap::with_capacity(actions.len());
     for (index, action) in actions.iter().enumerate() {
         if action_ordinals.insert(action, index).is_some() {
@@ -351,7 +356,8 @@ mod tests {
                 .collect(),
         }];
         EQUALITY_CALLS.set(0);
-        let result = coverage(&LargeCatalog, &observations)?;
+        let result =
+            coverage(&LargeCatalog, umpire_checker::Checker::CATALOG_LIMIT, &observations)?;
         let comparisons = EQUALITY_CALLS.get();
         assert!(comparisons < 512 * 32, "catalog used {comparisons} equality comparisons");
         assert_eq!(result.actions.len(), 512);
@@ -497,7 +503,11 @@ mod tests {
             states: vec![&0, &emitted.2],
             rows: vec![ObservedStep { before: &0, action: &Action::A, emitted: &emitted }],
         }];
-        let result = coverage(&World(Metadata::Valid), &observations)?;
+        let result = coverage(
+            &World(Metadata::Valid),
+            umpire_checker::Checker::CATALOG_LIMIT,
+            &observations,
+        )?;
         assert_eq!(
             result.actions.iter().map(|e| (e.index, e.touched)).collect::<Vec<_>>(),
             [(0, true), (1, false)]
@@ -534,8 +544,9 @@ mod tests {
 
     #[test]
     fn undeclared_and_complete_empty_catalogs_remain_distinct() -> Result<(), Refusal> {
-        let unknown = coverage(&World(Metadata::Undeclared), &[])?;
-        let empty = coverage(&World(Metadata::Empty), &[])?;
+        let unknown =
+            coverage(&World(Metadata::Undeclared), umpire_checker::Checker::CATALOG_LIMIT, &[])?;
+        let empty = coverage(&World(Metadata::Empty), umpire_checker::Checker::CATALOG_LIMIT, &[])?;
         assert!(unknown.outcomes.is_none());
         assert_eq!(empty.outcomes, Some(vec![]));
         assert!(unknown.to_string().contains("unknown"));
@@ -547,7 +558,11 @@ mod tests {
     #[test]
     fn progress_uses_the_combined_evaluator_on_witness_states() -> Result<(), Refusal> {
         let observations = [WitnessObservation { states: vec![&0, &1], rows: vec![] }];
-        let result = coverage(&World(Metadata::Combined), &observations)?;
+        let result = coverage(
+            &World(Metadata::Combined),
+            umpire_checker::Checker::CATALOG_LIMIT,
+            &observations,
+        )?;
         assert_eq!(result.claims.last().map(|p| (p.evaluated, p.triggered)), Some((2, Some(1))));
         Ok(())
     }
@@ -570,7 +585,10 @@ mod tests {
             Metadata::ClaimPanic,
             Metadata::TargetPanic,
         ] {
-            assert!(matches!(coverage(&World(mode), &observations), Err(Refusal::Metadata { .. })));
+            assert!(matches!(
+                coverage(&World(mode), umpire_checker::Checker::CATALOG_LIMIT, &observations),
+                Err(Refusal::Metadata { .. })
+            ));
         }
     }
 }

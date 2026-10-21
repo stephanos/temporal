@@ -6,7 +6,10 @@ use std::{
 };
 
 use umpire_checker::{Checker, PathStep, Report, StateId};
-use umpire_dsl::{CheckOutcome, Claim, Gap, Machine, Path, StepError, Steps, Verdict, Waypoint};
+use umpire_dsl::{
+    ActionCatalog, CatalogError, CheckOutcome, Claim, Gap, Machine, Path, StepError, Steps,
+    Verdict, Waypoint,
+};
 
 use crate::Refusal;
 
@@ -35,6 +38,10 @@ impl<M: Machine> Machine for Rooted<'_, M> {
         self.world.actions()
     }
 
+    fn checked_catalog(&self, limit: usize) -> Result<ActionCatalog<Self::Action>, CatalogError> {
+        self.world.checked_catalog(limit)
+    }
+
     fn internal(&self, action: &Self::Action) -> bool {
         self.world.internal(action)
     }
@@ -61,6 +68,17 @@ impl<M: Machine> Machine for Rooted<'_, M> {
             rooted.query.map_or(Verdict::Holds, |query| query(state).into())
         };
         self.query.map(|_| Claim::new("query", judge)).into_iter().collect()
+    }
+}
+
+impl<M: Machine> Rooted<'_, M> {
+    /// Explores from these starts under the selected catalog limit.
+    pub(crate) fn explore(
+        &self,
+        budget: usize,
+        catalog_limit: usize,
+    ) -> Result<umpire_checker::Result<Self>, Refusal> {
+        Ok(Checker::explore_within(self, self.starts.clone(), budget, catalog_limit)?)
     }
 }
 
@@ -152,6 +170,7 @@ pub(crate) fn through<M: Machine, A, O>(
     starts: Vec<M::State>,
     path: &Path<M::State, A, O>,
     budget: usize,
+    catalog_limit: usize,
 ) -> Result<Trace<M>, Refusal>
 where
     M::State: PartialEq,
@@ -164,7 +183,7 @@ where
         }
     }
     let rooted = Rooted { world, starts: unique, query: None };
-    let explored = Checker::explore(&rooted, budget)?;
+    let explored = rooted.explore(budget, catalog_limit)?;
     let states: Vec<_> = explored.states().map(|(_, state)| state).collect();
     let rows: Vec<Vec<_>> = explored
         .states()

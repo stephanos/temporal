@@ -142,6 +142,41 @@ impl<T: 'static> InputDomain<T> {
         Self(range.domain())
     }
 
+    /// Counts a repeatable finite enumeration once and re-enumerates it for each value,
+    /// allocating none of its members.
+    pub fn enumerated<I: Iterator<Item = T>>(values: impl Fn() -> I + 'static) -> Self {
+        let count = values()
+            .try_fold(0usize, |count, _| count.checked_add(1))
+            .ok_or(PatternError::ExpansionOverflow);
+        Self(ActionDomain::new(count, move |index| {
+            values().nth(index).unwrap_or_else(|| panic!("action domain index out of bounds"))
+        }))
+    }
+
+    /// Counts a complete finite stream exactly, retaining at most its first `retain` values.
+    /// Admission must refuse any count above `retain` before values are retrieved.
+    pub fn iterated(values: impl IntoIterator<Item = T>, retain: usize) -> Self
+    where
+        T: Clone,
+    {
+        let mut retained = Vec::new();
+        let mut count = Some(0usize);
+        for value in values {
+            if retained.len() < retain {
+                retained.push(value);
+            }
+            count = count.and_then(|count| count.checked_add(1));
+        }
+        Self(ActionDomain::new(count.ok_or(PatternError::ExpansionOverflow), move |index| {
+            retained[index].clone()
+        }))
+    }
+
+    /// Converts values while retaining lazy enumeration.
+    pub fn map<U: 'static>(self, map: impl Fn(T) -> U + 'static) -> InputDomain<U> {
+        InputDomain(self.0.map(map))
+    }
+
     /// The checked number of input values.
     pub fn count(&self) -> Result<usize, PatternError> {
         self.0.count()

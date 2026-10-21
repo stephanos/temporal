@@ -1,6 +1,7 @@
 //! Procedural macro support for the Umpire DSL.
 
 mod action;
+mod finite;
 mod machine;
 mod path;
 mod state;
@@ -26,9 +27,18 @@ pub fn world(input: proc_macro2::TokenStream) -> manyhow::Result<proc_macro2::To
 }
 
 /// Derive action value traits, Debug/Display formatting and a complete ordered catalog.
-#[manyhow::manyhow(proc_macro_derive(Action, attributes(internal, fault, inputs)))]
+#[manyhow::manyhow(proc_macro_derive(
+    Action,
+    attributes(internal, fault, inputs, domain, __umpire_world)
+))]
 pub fn action(input: proc_macro2::TokenStream) -> manyhow::Result<proc_macro2::TokenStream> {
     action::expand(&syn::parse2(input)?)
+}
+
+/// Derive a finite value domain for a fieldless enum or a bounded integer newtype.
+#[manyhow::manyhow(proc_macro_derive(Finite, attributes(inputs)))]
+pub fn finite(input: proc_macro2::TokenStream) -> manyhow::Result<proc_macro2::TokenStream> {
+    finite::expand(&syn::parse2(input)?)
 }
 
 /// Register an inline module as a world with ordered actions and grouped claims.

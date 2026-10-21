@@ -235,7 +235,7 @@ impl<M: Machine, R: Realize<M>> Runtime<M, R> {
             }
         }
         let mut expected_actions = Vec::new();
-        for action in self.machine.actions() {
+        for action in self.catalog()? {
             if !self.checked_step(current, action.clone())?.is_empty() {
                 expected_actions.push(action.to_string());
             }
@@ -267,7 +267,7 @@ impl<M: Machine, R: Realize<M>> Runtime<M, R> {
                 "reply type is missing",
             ));
         }
-        if !self.machine.actions().contains(&plan.response_action)
+        if !self.catalog()?.contains(&plan.response_action)
             || self.checked_step(&state, plan.response_action)?.is_empty()
         {
             return Err(protocol::Refusal::new(
@@ -292,7 +292,7 @@ impl<M: Machine, R: Realize<M>> Runtime<M, R> {
         let mut steps = Vec::new();
         let mut outcomes = Vec::new();
         let mut outcome = None;
-        let catalog = self.machine.actions();
+        let catalog = self.catalog()?;
         for transition in path {
             if !catalog.contains(&transition.action) {
                 return Ok(None);
@@ -309,6 +309,13 @@ impl<M: Machine, R: Realize<M>> Runtime<M, R> {
             outcome = Some(emitted);
         }
         Ok(Some(Replay { state, steps, outcomes, outcome }))
+    }
+
+    fn catalog(&self) -> Result<Vec<M::Action>, protocol::Refusal> {
+        self.machine
+            .checked_catalog(Checker::CATALOG_LIMIT)
+            .map(umpire_dsl::ActionCatalog::into_actions)
+            .map_err(|error| checker_error(&error.into()))
     }
 
     fn checked_step(

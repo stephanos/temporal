@@ -19,6 +19,7 @@ pub struct Space<S, W = ()> {
     pub(crate) budget: usize,
     pub(crate) alternatives: usize,
     pub(crate) walk_bound: usize,
+    pub(crate) catalog_limit: usize,
 }
 
 #[allow(
@@ -50,6 +51,7 @@ impl<S> From<Vec<S>> for Space<S> {
             budget: Checker::BUDGET,
             alternatives: Checker::BUDGET,
             walk_bound: 256,
+            catalog_limit: Checker::CATALOG_LIMIT,
         }
     }
 }
@@ -93,6 +95,7 @@ impl<S: Associated> Space<S> {
             budget: Checker::BUDGET,
             alternatives: Checker::BUDGET,
             walk_bound: 256,
+            catalog_limit: Checker::CATALOG_LIMIT,
         }
     }
 }
@@ -121,6 +124,14 @@ impl<S, W> Space<S, W> {
         self.walk_bound = n;
         self
     }
+
+    /// Admits at most `n` concrete catalog actions; a larger catalog is refused before any
+    /// Model step. The default is the checker's 4,096.
+    #[must_use]
+    pub const fn catalog_limit(mut self, n: usize) -> Self {
+        self.catalog_limit = n;
+        self
+    }
 }
 
 mod sealed {
@@ -135,6 +146,7 @@ pub trait SpaceBinding<S: Associated>: sealed::Sealed {
     fn state_budget(&self) -> usize;
     fn alternative_budget(&self) -> usize;
     fn walk_bound(&self) -> usize;
+    fn catalog_limit(&self) -> usize;
     fn world(&self) -> Rc<S::World>;
 }
 
@@ -153,6 +165,10 @@ impl<S: Registered> SpaceBinding<S> for Space<S> {
 
     fn walk_bound(&self) -> usize {
         self.walk_bound
+    }
+
+    fn catalog_limit(&self) -> usize {
+        self.catalog_limit
     }
 
     fn world(&self) -> Rc<<S as Associated>::World> {
@@ -177,6 +193,10 @@ impl<S: Associated> SpaceBinding<S> for Space<S, Rc<S::World>> {
         self.walk_bound
     }
 
+    fn catalog_limit(&self) -> usize {
+        self.catalog_limit
+    }
+
     fn world(&self) -> Rc<S::World> {
         self.world.clone()
     }
@@ -187,8 +207,12 @@ pub fn verify_all<S: Associated>(
     space: &impl SpaceBinding<S>,
 ) -> Result<Report<S::World>, Refusal> {
     let world = space.world();
-    let explored =
-        Checker::explore_from(world.as_ref(), space.starts().to_vec(), space.state_budget())?;
+    let explored = Checker::explore_within(
+        world.as_ref(),
+        space.starts().to_vec(),
+        space.state_budget(),
+        space.catalog_limit(),
+    )?;
     Ok(explored.verify_all()?)
 }
 
@@ -201,7 +225,7 @@ pub fn refuted<S: Associated>(
     let world = space.world();
     let rooted =
         Rooted { world: world.as_ref(), starts: space.starts().to_vec(), query: Some(predicate) };
-    let explored = Checker::explore(&rooted, space.state_budget())?;
+    let explored = rooted.explore(space.state_budget(), space.catalog_limit())?;
     let mut report = explored.verify_all()?;
     let length =
         report.claims.first().and_then(|claim| claim.path.as_ref()).map(|path| path.steps.len());
@@ -234,6 +258,7 @@ where
             space.starts().to_vec(),
             &path,
             space.state_budget(),
+            space.catalog_limit(),
         );
     }
     crate::covered::find_pattern(space, &path)

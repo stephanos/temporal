@@ -3,8 +3,8 @@
 use std::cell::RefCell;
 
 use crate::{
-    ActionDomain, Actor, Associated as Registered, Gap, IntoWaypoint, Machine, Path, Pattern,
-    RegisteredActor, Waypoint,
+    ActionDomain, Actor, ActorValue, Associated as Registered, Gap, IntoWaypoint, Machine, Path,
+    Pattern, RegisteredActor, Waypoint,
 };
 
 pub struct Probe<T>(RefCell<Option<T>>);
@@ -159,14 +159,53 @@ impl<S, K> StateFactory<S, K> {
     }
 }
 pub struct ActorFactory<T>(T);
-pub fn actor_factory<T: Actor>(value: T) -> ActorFactory<T> {
+pub fn actor_factory<T: ActorValue>(value: T) -> ActorFactory<T> {
     ActorFactory(value)
 }
 
+/// A World-dependent actor's or variant's domain requested without its World.
+pub struct Unbound<A>(std::marker::PhantomData<A>);
+impl<A> Unbound<A> {
+    #[allow(clippy::new_without_default)]
+    pub fn new() -> Self {
+        Self(std::marker::PhantomData)
+    }
+    pub fn map<B, F: BindWorld<A, B>>(self, map: F) -> ActionDomain<B> {
+        map.bind()
+    }
+}
+
+/// Never implemented: refuses a World-dependent wildcard that names no World.
+#[diagnostic::on_unimplemented(
+    message = "`{A}` has World-dependent inputs and no static action domain",
+    label = "this pattern names no World",
+    note = "build the domain from the selected World, such as `Pattern::action({A}::actions_in(&world).map(Into::into), None, None)`"
+)]
+pub trait BindWorld<A, B> {
+    fn bind(self) -> ActionDomain<B>;
+}
+
+/// A static action domain; a World-dependent domain requested without its World has none.
+#[diagnostic::on_unimplemented(
+    message = "`{Self}` names a World-dependent domain without its World",
+    label = "this pattern names no World",
+    note = "build the domain from the selected World, such as `Pattern::action(Actor::actions_in(&world).map(Into::into), None, None)`"
+)]
+pub trait StaticDomain {
+    type Action;
+    fn domain(self) -> ActionDomain<Self::Action>;
+}
+impl<T> StaticDomain for ActionDomain<T> {
+    type Action = T;
+    fn domain(self) -> ActionDomain<T> {
+        self
+    }
+}
+
 pub struct DomainFactory<T>(ActionDomain<T>);
-impl<T: Actor + 'static> DomainFactory<T> {
-    pub fn new(domain: ActionDomain<T>) -> Self {
-        Self(domain)
+impl<T: ActorValue + 'static> DomainFactory<T> {
+    pub fn new(domain: impl StaticDomain<Action = T>) -> Self {
+        Self(domain.domain())
     }
     pub fn piece<S: Registered>(self) -> PatternPiece<S, OwnerHint<T>>
     where
@@ -295,7 +334,7 @@ pub fn pattern_with<S: Registered>(
 ) -> WorldPattern<S> {
     make(PatternContext(std::marker::PhantomData))
 }
-impl<T: Actor + 'static> ActorFactory<T> {
+impl<T: ActorValue + 'static> ActorFactory<T> {
     pub fn piece<S: Registered>(self) -> PatternPiece<S, OwnerHint<T>>
     where
         <S::World as Machine>::Action: From<T> + 'static,
@@ -335,7 +374,7 @@ pub trait ActorFactoryValue {
     type Factory;
     fn factory(self) -> Self::Factory;
 }
-impl<T: Actor> ActorFactoryValue for &Probe<T> {
+impl<T: ActorValue> ActorFactoryValue for &Probe<T> {
     type Factory = ActorFactory<T>;
     fn factory(self) -> Self::Factory {
         ActorFactory(self.take())
@@ -372,7 +411,7 @@ where
         Pattern::state(self.take().into_waypoint())
     }
 }
-impl<S: Registered, T: Actor + 'static> PatternValue<S, ActionKind> for &Probe<T>
+impl<S: Registered, T: ActorValue + 'static> PatternValue<S, ActionKind> for &Probe<T>
 where
     <S::World as Machine>::Action: From<T> + 'static,
 {
@@ -395,7 +434,7 @@ where
         builder.append(self.take().into_waypoint())
     }
 }
-impl<S: Registered, T: Actor + 'static> AppendPath<StateBuilder<S>, ActionKind> for &Probe<T>
+impl<S: Registered, T: ActorValue + 'static> AppendPath<StateBuilder<S>, ActionKind> for &Probe<T>
 where
     <S::World as Machine>::Action: From<T> + 'static,
 {
@@ -420,7 +459,7 @@ where
         builder.structure(Pattern::state(self.take().into_waypoint()))
     }
 }
-impl<S: Registered, T: Actor + 'static> AppendPath<WorldBuilder<S>, ActionKind> for &Probe<T>
+impl<S: Registered, T: ActorValue + 'static> AppendPath<WorldBuilder<S>, ActionKind> for &Probe<T>
 where
     <S::World as Machine>::Action: From<T> + 'static,
 {
@@ -433,4 +472,12 @@ where
             None,
         ))
     }
+}
+
+/// An input-bearing actor's per-variant lazy domains for catalog admission, built from the
+/// selected World. Static actors ignore it; World-dependent actors implement it for one World.
+pub trait ActorCatalog<W>: Sized {
+    fn catalog(world: &W, retain: usize) -> Vec<(String, ActionDomain<Self>)>;
+    /// The unchecked catalog in declaration order, for `Machine::actions`.
+    fn actions(world: &W) -> Vec<Self>;
 }

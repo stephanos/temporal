@@ -55,4 +55,29 @@ pub enum Refusal {
     /// An explicit action restriction retains no catalog action.
     #[error("assumption admits no actions")]
     EmptyAssumption,
+    /// The action catalog declares more concrete actions than admitted; nothing was explored.
+    #[error("action catalog has {count} actions, over limit {limit}")]
+    CatalogLimit {
+        /// Exact concrete action count.
+        count: usize,
+        /// Admitted maximum.
+        limit: usize,
+    },
+    /// The action catalog's count overflows `usize`; nothing was explored.
+    #[error("action catalog count overflows usize (limit {limit})")]
+    CatalogOverflow {
+        /// Admitted maximum.
+        limit: usize,
+    },
+}
+
+impl From<umpire_dsl::CatalogError> for Refusal {
+    fn from(error: umpire_dsl::CatalogError) -> Self {
+        match error {
+            umpire_dsl::CatalogError::TooLarge { count, limit } => {
+                Self::CatalogLimit { count, limit }
+            }
+            umpire_dsl::CatalogError::Overflow { limit } => Self::CatalogOverflow { limit },
+        }
+    }
 }

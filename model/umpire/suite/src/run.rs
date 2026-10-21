@@ -123,7 +123,13 @@ impl<S: Associated> Run<S> {
         if path.is_state_only() {
             let Waypoint::Is(start) = path.first() else { return Err(Refusal::Unanchored) };
             let world = Rc::new(world());
-            let found = search::through(world.as_ref(), vec![start.clone()], &path, budget)?;
+            let found = search::through(
+                world.as_ref(),
+                vec![start.clone()],
+                &path,
+                budget,
+                Checker::CATALOG_LIMIT,
+            )?;
             return Ok(Self::retained(world, found));
         }
         let alternatives = path.alternatives(1)?;
@@ -134,7 +140,7 @@ impl<S: Associated> Run<S> {
         let world = Rc::new(world());
         let rooted =
             search::Rooted { world: world.as_ref(), starts: vec![start.clone()], query: None };
-        let explored = Checker::explore(&rooted, budget)?;
+        let explored = rooted.explore(budget, Checker::CATALOG_LIMIT)?;
         let graph = crate::pattern_search::Graph::new(&explored)?;
         let found = match graph.shortest(&alternatives[0], false) {
             Ok(found) => found,

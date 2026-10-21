@@ -13,7 +13,9 @@ pub(crate) fn checker_refusal(error: &umpire_checker::Refusal) -> protocol::resp
         | umpire_checker::Refusal::ProgressCatalogChanged => {
             protocol::RefusalCode::MalformedRequest
         }
-        umpire_checker::Refusal::Budget { .. } => protocol::RefusalCode::Budget,
+        umpire_checker::Refusal::Budget { .. }
+        | umpire_checker::Refusal::CatalogLimit { .. }
+        | umpire_checker::Refusal::CatalogOverflow { .. } => protocol::RefusalCode::Budget,
         umpire_checker::Refusal::State { .. } => protocol::RefusalCode::State,
         umpire_checker::Refusal::ScopeAction { .. } | umpire_checker::Refusal::EmptyAssumption => {
             protocol::RefusalCode::ScopeAction

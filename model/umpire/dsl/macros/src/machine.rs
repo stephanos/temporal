@@ -600,6 +600,73 @@ fn catalog(
     Ok((state, visibility, actors, actions))
 }
 
+pub(super) fn world_dependent(actor: &syn::ItemEnum) -> bool {
+    actor
+        .variants
+        .iter()
+        .flat_map(|variant| &variant.fields)
+        .any(|field| field.attrs.iter().any(|attribute| attribute.path().is_ident("domain")))
+}
+
+/// Counts each declared variant's lazy domain before materializing, for machines with inputs,
+/// with the bounds that counting adds. Fieldless machines keep the default length check and
+/// their exact expansion.
+fn catalog_admission(
+    actors: &[(&syn::ItemEnum, syn::Type)],
+) -> Option<(TokenStream, Vec<syn::WherePredicate>)> {
+    let bearing = |actor: &syn::ItemEnum| actor.variants.iter().any(|v| !v.fields.is_empty());
+    if !actors.iter().any(|(actor, _)| bearing(actor)) {
+        return None;
+    }
+    let mut bounds = Vec::new();
+    let entries = actors.iter().map(|(actor, ty)| {
+        let name = &actor.ident;
+        bounds.push(syn::parse_quote!(#ty: 'static));
+        if bearing(actor) {
+            bounds.push(syn::parse_quote!(#ty: ::umpire_dsl::path_build::ActorCatalog<Self>));
+            quote! {
+                __umpire_variants.extend(
+                    <#ty as ::umpire_dsl::path_build::ActorCatalog<Self>>::catalog(self, limit)
+                        .into_iter()
+                        .map(|(name, domain)| (name, domain.map(Action::#name))),
+                );
+            }
+        } else {
+            let variants = actor.variants.iter().map(|variant| {
+                let label = format!("{name}::{}", variant.ident);
+                let ident = &variant.ident;
+                quote!((::std::string::String::from(#label), ::umpire_dsl::ActionDomain::new(Ok(1), |_| <#ty>::#ident).map(Action::#name)))
+            });
+            quote!(__umpire_variants.extend([#(#variants),*]);)
+        }
+    });
+    let entries: Vec<_> = entries.collect();
+    Some((
+        quote! {
+            fn checked_catalog(&self, limit: usize) -> ::core::result::Result<::umpire_dsl::ActionCatalog<Self::Action>, ::umpire_dsl::CatalogError> {
+                let mut __umpire_variants = ::std::vec::Vec::new();
+                #(#entries)*
+                ::umpire_dsl::ActionCatalog::admit(limit, __umpire_variants)
+            }
+        },
+        bounds,
+    ))
+}
+
+fn unit_admission(items: &[Item], actors: &[syn::Ident]) -> Option<TokenStream> {
+    let actor_items: Vec<_> = items
+        .iter()
+        .filter_map(|item| match item {
+            Item::Enum(item) if actors.contains(&item.ident) => {
+                let name = &item.ident;
+                Some((item, syn::parse_quote!(#name)))
+            }
+            _ => None,
+        })
+        .collect();
+    catalog_admission(&actor_items).map(|(admission, _)| admission)
+}
+
 fn assumption_helpers(enabled: bool) -> Option<TokenStream> {
     enabled.then(|| {
         let constructors = ["without", "only", "fair"].map(|name| {
@@ -833,6 +900,7 @@ pub(crate) fn expand(args: &TokenStream, input: &ItemMod) -> manyhow::Result<Tok
     let progress_helpers = progress_helpers(!progress_tokens.is_empty(), &state);
     let actor_projections = actor_projections(&actors, &state);
     let world_type = world_type(&visibility, &state, &outcome_type, &actors);
+    let admission = unit_admission(items, &actors);
     let generated = quote! {
         #[doc = "The module's registered state machine."]
         #visibility struct World;
@@ -871,7 +939,7 @@ pub(crate) fn expand(args: &TokenStream, input: &ItemMod) -> manyhow::Result<Tok
                 let mut actions = ::std::vec::Vec::new();
                 #(actions.extend(#actors::actions().into_iter().map(Action::#actors));)*
                 actions
-            }
+            } #admission
             fn outcome_catalog(&self) -> ::core::option::Option<::std::vec::Vec<::umpire_dsl::OutcomeClass<Self::Outcome>>> {
                 Some(#outcome_catalog)
             }

@@ -5,7 +5,9 @@ use std::{
 
 use smallvec::SmallVec;
 
-use crate::{Assumption, Claim, OutcomeClass, Progress, Scope, StepClaim};
+use crate::{
+    ActionCatalog, Assumption, CatalogError, Claim, OutcomeClass, Progress, Scope, StepClaim,
+};
 
 /// A world of constants defining a finite state machine and its named claims.
 pub trait Machine: Sized {
@@ -23,6 +25,18 @@ pub trait Machine: Sized {
 
     /// Enumerates the finite action catalog in declaration order, including disabled actions.
     fn actions(&self) -> Vec<Self::Action>;
+
+    /// Admits the action catalog under a concrete-action limit before any step is evaluated.
+    /// Engines use this method; `actions` is the unchecked interface for direct callers.
+    ///
+    /// The default checks the length of `actions`, so it cannot refuse before that list is
+    /// built. Generated input-bearing machines count every declared domain first.
+    ///
+    /// # Errors
+    /// Refuses a catalog above `limit`, or one whose count overflows.
+    fn checked_catalog(&self, limit: usize) -> Result<ActionCatalog<Self::Action>, CatalogError> {
+        ActionCatalog::checked(self.actions(), limit)
+    }
 
     /// Complete declared outcome kinds, or `None` when the world has not declared them.
     /// `Some(Vec::new())` explicitly declares that the outcome catalog is empty.

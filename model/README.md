@@ -362,7 +362,8 @@ real server/SDK controls. The worker returns only decoded Model reply data and u
 SDK failure converter. This is a bespoke SDK/server/Model proof, not execution through
 Testpilot Prepare/PreparedCase.Run, Case, Program or Contract.
 
-Remaining DSL gaps include parameterized inputs/facts and typed projection authoring.
+Remaining DSL gaps include source lifting of `Finite` and World-bound inputs, facts and typed
+projection authoring.
 Fn-221 closes the [rejecting-outcome gap](DESIGN.md#rejecting-outcomes-and-live-cancellation-fn-221). No Model transition
 was changed to fit server evidence. Fn-213 must include the Temporal fixture root;
 fn-218 retains Cases(8), resolving impossible alternatives as a downstream grammar
@@ -495,9 +496,36 @@ refuse with “use cover”.
 | `..`, `..=n`, `..!(Client::Cancel, Worker::Poll)` | Any steps, at most n steps, or steps excluding the named actions |
 
 Payload fields of an `Action` declare their complete finite input catalog with
-`#[inputs(0..=3)]` or `#[inputs([Account::King, Account::Queen])]`. Missing/open domains refuse
-with the actor, action and field. Requested impossible values remain alternatives and fail
-witness search. A fault is an ordinary action of an actor marked `#[fault]`; `#[internal]`
+`#[inputs(0..=3)]` or `#[inputs([Account::King, Account::Queen])]`. A field without either uses
+its type's `Finite` domain: `bool`, a `#[derive(Finite)]` fieldless enum in declaration order, or
+a `#[derive(Finite)]` newtype whose one integer field declares `#[inputs(lo..=hi)]`. That one
+range also generates `try_new(raw) -> Option<Self>` and `contains(raw)`; enumeration is not
+validation, and raw construction stays possible. Raw integers have no `Finite` domain and keep
+the missing-domain refusal; other non-`Finite` fields fail to compile with a note naming the
+choices. Products enumerate in field order, the last field fastest.
+
+Inside a `#[machine]` with a declared World, `#[domain(sizes)]` on a field names a
+`fn(&World) -> impl Iterator<Item = FieldType>`. Such an actor has no static catalog: it
+implements `ActorValue` (identity and `internal`/`fault` classification) but not `Actor`, and
+`User::actions_in(&world)` returns its lazy domain for that World. Concrete values still infer
+typed `path!` steps, though an outcome filter (`=>`) still requires a static `Actor`; a `User::*` or `User::Set { .. }` pattern without a World refuses at
+compile time, so contextual queries pass the selected World explicitly:
+`Pattern::action(User::actions_in(&world).map(Action::from), None, None)` inside `Path::pattern`.
+`#[domain]` outside a declared-World machine, on a variant, twice, or together with `#[inputs]`
+is refused; a wrong World or item type is a type error.
+
+`Machine::actions` stays the unchecked catalog. Engines call `Machine::checked_catalog(limit)`,
+which generated input-bearing machines answer by counting every variant's domain before
+building any action, with exact overflow detection; an empty factor makes its variant empty
+even beside an overflowing range. The default limit is 4,096 concrete actions; a larger catalog
+is a checker `Refusal::CatalogLimit` naming the count, an unrepresentable one
+`Refusal::CatalogOverflow`, before any handler runs. `Checker::explore_within(world, starts,
+budget, limit)` and `Space::catalog_limit(n)` select another limit, which progress queries and
+every suite route reuse; the Wasm runtime refuses with the `Budget` code. A declared variant with
+no concrete actions is reported as `vacuity: variant User::Pick has no actions`. Manual
+Machines keep the default, which checks the length of `actions()`.
+
+Requested impossible values remain alternatives and fail witness search. A fault is an ordinary action of an actor marked `#[fault]`; `#[internal]`
 alone neither declares a fault nor fairness. Permutations default to at most six elements
 (720 orders); `path.permutation_limit(n)` explicitly changes that admission limit.
 
@@ -511,7 +539,8 @@ drops an impossible choice. `Covered::runs()` holds ordinary Runs; `len()`, `all
 
 The limits are independent: `Space::budget(n)` counts distinct Model states;
 `alternative_budget(n)` admits authored alternatives (default 1,048,576);
-`walk_bound(n)` bounds each sampled walk in Model edges (default 256). Pattern/product and
+`walk_bound(n)` bounds each sampled walk in Model edges (default 256);
+`catalog_limit(n)` admits concrete catalog actions (default 4,096). Pattern/product and
 experiment storage also have independent finite ceilings. Cover and sample require a complete
 explored graph and refuse `Refusal::Cut` when the state budget cuts it. Unbounded gaps still
 search only that finite graph; they do not enlarge its state budget.

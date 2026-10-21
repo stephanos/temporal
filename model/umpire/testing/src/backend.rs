@@ -168,7 +168,8 @@ fn replay<M: Machine>(
             return Err("counterexample lacks choice identity".into());
         };
         let action = world
-            .actions()
+            .checked_catalog(umpire_dsl::CATALOG_LIMIT)?
+            .into_actions()
             .into_iter()
             .find(|action| action.to_string() == *action_name)
             .ok_or("TLC action is not in Model catalog")?;

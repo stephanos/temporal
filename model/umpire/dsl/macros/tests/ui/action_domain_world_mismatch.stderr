@@ -1,0 +1,16 @@
+error[E0308]: mismatched types
+  --> tests/ui/action_domain_world_mismatch.rs:21:22
+   |
+21 |         Set(#[domain(sizes)] u8),
+   |                      ^^^^^
+   |                      |
+   |                      expected `&Other`, found `&World`
+   |                      arguments to this function are incorrect
+   |
+   = note: expected reference `&sized::Other`
+              found reference `&World`
+note: function defined here
+  --> tests/ui/action_domain_world_mismatch.rs:12:8
+   |
+12 |     fn sizes(_: &Other) -> impl Iterator<Item = u8> {
+   |        ^^^^^ ---------

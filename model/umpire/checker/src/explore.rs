@@ -58,6 +58,7 @@ pub struct Result<M: Machine> {
     pub(crate) transitions: Vec<Transition<M>>,
     pub(crate) completed: Vec<Vec<bool>>,
     pub(crate) actions: Vec<M::Action>,
+    pub(crate) catalog_limit: usize,
     pub(crate) progress: Vec<Progress<M>>,
     pub(crate) claims: Vec<ClaimResult<M::State, M::Action>>,
     warnings: Vec<String>,
@@ -67,6 +68,9 @@ impl Checker {
     /// The default state budget, about a million states.
     pub const BUDGET: usize = 1 << 20;
 
+    /// The default maximum number of concrete catalog actions.
+    pub const CATALOG_LIMIT: usize = umpire_dsl::CATALOG_LIMIT;
+
     /// Explores ordered starts with a shared visited set and FIFO action/choice expansion.
     ///
     /// The budget limits admitted states, not edge evaluations; zero is refused.
@@ -74,7 +78,14 @@ impl Checker {
         world: &M,
         budget: usize,
     ) -> std::result::Result<Result<M>, Refusal> {
-        Self::explore_claims(world, world.starts(), budget, &world.invariants(), None)
+        Self::explore_claims(
+            world,
+            world.starts(),
+            budget,
+            Self::CATALOG_LIMIT,
+            &world.invariants(),
+            None,
+        )
     }
 
     /// Explores the given ordered starts in place of the world's own, under the world's claims.
@@ -83,7 +94,7 @@ impl Checker {
         starts: Vec<M::State>,
         budget: usize,
     ) -> std::result::Result<Result<M>, Refusal> {
-        Self::explore_claims(world, starts, budget, &world.invariants(), None)
+        Self::explore_claims(world, starts, budget, Self::CATALOG_LIMIT, &world.invariants(), None)
     }
 
     /// Checks an additional state predicate with the default million-state budget.
@@ -94,24 +105,44 @@ impl Checker {
         let mut invariants = world.invariants();
         let supplemental = invariants.len();
         invariants.push(claim);
-        Self::explore_claims(world, world.starts(), Self::BUDGET, &invariants, Some(supplemental))
+        Self::explore_claims(
+            world,
+            world.starts(),
+            Self::BUDGET,
+            Self::CATALOG_LIMIT,
+            &invariants,
+            Some(supplemental),
+        )
+    }
+
+    /// Explores the given ordered starts admitting at most `catalog_limit` concrete actions,
+    /// in place of the default [`Checker::CATALOG_LIMIT`]. A larger catalog is refused before
+    /// any Model step; later progress queries revalidate it under the same limit.
+    pub fn explore_within<M: Machine>(
+        world: &M,
+        starts: Vec<M::State>,
+        budget: usize,
+        catalog_limit: usize,
+    ) -> std::result::Result<Result<M>, Refusal> {
+        Self::explore_claims(world, starts, budget, catalog_limit, &world.invariants(), None)
     }
 
     fn explore_claims<M: Machine>(
         world: &M,
         starts: Vec<M::State>,
         budget: usize,
+        catalog_limit: usize,
         invariants: &[Claim<M>],
         supplemental: Option<usize>,
     ) -> std::result::Result<Result<M>, Refusal> {
         if budget == 0 {
             return Err(Refusal::Budget { given: budget });
         }
+        let (actions, empty) = admit(world, catalog_limit)?;
         let postconditions = world.postconditions();
-        let actions = world.actions();
         let progress = world.progress();
         crate::progress::validate_scopes(world, &progress, &actions)?;
-        let mut result = Result::new(invariants, &postconditions, &progress);
+        let mut result = Result::new(invariants, &postconditions, &progress, catalog_limit, empty);
         result.seed(world, starts, budget, invariants);
         let mut fired = FixedBitSet::with_capacity(actions.len());
         let mut triggered = FixedBitSet::with_capacity(postconditions.len());
@@ -207,6 +238,22 @@ impl Checker {
     }
 }
 
+/// Admits the catalog before any step, with a warning for each declared empty variant.
+fn admit<M: Machine>(
+    world: &M,
+    limit: usize,
+) -> std::result::Result<(Vec<M::Action>, Vec<String>), Refusal> {
+    let catalog = world.checked_catalog(limit)?;
+    let empty = catalog
+        .variants()
+        .unwrap_or_default()
+        .iter()
+        .filter(|variant| variant.count == 0)
+        .map(|variant| format!("variant {} has no actions", variant.name))
+        .collect();
+    Ok((catalog.into_actions(), empty))
+}
+
 pub(crate) fn unchecked<S, A>(name: &str) -> ClaimResult<S, A> {
     ClaimResult {
         name: name.into(),
@@ -253,6 +300,8 @@ impl<M: Machine> Result<M> {
         invariants: &[Claim<M>],
         postconditions: &[StepClaim<M>],
         progress: &[Progress<M>],
+        catalog_limit: usize,
+        warnings: Vec<String>,
     ) -> Self {
         Self {
             counts: Counts::default(),
@@ -262,6 +311,7 @@ impl<M: Machine> Result<M> {
             transitions: Vec::new(),
             completed: Vec::new(),
             actions: Vec::new(),
+            catalog_limit,
             progress: Vec::new(),
             claims: invariants
                 .iter()
@@ -269,7 +319,7 @@ impl<M: Machine> Result<M> {
                 .chain(postconditions.iter().map(|claim| unchecked(claim.name)))
                 .chain(progress.iter().map(|claim| unchecked(claim.name)))
                 .collect(),
-            warnings: Vec::new(),
+            warnings,
         }
     }
     fn seed(&mut self, world: &M, starts: Vec<M::State>, budget: usize, invariants: &[Claim<M>]) {
@@ -481,6 +531,13 @@ impl Checker {
         let mut invariants = world.invariants();
         let supplemental = invariants.len();
         invariants.push(claim);
-        Self::explore_claims(world, starts, Self::BUDGET, &invariants, Some(supplemental))
+        Self::explore_claims(
+            world,
+            starts,
+            Self::BUDGET,
+            Self::CATALOG_LIMIT,
+            &invariants,
+            Some(supplemental),
+        )
     }
 }
