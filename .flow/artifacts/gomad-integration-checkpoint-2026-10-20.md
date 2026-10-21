@@ -571,3 +571,27 @@ qualification inputs. The host `.build-cache/fn232-stock-go1.27.1` copy is the
 verified stock compiler used for public cooperative builds. Evidence remains
 under `/home/agent/wt/evidence/` and host `.build-cache`; unrelated user `.turbo/`
 and other workspace processes are preserved. Nothing has been pushed.
+
+Fresh integration verification: final helper implementation identity, current
+corpora and broker-order checks pass (Go package exit 0, 0.230 seconds).
+`make lint-code-fast` on `be68b3de52` exits 0 with zero issues; raw log is
+`/home/agent/wt/evidence/fn235/root-final-drain-lint-code-fast.log`.
+Flow validation reports all 67 specs / 453 tasks structurally valid, retaining
+pre-existing historical evidence and uncovered-requirement warnings.
+
+Independent read-only final review returns SHIP for the helper/manual and Go
+repair at `df9f9d27d1`. Its linked-host follow-up returns NEEDS_WORK for
+`be68b3de52`: linked capacity outcomes omit final World bytes because retention
+only admits exit/trap. Replay owner must add capacity retention and a linked
+nonempty, decodable World plus matching-replay regression before acceptance.
+The ringpop regression and final qualification remain pending independently.
+
+After owner confirmation, clean-status and live-process/open-file checks,
+completed donor worktrees fn232-linked-network and fn235-failure-repair were
+removed with `git worktree remove`; registry was pruned. Their branches and
+open-spec evidence remain available, and source is integrated. No unique work
+or retained evidence was deleted. The producer's pinned model subsequently
+hit capacity too; `producer_fallback` resumes the same dirty
+fn232-simulation-producer checkout, its child ownership and shared-target lease.
+Replay remains queued next, followed by a short seed fixture refresh and the
+exploration integration compiler run. No task is completed by these checks.
