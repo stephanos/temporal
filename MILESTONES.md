@@ -320,7 +320,6 @@ First in the delivery order (owner decision 2026-10-20). New evidence lineage; b
 | Name / ID | Status | Description |
 | --- | --- | --- |
 | [fn-232-gomad-rewrite-the-host-side-in-rust.1](.flow/tasks/fn-232-gomad-rewrite-the-host-side-in-rust.1.md) | 🚧 In progress | gomad binary crate linking the helper library; in-process execution with slots and bounds |
-| [fn-232-gomad-rewrite-the-host-side-in-rust.3](.flow/tasks/fn-232-gomad-rewrite-the-host-side-in-rust.3.md) | 🚧 In progress | Rust artifact store: new lineage, staged publication, budget, target pool |
 | [fn-232-gomad-rewrite-the-host-side-in-rust.6](.flow/tasks/fn-232-gomad-rewrite-the-host-side-in-rust.6.md) | 🚧 In progress | replay in Rust on the helper library tape path |
 | [fn-232-gomad-rewrite-the-host-side-in-rust.7](.flow/tasks/fn-232-gomad-rewrite-the-host-side-in-rust.7.md) | 🚧 In progress | seed explore, resume and merge in Rust |
 | [fn-232-gomad-rewrite-the-host-side-in-rust.8](.flow/tasks/fn-232-gomad-rewrite-the-host-side-in-rust.8.md) | 🚧 In progress | choice exploration and simulation exploration in Rust |
