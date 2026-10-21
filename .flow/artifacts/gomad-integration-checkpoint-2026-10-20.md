@@ -689,7 +689,13 @@ all-target Clippy passes after a test-assertion-only correction. Ordinary-helper
 candidate V9 builds successfully (SHA-256
 `77481909355d906ba5db34dc5a288e02d99e7b573e0a2cc2828eff80376bb520`),
 and its 50 host library tests and all-target Clippy pass. Its public simulation
-refresh is running. Main-harness exploration routing was found absent and is being
+refreshes `fn232-simulation-public-12` and `-13` both pass, including sixteen
+retained replays, byte-identical eight-record hash sets and byte-identical
+observations (SHA-256
+`62b05efa963943f14f61a72d04fc8746bc9744b1d5aba716fdc6af2cd3c8ee0a`).
+The earlier `-11` attempt correctly refused a cross-worktree stale runtime overlay;
+the successful refreshes use a new stable preparation root in this checkout.
+Main-harness exploration routing was found absent and is being
 wired to the existing actual public/controller/model-conformance checks. Independent
 implementation review, parent integration, Flow completion and the frozen R12/task
 .13 qualification remain pending. No task is marked done by this checkpoint.
