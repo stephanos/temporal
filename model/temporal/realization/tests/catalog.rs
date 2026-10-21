@@ -242,6 +242,7 @@ fn failure_activity_type_does_not_inherit_start_request_constraints()
             ..Default::default()
         };
         let request = RespondActivityTaskFailedRequest {
+            task_token: b"private-task-token".to_vec(),
             failure: Some(failure.clone()),
             ..Default::default()
         }
@@ -386,7 +387,10 @@ fn request_duration_validation_mirrors_server_normalization_without_repair()
 #[test]
 fn worker_failure_requires_application_info_only_when_failure_is_supplied()
 -> Result<(), Box<dyn std::error::Error>> {
-    let mut request = RespondActivityTaskFailedRequest::default();
+    let mut request = RespondActivityTaskFailedRequest {
+        task_token: b"private-task-token".to_vec(),
+        ..Default::default()
+    };
     assert_eq!(
         annotate("RespondActivityTaskFailed", false, &request.encode_to_vec(), 1)?.violations,
         [] as [String; 0]
@@ -395,10 +399,11 @@ fn worker_failure_requires_application_info_only_when_failure_is_supplied()
         failure_info: Some(failure::FailureInfo::ServerFailureInfo(ServerFailureInfo::default())),
         ..Default::default()
     });
-    assert_ne!(
-        annotate("RespondActivityTaskFailed", false, &request.encode_to_vec(), 1)?.violations,
-        [] as [String; 0]
-    );
+    let violations =
+        annotate("RespondActivityTaskFailed", false, &request.encode_to_vec(), 1)?.violations;
+    assert_eq!(violations.len(), 1);
+    assert!(violations[0].contains("Failure"), "{:?}", violations);
+    assert!(violations[0].contains("application_failure_info"), "{:?}", violations);
     request.failure.as_mut().ok_or("failure")?.failure_info =
         Some(failure::FailureInfo::ApplicationFailureInfo(ApplicationFailureInfo::default()));
     assert_eq!(
