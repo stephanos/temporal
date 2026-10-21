@@ -1,0 +1,95 @@
+package main
+
+import (
+    "encoding/json"
+    "fmt"
+    "os"
+
+    "go.temporal.io/server/tools/gomad/internal/evidence/record"
+    "go.temporal.io/server/tools/gomad/internal/runner/internal/exploration"
+)
+
+type template struct {
+    Dimension exploration.Dimension `json:"dimension"`
+    Ordinal uint64 `json:"ordinal"`
+    SiteSHA256 record.SHA256 `json:"site_sha256"`
+    Alternatives []record.SHA256 `json:"alternatives"`
+    Selected uint32 `json:"selected"`
+}
+type input struct {
+    Config exploration.SimulationConfig `json:"config"`
+    Decisions []template `json:"decisions"`
+    DivergedExecution *uint64 `json:"diverged_execution"`
+    FailedExecution *uint64 `json:"failed_execution"`
+}
+type forcedView struct {
+    Dimension exploration.Dimension `json:"dimension"`
+    Ordinal uint64 `json:"ordinal"`
+    Selected uint32 `json:"selected"`
+    Identity record.SHA256 `json:"identity"`
+}
+type candidateView struct {
+    SHA256 record.SHA256 `json:"sha256"`
+    ParentSHA256 record.SHA256 `json:"parent_sha256"`
+    Overrides []forcedView `json:"overrides"`
+}
+type roundView struct {
+    Index uint64 `json:"index"`
+    Candidates []candidateView `json:"candidates"`
+    Summary exploration.SimulationSummary `json:"summary"`
+}
+func run() error {
+    var request input
+    decoder := json.NewDecoder(os.Stdin)
+    decoder.DisallowUnknownFields()
+    if err := decoder.Decode(&request); err != nil { return err }
+    state, err := exploration.NewSimulation(request.Config)
+    if err != nil { return err }
+    views := []roundView{}
+    for {
+        round, ok := state.NextRound()
+        if !ok { break }
+        results := make([]exploration.SimulationResult, len(round.Candidates))
+        candidates := make([]candidateView, len(round.Candidates))
+        for index, candidate := range round.Candidates {
+            decisions := make([]exploration.Decision, len(request.Decisions))
+            for n, source := range request.Decisions {
+                selected := source.Selected
+                for _, forced := range candidate.Overrides {
+                    if forced.Dimension == source.Dimension && forced.Ordinal == source.Ordinal { selected = forced.Selected }
+                }
+                var controls [][]byte
+                if source.Dimension == exploration.DimensionRuntime {
+                    controls = make([][]byte, len(source.Alternatives))
+                    for rank := range controls { if uint32(rank) != selected { controls[rank] = []byte{byte(rank+1)} } }
+                }
+                decision, err := exploration.CanonicalControlledDecision(source.Dimension, source.Ordinal, source.SiteSHA256, source.Alternatives, controls, selected)
+                if err != nil { return err }
+                decisions[n] = decision
+            }
+            ordinal := state.LogicalExecutions+uint64(index)
+            failed := request.FailedExecution != nil && *request.FailedExecution == ordinal
+            failure := record.SHA256("")
+            if failed { failure = record.HashBytes([]byte("controller-failure")) }
+            results[index] = exploration.SimulationResult{ CandidateSHA256:candidate.SHA256, OutcomeSHA256:record.HashBytes([]byte("controller-outcome")), Failed:failed, FailureSHA256:failure, Diverged:request.DivergedExecution != nil && *request.DivergedExecution == ordinal, Decisions:decisions }
+            overrides := make([]forcedView, len(candidate.Overrides))
+            for n, forced := range candidate.Overrides { overrides[n] = forcedView{forced.Dimension,forced.Ordinal,forced.Selected,forced.Identity} }
+            candidates[index] = candidateView{candidate.SHA256,candidate.ParentSHA256,overrides}
+        }
+        next, segment, err := exploration.CommitSimulationRound(state, round, results)
+        if err != nil { return err }
+        replayed, err := exploration.SimulationReplaySegment(state, segment)
+        if err != nil { return err }
+        expected, err := json.Marshal(next)
+        if err != nil { return err }
+        actual, err := json.Marshal(replayed)
+        if err != nil { return err }
+        if string(expected) != string(actual) { return fmt.Errorf("Go simulation segment replay differs") }
+        views = append(views, roundView{round.Index,candidates,next.Summary()})
+        state = next
+    }
+    return json.NewEncoder(os.Stdout).Encode(map[string]any{"schema":"gomad.simulation-controller-corpus/v1","view":views})
+}
+func main() {
+    if err := run(); err != nil { fmt.Fprintln(os.Stderr,err); os.Exit(2) }
+}
