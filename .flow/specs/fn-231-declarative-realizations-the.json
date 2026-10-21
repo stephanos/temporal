@@ -1,7 +1,7 @@
 {
   "branch_name": "fn-231-declarative-realizations-the",
-  "completion_review_status": "unknown",
-  "completion_reviewed_at": null,
+  "completion_review_status": "ship",
+  "completion_reviewed_at": "2026-10-21T13:01:44.168780Z",
   "created_at": "2026-10-20T19:24:56.116358Z",
   "default_impl": null,
   "default_review": null,
@@ -158,15 +158,53 @@
       "task": "fn-231-declarative-realizations-the.2",
       "timestamp": "2026-10-21T12:46:54.530643Z",
       "verdict": "SHIP"
+    },
+    {
+      "artifact_sha256": "44f05c7ca4fe806689065277a70ee2f3e61dd71aa2267431f141d1387e5ea476",
+      "backend": "codex",
+      "base_sha": "b9f26782e39f815d740ea4b89925a723303c861d",
+      "counter_kind": "plan",
+      "effort": "high",
+      "failure_class": null,
+      "finalized": {
+        "digest": "complete",
+        "receipt": "complete",
+        "status": "complete"
+      },
+      "findings_digest": {
+        "backend": "codex",
+        "digest_truncated": false,
+        "items": [],
+        "reviewKind": "completion"
+      },
+      "forced": false,
+      "hash_epoch": 0,
+      "head_sha": "9011744c3548f86c692720ee325b9d1c052a15e6",
+      "head_sha_observed": true,
+      "kind": "completion",
+      "model": "gpt-6.1-sol",
+      "outcome": "verdict",
+      "output_bytes": 683179,
+      "output_sha256": "d4978196831fbd772136382f99fa1275971ad6091a3c42ef0e553bb11be9cd79",
+      "reservation_id": "00e2cec325c0431297ce8ce1a88ae2fa",
+      "round_consumed": true,
+      "scope": "completion",
+      "superseded_by": null,
+      "task": null,
+      "timestamp": "2026-10-21T13:01:44.156278Z",
+      "tool_calls": 27,
+      "verdict": "SHIP"
     }
   ],
   "review_hash_epoch": {
     "impl:fn-231-declarative-realizations-the.1": 1,
-    "impl:fn-231-declarative-realizations-the.2": 1
+    "impl:fn-231-declarative-realizations-the.2": 1,
+    "plan#completion": 1
   },
   "review_pending_rounds": {},
   "review_reservations": {},
   "review_transport_failures": {
+    "completion": 0,
     "impl:fn-231-declarative-realizations-the.1": 0,
     "impl:fn-231-declarative-realizations-the.2": 0
   },
@@ -184,5 +222,5 @@
     "mergeBaseTracker": null,
     "url": null
   },
-  "updated_at": "2026-10-21T12:46:54.533301Z"
+  "updated_at": "2026-10-21T13:01:44.172783Z"
 }

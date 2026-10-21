@@ -31,6 +31,10 @@ fn-218 is complete locally with all five requirements covered, real-model expans
 default/required-TLC gates and the completion review passed.
 fn-229 is complete locally with both tasks, all three requirements, implementation
 and completion reviews, correctness/standards audits and integrated/live gates passed.
+fn-217 is complete locally with all seven tasks, implementation and parent completion
+reviews passed, exhaustive admission, black-box gaps and complete live/privacy gates.
+fn-230 is complete locally with both tasks and parent completion review passed,
+the embedded guest, freshness controls and renewed two-checkout Linux proof.
 TLC is implemented for its admitted source subset; unsupported source,
 including the current Phased/reject activity Model, is explicitly refused.
 
@@ -48,38 +52,30 @@ is Rust. The guest now directly exports `umpire_buffer_alloc`, `umpire_buffer_re
 
 | Phase | Specs and tasks | Scope |
 | --- | --- | --- |
-| After the Rust verdict | fn-217 → fn-230 → fn-231 → fn-227 → fn-211 → fn-228 | Owner priority order (fn-231 after fn-217 and fn-229, before fn-228.2 if possible; fn-229 is complete; fn-230 has no dependency and must land before fn-228.4; fn-227 placed before fn-211 on 2026-10-20 so Apalache arrives to a parameterized Model; fn-228 depends on fn-227 only, its place relative to fn-211 is the owner's). fn-210, fn-212, fn-213, fn-214, fn-215, fn-216, fn-218, fn-221, fn-223, fn-224, fn-225, fn-226 and fn-229 are complete locally with their scoped reviews and gates passed; fn-225 and fn-226's single-task reviews cover their full specs. fn-216's broad umbrella retains seven documented pre-existing failures. The recommendation is Rust under stock WASM/Go parity alone. Preserve each spec's prerequisites; priority does not add dependency edges or mark deferred work ready. fn-212 supplies lifting and TLC for its admitted source subset; fn-211 adds Apalache over its emitter. The former "Case slice" is filed as fn-228 (Runner and Run): the Model as umpire, one Model per Run, Propose on the protocol, one Go host loop, Driver and Shim, observations plus judgment and the never-overwrite publish store. Targets are at most 5,000 generic-runtime and 11,000 total non-test Testpilot Go lines. Standalone extraction remains a plan in `MIGRATE.md`. |
+| After the Rust verdict | fn-217 → fn-230 → fn-231 → fn-227 → fn-211 → fn-228 | Owner priority order (fn-231 after fn-217 and fn-229, before fn-228.2 if possible; fn-229 is complete; fn-230 has no dependency and must land before fn-228.4; fn-227 placed before fn-211 on 2026-10-20 so Apalache arrives to a parameterized Model; fn-228 depends on fn-227 only, its place relative to fn-211 is the owner's). fn-233 (Kettle service, filed 2026-10-21) depends on fn-217; its place in the order is the owner's. fn-210, fn-212, fn-213, fn-214, fn-215, fn-216, fn-218, fn-221, fn-223, fn-224, fn-225, fn-226 and fn-229 are complete locally with their scoped reviews and gates passed; fn-225 and fn-226's single-task reviews cover their full specs. fn-216's broad umbrella retains seven documented pre-existing failures. The recommendation is Rust under stock WASM/Go parity alone. Preserve each spec's prerequisites; priority does not add dependency edges or mark deferred work ready. fn-212 supplies lifting and TLC for its admitted source subset; fn-211 adds Apalache over its emitter. The former "Case slice" is filed as fn-228 (Runner and Run): the Model as umpire, one Model per Run, Propose on the protocol, one Go host loop, Driver and Shim, observations plus judgment and the never-overwrite publish store. Targets are at most 5,000 generic-runtime and 11,000 total non-test Testpilot Go lines. Standalone extraction remains a plan in `MIGRATE.md`. |
 
 ## Specs
 
-### fn-217: Annotation catalog over the Temporal API: kinds, tags, rules, expected errors and gap analysis (model, temporal)
+### fn-233: Kettle service: a framework-owned end-to-end reference system (model, umpire)
 
-Captured on 2026-10-19, after fn-216. A typed sidecar catalog over the upstream `temporal.api`
-messages (one kind per field, any tags with consequences, JSON Schema presence rules, AIP
-`field_behavior` roles, protovalidate constraint names), exhaustive by construction at four levels
-(fields, enum values, RPC methods, Model actions) so an `api.binpb` bump fails the build until
-classified; every request-side rule maps to the server's expected error and a probe produces
-`gaps.txt` (`Confirmed`/`Mismatch`/`Accepted`/`Unverifiable`) plus reverse coverage of the server's
-validators. Generic vocabulary in `umpire-annotations`, Temporal tags in `model/temporal`.
-[Spec](.flow/specs/fn-217-annotation-catalog-over-the-temporal.md).
-
-| Name | Status | What |
-| --- | --- | --- |
-| fn-217.6 | ⬜ todo | Readable `api.rs`; `#[derive(Catalog)]` mirror structs with kinds as field types and one `#[api]` namespace (review of 2026-10-21 applied: `View<K>` projections, named `Code`, `dc::Limits`, generated `services.rs`/`validators.rs`, foundation module, generated transport); spike one message first (R5) |
-
-### fn-230: Reproducible guest builds: a system-agnostic wasm build step, the committed Temporal guest, and the freshness gate (model, temporal)
-
-Captured on 2026-10-20 from the owner's decision that the built guest is checked in so test runners
-need Go and no Rust. Umpire gains a `guest` Cargo profile and `guest.sh` producing byte-identical
-wasm from any checkout, proven on two; the Temporal guest is committed beside its Go host module and
-embedded with `go:embed`; `make model-check` rebuilds and byte-compares it like the protobuf
-freshness checks, and `make umpire-guest` refreshes it. Umpire's own guests stay uncommitted.
-[Spec](.flow/specs/fn-230-reproducible-guest-builds-a-system.md).
+Captured on 2026-10-21, after fn-217. The only end-to-end chain (proto, catalog, realization, guest,
+Go host, live system, Judge, Answer, Annotate, gap report) runs against Temporal;
+under `umpire/` the pieces exist only in isolation. This spec gives the canonical Kettle Model a
+framework-owned Kettle service: an awkward-on-purpose proto, a Go reference server with named
+validators and scoped limits, a `derive(Catalog)` catalog, a `Realize` binding and guest, a
+live run through the Go host, and seeded server mutants the framework must name. Its first task
+moves the envelopes and descriptor coverage check out of `temporal/`, measuring what is
+generic today; validator generation and Go source walking are outside the updated scope.
+Spec-level dependency on fn-217; .3 needs the fn-217.6 derive. R5's Kettle-first spike
+chronology still needs reconciliation with the already-completed Temporal catalog.
+[Spec](.flow/specs/fn-233-kettle-service-a-framework-owned-end-to.md).
 
 | Name | Status | What |
 | --- | --- | --- |
-| fn-230.1 | 🔄 in progress | Linux source checkpoint integrated and combined model gate passed; two-checkout proof verified; actual unwinding remains open (R1); macOS proof moved to fn-232 |
-| fn-230.2 | ⬜ todo | After .1: committed Temporal guest with `go:embed`; freshness step; `umpire-guest`; docs (R2, R3, R4) |
+| fn-233.1 | ⬜ todo | Move envelopes and the descriptor coverage check under `umpire/`; Temporal goldens byte-identical (R1) |
+| fn-233.2 | ⬜ todo | Kettle service proto, Go reference server, realization, guest, Judge-only live run with transcript golden (R2) |
+| fn-233.3 | ⬜ todo | Kettle `derive(Catalog)` catalog, `config.rs`, Annotate in the live run, `coverage.snap` and `gaps.txt` (R3, R5) |
+| fn-233.4 | ⬜ todo | Seeded mutants, one-line switches, each named by the framework in `mutants.snap.txt` (R4) |
 
 ### fn-232: Linux/macOS guest byte-identity certification
 
@@ -101,10 +97,10 @@ handled RPC as mapped, ignored with reason or unsupported, plus unhandled RPCs, 
 catalog at build time. Attributes live on the Realization only; the Model names nothing from Temporal.
 [Spec](.flow/specs/fn-231-declarative-realizations-the.md).
 
-| Name | Status | What |
-| --- | --- | --- |
-| fn-231.1 | ⬜ todo | Realization macro crate, `Step`/`Reply`, generated `Realize`; activity rewritten with expansion snapshot (R1, R3, R4) |
-| fn-231.2 | ⬜ todo | After .1: coverage golden against the catalog; unknown paths refused; DESIGN.md (R2, R4) |
+Both tasks are complete locally with implementation SHIP and all full gates passed.
+The parent completion review passed over the full spec base; final conductor gates remain.
+Renewed live proof retains
+all 2,336 gap/privacy cases and an unchanged report; the timing overrun remains explicit.
 
 ### fn-227: Parameterized Models: declared worlds, action inputs, and the activity Model with retries and timeouts (model, temporal)
 
@@ -117,6 +113,9 @@ in place: `maximum_attempts` and `RespondFailed { retryable }`, then the four op
 world reproduces the six-phase goldens. The realization reads the world from the observed start
 request and the live slice proves one retry then completion. The lifter admits `impl Phased` and
 `reject!` so TLC checks the activity Model.
+Before the activity rewrite, reconcile R4's exact old-golden witness with R5's no-timeout world:
+the old graph has enabled timeout edges, and new state/input fields change rendered bytes.
+World/input work is independent; no requirement or old assertion has been waived.
 [Spec](.flow/specs/fn-227-parameterized-models-declared-worlds.md).
 
 | Name | Status | What |
@@ -169,9 +168,5 @@ and replay; one `umpire` command with five modes.
 
 ## Open for the owner
 
-- fn-230's caught-panic requirement conflicts with the pinned stock `wasm32-wasip1`
-  standard library: the compiler selects `panic=abort` and rejects forced unwinding.
-  Approval to preserve existing trap-and-invalidate semantics is requested; the
-  requirement has not been waived.
 - fn-232's separately tracked Linux/macOS byte-identity proof needs a reachable macOS executor.
   Two Linux checkouts prove path independence, not cross-OS identity.
