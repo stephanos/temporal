@@ -45,7 +45,7 @@ def run(name, command, status=0):
     receipts.append(dict(name=name, argv=list(map(str, command)), status=result.returncode,
                          stdout=result.stdout.decode(), stderr=result.stderr.decode()))
     (args.work / 'commands.json').write_text(json.dumps(receipts, indent=2) + '\n')
-    assert result.returncode == status, (name, result.returncode, result.stderr)
+    assert status is None or result.returncode == status, (name, result.returncode, result.stderr)
     return result.stdout
 
 
@@ -183,8 +183,10 @@ if args.network:
     run('rust-network-divergence', [sys.executable, Path(__file__).resolve().parent / 'replay-network-divergence-check.py',
         '--binary', args.binary, '--artifact', rust_artifact, '--work', args.work / 'network-divergence'])
 go_replay_status = 3 if args.network and not args.network_scheduler else status
-go_replay = run('go-replay', [baseline, '--installation', installation, 'replay', artifact], go_replay_status)
-if go_replay_status == 3:
+go_replay = run('go-replay', [baseline, '--installation', installation, 'replay', artifact],
+                None if args.network else go_replay_status)
+go_replay_observed_status = receipts[-1]['status']
+if go_replay_observed_status == 3:
     assert receipts[-1]['stderr'] == 'execute replay target: choice trace malformed\n'
 else:
     assert b'reproduced=true' in go_replay
@@ -208,15 +210,17 @@ if args.network:
     repeated = json.loads(run('rust-repeat', [args.binary, 'fixture-replay-input', '--root', repeated_root, '--input', input_path]))
     parity.authenticate(repeated_root, repeated)
     repeated_artifact = repeated_root / repeated['records'][0]['artifact']
-    view = dict(schema='gomad.replay-network-golden/v1', go_replay_status=go_replay_status,
+    view = dict(schema='gomad.replay-network-golden/v1', go_replay_status=go_replay_observed_status,
         record=(rust_artifact / 'record.json').read_text(), manifest=(rust_artifact / 'manifest.json').read_text(),
         ledger=(args.work / 'rust' / bundle['ledger_file']).read_text(), network=dict(bytes=len(rust_network), sha256=sha(rust_network)))
     repeated_network = (repeated_artifact / 'evidence/network').read_bytes()
-    repeated_view = dict(schema='gomad.replay-network-golden/v1', go_replay_status=go_replay_status,
+    repeated_view = dict(schema='gomad.replay-network-golden/v1', go_replay_status=go_replay_observed_status,
         record=(repeated_artifact / 'record.json').read_text(), manifest=(repeated_artifact / 'manifest.json').read_text(),
         ledger=(repeated_root / repeated['ledger_file']).read_text(), network=dict(bytes=len(repeated_network), sha256=sha(repeated_network)))
     parity.check_equal(view, repeated_view)
     parity.golden(Path(__file__).resolve().parent / 'goldens-replay' / (case['name'] + '.json'),
                   view, os.environ.get('GOMAD_GOLDEN_REGENERATE') == '1')
+    assert go_replay_observed_status == go_replay_status, (
+        'public Go replay reference gap', go_replay_observed_status, go_replay_status)
 print(json.dumps({'artifact': str(rust_artifact), 'go_reference': str(args.work / 'registered-reference.json'),
                   'input': str(input_path), 'go_binary': str(baseline)}))
