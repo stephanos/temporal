@@ -6,6 +6,7 @@ import (
 	"errors"
 	"hash/fnv"
 	"testing"
+	"time"
 
 	"go.temporal.io/api/workflowservice/v1"
 	"google.golang.org/grpc"
@@ -13,9 +14,96 @@ import (
 	"google.golang.org/grpc/status"
 	"google.golang.org/protobuf/proto"
 	"google.golang.org/protobuf/reflect/protoreflect"
+	"umpire.local/model"
+	modelv1 "umpire.local/model/umpire/model/v1"
 	temporalmodel "umpire.local/temporal"
 	temporalv1 "umpire.local/temporal/umpire/temporal/v1"
 )
+
+func TestEmbeddedProbeContextsSurviveResetAndIndependentHosts(t *testing.T) {
+	hosts := []*model.Host{guest(t), guest(t)}
+	coldPages := hosts[1].Pages()
+	seen := make(map[[2]int]*temporalv1.ProbeResponse)
+	const genericCase = "generic::DescribeActivityExecution::temporal.api.workflowservice.v1.DescribeActivityExecutionRequest.activity_id:mutation.empty"
+	for hostIndex, host := range hosts {
+		var warmPages uint32
+		for round := range 3 {
+			contextIndex := (hostIndex + round) % 2
+			contexts := []struct{ namespace, activity, queue, run string }{
+				{"synthetic-a", "activity-a", "queue-a", "00000000-0000-4000-8000-000000000001"},
+				{"synthetic-b", "activity-b", "queue-b", "00000000-0000-4000-8000-000000000002"},
+			}
+			current := contexts[contextIndex]
+			for mode, testCase := range []struct {
+				id       string
+				baseline bool
+			}{{"", true}, {genericCase, true}, {genericCase, false}, {"RespondActivityTaskCompleted", true}} {
+				request := &temporalv1.ProbeRequest{
+					Operation: temporalv1.ProbeRequest_PREPARE, CaseId: testCase.id, Baseline: testCase.baseline,
+					Namespace: current.namespace, ActivityId: current.activity, TaskQueue: current.queue,
+					RunId: current.run, TaskToken: []byte{byte(contextIndex + 1)},
+				}
+				start := time.Now()
+				prepared, err := temporalmodel.Probe(t.Context(), host, request)
+				if err != nil {
+					t.Fatal(err)
+				}
+				t.Logf("host=%d context=%d mode=%d round=%d duration=%s pages=%d", hostIndex, contextIndex, mode, round, time.Since(start), host.Pages())
+				if prepared.Recipe != nil || len(prepared.Message) == 0 || proto.Size(prepared) > 1<<20 {
+					t.Fatal("small contextual probe must return bounded request bytes")
+				}
+				switch mode {
+				case 0:
+					actual := new(workflowservice.StartActivityExecutionRequest)
+					if err := proto.Unmarshal(prepared.Message, actual); err != nil {
+						t.Fatal(err)
+					}
+					if actual.Namespace != current.namespace || actual.ActivityId != current.activity || actual.TaskQueue.GetName() != current.queue {
+						t.Fatal("start request lost current context")
+					}
+				case 1, 2:
+					actual := new(workflowservice.DescribeActivityExecutionRequest)
+					if err := proto.Unmarshal(prepared.Message, actual); err != nil {
+						t.Fatal(err)
+					}
+					activity := current.activity
+					if mode == 2 {
+						activity = ""
+					}
+					if actual.Namespace != current.namespace || actual.RunId != current.run || actual.ActivityId != activity {
+						t.Fatal("generic request lost current context or mutation")
+					}
+				case 3:
+					actual := new(workflowservice.RespondActivityTaskCompletedRequest)
+					if err := proto.Unmarshal(prepared.Message, actual); err != nil {
+						t.Fatal(err)
+					}
+					if actual.Namespace != current.namespace || !bytes.Equal(actual.TaskToken, request.TaskToken) {
+						t.Fatal("completion request lost current namespace or task token")
+					}
+				default:
+					t.Fatalf("unhandled probe test mode %d", mode)
+				}
+				key := [2]int{contextIndex, mode}
+				if previous := seen[key]; previous != nil && !proto.Equal(previous, prepared) {
+					t.Fatal("same-context response changed across calls, Reset or Hosts")
+				}
+				seen[key] = prepared
+			}
+			if _, err := host.Reset(t.Context(), &modelv1.ResetRequest{}); err != nil {
+				t.Fatal(err)
+			}
+			pages := host.Pages()
+			if pages > 1024 || (round > 0 && pages != warmPages) {
+				t.Fatalf("retained memory must stay bounded after warm-up: before=%d after=%d", warmPages, pages)
+			}
+			warmPages = pages
+			if hostIndex == 0 && hosts[1].Pages() != coldPages {
+				t.Fatal("using one Host warmed the independent Host")
+			}
+		}
+	}
+}
 
 type probeConnection struct{ invoked bool }
 

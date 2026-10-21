@@ -17,7 +17,7 @@ negative control, and the full gate with model-time.
 
 ### Execution scope and verification
 
-**Touches:** `.gitattributes`, `.gitignore`, `Makefile`, `MIGRATE.md`, `README.md`, `model/README.md`, `model/DESIGN.md`, `model/GUEST_BUILDS.md`, `model/temporal/hosts/go/**`, `model/temporal/realization/src/probes.rs`, `model/temporal/realization/src/probes/**`, `model/temporal/realization/tests/probes.rs`, `model/umpire/hosts/go/README.md`, `model/scripts/**`, `tests/testpilot_model_slice_test.go`, `tests/testpilot_model_gaps_test.go`, `tests/testpilot_model_annotations_test.go`
+**Touches:** `.gitattributes`, `.gitignore`, `Makefile`, `MIGRATE.md`, `README.md`, `model/README.md`, `model/DESIGN.md`, `model/GUEST_BUILDS.md`, `model/temporal/hosts/go/**`, `model/temporal/realization/src/lib.rs`, `model/temporal/realization/src/probes.rs`, `model/temporal/realization/src/probes/**`, `model/temporal/realization/tests/probes.rs`, `model/umpire/hosts/go/README.md`, `model/scripts/**`, `tests/testpilot_model_slice_test.go`, `tests/testpilot_model_gaps_test.go`, `tests/testpilot_model_annotations_test.go`
 **Quick:** focused embedded-guest and freshness controls; Temporal host Go tests with Rust unavailable on PATH; stale/missing output and local/CI missing pinned-toolchain controls; actual live `make umpire-check-model-slice` and `make umpire-check-model-gaps` against embedded bytes, retaining case, privacy and timeout assertions; scoped changed Go lint/vet and script checks.
 **Full gates:** `make model-check`; `UMPIRE_BACKENDS=require make model-check`; `make model-time`.
 
@@ -86,6 +86,16 @@ removing repeated immutable work, not a new timing threshold or waiver.
 All original Quick and full gates, review requirements and preservation constraints
 remain in force. No general probe refactor, interpreter change or timeout extension
 is authorized by this execution amendment.
+
+The test harness may remove only `#![cfg(not(test))]` from the realization
+facade to execute private controls against the real crate modules. Its introduction
+at `fe00d08` supplies no test-exclusion rationale. Prefer this one-line test-build
+change over source-tree duplication, new public testing APIs or warning
+suppressions. First verify actual test collection and retain the genuine failing
+reuse control before implementing the fix. Preserve all existing public integration
+and exhaustive mutation calls; run newly enabled foundation controls and clippy.
+If enabling the crate exposes a genuine boundary or duplicate-implementation
+problem, diagnose it rather than suppressing or broadening this exception.
 ## Acceptance
 - [ ] Temporal guest committed and embedded; no env var or target path in Go tests or slice targets
 - [ ] go test passes without Rust on PATH
