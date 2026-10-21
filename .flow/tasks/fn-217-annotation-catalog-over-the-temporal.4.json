@@ -10,7 +10,7 @@
   "priority": null,
   "spec": "fn-217-annotation-catalog-over-the-temporal",
   "spec_path": ".flow/tasks/fn-217-annotation-catalog-over-the-temporal.4.md",
-  "status": "todo",
+  "status": "done",
   "title": "Gap probe and reverse coverage: gaps.txt golden",
   "updated_at": "2026-10-20T21:21:01.669255Z"
 }

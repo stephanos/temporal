@@ -1,7 +1,7 @@
 {
   "branch_name": "fn-217-annotation-catalog-over-the-temporal",
-  "completion_review_status": "unknown",
-  "completion_reviewed_at": null,
+  "completion_review_status": "ship",
+  "completion_reviewed_at": "2026-10-21T06:37:25.579125Z",
   "created_at": "2026-10-19T01:55:29.966153Z",
   "default_impl": null,
   "default_review": null,
@@ -539,6 +539,42 @@
       "task": "fn-217-annotation-catalog-over-the-temporal.6",
       "timestamp": "2026-10-21T06:27:21.593577Z",
       "verdict": "SHIP"
+    },
+    {
+      "artifact_sha256": "6622d75b8c8c2cb4e6b8bc1249162ed0d72c6ce8c91fe268ab241c970f658343",
+      "backend": "codex",
+      "base_sha": "32d63cceeaeba286d6bb843e1fb415b82ab82452",
+      "counter_kind": "plan",
+      "effort": "high",
+      "failure_class": null,
+      "finalized": {
+        "digest": "complete",
+        "receipt": "complete",
+        "status": "complete"
+      },
+      "findings_digest": {
+        "backend": "codex",
+        "digest_truncated": false,
+        "items": [],
+        "reviewKind": "completion"
+      },
+      "forced": false,
+      "hash_epoch": 0,
+      "head_sha": "703eb87c653e3ea6f8c164d083eadb7ce50aaa7d",
+      "head_sha_observed": true,
+      "kind": "completion",
+      "model": "gpt-6.1-sol",
+      "outcome": "verdict",
+      "output_bytes": 840583,
+      "output_sha256": "601fcd90661dfb285afe8a3eb96a0898cfc2f6f724b8bf7c1ebfc53322b64184",
+      "reservation_id": "6399056e3b704483844f6fb461575631",
+      "round_consumed": true,
+      "scope": "completion",
+      "superseded_by": null,
+      "task": null,
+      "timestamp": "2026-10-21T06:37:25.566511Z",
+      "tool_calls": 36,
+      "verdict": "SHIP"
     }
   ],
   "review_hash_epoch": {
@@ -548,11 +584,13 @@
     "impl:fn-217-annotation-catalog-over-the-temporal.4": 1,
     "impl:fn-217-annotation-catalog-over-the-temporal.5": 1,
     "impl:fn-217-annotation-catalog-over-the-temporal.6": 1,
-    "impl:fn-217-annotation-catalog-over-the-temporal.7": 1
+    "impl:fn-217-annotation-catalog-over-the-temporal.7": 1,
+    "plan#completion": 1
   },
   "review_pending_rounds": {},
   "review_reservations": {},
   "review_transport_failures": {
+    "completion": 0,
     "impl:fn-217-annotation-catalog-over-the-temporal.1": 0,
     "impl:fn-217-annotation-catalog-over-the-temporal.2": 0,
     "impl:fn-217-annotation-catalog-over-the-temporal.3": 0,
@@ -562,7 +600,7 @@
     "impl:fn-217-annotation-catalog-over-the-temporal.7": 0
   },
   "spec_path": ".flow/specs/fn-217-annotation-catalog-over-the-temporal.md",
-  "status": "open",
+  "status": "done",
   "title": "Annotation catalog over the Temporal API: kinds, tags, rules, expected errors and gap analysis (model, temporal)",
   "tracker": {
     "baseHashFlow": null,
@@ -575,5 +613,5 @@
     "mergeBaseTracker": null,
     "url": null
   },
-  "updated_at": "2026-10-21T06:27:21.598979Z"
+  "updated_at": "2026-10-21T06:38:14.444333Z"
 }

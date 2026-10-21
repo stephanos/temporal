@@ -10,7 +10,7 @@
   "priority": null,
   "spec": "fn-217-annotation-catalog-over-the-temporal",
   "spec_path": ".flow/tasks/fn-217-annotation-catalog-over-the-temporal.2.md",
-  "status": "todo",
+  "status": "done",
   "title": "annotate! with four-level exhaustiveness and the descriptor-set build check",
   "updated_at": "2026-10-20T20:59:13.718790Z"
 }
