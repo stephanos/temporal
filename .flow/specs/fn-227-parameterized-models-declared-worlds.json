@@ -1,14 +1,114 @@
 {
   "branch_name": "fn-227-parameterized-models-declared-worlds",
+  "completion_review_status": "unknown",
+  "completion_reviewed_at": null,
   "created_at": "2026-10-20T18:58:19.229711Z",
+  "default_impl": null,
+  "default_review": null,
+  "default_sync": null,
   "depends_on_epics": [
     "fn-218-test-space-patterns-cover-and-the-full",
     "fn-217-annotation-catalog-over-the-temporal"
   ],
   "id": "fn-227-parameterized-models-declared-worlds",
+  "impl_review_rounds": {},
   "next_task": 1,
-  "plan_review_status": "unknown",
-  "plan_reviewed_at": null,
+  "plan_review_rounds": 1,
+  "plan_review_status": "needs_work",
+  "plan_reviewed_at": "2026-10-21T13:34:37.865039Z",
+  "review_attempts": [
+    {
+      "artifact_sha256": "fbc6e5606200a2340951ed2b5a57f3fbe5fa41fdaba1af53df9461d76b3c8e38",
+      "backend": "codex",
+      "base_sha": "db9630b2f3d9526cb8db9aaf81248bd6ee273afb",
+      "counter_kind": "plan",
+      "effort": "high",
+      "failure_class": null,
+      "finalized": {
+        "digest": "complete",
+        "receipt": "complete",
+        "status": "complete"
+      },
+      "findings_digest": {
+        "backend": "codex",
+        "digest_truncated": false,
+        "items": [
+          {
+            "chainRoot": "finding-f8efb300df0d5792df9e4954136be88d",
+            "classification": "introduced",
+            "findingId": "finding-f8efb300df0d5792df9e4954136be88d",
+            "firstSeenThisRound": true,
+            "severity": "P0",
+            "status": "open"
+          },
+          {
+            "chainRoot": "finding-6fbf1a0a05ccd75fb42ee3da171661a0",
+            "classification": "introduced",
+            "findingId": "finding-6fbf1a0a05ccd75fb42ee3da171661a0",
+            "firstSeenThisRound": true,
+            "severity": "P1",
+            "status": "open"
+          },
+          {
+            "chainRoot": "finding-f21416d253876339b8ec69873af8c40a",
+            "classification": "introduced",
+            "findingId": "finding-f21416d253876339b8ec69873af8c40a",
+            "firstSeenThisRound": true,
+            "severity": "P1",
+            "status": "open"
+          },
+          {
+            "chainRoot": "finding-0fe2015bc23056417b1b1e46d82f070e",
+            "classification": "introduced",
+            "findingId": "finding-0fe2015bc23056417b1b1e46d82f070e",
+            "firstSeenThisRound": true,
+            "severity": "P1",
+            "status": "open"
+          },
+          {
+            "chainRoot": "finding-977cb609f850d1d6ef9ba6272f7e4052",
+            "classification": "introduced",
+            "findingId": "finding-977cb609f850d1d6ef9ba6272f7e4052",
+            "firstSeenThisRound": true,
+            "severity": "P1",
+            "status": "open"
+          },
+          {
+            "chainRoot": "finding-3c29cd5d4ed2b281a3ed45265cbbb170",
+            "classification": "introduced",
+            "findingId": "finding-3c29cd5d4ed2b281a3ed45265cbbb170",
+            "firstSeenThisRound": true,
+            "severity": "P2",
+            "status": "open"
+          }
+        ],
+        "reviewKind": "plan"
+      },
+      "forced": false,
+      "hash_epoch": 0,
+      "head_sha": "db9630b2f3d9526cb8db9aaf81248bd6ee273afb",
+      "head_sha_observed": true,
+      "kind": "plan",
+      "model": "gpt-6.1-sol",
+      "outcome": "verdict",
+      "output_bytes": 404326,
+      "output_sha256": "3b687d038014aefbc617041863e8105d7f9f6a4ea42b6d12e75fcf1bc886c415",
+      "reservation_id": "bf721850f191416786ca33de202483cf",
+      "round_consumed": true,
+      "scope": "plan",
+      "superseded_by": null,
+      "task": null,
+      "timestamp": "2026-10-21T13:34:37.853326Z",
+      "tool_calls": 36,
+      "verdict": "NEEDS_WORK"
+    }
+  ],
+  "review_hash_epoch": {},
+  "review_pending_rounds": {},
+  "review_reservations": {},
+  "review_transport_failures": {
+    "plan": 0
+  },
   "spec_path": ".flow/specs/fn-227-parameterized-models-declared-worlds.md",
   "status": "open",
   "title": "Parameterized Models: declared worlds, action inputs, and the activity Model with retries and timeouts (model, temporal)",
@@ -23,5 +123,5 @@
     "mergeBaseTracker": null,
     "url": null
   },
-  "updated_at": "2026-10-20T21:48:50.649358Z"
+  "updated_at": "2026-10-21T13:38:20.710681Z"
 }

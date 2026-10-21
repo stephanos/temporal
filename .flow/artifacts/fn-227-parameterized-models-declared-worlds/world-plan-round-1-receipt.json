@@ -1,0 +1,164 @@
+{
+  "effort": "high",
+  "findings": {
+    "backend": "codex",
+    "baseSha": "db9630b2f3d9526cb8db9aaf81248bd6ee273afb",
+    "headSha": "db9630b2f3d9526cb8db9aaf81248bd6ee273afb",
+    "items": [
+      {
+        "anchor": {
+          "baseSha": "db9630b2f3d9526cb8db9aaf81248bd6ee273afb",
+          "headSha": "db9630b2f3d9526cb8db9aaf81248bd6ee273afb",
+          "path": ".flow/tasks/fn-227-parameterized-models-declared-worlds.3.md",
+          "side": "head",
+          "startLine": 11
+        },
+        "body": "The specified witness cannot reproduce the existing goldens. Current `expected/rows.snap.txt` includes ScheduleToStart and StartToClose edges reaching TimedOut. R4 selects a world with no timeouts, and R5 disables Tick there. Adding `attempt` and action inputs also changes the state/action renderings pinned by those snapshots. The epic acknowledges this conflict but leaves the impossible acceptance criterion intact.",
+        "classification": "introduced",
+        "confidence": 100,
+        "firstSeenReceiptId": "review-bf539facb712e2da93abc548f50e3e2e18ee0e768cee7d73c17a663121ea18c6",
+        "id": "finding-f8efb300df0d5792df9e4954136be88d",
+        "lastSeenReceiptId": "review-bf539facb712e2da93abc548f50e3e2e18ee0e768cee7d73c17a663121ea18c6",
+        "ordinal": 1,
+        "rIds": [
+          "R4",
+          "R5"
+        ],
+        "severity": "P0",
+        "status": "open",
+        "suggestion": "Resolve the compatibility witness before the activity rewrite. State an executable check that satisfies the recorded compatibility decision, including deadline edges and rendering identity, and reconcile it across R4, R5 and task .3.",
+        "title": "The specified witness cannot reproduce the existing goldens"
+      },
+      {
+        "anchor": {
+          "baseSha": "db9630b2f3d9526cb8db9aaf81248bd6ee273afb",
+          "headSha": "db9630b2f3d9526cb8db9aaf81248bd6ee273afb",
+          "path": ".flow/tasks/fn-227-parameterized-models-declared-worlds.5.md",
+          "side": "head",
+          "startLine": 7
+        },
+        "body": "Task .5 still instructs the implementer to read cancellation type from Start options. The current Start request mirror has no such field, and the epic explicitly confirms that neither the request nor standalone SDK options supplies it. Consequently, the task cannot construct `asynchronous_cancel` from its stated evidence without inventing a value or source.",
+        "classification": "introduced",
+        "confidence": 100,
+        "firstSeenReceiptId": "review-bf539facb712e2da93abc548f50e3e2e18ee0e768cee7d73c17a663121ea18c6",
+        "id": "finding-6fbf1a0a05ccd75fb42ee3da171661a0",
+        "lastSeenReceiptId": "review-bf539facb712e2da93abc548f50e3e2e18ee0e768cee7d73c17a663121ea18c6",
+        "ordinal": 3,
+        "rIds": [
+          "R6"
+        ],
+        "severity": "P1",
+        "status": "open",
+        "suggestion": "Identify the authorized evidence source and its transport before task .5, then update its construction contract and tests. Merely recording this as an open question does not make the current construction instruction executable.",
+        "title": "Task"
+      },
+      {
+        "anchor": {
+          "baseSha": "db9630b2f3d9526cb8db9aaf81248bd6ee273afb",
+          "headSha": "db9630b2f3d9526cb8db9aaf81248bd6ee273afb",
+          "path": ".flow/tasks/fn-227-parameterized-models-declared-worlds.5.md",
+          "side": "head",
+          "startLine": 7
+        },
+        "body": "The task requires reading an observed Start request but defines no route for delivering it. `Observation` contains only method and response/error; `StartActivityExecutionResponse` supplies no activity options. Furthermore, `Realize::observe` cannot replace the runtime\u2019s private machine, and `Runtime::prepare` discards transactions on refusals. Implementing the task as a realization mapper cannot install the selected World or return Unsupported while committing the required freeze. The epic\u2019s transactional-admission requirements are absent from the task\u2019s approach and acceptance controls.",
+        "classification": "introduced",
+        "confidence": 75,
+        "firstSeenReceiptId": "review-bf539facb712e2da93abc548f50e3e2e18ee0e768cee7d73c17a663121ea18c6",
+        "id": "finding-f21416d253876339b8ec69873af8c40a",
+        "lastSeenReceiptId": "review-bf539facb712e2da93abc548f50e3e2e18ee0e768cee7d73c17a663121ea18c6",
+        "ordinal": 2,
+        "rIds": [
+          "R6"
+        ],
+        "severity": "P1",
+        "status": "open",
+        "suggestion": "Specify how the actual request and successful result reach admission within the envelope constraint. Carry World installation, exploration invalidation, admission-specific freezing and publication rollback into task .5, with controls for failed starts, failed publication and subsequent operations.",
+        "title": "The task requires reading an observed Start request but defines no route for delivering it"
+      },
+      {
+        "anchor": {
+          "baseSha": "db9630b2f3d9526cb8db9aaf81248bd6ee273afb",
+          "headSha": "db9630b2f3d9526cb8db9aaf81248bd6ee273afb",
+          "path": ".flow/tasks/fn-227-parameterized-models-declared-worlds.4.md",
+          "side": "head",
+          "startLine": 7
+        },
+        "body": "The task requires an expired-deadline fact without defining or assigning the necessary authoring support. Generated machines currently hard-code `Fact = ()`, require handlers to return nothing, and emit empty fact vectors. The lifter likewise emits `__umpire_facts' = <<>>`. Changing only the activity state and handlers cannot meet R5; emitting facts only natively also breaks backend replay\u2019s outcome/fact comparison.",
+        "classification": "introduced",
+        "confidence": 75,
+        "firstSeenReceiptId": "review-bf539facb712e2da93abc548f50e3e2e18ee0e768cee7d73c17a663121ea18c6",
+        "id": "finding-0fe2015bc23056417b1b1e46d82f070e",
+        "lastSeenReceiptId": "review-bf539facb712e2da93abc548f50e3e2e18ee0e768cee7d73c17a663121ea18c6",
+        "ordinal": 4,
+        "rIds": [
+          "R5"
+        ],
+        "severity": "P1",
+        "status": "open",
+        "suggestion": "Specify the narrow deadline-fact authoring contract and include its macro, source-lowering and replay work. Require matching native/TLC facts for each expiration and empty facts for ordinary transitions.",
+        "title": "The task requires an expired-deadline fact without defining or assigning the necessary authoring support"
+      },
+      {
+        "anchor": {
+          "baseSha": "db9630b2f3d9526cb8db9aaf81248bd6ee273afb",
+          "headSha": "db9630b2f3d9526cb8db9aaf81248bd6ee273afb",
+          "path": ".flow/tasks/fn-227-parameterized-models-declared-worlds.4.md",
+          "side": "head",
+          "startLine": 7
+        },
+        "body": "Task .4 introduces `Option<Ticks>` and requires TLC verification, but no task specifies their source representation or expression lowering. The current lifter admits scalar integers, bools, fieldless enums and vectors; `Environment::ty` refuses `Option<Ticks>`. Task .7 binds values using that existing representation, while .2\u2019s native range-newtype support does not establish optional-value lifting. Following the stated approaches leaves the timeout Model refused by TLC.",
+        "classification": "introduced",
+        "confidence": 75,
+        "firstSeenReceiptId": "review-bf539facb712e2da93abc548f50e3e2e18ee0e768cee7d73c17a663121ea18c6",
+        "id": "finding-977cb609f850d1d6ef9ba6272f7e4052",
+        "lastSeenReceiptId": "review-bf539facb712e2da93abc548f50e3e2e18ee0e768cee7d73c17a663121ea18c6",
+        "ordinal": 5,
+        "rIds": [
+          "R3",
+          "R5"
+        ],
+        "severity": "P1",
+        "status": "open",
+        "suggestion": "Assign the concrete `Option<Ticks>` admission, binding, expression and decoding behavior within the existing tasks, with None/Some backend controls. Define the bounded tick representation without introducing general-purpose algebraic-type support.",
+        "title": "Task"
+      },
+      {
+        "anchor": {
+          "baseSha": "db9630b2f3d9526cb8db9aaf81248bd6ee273afb",
+          "headSha": "db9630b2f3d9526cb8db9aaf81248bd6ee273afb",
+          "path": ".flow/specs/fn-227-parameterized-models-declared-worlds.md",
+          "side": "head",
+          "startLine": 24
+        },
+        "body": "Architecture places `#[domain]` on the variant, while API Contracts and task .2 place it on fields. These produce different authoring syntax and different meanings for multi-field variants.",
+        "classification": "introduced",
+        "confidence": 100,
+        "firstSeenReceiptId": "review-bf539facb712e2da93abc548f50e3e2e18ee0e768cee7d73c17a663121ea18c6",
+        "id": "finding-3c29cd5d4ed2b281a3ed45265cbbb170",
+        "lastSeenReceiptId": "review-bf539facb712e2da93abc548f50e3e2e18ee0e768cee7d73c17a663121ea18c6",
+        "ordinal": 6,
+        "rIds": [
+          "R2"
+        ],
+        "severity": "P2",
+        "status": "open",
+        "suggestion": "Choose one placement, define the iterator item type, and align the epic, task and compile controls.",
+        "title": "Architecture places `#[domain]` on the variant, while API Contracts and task"
+      }
+    ],
+    "reviewKind": "plan",
+    "round": 1,
+    "schemaVersion": 1,
+    "sourceReceiptId": "review-bf539facb712e2da93abc548f50e3e2e18ee0e768cee7d73c17a663121ea18c6"
+  },
+  "id": "fn-227-parameterized-models-declared-worlds",
+  "mode": "codex",
+  "model": "gpt-6.1-sol",
+  "review": "I\u2019ll read the epic and task specs, then trace the relevant code paths to check feasibility and consistency.\nThe World authoring and source-binding tasks specify useful controls. The later tasks leave two contracts open: preserving the old activity goldens after adding attempts and inputs, and sourcing asynchronous cancellation during live admission. I\u2019ll check those against the model and protocol, along with retry, timeout, and fairness behavior.\nThe old activity snapshots contain deadline edges that cannot occur in the proposed no-timeout world, so the literal compatibility requirement is currently impossible. I also confirmed that live observations carry responses but no start request, while timeout modeling needs option-type lifting and fact emission that the current DSL lacks. Those gaps need explicit implementation contracts.\nSeverity: P0\nConfidence: 100\nClassification: introduced\nFile:Line: .flow/tasks/fn-227-parameterized-models-declared-worlds.3.md:11\nR-IDs: [R4, R5]\nLocation: Legacy activity compatibility witness.\nProblem: The specified witness cannot reproduce the existing goldens. Current `expected/rows.snap.txt` includes ScheduleToStart and StartToClose edges reaching TimedOut. R4 selects a world with no timeouts, and R5 disables Tick there. Adding `attempt` and action inputs also changes the state/action renderings pinned by those snapshots. The epic acknowledges this conflict but leaves the impossible acceptance criterion intact.\nSuggestion: Resolve the compatibility witness before the activity rewrite. State an executable check that satisfies the recorded compatibility decision, including deadline edges and rendering identity, and reconcile it across R4, R5 and task .3.\n\nSeverity: P1\nConfidence: 75\nClassification: introduced\nFile:Line: .flow/tasks/fn-227-parameterized-models-declared-worlds.5.md:7\nR-IDs: [R6]\nLocation: Start evidence transport and transactional World admission.\nProblem: The task requires reading an observed Start request but defines no route for delivering it. `Observation` contains only method and response/error; `StartActivityExecutionResponse` supplies no activity options. Furthermore, `Realize::observe` cannot replace the runtime\u2019s private machine, and `Runtime::prepare` discards transactions on refusals. Implementing the task as a realization mapper cannot install the selected World or return Unsupported while committing the required freeze. The epic\u2019s transactional-admission requirements are absent from the task\u2019s approach and acceptance controls.\nSuggestion: Specify how the actual request and successful result reach admission within the envelope constraint. Carry World installation, exploration invalidation, admission-specific freezing and publication rollback into task .5, with controls for failed starts, failed publication and subsequent operations.\n\nSeverity: P1\nConfidence: 100\nClassification: introduced\nFile:Line: .flow/tasks/fn-227-parameterized-models-declared-worlds.5.md:7\nR-IDs: [R6]\nLocation: Cancellation-type input to live World construction.\nProblem: Task .5 still instructs the implementer to read cancellation type from Start options. The current Start request mirror has no such field, and the epic explicitly confirms that neither the request nor standalone SDK options supplies it. Consequently, the task cannot construct `asynchronous_cancel` from its stated evidence without inventing a value or source.\nSuggestion: Identify the authorized evidence source and its transport before task .5, then update its construction contract and tests. Merely recording this as an open question does not make the current construction instruction executable.\n\nSeverity: P1\nConfidence: 75\nClassification: introduced\nFile:Line: .flow/tasks/fn-227-parameterized-models-declared-worlds.4.md:7\nR-IDs: [R5]\nLocation: Expired-deadline fact emission.\nProblem: The task requires an expired-deadline fact without defining or assigning the necessary authoring support. Generated machines currently hard-code `Fact = ()`, require handlers to return nothing, and emit empty fact vectors. The lifter likewise emits `__umpire_facts' = <<>>`. Changing only the activity state and handlers cannot meet R5; emitting facts only natively also breaks backend replay\u2019s outcome/fact comparison.\nSuggestion: Specify the narrow deadline-fact authoring contract and include its macro, source-lowering and replay work. Require matching native/TLC facts for each expiration and empty facts for ordinary transitions.\n\nSeverity: P1\nConfidence: 75\nClassification: introduced\nFile:Line: .flow/tasks/fn-227-parameterized-models-declared-worlds.4.md:7\nR-IDs: [R3, R5]\nLocation: Source admission for optional timeout values.\nProblem: Task .4 introduces `Option<Ticks>` and requires TLC verification, but no task specifies their source representation or expression lowering. The current lifter admits scalar integers, bools, fieldless enums and vectors; `Environment::ty` refuses `Option<Ticks>`. Task .7 binds values using that existing representation, while .2\u2019s native range-newtype support does not establish optional-value lifting. Following the stated approaches leaves the timeout Model refused by TLC.\nSuggestion: Assign the concrete `Option<Ticks>` admission, binding, expression and decoding behavior within the existing tasks, with None/Some backend controls. Define the bounded tick representation without introducing general-purpose algebraic-type support.\n\nSeverity: P2\nConfidence: 100\nClassification: introduced\nFile:Line: .flow/specs/fn-227-parameterized-models-declared-worlds.md:24\nR-IDs: [R2]\nLocation: Placement of `#[domain]`.\nProblem: Architecture places `#[domain]` on the variant, while API Contracts and task .2 place it on fields. These produce different authoring syntax and different meanings for multi-field variants.\nSuggestion: Choose one placement, define the iterator item type, and align the epic, task and compile controls.\n\nPlan checks: The test strategy is stated and includes native checks, trybuild, goldens, actual TLC and live SDK proof. Dependencies form the serial chain `.1 \u2192 .7 \u2192 .2 \u2192 .3 \u2192 .4 \u2192 .5 \u2192 .6`; no independent Touches overlap exists. Single-iteration readiness for .4/.5 depends on resolving the supporting contracts above. Existing live-slice latency logging provides observability. Performance budgets, dependency restrictions, protocol preservation and guest privacy checks are stated.\n\nmaintainability:\n  duplication: none identified\n  structure: none identified\n\n```json\n{\"classification_counts\":{\"introduced\":6,\"pre_existing\":0},\"unaddressed\":[\"R2\",\"R3\",\"R4\",\"R5\",\"R6\"]}\n```\n\n<verdict>NEEDS_WORK</verdict> - Plan has gaps that need addressing",
+  "review_reservation_id": "bf721850f191416786ca33de202483cf",
+  "session_id": "01a15ea6-c45d-7d01-b74c-ea7c7829f57e",
+  "spec": "codex:gpt-6.1-sol:high",
+  "timestamp": "2026-10-21T13:34:37.846041Z",
+  "type": "plan_review",
+  "verdict": "NEEDS_WORK"
+}

@@ -104,12 +104,17 @@ request and the live slice proves one retry then completion. The lifter admits `
 Before the activity rewrite, reconcile R4's exact old-golden witness with R5's no-timeout world:
 the old graph has enabled timeout edges, and new state/input fields change rendered bytes.
 World/input work is independent; no requirement or old assertion has been waived.
+Formal plan review returned NEEDS_WORK. Before activity/live work, the owner must resolve
+the incompatible old-byte witness and cancellation contract; the pinned protocol signals
+pending cancellation on heartbeat and permits completion/failure races. Engineering plan
+gaps remain in fact emission, optional ticks and transactional Start evidence admission.
 [Spec](.flow/specs/fn-227-parameterized-models-declared-worlds.md).
 
 | Name | Status | What |
 | --- | --- | --- |
-| fn-227.1 | ⬜ todo | Declared World, `&World` access, `#[starts]` block; `parameterized_world` fixture with TLC (R1, R3) |
-| fn-227.2 | ⬜ todo | After .1: `Finite` and action inputs; `action_inputs` fixture with TLC (R2, R3) |
+| fn-227.1 | ⬜ todo | Native declared World, typed adapters, computed starts and owned suite binding (R1, R3) |
+| fn-227.7 | ⬜ todo | After .1: independent typed World/source binding, whole-state Init, all CFGs and `parameterized_world` TLC proof (R1, R3) |
+| fn-227.2 | ⬜ todo | After .1 and .7: `Finite` and action inputs; `action_inputs` fixture with TLC (R2, R3) |
 | fn-227.3 | ⬜ todo | After .2: lifter admits `Phased`/`reject!`; activity `maximum_attempts` and retryable failure (R3, R4) |
 | fn-227.4 | ⬜ todo | After .3: timeouts, Heartbeat, Tick, asynchronous cancel; progress and bound claims (R5) |
 | fn-227.5 | ⬜ todo | After .4: world from observed start options; Answer retryable; live retry proof (R6) |
