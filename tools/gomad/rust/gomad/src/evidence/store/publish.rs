@@ -181,15 +181,38 @@ fn remove_stage(root: &File, name: &str) -> Result<(), String> {
     fs::unlinkat(root, name, AtFlags::REMOVEDIR).map_err(|error| error.to_string())
 }
 
-fn rename_exclusive(root: &File, source: &str, target: &str) -> Result<(), rustix::io::Errno> {
+fn rename_exclusive(
+    source_root: &File,
+    source: &str,
+    target_root: &File,
+    target: &str,
+) -> Result<(), rustix::io::Errno> {
     #[cfg(any(target_os = "linux", target_os = "macos"))]
     {
-        fs::renameat_with(root, source, root, target, fs::RenameFlags::NOREPLACE)
+        fs::renameat_with(
+            source_root,
+            source,
+            target_root,
+            target,
+            fs::RenameFlags::NOREPLACE,
+        )
     }
     #[cfg(not(any(target_os = "linux", target_os = "macos")))]
     {
-        let _ = (root, source, target);
+        let _ = (source_root, source, target_root, target);
         Err(rustix::io::Errno::NOSYS)
+    }
+}
+
+fn staging(root: &File) -> Result<(String, File), String> {
+    loop {
+        let sequence = STAGING_SEQUENCE.fetch_add(1, Ordering::Relaxed);
+        let name = format!(".publish-{}-{sequence}", std::process::id());
+        match fs::mkdirat(root, name.as_str(), Mode::from_raw_mode(0o700)) {
+            Ok(()) => return Ok((name.clone(), open::child(root, &name, true, false)?)),
+            Err(error) if error == rustix::io::Errno::EXIST => {}
+            Err(error) => return Err(error.to_string()),
+        }
     }
 }
 
@@ -363,10 +386,19 @@ impl Store {
         bytes: &[u8],
         module: bool,
     ) -> Result<(), String> {
+        match open::child(root, name, false, module) {
+            Ok(mut file) => {
+                self.reuse_immutable(&mut file, bytes, module)?;
+                return root.sync_all().map_err(|error| error.to_string());
+            }
+            Err(error) if error == rustix::io::Errno::NOENT.to_string() => {}
+            Err(error) => return Err(error),
+        }
+        let (stage_name, stage) = staging(root)?;
         let mut file = File::from(
             fs::openat(
-                root,
-                name,
+                &stage,
+                "payload",
                 OFlags::WRONLY | OFlags::CREATE | OFlags::EXCL | OFlags::CLOEXEC | OFlags::NOFOLLOW,
                 Mode::from_raw_mode(0o600),
             )
@@ -381,7 +413,32 @@ impl Store {
         self.immutable_checkpoint(module, "file_sync_error")?;
         file.sync_all().map_err(|error| error.to_string())?;
         self.immutable_checkpoint(module, "file_durable")?;
-        self.immutable_checkpoint(module, "file_published")
+        stage.sync_all().map_err(|error| error.to_string())?;
+        match rename_exclusive(&stage, "payload", root, name) {
+            Ok(()) => self.immutable_checkpoint(module, "file_published")?,
+            Err(error) if error == rustix::io::Errno::EXIST => {
+                let mut existing = open::child(root, name, false, module)?;
+                self.reuse_immutable(&mut existing, bytes, module)?;
+            }
+            Err(error) => return Err(format!("exclusive immutable publication refused: {error}")),
+        }
+        remove_stage(root, &stage_name)?;
+        root.sync_all().map_err(|error| error.to_string())
+    }
+
+    fn reuse_immutable(&self, file: &mut File, bytes: &[u8], module: bool) -> Result<(), String> {
+        let bound = if module { bytes.len() as u64 } else { 4096 };
+        if open::read_handle(file, bound, || Ok(()))? != bytes {
+            return Err(if module {
+                "target pool identity mismatch".into()
+            } else {
+                "unsupported artifact store layout".into()
+            });
+        }
+        self.immutable_checkpoint(module, "before_file_sync")?;
+        self.immutable_checkpoint(module, "file_sync_error")?;
+        file.sync_all().map_err(|error| error.to_string())?;
+        self.immutable_checkpoint(module, "file_durable")
     }
 
     pub(crate) fn retire(root: &File, live: &BTreeSet<String>) -> Result<(), String> {
@@ -430,7 +487,7 @@ impl Store {
                 return Err("retiring artifact directory substituted".into());
             }
             let retired = format!(".retire-{name}");
-            rename_exclusive(root, &name, &retired).map_err(|error| error.to_string())?;
+            rename_exclusive(root, &name, root, &retired).map_err(|error| error.to_string())?;
             root.sync_all().map_err(|error| error.to_string())?;
             retire_pending(root, &retired)?;
         }
@@ -507,7 +564,7 @@ impl Store {
         if self.fault.as_deref() == Some("rename_unsupported") {
             return Err(rustix::io::Errno::NOSYS);
         }
-        rename_exclusive(root, source, target)
+        rename_exclusive(root, source, root, target)
     }
 
     /// # Errors
@@ -578,15 +635,7 @@ impl Store {
             .into_iter()
             .map(lock)
             .collect::<Result<Vec<_>, _>>()?;
-        match open::read(&root, ".store.json", 4096, false) {
-            Ok(layout) if layout == open::LAYOUT => {}
-            Ok(_) => return Err("unsupported artifact store layout".into()),
-            Err(error) if error == rustix::io::Errno::NOENT.to_string() => {
-                self.immutable_file(&root, ".store.json", open::LAYOUT, false)?;
-                root.sync_all().map_err(|error| error.to_string())?;
-            }
-            Err(error) => return Err(error),
-        }
+        self.immutable_file(&root, ".store.json", open::LAYOUT, false)?;
         publication.record.validate()?;
         if publication.payloads.is_empty() {
             return Err("artifact requires payloads".into());
@@ -663,16 +712,7 @@ impl Store {
                 self.maximum_bytes
             ));
         }
-        let stage_name = loop {
-            let sequence = STAGING_SEQUENCE.fetch_add(1, Ordering::Relaxed);
-            let name = format!(".publish-{}-{sequence}", std::process::id());
-            match fs::mkdirat(&root, name.as_str(), Mode::from_raw_mode(0o700)) {
-                Ok(()) => break name,
-                Err(error) if error == rustix::io::Errno::EXIST => {}
-                Err(error) => return Err(error.to_string()),
-            }
-        };
-        let stage = open::child(&root, &stage_name, true, false)?;
+        let (stage_name, stage) = staging(&root)?;
         self.checkpoint("stage_created")?;
         for (name, bytes) in &publication.payloads {
             let (directory, basename) = destination(&stage, name)?;

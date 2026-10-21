@@ -35,6 +35,18 @@ if not selection or selection[0]=='immutable':
             p=run('fixture-publish','--root',store,'--seed','8',*options)
             assert p.returncode==0,(scope,point,p.returncode,p.stderr)
             assert run('fixture-open',json.loads(p.stdout)['artifact']).returncode==0
+        if len(selection)<3:
+            store=root/(scope+'-conflict')
+            shared=root/(scope+'-conflict-pool')
+            parent=shared if scope=='pool' else store
+            parent.mkdir(mode=0o700)
+            immutable=parent/hashlib.sha256(b'(module)').hexdigest() if scope=='pool' else parent/'.store.json'
+            immutable.write_bytes(b'!'*len(expected))
+            immutable.chmod(0o600)
+            before=immutable.read_bytes()
+            p=publish(store,'--pool',shared)
+            assert p.returncode==3 and not p.stdout,(scope,p.returncode,p.stdout,p.stderr)
+            assert immutable.read_bytes()==before,'conflicting immutable file overwritten'
 if not selection or selection==['pool']:
     store=root/'large-store';p=publish(store);assert p.returncode==0,p.stderr
     artifact=pathlib.Path(json.loads(p.stdout)['artifact'])
