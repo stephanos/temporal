@@ -583,12 +583,7 @@ fn execute_inner(
                     .stack_size(8 << 20)
                     .spawn(move || {
                         let _conditions = conditions.enter_shared(&session)?;
-                        if !broker.acquire(index)
-                            && first_failure
-                                .lock()
-                                .map_err(|_| Error::msg("cluster failure lock poisoned"))?
-                                .is_none()
-                        {
+                        if !broker.acquire(index) && !broker.terminal_failed() {
                             return Ok(Completed {
                                 result: IncarnationResult {
                                     handle,
@@ -719,7 +714,7 @@ fn execute_inner(
     {
         outcome = failure;
     }
-    let world = if outcome.termination == "exit" {
+    let world = if matches!(outcome.termination, "exit" | "trap") {
         broker
             .world_wire()
             .map_err(|failure| Error::msg(failure.message()))?
