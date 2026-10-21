@@ -135,7 +135,7 @@ pub(crate) fn execute_projected(execution: Execution) -> Result<linked::Executio
     Ok(projected)
 }
 
-fn simulation_plan(opened: &Opened) -> Result<Option<simulation::Plan>, String> {
+fn simulation_plan(opened: &Opened, inputs: &Inputs) -> Result<Option<simulation::Plan>, String> {
     use crate::campaign::exploration::{simulation_record, simulation_record_wire};
     let details = crate::evidence::inspection::Details::read(opened)?;
     let profile = details
@@ -173,6 +173,42 @@ fn simulation_plan(opened: &Opened) -> Result<Option<simulation::Plan>, String> 
     let retained = simulation_record_wire::validate_retained_plan(&raw)?;
     if retained.base_seed != opened.manifest().record.seed {
         return Err("retained simulation seed differs from execution".into());
+    }
+    if retained.overrides.iter().flatten().any(|forced| {
+        forced.dimension == crate::campaign::exploration::simulation::Dimension::Runtime
+    }) {
+        let primary = inputs
+            .configuration
+            .incarnations
+            .first()
+            .ok_or("retained simulation primary incarnation missing")?;
+        let retained_primary = inputs
+            .retained
+            .iter()
+            .find(|item| item.handle == primary.handle)
+            .ok_or("retained simulation primary evidence missing")?;
+        let trace = retained_primary
+            .evidence
+            .get("choice")
+            .map(|payload| payload.read(opened, 1 << 30))
+            .transpose()?
+            .unwrap_or_default();
+        let (config, candidate) = simulation_record_wire::candidate_for_artifact(
+            profile,
+            &raw,
+            Some(&trace),
+            Some(&primary.choice_identity),
+        )
+        .map_err(|error| format!("retained runtime forcing authentication: {error}"))?;
+        let execution = simulation_record_wire::execution_for_candidate(
+            &config,
+            &candidate,
+            &primary.choice_identity,
+        )
+        .map_err(|error| format!("retained runtime forcing authentication: {error}"))?;
+        if execution.simulation_plan != raw {
+            return Err("retained simulation forcing differs from its actual choice tape".into());
+        }
     }
     simulation::Plan::decode(&raw).map(Some)
 }
@@ -343,7 +379,7 @@ fn incarnation(
 pub fn prepare(opened: Opened, control: Option<&inspection::Request>) -> Result<Prepared, String> {
     let inputs = inputs(&opened)?;
     bind(&opened, &inputs)?;
-    let simulation = simulation_plan(&opened)?;
+    let simulation = simulation_plan(&opened, &inputs)?;
     if simulation.is_some() != inputs.configuration.simulation_original.is_some() {
         return Err("simulation replay requires its original authenticated recipe".into());
     }

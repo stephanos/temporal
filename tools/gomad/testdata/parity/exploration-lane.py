@@ -107,6 +107,7 @@ def main():
         '--work', args.work / 'choice', '--go-baseline', args.baseline, '--go-source', args.source])
     simulation = []
     raw_records = []
+    full_artifacts = []
     for index in range(2):
         work = args.work / ('simulation-' + str(index))
         run('simulation-live-' + str(index), [sys.executable, CORPUS / 'simulation-live-check.py',
@@ -119,8 +120,10 @@ def main():
         assert all(row['status'] == 0 for row in replays), replays
         simulation.append(observed)
         raw_records.append(records)
+        full_artifacts.append((work / 'authenticated-artifacts.json').read_bytes())
     assert simulation[0] == simulation[1], 'simulation observations changed under the same preparation root'
     assert raw_records[0] == raw_records[1], 'raw simulation record SHA-256 multiset changed'
+    assert full_artifacts[0] == full_artifacts[1], 'complete raw execution record or artifact payload identities changed'
 
     scenario = args.work / 'scenario'
     run('scenario-live', [sys.executable, CORPUS / 'simulation-live-check.py', *common,

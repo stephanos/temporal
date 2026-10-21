@@ -42,7 +42,9 @@ func TestWASMInspectionCommitmentEncodingAndFramingRefusals(t *testing.T) {
 		{"old raw schema", func(m *WASMInspectionEvidence) { m.Schema = "gomad.wasm-inspection/v1" }},
 		{"missing World discriminator", func(m *WASMInspectionEvidence) { m.WorldEncoding = "" }},
 		{"old full-wire World encoding", func(m *WASMInspectionEvidence) { m.WorldEncoding = "gomad.inspection-world-sha256/v1" }},
-		{"old full-wire network encoding", func(m *WASMInspectionEvidence) { m.Boundaries[0].Cuts[0].StateEncoding = "gomad.inspection-state-sha256/v1" }},
+		{"old full-wire network encoding", func(m *WASMInspectionEvidence) {
+			m.Boundaries[0].Cuts[0].StateEncoding = "gomad.inspection-state-sha256/v1"
+		}},
 		{"unknown World discriminator", func(m *WASMInspectionEvidence) { m.WorldEncoding = "unknown" }},
 		{"raw World snapshot", func(m *WASMInspectionEvidence) { m.World = []byte("raw snapshot") }},
 		{"World length", func(m *WASMInspectionEvidence) {
