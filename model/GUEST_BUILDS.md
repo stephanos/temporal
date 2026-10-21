@@ -159,6 +159,26 @@ on PATH. Native controls cover failed/partial/panicked initialization retry,
 concurrent publication, lazy canonical reuse and all 2238 generic cases across
 two contexts. Evidence is in `.flow/tmp/fn2302/` and its `metadata-lane-evidence/`.
 
+## Current verification and measured gate cost
+
+Task 2 passed both complete embedded live targets, including the exact existing
+gap report golden, all 2238 generic cases and the strict/scope controls. The slice
+package took 1.111 s and gaps 355.473 s. The pre-edit full gaps baseline had timed
+out at the unchanged 20-minute deadline; no timeout, corpus or golden was changed.
+Default and required-backend `model-check` passed again after the final fixture
+correction. Current stale-asset control failed at the real freshness gate with
+3326027-byte sizes and offset 8; `umpire-guest` restored the exact committed asset.
+
+With the same caches and four Cargo jobs documented below, `make model-time`
+passed: full gate 51.936 s, above its unchanged 30 s soft target; edited-checker
+inner loop 1.607 s, below 10 s. Native tests took 24.041 s, guest builds 14.353 s
+and Temporal Go tests 9.862 s. The first timing run failed because its timing flag
+hid the nested fixture's stale diagnostic. The fixture now removes only that flag
+from its own Make subprocess, retaining the assertions and production timing path.
+The failed run, focused red/green and successful retry remain in
+`.flow/tmp/fn2302/`; the owned `task-2-verification.md` artifact records exact logs.
+Gate-built stock and Temporal bytes still match the renewed clean-clone proof.
+
 ## Earlier task-1 verification and measured gate cost
 
 The default and `UMPIRE_BACKENDS=require make model-check` gates passed on the

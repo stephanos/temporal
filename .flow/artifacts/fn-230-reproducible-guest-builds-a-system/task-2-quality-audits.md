@@ -54,3 +54,52 @@ verdict. Runtime gates continued separately after this checkpoint.
 
 Correctness axis: 0 findings; worst tier none.
 Standards axis: 0 findings; worst tier none.
+
+## Timing-fixture delta audits
+
+The same two axis reviewers concurrently checked the committed fixture-only
+correction and evidence delta. Their reports follow verbatim. This does not
+reclassify the earlier failed timing run as passing.
+
+### Correctness axis
+
+## Quality Audit — Correctness axis: fn-230.2 delta
+
+### Summary
+
+- Frozen range `5d939fe5..09edab08`; 3 files changed. Critical 0 · Should Fix 0 · Consider 0 · Worst tier: none.
+- No correctness findings. Static-only assessment; no tests/builds executed and no shipping verdict.
+
+### Evidence
+
+- **model/scripts/tests/test_guest_freshness.py:141** (walked): the fixture copies its environment and removes only `UMPIRE_TIME_STEPS` from the nested Make invocation. The original environment and outer timing gate remain intact.
+- **model/scripts/tests/test_guest_freshness.py:148** (cited): nonzero status, stale diagnostic, built size, and differing-offset assertions remain unchanged. No assertion weakening.
+- **model/scripts/time-gate.sh:14** (walked): the unchanged wrapper suppresses command output, explaining why the nested diagnostic test needs an untimed invocation.
+- **.flow/artifacts/fn-230-reproducible-guest-builds-a-system/task-2-verification.md:21** (cited): the ledger explicitly retains the failed timing run, focused red/green results, and pending full retry. Those runtime outcomes were not independently executed in this audit.
+
+### Scope and Limits
+
+- The original correctness audit remains applicable to unchanged Rust, Go, builder, and timing-wrapper code.
+- Test-budget delta consists of fixture setup only; no production implementation changed. The archived original audit preserves its static limits.
+
+### Standards axis
+
+## Quality Audit — Standards axis: fn-230.2 delta
+
+### Summary
+
+- Pinned range `5d939fe538..09edab0833`; 3 files changed · Should Fix 0 · Consider 0 · Worst tier: none · Blocking: none possible (standards axis).
+- No reportable standards issues found.
+
+### What's Good
+
+- Walked: nested Make receives a copied environment with only `UMPIRE_TIME_STEPS` removed; isolation stays local and introduces no new API (`model/scripts/tests/test_guest_freshness.py:141`).
+- Cited: the ledger preserves the timing failure, focused red/green results and pending full retry; archived audits retain their original scope and static limitations (`.flow/artifacts/fn-230-reproducible-guest-builds-a-system/task-2-verification.md:21`, `.flow/artifacts/fn-230-reproducible-guest-builds-a-system/task-2-quality-audits.md:3`).
+
+### Static Checks and Limits
+
+- Executed: pinned diff check passed; no file crossed 1,000 lines.
+- Static-only delta audit. No tests/builds, cache use, writes or process interference. Runtime results in the ledger were cited, not independently executed here.
+
+Correctness delta axis: 0 findings; worst tier none.
+Standards delta axis: 0 findings; worst tier none.

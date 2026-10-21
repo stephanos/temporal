@@ -1,8 +1,8 @@
 # Task 2 verification ledger
 
-Full pre-review verification is in progress. This ledger supersedes the pending
-gate statements in the earlier source-freeze artifact as results arrive; it does
-not claim formal review or completion.
+All required pre-review checks passed. This ledger supersedes the pending gate
+statements in the earlier source-freeze artifact. Formal review and final worker
+verification remain separate requirements; this is not a shipping verdict.
 
 - `make umpire-check-model-slice umpire-check-model-gaps`: exit 0. Slice package
   1.111 s; complete gaps package 355.473 s. All 2336 unique gaps subtests passed
@@ -25,9 +25,25 @@ not claim formal review or completion.
   six, exit 1. The fixture now removes only that timing flag from its nested Make
   environment, retaining every existing stale/status/offset assertion. The same
   six-test timing-environment command then passed, exit 0. No production wrapper,
-  builder, budget or assertion changed. Retry of the full timing gate is pending.
+  builder, budget or assertion changed. Full retry passed, exit 0: gate 51.936 s
+  versus the unchanged 30 s soft target; inner loop 1.607 s versus 10 s. Native
+  tests took 24.041 s, guest builds 14.353 s and Temporal host 9.862 s.
   Logs/statuses: `model-time-final.*`, `timing-fixture-red.*` and
-  `timing-fixture-green.*` under `.flow/tmp/fn2302/`.
+  `timing-fixture-green.*` and successful `model-time-retry.*` under `.flow/tmp/fn2302/`.
+- Post-fixture full default and required-backend `make model-check` reruns both
+  passed, exit 0, without receipt reuse. Temporal hosts took 9.856 s and 9.803 s.
+  Logs/statuses: `model-check-postfix.*` and `model-check-required-postfix.*`.
+- The current 3326027-byte committed asset failed real `make model-check` after
+  one byte changed at offset 8, Make exit 2 with existing/built sizes and offset.
+  `make umpire-guest` returned 0 and restored exactly the original bytes.
+  `current-stale-control.*`, `current-stale-model-check.log` and
+  `current-refresh-after-stale.log` retain this separate post-remediation proof.
+- After all full gates, both built stock and Temporal guests still compare equal
+  to the renewed independent proof, and Temporal equals the committed asset.
+
+The two original static quality audits and two timing-fixture delta audits found
+zero findings. Their complete reports are preserved in `task-2-quality-audits.md`.
+They are same-family static assessments, not substitutes for formal review.
 
 Changed-Go formatting, integration-tag root lint, scoped whole-changed-file host
 lint and both host/integration vet passed. The earlier unfiltered host lint found
