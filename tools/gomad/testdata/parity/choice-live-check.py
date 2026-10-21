@@ -23,7 +23,10 @@ def main():
     parser = argparse.ArgumentParser(description=__doc__)
     for name in ('binary', 'go-compiler', 'input', 'work'):
         parser.add_argument('--' + name, type=Path, required=True)
+    parser.add_argument('--go-baseline', type=Path)
+    parser.add_argument('--go-source', type=Path)
     args = parser.parse_args()
+    assert bool(args.go_baseline) == bool(args.go_source), 'provide both Go baseline and frozen source'
     args.binary, args.go_compiler, args.input, args.work = (
         path.resolve() for path in (args.binary, args.go_compiler, args.input, args.work))
     args.work.mkdir(parents=True, exist_ok=False)
@@ -135,10 +138,43 @@ def main():
     bounded = args.work / 'execution-bound'
     run('execution-bound', command(bounded, executions=1), (0, 1))
     assert len(events(locate(bounded))) == 1
+    go_observations = None
+    if args.go_baseline:
+        baseline_root = args.go_baseline.resolve()
+        for line in (baseline_root / 'inputs.sha256').read_text().splitlines():
+            expected, relative = line.split()
+            assert digest((baseline_root / relative).read_bytes()) == expected, relative
+        go_binary = baseline_root / 'bin/gomad'
+        go_module = args.go_source.resolve() / 'tools/gomad'
+        target = 'internal/backends/wasm/toolchain/testdata/choices/main.go'
+        assert (go_module / target).read_bytes() == (MODULE / target).read_bytes()
+        go_manifest = args.work / 'go-installation.json'
+        run('go-install', [go_binary, 'install', '--compiler', args.go_compiler,
+            '--helper', baseline_root / 'bin/gomad-wasmhost', '--profile', 'gomad.wasi-cooperative/v1',
+            '--runtime-root', go_module / 'internal/model/runtimesource',
+            '--cache', args.work / 'go-preparation', '--fuel', str(1 << 60), '--output', go_manifest])
+        go_command = command(args.work / 'go-artifacts')
+        go_command[0], go_command[2] = go_binary, go_manifest
+        go_command[go_command.index('--working-dir') + 1] = go_module
+        go_reports = [json.loads(line) for line in run('go-explore', go_command, (0, 1)).splitlines()]
+        go_report = next(row for row in go_reports if row['type'] == 'result')
+        for field in ('logical_executions', 'committed_rounds', 'deepest_prefix', 'pending',
+                      'omitted_by_depth', 'omitted_by_execution_bound', 'stop_reason', 'bounded_complete'):
+            assert go_report['exploration'][field] == envelope[field], (field, go_report, envelope)
+        go_outputs = []
+        for index, row in enumerate(row for row in go_reports if row['type'] == 'artifact'):
+            artifact = Path(row['path'])
+            run('go-inspect-' + str(index), [go_binary, '--installation', go_manifest, 'inspect', '--json', artifact])
+            go_outputs.append((artifact / 'stdout').read_text())
+        rust_outputs = [(campaign / execution['artifact'] / 'output/stdout').read_text() for execution in executions]
+        assert sorted(go_outputs) == sorted(rust_outputs), (go_outputs, rust_outputs)
+        assert go_report['succeeded'] == len(executions), go_report
+        go_observations = dict(binary_sha256=digest(go_binary.read_bytes()), report=go_report,
+                               guest_outputs=sorted(go_outputs))
     (args.work / 'observations.json').write_bytes(encode(dict(schema='gomad.rust-choice-live-check/v1',
         binary_sha256=digest(args.binary.read_bytes()), driver_sha256=digest(Path(__file__).read_bytes()),
         rounds=len(baseline), executions=len(executions), envelope=envelope,
-        segments=[event['segment'] for event in baseline])))
+        segments=[event['segment'] for event in baseline], go_reference=go_observations)))
 
 
 if __name__ == '__main__':

@@ -134,8 +134,7 @@ pub fn result_for_record(
         diverged: projected.diverged,
         decisions,
     };
-    simulation::validate_result(config, candidate, &result)?;
-    Ok(result)
+    simulation::canonical_result(config, candidate, &result)
 }
 
 pub fn project_artifact(

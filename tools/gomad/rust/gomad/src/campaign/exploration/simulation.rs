@@ -701,7 +701,7 @@ fn forced_matches(forced: &ForcedDecision, decision: &Decision) -> bool {
         && decision.alternatives.get(decision.selected as usize) == Some(&forced.selected_sha256)
 }
 
-fn canonical_result(
+pub(super) fn canonical_result(
     config: &SimulationConfig,
     candidate: &SimulationCandidate,
     result: &SimulationResult,
