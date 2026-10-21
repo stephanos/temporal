@@ -11,6 +11,8 @@ rust-version.workspace = true
 workspace = true
 
 [dependencies]
+prost.workspace = true
+umpire-wasm.workspace = true
 umpire-annotations.workspace = true
 umpire-temporal-annotate-macros.workspace = true
 

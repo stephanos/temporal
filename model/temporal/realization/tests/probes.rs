@@ -1,5 +1,7 @@
 //! Typed request witnesses must survive the actual protobuf projection.
 
+use umpire_temporal::foundation::dc::Limits;
+
 use umpire_temporal::probes::probe;
 use umpire_temporal_api::umpire::temporal::v1::{ProbeRequest, probe_request::Operation};
 
@@ -50,16 +52,17 @@ fn source_dispositions_validate_before_applying_a_dated_waiver()
 #[test]
 fn declaration_universe_includes_nested_response_expectations()
 -> Result<(), Box<dyn std::error::Error>> {
-    let declared = umpire_temporal::activity_api::catalog::expected_probe_cases()?;
+    let declared =
+        umpire_temporal::activity_api::catalog::expected_probe_cases(&Limits::default())?;
     assert!(
         declared
             .iter()
             .any(|case| case.violation.path.ends_with("TimeoutFailureInfo.timeout_type"))
     );
     let mut declared = declared;
-    declared.extend(umpire_temporal::activity_api::start_request_id_intent()?.probe_cases());
-    declared.extend(umpire_temporal::activity_api::cancel_request_id_intent()?.probe_cases());
-    declared.extend(umpire_temporal::activity_api::worker_failure_presence()?.probe_cases());
+    declared.extend(
+        umpire_temporal::activity_api::worker_failure_presence(&Limits::default())?.probe_cases(),
+    );
     let registered: std::collections::BTreeSet<_> = probe(&ProbeRequest::default())?
         .cases
         .into_iter()

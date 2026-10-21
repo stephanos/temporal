@@ -9,9 +9,11 @@ use std::{
 use umpire_temporal_annotate_syntax::{
     catalogs,
     descriptor::{self, Coverage},
+    services::{Classification, classifications},
 };
 
 mod codegen;
+mod services;
 
 fn main() -> io::Result<()> {
     let root = PathBuf::from(
@@ -47,8 +49,14 @@ fn main() -> io::Result<()> {
         return Err(io::Error::other("linking annotation API descriptors failed"));
     }
     let mut coverage = Coverage::default();
-    catalog_inputs(&root.join("model/temporal/feature"), &mut coverage)?;
-    descriptor::check(&fs::read(&linked)?, &coverage).map_err(io::Error::other)?;
+    let mut classifications = Vec::new();
+    catalog_inputs(&root.join("model/temporal"), &mut coverage, &mut classifications)?;
+    let descriptors = fs::read(&linked)?;
+    descriptor::check(&descriptors, &coverage).map_err(io::Error::other)?;
+    fs::write(
+        linked.with_file_name("services.rs"),
+        services::generate(&descriptors, &coverage, &classifications).map_err(io::Error::other)?,
+    )?;
 
     codegen::generate(
         &mut prost_build::Config::new(),
@@ -58,7 +66,11 @@ fn main() -> io::Result<()> {
     )
 }
 
-fn catalog_inputs(path: &Path, coverage: &mut Coverage) -> io::Result<()> {
+fn catalog_inputs(
+    path: &Path,
+    coverage: &mut Coverage,
+    service_classifications: &mut Vec<Classification>,
+) -> io::Result<()> {
     println!("cargo:rerun-if-changed={}", path.display());
     if !path.exists() {
         return Ok(());
@@ -68,8 +80,11 @@ fn catalog_inputs(path: &Path, coverage: &mut Coverage) -> io::Result<()> {
     for entry in entries {
         let path = entry.path();
         if entry.file_type()?.is_dir() {
-            catalog_inputs(&path, coverage)?;
-        } else if path.file_name().is_some_and(|name| name == "api.rs") {
+            catalog_inputs(&path, coverage, service_classifications)?;
+        } else if path
+            .file_name()
+            .is_some_and(|name| name == "api.rs" || name == "enum_inventory.rs")
+        {
             println!("cargo:rerun-if-changed={}", path.display());
             let source = fs::read_to_string(&path)?;
             for catalog in catalogs(&source)
@@ -79,6 +94,12 @@ fn catalog_inputs(path: &Path, coverage: &mut Coverage) -> io::Result<()> {
                 coverage.messages.extend(projected.messages);
                 coverage.enums.extend(projected.enums);
                 coverage.services.extend(projected.services);
+            }
+            for classification in classifications(&source)
+                .map_err(|error| io::Error::other(format!("{}: {error}", path.display())))?
+            {
+                coverage.services.push(classification.coverage.clone());
+                service_classifications.push(classification);
             }
         }
     }

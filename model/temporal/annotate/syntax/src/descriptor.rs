@@ -210,7 +210,8 @@ fn exact<'a>(
             return Err(format!("duplicate annotation: {owner}.{name}"));
         }
     }
-    let actual: BTreeSet<_> = actual.collect();
+    let ordered: Vec<_> = actual.collect();
+    let actual: BTreeSet<_> = ordered.iter().copied().collect();
     for name in &actual {
         if !names.contains(name) {
             return Err(format!("uncovered protobuf symbol: {owner}.{name}"));
@@ -219,6 +220,13 @@ fn exact<'a>(
     for name in names {
         if !actual.contains(name) {
             return Err(format!("stale annotation: {owner}.{name}"));
+        }
+    }
+    for (found, expected) in declared.iter().zip(ordered) {
+        if found != expected {
+            return Err(format!(
+                "out-of-order annotation: {owner}.{expected} (found {owner}.{found})"
+            ));
         }
     }
     Ok(())

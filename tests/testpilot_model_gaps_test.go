@@ -102,6 +102,17 @@ func TestTestpilotModelGapLoggerPreservesFailuresWithoutPrivateOutput(t *testing
 	require.NotContains(t, recorded.output.String(), secret)
 	require.Contains(t, recorded.output.String(), "level=Error [redacted]")
 	require.Contains(t, recorded.output.String(), "server log failure [redacted]")
+	for _, expectedCode := range []int32{int32(codes.InvalidArgument), 0} {
+		observation, err := temporalmodel.ObserveProbe(&temporalv1.ProbeCase{
+			Id: "loose-rejection", Code: expectedCode,
+		}, status.Error(codes.InvalidArgument, secret))
+		require.NoError(t, err)
+		require.Equal(t, int32(codes.InvalidArgument), observation.Code)
+		require.True(t, observation.MessageMatches)
+		encoded, err := proto.Marshal(observation)
+		require.NoError(t, err)
+		require.NotContains(t, string(encoded), secret, "loose observations must remain value-free")
+	}
 }
 
 func TestTestpilotModelGaps(t *testing.T) {

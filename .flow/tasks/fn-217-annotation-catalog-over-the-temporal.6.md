@@ -20,7 +20,15 @@ Owner review of `model/temporal/features/activity/api.rs` (2026-10-20): "looks v
 
 ### Projections: a `View<K>` trait, not macro inference
 
-Neither a derive nor an attribute macro sees the prost field types. Projection is trait dispatch at type-check time, replacing `types::check`: `trait View<K> { type Out: FieldValue; fn view(&self) -> Self::Out; fn set(&mut self, Self::Out); }` implemented for `(Option<ProtoDuration>, Duration)`, `(Option<ProtoDuration>, RawDuration)`, `(Option<ProtoTimestamp>, Timestamp)`, `(Option<T: Message>, Message<T>)` and `Vec<T: Message>` (encoded bytes), `(String, Uuid)` with the lenient normaliser, `(bool, Flag)`, `(f64, Number)`, plus `Box<T>` (for `Failure.cause`). The derive emits `View::<K>::view(&m.field)`; a kind that does not fit the field is "trait not implemented" from rustc. Real setters come for free, which `fill` and the probe's limit-plus-one mutation need (today's setters are no-ops). Custom projections stay explicit as `#[api(via = module)]` (serde `with` shape: a module with `view`/`set`) for the three genuine cases: `RetryPolicy.initial_interval`/`maximum_interval` conditional on `maximum_attempts`, `backoff_coefficient`, and `ActivityFailureInfo.activity_type` name extraction.
+Neither a derive nor an attribute macro sees the prost field types. Projection is trait dispatch at type-check time, replacing `types::check`: `trait View<K> { type Out: FieldValue; fn view(&self) -> Self::Out; fn set(&mut self, Self::Out) -> Result<(), GenerationError>; }` implemented for `(Option<ProtoDuration>, Duration)`, `(Option<ProtoDuration>, RawDuration)`, `(Option<ProtoTimestamp>, Timestamp)`, `(Option<T: Message>, Message<T>)` and `Vec<T: Message>` (encoded bytes), `(String, Uuid)` with the lenient normaliser, `(bool, Flag)`, `(f64, Number)`, plus `Box<T>` (for `Failure.cause`). The derive emits `View::<K>::view(&m.field)`; a kind that does not fit the field is "trait not implemented" from rustc. Real setters come for free, which `fill` and the probe's limit-plus-one mutation need (today's setters are no-ops). Custom projections stay explicit as `#[api(via = module)]` (serde `with` shape: a module with `view`/`set`) for the three genuine cases: `RetryPolicy.initial_interval`/`maximum_interval` conditional on `maximum_attempts`, `backoff_coefficient`, and `ActivityFailureInfo.activity_type` name extraction.
+
+### Setter signature clarification (2026-10-21)
+
+The conductor authorized fallible `View::set` and projected setter propagation after a real malformed encoded-message mutation path was found. Setters return `Result<(), GenerationError>`; malformed message bytes refuse before replacement, retain the original field, and produce value-free diagnostics. This clarifies annotation mutation admission only; Model and Go panic behavior remain unchanged. Regression evidence must include malformed-byte red/green and the actual generation/probe mutation path.
+
+### Supplemental response linkage clarification (2026-10-21)
+
+The conductor authorized `#[api(response_checks = RawRetryPolicy)]` on the full mirror to invoke its supplemental response mirror only for responses. The link must compile-check the same protobuf type and validate only the supplemental catalog, without recursion or another Inspect implementation. This preserves the existing raw RetryPolicy response check alongside request normalization. Tests pin request normalization, malformed raw response rejection, valid response multiplicity, and a wrong mirror/type path compile error.
 
 ### Expectations
 
@@ -71,4 +79,3 @@ TBD
 - Commits:
 - Tests:
 - PRs:
-

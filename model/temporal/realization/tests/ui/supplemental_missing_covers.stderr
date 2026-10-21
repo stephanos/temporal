@@ -1,0 +1,7 @@
+error: expectation requires covers validator path
+ --> tests/ui/supplemental_missing_covers.rs:6:10
+  |
+6 | #[derive(Catalog)]
+  |          ^^^^^^^
+  |
+  = note: this error originates in the derive macro `Catalog` (in Nightly builds, run with -Z macro-backtrace for more info)

@@ -10,9 +10,51 @@ use std::{
     fmt,
 };
 
+/// Non-success gRPC protocol status names and wire discriminants.
+#[derive(Clone, Copy, Debug, PartialEq, Eq)]
+#[repr(i32)]
+pub enum Code {
+    /// Caller cancelled the operation.
+    Cancelled = 1,
+    /// Unknown failure.
+    Unknown = 2,
+    /// Invalid input.
+    InvalidArgument = 3,
+    /// Operation deadline elapsed.
+    DeadlineExceeded = 4,
+    /// Requested resource was absent.
+    NotFound = 5,
+    /// Resource already exists.
+    AlreadyExists = 6,
+    /// Caller lacks permission.
+    PermissionDenied = 7,
+    /// Resource limit reached.
+    ResourceExhausted = 8,
+    /// Required state was absent.
+    FailedPrecondition = 9,
+    /// Operation aborted.
+    Aborted = 10,
+    /// Value outside the valid range.
+    OutOfRange = 11,
+    /// Operation is unsupported.
+    Unimplemented = 12,
+    /// Internal failure.
+    Internal = 13,
+    /// Service unavailable.
+    Unavailable = 14,
+    /// Unrecoverable data loss.
+    DataLoss = 15,
+    /// Caller is unauthenticated.
+    Unauthenticated = 16,
+}
+
 /// Expected server behavior for one violated constraint or presence rule.
 #[derive(Clone, Debug, PartialEq, Eq)]
 pub enum Expectation {
+    /// Any message with exactly this rejection status.
+    RejectsCode(Code),
+    /// Any non-success protocol status, irrespective of message.
+    RejectsAnyStatus,
     /// The server rejects with these diagnostics.
     Rejects {
         /// Protocol status code.
@@ -95,6 +137,8 @@ pub struct Rule {
 /// Public metadata retained independently of erased field operations.
 #[derive(Clone, Debug, PartialEq, Eq)]
 pub struct FieldDescriptor {
+    /// Author-written documentation, never a runtime field value.
+    pub description: String,
     kind_constraints: Vec<&'static str>,
     /// Fully qualified field path.
     pub path: String,
@@ -139,12 +183,13 @@ impl FieldDescriptor {
 
 type Getter<M, T> = Box<dyn Fn(&M) -> T>;
 type Setter<M, T> = Box<dyn Fn(&mut M, T)>;
+type FallibleSetter<M, T> = Box<dyn Fn(&mut M, T) -> Result<(), GenerationError>>;
 
 /// A field whose accessors are checked against the concrete Rust message type.
 pub struct Field<M, T> {
     descriptor: FieldDescriptor,
     get: Getter<M, T>,
-    set: Setter<M, T>,
+    set: FallibleSetter<M, T>,
     errors: Vec<AdmissionError>,
 }
 
@@ -170,6 +215,18 @@ impl<M: 'static, T: FieldValue> Field<M, T> {
         get: impl Fn(&M) -> T + 'static,
         set: impl Fn(&mut M, T) + 'static,
     ) -> Self {
+        Self::try_projected(path, kind, get, move |message, value| {
+            set(message, value);
+            Ok(())
+        })
+    }
+    /// Typed projection whose setter may refuse an unrepresentable value.
+    pub fn try_projected(
+        path: impl Into<String>,
+        kind: Kind,
+        get: impl Fn(&M) -> T + 'static,
+        set: impl Fn(&mut M, T) -> Result<(), GenerationError> + 'static,
+    ) -> Self {
         let path = path.into();
         let errors = if T::supports(&kind) {
             Vec::new()
@@ -182,6 +239,7 @@ impl<M: 'static, T: FieldValue> Field<M, T> {
         };
         Self {
             descriptor: FieldDescriptor {
+                description: String::new(),
                 kind_constraints: T::constraints(&kind),
                 path,
                 rust_type: std::any::type_name::<T>(),
@@ -194,6 +252,12 @@ impl<M: 'static, T: FieldValue> Field<M, T> {
             set: Box::new(set),
             errors,
         }
+    }
+    /// Retains author-written field documentation.
+    #[must_use]
+    pub fn description(mut self, description: impl Into<String>) -> Self {
+        self.descriptor.description = description.into();
+        self
     }
     /// Adds a tag after checking its declared kind applicability.
     #[must_use]
@@ -279,6 +343,7 @@ impl<M: 'static, T: Clone + Default + 'static> IgnoredField<M, T> {
         };
         Self {
             descriptor: FieldDescriptor {
+                description: String::new(),
                 kind_constraints: Vec::new(),
                 path,
                 rust_type: std::any::type_name::<T>(),
@@ -300,7 +365,7 @@ trait Access<M> {
     fn present(&self, message: &M) -> bool;
     fn violations(&self, message: &M) -> Vec<&'static str>;
     fn fill(&self, message: &mut M, rng: &mut Rng) -> Result<(), GenerationError>;
-    fn clear(&self, message: &mut M);
+    fn clear(&self, message: &mut M) -> Result<(), GenerationError>;
     fn negative(
         &self,
         _message: &mut M,
@@ -330,8 +395,9 @@ impl<M: 'static, T: Clone + Default + 'static> Access<M> for IgnoredField<M, T> 
     fn fill(&self, _message: &mut M, _rng: &mut Rng) -> Result<(), GenerationError> {
         Ok(())
     }
-    fn clear(&self, message: &mut M) {
+    fn clear(&self, message: &mut M) -> Result<(), GenerationError> {
         (self.set)(message, T::default());
+        Ok(())
     }
 }
 
@@ -348,8 +414,7 @@ impl<M: 'static, T: FieldValue> Access<M> for Field<M, T> {
             constraint,
             rng,
         )?;
-        (self.set)(message, value);
-        Ok(())
+        (self.set)(message, value)
     }
     fn descriptor(&self) -> &FieldDescriptor {
         &self.descriptor
@@ -393,11 +458,10 @@ impl<M: 'static, T: FieldValue> Access<M> for Field<M, T> {
                 Err(reason) => return Err(reason),
             }
         }
-        (self.set)(message, value);
-        Ok(())
+        (self.set)(message, value)
     }
-    fn clear(&self, message: &mut M) {
-        (self.set)(message, T::default());
+    fn clear(&self, message: &mut M) -> Result<(), GenerationError> {
+        (self.set)(message, T::default())
     }
 }
 
@@ -483,6 +547,8 @@ impl std::error::Error for AdmissionErrors {}
 
 /// An admitted catalog with typed operations over one message type.
 pub struct Catalog<M> {
+    description: String,
+    inherited_patterns: Vec<Presence>,
     message: String,
     request: bool,
     fields: BTreeMap<String, Box<dyn Access<M>>>,
@@ -507,6 +573,8 @@ impl<M: 'static> Catalog<M> {
     fn builder(message: impl Into<String>, request: bool) -> CatalogBuilder<M> {
         CatalogBuilder {
             catalog: Self {
+                description: String::new(),
+                inherited_patterns: Vec::new(),
                 message: message.into(),
                 request,
                 fields: BTreeMap::new(),
@@ -532,12 +600,13 @@ impl<M: 'static> Catalog<M> {
         &self.rules
     }
     /// Clears external secrets before a message is written into a Run.
-    pub fn redact(&self, message: &mut M) {
+    pub fn redact(&self, message: &mut M) -> Result<(), GenerationError> {
         for field in self.fields.values() {
             if matches!(field.descriptor().kind, Kind::Secret) {
-                field.clear(message);
+                field.clear(message)?;
             }
         }
+        Ok(())
     }
     fn qualified(&self, path: &str) -> String {
         if path.starts_with(&format!("{}.", self.message)) {
@@ -559,6 +628,18 @@ impl<M: 'static> Catalog<M> {
 }
 
 impl<M: 'static> CatalogBuilder<M> {
+    /// Retains author-written message documentation.
+    #[must_use]
+    pub fn description(mut self, description: impl Into<String>) -> Self {
+        self.catalog.description = description.into();
+        self
+    }
+    /// Marks a presence rule whose expectation came from its field constraint.
+    #[must_use]
+    pub fn inherited_pattern(mut self, presence: Presence) -> Self {
+        self.catalog.inherited_patterns.push(presence);
+        self
+    }
     /// Adds one typed field.
     #[must_use]
     pub fn field<T: FieldValue>(self, field: Field<M, T>) -> Self {
@@ -835,6 +916,9 @@ fn select_presence<M: Clone + 'static>(
         return Ok(Some(valid));
     }
     let mut absent = candidate.clone();
-    filled[index].clear(&mut absent);
+    filled[index].clear(&mut absent).map_err(|reason| FillError::Field {
+        path: filled[index].descriptor().path.clone(),
+        reason,
+    })?;
     select_presence(&absent, catalog, filled, index + 1, budget)
 }

@@ -93,6 +93,32 @@ fn message_coverage(name: String, descriptor: &DescriptorProto) -> MessageCovera
 }
 
 #[test]
+fn declaration_order_names_the_first_out_of_place_symbol() -> Result<(), Box<dyn std::error::Error>>
+{
+    let (descriptor, coverage) = fixture()?;
+    for method in [false, true] {
+        let mut reordered = coverage.clone();
+        let (owner, first) = if method {
+            let service = &mut reordered.services[0];
+            let first = service.methods[0].name.clone();
+            service.methods.swap(0, 1);
+            (service.name.clone(), first)
+        } else {
+            let message = &mut reordered.messages[0];
+            let first = message.fields[0].clone();
+            message.fields.swap(0, 1);
+            (message.name.clone(), first)
+        };
+        let error = check(&descriptor.encode_to_vec(), &reordered)
+            .err()
+            .ok_or("source declaration order must be admitted explicitly")?;
+        assert!(error.contains("out-of-order"), "{error}");
+        assert!(error.contains(&format!("{owner}.{first}")), "{error}");
+    }
+    Ok(())
+}
+
+#[test]
 fn nested_message_requires_coverage_and_refuses_added_fields()
 -> Result<(), Box<dyn std::error::Error>> {
     let (mut descriptor, _) = fixture()?;

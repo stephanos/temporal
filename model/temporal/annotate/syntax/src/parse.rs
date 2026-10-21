@@ -422,6 +422,8 @@ impl Parse for Actions {
 }
 
 const KINDS: &[&str] = &[
+    "Flag",
+    "Number",
     "Uuid",
     "Identifier",
     "Timestamp",
@@ -474,7 +476,7 @@ fn builtin(tag: &Tag, kind: &str) -> syn::Result<()> {
 }
 
 impl Catalog {
-    fn admit(&self) -> syn::Result<()> {
+    pub(crate) fn admit(&self) -> syn::Result<()> {
         unique(
             self.messages
                 .iter()
@@ -623,10 +625,7 @@ impl Catalog {
                 "oneof alternatives require a typed projection or intentional opaque Ignored(reason)",
             ));
         }
-        let constrained = field.constraints.iter().any(|(name, literal)| {
-            name != "unique" || !matches!(literal, Lit::Bool(value) if !value.value)
-        }) || ["Uuid", "Identifier", "Timestamp", "Duration", "Enum"]
-            .contains(&kind.as_str());
+        let constrained = field_is_constrained(field);
         if message.request && !ignored && constrained && field.expected.is_none() {
             return Err(Error::new(
                 field.name.span(),
@@ -638,6 +637,21 @@ impl Catalog {
         }
         Ok(())
     }
+}
+
+pub(crate) fn field_is_constrained(field: &Field) -> bool {
+    let disabled = |name: &str, literal: &Lit| {
+        ["unique", "defined_only"].contains(&name)
+            && matches!(literal, Lit::Bool(value) if !value.value)
+    };
+    field.constraints.iter().any(|(name, literal)| !disabled(&name.to_string(), literal))
+        || ["Uuid", "Identifier", "Timestamp", "Duration", "Number"]
+            .contains(&field.kind.to_string().as_str())
+        || (field.kind == "Enum"
+            && !field
+                .constraints
+                .iter()
+                .any(|(name, literal)| name == "defined_only" && disabled("defined_only", literal)))
 }
 
 fn action_name(pattern: &syn::Pat) -> String {
@@ -692,6 +706,7 @@ fn admit_constraints(field: &Field, kind: &str) -> syn::Result<()> {
     unique(field.constraints.iter().map(|(name, _)| name))?;
     for (name, literal) in &field.constraints {
         let valid = match name.to_string().as_str() {
+            "defined_only" if kind == "Enum" => matches!(literal, Lit::Bool(_)),
             "min_items" | "max_items" => matches!(literal, Lit::Int(_)),
             "unique" => matches!(literal, Lit::Bool(_)),
             "min_len" | "max_len" if ["Text", "Identifier", "Bytes", "Random"].contains(&kind) => {
@@ -703,7 +718,9 @@ fn admit_constraints(field: &Field, kind: &str) -> syn::Result<()> {
             "prefix" | "suffix" | "contains" if ["Text", "Identifier"].contains(&kind) => {
                 matches!(literal, Lit::Str(_))
             }
-            "gt" | "gte" | "lt" | "lte" if ["Counter", "Timestamp", "Duration"].contains(&kind) => {
+            "gt" | "gte" | "lt" | "lte"
+                if ["Counter", "Timestamp", "Duration", "Number"].contains(&kind) =>
+            {
                 matches!(literal, Lit::Int(_))
             }
             _ => false,

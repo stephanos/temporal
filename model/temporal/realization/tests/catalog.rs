@@ -1,5 +1,7 @@
 //! Full SDK wire annotation controls.
 
+use umpire_temporal::foundation::dc::Limits;
+
 use prost::Message;
 use umpire_temporal::activity_api::{AnnotationResult, annotate as annotate_wire};
 use umpire_temporal_api::temporal::api::{
@@ -337,7 +339,7 @@ fn secret_fields_redact_report_copies_without_changing_transport()
     };
     let before = original.clone();
     let mut report = original.clone();
-    umpire_temporal::activity_api::catalog::payload()?.redact(&mut report);
+    umpire_temporal::activity_api::catalog::payload(&Limits::default())?.redact(&mut report)?;
     assert!(report.metadata.is_empty());
     assert_eq!(report.data.len(), 0);
     assert!(original.eq(&before));
@@ -347,8 +349,10 @@ fn secret_fields_redact_report_copies_without_changing_transport()
     };
     let before = original.clone();
     let mut report = original.clone();
-    umpire_temporal::activity_api::catalog::respond_activity_task_completed_request()?
-        .redact(&mut report);
+    umpire_temporal::activity_api::catalog::respond_activity_task_completed_request(
+        &Limits::default(),
+    )?
+    .redact(&mut report)?;
     assert_eq!(report.task_token.len(), 0);
     assert!(original.eq(&before));
     Ok(())
@@ -368,7 +372,7 @@ fn request_duration_validation_mirrors_server_normalization_without_repair()
         assert!(result.violations.is_empty(), "{:?}", result.violations);
         assert!(result.bytes.eq(&bytes));
     }
-    let catalog = umpire_temporal::activity_api::start_request_id_intent()?;
+    let catalog = umpire_temporal::activity_api::start_request_id_intent(&Limits::default())?;
     let mut request = start();
     request.request_id = "supplied".into();
     let violations = umpire_annotations::validate(&request, &catalog);

@@ -7,6 +7,10 @@ use std::{collections::BTreeSet, fmt};
 /// Stable identity of a catalog expectation and its negative witness variant.
 #[derive(Clone, Debug, PartialEq, Eq)]
 pub struct ProbeCase {
+    /// Author-written message and field documentation.
+    pub description: String,
+    /// The presence expectation shares a field's rejection pattern.
+    pub inherited_pattern: bool,
     /// Stable value-free identity, independent of declaration ordering.
     pub id: String,
     /// Declared finding that the generated request must actually exhibit.
@@ -101,6 +105,12 @@ impl<M: 'static> Catalog<M> {
         for field in self.fields() {
             for (constraint, expected) in &field.expectations {
                 cases.push(ProbeCase {
+                    description: [self.description.as_str(), field.description.as_str()]
+                        .into_iter()
+                        .filter(|s| !s.is_empty())
+                        .collect::<Vec<_>>()
+                        .join("; "),
+                    inherited_pattern: false,
                     id: format!("{}:{constraint}", field.path),
                     violation: Violation {
                         path: field.path.clone(),
@@ -125,13 +135,21 @@ impl<M: 'static> Catalog<M> {
             if matches!(rule.presence, Presence::Required(_)) {
                 for field in fields {
                     cases.push(ProbeCase {
+                        description: self.description.clone(),
+                        inherited_pattern: self.inherited_patterns.contains(&rule.presence),
                         id: format!("{id}:omit={field}"),
                         violation: violation.clone(),
                         omitted_field: Some(field),
                     });
                 }
             } else {
-                cases.push(ProbeCase { id, violation, omitted_field: None });
+                cases.push(ProbeCase {
+                    id,
+                    violation,
+                    omitted_field: None,
+                    description: self.description.clone(),
+                    inherited_pattern: self.inherited_patterns.contains(&rule.presence),
+                });
             }
         }
         cases.sort_by(|a, b| a.id.cmp(&b.id));
@@ -180,7 +198,7 @@ impl<M: Clone + 'static> Catalog<M> {
                     }
                 };
                 for field in absent {
-                    self.fields[&field].clear(candidate);
+                    self.fields[&field].clear(candidate)?;
                 }
                 Ok(())
             }

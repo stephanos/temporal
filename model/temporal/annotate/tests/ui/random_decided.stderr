@@ -1,5 +1,13 @@
-error: contradictory roles or kind/tag pair
- --> tests/ui/random_decided.rs:7:58
+error: expected exactly one supported semantic kind
+ --> tests/ui/random_decided.rs:9:40
   |
-7 |     message response message: Message = "test.Message" { bytes: Random + Decided; }
-  |                                                          ^^^^^
+9 | struct Mirror { #[api(decided)] bytes: Random }
+  |                                        ^^^^^^
+
+warning: unused import: `kinds::*`
+ --> tests/ui/random_decided.rs:3:41
+  |
+3 | use umpire_temporal_annotate::{Catalog, kinds::*};
+  |                                         ^^^^^^^^
+  |
+  = note: `#[warn(unused_imports)]` (part of `#[warn(unused)]`) on by default

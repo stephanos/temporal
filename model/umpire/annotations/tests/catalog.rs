@@ -588,7 +588,7 @@ fn fill_preserves_roles_and_is_atomic_on_missing_external_secrets()
     let once = message.clone();
     fill(&mut message, &catalog, &mut Rng::new(99))?;
     assert_eq!(message, once);
-    catalog.redact(&mut message);
+    assert_eq!(catalog.redact(&mut message), Ok(()));
     assert_eq!(message.secret, "");
     Ok(())
 }

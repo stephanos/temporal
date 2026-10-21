@@ -1,5 +1,5 @@
 error: request constraint requires an expectation and covers
- --> tests/ui/missing_request_expectation.rs:7:57
+ --> tests/ui/missing_request_expectation.rs:9:17
   |
-7 |     message request message: Message = "test.Message" { id: Uuid; }
-  |                                                         ^^
+9 | struct Mirror { id: Uuid }
+  |                 ^^

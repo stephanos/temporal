@@ -1,0 +1,53 @@
+//! Response-only raw checks supplement request normalization without duplicating inspection.
+
+#![allow(dead_code)]
+
+use umpire_temporal_annotate::{Catalog, Inspect, kinds::*};
+
+mod foundation {
+    pub(crate) mod dc {
+        pub(crate) struct Limits;
+    }
+}
+
+const VALIDATOR: &str = "validator.duration";
+
+#[derive(Clone, Default)]
+struct Wire {
+    duration: Option<umpire_wasm::google::protobuf::Duration>,
+}
+
+#[derive(Catalog)]
+#[api(request = "test.Wire", type = Wire, covers = VALIDATOR)]
+#[api(response_checks = Raw)]
+struct Normalized {
+    #[api(accepts)]
+    duration: Duration,
+}
+
+#[derive(Catalog)]
+#[api(response = "test.Wire", type = Wire, supplemental)]
+struct Raw {
+    duration: RawDuration,
+}
+
+#[test]
+fn raw_checks_run_for_responses_after_request_normalization()
+-> Result<(), Box<dyn std::error::Error>> {
+    let wire = Wire {
+        duration: Some(umpire_wasm::google::protobuf::Duration { seconds: i64::MAX, nanos: 0 }),
+    };
+    let mut findings = Vec::new();
+    wire.inspect(&foundation::dc::Limits, false, &mut findings)?;
+    assert_eq!(findings, []);
+    wire.inspect(&foundation::dc::Limits, true, &mut findings)?;
+    assert_eq!(findings.len(), 1);
+    assert_eq!(findings[0].constraint, "duration.valid");
+    assert!(findings[0].expected.is_none());
+    let valid =
+        Wire { duration: Some(umpire_wasm::google::protobuf::Duration { seconds: 1, nanos: 0 }) };
+    findings.clear();
+    valid.inspect(&foundation::dc::Limits, true, &mut findings)?;
+    assert_eq!(findings, []);
+    Ok(())
+}

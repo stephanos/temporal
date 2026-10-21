@@ -1,0 +1,898 @@
+//! The shared attribute grammar for compiler expansion and descriptor admission.
+
+use proc_macro2::Span;
+use quote::{format_ident, quote};
+use syn::{
+    Attribute, DeriveInput, Expr, Ident, Lit, LitStr, Path, Token, Type, ext::IdentExt,
+    parse::ParseStream, punctuated::Punctuated,
+};
+
+use crate::{Catalog, Expected, Field, Message, Projection, Rule, Tag};
+
+/// A checked mirror struct, parsed identically by the derive and build script.
+#[derive(Debug)]
+pub struct DeriveCatalog {
+    /// Author's mirror type.
+    pub name: Ident,
+    /// Concrete protobuf message type.
+    pub ty: Path,
+    /// Fully qualified protobuf message name.
+    pub proto: LitStr,
+    /// Request expectation policy.
+    pub request: bool,
+    /// Supplemental intents do not own exhaustive coverage or inspection.
+    pub supplemental: bool,
+    /// Message description from Rust doc comments.
+    pub description: String,
+    /// Default compile-checked validator provenance.
+    pub covers: Option<Path>,
+    /// Supplemental mirror used only when inspecting a response.
+    pub response_checks: Option<Path>,
+    /// Field declarations in source order.
+    pub fields: Vec<DeriveField>,
+    /// Presence rules.
+    pub rules: Vec<DeriveRule>,
+}
+
+/// One field and its attribute intents.
+#[derive(Debug, Clone)]
+pub struct DeriveField {
+    /// Actual protobuf field name.
+    pub name: Ident,
+    /// Resolved marker type as authored.
+    pub ty: Type,
+    /// Field documentation.
+    pub description: String,
+    /// Attribute declarations.
+    pub attributes: ApiAttributes,
+}
+
+/// Presence rule with an expectation shared by its attribute line.
+#[derive(Debug)]
+pub struct DeriveRule {
+    /// Presence operator.
+    pub operator: Ident,
+    /// Referenced protobuf source names.
+    pub fields: Vec<Ident>,
+    /// Expected server behavior.
+    pub expected: Option<ApiExpectation>,
+    /// Compile-checked validator path.
+    pub covers: Option<Path>,
+    /// Presence inherited the field's rejection pattern.
+    pub inherited_pattern: bool,
+}
+
+/// Expected behavior in the attribute surface.
+#[derive(Debug, Clone)]
+pub enum ApiExpectation {
+    /// Named status and optional message regex.
+    Rejects(Ident, Option<LitStr>),
+    /// Any non-OK status.
+    AnyStatus,
+    /// Server accepts the invalid value.
+    Accepts,
+    /// Cannot be observed with a request probe.
+    Unobservable,
+}
+
+/// Parsed helper attributes; shared with descriptor and compiler consumers.
+#[derive(Debug, Clone, Default)]
+pub struct ApiAttributes {
+    /// Typed supplemental response mirror.
+    pub response_checks: Option<Path>,
+    /// Message direction and protobuf name.
+    pub direction: Option<(bool, LitStr)>,
+    /// Explicit prost type override.
+    pub proto_type: Option<Path>,
+    /// Excludes a second mirror from exhaustive ownership.
+    pub supplemental: bool,
+    /// Validator provenance.
+    pub covers: Option<Path>,
+    /// Constraint expressions, including dynamic config constants.
+    pub constraints: Vec<(Ident, Expr)>,
+    /// Builtin annotation consequences.
+    pub tags: Vec<Tag>,
+    /// Server expectation.
+    pub expected: Option<ApiExpectation>,
+    /// Presence rules declared on this attribute line.
+    pub rules: Vec<(Ident, Vec<Ident>)>,
+    /// Module with typed view/set functions.
+    pub via: Option<Path>,
+    /// Exhaustive oneof alternatives and protobuf names.
+    pub variants: Vec<(Ident, LitStr)>,
+    /// Supplemental kind intents on this field.
+    pub also: Vec<ApiAttributes>,
+    /// Supplemental kind name.
+    pub also_kind: Option<Ident>,
+}
+
+fn set_once<T>(slot: &mut Option<T>, value: T, span: Span, label: &str) -> syn::Result<()> {
+    if slot.is_some() {
+        return Err(syn::Error::new(span, format!("duplicate {label}")));
+    }
+    *slot = Some(value);
+    Ok(())
+}
+
+fn names(input: ParseStream<'_>) -> syn::Result<Vec<Ident>> {
+    let body;
+    syn::parenthesized!(body in input);
+    Ok(Punctuated::<Ident, Token![,]>::parse_terminated(&body)?.into_iter().collect())
+}
+
+impl syn::parse::Parse for ApiAttributes {
+    fn parse(input: ParseStream<'_>) -> syn::Result<Self> {
+        let mut result = Self::default();
+        while !input.is_empty() {
+            let key = input.call(Ident::parse_any)?;
+            let span = key.span();
+            match key.to_string().as_str() {
+                "request" | "response" => {
+                    input.parse::<Token![=]>()?;
+                    set_once(
+                        &mut result.direction,
+                        (key == "request", input.parse()?),
+                        span,
+                        "message direction",
+                    )?;
+                }
+                "type" => {
+                    input.parse::<Token![=]>()?;
+                    set_once(&mut result.proto_type, input.parse()?, span, "type")?;
+                }
+                "supplemental" => result.supplemental = true,
+                "covers" => {
+                    input.parse::<Token![=]>()?;
+                    set_once(&mut result.covers, input.parse()?, span, "covers")?;
+                }
+                "via" => {
+                    input.parse::<Token![=]>()?;
+                    set_once(&mut result.via, input.parse()?, span, "via")?;
+                }
+                "response_checks" => {
+                    input.parse::<Token![=]>()?;
+                    set_once(&mut result.response_checks, input.parse()?, span, "response_checks")?;
+                }
+                "rejects" => {
+                    let expected = parse_rejection(input, span)?;
+                    set_once(&mut result.expected, expected, span, "expectation")?;
+                }
+                "accepts" | "unobservable" => {
+                    let expected = if key == "accepts" {
+                        ApiExpectation::Accepts
+                    } else {
+                        ApiExpectation::Unobservable
+                    };
+                    set_once(&mut result.expected, expected, span, "expectation")?;
+                }
+                "required" => result.rules.push((key, Vec::new())),
+                "requires" | "conflicts_with" => {
+                    input.parse::<Token![=]>()?;
+                    result.rules.push((key, vec![input.parse()?]));
+                }
+                "any_of" | "one_of" => {
+                    result.rules.push((key, names(input)?));
+                }
+                "oneof" => {
+                    result.variants.extend(oneof_variants(input)?);
+                }
+                "also" => {
+                    let attributes = parse_also(input)?;
+                    result.also.push(attributes);
+                }
+                "ignored" => {
+                    input.parse::<Token![=]>()?;
+                    result.tags.push(Tag {
+                        name: Ident::new("Ignored", span),
+                        argument: Some(Lit::Str(input.parse()?)),
+                    });
+                }
+                "decided" | "observed" | "idempotency_key" | "monotone" | "immutable" => {
+                    let name = match key.to_string().as_str() {
+                        "decided" => "Decided",
+                        "observed" => "Observed",
+                        "idempotency_key" => "IdempotencyKey",
+                        "monotone" => "Monotone",
+                        _ => "Immutable",
+                    };
+                    result.tags.push(Tag { name: Ident::new(name, span), argument: None });
+                }
+                "cached" | "eventually_consistent" => {
+                    input.parse::<Token![=]>()?;
+                    result.tags.push(Tag {
+                        name: Ident::new(
+                            if key == "cached" { "Cached" } else { "EventuallyConsistent" },
+                            span,
+                        ),
+                        argument: Some(input.parse()?),
+                    });
+                }
+                "min_len" | "max_len" | "min_bytes" | "max_bytes" | "prefix" | "suffix"
+                | "contains" | "gt" | "gte" | "lt" | "lte" | "min_items" | "max_items"
+                | "unique" | "defined_only" => {
+                    input.parse::<Token![=]>()?;
+                    result.constraints.push((key, input.parse()?));
+                }
+                _ => return Err(syn::Error::new(span, "unknown api attribute")),
+            }
+            if !input.is_empty() {
+                input.parse::<Token![,]>()?;
+            }
+        }
+        Ok(result)
+    }
+}
+
+fn oneof_variants(input: ParseStream<'_>) -> syn::Result<Vec<(Ident, LitStr)>> {
+    let body;
+    syn::parenthesized!(body in input);
+    let mut variants = Vec::new();
+    while !body.is_empty() {
+        let variant = body.parse()?;
+        body.parse::<Token![=]>()?;
+        variants.push((variant, body.parse()?));
+        if !body.is_empty() {
+            body.parse::<Token![,]>()?;
+        }
+    }
+    Ok(variants)
+}
+
+fn attributes(attrs: &[Attribute]) -> syn::Result<Vec<ApiAttributes>> {
+    attrs.iter().filter(|a| a.path().is_ident("api")).map(Attribute::parse_args).collect()
+}
+
+fn merge(mut lines: Vec<ApiAttributes>) -> syn::Result<ApiAttributes> {
+    let mut result = ApiAttributes::default();
+    for mut line in lines.drain(..) {
+        for (target, value, label) in [
+            (&mut result.response_checks, line.response_checks.take(), "response_checks"),
+            (&mut result.covers, line.covers.take(), "covers"),
+            (&mut result.via, line.via.take(), "via"),
+            (&mut result.proto_type, line.proto_type.take(), "type"),
+        ] {
+            if let Some(value) = value {
+                set_once(target, value, Span::call_site(), label)?;
+            }
+        }
+        if let Some(value) = line.direction.take() {
+            set_once(&mut result.direction, value, Span::call_site(), "message direction")?;
+        }
+        if let Some(value) = line.expected.take() {
+            set_once(&mut result.expected, value, Span::call_site(), "expectation")?;
+        }
+        result.supplemental |= line.supplemental;
+        result.constraints.extend(line.constraints);
+        result.tags.extend(line.tags);
+        result.rules.extend(line.rules);
+        result.variants.extend(line.variants);
+        result.also.extend(line.also);
+    }
+    Ok(result)
+}
+
+fn documentation(attrs: &[Attribute]) -> String {
+    attrs
+        .iter()
+        .filter_map(|attr| {
+            if !attr.path().is_ident("doc") {
+                return None;
+            }
+            if let syn::Meta::NameValue(meta) = &attr.meta
+                && let Expr::Lit(value) = &meta.value
+                && let Lit::Str(text) = &value.lit
+            {
+                return Some(text.value().trim().to_owned());
+            }
+            None
+        })
+        .collect::<Vec<_>>()
+        .join("\n")
+}
+
+/// Last path segment of a concrete marker type.
+pub fn marker(ty: &Type) -> syn::Result<&syn::PathSegment> {
+    if let Type::Path(ty) = ty {
+        return ty
+            .path
+            .segments
+            .last()
+            .ok_or_else(|| syn::Error::new_spanned(ty, "expected a kind type"));
+    }
+    Err(syn::Error::new_spanned(ty, "expected a kind type"))
+}
+
+impl DeriveCatalog {
+    /// Parses and admits a mirror using the shared catalog admission rules.
+    pub fn parse(input: &DeriveInput) -> syn::Result<Self> {
+        if !input.generics.params.is_empty() {
+            return Err(syn::Error::new_spanned(
+                &input.generics,
+                "catalog mirrors cannot be generic",
+            ));
+        }
+        let item_lines = attributes(&input.attrs)?;
+        let mut rules = Vec::new();
+        for line in &item_lines {
+            for (operator, fields) in &line.rules {
+                if operator != "any_of" && operator != "one_of" {
+                    return Err(syn::Error::new(
+                        operator.span(),
+                        "item presence groups use any_of or one_of",
+                    ));
+                }
+                rules.push(DeriveRule {
+                    operator: operator.clone(),
+                    fields: fields.clone(),
+                    expected: line.expected.clone(),
+                    covers: line.covers.clone(),
+                    inherited_pattern: false,
+                });
+            }
+        }
+        let item = merge(
+            item_lines
+                .into_iter()
+                .map(|mut line| {
+                    if !line.rules.is_empty() {
+                        line.expected = None;
+                        if line.direction.is_none() {
+                            line.covers = None;
+                        }
+                        line.rules.clear();
+                    }
+                    line
+                })
+                .collect(),
+        )?;
+        if !item.constraints.is_empty()
+            || !item.tags.is_empty()
+            || item.via.is_some()
+            || !item.variants.is_empty()
+            || !item.also.is_empty()
+            || item.expected.is_some()
+        {
+            return Err(syn::Error::new_spanned(
+                input,
+                "field attributes cannot be used on the catalog item",
+            ));
+        }
+        let (request, proto) = item.direction.clone().ok_or_else(|| {
+            syn::Error::new_spanned(
+                &input.ident,
+                "catalog requires #[api(request = ...)] or #[api(response = ...)]",
+            )
+        })?;
+        if proto.value().trim().is_empty() {
+            return Err(syn::Error::new(proto.span(), "message requires a nonempty name"));
+        }
+        let ty = item.proto_type.clone().map_or_else(|| inferred_type(&proto), Ok)?;
+        let syn::Data::Struct(data) = &input.data else {
+            return Err(syn::Error::new_spanned(input, "Catalog requires a mirror struct"));
+        };
+        let syn::Fields::Named(fields) = &data.fields else {
+            return Err(syn::Error::new_spanned(&data.fields, "Catalog requires named fields"));
+        };
+        let parsed = fields
+            .named
+            .iter()
+            .map(|field| parse_field(field, &item, request, &mut rules))
+            .collect::<syn::Result<_>>()?;
+        for rule in &mut rules {
+            if rule.covers.is_none() {
+                rule.covers.clone_from(&item.covers);
+            }
+        }
+        let result = Self {
+            name: input.ident.clone(),
+            ty,
+            proto,
+            request,
+            supplemental: item.supplemental,
+            description: documentation(&input.attrs),
+            covers: item.covers.clone(),
+            response_checks: item.response_checks.clone(),
+            fields: parsed,
+            rules,
+        };
+        result.admit()?;
+        Ok(result)
+    }
+
+    fn admit(&self) -> syn::Result<()> {
+        self.admission_catalog()?.admit()?;
+        for field in &self.fields {
+            for additional in &field.attributes.also {
+                let extra = Self::supplemental_field(field, additional)?;
+                Self {
+                    name: self.name.clone(),
+                    ty: self.ty.clone(),
+                    proto: self.proto.clone(),
+                    request: self.request,
+                    supplemental: true,
+                    description: String::new(),
+                    covers: self.covers.clone(),
+                    response_checks: None,
+                    fields: vec![extra],
+                    rules: Vec::new(),
+                }
+                .admission_catalog()?
+                .admit()?;
+            }
+        }
+        Ok(())
+    }
+
+    pub(crate) fn supplemental_field(
+        field: &DeriveField,
+        additional: &ApiAttributes,
+    ) -> syn::Result<DeriveField> {
+        let kind = additional
+            .also_kind
+            .as_ref()
+            .ok_or_else(|| syn::Error::new(field.name.span(), "missing supplemental kind"))?;
+        let mut attributes = additional.clone();
+        if attributes.covers.is_none() {
+            attributes.covers.clone_from(&field.attributes.covers);
+        }
+        if attributes.tags.is_empty() {
+            attributes.tags.clone_from(&field.attributes.tags);
+        }
+        Ok(DeriveField {
+            name: field.name.clone(),
+            ty: syn::parse_quote!(::umpire_temporal_annotate::kinds::#kind),
+            description: field.description.clone(),
+            attributes,
+        })
+    }
+
+    fn admission_fields(&self) -> syn::Result<(Vec<Field>, Vec<crate::Enum>)> {
+        let mut fields = Vec::new();
+        let mut enums = Vec::new();
+        for field in &self.fields {
+            let attrs = &field.attributes;
+            let actual = marker(semantic_type(&field.ty)?)?.ident.to_string();
+            let kind = match actual.as_str() {
+                "Ignored" | "Message" | "OneOf" | "Map" | "Vec" => "Bytes",
+                "RawDuration" => "Duration",
+                other => other,
+            };
+            let kind = Ident::new(kind, field.name.span());
+            let enumeration = if actual == "Enum" {
+                let factory = format_ident!("{}_enum", field.name.unraw());
+                enums.push(crate::Enum {
+                    factory: factory.clone(),
+                    ty: syn::parse_quote!(UnusedEnum),
+                    proto: self.proto.clone(),
+                    variants: Vec::new(),
+                });
+                Some(factory)
+            } else {
+                None
+            };
+            let constraints: Vec<_> = attrs
+                .constraints
+                .iter()
+                .map(|(name, value)| {
+                    let literal = if let Expr::Lit(value) = value {
+                        value.lit.clone()
+                    } else {
+                        match name.to_string().as_str() {
+                            "prefix" | "suffix" | "contains" => syn::parse_quote!(""),
+                            "unique" => syn::parse_quote!(true),
+                            _ => syn::parse_quote!(0),
+                        }
+                    };
+                    (name.clone(), literal)
+                })
+                .collect();
+            let tags = attrs
+                .tags
+                .iter()
+                .map(|tag| Tag { name: tag.name.clone(), argument: tag.argument.clone() })
+                .collect();
+            let variants = attrs
+                .variants
+                .iter()
+                .map(|(name, proto)| crate::Variant {
+                    path: syn::parse_quote!(UnusedOneof::#name),
+                    proto: proto.clone(),
+                })
+                .collect();
+            let ignored = attrs.tags.iter().any(|tag| tag.name == "Ignored");
+            if actual == "Ignored" && !ignored {
+                return Err(syn::Error::new(
+                    field.name.span(),
+                    "Ignored requires a nonempty explicit ignored reason",
+                ));
+            }
+            let mut admitted = Field {
+                opaque: ignored,
+                name: field.name.clone(),
+                kind,
+                constraints,
+                tags,
+                enumeration,
+                projection: if actual == "OneOf" && !ignored {
+                    Some(Projection {
+                        ty: syn::parse_quote!(Vec<u8>),
+                        get: syn::parse_quote!(|_| Vec::new()),
+                        set: syn::parse_quote!(|_, _| ()),
+                    })
+                } else {
+                    None
+                },
+                variants,
+                expected: admission_expected(attrs.expected.as_ref(), attrs.covers.as_ref())?,
+            };
+            if !attrs.rules.is_empty() && !crate::parse::field_is_constrained(&admitted) {
+                admitted.expected = None;
+            }
+            fields.push(admitted);
+        }
+        Ok((fields, enums))
+    }
+
+    /// Projects the mirror to the shared admission and coverage representation.
+    pub fn admission_catalog(&self) -> syn::Result<Catalog> {
+        let (fields, enums) = self.admission_fields()?;
+        let rules = self
+            .rules
+            .iter()
+            .map(|rule| {
+                Ok(Rule {
+                    operator: rule.operator.clone(),
+                    fields: rule.fields.clone(),
+                    expected: admission_expected(rule.expected.as_ref(), rule.covers.as_ref())?,
+                })
+            })
+            .collect::<syn::Result<_>>()?;
+        let mut messages = vec![Message {
+            request: self.request,
+            factory: self.name.clone(),
+            ty: self.ty.clone(),
+            proto: self.proto.clone(),
+            fields,
+            rules,
+        }];
+        for field in &self.fields {
+            if marker(&field.ty)?.ident == "Map" {
+                let entry = map_entry_proto(&self.proto, &field.name);
+                messages.push(Message {
+                    request: false,
+                    factory: format_ident!("{}_entry", field.name.unraw()),
+                    ty: syn::parse_quote!(::umpire_temporal_annotate::views::MetadataEntry),
+                    proto: LitStr::new(&entry, field.name.span()),
+                    fields: ["key", "value"]
+                        .map(|name| Field {
+                            opaque: false,
+                            name: Ident::new(name, field.name.span()),
+                            kind: Ident::new("Bytes", field.name.span()),
+                            constraints: Vec::new(),
+                            tags: Vec::new(),
+                            enumeration: None,
+                            projection: None,
+                            variants: Vec::new(),
+                            expected: None,
+                        })
+                        .into_iter()
+                        .collect(),
+                    rules: Vec::new(),
+                });
+            }
+        }
+        Ok(Catalog {
+            vis: syn::Visibility::Inherited,
+            name: self.name.clone(),
+            messages,
+            enums,
+            services: Vec::new(),
+            actions: Vec::new(),
+            tags: Vec::new(),
+        })
+    }
+}
+
+fn admission_expected(
+    expected: Option<&ApiExpectation>,
+    covers: Option<&Path>,
+) -> syn::Result<Option<Expected>> {
+    expected
+        .map(|expectation| {
+            let covers = covers.ok_or_else(|| {
+                syn::Error::new(Span::call_site(), "expectation requires covers validator path")
+            })?;
+            let outcome = match expectation {
+                ApiExpectation::Accepts => "Accepts",
+                ApiExpectation::Unobservable => "Unobservable",
+                _ => "Rejects",
+            };
+            Ok(Expected {
+                outcome: Ident::new(outcome, Span::call_site()),
+                reject: if outcome == "Rejects" {
+                    Some((syn::parse_quote!(3), syn::parse_quote!(""), None))
+                } else {
+                    None
+                },
+                covers: LitStr::new(&quote!(#covers).to_string(), Span::call_site()),
+            })
+        })
+        .transpose()
+}
+
+fn snake(name: &str) -> String {
+    let chars: Vec<char> = name.chars().collect();
+    let mut result = String::new();
+    for (index, ch) in chars.iter().enumerate() {
+        if ch.is_uppercase()
+            && index > 0
+            && (chars[index - 1].is_lowercase()
+                || chars[index - 1].is_ascii_digit()
+                || chars.get(index + 1).is_some_and(|next| next.is_lowercase()))
+        {
+            result.push('_');
+        }
+        result.extend(ch.to_lowercase());
+    }
+    result
+}
+
+fn inferred_type(proto: &LitStr) -> syn::Result<Path> {
+    let name = proto.value();
+    let mut parts: Vec<_> = name.split('.').collect();
+    let message = parts
+        .pop()
+        .ok_or_else(|| syn::Error::new(proto.span(), "missing protobuf message name"))?;
+    let package = parts.join("::");
+    let path = if package == "google::protobuf" {
+        format!("::umpire_wasm::google::protobuf::{message}")
+    } else {
+        format!("::umpire_temporal_api::{package}::{message}")
+    };
+    syn::parse_str(&path).map_err(|_| syn::Error::new(proto.span(), "invalid protobuf name"))
+}
+
+/// Stable snake-case name used for catalog factories.
+pub fn factory_name(name: &Ident) -> Ident {
+    format_ident!("{}", snake(&name.to_string()))
+}
+
+pub(crate) fn map_entry_proto(parent: &LitStr, field: &Ident) -> String {
+    let camel = field
+        .unraw()
+        .to_string()
+        .split('_')
+        .map(|part| {
+            let mut chars = part.chars();
+            chars.next().map_or_else(String::new, |head| head.to_uppercase().chain(chars).collect())
+        })
+        .collect::<String>();
+    format!("{}.{camel}Entry", parent.value())
+}
+
+pub(crate) fn secret_map(ty: &Type) -> syn::Result<bool> {
+    let segment = marker(ty)?;
+    if segment.ident == "Map"
+        && let syn::PathArguments::AngleBracketed(arguments) = &segment.arguments
+        && let Some(syn::GenericArgument::Type(value)) = arguments.args.last()
+    {
+        return Ok(marker(value)?.ident == "Secret");
+    }
+    Ok(false)
+}
+
+pub(crate) fn semantic_type(ty: &Type) -> syn::Result<&Type> {
+    let segment = marker(ty)?;
+    if segment.ident == "Vec"
+        && let syn::PathArguments::AngleBracketed(arguments) = &segment.arguments
+        && let Some(syn::GenericArgument::Type(inner)) = arguments.args.first()
+    {
+        return semantic_type(inner);
+    }
+    Ok(ty)
+}
+
+fn parse_rejection(input: ParseStream<'_>, span: Span) -> syn::Result<ApiExpectation> {
+    let code = Ident::new("InvalidArgument", span);
+    let expected = if input.peek(Token![=]) {
+        input.parse::<Token![=]>()?;
+        if input.peek(LitStr) {
+            ApiExpectation::Rejects(code, Some(input.parse()?))
+        } else {
+            let value: Ident = input.parse()?;
+            if value != "any_status" {
+                return Err(syn::Error::new(value.span(), "expected a regex or any_status"));
+            }
+            ApiExpectation::AnyStatus
+        }
+    } else if input.peek(syn::token::Paren) {
+        let body;
+        syn::parenthesized!(body in input);
+        let code = body.parse()?;
+        let pattern = if body.is_empty() {
+            None
+        } else {
+            body.parse::<Token![,]>()?;
+            Some(body.parse()?)
+        };
+        if !body.is_empty() {
+            return Err(body.error("expected status and optional regex"));
+        }
+        ApiExpectation::Rejects(code, pattern)
+    } else {
+        ApiExpectation::Rejects(code, None)
+    };
+    Ok(expected)
+}
+
+fn parse_also(input: ParseStream<'_>) -> syn::Result<ApiAttributes> {
+    let body;
+    syn::parenthesized!(body in input);
+    let kind: Ident = body.parse()?;
+    let kind = format_ident!(
+        "{}",
+        match kind.to_string().as_str() {
+            "uuid" => "Uuid",
+            "identifier" => "Identifier",
+            "text" => "Text",
+            "bytes" => "Bytes",
+            "duration" => "Duration",
+            "counter" => "Counter",
+            _ => return Err(syn::Error::new(kind.span(), "unsupported supplemental kind")),
+        }
+    );
+    let mut attributes: ApiAttributes = if body.is_empty() {
+        ApiAttributes::default()
+    } else {
+        body.parse::<Token![,]>()?;
+        body.parse()?
+    };
+    attributes.also_kind = Some(kind);
+    Ok(attributes)
+}
+
+fn parse_field(
+    field: &syn::Field,
+    item: &ApiAttributes,
+    request: bool,
+    rules: &mut Vec<DeriveRule>,
+) -> syn::Result<DeriveField> {
+    let name = field
+        .ident
+        .clone()
+        .ok_or_else(|| syn::Error::new_spanned(field, "expected named field"))?;
+    let field_lines = attributes(&field.attrs)?;
+    let mut attrs = merge(
+        field_lines
+            .iter()
+            .map(|line| {
+                let mut common = line.clone();
+                if !common.rules.is_empty() && common.constraints.is_empty() {
+                    common.expected = None;
+                    common.covers = None;
+                }
+                common
+            })
+            .collect(),
+    )?;
+    if attrs.expected.is_none() {
+        attrs.expected = field_lines.iter().find_map(|line| line.expected.clone());
+    }
+    if attrs.covers.is_none() {
+        attrs.covers = field_lines.iter().find_map(|line| line.covers.clone());
+    }
+    if attrs.direction.is_some()
+        || attrs.proto_type.is_some()
+        || attrs.supplemental
+        || attrs.response_checks.is_some()
+    {
+        return Err(syn::Error::new_spanned(field, "message attributes cannot be used on fields"));
+    }
+    if attrs.covers.is_none() {
+        attrs.covers.clone_from(&item.covers);
+    }
+    append_field_rules(&name, &field_lines, &attrs, rules)?;
+    let kind = marker(&field.ty)?.ident.to_string();
+    validate_kind(&field.ty, &kind)?;
+    if kind == "OneOf" && attrs.variants.is_empty() {
+        return Err(syn::Error::new(
+            name.span(),
+            "OneOf requires exhaustive #[api(oneof(...))] alternatives",
+        ));
+    }
+    if kind != "OneOf" && !attrs.variants.is_empty() {
+        return Err(syn::Error::new(name.span(), "oneof alternatives require a OneOf kind"));
+    }
+    let has_role = attrs
+        .tags
+        .iter()
+        .any(|tag| ["Decided", "Observed", "Ignored"].contains(&tag.name.to_string().as_str()));
+    if !has_role && kind != "Ignored" {
+        attrs.tags.insert(
+            0,
+            Tag {
+                name: Ident::new(
+                    if request
+                        || marker(semantic_type(&field.ty)?)?.ident == "Secret"
+                        || secret_map(&field.ty)?
+                    {
+                        "Decided"
+                    } else {
+                        "Observed"
+                    },
+                    name.span(),
+                ),
+                argument: None,
+            },
+        );
+    }
+    Ok(DeriveField {
+        name,
+        ty: field.ty.clone(),
+        description: documentation(&field.attrs),
+        attributes: attrs,
+    })
+}
+
+fn append_field_rules(
+    name: &Ident,
+    field_lines: &[ApiAttributes],
+    attrs: &ApiAttributes,
+    rules: &mut Vec<DeriveRule>,
+) -> syn::Result<()> {
+    for line in field_lines {
+        for (operator, operands) in &line.rules {
+            if operator == "any_of" || operator == "one_of" {
+                return Err(syn::Error::new(
+                    operator.span(),
+                    "symmetric presence groups belong on the item",
+                ));
+            }
+            let mut fields = vec![name.clone()];
+            fields.extend(operands.clone());
+            if operator == "required" && attrs.variants.len() == 1 {
+                fields[0] = Ident::new(&attrs.variants[0].1.value(), name.span());
+            }
+            let operator = if operator == "conflicts_with" {
+                Ident::new("excludes", operator.span())
+            } else {
+                operator.clone()
+            };
+            rules.push(DeriveRule {
+                operator,
+                fields,
+                expected: line.expected.clone().or_else(|| attrs.expected.clone()),
+                covers: line.covers.clone().or_else(|| attrs.covers.clone()),
+                inherited_pattern: line.expected.is_none() || !line.constraints.is_empty(),
+            });
+        }
+    }
+    Ok(())
+}
+
+fn validate_kind(ty: &Type, kind: &str) -> syn::Result<()> {
+    if ![
+        "Text",
+        "Identifier",
+        "Uuid",
+        "Duration",
+        "RawDuration",
+        "Timestamp",
+        "Counter",
+        "Flag",
+        "Number",
+        "Bytes",
+        "Secret",
+        "Enum",
+        "Message",
+        "OneOf",
+        "Map",
+        "Ignored",
+        "Vec",
+    ]
+    .contains(&kind)
+    {
+        return Err(syn::Error::new_spanned(ty, "expected exactly one supported semantic kind"));
+    }
+    Ok(())
+}

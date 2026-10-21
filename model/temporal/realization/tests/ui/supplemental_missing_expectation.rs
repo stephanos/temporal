@@ -1,11 +1,9 @@
-#[macro_use]
-#[path = "../../../feature/activity/api_requests.rs"]
-mod requests;
-
-fn main() {
-    let _catalog = supplemental_request!(
-        uuid String, "Request", "Request.request_id",
-        get = |message| message, set = |message| message,
-        covers = "server.validateRequestID",
-    );
-}
+use umpire_temporal_annotate::{Catalog, kinds::*};
+mod foundation { pub(crate) mod dc { pub(crate) struct Limits; } }
+const VALIDATOR: &str = "server.validateRequestID";
+#[derive(Clone, Default)]
+struct Wire { value: String }
+#[derive(Catalog)]
+#[api(request = "test.Wire", type = Wire, supplemental, covers = VALIDATOR)]
+struct Supplemental { value: Uuid }
+fn main() {}

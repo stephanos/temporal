@@ -1,11 +1,10 @@
+#[path = "../support/mod.rs"]
+mod foundation;
+use umpire_temporal_annotate::{Catalog, kinds::*};
 #[derive(Clone, Default)]
-struct Request {
-    value: i32,
-}
-umpire_temporal_annotate::annotate! {
-    catalog controls;
-    message response request: Request = "test.Request" {
-        value: Uuid + Ignored("outside");
-    }
-}
+struct Wire { value: i32 }
+
+#[derive(Catalog)]
+#[api(response = "test.Wire", type = Wire)]
+struct Mirror { #[api(ignored = "outside")] value: Uuid }
 fn main() {}

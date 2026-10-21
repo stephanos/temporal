@@ -3,6 +3,9 @@
 
 pub mod support;
 
+#[path = "../../foundation/mod.rs"]
+pub mod foundation;
+
 #[path = "../../feature/activity/api.rs"]
 pub mod activity_api;
 

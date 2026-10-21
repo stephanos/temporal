@@ -1,5 +1,5 @@
 error: contradictory roles or kind/tag pair
- --> tests/ui/contradictory_roles.rs:7:58
+ --> tests/ui/contradictory_roles.rs:9:43
   |
-7 |     message response message: Message = "test.Message" { id: Uuid + Decided + Observed; }
-  |                                                          ^^
+9 | struct Mirror { #[api(decided, observed)] id: Uuid }
+  |                                           ^^

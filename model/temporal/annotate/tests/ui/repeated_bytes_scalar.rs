@@ -1,11 +1,10 @@
+#[path = "../support/mod.rs"]
+mod foundation;
+use umpire_temporal_annotate::{Catalog, kinds::*};
 #[derive(Clone, Default)]
-struct Message {
-    value: Vec<u8>,
-}
-umpire_temporal_annotate::annotate! {
-    catalog controls;
-    message response message: Message = "test.Message" {
-        value: Bytes[unique = true];
-    }
-}
+struct Wire { value: Vec<u8> }
+
+#[derive(Catalog)]
+#[api(response = "test.Wire", type = Wire)]
+struct Mirror { #[api(unique = true)] value: Bytes }
 fn main() {}

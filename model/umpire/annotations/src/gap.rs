@@ -83,6 +83,12 @@ impl AcceptedGap {
 /// One report row derived from an actual validation finding.
 #[derive(Clone, Debug, PartialEq, Eq)]
 pub struct GapEntry {
+    /// Actual rejection status retained independently of raw server diagnostics.
+    pub actual_status: Option<i32>,
+    /// Author-written explanation of the catalog declaration.
+    pub description: String,
+    /// Whether a presence expectation shares its field's constraint pattern.
+    pub inherited_pattern: bool,
     /// Validation identity and expected behavior.
     pub violation: Violation,
     /// Comparison with the probe result.
@@ -103,6 +109,13 @@ impl fmt::Display for GapError {
 impl std::error::Error for GapError {}
 
 impl GapEntry {
+    /// Copies author metadata from the originating probe declaration.
+    #[must_use]
+    pub fn metadata(mut self, case: &crate::ProbeCase) -> Self {
+        self.description.clone_from(&case.description);
+        self.inherited_pattern = case.inherited_pattern;
+        self
+    }
     /// Classifies live evidence, refusing an unverifiable observable expectation.
     pub fn checked(violation: Violation, actual: ProbeResult) -> Result<Self, GapError> {
         if matches!(actual, ProbeResult::Unverifiable)
@@ -117,12 +130,26 @@ impl GapEntry {
     }
     /// Classifies a probe result against the validation finding's expectation.
     pub fn new(violation: Violation, actual: ProbeResult) -> Self {
+        let actual_status = match &actual {
+            ProbeResult::Rejected { code, .. } => Some(*code),
+            _ => None,
+        };
         let expectation = violation.expected.as_ref().map(|expected| &expected.expectation);
         let outcome = match (expectation, &actual) {
             (None | Some(Expectation::Unobservable), _) | (_, ProbeResult::Unverifiable) => {
                 GapOutcome::Unverifiable
             }
             (Some(Expectation::Accepts), ProbeResult::Accepted) => GapOutcome::Confirmed,
+            (Some(Expectation::RejectsCode(expected)), ProbeResult::Rejected { code, .. })
+                if *expected as i32 == *code =>
+            {
+                GapOutcome::Confirmed
+            }
+            (Some(Expectation::RejectsAnyStatus), ProbeResult::Rejected { code, .. })
+                if *code != 0 =>
+            {
+                GapOutcome::Confirmed
+            }
             (
                 Some(Expectation::Rejects {
                     code: expected_code, details_type: expected_type, ..
@@ -136,10 +163,24 @@ impl GapEntry {
             {
                 GapOutcome::Confirmed
             }
-            (Some(Expectation::Rejects { .. }), ProbeResult::Accepted) => GapOutcome::Accepted,
+            (
+                Some(
+                    Expectation::Rejects { .. }
+                    | Expectation::RejectsCode(_)
+                    | Expectation::RejectsAnyStatus,
+                ),
+                ProbeResult::Accepted,
+            ) => GapOutcome::Accepted,
             _ => GapOutcome::Mismatch(actual),
         };
-        Self { violation, outcome, accepted_gap: None }
+        Self {
+            actual_status,
+            violation,
+            outcome,
+            accepted_gap: None,
+            description: String::new(),
+            inherited_pattern: false,
+        }
     }
     /// Whether this row is an unacknowledged server gap.
     pub fn fails(&self) -> bool {
@@ -184,7 +225,17 @@ impl fmt::Display for GapReport {
         for entry in rows {
             write!(f, "{}: ", entry.violation)?;
             match &entry.outcome {
-                GapOutcome::Confirmed => write!(f, "Confirmed")?,
+                GapOutcome::Confirmed => {
+                    match entry.violation.expected.as_ref().map(|e| &e.expectation) {
+                        Some(Expectation::RejectsCode(_)) => {
+                            write!(f, "Confirmed (code only)")?;
+                        }
+                        Some(Expectation::RejectsAnyStatus) => {
+                            write!(f, "Confirmed (any status)")?;
+                        }
+                        _ => write!(f, "Confirmed")?,
+                    }
+                }
                 GapOutcome::Accepted => write!(f, "Accepted")?,
                 GapOutcome::Unverifiable => write!(f, "Unverifiable")?,
                 GapOutcome::Mismatch(actual) => write!(
@@ -195,6 +246,19 @@ impl fmt::Display for GapReport {
             }
             if let Some(expected) = &entry.violation.expected {
                 write!(f, " [covers: {}]", expected.covers)?;
+                if matches!(
+                    expected.expectation,
+                    Expectation::RejectsCode(_) | Expectation::RejectsAnyStatus
+                ) && let Some(code) = entry.actual_status
+                {
+                    write!(f, " [actual status: {code}; message redacted]")?;
+                }
+            }
+            if entry.inherited_pattern {
+                write!(f, " (inherited pattern)")?;
+            }
+            if !entry.description.is_empty() {
+                write!(f, " [{}]", entry.description)?;
             }
             if let Some(accepted) = &entry.accepted_gap {
                 write!(f, " [accepted {}: {}]", accepted.date, accepted.reason)?;
@@ -206,6 +270,21 @@ impl fmt::Display for GapReport {
         uncovered.dedup();
         for validator in uncovered {
             writeln!(f, "Uncovered: {validator}")?;
+        }
+        let loose = self
+            .entries
+            .iter()
+            .filter(|entry| {
+                entry.violation.expected.as_ref().is_some_and(|expected| {
+                    matches!(
+                        expected.expectation,
+                        Expectation::RejectsCode(_) | Expectation::RejectsAnyStatus
+                    )
+                })
+            })
+            .count();
+        if loose > 0 {
+            writeln!(f, "Loose expectations: {loose}")?;
         }
         Ok(())
     }

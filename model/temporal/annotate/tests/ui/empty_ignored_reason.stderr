@@ -1,5 +1,5 @@
 error: tag requires a valid literal reason or positive consequence
- --> tests/ui/empty_ignored_reason.rs:7:74
+ --> tests/ui/empty_ignored_reason.rs:9:23
   |
-7 |     message response message: Message = "test.Message" { opaque: Bytes + Ignored("") opaque; }
-  |                                                                          ^^^^^^^
+9 | struct Mirror { #[api(ignored = "")] opaque: Ignored }
+  |                       ^^^^^^^

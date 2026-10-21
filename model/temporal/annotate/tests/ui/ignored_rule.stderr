@@ -1,5 +1,5 @@
 error: ignored fields cannot appear in rules
- --> tests/ui/ignored_rule.rs:9:26
+ --> tests/ui/ignored_rule.rs:9:62
   |
-9 |         rules { required(opaque); }
-  |                          ^^^^^^
+9 | struct Mirror { #[api(ignored = "opaque boolean", required)] opaque: Ignored }
+  |                                                              ^^^^^^

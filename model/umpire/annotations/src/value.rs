@@ -25,6 +25,8 @@ impl Rng {
 /// Refusal to construct a conforming typed value.
 #[derive(Clone, Debug, PartialEq, Eq)]
 pub enum GenerationError {
+    /// A projected message was not a valid protobuf encoding.
+    InvalidEncoding,
     /// Secrets must come from the caller.
     ExternalSecret,
     /// The kind does not apply to this Rust type.
@@ -511,7 +513,7 @@ fn number_sample(
 macro_rules! integral {
     ($($ty:ty),*) => {$ (
         impl FieldValue for $ty {
-            fn supports(kind: &Kind) -> bool { matches!(kind, Kind::Counter(_)) || (stringify!($ty) == "i32" && matches!(kind, Kind::Enum(_))) }
+            fn supports(kind: &Kind) -> bool { matches!(kind, Kind::Counter(_)) || (stringify!($ty) == "i32" && matches!(kind, Kind::Enum(_) | Kind::DefinedEnum(_))) }
             fn constraints(kind: &Kind) -> Vec<&'static str> {
                 kind.constraints().into_iter().map(|name| name.strip_prefix("number.").map_or(name, |bound| number_name(stringify!($ty), bound))).collect()
             }
@@ -519,12 +521,14 @@ macro_rules! integral {
             fn violations(&self, kind: &Kind) -> Vec<&'static str> {
                 match kind {
                     Kind::Counter(rules) => number_violations(i128::from(*self), rules, stringify!($ty)),
+                    Kind::DefinedEnum(rule) if i32::try_from(*self).ok().is_none_or(|n| !(rule.is_valid)(n)) => vec!["enum.defined_only"],
                     Kind::Enum(rules) if rules.defined_only && !rules.values.iter().any(|value| i128::from(*value) == i128::from(*self)) => vec!["enum.defined_only"],
                     _ => Vec::new(),
                 }
             }
             fn generate(kind: &Kind, rng: &mut Rng) -> Result<Self, GenerationError> {
                 match kind {
+                    Kind::DefinedEnum(rule) => <$ty>::try_from(rule.default).map_err(|_| GenerationError::ImpossibleConstraints),
                     Kind::Counter(rules) => {
                         <$ty>::try_from(number_sample(rules, i128::from(<$ty>::MIN), i128::from(<$ty>::MAX), rng, false)?).map_err(|_| GenerationError::ImpossibleConstraints)
                     }
@@ -542,6 +546,10 @@ macro_rules! integral {
             }
             fn generate_present(kind: &Kind, rng: &mut Rng) -> Result<Self, GenerationError> {
                 match kind {
+                    Kind::DefinedEnum(rule) => {
+                        let value = (1..=4096).find(|n| (rule.is_valid)(*n)).ok_or(GenerationError::SizeLimit)?;
+                        <$ty>::try_from(value).map_err(|_| GenerationError::ImpossibleConstraints)
+                    }
                     Kind::Counter(rules) => <$ty>::try_from(number_sample(rules, i128::from(<$ty>::MIN), i128::from(<$ty>::MAX), rng, true)?).map_err(|_| GenerationError::ImpossibleConstraints),
                     Kind::Enum(rules) => {
                         if !rules.defined_only { return Ok(1); }
@@ -555,6 +563,82 @@ macro_rules! integral {
     )*};
 }
 integral!(i32, i64, u32, u64);
+
+impl FieldValue for bool {
+    fn supports(kind: &Kind) -> bool {
+        matches!(kind, Kind::Flag)
+    }
+    fn present(&self) -> bool {
+        *self
+    }
+    fn violations(&self, _kind: &Kind) -> Vec<&'static str> {
+        Vec::new()
+    }
+    fn generate(kind: &Kind, _rng: &mut Rng) -> Result<Self, GenerationError> {
+        if Self::supports(kind) { Ok(true) } else { Err(GenerationError::UnsupportedType) }
+    }
+}
+
+impl FieldValue for f64 {
+    fn supports(kind: &Kind) -> bool {
+        matches!(kind, Kind::Number(_))
+    }
+    fn present(&self) -> bool {
+        *self != 0.0
+    }
+    fn violations(&self, kind: &Kind) -> Vec<&'static str> {
+        if !self.is_finite() {
+            return vec!["number.finite"];
+        }
+        let Kind::Number(rules) = kind else {
+            return Vec::new();
+        };
+        let bound = |n: i128| n.to_string().parse::<f64>().ok();
+        let checks = [
+            ("number.gt", rules.gt.and_then(bound).is_some_and(|n| *self <= n)),
+            ("number.gte", rules.gte.and_then(bound).is_some_and(|n| *self < n)),
+            ("number.lt", rules.lt.and_then(bound).is_some_and(|n| *self >= n)),
+            ("number.lte", rules.lte.and_then(bound).is_some_and(|n| *self > n)),
+        ];
+        let inverted =
+            rules.gt.or(rules.gte).zip(rules.lt.or(rules.lte)).is_some_and(|(a, b)| a > b);
+        if inverted && !(checks[0].1 || checks[1].1) || inverted && !(checks[2].1 || checks[3].1) {
+            return Vec::new();
+        }
+        checks.into_iter().filter_map(|(name, failed)| failed.then_some(name)).collect()
+    }
+    fn generate(kind: &Kind, rng: &mut Rng) -> Result<Self, GenerationError> {
+        let Kind::Number(rules) = kind else {
+            return Err(GenerationError::UnsupportedType);
+        };
+        let mut candidates = vec![0.0, 1.0, -1.0];
+        for bound in [rules.gt, rules.gte, rules.lt, rules.lte].into_iter().flatten() {
+            let bound: f64 =
+                bound.to_string().parse().map_err(|_| GenerationError::ImpossibleConstraints)?;
+            candidates.extend([bound, bound.next_down(), bound.next_up()]);
+        }
+        candidates.retain(|value| value.violations(kind).is_empty());
+        let count = u64::try_from(candidates.len()).map_err(|_| GenerationError::SizeLimit)?;
+        if count == 0 {
+            return Err(GenerationError::ImpossibleConstraints);
+        }
+        let index =
+            usize::try_from(rng.next_u64() % count).map_err(|_| GenerationError::SizeLimit)?;
+        Ok(candidates[index])
+    }
+    fn negative(
+        &self,
+        kind: &Kind,
+        _repeated: Option<&RepeatedRules>,
+        constraint: &str,
+        rng: &mut Rng,
+    ) -> Result<Self, GenerationError> {
+        if constraint == "number.finite" {
+            return Ok(f64::INFINITY);
+        }
+        Self::generate(&crate::negative::negative_kind(kind, constraint)?, rng)
+    }
+}
 
 /// A protobuf-compatible timestamp; projected accessors can adapt generated types.
 #[derive(Clone, Copy, Debug, Default, PartialEq, Eq)]

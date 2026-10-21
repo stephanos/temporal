@@ -991,10 +991,12 @@ name = "umpire-temporal-annotate"
 version = "0.0.1"
 dependencies = [
  "insta",
+ "prost",
  "trybuild",
  "umpire-annotations",
  "umpire-temporal-annotate-macros",
  "umpire-temporal-api",
+ "umpire-wasm",
 ]
 
 [[package]]
@@ -1024,6 +1026,7 @@ version = "0.0.1"
 dependencies = [
  "prost",
  "prost-build",
+ "quote",
  "umpire-temporal-annotate-syntax",
  "umpire-wasm",
 ]

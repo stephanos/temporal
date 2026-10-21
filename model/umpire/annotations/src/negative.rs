@@ -3,6 +3,12 @@ use crate::{BytesRules, EnumRules, GenerationError, Kind, NumberRules, StringRul
 pub(crate) fn negative_kind(kind: &Kind, constraint: &str) -> Result<Kind, GenerationError> {
     let mut negative = kind.clone();
     match &mut negative {
+        Kind::DefinedEnum(rule) if constraint == "enum.defined_only" => {
+            let value = (i32::MAX - 4096..=i32::MAX)
+                .find(|n| !(rule.is_valid)(*n))
+                .ok_or(GenerationError::SizeLimit)?;
+            negative = Kind::Enum(EnumRules { defined_only: true, values: vec![value] });
+        }
         Kind::Uuid if constraint == "string.uuid" => {
             negative = Kind::Text(StringRules {
                 min_len: Some(1),
@@ -48,7 +54,10 @@ pub(crate) fn negative_kind(kind: &Kind, constraint: &str) -> Result<Kind, Gener
             }
         }
         Kind::Bytes(rules) | Kind::Random(rules) => invert_bytes(rules, constraint)?,
-        Kind::Counter(rules) | Kind::Duration(rules) | Kind::Timestamp(rules) => {
+        Kind::Counter(rules)
+        | Kind::Number(rules)
+        | Kind::Duration(rules)
+        | Kind::Timestamp(rules) => {
             invert_number(rules, constraint)?;
         }
         Kind::Enum(rules) if constraint == "enum.defined_only" => {

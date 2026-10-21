@@ -46,7 +46,7 @@ fn ignored_projection_retains_payload_type_and_redacts_oneof()
         let before = message.clone();
         fill(&mut message, &catalog, &mut Rng::new(7))?;
         assert_eq!(message, before);
-        catalog.redact(&mut message);
+        assert_eq!(catalog.redact(&mut message), Ok(()));
         assert_eq!(message.value, None);
     }
     Ok(())
@@ -86,7 +86,7 @@ where
         fill(&mut message, &catalog, &mut rng)?;
         assert_eq!(&message.value, value);
         assert_eq!(rng.next_u64(), untouched.next_u64());
-        catalog.redact(&mut message);
+        assert_eq!(catalog.redact(&mut message), Ok(()));
         assert_eq!(message.value, if kind == Kind::Secret { T::default() } else { value.clone() });
     }
     Ok(())

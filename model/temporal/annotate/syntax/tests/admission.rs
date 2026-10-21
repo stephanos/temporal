@@ -1,6 +1,108 @@
 //! Grammar admission controls independent of generated API compilation.
 
 #[test]
+fn derive_catalog_uses_shared_admission_and_discovery() -> Result<(), Box<dyn std::error::Error>> {
+    let source = r#"
+        #[derive(Catalog)]
+        #[api(request = "temporal.api.example.v1.Request", covers = validators::REQUEST)]
+        struct Request {
+            #[api(max_bytes = dc::MAX_ID_LENGTH, rejects = "identity", required)]
+            identity: Text,
+            #[api(ignored = "outside this model")]
+            extra: Ignored,
+        }
+    "#;
+    let catalogs = umpire_temporal_annotate_syntax::catalogs(source)?;
+    assert_eq!(catalogs.len(), 1);
+    assert_eq!(catalogs[0].coverage().messages[0].fields, ["identity", "extra"]);
+    for replacement in ["#[api(ignored = \"\")]", "#[api(observed, decided)]"] {
+        let invalid = source.replace("#[api(ignored = \"outside this model\")]", replacement);
+        assert!(umpire_temporal_annotate_syntax::catalogs(&invalid).is_err());
+    }
+    let missing = source.replace(
+        "#[api(max_bytes = dc::MAX_ID_LENGTH, rejects = \"identity\", required)]",
+        "#[api(max_bytes = dc::MAX_ID_LENGTH)]",
+    );
+    assert!(umpire_temporal_annotate_syntax::catalogs(&missing).is_err());
+    Ok(())
+}
+
+#[test]
+fn derive_attributes_preserve_admission_errors() {
+    for (declaration, expected) in [
+        ("#[api(ignored = \"\")] value: Ignored", "valid literal reason"),
+        ("value: Ignored", "explicit ignored reason"),
+        ("#[api(observed)] value: Secret", "contradictory"),
+        ("#[api(decided, observed)] value: Text", "contradictory"),
+        ("#[api(monotone)] value: Text", "incompatible"),
+        ("#[api(required)] value: Text", "expectation"),
+        ("#[api(requires = absent, accepts)] value: Text", "unknown rule field"),
+        ("#[api(max_bytes = true, accepts)] value: Text", "incompatible"),
+        ("#[api(unknown)] value: Text", "unknown api attribute"),
+    ] {
+        let source = format!(
+            "#[derive(Catalog)] #[api(request = \"test.Request\", covers = validators::REQUEST)] struct Request {{ {declaration}, }}"
+        );
+        let error = umpire_temporal_annotate_syntax::catalogs(&source).err();
+        let Some(error) = error else { panic!("expected admission failure: {source}") };
+        assert!(error.to_string().contains(expected), "{source}: {error}");
+    }
+}
+
+#[test]
+fn supplemental_mirrors_do_not_claim_descriptor_coverage() -> Result<(), Box<dyn std::error::Error>>
+{
+    let source = r#"
+        mod nested {
+            #[derive(Catalog)]
+            #[api(response = "test.Response", supplemental)]
+            struct Raw { value: Counter }
+        }
+    "#;
+    assert!(umpire_temporal_annotate_syntax::catalogs(source)?.is_empty());
+    Ok(())
+}
+
+#[test]
+fn derive_validates_supplemental_intents_and_nested_map_coverage()
+-> Result<(), Box<dyn std::error::Error>> {
+    let invalid = r#"#[derive(Catalog)] #[api(request = "test.Request")]
+        struct Request { #[api(also(uuid))] id: Text }"#;
+    assert!(umpire_temporal_annotate_syntax::catalogs(invalid).is_err());
+    let source = r#"#[derive(Catalog)] #[api(response = "test.Payload")]
+        struct Payload { metadata: Map<Text, Secret> }"#;
+    let coverage = umpire_temporal_annotate_syntax::catalogs(source)?[0].coverage();
+    assert_eq!(coverage.messages.len(), 2);
+    assert_eq!(coverage.messages[1].name, "test.Payload.MetadataEntry");
+    assert_eq!(coverage.messages[1].fields, ["key", "value"]);
+    Ok(())
+}
+
+#[test]
+fn stacked_presence_expectations_may_differ_from_field_constraints()
+-> Result<(), Box<dyn std::error::Error>> {
+    let source = r#"#[derive(Catalog)]
+        #[api(request = "test.Request", covers = validators::REQUEST)]
+        struct Request {
+            #[api(max_bytes = 4, rejects = "too long")]
+            #[api(required, rejects = "missing")]
+            name: Text,
+        }"#;
+    let input: syn::DeriveInput = syn::parse_str(source)?;
+    let declaration = umpire_temporal_annotate_syntax::DeriveCatalog::parse(&input)?;
+    assert!(format!("{:?}", declaration.fields[0].attributes.expected).contains("too long"));
+    assert!(format!("{:?}", declaration.rules[0].expected).contains("missing"));
+    Ok(())
+}
+
+#[test]
+fn disabled_derive_enum_constraint_needs_no_expectation() {
+    let source = r#"#[derive(Catalog)] #[api(request = "test.Request")]
+        struct Request { #[api(defined_only = false)] state: Enum<State> }"#;
+    assert!(umpire_temporal_annotate_syntax::catalogs(source).is_ok());
+}
+
+#[test]
 fn request_constraints_need_expectations() -> Result<(), Box<dyn std::error::Error>> {
     let error = syn::parse_str::<umpire_temporal_annotate_syntax::Catalog>(
         r#"pub catalog C; message request request: Request = "test.Request" {

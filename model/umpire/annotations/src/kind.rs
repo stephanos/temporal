@@ -72,9 +72,41 @@ pub struct EnumRules {
     pub values: Vec<i32>,
 }
 
+/// Typed enum validity bridge, identified by its concrete Rust type.
+#[derive(Clone)]
+pub struct EnumValidator {
+    /// Fully qualified Rust enum type.
+    pub name: &'static str,
+    /// Valid default discriminant for generation.
+    pub default: i32,
+    /// Concrete enum's validity check.
+    pub is_valid: fn(i32) -> bool,
+}
+
+impl std::fmt::Debug for EnumValidator {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        f.debug_struct("EnumValidator")
+            .field("name", &self.name)
+            .field("default", &self.default)
+            .finish_non_exhaustive()
+    }
+}
+impl PartialEq for EnumValidator {
+    fn eq(&self, other: &Self) -> bool {
+        self.name == other.name && self.default == other.default
+    }
+}
+impl Eq for EnumValidator {}
+
 /// Exactly one semantic kind per field.
 #[derive(Clone, Debug, PartialEq, Eq)]
 pub enum Kind {
+    /// Boolean flag.
+    Flag,
+    /// Finite floating-point number with integral bounds.
+    Number(NumberRules),
+    /// Enum validated through its concrete generated type.
+    DefinedEnum(EnumValidator),
     /// Canonical, hyphenated UUID string.
     Uuid,
     /// Nonempty identifier plus string constraints.
@@ -134,9 +166,15 @@ impl Kind {
                     names.push("bytes.max_len");
                 }
             }
-            Self::Counter(rules) | Self::Timestamp(rules) | Self::Duration(rules) => {
+            Self::Counter(rules)
+            | Self::Number(rules)
+            | Self::Timestamp(rules)
+            | Self::Duration(rules) => {
                 let prefix = self.number_prefix();
-                if !matches!(self, Self::Counter(_)) {
+                if matches!(self, Self::Number(_)) {
+                    names.push("number.finite");
+                }
+                if matches!(self, Self::Timestamp(_) | Self::Duration(_)) {
                     names.push(match self {
                         Self::Timestamp(_) => "timestamp.valid",
                         _ => "duration.valid",
@@ -156,7 +194,8 @@ impl Kind {
                 }
             }
             Self::Enum(rules) if rules.defined_only => names.push("enum.defined_only"),
-            Self::Enum(_) | Self::Secret => {}
+            Self::DefinedEnum(_) => names.push("enum.defined_only"),
+            Self::Flag | Self::Enum(_) | Self::Secret => {}
         }
         names
     }

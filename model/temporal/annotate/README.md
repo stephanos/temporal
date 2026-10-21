@@ -1,106 +1,126 @@
 # Exhaustive annotation catalogs
 
-`annotate!` declares a module containing executable `Catalog<T>` factories, enum
-conversions and Model action bindings. The API build script parses the same
-declarations to check protobuf coverage before generating Rust API types.
+Feature authors put ordinary `#[derive(Catalog)]` mirrors in
+`temporal/feature/<feature>/api.rs`; reusable messages live in
+`temporal/foundation/api.rs`. Upstream protos stay unchanged. Mirror fields follow
+proto declaration order, use the exact source names, and name their semantic kind
+as a Rust type. The mirrors describe catalogs; they are not transport messages.
 
 ```rust,ignore
-annotate! {
-    pub catalog api;
-    message request start: StartRequest = "example.StartRequest" {
-        request_id: Uuid => Rejects(3, "request_id") covers "validateStart";
-        namespace: Identifier + Decided => Rejects(3, "namespace") covers "validateStart";
-        rules {
-            required(namespace) => Rejects(3, "namespace") covers "validateStart";
-        }
-    }
-    enum status: Status = "example.Status" {
-        Status::Unspecified = "STATUS_UNSPECIFIED",
-        Status::Running = "STATUS_RUNNING",
-    }
-    service "example.Service" {
-        Start: Action("Client::Start");
-        Describe: Observed("describe");
-        Delete: OutOfScope("This Model does not delete executions");
-    }
-    actions bind: Action {
-        Action::Client => {
-            Client::Start => Rpc("example.Service.Start"),
-        },
-        Action::Timer => {
-            Timer::Expire => Environmental("Elapsed server deadline"),
-        },
-    }
+use crate::foundation::{dc, validators};
+use umpire_temporal_annotate::{Catalog, kinds::*};
+
+/// Start an activity with an explicit identifier.
+#[derive(Catalog)]
+#[api(request = "temporal.api.workflowservice.v1.StartActivityExecutionRequest")]
+#[api(covers = validators::activity::validateAndNormalizeStartRequest)]
+struct StartActivityExecutionRequest {
+    // The actual mirror must include every upstream field, in declaration order.
+    #[api(required, idempotency_key, rejects = "request_id")]
+    request_id: Uuid,
+    #[api(max_bytes = dc::MAX_ID_LENGTH, rejects = "activityId")]
+    activity_id: Identifier,
 }
 ```
 
-Factories return `Result<Catalog<T>, AdmissionErrors>`. Enum conversions take an
-`i32`, call the concrete enum's `TryFrom<i32>` and refuse unknown integers with
-`UnknownEnum`. Their known variants and both levels of action matches have no
-fallback. Field patterns omit `..`; rustc checks every declared field and kind.
+This abbreviated example is intentionally not an exhaustive mirror; use the real
+[activity declaration](../feature/activity/api.rs) as a compiling example.
+All helper attributes use the single `api` namespace. Rust doc comments become
+value-free catalog descriptions and appear beside probe descriptions.
 
-Kinds use named literal constraints in brackets: `Text[min_len = 1, prefix = "a"]`,
-`Counter[gte = 0]`, `Bytes[max_len = 32]`, and repeated `min_items`, `max_items`,
-`unique`. String `min_len`/`max_len` count Unicode scalars; `min_bytes`/`max_bytes`
-count UTF-8 bytes. `Enum(status)` uses the discriminants of the named exhaustive converter
-and requires defined values. Request constraints and presence rules require an
-expectation (`Accepts`, `Unobservable`, or `Rejects(code, pattern, optional_details)`)
-and nonempty `covers` provenance.
+## Kinds, roles and constraints
 
-Builtin tags follow `+`, such as `+ Immutable`, `+ Cached(30)` (seconds), and
-`+ EventuallyConsistent(3)` (polls). A custom tag is a generated type implementing
-the generic `Tag` trait; its kinds and consequence are checked from literals:
+Scalar kinds include `Text`, `Identifier`, `Uuid`, `Timestamp`, `Duration`,
+`RawDuration`, `Counter`, `Flag`, `Number`, `Bytes` and `Secret`.
+`Enum<ProtoEnum>` checks defined discriminants; `Message<ProtoMessage>`,
+`Vec<K>`, `Map<K, V>` and `OneOf<ProtoOneof>` retain typed nested structure.
+Oneofs list their source alternatives with
+`#[api(oneof(Result = "result", Failure = "failure"))]`.
+A full mirror must classify every alternative.
 
-```rust,ignore
-tag Visibility {
-    kinds: [Timestamp];
-    consequence: EventuallyConsistent(3);
-}
-```
+Request fields default to Decided and response fields to Observed. Secret fields
+always default to Decided. Override with `#[api(decided)]` or `#[api(observed)]`;
+`Ignored` requires `#[api(ignored = "specific reason")]`. Ignored fields still
+participate in coverage, but rules cannot depend on them. Contradictory roles,
+incompatible tags and incompatible prost/kind pairs are compile errors.
+Tags include `idempotency_key`, `immutable`, `monotone`, `cached = seconds` and
+`eventually_consistent = polls`. The generic runtime builder also admits typed
+custom tags with concrete consequences.
 
-Arbitrary dynamic `Tag` implementations remain usable through the generic
-runtime builder. The macro admits custom tags only through this declaration.
+Constraints are named attributes, such as `min_len`, `max_bytes`, `prefix`,
+`gte`, `gt`, `min_items`, `max_items` and `unique`. String lengths count
+Unicode scalars; byte bounds count UTF-8 bytes. Dynamic bounds reference typed
+`dc::Limit` constants. Factories take `&dc::Limits`, whose defaults match server
+limits and can be overridden per run without global state.
 
-Wrapper fields can use a typed projection:
+A field `#[api(required)]` creates a separate presence rule. Item-level rules use
+`#[api(any_of(a, b))]`, `one_of`, `requires = other` or `conflicts_with = other`.
+Request constraints
+and rules require both an expectation and nonempty typed validator provenance;
+item defaults apply unless a field or rule overrides them. Available expectations
+are `accepts`, `unobservable`, `rejects = "pattern"` (InvalidArgument), and
+`rejects(NotFound, "pattern")` with a named non-OK `Code`.
+Bare `rejects` checks only the default status. Required rules inherit a field's
+pattern unless explicitly overridden, and the report labels that inheritance. Patterns are
+regular expressions; use `^...$` when exact anchoring matters.
 
-```rust,ignore
-timestamp: Timestamp via umpire_annotations::Timestamp (
-    |m: &Response| project_time(&m.timestamp),
-    |m: &mut Response, time: umpire_annotations::Timestamp| m.timestamp = wrap_time(time)
-);
-```
+`rejects(NotFound)` and `rejects = any_status` are explicit weaker assertions:
+they are labelled in gap output, retain the actual status, and contribute to the
+per-feature loose-expectation count. Their server messages are redacted, not
+printed as evidence. Descriptions, paths and provenance contain no message values.
 
-An intentionally ignored bool, map or message uses the explicit opaque adapter,
-retaining its real Rust type and reason. Its kind is unconstrained `Bytes` or
-`Secret`; secret redaction still clears it. Ordinary ignored fields retain kind
-witnesses. Rules cannot depend on ignored fields.
+## Projections and supplemental intent
 
-```rust,ignore
-opaque: Bytes + Ignored("Payload not judged by this Model") opaque;
-choice: Secret + Ignored("Credentials") opaque variants {
-    Choice::Password = "password",
-    Choice::Token = "token",
-};
-```
+`#[api(via = views::projection)]` selects a typed `View<K>`. Setters return
+`Result<(), GenerationError>`; invalid encoded messages fail before assignment,
+leave the original field unchanged, and report no input contents. Filling,
+negative-probe construction and redaction propagate that error.
 
-Oneof alternatives produce separate source-field metadata and typed payload
-projections; an exhaustive borrowed variant match catches additions. The
-descriptor check additionally checks all source alternatives. Nested message
-and enum references require their own coverage declarations unless the owning
-field is explicitly opaque.
+Use `#[api(also(uuid, accepts))]` for an additional intent on a field without
+duplicating a complete mirror. `Mirror::catalog(&limits)` returns its primary
+catalog; `Mirror::catalogs(&limits)` includes additional intents. A
+`#[api(supplemental)]` mirror may project a subset for a contextual rule.
 
-A consumed oneof uses an explicit typed projection with `variants`. Its catalog
-retains one conditional field per source alternative, including the presence of
-an empty selected payload. Presence rules name those source alternatives.
+Request normalization must not hide malformed responses. The item link
+`#[api(response_checks = RawRetryPolicy)]` adds a supplemental catalog only when
+inspecting responses, with a compile-time check that both mirrors use the same
+prost type. The primary `Inspect<dc::Limits>` implementation owns recursion;
+the supplemental catalog validates once without installing another implementation.
+The worker-failure root rule is similarly contextual: transport selects the
+declarative `WorkerFailure` catalog only for a worker failure request, while the
+ordinary `Failure` mirror still traverses nested and server failures.
 
-The API build tracks feature `api.rs` files recursively,
-including directories and `proto/api.binpb`. The upstream image currently has no
-services. The existing `getproto --linked-api` facility adds actual linked
-WorkflowService descriptors to an `OUT_DIR` image for checking; API generation
-continues to use the upstream image. All upstream-owned files survive linking
-unchanged. The activity feature's `api.rs` owns the WorkflowService classifications,
-including explicit reasons for infrastructure and unrelated RPCs outside its scope.
-Each service is classified once.
+## Exhaustiveness and generated glue
 
-The normal facade has no parser, descriptor or generated API dependency. The
-parser/checker lives only in host proc-macro and build dependencies.
+The derive and build scanner share one parser. Generated field patterns omit
+`..`, and descriptor checking enforces fields and oneof alternatives in source
+order. The explicit reviewed `foundation/enum_inventory.rs` is checked against
+both descriptors and wildcard-free Rust matches. Runtime enum validity alone is
+not an API-update admission check.
+
+The API build generates `WorkflowServiceMethod`, its name/type table and
+annotation dispatch from linked service descriptors. An ordinary exhaustive
+`classify(WorkflowServiceMethod) -> RpcRole` function binds each RPC to a Model
+action, observation or an OutOfScope reason. Reverse action bindings remain
+exhaustive. A newly added field, enum value, oneof alternative, RPC or Model action
+therefore fails until classified; no wildcard silently admits it.
+The retained `annotate!` grammar supports reviewed enum inventories and compile
+controls for custom-tag/action admission, not a parallel full-message catalog.
+
+Generated `Inspect<dc::Limits>` recursively validates nested messages, repeated
+messages, maps and oneofs, and fills only absent generated identifiers. Shared
+foundation and feature declarations currently compile in one crate. Splitting
+them into separate crates requires a local context marker at the orphan-rule seam;
+do not add overlapping inspection implementations.
+
+Validator paths reference committed `foundation/validators.rs` identities. The
+Go `TestValidatorCatalogFreshness` control regenerates and compares those
+identities from actual AST functions. Normal Rust builds do not regenerate them
+or run that Go test. The existing linked-descriptor build step uses
+`getproto --linked-api` because the upstream image omits services; it never edits
+the upstream image. The normal facade has no parser or descriptor dependency.
+
+After an API update run `make model-check`, classify newly reported symbols and
+review all ignore/exclusion reasons. For activity catalog changes also run
+`make umpire-check-model-gaps`; inspect changed probe identities and descriptions
+before updating its golden. The live gate includes the value-free privacy canary.

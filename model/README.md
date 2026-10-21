@@ -211,7 +211,7 @@ comparison and capability boundaries.
 
 Author each feature's sidecar in `temporal/feature/<feature>/api.rs`, alongside its
 independent Model. Follow the [annotation guide](temporal/annotate/README.md) for
-`annotate!` syntax, typed projections, constraints, roles and exhaustive bindings;
+derive mirrors, typed projections, constraints, roles and exhaustive bindings;
 [Annotation catalog](DESIGN.md#annotation-catalog) explains admission and the API bump workflow.
 Use the activity catalog as the concrete example. Request constraints need an expectation
 and `covers` provenance, including intentional server acceptances. Keep ignored fields

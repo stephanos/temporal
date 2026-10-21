@@ -1,632 +1,813 @@
-//! Exhaustive activity transport annotations, independent of the Model's runtime state.
-#![allow(deprecated, reason = "Exhaustive catalogs must name deprecated upstream protobuf fields")]
+//! Exhaustive activity API mirrors, independent of the Model's runtime state.
+#![allow(dead_code, reason = "Mirror fields describe the API and are not instantiated")]
 
 use crate::activity::{self, Client, Deadline, Worker};
-use prost::Message;
-use umpire_annotations::{Catalog, Expectation};
-
-#[macro_use]
-#[path = "api_requests.rs"]
-mod requests;
-use umpire_temporal_api::temporal::api::{
-    activity::v1::{ActivityExecutionInfo, ActivityExecutionOutcome, activity_execution_outcome},
-    common::v1::{ActivityType, Payload, Payloads, RetryPolicy, WorkflowExecution, WorkflowType},
-    enums::v1::{
-        ActivityExecutionStatus, ActivityIdConflictPolicy, ActivityIdReusePolicy,
-        ActivityTaskFailedCause, ApplicationErrorCategory, NexusHandlerErrorRetryBehavior,
-        PendingActivityState, RetryState, TaskQueueKind, TimeoutType,
-    },
-    failure::v1::{
-        ActivityFailureInfo, ApplicationFailureInfo, CanceledFailureInfo,
-        ChildWorkflowExecutionFailureInfo, Failure, NexusHandlerFailureInfo,
-        NexusOperationFailureInfo, ResetWorkflowFailureInfo, ServerFailureInfo,
-        TerminatedFailureInfo, TimeoutFailureInfo, failure,
-    },
-    taskqueue::v1::TaskQueue,
-    workflowservice::v1::{
-        DescribeActivityExecutionRequest, DescribeActivityExecutionResponse,
-        PollActivityExecutionRequest, PollActivityExecutionResponse, PollActivityTaskQueueRequest,
-        PollActivityTaskQueueResponse, RequestCancelActivityExecutionRequest,
-        RequestCancelActivityExecutionResponse, RespondActivityTaskCanceledRequest,
-        RespondActivityTaskCanceledResponse, RespondActivityTaskCompletedRequest,
-        RespondActivityTaskCompletedResponse, RespondActivityTaskFailedRequest,
-        RespondActivityTaskFailedResponse, StartActivityExecutionRequest,
-        StartActivityExecutionResponse,
+use crate::foundation::{dc, validators};
+use umpire_temporal_annotate::{
+    Catalog,
+    kinds::{
+        Counter, Duration, Enum, Flag, Identifier, Ignored, Message, OneOf, RawDuration, Secret,
+        Text, Timestamp, Uuid,
     },
 };
-use umpire_wasm::google::protobuf::{Duration as ProtoDuration, Timestamp as ProtoTimestamp};
+use umpire_temporal_api::temporal::api::{
+    activity::v1 as a, common::v1 as c, enums::v1 as e, failure::v1 as f, taskqueue::v1 as q,
+    workflowservice::v1 as w,
+};
+const NORMALIZE_AND_VALIDATE: &str = validators::tqid::normalizeAndValidate;
+const POLL_QUEUE: &str = validators::frontend::WorkflowHandler_PollActivityTaskQueue;
+const COMPLETED: &str = validators::frontend::WorkflowHandler_RespondActivityTaskCompleted;
+const FAILED: &str = validators::frontend::WorkflowHandler_RespondActivityTaskFailed;
+const CANCELED: &str = validators::frontend::WorkflowHandler_RespondActivityTaskCanceled;
+const TIMEOUTS: &str = validators::activity::validateAndNormalizeTimeouts;
+const START: &str = validators::activity::validateAndNormalizeStartRequest;
+const ATTRIBUTES: &str = validators::activity::validateAndNormalizeActivityAttributes;
+const STANDALONE: &str = validators::activity::ValidateAndNormalizeStandaloneActivity;
+const HANDLER: &str = validators::activity::handler_StartActivityExecution;
+const START_DELAY: &str = validators::activity::validateStartDelay;
+const DESCRIBE: &str = validators::activity::validateAndNormalizeDescribeActivityExecutionRequest;
+const POLL: &str = validators::activity::validateAndNormalizePollActivityExecutionRequest;
+const CANCEL: &str =
+    validators::activity::validateAndNormalizeRequestCancelActivityExecutionRequest;
+const REQUEST_ID: &str = validators::activity::validateAndNormalizeRequestID;
+
 type ModelAction = <activity::World as umpire_dsl::Machine>::Action;
 
 #[path = "api_transport.rs"]
 mod transport;
-
 pub use transport::{AnnotationResult, annotate};
-use transport::{duration_view, raw_duration_view, uuid_view};
+
+/// Success and failure are mutually exclusive outcome alternatives.
+#[derive(Catalog)]
+#[api(response = "temporal.api.activity.v1.ActivityExecutionOutcome")]
+#[api(one_of(result, failure))]
+pub struct ActivityExecutionOutcome {
+    #[api(decided)]
+    #[api(oneof(Result = "result", Failure = "failure"))]
+    value: OneOf<a::activity_execution_outcome::Value>,
+    retry_state: Enum<e::RetryState>,
+}
+
+/// Server lifecycle metadata keeps externally supplied message contents Decided.
+#[derive(Catalog)]
+#[api(response = "temporal.api.activity.v1.ActivityExecutionInfo")]
+pub struct ActivityExecutionInfo {
+    activity_id: Text,
+    run_id: Uuid,
+    #[api(decided)]
+    activity_type: Message<c::ActivityType>,
+    status: Enum<e::ActivityExecutionStatus>,
+    run_state: Enum<e::PendingActivityState>,
+    task_queue: Text,
+    schedule_to_close_timeout: RawDuration,
+    schedule_to_start_timeout: RawDuration,
+    start_to_close_timeout: RawDuration,
+    heartbeat_timeout: RawDuration,
+    #[api(decided)]
+    retry_policy: Message<c::RetryPolicy>,
+    #[api(decided)]
+    heartbeat_details: Message<c::Payloads>,
+    last_heartbeat_time: Timestamp,
+    last_started_time: Timestamp,
+    #[api(gte = 0)]
+    attempt: Counter,
+    execution_duration: RawDuration,
+    schedule_time: Timestamp,
+    expiration_time: Timestamp,
+    close_time: Timestamp,
+    #[api(decided)]
+    last_failure: Message<f::Failure>,
+    last_worker_identity: Text,
+    current_retry_interval: RawDuration,
+    last_attempt_complete_time: Timestamp,
+    next_attempt_schedule_time: Timestamp,
+    #[api(ignored = "This activity Model does not project \
+        ActivityExecutionInfo.last_deployment_version; no semantic validation is claimed")]
+    last_deployment_version: Ignored,
+    #[api(ignored = "This activity Model does not project \
+        ActivityExecutionInfo.priority; no semantic validation is claimed")]
+    priority: Ignored,
+    state_transition_count: Counter,
+    state_size_bytes: Counter,
+    #[api(ignored = "This activity Model does not project \
+        ActivityExecutionInfo.search_attributes; no semantic validation is claimed")]
+    search_attributes: Ignored,
+    #[api(ignored = "This activity Model does not project \
+        ActivityExecutionInfo.header; no semantic validation is claimed")]
+    header: Ignored,
+    #[api(ignored = "This activity Model does not project \
+        ActivityExecutionInfo.user_metadata; no semantic validation is claimed")]
+    user_metadata: Ignored,
+    canceled_reason: Text,
+    #[api(ignored = "This activity Model does not project \
+        ActivityExecutionInfo.links; no semantic validation is claimed")]
+    links: Ignored,
+    total_heartbeat_count: Counter,
+    sdk_name: Text,
+    sdk_version: Text,
+    start_delay: RawDuration,
+    execution_time: Timestamp,
+}
+
+/// Worker polling validates queue identity without modeling version routing.
+#[derive(Catalog)]
+#[api(request = "temporal.api.workflowservice.v1.PollActivityTaskQueueRequest")]
+pub struct PollActivityTaskQueueRequest {
+    namespace: Text,
+    #[api(required, rejects = "taskQueue|task queue", covers = NORMALIZE_AND_VALIDATE)]
+    task_queue: Message<q::TaskQueue>,
+    #[api(ignored = "This activity Model does not project \
+        PollActivityTaskQueueRequest.poller_group_id; no semantic validation is claimed")]
+    poller_group_id: Ignored,
+    #[api(max_bytes = dc::MAX_ID_LENGTH, rejects = "identity|Identity", covers = POLL_QUEUE)]
+    identity: Text,
+    #[api(ignored = "This activity Model does not project \
+        PollActivityTaskQueueRequest.worker_instance_key; no semantic validation is claimed")]
+    worker_instance_key: Ignored,
+    #[api(ignored = "This activity Model does not project \
+        PollActivityTaskQueueRequest.worker_control_task_queue; no semantic validation is claimed")]
+    worker_control_task_queue: Ignored,
+    #[api(ignored = "This activity Model does not project \
+        PollActivityTaskQueueRequest.task_queue_metadata; no semantic validation is claimed")]
+    task_queue_metadata: Ignored,
+    #[api(ignored = "This activity Model does not project \
+        PollActivityTaskQueueRequest.worker_version_capabilities; \
+        no semantic validation is claimed")]
+    worker_version_capabilities: Ignored,
+    #[api(ignored = "This activity Model does not project \
+        PollActivityTaskQueueRequest.deployment_options; no semantic validation is claimed")]
+    deployment_options: Ignored,
+}
+
+/// Polled tasks carry opaque tokens and externally supplied activity payloads.
+#[derive(Catalog)]
+#[api(response = "temporal.api.workflowservice.v1.PollActivityTaskQueueResponse")]
+pub struct PollActivityTaskQueueResponse {
+    task_token: Secret,
+    workflow_namespace: Text,
+    #[api(ignored = "This activity Model does not project \
+        PollActivityTaskQueueResponse.workflow_type; no semantic validation is claimed")]
+    workflow_type: Ignored,
+    #[api(ignored = "This activity Model does not project \
+        PollActivityTaskQueueResponse.workflow_execution; no semantic validation is claimed")]
+    workflow_execution: Ignored,
+    #[api(decided)]
+    activity_type: Message<c::ActivityType>,
+    #[api(requires = task_token)]
+    activity_id: Text,
+    #[api(ignored = "This activity Model does not project \
+        PollActivityTaskQueueResponse.header; no semantic validation is claimed")]
+    header: Ignored,
+    #[api(requires = task_token)]
+    #[api(decided)]
+    input: Message<c::Payloads>,
+    #[api(decided)]
+    heartbeat_details: Message<c::Payloads>,
+    scheduled_time: Timestamp,
+    current_attempt_scheduled_time: Timestamp,
+    started_time: Timestamp,
+    #[api(gte = 0)]
+    attempt: Counter,
+    schedule_to_close_timeout: RawDuration,
+    start_to_close_timeout: RawDuration,
+    heartbeat_timeout: RawDuration,
+    #[api(decided)]
+    retry_policy: Message<c::RetryPolicy>,
+    #[api(ignored = "This activity Model does not project \
+        PollActivityTaskQueueResponse.poller_scaling_decision; no semantic validation is claimed")]
+    poller_scaling_decision: Ignored,
+    #[api(ignored = "This activity Model does not project \
+        PollActivityTaskQueueResponse.priority; no semantic validation is claimed")]
+    priority: Ignored,
+    activity_run_id: Uuid,
+    #[api(ignored = "This activity Model does not project \
+        PollActivityTaskQueueResponse.poller_group_infos; no semantic validation is claimed")]
+    poller_group_infos: Ignored,
+    #[api(ignored = "This activity Model does not project \
+        PollActivityTaskQueueResponse.poller_groups_info; no semantic validation is claimed")]
+    poller_groups_info: Ignored,
+}
+
+/// Completion transports worker results under the frontend identity limit.
+#[derive(Catalog)]
+#[api(request = "temporal.api.workflowservice.v1.RespondActivityTaskCompletedRequest")]
+pub struct RespondActivityTaskCompletedRequest {
+    task_token: Secret,
+    result: Message<c::Payloads>,
+    #[api(max_bytes = dc::MAX_ID_LENGTH, rejects = "identity|Identity", covers = COMPLETED)]
+    identity: Text,
+    namespace: Text,
+    resource_id: Text,
+    #[api(ignored = "This activity Model does not project \
+        RespondActivityTaskCompletedRequest.worker_version; no semantic validation is claimed")]
+    worker_version: Ignored,
+    #[api(ignored = "This activity Model does not project \
+        RespondActivityTaskCompletedRequest.deployment; no semantic validation is claimed")]
+    deployment: Ignored,
+    #[api(ignored = "This activity Model does not project \
+        RespondActivityTaskCompletedRequest.deployment_options; no semantic validation is claimed")]
+    deployment_options: Ignored,
+}
+
+/// Completion acknowledgement carries no additional lifecycle evidence.
+#[derive(Catalog)]
+#[api(response = "temporal.api.workflowservice.v1.RespondActivityTaskCompletedResponse")]
+pub struct RespondActivityTaskCompletedResponse {}
+
+/// Worker failures require root application-failure information, unlike nested server failures.
+#[derive(Catalog)]
+#[api(request = "temporal.api.workflowservice.v1.RespondActivityTaskFailedRequest")]
+pub struct RespondActivityTaskFailedRequest {
+    task_token: Secret,
+    failure: Message<f::Failure>,
+    #[api(max_bytes = dc::MAX_ID_LENGTH, rejects = "identity|Identity", covers = FAILED)]
+    identity: Text,
+    namespace: Text,
+    resource_id: Text,
+    last_heartbeat_details: Message<c::Payloads>,
+    #[api(ignored = "This activity Model does not project \
+        RespondActivityTaskFailedRequest.worker_version; no semantic validation is claimed")]
+    worker_version: Ignored,
+    #[api(ignored = "This activity Model does not project \
+        RespondActivityTaskFailedRequest.deployment; no semantic validation is claimed")]
+    deployment: Ignored,
+    #[api(ignored = "This activity Model does not project \
+        RespondActivityTaskFailedRequest.deployment_options; no semantic validation is claimed")]
+    deployment_options: Ignored,
+    #[api(accepts, covers = FAILED)]
+    cause: Enum<e::ActivityTaskFailedCause>,
+}
+
+/// Failure-response diagnostics are retained without rewriting their contents.
+#[derive(Catalog)]
+#[api(response = "temporal.api.workflowservice.v1.RespondActivityTaskFailedResponse")]
+pub struct RespondActivityTaskFailedResponse {
+    #[api(decided)]
+    failures: Vec<Message<f::Failure>>,
+}
+
+/// Worker cancellation acknowledgement retains opaque details and validates identity.
+#[derive(Catalog)]
+#[api(request = "temporal.api.workflowservice.v1.RespondActivityTaskCanceledRequest")]
+pub struct RespondActivityTaskCanceledRequest {
+    task_token: Secret,
+    details: Message<c::Payloads>,
+    #[api(max_bytes = dc::MAX_ID_LENGTH, rejects = "identity|Identity", covers = CANCELED)]
+    identity: Text,
+    namespace: Text,
+    resource_id: Text,
+    #[api(ignored = "This activity Model does not project \
+        RespondActivityTaskCanceledRequest.worker_version; no semantic validation is claimed")]
+    worker_version: Ignored,
+    #[api(ignored = "This activity Model does not project \
+        RespondActivityTaskCanceledRequest.deployment; no semantic validation is claimed")]
+    deployment: Ignored,
+    #[api(ignored = "This activity Model does not project \
+        RespondActivityTaskCanceledRequest.deployment_options; no semantic validation is claimed")]
+    deployment_options: Ignored,
+}
+
+/// Cancellation acknowledgement carries no additional lifecycle evidence.
+#[derive(Catalog)]
+#[api(response = "temporal.api.workflowservice.v1.RespondActivityTaskCanceledResponse")]
+pub struct RespondActivityTaskCanceledResponse {}
+
+/// Timeout and payload limits apply before the standalone activity is scheduled.
+#[derive(Catalog)]
+#[api(request = "temporal.api.workflowservice.v1.StartActivityExecutionRequest")]
+#[api(
+    any_of(schedule_to_close_timeout, start_to_close_timeout),
+    rejects = "a valid StartToCloseTimeout or ScheduleToCloseTimeout",
+    covers = TIMEOUTS,
+)]
+pub struct StartActivityExecutionRequest {
+    namespace: Text,
+    #[api(max_bytes = dc::MAX_ID_LENGTH, rejects = "identity|Identity", covers = START)]
+    identity: Text,
+    #[api(
+        max_bytes = dc::MAX_ID_LENGTH,
+        idempotency_key,
+        rejects = "request ID exceeds length limit",
+        covers = START,
+    )]
+    #[api(also(uuid, accepts))]
+    request_id: Text,
+    #[api(max_bytes = dc::MAX_ID_LENGTH, rejects = "activity[Ii][Dd]|activity ID")]
+    #[api(covers = ATTRIBUTES)]
+    activity_id: Identifier,
+    #[api(required, rejects = "activityType|taskQueue|task queue", covers = STANDALONE)]
+    activity_type: Message<c::ActivityType>,
+    #[api(required, rejects = "activityType|taskQueue|task queue", covers = STANDALONE)]
+    task_queue: Message<q::TaskQueue>,
+    #[api(gte = 0, rejects = "invalid ScheduleToCloseTimeout", covers = TIMEOUTS)]
+    schedule_to_close_timeout: Duration,
+    #[api(gte = 0, rejects = "invalid ScheduleToStartTimeout", covers = TIMEOUTS)]
+    schedule_to_start_timeout: Duration,
+    #[api(gte = 0, rejects = "invalid StartToCloseTimeout", covers = TIMEOUTS)]
+    start_to_close_timeout: Duration,
+    #[api(gte = 0, rejects = "invalid HeartbeatTimeout", covers = TIMEOUTS)]
+    heartbeat_timeout: Duration,
+    retry_policy: Message<c::RetryPolicy>,
+    #[api(max_len = dc::BLOB_SIZE_ERROR, rejects = "input exceeds length limit", covers = START)]
+    input: Message<c::Payloads>,
+    #[api(rejects = "unsupported ID reuse policy", covers = HANDLER)]
+    id_reuse_policy: Enum<e::ActivityIdReusePolicy>,
+    #[api(rejects = "unsupported ID conflict policy", covers = HANDLER)]
+    id_conflict_policy: Enum<e::ActivityIdConflictPolicy>,
+    #[api(ignored = "This activity Model does not project \
+        StartActivityExecutionRequest.search_attributes; no semantic validation is claimed")]
+    search_attributes: Ignored,
+    #[api(ignored = "This activity Model does not project \
+        StartActivityExecutionRequest.header; no semantic validation is claimed")]
+    header: Ignored,
+    #[api(ignored = "This activity Model does not project \
+        StartActivityExecutionRequest.user_metadata; no semantic validation is claimed")]
+    user_metadata: Ignored,
+    #[api(ignored = "This activity Model does not project \
+        StartActivityExecutionRequest.priority; no semantic validation is claimed")]
+    priority: Ignored,
+    #[api(ignored = "This activity Model does not project \
+        StartActivityExecutionRequest.completion_callbacks; no semantic validation is claimed")]
+    completion_callbacks: Ignored,
+    #[api(ignored = "This activity Model does not project \
+        StartActivityExecutionRequest.links; no semantic validation is claimed")]
+    links: Ignored,
+    #[api(ignored = "This activity Model does not project \
+        StartActivityExecutionRequest.on_conflict_options; no semantic validation is claimed")]
+    on_conflict_options: Ignored,
+    #[api(gte = 0, rejects = "invalid StartDelay", covers = START_DELAY)]
+    start_delay: Duration,
+}
+
+/// The assigned run identifier is observed; execution links remain outside this Model.
+#[derive(Catalog)]
+#[api(response = "temporal.api.workflowservice.v1.StartActivityExecutionResponse")]
+pub struct StartActivityExecutionResponse {
+    #[api(required)]
+    run_id: Uuid,
+    started: Flag,
+    #[api(ignored = "This activity Model does not project \
+        StartActivityExecutionResponse.link; no semantic validation is claimed")]
+    link: Ignored,
+}
+
+/// Long-poll tokens require an explicit run identifier.
+#[derive(Catalog)]
+#[api(request = "temporal.api.workflowservice.v1.DescribeActivityExecutionRequest")]
+pub struct DescribeActivityExecutionRequest {
+    namespace: Text,
+    #[api(max_bytes = dc::MAX_ID_LENGTH, rejects = "activity[Ii][Dd]|activity ID")]
+    #[api(covers = DESCRIBE)]
+    activity_id: Identifier,
+    #[api(rejects = "invalid run id", covers = DESCRIBE)]
+    run_id: Uuid,
+    #[api(ignored = "This activity Model does not project \
+        DescribeActivityExecutionRequest.include_input; no semantic validation is claimed")]
+    include_input: Ignored,
+    #[api(ignored = "This activity Model does not project \
+        DescribeActivityExecutionRequest.include_outcome; no semantic validation is claimed")]
+    include_outcome: Ignored,
+    #[api(requires = run_id, rejects = "run id is required", covers = DESCRIBE)]
+    long_poll_token: Secret,
+    #[api(ignored = "This activity Model does not project \
+        DescribeActivityExecutionRequest.include_heartbeat_details; \
+        no semantic validation is claimed")]
+    include_heartbeat_details: Ignored,
+    #[api(ignored = "This activity Model does not project \
+        DescribeActivityExecutionRequest.include_last_failure; no semantic validation is claimed")]
+    include_last_failure: Ignored,
+}
+
+/// Lifecycle metadata is required; optional external payloads remain Decided.
+#[derive(Catalog)]
+#[api(response = "temporal.api.workflowservice.v1.DescribeActivityExecutionResponse")]
+pub struct DescribeActivityExecutionResponse {
+    run_id: Uuid,
+    #[api(required)]
+    #[api(decided)]
+    info: Message<a::ActivityExecutionInfo>,
+    #[api(decided)]
+    input: Message<c::Payloads>,
+    #[api(decided)]
+    outcome: Message<a::ActivityExecutionOutcome>,
+    long_poll_token: Secret,
+    #[api(ignored = "This activity Model does not project \
+        DescribeActivityExecutionResponse.callbacks; no semantic validation is claimed")]
+    callbacks: Ignored,
+}
+
+/// Outcome polling accepts an optional normalized run UUID.
+#[derive(Catalog)]
+#[api(request = "temporal.api.workflowservice.v1.PollActivityExecutionRequest")]
+pub struct PollActivityExecutionRequest {
+    namespace: Text,
+    #[api(max_bytes = dc::MAX_ID_LENGTH, rejects = "activity[Ii][Dd]|activity ID", covers = POLL)]
+    activity_id: Identifier,
+    #[api(rejects = "invalid run id", covers = POLL)]
+    run_id: Uuid,
+}
+
+/// The observed run identifier scopes the optional external outcome.
+#[derive(Catalog)]
+#[api(response = "temporal.api.workflowservice.v1.PollActivityExecutionResponse")]
+pub struct PollActivityExecutionResponse {
+    run_id: Uuid,
+    #[api(decided)]
+    outcome: Message<a::ActivityExecutionOutcome>,
+}
+
+/// Cancellation intent is separate from the worker's eventual cancellation acknowledgement.
+#[derive(Catalog)]
+#[api(request = "temporal.api.workflowservice.v1.RequestCancelActivityExecutionRequest")]
+pub struct RequestCancelActivityExecutionRequest {
+    namespace: Text,
+    #[api(max_bytes = dc::MAX_ID_LENGTH, rejects = "activity[Ii][Dd]|activity ID", covers = CANCEL)]
+    activity_id: Identifier,
+    #[api(rejects = "invalid run id", covers = CANCEL)]
+    run_id: Uuid,
+    #[api(max_bytes = dc::MAX_ID_LENGTH, rejects = "identity|Identity", covers = CANCEL)]
+    identity: Text,
+    #[api(
+        max_bytes = dc::MAX_ID_LENGTH,
+        idempotency_key,
+        rejects = "request ID exceeds length limit",
+        covers = REQUEST_ID,
+        also(uuid, accepts),
+    )]
+    request_id: Text,
+    #[api(max_bytes = dc::BLOB_SIZE_ERROR, rejects = "reason exceeds length limit", covers = CANCEL)]
+    reason: Text,
+}
+
+/// Cancellation intent acknowledgement carries no additional lifecycle evidence.
+#[derive(Catalog)]
+#[api(response = "temporal.api.workflowservice.v1.RequestCancelActivityExecutionResponse")]
+pub struct RequestCancelActivityExecutionResponse {}
+
+use umpire_temporal_annotate::Binding;
+use umpire_temporal_api::WorkflowServiceMethod;
+
+enum RpcRole {
+    Action(ModelAction),
+    Observed(&'static str),
+    OutOfScope(&'static str),
+}
+
+#[allow(
+    clippy::match_same_arms,
+    clippy::too_many_lines,
+    reason = "Descriptor admission requires RPC declaration order, including separated role groups"
+)]
+fn classify(method: WorkflowServiceMethod) -> RpcRole {
+    match method {
+        WorkflowServiceMethod::RegisterNamespace => RpcRole::OutOfScope(
+            "Namespace administration is outside this standalone activity Model",
+        ),
+        WorkflowServiceMethod::DescribeNamespace => RpcRole::OutOfScope(
+            "SDK namespace discovery is infrastructure outside activity lifecycle validation",
+        ),
+        WorkflowServiceMethod::ListNamespaces
+        | WorkflowServiceMethod::UpdateNamespace
+        | WorkflowServiceMethod::DeprecateNamespace => RpcRole::OutOfScope(
+            "Namespace administration is outside this standalone activity Model",
+        ),
+        WorkflowServiceMethod::StartWorkflowExecution => RpcRole::OutOfScope(
+            "Workflow execution operations are outside this standalone activity Model",
+        ),
+        WorkflowServiceMethod::ExecuteMultiOperation => RpcRole::OutOfScope(
+            "Service administration and other resource lifecycles are outside this activity Model",
+        ),
+        WorkflowServiceMethod::GetWorkflowExecutionHistory
+        | WorkflowServiceMethod::GetWorkflowExecutionHistoryReverse
+        | WorkflowServiceMethod::PollWorkflowTaskQueue
+        | WorkflowServiceMethod::RespondWorkflowTaskCompleted
+        | WorkflowServiceMethod::RespondWorkflowTaskFailed => RpcRole::OutOfScope(
+            "Workflow execution operations are outside this standalone activity Model",
+        ),
+        WorkflowServiceMethod::PollActivityTaskQueue => {
+            RpcRole::Action(ModelAction::Worker(Worker::Poll))
+        }
+        WorkflowServiceMethod::RecordActivityTaskHeartbeat
+        | WorkflowServiceMethod::RecordActivityTaskHeartbeatById => RpcRole::OutOfScope(
+            "This activity operation is not represented by the mini activity lifecycle",
+        ),
+        WorkflowServiceMethod::RespondActivityTaskCompleted => {
+            RpcRole::Action(ModelAction::Worker(Worker::RespondCompleted))
+        }
+        WorkflowServiceMethod::RespondActivityTaskCompletedById => RpcRole::OutOfScope(
+            "This activity operation is not represented by the mini activity lifecycle",
+        ),
+        WorkflowServiceMethod::RespondActivityTaskFailed => {
+            RpcRole::Action(ModelAction::Worker(Worker::RespondFailed))
+        }
+        WorkflowServiceMethod::RespondActivityTaskFailedById => RpcRole::OutOfScope(
+            "This activity operation is not represented by the mini activity lifecycle",
+        ),
+        WorkflowServiceMethod::RespondActivityTaskCanceled => {
+            RpcRole::Observed("worker acknowledges client cancellation")
+        }
+        WorkflowServiceMethod::RespondActivityTaskCanceledById => RpcRole::OutOfScope(
+            "This activity operation is not represented by the mini activity lifecycle",
+        ),
+        WorkflowServiceMethod::RequestCancelWorkflowExecution
+        | WorkflowServiceMethod::SignalWorkflowExecution
+        | WorkflowServiceMethod::SignalWithStartWorkflowExecution
+        | WorkflowServiceMethod::ResetWorkflowExecution
+        | WorkflowServiceMethod::TerminateWorkflowExecution
+        | WorkflowServiceMethod::DeleteWorkflowExecution
+        | WorkflowServiceMethod::ListOpenWorkflowExecutions
+        | WorkflowServiceMethod::ListClosedWorkflowExecutions
+        | WorkflowServiceMethod::ListWorkflowExecutions
+        | WorkflowServiceMethod::ListArchivedWorkflowExecutions
+        | WorkflowServiceMethod::ScanWorkflowExecutions
+        | WorkflowServiceMethod::CountWorkflowExecutions => RpcRole::OutOfScope(
+            "Workflow execution operations are outside this standalone activity Model",
+        ),
+        WorkflowServiceMethod::GetSearchAttributes
+        | WorkflowServiceMethod::RespondQueryTaskCompleted
+        | WorkflowServiceMethod::ResetStickyTaskQueue => RpcRole::OutOfScope(
+            "Service administration and other resource lifecycles are outside this activity Model",
+        ),
+        WorkflowServiceMethod::ShutdownWorker => RpcRole::OutOfScope(
+            "SDK worker shutdown bookkeeping does not change this activity Model",
+        ),
+        WorkflowServiceMethod::QueryWorkflow | WorkflowServiceMethod::DescribeWorkflowExecution => {
+            RpcRole::OutOfScope(
+                "Workflow execution operations are outside this standalone activity Model",
+            )
+        }
+        WorkflowServiceMethod::DescribeTaskQueue | WorkflowServiceMethod::GetClusterInfo => {
+            RpcRole::OutOfScope(
+                "Service administration and other resource lifecycles are outside this \
+                    activity Model",
+            )
+        }
+        WorkflowServiceMethod::GetSystemInfo => RpcRole::OutOfScope(
+            "SDK server capability negotiation does not observe an activity lifecycle",
+        ),
+        WorkflowServiceMethod::ListTaskQueuePartitions
+        | WorkflowServiceMethod::CreateSchedule
+        | WorkflowServiceMethod::DescribeSchedule
+        | WorkflowServiceMethod::UpdateSchedule
+        | WorkflowServiceMethod::PatchSchedule
+        | WorkflowServiceMethod::ListScheduleMatchingTimes
+        | WorkflowServiceMethod::DeleteSchedule
+        | WorkflowServiceMethod::ListSchedules
+        | WorkflowServiceMethod::CountSchedules
+        | WorkflowServiceMethod::UpdateWorkerBuildIdCompatibility
+        | WorkflowServiceMethod::GetWorkerBuildIdCompatibility
+        | WorkflowServiceMethod::UpdateWorkerVersioningRules
+        | WorkflowServiceMethod::GetWorkerVersioningRules
+        | WorkflowServiceMethod::GetWorkerTaskReachability
+        | WorkflowServiceMethod::DescribeDeployment
+        | WorkflowServiceMethod::DescribeWorkerDeploymentVersion
+        | WorkflowServiceMethod::ListDeployments
+        | WorkflowServiceMethod::GetDeploymentReachability
+        | WorkflowServiceMethod::GetCurrentDeployment
+        | WorkflowServiceMethod::SetCurrentDeployment
+        | WorkflowServiceMethod::SetWorkerDeploymentCurrentVersion
+        | WorkflowServiceMethod::DescribeWorkerDeployment
+        | WorkflowServiceMethod::DeleteWorkerDeployment
+        | WorkflowServiceMethod::DeleteWorkerDeploymentVersion
+        | WorkflowServiceMethod::SetWorkerDeploymentRampingVersion
+        | WorkflowServiceMethod::ListWorkerDeployments
+        | WorkflowServiceMethod::CreateWorkerDeployment
+        | WorkflowServiceMethod::CreateWorkerDeploymentVersion
+        | WorkflowServiceMethod::UpdateWorkerDeploymentVersionComputeConfig
+        | WorkflowServiceMethod::ValidateWorkerDeploymentVersionComputeConfig
+        | WorkflowServiceMethod::UpdateWorkerDeploymentVersionMetadata
+        | WorkflowServiceMethod::SetWorkerDeploymentManager => RpcRole::OutOfScope(
+            "Service administration and other resource lifecycles are outside this activity Model",
+        ),
+        WorkflowServiceMethod::UpdateWorkflowExecution
+        | WorkflowServiceMethod::PollWorkflowExecutionUpdate => RpcRole::OutOfScope(
+            "Workflow execution operations are outside this standalone activity Model",
+        ),
+        WorkflowServiceMethod::StartBatchOperation
+        | WorkflowServiceMethod::StopBatchOperation
+        | WorkflowServiceMethod::DescribeBatchOperation
+        | WorkflowServiceMethod::ListBatchOperations => RpcRole::OutOfScope(
+            "Service administration and other resource lifecycles are outside this activity Model",
+        ),
+        WorkflowServiceMethod::PollNexusTaskQueue => RpcRole::OutOfScope(
+            "SDK worker control commands use Nexus polling; their contents are outside \
+                this activity Model",
+        ),
+        WorkflowServiceMethod::RespondNexusTaskCompleted => RpcRole::OutOfScope(
+            "SDK Nexus worker control completion is outside this activity Model",
+        ),
+        WorkflowServiceMethod::RespondNexusTaskFailed => {
+            RpcRole::OutOfScope("SDK Nexus worker control failure is outside this activity Model")
+        }
+        WorkflowServiceMethod::UpdateActivityOptions => RpcRole::OutOfScope(
+            "This activity operation is not represented by the mini activity lifecycle",
+        ),
+        WorkflowServiceMethod::UpdateWorkflowExecutionOptions => RpcRole::OutOfScope(
+            "Workflow execution operations are outside this standalone activity Model",
+        ),
+        WorkflowServiceMethod::PauseActivity
+        | WorkflowServiceMethod::UnpauseActivity
+        | WorkflowServiceMethod::ResetActivity => RpcRole::OutOfScope(
+            "This activity operation is not represented by the mini activity lifecycle",
+        ),
+        WorkflowServiceMethod::CreateWorkflowRule
+        | WorkflowServiceMethod::DescribeWorkflowRule
+        | WorkflowServiceMethod::DeleteWorkflowRule
+        | WorkflowServiceMethod::ListWorkflowRules
+        | WorkflowServiceMethod::TriggerWorkflowRule => RpcRole::OutOfScope(
+            "Workflow execution operations are outside this standalone activity Model",
+        ),
+        WorkflowServiceMethod::RecordWorkerHeartbeat => RpcRole::OutOfScope(
+            "SDK worker health and configuration heartbeat is infrastructure outside \
+                activity lifecycle validation",
+        ),
+        WorkflowServiceMethod::ListWorkers
+        | WorkflowServiceMethod::CountWorkers
+        | WorkflowServiceMethod::UpdateTaskQueueConfig
+        | WorkflowServiceMethod::FetchWorkerConfig
+        | WorkflowServiceMethod::UpdateWorkerConfig
+        | WorkflowServiceMethod::DescribeWorker => RpcRole::OutOfScope(
+            "Service administration and other resource lifecycles are outside this activity Model",
+        ),
+        WorkflowServiceMethod::PauseWorkflowExecution
+        | WorkflowServiceMethod::UnpauseWorkflowExecution => RpcRole::OutOfScope(
+            "Workflow execution operations are outside this standalone activity Model",
+        ),
+        WorkflowServiceMethod::StartActivityExecution => {
+            RpcRole::Observed("successful start establishes the Model initial state")
+        }
+        WorkflowServiceMethod::StartNexusOperationExecution => RpcRole::OutOfScope(
+            "Service administration and other resource lifecycles are outside this activity Model",
+        ),
+        WorkflowServiceMethod::DescribeActivityExecution => {
+            RpcRole::Observed("activity lifecycle phase")
+        }
+        WorkflowServiceMethod::DescribeNexusOperationExecution => RpcRole::OutOfScope(
+            "Service administration and other resource lifecycles are outside this activity Model",
+        ),
+        WorkflowServiceMethod::PollActivityExecution => {
+            RpcRole::Observed("SDK activity handle outcome")
+        }
+        WorkflowServiceMethod::PollNexusOperationExecution => RpcRole::OutOfScope(
+            "Service administration and other resource lifecycles are outside this activity Model",
+        ),
+        WorkflowServiceMethod::ListActivityExecutions => RpcRole::OutOfScope(
+            "This activity operation is not represented by the mini activity lifecycle",
+        ),
+        WorkflowServiceMethod::ListNexusOperationExecutions => RpcRole::OutOfScope(
+            "Service administration and other resource lifecycles are outside this activity Model",
+        ),
+        WorkflowServiceMethod::CountActivityExecutions => RpcRole::OutOfScope(
+            "This activity operation is not represented by the mini activity lifecycle",
+        ),
+        WorkflowServiceMethod::CountNexusOperationExecutions => RpcRole::OutOfScope(
+            "Service administration and other resource lifecycles are outside this activity Model",
+        ),
+        WorkflowServiceMethod::RequestCancelActivityExecution => {
+            RpcRole::Action(ModelAction::Client(Client::Cancel))
+        }
+        WorkflowServiceMethod::RequestCancelNexusOperationExecution => RpcRole::OutOfScope(
+            "Service administration and other resource lifecycles are outside this activity Model",
+        ),
+        WorkflowServiceMethod::TerminateActivityExecution
+        | WorkflowServiceMethod::DeleteActivityExecution
+        | WorkflowServiceMethod::PauseActivityExecution
+        | WorkflowServiceMethod::ResetActivityExecution
+        | WorkflowServiceMethod::UnpauseActivityExecution
+        | WorkflowServiceMethod::UpdateActivityExecutionOptions => RpcRole::OutOfScope(
+            "This activity operation is not represented by the mini activity lifecycle",
+        ),
+        WorkflowServiceMethod::TerminateNexusOperationExecution
+        | WorkflowServiceMethod::DeleteNexusOperationExecution => RpcRole::OutOfScope(
+            "Service administration and other resource lifecycles are outside this activity Model",
+        ),
+        WorkflowServiceMethod::PollWorkflowExecutionTimeSkipping => RpcRole::OutOfScope(
+            "Workflow execution operations are outside this standalone activity Model",
+        ),
+    }
+}
+
+/// Executable factories and exhaustive runtime bindings.
+pub mod catalog {
+    use super::{Binding, Client, Deadline, ModelAction, Worker, a, c, dc, f, q, w};
+    pub use crate::foundation::enum_inventory::enum_inventory::*;
+    use umpire_annotations::{AdmissionErrors, Catalog, ProbeCase};
+    pub use umpire_temporal_api::RPC_BINDINGS;
+
+    use crate::foundation::api as foundation;
+
+    macro_rules! factories {
+        ($($source:ident => $target:ident:
+            [$($mirror:ident => $factory:ident),* $(,)?]);* $(;)?) => {
+            $($(
+                #[doc = concat!("Admits the catalog for ", stringify!($mirror), ".")]
+                pub fn $factory(limits: &dc::Limits)
+                -> Result<Catalog<$target::$mirror>, AdmissionErrors> {
+                    $source::$mirror::catalog(limits)
+                }
+            )*)*
+            /// Every declared primary and supplemental expectation.
+            pub fn expected_probe_cases(limits: &dc::Limits)
+            -> Result<Vec<ProbeCase>, AdmissionErrors> {
+                let mut cases = Vec::new();
+                $($(for catalog in $source::$mirror::catalogs(limits)? {
+                    cases.extend(catalog.probe_cases());
+                })*)*
+                cases.sort_by(|a, b| a.id.cmp(&b.id));
+                Ok(cases)
+            }
+        };
+    }
+    factories! {
+        foundation => c: [
+            WorkflowExecution => workflow_execution,
+            WorkflowType => workflow_type,
+            Payloads => payloads,
+            Payload => payload,
+            ActivityType => activity_type,
+            RetryPolicy => retry_policy,
+        ];
+        super => a: [
+            ActivityExecutionOutcome => activity_execution_outcome,
+            ActivityExecutionInfo => activity_execution_info,
+        ];
+        foundation => f: [
+            ApplicationFailureInfo => application_failure_info,
+            Failure => failure,
+            TimeoutFailureInfo => timeout_failure_info,
+            CanceledFailureInfo => canceled_failure_info,
+            TerminatedFailureInfo => terminated_failure_info,
+            ServerFailureInfo => server_failure_info,
+            ResetWorkflowFailureInfo => reset_workflow_failure_info,
+            ActivityFailureInfo => activity_failure_info,
+            ChildWorkflowExecutionFailureInfo => child_workflow_execution_failure_info,
+            NexusOperationFailureInfo => nexus_operation_failure_info,
+            NexusHandlerFailureInfo => nexus_handler_failure_info,
+        ];
+        foundation => q: [
+            TaskQueue => task_queue,
+        ];
+        super => w: [
+            PollActivityTaskQueueRequest => poll_activity_task_queue_request,
+            PollActivityTaskQueueResponse => poll_activity_task_queue_response,
+            RespondActivityTaskCompletedRequest => respond_activity_task_completed_request,
+            RespondActivityTaskCompletedResponse => respond_activity_task_completed_response,
+            RespondActivityTaskFailedRequest => respond_activity_task_failed_request,
+            RespondActivityTaskFailedResponse => respond_activity_task_failed_response,
+            RespondActivityTaskCanceledRequest => respond_activity_task_canceled_request,
+            RespondActivityTaskCanceledResponse => respond_activity_task_canceled_response,
+            StartActivityExecutionRequest => start_activity_execution_request,
+            StartActivityExecutionResponse => start_activity_execution_response,
+            DescribeActivityExecutionRequest => describe_activity_execution_request,
+            DescribeActivityExecutionResponse => describe_activity_execution_response,
+            PollActivityExecutionRequest => poll_activity_execution_request,
+            PollActivityExecutionResponse => poll_activity_execution_response,
+            RequestCancelActivityExecutionRequest => request_cancel_activity_execution_request,
+            RequestCancelActivityExecutionResponse => request_cancel_activity_execution_response,
+        ];
+    }
+
+    /// Binds every Model action, including explicitly environmental deadlines.
+    pub fn bind(action: &ModelAction) -> Binding {
+        umpire_temporal_api::bind_workflow_action!(action,
+            ModelAction::Deadline(deadline) => match deadline {
+                Deadline::ScheduleToStart => Binding::Environmental("abstract \
+                    schedule-to-start deadline"),
+                Deadline::StartToClose => Binding::Environmental("abstract \
+                    start-to-close deadline"),
+            }
+        )
+    }
+}
+
+/// UUID intent for request IDs accepted without UUID syntax by the server.
+pub fn start_request_id_intent(
+    limits: &dc::Limits,
+) -> Result<
+    umpire_annotations::Catalog<w::StartActivityExecutionRequest>,
+    umpire_annotations::AdmissionErrors,
+> {
+    StartActivityExecutionRequest::__request_id_also_0(limits)
+}
+
+/// UUID intent for cancellation request IDs.
+pub fn cancel_request_id_intent(
+    limits: &dc::Limits,
+) -> Result<
+    umpire_annotations::Catalog<w::RequestCancelActivityExecutionRequest>,
+    umpire_annotations::AdmissionErrors,
+> {
+    RequestCancelActivityExecutionRequest::__request_id_also_0(limits)
+}
+
+/// Worker-supplied failures require application failure information.
+pub fn worker_failure_presence(
+    limits: &dc::Limits,
+) -> Result<umpire_annotations::Catalog<f::Failure>, umpire_annotations::AdmissionErrors> {
+    crate::foundation::api::WorkerFailure::catalog(limits)
+}
 
 /// Source-reviewed dispositions keyed by complete contextual probe identity.
 pub(crate) fn accepted_probe_gaps() -> Vec<(String, umpire_annotations::AcceptedGap)> {
     Vec::new()
-}
-
-/// Typed adapter for the protobuf map entry represented by prost as a map.
-#[derive(Clone, Default, PartialEq)]
-pub struct MetadataEntry {
-    key: String,
-    value: Vec<u8>,
-}
-
-umpire_temporal_annotate::annotate! {
-    pub catalog catalog;
-    enum retry_state: RetryState = "temporal.api.enums.v1.RetryState" {
-        RetryState::Unspecified = "RETRY_STATE_UNSPECIFIED",
-        RetryState::InProgress = "RETRY_STATE_IN_PROGRESS",
-        RetryState::NonRetryableFailure = "RETRY_STATE_NON_RETRYABLE_FAILURE",
-        RetryState::Timeout = "RETRY_STATE_TIMEOUT",
-        RetryState::MaximumAttemptsReached = "RETRY_STATE_MAXIMUM_ATTEMPTS_REACHED",
-        RetryState::RetryPolicyNotSet = "RETRY_STATE_RETRY_POLICY_NOT_SET",
-        RetryState::InternalServerError = "RETRY_STATE_INTERNAL_SERVER_ERROR",
-        RetryState::CancelRequested = "RETRY_STATE_CANCEL_REQUESTED",
-    }
-    enum activity_execution_status: ActivityExecutionStatus = "temporal.api.enums.v1.ActivityExecutionStatus" {
-        ActivityExecutionStatus::Unspecified = "ACTIVITY_EXECUTION_STATUS_UNSPECIFIED",
-        ActivityExecutionStatus::Running = "ACTIVITY_EXECUTION_STATUS_RUNNING",
-        ActivityExecutionStatus::Completed = "ACTIVITY_EXECUTION_STATUS_COMPLETED",
-        ActivityExecutionStatus::Failed = "ACTIVITY_EXECUTION_STATUS_FAILED",
-        ActivityExecutionStatus::Canceled = "ACTIVITY_EXECUTION_STATUS_CANCELED",
-        ActivityExecutionStatus::Terminated = "ACTIVITY_EXECUTION_STATUS_TERMINATED",
-        ActivityExecutionStatus::TimedOut = "ACTIVITY_EXECUTION_STATUS_TIMED_OUT",
-        ActivityExecutionStatus::Paused = "ACTIVITY_EXECUTION_STATUS_PAUSED",
-    }
-    enum pending_activity_state: PendingActivityState = "temporal.api.enums.v1.PendingActivityState" {
-        PendingActivityState::Unspecified = "PENDING_ACTIVITY_STATE_UNSPECIFIED",
-        PendingActivityState::Scheduled = "PENDING_ACTIVITY_STATE_SCHEDULED",
-        PendingActivityState::Started = "PENDING_ACTIVITY_STATE_STARTED",
-        PendingActivityState::CancelRequested = "PENDING_ACTIVITY_STATE_CANCEL_REQUESTED",
-        PendingActivityState::Paused = "PENDING_ACTIVITY_STATE_PAUSED",
-        PendingActivityState::PauseRequested = "PENDING_ACTIVITY_STATE_PAUSE_REQUESTED",
-    }
-    enum activity_id_reuse_policy: ActivityIdReusePolicy = "temporal.api.enums.v1.ActivityIdReusePolicy" {
-        ActivityIdReusePolicy::Unspecified = "ACTIVITY_ID_REUSE_POLICY_UNSPECIFIED",
-        ActivityIdReusePolicy::AllowDuplicate = "ACTIVITY_ID_REUSE_POLICY_ALLOW_DUPLICATE",
-        ActivityIdReusePolicy::AllowDuplicateFailedOnly = "ACTIVITY_ID_REUSE_POLICY_ALLOW_DUPLICATE_FAILED_ONLY",
-        ActivityIdReusePolicy::RejectDuplicate = "ACTIVITY_ID_REUSE_POLICY_REJECT_DUPLICATE",
-    }
-    enum activity_id_conflict_policy: ActivityIdConflictPolicy = "temporal.api.enums.v1.ActivityIdConflictPolicy" {
-        ActivityIdConflictPolicy::Unspecified = "ACTIVITY_ID_CONFLICT_POLICY_UNSPECIFIED",
-        ActivityIdConflictPolicy::Fail = "ACTIVITY_ID_CONFLICT_POLICY_FAIL",
-        ActivityIdConflictPolicy::UseExisting = "ACTIVITY_ID_CONFLICT_POLICY_USE_EXISTING",
-    }
-    enum task_queue_kind: TaskQueueKind = "temporal.api.enums.v1.TaskQueueKind" {
-        TaskQueueKind::Unspecified = "TASK_QUEUE_KIND_UNSPECIFIED",
-        TaskQueueKind::Normal = "TASK_QUEUE_KIND_NORMAL",
-        TaskQueueKind::Sticky = "TASK_QUEUE_KIND_STICKY",
-        TaskQueueKind::WorkerCommands = "TASK_QUEUE_KIND_WORKER_COMMANDS",
-    }
-    enum application_error_category: ApplicationErrorCategory = "temporal.api.enums.v1.ApplicationErrorCategory" {
-        ApplicationErrorCategory::Unspecified = "APPLICATION_ERROR_CATEGORY_UNSPECIFIED",
-        ApplicationErrorCategory::Benign = "APPLICATION_ERROR_CATEGORY_BENIGN",
-    }
-    enum activity_task_failed_cause: ActivityTaskFailedCause = "temporal.api.enums.v1.ActivityTaskFailedCause" {
-        ActivityTaskFailedCause::Unspecified = "ACTIVITY_TASK_FAILED_CAUSE_UNSPECIFIED",
-        ActivityTaskFailedCause::PayloadsTooLarge = "ACTIVITY_TASK_FAILED_CAUSE_PAYLOADS_TOO_LARGE",
-        ActivityTaskFailedCause::ExternalStorageFailure = "ACTIVITY_TASK_FAILED_CAUSE_EXTERNAL_STORAGE_FAILURE",
-        ActivityTaskFailedCause::ActivityWorkerUnhandledFailure = "ACTIVITY_TASK_FAILED_CAUSE_ACTIVITY_WORKER_UNHANDLED_FAILURE",
-    }
-    enum timeout_type: TimeoutType = "temporal.api.enums.v1.TimeoutType" {
-        TimeoutType::Unspecified = "TIMEOUT_TYPE_UNSPECIFIED",
-        TimeoutType::StartToClose = "TIMEOUT_TYPE_START_TO_CLOSE",
-        TimeoutType::ScheduleToStart = "TIMEOUT_TYPE_SCHEDULE_TO_START",
-        TimeoutType::ScheduleToClose = "TIMEOUT_TYPE_SCHEDULE_TO_CLOSE",
-        TimeoutType::Heartbeat = "TIMEOUT_TYPE_HEARTBEAT",
-    }
-    enum nexus_handler_error_retry_behavior: NexusHandlerErrorRetryBehavior = "temporal.api.enums.v1.NexusHandlerErrorRetryBehavior" {
-        NexusHandlerErrorRetryBehavior::Unspecified = "NEXUS_HANDLER_ERROR_RETRY_BEHAVIOR_UNSPECIFIED",
-        NexusHandlerErrorRetryBehavior::Retryable = "NEXUS_HANDLER_ERROR_RETRY_BEHAVIOR_RETRYABLE",
-        NexusHandlerErrorRetryBehavior::NonRetryable = "NEXUS_HANDLER_ERROR_RETRY_BEHAVIOR_NON_RETRYABLE",
-    }
-    message response workflow_execution: WorkflowExecution = "temporal.api.common.v1.WorkflowExecution" {
-        workflow_id: Text + Observed;
-        run_id: Text + Observed;
-    }
-    message response workflow_type: WorkflowType = "temporal.api.common.v1.WorkflowType" {
-        name: Text + Observed;
-    }
-    message response activity_execution_outcome: ActivityExecutionOutcome = "temporal.api.activity.v1.ActivityExecutionOutcome" {
-        retry_state: Enum(retry_state) + Observed;
-        value: Bytes + Decided via Vec<u8> (|m: &ActivityExecutionOutcome| match &m.value { Some(activity_execution_outcome::Value::Result(v)) => v.encode_to_vec(), Some(activity_execution_outcome::Value::Failure(v)) => v.encode_to_vec(), None => Vec::new() }, |_: &mut ActivityExecutionOutcome, _: Vec<u8>| {}) variants { activity_execution_outcome::Value::Result = "result", activity_execution_outcome::Value::Failure = "failure", };
-        rules { one_of(result, failure); }
-    }
-    message response activity_execution_info: ActivityExecutionInfo = "temporal.api.activity.v1.ActivityExecutionInfo" {
-        activity_id: Text + Observed;
-        run_id: Uuid + Observed via Option<String> (|m: &ActivityExecutionInfo| uuid_view(&m.run_id), |_: &mut ActivityExecutionInfo, _: Option<String>| {});
-        activity_type: Bytes + Decided via Vec<u8> (|m: &ActivityExecutionInfo| m.activity_type.as_ref().map(Message::encode_to_vec).unwrap_or_default(), |_: &mut ActivityExecutionInfo, _: Vec<u8>| {});
-        status: Enum(activity_execution_status) + Observed;
-        run_state: Enum(pending_activity_state) + Observed;
-        task_queue: Text + Observed;
-        schedule_to_close_timeout: Duration + Observed via Option<umpire_annotations::Duration> (|m: &ActivityExecutionInfo| raw_duration_view(m.schedule_to_close_timeout.as_ref()), |_: &mut ActivityExecutionInfo, _: Option<umpire_annotations::Duration>| {});
-        schedule_to_start_timeout: Duration + Observed via Option<umpire_annotations::Duration> (|m: &ActivityExecutionInfo| raw_duration_view(m.schedule_to_start_timeout.as_ref()), |_: &mut ActivityExecutionInfo, _: Option<umpire_annotations::Duration>| {});
-        start_to_close_timeout: Duration + Observed via Option<umpire_annotations::Duration> (|m: &ActivityExecutionInfo| raw_duration_view(m.start_to_close_timeout.as_ref()), |_: &mut ActivityExecutionInfo, _: Option<umpire_annotations::Duration>| {});
-        heartbeat_timeout: Duration + Observed via Option<umpire_annotations::Duration> (|m: &ActivityExecutionInfo| raw_duration_view(m.heartbeat_timeout.as_ref()), |_: &mut ActivityExecutionInfo, _: Option<umpire_annotations::Duration>| {});
-        retry_policy: Bytes + Decided via Vec<u8> (|m: &ActivityExecutionInfo| m.retry_policy.as_ref().map(Message::encode_to_vec).unwrap_or_default(), |_: &mut ActivityExecutionInfo, _: Vec<u8>| {});
-        heartbeat_details: Bytes + Decided via Vec<u8> (|m: &ActivityExecutionInfo| m.heartbeat_details.as_ref().map(Message::encode_to_vec).unwrap_or_default(), |_: &mut ActivityExecutionInfo, _: Vec<u8>| {});
-        last_heartbeat_time: Timestamp + Observed via Option<umpire_annotations::Timestamp> (|m: &ActivityExecutionInfo| m.last_heartbeat_time.as_ref().map(|v| umpire_annotations::Timestamp { seconds: v.seconds, nanos: v.nanos }), |_: &mut ActivityExecutionInfo, _: Option<umpire_annotations::Timestamp>| {});
-        last_started_time: Timestamp + Observed via Option<umpire_annotations::Timestamp> (|m: &ActivityExecutionInfo| m.last_started_time.as_ref().map(|v| umpire_annotations::Timestamp { seconds: v.seconds, nanos: v.nanos }), |_: &mut ActivityExecutionInfo, _: Option<umpire_annotations::Timestamp>| {});
-        attempt: Counter[gte = 0] + Observed;
-        execution_duration: Duration + Observed via Option<umpire_annotations::Duration> (|m: &ActivityExecutionInfo| raw_duration_view(m.execution_duration.as_ref()), |_: &mut ActivityExecutionInfo, _: Option<umpire_annotations::Duration>| {});
-        schedule_time: Timestamp + Observed via Option<umpire_annotations::Timestamp> (|m: &ActivityExecutionInfo| m.schedule_time.as_ref().map(|v| umpire_annotations::Timestamp { seconds: v.seconds, nanos: v.nanos }), |_: &mut ActivityExecutionInfo, _: Option<umpire_annotations::Timestamp>| {});
-        expiration_time: Timestamp + Observed via Option<umpire_annotations::Timestamp> (|m: &ActivityExecutionInfo| m.expiration_time.as_ref().map(|v| umpire_annotations::Timestamp { seconds: v.seconds, nanos: v.nanos }), |_: &mut ActivityExecutionInfo, _: Option<umpire_annotations::Timestamp>| {});
-        close_time: Timestamp + Observed via Option<umpire_annotations::Timestamp> (|m: &ActivityExecutionInfo| m.close_time.as_ref().map(|v| umpire_annotations::Timestamp { seconds: v.seconds, nanos: v.nanos }), |_: &mut ActivityExecutionInfo, _: Option<umpire_annotations::Timestamp>| {});
-        last_failure: Bytes + Decided via Vec<u8> (|m: &ActivityExecutionInfo| m.last_failure.as_ref().map(Message::encode_to_vec).unwrap_or_default(), |_: &mut ActivityExecutionInfo, _: Vec<u8>| {});
-        last_worker_identity: Text + Observed;
-        current_retry_interval: Duration + Observed via Option<umpire_annotations::Duration> (|m: &ActivityExecutionInfo| raw_duration_view(m.current_retry_interval.as_ref()), |_: &mut ActivityExecutionInfo, _: Option<umpire_annotations::Duration>| {});
-        last_attempt_complete_time: Timestamp + Observed via Option<umpire_annotations::Timestamp> (|m: &ActivityExecutionInfo| m.last_attempt_complete_time.as_ref().map(|v| umpire_annotations::Timestamp { seconds: v.seconds, nanos: v.nanos }), |_: &mut ActivityExecutionInfo, _: Option<umpire_annotations::Timestamp>| {});
-        next_attempt_schedule_time: Timestamp + Observed via Option<umpire_annotations::Timestamp> (|m: &ActivityExecutionInfo| m.next_attempt_schedule_time.as_ref().map(|v| umpire_annotations::Timestamp { seconds: v.seconds, nanos: v.nanos }), |_: &mut ActivityExecutionInfo, _: Option<umpire_annotations::Timestamp>| {});
-        last_deployment_version: Bytes + Ignored("This activity Model does not project ActivityExecutionInfo.last_deployment_version; no semantic validation is claimed") opaque;
-        priority: Bytes + Ignored("This activity Model does not project ActivityExecutionInfo.priority; no semantic validation is claimed") opaque;
-        state_transition_count: Counter + Observed;
-        state_size_bytes: Counter + Observed;
-        search_attributes: Bytes + Ignored("This activity Model does not project ActivityExecutionInfo.search_attributes; no semantic validation is claimed") opaque;
-        header: Bytes + Ignored("This activity Model does not project ActivityExecutionInfo.header; no semantic validation is claimed") opaque;
-        user_metadata: Bytes + Ignored("This activity Model does not project ActivityExecutionInfo.user_metadata; no semantic validation is claimed") opaque;
-        canceled_reason: Text + Observed;
-        links: Bytes + Ignored("This activity Model does not project ActivityExecutionInfo.links; no semantic validation is claimed") opaque;
-        total_heartbeat_count: Counter + Observed;
-        sdk_name: Text + Observed;
-        sdk_version: Text + Observed;
-        start_delay: Duration + Observed via Option<umpire_annotations::Duration> (|m: &ActivityExecutionInfo| raw_duration_view(m.start_delay.as_ref()), |_: &mut ActivityExecutionInfo, _: Option<umpire_annotations::Duration>| {});
-        execution_time: Timestamp + Observed via Option<umpire_annotations::Timestamp> (|m: &ActivityExecutionInfo| m.execution_time.as_ref().map(|v| umpire_annotations::Timestamp { seconds: v.seconds, nanos: v.nanos }), |_: &mut ActivityExecutionInfo, _: Option<umpire_annotations::Timestamp>| {});
-    }
-    message response payloads: Payloads = "temporal.api.common.v1.Payloads" {
-        payloads: Bytes + Decided via Vec<Vec<u8>> (|m: &Payloads| m.payloads.iter().map(Message::encode_to_vec).collect::<Vec<_>>(), |_: &mut Payloads, _: Vec<Vec<u8>>| {});
-    }
-    message response payload: Payload = "temporal.api.common.v1.Payload" {
-        metadata: Secret + Decided via Vec<Vec<u8>> (|m: &Payload| m.metadata.values().cloned().collect::<Vec<_>>(), |m: &mut Payload, values: Vec<Vec<u8>>| { if values.is_empty() { m.metadata.clear(); } });
-        data: Secret + Decided;
-        external_payloads: Bytes + Ignored("External payload storage handles are unsupported by the mini activity callback and remain opaque on transport") opaque;
-    }
-    message request activity_type: ActivityType = "temporal.api.common.v1.ActivityType" {
-        name: Identifier[max_bytes = 1000] + Decided => Rejects(3, "activityType") covers "go.temporal.io/server/chasm/lib/activity.validateAndNormalizeActivityAttributes";
-    }
-    message request retry_policy: RetryPolicy = "temporal.api.common.v1.RetryPolicy" {
-        initial_interval: Duration[gte = 0] + Decided via Option<umpire_annotations::Duration> (|m: &RetryPolicy| if m.maximum_attempts == 1 { None } else { duration_view(m.initial_interval.as_ref()) }, |_: &mut RetryPolicy, _: Option<umpire_annotations::Duration>| {}) => Rejects(3, "invalid InitialInterval") covers "go.temporal.io/server/common/retrypolicy.Validate";
-        backoff_coefficient: Counter[gte = 1] + Decided via i32 (|m: &RetryPolicy| i32::from(m.maximum_attempts == 1 || m.backoff_coefficient == 0.0 || m.backoff_coefficient.partial_cmp(&1.0) != Some(std::cmp::Ordering::Less)), |_: &mut RetryPolicy, _: i32| {}) => Rejects(3, "BackoffCoefficient") covers "go.temporal.io/server/common/retrypolicy.Validate";
-        maximum_interval: Duration[gte = 0] + Decided via Option<umpire_annotations::Duration> (|m: &RetryPolicy| if m.maximum_attempts == 1 { None } else { duration_view(m.maximum_interval.as_ref()) }, |_: &mut RetryPolicy, _: Option<umpire_annotations::Duration>| {}) => Rejects(3, "invalid MaximumInterval") covers "go.temporal.io/server/common/retrypolicy.Validate";
-        maximum_attempts: Counter[gte = 0] + Decided => Rejects(3, "MaximumAttempts") covers "go.temporal.io/server/common/retrypolicy.Validate";
-        non_retryable_error_types: Text + Decided;
-    }
-    message request application_failure_info: ApplicationFailureInfo = "temporal.api.failure.v1.ApplicationFailureInfo" {
-        r#type: Text + Decided;
-        non_retryable: Counter + Decided via i32 (|m: &ApplicationFailureInfo| i32::from(m.non_retryable), |_: &mut ApplicationFailureInfo, _: i32| {});
-        details: Bytes + Decided via Vec<u8> (|m: &ApplicationFailureInfo| m.details.as_ref().map(Message::encode_to_vec).unwrap_or_default(), |_: &mut ApplicationFailureInfo, _: Vec<u8>| {});
-        next_retry_delay: Duration + Decided via Option<umpire_annotations::Duration> (|m: &ApplicationFailureInfo| m.next_retry_delay.as_ref().map(|v| umpire_annotations::Duration { seconds: v.seconds, nanos: v.nanos }), |_: &mut ApplicationFailureInfo, _: Option<umpire_annotations::Duration>| {}) => Rejects(3, "NextRetryDelay") covers "go.temporal.io/server/service/frontend.validateActivityFailureNextRetryDelays";
-        category: Enum(application_error_category) + Decided => Accepts covers "go.temporal.io/server/service/frontend.WorkflowHandler.RespondActivityTaskFailed";
-    }
-    message response failure: Failure = "temporal.api.failure.v1.Failure" {
-        message: Text + Decided;
-        source: Bytes + Ignored("This activity Model does not project Failure.source; no semantic validation is claimed") opaque;
-        stack_trace: Secret + Decided;
-        encoded_attributes: Bytes + Decided via Vec<u8> (|m: &Failure| m.encoded_attributes.as_ref().map(Message::encode_to_vec).unwrap_or_default(), |_: &mut Failure, _: Vec<u8>| {});
-        cause: Bytes + Decided via Vec<u8> (|m: &Failure| m.cause.as_ref().map(Message::encode_to_vec).unwrap_or_default(), |_: &mut Failure, _: Vec<u8>| {});
-        failure_info: Bytes + Decided via Vec<u8> (|m: &Failure| match &m.failure_info { Some(failure::FailureInfo::ApplicationFailureInfo(v)) => v.encode_to_vec(), Some(failure::FailureInfo::TimeoutFailureInfo(v)) => v.encode_to_vec(), Some(failure::FailureInfo::CanceledFailureInfo(v)) => v.encode_to_vec(), Some(failure::FailureInfo::TerminatedFailureInfo(v)) => v.encode_to_vec(), Some(failure::FailureInfo::ServerFailureInfo(v)) => v.encode_to_vec(), Some(failure::FailureInfo::ResetWorkflowFailureInfo(v)) => v.encode_to_vec(), Some(failure::FailureInfo::ActivityFailureInfo(v)) => v.encode_to_vec(), Some(failure::FailureInfo::ChildWorkflowExecutionFailureInfo(v)) => v.encode_to_vec(), Some(failure::FailureInfo::NexusOperationExecutionFailureInfo(v)) => v.encode_to_vec(), Some(failure::FailureInfo::NexusHandlerFailureInfo(v)) => v.encode_to_vec(), None => Vec::new() }, |_: &mut Failure, _: Vec<u8>| {}) variants {
-            failure::FailureInfo::ApplicationFailureInfo = "application_failure_info",
-            failure::FailureInfo::TimeoutFailureInfo = "timeout_failure_info",
-            failure::FailureInfo::CanceledFailureInfo = "canceled_failure_info",
-            failure::FailureInfo::TerminatedFailureInfo = "terminated_failure_info",
-            failure::FailureInfo::ServerFailureInfo = "server_failure_info",
-            failure::FailureInfo::ResetWorkflowFailureInfo = "reset_workflow_failure_info",
-            failure::FailureInfo::ActivityFailureInfo = "activity_failure_info",
-            failure::FailureInfo::ChildWorkflowExecutionFailureInfo = "child_workflow_execution_failure_info",
-            failure::FailureInfo::NexusOperationExecutionFailureInfo = "nexus_operation_execution_failure_info",
-            failure::FailureInfo::NexusHandlerFailureInfo = "nexus_handler_failure_info",
-        };
-    }
-    message request task_queue: TaskQueue = "temporal.api.taskqueue.v1.TaskQueue" {
-        name: Identifier[max_bytes = 1000] + Decided => Rejects(3, "taskQueue|task queue") covers "go.temporal.io/server/common/tqid.validate";
-        kind: Enum(task_queue_kind) + Decided => Accepts covers "go.temporal.io/server/common/tqid.normalizeAndValidate";
-        normal_name: Text + Decided;
-    }
-    message request poll_activity_task_queue_request: PollActivityTaskQueueRequest = "temporal.api.workflowservice.v1.PollActivityTaskQueueRequest" {
-        namespace: Text + Decided;
-        task_queue: Bytes + Decided via Option<Vec<u8>> (|m: &PollActivityTaskQueueRequest| m.task_queue.as_ref().map(Message::encode_to_vec), |_: &mut PollActivityTaskQueueRequest, _: Option<Vec<u8>>| {});
-        poller_group_id: Bytes + Ignored("This activity Model does not project PollActivityTaskQueueRequest.poller_group_id; no semantic validation is claimed") opaque;
-        identity: Text[max_bytes = 1000] + Decided => Rejects(3, "identity|Identity") covers "go.temporal.io/server/service/frontend.WorkflowHandler.PollActivityTaskQueue";
-        worker_instance_key: Bytes + Ignored("This activity Model does not project PollActivityTaskQueueRequest.worker_instance_key; no semantic validation is claimed") opaque;
-        worker_control_task_queue: Bytes + Ignored("This activity Model does not project PollActivityTaskQueueRequest.worker_control_task_queue; no semantic validation is claimed") opaque;
-        task_queue_metadata: Bytes + Ignored("This activity Model does not project PollActivityTaskQueueRequest.task_queue_metadata; no semantic validation is claimed") opaque;
-        worker_version_capabilities: Bytes + Ignored("This activity Model does not project PollActivityTaskQueueRequest.worker_version_capabilities; no semantic validation is claimed") opaque;
-        deployment_options: Bytes + Ignored("This activity Model does not project PollActivityTaskQueueRequest.deployment_options; no semantic validation is claimed") opaque;
-        rules { required(task_queue) => Rejects(3, "taskQueue|task queue") covers "go.temporal.io/server/common/tqid.normalizeAndValidate"; }
-    }
-    message response poll_activity_task_queue_response: PollActivityTaskQueueResponse = "temporal.api.workflowservice.v1.PollActivityTaskQueueResponse" {
-        task_token: Secret + Decided;
-        workflow_namespace: Text + Observed;
-        workflow_type: Bytes + Ignored("This activity Model does not project PollActivityTaskQueueResponse.workflow_type; no semantic validation is claimed") opaque;
-        workflow_execution: Bytes + Ignored("This activity Model does not project PollActivityTaskQueueResponse.workflow_execution; no semantic validation is claimed") opaque;
-        activity_type: Bytes + Decided via Vec<u8> (|m: &PollActivityTaskQueueResponse| m.activity_type.as_ref().map(Message::encode_to_vec).unwrap_or_default(), |_: &mut PollActivityTaskQueueResponse, _: Vec<u8>| {});
-        activity_id: Text + Observed;
-        header: Bytes + Ignored("This activity Model does not project PollActivityTaskQueueResponse.header; no semantic validation is claimed") opaque;
-        input: Bytes + Decided via Vec<u8> (|m: &PollActivityTaskQueueResponse| m.input.as_ref().map(Message::encode_to_vec).unwrap_or_default(), |_: &mut PollActivityTaskQueueResponse, _: Vec<u8>| {});
-        heartbeat_details: Bytes + Decided via Vec<u8> (|m: &PollActivityTaskQueueResponse| m.heartbeat_details.as_ref().map(Message::encode_to_vec).unwrap_or_default(), |_: &mut PollActivityTaskQueueResponse, _: Vec<u8>| {});
-        scheduled_time: Timestamp + Observed via Option<umpire_annotations::Timestamp> (|m: &PollActivityTaskQueueResponse| m.scheduled_time.as_ref().map(|v| umpire_annotations::Timestamp { seconds: v.seconds, nanos: v.nanos }), |_: &mut PollActivityTaskQueueResponse, _: Option<umpire_annotations::Timestamp>| {});
-        current_attempt_scheduled_time: Timestamp + Observed via Option<umpire_annotations::Timestamp> (|m: &PollActivityTaskQueueResponse| m.current_attempt_scheduled_time.as_ref().map(|v| umpire_annotations::Timestamp { seconds: v.seconds, nanos: v.nanos }), |_: &mut PollActivityTaskQueueResponse, _: Option<umpire_annotations::Timestamp>| {});
-        started_time: Timestamp + Observed via Option<umpire_annotations::Timestamp> (|m: &PollActivityTaskQueueResponse| m.started_time.as_ref().map(|v| umpire_annotations::Timestamp { seconds: v.seconds, nanos: v.nanos }), |_: &mut PollActivityTaskQueueResponse, _: Option<umpire_annotations::Timestamp>| {});
-        attempt: Counter[gte = 0] + Observed;
-        schedule_to_close_timeout: Duration + Observed via Option<umpire_annotations::Duration> (|m: &PollActivityTaskQueueResponse| raw_duration_view(m.schedule_to_close_timeout.as_ref()), |_: &mut PollActivityTaskQueueResponse, _: Option<umpire_annotations::Duration>| {});
-        start_to_close_timeout: Duration + Observed via Option<umpire_annotations::Duration> (|m: &PollActivityTaskQueueResponse| raw_duration_view(m.start_to_close_timeout.as_ref()), |_: &mut PollActivityTaskQueueResponse, _: Option<umpire_annotations::Duration>| {});
-        heartbeat_timeout: Duration + Observed via Option<umpire_annotations::Duration> (|m: &PollActivityTaskQueueResponse| raw_duration_view(m.heartbeat_timeout.as_ref()), |_: &mut PollActivityTaskQueueResponse, _: Option<umpire_annotations::Duration>| {});
-        retry_policy: Bytes + Decided via Vec<u8> (|m: &PollActivityTaskQueueResponse| m.retry_policy.as_ref().map(Message::encode_to_vec).unwrap_or_default(), |_: &mut PollActivityTaskQueueResponse, _: Vec<u8>| {});
-        poller_scaling_decision: Bytes + Ignored("This activity Model does not project PollActivityTaskQueueResponse.poller_scaling_decision; no semantic validation is claimed") opaque;
-        priority: Bytes + Ignored("This activity Model does not project PollActivityTaskQueueResponse.priority; no semantic validation is claimed") opaque;
-        activity_run_id: Uuid + Observed via Option<String> (|m: &PollActivityTaskQueueResponse| uuid_view(&m.activity_run_id), |_: &mut PollActivityTaskQueueResponse, _: Option<String>| {});
-        poller_group_infos: Bytes + Ignored("This activity Model does not project PollActivityTaskQueueResponse.poller_group_infos; no semantic validation is claimed") opaque;
-        poller_groups_info: Bytes + Ignored("This activity Model does not project PollActivityTaskQueueResponse.poller_groups_info; no semantic validation is claimed") opaque;
-        rules { requires(activity_id, task_token); requires(input, task_token); }
-    }
-    message request respond_activity_task_completed_request: RespondActivityTaskCompletedRequest = "temporal.api.workflowservice.v1.RespondActivityTaskCompletedRequest" {
-        task_token: Secret + Decided;
-        result: Bytes + Decided via Vec<u8> (|m: &RespondActivityTaskCompletedRequest| m.result.as_ref().map(Message::encode_to_vec).unwrap_or_default(), |_: &mut RespondActivityTaskCompletedRequest, _: Vec<u8>| {});
-        identity: Text[max_bytes = 1000] + Decided => Rejects(3, "identity|Identity") covers "go.temporal.io/server/service/frontend.WorkflowHandler.RespondActivityTaskCompleted";
-        namespace: Text + Decided;
-        resource_id: Text + Decided;
-        worker_version: Bytes + Ignored("This activity Model does not project RespondActivityTaskCompletedRequest.worker_version; no semantic validation is claimed") opaque;
-        deployment: Bytes + Ignored("This activity Model does not project RespondActivityTaskCompletedRequest.deployment; no semantic validation is claimed") opaque;
-        deployment_options: Bytes + Ignored("This activity Model does not project RespondActivityTaskCompletedRequest.deployment_options; no semantic validation is claimed") opaque;
-    }
-    message response respond_activity_task_completed_response: RespondActivityTaskCompletedResponse = "temporal.api.workflowservice.v1.RespondActivityTaskCompletedResponse" {
-
-    }
-    message request respond_activity_task_failed_request: RespondActivityTaskFailedRequest = "temporal.api.workflowservice.v1.RespondActivityTaskFailedRequest" {
-        task_token: Secret + Decided;
-        failure: Bytes + Decided via Vec<u8> (|m: &RespondActivityTaskFailedRequest| m.failure.as_ref().map(Message::encode_to_vec).unwrap_or_default(), |_: &mut RespondActivityTaskFailedRequest, _: Vec<u8>| {});
-        identity: Text[max_bytes = 1000] + Decided => Rejects(3, "identity|Identity") covers "go.temporal.io/server/service/frontend.WorkflowHandler.RespondActivityTaskFailed";
-        namespace: Text + Decided;
-        resource_id: Text + Decided;
-        last_heartbeat_details: Bytes + Decided via Vec<u8> (|m: &RespondActivityTaskFailedRequest| m.last_heartbeat_details.as_ref().map(Message::encode_to_vec).unwrap_or_default(), |_: &mut RespondActivityTaskFailedRequest, _: Vec<u8>| {});
-        worker_version: Bytes + Ignored("This activity Model does not project RespondActivityTaskFailedRequest.worker_version; no semantic validation is claimed") opaque;
-        deployment: Bytes + Ignored("This activity Model does not project RespondActivityTaskFailedRequest.deployment; no semantic validation is claimed") opaque;
-        deployment_options: Bytes + Ignored("This activity Model does not project RespondActivityTaskFailedRequest.deployment_options; no semantic validation is claimed") opaque;
-        cause: Enum(activity_task_failed_cause) + Decided => Accepts covers "go.temporal.io/server/service/frontend.WorkflowHandler.RespondActivityTaskFailed";
-    }
-    message response respond_activity_task_failed_response: RespondActivityTaskFailedResponse = "temporal.api.workflowservice.v1.RespondActivityTaskFailedResponse" {
-        failures: Bytes + Decided via Vec<Vec<u8>> (|m: &RespondActivityTaskFailedResponse| m.failures.iter().map(Message::encode_to_vec).collect::<Vec<_>>(), |_: &mut RespondActivityTaskFailedResponse, _: Vec<Vec<u8>>| {});
-    }
-    message request respond_activity_task_canceled_request: RespondActivityTaskCanceledRequest = "temporal.api.workflowservice.v1.RespondActivityTaskCanceledRequest" {
-        task_token: Secret + Decided;
-        details: Bytes + Decided via Vec<u8> (|m: &RespondActivityTaskCanceledRequest| m.details.as_ref().map(Message::encode_to_vec).unwrap_or_default(), |_: &mut RespondActivityTaskCanceledRequest, _: Vec<u8>| {});
-        identity: Text[max_bytes = 1000] + Decided => Rejects(3, "identity|Identity") covers "go.temporal.io/server/service/frontend.WorkflowHandler.RespondActivityTaskCanceled";
-        namespace: Text + Decided;
-        resource_id: Text + Decided;
-        worker_version: Bytes + Ignored("This activity Model does not project RespondActivityTaskCanceledRequest.worker_version; no semantic validation is claimed") opaque;
-        deployment: Bytes + Ignored("This activity Model does not project RespondActivityTaskCanceledRequest.deployment; no semantic validation is claimed") opaque;
-        deployment_options: Bytes + Ignored("This activity Model does not project RespondActivityTaskCanceledRequest.deployment_options; no semantic validation is claimed") opaque;
-    }
-    message response respond_activity_task_canceled_response: RespondActivityTaskCanceledResponse = "temporal.api.workflowservice.v1.RespondActivityTaskCanceledResponse" {
-
-    }
-    message request start_activity_execution_request: StartActivityExecutionRequest = "temporal.api.workflowservice.v1.StartActivityExecutionRequest" {
-        namespace: Text + Decided;
-        identity: Text[max_bytes = 1000] + Decided => Rejects(3, "identity|Identity") covers "go.temporal.io/server/chasm/lib/activity.validateAndNormalizeStartRequest";
-        request_id: Text[max_bytes = 1000] + Decided + IdempotencyKey => Rejects(3, "request ID exceeds length limit") covers "go.temporal.io/server/chasm/lib/activity.validateAndNormalizeStartRequest";
-        activity_id: Identifier[max_bytes = 1000] + Decided => Rejects(3, "activity[Ii][Dd]|activity ID") covers "go.temporal.io/server/chasm/lib/activity.validateAndNormalizeActivityAttributes";
-        activity_type: Bytes + Decided via Option<Vec<u8>> (|m: &StartActivityExecutionRequest| m.activity_type.as_ref().map(Message::encode_to_vec), |_: &mut StartActivityExecutionRequest, _: Option<Vec<u8>>| {});
-        task_queue: Bytes + Decided via Option<Vec<u8>> (|m: &StartActivityExecutionRequest| m.task_queue.as_ref().map(Message::encode_to_vec), |_: &mut StartActivityExecutionRequest, _: Option<Vec<u8>>| {});
-        schedule_to_close_timeout: Duration[gte = 0] + Decided via Option<umpire_annotations::Duration> (|m: &StartActivityExecutionRequest| duration_view(m.schedule_to_close_timeout.as_ref()), |_: &mut StartActivityExecutionRequest, _: Option<umpire_annotations::Duration>| {}) => Rejects(3, "invalid ScheduleToCloseTimeout") covers "go.temporal.io/server/chasm/lib/activity.validateAndNormalizeTimeouts";
-        schedule_to_start_timeout: Duration[gte = 0] + Decided via Option<umpire_annotations::Duration> (|m: &StartActivityExecutionRequest| duration_view(m.schedule_to_start_timeout.as_ref()), |_: &mut StartActivityExecutionRequest, _: Option<umpire_annotations::Duration>| {}) => Rejects(3, "invalid ScheduleToStartTimeout") covers "go.temporal.io/server/chasm/lib/activity.validateAndNormalizeTimeouts";
-        start_to_close_timeout: Duration[gte = 0] + Decided via Option<umpire_annotations::Duration> (|m: &StartActivityExecutionRequest| duration_view(m.start_to_close_timeout.as_ref()), |_: &mut StartActivityExecutionRequest, _: Option<umpire_annotations::Duration>| {}) => Rejects(3, "invalid StartToCloseTimeout") covers "go.temporal.io/server/chasm/lib/activity.validateAndNormalizeTimeouts";
-        heartbeat_timeout: Duration[gte = 0] + Decided via Option<umpire_annotations::Duration> (|m: &StartActivityExecutionRequest| duration_view(m.heartbeat_timeout.as_ref()), |_: &mut StartActivityExecutionRequest, _: Option<umpire_annotations::Duration>| {}) => Rejects(3, "invalid HeartbeatTimeout") covers "go.temporal.io/server/chasm/lib/activity.validateAndNormalizeTimeouts";
-        retry_policy: Bytes + Decided via Vec<u8> (|m: &StartActivityExecutionRequest| m.retry_policy.as_ref().map(Message::encode_to_vec).unwrap_or_default(), |_: &mut StartActivityExecutionRequest, _: Vec<u8>| {});
-        input: Bytes[max_len = 2_097_152] + Decided via Vec<u8> (|m: &StartActivityExecutionRequest| m.input.as_ref().map(Message::encode_to_vec).unwrap_or_default(), |_: &mut StartActivityExecutionRequest, _: Vec<u8>| {}) => Rejects(3, "input exceeds length limit") covers "go.temporal.io/server/chasm/lib/activity.validateAndNormalizeStartRequest";
-        id_reuse_policy: Enum(activity_id_reuse_policy) + Decided => Rejects(3, "unsupported ID reuse policy") covers "go.temporal.io/server/chasm/lib/activity.handler.StartActivityExecution";
-        id_conflict_policy: Enum(activity_id_conflict_policy) + Decided => Rejects(3, "unsupported ID conflict policy") covers "go.temporal.io/server/chasm/lib/activity.handler.StartActivityExecution";
-        search_attributes: Bytes + Ignored("This activity Model does not project StartActivityExecutionRequest.search_attributes; no semantic validation is claimed") opaque;
-        header: Bytes + Ignored("This activity Model does not project StartActivityExecutionRequest.header; no semantic validation is claimed") opaque;
-        user_metadata: Bytes + Ignored("This activity Model does not project StartActivityExecutionRequest.user_metadata; no semantic validation is claimed") opaque;
-        priority: Bytes + Ignored("This activity Model does not project StartActivityExecutionRequest.priority; no semantic validation is claimed") opaque;
-        completion_callbacks: Bytes + Ignored("This activity Model does not project StartActivityExecutionRequest.completion_callbacks; no semantic validation is claimed") opaque;
-        links: Bytes + Ignored("This activity Model does not project StartActivityExecutionRequest.links; no semantic validation is claimed") opaque;
-        on_conflict_options: Bytes + Ignored("This activity Model does not project StartActivityExecutionRequest.on_conflict_options; no semantic validation is claimed") opaque;
-        start_delay: Duration[gte = 0] + Decided via Option<umpire_annotations::Duration> (|m: &StartActivityExecutionRequest| duration_view(m.start_delay.as_ref()), |_: &mut StartActivityExecutionRequest, _: Option<umpire_annotations::Duration>| {}) => Rejects(3, "invalid StartDelay") covers "go.temporal.io/server/chasm/lib/activity.validateStartDelay";
-        rules {
-            required(activity_type, task_queue) => Rejects(3, "activityType|taskQueue|task queue") covers "go.temporal.io/server/chasm/lib/activity.ValidateAndNormalizeStandaloneActivity";
-            any_of(schedule_to_close_timeout, start_to_close_timeout) => Rejects(3, "a valid StartToCloseTimeout or ScheduleToCloseTimeout") covers "go.temporal.io/server/chasm/lib/activity.validateAndNormalizeTimeouts";
-        }
-    }
-    message response start_activity_execution_response: StartActivityExecutionResponse = "temporal.api.workflowservice.v1.StartActivityExecutionResponse" {
-        run_id: Uuid + Observed via Option<String> (|m: &StartActivityExecutionResponse| uuid_view(&m.run_id), |_: &mut StartActivityExecutionResponse, _: Option<String>| {});
-        started: Counter + Observed via i32 (|m: &StartActivityExecutionResponse| i32::from(m.started), |_: &mut StartActivityExecutionResponse, _: i32| {});
-        link: Bytes + Ignored("This activity Model does not project StartActivityExecutionResponse.link; no semantic validation is claimed") opaque;
-        rules { required(run_id); }
-    }
-    message request describe_activity_execution_request: DescribeActivityExecutionRequest = "temporal.api.workflowservice.v1.DescribeActivityExecutionRequest" {
-        namespace: Text + Decided;
-        activity_id: Identifier[max_bytes = 1000] + Decided => Rejects(3, "activity[Ii][Dd]|activity ID") covers "go.temporal.io/server/chasm/lib/activity.validateAndNormalizeDescribeActivityExecutionRequest";
-        run_id: Uuid + Decided via Option<String> (|m: &DescribeActivityExecutionRequest| uuid_view(&m.run_id), |_: &mut DescribeActivityExecutionRequest, _: Option<String>| {}) => Rejects(3, "invalid run id") covers "go.temporal.io/server/chasm/lib/activity.validateAndNormalizeDescribeActivityExecutionRequest";
-        include_input: Bytes + Ignored("This activity Model does not project DescribeActivityExecutionRequest.include_input; no semantic validation is claimed") opaque;
-        include_outcome: Bytes + Ignored("This activity Model does not project DescribeActivityExecutionRequest.include_outcome; no semantic validation is claimed") opaque;
-        long_poll_token: Secret + Decided;
-        include_heartbeat_details: Bytes + Ignored("This activity Model does not project DescribeActivityExecutionRequest.include_heartbeat_details; no semantic validation is claimed") opaque;
-        include_last_failure: Bytes + Ignored("This activity Model does not project DescribeActivityExecutionRequest.include_last_failure; no semantic validation is claimed") opaque;
-        rules { requires(long_poll_token, run_id) => Rejects(3, "run id is required") covers "go.temporal.io/server/chasm/lib/activity.validateAndNormalizeDescribeActivityExecutionRequest"; }
-    }
-    message response describe_activity_execution_response: DescribeActivityExecutionResponse = "temporal.api.workflowservice.v1.DescribeActivityExecutionResponse" {
-        run_id: Uuid + Observed via Option<String> (|m: &DescribeActivityExecutionResponse| uuid_view(&m.run_id), |_: &mut DescribeActivityExecutionResponse, _: Option<String>| {});
-        info: Bytes + Decided via Option<Vec<u8>> (|m: &DescribeActivityExecutionResponse| m.info.as_ref().map(Message::encode_to_vec), |_: &mut DescribeActivityExecutionResponse, _: Option<Vec<u8>>| {});
-        input: Bytes + Decided via Vec<u8> (|m: &DescribeActivityExecutionResponse| m.input.as_ref().map(Message::encode_to_vec).unwrap_or_default(), |_: &mut DescribeActivityExecutionResponse, _: Vec<u8>| {});
-        outcome: Bytes + Decided via Vec<u8> (|m: &DescribeActivityExecutionResponse| m.outcome.as_ref().map(Message::encode_to_vec).unwrap_or_default(), |_: &mut DescribeActivityExecutionResponse, _: Vec<u8>| {});
-        long_poll_token: Secret + Decided;
-        callbacks: Bytes + Ignored("This activity Model does not project DescribeActivityExecutionResponse.callbacks; no semantic validation is claimed") opaque;
-        rules { required(info); }
-    }
-    message request poll_activity_execution_request: PollActivityExecutionRequest = "temporal.api.workflowservice.v1.PollActivityExecutionRequest" {
-        namespace: Text + Decided;
-        activity_id: Identifier[max_bytes = 1000] + Decided => Rejects(3, "activity[Ii][Dd]|activity ID") covers "go.temporal.io/server/chasm/lib/activity.validateAndNormalizePollActivityExecutionRequest";
-        run_id: Uuid + Decided via Option<String> (|m: &PollActivityExecutionRequest| uuid_view(&m.run_id), |_: &mut PollActivityExecutionRequest, _: Option<String>| {}) => Rejects(3, "invalid run id") covers "go.temporal.io/server/chasm/lib/activity.validateAndNormalizePollActivityExecutionRequest";
-    }
-    message response poll_activity_execution_response: PollActivityExecutionResponse = "temporal.api.workflowservice.v1.PollActivityExecutionResponse" {
-        run_id: Uuid + Observed via Option<String> (|m: &PollActivityExecutionResponse| uuid_view(&m.run_id), |_: &mut PollActivityExecutionResponse, _: Option<String>| {});
-        outcome: Bytes + Decided via Vec<u8> (|m: &PollActivityExecutionResponse| m.outcome.as_ref().map(Message::encode_to_vec).unwrap_or_default(), |_: &mut PollActivityExecutionResponse, _: Vec<u8>| {});
-    }
-    message request request_cancel_activity_execution_request: RequestCancelActivityExecutionRequest = "temporal.api.workflowservice.v1.RequestCancelActivityExecutionRequest" {
-        namespace: Text + Decided;
-        activity_id: Identifier[max_bytes = 1000] + Decided => Rejects(3, "activity[Ii][Dd]|activity ID") covers "go.temporal.io/server/chasm/lib/activity.validateAndNormalizeRequestCancelActivityExecutionRequest";
-        run_id: Uuid + Decided via Option<String> (|m: &RequestCancelActivityExecutionRequest| uuid_view(&m.run_id), |_: &mut RequestCancelActivityExecutionRequest, _: Option<String>| {}) => Rejects(3, "invalid run id") covers "go.temporal.io/server/chasm/lib/activity.validateAndNormalizeRequestCancelActivityExecutionRequest";
-        identity: Text[max_bytes = 1000] + Decided => Rejects(3, "identity|Identity") covers "go.temporal.io/server/chasm/lib/activity.validateAndNormalizeRequestCancelActivityExecutionRequest";
-        request_id: Text[max_bytes = 1000] + Decided + IdempotencyKey => Rejects(3, "request ID exceeds length limit") covers "go.temporal.io/server/chasm/lib/activity.validateAndNormalizeRequestID";
-        reason: Text[max_bytes = 2_097_152] + Decided => Rejects(3, "reason exceeds length limit") covers "go.temporal.io/server/chasm/lib/activity.validateAndNormalizeRequestCancelActivityExecutionRequest";
-    }
-    message response request_cancel_activity_execution_response: RequestCancelActivityExecutionResponse = "temporal.api.workflowservice.v1.RequestCancelActivityExecutionResponse" {
-
-    }
-    message response timeout_failure_info: TimeoutFailureInfo = "temporal.api.failure.v1.TimeoutFailureInfo" {
-        timeout_type: Enum(timeout_type) + Observed => Accepts covers "go.temporal.io/server/service/frontend.WorkflowHandler.RespondActivityTaskFailed";
-        last_heartbeat_details: Bytes + Decided via Vec<u8> (|m: &TimeoutFailureInfo| m.last_heartbeat_details.as_ref().map(Message::encode_to_vec).unwrap_or_default(), |_: &mut TimeoutFailureInfo, _: Vec<u8>| {});
-    }
-    message response canceled_failure_info: CanceledFailureInfo = "temporal.api.failure.v1.CanceledFailureInfo" {
-        details: Bytes + Decided via Vec<u8> (|m: &CanceledFailureInfo| m.details.as_ref().map(Message::encode_to_vec).unwrap_or_default(), |_: &mut CanceledFailureInfo, _: Vec<u8>| {});
-        identity: Bytes + Ignored("This activity Model does not project CanceledFailureInfo.identity; no semantic validation is claimed") opaque;
-    }
-    message response terminated_failure_info: TerminatedFailureInfo = "temporal.api.failure.v1.TerminatedFailureInfo" {
-        identity: Bytes + Ignored("This activity Model does not project TerminatedFailureInfo.identity; no semantic validation is claimed") opaque;
-    }
-    message response server_failure_info: ServerFailureInfo = "temporal.api.failure.v1.ServerFailureInfo" {
-        non_retryable: Counter + Decided via i32 (|m: &ServerFailureInfo| i32::from(m.non_retryable), |_: &mut ServerFailureInfo, _: i32| {});
-    }
-    message response reset_workflow_failure_info: ResetWorkflowFailureInfo = "temporal.api.failure.v1.ResetWorkflowFailureInfo" {
-        last_heartbeat_details: Bytes + Observed via Vec<u8> (|m: &ResetWorkflowFailureInfo| m.last_heartbeat_details.as_ref().map(Message::encode_to_vec).unwrap_or_default(), |_: &mut ResetWorkflowFailureInfo, _: Vec<u8>| {});
-    }
-    message response activity_failure_info: ActivityFailureInfo = "temporal.api.failure.v1.ActivityFailureInfo" {
-        scheduled_event_id: Counter + Observed;
-        started_event_id: Counter + Observed;
-        identity: Text + Observed;
-        activity_type: Text + Observed via Option<String> (|m: &ActivityFailureInfo| m.activity_type.as_ref().map(|value| value.name.clone()), |_: &mut ActivityFailureInfo, _: Option<String>| {});
-        activity_id: Text + Observed;
-        retry_state: Enum(retry_state) + Observed => Accepts covers "go.temporal.io/server/service/frontend.WorkflowHandler.RespondActivityTaskFailed";
-    }
-    message response child_workflow_execution_failure_info: ChildWorkflowExecutionFailureInfo = "temporal.api.failure.v1.ChildWorkflowExecutionFailureInfo" {
-        namespace: Text + Observed;
-        workflow_execution: Bytes + Observed via Vec<u8> (|m: &ChildWorkflowExecutionFailureInfo| m.workflow_execution.as_ref().map(Message::encode_to_vec).unwrap_or_default(), |_: &mut ChildWorkflowExecutionFailureInfo, _: Vec<u8>| {});
-        workflow_type: Bytes + Observed via Vec<u8> (|m: &ChildWorkflowExecutionFailureInfo| m.workflow_type.as_ref().map(Message::encode_to_vec).unwrap_or_default(), |_: &mut ChildWorkflowExecutionFailureInfo, _: Vec<u8>| {});
-        initiated_event_id: Counter + Observed;
-        started_event_id: Counter + Observed;
-        retry_state: Enum(retry_state) + Observed => Accepts covers "go.temporal.io/server/service/frontend.WorkflowHandler.RespondActivityTaskFailed";
-    }
-    message response nexus_operation_failure_info: NexusOperationFailureInfo = "temporal.api.failure.v1.NexusOperationFailureInfo" {
-        scheduled_event_id: Counter + Observed;
-        endpoint: Text + Observed;
-        service: Text + Observed;
-        operation: Text + Observed;
-        operation_id: Secret + Decided;
-        operation_token: Secret + Decided;
-    }
-    message response nexus_handler_failure_info: NexusHandlerFailureInfo = "temporal.api.failure.v1.NexusHandlerFailureInfo" {
-        r#type: Text + Observed;
-        retry_behavior: Enum(nexus_handler_error_retry_behavior) + Observed => Accepts covers "go.temporal.io/server/service/frontend.WorkflowHandler.RespondActivityTaskFailed";
-    }
-    message response proto_duration: ProtoDuration = "google.protobuf.Duration" {
-        seconds: Counter + Observed;
-        nanos: Counter + Observed;
-    }
-    message response proto_timestamp: ProtoTimestamp = "google.protobuf.Timestamp" {
-        seconds: Counter + Observed;
-        nanos: Counter + Observed;
-    }
-    message response metadata_entry: MetadataEntry = "temporal.api.common.v1.Payload.MetadataEntry" {
-        key: Text + Decided;
-        value: Secret + Decided;
-    }
-    service "temporal.api.workflowservice.v1.WorkflowService" {
-        RegisterNamespace: OutOfScope("Namespace administration is outside this standalone activity Model");
-        DescribeNamespace: OutOfScope("SDK namespace discovery is infrastructure outside activity lifecycle validation");
-        ListNamespaces: OutOfScope("Namespace administration is outside this standalone activity Model");
-        UpdateNamespace: OutOfScope("Namespace administration is outside this standalone activity Model");
-        DeprecateNamespace: OutOfScope("Namespace administration is outside this standalone activity Model");
-        StartWorkflowExecution: OutOfScope("Workflow execution operations are outside this standalone activity Model");
-        ExecuteMultiOperation: OutOfScope("Service administration and other resource lifecycles are outside this activity Model");
-        GetWorkflowExecutionHistory: OutOfScope("Workflow execution operations are outside this standalone activity Model");
-        GetWorkflowExecutionHistoryReverse: OutOfScope("Workflow execution operations are outside this standalone activity Model");
-        PollWorkflowTaskQueue: OutOfScope("Workflow execution operations are outside this standalone activity Model");
-        RespondWorkflowTaskCompleted: OutOfScope("Workflow execution operations are outside this standalone activity Model");
-        RespondWorkflowTaskFailed: OutOfScope("Workflow execution operations are outside this standalone activity Model");
-        PollActivityTaskQueue: Action("Worker::Poll");
-        RecordActivityTaskHeartbeat: OutOfScope("This activity operation is not represented by the mini activity lifecycle");
-        RecordActivityTaskHeartbeatById: OutOfScope("This activity operation is not represented by the mini activity lifecycle");
-        RespondActivityTaskCompleted: Action("Worker::RespondCompleted");
-        RespondActivityTaskCompletedById: OutOfScope("This activity operation is not represented by the mini activity lifecycle");
-        RespondActivityTaskFailed: Action("Worker::RespondFailed");
-        RespondActivityTaskFailedById: OutOfScope("This activity operation is not represented by the mini activity lifecycle");
-        RespondActivityTaskCanceled: Observed("worker acknowledges client cancellation");
-        RespondActivityTaskCanceledById: OutOfScope("This activity operation is not represented by the mini activity lifecycle");
-        RequestCancelWorkflowExecution: OutOfScope("Workflow execution operations are outside this standalone activity Model");
-        SignalWorkflowExecution: OutOfScope("Workflow execution operations are outside this standalone activity Model");
-        SignalWithStartWorkflowExecution: OutOfScope("Workflow execution operations are outside this standalone activity Model");
-        ResetWorkflowExecution: OutOfScope("Workflow execution operations are outside this standalone activity Model");
-        TerminateWorkflowExecution: OutOfScope("Workflow execution operations are outside this standalone activity Model");
-        DeleteWorkflowExecution: OutOfScope("Workflow execution operations are outside this standalone activity Model");
-        ListOpenWorkflowExecutions: OutOfScope("Workflow execution operations are outside this standalone activity Model");
-        ListClosedWorkflowExecutions: OutOfScope("Workflow execution operations are outside this standalone activity Model");
-        ListWorkflowExecutions: OutOfScope("Workflow execution operations are outside this standalone activity Model");
-        ListArchivedWorkflowExecutions: OutOfScope("Workflow execution operations are outside this standalone activity Model");
-        ScanWorkflowExecutions: OutOfScope("Workflow execution operations are outside this standalone activity Model");
-        CountWorkflowExecutions: OutOfScope("Workflow execution operations are outside this standalone activity Model");
-        GetSearchAttributes: OutOfScope("Service administration and other resource lifecycles are outside this activity Model");
-        RespondQueryTaskCompleted: OutOfScope("Service administration and other resource lifecycles are outside this activity Model");
-        ResetStickyTaskQueue: OutOfScope("Service administration and other resource lifecycles are outside this activity Model");
-        ShutdownWorker: OutOfScope("SDK worker shutdown bookkeeping does not change this activity Model");
-        QueryWorkflow: OutOfScope("Workflow execution operations are outside this standalone activity Model");
-        DescribeWorkflowExecution: OutOfScope("Workflow execution operations are outside this standalone activity Model");
-        DescribeTaskQueue: OutOfScope("Service administration and other resource lifecycles are outside this activity Model");
-        GetClusterInfo: OutOfScope("Service administration and other resource lifecycles are outside this activity Model");
-        GetSystemInfo: OutOfScope("SDK server capability negotiation does not observe an activity lifecycle");
-        ListTaskQueuePartitions: OutOfScope("Service administration and other resource lifecycles are outside this activity Model");
-        CreateSchedule: OutOfScope("Service administration and other resource lifecycles are outside this activity Model");
-        DescribeSchedule: OutOfScope("Service administration and other resource lifecycles are outside this activity Model");
-        UpdateSchedule: OutOfScope("Service administration and other resource lifecycles are outside this activity Model");
-        PatchSchedule: OutOfScope("Service administration and other resource lifecycles are outside this activity Model");
-        ListScheduleMatchingTimes: OutOfScope("Service administration and other resource lifecycles are outside this activity Model");
-        DeleteSchedule: OutOfScope("Service administration and other resource lifecycles are outside this activity Model");
-        ListSchedules: OutOfScope("Service administration and other resource lifecycles are outside this activity Model");
-        CountSchedules: OutOfScope("Service administration and other resource lifecycles are outside this activity Model");
-        UpdateWorkerBuildIdCompatibility: OutOfScope("Service administration and other resource lifecycles are outside this activity Model");
-        GetWorkerBuildIdCompatibility: OutOfScope("Service administration and other resource lifecycles are outside this activity Model");
-        UpdateWorkerVersioningRules: OutOfScope("Service administration and other resource lifecycles are outside this activity Model");
-        GetWorkerVersioningRules: OutOfScope("Service administration and other resource lifecycles are outside this activity Model");
-        GetWorkerTaskReachability: OutOfScope("Service administration and other resource lifecycles are outside this activity Model");
-        DescribeDeployment: OutOfScope("Service administration and other resource lifecycles are outside this activity Model");
-        DescribeWorkerDeploymentVersion: OutOfScope("Service administration and other resource lifecycles are outside this activity Model");
-        ListDeployments: OutOfScope("Service administration and other resource lifecycles are outside this activity Model");
-        GetDeploymentReachability: OutOfScope("Service administration and other resource lifecycles are outside this activity Model");
-        GetCurrentDeployment: OutOfScope("Service administration and other resource lifecycles are outside this activity Model");
-        SetCurrentDeployment: OutOfScope("Service administration and other resource lifecycles are outside this activity Model");
-        SetWorkerDeploymentCurrentVersion: OutOfScope("Service administration and other resource lifecycles are outside this activity Model");
-        DescribeWorkerDeployment: OutOfScope("Service administration and other resource lifecycles are outside this activity Model");
-        DeleteWorkerDeployment: OutOfScope("Service administration and other resource lifecycles are outside this activity Model");
-        DeleteWorkerDeploymentVersion: OutOfScope("Service administration and other resource lifecycles are outside this activity Model");
-        SetWorkerDeploymentRampingVersion: OutOfScope("Service administration and other resource lifecycles are outside this activity Model");
-        ListWorkerDeployments: OutOfScope("Service administration and other resource lifecycles are outside this activity Model");
-        CreateWorkerDeployment: OutOfScope("Service administration and other resource lifecycles are outside this activity Model");
-        CreateWorkerDeploymentVersion: OutOfScope("Service administration and other resource lifecycles are outside this activity Model");
-        UpdateWorkerDeploymentVersionComputeConfig: OutOfScope("Service administration and other resource lifecycles are outside this activity Model");
-        ValidateWorkerDeploymentVersionComputeConfig: OutOfScope("Service administration and other resource lifecycles are outside this activity Model");
-        UpdateWorkerDeploymentVersionMetadata: OutOfScope("Service administration and other resource lifecycles are outside this activity Model");
-        SetWorkerDeploymentManager: OutOfScope("Service administration and other resource lifecycles are outside this activity Model");
-        UpdateWorkflowExecution: OutOfScope("Workflow execution operations are outside this standalone activity Model");
-        PollWorkflowExecutionUpdate: OutOfScope("Workflow execution operations are outside this standalone activity Model");
-        StartBatchOperation: OutOfScope("Service administration and other resource lifecycles are outside this activity Model");
-        StopBatchOperation: OutOfScope("Service administration and other resource lifecycles are outside this activity Model");
-        DescribeBatchOperation: OutOfScope("Service administration and other resource lifecycles are outside this activity Model");
-        ListBatchOperations: OutOfScope("Service administration and other resource lifecycles are outside this activity Model");
-        PollNexusTaskQueue: OutOfScope("SDK worker control commands use Nexus polling; their contents are outside this activity Model");
-        RespondNexusTaskCompleted: OutOfScope("SDK Nexus worker control completion is outside this activity Model");
-        RespondNexusTaskFailed: OutOfScope("SDK Nexus worker control failure is outside this activity Model");
-        UpdateActivityOptions: OutOfScope("This activity operation is not represented by the mini activity lifecycle");
-        UpdateWorkflowExecutionOptions: OutOfScope("Workflow execution operations are outside this standalone activity Model");
-        PauseActivity: OutOfScope("This activity operation is not represented by the mini activity lifecycle");
-        UnpauseActivity: OutOfScope("This activity operation is not represented by the mini activity lifecycle");
-        ResetActivity: OutOfScope("This activity operation is not represented by the mini activity lifecycle");
-        CreateWorkflowRule: OutOfScope("Workflow execution operations are outside this standalone activity Model");
-        DescribeWorkflowRule: OutOfScope("Workflow execution operations are outside this standalone activity Model");
-        DeleteWorkflowRule: OutOfScope("Workflow execution operations are outside this standalone activity Model");
-        ListWorkflowRules: OutOfScope("Workflow execution operations are outside this standalone activity Model");
-        TriggerWorkflowRule: OutOfScope("Workflow execution operations are outside this standalone activity Model");
-        RecordWorkerHeartbeat: OutOfScope("SDK worker health and configuration heartbeat is infrastructure outside activity lifecycle validation");
-        ListWorkers: OutOfScope("Service administration and other resource lifecycles are outside this activity Model");
-        CountWorkers: OutOfScope("Service administration and other resource lifecycles are outside this activity Model");
-        UpdateTaskQueueConfig: OutOfScope("Service administration and other resource lifecycles are outside this activity Model");
-        FetchWorkerConfig: OutOfScope("Service administration and other resource lifecycles are outside this activity Model");
-        UpdateWorkerConfig: OutOfScope("Service administration and other resource lifecycles are outside this activity Model");
-        DescribeWorker: OutOfScope("Service administration and other resource lifecycles are outside this activity Model");
-        PauseWorkflowExecution: OutOfScope("Workflow execution operations are outside this standalone activity Model");
-        UnpauseWorkflowExecution: OutOfScope("Workflow execution operations are outside this standalone activity Model");
-        StartActivityExecution: Observed("successful start establishes the Model initial state");
-        StartNexusOperationExecution: OutOfScope("Service administration and other resource lifecycles are outside this activity Model");
-        DescribeActivityExecution: Observed("activity lifecycle phase");
-        DescribeNexusOperationExecution: OutOfScope("Service administration and other resource lifecycles are outside this activity Model");
-        PollActivityExecution: Observed("SDK activity handle outcome");
-        PollNexusOperationExecution: OutOfScope("Service administration and other resource lifecycles are outside this activity Model");
-        ListActivityExecutions: OutOfScope("This activity operation is not represented by the mini activity lifecycle");
-        ListNexusOperationExecutions: OutOfScope("Service administration and other resource lifecycles are outside this activity Model");
-        CountActivityExecutions: OutOfScope("This activity operation is not represented by the mini activity lifecycle");
-        CountNexusOperationExecutions: OutOfScope("Service administration and other resource lifecycles are outside this activity Model");
-        RequestCancelActivityExecution: Action("Client::Cancel");
-        RequestCancelNexusOperationExecution: OutOfScope("Service administration and other resource lifecycles are outside this activity Model");
-        TerminateActivityExecution: OutOfScope("This activity operation is not represented by the mini activity lifecycle");
-        DeleteActivityExecution: OutOfScope("This activity operation is not represented by the mini activity lifecycle");
-        PauseActivityExecution: OutOfScope("This activity operation is not represented by the mini activity lifecycle");
-        ResetActivityExecution: OutOfScope("This activity operation is not represented by the mini activity lifecycle");
-        UnpauseActivityExecution: OutOfScope("This activity operation is not represented by the mini activity lifecycle");
-        UpdateActivityExecutionOptions: OutOfScope("This activity operation is not represented by the mini activity lifecycle");
-        TerminateNexusOperationExecution: OutOfScope("Service administration and other resource lifecycles are outside this activity Model");
-        DeleteNexusOperationExecution: OutOfScope("Service administration and other resource lifecycles are outside this activity Model");
-        PollWorkflowExecutionTimeSkipping: OutOfScope("Workflow execution operations are outside this standalone activity Model");
-    }
-    actions bind: ModelAction {
-        ModelAction::Client => { Client::Cancel => Rpc("temporal.api.workflowservice.v1.WorkflowService.RequestCancelActivityExecution"), },
-        ModelAction::Worker => {
-            Worker::Poll => Rpc("temporal.api.workflowservice.v1.WorkflowService.PollActivityTaskQueue"),
-            Worker::RespondCompleted => Rpc("temporal.api.workflowservice.v1.WorkflowService.RespondActivityTaskCompleted"),
-            Worker::RespondFailed => Rpc("temporal.api.workflowservice.v1.WorkflowService.RespondActivityTaskFailed"),
-        },
-        ModelAction::Deadline => {
-            Deadline::ScheduleToStart => Environmental("abstract schedule-to-start deadline"),
-            Deadline::StartToClose => Environmental("abstract start-to-close deadline"),
-        },
-    }
-}
-
-/// UUID intent for start request IDs; the server accepts non-UUID IDs.
-///
-/// # Errors
-/// Returns catalog admission errors.
-pub fn start_request_id_intent()
--> Result<Catalog<StartActivityExecutionRequest>, umpire_annotations::AdmissionErrors> {
-    supplemental_request!(
-        uuid StartActivityExecutionRequest,
-        "temporal.api.workflowservice.v1.StartActivityExecutionRequest",
-        "temporal.api.workflowservice.v1.StartActivityExecutionRequest.request_id",
-        get = |message| &message.request_id,
-        set = |message| &mut message.request_id,
-        expected = Expectation::Accepts,
-        covers = "go.temporal.io/server/chasm/lib/activity.validateAndNormalizeStartRequest",
-    )
-}
-
-/// UUID intent for cancel request IDs; the server accepts non-UUID IDs.
-///
-/// # Errors
-/// Returns catalog admission errors.
-pub fn cancel_request_id_intent()
--> Result<Catalog<RequestCancelActivityExecutionRequest>, umpire_annotations::AdmissionErrors> {
-    supplemental_request!(
-        uuid RequestCancelActivityExecutionRequest,
-        "temporal.api.workflowservice.v1.RequestCancelActivityExecutionRequest",
-        "temporal.api.workflowservice.v1.RequestCancelActivityExecutionRequest.request_id",
-        get = |message| &message.request_id,
-        set = |message| &mut message.request_id,
-        expected = Expectation::Accepts,
-        covers = "go.temporal.io/server/chasm/lib/activity.validateAndNormalizeRequestID",
-    )
-}
-
-/// Worker-supplied failures require application info; server failures do not.
-///
-/// # Errors
-/// Returns catalog admission errors.
-pub fn worker_failure_presence() -> Result<Catalog<Failure>, umpire_annotations::AdmissionErrors> {
-    supplemental_request!(
-        required Failure,
-        "temporal.api.failure.v1.Failure",
-        "temporal.api.failure.v1.Failure.application_failure_info",
-        "application_failure_info",
-        get = |message: &Failure| match &message.failure_info {
-            Some(failure::FailureInfo::ApplicationFailureInfo(value)) => Some(value.encode_to_vec()),
-            _ => None,
-        },
-        set = |_: &mut Failure, _: Option<Vec<u8>>| {},
-        expected = Expectation::Rejects {
-            code: 3,
-            message_pattern: "Failure must have ApplicationFailureInfo".into(),
-            details_type: None,
-        },
-        covers = "go.temporal.io/server/service/frontend.WorkflowHandler.RespondActivityTaskFailed",
-    )
 }

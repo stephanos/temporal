@@ -1,9 +1,14 @@
 //! API-independent declaration grammar shared by expansion and build-time coverage.
 
+mod derive;
+mod derive_expand;
 pub mod descriptor;
 mod expand;
 mod parse;
+pub mod services;
 mod tree;
+pub use derive::*;
+pub use derive_expand::expand_derive;
 pub use expand::expand;
 pub use tree::*;
 
@@ -15,6 +20,28 @@ pub fn catalogs(source: &str) -> syn::Result<Vec<Catalog>> {
         result: syn::Result<Vec<Catalog>>,
     }
     impl<'ast> Visit<'ast> for Catalogs {
+        fn visit_item_struct(&mut self, node: &'ast syn::ItemStruct) {
+            if node.attrs.iter().any(|attr| attr.path().is_ident("api")) {
+                let parsed = syn::parse2::<syn::DeriveInput>(quote::quote!(#node))
+                    .and_then(|input| DeriveCatalog::parse(&input))
+                    .and_then(|mirror| {
+                        if mirror.supplemental {
+                            Ok(None)
+                        } else {
+                            mirror.admission_catalog().map(|mut catalog| {
+                                catalog.enums.clear();
+                                Some(catalog)
+                            })
+                        }
+                    });
+                match (&mut self.result, parsed) {
+                    (Ok(catalogs), Ok(Some(catalog))) => catalogs.push(catalog),
+                    (result @ Ok(_), Err(error)) => *result = Err(error),
+                    _ => {}
+                }
+            }
+            syn::visit::visit_item_struct(self, node);
+        }
         fn visit_macro(&mut self, node: &'ast syn::Macro) {
             if node.path.segments.last().is_some_and(|segment| segment.ident == "annotate") {
                 let parsed = syn::parse2(node.tokens.clone());

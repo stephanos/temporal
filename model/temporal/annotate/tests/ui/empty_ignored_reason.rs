@@ -1,9 +1,10 @@
+#[path = "../support/mod.rs"]
+mod foundation;
+use umpire_temporal_annotate::{Catalog, kinds::*};
 #[derive(Clone, Default)]
-struct Message {
-    opaque: bool,
-}
-umpire_temporal_annotate::annotate! {
-    pub catalog controls;
-    message response message: Message = "test.Message" { opaque: Bytes + Ignored("") opaque; }
-}
+struct Wire { opaque: bool }
+
+#[derive(Catalog)]
+#[api(response = "test.Wire", type = Wire)]
+struct Mirror { #[api(ignored = "")] opaque: Ignored }
 fn main() {}

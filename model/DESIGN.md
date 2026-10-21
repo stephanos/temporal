@@ -575,23 +575,23 @@ Authors classify the API fields a feature uses in its typed sidecar,
 `temporal/feature/activity/api.rs`. Upstream protos remain unchanged. The catalog
 supplies generation, validation, consequences and expected server errors; the independent
 `model.rs` continues to own transitions. [Authoring syntax](temporal/annotate/README.md)
-lives beside `annotate!`.
+lives beside the `Catalog` derive.
 
 ### Layering and admission
 
 `umpire/annotations` owns the system-free `Catalog<M>`, kinds, tags, presence rules,
-expectations, seeded `fill`, `validate` and gap classification. Temporal owns the macro,
+expectations, seeded `fill`, `validate` and gap classification. Temporal owns derive mirrors,
 descriptor integration, feature declarations, typed transport adapters and live probes.
 The generic source-boundary gate rejects Temporal names in `umpire/`.
 
 Each field has exactly one kind and any compatible tags. Kinds include Uuid, Identifier,
-Timestamp, Duration, Counter, Random, Secret, Enum, Text and Bytes. Generated Rust witnesses
+Timestamp, Duration, Counter, Flag, Number, Secret, Enum, Text and Bytes. Typed `View<K>` witnesses
 check the prost field or its explicit typed projection. The macro rejects contradictory
 roles (`Decided + Ignored`, `Secret + Observed`, `Random + Decided`), incompatible tags,
-unexplained ignored fields and rules that name ignored fields. Opaque ignored fields retain
-their real Rust type and require `Bytes` or `Secret` with a reason. Custom tags declare
-compatible kinds and a concrete consequence; they cannot conceal a field role.
-The runtime builder performs admission too, returning errors from catalog construction.
+unexplained ignored fields and rules that name ignored fields. `Ignored` fields retain
+their real prost type and require a reason. Runtime custom tags declare compatible kinds
+and a concrete consequence; they cannot conceal a field role. Fallible setters refuse invalid
+encoded messages before mutation; the runtime builder also checks catalog admission.
 
 Constraint names and selected semantics borrow from protovalidate (`string.uuid`,
 `duration.gt`, `enum.defined_only`, `repeated.unique`). Message presence rules borrow
@@ -605,15 +605,15 @@ validation options, and this small presence algebra needs neither CEL nor an ext
 | Level | Build-time obligation |
 | --- | --- |
 | Fields | A struct pattern without `..` names every prost field; descriptor checking also names every source oneof alternative and requires nested coverage unless explicitly opaque. |
-| Enum values | A wildcard-free match covers known variants; the descriptor checker verifies the named value set. Runtime unknown integers return `UnknownEnum`. |
-| RPC methods | Every method of a named service is `Action`, `Observed` or `OutOfScope(reason)`; stale, duplicate and missing declarations fail. |
+| Enum values | A reviewed `foundation/enum_inventory.rs` lists variants; descriptor checks and wildcard-free matches reject additions. Runtime unknown integers return `UnknownEnum`. |
+| RPC methods | Generated service identities feed exhaustive `classify` matches: `Action`, `Observed` or `OutOfScope(reason)`; stale, duplicate and missing declarations fail. |
 | Model actions | Exhaustive outer actor and inner action matches bind each action to an RPC, an observation or `Environmental(reason)`. RPC bindings must agree with service classifications. |
 
 The current `proto/api.binpb` has no service descriptors. `temporal/api/build.rs` uses
 `getproto --linked-api` to add the actual linked WorkflowService descriptors in
 `OUT_DIR/annotation-api.binpb` for coverage checks, preserving upstream-owned files.
 Rust API generation still reads the upstream image. The build tracks that image and feature
-`api.rs` files recursively, including their directories.
+`api.rs` files recursively, including their directories and the shared enum inventory.
 
 After updating the upstream API dependency/image, build with `make model-check` and classify
 every newly reported field, enum value and RPC in the affected catalogs. Review each kind,
@@ -624,12 +624,12 @@ changes; review changed findings before updating any golden.
 
 ### Validation and the first gap report
 
-Request constraints and presence rules carry `Rejects(code, pattern, optional_details)`,
-`Accepts` or `Unobservable`, plus nonempty `covers` provenance naming the server function.
+Request constraints and presence rules carry typed rejection, `Accepts` or `Unobservable`
+expectations, plus nonempty `covers` paths naming generated server-function identities.
 `validate` reads typed values without mutation; `fill` preserves supplied values and roles,
 uses a seed and refuses unfillable fields. The activity adapter only fills absent request IDs.
 Its request findings exclude declared Accepts; response findings preserve every violation and
-the exact response bytes. Annotation dispatch is stateless with respect to Judge.
+the exact response bytes. Loose rejection modes redact messages and are explicitly counted.
 
 The Rust guest derives contextual probe cases from those expectations, builds minimal negative
 requests and validates the actual decoded witnesses before dispatch. Go supplies real server

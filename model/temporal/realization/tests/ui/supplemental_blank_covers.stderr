@@ -1,37 +1,11 @@
-error[E0080]: evaluation panicked: supplemental request covers must name a source symbol
-  --> tests/ui/../../../feature/activity/api_requests.rs
-   |
-   |               assert!(nonblank, "supplemental request covers must name a source symbol");
-   |               ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^ evaluation of `main::_` failed here
-   |
-  ::: tests/ui/supplemental_blank_covers.rs:6:20
-   |
- 6 |       let _catalog = supplemental_request!(
-   |  ____________________-
- 7 | |         uuid String, "Request", "Request.request_id",
- 8 | |         get = |message| message, set = |message| message,
- 9 | |         expected = umpire_annotations::Expectation::Accepts,
-10 | |         covers = " \t\n",
-11 | |     );
-   | |_____- in this macro invocation
-   |
-   = note: this error originates in the macro `$crate::panic::panic_2021` which comes from the expansion of the macro `supplemental_request` (in Nightly builds, run with -Z macro-backtrace for more info)
+error[E0080]: evaluation panicked: covers requires a nonblank validator
+ --> tests/ui/supplemental_blank_covers.rs:8:10
+  |
+8 | #[derive(Catalog)]
+  |          ^^^^^^^ evaluation of `Ascii::catalog::_` failed here
 
-error[E0080]: evaluation panicked: supplemental request covers must name a source symbol
-  --> tests/ui/../../../feature/activity/api_requests.rs
+error[E0080]: evaluation panicked: covers requires a nonblank validator
+  --> tests/ui/supplemental_blank_covers.rs:11:10
    |
-   |               assert!(nonblank, "supplemental request covers must name a source symbol");
-   |               ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^ evaluation of `main::_` failed here
-   |
-  ::: tests/ui/supplemental_blank_covers.rs:12:20
-   |
-12 |       let _catalog = supplemental_request!(
-   |  ____________________-
-13 | |         uuid String, "Request", "Request.request_id",
-14 | |         get = |message| message, set = |message| message,
-15 | |         expected = umpire_annotations::Expectation::Accepts,
-16 | |         covers = "\u{2003}",
-17 | |     );
-   | |_____- in this macro invocation
-   |
-   = note: this error originates in the macro `$crate::panic::panic_2021` which comes from the expansion of the macro `supplemental_request` (in Nightly builds, run with -Z macro-backtrace for more info)
+11 | #[derive(Catalog)]
+   |          ^^^^^^^ evaluation of `Unicode::catalog::_` failed here

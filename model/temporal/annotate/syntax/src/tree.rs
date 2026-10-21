@@ -82,7 +82,7 @@ pub struct Variant {
 }
 
 /// A literal builtin/custom tag application.
-#[derive(Debug)]
+#[derive(Debug, Clone)]
 pub struct Tag {
     /// Declared tag name.
     pub name: Ident,

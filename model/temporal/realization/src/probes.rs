@@ -1,5 +1,7 @@
 //! Stateless typed witnesses and value-free classification for activity RPCs.
 
+use crate::foundation::dc::Limits;
+
 use crate::activity_api::{
     cancel_request_id_intent, catalog, start_request_id_intent, worker_failure_presence,
 };
@@ -56,6 +58,10 @@ fn add<M: 'static>(
     }
 }
 
+#[allow(
+    clippy::too_many_lines,
+    reason = "The contextual probe registry is one auditable inventory"
+)]
 fn inventory() -> Result<Vec<Entry>> {
     let mut entries = Vec::new();
     macro_rules! register {
@@ -67,91 +73,121 @@ fn inventory() -> Result<Vec<Entry>> {
         "start",
         "StartActivityExecution",
         "start",
-        catalog::start_activity_execution_request()
+        catalog::start_activity_execution_request(&Limits::default())
     );
-    register!("start.type", "StartActivityExecution", "start", catalog::activity_type());
-    register!("start.queue", "StartActivityExecution", "start", catalog::task_queue());
-    register!("start.retry", "StartActivityExecution", "start", catalog::retry_policy());
-    register!("start.request_id", "StartActivityExecution", "start", start_request_id_intent());
+    register!(
+        "start.type",
+        "StartActivityExecution",
+        "start",
+        catalog::activity_type(&Limits::default())
+    );
+    register!(
+        "start.queue",
+        "StartActivityExecution",
+        "start",
+        catalog::task_queue(&Limits::default())
+    );
+    register!(
+        "start.retry",
+        "StartActivityExecution",
+        "start",
+        catalog::retry_policy(&Limits::default())
+    );
+    register!(
+        "start.request_id",
+        "StartActivityExecution",
+        "start",
+        start_request_id_intent(&Limits::default())
+    );
     register!(
         "describe",
         "DescribeActivityExecution",
         "scheduled",
-        catalog::describe_activity_execution_request()
+        catalog::describe_activity_execution_request(&Limits::default())
     );
     register!(
         "poll_execution",
         "PollActivityExecution",
         "completed",
-        catalog::poll_activity_execution_request()
+        catalog::poll_activity_execution_request(&Limits::default())
     );
     register!(
         "cancel",
         "RequestCancelActivityExecution",
         "scheduled",
-        catalog::request_cancel_activity_execution_request()
+        catalog::request_cancel_activity_execution_request(&Limits::default())
     );
     register!(
         "cancel.request_id",
         "RequestCancelActivityExecution",
         "scheduled",
-        cancel_request_id_intent()
+        cancel_request_id_intent(&Limits::default())
     );
     register!(
         "poll_queue",
         "PollActivityTaskQueue",
         "poll",
-        catalog::poll_activity_task_queue_request()
+        catalog::poll_activity_task_queue_request(&Limits::default())
     );
-    register!("poll_queue.queue", "PollActivityTaskQueue", "poll", catalog::task_queue());
+    register!(
+        "poll_queue.queue",
+        "PollActivityTaskQueue",
+        "poll",
+        catalog::task_queue(&Limits::default())
+    );
     register!(
         "completed",
         "RespondActivityTaskCompleted",
         "token",
-        catalog::respond_activity_task_completed_request()
+        catalog::respond_activity_task_completed_request(&Limits::default())
     );
     register!(
         "failed",
         "RespondActivityTaskFailed",
         "token",
-        catalog::respond_activity_task_failed_request()
+        catalog::respond_activity_task_failed_request(&Limits::default())
     );
     register!(
         "failed.application",
         "RespondActivityTaskFailed",
         "token",
-        catalog::application_failure_info()
+        catalog::application_failure_info(&Limits::default())
     );
-    register!("failed.presence", "RespondActivityTaskFailed", "token", worker_failure_presence());
+    register!(
+        "failed.presence",
+        "RespondActivityTaskFailed",
+        "token",
+        worker_failure_presence(&Limits::default())
+    );
     register!(
         "failed.cause.activity",
         "RespondActivityTaskFailed",
         "token",
-        catalog::activity_failure_info()
+        catalog::activity_failure_info(&Limits::default())
     );
     register!(
         "failed.cause.child",
         "RespondActivityTaskFailed",
         "token",
-        catalog::child_workflow_execution_failure_info()
+        catalog::child_workflow_execution_failure_info(&Limits::default())
     );
     register!(
         "failed.cause.timeout",
         "RespondActivityTaskFailed",
         "token",
-        catalog::timeout_failure_info()
+        catalog::timeout_failure_info(&Limits::default())
     );
     register!(
         "failed.cause.nexus",
         "RespondActivityTaskFailed",
         "token",
-        catalog::nexus_handler_failure_info()
+        catalog::nexus_handler_failure_info(&Limits::default())
     );
     register!(
         "canceled",
         "RespondActivityTaskCanceled",
         "canceled_token",
-        catalog::respond_activity_task_canceled_request()
+        catalog::respond_activity_task_canceled_request(&Limits::default())
     );
     entries.sort_by_key(Entry::id);
     verify_inventory(&entries)?;
@@ -163,10 +199,8 @@ fn verify_inventory(entries: &[Entry]) -> Result<()> {
     if ids.len() != entries.len() {
         return Err("duplicate contextual probe identity".into());
     }
-    let mut declared = catalog::expected_probe_cases()?;
-    declared.extend(start_request_id_intent()?.probe_cases());
-    declared.extend(cancel_request_id_intent()?.probe_cases());
-    declared.extend(worker_failure_presence()?.probe_cases());
+    let mut declared = catalog::expected_probe_cases(&Limits::default())?;
+    declared.extend(worker_failure_presence(&Limits::default())?.probe_cases());
     let registered: BTreeSet<_> = entries.iter().map(|entry| entry.target.id.clone()).collect();
     umpire_annotations::verify_probe_coverage(
         &declared,
@@ -186,8 +220,8 @@ impl Entry {
             return Ok(Vec::new());
         }
         let targets = match self.context {
-            "start" => start_request_id_intent()?.probe_cases(),
-            "cancel" => cancel_request_id_intent()?.probe_cases(),
+            "start" => start_request_id_intent(&Limits::default())?.probe_cases(),
+            "cancel" => cancel_request_id_intent(&Limits::default())?.probe_cases(),
             _ => return Ok(Vec::new()),
         };
         Ok(targets.into_iter().map(|case| case.violation).collect())
@@ -203,6 +237,8 @@ impl Entry {
         };
         match &expected.expectation {
             Expectation::Accepts => case.accepts = true,
+            Expectation::RejectsCode(code) => case.code = *code as i32,
+            Expectation::RejectsAnyStatus => {}
             Expectation::Rejects { code, message_pattern, details_type } => {
                 case.code = *code;
                 case.message_pattern.clone_from(message_pattern);
@@ -426,39 +462,47 @@ impl Wire {
         }
         match self {
             Self::Start(m) => {
-                check!(m, catalog::start_activity_execution_request());
-                check!(m, start_request_id_intent());
+                check!(m, catalog::start_activity_execution_request(&Limits::default()));
+                check!(m, start_request_id_intent(&Limits::default()));
                 if let Some(v) = &m.activity_type {
-                    check!(v, catalog::activity_type());
+                    check!(v, catalog::activity_type(&Limits::default()));
                 }
                 if let Some(v) = &m.task_queue {
-                    check!(v, catalog::task_queue());
+                    check!(v, catalog::task_queue(&Limits::default()));
                 }
                 if let Some(v) = &m.retry_policy {
-                    check!(v, catalog::retry_policy());
+                    check!(v, catalog::retry_policy(&Limits::default()));
                 }
             }
-            Self::Describe(m) => check!(m, catalog::describe_activity_execution_request()),
-            Self::Poll(m) => check!(m, catalog::poll_activity_execution_request()),
+            Self::Describe(m) => {
+                check!(m, catalog::describe_activity_execution_request(&Limits::default()));
+            }
+            Self::Poll(m) => {
+                check!(m, catalog::poll_activity_execution_request(&Limits::default()));
+            }
             Self::Cancel(m) => {
-                check!(m, catalog::request_cancel_activity_execution_request());
-                check!(m, cancel_request_id_intent());
+                check!(m, catalog::request_cancel_activity_execution_request(&Limits::default()));
+                check!(m, cancel_request_id_intent(&Limits::default()));
             }
             Self::Queue(m) => {
-                check!(m, catalog::poll_activity_task_queue_request());
+                check!(m, catalog::poll_activity_task_queue_request(&Limits::default()));
                 if let Some(v) = &m.task_queue {
-                    check!(v, catalog::task_queue());
+                    check!(v, catalog::task_queue(&Limits::default()));
                 }
             }
-            Self::Completed(m) => check!(m, catalog::respond_activity_task_completed_request()),
+            Self::Completed(m) => {
+                check!(m, catalog::respond_activity_task_completed_request(&Limits::default()));
+            }
             Self::Failed(m) => {
-                check!(m, catalog::respond_activity_task_failed_request());
+                check!(m, catalog::respond_activity_task_failed_request(&Limits::default()));
                 if let Some(v) = &m.failure {
-                    check!(v, worker_failure_presence());
+                    check!(v, worker_failure_presence(&Limits::default()));
                     failure_findings(v, &mut findings)?;
                 }
             }
-            Self::Canceled(m) => check!(m, catalog::respond_activity_task_canceled_request()),
+            Self::Canceled(m) => {
+                check!(m, catalog::respond_activity_task_canceled_request(&Limits::default()));
+            }
         }
         for finding in &mut findings {
             finding.fields.sort();
@@ -468,7 +512,7 @@ impl Wire {
 }
 
 fn failure_findings(value: &Failure, findings: &mut Vec<Violation>) -> Result<()> {
-    findings.extend(validate(value, &catalog::failure()?));
+    findings.extend(validate(value, &catalog::failure(&Limits::default())?));
     macro_rules! check {
         ($value:expr, $catalog:expr) => {{
             findings.extend(validate($value, &$catalog?));
@@ -476,15 +520,19 @@ fn failure_findings(value: &Failure, findings: &mut Vec<Violation>) -> Result<()
     }
     match &value.failure_info {
         Some(FailureInfo::ApplicationFailureInfo(v)) => {
-            check!(v, catalog::application_failure_info());
+            check!(v, catalog::application_failure_info(&Limits::default()));
         }
-        Some(FailureInfo::ActivityFailureInfo(v)) => check!(v, catalog::activity_failure_info()),
+        Some(FailureInfo::ActivityFailureInfo(v)) => {
+            check!(v, catalog::activity_failure_info(&Limits::default()));
+        }
         Some(FailureInfo::ChildWorkflowExecutionFailureInfo(v)) => {
-            check!(v, catalog::child_workflow_execution_failure_info());
+            check!(v, catalog::child_workflow_execution_failure_info(&Limits::default()));
         }
-        Some(FailureInfo::TimeoutFailureInfo(v)) => check!(v, catalog::timeout_failure_info()),
+        Some(FailureInfo::TimeoutFailureInfo(v)) => {
+            check!(v, catalog::timeout_failure_info(&Limits::default()));
+        }
         Some(FailureInfo::NexusHandlerFailureInfo(v)) => {
-            check!(v, catalog::nexus_handler_failure_info());
+            check!(v, catalog::nexus_handler_failure_info(&Limits::default()));
         }
         _ => (),
     }
@@ -800,6 +848,7 @@ fn classify(request: &ProbeRequest, entries: Vec<Entry>) -> Result<ProbeResponse
     let mut fails = false;
     let mut outcomes = [0_usize; 4];
     let mut intentional_accepts = 0;
+    let mut loose_expectations = 0;
     let cases = entries.len();
     for entry in entries {
         let observation = request
@@ -817,7 +866,8 @@ fn classify(request: &ProbeRequest, entries: Vec<Entry>) -> Result<ProbeResponse
                     .then(|| observation.details_type.clone()),
             }
         };
-        let mut row = GapEntry::checked(entry.target.violation.clone(), actual)?;
+        let mut row =
+            GapEntry::checked(entry.target.violation.clone(), actual)?.metadata(&entry.target);
         dispositions.apply(&entry.id(), &mut row);
         fails |= row.fails();
         let outcome = match &row.outcome {
@@ -840,6 +890,10 @@ fn classify(request: &ProbeRequest, entries: Vec<Entry>) -> Result<ProbeResponse
                 "Accepts"
             }
             Expectation::Rejects { .. } => "Rejects",
+            Expectation::RejectsCode(_) | Expectation::RejectsAnyStatus => {
+                loose_expectations += 1;
+                "Rejects"
+            }
             Expectation::Unobservable => return Err("unobservable request expectation".into()),
         };
         write!(
@@ -875,5 +929,6 @@ fn classify(request: &ProbeRequest, entries: Vec<Entry>) -> Result<ProbeResponse
         outcomes[3],
         cases - intentional_accepts
     )?;
+    writeln!(text, "Loose expectations: {loose_expectations}")?;
     Ok(ProbeResponse { report: text, fails, ..Default::default() })
 }

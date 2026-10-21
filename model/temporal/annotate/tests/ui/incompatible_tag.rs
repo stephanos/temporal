@@ -1,9 +1,10 @@
+#[path = "../support/mod.rs"]
+mod foundation;
+use umpire_temporal_annotate::{Catalog, kinds::*};
 #[derive(Clone, Default)]
-struct Message {
-    count: i32,
-}
-umpire_temporal_annotate::annotate! {
-    pub catalog controls;
-    message response message: Message = "test.Message" { count: Counter + IdempotencyKey; }
-}
+struct Wire { count: i32 }
+
+#[derive(Catalog)]
+#[api(response = "test.Wire", type = Wire)]
+struct Mirror { #[api(idempotency_key)] count: Counter }
 fn main() {}

@@ -13,5 +13,5 @@
   "spec_path": ".flow/tasks/fn-217-annotation-catalog-over-the-temporal.6.md",
   "status": "todo",
   "title": "Readable api.rs: derive(Catalog) mirror structs replace the annotate! block",
-  "updated_at": "2026-10-21T02:02:44.794216Z"
+  "updated_at": "2026-10-21T02:33:05.096179Z"
 }
