@@ -190,7 +190,10 @@ pub(crate) fn publish_bundle_with_budget(
 )]
 pub fn dispatch(arguments: &[String]) -> Option<Result<(), Error>> {
     let command = arguments.first()?.as_str();
-    if matches!(command, "fixture-simulation-controller" | "fixture-choice-controller") {
+    if matches!(
+        command,
+        "fixture-simulation-controller" | "fixture-choice-controller"
+    ) {
         return Some((|| {
             if arguments.len() != 3 || arguments[1] != "--input" {
                 return Err("fixture-simulation-controller requires --input FILE".into());

@@ -1030,8 +1030,17 @@ pub(super) fn publication(
     configuration: cluster::Configuration,
     execution: helper::Execution,
 ) -> Result<super::execution::Result, String> {
-    use crate::evidence::{identity::Identity, record::{Outcome, Record, Stream}, store::Publication};
-    let scenario = parse(prepared.scenario.as_deref().ok_or("missing campaign scenario")?)?;
+    use crate::evidence::{
+        identity::Identity,
+        record::{Outcome, Record, Stream},
+        store::Publication,
+    };
+    let scenario = parse(
+        prepared
+            .scenario
+            .as_deref()
+            .ok_or("missing campaign scenario")?,
+    )?;
     let reports = assertions(
         &execution,
         &configuration,

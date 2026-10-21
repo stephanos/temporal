@@ -178,7 +178,7 @@ fn run(
                     remaining,
                     &cancellations[index],
                     replay.as_ref(),
-                    Some(&control.choice_source_trace),
+                    replay.as_ref().map(|_| control.choice_source_trace.as_slice()),
                     &control.simulation_plan,
                 )
             })();
@@ -276,7 +276,8 @@ fn run(
             if matches!(
                 execution.record.outcome.class.as_str(),
                 "target_failure" | "watchdog"
-            ) && execution.divergence.is_none() && !result.diverged
+            ) && execution.divergence.is_none()
+                && !result.diverged
             {
                 result.failed = true;
                 result.failure_sha256 = format!("sha256:{}", execution.record.failure_signature()?);

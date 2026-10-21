@@ -35,14 +35,28 @@ pub(super) fn run(
         return Err("simulation plan seed differs from execution".into());
     }
     let (mut result, decisions, divergence, observations) = if let Some(raw) = &prepared.scenario {
-        let mut bound = scenario::bind(raw, &prepared.configuration, &prepared.module,
-            prepared.choice_identity.as_ref().ok_or("missing simulation choice identity")?,
-            prepared.network.as_ref(), job.seed)?;
+        let mut bound = scenario::bind(
+            raw,
+            &prepared.configuration,
+            &prepared.module,
+            prepared
+                .choice_identity
+                .as_ref()
+                .ok_or("missing simulation choice identity")?,
+            prepared.network.as_ref(),
+            job.seed,
+        )?;
         bound.request.wall_timeout = bound.request.wall_timeout.min(remaining);
         if let Some(replay) = replay {
-            let primary = bound.request.incarnations.first_mut()
+            let primary = bound
+                .request
+                .incarnations
+                .first_mut()
                 .ok_or("simulation runtime replay has no incarnation")?;
-            let model = primary.request.model.as_mut()
+            let model = primary
+                .request
+                .model
+                .as_mut()
                 .ok_or("simulation runtime replay has no cooperative model")?;
             model.configuration.mode = 2;
             model.configuration.replay = Some(replay.clone());
@@ -56,9 +70,13 @@ pub(super) fn run(
         let observed = linked_simulation::execute(admitted, plan, 65536)
             .map_err(|error| format!("runner_failure: {error}"))?;
         let primary = observed.cluster.incarnations.first();
-        let trace = primary.and_then(|item| item.execution.evidence.get("choice"))
-            .cloned().unwrap_or_default();
-        let runtime_divergence = primary.and_then(|item| item.execution.outcome.divergence.as_deref()).cloned();
+        let trace = primary
+            .and_then(|item| item.execution.evidence.get("choice"))
+            .cloned()
+            .unwrap_or_default();
+        let runtime_divergence = primary
+            .and_then(|item| item.execution.outcome.divergence.as_deref())
+            .cloned();
         let observations = json!({
             "world_sha256":canonical::digest(&observed.cluster.world),
             "network_sha256":canonical::digest(&observed.cluster.network),
@@ -68,15 +86,27 @@ pub(super) fn run(
                 "termination":item.execution.outcome.termination,"exit_code":item.execution.outcome.exit_code
             })).collect::<Vec<_>>()
         });
-        let mut result = scenario::publication(prepared, job, bound.configuration, observed.cluster)?;
+        let mut result =
+            scenario::publication(prepared, job, bound.configuration, observed.cluster)?;
         result.execution.divergence = runtime_divergence;
         payload(&mut result, "evidence/choice", trace);
-        (result, observed.decisions, observed.divergence, observations)
+        (
+            result,
+            observed.decisions,
+            observed.divergence,
+            observations,
+        )
     } else {
-        if plan.overrides.iter().flatten().any(|value| value.dimension != linked_simulation::Dimension::Runtime) {
+        if plan
+            .overrides
+            .iter()
+            .flatten()
+            .any(|value| value.dimension != linked_simulation::Dimension::Runtime)
+        {
             return Err("non-runtime simulation override requires an executed scenario".into());
         }
-        let result = execution::run_with_replay(prepared, job, remaining, cancellation, replay, raw_trace)?;
+        let result =
+            execution::run_with_replay(prepared, job, remaining, cancellation, replay, raw_trace)?;
         let observations = json!({"execution_record_sha256":result.execution.record.hash()?});
         (result, Vec::new(), None, observations)
     };
@@ -86,16 +116,46 @@ pub(super) fn run(
         result.execution.record.outcome.reason = "simulation_replay_divergence".into();
         result.publication.record = result.execution.record.clone();
     }
-    let failed = matches!(result.execution.record.outcome.class.as_str(), "target_failure" | "watchdog");
+    let failed = matches!(
+        result.execution.record.outcome.class.as_str(),
+        "target_failure" | "watchdog"
+    );
+    let behavioral_record = result.execution.record.bytes()?;
     let mut observation = Observation {
-        schema: "gomad.cluster-record/v8", producer: "gomad.rust-live-models/v1", seed: job.seed,
-        identity: String::new(), outcome: if diverged { "replay_diverged" } else if failed { "scenario_failed" } else { "completed" },
-        failure_identity: if failed && !diverged { format!("sha256:{}", result.execution.record.failure_signature()?) } else { String::new() },
-        exploration_plan: RawValue::from_string(String::from_utf8(simulation_plan.to_vec()).map_err(|error| error.to_string())?).map_err(|error| error.to_string())?,
-        exploration_decisions: decisions, divergence, observations,
+        schema: "gomad.cluster-record/v8",
+        producer: "gomad.rust-live-models/v1",
+        seed: job.seed,
+        identity: String::new(),
+        outcome: if diverged {
+            "replay_diverged"
+        } else if failed {
+            "scenario_failed"
+        } else {
+            "completed"
+        },
+        failure_identity: if failed && !diverged {
+            format!("sha256:{}", result.execution.record.failure_signature()?)
+        } else {
+            String::new()
+        },
+        exploration_plan: RawValue::from_string(
+            String::from_utf8(simulation_plan.to_vec()).map_err(|error| error.to_string())?,
+        )
+        .map_err(|error| error.to_string())?,
+        exploration_decisions: decisions,
+        divergence,
+        observations,
     };
-    observation.identity = super::exploration::domain_hash("gomad-rust-simulation-observation/v1", &serde_json::to_vec(&observation).map_err(|error| error.to_string())?);
-    payload(&mut result, "simulation/record.json", serde_json::to_vec(&observation).map_err(|error| error.to_string())?);
+    observation.identity = super::exploration::domain_hash(
+        "gomad-rust-simulation-observation/v1",
+        &serde_json::to_vec(&observation).map_err(|error| error.to_string())?,
+    );
+    payload(
+        &mut result,
+        "simulation/record.json",
+        serde_json::to_vec(&observation).map_err(|error| error.to_string())?,
+    );
+    payload(&mut result, "simulation/behavioral-record.json", behavioral_record);
     let record = result.publication.record.bytes()?;
     payload(&mut result, "record.json", record);
     Ok(result)
@@ -103,8 +163,16 @@ pub(super) fn run(
 
 fn payload(result: &mut execution::Result, name: &str, bytes: Vec<u8>) {
     if name != "record.json" {
-        let stream = Stream { bytes: bytes.len() as u64, sha256: canonical::digest(&bytes), records: 1 };
-        result.publication.record.streams.insert(name.into(), stream.clone());
+        let stream = Stream {
+            bytes: bytes.len() as u64,
+            sha256: canonical::digest(&bytes),
+            records: 1,
+        };
+        result
+            .publication
+            .record
+            .streams
+            .insert(name.into(), stream.clone());
         result.execution.record.streams.insert(name.into(), stream);
     }
     result.publication.payloads.insert(name.into(), bytes);

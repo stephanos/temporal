@@ -226,8 +226,8 @@ impl RoundState {
                         state.config.base_seed,
                     )?;
                     if result.failed
-                            && result.failure_sha256
-                                != format!("sha256:{}", execution.record.failure_signature()?)
+                        && result.failure_sha256
+                            != format!("sha256:{}", execution.record.failure_signature()?)
                     {
                         return Err(
                             "simulation round result differs from its execution record".into()
@@ -259,7 +259,10 @@ impl RoundState {
                         &raw.record,
                         &runtime,
                     )?;
-                    if is_failure(execution) && execution.divergence.is_none() && !regenerated.diverged {
+                    if is_failure(execution)
+                        && execution.divergence.is_none()
+                        && !regenerated.diverged
+                    {
                         regenerated.failed = true;
                         regenerated.failure_sha256 =
                             format!("sha256:{}", execution.record.failure_signature()?);
