@@ -1,7 +1,4 @@
 {
-  "assignee": null,
-  "claim_note": "",
-  "claimed_at": null,
   "created_at": "2026-10-20T20:43:56.903479Z",
   "depends_on": [
     "fn-232-gomad-rewrite-the-host-side-in-rust.9"
@@ -11,6 +8,6 @@
   "spec": "fn-232-gomad-rewrite-the-host-side-in-rust",
   "spec_path": ".flow/tasks/fn-232-gomad-rewrite-the-host-side-in-rust.10.md",
   "status": "todo",
-  "title": "qualify in Rust",
-  "updated_at": "2026-10-20T21:09:59.117555Z"
+  "title": "qualify and report in Rust",
+  "updated_at": "2026-10-21T17:53:24.877744Z"
 }

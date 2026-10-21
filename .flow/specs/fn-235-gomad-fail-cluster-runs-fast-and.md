@@ -19,7 +19,7 @@ Per the Rust host decision (2026-10-20) the fix lands in the helper; the Go side
 
 ## Architecture & Data Models
 
-- Map `world::Error::Capacity { dimension, .. }` from broker World calls to `Failure::Capacity(dimension)`.
+- Map `world::Error::Capacity { dimension, .. }` from broker World calls to `Failure::Exhausted` with dimension, limit, used and delta preserved.
 - On instance failure or broker abort in manual mode, the helper emits that incarnation's terminal result (or one cluster-abort frame) to the controller immediately, wakes the control loop, stops the remaining instances with the existing terminate path, and keeps every instance's partial stdout/stderr and the abort virtual time in the retained evidence.
 - No new limit, no limit value change, no new scenario schema field.
 
@@ -42,12 +42,16 @@ Per the Rust host decision (2026-10-20) the fix lands in the helper; the Go side
 - **R3:** The retained artifact keeps each instance's partial stdout/stderr and the abort virtual time; inspect shows them and the limit; replay reproduces the outcome. Errors: empty streams on a capacity abort are a finding.
 - **R4:** Golden regression first (testing preference R14): a two-node ping/echo scenario under `command/testdata/scenario/` with `observation_bytes` small enough to exhaust mid-run (about 4096 B) asserts R1-R3 end to end through the CLI; it fails (hangs to watchdog) before the fix. Existing scenario corpora stay green.
 
+- **R5:** Task .2 measures the long-running three-node ringpop scenario before changing World inspection commitment computation. Retain same-host/same-window profiles and wall time per virtual second at 10, 60 and 120 seconds, repeated enough to report spread, with exact source/helper/module/configuration identities and commands. Attribute the growing cost to a named site before changing it; after the change, per-interval cost stays within measured spread rather than growing with accumulated history. Preserve commitment bytes and replay behavior, or explicitly rotate affected identities and qualify the changed contract. Existing golden scenarios and fresh retained replay pass. Errors: a profile from a different workload, an unmeasured attribution, changed commitment bytes without identity treatment, or a timing-only result without replay leaves R5 open.
+
 ## Boundaries
 
 - No change to limit values, the 64 B/operation World charge, or observation-budget semantics (see open question).
 - No new scenario or config fields. No CI run, PR or push.
 
 ## Decision Context
+
+Task .1 is completed; its broker/manual/fixture surfaces overlap .2 and are not a parallel implementation wave. Any follow-up to .1 must reconcile those shared writes before .2 integration. Capacity mapping uses the existing accounting-preserving Exhausted representation, not a dimension-only error.
 
 User decision 2026-10-21: exceeding a limit must not be silent. Chosen: immediate classified termination with retained evidence, rather than a helper panic (which would lose evidence and look like a helper bug). Lands in the Rust helper; coordinate the merge with fn-232's helper-as-library batch because it rotates helper identity.
 
@@ -61,3 +65,4 @@ Open question for the owner (not in scope): the broker World charges 64 payload 
 | R2 | Prompt termination of manual cluster runs on failure | .1 | — |
 | R3 | Partial per-instance evidence retained, inspect/replay | .1 | — |
 | R4 | Golden regression scenario first | .1 | — |
+| R5 | Measure and remove growing World inspection commitment cost | .2 | — |

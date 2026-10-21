@@ -65,6 +65,7 @@ fn default_cut_literals_reject_snapshot_and_changed_stage_contracts() {
         data: 0,
         selected_identity: [0; 32],
         alternative_set_digest: [0; 32],
+        creation_sites: Vec::new(),
     }]);
     assert!(literals(&nonempty).is_err(), "nonempty typed tape accepted");
     let mut missing: serde_json::Value = serde_json::from_slice(&source).unwrap();

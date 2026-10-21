@@ -152,4 +152,7 @@ review=subprocess.run([sys.executable,str(pathlib.Path(__file__).with_name('foun
 (root/'review-regressions.log').write_text(review.stdout+review.stderr)
 assert review.returncode==0,review.stderr
 cases.extend(['sparse-pool-caller-bound','interrupted-ancestor-recovery-sync','concurrent-ancestor-sync'])
+cases.extend('immutable-'+scope+'-'+point+'-recovery' for scope in ('pool','layout')
+             for point in ('file_created','file_partial','before_file_sync','file_durable','file_published'))
+cases.extend('immutable-'+scope+'-conflict-refusal' for scope in ('pool','layout'))
 print(json.dumps({'passed':cases,'count':len(cases)},sort_keys=True))

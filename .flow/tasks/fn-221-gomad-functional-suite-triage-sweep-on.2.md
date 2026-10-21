@@ -9,6 +9,8 @@ Run the harness over every package under tests on a quiet host with recorded hos
 **Size:** L
 **Files:** .flow/artifacts/fn221-*.md, .flow/artifacts/fn221-*.json
 
+**Touches:** .flow/artifacts/fn221-*.md, .flow/artifacts/fn221-*.json
+
 ## Acceptance
 - [ ] Every enumerated test function has exactly one class and, for non-pass classes, a reason string
 - [ ] Candidate and host identity recorded

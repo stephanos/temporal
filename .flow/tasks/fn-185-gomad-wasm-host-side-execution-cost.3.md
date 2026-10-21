@@ -9,7 +9,11 @@ From the task .2 data, produce the decision report: per cost center its share of
 **Size:** S
 **Files:** .flow/artifacts/fn185-decision-<date>.md, .plans/GOMAD_NEXT.md, MILESTONES.md
 
+**Touches:** .flow/artifacts/fn185-decision-<date>.md, .plans/GOMAD_NEXT.md, MILESTONES.md
+
 ## Acceptance
+Use one workload elapsed interval as the wall denominator. Overlapping per-instance wall is aggregate thread-time, not an additive fraction of elapsed execution. Separate reducible work from handoff waiting and instrumentation; compute Amdahl bounds only from non-overlapping measured work contributions, otherwise mark the bound unavailable. Report CPU and wall rankings distinctly.
+
 - [ ] Ranked table with share, Amdahl bound, mechanism and risk per cost center
 - [ ] One explicit verdict recorded; no optimization work started before it
 - [ ] Roadmap and milestones updated with the verdict and artifact pointer

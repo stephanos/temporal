@@ -267,7 +267,7 @@ func stockRewrites() map[string][]rewrite {
 			{"\t\t\tj := cheaprandn(i + 1)", "\t\t\tj := gomadChoiceRunnextSeeded(i + 1)", 2},
 			{"func runqget(pp *p) (gp *g, inheritTime bool) {", "func runqget(pp *p) (gp *g, inheritTime bool) {\n\tif gomadEnabled {\n\t\th, t := pp.runqhead, pp.runqtail\n\t\tif t-h > 1 {\n\t\t\toffset := gomadChoiceRunqIndex(pp, h, t)\n\t\t\tindex := (h + offset) % uint32(len(pp.runq))\n\t\t\tgp := pp.runq[index].ptr()\n\t\t\tpp.runq[index] = pp.runq[h%uint32(len(pp.runq))]\n\t\t\tatomic.StoreRel(&pp.runqhead, h+1)\n\t\t\treturn gp, false\n\t\t}\n\t}", 1},
 		},
-		"runtime2.go": {{"\tgoid         uint64\n", "\tgoid         uint64\n\tgomadID      [32]byte\n\tgomadChild   uint64\n\tgomadTimer   uint64\n", 1}},
+		"runtime2.go": {{"\tgoid         uint64\n", "\tgoid         uint64\n\tgomadID      [32]byte\n\tgomadCreationSite uint64\n\tgomadCreationFlags uint8\n\tgomadChild   uint64\n\tgomadTimer   uint64\n", 1}},
 		"rand.go": {
 			{"\tif len(startupRand) >= 16 &&", "\tif gomadEnabled {\n\t\tbyteorder.BEPutUint64(seed[:], gomadSeed)\n\t} else if len(startupRand) >= 16 &&", 1},
 			{"\tmp := getg().m\n\tc := &mp.chacha8", "\tmp := getg().m\n\tif gomadEnabled && mp.p != 0 {\n\t\treturn gomadRuntimeRand(mp)\n\t}\n\tc := &mp.chacha8", 1},

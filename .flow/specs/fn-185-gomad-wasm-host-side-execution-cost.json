@@ -1,13 +1,168 @@
 {
   "branch_name": "fn-185-gomad-wasm-host-side-execution-cost",
+  "completion_review_status": "unknown",
+  "completion_reviewed_at": null,
   "created_at": "2026-10-16T00:37:56.222807Z",
+  "default_impl": null,
+  "default_review": null,
+  "default_sync": null,
   "depends_on_epics": [
     "fn-187-gomad-wasm-helper-fixture-tests-and"
   ],
   "id": "fn-185-gomad-wasm-host-side-execution-cost",
+  "impl_review_rounds": {},
   "next_task": 1,
-  "plan_review_status": "unknown",
-  "plan_reviewed_at": null,
+  "plan_review_rounds": 0,
+  "plan_review_status": "ship",
+  "plan_reviewed_at": "2026-10-21T17:41:25.625873Z",
+  "review_attempts": [
+    {
+      "artifact_sha256": "90a308390c05f26666258d81ed107b7c7f03549b37fead4a3af3f1e6d363104a",
+      "backend": "codex",
+      "base_sha": "951c5516e9e7b3066e7e069adda9565cfd68844c",
+      "counter_kind": "plan",
+      "effort": "high",
+      "failure_class": null,
+      "finalized": {
+        "digest": "complete",
+        "receipt": "complete",
+        "status": "complete"
+      },
+      "findings_digest": {
+        "backend": "codex",
+        "digest_truncated": false,
+        "items": [
+          {
+            "chainRoot": "finding-10a3e0643b6652ebf4bca5e5aee52f66",
+            "classification": "introduced",
+            "findingId": "finding-10a3e0643b6652ebf4bca5e5aee52f66",
+            "firstSeenThisRound": true,
+            "severity": "P1",
+            "status": "open"
+          },
+          {
+            "chainRoot": "finding-a15b8c555c0a4cf6cf58422ae32517b2",
+            "classification": "introduced",
+            "findingId": "finding-a15b8c555c0a4cf6cf58422ae32517b2",
+            "firstSeenThisRound": true,
+            "severity": "P1",
+            "status": "open"
+          },
+          {
+            "chainRoot": "finding-7cb7929f9ad6d04a8f3f12aadb9a05f3",
+            "classification": "introduced",
+            "findingId": "finding-7cb7929f9ad6d04a8f3f12aadb9a05f3",
+            "firstSeenThisRound": true,
+            "severity": "P1",
+            "status": "open"
+          },
+          {
+            "chainRoot": "finding-fbd40b30bd226308e39e4c39f5f41dcb",
+            "classification": "introduced",
+            "findingId": "finding-fbd40b30bd226308e39e4c39f5f41dcb",
+            "firstSeenThisRound": true,
+            "severity": "P2",
+            "status": "open"
+          }
+        ],
+        "reviewKind": "plan"
+      },
+      "forced": false,
+      "hash_epoch": 0,
+      "head_sha": "3ad88e1cdeec9431146220838bfd01c932ccef1a",
+      "head_sha_observed": true,
+      "kind": "plan",
+      "model": "gpt-6.1-sol",
+      "outcome": "verdict",
+      "output_bytes": 372913,
+      "output_sha256": "6f25a4068b85295c904dedc4aea49f7b124eb379daea630d017efd04c827718f",
+      "reservation_id": "e814e539c5c844bdacf22585772ea6d8",
+      "round_consumed": true,
+      "scope": "plan",
+      "superseded_by": null,
+      "task": null,
+      "timestamp": "2026-10-21T17:37:01.096060Z",
+      "tool_calls": 47,
+      "verdict": "NEEDS_WORK"
+    },
+    {
+      "artifact_sha256": "1f4dd74aec5c74a3507b2f622e1bfc4e501f0f9d3257f59ff44497d42b1310f2",
+      "backend": "codex",
+      "base_sha": "951c5516e9e7b3066e7e069adda9565cfd68844c",
+      "counter_kind": "plan",
+      "effort": "high",
+      "failure_class": null,
+      "finalized": {
+        "digest": "complete",
+        "receipt": "complete",
+        "status": "complete"
+      },
+      "findings_digest": {
+        "backend": "codex",
+        "digest_truncated": false,
+        "items": [
+          {
+            "chainRoot": "finding-10a3e0643b6652ebf4bca5e5aee52f66",
+            "classification": "introduced",
+            "findingId": "finding-10a3e0643b6652ebf4bca5e5aee52f66",
+            "firstSeenThisRound": false,
+            "severity": "P1",
+            "status": "fixed"
+          },
+          {
+            "chainRoot": "finding-a15b8c555c0a4cf6cf58422ae32517b2",
+            "classification": "introduced",
+            "findingId": "finding-a15b8c555c0a4cf6cf58422ae32517b2",
+            "firstSeenThisRound": false,
+            "severity": "P1",
+            "status": "fixed"
+          },
+          {
+            "chainRoot": "finding-7cb7929f9ad6d04a8f3f12aadb9a05f3",
+            "classification": "introduced",
+            "findingId": "finding-7cb7929f9ad6d04a8f3f12aadb9a05f3",
+            "firstSeenThisRound": false,
+            "severity": "P1",
+            "status": "fixed"
+          },
+          {
+            "chainRoot": "finding-fbd40b30bd226308e39e4c39f5f41dcb",
+            "classification": "introduced",
+            "findingId": "finding-fbd40b30bd226308e39e4c39f5f41dcb",
+            "firstSeenThisRound": false,
+            "severity": "P2",
+            "status": "fixed"
+          }
+        ],
+        "reviewKind": "plan"
+      },
+      "forced": false,
+      "hash_epoch": 0,
+      "head_sha": "3ad88e1cdeec9431146220838bfd01c932ccef1a",
+      "head_sha_observed": true,
+      "kind": "plan",
+      "model": "gpt-6.1-sol",
+      "outcome": "verdict",
+      "output_bytes": 726,
+      "output_sha256": "fbf6e60e6a17bde756571a773f4c59aa3b7d3ef520118aaabd1c3f8fda5e3fcc",
+      "reservation_id": "8678c406f65941d795f22ccf70c99e7c",
+      "round_consumed": true,
+      "scope": "plan",
+      "superseded_by": null,
+      "task": null,
+      "timestamp": "2026-10-21T17:41:25.615548Z",
+      "verdict": "SHIP"
+    }
+  ],
+  "review_hash_epoch": {
+    "plan": 1,
+    "plan#completion": 0
+  },
+  "review_pending_rounds": {},
+  "review_reservations": {},
+  "review_transport_failures": {
+    "plan": 0
+  },
   "spec_path": ".flow/specs/fn-185-gomad-wasm-host-side-execution-cost.md",
   "status": "open",
   "title": "Gomad: WASM host-side execution cost profile",
@@ -22,5 +177,5 @@
     "mergeBaseTracker": null,
     "url": null
   },
-  "updated_at": "2026-10-20T18:33:51.748499Z"
+  "updated_at": "2026-10-21T17:41:25.629196Z"
 }

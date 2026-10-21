@@ -3,7 +3,7 @@ satisfies: [R5, R13, R14]
 ---
 # fn-232-gomad-rewrite-the-host-side-in-rust.6 replay in Rust (exact and observed) on the helper library tape path
 
-Touches: tools/gomad/rust/gomad/src/cli/replay.rs, gomad/src/replay/{preflight.rs,divergence.rs}
+**Touches:** tools/gomad/rust/gomad/src/cli/replay.rs, tools/gomad/rust/gomad/src/replay/{preflight.rs,divergence.rs}
 
 ## Description
 Implement preflight (helper, module, runtime and implementation identity checks without reopening build inputs), exact replay through the helper library's fn-228 tape path, observed replay for the stock profile, divergence projection with ordinal, reason, expected and observed decisions, and the storage-crash interrupted path. Preflight and execution use task .3's authenticated pinned-root handles throughout, without reopening the artifact pathname or build inputs; malformed/boundedness/digest failures start no guest. Add replay to the harness using task .4's declared golden view and independent raw-integrity verification.
@@ -14,14 +14,23 @@ Existing diagnostic role selectors map to matching compiled Rust binaries: prese
 
 Cluster replay and cluster stop-inspection are also existing owned paths. Port the retained scenario and multiple-incarnation orchestration through the existing helper cluster core using a typed linked seam, with authenticated module handles/bytes and retained configuration/namespace/storage inputs. Preserve incarnation ordering, fresh stores, broker/clock/storage semantics and existing bounds; no path-based reopening, transport reconstruction, or blanket unsupported replacement. Task .8 receives and reuses this execution seam rather than building a second cluster implementation. Actual same-target Go/Rust cluster replay/inspection fixtures are required before acceptance.
 
+Go host repair received (2026-10-21, `go-host-v4-compat`): a sweep-blocking Go change restored header v2 / trace v4 and Go-owned tape attestation (fn-230 R12, fn-228 R4/R9). The Rust replay must keep the same semantics. Creation records precede their runnable decision and are counted against the trace limit before the decision is forced. Inspection boundaries map decisions at the pre-decision trace length. Replay attests the consumed tape's SHA-256 and decision count. Retained v3 traces stay admissible. Checkpoint artifact, "Go host v4 compatibility repair".
+
 ## Acceptance
 The owned behavior has reviewed golden fixtures, repeated-execution agreement and byte-identical second regeneration (R14); public verbs also run their fresh Go/Rust semantic parity lane (R13).
 Harness replay lane shows the same match/first-divergence ordinal and reason as Go on its own artifacts across the corpus; identity mismatch, missing payloads and divergence produce today's statuses and messages. CLI fault fixtures refuse substituted/symlink roots, traversal, wrong private modes/links, oversized or changed payloads and digest corruption before guest start, and prove post-open pathname replacement cannot redirect the pinned reads; intentional target-pool module hard links still replay.
 
 ## Done summary
-TBD
+Rust replay (exact, observed, verify-only, storage-crash, inspection controls and diagnostic roles) and cluster replay/stop-inspection pass the complete mandatory replay lane on genuinely fresh binaries. Every role was rebuilt from the integrated Rust/helper trees (d6b57a08/ed1d0bd6) after `cargo clean -p gomad -p gomad-wasmhost`, with `Compiling` lines asserted (fixture 31b3187b, release 6db9daa2, stress 496339c5, determinism e869f407, ordinary helper 8ca97310; the helper accepts the v4 decision layout and rejects the malformed one). Helper tests, all-target Clippy and per-role host tests/Clippy all exit 0. The stale-cache mechanism is documented: cargo freshness for path crates depends on mtime and ignores path, so an older-mtime tree reuses newer artifacts.
 
+Conductor decision (owner-delegated): World/cluster/registered Go comparisons use an explicitly pinned pre-v4 producer. It is declared as `cluster_reference` in replay-corpus.json and enforced by replay-lane.py: launcher fef8769b (byte-identical no-VCS builds of 294b5e66e5 and 46aca8c3ec), helper 71f7dc47 (fresh compile of 46aca8c3ec reproduces it byte-for-byte) and the 46aca8c3ec source archive. The extracted source tree is authenticated against the archive before use (revision, contents, modes, links, no unarchived files), with a refusal selftest. The newest Go producer's v3-only artifact validator refusal (status 3 after a complete v4 trace) is kept as supplementary regression evidence. The Go validator was not patched and no status or hash was normalized. Standalone replay/divergence/network stay on the frozen 1d7b37f00a pair.
+
+Master lane (fresh Go/Rust parity, consumer/opener faults, cluster WAT and failures, storage/prefix, registered inspection across ordinary/stress/determinism roles, role refusals, four network cells, public/API-failure/alternate/success cluster imports): regeneration1b 0, regeneration2c 0 with byte-identical goldens (10 files), strictb 0 and strictc 0 (with source pin) leaving goldens unchanged. Against HEAD, golden changes are identity/hash rotations plus the four new cluster goldens. The runtime stock-profile time/transcript delta is input-driven and binary-independent; a retained 2x2 control shows this (entropy key/toolchain identity rotated, same module). Five attempts failed only on host-sensitive 30s/60s inspection-search wall budgets under shared-host load. Each is preserved with a note; budgets are unchanged and runs were retried in quiet slots. Independent codex review: NEEDS_WORK (source not authenticated; delta causal evidence) -> fixed -> independent re-review SHIP with no findings (evidence/fn232-replay-closeout/independent-rereview.md).
+
+stage: impl-review - ran (independent codex review NEEDS_WORK -> fixed -> re-review SHIP R5/R13/R14)
+
+stage: plan-sync - skipped(config: planSync.enabled != true)
 ## Evidence
-- Commits:
-- Tests:
+- Commits: 5e9e6dd9aa, 30db0b985d, 0a7186e73f
+- Tests: master-regeneration1b exit 0, master-regeneration2c exit 0 (goldens byte-identical to regeneration1b), master-strictb exit 0, master-strictc exit 0 (with cluster source pin), build-candidate.py: helper tests/clippy, per-role host tests/clippy exit 0, v4 accept / invalid reject probes exit 0, stock-delta-control.py 2x2 control, independent codex review NEEDS_WORK then re-review SHIP; receipts /home/agent/wt/evidence/fn232-replay-closeout
 - PRs:

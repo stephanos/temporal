@@ -275,6 +275,40 @@ the first client/server incarnations observe timeouts. A timed heal at 20 virtua
 seconds permits fresh incarnations to exchange `ping`. These fixtures exercise
 specific storage and stream boundaries, not every storage fault or partition.
 
+`ringpop.json` (fn-224) runs three nodes that each join a ringpop ring over the
+modeled network with the real `ringpop-go`/`tchannel-go` client. The guest is the
+nested module `internal/backends/wasm/testdata/ringpop`; its `go.mod` pins every
+dependency through the Temporal module, so run it from that directory with a
+cooperative installation built from `scenario/ringpop-config.json`:
+
+```sh
+/absolute/operator/bin/gomad install ... \
+  --config tools/gomad/internal/backends/wasm/command/testdata/scenario/ringpop-config.json \
+  --memory-bytes 1073741824 --fuel 1125899906842624 \
+  --output /absolute/operator/bin/gomad-ringpop.json
+cd tools/gomad/internal/backends/wasm/testdata/ringpop
+/absolute/operator/bin/gomad --installation /absolute/operator/bin/gomad-ringpop.json \
+  explore --json --scenario ../../command/testdata/scenario/ringpop.json \
+  --seeds=7,19 --parallel=1 --on-failure=all \
+  --keep-successes=all --success-limit=32 --success-bytes=4GiB \
+  --execution-timeout=15m --overall-timeout=35m --terminate-grace=2s \
+  --artifacts /absolute/operator/ringpop-artifacts --working-dir "$PWD" go-run .
+```
+
+Node `c` is partitioned from `a` and `b` at 10 virtual seconds and healed at 30.
+At 25 seconds each node prints its reachable view, and `a` and `b` must already
+have dropped `c`. After the heal each node must see exactly the three members on
+three consecutive one-second polls, printing `converged <node> after heal <d>
+checksum <n>`, and still see them at its 90-second deadline; otherwise it panics
+and the failure is retained. Nodes report through their exit status rather than
+an output stop marker, because a stop would end a node before its peers
+converge. Equal checksums across the three nodes show one ring.
+The scenario sets `observation_bytes` to its 64 MiB maximum: the cluster broker
+charges 64 bytes of World payload per brokered operation for the whole run, and
+three gossiping nodes use about 940 operations per virtual second. Three nodes
+currently run at several wall seconds per virtual second, so keep the timeline
+short (fn-235 tracks the cost and fast capacity failure).
+
 For an intentional replayable failure, use `jq` to change only the recovery boot
 in the same durable input, from the `tools/gomad` directory:
 
@@ -708,13 +742,12 @@ here. Existing opt-in `test_dep`, `disable_grpc_modules` and `sqlite3_dotlk`
 selections are retained.
 
 The guest-only `gomad_wasm_slim` tag (fn-182) is the supported provider trim.
-It leaves out the Google Cloud Storage and S3 archivers, ringpop membership and
-the MySQL/PostgreSQL functional-test drivers, which the qualified Temporal
-guests never construct. The one-box and multi-instance qualification cells
+It leaves out the Google Cloud Storage and S3 archivers and the
+MySQL/PostgreSQL functional-test drivers, which the qualified Temporal guests
+never construct. Ringpop membership stays linked (fn-224). The one-box and multi-instance qualification cells
 select it with `disable_grpc_modules,gomad_wasm_slim,sqlite3_dotlk,test_dep`;
 other targets opt in through `Campaign.Target.BuildTags`. Selecting an excluded
-provider in such a guest fails: `gs`/`s3` archival returns a "not built" error,
-a server without static hosts fails membership construction, and
+provider in such a guest fails: `gs`/`s3` archival returns a "not built" error and
 `-persistenceDriver=mysql8|postgres12|postgres12_pgx` keeps SQL visibility and
 fails plugin lookup (`supported plugins: [sqlite]`). Elasticsearch stays linked
 because the schedule query converter uses its query types. Tags and the selected

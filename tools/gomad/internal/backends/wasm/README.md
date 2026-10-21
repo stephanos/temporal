@@ -93,9 +93,9 @@ were removed by fn-223.
 
 Qualified Temporal guests build with the guest-only `gomad_wasm_slim` tag
 (`backend.SlimGuestBuildTag`). It uses the `gomad` provider seams to
-leave out the cloud archivers, ringpop membership and MySQL/PostgreSQL test
-drivers, while ordinary production builds keep them. Selecting an excluded
-provider fails explicitly. The [fn-182 specification](../../../../../.flow/specs/fn-182-gomad-smaller-wasm-guests.md)
+leave out the cloud archivers and MySQL/PostgreSQL test drivers, while
+ordinary production builds keep them. Selecting an excluded provider fails
+explicitly; ringpop membership stays linked (fn-224). The [fn-182 specification](../../../../../.flow/specs/fn-182-gomad-smaller-wasm-guests.md)
 records the dependency contract; [CLI.md](CLI.md) lists the refusals. Matched
 timing and memory measurements belong to fn-185. Smaller linked modules alone
 establish no startup or memory improvement.
@@ -292,7 +292,13 @@ to `tools/gomad/internal/model/runtimesource`. The overlays copy its package-run
 sources verbatim and hash the copied bytes. The former native overlay directory
 is no longer a valid runtime source root. This extraction rotates runtime and
 model identities; retained qualifications bind their historical candidate and
-must not be relabeled as current. Choice records and replay schemas are unchanged.
+must not be relabeled as current. Choice trace v4 adds creation-site metadata for
+each runnable alternative, preserving goroutine identity derivation and the v3
+decision tape. The helper validates ordered creation identities against the
+runnable alternative-set digest before exposing their sites. Previous v3 traces
+still inspect and project the same tape and have no creation sites. This runtime,
+schema and helper change rotates implementation identities; refreshed installations
+and frozen-candidate qualification are required.
 
 `toolchain/runtime_wasm.go.txt` contains the cooperative runtime;
 `toolchain/runtime_inspect_wasm.go.txt` contains its `gomadDebug*` inspection

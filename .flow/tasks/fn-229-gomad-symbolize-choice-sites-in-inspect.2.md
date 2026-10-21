@@ -26,9 +26,18 @@ Campaign receiving dependency: Go's structured divergence is campaign ExecutionI
 - Before/after checks pin unchanged artifact bytes, record hash, failure signature and execution identity; no output evidence is written back. Missing required fixture modules fail, never skip.
 
 ## Done summary
-TBD
+R1/R2/R5/R6/R9 accepted for the Rust inspect projection and authenticated campaign consumer. Aggregate sites, branching decisions and both divergence decisions reuse one immutable bounded symbol map with original helper-owned site keys; missing sites remain site_missing. Real stripped/name/pclntab, mismatch, range and budget distinctions are covered without changing stored evidence.
 
+The final symbol corpus has 53 command receipts per run, including 12 fresh Go publications and 10 negative metadata publications. Two regenerations are identical and a third strict run passes. The 132 golden leaf differences were independently audited as declared implementation/inspection encoding identity rotations; noninspection payloads and semantic fields remain unchanged. Golden SHA256: 59ff9d080251decc6e034c83c1975b90db4fe33998d0f03e6cca5b5404d4ec18.
+
+The actual campaign consumer covers four real divergences across three cases, including expected/observed and missing-site decisions, repeated byte-equal output and unchanged raw evidence. Fresh independent symbols_acceptance_final review returned SHIP with no requirement-specific blockers; same-family session-model fallback followed previously observed model unavailability. The reviewer re-inspected an actual artifact twice and verified all nine payload digests unchanged.
+
+stage: impl-review - ran (same-family session-model fallback; fresh independent symbols_acceptance_final reviewer)
+
+Evidence roots: /home/agent/wt/evidence/fn229-symbol-golden-audit-b301.json; /home/agent/wt/evidence/fn232-exploration-validation/symbols-{regenerate-first,regenerate-second,strict-third}-b301.log; /home/agent/wt/evidence/fn232-choice-divergence-root-postreview-01. The fn232 R1/R13 gaps and final qualification remain open; this closes only fn229.2.
+
+stage: plan-sync - skipped(config: planSync.enabled != true)
 ## Evidence
-- Commits:
-- Tests:
+- Commits: 711e0a9d58, 294b5e66e5, 89457da754
+- Tests: Actual public symbols lane: first and second golden regenerations exit 0 and byte-identical; third strict run exit 0, 53 command receipts per run, Actual public campaign divergence consumer: three cases, four real divergences; expected/observed symbol attachment and missing sites, repeated output and raw evidence preservation pass, Independent symbols_acceptance_final review: SHIP; fresh repeated inspection and nine unchanged artifact payload digests, sha256sum checked-in symbols golden plus both regenerated files: all 59ff9d080251decc6e034c83c1975b90db4fe33998d0f03e6cca5b5404d4ec18, git diff --check: exit 0
 - PRs:

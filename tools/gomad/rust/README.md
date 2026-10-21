@@ -29,6 +29,10 @@ Seed `explore`, `resume`, `execute-shard` and `merge` use Rust-owned preparation
 ordered campaign policy, authenticated journals and retained target pools. Their
 source preparation and differential lanes are documented in
 [the maintainer CLI guide](../CLI.md#rust-seed-campaigns).
+The public `minimize` verb reduces retained standalone failures with bounded
+attempts, authenticated checkpoints and `--resume`. Its public flags are unchanged;
+the JSON result and retained failure-signature semantics are documented in
+[the maintainer CLI guide](../CLI.md#rust-minimization).
 Other public host verbs remain with their later fn-232 tasks. The
 `determinism-fixture` feature exposes the foundation, inspect, replay and campaign test drivers;
 their commands and fault controls are absent from ordinary builds. Run from the
@@ -79,3 +83,11 @@ bundle and each fresh raw Go result, independently authenticates the Rust bundle
 then compares concrete termination and guest exit status. Stock-WASI WAT cases
 have no cooperative choice imports: baseline seeds label two fresh repetitions,
 while the Rust concurrent ledger carries the requested execution seeds.
+
+The replay parity lane uses its frozen Go launcher, matching helper and archived
+runtime source for standalone recordings, including all four network cases.
+Registered inspection and cluster cases use the separately declared current
+producer pair for intentional World/lifecycle changes. These references are not
+interchangeable: the newer Go-owned network replay path can refuse input-tape
+attestation that the frozen launcher does not require. Its retained status-3
+receipts describe that newer-producer regression, not frozen-baseline parity.

@@ -17,7 +17,7 @@ const wasmModule = "go.temporal.io/server/tools/gomad"
 
 func wasmArchitectureConfig() archcheck.Config {
 	return archcheck.Config{
-		Module:      wasmModule,
+		Module: wasmModule,
 		PureFiles: func(path string) bool {
 			return strings.HasPrefix(path, "wasi/") && strings.HasSuffix(path, ".go") &&
 				!strings.HasSuffix(path, "_test.go") && path != "wasi/process.go" && path != "wasi/broker_process.go" &&

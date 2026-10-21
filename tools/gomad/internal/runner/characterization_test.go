@@ -1000,6 +1000,26 @@ func TestCampaignOptionsLegacyCharacterization(t *testing.T) {
 	if err := json.Unmarshal(contents, &pinned); err != nil {
 		t.Fatal(err)
 	}
+	if os.Getenv("GOMAD_CAPTURE_OPTIONS_LEGACY") == "1" {
+		// Isolated errors are observed only by native builds; a portable
+		// capture keeps the pinned ones for the rows it cannot observe.
+		if !nativeTestsEnabled {
+			if len(pinned) != len(observed) {
+				t.Fatalf("portable capture needs the pinned %d rows to keep isolated errors, observed %d", len(pinned), len(observed))
+			}
+			for index := range observed {
+				observed[index].IsolatedError = pinned[index].IsolatedError
+			}
+		}
+		data, err := json.MarshalIndent(observed, "", "  ")
+		if err != nil {
+			t.Fatal(err)
+		}
+		if err := os.WriteFile(legacyCampaignOptionsCharacterizationPath, append(data, '\n'), 0o600); err != nil {
+			t.Fatal(err)
+		}
+		return
+	}
 	if len(pinned) != len(observed) {
 		t.Fatalf("characterization table has %d cases, pinned %d", len(observed), len(pinned))
 	}

@@ -3,7 +3,7 @@ satisfies: [R12, R13, R14]
 ---
 # fn-232-gomad-rewrite-the-host-side-in-rust.13 Qualification cycle on the Rust binary and Go host retirement
 
-Touches: tools/gomad/cmd/gomad, internal/runner, internal/evidence, internal/cli, Makefile, CI, archcheck, ARCHITECTURE.md, CLI.md, MILESTONES.md
+**Touches:** tools/gomad/cmd/gomad, tools/gomad/internal/runner, tools/gomad/internal/evidence, tools/gomad/internal/cli, tools/gomad/Makefile, .github/workflows/gomad.yml, tools/gomad/internal/archcheck/**, tools/gomad/ARCHITECTURE.md, tools/gomad/CLI.md, MILESTONES.md
 
 ## Description
 Frozen Go baseline owner/input index: /home/agent/wt/evidence/fn232/go-baseline-1d7b37f00a/README.md. Preserve its independently copied launcher/helper, source archive and receipts/tool pins for fresh equivalence; it supplies no qualification claim.
@@ -23,6 +23,10 @@ Verify-only-fix receiver custody: /home/agent/wt/evidence/fn232/fn228-replay-inp
 This task explicitly accepts the outstanding fn-228 R7 final frozen Rust runtime, mandatory workload and retained-replay gates under R12 and the unchanged 3,600-second limit. All remain PENDING until actual final commands, numeric exits and complete candidate/source/helper/runtime/module/model/compiler/engine/host bindings are retained. The extracted library, Rust host and later fixes require separately measured actual identities; neither the deletion-free nor historical combined binding is asserted current by assumption.
 
 Pending fn-185.1/R4 receiving obligation: this task's frozen Rust qualification window must supply the actual runtime-cost-equivalent release-behavior check and qualified-workload preservation comparisons for choice, WASI, network, stdout and stderr, with original assertions, inputs and bounds intact. Record candidate/source/helper/model/module/compiler/runtime identities, exact comparison commands, raw results and numeric exits under the unchanged 3,600-second limit. Preserve the older f172 raw early-proof observations as historical evidence, not proof for the current or final Rust candidate; never migrate artifacts, normalize identity-bound digests or relabel old results. This is a pending receiving/evidence dependency, not a transfer that discharges fn-185.1/R4: R4 remains OPEN in fn-185.1 until the actual receiving proof exists and is reconciled there, and this task cannot report that obligation passed without it. No new Go-only profiling run or second Go full-qualification cycle is authorized; no existing release-preservation, dependency/lockfile or qualified-workload requirement is waived.
+
+### fn-235 R5 rotated inspection-contract receiver
+
+Owner decision 2026-10-21 ("yes" to the conductor's proposal): fn-235.2 completes with its measurement, attribution, flat-cost, fresh-replay and corpus evidence, and this task receives R5's remaining obligation: qualify the rotated inspection contract on the frozen Rust candidate. The declared rotations are `gomad.inspection-state-sha256/v2`, the source-bound helper implementation identity and installation `ModelSHA256` `d6ca1cda…` → `e5541190…` (`.flow/artifacts/fn235-commitment-cost-2026-10-21.md`, sections "Declared rotations" and "Identity and replay"). The final cycle must bind the actual current helper/model identities, run the long three-node ringpop scenario (`testdata/ringpop`, 120 s) to success with fresh retained exact replay, and keep the canonical World, network and choice records unchanged apart from the declared rotation fields. Record commands, numeric exits and identities in the closeout ledger and reconcile them into the fn-235 artifact. The obligation stays PENDING until those receipts exist; it is not waived.
 
 ### fn-223 full-module live-behavior receiver
 

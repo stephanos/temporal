@@ -14,9 +14,15 @@ Define the shared R14 per-verb golden projection with exact typed field paths, r
 ## Acceptance
 The harness and the golden corpus share one corpus directory; the foundation comparator is exercised on fixed semantic examples and intentionally different outputs without requiring the not-yet-implemented inspect verb; task .5 owns the first real inspect lane; a deliberately perturbed Rust output is reported with its path; a missing corpus entry fails the run; the golden view agrees across repeated runs and a second regeneration is byte-identical. Tests vary only allowed diagnostics and preserve a match, then perturb outcome/order/divergence/bounds/identity/digest fields and require a first-path failure. Corrupt raw record bytes or ledger links fail even if a projected view would match. Release-build checks exclude fault/fixture controls. This foundation does not wait for any future public verb.
 ## Done summary
-TBD
+The foundation differential harness meets its bounded R13/R14 acceptance. The comparator reports first semantic paths for 24 mutations, accepts only declared diagnostic differences, preserves argument/suffix/ID relationships and rejects unknown fields. It authenticates canonical records, payloads and ordered ledger links before projection. Missing corpus entries and raw corruption fail. Frozen Go inputs remain inventoried; CI wiring is source-only and no CI was dispatched.
 
+The same corpus supplies exact foundation goldens. Two fresh regenerations were byte-identical across all 15 files, followed by a passing strict check. Root reran the complete strict foundation gate, semantic subprocess selftests and ordinary release exclusion against the retained frozen binaries, each exit 0. The release entry-point check reports 14/14 fixture verbs absent; retained review separately authenticated all 18 fixture/fault refusals. Receipts remain at /home/agent/wt/evidence/fn232-foundation-closeout and workspace .build-cache/fn232-foundation-closeout. Root checked every tracked golden against golden-manifest.json.
+
+Fresh independent foundation_acceptance_review returned SHIP for this task's foundation scope. Reviewer and writer share the GPT-6 family; exact reviewer variant was not exposed. The separate .3 immutable-file durability finding remains open. The task explicitly does not wait for later public verbs; their mandatory parity/goldens and final qualification remain with their existing owners. No whole-R13 or qualification pass is claimed.
+
+stage: impl-review - ran (fresh independent foundation acceptance review, SHIP for .4)
+stage: plan-sync - skipped(config: planSync.enabled=false)
 ## Evidence
-- Commits:
-- Tests:
+- Commits: 4623917d3b, d045958da2
+- Tests: python3 tools/gomad/testdata/parity/semantic/selftest.py (exit 0, 24 first-path mutation checks and raw-integrity/subprocess checks), python3 tools/gomad/testdata/parity/foundation-check.py --binary /Users/stephan/Workspace/skunkworks/gomad/.build-cache/fn232-foundation-closeout/candidate/gomad-fixture --work /Users/stephan/Workspace/skunkworks/gomad/.build-cache/fn232-foundation-closeout/root-closure-strict (exit 0), python3 tools/gomad/testdata/parity/foundation-release-check.py /Users/stephan/Workspace/skunkworks/gomad/.build-cache/fn232-foundation-closeout/candidate/gomad-release /Users/stephan/Workspace/skunkworks/gomad/.build-cache/fn232-foundation-closeout/root-release-exclusion (exit 0), all 15 tracked golden manifest hashes verified; retained two identical fresh regenerations, strict-after, baseline inventory and release receipts authenticated by independent review SHIP
 - PRs:

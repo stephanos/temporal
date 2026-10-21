@@ -10,7 +10,7 @@
   "priority": null,
   "spec": "fn-224-gomad-ringpop-membership-on-wasm-within",
   "spec_path": ".flow/tasks/fn-224-gomad-ringpop-membership-on-wasm-within.2.md",
-  "status": "todo",
+  "status": "done",
   "title": "Run the ringpop unit tests under the cooperative profile and classify every outcome",
-  "updated_at": "2026-10-19T16:37:34.474848Z"
+  "updated_at": "2026-10-21T17:55:49.439678Z"
 }

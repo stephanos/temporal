@@ -193,7 +193,7 @@ type ReplayPlan struct {
 }
 
 func ProjectReplayPlan(trace Trace, identity ExecutionIdentity) (ReplayPlan, error) {
-	if trace.Version != Version3 || trace.Summary.Terminal != TerminalComplete {
+	if (trace.Version != Version3 && trace.Version != Version4) || trace.Summary.Terminal != TerminalComplete {
 		return ReplayPlan{}, errors.Join(ErrInvalidReplayPlan, errors.New("choice trace is not complete v3 evidence"))
 	}
 	if trace.SHA256 != sha256.Sum256(trace.Bytes) || trace.Summary.Records != uint64(len(trace.Records)) {
@@ -203,7 +203,7 @@ func ProjectReplayPlan(trace Trace, identity ExecutionIdentity) (ReplayPlan, err
 	planIndex := make([]int, len(trace.Records))
 	for index, record := range trace.Records {
 		planIndex[index] = -1
-		if record.Flags&FlagObservation != 0 || record.Alternatives < 2 {
+		if record.Flags&FlagDecision == 0 || record.Alternatives < 2 {
 			continue
 		}
 		decision, err := decisionFromRecord(record)

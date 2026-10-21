@@ -1,11 +1,142 @@
 {
   "branch_name": "fn-188-gomad-wasm-determinism-boundary-audit",
+  "completion_review_status": "unknown",
+  "completion_reviewed_at": null,
   "created_at": "2026-10-16T02:28:21.852328Z",
+  "default_impl": null,
+  "default_review": null,
+  "default_sync": null,
   "depends_on_epics": [],
   "id": "fn-188-gomad-wasm-determinism-boundary-audit",
+  "impl_review_rounds": {},
   "next_task": 1,
-  "plan_review_status": "unknown",
-  "plan_reviewed_at": null,
+  "plan_review_rounds": 0,
+  "plan_review_status": "ship",
+  "plan_reviewed_at": "2026-10-21T17:42:34.921675Z",
+  "review_attempts": [
+    {
+      "artifact_sha256": "95ab9d29adba190590632eddf9e3eecee9011d85b2beb256648405e5ae31fe1f",
+      "backend": "codex",
+      "base_sha": "951c5516e9e7b3066e7e069adda9565cfd68844c",
+      "counter_kind": "plan",
+      "effort": "high",
+      "failure_class": null,
+      "finalized": {
+        "digest": "complete",
+        "receipt": "complete",
+        "status": "complete"
+      },
+      "findings_digest": {
+        "backend": "codex",
+        "digest_truncated": false,
+        "items": [
+          {
+            "chainRoot": "finding-9430de2ae5ac4c95dcbc0990ee32426b",
+            "classification": "introduced",
+            "findingId": "finding-9430de2ae5ac4c95dcbc0990ee32426b",
+            "firstSeenThisRound": true,
+            "severity": "P0",
+            "status": "open"
+          },
+          {
+            "chainRoot": "finding-b474915acd811d77569bc2223ff9cd92",
+            "classification": "introduced",
+            "findingId": "finding-b474915acd811d77569bc2223ff9cd92",
+            "firstSeenThisRound": true,
+            "severity": "P2",
+            "status": "open"
+          }
+        ],
+        "reviewKind": "plan"
+      },
+      "forced": false,
+      "hash_epoch": 0,
+      "head_sha": "3ad88e1cdeec9431146220838bfd01c932ccef1a",
+      "head_sha_observed": true,
+      "kind": "plan",
+      "model": "gpt-6.1-sol",
+      "outcome": "verdict",
+      "output_bytes": 296281,
+      "output_sha256": "b14e905891789aad747b85888a5761d7b515027aa3c615ddd0d1d45b557340be",
+      "reservation_id": "7c0f517e633047a2bd2587a4f628ac97",
+      "round_consumed": true,
+      "scope": "plan",
+      "superseded_by": null,
+      "task": null,
+      "timestamp": "2026-10-21T17:39:42.471051Z",
+      "tool_calls": 31,
+      "verdict": "NEEDS_WORK"
+    },
+    {
+      "artifact_sha256": "476ec397e568018263f11b36beb54417dfb67abb11bd2d32d757effd8074ba31",
+      "backend": "codex",
+      "base_sha": "951c5516e9e7b3066e7e069adda9565cfd68844c",
+      "counter_kind": "plan",
+      "effort": "high",
+      "failure_class": null,
+      "finalized": {
+        "digest": "complete",
+        "receipt": "complete",
+        "status": "complete"
+      },
+      "findings_digest": {
+        "backend": "codex",
+        "digest_truncated": false,
+        "items": [
+          {
+            "chainRoot": "finding-9430de2ae5ac4c95dcbc0990ee32426b",
+            "classification": "introduced",
+            "findingId": "finding-9430de2ae5ac4c95dcbc0990ee32426b",
+            "firstSeenThisRound": false,
+            "severity": "P0",
+            "status": "not_fixed"
+          },
+          {
+            "chainRoot": "finding-b474915acd811d77569bc2223ff9cd92",
+            "classification": "introduced",
+            "findingId": "finding-b474915acd811d77569bc2223ff9cd92",
+            "firstSeenThisRound": false,
+            "severity": "P2",
+            "status": "fixed"
+          },
+          {
+            "chainRoot": "finding-4b9a9f58cfed8b6bb51085d553c3830a",
+            "classification": "introduced",
+            "findingId": "finding-4b9a9f58cfed8b6bb51085d553c3830a",
+            "firstSeenThisRound": true,
+            "severity": "P2",
+            "status": "open"
+          }
+        ],
+        "reviewKind": "plan"
+      },
+      "forced": false,
+      "hash_epoch": 0,
+      "head_sha": "3ad88e1cdeec9431146220838bfd01c932ccef1a",
+      "head_sha_observed": true,
+      "kind": "plan",
+      "model": "gpt-6.1-sol",
+      "outcome": "verdict",
+      "output_bytes": 1291,
+      "output_sha256": "8fd45f74ffe196b6710a7a99510f1770e7d586fe13d8a3a1cff9188894afd68c",
+      "reservation_id": "93c81bf79c4241adab2a4e7eefeb6073",
+      "round_consumed": true,
+      "scope": "plan",
+      "superseded_by": null,
+      "task": null,
+      "timestamp": "2026-10-21T17:42:34.914417Z",
+      "verdict": "SHIP"
+    }
+  ],
+  "review_hash_epoch": {
+    "plan": 1,
+    "plan#completion": 0
+  },
+  "review_pending_rounds": {},
+  "review_reservations": {},
+  "review_transport_failures": {
+    "plan": 0
+  },
   "spec_path": ".flow/specs/fn-188-gomad-wasm-determinism-boundary-audit.md",
   "status": "open",
   "title": "Gomad: WASM determinism boundary audit and enforcement",
@@ -20,5 +151,5 @@
     "mergeBaseTracker": null,
     "url": null
   },
-  "updated_at": "2026-10-16T02:35:42.626532Z"
+  "updated_at": "2026-10-21T17:44:55.810393Z"
 }

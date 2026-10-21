@@ -1,3 +1,4 @@
+use super::site_scope::{Resolution, RoundCounts, SiteScope};
 use super::{hash, valid_hash};
 use crate::evidence::canonical;
 use gomad_wasmhost::linked;
@@ -32,6 +33,8 @@ pub(crate) struct ChoiceConfig {
     pub max_exploration_bytes: u64,
     pub failure_policy: String,
     pub failure_budget: u64,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub site_scope: Option<SiteScope>,
 }
 
 #[derive(Clone, Debug, Deserialize, Eq, PartialEq, Serialize)]
@@ -81,6 +84,12 @@ pub(crate) struct ChoiceState {
     pub omitted_by_capacity: u64,
     pub omitted_by_select_readiness: u64,
     pub stop_reason: String,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub site_scope_resolution: Option<Resolution>,
+    #[serde(default, skip_serializing_if = "Vec::is_empty")]
+    pub site_scope_rounds: Vec<RoundCounts>,
+    #[serde(skip)]
+    scope_module: Option<std::sync::Arc<[u8]>>,
 }
 
 #[derive(Clone, Debug, Deserialize, Eq, PartialEq, Serialize)]
@@ -99,6 +108,10 @@ pub(crate) struct ChoiceRoundSegment {
     pub after_sha256: String,
     pub results: Vec<ChoiceResult>,
     pub sha256: String,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub site_scope: Option<SiteScope>,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub scope_counts: Option<RoundCounts>,
 }
 
 impl ChoiceCandidate {
@@ -156,6 +169,9 @@ pub(crate) fn hex(bytes: &[u8]) -> String {
 
 impl ChoiceState {
     pub(crate) fn new(config: ChoiceConfig) -> Result<Self, String> {
+        if let Some(scope) = &config.site_scope {
+            scope.validate()?;
+        }
         if config.parallel == 0
             || config.max_executions == 0
             || config.max_choice_depth == 0
@@ -181,6 +197,7 @@ impl ChoiceState {
         if pending_bytes > config.max_exploration_bytes {
             return Err("choice exploration root exceeds the exploration byte bound".into());
         }
+        let scoped = config.site_scope.is_some();
         Ok(Self {
             config,
             seen: BTreeSet::from([root.sha256.clone()]),
@@ -196,7 +213,21 @@ impl ChoiceState {
             omitted_by_capacity: 0,
             omitted_by_select_readiness: 0,
             stop_reason: String::new(),
+            site_scope_resolution: scoped.then(Resolution::default),
+            site_scope_rounds: Vec::new(),
+            scope_module: None,
         })
+    }
+
+    pub(crate) fn bind_scope_module(&mut self, module: std::sync::Arc<[u8]>) -> Result<(), String> {
+        if self.config.site_scope.is_some() {
+            if canonical::digest(&module) != hex(&self.config.execution.target_sha256) {
+                return Err("exploration plan identity or bounds changed".into());
+            }
+            super::site_scope::require_symbols(&module)?;
+            self.scope_module = Some(module);
+        }
+        Ok(())
     }
 
     pub(crate) fn next_round(&self) -> Option<ChoiceRound> {
@@ -214,7 +245,7 @@ impl ChoiceState {
     }
 
     pub(crate) fn summary(&self) -> serde_json::Value {
-        json!({
+        let mut summary = json!({
             "parallel":self.config.parallel,"max_executions":self.config.max_executions,
             "max_choice_depth":self.config.max_choice_depth,"start_ordinal":self.config.start_ordinal,
             "max_exploration_bytes":self.config.max_exploration_bytes,
@@ -225,7 +256,18 @@ impl ChoiceState {
             "omitted_by_depth":self.omitted_by_depth,"omitted_by_capacity":self.omitted_by_capacity,
             "omitted_by_select_readiness":self.omitted_by_select_readiness,"stop_reason":self.stop_reason,
             "bounded_complete":matches!(self.stop_reason.as_str(),"exploration_exhausted"|"choice_depth_complete")
-        })
+        });
+        if let (Some(scope), Some(resolution)) =
+            (&self.config.site_scope, &self.site_scope_resolution)
+        {
+            summary["site_scope"] = json!(resolution.scope(&scope.patterns));
+            summary["site_scope_rounds"] = json!(self.site_scope_rounds);
+            if let Some(counts) = self.site_scope_rounds.last() {
+                summary["forced_in_scope"] = json!(counts.forced_in_scope);
+                summary["skipped_out_of_scope"] = json!(counts.skipped_out_of_scope);
+            }
+        }
+        summary
     }
 
     #[expect(
@@ -251,6 +293,7 @@ impl ChoiceState {
             .checked_add(1)
             .ok_or("choice round accounting overflow")?;
         let mut children = BTreeMap::new();
+        let mut scope_counts = RoundCounts::default();
         let mut start_unreached = false;
         for (parent, result) in round.candidates.iter().zip(results) {
             if result.candidate_sha256 != parent.sha256 {
@@ -292,6 +335,21 @@ impl ChoiceState {
                 let plan = linked::project_choices(raw, &next.config.execution)?;
                 let observed = decisions(&plan);
                 validate_trace(parent, &next.config.execution, &observed)?;
+                if let (Some(scope), Some(resolution)) =
+                    (&next.config.site_scope, &mut next.site_scope_resolution)
+                {
+                    resolution.observe(
+                        next.scope_module
+                            .as_deref()
+                            .ok_or("scoped choice module is unavailable")?,
+                        raw,
+                        &next.config.execution,
+                        &scope.patterns,
+                    )?;
+                    if self.committed_rounds == 0 && resolution.scope(&scope.patterns) != *scope {
+                        return Err("exploration plan identity or bounds changed".into());
+                    }
+                }
                 if parent.forced_depth == 0
                     && next.config.start_ordinal != 0
                     && observed.len() as u64 <= next.config.start_ordinal
@@ -309,6 +367,14 @@ impl ChoiceState {
                         }
                         if no_op[index] {
                             next.omitted_by_select_readiness +=
+                                u64::from(decision.alternatives() - 1);
+                            continue;
+                        }
+                        if let (Some(scope), Some(resolution)) =
+                            (&next.config.site_scope, &next.site_scope_resolution)
+                            && !resolution.allows(&scope.patterns, decision)
+                        {
+                            scope_counts.skipped_out_of_scope +=
                                 u64::from(decision.alternatives() - 1);
                             continue;
                         }
@@ -367,8 +433,20 @@ impl ChoiceState {
             next.seen.insert(child.sha256.clone());
             next.deepest_prefix = next.deepest_prefix.max(child.forced_depth);
             next.queue.push(child.clone());
+            if next.config.site_scope.is_some() {
+                scope_counts.forced_in_scope += 1;
+            }
         }
         sort(&mut next.queue);
+        if self.committed_rounds == 0
+            && next
+                .config
+                .site_scope
+                .as_ref()
+                .is_some_and(|scope| scope.resolved_count == 0)
+        {
+            next.stop_reason = "site_scope_empty".into();
+        }
         if next.stop_reason.is_empty() && next.queue.is_empty() {
             next.stop_reason = if start_unreached {
                 "choice_start_unreached"
@@ -384,6 +462,22 @@ impl ChoiceState {
             .into();
         }
         next.pending_bytes = queue_bytes(&next.queue)?;
+        if next.config.site_scope.is_some() {
+            next.site_scope_rounds.push(scope_counts.clone());
+        }
+        let site_scope = next
+            .config
+            .site_scope
+            .as_ref()
+            .map(|scope| {
+                Ok::<_, String>(
+                    next.site_scope_resolution
+                        .as_ref()
+                        .ok_or("scope resolution is missing")?
+                        .scope(&scope.patterns),
+                )
+            })
+            .transpose()?;
         let mut segment = ChoiceRoundSegment {
             schema: SCHEMA.into(),
             index: round.index,
@@ -391,6 +485,8 @@ impl ChoiceState {
             after_sha256: next.hash()?,
             results: results.to_vec(),
             sha256: String::new(),
+            site_scope,
+            scope_counts: next.config.site_scope.is_some().then_some(scope_counts),
         };
         segment.sha256 = segment.hash()?;
         Ok((next, segment))

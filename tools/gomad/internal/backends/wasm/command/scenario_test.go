@@ -159,6 +159,26 @@ func typedScenario(t *testing.T, fixture, mode string) simulation.OperatorScenar
 	return scenario
 }
 
+// The fn-224 ringpop fixture must stay admissible: three fully linked nodes,
+// a partition/heal pair per isolated link, and a config the environment accepts.
+func TestOperatorRingpopScenarioPreflight(t *testing.T) {
+	scenario := typedScenario(t, "ringpop", "")
+	if len(scenario.Spec.Nodes) != 3 || len(scenario.Spec.Links) != 6 || len(scenario.NetworkFaults) != 4 {
+		t.Fatal("ringpop fixture lost its three-node partition/heal topology")
+	}
+	data, err := os.ReadFile("testdata/scenario/ringpop-config.json")
+	if err != nil {
+		t.Fatal(err)
+	}
+	var config wasi.Config
+	if err := json.Unmarshal(data, &config); err != nil {
+		t.Fatal(err)
+	}
+	if _, err := wasi.NewEnvironment(config); err != nil {
+		t.Fatal(err)
+	}
+}
+
 func TestOperatorScenarioFixturesPreflight(t *testing.T) {
 	for _, fixture := range []string{"durable", "network"} {
 		t.Run(fixture, func(t *testing.T) {

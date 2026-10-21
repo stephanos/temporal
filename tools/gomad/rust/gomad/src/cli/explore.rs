@@ -164,6 +164,7 @@ pub(super) fn parse_for_strategy(
                 | "max-executions"
                 | "max-choice-depth"
                 | "choice-start-ordinal"
+                | "site-scope"
                 | "max-exploration-bytes"
         ) {
             return Err(format!("flag provided but not defined: -{name}"));
@@ -209,6 +210,9 @@ pub(super) fn parse_for_strategy(
             "scenario" => scenario = Some(value.to_owned()),
             "choice-start-ordinal" => {
                 return Err("--choice-start-ordinal requires --strategy=choice-exploration".into());
+            }
+            "site-scope" => {
+                return Err("--site-scope requires --strategy=choice-exploration".into());
             }
             _ => return Err("exploration bounds require --strategy=choice-exploration".into()),
         }

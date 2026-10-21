@@ -9,6 +9,8 @@ From the retained matrix, rank distinct reason strings by count, report the actu
 **Size:** S
 **Files:** .flow/artifacts/fn221-support-matrix-<date>.md
 
+**Touches:** .flow/artifacts/fn221-support-matrix-<date>.md
+
 ## Acceptance
 - [ ] Ranked reason table with counts
 - [ ] Each known suspect's actual outcome stated

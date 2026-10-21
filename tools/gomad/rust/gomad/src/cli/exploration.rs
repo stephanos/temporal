@@ -8,6 +8,7 @@ use std::{collections::BTreeMap, io::Write, path::Path};
 pub(crate) struct ExplorationOptions {
     pub base: ExploreOptions,
     pub strategy: String,
+    pub site_scope: Option<Vec<String>>,
     pub max_executions: u64,
     pub max_choice_depth: u64,
     pub choice_start_ordinal: u64,
@@ -71,6 +72,7 @@ pub(crate) fn parse(arguments: &[String], json: &mut bool) -> Result<Exploration
     let mut remaining = Vec::new();
     let mut bounds = BTreeMap::new();
     let mut strategy = String::new();
+    let mut site_scope = None;
     let mut count = false;
     let mut index = 0;
     while let Some((name, supplied)) = explore::option(arguments, &mut index) {
@@ -89,6 +91,11 @@ pub(crate) fn parse(arguments: &[String], json: &mut bool) -> Result<Exploration
         let value = explore::value(arguments, &mut index, name, supplied)?;
         match name {
             "strategy" => strategy = value.into(),
+            "site-scope" => {
+                site_scope = Some(crate::campaign::exploration::site_scope::parse_patterns(
+                    value,
+                )?);
+            }
             "max-executions"
             | "max-choice-depth"
             | "choice-start-ordinal"
@@ -116,6 +123,9 @@ pub(crate) fn parse(arguments: &[String], json: &mut bool) -> Result<Exploration
             }
             _ => remaining.push(format!("--{name}={value}")),
         }
+    }
+    if site_scope.is_some() && strategy != "choice-exploration" {
+        return Err("--site-scope requires --strategy=choice-exploration".into());
     }
     if count {
         return Err(format!("--strategy={strategy} does not accept --count"));
@@ -199,6 +209,7 @@ pub(crate) fn parse(arguments: &[String], json: &mut bool) -> Result<Exploration
     Ok(ExplorationOptions {
         base,
         strategy,
+        site_scope,
         max_executions,
         max_choice_depth,
         choice_start_ordinal: bounds.get("choice-start-ordinal").copied().unwrap_or(0),
@@ -256,6 +267,7 @@ mod tests {
         assert_eq!(options.max_executions, 4);
         assert_eq!(options.max_choice_depth, 2);
         assert_eq!(options.max_exploration_bytes, 1 << 20);
+        assert_eq!(options.site_scope, None);
         assert!(options.base.choices);
         assert_eq!(options.base.target_args, ["--strategy=target-option"]);
     }
@@ -279,6 +291,57 @@ mod tests {
         assert!(
             matches!(parse(&values, &mut false), Err(error) if error.contains("max-crash-decisions"))
         );
+    }
+
+    #[test]
+    fn site_scope_accepts_choice_package_patterns() {
+        let values = arguments(&[
+            "--strategy=choice-exploration",
+            "--site-scope=go.temporal.io/server/service/history/...,net/http",
+            "--max-executions=4",
+            "--max-choice-depth=2",
+            "--max-exploration-bytes=1MiB",
+            "go-test",
+            "./sample",
+        ]);
+        assert_eq!(
+            parse(&values, &mut false).unwrap().site_scope,
+            Some(vec![
+                "go.temporal.io/server/service/history/...".into(),
+                "net/http".into(),
+            ])
+        );
+    }
+
+    #[test]
+    fn site_scope_refuses_invalid_requests_before_preparation() {
+        for (strategy, scope) in [
+            ("seed", "net/http"),
+            ("simulation-exploration", "net/http"),
+            ("choice-exploration", ""),
+            ("choice-exploration", "net/http,"),
+            ("choice-exploration", "net/ http"),
+            ("choice-exploration", "net/*"),
+        ] {
+            let values = vec![
+                "--json".into(),
+                format!("--strategy={strategy}"),
+                format!("--site-scope={scope}"),
+                "go-test".into(),
+                "./sample".into(),
+            ];
+            let mut output = Vec::new();
+            assert!(matches!(explore::run(&values, &mut output), Ok(2)));
+            let event: serde_json::Value = serde_json::from_slice(&output).unwrap();
+            assert_eq!(event["classification"], "invalid_input");
+            let message = event["message"].as_str().unwrap();
+            assert!(message.contains("site-scope"));
+            assert!(message.contains(if strategy == "choice-exploration" {
+                "package pattern"
+            } else {
+                "requires --strategy=choice-exploration"
+            }));
+        }
     }
 
     #[test]

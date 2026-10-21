@@ -1,0 +1,132 @@
+package main
+
+import (
+	"context"
+	"encoding/json"
+	"fmt"
+	"os"
+	"slices"
+
+	"go.temporal.io/server/tools/gomad/internal/backends/wasm/installation"
+	"go.temporal.io/server/tools/gomad/internal/evidence/artifact"
+	"go.temporal.io/server/tools/gomad/internal/evidence/record"
+	"go.temporal.io/server/tools/gomad/internal/runner"
+	"go.temporal.io/server/tools/gomad/internal/runner/internal/exploration"
+	"go.temporal.io/server/tools/gomad/internal/runner/internal/minimizer"
+)
+
+func main() {
+	if err := run(); err != nil {
+		fmt.Fprintln(os.Stderr, err)
+		os.Exit(3)
+	}
+}
+
+func run() (retErr error) {
+	var input struct {
+		Operation, Installation, Artifact, Output string
+		AttemptBudget                             uint64                          `json:"attempt_budget"`
+		Config                                    exploration.SimulationConfig    `json:"config"`
+		Original                                  exploration.SimulationCandidate `json:"original"`
+		AcceptedIndices                           []uint64                        `json:"accepted_indices"`
+	}
+	decoder := json.NewDecoder(os.Stdin)
+	decoder.DisallowUnknownFields()
+	if err := decoder.Decode(&input); err != nil {
+		return err
+	}
+	if input.Operation == "proposals" || input.Operation == "canonical" {
+		if input.Config.ControllerSHA256 == "" {
+			input.Config.ControllerSHA256 = exploration.SimulationImplementationSHA256()
+		}
+		for index, forced := range input.Original.Overrides {
+			canonical, err := exploration.CanonicalForcedDecision(forced)
+			if err != nil {
+				return err
+			}
+			input.Original.Overrides[index] = canonical
+		}
+		original, err := exploration.CanonicalCandidate(input.Config, input.Original.Overrides, "")
+		if err != nil {
+			return err
+		}
+		if input.Operation == "canonical" {
+			return json.NewEncoder(os.Stdout).Encode(map[string]any{"config": input.Config, "original": original})
+		}
+		state, err := minimizer.New(input.Config, original, input.AttemptBudget)
+		if err != nil {
+			return err
+		}
+		proposals := []minimizer.Attempt{}
+		for {
+			attempt, ok, err := minimizer.Next(state)
+			if err != nil {
+				return err
+			}
+			if !ok {
+				break
+			}
+			proposals = append(proposals, attempt)
+			state, err = minimizer.Commit(state, attempt, slices.Contains(input.AcceptedIndices, attempt.Index))
+			if err != nil {
+				return err
+			}
+		}
+		return json.NewEncoder(os.Stdout).Encode(map[string]any{
+			"config": input.Config, "original": original, "proposals": proposals,
+			"accepted": state.Accepted, "attempts": state.Attempts, "stop_reason": state.StopReason,
+		})
+	}
+	if input.Operation == "minimize" {
+		description, err := installation.Resolve(installation.Spec{ExplicitManifest: input.Installation})
+		if err != nil {
+			return err
+		}
+		provider, err := description.Provider()
+		if err != nil {
+			return err
+		}
+		result, err := runner.Minimize(context.Background(), runner.MinimizeSpec{
+			Backend: provider, ArtifactPath: input.Artifact, OutputRoot: input.Output, AttemptBudget: input.AttemptBudget,
+		})
+		if err != nil {
+			return err
+		}
+		return json.NewEncoder(os.Stdout).Encode(result)
+	}
+	if input.Operation != "changed-signature" {
+		return fmt.Errorf("unsupported operation %q", input.Operation)
+	}
+	opened, err := artifact.OpenArtifact(input.Artifact)
+	if err != nil {
+		return err
+	}
+	defer func() {
+		if err := opened.Close(); retErr == nil {
+			retErr = err
+		}
+	}()
+	manifest := opened.Manifest()
+	var payloads []artifact.Payload
+	for _, file := range manifest.Files {
+		data, err := opened.ReadPayload(file.Path, uint64(file.Size))
+		if err != nil {
+			return err
+		}
+		if file.Path == manifest.Streams.Stdout.File {
+			if len(data) == 0 {
+				return fmt.Errorf("signature fixture requires nonempty stdout")
+			}
+			data[0] ^= 1
+			file.SHA256 = record.HashBytes(data)
+			manifest.Streams.Stdout.FullSHA256 = file.SHA256
+			manifest.Streams.Stdout.RetainedSHA256 = file.SHA256
+		}
+		payloads = append(payloads, artifact.Payload{Path: file.Path, Mode: 0600, Data: data, SHA256: file.SHA256, Size: file.Size})
+	}
+	published, err := (artifact.Store{Root: input.Output, Key: artifact.StoreKeyRecord}).PublishArtifact(artifact.Publication{Record: manifest, Payloads: payloads})
+	if err != nil {
+		return err
+	}
+	return json.NewEncoder(os.Stdout).Encode(map[string]any{"artifact": published.Path, "failure_signature": published.Manifest.Outcome.FailureSignature})
+}

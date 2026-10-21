@@ -209,8 +209,8 @@ This workflow supports only the named `TestFrontendSystemInfo` selection;
 current-candidate one-box qualification is owned separately by fn-222.
 Preparing another package does not establish its support. Other tests can need
 additional captured files, different capacities or model support.
-`gomad_wasm_slim` omits cloud archivers, ringpop and
-MySQL/PostgreSQL test drivers. Selecting excluded providers fails explicitly.
+`gomad_wasm_slim` omits cloud archivers and MySQL/PostgreSQL test drivers;
+ringpop membership stays linked. Selecting excluded providers fails explicitly.
 
 Start with one seed and one heavy preparation at a time. Whole Temporal modules
 can exhaust memory, fuel, transcript or choice limits. The public standalone

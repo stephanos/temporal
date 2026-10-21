@@ -7,9 +7,9 @@ GOMAD_STOCK_GO ?=
 
 .PHONY: test-wasm test-wasm-slim-refusals wasm-helper wasm-test-helper
 # Excluded providers in the gomad_wasm_slim guest selection must refuse clearly
-# without falling back (fn-182 R2); these tests only build with the slim tag.
-# Every named test must pass; a rename must not silently run nothing.
-WASM_SLIM_REFUSAL_TESTS := TestCloudArchiversRefuseConfiguredSchemesWithoutFallback TestDefaultMembershipRefusesUnbuiltRingpop TestSlimGuestRefusesUnlinkedSQLDriversWithoutFallback
+# without falling back (fn-182 R2), and ringpop membership must stay linked
+# (fn-224). Every named test must pass; a rename must not silently run nothing.
+WASM_SLIM_REFUSAL_TESTS := TestCloudArchiversRefuseConfiguredSchemesWithoutFallback TestDefaultMembershipLinksRingpop TestSlimGuestRefusesUnlinkedSQLDriversWithoutFallback
 test-wasm-slim-refusals:
 	@stock_go='$(GOMAD_STOCK_GO)'; \
 	if test -z "$$stock_go"; then \

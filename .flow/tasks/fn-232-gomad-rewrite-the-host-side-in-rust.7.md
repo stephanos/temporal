@@ -3,7 +3,7 @@ satisfies: [R6, R13, R14]
 ---
 # fn-232-gomad-rewrite-the-host-side-in-rust.7 seed explore, resume and merge in Rust
 
-Touches: tools/gomad/rust/gomad/src/cli/{explore.rs,resume.rs,merge.rs}, gomad/src/campaign/{seeds.rs,ledger.rs,retention.rs,failure_policy.rs}
+**Touches:** tools/gomad/rust/gomad/src/cli/{explore.rs,resume.rs,merge.rs}, tools/gomad/rust/gomad/src/campaign/{seeds.rs,ledger.rs,retention.rs,failure_policy.rs}
 
 ## Description
 Port campaign control and `execute-shard` for seed strategy: deterministic seed selection order, slots, failure policy, retention of failures and selected successes, hash-linked round ledgers, resume from last complete round with changed-bound and identity refusals, merge of shards. Go-lineage campaign roots refused. Add to the harness.

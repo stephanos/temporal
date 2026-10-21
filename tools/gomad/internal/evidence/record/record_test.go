@@ -5,6 +5,7 @@ import (
 	"crypto/sha256"
 	"encoding/json"
 	"reflect"
+	"slices"
 	"sort"
 	"strings"
 	"testing"
@@ -603,5 +604,64 @@ func TestFinalizeManifestRejectsLegacyRecordSchema(t *testing.T) {
 	manifest.Runner.RecordContract = "gomad.run-record/v2"
 	if _, _, err := FinalizeExecutionRecord(manifest); err == nil || !strings.Contains(err.Error(), "unsupported manifest schema") {
 		t.Fatalf("FinalizeExecutionRecord(legacy schema) error = %v", err)
+	}
+}
+
+// The record admits each choice profile only with its own trace schema: v4 is
+// what the runner now records, v3 is retained evidence. A crossed pair fails
+// closed, as does a killed target whose environment names no admitted profile.
+func TestFinalizeManifestPairsChoiceProfileWithItsTraceSchema(t *testing.T) {
+	withProfile := func(name, schema string) ExecutionRecord {
+		manifest := manifestFixture()
+		trace := make([]byte, 96)
+		manifest.ChoiceProfile = &ChoiceProfile{
+			Name: name, ImplementationSHA256: HashBytes([]byte("choice implementation")),
+			Trace: ChoiceTrace{
+				Schema: schema, File: "choices.bin", SHA256: HashBytes(trace), TapeSHA256: HashBytes([]byte("tape")),
+				Bytes: 96, Records: 1, BranchingRecords: 1, Decisions: 1, TerminalState: "complete", Limit: 160,
+			},
+		}
+		manifest.Limits.ChoiceTraceBytes = 160
+		manifest.Environment = append(manifest.Environment, Environment{Name: "GOMAD_CHOICE_PROFILE", Value: name})
+		sort.Slice(manifest.Environment, func(i, j int) bool { return manifest.Environment[i].Name < manifest.Environment[j].Name })
+		manifest.Files = append(manifest.Files, File{Path: "choices.bin", Mode: "0600", Size: 96, SHA256: manifest.ChoiceProfile.Trace.SHA256})
+		sort.Slice(manifest.Files, func(i, j int) bool { return manifest.Files[i].Path < manifest.Files[j].Path })
+		return manifest
+	}
+	for _, test := range []struct {
+		name, profile, schema string
+		admitted              bool
+	}{
+		{"current", CurrentChoiceProfile, CurrentChoiceTraceSchema, true},
+		{"retained-v3", "gomad-choice-trace/v3", "gomad.choice-trace/v3", true},
+		{"v4-with-v3-schema", CurrentChoiceProfile, "gomad.choice-trace/v3", false},
+		{"v3-with-v4-schema", "gomad-choice-trace/v3", CurrentChoiceTraceSchema, false},
+		{"unknown", "gomad-choice-trace/v5", "gomad.choice-trace/v5", false},
+	} {
+		t.Run(test.name, func(t *testing.T) {
+			_, _, err := FinalizeExecutionRecord(withProfile(test.profile, test.schema))
+			if test.admitted != (err == nil) || err != nil && !strings.Contains(err.Error(), "invalid choice trace identity") {
+				t.Fatalf("FinalizeExecutionRecord(%s, %s) error = %v, admitted=%v", test.profile, test.schema, err, test.admitted)
+			}
+		})
+	}
+	for _, test := range []struct {
+		name, environment string
+		admitted          bool
+	}{
+		{"killed-current", CurrentChoiceProfile, true},
+		{"killed-retained-v3", "gomad-choice-trace/v3", true},
+		{"killed-unknown", "gomad-choice-trace/v5", false},
+	} {
+		t.Run(test.name, func(t *testing.T) {
+			manifest := withProfile(test.environment, "")
+			manifest.ChoiceProfile = nil
+			manifest.Outcome.Reason = "runner_cancelled"
+			manifest.Files = slices.DeleteFunc(manifest.Files, func(file File) bool { return file.Path == "choices.bin" })
+			_, _, err := FinalizeExecutionRecord(manifest)
+			if test.admitted != (err == nil) || err != nil && !strings.Contains(err.Error(), "recorded choice profile") {
+				t.Fatalf("killed target with GOMAD_CHOICE_PROFILE=%s error = %v, admitted=%v", test.environment, err, test.admitted)
+			}
+		})
 	}
 }

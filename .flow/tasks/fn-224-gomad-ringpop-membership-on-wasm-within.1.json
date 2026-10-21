@@ -8,7 +8,7 @@
   "priority": null,
   "spec": "fn-224-gomad-ringpop-membership-on-wasm-within",
   "spec_path": ".flow/tasks/fn-224-gomad-ringpop-membership-on-wasm-within.1.md",
-  "status": "todo",
+  "status": "done",
   "title": "Unstub ringpop in the slim guest and record the module size delta",
-  "updated_at": "2026-10-19T16:37:34.474301Z"
+  "updated_at": "2026-10-21T17:59:37.473951Z"
 }

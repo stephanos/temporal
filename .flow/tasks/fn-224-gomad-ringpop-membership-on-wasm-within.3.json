@@ -10,7 +10,7 @@
   "priority": null,
   "spec": "fn-224-gomad-ringpop-membership-on-wasm-within",
   "spec_path": ".flow/tasks/fn-224-gomad-ringpop-membership-on-wasm-within.3.md",
-  "status": "todo",
+  "status": "done",
   "title": "Add a multi-node ringpop partition/heal scenario and document it",
-  "updated_at": "2026-10-19T16:37:34.479652Z"
+  "updated_at": "2026-10-21T17:55:57.613872Z"
 }

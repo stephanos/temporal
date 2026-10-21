@@ -1,6 +1,7 @@
 package choice
 
 import (
+	"bytes"
 	"crypto/sha256"
 	"encoding/binary"
 	"encoding/hex"
@@ -138,9 +139,18 @@ func Project(payload []byte, metadata TerminalMetadata, targetIdentity [sha256.S
 
 func DecodeStoredTrace(profile string, payload []byte, metadata TerminalMetadata) (Trace, error) {
 	switch profile {
-	case Profile:
+	case Profile, "gomad-choice-trace/v3":
 		terminal := encodeTerminal(terminal{State: metadata.State, Records: metadata.Records, MappingBytes: traceHeaderBytes + uint64(len(payload)), PayloadHash: metadata.SHA256})
-		return DecodeTrace(payload, terminal[:], metadata.Limit)
+		trace, err := DecodeTrace(payload, terminal[:], metadata.Limit)
+		if profile == "gomad-choice-trace/v3" {
+			for _, record := range trace.Records {
+				if record.Kind == KindGoroutineCreation {
+					return Trace{}, errors.Join(ErrMalformed, errors.New("previous choice trace carries creation metadata"))
+				}
+			}
+			trace.Version = Version3
+		}
+		return trace, err
 	case LegacyProfile:
 		return Trace{}, errors.Join(ErrMalformed, fmt.Errorf("superseded choice trace profile %q records no stable logical alternatives", profile))
 	case SupersededProfile:
@@ -186,10 +196,14 @@ func TraceRecordCount(encoded []byte) (uint64, error) {
 }
 
 func ProjectTrace(trace Trace, limit uint64, targetIdentity [sha256.Size]byte) (Projection, error) {
-	if trace.Version != Version3 {
+	if trace.Version != Version3 && trace.Version != Version4 {
 		return Projection{}, errors.Join(ErrMalformed, fmt.Errorf("unsupported choice trace version %d", trace.Version))
 	}
-	validated, err := DecodeStoredTrace(Profile, trace.Bytes, TerminalMetadata{State: trace.Summary.Terminal, Limit: limit, Records: trace.Summary.Records, SHA256: trace.SHA256})
+	profile := Profile
+	if trace.Version == Version3 {
+		profile = "gomad-choice-trace/v3"
+	}
+	validated, err := DecodeStoredTrace(profile, trace.Bytes, TerminalMetadata{State: trace.Summary.Terminal, Limit: limit, Records: trace.Summary.Records, SHA256: trace.SHA256})
 	//gomad:dynamic reviewed 2026-10-12 reviewed codec and validator errors have memory-only methods
 	if errors.Is(err, ErrOverflow) && trace.Summary.Terminal == TerminalOverflow {
 		err = nil
@@ -208,6 +222,9 @@ func projectTrace(trace Trace, limit uint64, targetIdentity [sha256.Size]byte) (
 	}
 	bySite := make(map[siteKey]Site)
 	for _, record := range trace.Records {
+		if record.Kind == KindGoroutineCreation {
+			continue
+		}
 		key := siteKey{kind: record.Kind, offset: record.SiteOffset, missing: record.Flags&FlagSiteMissing != 0}
 		site := bySite[key]
 		site.Kind = record.Kind
@@ -278,6 +295,9 @@ func projectRecordFeatures(records []Record, targetIdentity [sha256.Size]byte) r
 	seenPairs := make(map[string]struct{}, min(len(records), MaximumAdjacentChoicePairs))
 	previousIdentity := ""
 	for _, record := range records {
+		if record.Kind == KindGoroutineCreation {
+			continue
+		}
 		role := recordRole(record)
 		kind := kindName(record.Kind)
 		site := siteFingerprint(record, targetIdentity)
@@ -395,7 +415,7 @@ func DecodeTrace(payload, terminalFrame []byte, mappingLimit uint64) (Trace, err
 		return Trace{}, errors.Join(ErrMalformed, errors.New("choice trace digest mismatch"))
 	}
 	result := Trace{
-		Version: Version3,
+		Version: int(binary.BigEndian.Uint32(terminalFrame[8:12])),
 		Bytes:   append([]byte(nil), payload...),
 		SHA256:  digest,
 		Records: make([]Record, 0, terminal.Records),
@@ -405,6 +425,9 @@ func DecodeTrace(payload, terminalFrame []byte, mappingLimit uint64) (Trace, err
 		record, decodeErr := decodeRecord(payload[offset : offset+traceRecordBytes])
 		if decodeErr != nil {
 			return Trace{}, errors.Join(ErrMalformed, decodeErr)
+		}
+		if result.Version == Version3 && record.Kind == KindGoroutineCreation {
+			return Trace{}, errors.Join(ErrMalformed, errors.New("previous choice trace carries creation metadata"))
 		}
 		if record.Flags&FlagRankOverride != 0 {
 			return Trace{}, errors.Join(ErrMalformed, errors.New("choice trace contains a controller-only rank override"))
@@ -432,6 +455,9 @@ func DecodeTrace(payload, terminalFrame []byte, mappingLimit uint64) (Trace, err
 		default:
 		}
 	}
+	if err := validateCreationMetadata(result.Records); err != nil {
+		return Trace{}, err
+	}
 	if terminal.State == TerminalOverflow {
 		return result, ErrOverflow
 	}
@@ -439,4 +465,53 @@ func DecodeTrace(payload, terminalFrame []byte, mappingLimit uint64) (Trace, err
 		return result, ErrDiverged
 	}
 	return result, nil
+}
+
+func validateCreationMetadata(records []Record) error {
+	var pending []Record
+	for _, record := range records {
+		if record.Kind == KindGoroutineCreation {
+			if record.Selected != uint32(len(pending)) || len(pending) > 0 && (record.Alternatives != pending[0].Alternatives || bytes.Compare(pending[len(pending)-1].SelectedIdentity[:], record.SelectedIdentity[:]) >= 0) {
+				return errors.Join(ErrMalformed, errors.New("invalid creation metadata order"))
+			}
+			pending = append(pending, record)
+			continue
+		}
+		if len(pending) == 0 {
+			continue
+		}
+		if record.Kind != KindRunnable || record.Alternatives != uint32(len(pending)) || pending[0].Alternatives != record.Alternatives {
+			return errors.Join(ErrMalformed, errors.New("creation metadata does not match runnable alternatives"))
+		}
+		identities := make([][sha256.Size]byte, len(pending))
+		for index, site := range pending {
+			identities[index] = site.SelectedIdentity
+		}
+		digest, err := AlternativeSetDigest(identities)
+		if err != nil || digest != record.AlternativeSetDigest {
+			return errors.Join(ErrMalformed, errors.New("creation metadata alternative set mismatch"))
+		}
+		pending = nil
+	}
+	if len(pending) > 0 {
+		return errors.Join(ErrMalformed, errors.New("orphan creation metadata"))
+	}
+	return nil
+}
+
+// PredecisionOrdinals returns, for each record, the trace length when the
+// runtime presented the decision that produced it. A v4 runnable decision
+// first appends one creation record per alternative, so it and its creation
+// records share the ordinal of the first creation record; every other record
+// keeps its own ordinal. Inspection boundaries carry this coordinate.
+func PredecisionOrdinals(records []Record) []uint64 {
+	ordinals := make([]uint64, len(records))
+	start := 0
+	for index := range records {
+		if index == 0 || records[index-1].Kind != KindGoroutineCreation {
+			start = index
+		}
+		ordinals[index] = records[start].Ordinal
+	}
+	return ordinals
 }

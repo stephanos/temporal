@@ -228,12 +228,13 @@ func Within(path, root string) bool { return within(path, root) }
 var sourceExclusions = []string{
 	"internal/model/cluster/testdata/simulation_exploration", "internal/model/cluster/testdata/simulation_replay",
 	"cmd/gomad/testdata", "internal/evidence/qualification/corpus",
+	"testdata/parity/site_scope",
 	"internal/backends/wasm/testdata", "internal/backends/wasm/wasi/testdata", "internal/backends/wasm/toolchain/testdata", "internal/backends/wasm/cluster/testdata", "internal/backends/wasm/qualification/testdata", "internal/backends/wasm/command/testdata",
 }
 
 var expectedModules = map[string]bool{
 	"internal/evidence/qualification/corpus/go.mod": true, "internal/backends/wasm/qualification/testdata/fixture/go.mod": true,
-	"internal/backends/wasm/testdata/io_failure_module/go.mod": true,
+	"internal/backends/wasm/testdata/io_failure_module/go.mod": true, "internal/backends/wasm/testdata/ringpop/go.mod": true,
 }
 
 func SelectionTags() string {
