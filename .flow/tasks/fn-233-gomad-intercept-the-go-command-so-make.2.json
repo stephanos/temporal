@@ -1,0 +1,16 @@
+{
+  "assignee": null,
+  "claim_note": "",
+  "claimed_at": null,
+  "created_at": "2026-10-20T23:14:37.047303Z",
+  "depends_on": [
+    "fn-233-gomad-intercept-the-go-command-so-make.1"
+  ],
+  "id": "fn-233-gomad-intercept-the-go-command-so-make.2",
+  "priority": null,
+  "spec": "fn-233-gomad-intercept-the-go-command-so-make",
+  "spec_path": ".flow/tasks/fn-233-gomad-intercept-the-go-command-so-make.2.md",
+  "status": "todo",
+  "title": "go shim: argv[0] dispatch, invocation classification, guest build environment, refusals and byte-exact host passthrough",
+  "updated_at": "2026-10-20T23:14:37.047303Z"
+}

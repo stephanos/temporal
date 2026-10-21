@@ -293,9 +293,18 @@ Owner decision 2026-10-19: support ringpop enough to verify a multi-node members
 
 | Name / ID | Status | Description |
 | --- | --- | --- |
-| [fn-224.1](.flow/tasks/fn-224-gomad-ringpop-membership-on-wasm-within.1.md) | ⬜ Todo | Unstub ringpop in the slim guest and record the module size delta |
-| [fn-224.2](.flow/tasks/fn-224-gomad-ringpop-membership-on-wasm-within.2.md) | ⬜ Todo | Run the ringpop unit tests under the cooperative profile and classify every outcome |
-| [fn-224.3](.flow/tasks/fn-224-gomad-ringpop-membership-on-wasm-within.3.md) | ⬜ Todo | Add a multi-node ringpop partition/heal scenario and document it |
+| [fn-224.1](.flow/tasks/fn-224-gomad-ringpop-membership-on-wasm-within.1.md) | 🚧 In progress | Unstub ringpop in the slim guest and record the module size delta |
+| [fn-224.2](.flow/tasks/fn-224-gomad-ringpop-membership-on-wasm-within.2.md) | 🚧 In progress | Run the ringpop unit tests under the cooperative profile and classify every outcome |
+| [fn-224.3](.flow/tasks/fn-224-gomad-ringpop-membership-on-wasm-within.3.md) | 🚧 In progress | Add a multi-node ringpop partition/heal scenario and document it |
+
+### Fail cluster runs fast on exhausted limits — [fn-235](.flow/specs/fn-235-gomad-fail-cluster-runs-fast-and.md)
+
+Owner decision 2026-10-21: an exhausted limit must not be silent. Found in fn-224.3; lands in the Rust helper, merged in step with the fn-232 helper batch.
+
+| Name / ID | Status | Description |
+| --- | --- | --- |
+| [fn-235-gomad-fail-cluster-runs-fast-and.1](.flow/tasks/fn-235-gomad-fail-cluster-runs-fast-and.1.md) | ⬜ Todo | Classify broker capacity exhaustion and end manual cluster runs promptly with retained partial evidence |
+| [fn-235-gomad-fail-cluster-runs-fast-and.2](.flow/tasks/fn-235-gomad-fail-cluster-runs-fast-and.2.md) | ⬜ Todo | Measure and remove superlinear World inspection commitment cost in long cluster runs |
 
 ### WASM host-side execution cost profile — [fn-185](.flow/specs/fn-185-gomad-wasm-host-side-execution-cost.md)
 
