@@ -464,8 +464,10 @@ Before/after measurements and final acceptance remain pending.
 The parser-budget reproduction and repair are integrated as `be38ee5fae`
 and `3d1c24cc35`. The worker reproduced an ordinary fixture accepting eighteen
 million eager TryTable catch entries before the repair; its repaired focused
-suite passes 36 tests. Independent integrated verification and review remain
-pending. Evidence is `/home/agent/wt/evidence/fn229-budget-fix/`.
+suite passes 36 tests. Fresh integrated verification passes all 36 tests and
+`make lint-code-fast` exits 0. Independent parser review returned SHIP with
+R3/R4/R7/R8 satisfied; Flow completion was verified for fn-229.1. Evidence is
+`/home/agent/wt/evidence/fn229-budget-fix/` and the task's updated done summary.
 
 Replay and accepted artifact symbol projection are being combined in
 `/home/agent/wt/fn232-replay`, including fn-235's helper changes and a shared

@@ -350,7 +350,6 @@ Interleave with the Rust host: fn-229 after fn-232.5 inspect, fn-230 after fn-23
 
 | Name / ID | Status | Description |
 | --- | --- | --- |
-| [fn-229-gomad-symbolize-choice-sites-in-inspect.1](.flow/tasks/fn-229-gomad-symbolize-choice-sites-in-inspect.1.md) | 🚧 In progress | Reproduce and close parser-internal cumulative budget gap |
 | [fn-229-gomad-symbolize-choice-sites-in-inspect.2](.flow/tasks/fn-229-gomad-symbolize-choice-sites-in-inspect.2.md) | 🚧 In progress | Inspect output: attach symbols to sites, decisions and divergences |
 
 | Name / ID | Status | Description |
