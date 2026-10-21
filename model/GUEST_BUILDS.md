@@ -84,7 +84,7 @@ stock/control guests are built for the gate and remain uncommitted.
 
 ## Linux source-path independence
 
-The current source pin, matching hashes/sizes, platform and toolchain are recorded
+The fn-230 source pin, matching hashes/sizes, platform and toolchain are recorded
 in [DESIGN.md](DESIGN.md). Each proof uses two clean source clones at different
 absolute paths with initially absent independent build targets. Downloaded
 dependencies may be shared; compiled artifacts are not. From the repository root,
@@ -110,7 +110,7 @@ test -z "$(git -C /absolute/proof/different-source-b status --porcelain)"
 ```
 
 Linux directory independence does not establish macOS or cross-OS byte identity.
-That separate certification remains unverified under fn-232. Historical aborting
+The fn-232 attempt below failed cross-OS identity. Historical aborting
 artifacts and earlier smaller Temporal closures do not certify the current unwind
 build. The original engine feasibility proof is retained under
 `.flow/tmp/fn230-eh-proof-20261021T032505Z/` with its sources and negative controls.
@@ -158,6 +158,37 @@ unchanged 64 MiB limit. The full Temporal Go module passed with Rust unavailable
 on PATH. Native controls cover failed/partial/panicked initialization retry,
 concurrent publication, lazy canonical reuse and all 2238 generic cases across
 two contexts. Evidence is in `.flow/tmp/fn2302/` and its `metadata-lane-evidence/`.
+
+## Linux/macOS certification attempt (fn-232)
+
+Certification failed on 2026-10-21 at source
+`8d429e97409b1537ecb347c359129bffafa63f78`. Linux 7.0.14/aarch64 and macOS
+25.6.0/arm64 each built both guests from two clean clones with initially absent,
+independent target directories. Both path comparisons passed on each OS. Every
+cross-OS comparison failed. The first differing offsets are 443 for stock and
+635 for Temporal, zero-based. These results remain separate from the historical
+fn-230 Linux receipts above.
+
+Both executors used Rust 1.99.1, commit
+`58cf8f9c35b355199727627d07ae34a4e2846d67`, LLVM 23.1.1, Cargo 1.99.1
+(`5f94df478`), Go 1.27.0 and protoc 29.5. The Rust hosts were
+`aarch64-unknown-linux-gnu` and `aarch64-apple-darwin`; both outputs targeted
+`wasm32-wasip1` using the unchanged unwind builder and two Cargo jobs.
+
+| OS | Guest | Bytes in each path | SHA-256 in each path |
+| --- | --- | ---: | --- |
+| Linux | Stock | 192255 | `5ec57e2e5371723adf318665c1048b5a4021e9f4203ed56884c5f849e7a2dfc1` |
+| macOS | Stock | 192263 | `ea826b9088f9fae68943b149289d5646e349fc8f2751f0bab422312fe74e2e54` |
+| Linux | Temporal | 3329990 | `10724102d03e1659f28b07c3a0c848d2cac5876668f3be9261d0a3b65023cf06` |
+| macOS | Temporal | 3329996 | `791b33b3db2e8d57464d94fcdfb8b95594d15b434a6fb7e1c24905a5e4069547` |
+
+The retained runner, platform transcripts, target identities, source-status checks
+and all twelve actual `cmp` results are under
+[fn-232 evidence](../.flow/artifacts/fn-232-linux-macos-guest-byte-identity/proof.md).
+That report records exact invocations and the separate host-parity results.
+The stock WAT diff changes the element table, function bodies and data layout.
+The compiler/linker cause remains unresolved. A separately scoped reproducibility
+fix must precede renewed certification; no guest bytes or build recipe were changed.
 
 ## Current verification and measured gate cost
 

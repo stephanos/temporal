@@ -8,7 +8,7 @@ As of 2026-10-21.
 
 - This page describes the present. Rewrite a status in place; do not append dated entries.
 - List each open spec's remaining tasks in a `Name | Status | What` table: the task ID, its status
-  (🔄 in progress, ⬜ todo, ⏸️ deferred) and a brief description. Remove a task's row once it is done,
+  (🔄 in progress, ⬜ todo, ⛔ blocked, ⏸️ deferred) and a brief description. Remove a task's row once it is done,
   and the spec once it is closed. Flow and git keep the history.
 - Only the root agent edits this page. Workers report status in their handoffs.
 - Update the "As of" date with every edit.
@@ -83,12 +83,15 @@ chronology still needs reconciliation with the already-completed Temporal catalo
 ### fn-232: Linux/macOS guest byte-identity certification
 
 The owner separated this proof from fn-230 so Linux embedding and freshness work can proceed.
-Cross-OS identity remains unverified and required here; it does not gate fn-230 or its consumers.
+The proof attempt completed four clean builds and both platforms' host suites. Both guests
+reproduce across paths within each OS, but all eight Linux/macOS byte comparisons fail.
+Certification remains open pending a separately scoped reproducibility fix; it does not gate
+fn-230 or its consumers. The retained proof identifies the source pin, toolchains and artifacts.
 [Spec](.flow/specs/fn-232-linux-macos-guest-byte-identity.md).
 
 | Name | Status | What |
 | --- | --- | --- |
-| fn-232.1 | ⬜ todo | After fn-230: same-source Linux/arm64 and macOS stock/Temporal proof with independent clean targets; requires reachable macOS executor (R1, R2) |
+| fn-232.1 | ⛔ blocked | Four clean builds and within-OS checks passed; both guests differ across Linux/macOS. Fix reproducibility separately before renewed certification (R1, R2) |
 
 ### fn-227: Parameterized Models: declared worlds, action inputs, and the activity Model with retries and timeouts (model, temporal)
 
@@ -162,8 +165,3 @@ and replay; one `umpire` command with five modes.
 | fn-228.5 | ⬜ todo | After .4: Shim endpoint for non-Go SDK workers (R5) |
 | fn-228.6 | ⬜ todo | After .4: delete and shrink Testpilot packages; sizes reported (R6) |
 | fn-228.7 | ⬜ todo | After .5 and .6: DESIGN.md Runner and Run write-up; R33 to R40 discharged (R7) |
-
-## Open for the owner
-
-- fn-232's separately tracked Linux/macOS byte-identity proof needs a reachable macOS executor.
-  Two Linux checkouts prove path independence, not cross-OS identity.

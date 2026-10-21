@@ -1,0 +1,225 @@
+{
+  "pin": "8d429e97409b1537ecb347c359129bffafa63f78",
+  "sources": {
+    "linux-a": {
+      "path": "/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/fn232-certification-linux/source-a",
+      "revision": "8d429e97409b1537ecb347c359129bffafa63f78",
+      "status": ""
+    },
+    "linux-b": {
+      "path": "/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/fn232-certification-linux/source-b",
+      "revision": "8d429e97409b1537ecb347c359129bffafa63f78",
+      "status": ""
+    },
+    "macos-a": {
+      "path": "/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/fn232-certification-macos/source-a",
+      "revision": "8d429e97409b1537ecb347c359129bffafa63f78",
+      "status": ""
+    },
+    "macos-b": {
+      "path": "/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/fn232-certification-macos/source-b",
+      "revision": "8d429e97409b1537ecb347c359129bffafa63f78",
+      "status": ""
+    }
+  },
+  "artifacts": {
+    "linux-stock-a": {
+      "path": "/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/fn232-certification-linux/stock-a.wasm",
+      "bytes": 192255,
+      "sha256": "5ec57e2e5371723adf318665c1048b5a4021e9f4203ed56884c5f849e7a2dfc1"
+    },
+    "linux-temporal-a": {
+      "path": "/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/fn232-certification-linux/temporal-a.wasm",
+      "bytes": 3329990,
+      "sha256": "10724102d03e1659f28b07c3a0c848d2cac5876668f3be9261d0a3b65023cf06"
+    },
+    "linux-stock-b": {
+      "path": "/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/fn232-certification-linux/stock-b.wasm",
+      "bytes": 192255,
+      "sha256": "5ec57e2e5371723adf318665c1048b5a4021e9f4203ed56884c5f849e7a2dfc1"
+    },
+    "linux-temporal-b": {
+      "path": "/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/fn232-certification-linux/temporal-b.wasm",
+      "bytes": 3329990,
+      "sha256": "10724102d03e1659f28b07c3a0c848d2cac5876668f3be9261d0a3b65023cf06"
+    },
+    "macos-stock-a": {
+      "path": "/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/fn232-certification-macos/stock-a.wasm",
+      "bytes": 192263,
+      "sha256": "ea826b9088f9fae68943b149289d5646e349fc8f2751f0bab422312fe74e2e54"
+    },
+    "macos-temporal-a": {
+      "path": "/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/fn232-certification-macos/temporal-a.wasm",
+      "bytes": 3329996,
+      "sha256": "791b33b3db2e8d57464d94fcdfb8b95594d15b434a6fb7e1c24905a5e4069547"
+    },
+    "macos-stock-b": {
+      "path": "/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/fn232-certification-macos/stock-b.wasm",
+      "bytes": 192263,
+      "sha256": "ea826b9088f9fae68943b149289d5646e349fc8f2751f0bab422312fe74e2e54"
+    },
+    "macos-temporal-b": {
+      "path": "/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/fn232-certification-macos/temporal-b.wasm",
+      "bytes": 3329996,
+      "sha256": "791b33b3db2e8d57464d94fcdfb8b95594d15b434a6fb7e1c24905a5e4069547"
+    }
+  },
+  "comparisons": [
+    {
+      "left": "linux-stock-a",
+      "right": "linux-stock-b",
+      "command": [
+        "cmp",
+        "/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/fn232-certification-linux/stock-a.wasm",
+        "/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/fn232-certification-linux/stock-b.wasm"
+      ],
+      "exit_code": 0,
+      "stdout": "",
+      "stderr": "",
+      "first_difference_zero_based": null
+    },
+    {
+      "left": "linux-stock-a",
+      "right": "macos-stock-a",
+      "command": [
+        "cmp",
+        "/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/fn232-certification-linux/stock-a.wasm",
+        "/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/fn232-certification-macos/stock-a.wasm"
+      ],
+      "exit_code": 1,
+      "stdout": "/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/fn232-certification-linux/stock-a.wasm /Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/fn232-certification-macos/stock-a.wasm differ: char 444, line 3\n",
+      "stderr": "",
+      "first_difference_zero_based": 443
+    },
+    {
+      "left": "linux-stock-a",
+      "right": "macos-stock-b",
+      "command": [
+        "cmp",
+        "/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/fn232-certification-linux/stock-a.wasm",
+        "/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/fn232-certification-macos/stock-b.wasm"
+      ],
+      "exit_code": 1,
+      "stdout": "/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/fn232-certification-linux/stock-a.wasm /Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/fn232-certification-macos/stock-b.wasm differ: char 444, line 3\n",
+      "stderr": "",
+      "first_difference_zero_based": 443
+    },
+    {
+      "left": "linux-stock-b",
+      "right": "macos-stock-a",
+      "command": [
+        "cmp",
+        "/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/fn232-certification-linux/stock-b.wasm",
+        "/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/fn232-certification-macos/stock-a.wasm"
+      ],
+      "exit_code": 1,
+      "stdout": "/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/fn232-certification-linux/stock-b.wasm /Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/fn232-certification-macos/stock-a.wasm differ: char 444, line 3\n",
+      "stderr": "",
+      "first_difference_zero_based": 443
+    },
+    {
+      "left": "linux-stock-b",
+      "right": "macos-stock-b",
+      "command": [
+        "cmp",
+        "/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/fn232-certification-linux/stock-b.wasm",
+        "/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/fn232-certification-macos/stock-b.wasm"
+      ],
+      "exit_code": 1,
+      "stdout": "/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/fn232-certification-linux/stock-b.wasm /Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/fn232-certification-macos/stock-b.wasm differ: char 444, line 3\n",
+      "stderr": "",
+      "first_difference_zero_based": 443
+    },
+    {
+      "left": "macos-stock-a",
+      "right": "macos-stock-b",
+      "command": [
+        "cmp",
+        "/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/fn232-certification-macos/stock-a.wasm",
+        "/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/fn232-certification-macos/stock-b.wasm"
+      ],
+      "exit_code": 0,
+      "stdout": "",
+      "stderr": "",
+      "first_difference_zero_based": null
+    },
+    {
+      "left": "linux-temporal-a",
+      "right": "linux-temporal-b",
+      "command": [
+        "cmp",
+        "/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/fn232-certification-linux/temporal-a.wasm",
+        "/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/fn232-certification-linux/temporal-b.wasm"
+      ],
+      "exit_code": 0,
+      "stdout": "",
+      "stderr": "",
+      "first_difference_zero_based": null
+    },
+    {
+      "left": "linux-temporal-a",
+      "right": "macos-temporal-a",
+      "command": [
+        "cmp",
+        "/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/fn232-certification-linux/temporal-a.wasm",
+        "/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/fn232-certification-macos/temporal-a.wasm"
+      ],
+      "exit_code": 1,
+      "stdout": "/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/fn232-certification-linux/temporal-a.wasm /Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/fn232-certification-macos/temporal-a.wasm differ: char 636, line 2\n",
+      "stderr": "",
+      "first_difference_zero_based": 635
+    },
+    {
+      "left": "linux-temporal-a",
+      "right": "macos-temporal-b",
+      "command": [
+        "cmp",
+        "/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/fn232-certification-linux/temporal-a.wasm",
+        "/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/fn232-certification-macos/temporal-b.wasm"
+      ],
+      "exit_code": 1,
+      "stdout": "/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/fn232-certification-linux/temporal-a.wasm /Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/fn232-certification-macos/temporal-b.wasm differ: char 636, line 2\n",
+      "stderr": "",
+      "first_difference_zero_based": 635
+    },
+    {
+      "left": "linux-temporal-b",
+      "right": "macos-temporal-a",
+      "command": [
+        "cmp",
+        "/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/fn232-certification-linux/temporal-b.wasm",
+        "/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/fn232-certification-macos/temporal-a.wasm"
+      ],
+      "exit_code": 1,
+      "stdout": "/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/fn232-certification-linux/temporal-b.wasm /Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/fn232-certification-macos/temporal-a.wasm differ: char 636, line 2\n",
+      "stderr": "",
+      "first_difference_zero_based": 635
+    },
+    {
+      "left": "linux-temporal-b",
+      "right": "macos-temporal-b",
+      "command": [
+        "cmp",
+        "/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/fn232-certification-linux/temporal-b.wasm",
+        "/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/fn232-certification-macos/temporal-b.wasm"
+      ],
+      "exit_code": 1,
+      "stdout": "/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/fn232-certification-linux/temporal-b.wasm /Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/fn232-certification-macos/temporal-b.wasm differ: char 636, line 2\n",
+      "stderr": "",
+      "first_difference_zero_based": 635
+    },
+    {
+      "left": "macos-temporal-a",
+      "right": "macos-temporal-b",
+      "command": [
+        "cmp",
+        "/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/fn232-certification-macos/temporal-a.wasm",
+        "/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/fn232-certification-macos/temporal-b.wasm"
+      ],
+      "exit_code": 0,
+      "stdout": "",
+      "stderr": "",
+      "first_difference_zero_based": null
+    }
+  ]
+}

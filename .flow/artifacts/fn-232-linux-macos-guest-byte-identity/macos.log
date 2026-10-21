@@ -1,0 +1,514 @@
++ repository=/Users/stephan/Workspace/skunkworks/umpire/temporal
++ root=/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/fn232-certification-macos
++ pin=8d429e97409b1537ecb347c359129bffafa63f78
++ test '!' -e /Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/fn232-certification-macos
++ mkdir -p /Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/fn232-certification-macos
++ date -u
+Wed Oct 21 15:40:07 UTC 2026
++ uname -a
+Darwin Stephans-MacBook-Pro.local 25.6.0 Darwin Kernel Version 25.6.0: Tue Aug 18 17:50:45 PDT 2026; root:xnu-12377.161.15.700.19~2/RELEASE_ARM64_T6020 arm64
++ df -h /Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/fn232-certification-macos
+Filesystem      Size    Used   Avail Capacity iused ifree %iused  Mounted on
+/dev/disk3s5   926Gi   865Gi    27Gi    98%    9.1M  280M    3%   /System/Volumes/Data
++ export CARGO_BUILD_JOBS=2
++ CARGO_BUILD_JOBS=2
++ unset RUSTFLAGS CARGO_ENCODED_RUSTFLAGS CARGO_TARGET_DIR
++ for lane in a b
++ source=/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/fn232-certification-macos/source-a
++ target=/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/fn232-certification-macos/target-a
++ test '!' -e /Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/fn232-certification-macos/source-a
++ test '!' -e /Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/fn232-certification-macos/target-a
++ git clone --shared --no-checkout /Users/stephan/Workspace/skunkworks/umpire/temporal /Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/fn232-certification-macos/source-a
+Cloning into '/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/fn232-certification-macos/source-a'...
++ git -C /Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/fn232-certification-macos/source-a checkout --detach 8d429e97409b1537ecb347c359129bffafa63f78
+HEAD is now at 8d429e974 chore(flow): retain native world verification evidence
+++ git -C /Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/fn232-certification-macos/source-a rev-parse HEAD
++ test 8d429e97409b1537ecb347c359129bffafa63f78 = 8d429e97409b1537ecb347c359129bffafa63f78
+++ git -C /Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/fn232-certification-macos/source-a status --porcelain --untracked-files=all
++ test -z ''
++ cd /Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/fn232-certification-macos/source-a
++ mise trust /Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/fn232-certification-macos/source-a/mise.toml
+mise trusted /Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/fn232-certification-macos/source-a
++ mise exec -- rustc -Vv
+rustc 1.99.1 (58cf8f9c3 2026-10-13)
+binary: rustc
+commit-hash: 58cf8f9c35b355199727627d07ae34a4e2846d67
+commit-date: 2026-10-13
+host: aarch64-apple-darwin
+release: 1.99.1
+LLVM version: 23.1.1
++ mise exec -- cargo -V
+cargo 1.99.1 (5f94df478 2026-08-27)
++ mise exec -- go version
+go version go1.27.0 darwin/arm64
++ mise exec -- protoc --version
+libprotoc 29.5
++ mise exec -- rustup component list --installed
+cargo-aarch64-apple-darwin
+clippy-aarch64-apple-darwin
+rust-analyzer-aarch64-apple-darwin
+rust-docs-aarch64-apple-darwin
+rust-src
+rust-std-aarch64-apple-darwin
+rust-std-wasm32-wasip1
+rustc-aarch64-apple-darwin
+rustfmt-aarch64-apple-darwin
++ mise exec -- rustup target list --installed
+aarch64-apple-darwin
+wasm32-wasip1
++ export CARGO_TARGET_DIR=/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/fn232-certification-macos/target-a
++ CARGO_TARGET_DIR=/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/fn232-certification-macos/target-a
++ bash -n model/scripts/guest.sh
++ bash model/scripts/guest.sh umpire-stock-guest /Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/fn232-certification-macos/stock-a.wasm
+    Updating crates.io index
+ Downloading crates ...
+  Downloaded equivalent v1.0.3
+  Downloaded manyhow-macros v0.14.1
+  Downloaded either v1.19.0
+  Downloaded smallvec v1.16.3
+  Downloaded manyhow v0.14.1
+    Updating crates.io index
+ Downloading crates ...
+  Downloaded addr2line v0.27.1
+  Downloaded miniz_oxide v0.9.1
+  Downloaded rustc-demangle v0.1.28
+  Downloaded rustc-literal-escaper v0.0.8
+  Downloaded wasip1 v1.0.0
+  Downloaded gimli v0.34.0
+   Compiling compiler_builtins v0.1.160 (/Users/stephan/.rustup/toolchains/1.99.1-aarch64-apple-darwin/lib/rustlib/src/rust/library/compiler-builtins/compiler-builtins)
+   Compiling core v0.0.0 (/Users/stephan/.rustup/toolchains/1.99.1-aarch64-apple-darwin/lib/rustlib/src/rust/library/core)
+   Compiling proc-macro2 v1.0.107
+   Compiling rustc-std-workspace-core v1.99.0 (/Users/stephan/.rustup/toolchains/1.99.1-aarch64-apple-darwin/lib/rustlib/src/rust/library/rustc-std-workspace-core)
+   Compiling alloc v0.0.0 (/Users/stephan/.rustup/toolchains/1.99.1-aarch64-apple-darwin/lib/rustlib/src/rust/library/alloc)
+   Compiling quote v1.0.47
+   Compiling unicode-ident v1.0.27
+   Compiling libc v0.2.189
+   Compiling rustc-std-workspace-alloc v1.99.0 (/Users/stephan/.rustup/toolchains/1.99.1-aarch64-apple-darwin/lib/rustlib/src/rust/library/rustc-std-workspace-alloc)
+   Compiling object v0.39.1
+   Compiling unwind v0.0.0 (/Users/stephan/.rustup/toolchains/1.99.1-aarch64-apple-darwin/lib/rustlib/src/rust/library/unwind)
+   Compiling gimli v0.34.0
+   Compiling memchr v2.8.3
+   Compiling adler2 v2.0.1
+   Compiling std v0.0.0 (/Users/stephan/.rustup/toolchains/1.99.1-aarch64-apple-darwin/lib/rustlib/src/rust/library/std)
+   Compiling miniz_oxide v0.9.1
+   Compiling addr2line v0.27.1
+   Compiling panic_unwind v0.0.0 (/Users/stephan/.rustup/toolchains/1.99.1-aarch64-apple-darwin/lib/rustlib/src/rust/library/panic_unwind)
+   Compiling std_detect v0.1.5 (/Users/stephan/.rustup/toolchains/1.99.1-aarch64-apple-darwin/lib/rustlib/src/rust/library/std_detect)
+   Compiling wasip1 v1.0.0
+   Compiling hashbrown v0.17.1
+   Compiling panic_abort v0.0.0 (/Users/stephan/.rustup/toolchains/1.99.1-aarch64-apple-darwin/lib/rustlib/src/rust/library/panic_abort)
+   Compiling cfg-if v1.0.4
+   Compiling rustc-demangle v0.1.28
+   Compiling rustc-literal-escaper v0.0.8
+   Compiling syn v2.0.119
+   Compiling proc_macro v0.0.0 (/Users/stephan/.rustup/toolchains/1.99.1-aarch64-apple-darwin/lib/rustlib/src/rust/library/proc_macro)
+   Compiling syn v3.0.9
+   Compiling anyhow v1.0.104
+   Compiling libc v0.2.191
+   Compiling either v1.19.0
+   Compiling itertools v0.14.0
+   Compiling strsim v0.11.1
+   Compiling ident_case v1.0.1
+   Compiling darling_core v0.24.1
+   Compiling prost-derive v0.14.4
+   Compiling rustix v1.1.5
+   Compiling smallvec v1.16.3
+   Compiling proc-macro-utils v0.10.0
+   Compiling errno v0.3.14
+   Compiling bitflags v2.13.2
+   Compiling bytes v1.12.1
+   Compiling regex-syntax v0.8.11
+   Compiling prettyplease v0.2.37
+   Compiling equivalent v1.0.3
+   Compiling foldhash v0.1.5
+   Compiling hashbrown v0.15.5
+   Compiling indexmap v2.14.2
+   Compiling regex-automata v0.4.18
+   Compiling prost v0.14.4
+   Compiling manyhow-macros v0.14.1
+   Compiling darling_macro v0.24.1
+   Compiling fastrand v2.5.0
+   Compiling fixedbitset v0.5.7
+   Compiling umpire-dsl-macros v0.0.1 (/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/fn232-certification-macos/source-a/model/umpire/dsl/macros)
+   Compiling once_cell v1.21.4
+   Compiling tempfile v3.27.0
+   Compiling darling v0.24.1
+   Compiling petgraph v0.8.3
+   Compiling manyhow v0.14.1
+   Compiling regex v1.13.1
+   Compiling prost-types v0.14.4
+   Compiling enum-iterator-derive v1.5.0
+   Compiling heck v0.5.0
+   Compiling log v0.4.34
+   Compiling umpire-dsl v0.0.1 (/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/fn232-certification-macos/source-a/model/umpire/dsl)
+   Compiling thiserror v2.0.21
+   Compiling multimap v0.10.1
+   Compiling prost-build v0.14.4
+   Compiling enum-iterator v2.3.0
+   Compiling thiserror-impl v2.0.21
+   Compiling umpire-checker v0.0.1 (/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/fn232-certification-macos/source-a/model/umpire/checker)
+warning: unstable feature specified for `-Ctarget-feature`: `exception-handling`
+  |
+  = note: this feature is not stably supported; its behavior can change in the future
+
+warning: `umpire-dsl` (lib) generated 1 warning
+   Compiling umpire-wasm v0.0.1 (/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/fn232-certification-macos/source-a/model/umpire/wasm)
+   Compiling rustc-hash v2.1.3
+warning: `umpire-checker` (lib) generated 1 warning (1 duplicate)
+warning: `umpire-wasm` (lib) generated 1 warning (1 duplicate)
+   Compiling umpire-stock-guest v0.0.1 (/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/fn232-certification-macos/source-a/model/umpire/wasm/guests/stock)
+warning: `umpire-stock-guest` (lib) generated 1 warning (1 duplicate)
+    Finished `guest` profile [optimized] target(s) in 37.63s
++ bash model/scripts/guest.sh umpire-temporal-guest /Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/fn232-certification-macos/temporal-a.wasm
+   Compiling smallvec v1.16.3
+   Compiling indexmap v2.14.2
+   Compiling proc-macro-utils v0.10.0
+   Compiling manyhow-macros v0.14.1
+   Compiling fixedbitset v0.5.7
+   Compiling prost v0.14.4
+   Compiling petgraph v0.8.3
+   Compiling manyhow v0.14.1
+   Compiling umpire-dsl-macros v0.0.1 (/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/fn232-certification-macos/source-a/model/umpire/dsl/macros)
+   Compiling prost-types v0.14.4
+   Compiling prost-build v0.14.4
+   Compiling thiserror v2.0.21
+   Compiling umpire-dsl v0.0.1 (/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/fn232-certification-macos/source-a/model/umpire/dsl)
+   Compiling umpire-wasm v0.0.1 (/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/fn232-certification-macos/source-a/model/umpire/wasm)
+   Compiling enum-iterator v2.3.0
+   Compiling umpire-checker v0.0.1 (/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/fn232-certification-macos/source-a/model/umpire/checker)
+   Compiling rustc-hash v2.1.3
+warning: unstable feature specified for `-Ctarget-feature`: `exception-handling`
+  |
+  = note: this feature is not stably supported; its behavior can change in the future
+
+warning: `umpire-dsl` (lib) generated 1 warning
+warning: `umpire-checker` (lib) generated 1 warning (1 duplicate)
+   Compiling umpire-temporal-annotate-syntax v0.0.1 (/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/fn232-certification-macos/source-a/model/temporal/annotate/syntax)
+warning: `umpire-wasm` (lib) generated 1 warning (1 duplicate)
+   Compiling umpire-annotations v0.0.1 (/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/fn232-certification-macos/source-a/model/umpire/annotations)
+warning: `umpire-annotations` (lib) generated 1 warning (1 duplicate)
+   Compiling umpire-temporal-realization-macros v0.0.1 (/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/fn232-certification-macos/source-a/model/temporal/realization/macros)
+   Compiling umpire-temporal-api v0.0.1 (/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/fn232-certification-macos/source-a/model/temporal/api)
+   Compiling umpire-temporal-annotate-macros v0.0.1 (/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/fn232-certification-macos/source-a/model/temporal/annotate/macros)
+   Compiling umpire-temporal-annotate v0.0.1 (/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/fn232-certification-macos/source-a/model/temporal/annotate)
+warning: `umpire-temporal-annotate` (lib) generated 1 warning (1 duplicate)
+   Compiling umpire-temporal v0.0.1 (/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/fn232-certification-macos/source-a/model/temporal/realization)
+warning: `umpire-temporal-api` (lib) generated 1 warning (1 duplicate)
+warning: `umpire-temporal` (lib) generated 1 warning (1 duplicate)
+   Compiling umpire-temporal-guest v0.0.1 (/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/fn232-certification-macos/source-a/model/temporal/guest)
+warning: `umpire-temporal-guest` (lib) generated 1 warning (1 duplicate)
+    Finished `guest` profile [optimized] target(s) in 1m 01s
+++ git status --porcelain --untracked-files=all
++ test -z ''
++ for lane in a b
++ source=/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/fn232-certification-macos/source-b
++ target=/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/fn232-certification-macos/target-b
++ test '!' -e /Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/fn232-certification-macos/source-b
++ test '!' -e /Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/fn232-certification-macos/target-b
++ git clone --shared --no-checkout /Users/stephan/Workspace/skunkworks/umpire/temporal /Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/fn232-certification-macos/source-b
+Cloning into '/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/fn232-certification-macos/source-b'...
++ git -C /Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/fn232-certification-macos/source-b checkout --detach 8d429e97409b1537ecb347c359129bffafa63f78
+HEAD is now at 8d429e974 chore(flow): retain native world verification evidence
+++ git -C /Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/fn232-certification-macos/source-b rev-parse HEAD
++ test 8d429e97409b1537ecb347c359129bffafa63f78 = 8d429e97409b1537ecb347c359129bffafa63f78
+++ git -C /Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/fn232-certification-macos/source-b status --porcelain --untracked-files=all
++ test -z ''
++ cd /Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/fn232-certification-macos/source-b
++ mise trust /Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/fn232-certification-macos/source-b/mise.toml
+mise trusted /Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/fn232-certification-macos/source-b
++ mise exec -- rustc -Vv
+rustc 1.99.1 (58cf8f9c3 2026-10-13)
+binary: rustc
+commit-hash: 58cf8f9c35b355199727627d07ae34a4e2846d67
+commit-date: 2026-10-13
+host: aarch64-apple-darwin
+release: 1.99.1
+LLVM version: 23.1.1
++ mise exec -- cargo -V
+cargo 1.99.1 (5f94df478 2026-08-27)
++ mise exec -- go version
+go version go1.27.0 darwin/arm64
++ mise exec -- protoc --version
+libprotoc 29.5
++ mise exec -- rustup component list --installed
+cargo-aarch64-apple-darwin
+clippy-aarch64-apple-darwin
+rust-analyzer-aarch64-apple-darwin
+rust-docs-aarch64-apple-darwin
+rust-src
+rust-std-aarch64-apple-darwin
+rust-std-wasm32-wasip1
+rustc-aarch64-apple-darwin
+rustfmt-aarch64-apple-darwin
++ mise exec -- rustup target list --installed
+aarch64-apple-darwin
+wasm32-wasip1
++ export CARGO_TARGET_DIR=/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/fn232-certification-macos/target-b
++ CARGO_TARGET_DIR=/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/fn232-certification-macos/target-b
++ bash -n model/scripts/guest.sh
++ bash model/scripts/guest.sh umpire-stock-guest /Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/fn232-certification-macos/stock-b.wasm
+   Compiling compiler_builtins v0.1.160 (/Users/stephan/.rustup/toolchains/1.99.1-aarch64-apple-darwin/lib/rustlib/src/rust/library/compiler-builtins/compiler-builtins)
+   Compiling core v0.0.0 (/Users/stephan/.rustup/toolchains/1.99.1-aarch64-apple-darwin/lib/rustlib/src/rust/library/core)
+   Compiling proc-macro2 v1.0.107
+   Compiling quote v1.0.47
+   Compiling unicode-ident v1.0.27
+   Compiling libc v0.2.189
+   Compiling object v0.39.1
+   Compiling std v0.0.0 (/Users/stephan/.rustup/toolchains/1.99.1-aarch64-apple-darwin/lib/rustlib/src/rust/library/std)
+   Compiling syn v2.0.119
+   Compiling syn v3.0.9
+   Compiling rustc-std-workspace-core v1.99.0 (/Users/stephan/.rustup/toolchains/1.99.1-aarch64-apple-darwin/lib/rustlib/src/rust/library/rustc-std-workspace-core)
+   Compiling alloc v0.0.0 (/Users/stephan/.rustup/toolchains/1.99.1-aarch64-apple-darwin/lib/rustlib/src/rust/library/alloc)
+   Compiling unwind v0.0.0 (/Users/stephan/.rustup/toolchains/1.99.1-aarch64-apple-darwin/lib/rustlib/src/rust/library/unwind)
+   Compiling memchr v2.8.3
+   Compiling adler2 v2.0.1
+   Compiling panic_abort v0.0.0 (/Users/stephan/.rustup/toolchains/1.99.1-aarch64-apple-darwin/lib/rustlib/src/rust/library/panic_abort)
+   Compiling cfg-if v1.0.4
+   Compiling rustc-std-workspace-alloc v1.99.0 (/Users/stephan/.rustup/toolchains/1.99.1-aarch64-apple-darwin/lib/rustlib/src/rust/library/rustc-std-workspace-alloc)
+   Compiling gimli v0.34.0
+   Compiling std_detect v0.1.5 (/Users/stephan/.rustup/toolchains/1.99.1-aarch64-apple-darwin/lib/rustlib/src/rust/library/std_detect)
+   Compiling wasip1 v1.0.0
+   Compiling addr2line v0.27.1
+   Compiling miniz_oxide v0.9.1
+   Compiling hashbrown v0.17.1
+   Compiling panic_unwind v0.0.0 (/Users/stephan/.rustup/toolchains/1.99.1-aarch64-apple-darwin/lib/rustlib/src/rust/library/panic_unwind)
+   Compiling rustc-demangle v0.1.28
+   Compiling rustc-literal-escaper v0.0.8
+   Compiling anyhow v1.0.104
+   Compiling either v1.19.0
+   Compiling libc v0.2.191
+   Compiling itertools v0.14.0
+   Compiling proc_macro v0.0.0 (/Users/stephan/.rustup/toolchains/1.99.1-aarch64-apple-darwin/lib/rustlib/src/rust/library/proc_macro)
+   Compiling ident_case v1.0.1
+   Compiling strsim v0.11.1
+   Compiling darling_core v0.24.1
+   Compiling prost-derive v0.14.4
+   Compiling rustix v1.1.5
+   Compiling smallvec v1.16.3
+   Compiling proc-macro-utils v0.10.0
+   Compiling errno v0.3.14
+   Compiling bitflags v2.13.2
+   Compiling bytes v1.12.1
+   Compiling regex-syntax v0.8.11
+   Compiling prettyplease v0.2.37
+   Compiling equivalent v1.0.3
+   Compiling foldhash v0.1.5
+   Compiling hashbrown v0.15.5
+   Compiling regex-automata v0.4.18
+   Compiling indexmap v2.14.2
+   Compiling prost v0.14.4
+   Compiling manyhow-macros v0.14.1
+   Compiling darling_macro v0.24.1
+   Compiling fastrand v2.5.0
+   Compiling once_cell v1.21.4
+   Compiling fixedbitset v0.5.7
+   Compiling umpire-dsl-macros v0.0.1 (/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/fn232-certification-macos/source-b/model/umpire/dsl/macros)
+   Compiling petgraph v0.8.3
+   Compiling tempfile v3.27.0
+   Compiling darling v0.24.1
+   Compiling manyhow v0.14.1
+   Compiling prost-types v0.14.4
+   Compiling regex v1.13.1
+   Compiling enum-iterator-derive v1.5.0
+   Compiling multimap v0.10.1
+   Compiling heck v0.5.0
+   Compiling umpire-dsl v0.0.1 (/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/fn232-certification-macos/source-b/model/umpire/dsl)
+   Compiling thiserror v2.0.21
+   Compiling log v0.4.34
+   Compiling prost-build v0.14.4
+   Compiling enum-iterator v2.3.0
+   Compiling thiserror-impl v2.0.21
+   Compiling umpire-checker v0.0.1 (/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/fn232-certification-macos/source-b/model/umpire/checker)
+warning: unstable feature specified for `-Ctarget-feature`: `exception-handling`
+  |
+  = note: this feature is not stably supported; its behavior can change in the future
+
+warning: `umpire-dsl` (lib) generated 1 warning
+   Compiling umpire-wasm v0.0.1 (/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/fn232-certification-macos/source-b/model/umpire/wasm)
+   Compiling rustc-hash v2.1.3
+warning: `umpire-checker` (lib) generated 1 warning (1 duplicate)
+warning: `umpire-wasm` (lib) generated 1 warning (1 duplicate)
+   Compiling umpire-stock-guest v0.0.1 (/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/fn232-certification-macos/source-b/model/umpire/wasm/guests/stock)
+warning: `umpire-stock-guest` (lib) generated 1 warning (1 duplicate)
+    Finished `guest` profile [optimized] target(s) in 42.69s
++ bash model/scripts/guest.sh umpire-temporal-guest /Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/fn232-certification-macos/temporal-b.wasm
+   Compiling smallvec v1.16.3
+   Compiling indexmap v2.14.2
+   Compiling proc-macro-utils v0.10.0
+   Compiling manyhow-macros v0.14.1
+   Compiling fixedbitset v0.5.7
+   Compiling prost v0.14.4
+   Compiling manyhow v0.14.1
+   Compiling petgraph v0.8.3
+   Compiling umpire-dsl-macros v0.0.1 (/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/fn232-certification-macos/source-b/model/umpire/dsl/macros)
+   Compiling prost-types v0.14.4
+   Compiling prost-build v0.14.4
+   Compiling umpire-dsl v0.0.1 (/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/fn232-certification-macos/source-b/model/umpire/dsl)
+   Compiling thiserror v2.0.21
+   Compiling enum-iterator v2.3.0
+   Compiling umpire-wasm v0.0.1 (/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/fn232-certification-macos/source-b/model/umpire/wasm)
+   Compiling umpire-checker v0.0.1 (/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/fn232-certification-macos/source-b/model/umpire/checker)
+   Compiling rustc-hash v2.1.3
+warning: unstable feature specified for `-Ctarget-feature`: `exception-handling`
+  |
+  = note: this feature is not stably supported; its behavior can change in the future
+
+warning: `umpire-dsl` (lib) generated 1 warning
+warning: `umpire-checker` (lib) generated 1 warning (1 duplicate)
+   Compiling umpire-temporal-annotate-syntax v0.0.1 (/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/fn232-certification-macos/source-b/model/temporal/annotate/syntax)
+warning: `umpire-wasm` (lib) generated 1 warning (1 duplicate)
+   Compiling umpire-annotations v0.0.1 (/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/fn232-certification-macos/source-b/model/umpire/annotations)
+warning: `umpire-annotations` (lib) generated 1 warning (1 duplicate)
+   Compiling umpire-temporal-api v0.0.1 (/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/fn232-certification-macos/source-b/model/temporal/api)
+   Compiling umpire-temporal-realization-macros v0.0.1 (/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/fn232-certification-macos/source-b/model/temporal/realization/macros)
+   Compiling umpire-temporal-annotate-macros v0.0.1 (/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/fn232-certification-macos/source-b/model/temporal/annotate/macros)
+   Compiling umpire-temporal-annotate v0.0.1 (/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/fn232-certification-macos/source-b/model/temporal/annotate)
+warning: `umpire-temporal-annotate` (lib) generated 1 warning (1 duplicate)
+   Compiling umpire-temporal v0.0.1 (/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/fn232-certification-macos/source-b/model/temporal/realization)
+warning: `umpire-temporal-api` (lib) generated 1 warning (1 duplicate)
+warning: `umpire-temporal` (lib) generated 1 warning (1 duplicate)
+   Compiling umpire-temporal-guest v0.0.1 (/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/fn232-certification-macos/source-b/model/temporal/guest)
+warning: `umpire-temporal-guest` (lib) generated 1 warning (1 duplicate)
+    Finished `guest` profile [optimized] target(s) in 59.94s
+++ git status --porcelain --untracked-files=all
++ test -z ''
++ cmp /Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/fn232-certification-macos/stock-a.wasm /Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/fn232-certification-macos/stock-b.wasm
++ cmp /Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/fn232-certification-macos/temporal-a.wasm /Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/fn232-certification-macos/temporal-b.wasm
++ python3 - /Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/fn232-certification-macos
+{
+  "stock-a.wasm": {
+    "bytes": 192263,
+    "sha256": "ea826b9088f9fae68943b149289d5646e349fc8f2751f0bab422312fe74e2e54"
+  },
+  "stock-b.wasm": {
+    "bytes": 192263,
+    "sha256": "ea826b9088f9fae68943b149289d5646e349fc8f2751f0bab422312fe74e2e54"
+  },
+  "temporal-a.wasm": {
+    "bytes": 3329996,
+    "sha256": "791b33b3db2e8d57464d94fcdfb8b95594d15b434a6fb7e1c24905a5e4069547"
+  },
+  "temporal-b.wasm": {
+    "bytes": 3329996,
+    "sha256": "791b33b3db2e8d57464d94fcdfb8b95594d15b434a6fb7e1c24905a5e4069547"
+  },
+  "target-a": {
+    "path": "/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/fn232-certification-macos/target-a",
+    "device": 16777231,
+    "inode": 453795894
+  },
+  "target-b": {
+    "path": "/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/fn232-certification-macos/target-b",
+    "device": 16777231,
+    "inode": 453887421
+  }
+}
+
++ cd /Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/fn232-certification-macos/source-a
++ export CARGO_TARGET_DIR=/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/fn232-certification-macos/target-a
++ CARGO_TARGET_DIR=/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/fn232-certification-macos/target-a
++ bash model/scripts/tests/build-guests.sh
+warning: unstable feature specified for `-Ctarget-feature`: `exception-handling`
+  |
+  = note: this feature is not stably supported; its behavior can change in the future
+
+warning: `umpire-dsl` (lib) generated 1 warning
+warning: `umpire-checker` (lib) generated 1 warning (1 duplicate)
+warning: `umpire-wasm` (lib) generated 1 warning (1 duplicate)
+warning: `umpire-stock-guest` (lib) generated 1 warning (1 duplicate)
+    Finished `guest` profile [optimized] target(s) in 0.23s
+warning: unstable feature specified for `-Ctarget-feature`: `exception-handling`
+  |
+  = note: this feature is not stably supported; its behavior can change in the future
+
+warning: `umpire-dsl` (lib) generated 1 warning
+warning: `umpire-checker` (lib) generated 1 warning (1 duplicate)
+warning: `umpire-wasm` (lib) generated 1 warning (1 duplicate)
+   Compiling umpire-control-guest v0.0.1 (/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/fn232-certification-macos/source-a/model/umpire/wasm/guests/control)
+warning: `umpire-control-guest` (lib) generated 1 warning (1 duplicate)
+    Finished `guest` profile [optimized] target(s) in 2.24s
+warning: unstable feature specified for `-Ctarget-feature`: `exception-handling`
+  |
+  = note: this feature is not stably supported; its behavior can change in the future
+
+warning: `umpire-dsl` (lib) generated 1 warning
+warning: `umpire-checker` (lib) generated 1 warning (1 duplicate)
+warning: `umpire-wasm` (lib) generated 1 warning (1 duplicate)
+warning: `umpire-annotations` (lib) generated 1 warning (1 duplicate)
+   Compiling umpire-temporal-realization-macros v0.0.1 (/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/fn232-certification-macos/source-a/model/temporal/realization/macros)
+   Compiling umpire-temporal-api v0.0.1 (/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/fn232-certification-macos/source-a/model/temporal/api)
+warning: `umpire-temporal-annotate` (lib) generated 1 warning (1 duplicate)
+   Compiling umpire-temporal v0.0.1 (/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/fn232-certification-macos/source-a/model/temporal/realization)
+warning: `umpire-temporal-api` (lib) generated 1 warning (1 duplicate)
+warning: `umpire-temporal` (lib) generated 1 warning (1 duplicate)
+   Compiling umpire-temporal-guest v0.0.1 (/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/fn232-certification-macos/source-a/model/temporal/guest)
+warning: `umpire-temporal-guest` (lib) generated 1 warning (1 duplicate)
+    Finished `guest` profile [optimized] target(s) in 51.39s
+warning: unstable feature specified for `-Ctarget-feature`: `exception-handling`
+  |
+  = note: this feature is not stably supported; its behavior can change in the future
+
+warning: `umpire-dsl` (lib) generated 1 warning
+warning: `umpire-checker` (lib) generated 1 warning (1 duplicate)
+warning: `umpire-wasm` (lib) generated 1 warning (1 duplicate)
+   Compiling umpire-caught-panic-guest v0.0.1 (/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/fn232-certification-macos/source-a/model/umpire/wasm/guests/caught-panic)
+warning: `umpire-caught-panic-guest` (lib) generated 1 warning (1 duplicate)
+    Finished `guest` profile [optimized] target(s) in 2.36s
+warning: unstable feature specified for `-Ctarget-feature`: `exception-handling`
+  |
+  = note: this feature is not stably supported; its behavior can change in the future
+
+warning: `umpire-dsl` (lib) generated 1 warning
+warning: `umpire-checker` (lib) generated 1 warning (1 duplicate)
+warning: `umpire-wasm` (lib) generated 1 warning (1 duplicate)
+   Compiling umpire-overflow-guest v0.0.1 (/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/fn232-certification-macos/source-a/model/umpire/wasm/guests/overflow)
+warning: `umpire-overflow-guest` (lib) generated 1 warning (1 duplicate)
+    Finished `guest` profile [optimized] target(s) in 2.22s
+   Compiling proc-macro2 v1.0.107
+   Compiling anyhow v1.0.104
+   Compiling foldhash v0.1.5
+   Compiling quote v1.0.47
+   Compiling syn v2.0.119
+   Compiling syn v3.0.9
+   Compiling prost-derive v0.14.4
+   Compiling darling_core v0.24.1
+   Compiling proc-macro-utils v0.10.0
+   Compiling manyhow-macros v0.14.1
+   Compiling prost v0.14.4
+   Compiling darling_macro v0.24.1
+   Compiling darling v0.24.1
+   Compiling prost-types v0.14.4
+   Compiling manyhow v0.14.1
+   Compiling enum-iterator-derive v1.5.0
+   Compiling prettyplease v0.2.37
+   Compiling hashbrown v0.17.1
+   Compiling equivalent v1.0.3
+   Compiling prost-build v0.14.4
+   Compiling indexmap v2.14.2
+   Compiling umpire-dsl v0.0.1 (/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/fn232-certification-macos/source-a/model/umpire/dsl)
+   Compiling thiserror v2.0.21
+   Compiling enum-iterator v2.3.0
+   Compiling umpire-dsl-macros v0.0.1 (/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/fn232-certification-macos/source-a/model/umpire/dsl/macros)
+   Compiling thiserror-impl v2.0.21
+   Compiling hashbrown v0.15.5
+   Compiling fixedbitset v0.5.7
+   Compiling smallvec v1.16.3
+   Compiling petgraph v0.8.3
+   Compiling umpire-checker v0.0.1 (/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/fn232-certification-macos/source-a/model/umpire/checker)
+   Compiling umpire-wasm v0.0.1 (/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/fn232-certification-macos/source-a/model/umpire/wasm)
+   Compiling rustc-hash v2.1.3
+   Compiling bytes v1.12.1
+   Compiling umpire-caught-panic-guest v0.0.1 (/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/fn232-certification-macos/source-a/model/umpire/wasm/guests/caught-panic)
+    Finished `guest` profile [optimized] target(s) in 15.86s
+     Running `/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/fn232-certification-macos/target-a/guest/panic-control-reports /Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/fn232-certification-macos/target-a/panic-native`
+
+thread 'main' (4435508) panicked at umpire/wasm/guests/caught-panic/src/bin/../../../../tests/support/../../../checker/tests/support/mod.rs:74:38:
+broken heater
+note: run with `RUST_BACKTRACE=1` environment variable to display a backtrace
+
+thread 'main' (4435508) panicked at umpire/wasm/guests/caught-panic/src/bin/../../../../tests/support/../../../checker/tests/support/mod.rs:77:53:
+attempt to add with overflow
++ cmp /Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/fn232-certification-macos/stock-a.wasm /Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/fn232-certification-macos/target-a/wasm32-wasip1/guest/umpire_stock_guest.wasm
++ cmp /Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/fn232-certification-macos/temporal-a.wasm /Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/fn232-certification-macos/target-a/wasm32-wasip1/guest/umpire_temporal_guest.wasm
++ cmp /Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/fn232-certification-macos/temporal-a.wasm model/temporal/hosts/go/umpire_temporal_guest.wasm
+/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/fn232-certification-macos/temporal-a.wasm model/temporal/hosts/go/umpire_temporal_guest.wasm differ: char 636, line 2

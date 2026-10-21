@@ -1,0 +1,5 @@
+Bash syntax checks passed for the existing builder and both proof runners.
+Actual comparisons repeated after host parity: 4 within-OS passes, 8 cross-OS mismatches; aggregate exit 1 as expected.
+All 8 retained Wasm files match the manifests and both documentation hash tables; all 4 sources remain clean at the pin.
+Both OS host-parity logs contain passing stock/control and Temporal suites, including panic and Reset controls.
+DESIGN.md has 1000 lines; retained diagnostic gzip is readable.

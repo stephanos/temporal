@@ -1,0 +1,28 @@
+{
+  "stock-a.wasm": {
+    "bytes": 192263,
+    "sha256": "ea826b9088f9fae68943b149289d5646e349fc8f2751f0bab422312fe74e2e54"
+  },
+  "stock-b.wasm": {
+    "bytes": 192263,
+    "sha256": "ea826b9088f9fae68943b149289d5646e349fc8f2751f0bab422312fe74e2e54"
+  },
+  "temporal-a.wasm": {
+    "bytes": 3329996,
+    "sha256": "791b33b3db2e8d57464d94fcdfb8b95594d15b434a6fb7e1c24905a5e4069547"
+  },
+  "temporal-b.wasm": {
+    "bytes": 3329996,
+    "sha256": "791b33b3db2e8d57464d94fcdfb8b95594d15b434a6fb7e1c24905a5e4069547"
+  },
+  "target-a": {
+    "path": "/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/fn232-certification-macos/target-a",
+    "device": 16777231,
+    "inode": 453795894
+  },
+  "target-b": {
+    "path": "/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/fn232-certification-macos/target-b",
+    "device": 16777231,
+    "inode": 453887421
+  }
+}

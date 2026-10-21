@@ -1,0 +1,38 @@
++ wasm-tools --version
+wasm-tools 1.244.0
++ wasm-objdump --version
+1.0.39
++ wasm-objdump -h .flow/tmp/fn232-certification-linux/stock-a.wasm
+
+stock-a.wasm:	file format wasm 0x1
+
+Sections:
+
+     Type start=0x0000000b end=0x000000be (size=0x000000b3) count: 24
+   Import start=0x000000c1 end=0x0000019a (size=0x000000d9) count: 6
+ Function start=0x0000019d end=0x000002ff (size=0x00000162) count: 352
+    Table start=0x00000301 end=0x00000306 (size=0x00000005) count: 1
+   Memory start=0x00000308 end=0x0000030b (size=0x00000003) count: 1
+      Tag start=0x0000030d end=0x00000310 (size=0x00000003) count: 1
+   Global start=0x00000312 end=0x0000031b (size=0x00000009) count: 1
+   Export start=0x0000031d end=0x00000366 (size=0x00000049) count: 4
+     Elem start=0x00000369 end=0x00000439 (size=0x000000d0) count: 1
+     Code start=0x0000043d end=0x0002a7b2 (size=0x0002a375) count: 352
+     Data start=0x0002a7b6 end=0x0002eeff (size=0x00004749) count: 2
++ wasm-objdump -h .flow/tmp/fn232-certification-macos/stock-a.wasm
+
+stock-a.wasm:	file format wasm 0x1
+
+Sections:
+
+     Type start=0x0000000b end=0x000000be (size=0x000000b3) count: 24
+   Import start=0x000000c1 end=0x0000019a (size=0x000000d9) count: 6
+ Function start=0x0000019d end=0x000002ff (size=0x00000162) count: 352
+    Table start=0x00000301 end=0x00000306 (size=0x00000005) count: 1
+   Memory start=0x00000308 end=0x0000030b (size=0x00000003) count: 1
+      Tag start=0x0000030d end=0x00000310 (size=0x00000003) count: 1
+   Global start=0x00000312 end=0x0000031b (size=0x00000009) count: 1
+   Export start=0x0000031d end=0x00000366 (size=0x00000049) count: 4
+     Elem start=0x00000369 end=0x00000439 (size=0x000000d0) count: 1
+     Code start=0x0000043d end=0x0002a7ba (size=0x0002a37d) count: 352
+     Data start=0x0002a7be end=0x0002ef07 (size=0x00004749) count: 2
