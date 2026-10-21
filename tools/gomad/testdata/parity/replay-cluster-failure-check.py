@@ -56,11 +56,14 @@ cluster_file = next(name for name in manifest['record']['streams'] if name.endsw
 retained = json.loads((artifact / cluster_file).read_bytes())
 for name, module, termination, exit_code in [('trap', 'execution-trap.wat', 'trap', None),
                                            ('exit', 'replay-exit-failure.wat', 'exit', 2),
-                                           ('capacity', 'execution-modeled.wat', 'capacity', None)]:
+                                           ('capacity', 'execution-modeled.wat', 'capacity', None),
+                                           ('trap-prefix', 'execution-trap.wat', 'trap', None)]:
     configuration = json.loads(json.dumps(retained['configuration']))
     configuration['incarnations'] = configuration['incarnations'][:2]
     configuration['steps'] = [dict(action=action, handle=dict(node=node, incarnation=1))
-                              for action, node in [('start', 'a'), ('start', 'b'), ('wait', 'a'), ('wait', 'b')]]
+                              for action, node in [('start', 'a'), ('start', 'b'), ('wait', 'a')]]
+    if name != 'trap-prefix':
+        configuration['steps'].append(dict(action='wait', handle=dict(node='b', incarnation=1)))
     module_path = corpus / 'targets' / module
     raw = module_path.read_bytes()
     module_sha = hashlib.sha256(raw).hexdigest()
@@ -87,6 +90,8 @@ for name, module, termination, exit_code in [('trap', 'execution-trap.wat', 'tra
     summary = json.loads((path / 'evidence/cluster_summary').read_bytes())
     assert summary['incarnations'][0]['termination'] == termination, summary
     assert summary['incarnations'][1]['termination'] == 'stop', summary
+    actual_input = json.loads((path / cluster_file).read_bytes())
+    assert actual_input['configuration']['steps'] == configuration['steps'][:3], 'implicit drain fabricated an authored wait'
     if name == 'capacity':
         world = (path / 'evidence/world').read_bytes()
         assert world, 'capacity must retain terminal World evidence'
@@ -101,4 +106,15 @@ for name, module, termination, exit_code in [('trap', 'execution-trap.wat', 'tra
         repeated_path = repeated_root / repeated['records'][0]['artifact']
         for retained_file in ['record.json', 'manifest.json', *json.loads((path / 'manifest.json').read_bytes())['record']['streams']]:
             assert (path / retained_file).read_bytes() == (repeated_path / retained_file).read_bytes(), retained_file
+    if name == 'capacity':
+        successful_prefix = json.loads(input_path.read_bytes())
+        first = successful_prefix['configuration']['incarnations'][0]
+        first['limits']['output_bytes'] = 1024
+        first['namespace']['limits']['output_bytes'] = 1024
+        successful_prefix['configuration']['steps'] = configuration['steps'][:3]
+        success_path = args.work / 'successful-open-prefix-input.json'
+        success_path.write_text(json.dumps(successful_prefix))
+        run('successful-open-prefix-refused', ['fixture-replay-cluster-input', '--root',
+            args.work / 'successful-open-prefix', '--input', success_path], 2)
+        assert 'incomplete cluster incarnation lifecycle' in commands[-1]['stderr']
 print('linked cluster guest failures: first outcome retained, peer stopped and replay reproduced')

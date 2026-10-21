@@ -191,7 +191,7 @@ fn lifecycle(request: &Request, handles: &BTreeSet<Handle>) -> Result<Vec<String
             }
         }
     }
-    if used != *handles || current.values().any(|state| state.1) || current.len() > 64 {
+    if used != *handles || current.len() > 64 {
         return Err(Error::msg("incomplete cluster incarnation lifecycle"));
     }
     let mut boundaries = BTreeSet::new();
@@ -731,6 +731,20 @@ fn execute_inner(
         }
         Ok(())
     })();
+    let driven = driven.and_then(|()| {
+        if running.is_empty()
+            || broker.failure().is_some()
+            || broker.inspection_stopped()
+            || first_failure
+                .lock()
+                .map_err(|_| Error::msg("cluster failure lock poisoned"))?
+                .is_some()
+        {
+            Ok(())
+        } else {
+            Err(Error::msg("incomplete cluster incarnation lifecycle"))
+        }
+    });
     if let Err(error) = &driven {
         broker.abort("infrastructure", error.to_string());
     }
@@ -739,10 +753,6 @@ fn execute_inner(
     }
     let mut join_error = None;
     for (handle, pending) in running {
-        executed_steps.push(Step {
-            handle: handle.clone(),
-            action: Action::Wait,
-        });
         match joined(pending) {
             Ok(observed) => {
                 completed.insert(handle, observed.result);
