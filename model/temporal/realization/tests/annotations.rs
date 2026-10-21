@@ -63,6 +63,7 @@ fn annotation_findings_preserve_server_bytes_and_do_not_change_frozen_judgment()
                     ..Default::default()
                 },
             ))),
+            request: None,
         })),
     };
     let frozen = call(&mut guest, 4, &observation);

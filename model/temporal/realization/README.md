@@ -67,6 +67,18 @@ The local `umpire.temporal.v1.Error` has code and message because `google.rpc.St
 is absent from the upstream descriptor closure used by generation. The host transports
 the envelope as opaque Any; the Temporal binding owns numeric status interpretation.
 
+Optional request Any at tag 4 carries the same invocation's actual completed request.
+Request-absent bytes and tags 1 to 3 are unchanged; Go emits the oneof after regular
+fields while prost keeps number order, and both decode identically. `Observed::request`
+decodes it on demand. Current Describe and cancel projections ignore it, so judgments
+match the request-absent envelope. Admission of the Start pair belongs to fn-227.5.
+The live transport owner is the after-fill SDK interceptor: a caller-owned context sink
+receives one capture per attempt, cloning the request immediately before invoke and the
+raw result immediately after it. An RPC error and a later local validation failure are
+recorded separately, and a request changed after capture is refused. Association is the
+interceptor's trusted same-invocation assertion; the Start result does not echo the
+request ID.
+
 For `/temporal.api.workflowservice.v1.WorkflowService/RequestCancelActivityExecution`,
 the actual `RequestCancelActivityExecutionResponse` proposes one `Client::Cancel` and
 matches only `Accepted`. An actual error with NotFound code 5 proposes the same step and

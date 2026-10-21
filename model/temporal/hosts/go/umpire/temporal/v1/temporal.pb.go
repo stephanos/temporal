@@ -29,7 +29,9 @@ type Observation struct {
 	//
 	//	*Observation_Response
 	//	*Observation_Error
-	Result        isObservation_Result `protobuf_oneof:"result"`
+	Result isObservation_Result `protobuf_oneof:"result"`
+	// The actual completed request of the same invocation, when its transport owner captured it.
+	Request       *anypb.Any `protobuf:"bytes,4,opt,name=request,proto3" json:"request,omitempty"`
 	unknownFields protoimpl.UnknownFields
 	sizeCache     protoimpl.SizeCache
 }
@@ -92,6 +94,13 @@ func (x *Observation) GetError() *Error {
 		if x, ok := x.Result.(*Observation_Error); ok {
 			return x.Error
 		}
+	}
+	return nil
+}
+
+func (x *Observation) GetRequest() *anypb.Any {
+	if x != nil {
+		return x.Request
 	}
 	return nil
 }
@@ -384,11 +393,12 @@ var File_umpire_temporal_v1_temporal_proto protoreflect.FileDescriptor
 
 const file_umpire_temporal_v1_temporal_proto_rawDesc = "" +
 	"\n" +
-	"!umpire/temporal/v1/temporal.proto\x12\x12umpire.temporal.v1\x1a\x19google/protobuf/any.proto\x1a\x1eumpire/temporal/v1/probe.proto\"\x96\x01\n" +
+	"!umpire/temporal/v1/temporal.proto\x12\x12umpire.temporal.v1\x1a\x19google/protobuf/any.proto\x1a\x1eumpire/temporal/v1/probe.proto\"\xc6\x01\n" +
 	"\vObservation\x12\x16\n" +
 	"\x06method\x18\x01 \x01(\tR\x06method\x122\n" +
 	"\bresponse\x18\x02 \x01(\v2\x14.google.protobuf.AnyH\x00R\bresponse\x121\n" +
-	"\x05error\x18\x03 \x01(\v2\x19.umpire.temporal.v1.ErrorH\x00R\x05errorB\b\n" +
+	"\x05error\x18\x03 \x01(\v2\x19.umpire.temporal.v1.ErrorH\x00R\x05error\x12.\n" +
+	"\arequest\x18\x04 \x01(\v2\x14.google.protobuf.AnyR\arequestB\b\n" +
 	"\x06result\"5\n" +
 	"\x05Error\x12\x12\n" +
 	"\x04code\x18\x01 \x01(\x05R\x04code\x12\x18\n" +
@@ -435,13 +445,14 @@ var file_umpire_temporal_v1_temporal_proto_goTypes = []any{
 var file_umpire_temporal_v1_temporal_proto_depIdxs = []int32{
 	6, // 0: umpire.temporal.v1.Observation.response:type_name -> google.protobuf.Any
 	1, // 1: umpire.temporal.v1.Observation.error:type_name -> umpire.temporal.v1.Error
-	6, // 2: umpire.temporal.v1.Callback.task:type_name -> google.protobuf.Any
-	6, // 3: umpire.temporal.v1.Reply.request:type_name -> google.protobuf.Any
-	4, // [4:4] is the sub-list for method output_type
-	4, // [4:4] is the sub-list for method input_type
-	4, // [4:4] is the sub-list for extension type_name
-	4, // [4:4] is the sub-list for extension extendee
-	0, // [0:4] is the sub-list for field type_name
+	6, // 2: umpire.temporal.v1.Observation.request:type_name -> google.protobuf.Any
+	6, // 3: umpire.temporal.v1.Callback.task:type_name -> google.protobuf.Any
+	6, // 4: umpire.temporal.v1.Reply.request:type_name -> google.protobuf.Any
+	5, // [5:5] is the sub-list for method output_type
+	5, // [5:5] is the sub-list for method input_type
+	5, // [5:5] is the sub-list for extension type_name
+	5, // [5:5] is the sub-list for extension extendee
+	0, // [0:5] is the sub-list for field type_name
 }
 
 func init() { file_umpire_temporal_v1_temporal_proto_init() }

@@ -39,6 +39,7 @@ fn generated_step_converts_actor_action_and_retains_expected_outcome() {
         result: Some(ObservationResult::Response(Any::pack(
             &RequestCancelActivityExecutionResponse {},
         ))),
+        request: None,
     });
     let Projection::Candidates(candidates) =
         StepBinding.observe(&observation, &state).unwrap_or_else(|error| panic!("{error:?}"))
@@ -100,6 +101,7 @@ fn unsupported_optional_and_oneof_fields_use_decoded_presence() {
             result: Some(ObservationResult::Response(Any::pack(
                 &DescribeActivityExecutionResponse { input, outcome, ..Default::default() },
             ))),
+            request: None,
         });
         let result = PresenceBinding.observe(&observation, &state);
         if refused {
@@ -128,6 +130,7 @@ fn opaque_ignored_catalog_fields_still_have_real_decoded_presence() {
                     ..Default::default()
                 },
             ))),
+            request: None,
         });
         let result = OpaqueBinding.observe(&observation, &state);
         if present {

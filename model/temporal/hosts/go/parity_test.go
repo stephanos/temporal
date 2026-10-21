@@ -105,6 +105,8 @@ func TestObservationResultWireCompatibility(t *testing.T) {
 	}{
 		{&temporalv1.Observation{Method: "m", Result: &temporalv1.Observation_Response{Response: &anypb.Any{TypeUrl: "x", Value: []byte{1, 2}}}}, []byte{10, 1, 'm', 18, 7, 10, 1, 'x', 18, 2, 1, 2}},
 		{&temporalv1.Observation{Method: "m", Result: &temporalv1.Observation_Error{Error: &temporalv1.Error{Code: 5, Message: "x"}}}, []byte{10, 1, 'm', 26, 5, 8, 5, 18, 1, 'x'}},
+		// Go emits the oneof after regular fields; Rust's number order is pinned as decode-only below.
+		{&temporalv1.Observation{Method: "m", Result: &temporalv1.Observation_Response{Response: &anypb.Any{TypeUrl: "x", Value: []byte{1, 2}}}, Request: &anypb.Any{TypeUrl: "r", Value: []byte{3}}}, []byte{10, 1, 'm', 34, 6, 10, 1, 'r', 18, 1, 3, 18, 7, 10, 1, 'x', 18, 2, 1, 2}},
 	} {
 		encoded, err := proto.Marshal(tc.value)
 		if err != nil || !bytes.Equal(encoded, tc.wire) {
@@ -115,6 +117,44 @@ func TestObservationResultWireCompatibility(t *testing.T) {
 			t.Fatalf("decoded %v, %v; want %v", &decoded, err, tc.value)
 		}
 	}
+	var decoded temporalv1.Observation
+	rust := []byte{10, 1, 'm', 18, 7, 10, 1, 'x', 18, 2, 1, 2, 34, 6, 10, 1, 'r', 18, 1, 3}
+	if err := proto.Unmarshal(rust, &decoded); err != nil || decoded.GetRequest().GetTypeUrl() != "r" || decoded.GetResponse().GetTypeUrl() != "x" {
+		t.Fatalf("decoded Rust order %v, %v", &decoded, err)
+	}
+}
+
+func TestActualRequestLeavesJudgmentsUnchanged(t *testing.T) {
+	carry := func(value *anypb.Any, request proto.Message) *anypb.Any {
+		observation := new(temporalv1.Observation)
+		if err := value.UnmarshalTo(observation); err != nil {
+			t.Fatal(err)
+		}
+		observation.Request = pack(t, request)
+		if typed, err := observation.GetRequest().UnmarshalNew(); err != nil || !proto.Equal(typed, request) {
+			t.Fatalf("typed request = %v, %v; want %v", typed, err, request)
+		}
+		return pack(t, observation)
+	}
+	describe := &workflowservice.DescribeActivityExecutionRequest{Namespace: "model-slice", ActivityId: "activity", RunId: "run", IncludeOutcome: true}
+	cancel := &workflowservice.RequestCancelActivityExecutionRequest{Namespace: "model-slice", ActivityId: "activity", RunId: "run", RequestId: "request"}
+	absent, present := guest(t), guest(t)
+	for _, step := range []struct {
+		value   *anypb.Any
+		request proto.Message
+	}{
+		{scheduled(t), describe},
+		{cancelObservation(t, 0), cancel},
+		{observation(t, enumspb.ACTIVITY_EXECUTION_STATUS_CANCELED, 0), describe},
+		{cancelObservation(t, 5), cancel},
+		{observation(t, enumspb.ACTIVITY_EXECUTION_STATUS_COMPLETED, 0), describe},
+	} {
+		want := judge(t, absent, step.value)
+		if got := judge(t, present, carry(step.value, step.request)); !proto.Equal(got, want) {
+			t.Fatalf("judgment with request = %v; without = %v", got, want)
+		}
+	}
+	unexplained(t, judge(t, present, scheduled(t)), "Client::Cancel")
 }
 
 func guest(t *testing.T) *model.Host {

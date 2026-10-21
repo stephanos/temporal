@@ -13,6 +13,8 @@ message Observation {
     google.protobuf.Any response = 2;
     Error error = 3;
   }
+  // The actual completed request of the same invocation, when its transport owner captured it.
+  google.protobuf.Any request = 4;
 }
 
 message Error {
