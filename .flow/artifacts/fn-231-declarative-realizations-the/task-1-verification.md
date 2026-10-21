@@ -1,0 +1,62 @@
+# Task 1 verification and review context
+
+Task: fn-231-declarative-realizations-the.1. Full task base: b9f26782e39f815d740ea4b89925a723303c861d. Current implementation checkpoint: 22482ab2cc5a4cc592d5bbb52cb483b37668add4. Formal review has not started. The three final full gates are pending until after SHIP.
+
+## Scope and preservation
+
+The implementation adds proper realization attributes, Step and Reply authoring types, descriptor-admitted field classifications and explicit state projection. The actual activity binding uses the generated dispatch. Catalog parsing, descriptor admission and deterministic input discovery are shared; API and macro freshness retain every visited directory, including empty directories.
+
+Model source, its runtime assertions and all existing activity goldens remain unchanged. The approved phase-helper source exception replaces wildcards without changing status-first/run-second conversion, error messages, precedence or mappings. Independent controls retain all 63 status/run pairs and unknown enum precedence. A compile control includes the actual phase source with added upstream variants and pins three non-exhaustiveness errors across both enum families.
+
+No ABI/protocol, generic runtime, Go SDK panic path, third-party dependency or version was changed. Callback/reply messages remain partial SDK messages. Unknown Cancel codes retain raw i32 behavior and refusal order. Complete/Fail literals, external-payload clearing, Current/terminal/unexplained projection behavior and single reply-envelope packing are covered by native controls and unchanged expansion output.
+
+Root-owned commit 1b71756bcdd5e80d533ec329b464d064f14b9bea only updates the fn230 retirement artifact. It is inside the full task range but is not fn231 implementation. Foreign MILESTONES.md changes and untracked fn233 plans/tasks are excluded from this task's staging.
+
+## Baseline before edits
+
+At the full task base, selected native realization/helper/admission controls, the complete Temporal fixture/cover/boundary package, generic guest build, actual live slice, actual live gaps/privacy and default model-check all returned 0. The gap baseline collected and passed 2336 unique subtests. Logs are retained under .flow/tmp/fn2311-baseline-*.log and summarized in fn2311-baseline.md.
+
+The first native launch failed before collection because of a nested relative cwd. Its corrected absolute invocation established the baseline. That first observation is inconclusive, not a passing test. No baseline handoff or fabricated receipt was used. The default full-gate reuse check refused because MILESTONES.md was dirty; the command actually ran.
+
+## Focused regression evidence
+
+- Shared schema graph and reverse RPC edges have actual missing-behavior RED followed by same-control GREEN. Unsupported fields use genuine optional/oneof presence, with opaque paths stopping traversal.
+- The original macro lane retains actual parser/expansion/compile-refusal REDs and ordinary GREEN runs in .flow/tmp/fn2311-macro-lane. Existing workspace dependencies provide trybuild, insta and prettyplease. No existing golden was fitted.
+- Phase upstream-variant control failed because the old helper accepted the additions, then passed with the intended compiler errors. Existing pair/unknown-precedence controls were unchanged.
+- Direct aliases, renamed variants and external reexports initially compiled when refusal was expected. Final ordinary UI runs contain ten passing cases. The observed source-scope compiler/fallback panic was not accepted as a pin; its replacement is the intended located refusal.
+- Wrapper positions preserve Ok/Err and Some/None identity. Valid Err fallback, local Model types and byte-policy fallbacks remain allowed. Unknown external, conditional and unsupported alias coverage is refused, not silently classified Other.
+- Fresh correctness findings each had a separately collected RED: concrete wrapper aliases, dereferenced generated enums and deferred initialization. Six tests collected with three intended failures and three passes, followed by six passes. Related inferred-payload and binding-scope REDs are retained separately.
+- The custom-Deref addendum has an actual one-failure/five-pass RED and six-test GREEN. Only proved built-in references retain dereference identity; overloaded results are unresolved. Borrowed wrapper matching is normalized separately without rewriting expressions.
+
+The raw per-axis audit history, addendum and resolutions are retained verbatim in task-1-quality-audits.md. These audits were read-only. Their cited runtime results were not executions by the auditors. Final resolution counts are zero for correctness and standards. Dispatches were pinned to gpt-6.1-sol at high; this is same-family evidence, not a cross-family independence claim.
+
+## Current post-edit Quick observations
+
+All owner commands use CARGO_BUILD_JOBS=4, the serially leased fn2301-unwind Cargo target and Go cache. Every started command is observed through its terminal handle.
+
+| Command | Observation | Saved log |
+| --- | --- | --- |
+| cargo test -p umpire-temporal-api -p umpire-temporal-annotate-syntax -p umpire-temporal-realization-macros -p umpire-temporal -p umpire-temporal-tests --all-features | exit 0; real tests collected, API freshness, ordinary UI, snapshots, runtime/helpers, cover, two boundary and seven fixture controls | fn2311-final-quick-native.log |
+| cargo clippy with the same five packages, --all-targets --all-features -- -D warnings | exit 0 | fn2311-final-quick-clippy.log |
+| cargo fmt --all --check | exit 0 | fn2311-final-quick-fmt.log |
+| make umpire-guest | exit 0; actual cmp against captured eddb guest and leased output both 0, SHA256 unchanged | fn2311-final-quick-guest.log |
+
+Cargo commands run through mise in model/. The generic make target is the admitted guest builder. Source-only changes after the last live run require a regenerated guest byte comparison; changed bytes require another actual live run.
+
+## Exact live evidence
+
+The refreshed eddb guest is 3329990 bytes with SHA256 10724102d03e1659f28b07c3a0c848d2cac5876668f3be9261d0a3b65023cf06. Its actual renewed slice returned 0, package 1.115s. Its complete renewed gaps run returned 0, package 351.609s, with the unchanged inner 20-minute limit and an outer 1800-second bound.
+
+Regular-log inventory comparison found 2336 unique RUN/PASS pairs, baseline inventory missing 0, extra 0, invalid/duplicate pairs 0, and the privacy control passed. The generated report compared exactly with the unchanged golden and retained report copies, SHA256 a3974ea8da0f3c46234770068fe0f163d5e17529b275cea086c2292a124284a0. Logs are fn2311-combined-{slice,gaps}.log. Earlier fe98 live logs and report copies remain untouched and are not silently reassigned to another asset.
+
+Both the post-05f448d rebuild and the final post-22482ab rebuild returned 0 and compared exactly with the captured eddb guest and leased build output. SHA256 remains 10724102d03e1659f28b07c3a0c848d2cac5876668f3be9261d0a3b65023cf06. The renewed eddb live proof therefore covers the exact final guest bytes. Exact captured guest copies are retained for actual cmp, not just inferred semantic equivalence.
+
+## Formal review risk steering
+
+The checker is bounded source analysis, not compiler type inference. A classification may be preserved across an operation only when its semantics/type identity are proved. Familiar method or operator spelling alone cannot establish identity. Review standard framework-method propagation in EnumMatches against that invariant, alongside the newly proved native-reference tracking. This is a review focus, not an unexecuted test or an already adjudicated finding.
+
+## Remaining gates and ownership
+
+After formal SHIP, run actual make model-check, UMPIRE_BACKENDS=require make model-check and make model-time. No post-edit pass for these full commands is claimed here. Dirty foreign work may prevent gate receipts; it must not be hidden or used to fabricate a skip.
+
+Task .2 owns the full realization.snap.txt consumer/coverage golden and DESIGN changes. fn232 owns cross-platform proof. Seven broad legacy umbrella failures are inherited conductor evidence and remain outside this task; these focused/model gates do not claim those failures green. No parent completion, milestone edit or next-task admission is performed by this worker.

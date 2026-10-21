@@ -144,3 +144,39 @@ The complete path is visible: `source.rs:110` registers `Wrapper` as local; `sou
 For native `&Status`, forwarding preserves the generated identity. For `&LocalEnum`, allowing the wildcard is legitimate. However, `type_positions` at line 607 currently discards reference provenance, preventing the checker from distinguishing these cases from overloaded dereferencing.
 
 The prior three concrete findings remain resolved. This is an additional residual soundness gap. Static inspection only; no builds, tests, or writes. Prior reports remain untouched.
+
+
+## Correctness custom-Deref resolution at 22482ab
+
+## Quality Audit — Correctness axis: custom-Deref resolution
+
+Scope: `05f448d..22482ab` · Files changed: 5 · Critical: 0 · Should Fix: 0 · Consider: 0
+
+The custom-Deref addendum is resolved. No introduced blocker found in this fix.
+
+- **model/temporal/annotate/syntax/src/realize.rs:49**: `dereferenced` removes exactly one proved Reference marker; an unproved/custom dereference becomes Unknown, so the reported Wrapper wildcard refuses. Native `&Status` retains Generated identity; `&LocalEnum` retains Other. Evidence: walked.
+- **model/temporal/annotate/syntax/src/realize/patterns.rs:12**: Match normalization strips reference markers from a copy. Stored bindings retain provenance, while borrowed Option patterns retain their coverage checks. Existing pattern helpers otherwise preserve their logic. Evidence: walked.
+
+Cited retained logs show the custom-Deref RED with one failure/five passes, subsequent six-test GREEN, final native six-test GREEN, ten UI controls passing, and strict-clippy completion. Existing assertions remain intact.
+
+Executed committed-diff inspection and `git diff --check`; no builds/tests executed by this auditor. Owner combined verification, refreshed guest comparison and full gates remain outside this pass. Prior reports remain untouched. No shipping verdict issued.
+
+## Standards custom-Deref resolution at 22482ab
+
+## Quality Audit — Standards axis: custom-Deref resolution
+
+### Summary
+
+- Files changed: 5 · Should Fix 0 · Consider 0 · Blocking: none possible (standards axis).
+- No standards findings in committed `05f448d..22482ab`.
+
+### What’s Good
+
+- Walked cohesive extraction: private `patterns.rs` owns existing pattern traversal, path merging and wildcard checks. Reference provenance reuses `Position`; README states the custom-Deref limit.
+- Executed diff inspection found additive controls, retained assertions and no new suppression, dependencies, UI pins, snapshots, Model/phase or ABI changes. Main file shrinks 994 → 910 lines; helper is 129.
+- Executed byte comparison confirmed all seven original raw reports occur verbatim in the committed audit artifact.
+
+### Evidence and limits
+
+- Cited saved logs show focused RED with one failure/five passes, then six passes; exact-source native log records ten UI controls passing. Strict clippy finishes successfully; handoff claims fmt exit 0.
+- Auditor ran no builds/tests. Owner five-package Quick verification, guest regeneration/comparison and formal/full gates remain pending per dispatch.
