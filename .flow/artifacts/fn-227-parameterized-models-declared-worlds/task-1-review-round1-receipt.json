@@ -1,0 +1,146 @@
+{
+  "base": "a76c3581620c39d8ccb760bc4af34d4c24b1d618",
+  "draws": [
+    {
+      "axis": "correctness",
+      "failed": false,
+      "model": "gpt-6.1-sol",
+      "session_id": "01a15f0b-2972-74a3-867c-5494b455866c",
+      "verdict": "NEEDS_WORK"
+    },
+    {
+      "axis": "contracts",
+      "failed": false,
+      "model": "gpt-6.1-sol",
+      "session_id": "01a15f0b-2979-7b61-9473-0615b4782f6f",
+      "verdict": "NEEDS_WORK"
+    },
+    {
+      "axis": "integration",
+      "failed": false,
+      "model": "gpt-6.1-sol",
+      "session_id": "01a15f0b-296d-75c3-a5e9-9979ab6c29c1",
+      "verdict": "NEEDS_WORK"
+    }
+  ],
+  "effort": "high",
+  "findings": {
+    "backend": "codex",
+    "baseSha": "a76c3581620c39d8ccb760bc4af34d4c24b1d618",
+    "headSha": "8d429e97409b1537ecb347c359129bffafa63f78",
+    "items": [
+      {
+        "anchor": {
+          "baseSha": "a76c3581620c39d8ccb760bc4af34d4c24b1d618",
+          "headSha": "8d429e97409b1537ecb347c359129bffafa63f78",
+          "path": "model/umpire/dsl/macros/src/machine/declared.rs",
+          "side": "head",
+          "startLine": 630
+        },
+        "body": "`.field(value)` requires each actor to implement `Debug`, but the generated constraints provide only `Actor`, which has no `Debug` supertrait. A valid generic actor such as `enum User<T: Default> { Replace(#[inputs([T::default()])] T) }` therefore fails with E0277 inside `#[machine]`. The actor derives successfully by itself; its conditional Debug bound is lost at the carrier.",
+        "classification": "introduced",
+        "confidence": 100,
+        "firstSeenReceiptId": "review-f5c1dcf93f78df4b7ee4d0b60a579c3aad59982cf98646323eb7aa62b2576067",
+        "id": "finding-10dad9ece271dcbc973b0c6934ca1655",
+        "lastSeenReceiptId": "review-f5c1dcf93f78df4b7ee4d0b60a579c3aad59982cf98646323eb7aa62b2576067",
+        "ordinal": 1,
+        "rIds": [
+          "R1"
+        ],
+        "severity": "P2",
+        "status": "open",
+        "suggestion": "Add per-actor Debug bounds specifically to the carrier\u2019s Debug implementation. Add a control with generic payload fields whose value traits are supplied conditionally by the derive.",
+        "title": "`"
+      },
+      {
+        "anchor": {
+          "baseSha": "a76c3581620c39d8ccb760bc4af34d4c24b1d618",
+          "headSha": "8d429e97409b1537ecb347c359129bffafa63f78",
+          "path": "model/umpire/dsl/macros/src/machine/declared.rs",
+          "side": "head",
+          "startLine": 54
+        },
+        "body": "`target.params.push(parameter)` retains defaults while combining actor parameters. Valid declarations `Model<T, U>`, `World<T, U>`, `User<T = u8>` and `Clock<U>` generate `Action<T = u8, U>`, which Rust rejects because defaulted parameters must be trailing. A focused compiler reproduction fails; removing the actor default makes the same model compile.",
+        "classification": "introduced",
+        "confidence": 100,
+        "firstSeenReceiptId": "review-f5c1dcf93f78df4b7ee4d0b60a579c3aad59982cf98646323eb7aa62b2576067",
+        "id": "finding-aea9c96d2705f5d8414995412f1f16d4",
+        "lastSeenReceiptId": "review-f5c1dcf93f78df4b7ee4d0b60a579c3aad59982cf98646323eb7aa62b2576067",
+        "ordinal": 2,
+        "rIds": [
+          "R1"
+        ],
+        "severity": "P2",
+        "status": "open",
+        "suggestion": "Normalize defaults when synthesizing combined generic lists, preserving the original authored declarations. Cover actors using different subsets of Model parameters.",
+        "title": "`target"
+      },
+      {
+        "anchor": {
+          "baseSha": "a76c3581620c39d8ccb760bc4af34d4c24b1d618",
+          "headSha": "8d429e97409b1537ecb347c359129bffafa63f78",
+          "path": "model/umpire/dsl/macros/src/machine/declared.rs",
+          "side": "head",
+          "startLine": 338
+        },
+        "body": "Declaration bounds are copied without resolving their original `Self`. For `Model<T> where T: Config<Self>`, the generated Machine implementation interprets the constraint as `T: Config<World<T>>`. The Associated implementation still requires `T: Config<Model<T>>`, so the generated implementations disagree and compilation fails. This contradicts the promise to preserve authored generic bounds.",
+        "classification": "introduced",
+        "confidence": 100,
+        "firstSeenReceiptId": "review-f5c1dcf93f78df4b7ee4d0b60a579c3aad59982cf98646323eb7aa62b2576067",
+        "id": "finding-ddd000d866a4fa044515844f24505dcf",
+        "lastSeenReceiptId": "review-f5c1dcf93f78df4b7ee4d0b60a579c3aad59982cf98646323eb7aa62b2576067",
+        "ordinal": 3,
+        "rIds": [
+          "R1"
+        ],
+        "severity": "P2",
+        "status": "open",
+        "suggestion": "Resolve declaration-level `Self` to the originating Model, World, or actor type before merging bounds, as already done for implementation bounds. Add declaration-bound regression tests.",
+        "title": "Declaration bounds are copied without resolving their original `Self`"
+      },
+      {
+        "anchor": {
+          "baseSha": "a76c3581620c39d8ccb760bc4af34d4c24b1d618",
+          "headSha": "8d429e97409b1537ecb347c359129bffafa63f78",
+          "path": "model/umpire/dsl/macros/src/machine.rs",
+          "side": "head",
+          "startLine": 269
+        },
+        "body": "`impl #state_implementation __Readonly ... #state_constraints` copies Model\u2019s generic bounds into every nested module containing a mutable method. Those bounds resolve in the nested module\u2019s scope. For `Model<T: Token>`, adding an unrelated nested `Counter::inc(&mut self)` causes E0405 because `Token` exists only in the parent module. Valid helper code therefore breaks generic machine expansion.",
+        "classification": "introduced",
+        "confidence": 100,
+        "firstSeenReceiptId": "review-f5c1dcf93f78df4b7ee4d0b60a579c3aad59982cf98646323eb7aa62b2576067",
+        "id": "finding-1d6a6f2f6a692f0e04fe49fd6d9681ba",
+        "lastSeenReceiptId": "review-f5c1dcf93f78df4b7ee4d0b60a579c3aad59982cf98646323eb7aa62b2576067",
+        "ordinal": 4,
+        "rIds": [
+          "R1"
+        ],
+        "severity": "P2",
+        "status": "open",
+        "suggestion": "Keep the Model-specific probe implementation in Model\u2019s lexical scope and reference it from nested guards. Add a passing fixture with a locally named generic bound and an unrelated mutable helper in a child module.",
+        "title": "`impl #state_implementation __Readonly"
+      }
+    ],
+    "reviewKind": "implementation",
+    "round": 1,
+    "schemaVersion": 1,
+    "sourceReceiptId": "review-f5c1dcf93f78df4b7ee4d0b60a579c3aad59982cf98646323eb7aa62b2576067"
+  },
+  "id": "fn-227-parameterized-models-declared-worlds.1",
+  "introduced_count": 4,
+  "mode": "codex",
+  "model": "gpt-6.1-sol",
+  "pre_existing_count": 0,
+  "review": "## Issue 1\n- **Severity**: P2\n- **Title**: `\n- **Confidence**: 100\n- **Classification**: introduced\n- **Problem**: `.field(value)` requires each actor to implement `Debug`, but the generated constraints provide only `Actor`, which has no `Debug` supertrait. A valid generic actor such as `enum User<T: Default> { Replace(#[inputs([T::default()])] T) }` therefore fails with E0277 inside `#[machine]`. The actor derives successfully by itself; its conditional Debug bound is lost at the carrier.\n- **Suggestion**: Add per-actor Debug bounds specifically to the carrier\u2019s Debug implementation. Add a control with generic payload fields whose value traits are supplied conditionally by the derive.\n- **File:Line**: model/umpire/dsl/macros/src/machine/declared.rs:630\n- **R-IDs**: R1\n\n## Issue 2\n- **Severity**: P2\n- **Title**: `target\n- **Confidence**: 100\n- **Classification**: introduced\n- **Problem**: `target.params.push(parameter)` retains defaults while combining actor parameters. Valid declarations `Model<T, U>`, `World<T, U>`, `User<T = u8>` and `Clock<U>` generate `Action<T = u8, U>`, which Rust rejects because defaulted parameters must be trailing. A focused compiler reproduction fails; removing the actor default makes the same model compile.\n- **Suggestion**: Normalize defaults when synthesizing combined generic lists, preserving the original authored declarations. Cover actors using different subsets of Model parameters.\n- **File:Line**: model/umpire/dsl/macros/src/machine/declared.rs:54\n- **R-IDs**: R1\n\n## Issue 3\n- **Severity**: P2\n- **Title**: Declaration bounds are copied without resolving their original `Self`\n- **Confidence**: 100\n- **Classification**: introduced\n- **Problem**: Declaration bounds are copied without resolving their original `Self`. For `Model<T> where T: Config<Self>`, the generated Machine implementation interprets the constraint as `T: Config<World<T>>`. The Associated implementation still requires `T: Config<Model<T>>`, so the generated implementations disagree and compilation fails. This contradicts the promise to preserve authored generic bounds.\n- **Suggestion**: Resolve declaration-level `Self` to the originating Model, World, or actor type before merging bounds, as already done for implementation bounds. Add declaration-bound regression tests.\n- **File:Line**: model/umpire/dsl/macros/src/machine/declared.rs:338\n- **R-IDs**: R1\n\n## Issue 4\n- **Severity**: P2\n- **Title**: `impl #state_implementation __Readonly\n- **Confidence**: 100\n- **Classification**: introduced\n- **Problem**: `impl #state_implementation __Readonly ... #state_constraints` copies Model\u2019s generic bounds into every nested module containing a mutable method. Those bounds resolve in the nested module\u2019s scope. For `Model<T: Token>`, adding an unrelated nested `Counter::inc(&mut self)` causes E0405 because `Token` exists only in the parent module. Valid helper code therefore breaks generic machine expansion.\n- **Suggestion**: Keep the Model-specific probe implementation in Model\u2019s lexical scope and reference it from nested guards. Add a passing fixture with a locally named generic bound and an unrelated mutable helper in a child module.\n- **File:Line**: model/umpire/dsl/macros/src/machine.rs:269\n- **R-IDs**: R1\n\n```json\n{\"classification_counts\": {\"introduced\": 4, \"pre_existing\": 0}, \"unaddressed\": [\"R1\"], \"suppressed_count\": {}}\n```\n\n<verdict>NEEDS_WORK</verdict>\n",
+  "review_reservation_id": "e404e4420a9c4c69b20d907d9453c868",
+  "rid": "e404e4420a9c4c69b20d907d9453c868",
+  "session_id": "01a15f0b-2972-74a3-867c-5494b455866c",
+  "spec": "codex:gpt-6.1-sol:high",
+  "timestamp": "2026-10-21T15:25:20.312811Z",
+  "type": "impl_review",
+  "unaddressed": [
+    "R1"
+  ],
+  "verdict": "NEEDS_WORK"
+}

@@ -4,6 +4,8 @@ use syn::{ImplItem, Item, ItemImpl, ItemMod, Path, Token, parse::Parser, punctua
 
 #[path = "machine/declared.rs"]
 mod declared;
+#[path = "machine/readonly.rs"]
+mod readonly;
 #[path = "machine/registration.rs"]
 mod registration;
 
@@ -194,7 +196,14 @@ fn readonly_checks(
     depth: usize,
     registered: bool,
     state_generics: Option<&syn::Generics>,
-) -> syn::Result<()> {
+) -> syn::Result<bool> {
+    let probe_root = readonly::root(depth);
+    let probe = if state_generics.is_some() {
+        quote!(#probe_root::__UmpireReadonlyProbe)
+    } else {
+        quote!(__Probe)
+    };
+    let import = state_generics.map(|_| quote!(use #probe_root::__UmpireReadonly as _;));
     let mut state_path = quote!(#state);
     for _ in 0..depth {
         state_path = quote!(super::#state_path);
@@ -202,10 +211,6 @@ fn readonly_checks(
     if depth == 0 {
         state_path = quote!(self::#state);
     }
-    let empty = syn::Generics::default();
-    let (state_implementation, state_arguments, state_constraints) =
-        state_generics.unwrap_or(&empty).split_for_impl();
-    let state_path = quote!(#state_path #state_arguments);
     let mut checks = Vec::new();
     for item in &mut *items {
         let Item::Impl(input) = item else { continue };
@@ -239,6 +244,7 @@ fn readonly_checks(
             );
             guards.push(quote_spanned! {method.sig.ident.span()=>
                 const _: () = {
+                    #import
                     #[diagnostic::on_unimplemented(message = #message)]
                     trait __Allowed {}
                     impl __Allowed for () {}
@@ -248,7 +254,7 @@ fn readonly_checks(
                     }
                     impl #generics __Guard #arguments for #ty #constraints {
                         fn __check(&self, _: ::core::marker::PhantomData<#ty>) {
-                            __require((&__Probe::<Self>(::core::marker::PhantomData)).__probe());
+                            __require((&#probe::<Self>(::core::marker::PhantomData)).__probe());
                         }
                     }
                 };
@@ -257,29 +263,18 @@ fn readonly_checks(
         if guards.is_empty() {
             continue;
         }
+        let local_probe = state_generics.is_none().then(|| readonly::legacy_probe(&state_path));
         checks.push(syn::parse2(quote! {
             #(#attrs)*
             const _: () = {
-                struct __Probe<T: ?Sized>(::core::marker::PhantomData<T>);
-                struct __MutableModelMethod;
-                trait __Readonly {
-                    type __Result;
-                    fn __probe(self) -> Self::__Result;
-                }
-                impl #state_implementation __Readonly for &__Probe<#state_path> #state_constraints {
-                    type __Result = __MutableModelMethod;
-                    fn __probe(self) -> Self::__Result { __MutableModelMethod }
-                }
-                impl<T: ?Sized> __Readonly for &&__Probe<T> {
-                    type __Result = ();
-                    fn __probe(self) {}
-                }
+                #local_probe
                 #(#guards)*
             };
         })?);
     }
+    let generated = !checks.is_empty();
     items.extend(checks);
-    Ok(())
+    Ok(generated)
 }
 
 struct LocalReadonly<'a> {
@@ -287,16 +282,18 @@ struct LocalReadonly<'a> {
     generics: Option<&'a syn::Generics>,
     depth: usize,
     error: Option<syn::Error>,
+    checks: bool,
 }
 
 impl syn::visit_mut::VisitMut for LocalReadonly<'_> {
     fn visit_item_mod_mut(&mut self, module: &mut ItemMod) {
         self.depth += 1;
         syn::visit_mut::visit_item_mod_mut(self, module);
-        if let Some((_, items)) = &mut module.content
-            && let Err(error) = readonly_checks(items, self.state, self.depth, false, self.generics)
-        {
-            self.error = Some(error);
+        if let Some((_, items)) = &mut module.content {
+            match readonly_checks(items, self.state, self.depth, false, self.generics) {
+                Ok(generated) => self.checks |= generated,
+                Err(error) => self.error = Some(error),
+            }
         }
         self.depth -= 1;
     }
@@ -312,11 +309,12 @@ impl syn::visit_mut::VisitMut for LocalReadonly<'_> {
             })
             .collect();
         let original_count = items.len();
-        if let Err(error) =
-            readonly_checks(&mut items, self.state, self.depth, false, self.generics)
-        {
-            self.error = Some(error);
-            return;
+        match readonly_checks(&mut items, self.state, self.depth, false, self.generics) {
+            Ok(generated) => self.checks |= generated,
+            Err(error) => {
+                self.error = Some(error);
+                return;
+            }
         }
         let statements = std::mem::take(&mut block.stmts);
         block.stmts.extend(items.into_iter().skip(original_count).map(syn::Stmt::Item));
@@ -333,14 +331,20 @@ fn check_receivers_with_generics(
     state: &syn::Ident,
     generics: Option<&syn::Generics>,
 ) -> syn::Result<()> {
-    let mut local = LocalReadonly { state, generics, depth: 0, error: None };
+    let mut local = LocalReadonly { state, generics, depth: 0, error: None, checks: false };
     for item in &mut *items {
         syn::visit_mut::VisitMut::visit_item_mut(&mut local, item);
     }
     if let Some(error) = local.error {
         return Err(error);
     }
-    readonly_checks(items, state, 0, true, generics)
+    let generated = readonly_checks(items, state, 0, true, generics)?;
+    if let Some(generics) = generics
+        && (local.checks || generated)
+    {
+        items.extend(syn::parse2::<syn::File>(readonly::probe(state, generics))?.items);
+    }
+    Ok(())
 }
 
 fn transition_actor<'a>(

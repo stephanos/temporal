@@ -91,6 +91,7 @@ mod correlated {
     impl ::core::fmt::Debug for Action
     where
         User: ::umpire_dsl::Actor,
+        User: ::core::fmt::Debug,
     {
         fn fmt(&self, out: &mut ::core::fmt::Formatter<'_>) -> ::core::fmt::Result {
             match self {

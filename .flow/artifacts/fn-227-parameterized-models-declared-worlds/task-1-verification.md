@@ -1,10 +1,12 @@
 # Native World checkpoint verification
 
-Task: fn-227-parameterized-models-declared-worlds.1. Implementation base: a76c3581620c39d8ccb760bc4af34d4c24b1d618. Frozen executable source: 9147fbdf6b81869bc8141ac120458509ac5f30b3.
+Task: fn-227-parameterized-models-declared-worlds.1. Implementation base: a76c3581620c39d8ccb760bc4af34d4c24b1d618. First frozen executable source: 9147fbdf6b81869bc8141ac120458509ac5f30b3.
 
 The fresh pre-edit baseline was green for the literal Quick command and all three full gates; no handoff or green receipt substituted for it. Baseline logs are `.flow/tmp/fn2271-baseline-{quick,model-check,backends,time,artifacts}.log`. The baseline timing gate was 86.046s (soft 30s missed), with inner loop 1.596s (soft 10s met).
 
-## Final observations
+## Frozen observations before formal review
+
+This first frozen gate record is historical after the formal NEEDS_WORK fixes. It is not substituted for post-review-fix verification.
 
 Every command below completed with exit 0 against the frozen source. Build commands were serialized with `CARGO_BUILD_JOBS=4`, `CARGO_TARGET_DIR=/home/agent/.cache/codex-build/fn2301-unwind/cargo`, and `GOCACHE=/home/agent/.cache/codex-build/fn2301-unwind/go`; suites used foreground `timeout 600` calls and captured output. Green means the observed process exit, not a matched output line.
 

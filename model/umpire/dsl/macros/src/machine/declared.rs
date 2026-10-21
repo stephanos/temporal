@@ -324,7 +324,7 @@ fn declarations(
 
 fn machine_generics(
     state: &syn::ItemStruct,
-    world: &syn::Generics,
+    world: &syn::ItemStruct,
     actor_items: &[syn::ItemEnum],
     actor_types: &[syn::Type],
     computed: bool,
@@ -332,11 +332,21 @@ fn machine_generics(
 ) -> (syn::Generics, syn::Generics) {
     let mut action_generics = syn::Generics::default();
     for actor in actor_items {
-        merge_bounds(&mut action_generics, &actor.generics);
+        merge_bounds(
+            &mut action_generics,
+            &resolved_bounds(&actor.generics, &typed(&actor.ident, &actor.generics)),
+        );
     }
+    action_generics = without_defaults(&action_generics);
     let mut generics = syn::Generics::default();
-    merge_bounds(&mut generics, &state.generics);
-    merge_bounds(&mut generics, world);
+    merge_bounds(
+        &mut generics,
+        &resolved_bounds(&state.generics, &typed(&state.ident, &state.generics)),
+    );
+    merge_bounds(
+        &mut generics,
+        &resolved_bounds(&world.generics, &typed(&world.ident, &world.generics)),
+    );
     merge_bounds(&mut generics, &action_generics);
     for implementation in implementations {
         merge_bounds(&mut generics, implementation);
@@ -364,10 +374,7 @@ fn machine_generics(
     (generics, action_generics)
 }
 
-fn implementation_bounds(
-    items: &[Item],
-    state: &syn::ItemStruct,
-) -> manyhow::Result<Vec<syn::Generics>> {
+pub(super) fn resolved_bounds(generics: &syn::Generics, ty: &syn::Type) -> syn::Generics {
     struct ResolveSelf(syn::Type);
     impl syn::visit_mut::VisitMut for ResolveSelf {
         fn visit_type_mut(&mut self, ty: &mut syn::Type) {
@@ -379,6 +386,15 @@ fn implementation_bounds(
             }
         }
     }
+    let mut generics = generics.clone();
+    syn::visit_mut::VisitMut::visit_generics_mut(&mut ResolveSelf(ty.clone()), &mut generics);
+    generics
+}
+
+fn implementation_bounds(
+    items: &[Item],
+    state: &syn::ItemStruct,
+) -> manyhow::Result<Vec<syn::Generics>> {
     let mut bounds = Vec::new();
     for item in items {
         let Item::Impl(input) = item else { continue };
@@ -400,11 +416,7 @@ fn implementation_bounds(
                 &mut implementation_names(input, &state.generics)?,
                 &mut generics,
             );
-            syn::visit_mut::VisitMut::visit_generics_mut(
-                &mut ResolveSelf(typed(&state.ident, &state.generics)),
-                &mut generics,
-            );
-            bounds.push(generics);
+            bounds.push(resolved_bounds(&generics, &typed(&state.ident, &state.generics)));
         }
     }
     Ok(bounds)
@@ -501,7 +513,7 @@ pub(super) fn expand(
         actor_items.iter().map(|item| typed(&item.ident, &item.generics)).collect();
     let (generics, action_generics) = machine_generics(
         &state_item,
-        &world.generics,
+        &world,
         &actor_items,
         &actor_types,
         computed,
@@ -606,6 +618,11 @@ fn action_carrier(
     types: &[syn::Type],
 ) -> TokenStream {
     let (implementation, arguments, constraints) = generics.split_for_impl();
+    let mut debug = generics.clone();
+    for ty in types {
+        debug.make_where_clause().predicates.push(syn::parse_quote!(#ty: ::core::fmt::Debug));
+    }
+    let (debug_implementation, _, debug_constraints) = debug.split_for_impl();
     quote! {
         #[doc = "The registered actors' action carrier."]
         #visibility enum Action #generics #constraints { #(#[doc = stringify!(#actors)] #actors(#types)),* }
@@ -625,7 +642,7 @@ fn action_carrier(
                 match self { #(Self::#actors(value) => ::core::hash::Hash::hash(value, hasher)),* }
             }
         }
-        impl #implementation ::core::fmt::Debug for Action #arguments #constraints {
+        impl #debug_implementation ::core::fmt::Debug for Action #arguments #debug_constraints {
             fn fmt(&self, out: &mut ::core::fmt::Formatter<'_>) -> ::core::fmt::Result {
                 match self { #(Self::#actors(value) => out.debug_tuple(stringify!(#actors)).field(value).finish()),* }
             }
