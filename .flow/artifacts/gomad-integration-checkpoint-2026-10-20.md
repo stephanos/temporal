@@ -1061,3 +1061,44 @@ lease remains assigned. Registered worktrees are the preceding list minus
 fn232-store-fix, with their previously recorded open-owner retention reasons.
 Free space is24GiB overlay/32GiB host. Unrelated `tools/gomad/.turbo/` remains
 untouched. No push, PR, CI dispatch or qualification claim occurred.
+
+### Replay baseline pairing correction
+
+Read-only .6 closure investigation distinguished the actual reference binaries.
+The failing standalone-network receipts use a newer Go launcher ce2c248d...
+and helper6bad9356..., rather than the independently frozen launcher407263f9...
+and helperb2543914.... Frozen source1d7's ProjectObservedResult has no new
+InputTapeSHA256/InputDecisions attestation check. The newer source adds that
+check atdd00c57f70 while its Go-owned runtime.collect path omits the fields.
+That remains a real newer-Go regression. It does not prove frozen-pair failure.
+The earlier blanket claim that this gap blocks frozen-Go parity was too broad.
+
+The tracked replay-lane.py routes all four standalone-network cases through
+cluster_arguments, selecting the newer cluster reference. Its standalone
+fresh-parity lane separately selects the frozen baseline/source. Root and
+replay owner traced this selection difference before changing any code or
+expectation. The frozen bundle's input hashes verify. The extracted archived
+source comparison covers4800 relevant tracked files with zero mismatches.
+
+A fresh actual ordinary zero-choice network proof using the true frozen pair
+passes Go install, explore and own-artifact exact replay with reproduced=true.
+Current Rust fixtureca57 independently executes the same compiled module,
+replays its own Rust artifact, authenticates matching network/WASI/output bytes
+and repeats identically. All seven command receipts return0. The outer driver
+then refuses the expected stale/missing golden, rather than treating it as a
+semantic failure. Module SHA256 is
+`fe496c6fd8aebddbc2c17905fabf71eb112d4cf74831f53ab9501d6096bf5930`.
+Raw commands are in workspace `.build-cache/fn232-frozen-network/ordinary/commands.json`;
+outer receipts are `/home/agent/wt/evidence/fn232-store-fix/frozen-network-ordinary.*`.
+Declared generated guest inputs were cleaned. No original Go tests, frozen
+baseline binaries, original artifacts or production Go source were rewritten.
+
+Replay owner continues the existing active .6 lane in fn232-replay, limited to
+the harness routing repair and its owned golden/documentation changes. The
+design selects the frozen pair for standalone network comparison, retains the
+declared newer cluster producer for cluster/registered coverage, and preserves
+the newer Go failures as supplementary regression evidence. All four network
+cells, their raw authentication/own replays, two exact regenerations and the
+independent R5/R13/R14 review remain required. No status comparison or
+behavior/hash field is normalized away. No Go attestation patch is authorized
+or applied. No new task, Cargo lease or qualification run was admitted.
