@@ -1,0 +1,16 @@
+{
+  "assignee": null,
+  "claim_note": "",
+  "claimed_at": null,
+  "created_at": "2026-10-20T23:14:37.648906Z",
+  "depends_on": [
+    "fn-233-gomad-intercept-the-go-command-so-make.3"
+  ],
+  "id": "fn-233-gomad-intercept-the-go-command-so-make.4",
+  "priority": null,
+  "spec": "fn-233-gomad-intercept-the-go-command-so-make",
+  "spec_path": ".flow/tasks/fn-233-gomad-intercept-the-go-command-so-make.4.md",
+  "status": "todo",
+  "title": "Temporal Makefile through the wrapper and operator documentation",
+  "updated_at": "2026-10-20T23:14:37.648906Z"
+}

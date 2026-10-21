@@ -3,7 +3,7 @@ satisfies: [R1, R2, R5, R6, R9]
 ---
 # fn-229-gomad-symbolize-choice-sites-in-inspect.2 Inspect output: attach symbols to sites, decisions and divergences
 
-**Touches:** tools/gomad/rust/gomad/src/cli/inspect.rs; tools/gomad/testdata/parity/**; tools/gomad/CLI.md; tools/gomad/internal/backends/wasm/CLI.md; tools/gomad/internal/backends/wasm/wasmhost/src/linked.rs; tools/gomad/internal/backends/wasm/wasmhost/src/linked/** (helper-owned validated read-only trace projection); tools/gomad/rust/gomad/src/fixture.rs; tools/gomad/rust/gomad/src/fixture_execute.rs (minimal feature-gated corpus producer extensions only).
+**Touches:** tools/gomad/rust/gomad/src/cli/inspect.rs; tools/gomad/rust/gomad/src/evidence/inspection.rs (typed rendering wrapper only); tools/gomad/rust/gomad/src/evidence/symbolize/mod.rs (consumer visibility/plumbing only); tools/gomad/testdata/parity/**; tools/gomad/CLI.md; tools/gomad/internal/backends/wasm/CLI.md; tools/gomad/internal/backends/wasm/wasmhost/src/linked.rs; tools/gomad/internal/backends/wasm/wasmhost/src/linked/** (helper-owned validated read-only trace projection); tools/gomad/rust/gomad/src/fixture.rs; tools/gomad/rust/gomad/src/fixture_execute.rs (minimal feature-gated corpus producer extensions only).
 **Semantic references only:** tools/gomad/internal/runner/inspect/inspect.go, inspect testdata, tools/gomad/CLI.md, tools/gomad/internal/backends/wasm/CLI.md
 
 ## Description

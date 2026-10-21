@@ -32,6 +32,20 @@ pub enum Failure {
     Boundary(&'static str, &'static str),
     Invalid(&'static str),
     Capacity(&'static str),
+    /// A broker World limit exhausted, with its accounting (fn-235).
+    #[cfg_attr(
+        feature = "conformance",
+        allow(
+            dead_code,
+            reason = "Only the broker World raises it; the conformance build excludes the broker."
+        )
+    )]
+    Exhausted {
+        dimension: &'static str,
+        limit: u64,
+        used: u64,
+        delta: u64,
+    },
     Infrastructure(String),
 }
 
@@ -40,7 +54,7 @@ impl Failure {
         match self {
             Self::Boundary(kind, _) => kind,
             Self::Invalid(_) => "invalid",
-            Self::Capacity(_) => "capacity",
+            Self::Capacity(_) | Self::Exhausted { .. } => "capacity",
             Self::Infrastructure(_) => "infrastructure",
         }
     }
@@ -50,6 +64,12 @@ impl Failure {
             Self::Boundary(kind, dimension) => format!("WASI {kind}: {dimension}"),
             Self::Invalid(dimension) => format!("WASI invalid: {dimension}"),
             Self::Capacity(dimension) => format!("WASI capacity: {dimension}"),
+            Self::Exhausted {
+                dimension,
+                limit,
+                used,
+                delta,
+            } => format!("WASI capacity: {dimension} limit={limit} used={used} delta={delta}"),
             Self::Infrastructure(message) => message.clone(),
         }
     }

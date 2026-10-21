@@ -362,6 +362,9 @@ impl State {
                 Err(Failure::Invalid(dimension)) => boundary("invalid", dimension),
                 Err(Failure::Capacity(dimension)) => boundary("capacity", dimension),
                 Err(Failure::Boundary(kind, dimension)) => boundary(kind, dimension),
+                // Classified capacity by its `WASI capacity:` text, as a
+                // boundary is, keeping the limit accounting in the message.
+                Err(exhausted @ Failure::Exhausted { .. }) => Err(Error::msg(exhausted.message())),
                 Err(Failure::Infrastructure(message)) => Ok(Some(message)),
             }
         });

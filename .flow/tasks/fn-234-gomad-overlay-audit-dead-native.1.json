@@ -8,7 +8,7 @@
   "priority": null,
   "spec": "fn-234-gomad-overlay-audit-dead-native",
   "spec_path": ".flow/tasks/fn-234-gomad-overlay-audit-dead-native.1.md",
-  "status": "todo",
+  "status": "done",
   "title": "Delete the dead Go 1.27.1 intercept list and proven-unreferenced overlay leftovers",
   "updated_at": "2026-10-21T01:35:29.616487Z"
 }

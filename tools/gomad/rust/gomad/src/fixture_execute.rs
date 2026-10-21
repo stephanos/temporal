@@ -459,6 +459,9 @@ pub(crate) fn replay_bundle(root: &Path, corpus: &Path) -> Result<(), String> {
             runtime,
             choice_limit: Some(4096),
             termination: termination.into(),
+            compiler_sha256: None,
+            module_sha256: None,
+            runtime_implementation_sha256: None,
         };
         for seed in [7, 8] {
             let mut publication = run(&case, seed, corpus, profile, step)?;

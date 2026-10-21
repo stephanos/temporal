@@ -11,6 +11,7 @@ import (
 	"io"
 	"path/filepath"
 	"sort"
+	"strings"
 	"sync"
 	"time"
 
@@ -1108,7 +1109,12 @@ func (state *clusterState) collect(frame *validatedFrame, config BrokerConfig, i
 		state.executionClassifiedAt = time.Now()
 		return nil
 	}
-	if interrupted {
+	// An exhausted broker World limit stops the runtime at a host call like a
+	// revocation: its choice prefix is the replayable evidence (fn-235 R3).
+	// Output or choice capacity leaves incomplete evidence and stays refused.
+	dimension, _, _ := strings.Cut(strings.TrimPrefix(terminal.Message, "WASI capacity: "), " ")
+	exhausted := terminal.Termination == "capacity" && brokerWorldCapacity[dimension] && terminal.LocalModel != nil && terminal.LocalModel.Configured && !terminal.LocalModel.Finished
+	if interrupted || exhausted {
 		if terminal.LocalModel == nil || terminal.LocalModel.Finished {
 			return invalid("cluster completed interrupted runtime")
 		}
@@ -1137,6 +1143,10 @@ func (state *clusterState) collect(frame *validatedFrame, config BrokerConfig, i
 	state.result.AuthorizationToTerminalNanos = uint64(state.executionClassifiedAt.Sub(state.authorizationStartedAt))
 	return nil
 }
+
+// brokerWorldCapacity names the broker World limits (model/world capacity
+// dimensions) the helper reports as `WASI capacity: <dimension> limit=...`.
+var brokerWorldCapacity = map[string]bool{"event-ids": true, "events": true, "payload-bytes": true, "queued-events": true, "request-ids": true, "requests": true, "transition-bytes": true, "transition-sequences": true, "transitions": true}
 
 func (session *ClusterSession) collect(frame *validatedFrame) error {
 	var terminal struct {

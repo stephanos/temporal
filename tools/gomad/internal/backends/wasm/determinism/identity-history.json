@@ -1086,5 +1086,9 @@
  {
   "id": "helper.linked-cluster.incarnation-thread",
   "site": "helper-source:linked_cluster.rs|thread::Builder|1"
+ },
+ {
+  "id": "helper.cluster.execution.manual.thread-builders",
+  "site": "helper-source:cluster/execution/manual.rs|thread::Builder|2"
  }
 ]

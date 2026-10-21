@@ -574,10 +574,7 @@ impl Broker {
         }
         let pending = std::mem::take(&mut session.pending);
         if pending != 0 {
-            inner
-                .world
-                .cancel(pending)
-                .map_err(|error| Failure::Infrastructure(error.to_string()))?;
+            inner.world.cancel(pending).map_err(world_failure)?;
         }
         session.revoked = Some(kind);
         lock(&self.inspection).event(
@@ -1020,7 +1017,7 @@ impl Broker {
                 priority: 0,
                 payload: Sha256::digest(input.as_bytes()).to_vec(),
             })
-            .map_err(|error| Failure::Infrastructure(error.to_string()))?;
+            .map_err(world_failure)?;
         inner.sessions[me].pending = id;
         Ok(())
     }
@@ -1044,11 +1041,8 @@ impl Broker {
                 payload: Vec::new(),
                 equivalence_class: String::new(),
             })
-            .map_err(|error| Failure::Infrastructure(error.to_string()))?;
-        let quiescence = inner
-            .world
-            .quiesce()
-            .map_err(|error| Failure::Infrastructure(error.to_string()))?;
+            .map_err(world_failure)?;
+        let quiescence = inner.world.quiesce().map_err(world_failure)?;
         if quiescence.deliveries.len() != 1 || quiescence.deliveries[0].request_id != pending {
             return Err(invalid("broker delivery order"));
         }
@@ -1349,6 +1343,30 @@ impl Broker {
         };
         world::wire_generated::write_snapshot(world, &mut wire).map_err(world_wire_failure)?;
         Ok(wire.bytes)
+    }
+}
+
+/// A broker World refusal: exhausting a World limit is the run's capacity
+/// outcome naming that dimension and its accounting, as instance-level World
+/// limits are (fn-235).
+#[expect(
+    clippy::needless_pass_by_value,
+    reason = "Error classification is passed directly to Result::map_err"
+)]
+fn world_failure(error: world::Error) -> Failure {
+    match error {
+        world::Error::Capacity {
+            dimension,
+            limit,
+            used,
+            delta,
+        } => Failure::Exhausted {
+            dimension,
+            limit,
+            used,
+            delta,
+        },
+        world::Error::Classified { .. } => Failure::Infrastructure(error.to_string()),
     }
 }
 

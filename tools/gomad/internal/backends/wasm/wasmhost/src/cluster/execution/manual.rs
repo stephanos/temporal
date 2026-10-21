@@ -227,6 +227,13 @@ struct Control {
 }
 
 type ThreadResult = std::result::Result<Report, (&'static str, String)>;
+
+/// What the control loop waits for: Go's next control frame, or an
+/// incarnation that ended in an instance or broker failure (fn-235).
+enum Event {
+    Control(Result<Vec<u8>>),
+    Failed(&'static str, String),
+}
 struct Node {
     incarnation: u64,
     slot: u64,
@@ -417,10 +424,32 @@ pub(super) fn execute(
         })
         .collect();
     broker.start();
+    // Go's control frames are read on their own thread, one frame per
+    // request, so a failed incarnation ends the run promptly: Go waits for
+    // that incarnation's result and sends no further control frame (fn-235).
+    let (events, received) = std::sync::mpsc::channel::<Event>();
+    let request_frame = control_reader(input.clone(), events.clone())?;
+    let mut reading = false;
+    let mut failed_first = false;
     let mut command_id = 0;
     loop {
-        let command = protocol::read_frame(&mut **lock(&input))
-            .and_then(|bytes| serde_json::from_slice::<Control>(&bytes).map_err(Error::new));
+        if !reading {
+            reading = request_frame.send(()).is_ok();
+        }
+        let command = match received.recv() {
+            Ok(Event::Control(frame)) => {
+                reading = false;
+                frame
+                    .and_then(|bytes| serde_json::from_slice::<Control>(&bytes).map_err(Error::new))
+            }
+            Ok(Event::Failed(..)) if broker.inspection_stopped() => continue,
+            Ok(Event::Failed(termination, message)) => {
+                result = ClusterResult::new(termination, message);
+                failed_first = true;
+                break;
+            }
+            Err(error) => Err(Error::new(error)),
+        };
         let control = match command {
             Ok(control) if control.id == command_id + 1 => control,
             Ok(_) => {
@@ -614,6 +643,7 @@ pub(super) fn execute(
                 TaggedOutput::incarnation(output.clone(), &config.id, control.incarnation);
             let incarnation = control.incarnation;
             let slot = node.slot;
+            let failed = events.clone();
             let spawned = std::thread::Builder::new()
                 .name(format!("instance-{index}-{incarnation}"))
                 .stack_size(STORE_THREAD_STACK)
@@ -651,7 +681,12 @@ pub(super) fn execute(
                     };
                     match &report {
                         Ok(_) => coordinator.finish(index),
-                        Err((kind, message)) => coordinator.abort(kind, message.clone()),
+                        Err((kind, message)) => {
+                            // Queued before the abort wakes the other
+                            // incarnations, whose aborts only follow it.
+                            let _ = failed.send(Event::Failed(kind, message.clone()));
+                            coordinator.abort(kind, message.clone());
+                        }
                     }
                     report
                 });
@@ -695,6 +730,8 @@ pub(super) fn execute(
     if result.termination != "exit" {
         coordinator.abort(result.termination, result.message.clone());
     }
+    // A failed incarnation's failure is the run's; the instances its abort
+    // stopped only report that abort.
     for (index, node) in nodes.iter_mut().enumerate() {
         if let Err(failure) = join(
             node,
@@ -703,6 +740,7 @@ pub(super) fn execute(
             &mut metrics,
             &mut execution_metrics,
         ) && !broker.inspection_stopped()
+            && !failed_first
         {
             result = ClusterResult::new(failure.0, failure.1);
         }
@@ -771,4 +809,24 @@ pub(super) fn execute(
     result.scheduler = Some(scheduler);
     super::inspection_evidence(&broker, &output)?;
     finish(result, metrics)
+}
+
+/// Reads one Go control frame per request into `events`, in pipe order.
+fn control_reader(
+    input: SharedInput,
+    events: std::sync::mpsc::Sender<Event>,
+) -> Result<std::sync::mpsc::Sender<()>> {
+    let (request_frame, frame_requested) = std::sync::mpsc::channel::<()>();
+    std::thread::Builder::new()
+        .name("cluster-control".into())
+        .spawn(move || {
+            while frame_requested.recv().is_ok() {
+                let frame = protocol::read_frame(&mut **lock(&input));
+                let failed = frame.is_err();
+                if events.send(Event::Control(frame)).is_err() || failed {
+                    break;
+                }
+            }
+        })?;
+    Ok(request_frame)
 }

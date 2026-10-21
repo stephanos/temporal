@@ -7,6 +7,8 @@ satisfies: [R3, R4, R7, R8]
 **Semantic references only:** tools/gomad/internal/model/runtimesource/gomad_semantics.go.txt, tools/gomad/internal/backends/wasm/toolchain/{overlay.go,runtime_wasm.go.txt}; the Rust symbolizer paths above are proposed implementation surfaces.
 
 ## Description
+Reopened after the prior SHIP for source-derived R7 under-accounting in eager parser-internal TryTable catch vectors (and related variable-sized operators). Research is `.flow/tmp/fn229-parser-internal-budget-research.md`; its concrete construction is not yet executed. Add a true regression, prove actual pre-work cumulative step/entry/allocation accounting, preserve existing valid attribution/fallback/reason behavior, refresh authenticated gates, and obtain independent review before restoring done. Existing parser/fixture proof and prior receipts remain history, not proof of this path. Task .2 proceeds provisionally on the unchanged resolver interface; this reopens no record/wire contract and waives no limit.
+
 Implement R3/R4/R7/R8 once in the Rust evidence layer after fn-232.5. Register the symbolizer in evidence/mod.rs and expose Wasmtime's existing wasmparser through the helper library's public re-export surface in lib.rs (reuse an equivalent existing public re-export if present). The host gomad crate consumes that helper re-export with the checked pinned Go metadata reader; it gains no direct Wasmtime or new parser dependency. Provide a Rust-internal resolver over a site value plus its missing flag and the authenticated retained-module handle; preserve the spec's Symbol shape and unavailable reasons. No Go-host implementation, Go decoder subprocess or new dependency.
 
 ## Approach
@@ -40,6 +42,6 @@ Tier: session (jev-unavailable(no_key)); explicit AGENTS implementer/reviewer pi
 
 stage: plan-sync - skipped(config: planSync.enabled != true)
 ## Evidence
-- Commits: fe0c2fff2aaad3e8332ce136c4165ef0a07c605d, 1b08590b24
-- Tests: /home/agent/wt/evidence/fn229-symbolize/candidate3/gomad-symbolize-tests --nocapture (36 passed, exit0), python3 tools/gomad/testdata/parity/foundation-check.py --binary /home/agent/wt/evidence/fn229-symbolize/candidate3/gomad-fixture --work /home/agent/wt/evidence/fn229-symbolize/root-foundation-1b08590b24 (exit0), python3 tools/gomad/scripts/behavioral-parity --corpus tools/gomad/testdata/parity --verb inspect --inspect-binary /home/agent/wt/evidence/fn229-symbolize/candidate3/gomad-fixture --inspect-baseline /home/agent/wt/evidence/fn232/go-baseline-1d7b37f00a --inspect-source /home/agent/wt/fn232-go-source/temporal-1d7b37f00a --inspect-go-compiler /Users/stephan/Workspace/skunkworks/gomad/temporal/tools/gomad/.toolchain/stock/2198cf19890232fc/go/bin/go --output-root /home/agent/wt/evidence/fn229-symbolize/root-1b08590b24 (exit0), python3 tools/gomad/testdata/parity/foundation-release-check.py /home/agent/wt/evidence/fn229-symbolize/candidate3/gomad-release /home/agent/wt/evidence/fn229-symbolize/root-release-1b08590b24 (13/13, exit0), flowctl codex impl-review fn-229-gomad-symbolize-choice-sites-in-inspect.1 --base 9714711c2a --receipt .flow/tmp/impl-review-receipt-fn229-symbolize.json --spec codex:gpt-6.1-sol:high --json (SHIP), git diff --check (exit0)
+- Commits:
+- Tests:
 - PRs:

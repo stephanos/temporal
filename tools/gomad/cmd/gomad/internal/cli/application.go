@@ -11,6 +11,7 @@ import (
 	"go.temporal.io/server/tools/gomad/internal/backends"
 	"go.temporal.io/server/tools/gomad/internal/evidence/record"
 	"go.temporal.io/server/tools/gomad/internal/runner"
+	"go.temporal.io/server/tools/gomad/internal/runner/inspect"
 )
 
 // application holds the backend and host dependencies for one invocation.
@@ -19,8 +20,10 @@ type application struct {
 	command      func([]string, io.Writer, io.Writer) (int, bool)
 	backend      func() (BackendInstallation, error)
 	replayHook   func(context.Context, runner.ReplaySpec) (runner.ReplayResult, bool, error)
-	executable   func() (string, error)
-	environment  func(string) string
+	// clusterInspection projects a backend's retained cluster evidence.
+	clusterInspection func(string) (*inspect.ClusterInspection, error)
+	executable        func() (string, error)
+	environment       func(string) string
 }
 
 // installation holds the provider and Runner identity used by one operation.

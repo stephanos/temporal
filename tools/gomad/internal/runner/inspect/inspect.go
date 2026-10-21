@@ -179,6 +179,7 @@ type ArtifactInspection struct {
 	Transcript       *Transcript             `json:"transcript,omitempty"`
 	Choices          *Choices                `json:"choices,omitempty"`
 	Simulation       *SimulationInspection   `json:"simulation,omitempty"`
+	Cluster          *ClusterInspection      `json:"cluster,omitempty"`
 	Minimization     *MinimizationInspection `json:"minimization,omitempty"`
 	CapturedMounts   *CapturedMounts         `json:"captured_mounts,omitempty"`
 	Stdout           StreamReport            `json:"stdout"`

@@ -160,6 +160,11 @@ func (p *Provider) executeScenario(ctx context.Context, request backends.Executi
 	if observed.Outcome == model.OutcomeReplayDiverged {
 		return backends.ExecutionResult{}, &backends.FailureError{Termination: backends.Divergence, Message: observed.Reason}
 	}
+	// A capacity terminal stays the backend's capacity failure, but the run's
+	// retained evidence (each incarnation's partial streams) is captured with
+	// it, so the failure artifact can be inspected and replayed (fn-235 R3).
+	var capacity error
+results:
 	for _, incarnation := range provider.CompletedResults() {
 		r := incarnation.Result
 		if r.Cancelled {
@@ -171,7 +176,10 @@ func (p *Provider) executeScenario(ctx context.Context, request backends.Executi
 		switch backends.Termination(r.Termination) {
 		case "invalid":
 			return backends.ExecutionResult{}, &backends.FailureError{Termination: backends.Infrastructure, Message: r.Message}
-		case backends.Capacity, backends.Unsupported, backends.Infrastructure, backends.Divergence:
+		case backends.Capacity:
+			capacity = &backends.FailureError{Termination: backends.Capacity, Message: r.Message}
+			break results
+		case backends.Unsupported, backends.Infrastructure, backends.Divergence:
 			return backends.ExecutionResult{}, &backends.FailureError{Termination: backends.Termination(r.Termination), Message: r.Message}
 		case backends.Exit, backends.Trap:
 		}
@@ -206,7 +214,7 @@ func (p *Provider) executeScenario(ctx context.Context, request backends.Executi
 	}
 	result.Stdout, result.Stderr = projected.Stdout, projected.Stderr
 	result.SoftAssertions = observeSoftAssertions(result, request.Target.SoftAssertionReportOnly)
-	return result, nil
+	return result, capacity
 }
 
 func scenarioFailure(err error) error {

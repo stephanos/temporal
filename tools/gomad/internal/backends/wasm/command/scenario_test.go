@@ -9,6 +9,7 @@ import (
 	"slices"
 	"strings"
 	"testing"
+	"time"
 
 	runnerbackend "go.temporal.io/server/tools/gomad/internal/backends"
 	"go.temporal.io/server/tools/gomad/internal/backends/target"
@@ -362,5 +363,119 @@ func TestInstalledOperatorTypedScenarioDetachedReplay(t *testing.T) {
 			}
 		}
 		invokeOperator(t, f.binary, 3, "--installation", "/missing/incompatible-installation", "replay", path)
+	}
+}
+
+// A limit exhausted inside a manual cluster run, or any other instance or
+// broker failure there, ends the whole run promptly and classified instead of
+// waiting for the wall-clock execution watchdog (fn-235 R1-R4). A capacity
+// abort keeps each incarnation's partial streams in a retained, inspectable
+// and replayable artifact. Before fn-235 both runs hung until the watchdog.
+func TestInstalledOperatorClusterFailureEndsPromptly(t *testing.T) {
+	f := newTypedOperator(t)
+	explore := func(fixture string) ([]byte, string) {
+		scenario := filepath.Join(f.root, fixture+".json")
+		writeTypedJSON(t, scenario, typedScenario(t, fixture, ""))
+		artifacts := filepath.Join(f.root, fixture+"-artifacts")
+		arguments := f.explore(scenario, artifacts, "7")
+		for index, argument := range arguments {
+			switch argument {
+			case "--execution-timeout=30s":
+				arguments[index] = "--execution-timeout=3m"
+			case "--overall-timeout=3m":
+				arguments[index] = "--overall-timeout=4m"
+			}
+		}
+		began := time.Now()
+		explored := invokeOperator(t, f.binary, 3, arguments...)
+		wall := time.Since(began)
+		t.Logf("%s explore wall=%s", fixture, wall)
+		// Preparation compiles the guest; the hang this guards ran to the
+		// 3m execution watchdog.
+		if wall > 60*time.Second {
+			t.Fatalf("%s cluster failure waited %s", fixture, wall)
+		}
+		return explored, artifacts
+	}
+
+	explored, _ := explore("deadlock")
+	if !bytes.Contains(explored, []byte(`"classification":"runner_failure"`)) || !bytes.Contains(explored, []byte("backend infrastructure: ")) || !bytes.Contains(explored, []byte("WASM broker global deadlock")) {
+		t.Fatalf("deadlocked cluster classification = %s", explored)
+	}
+
+	explored, artifacts := explore("capacity")
+	if !bytes.Contains(explored, []byte(`"classification":"runner_failure"`)) || !bytes.Contains(explored, []byte("backend capacity: WASI capacity: payload-bytes limit=4096 used=4096 delta=64")) {
+		t.Fatalf("exhausted cluster World classification = %s", explored)
+	}
+	retained := typedArtifactPaths(t, artifacts)
+	if len(retained) != 1 {
+		t.Fatalf("capacity retained artifacts = %v", retained)
+	}
+	path := retained[0]
+	opened, err := artifact.OpenArtifact(path)
+	if err != nil {
+		t.Fatal(err)
+	}
+	manifest := opened.Manifest()
+	if manifest.Target.Backend == nil || manifest.Target.Backend.Evidence == nil || manifest.Target.Backend.Evidence.Schema != simulation.RetainedSchema {
+		t.Fatalf("capacity artifact lacks retained cluster evidence: %+v", manifest)
+	}
+	evidence := *manifest.Target.Backend.Evidence
+	payload, err := opened.ReadPayload(evidence.File, 128<<20)
+	if err != nil {
+		t.Fatal(err)
+	}
+	if err := opened.Close(); err != nil {
+		t.Fatal(err)
+	}
+	_, clusterRecord, err := simulation.VerifyRetained(target.BackendPayload{Reference: evidence, Data: payload})
+	if err != nil || clusterRecord.WASM == nil || len(clusterRecord.WASM.Incarnations) != 2 || clusterRecord.Limits.ObservationBytes != 4096 || clusterRecord.WASM.VirtualElapsedNanos == 0 {
+		t.Fatalf("retained capacity abort: %+v %v", clusterRecord, err)
+	}
+	for _, incarnation := range clusterRecord.WASM.Incarnations {
+		if !incarnation.Interrupted || len(incarnation.ChoiceTape) == 0 {
+			t.Fatalf("capacity abort lost its replayable prefix: %+v", incarnation)
+		}
+	}
+	streams := map[string][]byte{}
+	var stdout, stderr int
+	for _, observation := range clusterRecord.Outputs {
+		key := string(observation.Handle.Node) + "/" + string(observation.Stream)
+		streams[key] = append(streams[key], observation.Bytes...)
+		if observation.Stream == gomadsim.OutputStdout {
+			stdout += len(observation.Bytes)
+		} else {
+			stderr += len(observation.Bytes)
+		}
+	}
+	for key, marker := range map[string]string{"a/stderr": "ping client dialing", "a/stdout": "ping client connected", "b/stderr": "echo server listening", "b/stdout": "echo server accepted"} {
+		if !bytes.Contains(streams[key], []byte(marker)) {
+			t.Fatalf("capacity abort dropped %s partial stream %q: %q", key, marker, streams)
+		}
+	}
+	t.Logf("artifact=%s virtual-elapsed=%d limits=%+v streams=%q", path, clusterRecord.WASM.VirtualElapsedNanos, clusterRecord.Limits, streams)
+	var report inspect.Inspection
+	if err := json.Unmarshal(invokeOperator(t, f.binary, 0, "inspect", "--json", path), &report); err != nil || report.Artifact == nil || report.Artifact.Stdout.TotalBytes != uint64(stdout) || report.Artifact.Stderr.TotalBytes != uint64(stderr) {
+		t.Fatalf("capacity artifact inspection: %+v %v", report, err)
+	}
+	inspected := report.Artifact.Cluster
+	if inspected == nil || inspected.VirtualElapsedNanos != clusterRecord.WASM.VirtualElapsedNanos || len(inspected.Instances) != 2 ||
+		inspected.Exhausted == nil || *inspected.Exhausted != (inspect.ClusterLimitInspection{Dimension: "payload-bytes", Limit: 4096, Used: 4096, Delta: 64}) {
+		t.Fatalf("capacity inspection omitted the cluster abort: %+v", inspected)
+	}
+	for _, instance := range inspected.Instances {
+		key := instance.Node + "/"
+		if !instance.Interrupted || instance.Stdout.Bytes != uint64(len(streams[key+"stdout"])) || instance.Stderr.Bytes != uint64(len(streams[key+"stderr"])) || !strings.HasSuffix(string(streams[key+"stdout"]), instance.Stdout.Tail) {
+			t.Fatalf("capacity inspection of %s: %+v", key, instance)
+		}
+	}
+	text := invokeOperator(t, f.binary, 0, "inspect", path)
+	if !bytes.Contains(text, []byte("ping round 2")) || !bytes.Contains(text, []byte("exhausted=payload-bytes limit=4096 used=4096 delta=64")) || !bytes.Contains(text, []byte("cluster-instance: node=a incarnation=1")) {
+		t.Fatalf("capacity inspection text: %s", text)
+	}
+	t.Logf("inspect:\n%s", text)
+	replayed := invokeOperator(t, f.binary, 1, "--installation", f.manifest, "replay", path)
+	if !bytes.Contains(replayed, []byte("reproduced=true")) {
+		t.Fatalf("capacity abort replay = %s", replayed)
 	}
 }
