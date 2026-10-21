@@ -8,6 +8,8 @@ Touches: tools/gomad/expected-intercepts-go1.27.1.txt (delete), tools/gomad/inte
 Sweep the overlay and toolchain surface for files no Go source, Makefile target, generator, fixture loader or document reads: grep the module for each filename and the native-era names (gomadIntercept, gomad3, native overlay); record the proving search per file in the done summary. Delete the intercept list (111 net/os intercepts with no defining source; only reference is the closed task fn-114.5). Keep files any WASM gate reads even when named native (qualification/native_crash.go, runner diagnostic-identity-*-native.json): they are not leftovers. Remove documentation mentions of deleted files. Run make validate and the behavioral gate on the fixture workloads; this task changes no overlay bytes, so the gate here is a build/test/doc check.
 
 ## Acceptance
+Retained implementation evidence and proving searches are indexed in [.flow/artifacts/fn234-overlay-audit-evidence-2026-10-20.md](../artifacts/fn234-overlay-audit-evidence-2026-10-20.md). Review the authenticated inputs and raw paired results there; a declaration-only check is not the behavioral gate.
+
 Intercept list deleted; every other deletion has a recorded search proving it unreferenced; no file read by a WASM gate deleted; go build/vet/lint, toolchain and runtimesource tests, make validate green; no document names a deleted file; overlay implementation identity unchanged by this task.
 
 ## Done summary
