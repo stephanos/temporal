@@ -225,6 +225,7 @@ def main():
     parser = argparse.ArgumentParser(description=__doc__)
     for name in ('baseline', 'source', 'go-compiler', 'work', 'preparation-root'):
         parser.add_argument('--' + name, type=Path, required=True)
+    parser.add_argument('--public-only', action='store_true', help='diagnose public explore/resume only; does not satisfy the mandatory all-verb lane')
     args = parser.parse_args()
     for name in ('baseline', 'source', 'go_compiler', 'work', 'preparation_root'):
         setattr(args, name, getattr(args, name).resolve())
@@ -289,26 +290,28 @@ def main():
         destination = args.work / (name + '-explore')
         run(name + '-explore', [*prefix, 'explore', *flags, '--artifacts', destination, *target], case['status'])
         explored = authenticate_campaign(locate(destination))
-        plan = args.work / (name + '-plan')
-        run(name + '-public-plan-refusal', [*prefix, 'plan', *flags, '--output', plan, *target], 2)
-        request = dict(Operation='plan', Installation=str(installation), WorkingDir=str(args.source / 'tools/gomad' / case['module']),
-            Kind=case['kind'], Source=case['source'], Arguments=case['arguments'], BuildTags=case['tags'], Output=str(plan), Artifacts=str(args.work / (name + '-plan-artifacts')))
-        run(name + '-runner-api-plan', [wrapper], input_bytes=json.dumps(request).encode())
-        shard_roots = []
-        shard_records = []
-        for index in range(2):
-            destination = args.work / f'{name}-shard-{index}'
-            run(f'{name}-public-shard-{index}-refusal', [*prefix, 'execute-shard', '--json', '--shard', f'{index}/2', '--artifacts', destination, plan], 2)
-            run(f'{name}-runner-api-shard-{index}', [wrapper], case['status'], input_bytes=json.dumps(dict(Operation='execute-shard', Installation=str(installation), Plan=str(plan), Index=index, Count=2, Artifacts=str(destination))).encode())
-            root = locate(destination)
-            shard_roots.append(root)
-            shard_records.extend(authenticate_campaign(root)['records'])
-        merged = args.work / (name + '-merged')
-        run(name + '-public-merge-refusal', [*prefix, 'merge', '--json', '--output', merged, plan, *shard_roots], 2)
-        run(name + '-runner-api-merge', [wrapper], input_bytes=json.dumps(dict(Operation='merge', Installation=str(installation), Plan=str(plan), Shards=list(map(str, shard_roots)), Output=str(merged))).encode())
-        merged_records = authenticate_campaign(merged)['records']
-        equal(semantic(shard_records), semantic(explored['records']), name + '.shards_semantics')
-        equal(semantic(merged_records), semantic(explored['records']), name + '.merge_semantics')
+        shard_records, merged_records = None, None
+        if not args.public_only:
+            plan = args.work / (name + '-plan')
+            run(name + '-public-plan-refusal', [*prefix, 'plan', *flags, '--output', plan, *target], 2)
+            request = dict(Operation='plan', Installation=str(installation), WorkingDir=str(args.source / 'tools/gomad' / case['module']),
+                Kind=case['kind'], Source=case['source'], Arguments=case['arguments'], BuildTags=case['tags'], Output=str(plan), Artifacts=str(args.work / (name + '-plan-artifacts')))
+            run(name + '-runner-api-plan', [wrapper], input_bytes=json.dumps(request).encode())
+            shard_roots = []
+            shard_records = []
+            for index in range(2):
+                destination = args.work / f'{name}-shard-{index}'
+                run(f'{name}-public-shard-{index}-refusal', [*prefix, 'execute-shard', '--json', '--shard', f'{index}/2', '--artifacts', destination, plan], 2)
+                run(f'{name}-runner-api-shard-{index}', [wrapper], case['status'], input_bytes=json.dumps(dict(Operation='execute-shard', Installation=str(installation), Plan=str(plan), Index=index, Count=2, Artifacts=str(destination))).encode())
+                root = locate(destination)
+                shard_roots.append(root)
+                shard_records.extend(authenticate_campaign(root)['records'])
+            merged = args.work / (name + '-merged')
+            run(name + '-public-merge-refusal', [*prefix, 'merge', '--json', '--output', merged, plan, *shard_roots], 2)
+            run(name + '-runner-api-merge', [wrapper], input_bytes=json.dumps(dict(Operation='merge', Installation=str(installation), Plan=str(plan), Shards=list(map(str, shard_roots)), Output=str(merged))).encode())
+            merged_records = authenticate_campaign(merged)['records']
+            equal(semantic(shard_records), semantic(explored['records']), name + '.shards_semantics')
+            equal(semantic(merged_records), semantic(explored['records']), name + '.merge_semantics')
 
         destination = args.work / (name + '-interrupted')
         command = [*prefix, 'explore', *flags, '--artifacts', destination, *target]
@@ -343,12 +346,17 @@ def main():
         resumed = authenticate_campaign(interrupted)
         equal(semantic(resumed['records']), semantic(explored['records']), name + '.resume_semantics')
         observations[name] = dict(explore=semantic(explored['records']), resume=semantic(resumed['records']),
-            execute_shard=semantic(shard_records), merge=semantic(merged_records))
+            execute_shard=None if shard_records is None else semantic(shard_records),
+            merge=None if merged_records is None else semantic(merged_records))
     result = dict(schema='gomad.campaign-go-reference/v1', surface={'explore': 'public CLI', 'resume': 'public CLI', 'plan': 'original Runner API; public WASM CLI refuses', 'execute_shard': 'original Runner API; public WASM CLI refuses', 'merge': 'original Runner API; public WASM CLI refuses'}, baseline_inputs_sha256=digest(inventory),
         binary_sha256=digest(binary.read_bytes()), compiler_sha256=digest(args.go_compiler.read_bytes()),
         source_sha256=digest(archive.read_bytes()), driver_sha256=digest(Path(__file__).read_bytes()), template_sha256=digest(template.read_bytes()), wrapper_sha256=digest(wrapper.read_bytes()), observations=observations)
+    result['mode'] = 'public-only diagnostic; incomplete mandatory differential' if args.public_only else 'mandatory all-verb differential'
+    if args.public_only:
+        result['surface'].update(plan='not exercised', execute_shard='not exercised', merge='not exercised')
     (args.work / 'campaign-reference.json').write_text(json.dumps(result, indent=2) + '\n')
-    print('fresh Go public explore/resume and original Runner API shard/merge authenticated; public WASM shard/merge refusals verified')
+    print('fresh Go public explore/resume authenticated; mandatory shard/merge lane NOT exercised' if args.public_only else
+          'fresh Go public explore/resume and original Runner API shard/merge authenticated; public WASM shard/merge refusals verified')
 
 
 if __name__ == '__main__':

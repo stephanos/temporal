@@ -327,6 +327,7 @@ pub(super) fn publication(
         semantic_probes: Vec::new(),
         choice_features,
         divergence: observed.outcome.divergence.map(|value| *value),
+        scenario_steps: None,
     };
     Ok(Result {
         execution,

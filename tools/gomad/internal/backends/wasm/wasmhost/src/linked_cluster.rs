@@ -30,7 +30,7 @@ pub enum Action {
     Stop,
 }
 
-#[derive(Clone, Deserialize, Serialize)]
+#[derive(Clone, Debug, Deserialize, Eq, PartialEq, Serialize)]
 #[serde(deny_unknown_fields)]
 pub struct Step {
     pub action: Action,
@@ -119,6 +119,7 @@ pub struct IncarnationResult {
 
 pub struct Execution {
     pub outcome: protocol::Outcome,
+    pub executed_steps: Vec<Step>,
     pub incarnations: Vec<IncarnationResult>,
     pub world: Vec<u8>,
     pub network: Vec<u8>,
@@ -516,6 +517,7 @@ fn execute_inner(
     }
     broker.start();
     let script = std::mem::take(&mut prepared.steps);
+    let mut executed_steps = Vec::new();
     let driven = (|| -> Result<()> {
         for step in script {
             if timed_out.load(Ordering::Acquire)
@@ -529,6 +531,7 @@ fn execute_inner(
             {
                 break;
             }
+            executed_steps.push(step.clone());
             let index = prepared
                 .ids
                 .iter()
@@ -703,6 +706,10 @@ fn execute_inner(
     }
     let mut join_error = None;
     for (handle, pending) in running {
+        executed_steps.push(Step {
+            handle: handle.clone(),
+            action: Action::Wait,
+        });
         match joined(pending) {
             Ok(observed) => {
                 completed.insert(handle, observed.result);
@@ -764,6 +771,7 @@ fn execute_inner(
     }
     Ok(Execution {
         outcome,
+        executed_steps,
         incarnations: completed.into_values().collect(),
         world,
         network,
@@ -843,6 +851,7 @@ pub fn execute_prepared(prepared: Prepared) -> Result<Execution> {
 fn cancelled_execution() -> Execution {
     Execution {
         outcome: linked::Cancellation::execution().outcome,
+        executed_steps: Vec::new(),
         incarnations: Vec::new(),
         world: Vec::new(),
         network: Vec::new(),
