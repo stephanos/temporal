@@ -30,6 +30,6 @@ Manual and linked cluster failures now stop peers deterministically and preserve
 
 stage: plan-sync - skipped(config: planSync.enabled != true)
 ## Evidence
-- Commits: 9f3364f156, 7693689f38, dad95ac6f0, 5452fcf463, a959c074ba, c33b3dde63, df9f9d27d1, 25e32e9b65, fa23d8e6c7, 294b5e66e5, 1ba2bb38eb
-- Tests: Fresh integrated installed CLI: GOMAXPROCS=2 GOMAD_STOCK_GO=/Users/stephan/Workspace/skunkworks/gomad/.build-cache/fn232-stock-go1.27.1/bin/go GOMAD_WASM_TEST_HELPER=/home/agent/wt/evidence/fn235/commitment/helper-final294-release go test -tags test_dep -count=1 -p=1 -parallel=1 -timeout=10m -v -run ^TestInstalledOperator(TypedScenarioDetachedReplay|AsymmetricGuestFailureEndsPromptly|ClusterFailureEndsPromptly)$ ./internal/backends/wasm/command (exit 0, 59.557s; root-final294-installed-failure-gate.log), Final294 original fn224 ringpop120 actual CLI success (exit 0; commitment/final294-release-120-warmup/{command.json,measurement.json,stdout.jsonl}), Final294 all four host role builds and all-target Clippy; 50 host library tests and full helper test suite (exit 0; /home/agent/wt/evidence/fn232-replay/final294-* receipts), Fresh Go implementation identity, current corpora, broker order and cluster inspection tests (exit 0, packages 0.181s/0.046s), make lint-code-fast GOLANGCI_LINT_BASE_REV=447fee0f75 GOLANGCI_LINT_FIX=false (exit 0; root-integrated-exploration-lint-code-fast.log), Independent fn235.1 R1-R4 acceptance review SHIP; performance task .2 and final Rust qualification excluded
+- Commits:
+- Tests:
 - PRs:
