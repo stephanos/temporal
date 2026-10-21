@@ -402,8 +402,8 @@ fn worker_failure_requires_application_info_only_when_failure_is_supplied()
     let violations =
         annotate("RespondActivityTaskFailed", false, &request.encode_to_vec(), 1)?.violations;
     assert_eq!(violations.len(), 1);
-    assert!(violations[0].contains("Failure"), "{:?}", violations);
-    assert!(violations[0].contains("application_failure_info"), "{:?}", violations);
+    assert!(violations[0].contains("Failure"), "{violations:?}");
+    assert!(violations[0].contains("application_failure_info"), "{violations:?}");
     request.failure.as_mut().ok_or("failure")?.failure_info =
         Some(failure::FailureInfo::ApplicationFailureInfo(ApplicationFailureInfo::default()));
     assert_eq!(
