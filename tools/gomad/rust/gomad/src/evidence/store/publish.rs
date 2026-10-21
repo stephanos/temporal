@@ -1,10 +1,11 @@
 use super::{FileEntry, Manifest, Opened, canonical, lineage, open, pool};
 use crate::evidence::record::Record;
 use rustix::fs::{self, AtFlags, FlockOperation, Mode, OFlags};
+use sha2::{Digest, Sha256};
 use std::{
-    collections::BTreeMap,
+    collections::{BTreeMap, BTreeSet},
     fs::{DirBuilder, File},
-    io::Write,
+    io::{Read, Write},
     os::unix::fs::DirBuilderExt,
     path::{Path, PathBuf},
     sync::atomic::{AtomicU64, Ordering},
@@ -192,7 +193,204 @@ fn rename_exclusive(root: &File, source: &str, target: &str) -> Result<(), rusti
     }
 }
 
+fn artifact_name(name: &str) -> bool {
+    canonical::valid_digest(name)
+        || name
+            .strip_prefix("execution-")
+            .is_some_and(canonical::valid_digest)
+}
+
+fn unlink_checked(root: &File, name: &str, file: &File, directory: bool) -> Result<(), String> {
+    let opened = fs::fstat(file).map_err(|error| error.to_string())?;
+    let named =
+        fs::statat(root, name, AtFlags::SYMLINK_NOFOLLOW).map_err(|error| error.to_string())?;
+    if !open::same(&opened, &named) {
+        return Err("retiring artifact entry substituted".into());
+    }
+    fs::unlinkat(
+        root,
+        name,
+        if directory {
+            AtFlags::REMOVEDIR
+        } else {
+            AtFlags::empty()
+        },
+    )
+    .map_err(|error| error.to_string())
+}
+
+fn retire_file(root: &File, name: &str, entry: &FileEntry) -> Result<(), String> {
+    let mut file = open::child(root, name, false, entry.module)?;
+    let before = fs::fstat(&file).map_err(|error| error.to_string())?;
+    if u64::try_from(before.st_size) != Ok(entry.bytes) {
+        return Err("retiring artifact payload size mismatch".into());
+    }
+    let mut hash = Sha256::new();
+    let mut buffer = vec![0_u8; 64 << 10];
+    let mut count = 0_u64;
+    loop {
+        let size = file.read(&mut buffer).map_err(|error| error.to_string())?;
+        if size == 0 {
+            break;
+        }
+        count = count
+            .checked_add(size as u64)
+            .ok_or("retiring artifact payload size overflow")?;
+        if count > entry.bytes {
+            return Err("retiring artifact payload grew while reading".into());
+        }
+        hash.update(&buffer[..size]);
+    }
+    if count != entry.bytes
+        || format!("{:x}", hash.finalize()) != entry.sha256
+        || !open::same(
+            &before,
+            &fs::fstat(&file).map_err(|error| error.to_string())?,
+        )
+    {
+        return Err("retiring artifact payload authentication failed".into());
+    }
+    unlink_checked(root, name, &file, false)
+}
+
+fn retire_payloads(root: &File, prefix: &str, manifest: &Manifest) -> Result<(), String> {
+    for name in open::entries(root)? {
+        if prefix.is_empty() && matches!(name.as_str(), "manifest.json" | "storage.json") {
+            continue;
+        }
+        let path = if prefix.is_empty() {
+            name.clone()
+        } else {
+            format!("{prefix}/{name}")
+        };
+        if let Some(entry) = manifest.files.get(&path) {
+            retire_file(root, &name, entry)?;
+        } else {
+            let nested = format!("{path}/");
+            if !manifest.files.keys().any(|path| path.starts_with(&nested)) {
+                return Err("retiring artifact contains an unlisted payload".into());
+            }
+            let directory = open::child(root, &name, true, false)?;
+            retire_payloads(&directory, &path, manifest)?;
+            unlink_checked(root, &name, &directory, true)?;
+        }
+    }
+    root.sync_all().map_err(|error| error.to_string())
+}
+
+fn retire_pending(root: &File, name: &str) -> Result<(), String> {
+    let original = name
+        .strip_prefix(".retire-")
+        .filter(|name| artifact_name(name))
+        .ok_or("invalid artifact retirement name")?;
+    let directory = open::child(root, name, true, false)?;
+    let bytes = match open::read(&directory, "manifest.json", 16 << 20, false) {
+        Ok(bytes) => bytes,
+        Err(error)
+            if error == rustix::io::Errno::NOENT.to_string()
+                && open::entries(&directory)?.is_empty() =>
+        {
+            unlink_checked(root, name, &directory, true)?;
+            return root.sync_all().map_err(|error| error.to_string());
+        }
+        Err(error) => return Err(error),
+    };
+    let manifest: Manifest = serde_json::from_slice(&bytes).map_err(|error| error.to_string())?;
+    manifest.validate()?;
+    if canonical::encode(&manifest)? != bytes
+        || (original != manifest.record.failure_signature()?
+            && original != format!("execution-{}", manifest.record_sha256))
+    {
+        return Err("retiring artifact manifest identity mismatch".into());
+    }
+    match open::read(&directory, "storage.json", 4096, false) {
+        Ok(bytes) => lineage::validate(&bytes)?,
+        Err(error) if error == rustix::io::Errno::NOENT.to_string() => {}
+        Err(error) => return Err(error),
+    }
+    retire_payloads(&directory, "", &manifest)?;
+    match open::child(&directory, "storage.json", false, false) {
+        Ok(_) => retire_file(
+            &directory,
+            "storage.json",
+            &FileEntry {
+                bytes: lineage::ENVELOPE.len() as u64,
+                sha256: canonical::digest(lineage::ENVELOPE),
+                module: false,
+            },
+        )?,
+        Err(error) if error == rustix::io::Errno::NOENT.to_string() => {}
+        Err(error) => return Err(error),
+    }
+    directory.sync_all().map_err(|error| error.to_string())?;
+    retire_file(
+        &directory,
+        "manifest.json",
+        &FileEntry {
+            bytes: bytes.len() as u64,
+            sha256: canonical::digest(&bytes),
+            module: false,
+        },
+    )?;
+    directory.sync_all().map_err(|error| error.to_string())?;
+    unlink_checked(root, name, &directory, true)?;
+    root.sync_all().map_err(|error| error.to_string())
+}
+
 impl Store {
+    pub(crate) fn retire(root: &File, live: &BTreeSet<String>) -> Result<(), String> {
+        let pool = open::child(root, ".targets", true, false)?;
+        let _locks = ordered_roots(root, &[&pool])?
+            .into_iter()
+            .map(lock)
+            .collect::<Result<Vec<_>, _>>()?;
+        if open::read(root, ".store.json", 4096, false)? != open::LAYOUT {
+            return Err("unsupported artifact store layout".into());
+        }
+        if live.iter().any(|name| !artifact_name(name)) {
+            return Err("invalid live artifact reference".into());
+        }
+        for name in open::entries(root)? {
+            if name.starts_with(".retire-") {
+                retire_pending(root, &name)?;
+            }
+        }
+        for name in open::entries(root)? {
+            if matches!(name.as_str(), ".store.json" | ".lock" | ".targets") {
+                continue;
+            }
+            if name.starts_with(".publish-") {
+                open::child(root, &name, true, false)?;
+                continue;
+            }
+            if !artifact_name(&name) {
+                return Err("unexpected artifact store entry during retirement".into());
+            }
+            if live.contains(&name) {
+                continue;
+            }
+            let directory = open::child(root, &name, true, false)?;
+            let before = fs::fstat(&directory).map_err(|error| error.to_string())?;
+            let opened = Opened::from_root_with_pool(directory, Some(&pool))?;
+            opened.authenticate_all()?;
+            if name != opened.manifest().record.failure_signature()?
+                && name != format!("execution-{}", opened.manifest().record_sha256)
+            {
+                return Err("retiring artifact name does not match its record".into());
+            }
+            let after = fs::statat(root, name.as_str(), AtFlags::SYMLINK_NOFOLLOW)
+                .map_err(|error| error.to_string())?;
+            if !open::same(&before, &after) {
+                return Err("retiring artifact directory substituted".into());
+            }
+            let retired = format!(".retire-{name}");
+            rename_exclusive(root, &name, &retired).map_err(|error| error.to_string())?;
+            root.sync_all().map_err(|error| error.to_string())?;
+            retire_pending(root, &retired)?;
+        }
+        root.sync_all().map_err(|error| error.to_string())
+    }
+
     #[cfg_attr(
         not(feature = "determinism-fixture"),
         expect(

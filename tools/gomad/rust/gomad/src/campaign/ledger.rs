@@ -153,9 +153,7 @@ impl State {
                 || !plan["plan_sha256"]
                     .as_str()
                     .is_some_and(canonical::valid_digest)
-                || !plan["merge_sources"]
-                    .as_array()
-                    .is_some_and(|sources| !sources.is_empty())
+                || plan["merge_sources"].as_array().is_none_or(Vec::is_empty)
             {
                 return Err("invalid merged campaign plan identity".into());
             }
@@ -250,10 +248,6 @@ impl State {
         Ok(())
     }
 
-    #[expect(
-        clippy::too_many_lines,
-        reason = "A single transition validates every admission and receipt before applying an event"
-    )]
     fn apply(&mut self, event: &Event) -> Result<(), String> {
         if self.complete {
             return Err("campaign event follows completion".into());
@@ -352,7 +346,7 @@ fn is_failure(execution: &Execution) -> bool {
     )
 }
 
-fn validate_execution(execution: &Execution) -> Result<(), String> {
+pub(crate) fn validate_execution(execution: &Execution) -> Result<(), String> {
     execution.record.validate()?;
     if execution.seed != execution.record.seed
         || execution.artifact.is_none() && execution.stored_bytes != 0
@@ -370,13 +364,10 @@ fn validate_execution(execution: &Execution) -> Result<(), String> {
         if divergence.reason_name() == "unknown"
             || outcome.class != "target_failure"
             || !matches!(outcome.termination.as_str(), "diverged" | "divergence")
-            || outcome.reason != "world_replay_divergence"
         {
             return Err("campaign divergence does not match its execution outcome".into());
         }
-    } else if matches!(outcome.termination.as_str(), "diverged" | "divergence")
-        || outcome.reason == "world_replay_divergence"
-    {
+    } else if matches!(outcome.termination.as_str(), "diverged" | "divergence") {
         return Err("campaign divergence outcome has no typed evidence".into());
     }
     match outcome.class.as_str() {
@@ -627,6 +618,9 @@ impl Journal {
             journal.observed = fs::fstat(writer).map_err(|error| error.to_string())?;
         }
         journal.bytes = complete_bytes as u64;
+        if writable {
+            journal.reconcile_artifacts()?;
+        }
         Ok(journal)
     }
 
@@ -652,118 +646,31 @@ impl Journal {
     }
 
     fn authenticate_execution(&self, execution: &Execution) -> Result<(), String> {
-        self.validate_plan_record(&execution.record)?;
-        if let Some(reference) = &execution.artifact {
-            if !reference.starts_with("evidence/") {
-                return Err("campaign execution references a non-execution artifact".into());
-            }
-            let opened = self.open_artifact(reference)?;
-            let retained = &opened.manifest().record;
-            let matches = if is_failure(execution) {
-                retained.execution_identity == execution.record.execution_identity
-                    && retained.failure_signature()? == execution.record.failure_signature()?
-            } else {
-                retained == &execution.record
-            };
-            if !matches || opened.stored_bytes() != execution.stored_bytes {
-                return Err("campaign artifact record reference mismatch".into());
-            }
-            opened.authenticate_all()?;
-            if execution
-                .record
-                .streams
-                .contains_key("evidence/soft-assertions.json")
-            {
-                let bytes = opened.payload("evidence/soft-assertions.json", 16 << 20)?;
-                let report: super::soft_assertions::Report =
-                    serde_json::from_slice(&bytes).map_err(|error| error.to_string())?;
-                let output = |name: &str| -> Result<Vec<u8>, String> {
-                    if opened.manifest().record.streams.contains_key(name) {
-                        opened.payload(name, execution.record.limits.output_bytes)
-                    } else {
-                        Ok(Vec::new())
-                    }
-                };
-                let stdout = output("output/stdout")?;
-                let stderr = output("output/stderr")?;
-                if canonical::encode(&report)? != bytes
-                    || self.plan["soft_assertion_report_only"].as_bool() != Some(report.report_only)
-                    || super::soft_assertions::observe(
-                        &stdout,
-                        &stderr,
-                        matches!(
-                            execution.record.outcome.termination.as_str(),
-                            "exit" | "trap"
-                        ),
-                        report.report_only,
-                    )
-                    .as_ref()
-                        != Some(&report)
-                {
-                    return Err("campaign soft assertion evidence mismatch".into());
-                }
-            }
-        }
-        Ok(())
+        authenticate_execution(&self.plan, &self.root, execution)
     }
 
     fn validate_plan_record(&self, record: &Record) -> Result<(), String> {
-        let scenario = !self.plan["scenario"].is_null() && record.outcome.class != "prepared";
-        let configuration = if scenario {
-            let raw: Vec<u8> = serde_json::from_value(self.plan["scenario"].clone())
-                .map_err(|error| error.to_string())?;
-            let base = serde_json::from_value(self.plan["configuration"].clone())
-                .map_err(|error| error.to_string())?;
-            let identity = serde_json::from_value(self.plan["choice_identity"].clone())
-                .map_err(|error| error.to_string())?;
-            let network: Option<gomad_wasmhost::linked_cluster::NetworkModel> =
-                serde_json::from_value(self.plan["network"].clone())
-                    .map_err(|error| error.to_string())?;
-            let prepared = self.open_artifact(
-                self.plan["prepared_artifact"]
-                    .as_str()
-                    .ok_or("campaign prepared artifact missing")?,
-            )?;
-            let module = prepared.payload("target/module.wasm", 512 << 20)?;
-            let bound = super::scenario::bind(
-                &raw,
-                &base,
-                &module,
-                &identity,
-                network.as_ref(),
-                record.seed,
-            )?;
-            serde_json::to_value(&bound.configuration).map_err(|error| error.to_string())?
-        } else {
-            self.plan["configuration"].clone()
-        };
-        if self.plan["module_sha256"].as_str() != Some(record.identity.target.as_str())
-            || self.plan["toolchain"].as_str() != Some(record.identity.toolchain.as_str())
-            || record.identity.platform != crate::replay::preflight::platform()
-            || record.identity.implementation != crate::replay::preflight::implementation()?
-            || canonical::digest(&canonical::encode(&configuration)?)
-                != record.identity.configuration
-            || configuration["profile"].as_str() != Some(record.profile.as_str())
-            || serde_json::to_value(&record.limits).map_err(|error| error.to_string())?
-                != configuration["limits"]
-            || if scenario {
-                !record.arguments.is_empty() || !record.environment.is_empty()
-            } else {
-                serde_json::to_value(&record.arguments).map_err(|error| error.to_string())?
-                    != configuration["arguments"]
-                    || serde_json::to_value(&record.environment)
-                        .map_err(|error| error.to_string())?
-                        != configuration["environment"]
-            }
-        {
-            return Err("campaign record differs from its prepared plan".into());
-        }
-        Ok(())
+        validate_plan_record(&self.plan, &self.root, record)
     }
 
     fn authenticate_events(&self) -> Result<(), String> {
         for event in &self.events {
-            self.authenticate_event(event)?;
+            match event {
+                Event::Receipt { execution } => {
+                    self.validate_plan_record(&execution.record)?;
+                    if let Some(reference) = &execution.artifact {
+                        let parts = artifact_reference(reference)?;
+                        if parts[0] != "evidence" {
+                            return Err("campaign receipt references non-execution evidence".into());
+                        }
+                    }
+                }
+                Event::Outcome { .. } => self.authenticate_event(event)?,
+                _ => {}
+            }
+        }
+        for execution in self.state.receipts.values() {
+            self.authenticate_execution(execution)?;
         }
         Ok(())
     }
@@ -851,35 +758,80 @@ impl Journal {
         if interrupt_after == Some(self.events.len() as u64 - 1) {
             std::process::exit(86);
         }
+        if matches!(self.events.last(), Some(Event::Outcome { .. })) {
+            self.reconcile_artifacts()?;
+        }
         Ok(())
+    }
+
+    /// # Errors
+    /// Refuses unlocked mutation, invalid live evidence and unauthenticated retirement entries.
+    pub fn reconcile_artifacts(&self) -> Result<(), String> {
+        if self.writer.is_none() || self.lock.is_none() || self.poisoned {
+            return Err("campaign artifact reconciliation requires its healthy writer lock".into());
+        }
+        verify_named(
+            &self.root,
+            ".lock",
+            self.lock.as_ref().ok_or("campaign lock missing")?,
+        )?;
+        let mut live = BTreeSet::new();
+        let mut retain = |execution: &Execution| -> Result<(), String> {
+            if let Some(reference) = &execution.artifact {
+                let parts = artifact_reference(reference)?;
+                if parts[0] != "evidence" {
+                    return Err("campaign execution references non-execution evidence".into());
+                }
+                live.insert(parts[1].to_owned());
+            }
+            Ok(())
+        };
+        for execution in self.state.receipts.values() {
+            retain(execution)?;
+        }
+        for event in &self.events {
+            if let Event::Outcome { executions, .. } = event {
+                for execution in executions {
+                    retain(execution)?;
+                }
+            }
+        }
+        let store = match open::child(&self.root, "evidence", true, false) {
+            Ok(store) => store,
+            Err(error) if error == rustix::io::Errno::NOENT.to_string() && live.is_empty() => {
+                return Ok(());
+            }
+            Err(error) => return Err(error),
+        };
+        match open::read(&store, ".store.json", 4096, false) {
+            Ok(layout) if layout == open::LAYOUT => {}
+            Err(error) if error == rustix::io::Errno::NOENT.to_string() && live.is_empty() => {
+                for name in open::entries(&store)? {
+                    match name.as_str() {
+                        ".targets" => {
+                            open::child(&store, &name, true, false)?;
+                        }
+                        ".lock" => {
+                            open::child(&store, &name, false, false)?;
+                        }
+                        _ => {
+                            return Err(
+                                "incomplete artifact store contains unexpected entries".into()
+                            );
+                        }
+                    }
+                }
+                return Ok(());
+            }
+            _ => return Err("unsupported campaign artifact store layout".into()),
+        }
+        crate::evidence::store::Store::retire(&store, &live)
     }
 
     /// # Errors
     /// Refuses unsafe references, substituted entries and unauthenticated artifact manifests.
     pub fn open_artifact(&self, reference: &str) -> Result<Opened, String> {
-        let parts = open::components(reference)?;
-        if parts.len() != 2
-            || !matches!(parts[0], "evidence" | "prepared")
-            || !(canonical::valid_digest(parts[1])
-                || parts[1]
-                    .strip_prefix("execution-")
-                    .is_some_and(canonical::valid_digest))
-        {
-            return Err("unsafe campaign artifact reference".into());
-        }
-        let store = open::child(&self.root, parts[0], true, false)?;
-        if open::read(&store, ".store.json", 4096, false)? != open::LAYOUT {
-            return Err("unsupported campaign artifact store layout".into());
-        }
-        let pool = open::child(&store, ".targets", true, false)?;
-        let artifact = open::child(&store, parts[1], true, false)?;
-        let opened = Opened::from_root_with_pool(artifact, Some(&pool))?;
-        if opened.manifest().record.failure_signature()? != parts[1]
-            && format!("execution-{}", opened.manifest().record_sha256) != parts[1]
-        {
-            return Err("campaign artifact name does not match its record".into());
-        }
-        Ok(opened)
+        open_artifact(&self.root, reference)
     }
 
     #[must_use]
@@ -931,6 +883,153 @@ impl Journal {
             "storage_sha256":canonical::digest(&storage),"journal_sha256":canonical::digest(&journal),
             "receipts":receipts}))
     }
+}
+
+pub(crate) fn authenticate_execution(
+    plan: &Value,
+    root: &File,
+    execution: &Execution,
+) -> Result<(), String> {
+    validate_plan_record(plan, root, &execution.record)?;
+    if let Some(reference) = &execution.artifact {
+        if !reference.starts_with("evidence/") {
+            return Err("campaign execution references a non-execution artifact".into());
+        }
+        let opened = open_artifact(root, reference)?;
+        let retained = &opened.manifest().record;
+        let matches = if is_failure(execution) {
+            retained.execution_identity == execution.record.execution_identity
+                && retained.failure_signature()? == execution.record.failure_signature()?
+        } else {
+            retained == &execution.record
+        };
+        if !matches || opened.stored_bytes() != execution.stored_bytes {
+            return Err("campaign artifact record reference mismatch".into());
+        }
+        opened.authenticate_all()?;
+        if execution
+            .record
+            .streams
+            .contains_key("evidence/soft-assertions.json")
+        {
+            let bytes = opened.payload("evidence/soft-assertions.json", 16 << 20)?;
+            let report: super::soft_assertions::Report =
+                serde_json::from_slice(&bytes).map_err(|error| error.to_string())?;
+            let output = |name: &str| -> Result<Vec<u8>, String> {
+                if opened.manifest().record.streams.contains_key(name) {
+                    opened.payload(name, execution.record.limits.output_bytes)
+                } else {
+                    Ok(Vec::new())
+                }
+            };
+            let stdout = output("output/stdout")?;
+            let stderr = output("output/stderr")?;
+            if canonical::encode(&report)? != bytes
+                || plan["soft_assertion_report_only"].as_bool() != Some(report.report_only)
+                || super::soft_assertions::observe(
+                    &stdout,
+                    &stderr,
+                    matches!(
+                        execution.record.outcome.termination.as_str(),
+                        "exit" | "trap"
+                    ),
+                    report.report_only,
+                )
+                .as_ref()
+                    != Some(&report)
+            {
+                return Err("campaign soft assertion evidence mismatch".into());
+            }
+        }
+    }
+    Ok(())
+}
+
+pub(crate) fn validate_plan_record(
+    plan: &Value,
+    root: &File,
+    record: &Record,
+) -> Result<(), String> {
+    let scenario = !plan["scenario"].is_null() && record.outcome.class != "prepared";
+    let configuration = if scenario {
+        let raw: Vec<u8> =
+            serde_json::from_value(plan["scenario"].clone()).map_err(|error| error.to_string())?;
+        let base = serde_json::from_value(plan["configuration"].clone())
+            .map_err(|error| error.to_string())?;
+        let identity = serde_json::from_value(plan["choice_identity"].clone())
+            .map_err(|error| error.to_string())?;
+        let network: Option<gomad_wasmhost::linked_cluster::NetworkModel> =
+            serde_json::from_value(plan["network"].clone()).map_err(|error| error.to_string())?;
+        let prepared = open_artifact(
+            root,
+            plan["prepared_artifact"]
+                .as_str()
+                .ok_or("campaign prepared artifact missing")?,
+        )?;
+        let module = prepared.payload("target/module.wasm", 512 << 20)?;
+        let bound = super::scenario::bind(
+            &raw,
+            &base,
+            &module,
+            &identity,
+            network.as_ref(),
+            record.seed,
+        )?;
+        serde_json::to_value(&bound.configuration).map_err(|error| error.to_string())?
+    } else {
+        plan["configuration"].clone()
+    };
+    if plan["module_sha256"].as_str() != Some(record.identity.target.as_str())
+        || plan["toolchain"].as_str() != Some(record.identity.toolchain.as_str())
+        || record.identity.platform != crate::replay::preflight::platform()
+        || record.identity.implementation != crate::replay::preflight::implementation()?
+        || canonical::digest(&canonical::encode(&configuration)?) != record.identity.configuration
+        || configuration["profile"].as_str() != Some(record.profile.as_str())
+        || serde_json::to_value(&record.limits).map_err(|error| error.to_string())?
+            != configuration["limits"]
+        || if scenario {
+            !record.arguments.is_empty() || !record.environment.is_empty()
+        } else {
+            serde_json::to_value(&record.arguments).map_err(|error| error.to_string())?
+                != configuration["arguments"]
+                || serde_json::to_value(&record.environment).map_err(|error| error.to_string())?
+                    != configuration["environment"]
+        }
+    {
+        return Err("campaign record differs from its prepared plan".into());
+    }
+    Ok(())
+}
+
+pub(crate) fn open_artifact(root: &File, reference: &str) -> Result<Opened, String> {
+    let parts = artifact_reference(reference)?;
+    let store = open::child(root, parts[0], true, false)?;
+    if open::read(&store, ".store.json", 4096, false)? != open::LAYOUT {
+        return Err("unsupported campaign artifact store layout".into());
+    }
+    let pool = open::child(&store, ".targets", true, false)?;
+    let artifact = open::child(&store, parts[1], true, false)?;
+    let opened = Opened::from_root_with_pool(artifact, Some(&pool))?;
+    if opened.manifest().record.failure_signature()? != parts[1]
+        && format!("execution-{}", opened.manifest().record_sha256) != parts[1]
+    {
+        return Err("campaign artifact name does not match its record".into());
+    }
+    Ok(opened)
+}
+
+fn artifact_reference(reference: &str) -> Result<Vec<&str>, String> {
+    let parts = open::components(reference)?;
+    if parts.len() != 2
+        || !matches!(parts[0], "evidence" | "prepared")
+        || !(canonical::valid_digest(parts[1])
+            || parts[1]
+                .strip_prefix("execution-")
+                .is_some_and(canonical::valid_digest))
+    {
+        return Err("unsafe campaign artifact reference".into());
+    }
+    Ok(parts)
 }
 
 fn create_file(root: &File, name: &str, bytes: &[u8]) -> Result<File, String> {

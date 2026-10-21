@@ -6,6 +6,10 @@ use std::{
 };
 
 #[derive(Clone, Debug)]
+#[expect(
+    clippy::struct_excessive_bools,
+    reason = "Independent original CLI switches retain their separate meanings"
+)]
 pub struct ExploreOptions {
     pub installation: Option<PathBuf>,
     pub seeds: String,
@@ -53,16 +57,20 @@ pub fn run_with_installation(
     let mut json = false;
     let mut options = match parse(arguments, &mut json) {
         Ok(options) => options,
-        Err(error) => return report_error(error, json, output),
+        Err(error) => return report_error(&error, json, output),
     };
     options.installation = installation.map(Path::to_path_buf);
-    match crate::campaign::explore(options, output) {
+    match crate::campaign::explore(&options, output) {
         Ok(status) => Ok(status),
-        Err(error) => report_error(error, json, output),
+        Err(error) => report_error(&error, json, output),
     }
 }
 
-fn parse(arguments: &[String], json: &mut bool) -> Result<ExploreOptions, String> {
+#[expect(
+    clippy::too_many_lines,
+    reason = "One parser preserves the original ordered flag and target grammar"
+)]
+pub(super) fn parse(arguments: &[String], json: &mut bool) -> Result<ExploreOptions, String> {
     let mut options = ExploreOptions {
         installation: None,
         seeds: "1".into(),
@@ -163,7 +171,7 @@ fn parse(arguments: &[String], json: &mut bool) -> Result<ExploreOptions, String
             "parallel" => {
                 options.parallel = value
                     .parse::<usize>()
-                    .map_err(|_| "parallelism must be positive")?
+                    .map_err(|_| "parallelism must be positive")?;
             }
             "execution-timeout" => options.execution_timeout = duration(value)?,
             "overall-timeout" => options.overall_timeout = duration(value)?,
@@ -255,11 +263,12 @@ fn parse_target(arguments: &[String], options: &mut ExploreOptions) -> Result<()
     options.target_kind.clone_from(kind);
     match kind.as_str() {
         "go-test" | "go-run" => {
-            options.source = arguments
-                .get(1)
-                .filter(|value| !value.is_empty())
-                .ok_or_else(|| format!("{kind} requires one package"))?
-                .clone();
+            options.source.clone_from(
+                arguments
+                    .get(1)
+                    .filter(|value| !value.is_empty())
+                    .ok_or_else(|| format!("{kind} requires one package"))?,
+            );
             if arguments.len() > 2 {
                 if arguments[2] != "--" {
                     return Err(format!("{kind} target arguments require -- separator"));
@@ -531,7 +540,7 @@ fn duration(value: &str) -> Result<Duration, String> {
             + fraction_nanos * u128::from(multiplier) / denominator;
         nanoseconds = nanoseconds
             .checked_add(u64::try_from(nanos).map_err(|_| format!("invalid duration {value:?}"))?)
-            .filter(|total| *total <= i64::MAX as u64)
+            .filter(|total| i64::try_from(*total).is_ok())
             .ok_or_else(|| format!("invalid duration {value:?}"))?;
         remaining = &tail[unit.len()..];
     }
@@ -542,7 +551,7 @@ fn duration(value: &str) -> Result<Duration, String> {
 }
 
 pub(super) fn report_error(
-    error: String,
+    error: &str,
     json: bool,
     output: &mut dyn Write,
 ) -> Result<i32, super::Error> {
@@ -560,7 +569,7 @@ pub(super) fn report_error(
                     | "invalid_input"
             )
         })
-        .unwrap_or(("invalid_input", &error));
+        .unwrap_or(("invalid_input", error));
     let status = match classification {
         "semantic_coverage_failure" => 1,
         "invalid_input" | "unsupported_target" => 2,

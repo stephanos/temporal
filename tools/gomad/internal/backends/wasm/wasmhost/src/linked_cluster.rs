@@ -59,6 +59,7 @@ pub struct Incarnation {
 }
 
 pub struct Request {
+    pub nodes: Vec<String>,
     pub broker: BrokerConfig,
     pub network: Option<NetworkConfig>,
     pub incarnations: Vec<Incarnation>,
@@ -202,7 +203,18 @@ fn lifecycle(request: &Request, handles: &BTreeSet<Handle>) -> Result<Vec<String
             return Err(Error::msg("invalid cluster output crash group"));
         }
     }
-    Ok(current.into_keys().collect())
+    if request.nodes.is_empty() {
+        return Ok(current.into_keys().collect());
+    }
+    let nodes: BTreeSet<_> = request.nodes.iter().cloned().collect();
+    if nodes.len() > 64
+        || nodes.len() != request.nodes.len()
+        || nodes.iter().any(|node| !valid_id(node))
+        || current.keys().any(|node| !nodes.contains(node))
+    {
+        return Err(Error::msg("invalid declared cluster nodes"));
+    }
+    Ok(nodes.into_iter().collect())
 }
 
 /// # Errors

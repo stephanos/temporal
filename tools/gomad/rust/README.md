@@ -21,8 +21,12 @@ are documented in [the maintainer CLI guide](../CLI.md#rust-artifact-inspection)
 The public `replay` verb uses helper-owned semantic tape admission and typed
 standalone/cluster execution. Its inspection and compiled diagnostic-role mapping
 are documented in [the maintainer CLI guide](../CLI.md#rust-retained-replay).
+Seed `explore`, `resume`, `execute-shard` and `merge` use Rust-owned preparation,
+ordered campaign policy, authenticated journals and retained target pools. Their
+source preparation and differential lanes are documented in
+[the maintainer CLI guide](../CLI.md#rust-seed-campaigns).
 Other public host verbs remain with their later fn-232 tasks. The
-`determinism-fixture` feature exposes the foundation, inspect and replay test drivers;
+`determinism-fixture` feature exposes the foundation, inspect, replay and campaign test drivers;
 their commands and fault controls are absent from ordinary builds. Run from the
 repository root:
 
