@@ -31,6 +31,7 @@ import (
 	"google.golang.org/protobuf/types/known/timestamppb"
 	"umpire.local/model"
 	modelv1 "umpire.local/model/umpire/model/v1"
+	temporalmodel "umpire.local/temporal"
 	temporalv1 "umpire.local/temporal/umpire/temporal/v1"
 )
 
@@ -118,10 +119,7 @@ func TestTestpilotModelSlice(t *testing.T) {
 	t.Cleanup(func() {
 		t.Logf("live slice total=%s toolchain=%s platform=%s/%s CGO_ENABLED=%s", time.Since(liveStart), runtime.Version(), runtime.GOOS, runtime.GOARCH, os.Getenv("CGO_ENABLED"))
 	})
-	guestPath := os.Getenv("UMPIRE_TEMPORAL_WASM")
-	require.NotEmpty(t, guestPath, "UMPIRE_TEMPORAL_WASM must name the built Temporal guest; run make umpire-check-model-slice")
-	wasm, err := os.ReadFile(guestPath)
-	require.NoError(t, err)
+	wasm := temporalmodel.Guest()
 	t.Run("Annotations", func(t *testing.T) { modelSliceAnnotationControls(t, wasm) })
 	host, err := model.New(t.Context(), wasm)
 	require.NoError(t, err)

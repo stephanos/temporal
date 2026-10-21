@@ -153,7 +153,7 @@ Both byte comparisons passed. Actual Tiny effect-panic and overflow fixtures mat
 their native full responses and existing report goldens across repeated calls and Reset.
 The default gate builds the same unwind profile. [Commands and timing](GUEST_BUILDS.md).
 fn-232 retains the unverified macOS/cross-OS proof; Linux paths do not establish it.
-fn-230.2 owns committed embedding and freshness integration.
+Temporal embeds these committed bytes; `model-check` checks freshness and `umpire-guest` refreshes them.
 
 ## Capability and panic boundaries
 

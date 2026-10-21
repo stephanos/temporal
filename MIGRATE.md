@@ -19,8 +19,11 @@ Keep checker behavior, macro authoring, fixtures, protobuf messages and ABI unch
 The application exports remain `umpire_buffer_alloc`, `umpire_buffer_release` and
 `umpire_call`. The stock guest contains the trait Kettle; the reusable `umpire-wasm`
 library is export-free and separate guests select their Model and realization.
-Extraction does not make a guest a generic loader for arbitrary Models. Prebuilt wasm distribution is a separate
-decision, not a reason to check `target/` artifacts into Git during this migration.
+Extraction does not make a guest a generic loader for arbitrary Models. Umpire ships no
+prebuilt wasm. Temporal commits only its reproducible guest beside its Go host module,
+exposes it through `temporal.Guest()` and freshness-checks it in `make model-check`.
+Model authors refresh it with `make umpire-guest`; ordinary Temporal Go tests need no Rust.
+Generic stock/control guests stay source-built and uncommitted; no Git LFS is used for wasm.
 
 ## Source and destination map
 
@@ -139,7 +142,7 @@ Extract only the Rust gate recipes, exposing `make check`, `make fmt`, `make upd
 and `make time` at the new root. Carry every current check, not just Cargo tests:
 capability and timing negative controls, protobuf freshness, formatting,
 warnings-denied Clippy/rustdoc, native fixtures/UI/property tests, WASI core builds,
-wasm Clippy, the real release guest, and CGO-disabled Go parity. Adapt the timing
+wasm Clippy, the real guest-profile artifacts, and CGO-disabled Go parity. Adapt the timing
 helper's parent-Makefile call, checker source path and its own negative controls.
 
 Provision the pinned Go protobuf generator inside the new repository, replacing

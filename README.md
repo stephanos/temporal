@@ -63,6 +63,10 @@ Try [Temporal Web UI](https://docs.temporal.io/web-ui) by opening [http://localh
 
 This repository contains the source code of the Temporal server. To implement Workflows, Activities and Workers, use one of the [supported languages](https://docs.temporal.io/dev-guide/).
 
+Temporal's [Go Model tests](model/README.md) use a committed, embedded wasm guest and need no
+Rust toolchain. Model authors run `make umpire-guest` to refresh it; `make model-check`
+rebuilds and checks freshness. Umpire's generic guests remain source-built.
+
 ## Contributing
 
 We'd love your help in making Temporal great.

@@ -67,7 +67,20 @@ CARGO_TARGET_DIR=/absolute/task-owned-target make model-time
 
 `model-time` executes the actual default gate and an edited-checker inner loop.
 The 30 s full-gate and 10 s inner-loop budgets are soft targets; observed overruns
-must be reported. Embedding and committed-artifact freshness remain fn-230.2's work.
+must be reported. Temporal embeds the committed `temporal/hosts/go/umpire_temporal_guest.wasm`
+through `temporal.Guest()`. Its Go consumers use no Rust or guest-path environment override.
+
+`make umpire-guest` refreshes only that asset through `guest.sh`. `make model-check`
+runs the same builder with `--check` before the other gate steps. Its internal
+`guest-freshness.py` preflight requires Python 3.11+, installed mise-pinned Rust, Go
+and protoc, Rust sources and the wasm target, with automatic installation disabled.
+Missing prerequisites warn and skip only freshness outside CI. Any set `CI`, even
+empty, fails on missing prerequisites. Metadata/probe errors, actual build failures
+and stale bytes always fail; the builder's exit 1/2 contract is preserved.
+The full Rust authoring gate still requires its toolchain. Slice and gaps use the
+embedded asset directly; the umbrella's separate legacy IR bridge remains source-built.
+Only the Temporal guest is committed, as a binary Git file without LFS; generic
+stock/control guests are built for the gate and remain uncommitted.
 
 ## Linux source-path independence
 

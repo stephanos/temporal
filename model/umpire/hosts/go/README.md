@@ -29,6 +29,13 @@ Stateful controls resolve `UMPIRE_STATEFUL_WASM` first, then
 `$CARGO_TARGET_DIR/wasm32-wasip1/guest/stateful_control.wasm`, with the same
 local-target fallback. Both guest crates link the export-free `umpire-wasm` library.
 
+Umpire ships no prebuilt wasm; these generic guests stay source-built and uncommitted.
+Temporal separately commits `model/temporal/hosts/go/umpire_temporal_guest.wasm` and
+exports its bytes as `temporal.Guest()`, so Temporal Go consumers need no Rust.
+`make model-check` checks those bytes with the generic builder; `make umpire-guest`
+refreshes them. Wasm is a binary Git asset without LFS. See
+[`GUEST_BUILDS.md`](../../../GUEST_BUILDS.md) for the build and freshness contract.
+
 Rust directly exports `umpire_buffer_alloc(u32) -> u32`,
 `umpire_buffer_release(u32, u32)` and `umpire_call(u32, u32, u32) -> u64`.
 The host rejects missing, unexpected or mis-typed application exports before instantiation;

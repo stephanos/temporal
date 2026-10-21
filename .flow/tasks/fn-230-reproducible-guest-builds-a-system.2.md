@@ -17,7 +17,7 @@ negative control, and the full gate with model-time.
 
 ### Execution scope and verification
 
-**Touches:** `.gitattributes`, `.gitignore`, `Makefile`, `MIGRATE.md`, `README.md`, `model/README.md`, `model/DESIGN.md`, `model/GUEST_BUILDS.md`, `model/temporal/hosts/go/**`, `model/umpire/hosts/go/README.md`, `model/scripts/**`, `tests/testpilot_model_slice_test.go`, `tests/testpilot_model_gaps_test.go`, `tests/testpilot_model_annotations_test.go`
+**Touches:** `.gitattributes`, `.gitignore`, `Makefile`, `MIGRATE.md`, `README.md`, `model/README.md`, `model/DESIGN.md`, `model/GUEST_BUILDS.md`, `model/temporal/hosts/go/**`, `model/temporal/realization/src/probes.rs`, `model/temporal/realization/src/probes/**`, `model/temporal/realization/tests/probes.rs`, `model/umpire/hosts/go/README.md`, `model/scripts/**`, `tests/testpilot_model_slice_test.go`, `tests/testpilot_model_gaps_test.go`, `tests/testpilot_model_annotations_test.go`
 **Quick:** focused embedded-guest and freshness controls; Temporal host Go tests with Rust unavailable on PATH; stale/missing output and local/CI missing pinned-toolchain controls; actual live `make umpire-check-model-slice` and `make umpire-check-model-gaps` against embedded bytes, retaining case, privacy and timeout assertions; scoped changed Go lint/vet and script checks.
 **Full gates:** `make model-check`; `UMPIRE_BACKENDS=require make model-check`; `make model-time`.
 
@@ -43,6 +43,49 @@ ABI, protocol, Realization judgments and all independent goldens. No new
 third-party dependency/version. Only Temporal's guest is committed, without
 LFS; stock/control guests remain uncommitted. fn-232 retains the separate
 macOS/cross-OS certification and does not gate this task.
+
+### Bounded live-gate performance remediation
+
+The conductor admits narrowly scoped reuse of validated, request-independent probe
+metadata as part of completing the unchanged live gates. The user's milestone goal
+delegates recommendations; this is the conductor's recommended implementation
+remediation, not a relaxation of R1-R4 or new Model behavior.
+
+The pre-edit full gap baseline failed at the unchanged 20-minute Go deadline
+(Go 1200.527 seconds, Make exit 2). A matched selected live case took 4.21 seconds
+with release bytes and 4.29 seconds with guest-profile bytes. The no-server actual
+embedded-guest control then measured all twelve Prepare calls at 1.047-1.083
+seconds, including repeated calls, while independently decoding two contexts and
+checking repeated-output identity and different-context request isolation. Logs,
+program and terminal statuses are in `.flow/tmp/fn2302/`; the source evidence is
+`.flow/tmp/fn2302-baseline-performance-research.md`. These measurements motivate
+removing repeated immutable work, not a new timing threshold or waiver.
+
+- Reuse only successfully validated compiled/default-limit inventory and canonical
+  expectation metadata. Never cache actual prepared requests, recipes, live slot
+  values, observations or outcomes. Preserve actual-context materialization,
+  validation and canonical-prediction agreement on every attempt.
+- Preserve eager admission and refusal order, errors and panic behavior. Failed or
+  partial initialization must not become successful metadata or a new panic.
+  Account for module lifetime across Reset, independent Hosts and native parallel
+  free-function tests; do not add cross-run or cross-context mutable authority.
+- Keep memory within the existing 64 MiB host limit and retain the existing frame,
+  allocation, operation, cleanup and 20-minute aggregate ceilings. No new
+  dependency/version, protocol, Model, judgment, disposition or golden changes.
+- Pin current-context isolation, repeated calls, Reset/independent-host behavior,
+  initialization/error paths and bounded retained memory with focused controls.
+  Retain the all-2,238-case two-context native mutation control and exact complete
+  live corpus, report golden and privacy canary. Record matched before/after
+  no-server diagnostics without a flaky hard timing assertion.
+- Checkpoint the embedding/freshness implementation first with its original
+  verified guest bytes. Commit the remediation separately. If Rust guest bytes
+  change, refresh the embedded asset and renew the two-clean-checkout Linux proof
+  with independent initially absent targets at the final source checkpoint;
+  record the new sizes/hashes instead of reusing the earlier asset's proof.
+
+All original Quick and full gates, review requirements and preservation constraints
+remain in force. No general probe refactor, interpreter change or timeout extension
+is authorized by this execution amendment.
 ## Acceptance
 - [ ] Temporal guest committed and embedded; no env var or target path in Go tests or slice targets
 - [ ] go test passes without Rust on PATH

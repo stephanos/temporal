@@ -37,7 +37,7 @@ make model-time    # time the actual gate; note overruns of 10 s inner-loop / 30
 
 The gate also checks resolved core capability restrictions and their negative controls,
 the generic source boundary, both protobuf modules' freshness, the wasm32-wasip1 core
-and guest builds, and CGO-disabled Go host parity for both modules.
+and guest builds, committed Temporal guest freshness, and CGO-disabled Go host parity for both modules.
 It provisions the pinned `protoc-gen-go v1.36.6` through the repository's existing Make
 target on first use; warm runs need no network. Rust generation uses prost-build and
 the mise-pinned protoc 29.5. To regenerate Go after editing the single schema, run
@@ -63,13 +63,24 @@ The real in-process server/SDK check is separate from the fast model gate:
 
 ```sh
 make umpire-check-model-slice
+make umpire-check-model-gaps
 make umpire-check-live-tests
 ```
 
-The first target builds `umpire_temporal_guest.wasm` and requires Complete, Fail,
-HostRefusal and Cancellation to pass. The umbrella invokes it before its existing
+Slice and gaps use `temporal.Guest()` from the committed
+`temporal/hosts/go/umpire_temporal_guest.wasm`; they build no Rust guest.
+The slice requires Complete, Fail, HostRefusal and Cancellation to pass. The umbrella invokes both before its existing
 legacy selector. Seven inherited legacy failures remain explicitly red; see DESIGN's
 Mini activity slice section. This bespoke proof does not execute a Testpilot Case.
+
+The Temporal host module's `go test -tags test_dep ./...` needs only Go, with no
+guest environment variable or Cargo target lookup. Model authors refresh the embedded
+artifact with `make umpire-guest`. The generic builder's `--check` compares bytes during
+`make model-check`, reporting stale sizes and the first differing offset. Missing pinned
+build prerequisites warn and skip only this freshness step when `CI` is unset; set `CI`
+(including an empty value) fails. Actual compile failures and stale bytes always fail.
+The full Rust authoring gate and the umbrella's legacy IR bridge still require Rust.
+Umpire ships no prebuilt stock/control guests. See [GUEST_BUILDS.md](GUEST_BUILDS.md).
 
 The guest's three application exports are `umpire_buffer_alloc`, `umpire_buffer_release`
 and `umpire_call`; see

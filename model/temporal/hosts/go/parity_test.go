@@ -4,19 +4,18 @@ import (
 	"bytes"
 	"context"
 	"errors"
-	"os"
-	"path/filepath"
 	"slices"
 	"testing"
 
 	activitypb "go.temporal.io/api/activity/v1"
 	commonpb "go.temporal.io/api/common/v1"
 	enumspb "go.temporal.io/api/enums/v1"
-	workflowservice "go.temporal.io/api/workflowservice/v1"
+	"go.temporal.io/api/workflowservice/v1"
 	"google.golang.org/protobuf/proto"
 	"google.golang.org/protobuf/types/known/anypb"
-	model "umpire.local/model"
+	"umpire.local/model"
 	modelv1 "umpire.local/model/umpire/model/v1"
+	temporalmodel "umpire.local/temporal"
 	temporalv1 "umpire.local/temporal/umpire/temporal/v1"
 )
 
@@ -118,26 +117,9 @@ func TestObservationResultWireCompatibility(t *testing.T) {
 	}
 }
 
-func guestBytes(t *testing.T) []byte {
-	t.Helper()
-	path := os.Getenv("UMPIRE_TEMPORAL_WASM")
-	if path == "" {
-		target := os.Getenv("CARGO_TARGET_DIR")
-		if target == "" {
-			target = "../../../target"
-		}
-		path = filepath.Join(target, "wasm32-wasip1", "release", "umpire_temporal_guest.wasm")
-	}
-	wasm, err := os.ReadFile(path)
-	if err != nil {
-		t.Fatalf("Temporal guest is required (%s): %v", path, err)
-	}
-	return wasm
-}
-
 func guest(t *testing.T) *model.Host {
 	t.Helper()
-	h, err := model.New(context.Background(), guestBytes(t))
+	h, err := model.New(context.Background(), temporalmodel.Guest())
 	if err != nil {
 		t.Fatal(err)
 	}

@@ -12,6 +12,7 @@ import (
 	"google.golang.org/protobuf/proto"
 	"google.golang.org/protobuf/types/known/anypb"
 	modelv1 "umpire.local/model/umpire/model/v1"
+	temporalmodel "umpire.local/temporal"
 	temporalv1 "umpire.local/temporal/umpire/temporal/v1"
 )
 
@@ -33,7 +34,7 @@ func newRawGuest(t *testing.T) *rawGuest {
 	if _, err := wasi_snapshot_preview1.Instantiate(ctx, runtime); err != nil {
 		t.Fatal(err)
 	}
-	module, err := runtime.InstantiateWithConfig(ctx, guestBytes(t), wazero.NewModuleConfig().WithStartFunctions())
+	module, err := runtime.InstantiateWithConfig(ctx, temporalmodel.Guest(), wazero.NewModuleConfig().WithStartFunctions())
 	if err != nil {
 		t.Fatal(err)
 	}

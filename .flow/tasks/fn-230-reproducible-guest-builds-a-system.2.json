@@ -12,5 +12,5 @@
   "spec_path": ".flow/tasks/fn-230-reproducible-guest-builds-a-system.2.md",
   "status": "todo",
   "title": "After .1: commit the Temporal guest with go:embed; freshness step in model-check; umpire-guest target; docs",
-  "updated_at": "2026-10-21T07:15:21.875647Z"
+  "updated_at": "2026-10-21T08:03:00.599497Z"
 }

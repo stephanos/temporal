@@ -551,18 +551,16 @@ umpire-assess-run:
 	@$(MAKE) --no-print-directory umpire-assess
 	@./.build/umpire-assess run --case "$(CASE)" --run "$(RUN)" --profile "$(PROFILE)" --receipt-root "$(RECEIPT_ROOT)"
 
-.PHONY: umpire-model-slice-guest umpire-check-model-slice umpire-check-model-gaps
-umpire-model-slice-guest: $(API_BINPB)
-	@cd model && mise exec -- cargo build -p umpire-temporal-guest --target wasm32-wasip1 --release --locked --quiet
+.PHONY: umpire-guest umpire-check-model-slice umpire-check-model-gaps
+umpire-guest: $(API_BINPB)
+	@/bin/bash $(CURDIR)/model/scripts/guest.sh umpire-temporal-guest $(CURDIR)/model/temporal/hosts/go/umpire_temporal_guest.wasm
 
-umpire-check-model-slice: umpire-model-slice-guest
+umpire-check-model-slice:
 	@set -eu; \
-		target="$${CARGO_TARGET_DIR:-$(CURDIR)/model/target}"; \
-		case "$$target" in /*) ;; *) target="$(CURDIR)/model/$$target" ;; esac; \
 		temporary=$$(mktemp); \
 		trap 'rm -f "$$temporary"' EXIT HUP INT TERM; \
 		status=0; \
-		UMPIRE_TEMPORAL_WASM="$$target/wasm32-wasip1/release/umpire_temporal_guest.wasm" CGO_ENABLED=0 \
+		CGO_ENABLED=0 \
 			mise exec -- go test -v -count=1 -timeout 2m -tags 'test_dep integration' \
 			./tests -run '^TestTestpilotModelSlice$$' > "$$temporary" 2>&1 || status=$$?; \
 		cat "$$temporary"; \
@@ -573,14 +571,12 @@ umpire-check-model-slice: umpire-model-slice-guest
 					printf "Required Model slice test did not pass: %s\n", required[i]; failed = 1 \
 				} exit failed }' "$$temporary"
 
-umpire-check-model-gaps: umpire-model-slice-guest
+umpire-check-model-gaps:
 	@set -eu; \
-		target="$${CARGO_TARGET_DIR:-$(CURDIR)/model/target}"; \
-		case "$$target" in /*) ;; *) target="$(CURDIR)/model/$$target" ;; esac; \
 		temporary=$$(mktemp); \
 		trap 'rm -f "$$temporary"' EXIT HUP INT TERM; \
 		status=0; \
-		UMPIRE_TEMPORAL_WASM="$$target/wasm32-wasip1/release/umpire_temporal_guest.wasm" CGO_ENABLED=0 \
+		CGO_ENABLED=0 \
 			mise exec -- go test -v -count=1 -timeout 20m -tags 'test_dep integration' \
 			./tests -run '^TestTestpilotModelGap(s|LoggerPreservesFailuresWithoutPrivateOutput)$$' > "$$temporary" 2>&1 || status=$$?; \
 		cat "$$temporary"; \
@@ -595,15 +591,12 @@ umpire-check-live-tests: umpire-check-model-slice umpire-check-model-gaps
 	@$(MAKE) --no-print-directory umpire-ir-bridge
 	@set -eu; \
 		physical_tmpdir=$$(cd "$${TMPDIR:-/tmp}" && pwd -P); \
-		target="$${CARGO_TARGET_DIR:-$(CURDIR)/model/target}"; \
-		case "$$target" in /*) ;; *) target="$(CURDIR)/model/$$target" ;; esac; \
 		temporary=$$(TMPDIR="$$physical_tmpdir" mktemp); \
 		expected=$$(TMPDIR="$$physical_tmpdir" mktemp); \
 		actual=$$(TMPDIR="$$physical_tmpdir" mktemp); \
 		trap 'rm -f "$$temporary" "$$expected" "$$actual"' EXIT HUP INT TERM; \
 		status=0; \
-		UMPIRE_TEMPORAL_WASM="$$target/wasm32-wasip1/release/umpire_temporal_guest.wasm" \
-			TMPDIR="$$physical_tmpdir" mise exec -- go test -v -count=1 -timeout 30m -tags 'test_dep integration' \
+		TMPDIR="$$physical_tmpdir" mise exec -- go test -v -count=1 -timeout 30m -tags 'test_dep integration' \
 			./tests -run '^TestTestpilot' > "$$temporary" 2>&1 || status=$$?; \
 		cat "$$temporary"; \
 		sed -n -E 's/^[[:space:]]*--- FAIL: ([^ ]+).*/\1/p' "$$temporary" | LC_ALL=C sort -u > "$$actual"; \
@@ -1467,6 +1460,7 @@ RUST_MODEL_STEP = $(if $(filter 1,$(UMPIRE_TIME_STEPS)),/bin/bash $(CURDIR)/mode
 model-check: $(PROTOC_GEN_GO) $(API_BINPB)
 	@printf $(COLOR) "Check model (fmt, clippy, docs, tests)..."
 	@if [ "$${UMPIRE_BACKENDS:-}" = require ]; then printf '%s\n' 'TLC backend required: real source-lifted agreement and semantic controls'; else printf '%s\n' 'TLC backend skipped: no execution/agreement evidence; use UMPIRE_BACKENDS=require'; fi
+	@$(call RUST_MODEL_STEP,temporal-guest-freshness) python3 $(CURDIR)/model/scripts/guest-freshness.py umpire-temporal-guest $(CURDIR)/model/temporal/hosts/go/umpire_temporal_guest.wasm
 	@$(call RUST_MODEL_STEP,timing-controls) /bin/bash $(CURDIR)/model/scripts/test-time-gate.sh
 	@$(call RUST_MODEL_STEP,guest-build-controls) python3 -m unittest discover -s $(CURDIR)/model/scripts/tests -p 'test_*.py'
 	@$(call RUST_MODEL_STEP,capability-controls) /bin/bash $(CURDIR)/model/scripts/test-capabilities.sh
@@ -1481,7 +1475,7 @@ model-check: $(PROTOC_GEN_GO) $(API_BINPB)
 	@cd model && $(call RUST_MODEL_STEP,core-wasm-clippy) mise exec -- cargo clippy --target wasm32-wasip1 -p umpire-dsl -p umpire-checker --lib --locked -- -D warnings
 	@$(call RUST_MODEL_STEP,wasm-guest) /bin/bash $(CURDIR)/model/scripts/tests/build-guests.sh
 	@cd model && target="$${CARGO_TARGET_DIR:-$$PWD/target}" && case "$$target" in /*) ;; *) target="$$PWD/$$target" ;; esac && UMPIRE_WASM="$$target/wasm32-wasip1/guest/umpire_stock_guest.wasm" UMPIRE_STATEFUL_WASM="$$target/wasm32-wasip1/guest/stateful_control.wasm" UMPIRE_CAUGHT_PANIC_WASM="$$target/wasm32-wasip1/guest/caught_panic_control.wasm" UMPIRE_OVERFLOW_WASM="$$target/wasm32-wasip1/guest/overflow_control.wasm" UMPIRE_PANIC_NATIVE="$$target/panic-native" CGO_ENABLED=0 $(call RUST_MODEL_STEP,go-host) mise exec -- go -C "$$PWD/umpire/hosts/go" test -tags test_dep -count=1 ./...
-	@cd model && target="$${CARGO_TARGET_DIR:-$$PWD/target}" && case "$$target" in /*) ;; *) target="$$PWD/$$target" ;; esac && UMPIRE_TEMPORAL_WASM="$$target/wasm32-wasip1/guest/umpire_temporal_guest.wasm" CGO_ENABLED=0 $(call RUST_MODEL_STEP,temporal-go-host) mise exec -- go -C "$$PWD/temporal/hosts/go" test -tags test_dep -count=1 ./...
+	@cd model && CGO_ENABLED=0 $(call RUST_MODEL_STEP,temporal-go-host) mise exec -- go -C "$$PWD/temporal/hosts/go" test -tags test_dep -count=1 ./...
 
 model-fmt:
 	@$(RUST_MODEL_CARGO) fmt --all

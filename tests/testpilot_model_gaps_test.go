@@ -330,9 +330,7 @@ func TestTestpilotModelGapScopeBoundaries(t *testing.T) {
 
 func TestTestpilotModelGaps(t *testing.T) {
 	modelGapTestContext(t)
-	wasm, err := os.ReadFile(os.Getenv("UMPIRE_TEMPORAL_WASM"))
-	require.NoError(t, err)
-	host, err := model.New(t.Context(), wasm)
+	host, err := model.New(t.Context(), temporalmodel.Guest())
 	require.NoError(t, err)
 	t.Cleanup(func() { require.NoError(t, host.Close(context.Background())) })
 	inventory, err := temporalmodel.Probe(t.Context(), host, &temporalv1.ProbeRequest{})
