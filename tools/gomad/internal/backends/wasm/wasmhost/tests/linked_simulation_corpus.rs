@@ -9,6 +9,13 @@ use std::time::Duration;
 
 fn prepared_cluster() -> cluster::Prepared {
     let module = b"(module (memory (export \"memory\") 1) (func (export \"_start\")))".to_vec();
+    prepared_cluster_with(module, None)
+}
+
+fn prepared_cluster_with(
+    module: Vec<u8>,
+    network: Option<cluster::NetworkConfig>,
+) -> cluster::Prepared {
     let handles: Vec<_> = ["a", "b"]
         .into_iter()
         .map(|node| cluster::Handle {
@@ -17,7 +24,7 @@ fn prepared_cluster() -> cluster::Prepared {
         })
         .collect();
     let incarnations = handles.iter().map(|handle| cluster::Incarnation {
-        handle:handle.clone(), network:None,
+        handle:handle.clone(), network:network.as_ref().map(|network| network.model.clone()),
         request:linked::Request {
             module:module.clone(),module_sha256:format!("{:x}", Sha256::digest(&module)),
             limits:linked::Limits {fuel:10000,memory_bytes:65536,output_bytes:1024,evidence_bytes:1<<20,wall_timeout:Duration::from_secs(5)},
@@ -55,7 +62,7 @@ fn prepared_cluster() -> cluster::Prepared {
                 max_string_bytes: 1024,
             },
         },
-        network: None,
+        network,
         incarnations,
         steps,
         boundaries: Vec::new(),
@@ -64,6 +71,33 @@ fn prepared_cluster() -> cluster::Prepared {
         evidence_bytes: 1 << 20,
     })
     .unwrap()
+}
+
+#[test]
+fn linked_cluster_network_query_uses_the_broker_instead_of_standalone_fallback() {
+    let module = br#"(module
+        (import "gomad_wasm_v2" "net_stream" (func $network (param i32 i32) (result i32)))
+        (memory (export "memory") 1)
+        (data (i32.const 0) "\00\00\00\02")
+        (func (export "_start")
+            (if (call $network (i32.const 0) (i32.const 64)) (then unreachable))
+            (if (i32.load (i32.const 40)) (then unreachable))))"#
+        .to_vec();
+    let network = serde_json::from_value(json!({
+        "model":{"profile":"gomad.simulation-network-stream/v3","limits":{
+            "listeners":8,"connections":8,"bytes":1048576,"connection_bytes":1048576,
+            "stall_nanos":10000000000_u64,"transitions":10000}},
+        "addresses":{},"links":[],"strict_topology":false,"faults":[]
+    }))
+    .unwrap();
+    let observed = cluster::execute_prepared(prepared_cluster_with(module, Some(network))).unwrap();
+    assert_eq!(observed.outcome.termination, "exit");
+    assert!(
+        observed
+            .incarnations
+            .iter()
+            .all(|item| item.execution.outcome.exit_code == Some(0))
+    );
 }
 
 #[test]
