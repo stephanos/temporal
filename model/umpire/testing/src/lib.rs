@@ -8,7 +8,10 @@ mod render;
 mod runner;
 
 pub use render::{add_paths, render, render_rows};
-pub use runner::{CHECKER, Consumer, SUITE, run, run_at, run_at_skipping};
+pub use runner::{
+    CHECKER, Consumer, ExternalConsumer, SUITE, run, run_at, run_at_skipping,
+    run_at_skipping_with_external,
+};
 
 /// Deterministic relative golden paths and their payloads.
 pub type Files = std::collections::BTreeMap<String, String>;

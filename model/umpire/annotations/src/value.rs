@@ -44,6 +44,16 @@ impl std::error::Error for GenerationError {}
 
 /// Direct typed operations on a Rust field. Adapters may implement this for local message types.
 pub trait FieldValue: Clone + Default + PartialEq + 'static {
+    /// Constructs a negative candidate; the catalog verifies its actual finding.
+    fn negative(
+        &self,
+        kind: &Kind,
+        _repeated: Option<&RepeatedRules>,
+        constraint: &str,
+        rng: &mut Rng,
+    ) -> Result<Self, GenerationError> {
+        Self::generate(&crate::negative::negative_kind(kind, constraint)?, rng)
+    }
     /// Whether the field's Rust type can carry this kind.
     fn supports(kind: &Kind) -> bool;
     /// Constraint names specialized to the field's numeric carrier.
@@ -590,6 +600,28 @@ macro_rules! time_value {
             }
         }
         impl FieldValue for $ty {
+            fn negative(
+                &self,
+                kind: &Kind,
+                _repeated: Option<&RepeatedRules>,
+                constraint: &str,
+                rng: &mut Rng,
+            ) -> Result<Self, GenerationError> {
+                if matches!(constraint, "timestamp.valid" | "duration.valid") {
+                    let offset = if self.nanos < 0 { -1 } else { 1 };
+                    return Ok(Self {
+                        seconds: self
+                            .seconds
+                            .checked_sub(offset)
+                            .ok_or(GenerationError::ImpossibleConstraints)?,
+                        nanos: self.nanos
+                            + i32::try_from(offset)
+                                .map_err(|_| GenerationError::ImpossibleConstraints)?
+                                * 1_000_000_000,
+                    });
+                }
+                Self::generate(&crate::negative::negative_kind(kind, constraint)?, rng)
+            }
             fn supports(kind: &Kind) -> bool {
                 matches!(kind, Kind::$ty(_))
             }
@@ -648,6 +680,15 @@ time_value!(
 );
 
 impl<T: FieldValue> FieldValue for Option<T> {
+    fn negative(
+        &self,
+        kind: &Kind,
+        repeated: Option<&RepeatedRules>,
+        constraint: &str,
+        rng: &mut Rng,
+    ) -> Result<Self, GenerationError> {
+        self.clone().unwrap_or_default().negative(kind, repeated, constraint, rng).map(Some)
+    }
     fn constraints(kind: &Kind) -> Vec<&'static str> {
         T::constraints(kind)
     }
@@ -666,6 +707,45 @@ impl<T: FieldValue> FieldValue for Option<T> {
 }
 
 impl<T: FieldValue> FieldValue for Vec<T> {
+    fn negative(
+        &self,
+        kind: &Kind,
+        repeated: Option<&RepeatedRules>,
+        constraint: &str,
+        rng: &mut Rng,
+    ) -> Result<Self, GenerationError> {
+        if let Some(rules) = repeated {
+            let len = match constraint {
+                "repeated.min_items" => rules.min_items.and_then(|min| min.checked_sub(1)),
+                "repeated.max_items" => rules.max_items.and_then(|max| max.checked_add(1)),
+                "repeated.unique" => Some(self.len().max(2)),
+                _ => None,
+            };
+            if let Some(len) = len {
+                if len > MAX_GENERATED_LEN {
+                    return Err(GenerationError::SizeLimit);
+                }
+                let mut value = self.clone();
+                while value.len() < len {
+                    value.push(T::generate(kind, rng)?);
+                }
+                value.truncate(len);
+                if constraint == "repeated.unique" {
+                    value[1] = value[0].clone();
+                }
+                return Ok(value);
+            }
+        }
+        let mut value = self.clone();
+        let negative =
+            value.first().cloned().unwrap_or_default().negative(kind, None, constraint, rng)?;
+        if value.is_empty() {
+            value.push(negative);
+        } else {
+            value[0] = negative;
+        }
+        Ok(value)
+    }
     fn constraints(kind: &Kind) -> Vec<&'static str> {
         T::constraints(kind)
     }

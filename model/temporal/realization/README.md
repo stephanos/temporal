@@ -58,3 +58,20 @@ request bytes or unchanged server response bytes, violations and any explicit
 OutOfScope reason. This validates full SDK wire messages separately from the partial
 callback/reply projection above, including after Judge freezes the run. The Go
 `temporal.Annotate` helper transports these envelopes through `Host.Annotate`.
+
+The same Annotate Any also accepts `ProbeRequest`. Inventory derives expectation
+identities from typed catalogs and registers their RPC contexts, including nested
+failure variants consumed by Failed. It checks registration against the macro's
+independent declaration inventory and the three supplemental catalogs. Prepare
+uses supplied namespace/activity/queue/run/token prerequisites, constructs a valid
+baseline, and proves the mutated protobuf after encode/decode against every
+applicable catalog. Required-field omissions have separate case identities.
+Overlong request IDs necessarily also violate their supplemental UUID intent;
+only that exact `Accepts` companion is permitted and appears in the report.
+
+Large witnesses remain materialized and validated in Rust. Their response carries
+a bounded literal/repeat recipe with exact decoded length and FNV-1a 64 integrity
+check, allowing the host to reconstruct the actual RPC bytes without increasing
+the ABI buffer limit. FNV detects accidental corruption and is not authentication.
+Classify requires exactly one observation per contextual case and renders the
+value-free gap report; generation, prerequisite and coverage failures are refusals.

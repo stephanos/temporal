@@ -6,7 +6,10 @@ use umpire_temporal_api::{
     temporal::api::{
         activity::v1::ActivityExecutionInfo, workflowservice::v1::DescribeActivityExecutionResponse,
     },
-    umpire::temporal::v1::{AnnotationRequest, AnnotationResponse, Observation, observation},
+    umpire::temporal::v1::{
+        AnnotationRequest, AnnotationResponse, Observation, ProbeRequest, ProbeResponse,
+        observation,
+    },
 };
 use umpire_wasm::{Dispatch, Guest, google::protobuf::Any, protocol};
 
@@ -75,6 +78,20 @@ fn annotation_findings_preserve_server_bytes_and_do_not_change_frozen_judgment()
     assert!(output.message.eq(&invalid_response));
     assert_ne!(output.violations, [] as [String; 0]);
     annotate(&mut guest, "PollActivityTaskQueue", true, &[]);
+    let probes = call(
+        &mut guest,
+        7,
+        &protocol::AnnotateRequest { input: Some(Any::pack(&ProbeRequest::default())) },
+    );
+    let Some(protocol::response::Outcome::Annotate(probes)) = probes.outcome else {
+        panic!("expected probe inventory")
+    };
+    let inventory: ProbeResponse = probes
+        .output
+        .unwrap_or_else(|| panic!("missing inventory"))
+        .unpack()
+        .unwrap_or_else(|error| panic!("{error:?}"));
+    assert_ne!(inventory.cases.len(), 0);
     assert_eq!(call(&mut guest, 4, &observation), frozen);
     let bytes = request("PollActivityTaskQueue", true, &[]).encode_to_vec();
     assert!(!guest.dispatch_to(7, &bytes, |_| false));

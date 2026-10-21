@@ -8,6 +8,8 @@ pub mod activity_api;
 
 mod annotations;
 
+pub mod probes;
+
 #[path = "../../features/activity/temporal.rs"]
 mod temporal;
 

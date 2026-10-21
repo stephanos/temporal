@@ -5,6 +5,7 @@ package umpire.temporal.v1;
 option go_package = "umpire.local/temporal/umpire/temporal/v1";
 
 import "google/protobuf/any.proto";
+import public "umpire/temporal/v1/probe.proto";
 
 message Observation {
   string method = 1;

@@ -24,7 +24,8 @@ elif [ "$#" -ne 0 ]; then
   exit 1
 fi
 mise exec -- protoc --plugin="protoc-gen-go=$plugin" --proto_path=temporal/proto \
-  --go_out="$output" --go_opt=paths=source_relative temporal/proto/umpire/temporal/v1/temporal.proto
+  --go_out="$output" --go_opt=paths=source_relative \
+  temporal/proto/umpire/temporal/v1/temporal.proto temporal/proto/umpire/temporal/v1/probe.proto
 if [ "${1:-}" = --check ]; then
   diff -ru temporal/hosts/go/umpire "$output/umpire"
 fi

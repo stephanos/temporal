@@ -15,6 +15,7 @@ pub fn expand(catalog: &crate::Catalog) -> syn::Result<TokenStream> {
         quote! { #[doc = concat!("Exhaustive typed annotation catalog `", stringify!(#name), "`.")] }
     });
     let messages = catalog.messages.iter().map(message);
+    let probe_factories = catalog.messages.iter().map(|message| &message.factory);
     let enums = catalog.enums.iter().map(enumeration);
     let actions = catalog.actions.iter().map(action);
     let tags = catalog.tags.iter().map(custom_tag);
@@ -36,6 +37,16 @@ pub fn expand(catalog: &crate::Catalog) -> syn::Result<TokenStream> {
             #(#enums)*
             #(#messages)*
             #(#actions)*
+
+            /// Every explicitly declared expectation, independent of RPC probe registration.
+            pub fn expected_probe_cases() -> ::core::result::Result<
+                ::std::vec::Vec<::umpire_annotations::ProbeCase>, ::umpire_annotations::AdmissionErrors
+            > {
+                let mut cases: ::std::vec::Vec<::umpire_annotations::ProbeCase> = ::std::vec::Vec::new();
+                #(cases.extend(#probe_factories()?.probe_cases());)*
+                cases.sort_by(|a, b| a.id.cmp(&b.id));
+                Ok(cases)
+            }
 
             /// Explicit protobuf RPC classifications.
             pub const RPC_BINDINGS: &[(&str, &str, &str)] = &[#(#services),*];

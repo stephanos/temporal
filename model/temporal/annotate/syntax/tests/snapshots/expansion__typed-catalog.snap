@@ -296,6 +296,17 @@ mod controls {
             }
         }
     }
+    /// Every explicitly declared expectation, independent of RPC probe registration.
+    pub fn expected_probe_cases() -> ::core::result::Result<
+        ::std::vec::Vec<::umpire_annotations::ProbeCase>,
+        ::umpire_annotations::AdmissionErrors,
+    > {
+        let mut cases: ::std::vec::Vec<::umpire_annotations::ProbeCase> = ::std::vec::Vec::new();
+        cases.extend(request()?.probe_cases());
+        cases.extend(response()?.probe_cases());
+        cases.sort_by(|a, b| a.id.cmp(&b.id));
+        Ok(cases)
+    }
     /// Explicit protobuf RPC classifications.
     pub const RPC_BINDINGS: &[(&str, &str, &str)] = &[
         ("test.Service.Start", "Action", "Client::Start"),

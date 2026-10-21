@@ -25,6 +25,12 @@ const LIFT: umpire_testing::Consumer = umpire_testing::Consumer {
 const TLC: umpire_testing::Consumer =
     umpire_testing::Consumer { name: "tlc", expected: &["tlc.txt"], render: render_tlc };
 
+const GAPS: umpire_testing::ExternalConsumer = umpire_testing::ExternalConsumer {
+    name: "make umpire-check-model-gaps (TestTestpilotModelGaps)",
+    fixture: "activity",
+    expected: "gaps.txt",
+};
+
 #[allow(clippy::print_stderr)]
 fn render_tlc(
     run: fn() -> umpire_testing::RunResult,
@@ -58,10 +64,11 @@ fn fixtures() -> umpire_testing::TestResult {
             }
         }
     }
-    umpire_testing::run_at_skipping(
+    umpire_testing::run_at_skipping_with_external(
         &root,
         registered(),
         &[umpire_testing::CHECKER, umpire_testing::SUITE, LIFT, TLC],
         if required { &[] } else { &["tlc"] },
+        &[GAPS],
     )
 }

@@ -3,6 +3,7 @@
 mod catalog;
 mod gap;
 mod kind;
+mod negative;
 pub mod types;
 mod value;
 

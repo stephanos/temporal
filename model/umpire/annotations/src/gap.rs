@@ -44,7 +44,8 @@ pub struct AcceptedGap {
 }
 
 impl AcceptedGap {
-    fn valid(&self) -> bool {
+    /// Whether the date is a real ISO calendar date and the reason is nonblank.
+    pub fn is_valid(&self) -> bool {
         let bytes = self.date.as_bytes();
         let shape = bytes.len() == 10
             && bytes[4] == b'-'
@@ -90,7 +91,30 @@ pub struct GapEntry {
     pub accepted_gap: Option<AcceptedGap>,
 }
 
+/// An observable expectation was reported without an observation.
+#[derive(Clone, Copy, Debug, PartialEq, Eq)]
+pub struct GapError;
+
+impl fmt::Display for GapError {
+    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
+        f.write_str("observable expectation requires a probe result")
+    }
+}
+impl std::error::Error for GapError {}
+
 impl GapEntry {
+    /// Classifies live evidence, refusing an unverifiable observable expectation.
+    pub fn checked(violation: Violation, actual: ProbeResult) -> Result<Self, GapError> {
+        if matches!(actual, ProbeResult::Unverifiable)
+            && violation
+                .expected
+                .as_ref()
+                .is_some_and(|expected| !matches!(expected.expectation, Expectation::Unobservable))
+        {
+            return Err(GapError);
+        }
+        Ok(Self::new(violation, actual))
+    }
     /// Classifies a probe result against the validation finding's expectation.
     pub fn new(violation: Violation, actual: ProbeResult) -> Self {
         let expectation = violation.expected.as_ref().map(|expected| &expected.expectation);
@@ -120,7 +144,7 @@ impl GapEntry {
     /// Whether this row is an unacknowledged server gap.
     pub fn fails(&self) -> bool {
         matches!(self.outcome, GapOutcome::Mismatch(_) | GapOutcome::Accepted)
-            && !self.accepted_gap.as_ref().is_some_and(AcceptedGap::valid)
+            && !self.accepted_gap.as_ref().is_some_and(AcceptedGap::is_valid)
     }
 }
 

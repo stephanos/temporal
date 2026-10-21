@@ -43,6 +43,11 @@ mod transport;
 pub use transport::{AnnotationResult, annotate};
 use transport::{duration_view, raw_duration_view, uuid_view};
 
+/// Source-reviewed dispositions keyed by complete contextual probe identity.
+pub(crate) fn accepted_probe_gaps() -> Vec<(String, umpire_annotations::AcceptedGap)> {
+    Vec::new()
+}
+
 /// Typed adapter for the protobuf map entry represented by prost as a map.
 #[derive(Clone, Default, PartialEq)]
 pub struct MetadataEntry {
@@ -311,8 +316,8 @@ umpire_temporal_annotate::annotate! {
         heartbeat_timeout: Duration[gte = 0] + Decided via Option<umpire_annotations::Duration> (|m: &StartActivityExecutionRequest| duration_view(m.heartbeat_timeout.as_ref()), |_: &mut StartActivityExecutionRequest, _: Option<umpire_annotations::Duration>| {}) => Rejects(3, "invalid HeartbeatTimeout") covers "go.temporal.io/server/chasm/lib/activity.validateAndNormalizeTimeouts";
         retry_policy: Bytes + Decided via Vec<u8> (|m: &StartActivityExecutionRequest| m.retry_policy.as_ref().map(Message::encode_to_vec).unwrap_or_default(), |_: &mut StartActivityExecutionRequest, _: Vec<u8>| {});
         input: Bytes[max_len = 2_097_152] + Decided via Vec<u8> (|m: &StartActivityExecutionRequest| m.input.as_ref().map(Message::encode_to_vec).unwrap_or_default(), |_: &mut StartActivityExecutionRequest, _: Vec<u8>| {}) => Rejects(3, "input exceeds length limit") covers "go.temporal.io/server/chasm/lib/activity.validateAndNormalizeStartRequest";
-        id_reuse_policy: Enum(activity_id_reuse_policy) + Decided => Accepts covers "go.temporal.io/server/chasm/lib/activity.validateAndNormalizeIDPolicy";
-        id_conflict_policy: Enum(activity_id_conflict_policy) + Decided => Accepts covers "go.temporal.io/server/chasm/lib/activity.validateAndNormalizeIDPolicy";
+        id_reuse_policy: Enum(activity_id_reuse_policy) + Decided => Rejects(3, "unsupported ID reuse policy") covers "go.temporal.io/server/chasm/lib/activity.handler.StartActivityExecution";
+        id_conflict_policy: Enum(activity_id_conflict_policy) + Decided => Rejects(3, "unsupported ID conflict policy") covers "go.temporal.io/server/chasm/lib/activity.handler.StartActivityExecution";
         search_attributes: Bytes + Ignored("This activity Model does not project StartActivityExecutionRequest.search_attributes; no semantic validation is claimed") opaque;
         header: Bytes + Ignored("This activity Model does not project StartActivityExecutionRequest.header; no semantic validation is claimed") opaque;
         user_metadata: Bytes + Ignored("This activity Model does not project StartActivityExecutionRequest.user_metadata; no semantic validation is claimed") opaque;

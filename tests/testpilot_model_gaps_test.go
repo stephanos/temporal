@@ -1,0 +1,246 @@
+//go:build test_dep && integration
+
+package tests
+
+import (
+	"context"
+	"fmt"
+	"os"
+	"path/filepath"
+	"strings"
+	"testing"
+	"time"
+
+	"github.com/google/uuid"
+	"github.com/stretchr/testify/require"
+	taskqueuepb "go.temporal.io/api/taskqueue/v1"
+	"go.temporal.io/api/workflowservice/v1"
+	"go.temporal.io/server/chasm/lib/activity"
+	"go.temporal.io/server/common/dynamicconfig"
+	"go.temporal.io/server/common/log"
+	"go.temporal.io/server/common/log/tag"
+	"go.temporal.io/server/common/testing/testlogger"
+	"go.temporal.io/server/tests/testcore"
+	"google.golang.org/grpc"
+	"google.golang.org/grpc/codes"
+	"google.golang.org/grpc/credentials/insecure"
+	"google.golang.org/grpc/status"
+	"google.golang.org/protobuf/proto"
+	"umpire.local/model"
+	temporalmodel "umpire.local/temporal"
+	temporalv1 "umpire.local/temporal/umpire/temporal/v1"
+)
+
+type modelGapPrivateT struct{ testlogger.CleanupCapableT }
+
+func (t modelGapPrivateT) Log(...any)          { t.CleanupCapableT.Log("server log [redacted]") }
+func (t modelGapPrivateT) Logf(string, ...any) { t.Log() }
+func (t modelGapPrivateT) Errorf(string, ...any) {
+	t.CleanupCapableT.Errorf("server log failure [redacted]")
+}
+func (t modelGapPrivateT) Fatal(...any)          { t.CleanupCapableT.Fatal("server log failure [redacted]") }
+func (t modelGapPrivateT) Fatalf(string, ...any) { t.Fatal() }
+
+type modelGapLogSink struct{ t testlogger.TestingT }
+
+func (logger modelGapLogSink) emit(level string) {
+	logger.t.Logf("gap server log level=%s [redacted]", level)
+}
+func (logger modelGapLogSink) Debug(string, ...tag.Tag)  { logger.emit("Debug") }
+func (logger modelGapLogSink) Info(string, ...tag.Tag)   { logger.emit("Info") }
+func (logger modelGapLogSink) Warn(string, ...tag.Tag)   { logger.emit("Warn") }
+func (logger modelGapLogSink) Error(string, ...tag.Tag)  { logger.emit("Error") }
+func (logger modelGapLogSink) DPanic(string, ...tag.Tag) { logger.emit("DPanic") }
+func (logger modelGapLogSink) Fatal(string, ...tag.Tag)  { logger.t.Fatal("server fatal [redacted]") }
+func (logger modelGapLogSink) Panic(string, ...tag.Tag)  { panic("server panic [redacted]") }
+
+type modelGapLogger struct{ log.Logger }
+
+func newModelGapLogger(t testlogger.CleanupCapableT) log.Logger {
+	private := modelGapPrivateT{t}
+	logger := testlogger.NewTestLogger(private, testlogger.FailOnExpectedErrorOnly, testlogger.WrapLogger(modelGapLogSink{t}))
+	logger.Expect(testlogger.Error, ".*", tag.FailedAssertion)
+	t.Cleanup(func() {
+		if logger.Failure() != nil {
+			private.Errorf("server logger failed during execution or cleanup")
+		}
+	})
+	return modelGapLogger{logger}
+}
+
+type modelGapRecordedT struct {
+	*testing.T
+	output   strings.Builder
+	failures int
+	cleanups []func()
+}
+
+func (t *modelGapRecordedT) Log(values ...any)                   { _, _ = fmt.Fprintln(&t.output, values...) }
+func (t *modelGapRecordedT) Logf(format string, values ...any)   { t.Log(fmt.Sprintf(format, values...)) }
+func (t *modelGapRecordedT) Fail()                               { t.failures++ }
+func (t *modelGapRecordedT) Failed() bool                        { return t.failures != 0 }
+func (t *modelGapRecordedT) FailNow()                            { t.Fail() }
+func (t *modelGapRecordedT) Errorf(format string, values ...any) { t.Logf(format, values...); t.Fail() }
+func (t *modelGapRecordedT) Fatal(values ...any)                 { t.Log(values...); t.FailNow() }
+func (t *modelGapRecordedT) Fatalf(format string, values ...any) {
+	t.Fatal(fmt.Sprintf(format, values...))
+}
+func (t *modelGapRecordedT) Cleanup(cleanup func()) { t.cleanups = append(t.cleanups, cleanup) }
+
+func TestTestpilotModelGapLoggerPreservesFailuresWithoutPrivateOutput(t *testing.T) {
+	recorded := &modelGapRecordedT{T: t}
+	logger := newModelGapLogger(recorded)
+	secret := "private-token-payload-error-stack"
+	logger.Info(secret, tag.NewStringTag("private-tag", secret))
+	logger.Error(secret, tag.FailedAssertion, tag.NewStringTag("private-tag", secret))
+	require.True(t, recorded.Failed(), "failed-assertion Error must still fail its test")
+	beforeCleanup := recorded.failures
+	for i := len(recorded.cleanups) - 1; i >= 0; i-- {
+		recorded.cleanups[i]()
+	}
+	require.Greater(t, recorded.failures, beforeCleanup, "sticky logger failure must remain visible during cleanup")
+	require.NotContains(t, recorded.output.String(), secret)
+	require.Contains(t, recorded.output.String(), "level=Error [redacted]")
+	require.Contains(t, recorded.output.String(), "server log failure [redacted]")
+}
+
+func TestTestpilotModelGaps(t *testing.T) {
+	wasm, err := os.ReadFile(os.Getenv("UMPIRE_TEMPORAL_WASM"))
+	require.NoError(t, err)
+	host, err := model.New(t.Context(), wasm)
+	require.NoError(t, err)
+	t.Cleanup(func() { require.NoError(t, host.Close(context.Background())) })
+	inventory, err := temporalmodel.Probe(t.Context(), host, &temporalv1.ProbeRequest{})
+	require.NoError(t, err)
+	require.NotEmpty(t, inventory.GetCases(), "probe inventory must not silently execute zero cases")
+	var covers []string
+	identities := make(map[string]bool)
+	for _, testCase := range inventory.Cases {
+		require.NotEmpty(t, testCase.Id)
+		require.False(t, identities[testCase.Id], "duplicate probe identity")
+		identities[testCase.Id] = true
+		covers = append(covers, testCase.Covers)
+	}
+	uncovered, unresolved, err := temporalmodel.ReverseCoverage("..", covers)
+	require.NoError(t, err)
+	env := newTestpilotTestEnvironment(t,
+		testcore.WithLogger(newModelGapLogger(t)),
+		testcore.WithDynamicConfig(dynamicconfig.EnableChasm, true),
+		testcore.WithDynamicConfig(activity.Enabled, true),
+		testcore.WithDynamicConfig(activity.EnableStandaloneActivityOperatorCommands, true))
+	connection, err := grpc.NewClient(env.FrontendGRPCAddress(), grpc.WithTransportCredentials(insecure.NewCredentials()))
+	require.NoError(t, err)
+	t.Cleanup(func() { require.NoError(t, connection.Close()) })
+	service := workflowservice.NewWorkflowServiceClient(connection)
+	var observations []*temporalv1.ProbeObservation
+	for _, testCase := range inventory.Cases {
+		t.Run(testCase.Id, func(t *testing.T) {
+			for _, baseline := range []bool{true, false} {
+				func() {
+					ctx, cancel := context.WithTimeout(t.Context(), 30*time.Second)
+					defer cancel()
+					request := &temporalv1.ProbeRequest{
+						Operation: temporalv1.ProbeRequest_PREPARE, CaseId: testCase.Id, Baseline: baseline,
+						Namespace: env.Namespace().String(), ActivityId: uuid.NewString(), TaskQueue: "model-gap-" + uuid.NewString(),
+					}
+					prepare := func(selector string) *temporalv1.ProbeResponse {
+						preparedRequest := proto.Clone(request).(*temporalv1.ProbeRequest)
+						preparedRequest.CaseId, preparedRequest.Baseline = selector, true
+						prepared, err := temporalmodel.Probe(ctx, host, preparedRequest)
+						require.NoError(t, err, "prerequisite generation")
+						return prepared
+					}
+					defer func() {
+						cleanupCtx, cleanupCancel := context.WithTimeout(context.Background(), 5*time.Second)
+						defer cleanupCancel()
+						_, cleanupErr := service.TerminateActivityExecution(cleanupCtx, &workflowservice.TerminateActivityExecutionRequest{
+							Namespace: request.Namespace, ActivityId: request.ActivityId, RunId: request.RunId,
+						})
+						require.True(t, cleanupErr == nil || status.Code(cleanupErr) == codes.NotFound, "cleanup rpc_code=%s", status.Code(cleanupErr))
+					}()
+					if testCase.Prerequisite != "start" {
+						response, rpcErr := temporalmodel.DispatchProbe(ctx, connection, prepare(""))
+						require.NotNil(t, response, "prerequisite must reach actual RPC dispatch")
+						require.True(t, rpcErr == nil, "provision start rpc_code=%s", status.Code(rpcErr))
+						request.RunId = response.(*workflowservice.StartActivityExecutionResponse).RunId
+						switch testCase.Prerequisite {
+						case "scheduled", "poll":
+						case "completed", "token", "canceled_token":
+							task, pollErr := service.PollActivityTaskQueue(ctx, &workflowservice.PollActivityTaskQueueRequest{
+								Namespace: request.Namespace, TaskQueue: &taskqueuepb.TaskQueue{Name: request.TaskQueue}, Identity: "model-gap",
+							})
+							require.True(t, pollErr == nil, "provision poll rpc_code=%s", status.Code(pollErr))
+							require.NotEmpty(t, task.GetTaskToken(), "prerequisite requires an actual polled task")
+							request.TaskToken = task.TaskToken
+							if testCase.Prerequisite == "completed" || testCase.Prerequisite == "canceled_token" {
+								selector := "RespondActivityTaskCompleted"
+								if testCase.Prerequisite == "canceled_token" {
+									selector = "RequestCancelActivityExecution"
+								}
+								prerequisiteResponse, prerequisiteErr := temporalmodel.DispatchProbe(ctx, connection, prepare(selector))
+								require.NotNil(t, prerequisiteResponse, "prerequisite must reach actual RPC dispatch")
+								require.True(t, prerequisiteErr == nil, "provision state rpc_code=%s", status.Code(prerequisiteErr))
+							}
+						default:
+							t.Fatalf("unsupported prerequisite %q", testCase.Prerequisite)
+						}
+					}
+					prepared, prepareErr := temporalmodel.Probe(ctx, host, request)
+					require.NoError(t, prepareErr, "probe generation")
+					require.Equal(t, testCase.Method, prepared.Method)
+					response, rpcErr := temporalmodel.DispatchProbe(ctx, connection, prepared)
+					require.NotNil(t, response, "probe must reach actual RPC dispatch")
+					if started, ok := response.(*workflowservice.StartActivityExecutionResponse); ok && rpcErr == nil {
+						encoded := prepared.Message
+						if prepared.Recipe != nil {
+							encoded, err = temporalmodel.ExpandProbeRecipe(prepared.Recipe)
+							require.NoError(t, err)
+						}
+						actual := new(workflowservice.StartActivityExecutionRequest)
+						require.NoError(t, proto.Unmarshal(encoded, actual))
+						request.Namespace, request.ActivityId, request.RunId = actual.Namespace, actual.ActivityId, started.RunId
+					}
+					if baseline {
+						require.True(t, rpcErr == nil, "valid baseline rpc_code=%s", status.Code(rpcErr))
+						return
+					}
+					observation, observeErr := temporalmodel.ObserveProbe(testCase, rpcErr)
+					require.NoError(t, observeErr)
+					observations = append(observations, observation)
+				}()
+			}
+		})
+	}
+	require.Len(t, observations, len(inventory.Cases), "every inventory identity requires a live observation")
+	report, err := temporalmodel.Probe(t.Context(), host, &temporalv1.ProbeRequest{
+		Operation: temporalv1.ProbeRequest_CLASSIFY, Observations: observations,
+		UncoveredValidators: uncovered, UnresolvedValidators: unresolved,
+	})
+	require.NoError(t, err)
+	require.NotEmpty(t, report.Report)
+	repository, err := filepath.EvalSymlinks("..")
+	require.NoError(t, err)
+	repository, err = filepath.Abs(repository)
+	require.NoError(t, err)
+	flowDirectory, err := filepath.EvalSymlinks(filepath.Join(repository, ".flow"))
+	require.NoError(t, err)
+	require.Equal(t, filepath.Join(repository, ".flow"), flowDirectory, "report parent must not alias goldens")
+	temporary := filepath.Join(flowDirectory, "tmp")
+	require.NoError(t, os.MkdirAll(temporary, 0755))
+	resolved, err := filepath.EvalSymlinks(temporary)
+	require.NoError(t, err)
+	require.Equal(t, temporary, resolved, "report directory must not alias goldens")
+	root, err := os.OpenRoot(temporary)
+	require.NoError(t, err)
+	defer func() { require.NoError(t, root.Close()) }()
+	file, err := root.OpenFile("fn2174-live-gap-report.txt", os.O_WRONLY|os.O_CREATE|os.O_TRUNC, 0600)
+	require.NoError(t, err)
+	_, writeErr := file.WriteString(report.Report)
+	closeErr := file.Close()
+	require.NoError(t, writeErr)
+	require.NoError(t, closeErr)
+	require.False(t, report.Fails, "catalog gap classification failed; value-free report:\n%s", report.Report)
+	golden, err := os.ReadFile(filepath.Join("..", "model", "temporal", "features", "activity", "expected", "gaps.txt"))
+	require.NoError(t, err, "gaps golden must be explicitly reviewed and created")
+	require.Equal(t, string(golden), report.Report, "stale gap golden")
+}

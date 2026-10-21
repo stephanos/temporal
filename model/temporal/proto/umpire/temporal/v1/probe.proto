@@ -1,0 +1,62 @@
+syntax = "proto3";
+
+package umpire.temporal.v1;
+
+option go_package = "umpire.local/temporal/umpire/temporal/v1";
+
+// Stateless activity probe operations carried by the existing Annotate Any.
+message ProbeRequest {
+  enum Operation { INVENTORY = 0; PREPARE = 1; CLASSIFY = 2; }
+  Operation operation = 1;
+  string case_id = 2;
+  bool baseline = 3;
+  string namespace = 4;
+  string activity_id = 5;
+  string task_queue = 6;
+  string run_id = 7;
+  bytes task_token = 8;
+  repeated ProbeObservation observations = 9;
+  repeated string uncovered_validators = 10;
+  repeated string unresolved_validators = 11;
+}
+
+message ProbeCase {
+  string id = 1;
+  string method = 2;
+  // start, scheduled, completed, poll, token, or canceled_token.
+  string prerequisite = 3;
+  bool accepts = 4;
+  int32 code = 5;
+  string message_pattern = 6;
+  string details_type = 7;
+  string covers = 8;
+}
+
+message ProbeObservation {
+  string case_id = 1;
+  bool accepted = 2;
+  int32 code = 3;
+  bool message_matches = 4;
+  string details_type = 5;
+}
+
+message ProbeSegment {
+  bytes literal = 1;
+  uint32 repeat = 2;
+}
+
+message ProbeRecipe {
+  repeated ProbeSegment segments = 1;
+  uint32 decoded_length = 2;
+  // FNV-1a 64 detects accidental byte corruption, not malicious modification.
+  uint64 fnv64 = 3;
+}
+
+message ProbeResponse {
+  repeated ProbeCase cases = 1;
+  string method = 2;
+  bytes message = 3;
+  ProbeRecipe recipe = 4;
+  string report = 5;
+  bool fails = 6;
+}

@@ -14,6 +14,17 @@ pub struct Consumer {
     pub render: fn(fn() -> crate::RunResult, &Path) -> crate::RunResult,
 }
 
+/// One direct artifact whose comparison belongs to a named external test.
+#[derive(Clone, Copy)]
+pub struct ExternalConsumer {
+    /// Live consumer that must execute and compare this artifact separately.
+    pub name: &'static str,
+    /// Known fixture owning the artifact.
+    pub fixture: &'static str,
+    /// Direct artifact basename, distinct from native snapshot files.
+    pub expected: &'static str,
+}
+
 /// Native checker outputs, including the optional negative-control report.
 pub const CHECKER: Consumer = Consumer {
     name: "checker",
@@ -67,21 +78,24 @@ pub fn run_at(
 }
 
 /// Validate selected optional backend artifacts without claiming execution evidence.
-#[allow(clippy::print_stderr)]
 pub fn run_at_skipping(
     root: &Path,
     fixtures: Vec<crate::Fixture>,
     consumers: &[Consumer],
     skipped: &[&str],
 ) -> crate::TestResult {
-    for name in skipped {
-        if !consumers.iter().any(|consumer| consumer.name == *name) {
-            return Err(format!("unknown skipped consumer: {name}").into());
-        }
-        eprintln!(
-            "backend {name}: skipped; no execution or agreement evidence (UMPIRE_BACKENDS=require runs it)"
-        );
-    }
+    run_at_skipping_with_external(root, fixtures, consumers, skipped, &[])
+}
+
+/// Preserves externally owned artifacts without claiming their execution or comparison.
+pub fn run_at_skipping_with_external(
+    root: &Path,
+    fixtures: Vec<crate::Fixture>,
+    consumers: &[Consumer],
+    skipped: &[&str],
+    external: &[ExternalConsumer],
+) -> crate::TestResult {
+    check_skipped(consumers, skipped)?;
     let discovered: BTreeSet<_> = crate::discovery::discover(root, crate::discovery::MODEL)?
         .into_iter()
         .map(|fixture| fixture.name)
@@ -90,6 +104,7 @@ pub fn run_at_skipping(
     if discovered != registered || fixtures.len() != registered.len() {
         return Err("discovered fixtures differ from generated registry; rebuild required".into());
     }
+    let external_artifacts = external_artifacts(root, &registered, consumers, external)?;
     let mut actual = BTreeMap::new();
     let mut existing = Vec::new();
     let mut skipped_artifacts = BTreeSet::new();
@@ -100,7 +115,7 @@ pub fn run_at_skipping(
         collect_files(&expected, &mut files)?;
         files.sort();
         let mut selected = BTreeSet::new();
-        for path in &files {
+        for path in files.iter().filter(|path| !external_artifacts.contains(*path)) {
             let logical = logical_file(path, &expected)?;
             let owners = owners(&logical, consumers);
             if owners.is_empty() {
@@ -137,6 +152,12 @@ pub fn run_at_skipping(
             }
             let location = folder.display();
             for (file, content) in output {
+                if external_artifacts.contains(&expected.join(&file)) {
+                    return Err(format!(
+                        "native producer emitted external artifact: {file} for {location}"
+                    )
+                    .into());
+                }
                 let owners = owners(&file, consumers);
                 if owners.len() > 1 {
                     return Err(format!(
@@ -162,6 +183,7 @@ pub fn run_at_skipping(
     }
     let mut permitted: BTreeSet<_> = actual.keys().flat_map(|path| golden_files(path)).collect();
     permitted.extend(skipped_artifacts);
+    permitted.extend(external_artifacts);
     for path in existing {
         if !permitted.contains(&path) {
             return Err(format!("golden has no fixture: {}", path.display()).into());
@@ -171,6 +193,69 @@ pub fn run_at_skipping(
         snapshot(&path, &content)?;
     }
     Ok(())
+}
+
+#[allow(clippy::print_stderr)]
+fn check_skipped(consumers: &[Consumer], skipped: &[&str]) -> crate::TestResult {
+    for name in skipped {
+        if !consumers.iter().any(|consumer| consumer.name == *name) {
+            return Err(format!("unknown skipped consumer: {name}").into());
+        }
+        eprintln!(
+            "backend {name}: skipped; no execution or agreement evidence (UMPIRE_BACKENDS=require runs it)"
+        );
+    }
+    Ok(())
+}
+
+#[allow(clippy::print_stderr)]
+fn external_artifacts(
+    root: &Path,
+    registered: &BTreeSet<String>,
+    consumers: &[Consumer],
+    external: &[ExternalConsumer],
+) -> Result<BTreeSet<PathBuf>, Box<dyn std::error::Error>> {
+    let mut artifacts = BTreeSet::new();
+    for declaration in external {
+        if declaration.name.trim().is_empty() {
+            return Err("invalid external consumer: empty identity".into());
+        }
+        if !registered.contains(declaration.fixture) {
+            return Err(format!("unknown external fixture: {}", declaration.fixture).into());
+        }
+        let file = declaration.expected;
+        if file.is_empty()
+            || matches!(file, "." | "..")
+            || file.contains(['/', '\\', '*', '?'])
+            || Path::new(file)
+                .extension()
+                .is_some_and(|extension| extension.eq_ignore_ascii_case("snap"))
+            || file.contains(".snap.")
+        {
+            return Err(format!("invalid external artifact: {file}").into());
+        }
+        if !owners(file, consumers).is_empty() {
+            return Err(format!("external artifact has native consumer: {file}").into());
+        }
+        let expected = root.join(declaration.fixture).join("expected");
+        let path = expected.join(file);
+        if !artifacts.insert(path.clone()) {
+            return Err(format!("duplicate external artifact: {}", path.display()).into());
+        }
+        if !fs::symlink_metadata(&expected)?.is_dir()
+            || !fs::symlink_metadata(&path).is_ok_and(|metadata| metadata.is_file())
+        {
+            return Err(
+                format!("missing external artifact or unsafe path: {}", path.display()).into()
+            );
+        }
+        eprintln!(
+            "external artifact {}: requires {}; no execution or comparison evidence from native runner",
+            path.display(),
+            declaration.name
+        );
+    }
+    Ok(artifacts)
 }
 
 fn skipped_files(

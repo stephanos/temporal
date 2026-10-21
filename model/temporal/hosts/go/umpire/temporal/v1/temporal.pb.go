@@ -384,7 +384,7 @@ var File_umpire_temporal_v1_temporal_proto protoreflect.FileDescriptor
 
 const file_umpire_temporal_v1_temporal_proto_rawDesc = "" +
 	"\n" +
-	"!umpire/temporal/v1/temporal.proto\x12\x12umpire.temporal.v1\x1a\x19google/protobuf/any.proto\"\x96\x01\n" +
+	"!umpire/temporal/v1/temporal.proto\x12\x12umpire.temporal.v1\x1a\x19google/protobuf/any.proto\x1a\x1eumpire/temporal/v1/probe.proto\"\x96\x01\n" +
 	"\vObservation\x12\x16\n" +
 	"\x06method\x18\x01 \x01(\tR\x06method\x122\n" +
 	"\bresponse\x18\x02 \x01(\v2\x14.google.protobuf.AnyH\x00R\bresponse\x121\n" +
@@ -408,7 +408,7 @@ const file_umpire_temporal_v1_temporal_proto_rawDesc = "" +
 	"violations\x18\x02 \x03(\tR\n" +
 	"violations\x12 \n" +
 	"\fout_of_scope\x18\x03 \x01(\tR\n" +
-	"outOfScopeB*Z(umpire.local/temporal/umpire/temporal/v1b\x06proto3"
+	"outOfScopeB*Z(umpire.local/temporal/umpire/temporal/v1P\x01b\x06proto3"
 
 var (
 	file_umpire_temporal_v1_temporal_proto_rawDescOnce sync.Once
@@ -449,6 +449,7 @@ func file_umpire_temporal_v1_temporal_proto_init() {
 	if File_umpire_temporal_v1_temporal_proto != nil {
 		return
 	}
+	file_umpire_temporal_v1_probe_proto_init()
 	file_umpire_temporal_v1_temporal_proto_msgTypes[0].OneofWrappers = []any{
 		(*Observation_Response)(nil),
 		(*Observation_Error)(nil),

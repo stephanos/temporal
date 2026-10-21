@@ -1,5 +1,9 @@
 //! Typed field access and admission.
 
+#[path = "probe.rs"]
+mod probe;
+pub use probe::*;
+
 use crate::{Consequence, FieldValue, GenerationError, Kind, RepeatedRules, Rng, Tag};
 use std::{
     collections::{BTreeMap, BTreeSet},
@@ -297,6 +301,14 @@ trait Access<M> {
     fn violations(&self, message: &M) -> Vec<&'static str>;
     fn fill(&self, message: &mut M, rng: &mut Rng) -> Result<(), GenerationError>;
     fn clear(&self, message: &mut M);
+    fn negative(
+        &self,
+        _message: &mut M,
+        _constraint: &str,
+        _rng: &mut Rng,
+    ) -> Result<(), GenerationError> {
+        Err(GenerationError::UnsupportedType)
+    }
 }
 
 impl<M: 'static, T: Clone + Default + 'static> Access<M> for IgnoredField<M, T> {
@@ -324,6 +336,21 @@ impl<M: 'static, T: Clone + Default + 'static> Access<M> for IgnoredField<M, T> 
 }
 
 impl<M: 'static, T: FieldValue> Access<M> for Field<M, T> {
+    fn negative(
+        &self,
+        message: &mut M,
+        constraint: &str,
+        rng: &mut Rng,
+    ) -> Result<(), GenerationError> {
+        let value = (self.get)(message).negative(
+            &self.descriptor.kind,
+            self.descriptor.repeated.as_ref(),
+            constraint,
+            rng,
+        )?;
+        (self.set)(message, value);
+        Ok(())
+    }
     fn descriptor(&self) -> &FieldDescriptor {
         &self.descriptor
     }
@@ -519,6 +546,16 @@ impl<M: 'static> Catalog<M> {
             format!("{}.{path}", self.message)
         }
     }
+    fn qualified_fields(&self, rule: &Rule) -> Vec<String> {
+        rule.presence.fields().into_iter().map(|field| self.qualified(field)).collect()
+    }
+    fn rule_fields(&self, rule: &Rule) -> Vec<String> {
+        let mut fields = self.qualified_fields(rule);
+        if !matches!(rule.presence, Presence::Requires(_, _)) {
+            fields.sort();
+        }
+        fields
+    }
 }
 
 impl<M: 'static> CatalogBuilder<M> {
@@ -612,13 +649,12 @@ impl<M: 'static> CatalogBuilder<M> {
                 }
             }
         }
+        let mut rule_identities = BTreeSet::new();
         for rule in &self.catalog.rules {
-            let fields: Vec<_> = rule
-                .presence
-                .fields()
-                .into_iter()
-                .map(|path| self.catalog.qualified(path))
-                .collect();
+            let fields = self.catalog.qualified_fields(rule);
+            if !rule_identities.insert((rule.presence.name(), self.catalog.rule_fields(rule))) {
+                self.errors.push(AdmissionError::InvalidRule(rule.presence.name().into()));
+            }
             if fields.is_empty()
                 || fields.iter().enumerate().any(|(i, field)| fields[..i].contains(field))
             {
@@ -662,6 +698,7 @@ pub struct Violation {
     /// Expected server behavior.
     pub expected: Option<Expected>,
 }
+
 impl fmt::Display for Violation {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
         write!(f, "{}: {}", self.path, self.constraint)?;
