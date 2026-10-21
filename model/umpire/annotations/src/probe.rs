@@ -15,7 +15,7 @@ pub struct ProbeCase {
     pub id: String,
     /// Declared finding that the generated request must actually exhibit.
     pub violation: Violation,
-    /// Individually omitted member of a required rule.
+    /// Named field attributed by a required or any-of probe.
     pub omitted_field: Option<String>,
 }
 
@@ -132,7 +132,7 @@ impl<M: 'static> Catalog<M> {
                 expected: Some(expected.clone()),
             };
             let id = format!("{}:{}({})", self.message, rule.presence.name(), fields.join(","));
-            if matches!(rule.presence, Presence::Required(_)) {
+            if matches!(rule.presence, Presence::Required(_) | Presence::AnyOf(_)) {
                 for field in fields {
                     cases.push(ProbeCase {
                         description: self.description.clone(),
@@ -230,7 +230,8 @@ impl<M: Clone + 'static> Catalog<M> {
         let mut candidate = baseline.clone();
         mutate(&mut candidate).map_err(ProbeError::Generation)?;
         let actual = validate(&candidate, self);
-        if let Some(omitted) = &case.omitted_field
+        if case.violation.constraint == "required"
+            && let Some(omitted) = &case.omitted_field
             && (self.fields[omitted].present(&candidate)
                 || case
                     .violation

@@ -21,6 +21,9 @@ import (
 
 // Probe carries stateless catalog operations through the existing extension route.
 func Probe(ctx context.Context, host *model.Host, request *temporalv1.ProbeRequest) (*temporalv1.ProbeResponse, error) {
+	if request == nil || len(request.Observations) > 32768 || proto.Size(request) > (1<<20)-1024 {
+		return nil, errors.New("probe request exceeds metadata budget")
+	}
 	input, err := anypb.New(request)
 	if err != nil {
 		return nil, err
@@ -111,21 +114,72 @@ func DispatchProbe(ctx context.Context, connection grpc.ClientConnInterface, pre
 
 // ObserveProbe retains only status metadata; raw server messages never leave this call.
 func ObserveProbe(testCase *temporalv1.ProbeCase, rpcErr error) (*temporalv1.ProbeObservation, error) {
-	pattern, err := regexp.Compile("(?s)^(?:.*(?:" + testCase.GetMessagePattern() + ").*)$")
-	if err != nil {
-		return nil, fmt.Errorf("invalid probe pattern for %s", testCase.GetId())
+	if testCase == nil || len(testCase.Id) == 0 || len(testCase.Id) > 4096 || len(testCase.Predictions) > 256 || len(testCase.Refusal) > 256 {
+		return nil, errors.New("invalid probe observation metadata")
 	}
-	observation := &temporalv1.ProbeObservation{CaseId: testCase.GetId(), Accepted: rpcErr == nil}
-	if rpcErr == nil {
+	observation := &temporalv1.ProbeObservation{
+		CaseId: testCase.Id, Applicability: testCase.Applicability, Refusal: testCase.Refusal,
+	}
+	if testCase.Applicability != temporalv1.ProbeApplicability_APPLICABLE {
+		if !testCase.Generic || testCase.Applicability < temporalv1.ProbeApplicability_NOT_APPLICABLE || testCase.Applicability > temporalv1.ProbeApplicability_UNCHANGED || rpcErr != nil || len(testCase.Predictions) != 0 {
+			return nil, errors.New("invalid non-dispatched probe observation")
+		}
 		return observation, nil
 	}
-	rpcStatus := status.Convert(rpcErr)
-	observation.Code = int32(rpcStatus.Code())
-	observation.MessageMatches = pattern.MatchString(rpcStatus.Message())
-	for _, detail := range rpcStatus.Proto().GetDetails() {
-		if observation.DetailsType == "" || detail.MessageName() == protoreflect.FullName(testCase.GetDetailsType()) {
-			observation.DetailsType = string(detail.MessageName())
+	if testCase.Refusal != "" || (!testCase.Generic && len(testCase.Predictions) != 0) {
+		return nil, errors.New("invalid dispatched probe observation")
+	}
+	if testCase.Generic && (testCase.Accepts || testCase.Code != 0 || testCase.MessagePattern != "" || testCase.DetailsType != "") {
+		return nil, errors.New("mixed strict and generic probe metadata")
+	}
+	observation.Accepted = rpcErr == nil
+	if rpcErr != nil {
+		observation.Code = int32(status.Code(rpcErr))
+	}
+	if !testCase.Generic {
+		matches, details, err := observeExpectation(testCase.Id, testCase.MessagePattern, testCase.DetailsType, rpcErr)
+		if err != nil {
+			return nil, err
 		}
+		observation.MessageMatches, observation.DetailsType = matches, details
+		return observation, nil
+	}
+	seen := make(map[string]bool, len(testCase.Predictions))
+	observation.PredictionCount = uint32(len(testCase.Predictions))
+	for index, prediction := range testCase.Predictions {
+		if prediction == nil || len(prediction.Id) > 4096 || !strings.HasPrefix(prediction.Id, testCase.Id+"::prediction:") || seen[prediction.Id] {
+			return nil, errors.New("invalid probe prediction identity")
+		}
+		seen[prediction.Id] = true
+		matches, details, err := observeExpectation(testCase.Id, prediction.MessagePattern, prediction.DetailsType, rpcErr)
+		if err != nil {
+			return nil, err
+		}
+		observation.Predictions = append(observation.Predictions, &temporalv1.ProbeMatch{
+			Index: uint32(index), PredictionId: prediction.Id,
+			MessageMatches: matches, DetailsType: details,
+		})
 	}
 	return observation, nil
+}
+
+func observeExpectation(caseID, messagePattern, detailsType string, rpcErr error) (bool, string, error) {
+	if len(messagePattern) > 4096 || len(detailsType) > 512 {
+		return false, "", errors.New("invalid probe expectation bounds")
+	}
+	pattern, err := regexp.Compile("(?s)^(?:.*(?:" + messagePattern + ").*)$")
+	if err != nil {
+		return false, "", fmt.Errorf("invalid probe pattern for %s", caseID)
+	}
+	if rpcErr == nil {
+		return false, "", nil
+	}
+	rpcStatus := status.Convert(rpcErr)
+	actualDetails := ""
+	for _, detail := range rpcStatus.Proto().GetDetails() {
+		if actualDetails == "" || detail.MessageName() == protoreflect.FullName(detailsType) {
+			actualDetails = string(detail.MessageName())
+		}
+	}
+	return pattern.MatchString(rpcStatus.Message()), actualDetails, nil
 }

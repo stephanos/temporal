@@ -13,7 +13,7 @@ fn loose_rejections_match_only_the_declared_status_scope() {
             path: "example.token".into(),
             constraint: "required".into(),
             fields: vec![],
-            expected: Some(Expected { expectation, covers: "validator".into() }),
+            expected: Some(Expected { expectation }),
         };
         let result = ProbeResult::Rejected { code, message_matches: false, details_type: None };
         let entry = GapEntry::new(violation.clone(), result);
@@ -54,7 +54,6 @@ fn author_metadata_reaches_gap_reports_without_request_values() -> Result<(), Ad
             presence: presence.clone(),
             expected: Some(Expected {
                 expectation: Expectation::RejectsCode(Code::InvalidArgument),
-                covers: "validator".into(),
             }),
         })
         .inherited_pattern(presence)
@@ -65,7 +64,7 @@ fn author_metadata_reaches_gap_reports_without_request_values() -> Result<(), Ad
         ProbeResult::Rejected { code: 3, message_matches: false, details_type: None },
     )
     .metadata(&case);
-    let rendered = GapReport { entries: vec![entry], uncovered_validators: vec![] }.to_string();
+    let rendered = GapReport { entries: vec![entry] }.to_string();
     assert!(rendered.contains("A request description"));
     assert!(rendered.contains("inherited pattern"));
     assert!(rendered.contains("Loose expectations: 1"));

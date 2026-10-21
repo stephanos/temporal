@@ -21,6 +21,58 @@ const (
 	_ = protoimpl.EnforceVersion(protoimpl.MaxVersion - 20)
 )
 
+type ProbeApplicability int32
+
+const (
+	ProbeApplicability_APPLICABLE     ProbeApplicability = 0
+	ProbeApplicability_NOT_APPLICABLE ProbeApplicability = 1
+	ProbeApplicability_REFUSED        ProbeApplicability = 2
+	ProbeApplicability_UNCHANGED      ProbeApplicability = 3
+)
+
+// Enum value maps for ProbeApplicability.
+var (
+	ProbeApplicability_name = map[int32]string{
+		0: "APPLICABLE",
+		1: "NOT_APPLICABLE",
+		2: "REFUSED",
+		3: "UNCHANGED",
+	}
+	ProbeApplicability_value = map[string]int32{
+		"APPLICABLE":     0,
+		"NOT_APPLICABLE": 1,
+		"REFUSED":        2,
+		"UNCHANGED":      3,
+	}
+)
+
+func (x ProbeApplicability) Enum() *ProbeApplicability {
+	p := new(ProbeApplicability)
+	*p = x
+	return p
+}
+
+func (x ProbeApplicability) String() string {
+	return protoimpl.X.EnumStringOf(x.Descriptor(), protoreflect.EnumNumber(x))
+}
+
+func (ProbeApplicability) Descriptor() protoreflect.EnumDescriptor {
+	return file_umpire_temporal_v1_probe_proto_enumTypes[0].Descriptor()
+}
+
+func (ProbeApplicability) Type() protoreflect.EnumType {
+	return &file_umpire_temporal_v1_probe_proto_enumTypes[0]
+}
+
+func (x ProbeApplicability) Number() protoreflect.EnumNumber {
+	return protoreflect.EnumNumber(x)
+}
+
+// Deprecated: Use ProbeApplicability.Descriptor instead.
+func (ProbeApplicability) EnumDescriptor() ([]byte, []int) {
+	return file_umpire_temporal_v1_probe_proto_rawDescGZIP(), []int{0}
+}
+
 type ProbeRequest_Operation int32
 
 const (
@@ -54,11 +106,11 @@ func (x ProbeRequest_Operation) String() string {
 }
 
 func (ProbeRequest_Operation) Descriptor() protoreflect.EnumDescriptor {
-	return file_umpire_temporal_v1_probe_proto_enumTypes[0].Descriptor()
+	return file_umpire_temporal_v1_probe_proto_enumTypes[1].Descriptor()
 }
 
 func (ProbeRequest_Operation) Type() protoreflect.EnumType {
-	return &file_umpire_temporal_v1_probe_proto_enumTypes[0]
+	return &file_umpire_temporal_v1_probe_proto_enumTypes[1]
 }
 
 func (x ProbeRequest_Operation) Number() protoreflect.EnumNumber {
@@ -72,20 +124,18 @@ func (ProbeRequest_Operation) EnumDescriptor() ([]byte, []int) {
 
 // Stateless activity probe operations carried by the existing Annotate Any.
 type ProbeRequest struct {
-	state                protoimpl.MessageState `protogen:"open.v1"`
-	Operation            ProbeRequest_Operation `protobuf:"varint,1,opt,name=operation,proto3,enum=umpire.temporal.v1.ProbeRequest_Operation" json:"operation,omitempty"`
-	CaseId               string                 `protobuf:"bytes,2,opt,name=case_id,json=caseId,proto3" json:"case_id,omitempty"`
-	Baseline             bool                   `protobuf:"varint,3,opt,name=baseline,proto3" json:"baseline,omitempty"`
-	Namespace            string                 `protobuf:"bytes,4,opt,name=namespace,proto3" json:"namespace,omitempty"`
-	ActivityId           string                 `protobuf:"bytes,5,opt,name=activity_id,json=activityId,proto3" json:"activity_id,omitempty"`
-	TaskQueue            string                 `protobuf:"bytes,6,opt,name=task_queue,json=taskQueue,proto3" json:"task_queue,omitempty"`
-	RunId                string                 `protobuf:"bytes,7,opt,name=run_id,json=runId,proto3" json:"run_id,omitempty"`
-	TaskToken            []byte                 `protobuf:"bytes,8,opt,name=task_token,json=taskToken,proto3" json:"task_token,omitempty"`
-	Observations         []*ProbeObservation    `protobuf:"bytes,9,rep,name=observations,proto3" json:"observations,omitempty"`
-	UncoveredValidators  []string               `protobuf:"bytes,10,rep,name=uncovered_validators,json=uncoveredValidators,proto3" json:"uncovered_validators,omitempty"`
-	UnresolvedValidators []string               `protobuf:"bytes,11,rep,name=unresolved_validators,json=unresolvedValidators,proto3" json:"unresolved_validators,omitempty"`
-	unknownFields        protoimpl.UnknownFields
-	sizeCache            protoimpl.SizeCache
+	state         protoimpl.MessageState `protogen:"open.v1"`
+	Operation     ProbeRequest_Operation `protobuf:"varint,1,opt,name=operation,proto3,enum=umpire.temporal.v1.ProbeRequest_Operation" json:"operation,omitempty"`
+	CaseId        string                 `protobuf:"bytes,2,opt,name=case_id,json=caseId,proto3" json:"case_id,omitempty"`
+	Baseline      bool                   `protobuf:"varint,3,opt,name=baseline,proto3" json:"baseline,omitempty"`
+	Namespace     string                 `protobuf:"bytes,4,opt,name=namespace,proto3" json:"namespace,omitempty"`
+	ActivityId    string                 `protobuf:"bytes,5,opt,name=activity_id,json=activityId,proto3" json:"activity_id,omitempty"`
+	TaskQueue     string                 `protobuf:"bytes,6,opt,name=task_queue,json=taskQueue,proto3" json:"task_queue,omitempty"`
+	RunId         string                 `protobuf:"bytes,7,opt,name=run_id,json=runId,proto3" json:"run_id,omitempty"`
+	TaskToken     []byte                 `protobuf:"bytes,8,opt,name=task_token,json=taskToken,proto3" json:"task_token,omitempty"`
+	Observations  []*ProbeObservation    `protobuf:"bytes,9,rep,name=observations,proto3" json:"observations,omitempty"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
 }
 
 func (x *ProbeRequest) Reset() {
@@ -181,31 +231,20 @@ func (x *ProbeRequest) GetObservations() []*ProbeObservation {
 	return nil
 }
 
-func (x *ProbeRequest) GetUncoveredValidators() []string {
-	if x != nil {
-		return x.UncoveredValidators
-	}
-	return nil
-}
-
-func (x *ProbeRequest) GetUnresolvedValidators() []string {
-	if x != nil {
-		return x.UnresolvedValidators
-	}
-	return nil
-}
-
 type ProbeCase struct {
 	state  protoimpl.MessageState `protogen:"open.v1"`
 	Id     string                 `protobuf:"bytes,1,opt,name=id,proto3" json:"id,omitempty"`
 	Method string                 `protobuf:"bytes,2,opt,name=method,proto3" json:"method,omitempty"`
 	// start, scheduled, completed, poll, token, or canceled_token.
-	Prerequisite   string `protobuf:"bytes,3,opt,name=prerequisite,proto3" json:"prerequisite,omitempty"`
-	Accepts        bool   `protobuf:"varint,4,opt,name=accepts,proto3" json:"accepts,omitempty"`
-	Code           int32  `protobuf:"varint,5,opt,name=code,proto3" json:"code,omitempty"`
-	MessagePattern string `protobuf:"bytes,6,opt,name=message_pattern,json=messagePattern,proto3" json:"message_pattern,omitempty"`
-	DetailsType    string `protobuf:"bytes,7,opt,name=details_type,json=detailsType,proto3" json:"details_type,omitempty"`
-	Covers         string `protobuf:"bytes,8,opt,name=covers,proto3" json:"covers,omitempty"`
+	Prerequisite   string              `protobuf:"bytes,3,opt,name=prerequisite,proto3" json:"prerequisite,omitempty"`
+	Accepts        bool                `protobuf:"varint,4,opt,name=accepts,proto3" json:"accepts,omitempty"`
+	Code           int32               `protobuf:"varint,5,opt,name=code,proto3" json:"code,omitempty"`
+	MessagePattern string              `protobuf:"bytes,6,opt,name=message_pattern,json=messagePattern,proto3" json:"message_pattern,omitempty"`
+	DetailsType    string              `protobuf:"bytes,7,opt,name=details_type,json=detailsType,proto3" json:"details_type,omitempty"`
+	Generic        bool                `protobuf:"varint,9,opt,name=generic,proto3" json:"generic,omitempty"`
+	Refusal        string              `protobuf:"bytes,10,opt,name=refusal,proto3" json:"refusal,omitempty"`
+	Predictions    []*ProbeExpectation `protobuf:"bytes,11,rep,name=predictions,proto3" json:"predictions,omitempty"`
+	Applicability  ProbeApplicability  `protobuf:"varint,12,opt,name=applicability,proto3,enum=umpire.temporal.v1.ProbeApplicability" json:"applicability,omitempty"`
 	unknownFields  protoimpl.UnknownFields
 	sizeCache      protoimpl.SizeCache
 }
@@ -289,27 +328,128 @@ func (x *ProbeCase) GetDetailsType() string {
 	return ""
 }
 
-func (x *ProbeCase) GetCovers() string {
+func (x *ProbeCase) GetGeneric() bool {
 	if x != nil {
-		return x.Covers
+		return x.Generic
+	}
+	return false
+}
+
+func (x *ProbeCase) GetRefusal() string {
+	if x != nil {
+		return x.Refusal
 	}
 	return ""
 }
 
-type ProbeObservation struct {
+func (x *ProbeCase) GetPredictions() []*ProbeExpectation {
+	if x != nil {
+		return x.Predictions
+	}
+	return nil
+}
+
+func (x *ProbeCase) GetApplicability() ProbeApplicability {
+	if x != nil {
+		return x.Applicability
+	}
+	return ProbeApplicability_APPLICABLE
+}
+
+type ProbeExpectation struct {
 	state          protoimpl.MessageState `protogen:"open.v1"`
-	CaseId         string                 `protobuf:"bytes,1,opt,name=case_id,json=caseId,proto3" json:"case_id,omitempty"`
-	Accepted       bool                   `protobuf:"varint,2,opt,name=accepted,proto3" json:"accepted,omitempty"`
+	Id             string                 `protobuf:"bytes,1,opt,name=id,proto3" json:"id,omitempty"`
+	Accepts        bool                   `protobuf:"varint,2,opt,name=accepts,proto3" json:"accepts,omitempty"`
 	Code           int32                  `protobuf:"varint,3,opt,name=code,proto3" json:"code,omitempty"`
-	MessageMatches bool                   `protobuf:"varint,4,opt,name=message_matches,json=messageMatches,proto3" json:"message_matches,omitempty"`
+	MessagePattern string                 `protobuf:"bytes,4,opt,name=message_pattern,json=messagePattern,proto3" json:"message_pattern,omitempty"`
 	DetailsType    string                 `protobuf:"bytes,5,opt,name=details_type,json=detailsType,proto3" json:"details_type,omitempty"`
 	unknownFields  protoimpl.UnknownFields
 	sizeCache      protoimpl.SizeCache
 }
 
+func (x *ProbeExpectation) Reset() {
+	*x = ProbeExpectation{}
+	mi := &file_umpire_temporal_v1_probe_proto_msgTypes[2]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *ProbeExpectation) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*ProbeExpectation) ProtoMessage() {}
+
+func (x *ProbeExpectation) ProtoReflect() protoreflect.Message {
+	mi := &file_umpire_temporal_v1_probe_proto_msgTypes[2]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use ProbeExpectation.ProtoReflect.Descriptor instead.
+func (*ProbeExpectation) Descriptor() ([]byte, []int) {
+	return file_umpire_temporal_v1_probe_proto_rawDescGZIP(), []int{2}
+}
+
+func (x *ProbeExpectation) GetId() string {
+	if x != nil {
+		return x.Id
+	}
+	return ""
+}
+
+func (x *ProbeExpectation) GetAccepts() bool {
+	if x != nil {
+		return x.Accepts
+	}
+	return false
+}
+
+func (x *ProbeExpectation) GetCode() int32 {
+	if x != nil {
+		return x.Code
+	}
+	return 0
+}
+
+func (x *ProbeExpectation) GetMessagePattern() string {
+	if x != nil {
+		return x.MessagePattern
+	}
+	return ""
+}
+
+func (x *ProbeExpectation) GetDetailsType() string {
+	if x != nil {
+		return x.DetailsType
+	}
+	return ""
+}
+
+type ProbeObservation struct {
+	state           protoimpl.MessageState `protogen:"open.v1"`
+	CaseId          string                 `protobuf:"bytes,1,opt,name=case_id,json=caseId,proto3" json:"case_id,omitempty"`
+	Accepted        bool                   `protobuf:"varint,2,opt,name=accepted,proto3" json:"accepted,omitempty"`
+	Code            int32                  `protobuf:"varint,3,opt,name=code,proto3" json:"code,omitempty"`
+	MessageMatches  bool                   `protobuf:"varint,4,opt,name=message_matches,json=messageMatches,proto3" json:"message_matches,omitempty"`
+	DetailsType     string                 `protobuf:"bytes,5,opt,name=details_type,json=detailsType,proto3" json:"details_type,omitempty"`
+	Predictions     []*ProbeMatch          `protobuf:"bytes,6,rep,name=predictions,proto3" json:"predictions,omitempty"`
+	PredictionCount uint32                 `protobuf:"varint,7,opt,name=prediction_count,json=predictionCount,proto3" json:"prediction_count,omitempty"`
+	Applicability   ProbeApplicability     `protobuf:"varint,8,opt,name=applicability,proto3,enum=umpire.temporal.v1.ProbeApplicability" json:"applicability,omitempty"`
+	Refusal         string                 `protobuf:"bytes,9,opt,name=refusal,proto3" json:"refusal,omitempty"`
+	unknownFields   protoimpl.UnknownFields
+	sizeCache       protoimpl.SizeCache
+}
+
 func (x *ProbeObservation) Reset() {
 	*x = ProbeObservation{}
-	mi := &file_umpire_temporal_v1_probe_proto_msgTypes[2]
+	mi := &file_umpire_temporal_v1_probe_proto_msgTypes[3]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -321,7 +461,7 @@ func (x *ProbeObservation) String() string {
 func (*ProbeObservation) ProtoMessage() {}
 
 func (x *ProbeObservation) ProtoReflect() protoreflect.Message {
-	mi := &file_umpire_temporal_v1_probe_proto_msgTypes[2]
+	mi := &file_umpire_temporal_v1_probe_proto_msgTypes[3]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -334,7 +474,7 @@ func (x *ProbeObservation) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use ProbeObservation.ProtoReflect.Descriptor instead.
 func (*ProbeObservation) Descriptor() ([]byte, []int) {
-	return file_umpire_temporal_v1_probe_proto_rawDescGZIP(), []int{2}
+	return file_umpire_temporal_v1_probe_proto_rawDescGZIP(), []int{3}
 }
 
 func (x *ProbeObservation) GetCaseId() string {
@@ -372,6 +512,102 @@ func (x *ProbeObservation) GetDetailsType() string {
 	return ""
 }
 
+func (x *ProbeObservation) GetPredictions() []*ProbeMatch {
+	if x != nil {
+		return x.Predictions
+	}
+	return nil
+}
+
+func (x *ProbeObservation) GetPredictionCount() uint32 {
+	if x != nil {
+		return x.PredictionCount
+	}
+	return 0
+}
+
+func (x *ProbeObservation) GetApplicability() ProbeApplicability {
+	if x != nil {
+		return x.Applicability
+	}
+	return ProbeApplicability_APPLICABLE
+}
+
+func (x *ProbeObservation) GetRefusal() string {
+	if x != nil {
+		return x.Refusal
+	}
+	return ""
+}
+
+type ProbeMatch struct {
+	state          protoimpl.MessageState `protogen:"open.v1"`
+	Index          uint32                 `protobuf:"varint,1,opt,name=index,proto3" json:"index,omitempty"`
+	PredictionId   string                 `protobuf:"bytes,2,opt,name=prediction_id,json=predictionId,proto3" json:"prediction_id,omitempty"`
+	MessageMatches bool                   `protobuf:"varint,3,opt,name=message_matches,json=messageMatches,proto3" json:"message_matches,omitempty"`
+	DetailsType    string                 `protobuf:"bytes,4,opt,name=details_type,json=detailsType,proto3" json:"details_type,omitempty"`
+	unknownFields  protoimpl.UnknownFields
+	sizeCache      protoimpl.SizeCache
+}
+
+func (x *ProbeMatch) Reset() {
+	*x = ProbeMatch{}
+	mi := &file_umpire_temporal_v1_probe_proto_msgTypes[4]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *ProbeMatch) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*ProbeMatch) ProtoMessage() {}
+
+func (x *ProbeMatch) ProtoReflect() protoreflect.Message {
+	mi := &file_umpire_temporal_v1_probe_proto_msgTypes[4]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use ProbeMatch.ProtoReflect.Descriptor instead.
+func (*ProbeMatch) Descriptor() ([]byte, []int) {
+	return file_umpire_temporal_v1_probe_proto_rawDescGZIP(), []int{4}
+}
+
+func (x *ProbeMatch) GetIndex() uint32 {
+	if x != nil {
+		return x.Index
+	}
+	return 0
+}
+
+func (x *ProbeMatch) GetPredictionId() string {
+	if x != nil {
+		return x.PredictionId
+	}
+	return ""
+}
+
+func (x *ProbeMatch) GetMessageMatches() bool {
+	if x != nil {
+		return x.MessageMatches
+	}
+	return false
+}
+
+func (x *ProbeMatch) GetDetailsType() string {
+	if x != nil {
+		return x.DetailsType
+	}
+	return ""
+}
+
 type ProbeSegment struct {
 	state         protoimpl.MessageState `protogen:"open.v1"`
 	Literal       []byte                 `protobuf:"bytes,1,opt,name=literal,proto3" json:"literal,omitempty"`
@@ -382,7 +618,7 @@ type ProbeSegment struct {
 
 func (x *ProbeSegment) Reset() {
 	*x = ProbeSegment{}
-	mi := &file_umpire_temporal_v1_probe_proto_msgTypes[3]
+	mi := &file_umpire_temporal_v1_probe_proto_msgTypes[5]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -394,7 +630,7 @@ func (x *ProbeSegment) String() string {
 func (*ProbeSegment) ProtoMessage() {}
 
 func (x *ProbeSegment) ProtoReflect() protoreflect.Message {
-	mi := &file_umpire_temporal_v1_probe_proto_msgTypes[3]
+	mi := &file_umpire_temporal_v1_probe_proto_msgTypes[5]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -407,7 +643,7 @@ func (x *ProbeSegment) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use ProbeSegment.ProtoReflect.Descriptor instead.
 func (*ProbeSegment) Descriptor() ([]byte, []int) {
-	return file_umpire_temporal_v1_probe_proto_rawDescGZIP(), []int{3}
+	return file_umpire_temporal_v1_probe_proto_rawDescGZIP(), []int{5}
 }
 
 func (x *ProbeSegment) GetLiteral() []byte {
@@ -436,7 +672,7 @@ type ProbeRecipe struct {
 
 func (x *ProbeRecipe) Reset() {
 	*x = ProbeRecipe{}
-	mi := &file_umpire_temporal_v1_probe_proto_msgTypes[4]
+	mi := &file_umpire_temporal_v1_probe_proto_msgTypes[6]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -448,7 +684,7 @@ func (x *ProbeRecipe) String() string {
 func (*ProbeRecipe) ProtoMessage() {}
 
 func (x *ProbeRecipe) ProtoReflect() protoreflect.Message {
-	mi := &file_umpire_temporal_v1_probe_proto_msgTypes[4]
+	mi := &file_umpire_temporal_v1_probe_proto_msgTypes[6]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -461,7 +697,7 @@ func (x *ProbeRecipe) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use ProbeRecipe.ProtoReflect.Descriptor instead.
 func (*ProbeRecipe) Descriptor() ([]byte, []int) {
-	return file_umpire_temporal_v1_probe_proto_rawDescGZIP(), []int{4}
+	return file_umpire_temporal_v1_probe_proto_rawDescGZIP(), []int{6}
 }
 
 func (x *ProbeRecipe) GetSegments() []*ProbeSegment {
@@ -499,7 +735,7 @@ type ProbeResponse struct {
 
 func (x *ProbeResponse) Reset() {
 	*x = ProbeResponse{}
-	mi := &file_umpire_temporal_v1_probe_proto_msgTypes[5]
+	mi := &file_umpire_temporal_v1_probe_proto_msgTypes[7]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -511,7 +747,7 @@ func (x *ProbeResponse) String() string {
 func (*ProbeResponse) ProtoMessage() {}
 
 func (x *ProbeResponse) ProtoReflect() protoreflect.Message {
-	mi := &file_umpire_temporal_v1_probe_proto_msgTypes[5]
+	mi := &file_umpire_temporal_v1_probe_proto_msgTypes[7]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -524,7 +760,7 @@ func (x *ProbeResponse) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use ProbeResponse.ProtoReflect.Descriptor instead.
 func (*ProbeResponse) Descriptor() ([]byte, []int) {
-	return file_umpire_temporal_v1_probe_proto_rawDescGZIP(), []int{5}
+	return file_umpire_temporal_v1_probe_proto_rawDescGZIP(), []int{7}
 }
 
 func (x *ProbeResponse) GetCases() []*ProbeCase {
@@ -573,7 +809,7 @@ var File_umpire_temporal_v1_probe_proto protoreflect.FileDescriptor
 
 const file_umpire_temporal_v1_probe_proto_rawDesc = "" +
 	"\n" +
-	"\x1eumpire/temporal/v1/probe.proto\x12\x12umpire.temporal.v1\"\x8a\x04\n" +
+	"\x1eumpire/temporal/v1/probe.proto\x12\x12umpire.temporal.v1\"\xdb\x03\n" +
 	"\fProbeRequest\x12H\n" +
 	"\toperation\x18\x01 \x01(\x0e2*.umpire.temporal.v1.ProbeRequest.OperationR\toperation\x12\x17\n" +
 	"\acase_id\x18\x02 \x01(\tR\x06caseId\x12\x1a\n" +
@@ -586,14 +822,12 @@ const file_umpire_temporal_v1_probe_proto_rawDesc = "" +
 	"\x06run_id\x18\a \x01(\tR\x05runId\x12\x1d\n" +
 	"\n" +
 	"task_token\x18\b \x01(\fR\ttaskToken\x12H\n" +
-	"\fobservations\x18\t \x03(\v2$.umpire.temporal.v1.ProbeObservationR\fobservations\x121\n" +
-	"\x14uncovered_validators\x18\n" +
-	" \x03(\tR\x13uncoveredValidators\x123\n" +
-	"\x15unresolved_validators\x18\v \x03(\tR\x14unresolvedValidators\"5\n" +
+	"\fobservations\x18\t \x03(\v2$.umpire.temporal.v1.ProbeObservationR\fobservations\"5\n" +
 	"\tOperation\x12\r\n" +
 	"\tINVENTORY\x10\x00\x12\v\n" +
 	"\aPREPARE\x10\x01\x12\f\n" +
-	"\bCLASSIFY\x10\x02\"\xe9\x01\n" +
+	"\bCLASSIFY\x10\x02J\x04\b\n" +
+	"\x10\vJ\x04\b\v\x10\fR\x14uncovered_validatorsR\x15unresolved_validators\"\xa9\x03\n" +
 	"\tProbeCase\x12\x0e\n" +
 	"\x02id\x18\x01 \x01(\tR\x02id\x12\x16\n" +
 	"\x06method\x18\x02 \x01(\tR\x06method\x12\"\n" +
@@ -601,14 +835,34 @@ const file_umpire_temporal_v1_probe_proto_rawDesc = "" +
 	"\aaccepts\x18\x04 \x01(\bR\aaccepts\x12\x12\n" +
 	"\x04code\x18\x05 \x01(\x05R\x04code\x12'\n" +
 	"\x0fmessage_pattern\x18\x06 \x01(\tR\x0emessagePattern\x12!\n" +
-	"\fdetails_type\x18\a \x01(\tR\vdetailsType\x12\x16\n" +
-	"\x06covers\x18\b \x01(\tR\x06covers\"\xa7\x01\n" +
+	"\fdetails_type\x18\a \x01(\tR\vdetailsType\x12\x18\n" +
+	"\ageneric\x18\t \x01(\bR\ageneric\x12\x18\n" +
+	"\arefusal\x18\n" +
+	" \x01(\tR\arefusal\x12F\n" +
+	"\vpredictions\x18\v \x03(\v2$.umpire.temporal.v1.ProbeExpectationR\vpredictions\x12L\n" +
+	"\rapplicability\x18\f \x01(\x0e2&.umpire.temporal.v1.ProbeApplicabilityR\rapplicabilityJ\x04\b\b\x10\tR\x06covers\"\x9c\x01\n" +
+	"\x10ProbeExpectation\x12\x0e\n" +
+	"\x02id\x18\x01 \x01(\tR\x02id\x12\x18\n" +
+	"\aaccepts\x18\x02 \x01(\bR\aaccepts\x12\x12\n" +
+	"\x04code\x18\x03 \x01(\x05R\x04code\x12'\n" +
+	"\x0fmessage_pattern\x18\x04 \x01(\tR\x0emessagePattern\x12!\n" +
+	"\fdetails_type\x18\x05 \x01(\tR\vdetailsType\"\xfc\x02\n" +
 	"\x10ProbeObservation\x12\x17\n" +
 	"\acase_id\x18\x01 \x01(\tR\x06caseId\x12\x1a\n" +
 	"\baccepted\x18\x02 \x01(\bR\baccepted\x12\x12\n" +
 	"\x04code\x18\x03 \x01(\x05R\x04code\x12'\n" +
 	"\x0fmessage_matches\x18\x04 \x01(\bR\x0emessageMatches\x12!\n" +
-	"\fdetails_type\x18\x05 \x01(\tR\vdetailsType\"@\n" +
+	"\fdetails_type\x18\x05 \x01(\tR\vdetailsType\x12@\n" +
+	"\vpredictions\x18\x06 \x03(\v2\x1e.umpire.temporal.v1.ProbeMatchR\vpredictions\x12)\n" +
+	"\x10prediction_count\x18\a \x01(\rR\x0fpredictionCount\x12L\n" +
+	"\rapplicability\x18\b \x01(\x0e2&.umpire.temporal.v1.ProbeApplicabilityR\rapplicability\x12\x18\n" +
+	"\arefusal\x18\t \x01(\tR\arefusal\"\x93\x01\n" +
+	"\n" +
+	"ProbeMatch\x12\x14\n" +
+	"\x05index\x18\x01 \x01(\rR\x05index\x12#\n" +
+	"\rprediction_id\x18\x02 \x01(\tR\fpredictionId\x12'\n" +
+	"\x0fmessage_matches\x18\x03 \x01(\bR\x0emessageMatches\x12!\n" +
+	"\fdetails_type\x18\x04 \x01(\tR\vdetailsType\"@\n" +
 	"\fProbeSegment\x12\x18\n" +
 	"\aliteral\x18\x01 \x01(\fR\aliteral\x12\x16\n" +
 	"\x06repeat\x18\x02 \x01(\rR\x06repeat\"\x88\x01\n" +
@@ -622,7 +876,13 @@ const file_umpire_temporal_v1_probe_proto_rawDesc = "" +
 	"\amessage\x18\x03 \x01(\fR\amessage\x127\n" +
 	"\x06recipe\x18\x04 \x01(\v2\x1f.umpire.temporal.v1.ProbeRecipeR\x06recipe\x12\x16\n" +
 	"\x06report\x18\x05 \x01(\tR\x06report\x12\x14\n" +
-	"\x05fails\x18\x06 \x01(\bR\x05failsB*Z(umpire.local/temporal/umpire/temporal/v1b\x06proto3"
+	"\x05fails\x18\x06 \x01(\bR\x05fails*T\n" +
+	"\x12ProbeApplicability\x12\x0e\n" +
+	"\n" +
+	"APPLICABLE\x10\x00\x12\x12\n" +
+	"\x0eNOT_APPLICABLE\x10\x01\x12\v\n" +
+	"\aREFUSED\x10\x02\x12\r\n" +
+	"\tUNCHANGED\x10\x03B*Z(umpire.local/temporal/umpire/temporal/v1b\x06proto3"
 
 var (
 	file_umpire_temporal_v1_probe_proto_rawDescOnce sync.Once
@@ -636,28 +896,35 @@ func file_umpire_temporal_v1_probe_proto_rawDescGZIP() []byte {
 	return file_umpire_temporal_v1_probe_proto_rawDescData
 }
 
-var file_umpire_temporal_v1_probe_proto_enumTypes = make([]protoimpl.EnumInfo, 1)
-var file_umpire_temporal_v1_probe_proto_msgTypes = make([]protoimpl.MessageInfo, 6)
+var file_umpire_temporal_v1_probe_proto_enumTypes = make([]protoimpl.EnumInfo, 2)
+var file_umpire_temporal_v1_probe_proto_msgTypes = make([]protoimpl.MessageInfo, 8)
 var file_umpire_temporal_v1_probe_proto_goTypes = []any{
-	(ProbeRequest_Operation)(0), // 0: umpire.temporal.v1.ProbeRequest.Operation
-	(*ProbeRequest)(nil),        // 1: umpire.temporal.v1.ProbeRequest
-	(*ProbeCase)(nil),           // 2: umpire.temporal.v1.ProbeCase
-	(*ProbeObservation)(nil),    // 3: umpire.temporal.v1.ProbeObservation
-	(*ProbeSegment)(nil),        // 4: umpire.temporal.v1.ProbeSegment
-	(*ProbeRecipe)(nil),         // 5: umpire.temporal.v1.ProbeRecipe
-	(*ProbeResponse)(nil),       // 6: umpire.temporal.v1.ProbeResponse
+	(ProbeApplicability)(0),     // 0: umpire.temporal.v1.ProbeApplicability
+	(ProbeRequest_Operation)(0), // 1: umpire.temporal.v1.ProbeRequest.Operation
+	(*ProbeRequest)(nil),        // 2: umpire.temporal.v1.ProbeRequest
+	(*ProbeCase)(nil),           // 3: umpire.temporal.v1.ProbeCase
+	(*ProbeExpectation)(nil),    // 4: umpire.temporal.v1.ProbeExpectation
+	(*ProbeObservation)(nil),    // 5: umpire.temporal.v1.ProbeObservation
+	(*ProbeMatch)(nil),          // 6: umpire.temporal.v1.ProbeMatch
+	(*ProbeSegment)(nil),        // 7: umpire.temporal.v1.ProbeSegment
+	(*ProbeRecipe)(nil),         // 8: umpire.temporal.v1.ProbeRecipe
+	(*ProbeResponse)(nil),       // 9: umpire.temporal.v1.ProbeResponse
 }
 var file_umpire_temporal_v1_probe_proto_depIdxs = []int32{
-	0, // 0: umpire.temporal.v1.ProbeRequest.operation:type_name -> umpire.temporal.v1.ProbeRequest.Operation
-	3, // 1: umpire.temporal.v1.ProbeRequest.observations:type_name -> umpire.temporal.v1.ProbeObservation
-	4, // 2: umpire.temporal.v1.ProbeRecipe.segments:type_name -> umpire.temporal.v1.ProbeSegment
-	2, // 3: umpire.temporal.v1.ProbeResponse.cases:type_name -> umpire.temporal.v1.ProbeCase
-	5, // 4: umpire.temporal.v1.ProbeResponse.recipe:type_name -> umpire.temporal.v1.ProbeRecipe
-	5, // [5:5] is the sub-list for method output_type
-	5, // [5:5] is the sub-list for method input_type
-	5, // [5:5] is the sub-list for extension type_name
-	5, // [5:5] is the sub-list for extension extendee
-	0, // [0:5] is the sub-list for field type_name
+	1, // 0: umpire.temporal.v1.ProbeRequest.operation:type_name -> umpire.temporal.v1.ProbeRequest.Operation
+	5, // 1: umpire.temporal.v1.ProbeRequest.observations:type_name -> umpire.temporal.v1.ProbeObservation
+	4, // 2: umpire.temporal.v1.ProbeCase.predictions:type_name -> umpire.temporal.v1.ProbeExpectation
+	0, // 3: umpire.temporal.v1.ProbeCase.applicability:type_name -> umpire.temporal.v1.ProbeApplicability
+	6, // 4: umpire.temporal.v1.ProbeObservation.predictions:type_name -> umpire.temporal.v1.ProbeMatch
+	0, // 5: umpire.temporal.v1.ProbeObservation.applicability:type_name -> umpire.temporal.v1.ProbeApplicability
+	7, // 6: umpire.temporal.v1.ProbeRecipe.segments:type_name -> umpire.temporal.v1.ProbeSegment
+	3, // 7: umpire.temporal.v1.ProbeResponse.cases:type_name -> umpire.temporal.v1.ProbeCase
+	8, // 8: umpire.temporal.v1.ProbeResponse.recipe:type_name -> umpire.temporal.v1.ProbeRecipe
+	9, // [9:9] is the sub-list for method output_type
+	9, // [9:9] is the sub-list for method input_type
+	9, // [9:9] is the sub-list for extension type_name
+	9, // [9:9] is the sub-list for extension extendee
+	0, // [0:9] is the sub-list for field type_name
 }
 
 func init() { file_umpire_temporal_v1_probe_proto_init() }
@@ -670,8 +937,8 @@ func file_umpire_temporal_v1_probe_proto_init() {
 		File: protoimpl.DescBuilder{
 			GoPackagePath: reflect.TypeOf(x{}).PkgPath(),
 			RawDescriptor: unsafe.Slice(unsafe.StringData(file_umpire_temporal_v1_probe_proto_rawDesc), len(file_umpire_temporal_v1_probe_proto_rawDesc)),
-			NumEnums:      1,
-			NumMessages:   6,
+			NumEnums:      2,
+			NumMessages:   8,
 			NumExtensions: 0,
 			NumServices:   0,
 		},

@@ -21,7 +21,11 @@ pub fn catalogs(source: &str) -> syn::Result<Vec<Catalog>> {
     }
     impl<'ast> Visit<'ast> for Catalogs {
         fn visit_item_struct(&mut self, node: &'ast syn::ItemStruct) {
-            if node.attrs.iter().any(|attr| attr.path().is_ident("api")) {
+            if node
+                .attrs
+                .iter()
+                .any(|attr| attr.path().is_ident("mirror") || attr.path().is_ident("rule"))
+            {
                 let parsed = syn::parse2::<syn::DeriveInput>(quote::quote!(#node))
                     .and_then(|input| DeriveCatalog::parse(&input))
                     .and_then(|mirror| {

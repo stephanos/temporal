@@ -46,3 +46,41 @@ fn start_mirror_retains_fields_reasons_limits_and_expected_errors()
     assert!(validate(&cancel, &catalog).iter().any(|v| v.path.ends_with(".reason")));
     Ok(())
 }
+
+#[test]
+fn shared_token_dependencies_remain_independent() -> Result<(), Box<dyn std::error::Error>> {
+    use umpire_temporal_api::temporal::api::{
+        common::v1::{Payload, Payloads},
+        workflowservice::v1::PollActivityTaskQueueResponse,
+    };
+    let catalog = activity_api::PollActivityTaskQueueResponse::catalog(&dc::Limits::default())?;
+    for (trigger, mut response) in [
+        (
+            "activity_id",
+            PollActivityTaskQueueResponse { activity_id: "activity".into(), ..Default::default() },
+        ),
+        (
+            "input",
+            PollActivityTaskQueueResponse {
+                input: Some(Payloads {
+                    payloads: vec![Payload { data: vec![1], ..Default::default() }],
+                }),
+                ..Default::default()
+            },
+        ),
+    ] {
+        let findings: Vec<_> = validate(&response, &catalog)
+            .into_iter()
+            .filter(|v| v.constraint == "requires")
+            .collect();
+        assert_eq!(findings.len(), 1, "{trigger}");
+        let prefix = "temporal.api.workflowservice.v1.PollActivityTaskQueueResponse";
+        assert_eq!(
+            findings[0].fields,
+            [format!("{prefix}.{trigger}"), format!("{prefix}.task_token")]
+        );
+        response.task_token = vec![1];
+        assert!(validate(&response, &catalog).into_iter().all(|v| v.constraint != "requires"));
+    }
+    Ok(())
+}

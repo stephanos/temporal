@@ -115,6 +115,24 @@ func TestTestpilotModelGapLoggerPreservesFailuresWithoutPrivateOutput(t *testing
 	}
 }
 
+func isolatedProbeRequest(caseID, namespace string, baseline bool) *temporalv1.ProbeRequest {
+	return &temporalv1.ProbeRequest{
+		Operation: temporalv1.ProbeRequest_PREPARE, CaseId: caseID, Baseline: baseline,
+		Namespace: namespace, ActivityId: uuid.NewString(), TaskQueue: "model-gap-" + uuid.NewString(),
+	}
+}
+
+func TestTestpilotModelGapResourceIsolation(t *testing.T) {
+	baseline := isolatedProbeRequest("case", "namespace", true)
+	mutation := isolatedProbeRequest("case", "namespace", false)
+	require.NotEqual(t, baseline.ActivityId, mutation.ActivityId)
+	require.NotEqual(t, baseline.TaskQueue, mutation.TaskQueue)
+	require.Empty(t, baseline.RunId)
+	require.Empty(t, mutation.RunId)
+	require.Empty(t, baseline.TaskToken)
+	require.Empty(t, mutation.TaskToken)
+}
+
 func TestTestpilotModelGaps(t *testing.T) {
 	wasm, err := os.ReadFile(os.Getenv("UMPIRE_TEMPORAL_WASM"))
 	require.NoError(t, err)
@@ -123,17 +141,14 @@ func TestTestpilotModelGaps(t *testing.T) {
 	t.Cleanup(func() { require.NoError(t, host.Close(context.Background())) })
 	inventory, err := temporalmodel.Probe(t.Context(), host, &temporalv1.ProbeRequest{})
 	require.NoError(t, err)
+	require.LessOrEqual(t, proto.Size(inventory), 1<<20, "inventory must fit the unchanged probe frame budget")
 	require.NotEmpty(t, inventory.GetCases(), "probe inventory must not silently execute zero cases")
-	var covers []string
 	identities := make(map[string]bool)
 	for _, testCase := range inventory.Cases {
 		require.NotEmpty(t, testCase.Id)
 		require.False(t, identities[testCase.Id], "duplicate probe identity")
 		identities[testCase.Id] = true
-		covers = append(covers, testCase.Covers)
 	}
-	uncovered, unresolved, err := temporalmodel.ReverseCoverage("..", covers)
-	require.NoError(t, err)
 	env := newTestpilotTestEnvironment(t,
 		testcore.WithLogger(newModelGapLogger(t)),
 		testcore.WithDynamicConfig(dynamicconfig.EnableChasm, true),
@@ -146,19 +161,23 @@ func TestTestpilotModelGaps(t *testing.T) {
 	var observations []*temporalv1.ProbeObservation
 	for _, testCase := range inventory.Cases {
 		t.Run(testCase.Id, func(t *testing.T) {
+			if testCase.Generic && testCase.Applicability != temporalv1.ProbeApplicability_APPLICABLE {
+				observation, observeErr := temporalmodel.ObserveProbe(testCase, nil)
+				require.NoError(t, observeErr)
+				observations = append(observations, observation)
+				return
+			}
 			for _, baseline := range []bool{true, false} {
 				func() {
 					ctx, cancel := context.WithTimeout(t.Context(), 30*time.Second)
 					defer cancel()
-					request := &temporalv1.ProbeRequest{
-						Operation: temporalv1.ProbeRequest_PREPARE, CaseId: testCase.Id, Baseline: baseline,
-						Namespace: env.Namespace().String(), ActivityId: uuid.NewString(), TaskQueue: "model-gap-" + uuid.NewString(),
-					}
+					request := isolatedProbeRequest(testCase.Id, env.Namespace().String(), baseline)
 					prepare := func(selector string) *temporalv1.ProbeResponse {
 						preparedRequest := proto.Clone(request).(*temporalv1.ProbeRequest)
 						preparedRequest.CaseId, preparedRequest.Baseline = selector, true
 						prepared, err := temporalmodel.Probe(ctx, host, preparedRequest)
 						require.NoError(t, err, "prerequisite generation")
+						require.LessOrEqual(t, proto.Size(prepared), 1<<20)
 						return prepared
 					}
 					defer func() {
@@ -198,7 +217,22 @@ func TestTestpilotModelGaps(t *testing.T) {
 					}
 					prepared, prepareErr := temporalmodel.Probe(ctx, host, request)
 					require.NoError(t, prepareErr, "probe generation")
+					require.LessOrEqual(t, proto.Size(prepared), 1<<20, "prepared witness must use a bounded transport frame")
 					require.Equal(t, testCase.Method, prepared.Method)
+					observationCase := testCase
+					if testCase.Generic {
+						require.Len(t, prepared.Cases, 1)
+						observationCase = prepared.Cases[0]
+						require.Equal(t, testCase.Id, observationCase.Id)
+						require.Equal(t, testCase.Method, observationCase.Method)
+						if observationCase.Applicability != temporalv1.ProbeApplicability_APPLICABLE {
+							require.False(t, baseline)
+							observation, observeErr := temporalmodel.ObserveProbe(observationCase, nil)
+							require.NoError(t, observeErr)
+							observations = append(observations, observation)
+							return
+						}
+					}
 					response, rpcErr := temporalmodel.DispatchProbe(ctx, connection, prepared)
 					require.NotNil(t, response, "probe must reach actual RPC dispatch")
 					if started, ok := response.(*workflowservice.StartActivityExecutionResponse); ok && rpcErr == nil {
@@ -215,19 +249,22 @@ func TestTestpilotModelGaps(t *testing.T) {
 						require.True(t, rpcErr == nil, "valid baseline rpc_code=%s", status.Code(rpcErr))
 						return
 					}
-					observation, observeErr := temporalmodel.ObserveProbe(testCase, rpcErr)
+					observation, observeErr := temporalmodel.ObserveProbe(observationCase, rpcErr)
 					require.NoError(t, observeErr)
 					observations = append(observations, observation)
 				}()
 			}
 		})
 	}
-	require.Len(t, observations, len(inventory.Cases), "every inventory identity requires a live observation")
-	report, err := temporalmodel.Probe(t.Context(), host, &temporalv1.ProbeRequest{
+	require.Len(t, observations, len(inventory.Cases), "every inventory identity requires an observation or explicit local refusal")
+	classification := &temporalv1.ProbeRequest{
 		Operation: temporalv1.ProbeRequest_CLASSIFY, Observations: observations,
-		UncoveredValidators: uncovered, UnresolvedValidators: unresolved,
-	})
+	}
+	require.LessOrEqual(t, proto.Size(classification), 1<<20, "classification must fit the unchanged probe frame budget")
+	report, err := temporalmodel.Probe(t.Context(), host, classification)
 	require.NoError(t, err)
+	require.LessOrEqual(t, proto.Size(report), 1<<20, "report must fit the unchanged probe frame budget")
+	t.Logf("Probe frame bytes: inventory=%d classify_request=%d classify_response=%d", proto.Size(inventory), proto.Size(classification), proto.Size(report))
 	require.NotEmpty(t, report.Report)
 	repository, err := filepath.EvalSymlinks("..")
 	require.NoError(t, err)

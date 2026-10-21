@@ -9,7 +9,54 @@ struct Message {
 }
 
 fn expected() -> Expected {
-    Expected { expectation: Expectation::Accepts, covers: "checkMessage".into() }
+    Expected { expectation: Expectation::Accepts }
+}
+
+#[test]
+fn any_of_attributes_each_field_but_every_probe_omits_all_alternatives()
+-> Result<(), Box<dyn std::error::Error>> {
+    let catalog = Catalog::request("example.Message")
+        .field(Field::new(
+            "a",
+            Kind::Text(StringRules::default()),
+            |m: &Message| &m.a,
+            |m| &mut m.a,
+        ))
+        .field(Field::new(
+            "b",
+            Kind::Text(StringRules::default()),
+            |m: &Message| &m.b,
+            |m| &mut m.b,
+        ))
+        .rule(Rule {
+            presence: Presence::AnyOf(vec!["a".into(), "b".into()]),
+            expected: Some(expected()),
+        })
+        .build()?;
+    let baseline = Message { a: "a".into(), b: "b".into() };
+    let cases = catalog.probe_cases();
+    assert_eq!(cases.len(), 2);
+    for case in &cases {
+        let candidate = catalog.probe(&baseline, case, &mut Rng::new(1))?;
+        assert!(candidate.message.a.is_empty() && candidate.message.b.is_empty());
+        assert!(
+            catalog
+                .probe_with(&baseline, case, |m| {
+                    m.a.clear();
+                    Ok(())
+                })
+                .is_err()
+        );
+        assert!(
+            catalog
+                .probe_with(&baseline, case, |m| {
+                    m.b.clear();
+                    Ok(())
+                })
+                .is_err()
+        );
+    }
+    Ok(())
 }
 
 fn catalog(ineffective: bool) -> Catalog<Message> {
@@ -116,7 +163,6 @@ fn live_result_checks_each_expected_diagnostic_independently()
             message_pattern: "^invalid$".into(),
             details_type: Some("example.Invalid".into()),
         },
-        covers: "checkMessage".into(),
     });
     for (code, message_matches, details_type, fails) in [
         (3, true, Some("example.Invalid"), false),

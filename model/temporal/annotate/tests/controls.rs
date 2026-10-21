@@ -81,10 +81,10 @@ annotate! {
         Status::Done = "DONE",
     }
     message request request: Request = "test.Request" {
-        id: Uuid + Decided => Accepts covers "validator";
-        count: Counter[gte = 1] + Decided => Rejects(3, "bad") covers "validator";
-        status: Enum(status) + Decided => Accepts covers "validator";
-        rules { required(id) => Accepts covers "validator"; }
+        id: Uuid + Decided => Accepts;
+        count: Counter[gte = 1] + Decided => Rejects(3, "bad");
+        status: Enum(status) + Decided => Accepts;
+        rules { required(id) => Accepts; }
     }
     message response response: Response = "test.Response" {
         id: Uuid;

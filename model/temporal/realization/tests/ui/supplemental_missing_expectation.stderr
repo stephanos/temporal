@@ -1,5 +1,5 @@
-error: request constraint requires an expectation and covers
- --> tests/ui/supplemental_missing_expectation.rs:8:23
+error: request constraint requires an expectation
+ --> tests/ui/supplemental_missing_expectation.rs:7:23
   |
-8 | struct Supplemental { value: Uuid }
+7 | struct Supplemental { value: Uuid }
   |                       ^^^^^

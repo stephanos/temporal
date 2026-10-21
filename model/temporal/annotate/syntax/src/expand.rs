@@ -300,7 +300,6 @@ fn repeated(field: &Field) -> TokenStream {
 
 fn expectation(expected: &Expected) -> TokenStream {
     let outcome = &expected.outcome;
-    let covers = &expected.covers;
     let expectation = if let Some((code, message, details)) = &expected.reject {
         let details = details
             .as_ref()
@@ -313,7 +312,7 @@ fn expectation(expected: &Expected) -> TokenStream {
     } else {
         quote! { ::umpire_annotations::Expectation::#outcome }
     };
-    quote! { ::umpire_annotations::Expected { expectation: #expectation, covers: #covers.to_owned() } }
+    quote! { ::umpire_annotations::Expected { expectation: #expectation } }
 }
 
 fn rule(rule: &Rule) -> TokenStream {

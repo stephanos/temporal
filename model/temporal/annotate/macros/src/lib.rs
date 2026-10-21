@@ -1,7 +1,7 @@
 //! Procedural entry point for checked annotation declarations.
 
 /// Derives an exhaustive typed catalog from an attribute mirror struct.
-#[proc_macro_derive(Catalog, attributes(api))]
+#[proc_macro_derive(Catalog, attributes(rule, mirror))]
 pub fn derive_catalog(input: proc_macro::TokenStream) -> proc_macro::TokenStream {
     let input = syn::parse_macro_input!(input as syn::DeriveInput);
     umpire_temporal_annotate_syntax::DeriveCatalog::parse(&input)

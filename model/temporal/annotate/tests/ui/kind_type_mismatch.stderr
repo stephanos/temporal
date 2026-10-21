@@ -1,10 +1,10 @@
-error[E0277]: the trait bound `String: View<umpire_temporal_annotate::kinds::Counter>` is not satisfied
+error[E0277]: the trait bound `std::string::String: View<umpire_temporal_annotate::kinds::Counter>` is not satisfied
  --> tests/ui/kind_type_mismatch.rs:7:10
   |
 7 | #[derive(Catalog)]
-  |          ^^^^^^^ the trait `View<umpire_temporal_annotate::kinds::Counter>` is not implemented for `String`
+  |          ^^^^^^^ the trait `View<umpire_temporal_annotate::kinds::Counter>` is not implemented for `std::string::String`
   |
-help: `String` implements trait `View<K>`
+help: `std::string::String` implements trait `View<K>`
  --> src/views.rs
   |
   |         impl View<$kind> for $ty {

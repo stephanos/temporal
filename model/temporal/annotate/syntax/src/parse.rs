@@ -275,10 +275,7 @@ impl Parse for Expected {
                 ));
             }
         };
-        word(input, "covers")?;
-        let covers = input.parse()?;
-        nonempty(&covers, "expectation covers")?;
-        Ok(Self { outcome, reject, covers })
+        Ok(Self { outcome, reject })
     }
 }
 
@@ -530,7 +527,7 @@ impl Catalog {
                 if message.request && rule.expected.is_none() {
                     return Err(Error::new(
                         rule.operator.span(),
-                        "request rule requires an expectation and covers",
+                        "request rule requires an expectation",
                     ));
                 }
             }
@@ -629,7 +626,7 @@ impl Catalog {
         if message.request && !ignored && constrained && field.expected.is_none() {
             return Err(Error::new(
                 field.name.span(),
-                "request constraint requires an expectation and covers",
+                "request constraint requires an expectation",
             ));
         }
         if !constrained && field.expected.is_some() {

@@ -6,6 +6,6 @@ use umpire_temporal_annotate::{Catalog, kinds::*};
 struct Wire { id: String }
 
 #[derive(Catalog)]
-#[api(request = "test.Wire", type = Wire, covers = vanished::VALIDATOR)]
-struct Mirror { #[api(accepts)] id: Uuid }
+#[mirror(request = "test.Wire", type = Wire)]
+struct Mirror { #[rule(accepts, covers = retired::VALIDATOR)] id: Uuid }
 fn main() {}

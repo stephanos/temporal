@@ -25,6 +25,8 @@ impl Rng {
 /// Refusal to construct a conforming typed value.
 #[derive(Clone, Debug, PartialEq, Eq)]
 pub enum GenerationError {
+    /// This wire carrier cannot represent the requested mutation.
+    InapplicableMutation,
     /// A projected message was not a valid protobuf encoding.
     InvalidEncoding,
     /// Secrets must come from the caller.

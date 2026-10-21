@@ -2,7 +2,7 @@
 #![allow(dead_code, reason = "Mirror fields describe the API and are not instantiated")]
 
 use crate::activity::{self, Client, Deadline, Worker};
-use crate::foundation::{dc, validators};
+use crate::foundation::dc;
 use umpire_temporal_annotate::{
     Catalog,
     kinds::{
@@ -14,22 +14,6 @@ use umpire_temporal_api::temporal::api::{
     activity::v1 as a, common::v1 as c, enums::v1 as e, failure::v1 as f, taskqueue::v1 as q,
     workflowservice::v1 as w,
 };
-const NORMALIZE_AND_VALIDATE: &str = validators::tqid::normalizeAndValidate;
-const POLL_QUEUE: &str = validators::frontend::WorkflowHandler_PollActivityTaskQueue;
-const COMPLETED: &str = validators::frontend::WorkflowHandler_RespondActivityTaskCompleted;
-const FAILED: &str = validators::frontend::WorkflowHandler_RespondActivityTaskFailed;
-const CANCELED: &str = validators::frontend::WorkflowHandler_RespondActivityTaskCanceled;
-const TIMEOUTS: &str = validators::activity::validateAndNormalizeTimeouts;
-const START: &str = validators::activity::validateAndNormalizeStartRequest;
-const ATTRIBUTES: &str = validators::activity::validateAndNormalizeActivityAttributes;
-const STANDALONE: &str = validators::activity::ValidateAndNormalizeStandaloneActivity;
-const HANDLER: &str = validators::activity::handler_StartActivityExecution;
-const START_DELAY: &str = validators::activity::validateStartDelay;
-const DESCRIBE: &str = validators::activity::validateAndNormalizeDescribeActivityExecutionRequest;
-const POLL: &str = validators::activity::validateAndNormalizePollActivityExecutionRequest;
-const CANCEL: &str =
-    validators::activity::validateAndNormalizeRequestCancelActivityExecutionRequest;
-const REQUEST_ID: &str = validators::activity::validateAndNormalizeRequestID;
 
 type ModelAction = <activity::World as umpire_dsl::Machine>::Action;
 
@@ -39,22 +23,22 @@ pub use transport::{AnnotationResult, annotate};
 
 /// Success and failure are mutually exclusive outcome alternatives.
 #[derive(Catalog)]
-#[api(response = "temporal.api.activity.v1.ActivityExecutionOutcome")]
-#[api(one_of(result, failure))]
+#[mirror(response = "temporal.api.activity.v1.ActivityExecutionOutcome")]
+#[rule(one_of(result, failure))]
 pub struct ActivityExecutionOutcome {
-    #[api(decided)]
-    #[api(oneof(Result = "result", Failure = "failure"))]
+    #[mirror(decided)]
+    #[mirror(oneof(Result = "result", Failure = "failure"))]
     value: OneOf<a::activity_execution_outcome::Value>,
     retry_state: Enum<e::RetryState>,
 }
 
 /// Server lifecycle metadata keeps externally supplied message contents Decided.
 #[derive(Catalog)]
-#[api(response = "temporal.api.activity.v1.ActivityExecutionInfo")]
+#[mirror(response = "temporal.api.activity.v1.ActivityExecutionInfo")]
 pub struct ActivityExecutionInfo {
     activity_id: Text,
     run_id: Uuid,
-    #[api(decided)]
+    #[mirror(decided)]
     activity_type: Message<c::ActivityType>,
     status: Enum<e::ActivityExecutionStatus>,
     run_state: Enum<e::PendingActivityState>,
@@ -63,43 +47,43 @@ pub struct ActivityExecutionInfo {
     schedule_to_start_timeout: RawDuration,
     start_to_close_timeout: RawDuration,
     heartbeat_timeout: RawDuration,
-    #[api(decided)]
+    #[mirror(decided)]
     retry_policy: Message<c::RetryPolicy>,
-    #[api(decided)]
+    #[mirror(decided)]
     heartbeat_details: Message<c::Payloads>,
     last_heartbeat_time: Timestamp,
     last_started_time: Timestamp,
-    #[api(gte = 0)]
+    #[rule(gte = 0)]
     attempt: Counter,
     execution_duration: RawDuration,
     schedule_time: Timestamp,
     expiration_time: Timestamp,
     close_time: Timestamp,
-    #[api(decided)]
+    #[mirror(decided)]
     last_failure: Message<f::Failure>,
     last_worker_identity: Text,
     current_retry_interval: RawDuration,
     last_attempt_complete_time: Timestamp,
     next_attempt_schedule_time: Timestamp,
-    #[api(ignored = "This activity Model does not project \
+    #[mirror(ignored = "This activity Model does not project \
         ActivityExecutionInfo.last_deployment_version; no semantic validation is claimed")]
     last_deployment_version: Ignored,
-    #[api(ignored = "This activity Model does not project \
+    #[mirror(ignored = "This activity Model does not project \
         ActivityExecutionInfo.priority; no semantic validation is claimed")]
     priority: Ignored,
     state_transition_count: Counter,
     state_size_bytes: Counter,
-    #[api(ignored = "This activity Model does not project \
+    #[mirror(ignored = "This activity Model does not project \
         ActivityExecutionInfo.search_attributes; no semantic validation is claimed")]
     search_attributes: Ignored,
-    #[api(ignored = "This activity Model does not project \
+    #[mirror(ignored = "This activity Model does not project \
         ActivityExecutionInfo.header; no semantic validation is claimed")]
     header: Ignored,
-    #[api(ignored = "This activity Model does not project \
+    #[mirror(ignored = "This activity Model does not project \
         ActivityExecutionInfo.user_metadata; no semantic validation is claimed")]
     user_metadata: Ignored,
     canceled_reason: Text,
-    #[api(ignored = "This activity Model does not project \
+    #[mirror(ignored = "This activity Model does not project \
         ActivityExecutionInfo.links; no semantic validation is claimed")]
     links: Ignored,
     total_heartbeat_count: Counter,
@@ -111,337 +95,332 @@ pub struct ActivityExecutionInfo {
 
 /// Worker polling validates queue identity without modeling version routing.
 #[derive(Catalog)]
-#[api(request = "temporal.api.workflowservice.v1.PollActivityTaskQueueRequest")]
+#[rule(required(task_queue), rejects = "taskQueue|task queue")]
+#[mirror(request = "temporal.api.workflowservice.v1.PollActivityTaskQueueRequest")]
 pub struct PollActivityTaskQueueRequest {
     namespace: Text,
-    #[api(required, rejects = "taskQueue|task queue", covers = NORMALIZE_AND_VALIDATE)]
+
     task_queue: Message<q::TaskQueue>,
-    #[api(ignored = "This activity Model does not project \
+    #[mirror(ignored = "This activity Model does not project \
         PollActivityTaskQueueRequest.poller_group_id; no semantic validation is claimed")]
     poller_group_id: Ignored,
-    #[api(max_bytes = dc::MAX_ID_LENGTH, rejects = "identity|Identity", covers = POLL_QUEUE)]
+    #[rule(max_bytes = dc::MAX_ID_LENGTH, rejects = "identity|Identity")]
     identity: Text,
-    #[api(ignored = "This activity Model does not project \
+    #[mirror(ignored = "This activity Model does not project \
         PollActivityTaskQueueRequest.worker_instance_key; no semantic validation is claimed")]
     worker_instance_key: Ignored,
-    #[api(ignored = "This activity Model does not project \
+    #[mirror(ignored = "This activity Model does not project \
         PollActivityTaskQueueRequest.worker_control_task_queue; no semantic validation is claimed")]
     worker_control_task_queue: Ignored,
-    #[api(ignored = "This activity Model does not project \
+    #[mirror(ignored = "This activity Model does not project \
         PollActivityTaskQueueRequest.task_queue_metadata; no semantic validation is claimed")]
     task_queue_metadata: Ignored,
-    #[api(ignored = "This activity Model does not project \
+    #[mirror(ignored = "This activity Model does not project \
         PollActivityTaskQueueRequest.worker_version_capabilities; \
         no semantic validation is claimed")]
     worker_version_capabilities: Ignored,
-    #[api(ignored = "This activity Model does not project \
+    #[mirror(ignored = "This activity Model does not project \
         PollActivityTaskQueueRequest.deployment_options; no semantic validation is claimed")]
     deployment_options: Ignored,
 }
 
 /// Polled tasks carry opaque tokens and externally supplied activity payloads.
 #[derive(Catalog)]
-#[api(response = "temporal.api.workflowservice.v1.PollActivityTaskQueueResponse")]
+#[allow(clippy::duplicated_attributes, reason = "Presence rules may share dependency operands")]
+#[rule(requires(activity_id, task_token))]
+#[rule(requires(input, task_token))]
+#[mirror(response = "temporal.api.workflowservice.v1.PollActivityTaskQueueResponse")]
 pub struct PollActivityTaskQueueResponse {
     task_token: Secret,
     workflow_namespace: Text,
-    #[api(ignored = "This activity Model does not project \
+    #[mirror(ignored = "This activity Model does not project \
         PollActivityTaskQueueResponse.workflow_type; no semantic validation is claimed")]
     workflow_type: Ignored,
-    #[api(ignored = "This activity Model does not project \
+    #[mirror(ignored = "This activity Model does not project \
         PollActivityTaskQueueResponse.workflow_execution; no semantic validation is claimed")]
     workflow_execution: Ignored,
-    #[api(decided)]
+    #[mirror(decided)]
     activity_type: Message<c::ActivityType>,
-    #[api(requires = task_token)]
+
     activity_id: Text,
-    #[api(ignored = "This activity Model does not project \
+    #[mirror(ignored = "This activity Model does not project \
         PollActivityTaskQueueResponse.header; no semantic validation is claimed")]
     header: Ignored,
-    #[api(requires = task_token)]
-    #[api(decided)]
+
+    #[mirror(decided)]
     input: Message<c::Payloads>,
-    #[api(decided)]
+    #[mirror(decided)]
     heartbeat_details: Message<c::Payloads>,
     scheduled_time: Timestamp,
     current_attempt_scheduled_time: Timestamp,
     started_time: Timestamp,
-    #[api(gte = 0)]
+    #[rule(gte = 0)]
     attempt: Counter,
     schedule_to_close_timeout: RawDuration,
     start_to_close_timeout: RawDuration,
     heartbeat_timeout: RawDuration,
-    #[api(decided)]
+    #[mirror(decided)]
     retry_policy: Message<c::RetryPolicy>,
-    #[api(ignored = "This activity Model does not project \
+    #[mirror(ignored = "This activity Model does not project \
         PollActivityTaskQueueResponse.poller_scaling_decision; no semantic validation is claimed")]
     poller_scaling_decision: Ignored,
-    #[api(ignored = "This activity Model does not project \
+    #[mirror(ignored = "This activity Model does not project \
         PollActivityTaskQueueResponse.priority; no semantic validation is claimed")]
     priority: Ignored,
     activity_run_id: Uuid,
-    #[api(ignored = "This activity Model does not project \
+    #[mirror(ignored = "This activity Model does not project \
         PollActivityTaskQueueResponse.poller_group_infos; no semantic validation is claimed")]
     poller_group_infos: Ignored,
-    #[api(ignored = "This activity Model does not project \
+    #[mirror(ignored = "This activity Model does not project \
         PollActivityTaskQueueResponse.poller_groups_info; no semantic validation is claimed")]
     poller_groups_info: Ignored,
 }
 
 /// Completion transports worker results under the frontend identity limit.
 #[derive(Catalog)]
-#[api(request = "temporal.api.workflowservice.v1.RespondActivityTaskCompletedRequest")]
+#[mirror(request = "temporal.api.workflowservice.v1.RespondActivityTaskCompletedRequest")]
 pub struct RespondActivityTaskCompletedRequest {
     task_token: Secret,
     result: Message<c::Payloads>,
-    #[api(max_bytes = dc::MAX_ID_LENGTH, rejects = "identity|Identity", covers = COMPLETED)]
+    #[rule(max_bytes = dc::MAX_ID_LENGTH, rejects = "identity|Identity")]
     identity: Text,
     namespace: Text,
     resource_id: Text,
-    #[api(ignored = "This activity Model does not project \
+    #[mirror(ignored = "This activity Model does not project \
         RespondActivityTaskCompletedRequest.worker_version; no semantic validation is claimed")]
     worker_version: Ignored,
-    #[api(ignored = "This activity Model does not project \
+    #[mirror(ignored = "This activity Model does not project \
         RespondActivityTaskCompletedRequest.deployment; no semantic validation is claimed")]
     deployment: Ignored,
-    #[api(ignored = "This activity Model does not project \
+    #[mirror(ignored = "This activity Model does not project \
         RespondActivityTaskCompletedRequest.deployment_options; no semantic validation is claimed")]
     deployment_options: Ignored,
 }
 
 /// Completion acknowledgement carries no additional lifecycle evidence.
 #[derive(Catalog)]
-#[api(response = "temporal.api.workflowservice.v1.RespondActivityTaskCompletedResponse")]
+#[mirror(response = "temporal.api.workflowservice.v1.RespondActivityTaskCompletedResponse")]
 pub struct RespondActivityTaskCompletedResponse {}
 
 /// Worker failures require root application-failure information, unlike nested server failures.
 #[derive(Catalog)]
-#[api(request = "temporal.api.workflowservice.v1.RespondActivityTaskFailedRequest")]
+#[mirror(request = "temporal.api.workflowservice.v1.RespondActivityTaskFailedRequest")]
 pub struct RespondActivityTaskFailedRequest {
     task_token: Secret,
     failure: Message<f::Failure>,
-    #[api(max_bytes = dc::MAX_ID_LENGTH, rejects = "identity|Identity", covers = FAILED)]
+    #[rule(max_bytes = dc::MAX_ID_LENGTH, rejects = "identity|Identity")]
     identity: Text,
     namespace: Text,
     resource_id: Text,
     last_heartbeat_details: Message<c::Payloads>,
-    #[api(ignored = "This activity Model does not project \
+    #[mirror(ignored = "This activity Model does not project \
         RespondActivityTaskFailedRequest.worker_version; no semantic validation is claimed")]
     worker_version: Ignored,
-    #[api(ignored = "This activity Model does not project \
+    #[mirror(ignored = "This activity Model does not project \
         RespondActivityTaskFailedRequest.deployment; no semantic validation is claimed")]
     deployment: Ignored,
-    #[api(ignored = "This activity Model does not project \
+    #[mirror(ignored = "This activity Model does not project \
         RespondActivityTaskFailedRequest.deployment_options; no semantic validation is claimed")]
     deployment_options: Ignored,
-    #[api(accepts, covers = FAILED)]
+    #[rule(accepts)]
     cause: Enum<e::ActivityTaskFailedCause>,
 }
 
 /// Failure-response diagnostics are retained without rewriting their contents.
 #[derive(Catalog)]
-#[api(response = "temporal.api.workflowservice.v1.RespondActivityTaskFailedResponse")]
+#[mirror(response = "temporal.api.workflowservice.v1.RespondActivityTaskFailedResponse")]
 pub struct RespondActivityTaskFailedResponse {
-    #[api(decided)]
+    #[mirror(decided)]
     failures: Vec<Message<f::Failure>>,
 }
 
 /// Worker cancellation acknowledgement retains opaque details and validates identity.
 #[derive(Catalog)]
-#[api(request = "temporal.api.workflowservice.v1.RespondActivityTaskCanceledRequest")]
+#[mirror(request = "temporal.api.workflowservice.v1.RespondActivityTaskCanceledRequest")]
 pub struct RespondActivityTaskCanceledRequest {
     task_token: Secret,
     details: Message<c::Payloads>,
-    #[api(max_bytes = dc::MAX_ID_LENGTH, rejects = "identity|Identity", covers = CANCELED)]
+    #[rule(max_bytes = dc::MAX_ID_LENGTH, rejects = "identity|Identity")]
     identity: Text,
     namespace: Text,
     resource_id: Text,
-    #[api(ignored = "This activity Model does not project \
+    #[mirror(ignored = "This activity Model does not project \
         RespondActivityTaskCanceledRequest.worker_version; no semantic validation is claimed")]
     worker_version: Ignored,
-    #[api(ignored = "This activity Model does not project \
+    #[mirror(ignored = "This activity Model does not project \
         RespondActivityTaskCanceledRequest.deployment; no semantic validation is claimed")]
     deployment: Ignored,
-    #[api(ignored = "This activity Model does not project \
+    #[mirror(ignored = "This activity Model does not project \
         RespondActivityTaskCanceledRequest.deployment_options; no semantic validation is claimed")]
     deployment_options: Ignored,
 }
 
 /// Cancellation acknowledgement carries no additional lifecycle evidence.
 #[derive(Catalog)]
-#[api(response = "temporal.api.workflowservice.v1.RespondActivityTaskCanceledResponse")]
+#[mirror(response = "temporal.api.workflowservice.v1.RespondActivityTaskCanceledResponse")]
 pub struct RespondActivityTaskCanceledResponse {}
 
 /// Timeout and payload limits apply before the standalone activity is scheduled.
 #[derive(Catalog)]
-#[api(request = "temporal.api.workflowservice.v1.StartActivityExecutionRequest")]
-#[api(
+#[rule(required(activity_type, task_queue), rejects = "activityType|taskQueue|task queue")]
+#[mirror(request = "temporal.api.workflowservice.v1.StartActivityExecutionRequest")]
+#[rule(
     any_of(schedule_to_close_timeout, start_to_close_timeout),
-    rejects = "a valid StartToCloseTimeout or ScheduleToCloseTimeout",
-    covers = TIMEOUTS,
+    rejects = "a valid StartToCloseTimeout or ScheduleToCloseTimeout"
 )]
 pub struct StartActivityExecutionRequest {
     namespace: Text,
-    #[api(max_bytes = dc::MAX_ID_LENGTH, rejects = "identity|Identity", covers = START)]
+    #[rule(max_bytes = dc::MAX_ID_LENGTH, rejects = "identity|Identity")]
     identity: Text,
-    #[api(
-        max_bytes = dc::MAX_ID_LENGTH,
-        idempotency_key,
-        rejects = "request ID exceeds length limit",
-        covers = START,
-    )]
-    #[api(also(uuid, accepts))]
+    #[mirror(idempotency_key)]
+    #[rule(max_bytes = dc::MAX_ID_LENGTH, rejects = "request ID exceeds length limit")]
+    #[mirror(also(uuid, accepts))]
     request_id: Text,
-    #[api(max_bytes = dc::MAX_ID_LENGTH, rejects = "activity[Ii][Dd]|activity ID")]
-    #[api(covers = ATTRIBUTES)]
+    #[rule(max_bytes = dc::MAX_ID_LENGTH, rejects = "activity[Ii][Dd]|activity ID")]
     activity_id: Identifier,
-    #[api(required, rejects = "activityType|taskQueue|task queue", covers = STANDALONE)]
+
     activity_type: Message<c::ActivityType>,
-    #[api(required, rejects = "activityType|taskQueue|task queue", covers = STANDALONE)]
+
     task_queue: Message<q::TaskQueue>,
-    #[api(gte = 0, rejects = "invalid ScheduleToCloseTimeout", covers = TIMEOUTS)]
+    #[rule(gte = 0, rejects = "invalid ScheduleToCloseTimeout")]
     schedule_to_close_timeout: Duration,
-    #[api(gte = 0, rejects = "invalid ScheduleToStartTimeout", covers = TIMEOUTS)]
+    #[rule(gte = 0, rejects = "invalid ScheduleToStartTimeout")]
     schedule_to_start_timeout: Duration,
-    #[api(gte = 0, rejects = "invalid StartToCloseTimeout", covers = TIMEOUTS)]
+    #[rule(gte = 0, rejects = "invalid StartToCloseTimeout")]
     start_to_close_timeout: Duration,
-    #[api(gte = 0, rejects = "invalid HeartbeatTimeout", covers = TIMEOUTS)]
+    #[rule(gte = 0, rejects = "invalid HeartbeatTimeout")]
     heartbeat_timeout: Duration,
     retry_policy: Message<c::RetryPolicy>,
-    #[api(max_len = dc::BLOB_SIZE_ERROR, rejects = "input exceeds length limit", covers = START)]
+    #[rule(max_len = dc::BLOB_SIZE_ERROR, rejects = "input exceeds length limit")]
     input: Message<c::Payloads>,
-    #[api(rejects = "unsupported ID reuse policy", covers = HANDLER)]
+    #[rule(rejects = "unsupported ID reuse policy")]
     id_reuse_policy: Enum<e::ActivityIdReusePolicy>,
-    #[api(rejects = "unsupported ID conflict policy", covers = HANDLER)]
+    #[rule(rejects = "unsupported ID conflict policy")]
     id_conflict_policy: Enum<e::ActivityIdConflictPolicy>,
-    #[api(ignored = "This activity Model does not project \
+    #[mirror(ignored = "This activity Model does not project \
         StartActivityExecutionRequest.search_attributes; no semantic validation is claimed")]
     search_attributes: Ignored,
-    #[api(ignored = "This activity Model does not project \
+    #[mirror(ignored = "This activity Model does not project \
         StartActivityExecutionRequest.header; no semantic validation is claimed")]
     header: Ignored,
-    #[api(ignored = "This activity Model does not project \
+    #[mirror(ignored = "This activity Model does not project \
         StartActivityExecutionRequest.user_metadata; no semantic validation is claimed")]
     user_metadata: Ignored,
-    #[api(ignored = "This activity Model does not project \
+    #[mirror(ignored = "This activity Model does not project \
         StartActivityExecutionRequest.priority; no semantic validation is claimed")]
     priority: Ignored,
-    #[api(ignored = "This activity Model does not project \
+    #[mirror(ignored = "This activity Model does not project \
         StartActivityExecutionRequest.completion_callbacks; no semantic validation is claimed")]
     completion_callbacks: Ignored,
-    #[api(ignored = "This activity Model does not project \
+    #[mirror(ignored = "This activity Model does not project \
         StartActivityExecutionRequest.links; no semantic validation is claimed")]
     links: Ignored,
-    #[api(ignored = "This activity Model does not project \
+    #[mirror(ignored = "This activity Model does not project \
         StartActivityExecutionRequest.on_conflict_options; no semantic validation is claimed")]
     on_conflict_options: Ignored,
-    #[api(gte = 0, rejects = "invalid StartDelay", covers = START_DELAY)]
+    #[rule(gte = 0, rejects = "invalid StartDelay")]
     start_delay: Duration,
 }
 
 /// The assigned run identifier is observed; execution links remain outside this Model.
 #[derive(Catalog)]
-#[api(response = "temporal.api.workflowservice.v1.StartActivityExecutionResponse")]
+#[rule(required(run_id))]
+#[mirror(response = "temporal.api.workflowservice.v1.StartActivityExecutionResponse")]
 pub struct StartActivityExecutionResponse {
-    #[api(required)]
     run_id: Uuid,
     started: Flag,
-    #[api(ignored = "This activity Model does not project \
+    #[mirror(ignored = "This activity Model does not project \
         StartActivityExecutionResponse.link; no semantic validation is claimed")]
     link: Ignored,
 }
 
 /// Long-poll tokens require an explicit run identifier.
 #[derive(Catalog)]
-#[api(request = "temporal.api.workflowservice.v1.DescribeActivityExecutionRequest")]
+#[rule(requires(long_poll_token, run_id), rejects = "run id is required")]
+#[mirror(request = "temporal.api.workflowservice.v1.DescribeActivityExecutionRequest")]
 pub struct DescribeActivityExecutionRequest {
     namespace: Text,
-    #[api(max_bytes = dc::MAX_ID_LENGTH, rejects = "activity[Ii][Dd]|activity ID")]
-    #[api(covers = DESCRIBE)]
+    #[rule(max_bytes = dc::MAX_ID_LENGTH, rejects = "activity[Ii][Dd]|activity ID")]
     activity_id: Identifier,
-    #[api(rejects = "invalid run id", covers = DESCRIBE)]
+    #[rule(rejects = "invalid run id")]
     run_id: Uuid,
-    #[api(ignored = "This activity Model does not project \
+    #[mirror(ignored = "This activity Model does not project \
         DescribeActivityExecutionRequest.include_input; no semantic validation is claimed")]
     include_input: Ignored,
-    #[api(ignored = "This activity Model does not project \
+    #[mirror(ignored = "This activity Model does not project \
         DescribeActivityExecutionRequest.include_outcome; no semantic validation is claimed")]
     include_outcome: Ignored,
-    #[api(requires = run_id, rejects = "run id is required", covers = DESCRIBE)]
+
     long_poll_token: Secret,
-    #[api(ignored = "This activity Model does not project \
+    #[mirror(ignored = "This activity Model does not project \
         DescribeActivityExecutionRequest.include_heartbeat_details; \
         no semantic validation is claimed")]
     include_heartbeat_details: Ignored,
-    #[api(ignored = "This activity Model does not project \
+    #[mirror(ignored = "This activity Model does not project \
         DescribeActivityExecutionRequest.include_last_failure; no semantic validation is claimed")]
     include_last_failure: Ignored,
 }
 
 /// Lifecycle metadata is required; optional external payloads remain Decided.
 #[derive(Catalog)]
-#[api(response = "temporal.api.workflowservice.v1.DescribeActivityExecutionResponse")]
+#[rule(required(info))]
+#[mirror(response = "temporal.api.workflowservice.v1.DescribeActivityExecutionResponse")]
 pub struct DescribeActivityExecutionResponse {
     run_id: Uuid,
-    #[api(required)]
-    #[api(decided)]
+
+    #[mirror(decided)]
     info: Message<a::ActivityExecutionInfo>,
-    #[api(decided)]
+    #[mirror(decided)]
     input: Message<c::Payloads>,
-    #[api(decided)]
+    #[mirror(decided)]
     outcome: Message<a::ActivityExecutionOutcome>,
     long_poll_token: Secret,
-    #[api(ignored = "This activity Model does not project \
+    #[mirror(ignored = "This activity Model does not project \
         DescribeActivityExecutionResponse.callbacks; no semantic validation is claimed")]
     callbacks: Ignored,
 }
 
 /// Outcome polling accepts an optional normalized run UUID.
 #[derive(Catalog)]
-#[api(request = "temporal.api.workflowservice.v1.PollActivityExecutionRequest")]
+#[mirror(request = "temporal.api.workflowservice.v1.PollActivityExecutionRequest")]
 pub struct PollActivityExecutionRequest {
     namespace: Text,
-    #[api(max_bytes = dc::MAX_ID_LENGTH, rejects = "activity[Ii][Dd]|activity ID", covers = POLL)]
+    #[rule(max_bytes = dc::MAX_ID_LENGTH, rejects = "activity[Ii][Dd]|activity ID")]
     activity_id: Identifier,
-    #[api(rejects = "invalid run id", covers = POLL)]
+    #[rule(rejects = "invalid run id")]
     run_id: Uuid,
 }
 
 /// The observed run identifier scopes the optional external outcome.
 #[derive(Catalog)]
-#[api(response = "temporal.api.workflowservice.v1.PollActivityExecutionResponse")]
+#[mirror(response = "temporal.api.workflowservice.v1.PollActivityExecutionResponse")]
 pub struct PollActivityExecutionResponse {
     run_id: Uuid,
-    #[api(decided)]
+    #[mirror(decided)]
     outcome: Message<a::ActivityExecutionOutcome>,
 }
 
 /// Cancellation intent is separate from the worker's eventual cancellation acknowledgement.
 #[derive(Catalog)]
-#[api(request = "temporal.api.workflowservice.v1.RequestCancelActivityExecutionRequest")]
+#[mirror(request = "temporal.api.workflowservice.v1.RequestCancelActivityExecutionRequest")]
 pub struct RequestCancelActivityExecutionRequest {
     namespace: Text,
-    #[api(max_bytes = dc::MAX_ID_LENGTH, rejects = "activity[Ii][Dd]|activity ID", covers = CANCEL)]
+    #[rule(max_bytes = dc::MAX_ID_LENGTH, rejects = "activity[Ii][Dd]|activity ID")]
     activity_id: Identifier,
-    #[api(rejects = "invalid run id", covers = CANCEL)]
+    #[rule(rejects = "invalid run id")]
     run_id: Uuid,
-    #[api(max_bytes = dc::MAX_ID_LENGTH, rejects = "identity|Identity", covers = CANCEL)]
+    #[rule(max_bytes = dc::MAX_ID_LENGTH, rejects = "identity|Identity")]
     identity: Text,
-    #[api(
-        max_bytes = dc::MAX_ID_LENGTH,
-        idempotency_key,
-        rejects = "request ID exceeds length limit",
-        covers = REQUEST_ID,
-        also(uuid, accepts),
-    )]
+    #[mirror(idempotency_key, also(uuid, accepts))]
+    #[rule(max_bytes = dc::MAX_ID_LENGTH, rejects = "request ID exceeds length limit")]
     request_id: Text,
-    #[api(max_bytes = dc::BLOB_SIZE_ERROR, rejects = "reason exceeds length limit", covers = CANCEL)]
+    #[rule(max_bytes = dc::BLOB_SIZE_ERROR, rejects = "reason exceeds length limit")]
     reason: Text,
 }
 
 /// Cancellation intent acknowledgement carries no additional lifecycle evidence.
 #[derive(Catalog)]
-#[api(response = "temporal.api.workflowservice.v1.RequestCancelActivityExecutionResponse")]
+#[mirror(response = "temporal.api.workflowservice.v1.RequestCancelActivityExecutionResponse")]
 pub struct RequestCancelActivityExecutionResponse {}
 
 use umpire_temporal_annotate::Binding;

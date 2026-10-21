@@ -101,15 +101,13 @@ pub struct CustomTag {
     pub consequence: Tag,
 }
 
-/// Expected server behavior with validator provenance.
+/// Expected server behavior.
 #[derive(Debug)]
 pub struct Expected {
     /// Accepts, Unobservable or Rejects.
     pub outcome: Ident,
     /// Status code, message pattern, optional details type for Rejects.
     pub reject: Option<(syn::LitInt, LitStr, Option<LitStr>)>,
-    /// Server validator.
-    pub covers: LitStr,
 }
 
 /// One presence algebra rule.

@@ -10,23 +10,21 @@ mod foundation {
     }
 }
 
-const VALIDATOR: &str = "validator.duration";
-
 #[derive(Clone, Default)]
 struct Wire {
     duration: Option<umpire_wasm::google::protobuf::Duration>,
 }
 
 #[derive(Catalog)]
-#[api(request = "test.Wire", type = Wire, covers = VALIDATOR)]
-#[api(response_checks = Raw)]
+#[mirror(request = "test.Wire", type = Wire)]
+#[mirror(response_checks = Raw)]
 struct Normalized {
-    #[api(accepts)]
+    #[rule(accepts)]
     duration: Duration,
 }
 
 #[derive(Catalog)]
-#[api(response = "test.Wire", type = Wire, supplemental)]
+#[mirror(response = "test.Wire", type = Wire, supplemental)]
 struct Raw {
     duration: RawDuration,
 }

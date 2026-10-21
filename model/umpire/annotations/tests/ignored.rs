@@ -115,10 +115,7 @@ fn ignored_opaque_fields_require_reasons_and_refuse_presence_dependencies() {
         ignored_catalog::<bool>(Kind::Bytes(BytesRules::default()), "outside this model")
             .rule(Rule {
                 presence: Presence::Required(vec!["value".into()]),
-                expected: Some(Expected {
-                    expectation: Expectation::Accepts,
-                    covers: "check".into()
-                }),
+                expected: Some(Expected { expectation: Expectation::Accepts }),
             })
             .build()
             .err(),

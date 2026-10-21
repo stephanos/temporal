@@ -6,9 +6,7 @@ extern crate self as umpire_temporal_annotate;
 pub use umpire_temporal_annotate_macros::{Catalog, annotate};
 
 pub mod kinds;
-mod provenance;
 pub mod views;
-pub use provenance::validator_has_name;
 pub use views::*;
 
 /// Recursive catalog inspection, parameterized by the caller's limit context.
@@ -89,22 +87,6 @@ mod view_tests {
     use super::foundation::views as conditional;
 
     #[test]
-    fn validator_provenance_requires_a_non_whitespace_name() {
-        for value in [
-            "",
-            " \t\n\r",
-            "\u{85}\u{a0}\u{1680}",
-            "\u{2000}\u{2001}\u{2002}\u{2003}\u{2004}\u{2005}\u{2006}\u{2007}\u{2008}\u{2009}\u{200a}",
-            "\u{2028}\u{2029}\u{202f}\u{205f}\u{3000}",
-        ] {
-            assert!(!super::validator_has_name(value));
-        }
-        for value in ["validator", " \u{200a}validator\u{3000}", "\u{200b}"] {
-            assert!(super::validator_has_name(value));
-        }
-    }
-
-    #[test]
     fn malformed_message_projection_is_a_value_free_refusal_without_mutation() {
         let original = Payload { data: vec![1], ..Default::default() };
         let mut value = Some(original.clone());
@@ -142,10 +124,7 @@ mod view_tests {
                     |value: &Option<Payload>| <_ as View<kinds::Message<Payload>>>::view(value),
                     <Option<Payload> as View<kinds::Message<Payload>>>::set,
                 )
-                .expects(&Expected {
-                    expectation: Expectation::Accepts,
-                    covers: "validator".into(),
-                }),
+                .expects(&Expected { expectation: Expectation::Accepts }),
             )
             .build()?;
         let baseline = Some(Payload::default());

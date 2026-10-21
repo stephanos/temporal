@@ -2,8 +2,7 @@
 source: umpire/annotations/tests/catalog.rs
 expression: report.to_string()
 ---
-example.Roles.decided: string.uuid: Accepted [covers: validateRequest]
-example.Roles.decided: string.uuid: Confirmed [covers: validateRequest]
-example.Roles.decided: string.uuid: Mismatch { expected: Some(Rejects { code: 3, message_pattern: "invalid identifier", details_type: Some("example.Invalid") }), actual: Rejected { code: 5, message_matches: false, details_type: None } } [covers: validateRequest]
-example.Roles.decided: string.uuid: Unverifiable [covers: validateRequest]
-Uncovered: validateOther
+example.Roles.decided: string.uuid: Accepted
+example.Roles.decided: string.uuid: Confirmed
+example.Roles.decided: string.uuid: Mismatch { expected: Some(Rejects { code: 3, message_pattern: "invalid identifier", details_type: Some("example.Invalid") }), actual: Rejected { code: 5, message_matches: false, details_type: None } }
+example.Roles.decided: string.uuid: Unverifiable

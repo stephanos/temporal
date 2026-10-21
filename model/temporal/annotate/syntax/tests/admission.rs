@@ -4,24 +4,25 @@
 fn derive_catalog_uses_shared_admission_and_discovery() -> Result<(), Box<dyn std::error::Error>> {
     let source = r#"
         #[derive(Catalog)]
-        #[api(request = "temporal.api.example.v1.Request", covers = validators::REQUEST)]
+        #[mirror(request = "temporal.api.example.v1.Request")]
+        #[rule(required(identity), rejects = "identity")]
         struct Request {
-            #[api(max_bytes = dc::MAX_ID_LENGTH, rejects = "identity", required)]
+            #[rule(max_bytes = dc::MAX_ID_LENGTH, rejects = "identity")]
             identity: Text,
-            #[api(ignored = "outside this model")]
+            #[mirror(ignored = "outside this model")]
             extra: Ignored,
         }
     "#;
     let catalogs = umpire_temporal_annotate_syntax::catalogs(source)?;
     assert_eq!(catalogs.len(), 1);
     assert_eq!(catalogs[0].coverage().messages[0].fields, ["identity", "extra"]);
-    for replacement in ["#[api(ignored = \"\")]", "#[api(observed, decided)]"] {
-        let invalid = source.replace("#[api(ignored = \"outside this model\")]", replacement);
+    for replacement in ["#[mirror(ignored = \"\")]", "#[mirror(observed, decided)]"] {
+        let invalid = source.replace("#[mirror(ignored = \"outside this model\")]", replacement);
         assert!(umpire_temporal_annotate_syntax::catalogs(&invalid).is_err());
     }
     let missing = source.replace(
-        "#[api(max_bytes = dc::MAX_ID_LENGTH, rejects = \"identity\", required)]",
-        "#[api(max_bytes = dc::MAX_ID_LENGTH)]",
+        "#[rule(max_bytes = dc::MAX_ID_LENGTH, rejects = \"identity\")]",
+        "#[rule(max_bytes = dc::MAX_ID_LENGTH)]",
     );
     assert!(umpire_temporal_annotate_syntax::catalogs(&missing).is_err());
     Ok(())
@@ -30,18 +31,18 @@ fn derive_catalog_uses_shared_admission_and_discovery() -> Result<(), Box<dyn st
 #[test]
 fn derive_attributes_preserve_admission_errors() {
     for (declaration, expected) in [
-        ("#[api(ignored = \"\")] value: Ignored", "valid literal reason"),
+        ("#[mirror(ignored = \"\")] value: Ignored", "valid literal reason"),
         ("value: Ignored", "explicit ignored reason"),
-        ("#[api(observed)] value: Secret", "contradictory"),
-        ("#[api(decided, observed)] value: Text", "contradictory"),
-        ("#[api(monotone)] value: Text", "incompatible"),
-        ("#[api(required)] value: Text", "expectation"),
-        ("#[api(requires = absent, accepts)] value: Text", "unknown rule field"),
-        ("#[api(max_bytes = true, accepts)] value: Text", "incompatible"),
-        ("#[api(unknown)] value: Text", "unknown api attribute"),
+        ("#[mirror(observed)] value: Secret", "contradictory"),
+        ("#[mirror(decided, observed)] value: Text", "contradictory"),
+        ("#[mirror(monotone)] value: Text", "incompatible"),
+        ("#[rule(required)] value: Text", "expected parentheses"),
+        ("#[rule(required(value), accepts)] value: Text", "presence rules belong"),
+        ("#[rule(max_bytes = true, accepts)] value: Text", "incompatible"),
+        ("#[rule(unknown)] value: Text", "unknown catalog attribute"),
     ] {
         let source = format!(
-            "#[derive(Catalog)] #[api(request = \"test.Request\", covers = validators::REQUEST)] struct Request {{ {declaration}, }}"
+            "#[derive(Catalog)] #[mirror(request = \"test.Request\")] struct Request {{ {declaration}, }}"
         );
         let error = umpire_temporal_annotate_syntax::catalogs(&source).err();
         let Some(error) = error else { panic!("expected admission failure: {source}") };
@@ -55,7 +56,7 @@ fn supplemental_mirrors_do_not_claim_descriptor_coverage() -> Result<(), Box<dyn
     let source = r#"
         mod nested {
             #[derive(Catalog)]
-            #[api(response = "test.Response", supplemental)]
+            #[mirror(response = "test.Response", supplemental)]
             struct Raw { value: Counter }
         }
     "#;
@@ -66,10 +67,10 @@ fn supplemental_mirrors_do_not_claim_descriptor_coverage() -> Result<(), Box<dyn
 #[test]
 fn derive_validates_supplemental_intents_and_nested_map_coverage()
 -> Result<(), Box<dyn std::error::Error>> {
-    let invalid = r#"#[derive(Catalog)] #[api(request = "test.Request")]
-        struct Request { #[api(also(uuid))] id: Text }"#;
+    let invalid = r#"#[derive(Catalog)] #[mirror(request = "test.Request")]
+        struct Request { #[mirror(also(uuid))] id: Text }"#;
     assert!(umpire_temporal_annotate_syntax::catalogs(invalid).is_err());
-    let source = r#"#[derive(Catalog)] #[api(response = "test.Payload")]
+    let source = r#"#[derive(Catalog)] #[mirror(response = "test.Payload")]
         struct Payload { metadata: Map<Text, Secret> }"#;
     let coverage = umpire_temporal_annotate_syntax::catalogs(source)?[0].coverage();
     assert_eq!(coverage.messages.len(), 2);
@@ -82,10 +83,10 @@ fn derive_validates_supplemental_intents_and_nested_map_coverage()
 fn stacked_presence_expectations_may_differ_from_field_constraints()
 -> Result<(), Box<dyn std::error::Error>> {
     let source = r#"#[derive(Catalog)]
-        #[api(request = "test.Request", covers = validators::REQUEST)]
+        #[mirror(request = "test.Request")]
+        #[rule(required(name), rejects = "missing")]
         struct Request {
-            #[api(max_bytes = 4, rejects = "too long")]
-            #[api(required, rejects = "missing")]
+            #[rule(max_bytes = 4, rejects = "too long")]
             name: Text,
         }"#;
     let input: syn::DeriveInput = syn::parse_str(source)?;
@@ -97,9 +98,34 @@ fn stacked_presence_expectations_may_differ_from_field_constraints()
 
 #[test]
 fn disabled_derive_enum_constraint_needs_no_expectation() {
-    let source = r#"#[derive(Catalog)] #[api(request = "test.Request")]
-        struct Request { #[api(defined_only = false)] state: Enum<State> }"#;
+    let source = r#"#[derive(Catalog)] #[mirror(request = "test.Request")]
+        struct Request { #[rule(defined_only = false)] state: Enum<State> }"#;
     assert!(umpire_temporal_annotate_syntax::catalogs(source).is_ok());
+}
+
+#[test]
+fn item_presence_algebra_and_helper_boundaries_are_explicit() {
+    for rule in
+        ["required(a, b)", "any_of(a, b)", "one_of(a, b)", "requires(a, b)", "excludes(a, b)"]
+    {
+        let source = format!(
+            "#[derive(Catalog)] #[mirror(request = \"test.Request\")] #[rule({rule}, rejects)] struct Request {{ a: Text, b: Text }}"
+        );
+        assert!(umpire_temporal_annotate_syntax::catalogs(&source).is_ok(), "{source}");
+    }
+    for attribute in [
+        "#[rule(covers = retired::VALIDATOR)]",
+        "#[mirror(max_bytes = 1, accepts)]",
+        "#[rule(observed)]",
+        "#[rule(required(a))]",
+        "#[rule(required(absent), accepts)]",
+        "#[rule(conflicts_with(a, b), accepts)]",
+    ] {
+        let source = format!(
+            "#[derive(Catalog)] #[mirror(request = \"test.Request\")] {attribute} struct Request {{ a: Text, b: Text }}"
+        );
+        assert!(umpire_temporal_annotate_syntax::catalogs(&source).is_err(), "{source}");
+    }
 }
 
 #[test]
@@ -139,11 +165,11 @@ fn disabled_repeated_constraint_needs_no_request_expectation() {
 #[test]
 fn string_byte_constraints_require_typed_literals_and_request_expectations() {
     for (kind, bound, expected, valid) in [
-        ("Text", "min_bytes = 2, max_bytes = 4", "=> Accepts covers \"validator\"", true),
-        ("Identifier", "max_bytes = 4", "=> Accepts covers \"validator\"", true),
+        ("Text", "min_bytes = 2, max_bytes = 4", "=> Accepts", true),
+        ("Identifier", "max_bytes = 4", "=> Accepts", true),
         ("Text", "max_bytes = 4", "", false),
-        ("Text", "max_bytes = true", "=> Accepts covers \"validator\"", false),
-        ("Bytes", "max_bytes = 4", "=> Accepts covers \"validator\"", false),
+        ("Text", "max_bytes = true", "=> Accepts", false),
+        ("Bytes", "max_bytes = 4", "=> Accepts", false),
     ] {
         let source = format!(
             "catalog C; message request request: Request = \"test.Request\" {{ value: {kind}[{bound}] {expected}; }}"

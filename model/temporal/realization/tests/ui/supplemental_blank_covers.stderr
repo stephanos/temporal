@@ -1,11 +1,11 @@
-error[E0080]: evaluation panicked: covers requires a nonblank validator
- --> tests/ui/supplemental_blank_covers.rs:8:10
+error: request constraint requires an expectation
+ --> tests/ui/supplemental_blank_covers.rs:7:39
   |
-8 | #[derive(Catalog)]
-  |          ^^^^^^^ evaluation of `Ascii::catalog::_` failed here
+7 | struct Supplemental { #[api(accepts)] value: Uuid }
+  |                                       ^^^^^
 
-error[E0080]: evaluation panicked: covers requires a nonblank validator
-  --> tests/ui/supplemental_blank_covers.rs:11:10
-   |
-11 | #[derive(Catalog)]
-   |          ^^^^^^^ evaluation of `Unicode::catalog::_` failed here
+error: cannot find attribute `api` in this scope
+ --> tests/ui/supplemental_blank_covers.rs:7:25
+  |
+7 | struct Supplemental { #[api(accepts)] value: Uuid }
+  |                         ^^^

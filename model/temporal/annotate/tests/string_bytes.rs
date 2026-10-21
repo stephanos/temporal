@@ -8,7 +8,7 @@ struct Request {
 umpire_temporal_annotate::annotate! {
     catalog controls;
     message request request: Request = "example.Request" {
-        text: Text[min_bytes = 2, max_bytes = 4] => Accepts covers "validator";
+        text: Text[min_bytes = 2, max_bytes = 4] => Accepts;
     }
 }
 

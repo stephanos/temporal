@@ -18,10 +18,6 @@ mod foundation {
     }
 }
 
-mod validators {
-    pub(crate) const REQUEST: &str = "validator.request";
-}
-
 #[derive(Clone, Default)]
 struct Wire {
     id: String,
@@ -34,20 +30,23 @@ struct Wire {
 
 /// Describes a request without retaining its values.
 #[derive(Catalog)]
-#[api(request = "test.Wire", type = Wire, covers = validators::REQUEST)]
+#[rule(required(id), accepts)]
+#[rule(required(other), rejects)]
+#[mirror(request = "test.Wire", type = Wire)]
 struct Request {
-    #[api(required, idempotency_key, accepts)]
+    #[mirror(idempotency_key)]
+    #[rule(accepts)]
     id: Uuid,
     /// Limits text by UTF-8 byte count.
-    #[api(max_bytes = foundation::dc::MAX_ID_LENGTH, rejects = "too long")]
+    #[rule(max_bytes = foundation::dc::MAX_ID_LENGTH, rejects = "too long")]
     text: Text,
-    #[api(required, rejects)]
-    #[api(also(uuid, accepts))]
+
+    #[mirror(also(uuid, accepts))]
     other: Text,
-    #[api(gte = 1, rejects(NotFound, "missing"))]
+    #[rule(gte = 1, rejects(NotFound, "missing"))]
     count: Counter,
     flag: Flag,
-    #[api(accepts)]
+    #[rule(accepts)]
     coefficient: Number,
 }
 
@@ -102,19 +101,19 @@ struct NestedWire {
 }
 
 #[derive(Catalog)]
-#[api(response = "test.Child", type = Child)]
+#[mirror(response = "test.Child", type = Child)]
 struct ChildCatalog {
-    #[api(max_bytes = 2)]
+    #[rule(max_bytes = 2)]
     value: Text,
 }
 
 #[derive(Catalog)]
-#[api(response = "test.Nested", type = NestedWire)]
-#[api(any_of(result, failure))]
+#[mirror(response = "test.Nested", type = NestedWire)]
+#[rule(any_of(result, failure))]
 struct NestedCatalog {
     child: Message<Child>,
     children: Vec<Message<Child>>,
-    #[api(oneof(Result = "result", Failure = "failure"))]
+    #[mirror(oneof(Result = "result", Failure = "failure"))]
     choice: OneOf<Choice>,
     metadata: Map<Text, Secret>,
 }
@@ -158,11 +157,11 @@ struct TypedWire {
 }
 
 #[derive(Catalog)]
-#[api(response = "test.Typed", type = TypedWire)]
+#[mirror(response = "test.Typed", type = TypedWire)]
 struct TypedCatalog {
     state: Enum<State>,
     raw: RawDuration,
-    #[api(max_items = 1)]
+    #[rule(max_items = 1)]
     labels: Vec<Text>,
 }
 
@@ -194,16 +193,16 @@ struct OpenResponse {
 }
 
 #[derive(Catalog)]
-#[api(request = "test.OpenRequest", type = OpenRequest)]
+#[mirror(request = "test.OpenRequest", type = OpenRequest)]
 struct OpenRequestCatalog {
-    #[api(defined_only = false)]
+    #[rule(defined_only = false)]
     state: Enum<State>,
 }
 
 #[derive(Catalog)]
-#[api(response = "test.OpenResponse", type = OpenResponse)]
+#[mirror(response = "test.OpenResponse", type = OpenResponse)]
 struct OpenResponseCatalog {
-    #[api(defined_only = false)]
+    #[rule(defined_only = false)]
     state: Enum<State>,
 }
 

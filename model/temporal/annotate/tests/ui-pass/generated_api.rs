@@ -3,7 +3,7 @@ mod foundation;
 use umpire_temporal_annotate::{Catalog, kinds::*};
 use umpire_temporal_api::temporal::api::common::v1::WorkflowExecution;
 #[derive(Catalog)]
-#[api(response = "temporal.api.common.v1.WorkflowExecution")]
+#[mirror(response = "temporal.api.common.v1.WorkflowExecution")]
 struct Execution {
     workflow_id: Identifier,
     run_id: Uuid,

@@ -625,7 +625,7 @@ changes; review changed findings before updating any golden.
 ### Validation and the first gap report
 
 Request constraints and presence rules carry typed rejection, `Accepts` or `Unobservable`
-expectations, plus nonempty `covers` paths naming generated server-function identities.
+expectations. Server rules use `#[rule]`; protobuf mapping uses `#[mirror]`.
 `validate` reads typed values without mutation; `fill` preserves supplied values and roles,
 uses a seed and refuses unfillable fields. The activity adapter only fills absent request IDs.
 Its request findings exclude declared Accepts; response findings preserve every violation and
@@ -640,18 +640,18 @@ Unverifiable; intentional `Accepts` succeeding is Confirmed. Mismatch and unexpe
 fail unless a source-reviewed `AcceptedGap` has a valid calendar date and nonblank reason.
 The activity registry is empty.
 
-The first retained [golden](temporal/feature/activity/expected/gaps.txt) has 62 Confirmed
+The original [golden](temporal/feature/activity/expected/gaps.txt) had 62 Confirmed
 (52 expected rejections and 10 intentional acceptances), zero Mismatch/Accepted/Unverifiable,
-73 uncovered validator entries and three unresolved seams. The initial live report found two
+before black-box schema mutations replaced server-source mapping. The initial report found two
 wrong Accepts declarations for unknown Start `id_reuse_policy` and `id_conflict_policy`.
 The downstream `chasm/lib/activity.handler.StartActivityExecution` rejects both; correcting
-the expectations and their provenance confirmed them without changing the Model or server.
+the expectations confirmed them without changing the Model or server.
 
-Reverse coverage verifies actual qualified package/receiver/function identities and fails
-when a listed target vanishes. Its bounded Go AST walk reports uncovered helper/inline checks
-and unresolved calls without failing. The unresolved seams are callback-validator `Validate`,
-visibility-manager `ValidateCustomSearchAttributes` and duration `CheckValid`. This is bounded
-source coverage of the touched RPC paths, not whole-program validation coverage.
+Black-box reverse checks mutate every request field from raw protobuf descriptors, independent
+of catalog constraints, including ignored fields. Typed Rust setters construct absent, empty,
+limit-plus-one, negative and undefined-enum witnesses where applicable. Traversal is bounded;
+cycles, depth limits and inapplicable mutations remain explicit. Unpredicted server rejections
+are `Unannotated` failures, not validator-source coverage or automatically accepted gaps.
 
 `Monotone`, `Immutable`, `Cached { ttl }`, `EventuallyConsistent { polls }`,
 `IdempotencyKey` and the three roles proved system-free and already live in Umpire.

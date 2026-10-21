@@ -33,6 +33,7 @@ use umpire_temporal_api::{
 use umpire_wasm::google::protobuf::Duration;
 
 mod dispositions;
+mod generic;
 
 type Result<T> = std::result::Result<T, Box<dyn std::error::Error>>;
 const UUID: &str = "12345678-1234-4234-8234-123456789abc";
@@ -232,7 +233,6 @@ impl Entry {
             id: self.id(),
             method: method(self.method),
             prerequisite: self.prerequisite.into(),
-            covers: expected.covers.clone(),
             ..Default::default()
         };
         match &expected.expectation {
@@ -432,25 +432,20 @@ impl Wire {
     }
     fn decoded(&self) -> Result<Self> {
         let bytes = self.bytes();
+        self.decoded_from(&bytes)
+    }
+    fn decoded_from(&self, bytes: &[u8]) -> Result<Self> {
         Ok(match self {
-            Self::Start(_) => Self::Start(StartActivityExecutionRequest::decode(bytes.as_slice())?),
-            Self::Describe(_) => {
-                Self::Describe(DescribeActivityExecutionRequest::decode(bytes.as_slice())?)
-            }
-            Self::Poll(_) => Self::Poll(PollActivityExecutionRequest::decode(bytes.as_slice())?),
-            Self::Cancel(_) => {
-                Self::Cancel(RequestCancelActivityExecutionRequest::decode(bytes.as_slice())?)
-            }
-            Self::Queue(_) => Self::Queue(PollActivityTaskQueueRequest::decode(bytes.as_slice())?),
+            Self::Start(_) => Self::Start(StartActivityExecutionRequest::decode(bytes)?),
+            Self::Describe(_) => Self::Describe(DescribeActivityExecutionRequest::decode(bytes)?),
+            Self::Poll(_) => Self::Poll(PollActivityExecutionRequest::decode(bytes)?),
+            Self::Cancel(_) => Self::Cancel(RequestCancelActivityExecutionRequest::decode(bytes)?),
+            Self::Queue(_) => Self::Queue(PollActivityTaskQueueRequest::decode(bytes)?),
             Self::Completed(_) => {
-                Self::Completed(RespondActivityTaskCompletedRequest::decode(bytes.as_slice())?)
+                Self::Completed(RespondActivityTaskCompletedRequest::decode(bytes)?)
             }
-            Self::Failed(_) => {
-                Self::Failed(RespondActivityTaskFailedRequest::decode(bytes.as_slice())?)
-            }
-            Self::Canceled(_) => {
-                Self::Canceled(RespondActivityTaskCanceledRequest::decode(bytes.as_slice())?)
-            }
+            Self::Failed(_) => Self::Failed(RespondActivityTaskFailedRequest::decode(bytes)?),
+            Self::Canceled(_) => Self::Canceled(RespondActivityTaskCanceledRequest::decode(bytes)?),
         })
     }
     fn findings(&self) -> Result<Vec<Violation>> {
@@ -773,13 +768,34 @@ fn recipe(bytes: &[u8]) -> Result<ProbeRecipe> {
 /// # Errors
 /// Refuses missing prerequisites, unsupported mutations, invalid baselines/witnesses and incomplete observations.
 pub fn probe(request: &ProbeRequest) -> Result<ProbeResponse> {
+    if request.encoded_len() > 1024 * 1024 - 1024
+        || request.observations.len() > generic::MAX_CASES
+        || request.case_id.len() > 4096
+        || request.observations.iter().any(|observation| {
+            observation.case_id.len() > 4096
+                || observation.predictions.len() > generic::MAX_PREDICTIONS
+                || observation.details_type.len() > 512
+                || observation.refusal.len() > 256
+        })
+    {
+        return Err("probe request exceeds metadata budget".into());
+    }
     let entries = inventory()?;
+    let generic_entries = generic::inventory()?;
     match Operation::try_from(request.operation)? {
         Operation::Inventory => Ok(ProbeResponse {
-            cases: entries.iter().map(Entry::metadata).collect::<Result<_>>()?,
+            cases: entries
+                .iter()
+                .map(Entry::metadata)
+                .chain(generic_entries.iter().map(|entry| entry.declaration(&entries)))
+                .collect::<Result<_>>()?,
             ..Default::default()
         }),
         Operation::Prepare => {
+            if let Some(entry) = generic_entries.iter().find(|entry| entry.id() == request.case_id)
+            {
+                return entry.prepare(request, &entries);
+            }
             let entry = entries.iter().find(|entry| entry.id() == request.case_id);
             let selector = if request.case_id.is_empty() {
                 "StartActivityExecution"
@@ -830,12 +846,20 @@ pub fn probe(request: &ProbeRequest) -> Result<ProbeResponse> {
             }
             Ok(response)
         }
-        Operation::Classify => classify(request, entries),
+        Operation::Classify => classify(request, &entries, generic_entries),
     }
 }
 
-fn classify(request: &ProbeRequest, entries: Vec<Entry>) -> Result<ProbeResponse> {
-    let expected: BTreeSet<_> = entries.iter().map(Entry::id).collect();
+fn classify(
+    request: &ProbeRequest,
+    entries: &[Entry],
+    generic_entries: Vec<generic::Entry>,
+) -> Result<ProbeResponse> {
+    let expected: BTreeSet<_> = entries
+        .iter()
+        .map(Entry::id)
+        .chain(generic_entries.iter().map(generic::Entry::id))
+        .collect();
     let dispositions = dispositions::Dispositions::new(
         expected.iter().map(String::as_str),
         crate::activity_api::accepted_probe_gaps(),
@@ -856,16 +880,16 @@ fn classify(request: &ProbeRequest, entries: Vec<Entry>) -> Result<ProbeResponse
             .iter()
             .find(|v| v.case_id == entry.id())
             .ok_or("missing observation")?;
-        let actual = if observation.accepted {
-            ProbeResult::Accepted
-        } else {
-            ProbeResult::Rejected {
-                code: observation.code,
-                message_matches: observation.message_matches,
-                details_type: (!observation.details_type.is_empty())
-                    .then(|| observation.details_type.clone()),
-            }
-        };
+        if observation.applicability != 0
+            || !observation.refusal.is_empty()
+            || observation.prediction_count != 0
+            || !observation.predictions.is_empty()
+            || (observation.accepted && observation.code != 0)
+            || (!observation.accepted && !(1..=16).contains(&observation.code))
+        {
+            return Err("strict observation contains generic or inconsistent metadata".into());
+        }
+        let actual = observation_result(observation);
         let mut row =
             GapEntry::checked(entry.target.violation.clone(), actual)?.metadata(&entry.target);
         dispositions.apply(&entry.id(), &mut row);
@@ -875,6 +899,9 @@ fn classify(request: &ProbeRequest, entries: Vec<Entry>) -> Result<ProbeResponse
             GapOutcome::Mismatch(_) => 1,
             GapOutcome::Accepted => 2,
             GapOutcome::Unverifiable => 3,
+            GapOutcome::Unannotated(_) => {
+                return Err("strict probe produced an unannotated outcome".into());
+            }
         };
         outcomes[outcome] += 1;
         let expectation = match &entry
@@ -900,7 +927,7 @@ fn classify(request: &ProbeRequest, entries: Vec<Entry>) -> Result<ProbeResponse
             text,
             "Case: {} [expects: {expectation}]\n{}",
             entry.id(),
-            GapReport { entries: vec![row], uncovered_validators: Vec::new() }
+            GapReport { entries: vec![row] }
         )?;
         for companion in entry.companions()? {
             writeln!(
@@ -908,17 +935,6 @@ fn classify(request: &ProbeRequest, entries: Vec<Entry>) -> Result<ProbeResponse
                 "Companion: {companion} (Accepts; UUID syntax and excessive request-ID length cannot coexist)"
             )?;
         }
-    }
-    text.push_str(
-        &GapReport {
-            entries: Vec::new(),
-            uncovered_validators: request.uncovered_validators.clone(),
-        }
-        .to_string(),
-    );
-    let unresolved: BTreeSet<_> = request.unresolved_validators.iter().collect();
-    for validator in unresolved {
-        writeln!(text, "Unresolved: {validator}")?;
     }
     writeln!(
         text,
@@ -930,5 +946,57 @@ fn classify(request: &ProbeRequest, entries: Vec<Entry>) -> Result<ProbeResponse
         cases - intentional_accepts
     )?;
     writeln!(text, "Loose expectations: {loose_expectations}")?;
+    fails |= classify_generic(request, entries, generic_entries, &dispositions, &mut text)?;
     Ok(ProbeResponse { report: text, fails, ..Default::default() })
+}
+
+fn classify_generic(
+    request: &ProbeRequest,
+    entries: &[Entry],
+    generic_entries: Vec<generic::Entry>,
+    dispositions: &dispositions::Dispositions,
+    text: &mut String,
+) -> Result<bool> {
+    let mut fails = false;
+    let mut tested = 0;
+    let mut local = 0;
+    for entry in generic_entries {
+        let observation = request
+            .observations
+            .iter()
+            .find(|v| v.case_id == entry.id())
+            .ok_or("missing generic observation")?;
+        let mut rows = entry.classify(observation, entries)?;
+        for row in &mut rows {
+            dispositions.apply(&entry.id(), row);
+            fails |= row.fails();
+        }
+        if observation.applicability == 0 {
+            tested += 1;
+        } else {
+            local += 1;
+        }
+        writeln!(text, "Generic case: {}", entry.id())?;
+        for prediction in &observation.predictions {
+            writeln!(text, "Prediction: {}", prediction.prediction_id)?;
+        }
+        write!(text, "{}", GapReport { entries: rows })?;
+    }
+    writeln!(text, "Generic summary: tested={tested} local_not_tested={local}")?;
+    Ok(fails)
+}
+
+fn observation_result(
+    observation: &umpire_temporal_api::umpire::temporal::v1::ProbeObservation,
+) -> ProbeResult {
+    if observation.accepted {
+        ProbeResult::Accepted
+    } else {
+        ProbeResult::Rejected {
+            code: observation.code,
+            message_matches: observation.message_matches,
+            details_type: (!observation.details_type.is_empty())
+                .then(|| observation.details_type.clone()),
+        }
+    }
 }

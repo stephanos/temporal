@@ -334,7 +334,7 @@ fn impossible_presence_rules_refuse_without_mutating_message_or_rng()
 }
 
 fn expected(expectation: Expectation) -> Expected {
-    Expected { expectation, covers: "validateRequest".into() }
+    Expected { expectation }
 }
 
 fn rejects() -> Expected {
@@ -624,7 +624,6 @@ fn gap_goldens_are_derived_from_validation_and_redact_secret_values()
     ] {
         report.entries.push(GapEntry::new(violations[0].clone(), actual));
     }
-    report.uncovered_validators = vec!["validateOther".into()];
     assert!(report.fails());
     assert!(!report.to_string().contains(&message.secret));
     insta::assert_snapshot!("gaps", report.to_string());

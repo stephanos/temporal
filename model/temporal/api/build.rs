@@ -14,6 +14,7 @@ use umpire_temporal_annotate_syntax::{
 
 mod codegen;
 mod services;
+mod wire_schema;
 
 fn main() -> io::Result<()> {
     let root = PathBuf::from(
@@ -56,6 +57,10 @@ fn main() -> io::Result<()> {
     fs::write(
         linked.with_file_name("services.rs"),
         services::generate(&descriptors, &coverage, &classifications).map_err(io::Error::other)?,
+    )?;
+    fs::write(
+        linked.with_file_name("wire_schema.rs"),
+        wire_schema::generate(&descriptors).map_err(io::Error::other)?,
     )?;
 
     codegen::generate(

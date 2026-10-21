@@ -24,6 +24,8 @@ pub enum ProbeResult {
 /// Relationship between a catalog expectation and one server observation.
 #[derive(Clone, Debug, PartialEq, Eq)]
 pub enum GapOutcome {
+    /// The server rejected a mutation for which no observable rule predicted behavior.
+    Unannotated(ProbeResult),
     /// Actual behavior matches the declared expectation.
     Confirmed,
     /// The server rejected differently, or rejected an expected acceptance.
@@ -34,7 +36,7 @@ pub enum GapOutcome {
     Unverifiable,
 }
 
-/// An explicit, dated acknowledgment of one mismatch.
+/// An explicit, dated acknowledgment of one observed gap.
 #[derive(Clone, Debug, PartialEq, Eq)]
 pub struct AcceptedGap {
     /// ISO calendar date, `YYYY-MM-DD`.
@@ -80,7 +82,7 @@ impl AcceptedGap {
     }
 }
 
-/// One report row derived from an actual validation finding.
+/// One report row derived from a declared rule or independent mutation.
 #[derive(Clone, Debug, PartialEq, Eq)]
 pub struct GapEntry {
     /// Actual rejection status retained independently of raw server diagnostics.
@@ -97,13 +99,13 @@ pub struct GapEntry {
     pub accepted_gap: Option<AcceptedGap>,
 }
 
-/// An observable expectation was reported without an observation.
+/// Probe evidence is missing, crossed or inconsistent with its declared applicability.
 #[derive(Clone, Copy, Debug, PartialEq, Eq)]
 pub struct GapError;
 
 impl fmt::Display for GapError {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
-        f.write_str("observable expectation requires a probe result")
+        f.write_str("probe observations are missing, crossed or inconsistent")
     }
 }
 impl std::error::Error for GapError {}
@@ -184,8 +186,10 @@ impl GapEntry {
     }
     /// Whether this row is an unacknowledged server gap.
     pub fn fails(&self) -> bool {
-        matches!(self.outcome, GapOutcome::Mismatch(_) | GapOutcome::Accepted)
-            && !self.accepted_gap.as_ref().is_some_and(AcceptedGap::is_valid)
+        matches!(
+            self.outcome,
+            GapOutcome::Mismatch(_) | GapOutcome::Accepted | GapOutcome::Unannotated(_)
+        ) && !self.accepted_gap.as_ref().is_some_and(AcceptedGap::is_valid)
     }
 }
 
@@ -194,12 +198,10 @@ impl GapEntry {
 pub struct GapReport {
     /// Actual probe findings; rendered in canonical order.
     pub entries: Vec<GapEntry>,
-    /// Server validators without catalog coverage, reported but not failed.
-    pub uncovered_validators: Vec<String>,
 }
 
 impl GapReport {
-    /// Fails on unacknowledged Accepted or Mismatch rows.
+    /// Fails on unacknowledged Accepted, Mismatch or Unannotated rows.
     pub fn fails(&self) -> bool {
         self.entries.iter().any(GapEntry::fails)
     }
@@ -238,21 +240,23 @@ impl fmt::Display for GapReport {
                 }
                 GapOutcome::Accepted => write!(f, "Accepted")?,
                 GapOutcome::Unverifiable => write!(f, "Unverifiable")?,
+                GapOutcome::Unannotated(actual) => {
+                    write!(f, "Unannotated {{ actual: {actual:?} }}")?;
+                }
                 GapOutcome::Mismatch(actual) => write!(
                     f,
                     "Mismatch {{ expected: {:?}, actual: {actual:?} }}",
                     entry.violation.expected.as_ref().map(|expected| &expected.expectation)
                 )?,
             }
-            if let Some(expected) = &entry.violation.expected {
-                write!(f, " [covers: {}]", expected.covers)?;
-                if matches!(
+            if let Some(expected) = &entry.violation.expected
+                && matches!(
                     expected.expectation,
                     Expectation::RejectsCode(_) | Expectation::RejectsAnyStatus
-                ) && let Some(code) = entry.actual_status
-                {
-                    write!(f, " [actual status: {code}; message redacted]")?;
-                }
+                )
+                && let Some(code) = entry.actual_status
+            {
+                write!(f, " [actual status: {code}; message redacted]")?;
             }
             if entry.inherited_pattern {
                 write!(f, " (inherited pattern)")?;
@@ -264,12 +268,6 @@ impl fmt::Display for GapReport {
                 write!(f, " [accepted {}: {}]", accepted.date, accepted.reason)?;
             }
             writeln!(f)?;
-        }
-        let mut uncovered = self.uncovered_validators.clone();
-        uncovered.sort();
-        uncovered.dedup();
-        for validator in uncovered {
-            writeln!(f, "Uncovered: {validator}")?;
         }
         let loose = self
             .entries

@@ -1,7 +1,7 @@
 //! The shared attribute grammar for compiler expansion and descriptor admission.
 
 use proc_macro2::Span;
-use quote::{format_ident, quote};
+use quote::format_ident;
 use syn::{
     Attribute, DeriveInput, Expr, Ident, Lit, LitStr, Path, Token, Type, ext::IdentExt,
     parse::ParseStream, punctuated::Punctuated,
@@ -24,8 +24,6 @@ pub struct DeriveCatalog {
     pub supplemental: bool,
     /// Message description from Rust doc comments.
     pub description: String,
-    /// Default compile-checked validator provenance.
-    pub covers: Option<Path>,
     /// Supplemental mirror used only when inspecting a response.
     pub response_checks: Option<Path>,
     /// Field declarations in source order.
@@ -56,10 +54,6 @@ pub struct DeriveRule {
     pub fields: Vec<Ident>,
     /// Expected server behavior.
     pub expected: Option<ApiExpectation>,
-    /// Compile-checked validator path.
-    pub covers: Option<Path>,
-    /// Presence inherited the field's rejection pattern.
-    pub inherited_pattern: bool,
 }
 
 /// Expected behavior in the attribute surface.
@@ -86,8 +80,6 @@ pub struct ApiAttributes {
     pub proto_type: Option<Path>,
     /// Excludes a second mirror from exhaustive ownership.
     pub supplemental: bool,
-    /// Validator provenance.
-    pub covers: Option<Path>,
     /// Constraint expressions, including dynamic config constants.
     pub constraints: Vec<(Ident, Expr)>,
     /// Builtin annotation consequences.
@@ -141,10 +133,6 @@ impl syn::parse::Parse for ApiAttributes {
                     set_once(&mut result.proto_type, input.parse()?, span, "type")?;
                 }
                 "supplemental" => result.supplemental = true,
-                "covers" => {
-                    input.parse::<Token![=]>()?;
-                    set_once(&mut result.covers, input.parse()?, span, "covers")?;
-                }
                 "via" => {
                     input.parse::<Token![=]>()?;
                     set_once(&mut result.via, input.parse()?, span, "via")?;
@@ -165,12 +153,7 @@ impl syn::parse::Parse for ApiAttributes {
                     };
                     set_once(&mut result.expected, expected, span, "expectation")?;
                 }
-                "required" => result.rules.push((key, Vec::new())),
-                "requires" | "conflicts_with" => {
-                    input.parse::<Token![=]>()?;
-                    result.rules.push((key, vec![input.parse()?]));
-                }
-                "any_of" | "one_of" => {
+                "required" | "requires" | "excludes" | "any_of" | "one_of" => {
                     result.rules.push((key, names(input)?));
                 }
                 "oneof" => {
@@ -213,7 +196,7 @@ impl syn::parse::Parse for ApiAttributes {
                     input.parse::<Token![=]>()?;
                     result.constraints.push((key, input.parse()?));
                 }
-                _ => return Err(syn::Error::new(span, "unknown api attribute")),
+                _ => return Err(syn::Error::new(span, "unknown catalog attribute")),
             }
             if !input.is_empty() {
                 input.parse::<Token![,]>()?;
@@ -239,7 +222,37 @@ fn oneof_variants(input: ParseStream<'_>) -> syn::Result<Vec<(Ident, LitStr)>> {
 }
 
 fn attributes(attrs: &[Attribute]) -> syn::Result<Vec<ApiAttributes>> {
-    attrs.iter().filter(|a| a.path().is_ident("api")).map(Attribute::parse_args).collect()
+    attrs
+        .iter()
+        .filter(|attr| attr.path().is_ident("rule") || attr.path().is_ident("mirror"))
+        .map(|attr| {
+            let parsed: ApiAttributes = attr.parse_args()?;
+            let mapping = parsed.direction.is_some()
+                || parsed.proto_type.is_some()
+                || parsed.supplemental
+                || parsed.response_checks.is_some()
+                || parsed.via.is_some()
+                || !parsed.tags.is_empty()
+                || !parsed.variants.is_empty()
+                || !parsed.also.is_empty();
+            let rule = parsed.expected.is_some()
+                || !parsed.constraints.is_empty()
+                || !parsed.rules.is_empty();
+            if attr.path().is_ident("rule") && mapping {
+                return Err(syn::Error::new_spanned(
+                    attr,
+                    "mapping attributes belong in #[mirror]",
+                ));
+            }
+            if attr.path().is_ident("mirror") && rule {
+                return Err(syn::Error::new_spanned(
+                    attr,
+                    "validation attributes belong in #[rule]",
+                ));
+            }
+            Ok(parsed)
+        })
+        .collect()
 }
 
 fn merge(mut lines: Vec<ApiAttributes>) -> syn::Result<ApiAttributes> {
@@ -247,7 +260,6 @@ fn merge(mut lines: Vec<ApiAttributes>) -> syn::Result<ApiAttributes> {
     for mut line in lines.drain(..) {
         for (target, value, label) in [
             (&mut result.response_checks, line.response_checks.take(), "response_checks"),
-            (&mut result.covers, line.covers.take(), "covers"),
             (&mut result.via, line.via.take(), "via"),
             (&mut result.proto_type, line.proto_type.take(), "type"),
         ] {
@@ -315,18 +327,10 @@ impl DeriveCatalog {
         let mut rules = Vec::new();
         for line in &item_lines {
             for (operator, fields) in &line.rules {
-                if operator != "any_of" && operator != "one_of" {
-                    return Err(syn::Error::new(
-                        operator.span(),
-                        "item presence groups use any_of or one_of",
-                    ));
-                }
                 rules.push(DeriveRule {
                     operator: operator.clone(),
                     fields: fields.clone(),
                     expected: line.expected.clone(),
-                    covers: line.covers.clone(),
-                    inherited_pattern: false,
                 });
             }
         }
@@ -336,9 +340,6 @@ impl DeriveCatalog {
                 .map(|mut line| {
                     if !line.rules.is_empty() {
                         line.expected = None;
-                        if line.direction.is_none() {
-                            line.covers = None;
-                        }
                         line.rules.clear();
                     }
                     line
@@ -360,7 +361,7 @@ impl DeriveCatalog {
         let (request, proto) = item.direction.clone().ok_or_else(|| {
             syn::Error::new_spanned(
                 &input.ident,
-                "catalog requires #[api(request = ...)] or #[api(response = ...)]",
+                "catalog requires #[mirror(request = ...)] or #[mirror(response = ...)]",
             )
         })?;
         if proto.value().trim().is_empty() {
@@ -376,13 +377,8 @@ impl DeriveCatalog {
         let parsed = fields
             .named
             .iter()
-            .map(|field| parse_field(field, &item, request, &mut rules))
+            .map(|field| parse_field(field, request))
             .collect::<syn::Result<_>>()?;
-        for rule in &mut rules {
-            if rule.covers.is_none() {
-                rule.covers.clone_from(&item.covers);
-            }
-        }
         let result = Self {
             name: input.ident.clone(),
             ty,
@@ -390,7 +386,6 @@ impl DeriveCatalog {
             request,
             supplemental: item.supplemental,
             description: documentation(&input.attrs),
-            covers: item.covers.clone(),
             response_checks: item.response_checks.clone(),
             fields: parsed,
             rules,
@@ -411,7 +406,6 @@ impl DeriveCatalog {
                     request: self.request,
                     supplemental: true,
                     description: String::new(),
-                    covers: self.covers.clone(),
                     response_checks: None,
                     fields: vec![extra],
                     rules: Vec::new(),
@@ -432,9 +426,6 @@ impl DeriveCatalog {
             .as_ref()
             .ok_or_else(|| syn::Error::new(field.name.span(), "missing supplemental kind"))?;
         let mut attributes = additional.clone();
-        if attributes.covers.is_none() {
-            attributes.covers.clone_from(&field.attributes.covers);
-        }
         if attributes.tags.is_empty() {
             attributes.tags.clone_from(&field.attributes.tags);
         }
@@ -523,7 +514,7 @@ impl DeriveCatalog {
                     None
                 },
                 variants,
-                expected: admission_expected(attrs.expected.as_ref(), attrs.covers.as_ref())?,
+                expected: admission_expected(attrs.expected.as_ref())?,
             };
             if !attrs.rules.is_empty() && !crate::parse::field_is_constrained(&admitted) {
                 admitted.expected = None;
@@ -543,7 +534,7 @@ impl DeriveCatalog {
                 Ok(Rule {
                     operator: rule.operator.clone(),
                     fields: rule.fields.clone(),
-                    expected: admission_expected(rule.expected.as_ref(), rule.covers.as_ref())?,
+                    expected: admission_expected(rule.expected.as_ref())?,
                 })
             })
             .collect::<syn::Result<_>>()?;
@@ -593,15 +584,9 @@ impl DeriveCatalog {
     }
 }
 
-fn admission_expected(
-    expected: Option<&ApiExpectation>,
-    covers: Option<&Path>,
-) -> syn::Result<Option<Expected>> {
+fn admission_expected(expected: Option<&ApiExpectation>) -> syn::Result<Option<Expected>> {
     expected
         .map(|expectation| {
-            let covers = covers.ok_or_else(|| {
-                syn::Error::new(Span::call_site(), "expectation requires covers validator path")
-            })?;
             let outcome = match expectation {
                 ApiExpectation::Accepts => "Accepts",
                 ApiExpectation::Unobservable => "Unobservable",
@@ -614,7 +599,6 @@ fn admission_expected(
                 } else {
                     None
                 },
-                covers: LitStr::new(&quote!(#covers).to_string(), Span::call_site()),
             })
         })
         .transpose()
@@ -751,36 +735,16 @@ fn parse_also(input: ParseStream<'_>) -> syn::Result<ApiAttributes> {
     Ok(attributes)
 }
 
-fn parse_field(
-    field: &syn::Field,
-    item: &ApiAttributes,
-    request: bool,
-    rules: &mut Vec<DeriveRule>,
-) -> syn::Result<DeriveField> {
+fn parse_field(field: &syn::Field, request: bool) -> syn::Result<DeriveField> {
     let name = field
         .ident
         .clone()
         .ok_or_else(|| syn::Error::new_spanned(field, "expected named field"))?;
     let field_lines = attributes(&field.attrs)?;
-    let mut attrs = merge(
-        field_lines
-            .iter()
-            .map(|line| {
-                let mut common = line.clone();
-                if !common.rules.is_empty() && common.constraints.is_empty() {
-                    common.expected = None;
-                    common.covers = None;
-                }
-                common
-            })
-            .collect(),
-    )?;
-    if attrs.expected.is_none() {
-        attrs.expected = field_lines.iter().find_map(|line| line.expected.clone());
+    if field_lines.iter().any(|line| !line.rules.is_empty()) {
+        return Err(syn::Error::new_spanned(field, "presence rules belong on the catalog item"));
     }
-    if attrs.covers.is_none() {
-        attrs.covers = field_lines.iter().find_map(|line| line.covers.clone());
-    }
+    let mut attrs = merge(field_lines)?;
     if attrs.direction.is_some()
         || attrs.proto_type.is_some()
         || attrs.supplemental
@@ -788,16 +752,12 @@ fn parse_field(
     {
         return Err(syn::Error::new_spanned(field, "message attributes cannot be used on fields"));
     }
-    if attrs.covers.is_none() {
-        attrs.covers.clone_from(&item.covers);
-    }
-    append_field_rules(&name, &field_lines, &attrs, rules)?;
     let kind = marker(&field.ty)?.ident.to_string();
     validate_kind(&field.ty, &kind)?;
     if kind == "OneOf" && attrs.variants.is_empty() {
         return Err(syn::Error::new(
             name.span(),
-            "OneOf requires exhaustive #[api(oneof(...))] alternatives",
+            "OneOf requires exhaustive #[mirror(oneof(...))] alternatives",
         ));
     }
     if kind != "OneOf" && !attrs.variants.is_empty() {
@@ -832,42 +792,6 @@ fn parse_field(
         description: documentation(&field.attrs),
         attributes: attrs,
     })
-}
-
-fn append_field_rules(
-    name: &Ident,
-    field_lines: &[ApiAttributes],
-    attrs: &ApiAttributes,
-    rules: &mut Vec<DeriveRule>,
-) -> syn::Result<()> {
-    for line in field_lines {
-        for (operator, operands) in &line.rules {
-            if operator == "any_of" || operator == "one_of" {
-                return Err(syn::Error::new(
-                    operator.span(),
-                    "symmetric presence groups belong on the item",
-                ));
-            }
-            let mut fields = vec![name.clone()];
-            fields.extend(operands.clone());
-            if operator == "required" && attrs.variants.len() == 1 {
-                fields[0] = Ident::new(&attrs.variants[0].1.value(), name.span());
-            }
-            let operator = if operator == "conflicts_with" {
-                Ident::new("excludes", operator.span())
-            } else {
-                operator.clone()
-            };
-            rules.push(DeriveRule {
-                operator,
-                fields,
-                expected: line.expected.clone().or_else(|| attrs.expected.clone()),
-                covers: line.covers.clone().or_else(|| attrs.covers.clone()),
-                inherited_pattern: line.expected.is_none() || !line.constraints.is_empty(),
-            });
-        }
-    }
-    Ok(())
 }
 
 fn validate_kind(ty: &Type, kind: &str) -> syn::Result<()> {

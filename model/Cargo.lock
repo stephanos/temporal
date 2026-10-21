@@ -1027,6 +1027,7 @@ dependencies = [
  "prost",
  "prost-build",
  "quote",
+ "umpire-annotations",
  "umpire-temporal-annotate-syntax",
  "umpire-wasm",
 ]

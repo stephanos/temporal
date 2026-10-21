@@ -71,7 +71,6 @@ mod controls {
                     .expects(
                         &::umpire_annotations::Expected {
                             expectation: ::umpire_annotations::Expectation::Accepts,
-                            covers: "validator".to_owned(),
                         },
                     ),
             )
@@ -93,7 +92,6 @@ mod controls {
                                 message_pattern: "bad".to_owned(),
                                 details_type: None,
                             },
-                            covers: "validator".to_owned(),
                         },
                     ),
             )
@@ -111,7 +109,6 @@ mod controls {
                     .expects(
                         &::umpire_annotations::Expected {
                             expectation: ::umpire_annotations::Expectation::Accepts,
-                            covers: "validator".to_owned(),
                         },
                     ),
             )
@@ -121,7 +118,6 @@ mod controls {
                 ),
                 expected: Some(::umpire_annotations::Expected {
                     expectation: ::umpire_annotations::Expectation::Accepts,
-                    covers: "validator".to_owned(),
                 }),
             })
             .build()

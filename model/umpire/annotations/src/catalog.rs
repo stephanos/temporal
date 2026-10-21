@@ -70,13 +70,11 @@ pub enum Expectation {
     Unobservable,
 }
 
-/// An expectation tied to the server validator it restates.
+/// Expected observable behavior for a declared rule.
 #[derive(Clone, Debug, PartialEq, Eq)]
 pub struct Expected {
     /// Server behavior.
     pub expectation: Expectation,
-    /// Server validator function, checked by the reverse coverage probe.
-    pub covers: String,
 }
 
 /// Presence algebra over catalog field paths, relative to the message.
@@ -130,7 +128,7 @@ impl Presence {
 pub struct Rule {
     /// Presence operation.
     pub presence: Presence,
-    /// Expected server behavior and validator provenance.
+    /// Expected server behavior.
     pub expected: Option<Expected>,
 }
 
@@ -280,7 +278,7 @@ impl<M: 'static, T: FieldValue> Field<M, T> {
         self.descriptor.repeated = Some(rules);
         self
     }
-    /// Maps all currently declared constraints to one server validator.
+    /// Declares expected observable behavior for all current constraints.
     #[must_use]
     pub fn expects(mut self, expected: &Expected) -> Self {
         for constraint in self.descriptor.constraints() {
@@ -288,7 +286,7 @@ impl<M: 'static, T: FieldValue> Field<M, T> {
         }
         self
     }
-    /// Maps one constraint, allowing distinct validators for different checks.
+    /// Declares expected observable behavior for one named constraint.
     #[must_use]
     pub fn expectation(mut self, constraint: impl Into<String>, expected: Expected) -> Self {
         self.descriptor.expectations.insert(constraint.into(), expected);
@@ -516,7 +514,7 @@ pub enum AdmissionError {
         /// Stable constraint name.
         constraint: String,
     },
-    /// Expected outcomes must name a validator and an existing constraint.
+    /// Expected outcomes must name an existing constraint.
     InvalidExpectation {
         /// Field or message path.
         path: String,
@@ -720,9 +718,8 @@ impl<M: 'static> CatalogBuilder<M> {
                     }
                 }
             }
-            for (constraint, expected) in &d.expectations {
-                if expected.covers.trim().is_empty() || !constraints.contains(&constraint.as_str())
-                {
+            for constraint in d.expectations.keys() {
+                if !constraints.contains(&constraint.as_str()) {
                     self.errors.push(AdmissionError::InvalidExpectation {
                         path: d.path.clone(),
                         constraint: constraint.clone(),
@@ -752,12 +749,6 @@ impl<M: 'static> CatalogBuilder<M> {
             }
             if self.catalog.request && rule.expected.is_none() {
                 self.errors.push(AdmissionError::MissingExpectation {
-                    path: self.catalog.message.clone(),
-                    constraint: rule.presence.name().into(),
-                });
-            }
-            if rule.expected.as_ref().is_some_and(|expected| expected.covers.trim().is_empty()) {
-                self.errors.push(AdmissionError::InvalidExpectation {
                     path: self.catalog.message.clone(),
                     constraint: rule.presence.name().into(),
                 });

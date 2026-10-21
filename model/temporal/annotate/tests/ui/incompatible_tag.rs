@@ -5,6 +5,6 @@ use umpire_temporal_annotate::{Catalog, kinds::*};
 struct Wire { count: i32 }
 
 #[derive(Catalog)]
-#[api(response = "test.Wire", type = Wire)]
-struct Mirror { #[api(idempotency_key)] count: Counter }
+#[mirror(response = "test.Wire", type = Wire)]
+struct Mirror { #[mirror(idempotency_key)] count: Counter }
 fn main() {}

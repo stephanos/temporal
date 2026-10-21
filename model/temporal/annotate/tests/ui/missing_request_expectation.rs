@@ -5,6 +5,6 @@ use umpire_temporal_annotate::{Catalog, kinds::*};
 struct Wire { id: String }
 
 #[derive(Catalog)]
-#[api(request = "test.Wire", type = Wire)]
+#[mirror(request = "test.Wire", type = Wire)]
 struct Mirror { id: Uuid }
 fn main() {}

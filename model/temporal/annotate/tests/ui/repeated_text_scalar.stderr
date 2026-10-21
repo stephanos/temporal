@@ -1,8 +1,8 @@
-error[E0277]: the trait bound `String: SupportsRepeated` is not satisfied
+error[E0277]: the trait bound `std::string::String: SupportsRepeated` is not satisfied
  --> tests/ui/repeated_text_scalar.rs:7:10
   |
 7 | #[derive(Catalog)]
-  |          ^^^^^^^ the trait `SupportsRepeated` is not implemented for `String`
+  |          ^^^^^^^ the trait `SupportsRepeated` is not implemented for `std::string::String`
   |
 help: the trait `SupportsRepeated` is implemented for `Vec<T>`
  --> $WORKSPACE/umpire/annotations/src/types.rs

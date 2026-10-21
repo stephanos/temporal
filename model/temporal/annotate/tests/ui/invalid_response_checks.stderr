@@ -10,7 +10,7 @@ error[E0308]: `?` operator has incompatible types
    = note: this error originates in the derive macro `Catalog` (in Nightly builds, run with -Z macro-backtrace for more info)
 
 error[E0433]: cannot find type `Missing` in this scope
-  --> tests/ui/invalid_response_checks.rs:21:72
+  --> tests/ui/invalid_response_checks.rs:21:75
    |
-21 | #[api(response = "test.ThirdWire", type = ThirdWire, response_checks = Missing)]
-   |                                                                        ^^^^^^^ use of undeclared type `Missing`
+21 | #[mirror(response = "test.ThirdWire", type = ThirdWire, response_checks = Missing)]
+   |                                                                           ^^^^^^^ use of undeclared type `Missing`

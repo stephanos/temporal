@@ -1,5 +1,5 @@
-error: request rule requires an expectation and covers
- --> tests/ui/missing_rule_expectation.rs:8:7
+error: request rule requires an expectation
+ --> tests/ui/missing_rule_expectation.rs:8:8
   |
-8 | #[api(any_of(id))]
-  |       ^^^^^^
+8 | #[rule(any_of(id))]
+  |        ^^^^^^

@@ -1,7 +1,5 @@
-error[E0433]: cannot find module or crate `vanished` in this scope
- --> tests/ui/missing_validator.rs:9:52
-  |
-9 | #[api(request = "test.Wire", type = Wire, covers = vanished::VALIDATOR)]
-  |                                                    ^^^^^^^^ use of unresolved module or unlinked crate `vanished`
-  |
-  = help: if you wanted to use a crate named `vanished`, use `cargo add vanished` to add it to your `Cargo.toml`
+error: unknown catalog attribute
+  --> tests/ui/missing_validator.rs:10:33
+   |
+10 | struct Mirror { #[rule(accepts, covers = retired::VALIDATOR)] id: Uuid }
+   |                                 ^^^^^^

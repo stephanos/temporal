@@ -5,6 +5,8 @@ use umpire_temporal_annotate::{Catalog, kinds::*};
 struct Wire { opaque: bool }
 
 #[derive(Catalog)]
-#[api(response = "test.Wire", type = Wire)]
-struct Mirror { #[api(ignored = "opaque boolean", required)] opaque: Ignored }
+#[rule(required(opaque))]
+
+#[mirror(response = "test.Wire", type = Wire)]
+struct Mirror { #[mirror(ignored = "opaque boolean")] opaque: Ignored }
 fn main() {}

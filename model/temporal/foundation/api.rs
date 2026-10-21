@@ -1,7 +1,7 @@
 //! Shared upstream message catalogs, independent of activity state.
 #![allow(dead_code, reason = "Mirror fields describe the API and are never instantiated")]
 
-use super::{dc, validators, views};
+use super::{dc, views};
 use umpire_temporal_annotate::{
     Catalog,
     kinds::{
@@ -13,11 +13,8 @@ use umpire_temporal_api::temporal::api::{
     common::v1 as common, enums::v1 as enums, failure::v1 as failure,
 };
 
-const RETRY: &str = validators::retrypolicy::Validate;
-const FAILURE: &str = validators::frontend::WorkflowHandler_RespondActivityTaskFailed;
-
 #[derive(Catalog)]
-#[api(response = "temporal.api.common.v1.WorkflowExecution")]
+#[mirror(response = "temporal.api.common.v1.WorkflowExecution")]
 /// A workflow execution's identifiers.
 pub struct WorkflowExecution {
     workflow_id: Text,
@@ -25,59 +22,61 @@ pub struct WorkflowExecution {
 }
 
 #[derive(Catalog)]
-#[api(response = "temporal.api.common.v1.WorkflowType")]
+#[mirror(response = "temporal.api.common.v1.WorkflowType")]
 /// A workflow type name.
 pub struct WorkflowType {
     name: Text,
 }
 
 #[derive(Catalog)]
-#[api(response = "temporal.api.common.v1.Payloads")]
+#[mirror(response = "temporal.api.common.v1.Payloads")]
 /// An ordered collection of encoded payloads.
 pub struct Payloads {
-    #[api(decided)]
+    #[mirror(decided)]
     payloads: Vec<Message<common::Payload>>,
 }
 
 #[derive(Catalog)]
-#[api(response = "temporal.api.common.v1.Payload")]
+#[mirror(response = "temporal.api.common.v1.Payload")]
 /// Payload metadata and data remain external secrets.
 pub struct Payload {
-    #[api(decided)]
+    #[mirror(decided)]
     metadata: Map<Text, Secret>,
     data: Secret,
-    #[api(ignored = "External payload storage handles are unsupported by the mini activity \
+    #[mirror(ignored = "External payload storage handles are unsupported by the mini activity \
         callback and remain opaque on transport")]
     external_payloads: Ignored,
 }
 
 #[derive(Catalog)]
-#[api(request = "temporal.api.common.v1.ActivityType")]
-#[api(covers = validators::activity::validateAndNormalizeActivityAttributes)]
+#[mirror(request = "temporal.api.common.v1.ActivityType")]
 /// The activity type accepted by activity attribute validation.
 pub struct ActivityType {
-    #[api(max_bytes = dc::MAX_ID_LENGTH, rejects = "activityType")]
+    #[rule(max_bytes = dc::MAX_ID_LENGTH, rejects = "activityType")]
     name: Identifier,
 }
 
 #[derive(Catalog)]
-#[api(request = "temporal.api.common.v1.RetryPolicy", covers = RETRY)]
-#[api(response_checks = RawRetryPolicy)]
+#[mirror(request = "temporal.api.common.v1.RetryPolicy")]
+#[mirror(response_checks = RawRetryPolicy)]
 /// Retry parameters under the server's normalization conventions.
 pub struct RetryPolicy {
-    #[api(gte = 0, via = views::initial_interval, rejects = "invalid InitialInterval")]
+    #[mirror(via = views::initial_interval)]
+    #[rule(gte = 0, rejects = "invalid InitialInterval")]
     initial_interval: Duration,
-    #[api(gte = 1, via = views::backoff_coefficient, rejects = "BackoffCoefficient")]
+    #[mirror(via = views::backoff_coefficient)]
+    #[rule(gte = 1, rejects = "BackoffCoefficient")]
     backoff_coefficient: Counter,
-    #[api(gte = 0, via = views::maximum_interval, rejects = "invalid MaximumInterval")]
+    #[mirror(via = views::maximum_interval)]
+    #[rule(gte = 0, rejects = "invalid MaximumInterval")]
     maximum_interval: Duration,
-    #[api(gte = 0, rejects = "MaximumAttempts")]
+    #[rule(gte = 0, rejects = "MaximumAttempts")]
     maximum_attempts: Counter,
     non_retryable_error_types: Vec<Text>,
 }
 
 #[derive(Catalog)]
-#[api(response = "temporal.api.common.v1.RetryPolicy", supplemental)]
+#[mirror(response = "temporal.api.common.v1.RetryPolicy", supplemental)]
 /// Response retry intervals checked without request-side normalization.
 pub struct RawRetryPolicy {
     initial_interval: RawDuration,
@@ -85,36 +84,35 @@ pub struct RawRetryPolicy {
 }
 
 #[derive(Catalog)]
-#[api(request = "temporal.api.failure.v1.ApplicationFailureInfo", covers = FAILURE)]
+#[mirror(request = "temporal.api.failure.v1.ApplicationFailureInfo")]
 /// Application failure details supplied by an activity worker.
 pub struct ApplicationFailureInfo {
     r#type: Text,
     non_retryable: Flag,
     details: Message<common::Payloads>,
-    #[api(covers = validators::frontend::validateActivityFailureNextRetryDelays,
-        rejects = "NextRetryDelay")]
+    #[rule(rejects = "NextRetryDelay")]
     next_retry_delay: RawDuration,
-    #[api(accepts)]
+    #[rule(accepts)]
     category: Enum<enums::ApplicationErrorCategory>,
 }
 
 #[derive(Catalog)]
-#[api(response = "temporal.api.failure.v1.Failure")]
+#[mirror(response = "temporal.api.failure.v1.Failure")]
 #[allow(clippy::struct_field_names, reason = "Field names must match the upstream protobuf")]
 /// A failure and its exhaustive contextual alternatives.
 pub struct Failure {
-    #[api(decided)]
+    #[mirror(decided)]
     message: Text,
-    #[api(ignored = "This activity Model does not project Failure.source; \
+    #[mirror(ignored = "This activity Model does not project Failure.source; \
         no semantic validation is claimed")]
     source: Ignored,
     stack_trace: Secret,
-    #[api(decided)]
+    #[mirror(decided)]
     encoded_attributes: Message<common::Payload>,
-    #[api(decided)]
+    #[mirror(decided)]
     cause: Message<failure::Failure>,
-    #[api(decided)]
-    #[api(oneof(
+    #[mirror(decided)]
+    #[mirror(oneof(
         ApplicationFailureInfo = "application_failure_info",
         TimeoutFailureInfo = "timeout_failure_info",
         CanceledFailureInfo = "canceled_failure_info",
@@ -131,86 +129,85 @@ pub struct Failure {
 
 /// A worker failure must carry application failure information.
 #[derive(Catalog)]
-#[api(request = "temporal.api.failure.v1.Failure", supplemental, covers = FAILURE)]
+#[rule(required(application_failure_info), rejects = "Failure must have ApplicationFailureInfo")]
+#[mirror(request = "temporal.api.failure.v1.Failure", supplemental)]
 pub struct WorkerFailure {
-    #[api(oneof(ApplicationFailureInfo = "application_failure_info"))]
-    #[api(required, rejects = "Failure must have ApplicationFailureInfo")]
+    #[mirror(oneof(ApplicationFailureInfo = "application_failure_info"))]
     failure_info: OneOf<failure::failure::FailureInfo>,
 }
 
 #[derive(Catalog)]
-#[api(request = "temporal.api.taskqueue.v1.TaskQueue")]
+#[mirror(request = "temporal.api.taskqueue.v1.TaskQueue")]
 /// A task queue name and its declared kind.
 pub struct TaskQueue {
-    #[api(max_bytes = dc::MAX_ID_LENGTH, covers = validators::tqid::validate,
-        rejects = "taskQueue|task queue")]
+    #[rule(max_bytes = dc::MAX_ID_LENGTH, rejects = "taskQueue|task queue")]
     name: Identifier,
-    #[api(accepts, covers = validators::tqid::normalizeAndValidate)]
+    #[rule(accepts)]
     kind: Enum<enums::TaskQueueKind>,
     normal_name: Text,
 }
 
 #[derive(Catalog)]
-#[api(response = "temporal.api.failure.v1.TimeoutFailureInfo", covers = FAILURE)]
+#[mirror(response = "temporal.api.failure.v1.TimeoutFailureInfo")]
 /// A timeout failure with its last heartbeat payloads.
 pub struct TimeoutFailureInfo {
-    #[api(accepts)]
+    #[rule(accepts)]
     timeout_type: Enum<enums::TimeoutType>,
-    #[api(decided)]
+    #[mirror(decided)]
     last_heartbeat_details: Message<common::Payloads>,
 }
 
 #[derive(Catalog)]
-#[api(response = "temporal.api.failure.v1.CanceledFailureInfo")]
+#[mirror(response = "temporal.api.failure.v1.CanceledFailureInfo")]
 /// Cancellation details supplied by the worker.
 pub struct CanceledFailureInfo {
-    #[api(decided)]
+    #[mirror(decided)]
     details: Message<common::Payloads>,
-    #[api(ignored = "This activity Model does not project CanceledFailureInfo.identity; \
+    #[mirror(ignored = "This activity Model does not project CanceledFailureInfo.identity; \
         no semantic validation is claimed")]
     identity: Ignored,
 }
 
 #[derive(Catalog)]
-#[api(response = "temporal.api.failure.v1.TerminatedFailureInfo")]
+#[mirror(response = "temporal.api.failure.v1.TerminatedFailureInfo")]
 /// Termination information outside activity state.
 pub struct TerminatedFailureInfo {
-    #[api(ignored = "This activity Model does not project TerminatedFailureInfo.identity; \
+    #[mirror(ignored = "This activity Model does not project TerminatedFailureInfo.identity; \
         no semantic validation is claimed")]
     identity: Ignored,
 }
 
 #[derive(Catalog)]
-#[api(response = "temporal.api.failure.v1.ServerFailureInfo")]
+#[mirror(response = "temporal.api.failure.v1.ServerFailureInfo")]
 /// Whether a server failure is retryable.
 pub struct ServerFailureInfo {
-    #[api(decided)]
+    #[mirror(decided)]
     non_retryable: Flag,
 }
 
 #[derive(Catalog)]
-#[api(response = "temporal.api.failure.v1.ResetWorkflowFailureInfo")]
+#[mirror(response = "temporal.api.failure.v1.ResetWorkflowFailureInfo")]
 /// Heartbeat details retained across a workflow reset.
 pub struct ResetWorkflowFailureInfo {
     last_heartbeat_details: Message<common::Payloads>,
 }
 
 #[derive(Catalog)]
-#[api(response = "temporal.api.failure.v1.ActivityFailureInfo", covers = FAILURE)]
+#[mirror(response = "temporal.api.failure.v1.ActivityFailureInfo")]
 /// The scheduled activity and its retry status.
 pub struct ActivityFailureInfo {
     scheduled_event_id: Counter,
     started_event_id: Counter,
     identity: Text,
-    #[api(via = views::activity_type)]
+    #[mirror(via = views::activity_type)]
     activity_type: Text,
     activity_id: Text,
-    #[api(accepts)]
+    #[rule(accepts)]
     retry_state: Enum<enums::RetryState>,
 }
 
 #[derive(Catalog)]
-#[api(response = "temporal.api.failure.v1.ChildWorkflowExecutionFailureInfo", covers = FAILURE)]
+#[mirror(response = "temporal.api.failure.v1.ChildWorkflowExecutionFailureInfo")]
 /// The child workflow execution and its retry status.
 pub struct ChildWorkflowExecutionFailureInfo {
     namespace: Text,
@@ -218,12 +215,12 @@ pub struct ChildWorkflowExecutionFailureInfo {
     workflow_type: Message<common::WorkflowType>,
     initiated_event_id: Counter,
     started_event_id: Counter,
-    #[api(accepts)]
+    #[rule(accepts)]
     retry_state: Enum<enums::RetryState>,
 }
 
 #[derive(Catalog)]
-#[api(response = "temporal.api.failure.v1.NexusOperationFailureInfo")]
+#[mirror(response = "temporal.api.failure.v1.NexusOperationFailureInfo")]
 /// Operation failure metadata and private correlation tokens.
 pub struct NexusOperationFailureInfo {
     scheduled_event_id: Counter,
@@ -235,16 +232,16 @@ pub struct NexusOperationFailureInfo {
 }
 
 #[derive(Catalog)]
-#[api(response = "temporal.api.failure.v1.NexusHandlerFailureInfo", covers = FAILURE)]
+#[mirror(response = "temporal.api.failure.v1.NexusHandlerFailureInfo")]
 /// A handler failure and its retry disposition.
 pub struct NexusHandlerFailureInfo {
     r#type: Text,
-    #[api(accepts)]
+    #[rule(accepts)]
     retry_behavior: Enum<enums::NexusHandlerErrorRetryBehavior>,
 }
 
 #[derive(Catalog)]
-#[api(response = "google.protobuf.Duration")]
+#[mirror(response = "google.protobuf.Duration")]
 /// The raw seconds and nanoseconds of a protocol duration.
 pub struct ProtoDuration {
     seconds: Counter,
@@ -252,7 +249,7 @@ pub struct ProtoDuration {
 }
 
 #[derive(Catalog)]
-#[api(response = "google.protobuf.Timestamp")]
+#[mirror(response = "google.protobuf.Timestamp")]
 /// The raw seconds and nanoseconds of a protocol timestamp.
 pub struct ProtoTimestamp {
     seconds: Counter,

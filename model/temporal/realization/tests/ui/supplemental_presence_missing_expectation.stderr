@@ -1,5 +1,5 @@
-error: request rule requires an expectation and covers
- --> tests/ui/supplemental_presence_missing_expectation.rs:8:29
+error: request rule requires an expectation
+ --> tests/ui/supplemental_presence_missing_expectation.rs:7:8
   |
-8 | struct Supplemental { #[api(required)] value: Text }
-  |                             ^^^^^^^^
+7 | #[rule(required(value))]
+  |        ^^^^^^^^

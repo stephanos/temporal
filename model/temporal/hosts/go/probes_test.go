@@ -12,6 +12,7 @@ import (
 	"google.golang.org/grpc/codes"
 	"google.golang.org/grpc/status"
 	"google.golang.org/protobuf/proto"
+	"google.golang.org/protobuf/reflect/protoreflect"
 	temporalmodel "umpire.local/temporal"
 	temporalv1 "umpire.local/temporal/umpire/temporal/v1"
 )
@@ -108,5 +109,69 @@ func TestProbeObservationPatternAndDetails(t *testing.T) {
 	observation, err = temporalmodel.ObserveProbe(testCase, nil)
 	if err != nil || !observation.Accepted {
 		t.Fatal("actual acceptance lost")
+	}
+}
+
+func TestGenericProbeObservationMatchesEachPredictionWithoutValues(t *testing.T) {
+	const private = "private-request-token-error"
+	testCase := &temporalv1.ProbeCase{
+		Id: "generic-case", Generic: true,
+		Predictions: []*temporalv1.ProbeExpectation{
+			{Id: "generic-case::prediction:first", MessagePattern: "missing identity"},
+			{Id: "generic-case::prediction:second", MessagePattern: "different failure"},
+		},
+	}
+	observation, err := temporalmodel.ObserveProbe(testCase, status.Error(codes.InvalidArgument, "missing identity "+private))
+	if err != nil || observation.PredictionCount != 2 || len(observation.Predictions) != 2 {
+		t.Fatal("each prepared prediction requires an observation")
+	}
+	if !observation.Predictions[0].MessageMatches || observation.Predictions[1].MessageMatches || observation.Predictions[1].Index != 1 {
+		t.Fatal("prediction patterns must be evaluated independently")
+	}
+	encoded, err := proto.Marshal(observation)
+	if err != nil || bytes.Contains(encoded, []byte(private)) {
+		t.Fatal("generic observations must remain value-free")
+	}
+	testCase.Predictions[1].MessagePattern = "["
+	if _, err := temporalmodel.ObserveProbe(testCase, status.Error(codes.InvalidArgument, private)); err == nil || err.Error() != "invalid probe pattern for generic-case" {
+		t.Fatal("a malformed prediction pattern must fail without its contents")
+	}
+}
+
+func TestProbeMetadataAdmissionAndRetiredWireFields(t *testing.T) {
+	valid := &temporalv1.ProbeCase{Id: "generic-case", Generic: true, Predictions: []*temporalv1.ProbeExpectation{{Id: "generic-case::prediction:claim"}}}
+	for _, change := range []func(*temporalv1.ProbeCase){
+		func(c *temporalv1.ProbeCase) { c.Applicability = 99 },
+		func(c *temporalv1.ProbeCase) { c.Generic = false },
+		func(c *temporalv1.ProbeCase) { c.MessagePattern = "strict/generic mix" },
+		func(c *temporalv1.ProbeCase) {
+			c.Predictions = append(c.Predictions, proto.Clone(c.Predictions[0]).(*temporalv1.ProbeExpectation))
+		},
+		func(c *temporalv1.ProbeCase) { c.Predictions[0].Id = "foreign-case::prediction:claim" },
+		func(c *temporalv1.ProbeCase) {
+			c.Applicability = temporalv1.ProbeApplicability_REFUSED
+			c.Refusal = "local"
+		},
+	} {
+		invalid := proto.Clone(valid).(*temporalv1.ProbeCase)
+		change(invalid)
+		if _, err := temporalmodel.ObserveProbe(invalid, nil); err == nil {
+			t.Fatal("invalid probe metadata admitted")
+		}
+	}
+	request := (&temporalv1.ProbeRequest{}).ProtoReflect().Descriptor()
+	for _, number := range []protoreflect.FieldNumber{10, 11} {
+		if !request.ReservedRanges().Has(number) {
+			t.Fatal("retired request number reused")
+		}
+	}
+	for _, name := range []protoreflect.Name{"uncovered_validators", "unresolved_validators"} {
+		if !request.ReservedNames().Has(name) {
+			t.Fatal("retired request name reused")
+		}
+	}
+	caseDescriptor := (&temporalv1.ProbeCase{}).ProtoReflect().Descriptor()
+	if !caseDescriptor.ReservedRanges().Has(8) || !caseDescriptor.ReservedNames().Has("covers") {
+		t.Fatal("retired mapping wire fields must stay reserved")
 	}
 }

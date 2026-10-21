@@ -2,7 +2,7 @@
 
 use proc_macro2::TokenStream;
 use quote::{format_ident, quote, quote_spanned};
-use syn::{Expr, Ident, Path, Type, ext::IdentExt, spanned::Spanned};
+use syn::{Expr, Ident, Type, ext::IdentExt, spanned::Spanned};
 
 use crate::{ApiAttributes, ApiExpectation, DeriveCatalog, DeriveField, DeriveRule, marker};
 
@@ -12,16 +12,6 @@ pub fn expand_derive(catalog: &DeriveCatalog) -> syn::Result<TokenStream> {
     let ty = &catalog.ty;
     let proto = &catalog.proto;
     let description = &catalog.description;
-    let validators: std::collections::BTreeMap<_, _> = catalog
-        .covers
-        .iter()
-        .chain(catalog.fields.iter().filter_map(|field| field.attributes.covers.as_ref()))
-        .chain(catalog.rules.iter().filter_map(|rule| rule.covers.as_ref()))
-        .map(|path| (quote!(#path).to_string(), path))
-        .collect();
-    let validator_checks = validators.values().map(|path| quote! {
-        const _: () = assert!(::umpire_temporal_annotate::validator_has_name(#path), "covers requires a nonblank validator");
-    });
     let policy = format_ident!("{}", if catalog.request { "request" } else { "response" });
     let names = catalog.fields.iter().map(|f| &f.name);
     let oneofs = catalog.fields.iter().filter(|field| !field.attributes.variants.is_empty()).map(|field| {
@@ -72,7 +62,6 @@ pub fn expand_derive(catalog: &DeriveCatalog) -> syn::Result<TokenStream> {
                 ::umpire_annotations::Catalog<#ty>, ::umpire_annotations::AdmissionErrors
             > {
                 #pattern
-                #(#validator_checks)*
                 let _ = limits;
                 ::umpire_annotations::Catalog::<#ty>::#policy(#proto)
                     .description(#description)
@@ -188,7 +177,7 @@ fn kind_expansion(ty: &Type, attrs: &ApiAttributes) -> syn::Result<TokenStream> 
     }
 }
 
-fn expected_expansion(expected: &ApiExpectation, covers: &Path) -> TokenStream {
+fn expected_expansion(expected: &ApiExpectation) -> TokenStream {
     let value = match expected {
         ApiExpectation::Accepts => quote!(::umpire_annotations::Expectation::Accepts),
         ApiExpectation::Unobservable => quote!(::umpire_annotations::Expectation::Unobservable),
@@ -200,7 +189,7 @@ fn expected_expansion(expected: &ApiExpectation, covers: &Path) -> TokenStream {
             quote!(::umpire_annotations::Expectation::RejectsCode(::umpire_annotations::Code::#code))
         }
     };
-    quote!(::umpire_annotations::Expected { expectation: #value, covers: (#covers).to_owned() })
+    quote!(::umpire_annotations::Expected { expectation: #value })
 }
 
 fn field_expansion(catalog: &DeriveCatalog, field: &DeriveField) -> syn::Result<TokenStream> {
@@ -281,11 +270,10 @@ fn field_projection(
         };
         quote!(.tag(&#value))
     });
-    let expected =
-        attrs.expected.as_ref().zip(attrs.covers.as_ref()).map(|(expectation, covers)| {
-            let expected = expected_expansion(expectation, covers);
-            quote!(.expects(&#expected))
-        });
+    let expected = attrs.expected.as_ref().map(|expectation| {
+        let expected = expected_expansion(expectation);
+        quote!(.expects(&#expected))
+    });
     let repeated: Vec<_> = attrs
         .constraints
         .iter()
@@ -328,14 +316,9 @@ fn presence(rule: &DeriveRule) -> TokenStream {
 
 fn rule_expansion(rule: &DeriveRule) -> TokenStream {
     let presence = presence(rule);
-    let expected = rule
-        .expected
-        .as_ref()
-        .zip(rule.covers.as_ref())
-        .map(|(expectation, covers)| expected_expansion(expectation, covers));
+    let expected = rule.expected.as_ref().map(expected_expansion);
     let expected = expected.map_or_else(|| quote!(None), |expected| quote!(Some(#expected)));
-    let inherited = rule.inherited_pattern.then(|| quote!(.inherited_pattern(#presence)));
-    quote!(.rule(::umpire_annotations::Rule { presence: #presence, expected: #expected }) #inherited)
+    quote!(.rule(::umpire_annotations::Rule { presence: #presence, expected: #expected }))
 }
 
 fn map_factory(catalog: &DeriveCatalog, field: &DeriveField) -> syn::Result<TokenStream> {
@@ -409,7 +392,7 @@ fn inspect_expansion(catalog: &DeriveCatalog) -> syn::Result<TokenStream> {
             if field.attributes.variants.is_empty() {
                 return Err(syn::Error::new(
                     name.span(),
-                    "OneOf requires exhaustive #[api(oneof(...))] alternatives",
+                    "OneOf requires exhaustive #[mirror(oneof(...))] alternatives",
                 ));
             }
             let variants =
