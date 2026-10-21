@@ -55,26 +55,77 @@ The standalone replay failure is not caused by fn-224: the ringpop test module d
 
 **Merge precondition (M2):** before merging `fn224-ringpop` into `gomad`, run the one-box `TestFrontendSystemInfo` at one seed with the larger slim module on a host with free disk (`candidate/run-all.sh` step 3). If it exceeds a recorded capacity, gate the unstub behind a per-workload tag per the spec.
 
-## Merge with `gomad` (2026-10-21, `87fcc5e24e`)
+## Merge with `gomad` (2026-10-21, `87fcc5e24e`, `502e7ce811`)
 
-`gomad` (`3ad88e1cde`, 219 commits ahead of the branch base) merged into the branch without conflicts. Auto-merged files: `cmd/tools/lintcode/main.go` and `main_test.go`, `archcheck/inventory.go`, WASM `CLI.md` and `README.md`, `command/scenario_test.go`. The fn-224 delta against `gomad` is unchanged (23 files). Raw evidence: `/home/agent/wt/evidence/fn224/candidate2/` (`gates.sh`/`gates.log`, `run-all.sh`/`run-all.log`, `onebox-controls/`, `gomad-tip-control/`).
+`gomad` merged into the branch twice without conflicts: first `3ad88e1cde` (219 commits ahead of the branch base), then `4466cc160e` (Flow specs and tasks only). Auto-merged files: `cmd/tools/lintcode/main.go` and `main_test.go`, `archcheck/inventory.go`, WASM `CLI.md` and `README.md`, `command/scenario_test.go`. The fn-224 delta against `gomad` is still the same 23 files. Raw evidence lives in `/home/agent/wt/evidence/fn224/`: `candidate2/` holds the merge commit, the controls and the one-box runs; `candidate3/` holds the evidence candidate described below.
 
-Source gates on the merge commit (stock Go 1.27.1), all exit 0: `make -C tools/gomad test-wasm-slim-refusals` (3 named PASS), `go test -tags gomad,test_dep -run TestDefaultMembershipRefusesUnbuiltRingpop ./temporal`, `go test -tags test_dep -run TestDefaultMembershipLinksRingpop ./temporal`, `go test ./cmd/tools/lintcode`, `TestWASMArchitecture`, `TestSlimGuestClosureCutsOnlyOptionalProviderSeams` (default 1471 packages, slim 1384), `TestOperatorRingpopScenarioPreflight`, `make lint-code-fast GOLANGCI_LINT_BASE_REV=gomad`, `gofmt -l` (empty), R4 boundary diff against `gomad` under `tests/testcore`, `wasm/wasi`, `internal/model`, `wasm/toolchain`, `wasm/wasmhost` and `tools/gomad/rust` (empty).
+Source gates on `87fcc5e24e` (stock Go 1.27.1, `candidate2/gates.sh`, `gates.log`, `gate-*.log`) all exit 0:
 
-**One-box precondition (M2).** `TestFrontendSystemInfo` seed 0 (`run-all.sh` step 3: 4 GiB memory, 2^50 fuel, 10 min execution timeout, `--choices`) on the fn-224 tip `ab7625c647` with its own launcher and helper (`candidate/bin`, gomad `sha256:7ec6be501b8c…`, helper `sha256:558e2989a2cd…`): `success`, guest `PASS`, 284 s wall, module 314,172,065 B `sha256:89ad10e3db1d…`. No capacity, fuel or memory refusal, so the unstub needs no per-workload tag. Its standalone replay fails with `choice trace malformed`, as in the earlier rerun.
+- `make -C tools/gomad test-wasm-slim-refusals` (3 named PASS)
+- `go test -tags gomad,test_dep -run TestDefaultMembershipRefusesUnbuiltRingpop ./temporal`
+- `go test -tags test_dep -run TestDefaultMembershipLinksRingpop ./temporal`
+- `go test ./cmd/tools/lintcode`
+- `TestWASMArchitecture`
+- `TestSlimGuestClosureCutsOnlyOptionalProviderSeams` (default 1471 packages, slim 1384)
+- `TestOperatorRingpopScenarioPreflight`
+- `make lint-code-fast GOLANGCI_LINT_BASE_REV=gomad`
+- `gofmt -l` (empty)
+- R4 boundary diff against `gomad` under `tests/testcore`, `wasm/wasi`, `internal/model`, `wasm/toolchain`, `wasm/wasmhost` and `tools/gomad/rust` (empty)
 
-**Execution on the merge commit is blocked by `gomad`, not by fn-224.** The Go launcher at `3ad88e1cde` cannot complete a cooperative execution with the current runtime source. Every run fails the same way with and without fn-224:
+`temporal/membership.go` selects `!gomad`, so the slim guest selects exactly one real membership implementation, and the gomad-tag stub stays a source-selection check (tightened R1).
+
+### One-box cells with ringpop linked (M2)
+
+These ran on the fn-224 tip `ab7625c647` with its own launcher and helper (`candidate/bin`: gomad `sha256:7ec6be501b8c…`, helper `sha256:558e2989a2cd…`), seed 0, 4 GiB memory, 2^50 fuel, 10 min execution timeout, `--choices`. Script: `candidate2/onebox-premerge2.sh`, log `onebox-premerge2.log`.
+
+| Cell | Package / selection | Outcome | Leaf PASS line | Wall | Module |
+| --- | --- | --- | --- | --- | --- |
+| frontend-system-info | `./tests/gomadfunctional` `^TestFrontendSystemInfo$` | success | `--- PASS: TestFrontendSystemInfo` | 375 s | 215,011,592 B `sha256:1d258c87cd74…` |
+| mandatory smoke | `./tests` `^TestWorkflowTypeEncodingSuite$/^TestPlainASCII$/^Succeeds$` | success | `--- PASS: TestWorkflowTypeEncodingSuite/TestPlainASCII/Succeeds` | 223 s | 314,172,065 B `sha256:89ad10e3db1d…` |
+
+Neither cell hit a capacity, fuel or memory refusal, so the unstub needs no per-workload tag. The first attempt (`candidate2/onebox-controls/premerge`) selected `TestFrontendSystemInfo` in `./tests`. That package does not contain the test, so the attempt ran no tests and does not count. The independent re-review found this.
+
+### Execution on the `gomad` tip is blocked by `gomad`, not by fn-224
+
+The Go launcher at `3ad88e1cde` cannot complete a cooperative execution with the current runtime source. Each run below fails the same way with and without fn-224.
 
 | Workload | Merge commit (launcher `459bcedeeea8…`, helper `211401449a1d…`) | `gomad` tip without fn-224 (control) |
 | --- | --- | --- |
-| One-box `TestFrontendSystemInfo` seed 0 | `runner_failure: success_artifact_publication: finalize artifact manifest: invalid choice trace identity` (guest ran to completion; 0 choice records) | identical error after 517 s; module 311,040,589 B |
-| `TestRpoSuite/TestMonitor` seed 0 `--choices` | `runner_failure: … WASI invalid: runtime decision header` | identical error |
-| Ringpop scenario seeds 7, 19 | `runner_failure: finish simulation: unsupported or incomplete WASM inspection evidence: decision/trace mapping` | identical error on the same fixture, 20 s deadline variant, tip launcher and tip helper (the cohort's 10 s-checkpoint build, `fn235/cohort/tip-refused/`) |
+| One-box `./tests` selection seed 0 `--choices` | `runner_failure: success_artifact_publication: finalize artifact manifest: invalid choice trace identity` (0 choice records) | identical error (`onebox-controls/gomadtip`) |
+| `TestRpoSuite/TestMonitor` seed 0 `--choices` | `runner_failure: … WASI invalid: runtime decision header` | identical error (`gomad-tip-control/`) |
+| Ringpop scenario seeds 7, 19 | `runner_failure: finish simulation: unsupported or incomplete WASM inspection evidence: decision/trace mapping` | identical error with the tip launcher and helper on a 20 s deadline variant (`fn235/cohort/tip-refused/`) |
 
-Cause: `38572d7e49` (goroutine creation sites) moved the guest runtime to decision header version 2. It updated the Rust helper and the Rust host, but not the Go host: `wasi/runtime.go:156` accepts only version 1, and the Go cluster inspection mapping (`cluster/inspection.go:46`) rejects the new records. Running without `--choices` is not an alternative: cooperative preparation requires choice recording by design. The Rust `gomad` binary cannot stand in: it reads only `gomad.rust-wasm-installation/v1`, and the installer is fn-232.11. These failures belong to the fn-232 replay/host owner, recorded for worker A.
+Cause: `38572d7e49` (goroutine creation sites) moved the guest runtime to decision header version 2. It updated the Rust helper and the Rust host, but not the Go host:
 
-One-box module delta on the merge commit: 314,171,975 B with fn-224 vs 311,040,589 B on `gomad` without it, +3,131,386 B (+1.01%). That matches the matched delta measured in fn-224.1.
+- `wasi/runtime.go:156` accepts only version 1.
+- The Go cluster inspection mapping (`cluster/inspection.go:46`) rejects the new records.
+- Record validation (`evidence/record/validation.go:433`) still requires the earlier trace version.
 
-The ringpop scenario fixture runs on the integrated fail-fast/commitment helper: `92c69594f2` (the last `gomad` commit before `38572d7e49`; it has the same cluster inspection source as the tip) was used for the fn-235.2 cohort. It ran the unchanged guest with the 120 s deadline variant to `success`, and the guest's own partition and convergence assertions held (`/home/agent/wt/evidence/fn235/cohort/after-*`). Scenario seeds 7/19 and their exact replays at 90 s remain the `ab7625c647` results above.
+Running without `--choices` is not an alternative: cooperative preparation requires choice recording by design. The Rust `gomad` binary reads only `gomad.rust-wasm-installation/v1`, whose installer is fn-232.11. These failures belong to fn-232.
 
-Standalone `--choices` replay (`choice trace malformed`) is not caused by fn-224. The ringpop test package does not import `go.temporal.io/server/temporal` (`go list -deps -test` with the guest tags), and the Go host differs from `gomad` only in comments and tests. The attestation added in `dd00c57f70` (`backends/observed_result.go`: replay requires `InputTapeSHA256`/`InputDecisions`, which the Go `runtime.collect` path does not fill) is the known newer-Go regression in the checkpoint's "Replay baseline pairing correction". Handed to fn-232.6.
+One-box `./tests` module on the tip: 314,171,975 B with fn-224 vs 311,040,589 B without it, a difference of +3,131,386 B (+1.01%). This is consistent with the matched fn-224.1 delta.
+
+### Evidence candidate `39694cd12b` (gomad `92c69594f2` + fn-224 `ab7625c647`)
+
+`92c69594f2` is the last `gomad` commit before `38572d7e49`. It has the same cluster inspection and World commitment source as the tip, including fn-235. Binaries were built from the candidate: launcher `sha256:c3f35c0bfaf3…`, helper `sha256:02169018a92e…`. Script: `candidate3/run.sh`, log `run.log`.
+
+Scenario, checked-in `ringpop.json` (90 s), `--keep-successes=all --success-limit=100 --success-bytes=4GiB`:
+
+| Seed | Outcome | Fault-phase proof (`candidate3/faultphase.py`) | Replay of the success |
+| --- | --- | --- | --- |
+| 7 | success | pass | `reproduced=true result=success choice-replay=none` |
+| 19 | success | pass | `reproduced=true result=success choice-replay=none` |
+
+`faultphase.py` checks the retained record. Network evidence must hold all eight directed `c`↔`a`/`b` `partition` transitions with outcome `ok`, ordered before the eight matching `heal` transitions. Each node's stdout must show `bootstrapped`, then `partitioned view`, then `converged … after heal`. All three nodes must exit 0 at the scenario `wait` with outcome `completed`.
+
+The guest itself asserts the phases:
+
+- At the 25 s view, `a` and `b` must have dropped `c`.
+- After the 30 s heal, three consecutive fresh full-member-set polls must pass.
+- At the deadline, the full view is checked again.
+
+The bootstrap marker cannot satisfy completion, and every node lives to the shared deadline. Replay reproduces the retained record, so the same fault-phase evidence reappears.
+
+The tightened .3 command form (`--working-dir <abs>/tools/gomad … go-run ./internal/backends/wasm/testdata/ringpop`) is refused by the Go toolchain: `main module (go.temporal.io/server/tools/gomad) does not contain package …/testdata/ringpop`. The guest is its own nested module. Recommendation, recorded and applied: use an absolute `--working-dir` naming the guest module and `go-run .`, as `CLI.md` documents. Both forms and their outcomes are retained.
+
+Ringpop leaves, `--choices --choice-bytes=64MiB --keep-successes=all --success-limit=100`, seeds 0,1,2: all nine leaves (`TestRpoSuite` ×4, `TestRingpopSuite` ×5) succeed on all seeds. That is 27/27 retained successes with the leaf's own `--- PASS` line and no `--- SKIP`. All 27 standalone replays fail with `execute replay target: choice trace malformed`. The cause is the known Go-host replay attestation regression from `dd00c57f70` (`backends/observed_result.go`: replay requires `InputTapeSHA256`/`InputDecisions`, which the Go `runtime.collect` path does not fill), present since before the fn-224 base. The ringpop test package does not import `go.temporal.io/server/temporal`, so fn-224 cannot affect it. Exact replay of all 27 passes remains proven only on the fn-221 sweep build `1d7b37f00a` (fn-224.2 artifact). R2's "every pass replays exactly" is therefore not re-proven on an integrated candidate; fn-224.2 stays open until the fn-232 replay owner restores standalone replay.
