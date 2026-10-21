@@ -9,11 +9,11 @@ use std::time::Duration;
 
 fn prepared_cluster() -> cluster::Prepared {
     let module = b"(module (memory (export \"memory\") 1) (func (export \"_start\")))".to_vec();
-    prepared_cluster_with(module, None)
+    prepared_cluster_with(&module, None)
 }
 
 fn prepared_cluster_with(
-    module: Vec<u8>,
+    module: &[u8],
     network: Option<cluster::NetworkConfig>,
 ) -> cluster::Prepared {
     let handles: Vec<_> = ["a", "b"]
@@ -26,7 +26,7 @@ fn prepared_cluster_with(
     let incarnations = handles.iter().map(|handle| cluster::Incarnation {
         handle:handle.clone(), network:network.as_ref().map(|network| network.model.clone()),
         request:linked::Request {
-            module:module.clone(),module_sha256:format!("{:x}", Sha256::digest(&module)),
+            module:module.to_vec(),module_sha256:format!("{:x}", Sha256::digest(module)),
             limits:linked::Limits {fuel:10000,memory_bytes:65536,output_bytes:1024,evidence_bytes:1<<20,wall_timeout:Duration::from_secs(5)},
             namespace:Some(linked::NamespaceImage {
                 entries:Vec::new(),writable_directories:Vec::new(),preopens:vec![b"/".to_vec()],working_directory:b"/".to_vec(),stdin:Vec::new(),
@@ -90,7 +90,8 @@ fn linked_cluster_network_query_uses_the_broker_instead_of_standalone_fallback()
         "addresses":{},"links":[],"strict_topology":false,"faults":[]
     }))
     .unwrap();
-    let observed = cluster::execute_prepared(prepared_cluster_with(module, Some(network))).unwrap();
+    let observed =
+        cluster::execute_prepared(prepared_cluster_with(&module, Some(network))).unwrap();
     assert_eq!(observed.outcome.termination, "exit");
     assert!(
         observed
