@@ -40,6 +40,7 @@ def main():
     for name in ('binary', 'go-compiler', 'input', 'work'):
         parser.add_argument('--' + name, type=Path, required=True)
     parser.add_argument('--preparation-root', type=Path)
+    parser.add_argument('--scenario-only', action='store_true')
     args = parser.parse_args()
     args.binary, args.go_compiler, args.input, args.work = (
         path.resolve() for path in (args.binary, args.go_compiler, args.input, args.work))
@@ -82,7 +83,7 @@ def main():
         profile='gomad.wasi-cooperative/v1', fuel=1 << 60, memory_bytes=256 << 20,
         helper_sha256=replay['helper_sha256'], host_sha256=replay['host_sha256'],
         runtime_implementation_sha256=replay['runtime_implementation_sha256'], model=model,
-        namespace=namespace, storage=None, network=network, build_tags=[])
+        namespace=namespace, storage=None, network=None if args.scenario_only else network, build_tags=[])
     manifest = args.work / 'installation.json'
     manifest.write_bytes(encode(installation))
 
@@ -97,6 +98,15 @@ def main():
         dict(Name='partition', Action='partition', From='a', To='b', AtNanos=1),
         dict(Name='heal', Action='heal', From='a', To='b', AtNanos=1),
     ]
+    if args.scenario_only:
+        scenario['spec']['volumes'] = []
+        for node in scenario['spec']['nodes']:
+            node['boot'] = 'park'
+            node.pop('volumes', None)
+        scenario['boots'] = [dict(id='park', args=['park'])]
+        scenario['incarnation_boots'], scenario['output_crashes'], scenario['network_faults'] = [], [], []
+        scenario['actions'] = [dict(action=action, handle=dict(node=node, incarnation=1))
+                               for action in ('start', 'wait') for node in ('a', 'b')]
     scenario_file = args.work / 'scenario.json'
     scenario_file.write_bytes(encode(scenario))
     prefix = [args.binary, '--installation', manifest]
@@ -129,8 +139,10 @@ def main():
             assert decision['selected'] < len(decision['alternatives'])
         actual = {(value['dimension'], value['ordinal']): value for value in record['exploration_decisions']}
         overrides = record['exploration_plan']['overrides'] or []
-        recovered = (artifact / 'evidence/cluster/a/2/stdout').read_bytes()
-        if not overrides:
+        recovered = (artifact / ('evidence/cluster/a/1/stdout' if args.scenario_only else 'evidence/cluster/a/2/stdout')).read_bytes()
+        if args.scenario_only:
+            assert b'independent peer' in recovered
+        elif not overrides:
             assert b'observed simulation recovery "before!!"' in recovered, recovered
         if any(value['dimension'] in ('storage', 'crash') for value in overrides):
             assert b'observed simulation recovery "survives"' in recovered, recovered
@@ -149,12 +161,13 @@ def main():
         observations.append(dict(identity=record['identity'], outcome=record['outcome'],
             decisions=record['exploration_decisions'], observations=record['observations'],
             forced_dimensions=[value['dimension'] for value in overrides],
-            network_stream_sha256=digest((artifact / 'evidence/cluster/a/1/network').read_bytes()),
+            network_stream_sha256=None if args.scenario_only else digest((artifact / 'evidence/cluster/a/1/network').read_bytes()),
             recovered_stdout_sha256=digest(recovered), steps=replay['configuration']['steps']))
     assert observations, 'no retained actual simulation observations'
-    required = {'scenario', 'network', 'storage', 'fault', 'crash'}
+    required = {'scenario'} if args.scenario_only else {'scenario', 'network', 'storage', 'fault', 'crash'}
     assert observed >= required, ('missing actual model decisions', sorted(required - observed))
-    assert forced >= required | {'runtime'}, ('missing real forced executions', sorted((required | {'runtime'}) - forced))
+    required_forced = required if args.scenario_only else required | {'runtime'}
+    assert forced >= required_forced, ('missing real forced executions', sorted(required_forced - forced))
     baseline = next(value for value in observations if not value['forced_dimensions'])
     for value in observations:
         if value['forced_dimensions'] == ['network']:
