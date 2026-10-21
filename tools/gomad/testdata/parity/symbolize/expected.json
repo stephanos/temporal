@@ -1,0 +1,87 @@
+[
+  {
+    "physical": "main.positive",
+    "site": 5383,
+    "missing": false,
+    "symbol": {
+      "package": "main",
+      "function": "choose",
+      "file": "gomad.fixture/symbolize/main.go",
+      "line": 4,
+      "inlined_from": [
+        {
+          "package": "main",
+          "function": "positive",
+          "file": "gomad.fixture/symbolize/main.go",
+          "line": 23
+        }
+      ]
+    },
+    "return_pcs": [
+      352780292
+    ]
+  },
+  {
+    "physical": "main.conflicting",
+    "site": 5384,
+    "missing": false,
+    "symbol": {
+      "package": "main",
+      "function": "conflicting",
+      "inlined_from": []
+    },
+    "return_pcs": [
+      352845828,
+      352845837
+    ]
+  },
+  {
+    "physical": "main.sameChain",
+    "site": 5385,
+    "missing": false,
+    "symbol": {
+      "package": "main",
+      "function": "choose",
+      "file": "gomad.fixture/symbolize/main.go",
+      "line": 4,
+      "inlined_from": [
+        {
+          "package": "main",
+          "function": "sameChain"
+        }
+      ]
+    },
+    "return_pcs": [
+      352911364,
+      352911373
+    ]
+  },
+  {
+    "physical": "main.known",
+    "site": 5386,
+    "missing": false,
+    "symbol": {
+      "package": "main",
+      "function": "known",
+      "file": "gomad.fixture/symbolize/main.go",
+      "line": 40,
+      "inlined_from": []
+    },
+    "return_pcs": [
+      352976898
+    ]
+  },
+  {
+    "physical": "main.unknown",
+    "site": 5387,
+    "missing": false,
+    "symbol": {
+      "package": "main",
+      "function": "unknown",
+      "inlined_from": []
+    },
+    "return_pcs": [
+      353042436
+    ]
+  }
+]

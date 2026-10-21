@@ -1,3 +1,5 @@
+pub use wasmtime::wasmparser;
+
 #[cfg(not(feature = "conformance"))]
 mod abi;
 #[cfg(all(

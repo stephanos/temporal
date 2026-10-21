@@ -30,9 +30,16 @@ Use the Go 1.27.1 source pin at tools/gomad/.toolchain/stock/2198cf19890232fc/go
 - Cross-segment/zero-gap tables and valid module/index/name mappings resolve deterministically across repeat runs; retained-module digest failure precedes symbol reads. No record/identity/wire mutation or new dependency.
 
 ## Done summary
-TBD
+Implemented the authenticated retained-module symbol resolver for R3/R4/R7/R8 in fe0c2fff2a, with review repairs in 1b08590b24. Real Go 1.27.1 retained fixtures prove physical and complete-consensus inline attribution, conflicting/indirect fallback, actual stripped-name behavior, and fixture absence refusal. Fixed cumulative byte/code/entry/step/frame limits apply before parsing or allocation; requested results are immutable and whole-parse exhaustion discards partial attribution.
 
+The three first-round findings (pointed metadata decoys, pre-budget data-expression traversal, and balanced unsupported exception controls) have true RED/GREEN regressions. Independent re-review SHIP, session01a15c0c-4e15-7b11-99c4-1575da10a108, receipt .flow/tmp/impl-review-receipt-fn229-symbolize.json. Fresh root candidate3 checks: all36 tests passed, mandatory fresh Go/Rust inspect parity0, foundation raw integrity/repeated goldens0, ordinary-release fixture refusals13/13. Worker fixture/default tests36/36 each, both Clippy/build/format checks0; two authenticated golden regenerations match all16 files. Original failures and exact commands remain in /home/agent/wt/evidence/fn229-symbolize/HANDOVER.md and its indexed raw receipts.
+
+Candidate3 fixture SHA256 e75fedf086dab6ae0d17676976050dcd683955f466ff9e7d6ed49d4e491fffd8; release71aa958ffd73c9c66337b439c2ca954b0d2ccfef6f0594b7f1c1ef144c4e923a; immutable test executable1e7652b28757626259000b79a99e4d16ef34e1e94e49962e2976d466398d083a. Root source equals the repaired worker source for owned build inputs. Overlay prerequisites remain separately attributed to fn234. No new dependency, external symbol decoder, record/wire mutation or qualification claim.
+
+Tier: session (jev-unavailable(no_key)); explicit AGENTS implementer/reviewer pins retained. Public inspect rendering and authenticated campaign divergence R2 belong to task .2 and fn232.7/.8; they remain open. The fn232 compiler/teardown deadline gap is not waived.
+
+stage: plan-sync - skipped(config: planSync.enabled != true)
 ## Evidence
-- Commits:
-- Tests:
+- Commits: fe0c2fff2aaad3e8332ce136c4165ef0a07c605d, 1b08590b24
+- Tests: /home/agent/wt/evidence/fn229-symbolize/candidate3/gomad-symbolize-tests --nocapture (36 passed, exit0), python3 tools/gomad/testdata/parity/foundation-check.py --binary /home/agent/wt/evidence/fn229-symbolize/candidate3/gomad-fixture --work /home/agent/wt/evidence/fn229-symbolize/root-foundation-1b08590b24 (exit0), python3 tools/gomad/scripts/behavioral-parity --corpus tools/gomad/testdata/parity --verb inspect --inspect-binary /home/agent/wt/evidence/fn229-symbolize/candidate3/gomad-fixture --inspect-baseline /home/agent/wt/evidence/fn232/go-baseline-1d7b37f00a --inspect-source /home/agent/wt/fn232-go-source/temporal-1d7b37f00a --inspect-go-compiler /Users/stephan/Workspace/skunkworks/gomad/temporal/tools/gomad/.toolchain/stock/2198cf19890232fc/go/bin/go --output-root /home/agent/wt/evidence/fn229-symbolize/root-1b08590b24 (exit0), python3 tools/gomad/testdata/parity/foundation-release-check.py /home/agent/wt/evidence/fn229-symbolize/candidate3/gomad-release /home/agent/wt/evidence/fn229-symbolize/root-release-1b08590b24 (13/13, exit0), flowctl codex impl-review fn-229-gomad-symbolize-choice-sites-in-inspect.1 --base 9714711c2a --receipt .flow/tmp/impl-review-receipt-fn229-symbolize.json --spec codex:gpt-6.1-sol:high --json (SHIP), git diff --check (exit0)
 - PRs:

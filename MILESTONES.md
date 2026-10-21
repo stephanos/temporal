@@ -113,7 +113,7 @@ The owner decided, "let's schedule the rewrite to Rust now as a flow spec", and 
 The owner then decided, "let's pull fn-232 forward to avoid any double work," and on the same day merged the existing specs into one order so nothing is built on the Go host and again on the Rust host. The merged delivery order:
 
 1. [fn-232](.flow/specs/fn-232-gomad-rewrite-the-host-side-in-rust.md) tasks .1 to .4 (binary crate, evidence layer, store, harness) with [fn-228](.flow/specs/fn-228-gomad-helper-owned-replay-tape.md) as the first batch. In parallel: [fn-223](.flow/specs/fn-223-gomad-delete-the-native-backend.md) as pure deletion; [fn-221](.flow/specs/fn-221-gomad-functional-suite-triage-sweep-on.md) .2/.3 sweep and [fn-222](.flow/specs/fn-222-gomad-qualify-the-one-box-cell-and.md) .2 support list on the Go binary, since their results are guest knowledge that carries over; the carry-over parts of fn-219.4 (ledger, docs), fn-227.1 (regression tests, inventory rows) and fn-188.5 (stress report).
-2. fn-232.5 inspect in Rust, then [fn-229](.flow/specs/fn-229-gomad-symbolize-choice-sites-in-inspect.md) symbolization.
+2. fn-232.5 inspect in Rust, then [fn-229](.flow/specs/fn-229-gomad-symbolize-choice-sites-in-inspect.md) symbolization. Its artifact projection lands first; campaign divergence R2 is received by fn-232.7/.8 and keeps fn-229.2 open until the real campaign consumer is wired and tested. This follows the provisional-development batch policy, not an R2 waiver.
 3. fn-232.6 to .8 replay and exploration in Rust; fn-227 R1/R2 (shutdown and crash-validation ordering) are implemented once in fn-232.8; then [fn-230](.flow/specs/fn-230-gomad-explore-site-scope-for-choice.md).
 4. fn-232.9 minimize in Rust, then [fn-231](.flow/specs/fn-231-gomad-site-aware-minimizer-ordering-and.md).
 5. fn-232.10 qualify in Rust, then fn-222.1 one-box qualification on the Rust binary.
@@ -314,8 +314,7 @@ First in the delivery order (owner decision 2026-10-20). New evidence lineage; b
 | [fn-232-gomad-rewrite-the-host-side-in-rust.2](.flow/tasks/fn-232-gomad-rewrite-the-host-side-in-rust.2.md) | 🚧 In progress | Rust evidence layer: record schema, canonical encoding, identities |
 | [fn-232-gomad-rewrite-the-host-side-in-rust.3](.flow/tasks/fn-232-gomad-rewrite-the-host-side-in-rust.3.md) | 🚧 In progress | Rust artifact store: new lineage, staged publication, budget, target pool |
 | [fn-232-gomad-rewrite-the-host-side-in-rust.4](.flow/tasks/fn-232-gomad-rewrite-the-host-side-in-rust.4.md) | 🚧 In progress | Behavioral differential harness and corpus |
-| [fn-232-gomad-rewrite-the-host-side-in-rust.5](.flow/tasks/fn-232-gomad-rewrite-the-host-side-in-rust.5.md) | ✅ Done | inspect in Rust |
-| [fn-232-gomad-rewrite-the-host-side-in-rust.6](.flow/tasks/fn-232-gomad-rewrite-the-host-side-in-rust.6.md) | ⬜ Todo | replay in Rust on the helper library tape path |
+| [fn-232-gomad-rewrite-the-host-side-in-rust.6](.flow/tasks/fn-232-gomad-rewrite-the-host-side-in-rust.6.md) | 🚧 In progress | replay in Rust on the helper library tape path |
 | [fn-232-gomad-rewrite-the-host-side-in-rust.7](.flow/tasks/fn-232-gomad-rewrite-the-host-side-in-rust.7.md) | ⬜ Todo | seed explore, resume and merge in Rust |
 | [fn-232-gomad-rewrite-the-host-side-in-rust.8](.flow/tasks/fn-232-gomad-rewrite-the-host-side-in-rust.8.md) | ⬜ Todo | choice exploration and simulation exploration in Rust |
 | [fn-232-gomad-rewrite-the-host-side-in-rust.9](.flow/tasks/fn-232-gomad-rewrite-the-host-side-in-rust.9.md) | ⬜ Todo | minimize in Rust |
@@ -324,13 +323,21 @@ First in the delivery order (owner decision 2026-10-20). New evidence lineage; b
 | [fn-232-gomad-rewrite-the-host-side-in-rust.12](.flow/tasks/fn-232-gomad-rewrite-the-host-side-in-rust.12.md) | ⬜ Todo | Keep Go overlay, models, generator and corpora green under the Rust binary |
 | [fn-232-gomad-rewrite-the-host-side-in-rust.13](.flow/tasks/fn-232-gomad-rewrite-the-host-side-in-rust.13.md) | ⬜ Todo | Qualification cycle on the Rust binary and Go host retirement |
 
+### Overlay audit — [fn-234](.flow/specs/fn-234-gomad-overlay-audit-dead-native.md)
+
+Owner request 2026-10-20: bounded audit, no capability change. Dead intercept list and proven-unreferenced leftovers deleted; inspection code split out of the wasip1 runtime file under a declaration-list gate and the fresh-execution behavioral gate. Lands as one batch; overlay identity changes once and caches are rebuilt. The frozen pre-fn-228 Go baseline is untouched.
+
+| Name / ID | Status | Description |
+| --- | --- | --- |
+| [fn-234-gomad-overlay-audit-dead-native.1](.flow/tasks/fn-234-gomad-overlay-audit-dead-native.1.md) | 🚧 In progress | Delete the dead Go 1.27.1 intercept list and proven-unreferenced overlay leftovers |
+| [fn-234-gomad-overlay-audit-dead-native.2](.flow/tasks/fn-234-gomad-overlay-audit-dead-native.2.md) | 🚧 In progress | Split inspection code out of the wasip1 runtime overlay with declaration and behavioral gates |
+
 ### Choice-site symbolization, explore site scope and minimizer ordering — [fn-229](.flow/specs/fn-229-gomad-symbolize-choice-sites-in-inspect.md), [fn-230](.flow/specs/fn-230-gomad-explore-site-scope-for-choice.md), [fn-231](.flow/specs/fn-231-gomad-site-aware-minimizer-ordering-and.md)
 
 Interleave with the Rust host: fn-229 after fn-232.5 inspect, fn-230 after fn-232.8 exploration and fn-229, then fn-231 after fn-232.9 minimize and both preceding site specs. No feature waits for the entire fn-232 rewrite.
 
 | Name / ID | Status | Description |
 | --- | --- | --- |
-| [fn-229-gomad-symbolize-choice-sites-in-inspect.1](.flow/tasks/fn-229-gomad-symbolize-choice-sites-in-inspect.1.md) | ⬜ Todo | Symbolize package: locate pclntab in the retained module and resolve text offsets |
 | [fn-229-gomad-symbolize-choice-sites-in-inspect.2](.flow/tasks/fn-229-gomad-symbolize-choice-sites-in-inspect.2.md) | ⬜ Todo | Inspect output: attach symbols to sites, decisions and divergences |
 
 | Name / ID | Status | Description |

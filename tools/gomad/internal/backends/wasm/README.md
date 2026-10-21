@@ -275,6 +275,19 @@ sources verbatim and hash the copied bytes. The former native overlay directory
 is no longer a valid runtime source root. This extraction rotates runtime and
 model identities; retained qualifications bind their historical candidate and
 must not be relabeled as current. Choice records and replay schemas are unchanged.
+
+`toolchain/runtime_wasm.go.txt` contains the cooperative runtime;
+`toolchain/runtime_inspect_wasm.go.txt` contains its `gomadDebug*` inspection
+declarations. Both use the same wasip1/wasm build constraint and are published
+beside each other in the patched runtime. The `.go.txt` suffix keeps these
+embedded `package runtime` sources outside the host module's build, vet,
+formatting and lint selection; the overlay builder formats the published Go
+copies. The inspection source is included in the ordered `ImplementationSHA256`
+input, preserving the digest construction and version prefix. This split changes
+the implementation and derived overlay identities, so installations and preparation
+and compiled-module caches require rebuilding; earlier qualification does not
+qualify the new identity.
+
 The module fold changes compiled model source bytes and import paths too. Retained
 artifacts remain inspectable, but replay requires the matching historical model;
 preparation caches and installations must be refreshed for the relocated candidate.
