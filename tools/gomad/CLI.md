@@ -237,11 +237,20 @@ python3 tools/gomad/scripts/behavioral-parity \
 The same lane accepts `--verb resume`, `execute-shard` and `merge` and exercises
 all four operations. The frozen Go WASM public CLI refuses shard/merge verbs;
 the lane records those real refusals separately and calls the unchanged Go
-Runner API through a fixture-only reference adapter for positive shard/merge
-semantics. Those API-reference results are not public-CLI positive parity.
+Runner API through a fixture-only reference adapter to attempt shard/merge
+semantics. Its provider preparation adapter delegates the original compiler
+provider and copies the verified module into the private bundle required by the
+original portable-plan owner, preserving every identity and metadata field.
+Those API-reference results are not public-CLI positive parity.
 Rust positive paths remain actual public CLI invocations. This admission
 discrepancy remains an explicit integrated-acceptance question, not a normalized
 semantic match.
+
+The frozen portable-plan implementation also drops backend metadata when it
+reopens a prepared target and rejects backend payload files in its bundle.
+Consequently the original WASM portable API lane currently fails closed rather
+than supplying a positive shard/merge reference. Its failure is an unresolved
+differential criterion, not a skipped gate or an authenticated match.
 
 Raw record, payload, plan and journal integrity checks run independently of
 goldens. `GOMAD_GOLDEN_REGENERATE=1` requires repeated fresh agreement and a

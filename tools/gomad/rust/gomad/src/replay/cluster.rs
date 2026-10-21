@@ -3,10 +3,7 @@ use gomad_wasmhost::{linked, linked_cluster as helper, linked_inspection as insp
 use serde::{Deserialize, Serialize};
 use serde_json::{Value, json};
 use sha2::Digest as _;
-use std::{
-    collections::{BTreeMap, BTreeSet},
-    time::Duration,
-};
+use std::collections::{BTreeMap, BTreeSet};
 
 pub const FILE: &str = "evidence/cluster-replay.json";
 
@@ -45,6 +42,8 @@ pub struct Incarnation {
     pub handle: helper::Handle,
     pub module: Payload,
     pub limits: Limits,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub wall_nanos: Option<u64>,
     pub arguments: Vec<String>,
     pub environment: BTreeMap<String, String>,
     pub runtime_sha256: String,
@@ -63,6 +62,8 @@ pub struct Configuration {
     pub engine: String,
     pub profile: String,
     pub limits: Limits,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub wall_nanos: Option<u64>,
     pub broker: helper::BrokerConfig,
     pub network: Option<helper::NetworkConfig>,
     pub incarnations: Vec<Incarnation>,
@@ -221,7 +222,7 @@ fn incarnation(
                 fuel: item.limits.fuel,
                 output_bytes: item.limits.output_bytes,
                 evidence_bytes: item.limits.evidence_bytes,
-                wall_timeout: Duration::from_millis(item.limits.wall_millis),
+                wall_timeout: super::preflight::wall_timeout(&item.limits, item.wall_nanos)?,
             },
             model: Some(linked::ModelInput {
                 configuration,
@@ -287,7 +288,10 @@ pub fn prepare(opened: Opened, control: Option<&inspection::Request>) -> Result<
         steps: configuration.steps,
         boundaries: configuration.boundaries,
         crash_groups: configuration.crash_groups,
-        wall_timeout: Duration::from_millis(configuration.limits.wall_millis),
+        wall_timeout: super::preflight::wall_timeout(
+            &configuration.limits,
+            configuration.wall_nanos,
+        )?,
         evidence_bytes: configuration.limits.evidence_bytes,
     })
     .map_err(|error| error.to_string())?;
