@@ -165,6 +165,93 @@ fn deferred_and_reassigned_bindings_require_proven_coverage()
     ])
 }
 
+#[test]
+fn method_and_cast_results_require_proven_coverage() -> Result<(), Box<dyn std::error::Error>> {
+    check_alias_cases(&[
+        (
+            "impl Binding { fn f(value:Result<(generated::Status,u8),()>)->Result<(),()> { match value? { (_,_)=>() }; Ok(()) } }",
+            0,
+            true,
+        ),
+        (
+            "impl Binding { fn f(value:Result<(),i32>) { let mapped=value.map_err(|_|generated::Status::Ready); match mapped { Ok(())=>(), Err(_)=>() } } }",
+            0,
+            true,
+        ),
+        (
+            "struct Local; impl Local { fn unwrap(self)->generated::Status { todo!() } } impl Binding { fn f(value:Local) { match value.unwrap() { _=>() } } }",
+            1,
+            true,
+        ),
+        (
+            "impl Binding { fn f(value:Result<(generated::Status,u8),()>) { match value.unwrap() { (_,_)=>() } } }",
+            0,
+            true,
+        ),
+        (
+            "impl Binding { fn f(value:&generated::Status) { match value as &generated::Status { _=>() } } }",
+            0,
+            true,
+        ),
+        (
+            "impl Binding { fn f(value:generated::Status) { match value as i32 { _=>() } } }",
+            0,
+            false,
+        ),
+    ])
+}
+
+#[test]
+fn rest_patterns_cover_actual_payload_positions() -> Result<(), Box<dyn std::error::Error>> {
+    check_alias_cases(&[
+        (
+            "impl Binding { fn f(value:(generated::Status,u8,u8,generated::Status)) { match value { (generated::Status::Ready,..,generated::Status::Ready)=>() } } }",
+            0,
+            false,
+        ),
+        (
+            "impl Binding { fn f(value:Option<generated::Status>) { match value { Some(..)=>(), None=>() } } }",
+            0,
+            true,
+        ),
+        (
+            "impl Binding { fn f(value:(generated::Status,u8)) { match value { (..)=>() } } }",
+            0,
+            true,
+        ),
+        (
+            "impl Binding { fn f(value:(u8,generated::Status,u8,u8,u8)) { match value { (_,..,_)=>() } } }",
+            0,
+            true,
+        ),
+        (
+            "impl Binding { fn f(value:(u8,u8,u8,u8,generated::Status)) { match value { (..,0,_)=>() } } }",
+            0,
+            true,
+        ),
+        (
+            "impl Binding { fn f(value:Result<(generated::Status,u8),()>) { match value.unwrap() { (..)=>() } } }",
+            0,
+            true,
+        ),
+        (
+            "impl Binding { fn f(value:(generated::Status,u8,u8,u8)) { match value { (generated::Status::Ready,..)=>() } } }",
+            0,
+            false,
+        ),
+        (
+            "impl Binding { fn f(value:(u8,u8,u8,generated::Status)) { match value { (..,generated::Status::Ready)=>() } } }",
+            0,
+            false,
+        ),
+        (
+            "impl Binding { fn f(value:Result<(u8,u8),i32>) { match value { Ok((..))=>(), Err(_)=>() } } }",
+            0,
+            false,
+        ),
+    ])
+}
+
 fn check_alias_cases(cases: &[(&str, usize, bool)]) -> Result<(), Box<dyn std::error::Error>> {
     fn implementations(items: &[syn::Item], result: &mut Vec<syn::ItemImpl>) {
         for item in items {
@@ -187,6 +274,7 @@ fn check_alias_cases(cases: &[(&str, usize, bool)]) -> Result<(), Box<dyn std::e
             variants: vec!["generated::Status::Ready".into()],
         },
     );
+    let mut failures = vec![];
     for &(source, index, refused) in cases {
         let file = syn::parse_file(source)?;
         let mut items = vec![];
@@ -195,14 +283,15 @@ fn check_alias_cases(cases: &[(&str, usize, bool)]) -> Result<(), Box<dyn std::e
         let location = item.impl_token.span.start();
         let expanded =
             expand_in_source(&syn::parse_str("activity")?, item, &schema, source, location);
-        if refused {
-            let error = expanded
-                .err()
-                .ok_or_else(|| format!("expected alias wildcard refusal: {source}"))?;
-            assert!(error.to_string().contains("wildcard"), "{error}");
-        } else {
-            assert!(expanded.is_ok(), "{source}: {:?}", expanded.err());
+        match expanded {
+            Err(error) if refused && error.to_string().contains("wildcard") => {}
+            Err(error) => failures.push(format!("unexpected refusal: {source}: {error}")),
+            Ok(_) if refused => failures.push(format!("expected alias wildcard refusal: {source}")),
+            Ok(_) => {}
         }
+    }
+    if !failures.is_empty() {
+        return Err(failures.join("\n").into());
     }
     Ok(())
 }

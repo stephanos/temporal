@@ -1,6 +1,6 @@
 # Task 1 verification and review context
 
-Task: fn-231-declarative-realizations-the.1. Full task base: b9f26782e39f815d740ea4b89925a723303c861d. Current implementation checkpoint: 22482ab2cc5a4cc592d5bbb52cb483b37668add4. Formal review has not started. The three final full gates are pending until after SHIP.
+Task: fn-231-declarative-realizations-the.1. Full task base: b9f26782e39f815d740ea4b89925a723303c861d. Preformal implementation checkpoint: 22482ab2cc5a4cc592d5bbb52cb483b37668add4. The first formal round reviewed through 653fd40331fb5740940d6f91df8ad3c234ab9c4e and returned NEEDS_WORK with two introduced findings. Its bounded fix loop is active. The three final full gates remain pending until after SHIP.
 
 ## Scope and preservation
 
@@ -28,9 +28,9 @@ The first native launch failed before collection because of a nested relative cw
 - Fresh correctness findings each had a separately collected RED: concrete wrapper aliases, dereferenced generated enums and deferred initialization. Six tests collected with three intended failures and three passes, followed by six passes. Related inferred-payload and binding-scope REDs are retained separately.
 - The custom-Deref addendum has an actual one-failure/five-pass RED and six-test GREEN. Only proved built-in references retain dereference identity; overloaded results are unresolved. Borrowed wrapper matching is normalized separately without rewriting expressions.
 
-The raw per-axis audit history, addendum and resolutions are retained verbatim in task-1-quality-audits.md. These audits were read-only. Their cited runtime results were not executions by the auditors. Final resolution counts are zero for correctness and standards. Dispatches were pinned to gpt-6.1-sol at high; this is same-family evidence, not a cross-family independence claim.
+The raw per-axis audit history, addendum and resolutions are retained verbatim in task-1-quality-audits.md. These audits were read-only. Their cited runtime results were not executions by the auditors. Preformal quality-audit resolution counts were zero for correctness and standards. The subsequent formal round found the two additional gaps recorded below. Dispatches were pinned to gpt-6.1-sol at high; this is same-family evidence, not a cross-family independence claim.
 
-## Current post-edit Quick observations
+## Preformal post-edit Quick observations at 22482ab
 
 All owner commands use CARGO_BUILD_JOBS=4, the serially leased fn2301-unwind Cargo target and Go cache. Every started command is observed through its terminal handle.
 
@@ -53,7 +53,17 @@ Both the post-05f448d rebuild and the final post-22482ab rebuild returned 0 and 
 
 ## Formal review risk steering
 
-The checker is bounded source analysis, not compiler type inference. A classification may be preserved across an operation only when its semantics/type identity are proved. Familiar method or operator spelling alone cannot establish identity. Review standard framework-method propagation in EnumMatches against that invariant, alongside the newly proved native-reference tracking. This is a review focus, not an unexecuted test or an already adjudicated finding.
+The checker is bounded source analysis, not compiler type inference. A classification may be preserved across an operation only when its semantics/type identity are proved. Familiar method or operator spelling alone cannot establish identity. This focus was supplied before round 1. All three formal draws subsequently found unproved method-result propagation; correctness also found rest-pattern coverage gaps. Both valid introduced groups were retained. All distinct map_err, custom-method and tuple-unwrap examples remain controls despite deduplication. Raw reviews, merge rationale and round-1 outcome are retained in task-1-formal-review.md and the actual receipt snapshot.
+
+The formal-fix RED collected eight tests, with both aggregated finding controls failing and the original six passing. The retained fn2311-formal-r1-red.log lists all three method examples, the explicit cast-target check and all five rest examples. It does not stop at the first case. The same eight controls then passed in fn2311-formal-r1-green.log. A narrow sibling control for the identical ExprTry wrapper-shape transformation subsequently failed as intended: fn2311-formal-r1-try-red.log collected eight tests, with the method control failing only on that case and the other seven passing. Final ordinary native verification passed all eight, ten UI cases and unchanged snapshots; strict clippy, formatting and diff checks also returned 0. Logs are fn2311-formal-r1-final-{native,clippy,fmt}.log. The child returned its frozen source/cache lease with every command terminal; owner integrated Quick and guest verification follow before re-review. No second review or full final-gate result is claimed at this entry.
+
+Unproved method and `?` result shapes are Unknown, rather than inheriting the receiver's shape. Casts use their explicit target type, retaining reference identity while permitting raw scalar casts. Tuple/variant coverage carries proved arity so rests cover only the actual omitted positions and suffixes align correctly. Unknown rest arity is not guessed. The controls retain explicit generated prefixes/suffixes, non-enum rest payloads, raw Result error fallback and existing activity byte-policy behavior.
+
+## Post-fix integrated Quick before round 2
+
+Owner five-package all-feature native tests, strict all-target/all-feature clippy and workspace formatting each returned terminal 0, in fn2311-round2-quick-{native,clippy,fmt}.log. Native collection includes all eight syntax controls, ten ordinary UI cases, unchanged expansion, fourteen realization and five helper controls, added-variant phase refusal, API inputs, cover/fixtures and both boundary controls. The nine preserved Model/test/golden hashes still match; the approved phase source exception remains separately controlled.
+
+The admitted generic guest rebuild returned 0 after 30.06s in fn2311-round2-quick-guest.log. Actual cmp against both the captured eddb guest and the leased target output returned 0. SHA256 remains 10724102d03e1659f28b07c3a0c848d2cac5876668f3be9261d0a3b65023cf06, so the retained renewed slice, complete 2336-case gaps, privacy and byte-identical report evidence still applies to the exact rebuilt guest. No redundant live rerun or full-gate receipt was fabricated. The fix is ready for the bounded single round-2 review, not yet SHIP.
 
 ## Remaining gates and ownership
 

@@ -1,0 +1,100 @@
+{
+  "base": "b9f26782e39f815d740ea4b89925a723303c861d",
+  "draws": [
+    {
+      "axis": "correctness",
+      "failed": false,
+      "model": "gpt-6.1-sol",
+      "session_id": "01a15e3e-49b1-78e3-a759-2146b749ca52",
+      "verdict": "NEEDS_WORK"
+    },
+    {
+      "axis": "contracts",
+      "failed": false,
+      "model": "gpt-6.1-sol",
+      "session_id": "01a15e3e-49af-7900-a2f1-add3c42a723a",
+      "verdict": "NEEDS_WORK"
+    },
+    {
+      "axis": "integration",
+      "failed": false,
+      "model": "gpt-6.1-sol",
+      "session_id": "01a15e3e-49ae-7802-97da-b2469454f436",
+      "verdict": "NEEDS_WORK"
+    }
+  ],
+  "effort": "high",
+  "findings": {
+    "backend": "codex",
+    "baseSha": "b9f26782e39f815d740ea4b89925a723303c861d",
+    "headSha": "653fd40331fb5740940d6f91df8ad3c234ab9c4e",
+    "items": [
+      {
+        "anchor": {
+          "baseSha": "b9f26782e39f815d740ea4b89925a723303c861d",
+          "headSha": "653fd40331fb5740940d6f91df8ad3c234ab9c4e",
+          "path": "model/temporal/annotate/syntax/src/realize.rs",
+          "side": "head",
+          "startLine": 622
+        },
+        "body": "Method calls named `map_err`, `unwrap`, `unwrap_or_else`, or `expect` inherit the receiver\u2019s enum positions without accounting for their result type. For example:",
+        "classification": "introduced",
+        "confidence": 100,
+        "firstSeenReceiptId": "review-ca5e531dec1317a2ed4898ce6e2e6079e62f94a73d2c67ea9c75e6e4e987c949",
+        "id": "finding-b2277a4e86bb9c978953eca311de96f5",
+        "lastSeenReceiptId": "review-ca5e531dec1317a2ed4898ce6e2e6079e62f94a73d2c67ea9c75e6e4e987c949",
+        "ordinal": 1,
+        "rIds": [
+          "R1"
+        ],
+        "severity": "P2",
+        "status": "open",
+        "suggestion": "Treat unproved method results as unresolved. Preserve positions only when the receiver identity and the operation\u2019s type transformation are established. Add a refusal control for this example.",
+        "title": "Method calls named `map_err`, `unwrap`, `unwrap_or_else`, or `expect` inherit the receiver\u2019s enum positions without accounting for their result type"
+      },
+      {
+        "anchor": {
+          "baseSha": "b9f26782e39f815d740ea4b89925a723303c861d",
+          "headSha": "653fd40331fb5740940d6f91df8ad3c234ab9c4e",
+          "path": "model/temporal/annotate/syntax/src/realize/patterns.rs",
+          "side": "head",
+          "startLine": 105
+        },
+        "body": "Rest patterns bypass wildcard detection. For `value: Option<Status>`, this is admitted:",
+        "classification": "introduced",
+        "confidence": 100,
+        "firstSeenReceiptId": "review-ca5e531dec1317a2ed4898ce6e2e6079e62f94a73d2c67ea9c75e6e4e987c949",
+        "id": "finding-c266e6f8e92f27805d6d6c8894ed72fc",
+        "lastSeenReceiptId": "review-ca5e531dec1317a2ed4898ce6e2e6079e62f94a73d2c67ea9c75e6e4e987c949",
+        "ordinal": 2,
+        "rIds": [
+          "R1"
+        ],
+        "severity": "P2",
+        "status": "open",
+        "suggestion": "Recognize rest patterns covering tracked positions as wildcards, including correct positional handling around tuple rests. Add refusal controls for `Some(..)` and tuple rests.",
+        "title": "Rest patterns bypass wildcard detection"
+      }
+    ],
+    "reviewKind": "implementation",
+    "round": 1,
+    "schemaVersion": 1,
+    "sourceReceiptId": "review-ca5e531dec1317a2ed4898ce6e2e6079e62f94a73d2c67ea9c75e6e4e987c949"
+  },
+  "id": "fn-231-declarative-realizations-the.1",
+  "introduced_count": 2,
+  "mode": "codex",
+  "model": "gpt-6.1-sol",
+  "pre_existing_count": 0,
+  "review": "## Issue 1\n- **Severity**: P2\n- **Title**: Method calls named `map_err`, `unwrap`, `unwrap_or_else`, or `expect` inherit the receiver\u2019s enum positions without accounting for their result type\n- **Confidence**: 100\n- **Classification**: introduced\n- **Problem**: Method calls named `map_err`, `unwrap`, `unwrap_or_else`, or `expect` inherit the receiver\u2019s enum positions without accounting for their result type. For example:\n- **Suggestion**: Treat unproved method results as unresolved. Preserve positions only when the receiver identity and the operation\u2019s type transformation are established. Add a refusal control for this example.\n- **File:Line**: model/temporal/annotate/syntax/src/realize.rs:622\n- **R-IDs**: R1\n\n## Issue 2\n- **Severity**: P2\n- **Title**: Rest patterns bypass wildcard detection\n- **Confidence**: 100\n- **Classification**: introduced\n- **Problem**: Rest patterns bypass wildcard detection. For `value: Option<Status>`, this is admitted:\n- **Suggestion**: Recognize rest patterns covering tracked positions as wildcards, including correct positional handling around tuple rests. Add refusal controls for `Some(..)` and tuple rests.\n- **File:Line**: model/temporal/annotate/syntax/src/realize/patterns.rs:105\n- **R-IDs**: R1\n\n```json\n{\"classification_counts\": {\"introduced\": 2, \"pre_existing\": 0}, \"unaddressed\": [\"R1\"], \"suppressed_count\": {}}\n```\n\n<verdict>NEEDS_WORK</verdict>\n",
+  "review_reservation_id": "3d75c3007d804aa38e4111388291ee77",
+  "rid": "3d75c3007d804aa38e4111388291ee77",
+  "session_id": "01a15e3e-49b1-78e3-a759-2146b749ca52",
+  "spec": "codex:gpt-6.1-sol:high",
+  "timestamp": "2026-10-21T11:44:21.453038Z",
+  "type": "impl_review",
+  "unaddressed": [
+    "R1"
+  ],
+  "verdict": "NEEDS_WORK"
+}

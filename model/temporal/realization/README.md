@@ -46,6 +46,9 @@ compilation. Its source file is tracked as an expansion input. Match expressions
 are inspected without changing their evaluation, ownership or moves.
 Dereferencing follows only proven built-in references; wildcard coverage after
 custom `Deref` is unresolved.
+Method-call and `?` result shapes are unresolved unless an explicit binding type
+establishes them. Tuple rests use proved arity to align prefixes and suffixes;
+unproved enum-like rest coverage refuses.
 
 `Realization::REALIZATION` retains the mapped/ignored/unsupported paths and ignore
 reasons for each observed response, incoming callback and outgoing request. Outgoing

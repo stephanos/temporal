@@ -23,8 +23,8 @@ use source::{EnumKind, Scope};
 #[derive(Clone, PartialEq, Eq, PartialOrd, Ord)]
 enum Position {
     Reference,
-    Tuple(usize),
-    Variant(String, usize),
+    Tuple(usize, usize),
+    Variant(String, usize, usize),
 }
 
 type Positions = BTreeMap<Vec<Position>, EnumKind>;
@@ -513,7 +513,7 @@ fn type_positions(ty: &Type, schema: &Schema, scope: &Scope) -> Positions {
                 .zip(names)
                 .flat_map(|(ty, name)| {
                     type_positions(ty, schema, scope).into_iter().map(move |(mut path, kind)| {
-                        path.insert(0, Position::Variant((*name).into(), 0));
+                        path.insert(0, Position::Variant((*name).into(), 0, 1));
                         (path, kind)
                     })
                 })
@@ -528,7 +528,7 @@ fn type_positions(ty: &Type, schema: &Schema, scope: &Scope) -> Positions {
             .enumerate()
             .flat_map(|(index, ty)| {
                 type_positions(ty, schema, scope).into_iter().map(move |(mut path, kind)| {
-                    path.insert(0, Position::Tuple(index));
+                    path.insert(0, Position::Tuple(index, tuple.elems.len()));
                     (path, kind)
                 })
             })
@@ -584,7 +584,7 @@ impl EnumMatches<'_> {
                 .enumerate()
                 .flat_map(|(index, expr)| {
                     self.expression_positions(expr).into_iter().map(move |(mut path, kind)| {
-                        path.insert(0, Position::Tuple(index));
+                        path.insert(0, Position::Tuple(index, tuple.elems.len()));
                         (path, kind)
                     })
                 })
@@ -605,7 +605,11 @@ impl EnumMatches<'_> {
                             move |(mut position, kind)| {
                                 position.insert(
                                     0,
-                                    Position::Variant(self.scope.constructor(&path.path), index),
+                                    Position::Variant(
+                                        self.scope.constructor(&path.path),
+                                        index,
+                                        call.args.len(),
+                                    ),
                                 );
                                 (position, kind)
                             },
@@ -613,21 +617,13 @@ impl EnumMatches<'_> {
                     })
                     .collect()
             }
-            syn::Expr::Try(value) => self.expression_positions(&value.expr),
             syn::Expr::Paren(value) => self.expression_positions(&value.expr),
             syn::Expr::Reference(value) => referenced(self.expression_positions(&value.expr)),
             syn::Expr::Unary(value) if matches!(value.op, syn::UnOp::Deref(_)) => {
                 dereferenced(self.expression_positions(&value.expr))
             }
-            syn::Expr::MethodCall(call)
-                if matches!(
-                    call.method.to_string().as_str(),
-                    "map_err" | "unwrap" | "unwrap_or_else" | "expect"
-                ) =>
-            {
-                self.expression_positions(&call.receiver)
-            }
-            syn::Expr::Lit(_) | syn::Expr::Cast(_) => Positions::new(),
+            syn::Expr::Cast(value) => type_positions(&value.ty, self.schema, &self.scope),
+            syn::Expr::Lit(_) => Positions::new(),
             _ => position(EnumKind::Unknown),
         }
     }

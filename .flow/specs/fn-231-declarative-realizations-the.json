@@ -1,14 +1,83 @@
 {
   "branch_name": "fn-231-declarative-realizations-the",
+  "completion_review_status": "unknown",
+  "completion_reviewed_at": null,
   "created_at": "2026-10-20T19:24:56.116358Z",
+  "default_impl": null,
+  "default_review": null,
+  "default_sync": null,
   "depends_on_epics": [
     "fn-229-realization-ergonomics-shared-temporal",
     "fn-217-annotation-catalog-over-the-temporal"
   ],
   "id": "fn-231-declarative-realizations-the",
+  "impl_review_rounds": {
+    "fn-231-declarative-realizations-the.1": 1
+  },
   "next_task": 1,
+  "plan_review_rounds": 0,
   "plan_review_status": "unknown",
   "plan_reviewed_at": null,
+  "review_attempts": [
+    {
+      "artifact_sha256": "c7a7dad3ec35b3f17568aa429c6d58371e7c978822530c518969588daf7f66ec",
+      "backend": "codex",
+      "base_sha": "b9f26782e39f815d740ea4b89925a723303c861d",
+      "counter_kind": "impl",
+      "effort": "high",
+      "failure_class": null,
+      "finalized": {
+        "digest": "complete",
+        "receipt": "complete",
+        "status": "not_applicable"
+      },
+      "findings_digest": {
+        "backend": "codex",
+        "digest_truncated": false,
+        "items": [
+          {
+            "chainRoot": "finding-b2277a4e86bb9c978953eca311de96f5",
+            "classification": "introduced",
+            "findingId": "finding-b2277a4e86bb9c978953eca311de96f5",
+            "firstSeenThisRound": true,
+            "severity": "P2",
+            "status": "open"
+          },
+          {
+            "chainRoot": "finding-c266e6f8e92f27805d6d6c8894ed72fc",
+            "classification": "introduced",
+            "findingId": "finding-c266e6f8e92f27805d6d6c8894ed72fc",
+            "firstSeenThisRound": true,
+            "severity": "P2",
+            "status": "open"
+          }
+        ],
+        "reviewKind": "implementation"
+      },
+      "forced": false,
+      "hash_epoch": 0,
+      "head_sha": "653fd40331fb5740940d6f91df8ad3c234ab9c4e",
+      "head_sha_observed": true,
+      "kind": "impl",
+      "model": "gpt-6.1-sol",
+      "outcome": "verdict",
+      "output_bytes": 1408,
+      "output_sha256": "751cc3605df832c82b3a0507de0ecf300297d3f0bfb26acf6fe2b5fc24497fb8",
+      "reservation_id": "3d75c3007d804aa38e4111388291ee77",
+      "round_consumed": true,
+      "scope": "impl:fn-231-declarative-realizations-the.1",
+      "superseded_by": null,
+      "task": "fn-231-declarative-realizations-the.1",
+      "timestamp": "2026-10-21T11:44:21.455042Z",
+      "verdict": "NEEDS_WORK"
+    }
+  ],
+  "review_hash_epoch": {},
+  "review_pending_rounds": {},
+  "review_reservations": {},
+  "review_transport_failures": {
+    "impl:fn-231-declarative-realizations-the.1": 0
+  },
   "spec_path": ".flow/specs/fn-231-declarative-realizations-the.md",
   "status": "open",
   "title": "Declarative Realizations: the #[realization] attribute surface and the coverage golden (model, temporal)",
@@ -23,5 +92,5 @@
     "mergeBaseTracker": null,
     "url": null
   },
-  "updated_at": "2026-10-20T21:42:41.440643Z"
+  "updated_at": "2026-10-21T11:44:21.458076Z"
 }

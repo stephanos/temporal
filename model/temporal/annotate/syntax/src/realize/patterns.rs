@@ -9,6 +9,8 @@ use super::{
 };
 use crate::realization::Schema;
 
+type Elements = syn::punctuated::Punctuated<syn::Pat, syn::Token![,]>;
+
 pub(super) fn match_positions(positions: Positions) -> Positions {
     let mut result = Positions::new();
     for (path, kind) in positions {
@@ -37,18 +39,17 @@ pub(super) fn positions(
             );
         }
         syn::Pat::Tuple(tuple) => {
-            for (index, element) in tuple.elems.iter().enumerate() {
-                let mut position = prefix.to_vec();
-                position.push(Position::Tuple(index));
-                positions(element, schema, scope, &position, result);
-            }
+            sequence_positions(&tuple.elems, None, schema, scope, prefix, result);
         }
         syn::Pat::TupleStruct(pattern) => {
-            for (index, element) in pattern.elems.iter().enumerate() {
-                let mut position = prefix.to_vec();
-                position.push(Position::Variant(scope.constructor(&pattern.path), index));
-                positions(element, schema, scope, &position, result);
-            }
+            sequence_positions(
+                &pattern.elems,
+                Some(&scope.constructor(&pattern.path)),
+                schema,
+                scope,
+                prefix,
+                result,
+            );
         }
         syn::Pat::Or(pattern) => {
             for case in &pattern.cases {
@@ -58,6 +59,58 @@ pub(super) fn positions(
         syn::Pat::Paren(pattern) => positions(&pattern.pat, schema, scope, prefix, result),
         syn::Pat::Reference(pattern) => positions(&pattern.pat, schema, scope, prefix, result),
         _ => {}
+    }
+}
+
+fn sequence_positions(
+    elements: &Elements,
+    constructor: Option<&str>,
+    schema: &Schema,
+    scope: &Scope,
+    prefix: &[Position],
+    result: &mut Positions,
+) {
+    let rest = elements.iter().position(|part| matches!(part, syn::Pat::Rest(_)));
+    let arity = result
+        .keys()
+        .filter(|path| path.starts_with(prefix))
+        .find_map(|path| match (path.get(prefix.len()), constructor) {
+            (Some(Position::Tuple(_, arity)), None) => Some(*arity),
+            (Some(Position::Variant(name, _, arity)), Some(constructor)) if name == constructor => {
+                Some(*arity)
+            }
+            _ => None,
+        })
+        .or_else(|| rest.is_none().then_some(elements.len()));
+    let Some(arity) = arity else {
+        let mut hints = Positions::new();
+        for element in elements {
+            positions(element, schema, scope, &[], &mut hints);
+        }
+        if hints.values().any(|kind| *kind != EnumKind::Other) {
+            merge_position(result, prefix, EnumKind::Unknown);
+        }
+        return;
+    };
+    for (index, element) in elements.iter().enumerate() {
+        if rest == Some(index) {
+            continue;
+        }
+        let index = if rest.is_some_and(|rest| index > rest) {
+            let Some(index) = arity.checked_sub(elements.len() - index) else {
+                merge_position(result, prefix, EnumKind::Unknown);
+                return;
+            };
+            index
+        } else {
+            index
+        };
+        let mut path = prefix.to_vec();
+        path.push(constructor.map_or_else(
+            || Position::Tuple(index, arity),
+            |name| Position::Variant(name.into(), index, arity),
+        ));
+        positions(element, schema, scope, &path, result);
     }
 }
 
@@ -87,7 +140,7 @@ pub(super) fn wildcard(
         {
             None
         }
-        syn::Pat::Wild(_) | syn::Pat::Ident(_) => Some(pattern.span()),
+        syn::Pat::Wild(_) | syn::Pat::Ident(_) | syn::Pat::Rest(_) => Some(pattern.span()),
         syn::Pat::Or(pattern) => {
             pattern.cases.iter().find_map(|case| wildcard(case, position, scope, schema))
         }
@@ -95,21 +148,17 @@ pub(super) fn wildcard(
         syn::Pat::Reference(pattern) => wildcard(&pattern.pat, position, scope, schema),
         syn::Pat::Tuple(pattern) => match position.first() {
             None => pattern.elems.iter().find_map(|part| wildcard(part, position, scope, schema)),
-            Some(Position::Tuple(index)) => pattern
-                .elems
-                .iter()
-                .nth(*index)
-                .and_then(|part| wildcard(part, &position[1..], scope, schema)),
+            Some(Position::Tuple(index, arity)) => {
+                sequence_wildcard(&pattern.elems, *index, *arity, &position[1..], scope, schema)
+            }
             _ => None,
         },
         syn::Pat::TupleStruct(pattern) => match position.first() {
             None => pattern.elems.iter().find_map(|part| wildcard(part, position, scope, schema)),
-            Some(Position::Variant(name, index)) if *name == scope.constructor(&pattern.path) => {
-                pattern
-                    .elems
-                    .iter()
-                    .nth(*index)
-                    .and_then(|part| wildcard(part, &position[1..], scope, schema))
+            Some(Position::Variant(name, index, arity))
+                if *name == scope.constructor(&pattern.path) =>
+            {
+                sequence_wildcard(&pattern.elems, *index, *arity, &position[1..], scope, schema)
             }
             _ => None,
         },
@@ -126,4 +175,28 @@ pub(super) fn wildcard(
         }
         _ => None,
     }
+}
+
+fn sequence_wildcard(
+    elements: &Elements,
+    index: usize,
+    arity: usize,
+    tail: &[Position],
+    scope: &Scope,
+    schema: &Schema,
+) -> Option<Span> {
+    let target =
+        if let Some(rest) = elements.iter().position(|part| matches!(part, syn::Pat::Rest(_))) {
+            let suffix = elements.len() - rest - 1;
+            if index < rest {
+                index
+            } else if index >= arity.saturating_sub(suffix) {
+                elements.len().checked_sub(arity.checked_sub(index)?)?
+            } else {
+                rest
+            }
+        } else {
+            index
+        };
+    elements.iter().nth(target).and_then(|part| wildcard(part, tail, scope, schema))
 }
