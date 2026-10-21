@@ -32,11 +32,10 @@ fn render_tlc(
 ) -> umpire_testing::RunResult {
     let name = fixture_name(folder)?;
     eprintln!("TLC fixture {name}: checking independently lifted source");
-    if let Some(result) = bound_backend(name, folder) {
-        return result;
-    }
-    let module = lifted(name)?;
-    let files = check_backend(name, &module, folder, &run()?)?;
+    let files = match bound_backend(name, folder) {
+        Some(result) => result?,
+        None => check_backend(name, &lifted(name)?, folder, &run()?)?,
+    };
     eprintln!(
         "TLC fixture {name}: {}",
         files.get("tlc.txt").ok_or("missing TLC agreement report")?

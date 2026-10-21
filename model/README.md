@@ -626,11 +626,13 @@ let result = umpire_tlc::Tlc::discover(repository_root)?.check_module(&module)?;
 
 For a declared World, admit the source first, then call `lifted.bind(&binding)` before emission.
 `Binding` contains ordered named World literals and ordered complete start rows; missing,
-duplicate, extra, wrong-type and out-of-range values refuse at the source declaration.
+duplicate, extra, wrong-type and out-of-range values refuse at the source declaration. TLC
+configuration values must be integers in `0..=i32::MAX`, so negative World integers refuse too.
 Whole-state Init preserves correlations, deduplicates identical rows and admits empty starts.
 The selected World constants have the same assignments in the main, invariant,
-postcondition, negative and progress configurations. `parameterized_world` exercises two
-selections, private-field projection and same-World replay of a deliberately false claim.
+postcondition, negative and progress configurations. `parameterized_world` exercises three
+selections (two checked against TLC, one with empty starts), private-field projection and
+same-World replay of a deliberately false claim.
 Generic native World declarations are not automatically admitted by the source backend.
 
 This checks the source-lifted scope independently. Complete native set/verdict agreement is

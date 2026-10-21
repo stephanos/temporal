@@ -6,33 +6,21 @@ use std::{
     path::{Path, PathBuf},
 };
 
-/// Prepare compiler-checked copies for fixtures whose authored starts require a selected World.
-pub fn prepare(
+/// Generate emitted artifacts and typed fixture bindings from independently read source roots,
+/// given each fixture's name, model module and folder.
+pub fn generate(fixtures: &[(String, String, PathBuf)], output: &Path) -> std::io::Result<()> {
+    generate_bound(fixtures, output).map(drop)
+}
+
+/// Like [`generate`], and also write compiler-checked copies for fixtures whose authored starts
+/// require a selected World, returning them as discovery input overrides.
+#[allow(clippy::print_stdout)]
+pub fn generate_bound(
     fixtures: &[(String, String, PathBuf)],
     output: &Path,
 ) -> std::io::Result<BTreeMap<(String, String), PathBuf>> {
-    let mut overrides = BTreeMap::new();
-    for (name, identifier, folder) in fixtures {
-        let Ok(lifted) = crate::Lift::source(folder.join("model.rs")) else { continue };
-        if !lifted.requires_binding() {
-            continue;
-        }
-        let binding = Bound::read(folder, identifier, &lifted)?;
-        let model = output.join(format!("{name}-bound-model.rs"));
-        let tests = output.join(format!("{name}-bound-tests.rs"));
-        std::fs::write(&model, prettyplease::unparse(&binding.model))?;
-        std::fs::write(&tests, prettyplease::unparse(&binding.tests))?;
-        overrides.insert((name.clone(), "model.rs".into()), model);
-        overrides.insert((name.clone(), "tests.rs".into()), tests);
-    }
-    Ok(overrides)
-}
-
-/// Generate emitted artifacts and typed fixture bindings from independently read source roots,
-/// given each fixture's name, model module and folder.
-#[allow(clippy::print_stdout)]
-pub fn generate(fixtures: &[(String, String, PathBuf)], output: &Path) -> std::io::Result<()> {
     use std::fmt::Write;
+    let mut overrides = BTreeMap::new();
     let mut source = String::from(
         "#[allow(clippy::unreadable_literal, reason = \"Generated exact integer bounds\")]\nfn lifted(name: &str) -> Result<umpire_lift::Module, String> { match name {\n",
     );
@@ -53,6 +41,11 @@ pub fn generate(fixtures: &[(String, String, PathBuf)], output: &Path) -> std::i
             && lifted.requires_binding()
         {
             let binding = Bound::read(folder, identifier, lifted)?;
+            for (input, file) in [("model.rs", &binding.model), ("tests.rs", &binding.tests)] {
+                let path = output.join(format!("{name}-bound-{input}"));
+                std::fs::write(&path, prettyplease::unparse(file))?;
+                overrides.insert((name.clone(), input.to_owned()), path);
+            }
             let module_fn = binding.module_fn;
             let backend_fn = binding.backend_fn;
             admitted.push(name.clone());
@@ -93,14 +86,15 @@ pub fn generate(fixtures: &[(String, String, PathBuf)], output: &Path) -> std::i
     source.push_str(&replay);
     bindings.push_str("}\n");
     source.push_str(&bindings);
-    if !bound.is_empty() {
-        source.push_str("fn bound_backend(name: &str, folder: &std::path::Path) -> Option<umpire_testing::RunResult> { match name {\n");
-        source.push_str(&bound);
-        source.push_str("_ => None, } }\n");
-    }
+    // Always present, so a refused bound fixture reports through lift.txt rather than failing
+    // to compile its caller.
+    source.push_str("#[allow(unused_variables)]\nfn bound_backend(name: &str, folder: &std::path::Path) -> Option<umpire_testing::RunResult> { match name {\n");
+    source.push_str(&bound);
+    source.push_str("_ => None, } }\n");
     writeln!(source, "fn admitted() -> &'static [&'static str] {{ &{admitted:?} }}")
         .map_err(std::io::Error::other)?;
-    std::fs::write(output.join("lifted.rs"), source)
+    std::fs::write(output.join("lifted.rs"), source)?;
+    Ok(overrides)
 }
 
 struct Bound {
@@ -142,7 +136,7 @@ impl Bound {
             syn::parse_str(lifted.machine_module()).map_err(std::io::Error::other)?;
         let state_type = format_ident!("{}", lifted.state_name);
         let world_type = quote!(crate::#fixture_module::#machine::World);
-        let model_type = quote!(crate::#fixture_module::#machine::#state_type);
+        let model_type = quote!(<#world_type as umpire_dsl::Machine>::State);
         let declarations = model
             .items
             .iter()
@@ -221,10 +215,7 @@ impl Bound {
             }
             _ => return Err(std::io::Error::other("unsupported bound fixture! arguments")),
         };
-        let (negative_items, negative_code) = negative.map_or_else(
-            || (proc_macro2::TokenStream::new(), proc_macro2::TokenStream::new()),
-            |negative| negative_runtime(&prefix, &world_type, negative, budget),
-        );
+        let negative_code = negative.map(|negative| negative_runtime(&prefix, negative));
         let extra_code = extra.map(|extra| quote! {
             for (#module, #folder_arg) in { let #graph: umpire_testing::Files = #extra; #graph } {
                 if #files.contains_key(&#module) {
@@ -235,7 +226,6 @@ impl Bound {
         });
         let input = std::fs::canonicalize(folder.join("model.rs"))?.to_string_lossy().into_owned();
         let mut generated: syn::File = syn::parse2(quote! {
-            #negative_items
             fn #select() -> umpire_suite::Space<#model_type, std::rc::Rc<#world_type>> {
                 let #world = #selected;
                 let #starts = umpire_dsl::Machine::starts(&#world);
@@ -361,43 +351,17 @@ fn project_value(
     })
 }
 
-fn negative_runtime(
-    prefix: &str,
-    world_type: &proc_macro2::TokenStream,
-    negative: &syn::Expr,
-    budget: &syn::Expr,
-) -> (proc_macro2::TokenStream, proc_macro2::TokenStream) {
+fn negative_runtime(prefix: &str, negative: &syn::Expr) -> proc_macro2::TokenStream {
     let world = format_ident!("{prefix}world");
     let starts = format_ident!("{prefix}starts");
     let files = format_ident!("{prefix}files");
-    let wrapper = format_ident!("{prefix}negative");
-    let selected = format_ident!("{prefix}claim");
     let report = format_ident!("{prefix}report");
-    let items = quote! {
-        #[allow(non_camel_case_types)]
-        struct #wrapper<'a> { world: &'a #world_type, claim: umpire_dsl::Claim<#world_type> }
-        impl umpire_dsl::Machine for #wrapper<'_> {
-            type State = <#world_type as umpire_dsl::Machine>::State;
-            type Action = <#world_type as umpire_dsl::Machine>::Action;
-            type Outcome = <#world_type as umpire_dsl::Machine>::Outcome;
-            type Fact = <#world_type as umpire_dsl::Machine>::Fact;
-            fn starts(&self) -> Vec<Self::State> { Vec::new() }
-            fn actions(&self) -> Vec<Self::Action> { umpire_dsl::Machine::actions(self.world) }
-            fn internal(&self, action: &Self::Action) -> bool { umpire_dsl::Machine::internal(self.world, action) }
-            fn step(&self, state: &Self::State, action: Self::Action) -> umpire_dsl::Steps<Self::State, Self::Outcome, Self::Fact> { umpire_dsl::Machine::step(self.world, state, action) }
-            fn checked_step(&self, state: &Self::State, action: Self::Action) -> Result<umpire_dsl::Steps<Self::State, Self::Outcome, Self::Fact>, umpire_dsl::StepError> { umpire_dsl::Machine::checked_step(self.world, state, action) }
-            fn invariants(&self) -> Vec<umpire_dsl::Claim<Self>> {
-                vec![umpire_dsl::Claim::new(self.claim.name, |this, state| this.claim.evaluate(this.world, state).verdict)]
-            }
-        }
-    };
-    let execute = quote! {
-        let #selected = #wrapper { world: #world.as_ref(), claim: #negative };
-        let #report = umpire_checker::Checker::explore_from(&#selected, #starts.to_vec(), #budget)?.verify_all()?;
+    // As `fixture!`: declared claims plus the supplemental one, under the default budget.
+    quote! {
+        let #report = umpire_checker::Checker::refuted_from(#world.as_ref(), #starts.to_vec(), #negative)?.verify_all()?;
         #files.insert("negative_report.txt".into(), #report.to_string());
         umpire_testing::add_paths(&mut #files, #report);
-    };
-    (items, execute)
+    }
 }
 
 fn strings(values: &[String]) -> String {
@@ -526,6 +490,25 @@ umpire_testing::fixture!(selected(), 64);
         let generated = std::fs::read_to_string(output.join("lifted.rs"))?;
         assert!(generated.contains("fn bound_backend("), "{generated}");
         assert!(!output.join("counter.tla").exists());
+        std::fs::remove_dir_all(root)
+    }
+
+    #[test]
+    fn refused_sources_still_generate_the_bound_backend_fallback() -> std::io::Result<()> {
+        let root =
+            std::env::temp_dir().join(format!("umpire-refused-build-{}", std::process::id()));
+        let fixture = root.join("refused");
+        let output = root.join("out");
+        std::fs::create_dir_all(&fixture)?;
+        std::fs::create_dir_all(&output)?;
+        std::fs::write(fixture.join("model.rs"), "pub mod refused {}\n")?;
+        std::fs::write(fixture.join("tests.rs"), "")?;
+        let overrides =
+            super::generate_bound(&[("refused".into(), "refused".into(), fixture)], &output)?;
+        assert!(overrides.is_empty());
+        let generated = std::fs::read_to_string(output.join("lifted.rs"))?;
+        assert!(generated.contains("fn bound_backend("), "{generated}");
+        assert!(generated.contains("\"refused\" => Err("), "{generated}");
         std::fs::remove_dir_all(root)
     }
 }

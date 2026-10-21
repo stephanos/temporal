@@ -468,3 +468,19 @@ impl<M: Machine> Result<M> {
         }
     }
 }
+
+// Kept after every panic site in this file so adding it leaves linked guest bytes unchanged.
+impl Checker {
+    /// Checks an additional state predicate from the given ordered starts in place of the
+    /// world's own, with the default million-state budget.
+    pub fn refuted_from<M: Machine>(
+        world: &M,
+        starts: Vec<M::State>,
+        claim: Claim<M>,
+    ) -> std::result::Result<Result<M>, Refusal> {
+        let mut invariants = world.invariants();
+        let supplemental = invariants.len();
+        invariants.push(claim);
+        Self::explore_claims(world, starts, Self::BUDGET, &invariants, Some(supplemental))
+    }
+}

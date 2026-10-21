@@ -6,5 +6,8 @@ refused: 2
 depth: 2
 cut: false
 outcome: Refuted
+claim bounded: Verified
 claim never_three: Refuted
+claim advances: Verified
+claim finishes: Verified
 vacuity: none

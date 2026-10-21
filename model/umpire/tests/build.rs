@@ -15,12 +15,11 @@ fn main() -> std::io::Result<()> {
             .map(|fixture| (fixture.name, fixture.module, fixture.path))
             .collect::<Vec<_>>();
     let output = std::path::Path::new(&output);
-    let overrides = umpire_lift::build::prepare(&fixtures, output)?;
+    let overrides = umpire_lift::build::generate_bound(&fixtures, output)?;
     discovery::generate_with_overrides(
         std::path::Path::new("fixtures"),
         discovery::MODEL_AND_TESTS,
         &output.join("fixtures.rs"),
         &overrides,
-    )?;
-    umpire_lift::build::generate(&fixtures, output)
+    )
 }

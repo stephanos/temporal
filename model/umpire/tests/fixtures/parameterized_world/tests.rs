@@ -46,7 +46,7 @@ fn each_native_execution_selects_one_world_and_enumerates_once() -> umpire_testi
             assert_eq!(files["states.txt"].lines().count(), states);
             assert_eq!(files["rows.txt"].lines().count(), edges);
             assert!(
-                files["negative_report.txt"].contains(verdict),
+                files["negative_report.txt"].contains(&format!("claim never_three: {verdict}")),
                 "{}",
                 files["negative_report.txt"]
             );
