@@ -1,11 +1,150 @@
 {
   "branch_name": "fn-190-gomad-wasm-checkpoint-restore-experiment",
+  "completion_review_status": "unknown",
+  "completion_reviewed_at": null,
   "created_at": "2026-10-16T15:12:48.916551Z",
+  "default_impl": null,
+  "default_review": null,
+  "default_sync": null,
   "depends_on_epics": [],
   "id": "fn-190-gomad-wasm-checkpoint-restore-experiment",
+  "impl_review_rounds": {},
   "next_task": 1,
-  "plan_review_status": "unknown",
-  "plan_reviewed_at": null,
+  "plan_review_rounds": 0,
+  "plan_review_status": "ship",
+  "plan_reviewed_at": "2026-10-21T17:44:28.130412Z",
+  "review_attempts": [
+    {
+      "artifact_sha256": "34b49662f4c2c08d94fbb259f16e7b7bd5e89635d83151ae08c0cfd2243c174d",
+      "backend": "codex",
+      "base_sha": "951c5516e9e7b3066e7e069adda9565cfd68844c",
+      "counter_kind": "plan",
+      "effort": "high",
+      "failure_class": null,
+      "finalized": {
+        "digest": "complete",
+        "receipt": "complete",
+        "status": "complete"
+      },
+      "findings_digest": {
+        "backend": "codex",
+        "digest_truncated": false,
+        "items": [
+          {
+            "chainRoot": "finding-977ba4746ce0fc8c948f0475abf6e837",
+            "classification": "introduced",
+            "findingId": "finding-977ba4746ce0fc8c948f0475abf6e837",
+            "firstSeenThisRound": true,
+            "severity": "P1",
+            "status": "open"
+          },
+          {
+            "chainRoot": "finding-4e9b109d3d08900e9df0f0e35d28e918",
+            "classification": "introduced",
+            "findingId": "finding-4e9b109d3d08900e9df0f0e35d28e918",
+            "firstSeenThisRound": true,
+            "severity": "P1",
+            "status": "open"
+          },
+          {
+            "chainRoot": "finding-ed86a31b203a3b42b93799f4366396ea",
+            "classification": "introduced",
+            "findingId": "finding-ed86a31b203a3b42b93799f4366396ea",
+            "firstSeenThisRound": true,
+            "severity": "P1",
+            "status": "open"
+          }
+        ],
+        "reviewKind": "plan"
+      },
+      "forced": false,
+      "hash_epoch": 0,
+      "head_sha": "3ad88e1cdeec9431146220838bfd01c932ccef1a",
+      "head_sha_observed": true,
+      "kind": "plan",
+      "model": "gpt-6.1-sol",
+      "outcome": "verdict",
+      "output_bytes": 393839,
+      "output_sha256": "30e76d268ae530857bc3a0be08eb0686cee792022c4f95f3368a02beedbef2c9",
+      "reservation_id": "9d3d07152c6f40eca381dfd3c011e4cc",
+      "round_consumed": true,
+      "scope": "plan",
+      "superseded_by": null,
+      "task": null,
+      "timestamp": "2026-10-21T17:42:38.501909Z",
+      "tool_calls": 56,
+      "verdict": "NEEDS_WORK"
+    },
+    {
+      "artifact_sha256": "d15a4c72c498c139e39fa32510fc6cf9e25647fea12bd422b05c33eb020555ec",
+      "backend": "codex",
+      "base_sha": "951c5516e9e7b3066e7e069adda9565cfd68844c",
+      "counter_kind": "plan",
+      "effort": "high",
+      "failure_class": null,
+      "finalized": {
+        "digest": "complete",
+        "receipt": "complete",
+        "status": "complete"
+      },
+      "findings_digest": {
+        "backend": "codex",
+        "digest_truncated": false,
+        "items": [
+          {
+            "chainRoot": "finding-977ba4746ce0fc8c948f0475abf6e837",
+            "classification": "introduced",
+            "findingId": "finding-977ba4746ce0fc8c948f0475abf6e837",
+            "firstSeenThisRound": false,
+            "severity": "P1",
+            "status": "fixed"
+          },
+          {
+            "chainRoot": "finding-4e9b109d3d08900e9df0f0e35d28e918",
+            "classification": "introduced",
+            "findingId": "finding-4e9b109d3d08900e9df0f0e35d28e918",
+            "firstSeenThisRound": false,
+            "severity": "P1",
+            "status": "fixed"
+          },
+          {
+            "chainRoot": "finding-ed86a31b203a3b42b93799f4366396ea",
+            "classification": "introduced",
+            "findingId": "finding-ed86a31b203a3b42b93799f4366396ea",
+            "firstSeenThisRound": false,
+            "severity": "P1",
+            "status": "fixed"
+          }
+        ],
+        "reviewKind": "plan"
+      },
+      "forced": false,
+      "hash_epoch": 0,
+      "head_sha": "3ad88e1cdeec9431146220838bfd01c932ccef1a",
+      "head_sha_observed": true,
+      "kind": "plan",
+      "model": "gpt-6.1-sol",
+      "outcome": "verdict",
+      "output_bytes": 915,
+      "output_sha256": "6b5ac9101672f549a3b21df6d45eda0b9964a8552774797df26e6357b3a898d8",
+      "reservation_id": "2cb05d0ec65e4b0fb964ffd96344e53d",
+      "round_consumed": true,
+      "scope": "plan",
+      "superseded_by": null,
+      "task": null,
+      "timestamp": "2026-10-21T17:44:28.104352Z",
+      "verdict": "SHIP"
+    }
+  ],
+  "review_hash_epoch": {
+    "plan": 1,
+    "plan#completion": 0
+  },
+  "review_pending_rounds": {},
+  "review_reservations": {},
+  "review_transport_failures": {
+    "plan": 0
+  },
   "spec_path": ".flow/specs/fn-190-gomad-wasm-checkpoint-restore-experiment.md",
   "status": "open",
   "title": "Gomad: WASM checkpoint restore experiment",
@@ -20,5 +159,5 @@
     "mergeBaseTracker": null,
     "url": null
   },
-  "updated_at": "2026-10-16T15:12:48.938553Z"
+  "updated_at": "2026-10-21T17:50:16.915601Z"
 }

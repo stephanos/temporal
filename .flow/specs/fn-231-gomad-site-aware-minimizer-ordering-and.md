@@ -14,23 +14,29 @@ Proposal generation gains a stable sort key: proposals whose removed decisions a
 
 The persisted minimizer state gains the ordering key. State identity already covers bounds and candidates, so adding the key changes the identity material and bumps the minimizer implementation digest, which causes old state to be refused as it is today.
 
+### Authenticated scope inheritance
+
+Task .1 extends Rust exploration retention to include optional immutable search-context metadata as an authenticated payload in the artifact manifest. Keep it separate from the canonical execution record and minimization evidence block: execution/failure identities do not change. The metadata records the normalized scope patterns, producing campaign plan identity and round ordinal, and the exact resolution snapshot used by that producing round. Capture it at retention time; do not use a later mutable campaign summary or a final campaign journal hash (which would create a circular artifact reference). Validate this optional payload through the shared authenticated opener, with strict schema, size, pattern and digest checks. Old artifacts with no such metadata have no recorded inherited scope; do not infer one from directory names or ambient campaign files.
+
+Minimize reads and validates this self-contained context before any attempt, applies an explicit flag in preference to inherited patterns, resolves those patterns against the retained parent module/tape once, and pins both the source snapshot identity and the resulting minimizer resolution in its checkpoint key. A detached artifact therefore inherits its scope without its campaign directory. Malformed present context refuses; missing optional context on an older artifact means unscoped unless an explicit flag is supplied. Resume uses the pinned key and refuses changed context, parent or scope. Add corpus cases for a scoped campaign artifact, the same artifact detached after campaign removal, a legacy artifact with no context, malformed/tampered context, evolving campaign resolutions across rounds, explicit override and resume. This is an additive authenticated provenance payload, not a new minimization evidence field or an execution-identity input. Publication equivalence must include the provenance digest: identical execution records retained under different scopes must not reuse a directory that silently discards one context. Use an explicit context-qualified publication key/collision suffix while preserving the execution record/hash and failure identity; authenticate both variants and never overwrite an existing artifact. Include the same-execution/different-scope collision case in the corpus.
+
 ## API Contracts
 
 `minimize` accepts `--site-scope` with the same syntax as `explore`. `minimize --json` adds per accepted reduction `{"removed_in_scope": N, "removed_out_of_scope": M}` and a top-level `"site_scope"` block in the same shape as the explore plan. Inspect on a minimized artifact shows each accepted reduction's removed decisions with their `symbol` objects and a `"final_forced_by_symbol"` grouping of the final forced decisions by package and function with counts.
 
 ## Edge Cases & Constraints
 
-The minimization evidence schema, the predicate and all identities are unchanged. Ordering and symbolization are not evidence. Without a scope on the flag or the parent, behavior is exactly today's.
+The minimization evidence schema and acceptance predicate are unchanged. Display-only symbols do not enter execution or failure identity. The persisted ordering key and minimizer implementation digest change as required by R4; old or differently scoped checkpoint state is refused. Ordering and symbolization are not evidence. Without a scope on the flag or the parent, behavior is exactly today's.
 
 ## Acceptance Criteria
 
 - **R1:** `minimize` accepts `--site-scope` with the explore syntax and, when given, orders proposals so reductions removing only out-of-scope decisions are attempted before reductions touching in-scope decisions. Errors: the same invalid-pattern cases as explore → status 2 before any attempt; a parent whose module has no symbol information with a scope given → status 2 naming the reason.
 - **R2:** When the parent artifact came from a campaign that recorded a site scope and no flag is given, `minimize` uses the parent's scope. Errors: a parent scope block that fails validation → status 2 naming the parent.
-- **R3:** Ordering does not change acceptance: for a fixed reduction set, a test shows the final candidate satisfies the same predicate under scoped and unscoped ordering while attempt counts differ. No error surface.
+- **R3:** Ordering does not change acceptance: for a fixed reduction set, a test shows the final candidate satisfies the same predicate under scoped and unscoped ordering while the fixture demonstrates that ordering can change attempt counts. Different valid minimal candidates are permitted; identical final bytes are not a general guarantee of a greedy search. No error surface.
 - **R4:** The minimizer checkpoint records the ordering key, and `--resume` refuses a changed key with the existing changed-bound refusal and status. Errors: state written before this change → refused as a changed implementation digest, as today.
 - **R5:** Inspect on a minimized artifact shows each accepted reduction's removed decisions with symbols and groups the final forced decisions by package and function. Errors: unavailable symbols group under `unavailable` with the reason; no other error surface.
 - **R6:** `minimize --json` reports per accepted reduction the counts of in-scope and out-of-scope decisions removed and the scope block in use. No error surface beyond R1.
-- **R7:** The minimization evidence schema, the predicate and all identities are unchanged. No error surface.
+- **R7:** The minimization evidence schema and acceptance predicate are unchanged. Display-only symbols do not enter execution or failure identity. The persisted ordering key and minimizer implementation digest change as required by R4; old or differently scoped checkpoint state is refused. No error surface.
 - **R8:** With no scope on the flag and none on the parent, `minimize` behaves exactly as today. No error surface.
 
 ## Boundaries

@@ -3,7 +3,7 @@ satisfies: [R12, R13, R14]
 ---
 # fn-232-gomad-rewrite-the-host-side-in-rust.13 Qualification cycle on the Rust binary and Go host retirement
 
-Touches: tools/gomad/cmd/gomad, internal/runner, internal/evidence, internal/cli, Makefile, CI, archcheck, ARCHITECTURE.md, CLI.md, MILESTONES.md
+**Touches:** tools/gomad/cmd/gomad, tools/gomad/internal/runner, tools/gomad/internal/evidence, tools/gomad/internal/cli, tools/gomad/Makefile, .github/workflows/gomad.yml, tools/gomad/internal/archcheck/**, tools/gomad/ARCHITECTURE.md, tools/gomad/CLI.md, MILESTONES.md
 
 ## Description
 Frozen Go baseline owner/input index: /home/agent/wt/evidence/fn232/go-baseline-1d7b37f00a/README.md. Preserve its independently copied launcher/helper, source archive and receipts/tool pins for fresh equivalence; it supplies no qualification claim.
