@@ -107,6 +107,45 @@ func main() {
 			panic("network echo changed")
 		}
 		fmt.Println("healed client ping")
+	case "echo-loop":
+		listener, err := net.Listen("tcp", "127.0.0.1:7233")
+		check(err)
+		defer listener.Close()
+		fmt.Fprintln(os.Stderr, "echo server listening")
+		connection, err := listener.Accept()
+		check(err)
+		defer connection.Close()
+		fmt.Println("echo server accepted")
+		var payload [4]byte
+		for {
+			_, err = io.ReadFull(connection, payload[:])
+			if err == io.EOF {
+				fmt.Println("echo server closed")
+				return
+			}
+			check(err)
+			_, err = connection.Write(payload[:])
+			check(err)
+		}
+	case "ping-loop":
+		fmt.Fprintln(os.Stderr, "ping client dialing")
+		time.Sleep(time.Second)
+		connection, err := net.Dial("tcp", "10.0.0.2:7233")
+		check(err)
+		defer connection.Close()
+		fmt.Println("ping client connected")
+		for round := 1; round <= 4096; round++ {
+			_, err = connection.Write([]byte("ping"))
+			check(err)
+			var payload [4]byte
+			_, err = io.ReadFull(connection, payload[:])
+			check(err)
+			if string(payload[:]) != "ping" {
+				panic("network echo changed")
+			}
+			fmt.Println("ping round", round)
+		}
+		fmt.Println("ping client finished")
 	default:
 		panic("unknown scenario mode")
 	}
