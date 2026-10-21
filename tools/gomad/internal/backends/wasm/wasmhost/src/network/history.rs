@@ -266,7 +266,7 @@ fn encode_snapshot(encoder: &mut Encoder, snapshot: &Snapshot) -> Result<(), Str
 
 #[cfg(test)]
 thread_local! {
-    pub(super) static DIGEST_COUNTS: std::cell::Cell<(usize, usize)> = const { std::cell::Cell::new((0, 0)) };
+    pub(crate) static DIGEST_COUNTS: std::cell::Cell<(usize, usize)> = const { std::cell::Cell::new((0, 0)) };
 }
 
 pub(crate) fn endpoint_key(endpoint: &Endpoint) -> String {

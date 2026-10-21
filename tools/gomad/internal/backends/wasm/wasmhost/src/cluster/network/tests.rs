@@ -106,3 +106,19 @@ fn inspection_network_cache_follows_own_and_foreign_mutations() {
     endpoints[1].settle(5).unwrap();
     check(&mut endpoints);
 }
+
+#[test]
+fn changed_network_inspections_never_rehash_native_history() {
+    use sha2::{Digest, Sha256};
+    let shared = Arc::new(Mutex::new(Shared::new(&config(), &ids()).unwrap()));
+    let mut endpoint = endpoint(&shared, "a", 1, 1 << 20);
+    crate::network::history::DIGEST_COUNTS.with(|count| count.set((0, 0)));
+    for now in 1..=1000 {
+        endpoint.attach_at(now).unwrap();
+        endpoint.settle(now).unwrap();
+        endpoint.inspection_network(|bytes| Sha256::digest(bytes).into()).unwrap();
+    }
+    crate::network::history::DIGEST_COUNTS.with(|count| {
+        assert_eq!(count.get().0, 0, "inspection rehashed the complete native history");
+    });
+}
