@@ -1,0 +1,133 @@
+use super::ledger::{Event, Journal};
+use crate::evidence::{
+    canonical,
+    store::open,
+    symbolize::{self, Site},
+};
+use serde_json::{Value, json};
+use std::{io::Write, path::Path};
+
+pub(crate) fn is_campaign(path: &Path) -> Result<bool, String> {
+    let root = open::pin(path)?;
+    let storage = open::read(&root, "storage.json", 1024, false)?;
+    let value: Value = serde_json::from_slice(&storage).map_err(|error| error.to_string())?;
+    Ok(value["format"] == "gomad.campaign-storage/v2")
+}
+
+pub(crate) fn run(
+    path: &Path,
+    json_output: bool,
+    choices: bool,
+    output: &mut dyn Write,
+) -> Result<(), String> {
+    let journal = Journal::open(path, false)?;
+    let mut executions = Vec::new();
+    let mut stop = None;
+    for event in journal.events() {
+        match event {
+            Event::Outcome {
+                executions: values,
+                stop_reason,
+                ..
+            } => {
+                executions.extend(values);
+                if stop_reason.is_some() {
+                    stop = stop_reason.as_deref();
+                }
+            }
+            Event::Complete { stop_reason } => stop = Some(stop_reason.as_str()),
+            _ => {}
+        }
+    }
+    let mut projected = Vec::new();
+    for execution in executions {
+        let mut value = serde_json::to_value(execution).map_err(|error| error.to_string())?;
+        if let Some(divergence) = &execution.divergence {
+            let reference = execution
+                .artifact
+                .as_deref()
+                .ok_or("campaign divergence requires authenticated retained execution")?;
+            let opened = journal.open_artifact(reference)?;
+            let sites = divergence
+                .expected
+                .iter()
+                .chain(divergence.observed.iter())
+                .map(|decision| {
+                    let (value, missing) = decision.site();
+                    Site { value, missing }
+                });
+            let symbols = symbolize::resolve(&opened, sites)?;
+            let mut divergence_value = json!({"ordinal":divergence.ordinal,"reason":divergence.reason_name(),"tape_records":divergence.tape_records,"expected":divergence.expected,"observed":divergence.observed});
+            for (name, decision) in [
+                ("expected", divergence.expected.as_ref()),
+                ("observed", divergence.observed.as_ref()),
+            ] {
+                if let Some(decision) = decision {
+                    let (value, missing) = decision.site();
+                    divergence_value[name]["symbol"] =
+                        serde_json::to_value(symbols.get(Site { value, missing }))
+                            .map_err(|error| error.to_string())?;
+                }
+            }
+            value["divergence"] = divergence_value;
+        }
+        if let Some(reference) = &execution.artifact {
+            if execution
+                .record
+                .streams
+                .contains_key("evidence/soft-assertions.json")
+            {
+                let opened = journal.open_artifact(reference)?;
+                value["soft_assertions"] = serde_json::from_slice(
+                    &opened.payload("evidence/soft-assertions.json", 16 << 20)?,
+                )
+                .map_err(|error| error.to_string())?;
+            }
+        }
+        if choices {
+            if let Some(reference) = &execution.artifact {
+                let opened = journal.open_artifact(reference)?;
+                let details = crate::evidence::inspection::Details::read(&opened)?;
+                if let Some(evidence) = details
+                    .as_ref()
+                    .and_then(|details| details.choices.as_ref())
+                {
+                    value["choices"] = serde_json::to_value(evidence.inspect(&opened)?)
+                        .map_err(|error| error.to_string())?;
+                }
+            }
+        }
+        projected.push(value);
+    }
+    if json_output {
+        let report = json!({"schema":"gomad.inspect/v9","kind":"campaign","path":path,"campaign":{"plan":journal.plan(),"executions":projected,"stop_reason":stop,"events":journal.events().len()}});
+        writeln!(
+            output,
+            "{}",
+            String::from_utf8(canonical::encode(&report)?).map_err(|error| error.to_string())?
+        )
+        .map_err(|error| error.to_string())?;
+    } else {
+        writeln!(
+            output,
+            "gomad campaign: path={} selected={} attempted={} stop={}",
+            path.display(),
+            journal.plan()["selection_count"],
+            projected.len(),
+            stop.unwrap_or("interrupted")
+        )
+        .map_err(|error| error.to_string())?;
+        for execution in projected {
+            writeln!(
+                output,
+                "seed={} ordinal={} outcome={} artifact={}",
+                execution["seed"],
+                execution["ordinal"],
+                execution["record"]["outcome"]["class"],
+                execution["artifact"]
+            )
+            .map_err(|error| error.to_string())?;
+        }
+    }
+    Ok(())
+}

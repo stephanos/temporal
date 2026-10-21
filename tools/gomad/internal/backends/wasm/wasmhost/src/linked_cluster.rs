@@ -508,6 +508,7 @@ fn execute_inner(
         for step in script {
             if timed_out.load(Ordering::Acquire)
                 || prepared.cancellation.cancelled()
+                || broker.inspection_stopped()
                 || broker.failure().is_some()
                 || first_failure
                     .lock()
