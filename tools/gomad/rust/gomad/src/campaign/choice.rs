@@ -36,7 +36,7 @@ pub(crate) fn explore(options: &ExplorationOptions, output: &mut dyn Write) -> R
         .clone()
         .ok_or("choice exploration requires an enabled cooperative choice trace")?;
     let selection = super::seeds::SeedSelection::parse(&options.base.seeds)?;
-    let config = ChoiceConfig {
+    let mut config = ChoiceConfig {
         execution,
         controller_sha256: exploration::choice::implementation(),
         base_seed: selection
@@ -49,8 +49,33 @@ pub(crate) fn explore(options: &ExplorationOptions, output: &mut dyn Write) -> R
         max_exploration_bytes: options.max_exploration_bytes,
         failure_policy: options.base.on_failure.clone(),
         failure_budget: options.base.failure_budget,
+        site_scope: None,
     };
     exploration::choice::ChoiceState::new(config.clone())?;
+    let mut initial = None;
+    if let Some(patterns) = &options.site_scope {
+        exploration::site_scope::require_symbols(&prepared.module)?;
+        let remaining = options
+            .base
+            .overall_timeout
+            .checked_sub(started.elapsed())
+            .ok_or("overall_timeout: choice exploration deadline exceeded during preparation")?;
+        let completion = execution::run(
+            &prepared,
+            &Job {
+                ordinal: 0,
+                seed: config.base_seed,
+            },
+            remaining,
+            &linked::Cancellation::default(),
+        )?;
+        let mut resolution = exploration::site_scope::Resolution::default();
+        if let Some(raw) = completion.publication.payloads.get("evidence/choice") {
+            resolution.observe(&prepared.module, raw, &config.execution, patterns)?;
+        }
+        config.site_scope = Some(resolution.scope(patterns));
+        initial = Some(completion);
+    }
     let mut journal = plan::create(options, &prepared, RoundStrategy::Choice(config))?;
     let remaining = options
         .base
@@ -63,6 +88,7 @@ pub(crate) fn explore(options: &ExplorationOptions, output: &mut dyn Write) -> R
         remaining,
         options.base.json,
         output,
+        initial,
     )
 }
 
@@ -70,7 +96,7 @@ pub(crate) fn resume(path: &Path, json: bool, output: &mut dyn Write) -> Result<
     let mut journal = RoundJournal::open(path, true)?;
     let prepared = plan::restore(&journal)?;
     let remaining = plan::duration(&journal)?;
-    run(&mut journal, &prepared, remaining, json, output)
+    run(&mut journal, &prepared, remaining, json, output, None)
 }
 
 #[expect(
@@ -83,6 +109,7 @@ fn run(
     duration: Duration,
     json_output: bool,
     output: &mut dyn Write,
+    mut initial: Option<execution::Result>,
 ) -> Result<i32, String> {
     let deadline = Instant::now()
         .checked_add(duration)
@@ -101,32 +128,39 @@ fn run(
         let state = state.clone();
         let indices = (0..round.candidates.len() as u64).collect::<Vec<_>>();
         let cancellation = linked::Cancellation::default();
-        let completions = crate::slots::run(&indices, state.config.parallel, |index| {
-            let result = (|| {
-                let candidate = &round.candidates
-                    [usize::try_from(index).map_err(|_| "choice candidate index overflow")?];
-                let replay = candidate.replay(&state.config.execution)?;
-                let remaining = deadline
-                    .checked_duration_since(Instant::now())
-                    .ok_or("overall_timeout: choice exploration deadline exceeded")?;
-                let job = Job {
-                    ordinal: state.logical_executions + index,
-                    seed: state.config.base_seed,
-                };
-                execution::run_with_replay(
-                    prepared,
-                    &job,
-                    remaining,
-                    &cancellation,
-                    replay.as_ref(),
-                    replay.as_ref().map(|_| candidate.source_trace.as_slice()),
-                )
-            })();
-            if result.is_err() {
-                cancellation.cancel();
+        let completions = if let Some(completion) = initial.take() {
+            if state.logical_executions != 0 || round.candidates.len() != 1 {
+                return Err("scoped base execution differs from its root round".into());
             }
-            result
-        })?;
+            vec![completion]
+        } else {
+            crate::slots::run(&indices, state.config.parallel, |index| {
+                let result = (|| {
+                    let candidate = &round.candidates
+                        [usize::try_from(index).map_err(|_| "choice candidate index overflow")?];
+                    let replay = candidate.replay(&state.config.execution)?;
+                    let remaining = deadline
+                        .checked_duration_since(Instant::now())
+                        .ok_or("overall_timeout: choice exploration deadline exceeded")?;
+                    let job = Job {
+                        ordinal: state.logical_executions + index,
+                        seed: state.config.base_seed,
+                    };
+                    execution::run_with_replay(
+                        prepared,
+                        &job,
+                        remaining,
+                        &cancellation,
+                        replay.as_ref(),
+                        replay.as_ref().map(|_| candidate.source_trace.as_slice()),
+                    )
+                })();
+                if result.is_err() {
+                    cancellation.cancel();
+                }
+                result
+            })?
+        };
         let mut results = Vec::new();
         let mut executions = Vec::new();
         for (candidate, mut completion) in round.candidates.iter().zip(completions) {
@@ -206,7 +240,10 @@ fn retain(
         execution.record.outcome.class.as_str(),
         "target_failure" | "watchdog"
     ) || execution.divergence.is_some();
-    let keep = failed
+    let scoped_base = execution.ordinal == 0
+        && matches!(&journal.plan().strategy, RoundStrategy::Choice(config) if config.site_scope.as_ref().is_some_and(|scope| scope.resolved_count == 0));
+    let keep = scoped_base
+        || failed
         || retention.keep(
             metadata["keep_successes"]
                 .as_str()
@@ -217,7 +254,7 @@ fn retain(
         retention.retained(execution)?;
         return Ok(());
     }
-    let remaining = if failed {
+    let remaining = if failed || scoped_base {
         u64::MAX
     } else {
         retention.remaining(

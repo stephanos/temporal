@@ -166,7 +166,7 @@ func TestArchitectureInventoryFixtures(t *testing.T) {
 		t.Run(fixture.name, func(t *testing.T) {
 			root := t.TempDir()
 			files := map[string]string{"go.mod": "module example.invalid/fitness\n\ngo 1.27.1\n", "internal/runner/source.go": "package runner\n", fixture.path: fixture.source}
-			for _, path := range []string{"cmd/gomad/testdata", "internal/runner/testdata", "internal/evidence/qualification/corpus", "internal/backends/wasm/testdata", "internal/backends/wasm/wasi/testdata", "internal/backends/wasm/toolchain/testdata", "internal/backends/wasm/cluster/testdata", "internal/backends/wasm/qualification/testdata", "internal/backends/wasm/cmd/gomad-wasm/testdata"} {
+			for _, path := range []string{"cmd/gomad/testdata", "internal/runner/testdata", "internal/evidence/qualification/corpus", "internal/backends/wasm/testdata", "internal/backends/wasm/wasi/testdata", "internal/backends/wasm/toolchain/testdata", "internal/backends/wasm/cluster/testdata", "internal/backends/wasm/qualification/testdata", "internal/backends/wasm/cmd/gomad-wasm/testdata", "testdata/parity/site_scope"} {
 				files[path+"/fixture.go"] = "package fixture\n"
 			}
 			for _, path := range []string{"internal/evidence/qualification/corpus", "internal/backends/wasm/qualification/testdata/fixture"} {

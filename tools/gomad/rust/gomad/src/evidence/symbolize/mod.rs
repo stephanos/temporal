@@ -101,7 +101,14 @@ fn unavailable(reason: Reason) -> Symbol {
     }
 }
 
-fn resolve_bytes(bytes: &[u8], sites: impl IntoIterator<Item = Site>) -> Symbols {
+pub(crate) fn require_symbols(bytes: &[u8]) -> Result<(), Reason> {
+    let mut budget = bytes::Budget::default();
+    let module = wasm::Module::read(bytes, &mut budget)?;
+    tables::Tables::read(&module, &mut budget)?;
+    Ok(())
+}
+
+pub(crate) fn resolve_bytes(bytes: &[u8], sites: impl IntoIterator<Item = Site>) -> Symbols {
     let mut budget = bytes::Budget::default();
     let mut requested = BTreeMap::new();
     for site in sites {

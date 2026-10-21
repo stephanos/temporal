@@ -72,8 +72,8 @@ impl RoundEvent {
 
 #[derive(Clone)]
 pub(crate) enum RoundState {
-    Choice(ChoiceState),
-    Simulation(SimulationState),
+    Choice(Box<ChoiceState>),
+    Simulation(Box<SimulationState>),
 }
 
 impl RoundState {
@@ -115,7 +115,7 @@ impl RoundState {
                 {
                     return Err("choice exploration identity differs from its prepared plan".into());
                 }
-                Ok(Self::Choice(ChoiceState::new(config.clone())?))
+                Ok(Self::Choice(Box::new(ChoiceState::new(config.clone())?)))
             }
             RoundStrategy::Simulation(config) => {
                 let keys = [
@@ -140,7 +140,9 @@ impl RoundState {
                         "simulation exploration identity differs from its prepared plan".into(),
                     );
                 }
-                Ok(Self::Simulation(SimulationState::new(config.clone())?))
+                Ok(Self::Simulation(Box::new(SimulationState::new(
+                    config.clone(),
+                )?)))
             }
         }
     }
@@ -202,7 +204,7 @@ impl RoundState {
                         return Err("choice round result omits its retained source trace".into());
                     }
                 }
-                *self = Self::Choice(state.replay_segment(segment)?);
+                *self = Self::Choice(Box::new(state.replay_segment(segment)?));
             }
             (
                 Self::Simulation(state),
@@ -291,7 +293,7 @@ impl RoundState {
                         ));
                     }
                 }
-                *self = Self::Simulation(state.replay_segment(segment)?);
+                *self = Self::Simulation(Box::new(state.replay_segment(segment)?));
             }
             _ => return Err("exploration round strategy differs from its plan".into()),
         }
@@ -442,7 +444,7 @@ impl RoundJournal {
         let observed = fs::fstat(&writer).map_err(|error| error.to_string())?;
         root.sync_all().map_err(|error| error.to_string())?;
         parent.sync_all().map_err(|error| error.to_string())?;
-        let journal = Self {
+        let mut journal = Self {
             root,
             path: path.into(),
             lock: Some(lock),
@@ -457,6 +459,7 @@ impl RoundJournal {
             observed,
         };
         journal.authenticate_prepared()?;
+        journal.bind_scope_module()?;
         Ok(journal)
     }
 
@@ -541,6 +544,11 @@ impl RoundJournal {
             poisoned: false,
             observed,
         };
+        if matches!(&journal.state, RoundState::Choice(state) if state.config.site_scope.is_some())
+        {
+            journal.authenticate_prepared()?;
+            journal.bind_scope_module()?;
+        }
         let complete_bytes = data
             .iter()
             .rposition(|byte| *byte == b'\n')
@@ -631,6 +639,26 @@ impl RoundJournal {
             );
         }
         ledger::validate_plan_record(&self.plan.prepared, &self.root, &prepared.manifest().record)
+    }
+
+    fn bind_scope_module(&mut self) -> Result<(), String> {
+        if !matches!(&self.state, RoundState::Choice(state) if state.config.site_scope.is_some()) {
+            return Ok(());
+        }
+        let reference = self.plan.prepared["prepared_artifact"]
+            .as_str()
+            .ok_or("exploration prepared artifact is missing")?;
+        let opened = self.open_artifact(reference)?;
+        let entry = opened
+            .manifest()
+            .files
+            .get("target/module.wasm")
+            .ok_or("exploration prepared module is missing")?;
+        let module = opened.payload("target/module.wasm", entry.bytes)?;
+        if let RoundState::Choice(state) = &mut self.state {
+            state.bind_scope_module(module.into())?;
+        }
+        Ok(())
     }
 
     fn consume(&mut self, bytes: &[u8]) -> Result<(), String> {
