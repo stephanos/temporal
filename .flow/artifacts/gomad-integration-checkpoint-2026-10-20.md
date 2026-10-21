@@ -1102,3 +1102,46 @@ cells, their raw authentication/own replays, two exact regenerations and the
 independent R5/R13/R14 review remain required. No status comparison or
 behavior/hash field is normalized away. No Go attestation patch is authorized
 or applied. No new task, Cargo lease or qualification run was admitted.
+
+### Stop boundary and replay closeout cache correction
+
+The owner cleared the all-milestones goal and requested finishing in-flight work,
+then stopping. Only fn232.6 replay closeout is executing. Other14 started tasks
+are parked; none may be resumed as part of this closeout. Root49294a0395 updates
+MILESTONES with Running/Parked activity labels while preserving Flow lifecycle
+states and acceptance. No goal completion or milestone-wide pass is claimed.
+
+Root integrated standalone routing519a2de5b3 ate698c9e6be, four network goldens
+0ad530d4ab atbea675404b, and declared preparation-root fixc48d8917ee at0a59453507.
+The four network cells passed both regenerations and fresh strict checks, with
+84 real command receipts returning0. These establish the frozen-Go pairing
+correction, but the Rust candidate freshness issue below prevents treating those
+results as proof of the current helper source.
+
+The first complete master run passed fresh parity, consumer/opener, cluster and
+golden checks, then failed current registered Go exploration with status3 and
+`invalid runtime decision buffer layout`. An actual authorized v4 ABI probe
+confirmed that retained ordinary helper71f7 rejects the128-byte v2 decision
+layout which current abi.rs accepts (48-byte alternatives). A fast Cargo build
+had reused stale shared-cache artifacts. Matching an old binary hash after that
+build did not prove current-source compilation. Ordinary Rust fixtureca57 and
+release1499 may link the same stale ordinary library and require fresh rebuilds;
+their earlier results remain historical results for their actual binary bytes.
+
+Replay owner retained all old binaries and raw failures, confirmed no active
+shared RELEASE users, and used the authorized package-only clean. It removed
+1112 regenerable gomad-wasmhost RELEASE artifacts,768.5MiB. The verbose dry-run
+inventory and deletion receipts are under evidence/fn232-frozen-network/
+helper-clean-{dry-run,package-release}.*. No DEBUG target, external Umpire target,
+dependency-wide cache, source or required evidence was removed. Fresh ordinary
+helper compilation is live in session78422, followed by actual positive-v4 and
+wrong-layout negative probes, ordinary host fixture/release rebuilds and affected
+tests/Clippy. Preserve old and new immutable candidates separately. The shared
+RELEASE Cargo lease belongs exclusively to replay owner until terminal handoff.
+
+Diagnostic-role builds/tests/Clippy already completed on the current source;
+their linked helper compilation ran rather than reusing the stale ordinary
+artifact. The complete master must rerun with genuinely current ordinary and
+role binaries, repeated audited goldens and a final integrated strict run before
+independent task .6 review or closure. No Go production patch, bound widening,
+normalization of failure status or qualification claim is authorized.
