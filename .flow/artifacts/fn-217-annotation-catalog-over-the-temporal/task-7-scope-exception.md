@@ -10,3 +10,7 @@ The conductor authorized four additional paths on 2026-10-21 so the directory re
 These changes only replace the moved directory's path. Historical Flow records, `.plans` architecture and migration records, and archived Scala paths and provenance in existing Go tests and JSON artifacts retain their original spelling. The active Rust reference check excludes those historical records explicitly.
 
 `MODEL_FEATURE_ROOT` resolves to `model/archived/temporal/features` because `MODEL_ROOT` is `model/archived`. Its lint/lift targets and `temporal.features.` package prefix belong to the frozen Scala tree and remain unchanged.
+
+## Review round 1 authorization
+
+On 2026-10-21 the conductor authorized `tests/testpilot_model_gaps_test.go` for the live gap golden reader's `filepath.Join` component change from `features` to `feature`. The existing live gap gate reproduced the missing-file failure before the fix. Task verification now includes `make umpire-check-model-gaps`, which requires both the actual gap probes and the logger failure-preservation canary to pass. The operational reference audit also examines separated Go path components; archived Scala roots and provenance remain unchanged.

@@ -240,7 +240,7 @@ func TestTestpilotModelGaps(t *testing.T) {
 	require.NoError(t, writeErr)
 	require.NoError(t, closeErr)
 	require.False(t, report.Fails, "catalog gap classification failed; value-free report:\n%s", report.Report)
-	golden, err := os.ReadFile(filepath.Join("..", "model", "temporal", "features", "activity", "expected", "gaps.txt"))
+	golden, err := os.ReadFile(filepath.Join("..", "model", "temporal", "feature", "activity", "expected", "gaps.txt"))
 	require.NoError(t, err, "gaps golden must be explicitly reviewed and created")
 	require.Equal(t, string(golden), report.Report, "stale gap golden")
 }
