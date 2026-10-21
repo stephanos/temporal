@@ -219,6 +219,8 @@ def main():
     p.add_argument('--api-registered', type=Path, help='fresh registered Go reference; exported API oracle only')
     p.add_argument('--api-concurrent', action='store_true', help='start initial owners before waiting in API fixture')
     p.add_argument('--api-success', action='store_true', help='require all three successful incarnation inspections')
+    p.add_argument('--preparation-root', type=Path, help='stable declared Go preparation input')
+    p.add_argument('--golden', choices=['public', 'api-failure', 'api-alternate', 'api-success'])
     args = p.parse_args()
     for name in ('baseline', 'source', 'compiler', 'work'):
         setattr(args, name, getattr(args, name).resolve())
@@ -282,7 +284,11 @@ def main():
             template = Path(__file__).parent / 'reference/replay-cluster.go.txt'
             (wrapper / 'main.go').write_bytes(template.read_bytes())
             executable = args.work / 'go-cluster-reference'
-            run('api-build', [args.compiler, 'build', '-trimpath', '-o', executable, './' + str(wrapper.relative_to(module))], cwd=module)
+            try:
+                run('api-build', [args.compiler, 'build', '-trimpath', '-o', executable, './' + str(wrapper.relative_to(module))], cwd=module)
+            finally:
+                (wrapper / 'main.go').unlink()
+                wrapper.rmdir()
             print(run('api-record-inspect', [executable, input_path]).decode())
             api_dir = args.work / 'api'
             receipt = {'schema': 'gomad.cluster-go-api-reference/v1', 'module_path': base['ModulePath'],
@@ -299,7 +305,26 @@ def main():
                                                 '--input', input_path]))
         authenticate(args.work / 'rust', bundle)
         artifact = args.work / 'rust' / bundle['records'][0]['artifact']
+        repeated_root = args.work / 'rust-repeat'
+        repeated = json.loads(run('rust-produce-repeat', [args.binary, 'fixture-replay-cluster-input',
+            '--root', repeated_root, '--input', input_path]))
+        authenticate(repeated_root, repeated)
+        repeated_artifact = repeated_root / repeated['records'][0]['artifact']
+        manifest = json.loads((artifact / 'manifest.json').read_bytes())
+        for name in ['manifest.json', *manifest['files']]:
+            assert (artifact / name).read_bytes() == (repeated_artifact / name).read_bytes(), name
+        ledger = (args.work / 'rust' / bundle['ledger_file']).read_bytes()
+        assert ledger == (repeated_root / repeated['ledger_file']).read_bytes()
         positive = inspect_cluster(args, args.from_reference.resolve(), artifact, run)
+        if args.golden:
+            loader = SourceFileLoader('cluster_golden_parity', str(Path(__file__).resolve().parents[2] / 'scripts/behavioral-parity'))
+            parity = module_from_spec(spec_from_loader(loader.name, loader))
+            loader.exec_module(parity)
+            view = dict(schema='gomad.replay-cluster-golden/v1',
+                record=(artifact / 'record.json').read_text(), manifest=(artifact / 'manifest.json').read_text(),
+                ledger=ledger.decode(), inspection_supported=positive)
+            parity.golden(Path(__file__).resolve().parent / 'goldens-replay' / ('cluster-' + args.golden + '.json'),
+                view, os.environ.get('GOMAD_GOLDEN_REGENERATE') == '1')
         print(json.dumps({'artifact': str(artifact), 'same_target_cluster_inspection': positive}))
         return
 
@@ -315,7 +340,7 @@ def main():
     installation = args.work / 'installation.json'
     run('install', [launcher, 'install', '--profile', 'gomad.wasi-cooperative/v1', '--compiler', args.compiler, '--helper', args.baseline / 'bin/gomad-wasmhost',
                     '--runtime-root', module / 'internal/model/runtimesource', '--config', specimen / 'config.json',
-                    '--fuel', str(1 << 60), '--cache', args.work / 'preparation', '--output', installation])
+                    '--fuel', str(1 << 60), '--cache', args.preparation_root or args.work / 'preparation', '--output', installation])
     run('explore', [launcher, '--installation', installation, 'explore', '--scenario', scenario_path,
                     '--seeds=7', '--parallel=1', '--on-failure=all', '--working-dir', module,
                     '--build-tag=gomad_fixture', '--build-tag=test_dep', '--execution-timeout=30s', '--overall-timeout=5m',

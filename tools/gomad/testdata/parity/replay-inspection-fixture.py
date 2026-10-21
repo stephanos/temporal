@@ -18,6 +18,7 @@ for name in ('binary', 'baseline', 'source', 'compiler', 'work'):
 p.add_argument('--role', choices=['stress-jitter', 'determinism-fixture'])
 p.add_argument('--success', action='store_true', help='separate successful registered guest for restart coverage')
 p.add_argument('--network', choices=['ordinary', 'faults'], help='standalone network exact-replay fixture')
+p.add_argument('--network-scheduler', action='store_true', help='separate network fixture with explicit runtime scheduling')
 p.add_argument('--preparation-root', type=Path, help='declared stable toolchain preparation input for network goldens')
 args = p.parse_args()
 for name in ('binary', 'baseline', 'source', 'compiler', 'work'):
@@ -52,6 +53,7 @@ baseline = args.baseline / 'bin/gomad'
 guest_package = './common/gomaddebug/testdata/fixture'
 fixture_source = args.source / guest_package / 'main.go'
 assert not (args.success and args.network), 'success registry and network fixtures are separate'
+assert not args.network_scheduler or args.network, 'network scheduler requires network fixture'
 assert not args.network or args.preparation_root, 'network fixtures require a stable declared preparation root'
 if args.network:
     original = (Path(__file__).resolve().parent / 'targets/replay-network.go.txt' if args.network == 'ordinary'
@@ -62,6 +64,11 @@ if args.network:
     fixture_source = generated / 'main.go'
     assert not fixture_source.exists() or fixture_source.read_bytes() == original.read_bytes()
     fixture_source.write_bytes(original.read_bytes())
+    if args.network_scheduler:
+        assert original.read_bytes().count(b'func main() {') == 1
+        fixture_source.write_bytes(original.read_bytes().replace(b'func main() {', b'func networkMain() {'))
+        scheduler = generated / 'scheduler.go'
+        scheduler.write_bytes((Path(__file__).resolve().parent / 'targets/replay-network-scheduler.go.txt').read_bytes())
     (args.work / 'network-guest.go').write_bytes(original.read_bytes())
 if args.success:
     original = fixture_source.read_bytes()
@@ -103,6 +110,8 @@ run('go-explore', [baseline, '--installation', installation, 'explore', '--json'
                   '--artifacts', args.work / 'go-artifacts', 'go-run', guest_package], status)
 if args.success or args.network:
     fixture_source.unlink()
+    if args.network_scheduler:
+        scheduler.unlink()
     fixture_source.parent.rmdir()
 artifacts = [path.parent for path in (args.work / 'go-artifacts').rglob('manifest.json')
              if json.loads(path.read_bytes()).get('artifact_kind') == ('gomad.success/v1' if status == 0 else 'gomad.target-failure/v1')]
@@ -151,6 +160,9 @@ case = {'name': 'registered-seed7', 'module_path': str(module_path), 'module_sha
         'toolchain_build_key': provenance['BuildKey'], 'seed': 7, 'configuration': configuration,
         'choice_identity': {'TargetSHA256': list(bytes.fromhex(sha(module))), 'ToolchainBuildKey': provenance['BuildKey'],
                             'GOOS': 'wasip1', 'GOARCH': 'wasm', 'ImplementationSHA256': list(bytes.fromhex(implementation))}}
+if args.network:
+    case['name'] = 'network-' + args.network + (
+        '-scheduled' if args.network_scheduler else '-empty' if args.network == 'ordinary' else '-original')
 input_path = args.work / 'registered-input.json'
 input_path.write_bytes(canonical({'schema': 'gomad.replay-fixture-input/v1', 'cases': [case]}))
 reference = {'schema': 'gomad.replay-inspection-reference/v1', 'go_binary_sha256': sha(baseline.read_bytes()),
@@ -167,8 +179,17 @@ parity.authenticate(args.work / 'rust', bundle)
 rust_artifact = args.work / 'rust' / bundle['records'][0]['artifact']
 assert (rust_artifact / 'evidence/choice').read_bytes() == (artifact / 'choices.bin').read_bytes()
 assert b'reproduced=true' in run('rust-replay', [args.binary, 'replay', *(['--' + args.role] if args.role else []), rust_artifact], status)
-assert b'reproduced=true' in run('go-replay', [baseline, '--installation', installation, 'replay', artifact], status)
 if args.network:
+    run('rust-network-divergence', [sys.executable, Path(__file__).resolve().parent / 'replay-network-divergence-check.py',
+        '--binary', args.binary, '--artifact', rust_artifact, '--work', args.work / 'network-divergence'])
+go_replay_status = 3 if args.network and not args.network_scheduler else status
+go_replay = run('go-replay', [baseline, '--installation', installation, 'replay', artifact], go_replay_status)
+if go_replay_status == 3:
+    assert receipts[-1]['stderr'] == 'execute replay target: choice trace malformed\n'
+else:
+    assert b'reproduced=true' in go_replay
+if args.network:
+    assert bool((artifact / 'choices.bin').read_bytes()) == (args.network_scheduler or args.network == 'faults')
     envelope = json.loads((artifact / manifest['target']['backend']['evidence']['file']).read_bytes())
     network = base64.b64decode(envelope['Network'], validate=True)
     rust_network = (rust_artifact / 'evidence/network').read_bytes()
@@ -187,15 +208,15 @@ if args.network:
     repeated = json.loads(run('rust-repeat', [args.binary, 'fixture-replay-input', '--root', repeated_root, '--input', input_path]))
     parity.authenticate(repeated_root, repeated)
     repeated_artifact = repeated_root / repeated['records'][0]['artifact']
-    view = dict(schema='gomad.replay-network-golden/v1',
+    view = dict(schema='gomad.replay-network-golden/v1', go_replay_status=go_replay_status,
         record=(rust_artifact / 'record.json').read_text(), manifest=(rust_artifact / 'manifest.json').read_text(),
         ledger=(args.work / 'rust' / bundle['ledger_file']).read_text(), network=dict(bytes=len(rust_network), sha256=sha(rust_network)))
     repeated_network = (repeated_artifact / 'evidence/network').read_bytes()
-    repeated_view = dict(schema='gomad.replay-network-golden/v1',
+    repeated_view = dict(schema='gomad.replay-network-golden/v1', go_replay_status=go_replay_status,
         record=(repeated_artifact / 'record.json').read_text(), manifest=(repeated_artifact / 'manifest.json').read_text(),
         ledger=(repeated_root / repeated['ledger_file']).read_text(), network=dict(bytes=len(repeated_network), sha256=sha(repeated_network)))
     parity.check_equal(view, repeated_view)
-    parity.golden(Path(__file__).resolve().parent / 'goldens-replay' / ('network-' + args.network + '.json'),
+    parity.golden(Path(__file__).resolve().parent / 'goldens-replay' / (case['name'] + '.json'),
                   view, os.environ.get('GOMAD_GOLDEN_REGENERATE') == '1')
 print(json.dumps({'artifact': str(rust_artifact), 'go_reference': str(args.work / 'registered-reference.json'),
                   'input': str(input_path), 'go_binary': str(baseline)}))

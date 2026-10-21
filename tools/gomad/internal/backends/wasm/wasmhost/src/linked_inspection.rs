@@ -1,5 +1,5 @@
 use crate::model::inspection::{
-    self, BOUNDARY_ENCODING, LIFECYCLE_ENCODING, STATE_ENCODING, WORLD_ENCODING,
+    self, BOUNDARY_ENCODING, LIFECYCLE_ENCODING, STATE_ENCODING, WORLD_ENCODING, WORLD_HEADER,
 };
 pub use crate::model::inspection::{
     Boundary, Command, Cut, Evidence, Handle, MAX_METADATA, Registry, Request, Witness,
@@ -65,9 +65,7 @@ impl Evidence {
             || evidence.world_encoding != WORLD_ENCODING
             || evidence.incarnations.is_empty()
             || evidence.incarnations.len() > 65536
-            || !evidence
-                .world
-                .starts_with(b"gomad.inspection-world-commitments/v1\0")
+            || !evidence.world.starts_with(WORLD_HEADER)
             || !evidence.lifecycle.starts_with(b"GMWIL\x01\0\0")
         {
             return Err(Error::msg(
@@ -219,7 +217,7 @@ fn validate_boundaries(evidence: &Evidence, handles: &BTreeSet<Handle>) -> Resul
     let mut decisions = BTreeMap::new();
     let mut prior_order = 0;
     let mut prior_time = 0;
-    let mut world_bytes = b"gomad.inspection-world-commitments/v1\0".len();
+    let mut world_bytes = WORLD_HEADER.len();
     let mut previous: BTreeMap<Handle, Cut> = BTreeMap::new();
     for boundary in &evidence.boundaries {
         let owner = evidence
