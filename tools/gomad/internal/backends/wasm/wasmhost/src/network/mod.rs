@@ -150,6 +150,7 @@ pub struct Model {
     links: BTreeMap<String, history::Link>,
     pub(crate) live: BTreeMap<String, Domain>,
     pub(crate) transitions: Vec<history::Transition>,
+    inspection_history: history::InspectionHistory,
     listeners: Vec<Listener>,
     connections: BTreeMap<u64, history::ConnectionSnapshot>,
     states: BTreeMap<(u64, bool), connection::State>,
@@ -497,11 +498,37 @@ impl Model {
     /// or hashing: transition validity is order-independent (per-string
     /// bounds and a monotone total length), and the snapshot digest's only
     /// transition-dependent input is the fixed-length transition digest.
+    #[cfg(test)]
     pub fn record_check(&self) -> Result<(), String> {
         history::validate_transitions(&self.transitions)?;
         let mut snapshot = self.snapshot_fields();
         snapshot.transition_sha256 = history::TRANSITION_DIGEST_PLACEHOLDER.into();
         history::validate_snapshot(&snapshot)
+    }
+
+    pub(crate) fn inspection_check(&self) -> Result<(), String> {
+        self.inspection_history.check()?;
+        let mut snapshot = self.snapshot_fields();
+        snapshot.transition_sha256 = history::TRANSITION_DIGEST_PLACEHOLDER.into();
+        history::validate_snapshot(&snapshot)
+    }
+
+    pub(crate) fn inspection_digest(&self) -> Result<String, String> {
+        self.inspection_history.check()?;
+        let mut snapshot = self.snapshot_fields();
+        snapshot.transition_sha256 = self.inspection_history.digest()?;
+        history::snapshot_digest(&snapshot)
+    }
+
+    #[cfg(test)]
+    pub(crate) fn inspection_digest_eager(&self) -> Result<String, String> {
+        let mut history = history::InspectionHistory::default();
+        for transition in &self.record()?.transitions.unwrap_or_default() {
+            history.append(transition);
+        }
+        let mut snapshot = self.snapshot_fields();
+        snapshot.transition_sha256 = history.digest()?;
+        history::snapshot_digest(&snapshot)
     }
     #[allow(
         dead_code,
@@ -1015,6 +1042,7 @@ impl Model {
             }
             self.replay_next.insert(lane, next + 1);
         }
+        self.inspection_history.append(&transition);
         self.transitions.push(transition);
         Ok(())
     }
@@ -1037,12 +1065,14 @@ impl Model {
         let start = self.transitions.len();
         let previous_reserved = self.history_reserved;
         let previous_replay = self.replay_next.clone();
+        let previous_inspection = self.inspection_history.clone();
         self.history_reserved = next;
         for transition in transitions {
             if let Err(error) = self.commit_silent(transition.clone()) {
                 self.transitions.truncate(start);
                 self.history_reserved = previous_reserved;
                 self.replay_next = previous_replay;
+                self.inspection_history = previous_inspection;
                 return Err(error);
             }
         }
@@ -1877,6 +1907,7 @@ impl Model {
             links,
             live: BTreeMap::new(),
             transitions: Vec::new(),
+            inspection_history: history::InspectionHistory::default(),
             listeners: Vec::new(),
             connections: BTreeMap::new(),
             states: BTreeMap::new(),

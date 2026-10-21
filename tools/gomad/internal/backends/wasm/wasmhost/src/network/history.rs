@@ -89,6 +89,76 @@ pub struct Record {
     pub snapshot: Snapshot,
 }
 
+/// Inspection-only lane chains preserve canonical history's inter-lane
+/// equivalence without re-encoding the accumulated transition transcript.
+#[derive(Clone)]
+pub(crate) struct InspectionHistory {
+    lanes: std::collections::BTreeMap<String, (u64, [u8; 32])>,
+    wire_length: usize,
+    wire_error: Option<String>,
+}
+
+impl Default for InspectionHistory {
+    fn default() -> Self {
+        Self {
+            lanes: std::collections::BTreeMap::default(),
+            wire_length: 8,
+            wire_error: None,
+        }
+    }
+}
+
+impl InspectionHistory {
+    pub(crate) fn append(&mut self, transition: &Transition) {
+        if self.wire_error.is_none() {
+            let mut encoder = Encoder {
+                length: self.wire_length,
+                validate_only: true,
+                ..Default::default()
+            };
+            self.wire_error = encoder.transition(transition).err();
+            self.wire_length = encoder.length;
+        }
+        if self.wire_error.is_some() {
+            return;
+        }
+        let mut transition = transition.clone();
+        transition.ordinal = 0;
+        let mut encoder = Encoder::default();
+        encoder
+            .transition(&transition)
+            .expect("validated transition encoding");
+        let key = lane(&transition);
+        let (count, head) = self.lanes.entry(key).or_default();
+        let mut hash = Sha256::new();
+        hash.update(b"gomad/network/inspection-lane/v2\0");
+        hash.update(*head);
+        hash.update(count.to_le_bytes());
+        hash.update((encoder.bytes.len() as u64).to_le_bytes());
+        hash.update(&encoder.bytes);
+        *head = hash.finalize().into();
+        *count += 1;
+    }
+
+    pub(crate) fn check(&self) -> Result<(), String> {
+        self.wire_error.clone().map_or(Ok(()), Err)
+    }
+
+    pub(crate) fn digest(&self) -> Result<String, String> {
+        self.check()?;
+        let mut hash = Sha256::new();
+        hash.update(b"gomad/network/inspection-history/v2\0");
+        hash.update((self.lanes.len() as u64).to_le_bytes());
+        for (lane, (count, head)) in &self.lanes {
+            hash.update((lane.len() as u64).to_le_bytes());
+            hash.update(lane.as_bytes());
+            hash.update(count.to_le_bytes());
+            hash.update(head);
+        }
+        Ok(format!("sha256:{:x}", hash.finalize()))
+    }
+}
+
 #[derive(Default)]
 struct Encoder {
     bytes: Vec<u8>,
