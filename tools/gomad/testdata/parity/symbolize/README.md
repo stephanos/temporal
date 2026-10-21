@@ -65,3 +65,31 @@ bundle and archived source paths are recorded in `proof.json`. Generation
 requires those authenticated existing inputs and the full pinned compiler
 distribution; it does not download tools or use a Go symbolization subprocess
 in production.
+
+`guest-nonbranch.wasm` separately compiles `guest-nonbranch.go.txt` with the same
+pinned compiler and retained fn229 overlay. `reflect.Select` with one case records
+an actual `select-result` at site 5350, alternatives 1, without a replay decision.
+Its proved symbol is `reflect.rselect`, `runtime/select.go:629`; that line in the
+retained overlay is the physical selectgo call. Two runnable choices record
+missing sites. `nonbranch-proof.json` pins source/module/compiler identities and
+two byte-identical builds. The original inline and stripped fixtures are unchanged.
+
+`execution.json` is input to the existing feature-gated
+`fixture-inspect-execution --root ROOT --input FILE` producer. It executes each
+retained module twice per seed before publishing fresh Rust-lineage evidence,
+using the actual compiler digest and runtime implementation. It never imports
+the old Go record or substitutes its trace. Go guests start frozen monotonic
+time at 1 ns. The private fixture store admits 64 MiB; ordinary release builds
+exclude the command and these controls.
+
+`inspect-symbols-check.py` independently authenticates those raw publications,
+then checks repeated public JSON, every site/decision symbol, and unchanged bytes
+and identities. Controlled name-mismatch, duplicate-name and oversized-name
+variants preserve all executable Go bodies and execute afresh. Separate negative
+guests reuse the existing WAT corpus proposal at site 42: one adds a fixture
+entry point alongside unchanged Go functions/tables to prove out-of-range output;
+one is a valid binary with names but no pclntab. These are synthetic negatives,
+never stripped Go or R8 evidence. No trace or recorded identity is rewritten.
+The exact symbol view is `goldens-inspect/symbols.json`; only the output-root path
+prefix changes. Regenerate twice with `GOMAD_GOLDEN_REGENERATE=1` and require an
+identical second result. Absent required fixture modules fail the check.

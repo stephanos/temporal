@@ -32,6 +32,20 @@ pub enum Failure {
     Boundary(&'static str, &'static str),
     Invalid(&'static str),
     Capacity(&'static str),
+    /// A broker World limit exhausted, with its accounting (fn-235).
+    #[cfg_attr(
+        feature = "conformance",
+        allow(
+            dead_code,
+            reason = "Only the broker World raises it; the conformance build excludes the broker."
+        )
+    )]
+    Exhausted {
+        dimension: &'static str,
+        limit: u64,
+        used: u64,
+        delta: u64,
+    },
     Infrastructure(String),
 }
 
@@ -40,7 +54,7 @@ impl Failure {
         match self {
             Self::Boundary(kind, _) => kind,
             Self::Invalid(_) => "invalid",
-            Self::Capacity(_) => "capacity",
+            Self::Capacity(_) | Self::Exhausted { .. } => "capacity",
             Self::Infrastructure(_) => "infrastructure",
         }
     }
@@ -50,6 +64,12 @@ impl Failure {
             Self::Boundary(kind, dimension) => format!("WASI {kind}: {dimension}"),
             Self::Invalid(dimension) => format!("WASI invalid: {dimension}"),
             Self::Capacity(dimension) => format!("WASI capacity: {dimension}"),
+            Self::Exhausted {
+                dimension,
+                limit,
+                used,
+                delta,
+            } => format!("WASI capacity: {dimension} limit={limit} used={used} delta={delta}"),
             Self::Infrastructure(message) => message.clone(),
         }
     }
@@ -523,6 +543,7 @@ pub struct Endpoint {
     attached: bool,
     transcript_limit: u64,
     handles: BTreeMap<u64, Domain>,
+    local: Option<standalone::Local>,
     requests: BTreeMap<u64, Domain>,
     world: world::Model,
     world_requests: BTreeMap<u64, u64>,
@@ -579,6 +600,7 @@ impl Endpoint {
             attached: false,
             transcript_limit,
             handles: BTreeMap::new(),
+            local: None,
             requests: BTreeMap::new(),
             world,
             world_requests: BTreeMap::new(),
@@ -631,7 +653,12 @@ impl Endpoint {
             return Err(Failure::Capacity("network-v2-transcript-bytes"));
         }
         self.log_json_bytes += length;
-        self.entries.extend(binary);
+        if let Some(local) = &mut self.local {
+            local.log.push(json.as_ref().to_vec());
+        }
+        if self.local.is_none() {
+            self.entries.extend(binary);
+        }
         self.entry_count += 1;
         Ok(())
     }
@@ -640,6 +667,7 @@ impl Endpoint {
     /// shared owner at `now`, deliver this instance's newly ready requests
     /// through its network World, and log the quiescence.
     fn advance(&mut self, shared: &mut Shared, now: u64) -> Result<(), Failure> {
+        self.advance_faults(shared, now)?;
         shared.owner.advance_before(now).map_err(infrastructure)?;
         let ids = shared.owner.advance(now).map_err(infrastructure)?;
         let mut ready = false;
@@ -694,15 +722,7 @@ impl Endpoint {
         self.attach(&mut lock(&shared))?;
         let call: Call = stream_abi::decode(data).map_err(|invalid| Failure::Invalid(invalid.0))?;
         if call.op == 0 {
-            if data.len() != HEADER
-                || call.id != 0
-                || call.handle != 0
-                || call.deadline != 0
-                || call.port != 0
-                || call.count != 0
-            {
-                return Err(Failure::Invalid("network v2 query"));
-            }
+            stream_abi::query(&call, data.len()).map_err(|invalid| Failure::Invalid(invalid.0))?;
             return Ok(());
         }
         if !runtime
@@ -814,8 +834,14 @@ impl Endpoint {
             stream_abi::set_u32(data, 40, 1);
         } else {
             if result.handle != 0 {
-                // Go also records the handle's port, read only by node-local
-                // reset faults, which brokered nodes refuse.
+                if let Some(local) = &mut self.local {
+                    let port = if call.op == 1 || call.op == 3 {
+                        result.local.port
+                    } else {
+                        result.remote.port
+                    };
+                    local.ports.insert(result.handle, port);
+                }
                 self.handles.insert(result.handle, domain);
             }
             self.requests.remove(&call.id);
@@ -853,6 +879,9 @@ impl Endpoint {
     }
 
     fn evidence_locked(&self, shared: &Shared) -> Result<Vec<u8>, Failure> {
+        if self.local.is_some() {
+            return self.standalone_evidence(shared);
+        }
         let record = shared.record().map_err(infrastructure)?;
         let mut wire = Vec::new();
         world::wire_generated::write_snapshot(&self.world, &mut wire)
@@ -918,6 +947,7 @@ fn empty_domain() -> Domain {
 }
 
 pub mod evidence;
+mod standalone;
 
 #[cfg(test)]
 mod tests;

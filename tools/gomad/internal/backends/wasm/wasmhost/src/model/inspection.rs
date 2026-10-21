@@ -9,8 +9,8 @@ pub const MAX_METADATA: usize = 64 << 20;
 pub const MAX_OUTPUT: usize = 8 << 20;
 pub const MAX_FRAME: usize = 32 + 64 * 1024;
 pub const STATE_ENCODING: &str = "gomad.inspection-state-sha256/v1";
-pub const WORLD_ENCODING: &str = "gomad.inspection-world-sha256/v1";
-const WORLD_HEADER: &[u8] = b"gomad.inspection-world-commitments/v1\0";
+pub const WORLD_ENCODING: &str = "gomad.inspection-world-sha256/v2";
+const WORLD_HEADER: &[u8] = b"gomad.inspection-world-commitments/v2\0";
 pub const BOUNDARY_ENCODING: &str = "gomad.inspection-boundaries-binary/v1";
 pub const LIFECYCLE_ENCODING: &str = "gomad.inspection-lifecycle-binary/v1";
 const BOUNDARY_HEADER: &[u8] = b"GMWIB\x01\0\0";
@@ -607,6 +607,12 @@ impl Recorder {
         owner.failure_order = failed.then_some(order);
     }
     pub fn terminal_network(&mut self, handle: &Handle, bytes: Vec<u8>) {
+        self.terminal_network_encoded(handle, bytes, "gomad.cluster-network-binary/v1");
+    }
+    pub(crate) fn terminal_network_json(&mut self, handle: &Handle, bytes: Vec<u8>) {
+        self.terminal_network_encoded(handle, bytes, "");
+    }
+    fn terminal_network_encoded(&mut self, handle: &Handle, bytes: Vec<u8>, encoding: &str) {
         if self.sealed || self.exhausted {
             return;
         }
@@ -618,7 +624,7 @@ impl Recorder {
         let state = commitment("network", &bytes);
         let streams = &mut self.owner(handle).streams;
         streams.network = bytes;
-        streams.network_encoding = "gomad.cluster-network-binary/v1".into();
+        streams.network_encoding = encoding.into();
         if let Some(cut) = self.cuts.get_mut(handle) {
             cut.network_bytes = length;
             cut.network_state = state;
@@ -1039,6 +1045,16 @@ fn boundary_frame(boundary: &Boundary) -> Result<Vec<u8>> {
 pub fn network_commitment(evidence: &[u8]) -> [u8; 32] {
     commitment("network", evidence).try_into().unwrap()
 }
+
+pub fn world_chain_commitment(world: &[u8; 32], network: Option<[u8; 32]>) -> Vec<u8> {
+    let mut bytes = Vec::with_capacity(65);
+    bytes.extend_from_slice(world);
+    bytes.push(u8::from(network.is_some()));
+    if let Some(network) = network {
+        bytes.extend_from_slice(&network);
+    }
+    commitment("world", &bytes)
+}
 pub fn commitment(kind: &str, bytes: &[u8]) -> Vec<u8> {
     commitment_parts(kind, &[bytes])
 }
@@ -1050,7 +1066,7 @@ pub(crate) fn commitment_parts(kind: &str, parts: &[&[u8]]) -> Vec<u8> {
     }
     let mut hash = Sha256::new();
     if kind == "world" {
-        hash.update(b"gomad.inspection-world-sha256/v1\0");
+        hash.update(b"gomad.inspection-world-sha256/v2\0");
     } else {
         hash.update(b"gomad.inspection-state-sha256/v1/");
         hash.update(kind.as_bytes());

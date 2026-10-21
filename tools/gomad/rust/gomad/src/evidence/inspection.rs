@@ -101,7 +101,7 @@ pub struct ChoiceEvidence {
 }
 
 #[derive(Serialize)]
-pub struct Choices {
+pub struct Choices<T = linked::TraceInspection> {
     pub schema: &'static str,
     pub profile: String,
     pub implementation_sha256: String,
@@ -111,7 +111,7 @@ pub struct Choices {
     pub terminal_state: String,
     pub exact_replay_available: bool,
     #[serde(flatten)]
-    pub trace: linked::TraceInspection,
+    pub trace: T,
 }
 
 #[derive(Deserialize, Serialize)]

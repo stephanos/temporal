@@ -1,7 +1,7 @@
 {
   "schema": "gomad.cluster-transport-codec-corpus/v1",
   "name": "restarted-a-incarnation-two-rejects-old-prefix",
-  "go_implementation_sha256": "a46784511cbaa5b6f109c4cfa8d31b490bb3b1c99554107bf77225d346feab8d",
+  "go_implementation_sha256": "79a986d3727c229f7a8abc6ad33fcc52dfde8c97318eb65fb38ea5ba0f81e618",
   "target": {
     "node": "a",
     "incarnation": 2

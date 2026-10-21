@@ -15,11 +15,13 @@ args = p.parse_args()
 corpus = Path(__file__).resolve().parent
 declaration = json.loads((corpus / 'inspect-corpus.json').read_bytes())
 assert set(declaration) == {'schema', 'verb', 'fresh_execution_corpus', 'runtime_choice_target',
-                            'runtime_overflow_target', 'consumer_details', 'golden', 'projection'}
+                            'runtime_overflow_target', 'consumer_details', 'golden', 'projection',
+                            'symbol_execution_corpus', 'symbol_golden'}
 assert declaration['schema'] == 'gomad.inspect-corpus/v1' and declaration['verb'] == 'inspect'
 assert set(declaration['projection']) == {'path', 'record', 'files', 'choices', 'world',
                                          'simulation', 'minimization', 'stdout', 'stderr'}
-for name in ('fresh_execution_corpus', 'runtime_choice_target', 'runtime_overflow_target', 'consumer_details'):
+for name in ('fresh_execution_corpus', 'runtime_choice_target', 'runtime_overflow_target', 'consumer_details',
+             'symbol_execution_corpus'):
     assert (corpus / declaration[name]).is_file(), declaration[name]
 for path in (args.binary, args.baseline / 'inputs.sha256', args.go_compiler, args.source / 'tools/gomad/go.mod'):
     assert path.is_file(), f'required inspect input missing: {path}'
@@ -40,6 +42,8 @@ run('consumer', ['python3', corpus / 'inspect-check.py', '--binary', args.binary
     '--work', args.work / 'consumer', '--details-input', corpus / declaration['consumer_details']])
 run('review-regressions', ['python3', corpus / 'inspect-regression-check.py', '--binary', args.binary,
     '--work', args.work / 'review-regressions'])
+run('symbols', ['python3', corpus / 'inspect-symbols-check.py', '--binary', args.binary,
+    '--work', args.work / 'symbols'])
 run('store', ['python3', corpus / 'foundation-store-check.py', args.binary, args.work / 'store', '--inspect'])
 run('golden', ['python3', corpus / 'inspect-golden-check.py', '--binary', args.binary,
     '--work', args.work / 'golden', '--details-input', corpus / declaration['consumer_details']])

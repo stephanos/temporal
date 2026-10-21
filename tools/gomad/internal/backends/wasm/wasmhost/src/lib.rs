@@ -46,6 +46,8 @@ pub mod linked_cluster;
 mod linked_conditions;
 #[cfg(not(feature = "conformance"))]
 pub mod linked_inspection;
+#[cfg(any(test, not(feature = "conformance")))]
+mod linked_network;
 #[cfg(not(feature = "conformance"))]
 mod linked_storage;
 mod local_model;

@@ -304,6 +304,16 @@ coverage or guidance. They do not enable cluster-global forced-choice search,
 cluster minimization. Resource,
 replay-divergence and helper failures retain their existing classifications.
 
+A cluster run ends as soon as an incarnation fails, instead of waiting for the
+execution watchdog. Exhausting a broker World limit (for example the
+`observation_bytes` payload budget) ends it as backend capacity, exit 3, with
+`WASI capacity: <dimension> limit=<n> used=<n> delta=<n>`. The Runner-failure
+artifact retains each incarnation's partial streams as an interrupted prefix.
+`gomad inspect` adds a `cluster` section (JSON `artifact.cluster`): per
+incarnation node, incarnation, terminal reason, stdout/stderr byte counts and a
+256-byte tail, the abort virtual time and the exhausted limit. `gomad replay`
+reproduces the capacity abort. Output and choice capacity still retain nothing.
+
 ## Recover and resume an interrupted scenario campaign
 
 After an interruption, inspect the reported campaign path and recover its store
@@ -349,6 +359,20 @@ Gomad's existing target-failure status, not a replay mismatch. A matching
 successful artifact and `--verify-only` return 0. Invalid input returns 2;
 Runner/infrastructure failure returns 3. Inspection and recovery need no
 installation because they read retained evidence without executing a guest.
+
+The Rust host's artifact `inspect --json --choices` adds a `symbol` to every
+aggregate site and listed decision, using only its authenticated retained Go
+module. Available symbols carry `package`, `function`, optional proved
+`file`/`line` and `inlined_from`. An empty inline list on physical fallback
+means no inline chain was safely proved. Recorded missing runnable sites stay
+`{"unavailable":"site_missing"}`; other unavailable reasons are `no_symbols`,
+`offset_out_of_range`, `symbol_mismatch` and `symbol_table_too_large`. Missing
+required names, including in real `-s` modules with retained pclntab, yield
+`no_symbols`. Module digest/read errors still refuse inspection.
+Analysis shares fixed cumulative limits and a single immutable result map;
+exhaustion discards partial symbols. Artifacts and all recorded identities
+remain unchanged. The [Rust inspection contract](../../../CLI.md#rust-artifact-inspection)
+lists the limits and the pending authenticated campaign-divergence consumer.
 
 Replay loads the retained module, provenance, modeled inputs, choices and
 diagnostics. It validates the installed helper, compiled model/runtime code,

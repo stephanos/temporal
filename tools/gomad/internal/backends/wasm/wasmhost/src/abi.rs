@@ -1286,7 +1286,7 @@ fn invoke_runtime(
     #[cfg(feature = "diagnostic-profile")]
     serve(
         if matches!(op, Operation::RuntimeIdle | Operation::RuntimeNetStream)
-            && guest.caller.data().broker.is_some()
+            && (guest.caller.data().broker.is_some() || guest.caller.data().network.is_some())
         {
             if op == Operation::RuntimeIdle {
                 Owner::SchedulerHandoff
@@ -1353,6 +1353,21 @@ fn invoke_runtime(
             return Err(guest.caller.data_mut().fail(kind, message));
         }
     };
+    if matches!(op, Operation::RuntimeIdle | Operation::RuntimeNetStream)
+        && (guest.caller.data().network.is_some()
+            || op == Operation::RuntimeNetStream
+                && guest
+                    .caller
+                    .data()
+                    .model
+                    .as_ref()
+                    .is_some_and(|model| model.linked_evidence.is_some()))
+    {
+        let bytes = guest.caller.data_mut().network_call(op, input)?;
+        guest.write(pointer, &bytes)?;
+        results[0] = Val::I32(0);
+        return Ok(());
+    }
     if matches!(op, Operation::RuntimeIdle | Operation::RuntimeNetStream)
         && guest.caller.data().broker.is_some()
     {

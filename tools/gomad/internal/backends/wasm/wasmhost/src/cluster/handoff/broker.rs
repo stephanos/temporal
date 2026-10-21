@@ -171,11 +171,9 @@ struct Inner {
     raised: Option<(&'static str, String)>,
     clock: Clock,
     world: world::Model,
-    /// The inspection wire of one World revision: the generated head and
-    /// the length of its transition section within `inspection_transitions`.
-    inspection_world_wire: Option<(u64, InspectionWire)>,
     /// The generated encoding of a prefix of the append-only history, the
     /// wire's final section, reused by every later revision.
+    #[cfg(test)]
     inspection_transitions: InspectionTransitions,
     inspection_world: Option<(u64, Option<[u8; 32]>, [u8; 32])>,
     network: Option<Arc<Mutex<Shared>>>,
@@ -290,7 +288,7 @@ impl Broker {
                 raised: None,
                 clock,
                 world,
-                inspection_world_wire: None,
+                #[cfg(test)]
                 inspection_transitions: InspectionTransitions::default(),
                 inspection_world: None,
                 network,
@@ -441,6 +439,9 @@ impl Broker {
         if let Some(kind) = session.revoked {
             return Err(Failure::Boundary(kind, "broker incarnation revoked"));
         }
+        if matches!(&inner.aborted, Some(("trap" | "capacity", _))) {
+            return Err(Failure::Boundary("stop", "cluster failed"));
+        }
         Ok(())
     }
 
@@ -574,10 +575,7 @@ impl Broker {
         }
         let pending = std::mem::take(&mut session.pending);
         if pending != 0 {
-            inner
-                .world
-                .cancel(pending)
-                .map_err(|error| Failure::Infrastructure(error.to_string()))?;
+            inner.world.cancel(pending).map_err(world_failure)?;
         }
         session.revoked = Some(kind);
         lock(&self.inspection).event(
@@ -784,6 +782,10 @@ impl Broker {
     /// first abort; it takes precedence over what the aborted instances report.
     pub fn failure(&self) -> Option<(&'static str, String)> {
         lock(&self.inner).raised.clone()
+    }
+
+    pub fn terminal_failed(&self) -> bool {
+        matches!(&lock(&self.inner).aborted, Some(("trap" | "capacity", _)))
     }
 
     pub fn inspection_stopped(&self) -> bool {
@@ -1020,7 +1022,7 @@ impl Broker {
                 priority: 0,
                 payload: Sha256::digest(input.as_bytes()).to_vec(),
             })
-            .map_err(|error| Failure::Infrastructure(error.to_string()))?;
+            .map_err(world_failure)?;
         inner.sessions[me].pending = id;
         Ok(())
     }
@@ -1044,11 +1046,8 @@ impl Broker {
                 payload: Vec::new(),
                 equivalence_class: String::new(),
             })
-            .map_err(|error| Failure::Infrastructure(error.to_string()))?;
-        let quiescence = inner
-            .world
-            .quiesce()
-            .map_err(|error| Failure::Infrastructure(error.to_string()))?;
+            .map_err(world_failure)?;
+        let quiescence = inner.world.quiesce().map_err(world_failure)?;
         if quiescence.deliveries.len() != 1 || quiescence.deliveries[0].request_id != pending {
             return Err(invalid("broker delivery order"));
         }
@@ -1124,7 +1123,10 @@ impl Broker {
         }
         #[cfg(feature = "diagnostic-profile")]
         drop(waiting);
-        if let Some((_, message)) = inner.aborted.clone() {
+        if let Some((termination, message)) = inner.aborted.clone() {
+            if matches!(termination, "trap" | "capacity") {
+                return Err(Failure::Boundary("stop", "cluster failed"));
+            }
             // The coordinator reports the run's own classification.
             return Err(Failure::Infrastructure(message));
         }
@@ -1172,11 +1174,8 @@ impl Broker {
             #[cfg(feature = "diagnostic-profile")]
             let _world = crate::diagnostic::OwnerSpan::new(crate::diagnostic::Owner::World);
             if let Err(error) = inner.world.cancel(pending) {
-                self.raise(
-                    &mut inner,
-                    "infrastructure",
-                    format!("broker World: {error}"),
-                );
+                let failure = world_failure(error);
+                self.raise(&mut inner, failure.termination(), failure.message());
                 return;
             }
         }
@@ -1220,69 +1219,38 @@ impl Broker {
         self.world_wire_locked(&lock(&self.inner).world)
     }
 
-    /// The inspection World commitment over the broker World's wire and the
-    /// calling instance's network evidence (`identity` is its commitment).
-    /// `Ok(None)`: the evidence bytes are required but were not supplied.
+    /// The v2 commitment binds the World transition chain and the calling
+    /// instance's network commitment without materializing either history.
     pub fn inspection_world_commitment(
         &self,
-        network: Option<([u8; 32], Option<&[u8]>)>,
-    ) -> Result<Option<[u8; 32]>, Failure> {
+        network: Option<[u8; 32]>,
+    ) -> Result<[u8; 32], Failure> {
         #[cfg(feature = "diagnostic-profile")]
         let _world = crate::diagnostic::OwnerSpan::new(crate::diagnostic::Owner::World);
         let mut inner = lock(&self.inner);
         // Every successful World mutation commits a transition; refusals precede state writes.
         let revision = inner.world.next_ids().2;
-        let network_identity = network.map(|(identity, _)| identity);
         if let Some((prior, identity, digest)) = inner.inspection_world
             && prior == revision
-            && identity == network_identity
+            && identity == network
         {
-            return Ok(Some(digest));
+            return Ok(digest);
         }
-        let bytes = match network {
-            Some((_, None)) => return Ok(None),
-            Some((_, Some(bytes))) => Some(bytes),
-            None => None,
-        };
-        if inner
-            .inspection_world_wire
-            .as_ref()
-            .is_none_or(|(prior, _)| *prior != revision)
-        {
-            inner.inspection_world_wire = None;
+        if inner.world.snapshot_bytes() > MAXIMUM_EXPANDED_WORLD_BYTES as u64 {
             inner.inspection_world = None;
-            let wire = self.inspection_wire_locked(&mut inner, MAXIMUM_EXPANDED_WORLD_BYTES)?;
-            inner.inspection_world_wire = Some((revision, wire));
+            return Err(Failure::Capacity("compressed-snapshot-expanded-bytes"));
         }
-        let wire = &inner.inspection_world_wire.as_ref().unwrap().1;
-        let transitions = &inner.inspection_transitions.bytes[..wire.transitions];
-        let digest = match bytes {
-            Some(bytes) => crate::model::inspection::commitment_parts(
-                "world",
-                &[
-                    &wire.head,
-                    transitions,
-                    &(bytes.len() as u64).to_le_bytes(),
-                    bytes,
-                ],
-            ),
-            None => crate::model::inspection::commitment_parts("world", &[&wire.head, transitions]),
-        };
+        let world = inner.world.inspection_commitment();
+        let digest = crate::model::inspection::world_chain_commitment(&world, network);
         let digest: [u8; 32] = digest.try_into().unwrap();
-        inner.inspection_world = Some((revision, network_identity, digest));
-        Ok(Some(digest))
+        inner.inspection_world = Some((revision, network, digest));
+        Ok(digest)
     }
 
     /// The current World's expanded wire as its generated head followed by
     /// the retained transition encodings, extended by the new transitions:
     /// the same bytes [`Self::world_wire`] writes, refused at the same bound.
-    #[cfg_attr(
-        not(test),
-        expect(
-            clippy::unused_self,
-            reason = "Tests count World materializations per broker instance"
-        )
-    )]
+    #[cfg(test)]
     fn inspection_wire_locked(
         &self,
         inner: &mut Inner,
@@ -1352,6 +1320,30 @@ impl Broker {
     }
 }
 
+/// A broker World refusal: exhausting a World limit is the run's capacity
+/// outcome naming that dimension and its accounting, as instance-level World
+/// limits are (fn-235).
+#[expect(
+    clippy::needless_pass_by_value,
+    reason = "Error classification is passed directly to Result::map_err"
+)]
+fn world_failure(error: world::Error) -> Failure {
+    match error {
+        world::Error::Capacity {
+            dimension,
+            limit,
+            used,
+            delta,
+        } => Failure::Exhausted {
+            dimension,
+            limit,
+            used,
+            delta,
+        },
+        world::Error::Classified { .. } => Failure::Infrastructure(error.to_string()),
+    }
+}
+
 #[expect(
     clippy::needless_pass_by_value,
     reason = "Error classification is passed directly to Result::map_err"
@@ -1364,13 +1356,14 @@ fn world_wire_failure(error: std::io::Error) -> Failure {
     }
 }
 
-/// See `Inner::inspection_world_wire`.
+#[cfg(test)]
 struct InspectionWire {
     head: Box<[u8]>,
     transitions: usize,
 }
 
 /// See `Inner::inspection_transitions`.
+#[cfg(test)]
 #[derive(Default)]
 struct InspectionTransitions {
     count: usize,

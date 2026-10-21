@@ -211,6 +211,11 @@ fn world_corpus_replays_exactly() {
                 {
                     let mut actual = Vec::new();
                     world::wire_generated::write_snapshot(&model, &mut actual).unwrap();
+                    assert_eq!(
+                        model.snapshot_bytes(),
+                        actual.len() as u64,
+                        "{name}: incremental expanded wire size"
+                    );
                     let expected = bytes(expected);
                     if actual != expected {
                         let at = actual

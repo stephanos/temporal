@@ -14,12 +14,13 @@ use std::{
 use wasmtime::{Engine, Error, Store};
 
 pub use crate::linked_cancellation::Cancellation;
+pub use crate::linked_cluster::NetworkModel;
 pub use crate::linked_conditions::Conditions;
 pub use crate::linked_storage::Input as StorageInput;
 pub use crate::model::replay::Request as ReplayRequest;
 pub use crate::model::replay_plan::{
-    ExecutionIdentity as ChoiceIdentity, TraceInspection, coverage_features as choice_features,
-    inspect as inspect_choices,
+    ExecutionIdentity as ChoiceIdentity, TraceDecision, TraceInspection, TraceSite,
+    coverage_features as choice_features, inspect as inspect_choices,
 };
 pub use crate::model::{Config as ModelConfig, Divergence, ModelLimits};
 pub use crate::namespace::{
@@ -67,9 +68,23 @@ pub struct Prepared {
     pub(crate) namespace: Option<namespace::Namespace>,
     pub(crate) conditions: Conditions,
     cancellation: Cancellation,
+    network: Option<crate::cluster::network::Endpoint>,
 }
 
 impl Prepared {
+    /// # Errors
+    /// Admits a fresh standalone network owner with the retained local fault schedule.
+    pub fn network(&mut self, configuration: NetworkModel) -> wasmtime::Result<()> {
+        let model = self
+            .model
+            .as_ref()
+            .ok_or_else(|| Error::msg("linked network requires helper-owned model"))?;
+        if self.network.is_some() {
+            return Err(Error::msg("linked network already configured"));
+        }
+        self.network = Some(crate::linked_network::prepare(configuration, model)?);
+        Ok(())
+    }
     pub fn cancellation(&mut self, cancellation: Cancellation) {
         self.cancellation = cancellation;
     }
@@ -263,6 +278,7 @@ pub fn prepare(mut request: Request) -> wasmtime::Result<Prepared> {
         namespace,
         conditions: Conditions::default(),
         cancellation: Cancellation::default(),
+        network: None,
     })
 }
 
@@ -282,6 +298,7 @@ pub fn execute_prepared(prepared: Prepared) -> wasmtime::Result<Execution> {
         namespace,
         conditions,
         cancellation,
+        network,
     } = prepared;
     if cancellation.cancelled() {
         return Ok(Cancellation::execution());
@@ -318,6 +335,7 @@ pub fn execute_prepared(prepared: Prepared) -> wasmtime::Result<Execution> {
                 ),
             );
             store.limiter(|state| &mut state.limits);
+            store.data_mut().network = network;
             store.set_fuel(request.limits.fuel)?;
             store.set_epoch_deadline(1);
             let linker = engine::linker(&engine, &module)?;

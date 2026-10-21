@@ -7,8 +7,17 @@ satisfies: [R3, R4, R7, R8]
 **Semantic references only:** tools/gomad/internal/model/runtimesource/gomad_semantics.go.txt, tools/gomad/internal/backends/wasm/toolchain/{overlay.go,runtime_wasm.go.txt}; the Rust symbolizer paths above are proposed implementation surfaces.
 
 ## Description
-Implement R3/R4/R7/R8 once in the Rust evidence layer after fn-232.5. Register the symbolizer in evidence/mod.rs and expose Wasmtime's existing wasmparser through the helper library's public re-export surface in lib.rs (reuse an equivalent existing public re-export if present). The host gomad crate consumes that helper re-export with the checked pinned Go metadata reader; it gains no direct Wasmtime or new parser dependency. Provide a Rust-internal resolver over a site value plus its missing flag and the authenticated retained-module handle; preserve the spec's Symbol shape and unavailable reasons. No Go-host implementation, Go decoder subprocess or new dependency.
+The task was reopened after its prior SHIP for source-derived R7 under-accounting
+in eager parser-internal TryTable catch vectors and related variable-sized
+operators. The concrete eighteen-million-catch regression reproduced the defect;
+integrated commits be38ee5fae and 3d1c24cc35 repair it through pre-work cumulative
+step/entry/allocation accounting. Fresh integrated tests and independent review
+restore completion; see the done summary for evidence. Earlier research at
+.flow/tmp/fn229-parser-internal-budget-research.md and prior receipts remain
+history. Task .2 still owns public consumer integration; no record/wire contract
+or limit changed.
 
+Implement R3/R4/R7/R8 once in the Rust evidence layer after fn-232.5. Register the symbolizer in evidence/mod.rs and expose Wasmtime's existing wasmparser through the helper library's public re-export surface in lib.rs (reuse an equivalent existing public re-export if present). The host gomad crate consumes that helper re-export with the checked pinned Go metadata reader; it gains no direct Wasmtime or new parser dependency. Provide a Rust-internal resolver over a site value plus its missing flag and the authenticated retained-module handle; preserve the spec's Symbol shape and unavailable reasons. No Go-host implementation, Go decoder subprocess or new dependency.
 ## Approach
 - Decode active constant-offset data into the bounded sparse view; handle split tables and zero gaps without whole-memory allocation. Locate a unique structurally validated pcHeader/moduledata pair, validate sorted functab/sentinel and names, and follow checked gofunc-relative funcdata/inline and PC-value tables. Never assume named runtime DATA symbols or use the zero header textStart word.
 - Interpret compressed textOff at physical-function scale; validate text base and imported-function/defined-ordinal mapping. Derive exact Go names from pclntab; cross-check a present name section only after pinned ASCII-word/dot normalization. A missing required name cross-check means no_symbols even with retained pclntab; a present disagreement/malformed table means symbol_mismatch, under the spec's precedence.
@@ -30,16 +39,36 @@ Use the Go 1.27.1 source pin at tools/gomad/.toolchain/stock/2198cf19890232fc/go
 - Cross-segment/zero-gap tables and valid module/index/name mappings resolve deterministically across repeat runs; retained-module digest failure precedes symbol reads. No record/identity/wire mutation or new dependency.
 
 ## Done summary
-Implemented the authenticated retained-module symbol resolver for R3/R4/R7/R8 in fe0c2fff2a, with review repairs in 1b08590b24. Real Go 1.27.1 retained fixtures prove physical and complete-consensus inline attribution, conflicting/indirect fallback, actual stripped-name behavior, and fixture absence refusal. Fixed cumulative byte/code/entry/step/frame limits apply before parsing or allocation; requested results are immutable and whole-parse exhaustion discards partial attribution.
+Closed the reopened parser-internal cumulative budget defect for R3/R4/R7/R8.
+The new regression first reproduced eighteen million eager TryTable catch
+entries resolving successfully on the baseline. The repair precharges pinned
+wasmparser variable-sized operator headers, internal vector allocations and
+work before eager decoding, plus parser/host control stacks and repeated locals
+traversal. Checked cumulative counters remain shared across requested bodies.
+Malformed-tail regressions distinguish pre-work rejection; exact-cap and cap-plus-one
+cases cover byte/entry/step bounds. Existing real attribution/fallback and
+authenticated-module regressions remain passing; no new dependency or helper,
+record, wire or fixture-identity change was introduced by this repair.
 
-The three first-round findings (pointed metadata decoys, pre-budget data-expression traversal, and balanced unsupported exception controls) have true RED/GREEN regressions. Independent re-review SHIP, session01a15c0c-4e15-7b11-99c4-1575da10a108, receipt .flow/tmp/impl-review-receipt-fn229-symbolize.json. Fresh root candidate3 checks: all36 tests passed, mandatory fresh Go/Rust inspect parity0, foundation raw integrity/repeated goldens0, ordinary-release fixture refusals13/13. Worker fixture/default tests36/36 each, both Clippy/build/format checks0; two authenticated golden regenerations match all16 files. Original failures and exact commands remain in /home/agent/wt/evidence/fn229-symbolize/HANDOVER.md and its indexed raw receipts.
+Integrated commits: be38ee5fae and 3d1c24cc35. Fresh root focused release suite:
+36 passed, zero failed, command exit 0. Root make lint-code-fast exit 0.
+Worker release all-target Clippy with warnings denied, rustfmt and diff checks
+also exited 0. Raw RED/GREEN, commands and worker evidence remain in
+/home/agent/wt/evidence/fn229-budget-fix/; root integrated log is
+root-integrated-symbolize.log. Go lint log is
+/home/agent/wt/evidence/fn235/root-integrated-lint-code-fast.log.
 
-Candidate3 fixture SHA256 e75fedf086dab6ae0d17676976050dcd683955f466ff9e7d6ed49d4e491fffd8; release71aa958ffd73c9c66337b439c2ca954b0d2ccfef6f0594b7f1c1ef144c4e923a; immutable test executable1e7652b28757626259000b79a99e4d16ef34e1e94e49962e2976d466398d083a. Root source equals the repaired worker source for owned build inputs. Overlay prerequisites remain separately attributed to fn234. No new dependency, external symbol decoder, record/wire mutation or qualification claim.
+Independent fresh-context reviewer parser_budget_review returned VERDICT=SHIP
+after inspecting the actual pinned wasmparser0.252.0 eager decoder and all
+owned source changes. It reported no actionable findings and R3/R4/R7/R8
+satisfied. Reviewer and writer are from the same model family gpt-6.1-sol,
+per AGENTS routing. Public inspect/campaign consumer acceptance remains with
+task .2 and fn232 .7/.8. The separate compiler/teardown deadline gap is unchanged.
 
-Tier: session (jev-unavailable(no_key)); explicit AGENTS implementer/reviewer pins retained. Public inspect rendering and authenticated campaign divergence R2 belong to task .2 and fn232.7/.8; they remain open. The fn232 compiler/teardown deadline gap is not waived.
-
+Tier: session (jev-unavailable(no_key)); AGENTS explicit implementer/reviewer routing.
+stage: impl-review - ran (model: gpt-6.1-sol)
 stage: plan-sync - skipped(config: planSync.enabled != true)
 ## Evidence
-- Commits: fe0c2fff2aaad3e8332ce136c4165ef0a07c605d, 1b08590b24
-- Tests: /home/agent/wt/evidence/fn229-symbolize/candidate3/gomad-symbolize-tests --nocapture (36 passed, exit0), python3 tools/gomad/testdata/parity/foundation-check.py --binary /home/agent/wt/evidence/fn229-symbolize/candidate3/gomad-fixture --work /home/agent/wt/evidence/fn229-symbolize/root-foundation-1b08590b24 (exit0), python3 tools/gomad/scripts/behavioral-parity --corpus tools/gomad/testdata/parity --verb inspect --inspect-binary /home/agent/wt/evidence/fn229-symbolize/candidate3/gomad-fixture --inspect-baseline /home/agent/wt/evidence/fn232/go-baseline-1d7b37f00a --inspect-source /home/agent/wt/fn232-go-source/temporal-1d7b37f00a --inspect-go-compiler /Users/stephan/Workspace/skunkworks/gomad/temporal/tools/gomad/.toolchain/stock/2198cf19890232fc/go/bin/go --output-root /home/agent/wt/evidence/fn229-symbolize/root-1b08590b24 (exit0), python3 tools/gomad/testdata/parity/foundation-release-check.py /home/agent/wt/evidence/fn229-symbolize/candidate3/gomad-release /home/agent/wt/evidence/fn229-symbolize/root-release-1b08590b24 (13/13, exit0), flowctl codex impl-review fn-229-gomad-symbolize-choice-sites-in-inspect.1 --base 9714711c2a --receipt .flow/tmp/impl-review-receipt-fn229-symbolize.json --spec codex:gpt-6.1-sol:high --json (SHIP), git diff --check (exit0)
+- Commits: be38ee5fae, 3d1c24cc35
+- Tests: CARGO_TARGET_DIR=/home/agent/.cache/inspect-stats-target CARGO_INCREMENTAL=0 cargo +1.99.1 test --release --locked --manifest-path tools/gomad/rust/Cargo.toml -p gomad --lib symbolize: exit 0, 36 passed, make lint-code-fast GOLANGCI_LINT_BASE_REV=447fee0f75 GOLANGCI_LINT_FIX=false with retained pinned lint tools: exit 0, worker cargo +1.99.1 clippy --release --locked --manifest-path tools/gomad/rust/Cargo.toml -p gomad --all-targets -- -D warnings: exit 0, git diff --check: exit 0, independent parser_budget_review: VERDICT=SHIP, no actionable findings, R3/R4/R7/R8 satisfied
 - PRs:
