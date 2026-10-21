@@ -1354,6 +1354,7 @@ fn invoke_runtime(
         }
     };
     if matches!(op, Operation::RuntimeIdle | Operation::RuntimeNetStream)
+        && guest.caller.data().broker.is_none()
         && (guest.caller.data().network.is_some()
             || op == Operation::RuntimeNetStream
                 && guest
