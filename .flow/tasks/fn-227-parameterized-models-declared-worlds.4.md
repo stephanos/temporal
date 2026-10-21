@@ -1,12 +1,12 @@
 ---
-satisfies: [R3, R5]
+satisfies: [R3, R4, R5]
 ---
 # fn-227-parameterized-models-declared-worlds.4 After .3: timeouts, Heartbeat, Tick and asynchronous cancel on the activity Model with progress and bound claims
 
 ## Description
-Add the four Option<Ticks> timeouts and asynchronous_cancel to the activity World, per-deadline budgets and cancel_requested to the state, Worker::Heartbeat and Deadline::Tick (decrements live budgets, expires the first exhausted one with the expired deadline as a fact; disabled with no live budget). Schedule-to-close spans attempts; start-to-close and heartbeat budgets reset on Poll. Asynchronous cancel sets cancel_requested in Started and the next worker response or heartbeat closes as Canceled. Claims: a started activity under a fair worker eventually closes; schedule-to-close bounds total ticks. Verified natively on the default world and by TLC on the larger worlds under UMPIRE_BACKENDS=require; native default world stays inside R30.
+Consume bounded timeout/fact support for R3/R4/R5 in the existing activity Model. Schedule-to-close spans attempts; start-to-close and heartbeat budgets reset on Poll. With asynchronous cancellation, Cancel in Started records a pending request; heartbeat reports it without closing, completion/failure remain permitted races, and explicit worker cancellation acknowledgement closes as Canceled. Atomic cancellation remains the offline compatibility mode. Verify eventual closure under an explicit fair-worker assumption and the schedule-to-close total-tick bound natively and by TLC; no-timeout Worlds have no Tick. Re-run R4's refinement proof using its final one-attempt, atomic, one-tick schedule-to-start/start-to-close World, with other timeouts absent.
 
-**Admission gate:** R4's literal compatibility witness and R5's cancellation contract require the pending owner decisions. The original acceptance remains in force. Do not implement this task or alter activity expectations until those decisions are recorded and the plan review passes. The engineering support below does not authorize a cancellation correction or compatibility projection.
+**Admission gate:** The owner approved the R4 refinement replacement and R5 cooperative protocol contract on 2026-10-21. Engineering decomposition, prerequisite native/TLC support and a passing parent plan review still gate activity execution. The approval does not remove laws, authorize hidden projection rules or establish implementation conformance.
 
 **Size:** L until the conductor splits the bounded timeout/fact support checkpoint from the consuming activity rewrite. The support must pass native and independent TLC controls before activity consumption. This task is not execution-ready merely because the support contract is now specified.
 **Files:** `model/umpire/dsl/macros/src/machine.rs`; `model/umpire/lift/src/{lib,tree,shape,expr,emit,build,names}.rs` and `body/{typer,expr,effects,claim,progress,vector}.rs` as typed-expression consumers; `model/umpire/backends/tlc/src/{module,decode}.rs`; `model/umpire/testing/src/backend.rs`; new macro/source/shared fixture controls; `model/temporal/feature/activity/{model.rs,tests.rs,expected/**}`; `model/README.md`.
@@ -34,9 +34,9 @@ Admit canonical prelude/core/std Option paths for these source-local bounded new
 
 The same validated binding and ordinal assignments reach every main/invariant/postcondition/negative/progress CFG. Typed decoding validates exact code sets before reconstructing standard Debug spelling and replaying under the selected native World. A legal code from another selected World cannot certify agreement. No native reached graph may define Next or claims.
 
-### Activity consumption after support and owner gates
+### Activity consumption after support and planning gates
 
-Author four deadline facts, explicit simultaneous-expiry priority, reset/spanning laws, heartbeat/Tick enabledness and the approved cancellation contract in the existing activity Model. Preserve every law and independently source-lift the actual authored behavior. State the fair-worker assumption and larger/default selected Worlds. A tick-count safety claim must not become true merely by clamping a counter or cutting a domain. Retain counterexample controls that detect an actual reset/expiry/bound defect. Keep the original R4 evidence unchanged until its owner-approved compatibility contract is executable.
+Author four deadline facts, explicit simultaneous-expiry priority, reset/spanning laws, heartbeat/Tick enabledness and the approved cooperative cancellation contract. Model pending heartbeat signaling separately from explicit cancellation acknowledgement; test completion and failure after a pending request. Preserve every law and independently source-lift the authored behavior. State the worker fairness assumption and larger/default selected Worlds. A tick-count safety claim must not become true merely by clamping a counter or cutting a domain. Retain counterexample controls for reset/expiry/bound defects and heartbeat-only cancellation mistakes. Keep original R4 evidence unchanged and execute the explicit projection/comparison from .3 under R4's final compatibility World; preserve old deadline behavior rather than hiding missing edges.
 
 ## Investigation targets
 
@@ -59,10 +59,10 @@ Option controls distinguish None/Some(1)/Some(3), forbidden Some(0)/Some(4), cou
 Quick from model/: scoped `mise exec -- cargo test -p umpire-dsl-macros -p umpire-lift -p umpire-tlc -p umpire-testing -p umpire-tests`, with actual admitted-fixture controls repeated under UMPIRE_BACKENDS=require, plus formatting and strict clippy. Full from repository root: `make model-check`, `UMPIRE_BACKENDS=require make model-check`, `make model-time`. Retain actual counts, replay traces and timings, including soft-target misses. Rebuild changed linked guest bytes with the existing builder and rerun embedded slice/gap/privacy controls; no ABI, panic, dependency or core protocol change.
 
 ## Acceptance
-- [ ] Timeouts, Heartbeat, Tick and asynchronous cancel modeled; world with no timeouts has no Tick edge
+- [ ] Timeouts, Heartbeat, Tick and cooperative cancellation follow R5; pending heartbeat does not close, completion/failure races remain, and explicit acknowledgement closes as Canceled. The no-timeout World has no Tick edge.
 - [ ] Progress and bound claims verified natively and by TLC
 - [ ] Goldens, cover test and controls updated; R30 budgets hold
-- [ ] The prerequisite support checkpoint proves typed zero-or-one facts and bounded option/newtype admission, all-CFG emission, native Debug identity, exact decode/refusal and actual counterexample replay. All negative controls above remain discriminating; no native graph supplies source behavior. Split/admission and pending owner gates are satisfied before the activity rewrite.
+- [ ] Prerequisite support proves typed zero-or-one facts and bounded option/newtype admission, all-CFG emission, native Debug identity, exact decode/refusal and actual replay. Negative controls remain discriminating; no native graph supplies source behavior. Engineering split/admission gates are met, and R4's final compatibility World passes the executable retained-graph refinement comparison with a changed-edge failure control.
 
 ## Done summary
 TBD

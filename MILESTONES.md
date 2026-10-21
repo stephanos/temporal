@@ -97,21 +97,21 @@ readiness table leaves open: `#[derive(World)]` with `&World` access on handlers
 `#[starts]` block for computed starts, `Finite` and action inputs with `#[domain]`, and lifting of
 worlds as `CONSTANT`s and inputs as finite choice. Delivered through the activity Model extended
 in place: `maximum_attempts` and `RespondFailed { retryable }`, then the four optional timeouts,
-`Heartbeat`, `Tick` and asynchronous cancel with progress and bound claims; the `maximum_attempts = 1`
-world reproduces the six-phase goldens. The realization reads the world from the observed start
+`Heartbeat`, `Tick` and cooperative cancel with progress and bound claims; a one-attempt
+compatibility World proves lifecycle refinement against the retained six-phase graph.
+The realization reads the world from the observed start
 request and the live slice proves one retry then completion. The lifter admits `impl Phased` and
 `reject!` so TLC checks the activity Model.
-Before the activity rewrite, reconcile R4's exact old-golden witness with R5's no-timeout world:
-the old graph has enabled timeout edges, and new state/input fields change rendered bytes.
-World/input work is independent; no requirement or old assertion has been waived.
 Native World task .1 is in progress under a task-scoped work run. The current
-plan-review findings concern later work; parent plan review remains NEEDS_WORK.
-Formal plan review returned NEEDS_WORK. Before activity/live work, the owner must resolve
-the incompatible old-byte witness and cancellation contract; the pinned protocol signals
-pending cancellation on heartbeat and permits completion/failure races. Engineering plan
-briefs now specify fact emission, optional ticks and transactional Start admission;
-they still need task sizing and review. Carrying the actual Start request also needs
-approval for an additive Observation request field; no unchanged-envelope route exists.
+native implementation review is in its fix loop; parent plan review remains NEEDS_WORK.
+On 2026-10-21 the owner approved all three contract amendments: lifecycle refinement
+in place of impossible old-byte equality; cooperative cancellation with explicit protocol
+evidence; and optional actual-request Observation evidence at tag 4. Heartbeat signals a
+pending request without closing, and completion/failure races remain. Preserve old lifecycle
+evidence and prove the stated projection, including the final one-tick compatibility World.
+Fact emission, bounded optional ticks, transport/capture and transactional Start admission
+still need task sizing and plan review before activity/live execution. No task or review
+was completed by the approvals.
 [Spec](.flow/specs/fn-227-parameterized-models-declared-worlds.md).
 
 | Name | Status | What |
@@ -120,7 +120,7 @@ approval for an additive Observation request field; no unchanged-envelope route 
 | fn-227.7 | ⬜ todo | After .1: independent typed World/source binding, whole-state Init, all CFGs and `parameterized_world` TLC proof (R1, R3) |
 | fn-227.2 | ⬜ todo | After .1 and .7: `Finite` and action inputs; `action_inputs` fixture with TLC (R2, R3) |
 | fn-227.3 | ⬜ todo | After .2: lifter admits `Phased`/`reject!`; activity `maximum_attempts` and retryable failure (R3, R4) |
-| fn-227.4 | ⬜ todo | After .3: timeouts, Heartbeat, Tick, asynchronous cancel; progress and bound claims (R5) |
+| fn-227.4 | ⬜ todo | After .3: timeouts, Heartbeat, Tick, cooperative cancel; final refinement, progress and bound claims (R3, R4, R5) |
 | fn-227.5 | ⬜ todo | After .4: world from observed start options; Answer retryable; live retry proof (R6) |
 | fn-227.6 | ⬜ todo | After .5: DESIGN.md write-up and readiness table closure (R7) |
 
@@ -165,9 +165,5 @@ and replay; one `umpire` command with five modes.
 
 ## Open for the owner
 
-- fn-227 needs approval for three contract amendments before activity/live work:
-  semantic compatibility in place of impossible literal old bytes; cooperative cancellation
-  with an explicit protocol evidence binding; optional actual-request evidence on Observation.
-  The original requirements remain unchanged, and the proposed amendments are not approved.
 - fn-232's separately tracked Linux/macOS byte-identity proof needs a reachable macOS executor.
   Two Linux checkouts prove path independence, not cross-OS identity.
