@@ -94,8 +94,16 @@ Root's integrated `05e148b9de` focused checks and full validation also exited 0:
 `root-05e148b9de-focused.log` and `root-05e148b9de-validate.log`. The disposable
 private `go-cache/` was subsequently cleared with `go clean -cache`; it is not
 evidence and can be regenerated. No required input/result or shared cache was
-removed. A downloaded-toolchain declaration-test portability repair remains
-under review separately from this runtime evidence.
+removed. The declaration-test portability repair `1755d2df0f` (root
+`c62a9d43ef`) changes only the test to reuse `stockgo.Root(t)`. Its actual
+downloaded-toolchain regression changes from exit 1 to exit 0; the direct
+control still produces Go's module-cache overlay rejection. Exact driver,
+RED/GREEN logs and numeric results are under `repair-downloaded-toolchain/`,
+including `results.json`. Focused tests, vet and lint exit 0 with unchanged
+runtime/overlay identities. This test-only repair does not invalidate the
+retained runtime observations. Source custody was also independently rechecked
+at root with `sha256sum -c` for both source manifests; logs are
+`root-pre-source-verification.log` and `root-post-source-verification.log`.
 
 The frozen fn-232 Go baseline and its authenticated extracted source are
 untouched. This dedicated old/new overlay comparison does not substitute for
