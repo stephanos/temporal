@@ -17,9 +17,9 @@ import (
 
 const (
 	WASMInspectionSchema               = "gomad.wasm-inspection/v3"
-	WASMInspectionWorldEncoding        = "gomad.inspection-world-sha256/v1"
+	WASMInspectionWorldEncoding        = "gomad.inspection-world-sha256/v2"
 	WASMInspectionStateEncoding        = "gomad.inspection-state-sha256/v1"
-	WASMInspectionWorldHeader          = "gomad.inspection-world-commitments/v1\x00"
+	WASMInspectionWorldHeader          = "gomad.inspection-world-commitments/v2\x00"
 	MaximumWASMInspectionBytes         = 64 << 20
 	MaximumWASMInspectionBoundaries    = 65536
 	MaximumWASMInspectionRegistrations = 256

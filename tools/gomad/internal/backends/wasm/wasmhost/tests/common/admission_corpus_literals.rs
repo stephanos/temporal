@@ -653,7 +653,7 @@ pub(super) fn check_admission_literals(name: &str, actual: &Value) -> Result<(),
         let commitment = |domain: &str, bytes: &[u8]| -> Vec<u8> {
             let mut hash = Sha256::new();
             if domain == "world" {
-                hash.update(b"gomad.inspection-world-sha256/v1\0");
+                hash.update(b"gomad.inspection-world-sha256/v2\0");
             } else {
                 hash.update(b"gomad.inspection-state-sha256/v1/");
                 hash.update(domain.as_bytes());
@@ -663,9 +663,20 @@ pub(super) fn check_admission_literals(name: &str, actual: &Value) -> Result<(),
             hash.update(bytes);
             hash.finalize().to_vec()
         };
-        let mut combined = world;
-        combined.extend_from_slice(&(network.len() as u64).to_le_bytes());
-        combined.extend_from_slice(&network);
+        if world.len() < 208 || &world[..8] != b"GMWSNAP1" {
+            return Err(format!("{name}: missing canonical World header"));
+        }
+        // Reconstruct v2 material independently from the emitted full wire.
+        let mut chain = b"gomad/world/inspection-chain/v2\0".to_vec();
+        chain.extend_from_slice(&world[8..104]);
+        chain.extend_from_slice(&(world.len() as u64).to_be_bytes());
+        chain.extend_from_slice(&64u64.to_be_bytes());
+        for byte in &world[120..152] {
+            chain.extend_from_slice(format!("{byte:02x}").as_bytes());
+        }
+        let mut combined = Sha256::digest(chain).to_vec();
+        combined.push(1);
+        combined.extend_from_slice(&commitment("network", &network));
         let recorded = STANDARD
             .decode(
                 evidence["world"]

@@ -113,6 +113,7 @@ impl Prepared {
 pub struct IncarnationResult {
     pub handle: Handle,
     pub execution: linked::Execution,
+    pub interrupted: bool,
 }
 
 pub struct Execution {
@@ -303,6 +304,36 @@ struct Completed {
     image: Option<Vec<u8>>,
 }
 
+fn interrupted(outcome: &protocol::Outcome) -> bool {
+    if matches!(outcome.termination, "crash" | "stop" | "storage_crash") {
+        return true;
+    }
+    let dimension = outcome
+        .message
+        .strip_prefix("WASI capacity: ")
+        .and_then(|message| message.split_once(' '))
+        .map(|(dimension, _)| dimension);
+    outcome.termination == "capacity"
+        && matches!(
+            dimension,
+            Some(
+                "event-ids"
+                    | "events"
+                    | "payload-bytes"
+                    | "queued-events"
+                    | "request-ids"
+                    | "requests"
+                    | "transition-bytes"
+                    | "transition-sequences"
+                    | "transitions"
+            )
+        )
+        && outcome
+            .local_model
+            .as_ref()
+            .is_some_and(|model| model["configured"] == true && model["finished"] == false)
+}
+
 #[expect(
     clippy::too_many_arguments,
     reason = "A fresh store binds its shared owners and exact incarnation identity"
@@ -404,6 +435,7 @@ fn run_instance(
     Ok(Completed {
         result: IncarnationResult {
             handle,
+            interrupted: interrupted(&outcome),
             execution: linked::Execution {
                 outcome,
                 evidence,
@@ -461,6 +493,7 @@ fn execute_inner(
     let mut running: BTreeMap<Handle, Running> = BTreeMap::new();
     let mut completed = BTreeMap::new();
     let mut images: BTreeMap<String, Vec<u8>> = BTreeMap::new();
+    let first_failure = Arc::new(Mutex::new(None::<protocol::Outcome>));
     let mut outcome = protocol::Outcome::new("exit", "");
     outcome.exit_code = Some(0);
     broker.defer_starts();
@@ -475,7 +508,11 @@ fn execute_inner(
         for step in script {
             if timed_out.load(Ordering::Acquire)
                 || prepared.cancellation.cancelled()
-                || broker.inspection_stopped()
+                || broker.failure().is_some()
+                || first_failure
+                    .lock()
+                    .map_err(|_| Error::msg("cluster failure lock poisoned"))?
+                    .is_some()
             {
                 break;
             }
@@ -540,15 +577,17 @@ fn execute_inner(
                     step.handle.clone(),
                 );
                 let (session, conditions) = (session.clone(), prepared.conditions);
+                let first_failure = first_failure.clone();
                 let thread = thread::Builder::new()
                     .name(format!("instance-{}-{}", handle.node, handle.incarnation))
                     .stack_size(8 << 20)
                     .spawn(move || {
                         let _conditions = conditions.enter_shared(&session)?;
-                        if !broker.acquire(index) {
+                        if !broker.acquire(index) && !broker.terminal_failed() {
                             return Ok(Completed {
                                 result: IncarnationResult {
                                     handle,
+                                    interrupted: false,
                                     execution: linked::Execution {
                                         outcome: protocol::Outcome::new(
                                             "inspection_aborted",
@@ -576,7 +615,27 @@ fn execute_inner(
                         .map_err(|_| Error::msg("cluster store panicked"))
                         .and_then(std::convert::identity);
                         match &result {
-                            Ok(_) => broker.finish(index),
+                            Ok(completed) => {
+                                let observed = &completed.result.execution.outcome;
+                                if observed.termination == "trap"
+                                    || (observed.termination == "exit"
+                                        && observed.exit_code != Some(0))
+                                {
+                                    let mut failure = first_failure
+                                        .lock()
+                                        .map_err(|_| Error::msg("cluster failure lock poisoned"))?;
+                                    if failure.is_none() && broker.failure().is_none() {
+                                        let mut outcome = protocol::Outcome::new(
+                                            observed.termination,
+                                            observed.message.clone(),
+                                        );
+                                        outcome.exit_code = observed.exit_code;
+                                        *failure = Some(outcome);
+                                        broker.abort("trap", "cluster application failed".into());
+                                    }
+                                }
+                                broker.finish(index);
+                            }
                             Err(error) => broker.abort("infrastructure", error.to_string()),
                         }
                         result
@@ -648,8 +707,14 @@ fn execute_inner(
     }
     if let Some((kind, message)) = broker.failure() {
         outcome = protocol::Outcome::new(kind, message);
+    } else if let Some(failure) = first_failure
+        .lock()
+        .map_err(|_| Error::msg("cluster failure lock poisoned"))?
+        .take()
+    {
+        outcome = failure;
     }
-    let world = if outcome.termination == "exit" {
+    let world = if matches!(outcome.termination, "exit" | "trap") {
         broker
             .world_wire()
             .map_err(|failure| Error::msg(failure.message()))?
@@ -700,15 +765,7 @@ fn execute_inner(
 pub fn execute_prepared(prepared: Prepared) -> Result<Execution> {
     let cancellation = prepared.cancellation.clone();
     if cancellation.cancelled() {
-        return Ok(Execution {
-            outcome: linked::Cancellation::execution().outcome,
-            incarnations: Vec::new(),
-            world: Vec::new(),
-            network: Vec::new(),
-            inspection: Vec::new(),
-            virtual_elapsed_nanos: 0,
-            event_order: None,
-        });
+        return Ok(cancelled_execution());
     }
     let mut conditions = prepared.conditions.enter()?;
     let session = conditions.session();
@@ -753,6 +810,9 @@ pub fn execute_prepared(prepared: Prepared) -> Result<Execution> {
         watcher
             .join()
             .map_err(|_| Error::msg("cluster watchdog panicked"))??;
+        if cancellation.cancelled() && result.is_err() {
+            result = Ok(cancelled_execution());
+        }
         if timed_out.load(Ordering::Acquire)
             && let Ok(execution) = &mut result
         {
@@ -765,4 +825,16 @@ pub fn execute_prepared(prepared: Prepared) -> Result<Execution> {
         }
         result
     })
+}
+
+fn cancelled_execution() -> Execution {
+    Execution {
+        outcome: linked::Cancellation::execution().outcome,
+        incarnations: Vec::new(),
+        world: Vec::new(),
+        network: Vec::new(),
+        inspection: Vec::new(),
+        virtual_elapsed_nanos: 0,
+        event_order: None,
+    }
 }

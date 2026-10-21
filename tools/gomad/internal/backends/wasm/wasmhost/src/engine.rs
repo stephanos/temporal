@@ -145,13 +145,11 @@ impl State {
             }
         }
         let mut network = None;
-        let mut network_bytes = None;
         if let Some(endpoint) = &mut self.network {
-            if let Ok((digest, bytes)) =
+            if let Ok((digest, _)) =
                 endpoint.inspection_network(crate::model::inspection::network_commitment)
             {
                 network = Some(Some(digest));
-                network_bytes = bytes;
             } else {
                 model.inspection.lock().exhausted = true;
                 return;
@@ -167,9 +165,8 @@ impl State {
                     .inspection_network(crate::model::inspection::network_commitment)
                     .map(|(digest, bytes)| (Some(digest), bytes))
             };
-            if let Ok((digest, bytes)) = observed {
+            if let Ok((digest, _)) = observed {
                 network = Some(digest);
-                network_bytes = bytes;
             } else {
                 model.inspection.lock().exhausted = true;
                 return;
@@ -209,22 +206,8 @@ impl State {
             let commitment = match &self.broker {
                 Some(member) => {
                     let identity = member.network.as_ref().map(|_| digests.network.unwrap());
-                    let mut world = member.broker.inspection_world_commitment(
-                        identity.map(|identity| (identity, network_bytes.as_deref())),
-                    );
-                    if let (Ok(None), Some(identity), Some(endpoint)) =
-                        (&world, identity, &member.network)
-                    {
-                        // The World changed under an unchanged network
-                        // commitment: rebuild the identical evidence bytes.
-                        world = match endpoint.evidence() {
-                            Ok(bytes) => member
-                                .broker
-                                .inspection_world_commitment(Some((identity, Some(&bytes)))),
-                            Err(error) => Err(error),
-                        };
-                    }
-                    if let Ok(Some(digest)) = world {
+                    let world = member.broker.inspection_world_commitment(identity);
+                    if let Ok(digest) = world {
                         digest.to_vec()
                     } else {
                         model.inspection.lock().exhausted = true;
@@ -294,14 +277,13 @@ impl State {
         if boundary {
             model.inspection.world_commitment = match &self.broker {
                 Some(member) => {
-                    if let Ok(wire) = member.broker.world_wire() {
-                        match &member.network {
-                            Some(_) => crate::model::inspection::commitment_parts(
-                                "world",
-                                &[&wire, &(network.len() as u64).to_le_bytes(), &network],
-                            ),
-                            None => crate::model::inspection::commitment("world", &wire),
-                        }
+                    if let Ok(commitment) = member.broker.inspection_world_commitment(
+                        member
+                            .network
+                            .as_ref()
+                            .map(|_| crate::model::inspection::network_commitment(&network)),
+                    ) {
+                        commitment.to_vec()
                     } else {
                         model.inspection.lock().exhausted = true;
                         return;
@@ -2383,7 +2365,7 @@ mod tests {
         state
     }
     #[test]
-    fn unchanged_boundaries_materialize_and_hash_world_once() {
+    fn unchanged_boundaries_never_materialize_world() {
         let mut state = inspection_state();
         let owner = state.broker.as_ref().unwrap().broker.clone();
         for _ in 0..100 {
@@ -2393,7 +2375,7 @@ mod tests {
             owner
                 .world_materializations
                 .load(std::sync::atomic::Ordering::Relaxed),
-            1
+            0
         );
         assert_eq!(
             state

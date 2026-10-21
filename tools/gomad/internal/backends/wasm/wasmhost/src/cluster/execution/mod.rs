@@ -499,6 +499,7 @@ pub fn execute(
                         None,
                         None,
                         false,
+                        None,
                     ),
                 }));
                 match ran {
@@ -631,6 +632,7 @@ fn run_instance(
     namespace: Option<crate::namespace::Namespace>,
     storage: Option<crate::storage_transport::StorageDescriptor>,
     measured: bool,
+    on_terminal: Option<&dyn Fn(&Outcome)>,
 ) -> std::result::Result<Report, (&'static str, String)> {
     // Each store thread profiles into its own thread profile, merged into
     // the process report when the session closes (fn-185).
@@ -767,6 +769,9 @@ fn run_instance(
     // overtake it. Manual control must observe a finished incarnation when
     // Go answers the result with its next command.
     if coordinator.driven() {
+        if let Some(on_terminal) = on_terminal {
+            on_terminal(&outcome);
+        }
         coordinator.finish(index);
     }
     if let Err(error) = protocol::send_frame(&mut state.output, &outcome) {

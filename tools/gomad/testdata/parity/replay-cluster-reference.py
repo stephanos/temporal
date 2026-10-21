@@ -3,6 +3,8 @@
 import argparse
 import base64
 import hashlib
+from importlib.machinery import SourceFileLoader
+from importlib.util import module_from_spec, spec_from_loader
 import json
 import os
 from pathlib import Path
@@ -11,6 +13,15 @@ import gzip
 import struct
 import sys
 
+sys.dont_write_bytecode = True
+
+
+def authenticate(root, bundle):
+    loader = SourceFileLoader('cluster_parity', str(Path(__file__).resolve().parents[2] / 'scripts/behavioral-parity'))
+    parity = module_from_spec(spec_from_loader(loader.name, loader))
+    loader.exec_module(parity)
+    parity.authenticate(root, bundle)
+
 
 def sha(raw):
     return hashlib.sha256(raw).hexdigest()
@@ -18,6 +29,35 @@ def sha(raw):
 
 def canonical(value):
     return json.dumps(value, sort_keys=True, separators=(',', ':')).encode()
+
+
+def namespace_image(config):
+    limits = config['Limits']
+    entries, mappings = [], []
+    captured = config['CapturedInputs']
+    if captured['Descriptor'] is not None:
+        raw = base64.b64decode(captured['Descriptor'], validate=True)
+        assert sha(raw) == captured['Manifest']['SHA256'].removeprefix('sha256:')
+        assert len(raw) == captured['Manifest']['Bytes']
+        descriptor = json.loads(raw)
+        assert descriptor['schema'] == 'gomad.io-read-only-mounts/v1'
+        mappings = descriptor['mappings']
+        for entry in descriptor['entries']:
+            assert entry['kind'] in ('file', 'directory'), entry
+            data = b''
+            if entry['kind'] == 'file':
+                data = base64.b64decode(captured['Payloads'][entry['payload']], validate=True)
+                assert len(data) == int(entry['size'])
+                assert sha(data) == entry['sha256'].removeprefix('sha256:')
+            entries.append({'path': list(entry['path'].encode()), 'directory': entry['kind'] == 'directory',
+                            'readonly': True, 'data': list(data)})
+    return {'entries': entries, 'writable_directories': [list(v.encode()) for v in config['WritableDirectories']],
+            'preopens': [list(v.encode()) for v in sorted(set(config['WritableDirectories'] + mappings))],
+            'working_directory': list(config['WorkingDirectory'].encode()),
+            'stdin': list(base64.b64decode(config['Stdin'] or '', validate=True)),
+            'limits': {'files': limits['Files'], 'descriptors': limits['Descriptors'],
+                       'filesystem_bytes': limits['FilesystemBytes'], 'output_bytes': limits['OutputBytes']},
+            'epoch_nanos': config['Clock']['EpochNanos']}
 
 
 def linked_input(reference):
@@ -78,13 +118,7 @@ def linked_input(reference):
                       'environment': {'bytes': 0, 'count': 0, 'chunks': 0},
                       'limits': {'calls': limits['Calls'], 'transcript_bytes': limits['TranscriptBytes'],
                                  'pending_events': limits['PendingEvents']}},
-            'namespace': {'entries': [], 'writable_directories': [list(v.encode()) for v in config['WritableDirectories']],
-                          'preopens': [list(v.encode()) for v in sorted(set(config['WritableDirectories']))],
-                          'working_directory': list(config['WorkingDirectory'].encode()),
-                          'stdin': list(base64.b64decode(config['Stdin'] or '', validate=True)),
-                          'limits': {'files': limits['Files'], 'descriptors': limits['Descriptors'],
-                                     'filesystem_bytes': limits['FilesystemBytes'], 'output_bytes': limits['OutputBytes']},
-                          'epoch_nanos': config['Clock']['EpochNanos']}})
+            'namespace': namespace_image(config)})
     transitions = spec['limits']['network_transitions']
     configuration = {'engine': 'cranelift-fuel-nan-canonical-nounwind-epoch-v1',
                      'profile': 'gomad.wasi-cooperative/v1', 'limits': incarnations[0]['limits'],
@@ -116,7 +150,8 @@ def inspect_cluster(args, reference, artifact, run):
     record = json.loads(base64.b64decode(retained['record'], validate=True))
     metadata = json.loads((artifact / 'evidence/inspection').read_bytes())
     assert metadata == record['wasm_execution']['inspection'], 'same-target cluster inspection differs'
-    assert b'reproduced=true' in run('rust-replay', [args.binary, 'replay', artifact], 1)
+    expected_status = int(json.loads((artifact / 'record.json').read_bytes())['outcome']['class'] != 'success')
+    assert b'reproduced=true' in run('rust-replay', [args.binary, 'replay', artifact], expected_status)
     run('rust-target-required', [args.binary, 'replay', '--stop=choice=0', artifact], 2)
     frames = base64.b64decode(metadata['boundary_frames'], validate=True)
     assert frames[:8] == b'GMWIB\x01\0\0'
@@ -138,7 +173,7 @@ def inspect_cluster(args, reference, artifact, run):
                                    'replay', *flags, go_artifact], 2)
         assert not rust and not go
         return False
-    assert len(boundaries) == 3
+    assert len(boundaries) == (receipt['expected_owners'] if api else 3)
     for (node, incarnation), choices in boundaries.items():
         for label, boundary in [('first', choices[0]), ('last', choices[-1])]:
             name = f'{node}-{incarnation}-{label}'
@@ -162,12 +197,13 @@ def inspect_cluster(args, reference, artifact, run):
             assert json.loads((rust_dir / 'debug.json').read_bytes()) == go_debug, name
             assert gzip.decompress((rust_dir / 'heap.pprof').read_bytes()) == gzip.decompress(go_heap.read_bytes()), name
     if api:
-        last = boundaries[('a', 2)][-1]['choice']
+        node, incarnation = ('a', 2) if ('a', 2) in boundaries else ('a', 1)
+        last = boundaries[(node, incarnation)][-1]['choice']
         for mode in ('scan', 'bisect'):
-            flags = ['--instance=a', '--incarnation=2', '--check=fixture.before_three', f'--choice-range=0:{last}',
+            flags = [f'--instance={node}', f'--incarnation={incarnation}', '--check=fixture.before_three', f'--choice-range=0:{last}',
                      '--search-attempts=256', '--search-timeout=60s', '--search-mode=' + mode]
             rust = json.loads(run('rust-search-' + mode, [args.binary, 'replay', *flags, artifact], 1))
-            oracle = json.loads((reference.parent / ('a-2-' + mode + '.search.json')).read_bytes())
+            oracle = json.loads((reference.parent / (f'{node}-{incarnation}-' + mode + '.search.json')).read_bytes())
             oracle.pop('request')
             oracle.pop('target')
             assert rust['status'] == 'invariant_search' and rust['search'] == oracle, (mode, rust, oracle)
@@ -182,6 +218,7 @@ def main():
     p.add_argument('--from-reference', type=Path)
     p.add_argument('--api-registered', type=Path, help='fresh registered Go reference; exported API oracle only')
     p.add_argument('--api-concurrent', action='store_true', help='start initial owners before waiting in API fixture')
+    p.add_argument('--api-success', action='store_true', help='require all three successful incarnation inspections')
     args = p.parse_args()
     for name in ('baseline', 'source', 'compiler', 'work'):
         setattr(args, name, getattr(args, name).resolve())
@@ -237,7 +274,8 @@ def main():
             if args.api_concurrent:
                 scenario['actions'][1], scenario['actions'][2] = scenario['actions'][2], scenario['actions'][1]
             input_path = args.work / 'api-input.json'
-            input_path.write_bytes(canonical({'Base': base, 'Scenario': scenario, 'Output': str(args.work / 'api')}))
+            expected_owners = 3 if args.api_success else 1
+            input_path.write_bytes(canonical({'Base': base, 'Scenario': scenario, 'Output': str(args.work / 'api'), 'ExpectedOwners': expected_owners}))
             module = args.source / 'tools/gomad'
             wrapper = module / ('cmd/fn232-cluster-reference-' + sha(str(args.work).encode())[:12])
             wrapper.mkdir(mode=0o700)
@@ -250,6 +288,7 @@ def main():
             receipt = {'schema': 'gomad.cluster-go-api-reference/v1', 'module_path': base['ModulePath'],
                        'module_sha256': base['ModuleSHA256'],
                        'retained_sha256': sha(canonical(json.loads((api_dir / 'retained.json').read_bytes()))),
+                       'expected_owners': expected_owners,
                        'template_sha256': sha(template.read_bytes()), 'wrapper_sha256': sha(executable.read_bytes())}
             (api_dir / 'cluster-reference.json').write_bytes(canonical(receipt))
             return
@@ -258,6 +297,7 @@ def main():
         assert args.binary, '--from-reference requires --binary'
         bundle = json.loads(run('rust-produce', [args.binary, 'fixture-replay-cluster-input', '--root', args.work / 'rust',
                                                 '--input', input_path]))
+        authenticate(args.work / 'rust', bundle)
         artifact = args.work / 'rust' / bundle['records'][0]['artifact']
         positive = inspect_cluster(args, args.from_reference.resolve(), artifact, run)
         print(json.dumps({'artifact': str(artifact), 'same_target_cluster_inspection': positive}))
