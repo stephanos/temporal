@@ -228,6 +228,23 @@ def main():
     refused('choice-traversal', lambda path: choice_descriptor(path, 'file', '../outside'), original=exact)
     refused('choice-digest', lambda path: choice_descriptor(path, 'sha256', '0' * 64), original=exact)
     refused('choice-caller-bound', lambda path: choice_descriptor(path, 'limit', 1), original=exact)
+
+    def choice_helper(path):
+        details = json.loads((path / 'evidence/inspection.json').read_bytes())
+        details['choices']['implementation_sha256'] = '0' * 64
+        seal(path, {'evidence/inspection.json': canonical(details)})
+
+    refused('choice-helper-identity', choice_helper, 'identity mismatch', original=exact)
+
+    def semantic_choice(path):
+        raw = bytearray((path / 'evidence/choice').read_bytes())
+        assert len(raw) == 96, 'semantic admission case requires its one actual choice record'
+        raw[12:16] = bytes(4)
+        details = json.loads((path / 'evidence/inspection.json').read_bytes())
+        details['choices']['trace'].update(bytes=len(raw), sha256=hashlib.sha256(raw).hexdigest())
+        seal(path, {'evidence/choice': raw, 'evidence/inspection.json': canonical(details)})
+
+    refused('resealed-semantic-choice', semantic_choice, 'malformed_trace', original=exact)
     refused('noncanonical-inspection', lambda path: seal(path, {'evidence/inspection.json':
             b' ' + (path / 'evidence/inspection.json').read_bytes()}), original=exact)
     assert not failures, failures

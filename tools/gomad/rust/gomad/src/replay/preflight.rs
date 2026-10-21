@@ -221,6 +221,9 @@ fn prepare_internal(
             .as_ref()
             .and_then(|details| details.choices.as_ref())
             .ok_or("WASM artifact exact choice identity mismatch")?;
+        if choices.implementation_sha256 != inputs.helper_sha256 {
+            return Err("WASM artifact exact choice implementation identity mismatch".into());
+        }
         available = choices.terminal_state == "complete";
         if available {
             let configuration = model
