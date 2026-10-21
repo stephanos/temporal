@@ -1,5 +1,5 @@
 mod lineage;
-mod open;
+pub(crate) mod open;
 mod pool;
 mod publish;
 

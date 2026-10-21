@@ -15,6 +15,10 @@ pub struct Configuration {
     pub limits: crate::evidence::record::Limits,
     pub arguments: Vec<String>,
     pub environment: BTreeMap<String, String>,
+    #[serde(default, skip_serializing_if = "std::ops::Not::not")]
+    pub derive_seed_environment: bool,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub network: Option<gomad_wasmhost::linked_cluster::NetworkModel>,
     pub runtime_sha256: Option<String>,
     pub model: Option<Value>,
     pub namespace: Option<linked::NamespaceImage>,
@@ -270,6 +274,17 @@ fn prepare_internal(
             .inspection = Some(control);
     }
     let module = opened.payload("target/module.wasm", 512 << 20)?;
+    let mut environment = record
+        .environment
+        .iter()
+        .map(|(key, value)| format!("{key}={value}"))
+        .collect::<Vec<_>>();
+    if inputs.configuration.derive_seed_environment {
+        if record.environment.contains_key("GOMADSEED") {
+            return Err("retained seed environment must derive from record".into());
+        }
+        environment.push(format!("GOMADSEED={}", record.seed));
+    }
     let request = linked::Request {
         module,
         module_sha256: record.identity.target.clone(),
@@ -283,11 +298,7 @@ fn prepare_internal(
         model: model.map(|configuration| linked::ModelInput {
             configuration,
             arguments: record.arguments.clone(),
-            environment: record
-                .environment
-                .iter()
-                .map(|(key, value)| format!("{key}={value}"))
-                .collect(),
+            environment,
             replay_trace: trace,
         }),
         namespace: inputs.configuration.namespace,

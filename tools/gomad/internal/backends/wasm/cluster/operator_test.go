@@ -1,6 +1,7 @@
 package simulation
 
 import (
+	"context"
 	"encoding/json"
 	"reflect"
 	"testing"
@@ -10,6 +11,33 @@ import (
 	model "go.temporal.io/server/tools/gomad/internal/model/cluster"
 	"go.temporal.io/server/tools/gomad/internal/model/volume"
 )
+
+type failedWaitCluster struct {
+	model.Cluster
+	starts []model.NodeID
+}
+
+func (c *failedWaitCluster) Start(_ context.Context, node model.NodeID) (model.NodeHandle, error) {
+	c.starts = append(c.starts, node)
+	return model.NodeHandle{Node: node, Incarnation: 1}, nil
+}
+
+func (*failedWaitCluster) Wait(context.Context, model.NodeHandle) (model.NodeResult, error) {
+	return model.NodeResult{State: model.NodeStateFailed}, nil
+}
+
+func TestOperatorStopsActionsAfterFailedWait(t *testing.T) {
+	t.Parallel()
+	s := operatorFixture()
+	s.Actions[1], s.Actions[2] = s.Actions[2], s.Actions[1]
+	c := &failedWaitCluster{}
+	if err := s.Run(t.Context(), c); err != nil {
+		t.Fatal(err)
+	}
+	if !reflect.DeepEqual(c.starts, []model.NodeID{"a"}) {
+		t.Fatalf("scenario continued after its failed node: %v", c.starts)
+	}
+}
 
 func TestOperatorArgumentsSurviveNormalization(t *testing.T) {
 	for _, args := range [][]string{nil, {}, {"override"}} {

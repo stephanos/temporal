@@ -166,6 +166,7 @@ struct Inner {
     manual: bool,
     driver: Option<(usize, u64)>,
     aborted: Option<(&'static str, String)>,
+    terminal_turn: Option<usize>,
     /// The abort when the broker raised it itself (stall, pause, World or
     /// clock refusal) rather than an instance reporting its own failure.
     raised: Option<(&'static str, String)>,
@@ -285,6 +286,7 @@ impl Broker {
                 manual: false,
                 driver: None,
                 aborted: None,
+                terminal_turn: None,
                 raised: None,
                 clock,
                 world,
@@ -755,6 +757,29 @@ impl Broker {
         self.abort_locked(&mut inner, termination, message);
     }
 
+    pub fn abort_terminal(&self, me: usize, termination: &'static str, message: String) {
+        let mut inner = lock(&self.inner);
+        if inner.terminal_turn.is_none()
+            && (matches!(&inner.aborted, Some(("trap" | "capacity", _)))
+                || inner.aborted.is_none() && matches!(termination, "trap" | "capacity"))
+        {
+            inner.terminal_turn = Some(me);
+        }
+        self.abort_locked(&mut inner, termination, message);
+    }
+
+    pub fn wait_terminal(&self, me: usize) {
+        let mut inner = lock(&self.inner);
+        while matches!(&inner.aborted, Some(("trap" | "capacity", _)))
+            && inner.terminal_turn != Some(me)
+            && !matches!(inner.sessions[me].state, State::Dormant | State::Finished)
+        {
+            inner = self.wake[me]
+                .wait(inner)
+                .unwrap_or_else(std::sync::PoisonError::into_inner);
+        }
+    }
+
     /// An abort the broker raises itself: its classification is the run's.
     fn raise(&self, inner: &mut Inner, termination: &'static str, message: String) {
         if inner.aborted.is_none() {
@@ -766,6 +791,9 @@ impl Broker {
     fn abort_locked(&self, inner: &mut Inner, termination: &'static str, message: String) {
         Self::observe(inner);
         if inner.aborted.is_none() {
+            if inner.terminal_turn.is_none() && matches!(termination, "trap" | "capacity") {
+                inner.terminal_turn = inner.active;
+            }
             inner.aborted = Some((termination, message));
         }
         inner.active = None;
@@ -1123,14 +1151,11 @@ impl Broker {
         }
         #[cfg(feature = "diagnostic-profile")]
         drop(waiting);
-        if let Some((termination, message)) = inner.aborted.clone() {
-            if matches!(termination, "trap" | "capacity") {
-                return Err(Failure::Boundary("stop", "cluster failed"));
-            }
+        Self::check_locked(&inner, me, inner.sessions[me].incarnation)?;
+        if let Some((_, message)) = inner.aborted.clone() {
             // The coordinator reports the run's own classification.
             return Err(Failure::Infrastructure(message));
         }
-        Self::check_locked(&inner, me, inner.sessions[me].incarnation)?;
         if let Some(granted) = inner.granted_at.take() {
             inner.metrics.handoff_nanos += crate::metrics::elapsed(granted);
             inner.metrics.handoff_samples += 1;
@@ -1162,6 +1187,7 @@ impl Broker {
     /// Go `BrokerSession.Finished` (after the instance's evidence): cancel a
     /// pending visible request, leave the clock and pass the continuation.
     pub fn finish(&self, me: usize) {
+        self.wait_terminal(me);
         let mut inner = lock(&self.inner);
         Self::observe(&mut inner);
         if inner.sessions[me].state == State::Finished {
@@ -1170,31 +1196,33 @@ impl Broker {
         #[cfg(any(feature = "determinism-fixture", feature = "stress-jitter"))]
         let _event_scope = crate::event_order::enter(Self::event_context(&inner, me));
         let pending = std::mem::take(&mut inner.sessions[me].pending);
-        if pending != 0 {
-            #[cfg(feature = "diagnostic-profile")]
-            let _world = crate::diagnostic::OwnerSpan::new(crate::diagnostic::Owner::World);
-            if let Err(error) = inner.world.cancel(pending) {
-                let failure = world_failure(error);
-                self.raise(&mut inner, failure.termination(), failure.message());
+        let finished = (|| {
+            if pending != 0 {
+                #[cfg(feature = "diagnostic-profile")]
+                let _world = crate::diagnostic::OwnerSpan::new(crate::diagnostic::Owner::World);
+                inner.world.cancel(pending).map_err(world_failure)?;
+            }
+            let session = &inner.sessions[me];
+            let handle = session.hold.unwrap_or(session.handle);
+            if session.revoked.is_none()
+                && let Some(network) = inner.network.clone()
+            {
+                lock(&network)
+                    .revoke(&session.id, session.incarnation, true)
+                    .map_err(Failure::Infrastructure)?;
+            }
+            inner
+                .clock
+                .apply(clock::Event::Remove {
+                    participant: Some(handle),
+                })
+                .map_err(Failure::Infrastructure)
+        })();
+        if let Err(failure) = finished {
+            self.raise(&mut inner, failure.termination(), failure.message());
+            if !matches!(&inner.aborted, Some(("trap" | "capacity", _))) {
                 return;
             }
-        }
-        let session = &inner.sessions[me];
-        let handle = session.hold.unwrap_or(session.handle);
-        if session.revoked.is_none()
-            && let Some(network) = inner.network.clone()
-        {
-            let revoked = lock(&network).revoke(&session.id, session.incarnation, true);
-            if let Err(error) = revoked {
-                self.raise(&mut inner, "infrastructure", error);
-                return;
-            }
-        }
-        if let Err(error) = inner.clock.apply(clock::Event::Remove {
-            participant: Some(handle),
-        }) {
-            self.raise(&mut inner, "infrastructure", error);
-            return;
         }
         Self::deliver_answers(&mut inner);
         inner.sessions[me].hold = None;
@@ -1206,6 +1234,17 @@ impl Broker {
         }
         if inner.active == Some(me) {
             inner.active = None;
+        }
+        if matches!(&inner.aborted, Some(("trap" | "capacity", _)))
+            && (inner.terminal_turn == Some(me) || inner.terminal_turn.is_none())
+        {
+            inner.terminal_turn = inner
+                .sessions
+                .iter()
+                .position(|session| !matches!(session.state, State::Dormant | State::Finished));
+            for wake in &self.wake {
+                wake.notify_all();
+            }
         }
         self.schedule(&mut inner);
         self.check_stall(&mut inner);

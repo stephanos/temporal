@@ -161,6 +161,9 @@ pub fn run(arguments: &[String], output: &mut dyn Write) -> Result<(), super::Er
     }
     let path = artifact_path(path.ok_or("usage: gomad inspect [--json] [--choices] ARTIFACT")?)?;
     let path = path.as_path();
+    if crate::campaign::inspect::is_campaign(path)? {
+        return crate::campaign::inspect::run(path, json, choices, output).map_err(Into::into);
+    }
     let opened =
         Opened::open(path).map_err(|error| format!("inspect {}: {error}", path.display()))?;
     if opened.manifest().files.contains_key("record.json")

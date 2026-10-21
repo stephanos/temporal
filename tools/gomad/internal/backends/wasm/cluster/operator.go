@@ -257,7 +257,11 @@ func (s OperatorScenario) Run(ctx context.Context, c model.Cluster) error {
 		case "restart":
 			_, err = c.Restart(ctx, a.Handle.Node)
 		case "wait":
-			_, err = c.Wait(ctx, a.Handle)
+			var result model.NodeResult
+			result, err = c.Wait(ctx, a.Handle)
+			if err == nil && result.State == model.NodeStateFailed {
+				return nil
+			}
 		case "crash":
 			err = c.Crash(ctx, a.Handle)
 		case "stop":
