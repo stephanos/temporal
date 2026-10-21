@@ -374,6 +374,20 @@ def main():
     interrupted = campaign_root(interrupted_destination)
     prefix = authenticate_campaign(interrupted, complete=False)
     equal(len(prefix['executions']), 1, 'interrupted.complete_prefix')
+    # Identity validation must be reached on a resumable prefix, not masked by the
+    # completed-campaign refusal; a rechained but unchanged prefix is the control.
+    for name, mutate, status, message in [
+            ('identity', lambda plan: plan.__setitem__('host_sha256', '0' * 64), 2,
+             'campaign implementation identity mismatch'),
+            ('identity-control', lambda plan: None, case['status'], None)]:
+        root = args.work / ('changed-' + name)
+        shutil.copytree(interrupted, root)
+        rechain(root, mutate)
+        result = run('refuse-' + name if status == 2 else 'resume-' + name, [*binary, 'resume', '--json', root], status)
+        if message:
+            equal(parity.decode(result)['message'], message, name + '.refusal')
+        else:
+            equal(execution_view(authenticate_campaign(root)), views[0]['runtime']['records'], name + '.records')
     malformed_tail = args.work / 'noncanonical-tail'
     shutil.copytree(interrupted, malformed_tail)
     with (malformed_tail / 'journal.jsonl').open('ab') as stream:
@@ -437,12 +451,11 @@ def main():
     equal([item['ordinal'] for item in partial['executions']], [0], 'merge.partial_ordinals')
     run('merge-duplicate', [*binary, 'merge', '--json', '--output', args.work / 'duplicate', source / 'plan.json', shards[0], shards[0]], 2)
 
-    for name, mutate in [('bounds', lambda plan: plan['configuration']['limits'].__setitem__('fuel', plan['configuration']['limits']['fuel'] + 1)),
-                         ('identity', lambda plan: plan.__setitem__('host_sha256', '0' * 64))]:
-        root = args.work / ('changed-' + name)
-        shutil.copytree(source, root)
-        rechain(root, mutate)
-        run('refuse-' + name, [*binary, 'resume', '--json', root], 2)
+    root = args.work / 'changed-bounds'
+    shutil.copytree(source, root)
+    rechain(root, lambda plan: plan['configuration']['limits'].__setitem__('fuel', plan['configuration']['limits']['fuel'] + 1))
+    refusal = run('refuse-bounds', [*binary, 'resume', '--json', root], 2)
+    equal(parity.decode(refusal)['message'], 'campaign record differs from its prepared plan', 'bounds.refusal')
     corrupt = args.work / 'corrupt-journal'
     shutil.copytree(source, corrupt)
     data = (corrupt / 'journal.jsonl').read_bytes()

@@ -241,24 +241,17 @@ python3 tools/gomad/scripts/behavioral-parity \
 ```
 
 The same lane accepts `--verb resume`, `execute-shard` and `merge` and exercises
-all four operations. The frozen Go WASM public CLI refuses shard/merge verbs;
-the lane records those real refusals separately and calls the unchanged Go
-Runner API through a fixture-only reference adapter to attempt shard/merge
-semantics. The adapter calls the original provider and Runner owners without
-altering their preparation, authentication or capability policy.
-Those API-reference results are not public-CLI positive parity.
-Rust positive paths remain actual public CLI invocations. This admission
-discrepancy remains an explicit integrated-acceptance question, not a normalized
-semantic match.
-
-The original WASM provider prepares directly in the bundle directory while the
-portable-plan owner requires a private child preparation directory, so the
-unmodified API first refuses that layout. The frozen implementation also drops
-backend metadata when it
-reopens a prepared target and rejects backend payload files in its bundle.
-Consequently the original WASM portable API lane currently fails closed rather
-than supplying a positive shard/merge reference. Its failure is an unresolved
-differential criterion, not a skipped gate or an authenticated match.
+all four operations. The frozen Go WASM backend has no positive shard/merge
+surface: its public CLI does not register `plan`, `execute-shard` or `merge`
+(status 2, `unknown gomad command`), and the unchanged original Runner API,
+called through a fixture-only adapter, refuses the WASM provider's prepared
+bundle layout (status 3, `prepared campaign target is outside its private
+preparation directory`). The lane verifies both refusals exactly on every run.
+Conductor decision 2026-10-21: Rust `execute-shard` and `merge` are compared
+against the fresh unsharded Go public `explore` view (ordinal, seed, outcome,
+termination and failure group), which is what a correct shard/merge must equal.
+This is not a claim that Go shards or merges WASM campaigns, and no Go policy or
+preparation owner is changed to manufacture one.
 
 The mandatory lane also includes typed scenario public execution and exact
 replay, with malformed-input refusals and independently authenticated retained
@@ -266,8 +259,7 @@ reports. `campaign-scenario-check.py` can run this Rust scenario check directly
 with `--binary`, `--input`, `--go-compiler`, `--preparation-root` and `--work`.
 `campaign-scenario-reference-check.py` independently authenticates fresh original
 Go public-CLI captures and compares lifecycle steps, guest output bytes and
-handled assertion reports with retained Rust scenario runs. This focused
-scenario comparison does not waive the portable shard/merge criterion.
+handled assertion reports with retained Rust scenario runs.
 
 Raw record, payload, plan and journal integrity checks run independently of
 goldens. `GOMAD_GOLDEN_REGENERATE=1` requires repeated fresh agreement and a
