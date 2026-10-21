@@ -821,3 +821,63 @@ identities without changing the historical ledger prefix. Focused wasm,
 determinism and archcheck tests pass; the full determinism package also passes.
 Independent failfast_final_review returned SHIP for these metadata-only changes.
 This supplies no new runtime determinism or fn235 completion claim.
+
+### Closure-first frontier, 2026-10-21 15:44 UTC
+
+The user requested focus on closing active tasks. No new tasks are admitted.
+fn229 is closed: both tasks are done, the independent Codex completion review
+returned SHIP for R1-R9 with no findings, and Flow persisted completion status
+ship at 2026-10-21T15:37:49Z. The reviewer model was gpt-6.1-sol/high, same
+family as the implementation. Its read-only Cargo rerun could not acquire a
+build lock; acceptance also uses the previously retained actual parser and
+public consumer gates, not an invented reviewer test pass. Receipt:
+.flow/tmp/completion-review-receipt-fn229.json, session
+01a15f13-13ce-7e81-b1e6-f739b914bf43, reviewed HEAD4ee4f43ced.
+
+The clean inactive fn229-symbolize checkout and closed branch were removed
+after status/open-file checks. Required legacy evidence was transferred by
+rename from /home/agent/wt/evidence/fn229-symbolize to
+/home/agent/wt/evidence/fn230-legacy-symbolization for fn230.3; original receipt
+bytes and historical argv are unchanged. The remaining fn229-named golden
+audit/regeneration receipts are explicitly retained by open fn232.4/.13.
+The removed source is recoverable from Git; removed local toolchain outputs
+are regenerable. Required retained modules and inspect/replay receipts remain.
+
+Root38572d7e49/97ac127b01 integrate fn230 runtime v4 creation metadata and
+symbolized proposal scoping. Independent site_scope_review found no blocking
+correctness findings and authenticated actual public03 journals/artifacts.
+Public03 and04 each pass34 commands with identical observations SHA256
+e895c690cdc2ebe767b37ae8e5ba833f22a905deaf5cb3bb119afeb4d77485c7.
+The public plan receiving gap belongs to .1/fn232.11; it does not excuse it.
+Root integrated Go choice, generator, toolchain and determinism packages all
+pass. Integrated helper/host package tests and Clippy are running serially;
+fn230.2/.3 acceptance awaits those checks. Root additionally ran the post-change
+f30269e6 fixture reader on the retained Rust v3 artifact in
+fn232-replay/stable-reference2: inspect succeeds, reports profile v3 and three
+sites. Output is .build-cache/fn230-site-scope/v3-public-inspect-postchange.json
+under the workspace parent. No cross-helper exact artifact replay is claimed.
+
+fn235.1 remains open pending final exact-helper targeted corpus and independent
+review. Repaired source c419998757/cac37807a9 plus corpus734bc7c566/7d12c6d58a
+preserves admitted early-peer terminal coordinates and real authored lifecycle
+prefixes, including a successful complete control for open-peer refusal.
+Exact final helper71f7dc4760f3c5ba2cfd957978aa0f636940f866ea21f018c9c9967ddc2199df
+passes full tests and all-target Clippy. Fresh strict installedCLI gate passes
+in61.654s: capacity0.778s, guest failures6.480/0.556s, deadlock7.218s, all<=10s
+against3m execution watchdogs. Final targeted cases and integrated734 package
+checks are replay owner's live work; shared release target remains its lease.
+
+Minimizer source7a9bee29a2 has53 passing tests, both Clippy lanes and release
+fixture-exclusion gates. First final public lane passes94 commands plus9
+nested cluster commands; second identical regeneration is running. No .9
+completion claim precedes it or independent review.
+
+Qualification .10 was returned to todo after its worker checkpoint, not counted
+as completed. Its predecessor .9 is still open. Checkpoint982b9bd8ae retains
+only the actual qualify --spec grammar RED corpus; the dormant generic parser
+was not ported. Full Spec/Freeze/Run/cost/Result/receipt port remains required.
+The qualification worktree is clean and retained; no build lease or command
+remains there. Its last shared-target binary is discarded intermediate code,
+never acceptance evidence; current builds must use frozen source and copied
+identities. Other open-owner worktrees remain retained as above. No push, PR
+or CI execution occurred.
