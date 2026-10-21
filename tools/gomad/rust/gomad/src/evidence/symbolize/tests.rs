@@ -1025,6 +1025,62 @@ fn symbolize_try_table_preserves_the_physical_site() {
 }
 
 #[test]
+fn symbolize_bounds_cumulative_parser_catch_vectors_across_sites() {
+    let original = fixture("guest.wasm");
+    let mut budget = bytes::Budget::default();
+    let module = wasm::Module::read(&original, &mut budget).unwrap();
+    let tables = tables::Tables::read(&module, &mut budget).unwrap();
+    let indices: Vec<_> = tables
+        .functions
+        .iter()
+        .filter(|function| (5383..=5387).contains(&function.offset))
+        .map(|function| function.index - module.imported)
+        .collect();
+    assert_eq!(indices.len(), 5);
+    let mut code = Vec::new();
+    leb(module.functions.len() as u64, &mut code);
+    let mut catch_entries = 0;
+    for (ordinal, body) in module.functions.iter().enumerate() {
+        let mut encoded = original[body.range()].to_vec();
+        if indices.contains(&(ordinal as u64)) {
+            let start =
+                body.get_operators_reader().unwrap().original_position() - body.range().start;
+            encoded.truncate(start);
+            encoded.extend_from_slice(&[0x02, 0x40]);
+            for _ in 0..360 {
+                encoded.extend_from_slice(&[0x1f, 0x40]);
+                leb(10_000, &mut encoded);
+                for _ in 0..10_000 {
+                    encoded.extend_from_slice(&[0x02, 0]);
+                    catch_entries += 1;
+                }
+                encoded.push(0x0b);
+            }
+            encoded.extend_from_slice(&[0x0b, 0x0b]);
+            assert!(encoded.len() < 7_654_321);
+        }
+        leb(encoded.len() as u64, &mut code);
+        code.extend_from_slice(&encoded);
+    }
+    assert_eq!(catch_entries, 18_000_000);
+    assert!(code.len() as u64 <= bytes::BYTE_LIMIT);
+    let changed = replace_section(&original, 10, &code);
+    let requested: Vec<_> = (5383..=5387).map(site).collect();
+    let actual = resolve_bytes(&changed, requested.iter().copied());
+    for key in requested {
+        assert_eq!(actual[&key], unavailable(Reason::SymbolTableTooLarge));
+    }
+    assert!(actual.entries.is_empty());
+    assert_eq!(
+        actual[&Site {
+            value: 0,
+            missing: true
+        }],
+        unavailable(Reason::SiteMissing)
+    );
+}
+
+#[test]
 fn symbolize_bounds_lazy_data_expression_work_before_parsing() {
     let mut data = vec![1, 0, 0x41, 0]; // one active segment, i32.const0
     data.resize(usize::try_from(bytes::STEP_LIMIT).unwrap() + 8, 0x01); // over-limit nop expression
