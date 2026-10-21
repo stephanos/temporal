@@ -49,6 +49,9 @@ pub(crate) struct Manifest {
     pub host_config_sha256: String,
     pub module_sha256: String,
     pub toolchain_sha256: String,
+    /// The normalized multi-instance scenario of a cluster cell. Its records
+    /// bind a per-execution cluster configuration instead of `host_config_sha256`.
+    pub scenario_sha256: Option<String>,
     pub host_os: String,
     pub host_arch: String,
     pub seed: u64,
@@ -105,6 +108,14 @@ impl Manifest {
             if !canonical::valid_digest(digest) {
                 return Err("unbound WASM qualification identity".into());
             }
+        }
+        if self
+            .scenario_sha256
+            .as_deref()
+            .is_some_and(|digest| !canonical::valid_digest(digest))
+            || self.scenario_sha256.is_some() != (self.workload == "multi-instance")
+        {
+            return Err("multi-instance cells, and only they, bind one scenario identity".into());
         }
         if !matches!(
             self.workload.as_str(),
@@ -231,7 +242,8 @@ pub(crate) fn validate(result: &QualificationResult) -> Result<(), String> {
         let identity = &execution.record.identity;
         if identity.target != manifest.module_sha256
             || identity.toolchain != manifest.toolchain_sha256
-            || identity.configuration != manifest.host_config_sha256
+            || manifest.scenario_sha256.is_none()
+                && identity.configuration != manifest.host_config_sha256
             || execution.record.limits.fuel != manifest.fuel
             || execution.record.limits.memory_bytes != manifest.memory_bytes
         {
@@ -403,7 +415,7 @@ pub(crate) fn open(path: &Path) -> Result<QualificationResult, String> {
 pub(crate) fn open_receipt(
     path: &Path,
     result: &QualificationResult,
-) -> Result<(Receipt, u64), String> {
+) -> Result<(Receipt, cost::Terminal), String> {
     let digest = result_identity(path)?;
     let (pinned, name) = pinned_parent(path)?;
     let encoded = open::read(
@@ -429,7 +441,7 @@ pub(crate) fn validate_receipt(
     result: &QualificationResult,
     receipt: &Receipt,
     digest: &str,
-) -> Result<u64, String> {
+) -> Result<cost::Terminal, String> {
     if receipt.schema != RECEIPT_SCHEMA
         || receipt.result_sha256 != digest
         || receipt.operator_process_id == 0

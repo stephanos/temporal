@@ -1372,3 +1372,63 @@ provisional: the helper rotation in .8 and .1 will stale them.
 - qualification on the release-only binary (.13);
 - the final two regenerations on the integrated post-.8/.9 candidate;
 - independent review.
+
+### fn232.10 continued (worker D): canonical budgets, cluster and onebox cells, 2026-10-21
+
+**Budgets.** The Rust `qualify` passes every declared campaign deadline and
+limit through unchanged. Records retain `limits.wall_millis` equal to the
+declared execution timeout, and the installation owns fuel and memory.
+
+- The lane's 300 s / 20 min values are now named lane-local
+  (`LANE_CAMPAIGN`) and are used only for Go/Rust verdict comparison.
+- Each cell also runs as a final canonical cell with the owner's values
+  unchanged (`CANONICAL`, from `qualification/{integration,sqlite,onebox,cluster}_test.go`;
+  fixture and sqlite use 60 s / 3 min) and an installation copy pinned to the
+  owner's fuel and memory. These runs are gated on a 1-minute load below 2.5.
+- On the lane-r2 runs, canonical fixture, canary, sqlite (at 60 s) and cluster
+  all passed the unchanged budget, with no violations and nothing pending.
+
+**Cluster cell.** Cost and budget are now attributed per store.
+
+- Each incarnation store is a sample with its own fuel, trace bytes, and
+  guest linear-memory peak and limit. All stores share one execution window.
+- The resident-node count is checked exactly against the protocol's two
+  guests.
+- Host CPU and RSS stay linked-process figures under the upper-bound rule.
+- Missing or duplicate handles, mismatched windows and wrong resident counts
+  refuse.
+- `Target.Scenario` (Go base64 `[]byte`) is admitted for
+  `Workload: multi-instance`, and the Manifest binds `scenario_sha256`.
+- The Go host's public `qualify` refuses typed scenarios (`invalid_input`, 2).
+  The lane therefore takes the Go cluster verdict from two Go `explore
+  --scenario` campaigns plus a replay of each retained artifact.
+- Result: Go and Rust are both qualified/0, with replays exact.
+- The accounting corpus is now 29 cases, including 8 cluster cases. Two
+  regenerations are byte-identical.
+
+**Onebox cell** (`TestFrontendSystemInfo`).
+
+- The frozen Go reference fails its replay with `choice trace malformed`
+  (pre-v4 host). The onebox cell therefore uses a Go reference built from gomad
+  `8df43e3bb1` (`go-tip-reference`), and its lane namespace conversion now
+  inserts writable ancestor directories.
+- Rust qualifies semantically and matches Go: deterministic, success, exact
+  replays.
+- The linked peak is 6.2 GiB, almost all in-process Wasmtime compilation; the
+  guest peak is only 141 MiB. That exceeds the operator 2 GiB and warm-helper
+  4 GiB ceilings, so those checks are unattributed and pending, and the cell
+  exits 3. It is not a pass.
+- My recommendation: the owner decides a linked-process ceiling for
+  fn-222.1/R12, or the host adds a compile-phase RSS attribution.
+- `report` now labels an unattributed terminal receipt instead of refusing it.
+
+**Stale baseline.** `diagnostic-identity-choices*.json` (darwin-only, stale v3)
+is recorded in fn-232.13's task.
+
+**Interrupted by conductor.** The lane-r3 regeneration (small cells and onebox)
+was stopped for worker A's exclusive window. Its partial evidence is kept as
+`interrupted-by-conductor-lane-r3-a`. The per-cell goldens are therefore not
+committed. They depend on the host identity and are regenerated after the
+post-.8 merge. `accounting.json` and `tamper.json` are committed.
+
+Evidence: `/home/agent/wt/evidence/fn232-qualify/d/`.

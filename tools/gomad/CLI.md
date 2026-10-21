@@ -434,12 +434,24 @@ trailing data, nesting over 128 and unknown fields. `Campaign` accepts
 `PreparationRoot` must be absolute; the Rust installation owns its preparation
 cache. `RunnerBuild` has no Rust meaning, because records bind the linked
 implementation identity. `Target.Backend` must be `wasm` and `Kind`
-`go-run`/`go-test`. A `Scenario` (multi-instance cell) is refused with status 3
-until the cluster cell is ported. The campaign maps onto the public `explore`
+`go-run`/`go-test`. `Target.Scenario` carries a multi-instance cell as Go's
+base64 encoding of the same bounded scenario JSON that `explore --scenario FILE`
+reads. The cell must declare `Workload: "multi-instance"`, and its Manifest binds
+`scenario_sha256`.
+
+The Go host's public `qualify --spec` refuses typed scenarios with
+`invalid_input` (status 2), because its owner forces cooperative choice coverage.
+Go qualifies clusters only through its in-package test API. Admitting the cell
+on the Rust verb is therefore a deliberate availability change, made because the
+Rust binary has no test-API entry point. The campaign maps onto the public `explore`
 grammar and inherits its validation. Qualification then fixes the selection:
 seed `Manifest.Seed`, one slot, `keep-successes=all` with one success artifact,
-and, for a cooperative installation, choices with at least 1 MiB and
-`coverage=choice`.
+and, for a cooperative installation without a scenario, choices with at least
+1 MiB and `coverage=choice`. Every declared deadline and limit
+(`ExecutionTimeout`, `OverallTimeout`, `TerminateGrace`, `OutputLimit`,
+`WorldTransitionLimit`, `ChoiceTraceLimit`, `SuccessBytesLimit`) is passed
+through unchanged, and the installation's fuel and memory bound each store. A
+record's `limits.wall_millis` is the declared execution timeout.
 
 Freeze runs one actual preparation and binds Rust-lineage identities in
 `gomad.rust-qualification-manifest/v1`:
@@ -478,8 +490,10 @@ JSON differences from the Go host, by design of the new lineage:
 
 - The receipt fields are `result_sha256`, `operator_process_id` and
   `linked_after`.
-- `report` emits `{"classification","publication_cpu_nanos","receipt","result"}`
-  instead of the bare Result.
+- `report` emits `{"classification","publication","receipt","result"}`
+  instead of the bare Result. `publication` holds the receipt's terminal
+  `cpu_nanos`, `peak_rss_bytes` and a `status` of `within`, or `unattributed`
+  when the terminal linked peak exceeds the operator-only 2 GiB ceiling.
 - `report` requires the receipt and refuses a missing, unbound or
   wrong-process receipt.
 - Costs carry integer `{numerator,denominator}` ratios instead of floats.
@@ -513,14 +527,27 @@ counters at the store's boundaries.
   of the linked peak. The linked peak proves such a limit only when it fits under
   it. Above a limit, the check is `unattributed` and listed in `pending`: it is
   neither charged to one owner nor a pass.
-- **Concurrent stores** (`resident_stores` > 1) have no per-store attribution, so
-  cost and budget refuse. The cluster cell's concurrent-store accounting remains
-  open.
+- **Concurrent stores.** A cluster execution or replay retains one sample per
+  incarnation store (`node/incarnation`). Each sample carries that store's own
+  fuel, trace bytes, guest linear-memory peak and limit. All of them share one
+  wall time, virtual time and boundary window. The checks:
+  - each store's guest peak is checked exactly against its own limit;
+  - fuel and trace bytes are summed over the stores;
+  - wall time is counted once per logical execution;
+  - `resident_stores`, the most distinct nodes in one window, is checked exactly
+    against the protocol's two resident guests.
+
+  A missing handle, a duplicate handle, mismatched windows or a wrong resident
+  count refuse cost and budget. Host CPU and RSS cannot be split per store, so
+  they stay linked-process figures under the upper-bound rule above.
 - **Missing observations** produce `cost_failure` or `budget_failure`, never a
   measured zero.
 - **Final cells** return 3 for any failure, violation or pending check, after the
-  Result and receipt are retained. The receipt's terminal linked peak must also
-  fit the 2 GiB ceiling.
+  Result and receipt are retained.
+- **The receipt's terminal linked peak** must fit the 2 GiB ceiling, or
+  `qualify` returns 3 for every cell, as the Go host did. `report` still opens
+  such a Result and labels the receipt `unattributed`. Missing or backward
+  counters and binding errors are refused.
 
 ### Verification lanes
 
@@ -546,19 +573,60 @@ python3 tools/gomad/scripts/behavioral-parity --corpus tools/gomad/testdata/pari
   --qualify-input /absolute/replay-input.json --qualify-preparation-root /absolute/stable/preparation
 ```
 
-For each cell (default `fixture`, `fixture-canary` and `sqlite`), the lane runs
-one Go and two Rust qualifications. It authenticates each Rust Result, receipt,
+Parity runs use lane-local budgets (`LANE_CAMPAIGN` in `qualify-lane.py`): a
+300 s execution and 20 min overall deadline, 8 MiB output, 64 MiB World
+transitions and the lane installations' fuel. These budgets are deliberately
+wide, so that shared host load cannot turn a verdict comparison into a watchdog
+result. They are not qualification budgets. Every cell then runs again as a
+final canonical cell on a quiet host (1-minute load below 2.5), with the owner's
+declared values unchanged and an installation pinned to the owner's fuel and
+memory:
+
+| Cell | Owner source | Execution / overall / grace | Output / World | Fuel / memory |
+| --- | --- | --- | --- | --- |
+| `fixture`, `fixture-canary` | `qualification/integration_test.go` | 60 s / 3 min / 100 ms | 1 MiB / 1 MiB | 4e9 / 256 MiB |
+| `sqlite` | `qualification/sqlite_test.go` | 60 s / 3 min / 100 ms | 1 MiB / 1 MiB | 4e9 / 256 MiB |
+| `cluster` | `qualification/cluster_test.go` bounds | 60 s / 3 min / 100 ms | 1 MiB / 1 MiB | 4e9 / 256 MiB |
+| `onebox` | `qualification/onebox_test.go` | 15 min / 30 min / 1 s | 256 MiB / 32 MiB | 2^50 / 4 GiB |
+
+The onebox parity and canonical runs both use its owner values, plus choice
+traces of 64 MiB, success bytes of 2 GiB and the owner environment. Each canonical
+cell must reach its declared status, retain `limits.wall_millis` equal to the
+owner execution timeout, and pass the unchanged cost/budget gate.
+
+For each cell (default `fixture`, `fixture-canary`, `sqlite` and `cluster`;
+`onebox` is selected with `--qualify-cells onebox`), the lane runs one Go and two Rust
+qualifications. The Go reference for `cluster` records Go's public `qualify`
+refusal. Its verdict instead comes from two fresh Go `explore --scenario`
+campaigns and a fresh `replay` of each retained artifact. It authenticates each Rust Result, receipt,
 record hash and retained artifact on raw bytes. Both Rust runs must agree on the
 declared stable view, and the Go and Rust verdicts must match. The lane also runs
 `report` without an installation and exercises the grammar, spec refusals and ten
-tamper refusals. Final fixture cells must pass the unchanged budget. The stable
+tamper refusals. The stable
 view compares cell identities, records, replays, outcomes, verdicts, structural
 costs and budget statuses. It excludes the measured PID, CPU, RSS and wall
 values and replaces the campaign IDs and installation/spec paths with tokens.
-Regenerate `goldens-qualify/cells.json` with `GOMAD_GOLDEN_REGENERATE=1` twice
-and compare the bytes. These are provisional fixture-binary lanes. The
-`onebox` and multi-instance cells, and qualification on the release binary
-alone, remain with fn-232.10 acceptance and fn-232.13.
+Goldens are per cell (`goldens-qualify/cells/NAME.json`, with the parity view,
+the canonical view and the Go verdict) plus `goldens-qualify/tamper.json`.
+Regenerate them with `GOMAD_GOLDEN_REGENERATE=1` twice and compare the bytes.
+Linked-process upper-bound statuses follow measured RSS, so the golden keeps
+their names and limits but not their statuses. Each run authenticates them
+through the binary's recomputation.
+
+The frozen Go reference `fn232-replay-294-reference` predates the fn-230 R12 v4
+host repair, and its replay of a one-box Temporal trace fails
+(`choice trace malformed`). The `onebox` cell therefore runs as its own
+invocation (`--qualify-cells onebox`) against a Go reference built from a
+v4-repaired `gomad` revision. On this host the Rust one-box cell qualifies
+semantically, matching Go's verdict, but its linked peak (about 6 GiB, which
+includes the guest's 4 GiB-limited store) exceeds the operator-only 2 GiB and
+warm-helper 4 GiB ceilings. Those checks and the terminal receipt stay
+unattributed, so the command exits 3, naming the reason. It is not a pass. Closing
+it needs an owner decision on a linked-process ceiling, or per-component RSS
+attribution that the host does not have today. These are provisional fixture-binary lanes. The onebox row is the corpus family
+cell (`./tests/gomadfunctional`, `TestFrontendSystemInfo`). The mandatory
+`unchanged-workflow-type-smoke` selection and every one-box gate remain with
+fn-222.1. Qualification on the release binary alone remains with fn-232.13.
 
 ## Shared generated contracts
 

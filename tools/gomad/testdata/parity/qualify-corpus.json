@@ -1,24 +1,150 @@
 {
-  "schema": "gomad.qualify-corpus/v1",
-  "cases": [
-    {"name":"fixture", "cell":"fixture", "target":["go-run","."], "arguments":[], "status":0, "qualified":true},
-    {"name":"fixture-canary", "cell":"fixture", "target":["go-run","."], "arguments":["canary"], "status":1, "qualified":false},
-    {"name":"sqlite", "cell":"sqlite", "target":["go-run","./tools/gomad/internal/backends/wasm/testdata/storage_sqlite/main.go"], "arguments":["setup","WAL"], "status":0, "qualified":true},
-    {"name":"onebox", "cell":"onebox", "target":["go-test","./tests/gomadfunctional"], "arguments":["-test.run=^TestFrontendSystemInfo$","-test.v","-test.count=1","-test.timeout=72h","-persistenceType=sql","-persistenceDriver=sqlite"], "status":0, "qualified":true}
-  ],
-  "pending_cells": [
-    {"name":"cluster", "workload":"multi-instance", "status":"pending actual --spec execution and result mapping"}
-  ],
-  "grammar": [
-    {"name":"generic-flags", "argv":["qualify","--json"], "status":2, "stderr_contains":"flag provided but not defined: -json"},
-    {"name":"missing-spec", "argv":["qualify"], "status":2, "stderr_contains":"qualify requires --spec FILE"},
-    {"name":"spec-positional", "argv":["qualify","--spec","$MISSING_SPEC","extra"], "status":2, "stderr_contains":"qualify requires --spec FILE"},
-    {"name":"unknown-flag", "argv":["qualify","--unknown"], "status":2, "stderr_contains":"flag provided but not defined: -unknown"},
-    {"name":"missing-spec-file", "argv":["qualify","--spec","$MISSING_SPEC"], "status":2, "stderr_contains":"no such file or directory"}
-  ],
-  "refusals": [
-    {"name":"qualify-set", "argv":["qualify-set"], "status":2},
-    {"name":"merge-set", "argv":["merge-set"], "status":2},
-    {"name":"compare-support", "argv":["compare-support"], "status":2}
-  ]
+ "schema": "gomad.qualify-corpus/v1",
+ "cases": [
+  {
+   "name": "fixture",
+   "cell": "fixture",
+   "target": [
+    "go-run",
+    "."
+   ],
+   "arguments": [],
+   "status": 0,
+   "qualified": true,
+   "workload": "fixture"
+  },
+  {
+   "name": "fixture-canary",
+   "cell": "fixture",
+   "target": [
+    "go-run",
+    "."
+   ],
+   "arguments": [
+    "canary"
+   ],
+   "status": 1,
+   "qualified": false,
+   "workload": "fixture"
+  },
+  {
+   "name": "sqlite",
+   "cell": "sqlite",
+   "target": [
+    "go-run",
+    "./tools/gomad/internal/backends/wasm/testdata/storage_sqlite/main.go"
+   ],
+   "arguments": [
+    "setup",
+    "WAL"
+   ],
+   "status": 0,
+   "qualified": true,
+   "workload": "sqlite"
+  },
+  {
+   "name": "onebox",
+   "cell": "onebox",
+   "target": [
+    "go-test",
+    "./tests/gomadfunctional"
+   ],
+   "arguments": [
+    "-test.run=^TestFrontendSystemInfo$",
+    "-test.v",
+    "-test.count=1",
+    "-test.timeout=72h",
+    "-persistenceType=sql",
+    "-persistenceDriver=sqlite"
+   ],
+   "status": 0,
+   "qualified": true,
+   "workload": "onebox"
+  },
+  {
+   "name": "cluster",
+   "cell": "cluster",
+   "workload": "multi-instance",
+   "target": [
+    "go-run",
+    "./internal/backends/wasm/command/testdata/scenario",
+    "durable.json"
+   ],
+   "arguments": [],
+   "status": 0,
+   "qualified": true
+  }
+ ],
+ "grammar": [
+  {
+   "name": "generic-flags",
+   "argv": [
+    "qualify",
+    "--json"
+   ],
+   "status": 2,
+   "stderr_contains": "flag provided but not defined: -json"
+  },
+  {
+   "name": "missing-spec",
+   "argv": [
+    "qualify"
+   ],
+   "status": 2,
+   "stderr_contains": "qualify requires --spec FILE"
+  },
+  {
+   "name": "spec-positional",
+   "argv": [
+    "qualify",
+    "--spec",
+    "$MISSING_SPEC",
+    "extra"
+   ],
+   "status": 2,
+   "stderr_contains": "qualify requires --spec FILE"
+  },
+  {
+   "name": "unknown-flag",
+   "argv": [
+    "qualify",
+    "--unknown"
+   ],
+   "status": 2,
+   "stderr_contains": "flag provided but not defined: -unknown"
+  },
+  {
+   "name": "missing-spec-file",
+   "argv": [
+    "qualify",
+    "--spec",
+    "$MISSING_SPEC"
+   ],
+   "status": 2,
+   "stderr_contains": "no such file or directory"
+  }
+ ],
+ "refusals": [
+  {
+   "name": "qualify-set",
+   "argv": [
+    "qualify-set"
+   ],
+   "status": 2
+  },
+  {
+   "name": "merge-set",
+   "argv": [
+    "merge-set"
+   ],
+   "status": 2
+  },
+  {
+   "name": "compare-support",
+   "argv": [
+    "compare-support"
+   ],
+   "status": 2
+  }
+ ]
 }

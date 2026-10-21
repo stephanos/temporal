@@ -61,12 +61,10 @@ fn explore_options(
     if target.backend != "wasm" {
         return Err("unsupported WASM source preparation request".into());
     }
-    if target.scenario.is_some() {
-        return Err(
-            "multi-instance scenario qualification is pending in the Rust host; refusing rather than qualifying a single instance"
-                .into(),
-        );
-    }
+    let scenario = target.scenario.as_ref().map(scenario_bytes).transpose()?;
+    // A scenario owns its cluster lifecycle; explore admits it only without
+    // seed-level choices or coverage, as the public grammar does.
+    let cooperative = cooperative && scenario.is_none();
     if !matches!(target.kind.as_str(), "go-run" | "go-test") || target.source.is_empty() {
         return Err("unsupported WASM source preparation request".into());
     }
@@ -146,7 +144,59 @@ fn explore_options(
     let mut json = false;
     let mut options = crate::cli::explore::parse(&arguments, &mut json)?;
     options.installation = installation.map(Path::to_path_buf);
+    options.scenario = scenario;
     Ok(options)
+}
+
+/// The owner spec carries `Target.Scenario` as Go's base64 `[]byte` encoding of
+/// the same bounded scenario JSON that `explore --scenario FILE` reads.
+fn scenario_bytes(value: &Value) -> Result<Vec<u8>, String> {
+    let text = value
+        .as_str()
+        .ok_or("qualification Target.Scenario must be base64 scenario JSON")?;
+    let bytes = base64(text).ok_or("qualification Target.Scenario is not valid base64")?;
+    if bytes.is_empty()
+        || bytes.len() > 256 << 10
+        || serde_json::from_slice::<Value>(&bytes).is_err()
+    {
+        return Err("scenario must contain bounded valid JSON".into());
+    }
+    Ok(bytes)
+}
+
+/// Standard padded base64, as Go's `encoding/json` emits for `[]byte`.
+fn base64(text: &str) -> Option<Vec<u8>> {
+    let digit = |byte: u8| match byte {
+        b'A'..=b'Z' => Some(byte - b'A'),
+        b'a'..=b'z' => Some(byte - b'a' + 26),
+        b'0'..=b'9' => Some(byte - b'0' + 52),
+        b'+' => Some(62),
+        b'/' => Some(63),
+        _ => None,
+    };
+    let bytes = text.as_bytes();
+    if !bytes.len().is_multiple_of(4) {
+        return None;
+    }
+    let mut output = Vec::with_capacity(bytes.len() / 4 * 3);
+    for (index, chunk) in bytes.chunks(4).enumerate() {
+        let last = index + 1 == bytes.len() / 4;
+        let padding = chunk.iter().rev().take_while(|byte| **byte == b'=').count();
+        if padding > 2 || padding > 0 && !last {
+            return None;
+        }
+        let mut value = 0_u32;
+        for byte in &chunk[..4 - padding] {
+            value = value << 6 | u32::from(digit(*byte)?);
+        }
+        value <<= 6 * padding;
+        let decoded = value.to_be_bytes();
+        if padding > 0 && decoded[4 - padding..].iter().any(|byte| *byte != 0) {
+            return None;
+        }
+        output.extend_from_slice(&decoded[1..4 - padding]);
+    }
+    Some(output)
 }
 
 fn declared(declared: &str, observed: &str, name: &str) -> Result<(), String> {
@@ -241,6 +291,7 @@ pub(crate) fn freeze(
         host_config_sha256: canonical::digest(&canonical::encode(configuration)?),
         module_sha256: canonical::digest(&prepared.module),
         toolchain_sha256: prepared.toolchain.clone(),
+        scenario_sha256: prepared.scenario.as_deref().map(canonical::digest),
         host_os: std::env::consts::OS.into(),
         host_arch: std::env::consts::ARCH.into(),
         seed: declared_manifest.seed,
@@ -319,7 +370,35 @@ pub(crate) fn freeze(
 
 struct Iteration {
     execution: Option<Execution>,
-    sample: Option<Sample>,
+    samples: Vec<Sample>,
+}
+
+/// One sample per fresh store; concurrent cluster stores share the window.
+fn samples(
+    phase: &str,
+    iteration: u64,
+    metrics: &Metrics,
+    virtual_time_nanos: u64,
+    before: Option<usage::Usage>,
+    after: Option<usage::Usage>,
+) -> Vec<Sample> {
+    metrics
+        .stores
+        .iter()
+        .map(|store| Sample {
+            phase: phase.into(),
+            iteration,
+            incarnation: store.incarnation.clone(),
+            wall_nanos: metrics.wall_nanos,
+            fuel_used: store.fuel_used,
+            guest_peak_memory_bytes: store.guest_peak_memory_bytes,
+            guest_memory_limit_bytes: store.guest_memory_limit_bytes,
+            trace_bytes: store.trace_bytes,
+            virtual_time_nanos,
+            linked_before: before,
+            linked_after: after,
+        })
+        .collect()
 }
 
 /// Runs one fresh single-seed campaign and returns its committed execution.
@@ -329,7 +408,7 @@ fn execute(frozen: &Frozen, iteration: u64) -> Result<Iteration, String> {
     let mut output = Vec::new();
     let mut commit =
         |campaign: &Path, execution: &campaign::ledger::Execution, metrics: &Metrics| {
-            observed = Some((campaign.to_path_buf(), execution.clone(), *metrics));
+            observed = Some((campaign.to_path_buf(), execution.clone(), metrics.clone()));
         };
     let status = campaign::explore_prepared(
         &frozen.options,
@@ -343,7 +422,7 @@ fn execute(frozen: &Frozen, iteration: u64) -> Result<Iteration, String> {
         status?;
         return Ok(Iteration {
             execution: None,
-            sample: None,
+            samples: Vec::new(),
         });
     };
     let artifact = committed
@@ -351,23 +430,14 @@ fn execute(frozen: &Frozen, iteration: u64) -> Result<Iteration, String> {
         .as_ref()
         .map(|reference| campaign_path.join(reference).to_string_lossy().into_owned());
     let record_sha256 = committed.record.hash()?;
-    let sample = Sample {
-        phase: "execute".into(),
+    let samples = samples(
+        "execute",
         iteration,
-        wall_nanos: metrics.wall_nanos,
-        fuel_used: metrics.fuel_used,
-        guest_peak_memory_bytes: metrics.guest_peak_memory_bytes,
-        guest_memory_limit_bytes: metrics.guest_memory_limit_bytes,
-        trace_bytes: committed
-            .record
-            .streams
-            .values()
-            .map(|stream| stream.bytes)
-            .sum(),
-        virtual_time_nanos: committed.record.virtual_time_nanos,
-        linked_before: before,
-        linked_after: after,
-    };
+        &metrics,
+        committed.record.virtual_time_nanos,
+        before,
+        after,
+    );
     let execution = Execution {
         iteration,
         campaign_path: campaign_path.to_string_lossy().into_owned(),
@@ -379,17 +449,17 @@ fn execute(frozen: &Frozen, iteration: u64) -> Result<Iteration, String> {
     status?;
     Ok(Iteration {
         execution: Some(execution),
-        sample: Some(sample),
+        samples,
     })
 }
 
-/// Replays one retained artifact in a fresh store through the shared opener.
-fn replay(path: &Path, iteration: u64) -> Result<(Replay, Sample), String> {
+/// Replays one retained artifact in fresh stores through the shared opener.
+/// A retained cluster replays every incarnation; each store is measured.
+fn replay(path: &Path, iteration: u64) -> Result<(Replay, Vec<Sample>), String> {
     let before = usage::linked();
     let prepared = preflight::open(path).map_err(|error| format!("runner_failure: {error}"))?;
     let record = prepared.opened.manifest().record.clone();
     if !prepared.available {
-        let after = usage::linked();
         return Ok((
             Replay {
                 attempted: true,
@@ -397,25 +467,45 @@ fn replay(path: &Path, iteration: u64) -> Result<(Replay, Sample), String> {
                 divergence: Some("choice_profile.replay_unavailable".into()),
                 choice_replay: "unavailable".into(),
             },
-            Sample {
-                phase: "replay".into(),
-                iteration,
-                wall_nanos: 0,
-                fuel_used: 0,
-                guest_peak_memory_bytes: 0,
-                guest_memory_limit_bytes: record.limits.memory_bytes,
-                trace_bytes: 0,
-                virtual_time_nanos: 0,
-                linked_before: before,
-                linked_after: after,
-            },
+            Vec::new(),
         ));
     }
     let exact = prepared.exact;
     let started = Instant::now();
-    let observed = preflight::execute(prepared.execution)
-        .map_err(|error| format!("runner_failure: execute replay target: {error}"))?;
-    let metrics = Metrics::observed(&observed.outcome, &record.limits, started.elapsed());
+    let (observed, metrics, virtual_time) = match prepared.execution {
+        preflight::Execution::Cluster(cluster) => {
+            let observed = crate::replay::cluster::execute(*cluster)
+                .map_err(|error| format!("runner_failure: execute replay target: {error}"))?;
+            // Every retained incarnation runs under the record's shared bounds.
+            let limits = observed
+                .incarnations
+                .iter()
+                .map(|item| {
+                    (
+                        format!("{}/{}", item.handle.node, item.handle.incarnation),
+                        (record.limits.fuel, record.limits.memory_bytes),
+                    )
+                })
+                .collect();
+            let metrics = campaign::scenario::store_metrics(&observed, &limits, started.elapsed());
+            let virtual_time = observed.virtual_elapsed_nanos;
+            let projected = crate::replay::cluster::project(observed)
+                .map_err(|error| format!("runner_failure: project cluster replay: {error}"))?;
+            (projected, metrics, virtual_time)
+        }
+        execution @ preflight::Execution::Standalone(_) => {
+            let observed = preflight::execute(execution)
+                .map_err(|error| format!("runner_failure: execute replay target: {error}"))?;
+            let metrics = Metrics::observed(&observed, &record.limits, started.elapsed());
+            let virtual_time = observed
+                .outcome
+                .local_model
+                .as_deref()
+                .and_then(|model| model["now"].as_u64())
+                .unwrap_or(0);
+            (observed, metrics, virtual_time)
+        }
+    };
     let after = usage::linked();
     let divergence = divergence::first(&record, &observed);
     let choice_replay = if observed.outcome.divergence.is_some() {
@@ -432,28 +522,28 @@ fn replay(path: &Path, iteration: u64) -> Result<(Replay, Sample), String> {
             divergence,
             choice_replay: choice_replay.into(),
         },
-        Sample {
-            phase: "replay".into(),
-            iteration,
-            wall_nanos: metrics.wall_nanos,
-            fuel_used: metrics.fuel_used,
-            guest_peak_memory_bytes: metrics.guest_peak_memory_bytes,
-            guest_memory_limit_bytes: metrics.guest_memory_limit_bytes,
-            trace_bytes: observed
-                .evidence
-                .values()
-                .map(|bytes| bytes.len() as u64)
-                .sum(),
-            virtual_time_nanos: observed
-                .outcome
-                .local_model
-                .as_deref()
-                .and_then(|model| model["now"].as_u64())
-                .unwrap_or(0),
-            linked_before: before,
-            linked_after: after,
-        },
+        samples("replay", iteration, &metrics, virtual_time, before, after),
     ))
+}
+
+/// The largest number of distinct nodes resident in one execution window.
+fn resident_stores(samples: &[Sample]) -> u64 {
+    let mut windows =
+        std::collections::BTreeMap::<(&str, u64), std::collections::BTreeSet<&str>>::new();
+    for sample in samples {
+        let node = sample.incarnation.as_deref().map_or("", |name| {
+            name.split_once('/').map_or(name, |(node, _)| node)
+        });
+        windows
+            .entry((sample.phase.as_str(), sample.iteration))
+            .or_default()
+            .insert(node);
+    }
+    windows
+        .values()
+        .map(|nodes| nodes.len() as u64)
+        .max()
+        .unwrap_or(0)
 }
 
 fn failure(error: &str, iteration: u64) -> Failure {
@@ -476,25 +566,23 @@ pub(crate) fn run(frozen: &Frozen) -> Result<QualificationResult, String> {
         match execute(frozen, iteration) {
             Ok(Iteration {
                 execution: Some(execution),
-                sample: Some(sample),
-            }) if execution.artifact_path.is_some() => {
+                samples: measured,
+            }) => {
+                let retained = execution.artifact_path.is_some();
                 executions.push(execution);
-                samples.push(sample);
+                samples.extend(measured);
+                if !retained {
+                    stopped = Some(Failure {
+                        classification: "runner_failure".into(),
+                        message: "Runner omitted the retained execution artifact".into(),
+                        iteration,
+                    });
+                    break;
+                }
             }
             Ok(Iteration {
-                execution: Some(execution),
-                sample: Some(sample),
+                execution: None, ..
             }) => {
-                executions.push(execution);
-                samples.push(sample);
-                stopped = Some(Failure {
-                    classification: "runner_failure".into(),
-                    message: "Runner omitted the retained execution artifact".into(),
-                    iteration,
-                });
-                break;
-            }
-            Ok(_) => {
                 stopped = Some(Failure {
                     classification: "runner_failure".into(),
                     message: "Runner omitted bounded qualification evidence".into(),
@@ -517,9 +605,9 @@ pub(crate) fn run(frozen: &Frozen) -> Result<QualificationResult, String> {
                     .ok_or("qualification execution lost its artifact")?,
             );
             match replay(&path, index as u64 + 1) {
-                Ok((replay, sample)) => {
+                Ok((replay, measured)) => {
                     execution.replay = Some(replay);
-                    samples.push(sample);
+                    samples.extend(measured);
                 }
                 Err(error) => {
                     execution.replay = Some(Replay {
@@ -549,7 +637,7 @@ pub(crate) fn run(frozen: &Frozen) -> Result<QualificationResult, String> {
     )?;
     let observations = Observations {
         operator_process_id: u64::from(std::process::id()),
-        resident_stores: 1,
+        resident_stores: resident_stores(&samples),
         start: frozen.start,
         prepared: frozen.prepared_usage,
         executed: usage::snapshot(),
@@ -586,7 +674,14 @@ pub(crate) fn publish(frozen: &Frozen, result: QualificationResult) -> Result<Qu
         operator_process_id: u64::from(std::process::id()),
         linked_after: usage::linked(),
     };
-    let observation = result::validate_receipt(&result, &receipt, &digest).err();
+    let observation = match result::validate_receipt(&result, &receipt, &digest) {
+        Ok(terminal) if terminal.status != "within" => Some(
+            "terminal linked-process peak exceeds the operator-only 2GiB ceiling and cannot be attributed"
+                .to_owned(),
+        ),
+        Ok(_) => None,
+        Err(error) => Some(error),
+    };
     let publication = result::publish_receipt(&path, &receipt).err();
     let publication_error = match (publication, observation) {
         (None, None) => None,

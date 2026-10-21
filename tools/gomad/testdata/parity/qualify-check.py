@@ -32,6 +32,24 @@ def equal(actual, expected, path):
         raise ValueError(f'{path}: got {actual!r}, expected {expected!r}')
 
 
+def with_ancestors(image):
+    """Insert the writable ancestor directories the Go host's namespace tree
+    holds implicitly, so nested captured mounts (the one-box schema inputs under
+    /workspace) have parents in the linked helper's ordered image."""
+    present = {bytes(entry['path']) for entry in image['entries']}
+    entries = []
+    for entry in image['entries']:
+        path = bytes(entry['path'])
+        parts = path.split(b'/')[1:-1]
+        for index in range(1, len(parts) + 1):
+            ancestor = b'/' + b'/'.join(parts[:index])
+            if ancestor not in present:
+                present.add(ancestor)
+                entries.append({'path': list(ancestor), 'directory': True, 'readonly': False, 'data': []})
+        entries.append(entry)
+    return dict(image, entries=entries)
+
+
 def prepare(args, run):
     for key in ('input', 'go_compiler', 'go_helper', 'go_source'):
         if getattr(args, key) is None:
@@ -84,7 +102,7 @@ def prepare(args, run):
             profile='gomad.wasi-cooperative/v1', fuel=options['Fuel'], memory_bytes=options['MemoryBytes'],
             helper_sha256=replay['helper_sha256'], host_sha256=replay['host_sha256'],
             runtime_implementation_sha256=replay['runtime_implementation_sha256'], model=model,
-            namespace=namespace_image(config), storage=storage, network=config.get('network_v2'),
+            namespace=with_ancestors(namespace_image(config)), storage=storage, network=config.get('network_v2'),
             build_tags=options.get('BuildTags') or [])
         manifest = args.work / ('rust-' + cell + '-installation.json')
         manifest.write_bytes(encode(installation))

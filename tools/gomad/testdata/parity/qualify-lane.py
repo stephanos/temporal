@@ -12,6 +12,7 @@ as byte-equality targets. Tampered Results and receipts must be refused by
 the installation-free report verb.
 """
 import argparse
+import base64
 from importlib.machinery import SourceFileLoader
 from importlib.util import module_from_spec, spec_from_loader
 import json
@@ -20,6 +21,7 @@ from pathlib import Path
 import shutil
 import subprocess
 import sys
+import time
 
 sys.dont_write_bytecode = True
 CORPUS = Path(__file__).resolve().parent
@@ -38,11 +40,45 @@ parity = check.parity
 equal = check.equal
 
 TARGETS = {
-    'fixture': dict(directory='internal/backends/wasm/qualification/testdata/fixture', kind='go-run', source='.', tags=[]),
+    'fixture': dict(directory='internal/backends/wasm/qualification/testdata/fixture', kind='go-run', source='.', tags=[],
+                    installation='fixture'),
     'sqlite': dict(directory='../..', kind='go-run', source='./tools/gomad/internal/backends/wasm/testdata/storage_sqlite/main.go',
-                   tags=['sqlite3_dotlk']),
-    'onebox': dict(directory='../..', kind='go-test', source='./tests/gomadfunctional', tags=['test_dep']),
+                   tags=['sqlite3_dotlk'], installation='sqlite'),
+    # The one-box family cell of qualify-corpus.json; its installation pins the
+    # Temporal guest configuration and build tags.
+    'onebox': dict(directory='../..', kind='go-test', source='./tests/gomadfunctional', tags=[], installation='onebox'),
+    # The multi-instance cell: two resident nodes, a crash and a durable restart.
+    'cluster': dict(directory='.', kind='go-run', source='./internal/backends/wasm/command/testdata/scenario', tags=[],
+                    installation='fixture', scenario='internal/backends/wasm/command/testdata/scenario/durable.json'),
 }
+
+# Canonical cell budgets are the qualification owner's declared values in
+# internal/backends/wasm/qualification/{integration,sqlite,onebox}_test.go,
+# used unchanged. The installation owns fuel and memory, so canonical runs use
+# an installation copy pinned to the owner's values. The cluster row reuses the
+# owner fixture/cluster bounds (cluster_test.go): the Go cluster cell is a test
+# API cell, not a public `qualify --spec`.
+CANONICAL = {
+    'fixture': dict(campaign=dict(ExecutionTimeout=60_000_000_000, OverallTimeout=180_000_000_000, TerminateGrace=100_000_000,
+                                  OutputLimit=1 << 20, WorldTransitionLimit=1 << 20), fuel=4_000_000_000, memory=256 << 20),
+    'sqlite': dict(campaign=dict(ExecutionTimeout=60_000_000_000, OverallTimeout=180_000_000_000, TerminateGrace=100_000_000,
+                                 OutputLimit=1 << 20, WorldTransitionLimit=1 << 20), fuel=4_000_000_000, memory=256 << 20),
+    'cluster': dict(campaign=dict(ExecutionTimeout=60_000_000_000, OverallTimeout=180_000_000_000, TerminateGrace=100_000_000,
+                                  OutputLimit=1 << 20, WorldTransitionLimit=1 << 20), fuel=4_000_000_000, memory=256 << 20),
+    'onebox': dict(campaign=dict(ExecutionTimeout=900_000_000_000, OverallTimeout=1_800_000_000_000, TerminateGrace=1_000_000_000,
+                                 OutputLimit=256 << 20, WorldTransitionLimit=32 << 20, ChoiceTraceLimit=64 << 20,
+                                 SuccessBytesLimit=2 << 30,
+                                 Environment=['TEMPORAL_ROOT=/workspace', 'TMPDIR=/tmp', 'TEMPORAL_TEST_LOG_LEVEL=warn']),
+                   fuel=1 << 50, memory=4 << 30),
+}
+
+# Lane-local parity budgets. They are not qualification budgets: parity runs
+# compare Go/Rust verdicts under shared host load, so the execution and overall
+# deadlines are widened for the lane only. Canonical runs below use CANONICAL.
+LANE_EXECUTION_TIMEOUT = 300_000_000_000
+LANE_OVERALL_TIMEOUT = 1_200_000_000_000
+LANE_CAMPAIGN = dict(ExecutionTimeout=LANE_EXECUTION_TIMEOUT, OverallTimeout=LANE_OVERALL_TIMEOUT, TerminateGrace=100_000_000,
+                     OutputLimit=8 << 20, WorldTransitionLimit=64 << 20)
 
 
 def go_classification(qualification):
@@ -57,21 +93,37 @@ def go_classification(qualification):
     return 'qualified'
 
 
-def spec(case, root, provisional, source_manifest=None):
+def spec(case, root, provisional, source_manifest=None, canonical=False):
     target = TARGETS[case['cell']]
-    manifest = dict(Provisional=provisional, ID='rust-qualify-' + case['name'], Workload=case['cell'],
+    manifest = dict(Provisional=provisional, ID='rust-qualify-' + case['name'], Workload=case['workload'],
                     IntegratedSourceSHA256='sha256:' + parity.digest(source_manifest.read_bytes() if source_manifest
                                                                        else (CORPUS / 'qualify-corpus.json').read_bytes()),
                     Seed=7, Repeat=2, Unsupported=['weak-memory and data races', 'cross-host exact portability'])
     if not provisional:
         manifest.update(Cell='success' if case['qualified'] else 'canary', IntegratedSourceManifestPath=str(source_manifest))
-    return dict(Manifest=manifest, ArtifactRoot=str(root), Campaign=dict(
-        Target=dict(Backend='wasm', Kind=target['kind'], Source=target['source'],
-                    WorkingDir=str((MODULE / target['directory']).resolve()), Args=case['arguments'], BuildTags=target['tags'],
-                    PreparationRoot=str(root / 'preparation')),
-        ExecutionTimeout=300_000_000_000, OverallTimeout=1_200_000_000_000, TerminateGrace=100_000_000,
-        OnFailure='all', FailureBudget=1, OutputLimit=8 << 20, WorldTransitionLimit=64 << 20,
-        Artifacts=str(root / 'artifacts'), RunnerBuild='qualify-parity-lane'))
+    campaign = dict(CANONICAL[case['cell']]['campaign'] if canonical or case['cell'] == 'onebox' else LANE_CAMPAIGN)
+    target_spec = dict(Backend='wasm', Kind=target['kind'], Source=target['source'],
+                       WorkingDir=str((MODULE / target['directory']).resolve()), Args=case['arguments'], BuildTags=target['tags'],
+                       PreparationRoot=str(root / 'preparation'))
+    if 'scenario' in target:
+        target_spec['Scenario'] = base64.b64encode((MODULE / target['scenario']).read_bytes()).decode()
+    campaign.update(Target=target_spec, OnFailure='all', FailureBudget=1, Artifacts=str(root / 'artifacts'),
+                    RunnerBuild='qualify-parity-lane')
+    return dict(Manifest=manifest, ArtifactRoot=str(root), Campaign=campaign)
+
+
+def canonical_installation(prepare, cell, destination):
+    """A copy of the lane's Rust installation pinned to the owner's fuel and memory."""
+    installation = parity.decode((prepare / f'rust-{TARGETS[cell]["installation"]}-installation.json').read_bytes())
+    installation.update(fuel=CANONICAL[cell]['fuel'], memory_bytes=CANONICAL[cell]['memory'])
+    destination.write_bytes(parity.canonical(installation))
+    return destination
+
+
+def wait_for_quiet_host(limit=2.5):
+    """Canonical timing runs need the host to themselves."""
+    while float(Path('/proc/loadavg').read_text().split()[0]) >= limit:
+        time.sleep(15)
 
 
 def authenticate(response, expected_root):
@@ -99,8 +151,11 @@ def authenticate(response, expected_root):
         record = execution['record']
         parity.record_contract(record, 'result.execution')
         equal(parity.digest(parity.canonical(record)), execution['record_sha256'], 'result.record_sha256')
-        equal((record['identity']['target'], record['identity']['toolchain'], record['identity']['configuration']),
-              (manifest['module_sha256'], manifest['toolchain_sha256'], manifest['host_config_sha256']), 'result.record_identity')
+        bound = (record['identity']['target'], record['identity']['toolchain'])
+        if manifest['scenario_sha256'] is None:
+            bound += (record['identity']['configuration'],)
+        equal(bound, (manifest['module_sha256'], manifest['toolchain_sha256'], manifest['host_config_sha256'])[:len(bound)],
+              'result.record_identity')
         artifact = check.authenticate_artifact(Path(execution['artifact_path']))
         equal(artifact, record, 'result.artifact_record')
         equal(Path(execution['artifact_path']).is_relative_to(Path(execution['campaign_path'])), True, 'result.artifact_containment')
@@ -126,9 +181,14 @@ def stable(result, response_status, tokens):
     cost = result['cost'] and {key: result['cost'][key] for key in (
         'executions', 'replays', 'distinct_outcomes', 'replayable_bugs', 'fuel_used', 'trace_bytes',
         'virtual_time_nanos', 'guest_peak_memory_bytes')}
-    budget = result['budget'] and dict(within_budget=result['budget']['within_budget'],
-        violations=result['budget']['violations'], pending=result['budget']['pending'],
-        checks=[{key: check_row[key] for key in ('name', 'quantity', 'limit', 'status')} for check_row in result['budget']['checks']])
+    # Linked-process upper-bound statuses (and so `pending`/`within_budget`)
+    # follow measured RSS; the golden keeps their names and limits, and every
+    # exact check's status. The binary's own recomputation and expected_status
+    # authenticate the measured statuses on each run.
+    budget = result['budget'] and dict(violations=result['budget']['violations'],
+        checks=[{key: check_row[key] for key in {'name', 'quantity', 'limit'}
+                 | ({'status'} if check_row['quantity'] != 'linked process upper bound' else set())}
+                for check_row in result['budget']['checks']])
     return dict(status=response_status, manifest=manifest, report=dict(
         {key: report[key] for key in ('schema', 'qualified', 'deterministic', 'target_success', 'seed', 'repeat',
                                        'record_sha256', 'first_divergence', 'failure')}, command=command, executions=executions),
@@ -136,6 +196,62 @@ def stable(result, response_status, tokens):
         samples=[{key: sample[key] for key in ('phase', 'iteration', 'fuel_used', 'guest_peak_memory_bytes',
                                                 'guest_memory_limit_bytes', 'trace_bytes', 'virtual_time_nanos')}
                  for sample in result['observations']['samples']])
+
+
+def go_scenario_reference(run, args, case, installation, go_spec):
+    """The Go host's public `qualify --spec` refuses typed scenarios (its owner
+    forces cooperative choice coverage); Go qualifies clusters only through its
+    in-package test API. Record that refusal, then derive the reference verdict
+    from the same qualification steps on Go's public verbs: Repeat fresh
+    `explore --scenario` campaigns and a fresh `replay` of every retained artifact."""
+    refused = run('go-qualify-' + case['name'] + '-refused', [args.go_binary, '--installation', installation,
+                  'qualify', '--spec', go_spec], 2)
+    failure = json.loads(Path(json.loads(refused.stdout)['result_path']).read_bytes())['Qualification']['failure']
+    equal((failure['classification'], 'typed scenarios require' in failure['message']), ('invalid_input', True),
+          case['name'] + '.go_public_refusal')
+    target = TARGETS[case['cell']]
+    identities, replays, outcomes = [], [], []
+    for attempt in range(2):
+        root = args.work / f'go-{case["name"]}-explore-{attempt}'
+        events = run(f'go-explore-{case["name"]}-{attempt}', [args.go_binary, '--installation', installation, 'explore', '--json',
+                     '--scenario', MODULE / target['scenario'], '--seeds=7', '--parallel=1', '--on-failure=all',
+                     f'--execution-timeout={LANE_EXECUTION_TIMEOUT}ns', f'--overall-timeout={LANE_OVERALL_TIMEOUT}ns',
+                     '--keep-successes=all', '--success-limit=1', '--success-bytes=256MiB', '--artifacts', root,
+                     '--working-dir', (MODULE / target['directory']).resolve(), target['kind'], target['source']], None)
+        rows = [json.loads(line) for line in events.stdout.splitlines() if line.strip()]
+        artifacts = [row for row in rows if row.get('type') == 'artifact']
+        equal(len(artifacts), 1, case['name'] + '.go_retained_artifact')
+        outcomes.append(artifacts[0]['classification'])
+        identities.append(Path(artifacts[0]['path']).name)
+        replay = run(f'go-replay-{case["name"]}-{attempt}', [args.go_binary, '--installation', installation, 'replay',
+                     artifacts[0]['path']], None)
+        replays.append(replay.returncode == 0 and b'reproduced=true' in replay.stdout + replay.stderr
+                       or replay.returncode == 1 and outcomes[-1] != 'success' and b'reproduced=true' in replay.stdout + replay.stderr)
+    deterministic = identities[0] == identities[1] and outcomes[0] == outcomes[1]
+    target_success = all(outcome == 'success' for outcome in outcomes)
+    qualified = deterministic and target_success and all(replays)
+    classification = ('nondeterministic' if not deterministic else 'replay_divergence' if not all(replays)
+                      else 'target_failure' if not target_success else 'qualified')
+    status = {'qualified': 0, 'nondeterministic': 1, 'replay_divergence': 1, 'target_failure': 1}[classification]
+    return dict(status=status, qualified=qualified, deterministic=deterministic, target_success=target_success,
+                classification=classification)
+
+
+def unattributed(result, response):
+    """Linked-process peaks over a former operator-only or helper-only ceiling
+    stay pending (never passed and never charged to one owner)."""
+    terminal = response['operator_receipt']['linked_after']['peak_rss_bytes'] > 2 << 30
+    return bool(result['budget'] and result['budget']['pending']) or terminal
+
+
+def expected_status(case, result, response, rust):
+    """The declared verdict status, or 3 when only the unattributable linked
+    peak gate is open. That gate must name its reason."""
+    if not unattributed(result, response):
+        return case['status']
+    equal(b'cannot be attributed' in rust.stderr or b'unattributed' in rust.stderr, True, case['name'] + '.attribution_reason')
+    equal((result['cost_failure'], result['budget']['violations']), (None, []), case['name'] + '.only_attribution_pending')
+    return 3
 
 
 def tamper(run, binary, path, work):
@@ -228,7 +344,7 @@ def main():
     parser = argparse.ArgumentParser(description=__doc__)
     for name in ('binary', 'go-binary', 'go-helper', 'go-source', 'go-compiler', 'input', 'work', 'preparation-root'):
         parser.add_argument('--' + name, type=Path, required=True)
-    parser.add_argument('--cells', default='fixture,fixture-canary,sqlite')
+    parser.add_argument('--cells', default='fixture,fixture-canary,sqlite,cluster')
     args = parser.parse_args()
     for key, value in vars(args).items():
         if isinstance(value, Path):
@@ -245,7 +361,8 @@ def main():
         receipts.append(dict(name=name, argv=list(map(str, argv)), status=result.returncode, expected=status,
                              stdout_sha256=parity.digest(result.stdout), stderr_sha256=parity.digest(result.stderr)))
         (args.work / 'commands.json').write_bytes(parity.canonical(receipts) + b'\n')
-        equal(result.returncode, status, f'{name}.status: {result.stderr.decode(errors="replace")[-2000:]}')
+        if status is not None:
+            equal(result.returncode, status, f'{name}.status: {result.stderr.decode(errors="replace")[-2000:]}')
         return result
 
     prepare = args.work / 'prepare'
@@ -295,27 +412,32 @@ def main():
         go_root = args.work / ('go-' + case['name'])
         go_spec = args.work / ('go-' + case['name'] + '.json')
         go_spec.write_bytes(parity.canonical(spec(case, go_root, True)))
-        go = run('go-qualify-' + case['name'], [args.go_binary, '--installation', prepare / f'go-{cell}-installation.json',
-                 'qualify', '--spec', go_spec], case['status'])
-        go_response = json.loads(go.stdout)
-        go_result = json.loads(Path(go_response['result_path']).read_bytes())
-        go_report = run('go-report-' + case['name'], [args.go_binary, '--installation', '/missing/report-installation.json',
-                        'report', '--result', go_response['result_path']], 0)
-        equal(json.loads(go_report.stdout)['Qualification'], go_result['Qualification'], case['name'] + '.go_report')
-        go_verdict = dict(status=go.returncode, qualified=go_result['Qualification']['qualified'],
-                          deterministic=go_result['Qualification']['deterministic'],
-                          target_success=go_result['Qualification']['target_success'],
-                          classification=go_classification(go_result['Qualification']))
+        go_installation = prepare / f'go-{TARGETS[cell]["installation"]}-installation.json'
+        if 'scenario' in TARGETS[cell]:
+            go_verdict = go_scenario_reference(run, args, case, go_installation, go_spec)
+        else:
+            go = run('go-qualify-' + case['name'], [args.go_binary, '--installation', go_installation,
+                     'qualify', '--spec', go_spec], case['status'])
+            go_response = json.loads(go.stdout)
+            go_result = json.loads(Path(go_response['result_path']).read_bytes())
+            go_report = run('go-report-' + case['name'], [args.go_binary, '--installation', '/missing/report-installation.json',
+                            'report', '--result', go_response['result_path']], 0)
+            equal(json.loads(go_report.stdout)['Qualification'], go_result['Qualification'], case['name'] + '.go_report')
+            go_verdict = dict(status=go.returncode, qualified=go_result['Qualification']['qualified'],
+                              deterministic=go_result['Qualification']['deterministic'],
+                              target_success=go_result['Qualification']['target_success'],
+                              classification=go_classification(go_result['Qualification']))
         rust_verdicts = []
         for attempt in range(2):
             root = args.work / f'rust-{case["name"]}-{attempt}'
             rust_spec = args.work / f'rust-{case["name"]}-{attempt}.json'
             rust_spec.write_bytes(parity.canonical(spec(case, root, True)))
             rust = run(f'rust-qualify-{case["name"]}-{attempt}', [args.binary, '--installation',
-                       prepare / f'rust-{cell}-installation.json', 'qualify', '--spec', rust_spec], case['status'])
+                       prepare / f'rust-{TARGETS[cell]["installation"]}-installation.json', 'qualify', '--spec', rust_spec], None)
             response = parity.decode(rust.stdout)
             equal(len(rust.stdout) <= 8 << 10, True, 'response.bound')
             path, result = authenticate(response, root)
+            equal(rust.returncode, expected_status(case, result, response, rust), f'rust-qualify-{case["name"]}-{attempt}.status')
             report = run(f'rust-report-{case["name"]}-{attempt}', [args.binary, '--installation', '/missing/report-installation.json',
                          'report', '--result', path], 0)
             reported = parity.decode(report.stdout)
@@ -328,36 +450,54 @@ def main():
             if attempt == 0 and case['name'] == cases[0]['name']:
                 tampered = tamper(run, args.binary, path, args.work / 'tampered')
         equal(rust_verdicts[1], rust_verdicts[0], case['name'] + '.rust_repeated_verdict')
-        equal(rust_verdicts[0], go_verdict, case['name'] + '.go_rust_verdict')
+        semantic = lambda verdict: {key: value for key, value in verdict.items() if key != 'status'}
+        equal(semantic(rust_verdicts[0]), semantic(go_verdict), case['name'] + '.go_rust_verdict')
+        equal(go_verdict['status'], case['status'], case['name'] + '.go_status')
         equal(go_verdict['qualified'], case['qualified'], case['name'] + '.declared_verdict')
         verdicts[case['name']] = go_verdict
         equal(views[1][case['name']], views[0][case['name']], case['name'] + '.rust_repeated_stable_view')
 
-    # Final (non-provisional) cells enforce the operator baseline, conductor
-    # source manifest and unchanged cost/budget gate on the Rust binary.
+    # Canonical cells: final (non-provisional) Rust runs with the owner's
+    # declared budgets unchanged, on a quiet host. They enforce the operator
+    # baseline, conductor source manifest and unchanged cost/budget gate.
     sources = args.work / 'integrated-source.sha256'
-    files = sorted(path for path in (MODULE / TARGETS['fixture']['directory']).resolve().rglob('*') if path.is_file())
+    files = sorted({path for case in cases for path in (MODULE / TARGETS[case['cell']]['directory']).resolve().glob('*')
+                    if path.is_file()})
     sources.write_bytes(b''.join(f'{parity.digest(path.read_bytes())}  {path}\n'.encode() for path in files))
     finals = {}
     for case in cases:
-        if case['cell'] != 'fixture':
-            continue
-        root = args.work / f'rust-final-{case["name"]}'
-        final_spec = args.work / f'rust-final-{case["name"]}.json'
-        final_spec.write_bytes(parity.canonical(spec(case, root, False, sources)))
-        rust = run(f'rust-final-{case["name"]}', [args.binary, '--installation', prepare / 'rust-fixture-installation.json',
-                   'qualify', '--spec', final_spec], case['status'])
-        path, result = authenticate(parity.decode(rust.stdout), root)
-        equal(result['integrated_source_manifest'], sources.read_text(), 'final.source_manifest')
-        equal((result['cost_failure'], result['budget_failure'], result['budget']['within_budget']), (None, None, True), 'final.budget')
+        root = args.work / f'rust-canonical-{case["name"]}'
+        final_spec = args.work / f'rust-canonical-{case["name"]}.json'
+        final_spec.write_bytes(parity.canonical(spec(case, root, False, sources, canonical=True)))
+        installation = canonical_installation(prepare, case['cell'], args.work / f'rust-canonical-{case["name"]}-installation.json')
+        wait_for_quiet_host()
+        rust = run(f'rust-canonical-{case["name"]}', [args.binary, '--installation', installation,
+                   'qualify', '--spec', final_spec], None)
+        response = parity.decode(rust.stdout)
+        path, result = authenticate(response, root)
+        equal(rust.returncode, expected_status(case, result, response, rust), f'rust-canonical-{case["name"]}.status')
+        equal(result['integrated_source_manifest'], sources.read_text(), 'canonical.source_manifest')
+        equal((result['manifest']['fuel'], result['manifest']['memory_bytes']),
+              (CANONICAL[case['cell']]['fuel'], CANONICAL[case['cell']]['memory']), 'canonical.installation_bounds')
+        for execution in result['report']['executions']:
+            equal(execution['record']['limits']['wall_millis'],
+                  CANONICAL[case['cell']]['campaign']['ExecutionTimeout'] // 1_000_000, 'canonical.execution_wall')
+        equal((result['cost_failure'], result['budget_failure'], result['budget']['violations']), (None, None, []),
+              'canonical.budget')
+        equal(result['budget']['within_budget'], not result['budget']['pending'], 'canonical.budget_within')
         finals[case['name']] = stable(result, rust.returncode, {})
-    view = dict(schema='gomad.rust-qualify-golden/v1', cells=views[0], final=finals, go_verdicts=verdicts, tampered=tampered)
-    golden = CORPUS / 'goldens-qualify' / 'cells.json'
     regenerate = os.environ.get('GOMAD_GOLDEN_REGENERATE') == '1'
-    parity.golden(golden, view, regenerate)
-    first = golden.read_bytes()
-    parity.golden(golden, dict(view, cells=views[1]), regenerate)
-    equal(golden.read_bytes(), first, 'second regeneration bytes')
+    goldens = CORPUS / 'goldens-qualify'
+    targets = [(goldens / 'tamper.json', [dict(schema='gomad.rust-qualify-tamper-golden/v1', refused=tampered)] * 2)]
+    for case in cases:
+        targets.append((goldens / 'cells' / (case['name'] + '.json'),
+                        [dict(schema='gomad.rust-qualify-golden/v1', cell=views[attempt][case['name']],
+                              canonical=finals[case['name']], go_verdict=verdicts[case['name']]) for attempt in range(2)]))
+    for golden, (first_view, second_view) in targets:
+        parity.golden(golden, first_view, regenerate)
+        first = golden.read_bytes()
+        parity.golden(golden, second_view, regenerate)
+        equal(golden.read_bytes(), first, str(golden) + ' second regeneration bytes')
     print(f'qualify: {len(cases)} cells match Go verdicts; Rust results authenticated, repeated, refused when tampered')
 
 

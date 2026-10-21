@@ -19,28 +19,65 @@ pub(crate) struct Result {
     pub metrics: Metrics,
 }
 
-/// In-process store observations of one execution. They never enter records.
-#[derive(Clone, Copy, Debug, Default)]
+/// In-process observations of one execution. They never enter records.
+#[derive(Clone, Debug, Default)]
 pub(crate) struct Metrics {
     pub wall_nanos: u64,
+    /// One entry per fresh guest store; a cluster has one per incarnation.
+    pub stores: Vec<StoreMetrics>,
+}
+
+#[derive(Clone, Debug)]
+pub(crate) struct StoreMetrics {
+    pub incarnation: Option<String>,
     pub fuel_used: u64,
+    pub trace_bytes: u64,
     pub guest_peak_memory_bytes: u64,
     pub guest_memory_limit_bytes: u64,
 }
 
+impl StoreMetrics {
+    pub(crate) fn observed(
+        incarnation: Option<String>,
+        execution: &linked::Execution,
+        fuel: u64,
+        memory_bytes: u64,
+    ) -> Self {
+        let outcome = &execution.outcome;
+        Self {
+            incarnation,
+            fuel_used: fuel.saturating_sub(outcome.fuel_remaining),
+            trace_bytes: execution
+                .evidence
+                .values()
+                .map(|bytes| bytes.len() as u64)
+                .sum(),
+            guest_peak_memory_bytes: outcome.peak_memory_bytes as u64,
+            guest_memory_limit_bytes: memory_bytes,
+        }
+    }
+}
+
 impl Metrics {
     pub(crate) fn observed(
-        outcome: &linked::Outcome,
+        execution: &linked::Execution,
         limits: &crate::evidence::record::Limits,
         wall: Duration,
     ) -> Self {
         Self {
-            wall_nanos: u64::try_from(wall.as_nanos()).unwrap_or(u64::MAX),
-            fuel_used: limits.fuel.saturating_sub(outcome.fuel_remaining),
-            guest_peak_memory_bytes: outcome.peak_memory_bytes as u64,
-            guest_memory_limit_bytes: limits.memory_bytes,
+            wall_nanos: nanos(wall),
+            stores: vec![StoreMetrics::observed(
+                None,
+                execution,
+                limits.fuel,
+                limits.memory_bytes,
+            )],
         }
     }
+}
+
+pub(crate) fn nanos(wall: Duration) -> u64 {
+    u64::try_from(wall.as_nanos()).unwrap_or(u64::MAX)
 }
 
 pub(super) fn run(
@@ -150,7 +187,7 @@ pub(crate) fn run_with_replay(
     let started = std::time::Instant::now();
     let observed = linked::execute_prepared(admitted)
         .map_err(|error| format!("runner_failure: execute campaign target: {error}"))?;
-    let metrics = Metrics::observed(&observed.outcome, &configuration.limits, started.elapsed());
+    let metrics = Metrics::observed(&observed, &configuration.limits, started.elapsed());
     let mut result = publication(prepared, job, observed)?;
     result.metrics = metrics;
     Ok(result)

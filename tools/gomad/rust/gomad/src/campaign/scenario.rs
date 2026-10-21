@@ -1275,15 +1275,53 @@ pub(super) fn execute(
         return Err("capacity: scenario soft assertion policy results".into());
     }
     bound.request.wall_timeout = bound.request.wall_timeout.min(timeout);
+    let limits = store_limits(&bound.request.incarnations);
     let mut execution =
         helper::prepare(bound.request).map_err(|error| format!("runner_failure: {error}"))?;
     execution.conditions(linked::Conditions::compiled());
     execution.cancellation(cancellation.clone());
     #[cfg(feature = "determinism-fixture")]
     crate::fixture::execution_started().map_err(|error| error.message)?;
+    let started = std::time::Instant::now();
     let execution =
         helper::execute_prepared(execution).map_err(|error| format!("runner_failure: {error}"))?;
-    publication(prepared, job, bound.configuration, execution, false)
+    let metrics = store_metrics(&execution, &limits, started.elapsed());
+    let mut result = publication(prepared, job, bound.configuration, execution, false)?;
+    result.metrics = metrics;
+    Ok(result)
+}
+
+/// Each incarnation's own fuel and linear-memory bound, keyed by handle.
+pub(crate) fn store_limits(incarnations: &[helper::Incarnation]) -> BTreeMap<String, (u64, u64)> {
+    incarnations
+        .iter()
+        .map(|item| {
+            (
+                format!("{}/{}", item.handle.node, item.handle.incarnation),
+                (item.request.limits.fuel, item.request.limits.memory_bytes),
+            )
+        })
+        .collect()
+}
+
+/// Per-store observations of one shared cluster execution; the wall is shared.
+pub(crate) fn store_metrics(
+    execution: &helper::Execution,
+    limits: &BTreeMap<String, (u64, u64)>,
+    wall: Duration,
+) -> super::execution::Metrics {
+    super::execution::Metrics {
+        wall_nanos: super::execution::nanos(wall),
+        stores: execution
+            .incarnations
+            .iter()
+            .map(|item| {
+                let name = format!("{}/{}", item.handle.node, item.handle.incarnation);
+                let (fuel, memory) = limits.get(&name).copied().unwrap_or((0, 0));
+                super::execution::StoreMetrics::observed(Some(name), &item.execution, fuel, memory)
+            })
+            .collect(),
+    }
 }
 
 #[expect(

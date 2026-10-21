@@ -124,7 +124,7 @@ pub(crate) fn run(path: &Path) -> Result<(), String> {
             "budget": budget,
             "budget_failure": budget_failure,
             "terminal": terminal.map(|result| match result {
-                Ok(cpu) => json!({"cpu_nanos": cpu}),
+                Ok(observed) => json!(observed),
                 Err(error) => json!({"failure": error}),
             }),
         }));

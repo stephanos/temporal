@@ -143,10 +143,11 @@ pub fn report(arguments: &[String], output: &mut dyn Write) -> Result<i32, super
         "report requires --result FILE and no positional arguments",
     )?);
     let opened = result::open(path).map_err(|error| status(3, error))?;
-    let (receipt, tail) = result::open_receipt(path, &opened).map_err(|error| status(3, error))?;
+    let (receipt, terminal) =
+        result::open_receipt(path, &opened).map_err(|error| status(3, error))?;
     let mut encoded = canonical::encode(&serde_json::json!({
         "classification": report::classification(&opened.report),
-        "publication_cpu_nanos": tail,
+        "publication": terminal,
         "receipt": receipt,
         "result": opened,
     }))?;

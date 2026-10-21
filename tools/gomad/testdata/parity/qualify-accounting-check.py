@@ -46,25 +46,45 @@ def interval_failure(observations):
     for later, earlier in ((prepared, start), (executed, prepared)):
         if not monotone(later['linked'], earlier['linked']) or not monotone(later['children'], earlier['children']):
             return 'decreased'
-    if observations['resident_stores'] != 1:
-        return 'concurrent'
     previous = prepared['linked']
     counts = {'execute': 0, 'replay': 0}
-    for sample in observations['samples']:
-        counts[sample['phase']] += 1
-        if sample['iteration'] != counts[sample['phase']]:
+    residents = 0
+    for window in windows(observations['samples']):
+        first = window[0]
+        counts[first['phase']] += 1
+        if first['iteration'] != counts[first['phase']]:
             return 'order'
-        if 0 in (sample['wall_nanos'], sample['guest_peak_memory_bytes'], sample['guest_memory_limit_bytes']):
-            return 'missing'
-        before, after = sample['linked_before'], sample['linked_after']
-        if before is None or after is None:
-            return 'missing'
+        for sample in window:
+            if 0 in (sample['wall_nanos'], sample['guest_peak_memory_bytes'], sample['guest_memory_limit_bytes']):
+                return 'missing'
+            if sample['linked_before'] is None or sample['linked_after'] is None:
+                return 'missing'
+            if any(sample[key] != first[key] for key in ('wall_nanos', 'virtual_time_nanos', 'linked_before', 'linked_after')):
+                return 'window'
+        handles = [sample.get('incarnation') for sample in window]
+        if len(window) > 1 and (None in handles or len(set(handles)) != len(handles)):
+            return 'handles'
+        residents = max(residents, len({handle.split('/')[0] for handle in handles if handle}) or 1)
+        before, after = first['linked_before'], first['linked_after']
         if not monotone(before, previous) or not monotone(after, before):
             return 'overlap'
         previous = after
     if not monotone(executed['linked'], previous):
         return 'overlap'
+    if residents != observations['resident_stores']:
+        return 'residents'
     return None
+
+
+def windows(samples):
+    """Consecutive samples of one logical execution: its concurrent stores."""
+    groups = []
+    for sample in samples:
+        if groups and (groups[-1][0]['phase'], groups[-1][0]['iteration']) == (sample['phase'], sample['iteration']):
+            groups[-1].append(sample)
+        else:
+            groups.append([sample])
+    return groups
 
 
 def oracle(case):
@@ -86,6 +106,7 @@ def oracle(case):
             'preparation wall': 'within' if observations['preparation_wall_nanos'] <= 10 * MINUTE else 'exceeded',
             'execution/replay store wall': 'within' if max(s['wall_nanos'] for s in samples) <= 15 * MINUTE else 'exceeded',
             'individual compiler peak RSS': 'within' if executed['children']['peak_rss_bytes'] <= 6 * GIB else 'exceeded',
+            'resident guests': 'within' if observations['resident_stores'] <= 2 else 'exceeded',
         }
         peak = executed['linked']['peak_rss_bytes']
         for name, limit in (('operator lifetime peak RSS', 2 * GIB), ('individual warm helper peak RSS', 4 * GIB),
@@ -94,7 +115,8 @@ def oracle(case):
             statuses[name] = 'within' if peak <= limit else 'unattributed'
         for sample in samples:
             if sample['guest_peak_memory_bytes'] > sample['guest_memory_limit_bytes']:
-                statuses[f"guest linear memory {sample['phase']}:{sample['iteration']}"] = 'exceeded'
+                store = ' ' + sample['incarnation'] if sample.get('incarnation') else ''
+                statuses[f"guest linear memory {sample['phase']}:{sample['iteration']}{store}"] = 'exceeded'
         expected['statuses'] = statuses
     return expected
 
@@ -111,14 +133,21 @@ def check(case, row):
     equal({check['name']: check['status'] for check in budget['checks']}, expected['statuses'], name + '.statuses')
     equal(budget['within_budget'], all(status == 'within' for status in expected['statuses'].values()), name + '.within')
     equal(budget['pending'], [n for n, s in expected['statuses'].items() if s == 'unattributed'], name + '.pending')
-    executes = sum(sample['phase'] == 'execute' for sample in case['observations']['samples'])
-    records_agree = all(sample['virtual_time_nanos'] == run['virtual_time_nanos'] for sample, run in
-                        zip([s for s in case['observations']['samples'] if s['phase'] == 'execute'], case['runs']))
-    if observations_cost_valid(case, executes) and records_agree:
+    groups = windows(case['observations']['samples'])
+    executed_windows = [window for window in groups if window[0]['phase'] == 'execute']
+    executes = len(executed_windows)
+    records_agree = all(window[0]['virtual_time_nanos'] == run['virtual_time_nanos'] for window, run in
+                        zip(executed_windows, case['runs']))
+    if observations_cost_valid(case, executes, len(groups) - executes) and records_agree:
         cost = row['cost']
+        equal((cost['execution_wall_nanos'], cost['fuel_used'], cost['guest_peak_memory_bytes']),
+              (sum(window[0]['wall_nanos'] for window in executed_windows),
+               sum(sample['fuel_used'] for window in executed_windows for sample in window),
+               max(sample['guest_peak_memory_bytes'] for sample in case['observations']['samples'])),
+              name + '.per_store_attribution')
         compiler, linked, total = expected['cpu']
         equal((cost['compiler_cpu_nanos'], cost['linked_cpu_nanos'], cost['cpu_nanos']), (compiler, linked, total), name + '.cpu_once')
-        sample_cpu = sum(cpu(s['linked_after'], s['linked_before']) for s in case['observations']['samples'])
+        sample_cpu = sum(cpu(window[0]['linked_after'], window[0]['linked_before']) for window in groups)
         if name == 'cpu-counted-once':
             equal(sample_cpu > 0, True, name + '.store_cpu_observed_but_not_added')
         bugs = len({run['class'] for run in case['runs'] if run['class'] != 'success' and run['replayed']})
@@ -129,15 +158,16 @@ def check(case, row):
     if 'terminal' in case:
         terminal = case['terminal']
         executed = case['observations']['executed']['linked']
-        if terminal['peak_rss_bytes'] > 2 * GIB or not monotone(terminal, executed):
+        if not monotone(terminal, executed):
             equal('failure' in row['terminal'], True, name + '.terminal_refused')
         else:
-            equal(row['terminal'], {'cpu_nanos': cpu(terminal, executed)}, name + '.terminal_tail')
+            equal(row['terminal'], {'cpu_nanos': cpu(terminal, executed), 'peak_rss_bytes': terminal['peak_rss_bytes'],
+                                    'status': 'within' if terminal['peak_rss_bytes'] <= 2 * GIB else 'unattributed'},
+                  name + '.terminal_tail')
 
 
-def observations_cost_valid(case, executes):
+def observations_cost_valid(case, executes, replays):
     observations = case['observations']
-    replays = sum(sample['phase'] == 'replay' for sample in observations['samples'])
     compiler = cpu(observations['executed']['children'], observations['start']['children'])
     return (compiler > 0 and observations['executed']['children']['peak_rss_bytes'] > 0 and executes == len(case['runs'])
             and replays == len(case['runs']) and observations['preparation_wall_nanos'] > 0)

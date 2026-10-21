@@ -16,12 +16,17 @@ const GIB: u64 = 1 << 30;
 const MINUTE: u64 = 60_000_000_000;
 const HOUR: u64 = 3_600_000_000_000;
 
-/// One fresh guest store: an execution or a replay of its retained artifact.
+/// One fresh guest store of an execution or replay. A cluster execution has
+/// one sample per incarnation; they share its wall time and boundary counters
+/// because the stores were resident concurrently in one linked process.
 #[derive(Clone, Debug, Deserialize, Eq, PartialEq, Serialize)]
 #[serde(deny_unknown_fields)]
 pub(crate) struct Sample {
     pub phase: String,
     pub iteration: u64,
+    /// `node/incarnation` for cluster stores; absent for a standalone store.
+    #[serde(default)]
+    pub incarnation: Option<String>,
     pub wall_nanos: u64,
     pub fuel_used: u64,
     pub guest_peak_memory_bytes: u64,
@@ -39,6 +44,7 @@ pub(crate) struct Sample {
 #[serde(deny_unknown_fields)]
 pub(crate) struct Observations {
     pub operator_process_id: u64,
+    /// The largest number of concurrently resident guests (cluster nodes).
     pub resident_stores: u64,
     pub start: Option<Snapshot>,
     pub prepared: Option<Snapshot>,
@@ -141,49 +147,114 @@ fn interval(observations: &Observations) -> Result<(Snapshot, Snapshot, Snapshot
     Ok((start, prepared, executed))
 }
 
-/// Validates per-store observations: phase, required values, guest bound, and
-/// that stores ran one at a time inside the measured execution interval.
-fn validate_samples(
+/// One logical execution or replay: its concurrently resident stores.
+struct Group<'a> {
+    phase: &'a str,
+    wall_nanos: u64,
+    virtual_time_nanos: u64,
+    residents: u64,
+    stores: Vec<&'a Sample>,
+}
+
+const MAXIMUM_RESIDENT_GUESTS: u64 = 2;
+
+/// Groups store samples by logical execution and validates them: phase,
+/// required per-store values, one shared window per execution, and windows
+/// that run one after another inside the measured execution interval.
+fn groups(
     observations: &Observations,
     prepared: Snapshot,
     executed: Snapshot,
-) -> Result<(), String> {
-    if observations.resident_stores != 1 {
-        return Err(
-            "concurrent guest stores need per-store attribution; only one resident store is measured"
-                .into(),
-        );
+) -> Result<Vec<Group<'_>>, String> {
+    if observations.samples.is_empty() {
+        return Err("actual guest store samples are required".into());
     }
+    let mut groups: Vec<Group<'_>> = Vec::new();
     let mut previous = prepared.linked;
     let mut iterations = [0_u64; 2];
-    for sample in &observations.samples {
-        let phase = match sample.phase.as_str() {
+    let mut index = 0;
+    let samples = &observations.samples;
+    while index < samples.len() {
+        let first = &samples[index];
+        let end = index
+            + samples[index..]
+                .iter()
+                .take_while(|sample| {
+                    sample.phase == first.phase && sample.iteration == first.iteration
+                })
+                .count();
+        let stores = samples[index..end].iter().collect::<Vec<_>>();
+        index = end;
+        let phase = match first.phase.as_str() {
             "execute" => 0,
             "replay" => 1,
             _ => return Err("actual WASM execution or replay phase is required".into()),
         };
         iterations[phase] += 1;
-        if sample.iteration != iterations[phase] {
+        if first.iteration != iterations[phase] {
             return Err("qualification sample order differs from its iterations".into());
         }
-        if sample.wall_nanos == 0
-            || sample.guest_peak_memory_bytes == 0
-            || sample.guest_memory_limit_bytes == 0
-        {
-            return Err("actual store wall and guest peak memory measurements are required".into());
-        }
-        let (Some(before), Some(after)) = (sample.linked_before, sample.linked_after) else {
+        let (Some(before), Some(after)) = (first.linked_before, first.linked_after) else {
             return Err("actual store boundary resource observations are required".into());
         };
+        let mut names = BTreeSet::new();
+        let mut nodes = BTreeSet::new();
+        for store in &stores {
+            if store.wall_nanos == 0
+                || store.guest_peak_memory_bytes == 0
+                || store.guest_memory_limit_bytes == 0
+            {
+                return Err(
+                    "actual store wall and guest peak memory measurements are required".into(),
+                );
+            }
+            if store.wall_nanos != first.wall_nanos
+                || store.virtual_time_nanos != first.virtual_time_nanos
+                || store.linked_before != first.linked_before
+                || store.linked_after != first.linked_after
+            {
+                return Err("concurrent stores must share their execution window".into());
+            }
+            match (&store.incarnation, stores.len()) {
+                (None, 1) => {}
+                (Some(name), _) => {
+                    let (node, incarnation) = name
+                        .split_once('/')
+                        .filter(|(node, incarnation)| !node.is_empty() && !incarnation.is_empty())
+                        .ok_or("store measurement requires a node/incarnation handle")?;
+                    if !incarnation.bytes().all(|byte| byte.is_ascii_digit()) || !names.insert(name)
+                    {
+                        return Err("cluster store handles must be unique node/incarnation".into());
+                    }
+                    nodes.insert(node);
+                }
+                (None, _) => return Err("concurrent stores require incarnation handles".into()),
+            }
+        }
         if !before.not_before(previous) || !after.not_before(before) {
             return Err("guest store observations overlap or are out of order".into());
         }
         previous = after;
+        groups.push(Group {
+            phase: &first.phase,
+            wall_nanos: first.wall_nanos,
+            virtual_time_nanos: first.virtual_time_nanos,
+            residents: (nodes.len() as u64).max(1),
+            stores,
+        });
     }
     if !executed.linked.not_before(previous) {
         return Err("guest store observations exceed the measured execution interval".into());
     }
-    Ok(())
+    let residents = groups
+        .iter()
+        .map(|group| group.residents)
+        .max()
+        .unwrap_or(0);
+    if residents == 0 || residents != observations.resident_stores {
+        return Err("retained resident guest count differs from its store samples".into());
+    }
+    Ok(groups)
 }
 
 /// Distinct canonical outcomes and distinct replayed failure signatures.
@@ -209,7 +280,6 @@ fn yields(report: &Report) -> Result<(u64, u64), String> {
 /// Recomputes costs from raw observations and the canonical report.
 pub(crate) fn cost(observations: &Observations, report: &Report) -> Result<Cost, String> {
     let (start, prepared, executed) = interval(observations)?;
-    validate_samples(observations, prepared, executed)?;
     if observations.preparation_wall_nanos == 0 {
         return Err("actual preparation wall measurement is required".into());
     }
@@ -247,20 +317,25 @@ pub(crate) fn cost(observations: &Observations, report: &Report) -> Result<Cost,
             denominator: cpu_nanos,
         },
     };
-    for sample in &observations.samples {
-        cost.guest_peak_memory_bytes = cost
-            .guest_peak_memory_bytes
-            .max(sample.guest_peak_memory_bytes);
-        if sample.phase == "replay" {
+    let groups = groups(observations, prepared, executed)?;
+    for group in &groups {
+        for store in &group.stores {
+            cost.guest_peak_memory_bytes = cost
+                .guest_peak_memory_bytes
+                .max(store.guest_peak_memory_bytes);
+        }
+        if group.phase == "replay" {
             cost.replays += 1;
-            add(&mut cost.replay_wall_nanos, sample.wall_nanos)?;
+            add(&mut cost.replay_wall_nanos, group.wall_nanos)?;
             continue;
         }
         cost.executions += 1;
-        add(&mut cost.execution_wall_nanos, sample.wall_nanos)?;
-        add(&mut cost.fuel_used, sample.fuel_used)?;
-        add(&mut cost.trace_bytes, sample.trace_bytes)?;
-        add(&mut cost.virtual_time_nanos, sample.virtual_time_nanos)?;
+        add(&mut cost.execution_wall_nanos, group.wall_nanos)?;
+        add(&mut cost.virtual_time_nanos, group.virtual_time_nanos)?;
+        for store in &group.stores {
+            add(&mut cost.fuel_used, store.fuel_used)?;
+            add(&mut cost.trace_bytes, store.trace_bytes)?;
+        }
     }
     let replays = report
         .executions
@@ -273,14 +348,15 @@ pub(crate) fn cost(observations: &Observations, report: &Report) -> Result<Cost,
     {
         return Err("store samples differ from the qualification report executions".into());
     }
-    for (sample, execution) in observations
-        .samples
+    for (group, execution) in groups
         .iter()
-        .filter(|sample| sample.phase == "execute")
+        .filter(|group| group.phase == "execute")
         .zip(&report.executions)
     {
-        if sample.virtual_time_nanos != execution.record.virtual_time_nanos
-            || sample.guest_memory_limit_bytes != execution.record.limits.memory_bytes
+        if group.virtual_time_nanos != execution.record.virtual_time_nanos
+            || group.stores.len() == 1
+                && group.stores[0].incarnation.is_none()
+                && group.stores[0].guest_memory_limit_bytes != execution.record.limits.memory_bytes
         {
             return Err("store sample differs from its canonical execution record".into());
         }
@@ -320,14 +396,13 @@ fn check(name: &str, quantity: &str, observed: u64, limit: u64, exact: bool) -> 
 /// and otherwise leaves them pending rather than being charged to one owner.
 pub(crate) fn budget(observations: &Observations) -> Result<Budget, String> {
     let (_, prepared, executed) = interval(observations)?;
-    validate_samples(observations, prepared, executed)?;
+    let groups = groups(observations, prepared, executed)?;
     if observations.preparation_wall_nanos == 0 || executed.children.peak_rss_bytes == 0 {
         return Err("measured budget requires preparation wall and compiler peak RSS".into());
     }
-    let largest_wall = observations
-        .samples
+    let largest_wall = groups
         .iter()
-        .map(|sample| sample.wall_nanos)
+        .map(|group| group.wall_nanos)
         .max()
         .ok_or("measured budget requires guest store samples")?;
     let linked = executed.linked.peak_rss_bytes;
@@ -353,11 +428,25 @@ pub(crate) fn budget(observations: &Observations) -> Result<Budget, String> {
             6 * GIB,
             true,
         ),
+        check(
+            "resident guests",
+            "exact",
+            observations.resident_stores,
+            MAXIMUM_RESIDENT_GUESTS,
+            true,
+        ),
     ];
     for sample in &observations.samples {
         if sample.guest_peak_memory_bytes > sample.guest_memory_limit_bytes {
+            let store = sample
+                .incarnation
+                .as_deref()
+                .map_or_else(String::new, |name| format!(" {name}"));
             checks.push(check(
-                &format!("guest linear memory {}:{}", sample.phase, sample.iteration),
+                &format!(
+                    "guest linear memory {}:{}{store}",
+                    sample.phase, sample.iteration
+                ),
                 "exact",
                 sample.guest_peak_memory_bytes,
                 sample.guest_memory_limit_bytes,
@@ -415,18 +504,31 @@ pub(crate) fn evaluate(
     (cost, cost_failure, budget, budget_failure)
 }
 
-/// The publication receipt's terminal self observation follows the sealed
-/// Result; it applies the same attribution rule to the terminal linked peak.
-pub(crate) fn terminal(observations: &Observations, after: Usage) -> Result<u64, String> {
+/// The publication receipt's terminal self observation, measured after the
+/// sealed Result. Missing or backward counters are integrity failures; a
+/// terminal linked peak over the operator-only ceiling is not attributable and
+/// is reported as such rather than passed.
+#[derive(Clone, Debug, Deserialize, Eq, PartialEq, Serialize)]
+#[serde(deny_unknown_fields)]
+pub(crate) struct Terminal {
+    pub cpu_nanos: u64,
+    pub peak_rss_bytes: u64,
+    pub status: String,
+}
+
+pub(crate) fn terminal(observations: &Observations, after: Usage) -> Result<Terminal, String> {
     let (_, _, executed) = interval(observations)?;
     if after.peak_rss_bytes == 0 {
         return Err("terminal linked-process peak RSS is unavailable".into());
     }
-    if after.peak_rss_bytes > 2 * GIB {
-        return Err(
-            "terminal linked-process peak exceeds the operator-only 2GiB ceiling and cannot be attributed"
-                .into(),
-        );
-    }
-    cpu(after, executed.linked)
+    Ok(Terminal {
+        cpu_nanos: cpu(after, executed.linked)?,
+        peak_rss_bytes: after.peak_rss_bytes,
+        status: if after.peak_rss_bytes > 2 * GIB {
+            "unattributed"
+        } else {
+            "within"
+        }
+        .into(),
+    })
 }

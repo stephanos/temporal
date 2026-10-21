@@ -440,7 +440,7 @@ def main():
         parser.add_argument("--minimize-" + name, type=Path)
     for name in ("binary", "go-binary", "go-helper", "go-source", "go-compiler", "input", "preparation-root"):
         parser.add_argument("--qualify-" + name, type=Path)
-    parser.add_argument("--qualify-cells", default="fixture,fixture-canary,sqlite")
+    parser.add_argument("--qualify-cells", default="fixture,fixture-canary,sqlite,cluster")
     for name in ("binary", "baseline", "source", "go-compiler", "input", "preparation-root",
                  "divergence-binary", "conformance-helper", "go-base"):
         parser.add_argument("--exploration-" + name, type=Path)
