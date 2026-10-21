@@ -881,3 +881,30 @@ remains there. Its last shared-target binary is discarded intermediate code,
 never acceptance evidence; current builds must use frozen source and copied
 identities. Other open-owner worktrees remain retained as above. No push, PR
 or CI execution occurred.
+
+### Closure receipts, 2026-10-21 15:47 UTC
+
+fn230.2 and .3 are verified done after independent scope review, root Go checks,
+and actual integrated734 helper tests/Clippy plus62 host feature tests/Clippy,
+all status0. Source-freeze receipt confirms helper tree
+ed1d0bd63c775ec8df611dfda7034221f57e8128 and Rust tree
+707910cf00c10876175b4f0a34d65dcb7c573fcb match the integration candidate.
+Closure commits a6040693a9 and88d4819dc6 retain their evidence mappings.
+fn230.1 remains open for the public plan receiving requirement; fn230 is not
+closed. Historical raw-v3 exact replay and fresh v4-reader/v3-artifact inspection
+are distinguished in .3's summary. Global qualification remains fn232.13.
+
+fn235.1 is verified done after fresh failfast_reopened_acceptance SHIP R1-R4.
+Exact final helper71f7 original Go API, linked-prefix control/negative and Rust
+alternate import-v2 all exit0. Strict installedCLI61.654s gate and full helper
+tests/Clippy pass as above. The import's first missing metadata-receipt setup
+failure is retained; its successful continuation authenticates actual executed
+wrapper/module/raw payload hashes without rewriting execution evidence.
+No new production defect was found. No commands or Cargo/quiet lease remain
+with replay owner. fn235.2 remains open; no whole-spec closure is claimed.
+
+Next closure is fn232.9: immutable V6 first lane has94 main+9 nested cluster
+commands passing,53 tests and both Clippy lanes pass. Source checkpoint7a9bee29a2
+depends on initial minimizer checkpoint8fd564996a; both must be integrated.
+Second exact regeneration is running in private session11778. Independent
+review and combined-source checks remain required before .9 completion.
