@@ -45,7 +45,7 @@ for name, driver in [('storage', 'replay-storage-check.py'), ('storage-prefix', 
     run(name, [sys.executable, corpus / driver, '--binary', args.binary, '--reference', storage,
         '--work', args.work / name])
 registered = json.loads(run('registered-fixture', [sys.executable, corpus / 'replay-inspection-fixture.py',
-    '--binary', args.binary, '--baseline', args.baseline, '--source', args.source,
+    '--binary', args.binary, '--baseline', args.cluster_baseline, '--source', args.cluster_source,
     '--compiler', args.go_compiler, '--work', args.work / 'registered']))
 for name, binary, role in [('ordinary', args.binary, None), ('stress', args.stress_binary, 'stress-jitter'),
                            ('determinism', args.determinism_binary, 'determinism-fixture')]:
