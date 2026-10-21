@@ -93,9 +93,9 @@ were removed by fn-223.
 
 Qualified Temporal guests build with the guest-only `gomad_wasm_slim` tag
 (`backend.SlimGuestBuildTag`). It uses the `gomad` provider seams to
-leave out the cloud archivers, ringpop membership and MySQL/PostgreSQL test
-drivers, while ordinary production builds keep them. Selecting an excluded
-provider fails explicitly. The [fn-182 specification](../../../../../.flow/specs/fn-182-gomad-smaller-wasm-guests.md)
+leave out the cloud archivers and MySQL/PostgreSQL test drivers, while
+ordinary production builds keep them. Selecting an excluded provider fails
+explicitly; ringpop membership stays linked (fn-224). The [fn-182 specification](../../../../../.flow/specs/fn-182-gomad-smaller-wasm-guests.md)
 records the dependency contract; [CLI.md](CLI.md) lists the refusals. Matched
 timing and memory measurements belong to fn-185. Smaller linked modules alone
 establish no startup or memory improvement.

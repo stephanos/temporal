@@ -234,7 +234,7 @@ var sourceExclusions = []string{
 
 var expectedModules = map[string]bool{
 	"internal/evidence/qualification/corpus/go.mod": true, "internal/backends/wasm/qualification/testdata/fixture/go.mod": true,
-	"internal/backends/wasm/testdata/io_failure_module/go.mod": true,
+	"internal/backends/wasm/testdata/io_failure_module/go.mod": true, "internal/backends/wasm/testdata/ringpop/go.mod": true,
 }
 
 func SelectionTags() string {

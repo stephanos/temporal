@@ -422,16 +422,21 @@ func TestWASMLintAdmitsOnlyDeclaredQualificationFixtureModule(t *testing.T) {
 	}
 }
 
-func TestWASMLintAdmitsDeclaredFailureFixtureModule(t *testing.T) {
+func TestWASMLintAdmitsDeclaredFixtureModules(t *testing.T) {
 	t.Parallel()
-	for _, extra := range []string{"", "nested/go.mod"} {
-		t.Run(extra, func(t *testing.T) {
+	for _, test := range []struct{ fixture, source, extra string }{
+		{"io_failure_module/", "io_failure/io_failure_test.go", ""},
+		{"io_failure_module/", "io_failure/io_failure_test.go", "nested/go.mod"},
+		{"ringpop/", "main.go", ""},
+		{"ringpop/", "main.go", "nested/go.mod"},
+	} {
+		fixture, extra := "tools/gomad/internal/backends/wasm/testdata/"+test.fixture, test.extra
+		t.Run(test.fixture+extra, func(t *testing.T) {
 			t.Parallel()
 			repo := newLintRepo(t)
 			repo.write("tools/gomad/internal/backends/wasm/wasi/source.go", "package wasi\n")
-			fixture := "tools/gomad/internal/backends/wasm/testdata/io_failure_module/"
-			repo.write(fixture+"go.mod", "module example.invalid/failure\n\ngo 1.27.0\n")
-			repo.write(fixture+"io_failure/io_failure_test.go", "package failure\n")
+			repo.write(fixture+"go.mod", "module example.invalid/fixture\n\ngo 1.27.0\n")
+			repo.write(fixture+test.source, "package fixture\n")
 			if extra != "" {
 				repo.write(fixture+extra, "module example.invalid/unowned\n\ngo 1.27.0\n")
 			}
@@ -454,7 +459,7 @@ func TestWASMLintAdmitsDeclaredFailureFixtureModule(t *testing.T) {
 			require.Len(t, calls, 4)
 			for _, call := range calls {
 				require.Equal(t, "tools/gomad", call.Dir)
-				require.NotContains(t, strings.Join(call.Args, " "), "io_failure")
+				require.NotContains(t, strings.Join(call.Args, " "), "testdata/"+test.fixture)
 			}
 			require.Equal(t, []lintCall{{"golangci", "tools/gomad", repo.lintArgs("tools/gomad", packages...)}, {"vet", "tools/gomad", repo.vetArgs(packages...)}}, calls[:2])
 		})

@@ -14,7 +14,7 @@ Write a small guest program under tools/gomad/internal/backends/wasm/testdata/ri
 ## Acceptance
 - [ ] Retained lifecycle/network evidence proves partition then heal executed before each node's fresh post-heal membership observation. Initial convergence cannot trigger final completion; guests remain alive until all required observations are complete. Missing actions/observations fail the convergence claim.
 - [ ] Explicit bounded success retention is enabled; every successful convergence artifact is replayed and the same ordered fault-phase proof reappears. Retained failures replay under the existing contract; overflow/missing evidence never counts as exact replay.
-- [ ] Build the nested-module guest with absolute --working-dir pointing to tools/gomad and module-relative go-run ./internal/backends/wasm/testdata/ringpop; retain the resolved scenario and installation paths.
+- [ ] Build the nested-module guest with an absolute --working-dir naming the guest module (tools/gomad/internal/backends/wasm/testdata/ringpop) and go-run .; retain the resolved scenario and installation paths. (Amended 2026-10-21: the parent-module form --working-dir tools/gomad with go-run ./internal/backends/wasm/testdata/ringpop is refused by the Go toolchain because the guest is its own nested module; evidence in the fn224 scenario artifact.)
 - [ ] Scenario fixture and guest program checked in using existing schema fields only
 - [ ] Every explored seed converges or retains a replayable failure with a first-divergence report
 - [ ] Commands and fixture documented in the WASM operator guide

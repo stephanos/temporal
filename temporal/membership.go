@@ -1,4 +1,4 @@
-//go:build !gomad && !gomad_wasm_slim
+//go:build !gomad
 
 package temporal
 

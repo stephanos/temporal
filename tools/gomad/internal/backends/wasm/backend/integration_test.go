@@ -376,7 +376,6 @@ func TestSlimGuestClosureCutsOnlyOptionalProviderSeams(t *testing.T) {
 	const server = "go.temporal.io/server/"
 	seams := map[string][]string{
 		server + "common/archiver/provider": {server + "common/archiver/gcloud", server + "common/archiver/s3store"},
-		server + "temporal":                 {server + "common/membership/ringpop"},
 		server + "tests/testcore":           {server + "common/persistence/sql/sqlplugin/mysql", server + "common/persistence/sql/sqlplugin/postgresql"},
 	}
 	cut := func(from, to string) bool { return slices.Contains(seams[base(from)], base(to)) }
@@ -423,7 +422,7 @@ func TestSlimGuestClosureCutsOnlyOptionalProviderSeams(t *testing.T) {
 		t.Fatalf("slim guest closure differs from the cut seams: %v", unexpected)
 	}
 	for _, required := range []string{
-		server + "common/archiver/provider", server + "common/archiver/filestore", server + "common/membership/static",
+		server + "common/archiver/provider", server + "common/archiver/filestore", server + "common/membership/static", server + "common/membership/ringpop",
 		server + "common/persistence/sql/sqlplugin/sqlite", server + "common/persistence/visibility/store/elasticsearch",
 		"github.com/olivere/elastic/v7", server + "common/persistence/cassandra", "go.temporal.io/auto-scaled-workers/wci/workercomponent",
 	} {
@@ -444,10 +443,13 @@ func TestSlimGuestClosureCutsOnlyOptionalProviderSeams(t *testing.T) {
 			return strings.Contains(filepath.ToSlash(source.Path), "/cache/download/"+module+"/@v/") && strings.HasSuffix(source.Path, ".mod")
 		})
 	}
-	for _, module := range []string{"cloud.google.com/go/storage", "github.com/temporalio/ringpop-go", "github.com/go-sql-driver/mysql", "github.com/jackc/pgx/v5"} {
+	for _, module := range []string{"cloud.google.com/go/storage", "github.com/go-sql-driver/mysql", "github.com/jackc/pgx/v5"} {
 		if !moduleInput(fullListing, module) || moduleInput(slimListing, module) {
 			t.Fatalf("preparation inputs do not follow the %s exclusion", module)
 		}
+	}
+	if !moduleInput(fullListing, "github.com/temporalio/ringpop-go") || !moduleInput(slimListing, "github.com/temporalio/ringpop-go") {
+		t.Fatal("preparation inputs do not retain github.com/temporalio/ringpop-go")
 	}
 	t.Logf("default ./tests guest closure %d packages; slim %d packages", len(full), len(slim))
 }

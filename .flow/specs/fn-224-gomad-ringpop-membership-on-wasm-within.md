@@ -76,8 +76,8 @@ Gate 2's first run: prepare `common/membership/ringpop` under the cooperative pr
 (cd tools/gomad && GOOS=wasip1 GOARCH=wasm go build ../../common/membership/ringpop/)   # expect exit 0
 gomad --installation /absolute/operator/temporal.json explore --working-dir "$PWD" --build-tag=test_dep --json --choices --choice-bytes=64MiB --keep-successes=all --success-limit=100 --success-bytes=4GiB --seeds=1,2,3 --parallel=1 --on-failure=all --artifacts /absolute/ringpop-artifacts \
   go-test ./common/membership/ringpop -- '-test.run=^(TestRpoSuite|TestRingpopSuite)$'
-gomad --installation /absolute/operator/ringpop.json explore --working-dir "$PWD/tools/gomad" --json --keep-successes=all --success-limit=100 --success-bytes=4GiB --scenario "$PWD/tools/gomad/internal/backends/wasm/command/testdata/scenario/ringpop.json" --seeds=7,19 \
-  --artifacts /absolute/ringpop-scenario go-run ./internal/backends/wasm/testdata/ringpop
+gomad --installation /absolute/operator/ringpop.json explore --working-dir "$PWD/tools/gomad/internal/backends/wasm/testdata/ringpop" --json --keep-successes=all --success-limit=100 --success-bytes=4GiB --scenario "$PWD/tools/gomad/internal/backends/wasm/command/testdata/scenario/ringpop.json" --seeds=7,19 \
+  --artifacts /absolute/ringpop-scenario go-run .   # the guest is a nested module; run it from its own directory
 ```
 
 ## Requirement coverage

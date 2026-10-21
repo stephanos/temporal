@@ -1,0 +1,204 @@
+{
+  "schema": "gomad-wasm.scenario/v1",
+  "spec": {
+    "schema": "gomad.simulation-spec/v8",
+    "backend": "wasm",
+    "fidelity": "simulation_model",
+    "seed": 0,
+    "limits": {
+      "nodes": 3,
+      "directional_links": 6,
+      "volumes": 1,
+      "scenario_actions": 16,
+      "scenario_decisions": 16,
+      "fault_actions": 8,
+      "history_operations": 16,
+      "observations": 16,
+      "oracle_results": 16,
+      "scenario_evidence_bytes": 16777216,
+      "boot_config_bytes": 1048576,
+      "volume_capacity_bytes": 8388608,
+      "observation_bytes": 67108864,
+      "network_listeners": 8,
+      "network_connections": 64,
+      "network_bytes": 67108864,
+      "network_connection_bytes": 16777216,
+      "network_stall_nanos": 10000000000,
+      "network_transitions": 1048576,
+      "volume_operations": 10000,
+      "volume_transitions": 10000,
+      "crash_states": 32,
+      "crash_depth": 32,
+      "crash_bytes": 8388608,
+      "crash_wall_nanos": 1000000000
+    },
+    "nodes": [
+      {
+        "id": "a",
+        "boot": "ring-a",
+        "address": "10.0.0.1"
+      },
+      {
+        "id": "b",
+        "boot": "ring-b",
+        "address": "10.0.0.2"
+      },
+      {
+        "id": "c",
+        "boot": "ring-c",
+        "address": "10.0.0.3"
+      }
+    ],
+    "links": [
+      {
+        "from": "a",
+        "to": "b",
+        "enabled": true,
+        "delay_nanos": 0
+      },
+      {
+        "from": "a",
+        "to": "c",
+        "enabled": true,
+        "delay_nanos": 0
+      },
+      {
+        "from": "b",
+        "to": "a",
+        "enabled": true,
+        "delay_nanos": 0
+      },
+      {
+        "from": "b",
+        "to": "c",
+        "enabled": true,
+        "delay_nanos": 0
+      },
+      {
+        "from": "c",
+        "to": "a",
+        "enabled": true,
+        "delay_nanos": 0
+      },
+      {
+        "from": "c",
+        "to": "b",
+        "enabled": true,
+        "delay_nanos": 0
+      }
+    ]
+  },
+  "boots": [
+    {
+      "id": "ring-a",
+      "args": [
+        "10.0.0.1:7946",
+        "10.0.0.1:7946,10.0.0.2:7946,10.0.0.3:7946",
+        "25",
+        "30",
+        "90",
+        "10.0.0.3:7946"
+      ]
+    },
+    {
+      "id": "ring-b",
+      "args": [
+        "10.0.0.2:7946",
+        "10.0.0.1:7946,10.0.0.2:7946,10.0.0.3:7946",
+        "25",
+        "30",
+        "90",
+        "10.0.0.3:7946"
+      ]
+    },
+    {
+      "id": "ring-c",
+      "args": [
+        "10.0.0.3:7946",
+        "10.0.0.1:7946,10.0.0.2:7946,10.0.0.3:7946",
+        "25",
+        "30",
+        "90",
+        "-"
+      ]
+    }
+  ],
+  "network_faults": [
+    {
+      "Name": "isolate-c-a",
+      "Action": "partition",
+      "From": "c",
+      "To": "a",
+      "AtNanos": 10000000000,
+      "Symmetric": true
+    },
+    {
+      "Name": "isolate-c-b",
+      "Action": "partition",
+      "From": "c",
+      "To": "b",
+      "AtNanos": 10000000000,
+      "Symmetric": true
+    },
+    {
+      "Name": "heal-c-a",
+      "Action": "heal",
+      "From": "c",
+      "To": "a",
+      "AtNanos": 30000000000,
+      "Symmetric": true
+    },
+    {
+      "Name": "heal-c-b",
+      "Action": "heal",
+      "From": "c",
+      "To": "b",
+      "AtNanos": 30000000000,
+      "Symmetric": true
+    }
+  ],
+  "actions": [
+    {
+      "action": "start",
+      "handle": {
+        "node": "a",
+        "incarnation": 1
+      }
+    },
+    {
+      "action": "start",
+      "handle": {
+        "node": "b",
+        "incarnation": 1
+      }
+    },
+    {
+      "action": "start",
+      "handle": {
+        "node": "c",
+        "incarnation": 1
+      }
+    },
+    {
+      "action": "wait",
+      "handle": {
+        "node": "a",
+        "incarnation": 1
+      }
+    },
+    {
+      "action": "wait",
+      "handle": {
+        "node": "b",
+        "incarnation": 1
+      }
+    },
+    {
+      "action": "wait",
+      "handle": {
+        "node": "c",
+        "incarnation": 1
+      }
+    }
+  ]
+}

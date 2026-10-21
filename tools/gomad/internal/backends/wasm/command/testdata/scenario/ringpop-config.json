@@ -1,0 +1,35 @@
+{
+  "Profile": "gomad.wasi-cooperative/v1",
+  "Environment": [
+    "PWD=/workspace"
+  ],
+  "WorkingDirectory": "/workspace",
+  "WritableDirectories": [
+    "/workspace",
+    "/tmp"
+  ],
+  "Clock": {
+    "EpochNanos": 946684800000000000,
+    "ReadStepNanos": 0
+  },
+  "Limits": {
+    "OutputBytes": 8388608,
+    "TranscriptBytes": 268435456,
+    "Calls": 268435456,
+    "Descriptors": 256,
+    "Files": 1000,
+    "FilesystemBytes": 67108864,
+    "PendingEvents": 4096
+  },
+  "network_v2": {
+    "profile": "gomad.simulation-network-stream/v3",
+    "limits": {
+      "listeners": 8,
+      "connections": 64,
+      "bytes": 67108864,
+      "connection_bytes": 16777216,
+      "stall_nanos": 10000000000,
+      "transitions": 1048576
+    }
+  }
+}
