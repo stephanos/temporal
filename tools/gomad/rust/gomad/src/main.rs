@@ -24,11 +24,12 @@ fn main() {
         installation = Some(std::path::PathBuf::from(value));
         arguments.remove(0);
     }
-    if let Some(command) = arguments
-        .first()
-        .map(String::as_str)
-        .filter(|command| matches!(*command, "explore" | "resume" | "execute-shard" | "merge"))
-    {
+    if let Some(command) = arguments.first().map(String::as_str).filter(|command| {
+        matches!(
+            *command,
+            "explore" | "resume" | "execute-shard" | "merge" | "minimize"
+        )
+    }) {
         let mut output = std::io::stdout().lock();
         let result = match command {
             "explore" => gomad::cli::explore::run_with_installation(
@@ -37,6 +38,7 @@ fn main() {
                 installation.as_deref(),
             ),
             "resume" => gomad::cli::resume::run(&arguments[1..], &mut output),
+            "minimize" => gomad::cli::minimize::run(&arguments[1..], &mut output),
             "execute-shard" => gomad::cli::merge::execute_shard(&arguments[1..], &mut output),
             _ => gomad::cli::merge::run(&arguments[1..], &mut output),
         };

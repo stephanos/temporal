@@ -11,7 +11,8 @@ output.mkdir(mode=0o700, parents=True, exist_ok=False)
 commands = ['fixture-record', 'fixture-publish', 'fixture-open', 'fixture-bundle',
             'fixture-execution-bundle', 'fixture-watchdog-cancel', 'fixture-bound',
             'fixture-pinned', 'fixture-root-substitution', 'fixture-payload-substitution',
-            'fixture-payload-mutation', 'fixture-inspect-execution', 'fixture-inspect-details']
+            'fixture-payload-mutation', 'fixture-inspect-execution', 'fixture-inspect-details',
+            'fixture-minimize-controller']
 for command in commands:
     result = subprocess.run([binary, command], capture_output=True, text=True, timeout=5)
     (output / (command + '.json')).write_text(json.dumps({

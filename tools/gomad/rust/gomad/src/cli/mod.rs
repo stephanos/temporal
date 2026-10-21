@@ -2,6 +2,7 @@ pub(crate) mod exploration;
 pub mod explore;
 pub mod inspect;
 pub mod merge;
+pub mod minimize;
 pub mod replay;
 pub mod resume;
 

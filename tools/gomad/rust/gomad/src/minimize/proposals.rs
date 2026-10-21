@@ -76,6 +76,7 @@ impl State {
         Self::initial(None, original, budget, Some(source))
     }
 
+    #[cfg(any(feature = "determinism-fixture", test))]
     pub fn simulation(
         config: SimulationConfig,
         original: SimulationCandidate,
@@ -142,6 +143,15 @@ impl State {
                 b"suffix/ranges/faults;deterministic;bounded/v1",
             )
         }
+    }
+
+    pub fn source_matches(&self, initial: &Self) -> Result<bool, String> {
+        Ok(self.schema == initial.schema
+            && self.original == initial.original
+            && self.config == initial.config
+            && self.attempt_budget == initial.attempt_budget
+            && canonical::encode(&self.choice_source)?
+                == canonical::encode(&initial.choice_source)?)
     }
 
     pub fn next(&self) -> Result<Option<Attempt>, String> {
@@ -436,52 +446,7 @@ mod tests {
         State::simulation(config, original, 100).unwrap()
     }
 
-    #[test]
-    fn simulation_proposal_order_and_rejected_candidate_deduplication() {
-        let mut state = simulation();
-        let mut proposals = Vec::new();
-        while let Some(attempt) = state.next().unwrap() {
-            proposals.push((
-                attempt.reduction.kind.clone(),
-                attempt
-                    .reduction
-                    .removed
-                    .iter()
-                    .map(|decision| decision.ordinal)
-                    .collect::<Vec<_>>(),
-            ));
-            state = state.commit(&attempt, false).unwrap();
-        }
-        assert_eq!(proposals[0], ("schedule_suffix".into(), vec![0, 1]));
-        assert_eq!(proposals[1], ("schedule_suffix".into(), vec![1]));
-        assert_eq!(
-            proposals[2],
-            ("schedule_range".into(), vec![0, 1, 2, 3, 4, 6])
-        );
-        assert_eq!(
-            proposals.last().unwrap(),
-            &("fault_entries".into(), vec![5])
-        );
-        assert_eq!(proposals.len(), 22);
-        assert_eq!(
-            proposals[3..7]
-                .iter()
-                .map(|(_, removed)| removed.clone())
-                .collect::<Vec<_>>(),
-            vec![
-                vec![0, 1, 2, 3, 4],
-                vec![1, 2, 3, 4, 6],
-                vec![0, 1, 2, 3],
-                vec![1, 2, 3, 4]
-            ],
-        );
-        assert_eq!(state.stop_reason, "minimal");
-        assert_eq!(
-            state.evaluated.iter().collect::<BTreeSet<_>>().len(),
-            state.attempts as usize
-        );
-    }
-
+    // Fixture inputs cannot inject private Attempt objects or a resealed State history.
     #[test]
     fn state_replays_reductions_and_rejects_forged_attempts_and_history() {
         let state = simulation();
@@ -498,19 +463,9 @@ mod tests {
         assert!(forged.validate().is_err());
     }
 
-    #[test]
-    fn attempt_budget_wins_over_minimal() {
-        let mut state = simulation();
-        state = State::simulation(state.config.take().unwrap(), state.original, 1).unwrap();
-        let attempt = state.next().unwrap().unwrap();
-        state = state.commit(&attempt, true).unwrap();
-        assert_eq!(state.stop_reason, "attempt_budget");
-        assert!(state.next().unwrap().is_none());
-    }
-
     fn choice(budget: u64) -> State {
         let mut raw = vec![0; 3 * 96];
-        for (ordinal, record) in raw.chunks_exact_mut(96).enumerate() {
+        for (ordinal, record) in raw.as_chunks_mut::<96>().0.iter_mut().enumerate() {
             record[..8].copy_from_slice(&(ordinal as u64).to_be_bytes());
             record[8] = 1;
             record[9] = 1;
@@ -533,12 +488,13 @@ mod tests {
         .unwrap()
     }
 
+    // The public corpus cannot prescribe a rejection then acceptance on this synthetic single-alternative trace.
     #[test]
     fn choice_search_uses_effective_prefixes_and_stops_at_first_accept() {
         let mut state = choice(10);
         assert_eq!(state.original.overrides.len(), 2);
         let zero = state.next().unwrap().unwrap();
-        assert!(zero.candidate.overrides.is_empty());
+        assert_eq!(zero.candidate.overrides, []);
         assert_eq!(
             zero.reduction
                 .removed
@@ -556,6 +512,7 @@ mod tests {
         state.validate().unwrap();
     }
 
+    // Public choice executions determine their own verdicts; they cannot prescribe both budget-boundary verdicts or reject every prefix.
     #[test]
     fn choice_reject_all_and_budget_precedence() {
         for accepted in [false, true] {

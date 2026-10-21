@@ -11,7 +11,7 @@ use crate::{
 use gomad_wasmhost::linked;
 use serde::Deserialize;
 use sha2::Digest as _;
-use std::{collections::BTreeMap, path::Path};
+use std::{collections::BTreeMap, io::Read as _, path::Path};
 
 #[derive(Deserialize)]
 #[serde(deny_unknown_fields)]
@@ -30,6 +30,53 @@ struct Case {
     seed: u64,
     choice_identity: Option<linked::ChoiceIdentity>,
     configuration: Configuration,
+    forced_prefix: Option<ForcedPrefix>,
+}
+
+#[derive(Deserialize)]
+#[serde(deny_unknown_fields)]
+struct ForcedPrefix {
+    trace_path: String,
+    cutoff: u64,
+}
+
+fn force_prefix(
+    model: &mut linked::ModelInput,
+    prefix: &ForcedPrefix,
+    identity: &linked::ChoiceIdentity,
+) -> Result<(), String> {
+    if !Path::new(&prefix.trace_path).is_absolute() {
+        return Err("fixture source trace must be absolute".into());
+    }
+    let mut trace = Vec::new();
+    std::fs::File::open(&prefix.trace_path)
+        .map_err(|error| error.to_string())?
+        .take((64 << 20) + 1)
+        .read_to_end(&mut trace)
+        .map_err(|error| error.to_string())?;
+    if trace.len() > 64 << 20 {
+        return Err("fixture source trace exceeds bound".into());
+    }
+    let plan = linked::project_choices(&trace, identity)?.prefix(&linked::PrefixControl {
+        cutoff: prefix.cutoff,
+        r#override: None,
+    })?;
+    model.configuration.mode = 3;
+    model.configuration.replay = Some(linked::ReplayRequest {
+        schema: "gomad.replay-trace/v1".into(),
+        execution_identity: identity.clone(),
+        trace_sha256: canonical::digest(&trace),
+        tape_sha256: canonical::digest(&plan.bytes),
+        decisions: plan.decisions.len() as u64,
+        trace_bytes: trace.len() as u64,
+        trace_frames: (trace.len() as u64).div_ceil(65536),
+        prefix_control: Some(linked::PrefixControl {
+            cutoff: prefix.cutoff,
+            r#override: None,
+        }),
+    });
+    model.replay_trace = Some(trace);
+    Ok(())
 }
 
 #[expect(
@@ -45,7 +92,7 @@ fn execute(case: Case, conditions: linked::Conditions) -> Result<Publication, St
         return Err("fixture module identity mismatch".into());
     }
     let configuration = case.configuration;
-    let model = configuration
+    let mut model = configuration
         .model
         .as_ref()
         .map(|value| {
@@ -68,6 +115,17 @@ fn execute(case: Case, conditions: linked::Conditions) -> Result<Publication, St
             })
         })
         .transpose()?;
+    if let Some(prefix) = &case.forced_prefix {
+        force_prefix(
+            model
+                .as_mut()
+                .ok_or("forced fixture prefix requires cooperative model")?,
+            prefix,
+            case.choice_identity
+                .as_ref()
+                .ok_or("forced fixture prefix requires choice identity")?,
+        )?;
+    }
     let mut prepared = linked::prepare(linked::Request {
         module: module.clone(),
         module_sha256: case.module_sha256.clone(),

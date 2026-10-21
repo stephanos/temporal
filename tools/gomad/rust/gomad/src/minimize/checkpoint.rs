@@ -84,7 +84,7 @@ impl Workspace {
             return Err("invalid minimizer checkpoint binding".into());
         }
         let output_root = open::pin(output)?;
-        let name = format!("minimize-{}", binding.parent_record_hash);
+        let name = format!(".minimize-{}", binding.parent_record_hash);
         match fs::mkdirat(&output_root, name.as_str(), Mode::from_raw_mode(0o700)) {
             Ok(()) => output_root.sync_all().map_err(|error| error.to_string())?,
             Err(error) if error == rustix::io::Errno::EXIST => {}

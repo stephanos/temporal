@@ -356,6 +356,52 @@ evidence; they do not establish positive combined Go CLI parity. Receipts and th
 final result are written under the fresh output root. The inexpensive routing
 check is `python3 tools/gomad/testdata/parity/exploration-lane.py --selftest`.
 
+## Rust minimization
+
+The public flags are unchanged:
+
+```sh
+gomad minimize [--json] [--resume] [--attempt-budget N] \
+  [--artifacts DIR] [--max-bytes SIZE] ARTIFACT_DIR
+```
+
+The attempt budget defaults to 64. Output lives under `DIR/minimized`, with
+`DIR` defaulting to `.gomad/artifacts`. `--max-bytes` accepts a positive byte
+count or `KiB`, `MiB`, `GiB` suffix; omitting it leaves that optional bound unset.
+`--resume` continues the artifact's authenticated minimization checkpoint.
+Eligibility requires a standalone cooperative target failure with complete exact
+choice evidence. Cluster and simulation-profile minimization retain their public
+refusals; the six-dimensional controller corpus does not add those capabilities.
+
+`--json` returns `artifact_path`, `record_hash`, `changed`, `attempts`,
+`attempt_budget`, `accepted` and `stop_reason`. A changed result refers to the
+published decorated artifact. Adding minimization evidence changes its full
+record and seed-excluded failure signature. The immutable
+`predicate.failure_signature` retains the failure signature used to admit
+candidates; `parent_failure_signature` separately preserves the parent's full
+failure signature. These identities must not be compared as though decoration
+left the complete record unchanged.
+
+The mandatory local lane runs fresh public Go and Rust minimizers against
+retained cooperative failures, using the authenticated frozen Go baseline:
+
+```sh
+python3 tools/gomad/scripts/behavioral-parity \
+  --corpus tools/gomad/testdata/parity --verb minimize \
+  --minimize-binary /absolute/host-fixture-enabled/gomad \
+  --minimize-baseline /absolute/authenticated/go-baseline \
+  --minimize-source /absolute/extracted/baseline/source \
+  --minimize-go-compiler /absolute/pinned/go1.27.1/bin/go \
+  --output-root /absolute/new/minimize-check
+```
+
+These inputs are required. Optional `--minimize-go-cache` and
+`--minimize-preparation-root` select reusable cache roots;
+`--minimize-golden FILE` compares the reviewed semantic projection.
+The lane authenticates each lineage's retained bytes before comparing semantic
+results. Runner provisioning of the frozen baseline, extracted source and Go
+compiler remains necessary before this lane can run in CI.
+
 ## Shared generated contracts
 
 The Go models, cooperative runtime overlay and Rust helper share wire schemas

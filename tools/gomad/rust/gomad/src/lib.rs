@@ -2,7 +2,6 @@ pub mod campaign;
 pub mod cli;
 pub mod evidence;
 pub mod execute;
-pub(crate) mod minimize;
 #[cfg(feature = "determinism-fixture")]
 pub mod fixture;
 #[cfg(feature = "determinism-fixture")]
@@ -15,5 +14,6 @@ mod fixture_replay;
 mod fixture_role;
 #[cfg(feature = "determinism-fixture")]
 mod fixture_storage;
+pub(crate) mod minimize;
 pub mod replay;
 pub mod slots;
