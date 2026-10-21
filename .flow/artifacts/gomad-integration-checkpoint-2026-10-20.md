@@ -908,3 +908,197 @@ commands passing,53 tests and both Clippy lanes pass. Source checkpoint7a9bee29a
 depends on initial minimizer checkpoint8fd564996a; both must be integrated.
 Second exact regeneration is running in private session11778. Independent
 review and combined-source checks remain required before .9 completion.
+
+Root33602b003f/f0c6a66dd5 now integrate both minimizer checkpoints, preserving
+the existing campaign modules and making execution visible to its sibling.
+Integrated host feature65tests, all-target featureClippy, fmt and changed-package
+Go lint over60 host packages all pass. Rootd045958da2 adds only the driver's
+deterministic seed ordering/stable guest-source inputs after a real
+cross-generation input-identity difference was detected. Corrected stable1/2
+generations and minimizer_acceptance_review remain pending; no .9 closure.
+The root shared release Cargo lease was released, then assigned to replay owner
+for the already-active fn232.2/.3/.4 foundation closure batch at d045958da2.
+Those tasks explicitly require no later public verb; only their own foundation
+execution/store/fault/comparator/release gates and two identical regenerations
+are in scope. No new tasks were admitted. Private fn235 target remains minimizer
+owner's lease. Main is frozen for these gates except Flow/docs/Python fixture
+changes. Qualification worker and source worktree remain stopped/retained todo.
+
+Other active closure candidates were checked without changing their scope.
+fn185.1 expressly keeps R4 open until fn232.13; fn227.1 likewise explicitly
+requires frozen-candidate qualification. Neither can close on source checks.
+The unmerged fn221-sweep report at3c79c3f176/fff7a9575e classifies1488 rows,
+including337 helper-link-count infrastructure observations and35 explicit skips
+inside its pass class. Its own host record says the full run was not quiet,
+so it does not yet prove fn221.2's quiet-host acceptance. fn224-ringpop has
+clean staged work at3c50e1945c, including unstub3925d83499 and the measured
+3197185-byte slim module increase; main still retains the stub. Its explicit
+integration order waits for the sweep unless that sweep requests the unstub
+early. No fn221/fn224 worktree or source was mutated, and no premature closure
+or new long-running sweep was started during this closure batch.
+
+### Accepted foundation closures and store durability repair
+
+Root verified fn232.2 done, then committed its receipt and milestone removal at
+7a3bc17ca3. Root verified fn232.4 done, then committed its receipt and milestone
+removal at9fb8c8a7cf. Fresh root foundation-check against the frozen copied
+fixture binary returned0 at `.build-cache/fn232-foundation-closeout/root-closure-strict`.
+This runs both repetitions, authenticates records/payloads/ledgers and matches
+the checked-in goldens. All15 golden manifest hashes verified. Fresh semantic
+subprocess selftests and release fixture exclusion also returned0. The latter
+reports14/14 fixture entry points absent. Flow validation returned valid with
+zero errors/warnings; tracker sync is inactive. These close only the tasks'
+explicit foundation scope, with no public-verb or final qualification claim.
+
+The fresh independent foundation_acceptance_review returned SHIP for .2 R2/R14
+and .4 foundation R13/R14, but NEEDS_WORK for .3 R3. The reviewer authenticated
+all15 goldens, four frozen Go input identities, candidate binaries, retained
+four-lane execution/store receipts and18 release fixture/fault refusals. Its
+concrete finding is direct-final immutable-file creation. An interruption can
+leave partial canonical pool/layout files that poison ordinary retries, or
+complete unsynced files which retries reuse while syncing directories only.
+Directory sync does not establish payload file durability. The existing crash
+matrix does not enter these windows. The fix remains required under .3.
+
+Root created `/home/agent/wt/fn232-store-fix` on branch `fn232-store-fix` from
+0e86de56d4. Replay owner acknowledged and owns its sole mutable source lane and
+the shared RELEASE Cargo target lease, jobs1/offline/incremental0. The task is
+to capture actual CLI RED creation/partial-write/pre-file-sync retry cases,
+then stage and sync immutable bytes before exclusive publication using pinned
+FDs and the existing NOREPLACE primitive. Pool and layout share the repair;
+conflict refusals and existing fault-point semantics remain. Evidence belongs
+to `/home/agent/wt/evidence/fn232-store-fix`. Source integration, final green
+checks, two audited golden regenerations and independent re-review remain
+pending. Root has made only Flow/docs changes since0e86. No new task admitted.
+
+Minimizer goldens integrated at0e86de56d4 match both corrected generations.
+The independent minimizer_acceptance_review accepts R8 and ownedR13/R14 with
+no findings. Each generation has94 main and9 cluster command receipts; six
+Rust raw record/payload pairs, six Go hash/payload pairs and nine checkpoints
+match. Root rechecked golden SHA256
+`d8f7795d5bb4c4d9a54b38e361dc8b5fe4e0b0065336d8d0671127650dbcc070`
+and cross-generation receipt SHA256
+`ba32569cec41f58b852c5801f8f5fc3b770333d774e04c2d85d761f32b4e4315`.
+Receipt path is `.build-cache/fn232-minimize/v6-stable2/cross-generation-raw-comparison.json`
+relative to the workspace parent of temporal. fn232.9 remains in_progress.
+Its original admission expressly retained .8 acceptance before integrated
+completion, and .8 still has mandatory parity gaps. Own-scope acceptance does
+not waive that prerequisite. Private fn235 target lease is released.
+
+Current registered worktrees remain those listed in the prior handover plus
+fn232-store-fix. fn232-minimize is clean/inactive and retained for its open
+dependency-held task evidence. Foundation/replay/campaign/exploration/simulation
+trees retain open fn232 inputs. fn230-sites retains open .1/public-plan work;
+fn185/fn221/fn224/fn235 trees retain their open acceptance inputs. Qualification
+tree remains stopped at280ff70271 for todo .10. Detached fn235 progress and
+qualification-final-frozen trees retain required performance/qualification
+inputs and cannot be deleted on age alone. Store-fix is active and must not be
+removed. Last free space is24GiB overlay/34GiB host; no cache cleanup occurred.
+
+### Durable immutable-file repair integrated
+
+Root integrated the actual RED probes b38a7b4bbe atf103475847, the repair
+4adac5cddb at5a55c9cfc7, and audited goldens e9d5a40ec0 at7d44febf3f.
+Both pool and layout now stage immutable files privately, sync file/stage,
+publish with the existing FD-relative NOREPLACE primitive, then sync the
+destination directory. Existing entries authenticate and sync through the
+same pinned handle. Module multi-link admission remains; layout single-link
+admission remains. Cross-device copies use the shared immutable-file path.
+
+All ten original crash/retry probes failed at their intended assertions on
+the instrumented original implementation. All ten matching repaired probes
+and both pool/layout conflict refusals pass. The original50-case store matrix
+is unchanged and gains12 cases. Root independently ran all62 cases with exit0
+using the immutable GREEN fixture. Production source and fixture scripts match
+the donor4ada exactly. Root formatting and diff checks returned0.
+
+Worker final gates all returned0. Host tests report65 passes; fixture and
+ordinary all-target Clippy, formatting and ordinary build pass. Two complete
+foundation regenerations were byte-identical, followed by strict0. Root then
+ran a fresh full integrated foundation strict check at7d44, exit0, including
+both62-case repetitions and authenticated raw execution records/ledgers.
+The root receipt is `/home/agent/wt/evidence/fn232-store-fix/root-integrated-strict.*`.
+All15 integrated golden hashes match golden-manifest.json. The typed audit
+allows only implementation/execution identity rotations in the12 records,
+their derived hashes/ledger, and the12 new matrix labels. Audit SHA256 is
+`d3843ba06f18f86b3253beb5c8f3fa5e66d1f001388785d733220f6eedc5006e`.
+Canonical golden inventory digest is
+`00e9db8e46015a2de1d8a145949184d6dc77e52d0dad544e1113ca559701f180`.
+
+Frozen fixture binary SHA256 is
+`ca57f0dfd528c2dd678eefaf39e517dfa629f84356d3a355d0221df1a6678376`;
+ordinary binary SHA256 is
+`14990d002c82c7e96d5851e474119da7c646edc2ea31b8a9d10f47b77cd625dc`.
+Both live in workspace `.build-cache/fn232-store-fix/green`. Release exclusion
+passed under `release-exclusion-ready`, with14/14 fixture verbs absent and
+all expanded fault controls refused. The earlier `release-exclusion` receipt
+preserves a FileNotFound setup failure from running before the release binary
+copy existed; no production failure is inferred or hidden.
+
+Fresh independent re-review is running with foundation_acceptance_review on
+integrated7d44. fn232.3 remains in_progress until SHIP. The store-fix donor
+worktree is clean ate9d5, with no live worker commands and its shared RELEASE
+Cargo lease released. Retain that tree until review resolves. Other open
+tasks and acceptance gaps remain unchanged; no new task was admitted.
+
+Independent re-review returned SHIP for .3 R3/R14 with no new findings.
+The retained receipt is `/home/agent/wt/evidence/fn232-store-fix/independent-review.md`,
+SHA256 `1cce228760eeac7e079cb1a4fd7abfebf4c0a41d43d04288af512f1ac076a7f3`.
+Root read the receipt, completed .3 through Flow, verified done and committed
+its task receipt/milestone removal at47d27e1d8f. Flow spec validation remains
+valid with zero errors/warnings; tracker sync remains inactive. fn232.2/.3/.4/.5
+are done. fn232 itself remains open with .1/.6/.7/.8/.9 in_progress and
+.10-.13 todo. Minimizer own-scope ACCEPT still does not waive its expressly
+retained .8 acceptance prerequisite.
+
+Root removed its clean inactive `/home/agent/wt/fn232-store-fix` worktree after
+the worker and reviewer finished, `lsof +D` found no open files, and git cherry
+confirmed all three donor patches equivalent to integrated commits. Git's
+worktree registry was pruned. The branch `fn232-store-fix` remains ate9d5 and
+required raw/binary/review evidence remains under open fn232 ownership. The
+checkout can be recreated from Git; no required evidence was deleted. No Cargo
+lease remains assigned. Registered worktrees are the preceding list minus
+fn232-store-fix, with their previously recorded open-owner retention reasons.
+Free space is24GiB overlay/32GiB host. Unrelated `tools/gomad/.turbo/` remains
+untouched. No push, PR, CI dispatch or qualification claim occurred.
+
+### Replay baseline pairing correction
+
+Read-only .6 closure investigation distinguished the actual reference binaries.
+The failing standalone-network receipts use a newer Go launcher ce2c248d...
+and helper6bad9356..., rather than the independently frozen launcher407263f9...
+and helperb2543914.... Frozen source1d7's ProjectObservedResult has no new
+InputTapeSHA256/InputDecisions attestation check. The newer source adds that
+check atdd00c57f70 while its Go-owned runtime.collect path omits the fields.
+That remains a real newer-Go regression. It does not prove frozen-pair failure.
+The earlier blanket claim that this gap blocks frozen-Go parity was too broad.
+
+The tracked replay-lane.py routes all four standalone-network cases through
+cluster_arguments, selecting the newer cluster reference. Its standalone
+fresh-parity lane separately selects the frozen baseline/source. Root and
+replay owner traced this selection difference before changing any code or
+expectation. The frozen bundle's input hashes verify. The extracted archived
+source comparison covers4800 relevant tracked files with zero mismatches.
+
+A fresh actual ordinary zero-choice network proof using the true frozen pair
+passes Go install, explore and own-artifact exact replay with reproduced=true.
+Current Rust fixtureca57 independently executes the same compiled module,
+replays its own Rust artifact, authenticates matching network/WASI/output bytes
+and repeats identically. All seven command receipts return0. The outer driver
+then refuses the expected stale/missing golden, rather than treating it as a
+semantic failure. Module SHA256 is
+`fe496c6fd8aebddbc2c17905fabf71eb112d4cf74831f53ab9501d6096bf5930`.
+Raw commands are in workspace `.build-cache/fn232-frozen-network/ordinary/commands.json`;
+outer receipts are `/home/agent/wt/evidence/fn232-store-fix/frozen-network-ordinary.*`.
+Declared generated guest inputs were cleaned. No original Go tests, frozen
+baseline binaries, original artifacts or production Go source were rewritten.
+
+Replay owner continues the existing active .6 lane in fn232-replay, limited to
+the harness routing repair and its owned golden/documentation changes. The
+design selects the frozen pair for standalone network comparison, retains the
+declared newer cluster producer for cluster/registered coverage, and preserves
+the newer Go failures as supplementary regression evidence. All four network
+cells, their raw authentication/own replays, two exact regenerations and the
+independent R5/R13/R14 review remain required. No status comparison or
+behavior/hash field is normalized away. No Go attestation patch is authorized
+or applied. No new task, Cargo lease or qualification run was admitted.

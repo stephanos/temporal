@@ -178,7 +178,7 @@ fn authorized(
     Ok((file, before))
 }
 
-fn read_handle(
+pub(super) fn read_handle(
     file: &mut File,
     bound: u64,
     completed: impl FnOnce() -> Result<(), String>,
