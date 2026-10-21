@@ -33,6 +33,21 @@ fn main() {
             fs::read(root.join(name)).expect("host build identity input"),
         );
     }
+    for name in [
+        "internal/model/choice/schema/choicewire.json",
+        "internal/model/choice/schema/choicewire.go.tmpl",
+        "internal/model/choice/schema/choicewire_runtime.go.tmpl",
+        "internal/model/choice/schema/choicewire_test.go.tmpl",
+        "internal/model/runtimesource/gomad_semantics.go.txt",
+        "internal/model/choice/trace.go",
+        "internal/model/choice/tape.go",
+    ] {
+        let path = format!("../../{name}");
+        files.insert(
+            path.clone(),
+            fs::read(root.join(path)).expect("choice implementation identity input"),
+        );
+    }
     let mut runtime = Sha256::new();
     runtime.update(b"gomad-wasm-runtime-implementation/v1\0");
     for name in [

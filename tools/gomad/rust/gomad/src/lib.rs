@@ -1,3 +1,4 @@
+pub mod campaign;
 pub mod cli;
 pub mod evidence;
 pub mod execute;

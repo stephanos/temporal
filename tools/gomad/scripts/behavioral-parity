@@ -430,7 +430,25 @@ def main():
     parser.add_argument("--replay-determinism-binary", type=Path)
     parser.add_argument("--replay-release-binary", type=Path)
     parser.add_argument("--replay-preparation-root", type=Path)
+    parser.add_argument("--campaign-binary", type=Path)
+    parser.add_argument("--campaign-baseline", type=Path)
+    parser.add_argument("--campaign-source", type=Path)
+    parser.add_argument("--campaign-go-compiler", type=Path)
+    parser.add_argument("--campaign-input", type=Path)
+    parser.add_argument("--campaign-preparation-root", type=Path)
     args = parser.parse_args()
+    if args.verb in ("explore", "resume", "execute-shard", "merge") and args.campaign_binary:
+        if not all((args.campaign_baseline, args.campaign_source, args.campaign_go_compiler,
+                    args.campaign_input, args.campaign_preparation_root, args.output_root)):
+            fail("$campaign", "campaign verbs require frozen baseline/source/compiler, fresh replay configuration input, stable preparation root and fresh output root")
+        result = subprocess.run(["python3", str(args.corpus / "campaign-lane.py"),
+            "--verb", args.verb, "--binary", str(args.campaign_binary),
+            "--baseline", str(args.campaign_baseline), "--source", str(args.campaign_source),
+            "--go-compiler", str(args.campaign_go_compiler), "--input", str(args.campaign_input),
+            "--preparation-root", str(args.campaign_preparation_root), "--work", str(args.output_root)])
+        if result.returncode:
+            fail("$campaign", "mandatory fresh campaign lane failed")
+        return
     if args.verb == "replay" and args.replay_binary:
         if not all((args.replay_baseline, args.replay_source, args.replay_go_compiler, args.output_root,
                     args.replay_stress_binary, args.replay_determinism_binary, args.replay_release_binary,

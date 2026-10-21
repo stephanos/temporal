@@ -129,6 +129,79 @@ pub fn inspect(
     })
 }
 
+/// # Errors
+/// Refuses malformed traces, invalid replay identities and unsupported terminals.
+pub fn coverage_features(
+    trace: &[u8],
+    identity: &ExecutionIdentity,
+    terminal: &str,
+) -> Result<Vec<String>, &'static str> {
+    if !matches!(terminal, "complete" | "overflow" | "diverged") {
+        return Err("malformed_trace");
+    }
+    project(trace, identity)?;
+    let mut features = std::collections::BTreeSet::new();
+    let mut maximums = std::collections::BTreeMap::<String, u32>::new();
+    let mut pairs = std::collections::BTreeSet::new();
+    let mut previous = None;
+    for (ordinal, bytes) in trace.as_chunks::<RECORD_BYTES>().0.iter().enumerate() {
+        let record = decode_record(bytes, ordinal)?;
+        let decision = &record.decision;
+        let role = if record.observation {
+            "observation"
+        } else {
+            "decision"
+        };
+        let kind = kind_name(decision.kind);
+        let site = if decision.site_missing {
+            "missing".into()
+        } else {
+            let mut hash = Sha256::new();
+            hash.update(identity.target_sha256);
+            hash.update([decision.kind]);
+            hash.update(decision.site_offset.to_be_bytes());
+            format!("{:x}", hash.finalize())
+        };
+        let alternative = if decision.alternatives == 1 {
+            "only"
+        } else if decision.selected == 0 {
+            "first"
+        } else if decision.selected == decision.alternatives - 1 {
+            "last"
+        } else {
+            "interior"
+        };
+        features.insert(format!("record_kind/{role}/{kind}"));
+        let site_identity = format!("{kind}/{site}");
+        features.insert(format!("site/{site_identity}"));
+        let record_identity = format!("{role}/{site_identity}/{alternative}");
+        features.insert(format!("selected_alternative/{record_identity}"));
+        if let Some(previous) = previous {
+            let pair = format!("{previous}->{record_identity}");
+            if pairs.len() < 4096 {
+                pairs.insert(pair);
+            }
+        }
+        previous = Some(record_identity);
+        if !record.observation {
+            let maximum = maximums.entry(site_identity).or_default();
+            *maximum = (*maximum).max(decision.alternatives);
+        }
+    }
+    for (site, maximum) in maximums {
+        if maximum > 1 {
+            features.insert(format!("branching_site/{site}/max-alternatives={maximum}"));
+        }
+    }
+    features.extend(
+        pairs
+            .into_iter()
+            .map(|pair| format!("adjacent_pair/{pair}")),
+    );
+    features.insert(format!("terminal/{terminal}"));
+    Ok(features.into_iter().collect())
+}
+
 #[derive(Clone, Deserialize)]
 #[serde(deny_unknown_fields)]
 pub struct PrefixControl {
