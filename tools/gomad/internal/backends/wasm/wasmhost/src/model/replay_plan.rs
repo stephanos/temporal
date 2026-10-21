@@ -1,4 +1,4 @@
-use super::{Decision, get32, get64, set32, set64};
+use super::{CreationSite, Decision, get32, get64, set32, set64};
 use serde::{Deserialize, Serialize};
 use sha2::{Digest, Sha256};
 
@@ -72,8 +72,25 @@ fn kind_name(kind: u8) -> &'static str {
         1 => "runnable",
         2 => "select-poll",
         3 => "select-result",
+        4 => "goroutine-creation",
         _ => unreachable!("validated choice kind"),
     }
+}
+
+pub(super) fn site_fingerprint(
+    target: [u8; 32],
+    kind: u8,
+    offset: u64,
+    missing: bool,
+) -> Option<String> {
+    if missing {
+        return None;
+    }
+    let mut hash = Sha256::new();
+    hash.update(target);
+    hash.update([kind]);
+    hash.update(offset.to_be_bytes());
+    Some(format!("{:x}", hash.finalize()))
 }
 
 /// # Errors
@@ -88,7 +105,9 @@ pub fn inspect(
     for (ordinal, bytes) in trace.as_chunks::<RECORD_BYTES>().0.iter().enumerate() {
         let record = decode_record(bytes, ordinal)?;
         let decision = &record.decision;
-        counts[usize::from(decision.kind - 1)] += 1;
+        if decision.kind <= 3 {
+            counts[usize::from(decision.kind - 1)] += 1;
+        }
         let fingerprint = if decision.site_missing {
             "missing".into()
         } else {
@@ -153,6 +172,9 @@ pub fn coverage_features(
     for (ordinal, bytes) in trace.as_chunks::<RECORD_BYTES>().0.iter().enumerate() {
         let record = decode_record(bytes, ordinal)?;
         let decision = &record.decision;
+        if decision.kind == 4 {
+            continue;
+        }
         let role = if record.observation {
             "observation"
         } else {
@@ -338,20 +360,36 @@ fn decode_record(bytes: &[u8; RECORD_BYTES], ordinal: usize) -> Result<Record, &
     let selected_identity = bytes[32..64].try_into().unwrap();
     let alternative_set_digest = bytes[64..96].try_into().unwrap();
     let origin = if observation { get64(bytes, 32) } else { 0 };
-    if !(1..=3).contains(&kind)
+    let creation = kind == 4;
+    if !(1..=4).contains(&kind)
         || flags & !7 != 0
-        || flags & 3 != if observation { 2 } else { 1 }
+        || flags & 3
+            != if creation {
+                0
+            } else if observation {
+                2
+            } else {
+                1
+            }
         || observation != (kind == 3)
         || alternatives == 0
         || selected >= alternatives
         || site_missing && site_offset != 0
         || get64(bytes, 0) != ordinal as u64
         || !observation
+            && !creation
             && (readiness != 0 || selected_identity == [0; 32] || alternative_set_digest == [0; 32])
         || observation && (bytes[40..].iter().any(|byte| *byte != 0) || origin > ordinal as u64)
         || observation
             && (readiness & 1 == 0
                 || u32::from(readiness >> 6) > alternatives - u32::from(readiness & 2 != 0))
+        || creation
+            && (flags & !4 != 0
+                || !(2..=256).contains(&alternatives)
+                || readiness != 0
+                || get32(bytes, 20) != 0
+                || selected_identity == [0; 32]
+                || alternative_set_digest != [0; 32])
     {
         return Err("malformed_trace");
     }
@@ -371,6 +409,7 @@ fn decode_record(bytes: &[u8; RECORD_BYTES], ordinal: usize) -> Result<Record, &
                 selected_identity
             },
             alternative_set_digest,
+            creation_sites: Vec::new(),
         },
         observation,
         readiness,
@@ -402,6 +441,52 @@ pub(super) fn toolchain_key(identity: &ExecutionIdentity) -> Result<[u8; 32], &'
     Ok(key)
 }
 
+fn project_creation_sites(records: &mut [Record]) -> Result<(), &'static str> {
+    let mut pending = Vec::new();
+    let mut pending_count = 0;
+    for record in records {
+        let decision = &mut record.decision;
+        if decision.kind == 4 {
+            if pending.is_empty() {
+                pending_count = decision.alternatives;
+            }
+            if decision.selected as usize != pending.len() || decision.alternatives != pending_count
+            {
+                return Err("malformed_trace");
+            }
+            pending.push(CreationSite {
+                identity: decision.selected_identity,
+                site_offset: decision.site_offset,
+                site_missing: decision.site_missing,
+            });
+        } else if !pending.is_empty() {
+            if decision.kind != 1
+                || pending.len() != decision.alternatives as usize
+                || pending_count != decision.alternatives
+                || pending
+                    .windows(2)
+                    .any(|sites| sites[0].identity >= sites[1].identity)
+            {
+                return Err("malformed_trace");
+            }
+            let mut hash = Sha256::new();
+            hash.update(b"gomad-choice-alternative-set/v1\0");
+            hash.update((pending.len() as u64).to_be_bytes());
+            for site in &pending {
+                hash.update(site.identity);
+            }
+            if <[u8; 32]>::from(hash.finalize()) != decision.alternative_set_digest {
+                return Err("malformed_trace");
+            }
+            decision.creation_sites = std::mem::take(&mut pending);
+        }
+    }
+    if !pending.is_empty() {
+        return Err("malformed_trace");
+    }
+    Ok(())
+}
+
 /// # Errors
 /// Refuses malformed raw records, inconsistent select observations and invalid execution identities.
 pub fn project(trace: &[u8], identity: &ExecutionIdentity) -> Result<ReplayPlan, &'static str> {
@@ -409,16 +494,17 @@ pub fn project(trace: &[u8], identity: &ExecutionIdentity) -> Result<ReplayPlan,
     if !remainder.is_empty() {
         return Err("malformed_trace");
     }
-    let records: Vec<_> = raw_records
+    let mut records: Vec<_> = raw_records
         .iter()
         .enumerate()
         .map(|(ordinal, bytes)| decode_record(bytes, ordinal))
         .collect::<Result<_, _>>()?;
+    project_creation_sites(&mut records)?;
     let mut decisions = Vec::new();
     let mut indices = vec![None; records.len()];
     let mut payload = Vec::new();
     for (ordinal, record) in records.iter().enumerate() {
-        if record.observation || record.decision.alternatives < 2 {
+        if record.observation || record.decision.kind == 4 || record.decision.alternatives < 2 {
             continue;
         }
         let mut decision = record.decision.clone();
@@ -493,6 +579,41 @@ mod tests {
     use serde_json::Value;
     use std::collections::BTreeSet;
     use std::path::PathBuf;
+
+    #[test]
+    fn runnable_creation_metadata_projects_without_forcing_metadata() {
+        let identity = ExecutionIdentity {
+            target_sha256: [1; 32],
+            toolchain_build_key: "02".repeat(32),
+            goos: "wasip1".into(),
+            goarch: "wasm".into(),
+            implementation_sha256: [3; 32],
+        };
+        let mut trace = [0; 288];
+        for index in 0..2 {
+            let start = index * 96;
+            set64(&mut trace, start, index as u64);
+            trace[start + 8] = 4;
+            set32(&mut trace, start + 12, 2);
+            set32(&mut trace, start + 16, u32::try_from(index).unwrap());
+            set64(&mut trace, start + 24, 123 + index as u64);
+            trace[start + 32..start + 64].fill(u8::try_from(index + 1).unwrap());
+        }
+        set64(&mut trace, 192, 2);
+        trace[200] = 1;
+        trace[201] = 5;
+        set32(&mut trace, 204, 2);
+        trace[224..256].fill(1);
+        let mut hash = Sha256::new();
+        hash.update(b"gomad-choice-alternative-set/v1\0");
+        hash.update(2u64.to_be_bytes());
+        hash.update([1; 32]);
+        hash.update([2; 32]);
+        trace[256..288].copy_from_slice(&hash.finalize());
+        let plan = project(&trace, &identity).unwrap();
+        assert_eq!(plan.decisions.len(), 1);
+        assert_eq!(plan.decisions[0].ordinal(), 0);
+    }
 
     #[test]
     fn replay_plan_go_corpus() {

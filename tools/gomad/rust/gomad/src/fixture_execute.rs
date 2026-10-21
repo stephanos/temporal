@@ -279,14 +279,14 @@ fn run(
             schema: "gomad.inspection-evidence/v1".into(),
             outputs: None,
             choices: Some(ChoiceEvidence {
-                profile: "gomad-choice-trace/v3".into(),
+                profile: "gomad-choice-trace/v4".into(),
                 implementation_sha256: case
                     .runtime_implementation_sha256
                     .clone()
                     .unwrap_or_else(|| linked::IMPLEMENTATION_SHA256.into()),
                 identity,
                 trace: Payload {
-                    schema: "gomad-choice-trace/v3".into(),
+                    schema: "gomad-choice-trace/v4".into(),
                     file: "evidence/choice".into(),
                     sha256: stream.sha256.clone(),
                     bytes: stream.bytes,

@@ -291,18 +291,21 @@ impl Model {
         }
         match op {
             Operation::RuntimeDecision => {
-                if data.len() < 32 || get32(&data, 0) != 1 {
+                if data.len() < 32 || !matches!(get32(&data, 0), 1 | 2) {
                     return Err(Error::msg("WASI invalid: runtime decision header"));
                 }
                 let kind = get32(&data, 4);
                 let flags = get32(&data, 16);
                 let count = get32(&data, 20) as usize;
                 let selected = get32(&data, 24) as usize;
+                let creation = get32(&data, 0) == 2 && kind == 1;
+                let diagnostic_offset = 32 + count * if creation { 48 } else { 32 };
                 if !matches!(kind, 1 | 2)
                     || flags & !4 != 0
                     || !(2..=256).contains(&count)
                     || selected >= count
-                    || data.len() != 32 + count * 32 + if self.config.diagnostics { 96 } else { 0 }
+                    || data.len()
+                        != diagnostic_offset + if self.config.diagnostics { 96 } else { 0 }
                 {
                     return Err(Error::msg(
                         "WASI invalid: runtime decision alternatives or layout",
@@ -330,6 +333,29 @@ impl Model {
                     }
                     hash.finalize().into()
                 };
+                let mut creation_sites = Vec::new();
+                if creation {
+                    for (index, identity) in alternatives.iter().enumerate() {
+                        let start = 32 + count * 32 + index * 16;
+                        let missing = data[start + 8];
+                        let site_offset = get64(&data, start);
+                        if missing & !4 != 0
+                            || data[start + 9..start + 16].iter().any(|byte| *byte != 0)
+                            || missing != 0 && site_offset != 0
+                        {
+                            return Err(Error::msg("WASI invalid: runtime creation site"));
+                        }
+                        creation_sites.push(super::CreationSite {
+                            identity: *identity,
+                            site_offset,
+                            site_missing: missing != 0,
+                        });
+                    }
+                    creation_sites.sort_unstable_by_key(|site| site.identity);
+                    if 64 + (self.records + count as u64 + 1) * 96 > self.config.limit {
+                        return Err(Error::msg("WASI capacity: runtime-choice-bytes"));
+                    }
+                }
                 let mut observed = Decision {
                     ordinal: self.records,
                     kind: kind as u8,
@@ -344,6 +370,7 @@ impl Model {
                     data: get32(&data, 28),
                     selected_identity: alternatives[selected],
                     alternative_set_digest,
+                    creation_sites,
                 };
                 let tape = self.config.tape.as_deref().unwrap_or(&[]);
                 if self.config.mode == 2 || self.config.mode == 3 && self.cursor < tape.len() {
@@ -383,6 +410,22 @@ impl Model {
                     );
                     self.cursor += 1;
                 }
+                for (index, site) in observed.creation_sites.iter().enumerate() {
+                    let mut record = [0; 96];
+                    set64(&mut record, 0, self.records);
+                    record[8] = 4;
+                    record[9] = if site.site_missing { 4 } else { 0 };
+                    set32(&mut record, 12, count as u32);
+                    set32(&mut record, 16, index as u32);
+                    set64(&mut record, 24, site.site_offset);
+                    record[32..64].copy_from_slice(&site.identity);
+                    let mut diagnostic = data[diagnostic_offset..].to_vec();
+                    if self.config.diagnostics {
+                        set64(&mut diagnostic, 0, self.records);
+                    }
+                    self.append(&record, &diagnostic)?;
+                }
+                observed.ordinal = self.records;
                 #[cfg(feature = "diagnostic-profile")]
                 let encoding =
                     crate::diagnostic::WallSpan::new(crate::diagnostic::Nested::Encoding);
@@ -398,7 +441,11 @@ impl Model {
                 record[64..96].copy_from_slice(&observed.alternative_set_digest);
                 #[cfg(feature = "diagnostic-profile")]
                 drop(encoding);
-                self.append(&record, &data[32 + count * 32..])?;
+                let mut diagnostic = data[diagnostic_offset..].to_vec();
+                if self.config.diagnostics {
+                    set64(&mut diagnostic, 0, self.records);
+                }
+                self.append(&record, &diagnostic)?;
             }
             Operation::RuntimeObservation => {
                 if data.len() != 96 + if self.config.diagnostics { 96 } else { 0 } {

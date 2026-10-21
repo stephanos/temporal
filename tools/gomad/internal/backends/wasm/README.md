@@ -292,7 +292,13 @@ to `tools/gomad/internal/model/runtimesource`. The overlays copy its package-run
 sources verbatim and hash the copied bytes. The former native overlay directory
 is no longer a valid runtime source root. This extraction rotates runtime and
 model identities; retained qualifications bind their historical candidate and
-must not be relabeled as current. Choice records and replay schemas are unchanged.
+must not be relabeled as current. Choice trace v4 adds creation-site metadata for
+each runnable alternative, preserving goroutine identity derivation and the v3
+decision tape. The helper validates ordered creation identities against the
+runnable alternative-set digest before exposing their sites. Previous v3 traces
+still inspect and project the same tape and have no creation sites. This runtime,
+schema and helper change rotates implementation identities; refreshed installations
+and frozen-candidate qualification are required.
 
 `toolchain/runtime_wasm.go.txt` contains the cooperative runtime;
 `toolchain/runtime_inspect_wasm.go.txt` contains its `gomadDebug*` inspection

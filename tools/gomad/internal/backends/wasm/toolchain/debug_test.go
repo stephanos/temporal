@@ -41,13 +41,16 @@ const gomadChoiceMaximumAlternatives=256
 const gomadDiagnosticRecordBytes=96
 const gomadDebugWitnessBytes=128
 const gomadChoiceFlagSiteMissing=4
+const gomadChoiceKindRunnable=1
 const gomadChoiceDivergenceAlternativeCapacity=1
 const gomadChoiceDivergenceSelected=2
 var gomadChoiceRecords atomic.Uint64
 var gomadDebugDecisions uint64
 var gomadDiagnosticEnabled bool
 var gomadDebugInspecting bool
-var gomadWasmDecisionBuffer [32+32*256+96]byte
+var gomadChoiceSchedulerSites [256]uint64
+var gomadChoiceSchedulerSiteFlags [256]uint8
+var gomadWasmDecisionBuffer [32+48*256+96]byte
 const gomadChoiceRecordBytes=96
 type gomadChoiceRecordValue struct{ordinal uint64}
 var gomadWasmObservationBuffer [96+96]byte
@@ -92,10 +95,11 @@ func TestBoundary(t *testing.T){
  alternatives:=[][32]byte{{1},{2}};var ordered [256][32]byte
  stop=false
  if got:=gomadChoiceDecision(kind,4,123,alternatives,&ordered,0,7);got!=1 {t.Fatalf("rank=%d",got)}
- if canonicalCalls!=1 || gomadChoiceRecords.Load()!=10 || gomadDebugDecisions!=5 {t.Fatal("continued decision counters wrong")}
+ expectedRecords:=uint64(10);if kind==1 {expectedRecords=12}
+ if canonicalCalls!=1 || gomadChoiceRecords.Load()!=expectedRecords || gomadDebugDecisions!=5 {t.Fatal("continued decision counters wrong")}
  stop=true;canonicalCalls=0
  func(){defer func(){if recover()!="inspection"{t.Fatal("did not hand off")}}();gomadChoiceDecision(kind,4,123,alternatives,&ordered,0,7)}()
- if canonicalCalls!=0 || gomadChoiceRecords.Load()!=10 || gomadDebugDecisions!=5 {t.Fatal("stop consumed decision")}
+ if canonicalCalls!=0 || gomadChoiceRecords.Load()!=expectedRecords || gomadDebugDecisions!=5 {t.Fatal("stop consumed decision")}
  expected:=append([]byte(nil),gomadWasmDecisionBuffer[:96]...);gomadChoicePut32(expected[24:28],1)
  if gomadDebugPending.length!=96 || !bytes.Equal(gomadDebugPending.decision[:96],expected) {t.Fatal("validated pending decision lost")}
  }}

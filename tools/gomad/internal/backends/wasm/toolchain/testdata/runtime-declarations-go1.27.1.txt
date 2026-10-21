@@ -222,6 +222,7 @@ const gomadChoiceFlagObservation
 const gomadChoiceFlagRankOverride
 const gomadChoiceFlagSiteMissing
 const gomadChoiceHeaderBytes
+const gomadChoiceKindGoroutineCreation
 const gomadChoiceKindRunnable
 const gomadChoiceKindSelectPoll
 const gomadChoiceKindSelectResult
@@ -3780,6 +3781,8 @@ var gomadChoiceSchedulerAlternatives
 var gomadChoiceSchedulerOffsets
 var gomadChoiceSchedulerOrdered
 var gomadChoiceSchedulerRandom
+var gomadChoiceSchedulerSiteFlags
+var gomadChoiceSchedulerSites
 var gomadChoiceSelectRandom
 var gomadChoiceTapeMagic
 var gomadChoiceTerminalMagic

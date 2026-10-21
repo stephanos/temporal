@@ -272,8 +272,10 @@ impl ChoiceEvidence {
     /// Refuses invalid metadata, malformed traces and inconsistent exact-tape declarations.
     pub fn inspect(&self, opened: &Opened) -> Result<Choices, String> {
         digest(&self.implementation_sha256)?;
-        if self.profile != "gomad-choice-trace/v3"
-            || self.trace.schema != self.profile
+        if !matches!(
+            self.profile.as_str(),
+            "gomad-choice-trace/v3" | "gomad-choice-trace/v4"
+        ) || self.trace.schema != self.profile
             || self.identity.toolchain_build_key != opened.manifest().record.identity.toolchain
             || !matches!(
                 self.terminal_state.as_str(),
@@ -312,6 +314,15 @@ impl ChoiceEvidence {
             return Err("choice terminal outcome mismatch".into());
         }
         let bytes = self.trace.authenticate(opened)?;
+        if self.profile == "gomad-choice-trace/v3"
+            && bytes
+                .as_chunks::<96>()
+                .0
+                .iter()
+                .any(|record| record[8] == 4)
+        {
+            return Err("previous choice trace carries creation metadata".into());
+        }
         let mut trace = linked::inspect_choices(&bytes, &self.identity).map_err(str::to_owned)?;
         if trace.records != self.records || bytes.len() as u64 + 64 > self.trace.limit {
             return Err("choice trace bounds mismatch".into());

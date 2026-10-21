@@ -104,9 +104,10 @@ type choiceSchema struct {
 		ChecksumOffset int `json:"checksum_offset"`
 	} `json:"terminal"`
 	Kinds struct {
-		Runnable     uint8 `json:"runnable"`
-		SelectPoll   uint8 `json:"select_poll"`
-		SelectResult uint8 `json:"select_result"`
+		Runnable          uint8 `json:"runnable"`
+		SelectPoll        uint8 `json:"select_poll"`
+		SelectResult      uint8 `json:"select_result"`
+		GoroutineCreation uint8 `json:"goroutine_creation"`
 	} `json:"kinds"`
 	Flags struct {
 		Decision     uint8 `json:"decision"`
@@ -405,7 +406,7 @@ func readChoiceSchema(path string) (choiceSchema, error) {
 	}
 	checks := []bool{
 		definition.Version != 0,
-		definition.Profile == "gomad-choice-trace/v3",
+		definition.Profile == "gomad-choice-trace/v4",
 		definition.Trace.HeaderBytes == 64,
 		definition.Trace.RecordBytes == 96,
 		definition.Tape.HeaderBytes == 264,
@@ -419,6 +420,7 @@ func readChoiceSchema(path string) (choiceSchema, error) {
 		definition.Kinds.Runnable == 1,
 		definition.Kinds.SelectPoll == 2,
 		definition.Kinds.SelectResult == 3,
+		definition.Kinds.GoroutineCreation == 4,
 		definition.Flags.Decision == 1,
 		definition.Flags.Observation == 2,
 		definition.Flags.SiteMissing == 4,

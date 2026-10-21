@@ -214,11 +214,11 @@ pub(super) fn publication(
             schema: "gomad.inspection-evidence/v1".into(),
             outputs: None,
             choices: Some(ChoiceEvidence {
-                profile: "gomad-choice-trace/v3".into(),
+                profile: "gomad-choice-trace/v4".into(),
                 implementation_sha256: linked::IMPLEMENTATION_SHA256.into(),
                 identity: identity.clone(),
                 trace: Payload {
-                    schema: "gomad-choice-trace/v3".into(),
+                    schema: "gomad-choice-trace/v4".into(),
                     file: "evidence/choice".into(),
                     sha256: canonical::digest(trace),
                     bytes: trace.len() as u64,
