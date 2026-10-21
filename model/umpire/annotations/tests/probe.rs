@@ -37,6 +37,7 @@ fn any_of_attributes_each_field_but_every_probe_omits_all_alternatives()
     let cases = catalog.probe_cases();
     assert_eq!(cases.len(), 2);
     for case in &cases {
+        assert!(case.id.contains(":all_absent:missing="));
         let candidate = catalog.probe(&baseline, case, &mut Rng::new(1))?;
         assert!(candidate.message.a.is_empty() && candidate.message.b.is_empty());
         assert!(

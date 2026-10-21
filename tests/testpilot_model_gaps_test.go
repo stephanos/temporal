@@ -21,6 +21,7 @@ import (
 	"go.temporal.io/server/common/dynamicconfig"
 	"go.temporal.io/server/common/log"
 	"go.temporal.io/server/common/log/tag"
+	"go.temporal.io/server/common/testing/testcontext"
 	"go.temporal.io/server/common/testing/testlogger"
 	"go.temporal.io/server/tests/testcore"
 	"google.golang.org/grpc"
@@ -136,6 +137,28 @@ func TestTestpilotModelGapResourceIsolation(t *testing.T) {
 	require.Empty(t, mutation.TaskToken)
 }
 
+func modelGapTestContext(t *testing.T) context.Context {
+	t.Helper()
+	started := time.Now()
+	ctx := testcontext.For(t, testcontext.WithTimeout(20*time.Minute))
+	deadline, ok := ctx.Deadline()
+	require.True(t, ok)
+	expected := started.Add(20 * time.Minute)
+	if goDeadline, bounded := t.Deadline(); bounded && goDeadline.Before(expected) {
+		expected = goDeadline
+	}
+	require.WithinDuration(t, expected, deadline, time.Second)
+	extended := testcontext.EnsureRemaining(ctx, t, 30*time.Minute)
+	extendedDeadline, ok := extended.Deadline()
+	require.True(t, ok)
+	require.Equal(t, deadline, extendedDeadline, "aggregate ceiling must not extend")
+	return ctx
+}
+
+func TestTestpilotModelGapContextBudget(t *testing.T) {
+	modelGapTestContext(t)
+}
+
 func newModelGapConnection(t *testing.T) (string, *grpc.ClientConn) {
 	t.Helper()
 	env := newTestpilotTestEnvironment(t,
@@ -160,10 +183,64 @@ func modelGapStartRequest(namespace string) *workflowservice.StartActivityExecut
 	}
 }
 
+func checkModelGapNamespaceAdmission(t *testing.T, namespace string, service workflowservice.WorkflowServiceClient,
+	start func(*testing.T, *workflowservice.StartActivityExecutionRequest) (*workflowservice.StartActivityExecutionResponse, error),
+) {
+	t.Helper()
+	for _, method := range []string{"StartActivityExecution", "DescribeActivityExecution", "PollActivityExecution", "PollActivityTaskQueue", "RequestCancelActivityExecution"} {
+		for _, supplied := range []bool{false, true} {
+			t.Run(fmt.Sprintf("namespace_%s_%t", method, supplied), func(t *testing.T) {
+				requestNamespace, expected := "", codes.InvalidArgument
+				if supplied {
+					requestNamespace, expected = namespace, codes.OK
+				}
+				seed := modelGapStartRequest(namespace)
+				invoke := func() error {
+					if method == "StartActivityExecution" {
+						seed.Namespace = requestNamespace
+						_, err := start(t, seed)
+						return err
+					}
+					started, err := start(t, seed)
+					require.Equal(t, codes.OK, status.Code(err))
+					ctx, cancel := context.WithTimeout(t.Context(), 30*time.Second)
+					defer cancel()
+					if method == "PollActivityExecution" {
+						task, pollErr := service.PollActivityTaskQueue(ctx, &workflowservice.PollActivityTaskQueueRequest{Namespace: namespace, TaskQueue: seed.TaskQueue})
+						require.Equal(t, codes.OK, status.Code(pollErr))
+						require.NotEmpty(t, task.GetTaskToken())
+						_, completeErr := service.RespondActivityTaskCompleted(ctx, &workflowservice.RespondActivityTaskCompletedRequest{TaskToken: task.TaskToken})
+						require.Equal(t, codes.OK, status.Code(completeErr))
+					}
+					switch method {
+					case "DescribeActivityExecution":
+						_, err = service.DescribeActivityExecution(ctx, &workflowservice.DescribeActivityExecutionRequest{Namespace: requestNamespace, ActivityId: seed.ActivityId, RunId: started.RunId})
+					case "PollActivityExecution":
+						_, err = service.PollActivityExecution(ctx, &workflowservice.PollActivityExecutionRequest{Namespace: requestNamespace, ActivityId: seed.ActivityId, RunId: started.RunId})
+					case "PollActivityTaskQueue":
+						_, err = service.PollActivityTaskQueue(ctx, &workflowservice.PollActivityTaskQueueRequest{Namespace: requestNamespace, TaskQueue: seed.TaskQueue})
+					case "RequestCancelActivityExecution":
+						_, err = service.RequestCancelActivityExecution(ctx, &workflowservice.RequestCancelActivityExecutionRequest{Namespace: requestNamespace, ActivityId: seed.ActivityId, RunId: started.RunId})
+					default:
+						t.Fatalf("unknown static admission control %s", method)
+					}
+					return err
+				}
+				rpcErr := invoke()
+				require.Equal(t, expected, status.Code(rpcErr))
+				if !supplied {
+					matchesReason := strings.Contains(status.Convert(rpcErr).Message(), "Namespace is empty")
+					require.True(t, matchesReason, "namespace explanation must match without exposing the error")
+				}
+			})
+		}
+	}
+}
+
 func checkModelGapScopeBoundaries(t *testing.T, namespace string, connection *grpc.ClientConn) {
 	t.Helper()
 	service := workflowservice.NewWorkflowServiceClient(connection)
-	start := func(t *testing.T, request *workflowservice.StartActivityExecutionRequest) error {
+	start := func(t *testing.T, request *workflowservice.StartActivityExecutionRequest) (*workflowservice.StartActivityExecutionResponse, error) {
 		t.Helper()
 		ctx, cancel := context.WithTimeout(t.Context(), 30*time.Second)
 		defer cancel()
@@ -175,9 +252,9 @@ func checkModelGapScopeBoundaries(t *testing.T, namespace string, connection *gr
 			})
 			require.True(t, cleanupErr == nil || status.Code(cleanupErr) == codes.NotFound, "cleanup rpc_code=%s", status.Code(cleanupErr))
 		})
-		_, rpcErr := service.StartActivityExecution(ctx, request)
-		return rpcErr
+		return service.StartActivityExecution(ctx, request)
 	}
+	checkModelGapNamespaceAdmission(t, namespace, service, start)
 	for _, testCase := range []struct {
 		name     string
 		maximum  time.Duration
@@ -194,7 +271,7 @@ func checkModelGapScopeBoundaries(t *testing.T, namespace string, connection *gr
 			request.RetryPolicy.InitialInterval = durationpb.New(1001 * time.Second)
 			request.RetryPolicy.MaximumInterval = durationpb.New(testCase.maximum)
 			request.RetryPolicy.MaximumAttempts = testCase.attempts
-			rpcErr := start(t, request)
+			_, rpcErr := start(t, request)
 			require.Equal(t, testCase.code, status.Code(rpcErr), "retry rpc_code=%s", status.Code(rpcErr))
 			if rpcErr != nil {
 				matchesReason := strings.Contains(status.Convert(rpcErr).Message(), "MaximumInterval cannot be less")
@@ -205,7 +282,7 @@ func checkModelGapScopeBoundaries(t *testing.T, namespace string, connection *gr
 	for _, normalName := range []string{"", "x"} {
 		t.Run(fmt.Sprintf("normal_queue_name_%d", len(normalName)), func(t *testing.T) {
 			request := modelGapStartRequest(namespace)
-			startErr := start(t, request)
+			_, startErr := start(t, request)
 			require.Equal(t, codes.OK, status.Code(startErr))
 			ctx, cancel := context.WithTimeout(t.Context(), 30*time.Second)
 			defer cancel()
@@ -222,7 +299,7 @@ func checkModelGapScopeBoundaries(t *testing.T, namespace string, connection *gr
 	for _, tokenKind := range []string{"empty", "malformed", "issued"} {
 		t.Run("worker_token_"+tokenKind, func(t *testing.T) {
 			request := modelGapStartRequest(namespace)
-			startErr := start(t, request)
+			_, startErr := start(t, request)
 			require.Equal(t, codes.OK, status.Code(startErr))
 			ctx, cancel := context.WithTimeout(t.Context(), 30*time.Second)
 			defer cancel()
@@ -252,6 +329,7 @@ func TestTestpilotModelGapScopeBoundaries(t *testing.T) {
 }
 
 func TestTestpilotModelGaps(t *testing.T) {
+	modelGapTestContext(t)
 	wasm, err := os.ReadFile(os.Getenv("UMPIRE_TEMPORAL_WASM"))
 	require.NoError(t, err)
 	host, err := model.New(t.Context(), wasm)

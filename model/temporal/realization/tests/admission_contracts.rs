@@ -18,16 +18,22 @@ fn namespace_and_worker_token_admission_preserves_opaque_kinds()
                     .fields()
                     .any(|field| field.path == path && matches!(field.kind, Kind::Text(_)))
             );
-            let missing = validate(&wire::$name::default(), &catalog)
+            let missing_findings = validate(&wire::$name::default(), &catalog);
+            let missing = missing_findings
                 .iter()
-                .any(|v| v.constraint == "required" && v.fields.iter().any(|field| field == path));
+                .find(|v| v.constraint == "required" && v.fields.iter().any(|field| field == path));
+            let missing_matches = missing.is_some() == $required && missing.is_none_or(|finding| {
+                matches!(finding.expected.as_ref().map(|expected| &expected.expectation),
+                    Some(umpire_annotations::Expectation::Rejects { code: 3, message_pattern, .. })
+                        if message_pattern == "Namespace is empty")
+            });
             let oversized = wire::$name { namespace: "x".repeat(1001), ..Default::default() };
             let bounded = validate(&oversized, &catalog).iter().any(|v| {
                 v.path == path && v.constraint == "string.max_bytes" && v.expected.is_some()
             });
             let supplied = wire::$name { namespace: "x".repeat(1000), ..Default::default() };
             let valid = validate(&supplied, &catalog).iter().all(|v| v.path != path);
-            actual.push((stringify!($name), bounded, missing == $required, valid));
+            actual.push((stringify!($name), bounded, missing_matches, valid));
         }};
     }
     namespace!(StartActivityExecutionRequest, true);

@@ -137,7 +137,11 @@ impl<M: 'static> Catalog<M> {
                     cases.push(ProbeCase {
                         description: self.description.clone(),
                         inherited_pattern: self.inherited_patterns.contains(&rule.presence),
-                        id: format!("{id}:omit={field}"),
+                        id: if matches!(rule.presence, Presence::AnyOf(_)) {
+                            format!("{id}:all_absent:missing={field}")
+                        } else {
+                            format!("{id}:omit={field}")
+                        },
                         violation: violation.clone(),
                         omitted_field: Some(field),
                     });

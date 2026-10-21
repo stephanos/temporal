@@ -468,6 +468,7 @@ fn classification_requires_complete_unique_real_observations()
     assert!(prost::Message::encoded_len(&result) < 1024 * 1024 - 1024);
     assert!(prost::Message::encoded_len(&request) < 1024 * 1024 - 1024);
     assert!(!result.fails);
+    assert!(result.report.ends_with("Loose expectations: 0\n"));
     assert!(
         !result
             .report

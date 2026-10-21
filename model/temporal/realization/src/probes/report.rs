@@ -99,8 +99,8 @@ pub(super) fn classify(
         outcomes[3],
         cases - intentional_accepts
     )?;
-    writeln!(text, "Loose expectations: {loose_expectations}")?;
     fails |= classify_generic(request, entries, generic_entries, &dispositions, &mut text)?;
+    writeln!(text, "Loose expectations: {loose_expectations}")?;
     Ok(ProbeResponse { report: text, fails, ..Default::default() })
 }
 

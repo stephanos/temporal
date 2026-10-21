@@ -96,7 +96,7 @@ pub struct ActivityExecutionInfo {
 /// Worker polling validates queue identity without modeling version routing.
 #[derive(Catalog)]
 #[rule(required(task_queue), rejects = "taskQueue|task queue")]
-#[rule(required(namespace), rejects = "Namespace not set")]
+#[rule(required(namespace), rejects = "Namespace is empty")]
 #[mirror(request = "temporal.api.workflowservice.v1.PollActivityTaskQueueRequest")]
 pub struct PollActivityTaskQueueRequest {
     #[rule(max_bytes = dc::MAX_ID_LENGTH, rejects = "Namespace length exceeds limit")]
@@ -271,7 +271,7 @@ pub struct RespondActivityTaskCanceledResponse {}
 /// Timeout and payload limits apply before the standalone activity is scheduled.
 #[derive(Catalog)]
 #[rule(required(activity_type, task_queue), rejects = "activityType|taskQueue|task queue")]
-#[rule(required(namespace), rejects = "Namespace not set")]
+#[rule(required(namespace), rejects = "Namespace is empty")]
 #[mirror(request = "temporal.api.workflowservice.v1.StartActivityExecutionRequest")]
 #[rule(
     any_of(schedule_to_close_timeout, start_to_close_timeout),
@@ -347,7 +347,7 @@ pub struct StartActivityExecutionResponse {
 /// Long-poll tokens require an explicit run identifier.
 #[derive(Catalog)]
 #[rule(requires(long_poll_token, run_id), rejects = "run id is required")]
-#[rule(required(namespace), rejects = "Namespace not set")]
+#[rule(required(namespace), rejects = "Namespace is empty")]
 #[mirror(request = "temporal.api.workflowservice.v1.DescribeActivityExecutionRequest")]
 pub struct DescribeActivityExecutionRequest {
     #[rule(max_bytes = dc::MAX_ID_LENGTH, rejects = "Namespace length exceeds limit")]
@@ -394,7 +394,7 @@ pub struct DescribeActivityExecutionResponse {
 
 /// Outcome polling accepts an optional normalized run UUID.
 #[derive(Catalog)]
-#[rule(required(namespace), rejects = "Namespace not set")]
+#[rule(required(namespace), rejects = "Namespace is empty")]
 #[mirror(request = "temporal.api.workflowservice.v1.PollActivityExecutionRequest")]
 pub struct PollActivityExecutionRequest {
     #[rule(max_bytes = dc::MAX_ID_LENGTH, rejects = "Namespace length exceeds limit")]
@@ -416,7 +416,7 @@ pub struct PollActivityExecutionResponse {
 
 /// Cancellation intent is separate from the worker's eventual cancellation acknowledgement.
 #[derive(Catalog)]
-#[rule(required(namespace), rejects = "Namespace not set")]
+#[rule(required(namespace), rejects = "Namespace is empty")]
 #[mirror(request = "temporal.api.workflowservice.v1.RequestCancelActivityExecutionRequest")]
 pub struct RequestCancelActivityExecutionRequest {
     #[rule(max_bytes = dc::MAX_ID_LENGTH, rejects = "Namespace length exceeds limit")]
