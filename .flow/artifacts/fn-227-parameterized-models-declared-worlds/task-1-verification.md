@@ -48,3 +48,28 @@ be2e44ec799527d1354524030d60b8654e1539e896de8158673cf69c620a2c19  .flow/tmp/fn22
 b77af37d1190b1d75f81d501a1f3857858ec004af6754b0270590340c1e2b905  .flow/tmp/fn2271-default-generics-red.log
 9f0311423412433b94427e09172049fd6412fd5708a54251ac4770d5fe786a92  .flow/tmp/fn2271-default-generics-green3.log
 ```
+
+## Final post-SHIP verification
+
+Executable source remains f0adb5afdb659614cf418a7f420106a85718ba06. The resumed reviewer returned SHIP at 2026-10-21T15:48:14.374964Z with all four findings fixed. The permanent receipt and verbatim report are `task-1-review-round2-receipt.json` and `task-1-review-round2.md`. The review used gpt-6.1-sol/high in read-only mode; the worker's commands below provide the fresh suite evidence.
+
+The canonical Quick command passed after the fixes (`fn2271-round2-quick2.log`, rc 0). Final formatting and strict scoped clippy passed (`fn2271-finalize-clippy.log`, rc 0). All three full gates ran again after SHIP and exited 0. Their final logs are `fn2271-finalize-model-check.log`, `fn2271-finalize-backends.log` and `fn2271-finalize-model-time.log`. The required-backend run measured 182.436s wall time. Final timing is **93.288s gate total**, missing the **30s soft target**, and **5.035s inner loop**, meeting the **10s soft target**. These numbers supersede the historical timing above. Timing's default TLC skip remains distinct from the successful required-backend run.
+
+Normal receipts for model-check, model-backends and model-time were written at 155a7b29, then all three `gate check` commands returned HONORED with exit 0. No full gate was skipped or waived; the checks validated the receipts after the observed runs. Earlier dirty foreign documents caused RUN, and no dirty-receipt bypass occurred.
+
+Root-owned commits bbf0835fbf3f536a954adae8dca3ef19795627d4 and 155a7b295990f457cd85ec9e77ecfd18a1cc96eb are interleaved metadata/evidence work, not native implementation. The first records the user's three approved parent/later-task contracts. The second integrates separately verified fn232 evidence and documentation. Neither changes this task's executable source. Foreign fn233 files remain untouched and untracked.
+
+Final SHA-256 and Git path/metadata comparisons pass for all original 571 artifacts and 101 UI diagnostics. The original manifest hash is `5799233527eff38f1a342d5189436b3f2d4346217244aa5afd5ff47052412d9d`; the UI manifest is `206d97b91916171401117faff6a9bc9565a76d24c536cd3348cc719164cf3d92`. Guest/gap hashes and sizes remain exactly as recorded above. No new live or cross-OS identity claim is made.
+
+Both task-owned code lanes were integrated and removed normally with patch backups retained under `.flow/tmp/`. Root received an explicit cleanup sublease for only the regenerable Cargo `debug/incremental` directory after all builds stopped. Root preserved dependencies, build products, proof logs, guest/Go data and foreign proof. Its capacity record is `.flow/tmp/fn2271-incremental-cleanup.md`; final free space was 34GiB. All worker-started commands are terminal.
+
+```text
+72ff6baed76a0a251b384639ca89035609368c9a68eb9b8b11fcc266a14b60e9  .flow/tmp/fn2271-round2-quick2.log
+f591e097f22f91dd5c31fbbf7e587d80c0a4e0ed594f9c9012a544f38c52d926  .flow/tmp/fn2271-finalize-clippy.log
+43dceaefefd1ea00d7bcfb3531b4a240f549164650b4f754ca02931ab051c6b8  .flow/tmp/fn2271-finalize-model-check.log
+3e383aefa72bdb66d7dbb198445d477c7f837e0655ed38b0b730981377a2a59b  .flow/tmp/fn2271-finalize-backends.log
+4d247cf86eec1da8fcca3726eac35a48975dbfaa1047c7260f3e477de20b099f  .flow/tmp/fn2271-finalize-model-time.log
+d49edfca665f5b5f0c2fb7a4583bc18317b01141f6455a6d382f5b01ca67084a  .flow/tmp/fn2271-finalize-artifacts.log
+be2e44ec799527d1354524030d60b8654e1539e896de8158673cf69c620a2c19  .flow/tmp/fn2271-finalize-ui.log
+ac685fedaa1857b30773d404e10ca6d33949d3005c21633d1dc4295aece8c4e0  task-1-review-round2-receipt.json
+```

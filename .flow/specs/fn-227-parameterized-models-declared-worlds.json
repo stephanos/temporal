@@ -12,7 +12,7 @@
   ],
   "id": "fn-227-parameterized-models-declared-worlds",
   "impl_review_rounds": {
-    "fn-227-parameterized-models-declared-worlds.1": 1
+    "fn-227-parameterized-models-declared-worlds.1": 0
   },
   "next_task": 1,
   "plan_review_rounds": 1,
@@ -171,9 +171,79 @@
       "task": "fn-227-parameterized-models-declared-worlds.1",
       "timestamp": "2026-10-21T15:25:20.313876Z",
       "verdict": "NEEDS_WORK"
+    },
+    {
+      "artifact_sha256": "b9d46367be8671e8b73644199c4d0928b7332b5064ac96f38c42f0588125f559",
+      "backend": "codex",
+      "base_sha": "a76c3581620c39d8ccb760bc4af34d4c24b1d618",
+      "counter_kind": "impl",
+      "effort": "high",
+      "failure_class": null,
+      "finalized": {
+        "digest": "complete",
+        "receipt": "complete",
+        "status": "not_applicable"
+      },
+      "findings_digest": {
+        "backend": "codex",
+        "digest_truncated": false,
+        "items": [
+          {
+            "chainRoot": "finding-10dad9ece271dcbc973b0c6934ca1655",
+            "classification": "introduced",
+            "findingId": "finding-10dad9ece271dcbc973b0c6934ca1655",
+            "firstSeenThisRound": false,
+            "severity": "P2",
+            "status": "fixed"
+          },
+          {
+            "chainRoot": "finding-aea9c96d2705f5d8414995412f1f16d4",
+            "classification": "introduced",
+            "findingId": "finding-aea9c96d2705f5d8414995412f1f16d4",
+            "firstSeenThisRound": false,
+            "severity": "P2",
+            "status": "fixed"
+          },
+          {
+            "chainRoot": "finding-ddd000d866a4fa044515844f24505dcf",
+            "classification": "introduced",
+            "findingId": "finding-ddd000d866a4fa044515844f24505dcf",
+            "firstSeenThisRound": false,
+            "severity": "P2",
+            "status": "fixed"
+          },
+          {
+            "chainRoot": "finding-1d6a6f2f6a692f0e04fe49fd6d9681ba",
+            "classification": "introduced",
+            "findingId": "finding-1d6a6f2f6a692f0e04fe49fd6d9681ba",
+            "firstSeenThisRound": false,
+            "severity": "P2",
+            "status": "fixed"
+          }
+        ],
+        "reviewKind": "implementation"
+      },
+      "forced": false,
+      "hash_epoch": 0,
+      "head_sha": "bbf0835fbf3f536a954adae8dca3ef19795627d4",
+      "head_sha_observed": true,
+      "kind": "impl",
+      "model": "gpt-6.1-sol",
+      "outcome": "verdict",
+      "output_bytes": 1285,
+      "output_sha256": "54890cdb8911900fc25cfbf88d15ba7d51a0b78c18620f850a9aa15412b2eebb",
+      "reservation_id": "240dfafd16894fba96ccbde9f6d864c7",
+      "round_consumed": true,
+      "scope": "impl:fn-227-parameterized-models-declared-worlds.1",
+      "superseded_by": null,
+      "task": "fn-227-parameterized-models-declared-worlds.1",
+      "timestamp": "2026-10-21T15:48:14.377915Z",
+      "verdict": "SHIP"
     }
   ],
-  "review_hash_epoch": {},
+  "review_hash_epoch": {
+    "impl:fn-227-parameterized-models-declared-worlds.1": 1
+  },
   "review_pending_rounds": {},
   "review_reservations": {},
   "review_transport_failures": {
@@ -194,5 +264,5 @@
     "mergeBaseTracker": null,
     "url": null
   },
-  "updated_at": "2026-10-21T15:45:33.912228Z"
+  "updated_at": "2026-10-21T15:48:14.386132Z"
 }
