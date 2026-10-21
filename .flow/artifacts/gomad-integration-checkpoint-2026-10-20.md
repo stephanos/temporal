@@ -1230,3 +1230,19 @@ Helper source, the Rust host, budgets, oracles and Temporal tests are unchanged.
 - **End to end.** All nine fn-224.2 ringpop leaves pass over seeds 0, 1 and 2 (27/27), and 27/27 standalone replays report `reproduced=true choice-replay=exact`. These include empty tapes and non-empty v4 tapes of up to 4,194 decisions.
 - **Review.** Two independent `codex review` passes, on the commit and on the branch, found no actionable regressions.
 - **Evidence.** `/home/agent/wt/evidence/go-host-v4-compat/`.
+
+### Closed-spec cleanup after fn-224 and fn-235 closure, 2026-10-21
+
+fn-224 (3c71f9e398) and fn-235 (f0e8a0e945) are closed. Under the closed-spec cleanup
+policy the conductor removed their nine worktrees (fn224, fn224-premerge, fn224-at92c6,
+fn235, fn235-measure-{before,after,after-tipsrc}, fn235-progress, fn235-final-progress),
+branches fn224-ringpop, fn235-cluster-fail-fast, fn235-failure-repair and the merged
+go-host-v4-compat, private Cargo targets, `/home/agent/wt/evidence/fn224`,
+`/home/agent/wt/evidence/fn235` and the fn235 `.build-cache` roots. Every branch commit is
+in `gomad` by ancestry or equivalent subject (d7f9599fcc → 503f7afd1a, b71292bd58 →
+e6b57b653c). The uncommitted private measurement instrumentation is retained as
+`.flow/artifacts/fn235-measurement-patches/`. The open fn-221.2 input
+`fn221-linkcount-affected-units.txt` was transferred byte-identically to
+`/home/agent/wt/evidence/fn221/`. fn-232.13's fn-235 R5 receiver needs a fresh frozen
+Rust run, not the deleted raw cohort; results remain in
+`.flow/artifacts/fn235-commitment-cost-2026-10-21.md`. Free space rose from 53 to 78 GiB.

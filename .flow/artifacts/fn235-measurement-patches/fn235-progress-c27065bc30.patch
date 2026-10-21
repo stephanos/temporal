@@ -1,0 +1,353 @@
+diff --git a/tools/gomad/internal/backends/wasm/wasmhost/src/clock.rs b/tools/gomad/internal/backends/wasm/wasmhost/src/clock.rs
+index 5d78cf97f7..ca9d656a60 100644
+--- a/tools/gomad/internal/backends/wasm/wasmhost/src/clock.rs
++++ b/tools/gomad/internal/backends/wasm/wasmhost/src/clock.rs
+@@ -182,6 +182,8 @@ fn quote(name: &str) -> String {
+ const INACTIVE: &str = "simulation time participant is inactive";
+ 
+ pub struct Clock {
++    measure_started: std::time::Instant,
++    measure_next: std::cell::Cell<usize>,
+     current: i64,
+     forward: bool,
+     /// Live participants by handle; a removed handle is absent, so it stays
+@@ -205,6 +207,8 @@ impl Clock {
+     /// Go `NewProcessClock(forward)`.
+     pub fn process(forward: bool) -> Self {
+         Self {
++            measure_started: std::time::Instant::now(),
++            measure_next: std::cell::Cell::new(0),
+             current: INITIAL_TIME,
+             forward,
+             participants: BTreeMap::new(),
+@@ -216,6 +220,15 @@ impl Clock {
+     }
+ 
+     pub fn current(&self) -> i64 {
++        if let Some(seconds) = [10i64, 60, 120].get(self.measure_next.get())
++            && self.current - INITIAL_TIME >= seconds * 1_000_000_000
++        {
++            use std::io::Write as _;
++            self.measure_next.set(self.measure_next.get() + 1);
++            let path = format!("/home/agent/wt/evidence/fn235/commitment/progress-{}.jsonl", std::process::id());
++            let mut output = std::fs::OpenOptions::new().create(true).append(true).open(path).unwrap();
++            writeln!(output, "{{\"milestone_seconds\":{seconds},\"virtual_nanos\":{},\"wall_nanos\":{}}}", self.current - INITIAL_TIME, self.measure_started.elapsed().as_nanos()).unwrap();
++        }
+         self.current
+     }
+ 
+diff --git a/tools/gomad/internal/backends/wasm/wasmhost/src/cluster/handoff/broker.rs b/tools/gomad/internal/backends/wasm/wasmhost/src/cluster/handoff/broker.rs
+index ba80f3e850..540707a1a5 100644
+--- a/tools/gomad/internal/backends/wasm/wasmhost/src/cluster/handoff/broker.rs
++++ b/tools/gomad/internal/backends/wasm/wasmhost/src/cluster/handoff/broker.rs
+@@ -1484,7 +1484,7 @@ impl Member {
+         if !recorder.observed || recorder.exhausted {
+             return;
+         }
+-        match endpoint.evidence() {
++        match endpoint.inspection_network_eager() {
+             Ok(bytes) => recorder.network_snapshot(
+                 &crate::model::inspection::Handle {
+                     node,
+diff --git a/tools/gomad/internal/backends/wasm/wasmhost/src/cluster/network.rs b/tools/gomad/internal/backends/wasm/wasmhost/src/cluster/network.rs
+index 20a99fc750..a699c87a1f 100644
+--- a/tools/gomad/internal/backends/wasm/wasmhost/src/cluster/network.rs
++++ b/tools/gomad/internal/backends/wasm/wasmhost/src/cluster/network.rs
+@@ -11,6 +11,7 @@ use crate::network::stream_abi::{self, Call, HEADER, MAXIMUM_CHUNK_BYTES};
+ use crate::network::{Domain, Model as Owner, OperationResult, Request, history};
+ use crate::world;
+ use serde::Deserialize;
++use sha2::{Digest, Sha256};
+ use std::collections::{BTreeMap, BTreeSet};
+ use std::sync::{Arc, Mutex};
+ 
+@@ -549,6 +550,7 @@ pub struct Endpoint {
+     world_ready: BTreeSet<u64>,
+     log_json_bytes: u64,
+     entries: Vec<u8>,
++    entries_hash: Sha256,
+     entry_count: u64,
+     /// Process-unique identity and a revision every public `&mut self`
+     /// entry point advances (private fields: no other writer exists).
+@@ -605,6 +607,7 @@ impl Endpoint {
+             world_ready: BTreeSet::new(),
+             log_json_bytes: 0,
+             entries: Vec::new(),
++            entries_hash: Sha256::new(),
+             entry_count: 0,
+             identity: ENDPOINT_IDENTITIES.fetch_add(1, std::sync::atomic::Ordering::Relaxed),
+             revision: 0,
+@@ -651,6 +654,7 @@ impl Endpoint {
+             return Err(Failure::Capacity("network-v2-transcript-bytes"));
+         }
+         self.log_json_bytes += length;
++        self.entries_hash.update(&binary);
+         self.entries.extend(binary);
+         self.entry_count += 1;
+         Ok(())
+@@ -886,8 +890,36 @@ impl Endpoint {
+         ))
+     }
+ 
+-    /// `commit(evidence)` (the inspection network commitment) and, when it
+-    /// was not already known for the current key, the evidence it hashed.
++    fn inspection_material(&self, native: &str, entries: [u8; 32]) -> Vec<u8> {
++        let mut bytes = b"gomad/network/inspection-material/v2\0".to_vec();
++        for value in [PROFILE.as_bytes(), native.as_bytes()] {
++            bytes.extend_from_slice(&(value.len() as u64).to_le_bytes());
++            bytes.extend_from_slice(value);
++        }
++        for value in [
++            self.log_json_bytes,
++            self.entry_count,
++            self.entries.len() as u64,
++        ] {
++            bytes.extend_from_slice(&value.to_le_bytes());
++        }
++        bytes.extend_from_slice(&entries);
++        bytes.extend_from_slice(&self.world.inspection_commitment());
++        bytes
++    }
++
++    #[cfg(test)]
++    pub(crate) fn inspection_network_eager(&self) -> Result<Vec<u8>, Failure> {
++        let shared = lock(&self.shared);
++        let native = shared
++            .owner
++            .inspection_digest_eager()
++            .map_err(infrastructure)?;
++        Ok(self.inspection_material(&native, Sha256::digest(&self.entries).into()))
++    }
++
++    /// Commits bounded current state plus append-only transcript heads.
++    /// Full canonical evidence remains available through [`Self::evidence`].
+     pub fn inspection_network(
+         &mut self,
+         commit: impl FnOnce(&[u8]) -> [u8; 32],
+@@ -901,7 +933,9 @@ impl Endpoint {
+             return Ok((digest, None));
+         }
+         self.inspection = None;
+-        let evidence = self.evidence_locked(&shared)?;
++        let native = shared.owner.inspection_digest().map_err(infrastructure)?;
++        let evidence =
++            self.inspection_material(&native, self.entries_hash.clone().finalize().into());
+         let digest = commit(&evidence);
+         self.inspection = Some((key, digest));
+         Ok((digest, Some(evidence)))
+@@ -913,7 +947,7 @@ impl Endpoint {
+     pub fn evidence_check(&self) -> Result<(), Failure> {
+         lock(&self.shared)
+             .owner
+-            .record_check()
++            .inspection_check()
+             .map_err(infrastructure)
+     }
+ 
+diff --git a/tools/gomad/internal/backends/wasm/wasmhost/src/engine.rs b/tools/gomad/internal/backends/wasm/wasmhost/src/engine.rs
+index d5317f9c88..9ea042a58d 100644
+--- a/tools/gomad/internal/backends/wasm/wasmhost/src/engine.rs
++++ b/tools/gomad/internal/backends/wasm/wasmhost/src/engine.rs
+@@ -240,7 +240,7 @@ impl State {
+         if let Some(member) = &self.broker
+             && let Some(endpoint) = &member.network
+         {
+-            if let Ok(bytes) = endpoint.evidence() {
++            if let Ok(bytes) = endpoint.inspection_network_eager() {
+                 network = bytes;
+             } else {
+                 model.inspection.lock().exhausted = true;
+diff --git a/tools/gomad/internal/backends/wasm/wasmhost/src/model/inspection.rs b/tools/gomad/internal/backends/wasm/wasmhost/src/model/inspection.rs
+index 612e564af3..cf8a44beb8 100644
+--- a/tools/gomad/internal/backends/wasm/wasmhost/src/model/inspection.rs
++++ b/tools/gomad/internal/backends/wasm/wasmhost/src/model/inspection.rs
+@@ -8,7 +8,7 @@ use wasmtime::{Error, Result};
+ pub const MAX_METADATA: usize = 64 << 20;
+ pub const MAX_OUTPUT: usize = 8 << 20;
+ pub const MAX_FRAME: usize = 32 + 64 * 1024;
+-pub const STATE_ENCODING: &str = "gomad.inspection-state-sha256/v1";
++pub const STATE_ENCODING: &str = "gomad.inspection-state-sha256/v2";
+ pub const WORLD_ENCODING: &str = "gomad.inspection-world-sha256/v2";
+ const WORLD_HEADER: &[u8] = b"gomad.inspection-world-commitments/v2\0";
+ pub const BOUNDARY_ENCODING: &str = "gomad.inspection-boundaries-binary/v1";
+@@ -1044,6 +1044,8 @@ pub(crate) fn commitment_parts(kind: &str, parts: &[&[u8]]) -> Vec<u8> {
+     let mut hash = Sha256::new();
+     if kind == "world" {
+         hash.update(b"gomad.inspection-world-sha256/v2\0");
++    } else if kind == "network" {
++        hash.update(b"gomad.inspection-state-sha256/v2/network\0");
+     } else {
+         hash.update(b"gomad.inspection-state-sha256/v1/");
+         hash.update(kind.as_bytes());
+diff --git a/tools/gomad/internal/backends/wasm/wasmhost/src/network/history.rs b/tools/gomad/internal/backends/wasm/wasmhost/src/network/history.rs
+index f4140d8b6a..321631780c 100644
+--- a/tools/gomad/internal/backends/wasm/wasmhost/src/network/history.rs
++++ b/tools/gomad/internal/backends/wasm/wasmhost/src/network/history.rs
+@@ -89,6 +89,76 @@ pub struct Record {
+     pub snapshot: Snapshot,
+ }
+ 
++/// Inspection-only lane chains preserve canonical history's inter-lane
++/// equivalence without re-encoding the accumulated transition transcript.
++#[derive(Clone)]
++pub(crate) struct InspectionHistory {
++    lanes: std::collections::BTreeMap<String, (u64, [u8; 32])>,
++    wire_length: usize,
++    wire_error: Option<String>,
++}
++
++impl Default for InspectionHistory {
++    fn default() -> Self {
++        Self {
++            lanes: Default::default(),
++            wire_length: 8,
++            wire_error: None,
++        }
++    }
++}
++
++impl InspectionHistory {
++    pub(crate) fn append(&mut self, transition: &Transition) {
++        if self.wire_error.is_none() {
++            let mut encoder = Encoder {
++                length: self.wire_length,
++                validate_only: true,
++                ..Default::default()
++            };
++            self.wire_error = encoder.transition(transition).err();
++            self.wire_length = encoder.length;
++        }
++        if self.wire_error.is_some() {
++            return;
++        }
++        let mut transition = transition.clone();
++        transition.ordinal = 0;
++        let mut encoder = Encoder::default();
++        encoder
++            .transition(&transition)
++            .expect("validated transition encoding");
++        let key = lane(&transition);
++        let (count, head) = self.lanes.entry(key).or_default();
++        let mut hash = Sha256::new();
++        hash.update(b"gomad/network/inspection-lane/v2\0");
++        hash.update(*head);
++        hash.update(count.to_le_bytes());
++        hash.update((encoder.bytes.len() as u64).to_le_bytes());
++        hash.update(&encoder.bytes);
++        *head = hash.finalize().into();
++        *count += 1;
++    }
++
++    pub(crate) fn check(&self) -> Result<(), String> {
++        self.wire_error.clone().map_or(Ok(()), Err)
++    }
++
++    pub(crate) fn digest(&self) -> Result<String, String> {
++        self.check()?;
++        let mut hash = Sha256::new();
++        hash.update(b"gomad/network/inspection-history/v2\0");
++        hash.update((self.lanes.len() as u64).to_le_bytes());
++        for (lane, (count, head)) in &self.lanes {
++            hash.update((lane.len() as u64).to_le_bytes());
++            hash.update(lane.as_bytes());
++            hash.update(count.to_le_bytes());
++            hash.update(head);
++        }
++        Ok(format!("sha256:{:x}", hash.finalize()))
++    }
++}
++
+ #[derive(Default)]
+ struct Encoder {
+     bytes: Vec<u8>,
+@@ -266,7 +336,7 @@ fn encode_snapshot(encoder: &mut Encoder, snapshot: &Snapshot) -> Result<(), Str
+ 
+ #[cfg(test)]
+ thread_local! {
+-    pub(super) static DIGEST_COUNTS: std::cell::Cell<(usize, usize)> = const { std::cell::Cell::new((0, 0)) };
++    pub(crate) static DIGEST_COUNTS: std::cell::Cell<(usize, usize)> = const { std::cell::Cell::new((0, 0)) };
+ }
+ 
+ pub(crate) fn endpoint_key(endpoint: &Endpoint) -> String {
+diff --git a/tools/gomad/internal/backends/wasm/wasmhost/src/network/mod.rs b/tools/gomad/internal/backends/wasm/wasmhost/src/network/mod.rs
+index cc50819014..a1672e3f86 100644
+--- a/tools/gomad/internal/backends/wasm/wasmhost/src/network/mod.rs
++++ b/tools/gomad/internal/backends/wasm/wasmhost/src/network/mod.rs
+@@ -150,6 +150,7 @@ pub struct Model {
+     links: BTreeMap<String, history::Link>,
+     pub(crate) live: BTreeMap<String, Domain>,
+     pub(crate) transitions: Vec<history::Transition>,
++    inspection_history: history::InspectionHistory,
+     listeners: Vec<Listener>,
+     connections: BTreeMap<u64, history::ConnectionSnapshot>,
+     states: BTreeMap<(u64, bool), connection::State>,
+@@ -497,12 +498,38 @@ impl Model {
+     /// or hashing: transition validity is order-independent (per-string
+     /// bounds and a monotone total length), and the snapshot digest's only
+     /// transition-dependent input is the fixed-length transition digest.
++    #[cfg(test)]
+     pub fn record_check(&self) -> Result<(), String> {
+         history::validate_transitions(&self.transitions)?;
+         let mut snapshot = self.snapshot_fields();
+         snapshot.transition_sha256 = history::TRANSITION_DIGEST_PLACEHOLDER.into();
+         history::validate_snapshot(&snapshot)
+     }
++
++    pub(crate) fn inspection_check(&self) -> Result<(), String> {
++        self.inspection_history.check()?;
++        let mut snapshot = self.snapshot_fields();
++        snapshot.transition_sha256 = history::TRANSITION_DIGEST_PLACEHOLDER.into();
++        history::validate_snapshot(&snapshot)
++    }
++
++    pub(crate) fn inspection_digest(&self) -> Result<String, String> {
++        self.inspection_history.check()?;
++        let mut snapshot = self.snapshot_fields();
++        snapshot.transition_sha256 = self.inspection_history.digest()?;
++        history::snapshot_digest(&snapshot)
++    }
++
++    #[cfg(test)]
++    pub(crate) fn inspection_digest_eager(&self) -> Result<String, String> {
++        let mut history = history::InspectionHistory::default();
++        for transition in &self.record()?.transitions.unwrap_or_default() {
++            history.append(transition);
++        }
++        let mut snapshot = self.snapshot_fields();
++        snapshot.transition_sha256 = history.digest()?;
++        history::snapshot_digest(&snapshot)
++    }
+     #[allow(
+         dead_code,
+         reason = "The network corpus retains standalone terminal evidence; clusters record shared live state."
+@@ -1015,6 +1042,7 @@ impl Model {
+             }
+             self.replay_next.insert(lane, next + 1);
+         }
++        self.inspection_history.append(&transition);
+         self.transitions.push(transition);
+         Ok(())
+     }
+@@ -1037,12 +1065,14 @@ impl Model {
+         let start = self.transitions.len();
+         let previous_reserved = self.history_reserved;
+         let previous_replay = self.replay_next.clone();
++        let previous_inspection = self.inspection_history.clone();
+         self.history_reserved = next;
+         for transition in transitions {
+             if let Err(error) = self.commit_silent(transition.clone()) {
+                 self.transitions.truncate(start);
+                 self.history_reserved = previous_reserved;
+                 self.replay_next = previous_replay;
++                self.inspection_history = previous_inspection;
+                 return Err(error);
+             }
+         }
+@@ -1877,6 +1907,7 @@ impl Model {
+             links,
+             live: BTreeMap::new(),
+             transitions: Vec::new(),
++            inspection_history: Default::default(),
+             listeners: Vec::new(),
+             connections: BTreeMap::new(),
+             states: BTreeMap::new(),
