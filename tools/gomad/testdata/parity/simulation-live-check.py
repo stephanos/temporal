@@ -200,6 +200,10 @@ def main():
         before = rounds['snapshot'](altered)
         run('runtime-forcing-tamper-refusal', [args.binary, 'replay', altered], (2,))
         assert b'retained runtime forcing authentication' in (args.work / 'runtime-forcing-tamper-refusal.stderr').read_bytes()
+        run('runtime-forcing-verify-only-refusal', [args.binary, 'replay', '--verify-only', altered], (2,))
+        assert b'retained runtime forcing authentication' in (args.work / 'runtime-forcing-verify-only-refusal.stderr').read_bytes()
+        run('valid-cluster-verify-only-unsupported', [args.binary, 'replay', '--verify-only', runtime_artifact], (2,))
+        assert b'does not support --verify-only' in (args.work / 'valid-cluster-verify-only-unsupported.stderr').read_bytes()
         assert rounds['snapshot'](altered) == before
     (args.work / 'observations.json').write_bytes(encode(dict(schema='gomad.rust-simulation-live-check/v1',
         binary_sha256=digest(args.binary.read_bytes()), dimensions=sorted(observed), forced_dimensions=sorted(forced),
