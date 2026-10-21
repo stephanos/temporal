@@ -730,7 +730,7 @@ fn execute_inner(
     {
         outcome = failure;
     }
-    let world = if matches!(outcome.termination, "exit" | "trap") {
+    let world = if matches!(outcome.termination, "exit" | "trap" | "capacity") {
         broker
             .world_wire()
             .map_err(|failure| Error::msg(failure.message()))?
