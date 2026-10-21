@@ -1,0 +1,77 @@
+package main
+
+import (
+	"context"
+	"crypto/sha256"
+	"encoding/json"
+	"fmt"
+	"os"
+	"time"
+
+	backend "go.temporal.io/server/tools/gomad/internal/backends/wasm/backend"
+	simulation "go.temporal.io/server/tools/gomad/internal/backends/wasm/cluster"
+	"go.temporal.io/server/tools/gomad/internal/backends/wasm/wasi"
+	model "go.temporal.io/server/tools/gomad/internal/model/cluster"
+)
+
+func check(err error) { if err != nil { panic(err) } }
+
+type observation struct {
+	Rank uint32 `json:"rank"`
+	StartOrder []string `json:"start_order"`
+	Record model.ClusterRecord `json:"record"`
+}
+
+func main() {
+	var base wasi.Request
+	raw, err := os.ReadFile(os.Args[1]); check(err)
+	check(json.Unmarshal(raw, &base))
+	module, err := os.ReadFile(base.ModulePath); check(err)
+	imports, pages, err := backend.InspectModule(module); check(err)
+	base.Imports, base.InitialMemoryPages = imports, pages
+	base.ModuleSHA256 = fmt.Sprintf("%x", sha256.Sum256(module))
+	base.Config.Args = []string{"fixture", "park"}
+	base.Config.Storage, base.Config.NetworkV2 = nil, nil
+	base.Runtime.Seed = 89
+	base.Runtime.Choice.ExecutionIdentity.TargetSHA256 = sha256.Sum256(module)
+	root, err := model.NewExplorationPlan(fmt.Sprintf("sha256:%x", sha256.Sum256([]byte("actual-scenario"))), fmt.Sprintf("sha256:%x", sha256.Sum256([]byte("controller"))), 89, nil); check(err)
+	run := func(plan model.ExplorationPlan) observation {
+		operator := simulation.OperatorScenario{Schema: simulation.OperatorSchema,
+			Spec: model.Spec{Schema:model.SpecSchema, Backend:model.BackendWASM, Fidelity:model.FidelitySimulationModel, Limits:model.DefaultLimits(), Nodes:[]model.NodeSpec{{ID:"a", Boot:"park", Address:"10.0.0.1"},{ID:"b", Boot:"park", Address:"10.0.0.2"}}},
+			Boots:[]simulation.OperatorBoot{{ID:"park", Args:[]string{"park"}}},
+			Actions:[]simulation.OperatorAction{{Action:"start",Handle:model.NodeHandle{Node:"a",Incarnation:1}},{Action:"start",Handle:model.NodeHandle{Node:"b",Incarnation:1}},{Action:"wait",Handle:model.NodeHandle{Node:"a",Incarnation:1}},{Action:"wait",Handle:model.NodeHandle{Node:"b",Incarnation:1}}},
+		}
+		spec, provider, err := operator.Bind(base); check(err)
+		spec.Exploration = &plan
+		var order []string
+		branch := func(nodes ...model.NodeID) model.Scenario {
+			return func(ctx context.Context, cluster model.Cluster) error {
+				handles := map[model.NodeID]model.NodeHandle{}
+				for _, node := range nodes {
+					handle, err := cluster.Start(ctx,node); if err != nil { return err }
+					handles[node] = handle; order = append(order,string(node))
+				}
+				for _, node := range []model.NodeID{"a","b"} {
+					if _, err := cluster.Wait(ctx,handles[node]); err != nil { return err }
+				}
+				return nil
+			}
+		}
+		first, err := model.NewScenarioStep("a-first",branch("a","b")); check(err)
+		second, err := model.NewScenarioStep("b-first",branch("b","a")); check(err)
+		ctx, cancel := context.WithTimeout(context.Background(),time.Minute); defer cancel()
+		result, err := model.RunWASM(ctx,spec,model.Choose("ready-start",first,second),provider); check(err)
+		if len(result.Record.ExplorationDecisions) != 1 { panic("actual scenario decision missing") }
+		return observation{Rank:result.Record.ExplorationDecisions[0].Selected,StartOrder:order,Record:result.Record}
+	}
+	baseline := run(root)
+	decision := baseline.Record.ExplorationDecisions[0]
+	var observed []observation
+	for rank := uint32(0); rank < 2; rank++ {
+		forced, err := model.NewExplorationOverride(model.ExplorationScenario,decision.Ordinal,decision.SiteSHA256,decision.Alternatives,rank); check(err)
+		plan, err := model.NewExplorationPlan(root.ExecutionSHA256,root.ControllerSHA256,89,[]model.ExplorationOverride{forced}); check(err)
+		observed = append(observed,run(plan))
+	}
+	encoded, err := json.Marshal(observed); check(err)
+	fmt.Println(string(encoded))
+}
