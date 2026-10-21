@@ -120,7 +120,7 @@ The review passed; each consumer still waits for its declared support dependenci
 
 | Name | Status | What |
 | --- | --- | --- |
-| fn-227.7 | ⬜ todo | After .1: independent typed World/source binding, whole-state Init, all CFGs and `parameterized_world` TLC proof (R1, R3) |
+| fn-227.7 | 🔄 in progress | After .1: independent typed World/source binding, whole-state Init, all CFGs and `parameterized_world` TLC proof (R1, R3) |
 | fn-227.2 | ⬜ todo | After .1 and .7: native `Finite`, typed World-dependent domains and checked catalog admission (R2) |
 | fn-227.8 | ⬜ todo | After .2 and .7: independent source inputs, exact-payload fairness and `action_inputs` TLC proof (R2, R3) |
 | fn-227.11 | ⬜ todo | After .8: source `Phased`/`reject!` and closure laws, with unchanged activity behavior (R3) |
