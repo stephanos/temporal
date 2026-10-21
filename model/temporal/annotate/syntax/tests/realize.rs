@@ -102,6 +102,26 @@ fn wrapper_alias_payloads_do_not_erase_enum_identity() -> Result<(), Box<dyn std
 #[test]
 fn dereferenced_enum_subjects_preserve_coverage() -> Result<(), Box<dyn std::error::Error>> {
     check_alias_cases(&[
+        (
+            "impl Binding { fn f(value:&Option<generated::Status>) { match value { Some(_)=>(), None=>() } } }",
+            0,
+            true,
+        ),
+        (
+            "impl Binding { fn f(value:&Option<generated::Status>) { match value { &Some(_)=>(), &None=>() } } }",
+            0,
+            true,
+        ),
+        (
+            "enum Local { Ready, Other } impl Binding { fn f(value:Local) { let borrowed=&value; match *borrowed { _=>() } } }",
+            0,
+            false,
+        ),
+        (
+            "struct Wrapper; impl std::ops::Deref for Wrapper { type Target=generated::Status; fn deref(&self)->&Self::Target { todo!() } } impl Binding { fn f(value:Wrapper) { match *value { _=>() } } }",
+            1,
+            true,
+        ),
         ("impl Binding { fn f(value:&generated::Status) { match *value { _=>() } } }", 0, true),
         (
             "enum Local { Ready, Other } impl Binding { fn f(value:&Local) { match *value { _=>() } } }",

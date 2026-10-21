@@ -15,11 +15,14 @@ use syn::{
 
 use crate::realization::{Classification, ClassifiedField, Schema};
 
+mod patterns;
 mod source;
+use patterns::{match_positions, positions, wildcard};
 use source::{EnumKind, Scope};
 
 #[derive(Clone, PartialEq, Eq, PartialOrd, Ord)]
 enum Position {
+    Reference,
     Tuple(usize),
     Variant(String, usize),
 }
@@ -28,6 +31,26 @@ type Positions = BTreeMap<Vec<Position>, EnumKind>;
 
 fn position(kind: EnumKind) -> Positions {
     if kind == EnumKind::Other { Positions::new() } else { Positions::from([(vec![], kind)]) }
+}
+
+fn referenced(mut paths: Positions) -> Positions {
+    if paths.is_empty() {
+        paths.insert(vec![], EnumKind::Other);
+    }
+    paths
+        .into_iter()
+        .map(|(mut path, kind)| {
+            path.insert(0, Position::Reference);
+            (path, kind)
+        })
+        .collect()
+}
+
+fn dereferenced(paths: Positions) -> Positions {
+    if paths.is_empty() || paths.keys().any(|path| path.first() != Some(&Position::Reference)) {
+        return position(EnumKind::Unknown);
+    }
+    paths.into_iter().map(|(path, kind)| (path[1..].to_vec(), kind)).collect()
 }
 
 #[derive(Default)]
@@ -474,113 +497,6 @@ fn answer(
     })
 }
 
-fn positions(
-    pattern: &syn::Pat,
-    schema: &Schema,
-    scope: &Scope,
-    prefix: &[Position],
-    result: &mut Positions,
-) {
-    match pattern {
-        syn::Pat::Path(path) => {
-            merge_position(result, prefix, scope.kind(&path.path, schema, true));
-        }
-        syn::Pat::Ident(binding) if scope.imported(&binding.ident.to_string()) => {
-            merge_position(
-                result,
-                prefix,
-                scope.kind(&Path::from(binding.ident.clone()), schema, true),
-            );
-        }
-        syn::Pat::Tuple(tuple) => {
-            for (index, element) in tuple.elems.iter().enumerate() {
-                let mut position = prefix.to_vec();
-                position.push(Position::Tuple(index));
-                positions(element, schema, scope, &position, result);
-            }
-        }
-        syn::Pat::TupleStruct(pattern) => {
-            for (index, element) in pattern.elems.iter().enumerate() {
-                let mut position = prefix.to_vec();
-                position.push(Position::Variant(scope.constructor(&pattern.path), index));
-                positions(element, schema, scope, &position, result);
-            }
-        }
-        syn::Pat::Or(pattern) => {
-            for case in &pattern.cases {
-                positions(case, schema, scope, prefix, result);
-            }
-        }
-        syn::Pat::Paren(pattern) => positions(&pattern.pat, schema, scope, prefix, result),
-        syn::Pat::Reference(pattern) => positions(&pattern.pat, schema, scope, prefix, result),
-        _ => {}
-    }
-}
-fn merge_position(result: &mut Positions, prefix: &[Position], kind: EnumKind) {
-    let current = result.entry(prefix.to_vec()).or_insert(kind);
-    if kind == EnumKind::Generated || (*current == EnumKind::Unknown && kind == EnumKind::Other) {
-        *current = kind;
-    }
-}
-fn wildcard(
-    pattern: &syn::Pat,
-    position: &[Position],
-    scope: &Scope,
-    schema: &Schema,
-) -> Option<Span> {
-    match pattern {
-        syn::Pat::Ident(binding)
-            if scope.imported(&binding.ident.to_string())
-                && scope.kind(&Path::from(binding.ident.clone()), schema, true)
-                    == EnumKind::Generated =>
-        {
-            None
-        }
-        syn::Pat::Ident(binding)
-            if scope.framework(&Path::from(binding.ident.clone()), "None", schema) =>
-        {
-            None
-        }
-        syn::Pat::Wild(_) | syn::Pat::Ident(_) => Some(pattern.span()),
-        syn::Pat::Or(pattern) => {
-            pattern.cases.iter().find_map(|case| wildcard(case, position, scope, schema))
-        }
-        syn::Pat::Paren(pattern) => wildcard(&pattern.pat, position, scope, schema),
-        syn::Pat::Reference(pattern) => wildcard(&pattern.pat, position, scope, schema),
-        syn::Pat::Tuple(pattern) => match position.first() {
-            None => pattern.elems.iter().find_map(|part| wildcard(part, position, scope, schema)),
-            Some(Position::Tuple(index)) => pattern
-                .elems
-                .iter()
-                .nth(*index)
-                .and_then(|part| wildcard(part, &position[1..], scope, schema)),
-            _ => None,
-        },
-        syn::Pat::TupleStruct(pattern) => match position.first() {
-            None => pattern.elems.iter().find_map(|part| wildcard(part, position, scope, schema)),
-            Some(Position::Variant(name, index)) if *name == scope.constructor(&pattern.path) => {
-                pattern
-                    .elems
-                    .iter()
-                    .nth(*index)
-                    .and_then(|part| wildcard(part, &position[1..], scope, schema))
-            }
-            _ => None,
-        },
-        syn::Pat::Struct(pattern) if position.is_empty() => {
-            pattern.rest.as_ref().map(Spanned::span).or_else(|| {
-                pattern
-                    .fields
-                    .iter()
-                    .find_map(|field| wildcard(&field.pat, position, scope, schema))
-            })
-        }
-        syn::Pat::Slice(pattern) if position.is_empty() => {
-            pattern.elems.iter().find_map(|part| wildcard(part, position, scope, schema))
-        }
-        _ => None,
-    }
-}
 fn type_positions(ty: &Type, schema: &Schema, scope: &Scope) -> Positions {
     match ty {
         Type::Path(path)
@@ -604,7 +520,7 @@ fn type_positions(ty: &Type, schema: &Schema, scope: &Scope) -> Positions {
                 .collect()
         }
         Type::Path(path) => position(scope.kind(&path.path, schema, false)),
-        Type::Reference(reference) => type_positions(&reference.elem, schema, scope),
+        Type::Reference(reference) => referenced(type_positions(&reference.elem, schema, scope)),
         Type::Paren(ty) => type_positions(&ty.elem, schema, scope),
         Type::Tuple(tuple) => tuple
             .elems
@@ -699,9 +615,9 @@ impl EnumMatches<'_> {
             }
             syn::Expr::Try(value) => self.expression_positions(&value.expr),
             syn::Expr::Paren(value) => self.expression_positions(&value.expr),
-            syn::Expr::Reference(value) => self.expression_positions(&value.expr),
+            syn::Expr::Reference(value) => referenced(self.expression_positions(&value.expr)),
             syn::Expr::Unary(value) if matches!(value.op, syn::UnOp::Deref(_)) => {
-                self.expression_positions(&value.expr)
+                dereferenced(self.expression_positions(&value.expr))
             }
             syn::Expr::MethodCall(call)
                 if matches!(
@@ -817,7 +733,7 @@ impl<'ast> Visit<'ast> for EnumMatches<'_> {
         if let syn::Expr::Path(path) = expression.left.as_ref() {
             let name = path.path.to_token_stream().to_string();
             let positions = self.expression_positions(&expression.right);
-            if !positions.is_empty() {
+            if positions.values().any(|kind| *kind != EnumKind::Other) {
                 self.assigned.insert(name.clone());
             }
             self.bindings.insert(name, positions);
@@ -825,7 +741,7 @@ impl<'ast> Visit<'ast> for EnumMatches<'_> {
     }
 
     fn visit_expr_match(&mut self, expression: &'ast syn::ExprMatch) {
-        let mut paths = self.expression_positions(&expression.expr);
+        let mut paths = match_positions(self.expression_positions(&expression.expr));
         for arm in &expression.arms {
             positions(&arm.pat, self.schema, &self.scope, &[], &mut paths);
         }

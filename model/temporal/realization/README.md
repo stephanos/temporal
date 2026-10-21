@@ -44,6 +44,8 @@ bounded source analysis, not Rust compiler name or type inference. The attribute
 impl must occur literally in readable source; unavailable source scope refuses
 compilation. Its source file is tracked as an expansion input. Match expressions
 are inspected without changing their evaluation, ownership or moves.
+Dereferencing follows only proven built-in references; wildcard coverage after
+custom `Deref` is unresolved.
 
 `Realization::REALIZATION` retains the mapped/ignored/unsupported paths and ignore
 reasons for each observed response, incoming callback and outgoing request. Outgoing
