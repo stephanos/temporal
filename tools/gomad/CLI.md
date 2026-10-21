@@ -295,6 +295,46 @@ truncate an interrupted final entry before retrying that round. `inspect --json
 --choices CAMPAIGN` reports the explored envelope and typed replay divergence,
 with site symbols resolved from each retained execution's matching module.
 
+The mandatory exploration lane runs through the behavioral harness, separately
+from the seed campaign lane:
+
+```sh
+python3 tools/gomad/scripts/behavioral-parity \
+  --corpus tools/gomad/testdata/parity --verb explore \
+  --exploration-binary /absolute/host-fixture-enabled/gomad \
+  --exploration-divergence-binary /absolute/explicit-helper-fixture/gomad \
+  --exploration-conformance-helper /absolute/current/conformance-helper \
+  --exploration-baseline /absolute/authenticated/go-baseline \
+  --exploration-source /absolute/extracted/baseline/source \
+  --exploration-go-compiler /absolute/pinned/go1.27.1/bin/go \
+  --exploration-input /absolute/replay-fixture-input.json \
+  --exploration-go-base /absolute/original-go-wasi-request.json \
+  --exploration-preparation-root /absolute/stable/exploration-preparation \
+  --output-root /absolute/new/exploration-check
+```
+
+`--verb resume` selects the same complete lane. Exploration routing takes
+precedence over `--campaign-binary` for these two verbs. All listed inputs are
+required; missing roles or reference inputs fail before execution. Use a fresh
+preparation root for the current checkout; both simulation runs reuse that exact
+root and compare observations and all eight raw simulation record digests.
+
+The lane requires nine choice and twelve simulation controller cases, actual
+public choice exploration against fresh Go CLI results, two six-dimension live
+simulation runs with eight artifact replays each, scenario startup against fresh
+original Go API executions, and real typed divergence inspection. The divergence
+binary explicitly enables the helper fixture role; its mode-sensitive Go guest
+uses real runtime decisions. The ordinary role must refuse that fixture without
+committing an execution. This fixture proves inspect projection, not ordinary
+workload qualification.
+
+Frozen Go's public combined simulation CLI refusal is retained as a boundary
+receipt. The scenario API comparison and required current Go Namespace, Volume,
+network adapter, network cluster and broker conformance tests are separate
+evidence; they do not establish positive combined Go CLI parity. Receipts and the
+final result are written under the fresh output root. The inexpensive routing
+check is `python3 tools/gomad/testdata/parity/exploration-lane.py --selftest`.
+
 ## Shared generated contracts
 
 The Go models, cooperative runtime overlay and Rust helper share wire schemas
