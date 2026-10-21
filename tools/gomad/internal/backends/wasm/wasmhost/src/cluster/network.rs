@@ -11,6 +11,7 @@ use crate::network::stream_abi::{self, Call, HEADER, MAXIMUM_CHUNK_BYTES};
 use crate::network::{Domain, Model as Owner, OperationResult, Request, history};
 use crate::world;
 use serde::{Deserialize, Serialize};
+use sha2::{Digest, Sha256};
 use std::collections::{BTreeMap, BTreeSet};
 use std::sync::{Arc, Mutex};
 
@@ -550,6 +551,7 @@ pub struct Endpoint {
     world_ready: BTreeSet<u64>,
     log_json_bytes: u64,
     entries: Vec<u8>,
+    entries_hash: Sha256,
     entry_count: u64,
     /// Process-unique identity and a revision every public `&mut self`
     /// entry point advances (private fields: no other writer exists).
@@ -607,6 +609,7 @@ impl Endpoint {
             world_ready: BTreeSet::new(),
             log_json_bytes: 0,
             entries: Vec::new(),
+            entries_hash: Sha256::new(),
             entry_count: 0,
             identity: ENDPOINT_IDENTITIES.fetch_add(1, std::sync::atomic::Ordering::Relaxed),
             revision: 0,
@@ -657,6 +660,7 @@ impl Endpoint {
             local.log.push(json.as_ref().to_vec());
         }
         if self.local.is_none() {
+            self.entries_hash.update(&binary);
             self.entries.extend(binary);
         }
         self.entry_count += 1;
@@ -895,8 +899,36 @@ impl Endpoint {
         ))
     }
 
-    /// `commit(evidence)` (the inspection network commitment) and, when it
-    /// was not already known for the current key, the evidence it hashed.
+    fn inspection_material(&self, native: &str, entries: [u8; 32]) -> Vec<u8> {
+        let mut bytes = b"gomad/network/inspection-material/v2\0".to_vec();
+        for value in [PROFILE.as_bytes(), native.as_bytes()] {
+            bytes.extend_from_slice(&(value.len() as u64).to_le_bytes());
+            bytes.extend_from_slice(value);
+        }
+        for value in [
+            self.log_json_bytes,
+            self.entry_count,
+            self.entries.len() as u64,
+        ] {
+            bytes.extend_from_slice(&value.to_le_bytes());
+        }
+        bytes.extend_from_slice(&entries);
+        bytes.extend_from_slice(&self.world.inspection_commitment());
+        bytes
+    }
+
+    #[cfg(test)]
+    pub(crate) fn inspection_network_eager(&self) -> Result<Vec<u8>, Failure> {
+        let shared = lock(&self.shared);
+        let native = shared
+            .owner
+            .inspection_digest_eager()
+            .map_err(infrastructure)?;
+        Ok(self.inspection_material(&native, Sha256::digest(&self.entries).into()))
+    }
+
+    /// Commits bounded current state plus append-only transcript heads.
+    /// Full canonical evidence remains available through [`Self::evidence`].
     pub fn inspection_network(
         &mut self,
         commit: impl FnOnce(&[u8]) -> [u8; 32],
@@ -910,7 +942,12 @@ impl Endpoint {
             return Ok((digest, None));
         }
         self.inspection = None;
-        let evidence = self.evidence_locked(&shared)?;
+        let evidence = if self.local.is_some() {
+            self.evidence_locked(&shared)?
+        } else {
+            let native = shared.owner.inspection_digest().map_err(infrastructure)?;
+            self.inspection_material(&native, self.entries_hash.clone().finalize().into())
+        };
         let digest = commit(&evidence);
         self.inspection = Some((key, digest));
         Ok((digest, Some(evidence)))
@@ -920,9 +957,12 @@ impl Endpoint {
     /// owner `Record` is its only fallible part, since the network World's
     /// wire bounds every string by its 1 KiB limit and writes to memory.
     pub fn evidence_check(&self) -> Result<(), Failure> {
+        if self.local.is_some() {
+            return self.evidence_locked(&lock(&self.shared)).map(|_| ());
+        }
         lock(&self.shared)
             .owner
-            .record_check()
+            .inspection_check()
             .map_err(infrastructure)
     }
 

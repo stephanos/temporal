@@ -513,3 +513,123 @@ Original deliberate cluster-failure fixtures remain required. Their changed
 fail-fast behavior needs a current-Go/new-helper semantic oracle; the frozen
 Go baseline remains retained for unchanged lanes. No failing fixture is
 replaced by a success merely to recover its old expected output.
+
+### Seed checkpoint, final drain and exploration continuation
+
+Integration `52d5b6da83` includes seed-campaign checkpoint `4495f8028f`:
+authenticated preparation/restore, shared target pool and retirement recovery,
+typed projection and exact helper coverage features, declared scenario nodes,
+and per-incarnation soft assertions. The worker's fixture-enabled all-target
+Clippy and 45 host tests pass. Public runtime corpus, reviewed repeated goldens,
+second regeneration and semantic reference lanes remain open; task .7 is not
+accepted. Go's public shard/merge refusals are tested separately from its
+original Runner API positive semantics, not misrepresented as public parity.
+
+The final fail-fast source is integrated through `df9f9d27d1` (donor
+`f0412df1f1`): terminal evidence drains source-first then sorted peer owners,
+preserves already-revoked crash/stop boundaries, and stops scenarios after a
+failed Wait. Current helper identity is
+`e55411900b1585b3ff7bdd5e5688f08080843f8f9809a1304715b7d0cfcd1658`.
+Worker regressions include three-node forced-schedule evidence agreement and
+the strict ten-second failure bound. Independent final review and integrated
+linked-host verification remain required. World commitment v2 and standalone
+network service glue are integrated; canonical full World evidence is unchanged.
+
+World-v2 diagnostic runs improved substantially but remain nonflat. Task .2
+therefore extends the same measured composed inspection path to the residual
+network commitment hotspot; no counted acceptance cohort has started. Full
+network evidence, resource accounting and oracle comparisons must be preserved.
+
+Repeated pinned-model capacity errors interrupted replay and exploration
+workers. The AGENTS-authorized session fallback was reported once. Fresh owners
+`replay_fallback` and `exploration_fallback` resume the existing worktrees and
+uncommitted edits rather than replacing them. The independent simulation
+producer owns actual execution hooks in fn232-simulation-producer; the fallback
+exploration owner integrates choice/round and simulation consumers from
+fn232-exploration and fn232-simulation. All six simulation dimensions remain
+required. Go currently produces only runtime/scenario decisions; the other
+four require truthful model conformance plus actual Rust execution, not invented
+Go producer parity or fabricated decision records. The compilation/teardown
+deadline acceptance gap remains unchanged.
+
+Cargo release target is leased to simulation_producer after seed_campaign's
+explicit release; replay_fallback is queued next. The private fn235-target is
+leased to commitment_cost. Its inactive cache was moved recoverably to host
+`.build-cache/fn235-target`, with the old cache path retained as a symlink.
+The completed parser target was moved to `.build-cache/completed-parser-target`.
+No retained evidence or active external-session cache was deleted.
+
+Remaining registered worktrees: main integration; fn185-attribution-fix,
+fn221, fn224, fn229-symbolize and fn232-foundation retain open source/evidence;
+fn232-replay and fn232-campaign retain active replay/campaign work;
+fn232-exploration and fn232-simulation retain exploration source;
+fn232-simulation-producer retains the active producer; fn235 retains active
+cost repair; fn235-failure-repair and fn232-linked-network retain completed
+donors pending integration review; detached fn235-progress retains matched
+measurement instrumentation; qualification-final-frozen retains required frozen
+qualification inputs. The host `.build-cache/fn232-stock-go1.27.1` copy is the
+verified stock compiler used for public cooperative builds. Evidence remains
+under `/home/agent/wt/evidence/` and host `.build-cache`; unrelated user `.turbo/`
+and other workspace processes are preserved. Nothing has been pushed.
+
+Fresh integration verification: final helper implementation identity, current
+corpora and broker-order checks pass (Go package exit 0, 0.230 seconds).
+`make lint-code-fast` on `be68b3de52` exits 0 with zero issues; raw log is
+`/home/agent/wt/evidence/fn235/root-final-drain-lint-code-fast.log`.
+Flow validation reports all 67 specs / 453 tasks structurally valid, retaining
+pre-existing historical evidence and uncovered-requirement warnings.
+
+Independent read-only final review returns SHIP for the helper/manual and Go
+repair at `df9f9d27d1`. Its linked-host follow-up returns NEEDS_WORK for
+`be68b3de52`: linked capacity outcomes omit final World bytes because retention
+only admits exit/trap. Replay owner must add capacity retention and a linked
+nonempty, decodable World plus matching-replay regression before acceptance.
+The ringpop regression and final qualification remain pending independently.
+
+After owner confirmation, clean-status and live-process/open-file checks,
+completed donor worktrees fn232-linked-network and fn235-failure-repair were
+removed with `git worktree remove`; registry was pruned. Their branches and
+open-spec evidence remain available, and source is integrated. No unique work
+or retained evidence was deleted. The producer's pinned model subsequently
+hit capacity too; `producer_fallback` resumes the same dirty
+fn232-simulation-producer checkout, its child ownership and shared-target lease.
+Replay remains queued next, followed by a short seed fixture refresh and the
+exploration integration compiler run. No task is completed by these checks.
+
+### Compact-network integration and minimizer admission
+
+`503f7afd1a` integrates the measured network commitment repair (donor
+`d7f9599fcc`, regression donor `27c93cb453`). It rotates inspection cut-state
+and network commitment admission to v2 while preserving canonical full network
+and World evidence. The conflict resolution retains standalone JSON logs and
+their full-evidence byte guard; standalone inspection/checks keep the prior
+full-document path, while cluster live cuts use incremental transcript heads.
+Fresh Go implementation/corpus/broker-order and cluster-inspection checks pass
+(package exits 0, 0.183 and 0.049 seconds). Worker full Rust/default Clippy and
+independent full-wire oracle pass on its source; integrated Rust checks,
+feature mirrors, final independent review and matched performance remain open.
+
+The linked capacity regression now uses the actual Go World decoder rather
+than treating its binary wire as JSON (`fa23d8e6c7`). Worker actual CLI GREEN
+checks trap/exit/capacity, stopped peers, decoded nonempty World, exact replay
+and three byte-identical recordings. `8b26f40ebf` preserves authenticated
+complete zero-decision traces in fixture projection. Actual public Go replay
+refuses such traces; preserve that reference gap separately from additional
+genuine scheduling-positive network fixtures, without fabricating decisions.
+
+Seed deadline/inventory checkpoint `256547eaf3` is integrated as `f35a6a6947`:
+optional exact wall nanoseconds preserve submillisecond duration semantics and
+legacy absent-field encoding. `418c1cc` combines later source/cleanup donors
+`9103a226e2` and `ee5638a6d6`, preserving exact overall budgets and the observed
+public-Go refusal to resume completed campaigns. Current fixture refresh and
+runtime gates remain worker-owned and pending, not implied by source merges.
+
+Task .9 is started under the milestone provisional-development policy in
+`/home/agent/wt/fn232-minimize`, owner minimize. Its immutable original behavioral
+predicate must remain distinct from the decorated artifact's full R2 record
+identity; actual accepted-reduction parity remains required. Task .8 source
+and actual producer hooks are being combined in fn232-exploration before its
+compiler gate, against the current integrated helper. All earlier worktree
+reasons remain valid; fn232-minimize is additionally retained for active source
+implementation. No predecessor acceptance, final qualification, hard-deadline
+contract or public-Go reference gap is waived by this admission.

@@ -1529,7 +1529,7 @@ impl Member {
         if !recorder.observed || recorder.exhausted {
             return;
         }
-        match endpoint.evidence() {
+        match endpoint.inspection_network_eager() {
             Ok(bytes) => recorder.network_snapshot(
                 &crate::model::inspection::Handle {
                     node,

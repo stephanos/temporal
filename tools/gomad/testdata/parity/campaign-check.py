@@ -367,7 +367,7 @@ def main():
     equal(execution_view(resumed), views[0]['runtime']['records'], 'resume.records')
     equal(report_view(raw, interrupted), views[0]['runtime']['report'], 'resume.report')
     before = (interrupted / 'journal.jsonl').read_bytes()
-    run('resume-again', [*binary, 'resume', '--json', interrupted], case['status'])
+    run('resume-again', [*binary, 'resume', '--json', interrupted], 2)
     equal((interrupted / 'journal.jsonl').read_bytes(), before, 'resume.idempotent')
 
     source = roots['runtime']

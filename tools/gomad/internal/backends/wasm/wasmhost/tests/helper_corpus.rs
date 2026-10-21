@@ -30,6 +30,9 @@ use std::time::Duration;
 #[path = "common/inspection.rs"]
 mod inspection;
 
+#[path = "common/network_inspection.rs"]
+mod network_inspection;
+
 #[path = "common/profile_stderr.rs"]
 mod profile_stderr;
 
