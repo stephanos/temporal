@@ -595,3 +595,41 @@ hit capacity too; `producer_fallback` resumes the same dirty
 fn232-simulation-producer checkout, its child ownership and shared-target lease.
 Replay remains queued next, followed by a short seed fixture refresh and the
 exploration integration compiler run. No task is completed by these checks.
+
+### Compact-network integration and minimizer admission
+
+`503f7afd1a` integrates the measured network commitment repair (donor
+`d7f9599fcc`, regression donor `27c93cb453`). It rotates inspection cut-state
+and network commitment admission to v2 while preserving canonical full network
+and World evidence. The conflict resolution retains standalone JSON logs and
+their full-evidence byte guard; standalone inspection/checks keep the prior
+full-document path, while cluster live cuts use incremental transcript heads.
+Fresh Go implementation/corpus/broker-order and cluster-inspection checks pass
+(package exits 0, 0.183 and 0.049 seconds). Worker full Rust/default Clippy and
+independent full-wire oracle pass on its source; integrated Rust checks,
+feature mirrors, final independent review and matched performance remain open.
+
+The linked capacity regression now uses the actual Go World decoder rather
+than treating its binary wire as JSON (`fa23d8e6c7`). Worker actual CLI GREEN
+checks trap/exit/capacity, stopped peers, decoded nonempty World, exact replay
+and three byte-identical recordings. `8b26f40ebf` preserves authenticated
+complete zero-decision traces in fixture projection. Actual public Go replay
+refuses such traces; preserve that reference gap separately from additional
+genuine scheduling-positive network fixtures, without fabricating decisions.
+
+Seed deadline/inventory checkpoint `256547eaf3` is integrated as `f35a6a6947`:
+optional exact wall nanoseconds preserve submillisecond duration semantics and
+legacy absent-field encoding. `418c1cc` combines later source/cleanup donors
+`9103a226e2` and `ee5638a6d6`, preserving exact overall budgets and the observed
+public-Go refusal to resume completed campaigns. Current fixture refresh and
+runtime gates remain worker-owned and pending, not implied by source merges.
+
+Task .9 is started under the milestone provisional-development policy in
+`/home/agent/wt/fn232-minimize`, owner minimize. Its immutable original behavioral
+predicate must remain distinct from the decorated artifact's full R2 record
+identity; actual accepted-reduction parity remains required. Task .8 source
+and actual producer hooks are being combined in fn232-exploration before its
+compiler gate, against the current integrated helper. All earlier worktree
+reasons remain valid; fn232-minimize is additionally retained for active source
+implementation. No predecessor acceptance, final qualification, hard-deadline
+contract or public-Go reference gap is waived by this admission.
