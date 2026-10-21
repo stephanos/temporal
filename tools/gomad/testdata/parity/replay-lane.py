@@ -63,14 +63,15 @@ run('roles', [sys.executable, corpus / 'replay-role-check.py', '--ordinary-binar
     '--stress-binary', args.stress_binary, '--determinism-binary', args.determinism_binary,
     '--release-binary', args.release_binary, '--output', args.work / 'roles'])
 cluster_arguments = ['--baseline', args.cluster_baseline, '--source', args.cluster_source, '--compiler', args.go_compiler]
+standalone_arguments = ['--baseline', args.baseline, '--source', args.source, '--compiler', args.go_compiler]
 for network in ('ordinary', 'faults'):
     for scheduler in (False, True):
         name = 'standalone-network-' + network + (
             '-scheduled' if scheduler else '-empty' if network == 'ordinary' else '-original')
         run(name, [sys.executable, corpus / 'replay-inspection-fixture.py',
-            '--binary', args.binary, *cluster_arguments, '--network', network,
+            '--binary', args.binary, *standalone_arguments, '--network', network,
             *(['--network-scheduler'] if scheduler else []),
-            '--preparation-root', args.preparation_root / ('current-network-' + network),
+            '--preparation-root', args.preparation_root / ('standalone-network-' + network),
             '--work', args.work / name])
 run('public-cluster-reference', [sys.executable, corpus / 'replay-cluster-reference.py', *cluster_arguments,
     '--preparation-root', args.preparation_root / 'current-cluster',
