@@ -30,7 +30,7 @@ pub fn bound<M: Declared>(world: M, budget: usize, negative: Option<Claim<M>>) -
             world: fields(world.values()),
             starts: starts.iter().map(|state| fields(state.values())).collect(),
             actions: catalog.actions().iter().map(concrete::<M>).collect(),
-            domains: M::Action::domains(&world, CATALOG_LIMIT)
+            domains: M::Action::domains(&world)
                 .into_iter()
                 .map(|(action, field, values)| Domain {
                     action: action.into(),
@@ -44,20 +44,12 @@ pub fn bound<M: Declared>(world: M, budget: usize, negative: Option<Claim<M>>) -
 }
 
 impl<M: Declared> Bound<M> {
-    /// The selected World's values, its complete starts and its checked catalog.
-    ///
-    /// # Errors
-    /// Returns the native catalog's admission refusal.
-    pub fn binding(&self) -> Result<&Binding, String> {
-        self.binding.as_ref().map_err(Clone::clone)
-    }
-
     /// Admits `source` independently, binds it to this World and emits it.
     ///
     /// # Errors
     /// Returns the catalog refusal or the lifter's diagnostic.
     pub fn lift(&self, source: impl AsRef<Path>) -> Result<Module, String> {
-        let binding = self.binding()?;
+        let binding = self.binding.as_ref().map_err(Clone::clone)?;
         umpire_lift::Lift::source(source)
             .and_then(|lifted| lifted.bind(binding))
             .and_then(|lifted| umpire_lift::Tla::emit(&lifted))

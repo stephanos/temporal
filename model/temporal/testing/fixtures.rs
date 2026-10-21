@@ -41,8 +41,7 @@ fn render_tlc(
 ) -> umpire_testing::RunResult {
     let name = fixture_name(folder)?;
     eprintln!("TLC fixture {name}: checking independently lifted source");
-    let module = lifted(name)?;
-    let files = check_backend(name, &module, folder, &run()?)?;
+    let files = check_backend(name, folder, run)?;
     eprintln!(
         "TLC fixture {name}: {}",
         files.get("tlc.txt").ok_or("missing TLC agreement report")?

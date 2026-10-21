@@ -30,26 +30,21 @@ pub type Fixture = (&'static str, fn() -> RunResult);
 /// the checker reports and refuses paths that would replace an existing output.
 /// `fixture!(World = selected, budget, negative)` names a declared World's type and also
 /// defines `bound()`, which hands that one World to the source lifter as values, and
-/// `bound_for(world)`, the same hook for another World of the Model.
+/// `bound_for(world)`, the same hook for another World of the Model. A declared-World fixture
+/// written in the unit form fails to compile in the generated lifter glue: no `bound` function.
 #[macro_export]
 macro_rules! fixture {
-    (@bound $ty:ident, $world:expr, $budget:expr, $negative:expr) => {
+    ($ty:ident = $world:expr, $budget:expr $(, $negative:expr)?) => {
         pub(crate) fn bound() -> $crate::Bound<$ty> {
             bound_for($world)
         }
         #[allow(dead_code)]
         pub(crate) fn bound_for(world: $ty) -> $crate::Bound<$ty> {
-            $crate::bound(world, $budget, $negative)
+            $crate::bound(world, $budget, None $(.or(Some($negative)))?)
         }
         pub(crate) fn run() -> $crate::RunResult {
             bound().run()
         }
-    };
-    ($ty:ident = $world:expr, $budget:expr) => {
-        $crate::fixture!(@bound $ty, $world, $budget, None);
-    };
-    ($ty:ident = $world:expr, $budget:expr, $negative:expr) => {
-        $crate::fixture!(@bound $ty, $world, $budget, Some($negative));
     };
     ($world:expr, $budget:expr) => {
         pub(crate) fn run() -> $crate::RunResult {

@@ -478,7 +478,6 @@ pub(crate) fn parse(file: &str, ast: &syn::File, hooks: &[crate::Hook<'_>]) -> R
     Ok(Lifted {
         file: file.into(),
         name,
-        machine_module: module.ident.to_string(),
         state_name: state.ident.to_string(),
         outcome_type: Type::Unit,
         world_path: if parser.declared_world {

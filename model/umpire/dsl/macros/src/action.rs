@@ -219,7 +219,7 @@ fn action_values(
                 let member = field.ident.clone().unwrap_or_else(|| format_ident!("field_{index}"));
                 exported.push(quote! {
                     (#label, #key, {
-                        let __umpire_retain = __umpire_limit.saturating_add(1);
+                        let __umpire_retain = ::umpire_dsl::CATALOG_LIMIT + 1;
                         let __umpire_domain = Self::#builder(__umpire_world, __umpire_retain).#member;
                         let __umpire_count = __umpire_domain.count().map_or(__umpire_retain, |count| count.min(__umpire_retain));
                         (0..__umpire_count)
@@ -237,7 +237,7 @@ fn action_values(
                 match *self { #(#arms),* }
             }
             #[allow(unused_variables)]
-            fn domains(__umpire_world: &#world, __umpire_limit: usize) -> ::std::vec::Vec<(&'static str, &'static str, ::std::vec::Vec<::umpire_dsl::Value>)> {
+            fn domains(__umpire_world: &#world) -> ::std::vec::Vec<(&'static str, &'static str, ::std::vec::Vec<::umpire_dsl::Value>)> {
                 ::std::vec![#(#exported),*]
             }
         }

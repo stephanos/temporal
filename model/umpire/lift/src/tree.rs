@@ -1,5 +1,5 @@
 use crate::{
-    Binding, CATALOG_LIMIT, Concrete, Diagnostic, Field, Literal, Type,
+    Binding, CATALOG_LIMIT, Concrete, Diagnostic, Literal, Type,
     expr::{Expr, ExprKind},
 };
 use std::collections::BTreeMap;
@@ -9,7 +9,6 @@ use std::collections::BTreeMap;
 pub struct Lifted {
     pub(crate) file: String,
     pub(crate) name: String,
-    pub(crate) machine_module: String,
     pub(crate) state_name: String,
     pub(crate) outcome_type: Type,
     pub(crate) world_path: String,
@@ -68,30 +67,6 @@ impl Lifted {
     #[must_use]
     pub const fn requires_binding(&self) -> bool {
         self.declared_world
-    }
-
-    /// The original inline machine module's name.
-    #[must_use]
-    pub fn machine_module(&self) -> &str {
-        &self.machine_module
-    }
-
-    /// Independently admitted World fields in source declaration order.
-    #[must_use]
-    pub fn world_fields(&self) -> Vec<Field> {
-        self.world_fields
-            .iter()
-            .map(|field| Field { name: field.name.clone(), ty: field.ty.clone() })
-            .collect()
-    }
-
-    /// Independently admitted state fields in source declaration order.
-    #[must_use]
-    pub fn state_fields(&self) -> Vec<Field> {
-        self.fields
-            .iter()
-            .map(|field| Field { name: field.name.clone(), ty: field.ty.clone() })
-            .collect()
     }
 
     /// Validate projected literals against original-source schemas and bind complete starts.

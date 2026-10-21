@@ -161,15 +161,11 @@ mod correlated {
         }
         fn domains(
             world: &World,
-            limit: usize,
         ) -> ::std::vec::Vec<
             (&'static str, &'static str, ::std::vec::Vec<::umpire_dsl::Value>),
         > {
             let mut domains = ::std::vec::Vec::new();
-            domains
-                .extend(
-                    <User as ::umpire_dsl::ActionValues<World>>::domains(world, limit),
-                );
+            domains.extend(<User as ::umpire_dsl::ActionValues<World>>::domains(world));
             domains
         }
     }

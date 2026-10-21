@@ -57,6 +57,7 @@ pub trait ActionValues<W> {
     fn action_value(&self) -> (&'static str, Vec<(&'static str, Value)>);
 
     /// Each `#[domain]` field's values for `world` as `(variant, field, values)`, stopping one
-    /// value past `limit` so an oversized domain is refused rather than truncated.
-    fn domains(world: &W, limit: usize) -> Vec<(&'static str, &'static str, Vec<Value>)>;
+    /// value past [`CATALOG_LIMIT`](crate::CATALOG_LIMIT) so an oversized domain is refused
+    /// rather than truncated.
+    fn domains(world: &W) -> Vec<(&'static str, &'static str, Vec<Value>)>;
 }

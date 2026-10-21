@@ -74,15 +74,6 @@ fn declared_world_computed_starts_admit_before_value_binding()
 -> Result<(), Box<dyn std::error::Error>> {
     let lifted = Lift::parse("counter/model.rs", WORLD)?;
     assert!(lifted.requires_binding());
-    assert_eq!(lifted.machine_module(), "counter");
-    assert_eq!(
-        lifted.world_fields().iter().map(|field| field.name.as_str()).collect::<Vec<_>>(),
-        ["value", "limit"]
-    );
-    assert_eq!(
-        lifted.state_fields().iter().map(|field| field.name.as_str()).collect::<Vec<_>>(),
-        ["value", "origin"]
-    );
     let missing = Tla::emit(&lifted).err().ok_or("unbound World emitted")?;
     located(&missing);
     assert!(missing.message.contains("binding"));

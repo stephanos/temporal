@@ -215,9 +215,10 @@ Only values cross from native code to the lifter: inside a declared-World `#[mac
 `derive(World)` and `derive(State)` add a hidden `Values` impl listing the named field values,
 private fields included, and `derive(Action)` a hidden `ActionValues` impl giving each action's
 variant and payload and each `#[domain]` field's values for a World. Field visibility is
-unchanged; the export shows what the derived `Debug` already prints. Fieldless enums get their
-value from `derive(Finite)`. A field type without a value leaves the Model compiling and is
-refused only where a binding is requested. Admission still reads the authored `model.rs` on its
+unchanged; the export shows what the derived `Debug` already prints. `#[machine]` exports each
+local fieldless enum's variant, as does `derive(Finite)`. Sequence (`imbl::Vector`) state is not
+exported yet, so it cannot be bound; `Value::Sequence` is its slot. A field type without a value
+leaves the Model compiling and is refused only where a binding is requested. Admission still reads the authored `model.rs` on its
 own and translates every transition and claim itself. In a shared fixture,
 `fixture!(World = World::new(1, 3), 64, negative)` defines `bound()`, and `bound_for(world)` for
 another World: one World, one start enumeration and one checked catalog feed binding, native

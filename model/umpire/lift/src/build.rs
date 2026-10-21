@@ -12,13 +12,12 @@ pub fn generate(fixtures: &[(String, String, PathBuf)], output: &Path) -> std::i
         "#[allow(clippy::unreadable_literal, reason = \"Generated exact integer bounds\")]\nfn lifted(name: &str) -> Result<umpire_lift::Module, String> { match name {\n",
     );
     let mut replay = String::from(
-        "#[allow(unused_imports, unused_qualifications)]\nfn check_backend(name: &str, module: &umpire_lift::Module, folder: &std::path::Path, native: &umpire_testing::Files) -> umpire_testing::RunResult { match name {\n",
+        "#[allow(unused_imports, unused_qualifications, unused_variables, clippy::match_single_binding)]\nfn check_backend(name: &str, folder: &std::path::Path, run: fn() -> umpire_testing::RunResult) -> umpire_testing::RunResult { match name {\n",
     );
     // A module evaluates each world path against its fixture's glob alone. Discovery never names
     // a fixture module `fixture_lifted`: `lifted` stays plain and only non-plain names escape.
     let mut bindings = String::from("mod fixture_lifted {\n");
     let mut admitted = Vec::new();
-    let mut bound = String::new();
     for (name, identifier, folder) in fixtures {
         let input = folder.join("model.rs");
         println!("cargo:rerun-if-changed={}", input.display());
@@ -30,7 +29,7 @@ pub fn generate(fixtures: &[(String, String, PathBuf)], output: &Path) -> std::i
             admitted.push(name.clone());
             writeln!(source, "{name:?} => {identifier}_tests::bound().lift({input:?}),")
                 .map_err(std::io::Error::other)?;
-            writeln!(bound, "{name:?} => Some({identifier}_tests::bound().check(folder)),")
+            writeln!(replay, "{name:?} => {identifier}_tests::bound().check(folder),")
                 .map_err(std::io::Error::other)?;
             continue;
         }
@@ -44,7 +43,7 @@ pub fn generate(fixtures: &[(String, String, PathBuf)], output: &Path) -> std::i
                 writeln!(source, "{name:?} => Ok(umpire_lift::Module {{ name: {:?}.into(), tla: include_str!({:?}).into(), cfg: include_str!({:?}).into(), metadata: {} }}),", module.name, tla.to_string_lossy(), cfg.to_string_lossy(), metadata(&module.metadata)).map_err(std::io::Error::other)?;
                 writeln!(
                     replay,
-                    "{name:?} => fixture_lifted::{identifier}::check(module, folder, native),"
+                    "{name:?} => fixture_lifted::{identifier}::check(&lifted(name)?, folder, &run()?),"
                 )
                 .map_err(std::io::Error::other)?;
                 writeln!(bindings, "pub(super) mod {identifier} {{ #[allow(unused_imports)] use crate::{identifier}::*; pub(crate) fn check(module: &umpire_lift::Module, folder: &std::path::Path, native: &umpire_testing::Files) -> umpire_testing::RunResult {{ umpire_testing::backend::check_machine(&{}, module, folder, native) }} }}", module.metadata.world_path).map_err(std::io::Error::other)?;
@@ -57,24 +56,11 @@ pub fn generate(fixtures: &[(String, String, PathBuf)], output: &Path) -> std::i
         }
     }
     source.push_str("_ => Err(format!(\"unregistered source fixture: {name}\")), } }\n");
-    if bindings == "mod fixture_lifted {\n" {
-        replay = "fn check_backend(name: &str, _module: &umpire_lift::Module, _folder: &std::path::Path, _native: &umpire_testing::Files) -> umpire_testing::RunResult { Err(format!(\"unselected backend coverage: {name}\").into()) }\n".into();
-    } else {
-        replay.push_str("_ => Err(format!(\"unselected backend coverage: {name}\").into()), } }\n");
-    }
+    // An unselected fixture reports its lift refusal first.
+    replay.push_str("_ => { lifted(name)?; Err(format!(\"unselected backend coverage: {name}\").into()) } } }\n");
     source.push_str(&replay);
     bindings.push_str("}\n");
     source.push_str(&bindings);
-    // Always present, so a refused bound fixture reports through lift.txt rather than failing
-    // to compile its caller. Fixture crates without a bound route need not call it.
-    source.push_str("#[allow(dead_code)]\n");
-    if bound.is_empty() {
-        source.push_str("fn bound_backend(_name: &str, _folder: &std::path::Path) -> Option<umpire_testing::RunResult> { None }\n");
-    } else {
-        source.push_str("fn bound_backend(name: &str, folder: &std::path::Path) -> Option<umpire_testing::RunResult> { match name {\n");
-        source.push_str(&bound);
-        source.push_str("_ => None, } }\n");
-    }
     writeln!(source, "fn admitted() -> &'static [&'static str] {{ &{admitted:?} }}")
         .map_err(std::io::Error::other)?;
     std::fs::write(output.join("lifted.rs"), source)
@@ -229,13 +215,16 @@ pub mod counter {
         super::generate(&[("counter".into(), "counter".into(), fixture)], &output)?;
         let generated = std::fs::read_to_string(output.join("lifted.rs"))?;
         assert!(generated.contains("\"counter\" => counter_tests::bound().lift("), "{generated}");
-        assert!(generated.contains("Some(counter_tests::bound().check(folder))"), "{generated}");
+        assert!(
+            generated.contains("\"counter\" => counter_tests::bound().check(folder),"),
+            "{generated}"
+        );
         assert!(!output.join("counter.tla").exists());
         std::fs::remove_dir_all(root)
     }
 
     #[test]
-    fn refused_sources_still_generate_the_bound_backend_fallback() -> std::io::Result<()> {
+    fn refused_sources_report_their_diagnostic_through_the_backend() -> std::io::Result<()> {
         let root =
             std::env::temp_dir().join(format!("umpire-refused-build-{}", std::process::id()));
         let fixture = root.join("refused");
@@ -245,7 +234,7 @@ pub mod counter {
         std::fs::write(fixture.join("model.rs"), "pub mod refused {}\n")?;
         super::generate(&[("refused".into(), "refused".into(), fixture)], &output)?;
         let generated = std::fs::read_to_string(output.join("lifted.rs"))?;
-        assert!(generated.contains("fn bound_backend("), "{generated}");
+        assert!(generated.contains("_ => { lifted(name)?;"), "{generated}");
         assert!(generated.contains("\"refused\" => Err("), "{generated}");
         std::fs::remove_dir_all(root)
     }

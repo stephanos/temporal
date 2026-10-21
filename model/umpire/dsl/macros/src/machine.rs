@@ -686,6 +686,34 @@ fn bind_worlds(items: &mut [Item], state: &syn::Ident, actors: &[syn::Ident]) ->
     dependent
 }
 
+/// A local fieldless enum, as the lifter admits it, exports its variant as a value unless its
+/// `derive(Finite)` already does.
+fn enum_values(items: &[Item], actors: &[syn::Ident]) -> syn::Result<Vec<TokenStream>> {
+    let mut values = Vec::new();
+    for item in items {
+        let Item::Enum(item) = item else { continue };
+        if actors.contains(&item.ident)
+            || !item.generics.params.is_empty()
+            || item.variants.iter().any(|variant| !variant.fields.is_empty())
+            || derives(&item.attrs, "Finite")?
+        {
+            continue;
+        }
+        let name = &item.ident;
+        let variants = item.variants.iter().map(|variant| &variant.ident);
+        let labels = item.variants.iter().map(|variant| format!("{name}::{}", variant.ident));
+        values.push(quote! {
+            #[doc(hidden)]
+            impl ::umpire_dsl::IntoValue for #name {
+                fn value(&self) -> ::umpire_dsl::Value {
+                    match *self { #(Self::#variants => ::umpire_dsl::Value::Enum(#labels)),* }
+                }
+            }
+        });
+    }
+    Ok(values)
+}
+
 /// The carrier's values delegate to each actor's derived export.
 fn action_values(actors: &[syn::Ident]) -> TokenStream {
     quote! {
@@ -697,9 +725,9 @@ fn action_values(actors: &[syn::Ident]) -> TokenStream {
             fn action_value(&self) -> (&'static str, ::std::vec::Vec<(&'static str, ::umpire_dsl::Value)>) {
                 match self { #(Self::#actors(value) => ::umpire_dsl::ActionValues::<World>::action_value(value)),* }
             }
-            fn domains(world: &World, limit: usize) -> ::std::vec::Vec<(&'static str, &'static str, ::std::vec::Vec<::umpire_dsl::Value>)> {
+            fn domains(world: &World) -> ::std::vec::Vec<(&'static str, &'static str, ::std::vec::Vec<::umpire_dsl::Value>)> {
                 let mut domains = ::std::vec::Vec::new();
-                #(domains.extend(<#actors as ::umpire_dsl::ActionValues<World>>::domains(world, limit));)*
+                #(domains.extend(<#actors as ::umpire_dsl::ActionValues<World>>::domains(world));)*
                 domains
             }
         }
@@ -1058,7 +1086,13 @@ pub(crate) fn expand(args: &TokenStream, input: &ItemMod) -> manyhow::Result<Tok
     }
     let dependent =
         if declared { bind_worlds(items, &state, &actors) } else { vec![false; actors.len()] };
-    let values = declared.then(|| action_values(&actors));
+    let values = if declared {
+        let enums = enum_values(items, &actors)?;
+        let actions = action_values(&actors);
+        Some(quote!(#actions #(#enums)*))
+    } else {
+        None
+    };
     let post_tokens = postconditions(&registration, &actions)?;
     let progress_tokens = progress_claims(&registration);
     let invariant_tokens = invariant_claims(&registration);
