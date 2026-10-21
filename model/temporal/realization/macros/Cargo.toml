@@ -18,6 +18,9 @@ umpire-temporal-annotate-syntax.workspace = true
 syn.workspace = true
 quote.workspace = true
 
+[build-dependencies]
+umpire-temporal-annotate-syntax.workspace = true
+
 [dev-dependencies]
 insta.workspace = true
 prettyplease.workspace = true

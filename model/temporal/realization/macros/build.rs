@@ -13,6 +13,12 @@ fn main() -> io::Result<()> {
     {
         println!("cargo:rerun-if-changed={}", root.join(input).display());
     }
+    let catalogs =
+        umpire_temporal_annotate_syntax::realization::catalog_inputs(&root.join("model/temporal"))
+            .map_err(io::Error::other)?;
+    for input in catalogs.directories.iter().chain(&catalogs.files) {
+        println!("cargo:rerun-if-changed={}", input.display());
+    }
     if !Command::new("make").current_dir(&root).arg("proto/api.binpb").status()?.success() {
         return Err(io::Error::other("make proto/api.binpb failed"));
     }
