@@ -224,6 +224,50 @@ pub struct RankOverride {
 }
 
 impl ReplayPlan {
+    #[must_use]
+    pub fn no_op_select_polls(&self) -> Vec<bool> {
+        let mut marks = vec![false; self.decisions.len()];
+        let mut start = 0;
+        while start < self.decisions.len() {
+            let first = &self.decisions[start];
+            if first.kind != 2 || first.alternatives != 2 {
+                start += 1;
+                continue;
+            }
+            let mut end = start + 1;
+            while end < self.decisions.len() {
+                let previous = &self.decisions[end - 1];
+                let current = &self.decisions[end];
+                if current.kind != 2
+                    || current.site() != previous.site()
+                    || previous.alternatives.checked_add(1) != Some(current.alternatives)
+                {
+                    break;
+                }
+                end += 1;
+            }
+            let readiness = |index: usize| {
+                let offset = HEADER_BYTES + index * RECORD_BYTES + 10;
+                u16::from_be_bytes(self.bytes[offset..offset + 2].try_into().unwrap())
+            };
+            let word = readiness(start);
+            let known = word & 1 != 0;
+            let ready = word >> 6;
+            let flags = word & 62;
+            let proven_shape = match (ready, flags) {
+                (0, 0 | 2 | 8) | (1, 0 | 4 | 8 | 16) => true,
+                _ => false,
+            };
+            let eligible = known
+                && proven_shape
+                && self.decisions[end - 1].alternatives == 2
+                && (start..end).all(|index| readiness(index) == word);
+            marks[start..end].fill(eligible);
+            start = end;
+        }
+        marks
+    }
+
     pub fn prefix(mut self, control: &PrefixControl) -> Result<Self, &'static str> {
         let cutoff = usize::try_from(control.cutoff).map_err(|_| "invalid_replay_plan")?;
         if cutoff > self.decisions.len() {

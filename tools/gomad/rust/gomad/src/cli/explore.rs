@@ -54,6 +54,9 @@ pub fn run_with_installation(
     output: &mut dyn Write,
     installation: Option<&Path>,
 ) -> Result<i32, super::Error> {
+    if let Some(result) = super::exploration::try_run(arguments, output, installation) {
+        return result;
+    }
     let mut json = false;
     let mut options = match parse(arguments, &mut json) {
         Ok(options) => options,
