@@ -182,9 +182,8 @@ assert b'reproduced=true' in run('rust-replay', [args.binary, 'replay', *(['--' 
 if args.network:
     run('rust-network-divergence', [sys.executable, Path(__file__).resolve().parent / 'replay-network-divergence-check.py',
         '--binary', args.binary, '--artifact', rust_artifact, '--work', args.work / 'network-divergence'])
-go_replay_status = 3 if args.network and not args.network_scheduler else status
 go_replay = run('go-replay', [baseline, '--installation', installation, 'replay', artifact],
-                None if args.network else go_replay_status)
+                None if args.network else status)
 go_replay_observed_status = receipts[-1]['status']
 if go_replay_observed_status == 3:
     assert receipts[-1]['stderr'] == 'execute replay target: choice trace malformed\n'
@@ -220,7 +219,7 @@ if args.network:
     parity.check_equal(view, repeated_view)
     parity.golden(Path(__file__).resolve().parent / 'goldens-replay' / (case['name'] + '.json'),
                   view, os.environ.get('GOMAD_GOLDEN_REGENERATE') == '1')
-    assert go_replay_observed_status == go_replay_status, (
-        'public Go replay reference gap', go_replay_observed_status, go_replay_status)
+    assert go_replay_observed_status == status, (
+        'public Go replay reference gap', go_replay_observed_status, status)
 print(json.dumps({'artifact': str(rust_artifact), 'go_reference': str(args.work / 'registered-reference.json'),
                   'input': str(input_path), 'go_binary': str(baseline)}))
