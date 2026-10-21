@@ -7,6 +7,10 @@ const PREFIX: &str = "failed assertion: ";
 #[serde(deny_unknown_fields)]
 pub(super) struct Report {
     pub messages: Vec<String>,
+    #[expect(
+        clippy::struct_field_names,
+        reason = "report_only is the retained soft assertion report schema field"
+    )]
     pub report_only: bool,
     pub inconclusive: bool,
 }
@@ -340,10 +344,8 @@ impl<'a> Json<'a> {
             if finished {
                 stack.pop();
             }
-            if descend {
-                if let Some(child) = self.start_value()? {
-                    stack.push(child);
-                }
+            if descend && let Some(child) = self.start_value()? {
+                stack.push(child);
             }
             if stack.len() >= 10_000 {
                 return Err(());

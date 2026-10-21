@@ -1,5 +1,5 @@
 use serde::{Deserialize, Serialize};
-use std::{collections::BTreeSet, fmt};
+use std::fmt;
 
 #[derive(Clone, Debug, Default, Deserialize, Eq, PartialEq, Serialize)]
 #[serde(deny_unknown_fields)]
@@ -76,105 +76,6 @@ impl SeedSelection {
         }
         None
     }
-
-    pub fn exclude_answered(&self, answered: &[u64]) -> Self {
-        let mut excluded = answered.to_vec();
-        excluded.sort_unstable();
-        let mut ranges = Vec::new();
-        let mut count = 0;
-        for selected in &self.ranges {
-            let mut start = selected.start;
-            let mut exhausted = false;
-            let index = excluded.partition_point(|seed| *seed < start);
-            for &seed in &excluded[index..] {
-                if seed > selected.end {
-                    break;
-                }
-                if seed < start {
-                    continue;
-                }
-                if start < seed {
-                    ranges.push(SeedRange {
-                        start,
-                        end: seed - 1,
-                    });
-                    count += seed - start;
-                }
-                if seed == selected.end {
-                    exhausted = true;
-                    break;
-                }
-                start = seed + 1;
-            }
-            if !exhausted {
-                ranges.push(SeedRange {
-                    start,
-                    end: selected.end,
-                });
-                count += selected.end - start + 1;
-            }
-        }
-        Self { ranges, count }
-    }
-
-    /// # Errors
-    /// Refuses a selection that cannot reserve its unguided fraction.
-    pub fn mix_guided(&self, prioritized: &[u64]) -> Result<Self, String> {
-        let unguided = self.count / 4 + u64::from(self.count % 4 != 0);
-        let maximum_guided = self.count - unguided;
-        let mut guided = Vec::new();
-        let mut guided_set = BTreeSet::new();
-        for &seed in prioritized {
-            if guided.len() as u64 == maximum_guided {
-                break;
-            }
-            if guided_set.insert(seed) {
-                guided.push(seed);
-            }
-        }
-        if guided.is_empty() {
-            return Ok(self.clone());
-        }
-        let mut ranges: Vec<_> = guided
-            .iter()
-            .map(|&seed| SeedRange {
-                start: seed,
-                end: seed,
-            })
-            .collect();
-        let mut remaining = self.count - guided.len() as u64;
-        for selected in &self.ranges {
-            let mut start = selected.start;
-            let excluded: Vec<_> = guided_set
-                .range(selected.start..=selected.end)
-                .copied()
-                .collect();
-            for &seed in &excluded {
-                if start < seed {
-                    append_guided_range(&mut ranges, start, seed - 1, &mut remaining);
-                }
-                if remaining == 0 {
-                    break;
-                }
-                if seed != u64::MAX {
-                    start = seed + 1;
-                }
-            }
-            if remaining != 0 && excluded.last() != Some(&u64::MAX) && start <= selected.end {
-                append_guided_range(&mut ranges, start, selected.end, &mut remaining);
-            }
-            if remaining == 0 {
-                break;
-            }
-        }
-        if remaining != 0 {
-            return Err("guided seed selection could not reserve its unguided fraction".into());
-        }
-        Ok(Self {
-            ranges,
-            count: self.count,
-        })
-    }
 }
 
 impl fmt::Display for SeedSelection {
@@ -205,14 +106,4 @@ fn parse_seed(input: &str) -> Result<u64, String> {
     input.parse().map_err(|_| {
         format!("seed out of range: strconv.ParseUint: parsing {input:?}: value out of range")
     })
-}
-
-fn append_guided_range(ranges: &mut Vec<SeedRange>, start: u64, mut end: u64, remaining: &mut u64) {
-    let mut width = end - start + 1;
-    if width > *remaining {
-        end = start + (*remaining - 1);
-        width = *remaining;
-    }
-    ranges.push(SeedRange { start, end });
-    *remaining -= width;
 }

@@ -83,6 +83,11 @@ fn execute(case: Case, conditions: linked::Conditions) -> Result<Publication, St
         },
     })
     .map_err(|error| format!("{}: {error}", case.name))?;
+    if let Some(network) = configuration.network.clone() {
+        prepared
+            .network(network)
+            .map_err(|error| error.to_string())?;
+    }
     prepared.conditions(conditions);
     let result =
         linked::execute_prepared(prepared).map_err(|error| format!("{}: {error}", case.name))?;

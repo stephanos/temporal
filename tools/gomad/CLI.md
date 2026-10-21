@@ -194,6 +194,60 @@ preparation directory is a different authenticated input, even when guest bytes
 agree. Every execution still produces fresh Go/Rust artifacts in its new output
 root; neither provenance identities nor raw hashes are normalized.
 
+## Rust seed campaigns
+
+The linked Rust host accepts the original WASM seed grammar, environment policy,
+failure policy and retention bounds. `go-run` and `go-test` preparation invokes
+the pinned stock Go compiler and original runtime overlay builder; campaign
+selection, scheduling, journal transactions and recovery stay in Rust. The
+internal `gomad.rust-wasm-installation/v1` manifest binds the compiler, runtime,
+helper and host identities. Public installation publication belongs to the
+installation task; a frozen fixture target is not a replacement for source
+preparation.
+
+Campaigns use `gomad.campaign-storage/v2` and hash-linked canonical journal
+envelopes. Resume authenticates the complete prefix and retained prepared target
+before admitting work. Only a torn final append may be repaired under the writer
+lock; complete malformed records, changed identities or changed bounds refuse.
+Admission, raw completion receipts and ordered policy decisions are separate
+durable events. A committed policy decision reconciles discarded artifacts;
+shared module pool links remain authenticated by the existing store capability.
+
+`execute-shard --shard INDEX/COUNT PLAN` reads a retained seed plan. `merge`
+authenticates every source shard and its original plan before publishing a
+global-order result; `--partial` records missing ordinal intervals explicitly.
+Duplicate, overlapping or incompatible shards refuse. `inspect --json --choices`
+projects typed divergence from the authenticated execution ledger and resolves
+raw expected/observed sites only against that execution's retained module.
+
+The mandatory fresh local lane is:
+
+```sh
+python3 tools/gomad/scripts/behavioral-parity \
+  --corpus tools/gomad/testdata/parity --verb explore \
+  --campaign-binary /absolute/fixture-enabled/gomad \
+  --campaign-baseline /absolute/authenticated/go-baseline \
+  --campaign-source /absolute/extracted/baseline/source \
+  --campaign-go-compiler /absolute/pinned/go1.27.1/bin/go \
+  --campaign-input /absolute/identity-matching/replay-input.json \
+  --campaign-preparation-root /absolute/retained/campaign-preparation \
+  --output-root /absolute/new/campaign-check
+```
+
+The same lane accepts `--verb resume`, `execute-shard` and `merge` and exercises
+all four operations. The frozen Go WASM public CLI refuses shard/merge verbs;
+the lane records those real refusals separately and calls the unchanged Go
+Runner API through a fixture-only reference adapter for positive shard/merge
+semantics. Those API-reference results are not public-CLI positive parity.
+Rust positive paths remain actual public CLI invocations. This admission
+discrepancy remains an explicit integrated-acceptance question, not a normalized
+semantic match.
+
+Raw record, payload, plan and journal integrity checks run independently of
+goldens. `GOMAD_GOLDEN_REGENERATE=1` requires repeated fresh agreement and a
+byte-identical second regeneration. Host-only journal interruption controls
+require `determinism-fixture` and are absent from ordinary release binaries.
+
 ## Shared generated contracts
 
 The Go models, cooperative runtime overlay and Rust helper share wire schemas
