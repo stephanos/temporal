@@ -35,6 +35,7 @@ def main():
     for name in ("baseline", "source", "go-compiler", "rust-binary", "output"):
         parser.add_argument("--" + name, type=Path, required=True)
     parser.add_argument("--go-reference", type=Path)
+    parser.add_argument("--preparation-root", type=Path)
     args = parser.parse_args()
     for name in ("baseline", "source", "go_compiler", "rust_binary", "output"):
         setattr(args, name, getattr(args, name).resolve())
@@ -69,7 +70,8 @@ def main():
     if args.go_reference is None:
         run("go-reference", [sys.executable, corpus / "replay-reference-check.py", "--baseline", args.baseline,
                              "--source", args.source, "--go-compiler", args.go_compiler,
-                             "--output", args.output / "go"])
+                             "--output", args.output / "go",
+                             *(["--preparation-root", args.preparation_root] if args.preparation_root else [])])
     reference_raw = reference_path.read_bytes()
     reference = json.loads(reference_raw)
     equal(set(reference), {"schema", "producer", "baseline_inputs_sha256", "go_binary_sha256",

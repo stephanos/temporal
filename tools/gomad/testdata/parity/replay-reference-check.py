@@ -26,10 +26,12 @@ def main():
     parser = argparse.ArgumentParser(description=__doc__)
     for name in ("baseline", "source", "go-compiler", "output"):
         parser.add_argument("--" + name, type=Path, required=True)
+    parser.add_argument("--preparation-root", type=Path)
     args = parser.parse_args()
     for name in ("baseline", "source", "go_compiler", "output"):
         setattr(args, name, getattr(args, name).resolve())
     args.output.mkdir(mode=0o700, parents=True, exist_ok=False)
+    preparation = args.preparation_root.resolve() if args.preparation_root else args.output
     corpus = Path(__file__).resolve().parent
     inventory = (args.baseline / "inputs.sha256").read_bytes()
     for line in inventory.decode().splitlines():
@@ -121,7 +123,7 @@ def main():
         installation = args.output / (mode + "-installation.json")
         install = [baseline, "install", "--compiler", args.go_compiler,
                    "--helper", args.baseline / "bin/gomad-wasmhost", "--profile", profile,
-                   "--cache", args.output / (mode + "-preparation"), "--output", installation]
+                   "--cache", preparation / (mode + "-preparation"), "--output", installation]
         if mode == "exact":
             install.extend(["--runtime-root", module / "internal/model/runtimesource"])
         run(mode + "-install", install)

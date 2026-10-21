@@ -9,7 +9,7 @@ import sys
 sys.dont_write_bytecode = True
 p = argparse.ArgumentParser()
 for name in ('binary', 'baseline', 'source', 'go-compiler', 'work',
-             'stress-binary', 'determinism-binary', 'release-binary'):
+             'stress-binary', 'determinism-binary', 'release-binary', 'preparation-root'):
     p.add_argument('--' + name, type=Path, required=True)
 args = p.parse_args()
 corpus = Path(__file__).resolve().parent
@@ -32,7 +32,7 @@ def run(name, command):
 
 run('fresh-parity', [sys.executable, corpus / 'replay-reference-lane.py', '--baseline', args.baseline,
     '--source', args.source, '--go-compiler', args.go_compiler, '--rust-binary', args.binary,
-    '--output', args.work / 'fresh-parity'])
+    '--output', args.work / 'fresh-parity', '--preparation-root', args.preparation_root])
 for name, driver in [('consumer', 'replay-check.py'), ('opener', 'replay-fault-check.py'),
                      ('cluster', 'replay-cluster-check.py'), ('golden', 'replay-golden-check.py')]:
     run(name, [sys.executable, corpus / driver, '--binary', args.binary, '--work', args.work / name])

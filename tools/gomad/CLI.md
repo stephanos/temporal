@@ -136,6 +136,7 @@ python3 tools/gomad/scripts/behavioral-parity \
   --replay-baseline /absolute/authenticated/go-baseline \
   --replay-source /absolute/extracted/baseline/source \
   --replay-go-compiler /absolute/pinned/go1.27.1/bin/go \
+  --replay-preparation-root /absolute/retained/replay-toolchain-preparation \
   --output-root /absolute/new/replay-check
 ```
 
@@ -147,6 +148,12 @@ record/payload and ledger validation precedes comparison. Set
 each run first compares two fresh executions, and a second regeneration must
 produce identical golden bytes. This lane supplies replay acceptance evidence,
 not final runtime/workload qualification or a compiler hard-wall guarantee.
+
+Keep the declared preparation root fixed across recordings and regeneration.
+Frozen Go binds absolute overlay paths into its toolchain provenance, so a new
+preparation directory is a different authenticated input, even when guest bytes
+agree. Every execution still produces fresh Go/Rust artifacts in its new output
+root; neither provenance identities nor raw hashes are normalized.
 
 ## Shared generated contracts
 
