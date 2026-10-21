@@ -1,0 +1,5 @@
+error: cannot resolve external enum wildcard coverage; use a canonical enum path or explicit variants
+  --> tests/ui/realization_external_alias.rs:18:13
+   |
+18 |             _ => (),
+   |             ^

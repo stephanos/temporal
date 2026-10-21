@@ -1,0 +1,10 @@
+error: cannot locate realization impl source scope
+  --> tests/ui/realization_source_scope.rs:8:9
+   |
+ 8 |         impl Binding {}
+   |         ^^^^
+...
+12 | hidden_scope!();
+   | --------------- in this macro invocation
+   |
+   = note: this error originates in the macro `hidden_scope` (in Nightly builds, run with -Z macro-backtrace for more info)

@@ -1,6 +1,9 @@
 //! Located refusal controls for declarative realization handlers.
 
-use umpire_temporal_annotate_syntax::{realization::Schema, realize::expand};
+use umpire_temporal_annotate_syntax::{
+    realization::Schema,
+    realize::{expand, expand_in_source},
+};
 
 #[test]
 fn handler_admission_rejects_ambiguous_or_unclassified_handlers()
@@ -63,3 +66,202 @@ fn generated_enum_wildcards_are_refused_without_rejecting_byte_policy_fallbacks(
     assert!(expand(&syn::parse_str("activity")?, bytes, &schema).is_ok());
     Ok(())
 }
+
+#[test]
+fn enum_aliases_follow_module_and_block_scopes_without_classifying_model_enums()
+-> Result<(), Box<dyn std::error::Error>> {
+    fn implementations(items: &[syn::Item], result: &mut Vec<syn::ItemImpl>) {
+        for item in items {
+            match item {
+                syn::Item::Impl(item) => result.push(item.clone()),
+                syn::Item::Mod(module) if module.content.is_some() => {
+                    if let Some((_, items)) = &module.content {
+                        implementations(items, result);
+                    }
+                }
+                _ => {}
+            }
+        }
+    }
+    let mut schema = Schema::default();
+    schema.enums.insert(
+        "test.Status".into(),
+        umpire_temporal_annotate_syntax::realization::Enumeration {
+            rust_type: "generated::Status".into(),
+            variants: vec!["generated::Status::Ready".into()],
+        },
+    );
+    for &(source, index, refused) in ALIAS_CASES {
+        let file = syn::parse_file(source)?;
+        let mut items = vec![];
+        implementations(&file.items, &mut items);
+        let item = items.into_iter().nth(index).ok_or("missing test impl")?;
+        let location = item.impl_token.span.start();
+        let expanded =
+            expand_in_source(&syn::parse_str("activity")?, item, &schema, source, location);
+        if refused {
+            let error = expanded
+                .err()
+                .ok_or_else(|| format!("expected alias wildcard refusal: {source}"))?;
+            assert!(error.to_string().contains("wildcard"), "{error}");
+        } else {
+            assert!(expanded.is_ok(), "{source}: {:?}", expanded.err());
+        }
+    }
+    Ok(())
+}
+
+const ALIAS_CASES: &[(&str, usize, bool)] = &[
+    (
+        "enum Local { Ready, Other } impl Binding { fn f() { fn inner(s:Local) { match s { _=>() } } let inner=|s:Local| match s { _=>() }; } }",
+        0,
+        false,
+    ),
+    (
+        "use generated::Status as S; impl Binding { fn f() { let s=0; fn inner(s:S) { match s { _=>() } } } }",
+        0,
+        true,
+    ),
+    (
+        "use generated::Status as S; impl Binding { fn f() { let s=0; let inner=|s:S| match s { _=>() }; } }",
+        0,
+        true,
+    ),
+    (
+        "use generated::Status as S; impl Binding { fn f(value:S) { let s=0; let (s,)= (value,); match s { _=>() } } }",
+        0,
+        true,
+    ),
+    (
+        "use generated::Status as S; impl Binding { fn f(value:Option<S>) { let s=0; match value { Some(s)=>match s { _=>() }, None=>() } } }",
+        0,
+        true,
+    ),
+    ("impl Binding { fn f() { match sample() { Some(_)=>(), None=>() } } }", 0, true),
+    (
+        "impl Binding { fn f(value:Result<generated::Status,i32>) { match value { Ok(generated::Status::Ready)=>(), Ok(_)=>(), Err(_)=>() } } }",
+        0,
+        true,
+    ),
+    (
+        "impl Binding { fn f(value:Option<generated::Status>) { match value { Some(generated::Status::Ready)=>(), None=>() } } }",
+        0,
+        false,
+    ),
+    (
+        "impl Binding { fn f(value:Result<generated::Status,i32>) { match value { Ok(generated::Status::Ready)=>(), Err(_)=>() } } }",
+        0,
+        false,
+    ),
+    (
+        "use generated::Status::{Ready as Active}; impl Binding { fn f() { match sample() { Active=>(), _=>() } } }",
+        0,
+        true,
+    ),
+    (
+        "use generated::Status::*; impl Binding { fn f() { match sample() { Ready=>(), _=>() } } }",
+        0,
+        true,
+    ),
+    (
+        "use generated::Status::{Ready as Active}; impl Binding { fn f() { match sample() { Active=>() } } }",
+        0,
+        false,
+    ),
+    ("impl Binding { fn f() { match external_status() { _=>() } } }", 0, true),
+    (
+        "use generated::Status::*; impl Binding { fn f(value:Option<generated::Status>) { match value { Some(_)=>(), None=>() } } }",
+        0,
+        true,
+    ),
+    (
+        "use generated::Status::*; impl Binding { fn f(value:Result<(),i32>) { match value { Ok(())=>(), Err(_)=>() } } }",
+        0,
+        false,
+    ),
+    (
+        "use generated::Status::*; impl Binding { fn f(value:generated::Status) { match value { other=>() } } }",
+        0,
+        true,
+    ),
+    (
+        "mod aliases; use aliases::*; impl Binding { fn f(value:String) { match value { String::Running=>(), _=>() } } }",
+        0,
+        true,
+    ),
+    (
+        "type S=(generated::Status,); impl Binding { fn f(value:S) { match value { _=>() } } }",
+        0,
+        true,
+    ),
+    (
+        "#[cfg(any())] type S=generated::Status; #[cfg(not(any()))] enum S { Ready, Other } impl Binding { fn f(value:S) { match value { S::Ready=>(), _=>() } } }",
+        0,
+        true,
+    ),
+    (
+        "impl Binding { fn policy(value:Result<(),i32>) { match value { Ok(())=>(), Err(_)=>() } } }",
+        0,
+        false,
+    ),
+    (
+        "use generated::{Status as S}; impl Binding { fn f(value:S) { match value { S::Ready => (), _ => () } } }",
+        0,
+        true,
+    ),
+    (
+        "use generated as e; type S=e::Status; impl Binding { fn f(value:S) { match value { _ => () } } }",
+        0,
+        true,
+    ),
+    (
+        "type S2=S; type S=generated::Status; impl Binding { fn f(value:S2) { match value { _ => () } } }",
+        0,
+        true,
+    ),
+    (
+        "impl Binding { fn f() { use generated::Status as S; let value:S=todo!(); match value { S::Ready => (), _ => () } } }",
+        0,
+        true,
+    ),
+    (
+        "mod parent { use generated::Status as S; mod child { use super::S as C; impl Binding { fn f(value:C) { match value { _ => () } } } } }",
+        0,
+        true,
+    ),
+    (
+        "use generated::Status as S; impl Binding { fn f(value:S) { { enum S { Ready, Other } let value=S::Ready; match value { S::Ready=>(), _=>() } } match value { S::Ready=>(), _=>() } } }",
+        0,
+        true,
+    ),
+    (
+        "use generated::Status as S; impl Binding { fn f() { enum S { Ready, Other } let value=S::Ready; match value { S::Ready=>(), _=>() } } }",
+        0,
+        false,
+    ),
+    (
+        "use generated::Status as S; impl Binding { fn f<S>(value:S) { match value { _=>() } } }",
+        0,
+        false,
+    ),
+    (
+        "enum Status { Ready, Other } impl Binding { fn f(value:Status) { match value { Status::Ready=>(), _=>() } } }",
+        0,
+        false,
+    ),
+    (
+        "mod domain { pub enum Status { Ready, Other } } use domain::Status as S; impl Binding { fn f(value:S) { match value { S::Ready=>(), _=>() } } }",
+        0,
+        false,
+    ),
+    (
+        "mod first { use generated::Status as S; impl Binding { fn f(value:S) { match value { _=>() } } } } mod second { enum S { Ready, Other } impl Binding { fn f(value:S) { match value { S::Ready=>(), _=>() } } } }",
+        1,
+        false,
+    ),
+    (
+        "use generated::Status as S; impl Binding { fn policy(value:Vec<u8>) { match value.as_slice() { b\"Complete\"=>drop(value), _=>drop(value) } } }",
+        0,
+        false,
+    ),
+];

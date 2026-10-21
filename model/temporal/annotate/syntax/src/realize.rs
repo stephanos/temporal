@@ -2,7 +2,7 @@
 
 use std::collections::{BTreeMap, BTreeSet};
 
-use proc_macro2::{Span, TokenStream};
+use proc_macro2::{LineColumn, Span, TokenStream};
 use quote::{ToTokens, quote};
 use syn::{
     Attribute, FnArg, GenericArgument, Ident, ImplItem, ImplItemFn, ItemImpl, LitStr, Path,
@@ -14,6 +14,21 @@ use syn::{
 };
 
 use crate::realization::{Classification, ClassifiedField, Schema};
+
+mod source;
+use source::{EnumKind, Scope};
+
+#[derive(Clone, PartialEq, Eq, PartialOrd, Ord)]
+enum Position {
+    Tuple(usize),
+    Variant(String, usize),
+}
+
+type Positions = BTreeMap<Vec<Position>, EnumKind>;
+
+fn position(kind: EnumKind) -> Positions {
+    if kind == EnumKind::Other { Positions::new() } else { Positions::from([(vec![], kind)]) }
+}
 
 #[derive(Default)]
 struct Fields {
@@ -459,103 +474,220 @@ fn answer(
     })
 }
 
-fn generated(path: &Path, schema: &Schema, variant: bool) -> bool {
-    let mut parts = path.segments.iter().rev();
-    let Some(last) = parts.next() else {
-        return false;
-    };
-    let owner = if variant { parts.next().map(|part| &part.ident) } else { Some(&last.ident) };
-    owner.is_some_and(|owner| {
-        schema.enums.values().any(|enumeration| {
-            enumeration.rust_type.rsplit("::").next().map(str::trim)
-                == Some(owner.to_string().as_str())
-        })
-    })
-}
 fn positions(
     pattern: &syn::Pat,
     schema: &Schema,
-    prefix: &[usize],
-    result: &mut BTreeSet<Vec<usize>>,
+    scope: &Scope,
+    prefix: &[Position],
+    result: &mut Positions,
 ) {
     match pattern {
-        syn::Pat::Path(path) if generated(&path.path, schema, true) => {
-            result.insert(prefix.to_vec());
+        syn::Pat::Path(path) => {
+            merge_position(result, prefix, scope.kind(&path.path, schema, true));
+        }
+        syn::Pat::Ident(binding) if scope.imported(&binding.ident.to_string()) => {
+            merge_position(
+                result,
+                prefix,
+                scope.kind(&Path::from(binding.ident.clone()), schema, true),
+            );
         }
         syn::Pat::Tuple(tuple) => {
             for (index, element) in tuple.elems.iter().enumerate() {
                 let mut position = prefix.to_vec();
-                position.push(index);
-                positions(element, schema, &position, result);
+                position.push(Position::Tuple(index));
+                positions(element, schema, scope, &position, result);
+            }
+        }
+        syn::Pat::TupleStruct(pattern) => {
+            for (index, element) in pattern.elems.iter().enumerate() {
+                let mut position = prefix.to_vec();
+                position.push(Position::Variant(scope.constructor(&pattern.path), index));
+                positions(element, schema, scope, &position, result);
             }
         }
         syn::Pat::Or(pattern) => {
             for case in &pattern.cases {
-                positions(case, schema, prefix, result);
+                positions(case, schema, scope, prefix, result);
             }
         }
-        syn::Pat::Paren(pattern) => positions(&pattern.pat, schema, prefix, result),
-        syn::Pat::Reference(pattern) => positions(&pattern.pat, schema, prefix, result),
+        syn::Pat::Paren(pattern) => positions(&pattern.pat, schema, scope, prefix, result),
+        syn::Pat::Reference(pattern) => positions(&pattern.pat, schema, scope, prefix, result),
         _ => {}
     }
 }
-fn wildcard(pattern: &syn::Pat, position: &[usize]) -> Option<Span> {
+fn merge_position(result: &mut Positions, prefix: &[Position], kind: EnumKind) {
+    let current = result.entry(prefix.to_vec()).or_insert(kind);
+    if kind == EnumKind::Generated || (*current == EnumKind::Unknown && kind == EnumKind::Other) {
+        *current = kind;
+    }
+}
+fn wildcard(
+    pattern: &syn::Pat,
+    position: &[Position],
+    scope: &Scope,
+    schema: &Schema,
+) -> Option<Span> {
     match pattern {
+        syn::Pat::Ident(binding)
+            if scope.imported(&binding.ident.to_string())
+                && scope.kind(&Path::from(binding.ident.clone()), schema, true)
+                    == EnumKind::Generated =>
+        {
+            None
+        }
+        syn::Pat::Ident(binding)
+            if scope.framework(&Path::from(binding.ident.clone()), "None", schema) =>
+        {
+            None
+        }
         syn::Pat::Wild(_) | syn::Pat::Ident(_) => Some(pattern.span()),
-        syn::Pat::Or(pattern) => pattern.cases.iter().find_map(|case| wildcard(case, position)),
-        syn::Pat::Paren(pattern) => wildcard(&pattern.pat, position),
-        syn::Pat::Reference(pattern) => wildcard(&pattern.pat, position),
-        syn::Pat::Tuple(pattern) if !position.is_empty() => {
-            pattern.elems.iter().nth(position[0]).and_then(|part| wildcard(part, &position[1..]))
+        syn::Pat::Or(pattern) => {
+            pattern.cases.iter().find_map(|case| wildcard(case, position, scope, schema))
+        }
+        syn::Pat::Paren(pattern) => wildcard(&pattern.pat, position, scope, schema),
+        syn::Pat::Reference(pattern) => wildcard(&pattern.pat, position, scope, schema),
+        syn::Pat::Tuple(pattern) => match position.first() {
+            None => pattern.elems.iter().find_map(|part| wildcard(part, position, scope, schema)),
+            Some(Position::Tuple(index)) => pattern
+                .elems
+                .iter()
+                .nth(*index)
+                .and_then(|part| wildcard(part, &position[1..], scope, schema)),
+            _ => None,
+        },
+        syn::Pat::TupleStruct(pattern) => match position.first() {
+            None => pattern.elems.iter().find_map(|part| wildcard(part, position, scope, schema)),
+            Some(Position::Variant(name, index)) if *name == scope.constructor(&pattern.path) => {
+                pattern
+                    .elems
+                    .iter()
+                    .nth(*index)
+                    .and_then(|part| wildcard(part, &position[1..], scope, schema))
+            }
+            _ => None,
+        },
+        syn::Pat::Struct(pattern) if position.is_empty() => {
+            pattern.rest.as_ref().map(Spanned::span).or_else(|| {
+                pattern
+                    .fields
+                    .iter()
+                    .find_map(|field| wildcard(&field.pat, position, scope, schema))
+            })
+        }
+        syn::Pat::Slice(pattern) if position.is_empty() => {
+            pattern.elems.iter().find_map(|part| wildcard(part, position, scope, schema))
         }
         _ => None,
     }
 }
-fn type_positions(ty: &Type, schema: &Schema) -> BTreeSet<Vec<usize>> {
+fn type_positions(ty: &Type, schema: &Schema, scope: &Scope) -> Positions {
     match ty {
-        Type::Path(path) if generated(&path.path, schema, false) => BTreeSet::from([vec![]]),
-        Type::Reference(reference) => type_positions(&reference.elem, schema),
-        Type::Paren(ty) => type_positions(&ty.elem, schema),
+        Type::Path(path)
+            if scope.framework(&path.path, "Option", schema)
+                || scope.framework(&path.path, "Result", schema) =>
+        {
+            let names = if scope.framework(&path.path, "Option", schema) {
+                &["Some"][..]
+            } else {
+                &["Ok", "Err"][..]
+            };
+            type_arguments(ty)
+                .into_iter()
+                .zip(names)
+                .flat_map(|(ty, name)| {
+                    type_positions(ty, schema, scope).into_iter().map(move |(mut path, kind)| {
+                        path.insert(0, Position::Variant((*name).into(), 0));
+                        (path, kind)
+                    })
+                })
+                .collect()
+        }
+        Type::Path(path) => position(scope.kind(&path.path, schema, false)),
+        Type::Reference(reference) => type_positions(&reference.elem, schema, scope),
+        Type::Paren(ty) => type_positions(&ty.elem, schema, scope),
         Type::Tuple(tuple) => tuple
             .elems
             .iter()
             .enumerate()
             .flat_map(|(index, ty)| {
-                type_positions(ty, schema).into_iter().map(move |mut path| {
-                    path.insert(0, index);
-                    path
+                type_positions(ty, schema, scope).into_iter().map(move |(mut path, kind)| {
+                    path.insert(0, Position::Tuple(index));
+                    (path, kind)
                 })
             })
             .collect(),
-        _ => BTreeSet::new(),
+        _ => Positions::new(),
     }
 }
 struct EnumMatches<'a> {
     schema: &'a Schema,
+    scope: Scope,
     error: Option<syn::Error>,
-    bindings: BTreeMap<String, BTreeSet<Vec<usize>>>,
+    bindings: BTreeMap<String, Positions>,
 }
 impl EnumMatches<'_> {
-    fn expression_positions(&self, expression: &syn::Expr) -> BTreeSet<Vec<usize>> {
+    fn function(&mut self, signature: &syn::Signature, block: &syn::Block) {
+        let scope = self.scope.clone();
+        let bindings = self.bindings.clone();
+        self.scope.generics(&signature.generics);
+        self.bindings.clear();
+        for input in &signature.inputs {
+            if let FnArg::Typed(input) = input
+                && let syn::Pat::Ident(binding) = input.pat.as_ref()
+            {
+                self.bindings.insert(
+                    binding.ident.to_string(),
+                    type_positions(&input.ty, self.schema, &self.scope),
+                );
+            }
+        }
+        self.visit_block(block);
+        self.scope = scope;
+        self.bindings = bindings;
+    }
+
+    fn expression_positions(&self, expression: &syn::Expr) -> Positions {
         match expression {
             syn::Expr::Path(path) => self
                 .bindings
                 .get(&path.path.to_token_stream().to_string())
                 .cloned()
-                .unwrap_or_default(),
+                .unwrap_or_else(|| position(self.scope.kind(&path.path, self.schema, true))),
             syn::Expr::Tuple(tuple) => tuple
                 .elems
                 .iter()
                 .enumerate()
                 .flat_map(|(index, expr)| {
-                    self.expression_positions(expr).into_iter().map(move |mut path| {
-                        path.insert(0, index);
-                        path
+                    self.expression_positions(expr).into_iter().map(move |(mut path, kind)| {
+                        path.insert(0, Position::Tuple(index));
+                        (path, kind)
                     })
                 })
                 .collect(),
-            syn::Expr::Call(call) if matches!(call.func.as_ref(), syn::Expr::Path(path) if generated(&path.path, self.schema, true)) => {
-                BTreeSet::from([vec![]])
+            syn::Expr::Call(call) if matches!(call.func.as_ref(), syn::Expr::Path(path) if self.scope.kind(&path.path, self.schema, true) == EnumKind::Generated) => {
+                position(EnumKind::Generated)
+            }
+            syn::Expr::Call(call) if matches!(call.func.as_ref(), syn::Expr::Path(path) if ["Some", "Ok", "Err"].iter().any(|name| self.scope.framework(&path.path, name, self.schema))) =>
+            {
+                let syn::Expr::Path(path) = call.func.as_ref() else {
+                    return position(EnumKind::Unknown);
+                };
+                call.args
+                    .iter()
+                    .enumerate()
+                    .flat_map(|(index, value)| {
+                        self.expression_positions(value).into_iter().map(
+                            move |(mut position, kind)| {
+                                position.insert(
+                                    0,
+                                    Position::Variant(self.scope.constructor(&path.path), index),
+                                );
+                                (position, kind)
+                            },
+                        )
+                    })
+                    .collect()
             }
             syn::Expr::Try(value) => self.expression_positions(&value.expr),
             syn::Expr::Paren(value) => self.expression_positions(&value.expr),
@@ -568,22 +700,80 @@ impl EnumMatches<'_> {
             {
                 self.expression_positions(&call.receiver)
             }
-            _ => BTreeSet::new(),
+            syn::Expr::Lit(_)
+            | syn::Expr::Binary(_)
+            | syn::Expr::Unary(_)
+            | syn::Expr::Cast(_)
+            | syn::Expr::Array(_) => Positions::new(),
+            _ => position(EnumKind::Unknown),
         }
     }
 }
 impl<'ast> Visit<'ast> for EnumMatches<'_> {
     fn visit_impl_item_fn(&mut self, function: &'ast ImplItemFn) {
-        self.bindings.clear();
-        for input in &function.sig.inputs {
-            if let FnArg::Typed(input) = input
-                && let syn::Pat::Ident(binding) = input.pat.as_ref()
-            {
-                self.bindings
-                    .insert(binding.ident.to_string(), type_positions(&input.ty, self.schema));
-            }
+        self.function(&function.sig, &function.block);
+    }
+
+    fn visit_item_fn(&mut self, function: &'ast syn::ItemFn) {
+        self.function(&function.sig, &function.block);
+    }
+
+    fn visit_pat_ident(&mut self, pattern: &'ast syn::PatIdent) {
+        if self.scope.kind(&Path::from(pattern.ident.clone()), self.schema, true)
+            != EnumKind::Generated
+        {
+            self.bindings.insert(pattern.ident.to_string(), position(EnumKind::Unknown));
         }
-        self.visit_block(&function.block);
+        syn::visit::visit_pat_ident(self, pattern);
+    }
+
+    fn visit_pat_type(&mut self, pattern: &'ast syn::PatType) {
+        syn::visit::visit_pat_type(self, pattern);
+        if let syn::Pat::Ident(binding) = pattern.pat.as_ref() {
+            self.bindings.insert(
+                binding.ident.to_string(),
+                type_positions(&pattern.ty, self.schema, &self.scope),
+            );
+        }
+    }
+
+    fn visit_arm(&mut self, arm: &'ast syn::Arm) {
+        let bindings = self.bindings.clone();
+        syn::visit::visit_arm(self, arm);
+        self.bindings = bindings;
+    }
+
+    fn visit_expr_closure(&mut self, expression: &'ast syn::ExprClosure) {
+        let bindings = self.bindings.clone();
+        syn::visit::visit_expr_closure(self, expression);
+        self.bindings = bindings;
+    }
+
+    fn visit_expr_if(&mut self, expression: &'ast syn::ExprIf) {
+        let bindings = self.bindings.clone();
+        syn::visit::visit_expr_if(self, expression);
+        self.bindings = bindings;
+    }
+
+    fn visit_expr_while(&mut self, expression: &'ast syn::ExprWhile) {
+        let bindings = self.bindings.clone();
+        syn::visit::visit_expr_while(self, expression);
+        self.bindings = bindings;
+    }
+
+    fn visit_expr_for_loop(&mut self, expression: &'ast syn::ExprForLoop) {
+        let bindings = self.bindings.clone();
+        syn::visit::visit_expr_for_loop(self, expression);
+        self.bindings = bindings;
+    }
+
+    fn visit_block(&mut self, block: &'ast syn::Block) {
+        let scope = self.scope.clone();
+        let bindings = self.bindings.clone();
+        self.scope.block(block);
+        syn::visit::visit_block(self, block);
+        self.scope = scope;
+        self.bindings = bindings;
     }
 
     fn visit_local(&mut self, local: &'ast syn::Local) {
@@ -597,41 +787,92 @@ impl<'ast> Visit<'ast> for EnumMatches<'_> {
                     .unwrap_or_default(),
             )),
             syn::Pat::Type(typed) => match typed.pat.as_ref() {
-                syn::Pat::Ident(binding) => Some((binding, type_positions(&typed.ty, self.schema))),
+                syn::Pat::Ident(binding) => {
+                    Some((binding, type_positions(&typed.ty, self.schema, &self.scope)))
+                }
                 _ => None,
             },
             _ => None,
         };
+        if let Some(init) = &local.init {
+            self.visit_expr(&init.expr);
+            if let Some((_, diverge)) = &init.diverge {
+                self.visit_expr(diverge);
+            }
+        }
+        self.visit_pat(&local.pat);
         if let Some((binding, paths)) = binding {
             self.bindings.insert(binding.ident.to_string(), paths);
         }
-        syn::visit::visit_local(self, local);
     }
 
     fn visit_expr_match(&mut self, expression: &'ast syn::ExprMatch) {
         let mut paths = self.expression_positions(&expression.expr);
         for arm in &expression.arms {
-            positions(&arm.pat, self.schema, &[], &mut paths);
+            positions(&arm.pat, self.schema, &self.scope, &[], &mut paths);
         }
         for arm in &expression.arms {
-            if let Some(span) = paths.iter().find_map(|path| wildcard(&arm.pat, path)) {
+            if let Some((span, kind)) = paths
+                .iter()
+                .filter(|(_, kind)| **kind != EnumKind::Other)
+                .find_map(|(path, kind)| {
+                    wildcard(&arm.pat, path, &self.scope, self.schema).map(|span| (span, *kind))
+                })
+            {
+                if kind == EnumKind::Unknown
+                    && expression.arms.iter().any(|arm| matches!(arm.pat, syn::Pat::Lit(_)))
+                {
+                    continue;
+                }
                 self.error = Some(syn::Error::new(
                     span,
-                    "generated enum matches must name every variant; wildcard arm is forbidden",
+                    if kind == EnumKind::Generated {
+                        "generated enum matches must name every variant; wildcard arm is forbidden"
+                    } else {
+                        "cannot resolve external enum wildcard coverage; use a canonical enum path or explicit variants"
+                    },
                 ));
             }
         }
         syn::visit::visit_expr_match(self, expression);
     }
 }
-fn check_enums(item: &ItemImpl, schema: &Schema) -> syn::Result<()> {
-    let mut visitor = EnumMatches { schema, error: None, bindings: BTreeMap::new() };
+fn check_enums(
+    item: &ItemImpl,
+    schema: &Schema,
+    mut scope: Scope,
+    model: &Path,
+) -> syn::Result<()> {
+    scope.model(model);
+    let mut visitor = EnumMatches { schema, scope, error: None, bindings: BTreeMap::new() };
     visitor.visit_item_impl(item);
     visitor.error.map_or(Ok(()), Err)
 }
 
 /// Expand one realization impl against the admitted declaration graph.
-pub fn expand(model: &Path, mut item: ItemImpl, schema: &Schema) -> syn::Result<TokenStream> {
+pub fn expand(model: &Path, item: ItemImpl, schema: &Schema) -> syn::Result<TokenStream> {
+    expand_scoped(model, item, schema, Scope::default())
+}
+
+/// Expand using the enclosing source module's ordinary Rust type aliases and imports.
+pub fn expand_in_source(
+    model: &Path,
+    item: ItemImpl,
+    schema: &Schema,
+    source: &str,
+    location: LineColumn,
+) -> syn::Result<TokenStream> {
+    let scope = Scope::in_source(source, location)
+        .map_err(|error| syn::Error::new(item.impl_token.span, error.to_string()))?;
+    expand_scoped(model, item, schema, scope)
+}
+
+fn expand_scoped(
+    model: &Path,
+    mut item: ItemImpl,
+    schema: &Schema,
+    scope: Scope,
+) -> syn::Result<TokenStream> {
     if item.trait_.is_some() || !item.generics.params.is_empty() {
         return Err(syn::Error::new(item.span(), "realization requires a concrete inherent impl"));
     }
@@ -677,7 +918,7 @@ pub fn expand(model: &Path, mut item: ItemImpl, schema: &Schema) -> syn::Result<
             !attribute.path().is_ident("answer") && !attribute.path().is_ident("observe")
         });
     }
-    check_enums(&item, schema)?;
+    check_enums(&item, schema, scope, model)?;
     let mut task_types = BTreeSet::new();
     for handler in handlers.iter().filter(|handler| handler.answer) {
         let task = message(schema, &handler.input)?;

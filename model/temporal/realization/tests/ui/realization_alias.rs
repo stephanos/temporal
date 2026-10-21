@@ -1,0 +1,19 @@
+use umpire_temporal::{activity, realization};
+use umpire_temporal_api::temporal::api::enums::v1::ActivityExecutionStatus as Status;
+
+struct Binding;
+
+#[realization(activity)]
+impl Binding {
+    fn status(value: Status) {
+        match value {
+            Status::Running => (),
+            _ => (),
+        }
+    }
+}
+
+fn main() {
+    let _ = activity::World;
+    let _ = Status::Running;
+}

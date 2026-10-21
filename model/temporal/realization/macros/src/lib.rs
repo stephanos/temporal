@@ -3,7 +3,10 @@
 use std::path::Path;
 
 use quote::quote;
-use umpire_temporal_annotate_syntax::{realization::Schema, realize::expand};
+use umpire_temporal_annotate_syntax::{realization::Schema, realize::expand_in_source};
+
+#[cfg(test)]
+use umpire_temporal_annotate_syntax::realize::expand;
 
 fn schema() -> Result<(Schema, Vec<std::path::PathBuf>), String> {
     Schema::load(
@@ -21,8 +24,19 @@ pub fn realization(
     let model = syn::parse_macro_input!(args as syn::Path);
     let item = syn::parse_macro_input!(input as syn::ItemImpl);
     let result = schema().map_err(|error| syn::Error::new_spanned(&item, error)).and_then(
-        |(schema, inputs)| {
-            let expanded = expand(&model, item, &schema)?;
+        |(schema, mut inputs)| {
+            let span = item.impl_token.span;
+            let source = span.local_file().ok_or_else(|| {
+                syn::Error::new(span, "realization requires its Rust source scope")
+            })?;
+            let source = std::fs::canonicalize(source).map_err(|error| {
+                syn::Error::new(span, format!("cannot locate realization source scope: {error}"))
+            })?;
+            let text = std::fs::read_to_string(&source).map_err(|error| {
+                syn::Error::new(span, format!("cannot read realization source scope: {error}"))
+            })?;
+            let expanded = expand_in_source(&model, item, &schema, &text, span.start())?;
+            inputs.push(source);
             let tracked =
                 inputs.iter().map(|input| input.to_string_lossy().into_owned()).map(|input| {
                     quote!(
@@ -134,10 +148,13 @@ mod tests {
             .ok_or("activity realization impl is missing")?;
         item.attrs.retain(|attribute| !attribute.path().is_ident("realization"));
         let (schema, _) = super::schema()?;
-        let expanded = umpire_temporal_annotate_syntax::realize::expand(
+        let location = item.impl_token.span.start();
+        let expanded = umpire_temporal_annotate_syntax::realize::expand_in_source(
             &syn::parse_str("activity")?,
             item,
             &schema,
+            source,
+            location,
         )?;
         insta::assert_snapshot!(
             "activity-realization",

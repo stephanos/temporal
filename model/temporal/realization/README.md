@@ -35,6 +35,16 @@ opaque catalog fields. Proto3 scalar defaults have no decoded wire presence. Cla
 a parent stops traversal below it; an opaque parent cannot be traversed. The attributes
 declare what the handler reads; unused declared reads are not detected.
 
+Enum admission resolves same-file module imports, grouped imports, type aliases,
+local aliases and imported variants, preserving local Model and generic-name
+shadowing. Wildcard coverage through unknown external reexports or inferred
+helper-return subjects refuses with a located diagnostic; use canonical enum paths or explicit
+variants. Conditional or unsupported aliases are treated as unresolved. This is
+bounded source analysis, not Rust compiler name or type inference. The attributed
+impl must occur literally in readable source; unavailable source scope refuses
+compilation. Its source file is tracked as an expansion input. Match expressions
+are inspected without changing their evaluation, ownership or moves.
+
 `Realization::REALIZATION` retains the mapped/ignored/unsupported paths and ignore
 reasons for each observed response, incoming callback and outgoing request. Outgoing
 mapped paths mean produced fields. The expansion is pinned after formatting with
