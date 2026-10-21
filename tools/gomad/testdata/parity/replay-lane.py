@@ -1,6 +1,7 @@
 #!/usr/bin/env python3
 """Mandatory fresh semantic, authenticated replay and golden lane."""
 import argparse
+import hashlib
 import json
 from pathlib import Path
 import subprocess
@@ -15,11 +16,19 @@ for name in ('binary', 'baseline', 'source', 'go-compiler', 'work',
 args = p.parse_args()
 corpus = Path(__file__).resolve().parent
 declaration = json.loads((corpus / 'replay-corpus.json').read_bytes())
-assert set(declaration) == {'schema', 'verb', 'targets', 'seeds', 'profiles', 'goldens', 'projection'}
+assert set(declaration) == {'schema', 'verb', 'targets', 'seeds', 'profiles', 'goldens', 'cluster_reference', 'projection'}
 assert declaration['schema'] == 'gomad.replay-corpus/v1' and declaration['verb'] == 'replay'
 assert set(declaration['projection']) == {'record', 'manifest', 'ledger', 'status', 'replay', 'verify', 'observed'}
 for target in declaration['targets']:
     assert (corpus / target).is_file(), target
+pinned = declaration['cluster_reference']
+assert set(pinned) == {'decision', 'source_revision', 'source_archive', 'source_archive_sha256',
+                       'go_binary_sha256', 'go_helper_sha256'}
+for field, path in (('go_binary_sha256', args.cluster_baseline / 'bin/gomad'),
+                    ('go_helper_sha256', args.cluster_baseline / 'bin/gomad-wasmhost'),
+                    ('source_archive_sha256', args.cluster_baseline / pinned['source_archive'])):
+    actual = hashlib.sha256(path.read_bytes()).hexdigest()
+    assert actual == pinned[field], ('cluster_reference.' + field, str(path), actual)
 args.work.mkdir(mode=0o700, parents=True, exist_ok=False)
 
 
