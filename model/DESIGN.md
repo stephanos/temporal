@@ -572,7 +572,7 @@ The independent six-phase activity Model uses the Reset/Judge/Answer protocol ov
 ## Annotation catalog
 
 Authors classify the API fields a feature uses in its typed sidecar,
-`temporal/features/activity/api.rs`. Upstream protos remain unchanged. The catalog
+`temporal/feature/activity/api.rs`. Upstream protos remain unchanged. The catalog
 supplies generation, validation, consequences and expected server errors; the independent
 `model.rs` continues to own transitions. [Authoring syntax](temporal/annotate/README.md)
 lives beside `annotate!`.
@@ -640,7 +640,7 @@ Unverifiable; intentional `Accepts` succeeding is Confirmed. Mismatch and unexpe
 fail unless a source-reviewed `AcceptedGap` has a valid calendar date and nonblank reason.
 The activity registry is empty.
 
-The first retained [golden](temporal/features/activity/expected/gaps.txt) has 62 Confirmed
+The first retained [golden](temporal/feature/activity/expected/gaps.txt) has 62 Confirmed
 (52 expected rejections and 10 intentional acceptances), zero Mismatch/Accepted/Unverifiable,
 73 uncovered validator entries and three unresolved seams. The initial live report found two
 wrong Accepts declarations for unknown Start `id_reuse_policy` and `id_conflict_policy`.

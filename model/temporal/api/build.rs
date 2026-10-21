@@ -47,7 +47,7 @@ fn main() -> io::Result<()> {
         return Err(io::Error::other("linking annotation API descriptors failed"));
     }
     let mut coverage = Coverage::default();
-    catalog_inputs(&root.join("model/temporal/features"), &mut coverage)?;
+    catalog_inputs(&root.join("model/temporal/feature"), &mut coverage)?;
     descriptor::check(&fs::read(&linked)?, &coverage).map_err(io::Error::other)?;
 
     codegen::generate(

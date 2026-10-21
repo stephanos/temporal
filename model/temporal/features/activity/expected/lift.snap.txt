@@ -1,1 +1,0 @@
-../features/activity/model.rs:31:5: warning: trait or generic impl in machine module is unsupported; TLA+ emission refused

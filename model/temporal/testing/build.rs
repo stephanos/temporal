@@ -5,11 +5,11 @@
 mod discovery;
 
 fn main() -> std::io::Result<()> {
-    discovery::build_at("../features", discovery::MODEL_AND_TESTS)?;
+    discovery::build_at("../feature", discovery::MODEL_AND_TESTS)?;
     let output =
         std::env::var_os("OUT_DIR").ok_or_else(|| std::io::Error::other("missing OUT_DIR"))?;
     let fixtures =
-        discovery::discover(std::path::Path::new("../features"), discovery::MODEL_AND_TESTS)?
+        discovery::discover(std::path::Path::new("../feature"), discovery::MODEL_AND_TESTS)?
             .into_iter()
             .map(|fixture| (fixture.name, fixture.module, fixture.path))
             .collect::<Vec<_>>();

@@ -1,6 +1,6 @@
 # Mini activity realization
 
-`umpire-temporal` binds the independent `features/activity/model.rs` to the
+`umpire-temporal` binds the independent `feature/activity/model.rs` to the
 real generated Temporal API. `Realization` implements `Realize<activity::World>`;
 `runtime()` uses the macro-exported world directly. Each runtime owns one run.
 Generated `prost::Name` implementations supply canonical Any URLs through the

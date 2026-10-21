@@ -16,7 +16,7 @@ fn api_build_tracks_existing_inputs_and_feature_catalogs() -> Result<(), Box<dyn
             inputs.push(path.canonicalize()?);
         }
     }
-    let features = manifest.join("../features").canonicalize()?;
+    let features = manifest.join("../feature").canonicalize()?;
     assert!(inputs.contains(&features));
     assert!(inputs.contains(&features.join("activity/api.rs")));
     for schema in ["temporal.proto", "probe.proto"] {

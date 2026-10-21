@@ -1,5 +1,5 @@
 error[E0080]: evaluation panicked: supplemental request covers must name a source symbol
-  --> tests/ui/../../../features/activity/api_requests.rs
+  --> tests/ui/../../../feature/activity/api_requests.rs
    |
    |               assert!(nonblank, "supplemental request covers must name a source symbol");
    |               ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^ evaluation of `main::_` failed here
@@ -18,7 +18,7 @@ error[E0080]: evaluation panicked: supplemental request covers must name a sourc
    = note: this error originates in the macro `$crate::panic::panic_2021` which comes from the expansion of the macro `supplemental_request` (in Nightly builds, run with -Z macro-backtrace for more info)
 
 error[E0080]: evaluation panicked: supplemental request covers must name a source symbol
-  --> tests/ui/../../../features/activity/api_requests.rs
+  --> tests/ui/../../../feature/activity/api_requests.rs
    |
    |               assert!(nonblank, "supplemental request covers must name a source symbol");
    |               ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^ evaluation of `main::_` failed here

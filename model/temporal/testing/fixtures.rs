@@ -50,7 +50,7 @@ fn render_tlc(
 #[test]
 #[allow(clippy::print_stderr)]
 fn fixtures() -> umpire_testing::TestResult {
-    let root = std::path::Path::new(env!("CARGO_MANIFEST_DIR")).join("../features");
+    let root = std::path::Path::new(env!("CARGO_MANIFEST_DIR")).join("../feature");
     let required = std::env::var("UMPIRE_BACKENDS").as_deref() == Ok("require");
     if required {
         if admitted().is_empty() {

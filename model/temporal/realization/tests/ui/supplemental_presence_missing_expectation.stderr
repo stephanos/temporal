@@ -4,13 +4,13 @@ error: no rules expected `covers`
 10 |         covers = "server.RespondFailed",
    |         ^^^^^^ no rules expected this token in macro call
    |
-  ::: tests/ui/../../../features/activity/api_requests.rs
+  ::: tests/ui/../../../feature/activity/api_requests.rs
    |
    | macro_rules! supplemental_request {
    | --------------------------------- when calling this macro
    |
 note: while trying to match `expected`
-  --> tests/ui/../../../features/activity/api_requests.rs
+  --> tests/ui/../../../feature/activity/api_requests.rs
    |
    |         expected = $expected:expr, covers = $covers:literal $(,)?) => {{
    |         ^^^^^^^^

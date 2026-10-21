@@ -1,5 +1,5 @@
 #[macro_use]
-#[path = "../../../features/activity/api_requests.rs"]
+#[path = "../../../feature/activity/api_requests.rs"]
 mod requests;
 
 fn main() {
