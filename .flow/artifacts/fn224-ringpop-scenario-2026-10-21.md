@@ -36,3 +36,21 @@ No diff under `tests/testcore`, `wasm/wasi`, `internal/model`, `wasm/toolchain` 
 ## Rerun
 
 `/home/agent/wt/evidence/fn224/scenario/explore.sh <label> 7,19` (installation `evidence/fn224/scenario/gomad-wasm.json` from `ringpop-config.json`, cwd = guest module), then `gomad replay <artifact>`.
+
+## Review and candidate rerun (2026-10-21, `ab7625c647`)
+
+Independent review: SHIP-WITH-FIXES (`/home/agent/wt/evidence/fn224/REVIEW.md`). Fixed in `ab7625c647`: H1 (ringpop fixture module classified in archcheck `expectedModules` and lintcode; `TestWASMArchitecture` and `make lint-code-fast GOLANGCI_LINT_BASE_REV=66391696db` exit 0), M3 (guest asserts a/b dropped c at the view, compares full member sets after the heal, re-checks at the deadline; exit status replaces an output stop marker, recorded in CLI.md), L1, L2 (do-not-tidy note), L4. The earlier evidence above used the fn-221 sweep build of `1d7b37f00a` (M1).
+
+Rerun on binaries built from `ab7625c647` (gomad `sha256:7ec6be501b8c…`, helper `sha256:558e2989a2cd…`, runtime from the branch; `/home/agent/wt/evidence/fn224/candidate/run-all.log`):
+
+| Check | Result |
+| --- | --- |
+| Scenario seed 7 / 19 (tightened guest) | success both; same views and checksum 990001539; replay `reproduced=true result=success choice-replay=none` both |
+| `TestRpoSuite/TestMonitor` seed 0 | success, leaf PASS |
+| Its standalone replay | `execute replay target: choice trace malformed` (rc 3) |
+| `TestRpoSuite/TestCompareMembers` seed 0 replay (empty choice tape) | same error |
+| One-box `TestFrontendSystemInfo` seed 0 (M2) | not run: preparation failed with `no space left on device` (host disk 100%) |
+
+The standalone replay failure is not caused by fn-224: the ringpop test module does not import `temporal/`, so its guest is identical with and without this branch, and it replayed exactly (27/27) on the sweep build. It is either a regression in standalone `--choices` replay at `66391696db`+ (the fn-228/fn-232 replay path) or an installation mismatch from pairing HEAD gomad with the older frozen stock compiler `29cb18ad…`; not attributed. Hand to the replay owner.
+
+**Merge precondition (M2):** before merging `fn224-ringpop` into `gomad`, run the one-box `TestFrontendSystemInfo` at one seed with the larger slim module on a host with free disk (`candidate/run-all.sh` step 3). If it exceeds a recorded capacity, gate the unstub behind a per-workload tag per the spec.
