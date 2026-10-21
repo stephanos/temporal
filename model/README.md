@@ -253,6 +253,11 @@ wrong rejection refutes the corresponding law.
 The reusable `umpire-wasm` library owns state, replay, first-Unexplained freezing,
 Reset, response-publication transactions and ABI buffers. A system-owned `Realize`
 binding proposes paths; the runtime validates those paths through actual Model steps.
+The activity binding uses Temporal-owned `#[realization]`, `#[observe]` and `#[answer]`
+attributes over typed handlers. Their declared field paths distinguish observed responses,
+incoming callbacks and produced partial SDK requests; omitted present fields refuse.
+See the [realization guide](temporal/realization/README.md) for explicit state projection,
+`Step`/`Reply` returns and the raw typed request packing contract.
 For public states, `#[machine]` exports `World` and `Action`, and `world()` returns
 `World`. Non-public states retain the opaque interface with generated types following
 the state's visibility. The public activity world removes

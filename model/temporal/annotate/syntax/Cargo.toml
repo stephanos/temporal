@@ -16,6 +16,10 @@ path = "tests/admission.rs"
 name = "expansion"
 path = "tests/expansion.rs"
 
+[[test]]
+name = "realize"
+path = "tests/realize.rs"
+
 [lints]
 workspace = true
 

@@ -1000,6 +1000,7 @@ dependencies = [
  "umpire-dsl",
  "umpire-temporal-annotate",
  "umpire-temporal-api",
+ "umpire-temporal-realization-macros",
  "umpire-wasm",
 ]
 
@@ -1055,6 +1056,17 @@ version = "0.0.1"
 dependencies = [
  "umpire-temporal",
  "umpire-wasm",
+]
+
+[[package]]
+name = "umpire-temporal-realization-macros"
+version = "0.0.1"
+dependencies = [
+ "insta",
+ "prettyplease 0.3.0",
+ "quote",
+ "syn 3.0.9",
+ "umpire-temporal-annotate-syntax",
 ]
 
 [[package]]
