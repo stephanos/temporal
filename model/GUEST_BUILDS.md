@@ -102,17 +102,18 @@ artifacts and earlier smaller Temporal closures do not certify the current unwin
 build. The original engine feasibility proof is retained under
 `.flow/tmp/fn230-eh-proof-20261021T032505Z/` with its sources and negative controls.
 
-The executed unwind proof used source
-`19f71945cba152f566ef532cee0c25c56ccbbfde` in the isolated checkout
-`/Users/stephan/Workspace/skunkworks/umpire/temporal/.worktrees/fn2301-unwind`.
-Its exact runner is `.flow/tmp/run-final-unwind-proof.sh`, with captured output in
-`.flow/tmp/unwind-final-proof.log`. It ran through
-`timeout 600s env -u RUSTFLAGS -u CARGO_ENCODED_RUSTFLAGS bash <absolute-runner>`
-and exited 0. Source clones are `.flow/tmp/fn2301-unwind-final-proof/source-a` and
-`.flow/tmp/fn2301-unwind-final-proof/different-source-b`; the initially absent targets
-are `/home/agent/.cache/codex-build/fn2301-unwind/final-proof-a` and `final-proof-b`.
-Their directory identities were `29:9969761` and `29:9969571`. The runner checked
-both source statuses before and after building, compared both pairs with `cmp`,
+The executed integrated unwind proof used source
+`ab9c8edb38318d497e4ce06cd6548fd96b8772c5` from
+`/Users/stephan/Workspace/skunkworks/umpire/temporal`.
+Its exact runner is `.flow/tmp/fn2301-integrated-artifacts/run-proof.sh`, with output in
+`.flow/tmp/fn2301-integrated-artifacts/proof.log`. It ran through
+`timeout 600s env -u RUSTFLAGS -u CARGO_ENCODED_RUSTFLAGS bash /Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/fn2301-integrated-artifacts/run-proof.sh`
+and exited 0. A task-specific `mktemp -d` created
+`.flow/tmp/fn2301-integrated-proof.IJl2tf/`, containing source clones `source-a` and
+`different-source-b` and initially absent targets `independent-target-a` and
+`independent-target-b`. Target identities were `58:453312922` and `58:453329518`.
+The proof ran from 06:45:02 to 06:47:30 UTC on 2026-10-21 (148 s).
+The runner checked both source statuses before and after building, compared both pairs with `cmp`,
 and recorded SHA-256 and byte counts. Each build used `CARGO_BUILD_JOBS=4`.
 The observed platform was Linux 7.0.14/aarch64 with Rust 1.99.1
 (`58cf8f9c35b355199727627d07ae34a4e2846d67`, LLVM 23.1.1), Cargo 1.99.1,
@@ -121,24 +122,26 @@ Go 1.27.0 and protoc 29.5. DESIGN records the resulting bytes and hashes.
 ## Verification and measured gate cost
 
 The default and `UMPIRE_BACKENDS=require make model-check` gates passed on the
-isolated source. Required mode exercised the existing TLC agreement and negative
-controls after `fetch-tlc.sh` installed the existing checksum-pinned 1.7.4 jar into
-this checkout's ignored cache. The Temporal source shape retains its existing TLC
-refusals. Both Go host modules also passed `go vet -tags test_dep ./...`.
+integrated source. Required mode exercised the existing TLC agreement and negative
+controls with the existing checksum-pinned 1.7.4 jar in the checkout's ignored cache.
+The Temporal source shape retains its existing TLC refusals. Both Go host modules
+also passed `go vet -tags test_dep ./...`. A verbose guest-profile parity run passed
+the stock goldens, caught panic/overflow, repeated calls/Reset, uncaught traps and
+exact descriptor-denial/signature controls. Gate-built stock and Temporal artifacts
+compared byte-identically with the clean-clone proof after both gates and timing.
 
 With `CARGO_BUILD_JOBS=4`,
 `CARGO_TARGET_DIR=/home/agent/.cache/codex-build/fn2301-unwind/cargo` and
 `GOCACHE=/home/agent/.cache/codex-build/fn2301-unwind/go`, `make model-time`
-exited 0. Its full gate took 101.980 s, exceeding the 30 s soft target. Native
-tests took 33.347 s and guest builds 54.130 s; this run followed a Makefile change
-that invalidates the API generator's tracked input. The edited-checker inner loop
-took 4.999 s, within its 10 s soft target. These are individual observations on
-the shared executor. The larger unwind artifacts and this gate overrun remain
-visible costs of preserving caught-panic judgments.
+exited 0. Its full gate took 163.764 s, exceeding the 30 s soft target. Native
+tests took 98.880 s and guest builds 55.257 s. The edited-checker inner loop took
+3.295 s, within its 10 s soft target. These are individual observations on the shared
+executor. The larger unwind artifacts and this gate overrun remain visible costs
+of preserving caught-panic judgments.
 
-Captured logs are `.flow/tmp/model-check-green.log`,
-`.flow/tmp/model-check-required-green.log` and `.flow/tmp/model-time-green.log`.
-Earlier failure logs remain beside them. The first gate exposed a relative child
+Integrated logs are `.flow/tmp/fn2301-integrated-artifacts/model-check.log`,
+`model-check-required.log`, `profile-parity.log` and `model-time.log` in that directory.
+Earlier failures remain in `.flow/tmp/fn2301-unwind-artifacts/`. The first gate exposed a relative child
 script invocation under this host's directory-resetting shell startup; the builder
 now invokes an absolute script path. The first timing run exposed its wrapper's
 different working directory; Python test discovery now also uses an absolute path.

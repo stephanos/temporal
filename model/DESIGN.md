@@ -139,7 +139,7 @@ Direct locked Cargo builds need no custom linker or post-link processing.
 
 ## Reproducible guest builds (fn-230.1)
 
-Linux unwind proof, 2026-10-21 UTC, source `19f71945cba152f566ef532cee0c25c56ccbbfde`.
+Linux unwind proof, 2026-10-21 UTC, source `ab9c8edb38318d497e4ce06cd6548fd96b8772c5`.
 Linux 7.0.14/aarch64; Rust 1.99.1 (`58cf8f9c35b355199727627d07ae34a4e2846d67`,
 LLVM 23.1.1), Cargo 1.99.1, Go 1.27.0, protoc 29.5. Two clean clones at different
 absolute paths used initially absent independent targets and retained clean status.
@@ -147,7 +147,7 @@ absolute paths used initially absent independent targets and retained clean stat
 | Guest | Bytes in each clone | SHA-256 in each clone |
 | --- | ---: | --- |
 | Stock | 192255 | `5ec57e2e5371723adf318665c1048b5a4021e9f4203ed56884c5f849e7a2dfc1` |
-| Temporal | 2773135 | `5001a01808b2bdb328b26c8252d8ebc910105b002aa31e4a099c505aa514a79f` |
+| Temporal | 3330375 | `0d4e1b112097ba62f62f53c6a95ecc7776bfbf907df8594592586d3fe767ece0` |
 
 Both byte comparisons passed. Actual Tiny effect-panic and overflow fixtures match
 their native full responses and existing report goldens across repeated calls and Reset.
