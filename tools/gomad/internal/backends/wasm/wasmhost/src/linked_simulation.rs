@@ -9,6 +9,7 @@ use std::{
 
 pub(crate) type Shared = Arc<Mutex<Controller>>;
 
+#[cfg(not(feature = "conformance"))]
 pub struct Execution {
     pub cluster: crate::linked_cluster::Execution,
     pub decisions: Vec<Decision>,
@@ -17,6 +18,7 @@ pub struct Execution {
 
 /// # Errors
 /// Refuses invalid plans or execution failures without replacing observed model evidence.
+#[cfg(not(feature = "conformance"))]
 pub fn execute(
     mut prepared: crate::linked_cluster::Prepared,
     plan: Plan,
@@ -67,6 +69,7 @@ pub fn execute(
     })
 }
 
+#[cfg(not(feature = "conformance"))]
 pub(crate) fn next_step(
     script: &mut std::collections::VecDeque<crate::linked_cluster::Step>,
     controller: Option<&Shared>,
@@ -334,6 +337,7 @@ impl Decision {
 }
 
 impl Controller {
+    #[cfg(not(feature = "conformance"))]
     pub(crate) fn seed(&self) -> u64 {
         self.plan.base_seed
     }
@@ -476,7 +480,7 @@ impl Controller {
     }
 }
 
-#[cfg(test)]
+#[cfg(all(test, not(feature = "conformance")))]
 mod tests {
     use super::*;
     use crate::linked_cluster::{Action, Handle, Step};
