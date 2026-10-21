@@ -282,7 +282,11 @@ def main():
             template = Path(__file__).parent / 'reference/replay-cluster.go.txt'
             (wrapper / 'main.go').write_bytes(template.read_bytes())
             executable = args.work / 'go-cluster-reference'
-            run('api-build', [args.compiler, 'build', '-trimpath', '-o', executable, './' + str(wrapper.relative_to(module))], cwd=module)
+            try:
+                run('api-build', [args.compiler, 'build', '-trimpath', '-o', executable, './' + str(wrapper.relative_to(module))], cwd=module)
+            finally:
+                (wrapper / 'main.go').unlink()
+                wrapper.rmdir()
             print(run('api-record-inspect', [executable, input_path]).decode())
             api_dir = args.work / 'api'
             receipt = {'schema': 'gomad.cluster-go-api-reference/v1', 'module_path': base['ModulePath'],
