@@ -812,3 +812,12 @@ fn230-sites and fn232-minimize remain active; their pending evidence is not a
 completion claim. All other previously retained worktrees remain open-owner
 sources or required evidence as listed above. No cleanup was performed here.
 Current free space: build filesystem 8.3 GiB, host filesystem 31 GiB.
+
+Source-derived host-effect checking additionally exposed two missing fn235
+consumer inventory rows for ClusterSession.completedFailure/failureObserved.
+The original check failed naming exactly those two map ranges. Their new rows
+describe locked order-independent all-done/boolean-OR predicates and append
+identities without changing the historical ledger prefix. Focused wasm,
+determinism and archcheck tests pass; the full determinism package also passes.
+Independent failfast_final_review returned SHIP for these metadata-only changes.
+This supplies no new runtime determinism or fn235 completion claim.
