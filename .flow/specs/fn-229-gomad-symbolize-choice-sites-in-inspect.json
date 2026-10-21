@@ -1,11 +1,74 @@
 {
   "branch_name": "fn-229-gomad-symbolize-choice-sites-in-inspect",
+  "completion_review_status": "unknown",
+  "completion_reviewed_at": null,
   "created_at": "2026-10-20T20:28:44.772087Z",
+  "default_impl": null,
+  "default_review": null,
+  "default_sync": null,
   "depends_on_epics": [],
   "id": "fn-229-gomad-symbolize-choice-sites-in-inspect",
+  "impl_review_rounds": {},
   "next_task": 1,
-  "plan_review_status": "unknown",
-  "plan_reviewed_at": null,
+  "plan_review_rounds": 0,
+  "plan_review_status": "ship",
+  "plan_reviewed_at": "2026-10-21T00:09:18.735644Z",
+  "review_attempts": [
+    {
+      "artifact_sha256": "85a4012f77b8505a3dba919b4d4ea50dcd5bbeec898696e28f16602c2d99ccb9",
+      "backend": "codex",
+      "base_sha": "951c5516e9e7b3066e7e069adda9565cfd68844c",
+      "counter_kind": "plan",
+      "effort": "high",
+      "failure_class": null,
+      "finalized": {
+        "digest": "complete",
+        "receipt": "complete",
+        "status": "complete"
+      },
+      "findings_digest": {
+        "backend": "codex",
+        "digest_truncated": false,
+        "items": [
+          {
+            "chainRoot": "finding-0d9726e021da7e66ebfa6c954213d376",
+            "classification": "introduced",
+            "findingId": "finding-0d9726e021da7e66ebfa6c954213d376",
+            "firstSeenThisRound": true,
+            "severity": "P2",
+            "status": "open"
+          }
+        ],
+        "reviewKind": "plan"
+      },
+      "forced": false,
+      "hash_epoch": 0,
+      "head_sha": "5874feaa433d9ab317f0b68ea1d34385b2fb9636",
+      "head_sha_observed": true,
+      "kind": "plan",
+      "model": "gpt-6.1-sol",
+      "outcome": "verdict",
+      "output_bytes": 229027,
+      "output_sha256": "dc94a3626efe38923b359cbce507143eb10e0a61a18bfec575687c9c7f46585d",
+      "reservation_id": "f2f6026df81f4ccba15be0684a3f2372",
+      "round_consumed": true,
+      "scope": "plan",
+      "superseded_by": null,
+      "task": null,
+      "timestamp": "2026-10-21T00:09:18.728426Z",
+      "tool_calls": 26,
+      "verdict": "SHIP"
+    }
+  ],
+  "review_hash_epoch": {
+    "plan": 1,
+    "plan#completion": 0
+  },
+  "review_pending_rounds": {},
+  "review_reservations": {},
+  "review_transport_failures": {
+    "plan": 0
+  },
   "spec_path": ".flow/specs/fn-229-gomad-symbolize-choice-sites-in-inspect.md",
   "status": "open",
   "title": "Gomad: symbolize choice sites in inspect",
@@ -20,5 +83,5 @@
     "mergeBaseTracker": null,
     "url": null
   },
-  "updated_at": "2026-10-20T21:10:03.430580Z"
+  "updated_at": "2026-10-21T00:09:18.737476Z"
 }
