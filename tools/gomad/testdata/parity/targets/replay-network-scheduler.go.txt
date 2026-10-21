@@ -1,0 +1,22 @@
+package main
+
+import "runtime"
+
+func main() {
+	done := make(chan struct{}, 3)
+	for range 3 {
+		go func() {
+			for range 4 {
+				runtime.Gosched()
+			}
+			done <- struct{}{}
+		}()
+	}
+	for range 4 {
+		runtime.Gosched()
+	}
+	for range 3 {
+		<-done
+	}
+	networkMain()
+}
