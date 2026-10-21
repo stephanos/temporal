@@ -74,6 +74,8 @@ def main():
     scenario['boots'][1]['args'] = ['simulation-recover']
     scenario['output_crashes'][0]['marker'] = base64.b64encode(b'pending simulation write').decode()
     scenario['spec']['limits']['network_connection_bytes'] = 1 << 20
+    scenario['spec']['links'] = [{'from': source, 'to': target, 'enabled': True}
+                               for source, target in [('a', 'b'), ('b', 'a')]]
     scenario['network_faults'] = [
         dict(Name='partition', Action='partition', From='a', To='b', AtNanos=1),
         dict(Name='heal', Action='heal', From='a', To='b', AtNanos=1),
