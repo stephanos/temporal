@@ -170,7 +170,7 @@ if args.network:
     envelope = json.loads((artifact / manifest['target']['backend']['evidence']['file']).read_bytes())
     network = base64.b64decode(envelope['Network'], validate=True)
     rust_network = (rust_artifact / 'evidence/network').read_bytes()
-    parity.check_equal(json.loads(rust_network), json.loads(network), '$network')
+    parity.check_equal(json.loads(rust_network), json.loads(network))
     assert len(rust_network) == len(network), 'network evidence byte accounting differs'
     assert (rust_artifact / 'evidence/transcript').read_bytes() == base64.b64decode(envelope['WASI'], validate=True)
     for name in ('stdout', 'stderr'):
