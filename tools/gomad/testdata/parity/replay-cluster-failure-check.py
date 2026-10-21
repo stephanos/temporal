@@ -14,6 +14,8 @@ sys.dont_write_bytecode = True
 p = argparse.ArgumentParser()
 p.add_argument('--binary', type=Path, required=True)
 p.add_argument('--work', type=Path, required=True)
+p.add_argument('--compiler', type=Path, required=True)
+p.add_argument('--source', type=Path, required=True)
 args = p.parse_args()
 args.work.mkdir(mode=0o700, parents=True, exist_ok=False)
 corpus = Path(__file__).resolve().parent
@@ -23,14 +25,27 @@ parity = module_from_spec(spec_from_loader(loader.name, loader))
 loader.exec_module(parity)
 
 
-def run(name, arguments, status=0):
-    result = subprocess.run([str(args.binary), *map(str, arguments)], capture_output=True, timeout=15)
-    commands.append(dict(name=name, argv=[str(args.binary), *map(str, arguments)],
+def run(name, arguments, status=0, executable=None, cwd=None):
+    command = [str(executable or args.binary), *map(str, arguments)]
+    result = subprocess.run(command, capture_output=True, timeout=60, cwd=cwd)
+    commands.append(dict(name=name, argv=command,
                          status=result.returncode, stdout=result.stdout.decode(), stderr=result.stderr.decode()))
     (args.work / 'commands.json').write_text(json.dumps(commands, indent=2) + '\n')
     assert result.returncode == status, (name, result.returncode, result.stdout, result.stderr)
     return result.stdout
 
+
+module_root = args.source / 'tools/gomad'
+wrapper = module_root / 'cmd' / ('fn232-world-reference-' + hashlib.sha256(str(args.work).encode()).hexdigest()[:12])
+wrapper.mkdir(mode=0o700)
+world_decoder = args.work / 'world-reference'
+try:
+    (wrapper / 'main.go').write_bytes((corpus / 'reference/replay-world.go.txt').read_bytes())
+    run('world-decoder-build', ['build', '-trimpath', '-o', world_decoder, './' + str(wrapper.relative_to(module_root))],
+        executable=args.compiler, cwd=module_root)
+finally:
+    (wrapper / 'main.go').unlink()
+    wrapper.rmdir()
 
 run('base', ['fixture-replay-cluster-execution', '--root', args.work / 'base', '--corpus', corpus])
 base = json.loads((args.work / 'base/foundation-result.json').read_bytes())
@@ -75,7 +90,8 @@ for name, module, termination, exit_code in [('trap', 'execution-trap.wat', 'tra
     if name == 'capacity':
         world = (path / 'evidence/world').read_bytes()
         assert world, 'capacity must retain terminal World evidence'
-        assert json.loads(world)['schemaVersion'] == 1
+        decoded = json.loads(run('capacity-world-decode', [path / 'evidence/world'], executable=world_decoder))
+        assert decoded['schemaVersion'] == 1, decoded
     assert b'reproduced=true' in run(name + '-replay', ['replay', path], 1)
     for repetition in range(2):
         repeated_root = args.work / (name + '-repeat-' + str(repetition))

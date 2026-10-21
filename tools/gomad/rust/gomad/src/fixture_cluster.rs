@@ -14,7 +14,7 @@ use gomad_wasmhost::{linked, linked_cluster as helper};
 use serde::Deserialize;
 use serde_json::json;
 use sha2::Digest as _;
-use std::{collections::BTreeMap, path::Path, time::Duration};
+use std::{collections::BTreeMap, path::Path};
 
 fn descriptor(file: String, bytes: &[u8], limit: u64) -> Payload {
     Payload {
@@ -90,6 +90,7 @@ fn publication(corpus: &Path, seed: u64) -> Result<Publication, String> {
             handle,
             module: descriptor("target/module.wasm".into(), &module, 512 << 20),
             limits: limits.clone(),
+            wall_nanos: None,
             arguments: vec!["fixture".into()],
             environment: BTreeMap::from([("PWD".into(), "/".into())]),
             runtime_sha256: runtime.clone(),
@@ -101,6 +102,7 @@ fn publication(corpus: &Path, seed: u64) -> Result<Publication, String> {
         });
     }
     let configuration = Configuration {
+        wall_nanos: None,
         nodes: Vec::new(),
         engine: linked::CONFIGURATION.into(),
         profile: "gomad.wasi-cooperative/v1".into(),
@@ -169,7 +171,10 @@ fn execute_configuration(
                     fuel: item.limits.fuel,
                     output_bytes: item.limits.output_bytes,
                     evidence_bytes: item.limits.evidence_bytes,
-                    wall_timeout: Duration::from_millis(item.limits.wall_millis),
+                    wall_timeout: crate::replay::preflight::wall_timeout(
+                        &item.limits,
+                        item.wall_nanos,
+                    )?,
                 },
                 model: Some(linked::ModelInput {
                     configuration: serde_json::from_value(model)
@@ -196,7 +201,10 @@ fn execute_configuration(
             steps: configuration.steps.clone(),
             boundaries: configuration.boundaries.clone(),
             crash_groups: configuration.crash_groups.clone(),
-            wall_timeout: Duration::from_millis(limits.wall_millis),
+            wall_timeout: crate::replay::preflight::wall_timeout(
+                &limits,
+                configuration.wall_nanos,
+            )?,
             evidence_bytes: limits.evidence_bytes,
         })
         .map_err(|error| error.to_string())?,

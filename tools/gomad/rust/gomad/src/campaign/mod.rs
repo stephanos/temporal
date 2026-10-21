@@ -96,6 +96,7 @@ pub(crate) fn explore(options: &ExploreOptions, output: &mut dyn Write) -> Resul
         "schema":"gomad.seed-campaign-plan/v2","selection":selection.to_string(),"selection_count":selection.count(),"parallel":options.parallel,
         "on_failure":options.on_failure,"failure_budget":options.failure_budget,"shard":null,"journal_bytes":journal_bytes,
         "overall_millis":u64::try_from(options.overall_timeout.as_millis()).map_err(|_|"overall timeout overflows")?,
+        "overall_nanos":u64::try_from(options.overall_timeout.as_nanos()).map_err(|_|"overall timeout overflows")?,
         "terminate_grace_nanos":u64::try_from(options.terminate_grace.as_nanos()).map_err(|_|"termination grace overflows")?,
         "keep_successes":options.keep_successes,"success_limit":options.success_limit,"success_bytes":options.success_bytes,
         "coverage":options.coverage,"module_sha256":canonical::digest(&prepared.module),"toolchain":prepared.toolchain,
@@ -248,10 +249,18 @@ fn restore_from_plan(plan: &Value, opened: &Opened) -> Result<prepare::Prepared,
 
 pub(crate) fn resume(path: &Path, json: bool, output: &mut dyn Write) -> Result<i32, String> {
     let mut journal = Journal::open(path, true)?;
+    if journal
+        .events()
+        .iter()
+        .any(|event| matches!(event, Event::Complete { .. }))
+    {
+        return Err("campaign lifecycle published is not resumable".into());
+    }
     let prepared = restore(&journal)?;
-    let duration = Duration::from_millis(
-        journal.plan()["overall_millis"]
+    let duration = Duration::from_nanos(
+        journal.plan()["overall_nanos"]
             .as_u64()
+            .filter(|nanos| *nanos > 0)
             .ok_or("campaign overall bound missing")?,
     );
     run(&mut journal, &prepared, duration, json, output)
@@ -434,6 +443,14 @@ fn run(
             scope.spawn(move || {
                 while let Ok(job) = rx.recv() {
                     let result = std::panic::catch_unwind(std::panic::AssertUnwindSafe(|| {
+                        #[cfg(feature = "determinism-fixture")]
+                        if std::env::var("GOMAD_FIXTURE_CAMPAIGN_PANIC_SEED")
+                            .ok()
+                            .as_deref()
+                            == Some(job.seed.to_string().as_str())
+                        {
+                            panic!("campaign fixture slot panic");
+                        }
                         let remaining = deadline.saturating_duration_since(Instant::now());
                         if remaining.is_zero() {
                             return Err("overall_timeout: campaign deadline exceeded".into());

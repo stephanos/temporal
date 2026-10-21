@@ -4,9 +4,12 @@ import (
 	"context"
 	"encoding/json"
 	"fmt"
+	"io"
 	"os"
+	"path/filepath"
 	"time"
 
+	backend "go.temporal.io/server/tools/gomad/internal/backends"
 	"go.temporal.io/server/tools/gomad/internal/backends/target"
 	"go.temporal.io/server/tools/gomad/internal/backends/wasm/installation"
 	"go.temporal.io/server/tools/gomad/internal/runner"
@@ -16,6 +19,36 @@ type request struct {
 	Operation, Installation, WorkingDir, Kind, Source, Output, Plan, Artifacts string
 	Arguments, BuildTags, Shards []string
 	Index, Count uint64
+}
+
+type bundleProvider struct { backend.Provider }
+
+func (adapter bundleProvider) Prepare(ctx context.Context, spec target.Spec) (target.Prepared, error) {
+	prepared, err := adapter.Provider.Prepare(ctx, spec)
+	if err != nil { return target.Prepared{}, err }
+	if err := prepared.Verify(); err != nil { return target.Prepared{}, err }
+	if !filepath.IsAbs(spec.PreparationRoot) || prepared.Size > 512<<20 {
+		return target.Prepared{}, fmt.Errorf("invalid fixture preparation bundle or target bound")
+	}
+	directory, err := os.MkdirTemp(spec.PreparationRoot, "reference-preparation-")
+	if err != nil { return target.Prepared{}, err }
+	input, err := os.Open(prepared.Path)
+	if err != nil { return target.Prepared{}, err }
+	defer input.Close()
+	path := filepath.Join(directory, "module.wasm")
+	output, err := os.OpenFile(path, os.O_WRONLY|os.O_CREATE|os.O_EXCL, 0o500)
+	if err != nil { return target.Prepared{}, err }
+	copied, copyErr := io.Copy(output, io.LimitReader(input, int64(prepared.Size)+1))
+	syncErr := output.Sync()
+	closeErr := output.Close()
+	if copyErr != nil { return target.Prepared{}, copyErr }
+	if syncErr != nil { return target.Prepared{}, syncErr }
+	if closeErr != nil { return target.Prepared{}, closeErr }
+	if uint64(copied) != prepared.Size { return target.Prepared{}, fmt.Errorf("fixture target size changed during copy") }
+	if err := prepared.Verify(); err != nil { return target.Prepared{}, err }
+	prepared.Path = path
+	if err := prepared.Verify(); err != nil { return target.Prepared{}, err }
+	return prepared, nil
 }
 
 func main() {
@@ -40,7 +73,7 @@ func run() error {
 	switch input.Operation {
 	case "plan":
 		result, err = runner.CreateCampaignPlan(ctx, runner.CampaignPlanSpec{Output: input.Output, Campaign: runner.CampaignSpec{
-			Backend: provider, Strategy: runner.StrategySeed, Seeds: "8,7", Parallel: 1,
+			Backend: bundleProvider{provider}, Strategy: runner.StrategySeed, Seeds: "8,7", Parallel: 1,
 			ExecutionTimeout: 30*time.Second, OverallTimeout: 10*time.Minute, TerminateGrace: 2*time.Second,
 			OnFailure: runner.PolicyAll, FailureBudget: 1, OutputLimit: 8<<20, WorldTransitionLimit: 64<<20,
 			ChoiceTraceLimit: 8<<20, IOTranscriptLimit: 64<<20, Artifacts: input.Artifacts, RunnerBuild: build,
