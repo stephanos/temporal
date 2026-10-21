@@ -132,6 +132,7 @@ def main():
             assert divergences, ('no actual helper divergence', case)
             assert len(divergences) == len(authenticated), case
             for divergence, recorded in zip(divergences, authenticated):
+                assert divergence['reason'] == ('site' if case == 'sites' else 'kind'), divergence
                 assert divergence['ordinal'] == recorded['Ordinal'], divergence
                 assert divergence['tape_records'] == recorded['TapeRecords'], divergence
                 assert divergence['tape_records'] > divergence['ordinal'], divergence
@@ -155,8 +156,11 @@ def main():
                 ordinary[0] = args.ordinary_binary.resolve()
                 ordinary[2] = ordinary_manifest
                 ordinary[ordinary.index('--artifacts') + 1] = args.work / ('ordinary-' + case)
-                refusal = run(case + '-ordinary-refusal', ordinary, (2, 3))
-                assert b'unknown import gomad_fixture_v1::choice_mode' in refusal, refusal
+                run(case + '-ordinary-refusal', ordinary, (2, 3))
+                ordinary_roots = list((args.work / ('ordinary-' + case) / 'campaigns').glob('campaign-*'))
+                for root in ordinary_roots:
+                    assert not events(root), root
+                    assert not (root / 'evidence').exists(), root
         (args.work / 'divergence-observations.json').write_bytes(encode(dict(
             schema='gomad.choice-divergence-symbol-check/v1',
             scope='explicit helper determinism fixture for authenticated inspect projection; not ordinary qualification',
