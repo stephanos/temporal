@@ -781,3 +781,34 @@ remain. Old fn232-simulation is still retained because a tracked fixture edit wa
 found. Its entire changed file matches integrated source byte-for-byte, but the
 uncommitted edit was not discarded. Current active sources and raw evidence were
 preserved. Build filesystem free space is approximately 8.4 GiB.
+
+### Symbol consumer acceptance and next repair batch, 2026-10-21 15:27 UTC
+
+fn229.2 is verified done after fresh independent symbols_acceptance_final SHIP.
+The reviewer verified four actual campaign divergences across three cases,
+repeated output, immutable original site keys and all nine artifact payload
+digests. Both fresh symbol golden regenerations and the strict third run agree
+at SHA256 59ff9d080251decc6e034c83c1975b90db4fe33998d0f03e6cca5b5404d4ec18.
+The root independently checked all three golden digests and the strict log.
+Evidence and exact run roots are in the task's done summary; spec completion
+review remains required before closing fn229.
+
+Root c419998757 integrates the admitted-but-unentered peer terminal fix; root
+cac37807a9 integrates the separate failed-prefix lifecycle repair. The latter
+does not invent authored waits during cleanup and refuses an exhausted plan
+with open peers unless real failure or inspection stop occurred. Both are
+source-only checkpoints pending actual failing Go API, linked inspection,
+replay and negative-prefix gates. fn235.1 remains in_progress. Replay owner
+holds the shared RELEASE Cargo target lease for frozen cac37807a9; fn230
+released that lease after copying its immutable candidate. No debug-cache lease
+was acquired. Minimizer owns its separate private fn235 target.
+
+fn232.10 is started provisionally in /home/agent/wt/fn232-qualify, branch
+fn232-qualify, base c419998757. The existing approved qualification design
+and R9/R13/R14 remain unchanged. Source and fixtures may develop alongside
+minimizer final acceptance; no build lease or acceptance waiver is granted.
+The worker must preserve the actual original public supported/refused surface.
+fn230-sites and fn232-minimize remain active; their pending evidence is not a
+completion claim. All other previously retained worktrees remain open-owner
+sources or required evidence as listed above. No cleanup was performed here.
+Current free space: build filesystem 8.3 GiB, host filesystem 31 GiB.

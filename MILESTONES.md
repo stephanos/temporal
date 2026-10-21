@@ -328,7 +328,7 @@ First in the delivery order (owner decision 2026-10-20). New evidence lineage; b
 | [fn-232-gomad-rewrite-the-host-side-in-rust.7](.flow/tasks/fn-232-gomad-rewrite-the-host-side-in-rust.7.md) | 🚧 In progress | seed explore, resume and merge in Rust |
 | [fn-232-gomad-rewrite-the-host-side-in-rust.8](.flow/tasks/fn-232-gomad-rewrite-the-host-side-in-rust.8.md) | 🚧 In progress | choice exploration and simulation exploration in Rust |
 | [fn-232-gomad-rewrite-the-host-side-in-rust.9](.flow/tasks/fn-232-gomad-rewrite-the-host-side-in-rust.9.md) | 🚧 In progress | minimize in Rust |
-| [fn-232-gomad-rewrite-the-host-side-in-rust.10](.flow/tasks/fn-232-gomad-rewrite-the-host-side-in-rust.10.md) | ⬜ Todo | qualify in Rust |
+| [fn-232-gomad-rewrite-the-host-side-in-rust.10](.flow/tasks/fn-232-gomad-rewrite-the-host-side-in-rust.10.md) | 🚧 In progress | qualify in Rust |
 | [fn-232-gomad-rewrite-the-host-side-in-rust.11](.flow/tasks/fn-232-gomad-rewrite-the-host-side-in-rust.11.md) | ⬜ Todo | install, doctor, discover, plan and recover in Rust |
 | [fn-232-gomad-rewrite-the-host-side-in-rust.12](.flow/tasks/fn-232-gomad-rewrite-the-host-side-in-rust.12.md) | ⬜ Todo | Keep Go overlay, models, generator and corpora green under the Rust binary |
 | [fn-232-gomad-rewrite-the-host-side-in-rust.13](.flow/tasks/fn-232-gomad-rewrite-the-host-side-in-rust.13.md) | ⬜ Todo | Qualification cycle on the Rust binary and Go host retirement |
@@ -344,13 +344,9 @@ Owner request 2026-10-20: a Go one-liner and `gomad -- make <target>` intercepti
 | [fn-233-gomad-intercept-the-go-command-so-make.3](.flow/tasks/fn-233-gomad-intercept-the-go-command-so-make.3.md) | ⬜ Todo | gomad -- wrapper, gomad.toml and auto-derived installation |
 | [fn-233-gomad-intercept-the-go-command-so-make.4](.flow/tasks/fn-233-gomad-intercept-the-go-command-so-make.4.md) | ⬜ Todo | Temporal Makefile through the wrapper and operator documentation |
 
-### Choice-site symbolization, explore site scope and minimizer ordering — [fn-229](.flow/specs/fn-229-gomad-symbolize-choice-sites-in-inspect.md), [fn-230](.flow/specs/fn-230-gomad-explore-site-scope-for-choice.md), [fn-231](.flow/specs/fn-231-gomad-site-aware-minimizer-ordering-and.md)
+### Explore site scope and minimizer ordering — [fn-230](.flow/specs/fn-230-gomad-explore-site-scope-for-choice.md), [fn-231](.flow/specs/fn-231-gomad-site-aware-minimizer-ordering-and.md)
 
 Interleave with the Rust host: fn-229 after fn-232.5 inspect, fn-230 after fn-232.8 exploration and fn-229, then fn-231 after fn-232.9 minimize and both preceding site specs. No feature waits for the entire fn-232 rewrite.
-
-| Name / ID | Status | Description |
-| --- | --- | --- |
-| [fn-229-gomad-symbolize-choice-sites-in-inspect.2](.flow/tasks/fn-229-gomad-symbolize-choice-sites-in-inspect.2.md) | 🚧 In progress | Inspect output: attach symbols to sites, decisions and divergences |
 
 | Name / ID | Status | Description |
 | --- | --- | --- |
