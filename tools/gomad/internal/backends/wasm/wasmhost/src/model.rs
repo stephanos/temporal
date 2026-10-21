@@ -75,6 +75,14 @@ pub struct Decision {
     selected_identity: [u8; 32],
     alternative_set_digest: [u8; 32],
 }
+
+impl Decision {
+    #[must_use]
+    pub fn site(&self) -> (u64, bool) {
+        (self.site_offset, self.site_missing)
+    }
+}
+
 #[derive(Serialize)]
 #[serde(rename_all = "PascalCase")]
 pub struct Divergence {
