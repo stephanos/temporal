@@ -4,10 +4,12 @@ satisfies: [R7]
 # fn-227-parameterized-models-declared-worlds.6 After .5: DESIGN.md parameterized worlds write-up and readiness table closure
 
 ## Description
-
 Record R7's delivered surface and measured evidence after .5 and its transitive
 support tasks. Consolidate documentation and final gate evidence in this existing
 task; no separate finalization tasks or new behavior. MILESTONES remains root-owned.
+On 2026-10-21 the timeout and cooperative-cancellation write-up moved to
+fn-237-activity-timeouts-heartbeat-and.5; this task covers parameterized worlds,
+inputs and retries only.
 
 **Size:** M. Adapt two existing authoring/design documents to the completed
 vertical fixtures and actual live proof, then verify the complete public example
@@ -29,10 +31,13 @@ verification artifacts through the normal lifecycle.
    catalog limits. Explain checked scalar construction without claiming generic
    World/state validation. Compile the one README parameterized example using
    the established doc-test or focused DSL fixture path.
-3. Record the activity World/state table, retry/deadline priority and zero/reset
-   laws, cooperative cancellation and exact-action fair-worker assumption.
-   Describe the retained lifecycle projection rather than claiming old activity
-   byte equality. Preserve the request-evidence and transactional admission bounds.
+3. Record the activity World/state table and retry laws. Describe the retained
+   lifecycle projection at the retry checkpoint (one attempt, direct deadline
+   actions, atomic cancellation) rather than claiming old activity byte equality.
+   Preserve the request-evidence and transactional admission bounds, including
+   that request timeout fields are recorded but not yet admitted. Timeouts,
+   deadline priority and zero/reset laws, cooperative cancellation and the
+   fair-worker assumption belong to fn-237.5.
 4. Obtain native/TLC counts per actually selected fixture World and the actual
    live retry/Describe evidence from retained outputs. Execute model-time on the
    final tree and retain its full output. State soft-target misses honestly; a
@@ -47,7 +52,7 @@ Required:
 
 - `model/DESIGN.md` parameterized readiness and current capability boundaries.
 - `model/README.md` Writing a Model examples and backend execution instructions.
-- Native/source `parameterized_world`, `action_inputs`, optional-value/fact
+- Native/source `parameterized_world`, `action_inputs` and `phased_rejection`
   fixtures and their completed task receipts for exact counts and public APIs.
 - `model/temporal/feature/activity/{model.rs,tests.rs,temporal.rs}` and the
   compatibility harness for actual state/action/fact projection and live binding.
@@ -63,10 +68,8 @@ Full from root: `make model-check`, `UMPIRE_BACKENDS=require make model-check`,
 `make model-time`. No global model-update, protocol/dependency/panic-policy change
 or stale counts. Preserve final timing output and prior evidence, including any
 unmet soft targets, without claiming fn-232 certification.
-
 ## Acceptance
-
-- [ ] DESIGN documents the actual parameterized surface and activity table, and
+- [ ] DESIGN documents the actual parameterized surface and the retry-era activity table, and
   delivered readiness statements are backed by completed native/source/live tasks.
 - [ ] One compiling README example covers the selected World, computed starts,
   field-level inputs and explicit suite binding without fabricated defaults.
@@ -74,7 +77,6 @@ unmet soft targets, without claiming fn-232 certification.
   model-time output are retained with all misses and refusal boundaries explicit.
 - [ ] DESIGN remains within 1000 lines, existing documentation/formatting checks
   and full gates pass, and unrelated evidence/goldens and fn-232 status are preserved.
-
 ## Done summary
 TBD
 

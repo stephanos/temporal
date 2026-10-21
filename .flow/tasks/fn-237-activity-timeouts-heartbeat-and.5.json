@@ -1,0 +1,16 @@
+{
+  "assignee": null,
+  "claim_note": "",
+  "claimed_at": null,
+  "created_at": "2026-10-21T21:36:52.603963Z",
+  "depends_on": [
+    "fn-237-activity-timeouts-heartbeat-and.4"
+  ],
+  "id": "fn-237-activity-timeouts-heartbeat-and.5",
+  "priority": null,
+  "spec": "fn-237-activity-timeouts-heartbeat-and",
+  "spec_path": ".flow/tasks/fn-237-activity-timeouts-heartbeat-and.5.md",
+  "status": "todo",
+  "title": "After .4: DESIGN.md timeout and cancellation write-up",
+  "updated_at": "2026-10-21T21:36:52.603963Z"
+}

@@ -1,0 +1,91 @@
+# Activity timeouts, heartbeat and cooperative cancellation (model, temporal)
+
+## Conversation Evidence
+
+> user (2026-10-20), in the fn-227 capture: "what would we parameterize there on the tempporal model?"
+> assistant: world parameters `maximum_attempts`, the four timeouts present or absent with small values, asynchronous cancel; dynamic `attempt`, deadline budgets, `cancel_requested`; action inputs `retryable` on RespondFailed, Heartbeat, Poll's expected attempt; computed starts over small domains; leave out task queues, versioning and local activities.
+> user (2026-10-21), approving the three compatibility, cancellation and request-evidence amendments described in fn-227's Decision Context: "yes Approve all three"
+> user (2026-10-21), owner decision: move the activity timeout semantics out of fn-227 into a new spec: old R5 entirely, tasks fn-227.9 (facts F), fn-227.10 (optional values O) and fn-227.4 (deadlines, cooperative cancel, final lifecycle refinement), the cooperative-cancellation live part of R6 and fn-227.5, the final one-tick compatibility World refinement re-run, and a write-up task for the timeout and cancellation additions.
+> user (2026-10-21): "we need TLC on the real, activity Model still" — fn-227 therefore keeps its R3 in full, including fn-227.11's source `impl Phased`/`reject!` admission, so the activity Model is TLC-checked before this spec starts.
+
+## Goal & Context
+
+fn-227 extends the activity Model in place with a declared World, action inputs and a bounded retry policy, proves a retained-lifecycle refinement checkpoint with one attempt, the old direct deadline actions and atomic cancellation, admits the activity source to TLC, and binds `maximum_attempts` from the actual Start request. This spec finishes the activity lifecycle on top of that: the four optional timeouts as abstract tick budgets, Heartbeat, one `Tick` action with an exact expired-deadline fact, cooperative cancellation, the fair-worker progress claim and the schedule-to-close total-tick bound, the final one-tick compatibility World, and the live realization of timeouts and cooperative cancellation.
+
+The content moved from fn-227 on 2026-10-21 with its owner-approved contracts unchanged. It was split so that fn-227 can close with the declared-World, input and retry surface (and TLC on the real activity Model) while the timeout and cancellation semantics, which need two further framework support slices (zero-or-one handler facts and bounded nominal optional values), proceed as their own vertical.
+
+## Architecture & Data Models
+
+- **Activity World, extended.** fn-227's World (`maximum_attempts: 1..=3`) gains `schedule_to_start`, `start_to_close`, `schedule_to_close`, `heartbeat_timeout`, each `Option<Ticks>` over a small domain, and `asynchronous_cancel: bool`. State gains per-deadline remaining budget in abstract ticks and `cancel_requested`. Actions gain heartbeat, explicit worker cancellation acknowledgement and `Deadline::Tick`, beside the existing `Client::Cancel`. The retained old lifecycle graph is the independent reference for an explicit semantic-refinement check. The final compatibility World uses one attempt, atomic cancellation and one-tick schedule-to-start/start-to-close budgets, with the other timeouts absent. A separate all-timeouts-absent World has no Tick edge.
+- **Support slices.** Facts checkpoint F lets a handler return `Option<F>` for one local fieldless enum, lowered independently to zero-or-one typed facts; the activity uses it for the expired-deadline fact. Optional-value checkpoint O gives bounded nominal newtypes (`Ticks`, `Remaining`) and `Option` of them an exact source encoding, binding and decode, consuming fn-227.2's single range declaration and checked scalar constructor.
+- **Realization.** fn-227.5's transactional `Realize<activity::World>` admission from the actual filled `StartActivityExecutionRequest` and successful same-invocation result extends to the timeout fields through a per-field timeout-to-tick table. An explicit pinned protocol binding supplies cooperative cancellation, since Start has no cancellation-mode field. Answer maps actual worker cancellation evidence: actual Cancel, pending Describe, heartbeat cancel notification, worker acknowledgement and terminal Describe.
+
+## API Contracts
+
+- The deadline-fact support uses an opt-in `Option<F>` handler result for one local fieldless enum, independently lowered to zero-or-one typed facts. Unit handlers, old expansions, enabledness and reject/stay semantics remain unchanged.
+- Optional bounded timeouts retain nominal source types and exact domain checks through binding, emission and decoding; Finite enumeration alone is not construction validation. Explicit fixture/live admission validates configuration; authored native invariants detect invalid state updates, while source bindings and typed decoding independently refuse invalid values. No generic Machine/state validity hook or fallible World constructor is added.
+- No change to `Steps`, `Outcome`, `Verdict`, the author-name rendering contract or the core oracle protocol. No envelope or core ABI change beyond fn-227's approved optional request `Any` at `Observation` tag 4, and no fabricated Start cancellation field.
+
+## Edge Cases & Constraints
+
+- The schedule-to-close budget spans attempts; start-to-close and heartbeat budgets reset on each `Poll`; `Tick` with no live budget is disabled. fn-227's retry laws hold unchanged: a retryable failure with `attempt == maximum_attempts` is final `Failed`; a non-retryable failure is final on any attempt.
+- With asynchronous cancellation, Cancel in Started records a pending request. Heartbeat reports that request without closing; completion/failure remain permitted races. Only explicit worker cancellation acknowledgement closes as Canceled. Atomic cancellation remains available to the offline compatibility World. Live cancellation mode comes from the explicit protocol binding, never an invented Start option or silent default.
+- `Some(Ticks(0))` fails the explicit configuration boundaries and source binding; raw `World::new` remains infallible. A one-tick armed budget expires on its first decrement without underflow. No armed nonterminal zero may deadlock instead of expiring.
+- Every Model without facts or optional values keeps byte-identical goldens and expansion snapshots; old unit-handler expansions stay exact.
+- R30 budgets hold: inner loop under 10 s and gate under the current soft target warm; the activity's default fixture World is bounded so the native checker finishes well inside them, and the larger Worlds are exercised through TLC under `UMPIRE_BACKENDS=require`.
+- No new crates beyond what the workspace already admits; the fn-210 R18 dependency policy applies.
+
+## Acceptance Criteria
+
+- **R1:** Handler facts and bounded optional values are admitted independently in native adapters and source lifting: an opt-in `Option<F>` handler result for one local fieldless enum yields zero-or-one typed facts, and bounded nominal newtypes and `Option` of them keep their exact domain through source binding, emission and decoding. Each has a shared fixture with goldens that agrees with TLC and replays false claims. Errors: unsupported carriers, aliases, nested options and unsupported source forms are located compile or source refusals; out-of-range or wrong-kind values refuse at binding or decoding; old expansions and all pre-existing artifacts stay byte-identical.
+- **R2:** The activity Model carries the four optional timeouts, Heartbeat, Tick and asynchronous cancellation. Pending cancellation is reported by heartbeat without closing; completion/failure may still win, and explicit worker cancellation acknowledgement closes as Canceled. State the fair-worker assumption for eventual closure and verify that progress claim plus the schedule-to-close total-tick safety bound natively on the default World and by TLC on larger Worlds. Errors: all timeouts absent disables Tick; expiry produces TimedOut with the exact deadline fact; pending-heartbeat evidence alone must not imply Canceled.
+- **R3:** The final compatibility World has one attempt, atomic cancellation, one-tick schedule-to-start/start-to-close budgets and no other timeouts. It passes fn-227 R4's retained-lifecycle refinement control: a stated state/action/fact projection, including the Tick-to-deadline mapping, and exact comparison against the retained old lifecycle graph. Re-run the control after every timeout/cancellation change. Errors: a changed old lifecycle edge must fail the control; old reference bytes and every old law stay independently checked.
+- **R4:** The realization extends fn-227's transactional live World admission to the four timeout fields through an explicit per-field timeout-to-tick table and to `asynchronous_cancel` through the explicit pinned protocol binding. Answer uses actual cancellation evidence. The live SDK run proves a held-attempt server cancellation with actual Cancel, pending heartbeat and acknowledgement, plus a completion-after-cancel race; fn-227's retry proof and existing Complete/Fail/HostRefusal/context-Cancellation controls keep passing. Errors: out-of-domain timeout values return field-named Unsupported and freeze admission; a missing or unsupported binding names `asynchronous_cancel` and refuses admission; no envelope, core ABI or Start field change.
+- **R5:** DESIGN.md records the timeout and cancellation additions: the extended activity World and state table, deadline priority and zero/reset laws, cooperative cancellation, the exact-action fair-worker assumption, the final compatibility projection, native and TLC state counts per selected World, and `make model-time` output. No error surface beyond the gate.
+
+## Boundaries
+
+- No real clock: `Tick` is an abstract unit; wall-clock timeout values in requests map to tick budgets through a declared domain, not to durations.
+- No nondeterministic choice within one action and no typed outcomes beyond what the activity needs; facts are limited to the expired-deadline fact in R2.
+- No task queue, worker versioning, local activity, eager dispatch or Nexus parameters.
+- No Bank or Voting port; facts and optional values are built for the activity Model and their two shared fixtures only.
+- No Apalache work; fn-211 consumes the same lifted tree afterwards.
+- No change to fn-227's declared-World, input, retry or request-transport surfaces beyond consuming them.
+
+## Decision Context
+
+2026-10-21, owner: move the activity timeout semantics out of fn-227 into this spec. fn-227 keeps R3 in full, including source `impl Phased`/`reject!` admission (fn-227.11), because "we need TLC on the real, activity Model still". fn-227 also keeps retries with the refinement checkpoint (fn-227.3), request transport (fn-227.12), transactional live admission with the SDK retry proof (fn-227.5) and its own write-up (fn-227.6). This spec depends on fn-227.
+
+Approved amendments carried over unchanged. fn-227's 2026-10-21 owner approval ("yes Approve all three") approved three named amendments; two of them bind this spec:
+
+- R2/R4 use cooperative cancellation with explicit protocol evidence, including heartbeat signaling and completion/failure races. Live cancellation mode comes from an explicit pinned protocol binding, never an invented Start option.
+- fn-227 R4's lifecycle refinement against retained old evidence replaces impossible byte equality. The reviewer independently confirmed that the original literal witness was impossible because the old graph has enabled deadline actions and the new Model adds state/input spelling. The approved replacement is an executable semantic-refinement witness with the compatibility World specified in R3, a stated state/action/fact projection and exact comparison against the retained old lifecycle graph. Preserve the original graph/goldens as evidence. Hiding fields, keeping files without a proof, or removing old edges does not discharge the requirement. fn-227's retry checkpoint establishes the projection with the retained deadline behavior; this spec re-runs the proof with the final one-tick compatibility World.
+
+These approvals do not approve other protocol changes, remove laws or complete tasks.
+
+Rejected (from fn-227): a real-time clock in the Model (TLC and native exploration need an abstract tick, and the realization maps durations to budgets); a sibling activity Model beside the six-phase one.
+
+## Resolved via Codebase
+
+- Support aliases carried from fn-227: F (facts) is this spec's task fn-237.1, O (optional values) is fn-237.2. I (input source) is fn-227.8, P (phase/rejection source admission) is fn-227.11, T (request capture) is fn-227.12. Each support slice closes its own vertical controls before its activity consumer. Overlapping source/generated ownership is scheduled serially; task dependencies express consumption, not permission to share a cache or checkout.
+- Committed `bbf0835fbf` native `checker/src/progress.rs` selects exact fair action values and the TLC emitter constructs WF for each admitted action operator. fn-227.8 (I) owns exact concrete input identity/fairness.
+- Runtime admission, receipt, freeze and Reset transactions are fn-227.5's; this spec extends its admission table and evidence mapping, not its transaction state machine.
+- Engineering contracts stay at their fn-227 artifact paths: `.flow/artifacts/fn-227-parameterized-models-declared-worlds/{deadline-fact-contract.md,optional-ticks-contract.md,cancellation-evidence-research.md,start-admission-contract.md}`.
+
+## Quick commands
+
+```bash
+make model-check
+UMPIRE_BACKENDS=require make model-check
+make model-time
+```
+
+## Requirement coverage
+
+| Req | Description | Task(s) | Gap justification |
+| --- | --- | --- | --- |
+| R1 | Handler facts and bounded optional values are admitted independently in native adapters and source lifting, with shared fixtures that agree with TLC. | fn-237-activity-timeouts-heartbeat-and.1, fn-237-activity-timeouts-heartbeat-and.2 | — |
+| R2 | The activity Model carries the four optional timeouts, Heartbeat, Tick and asynchronous cancellation, with fair-worker progress and the total-tick bound verified natively and by TLC. | fn-237-activity-timeouts-heartbeat-and.1, fn-237-activity-timeouts-heartbeat-and.2, fn-237-activity-timeouts-heartbeat-and.3 | — |
+| R3 | The final one-tick compatibility World passes fn-227 R4's retained-lifecycle refinement control. | fn-237-activity-timeouts-heartbeat-and.3 | — |
+| R4 | Live admission covers the timeout fields and cooperative cancellation through the pinned protocol binding, proved by a live held-attempt cancellation. | fn-237-activity-timeouts-heartbeat-and.4 | — |
+| R5 | DESIGN.md records the timeout and cancellation additions with counts and timing. | fn-237-activity-timeouts-heartbeat-and.5 | — |

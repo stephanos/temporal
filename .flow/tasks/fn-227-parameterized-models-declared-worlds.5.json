@@ -4,7 +4,7 @@
   "claimed_at": null,
   "created_at": "2026-10-20T18:58:34.628094Z",
   "depends_on": [
-    "fn-227-parameterized-models-declared-worlds.4",
+    "fn-227-parameterized-models-declared-worlds.3",
     "fn-227-parameterized-models-declared-worlds.12"
   ],
   "id": "fn-227-parameterized-models-declared-worlds.5",
@@ -12,6 +12,6 @@
   "spec": "fn-227-parameterized-models-declared-worlds",
   "spec_path": ".flow/tasks/fn-227-parameterized-models-declared-worlds.5.md",
   "status": "todo",
-  "title": "Transactional live World admission, cooperative evidence and SDK retry proof",
-  "updated_at": "2026-10-21T16:19:33.900162Z"
+  "title": "Transactional live World admission and SDK retry proof",
+  "updated_at": "2026-10-21T21:39:09.122056Z"
 }

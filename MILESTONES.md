@@ -87,7 +87,7 @@ without changing the canonical Model, and differential healthy-versus-mutant det
 | fn-233.3 | ⬜ todo | Kettle `derive(Catalog)` catalog, `config.rs`, Annotate in the live run, `coverage.snap` and `gaps.txt` (R3, R5) |
 | fn-233.4 | ⬜ todo | Seeded mutants, one-line switches, each named by the framework in `mutants.snap.txt` (R4) |
 
-### fn-227: Parameterized Models: declared worlds, action inputs, and the activity Model with retries and timeouts (model, temporal)
+### fn-227: Parameterized Models: declared worlds, action inputs, and the activity Model with retries (model, temporal)
 
 Captured on 2026-10-20, after fn-218 and fn-217 and before fn-211. Closes the DSL gap DESIGN.md's
 readiness table leaves open: `#[derive(World)]` with `&World` access on handlers and claims, a
@@ -112,6 +112,10 @@ complete locally with SHIP review, required/timing gates and the refreshed guest
 and gap proof; timing 56.276s gate, 9.852s inner loop (just under its 10s target).
 On 2026-10-21 the owner paused fn-227 during .8's review; its successors fn-233, fn-211
 and fn-228 wait with it.
+The same day the owner moved the timeout semantics (old R5: facts .9, optional values .10,
+deadlines/Tick/cooperative cancel .4, plus the cooperative-cancellation part of .5 and the final
+one-tick compatibility re-run) to fn-237. fn-227 keeps R3 in full, including .11, so TLC checks
+the real activity Model; the owner holds TLC and Apalache scaling as crucial.
 On 2026-10-21 the owner approved all three contract amendments: lifecycle refinement
 in place of impossible old-byte equality; cooperative cancellation with explicit protocol
 evidence; and optional actual-request Observation evidence at tag 4. Heartbeat signals a
@@ -127,12 +131,25 @@ The review passed; each consumer still waits for its declared support dependenci
 | fn-227.8 | ⏸️ deferred | Source inputs and exact-payload fairness committed (`3fd1d2f551`, `0469334f91`) with Quick gates green; review and Full gates stopped when the owner paused fn-227 on 2026-10-21 (R2, R3) |
 | fn-227.11 | ⬜ todo | After .8: source `Phased`/`reject!` and closure laws, with unchanged activity behavior (R3) |
 | fn-227.3 | ⬜ todo | After .2 and .11: activity attempts/retryable failure and retained-lifecycle refinement (R3, R4) |
-| fn-227.9 | ⬜ todo | After .7: optional handler facts through native adapters, independent source and TLC replay (R3, R5) |
-| fn-227.10 | ⬜ todo | After .2 and .7: bounded nominal optional values through source binding and typed decode (R3, R5) |
-| fn-227.4 | ⬜ todo | After .3, .9 and .10: deadlines, Heartbeat, Tick, cooperative cancel, final refinement and claims (R3, R4, R5) |
 | fn-227.12 | ⬜ todo | Actual-request Observation transport and owned same-invocation SDK capture (R6) |
-| fn-227.5 | ⬜ todo | After .4 and .12: transactional live World admission, cooperative evidence and SDK retry proof (R6) |
-| fn-227.6 | ⬜ todo | After .5: DESIGN.md write-up and readiness table closure (R7) |
+| fn-227.5 | ⬜ todo | After .3 and .12: transactional live World admission (`maximum_attempts`) and SDK retry proof (R6) |
+| fn-227.6 | ⬜ todo | After .5: DESIGN.md parameterized worlds, inputs and retries write-up and readiness table closure (R7) |
+
+### fn-237: Activity timeouts, heartbeat and cooperative cancellation (model, temporal)
+
+Split from fn-227 on 2026-10-21 by owner decision; depends on fn-227. Carries the four optional
+timeouts, Heartbeat, Tick and cooperative cancellation with their native and source support
+(optional handler facts, bounded optional values), the final one-tick compatibility refinement,
+live timeout admission and cancellation evidence, and their write-up. Not scheduled.
+[Spec](.flow/specs/fn-237-activity-timeouts-heartbeat-and.md).
+
+| Name | Status | What |
+| --- | --- | --- |
+| fn-237.1 | ⏸️ deferred | Optional handler facts through native adapters and independent TLC replay (R1) |
+| fn-237.2 | ⏸️ deferred | Bounded nominal optional values through source binding, emission and decode (R1) |
+| fn-237.3 | ⏸️ deferred | After .1, .2 and fn-227.3: deadlines, Tick, Heartbeat, cooperative cancel, final compatibility refinement (R2, R3) |
+| fn-237.4 | ⏸️ deferred | After .3: live timeout admission and cooperative cancellation evidence (R4) |
+| fn-237.5 | ⏸️ deferred | After .4: DESIGN.md timeout and cancellation write-up (R5) |
 
 ### fn-211: Apalache backend for Umpire in Rust (model)
 

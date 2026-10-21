@@ -1,13 +1,15 @@
 ---
-satisfies: [R3, R5]
+satisfies: [R1, R2]
 ---
-# fn-227-parameterized-models-declared-worlds.9 Optional handler facts through native adapters and independent TLC replay
+# fn-237-activity-timeouts-heartbeat-and.1 Optional handler facts through native adapters and independent TLC replay
 
 ## Description
-Deliver the bounded fact-result interface in the tracked deadline-fact contract, independently of activity policy. This is facts checkpoint F, allocated as fn-227-parameterized-models-declared-worlds.9. The parent approved its three amendments in `bbf0835fbf`; earlier contract notes calling those amendments pending are superseded. Source anchors predate the completed native work and must be reanchored at execution.
+Moved from fn-227.9 on 2026-10-21.
+
+Deliver the bounded fact-result interface in the tracked deadline-fact contract, independently of activity policy. This is facts checkpoint F, allocated as fn-237-activity-timeouts-heartbeat-and.1 (formerly fn-227-parameterized-models-declared-worlds.9). fn-227 approved its three amendments in `bbf0835fbf`; earlier contract notes calling those amendments pending are superseded. Source anchors predate the completed native work and must be reanchored at execution.
 
 **Size:** M. One return/branch-result adaptation across five existing production owners; existing enum/sequence decoding and Debug replay already carry facts. Compile, source, shared-fixture and replay controls close that same contract. No collector, TLS recorder, fact catalog or general result framework.
-**Dependencies:** After existing .7. Its typed selected-World/source binding is exercised by F's declared-World fixture. No dependency on .3 or O; serial scheduling handles overlapping source ownership.
+**Dependencies:** After fn-227.7 (cross-spec prerequisite, satisfied through this spec's dependency on fn-227). Its typed selected-World/source binding is exercised by F's declared-World fixture. No dependency on fn-227.3 or O (fn-237.2); serial scheduling handles overlapping source ownership.
 **Files:** `model/umpire/dsl/macros/src/machine.rs`; `model/umpire/lift/src/{shape,tree,emit}.rs`; `model/umpire/lift/src/body/effects.rs`; new macro controls under `model/umpire/dsl/macros/tests/{pass,ui,fixtures}/`; `model/umpire/lift/tests/source.rs` and new owned source controls; new shared fixture `model/umpire/tests/fixtures/optional_facts/{model.rs,tests.rs,expected/**}`; replay tests in `model/umpire/testing/src/backend.rs`; `model/README.md`.
 **Touches:** [model/umpire/dsl/macros/**, model/umpire/lift/**, model/umpire/tests/fixtures/optional_facts/**, model/umpire/testing/src/backend.rs, model/README.md, model/temporal/hosts/go/umpire_temporal_guest.wasm]
 
@@ -33,13 +35,15 @@ Required, reanchor before coding:
 Quick from `model/`: `mise exec -- cargo test -p umpire-dsl-macros -p umpire-lift -p umpire-testing -p umpire-tests`; repeat admitted shared-fixture tests with `UMPIRE_BACKENDS=require`. Run scoped formatting and strict clippy. First capture the pre-change optional-result/source refusals, then positive and mutation-negative results.
 
 Full from repository root: `make model-check`, `UMPIRE_BACKENDS=require make model-check`, `make model-time`. If linked guest bytes change, run `make umpire-guest`, then the embedded slice/gap checks. Compare all pre-existing snapshots, including metadata, to the pinned original manifest; no activity or other old golden updates. Retain actual counts, replay traces and soft-budget misses.
-## Acceptance
 
+## Acceptance
 - [ ] Public/private and unit/declared-World machines mix unit and optional handlers correctly. Unsupported returns, payload/discriminant/alias/nested carriers and mixed carriers fail the appropriate compile/source controls.
 - [ ] Native changed-None, unchanged-Some, ordinary empty, stay, rejection and invalid-mutation controls preserve enabledness and exact fact cardinality.
 - [ ] Independent source facts follow the authored SSA branch; source-only swaps alter emitted facts; unsupported returns/helpers refuse at their source; no previous fact leaks into an ordinary edge.
 - [ ] Required TLC executes all four value traces and false-claim replay. Wrong valid enum, omitted/duplicate/extra ordinary-edge facts fail replay; unknown values fail decoding.
 - [ ] Old unit expansions and all pre-existing artifacts/metadata remain byte-identical. New fixture goldens, focused/full gates and actual timing evidence are retained.
+
+
 ## Done summary
 TBD
 

@@ -338,7 +338,7 @@
   },
   "spec_path": ".flow/specs/fn-227-parameterized-models-declared-worlds.md",
   "status": "open",
-  "title": "Parameterized Models: declared worlds, action inputs, and the activity Model with retries and timeouts (model, temporal)",
+  "title": "Parameterized Models: declared worlds, action inputs, and the activity Model with retries (model, temporal)",
   "tracker": {
     "baseHashFlow": null,
     "baseHashTracker": null,
@@ -350,5 +350,5 @@
     "mergeBaseTracker": null,
     "url": null
   },
-  "updated_at": "2026-10-21T16:28:06.795647Z"
+  "updated_at": "2026-10-21T21:39:19.727582Z"
 }
