@@ -28,7 +28,7 @@ fn prepared_cluster() -> cluster::Prepared {
             storage:None,
             model:Some(linked::ModelInput {
                 configuration:serde_json::from_value(json!({"entropy_key":vec![0_u8;32],"working_directory_sha256":format!("{:x}",Sha256::digest(b"/")),"arguments":{"bytes":0,"count":0,"chunks":0},"environment":{"bytes":0,"count":0,"chunks":0},"seed":89,"mode":1,"limit":4096,"diagnostics":false,"epoch_nanos":0,"read_step_nanos":0,"now":1,"limits":{"calls":100,"transcript_bytes":4096,"pending_events":16}})).unwrap(),
-                arguments:Vec::new(),environment:Vec::new(),replay_trace:None,
+                arguments:Vec::new(),environment:vec!["PWD=/".into()],replay_trace:None,
             }),
         },
     }).collect();
