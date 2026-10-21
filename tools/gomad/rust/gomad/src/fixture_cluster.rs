@@ -101,6 +101,7 @@ fn publication(corpus: &Path, seed: u64) -> Result<Publication, String> {
         });
     }
     let configuration = Configuration {
+        nodes: Vec::new(),
         engine: linked::CONFIGURATION.into(),
         profile: "gomad.wasi-cooperative/v1".into(),
         limits,
@@ -188,6 +189,7 @@ fn execute_configuration(
     }
     let execution = helper::execute_prepared(
         helper::prepare(helper::Request {
+            nodes: configuration.nodes.clone(),
             broker: configuration.broker.clone(),
             network: configuration.network.clone(),
             incarnations: executions,
