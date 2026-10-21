@@ -254,6 +254,12 @@ impl Model {
     pub fn runtime_active(&self) -> bool {
         self.configured && !self.finished
     }
+    pub(crate) fn epoch_nanos(&self) -> u64 {
+        self.config.epoch_nanos
+    }
+    pub(crate) fn transcript_limit(&self) -> u64 {
+        self.config.limits.transcript_bytes
+    }
     pub fn split(&self) -> bool {
         self.config.split
     }

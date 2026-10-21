@@ -769,6 +769,7 @@ mod inspection_differential {
             request_scratch: Vec::new(),
             write_scratch: crate::protocol::WriteBuffers::default(),
             broker: Some(member),
+            network: None,
         }
     }
 

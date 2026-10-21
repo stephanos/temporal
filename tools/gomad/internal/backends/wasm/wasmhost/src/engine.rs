@@ -79,6 +79,7 @@ pub struct State {
     /// endpoint on the shared Rust network owner (fn-178.12); single executions
     /// forward `runtime_idle`'s broker role and `net_stream` to Go instead.
     pub broker: Option<crate::cluster::handoff::Member>,
+    pub(crate) network: Option<crate::cluster::network::Endpoint>,
 }
 /// Where an inspection snapshot is taken: it decides which commitments must
 /// be current when the call returns.
@@ -145,6 +146,17 @@ impl State {
         }
         let mut network = None;
         let mut network_bytes = None;
+        if let Some(endpoint) = &mut self.network {
+            if let Ok((digest, bytes)) =
+                endpoint.inspection_network(crate::model::inspection::network_commitment)
+            {
+                network = Some(Some(digest));
+                network_bytes = bytes;
+            } else {
+                model.inspection.lock().exhausted = true;
+                return;
+            }
+        }
         if let Some(member) = &mut self.broker
             && let Some(endpoint) = &mut member.network
         {
@@ -253,6 +265,14 @@ impl State {
             }
         }
         let mut network = Vec::new();
+        if let Some(endpoint) = &self.network {
+            if let Ok(bytes) = endpoint.evidence() {
+                network = bytes;
+            } else {
+                model.inspection.lock().exhausted = true;
+                return;
+            }
+        }
         if let Some(member) = &self.broker
             && let Some(endpoint) = &member.network
         {
@@ -385,7 +405,7 @@ impl State {
     ) -> Result<T> {
         self.model_operation(|model, _, id| body(model, id))
     }
-    fn model_operation<T>(
+    pub(crate) fn model_operation<T>(
         &mut self,
         body: impl FnOnce(
             &mut crate::model::Model,
@@ -1033,6 +1053,7 @@ pub(crate) fn new_state(
         request_scratch: Vec::new(),
         write_scratch: protocol::WriteBuffers::default(),
         broker: None,
+        network: None,
     }
 }
 
@@ -1142,6 +1163,20 @@ pub(crate) fn finish_storage(
 
 /// Flushes the cooperative model's evidence and adds its result metadata.
 pub(crate) fn finish_model(state: &mut State, outcome: &mut Outcome) -> Result<()> {
+    let mut network_error = None;
+    if let (Some(network), Some(model)) = (&state.network, &mut state.model) {
+        match network.evidence() {
+            Ok(bytes) => {
+                let handle = model.inspection.handle.clone();
+                model
+                    .inspection
+                    .lock()
+                    .terminal_network_json(&handle, bytes.clone());
+                model.network_evidence(&bytes);
+            }
+            Err(failure) => network_error = Some(crate::linked_network::error(failure)),
+        }
+    }
     if let Some(model) = &mut state.model
         && !model.inspection.sealed
     {
@@ -1176,7 +1211,7 @@ pub(crate) fn finish_model(state: &mut State, outcome: &mut Outcome) -> Result<(
         outcome.local_model = Some(Box::new(model.metadata(state.completed_calls)));
         outcome.divergence = model.divergence.take().map(Box::new);
     }
-    Ok(())
+    network_error.map_or(Ok(()), Err)
 }
 
 fn module_bytes(request: &Execute) -> std::result::Result<Vec<u8>, Outcome> {
@@ -2312,6 +2347,7 @@ mod tests {
             request_scratch: Vec::new(),
             write_scratch: protocol::WriteBuffers::default(),
             broker: None,
+            network: None,
         }
     }
     fn inspection_state() -> State {
@@ -2550,6 +2586,7 @@ mod tests {
             request_scratch: Vec::new(),
             write_scratch: protocol::WriteBuffers::default(),
             broker: None,
+            network: None,
         };
         assert!(state.callback("sched_yield", json!({})).is_err());
         assert_eq!(state.terminal.unwrap().termination, "infrastructure");
