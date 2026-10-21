@@ -87,10 +87,15 @@ pub fn generate_bound(
     bindings.push_str("}\n");
     source.push_str(&bindings);
     // Always present, so a refused bound fixture reports through lift.txt rather than failing
-    // to compile its caller.
-    source.push_str("#[allow(unused_variables)]\nfn bound_backend(name: &str, folder: &std::path::Path) -> Option<umpire_testing::RunResult> { match name {\n");
-    source.push_str(&bound);
-    source.push_str("_ => None, } }\n");
+    // to compile its caller. Fixture crates without a bound route need not call it.
+    source.push_str("#[allow(dead_code)]\n");
+    if bound.is_empty() {
+        source.push_str("fn bound_backend(_name: &str, _folder: &std::path::Path) -> Option<umpire_testing::RunResult> { None }\n");
+    } else {
+        source.push_str("fn bound_backend(name: &str, folder: &std::path::Path) -> Option<umpire_testing::RunResult> { match name {\n");
+        source.push_str(&bound);
+        source.push_str("_ => None, } }\n");
+    }
     writeln!(source, "fn admitted() -> &'static [&'static str] {{ &{admitted:?} }}")
         .map_err(std::io::Error::other)?;
     std::fs::write(output.join("lifted.rs"), source)?;
