@@ -293,14 +293,6 @@ CI, PR, or push authority.
 | --- | --- | --- |
 | [fn-227.1](.flow/tasks/fn-227-gomad-close-wasm-map-order-determinism.1.md) | ⏸ Parked | Sort live-node shutdown and invalid-volume validation with behavioral regressions and qualification |
 
-### Ringpop membership on WASM within reason — [fn-224](.flow/specs/fn-224-gomad-ringpop-membership-on-wasm-within.md)
-
-Owner decision 2026-10-19: support ringpop enough to verify a multi-node membership ring under gomad, without modeling tchannel internals or changing testcore. Follows fn-221.
-
-| Name / ID | Status | Description |
-| --- | --- | --- |
-| [fn-224.2](.flow/tasks/fn-224-gomad-ringpop-membership-on-wasm-within.2.md) | ⛔ Blocked | Run the ringpop unit tests under the cooperative profile and classify every outcome |
-
 ### WASM host-side execution cost profile — [fn-185](.flow/specs/fn-185-gomad-wasm-host-side-execution-cost.md)
 
 | Name / ID | Status | Description |
