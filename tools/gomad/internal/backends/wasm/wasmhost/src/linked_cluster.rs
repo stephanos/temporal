@@ -683,7 +683,7 @@ fn execute_inner(
                                 }
                             }
                             Err(error) => {
-                                broker.abort_terminal(index, "infrastructure", error.to_string())
+                                broker.abort_terminal(index, "infrastructure", error.to_string());
                             }
                         }
                         broker.finish(index);

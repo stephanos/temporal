@@ -44,6 +44,8 @@ mod linked_cancellation;
 pub mod linked_cluster;
 #[cfg(not(feature = "conformance"))]
 mod linked_conditions;
+#[cfg(feature = "determinism-fixture")]
+mod linked_fixture;
 #[cfg(not(feature = "conformance"))]
 pub mod linked_inspection;
 #[cfg(any(test, not(feature = "conformance")))]

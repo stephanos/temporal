@@ -25,6 +25,9 @@ def main():
         parser.add_argument('--' + name, type=Path, required=True)
     parser.add_argument('--go-baseline', type=Path)
     parser.add_argument('--go-source', type=Path)
+    parser.add_argument('--divergence', action='store_true')
+    parser.add_argument('--divergence-only', action='store_true')
+    parser.add_argument('--ordinary-binary', type=Path)
     args = parser.parse_args()
     assert bool(args.go_baseline) == bool(args.go_source), 'provide both Go baseline and frozen source'
     args.binary, args.go_compiler, args.input, args.work = (
@@ -80,6 +83,56 @@ def main():
 
     def events(root):
         return [json.loads(line)['event'] for line in (root / 'journal.jsonl').read_bytes().splitlines()]
+
+    def check_divergences():
+        observations = {}
+        for case in ('sites', 'expected-missing', 'observed-missing'):
+            destination = args.work / ('divergence-' + case)
+            invocation = command(destination)
+            invocation[-1] = './internal/backends/wasm/toolchain/testdata/choice_divergence'
+            invocation.extend(['--', case])
+            run(case + '-explore', invocation, (0, 1))
+            campaign = locate(destination)
+
+            def snapshot():
+                return {str(path.relative_to(campaign)): digest(path.read_bytes())
+                        for path in campaign.rglob('*') if path.is_file()}
+
+            before = snapshot()
+            inspected = run(case + '-inspect', [*prefix, 'inspect', '--json', '--choices', campaign])
+            repeated = run(case + '-inspect-repeat', [*prefix, 'inspect', '--json', '--choices', campaign])
+            assert inspected == repeated and snapshot() == before, case
+            report = json.loads(inspected)
+            divergences = [execution['divergence'] for execution in report['campaign']['executions']
+                           if execution['divergence']]
+            assert divergences, ('no actual helper divergence', case)
+            for divergence in divergences:
+                assert divergence['tape_records'] > divergence['ordinal'], divergence
+                for side in ('expected', 'observed'):
+                    decision = divergence[side]
+                    assert decision is not None, (case, side, divergence)
+                    missing = case == side + '-missing'
+                    if missing:
+                        assert decision['symbol'] == {'unavailable': 'site_missing'}, decision
+                    else:
+                        function = 'recordedSelect' if side == 'expected' else 'replayedSelect'
+                        assert decision['symbol']['function'] == function, decision
+                        assert decision['symbol']['package'] == 'main', decision
+            observations[case] = divergences
+            if args.ordinary_binary:
+                ordinary = invocation.copy()
+                ordinary[0] = args.ordinary_binary.resolve()
+                ordinary[ordinary.index('--artifacts') + 1] = args.work / ('ordinary-' + case)
+                refusal = run(case + '-ordinary-refusal', ordinary, (2, 3))
+                assert b'unknown import gomad_fixture_v1::choice_mode' in refusal, refusal
+        (args.work / 'divergence-observations.json').write_bytes(encode(dict(
+            schema='gomad.choice-divergence-symbol-check/v1',
+            scope='explicit helper determinism fixture for authenticated inspect projection; not ordinary qualification',
+            binary_sha256=digest(args.binary.read_bytes()), observations=observations)))
+
+    if args.divergence_only:
+        check_divergences()
+        return
 
     destination = args.work / 'artifacts'
     report = run('explore', command(destination), (0, 1))
@@ -138,6 +191,8 @@ def main():
     bounded = args.work / 'execution-bound'
     run('execution-bound', command(bounded, executions=1), (0, 1))
     assert len(events(locate(bounded))) == 1
+    if args.divergence:
+        check_divergences()
     go_observations = None
     if args.go_baseline:
         baseline_root = args.go_baseline.resolve()

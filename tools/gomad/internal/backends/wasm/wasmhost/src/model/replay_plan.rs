@@ -247,27 +247,26 @@ impl ReplayPlan {
                 end += 1;
             }
             let readiness = |index: usize| {
-                let offset = HEADER_BYTES + index * RECORD_BYTES + 10;
-                u16::from_be_bytes(self.bytes[offset..offset + 2].try_into().unwrap())
+                let offset = index.checked_mul(RECORD_BYTES)?.checked_add(HEADER_BYTES)?.checked_add(10)?;
+                self.bytes.get(offset..)?.first_chunk::<2>().map(|bytes| u16::from_be_bytes(*bytes))
             };
-            let word = readiness(start);
+            let Some(word) = readiness(start) else { start = end; continue; };
             let known = word & 1 != 0;
             let ready = word >> 6;
-            let flags = word & 62;
-            let proven_shape = match (ready, flags) {
-                (0, 0 | 2 | 8) | (1, 0 | 4 | 8 | 16) => true,
-                _ => false,
-            };
+            let flags = word & 0b11_1110;
+            let proven_shape = matches!((ready, flags), (0, 0 | 2 | 8) | (1, 0 | 4 | 8 | 16));
             let eligible = known
                 && proven_shape
                 && self.decisions[end - 1].alternatives == 2
-                && (start..end).all(|index| readiness(index) == word);
+                && (start..end).all(|index| readiness(index) == Some(word));
             marks[start..end].fill(eligible);
             start = end;
         }
         marks
     }
 
+    /// # Errors
+    /// Refuses controls outside this validated tape or ranks outside the selected alternative set.
     pub fn prefix(mut self, control: &PrefixControl) -> Result<Self, &'static str> {
         let cutoff = usize::try_from(control.cutoff).map_err(|_| "invalid_replay_plan")?;
         if cutoff > self.decisions.len() {
@@ -394,6 +393,8 @@ pub(super) fn toolchain_key(identity: &ExecutionIdentity) -> Result<[u8; 32], &'
     Ok(key)
 }
 
+/// # Errors
+/// Refuses malformed raw records, inconsistent select observations and invalid execution identities.
 pub fn project(trace: &[u8], identity: &ExecutionIdentity) -> Result<ReplayPlan, &'static str> {
     let (raw_records, remainder) = trace.as_chunks::<RECORD_BYTES>();
     if !remainder.is_empty() {

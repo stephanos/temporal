@@ -115,6 +115,18 @@ pub(crate) fn execute(execution: Execution) -> Result<helper::Execution, String>
     }
 }
 
+pub(crate) fn execute_projected(execution: Execution) -> Result<linked::Execution, String> {
+    let simulation = execution.simulation.is_some();
+    let observed = execute(execution)?;
+    let primary = simulation.then(|| observed.incarnations.first()
+        .and_then(|item| item.execution.evidence.get("choice")).cloned().unwrap_or_default());
+    let mut projected = project(observed)?;
+    if let Some(primary) = primary {
+        projected.evidence.insert("choice".into(), primary);
+    }
+    Ok(projected)
+}
+
 fn simulation_plan(opened: &Opened) -> Result<Option<simulation::Plan>, String> {
     use crate::campaign::exploration::{simulation_record, simulation_record_wire};
     let details = crate::evidence::inspection::Details::read(opened)?;

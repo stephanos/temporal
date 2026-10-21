@@ -194,6 +194,10 @@ pub struct Model {
 
 #[cfg(any(feature = "determinism-fixture", feature = "stress-jitter"))]
 impl Model {
+    #[cfg(feature = "determinism-fixture")]
+    pub(crate) fn fixture_choice_mode(&self) -> u8 {
+        self.config.mode
+    }
     pub fn event_context(&self) -> crate::event_order::Context {
         let handle = self.event_owner.as_ref().unwrap_or(&self.inspection.handle);
         crate::event_order::Context {

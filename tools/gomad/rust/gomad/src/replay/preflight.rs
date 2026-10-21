@@ -71,9 +71,7 @@ pub fn execute(execution: Execution) -> Result<linked::Execution, String> {
         Execution::Standalone(prepared) => {
             linked::execute_prepared(*prepared).map_err(|error| error.to_string())
         }
-        Execution::Cluster(prepared) => {
-            super::cluster::project(super::cluster::execute(*prepared)?)
-        }
+        Execution::Cluster(prepared) => super::cluster::execute_projected(*prepared),
     }
 }
 

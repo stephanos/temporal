@@ -361,9 +361,11 @@ impl Controller {
         })
     }
 
+    #[must_use]
     pub fn decisions(&self) -> &[Decision] {
         &self.decisions
     }
+    #[must_use]
     pub fn divergence(&self) -> Option<&Divergence> {
         self.divergence.as_ref()
     }
