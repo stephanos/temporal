@@ -1,10 +1,10 @@
-use crate::{
-    Action, Diagnostic, Field, Metadata, Module, Progress, Property, Type,
-    expr::{Expr, ExprKind, Op, Unary},
-    tree::{ActionDef, ActionRef, AssumptionDef, Entry, Lifted, Start},
-};
+use crate::{Action, Diagnostic, Field, Lifted, Metadata, Module, Progress, Property, Type};
 use std::collections::BTreeMap;
 use std::fmt::Write;
+use umpire_front::{
+    expr::{Expr, ExprKind, Op, Unary},
+    tree::{ActionDef, ActionRef, AssumptionDef, Entry, Start},
+};
 
 const OBSERVERS: [&str; 7] = [
     "__umpire_edge_tick",
@@ -20,10 +20,11 @@ const OBSERVERS: [&str; 7] = [
 pub(crate) fn emit(model: &Lifted) -> Result<Module, Diagnostic> {
     if model.requires_binding() && (model.world_values.is_none() || model.complete_starts.is_none())
     {
-        return Err(Diagnostic {
-            message: "declared World requires a selected World and complete-start binding".into(),
-            ..model.location.clone()
-        });
+        return Err(Diagnostic::of(
+            &model.file,
+            &model.location,
+            "declared World requires a selected World and complete-start binding",
+        ));
     }
     // Only Models with action inputs observe the concrete catalog ordinal of each edge.
     let inputs = model.has_inputs();
@@ -111,10 +112,11 @@ pub(crate) fn emit(model: &Lifted) -> Result<Module, Diagnostic> {
         for field in &model.fields {
             initial.push(match &field.start {
                 Start::Computed => {
-                    return Err(Diagnostic {
-                        message: "computed starts require a complete-start binding".into(),
-                        ..field.location.clone()
-                    });
+                    return Err(Diagnostic::of(
+                        &model.file,
+                        &field.location,
+                        "computed starts require a complete-start binding",
+                    ));
                 }
                 Start::Value(value) => format!("{} = {}", field.name, expr(value)),
                 Start::Range(lo, hi) => format!("{} \\in ({}..{})", field.name, expr(lo), expr(hi)),

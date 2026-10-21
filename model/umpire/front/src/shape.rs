@@ -11,7 +11,12 @@ use syn::{ImplItem, Item};
 type Result<T> = std::result::Result<T, Diagnostic>;
 
 #[expect(clippy::too_many_lines, reason = "The admission pass preserves source declaration order")]
-pub(crate) fn parse(file: &str, ast: &syn::File, hooks: &[crate::Hook<'_>]) -> Result<Lifted> {
+/// Admit the one `#[machine]` module; a refusal inside a hook names it in `failed_hook`.
+pub(crate) fn parse(
+    ast: &syn::File,
+    hooks: &[&syn::ItemMacro],
+    failed_hook: &mut Option<usize>,
+) -> Result<Lifted> {
     let modules: Vec<_> = ast
         .items
         .iter()
@@ -21,15 +26,14 @@ pub(crate) fn parse(file: &str, ast: &syn::File, hooks: &[crate::Hook<'_>]) -> R
         })
         .collect();
     if modules.len() != 1 {
-        return Err(Diagnostic::at(file, ast, "expected exactly one inline #[machine] module"));
+        return Err(Diagnostic::at(ast, "expected exactly one inline #[machine] module"));
     }
     let module = modules[0];
-    canonical_machine(file, ast, module)?;
+    canonical_machine(ast, module)?;
     let mut conditional = Conditional(None);
     syn::visit::Visit::visit_item_mod(&mut conditional, module);
     if let Some(attribute) = conditional.0 {
         return Err(Diagnostic::at(
-            file,
             attribute,
             "unsupported conditional compilation inside machine source",
         ));
@@ -37,7 +41,7 @@ pub(crate) fn parse(file: &str, ast: &syn::File, hooks: &[crate::Hook<'_>]) -> R
     let (_, items) = module
         .content
         .as_ref()
-        .ok_or_else(|| Diagnostic::at(file, module, "external machine modules are unsupported"))?;
+        .ok_or_else(|| Diagnostic::at(module, "external machine modules are unsupported"))?;
     let mut admitted_imports = Vec::new();
     for item in items {
         if let Item::Use(import) = item {
@@ -49,14 +53,12 @@ pub(crate) fn parse(file: &str, ast: &syn::File, hooks: &[crate::Hook<'_>]) -> R
                         && !(binding == "Vector" && path == "imbl::Vector"))
                 {
                     return Err(Diagnostic::at(
-                        file,
                         import,
                         format!("unsupported or aliased source dependency `{path}` as `{binding}`"),
                     ));
                 }
                 if admitted_imports.contains(&binding) {
                     return Err(Diagnostic::at(
-                        file,
                         import,
                         format!("ambiguous source import `{binding}`"),
                     ));
@@ -68,7 +70,6 @@ pub(crate) fn parse(file: &str, ast: &syn::File, hooks: &[crate::Hook<'_>]) -> R
     for required in ["State", "Action"] {
         if !admitted_imports.iter().any(|name| name == required) {
             return Err(Diagnostic::at(
-                file,
                 module,
                 format!("derive requires explicit canonical umpire_dsl::{required} import"),
             ));
@@ -76,7 +77,6 @@ pub(crate) fn parse(file: &str, ast: &syn::File, hooks: &[crate::Hook<'_>]) -> R
     }
     let domain_functions = domain_functions(items);
     let mut parser = Environment {
-        file,
         fields: Vec::new(),
         declared_world: false,
         world_fields: Vec::new(),
@@ -98,23 +98,18 @@ pub(crate) fn parse(file: &str, ast: &syn::File, hooks: &[crate::Hook<'_>]) -> R
             Item::Use(v) => &v.attrs,
             Item::Fn(v) if domain_functions.contains(&v.sig.ident.to_string()) => &v.attrs,
             _ => {
-                return Err(Diagnostic::at(
-                    file,
-                    item,
-                    "unsupported declaration in machine module",
-                ));
+                return Err(Diagnostic::at(item, "unsupported declaration in machine module"));
             }
         };
         if let Item::Impl(value) = item
             && let Some(attribute) = attr(&value.attrs, "starts")
         {
             return Err(Diagnostic::at(
-                file,
                 attribute,
                 "#[starts] marks a method in impl Model: #[starts] fn starts(world: &World)",
             ));
         }
-        attrs(file, attributes, &["doc", "derive", "internal"])?;
+        attrs(attributes, &["doc", "derive", "internal"])?;
         if let Item::Fn(function) = item {
             parser.domain_functions.insert(function.sig.ident.to_string(), function.clone());
         }
@@ -127,7 +122,6 @@ pub(crate) fn parse(file: &str, ast: &syn::File, hooks: &[crate::Hook<'_>]) -> R
                 })
             {
                 return Err(Diagnostic::at(
-                    file,
                     value,
                     "only fieldless enums without explicit discriminants are admitted",
                 ));
@@ -157,42 +151,33 @@ pub(crate) fn parse(file: &str, ast: &syn::File, hooks: &[crate::Hook<'_>]) -> R
         })
         .collect();
     if worlds.len() > 1 {
-        return Err(Diagnostic::at(file, worlds[1], "declare one World"));
+        return Err(Diagnostic::at(worlds[1], "declare one World"));
     }
     let mut generated = BTreeSet::new();
     if let Some(world) = worlds.first() {
         parser.declared_world = true;
         if world.ident != "World" || !world.generics.params.is_empty() {
-            return Err(Diagnostic::at(
-                file,
-                world,
-                "source World must be a nongeneric named World",
-            ));
+            return Err(Diagnostic::at(world, "source World must be a nongeneric named World"));
         }
         if !admitted_imports.iter().any(|name| name == "World") {
             return Err(Diagnostic::at(
-                file,
                 world,
                 "derive requires explicit canonical umpire_dsl::World import",
             ));
         }
         let syn::Fields::Named(fields) = &world.fields else {
-            return Err(Diagnostic::at(file, world, "World must have named fields"));
+            return Err(Diagnostic::at(world, "World must have named fields"));
         };
         for field in &fields.named {
-            attrs(file, &field.attrs, &["doc"])?;
+            attrs(&field.attrs, &["doc"])?;
             let name = field
                 .ident
                 .as_ref()
-                .ok_or_else(|| Diagnostic::at(file, field, "unnamed World field"))?
+                .ok_or_else(|| Diagnostic::at(field, "unnamed World field"))?
                 .to_string();
             let ty = parser.ty(&field.ty)?;
             if !matches!(ty, Type::Bool | Type::Int { .. } | Type::Enum { .. }) {
-                return Err(Diagnostic::at(
-                    file,
-                    field,
-                    "World fields require admitted scalar types",
-                ));
+                return Err(Diagnostic::at(field, "World fields require admitted scalar types"));
             }
             let symbol =
                 crate::names::allocate(ast, &format!("__umpire_world_{name}"), &mut generated);
@@ -200,7 +185,7 @@ pub(crate) fn parse(file: &str, ast: &syn::File, hooks: &[crate::Hook<'_>]) -> R
                 name,
                 ty,
                 symbol,
-                location: Diagnostic::at(file, field, ""),
+                location: Diagnostic::at(field, ""),
             });
         }
     }
@@ -214,7 +199,6 @@ pub(crate) fn parse(file: &str, ast: &syn::File, hooks: &[crate::Hook<'_>]) -> R
         if let Item::Impl(value) = item {
             if value.trait_.is_some() || !value.generics.params.is_empty() {
                 return Err(Diagnostic::at(
-                    file,
                     value,
                     "trait or generic impl in machine module is unsupported",
                 ));
@@ -222,10 +206,9 @@ pub(crate) fn parse(file: &str, ast: &syn::File, hooks: &[crate::Hook<'_>]) -> R
             let owner = path_name(&value.self_ty.to_token_stream().to_string());
             for entry in &value.items {
                 let ImplItem::Fn(method) = entry else {
-                    return Err(Diagnostic::at(file, entry, "unsupported impl item"));
+                    return Err(Diagnostic::at(entry, "unsupported impl item"));
                 };
                 attrs(
-                    file,
                     &method.attrs,
                     &[
                         "doc",
@@ -244,7 +227,6 @@ pub(crate) fn parse(file: &str, ast: &syn::File, hooks: &[crate::Hook<'_>]) -> R
                     || !method.sig.generics.params.is_empty()
                 {
                     return Err(Diagnostic::at(
-                        file,
                         method,
                         "async, unsafe or generic helper is unsupported",
                     ));
@@ -267,30 +249,29 @@ pub(crate) fn parse(file: &str, ast: &syn::File, hooks: &[crate::Hook<'_>]) -> R
         })
         .collect();
     if states.len() != 1 || states[0].ident != "Model" {
-        return Err(Diagnostic::at(file, module, "machine requires one named Model state"));
+        return Err(Diagnostic::at(module, "machine requires one named Model state"));
     }
     let state = states[0];
     if !state.generics.params.is_empty() {
-        return Err(Diagnostic::at(file, state, "generic state is unsupported"));
+        return Err(Diagnostic::at(state, "generic state is unsupported"));
     }
     let syn::Fields::Named(fields) = &state.fields else {
-        return Err(Diagnostic::at(file, state, "state must have named fields"));
+        return Err(Diagnostic::at(state, "state must have named fields"));
     };
     for field in &fields.named {
-        attrs(file, &field.attrs, &["doc", "starts"])?;
+        attrs(&field.attrs, &["doc", "starts"])?;
         let name = field
             .ident
             .as_ref()
-            .ok_or_else(|| Diagnostic::at(file, field, "unnamed state field"))?
+            .ok_or_else(|| Diagnostic::at(field, "unnamed state field"))?
             .to_string();
         if reserved(&name) {
-            return Err(Diagnostic::at(file, field, format!("reserved observer name `{name}`")));
+            return Err(Diagnostic::at(field, format!("reserved observer name `{name}`")));
         }
         let ty = parser.ty(&field.ty)?;
         let start = if computed.is_some() {
             if let Some(attribute) = attr(&field.attrs, "starts") {
                 return Err(Diagnostic::at(
-                    file,
                     attribute,
                     "computed starts cannot be combined with field starts",
                 ));
@@ -298,9 +279,9 @@ pub(crate) fn parse(file: &str, ast: &syn::File, hooks: &[crate::Hook<'_>]) -> R
             Start::Computed
         } else if let Some(attr) = attr(&field.attrs, "starts") {
             let range: syn::ExprRange =
-                attr.parse_args().map_err(|e| Diagnostic::span(file, e.span(), e.to_string()))?;
+                attr.parse_args().map_err(|e| Diagnostic::span(e.span(), e.to_string()))?;
             let (Some(lo), Some(hi)) = (range.start, range.end) else {
-                return Err(Diagnostic::at(file, attr, "start range must have two finite bounds"));
+                return Err(Diagnostic::at(attr, "start range must have two finite bounds"));
             };
             let lo = parser.expr(&lo, &Env::new(), &Env::new(), Some(&ty), 0)?;
             let hi = parser.expr(&hi, &Env::new(), &Env::new(), Some(&ty), 0)?;
@@ -312,7 +293,7 @@ pub(crate) fn parse(file: &str, ast: &syn::File, hooks: &[crate::Hook<'_>]) -> R
         } else {
             Start::Value(parser.default_value(&ty)?)
         };
-        parser.fields.push(FieldDef { name, ty, start, location: Diagnostic::at(file, field, "") });
+        parser.fields.push(FieldDef { name, ty, start, location: Diagnostic::at(field, "") });
     }
     let initial = parser.field_env(false);
     let mut actions = Vec::new();
@@ -334,10 +315,9 @@ pub(crate) fn parse(file: &str, ast: &syn::File, hooks: &[crate::Hook<'_>]) -> R
                     }
                 };
                 if shape != Shape::Unit {
-                    attrs(file, &variant.attrs, &["doc"])?;
+                    attrs(&variant.attrs, &["doc"])?;
                     if !parser.declared_world {
                         return Err(Diagnostic::at(
-                            file,
                             variant,
                             "action inputs require a declared World, whose binding supplies their typed catalog identity",
                         ));
@@ -361,7 +341,7 @@ pub(crate) fn parse(file: &str, ast: &syn::File, hooks: &[crate::Hook<'_>]) -> R
                     branches: Vec::new(),
                     shape,
                     fields: inputs,
-                    location: Diagnostic::at(file, variant, ""),
+                    location: Diagnostic::at(variant, ""),
                 });
             }
         }
@@ -380,9 +360,9 @@ pub(crate) fn parse(file: &str, ast: &syn::File, hooks: &[crate::Hook<'_>]) -> R
             let ImplItem::Fn(method) = method else { continue };
             if has(&method.attrs, "on") {
                 let actor = attr(&method.attrs, "on")
-                    .ok_or_else(|| Diagnostic::at(file, method, "missing actor"))?
+                    .ok_or_else(|| Diagnostic::at(method, "missing actor"))?
                     .parse_args::<syn::Path>()
-                    .map_err(|e| Diagnostic::span(file, e.span(), e.to_string()))?
+                    .map_err(|e| Diagnostic::span(e.span(), e.to_string()))?
                     .to_token_stream()
                     .to_string();
                 let matched = parser.handler(method)?;
@@ -402,10 +382,9 @@ pub(crate) fn parse(file: &str, ast: &syn::File, hooks: &[crate::Hook<'_>]) -> R
                     match &attr.meta {
                         syn::Meta::List(list) => {
                             let arg: syn::MetaNameValue = syn::parse2(list.tokens.clone())
-                                .map_err(|e| Diagnostic::span(file, e.span(), e.to_string()))?;
+                                .map_err(|e| Diagnostic::span(e.span(), e.to_string()))?;
                             if !arg.path.is_ident("after") {
                                 return Err(Diagnostic::at(
-                                    file,
                                     &arg,
                                     "unsupported postcondition filter",
                                 ));
@@ -431,11 +410,7 @@ pub(crate) fn parse(file: &str, ast: &syn::File, hooks: &[crate::Hook<'_>]) -> R
             } else if !has(&method.attrs, "effect") {
                 // Unmarked helpers are admitted only when their bodies are consumed through expression lowering.
                 if method.sig.receiver().is_some_and(|r| r.mutability.is_some()) {
-                    return Err(Diagnostic::at(
-                        file,
-                        method,
-                        "unmarked mutable helper is unsupported",
-                    ));
+                    return Err(Diagnostic::at(method, "unmarked mutable helper is unsupported"));
                 }
             }
         }
@@ -448,16 +423,16 @@ pub(crate) fn parse(file: &str, ast: &syn::File, hooks: &[crate::Hook<'_>]) -> R
             })
         }) {
             return Err(Diagnostic::at(
-                file,
                 module,
                 format!("action `{}` has no admitted handler", action.name),
             ));
         }
     }
     let mut negative = Vec::new();
-    for hook in hooks {
-        parser.file = hook.file;
-        negative.extend(parser.supplemental(&hook.mac.mac, &initial)?);
+    for (index, hook) in hooks.iter().enumerate() {
+        negative.extend(
+            parser.supplemental(&hook.mac, &initial).inspect_err(|_| *failed_hook = Some(index))?,
+        );
     }
     let name = pascal(&module.ident.to_string());
     let index_symbol = crate::names::allocate(ast, "__umpire_i", &mut generated);
@@ -476,7 +451,6 @@ pub(crate) fn parse(file: &str, ast: &syn::File, hooks: &[crate::Hook<'_>]) -> R
         BTreeMap::new()
     };
     Ok(Lifted {
-        file: file.into(),
         name,
         state_name: state.ident.to_string(),
         outcome_type: Type::Unit,
@@ -489,7 +463,7 @@ pub(crate) fn parse(file: &str, ast: &syn::File, hooks: &[crate::Hook<'_>]) -> R
         world_fields: parser.world_fields,
         world_values: None,
         complete_starts: None,
-        location: Diagnostic::at(file, module, ""),
+        location: Diagnostic::at(module, ""),
         fields: parser.fields,
         constants: parser.constants.values,
         constant_symbols,
@@ -522,18 +496,17 @@ fn domain_functions(items: &[Item]) -> BTreeSet<String> {
 /// Admits the one `#[starts]` method: an associated fn of `impl Model` taking only an optional
 /// trailing `&World`. Its body is native only; Init comes from the bound complete starts.
 fn computed_starts<'a>(
-    parser: &Environment<'_>,
+    parser: &Environment,
     method: &'a syn::ImplItemFn,
     model: bool,
     computed: &mut Option<&'a syn::ImplItemFn>,
 ) -> Result<()> {
-    let file = parser.file;
     let attribute = attr(&method.attrs, "starts").unwrap_or_else(|| unreachable!("marked"));
     if !parser.declared_world {
-        return Err(Diagnostic::at(file, attribute, "computed starts require a declared World"));
+        return Err(Diagnostic::at(attribute, "computed starts require a declared World"));
     }
     if computed.is_some() {
-        return Err(Diagnostic::at(file, attribute, "declare starts once"));
+        return Err(Diagnostic::at(attribute, "declare starts once"));
     }
     let parameters = parser.parameters(method)?;
     if !model
@@ -542,7 +515,6 @@ fn computed_starts<'a>(
         || !parameters.positional.is_empty()
     {
         return Err(Diagnostic::at(
-            file,
             method,
             "#[starts] requires an associated fn of impl Model taking only an optional trailing &World",
         ));
@@ -595,12 +567,11 @@ fn reserved(name: &str) -> bool {
     ]
     .contains(&name)
 }
-fn attrs(file: &str, attrs: &[syn::Attribute], allowed: &[&str]) -> Result<()> {
+fn attrs(attrs: &[syn::Attribute], allowed: &[&str]) -> Result<()> {
     for attr in attrs {
         let name = attr.path().to_token_stream().to_string();
         if !allowed.contains(&name.as_str()) {
             return Err(Diagnostic::at(
-                file,
                 attr,
                 format!(
                     "unsupported attribute `{name}` (cfg and external resolution are not inferred)"
@@ -610,12 +581,12 @@ fn attrs(file: &str, attrs: &[syn::Attribute], allowed: &[&str]) -> Result<()> {
     }
     Ok(())
 }
-fn canonical_machine(file: &str, ast: &syn::File, module: &syn::ItemMod) -> Result<()> {
+fn canonical_machine(ast: &syn::File, module: &syn::ItemMod) -> Result<()> {
     let marker = module
         .attrs
         .iter()
         .find(|attribute| attribute.path().is_ident("machine"))
-        .ok_or_else(|| Diagnostic::at(file, module, "unsupported machine marker"))?;
+        .ok_or_else(|| Diagnostic::at(module, "unsupported machine marker"))?;
     let mut bindings = Vec::new();
     for item in &ast.items {
         if let Item::Use(import) = item {
@@ -628,7 +599,6 @@ fn canonical_machine(file: &str, ast: &syn::File, module: &syn::ItemMod) -> Resu
         || bindings.iter().any(|(binding, _)| binding == "*")
     {
         return Err(Diagnostic::at(
-            file,
             marker,
             "machine marker requires one explicit canonical umpire_dsl::machine import",
         ));

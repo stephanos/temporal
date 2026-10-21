@@ -6,7 +6,7 @@ use crate::{
 };
 use quote::ToTokens;
 
-impl Environment<'_> {
+impl Environment {
     pub(crate) fn ty(&self, ty: &syn::Type) -> Result<Type> {
         if let Some(ty) = self.vector_type(ty)? {
             return Ok(ty);
@@ -26,7 +26,7 @@ impl Environment<'_> {
         self.enums
             .get(&name)
             .cloned()
-            .ok_or_else(|| Diagnostic::at(self.file, ty, format!("unsupported type `{name}`")))
+            .ok_or_else(|| Diagnostic::at(ty, format!("unsupported type `{name}`")))
     }
     pub(crate) fn default_value(&self, ty: &Type) -> Result<Expr> {
         match ty {
@@ -36,7 +36,6 @@ impl Environment<'_> {
             Type::Enum { name, .. } => {
                 let value = self.defaults.get(name).ok_or_else(|| {
                     Diagnostic::span(
-                        self.file,
                         proc_macro2::Span::call_site(),
                         format!("enum `{name}` has no admitted #[default] variant"),
                     )

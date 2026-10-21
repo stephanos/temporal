@@ -1,52 +1,30 @@
-//! Independently lift authored Rust Models into a checked internal tree and TLA+.
+//! Lift authored Rust Models, admitted by `umpire-front`, into TLA+.
 //!
-//! The collection subset admits canonical `imbl::Vector<T>` fields whose elements are scalar
-//! booleans, admitted integers, or fieldless enums. Defaults and `Vector::new/default()` are empty;
-//! `len`, `is_empty`, and ordered `push_back` map to TLA+ sequences. Growth needs an authored finite
-//! length guard. Reads admit `get(index).copied().unwrap_or(default)` (including eager default
-//! evaluation), `get(index).is_some()`, and `get(index).is_none()`. Indices must fit the nonnegative
-//! signed 32-bit domain. Other collection operations, aliases, and unchecked unwraps refuse by
-//! source location; this is a method table rather than general Rust collection interpretation.
+//! The admitted subset, including the `imbl::Vector<T>` method table, is `umpire-front`'s.
 use proc_macro2::Span;
-use quote::ToTokens;
 use std::{collections::BTreeMap, fmt, path::Path};
-mod body;
+mod bind;
 pub mod build;
 mod emit;
-mod expr;
 mod names;
-mod shape;
-mod syntax;
-mod tree;
-pub use tree::Lifted;
+pub use umpire_front::{CATALOG_LIMIT, Type};
 
-/// Admitted value types for typed backend decoding.
-#[derive(Clone, Debug, PartialEq, Eq)]
-pub enum Type {
-    /// Boolean.
-    Bool,
-    /// Checked Rust integer.
-    Int {
-        /// Inclusive minimum.
-        min: i128,
-        /// Inclusive maximum.
-        max: i128,
-    },
-    /// Fieldless enum encoded with qualified variant names.
-    Enum {
-        /// Authored type name.
-        name: String,
-        /// Qualified variant names in declaration order.
-        variants: Vec<String>,
-    },
-    /// String.
-    Text,
-    /// Unit.
-    Unit,
-    /// Tuple.
-    Tuple(Vec<Type>),
-    /// Sequence.
-    Seq(Box<Type>),
+/// An admitted Model and the source file it was read from.
+#[derive(Clone, Debug)]
+pub struct Lifted {
+    file: String,
+    model: umpire_front::Lifted,
+}
+impl std::ops::Deref for Lifted {
+    type Target = umpire_front::Lifted;
+    fn deref(&self) -> &Self::Target {
+        &self.model
+    }
+}
+impl std::ops::DerefMut for Lifted {
+    fn deref_mut(&mut self) -> &mut Self::Target {
+        &mut self.model
+    }
 }
 /// A located warning refusing unsupported source behavior.
 #[derive(Clone, Debug, PartialEq, Eq)]
@@ -61,22 +39,25 @@ pub struct Diagnostic {
     pub message: String,
 }
 impl Diagnostic {
-    pub(crate) fn at(file: &str, node: &impl ToTokens, message: impl Into<String>) -> Self {
-        Self::span(
-            file,
-            node.to_token_stream()
-                .into_iter()
-                .next()
-                .map_or(Span::call_site(), |token| token.span()),
-            message,
-        )
-    }
     pub(crate) fn span(file: &str, span: Span, message: impl Into<String>) -> Self {
         let location = span.start();
         Self {
             file: file.into(),
             line: location.line,
             column: location.column + 1,
+            message: message.into(),
+        }
+    }
+    /// A front-end location in `file`, with its own message.
+    pub(crate) fn of(
+        file: &str,
+        location: &umpire_front::Diagnostic,
+        message: impl Into<String>,
+    ) -> Self {
+        Self {
+            file: file.into(),
+            line: location.line,
+            column: location.column,
             message: message.into(),
         }
     }
@@ -111,8 +92,6 @@ pub enum Literal {
     /// Ordered elements of an admitted state sequence.
     Sequence(Vec<Literal>),
 }
-/// The default concrete action catalog limit, equal to the native checker's.
-pub const CATALOG_LIMIT: usize = 4096;
 /// One concrete catalog action: its qualified variant and ordered named payload values.
 #[derive(Clone, Debug, PartialEq, Eq)]
 pub struct Concrete {
@@ -256,51 +235,19 @@ impl Lift {
         Self::lift(file, &ast, &Hook::all(file, &ast))
     }
     fn lift(file: &str, ast: &syn::File, hooks: &[Hook<'_>]) -> Result<Lifted, Diagnostic> {
-        if !ast.items.iter().any(
-            |item| matches!(item, syn::Item::Mod(module) if syntax::has(&module.attrs,"machine")),
-        ) {
-            return Err(Self::not_attribute(file, ast));
-        }
-        let lifted = shape::parse(file, ast, hooks)?;
+        let macros: Vec<_> = hooks.iter().map(|hook| hook.mac).collect();
+        let model = umpire_front::read(ast, &macros).map_err(|refusal| match refusal {
+            umpire_front::Refusal::Model(location) => {
+                Diagnostic::of(file, &location, location.message.clone())
+            }
+            umpire_front::Refusal::Hook(index, location) => {
+                Diagnostic::of(hooks[index].file, &location, location.message.clone())
+            }
+        })?;
+        let lifted = Lifted { file: file.into(), model };
         names::validate(file, ast, &lifted)?;
         Ok(lifted)
     }
-    /// The located refusal for source without a `#[machine]` Model: at a hand-written
-    /// `impl Machine` when there is one, otherwise at the start of the file.
-    fn not_attribute(file: &str, ast: &syn::File) -> Diagnostic {
-        let by_hand = ast.items.iter().find_map(|item| match item {
-            syn::Item::Impl(implementation)
-                if implementation
-                    .trait_
-                    .as_ref()
-                    .and_then(|(path, _)| path.segments.last())
-                    .is_some_and(|segment| segment.ident == "Machine") =>
-            {
-                Some(implementation)
-            }
-            _ => None,
-        });
-        match by_hand {
-            Some(implementation) => Diagnostic::at(
-                file,
-                implementation,
-                format!(
-                    "the lifter reads #[machine] Models; `impl Machine for {}` implements Machine by hand",
-                    rust_type(&implementation.self_ty)
-                ),
-            ),
-            None => Diagnostic::span(
-                file,
-                Span::call_site(),
-                "the lifter reads #[machine] Models; this source declares none",
-            ),
-        }
-    }
-}
-/// A type as rustfmt would print it; token streams space every token apart.
-fn rust_type(ty: &syn::Type) -> String {
-    let alias = prettyplease::unparse(&syn::parse_quote!(type T = #ty;));
-    alias.trim().trim_start_matches("type T = ").trim_end_matches(';').to_owned()
 }
 /// A golden hook (`fixture!`) and the file it is written in.
 pub(crate) struct Hook<'a> {

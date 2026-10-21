@@ -1,12 +1,12 @@
 use crate::Type;
 
 #[derive(Clone, Debug, PartialEq, Eq)]
-pub(crate) struct Expr {
+pub struct Expr {
     pub kind: ExprKind,
     pub ty: Type,
 }
 #[derive(Clone, Debug, PartialEq, Eq)]
-pub(crate) enum ExprKind {
+pub enum ExprKind {
     Bool(bool),
     Int(i128),
     Text(String),
@@ -27,12 +27,12 @@ pub(crate) enum ExprKind {
     Checks(Vec<Expr>),
 }
 #[derive(Clone, Copy, Debug, PartialEq, Eq)]
-pub(crate) enum Unary {
+pub enum Unary {
     Not,
     Neg,
 }
 #[derive(Clone, Copy, Debug, PartialEq, Eq)]
-pub(crate) enum Op {
+pub enum Op {
     Add,
     Sub,
     Mul,
@@ -60,7 +60,7 @@ impl Expr {
     pub(crate) fn text(value: impl Into<String>) -> Self {
         Self { kind: ExprKind::Text(value.into()), ty: Type::Text }
     }
-    pub(crate) fn var(name: impl Into<String>, ty: Type, primed: bool) -> Self {
+    pub fn var(name: impl Into<String>, ty: Type, primed: bool) -> Self {
         Self { kind: ExprKind::Var(name.into(), primed), ty }
     }
     pub(crate) fn binary(op: Op, left: Self, right: Self) -> Self {

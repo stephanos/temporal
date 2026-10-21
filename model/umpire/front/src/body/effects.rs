@@ -8,7 +8,7 @@ use crate::{
 use quote::ToTokens;
 use syn::{BinOp, Expr as RustExpr, Pat, Stmt};
 
-impl Environment<'_> {
+impl Environment {
     pub(crate) fn handler<'a>(&self, method: &'a syn::ImplItemFn) -> Result<&'a syn::ExprMatch> {
         let parameters = self.parameters(method)?;
         if parameters.positional.len() != 1 {
@@ -24,7 +24,7 @@ impl Environment<'_> {
                 Pat::Ident(id) => Some(id.ident.to_string()),
                 _ => None,
             })
-            .ok_or_else(|| Diagnostic::at(self.file, method, "missing action parameter"))?;
+            .ok_or_else(|| Diagnostic::at(method, "missing action parameter"))?;
         if !matches!(matched.expr.as_ref(),RustExpr::Path(p)if p.path.is_ident(&parameter)) {
             return self.err(&matched.expr, "handler must match the declared action parameter");
         }
@@ -127,7 +127,7 @@ impl Environment<'_> {
                     .fields
                     .iter()
                     .find(|f| f.name == field)
-                    .ok_or_else(|| Diagnostic::at(self.file, node, "unknown assignment field"))?
+                    .ok_or_else(|| Diagnostic::at(node, "unknown assignment field"))?
                     .ty;
                 let value = self.expr(&assign.right, state, locals, Some(ty), depth)?;
                 checks.push(value.clone());
@@ -143,7 +143,7 @@ impl Environment<'_> {
                 let field = self.assigned_field(&binary.left)?;
                 let left = state
                     .get(&field)
-                    .ok_or_else(|| Diagnostic::at(self.file, node, "unknown assignment field"))?
+                    .ok_or_else(|| Diagnostic::at(node, "unknown assignment field"))?
                     .clone();
                 if !matches!(left.ty, Type::Int { .. }) {
                     return self.err(node, "compound assignment requires an integer");
@@ -186,7 +186,7 @@ impl Environment<'_> {
                 let method = self
                     .methods
                     .get(&call.method.to_string())
-                    .ok_or_else(|| Diagnostic::at(self.file, node, "unknown effect helper"))?;
+                    .ok_or_else(|| Diagnostic::at(node, "unknown effect helper"))?;
                 if !has(&method.attrs, "effect") || method.sig.receiver().is_none() {
                     return self.err(
                         node,

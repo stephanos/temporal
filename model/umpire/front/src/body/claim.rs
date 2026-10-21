@@ -6,7 +6,7 @@ use crate::{
 };
 use syn::{Expr as RustExpr, Pat, Stmt};
 
-impl Environment<'_> {
+impl Environment {
     pub(crate) fn invariant(&self, method: &syn::ImplItemFn, state: &Env) -> Result<Expr> {
         if !self.parameters(method)?.positional.is_empty() {
             return self
@@ -63,7 +63,7 @@ impl Environment<'_> {
             .parse_body_with(
                 syn::punctuated::Punctuated::<RustExpr, syn::Token![,]>::parse_terminated,
             )
-            .map_err(|e| Diagnostic::span(self.file, e.span(), e.to_string()))?;
+            .map_err(|e| Diagnostic::span(e.span(), e.to_string()))?;
         for expr in args.iter().skip(2) {
             if let RustExpr::Call(call) = expr
                 && call.args.len() == 2
@@ -111,12 +111,12 @@ impl Environment<'_> {
             let value = match statement {
                 Stmt::Macro(mac) if mac.mac.path.is_ident("check") => {
                     let expr: RustExpr = syn::parse2(mac.mac.tokens.clone())
-                        .map_err(|e| Diagnostic::span(self.file, e.span(), e.to_string()))?;
+                        .map_err(|e| Diagnostic::span(e.span(), e.to_string()))?;
                     self.expr(&expr, state, locals, Some(&Type::Bool), depth)?
                 }
                 Stmt::Expr(RustExpr::Macro(mac), _) if mac.mac.path.is_ident("check") => {
                     let expr: RustExpr = syn::parse2(mac.mac.tokens.clone())
-                        .map_err(|e| Diagnostic::span(self.file, e.span(), e.to_string()))?;
+                        .map_err(|e| Diagnostic::span(e.span(), e.to_string()))?;
                     self.expr(&expr, state, locals, Some(&Type::Bool), depth)?
                 }
                 Stmt::Expr(RustExpr::If(condition), _) => {

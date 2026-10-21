@@ -15,7 +15,7 @@ pub(crate) struct Matched {
     pub(crate) bindings: Vec<(String, Expr)>,
 }
 
-impl Environment<'_> {
+impl Environment {
     /// Admit one payload field and its finite domain, independently of native enumeration.
     pub(crate) fn input_field(
         &self,
@@ -46,15 +46,10 @@ impl Environment<'_> {
                     .err(inputs, format!("{context} declares both #[inputs] and #[domain]"));
             }
             let function = domain.parse_args::<syn::Ident>().map_err(|_| {
-                Diagnostic::at(
-                    self.file,
-                    domain,
-                    format!("{context}: #[domain] names a local function"),
-                )
+                Diagnostic::at(domain, format!("{context}: #[domain] names a local function"))
             })?;
             let item = self.domain_functions.get(&function.to_string()).ok_or_else(|| {
                 Diagnostic::at(
-                    self.file,
                     domain,
                     format!("{context}: #[domain({function})] names no local function"),
                 )
@@ -64,7 +59,7 @@ impl Environment<'_> {
         } else if let Some(inputs) = attr(&field.attrs, "inputs") {
             let value = inputs
                 .parse_args::<RustExpr>()
-                .map_err(|e| Diagnostic::span(self.file, e.span(), e.to_string()))?;
+                .map_err(|e| Diagnostic::span(e.span(), e.to_string()))?;
             InputDomain::Values(self.declared_values(inputs, &value, &ty, &context)?)
         } else {
             InputDomain::Values(match &ty {
@@ -85,7 +80,7 @@ impl Environment<'_> {
                 }
             })
         };
-        Ok(InputField { name, ty, domain, symbol, location: Diagnostic::at(self.file, field, "") })
+        Ok(InputField { name, ty, domain, symbol, location: Diagnostic::at(field, "") })
     }
 
     fn declared_values(
@@ -299,7 +294,6 @@ impl Environment<'_> {
                     let declared =
                         action.fields.iter().find(|f| f.name == name).ok_or_else(|| {
                             Diagnostic::at(
-                                self.file,
                                 field,
                                 format!("`{}` has no field `{name}`", action.name),
                             )
@@ -364,7 +358,7 @@ impl Environment<'_> {
             }
             Pat::Lit(_) | Pat::Path(_) | Pat::Ident(_) | Pat::Verbatim(_) => {
                 let node: RustExpr = syn::parse2(pattern.to_token_stream())
-                    .map_err(|_| Diagnostic::at(self.file, pattern, "unsupported input pattern"))?;
+                    .map_err(|_| Diagnostic::at(pattern, "unsupported input pattern"))?;
                 Ok(Expr::binary(Op::Eq, value.clone(), self.literal(&node, &value.ty)?))
             }
             _ => self.err(pattern, "unsupported input pattern"),
@@ -402,7 +396,7 @@ impl Environment<'_> {
         let action = actions
             .iter()
             .find(|action| action.name == name)
-            .ok_or_else(|| Diagnostic::at(self.file, node, format!("unknown action `{name}`")))?;
+            .ok_or_else(|| Diagnostic::at(node, format!("unknown action `{name}`")))?;
         let shape = match node {
             RustExpr::Path(_) => Shape::Unit,
             RustExpr::Call(_) => Shape::Tuple,

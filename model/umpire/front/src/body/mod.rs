@@ -65,8 +65,7 @@ pub(super) struct Parameters<'a> {
     pub(super) positional: Vec<&'a syn::PatType>,
 }
 
-pub(crate) struct Environment<'a> {
-    pub(crate) file: &'a str,
+pub(crate) struct Environment {
     pub(crate) fields: Vec<FieldDef>,
     pub(crate) declared_world: bool,
     pub(crate) world_fields: Vec<WorldField>,
@@ -81,9 +80,10 @@ pub(crate) struct Environment<'a> {
     /// Free functions admitted as World-dependent `#[domain]` sources; bodies are not read.
     pub(crate) domain_functions: BTreeMap<String, syn::ItemFn>,
 }
-impl Environment<'_> {
+impl Environment {
+    #[expect(clippy::unused_self, reason = "refusals read as methods of the admitting environment")]
     fn err<T>(&self, node: &impl ToTokens, message: impl Into<String>) -> Result<T> {
-        Err(Diagnostic::at(self.file, node, message))
+        Err(Diagnostic::at(node, message))
     }
     pub(crate) fn field_env(&self, primed: bool) -> Env {
         self.fields
@@ -177,9 +177,9 @@ impl Environment<'_> {
         self.method_env(method)
     }
 }
-fn tail<'a>(file: &str, block: &'a syn::Block) -> Result<&'a RustExpr> {
+fn tail(block: &syn::Block) -> Result<&RustExpr> {
     match block.stmts.as_slice() {
         [Stmt::Expr(expr, None)] => Ok(expr),
-        _ => Err(Diagnostic::at(file, block, "expected a single expression body")),
+        _ => Err(Diagnostic::at(block, "expected a single expression body")),
     }
 }

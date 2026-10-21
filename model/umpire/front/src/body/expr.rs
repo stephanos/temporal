@@ -7,7 +7,7 @@ use crate::{
 use quote::ToTokens;
 use syn::{Expr as RustExpr, Pat};
 
-impl Environment<'_> {
+impl Environment {
     pub(crate) fn require(
         &self,
         node: &impl ToTokens,
@@ -42,14 +42,13 @@ impl Environment<'_> {
                     .cloned()
                     .unwrap_or(Type::Int { min: i128::from(i32::MIN), max: i128::from(i32::MAX) })
             } else {
-                self.ty(&syn::parse_str::<syn::Type>(literal.suffix()).map_err(|error| {
-                    Diagnostic::span(self.file, error.span(), error.to_string())
-                })?)
-                .map_err(|error| Diagnostic::at(self.file, node, error.message))?
+                self.ty(&syn::parse_str::<syn::Type>(literal.suffix())
+                    .map_err(|error| Diagnostic::span(error.span(), error.to_string()))?)
+                    .map_err(|error| Diagnostic::at(node, error.message))?
             };
             let mut number = literal
                 .base10_parse::<i128>()
-                .map_err(|error| Diagnostic::at(self.file, node, error.to_string()))?;
+                .map_err(|error| Diagnostic::at(node, error.to_string()))?;
             if negative {
                 number = -number;
             }
@@ -70,11 +69,10 @@ impl Environment<'_> {
                         )
                     } else {
                         self.ty(&syn::parse_str::<syn::Type>(v.suffix())
-                            .map_err(|e| Diagnostic::span(self.file, e.span(), e.to_string()))?)?
+                            .map_err(|e| Diagnostic::span(e.span(), e.to_string()))?)?
                     };
-                    let n = v
-                        .base10_parse::<i128>()
-                        .map_err(|e| Diagnostic::at(self.file, v, e.to_string()))?;
+                    let n =
+                        v.base10_parse::<i128>().map_err(|e| Diagnostic::at(v, e.to_string()))?;
                     if let Type::Int { min, max } = ty
                         && (n < min || n > max)
                     {
@@ -107,9 +105,10 @@ impl Environment<'_> {
                         owner
                     };
                     let full = format!("{owner}::{variant}");
-                    let ty = self.enums.get(owner).ok_or_else(|| {
-                        Diagnostic::at(self.file, node, format!("unknown name `{name}`"))
-                    })?;
+                    let ty = self
+                        .enums
+                        .get(owner)
+                        .ok_or_else(|| Diagnostic::at(node, format!("unknown name `{name}`")))?;
                     if let Type::Enum { variants, .. } = ty
                         && !variants.contains(&full)
                     {
@@ -128,7 +127,7 @@ impl Environment<'_> {
                 {
                     let member = field.member.to_token_stream().to_string();
                     state.get(&member).cloned().ok_or_else(|| {
-                        Diagnostic::at(self.file, node, format!("unknown state field `{member}`"))
+                        Diagnostic::at(node, format!("unknown state field `{member}`"))
                     })?
                 } else {
                     return self.err(node, format!("unresolved field `{key}`"));
@@ -143,13 +142,11 @@ impl Environment<'_> {
                         .as_ref()
                         .and_then(|name| locals.get(name))
                         .cloned()
-                        .ok_or_else(|| {
-                            Diagnostic::at(self.file, node, "missing borrowed outcome binding")
-                        })?;
+                        .ok_or_else(|| Diagnostic::at(node, "missing borrowed outcome binding"))?;
                     return self.require(node, value, expected);
                 }
                 let op = super::typer::unary_op(&unary.op)
-                    .ok_or_else(|| Diagnostic::at(self.file, node, "unsupported unary operator"))?;
+                    .ok_or_else(|| Diagnostic::at(node, "unsupported unary operator"))?;
                 let value = self.expr(
                     &unary.expr,
                     state,
@@ -163,9 +160,8 @@ impl Environment<'_> {
                 Expr { ty: value.ty.clone(), kind: ExprKind::Unary(op, Box::new(value)) }
             }
             RustExpr::Binary(binary) => {
-                let op = super::typer::binary_op(&binary.op).ok_or_else(|| {
-                    Diagnostic::at(self.file, node, "unsupported binary operator")
-                })?;
+                let op = super::typer::binary_op(&binary.op)
+                    .ok_or_else(|| Diagnostic::at(node, "unsupported binary operator"))?;
                 let bool_op = matches!(op, Op::And | Op::Or);
                 let arithmetic = matches!(op, Op::Add | Op::Sub | Op::Mul | Op::Div | Op::Rem);
                 let context = if bool_op {
@@ -196,13 +192,8 @@ impl Environment<'_> {
             }
             RustExpr::If(condition) => {
                 let cond = self.expr(&condition.cond, state, locals, Some(&Type::Bool), depth)?;
-                let yes = self.expr(
-                    tail(self.file, &condition.then_branch)?,
-                    state,
-                    locals,
-                    expected,
-                    depth,
-                )?;
+                let yes =
+                    self.expr(tail(&condition.then_branch)?, state, locals, expected, depth)?;
                 let Some((_, no)) = &condition.else_branch else {
                     return self.err(node, "value-producing if requires else");
                 };
@@ -210,7 +201,7 @@ impl Environment<'_> {
                 Expr::select(cond, yes, no)
             }
             RustExpr::Block(block) => {
-                return self.expr(tail(self.file, &block.block)?, state, locals, expected, depth);
+                return self.expr(tail(&block.block)?, state, locals, expected, depth);
             }
             RustExpr::Tuple(tuple) => {
                 if tuple.elems.is_empty() {
@@ -245,7 +236,7 @@ impl Environment<'_> {
                         return self.err(node, "only pure helpers are admitted in expressions");
                     }
                     return self.expr(
-                        tail(self.file, &method.block)?,
+                        tail(&method.block)?,
                         state,
                         &self.helper_env(method, &call.args, locals)?,
                         expected,
@@ -262,7 +253,6 @@ impl Environment<'_> {
                 let method =
                     self.helpers.get(&format!("{name}::{}", call.method)).ok_or_else(|| {
                         Diagnostic::at(
-                            self.file,
                             node,
                             format!("unsupported method `{name}::{}`", call.method),
                         )
@@ -272,7 +262,7 @@ impl Environment<'_> {
                 }
                 let mut env = locals.clone();
                 env.insert("self".into(), receiver);
-                self.expr(tail(self.file, &method.block)?, state, &env, expected, depth + 1)?
+                self.expr(tail(&method.block)?, state, &env, expected, depth + 1)?
             }
             RustExpr::Macro(mac) if mac.mac.path.is_ident("matches") => {
                 return self.matches(mac, state, locals, depth);
@@ -307,7 +297,7 @@ impl Environment<'_> {
             }
         }
         let args: syn::Result<Args> = syn::parse2(mac.mac.tokens.clone());
-        let args = args.map_err(|e| Diagnostic::span(self.file, e.span(), e.to_string()))?;
+        let args = args.map_err(|e| Diagnostic::span(e.span(), e.to_string()))?;
         let value = self.expr(&args.value, state, locals, None, depth)?;
         self.pattern(&args.pat, &value)
     }
@@ -323,7 +313,7 @@ impl Environment<'_> {
             }
             Pat::Path(path) => {
                 let path: RustExpr = syn::parse2(path.to_token_stream())
-                    .map_err(|e| Diagnostic::span(self.file, e.span(), e.to_string()))?;
+                    .map_err(|e| Diagnostic::span(e.span(), e.to_string()))?;
                 Ok(Expr::binary(
                     Op::Eq,
                     value.clone(),

@@ -9,7 +9,7 @@ use quote::ToTokens;
 use std::collections::BTreeSet;
 use syn::{Expr as RustExpr, RangeLimits, Token, parse::Parser as _, punctuated::Punctuated};
 
-impl Environment<'_> {
+impl Environment {
     pub(crate) fn assumption_body(
         &self,
         method: &syn::ImplItemFn,
@@ -18,7 +18,7 @@ impl Environment<'_> {
         if !self.parameters(method)?.positional.is_empty() {
             return self.err(method, "assumptions take only an optional trailing World");
         }
-        self.assumption(tail(self.file, &method.block)?, actions, &self.method_env(method)?, 0)
+        self.assumption(tail(&method.block)?, actions, &self.method_env(method)?, 0)
     }
     pub(crate) fn action_name(&self, node: &RustExpr, actions: &[ActionDef]) -> Result<String> {
         let name = path_name(&node.to_token_stream().to_string());
@@ -51,7 +51,7 @@ impl Environment<'_> {
                         return self.err(node, "unsupported assumption call");
                     }
                     return self.assumption(
-                        tail(self.file, &method.block)?,
+                        tail(&method.block)?,
                         actions,
                         &self.helper_env(method, &call.args, locals)?,
                         depth + 1,
@@ -112,7 +112,7 @@ impl Environment<'_> {
                 .err(method, "progress methods take only &self and an optional trailing World");
         }
         let locals = self.method_env(method)?;
-        let mut node = tail(self.file, &method.block)?;
+        let mut node = tail(&method.block)?;
         let mut target = None;
         let mut assumption = AssumptionDef::default();
         let mut bound = None;
@@ -170,9 +170,8 @@ impl Environment<'_> {
                 Some(&Type::Bool),
                 0,
             )?,
-            target: target.ok_or_else(|| {
-                Diagnostic::at(self.file, node, "progress requires eventually(target)")
-            })?,
+            target: target
+                .ok_or_else(|| Diagnostic::at(node, "progress requires eventually(target)"))?,
             assumption,
             bound,
         })
@@ -188,7 +187,7 @@ impl Environment<'_> {
                 "progress bound must be in 1..2147483647 for TLC's capped transition observer",
             );
         }
-        u64::try_from(n).map_err(|_| Diagnostic::at(self.file, node, "progress bound exceeds u64"))
+        u64::try_from(n).map_err(|_| Diagnostic::at(node, "progress bound exceeds u64"))
     }
     /// `path![trigger, .., target]` or `path![trigger, ..=n, target]`.
     fn path_claim(
@@ -200,7 +199,7 @@ impl Environment<'_> {
     ) -> Result<ProgressDef> {
         let parts = Punctuated::<RustExpr, Token![,]>::parse_terminated
             .parse2(call.mac.tokens.clone())
-            .map_err(|error| Diagnostic::at(self.file, call, error.to_string()))?;
+            .map_err(|error| Diagnostic::at(call, error.to_string()))?;
         let [trigger, RustExpr::Range(gap), target] = parts.iter().collect::<Vec<_>>()[..] else {
             return self.err(
                 call,

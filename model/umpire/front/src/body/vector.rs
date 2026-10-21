@@ -10,7 +10,7 @@ fn index_type() -> Type {
     Type::Int { min: 0, max: i128::from(i32::MAX) }
 }
 
-impl Environment<'_> {
+impl Environment {
     pub(super) fn vector_type(&self, ty: &syn::Type) -> Result<Option<Type>> {
         let syn::Type::Path(path) = ty else { return Ok(None) };
         let names: Vec<_> = path.path.segments.iter().map(|part| part.ident.to_string()).collect();
@@ -24,7 +24,7 @@ impl Environment<'_> {
             .path
             .segments
             .last()
-            .ok_or_else(|| crate::Diagnostic::at(self.file, ty, "missing Vector type"))?;
+            .ok_or_else(|| crate::Diagnostic::at(ty, "missing Vector type"))?;
         let syn::PathArguments::AngleBracketed(arguments) = &vector.arguments else {
             return self.err(ty, "Vector requires one declared element type");
         };
@@ -75,9 +75,8 @@ impl Environment<'_> {
             .last()
             .is_some_and(|part| !matches!(part.arguments, syn::PathArguments::None))
         {
-            let declared: syn::Type = syn::parse2(owner.to_token_stream()).map_err(|error| {
-                crate::Diagnostic::span(self.file, error.span(), error.to_string())
-            })?;
+            let declared: syn::Type = syn::parse2(owner.to_token_stream())
+                .map_err(|error| crate::Diagnostic::span(error.span(), error.to_string()))?;
             if self.ty(&declared)? != *ty {
                 return self.err(call, "Vector constructor element type differs from its target");
             }
@@ -169,7 +168,7 @@ impl Environment<'_> {
         {
             let index = literal
                 .base10_parse::<i128>()
-                .map_err(|error| crate::Diagnostic::at(self.file, node, error.to_string()))?;
+                .map_err(|error| crate::Diagnostic::at(node, error.to_string()))?;
             if index > i128::from(i32::MAX) {
                 return self.err(node, "Vector index exceeds the TLC signed 32-bit domain");
             }
@@ -192,7 +191,7 @@ impl Environment<'_> {
         let field = self.assigned_field(&call.receiver)?;
         let sequence = state
             .get(&field)
-            .ok_or_else(|| crate::Diagnostic::at(self.file, call, "unknown Vector field"))?
+            .ok_or_else(|| crate::Diagnostic::at(call, "unknown Vector field"))?
             .clone();
         let Type::Seq(element) = &sequence.ty else {
             return self.err(call, "push_back requires an admitted Vector field");

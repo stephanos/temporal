@@ -1,0 +1,17 @@
+[package]
+name = "umpire-front"
+description = "Shared admission of authored #[machine] Models into Umpire's typed tree"
+version.workspace = true
+edition.workspace = true
+publish.workspace = true
+license.workspace = true
+rust-version.workspace = true
+
+[lints]
+workspace = true
+
+[dependencies]
+syn.workspace = true
+quote.workspace = true
+prettyplease.workspace = true
+proc-macro2 = { workspace = true, features = ["span-locations"] }

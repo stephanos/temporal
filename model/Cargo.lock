@@ -952,16 +952,26 @@ dependencies = [
 ]
 
 [[package]]
+name = "umpire-front"
+version = "0.0.1"
+dependencies = [
+ "prettyplease 0.3.0",
+ "proc-macro2",
+ "quote",
+ "syn 3.0.9",
+]
+
+[[package]]
 name = "umpire-lift"
 version = "0.0.1"
 dependencies = [
  "imbl",
- "prettyplease 0.3.0",
  "proc-macro2",
  "quote",
  "syn 3.0.9",
  "umpire-checker",
  "umpire-dsl",
+ "umpire-front",
  "umpire-tlc",
 ]
 
