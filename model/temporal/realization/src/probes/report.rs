@@ -6,7 +6,7 @@ use umpire_temporal_api::umpire::temporal::v1::{ProbeRequest, ProbeResponse};
 pub(super) fn classify(
     request: &ProbeRequest,
     entries: &[Entry],
-    generic_entries: Vec<generic::Entry>,
+    generic_entries: &[generic::Entry],
 ) -> Result<ProbeResponse> {
     let expected: BTreeSet<_> = entries
         .iter()
@@ -107,7 +107,7 @@ pub(super) fn classify(
 fn classify_generic(
     request: &ProbeRequest,
     entries: &[Entry],
-    generic_entries: Vec<generic::Entry>,
+    generic_entries: &[generic::Entry],
     dispositions: &dispositions::Dispositions,
     text: &mut String,
 ) -> Result<bool> {
