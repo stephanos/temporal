@@ -20,7 +20,8 @@ Owner decision 2026-10-21 (`.flow/artifacts/fn-227-parameterized-models-declared
 4. `testing/src/discovery.rs`: delete per-input overrides and their tests; `tests/build.rs` returns to plain discovery.
 5. Fixtures: replace thread-local selection with direct `bound(World::new(..), ..)` calls; drop enumeration counters.
 6. `Lifted::bind` and every schema/range/catalog-order refusal stay exactly as they are; no lifter semantic file (`shape.rs`, `body/*`, `emit.rs`, `tree.rs`) changes beyond what A already did.
-7. Record the decision in README/DESIGN.md (derived values, same exposure as derived `Debug`).
+7. Opportunistic deletions from the scout's "maybe" list (about 150 source lines), each only if it stays golden-neutral: `Space<S, W>`'s second `SpaceBinding` impl, `catalog_limit` threading where only tests use a non-default limit (keep one explicit override route), and `tree.rs::compare` per-field diagnostics if the bind refusals already name the field. Report what was taken and why the rest stayed.
+8. Record the decision in README/DESIGN.md (derived values, same exposure as derived `Debug`).
 
 ### Verification
 
