@@ -33,6 +33,24 @@ fn main() {
             fs::read(root.join(name)).expect("host build identity input"),
         );
     }
+    let mut runtime = Sha256::new();
+    runtime.update(b"gomad-wasm-runtime-implementation/v1\0");
+    for name in [
+        "overlay.go",
+        "runtime_wasm.go.txt",
+        "net_stream_wasm.go.txt",
+        "net_stream_status_generated.go.txt",
+    ] {
+        let path = format!("../../internal/backends/wasm/toolchain/{name}");
+        let bytes = fs::read(root.join(&path)).expect("runtime implementation identity input");
+        runtime.update((bytes.len() as u64).to_be_bytes());
+        runtime.update(&bytes);
+        files.insert(path, bytes);
+    }
+    println!(
+        "cargo:rustc-env=GOMAD_RUNTIME_IMPLEMENTATION_SHA256={:x}",
+        runtime.finalize()
+    );
     let mut hash = Sha256::new();
     hash.update(b"gomad.host-implementation/v1\0");
     for (name, value) in env::vars()

@@ -10,7 +10,7 @@
 use crate::network::stream_abi::{self, Call, HEADER, MAXIMUM_CHUNK_BYTES};
 use crate::network::{Domain, Model as Owner, OperationResult, Request, history};
 use crate::world;
-use serde::Deserialize;
+use serde::{Deserialize, Serialize};
 use std::collections::{BTreeMap, BTreeSet};
 use std::sync::{Arc, Mutex};
 
@@ -59,7 +59,7 @@ fn infrastructure(error: impl Into<String>) -> Failure {
     Failure::Infrastructure(error.into())
 }
 
-#[derive(Clone, Debug, Deserialize)]
+#[derive(Clone, Debug, Deserialize, Serialize)]
 #[serde(deny_unknown_fields)]
 pub struct Limits {
     pub listeners: u64,
@@ -71,7 +71,7 @@ pub struct Limits {
 }
 
 /// Go `NetworkFaultV2`: a node-local fault, which brokered nodes refuse.
-#[derive(Clone, Debug, Deserialize)]
+#[derive(Clone, Debug, Deserialize, Serialize)]
 #[serde(deny_unknown_fields)]
 pub struct LocalFault {
     pub name: String,
@@ -84,7 +84,7 @@ pub struct LocalFault {
 }
 
 /// Go `NetworkModelV2`.
-#[derive(Clone, Debug, Deserialize)]
+#[derive(Clone, Debug, Deserialize, Serialize)]
 #[serde(deny_unknown_fields)]
 pub struct ModelV2 {
     pub profile: String,
@@ -94,7 +94,7 @@ pub struct ModelV2 {
 }
 
 /// Go `BrokerLink`.
-#[derive(Clone, Debug, Deserialize)]
+#[derive(Clone, Debug, Deserialize, Serialize)]
 #[serde(deny_unknown_fields)]
 pub struct Link {
     pub from: String,
@@ -105,7 +105,7 @@ pub struct Link {
 }
 
 /// Go `BrokerNetworkFault`.
-#[derive(Clone, Debug, Deserialize)]
+#[derive(Clone, Debug, Deserialize, Serialize)]
 #[serde(deny_unknown_fields)]
 pub struct Fault {
     pub name: String,
@@ -120,7 +120,7 @@ pub struct Fault {
 }
 
 /// The cluster `network` object: Go `BrokerConfig`'s network fields.
-#[derive(Clone, Debug, Deserialize)]
+#[derive(Clone, Debug, Deserialize, Serialize)]
 #[serde(deny_unknown_fields)]
 pub struct Config {
     pub model: ModelV2,

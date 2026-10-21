@@ -19,6 +19,13 @@ pub struct ExecutionIdentity {
     pub implementation_sha256: [u8; 32],
 }
 
+impl ExecutionIdentity {
+    #[must_use]
+    pub fn runtime_implementation_sha256(&self) -> String {
+        crate::world::digest::hex(&self.implementation_sha256)
+    }
+}
+
 pub struct ReplayPlan {
     pub decisions: Vec<Decision>,
     pub bytes: Vec<u8>,

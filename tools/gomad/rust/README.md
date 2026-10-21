@@ -18,8 +18,11 @@ No detached compiler thread or per-execution subprocess is used.
 The public `inspect` verb reads Rust-lineage artifacts through the shared
 authenticated opener. Its JSON shape and mandatory fresh Go/Rust comparison
 are documented in [the maintainer CLI guide](../CLI.md#rust-artifact-inspection).
+The public `replay` verb uses helper-owned semantic tape admission and typed
+standalone/cluster execution. Its inspection and compiled diagnostic-role mapping
+are documented in [the maintainer CLI guide](../CLI.md#rust-retained-replay).
 Other public host verbs remain with their later fn-232 tasks. The
-`determinism-fixture` feature exposes the foundation and inspect test drivers;
+`determinism-fixture` feature exposes the foundation, inspect and replay test drivers;
 their commands and fault controls are absent from ordinary builds. Run from the
 repository root:
 

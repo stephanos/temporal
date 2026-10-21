@@ -3,6 +3,9 @@ use std::io::Read;
 use std::sync::OnceLock;
 
 pub fn delay() {
+    if crate::linked_conditions::current().is_some() {
+        return;
+    }
     static ENABLED: OnceLock<bool> = OnceLock::new();
     if !*ENABLED.get_or_init(|| std::env::var_os("GOMAD_WASM_STRESS_JITTER").is_some()) {
         return;

@@ -7,6 +7,18 @@ use std::io::Write;
 use wasmtime::{Error, Result};
 
 impl Model {
+    pub(crate) fn interrupted(&mut self) -> Result<()> {
+        if self.finished {
+            return Err(Error::msg("completed runtime on storage interruption"));
+        }
+        if self.config.mode != 1
+            && let Some(tape) = &self.config.tape
+            && let Some(expected) = tape.get(self.cursor).cloned()
+        {
+            return Err(self.diverge(7, Some(expected), None));
+        }
+        Ok(())
+    }
     pub fn inspection_cut(&self) -> inspection::Cut {
         inspection::Cut {
             handle: self.inspection.handle.clone(),

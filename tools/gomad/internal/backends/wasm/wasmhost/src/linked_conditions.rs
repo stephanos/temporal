@@ -1,0 +1,272 @@
+use std::cell::Cell;
+use std::sync::{
+    Arc,
+    atomic::{AtomicBool, Ordering},
+};
+use wasmtime::{Error, Result};
+
+#[derive(Clone, Copy, Default, PartialEq, Eq)]
+pub enum Conditions {
+    #[default]
+    Ordinary,
+    StressReplay,
+    DeterminismFixtureReplay,
+}
+
+thread_local! {
+    static CURRENT: Cell<Option<Conditions>> = const { Cell::new(None) };
+}
+
+impl Conditions {
+    #[must_use]
+    pub fn compiled() -> Self {
+        if cfg!(feature = "stress-jitter") {
+            Self::StressReplay
+        } else if cfg!(feature = "determinism-fixture") {
+            Self::DeterminismFixtureReplay
+        } else {
+            Self::Ordinary
+        }
+    }
+
+    #[must_use]
+    pub fn stress_replay() -> Self {
+        Self::StressReplay
+    }
+
+    #[must_use]
+    pub fn determinism_fixture_replay() -> Self {
+        Self::DeterminismFixtureReplay
+    }
+
+    #[must_use]
+    pub fn configuration(self) -> String {
+        let suffix = match self {
+            Self::Ordinary => "",
+            Self::StressReplay => "-stress-jitter",
+            Self::DeterminismFixtureReplay => "-determinism-fixture",
+        };
+        format!("{}{suffix}", crate::linked::CONFIGURATION)
+    }
+
+    /// # Errors
+    /// Refuses a diagnostic role absent from this identity-bound linked implementation.
+    pub fn validate(self) -> Result<()> {
+        if self != Self::compiled() {
+            return Err(Error::msg(
+                "WASI invalid: engine/module/import identity mismatch before authorization",
+            ));
+        }
+        Ok(())
+    }
+
+    pub(crate) fn enter(self) -> Result<Scope> {
+        self.attach(
+            &Session {
+                conditions: self,
+                closed: Arc::new(AtomicBool::new(false)),
+                #[cfg(any(feature = "determinism-fixture", feature = "stress-jitter"))]
+                events: crate::event_order::LinkedSession::new(),
+            },
+            true,
+        )
+    }
+
+    pub(crate) fn enter_shared(self, session: &Session) -> Result<Scope> {
+        self.attach(session, false)
+    }
+
+    fn attach(self, session: &Session, owner: bool) -> Result<Scope> {
+        self.validate()?;
+        if self != session.conditions || session.closed.load(Ordering::Acquire) {
+            return Err(Error::msg(
+                "incompatible or closed linked execution session",
+            ));
+        }
+        if current().is_some() {
+            return Err(Error::msg("overlapping linked execution conditions"));
+        }
+        #[cfg(any(feature = "determinism-fixture", feature = "stress-jitter"))]
+        crate::event_order::start_linked(&session.events).map_err(Error::msg)?;
+        CURRENT.with(|current| current.set(Some(self)));
+        Ok(Scope {
+            finished: false,
+            owner,
+            session: session.clone(),
+            _thread: std::marker::PhantomData,
+        })
+    }
+}
+
+#[derive(Clone)]
+pub(crate) struct Session {
+    conditions: Conditions,
+    closed: Arc<AtomicBool>,
+    #[cfg(any(feature = "determinism-fixture", feature = "stress-jitter"))]
+    events: crate::event_order::LinkedSession,
+}
+
+pub(crate) struct Scope {
+    finished: bool,
+    owner: bool,
+    session: Session,
+    _thread: std::marker::PhantomData<std::rc::Rc<()>>,
+}
+
+impl Scope {
+    pub(crate) fn session(&self) -> Session {
+        self.session.clone()
+    }
+
+    pub(crate) fn finish(&mut self) -> Option<Vec<u8>> {
+        if self.finished || !self.owner {
+            return None;
+        }
+        self.finished = true;
+        self.session.closed.store(true, Ordering::Release);
+        #[cfg(any(feature = "determinism-fixture", feature = "stress-jitter"))]
+        {
+            crate::event_order::finish_linked(true)
+        }
+        #[cfg(not(any(feature = "determinism-fixture", feature = "stress-jitter")))]
+        None
+    }
+}
+
+impl Drop for Scope {
+    fn drop(&mut self) {
+        if self.owner {
+            self.session.closed.store(true, Ordering::Release);
+        }
+        #[cfg(any(feature = "determinism-fixture", feature = "stress-jitter"))]
+        if !self.finished {
+            if self.owner {
+                crate::event_order::finish_linked(false);
+            } else {
+                crate::event_order::detach_linked();
+            }
+        }
+        CURRENT.with(|current| current.set(None));
+    }
+}
+
+pub(crate) fn current() -> Option<Conditions> {
+    CURRENT.with(Cell::get)
+}
+
+#[cfg(test)]
+#[cfg(any(feature = "determinism-fixture", feature = "stress-jitter"))]
+mod tests {
+    use super::*;
+    use crate::event_order;
+    use serde_json::{Value, json};
+    use std::sync::Barrier;
+
+    fn context(instance: &str) -> event_order::Context {
+        event_order::Context {
+            instance: instance.into(),
+            incarnation: 1,
+            trace: 0,
+            decision: 0,
+            time_nanos: 1,
+        }
+    }
+
+    fn rows(bytes: &[u8]) -> Vec<Value> {
+        std::str::from_utf8(bytes)
+            .unwrap()
+            .lines()
+            .map(|line| {
+                serde_json::from_str(line.strip_prefix("gomad-wasm-event-order-v1 ").unwrap())
+                    .unwrap()
+            })
+            .collect()
+    }
+
+    // The session token and thread attachment lifetime are internal capabilities unavailable to CLI fixtures.
+    #[test]
+    fn shared_workers_commit_to_one_session_and_closed_tokens_refuse() {
+        let conditions = Conditions::compiled();
+        let mut owner = conditions.enter().unwrap();
+        let session = owner.session();
+        let barrier = Barrier::new(2);
+        std::thread::scope(|scope| {
+            let mut workers = Vec::new();
+            for name in ["left", "right"] {
+                let session = session.clone();
+                let barrier = &barrier;
+                workers.push(scope.spawn(move || {
+                    let _child = conditions.enter_shared(&session).unwrap();
+                    assert!(conditions.enter_shared(&session).is_err());
+                    let context = context(name);
+                    let _context = event_order::enter(context.clone());
+                    barrier.wait();
+                    event_order::emit(&context, "fixture", 0, json!(name));
+                }));
+            }
+            for worker in workers {
+                worker.join().unwrap();
+            }
+        });
+        let output = rows(&owner.finish().unwrap());
+        drop(owner);
+        assert_eq!(output.first().unwrap()["type"], "header");
+        assert_eq!(output.last().unwrap()["type"], "complete");
+        let events: Vec<_> = output.iter().filter(|row| row["type"] == "event").collect();
+        assert_eq!(events.len(), 2);
+        assert_eq!(events[0]["order"], 1);
+        assert_eq!(events[1]["order"], 2);
+        assert_ne!(events[0]["instance"], events[1]["instance"]);
+        assert_eq!(output.last().unwrap()["events"], 2);
+        assert!(conditions.enter_shared(&session).is_err());
+        assert!(current().is_none());
+    }
+
+    // Independent in-process sessions can overlap below the CLI's artifact/report boundary.
+    #[test]
+    fn overlapping_execution_sessions_never_share_recorders() {
+        let barrier = Barrier::new(2);
+        std::thread::scope(|scope| {
+            let mut workers = Vec::new();
+            for name in ["first", "second"] {
+                let barrier = &barrier;
+                workers.push(scope.spawn(move || {
+                    let mut owner = Conditions::compiled().enter().unwrap();
+                    let context = context(name);
+                    let _context = event_order::enter(context.clone());
+                    barrier.wait();
+                    event_order::emit(&context, "fixture", 0, json!(name));
+                    let output = rows(&owner.finish().unwrap());
+                    let events: Vec<_> =
+                        output.iter().filter(|row| row["type"] == "event").collect();
+                    assert_eq!(events.len(), 1);
+                    assert_eq!(events[0]["value"], name);
+                    assert_eq!(output.last().unwrap()["type"], "complete");
+                }));
+            }
+            for worker in workers {
+                worker.join().unwrap();
+            }
+        });
+    }
+
+    // CLI fixtures cannot synthesize these exact internal diagnostic event counts or payloads.
+    #[test]
+    fn shared_session_event_and_byte_exhaustion_never_complete() {
+        for byte_bound in [false, true] {
+            let mut owner = Conditions::compiled().enter().unwrap();
+            let context = context("bounded");
+            let _context = event_order::enter(context.clone());
+            if byte_bound {
+                event_order::emit(&context, "fixture", 0, json!("x".repeat(32 * 1024 * 1024)));
+            } else {
+                for ordinal in 0..=131_072 {
+                    event_order::emit(&context, "fixture", ordinal, json!(null));
+                }
+            }
+            let output = rows(&owner.finish().unwrap());
+            assert!(output.iter().any(|row| row["type"] == "incomplete"));
+            assert!(!output.iter().any(|row| row["type"] == "complete"));
+        }
+    }
+}

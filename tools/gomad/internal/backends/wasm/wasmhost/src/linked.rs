@@ -13,6 +13,8 @@ use std::{
 };
 use wasmtime::{Engine, Error, Store};
 
+pub use crate::linked_conditions::Conditions;
+pub use crate::linked_storage::Input as StorageInput;
 pub use crate::model::replay::Request as ReplayRequest;
 pub use crate::model::replay_plan::{
     ExecutionIdentity as ChoiceIdentity, TraceInspection, inspect as inspect_choices,
@@ -47,11 +49,36 @@ pub struct Request {
     pub limits: Limits,
     pub model: Option<ModelInput>,
     pub namespace: Option<NamespaceImage>,
+    pub storage: Option<StorageInput>,
 }
 
 pub struct Execution {
     pub outcome: Outcome,
     pub evidence: BTreeMap<String, Vec<u8>>,
+    pub event_order: Option<Vec<u8>>,
+}
+
+pub struct Prepared {
+    pub(crate) request: Request,
+    pub(crate) execute: protocol::Execute,
+    pub(crate) model: Option<model::Model>,
+    pub(crate) namespace: Option<namespace::Namespace>,
+    pub(crate) conditions: Conditions,
+}
+
+impl Prepared {
+    pub fn conditions(&mut self, conditions: Conditions) {
+        self.conditions = conditions;
+    }
+    /// # Errors
+    /// Refuses an exhausted caller budget; a remaining budget may only shorten the original bound.
+    pub fn bound_wall_timeout(&mut self, remaining: Duration) -> wasmtime::Result<()> {
+        if remaining.is_zero() {
+            return Err(Error::msg("execution wall budget exhausted"));
+        }
+        self.request.limits.wall_timeout = self.request.limits.wall_timeout.min(remaining);
+        Ok(())
+    }
 }
 
 #[derive(Clone)]
@@ -61,6 +88,19 @@ pub(crate) struct Sink {
 }
 
 impl Sink {
+    pub(crate) fn new(maximum: u64) -> Self {
+        Self {
+            streams: Arc::new(Mutex::new(BTreeMap::new())),
+            maximum,
+        }
+    }
+
+    pub(crate) fn into_streams(self) -> wasmtime::Result<BTreeMap<String, Vec<u8>>> {
+        Arc::try_unwrap(self.streams)
+            .map_err(|_| Error::msg("linked evidence still borrowed"))?
+            .into_inner()
+            .map_err(|_| Error::msg("linked evidence lock poisoned"))
+    }
     pub(crate) fn append(&self, stream: &str, bytes: &[u8]) -> wasmtime::Result<()> {
         let mut streams = self
             .streams
@@ -133,6 +173,10 @@ fn admitted(
     };
     execute.validate()?;
     let mut model = None;
+    let transcript_limit = request
+        .model
+        .as_ref()
+        .map(|input| input.configuration.limits.transcript_bytes);
     if let Some(mut input) = request.model.take() {
         if input.configuration.split || input.configuration.tape.is_some() {
             return Err(Error::msg(
@@ -159,6 +203,14 @@ fn admitted(
             .namespace
             .as_ref()
             .ok_or_else(|| Error::msg("linked model requires a sealed namespace"))?;
+        if !(1..=1 << 20).contains(&image.limits.files)
+            || !(5..=1 << 20).contains(&image.limits.descriptors)
+            || !(1..=1 << 30).contains(&image.limits.filesystem_bytes)
+            || !(1..=1 << 30).contains(&image.limits.output_bytes)
+            || image.epoch_nanos > i64::MAX as u64
+        {
+            return Err(Error::msg("invalid linked namespace image limits"));
+        }
         if image.epoch_nanos != input.configuration.epoch_nanos
             || image.limits.output_bytes != limits.output_bytes
             || format!("{:x}", Sha256::digest(&image.working_directory))
@@ -166,27 +218,64 @@ fn admitted(
         {
             return Err(Error::msg("linked namespace/model identity mismatch"));
         }
-        model = Some(model::Model::new(input.configuration));
+        model = Some(model::Model::new_linked(input.configuration));
     } else if request.namespace.is_some() {
         return Err(Error::msg("linked namespace requires model ownership"));
     }
-    let namespace = request
+    let mut namespace = request
         .namespace
         .take()
         .map(namespace::Namespace::new)
         .transpose()
         .map_err(Error::new)?;
+    if let Some(storage) = &mut request.storage {
+        let namespace = namespace
+            .as_mut()
+            .ok_or_else(|| Error::msg("linked storage requires a sealed namespace"))?;
+        let transcript_limit = transcript_limit
+            .ok_or_else(|| Error::msg("linked storage requires helper-owned model"))?;
+        storage.attach(namespace, transcript_limit)?;
+    }
     Ok((execute, model, namespace))
 }
 
 /// # Errors
+/// Validates retained inputs and helper-owned replay tapes without creating an engine.
+pub fn validate(request: Request) -> wasmtime::Result<()> {
+    prepare(request).map(|_| ())
+}
+
+/// # Errors
+/// Authenticates helper-owned inputs and replay projection without creating an engine.
+pub fn prepare(mut request: Request) -> wasmtime::Result<Prepared> {
+    let (execute, model, namespace) = admitted(&mut request)?;
+    Ok(Prepared {
+        request,
+        execute,
+        model,
+        namespace,
+        conditions: Conditions::default(),
+    })
+}
+
+/// # Errors
 /// Refuses invalid bounded inputs before creating an engine or instantiating the guest.
-pub fn execute(mut request: Request) -> wasmtime::Result<Execution> {
-    let (execute, mut model, namespace) = admitted(&mut request)?;
-    let sink = Sink {
-        streams: Arc::new(Mutex::new(BTreeMap::new())),
-        maximum: request.limits.evidence_bytes,
-    };
+pub fn execute(request: Request) -> wasmtime::Result<Execution> {
+    execute_prepared(prepare(request)?)
+}
+
+/// # Errors
+/// Executes previously authenticated inputs with a fresh engine and store.
+pub fn execute_prepared(prepared: Prepared) -> wasmtime::Result<Execution> {
+    let Prepared {
+        request,
+        execute,
+        mut model,
+        namespace,
+        conditions,
+    } = prepared;
+    let mut conditions = conditions.enter()?;
+    let sink = Sink::new(request.limits.evidence_bytes);
     if let Some(model) = &mut model {
         model.linked_evidence = Some(sink.clone());
     }
@@ -236,11 +325,22 @@ pub fn execute(mut request: Request) -> wasmtime::Result<Execution> {
                 })()
             };
             let mut outcome = engine::terminal_outcome(&mut store, executed, request.limits.fuel)?;
-            if timed_out.load(Ordering::Acquire) {
-                outcome.termination = "watchdog_timeout";
-                outcome.exit_code = None;
-                outcome.message = "execution watchdog timeout".into();
+            if let Some(storage) = &request.storage {
+                storage.finish(store.data_mut(), &mut outcome);
             }
+            if outcome.termination == "storage_crash"
+                && let Some(model) = &mut store.data_mut().model
+                && let Err(error) = model.interrupted()
+            {
+                outcome.termination = if model.divergence.is_some() {
+                    "divergence"
+                } else {
+                    "invalid"
+                };
+                outcome.message = error.to_string();
+                outcome.exit_code = None;
+            }
+            apply_watchdog(&timed_out, &mut outcome);
             if let Err(error) = engine::finish_model(store.data_mut(), &mut outcome) {
                 outcome.termination = protocol::classification(&error);
                 outcome.exit_code = None;
@@ -254,14 +354,20 @@ pub fn execute(mut request: Request) -> wasmtime::Result<Execution> {
             .map_err(|_| Error::msg("host panic in execution watchdog"))?;
         result
     })?;
+    apply_watchdog(&timed_out, &mut outcome);
+    let evidence = sink.into_streams()?;
+    let event_order = conditions.finish();
+    Ok(Execution {
+        outcome,
+        evidence,
+        event_order,
+    })
+}
+
+fn apply_watchdog(timed_out: &AtomicBool, outcome: &mut Outcome) {
     if timed_out.load(Ordering::Acquire) {
         outcome.termination = "watchdog_timeout";
         outcome.exit_code = None;
         outcome.message = "execution watchdog timeout".into();
     }
-    let evidence = Arc::try_unwrap(sink.streams)
-        .map_err(|_| Error::msg("linked evidence still borrowed"))?
-        .into_inner()
-        .map_err(|_| Error::msg("linked evidence lock poisoned"))?;
-    Ok(Execution { outcome, evidence })
 }

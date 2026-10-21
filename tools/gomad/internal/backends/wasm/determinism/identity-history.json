@@ -1074,5 +1074,17 @@
  {
   "id": "engine.linked-epoch-watchdog",
   "site": "engine-setting:epoch_interruption(watchdog || cfg!(feature = \"guest-profile\"))"
+ },
+ {
+  "id": "helper.linked-cluster.scoped-watchdog",
+  "site": "helper-source:linked_cluster.rs|thread::scope|1"
+ },
+ {
+  "id": "helper.linked-cluster.watchdog-timeout",
+  "site": "helper-source:linked_cluster.rs|recv_timeout|1"
+ },
+ {
+  "id": "helper.linked-cluster.incarnation-thread",
+  "site": "helper-source:linked_cluster.rs|thread::Builder|1"
  }
 ]

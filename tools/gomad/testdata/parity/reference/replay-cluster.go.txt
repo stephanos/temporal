@@ -1,0 +1,63 @@
+package main
+
+import (
+ "context"
+ "crypto/sha256"
+ "encoding/json"
+ "fmt"
+ "os"
+ "path/filepath"
+ "time"
+
+ backend "go.temporal.io/server/tools/gomad/internal/backends/wasm/backend"
+ simulation "go.temporal.io/server/tools/gomad/internal/backends/wasm/cluster"
+ "go.temporal.io/server/tools/gomad/internal/backends/wasm/wasi"
+ model "go.temporal.io/server/tools/gomad/internal/model/cluster"
+)
+
+func must(err error) { if err != nil { panic(err) } }
+func save(path string, value any) { raw,err:=json.Marshal(value); must(err); must(os.WriteFile(path,raw,0600)) }
+func main() {
+ var input struct { Base wasi.Request; Scenario simulation.OperatorScenario; Output string }
+ raw,err:=os.ReadFile(os.Args[1]); must(err); must(json.Unmarshal(raw,&input))
+ must(os.MkdirAll(input.Output,0700))
+ module,err:=os.ReadFile(input.Base.ModulePath); must(err)
+ imports,pages,err:=backend.InspectModule(module); must(err)
+ input.Base.Imports,input.Base.InitialMemoryPages=imports,pages
+ spec,provider,err:=input.Scenario.Bind(input.Base); must(err)
+ ctx,cancel:=context.WithTimeout(context.Background(),3*time.Minute); defer cancel()
+ observed,err:=model.RunWASM(ctx,spec,input.Scenario.Run,provider); must(err)
+ payload,err:=provider.RetentionPayload(spec,observed.Record); must(err)
+ must(os.WriteFile(filepath.Join(input.Output,"retained.json"),payload.Data,0600))
+ encoded,err:=model.EncodeClusterRecord(observed.Record); must(err)
+ must(os.WriteFile(filepath.Join(input.Output,"cluster-record.json"),encoded,0600))
+ if observed.WASM.Inspection==nil || !observed.WASM.Inspection.Complete || len(observed.WASM.Inspection.Boundaries)==0 { panic("nonzero complete inspection inventory required") }
+ retainedModule:=simulation.RetainedModule{SHA256:fmt.Sprintf("sha256:%x",sha256.Sum256(module)),Copy:func(destination string)error { return os.WriteFile(destination,module,0700) }}
+ helper:=simulation.InstalledHelper{Path:input.Base.HelperPath,SHA256:input.Base.HelperSHA256,Engine:input.Base.Engine}
+ replayDir:=filepath.Join(input.Output,"replay"); must(os.Mkdir(replayDir,0700))
+ replay,err:=simulation.ReplayRetained(ctx,payload,retainedModule,replayDir,helper); must(err)
+ replayRaw,err:=model.EncodeClusterRecord(replay.Record); must(err)
+ if string(encoded)!=string(replayRaw) { panic("API replay record differs") }
+ save(filepath.Join(input.Output,"spec.json"),spec)
+ save(filepath.Join(input.Output,"base.json"),input.Base)
+ selected:=map[model.NodeHandle][]model.WASMInspectionBoundary{}
+ for _,boundary:=range observed.WASM.Inspection.Boundaries { selected[boundary.Handle]=append(selected[boundary.Handle],boundary) }
+ if len(selected)!=3 { panic("three inspected owners required") }
+ for _,owner:=range observed.WASM.Inspection.Incarnations {
+  choices:=selected[owner.Handle]
+  for _,pick:=range []struct{Name string;Boundary model.WASMInspectionBoundary}{{"first",choices[0]},{"last",choices[len(choices)-1]}} {
+   name:=fmt.Sprintf("%s-%d-%s",owner.Handle.Node,owner.Handle.Incarnation,pick.Name)
+   request:=model.WASMInspectionRequest{Target:owner.Handle,Stop:model.WASMInspectionStop{Kind:"choice",Value:pick.Boundary.Decision},Dumps:[]string{"stacks","heap"}}
+   resolved,err:=simulation.ResolveRetainedInspection(payload,request); must(err)
+   inspectDir:=filepath.Join(input.Output,"inspect-"+name); must(os.Mkdir(inspectDir,0700))
+   result,err:=simulation.InspectRetained(ctx,payload,retainedModule,inspectDir,helper,resolved,""); must(err)
+   if result.Termination!="inspected_prefix" { panic(result.Termination) }
+   output,err:=wasi.DecodeDebugOutput(result.DebugOutput); must(err); output.SetTarget(string(owner.Handle.Node),owner.Handle.Incarnation)
+   must(os.WriteFile(filepath.Join(input.Output,name+".heap.pprof"),output.HeapProfile,0600)); output.HeapProfile=nil
+   save(filepath.Join(input.Output,name+".debug.json"),output)
+   save(filepath.Join(input.Output,name+".resolved.json"),resolved)
+   must(os.WriteFile(filepath.Join(input.Output,name+".inspection.json"),result.InspectionMetadata,0600))
+  }
+ }
+ fmt.Printf("owners=%d boundaries=%d\n",len(selected),len(observed.WASM.Inspection.Boundaries))
+}

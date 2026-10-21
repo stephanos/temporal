@@ -38,6 +38,31 @@ struct Case {
     termination: String,
 }
 
+pub(crate) fn model_configuration(
+    seed: u64,
+    choice_limit: u64,
+    read_step_nanos: u64,
+) -> serde_json::Value {
+    json!({"entropy_key":vec![0_u8;32],"working_directory_sha256":canonical::digest(b"/"),"arguments":{"bytes":0,"count":0,"chunks":0},"environment":{"bytes":0,"count":0,"chunks":0},"seed":seed,"mode":1,"limit":choice_limit,"diagnostics":false,"epoch_nanos":0,"read_step_nanos":read_step_nanos,"now":0,"limits":{"calls":100,"transcript_bytes":4096,"pending_events":16}})
+}
+
+pub(crate) fn namespace() -> linked::NamespaceImage {
+    linked::NamespaceImage {
+        entries: Vec::new(),
+        writable_directories: Vec::new(),
+        preopens: vec![b"/".to_vec()],
+        working_directory: b"/".to_vec(),
+        stdin: Vec::new(),
+        limits: linked::NamespaceLimits {
+            files: 16,
+            descriptors: 16,
+            filesystem_bytes: 4096,
+            output_bytes: 1024,
+        },
+        epoch_nanos: 0,
+    }
+}
+
 #[expect(
     clippy::too_many_lines,
     reason = "Fixture keeps request construction and the corresponding evidence bindings together"
@@ -79,26 +104,20 @@ fn run(
     };
     let model = if case.modeled {
         Some(linked::ModelInput {
-            configuration: serde_json::from_value(json!({"entropy_key":vec![0_u8;32],"working_directory_sha256":canonical::digest(b"/"),"arguments":{"bytes":0,"count":0,"chunks":0},"environment":{"bytes":0,"count":0,"chunks":0},"seed":seed,"mode":1,"limit":choice_limit,"diagnostics":false,"epoch_nanos":0,"read_step_nanos":read_step_nanos,"now":0,"limits":{"calls":100,"transcript_bytes":4096,"pending_events":16}})).map_err(|error| error.to_string())?,
-            arguments: arguments.clone(), environment: vec!["PWD=/".into()], replay_trace: None,
+            configuration: serde_json::from_value(model_configuration(
+                seed,
+                choice_limit,
+                read_step_nanos,
+            ))
+            .map_err(|error| error.to_string())?,
+            arguments: arguments.clone(),
+            environment: vec!["PWD=/".into()],
+            replay_trace: None,
         })
     } else {
         None
     };
-    let namespace = case.modeled.then(|| linked::NamespaceImage {
-        entries: Vec::new(),
-        writable_directories: Vec::new(),
-        preopens: vec![b"/".to_vec()],
-        working_directory: b"/".to_vec(),
-        stdin: Vec::new(),
-        limits: linked::NamespaceLimits {
-            files: 16,
-            descriptors: 16,
-            filesystem_bytes: 4096,
-            output_bytes: 1024,
-        },
-        epoch_nanos: 0,
-    });
+    let namespace = case.modeled.then(namespace);
     let result = execute::execute(linked::Request {
         module: module.clone(),
         module_sha256: target.clone(),
@@ -111,6 +130,7 @@ fn run(
         },
         model,
         namespace,
+        storage: None,
     })
     .map_err(|outcome| outcome.message)?;
     if result.outcome.termination != case.termination {
@@ -346,4 +366,98 @@ pub(crate) fn inspection_bundle(root: &Path, corpus: &Path) -> Result<(), String
         }
     }
     crate::fixture::publish_bundle(root, "inspect-execution", publications)
+}
+
+pub(crate) fn replay_bundle(root: &Path, corpus: &Path) -> Result<(), String> {
+    use crate::replay::preflight::{Configuration, FILE, Inputs};
+    let mut publications = Vec::new();
+    for (name, module, modeled, runtime, termination, profile, step) in [
+        (
+            "observed-exit",
+            "targets/execution-exit.wat",
+            false,
+            false,
+            "exit",
+            "gomad.wasi-stock-exploratory/v1",
+            1,
+        ),
+        (
+            "observed-modeled",
+            "targets/execution-modeled.wat",
+            true,
+            false,
+            "exit",
+            "gomad.wasi-stock-exploratory/v1",
+            1,
+        ),
+        (
+            "exact-choice",
+            "targets/inspect-choice.wat",
+            true,
+            true,
+            "exit",
+            "gomad.wasi-cooperative/v1",
+            0,
+        ),
+    ] {
+        let case = Case {
+            name: name.into(),
+            module: module.into(),
+            fuel: 100_000,
+            memory_bytes: 65_536,
+            wall_millis: 1000,
+            modeled,
+            runtime,
+            choice_limit: Some(4096),
+            termination: termination.into(),
+        };
+        for seed in [7, 8] {
+            let mut publication = run(&case, seed, corpus, profile, step)?;
+            let inputs = Inputs {
+                schema: "gomad.replay-inputs/v1".into(),
+                helper_sha256: linked::IMPLEMENTATION_SHA256.into(),
+                host_sha256: env!("GOMAD_HOST_IMPLEMENTATION_SHA256").into(),
+                toolchain_sha256: publication.record.identity.toolchain.clone(),
+                runtime_implementation_sha256: runtime
+                    .then(|| env!("GOMAD_RUNTIME_IMPLEMENTATION_SHA256").into()),
+                configuration: Configuration {
+                    engine: linked::CONFIGURATION.into(),
+                    profile: profile.into(),
+                    limits: publication.record.limits.clone(),
+                    arguments: publication.record.arguments.clone(),
+                    environment: publication.record.environment.clone(),
+                    runtime_sha256: runtime
+                        .then(|| canonical::digest(b"inspect-runtime-implementation/v1")),
+                    model: modeled.then(|| {
+                        let mut value = model_configuration(seed, 4096, step);
+                        value
+                            .as_object_mut()
+                            .expect("fixture model object")
+                            .remove("seed");
+                        value
+                    }),
+                    namespace: modeled.then(namespace),
+                    storage: None,
+                },
+            };
+            publication.record.identity.configuration =
+                canonical::digest(&canonical::encode(&inputs.configuration)?);
+            publication.record.execution_identity = publication.record.identity.digest()?;
+            let bytes = canonical::encode(&inputs)?;
+            publication.record.streams.insert(
+                FILE.into(),
+                Stream {
+                    bytes: bytes.len() as u64,
+                    sha256: canonical::digest(&bytes),
+                    records: 1,
+                },
+            );
+            publication.payloads.insert(FILE.into(), bytes);
+            publication
+                .payloads
+                .insert("record.json".into(), publication.record.bytes()?);
+            publications.push(publication);
+        }
+    }
+    crate::fixture::publish_bundle(root, "replay-execution", publications)
 }

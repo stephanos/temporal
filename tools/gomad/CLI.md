@@ -91,6 +91,60 @@ golden gates. Fresh Go/Rust CI parity still needs reproducible provisioning of
 the authenticated baseline bundle, extracted source and compiler; fn-232.13
 owns that final execution wiring. The local gate above remains mandatory.
 
+## Rust retained replay
+
+`gomad replay [--verify-only] [--observed DIR] ARTIFACT` consumes Rust-lineage
+retained inputs through the same authenticated pinned-root opener as inspect.
+It does not rebuild targets or reopen original source, captured input paths,
+compiler or runtime files. Verify-only also validates the helper-owned semantic
+choice tape before returning status 0, without creating an engine or guest.
+Exact cooperative replay and observed stock replay keep the existing text
+reports: matching success returns 0, matching target failure or divergence
+returns 1, incompatible artifacts return 2 and execution infrastructure errors
+return 3. `--toolchain-root` retains its native-only refusal.
+
+Replay inspection retains `--stop`, `--instance`, `--incarnation`, `--dump`,
+`--probe`, `--check`, `--choice-range`, `--search-mode`, `--debug-output` and
+their existing bounded search/debug controls. Stacks and heap use the built-in
+`--dump stacks` and `--dump heap` selectors. A stop validates a retained prefix
+and reports inspection results; it does not claim full reproduction. Inspection
+requires complete cooperative metadata, with an explicit target for clusters.
+Cluster replay uses typed, bytes-owned incarnations over the existing helper
+broker, storage, namespace and clock owners. No artifact pathname is reopened.
+Retained cluster replay preserves its existing refusal of `--verify-only` and
+`--observed`; those options apply to standalone replay.
+
+The Go launcher's diagnostic launcher-plus-helper pair maps to one matching
+compiled Rust binary. Build `helper-stress-jitter` for `--stress-jitter`, or
+`helper-determinism-fixture` for `--determinism-fixture`; these remain explicit
+cooperative inspection opt-ins. An ordinary release binary refuses either role.
+The separate `determinism-fixture` host feature exposes only test drivers and
+does not enable a helper role. Qualification uses an ordinary release with
+neither host fixtures nor diagnostic roles. Diagnostic conditions and bounded
+event-order collection belong to each fresh execution, including cluster threads.
+
+The mandatory local command supplies the authenticated frozen Go baseline and
+its extracted source and pinned compiler:
+
+```sh
+python3 tools/gomad/scripts/behavioral-parity \
+  --corpus tools/gomad/testdata/parity --verb replay \
+  --replay-binary /absolute/fixture-enabled/gomad \
+  --replay-baseline /absolute/authenticated/go-baseline \
+  --replay-source /absolute/extracted/baseline/source \
+  --replay-go-compiler /absolute/pinned/go1.27.1/bin/go \
+  --output-root /absolute/new/replay-check
+```
+
+`testdata/parity/replay-corpus.json` declares the golden view. Records, manifests,
+ledgers, statuses, replay reports and observed output digests remain exact; only
+the verified artifact operand's output-root prefix changes. Independent raw
+record/payload and ledger validation precedes comparison. Set
+`GOMAD_GOLDEN_REGENERATE=1` to regenerate after reviewing expectation changes;
+each run first compares two fresh executions, and a second regeneration must
+produce identical golden bytes. This lane supplies replay acceptance evidence,
+not final runtime/workload qualification or a compiler hard-wall guarantee.
+
 ## Shared generated contracts
 
 The Go models, cooperative runtime overlay and Rust helper share wire schemas

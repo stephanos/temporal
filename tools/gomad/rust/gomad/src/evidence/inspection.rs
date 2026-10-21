@@ -298,6 +298,7 @@ impl ChoiceEvidence {
         let interrupted = outcome.class == "runner_failure"
             && outcome.exit_code.is_none()
             && (outcome.termination == "watchdog_timeout"
+                || outcome.termination == "storage_crash"
                 || outcome.termination == "cancelled" && outcome.reason == "runner_cancelled");
         if match self.terminal_state.as_str() {
             "overflow" => !overflow,

@@ -6,6 +6,8 @@ rust-version = "1.99"
 
 [features]
 determinism-fixture = []
+helper-stress-jitter = ["gomad-wasmhost/stress-jitter"]
+helper-determinism-fixture = ["gomad-wasmhost/determinism-fixture"]
 
 [dependencies]
 gomad-wasmhost = { path = "../../internal/backends/wasm/wasmhost" }

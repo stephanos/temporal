@@ -7,7 +7,7 @@ use sha2::{Digest, Sha256};
 use std::cell::RefCell;
 use std::collections::BTreeMap;
 use std::io::Write;
-use std::sync::{Mutex, OnceLock};
+use std::sync::{Arc, Mutex, MutexGuard, OnceLock};
 
 const PREFIX: &str = "gomad-wasm-event-order-v1 ";
 const BYTE_LIMIT: usize = 32 * 1024 * 1024;
@@ -34,11 +34,11 @@ impl Drop for Scope {
 }
 pub fn enter(context: Context) -> Scope {
     let previous = CURRENT.with(|current| current.replace(Some(context.clone())));
-    recorder()
-        .lock()
-        .unwrap_or_else(std::sync::PoisonError::into_inner)
-        .owners
-        .insert((context.instance.clone(), context.incarnation), context);
+    with_recorder(|recorder| {
+        recorder
+            .owners
+            .insert((context.instance.clone(), context.incarnation), context);
+    });
     Scope(previous)
 }
 
@@ -59,6 +59,8 @@ struct Recorder<W> {
     byte_limit: usize,
     event_limit: u64,
     owners: BTreeMap<(String, u64), Context>,
+    linked_attachments: usize,
+    linked_closed: bool,
 }
 impl<W: Write> Recorder<W> {
     fn new(output: W, enabled: bool, byte_limit: usize, event_limit: u64) -> Self {
@@ -74,6 +76,8 @@ impl<W: Write> Recorder<W> {
             byte_limit,
             event_limit,
             owners: BTreeMap::new(),
+            linked_attachments: 0,
+            linked_closed: false,
         }
     }
     fn write(&mut self, frame: &impl Serialize) -> bool {
@@ -154,11 +158,115 @@ impl<W: Write> Recorder<W> {
     }
 }
 
-fn recorder() -> &'static Mutex<Recorder<std::io::Stderr>> {
-    static RECORDER: OnceLock<Mutex<Recorder<std::io::Stderr>>> = OnceLock::new();
+enum Output {
+    Stderr(std::io::Stderr),
+    Retained(Vec<u8>),
+}
+
+impl Write for Output {
+    fn write(&mut self, bytes: &[u8]) -> std::io::Result<usize> {
+        match self {
+            Self::Stderr(output) => output.write(bytes),
+            Self::Retained(output) => output.write(bytes),
+        }
+    }
+
+    fn flush(&mut self) -> std::io::Result<()> {
+        match self {
+            Self::Stderr(output) => output.flush(),
+            Self::Retained(output) => output.flush(),
+        }
+    }
+}
+
+struct LinkedRecorder {
+    session: LinkedSession,
+    previous: Option<Context>,
+}
+
+#[derive(Clone)]
+pub(crate) struct LinkedSession(Arc<Mutex<Recorder<Output>>>);
+
+impl LinkedSession {
+    pub(crate) fn new() -> Self {
+        Self(Arc::new(Mutex::new(Recorder::new(
+            Output::Retained(Vec::new()),
+            true,
+            BYTE_LIMIT,
+            EVENT_LIMIT,
+        ))))
+    }
+
+    fn lock(&self) -> MutexGuard<'_, Recorder<Output>> {
+        self.0.lock().unwrap_or_else(|poisoned| {
+            let mut recorder = poisoned.into_inner();
+            recorder.incomplete("linked event-order recorder poisoned");
+            recorder
+        })
+    }
+}
+
+thread_local! {
+    static LINKED: RefCell<Option<LinkedRecorder>> = const { RefCell::new(None) };
+}
+
+pub(crate) fn start_linked(session: &LinkedSession) -> Result<(), &'static str> {
+    LINKED.with(|linked| {
+        let mut linked = linked.borrow_mut();
+        if linked.is_some() {
+            return Err("overlapping linked event-order recorders");
+        }
+        let mut recorder = session.lock();
+        if recorder.linked_closed {
+            return Err("closed linked event-order session");
+        }
+        recorder.linked_attachments = recorder
+            .linked_attachments
+            .checked_add(1)
+            .ok_or("linked event-order attachment overflow")?;
+        *linked = Some(LinkedRecorder {
+            session: session.clone(),
+            previous: CURRENT.with(|current| current.take()),
+        });
+        Ok(())
+    })
+}
+
+pub(crate) fn finish_linked(complete: bool) -> Option<Vec<u8>> {
+    let linked = LINKED.with(|linked| linked.borrow_mut().take())?;
+    let mut recorder = linked.session.lock();
+    if complete {
+        if recorder.linked_attachments != 1 {
+            recorder.incomplete("linked execution finalized with attached participants");
+        } else {
+            recorder.finish();
+        }
+    } else {
+        recorder.incomplete("linked execution abandoned");
+    }
+    recorder.linked_attachments = recorder.linked_attachments.saturating_sub(1);
+    recorder.linked_closed = true;
+    recorder.state = State::Finished;
+    CURRENT.with(|current| current.replace(linked.previous));
+    match &mut recorder.output {
+        Output::Retained(bytes) => Some(std::mem::take(bytes)),
+        Output::Stderr(_) => None,
+    }
+}
+
+pub(crate) fn detach_linked() {
+    if let Some(linked) = LINKED.with(|linked| linked.borrow_mut().take()) {
+        let mut recorder = linked.session.lock();
+        recorder.linked_attachments = recorder.linked_attachments.saturating_sub(1);
+        CURRENT.with(|current| current.replace(linked.previous));
+    }
+}
+
+fn recorder() -> &'static Mutex<Recorder<Output>> {
+    static RECORDER: OnceLock<Mutex<Recorder<Output>>> = OnceLock::new();
     RECORDER.get_or_init(|| {
         Mutex::new(Recorder::new(
-            std::io::stderr(),
+            Output::Stderr(std::io::stderr()),
             std::env::var("GOMAD_WASM_EVENT_ORDER").is_ok_and(|value| value == "1"),
             BYTE_LIMIT,
             EVENT_LIMIT,
@@ -166,32 +274,41 @@ fn recorder() -> &'static Mutex<Recorder<std::io::Stderr>> {
     })
 }
 
+fn with_recorder<T>(action: impl FnOnce(&mut Recorder<Output>) -> T) -> T {
+    LINKED.with(|linked| {
+        if let Some(linked) = linked.borrow_mut().as_mut() {
+            return action(&mut linked.session.lock());
+        }
+        action(
+            &mut recorder()
+                .lock()
+                .unwrap_or_else(std::sync::PoisonError::into_inner),
+        )
+    })
+}
+
 pub fn emit(context: &Context, kind: &str, ordinal: u64, value: Value) {
-    let mut recorder = recorder()
-        .lock()
-        .unwrap_or_else(std::sync::PoisonError::into_inner);
-    recorder.owners.insert(
-        (context.instance.clone(), context.incarnation),
-        context.clone(),
-    );
-    recorder.event(context, kind, ordinal, value);
+    with_recorder(|recorder| {
+        recorder.owners.insert(
+            (context.instance.clone(), context.incarnation),
+            context.clone(),
+        );
+        recorder.event(context, kind, ordinal, value);
+    });
 }
 pub fn latest(context: &Context) -> Context {
-    recorder()
-        .lock()
-        .unwrap_or_else(std::sync::PoisonError::into_inner)
-        .owners
-        .get(&(context.instance.clone(), context.incarnation))
-        .cloned()
-        .unwrap_or_else(|| context.clone())
+    with_recorder(|recorder| {
+        recorder
+            .owners
+            .get(&(context.instance.clone(), context.incarnation))
+            .cloned()
+            .unwrap_or_else(|| context.clone())
+    })
 }
 pub fn emit_current(kind: &str, ordinal: u64, time_nanos: i64, value: Value) {
     let context = CURRENT.with(|current| current.borrow().clone());
     let Some(mut context) = context else {
-        recorder()
-            .lock()
-            .unwrap_or_else(std::sync::PoisonError::into_inner)
-            .incomplete("model commit without owner context");
+        incomplete("model commit without owner context");
         return;
     };
     context.time_nanos = time_nanos;
@@ -200,70 +317,66 @@ pub fn emit_current(kind: &str, ordinal: u64, time_nanos: i64, value: Value) {
 pub fn emit_current_context(kind: &str, ordinal: u64, value: Value) {
     let context = CURRENT.with(|current| current.borrow().clone());
     let Some(context) = context else {
-        recorder()
-            .lock()
-            .unwrap_or_else(std::sync::PoisonError::into_inner)
-            .incomplete("model commit without owner context");
+        incomplete("model commit without owner context");
         return;
     };
     emit(&context, kind, ordinal, value);
 }
 pub fn owner(instance: &str, incarnation: u64, time_nanos: i64) -> Context {
-    let recorder = recorder()
-        .lock()
-        .unwrap_or_else(std::sync::PoisonError::into_inner);
-    let mut context = recorder
-        .owners
-        .get(&(instance.into(), incarnation))
-        .cloned()
-        .unwrap_or(Context {
-            instance: instance.into(),
-            incarnation,
-            trace: 0,
-            decision: 0,
-            time_nanos,
-        });
-    context.time_nanos = time_nanos;
-    context
+    with_recorder(|recorder| {
+        let mut context = recorder
+            .owners
+            .get(&(instance.into(), incarnation))
+            .cloned()
+            .unwrap_or(Context {
+                instance: instance.into(),
+                incarnation,
+                trace: 0,
+                decision: 0,
+                time_nanos,
+            });
+        context.time_nanos = time_nanos;
+        context
+    })
 }
 pub fn boundary(context: &Context, inspection_order: u64) {
-    let mut recorder = recorder()
-        .lock()
-        .unwrap_or_else(std::sync::PoisonError::into_inner);
-    recorder.boundary(context, inspection_order);
+    with_recorder(|recorder| recorder.boundary(context, inspection_order));
 }
 pub fn bytes_value(bytes: &[u8]) -> Value {
     json!({"bytes":bytes.len(),"sha256":format!("{:x}",Sha256::digest(bytes))})
 }
 pub fn finish() {
-    recorder()
-        .lock()
-        .unwrap_or_else(std::sync::PoisonError::into_inner)
-        .finish();
+    with_recorder(Recorder::finish);
 }
 pub fn is_enabled() -> bool {
-    matches!(
-        recorder()
-            .lock()
-            .unwrap_or_else(std::sync::PoisonError::into_inner)
-            .state,
-        State::Pending | State::Recording
-    )
+    with_recorder(|recorder| matches!(recorder.state, State::Pending | State::Recording))
 }
 pub fn has_context() -> bool {
     CURRENT.with(|current| current.borrow().is_some())
 }
 pub fn incomplete(reason: &str) {
-    recorder()
-        .lock()
-        .unwrap_or_else(std::sync::PoisonError::into_inner)
-        .incomplete(reason);
+    with_recorder(|recorder| recorder.incomplete(reason));
 }
 
 #[cfg(test)]
 mod tests {
     use super::*;
     use serde_json::json;
+
+    // A poisoned shared-recorder lock is internal state that no supported CLI input can manufacture.
+    #[test]
+    fn poisoned_linked_session_never_emits_complete() {
+        let session = LinkedSession::new();
+        start_linked(&session).unwrap();
+        let poisoned = std::panic::catch_unwind(std::panic::AssertUnwindSafe(|| {
+            let _recorder = session.0.lock().unwrap();
+            panic!("poison linked event recorder");
+        }));
+        assert!(poisoned.is_err());
+        let output = String::from_utf8(finish_linked(true).unwrap()).unwrap();
+        assert!(output.contains("linked event-order recorder poisoned"));
+        assert!(!output.contains("\"type\":\"complete\""));
+    }
 
     #[test]
     fn event_order_records_full_values_and_actual_coordinates_in_commit_order() {

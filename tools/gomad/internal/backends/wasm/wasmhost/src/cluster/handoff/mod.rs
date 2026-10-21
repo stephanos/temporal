@@ -3,7 +3,8 @@ mod baton;
 mod broker;
 
 use baton::{Baton, InOrder};
-pub(crate) use broker::{Broker, Clockwork, Command, Config, Member, Metrics};
+pub(crate) use broker::{Broker, Clockwork, Command, Member, Metrics};
+pub use broker::{Config, WorldLimits};
 use std::sync::Arc;
 
 /// The cluster's continuation owner: the fn-178.6 baton without a broker, the

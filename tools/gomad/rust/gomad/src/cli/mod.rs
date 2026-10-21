@@ -1,4 +1,5 @@
 pub mod inspect;
+pub mod replay;
 
 pub struct Error {
     pub status: i32,
