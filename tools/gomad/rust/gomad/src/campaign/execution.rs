@@ -13,7 +13,7 @@ use gomad_wasmhost::linked;
 use serde_json::json;
 use std::{collections::BTreeMap, time::Duration};
 
-pub(super) struct Result {
+pub(crate) struct Result {
     pub execution: ledger::Execution,
     pub publication: Publication,
 }
@@ -27,7 +27,7 @@ pub(super) fn run(
     run_with_replay(prepared, job, timeout, cancellation, None, None)
 }
 
-pub(super) fn run_with_replay(
+pub(crate) fn run_with_replay(
     prepared: &Prepared,
     job: &ledger::Job,
     timeout: Duration,

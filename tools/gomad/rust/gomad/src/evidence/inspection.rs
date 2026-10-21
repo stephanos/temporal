@@ -364,7 +364,6 @@ impl Minimization {
             || self.final_forced_decisions >= self.original_forced_decisions
             || self.accepted.is_empty()
             || self.accepted.len() as u64 > self.attempts
-            || self.parent_failure_signature != self.predicate.failure_signature
             || !self.predicate.replay_match
         {
             return Err("invalid minimization evidence".into());

@@ -2,6 +2,7 @@ pub mod campaign;
 pub mod cli;
 pub mod evidence;
 pub mod execute;
+pub(crate) mod minimize;
 #[cfg(feature = "determinism-fixture")]
 pub mod fixture;
 #[cfg(feature = "determinism-fixture")]

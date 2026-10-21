@@ -1,5 +1,5 @@
 pub(crate) mod choice;
-mod execution;
+pub(crate) mod execution;
 pub(crate) mod exploration;
 mod failure_policy;
 pub(crate) mod inspect;
