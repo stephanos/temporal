@@ -44,6 +44,10 @@ Rust type sizes at compilation, so analysis cutoffs do not vary by host layout.
 Data-section byte work is charged before decoding any segment. Its pinned
 constant-offset grammar is read directly with bounded binary primitives, never
 by a lazy expression parser that could first traverse or allocate control stacks.
+Operator headers precharge catch/handler/select vectors and branch-table scans
+before the pinned parser decodes their contents. Vector charges cover cumulative
+capacity growth; both parser and recognizer control stacks are charged before
+pushes. These charges share the same counters across all requested bodies.
 
 The [real fixture proof](../../../../../testdata/parity/symbolize/README.md)
 retains compiler inlining diagnostics, actual trace sites, complete call

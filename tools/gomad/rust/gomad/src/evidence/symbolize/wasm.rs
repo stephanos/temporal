@@ -13,6 +13,10 @@ const _: () = {
     assert!(std::mem::size_of::<(u32, &str)>() <= 32);
     assert!(std::mem::size_of::<Segment<'_>>() <= 32);
     assert!(std::mem::size_of::<Operator<'_>>() <= 256);
+    assert!(std::mem::size_of::<wasmparser::Catch>() <= 16);
+    assert!(std::mem::size_of::<wasmparser::Handle>() <= 16);
+    assert!(std::mem::size_of::<wasmparser::ValType>() <= 32);
+    assert!(std::mem::size_of::<wasmparser::FrameKind>() <= 1);
 };
 
 pub(super) struct Module<'a> {
@@ -278,8 +282,9 @@ pub(super) fn returns(
     budget: &mut Budget,
 ) -> Result<Option<Vec<u64>>> {
     let mut locals = checked(body.get_locals_reader())?;
+    budget.entries(u64::from(locals.get_count()))?;
+    budget.steps(add(mul(u64::from(locals.get_count()), 2)?, 1)?)?;
     for _ in 0..locals.get_count() {
-        budget.entries(1)?;
         checked(locals.read())?;
     }
     let mut reader = checked(body.get_operators_reader())?;
@@ -287,10 +292,11 @@ pub(super) fn returns(
     let mut preceding = std::collections::VecDeque::with_capacity(9);
     let mut found = Vec::new();
     let mut complete = true;
-    budget.bytes(8)?;
+    budget.bytes(16)?;
     let mut control = vec![false];
     while !reader.eof() {
         budget.steps(1)?;
+        charge_operator(reader.get_binary_reader(), budget)?;
         let operator = checked(reader.read())?;
         if control.is_empty() {
             return Err(Reason::SymbolMismatch);
@@ -301,7 +307,6 @@ pub(super) fn returns(
             | Operator::If { .. }
             | Operator::Try { .. }
             | Operator::TryTable { .. } => {
-                budget.bytes(4)?;
                 control.push(matches!(operator, Operator::If { .. }));
                 if matches!(operator, Operator::Try { .. } | Operator::TryTable { .. }) {
                     complete = false;
@@ -375,6 +380,50 @@ pub(super) fn returns(
         return Err(Reason::SymbolMismatch);
     }
     Ok((complete && !found.is_empty()).then_some(found))
+}
+
+fn charge_operator(mut reader: BinaryReader<'_>, budget: &mut Budget) -> Result<()> {
+    let opcode = checked(reader.read_u8())?;
+    if matches!(opcode, 0x02 | 0x03 | 0x04 | 0x06 | 0x1f) {
+        // Both control stacks grow during decoding; Vec growth costs less than
+        // four times the inserted storage, including their initial capacity.
+        budget.bytes(8)?;
+    }
+    let element_bytes = match opcode {
+        0x0e => 0, // br_table scans its borrowed targets inside read().
+        0x1c => 32,
+        0x1f => {
+            let mut peek = reader.clone();
+            let first = checked(peek.read_u8())?;
+            if first == 0x40 {
+                checked(reader.read_u8())?;
+            } else if first & 0xc0 == 0x40 {
+                checked(reader.read::<wasmparser::ValType>())?;
+            } else {
+                checked(reader.read_var_s33())?;
+            }
+            16
+        }
+        0xe3 | 0xe5 => {
+            checked(reader.read_var_u32())?;
+            16
+        }
+        0xe4 => {
+            checked(reader.read_var_u32())?;
+            checked(reader.read_var_u32())?;
+            16
+        }
+        _ => return Ok(()),
+    };
+    let count = u64::from(checked(reader.read_var_u32())?);
+    budget.entries(count)?;
+    budget.steps(mul(count, 3)?)?;
+    if element_bytes != 0 && count != 0 && !(opcode == 0x1c && count == 1) {
+        // Eager TryTable/ResumeTable/select vectors allocate before read()
+        // returns. Cover cumulative geometric growth, not just live storage.
+        budget.bytes(mul(mul(count.max(4), 4)?, element_bytes)?)?;
+    }
+    Ok(())
 }
 
 fn stored_return(window: &[Operator<'_>], entry: u64) -> Option<u64> {

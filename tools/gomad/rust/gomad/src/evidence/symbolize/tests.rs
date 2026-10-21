@@ -1081,6 +1081,92 @@ fn symbolize_bounds_cumulative_parser_catch_vectors_across_sites() {
 }
 
 #[test]
+fn symbolize_precharges_variable_operators_before_decoder_work() {
+    use gomad_wasmhost::wasmparser::{BinaryReader, FunctionBody};
+    for (name, header) in [
+        ("try_table", vec![0x1f, 0x40, 2]),
+        ("typed_select", vec![0x1c, 2]),
+        ("br_table", vec![0x0e, 2]),
+        ("resume", vec![0xe3, 0, 2]),
+        ("resume_throw", vec![0xe4, 0, 0, 2]),
+        ("resume_throw_ref", vec![0xe5, 0, 2]),
+    ] {
+        let mut encoded = vec![0];
+        encoded.extend_from_slice(&header);
+        let function = FunctionBody::new(BinaryReader::new(&encoded, 0));
+        // Missing vector contents distinguish pre-work refusal from a decoder error.
+        for mut budget in [
+            bytes::Budget {
+                entries: bytes::ENTRY_LIMIT - 1,
+                ..Default::default()
+            },
+            bytes::Budget {
+                steps: bytes::STEP_LIMIT - 4,
+                ..Default::default()
+            },
+            bytes::Budget {
+                bytes: bytes::BYTE_LIMIT - (9 * 256 + 16 + 8),
+                ..Default::default()
+            },
+        ] {
+            // br_table borrows its contents and never allocates a vector.
+            if name == "br_table" && budget.bytes != 0 {
+                continue;
+            }
+            assert_eq!(
+                wasm::returns(&function, 7, 0x1000_0000, &mut budget),
+                Err(Reason::SymbolTableTooLarge),
+                "{name}"
+            );
+        }
+    }
+}
+
+#[test]
+fn symbolize_parser_vector_budget_boundaries_and_block_types() {
+    use gomad_wasmhost::wasmparser::{BinaryReader, FunctionBody};
+    for encoded in [
+        vec![0, 0x1f, 0x40, 2, 2, 0, 2, 0, 0x0b, 0x0b],
+        vec![0, 0x1f, 0x7f, 2, 2, 0, 2, 0, 0x0b, 0x0b],
+        vec![0, 0x1f, 0x63, 0x70, 2, 2, 0, 2, 0, 0x0b, 0x0b],
+        vec![0, 0x1f, 0x80, 0, 2, 2, 0, 2, 0, 0x0b, 0x0b],
+        vec![0, 0x1c, 2, 0x7f, 0x7e, 0x0b],
+        vec![0, 0x0e, 2, 0, 0, 0, 0x0b],
+        vec![0, 0xe3, 0, 2, 1, 0, 1, 0, 0x0b],
+        vec![0, 0xe4, 0, 0, 2, 1, 0, 1, 0, 0x0b],
+        vec![0, 0xe5, 0, 2, 1, 0, 1, 0, 0x0b],
+    ] {
+        let function = FunctionBody::new(BinaryReader::new(&encoded, 0));
+        let mut used = bytes::Budget::default();
+        assert_eq!(wasm::returns(&function, 7, 0, &mut used), Ok(None));
+        assert_eq!(used.entries, 2);
+        let mut exact = bytes::Budget {
+            bytes: bytes::BYTE_LIMIT - used.bytes,
+            entries: bytes::ENTRY_LIMIT - used.entries,
+            steps: bytes::STEP_LIMIT - used.steps,
+            ..Default::default()
+        };
+        assert_eq!(wasm::returns(&function, 7, 0, &mut exact), Ok(None));
+        assert_eq!(exact.bytes, bytes::BYTE_LIMIT);
+        assert_eq!(exact.entries, bytes::ENTRY_LIMIT);
+        assert_eq!(exact.steps, bytes::STEP_LIMIT);
+        for (bytes, entries, steps) in [(1, 0, 0), (0, 1, 0), (0, 0, 1)] {
+            let mut over = bytes::Budget {
+                bytes: bytes::BYTE_LIMIT - used.bytes + bytes,
+                entries: bytes::ENTRY_LIMIT - used.entries + entries,
+                steps: bytes::STEP_LIMIT - used.steps + steps,
+                ..Default::default()
+            };
+            assert_eq!(
+                wasm::returns(&function, 7, 0, &mut over),
+                Err(Reason::SymbolTableTooLarge),
+                "{encoded:02x?}"
+            );
+        }
+    }
+}
+
+#[test]
 fn symbolize_bounds_lazy_data_expression_work_before_parsing() {
     let mut data = vec![1, 0, 0x41, 0]; // one active segment, i32.const0
     data.resize(usize::try_from(bytes::STEP_LIMIT).unwrap() + 8, 0x01); // over-limit nop expression
