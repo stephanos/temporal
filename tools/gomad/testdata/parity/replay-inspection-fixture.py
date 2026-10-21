@@ -97,7 +97,7 @@ run('go-install', [baseline, 'install', '--compiler', args.compiler,
                   '--fuel', str(1 << 60), '--cache', args.preparation_root or args.work / 'preparation', '--output', installation,
                   *installation_options])
 run('go-explore', [baseline, '--installation', installation, 'explore', '--json', '--choices',
-                  '--keep-successes=all',
+                  '--keep-successes=all', '--success-limit=2', '--success-bytes=256MiB',
                   '--seeds=7', '--parallel=1', '--on-failure=all', '--working-dir', args.source,
                   '--build-tag=gomad', '--build-tag=test_dep', '--execution-timeout=30s', '--overall-timeout=5m',
                   '--artifacts', args.work / 'go-artifacts', 'go-run', guest_package], status)
