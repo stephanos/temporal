@@ -186,7 +186,7 @@ fn execute_configuration(
             },
         });
     }
-    let mut execution = helper::execute_prepared(
+    let execution = helper::execute_prepared(
         helper::prepare(helper::Request {
             broker: configuration.broker.clone(),
             network: configuration.network.clone(),
@@ -200,12 +200,9 @@ fn execute_configuration(
         .map_err(|error| error.to_string())?,
     )
     .map_err(|error| error.to_string())?;
-    for item in &mut execution.incarnations {
-        item.execution.evidence.entry("choice".into()).or_default();
-    }
     let mut retained = Vec::new();
     for item in &execution.incarnations {
-        let evidence = item
+        let mut evidence: BTreeMap<_, _> = item
             .execution
             .evidence
             .iter()
@@ -223,6 +220,16 @@ fn execute_configuration(
                 )
             })
             .collect();
+        evidence.entry("choice".into()).or_insert_with(|| {
+            descriptor(
+                format!(
+                    "evidence/cluster/{}/{}/choice",
+                    item.handle.node, item.handle.incarnation
+                ),
+                &[],
+                limits.evidence_bytes,
+            )
+        });
         retained.push(Retained {
             handle: item.handle.clone(),
             interrupted: matches!(
@@ -232,7 +239,16 @@ fn execute_configuration(
             evidence,
         });
     }
-    let observed = cluster::project(execution)?;
+    let mut observed = cluster::project(execution)?;
+    for item in &retained {
+        observed
+            .evidence
+            .entry(format!(
+                "cluster/{}/{}/choice",
+                item.handle.node, item.handle.incarnation
+            ))
+            .or_default();
+    }
     let mut streams = BTreeMap::new();
     let mut payloads = modules;
     for (name, bytes) in observed.evidence {
