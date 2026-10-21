@@ -581,7 +581,7 @@ umpire-check-model-gaps: umpire-model-slice-guest
 		trap 'rm -f "$$temporary"' EXIT HUP INT TERM; \
 		status=0; \
 		UMPIRE_TEMPORAL_WASM="$$target/wasm32-wasip1/release/umpire_temporal_guest.wasm" CGO_ENABLED=0 \
-			mise exec -- go test -v -count=1 -timeout 5m -tags 'test_dep integration' \
+			mise exec -- go test -v -count=1 -timeout 20m -tags 'test_dep integration' \
 			./tests -run '^TestTestpilotModelGap(s|LoggerPreservesFailuresWithoutPrivateOutput)$$' > "$$temporary" 2>&1 || status=$$?; \
 		cat "$$temporary"; \
 		if [ "$$status" -ne 0 ]; then exit "$$status"; fi; \

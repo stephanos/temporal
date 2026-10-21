@@ -28,6 +28,52 @@ struct Wire {
     coefficient: f64,
 }
 
+#[derive(Clone, Default)]
+struct RepeatedWire {
+    values: Vec<String>,
+}
+
+#[derive(Catalog)]
+#[mirror(request = "test.Repeated", type = RepeatedWire)]
+struct RepeatedRequest {
+    #[rule(max_items = 1, rejects)]
+    values: Vec<Text>,
+}
+
+#[derive(Catalog)]
+#[mirror(response = "test.Repeated", type = RepeatedWire, supplemental)]
+struct RepeatedResponse {
+    #[rule(max_items = 1, rejects)]
+    values: Vec<Text>,
+}
+
+#[test]
+fn repeated_constraints_retain_request_and_response_expectations() {
+    let limits = foundation::dc::Limits(4);
+    let wire = RepeatedWire { values: vec!["one".into(), "two".into()] };
+    let actual: Vec<_> = [
+        ("request", RepeatedRequest::catalog(&limits)),
+        ("response", RepeatedResponse::catalog(&limits)),
+    ]
+    .into_iter()
+    .map(|(direction, catalog)| {
+        let checked = catalog.map_err(|error| error.to_string()).map(|catalog| {
+            let findings = validate(&wire, &catalog);
+            findings.len() == 1
+                && findings[0].constraint == "repeated.max_items"
+                && matches!(
+                    findings[0].expected.as_ref().map(|expected| &expected.expectation),
+                    Some(umpire_annotations::Expectation::RejectsCode(
+                        umpire_annotations::Code::InvalidArgument
+                    ))
+                )
+        });
+        (direction, checked)
+    })
+    .collect();
+    assert_eq!(actual, vec![("request", Ok(true)), ("response", Ok(true))]);
+}
+
 /// Describes a request without retaining its values.
 #[derive(Catalog)]
 #[rule(required(id), accepts)]

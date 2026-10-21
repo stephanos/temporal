@@ -291,7 +291,7 @@ fn field_projection(
     Ok(quote! {
         .field(::umpire_annotations::Field::try_projected(
             #path, #kind, |message: &#ty| { let value = #get; #repeated_check value }, |message: &mut #ty, value| { #set },
-        ).description(#description) #(#tags)* #expected #repeated)
+        ).description(#description) #(#tags)* #repeated #expected)
     })
 }
 
