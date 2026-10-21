@@ -103,9 +103,23 @@ problem, diagnose it rather than suppressing or broadening this exception.
 - [ ] MIGRATE, README, hosts README, .gitattributes updated
 
 ## Done summary
-TBD
+Embedded the generically built Temporal guest, switched every active Temporal consumer to `Guest()`, and added real freshness/refresh controls with strict local/CI prerequisite handling. Success-only immutable probe metadata reuse preserves current-context validation and lets the unchanged complete live corpus pass; renewed clean-clone builds match the committed asset.
 
+Tier: session (jev-unavailable(no_key)), explicit project routing retained
+stage: impl-review - ran (SHIP; one three-lens round; codex:gpt-6.1-sol:high; same model family)
+
+baseline: red (`make umpire-check-model-gaps` failed pre-edit at its unchanged 20-minute test deadline, Go 1200.527 s / Make exit 2). The earlier outer-600-second run is inconclusive, not green. Focused embedding/freshness and metadata controls retain real red-to-green evidence; no assertions, goldens, corpus or timeouts were weakened.
+
+Verification: actual complete slice/gaps passed, including all 2336 unique subtests exactly once and the byte-identical existing report golden. Actual no-Rust Temporal host tests, native 6-unit/12-public controls, all 2238 generic mutations across two contexts, current-asset stale/refresh controls, scoped lint/vet/format and script checks passed. Post-SHIP final worker Verify reran default and required-backend `model-check` plus `model-time`, all exit 0; no reusable receipt was fabricated while foreign milestone dirt remained.
+
+The refreshed Temporal asset is 3326027 bytes, SHA-256 `1d52b188f7f582a3d1b78d5ed19f4ba8af4753bf43343aff0524854f1d713800`. Renewed Linux proof source pin is `594c13b237b3e3e5defcd67e7457257fa1db21ae`; two different-path clean clones with initially absent independent targets matched each other and their committed assets. Stock remains uncommitted and unchanged. Twelve matched no-RPC response hashes/sizes remain identical; independent hosts stay at 52 pages across contexts and Reset under unchanged host capabilities/limits.
+
+Limitations: final timing full gate 85.295 s exceeds its unchanged 30 s soft target; inner loop 1.648 s is below 10 s. macOS/cross-OS certification remains open under fn-232. The separate legacy IR bridge still requires Rust, and the broad Testpilot umbrella retains its seven documented pre-existing failures; neither is represented as green. The initial timing-fixture failure is preserved and was corrected only by isolating its nested Make timing flag. Reviewer runtime reruns were sandbox-blocked, not counted as passes; actual worker gates supplied runtime evidence.
+
+Evidence: `.flow/artifacts/fn-230-reproducible-guest-builds-a-system/task-2-{embedding-checkpoint,metadata-and-proof,quality-audits,formal-review,verification}.md`; regular logs/statuses and archived lane evidence in `.flow/tmp/fn2302/`; renewed proof retained in `.flow/tmp/fn2302-reproduction-proof.JrgaIS/`. The metadata worktree/branch were retired normally; foreign `MILESTONES.md` and fn-233 plans remain untouched/excluded. Plan sync is false, tracker disabled/unlinked and QA off. Parent closure and milestone admission remain with the conductor.
+
+stage: plan-sync - skipped(config: planSync.enabled != true)
 ## Evidence
-- Commits:
-- Tests:
+- Commits: 6eb02bd20a5c438dd85bc5a5cf35507db8ac6719, cb3adae845b9340b3c47c8e245be590178fcc075, 1dc1e7c407d25f3628a3bc65599b52a07b1df55f, 4c0fea3b5de1bc6e02f8d15503c9a636811581d5, 061bfbe8e7fa2f5661a920bb20a1e442ec8dc948, 594c13b237b3e3e5defcd67e7457257fa1db21ae, 5d939fe538c147a6b33aad10d3680d288a4905d5, 09edab083360e757ef043fde6cfc464ac287e3d1, 7413dcaa968502e6cf06467b09df3eb1ac36b778, 49c84dd4947ce57469b8bb3a923c5a50ae4becbf
+- Tests: baseline: red (pre-edit complete gaps timed out at unchanged 20m, Go 1200.527s / Make 2; earlier outer600 exit124 inconclusive), python3 -m unittest discover -s model/scripts/tests -p test_*.py, UMPIRE_TIME_STEPS=1 python3 -m unittest discover -s model/scripts/tests -p test_*.py, mise exec -- cargo test --manifest-path model/Cargo.toml -p umpire-temporal --lib --test probes, mise exec -- cargo clippy --manifest-path model/Cargo.toml -p umpire-temporal --all-targets -- -D warnings, env -u UMPIRE_TEMPORAL_WASM -u CARGO_TARGET_DIR PATH=/usr/bin:/bin GOTOOLCHAIN=local CGO_ENABLED=0 GOCACHE=/home/agent/.cache/codex-build/fn2301-unwind/go /home/agent/.local/share/mise/installs/go/1.27.0/bin/go -C /Users/stephan/Workspace/skunkworks/umpire/temporal/model/temporal/hosts/go test -v -tags test_dep -count=1 ./..., make umpire-check-model-slice umpire-check-model-gaps, make model-check, UMPIRE_BACKENDS=require make model-check, make model-time, python3 /Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/fn2302/verify-current-stale.py, timeout 600s env -u RUSTFLAGS -u CARGO_ENCODED_RUSTFLAGS bash /Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/fn2302/run-reproduction-proof.sh 594c13b237b3e3e5defcd67e7457257fa1db21ae, ALL_TEST_TAGS=disable_grpc_modules,test_dep,integration GOLANGCI_LINT_BASE_REV=22c015e7deae3b5f65a7f5c93ff94dc1fe8d19c9 GOLANGCI_LINT_FIX=false make lint-code-fast, scoped whole-changed-file Temporal host golangci-lint; host and integration go vet; changed Go formatting; bash syntax; git diff --check
 - PRs:
