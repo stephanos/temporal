@@ -70,6 +70,9 @@ def main():
     run('rust-public-and-goldens', [sys.executable, CORPUS / 'campaign-check.py', '--binary', args.binary,
         '--go-compiler', args.go_compiler, '--work', rust, '--input', args.input,
         '--preparation-root', args.preparation_root / 'rust'])
+    run('rust-scenario-public-and-goldens', [sys.executable, CORPUS / 'campaign-scenario-check.py',
+        '--binary', args.binary, '--input', args.input, '--go-compiler', args.go_compiler,
+        '--work', args.work / 'scenarios', '--preparation-root', args.preparation_root / 'scenario'])
     declaration = check.parity.read(CORPUS / 'campaign-corpus.json')
     expected = check.parity.read(go / 'campaign-reference.json')
     check.equal(expected['schema'], 'gomad.campaign-go-reference/v1', 'reference.schema')
@@ -120,9 +123,9 @@ def main():
     result = dict(schema='gomad.campaign-semantic-parity/v1', requested_verb=args.verb,
         go_surface=expected['surface'], rust_surface='public CLI for all four verbs', observations=observations,
         public_cli_positive_parity=False,
-        exception='Frozen Go WASM plan/execute-shard/merge refuse status 2; positive shard/merge comparison uses unchanged original Runner API')
+        exception='Frozen Go WASM plan/execute-shard/merge refuse status 2; the unchanged original portable Runner API must also pass before this mandatory lane can succeed')
     (args.work / 'campaign-semantic-parity.json').write_bytes(check.parity.canonical(result) + b'\n')
-    print('campaign semantic lane: fresh public explore/resume and original Go Runner API shard/merge match Rust public verbs; public CLI surface discrepancy retained')
+    print('campaign semantic lane: authenticated Go reference and Rust public results match; original Go public CLI surface discrepancy retained')
 
 
 if __name__ == '__main__':
