@@ -78,6 +78,38 @@ fn finish_preserves_world_transition_capacity() {
     );
 }
 
+#[test]
+fn failed_peer_preserves_parked_incarnations_declared_boundary() {
+    for failure in ["trap", "capacity"] {
+        for boundary in ["crash", "stop"] {
+            let broker = Arc::new(
+                Broker::new(&broker_config(), &["a".into(), "b".into()], None, None).unwrap(),
+            );
+            broker.defer_starts();
+            broker.activate(0).unwrap();
+            broker.activate(1).unwrap();
+            broker.run(1, 1).unwrap();
+            let parked = broker.clone();
+            let thread = std::thread::spawn(move || {
+                assert!(parked.acquire(0));
+                parked.idle(0, 10_000)
+            });
+            assert!(broker.acquire(1));
+            broker
+                .revoke_locked(&mut lock(&broker.inner), 0, boundary)
+                .unwrap();
+            broker.abort(failure, "failed peer".into());
+            assert!(
+                matches!(
+                    thread.join().unwrap(),
+                    Err(Failure::Boundary(actual, _)) if actual == boundary
+                ),
+                "{failure} must preserve {boundary}"
+            );
+        }
+    }
+}
+
 #[cfg(feature = "stress-jitter")]
 #[test]
 fn event_order_controller_commands_match_parser_fixture() {
