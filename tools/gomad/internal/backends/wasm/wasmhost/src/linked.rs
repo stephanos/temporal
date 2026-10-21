@@ -13,6 +13,7 @@ use std::{
 };
 use wasmtime::{Engine, Error, Store};
 
+pub use crate::linked_cancellation::Cancellation;
 pub use crate::linked_conditions::Conditions;
 pub use crate::linked_storage::Input as StorageInput;
 pub use crate::model::replay::Request as ReplayRequest;
@@ -20,7 +21,7 @@ pub use crate::model::replay_plan::{
     ExecutionIdentity as ChoiceIdentity, TraceDecision, TraceInspection, TraceSite,
     inspect as inspect_choices,
 };
-pub use crate::model::{Config as ModelConfig, ModelLimits};
+pub use crate::model::{Config as ModelConfig, Divergence, ModelLimits};
 pub use crate::namespace::{
     Image as NamespaceImage, ImageEntry as NamespaceEntry, Limits as NamespaceLimits,
 };
@@ -65,9 +66,14 @@ pub struct Prepared {
     pub(crate) model: Option<model::Model>,
     pub(crate) namespace: Option<namespace::Namespace>,
     pub(crate) conditions: Conditions,
+    cancellation: Cancellation,
 }
 
 impl Prepared {
+    pub fn cancellation(&mut self, cancellation: Cancellation) {
+        self.cancellation = cancellation;
+    }
+
     pub fn conditions(&mut self, conditions: Conditions) {
         self.conditions = conditions;
     }
@@ -256,6 +262,7 @@ pub fn prepare(mut request: Request) -> wasmtime::Result<Prepared> {
         model,
         namespace,
         conditions: Conditions::default(),
+        cancellation: Cancellation::default(),
     })
 }
 
@@ -274,24 +281,23 @@ pub fn execute_prepared(prepared: Prepared) -> wasmtime::Result<Execution> {
         mut model,
         namespace,
         conditions,
+        cancellation,
     } = prepared;
+    if cancellation.cancelled() {
+        return Ok(Cancellation::execution());
+    }
     let mut conditions = conditions.enter()?;
     let sink = Sink::new(request.limits.evidence_bytes);
     if let Some(model) = &mut model {
         model.linked_evidence = Some(sink.clone());
     }
     let engine = Engine::new(&engine::configuration(true))?;
+    let _registration = cancellation.attach(&engine, None)?;
     let timed_out = AtomicBool::new(false);
     let mut outcome = thread::scope(|scope| -> wasmtime::Result<Outcome> {
         let (done, completed) = mpsc::sync_channel::<()>(0);
-        let (watch_engine, watch_timeout, wall_timeout) =
-            (&engine, &timed_out, request.limits.wall_timeout);
-        let watcher = scope.spawn(move || {
-            if completed.recv_timeout(wall_timeout) == Err(mpsc::RecvTimeoutError::Timeout) {
-                watch_timeout.store(true, Ordering::Release);
-                watch_engine.increment_epoch();
-            }
-        });
+        let watcher =
+            scope.spawn(|| watch(&engine, &timed_out, request.limits.wall_timeout, completed));
         let result = (|| -> wasmtime::Result<Outcome> {
             let mut metrics = Metrics::default();
             let module = match engine::compile(&engine, &request.module, &mut metrics)
@@ -315,7 +321,9 @@ pub fn execute_prepared(prepared: Prepared) -> wasmtime::Result<Execution> {
             store.set_fuel(request.limits.fuel)?;
             store.set_epoch_deadline(1);
             let linker = engine::linker(&engine, &module)?;
-            let executed = if timed_out.load(Ordering::Acquire) {
+            let executed = if cancellation.cancelled() {
+                Err(Error::msg("seed execution was cancelled"))
+            } else if timed_out.load(Ordering::Acquire) {
                 Err(Error::msg("execution watchdog timeout"))
             } else {
                 (|| {
@@ -356,6 +364,7 @@ pub fn execute_prepared(prepared: Prepared) -> wasmtime::Result<Execution> {
         result
     })?;
     apply_watchdog(&timed_out, &mut outcome);
+    cancellation.apply(&mut outcome);
     let evidence = sink.into_streams()?;
     let event_order = conditions.finish();
     Ok(Execution {
@@ -363,6 +372,19 @@ pub fn execute_prepared(prepared: Prepared) -> wasmtime::Result<Execution> {
         evidence,
         event_order,
     })
+}
+
+fn watch(
+    engine: &Engine,
+    timed_out: &AtomicBool,
+    timeout: Duration,
+    completed: mpsc::Receiver<()>,
+) {
+    if completed.recv_timeout(timeout) == Err(mpsc::RecvTimeoutError::Timeout) {
+        timed_out.store(true, Ordering::Release);
+        engine.increment_epoch();
+    }
+    drop(completed);
 }
 
 fn apply_watchdog(timed_out: &AtomicBool, outcome: &mut Outcome) {
