@@ -69,6 +69,63 @@ impl CrashEnumeration {
 }
 
 impl Fs {
+    #[cfg(not(feature = "conformance"))]
+    pub(crate) fn explore_persistence(
+        &mut self,
+        controller: &crate::linked_simulation::Shared,
+    ) -> std::result::Result<(), String> {
+        use crate::linked_simulation::{Dimension, domain_hash};
+        use serde_json::json;
+
+        for (id, volume) in &mut self.volumes {
+            let pending: BTreeSet<_> = volume
+                .pending
+                .iter()
+                .map(|operation| operation.id)
+                .collect();
+            let ready: Vec<_> = volume
+                .pending
+                .iter()
+                .filter(|operation| {
+                    operation
+                        .deps
+                        .iter()
+                        .all(|dependency| !pending.contains(dependency))
+                })
+                .map(|operation| operation.id)
+                .collect();
+            if ready.is_empty() {
+                continue;
+            }
+            let context = volume.pending_identity();
+            let site = domain_hash(
+                "gomad-storage-persistence-site/v1",
+                &json!({"volume":id,"pending":context}),
+            )?;
+            let alternatives = std::iter::once(None)
+                .chain(ready.iter().copied().map(Some))
+                .map(|operation| {
+                    domain_hash(
+                        "gomad-storage-persistence-alternative/v1",
+                        &json!({
+                            "volume":id,"pending":context,"operation":operation
+                        }),
+                    )
+                })
+                .collect::<std::result::Result<Vec<_>, _>>()?;
+            let selected = controller
+                .lock()
+                .map_err(|_| "simulation exploration controller poisoned")?
+                .choose(Dimension::Storage, &site, alternatives, 0)?;
+            if selected > 0 {
+                volume
+                    .persist_selected(&BTreeSet::from([ready[selected as usize - 1]]))
+                    .map_err(|error| super::faults::error_text(&error))?;
+            }
+        }
+        Ok(())
+    }
+
     pub(crate) fn enumerate_crash_states(
         &self,
         id: &str,

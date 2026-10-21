@@ -14,6 +14,129 @@ use wasmtime::{Error, Result};
 #[cfg(test)]
 mod crash_failure_corpus;
 
+#[cfg(test)]
+mod simulation_tests {
+    use super::*;
+    use crate::linked_simulation::{Controller, Dimension, Override, Plan};
+    use std::sync::{Arc, Mutex};
+
+    fn controller(overrides: Vec<Override>) -> crate::linked_simulation::Shared {
+        Arc::new(Mutex::new(
+            Controller::new(
+                Plan::new(
+                    format!("sha256:{}", "a".repeat(64)),
+                    format!("sha256:{}", "b".repeat(64)),
+                    7,
+                    overrides,
+                )
+                .unwrap(),
+                100,
+            )
+            .unwrap(),
+        ))
+    }
+
+    fn fixture(descriptor: &StorageDescriptor) -> Namespace {
+        let mut namespace = Namespace::new(crate::namespace::Image {
+            entries: vec![crate::namespace::ImageEntry {
+                path: b"/data".to_vec(),
+                directory: true,
+                readonly: false,
+                data: vec![],
+            }],
+            writable_directories: vec![b"/data".to_vec()],
+            preopens: vec![b"/data".to_vec()],
+            working_directory: b"/data".to_vec(),
+            stdin: vec![],
+            limits: crate::namespace::Limits {
+                files: 100,
+                descriptors: 100,
+                filesystem_bytes: 4096,
+                output_bytes: 4096,
+            },
+            epoch_nanos: 0,
+        })
+        .unwrap();
+        descriptor.attach(&mut namespace, None, 1 << 20).unwrap();
+        let storage = namespace.storage_mut().unwrap();
+        let inode = storage
+            .fs
+            .create("/data/file", volume::Kind::File, 0o600, 1)
+            .unwrap();
+        storage.fs.sync_node(inode).unwrap();
+        let root = storage.fs.lookup("/data").unwrap().inode;
+        storage.fs.sync_node(root).unwrap();
+        storage.fs.write_at(inode, 0, b"survives", 2).unwrap();
+        namespace
+    }
+
+    #[test]
+    fn exploration_crash_selection_changes_recovered_bytes() {
+        let model: StorageModel = serde_json::from_value(serde_json::json!({
+            "volumes":[{"ID":"db","Path":"/data","CapacityBytes":4096}],
+            "limits":{"PendingOperations":100,"Transitions":1000}
+        }))
+        .unwrap();
+        let mut descriptor: StorageDescriptor = serde_json::from_value(serde_json::json!({
+            "model":model, "model_identity":model.identity(), "return_image":true,
+            "crash_limits":{"States":16,"Operations":100,"Depth":100,"Bytes":1048576,"Work":1000}
+        }))
+        .unwrap();
+        let mut namespace = fixture(&descriptor);
+        let page = namespace
+            .storage()
+            .unwrap()
+            .enumerate("db", descriptor.crash_limits.unwrap(), None)
+            .unwrap();
+        let target = page
+            .states
+            .as_ref()
+            .unwrap()
+            .iter()
+            .position(|state| {
+                state
+                    .entries
+                    .iter()
+                    .any(|entry| entry.data.as_deref() == Some(b"survives"))
+            })
+            .unwrap();
+        let probe = controller(vec![]);
+        let original_descriptor = serde_json::to_vec(&descriptor).unwrap();
+        descriptor.set_simulation(probe.clone());
+        assert_eq!(
+            serde_json::to_vec(&descriptor).unwrap(),
+            original_descriptor
+        );
+        let baseline = recovery_evidence(&mut namespace, &descriptor);
+        assert_eq!(baseline.failure, None);
+        let decision = probe
+            .lock()
+            .unwrap()
+            .decisions()
+            .iter()
+            .find(|decision| decision.dimension == Dimension::Crash)
+            .expect("missing crash choice")
+            .clone();
+        descriptor.set_simulation(controller(vec![
+            Override::from_decision(&decision, u32::try_from(target).unwrap()).unwrap(),
+        ]));
+        let mut namespace = fixture(&descriptor);
+        let evidence = recovery_evidence(&mut namespace, &descriptor);
+        assert_eq!(evidence.failure, None);
+        let image = evidence.image.unwrap();
+        let recovered = volume::Storage::recover(
+            descriptor.model.clone(),
+            1 << 20,
+            &image,
+            &format!("{:x}", Sha256::digest(&image)),
+            1 << 20,
+        )
+        .unwrap();
+        let inode = recovered.fs.lookup("/data/file").unwrap().inode;
+        assert_eq!(recovered.fs.read_at(inode, 0, 32).unwrap(), b"survives");
+    }
+}
+
 const CHUNK: u64 = 64 * 1024;
 /// Recovery images carry history and metadata beyond the volume capacities;
 /// this bound is added to the filesystem byte limit (Go uses the same).
@@ -50,12 +173,65 @@ pub struct StorageDescriptor {
     pub crash_context: Option<ChunkedDescriptor>,
     #[serde(skip)]
     observed_context: Option<BTreeMap<String, StorageCrashContext>>,
+    #[serde(skip)]
+    simulation: Option<crate::linked_simulation::Shared>,
     pub return_image: bool,
     #[serde(default)]
     pub image: Option<ChunkedDescriptor>,
 }
 
 impl StorageDescriptor {
+    fn exploration_selections(
+        &self,
+        pages: &BTreeMap<String, CrashEnumeration>,
+        controller: &crate::linked_simulation::Shared,
+    ) -> std::result::Result<BTreeMap<String, Vec<u64>>, String> {
+        use crate::linked_simulation::{Dimension, domain_hash};
+        let mut selections = self.selections();
+        for (id, page) in pages {
+            let states = page.states.as_deref().unwrap_or_default();
+            if states.len() < 2 {
+                continue;
+            }
+            let baseline = selections.get(id).map(Vec::as_slice).unwrap_or_default();
+            let baseline: BTreeSet<_> = baseline.iter().copied().collect();
+            let Some(default) = states.iter().position(|state| {
+                state
+                    .selected_operations
+                    .iter()
+                    .copied()
+                    .collect::<BTreeSet<_>>()
+                    == baseline
+            }) else {
+                continue;
+            };
+            let site = domain_hash(
+                "gomad-storage-crash-site/v1",
+                &serde_json::json!({
+                    "volume":id,"pending":states[default].pending_sha256
+                }),
+            )?;
+            let selected = controller
+                .lock()
+                .map_err(|_| "simulation exploration controller poisoned")?
+                .choose(
+                    Dimension::Crash,
+                    &site,
+                    states.iter().map(|state| state.identity.clone()).collect(),
+                    u32::try_from(default).map_err(|_| "storage crash alternatives capacity")?,
+                )?;
+            selections.insert(
+                id.clone(),
+                states[selected as usize].selected_operations.clone(),
+            );
+        }
+        Ok(selections)
+    }
+
+    pub(crate) fn set_simulation(&mut self, controller: crate::linked_simulation::Shared) {
+        self.simulation = Some(controller);
+    }
+
     pub fn validate(&self) -> Result<()> {
         if self.model.identity() != self.model_identity {
             return Err(Error::msg("storage model identity mismatch"));
@@ -438,6 +614,18 @@ fn collect(
     return_image: bool,
 ) -> Evidence {
     let filesystem_bytes = namespace.filesystem_bytes();
+    let persistence = descriptor
+        .simulation
+        .as_ref()
+        .filter(|_| descriptor.observed_context.is_none())
+        .map(|controller| {
+            namespace
+                .storage_mut()
+                .expect("attached storage")
+                .fs
+                .explore_persistence(controller)
+        })
+        .transpose();
     let storage = namespace.storage().expect("attached storage");
     let snapshots = storage.snapshots();
     let context: BTreeMap<_, _> =
@@ -475,10 +663,13 @@ fn collect(
         image: None,
         failure: Some(failure),
     };
+    if let Err(error) = persistence {
+        return partial(b"null", 1, ("invalid", error));
+    }
+    let mut pages: BTreeMap<String, CrashEnumeration> = BTreeMap::new();
     let enumerations = match &descriptor.crash_limits {
         None => b"null".to_vec(),
         Some(limits) => {
-            let mut pages: BTreeMap<String, CrashEnumeration> = BTreeMap::new();
             for config in descriptor.model.volumes() {
                 let page = match storage.enumerate(&config.id, *limits, None) {
                     Ok(page) => page,
@@ -513,8 +704,15 @@ fn collect(
             ),
         );
     }
+    let selections = match &descriptor.simulation {
+        Some(controller) => match descriptor.exploration_selections(&pages, controller) {
+            Ok(selections) => selections,
+            Err(error) => return partial(&enumerations, 2, ("invalid", error)),
+        },
+        None => descriptor.selections(),
+    };
     let image = match namespace.crash_storage(
-        &descriptor.selections(),
+        &selections,
         StorageDescriptor::image_limit(filesystem_bytes),
     ) {
         Ok(image) => image,

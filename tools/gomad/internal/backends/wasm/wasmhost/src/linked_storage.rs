@@ -13,6 +13,10 @@ pub struct Input {
 }
 
 impl Input {
+    pub(crate) fn set_simulation(&mut self, controller: crate::linked_simulation::Shared) {
+        self.descriptor.set_simulation(controller);
+    }
+
     /// # Errors
     /// Binds a lifecycle-owned recovery image using the existing storage declaration.
     pub(crate) fn with_recovery_image(&self, image: Vec<u8>) -> Result<Self> {
