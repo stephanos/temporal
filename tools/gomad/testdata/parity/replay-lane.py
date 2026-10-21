@@ -47,7 +47,8 @@ for name, driver in [('storage', 'replay-storage-check.py'), ('storage-prefix', 
         '--work', args.work / name])
 registered = json.loads(run('registered-fixture', [sys.executable, corpus / 'replay-inspection-fixture.py',
     '--binary', args.binary, '--baseline', args.cluster_baseline, '--source', args.cluster_source,
-    '--compiler', args.go_compiler, '--work', args.work / 'registered']))
+    '--compiler', args.go_compiler, '--preparation-root', args.preparation_root / 'current-registered',
+    '--work', args.work / 'registered']))
 for name, binary, role in [('ordinary', args.binary, None), ('stress', args.stress_binary, 'stress-jitter'),
                            ('determinism', args.determinism_binary, 'determinism-fixture')]:
     artifact = registered['artifact']
@@ -71,28 +72,34 @@ for network in ('ordinary', 'faults'):
             '--preparation-root', args.preparation_root / ('current-network-' + network),
             '--work', args.work / name])
 run('public-cluster-reference', [sys.executable, corpus / 'replay-cluster-reference.py', *cluster_arguments,
+    '--preparation-root', args.preparation_root / 'current-cluster',
     '--work', args.work / 'public-cluster'])
 public_reference = args.work / 'public-cluster/cluster-reference.json'
 run('public-cluster-import', [sys.executable, corpus / 'replay-cluster-reference.py', *cluster_arguments,
-    '--binary', args.binary, '--from-reference', public_reference, '--work', args.work / 'public-cluster-import'])
+    '--binary', args.binary, '--from-reference', public_reference, '--golden', 'public',
+    '--work', args.work / 'public-cluster-import'])
 run('cluster-api-reference', [sys.executable, corpus / 'replay-cluster-reference.py', *cluster_arguments,
     '--from-reference', public_reference, '--api-registered', registered['go_reference'],
     '--work', args.work / 'cluster-api'])
 run('cluster-api-import', [sys.executable, corpus / 'replay-cluster-reference.py', *cluster_arguments,
     '--binary', args.binary, '--from-reference', args.work / 'cluster-api/api/cluster-reference.json',
+    '--golden', 'api-failure',
     '--work', args.work / 'cluster-api-import'])
 run('cluster-alternate-reference', [sys.executable, corpus / 'replay-cluster-reference.py', *cluster_arguments,
     '--from-reference', public_reference, '--api-registered', registered['go_reference'], '--api-concurrent',
     '--work', args.work / 'cluster-alternate'])
 run('cluster-alternate-import', [sys.executable, corpus / 'replay-cluster-reference.py', *cluster_arguments,
     '--binary', args.binary, '--from-reference', args.work / 'cluster-alternate/api/cluster-reference.json',
+    '--golden', 'api-alternate',
     '--work', args.work / 'cluster-alternate-import'])
 successful = json.loads(run('successful-registered-fixture', [sys.executable, corpus / 'replay-inspection-fixture.py',
-    '--binary', args.binary, *cluster_arguments, '--success', '--work', args.work / 'successful-registered']))
+    '--binary', args.binary, *cluster_arguments, '--success',
+    '--preparation-root', args.preparation_root / 'current-success-registered', '--work', args.work / 'successful-registered']))
 run('cluster-success-reference', [sys.executable, corpus / 'replay-cluster-reference.py', *cluster_arguments,
     '--from-reference', public_reference, '--api-registered', successful['go_reference'], '--api-success',
     '--work', args.work / 'cluster-success'])
 run('cluster-success-import', [sys.executable, corpus / 'replay-cluster-reference.py', *cluster_arguments,
     '--binary', args.binary, '--from-reference', args.work / 'cluster-success/api/cluster-reference.json',
+    '--golden', 'api-success',
     '--work', args.work / 'cluster-success-import'])
 print('replay lane: fresh Go/Rust semantics, retained replay, opener faults, cluster and exact goldens passed')
