@@ -27,9 +27,12 @@ pub(crate) fn create(
         .checked_mul(per_round)
         .ok_or("capacity: exploration journal capacity overflow")?;
     let path = crate::campaign::campaign_path(&options.base.artifacts)?;
+    let overall_nanos = u64::try_from(options.base.overall_timeout.as_nanos())
+        .map_err(|_| "overall timeout overflow")?;
     let mut metadata = json!({
         "schema":"gomad.exploration-preparation/v1","journal_bytes":journal_bytes,
-        "overall_millis":u64::try_from(options.base.overall_timeout.as_millis()).map_err(|_|"overall timeout overflow")?,
+        "simulation_exploration":matches!(&strategy, RoundStrategy::Simulation(_)),
+        "overall_millis":overall_nanos.div_ceil(1_000_000),"overall_nanos":overall_nanos,
         "terminate_grace_nanos":u64::try_from(options.base.terminate_grace.as_nanos()).map_err(|_|"termination grace overflow")?,
         "keep_successes":options.base.keep_successes,"success_limit":options.base.success_limit,
         "success_bytes":options.base.success_bytes,"coverage":options.base.coverage,
@@ -67,12 +70,18 @@ pub(crate) fn restore(journal: &RoundJournal) -> Result<Prepared, String> {
 }
 
 pub(crate) fn duration(journal: &RoundJournal) -> Result<Duration, String> {
-    Ok(Duration::from_millis(
-        journal.plan().prepared["overall_millis"]
-            .as_u64()
-            .filter(|value| *value > 0)
-            .ok_or("exploration overall bound missing")?,
-    ))
+    duration_metadata(&journal.plan().prepared)
+}
+
+pub(super) fn duration_metadata(metadata: &serde_json::Value) -> Result<Duration, String> {
+    let nanos = metadata["overall_nanos"]
+        .as_u64()
+        .filter(|value| *value > 0)
+        .ok_or("exploration overall bound missing")?;
+    if metadata["overall_millis"].as_u64() != Some(nanos.div_ceil(1_000_000)) {
+        return Err("exploration overall bounds differ".into());
+    }
+    Ok(Duration::from_nanos(nanos))
 }
 
 pub(crate) fn is_round_campaign(path: &Path) -> Result<bool, String> {

@@ -102,6 +102,7 @@ fn publication(corpus: &Path, seed: u64) -> Result<Publication, String> {
         });
     }
     let configuration = Configuration {
+        simulation_original: None,
         wall_nanos: None,
         nodes: Vec::new(),
         engine: linked::CONFIGURATION.into(),

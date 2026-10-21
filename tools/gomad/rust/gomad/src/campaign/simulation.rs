@@ -1,6 +1,7 @@
 use super::{
     exploration::{
-        round::{RoundEvent, RoundJournal, RoundPlan, RoundState, RoundStrategy},
+        plan,
+        round::{RoundEvent, RoundJournal, RoundState, RoundStrategy},
         simulation::{self as controller, SimulationConfig},
         simulation_record, simulation_record_wire,
     },
@@ -21,7 +22,7 @@ use std::{
     time::{Duration, Instant},
 };
 
-pub(crate) fn explore(options: ExplorationOptions, output: &mut dyn Write) -> Result<i32, String> {
+pub(crate) fn explore(options: &ExplorationOptions, output: &mut dyn Write) -> Result<i32, String> {
     let started = Instant::now();
     let selection = super::seeds::SeedSelection::parse(&options.base.seeds)?;
     if selection.count() != 1 || !options.base.choices {
@@ -31,7 +32,6 @@ pub(crate) fn explore(options: ExplorationOptions, output: &mut dyn Write) -> Re
         );
     }
     let prepared = prepare::prepare(&options.base)?;
-    let publication = super::prepared_publication(&prepared)?;
     let config = SimulationConfig {
         execution_sha256: controller::domain_hash(
             "gomad-simulation-exploration-execution/v1",
@@ -51,42 +51,10 @@ pub(crate) fn explore(options: ExplorationOptions, output: &mut dyn Write) -> Re
         } else {
             options.base.failure_budget
         },
-        dimension_limits: options.dimension_limits,
+        dimension_limits: options.dimension_limits.clone(),
     };
     controller::SimulationState::new(config.clone())?;
-    let journal_bytes = options
-        .max_executions
-        .checked_mul(
-            options
-                .max_exploration_result_bytes
-                .checked_add(1 << 20)
-                .ok_or("simulation journal bound overflow")?,
-        )
-        .ok_or("simulation journal bound overflow")?;
-    let path = super::campaign_path(&options.base.artifacts)?;
-    let maximum = publication
-        .payloads
-        .values()
-        .try_fold(32_u64 << 20, |n, p| {
-            n.checked_add(p.len() as u64)
-                .ok_or("prepared payload capacity overflow")
-        })?;
-    let published = super::store(path.join("prepared"), maximum).publish(publication)?;
-    let prepared_plan = json!({
-        "schema":"gomad.exploration-preparation/v1","simulation_exploration":true,"module_sha256":canonical::digest(&prepared.module),"toolchain":prepared.toolchain,"configuration":prepared.configuration,"choice_identity":prepared.choice_identity,
-        "host_sha256":env!("GOMAD_HOST_IMPLEMENTATION_SHA256"),"helper_sha256":linked::IMPLEMENTATION_SHA256,"scenario":prepared.scenario,"network":prepared.network,"soft_assertion_report_only":prepared.soft_assertion_report_only,
-        "prepared_artifact":published.path.strip_prefix(&path).map_err(|e|e.to_string())?.to_string_lossy(),
-        "journal_bytes":journal_bytes,"overall_millis":u64::try_from(options.base.overall_timeout.as_millis()).map_err(|_|"overall timeout overflows")?,
-        "keep_successes":options.base.keep_successes,"success_limit":options.base.success_limit,"success_bytes":options.base.success_bytes,
-    });
-    let mut journal = RoundJournal::create(
-        &path,
-        &RoundPlan {
-            prepared: prepared_plan,
-            strategy: RoundStrategy::Simulation(config),
-        },
-        journal_bytes,
-    )?;
+    let mut journal = plan::create(options, &prepared, RoundStrategy::Simulation(config))?;
     let remaining = options
         .base
         .overall_timeout
@@ -106,18 +74,8 @@ pub(crate) fn resume(path: &Path, json: bool, output: &mut dyn Write) -> Result<
     if !matches!(journal.state(), RoundState::Simulation(_)) {
         return Err("campaign is not simulation exploration".into());
     }
-    let plan = &journal.plan().prepared;
-    let opened = journal.open_artifact(
-        plan["prepared_artifact"]
-            .as_str()
-            .ok_or("missing campaign prepared artifact")?,
-    )?;
-    let prepared = super::restore_from_plan(plan, &opened)?;
-    let timeout = Duration::from_millis(
-        plan["overall_millis"]
-            .as_u64()
-            .ok_or("missing simulation overall timeout")?,
-    );
+    let prepared = plan::restore(&journal)?;
+    let timeout = plan::duration(&journal)?;
     run(&mut journal, &prepared, timeout, json, output)
 }
 

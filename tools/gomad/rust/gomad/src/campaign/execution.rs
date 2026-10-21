@@ -110,6 +110,8 @@ pub(super) fn run_with_replay(
     crate::fixture::execution_started().map_err(|error| error.message)?;
     let mut admitted = linked::prepare(request)
         .map_err(|error| format!("runner_failure: admit campaign target: {error}"))?;
+    #[cfg(feature = "helper-determinism-fixture")]
+    admitted.conditions(linked::Conditions::determinism_fixture_replay());
     if let Some(network) = &configuration.network {
         admitted
             .network(network.clone())

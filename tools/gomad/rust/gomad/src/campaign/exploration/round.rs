@@ -79,6 +79,7 @@ pub(crate) enum RoundState {
 impl RoundState {
     fn new(plan: &RoundPlan) -> Result<Self, String> {
         let prepared = &plan.prepared;
+        super::plan::duration_metadata(prepared)?;
         for key in ["module_sha256", "toolchain", "host_sha256", "helper_sha256"] {
             if !prepared[key].as_str().is_some_and(canonical::valid_digest) {
                 return Err(format!("invalid exploration prepared {key}"));

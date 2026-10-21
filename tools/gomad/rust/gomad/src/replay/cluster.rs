@@ -57,9 +57,11 @@ pub struct Incarnation {
     pub choice_identity: linked::ChoiceIdentity,
 }
 
-#[derive(Deserialize, Serialize)]
+#[derive(Clone, Deserialize, Serialize)]
 #[serde(deny_unknown_fields)]
 pub struct Configuration {
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub simulation_original: Option<Box<Configuration>>,
     #[serde(default, skip_serializing_if = "Vec::is_empty")]
     pub nodes: Vec<String>,
     pub engine: String,
@@ -118,8 +120,14 @@ pub(crate) fn execute(execution: Execution) -> Result<helper::Execution, String>
 pub(crate) fn execute_projected(execution: Execution) -> Result<linked::Execution, String> {
     let simulation = execution.simulation.is_some();
     let observed = execute(execution)?;
-    let primary = simulation.then(|| observed.incarnations.first()
-        .and_then(|item| item.execution.evidence.get("choice")).cloned().unwrap_or_default());
+    let primary = simulation.then(|| {
+        observed
+            .incarnations
+            .first()
+            .and_then(|item| item.execution.evidence.get("choice"))
+            .cloned()
+            .unwrap_or_default()
+    });
     let mut projected = project(observed)?;
     if let Some(primary) = primary {
         projected.evidence.insert("choice".into(), primary);
@@ -201,13 +209,29 @@ fn bind(opened: &Opened, inputs: &Inputs) -> Result<(), String> {
     {
         return Err("WASM retained cluster implementation/configuration identity mismatch".into());
     }
-    if inputs.configuration.incarnations.is_empty()
-        || inputs.configuration.incarnations.len() > 65536
+    let original = inputs.configuration.simulation_original.as_deref();
+    if let Some(original) = original {
+        if original.simulation_original.is_some() {
+            return Err("nested simulation replay recipe".into());
+        }
+        let mut expected = original.clone();
+        crate::campaign::scenario::retain_execution_prefix(
+            &mut expected,
+            &inputs.configuration.steps,
+            true,
+        )?;
+        if canonical::encode(&expected)? != canonical::encode(&inputs.configuration)? {
+            return Err("simulation replay recipe differs from its actual lifecycle".into());
+        }
+    }
+    let recipe = original.unwrap_or(&inputs.configuration);
+    if recipe.incarnations.is_empty()
+        || recipe.incarnations.len() > 65536
         || inputs.retained.len() != inputs.configuration.incarnations.len()
     {
         return Err("retained cluster incarnation count mismatch".into());
     }
-    let primary = &inputs.configuration.incarnations[0].module;
+    let primary = &recipe.incarnations[0].module;
     if primary.file != "target/module.wasm" || primary.sha256 != record.identity.target {
         return Err("retained cluster primary module identity mismatch".into());
     }
@@ -232,7 +256,7 @@ fn incarnation(
     opened: &Opened,
     inputs: &Inputs,
     item: &Incarnation,
-    retained: &Retained,
+    retained: Option<&Retained>,
     control: Option<&inspection::Request>,
 ) -> Result<helper::Incarnation, String> {
     let module = item.module.read(opened, 512 << 20)?;
@@ -245,12 +269,7 @@ fn incarnation(
     {
         return Err("WASM retained cluster choice identity mismatch".into());
     }
-    let descriptor = retained
-        .evidence
-        .get("choice")
-        .ok_or("missing retained incarnation choice trace")?;
-    let raw = descriptor.read(opened, item.limits.evidence_bytes)?;
-    let projected = linked::inspect_choices(&raw, identity).map_err(str::to_owned)?;
+    let descriptor = retained.and_then(|retained| retained.evidence.get("choice"));
     let mut model = item.model.clone();
     let object = model
         .as_object_mut()
@@ -264,18 +283,27 @@ fn incarnation(
     {
         return Err("retained cluster must derive seed and replay control".into());
     }
-    object.insert(
-        "mode".into(),
-        json!(if retained.interrupted && control.is_none() {
-            3
-        } else {
-            2
-        }),
-    );
-    object.insert("replay".into(), json!({"schema":"gomad.replay-trace/v1", "execution_identity":identity,
+    let raw = if let (Some(retained), Some(descriptor)) = (retained, descriptor) {
+        let raw = descriptor.read(opened, item.limits.evidence_bytes)?;
+        let projected = linked::inspect_choices(&raw, identity).map_err(str::to_owned)?;
+        object.insert(
+            "mode".into(),
+            json!(if retained.interrupted && control.is_none() {
+                3
+            } else {
+                2
+            }),
+        );
+        object.insert("replay".into(), json!({"schema":"gomad.replay-trace/v1", "execution_identity":identity,
         "trace_sha256":descriptor.sha256,"tape_sha256":projected.tape_sha256,"decisions":projected.decisions,
         "trace_bytes":raw.len(),"trace_frames":(raw.len() as u64).div_ceil(65536),
         "prefix_control":if retained.interrupted && control.is_none() { Some(json!({"cutoff":projected.decisions,"override":null})) } else { None }}));
+        Some(raw)
+    } else if retained.is_none() && inputs.configuration.simulation_original.is_some() {
+        None
+    } else {
+        return Err("missing retained incarnation choice trace".into());
+    };
     let mut configuration: linked::ModelConfig =
         serde_json::from_value(model).map_err(|error| error.to_string())?;
     configuration.inspection = control
@@ -302,7 +330,7 @@ fn incarnation(
                     .iter()
                     .map(|(key, value)| format!("{key}={value}"))
                     .collect(),
-                replay_trace: Some(raw),
+                replay_trace: raw,
             }),
             namespace: Some(item.namespace.clone()),
             storage: item.storage.clone(),
@@ -316,14 +344,24 @@ pub fn prepare(opened: Opened, control: Option<&inspection::Request>) -> Result<
     let inputs = inputs(&opened)?;
     bind(&opened, &inputs)?;
     let simulation = simulation_plan(&opened)?;
+    if simulation.is_some() != inputs.configuration.simulation_original.is_some() {
+        return Err("simulation replay requires its original authenticated recipe".into());
+    }
+    let recipe = inputs
+        .configuration
+        .simulation_original
+        .as_deref()
+        .unwrap_or(&inputs.configuration);
     let mut incarnations = Vec::new();
-    for item in &inputs.configuration.incarnations {
+    for item in &recipe.incarnations {
         let retained = inputs
             .retained
             .iter()
-            .find(|value| value.handle == item.handle)
-            .ok_or("missing retained incarnation")?;
-        for descriptor in retained.evidence.values() {
+            .find(|value| value.handle == item.handle);
+        for descriptor in retained
+            .into_iter()
+            .flat_map(|retained| retained.evidence.values())
+        {
             let stream = opened
                 .manifest()
                 .record
@@ -350,7 +388,12 @@ pub fn prepare(opened: Opened, control: Option<&inspection::Request>) -> Result<
         }
     }
     opened.authenticate_all()?;
-    let configuration = inputs.configuration;
+    let configuration = inputs
+        .configuration
+        .simulation_original
+        .as_deref()
+        .unwrap_or(&inputs.configuration)
+        .clone();
     let execution = helper::prepare(helper::Request {
         nodes: configuration.nodes,
         broker: configuration.broker,

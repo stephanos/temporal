@@ -8,7 +8,7 @@ pub(crate) mod inspect;
 pub(crate) mod ledger;
 pub(crate) mod prepare;
 mod retention;
-mod scenario;
+pub(crate) mod scenario;
 pub(crate) mod seeds;
 mod shards;
 mod soft_assertions;

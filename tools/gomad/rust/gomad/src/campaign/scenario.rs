@@ -628,12 +628,15 @@ pub(super) fn simulation_crash_bounds(raw: &[u8], bound: &mut Bound) -> Result<(
     Ok(())
 }
 
-pub(super) fn retain_execution_prefix(
+pub(crate) fn retain_execution_prefix(
     configuration: &mut cluster::Configuration,
     steps: &[helper::Step],
     simulation: bool,
 ) -> Result<(), String> {
     if simulation {
+        if configuration.simulation_original.is_none() {
+            configuration.simulation_original = Some(Box::new(configuration.clone()));
+        }
         let mut remaining = std::collections::VecDeque::from(configuration.steps.clone());
         let mut reordered = Vec::new();
         for actual in steps {
@@ -1221,6 +1224,7 @@ pub fn bind(
     execution_limits.evidence_bytes = request.evidence_bytes;
     Ok(Bound {
         configuration: cluster::Configuration {
+            simulation_original: None,
             nodes,
             engine: base.engine.clone(),
             profile: base.profile.clone(),
@@ -1273,6 +1277,8 @@ pub(super) fn execute(
     bound.request.wall_timeout = bound.request.wall_timeout.min(timeout);
     let mut execution =
         helper::prepare(bound.request).map_err(|error| format!("runner_failure: {error}"))?;
+    #[cfg(feature = "helper-determinism-fixture")]
+    execution.conditions(linked::Conditions::determinism_fixture_replay());
     execution.cancellation(cancellation.clone());
     #[cfg(feature = "determinism-fixture")]
     crate::fixture::execution_started().map_err(|error| error.message)?;

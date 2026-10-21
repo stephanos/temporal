@@ -49,7 +49,10 @@ def main():
         return result.stdout
 
     identity = args.work / 'identity'
-    bundle = json.loads(run('identity', [args.binary, 'fixture-replay-input', '--root', identity, '--input', args.input]))
+    identity_command = [args.binary, 'fixture-replay-input', '--root', identity, '--input', args.input]
+    if args.divergence or args.divergence_only:
+        identity_command.extend(['--role', 'determinism-fixture'])
+    bundle = json.loads(run('identity', identity_command))
     cooperative = next(identity / row['artifact'] for row in bundle['records']
                        if json.loads((identity / row['artifact'] / 'record.json').read_bytes())['profile'] == 'gomad.wasi-cooperative/v1')
     replay = json.loads((cooperative / 'evidence/replay.json').read_bytes())
@@ -86,6 +89,18 @@ def main():
 
     def check_divergences():
         observations = {}
+        ordinary_manifest = args.work / 'ordinary-installation.json'
+        if args.ordinary_binary:
+            ordinary_identity = args.work / 'ordinary-identity'
+            ordinary_bundle = json.loads(run('ordinary-identity', [args.ordinary_binary.resolve(),
+                'fixture-replay-input', '--root', ordinary_identity, '--input', args.input]))
+            ordinary_artifact = next(ordinary_identity / row['artifact'] for row in ordinary_bundle['records']
+                if json.loads((ordinary_identity / row['artifact'] / 'record.json').read_bytes())['profile'] == 'gomad.wasi-cooperative/v1')
+            ordinary_replay = json.loads((ordinary_artifact / 'evidence/replay.json').read_bytes())
+            ordinary_installation = dict(installation, cache_root=str(args.work / 'ordinary-preparation'))
+            for field in ('helper_sha256', 'host_sha256', 'runtime_implementation_sha256'):
+                ordinary_installation[field] = ordinary_replay[field]
+            ordinary_manifest.write_bytes(encode(ordinary_installation))
         for case in ('sites', 'expected-missing', 'observed-missing'):
             destination = args.work / ('divergence-' + case)
             invocation = command(destination)
@@ -103,25 +118,42 @@ def main():
             repeated = run(case + '-inspect-repeat', [*prefix, 'inspect', '--json', '--choices', campaign])
             assert inspected == repeated and snapshot() == before, case
             report = json.loads(inspected)
+            replay_symbols = {}
+            for execution in report['campaign']['executions']:
+                for site in execution.get('choices', {}).get('sites', []):
+                    assert 'symbol' in site, (case, site)
+                for decision in execution.get('choices', {}).get('replay_decisions', []):
+                    assert 'symbol' in decision, (case, decision)
+                    replay_symbols[(decision['site_offset'], decision['site_missing'])] = decision['symbol']
             divergences = [execution['divergence'] for execution in report['campaign']['executions']
                            if execution['divergence']]
+            authenticated = [execution['divergence'] for event in events(campaign)
+                             for execution in event['executions'] if execution['divergence']]
             assert divergences, ('no actual helper divergence', case)
-            for divergence in divergences:
+            assert len(divergences) == len(authenticated), case
+            for divergence, recorded in zip(divergences, authenticated):
+                assert divergence['ordinal'] == recorded['Ordinal'], divergence
+                assert divergence['tape_records'] == recorded['TapeRecords'], divergence
                 assert divergence['tape_records'] > divergence['ordinal'], divergence
                 for side in ('expected', 'observed'):
                     decision = divergence[side]
                     assert decision is not None, (case, side, divergence)
+                    assert {key: value for key, value in decision.items() if key != 'symbol'} == recorded[side.title()]
                     missing = case == side + '-missing'
+                    assert decision['SiteMissing'] == missing, decision
                     if missing:
                         assert decision['symbol'] == {'unavailable': 'site_missing'}, decision
                     else:
                         function = 'recordedSelect' if side == 'expected' else 'replayedSelect'
                         assert decision['symbol']['function'] == function, decision
                         assert decision['symbol']['package'] == 'main', decision
+                    if side == 'expected':
+                        assert decision['symbol'] == replay_symbols[(decision['SiteOffset'], missing)], decision
             observations[case] = divergences
             if args.ordinary_binary:
                 ordinary = invocation.copy()
                 ordinary[0] = args.ordinary_binary.resolve()
+                ordinary[2] = ordinary_manifest
                 ordinary[ordinary.index('--artifacts') + 1] = args.work / ('ordinary-' + case)
                 refusal = run(case + '-ordinary-refusal', ordinary, (2, 3))
                 assert b'unknown import gomad_fixture_v1::choice_mode' in refusal, refusal

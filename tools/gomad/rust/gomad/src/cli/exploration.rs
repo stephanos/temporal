@@ -52,7 +52,7 @@ pub(crate) fn try_run(
             if options.strategy == "choice-exploration" {
                 crate::campaign::choice::explore(&options, output)
             } else {
-                crate::campaign::simulation::explore(options, output)
+                crate::campaign::simulation::explore(&options, output)
             }
         }
         Err(error) => Err(error),
