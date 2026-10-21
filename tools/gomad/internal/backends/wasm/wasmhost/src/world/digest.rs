@@ -49,6 +49,25 @@ fn append_config(data: &mut Vec<u8>, config: &Config) {
     append_u32(data, limits.max_string_bytes);
 }
 
+pub(super) fn inspection_commitment(model: &super::Model) -> [u8; 32] {
+    let mut data = b"gomad/world/inspection-chain/v2\0".to_vec();
+    append_u32(&mut data, SCHEMA_VERSION);
+    append_config(&mut data, model.config());
+    append_u64(&mut data, model.now().cast_unsigned());
+    let (request, event, transition) = model.next_ids();
+    for value in [
+        request,
+        event,
+        transition,
+        model.payload_bytes(),
+        model.snapshot_bytes(),
+    ] {
+        append_u64(&mut data, value);
+    }
+    append_digest(&mut data, model.transcript_digest());
+    Sha256::digest(data).into()
+}
+
 pub fn append_request(data: &mut Vec<u8>, request: &Request) {
     append_bytes(data, request.kind.as_bytes());
     append_bytes(data, request.resource.adapter.as_bytes());

@@ -295,7 +295,7 @@ pub(super) fn check_model_literals(name: &str, actual: &Value) -> Result<(), Str
             )?;
             check(
                 &evidence["world_encoding"],
-                json!("gomad.inspection-world-sha256/v1"),
+                json!("gomad.inspection-world-sha256/v2"),
                 "inspection World encoding",
             )?;
             check(

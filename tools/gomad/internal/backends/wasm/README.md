@@ -108,6 +108,15 @@ authenticated stop boundaries, separate tape/trace coordinates, stacks/heap,
 Temporal snapshots and probes, and bounded invariant search. Inspection terminates
 at `inspected_prefix`; it does not assert full failure reproduction. Old artifacts
 without complete authenticated metadata cannot be inspected by rebuilding them.
+Inspection World commitments use `gomad.inspection-world-sha256/v2`. They bind
+the initial World configuration, clock, next IDs, payload accounting, expanded
+wire size and ordered transition hash chain, followed by an explicit optional
+network commitment. Each field has fixed width or canonical length framing.
+Every successful World mutation extends the chain; rejected operations leave it
+unchanged. Boundaries hash this fixed-size material instead of the entire
+history. Canonical World snapshot and transition bytes remain unchanged, and
+the expanded snapshot capacity is still enforced. The v2 encoding and helper
+identity rotate together; v1 inspection commitments are refused, not converted.
 The cooperative installation supports bounded `explore --scenario FILE` seed
 campaigns with typed nodes, modeled network/storage and declared lifecycle
 boundaries. The shared campaign store retains prepared inputs for detached
