@@ -1123,14 +1123,11 @@ impl Broker {
         }
         #[cfg(feature = "diagnostic-profile")]
         drop(waiting);
-        if let Some((termination, message)) = inner.aborted.clone() {
-            if matches!(termination, "trap" | "capacity") {
-                return Err(Failure::Boundary("stop", "cluster failed"));
-            }
+        Self::check_locked(&inner, me, inner.sessions[me].incarnation)?;
+        if let Some((_, message)) = inner.aborted.clone() {
             // The coordinator reports the run's own classification.
             return Err(Failure::Infrastructure(message));
         }
-        Self::check_locked(&inner, me, inner.sessions[me].incarnation)?;
         if let Some(granted) = inner.granted_at.take() {
             inner.metrics.handoff_nanos += crate::metrics::elapsed(granted);
             inner.metrics.handoff_samples += 1;
