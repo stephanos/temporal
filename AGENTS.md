@@ -162,11 +162,14 @@ a branch, opening a PR or landing on origin remains separately authorized.
   owning task in the branch name (`work/fn<N><M>-<lane>`).
 - A worktree is no longer in use once its branch is integrated into `umpire` or
   abandoned, and no process or agent still runs in it. Remove it then, in the same
-  session: `git worktree remove .worktrees/<lane>`, then `git branch -d <branch>`.
-- Never remove a worktree that has uncommitted changes or commits not in `umpire`.
-  Commit or integrate them first. If the owner must decide whether to keep them, leave
-  the worktree and report it. Use `git worktree remove --force` or `git branch -D` only
-  with the owner's approval.
+  session with `git worktree remove .worktrees/<lane>`; delete its branch with
+  `git branch -d <branch>` only when fully integrated.
+- Preserve unfinished or uncertain worktrees. The owner authorizes reclaiming a closed
+  spec's inactive checkout: retain any unmerged branch, and first checkpoint dirty
+  tracked/untracked files and unique ignored source or evidence. Verify the recovery
+  refs, patches and archives before removal; keep backups outside the deleted checkout
+  and disposable scratch. Use normal `git worktree remove`; force removal or branch
+  deletion still requires explicit approval.
 - The worker that created a worktree removes it at its handoff. At each integration
   boundary the conductor runs `git worktree list`, removes finished worktrees by the
   rules above, and runs `git worktree prune` for stale entries.
@@ -189,6 +192,28 @@ The installed Flow CLI checks committed local closures; the conductor owns branc
 integration into `umpire`. If a reinstall restores the
 publication gate, reapply `tools/flow/committed-dependencies.patch` to its scripts
 directory and run `python3 tools/flow/test_committed_dependencies.py`.
+
+### Disk checks between tasks
+
+- Run `df -h .` before admitting a task or parallel lane, and after each task's
+  integration/cleanup. Below 30 GiB free, or before a build that may exhaust the
+  remaining space, inspect `.flow/tmp`, `.worktrees` and the actual `codex-build`
+  cache location resolved from `CARGO_TARGET_DIR`/`TMPDIR` before launching more builds.
+- Reclaim in order: eligible retired worktrees under the rules above; unreferenced
+  generated test snapshots and build outputs; idle task-owned Rust and Go caches;
+  closed-spec temporary logs/receipts under Closed-spec cleanup. Compare on-disk
+  checkout directories with `git worktree list`; an unregistered directory still
+  needs source/ownership checks, and an old or open spec is not itself retirement proof.
+- Protect active workers' cache leases and other sessions, including other repositories.
+  Check process cwd/environment and ownership, not just whether Cargo is running now.
+  Keep shared or uncertain caches and a live `codex-build/tmp`; clean exact validated
+  targets rather than the entire cache parent.
+- Use `cargo clean --target-dir <idle-target>`, or isolated `GOCACHE=... go clean -cache`
+  and `GOMODCACHE=... go clean -modcache`. Retain required proof binaries, hashes,
+  manifests and source evidence before cleaning their reproducible build caches.
+- Recheck free space and report what was removed and how preserved work is recovered.
+  Disk cleanup is complete only when the selected targets are absent and protected
+  source, recovery refs and active targets remain present.
 
 <!-- flow-next:model-routing:start -->
 
