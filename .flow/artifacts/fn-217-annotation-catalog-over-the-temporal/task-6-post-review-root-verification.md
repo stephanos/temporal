@@ -40,6 +40,12 @@ Actual report and committed activity gap golden both hash to
 `a3974ea8da0f3c46234770068fe0f163d5e17529b275cea086c2292a124284a0`.
 The changed guest was tested afresh; pre-review passes were not substituted.
 
-All root build commands are terminal. Renewed timing and the single resumed
-formal implementation review remain separate gates; this artifact claims neither
-SHIP nor task/spec completion.
+The same transferred timing session 25337 terminated successfully; its durable
+exit file `.flow/tmp/fn2176-post-review-model-time-exit.txt` contains 0.
+Log: `.flow/tmp/fn2176-post-review-model-time.log`. Full gate 165.509s exceeds
+the soft 30s target; inner loop 1.954s meets the soft 10s target. Rust tests
+102.743s and Temporal Go host 59.906s dominate. This is command success, not a
+full-gate performance-target pass; no corpus or assertion was reduced.
+
+All build commands are terminal. The single resumed formal implementation
+review remains a separate gate; this artifact claims neither SHIP nor completion.
