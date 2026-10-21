@@ -22,7 +22,8 @@ Earlier Scala phases and the one-language series remain deferred in Flow and ret
 to the archived tree. The Rust follow-ups below use the owner's priority order; their individual
 readiness gates and dependencies still apply.
 
-Execution resumed under the owner's active milestone-completion goal (2026-10-20).
+Execution resumed under the owner's active milestone-completion goal (2026-10-20), renewed on
+2026-10-21; tasks run one at a time so each gate is attributable.
 fn-213, fn-215, fn-223 and fn-224 are complete locally with their completion reviews.
 fn-225 is complete locally: its single task passed implementation review, correctness and
 standards audits, and default/required-TLC gates with byte-identical goldens. fn-226 is also
@@ -105,9 +106,9 @@ Source/TLC binding in .7 is committed as a checkpoint with focused default/requi
 actual TLC proof and both static audits green. Final full verification and formal review remain
 open. The attempted full gate timed out after 600s, and its mixed guest-build inputs leave
 that attempt unattributable. The guest inputs are now committed and certified by fn-236 and
-fn-232; .7 still needs re-anchoring, fresh full gates and independent implementation review.
-The owner's request to wrap in-flight work and stop remains in force; .7 stays blocked,
-and no later task is admitted by that run.
+fn-232 (closures committed in `2fc73cc6a3`). .7 resumed on 2026-10-21 under the renewed goal:
+re-anchoring and fresh full gates are in progress, then independent implementation review.
+Later fn-227 tasks wait for .7's closure.
 On 2026-10-21 the owner approved all three contract amendments: lifecycle refinement
 in place of impossible old-byte equality; cooperative cancellation with explicit protocol
 evidence; and optional actual-request Observation evidence at tag 4. Heartbeat signals a
@@ -120,7 +121,7 @@ The review passed; each consumer still waits for its declared support dependenci
 
 | Name | Status | What |
 | --- | --- | --- |
-| fn-227.7 | ⛔ blocked | World/source/TLC checkpoint committed; re-anchor to committed guest inputs, rerun full gates and obtain independent implementation review (R1, R3) |
+| fn-227.7 | 🔄 in progress | World/source/TLC checkpoint committed; re-anchored to committed guest inputs, fresh full gates running, then independent implementation review (R1, R3) |
 | fn-227.2 | ⬜ todo | After .1 and .7: native `Finite`, typed World-dependent domains and checked catalog admission (R2) |
 | fn-227.8 | ⬜ todo | After .2 and .7: independent source inputs, exact-payload fairness and `action_inputs` TLC proof (R2, R3) |
 | fn-227.11 | ⬜ todo | After .8: source `Phased`/`reject!` and closure laws, with unchanged activity behavior (R3) |
