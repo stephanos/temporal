@@ -1,7 +1,7 @@
 {
   "schema": "gomad.go-cluster-transport-stage-corpus/v1",
   "name": "malformed-json-before-attribution",
-  "go_implementation_sha256": "79a986d3727c229f7a8abc6ad33fcc52dfde8c97318eb65fb38ea5ba0f81e618",
+  "go_implementation_sha256": "6820058471b7d9d054a5ea80c71253f5db798823ec4103e2b454d45e3bc4c67c",
   "target": {
     "node": "a",
     "incarnation": 2

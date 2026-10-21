@@ -7,6 +7,7 @@ import (
 	"encoding/json"
 	"errors"
 	"fmt"
+	"io"
 	"os"
 	"path/filepath"
 	"reflect"
@@ -56,6 +57,59 @@ func TestClusterHostTerminationStatus(t *testing.T) {
 			}
 		})
 	}
+}
+
+func TestClusterShutdownWaitsForObservedFailureDrain(t *testing.T) {
+	t.Parallel()
+	input, err := newHelperInput()
+	if err != nil {
+		t.Fatal(err)
+	}
+	input.start(nil)
+	t.Cleanup(func() {
+		if err := input.finish(); err != nil {
+			t.Error(err)
+		}
+	})
+	a, b := make(chan struct{}), make(chan struct{})
+	close(a)
+	s := &ClusterSession{
+		input: input, done: make(chan struct{}), pending: map[uint64]chan error{},
+		states: map[BrokerNode]*clusterState{
+			{ID: "a", Incarnation: 1}: {done: a, result: Result{Termination: "trap"}},
+			{ID: "b", Incarnation: 1}: {done: b},
+		},
+	}
+	controls := make(chan string, 1)
+	read := make(chan struct{})
+	go func() {
+		defer close(read)
+		line, err := bufio.NewReader(input.reader).ReadString('\n')
+		if err != nil && !errors.Is(err, io.EOF) {
+			controls <- err.Error()
+			return
+		}
+		if line != "" {
+			controls <- line
+		}
+	}()
+	finished := make(chan error, 1)
+	go func() { finished <- s.Shutdown(t.Context()) }()
+	select {
+	case control := <-controls:
+		t.Errorf("shutdown sent control after observing failure: %s", control)
+	case <-time.After(50 * time.Millisecond):
+	}
+	s.mu.Lock()
+	s.terminal = true
+	close(b)
+	close(s.done)
+	s.mu.Unlock()
+	if err := <-finished; err != nil {
+		t.Fatal(err)
+	}
+	input.closeInput()
+	<-read
 }
 
 func TestCompletedClusterResultRetainsDetachedDiagnosticStderr(t *testing.T) {

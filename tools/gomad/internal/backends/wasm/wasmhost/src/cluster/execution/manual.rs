@@ -695,7 +695,7 @@ pub(super) fn execute(
                                     termination => (termination, outcome.message.clone()),
                                 };
                                 let _ = failed.send(Event::Failed(failure.0, failure.1.clone()));
-                                coordinator.abort(failure.0, failure.1);
+                                broker.abort_terminal(index, failure.0, failure.1);
                             }),
                         )
                     }));
@@ -709,7 +709,10 @@ pub(super) fn execute(
                             // Queued before the abort wakes the other
                             // incarnations, whose aborts only follow it.
                             let _ = failed.send(Event::Failed(kind, message.clone()));
-                            coordinator.abort(kind, message.clone());
+                            broker.abort_terminal(index, kind, message.clone());
+                            if broker.terminal_failed() {
+                                coordinator.finish(index);
+                            }
                         }
                     }
                     report
