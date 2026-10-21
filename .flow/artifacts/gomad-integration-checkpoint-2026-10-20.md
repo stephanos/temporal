@@ -440,3 +440,54 @@ Cleanup receipts are
 directory. Removed generated/donor bytes are not recoverable; required copies
 remain retained and caches can be rebuilt. Unrelated `tools/gomad/.turbo/`
 remains untouched. Nothing has been pushed.
+
+## Autonomous continuation: Rust campaigns, parser bounds and cluster failures
+
+The integration branch received fn-235.1 source as `9f3364f156`, `7693689f38`
+and `dad95ac6f0`. Checkpoint `5452fcf463` tightens the existing end-to-end
+failure regression to the task's ten-second bound. On that integrated source,
+the actual three-minute-watchdog fixture passed: deadlock ended in
+4.007903127 seconds and payload capacity in 242.687459 milliseconds; retained
+inspection and replay also passed. Raw log:
+`/home/agent/wt/evidence/fn235/root-ten-second-regression.log`.
+
+Independent review found two remaining fn-235.1 defects: ordinary guest
+capacity/trap reports do not abort peers, and World cancellation in broker
+finish can overwrite capacity with infrastructure. These remain acceptance
+failures; the symmetric passing fixture does not discharge them. Repairs and
+asymmetric regressions are assigned to `/home/agent/wt/fn235-failure-repair`.
+fn-235.2 owns the separate measured commitment-cost repair in
+`/home/agent/wt/fn235`; its actual ringpop profile attributes 87.13% inclusive
+work to inspection World commitment and 75.90% self work to SHA-256.
+Before/after measurements and final acceptance remain pending.
+
+The parser-budget reproduction and repair are integrated as `be38ee5fae`
+and `3d1c24cc35`. The worker reproduced an ordinary fixture accepting eighteen
+million eager TryTable catch entries before the repair; its repaired focused
+suite passes 36 tests. Fresh integrated verification passes all 36 tests and
+`make lint-code-fast` exits 0. Independent parser review returned SHIP with
+R3/R4/R7/R8 satisfied; Flow completion was verified for fn-229.1. Evidence is
+`/home/agent/wt/evidence/fn229-budget-fix/` and the task's updated done summary.
+
+Replay and accepted artifact symbol projection are being combined in
+`/home/agent/wt/fn232-replay`, including fn-235's helper changes and a shared
+typed decision-site accessor. Task .7 develops seed campaigns against that
+provisional interface in `/home/agent/wt/fn232-campaign`; its admission does
+not waive .6 or final combined-candidate acceptance. Final role/release,
+golden/parity, cancellation and integrated review gates remain required.
+The pinned compiler/teardown cancellation gap was revalidated against current
+Wasmtime source; its existing acceptance defect and no-isolation contract
+remain unchanged. No task is completed by this checkpoint.
+
+Remaining worktrees are the main integration checkout; fn185-attribution-fix,
+fn221, fn224, fn229-budget-fix, fn229-symbolize, fn232-foundation,
+fn232-replay, fn232-campaign, fn235 and fn235-failure-repair for their open
+owners; and qualification-final-frozen for retained qualification inputs.
+The old frozen checkout's inactive `wasmhost/target/debug/incremental` cache
+was checked for live users and moved to
+`/Users/stephan/Workspace/skunkworks/gomad/.build-cache/frozen-qualification-incremental`
+after the deletion guard refused removal. This recoverable, regenerable cache
+move freed approximately 1.3 GiB on the build filesystem; retained binaries,
+source and qualification evidence stayed in place. The other host workspace's
+active Cargo targets were preserved. Unrelated `tools/gomad/.turbo/` remains
+untouched. Nothing has been pushed.
