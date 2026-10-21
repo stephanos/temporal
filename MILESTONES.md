@@ -314,7 +314,7 @@ First in the delivery order (owner decision 2026-10-20). New evidence lineage; b
 | [fn-232-gomad-rewrite-the-host-side-in-rust.2](.flow/tasks/fn-232-gomad-rewrite-the-host-side-in-rust.2.md) | 🚧 In progress | Rust evidence layer: record schema, canonical encoding, identities |
 | [fn-232-gomad-rewrite-the-host-side-in-rust.3](.flow/tasks/fn-232-gomad-rewrite-the-host-side-in-rust.3.md) | 🚧 In progress | Rust artifact store: new lineage, staged publication, budget, target pool |
 | [fn-232-gomad-rewrite-the-host-side-in-rust.4](.flow/tasks/fn-232-gomad-rewrite-the-host-side-in-rust.4.md) | 🚧 In progress | Behavioral differential harness and corpus |
-| [fn-232-gomad-rewrite-the-host-side-in-rust.5](.flow/tasks/fn-232-gomad-rewrite-the-host-side-in-rust.5.md) | ⬜ Todo | inspect in Rust |
+| [fn-232-gomad-rewrite-the-host-side-in-rust.5](.flow/tasks/fn-232-gomad-rewrite-the-host-side-in-rust.5.md) | 🚧 In progress | inspect in Rust |
 | [fn-232-gomad-rewrite-the-host-side-in-rust.6](.flow/tasks/fn-232-gomad-rewrite-the-host-side-in-rust.6.md) | ⬜ Todo | replay in Rust on the helper library tape path |
 | [fn-232-gomad-rewrite-the-host-side-in-rust.7](.flow/tasks/fn-232-gomad-rewrite-the-host-side-in-rust.7.md) | ⬜ Todo | seed explore, resume and merge in Rust |
 | [fn-232-gomad-rewrite-the-host-side-in-rust.8](.flow/tasks/fn-232-gomad-rewrite-the-host-side-in-rust.8.md) | ⬜ Todo | choice exploration and simulation exploration in Rust |
