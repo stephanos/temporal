@@ -20,7 +20,10 @@ for command in commands:
         'stdout': result.stdout, 'stderr': result.stderr}, sort_keys=True))
     assert result.returncode == 2 and 'unsupported command' in result.stderr and not result.stdout, command
 print(f'release fixture entry points absent: {len(commands)}/{len(commands)}')
-for fault in ['crash:directory_created','pause:directory_created','audit:parent_durable','before_parent_sync']:
+for fault in ['crash:directory_created','pause:directory_created','audit:parent_durable','before_parent_sync',
+              *[prefix+scope+'_'+point for scope in ('pool','layout')
+                for prefix,point in [('crash:','file_created'),('crash:','file_partial'),
+                                     ('crash:','before_file_sync'),('','file_sync_error')]]]:
     args=[binary,'fixture-publish','--root',str(output/'forbidden-store'),'--fault',fault]
     result=subprocess.run(args,capture_output=True,text=True,timeout=5)
     (output/('fault-'+fault.replace(':','-')+'.json')).write_text(json.dumps(dict(argv=args,status=result.returncode,stdout=result.stdout,stderr=result.stderr),sort_keys=True))

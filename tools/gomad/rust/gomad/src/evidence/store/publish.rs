@@ -338,6 +338,52 @@ fn retire_pending(root: &File, name: &str) -> Result<(), String> {
 }
 
 impl Store {
+    #[cfg_attr(
+        not(feature = "determinism-fixture"),
+        expect(
+            clippy::unused_self,
+            clippy::unnecessary_wraps,
+            reason = "Immutable-file faults are absent from ordinary builds"
+        )
+    )]
+    fn immutable_checkpoint(&self, module: bool, point: &str) -> Result<(), String> {
+        #[cfg(feature = "determinism-fixture")]
+        self.checkpoint(&format!(
+            "{}_{point}",
+            if module { "pool" } else { "layout" }
+        ))?;
+        let _ = (module, point);
+        Ok(())
+    }
+
+    pub(super) fn immutable_file(
+        &self,
+        root: &File,
+        name: &str,
+        bytes: &[u8],
+        module: bool,
+    ) -> Result<(), String> {
+        let mut file = File::from(
+            fs::openat(
+                root,
+                name,
+                OFlags::WRONLY | OFlags::CREATE | OFlags::EXCL | OFlags::CLOEXEC | OFlags::NOFOLLOW,
+                Mode::from_raw_mode(0o600),
+            )
+            .map_err(|error| error.to_string())?,
+        );
+        self.immutable_checkpoint(module, "file_created")?;
+        let (first, rest) = bytes.split_at(bytes.len() / 2);
+        file.write_all(first).map_err(|error| error.to_string())?;
+        self.immutable_checkpoint(module, "file_partial")?;
+        file.write_all(rest).map_err(|error| error.to_string())?;
+        self.immutable_checkpoint(module, "before_file_sync")?;
+        self.immutable_checkpoint(module, "file_sync_error")?;
+        file.sync_all().map_err(|error| error.to_string())?;
+        self.immutable_checkpoint(module, "file_durable")?;
+        self.immutable_checkpoint(module, "file_published")
+    }
+
     pub(crate) fn retire(root: &File, live: &BTreeSet<String>) -> Result<(), String> {
         let pool = open::child(root, ".targets", true, false)?;
         let _locks = ordered_roots(root, &[&pool])?
@@ -494,6 +540,18 @@ impl Store {
                 "directory_created",
                 "before_parent_sync",
                 "parent_durable",
+                "pool_file_created",
+                "pool_file_partial",
+                "pool_before_file_sync",
+                "pool_file_sync_error",
+                "pool_file_durable",
+                "pool_file_published",
+                "layout_file_created",
+                "layout_file_partial",
+                "layout_before_file_sync",
+                "layout_file_sync_error",
+                "layout_file_durable",
+                "layout_file_published",
             ]
             .contains(&point)
             {
@@ -524,7 +582,7 @@ impl Store {
             Ok(layout) if layout == open::LAYOUT => {}
             Ok(_) => return Err("unsupported artifact store layout".into()),
             Err(error) if error == rustix::io::Errno::NOENT.to_string() => {
-                write(&root, ".store.json", open::LAYOUT)?;
+                self.immutable_file(&root, ".store.json", open::LAYOUT, false)?;
                 root.sync_all().map_err(|error| error.to_string())?;
             }
             Err(error) => return Err(error),
@@ -624,9 +682,9 @@ impl Store {
                 let local = fs::fstat(&pool_root).map_err(|error| error.to_string())?;
                 let shared = fs::fstat(pool).map_err(|error| error.to_string())?;
                 if local.st_dev != shared.st_dev || local.st_ino != shared.st_ino {
-                    pool::place(pool, &pool_root, &canonical::digest(bytes), bytes)?;
+                    pool::place(self, pool, &pool_root, &canonical::digest(bytes), bytes)?;
                 }
-                pool::place(&pool_root, &directory, &basename, bytes)?;
+                pool::place(self, &pool_root, &directory, &basename, bytes)?;
             } else {
                 write(&directory, &basename, bytes)?;
             }

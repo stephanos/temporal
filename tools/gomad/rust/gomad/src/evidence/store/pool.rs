@@ -3,6 +3,7 @@ use rustix::fs::{self, AtFlags};
 use std::fs::File;
 
 pub(super) fn place(
+    store: &publish::Store,
     pool: &File,
     destination: &File,
     name: &str,
@@ -16,7 +17,7 @@ pub(super) fn place(
             }
         }
         Err(error) if error == rustix::io::Errno::NOENT.to_string() => {
-            publish::write(pool, &digest, bytes)?;
+            store.immutable_file(pool, &digest, bytes, true)?;
         }
         Err(error) => return Err(error),
     }

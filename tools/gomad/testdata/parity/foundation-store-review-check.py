@@ -13,6 +13,28 @@ def run(*args,limit=False):
     return p
 def publish(store,*args): return run('fixture-publish','--root',store,'--seed','7',*args)
 def dump(path,value): path.write_bytes(json.dumps(value,sort_keys=True,separators=(',',':')).encode())
+if not selection or selection[0]=='immutable':
+    scopes=('pool','layout') if len(selection)<2 else (selection[1],)
+    points=('file_created','file_partial','before_file_sync','file_durable','file_published') if len(selection)<3 else (selection[2],)
+    for scope in scopes:
+        for point in points:
+            store=root/(scope+'-'+point)
+            shared=root/(scope+'-'+point+'-pool')
+            options=('--pool',shared)
+            p=publish(store,*options,'--fault','crash:'+scope+'_'+point)
+            assert p.returncode==86 and not p.stdout,(scope,point,p.returncode,p.stdout,p.stderr)
+            p=publish(store,*options)
+            assert p.returncode==0,(scope,point,'normal retry',p.returncode,p.stderr)
+            artifact=pathlib.Path(json.loads(p.stdout)['artifact'])
+            assert run('fixture-open',artifact).returncode==0
+            immutable=shared/hashlib.sha256(b'(module)').hexdigest() if scope=='pool' else store/'.store.json'
+            expected=b'(module)' if scope=='pool' else b'{"schema":"gomad.artifact-store/v2","target_pool":".targets"}'
+            assert immutable.read_bytes()==expected,(scope,point)
+            p=run('fixture-publish','--root',store,'--seed','8',*options,'--fault',scope+'_file_sync_error')
+            assert p.returncode==3 and scope+'_file_sync_error' in p.stderr and not p.stdout,(scope,point,'reuse skipped file sync',p.returncode,p.stdout,p.stderr)
+            p=run('fixture-publish','--root',store,'--seed','8',*options)
+            assert p.returncode==0,(scope,point,p.returncode,p.stderr)
+            assert run('fixture-open',json.loads(p.stdout)['artifact']).returncode==0
 if not selection or selection==['pool']:
     store=root/'large-store';p=publish(store);assert p.returncode==0,p.stderr
     artifact=pathlib.Path(json.loads(p.stdout)['artifact'])
