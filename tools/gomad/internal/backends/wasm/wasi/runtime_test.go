@@ -4,8 +4,11 @@ import (
 	"bytes"
 	"crypto/sha256"
 	"encoding/binary"
+	"encoding/hex"
 	"encoding/json"
 	"errors"
+	"os"
+	"slices"
 	"strings"
 	"testing"
 
@@ -220,4 +223,201 @@ func TestRuntimeTransportForcesLogicalAlternativesAndConsumesWholeTape(t *testin
 			}
 		})
 	}
+}
+
+// runtimeCreationInput is a header v2 runnable decision: the v1 layout
+// followed by one 16-byte creation site (offset, flags, zero padding) per
+// alternative, in the guest's physical alternative order.
+func runtimeCreationInput(site uint64, siteMissing bool, identities [][32]byte, sites []uint64, selected uint32) []byte {
+	data := runtimeChoiceInput(1, site, identities, selected)
+	binary.BigEndian.PutUint32(data, 2)
+	if siteMissing {
+		binary.BigEndian.PutUint32(data[16:], uint32(choice.FlagSiteMissing))
+	}
+	for _, offset := range sites {
+		entry := make([]byte, 16)
+		binary.BigEndian.PutUint64(entry, offset)
+		if offset == 0 {
+			entry[8] = byte(choice.FlagSiteMissing)
+		}
+		data = append(data, entry...)
+	}
+	return data
+}
+
+// The Go host must record a header v2 runnable decision exactly as the
+// helper does: the shared creation-site replay-plan golden is the oracle for
+// the trace bytes and the projected tape, and that tape replays exactly.
+func TestRuntimeHeaderV2CreationSitesMatchHelperGoldenAndReplayExactly(t *testing.T) {
+	raw, err := os.ReadFile("../wasmhost/tests/testdata/replay_plan/runnable-creation-sites.json")
+	if err != nil {
+		t.Fatal(err)
+	}
+	var golden struct {
+		Identity choice.ExecutionIdentity
+		Trace    []byte
+		Expected struct {
+			Bytes  []byte
+			SHA256 string
+		}
+	}
+	if err := json.Unmarshal(raw, &golden); err != nil {
+		t.Fatal(err)
+	}
+	identity := golden.Identity
+	one, two := [32]byte{1}, [32]byte{2}
+	// Physical order differs from identity order; identity two has no site.
+	decision := runtimeCreationInput(0, true, [][32]byte{two, one}, []uint64{0, 123}, 0)
+	finish := make([]byte, 16)
+	binary.BigEndian.PutUint32(finish, 1)
+	run := func(t *testing.T, request *runnerbackend.ChoiceRequest, diagnostics bool) (choice.Trace, choice.DiagnosticTrace, []byte) {
+		t.Helper()
+		session, err := newRuntimeSession(&RuntimeControl{Seed: 7, Choice: request, Diagnostics: diagnostics})
+		if err != nil {
+			t.Fatal(err)
+		}
+		input := decision
+		if diagnostics {
+			input = append(slices.Clone(decision), make([]byte, 96)...)
+		}
+		var selected []byte
+		for _, step := range []struct {
+			op   string
+			data []byte
+		}{{"runtime_config", make([]byte, 16)}, {"runtime_decision", input}, {"runtime_finish", finish}} {
+			encoded, err := json.Marshal(bytesOutput{Data: step.data})
+			if err != nil {
+				t.Fatal(err)
+			}
+			output, err := session.handle(step.op, encoded)
+			if err != nil {
+				t.Fatalf("%s: %v", step.op, err)
+			}
+			if step.op == "runtime_decision" {
+				selected = output.Data[24:28]
+			}
+		}
+		trace, diagnostic, err := session.collect()
+		if err != nil {
+			t.Fatal(err)
+		}
+		return trace, diagnostic, selected
+	}
+	recorded, _, _ := run(t, &runnerbackend.ChoiceRequest{Mode: choice.ModeRecord, ExecutionIdentity: identity, Limit: 8192}, false)
+	if !bytes.Equal(recorded.Bytes, golden.Trace) {
+		t.Fatalf("Go host trace differs from the helper golden:\n got %x\nwant %x", recorded.Bytes, golden.Trace)
+	}
+	if got := choice.PredecisionOrdinals(recorded.Records); !slices.Equal(got, []uint64{0, 0, 0}) {
+		t.Fatalf("predecision ordinals = %v, want the decision's boundary coordinate 0", got)
+	}
+	plan, err := choice.ProjectReplayPlan(recorded, identity)
+	if err != nil || !bytes.Equal(plan.Bytes, golden.Expected.Bytes) || hex.EncodeToString(plan.SHA256[:]) != golden.Expected.SHA256 {
+		t.Fatalf("projected tape differs from the helper golden: %x %v", plan.SHA256, err)
+	}
+	t.Run("exact-replay", func(t *testing.T) {
+		request := &runnerbackend.ChoiceRequest{ExecutionIdentity: identity, Limit: 8192}
+		setChoiceReplay(t, request, choice.ModeReplay, recorded.Bytes, plan)
+		replayed, _, selected := run(t, request, false)
+		if replayed.SHA256 != recorded.SHA256 || binary.BigEndian.Uint32(selected) != 0 {
+			t.Fatalf("replay trace %x selected %x, want %x selected 0", replayed.SHA256, selected, recorded.SHA256)
+		}
+	})
+	t.Run("diagnostics-follow-trace-ordinals", func(t *testing.T) {
+		_, diagnostic, _ := run(t, &runnerbackend.ChoiceRequest{Mode: choice.ModeRecord, ExecutionIdentity: identity, Limit: 8192}, true)
+		if len(diagnostic.Records) != 3 {
+			t.Fatalf("diagnostic records = %d, want one per trace record", len(diagnostic.Records))
+		}
+		for i, record := range diagnostic.Records {
+			if record.Ordinal != uint64(i) {
+				t.Fatalf("diagnostic %d has ordinal %d", i, record.Ordinal)
+			}
+		}
+	})
+}
+
+// Header v2 widens only runnable decisions; every other layout, and any
+// creation site the helper refuses, stays an invalid boundary that records
+// nothing.
+func TestRuntimeDecisionRefusesMalformedHeaderV2Layouts(t *testing.T) {
+	identity := choice.ExecutionIdentity{TargetSHA256: sha256.Sum256([]byte("guest")), ToolchainBuildKey: strings.Repeat("a", 64), GOOS: "wasip1", GOARCH: "wasm", ImplementationSHA256: sha256.Sum256([]byte("runtime"))}
+	a, b := sha256.Sum256([]byte("a")), sha256.Sum256([]byte("b"))
+	valid := func() []byte { return runtimeCreationInput(10, false, [][32]byte{a, b}, []uint64{5, 0}, 0) }
+	for _, test := range []struct {
+		name      string
+		input     func() []byte
+		dimension string
+	}{
+		{"header-3", func() []byte { data := valid(); binary.BigEndian.PutUint32(data, 3); return data }, "runtime decision header"},
+		{"v2-runnable-without-sites", func() []byte {
+			data := runtimeChoiceInput(1, 10, [][32]byte{a, b}, 0)
+			binary.BigEndian.PutUint32(data, 2)
+			return data
+		}, "runtime decision alternatives or layout"},
+		{"v1-runnable-with-sites", func() []byte { data := valid(); binary.BigEndian.PutUint32(data, 1); return data }, "runtime decision alternatives or layout"},
+		{"v2-select-poll-with-sites", func() []byte { data := valid(); binary.BigEndian.PutUint32(data[4:], 2); return data }, "runtime decision alternatives or layout"},
+		{"truncated-site", func() []byte { data := valid(); return data[:len(data)-1] }, "runtime decision alternatives or layout"},
+		{"site-flag", func() []byte { data := valid(); data[96+8] = 1; return data }, "runtime creation site"},
+		{"site-padding", func() []byte { data := valid(); data[96+15] = 1; return data }, "runtime creation site"},
+		{"missing-site-offset", func() []byte { data := valid(); data[96+16+7] = 1; return data }, "runtime creation site"},
+	} {
+		t.Run(test.name, func(t *testing.T) {
+			session, err := newRuntimeSession(&RuntimeControl{Choice: &runnerbackend.ChoiceRequest{Mode: choice.ModeRecord, ExecutionIdentity: identity, Limit: 8192}})
+			if err != nil {
+				t.Fatal(err)
+			}
+			for _, step := range []struct {
+				op   string
+				data []byte
+			}{{"runtime_config", make([]byte, 16)}, {"runtime_decision", test.input()}} {
+				encoded, err := json.Marshal(bytesOutput{Data: step.data})
+				if err != nil {
+					t.Fatal(err)
+				}
+				_, err = session.handle(step.op, encoded)
+				if step.op == "runtime_config" {
+					if err != nil {
+						t.Fatal(err)
+					}
+					continue
+				}
+				var boundary *BoundaryError
+				if !errors.As(err, &boundary) || boundary.Kind != "invalid" || boundary.Dimension != test.dimension {
+					t.Fatalf("malformed decision = %v, want invalid %q", err, test.dimension)
+				}
+			}
+			if len(session.records) != 0 {
+				t.Fatalf("refused decision recorded %d records", len(session.records))
+			}
+		})
+	}
+	t.Run("valid", func(t *testing.T) {
+		session, err := newRuntimeSession(&RuntimeControl{Choice: &runnerbackend.ChoiceRequest{Mode: choice.ModeRecord, ExecutionIdentity: identity, Limit: 8192}})
+		if err != nil {
+			t.Fatal(err)
+		}
+		for _, step := range [][2]any{{"runtime_config", make([]byte, 16)}, {"runtime_decision", valid()}} {
+			encoded, _ := json.Marshal(bytesOutput{Data: step[1].([]byte)})
+			if _, err := session.handle(step[0].(string), encoded); err != nil {
+				t.Fatal(err)
+			}
+		}
+		if len(session.records) != 3 || session.records[2].Ordinal != 2 || session.records[2].Kind != choice.KindRunnable {
+			t.Fatalf("valid header v2 decision records = %+v", session.records)
+		}
+	})
+	t.Run("capacity-counts-creation-records", func(t *testing.T) {
+		// Room for two records, but the decision needs three.
+		session, err := newRuntimeSession(&RuntimeControl{Choice: &runnerbackend.ChoiceRequest{Mode: choice.ModeRecord, ExecutionIdentity: identity, Limit: 64 + 2*96}})
+		if err != nil {
+			t.Fatal(err)
+		}
+		for _, step := range [][2]any{{"runtime_config", make([]byte, 16)}, {"runtime_decision", valid()}} {
+			encoded, _ := json.Marshal(bytesOutput{Data: step[1].([]byte)})
+			_, err = session.handle(step[0].(string), encoded)
+		}
+		var boundary *BoundaryError
+		if !errors.As(err, &boundary) || boundary.Kind != "capacity" || len(session.records) != 0 {
+			t.Fatalf("over-capacity creation decision = %v records=%d", err, len(session.records))
+		}
+	})
 }

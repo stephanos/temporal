@@ -572,7 +572,7 @@ func TestRunPassesChoiceProfileToExecutorAndArtifact(t *testing.T) {
 			t.Error(err)
 		}
 	})
-	if opened.Manifest().ChoiceProfile == nil || opened.Manifest().ChoiceProfile.Trace.Schema != "gomad.choice-trace/v3" || opened.Manifest().ChoiceProfile.Trace.Limit != record.Uint64String(limit) || opened.Manifest().ChoiceProfile.Trace.TapeSHA256 == "" {
+	if opened.Manifest().ChoiceProfile == nil || opened.Manifest().ChoiceProfile.Trace.Schema != record.CurrentChoiceTraceSchema || opened.Manifest().ChoiceProfile.Trace.Limit != record.Uint64String(limit) || opened.Manifest().ChoiceProfile.Trace.TapeSHA256 == "" {
 		t.Fatalf("artifact choice profile = %#v", opened.Manifest().ChoiceProfile)
 	}
 }

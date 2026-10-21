@@ -1,7 +1,7 @@
 {
   "branch_name": "fn-224-gomad-ringpop-membership-on-wasm-within",
-  "completion_review_status": "unknown",
-  "completion_reviewed_at": null,
+  "completion_review_status": "ship",
+  "completion_reviewed_at": "2026-10-21T20:10:07.309879Z",
   "created_at": "2026-10-19T16:37:34.073952Z",
   "default_impl": null,
   "default_review": null,
@@ -202,7 +202,7 @@
     "plan": 0
   },
   "spec_path": ".flow/specs/fn-224-gomad-ringpop-membership-on-wasm-within.md",
-  "status": "open",
+  "status": "done",
   "title": "Gomad: ringpop membership on WASM within reason",
   "tracker": {
     "baseHashFlow": null,
@@ -215,5 +215,5 @@
     "mergeBaseTracker": null,
     "url": null
   },
-  "updated_at": "2026-10-21T17:59:12.431056Z"
+  "updated_at": "2026-10-21T20:10:07.624577Z"
 }

@@ -5,6 +5,14 @@
   "seeds": [7, 8],
   "profiles": ["gomad.wasi-stock-exploratory/v1", "gomad.wasi-cooperative/v1"],
   "goldens": ["goldens-replay/replay.json", "goldens-replay/runtime.json", "goldens-replay/network-ordinary-scheduled.json", "goldens-replay/network-faults-scheduled.json", "goldens-replay/network-ordinary-empty.json", "goldens-replay/network-faults-original.json", "goldens-replay/cluster-public.json", "goldens-replay/cluster-api-failure.json", "goldens-replay/cluster-api-alternate.json", "goldens-replay/cluster-api-success.json"],
+  "cluster_reference": {
+    "decision": "pinned pre-v4 Go producer for World/cluster/registered comparisons; newest Go v4 publication refusal is supplementary regression evidence",
+    "source_revision": "46aca8c3ec72dd233310341741426da5fbb7e2be",
+    "source_archive": "source-46aca8c3ec.tar.gz",
+    "source_archive_sha256": "d981c0d868564b0f89a0db9c6d54892fa433f80f9e4ae4d7fd6b0aa2c7b291e2",
+    "go_binary_sha256": "fef8769b8f6b01a30097222bb4e1d41fa99fec5b1649f83a5992988d2447aca0",
+    "go_helper_sha256": "71f7dc4760f3c5ba2cfd957978aa0f636940f866ea21f018c9c9967ddc2199df"
+  },
   "projection": {
     "record": "exact canonical bytes; no normalization",
     "manifest": "exact canonical bytes; all payload identities retained",

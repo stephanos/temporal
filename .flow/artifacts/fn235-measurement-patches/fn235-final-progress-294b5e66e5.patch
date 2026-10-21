@@ -1,0 +1,38 @@
+diff --git a/tools/gomad/internal/backends/wasm/wasmhost/src/clock.rs b/tools/gomad/internal/backends/wasm/wasmhost/src/clock.rs
+index 5d78cf97f7..ca9d656a60 100644
+--- a/tools/gomad/internal/backends/wasm/wasmhost/src/clock.rs
++++ b/tools/gomad/internal/backends/wasm/wasmhost/src/clock.rs
+@@ -182,6 +182,8 @@ fn quote(name: &str) -> String {
+ const INACTIVE: &str = "simulation time participant is inactive";
+ 
+ pub struct Clock {
++    measure_started: std::time::Instant,
++    measure_next: std::cell::Cell<usize>,
+     current: i64,
+     forward: bool,
+     /// Live participants by handle; a removed handle is absent, so it stays
+@@ -205,6 +207,8 @@ impl Clock {
+     /// Go `NewProcessClock(forward)`.
+     pub fn process(forward: bool) -> Self {
+         Self {
++            measure_started: std::time::Instant::now(),
++            measure_next: std::cell::Cell::new(0),
+             current: INITIAL_TIME,
+             forward,
+             participants: BTreeMap::new(),
+@@ -216,6 +220,15 @@ impl Clock {
+     }
+ 
+     pub fn current(&self) -> i64 {
++        if let Some(seconds) = [10i64, 60, 120].get(self.measure_next.get())
++            && self.current - INITIAL_TIME >= seconds * 1_000_000_000
++        {
++            use std::io::Write as _;
++            self.measure_next.set(self.measure_next.get() + 1);
++            let path = format!("/home/agent/wt/evidence/fn235/commitment/progress-{}.jsonl", std::process::id());
++            let mut output = std::fs::OpenOptions::new().create(true).append(true).open(path).unwrap();
++            writeln!(output, "{{\"milestone_seconds\":{seconds},\"virtual_nanos\":{},\"wall_nanos\":{}}}", self.current - INITIAL_TIME, self.measure_started.elapsed().as_nanos()).unwrap();
++        }
+         self.current
+     }
+ 

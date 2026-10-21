@@ -23,7 +23,7 @@
     "environment": [
       {
         "name": "GOMAD_CHOICE_PROFILE",
-        "value": "gomad-choice-trace/v3"
+        "value": "gomad-choice-trace/v4"
       },
       {
         "name": "GOMAD_IO_PROFILE",
@@ -44,7 +44,7 @@
     "environment": [
       {
         "name": "GOMAD_CHOICE_PROFILE",
-        "value": "gomad-choice-trace/v3"
+        "value": "gomad-choice-trace/v4"
       },
       {
         "name": "GOMAD_IO_PROFILE",

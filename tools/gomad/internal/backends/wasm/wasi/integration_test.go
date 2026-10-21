@@ -482,11 +482,15 @@ func TestCooperativeGoGuestForcesExactReplay(t *testing.T) {
 					extra.Ordinal = uint64(len(records))
 					records = append(records, extra)
 				case "kind":
+					// A select poll carries no creation metadata.
+					records, target = withoutCreationMetadata(records, target)
 					records[target].Kind = choice.KindSelectPoll
 				case "site":
 					records[target].Flags &^= choice.FlagSiteMissing
 					records[target].SiteOffset++
 				case "enabled":
+					// Creation metadata is bound to the recorded alternative set.
+					records, target = withoutCreationMetadata(records, target)
 					records[target].AlternativeSetDigest = sha256.Sum256([]byte("inapplicable alternatives"))
 				}
 				altered, buildErr := choice.BuildTrace(records, choice.TerminalComplete)
@@ -3996,4 +4000,22 @@ func TestDiagnosticHelperStderrIsSeparateFromGuestEvidence(t *testing.T) {
 	if len(result.Stdout) != 0 || len(result.Stderr) != 0 || len(result.Transcript) != 0 || result.Calls != 0 {
 		t.Fatalf("helper diagnostics entered guest evidence: stdout=%q stderr=%q transcript=%q calls=%d", result.Stdout, result.Stderr, result.Transcript, result.Calls)
 	}
+}
+
+// withoutCreationMetadata drops the v4 creation records of the decision at
+// target and renumbers the trace, returning the decision's new index.
+func withoutCreationMetadata(records []choice.Record, target int) ([]choice.Record, int) {
+	start := target
+	for start > 0 && records[start-1].Kind == choice.KindGoroutineCreation {
+		start--
+	}
+	removed := uint64(target - start)
+	records = slices.Delete(records, start, target)
+	for index := range records {
+		records[index].Ordinal = uint64(index)
+		if records[index].Kind == choice.KindSelectResult && records[index].Origin >= uint64(target) {
+			records[index].Origin -= removed
+		}
+	}
+	return records, start
 }

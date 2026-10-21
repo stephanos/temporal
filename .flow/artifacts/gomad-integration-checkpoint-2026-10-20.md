@@ -1177,3 +1177,116 @@ normalization of failure status or qualification claim is authorized.
 Independent review: every item is met except current-candidate qualification of the rotated contract, so .2 stays open, blocked on fn-232.13, and fn-235 stays open. Evidence: `.flow/artifacts/fn235-commitment-cost-2026-10-21.md`. Helper identity: no new rotation. This work merged no helper source; the cohort used private 10 s-checkpoint builds that are not for release.
 
 Temporary worktrees: `fn224-premerge`, `fn224-at92c6`, `fn235-measure-before`, `fn235-measure-after` and `fn235-measure-after-tipsrc` hold the evidence candidates. They are retained until fn-224.2 and fn-235.2 close. Nothing was pushed.
+
+### fn232.6 replay closure (worker A, 2026-10-21)
+
+fn232.6 is done. The conductor decision (owner-delegated) pins the World/cluster/registered Go comparisons
+to an explicit pre-v4 producer, declared as `cluster_reference` in replay-corpus.json and enforced by
+replay-lane.py. It consists of launcher fef8769b (no-VCS builds of 294b5e66e5 and 46aca8c3ec are identical),
+helper 71f7dc47 (a fresh compile of 46aca8c3ec reproduces it) and the 46aca8c3ec archive. The extracted
+tree is authenticated against that archive before use. Bundle:
+`/home/agent/wt/evidence/fn232/go-cluster-baseline-46aca8c3ec`. The newest Go v3-only publication refusal
+stays supplementary regression evidence; the Go validator was not patched and nothing was normalized.
+
+Fresh roles were built after package cleans with asserted `Compiling` lines (candidate-v3:
+fixture 31b3187b, release 6db9daa2, stress 496339c5, determinism e869f407, helper 8ca97310). A build
+from an older-mtime tree silently reused newer artifacts; this confirms the cache mechanism, and every
+build now cleans first. Master regeneration1b and 2c pass with byte-identical goldens; strictb and
+strictc (with source pin) pass. Five attempts failed only on 30s/60s inspection-search wall budgets
+under shared-host load (load 6-27). Each is preserved with a note; budgets are unchanged. These
+searches need about 3.3s per evaluation at load 5-7, so future lane runs need a quiet slot (1-minute load below 2.5).
+The runtime stock-profile delta is input-driven (retained 2x2 control). Independent codex review returned
+NEEDS_WORK (two findings, both fixed), then re-review SHIP. Evidence: `/home/agent/wt/evidence/fn232-replay-closeout`.
+Commits 5e9e6dd9aa, 30db0b985d, 0a7186e73f on fn232-replay. .7 is now running in fn232-campaign.
+
+### Go host v4 compatibility repair, 2026-10-21
+
+Conductor decision under MILESTONES' Rust-host order: this is the smallest sweep-blocking Go host change. Its R-IDs are noted for the Rust verb. Branch `go-host-v4-compat` has two commits:
+
+- `acc4b06853` is the repair.
+- `051ef6e504` updates tests and identity pins.
+
+Helper source, the Rust host, budgets, oracles and Temporal tests are unchanged.
+
+- **Owners.** fn-230 R12, a post-closure regression repair: fn-230.3 shipped header v2 and trace v4 in `38572d7e49` without the Go host. fn-228 R4 and R9: the Go reference session lacked the tape attestation that `dd00c57f70` added. The Rust verb is fn-232.6 R5, and its task records the semantics it must keep.
+- **Repair.**
+  - `wasi/runtime.go` mirrors the helper's runtime decision import (`wasmhost/src/model/imports.rs`). It accepts header v1 and v2. It requires 48-byte strides only for v2 runnable decisions. It refuses bad site flags, nonzero padding and a missing site that has an offset. It sorts creation records by identity, checks their capacity before forcing a replay decision, appends them before the decision, and stamps every diagnostic with its record ordinal.
+  - Inspection boundaries carry the pre-decision trace length (`model/inspection.rs`). Cluster inspection and the determinism observer therefore map decisions through `choice.PredecisionOrdinals`.
+  - Execution records pair each profile with its own schema: v4 is current, v3 is retained. Crossed pairs fail closed.
+  - The Go-owned `runtime.collect` path attests the consumed tape's SHA-256 and decision count.
+- **Regressions, RED on tip and GREEN on the branch.**
+  - Installed-operator control `TestInstalledOperatorDiscoversInspectsAndReplaysWithoutBuildInputs/gomad.wasi-cooperative/v1`.
+  - `TestRuntimeHeaderV2CreationSitesMatchHelperGoldenAndReplayExactly`, which uses the helper's `replay_plan/runnable-creation-sites.json` golden. The Go trace and tape match byte for byte, and exact replay works.
+  - `TestRuntimeDecisionRefusesMalformedHeaderV2Layouts`.
+  - `TestInspectionChoiceMappingUsesPredecisionCoordinateForCreationSites`.
+  - `TestFinalizeManifestPairsChoiceProfileWithItsTraceSchema`.
+- **Stale pins from `38572d7e49`.** The compiled model identity and 123 Go/Rust corpus pins are refreshed. The only change in them is `implementation_sha256`. The Rust pin file is read only by `#[cfg(test)]` corpus modules, so helper bytes are unchanged. Two v3-shaped wasi integration tests are rebound to v4.
+- **Gates.**
+  - Affected packages (evidence, choice, backends, wasi, cluster, determinism, backend, runner): 2 pre-existing failures remain in each of 2 packages.
+    - `backend` `TestInspectionRetainedCluster{NetworkStoppedPrefix,TargetsRestartedIncarnation}` fail identically at `92c69594f2`, so they are not v4-related.
+    - `runner` `TestCampaignOptions{,Legacy}Characterization` still pin the v3 profile name inside hash-pinned characterization goldens. They are left for fn-230.3's corpus owner, with no normalization.
+  - The tip baseline had 82 top-level failures in these packages.
+  - Rust `corpus` tests pass. `make lint-code-gomad` and `make lint-code-fast` (base `gomad`), gofmt and `TestWASMArchitecture` pass. `make validate` was not needed: no generator or protocol input changed.
+- **End to end.** All nine fn-224.2 ringpop leaves pass over seeds 0, 1 and 2 (27/27), and 27/27 standalone replays report `reproduced=true choice-replay=exact`. These include empty tapes and non-empty v4 tapes of up to 4,194 decisions.
+- **Review.** Two independent `codex review` passes, on the commit and on the branch, found no actionable regressions.
+- **Evidence.** `/home/agent/wt/evidence/go-host-v4-compat/`.
+
+### Closed-spec cleanup after fn-224 and fn-235 closure, 2026-10-21
+
+fn-224 (3c71f9e398) and fn-235 (f0e8a0e945) are closed. Under the closed-spec cleanup
+policy the conductor removed their nine worktrees (fn224, fn224-premerge, fn224-at92c6,
+fn235, fn235-measure-{before,after,after-tipsrc}, fn235-progress, fn235-final-progress),
+branches fn224-ringpop, fn235-cluster-fail-fast, fn235-failure-repair and the merged
+go-host-v4-compat, private Cargo targets, `/home/agent/wt/evidence/fn224`,
+`/home/agent/wt/evidence/fn235` and the fn235 `.build-cache` roots. Every branch commit is
+in `gomad` by ancestry or equivalent subject (d7f9599fcc → 503f7afd1a, b71292bd58 →
+e6b57b653c). The uncommitted private measurement instrumentation is retained as
+`.flow/artifacts/fn235-measurement-patches/`. The open fn-221.2 input
+`fn221-linkcount-affected-units.txt` was transferred byte-identically to
+`/home/agent/wt/evidence/fn221/`. fn-232.13's fn-235 R5 receiver needs a fresh frozen
+Rust run, not the deleted raw cohort; results remain in
+`.flow/artifacts/fn235-commitment-cost-2026-10-21.md`. Free space rose from 53 to 78 GiB.
+
+### Runner characterization goldens after the v4 repair, 2026-10-21
+
+Owner: fn-230 R12 post-closure repair, the same owner as the Go host v4 repair above. Worker D
+refreshed the two runner goldens that the v4 repair left on the v3 profile name:
+
+- `testdata/campaign-options-before.json` (`TestCampaignOptionsCharacterization`). Only the two
+  `GOMAD_CHOICE_PROFILE` values change, v3 to v4. Two captures with
+  `GOMAD_CAPTURE_OPTIONS_BASELINE=1` agree byte for byte. They differ from the pinned file only in the
+  `mount-limits` row's host-dependent error, which the test already substitutes when `/tmp` exists,
+  so the pinned row is kept. `campaign-options-request-after.json` is regenerated twice with
+  `GOMAD_CAPTURE_OPTIONS_AFTER=1`, and both captures are byte-identical to the committed file.
+- `testdata/campaign_options_characterization.json` (`TestCampaignOptionsLegacyCharacterization`)
+  previously had no capture path. It gains `GOMAD_CAPTURE_OPTIONS_LEGACY=1`, modeled on the
+  other test. Portable builds cannot observe isolated errors, so the capture keeps the pinned ones.
+  Two captures are byte-identical. After mapping v3 to v4 in the old file, the 16-line diff is three
+  `environment` profile names and three derived `plan_sha256` values (seed observation, choice and
+  simulation exploration), plus the two pinned plan bodies that differ only in the profile name.
+  Every pinned plan hash authenticates its bytes. Request and legacy-request hashes, selections,
+  errors and every other field are unchanged. There are no other findings.
+- `go test ./internal/runner` passes (exit 0).
+- Not refreshed: `diagnostic-identity-choices{,-native,-portable}.json` still name v3. Their only
+  consumers are `TestExternalBackendTransportPreservesPortableNativeRecordSemantics`, which passes,
+  and `TestDiagnosticsOffPreservesExistingIdentities`, which skips off darwin/arm64. That darwin
+  baseline is probably stale too. It can only be regenerated on darwin/arm64, so it stays open
+  under the same owner.
+
+`backend` `TestInspectionRetainedCluster{NetworkStoppedPrefix,TargetsRestartedIncarnation}` were
+rerun on tip `1ce16a6bd9` with `GOMAD_STOCK_GO` and a private tip helper build
+(`/home/agent/wt/fn232-qualify-target-tip/release/gomad-wasmhost`).
+
+- NetworkStoppedPrefix: the retained inspection metadata has no boundary for handle `b/1`
+  (line 261).
+- TargetsRestartedIncarnation: the campaign fails in `finish simulation` with `unsupported or
+  incomplete WASM inspection evidence: executed incarnation inventory`. The Go validator
+  `validateInspectionExecution` finds that the executed incarnations do not match the inspection
+  metadata after a restart.
+
+Both are real behavioral failures, not just the missing-compiler failure that fn-223 recorded
+(`fullmodule-failure-classification.tsv` rows 1620/1623). They predate the v4 repair. Their owner
+is fn-232.13's fn-223 full-module live-behavior receiver, which lists both tests and maps them
+to the final Rust lanes. Fixing them would be Go host work outside the delivery order, so they are
+left unchanged and are not small fixes. The Rust cluster inspection lanes must cover both
+behaviors. Evidence: `/home/agent/wt/evidence/fn230-r12-characterization-repair/`.
