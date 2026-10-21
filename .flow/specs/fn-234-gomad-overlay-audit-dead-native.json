@@ -1,0 +1,131 @@
+{
+  "branch_name": "fn-234-gomad-overlay-audit-dead-native",
+  "completion_review_status": "unknown",
+  "completion_reviewed_at": null,
+  "created_at": "2026-10-20T23:23:20.171281Z",
+  "default_impl": null,
+  "default_review": null,
+  "default_sync": null,
+  "depends_on_epics": [],
+  "id": "fn-234-gomad-overlay-audit-dead-native",
+  "impl_review_rounds": {},
+  "next_task": 1,
+  "plan_review_rounds": 0,
+  "plan_review_status": "ship",
+  "plan_reviewed_at": "2026-10-21T00:34:59.676581Z",
+  "review_attempts": [
+    {
+      "artifact_sha256": "cebf85a85883ef0cd3a346936df2a7722b59f26ad9b72dc3434507ba4fc0e859",
+      "backend": "codex",
+      "base_sha": "951c5516e9e7b3066e7e069adda9565cfd68844c",
+      "counter_kind": "plan",
+      "effort": "high",
+      "failure_class": null,
+      "finalized": {
+        "digest": "complete",
+        "receipt": "complete",
+        "status": "complete"
+      },
+      "findings_digest": {
+        "backend": "codex",
+        "digest_truncated": false,
+        "items": [
+          {
+            "chainRoot": "finding-bb67d2ee29d89e2fc3416f231605e42d",
+            "classification": "introduced",
+            "findingId": "finding-bb67d2ee29d89e2fc3416f231605e42d",
+            "firstSeenThisRound": true,
+            "severity": "P1",
+            "status": "open"
+          }
+        ],
+        "reviewKind": "plan"
+      },
+      "forced": false,
+      "hash_epoch": 0,
+      "head_sha": "56d39c316ce031220597bcaf0f63fc0c0607f873",
+      "head_sha_observed": true,
+      "kind": "plan",
+      "model": "gpt-6.1-sol",
+      "outcome": "verdict",
+      "output_bytes": 592013,
+      "output_sha256": "578c614470084192e4bab157a5eb93172f5bc5f57da67e7abb553250297f0848",
+      "reservation_id": "5848fbb8e71949fcaba64845bcb43c03",
+      "round_consumed": true,
+      "scope": "plan",
+      "superseded_by": null,
+      "task": null,
+      "timestamp": "2026-10-21T00:32:58.141787Z",
+      "tool_calls": 36,
+      "verdict": "NEEDS_WORK"
+    },
+    {
+      "artifact_sha256": "faf680bd0c90fc2ae7cf2d14d77d01a8b64fad18116ecccc45352318245148c3",
+      "backend": "codex",
+      "base_sha": "951c5516e9e7b3066e7e069adda9565cfd68844c",
+      "counter_kind": "plan",
+      "effort": "high",
+      "failure_class": null,
+      "finalized": {
+        "digest": "complete",
+        "receipt": "complete",
+        "status": "complete"
+      },
+      "findings_digest": {
+        "backend": "codex",
+        "digest_truncated": false,
+        "items": [
+          {
+            "chainRoot": "finding-bb67d2ee29d89e2fc3416f231605e42d",
+            "classification": "introduced",
+            "findingId": "finding-bb67d2ee29d89e2fc3416f231605e42d",
+            "firstSeenThisRound": false,
+            "severity": "P1",
+            "status": "fixed"
+          }
+        ],
+        "reviewKind": "plan"
+      },
+      "forced": false,
+      "hash_epoch": 0,
+      "head_sha": "e393fe7e89af47047ea441705092def7435691e2",
+      "head_sha_observed": true,
+      "kind": "plan",
+      "model": "gpt-6.1-sol",
+      "outcome": "verdict",
+      "output_bytes": 542,
+      "output_sha256": "5b576059e5945df4295cb09ab53a78718d76ff1d9d1768d2ed07f4ba8a86204b",
+      "reservation_id": "708c5a5ce2d448bbb79f0a3433ec6302",
+      "round_consumed": true,
+      "scope": "plan",
+      "superseded_by": null,
+      "task": null,
+      "timestamp": "2026-10-21T00:34:59.670930Z",
+      "verdict": "SHIP"
+    }
+  ],
+  "review_hash_epoch": {
+    "plan": 1,
+    "plan#completion": 0
+  },
+  "review_pending_rounds": {},
+  "review_reservations": {},
+  "review_transport_failures": {
+    "plan": 0
+  },
+  "spec_path": ".flow/specs/fn-234-gomad-overlay-audit-dead-native.md",
+  "status": "open",
+  "title": "Gomad: overlay audit, dead native leftovers and inspection split",
+  "tracker": {
+    "baseHashFlow": null,
+    "baseHashTracker": null,
+    "depRelations": [],
+    "id": null,
+    "identifier": null,
+    "lastSyncedAt": null,
+    "mergeBaseFlow": null,
+    "mergeBaseTracker": null,
+    "url": null
+  },
+  "updated_at": "2026-10-21T00:34:59.677605Z"
+}

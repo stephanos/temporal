@@ -1,0 +1,16 @@
+{
+  "assignee": null,
+  "claim_note": "",
+  "claimed_at": null,
+  "created_at": "2026-10-20T23:23:53.675463Z",
+  "depends_on": [
+    "fn-234-gomad-overlay-audit-dead-native.1"
+  ],
+  "id": "fn-234-gomad-overlay-audit-dead-native.2",
+  "priority": null,
+  "spec": "fn-234-gomad-overlay-audit-dead-native",
+  "spec_path": ".flow/tasks/fn-234-gomad-overlay-audit-dead-native.2.md",
+  "status": "todo",
+  "title": "Split inspection code out of the wasip1 runtime overlay with the declaration and behavioral gates",
+  "updated_at": "2026-10-21T00:34:16.829905Z"
+}

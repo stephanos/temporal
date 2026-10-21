@@ -1,0 +1,14 @@
+{
+  "assignee": null,
+  "claim_note": "",
+  "claimed_at": null,
+  "created_at": "2026-10-20T23:23:53.380166Z",
+  "depends_on": [],
+  "id": "fn-234-gomad-overlay-audit-dead-native.1",
+  "priority": null,
+  "spec": "fn-234-gomad-overlay-audit-dead-native",
+  "spec_path": ".flow/tasks/fn-234-gomad-overlay-audit-dead-native.1.md",
+  "status": "todo",
+  "title": "Delete the dead Go 1.27.1 intercept list and proven-unreferenced overlay leftovers",
+  "updated_at": "2026-10-20T23:23:53.380166Z"
+}
