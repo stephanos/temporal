@@ -36,7 +36,13 @@ policy in AGENTS.md. Remove empty spec sections. Keep descriptions to one line a
 spec sections to task tables—no progress prose. Refresh statuses from `flowctl list --json`;
 a committed source candidate is not completed acceptance.
 
-Status: 🚧 In progress · ⛔ Blocked · ⬜ Todo.
+Activity: 🚧 Running · ⏸ Parked · ⛔ Blocked · ⬜ Todo.
+Running and parked both retain Flow's `in_progress` lifecycle status. Running means
+work is executing now; parked means unfinished work with no active execution.
+Parking neither completes acceptance nor waives dependencies.
+
+Execution scope (2026-10-21): finish the running fn-232.6 replay closeout, then stop.
+Do not start the parked or todo tasks as part of this closeout.
 
 Work a spec with `/flow-next:work <spec>`; list ready tasks with `flowctl ready`.
 Record a deferred task's revival trigger in its owning Flow task before implementation.
@@ -265,27 +271,27 @@ CI, PR, or push authority.
 
 | Name / ID | Status | Description |
 | --- | --- | --- |
-| [fn-221.2](.flow/tasks/fn-221-gomad-functional-suite-triage-sweep-on.2.md) | 🚧 In progress | Run the full sweep and retain the support matrix |
+| [fn-221.2](.flow/tasks/fn-221-gomad-functional-suite-triage-sweep-on.2.md) | ⏸ Parked | Run the full sweep and retain the support matrix |
 | [fn-221.3](.flow/tasks/fn-221-gomad-functional-suite-triage-sweep-on.3.md) | ⬜ Todo | Rank reasons and recommend follow-on specs |
 
 ### One-box qualification and per-test support claim — [fn-222](.flow/specs/fn-222-gomad-qualify-the-one-box-cell-and.md)
 
 | Name / ID | Status | Description |
 | --- | --- | --- |
-| [fn-222.1](.flow/tasks/fn-222-gomad-qualify-the-one-box-cell-and.1.md) | 🚧 In progress | Qualify the one-box cell on the current candidate |
+| [fn-222.1](.flow/tasks/fn-222-gomad-qualify-the-one-box-cell-and.1.md) | ⏸ Parked | Qualify the one-box cell on the current candidate |
 
 ### WASM determinism boundary audit — [fn-188](.flow/specs/fn-188-gomad-wasm-determinism-boundary-audit.md)
 
 | Name / ID | Status | Description |
 | --- | --- | --- |
-| [fn-188.5](.flow/tasks/fn-188-gomad-wasm-determinism-boundary-audit.5.md) | 🚧 In progress | Same-seed stress producer with host perturbation axes and retained report |
+| [fn-188.5](.flow/tasks/fn-188-gomad-wasm-determinism-boundary-audit.5.md) | ⏸ Parked | Same-seed stress producer with host perturbation axes and retained report |
 | [fn-188.6](.flow/tasks/fn-188-gomad-wasm-determinism-boundary-audit.6.md) | ⬜ Todo | Regression gates, version pinning, validate wiring and the documented contract |
 
 ### Map-order determinism repairs — [fn-227](.flow/specs/fn-227-gomad-close-wasm-map-order-determinism.md)
 
 | Name / ID | Status | Description |
 | --- | --- | --- |
-| [fn-227.1](.flow/tasks/fn-227-gomad-close-wasm-map-order-determinism.1.md) | 🚧 In progress | Sort live-node shutdown and invalid-volume validation with behavioral regressions and qualification |
+| [fn-227.1](.flow/tasks/fn-227-gomad-close-wasm-map-order-determinism.1.md) | ⏸ Parked | Sort live-node shutdown and invalid-volume validation with behavioral regressions and qualification |
 
 ### Ringpop membership on WASM within reason — [fn-224](.flow/specs/fn-224-gomad-ringpop-membership-on-wasm-within.md)
 
@@ -293,9 +299,9 @@ Owner decision 2026-10-19: support ringpop enough to verify a multi-node members
 
 | Name / ID | Status | Description |
 | --- | --- | --- |
-| [fn-224.1](.flow/tasks/fn-224-gomad-ringpop-membership-on-wasm-within.1.md) | 🚧 In progress | Unstub ringpop in the slim guest and record the module size delta |
-| [fn-224.2](.flow/tasks/fn-224-gomad-ringpop-membership-on-wasm-within.2.md) | 🚧 In progress | Run the ringpop unit tests under the cooperative profile and classify every outcome |
-| [fn-224.3](.flow/tasks/fn-224-gomad-ringpop-membership-on-wasm-within.3.md) | 🚧 In progress | Add a multi-node ringpop partition/heal scenario and document it |
+| [fn-224.1](.flow/tasks/fn-224-gomad-ringpop-membership-on-wasm-within.1.md) | ⏸ Parked | Unstub ringpop in the slim guest and record the module size delta |
+| [fn-224.2](.flow/tasks/fn-224-gomad-ringpop-membership-on-wasm-within.2.md) | ⏸ Parked | Run the ringpop unit tests under the cooperative profile and classify every outcome |
+| [fn-224.3](.flow/tasks/fn-224-gomad-ringpop-membership-on-wasm-within.3.md) | ⏸ Parked | Add a multi-node ringpop partition/heal scenario and document it |
 
 ### Fail cluster runs fast on exhausted limits — [fn-235](.flow/specs/fn-235-gomad-fail-cluster-runs-fast-and.md)
 
@@ -303,13 +309,13 @@ Owner decision 2026-10-21: an exhausted limit must not be silent. Found in fn-22
 
 | Name / ID | Status | Description |
 | --- | --- | --- |
-| [fn-235-gomad-fail-cluster-runs-fast-and.2](.flow/tasks/fn-235-gomad-fail-cluster-runs-fast-and.2.md) | 🚧 In progress | Measure and remove superlinear World inspection commitment cost in long cluster runs |
+| [fn-235-gomad-fail-cluster-runs-fast-and.2](.flow/tasks/fn-235-gomad-fail-cluster-runs-fast-and.2.md) | ⏸ Parked | Measure and remove superlinear World inspection commitment cost in long cluster runs |
 
 ### WASM host-side execution cost profile — [fn-185](.flow/specs/fn-185-gomad-wasm-host-side-execution-cost.md)
 
 | Name / ID | Status | Description |
 | --- | --- | --- |
-| [fn-185.1](.flow/tasks/fn-185-gomad-wasm-host-side-execution-cost.1.md) | 🚧 In progress | Attribute host imports to exact ops and model owners in the diagnostic profile with reconciliation |
+| [fn-185.1](.flow/tasks/fn-185-gomad-wasm-host-side-execution-cost.1.md) | ⏸ Parked | Attribute host imports to exact ops and model owners in the diagnostic profile with reconciliation |
 | [fn-185.2](.flow/tasks/fn-185-gomad-wasm-host-side-execution-cost.2.md) | ⬜ Todo | Capture wall and CPU profiles on the cluster and single-guest workloads |
 | [fn-185.3](.flow/tasks/fn-185-gomad-wasm-host-side-execution-cost.3.md) | ⬜ Todo | Rank cost centers and record the single optimization verdict |
 
@@ -319,11 +325,11 @@ First in the delivery order (owner decision 2026-10-20). New evidence lineage; b
 
 | Name / ID | Status | Description |
 | --- | --- | --- |
-| [fn-232-gomad-rewrite-the-host-side-in-rust.1](.flow/tasks/fn-232-gomad-rewrite-the-host-side-in-rust.1.md) | 🚧 In progress | gomad binary crate linking the helper library; in-process execution with slots and bounds |
-| [fn-232-gomad-rewrite-the-host-side-in-rust.6](.flow/tasks/fn-232-gomad-rewrite-the-host-side-in-rust.6.md) | 🚧 In progress | replay in Rust on the helper library tape path |
-| [fn-232-gomad-rewrite-the-host-side-in-rust.7](.flow/tasks/fn-232-gomad-rewrite-the-host-side-in-rust.7.md) | 🚧 In progress | seed explore, resume and merge in Rust |
-| [fn-232-gomad-rewrite-the-host-side-in-rust.8](.flow/tasks/fn-232-gomad-rewrite-the-host-side-in-rust.8.md) | 🚧 In progress | choice exploration and simulation exploration in Rust |
-| [fn-232-gomad-rewrite-the-host-side-in-rust.9](.flow/tasks/fn-232-gomad-rewrite-the-host-side-in-rust.9.md) | 🚧 In progress | minimize in Rust |
+| [fn-232-gomad-rewrite-the-host-side-in-rust.1](.flow/tasks/fn-232-gomad-rewrite-the-host-side-in-rust.1.md) | ⏸ Parked | gomad binary crate linking the helper library; in-process execution with slots and bounds |
+| [fn-232-gomad-rewrite-the-host-side-in-rust.6](.flow/tasks/fn-232-gomad-rewrite-the-host-side-in-rust.6.md) | 🚧 Running | replay in Rust on the helper library tape path |
+| [fn-232-gomad-rewrite-the-host-side-in-rust.7](.flow/tasks/fn-232-gomad-rewrite-the-host-side-in-rust.7.md) | ⏸ Parked | seed explore, resume and merge in Rust |
+| [fn-232-gomad-rewrite-the-host-side-in-rust.8](.flow/tasks/fn-232-gomad-rewrite-the-host-side-in-rust.8.md) | ⏸ Parked | choice exploration and simulation exploration in Rust |
+| [fn-232-gomad-rewrite-the-host-side-in-rust.9](.flow/tasks/fn-232-gomad-rewrite-the-host-side-in-rust.9.md) | ⏸ Parked | minimize in Rust |
 | [fn-232-gomad-rewrite-the-host-side-in-rust.10](.flow/tasks/fn-232-gomad-rewrite-the-host-side-in-rust.10.md) | ⬜ Todo | qualify in Rust |
 | [fn-232-gomad-rewrite-the-host-side-in-rust.11](.flow/tasks/fn-232-gomad-rewrite-the-host-side-in-rust.11.md) | ⬜ Todo | install, doctor, discover, plan and recover in Rust |
 | [fn-232-gomad-rewrite-the-host-side-in-rust.12](.flow/tasks/fn-232-gomad-rewrite-the-host-side-in-rust.12.md) | ⬜ Todo | Keep Go overlay, models, generator and corpora green under the Rust binary |
@@ -346,7 +352,7 @@ Interleave with the Rust host: fn-229 after fn-232.5 inspect, fn-230 after fn-23
 
 | Name / ID | Status | Description |
 | --- | --- | --- |
-| [fn-230-gomad-explore-site-scope-for-choice.1](.flow/tasks/fn-230-gomad-explore-site-scope-for-choice.1.md) | 🚧 In progress | Site scope flag, pattern validation and resolution against the base trace |
+| [fn-230-gomad-explore-site-scope-for-choice.1](.flow/tasks/fn-230-gomad-explore-site-scope-for-choice.1.md) | ⏸ Parked | Site scope flag, pattern validation and resolution against the base trace |
 
 | Name / ID | Status | Description |
 | --- | --- | --- |
