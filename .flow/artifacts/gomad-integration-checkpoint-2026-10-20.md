@@ -1145,3 +1145,35 @@ artifact. The complete master must rerun with genuinely current ordinary and
 role binaries, repeated audited goldens and a final integrated strict run before
 independent task .6 review or closure. No Go production patch, bound widening,
 normalization of failure status or qualification claim is authorized.
+
+### fn-224 integration and fn-235.2 measurement, 2026-10-21
+
+**fn-224.** `fn224-ringpop` was merged with `gomad` (`87fcc5e24e`, `502e7ce811`, both conflict-free) and integrated as `2256f61d7a`.
+
+- Done:
+  - .1 unstub. Gates on the merge exit 0. Module delta is +1.01%.
+  - .3 partition/heal scenario. On evidence candidate `39694cd12b` = `92c69594f2` + fn-224, seeds 7 and 19 both pass the retained fault-phase proof, and the successful convergence artifacts replay with `reproduced=true`.
+- One-box cells with ringpop linked on the fn-224 tip: `./tests/gomadfunctional` `TestFrontendSystemInfo` and the mandatory `./tests` smoke both succeed with their leaf PASS lines.
+- Blocked: .2. Its 27/27 leaves pass, but standalone `--choices` replay fails with `choice trace malformed` (Go-host attestation, `dd00c57f70`).
+- Review: the independent re-review returned SHIP-WITH-FIXES and the fixes are applied. The first round's NEEDS-WORK caught a one-box run that selected the wrong package and ran no tests; that run is superseded.
+- Evidence: `.flow/artifacts/fn224-ringpop-scenario-2026-10-21.md`, "Merge with gomad"; raw data under `/home/agent/wt/evidence/fn224/candidate{2,3}/` and `review2/`.
+
+**Go host broken at the tip, fn-232 owner.** Since `38572d7e49` (runtime decision header v2 / choice trace v4), the Go launcher at the `gomad` tip cannot complete any cooperative execution:
+
+- `wasi/runtime.go:156` accepts only header v1;
+- `cluster/inspection.go:46` reports `decision/trace mapping`;
+- `evidence/record/validation.go:433` requires trace v3 (`invalid choice trace identity`).
+
+`TestInstalledOperatorDiscoversInspectsAndReplaysWithoutBuildInputs/gomad.wasi-cooperative/v1` fails at the tip and passes at `92c69594f2`.
+
+**fn-235.2.** The matched ABBA cohort compared before (`e6b832e036`) with after (`92c69594f2`, which has the same inspection source as the tip), 3 counted pairs plus warmups, 10 s checkpoints, the checked-in ringpop scenario at 120 s:
+
+- Before grows from 4.6 to 17.9 wall s per virtual s between the 10–60 and 60–120 windows.
+- After is flat within spread: post-heal 0.209/0.206/0.187 s/s, within-run ratios 1.22/0.90/0.72.
+- Median command wall drops 25.9×.
+- Canonical World, network and choice records are unchanged. The inspection v2 and helper identity rotations are declared.
+- All after-side runs replay with `reproduced=true`. Helper corpora and cluster/world/network Go tests on the tip pass.
+
+Independent review: every item is met except current-candidate qualification of the rotated contract, so .2 stays open, blocked on fn-232.13, and fn-235 stays open. Evidence: `.flow/artifacts/fn235-commitment-cost-2026-10-21.md`. Helper identity: no new rotation. This work merged no helper source; the cohort used private 10 s-checkpoint builds that are not for release.
+
+Temporary worktrees: `fn224-premerge`, `fn224-at92c6`, `fn235-measure-before`, `fn235-measure-after` and `fn235-measure-after-tipsrc` hold the evidence candidates. They are retained until fn-224.2 and fn-235.2 close. Nothing was pushed.

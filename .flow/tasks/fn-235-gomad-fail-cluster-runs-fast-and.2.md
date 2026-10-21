@@ -10,10 +10,16 @@ Found in fn-224.3 (DIAGNOSIS.md): a three-node ringpop scenario slows from ~3 s 
 
 ## Acceptance
 - [ ] Fresh retained replay of the actual measured long-running workload reproduces its commitment/evidence and outcome; timing results and generic golden scenarios alone do not close R5. Any changed commitment contract has explicit identity rotation and the required current-candidate qualification; rotation alone is not acceptance.
-- [ ] Retained measurement of wall per virtual second over a long three-node run, before and after, same host and window, with repeated runs, median/range, exact source/helper/module/configuration identities and commands
-- [ ] Profile attributes the cost to a named site before any change
-- [ ] Wall per virtual second stays flat (within measured spread) across the run after the fix; commitment and replay identities unchanged or explicitly rotated
-- [ ] Golden scenario corpora stay green
+- [x] Retained measurement of wall per virtual second over a long three-node run, before and after, same host and window, with repeated runs, median/range, exact source/helper/module/configuration identities and commands
+- [x] Profile attributes the cost to a named site before any change
+- [x] Wall per virtual second stays flat (within measured spread) across the run after the fix; commitment and replay identities unchanged or explicitly rotated
+- [x] Golden scenario corpora stay green
+
+**Status (2026-10-21):** measured, fixed and independently reviewed. Evidence: `.flow/artifacts/fn235-commitment-cost-2026-10-21.md`; raw data under `/home/agent/wt/evidence/fn235/cohort/`. The review is `/home/agent/wt/evidence/fn235/review/codex.out`, verdict NEEDS-WORK on one item: every acceptance item is met except current-candidate qualification of the rotated inspection contract.
+
+- Fresh retained replay of the measured workload reproduces on the measured candidate `92c69594f2`.
+- Qualification on the frozen current candidate waits on fn-232.13, so this task stays open until those receipts are reconciled into the artifact.
+- No further measurement or source change is needed.
 
 ## Done summary
 TBD
