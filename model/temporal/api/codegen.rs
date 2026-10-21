@@ -27,5 +27,7 @@ pub(crate) fn generate(
             files.file.push(file);
         }
     }
+    // Same-package definitions are emitted in descriptor file order.
+    files.file.sort_by(|a, b| a.name.cmp(&b.name));
     config.compile_fds(files)
 }
