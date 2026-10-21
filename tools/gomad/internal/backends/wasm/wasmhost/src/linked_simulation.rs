@@ -26,8 +26,31 @@ pub fn execute(
     prepared
         .simulation(controller.clone())
         .map_err(|error| error.to_string())?;
-    let mut cluster =
-        crate::linked_cluster::execute_prepared(prepared).map_err(|error| error.to_string())?;
+    let mut cluster = match crate::linked_cluster::execute_prepared(prepared) {
+        Ok(cluster) => cluster,
+        Err(error) => {
+            if controller
+                .lock()
+                .map_err(|_| "simulation exploration controller poisoned")?
+                .divergence()
+                .is_none()
+            {
+                return Err(error.to_string());
+            }
+            crate::linked_cluster::Execution {
+                outcome: crate::protocol::Outcome::new(
+                    "instrumentation_divergence",
+                    error.to_string(),
+                ),
+                incarnations: Vec::new(),
+                world: Vec::new(),
+                network: Vec::new(),
+                inspection: Vec::new(),
+                virtual_elapsed_nanos: 0,
+                event_order: None,
+            }
+        }
+    };
     let mut controller = controller
         .lock()
         .map_err(|_| "simulation exploration controller poisoned")?;
