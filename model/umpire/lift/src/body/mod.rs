@@ -4,12 +4,13 @@ use crate::{
     tree::{FieldDef, WorldField},
 };
 use quote::ToTokens;
-use std::collections::BTreeMap;
+use std::collections::{BTreeMap, BTreeSet};
 use syn::{Expr as RustExpr, Stmt};
 
 mod claim;
 mod effects;
 mod expr;
+mod inputs;
 mod progress;
 mod typer;
 mod vector;
@@ -75,6 +76,10 @@ pub(crate) struct Environment<'a> {
     pub(crate) helpers: BTreeMap<String, syn::ImplItemFn>,
     pub(crate) methods: BTreeMap<String, syn::ImplItemFn>,
     pub(crate) vector_imported: bool,
+    /// Local fieldless enums deriving `Finite`.
+    pub(crate) finite: BTreeSet<String>,
+    /// Free functions admitted as World-dependent `#[domain]` sources; bodies are not read.
+    pub(crate) domain_functions: BTreeMap<String, syn::ItemFn>,
 }
 impl Environment<'_> {
     fn err<T>(&self, node: &impl ToTokens, message: impl Into<String>) -> Result<T> {

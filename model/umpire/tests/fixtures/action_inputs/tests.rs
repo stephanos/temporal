@@ -1,0 +1,212 @@
+use crate::action_inputs::inputs;
+use umpire_dsl::{CATALOG_LIMIT, Claim, Machine};
+
+std::thread_local! {
+    static SELECTION: std::cell::Cell<u8> = const { std::cell::Cell::new(0) };
+}
+
+/// The golden World polls up to two attempts and has no skip slots; the second World allows
+/// three attempts and two skip slots.
+fn choose_world() -> inputs::World {
+    match SELECTION.get() {
+        0 => inputs::World::new(2, 0),
+        _ => inputs::World::new(3, 2),
+    }
+}
+
+umpire_testing::fixture!(
+    choose_world(),
+    64,
+    Claim::new("never_retried", |_, state: &inputs::Model| (state.attempt == 1).into())
+);
+
+fn selected<T>(selection: u8, operation: impl FnOnce() -> T) -> T {
+    let previous = SELECTION.replace(selection);
+    let result = operation();
+    SELECTION.set(previous);
+    result
+}
+
+#[test]
+fn two_selected_worlds_differ_in_domains_counts_transitions_and_verdicts()
+-> umpire_testing::TestResult {
+    for (selection, actions, states, edges, vacuity, current) in
+        [(0, 4, 6, 16, true, "Verified"), (1, 7, 18, 84, false, "Refuted")]
+    {
+        selected(selection, || -> umpire_testing::TestResult {
+            assert_eq!(choose_world().checked_catalog(CATALOG_LIMIT)?.actions().len(), actions);
+            let files = run()?;
+            assert_eq!(files["states.txt"].lines().count(), states);
+            assert_eq!(files["rows.txt"].lines().count(), edges, "{}", files["rows.txt"]);
+            assert_eq!(files["rows.txt"].contains("Worker::Skip"), !vacuity);
+            let report = &files["negative_report.txt"];
+            assert_eq!(report.contains("vacuity: variant Worker::Skip has no actions"), vacuity);
+            assert!(report.contains(&format!("claim current_poll_settles: {current}")), "{report}");
+            for claim in
+                ["never_retried", "stale_poll_settles", "excluded_poll_settles", "settles_within_four"]
+            {
+                assert!(report.contains(&format!("claim {claim}: Refuted")), "{report}");
+            }
+            Ok(())
+        })?;
+    }
+    Ok(())
+}
+
+#[test]
+fn each_source_binding_carries_its_selected_catalog_into_every_configuration()
+-> umpire_testing::TestResult {
+    let modules = [0, 1]
+        .map(|selection| selected(selection, || crate::lifted("action_inputs")));
+    let [first, second] = modules;
+    let (first, second) = (first?, second?);
+    for (module, catalog, skip, constants) in [
+        (
+            &first,
+            4,
+            "Worker_Skip_Inputs == <<>>\n",
+            "CONSTANT __umpire_world_attempts = 2\nCONSTANT __umpire_world_spares = 0\n",
+        ),
+        (
+            &second,
+            7,
+            "Worker_Skip_Inputs == <<<<5, 0>>, <<6, 1>>>>\n",
+            "CONSTANT __umpire_world_attempts = 3\nCONSTANT __umpire_world_spares = 2\n",
+        ),
+    ] {
+        assert_eq!(module.metadata.catalog.len(), catalog);
+        assert!(module.tla.contains(skip), "{}", module.tla);
+        let metadata = &module.metadata;
+        for cfg in std::iter::once(&module.cfg)
+            .chain(metadata.invariants.iter().map(|claim| &claim.cfg))
+            .chain(metadata.postconditions.iter().map(|claim| &claim.cfg))
+            .chain(metadata.negative.iter().map(|claim| &claim.cfg))
+            .chain(metadata.progress.iter().map(|claim| &claim.cfg))
+        {
+            assert!(cfg.contains(constants), "{cfg}");
+        }
+    }
+    assert_eq!(
+        first.metadata.catalog[0],
+        umpire_lift::Concrete {
+            action: "Worker::Poll".into(),
+            fields: vec![("0".into(), umpire_lift::Literal::Int(1))],
+        }
+    );
+    assert_eq!(
+        first.metadata.catalog[2],
+        umpire_lift::Concrete {
+            action: "Worker::Fail".into(),
+            fields: vec![("retryable".into(), umpire_lift::Literal::Bool(false))],
+        }
+    );
+    let fair = |module: &umpire_lift::Module, claim: &str| {
+        module.metadata.progress.iter().find(|progress| progress.name == claim).map(|progress| {
+            (progress.allowed_inputs.clone(), progress.fair_inputs.clone())
+        })
+    };
+    assert_eq!(fair(&first, "excluded_poll_settles"), Some((vec![1, 2, 3], vec![1])));
+    assert_eq!(fair(&second, "excluded_poll_settles"), Some((vec![1, 2, 3, 4, 5, 6], vec![1])));
+    Ok(())
+}
+
+#[test]
+#[allow(clippy::print_stderr)]
+fn actual_tlc_agrees_and_replays_in_both_selected_worlds() -> umpire_testing::TestResult {
+    if std::env::var("UMPIRE_BACKENDS").as_deref() != Ok("require") {
+        eprintln!("input World control skipped: no TLC evidence (set UMPIRE_BACKENDS=require)");
+        return Ok(());
+    }
+    let folder = std::path::Path::new(env!("CARGO_MANIFEST_DIR")).join("fixtures/action_inputs");
+    for (selection, states, verdict, replayed) in [(0, 6, "Verified", 4), (1, 18, "Refuted", 5)] {
+        selected(selection, || -> umpire_testing::TestResult {
+            let report = &crate::render_tlc(run, &folder)?["tlc.txt"];
+            assert!(report.contains(&format!("states: {states}; native: {states}; agreement: yes")));
+            assert!(report.contains(&format!("claim current_poll_settles: {verdict}")), "{report}");
+            assert!(report.contains(&format!("counterexamples replayed: {replayed}")), "{report}");
+            Ok(())
+        })?;
+    }
+    Ok(())
+}
+
+/// One progress claim of the emitted module, checked alone after replacing `from` by `to`.
+fn mutated(
+    module: &umpire_lift::Module,
+    claim: &str,
+    edits: &[(&str, &str)],
+) -> Result<umpire_tlc::Verdict, Box<dyn std::error::Error>> {
+    let mut reduced = module.clone();
+    for (from, to) in edits {
+        if !reduced.tla.contains(from) {
+            return Err(format!("mutation target missing: {from}").into());
+        }
+        reduced.tla = reduced.tla.replace(from, to);
+    }
+    reduced.metadata.progress.retain(|progress| progress.name == claim);
+    reduced.metadata.invariants.clear();
+    reduced.metadata.postconditions.clear();
+    reduced.metadata.negative.clear();
+    reduced.cfg = module
+        .cfg
+        .lines()
+        .filter(|line| !line.starts_with("INVARIANT") && !line.starts_with("PROPERTY"))
+        .flat_map(|line| [line, "\n"])
+        .collect();
+    let root = std::path::Path::new(env!("CARGO_MANIFEST_DIR")).join("../../..");
+    let result = umpire_tlc::Tlc::discover(&root)?.check_module(&reduced)?;
+    Ok(result.properties[&format!("Progress_{claim}")].verdict)
+}
+
+#[test]
+fn exact_payload_fairness_mutations_disagree_with_the_native_verdicts()
+-> umpire_testing::TestResult {
+    use umpire_tlc::Verdict::{Refuted, Verified};
+    if std::env::var("UMPIRE_BACKENDS").as_deref() != Ok("require") {
+        return Ok(());
+    }
+    let module = selected(0, || crate::lifted("action_inputs"))?;
+    let fair = "Fair_current_poll_settles_Worker_Poll_2 == (__umpire_pending = 1) /\\ Worker_Poll_At(2)";
+    let readmitted = " /\\ WF_vars(Fair_excluded_poll_settles_Worker_Poll_2)";
+    for (claim, edits, native, mutant) in [
+        // One obligation over the existential union is discharged by stale self-loops.
+        (
+            "current_poll_settles",
+            vec![
+                (
+                    " /\\ WF_vars(Fair_current_poll_settles_Worker_Poll_1) /\\ WF_vars(Fair_current_poll_settles_Worker_Poll_2)",
+                    " /\\ WF_vars((__umpire_pending = 1) /\\ Worker_Poll /\\ Monitor_current_poll_settles)",
+                ),
+            ],
+            Verified,
+            Refuted,
+        ),
+        // Only the emitted fair payload changes: the second attempt's Poll is owed nothing.
+        (
+            "current_poll_settles",
+            vec![(fair, "Fair_current_poll_settles_Worker_Poll_2 == (__umpire_pending = 1) /\\ Worker_Poll_At(1)")],
+            Verified,
+            Refuted,
+        ),
+        // Fair membership readmitting the excluded first attempt.
+        (
+            "excluded_poll_settles",
+            vec![
+                (
+                    "Assumption_first_excluded == (\\E __umpire_i \\in {2} : Worker_Poll_At(__umpire_i))",
+                    "Assumption_first_excluded == (Worker_Poll)",
+                ),
+                (
+                    readmitted,
+                    " /\\ WF_vars(Fair_excluded_poll_settles_Worker_Poll_2) /\\ WF_vars((__umpire_pending = 1) /\\ Worker_Poll_At(1) /\\ Monitor_excluded_poll_settles)",
+                ),
+            ],
+            Refuted,
+            Verified,
+        ),
+    ] {
+        assert_eq!(mutated(&module, claim, &[])?, native, "{claim}");
+        assert_eq!(mutated(&module, claim, &edits)?, mutant, "{claim} mutant");
+    }
+    Ok(())
+}

@@ -5,7 +5,7 @@ use std::{
     fmt::Write,
 };
 use umpire_dsl::Machine;
-use umpire_lift::{Module, Type};
+use umpire_lift::{Concrete, Literal, Module, Type};
 use umpire_tlc::{State, Value};
 
 fn debug_value(ty: &Type, value: &Value) -> Result<String, Box<dyn std::error::Error>> {
@@ -68,7 +68,6 @@ pub fn check_machine<M: Machine>(
 }
 
 /// Execute an independently emitted module against a retained native exploration and starts.
-#[allow(clippy::print_stderr)]
 pub fn check_exploration<M: Machine>(
     world: &M,
     starts: &[M::State],
@@ -76,6 +75,36 @@ pub fn check_exploration<M: Machine>(
     module: &Module,
     folder: &std::path::Path,
     native: &crate::Files,
+) -> crate::RunResult {
+    exploration(world, starts, native_graph, module, folder, native, None)
+}
+
+/// Like [`check_exploration`], replaying input-bearing edges by catalog ordinal: the native
+/// catalog action at that ordinal must project, through the generated typed `identity`, to
+/// exactly the emitted concrete identity.
+#[expect(clippy::too_many_arguments, reason = "The typed identity extends the shared route")]
+pub fn check_typed_exploration<M: Machine>(
+    world: &M,
+    starts: &[M::State],
+    native_graph: &umpire_checker::Result<M>,
+    module: &Module,
+    folder: &std::path::Path,
+    native: &crate::Files,
+    identity: &dyn Fn(&M::Action) -> Concrete,
+) -> crate::RunResult {
+    exploration(world, starts, native_graph, module, folder, native, Some(identity))
+}
+
+#[allow(clippy::print_stderr)]
+#[expect(clippy::too_many_arguments, reason = "The typed identity extends the shared route")]
+fn exploration<M: Machine>(
+    world: &M,
+    starts: &[M::State],
+    native_graph: &umpire_checker::Result<M>,
+    module: &Module,
+    folder: &std::path::Path,
+    native: &crate::Files,
+    identity: Option<&dyn Fn(&M::Action) -> Concrete>,
 ) -> crate::RunResult {
     let root = folder
         .ancestors()
@@ -120,7 +149,7 @@ pub fn check_exploration<M: Machine>(
             .ok_or_else(|| format!("TLC returned undeclared property {operator}"))?;
         verdicts.insert(name.to_owned(), format!("{:?}", property.verdict));
         if let Some(trace) = property.trace {
-            replay(world, starts, module, &native_states, &trace)?;
+            replay(world, starts, module, &native_states, &trace, identity)?;
             replayed += 1;
         }
     }
@@ -136,6 +165,7 @@ fn replay<M: Machine>(
     module: &Module,
     native: &BTreeMap<String, &M::State>,
     trace: &umpire_tlc::Trace,
+    identity: Option<&dyn Fn(&M::Action) -> Concrete>,
 ) -> crate::TestResult {
     if trace.states.is_empty() {
         return Err("empty TLC counterexample".into());
@@ -158,7 +188,7 @@ fn replay<M: Machine>(
         let tick_after =
             after.observers.get("__umpire_edge_tick").ok_or("missing next edge tick")?;
         if tick_before == tick_after {
-            validate_projection(before, after)?;
+            validate_projection(module, before, after)?;
             continue;
         }
         let Some(Value::Text(action_name)) = after.observers.get("__umpire_action") else {
@@ -167,12 +197,15 @@ fn replay<M: Machine>(
         let Some(Value::Int(choice)) = after.observers.get("__umpire_choice") else {
             return Err("counterexample lacks choice identity".into());
         };
-        let action = world
-            .checked_catalog(umpire_dsl::CATALOG_LIMIT)?
-            .into_actions()
-            .into_iter()
-            .find(|action| action.to_string() == *action_name)
-            .ok_or("TLC action is not in Model catalog")?;
+        let catalog = world.checked_catalog(umpire_dsl::CATALOG_LIMIT)?.into_actions();
+        let action = if module.metadata.catalog.is_empty() {
+            catalog
+                .into_iter()
+                .find(|action| action.to_string() == *action_name)
+                .ok_or("TLC action is not in Model catalog")?
+        } else {
+            typed_action(module, catalog, after, action_name, identity)?
+        };
         let state =
             native.get(&before_text).ok_or("TLC trace predecessor is not reachable natively")?;
         let steps = native_steps(world, state, action)?;
@@ -195,14 +228,80 @@ fn replay<M: Machine>(
     Ok(())
 }
 
+/// The native action at the decoded catalog ordinal, after validating the emitted identity
+/// against the typed metadata and the generated native projection; never by display text.
+fn typed_action<A>(
+    module: &Module,
+    catalog: Vec<A>,
+    after: &umpire_tlc::TraceState,
+    action_name: &str,
+    identity: Option<&dyn Fn(&A) -> Concrete>,
+) -> Result<A, Box<dyn std::error::Error>> {
+    let Some(Value::Int(ordinal)) = after.observers.get(INPUT) else {
+        return Err("counterexample lacks input identity".into());
+    };
+    let ordinal = usize::try_from(*ordinal)?;
+    let entry =
+        module.metadata.catalog.get(ordinal).ok_or("TLC input ordinal is outside the catalog")?;
+    if entry.action != action_name {
+        return Err(format!(
+            "TLC input ordinal {ordinal} is {}, not the edge's action {action_name}",
+            entry.action
+        )
+        .into());
+    }
+    let declared = module
+        .metadata
+        .actions
+        .iter()
+        .find(|action| action.name == entry.action)
+        .ok_or("TLC input names an undeclared action")?;
+    if entry.fields.len() != declared.fields.len()
+        || !entry
+            .fields
+            .iter()
+            .zip(&declared.fields)
+            .all(|((name, value), field)| *name == field.name && admits(&field.ty, value))
+    {
+        return Err(
+            format!("TLC input ordinal {ordinal} does not match its declared fields").into()
+        );
+    }
+    let identity = identity.ok_or("an input catalog requires the typed native identity")?;
+    let action = catalog
+        .into_iter()
+        .nth(ordinal)
+        .ok_or("TLC input ordinal is outside the native catalog")?;
+    if identity(&action) != *entry {
+        return Err(format!("native catalog ordinal {ordinal} differs from the TLC input").into());
+    }
+    Ok(action)
+}
+
+fn admits(ty: &Type, value: &Literal) -> bool {
+    match (ty, value) {
+        (Type::Bool, Literal::Bool(_)) => true,
+        (Type::Int { min, max }, Literal::Int(value)) => (*min..=*max).contains(value),
+        (Type::Enum { variants, .. }, Literal::Enum(value)) => variants.contains(value),
+        _ => false,
+    }
+}
+
+const INPUT: &str = "__umpire_input";
+
 fn validate_projection(
+    module: &Module,
     before: &umpire_tlc::TraceState,
     after: &umpire_tlc::TraceState,
 ) -> crate::TestResult {
     if before.state != after.state {
         return Err("observer-only TLC step changes Model state".into());
     }
-    for name in ["__umpire_action", "__umpire_choice", "__umpire_outcome", "__umpire_facts"] {
+    let input = (!module.metadata.catalog.is_empty()).then_some(INPUT);
+    for name in ["__umpire_action", "__umpire_choice", "__umpire_outcome", "__umpire_facts"]
+        .into_iter()
+        .chain(input)
+    {
         if before.observers.get(name) != after.observers.get(name) {
             return Err(format!("observer-only TLC step changes edge field {name}").into());
         }
@@ -379,9 +478,8 @@ mod tests {
         }
     }
 
-    #[test]
-    fn replay_uses_retained_starts_without_enumerating_again() -> crate::TestResult {
-        let module = Module {
+    fn module(actions: Vec<umpire_lift::Action>, catalog: Vec<Concrete>) -> Module {
+        Module {
             name: "RetainedStarts".into(),
             tla: String::new(),
             cfg: String::new(),
@@ -389,7 +487,8 @@ mod tests {
                 state_name: "Model".into(),
                 world_path: String::new(),
                 fields: vec![umpire_lift::Field { name: "value".into(), ty: Type::Bool }],
-                actions: Vec::new(),
+                actions,
+                catalog,
                 invariants: Vec::new(),
                 postconditions: Vec::new(),
                 progress: Vec::new(),
@@ -398,7 +497,12 @@ mod tests {
                 observer_types: BTreeMap::new(),
                 outcome_type: Type::Unit,
             },
-        };
+        }
+    }
+
+    #[test]
+    fn replay_uses_retained_starts_without_enumerating_again() -> crate::TestResult {
+        let module = module(Vec::new(), Vec::new());
         let starts = ["Model { value: false }".to_owned()];
         let native = starts.iter().map(|state| (state.clone(), state)).collect();
         let trace = umpire_tlc::Trace {
@@ -408,12 +512,123 @@ mod tests {
             }],
             back_to: None,
         };
-        std::panic::catch_unwind(|| replay(&RetainedStarts, &starts, &module, &native, &trace))
-            .map_err(|_| "backend replay re-enumerated authored starts")??;
-        let error = replay(&RetainedStarts, &[], &module, &native, &trace)
+        std::panic::catch_unwind(|| {
+            replay(&RetainedStarts, &starts, &module, &native, &trace, None)
+        })
+        .map_err(|_| "backend replay re-enumerated authored starts")??;
+        let error = replay(&RetainedStarts, &[], &module, &native, &trace, None)
             .err()
             .ok_or("replay accepted a counterexample outside the retained starts")?;
         assert!(error.to_string().contains("does not begin at a Model start"), "{error}");
+        Ok(())
+    }
+
+    #[derive(Clone, Debug, PartialEq, Eq, Hash)]
+    struct Polled(u8);
+
+    impl std::fmt::Display for Polled {
+        fn fmt(&self, out: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+            write!(out, "Model {{ value: {} }}", self.0)
+        }
+    }
+
+    /// `Poll(1)` advances from 0; `Poll(2)` is never enabled.
+    struct Polls;
+
+    impl Machine for Polls {
+        type State = Polled;
+        type Action = u8;
+        type Outcome = ();
+        type Fact = ();
+
+        fn starts(&self) -> Vec<Polled> {
+            vec![Polled(0)]
+        }
+        fn actions(&self) -> Vec<u8> {
+            vec![1, 2]
+        }
+        fn internal(&self, _: &u8) -> bool {
+            false
+        }
+        fn step(&self, state: &Polled, action: u8) -> umpire_dsl::Steps<Polled, (), ()> {
+            let mut steps = umpire_dsl::Steps::new();
+            if state.0 == 0 && action == 1 {
+                steps.push(((), Vec::new(), Polled(1)));
+            }
+            steps
+        }
+    }
+
+    fn poll(value: i128) -> Concrete {
+        Concrete { action: "Poll".into(), fields: vec![("0".into(), Literal::Int(value))] }
+    }
+
+    fn polled(value: i128, tick: bool, action: &str, input: i128) -> umpire_tlc::TraceState {
+        umpire_tlc::TraceState {
+            state: State::from([("value".into(), Value::Int(value))]),
+            observers: State::from([
+                ("__umpire_edge_tick".into(), Value::Bool(tick)),
+                ("__umpire_action".into(), Value::Text(action.into())),
+                ("__umpire_choice".into(), Value::Int(0)),
+                ("__umpire_outcome".into(), Value::Seq(Vec::new())),
+                ("__umpire_facts".into(), Value::Seq(Vec::new())),
+                (INPUT.into(), Value::Int(input)),
+            ]),
+        }
+    }
+
+    #[test]
+    fn typed_replay_identifies_the_exact_catalog_payload() -> crate::TestResult {
+        let actions = vec![umpire_lift::Action {
+            name: "Poll".into(),
+            operator: "Poll".into(),
+            internal: false,
+            fields: vec![umpire_lift::Field { name: "0".into(), ty: Type::Int { min: 0, max: 3 } }],
+        }];
+        let mut valid = module(actions, vec![poll(1), poll(2)]);
+        valid.metadata.fields[0].ty = Type::Int { min: 0, max: 1 };
+        valid
+            .metadata
+            .observer_types
+            .insert("__umpire_facts".into(), Type::Seq(Box::new(Type::Unit)));
+        let starts = [Polled(0)];
+        let native = BTreeMap::from([("Model { value: 0 }".to_owned(), &starts[0])]);
+        let identity = |action: &u8| poll(i128::from(*action));
+        let trace = |after: umpire_tlc::TraceState| umpire_tlc::Trace {
+            states: vec![polled(0, false, "", 0), after],
+            back_to: None,
+        };
+        let check = |module: &Module, after, identity: Option<&dyn Fn(&u8) -> Concrete>| {
+            replay(&Polls, &starts, module, &native, &trace(after), identity)
+        };
+        check(&valid, polled(1, true, "Poll", 0), Some(&identity))?;
+        let mut altered = valid.clone();
+        altered.metadata.catalog[0] = poll(2);
+        let mut untyped = valid.clone();
+        untyped.metadata.catalog[0] = poll(9);
+        let mut choice = polled(1, true, "Poll", 0);
+        choice.observers.insert("__umpire_choice".into(), Value::Int(1));
+        let mut unidentified = polled(1, true, "Poll", 0);
+        unidentified.observers.remove(INPUT);
+        for (module, after, typed, reason) in [
+            (&valid, polled(1, true, "Poll", 2), true, "outside the catalog"),
+            (&valid, polled(1, true, "Push", 0), true, "not the edge's action Push"),
+            (&valid, polled(1, true, "Poll", 1), true, "choice is not emitted"),
+            (&valid, polled(1, true, "Poll", 0), false, "requires the typed native identity"),
+            (&valid, choice, true, "choice is not emitted"),
+            (&valid, unidentified, true, "lacks input identity"),
+            (&altered, polled(1, true, "Poll", 0), true, "differs from the TLC input"),
+            (&untyped, polled(1, true, "Poll", 0), true, "does not match its declared fields"),
+        ] {
+            let identity: Option<&dyn Fn(&u8) -> Concrete> = typed.then_some(&identity);
+            let error = check(module, after, identity).err().ok_or(reason)?;
+            assert!(error.to_string().contains(reason), "{reason}: {error}");
+        }
+        let before = polled(1, true, "Poll", 0);
+        let error = validate_projection(&valid, &before, &polled(1, true, "Poll", 1))
+            .err()
+            .ok_or("observer-only step changed the input identity")?;
+        assert!(error.to_string().contains(INPUT), "{error}");
         Ok(())
     }
 
@@ -476,10 +691,11 @@ mod tests {
                 ("__umpire_facts".into(), Value::Seq(Vec::new())),
             ]),
         };
-        validate_projection(&before, &before)?;
+        let module = module(Vec::new(), Vec::new());
+        validate_projection(&module, &before, &before)?;
         let mut activation = before.clone();
         activation.observers.insert("__umpire_pending".into(), Value::Int(1));
-        validate_projection(&before, &activation)?;
+        validate_projection(&module, &before, &activation)?;
         for (name, value, is_state) in [
             ("value", Value::Bool(true), true),
             ("__umpire_action", Value::Text("User::Change".into()), false),
@@ -494,7 +710,10 @@ mod tests {
             } else {
                 after.observers.insert(name.into(), value);
             }
-            assert!(validate_projection(&before, &after).is_err(), "projected away {name}");
+            assert!(
+                validate_projection(&module, &before, &after).is_err(),
+                "projected away {name}"
+            );
         }
         Ok(())
     }

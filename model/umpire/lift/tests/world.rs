@@ -1,6 +1,6 @@
 //! Declared World source admission and complete-state binding controls.
 use std::{collections::BTreeMap, path::Path};
-use umpire_lift::{Binding, Diagnostic, Lift, Literal, Module, Tla, Type};
+use umpire_lift::{Binding, Concrete, Diagnostic, Lift, Literal, Module, Tla, Type};
 use umpire_tlc::{Schema, Tlc, Value, Verdict};
 
 const WORLD: &str = r#"
@@ -122,7 +122,13 @@ fn binding(value: i128, limit: i128) -> Binding {
     Binding {
         world: vec![("value".into(), Literal::Int(value)), ("limit".into(), Literal::Int(limit))],
         starts: vec![row(value, value), row(value + 1, value + 1), row(value, value)],
+        actions: unit("User::Advance"),
+        domains: Vec::new(),
     }
+}
+
+fn unit(action: &str) -> Vec<Concrete> {
+    vec![Concrete { action: action.into(), fields: Vec::new() }]
 }
 
 fn located(error: &Diagnostic) {
@@ -191,6 +197,8 @@ fn binding_refuses_malformed_world_and_complete_state_values()
     let world = |offset: i128, bias: i128| Binding {
         world: vec![("offset".into(), Literal::Int(offset)), ("bias".into(), Literal::Int(bias))],
         starts: Vec::new(),
+        actions: unit("User::Hold"),
+        domains: Vec::new(),
     };
     for (offset, bias) in [(-1, 3), (i128::from(i32::MIN), 3), (1, -1)] {
         let error = signed.bind(&world(offset, bias)).err().ok_or("negative World admitted")?;
@@ -303,6 +311,8 @@ fn scalar_enum_world_and_sequence_starts_use_the_admitted_types()
             ("mode".into(), Literal::Enum("Mode::Low".into())),
             ("values".into(), Literal::Sequence(vec![Literal::Int(1)])),
         ]],
+        actions: unit("User::Hold"),
+        domains: Vec::new(),
     };
     let module = Tla::emit(&lifted.bind(&selected)?)?;
     assert!(module.tla.contains("mode = \"Mode::Low\""));
@@ -325,7 +335,8 @@ fn generated_world_constants_avoid_synthesized_action_names()
         .replace("User::Advance", "__umpire::world_value")
         .replace("#[on(User)]", "#[on(__umpire)]")
         .replace("requested: User", "requested: __umpire");
-    let module = Tla::emit(&Lift::parse("counter/model.rs", &source)?.bind(&binding(1, 3))?)?;
+    let selected = Binding { actions: unit("__umpire::world_value"), ..binding(1, 3) };
+    let module = Tla::emit(&Lift::parse("counter/model.rs", &source)?.bind(&selected)?)?;
     assert!(module.tla.contains("CONSTANTS __umpire_world_value_1, __umpire_world_limit"));
     assert!(module.tla.contains("__umpire_world_value =="));
     Ok(())

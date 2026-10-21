@@ -1,7 +1,7 @@
 use crate::{
     Action, Diagnostic, Field, Metadata, Module, Progress, Property, Type,
     expr::{Expr, ExprKind, Op, Unary},
-    tree::{Lifted, Start},
+    tree::{ActionDef, ActionRef, AssumptionDef, Entry, Lifted, Start},
 };
 use std::collections::BTreeMap;
 use std::fmt::Write;
@@ -25,8 +25,14 @@ pub(crate) fn emit(model: &Lifted) -> Result<Module, Diagnostic> {
             ..model.location.clone()
         });
     }
+    // Only Models with action inputs observe the concrete catalog ordinal of each edge.
+    let inputs = model.has_inputs();
+    let mut observers = OBSERVERS.to_vec();
+    if inputs {
+        observers.push(INPUT);
+    }
     for field in &model.fields {
-        if OBSERVERS.contains(&field.name.as_str()) {
+        if observers.contains(&field.name.as_str()) {
             return Err(Diagnostic::span(
                 &model.file,
                 proc_macro2::Span::call_site(),
@@ -80,7 +86,7 @@ pub(crate) fn emit(model: &Lifted) -> Result<Module, Diagnostic> {
     }
     let fields: Vec<_> = model.fields.iter().map(|f| f.name.as_str()).collect();
     let mut variables = fields.clone();
-    variables.extend(OBSERVERS);
+    variables.extend(&observers);
     line(&mut out, format!("VARIABLES {}", variables.join(", ")));
     line(&mut out, format!("vars == <<{}>>", variables.join(", ")));
     line(&mut out, format!("ModelVars == <<{}>>", fields.join(", ")));
@@ -133,9 +139,19 @@ pub(crate) fn emit(model: &Lifted) -> Result<Module, Diagnostic> {
         format!("__umpire_outcome = {}", default(&outcome_type)),
         "__umpire_facts = <<>>".into(),
     ]);
+    if inputs {
+        initial.push(format!("{INPUT} = 0"));
+    }
     line(&mut out, format!("Init == {}", conjoin(initial)));
     line(&mut out, "");
-    for action in &model.actions {
+    let catalog = model.catalog.as_deref().unwrap_or_default();
+    for (index, action) in model.actions.iter().enumerate() {
+        let entries: Vec<_> = catalog.iter().filter(|entry| entry.action == index).collect();
+        let identity = if action.fields.is_empty() {
+            entries.first().map(|entry| entry.ordinal.to_string())
+        } else {
+            Some(format!("{}_Inputs[{}][1]", action.operator, model.index_symbol))
+        };
         let branches = action
             .branches
             .iter()
@@ -177,10 +193,17 @@ pub(crate) fn emit(model: &Lifted) -> Result<Module, Diagnostic> {
                     format!("__umpire_outcome' = {}", expr(&branch.outcome)),
                     "__umpire_facts' = <<>>".into(),
                 ]);
+                if inputs && let Some(identity) = &identity {
+                    terms.push(format!("{INPUT}' = {identity}"));
+                }
                 conjoin(terms)
             })
             .collect();
-        line(&mut out, format!("{} == {}", action.operator, disjoin(branches)));
+        if action.fields.is_empty() {
+            line(&mut out, format!("{} == {}", action.operator, disjoin(branches)));
+        } else {
+            input_relation(&mut out, model, action, &entries, disjoin(branches));
+        }
     }
     line(
         &mut out,
@@ -249,16 +272,12 @@ pub(crate) fn emit(model: &Lifted) -> Result<Module, Diagnostic> {
         .collect();
     for assumption in &model.assumptions {
         if model.progress.iter().any(|claim| claim.assumption.same_scope(assumption)) {
-            let allowed = model.actions.iter().filter(|action| {
-                assumption.only.as_ref().is_none_or(|only| only.contains(&action.name))
-                    && !assumption.without.contains(&action.name)
-            });
             line(
                 &mut out,
                 format!(
                     "Assumption_{} == {}",
                     assumption.name,
-                    disjoin(allowed.map(|action| action.operator.clone()).collect())
+                    disjoin(scoped_relations(model, assumption))
                 ),
             );
         }
@@ -269,10 +288,13 @@ pub(crate) fn emit(model: &Lifted) -> Result<Module, Diagnostic> {
         let allowed: Vec<_> = model
             .actions
             .iter()
-            .filter(|a| {
-                claim.assumption.only.as_ref().is_none_or(|only| only.contains(&a.name))
-                    && !claim.assumption.without.contains(&a.name)
+            .enumerate()
+            .filter(|(index, action)| {
+                positions(model, *index, action)
+                    .iter()
+                    .any(|(_, reference, _)| claim.assumption.allows(reference))
             })
+            .map(|(_, action)| action)
             .collect();
         let scoped = format!("Scoped_{name}");
         let scope = model
@@ -280,16 +302,17 @@ pub(crate) fn emit(model: &Lifted) -> Result<Module, Diagnostic> {
             .iter()
             .find(|assumption| assumption.same_scope(&claim.assumption))
             .map_or_else(
-                || disjoin(allowed.iter().map(|a| a.operator.clone()).collect()),
+                || disjoin(scoped_relations(model, &claim.assumption)),
                 |assumption| format!("Assumption_{}", assumption.name),
             );
         line(&mut out, format!("{scoped} == {scope}"));
         line(
             &mut out,
             format!(
-                "Activate_{name} == (__umpire_pending = 0) /\\ ({}) /\\ ~({}) /\\ (__umpire_pending' = 1) /\\ (__umpire_steps' = 0) /\\ UNCHANGED <<ModelVars, __umpire_edge_tick, __umpire_action, __umpire_choice, __umpire_outcome, __umpire_facts>>",
+                "Activate_{name} == (__umpire_pending = 0) /\\ ({}) /\\ ~({}) /\\ (__umpire_pending' = 1) /\\ (__umpire_steps' = 0) /\\ UNCHANGED <<ModelVars, __umpire_edge_tick, __umpire_action, __umpire_choice, __umpire_outcome, __umpire_facts{}>>",
                 expr(&claim.trigger),
-                expr(&claim.target)
+                expr(&claim.target),
+                if inputs { format!(", {INPUT}") } else { String::new() }
             ),
         );
         let count = claim.bound.map_or_else(
@@ -328,18 +351,12 @@ pub(crate) fn emit(model: &Lifted) -> Result<Module, Diagnostic> {
         );
         let mut spec = format!("Init /\\ [][ProgressNext_{name}]_vars");
         if claim.bound.is_none() {
-            for action in &allowed {
-                if claim.assumption.fair.contains(&action.name) {
-                    let fair = format!("Fair_{name}_{}", action.operator);
-                    line(
-                        &mut out,
-                        format!(
-                            "{fair} == (__umpire_pending = 1) /\\ {} /\\ Monitor_{name}",
-                            action.operator
-                        ),
-                    );
-                    write!(spec, " /\\ WF_vars({fair})").ok();
-                }
+            for (fair, relation) in fair_relations(model, name, &claim.assumption) {
+                line(
+                    &mut out,
+                    format!("{fair} == (__umpire_pending = 1) /\\ {relation} /\\ Monitor_{name}"),
+                );
+                write!(spec, " /\\ WF_vars({fair})").ok();
             }
         }
         line(&mut out, format!("ProgressSpec_{name} == {spec}"));
@@ -361,7 +378,16 @@ pub(crate) fn emit(model: &Lifted) -> Result<Module, Diagnostic> {
             cfg: format!("SPECIFICATION ProgressSpec_{name}\n{constants_cfg}PROPERTY {operator}\n"),
             operator,
             allowed: allowed.iter().map(|a| a.name.clone()).collect(),
-            fair: claim.assumption.fair.clone(),
+            fair: claim.assumption.fair.iter().fold(Vec::new(), |mut names, action| {
+                if !names.contains(&action.name) {
+                    names.push(action.name.clone());
+                }
+                names
+            }),
+            allowed_inputs: ordinals(model, inputs, |reference| claim.assumption.allows(reference)),
+            fair_inputs: ordinals(model, inputs, |reference| {
+                claim.assumption.allows(reference) && claim.assumption.is_fair(reference)
+            }),
             bound: claim.bound,
         });
     }
@@ -372,7 +398,7 @@ pub(crate) fn emit(model: &Lifted) -> Result<Module, Diagnostic> {
         .filter_map(|p| p.bound)
         .max()
         .map_or(0, |bound| i128::from(bound) + 1);
-    let observer_types = BTreeMap::from([
+    let mut observer_types = BTreeMap::from([
         ("__umpire_edge_tick".into(), Type::Bool),
         ("__umpire_pending".into(), Type::Int { min: 0, max: 2 }),
         ("__umpire_steps".into(), Type::Int { min: 0, max: max_steps }),
@@ -381,6 +407,10 @@ pub(crate) fn emit(model: &Lifted) -> Result<Module, Diagnostic> {
         ("__umpire_outcome".into(), outcome_type.clone()),
         ("__umpire_facts".into(), Type::Seq(Box::new(Type::Unit))),
     ]);
+    if inputs {
+        let max = i128::try_from(catalog.len().saturating_sub(1)).unwrap_or(i128::MAX);
+        observer_types.insert(INPUT.into(), Type::Int { min: 0, max });
+    }
     Ok(Module {
         name: model.name.clone(),
         tla: out,
@@ -400,18 +430,155 @@ pub(crate) fn emit(model: &Lifted) -> Result<Module, Diagnostic> {
                     name: a.name.clone(),
                     operator: a.operator.clone(),
                     internal: a.internal,
+                    fields: a
+                        .fields
+                        .iter()
+                        .map(|field| Field { name: field.name.clone(), ty: field.ty.clone() })
+                        .collect(),
                 })
                 .collect(),
+            catalog: if inputs { model.concrete() } else { Vec::new() },
             invariants,
             postconditions,
             progress,
             negative,
-            observer_fields: OBSERVERS.iter().map(|s| (*s).into()).collect(),
+            observer_fields: observers.iter().map(|s| (*s).into()).collect(),
             observer_types,
             outcome_type,
         },
     })
 }
+const INPUT: &str = "__umpire_input";
+
+/// A payload variant's concrete inputs as `<<ordinal, values..>>` rows in catalog order, its
+/// relation at one catalog position, and the finite existential choice over every position.
+fn input_relation(
+    out: &mut String,
+    model: &Lifted,
+    action: &ActionDef,
+    entries: &[&Entry],
+    branches: String,
+) {
+    let index = &model.index_symbol;
+    let rows = entries
+        .iter()
+        .map(|entry| {
+            let mut row = vec![entry.ordinal.to_string()];
+            row.extend(entry.values.iter().map(expr));
+            format!("<<{}>>", row.join(", "))
+        })
+        .collect::<Vec<_>>();
+    line(out, format!("{}_Inputs == <<{}>>", action.operator, rows.join(", ")));
+    let mut body = branches;
+    for (position, field) in action.fields.iter().enumerate().rev() {
+        body = format!(
+            "LET {} == {}_Inputs[{index}][{}] IN {body}",
+            field.symbol,
+            action.operator,
+            position + 2
+        );
+    }
+    line(out, format!("{}_At({index}) == {body}", action.operator));
+    line(
+        out,
+        format!(
+            "{} == \\E {index} \\in DOMAIN {}_Inputs : {}_At({index})",
+            action.operator, action.operator, action.operator
+        ),
+    );
+}
+
+/// Each concrete catalog position of a variant: its one-based position, exact identity and
+/// canonical ordinal. A unit variant outside an input catalog is its own sole position.
+fn positions(model: &Lifted, index: usize, action: &ActionDef) -> Vec<(usize, ActionRef, usize)> {
+    let reference =
+        |values: &[Expr]| ActionRef { name: action.name.clone(), values: values.to_vec() };
+    match &model.catalog {
+        Some(catalog) if model.has_inputs() => catalog
+            .iter()
+            .filter(|entry| entry.action == index)
+            .enumerate()
+            .map(|(position, entry)| (position + 1, reference(&entry.values), entry.ordinal))
+            .collect(),
+        _ => vec![(1, reference(&[]), 0)],
+    }
+}
+
+/// The admitted relation of each variant: the whole existential relation when every
+/// position is admitted, otherwise the choice restricted to the admitted exact positions.
+fn scoped_relations(model: &Lifted, assumption: &AssumptionDef) -> Vec<String> {
+    let mut relations = Vec::new();
+    for (index, action) in model.actions.iter().enumerate() {
+        let all = positions(model, index, action);
+        let admitted: Vec<_> =
+            all.iter().filter(|(_, reference, _)| assumption.allows(reference)).collect();
+        if admitted.len() == all.len() {
+            relations.push(action.operator.clone());
+        } else if !admitted.is_empty() {
+            let index = &model.index_symbol;
+            let selected =
+                admitted.iter().map(|(position, _, _)| position.to_string()).collect::<Vec<_>>();
+            relations.push(format!(
+                "\\E {index} \\in {{{}}} : {}_At({index})",
+                selected.join(", "),
+                action.operator
+            ));
+        }
+    }
+    relations
+}
+
+/// Weak fairness obligations: one per explicitly fair unit action, and one per exact fair
+/// payload position, never one over a variant's existential union. Positional duplicates
+/// share their canonical ordinal and so one obligation.
+fn fair_relations(
+    model: &Lifted,
+    claim: &str,
+    assumption: &AssumptionDef,
+) -> Vec<(String, String)> {
+    let mut relations = Vec::new();
+    for (index, action) in model.actions.iter().enumerate() {
+        let mut seen = Vec::new();
+        for (position, reference, ordinal) in positions(model, index, action) {
+            if !assumption.allows(&reference) || !assumption.is_fair(&reference) {
+                continue;
+            }
+            if action.fields.is_empty() {
+                relations
+                    .push((format!("Fair_{claim}_{}", action.operator), action.operator.clone()));
+            } else if !seen.contains(&ordinal) {
+                seen.push(ordinal);
+                relations.push((
+                    format!("Fair_{claim}_{}_{position}", action.operator),
+                    format!("{}_At({position})", action.operator),
+                ));
+            }
+        }
+    }
+    relations
+}
+
+/// Canonical catalog ordinals selected by a predicate, for typed progress metadata.
+fn ordinals(model: &Lifted, inputs: bool, select: impl Fn(&ActionRef) -> bool) -> Vec<usize> {
+    if !inputs {
+        return Vec::new();
+    }
+    let mut out = Vec::new();
+    for (index, action) in model.actions.iter().enumerate() {
+        for (_, reference, ordinal) in positions(model, index, action) {
+            if select(&reference) && !out.contains(&ordinal) {
+                out.push(ordinal);
+            }
+        }
+    }
+    out
+}
+
+/// A typed expression as emitted TLA+, for diagnostics.
+pub(crate) fn rendered(value: &Expr) -> String {
+    expr(value)
+}
+
 fn line(out: &mut String, value: impl AsRef<str>) {
     out.push_str(value.as_ref());
     out.push('\n');
@@ -512,7 +679,7 @@ fn expr(value: &Expr) -> String {
         ExprKind::Text(v) | ExprKind::Enum(v) => text(v),
         ExprKind::Unit => "<<>>".into(),
         ExprKind::Var(name, primed) => format!("{name}{}", if *primed { "'" } else { "" }),
-        ExprKind::World(name) => name.clone(),
+        ExprKind::World(name) | ExprKind::Input(name) => name.clone(),
         ExprKind::Tuple(values) | ExprKind::Sequence(values) => {
             format!("<<{}>>", values.iter().map(expr).collect::<Vec<_>>().join(", "))
         }

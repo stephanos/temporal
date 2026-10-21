@@ -2,8 +2,8 @@ use super::{Env, Environment, Result};
 use crate::{
     Diagnostic, Type,
     expr::{Expr, ExprKind, Op},
-    syntax::{has, path_name},
-    tree::Branch,
+    syntax::has,
+    tree::{ActionDef, Branch},
 };
 use quote::ToTokens;
 use syn::{BinOp, Expr as RustExpr, Pat, Stmt};
@@ -33,7 +33,7 @@ impl Environment<'_> {
     pub(crate) fn branches(
         &self,
         matched: &syn::ExprMatch,
-        action: &str,
+        action: &ActionDef,
         env: &Env,
     ) -> Result<Vec<Branch>> {
         let mut branches = Vec::new();
@@ -44,18 +44,28 @@ impl Environment<'_> {
             } else {
                 (&arm.pat, None)
             };
-            if !self.action_pattern(pattern, action)? {
+            let Some(matched) = self.action_pattern(pattern, action)? else {
                 continue;
+            };
+            // Payload names shadow the World parameter and source constants lexically, as in Rust.
+            let mut locals = env.clone();
+            for (name, value) in matched.bindings {
+                locals.insert(name, value);
             }
             let guard = if let Some(guard) = guard {
-                self.expr(guard, &self.field_env(false), env, Some(&Type::Bool), 0)?
+                matched.condition.and(self.expr(
+                    guard,
+                    &self.field_env(false),
+                    &locals,
+                    Some(&Type::Bool),
+                    0,
+                )?)
             } else {
-                Expr::bool(true)
+                matched.condition
             };
             let effective = previous.clone().not().and(guard.clone());
             previous = previous.or(guard);
             let mut state = self.field_env(false);
-            let mut locals = env.clone();
             let mut checks = Vec::new();
             let (body, stays) = without_stay(&arm.body);
             self.effects(&body, &mut state, &mut locals, &mut checks, 0)?;
@@ -69,21 +79,6 @@ impl Environment<'_> {
             });
         }
         Ok(branches)
-    }
-    fn action_pattern(&self, pat: &Pat, name: &str) -> Result<bool> {
-        match pat {
-            Pat::Wild(_) => Ok(true),
-            Pat::Path(path) => Ok(path_name(&path.path.to_token_stream().to_string()) == name),
-            Pat::Or(or) => {
-                for case in &or.cases {
-                    if self.action_pattern(case, name)? {
-                        return Ok(true);
-                    }
-                }
-                Ok(false)
-            }
-            _ => self.err(pat, "unsupported action match pattern"),
-        }
     }
     #[expect(
         clippy::too_many_lines,

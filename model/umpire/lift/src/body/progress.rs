@@ -3,7 +3,7 @@ use crate::syntax::{has, path_name};
 use crate::{
     Diagnostic, Type,
     expr::ExprKind,
-    tree::{ActionDef, AssumptionDef, ProgressDef},
+    tree::{ActionDef, ActionRef, AssumptionDef, ProgressDef},
 };
 use quote::ToTokens;
 use std::collections::BTreeSet;
@@ -22,8 +22,12 @@ impl Environment<'_> {
     }
     pub(crate) fn action_name(&self, node: &RustExpr, actions: &[ActionDef]) -> Result<String> {
         let name = path_name(&node.to_token_stream().to_string());
-        if !actions.iter().any(|a| a.name == name) {
+        let Some(action) = actions.iter().find(|a| a.name == name) else {
             return self.err(node, format!("unknown action `{name}`"));
+        };
+        if !action.fields.is_empty() {
+            return self
+                .err(node, format!("`{name}` carries inputs; it is not one catalog action"));
         }
         Ok(name)
     }
@@ -84,17 +88,16 @@ impl Environment<'_> {
             _ => self.err(node, "unsupported named assumption expression"),
         }
     }
-    fn action_list(&self, node: &RustExpr, actions: &[ActionDef]) -> Result<Vec<String>> {
+    fn action_list(&self, node: &RustExpr, actions: &[ActionDef]) -> Result<Vec<ActionRef>> {
         let node = if let RustExpr::Reference(v) = node { v.expr.as_ref() } else { node };
         let RustExpr::Array(array) = node else {
             return self.err(node, "assumption requires an explicit action array");
         };
-        let mut seen = BTreeSet::new();
         let mut out = Vec::new();
         for value in &array.elems {
-            let name = self.action_name(value, actions)?;
-            if seen.insert(name.clone()) {
-                out.push(name);
+            let action = self.action_ref(value, actions)?;
+            if !out.contains(&action) {
+                out.push(action);
             }
         }
         Ok(out)

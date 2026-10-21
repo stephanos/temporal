@@ -136,6 +136,9 @@ impl Bound {
         let space = format_ident!("{prefix}space");
         let module = format_ident!("{prefix}emitted");
         let folder_arg = format_ident!("{prefix}folder");
+        let identity = format_ident!("{prefix}identity");
+        let action = format_ident!("{prefix}action");
+        let catalog = format_ident!("{prefix}catalog");
         let fixture_module = format_ident!("{identifier}");
         let machine: syn::Ident =
             syn::parse_str(lifted.machine_module()).map_err(std::io::Error::other)?;
@@ -160,13 +163,24 @@ impl Bound {
             declarations,
             &lifted.state_name,
         )?;
-        let projection: syn::Item = syn::parse2(quote! {
+        let identities = identity_arms(lifted, &prefix)?;
+        let domains = domain_values(lifted, &world, &prefix)?;
+        let projection: syn::File = syn::parse2(quote! {
             #[allow(unused_qualifications, reason = "Generated hygienic paths must not depend on authored imports")]
-            pub(crate) fn #project(#world: &World, #starts: &[#state_type]) -> umpire_lift::Binding {
-                umpire_lift::Binding {
+            pub(crate) fn #project(#world: &World, #starts: &[#state_type]) -> Result<umpire_lift::Binding, String> {
+                // The checked catalog counts every domain before any action is constructed.
+                let #catalog = umpire_dsl::Machine::checked_catalog(#world, umpire_dsl::CATALOG_LIMIT)
+                    .map_err(|#catalog| #catalog.to_string())?;
+                Ok(umpire_lift::Binding {
                     world: vec![#(#world_fields),*],
                     starts: #starts.iter().map(|#state| vec![#(#state_fields),*]).collect(),
-                }
+                    actions: #catalog.actions().iter().map(#identity).collect(),
+                    domains: vec![#(#domains),*],
+                })
+            }
+            #[allow(unused_qualifications, reason = "Generated hygienic paths must not depend on authored imports")]
+            pub(crate) fn #identity(#action: &Action) -> umpire_lift::Concrete {
+                match #action { #(#identities),* }
             }
         }).map_err(std::io::Error::other)?;
         let machine_items = model
@@ -179,7 +193,7 @@ impl Bound {
                 _ => None,
             })
             .ok_or_else(|| std::io::Error::other("bound machine module missing"))?;
-        machine_items.push(projection);
+        machine_items.extend(projection.items);
         let hooks = tests
             .items
             .iter()
@@ -239,7 +253,7 @@ impl Bound {
             fn #bind(#space: &umpire_suite::Space<#model_type, std::rc::Rc<#world_type>>) -> Result<umpire_lift::Module, String> {
                 let #world = umpire_suite::SpaceBinding::world(#space);
                 let #starts = umpire_suite::SpaceBinding::starts(#space);
-                let #module = crate::#fixture_module::#machine::#project(#world.as_ref(), #starts);
+                let #module = crate::#fixture_module::#machine::#project(#world.as_ref(), #starts)?;
                 umpire_lift::Lift::source(#input)
                     .and_then(|#graph| #graph.bind(&#module))
                     .and_then(|#graph| umpire_lift::Tla::emit(&#graph))
@@ -266,9 +280,10 @@ impl Bound {
                 let #module = #bind(&#space)?;
                 let (#graph, #files) = #native(&#space)?;
                 let #world = umpire_suite::SpaceBinding::world(&#space);
-                umpire_testing::backend::check_exploration(
+                umpire_testing::backend::check_typed_exploration(
                     #world.as_ref(), umpire_suite::SpaceBinding::starts(&#space),
                     &#graph, &#module, #folder_arg, &#files,
+                    &crate::#fixture_module::#machine::#identity,
                 )
             }
         }).map_err(std::io::Error::other)?;
@@ -356,6 +371,84 @@ fn project_value(
     })
 }
 
+/// Match arms projecting each native catalog action to its typed concrete identity.
+fn identity_arms(
+    lifted: &crate::Lifted,
+    prefix: &str,
+) -> std::io::Result<Vec<proc_macro2::TokenStream>> {
+    lifted
+        .actions
+        .iter()
+        .map(|action| {
+            let name = &action.name;
+            let path: syn::Path = syn::parse_str(name).map_err(std::io::Error::other)?;
+            let actor = path
+                .segments
+                .first()
+                .map(|segment| &segment.ident)
+                .ok_or_else(|| std::io::Error::other("unqualified action"))?;
+            let bindings: Vec<_> = (0..action.fields.len())
+                .map(|index| format_ident!("{prefix}field_{index}"))
+                .collect();
+            let pattern = match action.shape {
+                crate::tree::Shape::Unit => quote!(#path),
+                crate::tree::Shape::Tuple => quote!(#path(#(#bindings),*)),
+                crate::tree::Shape::Named => {
+                    let names = action
+                        .fields
+                        .iter()
+                        .map(|field| syn::parse_str::<syn::Ident>(&field.name))
+                        .collect::<Result<Vec<_>, _>>()
+                        .map_err(std::io::Error::other)?;
+                    quote!(#path { #(#names: #bindings),* })
+                }
+            };
+            let fields = action
+                .fields
+                .iter()
+                .zip(&bindings)
+                .map(|(field, binding)| {
+                    let field_name = &field.name;
+                    let value = project_value(&field.ty, &quote!(#binding))?;
+                    Ok(quote!((#field_name.into(), #value)))
+                })
+                .collect::<std::io::Result<Vec<_>>>()?;
+            Ok(quote!(Action::#actor(#pattern) => umpire_lift::Concrete {
+                action: #name.into(),
+                fields: vec![#(#fields),*],
+            }))
+        })
+        .collect()
+}
+
+/// Each World-dependent field's domain values for the same World, refusing rather than
+/// truncating a domain above the catalog limit.
+fn domain_values(
+    lifted: &crate::Lifted,
+    world: &syn::Ident,
+    prefix: &str,
+) -> std::io::Result<Vec<proc_macro2::TokenStream>> {
+    let item = format_ident!("{prefix}item");
+    let mut out = Vec::new();
+    for action in &lifted.actions {
+        for field in &action.fields {
+            let crate::tree::InputDomain::World(function) = &field.domain else { continue };
+            let function: syn::Ident = syn::parse_str(function).map_err(std::io::Error::other)?;
+            let value = project_value(&field.ty, &quote!(#item))?;
+            let (name, field_name) = (&action.name, &field.name);
+            out.push(quote!(umpire_lift::Domain {
+                action: #name.into(),
+                field: #field_name.into(),
+                values: #function(#world)
+                    .take(umpire_lift::CATALOG_LIMIT + 1)
+                    .map(|#item| { let #item = &#item; #value })
+                    .collect(),
+            }));
+        }
+    }
+    Ok(out)
+}
+
 fn negative_runtime(prefix: &str, negative: &syn::Expr) -> proc_macro2::TokenStream {
     let world = format_ident!("{prefix}world");
     let starts = format_ident!("{prefix}starts");
@@ -399,9 +492,8 @@ fn properties(values: &[crate::Property]) -> String {
     format!("vec![{}]", values.iter().map(|value| format!("umpire_lift::Property {{ name: {:?}.into(), operator: {:?}.into(), cfg: {:?}.into() }}", value.name, value.operator, value.cfg)).collect::<Vec<_>>().join(","))
 }
 
-fn metadata(value: &crate::Metadata) -> String {
-    let fields = value
-        .fields
+fn fields_code(fields: &[crate::Field]) -> String {
+    fields
         .iter()
         .map(|field| {
             format!(
@@ -411,19 +503,55 @@ fn metadata(value: &crate::Metadata) -> String {
             )
         })
         .collect::<Vec<_>>()
-        .join(",");
+        .join(",")
+}
+
+fn literal_code(value: &crate::Literal) -> String {
+    match value {
+        crate::Literal::Bool(value) => format!("umpire_lift::Literal::Bool({value})"),
+        crate::Literal::Int(value) => format!("umpire_lift::Literal::Int({value})"),
+        crate::Literal::Enum(value) => format!("umpire_lift::Literal::Enum({value:?}.into())"),
+        crate::Literal::Sequence(values) => format!(
+            "umpire_lift::Literal::Sequence(vec![{}])",
+            values.iter().map(literal_code).collect::<Vec<_>>().join(",")
+        ),
+    }
+}
+
+fn metadata(value: &crate::Metadata) -> String {
+    let fields = fields_code(&value.fields);
     let actions = value
         .actions
         .iter()
         .map(|action| {
             format!(
-                "umpire_lift::Action {{ name: {:?}.into(), operator: {:?}.into(), internal: {} }}",
-                action.name, action.operator, action.internal
+                "umpire_lift::Action {{ name: {:?}.into(), operator: {:?}.into(), internal: {}, fields: vec![{}] }}",
+                action.name,
+                action.operator,
+                action.internal,
+                fields_code(&action.fields)
             )
         })
         .collect::<Vec<_>>()
         .join(",");
-    let progress = value.progress.iter().map(|claim| format!("umpire_lift::Progress {{ name: {:?}.into(), operator: {:?}.into(), cfg: {:?}.into(), allowed: {}, fair: {}, bound: {:?} }}", claim.name, claim.operator, claim.cfg, strings(&claim.allowed), strings(&claim.fair), claim.bound)).collect::<Vec<_>>().join(",");
+    let progress = value.progress.iter().map(|claim| format!("umpire_lift::Progress {{ name: {:?}.into(), operator: {:?}.into(), cfg: {:?}.into(), allowed: {}, fair: {}, allowed_inputs: vec!{:?}, fair_inputs: vec!{:?}, bound: {:?} }}", claim.name, claim.operator, claim.cfg, strings(&claim.allowed), strings(&claim.fair), claim.allowed_inputs, claim.fair_inputs, claim.bound)).collect::<Vec<_>>().join(",");
+    let catalog = value
+        .catalog
+        .iter()
+        .map(|entry| {
+            format!(
+                "umpire_lift::Concrete {{ action: {:?}.into(), fields: vec![{}] }}",
+                entry.action,
+                entry
+                    .fields
+                    .iter()
+                    .map(|(name, value)| format!("({name:?}.into(), {})", literal_code(value)))
+                    .collect::<Vec<_>>()
+                    .join(",")
+            )
+        })
+        .collect::<Vec<_>>()
+        .join(",");
     let observers = value
         .observer_types
         .iter()
@@ -431,7 +559,7 @@ fn metadata(value: &crate::Metadata) -> String {
         .collect::<Vec<_>>()
         .join(",");
     format!(
-        "umpire_lift::Metadata {{ state_name: {:?}.into(), world_path: {:?}.into(), fields: vec![{fields}], actions: vec![{actions}], invariants: {}, postconditions: {}, progress: vec![{progress}], negative: {}, observer_fields: {}, observer_types: std::collections::BTreeMap::from([{observers}]), outcome_type: {} }}",
+        "umpire_lift::Metadata {{ state_name: {:?}.into(), world_path: {:?}.into(), fields: vec![{fields}], actions: vec![{actions}], catalog: vec![{catalog}], invariants: {}, postconditions: {}, progress: vec![{progress}], negative: {}, observer_fields: {}, observer_types: std::collections::BTreeMap::from([{observers}]), outcome_type: {} }}",
         value.state_name,
         value.world_path,
         properties(&value.invariants),

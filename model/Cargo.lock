@@ -1104,6 +1104,7 @@ dependencies = [
  "umpire-lift",
  "umpire-suite",
  "umpire-testing",
+ "umpire-tlc",
 ]
 
 [[package]]

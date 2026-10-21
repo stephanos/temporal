@@ -2,7 +2,7 @@ use crate::{
     Diagnostic, Type,
     body::{Env, Environment},
     syntax::{attr, has, path_name},
-    tree::{ActionDef, ClaimDef, FieldDef, Lifted, PostDef, Start, WorldField},
+    tree::{ActionDef, ClaimDef, FieldDef, Lifted, PostDef, Shape, Start, WorldField},
 };
 use quote::ToTokens;
 use std::collections::{BTreeMap, BTreeSet};
@@ -74,6 +74,7 @@ pub(crate) fn parse(file: &str, ast: &syn::File, hooks: &[crate::Hook<'_>]) -> R
             ));
         }
     }
+    let domain_functions = domain_functions(items);
     let mut parser = Environment {
         file,
         fields: Vec::new(),
@@ -85,6 +86,8 @@ pub(crate) fn parse(file: &str, ast: &syn::File, hooks: &[crate::Hook<'_>]) -> R
         helpers: BTreeMap::new(),
         methods: BTreeMap::new(),
         vector_imported: admitted_imports.iter().any(|name| name == "Vector"),
+        finite: BTreeSet::new(),
+        domain_functions: BTreeMap::new(),
     };
     for item in items {
         let attributes = match item {
@@ -93,6 +96,7 @@ pub(crate) fn parse(file: &str, ast: &syn::File, hooks: &[crate::Hook<'_>]) -> R
             Item::Impl(v) => &v.attrs,
             Item::Const(v) => &v.attrs,
             Item::Use(v) => &v.attrs,
+            Item::Fn(v) if domain_functions.contains(&v.sig.ident.to_string()) => &v.attrs,
             _ => {
                 return Err(Diagnostic::at(
                     file,
@@ -107,12 +111,16 @@ pub(crate) fn parse(file: &str, ast: &syn::File, hooks: &[crate::Hook<'_>]) -> R
             &["doc", "derive", "internal"]
         };
         attrs(file, attributes, allowed)?;
+        if let Item::Fn(function) = item {
+            parser.domain_functions.insert(function.sig.ident.to_string(), function.clone());
+        }
         if let Item::Enum(value) = item {
+            let payload = derives(&value.attrs, "Action")
+                && value.variants.iter().any(|v| !matches!(v.fields, syn::Fields::Unit));
             if !value.generics.params.is_empty()
-                || value
-                    .variants
-                    .iter()
-                    .any(|v| !matches!(v.fields, syn::Fields::Unit) || v.discriminant.is_some())
+                || value.variants.iter().any(|v| {
+                    (!payload && !matches!(v.fields, syn::Fields::Unit)) || v.discriminant.is_some()
+                })
             {
                 return Err(Diagnostic::at(
                     file,
@@ -120,7 +128,13 @@ pub(crate) fn parse(file: &str, ast: &syn::File, hooks: &[crate::Hook<'_>]) -> R
                     "only fieldless enums without explicit discriminants are admitted",
                 ));
             }
+            if payload {
+                continue;
+            }
             let name = value.ident.to_string();
+            if derives(&value.attrs, "Finite") {
+                parser.finite.insert(name.clone());
+            }
             let variants = value.variants.iter().map(|v| format!("{name}::{}", v.ident)).collect();
             if let Some(variant) = value.variants.iter().find(|v| has(&v.attrs, "default")) {
                 parser
@@ -356,15 +370,49 @@ pub(crate) fn parse(file: &str, ast: &syn::File, hooks: &[crate::Hook<'_>]) -> R
             let actor_name = actor.ident.to_string();
             for variant in &actor.variants {
                 let name = format!("{actor_name}::{}", variant.ident);
+                let (shape, fields) = match &variant.fields {
+                    syn::Fields::Unit => (Shape::Unit, Vec::new()),
+                    syn::Fields::Unnamed(fields) => {
+                        (Shape::Tuple, fields.unnamed.iter().collect::<Vec<_>>())
+                    }
+                    syn::Fields::Named(fields) => {
+                        (Shape::Named, fields.named.iter().collect::<Vec<_>>())
+                    }
+                };
+                if shape != Shape::Unit {
+                    attrs(file, &variant.attrs, &["doc"])?;
+                    if !parser.declared_world {
+                        return Err(Diagnostic::at(
+                            file,
+                            variant,
+                            "action inputs require a declared World, whose binding supplies their typed catalog identity",
+                        ));
+                    }
+                }
+                // Chosen values are LET-bound inside one variant's relation, so each variant
+                // allocates its names apart from the others but never like a module name.
+                let mut scope = generated.clone();
+                let mut inputs = Vec::new();
+                for (index, field) in fields.into_iter().enumerate() {
+                    let base =
+                        field.ident.as_ref().map_or_else(|| index.to_string(), ToString::to_string);
+                    let symbol =
+                        crate::names::allocate(ast, &format!("__umpire_input_{base}"), &mut scope);
+                    inputs.push(parser.input_field(field, index, &name, symbol)?);
+                }
                 actions.push(ActionDef {
                     operator: operator(&name),
                     name,
                     internal: has(&actor.attrs, "internal"),
                     branches: Vec::new(),
+                    shape,
+                    fields: inputs,
+                    location: Diagnostic::at(file, variant, ""),
                 });
             }
         }
     }
+    parser.static_catalog(&actions, module)?;
     let mut invariants = Vec::new();
     let mut postconditions = Vec::new();
     let mut progress = Vec::new();
@@ -390,11 +438,8 @@ pub(crate) fn parse(file: &str, ast: &syn::File, hooks: &[crate::Hook<'_>]) -> R
                 for action in
                     actions.iter_mut().filter(|a| a.name.starts_with(&format!("{actor}::")))
                 {
-                    action.branches.extend(parser.branches(
-                        matched,
-                        &action.name,
-                        &parser.method_env(method)?,
-                    )?);
+                    let branches = parser.branches(matched, action, &parser.method_env(method)?)?;
+                    action.branches.extend(branches);
                 }
             } else if has(&method.attrs, "invariant") {
                 invariants.push(ClaimDef {
@@ -464,6 +509,7 @@ pub(crate) fn parse(file: &str, ast: &syn::File, hooks: &[crate::Hook<'_>]) -> R
         negative.extend(parser.supplemental(&hook.mac.mac, &initial)?);
     }
     let name = pascal(&module.ident.to_string());
+    let index_symbol = crate::names::allocate(ast, "__umpire_i", &mut generated);
     let constant_symbols = if parser.declared_world {
         parser
             .constants
@@ -503,7 +549,24 @@ pub(crate) fn parse(file: &str, ast: &syn::File, hooks: &[crate::Hook<'_>]) -> R
         progress,
         assumptions,
         negative,
+        catalog: None,
+        index_symbol,
     })
+}
+
+/// Free functions named by a variant field's `#[domain(..)]`, admitted only as domain sources.
+fn domain_functions(items: &[Item]) -> BTreeSet<String> {
+    items
+        .iter()
+        .filter_map(|item| match item {
+            Item::Enum(actor) if derives(&actor.attrs, "Action") => Some(actor),
+            _ => None,
+        })
+        .flat_map(|actor| actor.variants.iter().flat_map(|variant| &variant.fields))
+        .filter_map(|field| attr(&field.attrs, "domain"))
+        .filter_map(|domain| domain.parse_args::<syn::Ident>().ok())
+        .map(|name| name.to_string())
+        .collect()
 }
 
 struct Conditional<'a>(Option<&'a syn::Attribute>);
@@ -546,6 +609,7 @@ fn reserved(name: &str) -> bool {
         "__umpire_choice",
         "__umpire_outcome",
         "__umpire_facts",
+        "__umpire_input",
     ]
     .contains(&name)
 }

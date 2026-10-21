@@ -664,6 +664,30 @@ selections (two checked against TLC, one with empty starts), private-field proje
 same-World replay of a deliberately false claim.
 Generic native World declarations are not automatically admitted by the source backend.
 
+Under a declared World, the lifter also admits action inputs: tuple and named-field variants
+whose `bool`, admitted-integer or local fieldless-enum fields declare `#[inputs(lo..=hi)]`,
+`#[inputs([..])]`, a `#[derive(Finite)]` domain or a field `#[domain(f)]`. Source reads only the
+signature of `fn f(&World) -> impl Iterator<Item = T>`; the binding supplies its values for the
+selected World together with the checked native catalog, projected through generated typed
+match arms. Binding refuses a missing, duplicate or mistyped domain, a domain or catalog above
+4,096 actions, and any catalog that differs from the source declaration-order product in
+count, variant, field order or value. Positional duplicates stay in the catalog, and an empty
+domain keeps its variant with zero actions. Arms bind payload fields by tuple or named
+patterns (with `_`, `..` and literal or constant subpatterns), guards and effects see them
+through their own typed names, and a payload name shadows a World parameter of the same
+name. Each variant emits a `_Inputs` table of `<<ordinal, values..>>` rows, its relation at
+one position, and finite existential choice over all positions. Every edge records the
+concrete catalog ordinal in the private `__umpire_input` observer, so replay takes the native
+action at that ordinal and requires its typed identity to equal the emitted one; display text
+is never parsed. Assumption lists name exact actions, such as `fair([Worker::Poll(2)])` or
+`User::Paint { color: Color::Green }`; a bare payload variant is refused, and a value outside
+the selected catalog refuses as the native checker does. `only` and `without` restrict the
+variant relation to the admitted positions, and each fair payload gets its own `WF_vars`
+over that exact position; no obligation ever ranges over a variant's union. Shared
+`action_inputs` exercises a World-sized `Poll` attempt, a `bool` retry input and an empty
+skip domain in two Worlds, including stale self-loops that cannot discharge fairness owed to
+the current payload and mutated emissions that TLC must disagree with.
+
 This checks the source-lifted scope independently. Complete native set/verdict agreement is
 a separate fixture obligation; a cut native exploration cannot establish it. The lifter admits
 one source form, `#[machine]` attribute Models with scalar/enum fields; source that implements
@@ -673,7 +697,8 @@ Attribute Models also admit explicitly imported `imbl::Vector<T>` with scalar/en
 `new`/`default`, `len`, `is_empty`, guarded `push_back`, and safe `get` queries
 (`is_some`/`is_none` or `copied().unwrap_or(default)`). Growth requires an authored finite
 length guard; arbitrary collection methods, indexing and panicking `unwrap` refuse.
-Generic delegating adapters and arbitrary Rust remain outside the subset. `Phased`,
+Action inputs without a declared World, generic or aliased input types and custom `Finite`
+implementations, generic delegating adapters and arbitrary Rust remain outside the subset. `Phased`,
 `reject!`, and imported generic `closable` laws also currently refuse; that source shape
 has no system TLC agreement evidence. System fixture roots may retain located refusal
 goldens while the required shared gate still mandates attribute Kettle execution.

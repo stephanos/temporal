@@ -28,6 +28,7 @@ const RESERVED_NAMES: &[&str] = &[
     "__umpire_choice",
     "__umpire_outcome",
     "__umpire_facts",
+    "__umpire_input",
     "TRUE",
     "FALSE",
     "BOOLEAN",
@@ -114,14 +115,25 @@ pub(crate) fn allocate(ast: &syn::File, base: &str, generated: &mut BTreeSet<Str
 pub(crate) fn validate(file: &str, ast: &syn::File, model: &Lifted) -> Result<(), Diagnostic> {
     validate_text(file, ast.to_token_stream())?;
     let mut names: BTreeSet<String> = RESERVED_NAMES.iter().map(|name| (*name).into()).collect();
+    // Input symbols are scoped to one variant's relation and may repeat across variants.
+    let mut symbols = BTreeSet::new();
     for action in &model.actions {
-        register(
-            file,
-            ast,
-            &mut names,
-            &action.operator,
-            action.name.rsplit("::").next().unwrap_or(&action.name),
-        )?;
+        let variant = action.name.rsplit("::").next().unwrap_or(&action.name);
+        register(file, ast, &mut names, &action.operator, variant)?;
+        if !action.fields.is_empty() {
+            for suffix in ["Inputs", "At"] {
+                register(file, ast, &mut names, &format!("{}_{suffix}", action.operator), variant)?;
+            }
+            for field in &action.fields {
+                if !symbols.contains(&field.symbol) {
+                    register(file, ast, &mut names, &field.symbol, &field.name)?;
+                    symbols.insert(field.symbol.clone());
+                }
+            }
+        }
+    }
+    if model.has_inputs() {
+        register(file, ast, &mut names, &model.index_symbol, "__umpire_i")?;
     }
     for claim in &model.invariants {
         register(file, ast, &mut names, &format!("Invariant_{}", claim.name), &claim.name)?;
@@ -159,14 +171,15 @@ pub(crate) fn validate(file: &str, ast: &syn::File, model: &Lifted) -> Result<()
             register(file, ast, &mut names, &format!("{prefix}_{}", claim.name), &claim.name)?;
         }
         for action in &model.actions {
-            if claim.assumption.fair.contains(&action.name) {
-                register(
-                    file,
-                    ast,
-                    &mut names,
-                    &format!("Fair_{}_{}", claim.name, action.operator),
-                    &claim.name,
-                )?;
+            if !claim.assumption.fair.iter().any(|fair| fair.name == action.name) {
+                continue;
+            }
+            let fair = format!("Fair_{}_{}", claim.name, action.operator);
+            if action.fields.is_empty() {
+                register(file, ast, &mut names, &fair, &claim.name)?;
+            } else {
+                // Exact payload obligations append a catalog position once the World is bound.
+                register_prefix(file, ast, &format!("{fair}_"), &claim.name)?;
             }
         }
     }
@@ -180,6 +193,32 @@ pub(crate) fn validate(file: &str, ast: &syn::File, model: &Lifted) -> Result<()
         register(file, ast, &mut names, &field.symbol, &field.name)?;
     }
     Ok(())
+}
+
+fn register_prefix(
+    file: &str,
+    ast: &syn::File,
+    prefix: &str,
+    source: &str,
+) -> Result<(), Diagnostic> {
+    struct Prefixed<'a>(&'a str, bool);
+    impl<'ast> syn::visit::Visit<'ast> for Prefixed<'_> {
+        fn visit_ident(&mut self, ident: &'ast syn::Ident) {
+            self.1 |= ident.to_string().starts_with(self.0);
+        }
+    }
+    let mut prefixed = Prefixed(prefix, false);
+    syn::visit::Visit::visit_file(&mut prefixed, ast);
+    if !prefixed.1 {
+        return Ok(());
+    }
+    let mut found = Find { name: source, span: None };
+    syn::visit::Visit::visit_file(&mut found, ast);
+    Err(Diagnostic::span(
+        file,
+        found.span.unwrap_or_else(Span::call_site),
+        format!("authored declaration collides with generated TLA+ names `{prefix}*`"),
+    ))
 }
 
 fn validate_text(file: &str, tokens: proc_macro2::TokenStream) -> Result<(), Diagnostic> {

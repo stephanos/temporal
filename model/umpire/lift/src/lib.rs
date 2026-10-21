@@ -111,6 +111,26 @@ pub enum Literal {
     /// Ordered elements of an admitted state sequence.
     Sequence(Vec<Literal>),
 }
+/// The default concrete action catalog limit, equal to the native checker's.
+pub const CATALOG_LIMIT: usize = 4096;
+/// One concrete catalog action: its qualified variant and ordered named payload values.
+#[derive(Clone, Debug, PartialEq, Eq)]
+pub struct Concrete {
+    /// Qualified authored variant name.
+    pub action: String,
+    /// Payload fields in declaration order; tuple fields are named by position.
+    pub fields: Vec<(String, Literal)>,
+}
+/// The values a World-dependent `#[domain]` function yields for one action field.
+#[derive(Clone, Debug, PartialEq, Eq)]
+pub struct Domain {
+    /// Qualified authored variant name.
+    pub action: String,
+    /// Payload field name; tuple fields are named by position.
+    pub field: String,
+    /// Values in enumeration order, including positional duplicates.
+    pub values: Vec<Literal>,
+}
 /// One selected World and its complete authored start states.
 #[derive(Clone, Debug)]
 pub struct Binding {
@@ -118,6 +138,10 @@ pub struct Binding {
     pub world: Vec<(String, Literal)>,
     /// Complete named state fields for each authored start, in enumeration order.
     pub starts: Vec<Vec<(String, Literal)>>,
+    /// The checked native catalog of the same World, in catalog order.
+    pub actions: Vec<Concrete>,
+    /// Values of every World-dependent action field for the same World.
+    pub domains: Vec<Domain>,
 }
 /// An authored action.
 #[derive(Clone, Debug)]
@@ -128,6 +152,8 @@ pub struct Action {
     pub operator: String,
     /// Internal marker, which adds no fairness.
     pub internal: bool,
+    /// Typed payload fields in declaration order; empty for a unit variant.
+    pub fields: Vec<Field>,
 }
 /// A property with its isolated TLC configuration.
 #[derive(Clone, Debug)]
@@ -152,6 +178,10 @@ pub struct Progress {
     pub allowed: Vec<String>,
     /// Explicit fair actions only.
     pub fair: Vec<String>,
+    /// Admitted concrete catalog ordinals; empty without an input catalog.
+    pub allowed_inputs: Vec<usize>,
+    /// Explicitly fair concrete catalog ordinals; empty without an input catalog.
+    pub fair_inputs: Vec<usize>,
     /// Optional Model-transition bound.
     pub bound: Option<u64>,
 }
@@ -166,6 +196,9 @@ pub struct Metadata {
     pub fields: Vec<Field>,
     /// Actions in catalog order.
     pub actions: Vec<Action>,
+    /// The bound concrete catalog that `__umpire_input` ordinals index; empty for Models
+    /// without action inputs, whose edges are identified by action name alone.
+    pub catalog: Vec<Concrete>,
     /// Registered state claims.
     pub invariants: Vec<Property>,
     /// Registered action claims.

@@ -286,7 +286,8 @@ impl Tlc {
         let (status, output) =
             run_process(&mut command, directory, label, self.limits, Some(&dump))?;
         let messages = messages(&output).map_err(|error| Refusal(format!("{error}\n{output}")))?;
-        let violation = selected_violation(&messages, property)?;
+        let tla = fs::read_to_string(directory.join(format!("{name}.tla")))?;
+        let violation = selected_violation(&messages, property, &tla)?;
         let finished = messages.iter().any(|(code, _)| *code == 2186);
         let success = messages.iter().any(|(code, _)| *code == 2193);
         let unexpected_error = messages.iter().any(|(code, _)| {
@@ -320,7 +321,11 @@ fn java_command(java: &Path) -> Command {
     command
 }
 
-fn selected_violation(messages: &[(u32, String)], property: Option<&str>) -> Result<bool, Refusal> {
+fn selected_violation(
+    messages: &[(u32, String)],
+    property: Option<&str>,
+    tla: &str,
+) -> Result<bool, Refusal> {
     let mut violated = false;
     for (code, body) in messages {
         let prefix = match code {
@@ -338,13 +343,33 @@ fn selected_violation(messages: &[(u32, String)], property: Option<&str>) -> Res
             }
             _ => continue,
         };
-        let actual = body.strip_prefix(prefix).and_then(|rest| rest.split_whitespace().next());
+        let actual = body.strip_prefix(prefix).and_then(|rest| {
+            // A state-level `[]P` conjunct of a PROPERTY is checked as an invariant and named
+            // by its source span rather than by the operator.
+            located(rest, tla).or_else(|| rest.split_whitespace().next())
+        });
         if actual != property || property.is_none() {
             return Err(Refusal(format!("unexpected property violation: {body}")));
         }
         violated = true;
     }
     Ok(violated)
+}
+
+/// The single-line top-level operator containing a span reported as
+/// `line L, col C to line L2, col C2 of module M is violated.`
+fn located<'a>(body: &str, tla: &'a str) -> Option<&'a str> {
+    let rest = body.strip_prefix("line ")?;
+    let (first, rest) = rest.split_once(", col ")?;
+    let (_, rest) = rest.split_once(" to line ")?;
+    let (last, _) = rest.split_once(", col ")?;
+    let (first, last) = (first.parse::<usize>().ok()?, last.parse::<usize>().ok()?);
+    if first != last {
+        return None;
+    }
+    let line = tla.lines().nth(first.checked_sub(1)?)?;
+    let (operator, _) = line.split_once(" == ")?;
+    operator.bytes().all(|c| c.is_ascii_alphanumeric() || c == b'_').then_some(operator)
 }
 
 pub(super) fn split_cfg(cfg: &str) -> Result<(String, Vec<(String, String)>), Refusal> {
@@ -599,6 +624,36 @@ fn bounded_text(path: &Path, limit: u64) -> Result<String, Refusal> {
 mod tests {
     use super::*;
     use crate::{Type, Value};
+
+    #[test]
+    fn located_property_invariants_name_only_the_selected_operator() -> Result<(), Refusal> {
+        let tla =
+            "---- MODULE M ----\nOther == TRUE\nProgress_p == (A => B) /\\ [](x <= 4)\n====\n";
+        let located = |line: usize| {
+            vec![(
+                2110,
+                format!(
+                    "Invariant line {line}, col 30 to line {line}, col 41 of module M is violated."
+                ),
+            )]
+        };
+        assert!(selected_violation(&located(3), Some("Progress_p"), tla)?);
+        for (messages, property) in [
+            (located(2), Some("Progress_p")),
+            (located(3), Some("Other")),
+            (located(3), None),
+            (
+                vec![(
+                    2110,
+                    "Invariant line 3, col 1 to line 4, col 2 of module M is violated.".into(),
+                )],
+                Some("Progress_p"),
+            ),
+        ] {
+            assert!(selected_violation(&messages, property, tla).is_err());
+        }
+        Ok(())
+    }
 
     #[test]
     fn typed_module_refuses_inconsistent_declarations_before_spawning()

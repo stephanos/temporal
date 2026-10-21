@@ -13,6 +13,8 @@ pub(crate) enum ExprKind {
     Unit,
     Var(String, bool),
     World(String),
+    /// A chosen action input value, named by its generated TLA+ symbol.
+    Input(String),
     Enum(String),
     Unary(Unary, Box<Expr>),
     Binary(Op, Box<Expr>, Box<Expr>),
