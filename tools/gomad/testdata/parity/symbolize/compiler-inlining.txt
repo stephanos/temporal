@@ -1,0 +1,35 @@
+# gomad.fixture/symbolize
+gomad.fixture/symbolize/main.go:39:6: cannot inline known: marked go:noinline
+gomad.fixture/symbolize/main.go:3:6: can inline choose with cost 21 as: func(chan int, chan int) int { select statement }
+gomad.fixture/symbolize/main.go:12:6: can inline chooseOther with cost 21 as: func(chan int, chan int) int { select statement }
+gomad.fixture/symbolize/main.go:22:6: cannot inline positive: marked go:noinline
+gomad.fixture/symbolize/main.go:27:6: cannot inline conflicting: marked go:noinline
+gomad.fixture/symbolize/main.go:33:6: cannot inline sameChain: marked go:noinline
+gomad.fixture/symbolize/main.go:51:6: cannot inline unknown: marked go:noinline
+gomad.fixture/symbolize/main.go:56:6: cannot inline main: function too complex: cost 345 exceeds budget 80
+gomad.fixture/symbolize/main.go:23:15: inlining call to choose
+gomad.fixture/symbolize/main.go:28:17: inlining call to choose
+gomad.fixture/symbolize/main.go:29:28: inlining call to chooseOther
+gomad.fixture/symbolize/main.go:34:17: inlining call to choose
+gomad.fixture/symbolize/main.go:35:23: inlining call to choose
+gomad.fixture/symbolize/main.go:52:17: inlining call to choose
+gomad.fixture/symbolize/main.go:3:13: a does not escape
+gomad.fixture/symbolize/main.go:3:16: b does not escape
+gomad.fixture/symbolize/main.go:12:18: a does not escape
+gomad.fixture/symbolize/main.go:12:21: b does not escape
+gomad.fixture/symbolize/main.go:22:15: a does not escape
+gomad.fixture/symbolize/main.go:22:18: b does not escape
+gomad.fixture/symbolize/main.go:27:18: a does not escape
+gomad.fixture/symbolize/main.go:27:21: b does not escape
+gomad.fixture/symbolize/main.go:33:16: a does not escape
+gomad.fixture/symbolize/main.go:33:19: b does not escape
+gomad.fixture/symbolize/main.go:39:12: a does not escape
+gomad.fixture/symbolize/main.go:39:15: b does not escape
+gomad.fixture/symbolize/main.go:51:14: parameter a leaks to {heap} for unknown with derefs=0:
+gomad.fixture/symbolize/main.go:51:14:   flow: {heap} ← a:
+gomad.fixture/symbolize/main.go:51:14:     from indirect(a, b) (call parameter) at gomad.fixture/symbolize/main.go:53:25
+gomad.fixture/symbolize/main.go:51:17: parameter b leaks to {heap} for unknown with derefs=0:
+gomad.fixture/symbolize/main.go:51:17:   flow: {heap} ← b:
+gomad.fixture/symbolize/main.go:51:17:     from indirect(a, b) (call parameter) at gomad.fixture/symbolize/main.go:53:25
+gomad.fixture/symbolize/main.go:51:14: leaking param: a
+gomad.fixture/symbolize/main.go:51:17: leaking param: b

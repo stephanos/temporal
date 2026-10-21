@@ -1,0 +1,64 @@
+package main
+
+func choose(a, b chan int) int {
+	select {
+	case v := <-a:
+		return v
+	case v := <-b:
+		return v
+	}
+}
+
+func chooseOther(a, b chan int) int {
+	select {
+	case v := <-a:
+		return v
+	case v := <-b:
+		return v
+	}
+}
+
+//go:noinline
+func positive(a, b chan int) int {
+	return choose(a, b)
+}
+
+//go:noinline
+func conflicting(a, b chan int) int {
+	first := choose(a, b)
+	return first + chooseOther(a, b)
+}
+
+//go:noinline
+func sameChain(a, b chan int) int {
+	first := choose(a, b)
+	return first + choose(a, b)
+}
+
+//go:noinline
+func known(a, b chan int) int {
+	select {
+	case v := <-a:
+		return v
+	case v := <-b:
+		return v
+	}
+}
+
+var indirect = known
+
+//go:noinline
+func unknown(a, b chan int) int {
+	first := choose(a, b)
+	return first + indirect(a, b)
+}
+
+func main() {
+	a, b := make(chan int, 16), make(chan int, 16)
+	for i := 0; i < 16; i++ {
+		a <- i
+		b <- i
+	}
+	result := positive(a, b) + conflicting(a, b) + sameChain(a, b) + known(a, b) + unknown(a, b)
+	println("symbolize", result)
+}

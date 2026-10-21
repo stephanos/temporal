@@ -1,0 +1,333 @@
+{
+  "schema": "gomad.symbolize-fixture-proof/v1",
+  "compiler_version": "go version go1.27.1 linux/arm64",
+  "compiler_digests": [
+    "1675694ef690db0f18fbe7046a886170904bede1d9db6ec96ae27945c1705c64  /Users/stephan/Workspace/skunkworks/gomad/temporal/tools/gomad/.toolchain/stock/2198cf19890232fc/go/bin/go",
+    "3f69d2da22ae2662716a74e50e64072f077d72af0f3dfa53a3e19de2729e6ed0  /Users/stephan/Workspace/skunkworks/gomad/temporal/tools/gomad/.toolchain/stock/2198cf19890232fc/go/pkg/tool/linux_arm64/compile",
+    "84fe1177cbfaaeb89f3e054650c6a98fb90539205486150c251e1fefc5e856f1  /Users/stephan/Workspace/skunkworks/gomad/temporal/tools/gomad/.toolchain/stock/2198cf19890232fc/go/pkg/tool/linux_arm64/link"
+  ],
+  "baseline_authentication": [
+    "bin/gomad: OK",
+    "bin/wasmsweep: OK",
+    "bin/gomad-wasmhost: OK",
+    "source-1d7b37f00a.tar.gz: OK"
+  ],
+  "baseline_artifact": "/home/agent/wt/evidence/fn229-symbolize/fixture-proof/run/artifacts/v1/campaign-20261021T002046.725474070Z-8cc3daade621d0c3704c6c6a5e71b83b/successes/sha256-c8b180290d0ac9bf03cc91b2aeef5923",
+  "record_hash": "sha256:7ad7de724a488a7b7a7ad2207aa22c3a465a1a10cd86bd7c4c8644237955d140",
+  "provenance_sha256": "bb02cb0b980059eb8682d59e4884d718597a773d8131cc28d716c454b3871766",
+  "installation_sha256": "aa3482c146d322e599c33db20d91a9b02e0a666c5815f08ad022367c826fed3b",
+  "trace": {
+    "schema": "gomad.choice-inspection/v3",
+    "profile": "gomad-choice-trace/v3",
+    "implementation_sha256": "sha256:cafaeba88a381446f0d20bcb590f83242e7b0bc1fd4eaaa3b003726b5383d565",
+    "limit": 8388608,
+    "payload_bytes": 1536,
+    "sha256": "sha256:84fc06348f6bb9ad0caa64155380c884cc66eedb57574ce34c8dc557d7600918",
+    "records": 16,
+    "branching_records": 8,
+    "terminal_state": "complete",
+    "tape_sha256": "sha256:57391bce439b1364c5af03b41a025e212e757ae4a16ea173304292ebbce026cc",
+    "decisions": 8,
+    "exact_replay_available": true,
+    "runnable": 0,
+    "select_poll": 8,
+    "select_result": 8,
+    "sites": [
+      {
+        "fingerprint": "3d295e50b9abf4b647f6d16f0e5734d0eecb8ea306d1f71f80531d174f702cbc",
+        "kind": "select-poll",
+        "count": 1,
+        "maximum_alternatives": 2
+      },
+      {
+        "fingerprint": "409bdf62836303f8db1ca7c330a0a51aef8737eca39e2a820dbb08df8ea9ed49",
+        "kind": "select-poll",
+        "count": 2,
+        "maximum_alternatives": 2
+      },
+      {
+        "fingerprint": "83f87c4d82ddd9ea48fa14ba29ca7c9741eb4529a577ae18580b85b97236244f",
+        "kind": "select-poll",
+        "count": 2,
+        "maximum_alternatives": 2
+      },
+      {
+        "fingerprint": "f106948ab7eb1063f21f8f5e3e5e862a2dc422d6016c70c7201fa848834e02c4",
+        "kind": "select-poll",
+        "count": 1,
+        "maximum_alternatives": 2
+      },
+      {
+        "fingerprint": "fe341f31b64bf88c3c1fd1d56f096ab6c468ab39d4e1a0b50d2d3319b7cbf843",
+        "kind": "select-poll",
+        "count": 2,
+        "maximum_alternatives": 2
+      },
+      {
+        "fingerprint": "2a5dfcfb5780ae10d588b57ef7580ab6338dab7276aab6c3ce8ff4401aa08e8f",
+        "kind": "select-result",
+        "count": 2,
+        "maximum_alternatives": 2
+      },
+      {
+        "fingerprint": "2fdeaa9f1acfb020865b2b7f05a907e34289fb194451d344d879cd793b3ac6d3",
+        "kind": "select-result",
+        "count": 1,
+        "maximum_alternatives": 2
+      },
+      {
+        "fingerprint": "56c3aa14363d1e149508fbfeb9bace127a212a23d0876f39f05b03f7a00eb16f",
+        "kind": "select-result",
+        "count": 2,
+        "maximum_alternatives": 2
+      },
+      {
+        "fingerprint": "7b534081c7acafccbef85e71989a3de05527177b2c6bdad6837739b3520796e6",
+        "kind": "select-result",
+        "count": 1,
+        "maximum_alternatives": 2
+      },
+      {
+        "fingerprint": "afa5824a783f853084826783b94f3f57eb56c901cdf018a0c15b0b0ad4f2ba84",
+        "kind": "select-result",
+        "count": 2,
+        "maximum_alternatives": 2
+      }
+    ],
+    "replay_decisions": [
+      {
+        "ordinal": 0,
+        "kind": "select-poll",
+        "site_offset": 5383,
+        "alternatives": 2,
+        "selected": 0
+      },
+      {
+        "ordinal": 1,
+        "kind": "select-poll",
+        "site_offset": 5384,
+        "alternatives": 2,
+        "selected": 0
+      },
+      {
+        "ordinal": 2,
+        "kind": "select-poll",
+        "site_offset": 5384,
+        "alternatives": 2,
+        "selected": 1
+      },
+      {
+        "ordinal": 3,
+        "kind": "select-poll",
+        "site_offset": 5385,
+        "alternatives": 2,
+        "selected": 0
+      },
+      {
+        "ordinal": 4,
+        "kind": "select-poll",
+        "site_offset": 5385,
+        "alternatives": 2,
+        "selected": 0
+      },
+      {
+        "ordinal": 5,
+        "kind": "select-poll",
+        "site_offset": 5386,
+        "alternatives": 2,
+        "selected": 0
+      },
+      {
+        "ordinal": 6,
+        "kind": "select-poll",
+        "site_offset": 5387,
+        "alternatives": 2,
+        "selected": 0
+      },
+      {
+        "ordinal": 7,
+        "kind": "select-poll",
+        "site_offset": 5386,
+        "alternatives": 2,
+        "selected": 1
+      }
+    ]
+  },
+  "commands": {
+    "execute": {
+      "argv": [
+        "/home/agent/wt/evidence/fn232/go-baseline-1d7b37f00a/bin/gomad",
+        "--installation",
+        "/home/agent/wt/evidence/fn229-symbolize/fixture-proof/run/installation.json",
+        "explore",
+        "--json",
+        "--choices",
+        "--seeds=7",
+        "--parallel=1",
+        "--working-dir",
+        "/home/agent/wt/evidence/fn229-symbolize/fixture-proof/source",
+        "--build-tag=test_dep",
+        "--keep-successes=all",
+        "--success-limit=1",
+        "--success-bytes=64MiB",
+        "--execution-timeout=30s",
+        "--overall-timeout=5m",
+        "--artifacts",
+        "/home/agent/wt/evidence/fn229-symbolize/fixture-proof/run/artifacts",
+        "go-run",
+        "."
+      ],
+      "cwd": "/home/agent/wt/evidence/fn229-symbolize/fixture-proof",
+      "env": null
+    },
+    "compiler-inline": {
+      "argv": [
+        "/Users/stephan/Workspace/skunkworks/gomad/temporal/tools/gomad/.toolchain/stock/2198cf19890232fc/go/bin/go",
+        "build",
+        "-mod=readonly",
+        "-trimpath",
+        "-buildvcs=false",
+        "-pgo=off",
+        "-overlay",
+        "/home/agent/wt/evidence/fn229-symbolize/fixture-proof/run/preparation/runtime-overlay/6453d2a998662888534e8641ff68e6411e6adc14d5315ca7ee873b8a7ce8e506/overlay.json",
+        "-tags",
+        "test_dep",
+        "-gcflags=-m=2",
+        "-o",
+        "/home/agent/wt/evidence/fn229-symbolize/fixture-proof/diagnostic.wasm",
+        "."
+      ],
+      "cwd": "/home/agent/wt/evidence/fn229-symbolize/fixture-proof/source",
+      "env": {
+        "PATH": "/usr/local/share/npm-global/lib/node_modules/@openai/codex/node_modules/@openai/codex-linux-arm64/vendor/aarch64-unknown-linux-musl/codex-path:/home/agent/.codex/tmp/arg0-linux/codex-arg0t2i6Ac:/home/agent/.cargo/bin:/home/agent/.local/bin:/usr/local/share/npm-global/bin:/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin",
+        "HOME": "/home/agent",
+        "GOENV": "off",
+        "GOFLAGS": "",
+        "GOTOOLCHAIN": "local",
+        "GOWORK": "off",
+        "GOOS": "wasip1",
+        "GOARCH": "wasm",
+        "CGO_ENABLED": "0",
+        "GOEXPERIMENT": "nogreenteagc",
+        "GOCACHEPROG": "",
+        "GOCACHE": "/home/agent/wt/evidence/fn229-symbolize/fixture-proof/run/diagnostic-cache"
+      }
+    },
+    "compiler-assembly": {
+      "argv": [
+        "/Users/stephan/Workspace/skunkworks/gomad/temporal/tools/gomad/.toolchain/stock/2198cf19890232fc/go/bin/go",
+        "build",
+        "-mod=readonly",
+        "-trimpath",
+        "-buildvcs=false",
+        "-pgo=off",
+        "-overlay",
+        "/home/agent/wt/evidence/fn229-symbolize/fixture-proof/run/preparation/runtime-overlay/6453d2a998662888534e8641ff68e6411e6adc14d5315ca7ee873b8a7ce8e506/overlay.json",
+        "-tags",
+        "test_dep",
+        "-gcflags=-S",
+        "-o",
+        "/home/agent/wt/evidence/fn229-symbolize/fixture-proof/assembly.wasm",
+        "."
+      ],
+      "cwd": "/home/agent/wt/evidence/fn229-symbolize/fixture-proof/source",
+      "env": {
+        "PATH": "/usr/local/share/npm-global/lib/node_modules/@openai/codex/node_modules/@openai/codex-linux-arm64/vendor/aarch64-unknown-linux-musl/codex-path:/home/agent/.codex/tmp/arg0-linux/codex-arg0t2i6Ac:/home/agent/.cargo/bin:/home/agent/.local/bin:/usr/local/share/npm-global/bin:/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin",
+        "HOME": "/home/agent",
+        "GOENV": "off",
+        "GOFLAGS": "",
+        "GOTOOLCHAIN": "local",
+        "GOWORK": "off",
+        "GOOS": "wasip1",
+        "GOARCH": "wasm",
+        "CGO_ENABLED": "0",
+        "GOEXPERIMENT": "nogreenteagc",
+        "GOCACHEPROG": "",
+        "GOCACHE": "/home/agent/wt/evidence/fn229-symbolize/fixture-proof/run/diagnostic-cache"
+      }
+    },
+    "compiler-stripped": {
+      "argv": [
+        "/Users/stephan/Workspace/skunkworks/gomad/temporal/tools/gomad/.toolchain/stock/2198cf19890232fc/go/bin/go",
+        "build",
+        "-mod=readonly",
+        "-trimpath",
+        "-buildvcs=false",
+        "-pgo=off",
+        "-overlay",
+        "/home/agent/wt/evidence/fn229-symbolize/fixture-proof/run/preparation/runtime-overlay/6453d2a998662888534e8641ff68e6411e6adc14d5315ca7ee873b8a7ce8e506/overlay.json",
+        "-tags",
+        "test_dep",
+        "-ldflags=-s",
+        "-o",
+        "/home/agent/wt/fn229-symbolize/tools/gomad/testdata/parity/symbolize/guest-stripped.wasm",
+        "."
+      ],
+      "cwd": "/home/agent/wt/evidence/fn229-symbolize/fixture-proof/source",
+      "env": {
+        "PATH": "/usr/local/share/npm-global/lib/node_modules/@openai/codex/node_modules/@openai/codex-linux-arm64/vendor/aarch64-unknown-linux-musl/codex-path:/home/agent/.codex/tmp/arg0-linux/codex-arg0t2i6Ac:/home/agent/.cargo/bin:/home/agent/.local/bin:/usr/local/share/npm-global/bin:/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin",
+        "HOME": "/home/agent",
+        "GOENV": "off",
+        "GOFLAGS": "",
+        "GOTOOLCHAIN": "local",
+        "GOWORK": "off",
+        "GOOS": "wasip1",
+        "GOARCH": "wasm",
+        "CGO_ENABLED": "0",
+        "GOEXPERIMENT": "nogreenteagc",
+        "GOCACHEPROG": "",
+        "GOCACHE": "/home/agent/wt/evidence/fn229-symbolize/fixture-proof/run/diagnostic-cache"
+      }
+    },
+    "inspect": {
+      "argv": [
+        "/home/agent/wt/evidence/fn232/go-baseline-1d7b37f00a/bin/gomad",
+        "inspect",
+        "--json",
+        "--choices",
+        "/home/agent/wt/evidence/fn229-symbolize/fixture-proof/run/artifacts/v1/campaign-20261021T002046.725474070Z-8cc3daade621d0c3704c6c6a5e71b83b/successes/sha256-c8b180290d0ac9bf03cc91b2aeef5923"
+      ],
+      "cwd": "/home/agent/wt/evidence/fn229-symbolize/fixture-proof",
+      "env": null
+    },
+    "replay": {
+      "argv": [
+        "/home/agent/wt/evidence/fn232/go-baseline-1d7b37f00a/bin/gomad",
+        "--installation",
+        "/home/agent/wt/evidence/fn229-symbolize/fixture-proof/run/installation.json",
+        "replay",
+        "/home/agent/wt/evidence/fn229-symbolize/fixture-proof/run/artifacts/v1/campaign-20261021T002046.725474070Z-8cc3daade621d0c3704c6c6a5e71b83b/successes/sha256-c8b180290d0ac9bf03cc91b2aeef5923"
+      ],
+      "cwd": "/home/agent/wt/evidence/fn229-symbolize/fixture-proof",
+      "env": null
+    }
+  },
+  "exits": {
+    "baseline-authenticate": 0,
+    "compiler-version": 0,
+    "compiler-digests": 0,
+    "execute": 0,
+    "compiler-inline": 0,
+    "compiler-assembly": 0,
+    "compiler-stripped": 0,
+    "inspect": 0,
+    "replay": 0
+  },
+  "assembly_transcript": {
+    "normalization": "Remove trailing ASCII spaces and tabs from each line only",
+    "raw_path": "/home/agent/wt/evidence/fn229-symbolize/fixture-proof/compiler-assembly.stderr",
+    "raw_sha256": "0fdb4be473cfbf93e04eb435eb2a5cc701a352efda80772727722d5b4c23f06a"
+  },
+  "digests": {
+    "compiler-assembly.txt": "08b8f325aedac3279c29326fb4890055dea2892013c2459441070189b1af0728",
+    "guest.go.txt": "e4aef7be3655c6370ac16a43f57d0175377f001f8943778f1f7d95bc8cf5c1cb",
+    "no-metadata.wasm": "93a44bbb96c751218e4c00d479e4c14358122a389acca16205b1e4d0dc5f9476",
+    "expected.json": "7028c2910ef93d0ead01ddafcc8ca17e685e0d03e9dc38dc5146d90751b662e4",
+    "compiler-inlining.txt": "d1a82de2d647cdcbaf6c7ad224203545063bc60b03f8e0aadff1714758c3e653",
+    "guest.wasm": "7bd52a2fe1346cd1bee23225f987a71c7b196d798645fccb5005a3ebeff6566d",
+    "README.md": "0ff28d3155da4dd8bdd65d624f6f6b0c35354834017a61fd43434f5cf75000de",
+    "metadata.json": "e05df2ad3355fd4dda55320435f87ff8ee12da18c491a9912e4c49072ab6b091",
+    "guest-stripped.wasm": "3c17b81e3e0e910b1a2bcadaa91cf58849d2a421f864683098ee18779bcdb188",
+    "choices.bin": "84fc06348f6bb9ad0caa64155380c884cc66eedb57574ce34c8dc557d7600918"
+  }
+}
