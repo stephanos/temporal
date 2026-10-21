@@ -23,7 +23,7 @@ pub use crate::model::replay_plan::{
     TraceDecision, TraceInspection, TraceSite, coverage_features as choice_features,
     inspect as inspect_choices, project as project_choices,
 };
-pub use crate::model::{Config as ModelConfig, Decision, Divergence, ModelLimits};
+pub use crate::model::{Config as ModelConfig, CreationSite, Decision, Divergence, ModelLimits};
 pub use crate::namespace::{
     Image as NamespaceImage, ImageEntry as NamespaceEntry, Limits as NamespaceLimits,
 };

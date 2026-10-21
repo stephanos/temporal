@@ -3,7 +3,7 @@
 package runtime
 
 const (
-	gomadChoiceWireVersion                   = 3
+	gomadChoiceWireVersion                   = 4
 	gomadChoiceHeaderBytes                   = 64
 	gomadChoiceRecordBytes                   = 96
 	gomadChoiceTapeHeaderBytes               = 264
@@ -14,6 +14,7 @@ const (
 	gomadChoiceKindRunnable                  = 1
 	gomadChoiceKindSelectPoll                = 2
 	gomadChoiceKindSelectResult              = 3
+	gomadChoiceKindGoroutineCreation         = 4
 	gomadChoiceFlagDecision                  = 1
 	gomadChoiceFlagObservation               = 2
 	gomadChoiceFlagSiteMissing               = 4
@@ -53,9 +54,9 @@ const (
 	gomadDiagnosticStateOffset               = 12
 )
 
-var gomadChoiceTraceMagic = [8]byte{'G', 'O', 'M', 'A', 'D', 'C', 'H', '\x03'}
+var gomadChoiceTraceMagic = [8]byte{'G', 'O', 'M', 'A', 'D', 'C', 'H', '\x04'}
 var gomadChoiceTapeMagic = [8]byte{'G', 'O', 'M', 'A', 'D', 'T', 'P', '\x03'}
-var gomadChoiceTerminalMagic = [8]byte{'G', 'O', 'M', 'A', 'D', 'C', 'T', '\x03'}
+var gomadChoiceTerminalMagic = [8]byte{'G', 'O', 'M', 'A', 'D', 'C', 'T', '\x04'}
 var gomadDiagnosticMagic = [8]byte{'G', 'O', 'M', 'A', 'D', 'D', 'G', '\x01'}
 
 type gomadDiagnosticDrawCounts struct {

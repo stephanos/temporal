@@ -1,6 +1,7 @@
 """Independent raw-wire authentication for actual public exploration campaigns."""
 import copy
 import json
+import re
 from pathlib import Path
 import runpy
 import shutil
@@ -32,6 +33,8 @@ def initial_state(kind, config):
         pending = len(json.dumps(dict(sha256=sha, forced_depth=0), separators=(',', ':')).encode()) + 1
         state = dict(common, queue=[root], seen=[sha], pending_bytes=pending, deepest_prefix=0,
                      omitted_by_select_readiness=0, stop_reason='')
+        if 'site_scope' in config:
+            state['site_scope_resolution'] = dict(packages={}, fingerprints=[])
         return domain('gomad-choice-exploration-state/v2', state)
     projection = {key: config[key] for key in ('base_seed', 'controller_sha256', 'execution_sha256')}
     sha = domain('gomad-simulation-exploration-candidate/v1', dict(projection, overrides=None))
@@ -77,6 +80,8 @@ def authenticate(root):
           'round.prepared.configuration')
     if kind == 'choice':
         equal(config['execution'], prepared['choice_identity'], 'round.choice.identity')
+        if 'site_scope' in config:
+            scope_contract(config['site_scope'])
     else:
         keys = ('module_sha256', 'toolchain', 'configuration', 'scenario', 'network', 'choice_identity',
                 'soft_assertion_report_only', 'host_sha256', 'helper_sha256')
@@ -117,6 +122,12 @@ def authenticate(root):
         if state is not None:
             equal(segment['before_sha256'], state, 'round.state.link')
         state = segment['after_sha256']
+        if 'site_scope' in config:
+            scope_contract(segment['site_scope'])
+            equal(segment['site_scope']['patterns'], config['site_scope']['patterns'], 'round.scope.patterns')
+            counts = segment['scope_counts']
+            equal(set(counts), {'forced_in_scope', 'skipped_out_of_scope'}, 'round.scope.counts.fields')
+            equal(all(type(value) is int and value >= 0 for value in counts.values()), True, 'round.scope.counts')
         equal(len(executions), len(segment['results']), 'round.result.count')
         equal(0 < len(executions) <= config['parallel'], True, 'round.slots')
         if kind == 'simulation':
@@ -215,6 +226,176 @@ def authenticate(root):
               'round.unreferenced_artifacts')
     return dict(plan=plan, events=events, prepared_artifact=artifact_view(prepared_root),
                 artifacts=sorted(artifacts, key=parity.canonical))
+
+
+def scope_contract(scope):
+    equal(set(scope), {'patterns', 'resolved_sha256', 'resolved_count'}, 'round.scope.fields')
+    equal(type(scope['patterns']) is list and bool(scope['patterns']), True, 'round.scope.patterns')
+    for pattern in scope['patterns']:
+        path = pattern[:-4] if pattern.endswith('/...') else pattern
+        equal(all(re.fullmatch(r'[A-Za-z0-9_+~-](?:[A-Za-z0-9_.+~-]*[A-Za-z0-9_+~-])?', part)
+                  for part in path.split('/')), True, 'round.scope.package')
+    equal(scope['resolved_sha256'].startswith('sha256:'), True, 'round.scope.digest.domain')
+    parity.sha(scope['resolved_sha256'][7:], 'round.scope.digest')
+    equal(type(scope['resolved_count']) is int and scope['resolved_count'] >= 0, True, 'round.scope.count')
+
+
+def scope_semantics(root, report, envelope):
+    """Cross-check public symbols against authenticated raw trace positions and scope commitments."""
+    checked = authenticate(root)
+    config = checked['plan']['strategy']['config']
+    patterns = config['site_scope']['patterns']
+
+    def matches(symbol):
+        package = symbol.get('package')
+        return package is not None and any(package == pattern or pattern.endswith('/...')
+            and (package == pattern[:-4] or package.startswith(pattern[:-3])) for pattern in patterns)
+
+    projected = report['campaign']['executions']
+    executions = [execution for event in checked['events'] for execution in event['executions']]
+    equal(len(projected), len(executions), 'round.scope.inspect.executions')
+    def candidate(decisions):
+        identity = config['execution']
+        projection = dict(target_sha256='sha256:' + bytes(identity['TargetSHA256']).hex(),
+            toolchain_build_key=identity['ToolchainBuildKey'], goos=identity['GOOS'], goarch=identity['GOARCH'],
+            implementation_sha256='sha256:' + bytes(identity['ImplementationSHA256']).hex(),
+            controller_sha256=config['controller_sha256'], base_seed=str(config['base_seed']), decisions=decisions)
+        return 'sha256:' + parity.digest(b'gomad-choice-exploration-candidate/v1\0' +
+            json.dumps(projection, separators=(',', ':'), ensure_ascii=False).encode())
+
+    fingerprints, forced_ordinals = set(), []
+    proposals = {candidate([]): (0, True)}
+    runnable_in_scope = runnable_out_of_scope = mixed_runnable = 0
+    position = 0
+    for index, event in enumerate(checked['events']):
+        skipped = 0
+        for execution, result in zip(event['executions'], event['segment']['results']):
+            depth, allowed = proposals[result['candidate_sha256']]
+            equal(allowed, True, 'round.scope.forced_package')
+            if depth:
+                forced_ordinals.append(depth - 1)
+            view = projected[position]
+            position += 1
+            equal(view['ordinal'], execution['ordinal'], 'round.scope.inspect.ordinal')
+            symbols = {site['fingerprint']: site['symbol'] for site in view['choices']['sites']}
+            trace = bytes(result['source_trace'])
+            target = bytes.fromhex(execution['record']['identity']['target'])
+            decisions, pending, readiness, raw_positions = [], [], {}, []
+            equal(len(trace) % 96, 0, 'round.scope.trace.framing')
+            for offset in range(0, len(trace), 96):
+                raw = trace[offset:offset + 96]
+                kind, flags = raw[8], raw[9]
+                if flags & 2:
+                    origin = int.from_bytes(raw[32:40], 'big')
+                    for poll in range(max(0, int.from_bytes(raw[20:24], 'big') - 1)):
+                        readiness[origin + poll] = int.from_bytes(raw[10:12], 'big')
+                missing = bool(flags & 4)
+                fingerprint = 'missing' if missing else parity.digest(target + raw[8:9] + raw[24:32])
+                equal(fingerprint in symbols, True, 'round.scope.raw.symbol')
+                admitted = not missing and matches(symbols[fingerprint])
+                if admitted:
+                    fingerprints.add(fingerprint)
+                if kind == 4:
+                    pending.append(admitted)
+                    continue
+                allowed = any(pending) if kind == 1 else admitted
+                mixed = any(pending) and not all(pending)
+                pending = []
+                alternatives = int.from_bytes(raw[12:16], 'big')
+                if not flags & 2 and alternatives > 1:
+                    decision = dict(ordinal=str(len(decisions)), kind=kind,
+                        site_offset=str(int.from_bytes(raw[24:32], 'big')), site_missing=missing,
+                        rank_override=False, alternatives=alternatives,
+                        selected=int.from_bytes(raw[16:20], 'big'), data=int.from_bytes(raw[20:24], 'big'))
+                    if any(raw[32:64]):
+                        decision['selected_identity'] = 'sha256:' + raw[32:64].hex()
+                    decision['alternative_set_digest'] = 'sha256:' + raw[64:96].hex()
+                    decisions.append((decision, allowed))
+                    raw_positions.append(offset // 96)
+                    if kind == 1:
+                        runnable_in_scope += int(allowed)
+                        runnable_out_of_scope += int(not allowed)
+                        mixed_runnable += int(mixed)
+            for ordinal in range(depth, len(decisions)):
+                decision, allowed = decisions[ordinal]
+                word = readiness.get(raw_positions[ordinal], 0)
+                next_poll = ordinal + 1 < len(decisions) and (
+                    decisions[ordinal + 1][0]['kind'], decisions[ordinal + 1][0]['site_offset'],
+                    decisions[ordinal + 1][0]['alternatives']) == (2, decision['site_offset'], 3)
+                no_op = decision['kind'] == 2 and decision['alternatives'] == 2 and not next_poll and word & 1 and (
+                    (word >> 6 == 0 and word & 62 in (0, 2, 8)) or
+                    (word >> 6 == 1 and word & 62 in (0, 4, 8, 16)))
+                if ordinal >= config['start_ordinal'] and not allowed and not no_op:
+                    skipped += decision['alternatives'] - 1
+                for rank in range(decision['alternatives']):
+                    if rank == decision['selected']:
+                        continue
+                    prefix = [dict(value) for value, _ in decisions[:ordinal + 1]]
+                    prefix[-1].update(rank_override=True, selected=rank)
+                    prefix[-1].pop('selected_identity', None)
+                    proposals[candidate(prefix)] = ordinal + 1, allowed
+        equal(event['segment']['scope_counts']['skipped_out_of_scope'], skipped, 'round.scope.skipped_alternatives')
+        resolved = event['segment']['site_scope']
+        expected = 'sha256:' + parity.digest(b'gomad-explore-site-scope/v1\0' + ''.join(sorted(fingerprints)).encode())
+        equal((resolved['resolved_sha256'], resolved['resolved_count']),
+              (expected, len(fingerprints)), 'round.scope.resolution')
+        if index == 0:
+            equal(resolved, config['site_scope'], 'round.scope.base_resolution')
+    admitted = sum(event['segment']['scope_counts']['forced_in_scope'] for event in checked['events'])
+    equal(admitted, len(executions) - 1 + envelope['pending'], 'round.scope.admitted_frontier')
+    equal(envelope['site_scope'], checked['events'][-1]['segment']['site_scope'], 'round.scope.envelope')
+    return dict(forced_ordinals=forced_ordinals, admitted=admitted,
+        runnable_in_scope=runnable_in_scope, runnable_out_of_scope=runnable_out_of_scope,
+        mixed_runnable=mixed_runnable,
+        skipped=sum(event['segment']['scope_counts']['skipped_out_of_scope'] for event in checked['events']))
+
+
+def scope_digest_refusal(run, prefix, root, destination):
+    """Reseal outer commitments to reach the recorded-base scope re-resolution check."""
+    authenticate(root)
+    shutil.copytree(root, destination)
+    plan = canonical_file(destination / 'plan.json')
+    plan['strategy']['config']['site_scope']['resolved_sha256'] = 'sha256:' + '0' * 64
+    (destination / 'plan.json').write_bytes(parity.canonical(plan))
+    storage = canonical_file(destination / 'storage.json')
+    storage['plan_sha256'] = parity.digest((destination / 'plan.json').read_bytes())
+    (destination / 'storage.json').write_bytes(parity.canonical(storage))
+    previous, rows = storage['plan_sha256'], []
+    for index, line in enumerate((destination / 'journal.jsonl').read_bytes().splitlines()):
+        row = parity.decode(line)
+        if index == 0:
+            segment = row['event']['segment']
+            segment['before_sha256'] = initial_state('choice', plan['strategy']['config'])
+            segment['sha256'] = domain('gomad-choice-exploration-round-segment/v3', dict(segment, sha256=''))
+        row['previous_sha256'] = previous
+        row['sha256'] = parity.digest(parity.canonical({key: value for key, value in row.items() if key != 'sha256'}))
+        previous = row['sha256']
+        rows.append(parity.canonical(row))
+    (destination / 'journal.jsonl').write_bytes(b'\n'.join(rows) + b'\n')
+    before = snapshot(destination)
+    for verb in ('inspect', 'resume'):
+        refusal = run('scope-digest-' + verb, [*prefix, verb, '--json', destination], (2,))
+        if verb == 'resume':
+            equal('exploration plan identity or bounds changed' in json.loads(refusal)['message'],
+                  True, 'round.scope.digest.refusal')
+        equal(snapshot(destination), before, 'round.scope.digest.immutable')
+
+
+def scope_block_refusals(run, prefix, root, work):
+    for name, changed in [('patterns', {'patterns': []}), ('digest', {'resolved_sha256': 'invalid'}),
+                          ('count', {'resolved_count': -1}), ('unknown', {'extra': True})]:
+        destination = work / ('scope-malformed-' + name)
+        shutil.copytree(root, destination)
+        plan = canonical_file(destination / 'plan.json')
+        plan['strategy']['config']['site_scope'].update(changed)
+        (destination / 'plan.json').write_bytes(parity.canonical(plan))
+        storage = canonical_file(destination / 'storage.json')
+        storage['plan_sha256'] = parity.digest((destination / 'plan.json').read_bytes())
+        (destination / 'storage.json').write_bytes(parity.canonical(storage))
+        before = snapshot(destination)
+        for verb in ('inspect', 'resume'):
+            run('scope-malformed-' + name + '-' + verb, [*prefix, verb, '--json', destination], (2,))
+            equal(snapshot(destination), before, 'round.scope.malformed.immutable')
 
 
 def negative_checks(root, work):

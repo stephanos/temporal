@@ -194,7 +194,7 @@ func TestChoiceReadersRejectOtherWireVersions(t *testing.T) {
 	payload := encodeRecords(t, []Record{record})
 	digest := sha256.Sum256(payload)
 	metadata := TerminalMetadata{State: TerminalComplete, Limit: traceHeaderBytes + traceRecordBytes, Records: 1, SHA256: digest}
-	for _, profile := range []string{LegacyProfile, SupersededProfile, "gomad-choice-trace/v4"} {
+	for _, profile := range []string{LegacyProfile, SupersededProfile, "gomad-choice-trace/v5"} {
 		if _, err := DecodeStoredTrace(profile, payload, metadata); !errors.Is(err, ErrMalformed) || !strings.Contains(err.Error(), profile) {
 			t.Fatalf("DecodeStoredTrace(%q) error = %v", profile, err)
 		}
@@ -205,7 +205,7 @@ func TestChoiceReadersRejectOtherWireVersions(t *testing.T) {
 	if err != nil {
 		t.Fatal(err)
 	}
-	for _, version := range []uint32{Version1, Version2, Version3 + 1} {
+	for _, version := range []uint32{Version1, Version2, Version4 + 1} {
 		frame := append([]byte(nil), complete[:]...)
 		binary.BigEndian.PutUint32(frame[8:12], version)
 		if _, err := DecodeTrace(payload, frame, traceHeaderBytes+traceRecordBytes); !errors.Is(err, ErrMalformed) {

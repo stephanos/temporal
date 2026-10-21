@@ -1,8 +1,8 @@
 {
-  "version": 3,
-  "profile": "gomad-choice-trace/v3",
+  "version": 4,
+  "profile": "gomad-choice-trace/v4",
   "trace": {
-    "magic": "GOMADCH\u0003",
+    "magic": "GOMADCH\u0004",
     "header_bytes": 64,
     "record_bytes": 96
   },
@@ -13,7 +13,7 @@
     "checksum_offset": 232
   },
   "terminal": {
-    "magic": "GOMADCT\u0003",
+    "magic": "GOMADCT\u0004",
     "states": {
       "complete": 1,
       "overflow": 2,
@@ -25,7 +25,8 @@
   "kinds": {
     "runnable": 1,
     "select_poll": 2,
-    "select_result": 3
+    "select_result": 3,
+    "goroutine_creation": 4
   },
   "flags": {
     "decision": 1,

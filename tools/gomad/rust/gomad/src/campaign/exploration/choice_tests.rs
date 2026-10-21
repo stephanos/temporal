@@ -18,6 +18,7 @@ fn config() -> ChoiceConfig {
         max_exploration_bytes: 1 << 20,
         failure_policy: "all".into(),
         failure_budget: 1,
+        site_scope: None,
     }
 }
 
@@ -47,6 +48,70 @@ fn observed(candidate: &ChoiceCandidate, raw: Vec<u8>) -> ChoiceResult {
         divergence: None,
         source_trace: Some(raw),
     }
+}
+
+fn scoped_fixture(pattern: &str) -> (ChoiceState, Vec<u8>) {
+    use sha2::Digest as _;
+    let fixture =
+        std::path::Path::new(env!("CARGO_MANIFEST_DIR")).join("../../testdata/parity/symbolize");
+    let module = std::fs::read(fixture.join("guest.wasm")).unwrap();
+    let raw = std::fs::read(fixture.join("choices.bin")).unwrap();
+    let mut config = config();
+    config.execution.target_sha256 = sha2::Sha256::digest(&module).into();
+    config.max_choice_depth = 32;
+    let patterns = vec![pattern.into()];
+    let mut resolution = Resolution::default();
+    resolution
+        .observe(&module, &raw, &config.execution, &patterns)
+        .unwrap();
+    config.site_scope = Some(resolution.scope(&patterns));
+    let mut state = ChoiceState::new(config).unwrap();
+    state.bind_scope_module(module.into()).unwrap();
+    (state, raw)
+}
+
+#[test]
+fn site_scope_empty_base_commits_trace_and_reports_skipped_alternatives() {
+    let (state, raw) = scoped_fixture("not.in.the.module");
+    let round = state.next_round().unwrap();
+    let (next, segment) = state
+        .commit(&round, &[observed(&round.candidates[0], raw)])
+        .unwrap();
+    assert_eq!(next.stop_reason, "site_scope_empty");
+    assert_eq!(next.queue, Vec::new());
+    assert_eq!(next.logical_executions, 1);
+    assert_eq!(segment.site_scope.as_ref().unwrap().resolved_count, 0);
+    assert_eq!(segment.scope_counts.as_ref().unwrap().forced_in_scope, 0);
+    assert!(segment.scope_counts.as_ref().unwrap().skipped_out_of_scope > 0);
+    assert_eq!(
+        state.replay_segment(&segment).unwrap().hash().unwrap(),
+        next.hash().unwrap()
+    );
+}
+
+#[test]
+fn site_scope_selects_match_symbolized_packages_and_resume_rechecks_digest() {
+    let (state, raw) = scoped_fixture("main");
+    let round = state.next_round().unwrap();
+    let result = observed(&round.candidates[0], raw);
+    let (next, segment) = state.commit(&round, std::slice::from_ref(&result)).unwrap();
+    assert_ne!(next.queue, Vec::new());
+    assert!(segment.site_scope.as_ref().unwrap().resolved_count > 0);
+    assert_eq!(
+        segment.scope_counts.as_ref().unwrap().skipped_out_of_scope,
+        0
+    );
+    assert_eq!(
+        segment.scope_counts.as_ref().unwrap().forced_in_scope,
+        next.queue.len() as u64
+    );
+    let mut changed = state;
+    changed.config.site_scope.as_mut().unwrap().resolved_sha256 =
+        format!("sha256:{}", "0".repeat(64));
+    assert_eq!(
+        changed.commit(&round, &[result]).err().unwrap(),
+        "exploration plan identity or bounds changed"
+    );
 }
 
 #[test]

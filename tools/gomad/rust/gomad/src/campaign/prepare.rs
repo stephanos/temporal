@@ -534,7 +534,7 @@ fn configuration(
     if options.choices {
         environment.insert(
             "GOMAD_CHOICE_PROFILE".into(),
-            "gomad-choice-trace/v3".into(),
+            "gomad-choice-trace/v4".into(),
         );
     }
     if options.diagnostics {

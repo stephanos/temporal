@@ -9,7 +9,7 @@ import (
 )
 
 const (
-	Profile                = "gomad-choice-trace/v3"
+	Profile                = "gomad-choice-trace/v4"
 	HeaderBytes            = 64
 	RecordBytes            = 96
 	TapeHeaderBytes        = 264
@@ -18,25 +18,27 @@ const (
 	TerminalFrameBytes     = 312
 	TerminalChecksumOffset = 280
 	DigestBytes            = 32
-	wireVersion            = 3
+	wireVersion            = 4
 	Version1               = 1
 	Version2               = 2
-	Version3               = wireVersion
+	Version3               = 3
+	Version4               = wireVersion
 )
 
 var (
-	traceMagic                 = [8]byte{'G', 'O', 'M', 'A', 'D', 'C', 'H', '\x03'}
+	traceMagic                 = [8]byte{'G', 'O', 'M', 'A', 'D', 'C', 'H', '\x04'}
 	tapeMagic                  = [8]byte{'G', 'O', 'M', 'A', 'D', 'T', 'P', '\x03'}
-	terminalMagic              = [8]byte{'G', 'O', 'M', 'A', 'D', 'C', 'T', '\x03'}
-	ImplementationSourceSHA256 = [DigestBytes]byte{'f', '\u009b', 'È', 'q', 'ë', '\u00a0', 'Ë', 'î', 'Q', 'B', '\u0090', '\x18', ';', '¢', 'è', 'ç', '\u008f', 'D', '¹', '\x1f', '4', 'Í', '&', '0', '\x0f', '¸', '\u0091', 'n', 'ÿ', 'S', '\'', 'ª'}
+	terminalMagic              = [8]byte{'G', 'O', 'M', 'A', 'D', 'C', 'T', '\x04'}
+	ImplementationSourceSHA256 = [DigestBytes]byte{'#', '\u008b', '\x17', 'q', '\u0092', '\u0081', ':', 'È', '.', 'ý', '\u009b', 'í', '#', '~', '\u008b', '¨', 'ì', 'Y', '¢', '\u009d', '\x12', 'a', 'å', 'Õ', '6', 's', '\x13', 'Á', ':', 'b', '\x1c', 'Õ'}
 )
 
 type Kind uint8
 
 const (
-	KindRunnable     Kind = 1
-	KindSelectPoll   Kind = 2
-	KindSelectResult Kind = 3
+	KindRunnable          Kind = 1
+	KindSelectPoll        Kind = 2
+	KindSelectResult      Kind = 3
+	KindGoroutineCreation Kind = 4
 )
 
 type Flags uint8
@@ -230,6 +232,12 @@ func validateReadiness(value Record) error {
 }
 
 func validateRecord(value Record) error {
+	if value.Kind == KindGoroutineCreation {
+		if value.Flags & ^FlagSiteMissing != 0 || value.Alternatives < 2 || value.Alternatives > 256 || value.Selected >= value.Alternatives || value.Data != 0 || value.Readiness != 0 || value.Origin != 0 || zero(value.SelectedIdentity[:]) || !zero(value.AlternativeSetDigest[:]) || value.Flags&FlagSiteMissing != 0 && value.SiteOffset != 0 {
+			return errors.New("invalid goroutine creation metadata")
+		}
+		return nil
+	}
 	if value.Kind < KindRunnable || value.Kind > KindSelectResult {
 		return errors.New("invalid choice trace kind")
 	}
@@ -279,7 +287,7 @@ func EncodeTapeHeader(value TapeHeader) ([TapeHeaderBytes]byte, error) {
 		return header, errors.New("invalid choice tape header values")
 	}
 	copy(header[:8], tapeMagic[:])
-	binary.BigEndian.PutUint32(header[8:12], wireVersion)
+	binary.BigEndian.PutUint32(header[8:12], Version3)
 	binary.BigEndian.PutUint32(header[12:16], TapeHeaderBytes)
 	binary.BigEndian.PutUint32(header[16:20], TapeRecordBytes)
 	binary.BigEndian.PutUint64(header[24:32], value.TotalBytes)
@@ -296,7 +304,7 @@ func EncodeTapeHeader(value TapeHeader) ([TapeHeaderBytes]byte, error) {
 }
 
 func DecodeTapeHeader(header []byte) (TapeHeader, error) {
-	if len(header) != TapeHeaderBytes || !bytes.Equal(header[:8], tapeMagic[:]) || binary.BigEndian.Uint32(header[8:12]) != wireVersion || binary.BigEndian.Uint32(header[12:16]) != TapeHeaderBytes || binary.BigEndian.Uint32(header[16:20]) != TapeRecordBytes || !zero(header[20:24]) {
+	if len(header) != TapeHeaderBytes || !bytes.Equal(header[:8], tapeMagic[:]) || binary.BigEndian.Uint32(header[8:12]) != Version3 || binary.BigEndian.Uint32(header[12:16]) != TapeHeaderBytes || binary.BigEndian.Uint32(header[16:20]) != TapeRecordBytes || !zero(header[20:24]) {
 		return TapeHeader{}, errors.New("invalid choice tape header")
 	}
 	checksum := sum256(header[:TapeChecksumOffset])
@@ -371,7 +379,7 @@ func EncodeTerminal(value Terminal) [TerminalFrameBytes]byte {
 }
 
 func DecodeTerminal(frame []byte) (Terminal, error) {
-	if len(frame) != TerminalFrameBytes || !bytes.Equal(frame[:8], terminalMagic[:]) || binary.BigEndian.Uint32(frame[8:12]) != wireVersion || !zero(frame[14:16]) || !zero(frame[70:72]) || frame[64] > 1 || frame[65] > 1 {
+	if len(frame) != TerminalFrameBytes || !bytes.Equal(frame[:7], terminalMagic[:7]) || (frame[7] != Version3 && frame[7] != Version4) || binary.BigEndian.Uint32(frame[8:12]) != uint32(frame[7]) || !zero(frame[14:16]) || !zero(frame[70:72]) || frame[64] > 1 || frame[65] > 1 {
 		return Terminal{}, errors.New("invalid choice terminal frame")
 	}
 	checksum := sum256(frame[:TerminalChecksumOffset])

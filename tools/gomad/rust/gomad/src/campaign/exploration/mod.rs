@@ -8,6 +8,7 @@ pub(crate) mod simulation;
 pub(crate) mod simulation_corpus;
 pub(crate) mod simulation_record;
 pub(crate) mod simulation_record_wire;
+pub(crate) mod site_scope;
 
 use crate::evidence::canonical;
 use serde::Serialize;

@@ -29,6 +29,10 @@ Seed `explore`, `resume`, `execute-shard` and `merge` use Rust-owned preparation
 ordered campaign policy, authenticated journals and retained target pools. Their
 source preparation and differential lanes are documented in
 [the maintainer CLI guide](../CLI.md#rust-seed-campaigns).
+The public `minimize` verb reduces retained standalone failures with bounded
+attempts, authenticated checkpoints and `--resume`. Its public flags are unchanged;
+the JSON result and retained failure-signature semantics are documented in
+[the maintainer CLI guide](../CLI.md#rust-minimization).
 Other public host verbs remain with their later fn-232 tasks. The
 `determinism-fixture` feature exposes the foundation, inspect, replay and campaign test drivers;
 their commands and fault controls are absent from ordinary builds. Run from the

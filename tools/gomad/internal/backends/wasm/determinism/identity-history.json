@@ -1090,5 +1090,13 @@
  {
   "id": "helper.cluster.execution.manual.thread-builders",
   "site": "helper-source:cluster/execution/manual.rs|thread::Builder|2"
+ },
+ {
+  "id": "host-go.wasi.cluster.clustersession.completedfailure.map-range.session.states",
+  "site": "host-go:wasi/cluster.go|ClusterSession.completedFailure|map-range|session.states|1"
+ },
+ {
+  "id": "host-go.wasi.cluster.clustersession.failureobserved.map-range.session.states",
+  "site": "host-go:wasi/cluster.go|ClusterSession.failureObserved|map-range|session.states|1"
  }
 ]

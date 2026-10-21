@@ -13,7 +13,7 @@ use gomad_wasmhost::linked;
 use serde_json::json;
 use std::{collections::BTreeMap, time::Duration};
 
-pub(super) struct Result {
+pub(crate) struct Result {
     pub execution: ledger::Execution,
     pub publication: Publication,
 }
@@ -27,7 +27,7 @@ pub(super) fn run(
     run_with_replay(prepared, job, timeout, cancellation, None, None)
 }
 
-pub(super) fn run_with_replay(
+pub(crate) fn run_with_replay(
     prepared: &Prepared,
     job: &ledger::Job,
     timeout: Duration,
@@ -214,11 +214,11 @@ pub(super) fn publication(
             schema: "gomad.inspection-evidence/v1".into(),
             outputs: None,
             choices: Some(ChoiceEvidence {
-                profile: "gomad-choice-trace/v3".into(),
+                profile: "gomad-choice-trace/v4".into(),
                 implementation_sha256: linked::IMPLEMENTATION_SHA256.into(),
                 identity: identity.clone(),
                 trace: Payload {
-                    schema: "gomad-choice-trace/v3".into(),
+                    schema: "gomad-choice-trace/v4".into(),
                     file: "evidence/choice".into(),
                     sha256: canonical::digest(trace),
                     bytes: trace.len() as u64,

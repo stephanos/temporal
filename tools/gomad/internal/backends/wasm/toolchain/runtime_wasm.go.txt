@@ -29,10 +29,12 @@ var gomadChoiceRecords atomic.Uint64
 var gomadChoiceSchedulerAlternatives [gomadChoiceMaximumAlternatives][32]byte
 var gomadChoiceSchedulerOrdered [gomadChoiceMaximumAlternatives][32]byte
 var gomadChoiceSchedulerOffsets [gomadChoiceMaximumAlternatives]uint32
+var gomadChoiceSchedulerSites [gomadChoiceMaximumAlternatives]uint64
+var gomadChoiceSchedulerSiteFlags [gomadChoiceMaximumAlternatives]uint8
 var gomadWasmLastTime int64
 var gomadWasmFinished bool
 var gomadWasmConfigBuffer [16]byte
-var gomadWasmDecisionBuffer [32 + 32*gomadChoiceMaximumAlternatives + gomadDiagnosticRecordBytes]byte
+var gomadWasmDecisionBuffer [32 + 48*gomadChoiceMaximumAlternatives + gomadDiagnosticRecordBytes]byte
 var gomadWasmObservationBuffer [gomadChoiceRecordBytes + gomadDiagnosticRecordBytes]byte
 var gomadWasmFinishBuffer [16]byte
 var gomadWasmIdleBuffer [16]byte
@@ -122,6 +124,15 @@ func gomadChoiceDecision(kind, flags uint8, site uint64, alternatives [][32]byte
 	}
 	length := uint32(32 + 32*len(alternatives))
 	gomadDebugDecision(buffer, length)
+	gomadChoicePut32(buffer[:4], 2)
+	if kind == gomadChoiceKindRunnable {
+		for index := range alternatives {
+			offset := length + uint32(index)*16
+			gomadChoicePut64(buffer[offset:offset+8], gomadChoiceSchedulerSites[index])
+			buffer[offset+8] = gomadChoiceSchedulerSiteFlags[index]
+		}
+		length += uint32(len(alternatives))*16
+	}
 	if gomadDiagnosticEnabled {
 		gomadWasmDiagnostic(buffer[length : length+gomadDiagnosticRecordBytes])
 		length += gomadDiagnosticRecordBytes
@@ -132,6 +143,9 @@ func gomadChoiceDecision(kind, flags uint8, site uint64, alternatives [][32]byte
 	selected := gomadChoiceRead32(buffer[24:28])
 	if selected >= uint32(len(alternatives)) {
 		gomadChoiceDivergeCurrent(gomadChoiceDivergenceSelected)
+	}
+	if kind == gomadChoiceKindRunnable {
+		for range alternatives { gomadChoiceRecords.Add(1) }
 	}
 	gomadChoiceRecords.Add(1)
 	gomadDebugDecisions++

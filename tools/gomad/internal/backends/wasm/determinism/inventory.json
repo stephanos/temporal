@@ -1610,6 +1610,32 @@
    ]
   },
   {
+   "id": "host-go.wasi.cluster.clustersession.completedfailure.map-range.session.states",
+   "layer": "host-go",
+   "class": "entropy",
+   "site": "host-go:wasi/cluster.go|ClusterSession.completedFailure|map-range|session.states|1",
+   "disposition": "controlled",
+   "owner": "wasm wasi package",
+   "rule": "Requires every state done and a boolean OR of matching failures; iteration order selects no result or evidence.",
+   "evidence": [
+    "go:internal/backends/wasm:TestWASMHostEffectSitesAreInventoried",
+    "go:internal/archcheck:TestHostEffectSitesReportsClockGoroutineAndMapRange"
+   ]
+  },
+  {
+   "id": "host-go.wasi.cluster.clustersession.failureobserved.map-range.session.states",
+   "layer": "host-go",
+   "class": "entropy",
+   "site": "host-go:wasi/cluster.go|ClusterSession.failureObserved|map-range|session.states|1",
+   "disposition": "controlled",
+   "owner": "wasm wasi package",
+   "rule": "Boolean OR of classified failure results under the session lock; iteration order selects no result or evidence.",
+   "evidence": [
+    "go:internal/backends/wasm:TestWASMHostEffectSitesAreInventoried",
+    "go:internal/archcheck:TestHostEffectSitesReportsClockGoroutineAndMapRange"
+   ]
+  },
+  {
    "id": "host-go.wasi.cluster.clustersession.finish.map-range.session.states",
    "layer": "host-go",
    "class": "entropy",

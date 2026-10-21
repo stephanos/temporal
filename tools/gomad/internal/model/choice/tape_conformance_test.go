@@ -329,6 +329,29 @@ func replayPlanFixtures(t *testing.T) []replayPlanCorpus {
 	}
 	add("helper-runtime-kind", "model_runtime_kind_divergence.json", []Record{kindDecision.Record()}, "")
 	fixtures[len(fixtures)-1].PrefixControl = &replayPlanPrefix{Cutoff: 1, Override: &replayPlanOverride{Ordinal: 0, Rank: 1}}
+	creationIDs := [][32]byte{{1}, {2}}
+	creationDecision, err := CanonicalDecision(2, KindRunnable, 0, true, creationIDs, creationIDs[1], 0)
+	if err != nil {
+		t.Fatal(err)
+	}
+	add("runnable-creation-sites", "creation_test.go", []Record{
+		{Ordinal: 0, Kind: KindGoroutineCreation, Alternatives: 2, SiteOffset: 123, SelectedIdentity: creationIDs[0]},
+		{Ordinal: 1, Kind: KindGoroutineCreation, Flags: FlagSiteMissing, Alternatives: 2, Selected: 1, SelectedIdentity: creationIDs[1]},
+		creationDecision.Record(),
+	}, "")
+	creationTrace := slices.Clone(fixtures[len(fixtures)-1].Trace)
+	for _, mutation := range []struct {
+		name   string
+		offset int
+		value  uint32
+	}{
+		{"count", 96 + 12, 3},
+		{"rank", 96 + 16, 0},
+	} {
+		payload := slices.Clone(creationTrace)
+		binary.BigEndian.PutUint32(payload[mutation.offset:mutation.offset+4], mutation.value)
+		fixtures = append(fixtures, replayPlanCorpus{Schema: "gomad.replay-plan-conformance/v1", Name: "malformed-creation-" + mutation.name, Source: "creation_test.go", Identity: readinessTestIdentity(), Trace: payload, Expected: replayPlanResult{Error: "malformed_trace"}})
+	}
 	return fixtures
 }
 

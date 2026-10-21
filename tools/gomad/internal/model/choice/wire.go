@@ -18,6 +18,7 @@ const (
 	Version1 = wire.Version1
 	Version2 = wire.Version2
 	Version3 = wire.Version3
+	Version4 = wire.Version4
 
 	// Superseded profiles are refused by name rather than decoded as current evidence.
 	LegacyProfile     = "gomad-choice-trace/v1"
@@ -27,9 +28,10 @@ const (
 type Kind uint8
 
 const (
-	KindRunnable     Kind = Kind(wire.KindRunnable)
-	KindSelectPoll   Kind = Kind(wire.KindSelectPoll)
-	KindSelectResult Kind = Kind(wire.KindSelectResult)
+	KindRunnable          Kind = Kind(wire.KindRunnable)
+	KindSelectPoll        Kind = Kind(wire.KindSelectPoll)
+	KindSelectResult      Kind = Kind(wire.KindSelectResult)
+	KindGoroutineCreation Kind = Kind(wire.KindGoroutineCreation)
 )
 
 type Flags uint8
