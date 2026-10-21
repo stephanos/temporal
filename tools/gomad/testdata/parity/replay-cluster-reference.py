@@ -161,6 +161,16 @@ def inspect_cluster(args, reference, artifact, run):
             assert rust['prefix_verified'] and rust['witness_match'] and rust['status'] == 'inspected_prefix'
             assert json.loads((rust_dir / 'debug.json').read_bytes()) == go_debug, name
             assert gzip.decompress((rust_dir / 'heap.pprof').read_bytes()) == gzip.decompress(go_heap.read_bytes()), name
+    if api:
+        last = boundaries[('a', 2)][-1]['choice']
+        for mode in ('scan', 'bisect'):
+            flags = ['--instance=a', '--incarnation=2', '--check=fixture.before_three', f'--choice-range=0:{last}',
+                     '--search-attempts=256', '--search-timeout=60s', '--search-mode=' + mode]
+            rust = json.loads(run('rust-search-' + mode, [args.binary, 'replay', *flags, artifact], 1))
+            oracle = json.loads((reference.parent / ('a-2-' + mode + '.search.json')).read_bytes())
+            oracle.pop('request')
+            oracle.pop('target')
+            assert rust['status'] == 'invariant_search' and rust['search'] == oracle, (mode, rust, oracle)
     return True
 
 
@@ -171,6 +181,7 @@ def main():
     p.add_argument('--binary', type=Path)
     p.add_argument('--from-reference', type=Path)
     p.add_argument('--api-registered', type=Path, help='fresh registered Go reference; exported API oracle only')
+    p.add_argument('--api-concurrent', action='store_true', help='start initial owners before waiting in API fixture')
     args = p.parse_args()
     for name in ('baseline', 'source', 'compiler', 'work'):
         setattr(args, name, getattr(args, name).resolve())
@@ -223,6 +234,8 @@ def main():
                                    for action, node, incarnation in [('start', 'a', 1), ('wait', 'a', 1),
                                                                     ('start', 'b', 1), ('wait', 'b', 1),
                                                                     ('restart', 'a', 2), ('wait', 'a', 2)]]
+            if args.api_concurrent:
+                scenario['actions'][1], scenario['actions'][2] = scenario['actions'][2], scenario['actions'][1]
             input_path = args.work / 'api-input.json'
             input_path.write_bytes(canonical({'Base': base, 'Scenario': scenario, 'Output': str(args.work / 'api')}))
             module = args.source / 'tools/gomad'

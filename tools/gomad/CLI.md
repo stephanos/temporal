@@ -130,6 +130,9 @@ its extracted source and pinned compiler:
 python3 tools/gomad/scripts/behavioral-parity \
   --corpus tools/gomad/testdata/parity --verb replay \
   --replay-binary /absolute/fixture-enabled/gomad \
+  --replay-stress-binary /absolute/stress-role/fixture-enabled/gomad \
+  --replay-determinism-binary /absolute/determinism-role/fixture-enabled/gomad \
+  --replay-release-binary /absolute/ordinary-release/gomad \
   --replay-baseline /absolute/authenticated/go-baseline \
   --replay-source /absolute/extracted/baseline/source \
   --replay-go-compiler /absolute/pinned/go1.27.1/bin/go \
