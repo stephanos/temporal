@@ -408,6 +408,158 @@ The lane authenticates each lineage's retained bytes before comparing semantic
 results. Runner provisioning of the frozen baseline, extracted source and Go
 compiler remains necessary before this lane can run in CI.
 
+## Rust qualification
+
+The public grammar is unchanged:
+
+```sh
+gomad --installation /absolute/rust-installation.json qualify --spec /absolute/spec.json
+gomad report --result /absolute/root/rust-qualifications/v1/result-HASH.json
+```
+
+`qualify-set`, `merge-set` and `compare-support` keep their WASM refusal
+(status 2, unsupported command). Grammar errors and unreadable, malformed or
+`Options`-bearing specs return 2; freeze, run and publication failures return 3;
+otherwise the exit status is the existing qualification classification
+(`qualified` 0; `target_failure`, `nondeterministic`, `replay_divergence` 1).
+
+The spec keeps the owner field names (`Manifest`, `Campaign`, `ArtifactRoot`) so
+one file drives either binary. Strict decoding refuses duplicate members,
+trailing data, nesting over 128 and unknown fields. `Campaign` accepts
+`Target{Backend,Kind,Source,Args,BuildTags,WorkingDir,PreparationRoot}`,
+`Environment`, the nanosecond `ExecutionTimeout`, `OverallTimeout` and
+`TerminateGrace`, `OnFailure`, `FailureBudget`, `OutputLimit`,
+`WorldTransitionLimit`, `ChoiceTraceLimit`, `SuccessBytesLimit`, `Artifacts` and
+`RunnerBuild`. Every other Go `CampaignSpec` field is refused rather than ignored.
+`PreparationRoot` must be absolute; the Rust installation owns its preparation
+cache. `RunnerBuild` has no Rust meaning, because records bind the linked
+implementation identity. `Target.Backend` must be `wasm` and `Kind`
+`go-run`/`go-test`. A `Scenario` (multi-instance cell) is refused with status 3
+until the cluster cell is ported. The campaign maps onto the public `explore`
+grammar and inherits its validation. Qualification then fixes the selection:
+seed `Manifest.Seed`, one slot, `keep-successes=all` with one success artifact,
+and, for a cooperative installation, choices with at least 1 MiB and
+`coverage=choice`.
+
+Freeze runs one actual preparation and binds Rust-lineage identities in
+`gomad.rust-qualification-manifest/v1`:
+
+- integrated source;
+- workload source and runtime (compiler/overlay) inventories;
+- compiler, linked helper and host implementations;
+- model, engine, configuration, module and toolchain build key;
+- host OS/arch, fuel, memory, seed and repeat.
+
+A declared `sha256:` identity that differs fails closed. A final
+(non-provisional) cell also needs an operator baseline, a `success`/`canary`
+cell, and the conductor's source manifest, whose listed files are re-read and
+authenticated.
+
+Run reuses that frozen preparation. Each of the `Repeat` repetitions is a fresh
+single-seed campaign whose execution runs in a fresh Wasmtime engine and store.
+Every retained artifact, success or failure, is then replayed in a fresh store
+through the shared authenticated opener. Determinism is equality of canonical
+`gomad.execution-record/v2` hashes. A failed repetition, a missing artifact or a
+replay error ends the cell with an explicit `failure` (classification, message,
+iteration), and the completed executions are retained.
+
+### Results and receipts
+
+The Result `gomad.rust-qualification-result/v1` and the receipt
+`gomad.rust-qualification-receipt/v1` are canonical JSON. They are published
+content addressed with no-replace rename under
+`ArtifactRoot/rust-qualifications/v1/`, as
+`result-SHA256.json` and `result-SHA256.json.publication.json`. A collision is
+reused only when its bytes are identical. stdout is the bounded
+`{"operator_receipt":{...},"result_path":"..."}` response (8 KiB, absolute path
+of at most 1024 bytes).
+
+JSON differences from the Go host, by design of the new lineage:
+
+- The receipt fields are `result_sha256`, `operator_process_id` and
+  `linked_after`.
+- `report` emits `{"classification","publication_cpu_nanos","receipt","result"}`
+  instead of the bare Result.
+- `report` requires the receipt and refuses a missing, unbound or
+  wrong-process receipt.
+- Costs carry integer `{numerator,denominator}` ratios instead of floats.
+
+`report` reads no installation, source, compiler or helper. It refuses a changed
+content address, non-canonical bytes and unknown fields. It also refuses any
+verdict, record hash, cost or budget claim that differs from its recomputation
+over the retained records and raw observations.
+
+### Linked-process accounting
+
+The Go contract measured a separate helper process for each execution. The Rust
+host links the helper, so the operator, every Wasmtime engine and every guest
+store share one process self figure (`linked`, `RUSAGE_SELF` CPU, Linux `VmHWM`
+peak). Only the Go compiler and its descendants run as children (`children`,
+`RUSAGE_CHILDREN`). The Result retains raw `start`, `prepared` and `executed`
+snapshots of both. It also retains, for each store, the wall time, fuel, guest
+linear-memory peak and limit, trace bytes and virtual time, plus the self
+counters at the store's boundaries.
+
+- **CPU** is the children delta plus the linked delta, each counted once. Store
+  boundary counters only order the stores and prove they ran one at a time;
+  they are never added. There is no helper CPU field to double-count.
+- **Exact limits:**
+  - preparation wall, 10 min;
+  - largest execution or replay store wall, 15 min;
+  - largest waited compiler child peak, 6 GiB;
+  - each guest linear-memory peak, at most its instance limit.
+- **Upper-bound limits:** the operator-only 2 GiB ceiling and the helper
+  warm 4 GiB, cold 6 GiB and resident 8 GiB ceilings each apply to one component
+  of the linked peak. The linked peak proves such a limit only when it fits under
+  it. Above a limit, the check is `unattributed` and listed in `pending`: it is
+  neither charged to one owner nor a pass.
+- **Concurrent stores** (`resident_stores` > 1) have no per-store attribution, so
+  cost and budget refuse. The cluster cell's concurrent-store accounting remains
+  open.
+- **Missing observations** produce `cost_failure` or `budget_failure`, never a
+  measured zero.
+- **Final cells** return 3 for any failure, violation or pending check, after the
+  Result and receipt are retained. The receipt's terminal linked peak must also
+  fit the 2 GiB ceiling.
+
+### Verification lanes
+
+The controlled accounting corpus drives the same evaluators with fixture
+observations. It checks CPU counted once, threshold crossings, unattributed
+peaks, missing measurements, overlapping or concurrent stores, receipt tails and
+bug yield against an independent oracle and
+`testdata/parity/goldens-qualify/accounting.json`:
+
+```sh
+python3 tools/gomad/testdata/parity/qualify-accounting-check.py \
+  --binary /absolute/fixture-enabled/gomad --work /absolute/new/accounting
+```
+
+The mandatory fresh Go/Rust lane runs it, then `qualify-lane.py`:
+
+```sh
+python3 tools/gomad/scripts/behavioral-parity --corpus tools/gomad/testdata/parity \
+  --verb qualify --output-root /absolute/new/qualify \
+  --qualify-binary /absolute/fixture-enabled/gomad \
+  --qualify-go-binary /absolute/frozen/bin/gomad --qualify-go-helper /absolute/frozen/bin/gomad-wasmhost \
+  --qualify-go-source /absolute/frozen/source --qualify-go-compiler /absolute/stock/go1.27.1/bin/go \
+  --qualify-input /absolute/replay-input.json --qualify-preparation-root /absolute/stable/preparation
+```
+
+For each cell (default `fixture`, `fixture-canary` and `sqlite`), the lane runs
+one Go and two Rust qualifications. It authenticates each Rust Result, receipt,
+record hash and retained artifact on raw bytes. Both Rust runs must agree on the
+declared stable view, and the Go and Rust verdicts must match. The lane also runs
+`report` without an installation and exercises the grammar, spec refusals and ten
+tamper refusals. Final fixture cells must pass the unchanged budget. The stable
+view compares cell identities, records, replays, outcomes, verdicts, structural
+costs and budget statuses. It excludes the measured PID, CPU, RSS and wall
+values and replaces the campaign IDs and installation/spec paths with tokens.
+Regenerate `goldens-qualify/cells.json` with `GOMAD_GOLDEN_REGENERATE=1` twice
+and compare the bytes. These are provisional fixture-binary lanes. The
+`onebox` and multi-instance cells, and qualification on the release binary
+alone, remain with fn-232.10 acceptance and fn-232.13.
+
 ## Shared generated contracts
 
 The Go models, cooperative runtime overlay and Rust helper share wire schemas

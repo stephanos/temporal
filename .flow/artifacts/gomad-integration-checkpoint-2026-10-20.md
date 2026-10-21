@@ -1290,3 +1290,85 @@ is fn-232.13's fn-223 full-module live-behavior receiver, which lists both tests
 to the final Rust lanes. Fixing them would be Go host work outside the delivery order, so they are
 left unchanged and are not small fixes. The Rust cluster inspection lanes must cover both
 behaviors. Evidence: `/home/agent/wt/evidence/fn230-r12-characterization-repair/`.
+
+### fn232.10 provisional qualify/report port (worker D), 2026-10-21
+
+`flowctl start` refused: .9 is still in progress. The provisional start is recorded
+in the task file and nothing was forced. The work is on branch `fn232-qualify`
+(merged with gomad `8534e10f3d`). It replaces the earlier grammar-only RED
+checkpoint.
+
+**Ported.** `qualify --spec FILE` and installation-free `report --result FILE`
+now run in the Rust binary (`rust/gomad/src/qualify/*`, `src/cli/qualify.rs`).
+`qualify-set`, `merge-set` and `compare-support` keep their status-2 refusal.
+
+- The spec keeps the owner field names. Strict decoding refuses duplicates,
+  trailing data, `Options` and unknown fields. Fields with no Rust meaning are
+  refused, except `PreparationRoot` and `RunnerBuild`, which are accepted.
+- Freeze runs one actual preparation and binds every Rust-lineage identity.
+  A declared identity that differs fails closed.
+- Run reuses the frozen preparation. Each of the `Repeat` repetitions is a fresh
+  single-seed campaign in a fresh Wasmtime store. Every retained artifact is then
+  replayed through the shared opener. A failed repetition or replay produces an
+  explicit failure report.
+- The canonical Result and receipt are published content addressed and
+  no-replace under `ArtifactRoot/rust-qualifications/v1/`.
+- `report` recomputes verdicts, costs and budget from the retained records and
+  raw observations.
+
+**Seams in .7-owned code.** These are small; worker A should expect them when
+merging:
+
+- `campaign::explore_prepared` takes an optional committed-execution observer
+  (`run` becomes a wrapper around `run_observed`).
+- `execution::Result.metrics` carries the in-process wall time, fuel and guest
+  peak memory, which never enter records.
+- `prepare::installation_profile`.
+- `cli::explore::parse` is now `pub(crate)`.
+- `store::durable_directory` is re-exported.
+
+**Accounting decision (R9/R12).** I chose this mapping as my recommendation; it is
+documented in `CLI.md#rust-qualification`:
+
+- CPU is the compiler-children delta plus the linked-process self delta. Each is
+  counted once, and store boundary counters are never added.
+- Preparation wall, store wall, compiler child peak and guest linear memory keep
+  their exact limits.
+- The linked peak is only an upper bound of each former operator-only (2 GiB) or
+  helper (4/6/8 GiB) figure. Over a limit, that check is `unattributed`/pending,
+  never charged to one owner and never a pass.
+- Concurrent stores (the cluster cell) refuse cost and budget because no per-store
+  attribution exists. No limit was widened.
+
+**Evidence and tests.** Evidence is in `/home/agent/wt/evidence/fn232-qualify/d/`.
+
+- The accounting corpus has 21 controlled cases. The evaluators match an
+  independent oracle, two runs agree, and two `GOMAD_GOLDEN_REGENERATE` runs are
+  byte-identical.
+- The live lane (`qualify-lane.py`, `behavioral-parity --verb qualify`) covers the
+  fixture, fixture-canary and sqlite cells. The frozen Go reference
+  `fn232-replay-294-reference` and two fresh Rust runs per cell reach the same
+  verdicts: qualified/0, target_failure/1, qualified/0.
+- The Rust Results, receipts, record hashes and artifacts authenticate on raw
+  bytes. `report` refuses all ten tamper cases with status 3.
+- The grammar and spec refusals match.
+- Final non-provisional fixture/canary cells pass the unchanged budget.
+- The runs `regen-1`, `regen-2` (byte-identical `cells.json`) and `verify-1` all
+  exit 0.
+- Release clippy with `-D warnings`, the 66 release tests and the release-binary
+  fixture-absence check (15/15) pass.
+
+One earlier regen run failed while host load was 24. A sqlite replay ran for
+68 s, past its 60 s execution wall, and was reported as replay divergence
+`outcome.termination`. It is retained as
+`failed-regen-2-sqlite-replay-watchdog-load24`. The lane's spec now uses a 300 s
+execution timeout. The store-wall budget stays unchanged at 15 min. Goldens are
+provisional: the helper rotation in .8 and .1 will stale them.
+
+**Open for acceptance:**
+
+- the onebox cell and the multi-instance/cluster cell (scenario refused, plus
+  concurrent-store accounting);
+- qualification on the release-only binary (.13);
+- the final two regenerations on the integrated post-.8/.9 candidate;
+- independent review.

@@ -79,7 +79,8 @@ def prepare(args, run):
                 model_identity='sha256:' + digest(json.dumps(storage, separators=(',', ':')).encode())), image=None, context=None)
         installation = dict(schema='gomad.rust-wasm-installation/v1', compiler_path=str(args.go_compiler),
             compiler_sha256=digest(args.go_compiler.read_bytes()), go_version='go1.27.1',
-            runtime_root=str(MODULE / 'internal/model/runtimesource'), cache_root=str(args.work / ('rust-' + cell + '-preparation')),
+            runtime_root=str(MODULE / 'internal/model/runtimesource'),
+            cache_root=str((args.preparation_root or args.work) / ('rust-' + cell + '-preparation')),
             profile='gomad.wasi-cooperative/v1', fuel=options['Fuel'], memory_bytes=options['MemoryBytes'],
             helper_sha256=replay['helper_sha256'], host_sha256=replay['host_sha256'],
             runtime_implementation_sha256=replay['runtime_implementation_sha256'], model=model,
@@ -94,7 +95,7 @@ def main():
     parser = argparse.ArgumentParser(description=__doc__)
     for name in ('binary', 'go-binary', 'work'):
         parser.add_argument('--' + name, type=Path, required=True)
-    for name in ('input', 'go-compiler', 'go-helper', 'go-source'):
+    for name in ('input', 'go-compiler', 'go-helper', 'go-source', 'preparation-root'):
         parser.add_argument('--' + name, type=Path)
     mode = parser.add_mutually_exclusive_group()
     mode.add_argument('--prepare-only', action='store_true')
@@ -144,7 +145,8 @@ def main():
                  [args.binary, 'qualify', '--spec', args.work / 'missing-spec.json'], 2)
     if b'unsupported command' in result.stdout + result.stderr:
         raise ValueError('$.rust.qualify.availability: actual public qualify --spec command is missing')
-    raise ValueError('$.rust.qualify.result_schema: actual --spec port and reviewed result mapping are required before workload parity or goldens')
+    equal(b'no such file or directory' in result.stderr, True, '$.rust.qualify.missing_spec')
+    print('qualification grammar: Go and Rust probes agree; run qualify-lane.py for workload parity and goldens')
 
 
 if __name__ == '__main__':
