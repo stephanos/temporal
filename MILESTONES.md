@@ -351,7 +351,6 @@ Interleave with the Rust host: fn-229 after fn-232.5 inspect, fn-230 after fn-23
 | Name / ID | Status | Description |
 | --- | --- | --- |
 | [fn-230-gomad-explore-site-scope-for-choice.1](.flow/tasks/fn-230-gomad-explore-site-scope-for-choice.1.md) | 🚧 In progress | Site scope flag, pattern validation and resolution against the base trace |
-| [fn-230-gomad-explore-site-scope-for-choice.3](.flow/tasks/fn-230-gomad-explore-site-scope-for-choice.3.md) | 🚧 In progress | Goroutine creation sites in the choice wire schema and runnable-decision scoping |
 
 | Name / ID | Status | Description |
 | --- | --- | --- |
