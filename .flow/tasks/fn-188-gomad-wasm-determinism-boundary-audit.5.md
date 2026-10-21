@@ -11,6 +11,8 @@ Add the `stress` producer as a subcommand of the fn-187.2 measurement command if
 **Size:** L
 **Files:** tools/gomad/internal/backends/wasm/cmd/wasmmeasure/stress.go (or determinism/cmd), tools/gomad/internal/backends/wasm/wasmhost/Cargo.toml (feature), tools/gomad/internal/backends/wasm/wasmhost/src/cluster/baton.rs, tools/gomad/internal/backends/wasm/wasmhost/src/namespace_transport.rs, tools/gomad/internal/backends/wasm/wasi/process.go (feature refusal), .flow/artifacts/wasm-determinism-stress/**
 
+**Ordering (conductor decision 2026-10-21, owner asked to avoid double work):** do not build the stress producer against the Go Runner/measurement host. Resume after fn-232.10 (qualify in Rust) and implement the producer to drive the Rust binary, so fn-232.13's Go host retirement does not require porting it. Existing Go-producer receipts remain history. Revival trigger: fn-232.10 done.
+
 ## Acceptance
 - [ ] Producer runs the workload x seed x axis matrix with fresh seeded executions and compares via the divergence report
 - [ ] `stress-jitter` feature exists, is absent from the release helper, and is refused for qualification roles

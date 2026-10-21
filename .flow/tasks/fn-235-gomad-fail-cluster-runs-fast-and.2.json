@@ -8,7 +8,7 @@
   "priority": null,
   "spec": "fn-235-gomad-fail-cluster-runs-fast-and",
   "spec_path": ".flow/tasks/fn-235-gomad-fail-cluster-runs-fast-and.2.md",
-  "status": "todo",
+  "status": "done",
   "title": "Measure and remove superlinear World inspection commitment cost in long cluster runs",
   "updated_at": "2026-10-21T18:02:32.228179Z"
 }
