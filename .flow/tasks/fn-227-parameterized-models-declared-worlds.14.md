@@ -21,7 +21,8 @@ Owner decision 2026-10-21 (`.flow/artifacts/fn-227-parameterized-models-declared
 5. Fixtures: replace thread-local selection with direct `bound(World::new(..), ..)` calls; drop enumeration counters.
 6. `Lifted::bind` and every schema/range/catalog-order refusal stay exactly as they are; no lifter semantic file (`shape.rs`, `body/*`, `emit.rs`, `tree.rs`) changes beyond what A already did.
 7. Opportunistic deletions from the scout's "maybe" list (about 150 source lines), each only if it stays golden-neutral: `Space<S, W>`'s second `SpaceBinding` impl, `catalog_limit` threading where only tests use a non-default limit (keep one explicit override route), and `tree.rs::compare` per-field diagnostics if the bind refusals already name the field. Report what was taken and why the rest stayed.
-8. Record the decision in README/DESIGN.md (derived values, same exposure as derived `Debug`).
+8. fn-227.13 review follow-ups: give one positive `#[starts]` site a non-`starts` name and add a lifter case with a World-free `#[starts] fn initial()` (M1); span a wrong `#[starts]` return type at the method via `quote_spanned!` in `starts_call` (N1); simplify `__umpire_world(...)` in `action.rs:170`, which now only receives `World` (N2).
+9. Record the decision in README/DESIGN.md (derived values, same exposure as derived `Debug`).
 
 ### Verification
 
