@@ -91,7 +91,7 @@ for name, module, termination, exit_code in [('trap', 'execution-trap.wat', 'tra
     assert summary['incarnations'][0]['termination'] == termination, summary
     assert summary['incarnations'][1]['termination'] == 'stop', summary
     actual_input = json.loads((path / cluster_file).read_bytes())
-    assert actual_input['configuration']['steps'] == configuration['steps'][:3], 'implicit drain fabricated an authored wait'
+    assert actual_input['configuration']['steps'] == configuration['steps'], 'retained authored lifecycle changed'
     if name == 'capacity':
         world = (path / 'evidence/world').read_bytes()
         assert world, 'capacity must retain terminal World evidence'
