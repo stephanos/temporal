@@ -8,7 +8,7 @@
   "priority": null,
   "spec": "fn-230-reproducible-guest-builds-a-system",
   "spec_path": ".flow/tasks/fn-230-reproducible-guest-builds-a-system.1.md",
-  "status": "todo",
+  "status": "done",
   "title": "Guest profile and guest.sh in Umpire; reproducibility proven on two clean checkouts",
   "updated_at": "2026-10-21T03:42:38.071649Z"
 }

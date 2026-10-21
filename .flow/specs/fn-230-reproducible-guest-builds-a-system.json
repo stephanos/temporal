@@ -1,7 +1,7 @@
 {
   "branch_name": "fn-230-reproducible-guest-builds-a-system",
-  "completion_review_status": "unknown",
-  "completion_reviewed_at": null,
+  "completion_review_status": "ship",
+  "completion_reviewed_at": "2026-10-21T09:27:27.840938Z",
   "created_at": "2026-10-20T19:23:54.786719Z",
   "default_impl": null,
   "default_review": null,
@@ -86,20 +86,58 @@
       "task": "fn-230-reproducible-guest-builds-a-system.2",
       "timestamp": "2026-10-21T09:09:36.463669Z",
       "verdict": "SHIP"
+    },
+    {
+      "artifact_sha256": "230fa12df0b7242a47ee611fe0f6635cb1d009542e82e73a923e5f2e2f112b6a",
+      "backend": "codex",
+      "base_sha": "b27d38ecd059f1b160e6a0285c7d0deed66935b5",
+      "counter_kind": "plan",
+      "effort": "high",
+      "failure_class": null,
+      "finalized": {
+        "digest": "complete",
+        "receipt": "complete",
+        "status": "complete"
+      },
+      "findings_digest": {
+        "backend": "codex",
+        "digest_truncated": false,
+        "items": [],
+        "reviewKind": "completion"
+      },
+      "forced": false,
+      "hash_epoch": 0,
+      "head_sha": "f3836ae542bfcac3c0b49a264cdef8670a6b1228",
+      "head_sha_observed": true,
+      "kind": "completion",
+      "model": "gpt-6.1-sol",
+      "outcome": "verdict",
+      "output_bytes": 511008,
+      "output_sha256": "c818fa3c9e734c616f7e2b932a8f5bd281f3381ac6fa474d078fd03557b7c786",
+      "reservation_id": "644af907fccc41589792750cdb39e034",
+      "round_consumed": true,
+      "scope": "completion",
+      "superseded_by": null,
+      "task": null,
+      "timestamp": "2026-10-21T09:27:27.825018Z",
+      "tool_calls": 25,
+      "verdict": "SHIP"
     }
   ],
   "review_hash_epoch": {
     "impl:fn-230-reproducible-guest-builds-a-system.1": 1,
-    "impl:fn-230-reproducible-guest-builds-a-system.2": 1
+    "impl:fn-230-reproducible-guest-builds-a-system.2": 1,
+    "plan#completion": 1
   },
   "review_pending_rounds": {},
   "review_reservations": {},
   "review_transport_failures": {
+    "completion": 0,
     "impl:fn-230-reproducible-guest-builds-a-system.1": 0,
     "impl:fn-230-reproducible-guest-builds-a-system.2": 0
   },
   "spec_path": ".flow/specs/fn-230-reproducible-guest-builds-a-system.md",
-  "status": "open",
+  "status": "done",
   "title": "Reproducible guest builds: a system-agnostic wasm build step, the committed Temporal guest, and the freshness gate (model, temporal)",
   "tracker": {
     "baseHashFlow": null,
@@ -112,5 +150,5 @@
     "mergeBaseTracker": null,
     "url": null
   },
-  "updated_at": "2026-10-21T09:09:36.466690Z"
+  "updated_at": "2026-10-21T09:28:35.243227Z"
 }

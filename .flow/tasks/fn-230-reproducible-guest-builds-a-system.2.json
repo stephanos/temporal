@@ -10,7 +10,7 @@
   "priority": null,
   "spec": "fn-230-reproducible-guest-builds-a-system",
   "spec_path": ".flow/tasks/fn-230-reproducible-guest-builds-a-system.2.md",
-  "status": "todo",
+  "status": "done",
   "title": "After .1: commit the Temporal guest with go:embed; freshness step in model-check; umpire-guest target; docs",
   "updated_at": "2026-10-21T08:24:29.427563Z"
 }
