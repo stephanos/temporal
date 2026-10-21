@@ -392,7 +392,7 @@ func TestInstalledOperatorClusterFailureEndsPromptly(t *testing.T) {
 		t.Logf("%s explore wall=%s", fixture, wall)
 		// Preparation compiles the guest; the hang this guards ran to the
 		// 3m execution watchdog.
-		if wall > 60*time.Second {
+		if wall > 10*time.Second {
 			t.Fatalf("%s cluster failure waited %s", fixture, wall)
 		}
 		return explored, artifacts
