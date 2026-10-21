@@ -131,7 +131,7 @@ The review passed; each consumer still waits for its declared support dependenci
 
 | Name | Status | What |
 | --- | --- | --- |
-| fn-227.13 | ⬜ todo | Simplify: one `#[machine]` generator, no module generics, method-level `#[starts]`; goldens and TLC unchanged (R1) |
+| fn-227.13 | 🔄 in progress | Simplify: one `#[machine]` generator, no module generics, method-level `#[starts]`; goldens and TLC unchanged (R1) |
 | fn-227.14 | ⬜ todo | After .13: derived value handoff replaces the augmented-copy binding route (R1, R3) |
 | fn-227.8 | ⏸️ deferred | Source inputs and exact-payload fairness committed (`3fd1d2f551`, `0469334f91`); guest refresh, review and Full gates resume after .14 (R2, R3) |
 | fn-227.11 | ⬜ todo | After .8: source `Phased`/`reject!` and closure laws, with unchanged activity behavior (R3) |
