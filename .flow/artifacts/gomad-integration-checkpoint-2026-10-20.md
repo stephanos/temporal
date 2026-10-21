@@ -908,3 +908,18 @@ commands passing,53 tests and both Clippy lanes pass. Source checkpoint7a9bee29a
 depends on initial minimizer checkpoint8fd564996a; both must be integrated.
 Second exact regeneration is running in private session11778. Independent
 review and combined-source checks remain required before .9 completion.
+
+Root33602b003f/f0c6a66dd5 now integrate both minimizer checkpoints, preserving
+the existing campaign modules and making execution visible to its sibling.
+Integrated host feature65tests, all-target featureClippy, fmt and changed-package
+Go lint over60 host packages all pass. Rootd045958da2 adds only the driver's
+deterministic seed ordering/stable guest-source inputs after a real
+cross-generation input-identity difference was detected. Corrected stable1/2
+generations and minimizer_acceptance_review remain pending; no .9 closure.
+The root shared release Cargo lease was released, then assigned to replay owner
+for the already-active fn232.2/.3/.4 foundation closure batch at d045958da2.
+Those tasks explicitly require no later public verb; only their own foundation
+execution/store/fault/comparator/release gates and two identical regenerations
+are in scope. No new tasks were admitted. Private fn235 target remains minimizer
+owner's lease. Main is frozen for these gates except Flow/docs/Python fixture
+changes. Qualification worker and source worktree remain stopped/retained todo.
