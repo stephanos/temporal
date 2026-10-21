@@ -178,7 +178,9 @@ fn run(
                     remaining,
                     &cancellations[index],
                     replay.as_ref(),
-                    replay.as_ref().map(|_| control.choice_source_trace.as_slice()),
+                    replay
+                        .as_ref()
+                        .map(|_| control.choice_source_trace.as_slice()),
                     &control.simulation_plan,
                 )
             })();

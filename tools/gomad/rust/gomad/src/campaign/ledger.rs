@@ -385,7 +385,10 @@ pub(crate) fn validate_execution(execution: &Execution) -> Result<(), String> {
                             .contains_key("evidence/soft-assertions.json")
                     || execution.divergence.is_some()
                     || outcome.termination == "instrumentation_divergence"
-                        && execution.record.streams.contains_key("simulation/record.json")) => {}
+                        && execution
+                            .record
+                            .streams
+                            .contains_key("simulation/record.json")) => {}
         "watchdog" if execution.artifact.is_some() && outcome.termination == "watchdog_timeout" => {
         }
         "runner_failure"

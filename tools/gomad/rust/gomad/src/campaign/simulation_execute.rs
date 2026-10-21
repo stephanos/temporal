@@ -111,7 +111,12 @@ pub(super) fn run(
         (result, Vec::new(), None, observations)
     };
     let diverged = divergence.is_some() || result.execution.divergence.is_some();
-    if diverged && result.execution.record.outcome.class == "runner_failure" {
+    if let Some(divergence) = &result.execution.divergence {
+        result.execution.record.outcome.class = "target_failure".into();
+        result.execution.record.outcome.termination = "divergence".into();
+        result.execution.record.outcome.reason = divergence.reason_name().into();
+        result.publication.record = result.execution.record.clone();
+    } else if diverged && result.execution.record.outcome.class == "runner_failure" {
         result.execution.record.outcome.class = "target_failure".into();
         result.execution.record.outcome.reason = "simulation_replay_divergence".into();
         result.publication.record = result.execution.record.clone();
@@ -155,7 +160,11 @@ pub(super) fn run(
         "simulation/record.json",
         serde_json::to_vec(&observation).map_err(|error| error.to_string())?,
     );
-    payload(&mut result, "simulation/behavioral-record.json", behavioral_record);
+    payload(
+        &mut result,
+        "simulation/behavioral-record.json",
+        behavioral_record,
+    );
     let record = result.publication.record.bytes()?;
     payload(&mut result, "record.json", record);
     Ok(result)
