@@ -6,6 +6,7 @@ from importlib.machinery import SourceFileLoader
 from importlib.util import module_from_spec, spec_from_loader
 import os
 from pathlib import Path
+import shlex
 import subprocess
 import sys
 
@@ -45,6 +46,131 @@ def main():
                 '--success-bytes=256MiB', '--artifacts', destination, '--working-dir', module,
                 'go-run', './internal/backends/wasm/command/testdata/scenario']
 
+    compiler_calls = args.work / 'refusal-compiler-calls'
+    refusal_compiler = args.work / 'refusal-compiler'
+    installation = copy.deepcopy(check.canonical_file(args.installation))
+    refusal_compiler.write_text('#!/bin/sh\nprintf "compiler invoked\\n" >> '
+        + shlex.quote(str(compiler_calls)) + '\nexec '
+        + shlex.quote(installation['compiler_path']) + ' "$@"\n')
+    refusal_compiler.chmod(0o700)
+    installation['compiler_path'] = str(refusal_compiler)
+    installation['compiler_sha256'] = check.parity.digest(refusal_compiler.read_bytes())
+    refusal_manifest = args.work / 'refusal-installation.json'
+    refusal_manifest.write_bytes(check.parity.canonical(installation))
+    original = check.parity.read(fixtures / 'durable.json')
+    mutations = [
+        ('unknown', lambda value: value.__setitem__('extra', True)),
+        ('nested-unknown', lambda value: value['spec']['nodes'][0].__setitem__('extra', True)),
+        ('capacity', lambda value: value['spec']['limits'].__setitem__('nodes', 1)),
+        ('unknown-limit', lambda value: value['spec']['limits'].__setitem__('extra', 1)),
+        ('unsorted', lambda value: value['spec']['nodes'].reverse()),
+        ('unknown-boot', lambda value: value['spec']['nodes'][0].__setitem__('boot', 'missing')),
+        ('mount-mismatch', lambda value: value['boots'][0]['storage']['volumes'][0].__setitem__('CapacityBytes', 1)),
+        ('restart-storage', lambda value: value['boots'][1].__setitem__('storage', None)),
+        ('missing-boundary', lambda value: value.__setitem__('output_crashes', [])),
+        ('marker', lambda value: value['output_crashes'][0].__setitem__('marker', '!!!!')),
+        ('unused-binding', lambda value: value['incarnation_boots'][0]['handle'].__setitem__('incarnation', 3)),
+        ('incomplete', lambda value: value['actions'].pop()),
+        ('running-restart', lambda value: value['actions'][2].__setitem__('action', 'restart')),
+        ('unknown-action', lambda value: value['actions'][0].__setitem__('action', 'run')),
+    ]
+    for name, mutate in mutations:
+        value = copy.deepcopy(original)
+        mutate(value)
+        source = args.work / ('invalid-' + name + '.json')
+        source.write_bytes(check.parity.canonical(value))
+        run('refuse-' + name, explore(source, args.work / ('invalid-' + name)), 2, refusal_manifest)
+        check.equal(compiler_calls.exists(), False, name + '.refused_before_compiler')
+    for index, raw in enumerate((b'{} {}', b'{', b'', b'{"faults":null,"faults":null}')):
+        source = args.work / f'malformed-{index}.json'
+        source.write_bytes(raw)
+        run(f'refuse-malformed-{index}', explore(source, args.work / f'malformed-{index}'), 2, refusal_manifest)
+        check.equal(compiler_calls.exists(), False, f'malformed-{index}.refused_before_compiler')
+
+    source = args.work / 'soft-source'
+    source.mkdir(mode=0o700)
+    (source / 'go.mod').write_text('module gomad.scenario.softfixture\n\ngo 1.27.1\n')
+    (source / 'soft_test.go').write_text('''package softfixture
+import ("fmt"; "strings"; "testing"; "time")
+func TestAssertion(t *testing.T) { fmt.Println("failed assertion: scenario invariant") }
+func TestQuiet(t *testing.T) { fmt.Println("quiet incarnation") }
+func TestCrash(t *testing.T) {
+    fmt.Println("failed assertion: crash invariant")
+    fmt.Println("soft crash boundary")
+    time.Sleep(time.Hour)
+    t.Fatal("crash boundary failed")
+}
+func TestTruncated(t *testing.T) {
+    fmt.Println("failed assertion: truncated invariant")
+    fmt.Print(strings.Repeat("x", 8192))
+}
+''')
+
+    def soft_scenario(test, restart=False):
+        scenario = copy.deepcopy(original)
+        scenario['spec']['nodes'] = [dict(id='a', boot='initial', address='10.0.0.1')]
+        scenario['spec']['volumes'] = []
+        scenario['boots'] = [dict(id='initial', args=['-test.run=^' + test + '$', '-test.v'])]
+        scenario['actions'] = [dict(action='start', handle=dict(node='a', incarnation=1)),
+                               dict(action='wait', handle=dict(node='a', incarnation=1))]
+        scenario['incarnation_boots'] = []
+        scenario['output_crashes'] = []
+        if restart:
+            import base64
+            scenario['boots'].append(dict(id='recovery', args=['-test.run=^TestQuiet$', '-test.v']))
+            scenario['actions'][1]['action'] = 'crash'
+            scenario['incarnation_boots'] = [dict(handle=dict(node='a', incarnation=2), boot='recovery')]
+            scenario['output_crashes'] = [dict(handle=dict(node='a', incarnation=1),
+                marker=base64.b64encode(b'soft crash boundary').decode())]
+            scenario['actions'].extend([dict(action='restart', handle=dict(node='a', incarnation=2)),
+                                        dict(action='wait', handle=dict(node='a', incarnation=2))])
+        return scenario
+
+    soft_views = {}
+    for name, test, report_only, restart, output_limit, status in [
+        ('assertion', 'TestAssertion', False, False, None, 1),
+        ('report-only', 'TestAssertion', True, False, None, 0),
+        ('crash-assertion', 'TestCrash', False, True, None, 1),
+        ('crash-report-only', 'TestCrash', True, True, None, 0),
+        ('truncated-report-only', 'TestTruncated', True, False, '128', 3),
+    ]:
+        scenario_path = args.work / (name + '.json')
+        scenario_path.write_bytes(check.parity.canonical(soft_scenario(test, restart)))
+        destination = args.work / name
+        arguments = explore(scenario_path, destination)
+        arguments[arguments.index('--working-dir') + 1] = source
+        target = arguments.index('go-run')
+        arguments[target:] = ['go-test', '.']
+        if report_only:
+            arguments.insert(target, '--soft-assertion-report-only')
+        if output_limit:
+            arguments.insert(target, '--output-limit=' + output_limit)
+        run(name, arguments, status)
+        roots = list((destination / 'campaigns').glob('campaign-*'))
+        check.equal(len(roots), 1, name + '.campaign_count')
+        validated = check.authenticate_campaign(roots[0])
+        check.equal(len(validated['executions']), 1, name + '.executions')
+        execution = validated['executions'][0]
+        artifact = roots[0] / execution['artifact']
+        report = check.canonical_file(artifact / 'evidence/soft-assertions.json')
+        check.equal(report['schema'], 'gomad.cluster-soft-assertions/v1', name + '.report_schema')
+        reports = {tuple(item['handle'].values()): item['report'] for item in report['incarnations']}
+        # Object key order is canonical, so address handles by named members rather than JSON order.
+        reports = {(item['handle']['node'], item['handle']['incarnation']): item['report']
+                   for item in report['incarnations']}
+        first = reports[('a', 1)]
+        check.equal(first['report_only'], report_only, name + '.policy')
+        check.equal(first['inconclusive'], bool(output_limit), name + '.completeness')
+        check.equal(first['messages'], ['truncated invariant' if output_limit else
+            'crash invariant' if restart else 'scenario invariant'], name + '.messages')
+        check.equal(execution['record']['outcome']['class'],
+            'runner_failure' if output_limit else 'success' if report_only else 'target_failure', name + '.class')
+        if restart:
+            check.equal(sorted(reports), [('a', 1), ('a', 2)] if report_only else [('a', 1)], name + '.handles')
+        if not output_limit:
+            run(name + '-replay', ['replay', artifact], 0 if report_only else 1)
+        soft_views[name] = dict(reports=report, record=execution['record'])
+
     views = []
     network_installation = copy.deepcopy(check.parity.read(args.installation))
     limits = check.parity.read(fixtures / 'network.json')['spec']['limits']
@@ -75,33 +201,6 @@ def main():
         views.append(view)
     check.equal(views[0], views[1], 'scenario.fresh_repeated_projection')
 
-    original = check.parity.read(fixtures / 'durable.json')
-    mutations = [
-        ('unknown', lambda value: value.__setitem__('extra', True)),
-        ('nested-unknown', lambda value: value['spec']['nodes'][0].__setitem__('extra', True)),
-        ('capacity', lambda value: value['spec']['limits'].__setitem__('nodes', 1)),
-        ('unknown-limit', lambda value: value['spec']['limits'].__setitem__('extra', 1)),
-        ('unsorted', lambda value: value['spec']['nodes'].reverse()),
-        ('unknown-boot', lambda value: value['spec']['nodes'][0].__setitem__('boot', 'missing')),
-        ('mount-mismatch', lambda value: value['boots'][0]['storage']['volumes'][0].__setitem__('CapacityBytes', 1)),
-        ('restart-storage', lambda value: value['boots'][1].__setitem__('storage', None)),
-        ('missing-boundary', lambda value: value.__setitem__('output_crashes', [])),
-        ('marker', lambda value: value['output_crashes'][0].__setitem__('marker', '!!!!')),
-        ('unused-binding', lambda value: value['incarnation_boots'][0]['handle'].__setitem__('incarnation', 3)),
-        ('incomplete', lambda value: value['actions'].pop()),
-        ('running-restart', lambda value: value['actions'][2].__setitem__('action', 'restart')),
-        ('unknown-action', lambda value: value['actions'][0].__setitem__('action', 'run')),
-    ]
-    for name, mutate in mutations:
-        value = copy.deepcopy(original)
-        mutate(value)
-        source = args.work / ('invalid-' + name + '.json')
-        source.write_bytes(check.parity.canonical(value))
-        run('refuse-' + name, explore(source, args.work / ('invalid-' + name)), 2)
-    for index, raw in enumerate((b'{} {}', b'{', b'', b'{"faults":null,"faults":null}')):
-        source = args.work / f'malformed-{index}.json'
-        source.write_bytes(raw)
-        run(f'refuse-malformed-{index}', explore(source, args.work / f'malformed-{index}'), 2)
     golden = CORPUS / 'goldens-campaign/scenarios.json'
     regenerate = os.environ.get('GOMAD_GOLDEN_REGENERATE') == '1'
     first = None

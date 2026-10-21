@@ -7,6 +7,10 @@ evidence and a guest epoch watchdog. The public seam is
 `gomad_wasmhost::linked::{Request, Limits, ModelInput, Execution}`; modeled guests
 use the existing sealed namespace and model implementations. Replay bytes enter
 the helper's existing preflight validator, never a host-projected decision tape.
+`Prepared::network` attaches the standalone stream-network owner before execution,
+including the retained node-local partition, heal, delay and named reset schedule.
+Each prepared execution owns fresh network and World state; network evidence is
+bounded standalone JSON, while clusters keep their shared owner and binary evidence.
 
 The watchdog starts before compilation and refuses guest instantiation after an
 expired compilation, but pinned Wasmtime's synchronous compiler cannot be

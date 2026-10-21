@@ -169,10 +169,15 @@ python3 tools/gomad/scripts/behavioral-parity \
   --output-root /absolute/new/replay-check
 ```
 
-The standalone baseline stays frozen. Cluster lanes use an archived current Go
-launcher and matching helper because fn235 deliberately changes cluster failure
-semantics. The original failing registered guest remains a failure case; a
+The standalone replay/divergence baseline stays frozen. Cluster, network and
+registered inspection lanes use an archived current Go launcher and matching
+helper because fn235 deliberately changes cluster failure semantics and
+inspection World commitments. The original failing registered guest remains a failure case; a
 separate retained success variant proves all three incarnations and restart.
+The standalone network lane compares every field and type in the modeled JSON
+document, including local faults and World history, and its exact encoded byte
+count. Rust orders JSON object keys differently from Go; each lineage's raw
+payload digest is independently authenticated before that comparison.
 
 `testdata/parity/replay-corpus.json` declares the golden view. Records, manifests,
 ledgers, statuses, replay reports and observed output digests remain exact; only

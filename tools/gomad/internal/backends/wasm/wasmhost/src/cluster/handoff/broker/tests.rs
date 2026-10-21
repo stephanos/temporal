@@ -78,6 +78,101 @@ fn finish_preserves_world_transition_capacity() {
     );
 }
 
+#[test]
+fn failed_peer_preserves_parked_incarnations_declared_boundary() {
+    for failure in ["trap", "capacity"] {
+        for boundary in ["crash", "stop"] {
+            let broker = Arc::new(
+                Broker::new(&broker_config(), &["a".into(), "b".into()], None, None).unwrap(),
+            );
+            broker.defer_starts();
+            broker.activate(0).unwrap();
+            broker.activate(1).unwrap();
+            broker.run(1, 1).unwrap();
+            let parked = broker.clone();
+            let thread = std::thread::spawn(move || {
+                assert!(parked.acquire(0));
+                parked.idle(0, 10_000)
+            });
+            assert!(broker.acquire(1));
+            broker
+                .revoke_locked(&mut lock(&broker.inner), 0, boundary)
+                .unwrap();
+            broker.abort(failure, "failed peer".into());
+            assert!(
+                matches!(
+                    thread.join().unwrap(),
+                    Err(Failure::Boundary(actual, _)) if actual == boundary
+                ),
+                "{failure} must preserve {boundary}"
+            );
+        }
+    }
+}
+
+#[test]
+fn failed_cluster_drains_source_then_sorted_peers_under_thread_jitter() {
+    let mut expected_wire = None;
+    for failure in ["trap", "capacity"] {
+        for launch in [[2, 1], [1, 2], [2, 1], [1, 2]] {
+            let broker = Arc::new(
+                Broker::new(
+                    &broker_config(),
+                    &["a".into(), "b".into(), "c".into()],
+                    None,
+                    None,
+                )
+                .unwrap(),
+            );
+            broker.start();
+            for index in 0..3 {
+                broker.register(index, "idle", &[]).unwrap();
+            }
+            broker.abort(failure, "failed source a".into());
+            let mut threads = Vec::new();
+            let (finished, completed) = std::sync::mpsc::channel();
+            for index in launch {
+                let broker = broker.clone();
+                let finished = finished.clone();
+                threads.push(std::thread::spawn(move || {
+                    for _ in 0..index {
+                        std::thread::yield_now();
+                    }
+                    broker.finish(index);
+                    finished.send(index).unwrap();
+                }));
+                assert!(
+                    matches!(
+                        completed.recv_timeout(std::time::Duration::from_millis(50)),
+                        Err(std::sync::mpsc::RecvTimeoutError::Timeout)
+                    ),
+                    "a peer finished before the failure source"
+                );
+            }
+            broker.finish(0);
+            for thread in threads {
+                thread.join().unwrap();
+            }
+            let canceled: Vec<_> = lock(&broker.inner)
+                .world
+                .transitions()
+                .iter()
+                .filter_map(|transition| match &transition.body {
+                    world::TransitionBody::Cancel { request_id, .. } => Some(*request_id),
+                    _ => None,
+                })
+                .collect();
+            assert_eq!(canceled, [1, 2, 3]);
+            let wire = broker.world_wire().unwrap();
+            if let Some(expected) = &expected_wire {
+                assert_eq!(&wire, expected);
+            } else {
+                expected_wire = Some(wire);
+            }
+        }
+    }
+}
+
 #[cfg(feature = "stress-jitter")]
 #[test]
 fn event_order_controller_commands_match_parser_fixture() {

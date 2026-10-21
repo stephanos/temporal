@@ -90,11 +90,71 @@ fn record_check_matches_record_failure_at_every_wire_limit() {
         model.transitions = vec![transition; count];
         assert_eq!(model.record().is_ok(), valid, "{length} x {count}");
         assert_eq!(model.record_check().is_ok(), valid, "{length} x {count}");
+        let mut inspection = history::InspectionHistory::default();
+        for transition in &model.transitions {
+            inspection.append(transition);
+        }
+        assert_eq!(
+            inspection.check(),
+            model.record_check(),
+            "inspection {length} x {count}"
+        );
     }
     let mut model = independent_listeners();
     model.nodes.get_mut("a").unwrap().node = "x".repeat((1 << 20) + 1);
     assert!(model.record().is_err());
     assert!(model.record_check().is_err());
+}
+
+#[test]
+fn inspection_lane_chains_preserve_canonical_order_and_bind_every_transition() {
+    let mut model = independent_listeners();
+    let a = model.transitions[0].clone();
+    let b = model.transitions[1].clone();
+    let mut changed = a.clone();
+    changed.outcome = "closed".into();
+    let digest = |transitions: &[history::Transition]| {
+        let mut chain = history::InspectionHistory::default();
+        for transition in transitions {
+            chain.append(transition);
+        }
+        chain.digest().unwrap()
+    };
+    assert_eq!(
+        digest(&[a.clone(), b.clone(), changed.clone()]),
+        digest(&[b, a.clone(), changed.clone()])
+    );
+    assert_ne!(
+        digest(&[a.clone(), changed.clone()]),
+        digest(&[changed, a.clone()])
+    );
+    assert_ne!(
+        digest(std::slice::from_ref(&a)),
+        digest(&[a.clone(), a.clone()])
+    );
+    let mut split = a.clone();
+    split.source.node = "ab".into();
+    split.source.address = "c".into();
+    let mut other = split.clone();
+    other.source.node = "a".into();
+    other.source.address = "bc".into();
+    assert_ne!(digest(&[split]), digest(&[other]));
+    let before = model.inspection_digest().unwrap();
+    assert_eq!(before, model.inspection_digest_eager().unwrap());
+    let mut invalid = a.clone();
+    invalid.outcome = "invalid".into();
+    assert!(model.commit_batch(&[a, invalid], 0, 0).is_err());
+    assert_eq!(
+        model.inspection_digest().unwrap(),
+        before,
+        "rollback leaked a lane head"
+    );
+    model.nodes.get_mut("a").unwrap().next_client_port += 1;
+    assert_ne!(
+        model.inspection_digest().unwrap(),
+        before,
+        "snapshot state was not bound"
+    );
 }
 
 #[test]
@@ -111,6 +171,11 @@ fn record_validates_original_history_before_canonical_reordering_changes_error_p
     assert_eq!(model.snapshot().unwrap_err(), expected);
     assert_eq!(model.record().unwrap_err(), expected);
     assert!(model.record_check().is_err());
+    let mut inspection = history::InspectionHistory::default();
+    for transition in &model.transitions {
+        inspection.append(transition);
+    }
+    assert_eq!(inspection.check().unwrap_err(), expected);
 }
 
 #[test]

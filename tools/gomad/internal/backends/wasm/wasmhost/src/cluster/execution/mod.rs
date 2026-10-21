@@ -634,6 +634,9 @@ fn run_instance(
     measured: bool,
     on_terminal: Option<&dyn Fn(&Outcome)>,
 ) -> std::result::Result<Report, (&'static str, String)> {
+    if let Coordinator::Broker(broker) = coordinator {
+        broker.wait_terminal(index);
+    }
     // Each store thread profiles into its own thread profile, merged into
     // the process report when the session closes (fn-185).
     #[cfg(feature = "diagnostic-profile")]
@@ -754,6 +757,9 @@ fn run_instance(
         return Err(("infrastructure", outcome.message));
     }
     let state = store.data_mut();
+    if let Coordinator::Broker(broker) = coordinator {
+        broker.wait_terminal(index);
+    }
     let image = record_terminal(state, storage.as_ref(), &mut outcome)?;
     let termination = outcome.termination;
     let host_nanos = state.host_nanos.unwrap_or(0);
@@ -768,14 +774,20 @@ fn run_instance(
     // Automatic handoff must follow the result so the next instance cannot
     // overtake it. Manual control must observe a finished incarnation when
     // Go answers the result with its next command.
-    if coordinator.driven() {
-        if let Some(on_terminal) = on_terminal {
-            on_terminal(&outcome);
-        }
+    if coordinator.driven()
+        && let Some(on_terminal) = on_terminal
+    {
+        on_terminal(&outcome);
+    }
+    let draining = matches!(coordinator, Coordinator::Broker(broker) if broker.terminal_failed());
+    if coordinator.driven() && !draining {
         coordinator.finish(index);
     }
     if let Err(error) = protocol::send_frame(&mut state.output, &outcome) {
         return Err(("infrastructure", format!("result transport: {error:#}")));
+    }
+    if coordinator.driven() && draining {
+        coordinator.finish(index);
     }
     Ok(Report {
         termination,
@@ -785,6 +797,28 @@ fn run_instance(
         host_nanos,
         guest_nanos,
     })
+}
+
+pub(crate) fn terminal_failure(outcome: &Outcome) -> Option<(&'static str, String)> {
+    match outcome.termination {
+        "exit" if outcome.exit_code == Some(0) => None,
+        "exit" => Some((
+            "trap",
+            format!(
+                "WASM guest exited with code {}",
+                outcome.exit_code.unwrap_or(1)
+            ),
+        )),
+        "crash"
+        | "stop"
+        | "storage_crash"
+        | "inspection_aborted"
+        | "inspected_prefix"
+        | "instrumentation_divergence"
+        | "debug_error"
+        | "probe_fuel_limit" => None,
+        termination => Some((termination, outcome.message.clone())),
+    }
 }
 
 /// An instance's terminal evidence after its store stopped: recovery

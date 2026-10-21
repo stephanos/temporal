@@ -18,7 +18,7 @@ import (
 const (
 	WASMInspectionSchema               = "gomad.wasm-inspection/v3"
 	WASMInspectionWorldEncoding        = "gomad.inspection-world-sha256/v2"
-	WASMInspectionStateEncoding        = "gomad.inspection-state-sha256/v1"
+	WASMInspectionStateEncoding        = "gomad.inspection-state-sha256/v2"
 	WASMInspectionWorldHeader          = "gomad.inspection-world-commitments/v2\x00"
 	MaximumWASMInspectionBytes         = 64 << 20
 	MaximumWASMInspectionBoundaries    = 65536
@@ -533,7 +533,10 @@ func WASMInspectionStateCommitment(kind string, material []byte) ([sha256.Size]b
 	if kind != "storage" && kind != "recovery" && kind != "network" {
 		return [sha256.Size]byte{}, errors.New("unknown inspection state commitment kind")
 	}
-	domain := WASMInspectionStateEncoding + "/" + kind + "\x00"
+	domain := "gomad.inspection-state-sha256/v1/" + kind + "\x00"
+	if kind == "network" {
+		domain = WASMInspectionStateEncoding + "/network\x00"
+	}
 	hash := sha256.New()
 	var length [8]byte
 	binary.LittleEndian.PutUint64(length[:], uint64(len(material)))

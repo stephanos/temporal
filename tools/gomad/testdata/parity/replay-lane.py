@@ -37,7 +37,8 @@ run('fresh-parity', [sys.executable, corpus / 'replay-reference-lane.py', '--bas
 for name, driver in [('consumer', 'replay-check.py'), ('opener', 'replay-fault-check.py'),
                      ('cluster', 'replay-cluster-check.py'), ('cluster-failures', 'replay-cluster-failure-check.py'),
                      ('golden', 'replay-golden-check.py')]:
-    run(name, [sys.executable, corpus / driver, '--binary', args.binary, '--work', args.work / name])
+    run(name, [sys.executable, corpus / driver, '--binary', args.binary, '--work', args.work / name,
+        *(['--compiler', args.go_compiler, '--source', args.cluster_source] if name == 'cluster-failures' else [])])
 run('runtime-golden', [sys.executable, corpus / 'replay-golden-check.py', '--binary', args.binary,
     '--work', args.work / 'runtime-golden', '--input', args.work / 'fresh-parity/replay-input.json'])
 storage = args.work / 'fresh-parity/go/storage-origin-input.json'
@@ -45,7 +46,7 @@ for name, driver in [('storage', 'replay-storage-check.py'), ('storage-prefix', 
     run(name, [sys.executable, corpus / driver, '--binary', args.binary, '--reference', storage,
         '--work', args.work / name])
 registered = json.loads(run('registered-fixture', [sys.executable, corpus / 'replay-inspection-fixture.py',
-    '--binary', args.binary, '--baseline', args.baseline, '--source', args.source,
+    '--binary', args.binary, '--baseline', args.cluster_baseline, '--source', args.cluster_source,
     '--compiler', args.go_compiler, '--work', args.work / 'registered']))
 for name, binary, role in [('ordinary', args.binary, None), ('stress', args.stress_binary, 'stress-jitter'),
                            ('determinism', args.determinism_binary, 'determinism-fixture')]:
@@ -61,6 +62,11 @@ run('roles', [sys.executable, corpus / 'replay-role-check.py', '--ordinary-binar
     '--stress-binary', args.stress_binary, '--determinism-binary', args.determinism_binary,
     '--release-binary', args.release_binary, '--output', args.work / 'roles'])
 cluster_arguments = ['--baseline', args.cluster_baseline, '--source', args.cluster_source, '--compiler', args.go_compiler]
+for network in ('ordinary', 'faults'):
+    run('standalone-network-' + network, [sys.executable, corpus / 'replay-inspection-fixture.py',
+        '--binary', args.binary, *cluster_arguments, '--network', network,
+        '--preparation-root', args.preparation_root / ('current-network-' + network),
+        '--work', args.work / ('standalone-network-' + network)])
 run('public-cluster-reference', [sys.executable, corpus / 'replay-cluster-reference.py', *cluster_arguments,
     '--work', args.work / 'public-cluster'])
 public_reference = args.work / 'public-cluster/cluster-reference.json'

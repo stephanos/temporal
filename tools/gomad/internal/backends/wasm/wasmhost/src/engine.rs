@@ -76,8 +76,7 @@ pub struct State {
     pub request_scratch: Vec<u8>,
     pub write_scratch: protocol::WriteBuffers,
     /// A cluster instance's seat in the in-process broker (fn-178.7), with its
-    /// endpoint on the shared Rust network owner (fn-178.12); single executions
-    /// forward `runtime_idle`'s broker role and `net_stream` to Go instead.
+    /// endpoint on the shared Rust network owner (fn-178.12).
     pub broker: Option<crate::cluster::handoff::Member>,
     pub(crate) network: Option<crate::cluster::network::Endpoint>,
 }
@@ -105,7 +104,7 @@ impl State {
         use crate::model::inspection::{NetworkState, StorageEvidence, StorageState};
         #[cfg(test)]
         if crate::model::inspection::eager_oracle() {
-            return self.inspection_snapshot_eager(at == Snapshot::Boundary);
+            return self.inspection_snapshot_eager(at);
         }
         let Some(model) = self.model.as_mut() else {
             return;
@@ -160,6 +159,13 @@ impl State {
         {
             let observed = if at == Snapshot::Call {
                 endpoint.evidence_check().map(|()| (None, None))
+            } else if at == Snapshot::Terminal {
+                endpoint.evidence().map(|bytes| {
+                    (
+                        Some(crate::model::inspection::network_commitment(&bytes)),
+                        None,
+                    )
+                })
             } else {
                 endpoint
                     .inspection_network(crate::model::inspection::network_commitment)
@@ -222,7 +228,7 @@ impl State {
     /// Test oracle: the original eager snapshot, which re-encodes and
     /// re-hashes every input on every call, with an uncached World wire.
     #[cfg(test)]
-    fn inspection_snapshot_eager(&mut self, boundary: bool) {
+    fn inspection_snapshot_eager(&mut self, at: Snapshot) {
         let Some(model) = self.model.as_mut() else {
             return;
         };
@@ -259,7 +265,12 @@ impl State {
         if let Some(member) = &self.broker
             && let Some(endpoint) = &member.network
         {
-            if let Ok(bytes) = endpoint.evidence() {
+            let evidence = if at == Snapshot::Terminal {
+                endpoint.evidence()
+            } else {
+                endpoint.inspection_network_eager()
+            };
+            if let Ok(bytes) = evidence {
                 network = bytes;
             } else {
                 model.inspection.lock().exhausted = true;
@@ -274,7 +285,7 @@ impl State {
         {
             return;
         }
-        if boundary {
+        if at == Snapshot::Boundary {
             model.inspection.world_commitment = match &self.broker {
                 Some(member) => {
                     if let Ok(commitment) = member.broker.inspection_world_commitment(

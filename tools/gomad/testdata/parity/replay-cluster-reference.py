@@ -120,7 +120,7 @@ def linked_input(reference):
                                  'pending_events': limits['PendingEvents']}},
             'namespace': namespace_image(config)})
     transitions = spec['limits']['network_transitions']
-    configuration = {'engine': 'cranelift-fuel-nan-canonical-nounwind-epoch-v1',
+    configuration = {'nodes': sorted(nodes), 'engine': 'cranelift-fuel-nan-canonical-nounwind-epoch-v1',
                      'profile': 'gomad.wasi-cooperative/v1', 'limits': incarnations[0]['limits'],
                      'broker': {'seed': spec['seed'], 'pause_on_settle': False,
                                 'limits': {'max_requests': transitions * 2, 'max_events': transitions * 2,

@@ -54,8 +54,8 @@ fn endpoint(shared: &Arc<Mutex<Shared>>, id: &str, slot: u64, transcript: u64) -
     Endpoint::new(shared.clone(), id, 1, slot, &profile(), 1000, transcript).unwrap()
 }
 
-/// The cached inspection commitment always equals a fresh hash of the
-/// current evidence, including after another endpoint changed the shared
+/// The cached inspection commitment always equals a fresh reconstruction
+/// from the complete evidence, including after another endpoint changed the shared
 /// owner (which every endpoint's evidence embeds), and is reused unchanged.
 #[test]
 fn inspection_network_cache_follows_own_and_foreign_mutations() {
@@ -73,7 +73,7 @@ fn inspection_network_cache_follows_own_and_foreign_mutations() {
     let check = |endpoints: &mut [Endpoint; 2]| -> [[u8; 32]; 2] {
         let mut digests = [[0; 32]; 2];
         for (index, endpoint) in endpoints.iter_mut().enumerate() {
-            let evidence = endpoint.evidence().unwrap();
+            let evidence = endpoint.inspection_network_eager().unwrap();
             assert!(endpoint.evidence_check().is_ok());
             let (digest, bytes) = endpoint.inspection_network(commit).unwrap();
             assert_eq!(digest, <[u8; 32]>::from(Sha256::digest(&evidence)));
@@ -105,4 +105,26 @@ fn inspection_network_cache_follows_own_and_foreign_mutations() {
     endpoints[0].attach_at(5).unwrap();
     endpoints[1].settle(5).unwrap();
     check(&mut endpoints);
+}
+
+#[test]
+fn changed_network_inspections_never_rehash_native_history() {
+    use sha2::{Digest, Sha256};
+    let shared = Arc::new(Mutex::new(Shared::new(&config(), &ids()).unwrap()));
+    let mut endpoint = endpoint(&shared, "a", 1, 1 << 20);
+    crate::network::history::DIGEST_COUNTS.with(|count| count.set((0, 0)));
+    for now in 1..=1000 {
+        endpoint.attach_at(now).unwrap();
+        endpoint.settle(now).unwrap();
+        endpoint
+            .inspection_network(|bytes| Sha256::digest(bytes).into())
+            .unwrap();
+    }
+    crate::network::history::DIGEST_COUNTS.with(|count| {
+        assert_eq!(
+            count.get().0,
+            0,
+            "inspection rehashed the complete native history"
+        );
+    });
 }
