@@ -110,7 +110,17 @@ def main():
             observed.add(decision['dimension'])
             assert len(decision['alternatives']) > 1
             assert decision['selected'] < len(decision['alternatives'])
+        actual = {(value['dimension'], value['ordinal']): value for value in record['exploration_decisions']}
         for override in record['exploration_plan']['overrides'] or []:
+            if record['outcome'] == 'replay_diverged':
+                continue
+            if override['dimension'] == 'runtime':
+                assert (artifact / 'evidence/choice').stat().st_size > 0
+                forced.add('runtime')
+                continue
+            decision = actual.get((override['dimension'], override['ordinal']))
+            assert decision is not None, override
+            assert decision['selected'] == override['selected'], (decision, override)
             forced.add(override['dimension'])
         observations.append(dict(identity=record['identity'], outcome=record['outcome'],
             decisions=record['exploration_decisions'], observations=record['observations']))
