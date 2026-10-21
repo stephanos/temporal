@@ -704,3 +704,58 @@ All worktrees listed above remain retained for their open-spec source/evidence;
 the current registry additionally includes fn232-minimize with incomplete source.
 The active exploration, seed and producer checkouts are not cleanup targets.
 No worktree or evidence was deleted, no PR was opened, and nothing was pushed.
+
+### Conductor integration and reviewed fail-fast completion
+
+Root integrates replay and six-dimension campaign source through `294b5e66e5`,
+including cost hardening donor `c4d6b337c4`. Four compiled host roles, their
+all-target Clippy checks, 50 host tests and the full helper suite pass on those
+frozen Rust inputs. Helper inputs remain unchanged through `b301cbc88c`.
+Go-only integration fix `1ba2bb38eb` explicitly registers the helper divergence
+fixture in lint ownership; its routing test first failed, then the full lint-tool
+suite and changed-package lint passed. Independent review approves that fix.
+
+The fresh installed fail-fast gate exits 0 in 59.557 seconds. Capacity takes
+0.722 seconds, guest failures 6.287/0.540 seconds and deadlock 7.595 seconds,
+under unchanged strict ten-second assertions and three-minute watchdogs. Partial
+streams, abort time, inspect limits and matching replay pass, alongside detached
+durable/canary/network cases and tamper refusals. The original pinned ringpop120
+scenario succeeds on the integrated helper; its release diagnostic takes
+18.256 seconds. Raw logs are `fn235/root-final294-installed-failure-gate.log`
+and `fn235/commitment/final294-release-120-warmup/`. Independent acceptance review
+maps all fn-235.1 R1-R4 to this evidence and returns SHIP. Flow completion for
+fn-235.1 is verified; task .2 performance and fn232.13 qualification stay open.
+
+Independent campaign review found and reproduced an actual forcing-admission
+defect. A fully resealed simulation artifact could claim an unreachable runtime
+override and still replay successfully. Root `89457da754` integrates the fix,
+validating against the authenticated primary trace before helper preparation.
+Fresh immutable host `fn232-exploration-root-aefa-candidate`, SHA-256
+`ccb50f4d135acb5c3e3b00418035c45327187c08e301f12cd01f3f5e4492421a`,
+passes eight positive replays and refuses the resealed tamper with status 2;
+independent correctness review approves the concrete repair. Public round/plan
+authentication, all artifact payloads, malformed/resealed plans and simulation
+torn-round recovery now have independent fixture checks, also reviewed SHIP.
+The central exploration harness and remaining replay gates are still running
+or pending; no full R13/R14 or task .6-.8 completion is claimed.
+
+Minimizer development continues in fn232-minimize with actual original-Go
+supported/refused boundaries. It does not invent cluster or WASM simulation
+minimization when the original Go owner refuses them. All-dimension proposal
+logic remains covered separately; accepted-reduction public parity is required.
+Site-scope tasks fn230.1-.3 are started as one provisional batch in
+fn230-sites, against the existing approved Flow design and current Rust scope
+interfaces. Public plan integration remains a receiving dependency of fn232.11;
+all creation-site wire compatibility and actual scope acceptance remain required.
+
+Additional retained worktree fn235-final-progress holds only the original private
+clock patch against integrated helper inputs for measurement. Both its immutable
+release/progress binaries and source archive are retained under fn235/commitment.
+The literal flat-per-virtual-second performance criterion remains unproven:
+retained operation density rises after healing, explaining the observed 18%
+cumulative rate increase. No operation-normalized pass or counted cohort replaces
+that criterion. Source profiling continues without starting the primary cohort.
+Existing open-owner worktrees remain retained; fn230-sites is newly active.
+Disk is approximately 9.7 GiB free on the build filesystem and 37 GiB on host.
+Shared Cargo ownership is serialized; retained evidence and unrelated user
+`.turbo/` remain untouched. No push, PR or CI execution is authorized or performed.

@@ -303,7 +303,6 @@ Owner decision 2026-10-21: an exhausted limit must not be silent. Found in fn-22
 
 | Name / ID | Status | Description |
 | --- | --- | --- |
-| [fn-235-gomad-fail-cluster-runs-fast-and.1](.flow/tasks/fn-235-gomad-fail-cluster-runs-fast-and.1.md) | 🚧 In progress | Classify broker capacity exhaustion and end manual cluster runs promptly with retained partial evidence |
 | [fn-235-gomad-fail-cluster-runs-fast-and.2](.flow/tasks/fn-235-gomad-fail-cluster-runs-fast-and.2.md) | 🚧 In progress | Measure and remove superlinear World inspection commitment cost in long cluster runs |
 
 ### WASM host-side execution cost profile — [fn-185](.flow/specs/fn-185-gomad-wasm-host-side-execution-cost.md)
@@ -354,9 +353,9 @@ Interleave with the Rust host: fn-229 after fn-232.5 inspect, fn-230 after fn-23
 
 | Name / ID | Status | Description |
 | --- | --- | --- |
-| [fn-230-gomad-explore-site-scope-for-choice.1](.flow/tasks/fn-230-gomad-explore-site-scope-for-choice.1.md) | ⬜ Todo | Site scope flag, pattern validation and resolution against the base trace |
-| [fn-230-gomad-explore-site-scope-for-choice.2](.flow/tasks/fn-230-gomad-explore-site-scope-for-choice.2.md) | ⬜ Todo | Frontier filtering, per-round counts and resume refusal |
-| [fn-230-gomad-explore-site-scope-for-choice.3](.flow/tasks/fn-230-gomad-explore-site-scope-for-choice.3.md) | ⬜ Todo | Goroutine creation sites in the choice wire schema and runnable-decision scoping |
+| [fn-230-gomad-explore-site-scope-for-choice.1](.flow/tasks/fn-230-gomad-explore-site-scope-for-choice.1.md) | 🚧 In progress | Site scope flag, pattern validation and resolution against the base trace |
+| [fn-230-gomad-explore-site-scope-for-choice.2](.flow/tasks/fn-230-gomad-explore-site-scope-for-choice.2.md) | 🚧 In progress | Frontier filtering, per-round counts and resume refusal |
+| [fn-230-gomad-explore-site-scope-for-choice.3](.flow/tasks/fn-230-gomad-explore-site-scope-for-choice.3.md) | 🚧 In progress | Goroutine creation sites in the choice wire schema and runnable-decision scoping |
 
 | Name / ID | Status | Description |
 | --- | --- | --- |
