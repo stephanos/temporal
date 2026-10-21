@@ -1928,6 +1928,60 @@ mod tests {
     }
 
     #[test]
+    #[cfg(not(feature = "conformance"))]
+    fn exploration_persistence_survives_a_crash_without_pending_selection() {
+        use crate::linked_simulation::{Controller, Plan};
+        use std::sync::{Arc, Mutex};
+
+        let fixture = || {
+            let mut fs = filesystem(4096, 100);
+            let inode = fs.create("/data/file", Kind::File, 0o600, 1).unwrap();
+            fs.sync_node(inode).unwrap();
+            let root = fs.lookup("/data").unwrap().inode;
+            fs.sync_node(root).unwrap();
+            fs.write_at(inode, 0, b"survives", 2).unwrap();
+            fs
+        };
+        let mut fs = fixture();
+        let mut probe = fixture();
+        let controller = Arc::new(Mutex::new(
+            Controller::new(
+                Plan::new(
+                    format!("sha256:{}", "a".repeat(64)),
+                    format!("sha256:{}", "b".repeat(64)),
+                    7,
+                    vec![],
+                )
+                .unwrap(),
+                100,
+            )
+            .unwrap(),
+        ));
+        probe.explore_persistence(&controller).unwrap();
+        let decision = controller.lock().unwrap().decisions()[0].clone();
+        let overridden = Arc::new(Mutex::new(
+            Controller::new(
+                Plan::new(
+                    format!("sha256:{}", "a".repeat(64)),
+                    format!("sha256:{}", "b".repeat(64)),
+                    7,
+                    vec![crate::linked_simulation::Override::from_decision(&decision, 1).unwrap()],
+                )
+                .unwrap(),
+                100,
+            )
+            .unwrap(),
+        ));
+        fs.explore_persistence(&overridden).unwrap();
+        fs.crash_volumes(&BTreeMap::new()).unwrap();
+        let recovered = fs.lookup("/data/file").unwrap().inode;
+        assert_eq!(fs.read_at(recovered, 0, 32).unwrap(), b"survives");
+        probe.crash_volumes(&BTreeMap::new()).unwrap();
+        let lost = probe.lookup("/data/file").unwrap().inode;
+        assert_eq!(probe.read_at(lost, 0, 32).unwrap(), b"");
+    }
+
+    #[test]
     fn repeated_snapshots_do_not_rehash_unchanged_file_bytes() {
         use super::super::hash::CONTENT_HASHES;
         let mut fs = filesystem(4096, 100);

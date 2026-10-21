@@ -844,6 +844,11 @@ impl Namespace {
     pub fn storage(&self) -> Option<&Storage> {
         self.storage.as_ref()
     }
+    #[cfg(not(feature = "conformance"))]
+    pub(crate) fn storage_mut(&mut self) -> Option<&mut Storage> {
+        self.touch();
+        self.storage.as_mut()
+    }
     /// Go `CrashStorage`: the image of the selected durable state. Descriptor
     /// numbers and open volume handles belong to the discarded incarnation.
     pub fn crash_storage(

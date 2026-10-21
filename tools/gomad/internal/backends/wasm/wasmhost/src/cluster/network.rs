@@ -244,6 +244,7 @@ pub struct Shared {
     clients: BTreeMap<String, String>,
     faults: Vec<Fault>,
     fault: usize,
+    simulation: Option<crate::linked_simulation::Shared>,
 }
 
 /// The shared owner with a revision that every mutable access advances, so
@@ -284,13 +285,45 @@ fn joined(results: [Result<(), String>; 2]) -> Result<(), String> {
 }
 
 impl Shared {
+    pub(crate) fn attach_simulation(&mut self, controller: crate::linked_simulation::Shared) {
+        self.simulation = Some(controller);
+    }
+
+    fn simulation_choice(
+        &self,
+        dimension: crate::linked_simulation::Dimension,
+        site: &str,
+        alternatives: Vec<String>,
+    ) -> Result<usize, Failure> {
+        let Some(controller) = &self.simulation else {
+            return Ok(0);
+        };
+        if alternatives.len() < 2 {
+            return Ok(0);
+        }
+        let selected = controller
+            .lock()
+            .map_err(|_| infrastructure("simulation controller poisoned"))?
+            .choose(dimension, site, alternatives, 0)
+            .map_err(infrastructure)?;
+        usize::try_from(selected).map_err(|error| infrastructure(error.to_string()))
+    }
+
     /// Go `newBrokerNetwork` for the cluster's instances (sorted ids, all at
     /// incarnation 1), then the broker's initial advance to time 1.
+    pub fn new(config: &Config, ids: &[String]) -> Result<Self, Failure> {
+        Self::new_with_simulation(config, ids, None)
+    }
+
     #[expect(
         clippy::too_many_lines,
         reason = "The ordered model transition preserves Go admission, mutation and refusal order"
     )]
-    pub fn new(config: &Config, ids: &[String]) -> Result<Self, Failure> {
+    pub(crate) fn new_with_simulation(
+        config: &Config,
+        ids: &[String],
+        simulation: Option<crate::linked_simulation::Shared>,
+    ) -> Result<Self, Failure> {
         validate_model(&config.model)?;
         if !config.model.faults.is_empty() {
             return Err(Failure::Invalid("broker requires central fault schedule"));
@@ -389,6 +422,7 @@ impl Shared {
             clients,
             faults: config.faults.clone(),
             fault: 0,
+            simulation: None,
         };
         #[cfg(any(feature = "determinism-fixture", feature = "stress-jitter"))]
         let _event_scope = crate::event_order::enter(crate::event_order::owner("controller", 0, 1));
@@ -408,6 +442,9 @@ impl Shared {
             if !matches!(fault.action.as_str(), "partition" | "heal" | "delay") {
                 return Err(Failure::Invalid("broker fault action"));
             }
+        }
+        if let Some(simulation) = simulation {
+            shared.attach_simulation(simulation);
         }
         shared.advance(1)?;
         Ok(shared)
@@ -464,9 +501,39 @@ impl Shared {
 
     /// Go `brokerNetwork.advance`: due faults at their own time, then `now`.
     pub fn advance(&mut self, now: u64) -> Result<(), Failure> {
-        while let Some(fault) = self.faults.get(self.fault).cloned()
-            && fault.at_nanos <= now
+        while let Some(next) = self.faults.get(self.fault)
+            && next.at_nanos <= now
         {
+            if self.simulation.is_some() {
+                let at = next.at_nanos;
+                let count = self.faults[self.fault..]
+                    .iter()
+                    .take_while(|fault| fault.at_nanos == at)
+                    .count();
+                let alternatives = self.faults[self.fault..self.fault + count]
+                    .iter()
+                    .map(|fault| {
+                        crate::linked_simulation::domain_hash(
+                            "gomad-simulation-network-fault/v1",
+                            &serde_json::json!(fault),
+                        )
+                    })
+                    .collect::<Result<Vec<_>, _>>()
+                    .map_err(infrastructure)?;
+                let site = crate::linked_simulation::domain_hash(
+                    "gomad-simulation-network-site/v1",
+                    &serde_json::json!({"fault_at_nanos":at}),
+                )
+                .map_err(infrastructure)?;
+                let selected = self.simulation_choice(
+                    crate::linked_simulation::Dimension::Fault,
+                    &site,
+                    alternatives,
+                )?;
+                let fault = self.faults.remove(self.fault + selected);
+                self.faults.insert(self.fault, fault);
+            }
+            let fault = self.faults[self.fault].clone();
             self.owner
                 .advance_before(fault.at_nanos)
                 .map_err(infrastructure)?;
@@ -669,9 +736,18 @@ impl Endpoint {
     fn advance(&mut self, shared: &mut Shared, now: u64) -> Result<(), Failure> {
         self.advance_faults(shared, now)?;
         shared.owner.advance_before(now).map_err(infrastructure)?;
-        let ids = shared.owner.advance(now).map_err(infrastructure)?;
+        let ids = shared
+            .owner
+            .advance(now)
+            .map_err(infrastructure)?
+            .unwrap_or_default();
+        let ids = if shared.simulation.is_some() {
+            self.simulation_ready_order(shared, ids, now)?
+        } else {
+            ids
+        };
         let mut ready = false;
-        for global in ids.unwrap_or_default() {
+        for global in ids {
             if global < self.request_base || global - self.request_base >= 1 << 48 {
                 continue;
             }
@@ -693,19 +769,70 @@ impl Endpoint {
                 .map_err(|error| infrastructure(error.to_string()))?;
             self.world_ready.insert(id);
             ready = true;
+            if shared.simulation.is_some() {
+                self.deliver_ready(now)?;
+                ready = false;
+            }
         }
         if ready {
-            let quiescence = self
-                .world
-                .quiesce()
-                .map_err(|error| infrastructure(error.to_string()))?;
-            if quiescence.after != world::INITIAL_TIME + now.cast_signed() {
-                return Err(Failure::Invalid("network readiness advanced outside idle"));
-            }
-            let (json, binary) = evidence::quiescence_entry(&quiescence);
-            self.append(json, binary)?;
+            self.deliver_ready(now)?;
         }
         Ok(())
+    }
+
+    fn deliver_ready(&mut self, now: u64) -> Result<(), Failure> {
+        let quiescence = self
+            .world
+            .quiesce()
+            .map_err(|error| infrastructure(error.to_string()))?;
+        if quiescence.after != world::INITIAL_TIME + now.cast_signed() {
+            return Err(Failure::Invalid("network readiness advanced outside idle"));
+        }
+        let (json, binary) = evidence::quiescence_entry(&quiescence);
+        self.append(json, binary)
+    }
+
+    fn simulation_ready_order(
+        &self,
+        shared: &Shared,
+        ids: Vec<u64>,
+        now: u64,
+    ) -> Result<Vec<u64>, Failure> {
+        let mut pending = ids
+            .into_iter()
+            .filter(|global| {
+                *global >= self.request_base
+                    && *global - self.request_base < 1 << 48
+                    && !self.world_ready.contains(&(*global - self.request_base))
+                    && self
+                        .world_requests
+                        .contains_key(&(*global - self.request_base))
+            })
+            .map(|global| {
+                crate::linked_simulation::domain_hash(
+                    "gomad-simulation-network-ready/v1",
+                    &serde_json::json!({"request_id":global}),
+                )
+                .map(|identity| (global, identity))
+            })
+            .collect::<Result<Vec<_>, _>>()
+            .map_err(infrastructure)?;
+        let site = crate::linked_simulation::domain_hash("gomad-simulation-network-site/v1",
+            &serde_json::json!({"node":self.client.node,"incarnation":self.client.incarnation,"at_nanos":now}))
+            .map_err(infrastructure)?;
+        let mut ordered = Vec::with_capacity(pending.len());
+        while !pending.is_empty() {
+            let selected = shared.simulation_choice(
+                crate::linked_simulation::Dimension::Network,
+                &site,
+                pending
+                    .iter()
+                    .map(|(_, identity)| identity.clone())
+                    .collect(),
+            )?;
+            ordered.push(pending.remove(selected).0);
+        }
+        Ok(ordered)
     }
 
     /// Go `runtimeNetworkStream`: serves one `net_stream` buffer in place.
