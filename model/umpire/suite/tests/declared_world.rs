@@ -22,8 +22,8 @@ mod correlated {
         Swap,
     }
 
-    #[starts]
     impl Model {
+        #[starts]
         fn starts(w: &World) -> Vec<Self> {
             if w.first == 0 {
                 return Vec::new();
@@ -34,8 +34,6 @@ mod correlated {
                 Self { left: w.first, right: w.second },
             ]
         }
-    }
-    impl Model {
         #[on(User)]
         fn user(&mut self, _: User, w: &World) {
             if self.left == w.first {

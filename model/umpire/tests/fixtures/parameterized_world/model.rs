@@ -35,8 +35,8 @@ pub mod counter {
         Advance,
     }
 
-    #[starts]
     impl Model {
+        #[starts]
         fn starts(selected: &World) -> impl IntoIterator<Item = Self> {
             super::ENUMERATIONS.set(super::ENUMERATIONS.get() + 1);
             if selected.value >= selected.limit {
@@ -49,9 +49,7 @@ pub mod counter {
                 ]
             }
         }
-    }
 
-    impl Model {
         #[on(User)]
         fn user(&mut self, requested: User, selected: &World) {
             match requested {

@@ -593,13 +593,11 @@ pub mod counter {
     pub struct Model { value: u8 }
     #[derive(Action)]
     pub enum User { Advance }
-    #[starts]
     impl Model {
+        #[starts]
         fn starts(w: &World) -> impl IntoIterator<Item = Self> {
             [Self { value: w.initial }]
         }
-    }
-    impl Model {
         #[on(User)]
         fn user(&mut self, action: User, w: &World) {
             match action {

@@ -497,9 +497,9 @@ Kettle itself proves only its unit-world, nongeneric, unit-action use case.
 | --- | --- |
 | No declared world struct: `#[machine]` emits `struct World;` and `world()` returns that unit value. | A module-local `#[derive(World)]` struct carries parameters; absence keeps the unit world and Kettle unchanged. |
 | Generated handler and claim calls discard the world argument. | An optional explicit extra `w: &World<..>` parameter on handlers and claims, detected by arity as `before` is today. |
-| `#[starts(range)]` supports static ranges, including `COLDEST_TEMPERATURE`, but not world-dependent/computed starts. | A `#[starts]` impl block supplies computed starts; keep field `#[starts(range)]` for literal/static domains. |
+| `#[starts(range)]` supports static ranges, including `COLDEST_TEMPERATURE`, but not world-dependent/computed starts. | A `#[starts]` method in the main `impl Model` (any name, optional trailing `&World`) supplies computed starts; keep field `#[starts(range)]` for literal/static domains. |
 | `derive(Action)` requires unit variants; no input fields or domains. | Action variants carry inputs; domains come from `Finite` or the world. |
-| `#[machine]` rejects generic registered impls and its generated adapters name bare nongeneric types. | Accept generics on `Model`, `World` and action enums and propagate their bounds. Standalone State derive's existing generic support does not close this gap. |
+| `#[machine]` rejects generic registered impls and its generated adapters name bare nongeneric types. | Retired (fn-227.13): `#[machine]` refuses generic `Model`, `World` and actor declarations with one located error, as the lifter does; standalone derives keep their generics. |
 
 Numeric `.within(n)` is available on `LeadsTo`; the manual trait's `.within(scope)` retains its
 environment-assumption meaning and uses `.within_steps(n)` for numeric bounds.

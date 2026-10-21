@@ -1,0 +1,5 @@
+error: #[starts] requires an associated fn taking only an optional trailing &World: fn starts(world: &World) -> impl IntoIterator<Item = Self>
+  --> tests/ui/world_starts_receiver.rs:12:9
+   |
+12 |         fn starts(&self, _: &World) -> [Self; 0] { [] }
+   |         ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^

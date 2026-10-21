@@ -105,12 +105,16 @@ pub(crate) fn parse(file: &str, ast: &syn::File, hooks: &[crate::Hook<'_>]) -> R
                 ));
             }
         };
-        let allowed: &[&str] = if matches!(item, Item::Impl(_)) {
-            &["doc", "derive", "internal", "starts"]
-        } else {
-            &["doc", "derive", "internal"]
-        };
-        attrs(file, attributes, allowed)?;
+        if let Item::Impl(value) = item
+            && let Some(attribute) = attr(&value.attrs, "starts")
+        {
+            return Err(Diagnostic::at(
+                file,
+                attribute,
+                "#[starts] marks a method in impl Model: #[starts] fn starts(world: &World)",
+            ));
+        }
+        attrs(file, attributes, &["doc", "derive", "internal"])?;
         if let Item::Fn(function) = item {
             parser.domain_functions.insert(function.sig.ident.to_string(), function.clone());
         }
@@ -200,57 +204,7 @@ pub(crate) fn parse(file: &str, ast: &syn::File, hooks: &[crate::Hook<'_>]) -> R
             });
         }
     }
-    let computed: Vec<_> = items
-        .iter()
-        .filter_map(|item| match item {
-            Item::Impl(value) if has(&value.attrs, "starts") => Some(value),
-            _ => None,
-        })
-        .collect();
-    if computed.len() > 1 {
-        return Err(Diagnostic::at(file, computed[1], "declare starts once"));
-    }
-    if let Some(implementation) = computed.first() {
-        if !parser.declared_world {
-            return Err(Diagnostic::at(
-                file,
-                implementation,
-                "computed starts require a declared World",
-            ));
-        }
-        if implementation.trait_.is_some()
-            || !implementation.generics.params.is_empty()
-            || path_name(&implementation.self_ty.to_token_stream().to_string()) != "Model"
-        {
-            return Err(Diagnostic::at(
-                file,
-                implementation,
-                "computed starts require a nongeneric impl Model",
-            ));
-        }
-        let [ImplItem::Fn(method)] = implementation.items.as_slice() else {
-            return Err(Diagnostic::at(
-                file,
-                implementation,
-                "#[starts] requires one fn starts(world: &World)",
-            ));
-        };
-        let parameters = parser.parameters(method)?;
-        if method.sig.ident != "starts"
-            || method.sig.receiver().is_some()
-            || !parameters.positional.is_empty()
-            || parameters.world.is_none()
-            || method.sig.asyncness.is_some()
-            || matches!(method.sig.safety, syn::Safety::Unsafe(_))
-            || !method.sig.generics.params.is_empty()
-        {
-            return Err(Diagnostic::at(
-                file,
-                method,
-                "#[starts] requires fn starts(world: &World)",
-            ));
-        }
-    }
+    let mut computed = None;
     for item in items {
         if let Item::Const(value) = item {
             let ty = parser.ty(&value.ty)?;
@@ -258,9 +212,6 @@ pub(crate) fn parse(file: &str, ast: &syn::File, hooks: &[crate::Hook<'_>]) -> R
             parser.constants.insert(value.ident.to_string(), expr);
         }
         if let Item::Impl(value) = item {
-            if has(&value.attrs, "starts") {
-                continue;
-            }
             if value.trait_.is_some() || !value.generics.params.is_empty() {
                 return Err(Diagnostic::at(
                     file,
@@ -278,6 +229,7 @@ pub(crate) fn parse(file: &str, ast: &syn::File, hooks: &[crate::Hook<'_>]) -> R
                     &method.attrs,
                     &[
                         "doc",
+                        "starts",
                         "on",
                         "effect",
                         "invariant",
@@ -297,7 +249,9 @@ pub(crate) fn parse(file: &str, ast: &syn::File, hooks: &[crate::Hook<'_>]) -> R
                         "async, unsafe or generic helper is unsupported",
                     ));
                 }
-                if owner == "Model" {
+                if has(&method.attrs, "starts") {
+                    computed_starts(&parser, method, owner == "Model", &mut computed)?;
+                } else if owner == "Model" {
                     parser.methods.insert(method.sig.ident.to_string(), method.clone());
                 } else {
                     parser.helpers.insert(format!("{owner}::{}", method.sig.ident), method.clone());
@@ -333,7 +287,7 @@ pub(crate) fn parse(file: &str, ast: &syn::File, hooks: &[crate::Hook<'_>]) -> R
             return Err(Diagnostic::at(file, field, format!("reserved observer name `{name}`")));
         }
         let ty = parser.ty(&field.ty)?;
-        let start = if !computed.is_empty() {
+        let start = if computed.is_some() {
             if let Some(attribute) = attr(&field.attrs, "starts") {
                 return Err(Diagnostic::at(
                     file,
@@ -419,9 +373,6 @@ pub(crate) fn parse(file: &str, ast: &syn::File, hooks: &[crate::Hook<'_>]) -> R
     let mut assumptions = Vec::new();
     for item in items {
         let Item::Impl(implementation) = item else { continue };
-        if has(&implementation.attrs, "starts") {
-            continue;
-        }
         if path_name(&implementation.self_ty.to_token_stream().to_string()) != "Model" {
             continue;
         }
@@ -567,6 +518,38 @@ fn domain_functions(items: &[Item]) -> BTreeSet<String> {
         .filter_map(|domain| domain.parse_args::<syn::Ident>().ok())
         .map(|name| name.to_string())
         .collect()
+}
+
+/// Admits the one `#[starts]` method: an associated fn of `impl Model` taking only an optional
+/// trailing `&World`. Its body is native only; Init comes from the bound complete starts.
+fn computed_starts<'a>(
+    parser: &Environment<'_>,
+    method: &'a syn::ImplItemFn,
+    model: bool,
+    computed: &mut Option<&'a syn::ImplItemFn>,
+) -> Result<()> {
+    let file = parser.file;
+    let attribute = attr(&method.attrs, "starts").unwrap_or_else(|| unreachable!("marked"));
+    if !parser.declared_world {
+        return Err(Diagnostic::at(file, attribute, "computed starts require a declared World"));
+    }
+    if computed.is_some() {
+        return Err(Diagnostic::at(file, attribute, "declare starts once"));
+    }
+    let parameters = parser.parameters(method)?;
+    if !model
+        || !matches!(attribute.meta, syn::Meta::Path(_))
+        || method.sig.receiver().is_some()
+        || !parameters.positional.is_empty()
+    {
+        return Err(Diagnostic::at(
+            file,
+            method,
+            "#[starts] requires an associated fn of impl Model taking only an optional trailing &World",
+        ));
+    }
+    *computed = Some(method);
+    Ok(())
 }
 
 struct Conditional<'a>(Option<&'a syn::Attribute>);

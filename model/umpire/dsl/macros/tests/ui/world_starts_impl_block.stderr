@@ -1,0 +1,5 @@
+error: #[starts] marks a method in impl Model: #[starts] fn starts(world: &World) -> impl IntoIterator<Item = Self>
+  --> tests/ui/world_starts_impl_block.rs:10:5
+   |
+10 |     #[starts]
+   |     ^^^^^^^^^

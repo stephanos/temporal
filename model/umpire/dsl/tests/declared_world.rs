@@ -27,14 +27,12 @@ mod counter {
         Advance,
     }
 
-    #[starts]
     impl Model {
+        #[starts]
         fn starts(selected: &World) -> impl IntoIterator<Item = Self> {
             (selected.limit > 0).then(|| Self { count: 0, token: selected.initial.clone() })
         }
-    }
 
-    impl Model {
         #[on(User)]
         fn user(&mut self, _: User, selected: &World) {
             if self.count < selected.limit {

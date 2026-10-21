@@ -1,0 +1,5 @@
+error: computed starts require a declared World
+ --> tests/ui/machine_starts_without_world.rs:9:9
+  |
+9 |         #[starts]
+  |         ^^^^^^^^^

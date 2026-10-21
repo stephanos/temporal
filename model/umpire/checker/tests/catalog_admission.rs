@@ -155,13 +155,6 @@ mod worlds {
         pub(super) done: bool,
     }
 
-    #[starts]
-    impl Model {
-        fn starts(world: &World) -> impl IntoIterator<Item = Self> {
-            world.starts.then_some(Self { done: false })
-        }
-    }
-
     #[derive(Action, Copy)]
     pub(super) enum User {
         Pick(#[domain(choices)] u8),
@@ -169,6 +162,10 @@ mod worlds {
     }
 
     impl Model {
+        #[starts]
+        fn starts(world: &World) -> impl IntoIterator<Item = Self> {
+            world.starts.then_some(Self { done: false })
+        }
         #[on(User)]
         fn user(&mut self, action: User, _: &World) {
             match action {
@@ -194,19 +191,16 @@ mod fair_values {
         pub(super) idle: bool,
     }
 
-    #[starts]
-    impl Model {
-        fn starts(_: &World) -> impl IntoIterator<Item = Self> {
-            [Self { done: false, idle: false }]
-        }
-    }
-
     #[derive(Action, Copy)]
     pub(super) enum User {
         Set(bool),
     }
 
     impl Model {
+        #[starts]
+        fn starts(_: &World) -> impl IntoIterator<Item = Self> {
+            [Self { done: false, idle: false }]
+        }
         #[on(User)]
         fn user(&mut self, action: User, _: &World) {
             match action {

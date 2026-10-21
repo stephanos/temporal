@@ -1,0 +1,5 @@
+error: declare starts once
+  --> tests/ui/world_starts_twice.rs:13:9
+   |
+13 |         #[starts]
+   |         ^^^^^^^^^

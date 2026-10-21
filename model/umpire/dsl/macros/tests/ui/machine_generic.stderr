@@ -1,0 +1,5 @@
+error: #[machine] does not admit generic Model, World or actor declarations
+ --> tests/ui/machine_generic.rs:7:17
+  |
+7 |     struct Model<T: Clone + Eq + std::hash::Hash + std::fmt::Debug> { value: T }
+  |                 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^

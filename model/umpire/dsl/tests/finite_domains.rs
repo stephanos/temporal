@@ -304,59 +304,6 @@ fn admission_counts_every_domain_before_materializing() {
     );
 }
 
-#[umpire_dsl::machine]
-mod generic_sized {
-    use std::marker::PhantomData;
-    use umpire_dsl::{Action, Finite, State, World};
-
-    #[derive(World)]
-    pub(super) struct World<T> {
-        pub(super) top: u8,
-        marker: PhantomData<T>,
-    }
-
-    pub(super) fn tops<T>(world: &World<T>) -> impl Iterator<Item = u8> {
-        0..world.top
-    }
-
-    #[derive(State)]
-    pub(super) struct Model<T> {
-        marker: PhantomData<T>,
-        pub(super) last: u8,
-    }
-
-    #[derive(Action)]
-    pub(super) enum User<U: Finite> {
-        Set(#[domain(tops)] u8, U),
-    }
-
-    impl<T: Finite> Model<T> {
-        #[on(User)]
-        fn user(&mut self, action: User<T>, _: &World<T>) {
-            match action {
-                User::Set(value, pick) => {
-                    drop(pick);
-                    self.last = value;
-                }
-            }
-        }
-    }
-}
-
-#[test]
-fn generic_world_dependent_actors_receive_their_machines_world_type() {
-    let world = generic_sized::World::<bool>::new(2, std::marker::PhantomData);
-    assert_eq!(
-        world.actions().iter().map(ToString::to_string).collect::<Vec<_>>(),
-        ["User::Set(0, false)", "User::Set(0, true)", "User::Set(1, false)", "User::Set(1, true)"]
-    );
-    assert_eq!(world.checked_catalog(4).map(|catalog| catalog.actions().len()), Ok(4));
-    assert_eq!(
-        world.checked_catalog(3).map(|_| ()),
-        Err(CatalogError::TooLarge { count: 4, limit: 3 })
-    );
-}
-
 #[test]
 fn concrete_world_dependent_values_infer_typed_paths() {
     let path = umpire_dsl::path![sized::Model { last: 0 }, sized::User::Set(1, Speed::Fast)];

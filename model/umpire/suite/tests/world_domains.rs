@@ -22,19 +22,16 @@ mod picks {
         pub(super) last: Option<u8>,
     }
 
-    #[starts]
-    impl Model {
-        fn starts(_: &World) -> impl IntoIterator<Item = Self> {
-            [Self { last: None }]
-        }
-    }
-
     #[derive(Action, Copy)]
     pub(super) enum User {
         Pick(#[domain(choices)] u8),
     }
 
     impl Model {
+        #[starts]
+        fn starts(_: &World) -> impl IntoIterator<Item = Self> {
+            [Self { last: None }]
+        }
         #[on(User)]
         fn user(&mut self, action: User, _: &World) {
             match action {

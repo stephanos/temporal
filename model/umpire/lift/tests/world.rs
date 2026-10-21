@@ -11,14 +11,12 @@ const WORLD: &str = r#"
         #[derive(World)] struct World { value: u8, limit: u8 }
         #[derive(State)] struct Model { value: u8, origin: u8 }
         #[derive(Action)] enum User { Advance }
-        #[starts]
         impl Model {
+            #[starts]
             fn starts(w: &World) -> impl IntoIterator<Item = Self> {
                 [Self { value: w.value, origin: w.value },
                  Self { value: w.value + 1, origin: w.value + 1 }]
             }
-        }
-        impl Model {
             fn below(&self, constants: &World) -> bool { self.value < constants.limit }
             #[on(User)]
             fn advance(&mut self, requested: User, selected: &World) {
@@ -185,10 +183,9 @@ fn binding_refuses_malformed_world_and_complete_state_values()
             #[derive(World)] struct World { offset: i32, bias: i8 }
             #[derive(State)] struct Model { on: bool }
             #[derive(Action)] enum User { Hold }
-            #[starts] impl Model {
-                fn starts(w: &World) -> impl IntoIterator<Item = Self> { [] }
-            }
             impl Model {
+                #[starts]
+                fn starts(w: &World) -> impl IntoIterator<Item = Self> { [] }
                 #[on(User)] fn user(&mut self, action: User) { match action { _ => {} } }
             }
         }
@@ -246,6 +243,10 @@ fn typed_world_signatures_and_outcome_fields_refuse_by_source_location()
         ("const value:", "#[starts] const value:"),
         ("#[derive(World)]", "#[starts] #[derive(World)]"),
         ("#[derive(Action)]", "#[starts] #[derive(Action)]"),
+        ("impl Model {\n            #[starts]", "#[starts] impl Model {\n            #[starts]"),
+        ("fn starts(w: &World)", "fn starts(&self, w: &World)"),
+        ("fn starts(w: &World)", "fn starts(w: &World, extra: u8)"),
+        ("fn below(", "#[starts] fn again() -> [Self; 0] { [] } fn below("),
         ("value: u8, limit: u8", "value: u8, limit: String"),
         ("struct Model { value: u8", "struct Model { #[starts(0..1)] value: u8"),
         ("check!(*result == ());", "check!(result.value == world.value);"),
@@ -293,10 +294,9 @@ fn scalar_enum_world_and_sequence_starts_use_the_admitted_types()
             #[derive(World)] struct World { enabled: bool, mode: Mode }
             #[derive(State)] struct Model { mode: Mode, values: Vector<u8> }
             #[derive(Action)] enum User { Hold }
-            #[starts] impl Model {
-                fn starts(w: &World) -> impl IntoIterator<Item = Self> { [] }
-            }
             impl Model {
+                #[starts]
+                fn starts(w: &World) -> impl IntoIterator<Item = Self> { [] }
                 #[on(User)] fn user(&mut self, action: User) { match action { _ => {} } }
             }
         }

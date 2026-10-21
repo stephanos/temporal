@@ -17,10 +17,9 @@ const INPUTS: &str = r"
             Hold,
             Never(#[inputs(1..1)] u8),
         }
-        #[starts] impl Model {
-            fn starts(w: &World) -> impl IntoIterator<Item = Self> { [] }
-        }
         impl Model {
+            #[starts]
+            fn starts(w: &World) -> impl IntoIterator<Item = Self> { [] }
             #[on(User)]
             fn user(&mut self, action: User, selected: &World) {
                 match action {

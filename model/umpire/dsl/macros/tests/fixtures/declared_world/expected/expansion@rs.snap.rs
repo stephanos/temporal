@@ -26,8 +26,6 @@ mod correlated {
                 : w.first }, Self { left : w.first, right : w.second },
             ]
         }
-    }
-    impl Model {
         fn user(&mut self, _: User, w: &World) {
             if self.left == w.first {
                 std::mem::swap(&mut self.left, &mut self.right);
@@ -40,147 +38,68 @@ mod correlated {
             );
         }
     }
+    #[derive(Clone, Debug, PartialEq, Eq, Hash)]
     ///The registered actors' action carrier.
-    pub(super) enum Action
-    where
-        User: ::umpire_dsl::Actor,
-    {
+    pub(super) enum Action {
         #[doc = stringify!(User)]
         User(User),
     }
-    impl ::core::clone::Clone for Action
-    where
-        User: ::umpire_dsl::Actor,
-    {
-        fn clone(&self) -> Self {
-            match self {
-                Self::User(value) => Self::User(value.clone()),
-            }
-        }
-    }
-    impl ::core::cmp::PartialEq for Action
-    where
-        User: ::umpire_dsl::Actor,
-    {
-        fn eq(&self, other: &Self) -> bool {
-            #[allow(unreachable_patterns)]
-            match (self, other) {
-                (Self::User(value), Self::User(other)) => value == other,
-                _ => false,
-            }
-        }
-    }
-    impl ::core::cmp::Eq for Action
-    where
-        User: ::umpire_dsl::Actor,
-    {}
-    impl ::core::hash::Hash for Action
-    where
-        User: ::umpire_dsl::Actor,
-    {
-        fn hash<__UmpireHasher: ::core::hash::Hasher>(
-            &self,
-            hasher: &mut __UmpireHasher,
-        ) {
-            ::core::hash::Hash::hash(&::core::mem::discriminant(self), hasher);
-            match self {
-                Self::User(value) => ::core::hash::Hash::hash(value, hasher),
-            }
-        }
-    }
-    impl ::core::fmt::Debug for Action
-    where
-        User: ::umpire_dsl::Actor,
-        User: ::core::fmt::Debug,
-    {
-        fn fmt(&self, out: &mut ::core::fmt::Formatter<'_>) -> ::core::fmt::Result {
-            match self {
-                Self::User(value) => {
-                    out.debug_tuple(stringify!(User)).field(value).finish()
-                }
-            }
-        }
-    }
-    impl ::core::fmt::Display for Action
-    where
-        User: ::umpire_dsl::Actor,
-    {
-        fn fmt(&self, out: &mut ::core::fmt::Formatter<'_>) -> ::core::fmt::Result {
-            match self {
-                Self::User(value) => ::core::fmt::Display::fmt(value, out),
-            }
-        }
-    }
-    impl ::core::convert::From<User> for Action
-    where
-        User: ::umpire_dsl::Actor,
-    {
+    impl ::core::convert::From<User> for Action {
         fn from(value: User) -> Self {
             Self::User(value)
         }
     }
-    impl ::umpire_dsl::RegisteredActor<Model> for User
-    where
-        u8: ::core::clone::Clone + ::core::cmp::Eq + ::core::hash::Hash
-            + ::core::fmt::Debug,
-        u8: ::core::clone::Clone + ::core::cmp::Eq + ::core::hash::Hash
-            + ::core::fmt::Debug,
-        User: ::umpire_dsl::Actor,
-    {}
-    impl ::umpire_dsl::ActorProjection<User> for Action
-    where
-        User: ::umpire_dsl::Actor,
-    {
-        fn project(&self) -> Option<&User> {
+    impl ::umpire_dsl::RegisteredActor<Model> for User {}
+    impl ::umpire_dsl::ActorProjection<User> for Action {
+        fn project(&self) -> ::core::option::Option<&User> {
             match self {
                 Self::User(value) => Some(value),
             }
         }
     }
-    impl ::umpire_dsl::Machine for World
-    where
-        u8: ::core::clone::Clone + ::core::cmp::Eq + ::core::hash::Hash
-            + ::core::fmt::Debug,
-        u8: ::core::clone::Clone + ::core::cmp::Eq + ::core::hash::Hash
-            + ::core::fmt::Debug,
-        User: ::umpire_dsl::Actor,
-    {
+    impl ::core::fmt::Display for Action {
+        fn fmt(&self, out: &mut ::core::fmt::Formatter<'_>) -> ::core::fmt::Result {
+            match *self {
+                Self::User(ref value) => ::core::fmt::Display::fmt(value, out),
+            }
+        }
+    }
+    impl ::umpire_dsl::Associated for Model {
+        type World = World;
+    }
+    impl ::umpire_dsl::Machine for World {
         type State = Model;
         type Action = Action;
         type Outcome = ();
         type Fact = ();
         fn starts(&self) -> ::std::vec::Vec<Self::State> {
-            <Model>::starts(self).into_iter().collect()
+            Model::starts(self).into_iter().collect()
         }
         fn actions(&self) -> ::std::vec::Vec<Self::Action> {
             let mut actions = ::std::vec::Vec::new();
-            actions
-                .extend(
-                    <User as ::umpire_dsl::Actor>::actions()
-                        .into_iter()
-                        .map(Action::User),
-                );
+            actions.extend(User::actions().into_iter().map(Action::User));
             actions
         }
         fn outcome_catalog(
             &self,
-        ) -> Option<::std::vec::Vec<::umpire_dsl::OutcomeClass<Self::Outcome>>> {
+        ) -> ::core::option::Option<
+            ::std::vec::Vec<::umpire_dsl::OutcomeClass<Self::Outcome>>,
+        > {
             Some(::std::vec![::umpire_dsl::OutcomeClass::new("()", | _ | true)])
         }
-        fn fault_catalog(&self) -> Option<::std::vec::Vec<Self::Action>> {
+        fn fault_catalog(
+            &self,
+        ) -> ::core::option::Option<::std::vec::Vec<Self::Action>> {
             let mut actions = ::std::vec::Vec::new();
             actions
                 .extend(
-                    <User as ::umpire_dsl::Actor>::actions()
-                        .into_iter()
-                        .filter(::umpire_dsl::Actor::fault)
-                        .map(Action::User),
+                    User::actions().into_iter().filter(User::fault).map(Action::User),
                 );
             Some(actions)
         }
         fn internal(&self, action: &Self::Action) -> bool {
             match action {
-                Action::User(value) => ::umpire_dsl::Actor::internal(value),
+                Action::User(value) => value.internal(),
             }
         }
         fn step(
@@ -222,15 +141,5 @@ mod correlated {
         fn claim_order(&self) -> ::std::vec::Vec<&'static str> {
             ::std::vec!["correlated"]
         }
-    }
-    impl ::umpire_dsl::Associated for Model
-    where
-        u8: ::core::clone::Clone + ::core::cmp::Eq + ::core::hash::Hash
-            + ::core::fmt::Debug,
-        u8: ::core::clone::Clone + ::core::cmp::Eq + ::core::hash::Hash
-            + ::core::fmt::Debug,
-        User: ::umpire_dsl::Actor,
-    {
-        type World = World;
     }
 }

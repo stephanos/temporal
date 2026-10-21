@@ -173,13 +173,11 @@ mod counter {
     #[derive(Action)]
     pub enum User { Advance }
 
-    #[starts]
     impl Model {
+        #[starts]
         fn starts(w: &World) -> impl IntoIterator<Item = Self> {
             [Self { value: w.initial }]
         }
-    }
-    impl Model {
         #[on(User)]
         fn user(&mut self, _: User, w: &World) {
             if self.value < w.limit { self.value += 1; }
@@ -194,11 +192,14 @@ Handlers, invariants, postconditions, assumptions and progress methods may take 
 immutable `&World`. Postconditions retain their optional before-state and outcome arguments
 before it; parameter names do not select the signature. Per-method `#[scope]` is also accepted
 as an assumption spelling, in the same registration order. Grouped `#[scopes]` is refused.
-Native Model, World and actor declarations retain their generic parameters and bounds.
+`#[machine]` refuses generic Model, World and actor declarations; standalone derives keep theirs.
 
-The `#[starts]` impl supplies complete states, preserving correlations across fields. It replaces
-State's generated static starts and their Default bounds. Declaring field starts as well is an
-error, even if their range is empty. The checker keeps the first occurrence of each complete
+A `#[starts]` method supplies complete states, preserving correlations across fields. It is an
+associated fn of any name in the main `impl Model`, first among the registered methods, taking
+only an optional trailing `&World` and returning `impl IntoIterator<Item = Self>`. It replaces
+State's generated static starts and their Default bounds and requires a declared World. Declaring
+it twice, or field starts as well, is an error, even if their range is empty; so is the former
+`#[starts] impl Model` spelling. The checker keeps the first occurrence of each complete
 state, and an empty computed iterator supplies no starts.
 
 Use `Space::<counter::Model>::new(counter::World::new(0, 2))` to explore its computed starts,
@@ -662,7 +663,6 @@ The selected World constants have the same assignments in the main, invariant,
 postcondition, negative and progress configurations. `parameterized_world` exercises three
 selections (two checked against TLC, one with empty starts), private-field projection and
 same-World replay of a deliberately false claim.
-Generic native World declarations are not automatically admitted by the source backend.
 
 Under a declared World, the lifter also admits action inputs: tuple and named-field variants
 whose `bool`, admitted-integer or local fieldless-enum fields declare `#[inputs(lo..=hi)]`,

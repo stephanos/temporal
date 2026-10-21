@@ -29,13 +29,6 @@ pub mod inputs {
         pub skipped: bool,
     }
 
-    #[starts]
-    impl Model {
-        fn starts(_selected: &World) -> impl IntoIterator<Item = Self> {
-            [Self { attempt: 1, done: false, failed: false, skipped: false }]
-        }
-    }
-
     #[derive(Action, Copy)]
     pub enum Worker {
         Poll(#[domain(attempts)] u8),
@@ -44,6 +37,11 @@ pub mod inputs {
     }
 
     impl Model {
+        #[starts]
+        fn starts(_selected: &World) -> impl IntoIterator<Item = Self> {
+            [Self { attempt: 1, done: false, failed: false, skipped: false }]
+        }
+
         #[on(Worker)]
         fn worker(&mut self, action: Worker, selected: &World) {
             match action {
