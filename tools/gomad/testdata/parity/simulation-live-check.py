@@ -20,10 +20,26 @@ def digest(raw):
     return hashlib.sha256(raw).hexdigest()
 
 
+def verify_replays(binary, campaign, work):
+    observations = []
+    for index, path in enumerate(sorted(campaign.rglob('simulation/record.json'))):
+        artifact = path.parent.parent
+        result = subprocess.run([str(binary), 'replay', str(artifact)], capture_output=True, timeout=120)
+        (work / ('replay-' + str(index) + '.stdout')).write_bytes(result.stdout)
+        (work / ('replay-' + str(index) + '.stderr')).write_bytes(result.stderr)
+        assert result.returncode == 0 and b'reproduced=true' in result.stdout, (
+            artifact, result.returncode, result.stdout.decode(errors='replace'), result.stderr.decode(errors='replace'))
+        observations.append(dict(artifact=str(artifact.relative_to(campaign)), status=result.returncode,
+                                 stdout_sha256=digest(result.stdout), stderr_sha256=digest(result.stderr)))
+    assert observations, 'no actual simulation artifacts available for replay'
+    (work / 'replays.json').write_bytes(encode(observations))
+
+
 def main():
     parser = argparse.ArgumentParser(description=__doc__)
     for name in ('binary', 'go-compiler', 'input', 'work'):
         parser.add_argument('--' + name, type=Path, required=True)
+    parser.add_argument('--preparation-root', type=Path)
     args = parser.parse_args()
     args.binary, args.go_compiler, args.input, args.work = (
         path.resolve() for path in (args.binary, args.go_compiler, args.input, args.work))
@@ -61,7 +77,8 @@ def main():
         connection_bytes=1 << 20, stall_nanos=10_000_000_000, transitions=10000), faults=[])
     installation = dict(schema='gomad.rust-wasm-installation/v1', compiler_path=str(args.go_compiler),
         compiler_sha256=digest(args.go_compiler.read_bytes()), go_version='go1.27.1',
-        runtime_root=str(MODULE / 'internal/model/runtimesource'), cache_root=str(args.work / 'preparation'),
+        runtime_root=str(MODULE / 'internal/model/runtimesource'),
+        cache_root=str((args.preparation_root or args.work.parent / 'simulation-live-preparation').resolve()),
         profile='gomad.wasi-cooperative/v1', fuel=1 << 60, memory_bytes=256 << 20,
         helper_sha256=replay['helper_sha256'], host_sha256=replay['host_sha256'],
         runtime_implementation_sha256=replay['runtime_implementation_sha256'], model=model,
@@ -128,9 +145,10 @@ def main():
     required = {'scenario', 'network', 'storage', 'fault', 'crash'}
     assert observed >= required, ('missing actual model decisions', sorted(required - observed))
     assert forced >= required | {'runtime'}, ('missing real forced executions', sorted((required | {'runtime'}) - forced))
+    verify_replays(args.binary, campaign, args.work)
     (args.work / 'observations.json').write_bytes(encode(dict(schema='gomad.rust-simulation-live-check/v1',
         binary_sha256=digest(args.binary.read_bytes()), dimensions=sorted(observed), forced_dimensions=sorted(forced),
-        observations=observations)))
+        observations=sorted(observations, key=lambda observation: observation['identity']))))
 
 
 if __name__ == '__main__':
