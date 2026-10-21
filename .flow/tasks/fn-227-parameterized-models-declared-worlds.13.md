@@ -30,9 +30,14 @@ Quick from `model/`: `mise exec -- cargo test -p umpire-dsl-macros -p umpire-dsl
 - [ ] README/DESIGN.md updated; Quick gates pass, Full gates after review; line deltas reported (target about -900 source, -600 test).
 
 ## Done summary
-TBD
+One `#[machine]` generator: `machine::expand` switches on a declared World; `machine/declared.rs` (892 lines) and `readonly.rs` deleted. `#[machine]` refuses module generics with one located error (standalone derive generics unchanged). `#[starts]` is a method attribute in the main `impl Model` (any name, optional `&World`, ranked first); field `#[starts(range)]` stays; mixed, impl-block, receiver, twice and no-World forms refuse (trybuild-pinned). Lifter finds starts in its method loop. Only the `declared_world` expansion snapshot changed (equivalent: derived impls, trivially true bounds gone); 735 other goldens byte-identical, TLC agreement unchanged.
 
+Lines: source +395/-1183 (net -788; dsl/macros -769); tests net about -655 (generic-only tests deleted in c216f11314, recorded there by mistake). Guest refreshed separately (e44f981731, 3332201 bytes, sha256 acc9d6e8...f936) for fn-227.8's Cargo.lock change.
+
+Review: SHIP (.flow/tmp/fn22713-review.md); follow-ups M1/N1/N2 carried into .14. Gates: Quick default/required; `UMPIRE_BACKENDS=require make model-check` 430s; `make model-time` 51.337s gate / 8.868s inner loop; slice 24s; gaps 364s.
+
+stage: plan-sync - skipped(config: planSync.enabled != true)
 ## Evidence
-- Commits:
-- Tests:
+- Commits: 098adc5077, c216f11314, e44f981731
+- Tests: UMPIRE_BACKENDS=require make model-check, make model-time, make umpire-check-model-slice, make umpire-check-model-gaps
 - PRs:
