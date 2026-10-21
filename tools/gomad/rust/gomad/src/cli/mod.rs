@@ -1,3 +1,4 @@
+pub(crate) mod exploration;
 pub mod explore;
 pub mod inspect;
 pub mod merge;

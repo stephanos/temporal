@@ -238,9 +238,12 @@ impl ReplayPlan {
             while end < self.decisions.len() {
                 let previous = &self.decisions[end - 1];
                 let current = &self.decisions[end];
-                if current.kind != 2 || current.site() != previous.site()
+                if current.kind != 2
+                    || current.site() != previous.site()
                     || previous.alternatives.checked_add(1) != Some(current.alternatives)
-                { break; }
+                {
+                    break;
+                }
                 end += 1;
             }
             let readiness = |index: usize| {
@@ -255,7 +258,8 @@ impl ReplayPlan {
                 (0, 0 | 2 | 8) | (1, 0 | 4 | 8 | 16) => true,
                 _ => false,
             };
-            let eligible = known && proven_shape
+            let eligible = known
+                && proven_shape
                 && self.decisions[end - 1].alternatives == 2
                 && (start..end).all(|index| readiness(index) == word);
             marks[start..end].fill(eligible);

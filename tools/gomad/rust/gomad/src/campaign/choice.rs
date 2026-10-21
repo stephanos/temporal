@@ -1,34 +1,69 @@
 use super::{
-    execution, ledger::{Execution, Job}, prepare::Prepared, retention::Retention,
-    exploration::{self, choice::{ChoiceConfig, ChoiceResult}, plan,
-        round::{RoundEvent, RoundJournal, RoundState, RoundStrategy}},
+    execution,
+    exploration::{
+        self,
+        choice::{ChoiceConfig, ChoiceResult},
+        plan,
+        round::{RoundEvent, RoundJournal, RoundState, RoundStrategy},
+    },
+    ledger::{Execution, Job},
+    prepare::Prepared,
+    retention::Retention,
 };
-use crate::{cli::exploration::ExplorationOptions, evidence::{canonical, store::Publication}};
+use crate::{
+    cli::exploration::ExplorationOptions,
+    evidence::{canonical, store::Publication},
+};
 use gomad_wasmhost::linked;
 use serde_json::json;
-use std::{collections::BTreeSet, io::Write, path::Path, time::{Duration, Instant}};
+use std::{
+    collections::BTreeSet,
+    io::Write,
+    path::Path,
+    time::{Duration, Instant},
+};
 
 pub(crate) fn explore(options: ExplorationOptions, output: &mut dyn Write) -> Result<i32, String> {
     let started = Instant::now();
     let prepared = super::prepare::prepare(&options.base)?;
     if prepared.scenario.is_some() {
-        return Err("unsupported_target: cluster-global forced choice exploration is unavailable".into());
+        return Err(
+            "unsupported_target: cluster-global forced choice exploration is unavailable".into(),
+        );
     }
-    let execution = prepared.choice_identity.clone().ok_or("choice exploration requires an enabled cooperative choice trace")?;
+    let execution = prepared
+        .choice_identity
+        .clone()
+        .ok_or("choice exploration requires an enabled cooperative choice trace")?;
     let selection = super::seeds::SeedSelection::parse(&options.base.seeds)?;
     let config = ChoiceConfig {
-        execution, controller_sha256: exploration::choice::implementation(),
-        base_seed: selection.seed_at(0).ok_or("choice exploration base seed unavailable")?,
-        parallel: options.base.parallel, max_executions: options.max_executions,
-        max_choice_depth: options.max_choice_depth, start_ordinal: options.choice_start_ordinal,
+        execution,
+        controller_sha256: exploration::choice::implementation(),
+        base_seed: selection
+            .seed_at(0)
+            .ok_or("choice exploration base seed unavailable")?,
+        parallel: options.base.parallel,
+        max_executions: options.max_executions,
+        max_choice_depth: options.max_choice_depth,
+        start_ordinal: options.choice_start_ordinal,
         max_exploration_bytes: options.max_exploration_bytes,
-        failure_policy: options.base.on_failure.clone(), failure_budget: options.base.failure_budget,
+        failure_policy: options.base.on_failure.clone(),
+        failure_budget: options.base.failure_budget,
     };
     exploration::choice::ChoiceState::new(config.clone())?;
     let mut journal = plan::create(&options, &prepared, RoundStrategy::Choice(config))?;
-    let remaining = options.base.overall_timeout.checked_sub(started.elapsed())
+    let remaining = options
+        .base
+        .overall_timeout
+        .checked_sub(started.elapsed())
         .ok_or("overall_timeout: choice exploration deadline exceeded during preparation")?;
-    run(&mut journal, &prepared, remaining, options.base.json, output)
+    run(
+        &mut journal,
+        &prepared,
+        remaining,
+        options.base.json,
+        output,
+    )
 }
 
 pub(crate) fn resume(path: &Path, json: bool, output: &mut dyn Write) -> Result<i32, String> {
@@ -38,15 +73,27 @@ pub(crate) fn resume(path: &Path, json: bool, output: &mut dyn Write) -> Result<
     run(&mut journal, &prepared, remaining, json, output)
 }
 
-fn run(journal: &mut RoundJournal, prepared: &Prepared, duration: Duration, json_output: bool, output: &mut dyn Write)
-    -> Result<i32, String>
-{
-    let deadline = Instant::now().checked_add(duration).ok_or("choice exploration timeout overflow")?;
+fn run(
+    journal: &mut RoundJournal,
+    prepared: &Prepared,
+    duration: Duration,
+    json_output: bool,
+    output: &mut dyn Write,
+) -> Result<i32, String> {
+    let deadline = Instant::now()
+        .checked_add(duration)
+        .ok_or("choice exploration timeout overflow")?;
     let mut retention = Retention::default();
-    for execution in journal.events().iter().flat_map(RoundEvent::executions) { retention.retained(execution)?; }
+    for execution in journal.events().iter().flat_map(RoundEvent::executions) {
+        retention.retained(execution)?;
+    }
     loop {
-        let RoundState::Choice(state) = journal.state() else { return Err("not a choice exploration campaign".into()); };
-        let Some(round) = state.next_round() else { break; };
+        let RoundState::Choice(state) = journal.state() else {
+            return Err("not a choice exploration campaign".into());
+        };
+        let Some(round) = state.next_round() else {
+            break;
+        };
         let state = state.clone();
         let indices = (0..round.candidates.len() as u64).collect::<Vec<_>>();
         let cancellation = linked::Cancellation::default();
@@ -54,13 +101,25 @@ fn run(journal: &mut RoundJournal, prepared: &Prepared, duration: Duration, json
             let result = (|| {
                 let candidate = &round.candidates[index as usize];
                 let replay = candidate.replay(&state.config.execution)?;
-                let remaining = deadline.checked_duration_since(Instant::now())
+                let remaining = deadline
+                    .checked_duration_since(Instant::now())
                     .ok_or("overall_timeout: choice exploration deadline exceeded")?;
-                let job = Job { ordinal: state.logical_executions + index, seed: state.config.base_seed };
-                execution::run_with_replay(prepared, &job, remaining, &cancellation, replay.as_ref(),
-                    replay.as_ref().map(|_| candidate.source_trace.as_slice()))
+                let job = Job {
+                    ordinal: state.logical_executions + index,
+                    seed: state.config.base_seed,
+                };
+                execution::run_with_replay(
+                    prepared,
+                    &job,
+                    remaining,
+                    &cancellation,
+                    replay.as_ref(),
+                    replay.as_ref().map(|_| candidate.source_trace.as_slice()),
+                )
             })();
-            if result.is_err() { cancellation.cancel(); }
+            if result.is_err() {
+                cancellation.cancel();
+            }
             result
         })?;
         let mut results = Vec::new();
@@ -68,27 +127,60 @@ fn run(journal: &mut RoundJournal, prepared: &Prepared, duration: Duration, json
         for (candidate, mut completion) in round.candidates.iter().zip(completions) {
             let execution = &completion.execution;
             if execution.record.outcome.class == "runner_failure" {
-                return Err(format!("runner_failure: {}", execution.record.outcome.reason));
+                return Err(format!(
+                    "runner_failure: {}",
+                    execution.record.outcome.reason
+                ));
             }
             let divergence = execution.divergence.clone();
             let result = if divergence.is_some() {
-                ChoiceResult { candidate_sha256: candidate.sha256.clone(), outcome_sha256: String::new(),
-                    failed: false, failure_sha256: String::new(), divergence, source_trace: None }
-            } else {
-                let failed = matches!(execution.record.outcome.class.as_str(), "target_failure" | "watchdog");
                 ChoiceResult {
                     candidate_sha256: candidate.sha256.clone(),
-                    outcome_sha256: exploration::hash("gomad-choice-exploration-outcome/v2", &execution.record)?,
-                    failed, failure_sha256: if failed { format!("sha256:{}", execution.record.failure_signature()?) } else { String::new() },
-                    divergence: None, source_trace: completion.publication.payloads.get("evidence/choice").cloned(),
+                    outcome_sha256: String::new(),
+                    failed: false,
+                    failure_sha256: String::new(),
+                    divergence,
+                    source_trace: None,
+                }
+            } else {
+                let failed = matches!(
+                    execution.record.outcome.class.as_str(),
+                    "target_failure" | "watchdog"
+                );
+                ChoiceResult {
+                    candidate_sha256: candidate.sha256.clone(),
+                    outcome_sha256: exploration::hash(
+                        "gomad-choice-exploration-outcome/v2",
+                        &execution.record,
+                    )?,
+                    failed,
+                    failure_sha256: if failed {
+                        format!("sha256:{}", execution.record.failure_signature()?)
+                    } else {
+                        String::new()
+                    },
+                    divergence: None,
+                    source_trace: completion
+                        .publication
+                        .payloads
+                        .get("evidence/choice")
+                        .cloned(),
                 }
             };
-            retain(journal, &mut completion.execution, completion.publication, &mut retention)?;
+            retain(
+                journal,
+                &mut completion.execution,
+                completion.publication,
+                &mut retention,
+            )?;
             executions.push(completion.execution);
             results.push(result);
         }
         let (_, segment) = state.commit(&round, &results)?;
-        journal.append(RoundEvent::Choice { executions, segment })?;
+        journal.append(RoundEvent::Choice {
+            executions,
+            segment,
+        })?;
         if json_output {
             writeln!(output, "{}", json!({"schema":"gomad.explore-event/v3","type":"round",
                 "campaign":journal.path(),"strategy":"choice-exploration","envelope":journal.summary()?}))
@@ -98,40 +190,99 @@ fn run(journal: &mut RoundJournal, prepared: &Prepared, duration: Duration, json
     report(journal, json_output, output)
 }
 
-pub(crate) fn retain(journal: &RoundJournal, execution: &mut Execution, publication: Publication, retention: &mut Retention)
-    -> Result<(), String>
-{
+pub(crate) fn retain(
+    journal: &RoundJournal,
+    execution: &mut Execution,
+    publication: Publication,
+    retention: &mut Retention,
+) -> Result<(), String> {
     let metadata = &journal.plan().prepared;
-    let failed = matches!(execution.record.outcome.class.as_str(), "target_failure" | "watchdog") || execution.divergence.is_some();
-    let keep = failed || retention.keep(metadata["keep_successes"].as_str().ok_or("exploration retention policy missing")?, execution);
-    if !keep { retention.retained(execution)?; return Ok(()); }
-    let remaining = if failed { u64::MAX } else {
-        retention.remaining(metadata["success_limit"].as_u64().ok_or("missing success count bound")?,
-            metadata["success_bytes"].as_u64().ok_or("missing success bytes bound")?)?
+    let failed = matches!(
+        execution.record.outcome.class.as_str(),
+        "target_failure" | "watchdog"
+    ) || execution.divergence.is_some();
+    let keep = failed
+        || retention.keep(
+            metadata["keep_successes"]
+                .as_str()
+                .ok_or("exploration retention policy missing")?,
+            execution,
+        );
+    if !keep {
+        retention.retained(execution)?;
+        return Ok(());
+    }
+    let remaining = if failed {
+        u64::MAX
+    } else {
+        retention.remaining(
+            metadata["success_limit"]
+                .as_u64()
+                .ok_or("missing success count bound")?,
+            metadata["success_bytes"]
+                .as_u64()
+                .ok_or("missing success bytes bound")?,
+        )?
     };
-    let published = super::store(journal.path().join("evidence"), remaining).publish(publication)?;
-    execution.artifact = Some(published.path.strip_prefix(journal.path()).map_err(|error| error.to_string())?
-        .to_string_lossy().into_owned());
+    let published =
+        super::store(journal.path().join("evidence"), remaining).publish(publication)?;
+    execution.artifact = Some(
+        published
+            .path
+            .strip_prefix(journal.path())
+            .map_err(|error| error.to_string())?
+            .to_string_lossy()
+            .into_owned(),
+    );
     execution.stored_bytes = published.stored_bytes;
     retention.retained(execution)
 }
 
-pub(crate) fn report(journal: &RoundJournal, json_output: bool, output: &mut dyn Write) -> Result<i32, String> {
-    let executions = journal.events().iter().flat_map(RoundEvent::executions).collect::<Vec<_>>();
-    let failures = executions.iter().filter(|execution| execution.record.outcome.class != "success").count();
-    let signatures = executions.iter().filter(|execution| matches!(execution.record.outcome.class.as_str(), "target_failure"|"watchdog"))
-        .map(|execution| execution.record.failure_signature()).collect::<Result<BTreeSet<_>, _>>()?;
+pub(crate) fn report(
+    journal: &RoundJournal,
+    json_output: bool,
+    output: &mut dyn Write,
+) -> Result<i32, String> {
+    let executions = journal
+        .events()
+        .iter()
+        .flat_map(RoundEvent::executions)
+        .collect::<Vec<_>>();
+    let failures = executions
+        .iter()
+        .filter(|execution| execution.record.outcome.class != "success")
+        .count();
+    let signatures = executions
+        .iter()
+        .filter(|execution| {
+            matches!(
+                execution.record.outcome.class.as_str(),
+                "target_failure" | "watchdog"
+            )
+        })
+        .map(|execution| execution.record.failure_signature())
+        .collect::<Result<BTreeSet<_>, _>>()?;
     let envelope = journal.summary()?;
     if json_output {
-        writeln!(output,"{}",json!({"schema":"gomad.explore-event/v3","type":"complete","campaign":journal.path(),
+        writeln!(
+            output,
+            "{}",
+            json!({"schema":"gomad.explore-event/v3","type":"complete","campaign":journal.path(),
             "attempted":executions.len(),"failures":failures,"distinct_failures":signatures.len(),
-            "stop_reason":envelope["stop_reason"],"envelope":envelope}))
-            .map_err(|error| error.to_string())?;
+            "stop_reason":envelope["stop_reason"],"envelope":envelope})
+        )
+        .map_err(|error| error.to_string())?;
     } else {
-        writeln!(output,"gomad exploration: campaign={} attempted={} failures={} stop={} envelope={}",
-            journal.path().display(),executions.len(),failures,envelope["stop_reason"],
-            String::from_utf8(canonical::encode(&envelope)?).map_err(|error| error.to_string())?)
-            .map_err(|error| error.to_string())?;
+        writeln!(
+            output,
+            "gomad exploration: campaign={} attempted={} failures={} stop={} envelope={}",
+            journal.path().display(),
+            executions.len(),
+            failures,
+            envelope["stop_reason"],
+            String::from_utf8(canonical::encode(&envelope)?).map_err(|error| error.to_string())?
+        )
+        .map_err(|error| error.to_string())?;
     }
     Ok(i32::from(failures != 0))
 }

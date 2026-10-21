@@ -3,7 +3,7 @@ use super::{
     simulation::{SimulationConfig, SimulationRoundSegment, SimulationState},
 };
 use crate::{
-    campaign::ledger::Execution,
+    campaign::ledger::{self, Execution, validate_execution},
     evidence::{
         canonical,
         record::Record,
@@ -349,58 +349,6 @@ impl Envelope {
     }
 }
 
-fn validate_execution(execution: &Execution) -> Result<(), String> {
-    execution.record.validate()?;
-    if execution.seed != execution.record.seed
-        || execution.artifact.is_none() && execution.stored_bytes != 0
-        || execution.artifact.is_some() && execution.stored_bytes == 0
-    {
-        return Err("campaign execution record identity mismatch".into());
-    }
-    for names in [&execution.semantic_probes, &execution.choice_features] {
-        if names.iter().any(String::is_empty) || names.windows(2).any(|pair| pair[0] >= pair[1]) {
-            return Err("campaign execution features are not canonical".into());
-        }
-    }
-    let outcome = &execution.record.outcome;
-    if let Some(divergence) = &execution.divergence {
-        if divergence.reason_name() == "unknown"
-            || outcome.class != "target_failure"
-            || !matches!(outcome.termination.as_str(), "diverged" | "divergence")
-            || outcome.reason != "world_replay_divergence"
-        {
-            return Err("campaign divergence does not match its execution outcome".into());
-        }
-    } else if matches!(outcome.termination.as_str(), "diverged" | "divergence")
-        || outcome.reason == "world_replay_divergence"
-    {
-        return Err("campaign divergence outcome has no typed evidence".into());
-    }
-    match outcome.class.as_str() {
-        "success" if outcome.termination == "exit" && outcome.exit_code == Some(0) => {}
-        "target_failure"
-            if execution.artifact.is_some()
-                && (outcome.termination == "trap"
-                    || outcome.termination == "exit"
-                        && outcome.exit_code.is_some_and(|code| code != 0)
-                    || outcome.termination == "exit"
-                        && outcome.exit_code == Some(0)
-                        && execution
-                            .record
-                            .streams
-                            .contains_key("evidence/soft-assertions.json")
-                    || execution.divergence.is_some()) => {}
-        "watchdog" if execution.artifact.is_some() && outcome.termination == "watchdog_timeout" => {
-        }
-        "runner_failure"
-            if outcome.termination == "cancelled"
-                && outcome.reason == "runner_cancelled"
-                && execution.artifact.is_none() => {}
-        _ => return Err("invalid campaign terminal outcome".into()),
-    }
-    Ok(())
-}
-
 pub struct RoundJournal {
     root: File,
     path: PathBuf,
@@ -664,7 +612,7 @@ impl RoundJournal {
                 "exploration prepared inputs differ from its plan or implementation".into(),
             );
         }
-        self.validate_plan_record(&prepared.manifest().record)
+        ledger::validate_plan_record(&self.plan.prepared, &self.root, &prepared.manifest().record)
     }
 
     fn consume(&mut self, bytes: &[u8]) -> Result<(), String> {
@@ -677,119 +625,6 @@ impl RoundJournal {
         Ok(())
     }
 
-    fn authenticate_execution(&self, execution: &Execution) -> Result<(), String> {
-        validate_execution(execution)?;
-        self.validate_plan_record(&execution.record)?;
-        if let Some(reference) = &execution.artifact {
-            if !reference.starts_with("evidence/") {
-                return Err("campaign execution references a non-execution artifact".into());
-            }
-            let opened = self.open_artifact(reference)?;
-            let retained = &opened.manifest().record;
-            let matches = if is_failure(execution) {
-                retained.execution_identity == execution.record.execution_identity
-                    && retained.failure_signature()? == execution.record.failure_signature()?
-            } else {
-                retained == &execution.record
-            };
-            if !matches || opened.stored_bytes() != execution.stored_bytes {
-                return Err("campaign artifact record reference mismatch".into());
-            }
-            opened.authenticate_all()?;
-            if execution
-                .record
-                .streams
-                .contains_key("evidence/soft-assertions.json")
-            {
-                let bytes = opened.payload("evidence/soft-assertions.json", 16 << 20)?;
-                let report: crate::campaign::soft_assertions::Report =
-                    serde_json::from_slice(&bytes).map_err(|error| error.to_string())?;
-                let output = |name: &str| -> Result<Vec<u8>, String> {
-                    if opened.manifest().record.streams.contains_key(name) {
-                        opened.payload(name, execution.record.limits.output_bytes)
-                    } else {
-                        Ok(Vec::new())
-                    }
-                };
-                let stdout = output("output/stdout")?;
-                let stderr = output("output/stderr")?;
-                if canonical::encode(&report)? != bytes
-                    || self.plan.prepared["soft_assertion_report_only"].as_bool()
-                        != Some(report.report_only)
-                    || crate::campaign::soft_assertions::observe(
-                        &stdout,
-                        &stderr,
-                        matches!(
-                            execution.record.outcome.termination.as_str(),
-                            "exit" | "trap"
-                        ),
-                        report.report_only,
-                    )
-                    .as_ref()
-                        != Some(&report)
-                {
-                    return Err("campaign soft assertion evidence mismatch".into());
-                }
-            }
-        }
-        Ok(())
-    }
-
-    fn validate_plan_record(&self, record: &Record) -> Result<(), String> {
-        let scenario =
-            !self.plan.prepared["scenario"].is_null() && record.outcome.class != "prepared";
-        let configuration = if scenario {
-            let raw: Vec<u8> = serde_json::from_value(self.plan.prepared["scenario"].clone())
-                .map_err(|error| error.to_string())?;
-            let base = serde_json::from_value(self.plan.prepared["configuration"].clone())
-                .map_err(|error| error.to_string())?;
-            let identity = serde_json::from_value(self.plan.prepared["choice_identity"].clone())
-                .map_err(|error| error.to_string())?;
-            let network: Option<gomad_wasmhost::linked_cluster::NetworkModel> =
-                serde_json::from_value(self.plan.prepared["network"].clone())
-                    .map_err(|error| error.to_string())?;
-            let prepared = self.open_artifact(
-                self.plan.prepared["prepared_artifact"]
-                    .as_str()
-                    .ok_or("campaign prepared artifact missing")?,
-            )?;
-            let module = prepared.payload("target/module.wasm", 512 << 20)?;
-            let bound = crate::campaign::scenario::bind(
-                &raw,
-                &base,
-                &module,
-                &identity,
-                network.as_ref(),
-                record.seed,
-            )?;
-            serde_json::to_value(&bound.configuration).map_err(|error| error.to_string())?
-        } else {
-            self.plan.prepared["configuration"].clone()
-        };
-        if self.plan.prepared["module_sha256"].as_str() != Some(record.identity.target.as_str())
-            || self.plan.prepared["toolchain"].as_str() != Some(record.identity.toolchain.as_str())
-            || record.identity.platform != crate::replay::preflight::platform()
-            || record.identity.implementation != crate::replay::preflight::implementation()?
-            || canonical::digest(&canonical::encode(&configuration)?)
-                != record.identity.configuration
-            || configuration["profile"].as_str() != Some(record.profile.as_str())
-            || serde_json::to_value(&record.limits).map_err(|error| error.to_string())?
-                != configuration["limits"]
-            || if scenario {
-                !record.arguments.is_empty() || !record.environment.is_empty()
-            } else {
-                serde_json::to_value(&record.arguments).map_err(|error| error.to_string())?
-                    != configuration["arguments"]
-                    || serde_json::to_value(&record.environment)
-                        .map_err(|error| error.to_string())?
-                        != configuration["environment"]
-            }
-        {
-            return Err("campaign record differs from its prepared plan".into());
-        }
-        Ok(())
-    }
-
     fn authenticate_events(&self) -> Result<(), String> {
         for event in &self.events {
             self.authenticate_event(event)?;
@@ -799,7 +634,7 @@ impl RoundJournal {
 
     fn authenticate_event(&self, event: &RoundEvent) -> Result<(), String> {
         for execution in event.executions() {
-            self.authenticate_execution(execution)?;
+            ledger::authenticate_execution(&self.plan.prepared, &self.root, execution)?;
         }
         if let RoundEvent::Choice {
             executions,
@@ -909,29 +744,7 @@ impl RoundJournal {
     /// # Errors
     /// Refuses unsafe references, substituted entries and unauthenticated artifact manifests.
     pub fn open_artifact(&self, reference: &str) -> Result<Opened, String> {
-        let parts = open::components(reference)?;
-        if parts.len() != 2
-            || !matches!(parts[0], "evidence" | "prepared")
-            || !(canonical::valid_digest(parts[1])
-                || parts[1]
-                    .strip_prefix("execution-")
-                    .is_some_and(canonical::valid_digest))
-        {
-            return Err("unsafe campaign artifact reference".into());
-        }
-        let store = open::child(&self.root, parts[0], true, false)?;
-        if open::read(&store, ".store.json", 4096, false)? != open::LAYOUT {
-            return Err("unsupported campaign artifact store layout".into());
-        }
-        let pool = open::child(&store, ".targets", true, false)?;
-        let artifact = open::child(&store, parts[1], true, false)?;
-        let opened = Opened::from_root_with_pool(artifact, Some(&pool))?;
-        if opened.manifest().record.failure_signature()? != parts[1]
-            && format!("execution-{}", opened.manifest().record_sha256) != parts[1]
-        {
-            return Err("campaign artifact name does not match its record".into());
-        }
-        Ok(opened)
+        ledger::open_artifact(&self.root, reference)
     }
 
     #[must_use]

@@ -190,6 +190,15 @@ pub(crate) fn publish_bundle_with_budget(
 )]
 pub fn dispatch(arguments: &[String]) -> Option<Result<(), Error>> {
     let command = arguments.first()?.as_str();
+    if command == "fixture-simulation-controller" {
+        return Some((|| {
+            if arguments.len() != 3 || arguments[1] != "--input" {
+                return Err("fixture-simulation-controller requires --input FILE".into());
+            }
+            crate::campaign::exploration::simulation_corpus::run(std::path::Path::new(&arguments[2]))
+                .map_err(Error::from)
+        })());
+    }
     if !matches!(
         command,
         "fixture-execution-bundle"

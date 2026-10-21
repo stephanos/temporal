@@ -1,17 +1,30 @@
 use super::round::{RoundJournal, RoundPlan, RoundStrategy};
-use crate::{campaign::prepare::Prepared, cli::exploration::ExplorationOptions, evidence::canonical};
+use crate::{
+    campaign::prepare::Prepared, cli::exploration::ExplorationOptions, evidence::canonical,
+};
 use serde_json::json;
 use std::{path::Path, time::Duration};
 
-pub(crate) fn create(options: &ExplorationOptions, prepared: &Prepared, strategy: RoundStrategy)
-    -> Result<RoundJournal, String>
-{
-    let trace = prepared.configuration.model.as_ref().and_then(|model| model["limit"].as_u64())
+pub(crate) fn create(
+    options: &ExplorationOptions,
+    prepared: &Prepared,
+    strategy: RoundStrategy,
+) -> Result<RoundJournal, String> {
+    let trace = prepared
+        .configuration
+        .model
+        .as_ref()
+        .and_then(|model| model["limit"].as_u64())
         .unwrap_or(options.base.choice_bytes);
-    let per_round = options.max_exploration_result_bytes.max(trace)
-        .checked_mul(6).and_then(|bytes| bytes.checked_add(16 << 20))
+    let per_round = options
+        .max_exploration_result_bytes
+        .max(trace)
+        .checked_mul(6)
+        .and_then(|bytes| bytes.checked_add(16 << 20))
         .ok_or("capacity: exploration journal capacity overflow")?;
-    let journal_bytes = options.max_executions.checked_mul(per_round)
+    let journal_bytes = options
+        .max_executions
+        .checked_mul(per_round)
         .ok_or("capacity: exploration journal capacity overflow")?;
     let path = crate::campaign::campaign_path(&options.base.artifacts)?;
     let mut metadata = json!({
@@ -28,27 +41,44 @@ pub(crate) fn create(options: &ExplorationOptions, prepared: &Prepared, strategy
         "soft_assertion_report_only":prepared.soft_assertion_report_only
     });
     crate::campaign::retain_prepared(&path, prepared, &mut metadata)?;
-    RoundJournal::create(&path, &RoundPlan { prepared: metadata, strategy }, journal_bytes)
+    RoundJournal::create(
+        &path,
+        &RoundPlan {
+            prepared: metadata,
+            strategy,
+        },
+        journal_bytes,
+    )
 }
 
 pub(crate) fn restore(journal: &RoundJournal) -> Result<Prepared, String> {
     let metadata = &journal.plan().prepared;
     if metadata["host_sha256"] != env!("GOMAD_HOST_IMPLEMENTATION_SHA256")
         || metadata["helper_sha256"] != gomad_wasmhost::linked::IMPLEMENTATION_SHA256
-    { return Err("exploration implementation identity mismatch".into()); }
-    let opened = journal.open_artifact(metadata["prepared_artifact"].as_str()
-        .ok_or("exploration prepared artifact missing")?)?;
+    {
+        return Err("exploration implementation identity mismatch".into());
+    }
+    let opened = journal.open_artifact(
+        metadata["prepared_artifact"]
+            .as_str()
+            .ok_or("exploration prepared artifact missing")?,
+    )?;
     crate::campaign::restore_from_plan(metadata, &opened)
 }
 
 pub(crate) fn duration(journal: &RoundJournal) -> Result<Duration, String> {
-    Ok(Duration::from_millis(journal.plan().prepared["overall_millis"].as_u64()
-        .filter(|value| *value > 0).ok_or("exploration overall bound missing")?))
+    Ok(Duration::from_millis(
+        journal.plan().prepared["overall_millis"]
+            .as_u64()
+            .filter(|value| *value > 0)
+            .ok_or("exploration overall bound missing")?,
+    ))
 }
 
 pub(crate) fn is_round_campaign(path: &Path) -> Result<bool, String> {
     let root = crate::evidence::store::open::pin(path)?;
     let storage = crate::evidence::store::open::read(&root, "storage.json", 4096, false)?;
-    let value: serde_json::Value = serde_json::from_slice(&storage).map_err(|error| error.to_string())?;
+    let value: serde_json::Value =
+        serde_json::from_slice(&storage).map_err(|error| error.to_string())?;
     Ok(value["format"] == "gomad.exploration-round-storage/v1")
 }

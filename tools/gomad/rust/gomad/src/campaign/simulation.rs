@@ -191,6 +191,7 @@ fn run(
         })?;
         let mut executions = Vec::with_capacity(observed.len());
         let mut results = Vec::with_capacity(observed.len());
+        let mut evidence = Vec::with_capacity(observed.len());
         for (index, mut observed) in observed.into_iter().enumerate() {
             if observed.execution.record.outcome.class == "runner_failure" {
                 return Err(format!(
@@ -244,6 +245,10 @@ fn run(
                 });
             details.simulation = Some(profile);
             let retained_record = record.clone();
+            evidence.push(super::exploration::round::SimulationEvidence {
+                record: record.clone(),
+                runtime_trace: trace.clone(),
+            });
             for (file, bytes) in [
                 (
                     "simulation/plan.json",
@@ -319,6 +324,7 @@ fn run(
         journal.append(RoundEvent::Simulation {
             executions,
             segment,
+            evidence,
         })?;
     }
     let summary = journal.summary()?;

@@ -11,7 +11,10 @@ pub(crate) fn is_campaign(path: &Path) -> Result<bool, String> {
     let root = open::pin(path)?;
     let storage = open::read(&root, "storage.json", 1024, false)?;
     let value: Value = serde_json::from_slice(&storage).map_err(|error| error.to_string())?;
-    Ok(value["format"] == "gomad.campaign-storage/v2")
+    Ok(matches!(
+        value["format"].as_str(),
+        Some("gomad.campaign-storage/v2" | "gomad.exploration-round-storage/v1")
+    ))
 }
 
 pub(crate) fn run(
@@ -20,6 +23,9 @@ pub(crate) fn run(
     choices: bool,
     output: &mut dyn Write,
 ) -> Result<(), String> {
+    if super::exploration::plan::is_round_campaign(path)? {
+        return run_round(path, json_output, choices, output);
+    }
     let journal = Journal::open(path, false)?;
     let mut executions = Vec::new();
     let mut stop = None;
@@ -49,6 +55,58 @@ pub(crate) fn run(
         projected.push(project_execution(execution, opened.as_ref(), choices)?);
     }
     render(path, json_output, output, &journal, projected, stop)
+}
+
+fn run_round(
+    path: &Path,
+    json_output: bool,
+    choices: bool,
+    output: &mut dyn Write,
+) -> Result<(), String> {
+    let journal = super::exploration::round::RoundJournal::open(path, false)?;
+    let mut executions = Vec::new();
+    for execution in journal.events().iter().flat_map(|event| event.executions()) {
+        let opened = execution
+            .artifact
+            .as_deref()
+            .map(|reference| journal.open_artifact(reference))
+            .transpose()?;
+        executions.push(project_execution(execution, opened.as_ref(), choices)?);
+    }
+    let envelope = journal.summary()?;
+    let report = json!({
+        "schema":"gomad.inspect/v9","kind":"campaign","path":path,
+        "campaign":{"plan":journal.plan(),"executions":executions,
+            "stop_reason":envelope["stop_reason"],"events":journal.events().len(),
+            "envelope":envelope}
+    });
+    if json_output {
+        writeln!(
+            output,
+            "{}",
+            String::from_utf8(canonical::encode(&report)?).map_err(|error| error.to_string())?
+        )
+        .map_err(|error| error.to_string())
+    } else {
+        writeln!(
+            output,
+            "gomad campaign: path={} attempted={} stop={}",
+            path.display(),
+            executions.len(),
+            envelope["stop_reason"]
+        )
+        .map_err(|error| error.to_string())?;
+        for execution in executions {
+            writeln!(
+                output,
+                "{}",
+                String::from_utf8(canonical::encode(&execution)?)
+                    .map_err(|error| error.to_string())?
+            )
+            .map_err(|error| error.to_string())?;
+        }
+        Ok(())
+    }
 }
 
 pub(super) fn project_execution(

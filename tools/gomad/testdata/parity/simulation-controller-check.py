@@ -80,6 +80,7 @@ def main():
     parser.add_argument('--go', type=Path, required=True)
     parser.add_argument('--output', type=Path, required=True)
     parser.add_argument('--corpus', type=Path, default=Path(__file__).with_name('simulation-controller-corpus.json'))
+    parser.add_argument('--golden', type=Path, default=Path(__file__).with_name('goldens-simulation-controller.json'))
     args = parser.parse_args()
     gomad = Path(__file__).resolve().parents[2]
     corpus = json.loads(args.corpus.read_bytes())
@@ -87,6 +88,7 @@ def main():
         raise ValueError('unknown simulation corpus schema')
     args.output.mkdir(parents=True, exist_ok=False)
     source = gomad / 'internal/runner'
+    golden = {'schema': 'gomad.simulation-controller-golden/v1', 'cases': {}}
     with tempfile.TemporaryDirectory(prefix='simulation-oracle-', dir=source) as scratch:
         scratch = Path(scratch)
         shutil.copyfile(Path(__file__).with_name('reference') / 'simulation-controller.go.txt', scratch / 'main.go')
@@ -107,6 +109,10 @@ def main():
             if 'error' in case:
                 if rust.returncode == 0 or reference.returncode == 0 or case['error'].encode() not in rust.stderr or case['error'].encode() not in reference.stderr:
                     raise ValueError(case['name'] + ': missing explicit refusal')
+                repeated = subprocess.run([str(args.binary), 'fixture-simulation-controller', '--input', str(path.resolve())], capture_output=True, timeout=120)
+                if (repeated.returncode, repeated.stdout, repeated.stderr) != (rust.returncode, rust.stdout, rust.stderr):
+                    raise ValueError(case['name'] + ': repeated refusal differs')
+                golden['cases'][case['name']] = {'refused': True, 'status': rust.returncode}
                 continue
             if rust.returncode != 0 or reference.returncode != 0:
                 raise ValueError(case['name'] + ': nonzero exit')
@@ -119,6 +125,15 @@ def main():
             repeated = subprocess.run([str(args.binary), 'fixture-simulation-controller', '--input', str(path.resolve())], capture_output=True, timeout=120, check=True)
             if repeated.stdout != rust.stdout:
                 raise ValueError(case['name'] + ': repeated raw bytes differ')
+            golden['cases'][case['name']] = {
+                'view': actual['view'],
+                'state_sha256': [digest(encoded(state)) for state in actual['states']],
+                'segment_sha256': [segment['sha256'] for segment in actual['segments']],
+            }
+    if os.environ.get('GOMAD_GOLDEN_REGENERATE') == '1':
+        args.golden.write_bytes(encoded(golden) + b'\n')
+    else:
+        first_difference(golden, json.loads(args.golden.read_bytes()), 'golden')
     print(f"simulation controller: {len(corpus['cases'])} fresh Go/Rust cases agree")
 
 

@@ -42,29 +42,10 @@ pub(crate) struct ChoiceCandidate {
     pub rank: Option<u32>,
 }
 
-#[derive(Clone, Debug, Deserialize, Eq, PartialEq, Serialize)]
-#[serde(deny_unknown_fields, rename_all = "PascalCase")]
-pub(crate) struct Decision {
-    pub ordinal: u64,
-    pub kind: u8,
-    pub site_offset: u64,
-    pub site_missing: bool,
-    pub rank_override: bool,
-    pub alternatives: u32,
-    pub selected: u32,
-    pub data: u32,
-    pub selected_identity: [u8; 32],
-    pub alternative_set_digest: [u8; 32],
-}
+pub(crate) use linked::Decision;
 
 pub(crate) fn decisions(plan: &linked::ChoicePlan) -> Result<Vec<Decision>, String> {
-    plan.decisions
-        .iter()
-        .map(|decision| {
-            serde_json::from_value(serde_json::to_value(decision).map_err(|error| error.to_string())?)
-                .map_err(|error| error.to_string())
-        })
-        .collect()
+    Ok(plan.decisions.clone())
 }
 
 #[derive(Clone, Debug, Deserialize, Eq, PartialEq, Serialize)]
@@ -121,8 +102,11 @@ impl ChoiceCandidate {
         identity: &linked::ChoiceIdentity,
     ) -> Result<Option<linked::ReplayRequest>, String> {
         if self.forced_depth == 0 {
-            if self.rank.is_some() || !self.prefix_bytes.is_empty() || !self.prefix_sha256.is_empty()
-                || !self.source_trace.is_empty() || !self.source_trace_sha256.is_empty()
+            if self.rank.is_some()
+                || !self.prefix_bytes.is_empty()
+                || !self.prefix_sha256.is_empty()
+                || !self.source_trace.is_empty()
+                || !self.source_trace_sha256.is_empty()
             {
                 return Err("root choice candidate contains a prefix".into());
             }
@@ -140,20 +124,23 @@ impl ChoiceCandidate {
         let full_digest = hex(&plan.sha256);
         let full_decisions = plan.decisions.len();
         let prefix = plan.prefix(&control)?;
-        if prefix.bytes != self.prefix_bytes || format!("sha256:{}", hex(&prefix.sha256)) != self.prefix_sha256
-            || format!("sha256:{}", canonical::digest(&self.source_trace)) != self.source_trace_sha256
+        if prefix.bytes != self.prefix_bytes
+            || format!("sha256:{}", hex(&prefix.sha256)) != self.prefix_sha256
+            || format!("sha256:{}", canonical::digest(&self.source_trace))
+                != self.source_trace_sha256
         {
             return Err("choice candidate prefix identity mismatch".into());
         }
-        serde_json::from_value(json!({
-            "schema":"gomad.replay-trace/v1", "execution_identity":identity,
-            "trace_sha256":canonical::digest(&self.source_trace),"tape_sha256":full_digest,
-            "decisions":full_decisions,"trace_bytes":self.source_trace.len(),
-            "trace_frames":(self.source_trace.len() as u64).div_ceil(65536),
-            "prefix_control":{"cutoff":self.forced_depth,"override":{
-                "ordinal":self.forced_depth - 1,"rank":self.rank,"reconstruct":false
-            }}
-        })).map(Some).map_err(|error| error.to_string())
+        Ok(Some(linked::ReplayRequest {
+            schema: "gomad.replay-trace/v1".into(),
+            execution_identity: identity.clone(),
+            trace_sha256: canonical::digest(&self.source_trace),
+            tape_sha256: full_digest,
+            decisions: full_decisions as u64,
+            trace_bytes: self.source_trace.len() as u64,
+            trace_frames: (self.source_trace.len() as u64).div_ceil(65536),
+            prefix_control: Some(control),
+        }))
     }
 }
 
@@ -163,17 +150,22 @@ pub(crate) fn hex(bytes: &[u8]) -> String {
 
 impl ChoiceState {
     pub(crate) fn new(config: ChoiceConfig) -> Result<Self, String> {
-        if config.parallel == 0 || config.max_executions == 0 || config.max_choice_depth == 0
+        if config.parallel == 0
+            || config.max_executions == 0
+            || config.max_choice_depth == 0
             || config.max_exploration_bytes == 0
         {
-            return Err("choice exploration requires positive parallel, execution, depth, and byte bounds".into());
+            return Err(
+                "choice exploration requires positive parallel, execution, depth, and byte bounds"
+                    .into(),
+            );
         }
         if config.controller_sha256 != implementation() {
             return Err("choice exploration controller identity mismatch".into());
         }
         match config.failure_policy.as_str() {
-            "first" | "all" if config.failure_budget == 1 => {},
-            "budget" if config.failure_budget > 0 => {},
+            "first" | "all" if config.failure_budget == 1 => {}
+            "budget" if config.failure_budget > 0 => {}
             _ => return Err("invalid choice exploration failure policy or budget".into()),
         }
         // The helper validates the identity even for a trace with no branching decisions.
@@ -184,16 +176,27 @@ impl ChoiceState {
             return Err("choice exploration root exceeds the exploration byte bound".into());
         }
         Ok(Self {
-            config, seen: BTreeSet::from([root.sha256.clone()]), queue: vec![root],
-            outcomes: BTreeSet::new(), failure_signatures: BTreeSet::new(),
-            logical_executions: 0, committed_rounds: 0, pending_bytes, deepest_prefix: 0,
-            omitted_by_execution_bound: 0, omitted_by_depth: 0, omitted_by_capacity: 0,
-            omitted_by_select_readiness: 0, stop_reason: String::new(),
+            config,
+            seen: BTreeSet::from([root.sha256.clone()]),
+            queue: vec![root],
+            outcomes: BTreeSet::new(),
+            failure_signatures: BTreeSet::new(),
+            logical_executions: 0,
+            committed_rounds: 0,
+            pending_bytes,
+            deepest_prefix: 0,
+            omitted_by_execution_bound: 0,
+            omitted_by_depth: 0,
+            omitted_by_capacity: 0,
+            omitted_by_select_readiness: 0,
+            stop_reason: String::new(),
         })
     }
 
     pub(crate) fn next_round(&self) -> Option<ChoiceRound> {
-        if !self.stop_reason.is_empty() || self.queue.is_empty() { return None; }
+        if !self.stop_reason.is_empty() || self.queue.is_empty() {
+            return None;
+        }
         Some(ChoiceRound {
             index: self.committed_rounds,
             candidates: self.queue[..self.config.parallel.min(self.queue.len())].to_vec(),
@@ -219,17 +222,24 @@ impl ChoiceState {
         })
     }
 
-    pub(crate) fn commit(&self, round: &ChoiceRound, results: &[ChoiceResult])
-        -> Result<(Self, ChoiceRoundSegment), String>
-    {
+    pub(crate) fn commit(
+        &self,
+        round: &ChoiceRound,
+        results: &[ChoiceResult],
+    ) -> Result<(Self, ChoiceRoundSegment), String> {
         if self.next_round().as_ref() != Some(round) || results.len() != round.candidates.len() {
             return Err("choice exploration round or result count mismatch".into());
         }
         let mut next = self.clone();
         next.queue.drain(..round.candidates.len());
-        next.logical_executions = next.logical_executions.checked_add(results.len() as u64)
+        next.logical_executions = next
+            .logical_executions
+            .checked_add(results.len() as u64)
             .ok_or("choice execution accounting overflow")?;
-        next.committed_rounds = next.committed_rounds.checked_add(1).ok_or("choice round accounting overflow")?;
+        next.committed_rounds = next
+            .committed_rounds
+            .checked_add(1)
+            .ok_or("choice round accounting overflow")?;
         let mut children = BTreeMap::new();
         let mut start_unreached = false;
         for (parent, result) in round.candidates.iter().zip(results) {
@@ -237,13 +247,17 @@ impl ChoiceState {
                 return Err("choice exploration result candidate mismatch".into());
             }
             if let Some(divergence) = &result.divergence {
-                if !result.outcome_sha256.is_empty() || result.failed || !result.failure_sha256.is_empty()
+                if !result.outcome_sha256.is_empty()
+                    || result.failed
+                    || !result.failure_sha256.is_empty()
                     || result.source_trace.is_some()
                 {
                     return Err("choice divergence contains outcome evidence".into());
                 }
                 validate_divergence(parent, &self.config.execution, divergence)?;
-                if next.config.failure_policy == "first" { next.stop_reason = "first_failure".into(); }
+                if next.config.failure_policy == "first" {
+                    next.stop_reason = "first_failure".into();
+                }
                 continue;
             }
             if !valid_hash(&result.outcome_sha256)
@@ -254,38 +268,61 @@ impl ChoiceState {
             }
             next.outcomes.insert(result.outcome_sha256.clone());
             if result.failed {
-                next.failure_signatures.insert(result.failure_sha256.clone());
-                if next.config.failure_policy == "first" { next.stop_reason = "first_failure".into(); }
-                else if next.config.failure_policy == "budget"
+                next.failure_signatures
+                    .insert(result.failure_sha256.clone());
+                if next.config.failure_policy == "first" {
+                    next.stop_reason = "first_failure".into();
+                } else if next.config.failure_policy == "budget"
                     && next.failure_signatures.len() as u64 >= next.config.failure_budget
-                { next.stop_reason = "failure_budget".into(); }
+                {
+                    next.stop_reason = "failure_budget".into();
+                }
             }
             if let Some(raw) = &result.source_trace {
                 let plan = linked::project_choices(raw, &next.config.execution)?;
                 let observed = decisions(&plan)?;
                 validate_trace(parent, &next.config.execution, &observed)?;
-                if parent.forced_depth == 0 && next.config.start_ordinal != 0
+                if parent.forced_depth == 0
+                    && next.config.start_ordinal != 0
                     && observed.len() as u64 <= next.config.start_ordinal
-                { start_unreached = true; }
+                {
+                    start_unreached = true;
+                }
                 if next.stop_reason.is_empty() {
                     let no_op = plan.no_op_select_polls();
                     for (ordinal, decision) in observed.iter().enumerate() {
                         let ordinal = ordinal as u64;
                         if ordinal < parent.forced_depth.max(next.config.start_ordinal)
-                            || decision.alternatives <= 1 { continue; }
+                            || decision.alternatives() <= 1
+                        {
+                            continue;
+                        }
                         if no_op[ordinal as usize] {
-                            next.omitted_by_select_readiness += u64::from(decision.alternatives - 1);
+                            next.omitted_by_select_readiness +=
+                                u64::from(decision.alternatives() - 1);
                             continue;
                         }
                         if ordinal - next.config.start_ordinal + 1 > next.config.max_choice_depth {
-                            next.omitted_by_depth += u64::from(decision.alternatives - 1);
+                            next.omitted_by_depth += u64::from(decision.alternatives() - 1);
                             continue;
                         }
-                        for rank in 0..decision.alternatives {
-                            if rank == decision.selected { continue; }
-                            let child = candidate(&next.config, Some((ordinal + 1, rank)), &parent.sha256, raw)?;
-                            if next.seen.contains(&child.sha256) { continue; }
-                            if children.get(&child.sha256).is_some_and(|previous| previous != &child) {
+                        for rank in 0..decision.alternatives() {
+                            if rank == decision.selected() {
+                                continue;
+                            }
+                            let child = candidate(
+                                &next.config,
+                                Some((ordinal + 1, rank)),
+                                &parent.sha256,
+                                raw,
+                            )?;
+                            if next.seen.contains(&child.sha256) {
+                                continue;
+                            }
+                            if children
+                                .get(&child.sha256)
+                                .is_some_and(|previous| previous != &child)
+                            {
                                 return Err("choice candidate identity collision".into());
                             }
                             children.insert(child.sha256.clone(), child);
@@ -306,10 +343,14 @@ impl ChoiceState {
                 break;
             }
             let bytes = candidate_bytes(child)?;
-            let total = pending.checked_add(bytes).ok_or("choice exploration byte accounting overflow")?;
+            let total = pending
+                .checked_add(bytes)
+                .ok_or("choice exploration byte accounting overflow")?;
             if total > next.config.max_exploration_bytes {
                 next.omitted_by_capacity += omitted;
-                if next.stop_reason.is_empty() { next.stop_reason = "exploration_capacity".into(); }
+                if next.stop_reason.is_empty() {
+                    next.stop_reason = "exploration_capacity".into();
+                }
                 break;
             }
             pending = total;
@@ -319,27 +360,46 @@ impl ChoiceState {
         }
         sort(&mut next.queue);
         if next.stop_reason.is_empty() && next.queue.is_empty() {
-            next.stop_reason = if start_unreached { "choice_start_unreached" }
-                else if next.omitted_by_execution_bound != 0 || next.logical_executions >= next.config.max_executions { "max_executions" }
-                else if next.omitted_by_depth != 0 { "choice_depth_complete" }
-                else { "exploration_exhausted" }.into();
+            next.stop_reason = if start_unreached {
+                "choice_start_unreached"
+            } else if next.omitted_by_execution_bound != 0
+                || next.logical_executions >= next.config.max_executions
+            {
+                "max_executions"
+            } else if next.omitted_by_depth != 0 {
+                "choice_depth_complete"
+            } else {
+                "exploration_exhausted"
+            }
+            .into();
         }
         next.pending_bytes = queue_bytes(&next.queue)?;
         let mut segment = ChoiceRoundSegment {
-            schema: SCHEMA.into(), index: round.index, before_sha256: self.hash()?,
-            after_sha256: next.hash()?, results: results.to_vec(), sha256: String::new(),
+            schema: SCHEMA.into(),
+            index: round.index,
+            before_sha256: self.hash()?,
+            after_sha256: next.hash()?,
+            results: results.to_vec(),
+            sha256: String::new(),
         };
         segment.sha256 = segment.hash()?;
         Ok((next, segment))
     }
 
     pub(crate) fn replay_segment(&self, segment: &ChoiceRoundSegment) -> Result<Self, String> {
-        if segment.schema != SCHEMA || segment.sha256 != segment.hash()?
+        if segment.schema != SCHEMA
+            || segment.sha256 != segment.hash()?
             || segment.before_sha256 != self.hash()?
-        { return Err("choice round segment identity or state link mismatch".into()); }
-        let round = self.next_round().ok_or("choice segment round unavailable")?;
+        {
+            return Err("choice round segment identity or state link mismatch".into());
+        }
+        let round = self
+            .next_round()
+            .ok_or("choice segment round unavailable")?;
         let (next, regenerated) = self.commit(&round, &segment.results)?;
-        if &regenerated != segment { return Err("choice segment replay changed its recorded result".into()); }
+        if &regenerated != segment {
+            return Err("choice segment replay changed its recorded result".into());
+        }
         Ok(next)
     }
 }
@@ -352,21 +412,36 @@ impl ChoiceRoundSegment {
     }
 }
 
-fn candidate(config: &ChoiceConfig, forcing: Option<(u64, u32)>, parent: &str, raw: &[u8])
-    -> Result<ChoiceCandidate, String>
-{
+fn candidate(
+    config: &ChoiceConfig,
+    forcing: Option<(u64, u32)>,
+    parent: &str,
+    raw: &[u8],
+) -> Result<ChoiceCandidate, String> {
     let mut value = ChoiceCandidate {
-        sha256: String::new(), parent_sha256: parent.into(), source_trace_sha256: String::new(),
-        forced_depth: 0, prefix_sha256: String::new(), prefix_bytes: Vec::new(),
-        source_trace: Vec::new(), rank: None,
+        sha256: String::new(),
+        parent_sha256: parent.into(),
+        source_trace_sha256: String::new(),
+        forced_depth: 0,
+        prefix_sha256: String::new(),
+        prefix_bytes: Vec::new(),
+        source_trace: Vec::new(),
+        rank: None,
     };
     let mut projected = Vec::new();
     if let Some((depth, rank)) = forcing {
-        if depth <= config.start_ordinal { return Err("choice prefix precedes its start ordinal".into()); }
-        let plan = linked::project_choices(raw, &config.execution)?.prefix(&linked::PrefixControl {
-            cutoff: depth,
-            r#override: Some(linked::RankOverride { ordinal: depth - 1, rank, reconstruct: false }),
-        })?;
+        if depth <= config.start_ordinal {
+            return Err("choice prefix precedes its start ordinal".into());
+        }
+        let plan =
+            linked::project_choices(raw, &config.execution)?.prefix(&linked::PrefixControl {
+                cutoff: depth,
+                r#override: Some(linked::RankOverride {
+                    ordinal: depth - 1,
+                    rank,
+                    reconstruct: false,
+                }),
+            })?;
         projected = decisions(&plan)?;
         value.forced_depth = depth;
         value.prefix_sha256 = format!("sha256:{}", hex(&plan.sha256));
@@ -403,74 +478,131 @@ fn candidate(config: &ChoiceConfig, forcing: Option<(u64, u32)>, parent: &str, r
     let projection = Projection {
         target_sha256: format!("sha256:{}", hex(&config.execution.target_sha256)),
         toolchain_build_key: &config.execution.toolchain_build_key,
-        goos: &config.execution.goos, goarch: &config.execution.goarch,
+        goos: &config.execution.goos,
+        goarch: &config.execution.goarch,
         implementation_sha256: format!("sha256:{}", hex(&config.execution.implementation_sha256)),
-        controller_sha256: &config.controller_sha256, base_seed: config.base_seed.to_string(),
-        decisions: projected.iter().map(|decision| DecisionProjection {
-            ordinal: decision.ordinal.to_string(), kind: decision.kind,
-            site_offset: decision.site_offset.to_string(), site_missing: decision.site_missing,
-            rank_override: decision.rank_override, alternatives: decision.alternatives,
-            selected: decision.selected, data: decision.data,
-            selected_identity: if decision.selected_identity == [0; 32] { String::new() }
-                else { format!("sha256:{}", hex(&decision.selected_identity)) },
-            alternative_set_digest: format!("sha256:{}", hex(&decision.alternative_set_digest)),
-        }).collect(),
+        controller_sha256: &config.controller_sha256,
+        base_seed: config.base_seed.to_string(),
+        decisions: projected
+            .iter()
+            .map(|decision| DecisionProjection {
+                ordinal: decision.ordinal().to_string(),
+                kind: decision.kind(),
+                site_offset: decision.site().0.to_string(),
+                site_missing: decision.site().1,
+                rank_override: decision.rank_override(),
+                alternatives: decision.alternatives(),
+                selected: decision.selected(),
+                data: decision.data(),
+                selected_identity: if decision.selected_identity() == [0; 32] {
+                    String::new()
+                } else {
+                    format!("sha256:{}", hex(&decision.selected_identity()))
+                },
+                alternative_set_digest: format!(
+                    "sha256:{}",
+                    hex(&decision.alternative_set_digest())
+                ),
+            })
+            .collect(),
     };
-    value.sha256 = super::domain_hash("gomad-choice-exploration-candidate/v1",
-        &serde_json::to_vec(&projection).map_err(|error| error.to_string())?);
+    value.sha256 = super::domain_hash(
+        "gomad-choice-exploration-candidate/v1",
+        &serde_json::to_vec(&projection).map_err(|error| error.to_string())?,
+    );
     Ok(value)
 }
 
-pub(crate) fn validate_divergence(candidate: &ChoiceCandidate, identity: &linked::ChoiceIdentity, divergence: &linked::Divergence)
-    -> Result<(), String>
-{
-    candidate.replay(identity)?.ok_or("choice divergence requires a forced prefix")?;
-    if divergence.ordinal >= candidate.forced_depth || divergence.tape_records != candidate.forced_depth
+pub(crate) fn validate_divergence(
+    candidate: &ChoiceCandidate,
+    identity: &linked::ChoiceIdentity,
+    divergence: &linked::Divergence,
+) -> Result<(), String> {
+    candidate
+        .replay(identity)?
+        .ok_or("choice divergence requires a forced prefix")?;
+    if divergence.ordinal >= candidate.forced_depth
+        || divergence.tape_records != candidate.forced_depth
         || !matches!(divergence.reason, 1..=5 | 7 | 11)
-    { return Err("choice divergence does not reference its forced prefix".into()); }
-    let plan = linked::project_choices(&candidate.source_trace, identity)?.prefix(&linked::PrefixControl {
-        cutoff: candidate.forced_depth,
-        r#override: Some(linked::RankOverride { ordinal: candidate.forced_depth - 1,
-            rank: candidate.rank.ok_or("missing candidate rank")?, reconstruct: false }),
-    })?;
-    let expected = plan.decisions.get(divergence.ordinal as usize).ok_or("missing divergence decision")?;
+    {
+        return Err("choice divergence does not reference its forced prefix".into());
+    }
+    let plan = linked::project_choices(&candidate.source_trace, identity)?.prefix(
+        &linked::PrefixControl {
+            cutoff: candidate.forced_depth,
+            r#override: Some(linked::RankOverride {
+                ordinal: candidate.forced_depth - 1,
+                rank: candidate.rank.ok_or("missing candidate rank")?,
+                reconstruct: false,
+            }),
+        },
+    )?;
+    let expected = plan
+        .decisions
+        .get(divergence.ordinal as usize)
+        .ok_or("missing divergence decision")?;
     if divergence.expected.as_ref() != Some(expected) {
         return Err("choice divergence expected decision differs from candidate prefix".into());
     }
     if let Some(observed) = &divergence.observed {
-        let observed: Decision = serde_json::from_value(serde_json::to_value(observed).map_err(|error| error.to_string())?)
-            .map_err(|error| error.to_string())?;
-        if observed.ordinal != divergence.ordinal || observed.rank_override {
+        if observed.ordinal() != divergence.ordinal || observed.rank_override() {
             return Err("choice divergence observed decision is invalid".into());
         }
     }
     Ok(())
 }
 
-fn validate_trace(candidate: &ChoiceCandidate, identity: &linked::ChoiceIdentity, observed: &[Decision]) -> Result<(), String> {
-    if candidate.forced_depth == 0 { return Ok(()); }
+fn validate_trace(
+    candidate: &ChoiceCandidate,
+    identity: &linked::ChoiceIdentity,
+    observed: &[Decision],
+) -> Result<(), String> {
+    if candidate.forced_depth == 0 {
+        return Ok(());
+    }
     candidate.replay(identity)?;
-    let prefix = linked::project_choices(&candidate.source_trace, identity)?.prefix(&linked::PrefixControl {
-        cutoff: candidate.forced_depth,
-        r#override: Some(linked::RankOverride { ordinal: candidate.forced_depth - 1,
-            rank: candidate.rank.ok_or("missing candidate rank")?, reconstruct: false }),
-    })?;
+    let prefix = linked::project_choices(&candidate.source_trace, identity)?.prefix(
+        &linked::PrefixControl {
+            cutoff: candidate.forced_depth,
+            r#override: Some(linked::RankOverride {
+                ordinal: candidate.forced_depth - 1,
+                rank: candidate.rank.ok_or("missing candidate rank")?,
+                reconstruct: false,
+            }),
+        },
+    )?;
     let expected = decisions(&prefix)?;
-    if observed.len() < expected.len() { return Err("choice trace ended before its forced prefix".into()); }
+    if observed.len() < expected.len() {
+        return Err("choice trace ended before its forced prefix".into());
+    }
     for (expected, observed) in expected.iter().zip(observed) {
-        let mut realized = expected.clone();
-        if expected.rank_override {
-            realized.rank_override = false;
-            realized.selected_identity = observed.selected_identity;
-            if observed.selected_identity == [0; 32] { return Err("choice override selected identity is missing".into()); }
+        let matches = if expected.rank_override() {
+            expected.ordinal() == observed.ordinal()
+                && expected.kind() == observed.kind()
+                && expected.site() == observed.site()
+                && expected.alternatives() == observed.alternatives()
+                && expected.selected() == observed.selected()
+                && expected.data() == observed.data()
+                && expected.alternative_set_digest() == observed.alternative_set_digest()
+                && !observed.rank_override()
+                && observed.selected_identity() != [0; 32]
+        } else {
+            expected == observed
+        };
+        if !matches {
+            return Err(format!(
+                "choice prefix diverged at decision {}",
+                expected.ordinal()
+            ));
         }
-        if &realized != observed { return Err(format!("choice prefix diverged at decision {}", expected.ordinal)); }
     }
     Ok(())
 }
 
 fn sort(candidates: &mut [ChoiceCandidate]) {
-    candidates.sort_by(|left, right| (left.forced_depth, &left.sha256).cmp(&(right.forced_depth, &right.sha256)));
+    candidates.sort_by(|left, right| {
+        (left.forced_depth, &left.sha256).cmp(&(right.forced_depth, &right.sha256))
+    });
 }
 
 fn candidate_bytes(candidate: &ChoiceCandidate) -> Result<u64, String> {
@@ -490,15 +622,24 @@ fn candidate_bytes(candidate: &ChoiceCandidate) -> Result<u64, String> {
         source_trace: String,
     }
     let bytes = serde_json::to_vec(&Projection {
-        sha256: &candidate.sha256, parent_sha256: &candidate.parent_sha256,
-        source_trace_sha256: &candidate.source_trace_sha256, forced_depth: candidate.forced_depth,
-        prefix_sha256: &candidate.prefix_sha256, prefix_bytes: super::base64(&candidate.prefix_bytes),
+        sha256: &candidate.sha256,
+        parent_sha256: &candidate.parent_sha256,
+        source_trace_sha256: &candidate.source_trace_sha256,
+        forced_depth: candidate.forced_depth,
+        prefix_sha256: &candidate.prefix_sha256,
+        prefix_bytes: super::base64(&candidate.prefix_bytes),
         source_trace: super::base64(&candidate.source_trace),
-    }).map_err(|error| error.to_string())?;
-    (bytes.len() as u64).checked_add(1).ok_or("choice candidate byte overflow".into())
+    })
+    .map_err(|error| error.to_string())?;
+    (bytes.len() as u64)
+        .checked_add(1)
+        .ok_or("choice candidate byte overflow".into())
 }
 
 fn queue_bytes(candidates: &[ChoiceCandidate]) -> Result<u64, String> {
-    candidates.iter().try_fold(0_u64, |total, candidate| total.checked_add(candidate_bytes(candidate)?)
-        .ok_or("choice exploration byte accounting overflow".into()))
+    candidates.iter().try_fold(0_u64, |total, candidate| {
+        total
+            .checked_add(candidate_bytes(candidate)?)
+            .ok_or("choice exploration byte accounting overflow".into())
+    })
 }

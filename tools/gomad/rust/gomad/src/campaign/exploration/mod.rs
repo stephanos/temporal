@@ -1,6 +1,11 @@
 pub(crate) mod choice;
 pub(crate) mod plan;
 pub(crate) mod round;
+pub(crate) mod simulation;
+#[cfg(feature = "determinism-fixture")]
+pub(crate) mod simulation_corpus;
+pub(crate) mod simulation_record;
+pub(crate) mod simulation_record_wire;
 
 use crate::evidence::canonical;
 use serde::Serialize;
@@ -19,7 +24,9 @@ pub(crate) fn hash<T: Serialize>(domain: &str, value: &T) -> Result<String, Stri
 }
 
 pub(crate) fn valid_hash(value: &str) -> bool {
-    value.strip_prefix("sha256:").is_some_and(canonical::valid_digest)
+    value
+        .strip_prefix("sha256:")
+        .is_some_and(canonical::valid_digest)
 }
 
 pub(crate) fn base64(bytes: &[u8]) -> String {
@@ -32,8 +39,16 @@ pub(crate) fn base64(bytes: &[u8]) -> String {
         for shift in [18, 12] {
             result.push(char::from(ALPHABET[((word >> shift) & 63) as usize]));
         }
-        result.push(if chunk.len() > 1 { char::from(ALPHABET[((word >> 6) & 63) as usize]) } else { '=' });
-        result.push(if chunk.len() > 2 { char::from(ALPHABET[(word & 63) as usize]) } else { '=' });
+        result.push(if chunk.len() > 1 {
+            char::from(ALPHABET[((word >> 6) & 63) as usize])
+        } else {
+            '='
+        });
+        result.push(if chunk.len() > 2 {
+            char::from(ALPHABET[(word & 63) as usize])
+        } else {
+            '='
+        });
     }
     result
 }
