@@ -38,6 +38,7 @@ fn main() {
     for name in [
         "overlay.go",
         "runtime_wasm.go.txt",
+        "runtime_inspect_wasm.go.txt",
         "net_stream_wasm.go.txt",
         "net_stream_status_generated.go.txt",
     ] {
