@@ -9,8 +9,8 @@
   "depends_on_epics": [],
   "id": "fn-234-gomad-overlay-audit-dead-native",
   "impl_review_rounds": {
-    "fn-234-gomad-overlay-audit-dead-native.1": 1,
-    "fn-234-gomad-overlay-audit-dead-native.2": 1
+    "fn-234-gomad-overlay-audit-dead-native.1": 0,
+    "fn-234-gomad-overlay-audit-dead-native.2": 0
   },
   "next_task": 1,
   "plan_review_rounds": 0,
@@ -201,9 +201,107 @@
       "task": "fn-234-gomad-overlay-audit-dead-native.2",
       "timestamp": "2026-10-21T01:33:30.167145Z",
       "verdict": "NEEDS_WORK"
+    },
+    {
+      "artifact_sha256": "6072ab09316dd46498e56fa0b9a69a81741831e9e679b708a9c537d6a213c705",
+      "backend": "codex",
+      "base_sha": "c19e8af5ba01c72a31cb573fef4028b0872b0791",
+      "counter_kind": "impl",
+      "effort": "high",
+      "failure_class": null,
+      "finalized": {
+        "digest": "complete",
+        "receipt": "complete",
+        "status": "not_applicable"
+      },
+      "findings_digest": {
+        "backend": "codex",
+        "digest_truncated": false,
+        "items": [
+          {
+            "chainRoot": "finding-c0905641a8d922c1900c457919fb36e7",
+            "classification": "introduced",
+            "findingId": "finding-c0905641a8d922c1900c457919fb36e7",
+            "firstSeenThisRound": false,
+            "severity": "P1",
+            "status": "fixed"
+          },
+          {
+            "chainRoot": "finding-88362d8706a6cc3c6cf4b2ebc190c1bb",
+            "classification": "introduced",
+            "findingId": "finding-88362d8706a6cc3c6cf4b2ebc190c1bb",
+            "firstSeenThisRound": false,
+            "severity": "P2",
+            "status": "fixed"
+          }
+        ],
+        "reviewKind": "implementation"
+      },
+      "forced": false,
+      "hash_epoch": 0,
+      "head_sha": "8e7bd00c9c13a7f10a5861c40df8d53085e84199",
+      "head_sha_observed": true,
+      "kind": "impl",
+      "model": "gpt-6.1-sol",
+      "outcome": "verdict",
+      "output_bytes": 1237,
+      "output_sha256": "199736b6db7470129e15221cd7b3d98bb4a86dd391df8058989da80c2d48b5ed",
+      "reservation_id": "8507cb46f00242deba54b1f88fa0ba64",
+      "round_consumed": true,
+      "scope": "impl:fn-234-gomad-overlay-audit-dead-native.2",
+      "superseded_by": null,
+      "task": "fn-234-gomad-overlay-audit-dead-native.2",
+      "timestamp": "2026-10-21T01:43:28.195388Z",
+      "verdict": "SHIP"
+    },
+    {
+      "artifact_sha256": "78ab9d3af7e85ebefc4e18df01f1db7a980cdfb3e26f61de93fa7448fffa4bdc",
+      "backend": "codex",
+      "base_sha": "fe0c2fff2aaad3e8332ce136c4165ef0a07c605d",
+      "counter_kind": "impl",
+      "effort": "high",
+      "failure_class": null,
+      "finalized": {
+        "digest": "complete",
+        "receipt": "complete",
+        "status": "not_applicable"
+      },
+      "findings_digest": {
+        "backend": "codex",
+        "digest_truncated": false,
+        "items": [
+          {
+            "chainRoot": "finding-9b2ff4aad52ae789eb450595e0e6b5e0",
+            "classification": "introduced",
+            "findingId": "finding-9b2ff4aad52ae789eb450595e0e6b5e0",
+            "firstSeenThisRound": false,
+            "severity": "P1",
+            "status": "fixed"
+          }
+        ],
+        "reviewKind": "implementation"
+      },
+      "forced": false,
+      "hash_epoch": 0,
+      "head_sha": "8e7bd00c9c13a7f10a5861c40df8d53085e84199",
+      "head_sha_observed": true,
+      "kind": "impl",
+      "model": "gpt-6.1-sol",
+      "outcome": "verdict",
+      "output_bytes": 1164,
+      "output_sha256": "7e486feede9dcfd451f973965e4497cafe73fcb98d8f94b51ceddc2be9a7e336",
+      "reservation_id": "9d45034a5af44cf99a84c83ecc4d3652",
+      "round_consumed": true,
+      "scope": "impl:fn-234-gomad-overlay-audit-dead-native.1",
+      "superseded_by": null,
+      "task": "fn-234-gomad-overlay-audit-dead-native.1",
+      "timestamp": "2026-10-21T01:44:18.471958Z",
+      "verdict": "SHIP"
     }
   ],
   "review_hash_epoch": {
+    "impl:fn-234-gomad-overlay-audit-dead-native.1": 1,
+    "impl:fn-234-gomad-overlay-audit-dead-native.2": 1,
     "plan": 1,
     "plan#completion": 0
   },
@@ -228,5 +326,5 @@
     "mergeBaseTracker": null,
     "url": null
   },
-  "updated_at": "2026-10-21T01:33:30.172217Z"
+  "updated_at": "2026-10-21T01:44:18.484069Z"
 }
