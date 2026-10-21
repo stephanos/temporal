@@ -15,5 +15,6 @@ mod fixture_role;
 #[cfg(feature = "determinism-fixture")]
 mod fixture_storage;
 pub(crate) mod minimize;
+pub(crate) mod qualify;
 pub mod replay;
 pub mod slots;

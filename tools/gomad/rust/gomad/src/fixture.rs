@@ -195,13 +195,16 @@ pub fn dispatch(arguments: &[String]) -> Option<Result<(), Error>> {
         "fixture-simulation-controller"
             | "fixture-choice-controller"
             | "fixture-minimize-controller"
+            | "fixture-qualify-accounting"
     ) {
         return Some((|| {
             if arguments.len() != 3 || arguments[1] != "--input" {
                 return Err("fixture-simulation-controller requires --input FILE".into());
             }
             let path = std::path::Path::new(&arguments[2]);
-            if command == "fixture-minimize-controller" {
+            if command == "fixture-qualify-accounting" {
+                crate::qualify::fixture::run(path).map_err(Error::from)
+            } else if command == "fixture-minimize-controller" {
                 crate::minimize::fixture::run(path).map_err(Error::from)
             } else if command == "fixture-choice-controller" {
                 crate::campaign::exploration::choice_corpus::run(path).map_err(Error::from)

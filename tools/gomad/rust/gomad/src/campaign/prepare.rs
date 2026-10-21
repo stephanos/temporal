@@ -153,6 +153,12 @@ fn installation(options: &ExploreOptions) -> Result<Installation, String> {
 }
 
 /// # Errors
+/// Refuses an incompatible installation; returns its pinned runtime profile.
+pub(crate) fn installation_profile(options: &ExploreOptions) -> Result<String, String> {
+    installation(options).map(|installed| installed.profile)
+}
+
+/// # Errors
 /// Refuses incompatible installations, unsupported targets and changed build inputs.
 pub fn prepare(options: &ExploreOptions) -> Result<Prepared, String> {
     let deadline = Instant::now()

@@ -16,6 +16,31 @@ use std::{collections::BTreeMap, time::Duration};
 pub(crate) struct Result {
     pub execution: ledger::Execution,
     pub publication: Publication,
+    pub metrics: Metrics,
+}
+
+/// In-process store observations of one execution. They never enter records.
+#[derive(Clone, Copy, Debug, Default)]
+pub(crate) struct Metrics {
+    pub wall_nanos: u64,
+    pub fuel_used: u64,
+    pub guest_peak_memory_bytes: u64,
+    pub guest_memory_limit_bytes: u64,
+}
+
+impl Metrics {
+    pub(crate) fn observed(
+        outcome: &linked::Outcome,
+        limits: &crate::evidence::record::Limits,
+        wall: Duration,
+    ) -> Self {
+        Self {
+            wall_nanos: u64::try_from(wall.as_nanos()).unwrap_or(u64::MAX),
+            fuel_used: limits.fuel.saturating_sub(outcome.fuel_remaining),
+            guest_peak_memory_bytes: outcome.peak_memory_bytes as u64,
+            guest_memory_limit_bytes: limits.memory_bytes,
+        }
+    }
 }
 
 pub(super) fn run(
@@ -122,9 +147,13 @@ pub(crate) fn run_with_replay(
             .map_err(|error| format!("runner_failure: admit standalone network: {error}"))?;
     }
     admitted.cancellation(cancellation.clone());
+    let started = std::time::Instant::now();
     let observed = linked::execute_prepared(admitted)
         .map_err(|error| format!("runner_failure: execute campaign target: {error}"))?;
-    publication(prepared, job, observed)
+    let metrics = Metrics::observed(&observed.outcome, &configuration.limits, started.elapsed());
+    let mut result = publication(prepared, job, observed)?;
+    result.metrics = metrics;
+    Ok(result)
 }
 
 #[expect(
@@ -339,6 +368,7 @@ pub(super) fn publication(
     Ok(Result {
         execution,
         publication: Publication { record, payloads },
+        metrics: Metrics::default(),
     })
 }
 

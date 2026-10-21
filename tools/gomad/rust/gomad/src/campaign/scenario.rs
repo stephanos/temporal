@@ -1506,5 +1506,6 @@ pub(super) fn publication(
             scenario_steps: Some(executed_steps),
         },
         publication: Publication { record, payloads },
+        metrics: super::execution::Metrics::default(),
     })
 }

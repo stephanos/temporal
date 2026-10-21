@@ -1,0 +1,2930 @@
+{
+ "cases": [
+  {
+   "name": "cpu-counted-once",
+   "observations": {
+    "executed": {
+     "children": {
+      "peak_rss_bytes": 943718400,
+      "system_nanos": 5000000000,
+      "user_nanos": 30000000000
+     },
+     "linked": {
+      "peak_rss_bytes": 419430400,
+      "system_nanos": 2000000000,
+      "user_nanos": 10000000000
+     }
+    },
+    "operator_process_id": 4242,
+    "preparation_wall_nanos": 40000000000,
+    "prepared": {
+     "children": {
+      "peak_rss_bytes": 943718400,
+      "system_nanos": 5000000000,
+      "user_nanos": 30000000000
+     },
+     "linked": {
+      "peak_rss_bytes": 209715200,
+      "system_nanos": 1000000000,
+      "user_nanos": 2000000000
+     }
+    },
+    "resident_stores": 1,
+    "samples": [
+     {
+      "fuel_used": 1000,
+      "guest_memory_limit_bytes": 268435456,
+      "guest_peak_memory_bytes": 67108864,
+      "iteration": 1,
+      "linked_after": {
+       "peak_rss_bytes": 314572800,
+       "system_nanos": 1000000000,
+       "user_nanos": 4000000000
+      },
+      "linked_before": {
+       "peak_rss_bytes": 209715200,
+       "system_nanos": 1000000000,
+       "user_nanos": 2000000000
+      },
+      "phase": "execute",
+      "trace_bytes": 4096,
+      "virtual_time_nanos": 5000000,
+      "wall_nanos": 2000000000
+     },
+     {
+      "fuel_used": 1000,
+      "guest_memory_limit_bytes": 268435456,
+      "guest_peak_memory_bytes": 67108864,
+      "iteration": 2,
+      "linked_after": {
+       "peak_rss_bytes": 367001600,
+       "system_nanos": 1000000000,
+       "user_nanos": 6000000000
+      },
+      "linked_before": {
+       "peak_rss_bytes": 314572800,
+       "system_nanos": 1000000000,
+       "user_nanos": 4000000000
+      },
+      "phase": "execute",
+      "trace_bytes": 4096,
+      "virtual_time_nanos": 5000000,
+      "wall_nanos": 2000000000
+     },
+     {
+      "fuel_used": 1000,
+      "guest_memory_limit_bytes": 268435456,
+      "guest_peak_memory_bytes": 67108864,
+      "iteration": 1,
+      "linked_after": {
+       "peak_rss_bytes": 398458880,
+       "system_nanos": 1000000000,
+       "user_nanos": 7000000000
+      },
+      "linked_before": {
+       "peak_rss_bytes": 367001600,
+       "system_nanos": 1000000000,
+       "user_nanos": 6000000000
+      },
+      "phase": "replay",
+      "trace_bytes": 4096,
+      "virtual_time_nanos": 5000000,
+      "wall_nanos": 2000000000
+     },
+     {
+      "fuel_used": 1000,
+      "guest_memory_limit_bytes": 268435456,
+      "guest_peak_memory_bytes": 67108864,
+      "iteration": 2,
+      "linked_after": {
+       "peak_rss_bytes": 408944640,
+       "system_nanos": 2000000000,
+       "user_nanos": 8000000000
+      },
+      "linked_before": {
+       "peak_rss_bytes": 398458880,
+       "system_nanos": 1000000000,
+       "user_nanos": 7000000000
+      },
+      "phase": "replay",
+      "trace_bytes": 4096,
+      "virtual_time_nanos": 5000000,
+      "wall_nanos": 2000000000
+     }
+    ],
+    "start": {
+     "children": {
+      "peak_rss_bytes": 0,
+      "system_nanos": 0,
+      "user_nanos": 0
+     },
+     "linked": {
+      "peak_rss_bytes": 104857600,
+      "system_nanos": 500000000,
+      "user_nanos": 1000000000
+     }
+    }
+   },
+   "runs": [
+    {
+     "class": "success",
+     "exit_code": 0,
+     "replayed": true,
+     "virtual_time_nanos": 5000000
+    },
+    {
+     "class": "success",
+     "exit_code": 0,
+     "replayed": true,
+     "virtual_time_nanos": 5000000
+    }
+   ],
+   "terminal": {
+    "peak_rss_bytes": 429916160,
+    "system_nanos": 2000000000,
+    "user_nanos": 11000000000
+   }
+  },
+  {
+   "name": "preparation-wall-exceeded",
+   "observations": {
+    "executed": {
+     "children": {
+      "peak_rss_bytes": 943718400,
+      "system_nanos": 5000000000,
+      "user_nanos": 30000000000
+     },
+     "linked": {
+      "peak_rss_bytes": 419430400,
+      "system_nanos": 2000000000,
+      "user_nanos": 10000000000
+     }
+    },
+    "operator_process_id": 4242,
+    "preparation_wall_nanos": 600000000001,
+    "prepared": {
+     "children": {
+      "peak_rss_bytes": 943718400,
+      "system_nanos": 5000000000,
+      "user_nanos": 30000000000
+     },
+     "linked": {
+      "peak_rss_bytes": 209715200,
+      "system_nanos": 1000000000,
+      "user_nanos": 2000000000
+     }
+    },
+    "resident_stores": 1,
+    "samples": [
+     {
+      "fuel_used": 1000,
+      "guest_memory_limit_bytes": 268435456,
+      "guest_peak_memory_bytes": 67108864,
+      "iteration": 1,
+      "linked_after": {
+       "peak_rss_bytes": 314572800,
+       "system_nanos": 1000000000,
+       "user_nanos": 4000000000
+      },
+      "linked_before": {
+       "peak_rss_bytes": 209715200,
+       "system_nanos": 1000000000,
+       "user_nanos": 2000000000
+      },
+      "phase": "execute",
+      "trace_bytes": 4096,
+      "virtual_time_nanos": 5000000,
+      "wall_nanos": 2000000000
+     },
+     {
+      "fuel_used": 1000,
+      "guest_memory_limit_bytes": 268435456,
+      "guest_peak_memory_bytes": 67108864,
+      "iteration": 2,
+      "linked_after": {
+       "peak_rss_bytes": 367001600,
+       "system_nanos": 1000000000,
+       "user_nanos": 6000000000
+      },
+      "linked_before": {
+       "peak_rss_bytes": 314572800,
+       "system_nanos": 1000000000,
+       "user_nanos": 4000000000
+      },
+      "phase": "execute",
+      "trace_bytes": 4096,
+      "virtual_time_nanos": 5000000,
+      "wall_nanos": 2000000000
+     },
+     {
+      "fuel_used": 1000,
+      "guest_memory_limit_bytes": 268435456,
+      "guest_peak_memory_bytes": 67108864,
+      "iteration": 1,
+      "linked_after": {
+       "peak_rss_bytes": 398458880,
+       "system_nanos": 1000000000,
+       "user_nanos": 7000000000
+      },
+      "linked_before": {
+       "peak_rss_bytes": 367001600,
+       "system_nanos": 1000000000,
+       "user_nanos": 6000000000
+      },
+      "phase": "replay",
+      "trace_bytes": 4096,
+      "virtual_time_nanos": 5000000,
+      "wall_nanos": 2000000000
+     },
+     {
+      "fuel_used": 1000,
+      "guest_memory_limit_bytes": 268435456,
+      "guest_peak_memory_bytes": 67108864,
+      "iteration": 2,
+      "linked_after": {
+       "peak_rss_bytes": 408944640,
+       "system_nanos": 2000000000,
+       "user_nanos": 8000000000
+      },
+      "linked_before": {
+       "peak_rss_bytes": 398458880,
+       "system_nanos": 1000000000,
+       "user_nanos": 7000000000
+      },
+      "phase": "replay",
+      "trace_bytes": 4096,
+      "virtual_time_nanos": 5000000,
+      "wall_nanos": 2000000000
+     }
+    ],
+    "start": {
+     "children": {
+      "peak_rss_bytes": 0,
+      "system_nanos": 0,
+      "user_nanos": 0
+     },
+     "linked": {
+      "peak_rss_bytes": 104857600,
+      "system_nanos": 500000000,
+      "user_nanos": 1000000000
+     }
+    }
+   },
+   "runs": [
+    {
+     "class": "success",
+     "exit_code": 0,
+     "replayed": true,
+     "virtual_time_nanos": 5000000
+    },
+    {
+     "class": "success",
+     "exit_code": 0,
+     "replayed": true,
+     "virtual_time_nanos": 5000000
+    }
+   ]
+  },
+  {
+   "name": "preparation-wall-at-limit",
+   "observations": {
+    "executed": {
+     "children": {
+      "peak_rss_bytes": 943718400,
+      "system_nanos": 5000000000,
+      "user_nanos": 30000000000
+     },
+     "linked": {
+      "peak_rss_bytes": 419430400,
+      "system_nanos": 2000000000,
+      "user_nanos": 10000000000
+     }
+    },
+    "operator_process_id": 4242,
+    "preparation_wall_nanos": 600000000000,
+    "prepared": {
+     "children": {
+      "peak_rss_bytes": 943718400,
+      "system_nanos": 5000000000,
+      "user_nanos": 30000000000
+     },
+     "linked": {
+      "peak_rss_bytes": 209715200,
+      "system_nanos": 1000000000,
+      "user_nanos": 2000000000
+     }
+    },
+    "resident_stores": 1,
+    "samples": [
+     {
+      "fuel_used": 1000,
+      "guest_memory_limit_bytes": 268435456,
+      "guest_peak_memory_bytes": 67108864,
+      "iteration": 1,
+      "linked_after": {
+       "peak_rss_bytes": 314572800,
+       "system_nanos": 1000000000,
+       "user_nanos": 4000000000
+      },
+      "linked_before": {
+       "peak_rss_bytes": 209715200,
+       "system_nanos": 1000000000,
+       "user_nanos": 2000000000
+      },
+      "phase": "execute",
+      "trace_bytes": 4096,
+      "virtual_time_nanos": 5000000,
+      "wall_nanos": 2000000000
+     },
+     {
+      "fuel_used": 1000,
+      "guest_memory_limit_bytes": 268435456,
+      "guest_peak_memory_bytes": 67108864,
+      "iteration": 2,
+      "linked_after": {
+       "peak_rss_bytes": 367001600,
+       "system_nanos": 1000000000,
+       "user_nanos": 6000000000
+      },
+      "linked_before": {
+       "peak_rss_bytes": 314572800,
+       "system_nanos": 1000000000,
+       "user_nanos": 4000000000
+      },
+      "phase": "execute",
+      "trace_bytes": 4096,
+      "virtual_time_nanos": 5000000,
+      "wall_nanos": 2000000000
+     },
+     {
+      "fuel_used": 1000,
+      "guest_memory_limit_bytes": 268435456,
+      "guest_peak_memory_bytes": 67108864,
+      "iteration": 1,
+      "linked_after": {
+       "peak_rss_bytes": 398458880,
+       "system_nanos": 1000000000,
+       "user_nanos": 7000000000
+      },
+      "linked_before": {
+       "peak_rss_bytes": 367001600,
+       "system_nanos": 1000000000,
+       "user_nanos": 6000000000
+      },
+      "phase": "replay",
+      "trace_bytes": 4096,
+      "virtual_time_nanos": 5000000,
+      "wall_nanos": 2000000000
+     },
+     {
+      "fuel_used": 1000,
+      "guest_memory_limit_bytes": 268435456,
+      "guest_peak_memory_bytes": 67108864,
+      "iteration": 2,
+      "linked_after": {
+       "peak_rss_bytes": 408944640,
+       "system_nanos": 2000000000,
+       "user_nanos": 8000000000
+      },
+      "linked_before": {
+       "peak_rss_bytes": 398458880,
+       "system_nanos": 1000000000,
+       "user_nanos": 7000000000
+      },
+      "phase": "replay",
+      "trace_bytes": 4096,
+      "virtual_time_nanos": 5000000,
+      "wall_nanos": 2000000000
+     }
+    ],
+    "start": {
+     "children": {
+      "peak_rss_bytes": 0,
+      "system_nanos": 0,
+      "user_nanos": 0
+     },
+     "linked": {
+      "peak_rss_bytes": 104857600,
+      "system_nanos": 500000000,
+      "user_nanos": 1000000000
+     }
+    }
+   },
+   "runs": [
+    {
+     "class": "success",
+     "exit_code": 0,
+     "replayed": true,
+     "virtual_time_nanos": 5000000
+    },
+    {
+     "class": "success",
+     "exit_code": 0,
+     "replayed": true,
+     "virtual_time_nanos": 5000000
+    }
+   ]
+  },
+  {
+   "name": "store-wall-exceeded",
+   "observations": {
+    "executed": {
+     "children": {
+      "peak_rss_bytes": 943718400,
+      "system_nanos": 5000000000,
+      "user_nanos": 30000000000
+     },
+     "linked": {
+      "peak_rss_bytes": 419430400,
+      "system_nanos": 2000000000,
+      "user_nanos": 10000000000
+     }
+    },
+    "operator_process_id": 4242,
+    "preparation_wall_nanos": 40000000000,
+    "prepared": {
+     "children": {
+      "peak_rss_bytes": 943718400,
+      "system_nanos": 5000000000,
+      "user_nanos": 30000000000
+     },
+     "linked": {
+      "peak_rss_bytes": 209715200,
+      "system_nanos": 1000000000,
+      "user_nanos": 2000000000
+     }
+    },
+    "resident_stores": 1,
+    "samples": [
+     {
+      "fuel_used": 1000,
+      "guest_memory_limit_bytes": 268435456,
+      "guest_peak_memory_bytes": 67108864,
+      "iteration": 1,
+      "linked_after": {
+       "peak_rss_bytes": 314572800,
+       "system_nanos": 1000000000,
+       "user_nanos": 4000000000
+      },
+      "linked_before": {
+       "peak_rss_bytes": 209715200,
+       "system_nanos": 1000000000,
+       "user_nanos": 2000000000
+      },
+      "phase": "execute",
+      "trace_bytes": 4096,
+      "virtual_time_nanos": 5000000,
+      "wall_nanos": 2000000000
+     },
+     {
+      "fuel_used": 1000,
+      "guest_memory_limit_bytes": 268435456,
+      "guest_peak_memory_bytes": 67108864,
+      "iteration": 2,
+      "linked_after": {
+       "peak_rss_bytes": 367001600,
+       "system_nanos": 1000000000,
+       "user_nanos": 6000000000
+      },
+      "linked_before": {
+       "peak_rss_bytes": 314572800,
+       "system_nanos": 1000000000,
+       "user_nanos": 4000000000
+      },
+      "phase": "execute",
+      "trace_bytes": 4096,
+      "virtual_time_nanos": 5000000,
+      "wall_nanos": 2000000000
+     },
+     {
+      "fuel_used": 1000,
+      "guest_memory_limit_bytes": 268435456,
+      "guest_peak_memory_bytes": 67108864,
+      "iteration": 1,
+      "linked_after": {
+       "peak_rss_bytes": 398458880,
+       "system_nanos": 1000000000,
+       "user_nanos": 7000000000
+      },
+      "linked_before": {
+       "peak_rss_bytes": 367001600,
+       "system_nanos": 1000000000,
+       "user_nanos": 6000000000
+      },
+      "phase": "replay",
+      "trace_bytes": 4096,
+      "virtual_time_nanos": 5000000,
+      "wall_nanos": 2000000000
+     },
+     {
+      "fuel_used": 1000,
+      "guest_memory_limit_bytes": 268435456,
+      "guest_peak_memory_bytes": 67108864,
+      "iteration": 2,
+      "linked_after": {
+       "peak_rss_bytes": 408944640,
+       "system_nanos": 2000000000,
+       "user_nanos": 8000000000
+      },
+      "linked_before": {
+       "peak_rss_bytes": 398458880,
+       "system_nanos": 1000000000,
+       "user_nanos": 7000000000
+      },
+      "phase": "replay",
+      "trace_bytes": 4096,
+      "virtual_time_nanos": 5000000,
+      "wall_nanos": 900000000001
+     }
+    ],
+    "start": {
+     "children": {
+      "peak_rss_bytes": 0,
+      "system_nanos": 0,
+      "user_nanos": 0
+     },
+     "linked": {
+      "peak_rss_bytes": 104857600,
+      "system_nanos": 500000000,
+      "user_nanos": 1000000000
+     }
+    }
+   },
+   "runs": [
+    {
+     "class": "success",
+     "exit_code": 0,
+     "replayed": true,
+     "virtual_time_nanos": 5000000
+    },
+    {
+     "class": "success",
+     "exit_code": 0,
+     "replayed": true,
+     "virtual_time_nanos": 5000000
+    }
+   ]
+  },
+  {
+   "name": "compiler-peak-exceeded",
+   "observations": {
+    "executed": {
+     "children": {
+      "peak_rss_bytes": 6442450945,
+      "system_nanos": 5000000000,
+      "user_nanos": 30000000000
+     },
+     "linked": {
+      "peak_rss_bytes": 419430400,
+      "system_nanos": 2000000000,
+      "user_nanos": 10000000000
+     }
+    },
+    "operator_process_id": 4242,
+    "preparation_wall_nanos": 40000000000,
+    "prepared": {
+     "children": {
+      "peak_rss_bytes": 6442450945,
+      "system_nanos": 5000000000,
+      "user_nanos": 30000000000
+     },
+     "linked": {
+      "peak_rss_bytes": 209715200,
+      "system_nanos": 1000000000,
+      "user_nanos": 2000000000
+     }
+    },
+    "resident_stores": 1,
+    "samples": [
+     {
+      "fuel_used": 1000,
+      "guest_memory_limit_bytes": 268435456,
+      "guest_peak_memory_bytes": 67108864,
+      "iteration": 1,
+      "linked_after": {
+       "peak_rss_bytes": 314572800,
+       "system_nanos": 1000000000,
+       "user_nanos": 4000000000
+      },
+      "linked_before": {
+       "peak_rss_bytes": 209715200,
+       "system_nanos": 1000000000,
+       "user_nanos": 2000000000
+      },
+      "phase": "execute",
+      "trace_bytes": 4096,
+      "virtual_time_nanos": 5000000,
+      "wall_nanos": 2000000000
+     },
+     {
+      "fuel_used": 1000,
+      "guest_memory_limit_bytes": 268435456,
+      "guest_peak_memory_bytes": 67108864,
+      "iteration": 2,
+      "linked_after": {
+       "peak_rss_bytes": 367001600,
+       "system_nanos": 1000000000,
+       "user_nanos": 6000000000
+      },
+      "linked_before": {
+       "peak_rss_bytes": 314572800,
+       "system_nanos": 1000000000,
+       "user_nanos": 4000000000
+      },
+      "phase": "execute",
+      "trace_bytes": 4096,
+      "virtual_time_nanos": 5000000,
+      "wall_nanos": 2000000000
+     },
+     {
+      "fuel_used": 1000,
+      "guest_memory_limit_bytes": 268435456,
+      "guest_peak_memory_bytes": 67108864,
+      "iteration": 1,
+      "linked_after": {
+       "peak_rss_bytes": 398458880,
+       "system_nanos": 1000000000,
+       "user_nanos": 7000000000
+      },
+      "linked_before": {
+       "peak_rss_bytes": 367001600,
+       "system_nanos": 1000000000,
+       "user_nanos": 6000000000
+      },
+      "phase": "replay",
+      "trace_bytes": 4096,
+      "virtual_time_nanos": 5000000,
+      "wall_nanos": 2000000000
+     },
+     {
+      "fuel_used": 1000,
+      "guest_memory_limit_bytes": 268435456,
+      "guest_peak_memory_bytes": 67108864,
+      "iteration": 2,
+      "linked_after": {
+       "peak_rss_bytes": 408944640,
+       "system_nanos": 2000000000,
+       "user_nanos": 8000000000
+      },
+      "linked_before": {
+       "peak_rss_bytes": 398458880,
+       "system_nanos": 1000000000,
+       "user_nanos": 7000000000
+      },
+      "phase": "replay",
+      "trace_bytes": 4096,
+      "virtual_time_nanos": 5000000,
+      "wall_nanos": 2000000000
+     }
+    ],
+    "start": {
+     "children": {
+      "peak_rss_bytes": 0,
+      "system_nanos": 0,
+      "user_nanos": 0
+     },
+     "linked": {
+      "peak_rss_bytes": 104857600,
+      "system_nanos": 500000000,
+      "user_nanos": 1000000000
+     }
+    }
+   },
+   "runs": [
+    {
+     "class": "success",
+     "exit_code": 0,
+     "replayed": true,
+     "virtual_time_nanos": 5000000
+    },
+    {
+     "class": "success",
+     "exit_code": 0,
+     "replayed": true,
+     "virtual_time_nanos": 5000000
+    }
+   ]
+  },
+  {
+   "name": "guest-memory-exceeded",
+   "observations": {
+    "executed": {
+     "children": {
+      "peak_rss_bytes": 943718400,
+      "system_nanos": 5000000000,
+      "user_nanos": 30000000000
+     },
+     "linked": {
+      "peak_rss_bytes": 419430400,
+      "system_nanos": 2000000000,
+      "user_nanos": 10000000000
+     }
+    },
+    "operator_process_id": 4242,
+    "preparation_wall_nanos": 40000000000,
+    "prepared": {
+     "children": {
+      "peak_rss_bytes": 943718400,
+      "system_nanos": 5000000000,
+      "user_nanos": 30000000000
+     },
+     "linked": {
+      "peak_rss_bytes": 209715200,
+      "system_nanos": 1000000000,
+      "user_nanos": 2000000000
+     }
+    },
+    "resident_stores": 1,
+    "samples": [
+     {
+      "fuel_used": 1000,
+      "guest_memory_limit_bytes": 268435456,
+      "guest_peak_memory_bytes": 268435457,
+      "iteration": 1,
+      "linked_after": {
+       "peak_rss_bytes": 314572800,
+       "system_nanos": 1000000000,
+       "user_nanos": 4000000000
+      },
+      "linked_before": {
+       "peak_rss_bytes": 209715200,
+       "system_nanos": 1000000000,
+       "user_nanos": 2000000000
+      },
+      "phase": "execute",
+      "trace_bytes": 4096,
+      "virtual_time_nanos": 5000000,
+      "wall_nanos": 2000000000
+     },
+     {
+      "fuel_used": 1000,
+      "guest_memory_limit_bytes": 268435456,
+      "guest_peak_memory_bytes": 67108864,
+      "iteration": 2,
+      "linked_after": {
+       "peak_rss_bytes": 367001600,
+       "system_nanos": 1000000000,
+       "user_nanos": 6000000000
+      },
+      "linked_before": {
+       "peak_rss_bytes": 314572800,
+       "system_nanos": 1000000000,
+       "user_nanos": 4000000000
+      },
+      "phase": "execute",
+      "trace_bytes": 4096,
+      "virtual_time_nanos": 5000000,
+      "wall_nanos": 2000000000
+     },
+     {
+      "fuel_used": 1000,
+      "guest_memory_limit_bytes": 268435456,
+      "guest_peak_memory_bytes": 67108864,
+      "iteration": 1,
+      "linked_after": {
+       "peak_rss_bytes": 398458880,
+       "system_nanos": 1000000000,
+       "user_nanos": 7000000000
+      },
+      "linked_before": {
+       "peak_rss_bytes": 367001600,
+       "system_nanos": 1000000000,
+       "user_nanos": 6000000000
+      },
+      "phase": "replay",
+      "trace_bytes": 4096,
+      "virtual_time_nanos": 5000000,
+      "wall_nanos": 2000000000
+     },
+     {
+      "fuel_used": 1000,
+      "guest_memory_limit_bytes": 268435456,
+      "guest_peak_memory_bytes": 67108864,
+      "iteration": 2,
+      "linked_after": {
+       "peak_rss_bytes": 408944640,
+       "system_nanos": 2000000000,
+       "user_nanos": 8000000000
+      },
+      "linked_before": {
+       "peak_rss_bytes": 398458880,
+       "system_nanos": 1000000000,
+       "user_nanos": 7000000000
+      },
+      "phase": "replay",
+      "trace_bytes": 4096,
+      "virtual_time_nanos": 5000000,
+      "wall_nanos": 2000000000
+     }
+    ],
+    "start": {
+     "children": {
+      "peak_rss_bytes": 0,
+      "system_nanos": 0,
+      "user_nanos": 0
+     },
+     "linked": {
+      "peak_rss_bytes": 104857600,
+      "system_nanos": 500000000,
+      "user_nanos": 1000000000
+     }
+    }
+   },
+   "runs": [
+    {
+     "class": "success",
+     "exit_code": 0,
+     "replayed": true,
+     "virtual_time_nanos": 5000000
+    },
+    {
+     "class": "success",
+     "exit_code": 0,
+     "replayed": true,
+     "virtual_time_nanos": 5000000
+    }
+   ]
+  },
+  {
+   "name": "linked-peak-at-operator-limit",
+   "observations": {
+    "executed": {
+     "children": {
+      "peak_rss_bytes": 943718400,
+      "system_nanos": 5000000000,
+      "user_nanos": 30000000000
+     },
+     "linked": {
+      "peak_rss_bytes": 2147483648,
+      "system_nanos": 2000000000,
+      "user_nanos": 10000000000
+     }
+    },
+    "operator_process_id": 4242,
+    "preparation_wall_nanos": 40000000000,
+    "prepared": {
+     "children": {
+      "peak_rss_bytes": 943718400,
+      "system_nanos": 5000000000,
+      "user_nanos": 30000000000
+     },
+     "linked": {
+      "peak_rss_bytes": 209715200,
+      "system_nanos": 1000000000,
+      "user_nanos": 2000000000
+     }
+    },
+    "resident_stores": 1,
+    "samples": [
+     {
+      "fuel_used": 1000,
+      "guest_memory_limit_bytes": 268435456,
+      "guest_peak_memory_bytes": 67108864,
+      "iteration": 1,
+      "linked_after": {
+       "peak_rss_bytes": 314572800,
+       "system_nanos": 1000000000,
+       "user_nanos": 4000000000
+      },
+      "linked_before": {
+       "peak_rss_bytes": 209715200,
+       "system_nanos": 1000000000,
+       "user_nanos": 2000000000
+      },
+      "phase": "execute",
+      "trace_bytes": 4096,
+      "virtual_time_nanos": 5000000,
+      "wall_nanos": 2000000000
+     },
+     {
+      "fuel_used": 1000,
+      "guest_memory_limit_bytes": 268435456,
+      "guest_peak_memory_bytes": 67108864,
+      "iteration": 2,
+      "linked_after": {
+       "peak_rss_bytes": 367001600,
+       "system_nanos": 1000000000,
+       "user_nanos": 6000000000
+      },
+      "linked_before": {
+       "peak_rss_bytes": 314572800,
+       "system_nanos": 1000000000,
+       "user_nanos": 4000000000
+      },
+      "phase": "execute",
+      "trace_bytes": 4096,
+      "virtual_time_nanos": 5000000,
+      "wall_nanos": 2000000000
+     },
+     {
+      "fuel_used": 1000,
+      "guest_memory_limit_bytes": 268435456,
+      "guest_peak_memory_bytes": 67108864,
+      "iteration": 1,
+      "linked_after": {
+       "peak_rss_bytes": 398458880,
+       "system_nanos": 1000000000,
+       "user_nanos": 7000000000
+      },
+      "linked_before": {
+       "peak_rss_bytes": 367001600,
+       "system_nanos": 1000000000,
+       "user_nanos": 6000000000
+      },
+      "phase": "replay",
+      "trace_bytes": 4096,
+      "virtual_time_nanos": 5000000,
+      "wall_nanos": 2000000000
+     },
+     {
+      "fuel_used": 1000,
+      "guest_memory_limit_bytes": 268435456,
+      "guest_peak_memory_bytes": 67108864,
+      "iteration": 2,
+      "linked_after": {
+       "peak_rss_bytes": 408944640,
+       "system_nanos": 2000000000,
+       "user_nanos": 8000000000
+      },
+      "linked_before": {
+       "peak_rss_bytes": 398458880,
+       "system_nanos": 1000000000,
+       "user_nanos": 7000000000
+      },
+      "phase": "replay",
+      "trace_bytes": 4096,
+      "virtual_time_nanos": 5000000,
+      "wall_nanos": 2000000000
+     }
+    ],
+    "start": {
+     "children": {
+      "peak_rss_bytes": 0,
+      "system_nanos": 0,
+      "user_nanos": 0
+     },
+     "linked": {
+      "peak_rss_bytes": 104857600,
+      "system_nanos": 500000000,
+      "user_nanos": 1000000000
+     }
+    }
+   },
+   "runs": [
+    {
+     "class": "success",
+     "exit_code": 0,
+     "replayed": true,
+     "virtual_time_nanos": 5000000
+    },
+    {
+     "class": "success",
+     "exit_code": 0,
+     "replayed": true,
+     "virtual_time_nanos": 5000000
+    }
+   ],
+   "terminal": {
+    "peak_rss_bytes": 2147483648,
+    "system_nanos": 2000000000,
+    "user_nanos": 11000000000
+   }
+  },
+  {
+   "name": "linked-peak-unattributed",
+   "observations": {
+    "executed": {
+     "children": {
+      "peak_rss_bytes": 943718400,
+      "system_nanos": 5000000000,
+      "user_nanos": 30000000000
+     },
+     "linked": {
+      "peak_rss_bytes": 3221225472,
+      "system_nanos": 2000000000,
+      "user_nanos": 10000000000
+     }
+    },
+    "operator_process_id": 4242,
+    "preparation_wall_nanos": 40000000000,
+    "prepared": {
+     "children": {
+      "peak_rss_bytes": 943718400,
+      "system_nanos": 5000000000,
+      "user_nanos": 30000000000
+     },
+     "linked": {
+      "peak_rss_bytes": 209715200,
+      "system_nanos": 1000000000,
+      "user_nanos": 2000000000
+     }
+    },
+    "resident_stores": 1,
+    "samples": [
+     {
+      "fuel_used": 1000,
+      "guest_memory_limit_bytes": 268435456,
+      "guest_peak_memory_bytes": 67108864,
+      "iteration": 1,
+      "linked_after": {
+       "peak_rss_bytes": 314572800,
+       "system_nanos": 1000000000,
+       "user_nanos": 4000000000
+      },
+      "linked_before": {
+       "peak_rss_bytes": 209715200,
+       "system_nanos": 1000000000,
+       "user_nanos": 2000000000
+      },
+      "phase": "execute",
+      "trace_bytes": 4096,
+      "virtual_time_nanos": 5000000,
+      "wall_nanos": 2000000000
+     },
+     {
+      "fuel_used": 1000,
+      "guest_memory_limit_bytes": 268435456,
+      "guest_peak_memory_bytes": 67108864,
+      "iteration": 2,
+      "linked_after": {
+       "peak_rss_bytes": 367001600,
+       "system_nanos": 1000000000,
+       "user_nanos": 6000000000
+      },
+      "linked_before": {
+       "peak_rss_bytes": 314572800,
+       "system_nanos": 1000000000,
+       "user_nanos": 4000000000
+      },
+      "phase": "execute",
+      "trace_bytes": 4096,
+      "virtual_time_nanos": 5000000,
+      "wall_nanos": 2000000000
+     },
+     {
+      "fuel_used": 1000,
+      "guest_memory_limit_bytes": 268435456,
+      "guest_peak_memory_bytes": 67108864,
+      "iteration": 1,
+      "linked_after": {
+       "peak_rss_bytes": 398458880,
+       "system_nanos": 1000000000,
+       "user_nanos": 7000000000
+      },
+      "linked_before": {
+       "peak_rss_bytes": 367001600,
+       "system_nanos": 1000000000,
+       "user_nanos": 6000000000
+      },
+      "phase": "replay",
+      "trace_bytes": 4096,
+      "virtual_time_nanos": 5000000,
+      "wall_nanos": 2000000000
+     },
+     {
+      "fuel_used": 1000,
+      "guest_memory_limit_bytes": 268435456,
+      "guest_peak_memory_bytes": 67108864,
+      "iteration": 2,
+      "linked_after": {
+       "peak_rss_bytes": 408944640,
+       "system_nanos": 2000000000,
+       "user_nanos": 8000000000
+      },
+      "linked_before": {
+       "peak_rss_bytes": 398458880,
+       "system_nanos": 1000000000,
+       "user_nanos": 7000000000
+      },
+      "phase": "replay",
+      "trace_bytes": 4096,
+      "virtual_time_nanos": 5000000,
+      "wall_nanos": 2000000000
+     }
+    ],
+    "start": {
+     "children": {
+      "peak_rss_bytes": 0,
+      "system_nanos": 0,
+      "user_nanos": 0
+     },
+     "linked": {
+      "peak_rss_bytes": 104857600,
+      "system_nanos": 500000000,
+      "user_nanos": 1000000000
+     }
+    }
+   },
+   "runs": [
+    {
+     "class": "success",
+     "exit_code": 0,
+     "replayed": true,
+     "virtual_time_nanos": 5000000
+    },
+    {
+     "class": "success",
+     "exit_code": 0,
+     "replayed": true,
+     "virtual_time_nanos": 5000000
+    }
+   ],
+   "terminal": {
+    "peak_rss_bytes": 3221225472,
+    "system_nanos": 2000000000,
+    "user_nanos": 11000000000
+   }
+  },
+  {
+   "name": "linked-peak-over-every-component",
+   "observations": {
+    "executed": {
+     "children": {
+      "peak_rss_bytes": 943718400,
+      "system_nanos": 5000000000,
+      "user_nanos": 30000000000
+     },
+     "linked": {
+      "peak_rss_bytes": 9663676416,
+      "system_nanos": 2000000000,
+      "user_nanos": 10000000000
+     }
+    },
+    "operator_process_id": 4242,
+    "preparation_wall_nanos": 40000000000,
+    "prepared": {
+     "children": {
+      "peak_rss_bytes": 943718400,
+      "system_nanos": 5000000000,
+      "user_nanos": 30000000000
+     },
+     "linked": {
+      "peak_rss_bytes": 209715200,
+      "system_nanos": 1000000000,
+      "user_nanos": 2000000000
+     }
+    },
+    "resident_stores": 1,
+    "samples": [
+     {
+      "fuel_used": 1000,
+      "guest_memory_limit_bytes": 268435456,
+      "guest_peak_memory_bytes": 67108864,
+      "iteration": 1,
+      "linked_after": {
+       "peak_rss_bytes": 314572800,
+       "system_nanos": 1000000000,
+       "user_nanos": 4000000000
+      },
+      "linked_before": {
+       "peak_rss_bytes": 209715200,
+       "system_nanos": 1000000000,
+       "user_nanos": 2000000000
+      },
+      "phase": "execute",
+      "trace_bytes": 4096,
+      "virtual_time_nanos": 5000000,
+      "wall_nanos": 2000000000
+     },
+     {
+      "fuel_used": 1000,
+      "guest_memory_limit_bytes": 268435456,
+      "guest_peak_memory_bytes": 67108864,
+      "iteration": 2,
+      "linked_after": {
+       "peak_rss_bytes": 367001600,
+       "system_nanos": 1000000000,
+       "user_nanos": 6000000000
+      },
+      "linked_before": {
+       "peak_rss_bytes": 314572800,
+       "system_nanos": 1000000000,
+       "user_nanos": 4000000000
+      },
+      "phase": "execute",
+      "trace_bytes": 4096,
+      "virtual_time_nanos": 5000000,
+      "wall_nanos": 2000000000
+     },
+     {
+      "fuel_used": 1000,
+      "guest_memory_limit_bytes": 268435456,
+      "guest_peak_memory_bytes": 67108864,
+      "iteration": 1,
+      "linked_after": {
+       "peak_rss_bytes": 398458880,
+       "system_nanos": 1000000000,
+       "user_nanos": 7000000000
+      },
+      "linked_before": {
+       "peak_rss_bytes": 367001600,
+       "system_nanos": 1000000000,
+       "user_nanos": 6000000000
+      },
+      "phase": "replay",
+      "trace_bytes": 4096,
+      "virtual_time_nanos": 5000000,
+      "wall_nanos": 2000000000
+     },
+     {
+      "fuel_used": 1000,
+      "guest_memory_limit_bytes": 268435456,
+      "guest_peak_memory_bytes": 67108864,
+      "iteration": 2,
+      "linked_after": {
+       "peak_rss_bytes": 408944640,
+       "system_nanos": 2000000000,
+       "user_nanos": 8000000000
+      },
+      "linked_before": {
+       "peak_rss_bytes": 398458880,
+       "system_nanos": 1000000000,
+       "user_nanos": 7000000000
+      },
+      "phase": "replay",
+      "trace_bytes": 4096,
+      "virtual_time_nanos": 5000000,
+      "wall_nanos": 2000000000
+     }
+    ],
+    "start": {
+     "children": {
+      "peak_rss_bytes": 0,
+      "system_nanos": 0,
+      "user_nanos": 0
+     },
+     "linked": {
+      "peak_rss_bytes": 104857600,
+      "system_nanos": 500000000,
+      "user_nanos": 1000000000
+     }
+    }
+   },
+   "runs": [
+    {
+     "class": "success",
+     "exit_code": 0,
+     "replayed": true,
+     "virtual_time_nanos": 5000000
+    },
+    {
+     "class": "success",
+     "exit_code": 0,
+     "replayed": true,
+     "virtual_time_nanos": 5000000
+    }
+   ]
+  },
+  {
+   "name": "missing-start-observation",
+   "observations": {
+    "executed": {
+     "children": {
+      "peak_rss_bytes": 943718400,
+      "system_nanos": 5000000000,
+      "user_nanos": 30000000000
+     },
+     "linked": {
+      "peak_rss_bytes": 419430400,
+      "system_nanos": 2000000000,
+      "user_nanos": 10000000000
+     }
+    },
+    "operator_process_id": 4242,
+    "preparation_wall_nanos": 40000000000,
+    "prepared": {
+     "children": {
+      "peak_rss_bytes": 943718400,
+      "system_nanos": 5000000000,
+      "user_nanos": 30000000000
+     },
+     "linked": {
+      "peak_rss_bytes": 209715200,
+      "system_nanos": 1000000000,
+      "user_nanos": 2000000000
+     }
+    },
+    "resident_stores": 1,
+    "samples": [
+     {
+      "fuel_used": 1000,
+      "guest_memory_limit_bytes": 268435456,
+      "guest_peak_memory_bytes": 67108864,
+      "iteration": 1,
+      "linked_after": {
+       "peak_rss_bytes": 314572800,
+       "system_nanos": 1000000000,
+       "user_nanos": 4000000000
+      },
+      "linked_before": {
+       "peak_rss_bytes": 209715200,
+       "system_nanos": 1000000000,
+       "user_nanos": 2000000000
+      },
+      "phase": "execute",
+      "trace_bytes": 4096,
+      "virtual_time_nanos": 5000000,
+      "wall_nanos": 2000000000
+     },
+     {
+      "fuel_used": 1000,
+      "guest_memory_limit_bytes": 268435456,
+      "guest_peak_memory_bytes": 67108864,
+      "iteration": 2,
+      "linked_after": {
+       "peak_rss_bytes": 367001600,
+       "system_nanos": 1000000000,
+       "user_nanos": 6000000000
+      },
+      "linked_before": {
+       "peak_rss_bytes": 314572800,
+       "system_nanos": 1000000000,
+       "user_nanos": 4000000000
+      },
+      "phase": "execute",
+      "trace_bytes": 4096,
+      "virtual_time_nanos": 5000000,
+      "wall_nanos": 2000000000
+     },
+     {
+      "fuel_used": 1000,
+      "guest_memory_limit_bytes": 268435456,
+      "guest_peak_memory_bytes": 67108864,
+      "iteration": 1,
+      "linked_after": {
+       "peak_rss_bytes": 398458880,
+       "system_nanos": 1000000000,
+       "user_nanos": 7000000000
+      },
+      "linked_before": {
+       "peak_rss_bytes": 367001600,
+       "system_nanos": 1000000000,
+       "user_nanos": 6000000000
+      },
+      "phase": "replay",
+      "trace_bytes": 4096,
+      "virtual_time_nanos": 5000000,
+      "wall_nanos": 2000000000
+     },
+     {
+      "fuel_used": 1000,
+      "guest_memory_limit_bytes": 268435456,
+      "guest_peak_memory_bytes": 67108864,
+      "iteration": 2,
+      "linked_after": {
+       "peak_rss_bytes": 408944640,
+       "system_nanos": 2000000000,
+       "user_nanos": 8000000000
+      },
+      "linked_before": {
+       "peak_rss_bytes": 398458880,
+       "system_nanos": 1000000000,
+       "user_nanos": 7000000000
+      },
+      "phase": "replay",
+      "trace_bytes": 4096,
+      "virtual_time_nanos": 5000000,
+      "wall_nanos": 2000000000
+     }
+    ],
+    "start": null
+   },
+   "runs": [
+    {
+     "class": "success",
+     "exit_code": 0,
+     "replayed": true,
+     "virtual_time_nanos": 5000000
+    },
+    {
+     "class": "success",
+     "exit_code": 0,
+     "replayed": true,
+     "virtual_time_nanos": 5000000
+    }
+   ]
+  },
+  {
+   "name": "missing-compiler-observation",
+   "observations": {
+    "executed": {
+     "children": {
+      "peak_rss_bytes": 0,
+      "system_nanos": 0,
+      "user_nanos": 0
+     },
+     "linked": {
+      "peak_rss_bytes": 419430400,
+      "system_nanos": 2000000000,
+      "user_nanos": 10000000000
+     }
+    },
+    "operator_process_id": 4242,
+    "preparation_wall_nanos": 40000000000,
+    "prepared": {
+     "children": {
+      "peak_rss_bytes": 0,
+      "system_nanos": 0,
+      "user_nanos": 0
+     },
+     "linked": {
+      "peak_rss_bytes": 209715200,
+      "system_nanos": 1000000000,
+      "user_nanos": 2000000000
+     }
+    },
+    "resident_stores": 1,
+    "samples": [
+     {
+      "fuel_used": 1000,
+      "guest_memory_limit_bytes": 268435456,
+      "guest_peak_memory_bytes": 67108864,
+      "iteration": 1,
+      "linked_after": {
+       "peak_rss_bytes": 314572800,
+       "system_nanos": 1000000000,
+       "user_nanos": 4000000000
+      },
+      "linked_before": {
+       "peak_rss_bytes": 209715200,
+       "system_nanos": 1000000000,
+       "user_nanos": 2000000000
+      },
+      "phase": "execute",
+      "trace_bytes": 4096,
+      "virtual_time_nanos": 5000000,
+      "wall_nanos": 2000000000
+     },
+     {
+      "fuel_used": 1000,
+      "guest_memory_limit_bytes": 268435456,
+      "guest_peak_memory_bytes": 67108864,
+      "iteration": 2,
+      "linked_after": {
+       "peak_rss_bytes": 367001600,
+       "system_nanos": 1000000000,
+       "user_nanos": 6000000000
+      },
+      "linked_before": {
+       "peak_rss_bytes": 314572800,
+       "system_nanos": 1000000000,
+       "user_nanos": 4000000000
+      },
+      "phase": "execute",
+      "trace_bytes": 4096,
+      "virtual_time_nanos": 5000000,
+      "wall_nanos": 2000000000
+     },
+     {
+      "fuel_used": 1000,
+      "guest_memory_limit_bytes": 268435456,
+      "guest_peak_memory_bytes": 67108864,
+      "iteration": 1,
+      "linked_after": {
+       "peak_rss_bytes": 398458880,
+       "system_nanos": 1000000000,
+       "user_nanos": 7000000000
+      },
+      "linked_before": {
+       "peak_rss_bytes": 367001600,
+       "system_nanos": 1000000000,
+       "user_nanos": 6000000000
+      },
+      "phase": "replay",
+      "trace_bytes": 4096,
+      "virtual_time_nanos": 5000000,
+      "wall_nanos": 2000000000
+     },
+     {
+      "fuel_used": 1000,
+      "guest_memory_limit_bytes": 268435456,
+      "guest_peak_memory_bytes": 67108864,
+      "iteration": 2,
+      "linked_after": {
+       "peak_rss_bytes": 408944640,
+       "system_nanos": 2000000000,
+       "user_nanos": 8000000000
+      },
+      "linked_before": {
+       "peak_rss_bytes": 398458880,
+       "system_nanos": 1000000000,
+       "user_nanos": 7000000000
+      },
+      "phase": "replay",
+      "trace_bytes": 4096,
+      "virtual_time_nanos": 5000000,
+      "wall_nanos": 2000000000
+     }
+    ],
+    "start": {
+     "children": {
+      "peak_rss_bytes": 0,
+      "system_nanos": 0,
+      "user_nanos": 0
+     },
+     "linked": {
+      "peak_rss_bytes": 104857600,
+      "system_nanos": 500000000,
+      "user_nanos": 1000000000
+     }
+    }
+   },
+   "runs": [
+    {
+     "class": "success",
+     "exit_code": 0,
+     "replayed": true,
+     "virtual_time_nanos": 5000000
+    },
+    {
+     "class": "success",
+     "exit_code": 0,
+     "replayed": true,
+     "virtual_time_nanos": 5000000
+    }
+   ]
+  },
+  {
+   "name": "missing-store-measurement",
+   "observations": {
+    "executed": {
+     "children": {
+      "peak_rss_bytes": 943718400,
+      "system_nanos": 5000000000,
+      "user_nanos": 30000000000
+     },
+     "linked": {
+      "peak_rss_bytes": 419430400,
+      "system_nanos": 2000000000,
+      "user_nanos": 10000000000
+     }
+    },
+    "operator_process_id": 4242,
+    "preparation_wall_nanos": 40000000000,
+    "prepared": {
+     "children": {
+      "peak_rss_bytes": 943718400,
+      "system_nanos": 5000000000,
+      "user_nanos": 30000000000
+     },
+     "linked": {
+      "peak_rss_bytes": 209715200,
+      "system_nanos": 1000000000,
+      "user_nanos": 2000000000
+     }
+    },
+    "resident_stores": 1,
+    "samples": [
+     {
+      "fuel_used": 1000,
+      "guest_memory_limit_bytes": 268435456,
+      "guest_peak_memory_bytes": 67108864,
+      "iteration": 1,
+      "linked_after": {
+       "peak_rss_bytes": 314572800,
+       "system_nanos": 1000000000,
+       "user_nanos": 4000000000
+      },
+      "linked_before": {
+       "peak_rss_bytes": 209715200,
+       "system_nanos": 1000000000,
+       "user_nanos": 2000000000
+      },
+      "phase": "execute",
+      "trace_bytes": 4096,
+      "virtual_time_nanos": 5000000,
+      "wall_nanos": 2000000000
+     },
+     {
+      "fuel_used": 1000,
+      "guest_memory_limit_bytes": 268435456,
+      "guest_peak_memory_bytes": 0,
+      "iteration": 2,
+      "linked_after": {
+       "peak_rss_bytes": 367001600,
+       "system_nanos": 1000000000,
+       "user_nanos": 6000000000
+      },
+      "linked_before": {
+       "peak_rss_bytes": 314572800,
+       "system_nanos": 1000000000,
+       "user_nanos": 4000000000
+      },
+      "phase": "execute",
+      "trace_bytes": 4096,
+      "virtual_time_nanos": 5000000,
+      "wall_nanos": 2000000000
+     },
+     {
+      "fuel_used": 1000,
+      "guest_memory_limit_bytes": 268435456,
+      "guest_peak_memory_bytes": 67108864,
+      "iteration": 1,
+      "linked_after": {
+       "peak_rss_bytes": 398458880,
+       "system_nanos": 1000000000,
+       "user_nanos": 7000000000
+      },
+      "linked_before": {
+       "peak_rss_bytes": 367001600,
+       "system_nanos": 1000000000,
+       "user_nanos": 6000000000
+      },
+      "phase": "replay",
+      "trace_bytes": 4096,
+      "virtual_time_nanos": 5000000,
+      "wall_nanos": 2000000000
+     },
+     {
+      "fuel_used": 1000,
+      "guest_memory_limit_bytes": 268435456,
+      "guest_peak_memory_bytes": 67108864,
+      "iteration": 2,
+      "linked_after": {
+       "peak_rss_bytes": 408944640,
+       "system_nanos": 2000000000,
+       "user_nanos": 8000000000
+      },
+      "linked_before": {
+       "peak_rss_bytes": 398458880,
+       "system_nanos": 1000000000,
+       "user_nanos": 7000000000
+      },
+      "phase": "replay",
+      "trace_bytes": 4096,
+      "virtual_time_nanos": 5000000,
+      "wall_nanos": 2000000000
+     }
+    ],
+    "start": {
+     "children": {
+      "peak_rss_bytes": 0,
+      "system_nanos": 0,
+      "user_nanos": 0
+     },
+     "linked": {
+      "peak_rss_bytes": 104857600,
+      "system_nanos": 500000000,
+      "user_nanos": 1000000000
+     }
+    }
+   },
+   "runs": [
+    {
+     "class": "success",
+     "exit_code": 0,
+     "replayed": true,
+     "virtual_time_nanos": 5000000
+    },
+    {
+     "class": "success",
+     "exit_code": 0,
+     "replayed": true,
+     "virtual_time_nanos": 5000000
+    }
+   ]
+  },
+  {
+   "name": "missing-store-boundary",
+   "observations": {
+    "executed": {
+     "children": {
+      "peak_rss_bytes": 943718400,
+      "system_nanos": 5000000000,
+      "user_nanos": 30000000000
+     },
+     "linked": {
+      "peak_rss_bytes": 419430400,
+      "system_nanos": 2000000000,
+      "user_nanos": 10000000000
+     }
+    },
+    "operator_process_id": 4242,
+    "preparation_wall_nanos": 40000000000,
+    "prepared": {
+     "children": {
+      "peak_rss_bytes": 943718400,
+      "system_nanos": 5000000000,
+      "user_nanos": 30000000000
+     },
+     "linked": {
+      "peak_rss_bytes": 209715200,
+      "system_nanos": 1000000000,
+      "user_nanos": 2000000000
+     }
+    },
+    "resident_stores": 1,
+    "samples": [
+     {
+      "fuel_used": 1000,
+      "guest_memory_limit_bytes": 268435456,
+      "guest_peak_memory_bytes": 67108864,
+      "iteration": 1,
+      "linked_after": {
+       "peak_rss_bytes": 314572800,
+       "system_nanos": 1000000000,
+       "user_nanos": 4000000000
+      },
+      "linked_before": {
+       "peak_rss_bytes": 209715200,
+       "system_nanos": 1000000000,
+       "user_nanos": 2000000000
+      },
+      "phase": "execute",
+      "trace_bytes": 4096,
+      "virtual_time_nanos": 5000000,
+      "wall_nanos": 2000000000
+     },
+     {
+      "fuel_used": 1000,
+      "guest_memory_limit_bytes": 268435456,
+      "guest_peak_memory_bytes": 67108864,
+      "iteration": 2,
+      "linked_after": {
+       "peak_rss_bytes": 367001600,
+       "system_nanos": 1000000000,
+       "user_nanos": 6000000000
+      },
+      "linked_before": {
+       "peak_rss_bytes": 314572800,
+       "system_nanos": 1000000000,
+       "user_nanos": 4000000000
+      },
+      "phase": "execute",
+      "trace_bytes": 4096,
+      "virtual_time_nanos": 5000000,
+      "wall_nanos": 2000000000
+     },
+     {
+      "fuel_used": 1000,
+      "guest_memory_limit_bytes": 268435456,
+      "guest_peak_memory_bytes": 67108864,
+      "iteration": 1,
+      "linked_after": null,
+      "linked_before": {
+       "peak_rss_bytes": 367001600,
+       "system_nanos": 1000000000,
+       "user_nanos": 6000000000
+      },
+      "phase": "replay",
+      "trace_bytes": 4096,
+      "virtual_time_nanos": 5000000,
+      "wall_nanos": 2000000000
+     },
+     {
+      "fuel_used": 1000,
+      "guest_memory_limit_bytes": 268435456,
+      "guest_peak_memory_bytes": 67108864,
+      "iteration": 2,
+      "linked_after": {
+       "peak_rss_bytes": 408944640,
+       "system_nanos": 2000000000,
+       "user_nanos": 8000000000
+      },
+      "linked_before": {
+       "peak_rss_bytes": 398458880,
+       "system_nanos": 1000000000,
+       "user_nanos": 7000000000
+      },
+      "phase": "replay",
+      "trace_bytes": 4096,
+      "virtual_time_nanos": 5000000,
+      "wall_nanos": 2000000000
+     }
+    ],
+    "start": {
+     "children": {
+      "peak_rss_bytes": 0,
+      "system_nanos": 0,
+      "user_nanos": 0
+     },
+     "linked": {
+      "peak_rss_bytes": 104857600,
+      "system_nanos": 500000000,
+      "user_nanos": 1000000000
+     }
+    }
+   },
+   "runs": [
+    {
+     "class": "success",
+     "exit_code": 0,
+     "replayed": true,
+     "virtual_time_nanos": 5000000
+    },
+    {
+     "class": "success",
+     "exit_code": 0,
+     "replayed": true,
+     "virtual_time_nanos": 5000000
+    }
+   ]
+  },
+  {
+   "name": "overlapping-stores",
+   "observations": {
+    "executed": {
+     "children": {
+      "peak_rss_bytes": 943718400,
+      "system_nanos": 5000000000,
+      "user_nanos": 30000000000
+     },
+     "linked": {
+      "peak_rss_bytes": 419430400,
+      "system_nanos": 2000000000,
+      "user_nanos": 10000000000
+     }
+    },
+    "operator_process_id": 4242,
+    "preparation_wall_nanos": 40000000000,
+    "prepared": {
+     "children": {
+      "peak_rss_bytes": 943718400,
+      "system_nanos": 5000000000,
+      "user_nanos": 30000000000
+     },
+     "linked": {
+      "peak_rss_bytes": 209715200,
+      "system_nanos": 1000000000,
+      "user_nanos": 2000000000
+     }
+    },
+    "resident_stores": 1,
+    "samples": [
+     {
+      "fuel_used": 1000,
+      "guest_memory_limit_bytes": 268435456,
+      "guest_peak_memory_bytes": 67108864,
+      "iteration": 1,
+      "linked_after": {
+       "peak_rss_bytes": 314572800,
+       "system_nanos": 1000000000,
+       "user_nanos": 4000000000
+      },
+      "linked_before": {
+       "peak_rss_bytes": 209715200,
+       "system_nanos": 1000000000,
+       "user_nanos": 2000000000
+      },
+      "phase": "execute",
+      "trace_bytes": 4096,
+      "virtual_time_nanos": 5000000,
+      "wall_nanos": 2000000000
+     },
+     {
+      "fuel_used": 1000,
+      "guest_memory_limit_bytes": 268435456,
+      "guest_peak_memory_bytes": 67108864,
+      "iteration": 2,
+      "linked_after": {
+       "peak_rss_bytes": 367001600,
+       "system_nanos": 1000000000,
+       "user_nanos": 6000000000
+      },
+      "linked_before": {
+       "peak_rss_bytes": 314572800,
+       "system_nanos": 1000000000,
+       "user_nanos": 3000000000
+      },
+      "phase": "execute",
+      "trace_bytes": 4096,
+      "virtual_time_nanos": 5000000,
+      "wall_nanos": 2000000000
+     },
+     {
+      "fuel_used": 1000,
+      "guest_memory_limit_bytes": 268435456,
+      "guest_peak_memory_bytes": 67108864,
+      "iteration": 1,
+      "linked_after": {
+       "peak_rss_bytes": 398458880,
+       "system_nanos": 1000000000,
+       "user_nanos": 7000000000
+      },
+      "linked_before": {
+       "peak_rss_bytes": 367001600,
+       "system_nanos": 1000000000,
+       "user_nanos": 6000000000
+      },
+      "phase": "replay",
+      "trace_bytes": 4096,
+      "virtual_time_nanos": 5000000,
+      "wall_nanos": 2000000000
+     },
+     {
+      "fuel_used": 1000,
+      "guest_memory_limit_bytes": 268435456,
+      "guest_peak_memory_bytes": 67108864,
+      "iteration": 2,
+      "linked_after": {
+       "peak_rss_bytes": 408944640,
+       "system_nanos": 2000000000,
+       "user_nanos": 8000000000
+      },
+      "linked_before": {
+       "peak_rss_bytes": 398458880,
+       "system_nanos": 1000000000,
+       "user_nanos": 7000000000
+      },
+      "phase": "replay",
+      "trace_bytes": 4096,
+      "virtual_time_nanos": 5000000,
+      "wall_nanos": 2000000000
+     }
+    ],
+    "start": {
+     "children": {
+      "peak_rss_bytes": 0,
+      "system_nanos": 0,
+      "user_nanos": 0
+     },
+     "linked": {
+      "peak_rss_bytes": 104857600,
+      "system_nanos": 500000000,
+      "user_nanos": 1000000000
+     }
+    }
+   },
+   "runs": [
+    {
+     "class": "success",
+     "exit_code": 0,
+     "replayed": true,
+     "virtual_time_nanos": 5000000
+    },
+    {
+     "class": "success",
+     "exit_code": 0,
+     "replayed": true,
+     "virtual_time_nanos": 5000000
+    }
+   ]
+  },
+  {
+   "name": "concurrent-stores-unattributed",
+   "observations": {
+    "executed": {
+     "children": {
+      "peak_rss_bytes": 943718400,
+      "system_nanos": 5000000000,
+      "user_nanos": 30000000000
+     },
+     "linked": {
+      "peak_rss_bytes": 419430400,
+      "system_nanos": 2000000000,
+      "user_nanos": 10000000000
+     }
+    },
+    "operator_process_id": 4242,
+    "preparation_wall_nanos": 40000000000,
+    "prepared": {
+     "children": {
+      "peak_rss_bytes": 943718400,
+      "system_nanos": 5000000000,
+      "user_nanos": 30000000000
+     },
+     "linked": {
+      "peak_rss_bytes": 209715200,
+      "system_nanos": 1000000000,
+      "user_nanos": 2000000000
+     }
+    },
+    "resident_stores": 2,
+    "samples": [
+     {
+      "fuel_used": 1000,
+      "guest_memory_limit_bytes": 268435456,
+      "guest_peak_memory_bytes": 67108864,
+      "iteration": 1,
+      "linked_after": {
+       "peak_rss_bytes": 314572800,
+       "system_nanos": 1000000000,
+       "user_nanos": 4000000000
+      },
+      "linked_before": {
+       "peak_rss_bytes": 209715200,
+       "system_nanos": 1000000000,
+       "user_nanos": 2000000000
+      },
+      "phase": "execute",
+      "trace_bytes": 4096,
+      "virtual_time_nanos": 5000000,
+      "wall_nanos": 2000000000
+     },
+     {
+      "fuel_used": 1000,
+      "guest_memory_limit_bytes": 268435456,
+      "guest_peak_memory_bytes": 67108864,
+      "iteration": 2,
+      "linked_after": {
+       "peak_rss_bytes": 367001600,
+       "system_nanos": 1000000000,
+       "user_nanos": 6000000000
+      },
+      "linked_before": {
+       "peak_rss_bytes": 314572800,
+       "system_nanos": 1000000000,
+       "user_nanos": 4000000000
+      },
+      "phase": "execute",
+      "trace_bytes": 4096,
+      "virtual_time_nanos": 5000000,
+      "wall_nanos": 2000000000
+     },
+     {
+      "fuel_used": 1000,
+      "guest_memory_limit_bytes": 268435456,
+      "guest_peak_memory_bytes": 67108864,
+      "iteration": 1,
+      "linked_after": {
+       "peak_rss_bytes": 398458880,
+       "system_nanos": 1000000000,
+       "user_nanos": 7000000000
+      },
+      "linked_before": {
+       "peak_rss_bytes": 367001600,
+       "system_nanos": 1000000000,
+       "user_nanos": 6000000000
+      },
+      "phase": "replay",
+      "trace_bytes": 4096,
+      "virtual_time_nanos": 5000000,
+      "wall_nanos": 2000000000
+     },
+     {
+      "fuel_used": 1000,
+      "guest_memory_limit_bytes": 268435456,
+      "guest_peak_memory_bytes": 67108864,
+      "iteration": 2,
+      "linked_after": {
+       "peak_rss_bytes": 408944640,
+       "system_nanos": 2000000000,
+       "user_nanos": 8000000000
+      },
+      "linked_before": {
+       "peak_rss_bytes": 398458880,
+       "system_nanos": 1000000000,
+       "user_nanos": 7000000000
+      },
+      "phase": "replay",
+      "trace_bytes": 4096,
+      "virtual_time_nanos": 5000000,
+      "wall_nanos": 2000000000
+     }
+    ],
+    "start": {
+     "children": {
+      "peak_rss_bytes": 0,
+      "system_nanos": 0,
+      "user_nanos": 0
+     },
+     "linked": {
+      "peak_rss_bytes": 104857600,
+      "system_nanos": 500000000,
+      "user_nanos": 1000000000
+     }
+    }
+   },
+   "runs": [
+    {
+     "class": "success",
+     "exit_code": 0,
+     "replayed": true,
+     "virtual_time_nanos": 5000000
+    },
+    {
+     "class": "success",
+     "exit_code": 0,
+     "replayed": true,
+     "virtual_time_nanos": 5000000
+    }
+   ]
+  },
+  {
+   "name": "counters-decreased",
+   "observations": {
+    "executed": {
+     "children": {
+      "peak_rss_bytes": 943718400,
+      "system_nanos": 5000000000,
+      "user_nanos": 30000000000
+     },
+     "linked": {
+      "peak_rss_bytes": 419430400,
+      "system_nanos": 2000000000,
+      "user_nanos": 1000000000
+     }
+    },
+    "operator_process_id": 4242,
+    "preparation_wall_nanos": 40000000000,
+    "prepared": {
+     "children": {
+      "peak_rss_bytes": 943718400,
+      "system_nanos": 5000000000,
+      "user_nanos": 30000000000
+     },
+     "linked": {
+      "peak_rss_bytes": 209715200,
+      "system_nanos": 1000000000,
+      "user_nanos": 2000000000
+     }
+    },
+    "resident_stores": 1,
+    "samples": [
+     {
+      "fuel_used": 1000,
+      "guest_memory_limit_bytes": 268435456,
+      "guest_peak_memory_bytes": 67108864,
+      "iteration": 1,
+      "linked_after": {
+       "peak_rss_bytes": 314572800,
+       "system_nanos": 1000000000,
+       "user_nanos": 4000000000
+      },
+      "linked_before": {
+       "peak_rss_bytes": 209715200,
+       "system_nanos": 1000000000,
+       "user_nanos": 2000000000
+      },
+      "phase": "execute",
+      "trace_bytes": 4096,
+      "virtual_time_nanos": 5000000,
+      "wall_nanos": 2000000000
+     },
+     {
+      "fuel_used": 1000,
+      "guest_memory_limit_bytes": 268435456,
+      "guest_peak_memory_bytes": 67108864,
+      "iteration": 2,
+      "linked_after": {
+       "peak_rss_bytes": 367001600,
+       "system_nanos": 1000000000,
+       "user_nanos": 6000000000
+      },
+      "linked_before": {
+       "peak_rss_bytes": 314572800,
+       "system_nanos": 1000000000,
+       "user_nanos": 4000000000
+      },
+      "phase": "execute",
+      "trace_bytes": 4096,
+      "virtual_time_nanos": 5000000,
+      "wall_nanos": 2000000000
+     },
+     {
+      "fuel_used": 1000,
+      "guest_memory_limit_bytes": 268435456,
+      "guest_peak_memory_bytes": 67108864,
+      "iteration": 1,
+      "linked_after": {
+       "peak_rss_bytes": 398458880,
+       "system_nanos": 1000000000,
+       "user_nanos": 7000000000
+      },
+      "linked_before": {
+       "peak_rss_bytes": 367001600,
+       "system_nanos": 1000000000,
+       "user_nanos": 6000000000
+      },
+      "phase": "replay",
+      "trace_bytes": 4096,
+      "virtual_time_nanos": 5000000,
+      "wall_nanos": 2000000000
+     },
+     {
+      "fuel_used": 1000,
+      "guest_memory_limit_bytes": 268435456,
+      "guest_peak_memory_bytes": 67108864,
+      "iteration": 2,
+      "linked_after": {
+       "peak_rss_bytes": 408944640,
+       "system_nanos": 2000000000,
+       "user_nanos": 8000000000
+      },
+      "linked_before": {
+       "peak_rss_bytes": 398458880,
+       "system_nanos": 1000000000,
+       "user_nanos": 7000000000
+      },
+      "phase": "replay",
+      "trace_bytes": 4096,
+      "virtual_time_nanos": 5000000,
+      "wall_nanos": 2000000000
+     }
+    ],
+    "start": {
+     "children": {
+      "peak_rss_bytes": 0,
+      "system_nanos": 0,
+      "user_nanos": 0
+     },
+     "linked": {
+      "peak_rss_bytes": 104857600,
+      "system_nanos": 500000000,
+      "user_nanos": 1000000000
+     }
+    }
+   },
+   "runs": [
+    {
+     "class": "success",
+     "exit_code": 0,
+     "replayed": true,
+     "virtual_time_nanos": 5000000
+    },
+    {
+     "class": "success",
+     "exit_code": 0,
+     "replayed": true,
+     "virtual_time_nanos": 5000000
+    }
+   ]
+  },
+  {
+   "name": "execution-sample-missing",
+   "observations": {
+    "executed": {
+     "children": {
+      "peak_rss_bytes": 943718400,
+      "system_nanos": 5000000000,
+      "user_nanos": 30000000000
+     },
+     "linked": {
+      "peak_rss_bytes": 419430400,
+      "system_nanos": 2000000000,
+      "user_nanos": 10000000000
+     }
+    },
+    "operator_process_id": 4242,
+    "preparation_wall_nanos": 40000000000,
+    "prepared": {
+     "children": {
+      "peak_rss_bytes": 943718400,
+      "system_nanos": 5000000000,
+      "user_nanos": 30000000000
+     },
+     "linked": {
+      "peak_rss_bytes": 209715200,
+      "system_nanos": 1000000000,
+      "user_nanos": 2000000000
+     }
+    },
+    "resident_stores": 1,
+    "samples": [
+     {
+      "fuel_used": 1000,
+      "guest_memory_limit_bytes": 268435456,
+      "guest_peak_memory_bytes": 67108864,
+      "iteration": 1,
+      "linked_after": {
+       "peak_rss_bytes": 314572800,
+       "system_nanos": 1000000000,
+       "user_nanos": 4000000000
+      },
+      "linked_before": {
+       "peak_rss_bytes": 209715200,
+       "system_nanos": 1000000000,
+       "user_nanos": 2000000000
+      },
+      "phase": "execute",
+      "trace_bytes": 4096,
+      "virtual_time_nanos": 5000000,
+      "wall_nanos": 2000000000
+     },
+     {
+      "fuel_used": 1000,
+      "guest_memory_limit_bytes": 268435456,
+      "guest_peak_memory_bytes": 67108864,
+      "iteration": 1,
+      "linked_after": {
+       "peak_rss_bytes": 398458880,
+       "system_nanos": 1000000000,
+       "user_nanos": 7000000000
+      },
+      "linked_before": {
+       "peak_rss_bytes": 367001600,
+       "system_nanos": 1000000000,
+       "user_nanos": 6000000000
+      },
+      "phase": "replay",
+      "trace_bytes": 4096,
+      "virtual_time_nanos": 5000000,
+      "wall_nanos": 2000000000
+     },
+     {
+      "fuel_used": 1000,
+      "guest_memory_limit_bytes": 268435456,
+      "guest_peak_memory_bytes": 67108864,
+      "iteration": 2,
+      "linked_after": {
+       "peak_rss_bytes": 408944640,
+       "system_nanos": 2000000000,
+       "user_nanos": 8000000000
+      },
+      "linked_before": {
+       "peak_rss_bytes": 398458880,
+       "system_nanos": 1000000000,
+       "user_nanos": 7000000000
+      },
+      "phase": "replay",
+      "trace_bytes": 4096,
+      "virtual_time_nanos": 5000000,
+      "wall_nanos": 2000000000
+     }
+    ],
+    "start": {
+     "children": {
+      "peak_rss_bytes": 0,
+      "system_nanos": 0,
+      "user_nanos": 0
+     },
+     "linked": {
+      "peak_rss_bytes": 104857600,
+      "system_nanos": 500000000,
+      "user_nanos": 1000000000
+     }
+    }
+   },
+   "runs": [
+    {
+     "class": "success",
+     "exit_code": 0,
+     "replayed": true,
+     "virtual_time_nanos": 5000000
+    },
+    {
+     "class": "success",
+     "exit_code": 0,
+     "replayed": true,
+     "virtual_time_nanos": 5000000
+    }
+   ]
+  },
+  {
+   "name": "record-virtual-time-mismatch",
+   "observations": {
+    "executed": {
+     "children": {
+      "peak_rss_bytes": 943718400,
+      "system_nanos": 5000000000,
+      "user_nanos": 30000000000
+     },
+     "linked": {
+      "peak_rss_bytes": 419430400,
+      "system_nanos": 2000000000,
+      "user_nanos": 10000000000
+     }
+    },
+    "operator_process_id": 4242,
+    "preparation_wall_nanos": 40000000000,
+    "prepared": {
+     "children": {
+      "peak_rss_bytes": 943718400,
+      "system_nanos": 5000000000,
+      "user_nanos": 30000000000
+     },
+     "linked": {
+      "peak_rss_bytes": 209715200,
+      "system_nanos": 1000000000,
+      "user_nanos": 2000000000
+     }
+    },
+    "resident_stores": 1,
+    "samples": [
+     {
+      "fuel_used": 1000,
+      "guest_memory_limit_bytes": 268435456,
+      "guest_peak_memory_bytes": 67108864,
+      "iteration": 1,
+      "linked_after": {
+       "peak_rss_bytes": 314572800,
+       "system_nanos": 1000000000,
+       "user_nanos": 4000000000
+      },
+      "linked_before": {
+       "peak_rss_bytes": 209715200,
+       "system_nanos": 1000000000,
+       "user_nanos": 2000000000
+      },
+      "phase": "execute",
+      "trace_bytes": 4096,
+      "virtual_time_nanos": 6000000,
+      "wall_nanos": 2000000000
+     },
+     {
+      "fuel_used": 1000,
+      "guest_memory_limit_bytes": 268435456,
+      "guest_peak_memory_bytes": 67108864,
+      "iteration": 2,
+      "linked_after": {
+       "peak_rss_bytes": 367001600,
+       "system_nanos": 1000000000,
+       "user_nanos": 6000000000
+      },
+      "linked_before": {
+       "peak_rss_bytes": 314572800,
+       "system_nanos": 1000000000,
+       "user_nanos": 4000000000
+      },
+      "phase": "execute",
+      "trace_bytes": 4096,
+      "virtual_time_nanos": 5000000,
+      "wall_nanos": 2000000000
+     },
+     {
+      "fuel_used": 1000,
+      "guest_memory_limit_bytes": 268435456,
+      "guest_peak_memory_bytes": 67108864,
+      "iteration": 1,
+      "linked_after": {
+       "peak_rss_bytes": 398458880,
+       "system_nanos": 1000000000,
+       "user_nanos": 7000000000
+      },
+      "linked_before": {
+       "peak_rss_bytes": 367001600,
+       "system_nanos": 1000000000,
+       "user_nanos": 6000000000
+      },
+      "phase": "replay",
+      "trace_bytes": 4096,
+      "virtual_time_nanos": 5000000,
+      "wall_nanos": 2000000000
+     },
+     {
+      "fuel_used": 1000,
+      "guest_memory_limit_bytes": 268435456,
+      "guest_peak_memory_bytes": 67108864,
+      "iteration": 2,
+      "linked_after": {
+       "peak_rss_bytes": 408944640,
+       "system_nanos": 2000000000,
+       "user_nanos": 8000000000
+      },
+      "linked_before": {
+       "peak_rss_bytes": 398458880,
+       "system_nanos": 1000000000,
+       "user_nanos": 7000000000
+      },
+      "phase": "replay",
+      "trace_bytes": 4096,
+      "virtual_time_nanos": 5000000,
+      "wall_nanos": 2000000000
+     }
+    ],
+    "start": {
+     "children": {
+      "peak_rss_bytes": 0,
+      "system_nanos": 0,
+      "user_nanos": 0
+     },
+     "linked": {
+      "peak_rss_bytes": 104857600,
+      "system_nanos": 500000000,
+      "user_nanos": 1000000000
+     }
+    }
+   },
+   "runs": [
+    {
+     "class": "success",
+     "exit_code": 0,
+     "replayed": true,
+     "virtual_time_nanos": 5000000
+    },
+    {
+     "class": "success",
+     "exit_code": 0,
+     "replayed": true,
+     "virtual_time_nanos": 5000000
+    }
+   ]
+  },
+  {
+   "name": "replayable-bug-counted-once",
+   "observations": {
+    "executed": {
+     "children": {
+      "peak_rss_bytes": 943718400,
+      "system_nanos": 5000000000,
+      "user_nanos": 30000000000
+     },
+     "linked": {
+      "peak_rss_bytes": 419430400,
+      "system_nanos": 2000000000,
+      "user_nanos": 10000000000
+     }
+    },
+    "operator_process_id": 4242,
+    "preparation_wall_nanos": 40000000000,
+    "prepared": {
+     "children": {
+      "peak_rss_bytes": 943718400,
+      "system_nanos": 5000000000,
+      "user_nanos": 30000000000
+     },
+     "linked": {
+      "peak_rss_bytes": 209715200,
+      "system_nanos": 1000000000,
+      "user_nanos": 2000000000
+     }
+    },
+    "resident_stores": 1,
+    "samples": [
+     {
+      "fuel_used": 1000,
+      "guest_memory_limit_bytes": 268435456,
+      "guest_peak_memory_bytes": 67108864,
+      "iteration": 1,
+      "linked_after": {
+       "peak_rss_bytes": 314572800,
+       "system_nanos": 1000000000,
+       "user_nanos": 4000000000
+      },
+      "linked_before": {
+       "peak_rss_bytes": 209715200,
+       "system_nanos": 1000000000,
+       "user_nanos": 2000000000
+      },
+      "phase": "execute",
+      "trace_bytes": 4096,
+      "virtual_time_nanos": 5000000,
+      "wall_nanos": 2000000000
+     },
+     {
+      "fuel_used": 1000,
+      "guest_memory_limit_bytes": 268435456,
+      "guest_peak_memory_bytes": 67108864,
+      "iteration": 2,
+      "linked_after": {
+       "peak_rss_bytes": 367001600,
+       "system_nanos": 1000000000,
+       "user_nanos": 6000000000
+      },
+      "linked_before": {
+       "peak_rss_bytes": 314572800,
+       "system_nanos": 1000000000,
+       "user_nanos": 4000000000
+      },
+      "phase": "execute",
+      "trace_bytes": 4096,
+      "virtual_time_nanos": 5000000,
+      "wall_nanos": 2000000000
+     },
+     {
+      "fuel_used": 1000,
+      "guest_memory_limit_bytes": 268435456,
+      "guest_peak_memory_bytes": 67108864,
+      "iteration": 1,
+      "linked_after": {
+       "peak_rss_bytes": 398458880,
+       "system_nanos": 1000000000,
+       "user_nanos": 7000000000
+      },
+      "linked_before": {
+       "peak_rss_bytes": 367001600,
+       "system_nanos": 1000000000,
+       "user_nanos": 6000000000
+      },
+      "phase": "replay",
+      "trace_bytes": 4096,
+      "virtual_time_nanos": 5000000,
+      "wall_nanos": 2000000000
+     },
+     {
+      "fuel_used": 1000,
+      "guest_memory_limit_bytes": 268435456,
+      "guest_peak_memory_bytes": 67108864,
+      "iteration": 2,
+      "linked_after": {
+       "peak_rss_bytes": 408944640,
+       "system_nanos": 2000000000,
+       "user_nanos": 8000000000
+      },
+      "linked_before": {
+       "peak_rss_bytes": 398458880,
+       "system_nanos": 1000000000,
+       "user_nanos": 7000000000
+      },
+      "phase": "replay",
+      "trace_bytes": 4096,
+      "virtual_time_nanos": 5000000,
+      "wall_nanos": 2000000000
+     }
+    ],
+    "start": {
+     "children": {
+      "peak_rss_bytes": 0,
+      "system_nanos": 0,
+      "user_nanos": 0
+     },
+     "linked": {
+      "peak_rss_bytes": 104857600,
+      "system_nanos": 500000000,
+      "user_nanos": 1000000000
+     }
+    }
+   },
+   "runs": [
+    {
+     "class": "target_failure",
+     "exit_code": 17,
+     "replayed": true,
+     "virtual_time_nanos": 5000000
+    },
+    {
+     "class": "target_failure",
+     "exit_code": 17,
+     "replayed": true,
+     "virtual_time_nanos": 5000000
+    }
+   ]
+  },
+  {
+   "name": "unreplayed-failure-not-a-bug",
+   "observations": {
+    "executed": {
+     "children": {
+      "peak_rss_bytes": 943718400,
+      "system_nanos": 5000000000,
+      "user_nanos": 30000000000
+     },
+     "linked": {
+      "peak_rss_bytes": 419430400,
+      "system_nanos": 2000000000,
+      "user_nanos": 10000000000
+     }
+    },
+    "operator_process_id": 4242,
+    "preparation_wall_nanos": 40000000000,
+    "prepared": {
+     "children": {
+      "peak_rss_bytes": 943718400,
+      "system_nanos": 5000000000,
+      "user_nanos": 30000000000
+     },
+     "linked": {
+      "peak_rss_bytes": 209715200,
+      "system_nanos": 1000000000,
+      "user_nanos": 2000000000
+     }
+    },
+    "resident_stores": 1,
+    "samples": [
+     {
+      "fuel_used": 1000,
+      "guest_memory_limit_bytes": 268435456,
+      "guest_peak_memory_bytes": 67108864,
+      "iteration": 1,
+      "linked_after": {
+       "peak_rss_bytes": 314572800,
+       "system_nanos": 1000000000,
+       "user_nanos": 4000000000
+      },
+      "linked_before": {
+       "peak_rss_bytes": 209715200,
+       "system_nanos": 1000000000,
+       "user_nanos": 2000000000
+      },
+      "phase": "execute",
+      "trace_bytes": 4096,
+      "virtual_time_nanos": 5000000,
+      "wall_nanos": 2000000000
+     },
+     {
+      "fuel_used": 1000,
+      "guest_memory_limit_bytes": 268435456,
+      "guest_peak_memory_bytes": 67108864,
+      "iteration": 2,
+      "linked_after": {
+       "peak_rss_bytes": 367001600,
+       "system_nanos": 1000000000,
+       "user_nanos": 6000000000
+      },
+      "linked_before": {
+       "peak_rss_bytes": 314572800,
+       "system_nanos": 1000000000,
+       "user_nanos": 4000000000
+      },
+      "phase": "execute",
+      "trace_bytes": 4096,
+      "virtual_time_nanos": 5000000,
+      "wall_nanos": 2000000000
+     },
+     {
+      "fuel_used": 1000,
+      "guest_memory_limit_bytes": 268435456,
+      "guest_peak_memory_bytes": 67108864,
+      "iteration": 1,
+      "linked_after": {
+       "peak_rss_bytes": 398458880,
+       "system_nanos": 1000000000,
+       "user_nanos": 7000000000
+      },
+      "linked_before": {
+       "peak_rss_bytes": 367001600,
+       "system_nanos": 1000000000,
+       "user_nanos": 6000000000
+      },
+      "phase": "replay",
+      "trace_bytes": 4096,
+      "virtual_time_nanos": 5000000,
+      "wall_nanos": 2000000000
+     },
+     {
+      "fuel_used": 1000,
+      "guest_memory_limit_bytes": 268435456,
+      "guest_peak_memory_bytes": 67108864,
+      "iteration": 2,
+      "linked_after": {
+       "peak_rss_bytes": 408944640,
+       "system_nanos": 2000000000,
+       "user_nanos": 8000000000
+      },
+      "linked_before": {
+       "peak_rss_bytes": 398458880,
+       "system_nanos": 1000000000,
+       "user_nanos": 7000000000
+      },
+      "phase": "replay",
+      "trace_bytes": 4096,
+      "virtual_time_nanos": 5000000,
+      "wall_nanos": 2000000000
+     }
+    ],
+    "start": {
+     "children": {
+      "peak_rss_bytes": 0,
+      "system_nanos": 0,
+      "user_nanos": 0
+     },
+     "linked": {
+      "peak_rss_bytes": 104857600,
+      "system_nanos": 500000000,
+      "user_nanos": 1000000000
+     }
+    }
+   },
+   "runs": [
+    {
+     "class": "target_failure",
+     "exit_code": 17,
+     "replayed": false,
+     "virtual_time_nanos": 5000000
+    },
+    {
+     "class": "target_failure",
+     "exit_code": 17,
+     "replayed": false,
+     "virtual_time_nanos": 5000000
+    }
+   ]
+  },
+  {
+   "name": "terminal-counter-decreased",
+   "observations": {
+    "executed": {
+     "children": {
+      "peak_rss_bytes": 943718400,
+      "system_nanos": 5000000000,
+      "user_nanos": 30000000000
+     },
+     "linked": {
+      "peak_rss_bytes": 419430400,
+      "system_nanos": 2000000000,
+      "user_nanos": 10000000000
+     }
+    },
+    "operator_process_id": 4242,
+    "preparation_wall_nanos": 40000000000,
+    "prepared": {
+     "children": {
+      "peak_rss_bytes": 943718400,
+      "system_nanos": 5000000000,
+      "user_nanos": 30000000000
+     },
+     "linked": {
+      "peak_rss_bytes": 209715200,
+      "system_nanos": 1000000000,
+      "user_nanos": 2000000000
+     }
+    },
+    "resident_stores": 1,
+    "samples": [
+     {
+      "fuel_used": 1000,
+      "guest_memory_limit_bytes": 268435456,
+      "guest_peak_memory_bytes": 67108864,
+      "iteration": 1,
+      "linked_after": {
+       "peak_rss_bytes": 314572800,
+       "system_nanos": 1000000000,
+       "user_nanos": 4000000000
+      },
+      "linked_before": {
+       "peak_rss_bytes": 209715200,
+       "system_nanos": 1000000000,
+       "user_nanos": 2000000000
+      },
+      "phase": "execute",
+      "trace_bytes": 4096,
+      "virtual_time_nanos": 5000000,
+      "wall_nanos": 2000000000
+     },
+     {
+      "fuel_used": 1000,
+      "guest_memory_limit_bytes": 268435456,
+      "guest_peak_memory_bytes": 67108864,
+      "iteration": 2,
+      "linked_after": {
+       "peak_rss_bytes": 367001600,
+       "system_nanos": 1000000000,
+       "user_nanos": 6000000000
+      },
+      "linked_before": {
+       "peak_rss_bytes": 314572800,
+       "system_nanos": 1000000000,
+       "user_nanos": 4000000000
+      },
+      "phase": "execute",
+      "trace_bytes": 4096,
+      "virtual_time_nanos": 5000000,
+      "wall_nanos": 2000000000
+     },
+     {
+      "fuel_used": 1000,
+      "guest_memory_limit_bytes": 268435456,
+      "guest_peak_memory_bytes": 67108864,
+      "iteration": 1,
+      "linked_after": {
+       "peak_rss_bytes": 398458880,
+       "system_nanos": 1000000000,
+       "user_nanos": 7000000000
+      },
+      "linked_before": {
+       "peak_rss_bytes": 367001600,
+       "system_nanos": 1000000000,
+       "user_nanos": 6000000000
+      },
+      "phase": "replay",
+      "trace_bytes": 4096,
+      "virtual_time_nanos": 5000000,
+      "wall_nanos": 2000000000
+     },
+     {
+      "fuel_used": 1000,
+      "guest_memory_limit_bytes": 268435456,
+      "guest_peak_memory_bytes": 67108864,
+      "iteration": 2,
+      "linked_after": {
+       "peak_rss_bytes": 408944640,
+       "system_nanos": 2000000000,
+       "user_nanos": 8000000000
+      },
+      "linked_before": {
+       "peak_rss_bytes": 398458880,
+       "system_nanos": 1000000000,
+       "user_nanos": 7000000000
+      },
+      "phase": "replay",
+      "trace_bytes": 4096,
+      "virtual_time_nanos": 5000000,
+      "wall_nanos": 2000000000
+     }
+    ],
+    "start": {
+     "children": {
+      "peak_rss_bytes": 0,
+      "system_nanos": 0,
+      "user_nanos": 0
+     },
+     "linked": {
+      "peak_rss_bytes": 104857600,
+      "system_nanos": 500000000,
+      "user_nanos": 1000000000
+     }
+    }
+   },
+   "runs": [
+    {
+     "class": "success",
+     "exit_code": 0,
+     "replayed": true,
+     "virtual_time_nanos": 5000000
+    },
+    {
+     "class": "success",
+     "exit_code": 0,
+     "replayed": true,
+     "virtual_time_nanos": 5000000
+    }
+   ],
+   "terminal": {
+    "peak_rss_bytes": 429916160,
+    "system_nanos": 2000000000,
+    "user_nanos": 9000000000
+   }
+  }
+ ],
+ "schema": "gomad.qualify-accounting-corpus/v1"
+}

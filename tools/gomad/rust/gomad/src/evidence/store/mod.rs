@@ -5,6 +5,7 @@ mod publish;
 
 use super::{canonical, record::Record};
 pub use open::Opened;
+pub(crate) use publish::durable_directory;
 pub use publish::{Publication, Published, Store};
 use serde::{Deserialize, Serialize};
 use std::collections::BTreeMap;

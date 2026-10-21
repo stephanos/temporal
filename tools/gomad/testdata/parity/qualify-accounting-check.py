@@ -1,0 +1,180 @@
+#!/usr/bin/env python3
+"""Run the controlled qualification accounting corpus through the Rust evaluators.
+
+The fixture binary evaluates every raw observation case twice; both outputs
+must agree byte for byte. An independent oracle here recomputes the linked
+CPU and peak accounting and each budget status before the reviewed golden is
+compared (or regenerated twice with GOMAD_GOLDEN_REGENERATE=1).
+"""
+import argparse
+from importlib.machinery import SourceFileLoader
+from importlib.util import module_from_spec, spec_from_loader
+import os
+from pathlib import Path
+import subprocess
+import sys
+
+sys.dont_write_bytecode = True
+CORPUS = Path(__file__).resolve().parent
+loader = SourceFileLoader('qualify_parity', str(CORPUS.parents[1] / 'scripts/behavioral-parity'))
+parity = module_from_spec(spec_from_loader(loader.name, loader))
+loader.exec_module(parity)
+GIB = 1 << 30
+MINUTE = 60_000_000_000
+HOUR = 3_600_000_000_000
+
+
+def equal(actual, expected, label):
+    if actual != expected:
+        raise ValueError(f'{label}: got {actual!r}, expected {expected!r}')
+
+
+def cpu(after, before):
+    return after['user_nanos'] - before['user_nanos'] + after['system_nanos'] - before['system_nanos']
+
+
+def monotone(after, before):
+    return all(after[key] >= before[key] for key in ('user_nanos', 'system_nanos', 'peak_rss_bytes'))
+
+
+def interval_failure(observations):
+    start, prepared, executed = (observations[key] for key in ('start', 'prepared', 'executed'))
+    if start is None or prepared is None or executed is None:
+        return 'missing'
+    if executed['linked']['peak_rss_bytes'] == 0 or observations['operator_process_id'] == 0:
+        return 'missing'
+    for later, earlier in ((prepared, start), (executed, prepared)):
+        if not monotone(later['linked'], earlier['linked']) or not monotone(later['children'], earlier['children']):
+            return 'decreased'
+    if observations['resident_stores'] != 1:
+        return 'concurrent'
+    previous = prepared['linked']
+    counts = {'execute': 0, 'replay': 0}
+    for sample in observations['samples']:
+        counts[sample['phase']] += 1
+        if sample['iteration'] != counts[sample['phase']]:
+            return 'order'
+        if 0 in (sample['wall_nanos'], sample['guest_peak_memory_bytes'], sample['guest_memory_limit_bytes']):
+            return 'missing'
+        before, after = sample['linked_before'], sample['linked_after']
+        if before is None or after is None:
+            return 'missing'
+        if not monotone(before, previous) or not monotone(after, before):
+            return 'overlap'
+        previous = after
+    if not monotone(executed['linked'], previous):
+        return 'overlap'
+    return None
+
+
+def oracle(case):
+    """Independent expectations for the facts each case exists to prove."""
+    observations = case['observations']
+    failure = interval_failure(observations)
+    expected = {'interval_failure': failure}
+    if failure is None and (observations['executed']['children']['peak_rss_bytes'] == 0
+                            or observations['preparation_wall_nanos'] == 0):
+        failure = 'budget-measurement'
+    expected['interval_failure'] = failure
+    if failure is None:
+        start, executed = observations['start'], observations['executed']
+        compiler = cpu(executed['children'], start['children'])
+        linked = cpu(executed['linked'], start['linked'])
+        expected['cpu'] = (compiler, linked, compiler + linked)
+        samples = observations['samples']
+        statuses = {
+            'preparation wall': 'within' if observations['preparation_wall_nanos'] <= 10 * MINUTE else 'exceeded',
+            'execution/replay store wall': 'within' if max(s['wall_nanos'] for s in samples) <= 15 * MINUTE else 'exceeded',
+            'individual compiler peak RSS': 'within' if executed['children']['peak_rss_bytes'] <= 6 * GIB else 'exceeded',
+        }
+        peak = executed['linked']['peak_rss_bytes']
+        for name, limit in (('operator lifetime peak RSS', 2 * GIB), ('individual warm helper peak RSS', 4 * GIB),
+                            ('individual cold helper peak RSS', 6 * GIB),
+                            ('conservative resident helper peak upper bound', 8 * GIB)):
+            statuses[name] = 'within' if peak <= limit else 'unattributed'
+        for sample in samples:
+            if sample['guest_peak_memory_bytes'] > sample['guest_memory_limit_bytes']:
+                statuses[f"guest linear memory {sample['phase']}:{sample['iteration']}"] = 'exceeded'
+        expected['statuses'] = statuses
+    return expected
+
+
+def check(case, row):
+    expected = oracle(case)
+    name = case['name']
+    if expected['interval_failure'] is not None:
+        equal(row['cost'], None, name + '.cost_refused')
+        equal(row['budget'], None, name + '.budget_refused')
+        equal(bool(row['cost_failure']) and bool(row['budget_failure']), True, name + '.failures_named')
+        return
+    budget = row['budget']
+    equal({check['name']: check['status'] for check in budget['checks']}, expected['statuses'], name + '.statuses')
+    equal(budget['within_budget'], all(status == 'within' for status in expected['statuses'].values()), name + '.within')
+    equal(budget['pending'], [n for n, s in expected['statuses'].items() if s == 'unattributed'], name + '.pending')
+    executes = sum(sample['phase'] == 'execute' for sample in case['observations']['samples'])
+    records_agree = all(sample['virtual_time_nanos'] == run['virtual_time_nanos'] for sample, run in
+                        zip([s for s in case['observations']['samples'] if s['phase'] == 'execute'], case['runs']))
+    if observations_cost_valid(case, executes) and records_agree:
+        cost = row['cost']
+        compiler, linked, total = expected['cpu']
+        equal((cost['compiler_cpu_nanos'], cost['linked_cpu_nanos'], cost['cpu_nanos']), (compiler, linked, total), name + '.cpu_once')
+        sample_cpu = sum(cpu(s['linked_after'], s['linked_before']) for s in case['observations']['samples'])
+        if name == 'cpu-counted-once':
+            equal(sample_cpu > 0, True, name + '.store_cpu_observed_but_not_added')
+        bugs = len({run['class'] for run in case['runs'] if run['class'] != 'success' and run['replayed']})
+        equal(cost['replayable_bugs'], bugs, name + '.bugs')
+        equal(cost['replayable_bugs_per_compute_hour'], {'numerator': bugs * HOUR, 'denominator': total}, name + '.bug_rate')
+    else:
+        equal(row['cost'], None, name + '.cost_refused')
+    if 'terminal' in case:
+        terminal = case['terminal']
+        executed = case['observations']['executed']['linked']
+        if terminal['peak_rss_bytes'] > 2 * GIB or not monotone(terminal, executed):
+            equal('failure' in row['terminal'], True, name + '.terminal_refused')
+        else:
+            equal(row['terminal'], {'cpu_nanos': cpu(terminal, executed)}, name + '.terminal_tail')
+
+
+def observations_cost_valid(case, executes):
+    observations = case['observations']
+    replays = sum(sample['phase'] == 'replay' for sample in observations['samples'])
+    compiler = cpu(observations['executed']['children'], observations['start']['children'])
+    return (compiler > 0 and observations['executed']['children']['peak_rss_bytes'] > 0 and executes == len(case['runs'])
+            and replays == len(case['runs']) and observations['preparation_wall_nanos'] > 0)
+
+
+def main():
+    parser = argparse.ArgumentParser(description=__doc__)
+    parser.add_argument('--binary', type=Path, required=True, help='determinism-fixture gomad binary')
+    parser.add_argument('--work', type=Path, required=True)
+    args = parser.parse_args()
+    args.work = args.work.resolve()
+    args.work.mkdir(parents=True, exist_ok=False)
+    corpus_path = CORPUS / 'qualify-accounting-corpus.json'
+    corpus = parity.decode(corpus_path.read_bytes())
+    equal(corpus['schema'], 'gomad.qualify-accounting-corpus/v1', 'corpus.schema')
+    outputs = []
+    for attempt in range(2):
+        result = subprocess.run([str(args.binary.resolve()), 'fixture-qualify-accounting', '--input', str(corpus_path)],
+                                capture_output=True, timeout=120, env={'PATH': os.environ.get('PATH', '')})
+        (args.work / f'accounting-{attempt}.stdout').write_bytes(result.stdout)
+        (args.work / f'accounting-{attempt}.stderr').write_bytes(result.stderr)
+        equal(result.returncode, 0, f'accounting[{attempt}].status: {result.stderr!r}')
+        outputs.append(result.stdout)
+    equal(outputs[1], outputs[0], 'accounting.repeated_agreement')
+    rows = parity.decode(outputs[0].rstrip(b'\n'))['cases']
+    equal([row['name'] for row in rows], [case['name'] for case in corpus['cases']], 'accounting.cases')
+    for case, row in zip(corpus['cases'], rows):
+        check(case, row)
+    view = dict(schema='gomad.qualify-accounting-golden/v1', cases=rows)
+    golden = CORPUS / 'goldens-qualify/accounting.json'
+    regenerate = os.environ.get('GOMAD_GOLDEN_REGENERATE') == '1'
+    parity.golden(golden, view, regenerate)
+    first = golden.read_bytes()
+    parity.golden(golden, dict(schema=view['schema'], cases=parity.decode(outputs[1].rstrip(b'\n'))['cases']), regenerate)
+    equal(golden.read_bytes(), first, 'accounting.second_regeneration_bytes')
+    print(f'qualify accounting: {len(rows)} controlled cases agree with the oracle and golden')
+
+
+if __name__ == '__main__':
+    main()
