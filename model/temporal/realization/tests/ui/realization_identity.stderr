@@ -1,0 +1,26 @@
+error[E0308]: mismatched types
+  --> tests/ui/realization_identity.rs:7:1
+   |
+ 7 | #[realization(activity)]
+   | ^^^^^^^^^^^^^^^^^^^^^^^^
+   | |
+   | expected `RequestCancelActivityExecutionResponse`, found a different `RequestCancelActivityExecutionResponse`
+   | arguments to this function are incorrect
+   |
+   = note: `RequestCancelActivityExecutionResponse` and `RequestCancelActivityExecutionResponse` have similar names, but are actually distinct types
+note: `RequestCancelActivityExecutionResponse` is defined in crate `umpire_temporal_api`
+  --> $OUT_DIR[umpire-temporal-api]/temporal.api.workflowservice.v1.rs
+   |
+   | pub struct RequestCancelActivityExecutionResponse {}
+   | ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+note: `RequestCancelActivityExecutionResponse` is defined in the current crate
+  --> tests/ui/realization_identity.rs:5:1
+   |
+ 5 | struct RequestCancelActivityExecutionResponse;
+   | ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+note: associated function defined here
+  --> tests/ui/realization_identity.rs:10:8
+   |
+10 |     fn cancel(_: RequestCancelActivityExecutionResponse) -> Result<Step<activity::Client>, Refusal> {
+   |        ^^^^^^ -----------------------------------------
+   = note: this error originates in the attribute macro `realization` (in Nightly builds, run with -Z macro-backtrace for more info)

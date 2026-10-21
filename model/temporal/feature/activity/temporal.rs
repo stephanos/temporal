@@ -18,12 +18,11 @@ use umpire_temporal_api::temporal::api::{
         RespondActivityTaskFailedRequest,
     },
 };
-use umpire_wasm::{
-    AnswerPlan, Candidate, Projection, Realize, google::protobuf::Any, protocol::Refusal,
-};
+use umpire_wasm::{Candidate, Projection, google::protobuf::Any, protocol::Refusal};
 
-use crate::support::{
-    ApplicationFailure, Observed, WorkflowService, callback, method, plain_text, rejection, reply,
+use crate::{
+    Reply, realization,
+    support::{ApplicationFailure, plain_text, rejection},
 };
 
 type Action = <activity::World as Machine>::Action;
@@ -36,38 +35,81 @@ pub fn runtime() -> umpire_wasm::Runtime<activity::World, Realization> {
 /// The strict mini activity observation and callback registry.
 pub struct Realization;
 
-impl Realize<activity::World> for Realization {
-    fn observe(
-        &self,
-        observation: &Any,
-        state: &activity::Model,
+#[realization(activity)]
+impl Realization {
+    #[observe(WorkflowService::RequestCancelActivityExecution)]
+    fn cancel(
+        response: Result<RequestCancelActivityExecutionResponse, i32>,
     ) -> Result<Projection<Action>, Refusal> {
-        let observed = Observed::new(observation)?;
-        if observed.method == method::<WorkflowService>("RequestCancelActivityExecution") {
-            let outcome = if let Some(code) = observed.code()? {
-                let Some(rejection) = rejection(code) else {
-                    return Ok(Projection::steps([]));
-                };
-                Outcome::Rejected(rejection)
-            } else {
-                observed
-                    .response::<RequestCancelActivityExecutionResponse>()
-                    .map_err(|error| Refusal::malformed(error.message))?;
-                Outcome::Accepted
+        let outcome = if let Err(code) = response {
+            let Some(rejection) = rejection(code) else {
+                return Ok(Projection::steps([]));
             };
-            return Ok(Projection::Candidates(vec![Candidate {
-                path: vec![Action::from(Client::Cancel).into()],
-                outcome: Some(outcome),
-            }]));
-        }
-        if observed.method != method::<WorkflowService>("DescribeActivityExecution") {
-            return Err(Refusal::unsupported("unsupported observation method"));
-        }
-        let response: DescribeActivityExecutionResponse = observed.response()?;
-        let phase = Phase::try_from(
+            Outcome::Rejected(rejection)
+        } else {
+            Outcome::Accepted
+        };
+        Ok(Projection::Candidates(vec![Candidate {
+            path: vec![Action::from(Client::Cancel).into()],
+            outcome: Some(outcome),
+        }]))
+    }
+
+    #[observe(WorkflowService::DescribeActivityExecution,
+        reads(info.status, info.run_state),
+        ignores(
+            run_id = "Run identity is outside the lifecycle projection",
+            input = "Describe input does not evidence callback delivery",
+            outcome = "Lifecycle projection reads status rather than result contents",
+            long_poll_token = "Transport polling state is outside the Model",
+            callbacks = "Callback registration is outside the Model",
+            info.activity_id = "Activity identity is bound by the owning run",
+            info.run_id = "Run identity is outside the lifecycle projection",
+            info.activity_type = "Activity type is outside the lifecycle projection",
+            info.task_queue = "Queue routing is outside the lifecycle projection",
+            info.schedule_to_close_timeout = "Timing policy is outside the lifecycle projection",
+            info.schedule_to_start_timeout = "Timing policy is outside the lifecycle projection",
+            info.start_to_close_timeout = "Timing policy is outside the lifecycle projection",
+            info.heartbeat_timeout = "Heartbeat timing is outside the lifecycle projection",
+            info.retry_policy = "Retry policy is outside the six-phase Model",
+            info.heartbeat_details = "Heartbeat payloads are outside the lifecycle projection",
+            info.last_heartbeat_time = "Observed timestamps are outside the lifecycle projection",
+            info.last_started_time = "Observed timestamps are outside the lifecycle projection",
+            info.attempt = "Retry attempts are outside the six-phase Model",
+            info.execution_duration = "Measured duration is outside the lifecycle projection",
+            info.schedule_time = "Observed timestamps are outside the lifecycle projection",
+            info.expiration_time = "Observed timestamps are outside the lifecycle projection",
+            info.close_time = "Observed timestamps are outside the lifecycle projection",
+            info.last_failure = "Lifecycle status alone supplies terminal evidence",
+            info.last_worker_identity = "Worker identity is outside the lifecycle projection",
+            info.current_retry_interval = "Retry policy is outside the six-phase Model",
+            info.last_attempt_complete_time = "Retry timing is outside the six-phase Model",
+            info.next_attempt_schedule_time = "Retry timing is outside the six-phase Model",
+            info.last_deployment_version = "Deployment routing is outside the Model",
+            info.priority = "Scheduling priority is outside the Model",
+            info.state_transition_count = "Server counters are outside the lifecycle projection",
+            info.state_size_bytes = "Server storage size is outside the lifecycle projection",
+            info.search_attributes = "Search indexing is outside the Model",
+            info.header = "Application headers are outside the lifecycle projection",
+            info.user_metadata = "Application metadata is outside the lifecycle projection",
+            info.canceled_reason = "Cancellation reasons are outside the lifecycle projection",
+            info.links = "Linked entities are outside the Model",
+            info.total_heartbeat_count = "Heartbeat counters are outside the lifecycle projection",
+            info.sdk_name = "SDK identity is outside the lifecycle projection",
+            info.sdk_version = "SDK identity is outside the lifecycle projection",
+            info.start_delay = "Timing policy is outside the lifecycle projection",
+            info.execution_time = "Observed timestamps are outside the lifecycle projection"
+        ),
+        project(Self::project_phase)
+    )]
+    fn describe(response: DescribeActivityExecutionResponse) -> Result<Phase, Refusal> {
+        Phase::try_from(
             response.info.ok_or_else(|| Refusal::malformed("activity info is missing"))?,
-        )?;
-        Ok(if state.phase == phase {
+        )
+    }
+
+    fn project_phase(state: &activity::Model, phase: Phase) -> Projection<Action> {
+        if state.phase == phase {
             Projection::Current
         } else {
             match phase {
@@ -75,11 +117,56 @@ impl Realize<activity::World> for Realization {
                 Phase::Failed => Projection::step(Worker::RespondFailed.into()),
                 _ => Projection::steps([]),
             }
-        })
+        }
     }
 
-    fn answer(&self, value: &Any, _: &activity::Model) -> Result<AnswerPlan<Action>, Refusal> {
-        let task: PollActivityTaskQueueResponse = callback(value)?;
+    #[answer(PollActivityTaskQueueResponse,
+        reads(input.payloads.metadata, input.payloads.data),
+        ignores(
+            input.payloads.external_payloads = "External references are accepted then removed from completed results",
+            task_token = "The SDK owns task-token transport",
+            workflow_namespace = "The SDK owns namespace transport",
+            workflow_type = "Workflow identity is outside this callback projection",
+            workflow_execution = "Workflow identity is outside this callback projection",
+            activity_type = "Activity type is outside the callback policy",
+            activity_id = "Activity identity is bound by the owning run",
+            header = "Application headers are outside the callback policy",
+            heartbeat_details = "Heartbeat payloads are outside the callback policy",
+            scheduled_time = "Server timing is outside the callback policy",
+            current_attempt_scheduled_time = "Retry timing is outside the callback policy",
+            started_time = "Server timing is outside the callback policy",
+            attempt = "Retry attempts are outside the six-phase Model",
+            schedule_to_close_timeout = "Timing policy is outside the callback projection",
+            start_to_close_timeout = "Timing policy is outside the callback projection",
+            heartbeat_timeout = "Heartbeat timing is outside the callback projection",
+            retry_policy = "Retry policy is outside the six-phase Model",
+            poller_scaling_decision = "Worker scaling is outside the Model",
+            priority = "Scheduling priority is outside the Model",
+            activity_run_id = "Run identity is outside the callback policy",
+            poller_group_infos = "Poller routing is outside the Model",
+            poller_groups_info = "Poller routing is outside the Model"
+        ),
+        produces(RespondActivityTaskCompletedRequest, fields(result), ignores(
+            task_token = "The SDK supplies the task token",
+            identity = "The SDK supplies worker identity",
+            namespace = "The SDK supplies the namespace",
+            resource_id = "The SDK owns resource transport",
+            worker_version = "The SDK supplies worker version metadata",
+            deployment = "The SDK supplies deployment metadata",
+            deployment_options = "The SDK supplies deployment routing"
+        )),
+        produces(RespondActivityTaskFailedRequest, fields(failure), ignores(
+            task_token = "The SDK supplies the task token",
+            identity = "The SDK supplies worker identity",
+            namespace = "The SDK supplies the namespace",
+            resource_id = "The SDK owns resource transport",
+            last_heartbeat_details = "The callback emits no heartbeat payloads",
+            worker_version = "The SDK supplies worker version metadata",
+            deployment = "The SDK supplies deployment metadata",
+            deployment_options = "The SDK supplies deployment routing"
+        ))
+    )]
+    fn respond(task: PollActivityTaskQueueResponse) -> Result<Reply<Worker>, Refusal> {
         let input = task.input.ok_or_else(|| Refusal::malformed("callback input is missing"))?;
         let [payload] = input.payloads.as_slice() else {
             return Err(Refusal::malformed("callback requires exactly one input payload"));
@@ -90,7 +177,7 @@ impl Realize<activity::World> for Realization {
                 payload.external_payloads.clear();
                 (
                     Worker::RespondCompleted,
-                    reply(&RespondActivityTaskCompletedRequest {
+                    Any::pack(&RespondActivityTaskCompletedRequest {
                         result: Some(Payloads { payloads: vec![payload] }),
                         ..Default::default()
                     }),
@@ -98,13 +185,13 @@ impl Realize<activity::World> for Realization {
             }
             b"Fail" => (
                 Worker::RespondFailed,
-                reply(&RespondActivityTaskFailedRequest {
+                Any::pack(&RespondActivityTaskFailedRequest {
                     failure: Some(Failure::application("MiniActivityFailure", "Fail", true)),
                     ..Default::default()
                 }),
             ),
             _ => return Err(Refusal::unsupported("unsupported callback policy")),
         };
-        Ok(AnswerPlan::new(vec![Action::from(Worker::Poll).into()], action.into(), response))
+        Ok(Reply { delivery: vec![Worker::Poll], action, request: response })
     }
 }

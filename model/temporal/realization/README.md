@@ -6,6 +6,40 @@ real generated Temporal API. `Realization` implements `Realize<activity::World>`
 Generated `prost::Name` implementations supply canonical Any URLs through the
 generic `Any::pack`/`unpack` helpers; no hand-maintained type URL registry is needed.
 
+`#[realization(activity)]` on an inherent impl generates the `Realize<activity::World>`
+dispatch. `#[observe(WorkflowService::Method, reads(path), ignores(path = "reason"))]`
+selects an RPC before decoding its response. The handler receives that typed response,
+or `Result<Response, i32>` when it handles raw gRPC error codes. A `Projection` is used
+directly; `Step<A> { action, expected }` proposes one action. A state-valued handler must
+declare `project(Self::mapping)`, where the Realization-owned function takes the current
+Model state and returned value and constructs a `Projection`. The activity mapping
+matches the current phase, proposes only Completed or Failed, and leaves other changes
+unexplained. It never infers Poll from Started.
+
+`#[answer(Task, reads(path), ignores(path = "reason"),
+produces(Request, fields(path), ignores(path = "reason")))]` declares incoming callback
+and outgoing request contexts separately. Each answer declares at least one produced
+request type and returns `Reply<A> { delivery, action, request }`. `request` is the raw
+typed request packed with `Any::pack(&request)`. Generated code validates its declared
+field presence and wraps it in the Temporal Reply envelope exactly once. These are
+partial SDK requests: the macro does not run whole-request catalog constraints or require
+SDK-filled task tokens. `#[propose]` is reserved and refuses compilation.
+
+Field paths and RPC edges come from the existing admitted catalog declarations and
+linked upstream descriptors. Unknown and overlapping paths, empty ignore reasons,
+duplicate handlers, unclassified return types and wildcard arms at generated enum
+positions refuse compilation. Byte-policy fallbacks remain valid. Unlisted methods
+are Unsupported. A present decoded field omitted from both lists also refuses;
+optional messages and oneof alternatives use their actual protobuf presence, including
+opaque catalog fields. Proto3 scalar defaults have no decoded wire presence. Classifying
+a parent stops traversal below it; an opaque parent cannot be traversed. The attributes
+declare what the handler reads; unused declared reads are not detected.
+
+`Realization::REALIZATION` retains the mapped/ignored/unsupported paths and ignore
+reasons for each observed response, incoming callback and outgoing request. Outgoing
+mapped paths mean produced fields. The expansion is pinned after formatting with
+prettyplease; runtime state, freezing and publication remain owned by the generic runtime.
+
 Judge accepts `umpire.temporal.v1.Observation` containing the exact Describe RPC
 method `/temporal.api.workflowservice.v1.WorkflowService/DescribeActivityExecution`
 and a `temporal.api.workflowservice.v1.DescribeActivityExecutionResponse` Any.

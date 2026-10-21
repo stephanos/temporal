@@ -1,0 +1,23 @@
+[package]
+name = "umpire-temporal-realization-macros"
+description = "Declarative Temporal realization attributes"
+version.workspace = true
+edition.workspace = true
+publish.workspace = true
+license.workspace = true
+rust-version.workspace = true
+
+[lib]
+proc-macro = true
+
+[lints]
+workspace = true
+
+[dependencies]
+umpire-temporal-annotate-syntax.workspace = true
+syn.workspace = true
+quote.workspace = true
+
+[dev-dependencies]
+insta.workspace = true
+prettyplease.workspace = true
