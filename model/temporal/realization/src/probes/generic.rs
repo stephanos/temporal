@@ -1,6 +1,6 @@
 use super::{Entry as StrictEntry, Result, baseline, method, recipe};
 use crate::foundation::dc::{BLOB_SIZE_ERROR, Limits, MAX_ID_LENGTH};
-use std::collections::BTreeSet;
+use std::{collections::BTreeSet, sync::OnceLock};
 use umpire_annotations::{
     Expectation, GapEntry, MutationApplicability, ProbeResult, Violation, WireCase,
     mutation_entries, wire_cases,
@@ -21,9 +21,15 @@ pub(super) struct Entry {
     pub method: WorkflowServiceMethod,
     prerequisite: &'static str,
     pub case: WireCase,
+    canonical: OnceLock<ProbeCase>,
 }
 
-pub(super) fn inventory() -> Result<Vec<Entry>> {
+pub(super) fn inventory() -> Result<&'static [Entry]> {
+    static ENTRIES: OnceLock<Vec<Entry>> = OnceLock::new();
+    Ok(super::cached(&ENTRIES, build_inventory)?.as_slice())
+}
+
+fn build_inventory() -> Result<Vec<Entry>> {
     let limits = Limits::default();
     let bounds = [limits.get(&MAX_ID_LENGTH), limits.get(&BLOB_SIZE_ERROR)];
     let methods = [
@@ -40,7 +46,7 @@ pub(super) fn inventory() -> Result<Vec<Entry>> {
     for (method, prerequisite) in methods {
         let fields = workflow_request_fields(method);
         for case in wire_cases(&fields, &bounds) {
-            entries.push(Entry { method, prerequisite, case });
+            entries.push(Entry { method, prerequisite, case, canonical: OnceLock::new() });
             if entries.len() > MAX_CASES {
                 return Err("generic probe inventory exceeds metadata budget".into());
             }
@@ -83,10 +89,10 @@ impl Entry {
     pub(super) fn declaration(&self, strict: &[StrictEntry]) -> Result<ProbeCase> {
         let mut metadata = self.metadata()?;
         let canonical = self.canonical(strict)?;
-        metadata.predictions = canonical.predictions;
+        metadata.predictions.clone_from(&canonical.predictions);
         if canonical.applicability != ProbeApplicability::Unchanged as i32 {
             metadata.applicability = canonical.applicability;
-            metadata.refusal = canonical.refusal;
+            metadata.refusal.clone_from(&canonical.refusal);
         }
         Ok(metadata)
     }
@@ -99,7 +105,7 @@ impl Entry {
         let (metadata, bytes) = self.materialize(request, strict)?;
         if !request.baseline {
             let expected = self.canonical(strict)?;
-            if !compatible_state(metadata.applicability, &metadata.refusal, &expected)
+            if !compatible_state(metadata.applicability, &metadata.refusal, expected)
                 || metadata.predictions != expected.predictions
             {
                 return Err("generic prediction context diverges from canonical preparation".into());
@@ -118,20 +124,22 @@ impl Entry {
         Ok(response)
     }
 
-    fn canonical(&self, strict: &[StrictEntry]) -> Result<ProbeCase> {
-        Ok(self
-            .materialize(
-                &ProbeRequest {
-                    namespace: "probe-namespace".into(),
-                    activity_id: "probe-activity".into(),
-                    task_queue: "probe-queue".into(),
-                    run_id: super::UUID.into(),
-                    task_token: vec![8, 1],
-                    ..Default::default()
-                },
-                strict,
-            )?
-            .0)
+    fn canonical(&self, strict: &[StrictEntry]) -> Result<&ProbeCase> {
+        super::cached(&self.canonical, || {
+            Ok(self
+                .materialize(
+                    &ProbeRequest {
+                        namespace: "probe-namespace".into(),
+                        activity_id: "probe-activity".into(),
+                        task_queue: "probe-queue".into(),
+                        run_id: super::UUID.into(),
+                        task_token: vec![8, 1],
+                        ..Default::default()
+                    },
+                    strict,
+                )?
+                .0)
+        })
     }
 
     fn materialize(
@@ -243,7 +251,7 @@ impl Entry {
         {
             return Err("invalid generic observation metadata".into());
         }
-        if !compatible_state(observation.applicability, &observation.refusal, &expected) {
+        if !compatible_state(observation.applicability, &observation.refusal, expected) {
             return Err("generic observation diverges from canonical preparation".into());
         }
         let mut case = self.case.clone();
@@ -344,5 +352,33 @@ fn applicability(value: &MutationApplicability) -> (ProbeApplicability, String) 
         MutationApplicability::Unchanged => {
             (ProbeApplicability::Unchanged, "mutation leaves the baseline unchanged".into())
         }
+    }
+}
+
+#[cfg(test)]
+mod tests {
+    use super::Result;
+
+    #[test]
+    fn canonical_metadata_is_lazy_and_reused() -> Result<()> {
+        let strict = super::super::inventory()?;
+        let entries = super::build_inventory()?;
+        assert!(entries.iter().all(|entry| entry.canonical.get().is_none()));
+        let entry = entries
+            .iter()
+            .find(|entry| {
+                entry.id().contains("DescribeActivityExecutionRequest.activity_id:mutation.empty")
+            })
+            .ok_or("missing canonical mutation")?;
+        assert!(entry.canonical.get().is_none());
+        assert_eq!(
+            entry.canonical(&[]).err().ok_or("missing canonical validation refusal")?.to_string(),
+            "generic mutation predicts an unregistered catalog claim"
+        );
+        assert!(entry.canonical.get().is_none());
+        let canonical = entry.canonical(strict)?;
+        assert_ne!(canonical.predictions.len(), 0);
+        assert!(std::ptr::eq(canonical, entry.canonical(strict)?));
+        Ok(())
     }
 }

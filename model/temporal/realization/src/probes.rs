@@ -6,7 +6,7 @@ use crate::activity_api::{
     cancel_request_id_intent, catalog, start_request_id_intent, worker_failure_presence,
 };
 use prost::Message;
-use std::collections::BTreeSet;
+use std::{collections::BTreeSet, sync::OnceLock};
 use umpire_annotations::{
     Catalog, Expectation, FieldDescriptor, FieldValue, Kind, ProbeCase as Target, Rng, Violation,
     validate,
@@ -39,12 +39,25 @@ mod report;
 type Result<T> = std::result::Result<T, Box<dyn std::error::Error>>;
 const UUID: &str = "12345678-1234-4234-8234-123456789abc";
 
+fn cached<T>(cache: &OnceLock<T>, initialize: impl FnOnce() -> Result<T>) -> Result<&T> {
+    if let Some(value) = cache.get() {
+        return Ok(value);
+    }
+    let value = initialize()?;
+    Ok(cache.get_or_init(|| value))
+}
+
 struct Entry {
     context: &'static str,
     method: &'static str,
     prerequisite: &'static str,
     target: Target,
     field: Option<FieldDescriptor>,
+}
+
+fn inventory() -> Result<&'static [Entry]> {
+    static ENTRIES: OnceLock<Vec<Entry>> = OnceLock::new();
+    Ok(cached(&ENTRIES, build_inventory)?.as_slice())
 }
 
 fn add<M: 'static>(
@@ -64,7 +77,7 @@ fn add<M: 'static>(
     clippy::too_many_lines,
     reason = "The contextual probe registry is one auditable inventory"
 )]
-fn inventory() -> Result<Vec<Entry>> {
+fn build_inventory() -> Result<Vec<Entry>> {
     let mut entries = Vec::new();
     macro_rules! register {
         ($context:literal, $method:literal, $prerequisite:literal, $catalog:expr) => {
@@ -823,14 +836,14 @@ pub fn probe(request: &ProbeRequest) -> Result<ProbeResponse> {
             cases: entries
                 .iter()
                 .map(Entry::metadata)
-                .chain(generic_entries.iter().map(|entry| entry.declaration(&entries)))
+                .chain(generic_entries.iter().map(|entry| entry.declaration(entries)))
                 .collect::<Result<_>>()?,
             ..Default::default()
         }),
         Operation::Prepare => {
             if let Some(entry) = generic_entries.iter().find(|entry| entry.id() == request.case_id)
             {
-                return entry.prepare(request, &entries);
+                return entry.prepare(request, entries);
             }
             let entry = entries.iter().find(|entry| entry.id() == request.case_id);
             let selector = if request.case_id.is_empty() {
@@ -882,13 +895,14 @@ pub fn probe(request: &ProbeRequest) -> Result<ProbeResponse> {
             }
             Ok(response)
         }
-        Operation::Classify => report::classify(request, &entries, generic_entries),
+        Operation::Classify => report::classify(request, entries, generic_entries),
     }
 }
 
 #[cfg(test)]
 mod tests {
-    use super::{Result, generic, inventory};
+    use super::{Result, cached, generic, inventory};
+    use std::sync::{Barrier, OnceLock};
 
     #[test]
     fn validated_inventories_are_reused() -> Result<()> {
@@ -904,5 +918,63 @@ mod tests {
             "successfully validated metadata must not be rebuilt for each probe"
         );
         Ok(())
+    }
+
+    #[test]
+    fn failed_or_panicked_initialization_publishes_nothing() -> Result<()> {
+        let cache = OnceLock::new();
+        let failed = cached(&cache, || -> Result<Vec<u8>> {
+            let mut partial = vec![1];
+            partial.push(2);
+            Err("metadata validation refused".into())
+        });
+        assert_eq!(
+            failed.err().ok_or("missing initialization error")?.to_string(),
+            "metadata validation refused"
+        );
+        assert!(cache.get().is_none());
+        let panicked = std::panic::catch_unwind(|| {
+            cached(&cache, || -> Result<Vec<u8>> {
+                std::panic::resume_unwind(Box::new("initializer panic"))
+            })
+        });
+        assert!(panicked.is_err());
+        assert!(cache.get().is_none());
+        assert_eq!(cached(&cache, || Ok(vec![3]))?, &[3]);
+        assert_eq!(cached(&cache, || Err("must not rerun".into()))?, &[3]);
+        Ok(())
+    }
+
+    #[test]
+    fn concurrent_initialization_publishes_one_complete_inventory() -> Result<()> {
+        let cache = OnceLock::new();
+        let barrier = Barrier::new(4);
+        std::thread::scope(|scope| -> Result<()> {
+            let handles: Vec<_> = (0..4)
+                .map(|_| {
+                    scope.spawn(|| {
+                        cached(&cache, || {
+                            let entries = super::build_inventory()?;
+                            barrier.wait();
+                            Ok(entries)
+                        })
+                        .map(|entries| entries.as_ptr() as usize)
+                        .map_err(|error| error.to_string())
+                    })
+                })
+                .collect();
+            let addresses = handles
+                .into_iter()
+                .map(|handle| {
+                    handle
+                        .join()
+                        .map_err(|_| "inventory initialization thread panicked")?
+                        .map_err(Into::into)
+                })
+                .collect::<Result<Vec<_>>>()?;
+            assert!(addresses.iter().all(|address| *address == addresses[0]));
+            assert!(!cache.get().ok_or("missing complete inventory")?.is_empty());
+            Ok(())
+        })
     }
 }

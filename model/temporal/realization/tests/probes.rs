@@ -261,6 +261,69 @@ fn every_generic_attempt_checks_actual_context_against_canonical_predictions()
     Ok(())
 }
 
+#[test]
+fn repeated_parallel_probes_materialize_and_validate_current_slots()
+-> Result<(), Box<dyn std::error::Error>> {
+    use prost::Message;
+    use umpire_temporal_api::temporal::api::workflowservice::v1::DescribeActivityExecutionRequest;
+    let inventory = probe(&ProbeRequest::default())?;
+    let case = inventory
+        .cases
+        .iter()
+        .find(|case| {
+            case.generic
+                && case.id.ends_with("DescribeActivityExecutionRequest.activity_id:mutation.empty")
+        })
+        .ok_or("missing activity mutation")?;
+    std::thread::scope(|scope| -> Result<(), Box<dyn std::error::Error>> {
+        let handles: Vec<_> = ["first", "second"]
+            .into_iter()
+            .map(|context| {
+                let case_id = case.id.clone();
+                scope.spawn(move || -> Result<(), String> {
+                    let request = ProbeRequest {
+                        operation: Operation::Prepare as i32,
+                        case_id,
+                        namespace: format!("{context}-namespace"),
+                        activity_id: format!("{context}-activity"),
+                        task_queue: format!("{context}-queue"),
+                        run_id: "12345678-1234-4234-8234-123456789abc".into(),
+                        ..Default::default()
+                    };
+                    let first = probe(&request).map_err(|error| error.to_string())?;
+                    for _ in 0..3 {
+                        assert_eq!(probe(&request).map_err(|error| error.to_string())?, first);
+                        let actual =
+                            DescribeActivityExecutionRequest::decode(first.message.as_slice())
+                                .map_err(|error| error.to_string())?;
+                        assert_eq!(actual.namespace, request.namespace);
+                        assert_eq!(actual.run_id, request.run_id);
+                        assert_eq!(actual.activity_id, "");
+                    }
+                    let invalid = ProbeRequest { activity_id: "x".repeat(1001), ..request.clone() };
+                    assert_eq!(
+                        probe(&invalid)
+                            .err()
+                            .ok_or("invalid current baseline admitted")?
+                            .to_string(),
+                        "invalid generic probe baseline"
+                    );
+                    let missing = ProbeRequest { namespace: String::new(), ..request };
+                    assert_eq!(
+                        probe(&missing).err().ok_or("missing current slots admitted")?.to_string(),
+                        "missing namespace/activity/queue prerequisite"
+                    );
+                    Ok(())
+                })
+            })
+            .collect();
+        for handle in handles {
+            handle.join().map_err(|_| "probe thread panicked")??;
+        }
+        Ok(())
+    })
+}
+
 fn reference_observation(
     case: &umpire_temporal_api::umpire::temporal::v1::ProbeCase,
 ) -> umpire_temporal_api::umpire::temporal::v1::ProbeObservation {
