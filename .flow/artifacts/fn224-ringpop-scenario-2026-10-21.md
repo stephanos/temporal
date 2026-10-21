@@ -129,3 +129,17 @@ The bootstrap marker cannot satisfy completion, and every node lives to the shar
 The tightened .3 command form (`--working-dir <abs>/tools/gomad … go-run ./internal/backends/wasm/testdata/ringpop`) is refused by the Go toolchain: `main module (go.temporal.io/server/tools/gomad) does not contain package …/testdata/ringpop`. The guest is its own nested module. Recommendation, recorded and applied: use an absolute `--working-dir` naming the guest module and `go-run .`, as `CLI.md` documents. Both forms and their outcomes are retained.
 
 Ringpop leaves, `--choices --choice-bytes=64MiB --keep-successes=all --success-limit=100`, seeds 0,1,2: all nine leaves (`TestRpoSuite` ×4, `TestRingpopSuite` ×5) succeed on all seeds. That is 27/27 retained successes with the leaf's own `--- PASS` line and no `--- SKIP`. All 27 standalone replays fail with `execute replay target: choice trace malformed`. The cause is the known Go-host replay attestation regression from `dd00c57f70` (`backends/observed_result.go`: replay requires `InputTapeSHA256`/`InputDecisions`, which the Go `runtime.collect` path does not fill), present since before the fn-224 base. The ringpop test package does not import `go.temporal.io/server/temporal`, so fn-224 cannot affect it. Exact replay of all 27 passes remains proven only on the fn-221 sweep build `1d7b37f00a` (fn-224.2 artifact). R2's "every pass replays exactly" is therefore not re-proven on an integrated candidate; fn-224.2 stays open until the fn-232 replay owner restores standalone replay.
+
+### Tip rerun after the Go-host v4 repair (2026-10-21, `go-host-v4-compat`)
+
+The Go host now reads runtime decision header v2 and choice trace v4, and the Go-owned runtime path attests its consumed replay tape (see the checkpoint artifact, "Go host v4 compatibility repair"). The rerun used `gomad` `1726d4ebce` plus `acc4b06853` and `051ef6e504`. The launcher was built from that source (`sha256:02bb3ad367d6…`), with the unchanged tip helper (`sha256:d83610356a61…`) and stock compiler `29cb18ad2b9f5aee`. The Temporal checkout was the same worktree. Script: `/home/agent/wt/evidence/go-host-v4-compat/ringpop.sh`, log `ringpop-9x3.log`, table `ringpop-9x3-classification.tsv`.
+
+The inventory is unchanged: nine leaves, `TestRpoSuite` ×4 (`monitor_test.go`) and `TestRingpopSuite` ×5 (`factory_test.go`). Each leaf ran over seeds 0, 1 and 2 with exact `^Suite$/^Leaf$` selectors, `--choices --choice-bytes=64MiB --keep-successes=all --success-limit=100 --success-bytes=4GiB --on-failure=all`:
+
+- 27/27 runs succeed. Each retained success carries the leaf's own `--- PASS: Suite/Leaf` line, with no `--- SKIP` and no `--- FAIL`. There are no failure artifacts.
+- Every success records a complete `gomad-choice-trace/v4` profile with schema `gomad.choice-trace/v4`.
+- 27/27 standalone replays report `reproduced=true result=success choice-replay=exact`.
+- The replays cover empty tapes (`TestCompareMembers*`, `TestHostsMode`, `TestInvalidBroadcastAddress`) and non-empty tapes up to 4,194 decisions over 17,404 records, including creation records (`TestScheduledUpdates` seed 2).
+- No stall. No clock policy or harness change.
+
+R2 is now met on an integrated tip candidate.
