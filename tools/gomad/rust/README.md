@@ -83,3 +83,11 @@ bundle and each fresh raw Go result, independently authenticates the Rust bundle
 then compares concrete termination and guest exit status. Stock-WASI WAT cases
 have no cooperative choice imports: baseline seeds label two fresh repetitions,
 while the Rust concurrent ledger carries the requested execution seeds.
+
+The replay parity lane uses its frozen Go launcher, matching helper and archived
+runtime source for standalone recordings, including all four network cases.
+Registered inspection and cluster cases use the separately declared current
+producer pair for intentional World/lifecycle changes. These references are not
+interchangeable: the newer Go-owned network replay path can refuse input-tape
+attestation that the frozen launcher does not require. Its retained status-3
+receipts describe that newer-producer regression, not frozen-baseline parity.
