@@ -15,6 +15,8 @@ members = [
     "umpire/wasm",
     "umpire/wasm/guests/stock",
     "umpire/wasm/guests/control",
+    "umpire/wasm/guests/caught-panic",
+    "umpire/wasm/guests/overflow",
     "temporal/api",
     "temporal/annotate",
     "temporal/annotate/macros",

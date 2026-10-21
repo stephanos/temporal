@@ -893,6 +893,15 @@ dependencies = [
 ]
 
 [[package]]
+name = "umpire-caught-panic-guest"
+version = "0.0.1"
+dependencies = [
+ "prost",
+ "umpire-dsl",
+ "umpire-wasm",
+]
+
+[[package]]
 name = "umpire-checker"
 version = "0.0.1"
 dependencies = [
@@ -954,6 +963,14 @@ dependencies = [
  "umpire-checker",
  "umpire-dsl",
  "umpire-tlc",
+]
+
+[[package]]
+name = "umpire-overflow-guest"
+version = "0.0.1"
+dependencies = [
+ "umpire-dsl",
+ "umpire-wasm",
 ]
 
 [[package]]

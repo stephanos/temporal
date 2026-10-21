@@ -27,10 +27,13 @@ fi
 for mapping in "$workspace=/workspace" "$cargo_home/registry=/cargo/registry" "$sysroot=/rust/sysroot" "$CARGO_TARGET_DIR=/target"; do
   flags="${flags:+$flags$'\x1f'}--remap-path-prefix=$mapping"
 done
+for flag in -Cpanic=unwind -Ctarget-feature=+exception-handling -Cllvm-args=-wasm-use-legacy-eh=false; do
+  flags="${flags:+$flags$'\x1f'}$flag"
+done
 artifacts=$(mktemp)
 trap 'rm -f "$artifacts"' EXIT
-if ! CARGO_ENCODED_RUSTFLAGS="$flags" mise exec -- cargo build -p "$crate" --lib \
-  --profile guest --target wasm32-wasip1 --locked --message-format=json-render-diagnostics >"$artifacts"; then
+if ! RUSTC_BOOTSTRAP=1 CARGO_ENCODED_RUSTFLAGS="$flags" mise exec -- cargo build -p "$crate" --lib \
+  --profile guest --target wasm32-wasip1 -Zbuild-std=std,panic_unwind --locked --message-format=json-render-diagnostics >"$artifacts"; then
   exit 1
 fi
 python3 - "$artifacts" "$output" "$mode" <<'PY'

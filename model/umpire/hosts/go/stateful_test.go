@@ -22,7 +22,7 @@ func statefulHost(t *testing.T) *Host {
 		if target == "" {
 			target = "../../../target"
 		}
-		path = filepath.Join(target, "wasm32-wasip1", "release", "stateful_control.wasm")
+		path = filepath.Join(target, "wasm32-wasip1", "guest", "stateful_control.wasm")
 	}
 	wasm, err := os.ReadFile(path)
 	if err != nil {

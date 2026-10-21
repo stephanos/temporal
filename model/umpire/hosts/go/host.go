@@ -9,6 +9,7 @@ import (
 
 	"github.com/tetratelabs/wazero"
 	"github.com/tetratelabs/wazero/api"
+	"github.com/tetratelabs/wazero/experimental"
 	"github.com/tetratelabs/wazero/sys"
 	"google.golang.org/protobuf/proto"
 	modelv1 "umpire.local/model/umpire/model/v1"
@@ -32,7 +33,9 @@ type Host struct {
 }
 
 func New(ctx context.Context, wasm []byte) (*Host, error) {
-	r := wazero.NewRuntimeWithConfig(ctx, wazero.NewRuntimeConfig().WithMemoryLimitPages(1024).WithCloseOnContextDone(true))
+	r := wazero.NewRuntimeWithConfig(ctx, wazero.NewRuntimeConfigInterpreter().
+		WithCoreFeatures(api.CoreFeaturesV2|experimental.CoreFeaturesExceptionHandling).
+		WithMemoryLimitPages(1024).WithCloseOnContextDone(true))
 	h := &Host{runtime: r}
 	var success bool
 	defer func() {
@@ -100,6 +103,10 @@ func supportSignature(name string) (params, results []api.ValueType, ok bool) {
 		return []api.ValueType{i32, i32}, []api.ValueType{i32}, true
 	case "fd_write":
 		return []api.ValueType{i32, i32, i32, i32}, []api.ValueType{i32}, true
+	case "fd_close":
+		return []api.ValueType{i32}, []api.ValueType{i32}, true
+	case "fd_seek":
+		return []api.ValueType{i32, api.ValueTypeI64, i32, i32}, []api.ValueType{i32}, true
 	case "proc_exit":
 		return []api.ValueType{i32}, nil, true
 	default:
@@ -146,6 +153,8 @@ func instantiateSupport(ctx context.Context, runtime wazero.Runtime) error {
 		}
 		return 0
 	}).Export("fd_write")
+	b.NewFunctionBuilder().WithFunc(func(uint32) uint32 { return 8 }).Export("fd_close")
+	b.NewFunctionBuilder().WithFunc(func(uint32, uint64, uint32, uint32) uint32 { return 8 }).Export("fd_seek")
 	b.NewFunctionBuilder().WithFunc(func(code uint32) { panic(sys.NewExitError(code)) }).Export("proc_exit")
 	_, err := b.Instantiate(ctx)
 	return err
