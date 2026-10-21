@@ -56,9 +56,12 @@ Quick from `model/`: `mise exec -- cargo test -p umpire-lift -p umpire-tlc -p um
 - [ ] All five CFG families carry identical selected World/domain assignments and pass actual discriminating TLC checks with same-World typed replay, including payload/choice/binding/fairness mutation controls.
 - [ ] Shared action_inputs has bool plus World-sized range input, an input-sensitive claim, complete new native/source/TLC artifacts and two-World/empty-domain evidence. All old bytes and refusal boundaries remain exact; Quick/full gates, timing and any changed-guest live proof are retained. Together with native .2 this completes the R2 input evidence and input portion of R3; activity and optional-type obligations remain with their existing owners.
 ## Done summary
-TBD
+Independent finite action-input binding with exact-payload source fairness. The lifter admits tuple and named input variants under a declared World (`bool`, admitted integers, local `Finite` enums, `#[inputs]`, `#[domain(f)]` read by signature only), counts the catalog against the 4096 limit before expansion, lowers patterns and shadowing through the existing route, emits each variant as finite existential choice over its catalog rows, records the catalog position in `__umpire_input`, and emits one weak-fairness obligation per fair action value. Replay checks the ordinal against typed metadata and the native action's typed identity; no display parsing. The TLC runner attributes span-named violations of the single checked property and refuses anything else. New `action_inputs` fixture: two Worlds, all five CFG families, TLC agreement and replay, fairness mutation controls. Migrated by fn-227.13/.14.
 
+Review: SHIP at HEAD ae4527965f (.flow/tmp/fn2278-review.md). Minor follow-ups carried into fn-238.3: m1 fairness-name collision (`names.rs:182,198`), m2 single-edit readmission control, m3 bounded no-fairness control does not discriminate (pinned only by golden), m4 refusal tests should assert message substrings; consider a TLC VIEW on Model variables (29 raw TLC states for 6 Model states). Gates: Quick default/required at 0469334f91; Full at adb061d57d with this code: `UMPIRE_BACKENDS=require make model-check` 460s, `make model-time` 50.532s / 7.908s, slice and gaps green (c6e5234ce9 guest).
+
+stage: plan-sync - skipped(config: planSync.enabled != true)
 ## Evidence
-- Commits:
-- Tests:
+- Commits: 3fd1d2f551, 0469334f91
+- Tests: UMPIRE_BACKENDS=require make model-check, make model-time, make umpire-check-model-slice, make umpire-check-model-gaps
 - PRs:

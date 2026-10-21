@@ -1,0 +1,16 @@
+{
+  "assignee": null,
+  "claim_note": "",
+  "claimed_at": null,
+  "created_at": "2026-10-21T23:44:17.321440Z",
+  "depends_on": [
+    "fn-238-shared-front-end-one-model-reading-for.3"
+  ],
+  "id": "fn-238-shared-front-end-one-model-reading-for.4",
+  "priority": null,
+  "spec": "fn-238-shared-front-end-one-model-reading-for",
+  "spec_path": ".flow/tasks/fn-238-shared-front-end-one-model-reading-for.4.md",
+  "status": "todo",
+  "title": "Embed the admitted Model from the macro; lifter emits from the compiled Model",
+  "updated_at": "2026-10-21T23:44:17.321440Z"
+}

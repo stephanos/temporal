@@ -125,6 +125,8 @@ unchanged; timing 51.337s gate, 8.868s inner loop.
 .14 is complete locally after a second review: derives export values to the lifter, replacing
 the augmented-copy binding route; net about -91 source and -70 test lines, goldens and TLC
 unchanged; timing 50.532s gate, 7.908s inner loop.
+.8 (source inputs and exact-payload fairness) is complete locally with SHIP review at HEAD after
+the .13/.14 migration; its minor follow-ups moved to fn-238.3.
 On 2026-10-21 the owner approved all three contract amendments: lifecycle refinement
 in place of impossible old-byte equality; cooperative cancellation with explicit protocol
 evidence; and optional actual-request Observation evidence at tag 4. Heartbeat signals a
@@ -137,10 +139,9 @@ The review passed; each consumer still waits for its declared support dependenci
 
 | Name | Status | What |
 | --- | --- | --- |
-| fn-227.8 | 🔄 in progress | Source inputs and exact-payload fairness committed (`3fd1d2f551`, `0469334f91`), migrated by .13/.14; full gates green at `adb061d57d`; independent review next (R2, R3) |
-| fn-227.11 | ⬜ todo | After .8 and fn-238's migration: source `Phased`/`reject!` and closure laws, with unchanged activity behavior (R3) |
+| fn-227.11 | ⬜ todo | After fn-238.4: source `Phased`/`reject!` and closure laws, built once on the shared front end, with unchanged activity behavior (R3) |
 | fn-227.3 | ⬜ todo | After .2 and .11: activity attempts/retryable failure and retained-lifecycle refinement (R3, R4) |
-| fn-227.12 | ⬜ todo | Actual-request Observation transport and owned same-invocation SDK capture (R6) |
+| fn-227.12 | 🔄 in progress | Actual-request Observation transport and owned same-invocation SDK capture (R6) |
 | fn-227.5 | ⬜ todo | After .3 and .12: transactional live World admission (`maximum_attempts`) and SDK retry proof (R6) |
 | fn-227.6 | ⬜ todo | After .5: DESIGN.md parameterized worlds, inputs and retries write-up and readiness table closure (R7) |
 
@@ -150,11 +151,19 @@ Filed on 2026-10-21 at the owner's direction: both checkers share all code excep
 native checker executes the Model and the lifter emits TLA+ (and later Apalache); the owner accepts
 the risk of a shared misreading. Typed counterexample replay stays as the cross-check. Runs after
 fn-227.14 and .8, before fn-227.11, so later constructs are built once.
+The design ([shared-front-end.md](model/design/shared-front-end.md)) measured about 1,000 duplicated
+lines per side and recommends one shared admission crate first (Option A, .2-.4), then the
+interpreted checker behind a measured gate (Option B, .5-.6); the guest and replay stay compiled.
 [Spec](.flow/specs/fn-238-shared-front-end-one-model-reading-for.md).
 
 | Name | Status | What |
 | --- | --- | --- |
-| fn-238.1 | ⬜ todo | After fn-227.14: design comparing a shared admission front end with a shared interpreted IR, measured duplication, recommendation and migration tasks (R1) |
+| fn-238.2 | 🔄 in progress | `umpire-front`: move the lifter's admission into a shared crate, no behaviour change (R2) |
+| fn-238.3 | ⬜ todo | After .2: macros read through `umpire-front`; one diagnostic per form; fn-227.8 follow-ups (R2, R3) |
+| fn-238.4 | ⬜ todo | After .3: macro embeds the admitted Model; lifter emits from it, no `model.rs` re-read (R2-R4) |
+| fn-238.5 | ⬜ todo | After .4: interpreted checker as a differential check (R2, R3) |
+| fn-238.6 | ⬜ todo | After .5: interpreted checker by default only if at most 2x slower and at most 25% more per-construct cost (R2, R3) |
+| fn-238.7 | ⬜ todo | After .4 (and .6 if taken): boundary write-up and measurements (R4) |
 
 ### fn-237: Activity timeouts, heartbeat and cooperative cancellation (model, temporal)
 

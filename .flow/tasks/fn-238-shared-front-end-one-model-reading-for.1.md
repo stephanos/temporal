@@ -23,9 +23,10 @@ The design is reviewed; no code changes.
 - [ ] A recommendation with a migration task breakdown and golden/replay preservation plan.
 
 ## Done summary
-TBD
+Design `model/design/shared-front-end.md` (7d50308efb): measured 1,024 macro and 1,074 lifter lines reading the same declarations across 12 concerns, plus 404 lifter lines re-validating native values and 78 re-resolving imports; two drifts (State name, inputs without World). Recommends Option A (one `umpire-front` crate; macro embeds the admitted IR; lifter emits from it; about -850 to -1,600 lines) first, then Option B (interpreted checker) as a differential check and default only behind a measured gate (at most 2x slower, at most 25% more per-construct cost on sets). Guest and typed replay stay compiled. Interpreter probe: 1.3-3.2x slower with typed state, 4-6.4x with dynamic values. Archived Scala lessons assessed. Conductor accepted the recommendation and the gate thresholds under the milestone goal; migration filed as .2-.7.
 
+stage: plan-sync - skipped(config: planSync.enabled != true)
 ## Evidence
-- Commits:
+- Commits: 7d50308efb
 - Tests:
 - PRs:
