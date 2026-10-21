@@ -85,8 +85,8 @@ fn linked_cluster_network_query_uses_the_broker_instead_of_standalone_fallback()
         .to_vec();
     let network = serde_json::from_value(json!({
         "model":{"profile":"gomad.simulation-network-stream/v3","limits":{
-            "listeners":8,"connections":8,"bytes":1048576,"connection_bytes":1048576,
-            "stall_nanos":10000000000_u64,"transitions":10000}},
+            "listeners":8,"connections":8,"bytes":1_048_576,"connection_bytes":1_048_576,
+            "stall_nanos":10_000_000_000_u64,"transitions":10000}},
         "addresses":{},"links":[],"strict_topology":false,"faults":[]
     }))
     .unwrap();

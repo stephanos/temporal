@@ -79,7 +79,7 @@ mod simulation_tests {
         .unwrap();
         let mut descriptor: StorageDescriptor = serde_json::from_value(serde_json::json!({
             "model":model, "model_identity":model.identity(), "return_image":true,
-            "crash_limits":{"States":16,"Operations":100,"Depth":100,"Bytes":1048576,"Work":1000}
+            "crash_limits":{"States":16,"Operations":100,"Depth":100,"Bytes":1_048_576,"Work":1000}
         }))
         .unwrap();
         let mut namespace = fixture(&descriptor);
