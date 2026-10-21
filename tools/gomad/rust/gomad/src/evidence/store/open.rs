@@ -1,5 +1,6 @@
 use super::{FileEntry, Manifest, canonical, lineage};
 use rustix::fs::{self, AtFlags, FileType, Mode, OFlags, Stat};
+use sha2::{Digest, Sha256};
 #[cfg(feature = "determinism-fixture")]
 use std::os::unix::fs::OpenOptionsExt as _;
 use std::{
@@ -140,6 +141,23 @@ fn read_authorized(
     module: bool,
     proof: Option<(&FileEntry, Option<&File>)>,
 ) -> Result<Vec<u8>, String> {
+    let (mut file, before) = authorized(root, name, module, proof)?;
+    let bytes = read_handle(&mut file, bound, || Ok(()))?;
+    if !same(
+        &before,
+        &fs::fstat(&file).map_err(|error| error.to_string())?,
+    ) {
+        return Err("artifact file changed while reading".into());
+    }
+    Ok(bytes)
+}
+
+fn authorized(
+    root: &File,
+    name: &str,
+    module: bool,
+    proof: Option<(&FileEntry, Option<&File>)>,
+) -> Result<(File, Stat), String> {
     validate(
         &fs::fstat(root).map_err(|error| error.to_string())?,
         true,
@@ -150,22 +168,14 @@ fn read_authorized(
     for part in &parts[..parts.len() - 1] {
         directory = child(&directory, part, true, false)?;
     }
-    let mut file = child(&directory, parts[parts.len() - 1], false, module)?;
+    let file = child(&directory, parts[parts.len() - 1], false, module)?;
     let before = fs::fstat(&file).map_err(|error| error.to_string())?;
     if let Some((entry, pool)) = proof
         && entry.module
     {
         module_link(&before, pool, entry)?;
     }
-    read_handle(&mut file, bound, || Ok(())).and_then(|bytes| {
-        if !same(
-            &before,
-            &fs::fstat(&file).map_err(|error| error.to_string())?,
-        ) {
-            return Err("artifact file changed while reading".into());
-        }
-        Ok(bytes)
-    })
+    Ok((file, before))
 }
 
 fn read_handle(
@@ -455,7 +465,43 @@ impl Opened {
     /// Returns the first payload authentication failure.
     pub fn authenticate_all(&self) -> Result<(), String> {
         for (name, entry) in &self.manifest.files {
-            self.payload(name, entry.bytes)?;
+            let (mut file, before) = authorized(
+                &self.root,
+                name,
+                entry.module,
+                Some((entry, self.pool.as_ref())),
+            )?;
+            if u64::try_from(before.st_size) != Ok(entry.bytes) {
+                return Err("artifact payload size mismatch".into());
+            }
+            let mut reader = (&mut file).take(
+                entry
+                    .bytes
+                    .checked_add(1)
+                    .ok_or("artifact read bound overflow")?,
+            );
+            let mut digest = Sha256::new();
+            let mut bytes = 0_u64;
+            let mut buffer = [0_u8; 16_384];
+            loop {
+                let count = reader
+                    .read(&mut buffer)
+                    .map_err(|error| error.to_string())?;
+                if count == 0 {
+                    break;
+                }
+                bytes += count as u64;
+                digest.update(&buffer[..count]);
+            }
+            if !same(
+                &before,
+                &fs::fstat(&file).map_err(|error| error.to_string())?,
+            ) {
+                return Err("artifact file changed while reading".into());
+            }
+            if bytes != entry.bytes || format!("{:x}", digest.finalize()) != entry.sha256 {
+                return Err("artifact payload identity mismatch".into());
+            }
         }
         Ok(())
     }

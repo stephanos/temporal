@@ -43,7 +43,17 @@ stream. Its `choices`, `world`, `simulation`, `minimization` and `outputs` field
 are nullable. Payload descriptors authorize only manifest-listed contained
 reads, with independent byte bounds and digests. Choice target/toolchain and
 trace/tape consistency, World snapshot seed/time/count, output accounting and
-minimization reduction chains are checked before rendering. Source paths and
+minimization reduction chains are checked before rendering. Consumer bounds are
+applied before allocation; remaining payloads authenticate with fixed-buffer
+streaming through the same pinned opener. Choice overflow requires the matching
+runtime-choice capacity failure; interrupted prefixes require a watchdog timeout
+or explicit runner cancellation, and complete traces require an exact tape.
+Minimization reductions admit `schedule_suffix`, `schedule_range`, and
+`fault_entries`, with supported decision dimensions, unique removed coordinates,
+effective hash-linked candidates and reconciled original/final counts. Standalone
+choice suffixes must remove contiguous terminal ordinals; simulation suffixes
+remove runtime controls, ranges remove non-fault controls, and fault entries
+remove fault controls. Source paths and
 installations are never reopened.
 
 The mandatory local harness command is:

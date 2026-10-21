@@ -38,6 +38,8 @@ run('fresh-parity', ['python3', corpus / 'inspect-reference-check.py', '--baseli
     '--output', args.work / 'fresh-parity'])
 run('consumer', ['python3', corpus / 'inspect-check.py', '--binary', args.binary,
     '--work', args.work / 'consumer', '--details-input', corpus / declaration['consumer_details']])
+run('review-regressions', ['python3', corpus / 'inspect-regression-check.py', '--binary', args.binary,
+    '--work', args.work / 'review-regressions'])
 run('store', ['python3', corpus / 'foundation-store-check.py', args.binary, args.work / 'store', '--inspect'])
 run('golden', ['python3', corpus / 'inspect-golden-check.py', '--binary', args.binary,
     '--work', args.work / 'golden', '--details-input', corpus / declaration['consumer_details']])

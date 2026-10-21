@@ -78,7 +78,6 @@ pub fn run(arguments: &[String], output: &mut dyn Write) -> Result<(), super::Er
     let path = path.as_path();
     let opened =
         Opened::open(path).map_err(|error| format!("inspect {}: {error}", path.display()))?;
-    opened.authenticate_all()?;
     if opened.manifest().files.contains_key("record.json")
         && Record::decode(&opened.payload("record.json", 16 << 20)?)? != opened.manifest().record
     {
@@ -94,6 +93,7 @@ pub fn run(arguments: &[String], output: &mut dyn Write) -> Result<(), super::Er
     let projected_choices = choice_evidence
         .map(|evidence| evidence.inspect(&opened))
         .transpose()?;
+    opened.authenticate_all()?;
     let manifest = opened.manifest();
     let report = Inspection {
         schema: "gomad.inspect/v9",

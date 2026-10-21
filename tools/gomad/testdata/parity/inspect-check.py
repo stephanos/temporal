@@ -103,7 +103,7 @@ malformed('minimization-budget', lambda value: value['details']['minimization'].
 malformed('minimization-replay', lambda value: value['details']['minimization']['predicate'].__setitem__('replay_match', False), 'invalid minimization evidence')
 malformed('minimization-chain', lambda value: value['details']['minimization']['accepted'][0].__setitem__('before_sha256', '0' * 64), 'reduction chain')
 malformed('minimization-final', lambda value: value['details']['minimization'].__setitem__('final_candidate_sha256', '0' * 64), 'final candidate mismatch')
-malformed('minimization-duplicate', lambda value: value['details']['minimization']['accepted'][0]['removed'].append(copy.deepcopy(value['details']['minimization']['accepted'][0]['removed'][0])), 'removed decision')
+malformed('minimization-duplicate', lambda value: value['details']['minimization']['accepted'][0]['removed'].append(copy.deepcopy(value['details']['minimization']['accepted'][0]['removed'][0])), 'minimization')
 malformed('output-accounting', lambda value: value['details'].__setitem__('outputs', {'stdout': dict(full_sha256='0' * 64, total_bytes=99, retained_bytes=1, discarded_bytes=0, truncated=False)}), 'output stream accounting mismatch')
 
 truncated = copy.deepcopy(source)
@@ -162,11 +162,8 @@ def incomplete(manifest, details):
 
 
 rewrite(overflow, incomplete)
-overflow_choices = json.loads(run('inspect', '--json', '--choices', overflow))['artifact']['choices']
-assert overflow_choices['terminal_state'] == 'overflow'
-assert not overflow_choices['exact_replay_available']
-assert overflow_choices['replay_decisions'] == [] and overflow_choices['tape_sha256'] == ''
-assert overflow_choices['records'] == overflow_choices['runnable'] == 1
+run('inspect', '--json', '--choices', overflow, status=2)
+assert 'choice terminal outcome mismatch' in receipts[-1]['stderr'] and not receipts[-1]['stdout']
 
 malformed_trace = args.work / 'malformed-trace'
 shutil.copytree(choice_artifact, malformed_trace)

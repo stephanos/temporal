@@ -290,12 +290,31 @@ impl ChoiceEvidence {
         if target != opened.manifest().record.identity.target {
             return Err("choice target identity mismatch".into());
         }
+        let outcome = &opened.manifest().record.outcome;
+        let overflow = outcome.class == "runner_failure"
+            && outcome.termination == "capacity"
+            && outcome.exit_code.is_none()
+            && outcome.reason == "WASI capacity: runtime-choice-bytes";
+        let interrupted = outcome.class == "runner_failure"
+            && outcome.exit_code.is_none()
+            && (outcome.termination == "watchdog_timeout"
+                || outcome.termination == "cancelled" && outcome.reason == "runner_cancelled");
+        if match self.terminal_state.as_str() {
+            "overflow" => !overflow,
+            "interrupted" => !interrupted,
+            _ => overflow || interrupted,
+        } {
+            return Err("choice terminal outcome mismatch".into());
+        }
         let bytes = self.trace.authenticate(opened)?;
         let mut trace = linked::inspect_choices(&bytes, &self.identity).map_err(str::to_owned)?;
         if trace.records != self.records || bytes.len() as u64 + 64 > self.trace.limit {
             return Err("choice trace bounds mismatch".into());
         }
         let exact = self.tape_sha256.is_some();
+        if self.terminal_state == "complete" && !exact {
+            return Err("complete choice tape is missing".into());
+        }
         if let Some(tape) = &self.tape_sha256
             && (self.terminal_state != "complete" || tape != &trace.tape_sha256)
         {
@@ -323,8 +342,11 @@ impl ChoiceEvidence {
 impl Minimization {
     fn validate(&self) -> Result<(), String> {
         if self.schema != "gomad.minimization-evidence/v1"
+            || self.attempt_budget == 0
+            || self.attempts == 0
             || self.attempts > self.attempt_budget
-            || self.final_forced_decisions > self.original_forced_decisions
+            || self.final_forced_decisions >= self.original_forced_decisions
+            || self.accepted.is_empty()
             || self.accepted.len() as u64 > self.attempts
             || self.parent_failure_signature != self.predicate.failure_signature
             || !self.predicate.replay_match
@@ -343,19 +365,36 @@ impl Minimization {
         }
         let mut previous = &self.original_candidate_sha256;
         let mut removed = std::collections::BTreeSet::new();
+        let mut candidates = std::collections::BTreeSet::from([previous]);
+        let mut remaining = self.original_forced_decisions;
         for reduction in &self.accepted {
             digest(&reduction.before_sha256)?;
             digest(&reduction.after_sha256)?;
             if &reduction.before_sha256 != previous
                 || reduction.removed.is_empty()
-                || reduction.kind.is_empty()
+                || !matches!(
+                    reduction.kind.as_str(),
+                    "schedule_suffix" | "schedule_range" | "fault_entries"
+                )
+                || !candidates.insert(&reduction.after_sha256)
             {
                 return Err("invalid minimization reduction chain".into());
             }
-            for decision in &reduction.removed {
+            remaining = remaining
+                .checked_sub(reduction.removed.len() as u64)
+                .ok_or("invalid minimization removal count")?;
+            for (index, decision) in reduction.removed.iter().enumerate() {
                 digest(&decision.identity)?;
-                if decision.dimension.is_empty()
-                    || !removed.insert((&decision.dimension, decision.ordinal, &decision.identity))
+                if !matches!(
+                    decision.dimension.as_str(),
+                    "runtime" | "scenario" | "network" | "storage" | "fault" | "crash"
+                ) || !removed.insert((&decision.dimension, decision.ordinal))
+                    || reduction.kind == "fault_entries" && decision.dimension != "fault"
+                    || reduction.kind == "schedule_range" && decision.dimension == "fault"
+                    || reduction.kind == "schedule_suffix"
+                        && (decision.dimension != "runtime"
+                            || self.predicate.simulation_replay == "not_present"
+                                && decision.ordinal != remaining + index as u64)
                 {
                     return Err("invalid minimization removed decision".into());
                 }
@@ -364,6 +403,9 @@ impl Minimization {
         }
         if previous != &self.final_candidate_sha256 {
             return Err("minimization final candidate mismatch".into());
+        }
+        if remaining != self.final_forced_decisions {
+            return Err("invalid minimization final decision count".into());
         }
         Ok(())
     }
