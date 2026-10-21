@@ -35,6 +35,9 @@ fn-217 is complete locally with all seven tasks, implementation and parent compl
 reviews passed, exhaustive admission, black-box gaps and complete live/privacy gates.
 fn-230 is complete locally with both tasks and parent completion review passed,
 the embedded guest, freshness controls and renewed two-checkout Linux proof.
+fn-231 is complete locally with both tasks, implementation and parent completion
+reviews passed, all three conductor gates and unchanged live gap/privacy proof.
+Its final timing gate took 87.140s, above the 30s soft target; inner loop was 1.672s.
 TLC is implemented for its admitted source subset; unsupported source,
 including the current Phased/reject activity Model, is explicitly refused.
 
@@ -86,21 +89,6 @@ Cross-OS identity remains unverified and required here; it does not gate fn-230 
 | Name | Status | What |
 | --- | --- | --- |
 | fn-232.1 | ⬜ todo | After fn-230: same-source Linux/arm64 and macOS stock/Temporal proof with independent clean targets; requires reachable macOS executor (R1, R2) |
-
-### fn-231: Declarative Realizations: the #[realization] attribute surface and the coverage golden (model, temporal)
-
-Captured on 2026-10-20 after fn-217 and fn-229. A Realization becomes annotated handlers,
-`#[observe(Service::Method, reads(..), ignores(..))]` and `#[answer(..)]` under `#[realization(activity)]`,
-with dispatch, unpacking and `Unsupported` refusals generated over fn-229's helpers; `#[propose]` is
-reserved for fn-228.2. Coverage is a golden, `realization.snap.txt`, classifying every catalog field of each
-handled RPC as mapped, ignored with reason or unsupported, plus unhandled RPCs, checked against fn-217's
-catalog at build time. Attributes live on the Realization only; the Model names nothing from Temporal.
-[Spec](.flow/specs/fn-231-declarative-realizations-the.md).
-
-Both tasks are complete locally with implementation SHIP and all full gates passed.
-The parent completion review passed over the full spec base; final conductor gates remain.
-Renewed live proof retains
-all 2,336 gap/privacy cases and an unchanged report; the timing overrun remains explicit.
 
 ### fn-227: Parameterized Models: declared worlds, action inputs, and the activity Model with retries and timeouts (model, temporal)
 

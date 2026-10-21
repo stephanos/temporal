@@ -209,7 +209,7 @@
     "impl:fn-231-declarative-realizations-the.2": 0
   },
   "spec_path": ".flow/specs/fn-231-declarative-realizations-the.md",
-  "status": "open",
+  "status": "done",
   "title": "Declarative Realizations: the #[realization] attribute surface and the coverage golden (model, temporal)",
   "tracker": {
     "baseHashFlow": null,
@@ -222,5 +222,5 @@
     "mergeBaseTracker": null,
     "url": null
   },
-  "updated_at": "2026-10-21T13:01:44.172783Z"
+  "updated_at": "2026-10-21T13:15:37.306743Z"
 }

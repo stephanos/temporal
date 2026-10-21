@@ -8,7 +8,7 @@
   "priority": null,
   "spec": "fn-231-declarative-realizations-the",
   "spec_path": ".flow/tasks/fn-231-declarative-realizations-the.1.md",
-  "status": "todo",
+  "status": "done",
   "title": "Realization macro crate: #[realization], #[observe], #[answer]; Step and Reply; generated Realize impl; activity rewritten with expansion snapshot",
   "updated_at": "2026-10-21T09:58:36.239917Z"
 }
