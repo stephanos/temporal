@@ -87,9 +87,14 @@ pub struct Prepared {
     wall_timeout: Duration,
     evidence_bytes: u64,
     conditions: linked::Conditions,
+    cancellation: linked::Cancellation,
 }
 
 impl Prepared {
+    pub fn cancellation(&mut self, cancellation: linked::Cancellation) {
+        self.cancellation = cancellation;
+    }
+
     pub fn conditions(&mut self, conditions: linked::Conditions) {
         self.conditions = conditions;
     }
@@ -276,6 +281,7 @@ pub fn prepare(mut request: Request) -> Result<Prepared> {
         wall_timeout: request.wall_timeout,
         evidence_bytes: request.evidence_bytes,
         conditions: linked::Conditions::default(),
+        cancellation: linked::Cancellation::default(),
     })
 }
 
@@ -467,7 +473,10 @@ fn execute_inner(
     let script = std::mem::take(&mut prepared.steps);
     let driven = (|| -> Result<()> {
         for step in script {
-            if timed_out.load(Ordering::Acquire) || broker.inspection_stopped() {
+            if timed_out.load(Ordering::Acquire)
+                || prepared.cancellation.cancelled()
+                || broker.inspection_stopped()
+            {
                 break;
             }
             let index = prepared
@@ -689,6 +698,18 @@ fn execute_inner(
 /// # Errors
 /// Executes a fully authenticated lifecycle with fresh stores and one shared broker and engine.
 pub fn execute_prepared(prepared: Prepared) -> Result<Execution> {
+    let cancellation = prepared.cancellation.clone();
+    if cancellation.cancelled() {
+        return Ok(Execution {
+            outcome: linked::Cancellation::execution().outcome,
+            incarnations: Vec::new(),
+            world: Vec::new(),
+            network: Vec::new(),
+            inspection: Vec::new(),
+            virtual_elapsed_nanos: 0,
+            event_order: None,
+        });
+    }
     let mut conditions = prepared.conditions.enter()?;
     let session = conditions.session();
     let engine = Engine::new(&engine::configuration(true))?;
@@ -704,6 +725,7 @@ pub fn execute_prepared(prepared: Prepared) -> Result<Execution> {
     let broker = Arc::new(
         Broker::new(&prepared.broker, &prepared.ids, network.clone(), None).map_err(Error::msg)?,
     );
+    let _registration = cancellation.attach(&engine, Some(broker.clone()))?;
     let timed_out = AtomicBool::new(false);
     thread::scope(|scope| {
         let (done, completed) = mpsc::sync_channel::<()>(0);
@@ -738,6 +760,7 @@ pub fn execute_prepared(prepared: Prepared) -> Result<Execution> {
                 protocol::Outcome::new("watchdog_timeout", "execution watchdog timeout");
         }
         if let Ok(execution) = &mut result {
+            cancellation.apply(&mut execution.outcome);
             execution.event_order = conditions.finish();
         }
         result

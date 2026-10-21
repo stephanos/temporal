@@ -39,6 +39,8 @@ mod guest_profile;
 #[cfg(not(feature = "conformance"))]
 pub mod linked;
 #[cfg(not(feature = "conformance"))]
+mod linked_cancellation;
+#[cfg(not(feature = "conformance"))]
 pub mod linked_cluster;
 #[cfg(not(feature = "conformance"))]
 mod linked_conditions;

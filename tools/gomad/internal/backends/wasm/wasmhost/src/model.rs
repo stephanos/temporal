@@ -61,7 +61,7 @@ pub struct ModelLimits {
     pub transcript_bytes: u64,
     pub pending_events: u64,
 }
-#[derive(Clone, Debug, Deserialize, Serialize)]
+#[derive(Clone, Debug, Deserialize, Eq, PartialEq, Serialize)]
 #[serde(deny_unknown_fields, rename_all = "PascalCase")]
 pub struct Decision {
     ordinal: u64,
@@ -83,7 +83,7 @@ impl Decision {
     }
 }
 
-#[derive(Serialize)]
+#[derive(Clone, Debug, Deserialize, Eq, PartialEq, Serialize)]
 #[serde(rename_all = "PascalCase")]
 pub struct Divergence {
     pub ordinal: u64,
