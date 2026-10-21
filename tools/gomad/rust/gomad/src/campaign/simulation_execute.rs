@@ -63,7 +63,11 @@ pub(super) fn run(
                 .model
                 .as_mut()
                 .ok_or("simulation runtime replay has no cooperative model")?;
-            model.configuration.mode = if replay.prefix_control.is_some() { 3 } else { 2 };
+            model.configuration.mode = if replay.prefix_control.is_some() {
+                3
+            } else {
+                2
+            };
             model.configuration.replay = Some(replay.clone());
             model.replay_trace = raw_trace.map(<[u8]>::to_vec);
         }
@@ -92,7 +96,7 @@ pub(super) fn run(
             })).collect::<Vec<_>>()
         });
         let mut result =
-            scenario::publication(prepared, job, bound.configuration, observed.cluster)?;
+            scenario::publication(prepared, job, bound.configuration, observed.cluster, true)?;
         result.execution.divergence = runtime_divergence;
         payload(&mut result, "evidence/choice", trace);
         (

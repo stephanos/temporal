@@ -273,12 +273,21 @@ impl RoundState {
                     }
                     regenerated.diverged |= execution.divergence.is_some();
                     if &regenerated != result {
-                        let expected = serde_json::to_value(&regenerated).map_err(|error| error.to_string())?;
-                        let observed = serde_json::to_value(result).map_err(|error| error.to_string())?;
-                        let fields = expected.as_object().ok_or("simulation result is not an object")?
-                            .iter().filter(|(name, value)| observed.get(*name) != Some(*value))
-                            .map(|(name, _)| name.as_str()).collect::<Vec<_>>();
-                        return Err(format!("simulation segment differs from authenticated raw decisions: {}", fields.join(", ")));
+                        let expected = serde_json::to_value(&regenerated)
+                            .map_err(|error| error.to_string())?;
+                        let observed =
+                            serde_json::to_value(result).map_err(|error| error.to_string())?;
+                        let fields = expected
+                            .as_object()
+                            .ok_or("simulation result is not an object")?
+                            .iter()
+                            .filter(|(name, value)| observed.get(*name) != Some(*value))
+                            .map(|(name, _)| name.as_str())
+                            .collect::<Vec<_>>();
+                        return Err(format!(
+                            "simulation segment differs from authenticated raw decisions: {}",
+                            fields.join(", ")
+                        ));
                     }
                 }
                 *self = Self::Simulation(state.replay_segment(segment)?);
