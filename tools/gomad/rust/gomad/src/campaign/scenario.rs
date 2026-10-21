@@ -764,7 +764,7 @@ fn boot_request(
             fuel: base.limits.fuel,
             output_bytes: base.limits.output_bytes,
             evidence_bytes: base.limits.evidence_bytes,
-            wall_timeout: Duration::from_millis(base.limits.wall_millis),
+            wall_timeout: preflight::wall_timeout(&base.limits, base.wall_nanos)?,
         },
         model: Some(linked::ModelInput {
             configuration: serde_json::from_value(model).map_err(|error| error.to_string())?,
@@ -903,6 +903,7 @@ pub fn bind(
                 limit: 512 << 20,
             },
             limits: base.limits.clone(),
+            wall_nanos: base.wall_nanos,
             arguments,
             environment: effective_environment(base, seed),
             runtime_sha256: base
@@ -945,7 +946,7 @@ pub fn bind(
         steps: scenario.actions.clone(),
         boundaries: boundaries.clone(),
         crash_groups: Vec::new(),
-        wall_timeout: Duration::from_millis(base.limits.wall_millis),
+        wall_timeout: preflight::wall_timeout(&base.limits, base.wall_nanos)?,
         evidence_bytes: base
             .limits
             .evidence_bytes
@@ -959,6 +960,7 @@ pub fn bind(
             engine: base.engine.clone(),
             profile: base.profile.clone(),
             limits: execution_limits,
+            wall_nanos: base.wall_nanos,
             broker,
             network: network_config,
             incarnations: retained,

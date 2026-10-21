@@ -6,12 +6,12 @@ use crate::{
         record::{Outcome, Record, Stream},
         store::{Opened, Publication, Store},
     },
-    replay::preflight::{Configuration, FILE, Inputs, implementation, platform},
+    replay::preflight::{Configuration, FILE, Inputs, implementation, platform, wall_timeout},
 };
 use gomad_wasmhost::linked;
 use serde::Deserialize;
 use sha2::Digest as _;
-use std::{collections::BTreeMap, path::Path, time::Duration};
+use std::{collections::BTreeMap, path::Path};
 
 #[derive(Deserialize)]
 #[serde(deny_unknown_fields)]
@@ -79,7 +79,7 @@ fn execute(case: Case, conditions: linked::Conditions) -> Result<Publication, St
             fuel: configuration.limits.fuel,
             output_bytes: configuration.limits.output_bytes,
             evidence_bytes: configuration.limits.evidence_bytes,
-            wall_timeout: Duration::from_millis(configuration.limits.wall_millis),
+            wall_timeout: wall_timeout(&configuration.limits, configuration.wall_nanos)?,
         },
     })
     .map_err(|error| format!("{}: {error}", case.name))?;
@@ -126,6 +126,25 @@ fn execute(case: Case, conditions: linked::Conditions) -> Result<Publication, St
         payloads.insert(path, bytes.clone());
     }
     if let Some(identity) = case.choice_identity {
+        if !payloads.contains_key("evidence/choice") {
+            let complete_empty = result.outcome.local_model.as_deref().is_some_and(|model| {
+                model["configured"].as_bool() == Some(true)
+                    && model["finished"].as_bool() == Some(true)
+                    && model["records"].as_u64() == Some(0)
+            });
+            if !complete_empty {
+                return Err("fixture has no choices".into());
+            }
+            payloads.insert("evidence/choice".into(), Vec::new());
+            streams.insert(
+                "evidence/choice".into(),
+                Stream {
+                    bytes: 0,
+                    sha256: canonical::digest(&[]),
+                    records: 0,
+                },
+            );
+        }
         if identity.target_sha256.as_slice()
             != sha2::Sha256::digest(&payloads["target/module.wasm"]).as_slice()
         {
