@@ -150,6 +150,15 @@ def inspect_cluster(args, reference, artifact, run):
     record = json.loads(base64.b64decode(retained['record'], validate=True))
     metadata = json.loads((artifact / 'evidence/inspection').read_bytes())
     assert metadata == record['wasm_execution']['inspection'], 'same-target cluster inspection differs'
+    summary = json.loads((artifact / 'evidence/cluster_summary').read_bytes())
+    outcomes = {(item['handle']['node'], item['handle']['incarnation']): item for item in summary['incarnations']}
+    for owner in metadata['incarnations']:
+        if metadata['complete']:
+            assert owner['terminal_order'] >= owner['started_order'] > 0, owner
+        handle = (owner['handle']['node'], owner['handle']['incarnation'])
+        if outcomes[handle]['local_model'] == {'configured': False, 'finished': False}:
+            assert owner['streams']['choice'] == '' and owner['streams']['wasi'] == '', owner
+            assert owner['registry']['entries'] == [] and not owner['registry']['closed'], owner
     expected_status = int(json.loads((artifact / 'record.json').read_bytes())['outcome']['class'] != 'success')
     assert b'reproduced=true' in run('rust-replay', [args.binary, 'replay', artifact], expected_status)
     run('rust-target-required', [args.binary, 'replay', '--stop=choice=0', artifact], 2)
