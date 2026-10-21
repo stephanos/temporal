@@ -81,6 +81,7 @@ impl Endpoint {
             clients: BTreeMap::from([("guest".into(), "127.0.0.2".into())]),
             faults: Vec::new(),
             fault: 0,
+            simulation: None,
         }));
         let mut endpoint = Self::new(shared, "guest", 1, 0, &config, epoch, transcript_limit)?;
         endpoint.attached = true;

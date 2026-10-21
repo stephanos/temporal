@@ -108,6 +108,100 @@ fn inspection_network_cache_follows_own_and_foreign_mutations() {
 }
 
 #[test]
+fn simulation_network_and_fault_choices_change_real_delivery_and_topology() {
+    use crate::linked_simulation::{Controller, Dimension, Override, Plan};
+
+    let run = |overrides, alternate_ports| {
+        let plan = Plan::new(
+            format!("sha256:{}", "a".repeat(64)),
+            format!("sha256:{}", "b".repeat(64)),
+            7,
+            overrides,
+        )
+        .unwrap();
+        let controller = Arc::new(Mutex::new(Controller::new(plan, 100).unwrap()));
+        let mut config = config();
+        config.faults = ["partition", "heal"]
+            .into_iter()
+            .map(|action| Fault {
+                name: action.into(),
+                action: action.into(),
+                from: "a".into(),
+                to: "b".into(),
+                at_nanos: 5,
+                delay_nanos: 0,
+                symmetric: true,
+            })
+            .collect();
+        let shared = Arc::new(Mutex::new(Shared::new(&config, &ids()).unwrap()));
+        lock(&shared).attach_simulation(controller.clone());
+        let mut a = endpoint(&shared, "a", 1, 1 << 20);
+        let mut b = endpoint(&shared, "b", 2, 1 << 20);
+        let mut ports = Vec::new();
+        for id in [1, 2] {
+            let port = if alternate_ports {
+                4500 + u32::try_from(id).unwrap()
+            } else {
+                0
+            };
+            let mut listen = buffer(1, id, 0, port, &[]);
+            b.serve(&mut listen, 1, true).unwrap();
+            ports.push(get32(&listen, 48));
+            let handle = u64::from_be_bytes(listen[16..24].try_into().unwrap());
+            let mut accept = buffer(3, 10 + id, handle, 0, &[]);
+            b.serve(&mut accept, 1, true).unwrap();
+            assert_eq!(get32(&accept, 40), 1);
+        }
+        for (index, port) in ports.into_iter().enumerate() {
+            let mut dial = buffer(2, 20 + index as u64, 0, port, &[]);
+            set_u32(&mut dial, 56, u32::from_be_bytes([10, 0, 0, 3]));
+            a.serve(&mut dial, 1, true).unwrap();
+            assert_eq!(get32(&dial, 44), 0);
+        }
+        b.settle(1)?;
+        let delivered: Vec<_> = b
+            .world
+            .transitions()
+            .iter()
+            .filter_map(|transition| match &transition.body {
+                world::TransitionBody::Quiesce { result } => {
+                    Some(result.deliveries.iter().map(|delivery| delivery.request_id))
+                }
+                _ => None,
+            })
+            .flatten()
+            .collect();
+        lock(&shared).advance(5).unwrap();
+        let links = lock(&shared).record().unwrap().snapshot.links.unwrap();
+        let mut controller = controller.lock().unwrap();
+        controller.finish().unwrap();
+        Ok::<_, Failure>((delivered, links, controller.decisions().to_vec()))
+    };
+    let (base_delivery, base_links, decisions) = run(Vec::new(), false).unwrap();
+    let overrides: Vec<Override> = [Dimension::Network, Dimension::Fault]
+        .into_iter()
+        .map(|dimension| {
+            let decision = decisions
+                .iter()
+                .find(|decision| decision.dimension == dimension)
+                .expect("live ready requests and due declared faults must produce decisions");
+            Override::from_decision(decision, 1).unwrap()
+        })
+        .collect();
+    let (forced_delivery, forced_links, _) = run(overrides.clone(), false).unwrap();
+    assert_eq!(base_delivery.len(), 2);
+    assert_eq!(
+        forced_delivery,
+        base_delivery.into_iter().rev().collect::<Vec<_>>()
+    );
+    assert_ne!(forced_links, base_links);
+    assert!(
+        matches!(run(overrides, true), Err(Failure::Infrastructure(message))
+        if message == "simulation exploration replay divergence")
+    );
+}
+
+#[test]
 fn changed_network_inspections_never_rehash_native_history() {
     use sha2::{Digest, Sha256};
     let shared = Arc::new(Mutex::new(Shared::new(&config(), &ids()).unwrap()));

@@ -19,10 +19,11 @@ pub use crate::linked_conditions::Conditions;
 pub use crate::linked_storage::Input as StorageInput;
 pub use crate::model::replay::Request as ReplayRequest;
 pub use crate::model::replay_plan::{
-    ExecutionIdentity as ChoiceIdentity, TraceDecision, TraceInspection, TraceSite,
-    coverage_features as choice_features, inspect as inspect_choices,
+    ExecutionIdentity as ChoiceIdentity, PrefixControl, RankOverride, ReplayPlan as ChoicePlan,
+    TraceDecision, TraceInspection, TraceSite, coverage_features as choice_features,
+    inspect as inspect_choices, project as project_choices,
 };
-pub use crate::model::{Config as ModelConfig, Divergence, ModelLimits};
+pub use crate::model::{Config as ModelConfig, Decision, Divergence, ModelLimits};
 pub use crate::namespace::{
     Image as NamespaceImage, ImageEntry as NamespaceEntry, Limits as NamespaceLimits,
 };

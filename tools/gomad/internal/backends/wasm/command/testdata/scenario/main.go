@@ -24,6 +24,51 @@ func main() {
 		}
 	}
 	switch os.Args[1] {
+	case "simulation-live":
+		file, err := os.Create("/workspace/value")
+		check(err)
+		_, err = file.WriteString("before!!")
+		check(err)
+		check(file.Sync())
+		dir, err := os.Open("/workspace")
+		check(err)
+		check(dir.Sync())
+		check(dir.Close())
+		_, err = file.WriteAt([]byte("survives"), 0)
+		check(err)
+		check(file.Close())
+		ready := make(chan net.Listener, 2)
+		for range 2 {
+			go func() {
+				listener, err := net.Listen("tcp", "127.0.0.1:0")
+				check(err)
+				ready <- listener
+			}()
+		}
+		deadline := time.Now().Add(time.Second)
+		finished := make(chan error, 2)
+		for range 2 {
+			listener := <-ready
+			check(listener.(*net.TCPListener).SetDeadline(deadline))
+			go func() {
+				defer listener.Close()
+				_, err := listener.Accept()
+				finished <- err
+			}()
+		}
+		for range 2 {
+			err := <-finished
+			if timeout, ok := err.(net.Error); !ok || !timeout.Timeout() {
+				panic(fmt.Sprintf("simulation accept: %v", err))
+			}
+		}
+		fmt.Println("pending simulation write")
+		time.Sleep(time.Hour)
+		panic("crash boundary did not revoke guest")
+	case "simulation-recover":
+		data, err := os.ReadFile("/workspace/value")
+		check(err)
+		fmt.Printf("observed simulation recovery %q\n", data)
 	case "fail-peer":
 		fmt.Fprintln(os.Stderr, "failing peer started")
 		time.Sleep(time.Second)

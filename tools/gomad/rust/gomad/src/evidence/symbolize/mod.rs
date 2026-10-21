@@ -2,6 +2,7 @@ use serde::Serialize;
 use std::collections::BTreeMap;
 
 mod bytes;
+pub(crate) mod inspection;
 mod tables;
 mod wasm;
 

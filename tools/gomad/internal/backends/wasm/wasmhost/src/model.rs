@@ -78,6 +78,38 @@ pub struct Decision {
 
 impl Decision {
     #[must_use]
+    pub fn ordinal(&self) -> u64 {
+        self.ordinal
+    }
+    #[must_use]
+    pub fn kind(&self) -> u8 {
+        self.kind
+    }
+    #[must_use]
+    pub fn alternatives(&self) -> u32 {
+        self.alternatives
+    }
+    #[must_use]
+    pub fn selected(&self) -> u32 {
+        self.selected
+    }
+    #[must_use]
+    pub fn data(&self) -> u32 {
+        self.data
+    }
+    #[must_use]
+    pub fn alternative_set_digest(&self) -> [u8; 32] {
+        self.alternative_set_digest
+    }
+    #[must_use]
+    pub fn selected_identity(&self) -> [u8; 32] {
+        self.selected_identity
+    }
+    #[must_use]
+    pub fn rank_override(&self) -> bool {
+        self.rank_override
+    }
+    #[must_use]
     pub fn site(&self) -> (u64, bool) {
         (self.site_offset, self.site_missing)
     }
@@ -162,6 +194,10 @@ pub struct Model {
 
 #[cfg(any(feature = "determinism-fixture", feature = "stress-jitter"))]
 impl Model {
+    #[cfg(feature = "determinism-fixture")]
+    pub(crate) fn fixture_choice_mode(&self) -> u8 {
+        self.config.mode
+    }
     pub fn event_context(&self) -> crate::event_order::Context {
         let handle = self.event_owner.as_ref().unwrap_or(&self.inspection.handle);
         crate::event_order::Context {

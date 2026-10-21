@@ -78,7 +78,12 @@ pub(super) fn run_with_replay(
             let mut model_configuration: linked::ModelConfig =
                 serde_json::from_value(value).map_err(|error| error.to_string())?;
             if replay.is_some() {
-                model_configuration.mode = 2;
+                model_configuration.mode =
+                    if replay.is_some_and(|request| request.prefix_control.is_some()) {
+                        3
+                    } else {
+                        2
+                    };
                 model_configuration.replay = replay.cloned();
             }
             Ok(linked::ModelInput {
@@ -110,6 +115,7 @@ pub(super) fn run_with_replay(
     crate::fixture::execution_started().map_err(|error| error.message)?;
     let mut admitted = linked::prepare(request)
         .map_err(|error| format!("runner_failure: admit campaign target: {error}"))?;
+    admitted.conditions(linked::Conditions::compiled());
     if let Some(network) = &configuration.network {
         admitted
             .network(network.clone())
@@ -172,7 +178,8 @@ pub(super) fn publication(
                 .as_deref()
                 .is_some_and(|model| {
                     model["configured"].as_bool() == Some(true)
-                        && model["finished"].as_bool() == Some(true)
+                        && (model["finished"].as_bool() == Some(true)
+                            || observed.outcome.divergence.is_some())
                         && model["records"].as_u64() == Some(0)
                 })
         {
@@ -327,6 +334,7 @@ pub(super) fn publication(
         semantic_probes: Vec::new(),
         choice_features,
         divergence: observed.outcome.divergence.map(|value| *value),
+        scenario_steps: None,
     };
     Ok(Result {
         execution,

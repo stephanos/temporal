@@ -30,7 +30,7 @@ pub enum Action {
     Stop,
 }
 
-#[derive(Clone, Deserialize, Serialize)]
+#[derive(Clone, Debug, Deserialize, Eq, PartialEq, Serialize)]
 #[serde(deny_unknown_fields)]
 pub struct Step {
     pub action: Action,
@@ -89,9 +89,33 @@ pub struct Prepared {
     evidence_bytes: u64,
     conditions: linked::Conditions,
     cancellation: linked::Cancellation,
+    simulation: Option<crate::linked_simulation::Shared>,
 }
 
 impl Prepared {
+    pub(crate) fn simulation(
+        &mut self,
+        controller: crate::linked_simulation::Shared,
+    ) -> Result<()> {
+        if controller
+            .lock()
+            .map_err(|_| Error::msg("simulation exploration controller poisoned"))?
+            .seed()
+            != self.broker.seed
+        {
+            return Err(Error::msg(
+                "simulation exploration seed does not match cluster",
+            ));
+        }
+        for sealed in self.incarnations.values_mut() {
+            if let Some(storage) = &mut sealed.execution.request.storage {
+                storage.set_simulation(controller.clone());
+            }
+        }
+        self.simulation = Some(controller);
+        Ok(())
+    }
+
     pub fn cancellation(&mut self, cancellation: linked::Cancellation) {
         self.cancellation = cancellation;
     }
@@ -119,6 +143,7 @@ pub struct IncarnationResult {
 
 pub struct Execution {
     pub outcome: protocol::Outcome,
+    pub executed_steps: Vec<Step>,
     pub incarnations: Vec<IncarnationResult>,
     pub world: Vec<u8>,
     pub network: Vec<u8>,
@@ -295,6 +320,7 @@ pub fn prepare(mut request: Request) -> Result<Prepared> {
         evidence_bytes: request.evidence_bytes,
         conditions: linked::Conditions::default(),
         cancellation: linked::Cancellation::default(),
+        simulation: None,
     })
 }
 
@@ -517,9 +543,10 @@ fn execute_inner(
             .map_err(|failure| Error::msg(failure.message()))?;
     }
     broker.start();
-    let script = std::mem::take(&mut prepared.steps);
+    let mut script = std::collections::VecDeque::from(std::mem::take(&mut prepared.steps));
+    let mut executed_steps = Vec::new();
     let driven = (|| -> Result<()> {
-        for step in script {
+        while !script.is_empty() {
             if timed_out.load(Ordering::Acquire)
                 || prepared.cancellation.cancelled()
                 || broker.inspection_stopped()
@@ -531,6 +558,12 @@ fn execute_inner(
             {
                 break;
             }
+            let step = crate::linked_simulation::next_step(
+                &mut script,
+                prepared.simulation.as_ref(),
+                broker.current(),
+            )?;
+            executed_steps.push(step.clone());
             let index = prepared
                 .ids
                 .iter()
@@ -650,7 +683,7 @@ fn execute_inner(
                                 }
                             }
                             Err(error) => {
-                                broker.abort_terminal(index, "infrastructure", error.to_string())
+                                broker.abort_terminal(index, "infrastructure", error.to_string());
                             }
                         }
                         broker.finish(index);
@@ -706,6 +739,10 @@ fn execute_inner(
     }
     let mut join_error = None;
     for (handle, pending) in running {
+        executed_steps.push(Step {
+            handle: handle.clone(),
+            action: Action::Wait,
+        });
         match joined(pending) {
             Ok(observed) => {
                 completed.insert(handle, observed.result);
@@ -717,7 +754,16 @@ fn execute_inner(
             Err(_) => {}
         }
     }
-    driven?;
+    if let Err(error) = driven {
+        let divergent = prepared.simulation.as_ref().is_some_and(|controller| {
+            controller
+                .lock()
+                .is_ok_and(|controller| controller.divergence().is_some())
+        });
+        if !divergent {
+            return Err(error);
+        }
+    }
     if let Some(error) = join_error {
         return Err(error);
     }
@@ -767,6 +813,7 @@ fn execute_inner(
     }
     Ok(Execution {
         outcome,
+        executed_steps,
         incarnations: completed.into_values().collect(),
         world,
         network,
@@ -790,7 +837,7 @@ pub fn execute_prepared(prepared: Prepared) -> Result<Execution> {
         .network
         .as_ref()
         .map(|configuration| {
-            Shared::new(configuration, &prepared.ids)
+            Shared::new_with_simulation(configuration, &prepared.ids, prepared.simulation.clone())
                 .map(|shared| Arc::new(Mutex::new(shared)))
                 .map_err(|failure| Error::msg(failure.message()))
         })
@@ -846,6 +893,7 @@ pub fn execute_prepared(prepared: Prepared) -> Result<Execution> {
 fn cancelled_execution() -> Execution {
     Execution {
         outcome: linked::Cancellation::execution().outcome,
+        executed_steps: Vec::new(),
         incarnations: Vec::new(),
         world: Vec::new(),
         network: Vec::new(),

@@ -132,8 +132,13 @@ def authenticate_campaign(root, complete=True):
         record = execution['record']
         parity.record_contract(record, 'journal.execution')
         equal(record['seed'], execution['seed'], 'record.seed')
-        equal(record['identity'], prepared['identity'], 'record.immutable_identity')
-        equal(record['limits'], plan['configuration']['limits'], 'record.bounds')
+        if plan['scenario'] is None:
+            equal(record['identity'], prepared['identity'], 'record.immutable_identity')
+            equal(record['limits'], plan['configuration']['limits'], 'record.bounds')
+        else:
+            equal({key: value for key, value in record['identity'].items() if key != 'configuration'},
+                  {key: value for key, value in prepared['identity'].items() if key != 'configuration'},
+                  'scenario.record.immutable_identity')
         if execution['artifact'] is not None:
             artifact = root / execution['artifact']
             if not artifact.resolve().is_relative_to(root.resolve()):
@@ -144,6 +149,15 @@ def authenticate_campaign(root, complete=True):
                       parity.digest(parity.canonical(dict(record, seed=0))), 'retained.failure_signature')
                 equal(sum(child.stat().st_size for child in artifact.rglob('*') if child.is_file()),
                       execution['stored_bytes'], 'retained.logical_byte_accounting')
+                if plan['scenario'] is not None:
+                    inputs = canonical_file(artifact / 'evidence/cluster-replay.json')
+                    equal(parity.digest(parity.canonical(inputs['configuration'])), record['identity']['configuration'],
+                          'scenario.configuration_sha256')
+                    equal(inputs['configuration']['limits'], record['limits'], 'scenario.record.bounds')
+                    equal(inputs['configuration']['broker']['seed'], execution['seed'], 'scenario.seed')
+                    for incarnation in inputs['configuration']['incarnations']:
+                        equal(incarnation['module']['sha256'], record['identity']['target'], 'scenario.module_sha256')
+                        equal(incarnation['environment']['GOMADSEED'], str(execution['seed']), 'scenario.incarnation_seed')
         return record
 
     for ordinal, line in enumerate(raw.splitlines()):
@@ -360,8 +374,16 @@ def main():
     interrupted = campaign_root(interrupted_destination)
     prefix = authenticate_campaign(interrupted, complete=False)
     equal(len(prefix['executions']), 1, 'interrupted.complete_prefix')
-    with (interrupted / 'journal.jsonl').open('ab') as stream:
+    malformed_tail = args.work / 'noncanonical-tail'
+    shutil.copytree(interrupted, malformed_tail)
+    with (malformed_tail / 'journal.jsonl').open('ab') as stream:
         stream.write(b'{"ordinal":')
+    malformed_before = (malformed_tail / 'journal.jsonl').read_bytes()
+    refusal = run('refuse-noncanonical-tail', [*binary, 'resume', '--json', malformed_tail], 2)
+    equal(parity.decode(refusal)['message'], 'campaign journal has a malformed final record', 'noncanonical_tail.refusal')
+    equal((malformed_tail / 'journal.jsonl').read_bytes(), malformed_before, 'noncanonical_tail.unchanged')
+    with (interrupted / 'journal.jsonl').open('ab') as stream:
+        stream.write(b'{"event":')
     raw = run('resume', [*binary, 'resume', '--json', interrupted], case['status'])
     resumed = authenticate_campaign(interrupted)
     equal(execution_view(resumed), views[0]['runtime']['records'], 'resume.records')
@@ -369,6 +391,27 @@ def main():
     before = (interrupted / 'journal.jsonl').read_bytes()
     run('resume-again', [*binary, 'resume', '--json', interrupted], 2)
     equal((interrupted / 'journal.jsonl').read_bytes(), before, 'resume.idempotent')
+
+    retiring_destination = args.work / 'retiring-interruption'
+    retiring_command = explore_command(case, retiring_destination)
+    retiring_command[retiring_command.index('--seeds=' + declaration['seeds'])] = '--seeds=1-5'
+    retiring_command[retiring_command.index('--keep-successes=all')] = '--keep-successes=novel'
+    retiring_command.insert(retiring_command.index('--keep-successes=novel'), '--coverage=choice')
+    run('retire-interrupt', retiring_command, 86, {'GOMAD_FIXTURE_CAMPAIGN_INTERRUPT_AFTER': '10'})
+    retiring = campaign_root(retiring_destination)
+    retired_prefix = authenticate_campaign(retiring, complete=False)
+    references = [row['artifact'] for row in retired_prefix['executions']]
+    equal(len(references), 5, 'retirement.committed_successes')
+    equal(sum(reference is not None for reference in references), 4, 'retirement.retained_novel_successes')
+    equal(references[-1], None, 'retirement.durable_non_novel_discard')
+    equal(len(list((retiring / 'evidence').glob('*/manifest.json'))), 5, 'retirement.crash_gap_candidate')
+    run('retire-resume', [*binary, 'resume', '--json', retiring])
+    retired = authenticate_campaign(retiring)
+    equal([row['artifact'] for row in retired['executions']], references, 'retirement.completed_references')
+    equal(len(list((retiring / 'evidence').glob('*/manifest.json'))), 4, 'retirement.reconciled_candidates')
+    equal(list((retiring / 'evidence').glob('.retire-*')), [], 'retirement.no_partial_tombstone')
+    prepared_module = retiring / retired['plan']['prepared_artifact'] / 'target/module.wasm'
+    equal(parity.digest(prepared_module.read_bytes()), retired['plan']['module_sha256'], 'retirement.prepared_module_preserved')
 
     source = roots['runtime']
     shards = []

@@ -601,15 +601,271 @@ pub struct Bound {
     pub request: helper::Request,
 }
 
-#[derive(Serialize)]
+pub(super) fn simulation_crash_bounds(raw: &[u8], bound: &mut Bound) -> Result<(), String> {
+    let scenario = parse(raw)?;
+    let limits = &scenario.spec.limits;
+    let work = limits
+        .crash_states
+        .checked_mul(limits.volume_operations)
+        .ok_or("capacity: simulation crash work bound overflow")?;
+    for incarnation in &mut bound.request.incarnations {
+        if let Some(storage) = &mut incarnation.request.storage {
+            let mut value = serde_json::to_value(&*storage).map_err(|error| error.to_string())?;
+            value["descriptor"]["crash_limits"] = json!({
+                "States":limits.crash_states,"Operations":limits.volume_operations,
+                "Depth":limits.crash_depth,"Bytes":limits.crash_bytes,"Work":work
+            });
+            *storage = serde_json::from_value(value).map_err(|error| error.to_string())?;
+            let retained = bound
+                .configuration
+                .incarnations
+                .iter_mut()
+                .find(|item| item.handle == incarnation.handle)
+                .ok_or("simulation storage incarnation missing its configuration")?;
+            retained.storage = Some(storage.clone());
+        }
+    }
+    Ok(())
+}
+
+pub(crate) fn retain_execution_prefix(
+    configuration: &mut cluster::Configuration,
+    steps: &[helper::Step],
+    simulation: bool,
+) -> Result<(), String> {
+    if simulation {
+        if configuration.simulation_original.is_none() {
+            configuration.simulation_original = Some(Box::new(configuration.clone()));
+        }
+        let mut remaining = std::collections::VecDeque::from(configuration.steps.clone());
+        let mut reordered = Vec::new();
+        for actual in steps {
+            let position = if remaining.front() == Some(actual) {
+                Some(0)
+            } else if matches!(
+                actual.action,
+                helper::Action::Start | helper::Action::Restart
+            ) {
+                remaining
+                    .iter()
+                    .take_while(|step| {
+                        matches!(step.action, helper::Action::Start | helper::Action::Restart)
+                    })
+                    .position(|step| step == actual)
+            } else {
+                None
+            };
+            let Some(position) = position else {
+                break;
+            };
+            reordered.push(
+                remaining
+                    .remove(position)
+                    .ok_or("simulation lifecycle action missing")?,
+            );
+        }
+        reordered.extend(remaining);
+        configuration.steps = reordered;
+    }
+    retain_prefix(configuration, steps)
+}
+
+pub(super) fn retain_prefix(
+    configuration: &mut cluster::Configuration,
+    steps: &[helper::Step],
+) -> Result<(), String> {
+    if steps.len() > 65536 {
+        return Err("scenario executed lifecycle capacity".into());
+    }
+    let prefix = steps
+        .iter()
+        .zip(&configuration.steps)
+        .take_while(|(actual, declared)| actual == declared)
+        .count();
+    let mut started = BTreeSet::new();
+    let mut running = BTreeSet::new();
+    for step in &steps[..prefix] {
+        if matches!(step.action, helper::Action::Start | helper::Action::Restart) {
+            started.insert(step.handle.clone());
+            running.insert(step.handle.clone());
+        } else {
+            running.remove(&step.handle);
+        }
+    }
+    let drain: Vec<_> = running
+        .into_iter()
+        .map(|handle| helper::Step {
+            handle,
+            action: helper::Action::Wait,
+        })
+        .collect();
+    if steps[prefix..] != drain {
+        return Err(
+            "scenario executed lifecycle is not its declared prefix and ordered drain".into(),
+        );
+    }
+    configuration
+        .incarnations
+        .retain(|item| started.contains(&item.handle));
+    if configuration.incarnations.len() != started.len() {
+        return Err("scenario executed lifecycle has an unknown incarnation".into());
+    }
+    configuration.boundaries.retain(|boundary| {
+        steps
+            .iter()
+            .any(|step| step.handle == boundary.handle && step.action == boundary.action)
+    });
+    configuration.steps = steps.to_vec();
+    Ok(())
+}
+
+#[expect(
+    clippy::too_many_lines,
+    reason = "Oracle authentication binds each helper outcome fact to its retained output before recomputing the canonical report"
+)]
+pub(super) fn authenticate_assertions(
+    plan: &Value,
+    opened: &crate::evidence::store::Opened,
+) -> Result<(), String> {
+    let bytes = opened
+        .manifest()
+        .record
+        .streams
+        .contains_key("evidence/soft-assertions.json")
+        .then(|| opened.payload("evidence/soft-assertions.json", 16 << 20))
+        .transpose()?;
+    let actual: Option<Assertions> = bytes
+        .as_deref()
+        .map(|bytes| serde_json::from_slice(bytes).map_err(|error| error.to_string()))
+        .transpose()?;
+    if let Some(actual) = &actual
+        && (canonical::encode(actual)?.as_slice() != bytes.as_deref().unwrap_or_default()
+            || actual.schema != "gomad.cluster-soft-assertions/v1")
+    {
+        return Err("unsupported scenario soft assertion evidence".into());
+    }
+    let report_only = plan["soft_assertion_report_only"]
+        .as_bool()
+        .ok_or("scenario assertion policy missing")?;
+    let raw: Vec<u8> =
+        serde_json::from_value(plan["scenario"].clone()).map_err(|error| error.to_string())?;
+    let scenario = parse(&raw)?;
+    let summary_bytes = opened.payload("evidence/cluster_summary", 128 << 20)?;
+    let summary: Value =
+        serde_json::from_slice(&summary_bytes).map_err(|error| error.to_string())?;
+    if canonical::encode(&summary)? != summary_bytes
+        || summary["schema"] != "gomad.cluster-observation/v1"
+    {
+        return Err("invalid retained scenario observation".into());
+    }
+    let mut observed = BTreeMap::new();
+    for row in summary["incarnations"]
+        .as_array()
+        .ok_or("missing scenario outcome facts")?
+    {
+        let handle: helper::Handle =
+            serde_json::from_value(row["handle"].clone()).map_err(|error| error.to_string())?;
+        if observed.insert(handle, row).is_some() {
+            return Err("duplicate scenario outcome facts".into());
+        }
+    }
+    let handles: BTreeSet<_> = scenario
+        .actions
+        .iter()
+        .filter(|step| matches!(step.action, helper::Action::Start | helper::Action::Restart))
+        .map(|step| step.handle.clone())
+        .collect();
+    if observed.keys().any(|handle| !handles.contains(handle)) {
+        return Err("unknown scenario outcome facts".into());
+    }
+    let mut reports = BTreeMap::new();
+    for handle in handles {
+        let row = observed.get(&handle);
+        if row.is_none() && !report_only {
+            continue;
+        }
+        let mut output = Vec::new();
+        for name in ["stdout", "stderr"] {
+            let file = format!(
+                "evidence/cluster/{}/{}/{name}",
+                handle.node, handle.incarnation
+            );
+            let bytes = if let Some(row) = row.filter(|row| !row["streams"][name].is_null()) {
+                let bytes = opened.payload(&file, opened.manifest().record.limits.output_bytes)?;
+                if row["streams"][name]["bytes"].as_u64() != Some(bytes.len() as u64)
+                    || row["streams"][name]["sha256"].as_str()
+                        != Some(canonical::digest(&bytes).as_str())
+                {
+                    return Err("scenario output facts mismatch".into());
+                }
+                bytes
+            } else {
+                Vec::new()
+            };
+            output.push(bytes);
+        }
+        let complete = if let Some(row) = row {
+            output_complete(
+                row["termination"]
+                    .as_str()
+                    .ok_or("scenario terminal fact missing")?,
+                row["reason"]
+                    .as_str()
+                    .ok_or("scenario reason fact missing")?,
+                row.get("local_model").filter(|value| !value.is_null()),
+                row["offered_output_bytes"]
+                    .as_u64()
+                    .ok_or("scenario output byte fact missing")?,
+                output.iter().map(|bytes| bytes.len() as u64).sum(),
+            )
+        } else {
+            false
+        };
+        if let Some(report) =
+            super::soft_assertions::observe(&output[0], &output[1], complete, report_only)
+        {
+            reports.insert(handle, report);
+        }
+    }
+    let expected = Assertions {
+        schema: "gomad.cluster-soft-assertions/v1".into(),
+        incarnations: reports
+            .into_iter()
+            .map(|(handle, report)| IncarnationAssertions { handle, report })
+            .collect(),
+    };
+    let expected = (!expected.incarnations.is_empty()).then_some(expected);
+    if expected != actual
+        || expected.as_ref().is_some_and(|expected| {
+            expected.incarnations.len() as u64 > scenario.spec.limits.oracle_results
+        })
+        || bytes
+            .as_ref()
+            .is_some_and(|bytes| bytes.len() as u64 > scenario.spec.limits.scenario_evidence_bytes)
+    {
+        return Err("scenario soft assertion evidence mismatch".into());
+    }
+    let outcome = &opened.manifest().record.outcome;
+    if outcome.termination == "exit"
+        && outcome.exit_code == Some(0)
+        && expected.as_ref().is_some_and(Assertions::failed) != (outcome.class == "target_failure")
+    {
+        return Err("scenario soft assertion classification mismatch".into());
+    }
+    Ok(())
+}
+
+#[derive(Deserialize, Eq, PartialEq, Serialize)]
+#[serde(deny_unknown_fields)]
 struct IncarnationAssertions {
     handle: helper::Handle,
     report: super::soft_assertions::Report,
 }
 
-#[derive(Serialize)]
+#[derive(Deserialize, Eq, PartialEq, Serialize)]
+#[serde(deny_unknown_fields)]
 struct Assertions {
-    schema: &'static str,
+    schema: String,
     incarnations: Vec<IncarnationAssertions>,
 }
 
@@ -623,13 +879,34 @@ impl Assertions {
 
 fn complete_output(execution: &linked::Execution) -> bool {
     let outcome = &execution.outcome;
-    let capacity_interruption = outcome.termination == "capacity"
-        && outcome
-            .local_model
-            .as_deref()
-            .is_some_and(|model| model["configured"] == true && model["finished"] == false)
-        && outcome
-            .message
+    let captured_bytes = ["stdout", "stderr"]
+        .into_iter()
+        .map(|name| {
+            execution
+                .evidence
+                .get(name)
+                .map_or(0, |bytes| bytes.len() as u64)
+        })
+        .sum::<u64>();
+    output_complete(
+        outcome.termination,
+        &outcome.message,
+        outcome.local_model.as_deref(),
+        outcome.output_bytes,
+        captured_bytes,
+    )
+}
+
+fn output_complete(
+    termination: &str,
+    message: &str,
+    model: Option<&Value>,
+    offered: u64,
+    captured: u64,
+) -> bool {
+    let capacity_interruption = termination == "capacity"
+        && model.is_some_and(|model| model["configured"] == true && model["finished"] == false)
+        && message
             .strip_prefix("WASI capacity: ")
             .is_some_and(|message| {
                 matches!(
@@ -645,18 +922,9 @@ fn complete_output(execution: &linked::Execution) -> bool {
                         | "transitions"
                 )
             });
-    let captured_bytes = ["stdout", "stderr"]
-        .into_iter()
-        .map(|name| {
-            execution
-                .evidence
-                .get(name)
-                .map_or(0, |bytes| bytes.len() as u64)
-        })
-        .sum::<u64>();
-    (outcome.termination != "capacity" || capacity_interruption)
-        && !matches!(outcome.termination, "cancelled" | "watchdog_timeout")
-        && outcome.output_bytes == captured_bytes
+    (termination != "capacity" || capacity_interruption)
+        && !matches!(termination, "cancelled" | "watchdog_timeout")
+        && offered == captured
 }
 
 fn assertions(
@@ -699,7 +967,7 @@ fn assertions(
         return Err("capacity: scenario soft assertion results".into());
     }
     let reports = Assertions {
-        schema: "gomad.cluster-soft-assertions/v1",
+        schema: "gomad.cluster-soft-assertions/v1".into(),
         incarnations: reports
             .into_iter()
             .map(|(handle, report)| IncarnationAssertions { handle, report })
@@ -956,6 +1224,7 @@ pub fn bind(
     execution_limits.evidence_bytes = request.evidence_bytes;
     Ok(Bound {
         configuration: cluster::Configuration {
+            simulation_original: None,
             nodes,
             engine: base.engine.clone(),
             profile: base.profile.clone(),
@@ -974,21 +1243,12 @@ pub fn bind(
 
 /// # Errors
 /// Runs a fresh typed cluster and retains the existing cluster replay declaration and streams.
-#[expect(
-    clippy::too_many_lines,
-    reason = "Publication binds every incarnation stream and shared observation before returning a campaign receipt"
-)]
 pub(super) fn execute(
     prepared: &super::prepare::Prepared,
     job: &super::ledger::Job,
     timeout: Duration,
     cancellation: &linked::Cancellation,
 ) -> Result<super::execution::Result, String> {
-    use crate::evidence::{
-        identity::Identity,
-        record::{Outcome, Record, Stream},
-        store::Publication,
-    };
     let mut bound = bind(
         prepared
             .scenario
@@ -1017,31 +1277,65 @@ pub(super) fn execute(
     bound.request.wall_timeout = bound.request.wall_timeout.min(timeout);
     let mut execution =
         helper::prepare(bound.request).map_err(|error| format!("runner_failure: {error}"))?;
+    execution.conditions(linked::Conditions::compiled());
     execution.cancellation(cancellation.clone());
     #[cfg(feature = "determinism-fixture")]
     crate::fixture::execution_started().map_err(|error| error.message)?;
     let execution =
         helper::execute_prepared(execution).map_err(|error| format!("runner_failure: {error}"))?;
+    publication(prepared, job, bound.configuration, execution, false)
+}
+
+#[expect(
+    clippy::too_many_lines,
+    reason = "Publication binds every incarnation stream and shared observation before returning a campaign receipt"
+)]
+pub(super) fn publication(
+    prepared: &super::prepare::Prepared,
+    job: &super::ledger::Job,
+    mut configuration: cluster::Configuration,
+    execution: helper::Execution,
+    simulation: bool,
+) -> Result<super::execution::Result, String> {
+    use crate::evidence::{
+        identity::Identity,
+        record::{Outcome, Record, Stream},
+        store::Publication,
+    };
+    let scenario = parse(
+        prepared
+            .scenario
+            .as_deref()
+            .ok_or("missing campaign scenario")?,
+    )?;
     let reports = assertions(
         &execution,
-        &bound.configuration,
+        &configuration,
         prepared.soft_assertion_report_only,
         scenario.spec.limits.oracle_results,
         scenario.spec.limits.scenario_evidence_bytes,
     )?;
-    if execution.incarnations.len() != bound.configuration.incarnations.len()
-        && !matches!(
-            execution.outcome.termination,
-            "cancelled" | "watchdog_timeout"
-        )
-    {
-        return Err("runner_failure: incomplete scenario execution cannot retain full cluster replay inputs".into());
+    let executed_steps = execution.executed_steps.clone();
+    retain_execution_prefix(&mut configuration, &executed_steps, simulation)?;
+    let observed_handles: BTreeSet<_> = execution
+        .incarnations
+        .iter()
+        .map(|item| &item.handle)
+        .collect();
+    let configured_handles: BTreeSet<_> = configuration
+        .incarnations
+        .iter()
+        .map(|item| &item.handle)
+        .collect();
+    if observed_handles != configured_handles {
+        return Err(
+            "runner_failure: scenario started handles differ from the executed lifecycle".into(),
+        );
     }
     let mut retained = Vec::new();
     let mut features = Vec::new();
     for item in &execution.incarnations {
-        let configuration = bound
-            .configuration
+        let configuration = configuration
             .incarnations
             .iter()
             .find(|value| value.handle == item.handle)
@@ -1144,7 +1438,7 @@ pub(super) fn execute(
         host_sha256: env!("GOMAD_HOST_IMPLEMENTATION_SHA256").into(),
         runtime_implementation_sha256: env!("GOMAD_RUNTIME_IMPLEMENTATION_SHA256").into(),
         toolchain_sha256: prepared.toolchain.clone(),
-        configuration: bound.configuration,
+        configuration,
         retained,
     };
     let identity = Identity {
@@ -1209,153 +1503,8 @@ pub(super) fn execute(
             semantic_probes: Vec::new(),
             choice_features: features,
             divergence: None,
+            scenario_steps: Some(executed_steps),
         },
         publication: Publication { record, payloads },
     })
-}
-
-#[cfg(test)]
-mod tests {
-    use super::*;
-
-    #[test]
-    fn soft_assertions_preserve_boundary_completeness_and_policy() {
-        let stdout = b"failed assertion: invariant\n";
-        for (termination, message, complete) in [
-            ("exit", "", true),
-            ("trap", "", true),
-            ("crash", "", true),
-            ("stop", "", true),
-            ("storage_crash", "", true),
-            ("capacity", "WASI capacity: requests limit=1", true),
-            ("capacity", "output capacity", false),
-            ("cancelled", "seed execution was cancelled", false),
-            ("watchdog_timeout", "execution watchdog timeout", false),
-        ] {
-            let mut outcome = linked::Outcome::new(termination, message);
-            outcome.local_model = Some(Box::new(json!({"configured":true,"finished":false})));
-            outcome.output_bytes = stdout.len() as u64;
-            let mut execution = linked::Execution {
-                outcome,
-                evidence: BTreeMap::from([("stdout".into(), stdout.to_vec())]),
-                event_order: None,
-            };
-            assert_eq!(
-                complete_output(&execution),
-                complete,
-                "{termination}: {message}"
-            );
-            let report = super::super::soft_assertions::observe(
-                stdout,
-                &[],
-                complete_output(&execution),
-                false,
-            )
-            .unwrap();
-            assert_eq!(report.messages, vec!["invariant"]);
-            assert_eq!(report.inconclusive, !complete);
-            let mut reports = Assertions {
-                schema: "gomad.cluster-soft-assertions/v1",
-                incarnations: vec![IncarnationAssertions {
-                    handle: helper::Handle {
-                        node: "a".into(),
-                        incarnation: 1,
-                    },
-                    report,
-                }],
-            };
-            assert!(reports.failed());
-            reports.incarnations[0].report.report_only = true;
-            assert_eq!(reports.failed(), !complete);
-            execution.outcome.output_bytes += 1;
-            assert!(!complete_output(&execution), "truncated {termination}");
-        }
-    }
-
-    const DURABLE: &[u8] =
-        include_bytes!("../../../../internal/backends/wasm/command/testdata/scenario/durable.json");
-    const NETWORK: &[u8] =
-        include_bytes!("../../../../internal/backends/wasm/command/testdata/scenario/network.json");
-
-    #[test]
-    fn complete_public_scenario_fixtures_round_trip() {
-        for fixture in [DURABLE, NETWORK] {
-            let normalized = normalize(fixture).unwrap();
-            assert_eq!(normalize(&normalized).unwrap(), normalized);
-        }
-        let scenario = parse(DURABLE).unwrap();
-        let storage = scenario.boots[0].storage.as_ref().unwrap();
-        let input = storage_input(storage).unwrap();
-        let descriptor = serde_json::to_value(input).unwrap();
-        assert_eq!(descriptor["descriptor"]["model_identity"],
-            format!("sha256:{}", canonical::digest(br#"{"volumes":[{"ID":"a-store","Path":"/workspace","CapacityBytes":8388608}],"limits":{"PendingOperations":1024,"Transitions":10000}}"#)));
-        assert_eq!(
-            marker(&scenario.output_crashes[0].marker).unwrap(),
-            b"committed durable-a"
-        );
-    }
-
-    #[test]
-    fn malformed_and_inconsistent_scenarios_refuse() {
-        type Mutation = (&'static str, fn(&mut Value));
-        let original: Value = serde_json::from_slice(DURABLE).unwrap();
-        let mutations: &[Mutation] = &[
-            ("unknown field", |value| value["extra"] = json!(true)),
-            ("unknown nested field", |value| {
-                value["spec"]["nodes"][0]["extra"] = json!(true);
-            }),
-            ("capacity", |value| {
-                value["spec"]["limits"]["nodes"] = json!(1);
-            }),
-            ("unknown limit", |value| {
-                value["spec"]["limits"]["extra"] = json!(1);
-            }),
-            ("unsorted nodes", |value| {
-                value["spec"]["nodes"].as_array_mut().unwrap().swap(0, 1);
-            }),
-            ("unknown boot", |value| {
-                value["spec"]["nodes"][0]["boot"] = json!("missing");
-            }),
-            ("mount mismatch", |value| {
-                value["boots"][0]["storage"]["volumes"][0]["CapacityBytes"] = json!(1);
-            }),
-            ("restart storage mismatch", |value| {
-                value["boots"][1]["storage"] = Value::Null;
-            }),
-            ("missing boundary", |value| {
-                value["output_crashes"] = json!([]);
-            }),
-            ("invalid marker", |value| {
-                value["output_crashes"][0]["marker"] = json!("!!!!");
-            }),
-            ("unused binding", |value| {
-                value["incarnation_boots"][0]["handle"]["incarnation"] = json!(3);
-            }),
-            ("incomplete lifecycle", |value| {
-                value["actions"].as_array_mut().unwrap().pop();
-            }),
-            ("restart while running", |value| {
-                value["actions"][2]["action"] = json!("restart");
-            }),
-            ("unknown action", |value| {
-                value["actions"][0]["action"] = json!("run");
-            }),
-        ];
-        for (name, mutate) in mutations {
-            let mut value = original.clone();
-            mutate(&mut value);
-            assert!(
-                normalize(&serde_json::to_vec(&value).unwrap()).is_err(),
-                "{name}"
-            );
-        }
-        for raw in [
-            &b"{} {}"[..],
-            &b"{"[..],
-            &b""[..],
-            &br#"{"faults":null,"faults":null}"#[..],
-        ] {
-            assert!(normalize(raw).is_err());
-        }
-    }
 }

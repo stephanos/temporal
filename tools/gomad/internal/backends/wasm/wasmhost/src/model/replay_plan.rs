@@ -224,6 +224,58 @@ pub struct RankOverride {
 }
 
 impl ReplayPlan {
+    #[must_use]
+    pub fn no_op_select_polls(&self) -> Vec<bool> {
+        let mut marks = vec![false; self.decisions.len()];
+        let mut start = 0;
+        while start < self.decisions.len() {
+            let first = &self.decisions[start];
+            if first.kind != 2 || first.alternatives != 2 {
+                start += 1;
+                continue;
+            }
+            let mut end = start + 1;
+            while end < self.decisions.len() {
+                let previous = &self.decisions[end - 1];
+                let current = &self.decisions[end];
+                if current.kind != 2
+                    || current.site() != previous.site()
+                    || previous.alternatives.checked_add(1) != Some(current.alternatives)
+                {
+                    break;
+                }
+                end += 1;
+            }
+            let readiness = |index: usize| {
+                let offset = index
+                    .checked_mul(RECORD_BYTES)?
+                    .checked_add(HEADER_BYTES)?
+                    .checked_add(10)?;
+                self.bytes
+                    .get(offset..)?
+                    .first_chunk::<2>()
+                    .map(|bytes| u16::from_be_bytes(*bytes))
+            };
+            let Some(word) = readiness(start) else {
+                start = end;
+                continue;
+            };
+            let known = word & 1 != 0;
+            let ready = word >> 6;
+            let flags = word & 0b11_1110;
+            let proven_shape = matches!((ready, flags), (0, 0 | 2 | 8) | (1, 0 | 4 | 8 | 16));
+            let eligible = known
+                && proven_shape
+                && self.decisions[end - 1].alternatives == 2
+                && (start..end).all(|index| readiness(index) == Some(word));
+            marks[start..end].fill(eligible);
+            start = end;
+        }
+        marks
+    }
+
+    /// # Errors
+    /// Refuses controls outside this validated tape or ranks outside the selected alternative set.
     pub fn prefix(mut self, control: &PrefixControl) -> Result<Self, &'static str> {
         let cutoff = usize::try_from(control.cutoff).map_err(|_| "invalid_replay_plan")?;
         if cutoff > self.decisions.len() {
@@ -350,6 +402,8 @@ pub(super) fn toolchain_key(identity: &ExecutionIdentity) -> Result<[u8; 32], &'
     Ok(key)
 }
 
+/// # Errors
+/// Refuses malformed raw records, inconsistent select observations and invalid execution identities.
 pub fn project(trace: &[u8], identity: &ExecutionIdentity) -> Result<ReplayPlan, &'static str> {
     let (raw_records, remainder) = trace.as_chunks::<RECORD_BYTES>();
     if !remainder.is_empty() {

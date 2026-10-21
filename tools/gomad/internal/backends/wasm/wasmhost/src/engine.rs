@@ -1058,6 +1058,11 @@ pub(crate) fn linker(engine: &Engine, module: &Module) -> Result<Linker<State>> 
         if !defined.insert((import.module().to_owned(), import.name().to_owned())) {
             continue;
         }
+        #[cfg(feature = "determinism-fixture")]
+        if crate::linked_fixture::signature(import.module(), import.name()).is_some() {
+            crate::linked_fixture::link(&mut linker)?;
+            continue;
+        }
         abi::Operation::resolve(import.module(), import.name())
             .unwrap()
             .link(&mut linker)?;
@@ -1298,13 +1303,17 @@ pub(crate) fn describe_module(
         };
         let params: Vec<_> = ty.params().map(type_name).collect();
         let results: Vec<_> = ty.results().map(type_name).collect();
-        let Some(operation) = abi::Operation::resolve(import.module(), import.name()) else {
+        let signature =
+            abi::Operation::resolve(import.module(), import.name()).map(abi::Operation::signature);
+        #[cfg(feature = "determinism-fixture")]
+        let signature =
+            signature.or_else(|| crate::linked_fixture::signature(import.module(), import.name()));
+        let Some((expected_params, expected_results)) = signature else {
             return Err(Outcome::new(
                 "unsupported",
                 format!("unknown import {}::{}", import.module(), import.name()),
             ));
         };
-        let (expected_params, expected_results) = operation.signature();
         if params != expected_params || results != expected_results {
             return Err(Outcome::new(
                 "unsupported",

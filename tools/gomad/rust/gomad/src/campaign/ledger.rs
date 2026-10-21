@@ -35,6 +35,8 @@ pub struct Execution {
     pub semantic_probes: Vec<String>,
     pub choice_features: Vec<String>,
     pub divergence: Option<gomad_wasmhost::linked::Divergence>,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub scenario_steps: Option<Vec<gomad_wasmhost::linked_cluster::Step>>,
 }
 
 #[derive(Clone, Debug, Deserialize, Eq, PartialEq, Serialize)]
@@ -348,6 +350,13 @@ fn is_failure(execution: &Execution) -> bool {
 
 pub(crate) fn validate_execution(execution: &Execution) -> Result<(), String> {
     execution.record.validate()?;
+    if execution
+        .scenario_steps
+        .as_ref()
+        .is_some_and(|steps| steps.len() > 65_536)
+    {
+        return Err("campaign scenario execution steps exceed their bound".into());
+    }
     if execution.seed != execution.record.seed
         || execution.artifact.is_none() && execution.stored_bytes != 0
         || execution.artifact.is_some() && execution.stored_bytes == 0
@@ -383,7 +392,12 @@ pub(crate) fn validate_execution(execution: &Execution) -> Result<(), String> {
                             .record
                             .streams
                             .contains_key("evidence/soft-assertions.json")
-                    || execution.divergence.is_some()) => {}
+                    || execution.divergence.is_some()
+                    || outcome.termination == "instrumentation_divergence"
+                        && execution
+                            .record
+                            .streams
+                            .contains_key("simulation/record.json")) => {}
         "watchdog" if execution.artifact.is_some() && outcome.termination == "watchdog_timeout" => {
         }
         "runner_failure"
@@ -657,7 +671,7 @@ impl Journal {
         for event in &self.events {
             match event {
                 Event::Receipt { execution } => {
-                    self.validate_plan_record(&execution.record)?;
+                    validate_execution_plan_record(&self.plan, &self.root, execution)?;
                     if let Some(reference) = &execution.artifact {
                         let parts = artifact_reference(reference)?;
                         if parts[0] != "evidence" {
@@ -890,7 +904,7 @@ pub(crate) fn authenticate_execution(
     root: &File,
     execution: &Execution,
 ) -> Result<(), String> {
-    validate_plan_record(plan, root, &execution.record)?;
+    validate_execution_plan_record(plan, root, execution)?;
     if let Some(reference) = &execution.artifact {
         if !reference.starts_with("evidence/") {
             return Err("campaign execution references a non-execution artifact".into());
@@ -907,7 +921,9 @@ pub(crate) fn authenticate_execution(
             return Err("campaign artifact record reference mismatch".into());
         }
         opened.authenticate_all()?;
-        if execution
+        if !plan["scenario"].is_null() {
+            super::scenario::authenticate_assertions(plan, &opened)?;
+        } else if execution
             .record
             .streams
             .contains_key("evidence/soft-assertions.json")
@@ -950,6 +966,31 @@ pub(crate) fn validate_plan_record(
     root: &File,
     record: &Record,
 ) -> Result<(), String> {
+    validate_plan_record_with_steps(plan, root, record, None)
+}
+
+fn validate_execution_plan_record(
+    plan: &Value,
+    root: &File,
+    execution: &Execution,
+) -> Result<(), String> {
+    if plan["scenario"].is_null() != execution.scenario_steps.is_none() {
+        return Err("campaign execution step prefix does not match its scenario plan".into());
+    }
+    validate_plan_record_with_steps(
+        plan,
+        root,
+        &execution.record,
+        execution.scenario_steps.as_deref(),
+    )
+}
+
+fn validate_plan_record_with_steps(
+    plan: &Value,
+    root: &File,
+    record: &Record,
+    steps: Option<&[gomad_wasmhost::linked_cluster::Step]>,
+) -> Result<(), String> {
     let scenario = !plan["scenario"].is_null() && record.outcome.class != "prepared";
     let configuration = if scenario {
         let raw: Vec<u8> =
@@ -967,7 +1008,7 @@ pub(crate) fn validate_plan_record(
                 .ok_or("campaign prepared artifact missing")?,
         )?;
         let module = prepared.payload("target/module.wasm", 512 << 20)?;
-        let bound = super::scenario::bind(
+        let mut bound = super::scenario::bind(
             &raw,
             &base,
             &module,
@@ -975,6 +1016,16 @@ pub(crate) fn validate_plan_record(
             network.as_ref(),
             record.seed,
         )?;
+        if plan["simulation_exploration"] == true {
+            super::scenario::simulation_crash_bounds(&raw, &mut bound)?;
+        }
+        if let Some(steps) = steps {
+            super::scenario::retain_execution_prefix(
+                &mut bound.configuration,
+                steps,
+                plan["simulation_exploration"] == true,
+            )?;
+        }
         serde_json::to_value(&bound.configuration).map_err(|error| error.to_string())?
     } else {
         plan["configuration"].clone()

@@ -1,12 +1,16 @@
+pub(crate) mod choice;
 mod execution;
+pub(crate) mod exploration;
 mod failure_policy;
 pub(crate) mod inspect;
 pub(crate) mod ledger;
 pub(crate) mod prepare;
 mod retention;
-mod scenario;
+pub(crate) mod scenario;
 pub(crate) mod seeds;
 mod shards;
+pub(crate) mod simulation;
+mod simulation_execute;
 mod soft_assertions;
 
 use crate::{

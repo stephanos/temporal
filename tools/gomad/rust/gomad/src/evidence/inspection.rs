@@ -252,10 +252,10 @@ impl Details {
                 &simulation.candidate_sha256,
                 &simulation.outcome_sha256,
             ] {
-                digest(hash)?;
+                digest(hash.strip_prefix("sha256:").unwrap_or(hash))?;
             }
             if let Some(hash) = &simulation.failure_sha256 {
-                digest(hash)?;
+                digest(hash.strip_prefix("sha256:").unwrap_or(hash))?;
             }
             simulation.plan.authenticate(opened)?;
             simulation.record.authenticate(opened)?;

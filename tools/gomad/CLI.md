@@ -238,24 +238,62 @@ The same lane accepts `--verb resume`, `execute-shard` and `merge` and exercises
 all four operations. The frozen Go WASM public CLI refuses shard/merge verbs;
 the lane records those real refusals separately and calls the unchanged Go
 Runner API through a fixture-only reference adapter to attempt shard/merge
-semantics. Its provider preparation adapter delegates the original compiler
-provider and copies the verified module into the private bundle required by the
-original portable-plan owner, preserving every identity and metadata field.
+semantics. The adapter calls the original provider and Runner owners without
+altering their preparation, authentication or capability policy.
 Those API-reference results are not public-CLI positive parity.
 Rust positive paths remain actual public CLI invocations. This admission
 discrepancy remains an explicit integrated-acceptance question, not a normalized
 semantic match.
 
-The frozen portable-plan implementation also drops backend metadata when it
+The original WASM provider prepares directly in the bundle directory while the
+portable-plan owner requires a private child preparation directory, so the
+unmodified API first refuses that layout. The frozen implementation also drops
+backend metadata when it
 reopens a prepared target and rejects backend payload files in its bundle.
 Consequently the original WASM portable API lane currently fails closed rather
 than supplying a positive shard/merge reference. Its failure is an unresolved
 differential criterion, not a skipped gate or an authenticated match.
 
+The mandatory lane also includes typed scenario public execution and exact
+replay, with malformed-input refusals and independently authenticated retained
+reports. `campaign-scenario-check.py` can run this Rust scenario check directly
+with `--binary`, `--input`, `--go-compiler`, `--preparation-root` and `--work`.
+`campaign-scenario-reference-check.py` independently authenticates fresh original
+Go public-CLI captures and compares lifecycle steps, guest output bytes and
+handled assertion reports with retained Rust scenario runs. This focused
+scenario comparison does not waive the portable shard/merge criterion.
+
 Raw record, payload, plan and journal integrity checks run independently of
 goldens. `GOMAD_GOLDEN_REGENERATE=1` requires repeated fresh agreement and a
 byte-identical second regeneration. Host-only journal interruption controls
 require `determinism-fixture` and are absent from ordinary release binaries.
+
+## Rust choice and simulation exploration
+
+`explore --strategy=choice-exploration` explores helper-validated forced prefixes
+in bounded breadth-first rounds. Select exactly one seed and provide positive
+`--max-executions`, `--max-choice-depth` and `--max-exploration-bytes` bounds.
+`--choice-start-ordinal` optionally skips earlier branching decisions.
+
+```sh
+gomad explore --strategy=choice-exploration --seeds=7 --parallel=2 \
+  --max-executions=16 --max-choice-depth=4 --max-exploration-bytes=64MiB \
+  --artifacts /absolute/campaigns go-test ./package -- '-test.run=^TestExample$'
+```
+
+`--strategy=simulation-exploration` combines runtime, scenario, network, storage,
+fault and crash decisions. It requires positive `--max-executions`,
+`--max-forced-decisions`, `--max-exploration-bytes`,
+`--max-exploration-result-bytes` and all six `--max-DIMENSION-decisions` bounds.
+Its actual execution decisions are retained in `simulation/record.json`;
+controller fixtures alone do not establish producer or workload qualification.
+
+Both strategies retain typed transactions containing a complete round and its
+authenticated execution observations. `resume CAMPAIGN` restores the recorded
+bounds and frontier; it refuses malformed complete journal entries and may
+truncate an interrupted final entry before retrying that round. `inspect --json
+--choices CAMPAIGN` reports the explored envelope and typed replay divergence,
+with site symbols resolved from each retained execution's matching module.
 
 ## Shared generated contracts
 
