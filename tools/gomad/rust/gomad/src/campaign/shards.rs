@@ -58,9 +58,10 @@ pub(super) fn execute_shard(
     let bound = plan["journal_bytes"]
         .as_u64()
         .ok_or("campaign journal bound missing")?;
-    let duration = Duration::from_millis(
-        plan["overall_millis"]
+    let duration = Duration::from_nanos(
+        plan["overall_nanos"]
             .as_u64()
+            .filter(|nanos| *nanos > 0)
             .ok_or("campaign overall bound missing")?,
     );
     let mut journal = Journal::create(&path, &plan, bound)?;
