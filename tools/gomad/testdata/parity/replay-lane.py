@@ -40,6 +40,10 @@ def run(name, command):
     return result.stdout
 
 
+run('cluster-source-pin-selftest', [sys.executable, corpus / 'replay-source-pin.py', '--selftest'])
+run('cluster-source-pin', [sys.executable, corpus / 'replay-source-pin.py',
+    '--archive', args.cluster_baseline / pinned['source_archive'], '--source', args.cluster_source,
+    '--revision', pinned['source_revision']])
 run('fresh-parity', [sys.executable, corpus / 'replay-reference-lane.py', '--baseline', args.baseline,
     '--source', args.source, '--go-compiler', args.go_compiler, '--rust-binary', args.binary,
     '--output', args.work / 'fresh-parity', '--preparation-root', args.preparation_root])

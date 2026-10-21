@@ -174,7 +174,9 @@ and registered inspection lanes use the pinned pre-v4 Go launcher, matching
 helper and source archive declared as `cluster_reference` in
 `testdata/parity/replay-corpus.json`, because fn235 deliberately changes cluster
 failure semantics and inspection World commitments. The lane refuses any other
-launcher, helper or archive bytes. The newest Go launcher records a complete v4
+launcher, helper or archive bytes, and authenticates the extracted source tree against
+that archive (revision, contents, modes, links and no unarchived files) before use;
+`replay-source-pin.py --selftest` proves each modification refuses. The newest Go launcher records a complete v4
 choice trace but its artifact validator still requires v3, so it exits 3 before
 publication; that refusal is retained as regression evidence, not normalized. The original failing registered guest remains a failure case; a
 separate retained success variant proves all three incarnations and restart.
