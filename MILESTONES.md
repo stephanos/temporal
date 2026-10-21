@@ -118,6 +118,7 @@ The owner then decided, "let's pull fn-232 forward to avoid any double work," an
 4. fn-232.9 minimize in Rust, then [fn-231](.flow/specs/fn-231-gomad-site-aware-minimizer-ordering-and.md).
 5. fn-232.10 qualify in Rust, then fn-222.1 one-box qualification on the Rust binary.
 6. fn-232.11 to .13 install and Go host retirement; fn-188.6 gate wiring lands in .13; then fn-185.2/.3 against the Rust host.
+   [fn-233](.flow/specs/fn-233-gomad-intercept-the-go-command-so-make.md) go-command interception (`gomad -- make …`, `gomad -- go test …`) follows fn-232.7 and .11 as Rust verbs; it adds no Go host work and no new verb grammar beyond `run-guest` and the `--` wrapper.
 7. [fn-224](.flow/specs/fn-224-gomad-ringpop-membership-on-wasm-within.md) ringpop and refusal-closing specs filed from the sweep run whenever the sweep wants them and land in the Rust verb that owns the behavior; a sweep-blocking host fix before that verb ships is the smallest Go change that unblocks the sweep, with its R-ID noted for the Rust verb.
 
 No other Go host-side work starts. The fn-222.2 Go support-list phase records only proven rows or pending guest dispositions; final Rust support requires fn-222.1's complete gates after fn-232.10. Re-homing notes are recorded in tasks fn-227.1, fn-188.6 and fn-222.1; Flow task dependencies cannot cross specs, so this list is the ordering record. Native deletion retains its fn-219-closed start gate.
@@ -322,6 +323,17 @@ First in the delivery order (owner decision 2026-10-20). New evidence lineage; b
 | [fn-232-gomad-rewrite-the-host-side-in-rust.11](.flow/tasks/fn-232-gomad-rewrite-the-host-side-in-rust.11.md) | ⬜ Todo | install, doctor, discover, plan and recover in Rust |
 | [fn-232-gomad-rewrite-the-host-side-in-rust.12](.flow/tasks/fn-232-gomad-rewrite-the-host-side-in-rust.12.md) | ⬜ Todo | Keep Go overlay, models, generator and corpora green under the Rust binary |
 | [fn-232-gomad-rewrite-the-host-side-in-rust.13](.flow/tasks/fn-232-gomad-rewrite-the-host-side-in-rust.13.md) | ⬜ Todo | Qualification cycle on the Rust binary and Go host retirement |
+
+### Go-command interception — [fn-233](.flow/specs/fn-233-gomad-intercept-the-go-command-so-make.md)
+
+Owner request 2026-10-20: a Go one-liner and `gomad -- make <target>` interception. Rust verbs after fn-232.7 and .11; intercepted evidence is marked `origin: intercepted-go` and never qualification evidence.
+
+| Name / ID | Status | Description |
+| --- | --- | --- |
+| [fn-233-gomad-intercept-the-go-command-so-make.1](.flow/tasks/fn-233-gomad-intercept-the-go-command-so-make.1.md) | ⬜ Todo | run-guest launcher verb behind go -exec with intercepted-origin evidence |
+| [fn-233-gomad-intercept-the-go-command-so-make.2](.flow/tasks/fn-233-gomad-intercept-the-go-command-so-make.2.md) | ⬜ Todo | go shim: argv[0] dispatch, classification, guest build environment, refusals, host passthrough |
+| [fn-233-gomad-intercept-the-go-command-so-make.3](.flow/tasks/fn-233-gomad-intercept-the-go-command-so-make.3.md) | ⬜ Todo | gomad -- wrapper, gomad.toml and auto-derived installation |
+| [fn-233-gomad-intercept-the-go-command-so-make.4](.flow/tasks/fn-233-gomad-intercept-the-go-command-so-make.4.md) | ⬜ Todo | Temporal Makefile through the wrapper and operator documentation |
 
 ### Choice-site symbolization, explore site scope and minimizer ordering — [fn-229](.flow/specs/fn-229-gomad-symbolize-choice-sites-in-inspect.md), [fn-230](.flow/specs/fn-230-gomad-explore-site-scope-for-choice.md), [fn-231](.flow/specs/fn-231-gomad-site-aware-minimizer-ordering-and.md)
 
