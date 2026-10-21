@@ -13,9 +13,10 @@ pub(super) fn classify(
         .map(Entry::id)
         .chain(generic_entries.iter().map(generic::Entry::id))
         .collect();
-    let dispositions = dispositions::Dispositions::new(
+    let dispositions = dispositions::Dispositions::with_unannotated(
         expected.iter().map(String::as_str),
         crate::activity_api::accepted_probe_gaps(),
+        dispositions::unannotated(),
     )?;
     let actual: BTreeSet<_> = request.observations.iter().map(|v| v.case_id.clone()).collect();
     if actual != expected || actual.len() != request.observations.len() {

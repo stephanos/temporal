@@ -108,6 +108,38 @@ fn generic_actual_witness_predictions_and_observation_admission()
     request.observations[index].accepted = true;
     request.observations[index].code = 0;
     assert!(probe(&request)?.fails, "acceptance despite a violated reject rule must fail");
+    assert_invalid_generic_metadata(&request, index);
+    let ignored = inventory
+        .cases
+        .iter()
+        .find(|case| {
+            case.generic
+                && case.id.contains("StartActivityExecution::")
+                && case.id.ends_with("StartActivityExecutionRequest.header:mutation.empty")
+        })
+        .ok_or("missing unreviewed ignored header")?;
+    assert_eq!(ignored.predictions.len(), 0);
+    assert!(dispositions::unannotated().iter().all(|(id, _)| id != &ignored.id));
+    let ignored_index = request
+        .observations
+        .iter()
+        .position(|observation| observation.case_id == ignored.id)
+        .ok_or("missing ignored observation")?;
+    request.observations[index].accepted = false;
+    request.observations[index].code = metadata.predictions[0].code;
+    request.observations[index].predictions[0].message_matches = true;
+    assert!(!probe(&request)?.fails, "one matched rejection explains the generic outcome");
+    request.observations[ignored_index].accepted = false;
+    request.observations[ignored_index].code = 3;
+    let result = probe(&request)?;
+    assert!(
+        result.fails && result.report.contains("Unannotated"),
+        "unpredicted real rejection must surface"
+    );
+    Ok(())
+}
+
+fn assert_invalid_generic_metadata(request: &ProbeRequest, index: usize) {
     for variant in 0..10 {
         let mut invalid = request.clone();
         let observation = &mut invalid.observations[index];
@@ -137,32 +169,6 @@ fn generic_actual_witness_predictions_and_observation_admission()
         }
         assert!(probe(&invalid).is_err(), "invalid metadata variant {variant}");
     }
-    let ignored = inventory
-        .cases
-        .iter()
-        .find(|case| {
-            case.generic
-                && case.id.contains("StartActivityExecution::")
-                && case.id.contains(".namespace:mutation.empty")
-        })
-        .ok_or("missing ignored namespace")?;
-    let ignored_index = request
-        .observations
-        .iter()
-        .position(|observation| observation.case_id == ignored.id)
-        .ok_or("missing ignored observation")?;
-    request.observations[index].accepted = false;
-    request.observations[index].code = metadata.predictions[0].code;
-    request.observations[index].predictions[0].message_matches = true;
-    assert!(!probe(&request)?.fails, "one matched rejection explains the generic outcome");
-    request.observations[ignored_index].accepted = false;
-    request.observations[ignored_index].code = 3;
-    let result = probe(&request)?;
-    assert!(
-        result.fails && result.report.contains("Unannotated"),
-        "unpredicted real rejection must surface"
-    );
-    Ok(())
 }
 
 #[path = "../src/probes/dispositions.rs"]
@@ -298,7 +304,7 @@ fn reference_observation(
 fn source_dispositions_validate_before_applying_a_dated_waiver()
 -> Result<(), Box<dyn std::error::Error>> {
     use umpire_annotations::{
-        AcceptedGap, Expectation, Expected, GapEntry, ProbeResult, Violation,
+        AcceptedGap, Expectation, Expected, GapEntry, GapOutcome, ProbeResult, Violation,
     };
     let gap =
         AcceptedGap { date: "2024-02-29".into(), reason: "Source-reviewed discrepancy".into() };
@@ -319,18 +325,70 @@ fn source_dispositions_validate_before_applying_a_dated_waiver()
         ProbeResult::Accepted,
     )?;
     assert!(row.fails());
+    let mut general_row = row.clone();
+    registry.apply("case", &mut general_row);
+    assert!(!general_row.fails(), "general dated dispositions must retain Accepted support");
+    assert_eq!(general_row.accepted_gap, Some(gap.clone()));
+    general_row.outcome = GapOutcome::Mismatch(ProbeResult::Rejected {
+        code: 5,
+        message_matches: false,
+        details_type: None,
+    });
+    general_row.accepted_gap = None;
+    registry.apply("case", &mut general_row);
+    assert!(!general_row.fails(), "general dated dispositions retain Mismatch support");
+    let registry = dispositions::Dispositions::with_unannotated(
+        ["case"],
+        Vec::new(),
+        vec![("case".into(), gap.clone())],
+    )?;
     registry.apply("case", &mut row);
-    assert!(!row.fails());
-    assert_eq!(row.accepted_gap, Some(gap.clone()));
+    assert!(row.fails(), "a reviewed Unannotated rejection cannot waive Accepted");
+    assert_eq!(row.accepted_gap, None);
+    let rejected =
+        |code| ProbeResult::Rejected { code, message_matches: false, details_type: None };
+    for (id, outcome, allowed) in [
+        ("case", GapOutcome::Unannotated(rejected(3)), true),
+        ("case", GapOutcome::Unannotated(rejected(5)), false),
+        ("case", GapOutcome::Mismatch(rejected(3)), false),
+        ("case", GapOutcome::Accepted, false),
+        ("new-case", GapOutcome::Unannotated(rejected(3)), false),
+    ] {
+        let mut candidate = row.clone();
+        candidate.outcome = outcome;
+        registry.apply(id, &mut candidate);
+        assert_eq!(candidate.accepted_gap.is_some(), allowed, "{id}: {:?}", candidate.outcome);
+        assert_eq!(candidate.fails(), !allowed);
+    }
     let invalid = [
         vec![("case".into(), AcceptedGap { date: "2026-02-30".into(), ..gap.clone() })],
         vec![("case".into(), AcceptedGap { reason: " \t ".into(), ..gap.clone() })],
         vec![("stale".into(), gap.clone())],
-        vec![("case".into(), gap.clone()), ("case".into(), gap)],
+        vec![("case".into(), gap.clone()), ("case".into(), gap.clone())],
     ];
     for registry in invalid {
-        assert!(dispositions::Dispositions::new(["case"], registry).is_err());
+        assert!(dispositions::Dispositions::new(["case"], registry.clone()).is_err());
+        assert!(
+            dispositions::Dispositions::with_unannotated(["case"], Vec::new(), registry).is_err()
+        );
     }
+    assert!(
+        dispositions::Dispositions::with_unannotated(
+            ["case"],
+            vec![("case".into(), gap.clone())],
+            vec![("case".into(), gap)],
+        )
+        .is_err()
+    );
+    let known = dispositions::unannotated();
+    assert_eq!(known.len(), 217, "only the explicitly reviewed observations are scoped");
+    assert!(known.iter().all(|(_, gap)| gap.date == "2026-10-21"));
+    let inventory = probe(&ProbeRequest::default())?;
+    dispositions::Dispositions::with_unannotated(
+        inventory.cases.iter().map(|case| case.id.as_str()),
+        Vec::new(),
+        known,
+    )?;
     Ok(())
 }
 

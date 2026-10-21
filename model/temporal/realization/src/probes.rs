@@ -546,8 +546,43 @@ fn bad_duration(entry: &Entry) -> Duration {
     }
 }
 
+fn mutate_admission_fields(wire: &mut Wire, entry: &Entry, field: &str) -> Result<bool> {
+    let omitted = entry.target.omitted_field.as_deref().and_then(|path| path.rsplit('.').next());
+    if field == "namespace" || omitted == Some("namespace") {
+        let namespace = match wire {
+            Wire::Start(m) => &mut m.namespace,
+            Wire::Describe(m) => &mut m.namespace,
+            Wire::Poll(m) => &mut m.namespace,
+            Wire::Cancel(m) => &mut m.namespace,
+            Wire::Queue(m) => &mut m.namespace,
+            Wire::Completed(m) => &mut m.namespace,
+            Wire::Canceled(m) => &mut m.namespace,
+            Wire::Failed(m) => &mut m.namespace,
+        };
+        if omitted.is_some() {
+            namespace.clear();
+        } else {
+            *namespace = entry.negative_text(namespace)?;
+        }
+        return Ok(true);
+    }
+    if omitted == Some("task_token") {
+        match wire {
+            Wire::Completed(m) => m.task_token.clear(),
+            Wire::Canceled(m) => m.task_token.clear(),
+            Wire::Failed(m) => m.task_token.clear(),
+            _ => return Err("unsupported task token omission".into()),
+        }
+        return Ok(true);
+    }
+    Ok(false)
+}
+
 fn mutate(wire: &mut Wire, entry: &Entry) -> Result<()> {
     let field = entry.target.violation.path.rsplit('.').next().ok_or("missing field path")?;
+    if mutate_admission_fields(wire, entry, field)? {
+        return Ok(());
+    }
     macro_rules! text {
         ($value:expr) => {
             $value = entry.negative_text(&$value)?

@@ -96,8 +96,10 @@ pub struct ActivityExecutionInfo {
 /// Worker polling validates queue identity without modeling version routing.
 #[derive(Catalog)]
 #[rule(required(task_queue), rejects = "taskQueue|task queue")]
+#[rule(required(namespace), rejects = "Namespace not set")]
 #[mirror(request = "temporal.api.workflowservice.v1.PollActivityTaskQueueRequest")]
 pub struct PollActivityTaskQueueRequest {
+    #[rule(max_bytes = dc::MAX_ID_LENGTH, rejects = "Namespace length exceeds limit")]
     namespace: Text,
 
     task_queue: Message<q::TaskQueue>,
@@ -178,12 +180,14 @@ pub struct PollActivityTaskQueueResponse {
 
 /// Completion transports worker results under the frontend identity limit.
 #[derive(Catalog)]
+#[rule(required(task_token), rejects = "Task token not set")]
 #[mirror(request = "temporal.api.workflowservice.v1.RespondActivityTaskCompletedRequest")]
 pub struct RespondActivityTaskCompletedRequest {
     task_token: Secret,
     result: Message<c::Payloads>,
     #[rule(max_bytes = dc::MAX_ID_LENGTH, rejects = "identity|Identity")]
     identity: Text,
+    #[rule(max_bytes = dc::MAX_ID_LENGTH, rejects = "Namespace length exceeds limit")]
     namespace: Text,
     resource_id: Text,
     #[mirror(ignored = "This activity Model does not project \
@@ -204,12 +208,14 @@ pub struct RespondActivityTaskCompletedResponse {}
 
 /// Worker failures require root application-failure information, unlike nested server failures.
 #[derive(Catalog)]
+#[rule(required(task_token), rejects = "Task token not set")]
 #[mirror(request = "temporal.api.workflowservice.v1.RespondActivityTaskFailedRequest")]
 pub struct RespondActivityTaskFailedRequest {
     task_token: Secret,
     failure: Message<f::Failure>,
     #[rule(max_bytes = dc::MAX_ID_LENGTH, rejects = "identity|Identity")]
     identity: Text,
+    #[rule(max_bytes = dc::MAX_ID_LENGTH, rejects = "Namespace length exceeds limit")]
     namespace: Text,
     resource_id: Text,
     last_heartbeat_details: Message<c::Payloads>,
@@ -236,12 +242,14 @@ pub struct RespondActivityTaskFailedResponse {
 
 /// Worker cancellation acknowledgement retains opaque details and validates identity.
 #[derive(Catalog)]
+#[rule(required(task_token), rejects = "Task token not set")]
 #[mirror(request = "temporal.api.workflowservice.v1.RespondActivityTaskCanceledRequest")]
 pub struct RespondActivityTaskCanceledRequest {
     task_token: Secret,
     details: Message<c::Payloads>,
     #[rule(max_bytes = dc::MAX_ID_LENGTH, rejects = "identity|Identity")]
     identity: Text,
+    #[rule(max_bytes = dc::MAX_ID_LENGTH, rejects = "Namespace length exceeds limit")]
     namespace: Text,
     resource_id: Text,
     #[mirror(ignored = "This activity Model does not project \
@@ -263,12 +271,14 @@ pub struct RespondActivityTaskCanceledResponse {}
 /// Timeout and payload limits apply before the standalone activity is scheduled.
 #[derive(Catalog)]
 #[rule(required(activity_type, task_queue), rejects = "activityType|taskQueue|task queue")]
+#[rule(required(namespace), rejects = "Namespace not set")]
 #[mirror(request = "temporal.api.workflowservice.v1.StartActivityExecutionRequest")]
 #[rule(
     any_of(schedule_to_close_timeout, start_to_close_timeout),
     rejects = "a valid StartToCloseTimeout or ScheduleToCloseTimeout"
 )]
 pub struct StartActivityExecutionRequest {
+    #[rule(max_bytes = dc::MAX_ID_LENGTH, rejects = "Namespace length exceeds limit")]
     namespace: Text,
     #[rule(max_bytes = dc::MAX_ID_LENGTH, rejects = "identity|Identity")]
     identity: Text,
@@ -337,8 +347,10 @@ pub struct StartActivityExecutionResponse {
 /// Long-poll tokens require an explicit run identifier.
 #[derive(Catalog)]
 #[rule(requires(long_poll_token, run_id), rejects = "run id is required")]
+#[rule(required(namespace), rejects = "Namespace not set")]
 #[mirror(request = "temporal.api.workflowservice.v1.DescribeActivityExecutionRequest")]
 pub struct DescribeActivityExecutionRequest {
+    #[rule(max_bytes = dc::MAX_ID_LENGTH, rejects = "Namespace length exceeds limit")]
     namespace: Text,
     #[rule(max_bytes = dc::MAX_ID_LENGTH, rejects = "activity[Ii][Dd]|activity ID")]
     activity_id: Identifier,
@@ -382,8 +394,10 @@ pub struct DescribeActivityExecutionResponse {
 
 /// Outcome polling accepts an optional normalized run UUID.
 #[derive(Catalog)]
+#[rule(required(namespace), rejects = "Namespace not set")]
 #[mirror(request = "temporal.api.workflowservice.v1.PollActivityExecutionRequest")]
 pub struct PollActivityExecutionRequest {
+    #[rule(max_bytes = dc::MAX_ID_LENGTH, rejects = "Namespace length exceeds limit")]
     namespace: Text,
     #[rule(max_bytes = dc::MAX_ID_LENGTH, rejects = "activity[Ii][Dd]|activity ID")]
     activity_id: Identifier,
@@ -402,8 +416,10 @@ pub struct PollActivityExecutionResponse {
 
 /// Cancellation intent is separate from the worker's eventual cancellation acknowledgement.
 #[derive(Catalog)]
+#[rule(required(namespace), rejects = "Namespace not set")]
 #[mirror(request = "temporal.api.workflowservice.v1.RequestCancelActivityExecutionRequest")]
 pub struct RequestCancelActivityExecutionRequest {
+    #[rule(max_bytes = dc::MAX_ID_LENGTH, rejects = "Namespace length exceeds limit")]
     namespace: Text,
     #[rule(max_bytes = dc::MAX_ID_LENGTH, rejects = "activity[Ii][Dd]|activity ID")]
     activity_id: Identifier,

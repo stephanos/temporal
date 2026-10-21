@@ -13,6 +13,8 @@ import (
 
 	"github.com/google/uuid"
 	"github.com/stretchr/testify/require"
+	commonpb "go.temporal.io/api/common/v1"
+	enumspb "go.temporal.io/api/enums/v1"
 	taskqueuepb "go.temporal.io/api/taskqueue/v1"
 	"go.temporal.io/api/workflowservice/v1"
 	"go.temporal.io/server/chasm/lib/activity"
@@ -26,6 +28,7 @@ import (
 	"google.golang.org/grpc/credentials/insecure"
 	"google.golang.org/grpc/status"
 	"google.golang.org/protobuf/proto"
+	"google.golang.org/protobuf/types/known/durationpb"
 	"umpire.local/model"
 	temporalmodel "umpire.local/temporal"
 	temporalv1 "umpire.local/temporal/umpire/temporal/v1"
@@ -133,6 +136,121 @@ func TestTestpilotModelGapResourceIsolation(t *testing.T) {
 	require.Empty(t, mutation.TaskToken)
 }
 
+func newModelGapConnection(t *testing.T) (string, *grpc.ClientConn) {
+	t.Helper()
+	env := newTestpilotTestEnvironment(t,
+		testcore.WithLogger(newModelGapLogger(t)),
+		testcore.WithDynamicConfig(dynamicconfig.EnableChasm, true),
+		testcore.WithDynamicConfig(activity.Enabled, true),
+		testcore.WithDynamicConfig(activity.EnableStandaloneActivityOperatorCommands, true))
+	connection, err := grpc.NewClient(env.FrontendGRPCAddress(), grpc.WithTransportCredentials(insecure.NewCredentials()))
+	require.NoError(t, err)
+	t.Cleanup(func() { require.NoError(t, connection.Close()) })
+	return env.Namespace().String(), connection
+}
+
+func modelGapStartRequest(namespace string) *workflowservice.StartActivityExecutionRequest {
+	return &workflowservice.StartActivityExecutionRequest{
+		Namespace: namespace, ActivityId: uuid.NewString(), RequestId: uuid.NewString(),
+		ActivityType:           &commonpb.ActivityType{Name: "ModelSlice"},
+		TaskQueue:              &taskqueuepb.TaskQueue{Name: "model-gap-" + uuid.NewString()},
+		ScheduleToCloseTimeout: durationpb.New(time.Minute), StartToCloseTimeout: durationpb.New(20 * time.Second),
+		RetryPolicy: &commonpb.RetryPolicy{MaximumAttempts: 2, InitialInterval: durationpb.New(time.Second),
+			MaximumInterval: durationpb.New(10 * time.Second), BackoffCoefficient: 2},
+	}
+}
+
+func checkModelGapScopeBoundaries(t *testing.T, namespace string, connection *grpc.ClientConn) {
+	t.Helper()
+	service := workflowservice.NewWorkflowServiceClient(connection)
+	start := func(t *testing.T, request *workflowservice.StartActivityExecutionRequest) error {
+		t.Helper()
+		ctx, cancel := context.WithTimeout(t.Context(), 30*time.Second)
+		defer cancel()
+		t.Cleanup(func() {
+			cleanupCtx, cleanupCancel := context.WithTimeout(context.Background(), 5*time.Second)
+			defer cleanupCancel()
+			_, cleanupErr := service.TerminateActivityExecution(cleanupCtx, &workflowservice.TerminateActivityExecutionRequest{
+				Namespace: namespace, ActivityId: request.ActivityId,
+			})
+			require.True(t, cleanupErr == nil || status.Code(cleanupErr) == codes.NotFound, "cleanup rpc_code=%s", status.Code(cleanupErr))
+		})
+		_, rpcErr := service.StartActivityExecution(ctx, request)
+		return rpcErr
+	}
+	for _, testCase := range []struct {
+		name     string
+		maximum  time.Duration
+		attempts int32
+		code     codes.Code
+	}{
+		{"retry_inverted", 10 * time.Second, 2, codes.InvalidArgument},
+		{"retry_ordered", 2002 * time.Second, 2, codes.OK},
+		{"retry_disabled", 10 * time.Second, 1, codes.OK},
+		{"retry_default_maximum", 0, 2, codes.OK},
+	} {
+		t.Run(testCase.name, func(t *testing.T) {
+			request := modelGapStartRequest(namespace)
+			request.RetryPolicy.InitialInterval = durationpb.New(1001 * time.Second)
+			request.RetryPolicy.MaximumInterval = durationpb.New(testCase.maximum)
+			request.RetryPolicy.MaximumAttempts = testCase.attempts
+			rpcErr := start(t, request)
+			require.Equal(t, testCase.code, status.Code(rpcErr), "retry rpc_code=%s", status.Code(rpcErr))
+			if rpcErr != nil {
+				matchesReason := strings.Contains(status.Convert(rpcErr).Message(), "MaximumInterval cannot be less")
+				require.True(t, matchesReason, "retry explanation must match without exposing the error")
+			}
+		})
+	}
+	for _, normalName := range []string{"", "x"} {
+		t.Run(fmt.Sprintf("normal_queue_name_%d", len(normalName)), func(t *testing.T) {
+			request := modelGapStartRequest(namespace)
+			startErr := start(t, request)
+			require.Equal(t, codes.OK, status.Code(startErr))
+			ctx, cancel := context.WithTimeout(t.Context(), 30*time.Second)
+			defer cancel()
+			_, rpcErr := service.PollActivityTaskQueue(ctx, &workflowservice.PollActivityTaskQueueRequest{
+				Namespace: namespace, TaskQueue: &taskqueuepb.TaskQueue{Name: request.TaskQueue.Name, Kind: enumspb.TASK_QUEUE_KIND_NORMAL, NormalName: normalName},
+			})
+			expected := codes.OK
+			if normalName != "" {
+				expected = codes.InvalidArgument
+			}
+			require.Equal(t, expected, status.Code(rpcErr), "queue relation rpc_code=%s", status.Code(rpcErr))
+		})
+	}
+	for _, tokenKind := range []string{"empty", "malformed", "issued"} {
+		t.Run("worker_token_"+tokenKind, func(t *testing.T) {
+			request := modelGapStartRequest(namespace)
+			startErr := start(t, request)
+			require.Equal(t, codes.OK, status.Code(startErr))
+			ctx, cancel := context.WithTimeout(t.Context(), 30*time.Second)
+			defer cancel()
+			task, pollErr := service.PollActivityTaskQueue(ctx, &workflowservice.PollActivityTaskQueueRequest{Namespace: namespace, TaskQueue: request.TaskQueue})
+			require.Equal(t, codes.OK, status.Code(pollErr))
+			require.NotEmpty(t, task.GetTaskToken())
+			token, expected, pattern := task.TaskToken, codes.OK, ""
+			switch tokenKind {
+			case "empty":
+				token, expected, pattern = nil, codes.InvalidArgument, "Task token not set"
+			case "malformed":
+				token, expected, pattern = []byte{1}, codes.InvalidArgument, "deserializing task token"
+			default:
+				require.Equal(t, "issued", tokenKind)
+			}
+			_, rpcErr := service.RespondActivityTaskCompleted(ctx, &workflowservice.RespondActivityTaskCompletedRequest{TaskToken: token})
+			require.Equal(t, expected, status.Code(rpcErr), "opaque token rpc_code=%s", status.Code(rpcErr))
+			matchesReason := strings.Contains(status.Convert(rpcErr).Message(), pattern)
+			require.True(t, matchesReason, "token explanation must match without exposing the error")
+		})
+	}
+}
+
+func TestTestpilotModelGapScopeBoundaries(t *testing.T) {
+	namespace, connection := newModelGapConnection(t)
+	checkModelGapScopeBoundaries(t, namespace, connection)
+}
+
 func TestTestpilotModelGaps(t *testing.T) {
 	wasm, err := os.ReadFile(os.Getenv("UMPIRE_TEMPORAL_WASM"))
 	require.NoError(t, err)
@@ -149,14 +267,8 @@ func TestTestpilotModelGaps(t *testing.T) {
 		require.False(t, identities[testCase.Id], "duplicate probe identity")
 		identities[testCase.Id] = true
 	}
-	env := newTestpilotTestEnvironment(t,
-		testcore.WithLogger(newModelGapLogger(t)),
-		testcore.WithDynamicConfig(dynamicconfig.EnableChasm, true),
-		testcore.WithDynamicConfig(activity.Enabled, true),
-		testcore.WithDynamicConfig(activity.EnableStandaloneActivityOperatorCommands, true))
-	connection, err := grpc.NewClient(env.FrontendGRPCAddress(), grpc.WithTransportCredentials(insecure.NewCredentials()))
-	require.NoError(t, err)
-	t.Cleanup(func() { require.NoError(t, connection.Close()) })
+	namespace, connection := newModelGapConnection(t)
+	checkModelGapScopeBoundaries(t, namespace, connection)
 	service := workflowservice.NewWorkflowServiceClient(connection)
 	var observations []*temporalv1.ProbeObservation
 	for _, testCase := range inventory.Cases {
@@ -171,7 +283,7 @@ func TestTestpilotModelGaps(t *testing.T) {
 				func() {
 					ctx, cancel := context.WithTimeout(t.Context(), 30*time.Second)
 					defer cancel()
-					request := isolatedProbeRequest(testCase.Id, env.Namespace().String(), baseline)
+					request := isolatedProbeRequest(testCase.Id, namespace, baseline)
 					prepare := func(selector string) *temporalv1.ProbeResponse {
 						preparedRequest := proto.Clone(request).(*temporalv1.ProbeRequest)
 						preparedRequest.CaseId, preparedRequest.Baseline = selector, true

@@ -124,6 +124,14 @@ applicability explicitly. Recursive shapes have bounded traversal and report
 cycle or depth refusals. An actual rejection predicted by no catalog rule is
 `Unannotated`, not a successful strict probe or an automatic waiver.
 
+The activity probe's private `feature/activity/probe_gaps.rs` ledger lists exact
+reviewed identities with dates and scope reasons. Its known-Unannotated entries
+apply only to the reviewed rejection code; they cannot waive an unexpected
+acceptance, mismatch, new code or new identity. Rows remain visibly Unannotated.
+General dated Accepted/Mismatch dispositions remain separate. A synthesized
+missing ancestor or oneof alternative records mutation provenance, not proof
+that the named descendant caused the rejection.
+
 A generic rejection is explained when any violated rejection rule matches its
 status, message pattern and details type. All predicted rule identities remain
 visible; generic `Confirmed` means the outcome is explained, not that every rule
