@@ -182,3 +182,44 @@ fn enum_raw_duration_and_scalar_repeated_views_keep_their_semantics()
     assert!(findings.iter().any(|v| v.constraint == "repeated.max_items"));
     Ok(())
 }
+
+#[derive(Clone, Default)]
+struct OpenRequest {
+    state: i32,
+}
+
+#[derive(Clone, Default)]
+struct OpenResponse {
+    state: i32,
+}
+
+#[derive(Catalog)]
+#[api(request = "test.OpenRequest", type = OpenRequest)]
+struct OpenRequestCatalog {
+    #[api(defined_only = false)]
+    state: Enum<State>,
+}
+
+#[derive(Catalog)]
+#[api(response = "test.OpenResponse", type = OpenResponse)]
+struct OpenResponseCatalog {
+    #[api(defined_only = false)]
+    state: Enum<State>,
+}
+
+#[test]
+fn disabled_enum_constraint_accepts_unknown_values_and_needs_no_request_expectation()
+-> Result<(), Box<dyn std::error::Error>> {
+    let limits = foundation::dc::Limits(4);
+    let response = OpenResponseCatalog::catalog(&limits)?;
+    let findings = validate(&OpenResponse { state: 99 }, &response);
+    let request = OpenRequestCatalog::catalog(&limits);
+    assert_eq!(
+        (findings.is_empty(), request.is_ok()),
+        (true, true),
+        "{:?}",
+        request.as_ref().err()
+    );
+    assert_eq!(validate(&OpenRequest { state: 99 }, &request?), []);
+    Ok(())
+}

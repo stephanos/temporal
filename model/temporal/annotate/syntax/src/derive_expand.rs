@@ -144,7 +144,16 @@ fn kind_expansion(ty: &Type, attrs: &ApiAttributes) -> syn::Result<TokenStream> 
             .find(|(name, _)| name == "defined_only")
             .map(|(_, value)| value);
         return Ok(if let Some(defined_only) = defined_only {
-            quote!({ let mut kind = ::umpire_temporal_annotate::defined_enum::<#enum_type>(); if let ::umpire_annotations::Kind::Enum(rules) = &mut kind { rules.defined_only = #defined_only; } kind })
+            quote!({
+                if #defined_only {
+                    ::umpire_temporal_annotate::defined_enum::<#enum_type>()
+                } else {
+                    ::umpire_annotations::Kind::Enum(::umpire_annotations::EnumRules {
+                        defined_only: false,
+                        values: ::std::vec::Vec::new(),
+                    })
+                }
+            })
         } else {
             quote!(::umpire_temporal_annotate::defined_enum::<#enum_type>())
         });

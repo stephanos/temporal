@@ -53,8 +53,9 @@ Unicode scalars; byte bounds count UTF-8 bytes. Dynamic bounds reference typed
 `dc::Limit` constants. Factories take `&dc::Limits`, whose defaults match server
 limits and can be overridden per run without global state.
 
-A field `#[api(required)]` creates a separate presence rule. Item-level rules use
-`#[api(any_of(a, b))]`, `one_of`, `requires = other` or `conflicts_with = other`.
+A field `#[api(required)]` creates a separate presence rule. Put
+`#[api(requires = other)]` or `#[api(conflicts_with = other)]` on the trigger field.
+Item-level groups use `#[api(any_of(a, b))]` or `#[api(one_of(a, b))]`.
 Request constraints
 and rules require both an expectation and nonempty typed validator provenance;
 item defaults apply unless a field or rule overrides them. Available expectations
