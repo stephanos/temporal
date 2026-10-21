@@ -799,6 +799,28 @@ fn run_instance(
     })
 }
 
+pub(crate) fn terminal_failure(outcome: &Outcome) -> Option<(&'static str, String)> {
+    match outcome.termination {
+        "exit" if outcome.exit_code == Some(0) => None,
+        "exit" => Some((
+            "trap",
+            format!(
+                "WASM guest exited with code {}",
+                outcome.exit_code.unwrap_or(1)
+            ),
+        )),
+        "crash"
+        | "stop"
+        | "storage_crash"
+        | "inspection_aborted"
+        | "inspected_prefix"
+        | "instrumentation_divergence"
+        | "debug_error"
+        | "probe_fuel_limit" => None,
+        termination => Some((termination, outcome.message.clone())),
+    }
+}
+
 /// An instance's terminal evidence after its store stopped: recovery
 /// storage, terminal network and the local model's result, then the check
 /// that no deferred network commitment survives into the instance's finish.
