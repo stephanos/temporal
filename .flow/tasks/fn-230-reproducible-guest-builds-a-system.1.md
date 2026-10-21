@@ -24,7 +24,7 @@ cross-OS proof to fn-232-linux-macos-guest-byte-identity; it does not gate this
 task or task .2. Never claim Linux directories prove cross-OS identity. The
 caught-panic requirement remains unchanged. Task .2 owns embedding and freshness wiring.
 
-**Touches:** `model/Cargo.toml`, `model/Cargo.lock`, `model/scripts/guest.sh`, `model/scripts/tests/**`, `model/umpire/hosts/go/**`, `model/umpire/wasm/**`, `Makefile`, `model/DESIGN.md`, `model/GUEST_BUILDS.md`
+**Touches:** `model/Cargo.toml`, `model/Cargo.lock`, `model/scripts/guest.sh`, `model/scripts/tests/**`, `model/umpire/hosts/go/**`, `model/umpire/wasm/**`, `model/temporal/hosts/go/allocation_test.go`, `Makefile`, `model/DESIGN.md`, `model/GUEST_BUILDS.md`
 **Quick:** bash syntax and script controls for fresh/stale/build-failure exit codes; actual caught-panic/overflow reports, reset and unexpected-trap controls through the production Go host; restricted import denial/signature controls; the two-clean-checkout proof for both guests.
 **Full gates:** `make model-check`; `make model-time`; stock/control Go parity against artifacts built with profile.guest.
 Use a lane-specific Cargo target and isolated proof targets. Proof source copies

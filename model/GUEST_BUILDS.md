@@ -101,3 +101,19 @@ That separate certification remains unverified under fn-232. Historical aborting
 artifacts and earlier smaller Temporal closures do not certify the current unwind
 build. The original engine feasibility proof is retained under
 `.flow/tmp/fn230-eh-proof-20261021T032505Z/` with its sources and negative controls.
+
+The executed unwind proof used source
+`44c419f10988116059c886994f792f74100fd3b1` in the isolated checkout
+`/Users/stephan/Workspace/skunkworks/umpire/temporal/.worktrees/fn2301-unwind`.
+Its exact runner is `.flow/tmp/run-unwind-proof.sh`, with captured output in
+`.flow/tmp/unwind-proof.log`. It ran through
+`timeout 600s env -u RUSTFLAGS -u CARGO_ENCODED_RUSTFLAGS bash <absolute-runner>`
+and exited 0. Source clones are `.flow/tmp/fn2301-unwind-proof/source-a` and
+`.flow/tmp/fn2301-unwind-proof/different-source-b`; the initially absent targets
+are `/home/agent/.cache/codex-build/fn2301-unwind/proof-a` and `proof-b`.
+Their directory identities were `29:9864571` and `29:9963433`. The runner checked
+both source statuses before and after building, compared both pairs with `cmp`,
+and recorded SHA-256 and byte counts. Each build used `CARGO_BUILD_JOBS=4`.
+The observed platform was Linux 7.0.14/aarch64 with Rust 1.99.1
+(`58cf8f9c35b355199727627d07ae34a4e2846d67`, LLVM 23.1.1), Cargo 1.99.1,
+Go 1.27.0 and protoc 29.5. DESIGN records the resulting bytes and hashes.

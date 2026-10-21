@@ -1,6 +1,7 @@
 #!/usr/bin/env bash
 set -euo pipefail
 cd "$(dirname "$0")/../.."
+workspace=$(pwd -P)
 target=${CARGO_TARGET_DIR:-$PWD/target}
 mkdir -p "$target"
 target=$(cd "$target" && pwd -P)
@@ -11,7 +12,7 @@ for pair in \
   umpire-temporal-guest:umpire_temporal_guest \
   umpire-caught-panic-guest:caught_panic_control \
   umpire-overflow-guest:overflow_control; do
-  bash scripts/guest.sh "${pair%%:*}" "$target/wasm32-wasip1/guest/${pair#*:}.wasm"
+  bash "$workspace/scripts/guest.sh" "${pair%%:*}" "$target/wasm32-wasip1/guest/${pair#*:}.wasm"
 done
 mise exec -- cargo run --locked --profile guest -p umpire-caught-panic-guest \
   --bin panic-control-reports -- "$target/panic-native"

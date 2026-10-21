@@ -139,29 +139,28 @@ Direct locked Cargo builds need no custom linker or post-link processing.
 
 ## Reproducible guest builds (fn-230.1)
 
-Linux proofs, 2026-10-20/21 UTC: Linux 7.0.14, aarch64; Rust 1.99.1
-(`58cf8f9c35b355199727627d07ae34a4e2846d67`, LLVM 23.1.1), Go 1.27.0,
-protoc 29.5. Current source: `405889a77ac5364b53fa71acabc516778b531a80`;
-historical source: `df58e04a076f9d44392a0151e812ad3ccf0824fc`.
-Each proof used two clean clones at different absolute paths and initially absent independent targets.
+Linux unwind proof, 2026-10-21 UTC, source `44c419f10988116059c886994f792f74100fd3b1`.
+Linux 7.0.14/aarch64; Rust 1.99.1 (`58cf8f9c35b355199727627d07ae34a4e2846d67`,
+LLVM 23.1.1), Cargo 1.99.1, Go 1.27.0, protoc 29.5. Two clean clones at different
+absolute paths used initially absent independent targets and retained clean status.
 
-| Proof / guest | Bytes in each clone | SHA-256 in each clone |
+| Guest | Bytes in each clone | SHA-256 in each clone |
 | --- | ---: | --- |
-| Historical stock | 142417 | `f20da4a512470b552eca5cabc8dabffad9a105f8ee12b6282f9ca0cfa4ae1330` |
-| Historical Temporal | 275110 | `684fbae2d3f8e28fd3773c5aec4d34665698aadf831269e78ca43296715531ea` |
-| Current stock | 143022 | `f01424be60038282bcad227110ba76b6eb34a6cb3cc934cfb7422fa48bb23a9f` |
-| Current Temporal | 2128089 | `b7b9f6f5ab77be5e177cc95001d53fae42d76207c6ca59411f88db9184198e10` |
+| Stock | 192255 | `5ec57e2e5371723adf318665c1048b5a4021e9f4203ed56884c5f849e7a2dfc1` |
+| Temporal | 2773135 | `5001a01808b2bdb328b26c8252d8ebc910105b002aa31e4a099c505aa514a79f` |
 
-Current byte comparisons, actual-profile stock/control parity (19 tests), both Temporal host suites (22 each) and freshness passed; clones stayed clean.
-At `feb4621de8`, Temporal bytes differed; sorting descriptor files at codegen input fixes that regression. [Commands, retained failure and timing evidence](GUEST_BUILDS.md).
-**Unresolved panic requirement:** manifest unwind remains effective abort; controls prove trap/invalidation, not caught judgments.
-**Unverified macOS/cross-OS identity:** fn-232 owns the separate proof; SSH closed before `uname`. Linux path independence does not satisfy it. Task .1 remains open for panic semantics.
+Both byte comparisons passed. Actual Tiny effect-panic and overflow fixtures match
+their native full responses and existing report goldens across repeated calls and Reset.
+The default gate builds the same unwind profile. [Commands and timing](GUEST_BUILDS.md).
+fn-232 retains the unverified macOS/cross-OS proof; Linux paths do not establish it.
+fn-230.2 owns committed embedding and freshness integration.
 
 ## Capability and panic boundaries
 
-The real guest imports only `environ_get`, `environ_sizes_get`, `fd_write` and
-`proc_exit` from `wasi_snapshot_preview1`, with exact checked signatures. The host
-provides an empty environment, discarded descriptor 1/2 output and an exit trap.
+The real guest imports exactly checked `environ_get`, `environ_sizes_get`, `fd_write`,
+`proc_exit`, `fd_close` and `fd_seek` from `wasi_snapshot_preview1`. The host provides
+an empty environment, discarded descriptor 1/2 output and an exit trap. Close and
+seek always deny with BADF (8), without descriptor access or output-memory effects.
 It links no general WASI implementation, directories, inherited I/O, clocks or
 thread APIs. Unexpected imports and imported memory fail before instantiation.
 
@@ -174,9 +173,9 @@ this source restriction: it covers surviving transitive guest code. Neither is
 a universal analysis of dormant third-party code, cfg-disabled branches or every
 future API. Dependency changes still require admission and review.
 
-WASI uses panic=abort. Unexpected guest panics trap and invalidate the host
-instance; host errors name the logical method and failing ABI function. Native
-checker catch_unwind behavior and panic/overflow fixtures remain unchanged.
+The pinned compiler rebuilds std with scoped bootstrap and unstable final Wasm EH;
+wazero's interpreter executes it. Checker-caught panics preserve native judgments.
+Uncaught panics still trap and invalidate the instance; errors name the method and ABI.
 Invalid budgets and state IDs remain generated typed refusals, not panic tests.
 
 ## Attribute Kettle and the authoring sketch (final flat form)
