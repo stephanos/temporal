@@ -159,6 +159,18 @@ def main():
     bundle = json.loads(run("rust-produce", [args.rust_binary, "fixture-replay-input", "--root", root, "--input", input_path]))
     parity.authenticate(root, bundle)
     equal(len(bundle["records"]), len(matches), "rust.records")
+    runtime = hashlib.sha256(b"gomad-wasm-runtime-implementation/v1\0")
+    toolchain = corpus.parents[1] / 'internal/backends/wasm/toolchain'
+    for name in ('overlay.go', 'runtime_wasm.go.txt', 'runtime_inspect_wasm.go.txt',
+                 'net_stream_wasm.go.txt', 'net_stream_status_generated.go.txt'):
+        source = (toolchain / name).read_bytes()
+        runtime.update(len(source).to_bytes(8, 'big'))
+        runtime.update(source)
+    for item in bundle['records']:
+        inputs = json.loads((root / item['artifact'] / 'evidence/replay.json').read_bytes())
+        exact = inputs['configuration']['profile'] == 'gomad.wasi-cooperative/v1'
+        equal(inputs['runtime_implementation_sha256'], runtime.hexdigest() if exact else None,
+              'rust.runtime_implementation_sha256')
     repeated_root = args.output / "rust-repeat"
     repeated = json.loads(run("rust-repeat", [args.rust_binary, "fixture-replay-input", "--root", repeated_root, "--input", input_path]))
     parity.authenticate(repeated_root, repeated)
