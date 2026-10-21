@@ -566,96 +566,98 @@ The post-verdict Case plan must carry these requirements; none is implemented by
 
 ## Mini activity slice (fn-216)
 
-The independent `temporal/features/activity/model.rs` fixes a six-phase restriction
-of the archived Product: Scheduled, Started, Completed, Failed, Canceled and TimedOut.
-Its six actions now give one start, six reached states, 11 edges, 36 evaluated actions,
-25 refusals and depth two without a cut. Cancellation is atomic and failure fatal-only;
-there is no cancelRequested state, retry branch or real clock. Successful Start supplies
-Scheduled outside this graph. This is not an exact port of the archived seven-phase Model.
+The independent six-phase activity Model uses the Reset/Judge/Answer protocol over opaque Any.
+[Slice behavior, boundaries and measurements](README.md#mini-activity-slice-fn-216) retain the proof details.
 
-`terminal_remains` and `closed_rejects` are registered postconditions, delegating to the
-shared closure laws. Fn-221 adds a rejected cancel self-loop at each of the four terminal
-phases, giving both laws terminal edges to check. The controls also enumerate every
-terminal phase/action and prove that a hypothetical reopening, accepted closed step or
-wrong rejection refutes the corresponding law.
+## Annotation catalog
 
-The reusable `umpire-wasm` library owns state, replay, first-Unexplained freezing,
-Reset, response-publication transactions and ABI buffers. A system-owned `Realize`
-binding proposes paths; the runtime validates those paths through actual Model steps.
-For public states, `#[machine]` exports `World` and `Action`, and `world()` returns
-`World`. Non-public states retain the opaque interface with generated types following
-the state's visibility. The public activity world removes
-the binding's duplicate action carrier, delegating machine and claim-index re-wrap.
-Generic Any helpers derive canonical type URLs from generated `prost::Name`; only the
-Describe and cancel RPC method paths are binding constants. The policy parser and reply constructor
-keep the remaining binding specific to Temporal.
+Authors classify the API fields a feature uses in its typed sidecar,
+`temporal/features/activity/api.rs`. Upstream protos remain unchanged. The catalog
+supplies generation, validation, consequences and expected server errors; the independent
+`model.rs` continues to own transitions. [Authoring syntax](temporal/annotate/README.md)
+lives beside `annotate!`.
 
-Exactly three envelopes live under `temporal/proto`: Observation carries a method and
-a response Any or error, Callback a task Any, Reply a request Any. The real upstream API descriptor
-closure is compiled natively and for WASM, with generated well-known types owned once
-by `umpire_wasm::google::protobuf`. The closure's file count is not a schema invariant.
-No Testpilot schema is moved, imported or copied. Shared WKT ownership means checker
-rebuilds can trigger generated-API compilation; a separate owner is a possible later
-build optimization, not a new dependency admitted here.
+### Layering and admission
 
-Describe projects actual Info.Status and Info.RunState: Running/Scheduled or
-Running/Started, and terminal status/Unspecified. There is no Started execution-status
-enum. Only a valid callback evidences Poll. Repeated current observations are zero-step
-Explained; premature terminal and stale Scheduled observations are Unexplained, freezing
-the run until Reset. The SDK callback supplies a partial poll projection containing
-exactly one binary/plain Complete or Fail payload. Answer selects a partial completed
-or non-retryable failed RPC request, leaving the Model Started until terminal observation.
-Task token, identity, timestamps and whole-request equality are outside this projection.
+`umpire/annotations` owns the system-free `Catalog<M>`, kinds, tags, presence rules,
+expectations, seeded `fill`, `validate` and gap classification. Temporal owns the macro,
+descriptor integration, feature declarations, typed transport adapters and live probes.
+The generic source-boundary gate rejects Temporal names in `umpire/`.
 
-The live owner judges Scheduled with its registered worker stopped, answers delivery
-through that run's one Model instance, then synchronously reads and judges Describe.
-This ordering prevents a pre-delivery read from arriving after delivery; it does not
-solve general concurrent read-window inference. Complete and Fail, reset/isolation,
-repeat observations, opposite-terminal mutation, host refusal and cancellation all have
-real server/SDK controls. The worker returns only decoded Model reply data and uses the
-SDK failure converter. This is a bespoke SDK/server/Model proof, not execution through
-Testpilot Prepare/PreparedCase.Run, Case, Program or Contract.
+Each field has exactly one kind and any compatible tags. Kinds include Uuid, Identifier,
+Timestamp, Duration, Counter, Random, Secret, Enum, Text and Bytes. Generated Rust witnesses
+check the prost field or its explicit typed projection. The macro rejects contradictory
+roles (`Decided + Ignored`, `Secret + Observed`, `Random + Decided`), incompatible tags,
+unexplained ignored fields and rules that name ignored fields. Opaque ignored fields retain
+their real Rust type and require `Bytes` or `Secret` with a reason. Custom tags declare
+compatible kinds and a concrete consequence; they cannot conceal a field role.
+The runtime builder performs admission too, returning errors from catalog construction.
 
-Remaining DSL gaps include parameterized inputs/facts and typed projection authoring.
-Fn-221 closes the rejecting-outcome gap described below. No Model transition
-was changed to fit server evidence. Fn-213 must include the Temporal fixture root;
-fn-218 retains Cases(8), resolving impossible alternatives as a downstream grammar
-decision rather than inventing edges or silently shrinking coverage.
+Constraint names and selected semantics borrow from protovalidate (`string.uuid`,
+`duration.gt`, `enum.defined_only`, `repeated.unique`). Message presence rules borrow
+JSON Schema's `required`, `any_of`, `one_of`, `requires` and `excludes`; field roles
+`Decided`, `Observed` and `Ignored(reason)` borrow AIP field-behavior vocabulary.
+These are native typed Rust checks over a sidecar. Upstream descriptors carry no such
+validation options, and this small presence algebra needs neither CEL nor an external engine.
 
-For R33 this proves the Model protocol and opaque payload seam, preserving old wire
-bytes and refusal codes. Broader Case identity/versioning, Program replay and removal
-of Contract/CEL remain open. R34's size reduction, R35's CEL removal, R36's deferred
-lifting decision, R37's general callback replacement, R38's unified host loop, R39's
-Run/storage redesign and R40's polyglot forwarding remain the obligations in the table
-above; this slice does not discharge them.
+### Four exhaustiveness levels and API updates
 
-Predecessor .3's final dedicated run took 381.104 ms including cleanup, with Answer
-calls of 55.417 µs Complete, 48.750 µs Fail and 31.166 µs HostRefusal. Its full/inner
-model gate took 9.746/1.819 s. Task .4's pre-edit warm gate measured 8.061/1.738 s
-against the 30/10 s soft targets; its dedicated real run took 269.983 ms. These are
-individual observations on linux/arm64, Go 1.27.0, Rust 1.99.1 and SDK 1.48.0,
-excluding compilation from the live test timer, not percentiles or idle-host claims.
-The post-change warm gate measured 11.856 s full and 2.526 s inner while clean-build
-and live verification were also active; both stay below the soft targets. Fresh
-descriptor generation produced the same 57 file descriptors, equal by file name;
-raw descriptor-set byte order differs because getproto iterates a Go map. Its ignored
-cache is not a canonical wire artifact. The original descriptor/cache was preserved.
-Raw commands and logs live under `.flow/tmp/fn-216-4/`; predecessor records remain
-under `.flow/tmp/fn216-3-*`.
+| Level | Build-time obligation |
+| --- | --- |
+| Fields | A struct pattern without `..` names every prost field; descriptor checking also names every source oneof alternative and requires nested coverage unless explicitly opaque. |
+| Enum values | A wildcard-free match covers known variants; the descriptor checker verifies the named value set. Runtime unknown integers return `UnknownEnum`. |
+| RPC methods | Every method of a named service is `Action`, `Observed` or `OutOfScope(reason)`; stale, duplicate and missing declarations fail. |
+| Model actions | Exhaustive outer actor and inner action matches bind each action to an RPC, an observation or `Environmental(reason)`. RPC bindings must agree with service classifications. |
 
-Task .4's final umbrella measured 502.668 ms for its dedicated slice and 296.593 ms
-for the broad-selector invocation. Their Complete/Fail/HostRefusal Answer calls were
-134.958/65.583/168.333 µs and 103.834/57.000/32.958 µs respectively. Concurrent clean
-compilation and Go linting ran during verification; these samples make no idle-host claim.
+The current `proto/api.binpb` has no service descriptors. `temporal/api/build.rs` uses
+`getproto --linked-api` to add the actual linked WorkflowService descriptors in
+`OUT_DIR/annotation-api.binpb` for coverage checks, preserving upstream-owned files.
+Rust API generation still reads the upstream image. The build tracks that image and feature
+`api.rs` files recursively, including their directories.
 
-The unchanged-scope umbrella invokes the dedicated slice and retains all legacy checks.
-Its seven inherited failures are AssessRecordedRuns, ExplorationDiscoversUnpinnedExecution,
-GeneratedCases, NexusControlForgedCompletionIsViolated, NexusControlReplaysThroughTheCommand,
-NexusPairCase and UmpireRunRunsACheckedInCaseAgainstAnyEndpoint (all TestTestpilot-prefixed).
-The comparison in `.flow/tmp/fn-216-4/legacy-comparison.md` retains this task's
-before/after identities and assertion causes, matching predecessor .3's comparison.
-This umbrella is red; the dedicated slice passing does not make it green. The frozen
-Scala tree was not revived to repair those legacy expectations.
+After updating the upstream API dependency/image, build with `make model-check` and classify
+every newly reported field, enum value and RPC in the affected catalogs. Review each kind,
+role, expectation and exclusion reason as the API-change diff, keeping action bindings aligned.
+Regenerate affected Go envelopes with `bash model/scripts/proto-temporal-go.sh` when needed.
+Run `make umpire-check-model-slice` and `make umpire-check-model-gaps` for activity catalog
+changes; review changed findings before updating any golden.
+
+### Validation and the first gap report
+
+Request constraints and presence rules carry `Rejects(code, pattern, optional_details)`,
+`Accepts` or `Unobservable`, plus nonempty `covers` provenance naming the server function.
+`validate` reads typed values without mutation; `fill` preserves supplied values and roles,
+uses a seed and refuses unfillable fields. The activity adapter only fills absent request IDs.
+Its request findings exclude declared Accepts; response findings preserve every violation and
+the exact response bytes. Annotation dispatch is stateless with respect to Judge.
+
+The Rust guest derives contextual probe cases from those expectations, builds minimal negative
+requests and validates the actual decoded witnesses before dispatch. Go supplies real server
+prerequisites and transport, including polled tokens and retry-enabled resources. Bounded recipes
+carry decoded witnesses over 2 MiB within the existing 1 MiB individual/16 MiB live ABI limits.
+Each case also sends a valid baseline. Classification reports Confirmed, Mismatch, Accepted or
+Unverifiable; intentional `Accepts` succeeding is Confirmed. Mismatch and unexpected Accepted
+fail unless a source-reviewed `AcceptedGap` has a valid calendar date and nonblank reason.
+The activity registry is empty.
+
+The first retained [golden](temporal/features/activity/expected/gaps.txt) has 62 Confirmed
+(52 expected rejections and 10 intentional acceptances), zero Mismatch/Accepted/Unverifiable,
+73 uncovered validator entries and three unresolved seams. The initial live report found two
+wrong Accepts declarations for unknown Start `id_reuse_policy` and `id_conflict_policy`.
+The downstream `chasm/lib/activity.handler.StartActivityExecution` rejects both; correcting
+the expectations and their provenance confirmed them without changing the Model or server.
+
+Reverse coverage verifies actual qualified package/receiver/function identities and fails
+when a listed target vanishes. Its bounded Go AST walk reports uncovered helper/inline checks
+and unresolved calls without failing. The unresolved seams are callback-validator `Validate`,
+visibility-manager `ValidateCustomSearchAttributes` and duration `CheckValid`. This is bounded
+source coverage of the touched RPC paths, not whole-program validation coverage.
+
+`Monotone`, `Immutable`, `Cached { ttl }`, `EventuallyConsistent { polls }`,
+`IdempotencyKey` and the three roles proved system-free and already live in Umpire.
+The macro's Temporal-side `Visibility` control demonstrates a custom tag mapping to the
+generic poll-bound consequence; the activity catalog does not declare it. Promote only a
+system-free consequence; Temporal scoping and names stay in `temporal/`.
 
 ## Accepted self-loops (fn-224)
 
