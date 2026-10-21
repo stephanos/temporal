@@ -245,11 +245,23 @@ Rust positive paths remain actual public CLI invocations. This admission
 discrepancy remains an explicit integrated-acceptance question, not a normalized
 semantic match.
 
-The frozen portable-plan implementation also drops backend metadata when it
+The original WASM provider prepares directly in the bundle directory while the
+portable-plan owner requires a private child preparation directory, so the
+unmodified API first refuses that layout. The frozen implementation also drops
+backend metadata when it
 reopens a prepared target and rejects backend payload files in its bundle.
 Consequently the original WASM portable API lane currently fails closed rather
 than supplying a positive shard/merge reference. Its failure is an unresolved
 differential criterion, not a skipped gate or an authenticated match.
+
+The mandatory lane also includes typed scenario public execution and exact
+replay, with malformed-input refusals and independently authenticated retained
+reports. `campaign-scenario-check.py` can run this Rust scenario check directly
+with `--binary`, `--input`, `--go-compiler`, `--preparation-root` and `--work`.
+`campaign-scenario-reference-check.py` independently authenticates fresh original
+Go public-CLI captures and compares lifecycle steps, guest output bytes and
+handled assertion reports with retained Rust scenario runs. This focused
+scenario comparison does not waive the portable shard/merge criterion.
 
 Raw record, payload, plan and journal integrity checks run independently of
 goldens. `GOMAD_GOLDEN_REGENERATE=1` requires repeated fresh agreement and a
