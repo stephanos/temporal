@@ -248,6 +248,33 @@ goldens. `GOMAD_GOLDEN_REGENERATE=1` requires repeated fresh agreement and a
 byte-identical second regeneration. Host-only journal interruption controls
 require `determinism-fixture` and are absent from ordinary release binaries.
 
+## Rust choice and simulation exploration
+
+`explore --strategy=choice-exploration` explores helper-validated forced prefixes
+in bounded breadth-first rounds. Select exactly one seed and provide positive
+`--max-executions`, `--max-choice-depth` and `--max-exploration-bytes` bounds.
+`--choice-start-ordinal` optionally skips earlier branching decisions.
+
+```sh
+gomad explore --strategy=choice-exploration --seeds=7 --parallel=2 \
+  --max-executions=16 --max-choice-depth=4 --max-exploration-bytes=64MiB \
+  --artifacts /absolute/campaigns go-test ./package -- '-test.run=^TestExample$'
+```
+
+`--strategy=simulation-exploration` combines runtime, scenario, network, storage,
+fault and crash decisions. It requires positive `--max-executions`,
+`--max-forced-decisions`, `--max-exploration-bytes`,
+`--max-exploration-result-bytes` and all six `--max-DIMENSION-decisions` bounds.
+Its actual execution decisions are retained in `simulation/record.json`;
+controller fixtures alone do not establish producer or workload qualification.
+
+Both strategies retain typed transactions containing a complete round and its
+authenticated execution observations. `resume CAMPAIGN` restores the recorded
+bounds and frontier; it refuses malformed complete journal entries and may
+truncate an interrupted final entry before retrying that round. `inspect --json
+--choices CAMPAIGN` reports the explored envelope and typed replay divergence,
+with site symbols resolved from each retained execution's matching module.
+
 ## Shared generated contracts
 
 The Go models, cooperative runtime overlay and Rust helper share wire schemas
