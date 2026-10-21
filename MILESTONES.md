@@ -65,8 +65,7 @@ validators. Generic vocabulary in `umpire-annotations`, Temporal tags in `model/
 
 | Name | Status | What |
 | --- | --- | --- |
-| fn-217.6 | ⬜ todo | After .3 and .7: readable `api.rs`; `#[derive(Catalog)]` mirror structs with kinds as field types and one `#[api]` namespace (review of 2026-10-21 applied: `View<K>` projections, named `Code`, `dc::Limits`, generated `services.rs`/`validators.rs`, foundation module, generated transport); spike one message first (R5) |
-| fn-217.7 | ⬜ todo | Rename `model/temporal/features/` to `model/temporal/feature/` (build.rs root, `#[path]`s, snapshots, Makefile, docs); before .6 |
+| fn-217.6 | ⬜ todo | Readable `api.rs`; `#[derive(Catalog)]` mirror structs with kinds as field types and one `#[api]` namespace (review of 2026-10-21 applied: `View<K>` projections, named `Code`, `dc::Limits`, generated `services.rs`/`validators.rs`, foundation module, generated transport); spike one message first (R5) |
 
 ### fn-230: Reproducible guest builds: a system-agnostic wasm build step, the committed Temporal guest, and the freshness gate (model, temporal)
 
