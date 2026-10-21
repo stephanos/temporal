@@ -2,7 +2,8 @@
 
 Historical and current Linux proofs' hashes, sizes, source commits, platform and toolchain are recorded
 in [DESIGN.md](DESIGN.md). Actual WASI unwinding/caught-panic judgments remain
-unresolved, and macOS/cross-OS byte identity remains unverified. These commands
+unresolved under fn-230.1. fn-232-linux-macos-guest-byte-identity owns the separate,
+still-unverified macOS/cross-OS proof, which no longer gates fn-230. These commands
 document the existing Linux evidence; they do not discharge those requirements.
 
 `bash model/scripts/guest.sh <crate> <output> [--check]` builds a cdylib with the
@@ -72,7 +73,8 @@ supplied dependencies, but compiled targets were not shared.
 This proves Linux path independence only. macOS and cross-OS byte identity remain
 **unverified**: this executor is Linux/aarch64, and a read-only SSH `uname -s` probe
 using the available agent's macOS host closed the connection before executing.
-No reachable macOS executor was found.
+No reachable macOS executor was found. The owner subsequently moved this check
+to fn-232-linux-macos-guest-byte-identity; the failed SSH probe remains historical evidence.
 
 ## Actual-profile parity and controls
 
@@ -209,5 +211,6 @@ returned `NO_RECEIPT` because the externally owned `MILESTONES.md` draft is dirt
 The draft was preserved, and actual terminal command results supply the evidence.
 
 The codegen correction establishes current Linux path independence. Actual WASI
-caught-panic/unwind judgments and macOS/cross-OS identity remain unresolved; task
-fn-230.1 stays in progress and does not satisfy fn-230.2's dependency.
+caught-panic/unwind judgments remain unresolved under fn-230.1, so its dependency
+for fn-230.2 remains unsatisfied. The owner moved macOS/cross-OS proof to
+fn-232-linux-macos-guest-byte-identity, with no dependency back from fn-230.

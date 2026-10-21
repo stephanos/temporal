@@ -2,7 +2,7 @@
 
 The owner's overview of what is open, in what order, and why. One page, describing the present.
 
-As of 2026-10-20.
+As of 2026-10-21.
 
 ## Keeping this page current
 
@@ -65,8 +65,8 @@ validators. Generic vocabulary in `umpire-annotations`, Temporal tags in `model/
 
 | Name | Status | What |
 | --- | --- | --- |
-| fn-217.4 | 🔄 in progress | Gap probes and reverse coverage; `gaps.txt` golden (R3, R4) |
-| fn-217.5 | ⬜ todo | After .4: DESIGN.md write-up (R5) |
+| fn-217.6 | ⬜ todo | After .3 and .7: readable `api.rs`; `#[derive(Catalog)]` mirror structs with kinds as field types and one `#[api]` namespace (review of 2026-10-21 applied: `View<K>` projections, named `Code`, `dc::Limits`, generated `services.rs`/`validators.rs`, foundation module, generated transport); spike one message first (R5) |
+| fn-217.7 | ⬜ todo | Rename `model/temporal/features/` to `model/temporal/feature/` (build.rs root, `#[path]`s, snapshots, Makefile, docs); before .6 |
 
 ### fn-230: Reproducible guest builds: a system-agnostic wasm build step, the committed Temporal guest, and the freshness gate (model, temporal)
 
@@ -79,8 +79,18 @@ freshness checks, and `make umpire-guest` refreshes it. Umpire's own guests stay
 
 | Name | Status | What |
 | --- | --- | --- |
-| fn-230.1 | 🔄 in progress | Linux source checkpoint integrated and combined model gate passed; two-checkout proof verified; actual unwinding and macOS/cross-OS proof remain open (R1) |
+| fn-230.1 | 🔄 in progress | Linux source checkpoint integrated and combined model gate passed; two-checkout proof verified; actual unwinding remains open (R1); macOS proof moved to fn-232 |
 | fn-230.2 | ⬜ todo | After .1: committed Temporal guest with `go:embed`; freshness step; `umpire-guest`; docs (R2, R3, R4) |
+
+### fn-232: Linux/macOS guest byte-identity certification
+
+The owner separated this proof from fn-230 so Linux embedding and freshness work can proceed.
+Cross-OS identity remains unverified and required here; it does not gate fn-230 or its consumers.
+[Spec](.flow/specs/fn-232-linux-macos-guest-byte-identity.md).
+
+| Name | Status | What |
+| --- | --- | --- |
+| fn-232.1 | ⬜ todo | After fn-230: same-source Linux/arm64 and macOS stock/Temporal proof with independent clean targets; requires reachable macOS executor (R1, R2) |
 
 ### fn-231: Declarative Realizations: the #[realization] attribute surface and the coverage golden (model, temporal)
 
@@ -164,5 +174,5 @@ and replay; one `umpire` command with five modes.
   standard library: the compiler selects `panic=abort` and rejects forced unwinding.
   Approval to preserve existing trap-and-invalidate semantics is requested; the
   requirement has not been waived.
-- fn-230's Linux/macOS byte-identity proof needs a reachable macOS executor.
+- fn-232's separately tracked Linux/macOS byte-identity proof needs a reachable macOS executor.
   Two Linux checkouts prove path independence, not cross-OS identity.

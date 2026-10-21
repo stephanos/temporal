@@ -1,0 +1,61 @@
+---
+satisfies: [R5]
+---
+# fn-217-annotation-catalog-over-the-temporal.6 Readable api.rs: derive(Catalog) mirror structs replace the annotate! block
+
+## Description
+Owner review of `model/temporal/features/activity/api.rs` (2026-10-20): "looks very verbose! this is meant to be read by humans". 627 lines, 259 over 120 columns, longest 925 characters; `api_transport.rs` is another 490 lines restating the catalog. The owner chose an attribute surface over the function-like `annotate!` block, and on 2026-10-21 an independent review (prior art: serde, clap derive, garde, validator, protovalidate, prost-reflect, sqlx/diesel, schemars, tonic-build, kubebuilder markers) was applied as-is; the owner will adjust later. This description is the design to spike and then implement. It supersedes the earlier unit-enum, snake_case-variant, `mirrors =`, `Scope`, `expect!` and line-count decisions.
+
+### Surface: mirror struct, kinds as types, one `#[api]` namespace (derive)
+
+- `#[derive(Catalog)]` on a plain struct whose field names are the proto field names exactly (including `r#type`), so no renaming rule exists. A derive leaves the item untouched for rustfmt, rustdoc and rust-analyzer; rustc still rejects unknown helper attributes, so the derive registers exactly one helper namespace, `#[api(...)]`, as serde/clap/garde do (ten bare names like `#[required]` would collide across crates). Stacked `#[api]` lines are allowed.
+- The **kind is the field type**: `Text`, `Identifier`, `Uuid`, `Duration`, `Timestamp`, `Counter`, `Flag` (bool, new), `Number` (f64, new), `Bytes`, `Secret`, `Enum<T>`, `Message<T>`, `OneOf<T>`, `Map<K, V>` (new, generates the entry catalog; replaces the hand-written `MetadataEntry`), `Ignored` (serde `skip` in type position). Rust-analyzer resolves these as real types; ~80% of fields then need no attribute at all.
+- Constraints and expectations are attributes next to the field, protovalidate rule names: `#[api(max_bytes = dc::MAX_ID_LENGTH, rejects = "identity|Identity")]`, `#[api(gte = 0, ...)]`, `#[api(max_len = dc::BLOB_SIZE_ERROR, ...)]`, `#[api(ignored = "reason")]` for the rare explained ignore, `#[api(idempotency_key)]`, `#[api(also(uuid, accepts))]` for a second kind intent on the same field (replaces `api_requests.rs`'s supplemental catalogs; a supplemental second mirror struct is also allowed, marked `#[api(supplemental)]` so the build script excludes it from exact coverage and the derive emits no borrowless pattern for it).
+- Roles default from the item (`#[api(request = "proto.Name")]` is Decided, `#[api(response = "…")]` is Observed) and are kind-aware: `Secret` defaults to Decided everywhere (today's `secret_observed` admission error would otherwise fire on every response token). Mark exceptions with `#[api(decided)]` / `#[api(observed)]`.
+- Presence is per field in clap's spelling: `#[api(required)]`, `#[api(requires = run_id)]` on the trigger field, `#[api(conflicts_with = other)]`. Only the symmetric groups stay at item level: `#[api(any_of(a, b), rejects = "…", covers = …)]`, `#[api(one_of(a, b), …)]`. `required` shares the field's `rejects` by default; `gaps.txt` marks `(inherited pattern)` so a loosened pattern stays visible, and `#[api(required, rejects = "…")]` is the documented norm when absence and constraint messages differ. Splitting `required(activity_type, task_queue)` yields two probe cases; `coverage.snap` changes accordingly.
+- `#[api(covers = path)]` on the item is the message default; a field overrides with `covers = path` in its own `#[api]`. Paths point into a **committed, generated** `foundation/validators.rs` (sqlx offline precedent) that the existing Go reverse-coverage test regenerates and diffs, so a vanished validator is a compile error and no build-time Go dependency exists. Short `const` aliases in the file (`TIMEOUTS`, `HANDLER`) keep lines under 100.
+- The prost type path is derived from the proto name (prost's package-to-module and CamelCase rules), removing the 25-type `use` block; `#[api(type = path)]` overrides. The generated pattern carries `#[allow(deprecated)]` (upstream deprecated fields).
+- Enum catalogs disappear from `api.rs`: `defined_only` uses `<T as prost::Enumeration>::is_valid`; descriptor-vs-prost agreement is prost-build's job; Model-side enum exhaustiveness stays in the Model's own matches (`phase.rs`). No `mirrors =` convention: `Phase` is derived from a pair of enums and `Deadline` maps 2 of 5 `TimeoutType` values, so by-name mirroring would be mostly escape hatches; a hand-written wildcard-free `match` is already the rustc-exhaustive mapping.
+- Doc comments on the struct and fields become the catalog's descriptions (schemars precedent) and appear in `gaps.txt`.
+
+### Projections: a `View<K>` trait, not macro inference
+
+Neither a derive nor an attribute macro sees the prost field types. Projection is trait dispatch at type-check time, replacing `types::check`: `trait View<K> { type Out: FieldValue; fn view(&self) -> Self::Out; fn set(&mut self, Self::Out); }` implemented for `(Option<ProtoDuration>, Duration)`, `(Option<ProtoDuration>, RawDuration)`, `(Option<ProtoTimestamp>, Timestamp)`, `(Option<T: Message>, Message<T>)` and `Vec<T: Message>` (encoded bytes), `(String, Uuid)` with the lenient normaliser, `(bool, Flag)`, `(f64, Number)`, plus `Box<T>` (for `Failure.cause`). The derive emits `View::<K>::view(&m.field)`; a kind that does not fit the field is "trait not implemented" from rustc. Real setters come for free, which `fill` and the probe's limit-plus-one mutation need (today's setters are no-ops). Custom projections stay explicit as `#[api(via = module)]` (serde `with` shape: a module with `view`/`set`) for the three genuine cases: `RetryPolicy.initial_interval`/`maximum_interval` conditional on `maximum_attempts`, `backoff_coefficient`, and `ActivityFailureInfo.activity_type` name extraction.
+
+### Expectations
+
+- `Code` enum (the 16 gRPC status names, protocol names so R6 holds) in `umpire-annotations`; `rejects = "pattern"` defaults to `InvalidArgument` (45 of 45 today); `rejects(NotFound, "…")` otherwise; loose forms `#[api(rejects)]` (code only) and `rejects = any_status` (any non-OK; not `Any`, which reads as `prost_types::Any`). Patterns are regexes; document anchoring. `gaps.txt` prints `Confirmed (code only)` / `Confirmed (any status)` with the server's actual message and ends with a per-feature count of loose entries; `Accepted` still fires for a loose entry the server took.
+
+### Parameterised limits (dynamic config), simplified
+
+`umpire-annotations` keeps plain integer bounds. `foundation/dc/` defines `pub struct Limit { key: &'static str, default: u64, scope: Scope }` constants (`MAX_ID_LENGTH` = `limit.maxIDLength`, Global, 1000; `BLOB_SIZE_ERROR` = `limit.blobSize.error`, Namespace, 2 MiB) and a `Limits` struct (`Default` = server defaults) that catalog factories take: `catalog::start_activity_execution_request(&dc::Limits::default())`; `max_bytes = dc::MAX_ID_LENGTH` expands to `limits.get(&dc::MAX_ID_LENGTH)` (garde context precedent). Temporal's precedence is per setting kind (`Global`, `Namespace`, `NamespaceID`, `TaskQueue`, `ShardID`, `TaskType`, `Destination` in `setting_gen.go`), not "most specific over dimensions", so the earlier generic `Scope`/`#[scope(..)]`/validate-time resolution is dropped. Feature-specific keys live in `feature/<name>/config.rs` with the same `Limit` type. Deferred: filling `Limits` per Run from the in-process server for one namespace.
+
+### RPC level: generated table, hand-written exhaustive match
+
+`temporal/api/build.rs` already reads the descriptor and generates `protocol.rs`; it additionally generates `services.rs` in tonic-build's shape: a `WorkflowServiceMethod` enum plus a table of `(method, request type path, response type path)`. The feature classifies with an ordinary wildcard-free `match` over that enum (or-patterns group the out-of-scope reasons), which replaces the `service!` grammar and the 115-line block; a new upstream method is "non-exhaustive patterns" naming it. `Action(Worker::Poll)` arms carry the RPC binding, so the reverse `actions bind` table is generated; `Environmental(..)` actions keep one declaration. The request-ID fill is derived from `#[api(idempotency_key)]` on a `Uuid`/`Text` field and is the only fill rule.
+
+### Generated transport
+
+`annotate()` dispatch comes from the generated table. The `Inspect` tree is derived from every `Message<_>`, `OneOf<_>`, `Map<_, _>` and `Vec<Message<_>>` field. `OneOf<T>` lists its alternatives in `#[api(oneof(Result = "result", Failure = "failure"))]`; exhaustiveness over alternatives is a generated `match` over the prost oneof enum, and the descriptor check sees the alternatives, not the prost field. Hand-written remainder of `api_transport.rs`: `AnnotationResult`, `annotate`, `process`, `findings`, the `Refusal` mapping, the three `via` modules and `uuid` normaliser (about 120 lines). `RetryPolicy`'s response-side raw re-check becomes a supplemental response mirror of `RetryPolicy`.
+
+### Foundation module
+
+`model/temporal/foundation/`: `api.rs` with `common.v1` (`Payload`, `Payloads`, `RetryPolicy`, `WorkflowExecution`, `WorkflowType`, `ActivityType`), all of `failure.v1`, `taskqueue.v1.TaskQueue`, `google.protobuf` `Duration`/`Timestamp`; `dc/` as above; `validators.rs` (generated, committed); `views.rs`. Nested coverage is workspace-wide, exactly one declaration per type (`descriptor::unique` already exists; `catalog_inputs` walks every `api.rs`). Generated `Inspect` impls for foundation types and feature types coexist only while both are modules of one crate; the README must say so (a feature split into its own crate hits the orphan rule, E0117; the escape is a local marker type parameter). The build script and the derive share one parser (`annotate/syntax`, kubebuilder precedent); two parsers for one grammar is forbidden.
+
+### Checks and acceptance adjustments
+
+- rustfmt owns layout; workspace `max_width = 100` applies (not 120); `cargo fmt --check` clean replaces the earlier 250/80-line targets. Build script checks proto declaration order of fields (full mirrors only), oneof alternatives and service methods, naming the first out-of-place item.
+- The 20 trybuild fixtures under `annotate/tests/ui` are rewritten for the derive; E0027 on the generated pattern keeps its wording; budget all `.stderr` regenerations. R2's compile-error admission rules are preserved by the derive.
+- Spike `StartActivityExecutionRequest` in this form first and show the owner, then implement: derive crate, `View` trait, `Code`, `dc`, generated `services.rs` and `validators.rs`, foundation split, rewrite of `api.rs`/`api_transport.rs`, removal of `api_requests.rs`, README, snapshots, `make model-check`.
+## Acceptance
+- [ ] `api.rs` files use `#[derive(Catalog)]` structs with kinds as field types and a single `#[api]` helper namespace; no function-like `annotate!` block, no closures in catalogs, no `api_requests.rs`; `cargo fmt --check` is clean and no line exceeds the workspace `max_width`.
+- [ ] The four exhaustiveness levels remain build-failing: fields via the generated borrowless pattern (E0027), oneof alternatives via a generated match, RPC methods via a wildcard-free match over the generated `WorkflowServiceMethod`, Model actions via the binding table; each pinned by a trybuild fixture or build-script negative control. A `covers` path to a vanished validator fails to compile and the Go reverse-coverage test regenerates `validators.rs`.
+- [ ] Proto declaration order of fields, oneof alternatives and methods is a build error naming the first out-of-place item.
+- [ ] `coverage.snap` carries the same messages and classifications as before (field-level presence splits are the only expected diff, listed in the PR); `gaps.txt` shows inherited and loose patterns; `temporal/annotate/README.md` documents the surface, the single-parser rule and the single-crate orphan-rule caveat; `make model-check` passes.
+## Done summary
+TBD
+
+## Evidence
+- Commits:
+- Tests:
+- PRs:

@@ -1,0 +1,26 @@
+{
+  "branch_name": "fn-232-linux-macos-guest-byte-identity",
+  "created_at": "2026-10-21T01:11:58.525268Z",
+  "depends_on_epics": [
+    "fn-230-reproducible-guest-builds-a-system"
+  ],
+  "id": "fn-232-linux-macos-guest-byte-identity",
+  "next_task": 1,
+  "plan_review_status": "unknown",
+  "plan_reviewed_at": null,
+  "spec_path": ".flow/specs/fn-232-linux-macos-guest-byte-identity.md",
+  "status": "open",
+  "title": "Linux macOS guest byte identity certification",
+  "tracker": {
+    "baseHashFlow": null,
+    "baseHashTracker": null,
+    "depRelations": [],
+    "id": null,
+    "identifier": null,
+    "lastSyncedAt": null,
+    "mergeBaseFlow": null,
+    "mergeBaseTracker": null,
+    "url": null
+  },
+  "updated_at": "2026-10-21T01:13:35.762254Z"
+}

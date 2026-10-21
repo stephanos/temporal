@@ -8,7 +8,7 @@
 
 ## Goal & Context
 
-Go tests in the Temporal repository read the Model guest from the Cargo target directory through an environment variable, so anyone running them needs the Rust toolchain. The owner's decision: the built guest is checked into version control, and Go is the only toolchain a test runner needs. That requires a build step whose output is byte-identical on every machine, since the only honest way to keep a committed binary current is for CI to rebuild it and compare. The build step is system-agnostic and lives in Umpire; the committed artifact and its freshness check are Temporal's.
+Go tests in the Temporal repository read the Model guest from the Cargo target directory through an environment variable, so anyone running them needs the Rust toolchain. The owner's decision: the built guest is checked into version control, and Go is the only toolchain a test runner needs. CI rebuilds and compares the artifact. This spec proves Linux path independence; fn-232-linux-macos-guest-byte-identity owns the retained cross-OS certification separately. The build step is system-agnostic and lives in Umpire; the committed artifact and its freshness check are Temporal's.
 
 ## Architecture & Data Models
 
@@ -32,7 +32,7 @@ Go tests in the Temporal repository read the Model guest from the Cargo target d
 - Size: stripped Temporal guest expected around 1 MB; recorded in DESIGN.md. Git history grows by the file size per Model change; LFS is not adopted now and is named as the fallback if the file exceeds 5 MB.
 - The freshness check needs the pinned toolchain and the wasm target; it reports a missing toolchain as a skipped step with a warning only outside CI (`CI` unset), and fails in CI.
 - R30 budgets: the guest build is already part of the gate; the check adds one compare. Report `make model-time`.
-- Byte identity across operating systems: proven on linux/arm64 and macOS, the two the owner uses; a third platform producing different bytes is recorded as a known limitation rather than hidden.
+- Byte identity across operating systems belongs to fn-232-linux-macos-guest-byte-identity, following the owner's split decision. It remains required there and does not gate this spec or its consumers. This spec proves two-checkout Linux/arm64 identity. A third platform producing different bytes remains a documented limitation.
 
 ## Acceptance Criteria
 
@@ -49,5 +49,7 @@ Go tests in the Temporal repository read the Model guest from the Cargo target d
 - The Runner's use of the embedded guest is fn-228's; this spec provides the embed.
 
 ## Decision Context
+
+The owner moved macOS verification to fn-232-linux-macos-guest-byte-identity so Linux implementation and embedding can proceed. The caught-panic requirement is unchanged and still requires resolution before task .1 can complete.
 
 2026-10-20, owner: commit the built wasm so users running tests need no Rust. The root agent's assessment, accepted: commit only the Temporal guest beside its Go module, freshness-check it in the gate like the protobuf modules, and make the build reproducible first. The build step is system-agnostic by design so the extracted Umpire repository keeps it and the Temporal repository keeps only the committed artifact. Rejected: committing all three guests (the stock and control guests serve Umpire's gate, which has Rust); a download step at test time (reintroduces a toolchain and a network dependency); keeping the environment-variable path as a fallback (two sources of truth). Placement: no spec dependency; lands before fn-228.4, where the live slice runs through the Runner.

@@ -155,7 +155,7 @@ Each proof used two clean clones at different absolute paths and initially absen
 Current byte comparisons, actual-profile stock/control parity (19 tests), both Temporal host suites (22 each) and freshness passed; clones stayed clean.
 At `feb4621de8`, Temporal bytes differed; sorting descriptor files at codegen input fixes that regression. [Commands, retained failure and timing evidence](GUEST_BUILDS.md).
 **Unresolved panic requirement:** manifest unwind remains effective abort; controls prove trap/invalidation, not caught judgments.
-**Unverified macOS/cross-OS identity:** the available SSH probe closed before `uname`; Linux path independence does not satisfy it. Task .1 stays open.
+**Unverified macOS/cross-OS identity:** fn-232 owns the separate proof; SSH closed before `uname`. Linux path independence does not satisfy it. Task .1 remains open for panic semantics.
 
 ## Capability and panic boundaries
 

@@ -19,11 +19,10 @@ the stock guest's actual Go-host reports still match the native goldens under th
 new profile, including panic controls. Do not substitute a release-profile parity
 run as evidence about profile.guest.
 
-This environment is Linux/aarch64. Prove what is actually available and retain the
-spec's macOS cross-platform proof as explicitly unverified if no macOS executor
-is reachable; never claim two Linux directories prove cross-OS identity. Exhaust
-available safe executor checks and deliver the Linux implementation/proof rather
-than stopping before making progress. Task .2 owns embedding and freshness wiring.
+This task proves Linux/aarch64 path independence. The owner moved macOS and
+cross-OS proof to fn-232-linux-macos-guest-byte-identity; it does not gate this
+task or task .2. Never claim Linux directories prove cross-OS identity. The
+caught-panic requirement remains unchanged. Task .2 owns embedding and freshness wiring.
 
 **Touches:** `model/Cargo.toml`, `model/scripts/guest.sh`, `model/scripts/tests/**`, `model/DESIGN.md`, `model/GUEST_BUILDS.md`
 **Quick:** bash syntax and script controls for fresh/stale/build-failure exit codes; the two-clean-checkout proof for both guests.
@@ -34,8 +33,8 @@ ABI, protocol, export or Realization changes.
 Keep DESIGN.md below the documented 1,000-line threshold: retain the actual proof
 summary, hashes/sizes, source/platform/toolchain and unresolved requirements there,
 with exact detailed reproduction/diagnostic commands in a linked focused
-model/GUEST_BUILDS.md. This documentation layout does not waive caught-panic or
-macOS/cross-OS obligations, and must not move unrelated older design sections.
+model/GUEST_BUILDS.md. This documentation layout does not waive caught-panic
+obligations or the successor's cross-OS proof, and must not move unrelated older design sections.
 
 ## Acceptance
 - [ ] profile.guest and guest.sh present with the specified exit codes
