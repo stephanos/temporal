@@ -3,6 +3,8 @@
 import argparse
 import base64
 import hashlib
+from importlib.machinery import SourceFileLoader
+from importlib.util import module_from_spec, spec_from_loader
 import json
 import os
 from pathlib import Path
@@ -10,6 +12,15 @@ import subprocess
 import gzip
 import struct
 import sys
+
+sys.dont_write_bytecode = True
+
+
+def authenticate(root, bundle):
+    loader = SourceFileLoader('cluster_parity', str(Path(__file__).resolve().parents[2] / 'scripts/behavioral-parity'))
+    parity = module_from_spec(spec_from_loader(loader.name, loader))
+    loader.exec_module(parity)
+    parity.authenticate(root, bundle)
 
 
 def sha(raw):
@@ -286,6 +297,7 @@ def main():
         assert args.binary, '--from-reference requires --binary'
         bundle = json.loads(run('rust-produce', [args.binary, 'fixture-replay-cluster-input', '--root', args.work / 'rust',
                                                 '--input', input_path]))
+        authenticate(args.work / 'rust', bundle)
         artifact = args.work / 'rust' / bundle['records'][0]['artifact']
         positive = inspect_cluster(args, args.from_reference.resolve(), artifact, run)
         print(json.dumps({'artifact': str(artifact), 'same_target_cluster_inspection': positive}))

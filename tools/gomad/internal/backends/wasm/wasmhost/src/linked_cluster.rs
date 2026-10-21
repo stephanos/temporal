@@ -770,15 +770,7 @@ fn execute_inner(
 pub fn execute_prepared(prepared: Prepared) -> Result<Execution> {
     let cancellation = prepared.cancellation.clone();
     if cancellation.cancelled() {
-        return Ok(Execution {
-            outcome: linked::Cancellation::execution().outcome,
-            incarnations: Vec::new(),
-            world: Vec::new(),
-            network: Vec::new(),
-            inspection: Vec::new(),
-            virtual_elapsed_nanos: 0,
-            event_order: None,
-        });
+        return Ok(cancelled_execution());
     }
     let mut conditions = prepared.conditions.enter()?;
     let session = conditions.session();
@@ -823,6 +815,9 @@ pub fn execute_prepared(prepared: Prepared) -> Result<Execution> {
         watcher
             .join()
             .map_err(|_| Error::msg("cluster watchdog panicked"))??;
+        if cancellation.cancelled() && result.is_err() {
+            result = Ok(cancelled_execution());
+        }
         if timed_out.load(Ordering::Acquire)
             && let Ok(execution) = &mut result
         {
@@ -835,4 +830,16 @@ pub fn execute_prepared(prepared: Prepared) -> Result<Execution> {
         }
         result
     })
+}
+
+fn cancelled_execution() -> Execution {
+    Execution {
+        outcome: linked::Cancellation::execution().outcome,
+        incarnations: Vec::new(),
+        world: Vec::new(),
+        network: Vec::new(),
+        inspection: Vec::new(),
+        virtual_elapsed_nanos: 0,
+        event_order: None,
+    }
 }

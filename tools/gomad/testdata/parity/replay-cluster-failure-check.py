@@ -2,9 +2,14 @@
 """Require first guest failure to stop the linked lifecycle and retain its outcome."""
 import argparse
 import hashlib
+from importlib.machinery import SourceFileLoader
+from importlib.util import module_from_spec, spec_from_loader
 import json
 from pathlib import Path
 import subprocess
+import sys
+
+sys.dont_write_bytecode = True
 
 p = argparse.ArgumentParser()
 p.add_argument('--binary', type=Path, required=True)
@@ -13,6 +18,9 @@ args = p.parse_args()
 args.work.mkdir(mode=0o700, parents=True, exist_ok=False)
 corpus = Path(__file__).resolve().parent
 commands = []
+loader = SourceFileLoader('cluster_failure_parity', str(corpus.parents[1] / 'scripts/behavioral-parity'))
+parity = module_from_spec(spec_from_loader(loader.name, loader))
+loader.exec_module(parity)
 
 
 def run(name, arguments, status=0):
@@ -26,6 +34,7 @@ def run(name, arguments, status=0):
 
 run('base', ['fixture-replay-cluster-execution', '--root', args.work / 'base', '--corpus', corpus])
 base = json.loads((args.work / 'base/foundation-result.json').read_bytes())
+parity.authenticate(args.work / 'base', base)
 artifact = args.work / 'base' / base['records'][0]['artifact']
 manifest = json.loads((artifact / 'manifest.json').read_bytes())
 cluster_file = next(name for name in manifest['record']['streams'] if name.endswith('/cluster-replay.json'))
@@ -51,6 +60,7 @@ for name, module, termination, exit_code in [('trap', 'execution-trap.wat', 'tra
         toolchain_sha256=retained['toolchain_sha256'], configuration=configuration, modules=modules)))
     output = args.work / name
     report = json.loads(run(name + '-produce', ['fixture-replay-cluster-input', '--root', output, '--input', input_path]))
+    parity.authenticate(output, report)
     path = output / report['records'][0]['artifact']
     record = json.loads((path / 'record.json').read_bytes())
     assert record['outcome']['termination'] == termination, record['outcome']
