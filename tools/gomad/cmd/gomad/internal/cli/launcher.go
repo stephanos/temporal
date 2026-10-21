@@ -122,6 +122,7 @@ func (app application) launch(arguments []string, stdout, stderr io.Writer) int 
 		return wasminstallation.Resolve(wasminstallation.Spec{Executable: executable, ExplicitManifest: path})
 	}
 	app.replayHook = wasmcommand.RetainedClusterReplay(resolve)
+	app.clusterInspection = wasmcommand.RetainedClusterInspection
 	if path == "" {
 		retained := app.replayHook
 		app.replayHook = func(ctx context.Context, spec runner.ReplaySpec) (runner.ReplayResult, bool, error) {

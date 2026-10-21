@@ -304,6 +304,16 @@ coverage or guidance. They do not enable cluster-global forced-choice search,
 cluster minimization. Resource,
 replay-divergence and helper failures retain their existing classifications.
 
+A cluster run ends as soon as an incarnation fails, instead of waiting for the
+execution watchdog. Exhausting a broker World limit (for example the
+`observation_bytes` payload budget) ends it as backend capacity, exit 3, with
+`WASI capacity: <dimension> limit=<n> used=<n> delta=<n>`. The Runner-failure
+artifact retains each incarnation's partial streams as an interrupted prefix.
+`gomad inspect` adds a `cluster` section (JSON `artifact.cluster`): per
+incarnation node, incarnation, terminal reason, stdout/stderr byte counts and a
+256-byte tail, the abort virtual time and the exhausted limit. `gomad replay`
+reproduces the capacity abort. Output and choice capacity still retain nothing.
+
 ## Recover and resume an interrupted scenario campaign
 
 After an interruption, inspect the reported campaign path and recover its store
