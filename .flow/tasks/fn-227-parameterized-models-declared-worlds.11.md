@@ -4,6 +4,8 @@ satisfies: [R3]
 # fn-227-parameterized-models-declared-worlds.11 Independent phase, rejection and closure-law source admission
 
 ## Description
+**Scheduling (owner, 2026-10-21):** run after fn-238's shared front end migration, and build this construct once in the shared front end rather than separately in the macros and the lifter.
+
 Deliver the framework source-admission frontier separated from .3, leaving the original .3 ID for the retry/refinement checkpoint. This is phase/rejection checkpoint P, allocated as fn-227-parameterized-models-declared-worlds.11. Admit the actual phase/reject/closure-law source forms required by the current activity Model and a generic control, through actual TLC replay. Change no activity lifecycle behavior or native golden. Owner amendments at `bbf0835fbf` preserve all laws; source omission of a law is failure.
 
 **Size:** M candidate. One bounded source-admission frontier reuses existing typed branches, outcomes, helper SSA and replay. Phase access, rejecting branch outcomes and closure laws must be admitted together to certify the existing Model's complete declared meaning. The combined original .3 is L because this frontier plus retry behavior, realization adaptation and a new refinement harness are separate substantial changes.

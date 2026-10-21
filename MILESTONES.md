@@ -134,11 +134,23 @@ The review passed; each consumer still waits for its declared support dependenci
 | fn-227.13 | 🔄 in progress | Simplify: one `#[machine]` generator, no module generics, method-level `#[starts]`; goldens and TLC unchanged (R1) |
 | fn-227.14 | ⬜ todo | After .13: derived value handoff replaces the augmented-copy binding route (R1, R3) |
 | fn-227.8 | ⏸️ deferred | Source inputs and exact-payload fairness committed (`3fd1d2f551`, `0469334f91`); guest refresh, review and Full gates resume after .14 (R2, R3) |
-| fn-227.11 | ⬜ todo | After .8: source `Phased`/`reject!` and closure laws, with unchanged activity behavior (R3) |
+| fn-227.11 | ⬜ todo | After .8 and fn-238's migration: source `Phased`/`reject!` and closure laws, with unchanged activity behavior (R3) |
 | fn-227.3 | ⬜ todo | After .2 and .11: activity attempts/retryable failure and retained-lifecycle refinement (R3, R4) |
 | fn-227.12 | ⬜ todo | Actual-request Observation transport and owned same-invocation SDK capture (R6) |
 | fn-227.5 | ⬜ todo | After .3 and .12: transactional live World admission (`maximum_attempts`) and SDK retry proof (R6) |
 | fn-227.6 | ⬜ todo | After .5: DESIGN.md parameterized worlds, inputs and retries write-up and readiness table closure (R7) |
+
+### fn-238: Shared front end: one Model reading for the native checker and the lifter (model)
+
+Filed on 2026-10-21 at the owner's direction: both checkers share all code except the back end. The
+native checker executes the Model and the lifter emits TLA+ (and later Apalache); the owner accepts
+the risk of a shared misreading. Typed counterexample replay stays as the cross-check. Runs after
+fn-227.14 and .8, before fn-227.11, so later constructs are built once.
+[Spec](.flow/specs/fn-238-shared-front-end-one-model-reading-for.md).
+
+| Name | Status | What |
+| --- | --- | --- |
+| fn-238.1 | ⬜ todo | After fn-227.14: design comparing a shared admission front end with a shared interpreted IR, measured duplication, recommendation and migration tasks (R1) |
 
 ### fn-237: Activity timeouts, heartbeat and cooperative cancellation (model, temporal)
 

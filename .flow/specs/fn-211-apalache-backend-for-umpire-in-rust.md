@@ -78,4 +78,6 @@ Apalache was kept out of fn-210 because R24 decides fn-210 on the wasm slice alo
 
 2026-10-21, owner: add symbolic World constants (R6) so Apalache checks every World in a declared domain in one run, as part of the goal to eventually meet Quint's capabilities fully. Open design point for planning: computed starts depend on the World, so Init over symbolic constants needs either source-lifted `#[starts]` bodies or a per-World start table built natively from values; choose in the task plan, keeping source meaning independent. Native replay needs a World built from decoded values, the inverse of fn-227.14's derived value export.
 
+2026-10-21, owner: fn-211 consumes fn-238's shared front end; the shared reading of a Model replaces independent source admission, with typed replay as the cross-check.
+
 2026-10-18: fn-210 R30's feedback-loop budget applies; R5 keeps Apalache out of the default gate for that reason.

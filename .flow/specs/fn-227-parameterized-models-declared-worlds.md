@@ -91,6 +91,8 @@ Rejected: a sibling activity Model beside the six-phase one (breadth over depth,
 
 2026-10-21, owner decision after the simplification scout (`.flow/artifacts/fn-227-parameterized-models-declared-worlds/simplify-report.md`): add .13 (one `#[machine]` generator, no module generics, method-level `#[starts]`) and .14 (derived value handoff replacing the augmented-copy binding route) before .8's review resumes. Both keep checker, TLA+ and cfg goldens and TLC agreement byte-identical. The owner also confirmed TLC and Apalache scaling is crucial ("we'll expand the model dramatically very soon"), so independent source lifting stays required.
 
+2026-10-21, owner: "the only diff should be that the native checker acts like an interpreter and the lifter generates TLA+ (and later Apalache)", accepting the shared-misreading risk. fn-238 builds that shared front end after .14; for remaining and future work it supersedes this spec's "independent source admission" and "no shared interpretation" wording. Typed counterexample replay stays.
+
 ## Resolved via Codebase
 
 - World delivery uses two cohesive checkpoints. The existing first task owns native authoring, typed association and explicit suite ownership; a new dependent source task owns typed fixture binding, all configurations and complete native/TLC fixture evidence. Action-input work waits for both. Existing task identities, all R-IDs and the activity compatibility decision remain intact.
