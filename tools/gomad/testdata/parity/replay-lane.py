@@ -37,7 +37,8 @@ run('fresh-parity', [sys.executable, corpus / 'replay-reference-lane.py', '--bas
 for name, driver in [('consumer', 'replay-check.py'), ('opener', 'replay-fault-check.py'),
                      ('cluster', 'replay-cluster-check.py'), ('cluster-failures', 'replay-cluster-failure-check.py'),
                      ('golden', 'replay-golden-check.py')]:
-    run(name, [sys.executable, corpus / driver, '--binary', args.binary, '--work', args.work / name])
+    run(name, [sys.executable, corpus / driver, '--binary', args.binary, '--work', args.work / name,
+        *(['--compiler', args.go_compiler, '--source', args.cluster_source] if name == 'cluster-failures' else [])])
 run('runtime-golden', [sys.executable, corpus / 'replay-golden-check.py', '--binary', args.binary,
     '--work', args.work / 'runtime-golden', '--input', args.work / 'fresh-parity/replay-input.json'])
 storage = args.work / 'fresh-parity/go/storage-origin-input.json'
