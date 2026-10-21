@@ -29,7 +29,8 @@ executed evidence. The integration draw could not create temporary files for
 Python controls in its read-only sandbox. The worker's Python controls passed.
 
 Receipt `/tmp/impl-review-receipt-8f37faba39e2-fn-230-reproducible-guest-builds-a-system.1.json`.
-Durable review journal `.flow/review-runs/a1b31280a66d4bf29b4909d84cb8a1e9.json`.
+Durable review attempt `.flow/specs/fn-230-reproducible-guest-builds-a-system.json`
+records reservation `a1b31280a66d4bf29b4909d84cb8a1e9` and SHIP after finalization.
 Raw draws `.flow/review-fanout/a1b31280a66d4bf29b4909d84cb8a1e9/`.
 Captured dispatch/finalize JSON and merge plan `.flow/tmp/fn2301-integrated-artifacts/`.
 
