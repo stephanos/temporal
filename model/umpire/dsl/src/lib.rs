@@ -17,7 +17,7 @@ mod scope;
 
 pub use action::{Actor, ActorProjection, RegisteredActor};
 pub use claim::{Claim, Hole, StepCheckPredicate, StepClaim, StepPredicate, Verdict};
-pub use machine::{Machine, Registered, Step, StepError, Steps};
+pub use machine::{Associated, Machine, Registered, Step, StepError, Steps};
 pub use outcome::{Outcome, OutcomeClass, Rejection};
 #[doc(hidden)]
 pub use path::kind as waypoint_kind;
@@ -33,7 +33,7 @@ pub use progress::{Progress, ProgressEvaluation, ProgressEvaluator};
 pub use scope::{Assumption, AssumptionExt, Scope};
 #[doc(hidden)]
 pub use umpire_dsl_macros::__path_parse;
-pub use umpire_dsl_macros::{Action, State, machine};
+pub use umpire_dsl_macros::{Action, State, World, machine};
 
 /// The checker's aggregate claim result, distinct from a domain's step outcome.
 #[derive(Clone, Copy, Debug, PartialEq, Eq)]

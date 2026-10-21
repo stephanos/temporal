@@ -1,0 +1,5 @@
+error: declare starts once
+ --> tests/ui/world_starts_mixed.rs:7:20
+  |
+7 |     struct Model { #[starts(0..=1)] count: u8 }
+  |                    ^^^^^^^^^^^^^^^^

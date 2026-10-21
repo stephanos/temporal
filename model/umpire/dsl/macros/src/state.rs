@@ -3,14 +3,18 @@ use quote::{format_ident, quote};
 use syn::{Attribute, Expr, ExprRange, Field, Generics};
 
 pub(crate) fn expand(input: &syn::DeriveInput) -> manyhow::Result<TokenStream> {
-    let syn::Data::Struct(data) = &input.data else {
-        manyhow::bail!(input, "State requires a named-field struct");
-    };
-    let syn::Fields::Named(fields) = &data.fields else {
-        manyhow::bail!(input, "State requires a named-field struct");
-    };
-    let fields: Vec<_> = fields.named.iter().collect();
+    expand_struct(input, false)
+}
+
+pub(crate) fn expand_world(input: &syn::DeriveInput) -> manyhow::Result<TokenStream> {
+    expand_struct(input, true)
+}
+
+fn expand_struct(input: &syn::DeriveInput, world: bool) -> manyhow::Result<TokenStream> {
+    let fields = named_fields(input, world)?;
     let ranges = start_ranges(&fields)?;
+    let computed =
+        world || input.attrs.iter().any(|attr| attr.path().is_ident("__umpire_computed_starts"));
 
     let names: Vec<_> = fields
         .iter()
@@ -46,7 +50,7 @@ pub(crate) fn expand(input: &syn::DeriveInput) -> manyhow::Result<TokenStream> {
     let debug = bounded(&input.generics, &fields, &quote!(::core::fmt::Debug));
     let (debug_impl, _, debug_where) = debug.split_for_impl();
     let mut start_bounds = clone.clone();
-    for (field, range) in fields.iter().zip(&ranges) {
+    for (field, range) in fields.iter().zip(&ranges).filter(|_| !computed) {
         if range.is_none() {
             let ty = &field.ty;
             start_bounds
@@ -59,6 +63,19 @@ pub(crate) fn expand(input: &syn::DeriveInput) -> manyhow::Result<TokenStream> {
     let label = name.to_string();
     let labels: Vec<_> =
         names.iter().map(|field| field.to_string().trim_start_matches("r#").to_owned()).collect();
+    let starts = (!computed).then(|| {
+        quote! {
+            impl #start_impl #name #type_generics #start_where {
+                /// Enumerates initial states in field order with defaults for unannotated fields.
+                pub fn starts() -> ::std::vec::Vec<Self> {
+                    let mut __umpire_starts = ::std::vec::Vec::new();
+                    #starts
+                    __umpire_starts
+                }
+            }
+        }
+    });
+    let constructor = world.then(|| constructor(input, &fields, &names));
 
     Ok(quote! {
         #[automatically_derived]
@@ -91,15 +108,33 @@ pub(crate) fn expand(input: &syn::DeriveInput) -> manyhow::Result<TokenStream> {
                 ::core::fmt::Debug::fmt(self, out)
             }
         }
-        impl #start_impl #name #type_generics #start_where {
-            /// Enumerates initial states in field order with defaults for unannotated fields.
-            pub fn starts() -> ::std::vec::Vec<Self> {
-                let mut __umpire_starts = ::std::vec::Vec::new();
-                #starts
-                __umpire_starts
-            }
-        }
+        #starts
+        #constructor
     })
+}
+
+fn named_fields(input: &syn::DeriveInput, world: bool) -> manyhow::Result<Vec<&Field>> {
+    let label = if world { "World" } else { "State" };
+    let syn::Data::Struct(data) = &input.data else {
+        manyhow::bail!(input, "{} requires a named-field struct", label);
+    };
+    let syn::Fields::Named(fields) = &data.fields else {
+        manyhow::bail!(input, "{} requires a named-field struct", label);
+    };
+    Ok(fields.named.iter().collect())
+}
+
+fn constructor(input: &syn::DeriveInput, fields: &[&Field], names: &[&syn::Ident]) -> TokenStream {
+    let name = &input.ident;
+    let visibility = &input.vis;
+    let types = fields.iter().map(|field| &field.ty);
+    let (implementation, arguments, constraints) = input.generics.split_for_impl();
+    quote! {
+        impl #implementation #name #arguments #constraints {
+            /// Constructs the fixed parameters in field declaration order.
+            #visibility fn new(#(#names: #types),*) -> Self { Self { #(#names),* } }
+        }
+    }
 }
 
 fn bounded(generics: &Generics, fields: &[&Field], bound: &TokenStream) -> Generics {

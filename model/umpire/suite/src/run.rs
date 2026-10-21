@@ -1,18 +1,18 @@
 use std::{fmt, rc::Rc};
 
 use umpire_checker::{Checker, PathStep};
-use umpire_dsl::{IntoWorldPath, Machine, Path, PathNode, Registered, Waypoint};
+use umpire_dsl::{Associated, IntoWorldPath, Machine, Path, PathNode, Registered, Waypoint};
 
 use crate::{
     Refusal,
     search::{self, Trace},
 };
 
-type Action<S> = <<S as Registered>::World as Machine>::Action;
+type Action<S> = <<S as Associated>::World as Machine>::Action;
 
 /// An authored path through a Model from a concrete state. Explicit steps use
 /// `Machine::checked_step`; searched paths retain explored rows. Display matches checker paths.
-pub struct Run<S: Registered> {
+pub struct Run<S: Associated> {
     world: Rc<S::World>,
     trace: Trace<S::World>,
 }
@@ -20,13 +20,38 @@ pub struct Run<S: Registered> {
 impl<S: Registered> From<S> for Run<S> {
     /// Starts at `state`.
     fn from(state: S) -> Self {
-        let trace =
-            Trace::<S::World> { start: state, steps: Vec::new(), cycle_start: None, failure: None };
-        Self { world: Rc::new(S::world()), trace }
+        Self::new(S::world(), state)
     }
 }
 
 impl<S: Registered> Run<S> {
+    /// Finds a story using the state's registered world.
+    pub fn along<A, O, K>(path: Path<S, A, O>) -> Result<Self, Refusal>
+    where
+        Path<S, A, O>: IntoWorldPath<S, K>,
+        Action<S>: 'static,
+    {
+        Self::along_with_budget(path, Checker::BUDGET)
+    }
+
+    /// Finds a story using the registered world within a state budget.
+    pub fn along_with_budget<A, O, K>(path: Path<S, A, O>, budget: usize) -> Result<Self, Refusal>
+    where
+        Path<S, A, O>: IntoWorldPath<S, K>,
+        Action<S>: 'static,
+    {
+        Self::along_with_world(S::world, path, budget)
+    }
+}
+
+impl<S: Associated> Run<S> {
+    /// Starts at `state` in one owned world.
+    pub fn new(world: S::World, state: S) -> Self {
+        let trace =
+            Trace::<S::World> { start: state, steps: Vec::new(), cycle_start: None, failure: None };
+        Self { world: Rc::new(world), trace }
+    }
+
     pub(crate) fn retained(world: Rc<S::World>, trace: Trace<S::World>) -> Self {
         Self { world, trace }
     }
@@ -58,18 +83,34 @@ impl<S: Registered> Run<S> {
     /// Fills in a story told by its milestones: from the first waypoint, a state, the shortest
     /// path through every waypoint within its gap is found over retained Model rows.
     // By value, so `Run::along(path![..])` reads as the story it is.
-    pub fn along<A, O, K>(path: Path<S, A, O>) -> Result<Self, Refusal>
+    pub fn along_in<A, O, K>(world: S::World, path: Path<S, A, O>) -> Result<Self, Refusal>
     where
         Path<S, A, O>: IntoWorldPath<S, K>,
         Action<S>: 'static,
     {
-        Self::along_with_budget(path, Checker::BUDGET)
+        Self::along_in_with_budget(world, path, Checker::BUDGET)
     }
 
     /// Finds the shortest path, admitting at most `budget` distinct Model states.
     // By value, matching `Run::along(path![..])`.
     #[allow(clippy::needless_pass_by_value)]
-    pub fn along_with_budget<A, O, K>(path: Path<S, A, O>, budget: usize) -> Result<Self, Refusal>
+    pub fn along_in_with_budget<A, O, K>(
+        world: S::World,
+        path: Path<S, A, O>,
+        budget: usize,
+    ) -> Result<Self, Refusal>
+    where
+        Path<S, A, O>: IntoWorldPath<S, K>,
+        Action<S>: 'static,
+    {
+        Self::along_with_world(|| world, path, budget)
+    }
+
+    fn along_with_world<A, O, K>(
+        world: impl FnOnce() -> S::World,
+        path: Path<S, A, O>,
+        budget: usize,
+    ) -> Result<Self, Refusal>
     where
         Path<S, A, O>: IntoWorldPath<S, K>,
         Action<S>: 'static,
@@ -81,7 +122,7 @@ impl<S: Registered> Run<S> {
         }
         if path.is_state_only() {
             let Waypoint::Is(start) = path.first() else { return Err(Refusal::Unanchored) };
-            let world = Rc::new(S::world());
+            let world = Rc::new(world());
             let found = search::through(world.as_ref(), vec![start.clone()], &path, budget)?;
             return Ok(Self::retained(world, found));
         }
@@ -90,7 +131,7 @@ impl<S: Registered> Run<S> {
             return Err(Refusal::Unanchored);
         };
         let Waypoint::Is(start) = first.as_ref() else { return Err(Refusal::Unanchored) };
-        let world = Rc::new(S::world());
+        let world = Rc::new(world());
         let rooted =
             search::Rooted { world: world.as_ref(), starts: vec![start.clone()], query: None };
         let explored = Checker::explore(&rooted, budget)?;
@@ -140,7 +181,7 @@ impl<S: Registered> Run<S> {
     }
 }
 
-impl<S: Registered> fmt::Display for Run<S> {
+impl<S: Associated> fmt::Display for Run<S> {
     fn fmt(&self, out: &mut fmt::Formatter<'_>) -> fmt::Result {
         self.trace.fmt(out)
     }

@@ -2,6 +2,9 @@ use proc_macro2::TokenStream;
 use quote::{quote, quote_spanned};
 use syn::{ImplItem, Item, ItemImpl, ItemMod, Path, Token, parse::Parser, punctuated::Punctuated};
 
+#[path = "machine/declared.rs"]
+mod declared;
+
 const KINDS: [&str; 6] = ["on", "effect", "invariant", "postcondition", "assumption", "progress"];
 
 fn helper(attr: &syn::Attribute, name: &str) -> bool {
@@ -97,7 +100,11 @@ fn key(path: &Path) -> String {
 fn kind(method: &syn::ImplItemFn) -> manyhow::Result<Option<usize>> {
     let mut found = None;
     for attr in &method.attrs {
-        if let Some(rank) = KINDS.iter().position(|name| helper(attr, name)) {
+        if let Some(rank) = KINDS
+            .iter()
+            .position(|name| helper(attr, name))
+            .or_else(|| helper(attr, "scope").then_some(4))
+        {
             if found.is_some() {
                 manyhow::bail!(attr, "a method requires exactly one machine kind attribute");
             }
@@ -110,14 +117,19 @@ fn kind(method: &syn::ImplItemFn) -> manyhow::Result<Option<usize>> {
     Ok(found)
 }
 
-fn check_impl(input: &ItemImpl, state: &syn::Ident) -> manyhow::Result<()> {
-    if input.trait_.is_some() || !input.generics.params.is_empty() {
+fn check_impl(input: &ItemImpl, state: &syn::Ident, parameterized: bool) -> manyhow::Result<()> {
+    if input.trait_.is_some() || (!parameterized && !input.generics.params.is_empty()) {
         manyhow::bail!(input, "machine methods require one nongeneric inherent impl {}", state);
     }
     let syn::Type::Path(ty) = input.self_ty.as_ref() else {
         manyhow::bail!(input.self_ty, "machine methods require the module's state type");
     };
-    if ty.qself.is_some() || !ty.path.is_ident(state) {
+    if ty.qself.is_some()
+        || !(ty.path.is_ident(state)
+            || (parameterized
+                && ty.path.segments.len() == 1
+                && ty.path.segments[0].ident == *state))
+    {
         manyhow::bail!(input.self_ty, "machine methods require the module's state type");
     }
     Ok(())
@@ -131,6 +143,7 @@ struct Registrations {
     assumptions: Vec<syn::Ident>,
     progresses: Vec<syn::Ident>,
     order: Vec<String>,
+    world_methods: std::collections::HashSet<String>,
 }
 
 fn mutable_reference(receiver: &syn::Receiver) -> bool {
@@ -176,6 +189,7 @@ fn readonly_checks(
     state: &syn::Ident,
     depth: usize,
     registered: bool,
+    state_generics: Option<&syn::Generics>,
 ) -> syn::Result<()> {
     let mut state_path = quote!(#state);
     for _ in 0..depth {
@@ -184,6 +198,10 @@ fn readonly_checks(
     if depth == 0 {
         state_path = quote!(self::#state);
     }
+    let empty = syn::Generics::default();
+    let (state_implementation, state_arguments, state_constraints) =
+        state_generics.unwrap_or(&empty).split_for_impl();
+    let state_path = quote!(#state_path #state_arguments);
     let mut checks = Vec::new();
     for item in &mut *items {
         let Item::Impl(input) = item else { continue };
@@ -244,7 +262,7 @@ fn readonly_checks(
                     type __Result;
                     fn __probe(self) -> Self::__Result;
                 }
-                impl __Readonly for &__Probe<#state_path> {
+                impl #state_implementation __Readonly for &__Probe<#state_path> #state_constraints {
                     type __Result = __MutableModelMethod;
                     fn __probe(self) -> Self::__Result { __MutableModelMethod }
                 }
@@ -262,6 +280,7 @@ fn readonly_checks(
 
 struct LocalReadonly<'a> {
     state: &'a syn::Ident,
+    generics: Option<&'a syn::Generics>,
     depth: usize,
     error: Option<syn::Error>,
 }
@@ -271,7 +290,7 @@ impl syn::visit_mut::VisitMut for LocalReadonly<'_> {
         self.depth += 1;
         syn::visit_mut::visit_item_mod_mut(self, module);
         if let Some((_, items)) = &mut module.content
-            && let Err(error) = readonly_checks(items, self.state, self.depth, false)
+            && let Err(error) = readonly_checks(items, self.state, self.depth, false, self.generics)
         {
             self.error = Some(error);
         }
@@ -289,7 +308,9 @@ impl syn::visit_mut::VisitMut for LocalReadonly<'_> {
             })
             .collect();
         let original_count = items.len();
-        if let Err(error) = readonly_checks(&mut items, self.state, self.depth, false) {
+        if let Err(error) =
+            readonly_checks(&mut items, self.state, self.depth, false, self.generics)
+        {
             self.error = Some(error);
             return;
         }
@@ -300,19 +321,29 @@ impl syn::visit_mut::VisitMut for LocalReadonly<'_> {
 }
 
 fn check_receivers(items: &mut Vec<Item>, state: &syn::Ident) -> syn::Result<()> {
-    let mut local = LocalReadonly { state, depth: 0, error: None };
+    check_receivers_with_generics(items, state, None)
+}
+
+fn check_receivers_with_generics(
+    items: &mut Vec<Item>,
+    state: &syn::Ident,
+    generics: Option<&syn::Generics>,
+) -> syn::Result<()> {
+    let mut local = LocalReadonly { state, generics, depth: 0, error: None };
     for item in &mut *items {
         syn::visit_mut::VisitMut::visit_item_mut(&mut local, item);
     }
     if let Some(error) = local.error {
         return Err(error);
     }
-    readonly_checks(items, state, 0, true)
+    readonly_checks(items, state, 0, true, generics)
 }
 
 fn transition_actor<'a>(
     method: &syn::ImplItemFn,
     actors: &'a [syn::Ident],
+    arity: usize,
+    parameterized: bool,
 ) -> manyhow::Result<&'a syn::Ident> {
     if let Some(asyncness) = method.sig.asyncness {
         manyhow::bail!(asyncness, "#[on] methods must be synchronous");
@@ -323,17 +354,20 @@ fn transition_actor<'a>(
             "#[on] methods return nothing; enabledness is a changed state"
         );
     }
-    let actor = (method.sig.inputs.len() == 2)
-        .then(|| method.sig.inputs.last())
-        .flatten()
-        .and_then(|argument| match argument {
-            syn::FnArg::Typed(argument) => match argument.ty.as_ref() {
-                syn::Type::Path(ty) if ty.qself.is_none() => {
-                    actors.iter().find(|actor| ty.path.is_ident(*actor))
-                }
-                _ => None,
-            },
-            syn::FnArg::Receiver(_) => None,
+    let actor =
+        (arity == 2).then(|| method.sig.inputs.iter().nth(1)).flatten().and_then(|argument| {
+            match argument {
+                syn::FnArg::Typed(argument) => match argument.ty.as_ref() {
+                    syn::Type::Path(ty) if ty.qself.is_none() => actors.iter().find(|actor| {
+                        ty.path.is_ident(*actor)
+                            || (parameterized
+                                && ty.path.segments.len() == 1
+                                && ty.path.segments[0].ident == **actor)
+                    }),
+                    _ => None,
+                },
+                syn::FnArg::Receiver(_) => None,
+            }
         });
     let mutable_receiver = method.sig.receiver().is_some_and(mutable_reference);
     match actor {
@@ -468,10 +502,34 @@ fn check_order(attr: &syn::Attribute, rank: usize, previous: Option<usize>) -> m
     Ok(())
 }
 
+fn register_handler(
+    registration: &mut Registrations,
+    method: &syn::ImplItemFn,
+    attr: &syn::Attribute,
+    actors: &[syn::Ident],
+    arity: usize,
+    parameterized: bool,
+) -> manyhow::Result<()> {
+    let named: Path = attr.parse_args()?;
+    if !actors.iter().any(|actor| named.is_ident(actor)) {
+        manyhow::bail!(attr, "#[on] names an actor enum declared in this module");
+    }
+    let actor = transition_actor(method, actors, arity, parameterized)?;
+    if !named.is_ident(actor) {
+        manyhow::bail!(&method.sig, "#[on({})] requires a {} parameter", key(&named), key(&named));
+    }
+    if registration.handlers.iter().any(|(known, _)| known == actor) {
+        manyhow::bail!(&method.sig.ident, "actor {} already has an #[on] method", actor);
+    }
+    registration.handlers.push((actor.clone(), method.sig.ident.clone()));
+    Ok(())
+}
+
 fn registrations(
     items: &mut [Item],
     state: &syn::Ident,
     actors: &[syn::Ident],
+    world: Option<&syn::Ident>,
 ) -> manyhow::Result<Registrations> {
     let mut registration = Registrations::default();
     let mut registered_impl = false;
@@ -491,14 +549,14 @@ fn registrations(
             manyhow::bail!(input, "machine methods belong in one impl {}", state);
         }
         registered_impl = true;
-        check_impl(input, state)?;
+        check_impl(input, state, world.is_some())?;
         for item in &mut input.items {
             let ImplItem::Fn(method) = item else { continue };
             let Some(rank) = kind(method)? else { continue };
             let attr = method
                 .attrs
                 .iter()
-                .find(|attr| helper(attr, KINDS[rank]))
+                .find(|attr| helper(attr, KINDS[rank]) || (rank == 4 && helper(attr, "scope")))
                 .ok_or_else(|| syn::Error::new_spanned(&method.sig, "missing machine kind"))?;
             check_order(attr, rank, previous)?;
             previous = Some(rank);
@@ -506,35 +564,30 @@ fn registrations(
                 check_claim(method)?;
             }
             let name = method.sig.ident.clone();
+            let has_world = if let Some(world) = world {
+                declared::world_parameter(method, world)?
+            } else {
+                false
+            };
+            let arity = method.sig.inputs.len() - usize::from(has_world);
+            if has_world {
+                registration.world_methods.insert(name.to_string());
+            }
             match rank {
                 0 => {
-                    let named: Path = attr.parse_args()?;
-                    if !actors.iter().any(|actor| named.is_ident(actor)) {
-                        manyhow::bail!(attr, "#[on] names an actor enum declared in this module");
-                    }
-                    let actor = transition_actor(method, actors)?;
-                    if !named.is_ident(actor) {
-                        manyhow::bail!(
-                            &method.sig,
-                            "#[on({})] requires a {} parameter",
-                            key(&named),
-                            key(&named)
-                        );
-                    }
-                    if registration.handlers.iter().any(|(known, _)| known == actor) {
-                        manyhow::bail!(
-                            &method.sig.ident,
-                            "actor {} already has an #[on] method",
-                            actor
-                        );
-                    }
-                    registration.handlers.push((actor.clone(), name));
+                    register_handler(
+                        &mut registration,
+                        method,
+                        attr,
+                        actors,
+                        arity,
+                        world.is_some(),
+                    )?;
                 }
                 1 => {}
                 2 => registration.invariants.push(name),
                 3 => {
                     let after = after_action(attr)?;
-                    let arity = method.sig.inputs.len();
                     if !(1..=3).contains(&arity) || method.sig.receiver().is_none() {
                         manyhow::bail!(
                             &method.sig,
@@ -561,7 +614,9 @@ fn registrations(
             if matches!(rank, 2 | 3 | 5) {
                 registration.order.push(method.sig.ident.to_string());
             }
-            method.attrs.retain(|attr| !helper(attr, KINDS[rank]));
+            method
+                .attrs
+                .retain(|attr| !(helper(attr, KINDS[rank]) || rank == 4 && helper(attr, "scope")));
         }
     }
     for actor in actors {
@@ -583,10 +638,17 @@ fn postconditions(
             2 => quote!(_before),
             _ => quote!(_before, outcome),
         };
-        let predicate = if *arity == 3 {
-            quote!(|_, _before, after, _, outcome, _| after.#method(#args))
+        let has_world = registration.world_methods.contains(&method.to_string());
+        let args = if has_world {
+            if *arity == 1 { quote!(__umpire_world) } else { quote!(#args, __umpire_world) }
         } else {
-            quote!(|_, _before, after, _, _, _| after.#method(#args))
+            args
+        };
+        let world = if has_world { quote!(__umpire_world) } else { quote!(_) };
+        let predicate = if *arity == 3 {
+            quote!(|#world, _before, after, _, outcome, _| after.#method(#args))
+        } else {
+            quote!(|#world, _before, after, _, _, _| after.#method(#args))
         };
         let label = method.to_string();
         if let Some(path) = after {
@@ -607,8 +669,11 @@ fn progress_claims(registration: &Registrations) -> Vec<TokenStream> {
     let mut output = Vec::new();
     for method in &registration.progresses {
         let label = method.to_string();
-        output.push(quote!(::umpire_dsl::Progress::<Self>::evaluated(#label, |_, state| {
-            let value = state.#method();
+        let has_world = registration.world_methods.contains(&label);
+        let argument = has_world.then(|| quote!(__umpire_world));
+        let world = if has_world { quote!(__umpire_world) } else { quote!(_) };
+        output.push(quote!(::umpire_dsl::Progress::<Self>::evaluated(#label, |#world, state| {
+            let value = state.#method(#argument);
             ::umpire_dsl::ProgressEvaluation {
                 trigger: value.trigger.judge(state).into(),
                 target: value.target.judge(state).into(),
@@ -714,12 +779,18 @@ fn progress_helpers(enabled: bool, state: &syn::Ident) -> Option<TokenStream> {
     })
 }
 
-fn stepping(handlers: &[(syn::Ident, syn::Ident)], rejecting: bool, staying: bool) -> TokenStream {
+fn stepping(
+    handlers: &[(syn::Ident, syn::Ident)],
+    rejecting: bool,
+    staying: bool,
+    world_methods: &std::collections::HashSet<String>,
+) -> TokenStream {
     let dispatch = handlers.iter().map(|(actor, method)| {
+        let argument = world_methods.contains(&method.to_string()).then(|| quote!(, self));
         if rejecting && staying {
             return quote!(Action::#actor(value) => {
                 let mut next = state.clone();
-                let (outcome, stayed) = ::umpire_dsl::outcome::evaluate_staying(|| next.#method(value));
+                let (outcome, stayed) = ::umpire_dsl::outcome::evaluate_staying(|| next.#method(value #argument));
                 let rejected = matches!(outcome, ::umpire_dsl::Outcome::Rejected(_));
                 if rejected && next != *state {
                     return ::core::result::Result::Err(::umpire_dsl::StepError::RejectedAfterMutation);
@@ -734,7 +805,7 @@ fn stepping(handlers: &[(syn::Ident, syn::Ident)], rejecting: bool, staying: boo
         if rejecting {
             return quote!(Action::#actor(value) => {
                 let mut next = state.clone();
-                let outcome = ::umpire_dsl::outcome::evaluate(|| next.#method(value));
+                let outcome = ::umpire_dsl::outcome::evaluate(|| next.#method(value #argument));
                 if matches!(outcome, ::umpire_dsl::Outcome::Rejected(_)) && next != *state {
                     return ::core::result::Result::Err(::umpire_dsl::StepError::RejectedAfterMutation);
                 }
@@ -748,7 +819,7 @@ fn stepping(handlers: &[(syn::Ident, syn::Ident)], rejecting: bool, staying: boo
         if staying {
             return quote!(Action::#actor(value) => {
                 let mut next = state.clone();
-                let (_, stayed) = ::umpire_dsl::outcome::evaluate_staying(|| next.#method(value));
+                let (_, stayed) = ::umpire_dsl::outcome::evaluate_staying(|| next.#method(value #argument));
                 let mut steps = ::umpire_dsl::Steps::new();
                 if next != *state || stayed { steps.push(((), ::std::vec::Vec::new(), next)); }
                 steps
@@ -756,7 +827,7 @@ fn stepping(handlers: &[(syn::Ident, syn::Ident)], rejecting: bool, staying: boo
         }
         quote!(Action::#actor(value) => {
             let mut next = state.clone();
-            next.#method(value);
+            next.#method(value #argument);
             let mut steps = ::umpire_dsl::Steps::new();
             if next != *state { steps.push(((), ::std::vec::Vec::new(), next)); }
             steps
@@ -827,15 +898,20 @@ fn world_type(
     }
 }
 
-pub(crate) fn expand(args: &TokenStream, input: &ItemMod) -> manyhow::Result<TokenStream> {
-    if !args.is_empty() {
-        manyhow::bail!(args, "#[machine] takes no arguments");
-    }
+fn check_within(input: &ItemMod) -> manyhow::Result<()> {
     let mut within = WithinAttribute::default();
     syn::visit::Visit::visit_item_mod(&mut within, input);
     if let Some(attr) = within.0 {
         manyhow::bail!(attr, "a progress claim names its assumption with .assuming(..)");
     }
+    Ok(())
+}
+
+pub(crate) fn expand(args: &TokenStream, input: &ItemMod) -> manyhow::Result<TokenStream> {
+    if !args.is_empty() {
+        manyhow::bail!(args, "#[machine] takes no arguments");
+    }
+    check_within(input)?;
     let rejecting = invokes(quote!(#input), "reject");
     let staying = invokes(quote!(#input), "stay");
     let outcome_type = if rejecting { quote!(::umpire_dsl::Outcome) } else { quote!(()) };
@@ -845,14 +921,18 @@ pub(crate) fn expand(args: &TokenStream, input: &ItemMod) -> manyhow::Result<Tok
     let Some((_, items)) = &mut input.content else {
         manyhow::bail!(input, "#[machine] requires an inline module");
     };
+    if declared::present(items)? {
+        return declared::expand(input, rejecting, staying);
+    }
     let (state, visibility, actors, actions) = catalog(items, &input.ident)?;
     admit_handler_stays(items)?;
     check_receivers(items, &state)?;
-    let registration = registrations(items, &state, &actors)?;
+    let registration = registrations(items, &state, &actors, None)?;
     let post_tokens = postconditions(&registration, &actions)?;
     let progress_tokens = progress_claims(&registration);
-    let Registrations { handlers, invariants, assumptions, order, .. } = registration;
-    let stepping = stepping(&handlers, rejecting, staying);
+    let Registrations { handlers, invariants, assumptions, order, world_methods, .. } =
+        registration;
+    let stepping = stepping(&handlers, rejecting, staying, &world_methods);
     let invariant_tokens = invariants.iter().map(|method| {
         let label = method.to_string();
         quote!(::umpire_dsl::Claim::<Self>::with_checks(

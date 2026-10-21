@@ -2,7 +2,7 @@
 
 use std::{cell::Cell, fmt, rc::Rc};
 
-use umpire_dsl::{ActionDomain, Machine, Path, Pattern, Registered, Steps, Waypoint};
+use umpire_dsl::{ActionDomain, Machine, Path, Pattern, PatternError, Registered, Steps, Waypoint};
 use umpire_suite::{Cases, Refusal, Run, Space, cover};
 
 thread_local! {
@@ -94,4 +94,23 @@ fn cover_and_along_never_replay_effects_or_rebuild_worlds() -> Result<(), Refusa
     assert_eq!(WORLDS.get(), 1);
     assert_eq!(STEPS.get(), 2);
     Ok(())
+}
+
+#[test]
+fn refused_stories_do_not_construct_the_registered_world() {
+    let paths = [
+        Path::pattern(Pattern::action(
+            ActionDomain::new(Err(PatternError::ExpansionOverflow), |_| 0),
+            None,
+            None,
+        )),
+        Path::pattern(Pattern::Either(vec![action(0, None), action(1, None)])),
+        Path::pattern(action(0, None)),
+        Path::pattern(Pattern::State(Rc::new(Waypoint::judged(|_| true)))),
+    ];
+    for path in paths {
+        WORLDS.set(0);
+        assert!(Run::along_with_budget(path, 1).is_err());
+        assert_eq!(WORLDS.get(), 0);
+    }
 }

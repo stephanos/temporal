@@ -3,8 +3,8 @@
 use std::cell::RefCell;
 
 use crate::{
-    ActionDomain, Actor, Gap, IntoWaypoint, Machine, Path, Pattern, Registered, RegisteredActor,
-    Waypoint,
+    ActionDomain, Actor, Associated as Registered, Gap, IntoWaypoint, Machine, Path, Pattern,
+    RegisteredActor, Waypoint,
 };
 
 pub struct Probe<T>(RefCell<Option<T>>);

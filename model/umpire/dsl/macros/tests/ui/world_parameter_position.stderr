@@ -1,0 +1,5 @@
+error: the World parameter must be last
+  --> tests/ui/world_parameter_position.rs:12:28
+   |
+12 |         fn user(&mut self, selected: &World, _: User) { self.count += selected.limit; }
+   |                            ^^^^^^^^^^^^^^^^

@@ -1,0 +1,17 @@
+#[umpire_dsl::machine]
+mod model {
+    use umpire_dsl::{Action, State, World};
+    #[derive(World)]
+    struct World { limit: u8 }
+    #[derive(State)]
+    struct Model { count: u8 }
+    #[derive(Action)]
+    enum User { Advance }
+    impl Model {
+        #[on(User)]
+        fn user(&mut self, _: User, first: &World, second: &World) {
+            self.count += first.limit + second.limit;
+        }
+    }
+}
+fn main() {}

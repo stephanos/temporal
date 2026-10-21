@@ -129,7 +129,7 @@ impl Model {
 }
 ```
 
-For a public Model, the macro exports `World` and its `Action` carrier; `world()` returns `World`, so a
+For a public Model without declared constants, the macro exports `World` and its `Action` carrier; `world()` returns `World`, so a
 realization and guest can name the registered machine without a delegating adapter.
 Non-public states retain the opaque return interface and their generated types follow
 the state's visibility, preserving module-local Models without leaking private types.
@@ -152,6 +152,65 @@ that also changes state is an ordinary step, and a rejection in the same step wi
 `Accepted` in a module with `reject!` and unit otherwise. Only `#[on]` handler bodies admit it;
 in an `#[effect]`, claim, helper or outside `#[machine]` it is a compile error. The lifter admits
 it at an arm's top level and refuses it nested in a condition.
+
+### Fixed parameters and computed starts
+
+A module may declare one named-field `#[derive(World)] struct World`. Its fields stay fixed
+through an exploration. Like `State`, the derive supplies conditional Clone/Eq/Hash and
+Debug/Display implementations; it adds `World::new` with arguments in field order and the
+struct's visibility. It requires neither Copy nor Default. The declared World is the Machine;
+there is no implicit `world()` constructor for its parameters.
+
+```rust
+#[umpire_dsl::machine]
+mod counter {
+    use umpire_dsl::{Action, State, World, check};
+
+    #[derive(World)]
+    pub struct World { initial: u8, limit: u8 }
+    #[derive(State)]
+    pub struct Model { pub value: u8 }
+    #[derive(Action)]
+    pub enum User { Advance }
+
+    #[starts]
+    impl Model {
+        fn starts(w: &World) -> impl IntoIterator<Item = Self> {
+            [Self { value: w.initial }]
+        }
+    }
+    impl Model {
+        #[on(User)]
+        fn user(&mut self, _: User, w: &World) {
+            if self.value < w.limit { self.value += 1; }
+        }
+        #[invariant]
+        fn bounded(&self, w: &World) { check!(self.value <= w.limit); }
+    }
+}
+```
+
+Handlers, invariants, postconditions, assumptions and progress methods may take a trailing
+immutable `&World`. Postconditions retain their optional before-state and outcome arguments
+before it; parameter names do not select the signature. Per-method `#[scope]` is also accepted
+as an assumption spelling, in the same registration order. Grouped `#[scopes]` is refused.
+Native Model, World and actor declarations retain their generic parameters and bounds.
+
+The `#[starts]` impl supplies complete states, preserving correlations across fields. It replaces
+State's generated static starts and their Default bounds. Declaring field starts as well is an
+error, even if their range is empty. The checker keeps the first occurrence of each complete
+state, and an empty computed iterator supplies no starts.
+
+Use `Space::<counter::Model>::new(counter::World::new(0, 2))` to explore its computed starts,
+or `Space::with_world(world, starts)` to choose explicit starts. `verify_all`, `refuted`, `find`,
+`cover` and `sample` all use that selected owned World. `Run::new(world, state)` starts an
+authored run; `Run::along_in(world, path)` and `along_in_with_budget` search one. Covered and
+sampled Runs retain the World after their Space leaves scope. Existing state-only shorthand and
+manual `Registered` implementations remain compatible through the additive `Associated` trait.
+Declared states implement only the association, so their constants must be supplied explicitly.
+
+This is the native authoring and suite surface. Source-bound configuration and independent TLC
+agreement for declared Worlds and complete computed starts remain a dependent checkpoint.
 
 Methods of each kind are contiguous, in `#[on]`, optional `#[effect]`, `#[invariant]`,
 `#[postcondition]`, `#[assumption]`, `#[progress]` order. A postcondition may filter its action

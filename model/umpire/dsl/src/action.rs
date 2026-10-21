@@ -20,4 +20,4 @@ pub trait ActorProjection<T> {
 
 /// Associates a locally declared actor with its defining machine's state.
 /// Explicit state-prefixed paths may still use this actor in another machine.
-pub trait RegisteredActor<S: crate::Registered>: Actor {}
+pub trait RegisteredActor<S: crate::Associated>: Actor {}

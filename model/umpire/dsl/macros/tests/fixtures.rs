@@ -8,6 +8,8 @@ mod machine;
 mod path;
 #[path = "../src/state.rs"]
 mod state;
+#[path = "../src/world.rs"]
+mod world;
 
 include!(concat!(env!("OUT_DIR"), "/fixtures.rs"));
 

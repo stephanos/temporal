@@ -1,0 +1,5 @@
+error: declare World once as #[derive(World)] struct World
+ --> tests/ui/world_duplicate.rs:2:5
+  |
+2 | mod model {
+  |     ^^^^^

@@ -1,0 +1,5 @@
+error: declare the World parameter once
+  --> tests/ui/world_parameter_duplicate.rs:12:52
+   |
+12 |         fn user(&mut self, _: User, first: &World, second: &World) {
+   |                                                    ^^^^^^^^^^^^^^

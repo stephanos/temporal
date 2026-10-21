@@ -1,5 +1,5 @@
 use umpire_checker::Checker;
-use umpire_dsl::{Alternative, IntoWorldPath, Machine, Path, Registered};
+use umpire_dsl::{Alternative, Associated, IntoWorldPath, Machine, Path};
 
 use crate::{
     Coverage, Refusal, Run, Space,
@@ -10,13 +10,13 @@ use crate::{
 
 type WorldPath<S> = Path<
     S,
-    <<S as Registered>::World as Machine>::Action,
-    <<S as Registered>::World as Machine>::Outcome,
+    <<S as Associated>::World as Machine>::Action,
+    <<S as Associated>::World as Machine>::Outcome,
 >;
 type Choice<S> = Alternative<
     S,
-    <<S as Registered>::World as Machine>::Action,
-    <<S as Registered>::World as Machine>::Outcome,
+    <<S as Associated>::World as Machine>::Action,
+    <<S as Associated>::World as Machine>::Outcome,
 >;
 const MAX_RECORDS: usize = 1_000_000;
 
@@ -25,13 +25,13 @@ const MAX_RECORDS: usize = 1_000_000;
 pub struct Cases(pub usize);
 
 /// Selected ordinary runs, their concrete expansion and typed witness coverage.
-pub struct Covered<S: Registered> {
+pub struct Covered<S: Associated> {
     runs: Vec<Run<S>>,
     coverage: Coverage,
     expansion: String,
 }
 
-impl<S: Registered> Covered<S> {
+impl<S: Associated> Covered<S> {
     /// The runs in authored alternative order, or sampled experiment order.
     pub fn runs(&self) -> &[Run<S>] {
         &self.runs
@@ -63,7 +63,7 @@ impl<S: Registered> Covered<S> {
     }
 }
 
-fn label<S: Registered>(alternative: &Choice<S>) -> String {
+fn label<S: Associated>(alternative: &Choice<S>) -> String {
     if alternative.choices.is_empty() {
         "state pattern".into()
     } else {
@@ -71,7 +71,7 @@ fn label<S: Registered>(alternative: &Choice<S>) -> String {
     }
 }
 
-fn admit<S: Registered>(
+fn admit<S: Associated>(
     path: &WorldPath<S>,
     budget: usize,
     expected: Option<Cases>,
@@ -104,13 +104,13 @@ where
     Ok(path.alternatives(budget)?)
 }
 
-fn alternative<S: Registered>(index: usize, choice: &Choice<S>, failure: Refusal) -> Refusal {
+fn alternative<S: Associated>(index: usize, choice: &Choice<S>, failure: Refusal) -> Refusal {
     Refusal::Alternative { index, choices: label::<S>(choice), failure: Box::new(failure) }
 }
 
 /// Finds one shortest witness per authored alternative over one retained Model graph.
 /// A case-count mismatch precedes Model stepping; a cut graph always refuses coverage.
-pub fn cover<S: Registered, A, O, K>(
+pub fn cover<S: Associated, A, O, K>(
     space: &Space<S>,
     cases: Cases,
     path: Path<S, A, O>,
@@ -121,7 +121,7 @@ where
 {
     let path = path.into_world_path();
     let alternatives = admit::<S>(&path, space.alternatives, Some(cases))?;
-    let world = Rc::new(S::world());
+    let world = space.world();
     let rooted = Rooted { world: world.as_ref(), starts: space.starts.clone(), query: None };
     let explored = Checker::explore(&rooted, space.budget)?;
     if explored.counts.cut {
@@ -144,7 +144,7 @@ where
 /// Performs a finite seeded experiment of actual pattern-admitted random walks.
 /// Each selected alternative must finish within `Space::walk_bound`; cuts refuse the experiment.
 /// Sampling establishes only this experiment, never exhaustive alternative coverage.
-pub fn sample<S: Registered, A, O, K>(
+pub fn sample<S: Associated, A, O, K>(
     space: &Space<S>,
     path: Path<S, A, O>,
     n: usize,
@@ -159,7 +159,7 @@ where
     if n > MAX_RECORDS {
         return Err(Refusal::SearchLimit { limit: MAX_RECORDS });
     }
-    let world = Rc::new(S::world());
+    let world = space.world();
     let rooted = Rooted { world: world.as_ref(), starts: space.starts.clone(), query: None };
     let explored = Checker::explore(&rooted, space.budget)?;
     if explored.counts.cut {
@@ -195,7 +195,7 @@ fn charge(records: &mut usize, count: usize) -> Result<(), Refusal> {
     Ok(())
 }
 
-fn assemble<S: Registered>(
+fn assemble<S: Associated>(
     world: &Rc<S::World>,
     explored: &umpire_checker::Result<Rooted<'_, S::World>>,
     alternatives: &[Choice<S>],
@@ -257,7 +257,7 @@ fn append(output: &mut String, arguments: fmt::Arguments<'_>) {
     output.write_fmt(arguments).unwrap_or_else(|_| unreachable!("String formatting is infallible"));
 }
 
-pub(crate) fn find_pattern<S: Registered>(
+pub(crate) fn find_pattern<S: Associated>(
     space: &Space<S>,
     path: &WorldPath<S>,
 ) -> Result<Trace<S::World>, Refusal>
@@ -265,8 +265,8 @@ where
     <S::World as Machine>::Action: 'static,
 {
     let alternatives = admit::<S>(path, space.alternatives, None)?;
-    let world = S::world();
-    let rooted = Rooted { world: &world, starts: space.starts.clone(), query: None };
+    let world = space.world();
+    let rooted = Rooted { world: world.as_ref(), starts: space.starts.clone(), query: None };
     let explored = Checker::explore(&rooted, space.budget)?;
     let graph = Graph::new(&explored)?;
     let mut best = None;

@@ -1,0 +1,5 @@
+error: the World parameter must be an immutable &World
+  --> tests/ui/world_parameter_mutable.rs:12:47
+   |
+12 |         fn user(&mut self, _: User, selected: &mut World) { self.count += selected.limit; }
+   |                                               ^^^^^^^^^^

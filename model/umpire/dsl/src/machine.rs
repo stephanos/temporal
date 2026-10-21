@@ -91,6 +91,16 @@ pub trait Machine: Sized {
     }
 }
 
+/// Associates a dynamic state with the machine whose constants govern its behavior.
+pub trait Associated: Clone + Eq + Hash + Display {
+    /// The machine this state belongs to.
+    type World: Machine<State = Self>;
+}
+
+impl<S: Registered> Associated for S {
+    type World = <S as Registered>::World;
+}
+
 /// A state whose machine has no constants, as `#[machine]` registers it, so a test can start
 /// from a state alone.
 pub trait Registered: Clone + Eq + Hash + Display {
