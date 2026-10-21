@@ -3,6 +3,7 @@
   "verb": "inspect",
   "fresh_execution_corpus": "foundation-execution.json",
   "runtime_choice_target": "targets/inspect-choice.wat",
+  "runtime_overflow_target": "targets/inspect-choice-overflow.wat",
   "consumer_details": "inspect-details.json",
   "golden": "goldens-inspect/inspect.json",
   "projection": {

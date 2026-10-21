@@ -1,7 +1,10 @@
 use crate::evidence::inspection::{Choices, Details, Minimization, Output, Simulation, World};
 use crate::evidence::{canonical, record::Record, store::Opened};
 use serde::Serialize;
-use std::{io::Write, path::Path};
+use std::{
+    io::Write,
+    path::{Component, Path, PathBuf},
+};
 
 #[derive(Serialize)]
 pub struct Inspection<'a> {
@@ -24,6 +27,19 @@ struct Artifact<'a> {
     world: Option<&'a World>,
     simulation: Option<&'a Simulation>,
     minimization: Option<&'a Minimization>,
+}
+
+fn artifact_path(operand: &Path) -> Result<PathBuf, String> {
+    let absolute = std::path::absolute(operand).map_err(|error| error.to_string())?;
+    let mut path = PathBuf::new();
+    for component in absolute.components() {
+        if component == Component::ParentDir {
+            path.pop();
+        } else {
+            path.push(component.as_os_str());
+        }
+    }
+    Ok(path)
 }
 
 /// # Errors
@@ -58,7 +74,8 @@ pub fn run(arguments: &[String], output: &mut dyn Write) -> Result<(), super::Er
             positional = true;
         }
     }
-    let path = path.ok_or("usage: gomad inspect [--json] [--choices] ARTIFACT")?;
+    let path = artifact_path(path.ok_or("usage: gomad inspect [--json] [--choices] ARTIFACT")?)?;
+    let path = path.as_path();
     let opened =
         Opened::open(path).map_err(|error| format!("inspect {}: {error}", path.display()))?;
     opened.authenticate_all()?;

@@ -3,6 +3,7 @@
 import argparse
 import base64
 import hashlib
+import itertools
 import json
 import os
 from pathlib import Path
@@ -49,13 +50,36 @@ def compare_outputs(go, rust, label):
             equal(rust[name][key], expected, label + "." + name + "." + key)
 
 
+def compare_failure_groups(failures):
+    equal(len(failures), 8, "failure_grouping.failures")
+    comparisons = 0
+    for left, right in itertools.combinations(failures, 2):
+        equal(left["rust_signature"] == right["rust_signature"],
+              left["go_signature"] == right["go_signature"],
+              left["execution"] + ".grouping." + right["execution"])
+        comparisons += 1
+    equal(comparisons, 28, "failure_grouping.pair_comparisons")
+    partitions = {}
+    for lineage in ("go", "rust"):
+        groups = {}
+        for item in failures:
+            groups.setdefault(item[lineage + "_signature"], []).append(item["execution"])
+        partitions[lineage] = sorted(sorted(group) for group in groups.values())
+    return {"failures": len(failures), "groups": len(partitions["go"]),
+            "pair_comparisons": comparisons, "partitions": partitions}
+
+
 def compare_choices(run, baseline, rust_binary, go_root, rust_root, corpus):
     go_rows = json.loads((go_root / "reference.json").read_bytes())["records"]
     rust_rows = json.loads((rust_root / "foundation-result.json").read_bytes())["records"]
-    equal(len(go_rows), 2, "choices.go.count")
-    equal(len(rust_rows), 2, "choices.rust.count")
-    for seed, go_row, rust_row in zip((7, 8), go_rows, rust_rows):
-        label = f"runtime-choice.seed{seed}"
+    equal(len(go_rows), 4, "choices.go.count")
+    equal(len(rust_rows), 4, "choices.rust.count")
+    cases = [(name, seed) for name in ("runtime-choice", "runtime-choice-overflow") for seed in (7, 8)]
+    for (name, seed), go_row, rust_row in zip(cases, go_rows, rust_rows):
+        overflow = name == "runtime-choice-overflow"
+        label = f"{name}.seed{seed}"
+        equal((go_row["name"], go_row["seed"]), (name, seed), label + ".go.selection")
+        equal(rust_row["seed"], seed, label + ".rust.selection")
         go_path = Path(go_row["artifact"])
         rust_path = rust_root / rust_row["artifact"]
         go_report = json.loads(run(label + ".go-inspect", [baseline / "bin/gomad", "inspect",
@@ -88,10 +112,18 @@ def compare_choices(run, baseline, rust_binary, go_root, rust_root, corpus):
             equal(len(payload), int(entry["size"]), label + ".go.payload_bytes." + entry["path"])
         equal(go["seed"], seed, label + ".go.seed")
         equal(record["seed"], seed, label + ".rust.seed")
-        target = sha((corpus / "targets/inspect-choice.wat").read_bytes())
+        module = "targets/inspect-choice-overflow.wat" if overflow else "targets/inspect-choice.wat"
+        target = sha((corpus / module).read_bytes())
         equal(digest(go["target"]["sha256"]), target, label + ".go.target")
         equal(record["identity"]["target"], target, label + ".rust.target")
-        equal(go["outcome"]["termination"], record["outcome"]["termination"], label + ".termination")
+        if overflow:
+            equal(go["outcome"]["termination"], "none", label + ".go.termination")
+            equal(go["outcome"]["reason"], "choice_trace_overflow", label + ".go.reason")
+        else:
+            equal(go["outcome"]["termination"], "exit", label + ".go.termination")
+        equal(record["outcome"]["termination"], "capacity" if overflow else "exit", label + ".termination")
+        equal(go["outcome"]["domain"], "runner" if overflow else "success", label + ".go.outcome_class")
+        equal(record["outcome"]["class"], "runner_failure" if overflow else "success", label + ".rust.outcome_class")
         equal(go["outcome"].get("exit_code"), record["outcome"]["exit_code"], label + ".exit_code")
         left = go["choices"]
         right = rust["choices"]
@@ -99,17 +131,33 @@ def compare_choices(run, baseline, rust_binary, go_root, rust_root, corpus):
                     "terminal_state", "exact_replay_available", "runnable", "select_poll",
                     "select_result", "sites"):
             equal(right[key], left[key], label + ".choices." + key)
+        equal(right["terminal_state"], "overflow" if overflow else "complete", label + ".choices.terminal_state")
+        equal(right["exact_replay_available"], not overflow, label + ".choices.exact_replay_available")
+        equal(right["limit"], 160 if overflow else 4096, label + ".choices.limit")
         decisions = [dict(item, site_missing=item.get("site_missing", False))
-                     for item in left["replay_decisions"]]
+                     for item in left.get("replay_decisions", [])]
         equal(right["replay_decisions"], decisions, label + ".choices.replay_decisions")
         equal(left["decisions"], len(decisions), label + ".choices.decisions")
         trace = (go_path / "choices.bin").read_bytes()
+        raw = (go_root / go_row["raw_result"]).read_bytes()
+        equal(sha(raw), digest(go_row["raw_sha256"]), label + ".go.raw_sha256")
+        observed = json.loads(raw)
+        equal(observed["Reaped"], True, label + ".go.reaped")
+        equal(observed["Cancelled"], False, label + ".go.cancelled")
+        equal(observed["Termination"], "capacity" if overflow else "exit", label + ".go.raw_termination")
+        raw_trace = observed["PartialHelperChoice"] if overflow else observed["ChoiceTrace"]["Bytes"]
+        equal(trace, base64.b64decode(raw_trace or "", validate=True), label + ".go.raw_trace")
+        equal(len(trace), 96, label + ".choices.prefix_bytes")
         equal(trace, (rust_path / "evidence/choice").read_bytes(), label + ".choices.raw_trace")
         equal(digest(left["sha256"]), sha(trace), label + ".go.choices.sha256")
         equal(digest(right["sha256"]), sha(trace), label + ".rust.choices.sha256")
-        equal(left["tape_sha256"], go_manifest["choice_profile"]["trace"]["tape_sha256"], label + ".go.tape_sha256")
+        equal(left.get("tape_sha256", ""), go_manifest["choice_profile"]["trace"].get("tape_sha256", ""), label + ".go.tape_sha256")
         details = json.loads((rust_path / "evidence/inspection.json").read_bytes())
-        equal(right["tape_sha256"], details["choices"]["tape_sha256"], label + ".rust.tape_sha256")
+        equal(right["tape_sha256"], details["choices"]["tape_sha256"] or "", label + ".rust.tape_sha256")
+        if overflow:
+            equal(left.get("tape_sha256", ""), "", label + ".go.overflow_tape")
+            equal(right["tape_sha256"], "", label + ".rust.overflow_tape")
+            equal(decisions, [], label + ".overflow_decisions")
 
 
 def go_minimization(run, args):
@@ -196,7 +244,7 @@ def main():
         commands.append({"command": [str(part) for part in command],
                          "cwd": str(cwd) if cwd else None,
                          "environment": {key: env[key] for key in ("GOENV", "GOTOOLCHAIN", "GOWORK", "CGO_ENABLED")} if env else None,
-                         "status": result.returncode,
+                         "status": result.returncode, "expected_status": expected_status,
                          "stdout": f"{name}.stdout", "stderr": f"{name}.stderr"})
         (args.output / "commands.json").write_text(json.dumps(commands, indent=2) + "\n")
         equal(result.returncode, expected_status, f"{name}.status")
@@ -257,6 +305,7 @@ def main():
     equal(len(cases), 12, "corpus.count")
     equal(len(reference["records"]), len(cases), "go.count")
     equal(len(rust["records"]), len(cases), "rust.count")
+    failures = []
     for (case, seed), go_row, rust_row in zip(cases, reference["records"], rust["records"]):
         label = f"{case['name']}.seed{seed}"
         equal((go_row["name"], go_row["seed"]), (case["name"], seed), label + ".selection")
@@ -308,6 +357,14 @@ def main():
         equal(record["outcome"]["termination"], termination, label + ".termination")
         equal(go["outcome"].get("exit_code"), observed["ExitCode"], label + ".go.exit_code")
         equal(record["outcome"]["exit_code"], observed["ExitCode"], label + ".exit_code")
+        go_failure = go["outcome"]["domain"] != "success"
+        rust_failure = record["outcome"]["class"] != "success"
+        equal(rust_failure, go_failure, label + ".failure_class")
+        equal(go["outcome"]["failure_signature"], manifest["outcome"]["failure_signature"],
+              label + ".go.failure_signature")
+        if go_failure:
+            failures.append({"execution": label, "go_signature": go["outcome"]["failure_signature"],
+                             "rust_signature": actual["failure_signature"]})
         equal(go["seed"], seed, label + ".go.seed")
         equal(record["seed"], seed, label + ".seed")
         arguments = ["fixture"] if case["modeled"] else []
@@ -358,14 +415,25 @@ def main():
             equal(go.get(name), None, label + ".go." + name)
             equal(actual[name], None, label + ".rust." + name)
     compare_choices(run, args.baseline, args.rust_binary, go_choices, rust_choices, corpus)
+    grouping = compare_failure_groups(failures)
+    refused = run("rust-refuse-fresh-go", [args.rust_binary, "inspect", "--json",
+                                           reference["records"][0]["artifact"]], expected_status=2)
+    equal(refused, b"", "rust.refuse_fresh_go.stdout")
+    refusal_stderr = (args.output / "rust-refuse-fresh-go.stderr").read_bytes()
+    equal(b"unsupported artifact storage format" in refusal_stderr, True, "rust.refuse_fresh_go.diagnostic")
     equal(sha(args.rust_binary.read_bytes()), rust_binary_sha, "rust.binary_changed_during_run")
-    receipt = {"schema": "gomad.inspect-parity/v1", "executions": len(cases), "choice_executions": 2,
+    receipt = {"schema": "gomad.inspect-parity/v1", "executions": len(cases), "choice_executions": 4,
+               "choice_overflow_executions": 2,
+               "failure_grouping": grouping,
+               "expected_refusals": [{"command": "rust-refuse-fresh-go", "status": 2, "stdout_bytes": 0}],
+               "command_status_counts": {str(status): sum(row["status"] == status for row in commands)
+                                         for status in sorted({row["status"] for row in commands})},
                "go_binary_sha256": sha((args.baseline / "bin/gomad").read_bytes()),
                "rust_binary_sha256": rust_binary_sha,
                "go_reference_binary_sha256": sha(executable.read_bytes()),
                "template_sha256": sha(template.read_bytes()), "corpus_sha256": sha(index_raw)}
     (args.output / "inspect-result.json").write_text(json.dumps(receipt, indent=2) + "\n")
-    print("authenticated Go/Rust inspect field parity: 12/12 fresh executions and 2/2 runtime choices")
+    print("authenticated Go/Rust inspect field parity: 12/12 fresh executions, 4/4 runtime choices (2 overflow), Go-lineage refusal status 2")
 
 
 if __name__ == "__main__":

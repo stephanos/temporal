@@ -5,6 +5,7 @@ import hashlib
 import json
 import copy
 import shutil
+import os
 from pathlib import Path
 import subprocess
 
@@ -38,27 +39,39 @@ assert facts['record_sha256'] == hashlib.sha256(record_raw).hexdigest()
 assert facts['record']['seed'] == 7
 assert facts['stored_bytes'] == published['stored_bytes']
 assert facts['choices'] is None
+relative = os.path.relpath(artifact, Path.cwd())
+assert json.loads(run('inspect', '--json', relative))['path'] == str(artifact)
 assert 'seed=7' in run('inspect', artifact)
+assert json.loads(run('inspect', '--json=true', '--choices=false', artifact)) == report
 run('inspect', '--choices', artifact, status=2)
 assert 'no choice trace' in receipts[-1]['stderr']
 for argv in [('inspect',), ('inspect', '--unknown', artifact),
-             ('inspect', '--json', artifact, artifact)]:
+             ('inspect', '--json', artifact, artifact), ('inspect', '--json=wrong', artifact)]:
     run(*argv, status=2)
 corpus = Path(__file__).resolve().parent
 bundle = json.loads(run('fixture-inspect-execution', '--root', args.work / 'choices', '--corpus', corpus))
+assert len(bundle['records']) == 4, 'complete and actual overflow executions are required'
 for entry in bundle['records']:
     choice_artifact = args.work / 'choices' / entry['artifact']
     inspected = json.loads(run('inspect', '--json', '--choices', choice_artifact))
     choice = inspected['artifact']['choices']
     assert choice['records'] == choice['branching_records'] == choice['runnable'] == 1
     assert choice['select_poll'] == choice['select_result'] == 0
-    assert choice['exact_replay_available']
-    assert choice['replay_decisions'] == [dict(ordinal=0, kind='runnable', site_offset=42,
-                                               site_missing=False, alternatives=2, selected=choice['replay_decisions'][0]['selected'])]
+    is_overflow = inspected['artifact']['record']['outcome']['termination'] == 'capacity'
+    assert choice['exact_replay_available'] == (not is_overflow)
+    if is_overflow:
+        assert choice['terminal_state'] == 'overflow' and choice['limit'] == 160
+        assert choice['replay_decisions'] == [] and choice['tape_sha256'] == ''
+    else:
+        complete_artifact = choice_artifact
+        assert choice['replay_decisions'] == [dict(ordinal=0, kind='runnable', site_offset=42,
+                                                   site_missing=False, alternatives=2, selected=choice['replay_decisions'][0]['selected'])]
     assert len(choice['sites']) == 1 and choice['sites'][0]['count'] == 1
-    assert '"site_offset":42' in run('inspect', '--choices', choice_artifact)
+    if not is_overflow:
+        assert '"site_offset":42' in run('inspect', '--choices', choice_artifact)
     expected_fingerprint = hashlib.sha256(bytes.fromhex(inspected['artifact']['record']['identity']['target']) + b'\x01' + (42).to_bytes(8, 'big')).hexdigest()
     assert choice['sites'][0]['fingerprint'] == expected_fingerprint
+choice_artifact = complete_artifact
 
 source = json.loads(args.details_input.read_bytes())
 details_bundle = json.loads(run('fixture-inspect-details', '--root', args.work / 'details', '--input', args.details_input))
@@ -90,7 +103,19 @@ malformed('minimization-budget', lambda value: value['details']['minimization'].
 malformed('minimization-replay', lambda value: value['details']['minimization']['predicate'].__setitem__('replay_match', False), 'invalid minimization evidence')
 malformed('minimization-chain', lambda value: value['details']['minimization']['accepted'][0].__setitem__('before_sha256', '0' * 64), 'reduction chain')
 malformed('minimization-final', lambda value: value['details']['minimization'].__setitem__('final_candidate_sha256', '0' * 64), 'final candidate mismatch')
+malformed('minimization-duplicate', lambda value: value['details']['minimization']['accepted'][0]['removed'].append(copy.deepcopy(value['details']['minimization']['accepted'][0]['removed'][0])), 'removed decision')
 malformed('output-accounting', lambda value: value['details'].__setitem__('outputs', {'stdout': dict(full_sha256='0' * 64, total_bytes=99, retained_bytes=1, discarded_bytes=0, truncated=False)}), 'output stream accounting mismatch')
+
+truncated = copy.deepcopy(source)
+output = dict(full_sha256=hashlib.sha256(b'foundation-outputxyz').hexdigest(),
+              total_bytes=20, retained_bytes=17, discarded_bytes=3, truncated=True)
+truncated['details']['outputs'] = {'stdout': output}
+truncated_input = args.work / 'truncated.json'
+truncated_input.write_text(json.dumps(truncated))
+truncated_root = args.work / 'truncated'
+truncated_bundle = json.loads(run('fixture-inspect-details', '--root', truncated_root, '--input', truncated_input))
+truncated_report = json.loads(run('inspect', '--json', truncated_root / truncated_bundle['records'][0]['artifact']))
+assert truncated_report['artifact']['stdout'] == output
 
 
 def canonical(value):
@@ -127,4 +152,38 @@ for name, alter, reason in [
     run('inspect', '--json', path, status=2)
     assert reason in receipts[-1]['stderr'], (name, receipts[-1])
     assert not receipts[-1]['stdout']
+overflow = args.work / 'overflow'
+shutil.copytree(choice_artifact, overflow)
+
+
+def incomplete(manifest, details):
+    details['choices']['terminal_state'] = 'overflow'
+    details['choices']['tape_sha256'] = None
+
+
+rewrite(overflow, incomplete)
+overflow_choices = json.loads(run('inspect', '--json', '--choices', overflow))['artifact']['choices']
+assert overflow_choices['terminal_state'] == 'overflow'
+assert not overflow_choices['exact_replay_available']
+assert overflow_choices['replay_decisions'] == [] and overflow_choices['tape_sha256'] == ''
+assert overflow_choices['records'] == overflow_choices['runnable'] == 1
+
+malformed_trace = args.work / 'malformed-trace'
+shutil.copytree(choice_artifact, malformed_trace)
+
+
+def corrupt_trace(manifest, details):
+    file = malformed_trace / 'evidence/choice'
+    raw = bytearray(file.read_bytes())
+    raw[7] = 1
+    file.write_bytes(raw)
+    digest = hashlib.sha256(raw).hexdigest()
+    manifest['files']['evidence/choice']['sha256'] = digest
+    manifest['record']['streams']['evidence/choice']['sha256'] = digest
+    details['choices']['trace']['sha256'] = digest
+
+
+rewrite(malformed_trace, corrupt_trace)
+run('inspect', '--json', malformed_trace, status=2)
+assert 'malformed_trace' in receipts[-1]['stderr'] and not receipts[-1]['stdout']
 print('public inspect facts and grammar passed')

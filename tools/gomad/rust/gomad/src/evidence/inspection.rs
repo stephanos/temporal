@@ -282,12 +282,11 @@ impl ChoiceEvidence {
         {
             return Err("unsupported choice trace metadata".into());
         }
-        let target = self
-            .identity
-            .target_sha256
-            .iter()
-            .map(|byte| format!("{byte:02x}"))
-            .collect::<String>();
+        let mut target = String::with_capacity(64);
+        for byte in self.identity.target_sha256 {
+            target.push(char::from(b"0123456789abcdef"[usize::from(byte >> 4)]));
+            target.push(char::from(b"0123456789abcdef"[usize::from(byte & 15)]));
+        }
         if target != opened.manifest().record.identity.target {
             return Err("choice target identity mismatch".into());
         }

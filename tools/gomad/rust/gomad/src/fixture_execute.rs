@@ -34,6 +34,7 @@ struct Case {
     modeled: bool,
     #[serde(default)]
     runtime: bool,
+    choice_limit: Option<u64>,
     termination: String,
 }
 
@@ -58,6 +59,7 @@ fn run(
     }
     let module = std::fs::read(corpus.join(&case.module)).map_err(|error| error.to_string())?;
     let target = canonical::digest(&module);
+    let choice_limit = case.choice_limit.unwrap_or(4096);
     let limits = Limits {
         memory_bytes: case.memory_bytes,
         fuel: case.fuel,
@@ -77,7 +79,7 @@ fn run(
     };
     let model = if case.modeled {
         Some(linked::ModelInput {
-            configuration: serde_json::from_value(json!({"entropy_key":vec![0_u8;32],"working_directory_sha256":canonical::digest(b"/"),"arguments":{"bytes":0,"count":0,"chunks":0},"environment":{"bytes":0,"count":0,"chunks":0},"seed":seed,"mode":1,"limit":4096,"diagnostics":false,"epoch_nanos":0,"read_step_nanos":read_step_nanos,"now":0,"limits":{"calls":100,"transcript_bytes":4096,"pending_events":16}})).map_err(|error| error.to_string())?,
+            configuration: serde_json::from_value(json!({"entropy_key":vec![0_u8;32],"working_directory_sha256":canonical::digest(b"/"),"arguments":{"bytes":0,"count":0,"chunks":0},"environment":{"bytes":0,"count":0,"chunks":0},"seed":seed,"mode":1,"limit":choice_limit,"diagnostics":false,"epoch_nanos":0,"read_step_nanos":read_step_nanos,"now":0,"limits":{"calls":100,"transcript_bytes":4096,"pending_events":16}})).map_err(|error| error.to_string())?,
             arguments: arguments.clone(), environment: vec!["PWD=/".into()], replay_trace: None,
         })
     } else {
@@ -134,7 +136,7 @@ fn run(
             "helper": linked::IMPLEMENTATION_SHA256,
         }))?),
         configuration: canonical::digest(&canonical::encode(
-            &json!({"limits":limits,"arguments":arguments,"environment":environment,"modeled":case.modeled,"engine":linked::CONFIGURATION,"profile":profile,"read_step_nanos":read_step_nanos}),
+            &json!({"limits":limits,"choice_limit":choice_limit,"arguments":arguments,"environment":environment,"modeled":case.modeled,"engine":linked::CONFIGURATION,"profile":profile,"read_step_nanos":read_step_nanos}),
         )?),
     };
     let mut streams = BTreeMap::new();
@@ -225,11 +227,17 @@ fn run(
                     file: "evidence/choice".into(),
                     sha256: stream.sha256.clone(),
                     bytes: stream.bytes,
-                    limit: record.limits.evidence_bytes,
+                    limit: choice_limit,
                 },
                 records: stream.records,
-                terminal_state: "complete".into(),
-                tape_sha256: Some(projected.tape_sha256),
+                terminal_state: if record.outcome.termination == "capacity" {
+                    "overflow"
+                } else {
+                    "complete"
+                }
+                .into(),
+                tape_sha256: (record.outcome.termination != "capacity")
+                    .then_some(projected.tape_sha256),
             }),
             world: None,
             simulation: None,
@@ -298,6 +306,7 @@ pub(crate) fn watchdog_cancellation(corpus: &Path) -> Result<(), String> {
         wall_millis: 60_000,
         modeled: false,
         runtime: false,
+        choice_limit: None,
         termination: "exit".into(),
     };
     run(&case, 7, corpus, "gomad.wasi-stock-exploratory/v1", 1)?;
@@ -306,24 +315,35 @@ pub(crate) fn watchdog_cancellation(corpus: &Path) -> Result<(), String> {
 }
 
 pub(crate) fn inspection_bundle(root: &Path, corpus: &Path) -> Result<(), String> {
-    let case = Case {
-        name: "runtime-choice".into(),
-        module: "targets/inspect-choice.wat".into(),
-        fuel: 100_000,
-        memory_bytes: 65_536,
-        wall_millis: 1000,
-        modeled: true,
-        runtime: true,
-        termination: "exit".into(),
-    };
     let mut publications = Vec::new();
-    for seed in [7, 8] {
-        let first = run(&case, seed, corpus, "gomad.wasi-cooperative/v1", 0)?;
-        let second = run(&case, seed, corpus, "gomad.wasi-cooperative/v1", 0)?;
-        if first.record.bytes()? != second.record.bytes()? {
-            return Err("repeated choice execution differs".into());
+    for (name, module, limit, termination) in [
+        ("runtime-choice", "targets/inspect-choice.wat", 4096, "exit"),
+        (
+            "runtime-overflow",
+            "targets/inspect-choice-overflow.wat",
+            160,
+            "capacity",
+        ),
+    ] {
+        let case = Case {
+            name: name.into(),
+            module: module.into(),
+            fuel: 100_000,
+            memory_bytes: 65_536,
+            wall_millis: 1000,
+            modeled: true,
+            runtime: true,
+            choice_limit: Some(limit),
+            termination: termination.into(),
+        };
+        for seed in [7, 8] {
+            let first = run(&case, seed, corpus, "gomad.wasi-cooperative/v1", 0)?;
+            let second = run(&case, seed, corpus, "gomad.wasi-cooperative/v1", 0)?;
+            if first.record.bytes()? != second.record.bytes()? {
+                return Err("repeated choice execution differs".into());
+            }
+            publications.push(first);
         }
-        publications.push(first);
     }
     crate::fixture::publish_bundle(root, "inspect-execution", publications)
 }

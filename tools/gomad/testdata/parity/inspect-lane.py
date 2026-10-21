@@ -14,8 +14,12 @@ p.add_argument('--work', type=Path, required=True)
 args = p.parse_args()
 corpus = Path(__file__).resolve().parent
 declaration = json.loads((corpus / 'inspect-corpus.json').read_bytes())
+assert set(declaration) == {'schema', 'verb', 'fresh_execution_corpus', 'runtime_choice_target',
+                            'runtime_overflow_target', 'consumer_details', 'golden', 'projection'}
 assert declaration['schema'] == 'gomad.inspect-corpus/v1' and declaration['verb'] == 'inspect'
-for name in ('fresh_execution_corpus', 'runtime_choice_target', 'consumer_details'):
+assert set(declaration['projection']) == {'path', 'record', 'files', 'choices', 'world',
+                                         'simulation', 'minimization', 'stdout', 'stderr'}
+for name in ('fresh_execution_corpus', 'runtime_choice_target', 'runtime_overflow_target', 'consumer_details'):
     assert (corpus / declaration[name]).is_file(), declaration[name]
 for path in (args.binary, args.baseline / 'inputs.sha256', args.go_compiler, args.source / 'tools/gomad/go.mod'):
     assert path.is_file(), f'required inspect input missing: {path}'

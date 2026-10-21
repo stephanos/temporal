@@ -15,9 +15,13 @@ compilation and teardown. That existing hard-wall guarantee is therefore an open
 fn232.1 acceptance gap, not a completed bound or an authorized contract change.
 No detached compiler thread or per-execution subprocess is used.
 
-No public host verbs have moved yet. The `determinism-fixture` feature exposes
-only the foundation test driver; its commands and fault controls are absent from
-ordinary builds. Run from the repository root:
+The public `inspect` verb reads Rust-lineage artifacts through the shared
+authenticated opener. Its JSON shape and mandatory fresh Go/Rust comparison
+are documented in [the maintainer CLI guide](../CLI.md#rust-artifact-inspection).
+Other public host verbs remain with their later fn-232 tasks. The
+`determinism-fixture` feature exposes the foundation and inspect test drivers;
+their commands and fault controls are absent from ordinary builds. Run from the
+repository root:
 
 ```sh
 cargo +1.99.1 test --release --locked --manifest-path tools/gomad/rust/Cargo.toml --features determinism-fixture

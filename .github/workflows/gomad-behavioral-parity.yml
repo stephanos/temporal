@@ -38,6 +38,15 @@ jobs:
           cargo +1.99.1 test --release --locked --jobs 2 --manifest-path tools/gomad/rust/Cargo.toml --features determinism-fixture
           cargo +1.99.1 build --release --locked --jobs 2 --manifest-path tools/gomad/rust/Cargo.toml --features determinism-fixture
           python3 tools/gomad/testdata/parity/foundation-check.py --binary "$CARGO_TARGET_DIR/release/gomad" --work "$RUNNER_TEMP/foundation-check"
+      - name: Verify public Rust inspection, consumer fixtures and authenticated opens
+        run: |
+          python3 tools/gomad/testdata/parity/inspect-check.py --binary "$CARGO_TARGET_DIR/release/gomad" --work "$RUNNER_TEMP/inspect-consumer" --details-input tools/gomad/testdata/parity/inspect-details.json
+          python3 tools/gomad/testdata/parity/foundation-store-check.py "$CARGO_TARGET_DIR/release/gomad" "$RUNNER_TEMP/inspect-store" --inspect
+          python3 tools/gomad/testdata/parity/inspect-golden-check.py --binary "$CARGO_TARGET_DIR/release/gomad" --work "$RUNNER_TEMP/inspect-golden" --details-input tools/gomad/testdata/parity/inspect-details.json
+      # Fresh Go/Rust inspect parity is the mandatory callable local gate in
+      # tools/gomad/CLI.md. fn-232.13 must provision its authenticated baseline,
+      # extracted source and Go compiler on this known runner before wiring
+      # that same command here. No baseline availability or CI pass is implied.
       - name: Prove fixture controls absent from release
         run: |
           cargo +1.99.1 build --release --locked --jobs 2 --manifest-path tools/gomad/rust/Cargo.toml

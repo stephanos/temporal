@@ -340,8 +340,9 @@ for the current Go interface boundary; Git history retains prior migrations.
 ## Maintainer checks
 
 The isolated Rust host foundation and its fixture-only execution, evidence/store
-and parity gates are documented in [rust/README.md](rust/README.md). Public verbs
-have not moved; fn232.1 still has an explicit in-process compiler hard-wall gap.
+and parity gates are documented in [rust/README.md](rust/README.md). Rust artifact
+inspection is implemented; later public verbs remain with their fn-232 tasks.
+fn232.1 still has an explicit in-process compiler hard-wall gap.
 
 Rust and Go consume the same helper transcript corpus as their wire/evidence
 contract. Regeneration compares repeated executions; a second pass must leave

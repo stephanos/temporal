@@ -31,6 +31,40 @@ def command(*argv):
     return result.stdout
 
 
+def payload(value, path):
+    parity.fields(value, dict(schema=str, file=str, sha256=str, bytes=int, limit=int), path)
+
+
+def optional_facts(value):
+    if value['world'] is not None:
+        world = value['world']
+        parity.fields(world, dict(profile=str, implementation_sha256=str, seed=int,
+                                  now_nanos=int, transitions=int, terminal_kind=str,
+                                  terminal_detail=str, history=dict), '$inspect.artifact.world')
+        payload(world['history'], '$inspect.artifact.world.history')
+    if value['simulation'] is not None:
+        simulation = value['simulation']
+        parity.fields(simulation, dict(profile=str, controller_sha256=str, execution_sha256=str,
+                                       candidate_sha256=str, outcome_sha256=str,
+                                       failure_sha256=(str, type(None)), plan=dict, record=dict), '$inspect.artifact.simulation')
+        for name in ('plan', 'record'):
+            payload(simulation[name], '$inspect.artifact.simulation.' + name)
+    if value['minimization'] is not None:
+        minimization = value['minimization']
+        parity.fields(minimization, dict(schema=str, implementation_sha256=str, parent_record_hash=str,
+                                         parent_failure_signature=str, original_candidate_sha256=str,
+                                         final_candidate_sha256=str, attempt_budget=int, attempts=int,
+                                         original_forced_decisions=int, final_forced_decisions=int,
+                                         accepted=list, predicate=dict), '$inspect.artifact.minimization')
+        parity.fields(minimization['predicate'], dict(failure_signature=str, domain=str, reason=str,
+                                                     termination=str, replay_match=bool, choice_replay=str,
+                                                     simulation_replay=str), '$inspect.artifact.minimization.predicate')
+        for reduction in minimization['accepted']:
+            parity.fields(reduction, dict(kind=str, before_sha256=str, after_sha256=str, removed=list), '$inspect.artifact.minimization.accepted')
+            for decision in reduction['removed']:
+                parity.fields(decision, dict(dimension=str, ordinal=int, identity=str), '$inspect.artifact.minimization.accepted.removed')
+
+
 def inspect(root, item, show_choices):
     artifact = root / item['artifact']
     argv = [args.binary, 'inspect', '--json']
@@ -55,6 +89,7 @@ def inspect(root, item, show_choices):
     assert value['failure_signature'] == item['failure_signature']
     assert value['stored_bytes'] == len(manifest_raw) + len((artifact / 'storage.json').read_bytes()) + sum(file['bytes'] for file in manifest['files'].values())
     parity.record_contract(value['record'], '$inspect.artifact.record')
+    optional_facts(value)
     for name in ('stdout', 'stderr'):
         parity.fields(value[name], dict(full_sha256=str, total_bytes=int, retained_bytes=int,
                                        discarded_bytes=int, truncated=bool), '$inspect.artifact.' + name)

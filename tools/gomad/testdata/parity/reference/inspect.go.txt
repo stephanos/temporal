@@ -2,7 +2,9 @@ package main
 
 import (
 	"context"
+	"crypto/sha256"
 	"encoding/json"
+	"errors"
 	"flag"
 	"fmt"
 	"os"
@@ -67,7 +69,10 @@ func run(helper, corpus, output string, choices bool) error {
 		return fmt.Errorf("incomplete inspect corpus")
 	}
 	if choices {
-		document.Cases = []testCase{{Name: "runtime-choice", Module: "targets/inspect-choice.wat", Fuel: 100000, Memory: 65536, Wall: 1000, Modeled: true, Termination: "exit"}}
+		document.Cases = []testCase{
+			{Name: "runtime-choice", Module: "targets/inspect-choice.wat", Fuel: 100000, Memory: 65536, Wall: 1000, Modeled: true, Termination: "exit"},
+			{Name: "runtime-choice-overflow", Module: "targets/inspect-choice-overflow.wat", Fuel: 100000, Memory: 65536, Wall: 1000, Modeled: true, Termination: "capacity"},
+		}
 		document.Profile = wasi.CooperativeProfile
 		document.ReadStep = 0
 	}
@@ -102,6 +107,11 @@ func run(helper, corpus, output string, choices bool) error {
 				}
 			}
 			buildKey := string(record.HashBytes([]byte("gomad.fixture-wat-source/v1")))[7:]
+			choiceLimit := uint64(4096)
+			overflow := test.Name == "runtime-choice-overflow"
+			if overflow {
+				choiceLimit = 160
+			}
 			if choices {
 				implementation, err := choice.ImplementationIdentity(buildKey)
 				if err != nil {
@@ -115,7 +125,7 @@ func run(helper, corpus, output string, choices bool) error {
 				for _, name := range []string{"config", "decision", "observation", "finish", "idle"} {
 					request.Imports = append(request.Imports, wasi.Import{Module: "gomad_wasm_v1", Name: name, Params: []string{"i32", "i32"}, Results: []string{"i32"}})
 				}
-				request.Runtime = &wasi.RuntimeControl{Seed: seed, Choice: &backends.ChoiceRequest{Mode: choice.ModeRecord, ExecutionIdentity: choice.ExecutionIdentity{TargetSHA256: target, ToolchainBuildKey: buildKey, GOOS: "wasip1", GOARCH: "wasm", ImplementationSHA256: implementation}, Limit: 4096}}
+				request.Runtime = &wasi.RuntimeControl{Seed: seed, Choice: &backends.ChoiceRequest{Mode: choice.ModeRecord, ExecutionIdentity: choice.ExecutionIdentity{TargetSHA256: target, ToolchainBuildKey: buildKey, GOOS: "wasip1", GOARCH: "wasm", ImplementationSHA256: implementation}, Limit: choiceLimit}}
 			}
 			result, err := wasi.Run(context.Background(), request)
 			if err != nil {
@@ -169,18 +179,30 @@ func run(helper, corpus, output string, choices bool) error {
 			if len(result.Transcript) != 0 {
 				manifest.IOProfile.Transcript = &record.IOTranscript{Schema: "gomad.io-transcript/v1", SHA256: record.HashBytes(result.Transcript), Bytes: record.Uint64String(len(result.Transcript)), Records: record.Uint64String(result.Calls)}
 			}
-			if choices {
-				trace := result.ChoiceTrace
-				tape, err := choice.ProjectReplayPlan(trace, request.Runtime.Choice.ExecutionIdentity)
-				if err != nil {
-					return err
-				}
-				manifest.Limits.ChoiceTraceBytes = 4096
-				manifest.ChoiceProfile = &record.ChoiceProfile{Name: choice.Profile, ImplementationSHA256: record.SHA256FromSum(request.Runtime.Choice.ExecutionIdentity.ImplementationSHA256), Trace: record.ChoiceTrace{Schema: "gomad.choice-trace/v3", SHA256: record.SHA256FromSum(trace.SHA256), Bytes: record.Uint64String(len(trace.Bytes)), Records: record.Uint64String(trace.Summary.Records), BranchingRecords: record.Uint64String(trace.Summary.Branching), TerminalState: "complete", Limit: 4096, TapeSHA256: record.SHA256FromSum(tape.SHA256), Decisions: record.Uint64String(len(tape.Decisions))}}
-			}
 			var choiceTrace []byte
 			if choices {
-				choiceTrace = result.ChoiceTrace.Bytes
+				trace := result.ChoiceTrace
+				terminal := "complete"
+				if overflow {
+					// The baseline retains a capacity stop's authentic prefix separately from a completed trace.
+					trace, err = choice.DecodeStoredTrace(choice.Profile, result.PartialHelperChoice, choice.TerminalMetadata{State: choice.TerminalOverflow, Limit: choiceLimit, Records: uint64(len(result.PartialHelperChoice) / 96), SHA256: sha256.Sum256(result.PartialHelperChoice)})
+					if !errors.Is(err, choice.ErrOverflow) {
+						return fmt.Errorf("expected retained overflow trace: %w", err)
+					}
+					terminal = "overflow"
+					manifest.Outcome.Reason = "choice_trace_overflow"
+				}
+				manifest.Limits.ChoiceTraceBytes = record.Uint64String(choiceLimit)
+				manifest.ChoiceProfile = &record.ChoiceProfile{Name: choice.Profile, ImplementationSHA256: record.SHA256FromSum(request.Runtime.Choice.ExecutionIdentity.ImplementationSHA256), Trace: record.ChoiceTrace{Schema: "gomad.choice-trace/v3", SHA256: record.SHA256FromSum(trace.SHA256), Bytes: record.Uint64String(len(trace.Bytes)), Records: record.Uint64String(trace.Summary.Records), BranchingRecords: record.Uint64String(trace.Summary.Branching), TerminalState: terminal, Limit: record.Uint64String(choiceLimit)}}
+				if !overflow {
+					tape, err := choice.ProjectReplayPlan(trace, request.Runtime.Choice.ExecutionIdentity)
+					if err != nil {
+						return err
+					}
+					manifest.ChoiceProfile.Trace.TapeSHA256 = record.SHA256FromSum(tape.SHA256)
+					manifest.ChoiceProfile.Trace.Decisions = record.Uint64String(len(tape.Decisions))
+				}
+				choiceTrace = trace.Bytes
 			}
 			published, err := artifact.PublishArtifact(artifact.Store{Root: filepath.Join(output, "artifacts"), Key: artifact.StoreKeyRecord}, artifact.ArtifactInput{Manifest: manifest, TargetPath: module, Stdout: result.Stdout, Stderr: result.Stderr, IOTranscript: result.Transcript, ChoiceTrace: choiceTrace, World: worldPayloads})
 			if err != nil {
