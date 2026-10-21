@@ -8,6 +8,8 @@ Add the explicit-input sweep driver under `internal/backends/wasm`, refusing inh
 
 **Size:** M
 **Files:** tools/gomad/internal/backends/wasm/** (harness/cache), tools/gomad/internal/backends/wasm/README.md, .flow/artifacts/fn221-*
+
+**Touches:** tools/gomad/internal/backends/wasm/** (harness/cache), tools/gomad/internal/backends/wasm/README.md, .flow/artifacts/fn221-*
 ## Acceptance
 - [ ] Harness refuses inherited GOMAD_* variables and unbounded runs
 - [ ] Top-level counts reconcile against go test -list; method declarations and registration paths are inventoried separately

@@ -10,5 +10,5 @@
   "spec_path": ".flow/tasks/fn-232-gomad-rewrite-the-host-side-in-rust.1.md",
   "status": "todo",
   "title": "gomad binary crate: link the helper as a library, in-process execution with slots and bounds",
-  "updated_at": "2026-10-20T21:26:59.037556Z"
+  "updated_at": "2026-10-21T17:53:20.764547Z"
 }

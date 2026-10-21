@@ -12,5 +12,5 @@
   "spec_path": ".flow/tasks/fn-232-gomad-rewrite-the-host-side-in-rust.12.md",
   "status": "todo",
   "title": "Keep Go overlay, models, generator and corpora green under the Rust binary",
-  "updated_at": "2026-10-20T21:09:59.704487Z"
+  "updated_at": "2026-10-21T17:53:26.624159Z"
 }
