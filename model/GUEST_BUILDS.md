@@ -103,17 +103,43 @@ build. The original engine feasibility proof is retained under
 `.flow/tmp/fn230-eh-proof-20261021T032505Z/` with its sources and negative controls.
 
 The executed unwind proof used source
-`44c419f10988116059c886994f792f74100fd3b1` in the isolated checkout
+`19f71945cba152f566ef532cee0c25c56ccbbfde` in the isolated checkout
 `/Users/stephan/Workspace/skunkworks/umpire/temporal/.worktrees/fn2301-unwind`.
-Its exact runner is `.flow/tmp/run-unwind-proof.sh`, with captured output in
-`.flow/tmp/unwind-proof.log`. It ran through
+Its exact runner is `.flow/tmp/run-final-unwind-proof.sh`, with captured output in
+`.flow/tmp/unwind-final-proof.log`. It ran through
 `timeout 600s env -u RUSTFLAGS -u CARGO_ENCODED_RUSTFLAGS bash <absolute-runner>`
-and exited 0. Source clones are `.flow/tmp/fn2301-unwind-proof/source-a` and
-`.flow/tmp/fn2301-unwind-proof/different-source-b`; the initially absent targets
-are `/home/agent/.cache/codex-build/fn2301-unwind/proof-a` and `proof-b`.
-Their directory identities were `29:9864571` and `29:9963433`. The runner checked
+and exited 0. Source clones are `.flow/tmp/fn2301-unwind-final-proof/source-a` and
+`.flow/tmp/fn2301-unwind-final-proof/different-source-b`; the initially absent targets
+are `/home/agent/.cache/codex-build/fn2301-unwind/final-proof-a` and `final-proof-b`.
+Their directory identities were `29:9969761` and `29:9969571`. The runner checked
 both source statuses before and after building, compared both pairs with `cmp`,
 and recorded SHA-256 and byte counts. Each build used `CARGO_BUILD_JOBS=4`.
 The observed platform was Linux 7.0.14/aarch64 with Rust 1.99.1
 (`58cf8f9c35b355199727627d07ae34a4e2846d67`, LLVM 23.1.1), Cargo 1.99.1,
 Go 1.27.0 and protoc 29.5. DESIGN records the resulting bytes and hashes.
+
+## Verification and measured gate cost
+
+The default and `UMPIRE_BACKENDS=require make model-check` gates passed on the
+isolated source. Required mode exercised the existing TLC agreement and negative
+controls after `fetch-tlc.sh` installed the existing checksum-pinned 1.7.4 jar into
+this checkout's ignored cache. The Temporal source shape retains its existing TLC
+refusals. Both Go host modules also passed `go vet -tags test_dep ./...`.
+
+With `CARGO_BUILD_JOBS=4`,
+`CARGO_TARGET_DIR=/home/agent/.cache/codex-build/fn2301-unwind/cargo` and
+`GOCACHE=/home/agent/.cache/codex-build/fn2301-unwind/go`, `make model-time`
+exited 0. Its full gate took 101.980 s, exceeding the 30 s soft target. Native
+tests took 33.347 s and guest builds 54.130 s; this run followed a Makefile change
+that invalidates the API generator's tracked input. The edited-checker inner loop
+took 4.999 s, within its 10 s soft target. These are individual observations on
+the shared executor. The larger unwind artifacts and this gate overrun remain
+visible costs of preserving caught-panic judgments.
+
+Captured logs are `.flow/tmp/model-check-green.log`,
+`.flow/tmp/model-check-required-green.log` and `.flow/tmp/model-time-green.log`.
+Earlier failure logs remain beside them. The first gate exposed a relative child
+script invocation under this host's directory-resetting shell startup; the builder
+now invokes an absolute script path. The first timing run exposed its wrapper's
+different working directory; Python test discovery now also uses an absolute path.
+Neither correction changes test assertions or guest code generation.

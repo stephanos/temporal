@@ -139,7 +139,7 @@ Direct locked Cargo builds need no custom linker or post-link processing.
 
 ## Reproducible guest builds (fn-230.1)
 
-Linux unwind proof, 2026-10-21 UTC, source `44c419f10988116059c886994f792f74100fd3b1`.
+Linux unwind proof, 2026-10-21 UTC, source `19f71945cba152f566ef532cee0c25c56ccbbfde`.
 Linux 7.0.14/aarch64; Rust 1.99.1 (`58cf8f9c35b355199727627d07ae34a4e2846d67`,
 LLVM 23.1.1), Cargo 1.99.1, Go 1.27.0, protoc 29.5. Two clean clones at different
 absolute paths used initially absent independent targets and retained clean status.
