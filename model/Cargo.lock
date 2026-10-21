@@ -1073,11 +1073,15 @@ dependencies = [
 name = "umpire-temporal-tests"
 version = "0.0.1"
 dependencies = [
+ "prost",
  "umpire-checker",
  "umpire-dsl",
  "umpire-lift",
  "umpire-suite",
+ "umpire-temporal",
+ "umpire-temporal-api",
  "umpire-testing",
+ "umpire-wasm",
 ]
 
 [[package]]

@@ -25,6 +25,10 @@ umpire-checker.workspace = true
 umpire-testing.workspace = true
 umpire-lift.workspace = true
 umpire-suite.workspace = true
+umpire-temporal.workspace = true
+umpire-temporal-api.workspace = true
+umpire-wasm.workspace = true
+prost.workspace = true
 
 [build-dependencies]
 umpire-lift.workspace = true

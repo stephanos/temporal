@@ -568,6 +568,29 @@ The post-verdict Case plan must carry these requirements; none is implemented by
 The independent six-phase activity Model uses the Reset/Judge/Answer protocol over opaque Any.
 [Slice behavior, boundaries and measurements](README.md#mini-activity-slice-fn-216) retain the proof details.
 
+## Declarative Realizations
+
+The Temporal-owned `#[realization(activity)]` impl generates dispatch from `#[observe(WorkflowService::Method, reads(path), ignores(path = "reason"))]` and
+`#[answer(Task, reads(path), ignores(path = "reason"), produces(Request, fields(path),
+ignores(path = "reason")))]` handlers. The independent Model carries no system annotations.
+Observation input is a response or `Result<Response, i32>` for raw gRPC status handling. Handlers return `Result<_, Refusal>`. `Projection<Action>` is used directly;
+`Step<Actor> { action, expected }` proposes one converted action with its expected outcome.
+A state-valued return requires `project(Self::mapping)`. Activity's mapping returns Current for equal phases, proposes only Completed or Failed, and leaves other changes unexplained.
+Answer returns `Reply<Actor> { delivery, action, request }`; the raw packed request is checked then wrapped once. SDK-filled fields remain partial. `#[propose]` is reserved.
+
+`feature/activity/expected/realization.snap.txt` names canonical RPCs/messages for each observed response, incoming callback and outgoing request.
+Descriptor-ordered paths are `mapped`, `ignored` with a reason, or `unsupported`; outgoing mapped paths mean produced fields.
+Classified parents cover subtrees; opaque parents stop traversal. The report lists Model-action RPCs missing observation handlers with their callback/request coverage,
+then RPCs missing every realization context. Its action universe is the admitted `RPC_BINDINGS`.
+The Temporal fixture consumer uses generated `Realization::REALIZATION`, the same classifications
+as runtime guards. Shared catalog/descriptor admission rejects unknown, overlapping and opaque descendant paths and blank reasons.
+Guards inspect decoded optional/oneof presence, including opaque fields. Proto3 scalar defaults have no decoded wire presence. Unused declared reads are not detected.
+Generated-enum wildcard checks reject unresolved type coverage. The added-field control changes actual descriptor/catalog inputs, recompiles metadata
+and requires the unchanged fixture golden to fail with the new unsupported field.
+
+Complete-file physical counts for `feature/activity/temporal.rs`, including blanks/comments, are 110 before fn-231 (`b9f26782e39f815d740ea4b89925a723303c861d`) and 197 after the rewrite.
+The 87-line increase retains explicit field reasons; this source is longer. The formatted expansion snapshot pins generated dispatch separately. Model behavior and existing goldens stay fixed.
+
 ## Annotation catalog
 
 Authors classify the API fields a feature uses in its typed sidecar,
@@ -578,26 +601,14 @@ lives beside the `Catalog` derive.
 
 ### Layering and admission
 
-`umpire/annotations` owns the system-free `Catalog<M>`, kinds, tags, presence rules,
-expectations, seeded `fill`, `validate` and gap classification. Temporal owns derive mirrors,
-descriptor integration, feature declarations, typed transport adapters and live probes.
-The generic source-boundary gate rejects Temporal names in `umpire/`.
-
-Each field has exactly one kind and any compatible tags. Kinds include Uuid, Identifier,
-Timestamp, Duration, Counter, Flag, Number, Secret, Enum, Text and Bytes. Typed `View<K>` witnesses
-check the prost field or its explicit typed projection. The macro rejects contradictory
-roles (`Decided + Ignored`, `Secret + Observed`, `Random + Decided`), incompatible tags,
-unexplained ignored fields and rules that name ignored fields. `Ignored` fields retain
-their real prost type and require a reason. Runtime custom tags declare compatible kinds
-and a concrete consequence; they cannot conceal a field role. Fallible setters refuse invalid
-encoded messages before mutation; the runtime builder also checks catalog admission.
-
-Constraint names and selected semantics borrow from protovalidate (`string.uuid`,
-`duration.gt`, `enum.defined_only`, `repeated.unique`). Message presence rules borrow
-JSON Schema's `required`, `any_of`, `one_of`, `requires` and `excludes`; field roles
-`Decided`, `Observed` and `Ignored(reason)` borrow AIP field-behavior vocabulary.
-These are native typed Rust checks over a sidecar. Upstream descriptors carry no such
-validation options, and this small presence algebra needs neither CEL nor an external engine.
+`umpire/annotations` owns system-free catalogs, kinds, tags, presence, expectations, seeded `fill`, `validate` and gap classification.
+Temporal owns derive mirrors, descriptors, declarations, transport and probes. The source-boundary gate rejects Temporal names in `umpire/`.
+Each field has one kind (Uuid, Identifier, Timestamp, Duration, Counter, Flag, Number, Secret, Enum, Text or Bytes) and compatible tags. `View<K>` checks the prost field or typed projection.
+Admission rejects contradictory roles (`Decided + Ignored`, `Secret + Observed`, `Random + Decided`),
+incompatible tags, unexplained ignores and rules naming ignored fields. Ignored values retain their prost type.
+Custom tags declare compatible kinds and a concrete consequence without hiding roles. Fallible setters refuse invalid bytes before mutation; runtime catalog admission also runs.
+Constraints borrow protovalidate names (`string.uuid`, `duration.gt`, `enum.defined_only`, `repeated.unique`); presence borrows JSON Schema's required/any_of/one_of/requires/excludes;
+Decided/Observed/Ignored borrow AIP vocabulary. Native sidecar checks need no CEL, external engine or upstream descriptor validation options.
 
 ### Four exhaustiveness levels and API updates
 
@@ -614,37 +625,25 @@ The current `proto/api.binpb` has no service descriptors. `temporal/api/build.rs
 Rust API generation still reads the upstream image. The build tracks that image and feature
 `api.rs` files recursively, including their directories and the shared enum inventory.
 
-After updating the upstream API dependency/image, build with `make model-check` and classify
-every newly reported field, enum value and RPC in the affected catalogs. Review each kind,
-role, expectation and exclusion reason as the API-change diff, keeping action bindings aligned.
-Regenerate affected Go envelopes with `bash model/scripts/proto-temporal-go.sh` when needed.
-Run `make umpire-check-model-slice` and `make umpire-check-model-gaps` for activity catalog
-changes; review changed findings before updating any golden.
+After an API update, `make model-check` requires classification of added fields, enums and RPCs. Review kinds, roles, expectations and reasons with aligned action bindings.
+Regenerate affected Go envelopes with `bash model/scripts/proto-temporal-go.sh`. Activity changes also run `make umpire-check-model-slice` and `make umpire-check-model-gaps`; review findings before goldens.
 
 ### Validation and the first gap report
 
-Request constraints and presence rules carry typed rejection, `Accepts` or `Unobservable`
-expectations. Server rules use `#[rule]`; protobuf mapping uses `#[mirror]`.
-`validate` reads typed values without mutation; `fill` preserves supplied values and roles,
-uses a seed and refuses unfillable fields. The activity adapter only fills absent request IDs.
-Its request findings exclude declared Accepts; response findings preserve every violation and
-the exact response bytes. Loose rejection modes redact messages and are explicitly counted.
+Request constraints/presence carry typed rejection, `Accepts` or `Unobservable` expectations.
+Server rules use `#[rule]`, mapping `#[mirror]`. `validate` reads without mutation; seeded `fill`
+preserves supplied values/roles and refuses unfillable fields. Activity fills only absent request
+IDs. Request findings exclude Accepts; response findings retain violations and exact bytes.
+Loose rejection modes redact messages and are explicitly counted.
 
-The Rust guest derives contextual probe cases from those expectations, builds minimal negative
-requests and validates the actual decoded witnesses before dispatch. Go supplies real server
-prerequisites and transport, including polled tokens and retry-enabled resources. Bounded recipes
-carry decoded witnesses over 2 MiB within the existing 1 MiB individual/16 MiB live ABI limits.
-Each case also sends a valid baseline. Classification reports Confirmed, Mismatch, Accepted or
-Unverifiable; intentional `Accepts` succeeding is Confirmed. Mismatch and unexpected Accepted
-fail unless a source-reviewed `AcceptedGap` has a valid calendar date and nonblank reason.
-The activity registry is empty.
+The guest derives contextual probes, builds minimal negatives and validates decoded witnesses. Go supplies real prerequisites and transport, including tokens and retry-enabled resources.
+Bounded recipes carry witnesses over 2 MiB within the 1 MiB individual/16 MiB live ABI limits. Each case sends a valid baseline. Results are Confirmed, Mismatch, Accepted or Unverifiable;
+successful intentional Accepts are Confirmed. Mismatch/unexpected Accepted fail unless a reviewed
+AcceptedGap has a calendar date and nonblank reason. Activity's registry is empty.
 
-The original [golden](temporal/feature/activity/expected/gaps.txt) had 62 Confirmed
-(52 expected rejections and 10 intentional acceptances), zero Mismatch/Accepted/Unverifiable,
-before black-box schema mutations replaced server-source mapping. The initial report found two
-wrong Accepts declarations for unknown Start `id_reuse_policy` and `id_conflict_policy`.
-The downstream `chasm/lib/activity.handler.StartActivityExecution` rejects both; correcting
-the expectations confirmed them without changing the Model or server.
+The original [golden](temporal/feature/activity/expected/gaps.txt) had 62 Confirmed (52 rejections, 10 acceptances) and zero Mismatch/Accepted/Unverifiable before descriptor mutations replaced
+server-source mapping. Unknown Start id_reuse_policy/id_conflict_policy had incorrect Accepts;
+the server rejects both. Corrected expectations confirmed them without Model/server changes.
 
 Black-box reverse checks mutate every request field from raw protobuf descriptors, independent
 of catalog constraints, including ignored fields. Typed Rust setters construct absent, empty,

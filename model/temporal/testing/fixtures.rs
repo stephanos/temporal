@@ -3,6 +3,9 @@
 include!(concat!(env!("OUT_DIR"), "/fixtures.rs"));
 include!(concat!(env!("OUT_DIR"), "/lifted.rs"));
 
+mod realization;
+mod realization_control;
+
 fn fixture_name(folder: &std::path::Path) -> Result<&str, Box<dyn std::error::Error>> {
     folder.file_name().and_then(|name| name.to_str()).ok_or_else(|| "invalid fixture folder".into())
 }
@@ -67,7 +70,7 @@ fn fixtures() -> umpire_testing::TestResult {
     umpire_testing::run_at_skipping_with_external(
         &root,
         registered(),
-        &[umpire_testing::CHECKER, umpire_testing::SUITE, LIFT, TLC],
+        &[umpire_testing::CHECKER, umpire_testing::SUITE, LIFT, TLC, realization::COVERAGE],
         if required { &[] } else { &["tlc"] },
         &[GAPS],
     )

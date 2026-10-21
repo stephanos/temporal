@@ -1,0 +1,117 @@
+Activity realization coverage
+classifications: mapped | ignored (reason) | unsupported
+mapped means read for incoming contexts and produced for outgoing requests.
+A classified parent covers its subtree; opaque parents stop traversal.
+Unsupported decoded presence refuses; proto3 scalar defaults have no wire presence.
+
+observed response: /temporal.api.workflowservice.v1.WorkflowService/RequestCancelActivityExecution
+message: temporal.api.workflowservice.v1.RequestCancelActivityExecutionResponse
+  (no fields)
+
+observed response: /temporal.api.workflowservice.v1.WorkflowService/DescribeActivityExecution
+message: temporal.api.workflowservice.v1.DescribeActivityExecutionResponse
+  ignored run_id - Run identity is outside the lifecycle projection
+  ignored info.activity_id - Activity identity is bound by the owning run
+  ignored info.run_id - Run identity is outside the lifecycle projection
+  ignored info.activity_type - Activity type is outside the lifecycle projection
+  mapped info.status
+  mapped info.run_state
+  ignored info.task_queue - Queue routing is outside the lifecycle projection
+  ignored info.schedule_to_close_timeout - Timing policy is outside the lifecycle projection
+  ignored info.schedule_to_start_timeout - Timing policy is outside the lifecycle projection
+  ignored info.start_to_close_timeout - Timing policy is outside the lifecycle projection
+  ignored info.heartbeat_timeout - Heartbeat timing is outside the lifecycle projection
+  ignored info.retry_policy - Retry policy is outside the six-phase Model
+  ignored info.heartbeat_details - Heartbeat payloads are outside the lifecycle projection
+  ignored info.last_heartbeat_time - Observed timestamps are outside the lifecycle projection
+  ignored info.last_started_time - Observed timestamps are outside the lifecycle projection
+  ignored info.attempt - Retry attempts are outside the six-phase Model
+  ignored info.execution_duration - Measured duration is outside the lifecycle projection
+  ignored info.schedule_time - Observed timestamps are outside the lifecycle projection
+  ignored info.expiration_time - Observed timestamps are outside the lifecycle projection
+  ignored info.close_time - Observed timestamps are outside the lifecycle projection
+  ignored info.last_failure - Lifecycle status alone supplies terminal evidence
+  ignored info.last_worker_identity - Worker identity is outside the lifecycle projection
+  ignored info.current_retry_interval - Retry policy is outside the six-phase Model
+  ignored info.last_attempt_complete_time - Retry timing is outside the six-phase Model
+  ignored info.next_attempt_schedule_time - Retry timing is outside the six-phase Model
+  ignored info.last_deployment_version - Deployment routing is outside the Model
+  ignored info.priority - Scheduling priority is outside the Model
+  ignored info.state_transition_count - Server counters are outside the lifecycle projection
+  ignored info.state_size_bytes - Server storage size is outside the lifecycle projection
+  ignored info.search_attributes - Search indexing is outside the Model
+  ignored info.header - Application headers are outside the lifecycle projection
+  ignored info.user_metadata - Application metadata is outside the lifecycle projection
+  ignored info.canceled_reason - Cancellation reasons are outside the lifecycle projection
+  ignored info.links - Linked entities are outside the Model
+  ignored info.total_heartbeat_count - Heartbeat counters are outside the lifecycle projection
+  ignored info.sdk_name - SDK identity is outside the lifecycle projection
+  ignored info.sdk_version - SDK identity is outside the lifecycle projection
+  ignored info.start_delay - Timing policy is outside the lifecycle projection
+  ignored info.execution_time - Observed timestamps are outside the lifecycle projection
+  ignored input - Describe input does not evidence callback delivery
+  ignored outcome - Lifecycle projection reads status rather than result contents
+  ignored long_poll_token - Transport polling state is outside the Model
+  ignored callbacks - Callback registration is outside the Model
+
+incoming callback: /temporal.api.workflowservice.v1.WorkflowService/PollActivityTaskQueue
+message: temporal.api.workflowservice.v1.PollActivityTaskQueueResponse
+  ignored task_token - The SDK owns task-token transport
+  ignored workflow_namespace - The SDK owns namespace transport
+  ignored workflow_type - Workflow identity is outside this callback projection
+  ignored workflow_execution - Workflow identity is outside this callback projection
+  ignored activity_type - Activity type is outside the callback policy
+  ignored activity_id - Activity identity is bound by the owning run
+  ignored header - Application headers are outside the callback policy
+  mapped input.payloads.metadata
+  mapped input.payloads.data
+  ignored input.payloads.external_payloads - External references are accepted then removed from completed results
+  ignored heartbeat_details - Heartbeat payloads are outside the callback policy
+  ignored scheduled_time - Server timing is outside the callback policy
+  ignored current_attempt_scheduled_time - Retry timing is outside the callback policy
+  ignored started_time - Server timing is outside the callback policy
+  ignored attempt - Retry attempts are outside the six-phase Model
+  ignored schedule_to_close_timeout - Timing policy is outside the callback projection
+  ignored start_to_close_timeout - Timing policy is outside the callback projection
+  ignored heartbeat_timeout - Heartbeat timing is outside the callback projection
+  ignored retry_policy - Retry policy is outside the six-phase Model
+  ignored poller_scaling_decision - Worker scaling is outside the Model
+  ignored priority - Scheduling priority is outside the Model
+  ignored activity_run_id - Run identity is outside the callback policy
+  ignored poller_group_infos - Poller routing is outside the Model
+  ignored poller_groups_info - Poller routing is outside the Model
+
+outgoing request: /temporal.api.workflowservice.v1.WorkflowService/RespondActivityTaskCompleted
+message: temporal.api.workflowservice.v1.RespondActivityTaskCompletedRequest
+  ignored task_token - The SDK supplies the task token
+  mapped result
+  ignored identity - The SDK supplies worker identity
+  ignored namespace - The SDK supplies the namespace
+  ignored resource_id - The SDK owns resource transport
+  ignored worker_version - The SDK supplies worker version metadata
+  ignored deployment - The SDK supplies deployment metadata
+  ignored deployment_options - The SDK supplies deployment routing
+
+outgoing request: /temporal.api.workflowservice.v1.WorkflowService/RespondActivityTaskFailed
+message: temporal.api.workflowservice.v1.RespondActivityTaskFailedRequest
+  ignored task_token - The SDK supplies the task token
+  mapped failure
+  ignored identity - The SDK supplies worker identity
+  ignored namespace - The SDK supplies the namespace
+  ignored resource_id - The SDK owns resource transport
+  ignored last_heartbeat_details - The callback emits no heartbeat payloads
+  ignored worker_version - The SDK supplies worker version metadata
+  ignored deployment - The SDK supplies deployment metadata
+  ignored deployment_options - The SDK supplies deployment routing
+  unsupported cause
+
+Model-action RPCs without an observation handler:
+  /temporal.api.workflowservice.v1.WorkflowService/PollActivityTaskQueue -> Worker::Poll
+    covered only as incoming callback
+  /temporal.api.workflowservice.v1.WorkflowService/RespondActivityTaskCompleted -> Worker::RespondCompleted
+    covered only as outgoing request
+  /temporal.api.workflowservice.v1.WorkflowService/RespondActivityTaskFailed -> Worker::RespondFailed
+    covered only as outgoing request
+
+Model-action RPCs without any realization context:
+  (none)

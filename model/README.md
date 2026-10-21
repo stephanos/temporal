@@ -258,6 +258,14 @@ attributes over typed handlers. Their declared field paths distinguish observed 
 incoming callbacks and produced partial SDK requests; omitted present fields refuse.
 See the [realization guide](temporal/realization/README.md) for explicit state projection,
 `Step`/`Reply` returns and the raw typed request packing contract.
+The registered Temporal fixture consumer checks `expected/realization.snap.txt` against
+the generated runtime metadata. It distinguishes observed, callback and produced contexts,
+lists every classified path and ignore reason, and derives unhandled Model-action RPCs from
+the admitted API bindings. [Declarative Realizations](DESIGN.md#declarative-realizations)
+records the report contract and complete-file source counts. After committing a coverage
+checkpoint, run its real added-catalog-field control from `model/` with
+`mise exec -- cargo test -p umpire-temporal-tests --test fixtures added_catalog_field_fails_the_real_coverage_golden -- --ignored`.
+It rebuilds in a disposable worktree and preserves the existing coverage baseline.
 For public states, `#[machine]` exports `World` and `Action`, and `world()` returns
 `World`. Non-public states retain the opaque interface with generated types following
 the state's visibility. The public activity world removes
