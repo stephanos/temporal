@@ -275,6 +275,37 @@ the first client/server incarnations observe timeouts. A timed heal at 20 virtua
 seconds permits fresh incarnations to exchange `ping`. These fixtures exercise
 specific storage and stream boundaries, not every storage fault or partition.
 
+`ringpop.json` (fn-224) runs three nodes that each join a ringpop ring over the
+modeled network with the real `ringpop-go`/`tchannel-go` client. The guest is the
+nested module `internal/backends/wasm/testdata/ringpop`; its `go.mod` pins every
+dependency through the Temporal module, so run it from that directory with a
+cooperative installation built from `scenario/ringpop-config.json`:
+
+```sh
+/absolute/operator/bin/gomad install ... \
+  --config tools/gomad/internal/backends/wasm/command/testdata/scenario/ringpop-config.json \
+  --memory-bytes 1073741824 --fuel 1125899906842624 \
+  --output /absolute/operator/bin/gomad-ringpop.json
+cd tools/gomad/internal/backends/wasm/testdata/ringpop
+/absolute/operator/bin/gomad --installation /absolute/operator/bin/gomad-ringpop.json \
+  explore --json --scenario ../../command/testdata/scenario/ringpop.json \
+  --seeds=7,19 --parallel=1 --on-failure=all \
+  --keep-successes=all --success-limit=32 --success-bytes=4GiB \
+  --execution-timeout=15m --overall-timeout=35m \
+  --artifacts /absolute/operator/ringpop-artifacts go-run .
+```
+
+Node `c` is partitioned from `a` and `b` at 10 virtual seconds and healed at 30.
+Each node prints its reachable view at 25 seconds and must then see all three
+members on three consecutive one-second polls before its 90-second deadline,
+printing `converged <node> after heal <d> checksum <n>`; otherwise it panics and
+the failure is retained. Equal checksums across the three nodes show one ring.
+The scenario sets `observation_bytes` to its 64 MiB maximum: the cluster broker
+charges 64 bytes of World payload per brokered operation for the whole run, and
+three gossiping nodes use about 940 operations per virtual second. Three nodes
+currently run at several wall seconds per virtual second, so keep the timeline
+short (fn-235 tracks the cost and fast capacity failure).
+
 For an intentional replayable failure, use `jq` to change only the recovery boot
 in the same durable input, from the `tools/gomad` directory:
 
