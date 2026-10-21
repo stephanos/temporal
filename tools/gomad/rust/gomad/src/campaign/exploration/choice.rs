@@ -4,6 +4,7 @@ use gomad_wasmhost::linked;
 use serde::{Deserialize, Serialize};
 use serde_json::json;
 use std::collections::{BTreeMap, BTreeSet};
+use std::fmt::Write;
 
 #[cfg(test)]
 #[path = "choice_tests.rs"]
@@ -48,8 +49,8 @@ pub(crate) struct ChoiceCandidate {
 
 pub(crate) use linked::Decision;
 
-pub(crate) fn decisions(plan: &linked::ChoicePlan) -> Result<Vec<Decision>, String> {
-    Ok(plan.decisions.clone())
+pub(crate) fn decisions(plan: &linked::ChoicePlan) -> Vec<Decision> {
+    plan.decisions.clone()
 }
 
 #[derive(Clone, Debug, Deserialize, Eq, PartialEq, Serialize)]
@@ -125,8 +126,6 @@ impl ChoiceCandidate {
                 reconstruct: false,
             }),
         };
-        let full_digest = hex(&plan.sha256);
-        let full_decisions = plan.decisions.len();
         let prefix = plan.prefix(&control)?;
         if prefix.bytes != self.prefix_bytes
             || format!("sha256:{}", hex(&prefix.sha256)) != self.prefix_sha256
@@ -139,8 +138,8 @@ impl ChoiceCandidate {
             schema: "gomad.replay-trace/v1".into(),
             execution_identity: identity.clone(),
             trace_sha256: canonical::digest(&self.source_trace),
-            tape_sha256: full_digest,
-            decisions: full_decisions as u64,
+            tape_sha256: hex(&prefix.sha256),
+            decisions: prefix.decisions.len() as u64,
             trace_bytes: self.source_trace.len() as u64,
             trace_frames: (self.source_trace.len() as u64).div_ceil(65536),
             prefix_control: Some(control),
@@ -149,7 +148,10 @@ impl ChoiceCandidate {
 }
 
 pub(crate) fn hex(bytes: &[u8]) -> String {
-    bytes.iter().map(|byte| format!("{byte:02x}")).collect()
+    bytes.iter().fold(String::new(), |mut output, byte| {
+        write!(output, "{byte:02x}").expect("writing to a string cannot fail");
+        output
+    })
 }
 
 impl ChoiceState {
@@ -226,6 +228,10 @@ impl ChoiceState {
         })
     }
 
+    #[expect(
+        clippy::too_many_lines,
+        reason = "validate and commit a complete controller round atomically"
+    )]
     pub(crate) fn commit(
         &self,
         round: &ChoiceRound,
@@ -284,7 +290,7 @@ impl ChoiceState {
             }
             if let Some(raw) = &result.source_trace {
                 let plan = linked::project_choices(raw, &next.config.execution)?;
-                let observed = decisions(&plan)?;
+                let observed = decisions(&plan);
                 validate_trace(parent, &next.config.execution, &observed)?;
                 if parent.forced_depth == 0
                     && next.config.start_ordinal != 0
@@ -294,14 +300,14 @@ impl ChoiceState {
                 }
                 if next.stop_reason.is_empty() {
                     let no_op = plan.no_op_select_polls();
-                    for (ordinal, decision) in observed.iter().enumerate() {
-                        let ordinal = ordinal as u64;
+                    for (index, decision) in observed.iter().enumerate() {
+                        let ordinal = index as u64;
                         if ordinal < parent.forced_depth.max(next.config.start_ordinal)
                             || decision.alternatives() <= 1
                         {
                             continue;
                         }
-                        if no_op[ordinal as usize] {
+                        if no_op[index] {
                             next.omitted_by_select_readiness +=
                                 u64::from(decision.alternatives() - 1);
                             continue;
@@ -422,38 +428,6 @@ fn candidate(
     parent: &str,
     raw: &[u8],
 ) -> Result<ChoiceCandidate, String> {
-    let mut value = ChoiceCandidate {
-        sha256: String::new(),
-        parent_sha256: parent.into(),
-        source_trace_sha256: String::new(),
-        forced_depth: 0,
-        prefix_sha256: String::new(),
-        prefix_bytes: Vec::new(),
-        source_trace: Vec::new(),
-        rank: None,
-    };
-    let mut projected = Vec::new();
-    if let Some((depth, rank)) = forcing {
-        if depth <= config.start_ordinal {
-            return Err("choice prefix precedes its start ordinal".into());
-        }
-        let plan =
-            linked::project_choices(raw, &config.execution)?.prefix(&linked::PrefixControl {
-                cutoff: depth,
-                r#override: Some(linked::RankOverride {
-                    ordinal: depth - 1,
-                    rank,
-                    reconstruct: false,
-                }),
-            })?;
-        projected = decisions(&plan)?;
-        value.forced_depth = depth;
-        value.prefix_sha256 = format!("sha256:{}", hex(&plan.sha256));
-        value.prefix_bytes = plan.bytes;
-        value.source_trace = raw.to_vec();
-        value.source_trace_sha256 = format!("sha256:{}", canonical::digest(raw));
-        value.rank = Some(rank);
-    }
     #[derive(Serialize)]
     struct DecisionProjection {
         ordinal: String,
@@ -478,6 +452,38 @@ fn candidate(
         controller_sha256: &'a str,
         base_seed: String,
         decisions: Vec<DecisionProjection>,
+    }
+    let mut value = ChoiceCandidate {
+        sha256: String::new(),
+        parent_sha256: parent.into(),
+        source_trace_sha256: String::new(),
+        forced_depth: 0,
+        prefix_sha256: String::new(),
+        prefix_bytes: Vec::new(),
+        source_trace: Vec::new(),
+        rank: None,
+    };
+    let mut projected = Vec::new();
+    if let Some((depth, rank)) = forcing {
+        if depth <= config.start_ordinal {
+            return Err("choice prefix precedes its start ordinal".into());
+        }
+        let plan =
+            linked::project_choices(raw, &config.execution)?.prefix(&linked::PrefixControl {
+                cutoff: depth,
+                r#override: Some(linked::RankOverride {
+                    ordinal: depth - 1,
+                    rank,
+                    reconstruct: false,
+                }),
+            })?;
+        projected = decisions(&plan);
+        value.forced_depth = depth;
+        value.prefix_sha256 = format!("sha256:{}", hex(&plan.sha256));
+        value.prefix_bytes = plan.bytes;
+        value.source_trace = raw.to_vec();
+        value.source_trace_sha256 = format!("sha256:{}", canonical::digest(raw));
+        value.rank = Some(rank);
     }
     let projection = Projection {
         target_sha256: format!("sha256:{}", hex(&config.execution.target_sha256)),
@@ -543,15 +549,18 @@ pub(crate) fn validate_divergence(
     )?;
     let expected = plan
         .decisions
-        .get(divergence.ordinal as usize)
+        .get(
+            usize::try_from(divergence.ordinal)
+                .map_err(|_| "divergence ordinal exceeds host size")?,
+        )
         .ok_or("missing divergence decision")?;
     if divergence.expected.as_ref() != Some(expected) {
         return Err("choice divergence expected decision differs from candidate prefix".into());
     }
-    if let Some(observed) = &divergence.observed {
-        if observed.ordinal() != divergence.ordinal || observed.rank_override() {
-            return Err("choice divergence observed decision is invalid".into());
-        }
+    if let Some(observed) = &divergence.observed
+        && (observed.ordinal() != divergence.ordinal || observed.rank_override())
+    {
+        return Err("choice divergence observed decision is invalid".into());
     }
     Ok(())
 }
@@ -575,7 +584,7 @@ fn validate_trace(
             }),
         },
     )?;
-    let expected = decisions(&prefix)?;
+    let expected = decisions(&prefix);
     if observed.len() < expected.len() {
         return Err("choice trace ended before its forced prefix".into());
     }

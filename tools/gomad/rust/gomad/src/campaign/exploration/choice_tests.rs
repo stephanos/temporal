@@ -31,7 +31,7 @@ fn trace(first_selected: u32) -> Vec<u8> {
         record[12..16].copy_from_slice(&alternatives.to_be_bytes());
         record[16..20].copy_from_slice(&selected.to_be_bytes());
         record[24..32].copy_from_slice(&(100 + ordinal).to_be_bytes());
-        record[32..64].fill(selected as u8 + 1);
+        record[32..64].fill(u8::try_from(selected).unwrap() + 1);
         record[64..96].fill(9);
         bytes.extend_from_slice(&record);
     }

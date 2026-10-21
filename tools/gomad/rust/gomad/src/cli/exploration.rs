@@ -25,19 +25,15 @@ pub(crate) fn try_run(
     let mut index = 0;
     let mut strategy = None;
     while let Some((name, supplied)) = explore::option(arguments, &mut index) {
-        let name = match name {
-            Ok(name) => name,
-            Err(_) => break,
-        };
+        let Ok(name) = name else { break };
         if matches!(
             name,
             "json" | "choices" | "diagnostics" | "soft-assertion-report-only"
         ) {
             continue;
         }
-        let value = match explore::value(arguments, &mut index, name, supplied) {
-            Ok(value) => value,
-            Err(_) => break,
+        let Ok(value) = explore::value(arguments, &mut index, name, supplied) else {
+            break;
         };
         if name == "strategy" {
             strategy = Some(value);
@@ -54,7 +50,7 @@ pub(crate) fn try_run(
         Ok(mut options) => {
             options.base.installation = installation.map(Path::to_path_buf);
             if options.strategy == "choice-exploration" {
-                crate::campaign::choice::explore(options, output)
+                crate::campaign::choice::explore(&options, output)
             } else {
                 crate::campaign::simulation::explore(options, output)
             }
@@ -132,7 +128,7 @@ pub(crate) fn parse(arguments: &[String], json: &mut bool) -> Result<Exploration
     }
     remaining.push("--choices=true".into());
     remaining.extend_from_slice(&arguments[index..]);
-    let base = explore::parse(&remaining, json)?;
+    let base = explore::parse_for_strategy(&remaining, json, strategy == "simulation-exploration")?;
     if crate::campaign::seeds::SeedSelection::parse(&base.seeds)?.count() != 1 {
         return Err(format!(
             "--strategy={strategy} requires exactly one base seed"

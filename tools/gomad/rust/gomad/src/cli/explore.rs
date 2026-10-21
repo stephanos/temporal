@@ -69,11 +69,19 @@ pub fn run_with_installation(
     }
 }
 
+pub(super) fn parse(arguments: &[String], json: &mut bool) -> Result<ExploreOptions, String> {
+    parse_for_strategy(arguments, json, false)
+}
+
 #[expect(
     clippy::too_many_lines,
     reason = "One parser preserves the original ordered flag and target grammar"
 )]
-pub(super) fn parse(arguments: &[String], json: &mut bool) -> Result<ExploreOptions, String> {
+pub(super) fn parse_for_strategy(
+    arguments: &[String],
+    json: &mut bool,
+    simulation: bool,
+) -> Result<ExploreOptions, String> {
     let mut options = ExploreOptions {
         installation: None,
         seeds: "1".into(),
@@ -234,7 +242,7 @@ pub(super) fn parse(arguments: &[String], json: &mut bool) -> Result<ExploreOpti
     parse_target(&arguments[index..], &mut options)?;
     validate(&options)?;
     if let Some(path) = scenario {
-        if options.choices || options.coverage != "none" {
+        if options.choices && !simulation || options.coverage != "none" {
             return Err("--scenario requires seed exploration without choices, diagnostics, coverage, or guidance".into());
         }
         let file = std::fs::File::open(path).map_err(|error| format!("open scenario: {error}"))?;

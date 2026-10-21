@@ -21,6 +21,10 @@ struct Observation {
     observations: Value,
 }
 
+#[expect(
+    clippy::too_many_lines,
+    reason = "The producer binds observed model decisions and their raw execution evidence before publication"
+)]
 pub(super) fn run(
     prepared: &Prepared,
     job: &ledger::Job,
@@ -46,6 +50,7 @@ pub(super) fn run(
             prepared.network.as_ref(),
             job.seed,
         )?;
+        scenario::simulation_crash_bounds(raw, &mut bound)?;
         bound.request.wall_timeout = bound.request.wall_timeout.min(remaining);
         if let Some(replay) = replay {
             let primary = bound
@@ -58,7 +63,7 @@ pub(super) fn run(
                 .model
                 .as_mut()
                 .ok_or("simulation runtime replay has no cooperative model")?;
-            model.configuration.mode = 2;
+            model.configuration.mode = if replay.prefix_control.is_some() { 3 } else { 2 };
             model.configuration.replay = Some(replay.clone());
             model.replay_trace = raw_trace.map(<[u8]>::to_vec);
         }
@@ -120,6 +125,12 @@ pub(super) fn run(
         result.execution.record.outcome.class = "target_failure".into();
         result.execution.record.outcome.reason = "simulation_replay_divergence".into();
         result.publication.record = result.execution.record.clone();
+    }
+    if result.execution.record.outcome.class == "runner_failure" {
+        return Err(format!(
+            "runner_failure: {}",
+            result.execution.record.outcome.reason
+        ));
     }
     let failed = matches!(
         result.execution.record.outcome.class.as_str(),

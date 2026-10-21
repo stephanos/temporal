@@ -440,7 +440,7 @@ fn bytes_value<E: serde::de::Error>(value: Value) -> Result<Vec<u8>, E> {
                 return Err(E::custom("invalid simulation control base64 length"));
             }
             let mut decoded = Vec::new();
-            for (index, chunk) in value.as_bytes().chunks_exact(4).enumerate() {
+            for (index, chunk) in value.as_bytes().as_chunks::<4>().0.iter().enumerate() {
                 let mut digits = [0u8; 4];
                 let mut padding = 0;
                 for (offset, byte) in chunk.iter().enumerate() {
@@ -596,7 +596,8 @@ pub(crate) fn force_decision(decision: &Decision, selected: u32) -> Result<Force
         dimension: decision.dimension,
         ordinal: decision.ordinal,
         site_sha256: decision.site_sha256.clone(),
-        alternatives: decision.alternatives.len() as u32,
+        alternatives: u32::try_from(decision.alternatives.len())
+            .map_err(|_| "forced decision alternative count overflow")?,
         alternative_set_sha256: decision.alternative_set_sha256.clone(),
         selected,
         selected_sha256,
@@ -942,7 +943,10 @@ impl SimulationState {
                     continue;
                 }
                 let mut overrides = parent.overrides.clone();
-                overrides.push(force_decision(decision, rank as u32)?);
+                overrides.push(force_decision(
+                    decision,
+                    u32::try_from(rank).map_err(|_| "simulation alternative rank overflow")?,
+                )?);
                 let child = canonical_candidate(&self.config, overrides, parent.sha256.clone())?;
                 if self.seen.contains(&child.sha256) {
                     continue;

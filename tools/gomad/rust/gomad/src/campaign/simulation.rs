@@ -73,7 +73,7 @@ pub(crate) fn explore(options: ExplorationOptions, output: &mut dyn Write) -> Re
         })?;
     let published = super::store(path.join("prepared"), maximum).publish(publication)?;
     let prepared_plan = json!({
-        "schema":"gomad.seed-campaign-plan/v2","module_sha256":canonical::digest(&prepared.module),"toolchain":prepared.toolchain,"configuration":prepared.configuration,"choice_identity":prepared.choice_identity,
+        "schema":"gomad.exploration-preparation/v1","simulation_exploration":true,"module_sha256":canonical::digest(&prepared.module),"toolchain":prepared.toolchain,"configuration":prepared.configuration,"choice_identity":prepared.choice_identity,
         "host_sha256":env!("GOMAD_HOST_IMPLEMENTATION_SHA256"),"helper_sha256":linked::IMPLEMENTATION_SHA256,"scenario":prepared.scenario,"network":prepared.network,"soft_assertion_report_only":prepared.soft_assertion_report_only,
         "prepared_artifact":published.path.strip_prefix(&path).map_err(|e|e.to_string())?.to_string_lossy(),
         "journal_bytes":journal_bytes,"overall_millis":u64::try_from(options.base.overall_timeout.as_millis()).map_err(|_|"overall timeout overflows")?,
@@ -121,6 +121,10 @@ pub(crate) fn resume(path: &Path, json: bool, output: &mut dyn Write) -> Result<
     run(&mut journal, &prepared, timeout, json, output)
 }
 
+#[expect(
+    clippy::too_many_lines,
+    reason = "Raw model observations and retained executions form one complete round transaction"
+)]
 fn run(
     journal: &mut RoundJournal,
     prepared: &prepare::Prepared,
@@ -208,7 +212,7 @@ fn run(
                 .ok_or("simulation execution omitted choice trace")?;
             let mut runtime = simulation_record::runtime_decisions(trace, identity)?;
             for decision in &mut runtime {
-                decision.source_trace = trace.clone();
+                decision.source_trace.clone_from(trace);
             }
             let record = observed
                 .publication
@@ -342,18 +346,13 @@ fn run(
         )
         .map_err(|e| e.to_string())?;
     }
-    Ok(
-        if journal
+    Ok(i32::from(
+        journal
             .events()
             .iter()
-            .flat_map(|e| e.executions())
-            .any(|e| e.record.outcome.class != "success")
-        {
-            1
-        } else {
-            0
-        },
-    )
+            .flat_map(super::exploration::round::RoundEvent::executions)
+            .any(|e| e.record.outcome.class != "success"),
+    ))
 }
 
 fn replay_request(
@@ -371,14 +370,14 @@ fn replay_request(
         .ok_or("runtime forced prefix is empty")?;
     let original = source
         .decisions
-        .get(last.ordinal() as usize)
+        .get(usize::try_from(last.ordinal()).map_err(|_| "runtime ordinal overflow")?)
         .ok_or("runtime forced prefix ordinal is absent")?;
     Ok(Some(linked::ReplayRequest {
         schema: "gomad.replay-trace/v1".into(),
         execution_identity: identity.clone(),
         trace_sha256: canonical::digest(&control.choice_source_trace),
-        tape_sha256: format!("{:x}", sha2::Sha256::digest(&source.bytes)),
-        decisions: source.decisions.len() as u64,
+        tape_sha256: format!("{:x}", sha2::Sha256::digest(&tape.bytes)),
+        decisions: tape.decisions.len() as u64,
         trace_bytes: control.choice_source_trace.len() as u64,
         trace_frames: (control.choice_source_trace.len() as u64).div_ceil(65536),
         prefix_control: Some(linked::PrefixControl {

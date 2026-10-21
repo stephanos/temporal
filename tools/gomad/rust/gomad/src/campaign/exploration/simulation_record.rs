@@ -9,7 +9,10 @@ use crate::evidence::{
 use gomad_wasmhost::linked;
 use serde::Serialize;
 use serde_json::value::RawValue;
-use std::collections::{BTreeMap, BTreeSet};
+use std::{
+    collections::{BTreeMap, BTreeSet},
+    fmt::Write as _,
+};
 
 pub const RECORD_SCHEMA: &str = "gomad.cluster-record/v8";
 pub const MAXIMUM_RECORD_BYTES: usize = 128 << 20;
@@ -65,32 +68,33 @@ pub(super) fn runtime_decision_identities(
     #[derive(Serialize)]
     struct Site<'a> {
         kind: u8,
-        site_offset: String,
-        site_missing: bool,
+        #[serde(rename = "site_offset")]
+        offset: String,
+        #[serde(rename = "site_missing")]
+        missing: bool,
         data: u32,
         alternatives: u32,
         alternative_set_sha256: &'a str,
     }
+    #[derive(Serialize)]
+    struct Alternative<'a> {
+        site_sha256: &'a str,
+        rank: u32,
+    }
     let mut actual_digest = String::from("sha256:");
-    use std::fmt::Write as _;
     for byte in runtime.alternative_set_digest() {
         write!(actual_digest, "{byte:02x}").map_err(|e| e.to_string())?;
     }
     let bytes = serde_json::to_vec(&Site {
         kind: runtime.kind(),
-        site_offset: runtime.site().0.to_string(),
-        site_missing: runtime.site().1,
+        offset: runtime.site().0.to_string(),
+        missing: runtime.site().1,
         data: runtime.data(),
         alternatives: runtime.alternatives(),
         alternative_set_sha256: &actual_digest,
     })
     .map_err(|e| e.to_string())?;
     let site = wire::domain_hash("gomad-runtime-choice-site/v1", &bytes);
-    #[derive(Serialize)]
-    struct Alternative<'a> {
-        site_sha256: &'a str,
-        rank: u32,
-    }
     let alternatives = (0..runtime.alternatives())
         .map(|rank| {
             let bytes = serde_json::to_vec(&Alternative {
@@ -217,6 +221,14 @@ pub fn validate_artifact(profile: &Simulation, plan: &[u8], record: &[u8]) -> Re
     {
         return Err("simulation exploration artifact plan execution identity changed".into());
     }
+    if retained
+        .overrides
+        .iter()
+        .flatten()
+        .all(|forced| forced.dimension != Dimension::Runtime)
+    {
+        wire::candidate_for_artifact(profile, plan, None, None)?;
+    }
     let projected = project_retained_record(record, plan)?;
     if projected.seed != retained.base_seed
         || projected.outcome_sha256 != profile.outcome_sha256
@@ -320,7 +332,9 @@ fn compact_semantic_json(raw: &[u8]) -> Vec<u8> {
     while index < raw.len() {
         let byte = raw[index];
         if quoted {
-            if !escaped {
+            if escaped {
+                escaped = false;
+            } else {
                 match byte {
                     b'"' => quoted = false,
                     b'\\' => escaped = true,
@@ -346,8 +360,6 @@ fn compact_semantic_json(raw: &[u8]) -> Vec<u8> {
                     }
                     _ => {}
                 }
-            } else {
-                escaped = false;
             }
         } else if matches!(byte, b' ' | b'\t' | b'\n' | b'\r') {
             index += 1;

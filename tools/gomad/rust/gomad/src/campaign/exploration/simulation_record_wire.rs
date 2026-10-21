@@ -334,7 +334,9 @@ pub fn execution_for_candidate(
         }
     }
     execution.choice_mode = "prefix".into();
-    execution.choice_source_trace = forced[longest].source_trace.clone();
+    execution
+        .choice_source_trace
+        .clone_from(&forced[longest].source_trace);
     execution.choice_replay_plan = Some(selected);
     Ok(execution)
 }

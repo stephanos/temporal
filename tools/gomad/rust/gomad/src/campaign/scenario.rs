@@ -601,6 +601,33 @@ pub struct Bound {
     pub request: helper::Request,
 }
 
+pub(super) fn simulation_crash_bounds(raw: &[u8], bound: &mut Bound) -> Result<(), String> {
+    let scenario = parse(raw)?;
+    let limits = &scenario.spec.limits;
+    let work = limits
+        .crash_states
+        .checked_mul(limits.volume_operations)
+        .ok_or("capacity: simulation crash work bound overflow")?;
+    for incarnation in &mut bound.request.incarnations {
+        if let Some(storage) = &mut incarnation.request.storage {
+            let mut value = serde_json::to_value(&*storage).map_err(|error| error.to_string())?;
+            value["descriptor"]["crash_limits"] = json!({
+                "States":limits.crash_states,"Operations":limits.volume_operations,
+                "Depth":limits.crash_depth,"Bytes":limits.crash_bytes,"Work":work
+            });
+            *storage = serde_json::from_value(value).map_err(|error| error.to_string())?;
+            let retained = bound
+                .configuration
+                .incarnations
+                .iter_mut()
+                .find(|item| item.handle == incarnation.handle)
+                .ok_or("simulation storage incarnation missing its configuration")?;
+            retained.storage = Some(storage.clone());
+        }
+    }
+    Ok(())
+}
+
 #[derive(Serialize)]
 struct IncarnationAssertions {
     handle: helper::Handle,
@@ -974,10 +1001,6 @@ pub fn bind(
 
 /// # Errors
 /// Runs a fresh typed cluster and retains the existing cluster replay declaration and streams.
-#[expect(
-    clippy::too_many_lines,
-    reason = "Publication binds every incarnation stream and shared observation before returning a campaign receipt"
-)]
 pub(super) fn execute(
     prepared: &super::prepare::Prepared,
     job: &super::ledger::Job,

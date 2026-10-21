@@ -1,5 +1,8 @@
 use crate::evidence::{canonical, record::Limits, store::Opened};
-use gomad_wasmhost::{linked, linked_cluster as helper, linked_inspection as inspection};
+use gomad_wasmhost::{
+    linked, linked_cluster as helper, linked_inspection as inspection,
+    linked_simulation as simulation,
+};
 use serde::{Deserialize, Serialize};
 use serde_json::{Value, json};
 use sha2::Digest as _;
@@ -94,9 +97,64 @@ pub struct Inputs {
 
 pub struct Prepared {
     pub opened: Opened,
-    pub execution: helper::Prepared,
+    pub execution: Execution,
     pub exact: bool,
     pub available: bool,
+}
+
+pub struct Execution {
+    pub(crate) prepared: helper::Prepared,
+    simulation: Option<simulation::Plan>,
+}
+
+pub(crate) fn execute(execution: Execution) -> Result<helper::Execution, String> {
+    if let Some(plan) = execution.simulation {
+        Ok(simulation::execute(execution.prepared, plan, 65536)?.cluster)
+    } else {
+        helper::execute_prepared(execution.prepared).map_err(|error| error.to_string())
+    }
+}
+
+fn simulation_plan(opened: &Opened) -> Result<Option<simulation::Plan>, String> {
+    use crate::campaign::exploration::{simulation_record, simulation_record_wire};
+    let details = crate::evidence::inspection::Details::read(opened)?;
+    let profile = details
+        .as_ref()
+        .and_then(|details| details.simulation.as_ref());
+    let Some(profile) = profile else {
+        if ["simulation/plan.json", "simulation/record.json"]
+            .iter()
+            .any(|name| opened.manifest().files.contains_key(*name))
+        {
+            return Err("retained simulation inputs require a simulation profile".into());
+        }
+        return Ok(None);
+    };
+    for descriptor in [&profile.plan, &profile.record] {
+        let stream = opened
+            .manifest()
+            .record
+            .streams
+            .get(&descriptor.file)
+            .ok_or("retained simulation payload is not record bound")?;
+        if stream.bytes != descriptor.bytes || stream.sha256 != descriptor.sha256 {
+            return Err("retained simulation stream identity mismatch".into());
+        }
+    }
+    let raw = opened.payload(
+        &profile.plan.file,
+        simulation_record_wire::MAXIMUM_PLAN_BYTES as u64,
+    )?;
+    let record = opened.payload(
+        &profile.record.file,
+        simulation_record::MAXIMUM_RECORD_BYTES as u64,
+    )?;
+    simulation_record::validate_artifact(profile, &raw, &record)?;
+    let retained = simulation_record_wire::validate_retained_plan(&raw)?;
+    if retained.base_seed != opened.manifest().record.seed {
+        return Err("retained simulation seed differs from execution".into());
+    }
+    simulation::Plan::decode(&raw).map(Some)
 }
 
 /// # Errors
@@ -245,6 +303,7 @@ fn incarnation(
 pub fn prepare(opened: Opened, control: Option<&inspection::Request>) -> Result<Prepared, String> {
     let inputs = inputs(&opened)?;
     bind(&opened, &inputs)?;
+    let simulation = simulation_plan(&opened)?;
     let mut incarnations = Vec::new();
     for item in &inputs.configuration.incarnations {
         let retained = inputs
@@ -297,7 +356,10 @@ pub fn prepare(opened: Opened, control: Option<&inspection::Request>) -> Result<
     .map_err(|error| error.to_string())?;
     Ok(Prepared {
         opened,
-        execution,
+        execution: Execution {
+            prepared: execution,
+            simulation,
+        },
         exact: true,
         available: true,
     })

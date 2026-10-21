@@ -23,7 +23,7 @@ use std::{
     time::{Duration, Instant},
 };
 
-pub(crate) fn explore(options: ExplorationOptions, output: &mut dyn Write) -> Result<i32, String> {
+pub(crate) fn explore(options: &ExplorationOptions, output: &mut dyn Write) -> Result<i32, String> {
     let started = Instant::now();
     let prepared = super::prepare::prepare(&options.base)?;
     if prepared.scenario.is_some() {
@@ -51,7 +51,7 @@ pub(crate) fn explore(options: ExplorationOptions, output: &mut dyn Write) -> Re
         failure_budget: options.base.failure_budget,
     };
     exploration::choice::ChoiceState::new(config.clone())?;
-    let mut journal = plan::create(&options, &prepared, RoundStrategy::Choice(config))?;
+    let mut journal = plan::create(options, &prepared, RoundStrategy::Choice(config))?;
     let remaining = options
         .base
         .overall_timeout
@@ -73,6 +73,10 @@ pub(crate) fn resume(path: &Path, json: bool, output: &mut dyn Write) -> Result<
     run(&mut journal, &prepared, remaining, json, output)
 }
 
+#[expect(
+    clippy::too_many_lines,
+    reason = "The complete round is retained and committed only after every execution finishes"
+)]
 fn run(
     journal: &mut RoundJournal,
     prepared: &Prepared,
@@ -99,7 +103,8 @@ fn run(
         let cancellation = linked::Cancellation::default();
         let completions = crate::slots::run(&indices, state.config.parallel, |index| {
             let result = (|| {
-                let candidate = &round.candidates[index as usize];
+                let candidate = &round.candidates
+                    [usize::try_from(index).map_err(|_| "choice candidate index overflow")?];
                 let replay = candidate.replay(&state.config.execution)?;
                 let remaining = deadline
                     .checked_duration_since(Instant::now())
@@ -190,7 +195,7 @@ fn run(
     report(journal, json_output, output)
 }
 
-pub(crate) fn retain(
+fn retain(
     journal: &RoundJournal,
     execution: &mut Execution,
     publication: Publication,

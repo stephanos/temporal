@@ -61,7 +61,7 @@ pub struct Prepared {
 
 pub enum Execution {
     Standalone(Box<linked::Prepared>),
-    Cluster(Box<gomad_wasmhost::linked_cluster::Prepared>),
+    Cluster(Box<super::cluster::Execution>),
 }
 
 /// # Errors
@@ -71,10 +71,9 @@ pub fn execute(execution: Execution) -> Result<linked::Execution, String> {
         Execution::Standalone(prepared) => {
             linked::execute_prepared(*prepared).map_err(|error| error.to_string())
         }
-        Execution::Cluster(prepared) => super::cluster::project(
-            gomad_wasmhost::linked_cluster::execute_prepared(*prepared)
-                .map_err(|error| error.to_string())?,
-        ),
+        Execution::Cluster(prepared) => {
+            super::cluster::project(super::cluster::execute(*prepared)?)
+        }
     }
 }
 
@@ -96,9 +95,10 @@ pub fn execute_inspection(
             }
         }
         Execution::Cluster(execution) => {
-            execution.conditions(conditions);
+            execution.prepared.conditions(conditions);
             if let Some(timeout) = timeout {
                 execution
+                    .prepared
                     .bound_wall_timeout(timeout)
                     .map_err(|error| error.to_string())?;
             }
@@ -108,11 +108,9 @@ pub fn execute_inspection(
         Execution::Standalone(execution) => {
             linked::execute_prepared(*execution).map_err(|error| error.to_string())
         }
-        Execution::Cluster(execution) => super::cluster::project_inspection(
-            gomad_wasmhost::linked_cluster::execute_prepared(*execution)
-                .map_err(|error| error.to_string())?,
-            target,
-        ),
+        Execution::Cluster(execution) => {
+            super::cluster::project_inspection(super::cluster::execute(*execution)?, target)
+        }
     }
 }
 

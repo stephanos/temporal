@@ -65,7 +65,7 @@ fn run_round(
 ) -> Result<(), String> {
     let journal = super::exploration::round::RoundJournal::open(path, false)?;
     let mut executions = Vec::new();
-    for execution in journal.events().iter().flat_map(|event| event.executions()) {
+    for execution in journal.events().iter().flat_map(super::exploration::round::RoundEvent::executions) {
         let opened = execution
             .artifact
             .as_deref()

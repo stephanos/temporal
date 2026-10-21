@@ -972,7 +972,7 @@ pub(crate) fn validate_plan_record(
                 .ok_or("campaign prepared artifact missing")?,
         )?;
         let module = prepared.payload("target/module.wasm", 512 << 20)?;
-        let bound = super::scenario::bind(
+        let mut bound = super::scenario::bind(
             &raw,
             &base,
             &module,
@@ -980,6 +980,9 @@ pub(crate) fn validate_plan_record(
             network.as_ref(),
             record.seed,
         )?;
+        if plan["simulation_exploration"] == true {
+            super::scenario::simulation_crash_bounds(&raw, &mut bound)?;
+        }
         serde_json::to_value(&bound.configuration).map_err(|error| error.to_string())?
     } else {
         plan["configuration"].clone()

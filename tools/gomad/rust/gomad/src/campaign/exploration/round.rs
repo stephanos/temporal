@@ -153,6 +153,10 @@ impl RoundState {
         }
     }
 
+    #[expect(
+        clippy::too_many_lines,
+        reason = "authenticate all round evidence before applying its state transition"
+    )]
     fn apply(&mut self, event: &RoundEvent, plan: &RoundPlan) -> Result<(), String> {
         match (&*self, event) {
             (
@@ -766,39 +770,8 @@ impl RoundJournal {
     }
 
     #[must_use]
-    pub fn root(&self) -> &File {
-        &self.root
-    }
-    #[must_use]
     pub fn path(&self) -> &Path {
         &self.path
-    }
-
-    pub(crate) fn fingerprints(&self) -> Result<Value, String> {
-        let plan = canonical::encode(&self.plan)?;
-        let storage = canonical::encode(&Storage {
-            format: FORMAT.into(),
-            max_bytes: self.max_bytes,
-            plan_sha256: canonical::digest(&plan),
-        })?;
-        if open::read(&self.root, "plan.json", MAX_PLAN_BYTES, false)? != plan
-            || open::read(&self.root, "storage.json", 4096, false)? != storage
-        {
-            return Err("campaign source plan or storage changed after validation".into());
-        }
-        let before = fs::statat(&self.root, "journal.jsonl", AtFlags::SYMLINK_NOFOLLOW)
-            .map_err(|error| error.to_string())?;
-        if !open::same(&self.observed, &before) {
-            return Err("campaign source journal changed after validation".into());
-        }
-        let journal = open::read(&self.root, "journal.jsonl", self.max_bytes, false)?;
-        let after = fs::statat(&self.root, "journal.jsonl", AtFlags::SYMLINK_NOFOLLOW)
-            .map_err(|error| error.to_string())?;
-        if !open::same(&self.observed, &after) {
-            return Err("campaign source journal changed while fingerprinting".into());
-        }
-        Ok(serde_json::json!({"plan_sha256":canonical::digest(&plan),
-            "storage_sha256":canonical::digest(&storage),"journal_sha256":canonical::digest(&journal)}))
     }
 }
 

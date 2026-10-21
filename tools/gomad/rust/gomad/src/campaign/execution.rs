@@ -78,7 +78,7 @@ pub(super) fn run_with_replay(
             let mut model_configuration: linked::ModelConfig =
                 serde_json::from_value(value).map_err(|error| error.to_string())?;
             if replay.is_some() {
-                model_configuration.mode = 2;
+                model_configuration.mode = if replay.is_some_and(|request| request.prefix_control.is_some()) { 3 } else { 2 };
                 model_configuration.replay = replay.cloned();
             }
             Ok(linked::ModelInput {
