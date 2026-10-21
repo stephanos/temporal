@@ -24,13 +24,24 @@ pub(super) fn run(
     timeout: Duration,
     cancellation: &linked::Cancellation,
 ) -> std::result::Result<Result, String> {
+    run_with_replay(prepared, job, timeout, cancellation, None, None)
+}
+
+pub(super) fn run_with_replay(
+    prepared: &Prepared,
+    job: &ledger::Job,
+    timeout: Duration,
+    cancellation: &linked::Cancellation,
+    replay: Option<&linked::ReplayRequest>,
+    raw_trace: Option<&[u8]>,
+) -> std::result::Result<Result, String> {
     if prepared.scenario.is_some() {
+        if replay.is_some() || raw_trace.is_some() {
+            return Err(
+                "unsupported_target: scenario runtime prefix forcing is unsupported".into(),
+            );
+        }
         return super::scenario::execute(prepared, job, timeout, cancellation);
-    }
-    if prepared.network.is_some() {
-        return Err(
-            "runner_failure: standalone network execution requires its linked model owner".into(),
-        );
     }
     let configuration = &prepared.configuration;
     let model = configuration
@@ -64,11 +75,17 @@ pub(super) fn run(
             if configuration.derive_seed_environment {
                 environment.push(format!("GOMADSEED={}", job.seed));
             }
+            let mut model_configuration: linked::ModelConfig =
+                serde_json::from_value(value).map_err(|error| error.to_string())?;
+            if replay.is_some() {
+                model_configuration.mode = 2;
+                model_configuration.replay = replay.cloned();
+            }
             Ok(linked::ModelInput {
-                configuration: serde_json::from_value(value).map_err(|error| error.to_string())?,
+                configuration: model_configuration,
                 arguments: configuration.arguments.clone(),
                 environment,
-                replay_trace: None,
+                replay_trace: raw_trace.map(<[u8]>::to_vec),
             })
         })
         .transpose()?;
@@ -90,12 +107,21 @@ pub(super) fn run(
     crate::fixture::execution_started().map_err(|error| error.message)?;
     let mut admitted = linked::prepare(request)
         .map_err(|error| format!("runner_failure: admit campaign target: {error}"))?;
+    if let Some(network) = &configuration.network {
+        admitted
+            .network(network.clone())
+            .map_err(|error| format!("runner_failure: admit standalone network: {error}"))?;
+    }
     admitted.cancellation(cancellation.clone());
     let observed = linked::execute_prepared(admitted)
         .map_err(|error| format!("runner_failure: execute campaign target: {error}"))?;
     publication(prepared, job, observed)
 }
 
+#[expect(
+    clippy::too_many_lines,
+    reason = "Publication binds raw helper streams, typed outcome and immutable replay inputs in one record"
+)]
 pub(super) fn publication(
     prepared: &Prepared,
     job: &ledger::Job,
@@ -170,8 +196,17 @@ pub(super) fn publication(
                     limit,
                 },
                 records: inspected.records,
-                terminal_state: "complete".into(),
-                tape_sha256: Some(inspected.tape_sha256),
+                terminal_state: if observed.outcome.divergence.is_some() {
+                    "diverged"
+                } else {
+                    "complete"
+                }
+                .into(),
+                tape_sha256: observed
+                    .outcome
+                    .divergence
+                    .is_none()
+                    .then_some(inspected.tape_sha256),
             }),
             world: None,
             simulation: None,
@@ -204,6 +239,7 @@ pub(super) fn publication(
     );
     let termination = observed.outcome.termination;
     let class = match termination {
+        "divergence" | "diverged" if observed.outcome.divergence.is_some() => "target_failure",
         "exit"
             if assertions.as_ref().is_some_and(|report| {
                 report.inconclusive || !report.report_only && !report.messages.is_empty()

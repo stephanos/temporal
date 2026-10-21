@@ -69,6 +69,14 @@ struct Provenance {
     network: Option<gomad_wasmhost::linked_cluster::NetworkModel>,
 }
 
+#[derive(Deserialize)]
+#[serde(deny_unknown_fields)]
+struct Overlay {
+    path: PathBuf,
+    identity: String,
+    implementation_sha256: String,
+}
+
 fn failure(error: impl std::fmt::Display) -> String {
     format!("runner_failure: {error}")
 }
@@ -134,16 +142,10 @@ fn installation(options: &ExploreOptions) -> Result<Installation, String> {
             if installed.go_version == "go1.27.1"
                 && installed.runtime_root.is_absolute()
                 && installed.runtime_implementation_sha256.as_deref()
-                    == Some(env!("GOMAD_RUNTIME_IMPLEMENTATION_SHA256")) =>
-        {
-            ()
-        }
+                    == Some(env!("GOMAD_RUNTIME_IMPLEMENTATION_SHA256")) => {}
         "gomad.wasi-stock-exploratory/v1"
             if installed.runtime_implementation_sha256.is_none()
-                && installed.runtime_root.as_os_str().is_empty() =>
-        {
-            ()
-        }
+                && installed.runtime_root.as_os_str().is_empty() => {}
         _ => return Err(failure("unsupported runtime profile or implementation")),
     }
     executable(&installed.compiler_path, &installed.compiler_sha256)?;
@@ -271,13 +273,6 @@ fn prepare_before_deadline(
             4 << 20,
             deadline,
         )?;
-        #[derive(Deserialize)]
-        #[serde(deny_unknown_fields)]
-        struct Overlay {
-            path: PathBuf,
-            identity: String,
-            implementation_sha256: String,
-        }
         let generated: Overlay = serde_json::from_slice(&result).map_err(failure)?;
         if !canonical::valid_digest(&generated.identity)
             || generated.implementation_sha256 != env!("GOMAD_RUNTIME_IMPLEMENTATION_SHA256")
@@ -363,11 +358,30 @@ fn prepare_before_deadline(
         &replacements,
     )?;
     let mut configuration = configuration(options, &installed)?;
+    let build_environment = environment
+        .iter()
+        .filter(|(name, _)| {
+            matches!(
+                name.as_str(),
+                "GOENV"
+                    | "GOFLAGS"
+                    | "GOTOOLCHAIN"
+                    | "GOWORK"
+                    | "GOOS"
+                    | "GOARCH"
+                    | "CGO_ENABLED"
+                    | "GOEXPERIMENT"
+                    | "GOCACHEPROG"
+                    | "GOWASM"
+                    | "GODEBUG"
+            )
+        })
+        .collect::<BTreeMap<_, _>>();
     let inputs = json!({"schema":"gomad.rust-wasm-build-inputs/v1", "compiler":compiler,"compiler_sha256":installed.compiler_sha256,
         "go_version":installed.go_version,"sources":sources,"runtime":runtime,"runtime_implementation":installed.runtime_implementation_sha256,
         "helper":linked::IMPLEMENTATION_SHA256,"host":env!("GOMAD_HOST_IMPLEMENTATION_SHA256"),"kind":options.target_kind,"source":options.source,
         "directory":directory,"arguments":options.target_args,"tags":tags,"configuration":configuration,"scenario":scenario,"network":installed.network,
-        "build_flags":["-mod=readonly","-trimpath","-buildvcs=false","-pgo=off"],"environment":environment,"soft_assertion_report_only":options.soft_assertion_report_only});
+        "build_flags":["-mod=readonly","-trimpath","-buildvcs=false","-pgo=off"],"environment":build_environment,"soft_assertion_report_only":options.soft_assertion_report_only});
     let toolchain = canonical::digest(&canonical::encode(&inputs)?);
     let output = temporary.0.join("module.wasm");
     let mut build = if options.target_kind == "go-test" {

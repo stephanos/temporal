@@ -167,10 +167,10 @@ pub(super) fn command(
 struct Child(std::process::Child);
 impl Drop for Child {
     fn drop(&mut self) {
-        if let Ok(raw) = i32::try_from(self.0.id()) {
-            if let Some(pid) = rustix::process::Pid::from_raw(raw) {
-                let _ = rustix::process::kill_process_group(pid, rustix::process::Signal::KILL);
-            }
+        if let Ok(raw) = i32::try_from(self.0.id())
+            && let Some(pid) = rustix::process::Pid::from_raw(raw)
+        {
+            let _ = rustix::process::kill_process_group(pid, rustix::process::Signal::KILL);
         }
         let _ = self.0.kill();
         let _ = self.0.wait();

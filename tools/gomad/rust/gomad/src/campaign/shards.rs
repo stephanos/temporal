@@ -150,7 +150,6 @@ fn copy_artifact(opened: &Opened, output: &Journal) -> Result<(String, u64), Str
 }
 
 #[expect(
-    clippy::too_many_arguments,
     clippy::too_many_lines,
     reason = "Merge validates every source before publishing any aggregate state"
 )]
@@ -267,7 +266,9 @@ pub(super) fn merge(
                 let opened = source.open_artifact(reference)?;
                 copy_artifact(&opened, &merged)?
             };
-            if !failure {
+            if failure {
+                failures.insert(signature, (reference.clone(), bytes));
+            } else {
                 let maximum = retention.remaining(
                     plan["success_limit"]
                         .as_u64()
@@ -279,8 +280,6 @@ pub(super) fn merge(
                 if bytes > maximum {
                     return Err("capacity: merged success evidence exceeds the plan bound".into());
                 }
-            } else {
-                failures.insert(signature, (reference.clone(), bytes));
             }
             execution.artifact = Some(reference);
             execution.stored_bytes = bytes;
