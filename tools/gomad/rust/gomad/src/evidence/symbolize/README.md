@@ -26,6 +26,7 @@ calls. The recognized sequence decrements cached SP, writes the concrete return
 address into that stack slot, and calls the validated target with PC_B zero.
 Every syntactic candidate participates, including calls in dead branches. An
 indirect/tail transfer or unsupported store/call shape prevents narrowed
+attribution. Balanced unsupported exception controls also retain only physical
 attribution. Each candidate's return PC minus one is decoded through PC streams
 and gofunc-relative inline rows. All candidates must agree on the full chain;
 each frame's file/line pair needs its own consensus. Otherwise the physical
@@ -40,6 +41,9 @@ limit failure discards partial entries and stores one compact unavailable
 result for every nonmissing lookup. No lookup resets a counter.
 Allocation charges use fixed conservative layout allowances, checked against
 Rust type sizes at compilation, so analysis cutoffs do not vary by host layout.
+Data-section byte work is charged before decoding any segment. Its pinned
+constant-offset grammar is read directly with bounded binary primitives, never
+by a lazy expression parser that could first traverse or allocate control stacks.
 
 The [real fixture proof](../../../../../testdata/parity/symbolize/README.md)
 retains compiler inlining diagnostics, actual trace sites, complete call

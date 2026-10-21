@@ -956,3 +956,106 @@ fn symbolize_unreferenced_magic_is_not_a_second_metadata_interpretation() {
         resolve_bytes(&original, [site(5383)])[&site(5383)]
     );
 }
+
+#[test]
+fn symbolize_pointed_decoy_is_not_authoritative_metadata() {
+    let original = fixture("guest.wasm");
+    let module = wasm::Module::read(&original, &mut bytes::Budget::default()).unwrap();
+    let header = module.memory.end - 416;
+    for count in [0, u64::MAX] {
+        let mut decoy = [0; 72];
+        decoy[..8].copy_from_slice(&[0xf1, 0xff, 0xff, 0xff, 0, 0, 1, 8]);
+        decoy[8..16].copy_from_slice(&count.to_le_bytes());
+        decoy[32..40].copy_from_slice(&72_u64.to_le_bytes());
+        let changed = replace_memory(&original, header, &decoy, usize::MAX);
+        let changed = replace_memory(
+            &changed,
+            module.memory.end - 512,
+            &header.to_le_bytes(),
+            usize::MAX,
+        );
+        let actual = resolve_bytes(&changed, [site(5383)]);
+        assert!(
+            matches!(&actual[&site(5383)], Symbol::Resolved { frame: Frame { function, line: Some(4), .. }, .. } if function == "choose")
+        );
+    }
+}
+
+#[test]
+fn symbolize_balanced_unsupported_control_falls_back_physically() {
+    use gomad_wasmhost::wasmparser::{BinaryReader, FunctionBody};
+    // Hand-encoded balanced exception-control bodies; none has a supported inline proof.
+    for body in [
+        vec![0, 0x1f, 0x40, 0, 0x0b, 0x0b], // try_table [] ... end; function end
+        vec![0, 0x06, 0x40, 0x0b, 0x0b],    // legacy try ... end
+        vec![0, 0x06, 0x40, 0x07, 0, 0x0b, 0x0b], // try ... catch tag0
+        vec![0, 0x06, 0x40, 0x19, 0x0b, 0x0b], // try ... catch_all
+        vec![0, 0x06, 0x40, 0x18, 0, 0x0b], // try ... delegate0; function end
+    ] {
+        let function = FunctionBody::new(BinaryReader::new(&body, 0));
+        assert_eq!(
+            wasm::returns(&function, 7, 0x1000_0000, &mut bytes::Budget::default()),
+            Ok(None),
+            "{body:02x?}"
+        );
+    }
+}
+
+#[test]
+fn symbolize_try_table_preserves_the_physical_site() {
+    let original = fixture("guest.wasm");
+    let module = wasm::Module::read(&original, &mut bytes::Budget::default()).unwrap();
+    let mut code = Vec::new();
+    leb(module.functions.len() as u64, &mut code);
+    for (ordinal, body) in module.functions.iter().enumerate() {
+        let mut bytes = original[body.range()].to_vec();
+        if ordinal == 1287 {
+            let operators = body.get_operators_reader().unwrap();
+            let start = operators.original_position() - body.range().start;
+            bytes.splice(start..start, [0x1f, 0x40, 0, 0x0b]);
+        }
+        leb(bytes.len() as u64, &mut code);
+        code.extend_from_slice(&bytes);
+    }
+    let changed = replace_section(&original, 10, &code);
+    let actual = resolve_bytes(&changed, [site(5383)]);
+    assert!(
+        matches!(&actual[&site(5383)], Symbol::Resolved { frame: Frame { function, file: None, line: None, .. }, inlined_from } if function == "positive" && inlined_from.is_empty())
+    );
+}
+
+#[test]
+fn symbolize_bounds_lazy_data_expression_work_before_parsing() {
+    let mut data = vec![1, 0, 0x41, 0]; // one active segment, i32.const0
+    data.resize(usize::try_from(bytes::STEP_LIMIT).unwrap() + 8, 0x01); // over-limit nop expression
+    data.extend_from_slice(&[0x0b, 0]);
+    let mut module = b"\0asm\x01\0\0\0".to_vec();
+    module.push(11);
+    leb(data.len() as u64, &mut module);
+    module.extend_from_slice(&data);
+    assert!(matches!(
+        wasm::Module::read(&module, &mut bytes::Budget::default()),
+        Err(Reason::SymbolTableTooLarge)
+    ));
+}
+
+#[test]
+fn symbolize_bounds_nested_data_before_parser_control_allocation() {
+    let mut data = vec![1, 0];
+    for _ in 0..128 {
+        data.extend_from_slice(&[0x02, 0x40]); // malformed constant expression with nested blocks
+    }
+    data.extend_from_slice(&[0x0b, 0]);
+    let mut module = b"\0asm\x01\0\0\0".to_vec();
+    module.push(11);
+    leb(data.len() as u64, &mut module);
+    module.extend_from_slice(&data);
+    let mut budget = bytes::Budget {
+        steps: bytes::STEP_LIMIT - 32,
+        ..Default::default()
+    };
+    assert!(matches!(
+        wasm::Module::read(&module, &mut budget),
+        Err(Reason::SymbolTableTooLarge)
+    ));
+}

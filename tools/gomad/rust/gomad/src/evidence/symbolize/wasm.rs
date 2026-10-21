@@ -3,7 +3,7 @@ use super::{
     bytes::{BYTE_LIMIT, Budget, Memory, Result, Segment, add, mul, size},
 };
 use gomad_wasmhost::wasmparser::{
-    self, CustomSectionReader, DataKind, FunctionBody, KnownCustom, Name, Operator, Parser,
+    self, BinaryReader, CustomSectionReader, FunctionBody, KnownCustom, Name, Operator, Parser,
     Payload, TypeRef,
 };
 use std::collections::BTreeMap;
@@ -87,8 +87,19 @@ impl<'a> Module<'a> {
                     }
                 }
                 Payload::DataSection(reader) => {
-                    for segment in reader {
-                        module.read_data(checked(segment)?, budget)?;
+                    // Advancing the lazy Data reader would parse arbitrary expressions and
+                    // allocate their control stacks before our budget/grammar checks.
+                    budget.steps(reader.range().len() as u64)?;
+                    budget.entries(u64::from(reader.count()))?;
+                    let mut data = BinaryReader::new(
+                        &bytes[reader.original_position()..reader.range().end],
+                        reader.original_position(),
+                    );
+                    for _ in 0..reader.count() {
+                        module.read_data(&mut data, budget)?;
+                    }
+                    if !data.eof() {
+                        return Err(Reason::SymbolMismatch);
                     }
                 }
                 Payload::CodeSectionStart {
@@ -205,31 +216,28 @@ impl<'a> Module<'a> {
         Ok(())
     }
 
-    fn read_data(&mut self, segment: wasmparser::Data<'a>, budget: &mut Budget) -> Result<()> {
-        budget.entries(1)?;
+    fn read_data(&mut self, reader: &mut BinaryReader<'a>, budget: &mut Budget) -> Result<()> {
         budget.bytes(128)?;
-        let DataKind::Active {
-            memory_index: 0,
-            offset_expr,
-        } = segment.kind
-        else {
+        match checked(reader.read_var_u32())? {
+            0 => {}
+            2 if checked(reader.read_var_u32())? == 0 => {}
+            1 | 2 => return Err(Reason::NoSymbols),
+            _ => return Err(Reason::SymbolMismatch),
+        }
+        if checked(reader.read_u8())? != 0x41 {
             return Err(Reason::NoSymbols);
-        };
-        let mut operators = offset_expr.get_operators_reader();
-        let Operator::I32Const { value } = checked(operators.read())? else {
-            return Err(Reason::NoSymbols);
-        };
+        }
+        let value = checked(reader.read_var_i32())?;
         let start = u64::from(u32::from_ne_bytes(value.to_ne_bytes()));
-        if !matches!(checked(operators.read())?, Operator::End) || !operators.eof() {
+        if checked(reader.read_u8())? != 0x0b {
             return Err(Reason::SymbolMismatch);
         }
-        if add(start, segment.data.len() as u64)? > self.memory.end {
+        let length = checked(reader.read_var_u32())?;
+        let data = checked(reader.read_bytes(length as usize))?;
+        if add(start, u64::from(length))? > self.memory.end {
             return Err(Reason::SymbolMismatch);
         }
-        self.memory.segments.push(Segment {
-            start,
-            bytes: segment.data,
-        });
+        self.memory.segments.push(Segment { start, bytes: data });
         Ok(())
     }
 }
@@ -288,9 +296,16 @@ pub(super) fn returns(
             return Err(Reason::SymbolMismatch);
         }
         match &operator {
-            Operator::Block { .. } | Operator::Loop { .. } | Operator::If { .. } => {
+            Operator::Block { .. }
+            | Operator::Loop { .. }
+            | Operator::If { .. }
+            | Operator::Try { .. }
+            | Operator::TryTable { .. } => {
                 budget.bytes(4)?;
                 control.push(matches!(operator, Operator::If { .. }));
+                if matches!(operator, Operator::Try { .. } | Operator::TryTable { .. }) {
+                    complete = false;
+                }
             }
             Operator::Else => {
                 if !control.last().copied().unwrap_or(false) {
@@ -300,6 +315,14 @@ pub(super) fn returns(
             }
             Operator::End => {
                 control.pop();
+            }
+            Operator::Delegate { relative_depth } => {
+                // The operator reader checks that delegate closes a legacy try.
+                control.pop();
+                if *relative_depth as usize >= control.len() {
+                    return Err(Reason::SymbolMismatch);
+                }
+                complete = false;
             }
             Operator::Br { relative_depth } | Operator::BrIf { relative_depth } => {
                 if *relative_depth as usize >= control.len() {
@@ -331,9 +354,16 @@ pub(super) fn returns(
             | Operator::ReturnCallIndirect { .. }
             | Operator::CallRef { .. }
             | Operator::ReturnCallRef { .. }
-            | Operator::TryTable { .. }
+            | Operator::Catch { .. }
+            | Operator::CatchAll
+            | Operator::Rethrow { .. }
             | Operator::Throw { .. }
-            | Operator::ThrowRef => complete = false,
+            | Operator::ThrowRef
+            | Operator::Resume { .. }
+            | Operator::ResumeThrow { .. }
+            | Operator::ResumeThrowRef { .. }
+            | Operator::Suspend { .. }
+            | Operator::Switch { .. } => complete = false,
             _ => {}
         }
         if preceding.len() == 9 {
@@ -344,11 +374,7 @@ pub(super) fn returns(
     if !control.is_empty() {
         return Err(Reason::SymbolMismatch);
     }
-    if complete && !found.is_empty() {
-        Ok(Some(found))
-    } else {
-        Ok(None)
-    }
+    Ok((complete && !found.is_empty()).then_some(found))
 }
 
 fn stored_return(window: &[Operator<'_>], entry: u64) -> Option<u64> {

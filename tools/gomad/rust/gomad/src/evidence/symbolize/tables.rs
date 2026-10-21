@@ -65,14 +65,23 @@ impl Tables {
             if modules.is_empty() {
                 continue;
             }
-            let (count, nfiles, starts) = read_header(module, header, budget)?;
-            let mut matched = false;
+            if add(header, 40)? > memory.end {
+                continue;
+            }
+            let Some(first_slice) = header
+                .checked_add(memory.u64(add(header, 32)?, budget)?)
+                .filter(|start| *start >= header + 72 && *start <= memory.end)
+            else {
+                continue;
+            };
             for address in modules {
                 // A header pointer alone is not moduledata. The first slice pointer anchors the pinned moduledata prefix.
-                if memory.u64(add(address, 8)?, budget)? != starts[0] {
+                if add(address, 16)? > memory.end
+                    || memory.u64(add(address, 8)?, budget)? != first_slice
+                {
                     continue;
                 }
-                matched = true;
+                let (count, nfiles, starts) = read_header(module, header, budget)?;
                 let slices = read_slices(memory, address, &starts, budget)?;
                 if slices[5].len != add(count, 1)? || slices[1].len * 4 > starts[2] - starts[1] {
                     return Err(Reason::SymbolMismatch);
@@ -130,9 +139,6 @@ impl Tables {
                     return Err(Reason::SymbolMismatch);
                 }
                 result = Some((tables, absent_names));
-            }
-            if !matched {
-                return Err(Reason::SymbolMismatch);
             }
         }
         let (tables, absent) = result.ok_or(Reason::SymbolMismatch)?;
