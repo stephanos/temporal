@@ -33,6 +33,27 @@ fn broker_config() -> Config {
     }
 }
 
+#[test]
+fn changed_inspection_boundaries_never_materialize_world_history() {
+    let broker = Broker::new(&broker_config(), &["a".into()], None, None).unwrap();
+    let mut previous = broker.inspection_world_commitment(None).unwrap().unwrap();
+    for ordinal in 0..1000u64 {
+        broker.register(0, "idle", &ordinal.to_le_bytes()).unwrap();
+        let current = broker.inspection_world_commitment(None).unwrap().unwrap();
+        assert_ne!(current, previous);
+        previous = current;
+        broker.ready(0, "idle").unwrap();
+        broker.inspection_world_commitment(None).unwrap();
+        lock(&broker.inner).world.quiesce().unwrap();
+        broker.inspection_world_commitment(None).unwrap();
+    }
+    assert_eq!(
+        broker.world_materializations.load(std::sync::atomic::Ordering::Relaxed),
+        0,
+        "inspection must bind the transition chain without scanning history"
+    );
+}
+
 #[cfg(feature = "stress-jitter")]
 #[test]
 fn event_order_controller_commands_match_parser_fixture() {
