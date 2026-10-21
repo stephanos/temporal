@@ -27,9 +27,9 @@ func save(path string, value any) {
 }
 func main() {
 	var input struct {
-		Base     wasi.Request
-		Scenario simulation.OperatorScenario
-		Output   string
+		Base           wasi.Request
+		Scenario       simulation.OperatorScenario
+		Output         string
 		ExpectedOwners int
 	}
 	raw, err := os.ReadFile(os.Args[1])
