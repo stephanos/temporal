@@ -42,6 +42,34 @@ fn floating_generation_can_fill_a_fractional_interval() -> Result<(), Generation
 }
 
 #[test]
+fn required_number_generation_excludes_absent_zero() -> Result<(), Box<dyn std::error::Error>> {
+    let expected = Expected { expectation: Expectation::Accepts };
+    for rules in [
+        NumberRules::default(),
+        NumberRules { gte: Some(0), lt: Some(1), ..Default::default() },
+        NumberRules { gt: Some(-1), lte: Some(0), ..Default::default() },
+    ] {
+        let catalog = Catalog::request("example.Number")
+            .field(Field::new("value", Kind::Number(rules), |v: &f64| v, |v| v).expects(&expected))
+            .rule(Rule {
+                presence: Presence::Required(vec!["value".into()]),
+                expected: Some(expected.clone()),
+            })
+            .build()?;
+        let mut value = 0.0;
+        fill(&mut value, &catalog, &mut Rng::new(3))?;
+        assert!(value.present());
+        assert_eq!(validate(&value, &catalog), []);
+    }
+    let only_zero = Kind::Number(NumberRules { gte: Some(0), lte: Some(0), ..Default::default() });
+    assert_eq!(
+        f64::generate_present(&only_zero, &mut Rng::new(3)),
+        Err(GenerationError::ImpossibleConstraints)
+    );
+    Ok(())
+}
+
+#[test]
 fn author_metadata_reaches_gap_reports_without_request_values() -> Result<(), AdmissionErrors> {
     let presence = Presence::Required(vec!["value".into()]);
     let catalog = Catalog::request("example.Request")

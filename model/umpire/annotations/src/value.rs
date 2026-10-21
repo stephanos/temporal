@@ -610,23 +610,10 @@ impl FieldValue for f64 {
         checks.into_iter().filter_map(|(name, failed)| failed.then_some(name)).collect()
     }
     fn generate(kind: &Kind, rng: &mut Rng) -> Result<Self, GenerationError> {
-        let Kind::Number(rules) = kind else {
-            return Err(GenerationError::UnsupportedType);
-        };
-        let mut candidates = vec![0.0, 1.0, -1.0];
-        for bound in [rules.gt, rules.gte, rules.lt, rules.lte].into_iter().flatten() {
-            let bound: f64 =
-                bound.to_string().parse().map_err(|_| GenerationError::ImpossibleConstraints)?;
-            candidates.extend([bound, bound.next_down(), bound.next_up()]);
-        }
-        candidates.retain(|value| value.violations(kind).is_empty());
-        let count = u64::try_from(candidates.len()).map_err(|_| GenerationError::SizeLimit)?;
-        if count == 0 {
-            return Err(GenerationError::ImpossibleConstraints);
-        }
-        let index =
-            usize::try_from(rng.next_u64() % count).map_err(|_| GenerationError::SizeLimit)?;
-        Ok(candidates[index])
+        generate_number(kind, rng, false)
+    }
+    fn generate_present(kind: &Kind, rng: &mut Rng) -> Result<Self, GenerationError> {
+        generate_number(kind, rng, true)
     }
     fn negative(
         &self,
@@ -640,6 +627,26 @@ impl FieldValue for f64 {
         }
         Self::generate(&crate::negative::negative_kind(kind, constraint)?, rng)
     }
+}
+
+fn generate_number(kind: &Kind, rng: &mut Rng, present_only: bool) -> Result<f64, GenerationError> {
+    let Kind::Number(rules) = kind else {
+        return Err(GenerationError::UnsupportedType);
+    };
+    let mut candidates = vec![0.0, 1.0, -1.0];
+    for bound in [rules.gt, rules.gte, rules.lt, rules.lte].into_iter().flatten() {
+        let bound: f64 =
+            bound.to_string().parse().map_err(|_| GenerationError::ImpossibleConstraints)?;
+        candidates.extend([bound, bound.next_down(), bound.next_up()]);
+    }
+    candidates
+        .retain(|value| (!present_only || value.present()) && value.violations(kind).is_empty());
+    let count = u64::try_from(candidates.len()).map_err(|_| GenerationError::SizeLimit)?;
+    if count == 0 {
+        return Err(GenerationError::ImpossibleConstraints);
+    }
+    let index = usize::try_from(rng.next_u64() % count).map_err(|_| GenerationError::SizeLimit)?;
+    Ok(candidates[index])
 }
 
 /// A protobuf-compatible timestamp; projected accessors can adapt generated types.
