@@ -809,14 +809,26 @@ impl Endpoint {
                         .contains_key(&(*global - self.request_base))
             })
             .map(|global| {
+                let pending = shared.owner.pending.get(&global)
+                    .ok_or_else(|| infrastructure("simulation ready request is missing"))?;
+                let request = &pending.request;
                 crate::linked_simulation::domain_hash(
                     "gomad-simulation-network-ready/v1",
-                    &serde_json::json!({"request_id":global}),
+                    &serde_json::json!({
+                        "request_id":global,
+                        "request":{
+                            "domain":request.domain,"op":request.op,"handle":request.handle,
+                            "host":request.host,"port":request.port,"bytes":request.bytes,
+                            "count":request.count,"deadline":request.deadline
+                        },
+                        "accepted":pending.accepted,"deadline":pending.deadline,"result":pending.result
+                    }),
                 )
                 .map(|identity| (global, identity))
+                .map_err(infrastructure)
             })
             .collect::<Result<Vec<_>, _>>()
-            .map_err(infrastructure)?;
+            ?;
         let site = crate::linked_simulation::domain_hash("gomad-simulation-network-site/v1",
             &serde_json::json!({"node":self.client.node,"incarnation":self.client.incarnation,"at_nanos":now}))
             .map_err(infrastructure)?;
