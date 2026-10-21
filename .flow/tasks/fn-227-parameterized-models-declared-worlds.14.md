@@ -36,9 +36,14 @@ As the previous task, plus `UMPIRE_BACKENDS=require` on `umpire-tests` for `para
 - [ ] Docs record the values-only exception; Quick gates pass, Full gates after review; line deltas reported.
 
 ## Done summary
-TBD
+Derived value handoff replaces the augmented-copy binding route. Inside a declared `#[machine]`, `derive(World)`/`derive(State)` export hidden `Values`, `derive(Action)` exports `ActionValues<World>`, `derive(Finite)` and other local fieldless enums export `IntoValue`; a dsl-owned `Value` enum (room for composite kinds) mirrors the lifter's literals so Model crates don't depend on umpire-lift. `umpire_testing::bound(world, budget, negative)` selects one World, enumerates starts and the checked catalog once; one generated `check_backend(name, folder, run)` serves unit and declared fixtures. Deleted: augmented-copy generation in `lift/src/build.rs`, discovery overrides, selection thread-locals and counters, `Checker::explore_from`, `check_typed_exploration`, dead lifter accessors. `Lifted::bind` and all refusals unchanged. fn-227.13 follow-ups M1/N1/N2 done. Kept as real features: `Space`'s second `SpaceBinding` impl, `catalog_limit` threading, `tree.rs::compare`.
 
+Goldens: only the `declared_world` and `finite` expansion snapshots changed, plus new `world_starts_return.stderr`; checker/report/TLA+/cfg/TLC byte-identical. Guest refreshed (c6e5234ce9, sha a8f7ec2682ed...cc45) because removing `explore_from` shifted panic-site lines. Lines: source about -91 net, tests about -70 net (target -250 not reached; review found nothing large left).
+
+Review: NEEDS_WORK (enum fields needed `derive(Finite)`, about 70 cleanup lines), then SHIP (.flow/tmp/fn22714-review.md, fn22714-review2.md). Gates: Quick default/required; `UMPIRE_BACKENDS=require make model-check` 432s then 460s after fixes; `make model-time` 50.532s gate / 7.908s inner loop; slice 21s; gaps 422s.
+
+stage: plan-sync - skipped(config: planSync.enabled != true)
 ## Evidence
-- Commits:
-- Tests:
+- Commits: 137d0ed057, c6e5234ce9, adb061d57d
+- Tests: UMPIRE_BACKENDS=require make model-check, make model-time, make umpire-check-model-slice, make umpire-check-model-gaps
 - PRs:

@@ -122,6 +122,9 @@ review: [simplification report](.flow/artifacts/fn-227-parameterized-models-decl
 .13 is complete locally with SHIP review and full gates: one machine generator, no module
 generics, method-level `#[starts]`; net -788 source and about -655 test lines, goldens and TLC
 unchanged; timing 51.337s gate, 8.868s inner loop.
+.14 is complete locally after a second review: derives export values to the lifter, replacing
+the augmented-copy binding route; net about -91 source and -70 test lines, goldens and TLC
+unchanged; timing 50.532s gate, 7.908s inner loop.
 On 2026-10-21 the owner approved all three contract amendments: lifecycle refinement
 in place of impossible old-byte equality; cooperative cancellation with explicit protocol
 evidence; and optional actual-request Observation evidence at tag 4. Heartbeat signals a
@@ -134,8 +137,7 @@ The review passed; each consumer still waits for its declared support dependenci
 
 | Name | Status | What |
 | --- | --- | --- |
-| fn-227.14 | 🔄 in progress | After .13: derived value handoff replaces the augmented-copy binding route (R1, R3) |
-| fn-227.8 | ⏸️ deferred | Source inputs and exact-payload fairness committed (`3fd1d2f551`, `0469334f91`); guest refresh, review and Full gates resume after .14 (R2, R3) |
+| fn-227.8 | 🔄 in progress | Source inputs and exact-payload fairness committed (`3fd1d2f551`, `0469334f91`), migrated by .13/.14; full gates green at `adb061d57d`; independent review next (R2, R3) |
 | fn-227.11 | ⬜ todo | After .8 and fn-238's migration: source `Phased`/`reject!` and closure laws, with unchanged activity behavior (R3) |
 | fn-227.3 | ⬜ todo | After .2 and .11: activity attempts/retryable failure and retained-lifecycle refinement (R3, R4) |
 | fn-227.12 | ⬜ todo | Actual-request Observation transport and owned same-invocation SDK capture (R6) |
