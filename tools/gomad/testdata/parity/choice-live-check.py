@@ -7,8 +7,10 @@ import os
 from pathlib import Path
 import shutil
 import subprocess
+import runpy
 
 MODULE = Path(__file__).resolve().parents[2]
+rounds = runpy.run_path(str(Path(__file__).with_name('round-check.py')))
 
 
 def encode(value):
@@ -85,7 +87,7 @@ def main():
         return roots[0]
 
     def events(root):
-        return [json.loads(line)['event'] for line in (root / 'journal.jsonl').read_bytes().splitlines()]
+        return rounds['authenticate'](root)['events']
 
     def check_divergences():
         observations = {}
@@ -176,6 +178,9 @@ def main():
     run('inspect', [*prefix, 'inspect', '--json', campaign])
     run('resume-complete', [*prefix, 'resume', '--json', campaign], (0, 1))
     baseline = events(campaign)
+    authenticated_campaign = rounds['authenticate'](campaign)
+    rounds['negative_checks'](campaign, args.work / 'independent-negatives')
+    rounds['plan_refusals'](run, prefix, campaign, args.work)
     assert len(baseline) > 1, 'no actual forced prefix rounds'
     envelope = json.loads(report.splitlines()[-1])['envelope']
     assert envelope['logical_executions'] == len(baseline) <= 8, envelope
@@ -192,6 +197,7 @@ def main():
     run('inspect-prefix', [*prefix, 'inspect', '--json', interrupted])
     run('resume', [*prefix, 'resume', '--json', interrupted], (0, 1))
     assert [event['segment'] for event in events(interrupted)] == [event['segment'] for event in baseline]
+    assert rounds['authenticate'](interrupted)['artifacts'] == authenticated_campaign['artifacts']
 
     torn = args.work / 'torn'
     shutil.copytree(campaign, torn)

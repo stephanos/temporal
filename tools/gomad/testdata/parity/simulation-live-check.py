@@ -7,9 +7,12 @@ import json
 import os
 from pathlib import Path
 import subprocess
+import runpy
+import shutil
 
 CORPUS = Path(__file__).resolve().parent
 MODULE = CORPUS.parents[1]
+rounds = runpy.run_path(str(CORPUS / 'round-check.py'))
 
 
 def encode(value):
@@ -122,8 +125,21 @@ def main():
     roots = list((destination / 'campaigns').glob('campaign-*'))
     assert len(roots) == 1, roots
     campaign = roots[0]
+    authenticated = rounds['authenticate'](campaign)
     run('inspect', [*prefix, 'inspect', '--json', campaign])
     run('resume', [*prefix, 'resume', '--json', campaign], (0, 1))
+    assert rounds['authenticate'](campaign) == authenticated
+    rounds['negative_checks'](campaign, args.work / 'independent-negatives')
+    rounds['plan_refusals'](run, prefix, campaign, args.work)
+    torn = args.work / 'torn-round'
+    shutil.copytree(campaign, torn)
+    journal = torn / 'journal.jsonl'
+    journal.write_bytes(journal.read_bytes() + b'{"event":')
+    before = rounds['snapshot'](torn)
+    run('inspect-torn-refusal', [*prefix, 'inspect', '--json', torn], (2,))
+    assert rounds['snapshot'](torn) == before
+    run('resume-torn-round', [*prefix, 'resume', '--json', torn], (0, 1))
+    assert rounds['authenticate'](torn) == authenticated
 
     observed, forced, observations = set(), set(), []
     for path in campaign.rglob('simulation/record.json'):
@@ -177,9 +193,19 @@ def main():
         if value['forced_dimensions'] == ['scenario']:
             assert value['steps'] != baseline['steps']
     verify_replays(args.binary, campaign, args.work)
+    if not args.scenario_only:
+        runtime_artifact = next(path.parent.parent for path in campaign.rglob('simulation/plan.json')
+            if any(value['dimension'] == 'runtime' for value in json.loads(path.read_bytes())['overrides'] or []))
+        altered = rounds['runtime_tamper'](runtime_artifact, args.work / 'runtime-forcing-tamper')
+        before = rounds['snapshot'](altered)
+        run('runtime-forcing-tamper-refusal', [args.binary, 'replay', altered], (2,))
+        assert b'retained runtime forcing authentication' in (args.work / 'runtime-forcing-tamper-refusal.stderr').read_bytes()
+        assert rounds['snapshot'](altered) == before
     (args.work / 'observations.json').write_bytes(encode(dict(schema='gomad.rust-simulation-live-check/v1',
         binary_sha256=digest(args.binary.read_bytes()), dimensions=sorted(observed), forced_dimensions=sorted(forced),
         observations=sorted(observations, key=lambda observation: observation['identity']))))
+    (args.work / 'authenticated-artifacts.json').write_bytes(encode(dict(
+        prepared=authenticated['prepared_artifact'], executions=authenticated['artifacts'])))
 
 
 if __name__ == '__main__':
