@@ -232,10 +232,7 @@ fn execute_configuration(
         });
         retained.push(Retained {
             handle: item.handle.clone(),
-            interrupted: matches!(
-                item.execution.outcome.termination,
-                "crash" | "stop" | "storage_crash"
-            ),
+            interrupted: item.interrupted,
             evidence,
         });
     }

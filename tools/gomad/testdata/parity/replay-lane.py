@@ -9,7 +9,8 @@ import sys
 sys.dont_write_bytecode = True
 p = argparse.ArgumentParser()
 for name in ('binary', 'baseline', 'source', 'go-compiler', 'work',
-             'stress-binary', 'determinism-binary', 'release-binary', 'preparation-root'):
+             'stress-binary', 'determinism-binary', 'release-binary', 'preparation-root',
+             'cluster-baseline', 'cluster-source'):
     p.add_argument('--' + name, type=Path, required=True)
 args = p.parse_args()
 corpus = Path(__file__).resolve().parent
@@ -34,7 +35,8 @@ run('fresh-parity', [sys.executable, corpus / 'replay-reference-lane.py', '--bas
     '--source', args.source, '--go-compiler', args.go_compiler, '--rust-binary', args.binary,
     '--output', args.work / 'fresh-parity', '--preparation-root', args.preparation_root])
 for name, driver in [('consumer', 'replay-check.py'), ('opener', 'replay-fault-check.py'),
-                     ('cluster', 'replay-cluster-check.py'), ('golden', 'replay-golden-check.py')]:
+                     ('cluster', 'replay-cluster-check.py'), ('cluster-failures', 'replay-cluster-failure-check.py'),
+                     ('golden', 'replay-golden-check.py')]:
     run(name, [sys.executable, corpus / driver, '--binary', args.binary, '--work', args.work / name])
 run('runtime-golden', [sys.executable, corpus / 'replay-golden-check.py', '--binary', args.binary,
     '--work', args.work / 'runtime-golden', '--input', args.work / 'fresh-parity/replay-input.json'])
@@ -58,7 +60,7 @@ for name, binary, role in [('ordinary', args.binary, None), ('stress', args.stre
 run('roles', [sys.executable, corpus / 'replay-role-check.py', '--ordinary-binary', args.binary,
     '--stress-binary', args.stress_binary, '--determinism-binary', args.determinism_binary,
     '--release-binary', args.release_binary, '--output', args.work / 'roles'])
-cluster_arguments = ['--baseline', args.baseline, '--source', args.source, '--compiler', args.go_compiler]
+cluster_arguments = ['--baseline', args.cluster_baseline, '--source', args.cluster_source, '--compiler', args.go_compiler]
 run('public-cluster-reference', [sys.executable, corpus / 'replay-cluster-reference.py', *cluster_arguments,
     '--work', args.work / 'public-cluster'])
 public_reference = args.work / 'public-cluster/cluster-reference.json'
@@ -76,4 +78,12 @@ run('cluster-alternate-reference', [sys.executable, corpus / 'replay-cluster-ref
 run('cluster-alternate-import', [sys.executable, corpus / 'replay-cluster-reference.py', *cluster_arguments,
     '--binary', args.binary, '--from-reference', args.work / 'cluster-alternate/api/cluster-reference.json',
     '--work', args.work / 'cluster-alternate-import'])
+successful = json.loads(run('successful-registered-fixture', [sys.executable, corpus / 'replay-inspection-fixture.py',
+    '--binary', args.binary, *cluster_arguments, '--success', '--work', args.work / 'successful-registered']))
+run('cluster-success-reference', [sys.executable, corpus / 'replay-cluster-reference.py', *cluster_arguments,
+    '--from-reference', public_reference, '--api-registered', successful['go_reference'], '--api-success',
+    '--work', args.work / 'cluster-success'])
+run('cluster-success-import', [sys.executable, corpus / 'replay-cluster-reference.py', *cluster_arguments,
+    '--binary', args.binary, '--from-reference', args.work / 'cluster-success/api/cluster-reference.json',
+    '--work', args.work / 'cluster-success-import'])
 print('replay lane: fresh Go/Rust semantics, retained replay, opener faults, cluster and exact goldens passed')

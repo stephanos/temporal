@@ -14,6 +14,7 @@ p = argparse.ArgumentParser()
 for name in ('binary', 'baseline', 'source', 'compiler', 'work'):
     p.add_argument('--' + name, type=Path, required=True)
 p.add_argument('--role', choices=['stress-jitter', 'determinism-fixture'])
+p.add_argument('--success', action='store_true', help='separate successful registered guest for restart coverage')
 args = p.parse_args()
 for name in ('binary', 'baseline', 'source', 'compiler', 'work'):
     setattr(args, name, getattr(args, name).resolve())
@@ -44,17 +45,36 @@ def run(name, command, status=0):
 
 
 baseline = args.baseline / 'bin/gomad'
+guest_package = './common/gomaddebug/testdata/fixture'
+fixture_source = args.source / guest_package / 'main.go'
+if args.success:
+    original = fixture_source.read_bytes()
+    assert original.count(b'\tos.Exit(1)\n') == 1, 'registered success fixture transformation changed'
+    transformed = original.replace(b'\tos.Exit(1)\n', b'\tos.Exit(0)\n')
+    guest_package = './common/gomaddebug/testdata/fn232successfixture'
+    generated = args.source / guest_package
+    generated.mkdir(mode=0o700, exist_ok=True)
+    fixture_source = generated / 'main.go'
+    assert not fixture_source.exists() or fixture_source.read_bytes() == transformed
+    fixture_source.write_bytes(transformed)
+    (args.work / 'success-guest.go').write_bytes(transformed)
+status = 0 if args.success else 1
+fixture_sha256 = sha(fixture_source.read_bytes())
 installation = args.work / 'exact-installation.json'
 run('go-install', [baseline, 'install', '--compiler', args.compiler,
                   '--helper', args.baseline / 'bin/gomad-wasmhost', '--profile', 'gomad.wasi-cooperative/v1',
                   '--runtime-root', args.source / 'tools/gomad/internal/model/runtimesource',
                   '--fuel', str(1 << 60), '--cache', args.work / 'preparation', '--output', installation])
 run('go-explore', [baseline, '--installation', installation, 'explore', '--json', '--choices',
+                  '--keep-successes=all',
                   '--seeds=7', '--parallel=1', '--on-failure=all', '--working-dir', args.source,
                   '--build-tag=gomad', '--build-tag=test_dep', '--execution-timeout=30s', '--overall-timeout=5m',
-                  '--artifacts', args.work / 'go-artifacts', 'go-run', './common/gomaddebug/testdata/fixture'], 1)
+                  '--artifacts', args.work / 'go-artifacts', 'go-run', guest_package], status)
+if args.success:
+    fixture_source.unlink()
+    fixture_source.parent.rmdir()
 artifacts = [path.parent for path in (args.work / 'go-artifacts').rglob('manifest.json')
-             if json.loads(path.read_bytes()).get('artifact_kind') == 'gomad.target-failure/v1']
+             if json.loads(path.read_bytes()).get('artifact_kind') == ('gomad.success/v1' if args.success else 'gomad.target-failure/v1')]
 assert len(artifacts) == 1, artifacts
 artifact = artifacts[0]
 manifest = json.loads((artifact / 'manifest.json').read_bytes())
@@ -101,7 +121,7 @@ case = {'name': 'registered-seed7', 'module_path': str(module_path), 'module_sha
 input_path = args.work / 'registered-input.json'
 input_path.write_bytes(canonical({'schema': 'gomad.replay-fixture-input/v1', 'cases': [case]}))
 reference = {'schema': 'gomad.replay-inspection-reference/v1', 'go_binary_sha256': sha(baseline.read_bytes()),
-             'source_fixture_sha256': sha((args.source / 'common/gomaddebug/testdata/fixture/main.go').read_bytes()),
+             'source_fixture_sha256': fixture_sha256,
              'records': [{'mode': 'exact', 'case': 'match', 'seed': 7, 'artifact': str(artifact)}]}
 (args.work / 'registered-reference.json').write_text(json.dumps(reference, indent=2) + '\n')
 bundle = json.loads(run('rust-produce', [args.binary, 'fixture-replay-input', '--root', args.work / 'rust', '--input', input_path,
@@ -109,7 +129,7 @@ bundle = json.loads(run('rust-produce', [args.binary, 'fixture-replay-input', '-
 assert len(bundle['records']) == 1
 rust_artifact = args.work / 'rust' / bundle['records'][0]['artifact']
 assert (rust_artifact / 'evidence/choice').read_bytes() == (artifact / 'choices.bin').read_bytes()
-assert b'reproduced=true' in run('rust-replay', [args.binary, 'replay', *(['--' + args.role] if args.role else []), rust_artifact], 1)
-assert b'reproduced=true' in run('go-replay', [baseline, '--installation', installation, 'replay', artifact], 1)
+assert b'reproduced=true' in run('rust-replay', [args.binary, 'replay', *(['--' + args.role] if args.role else []), rust_artifact], status)
+assert b'reproduced=true' in run('go-replay', [baseline, '--installation', installation, 'replay', artifact], status)
 print(json.dumps({'artifact': str(rust_artifact), 'go_reference': str(args.work / 'registered-reference.json'),
                   'input': str(input_path), 'go_binary': str(baseline)}))

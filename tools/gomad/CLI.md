@@ -162,10 +162,17 @@ python3 tools/gomad/scripts/behavioral-parity \
   --replay-release-binary /absolute/ordinary-release/gomad \
   --replay-baseline /absolute/authenticated/go-baseline \
   --replay-source /absolute/extracted/baseline/source \
+  --replay-cluster-baseline /absolute/current-go-and-helper-reference \
+  --replay-cluster-source /absolute/current-go-source \
   --replay-go-compiler /absolute/pinned/go1.27.1/bin/go \
   --replay-preparation-root /absolute/retained/replay-toolchain-preparation \
   --output-root /absolute/new/replay-check
 ```
+
+The standalone baseline stays frozen. Cluster lanes use an archived current Go
+launcher and matching helper because fn235 deliberately changes cluster failure
+semantics. The original failing registered guest remains a failure case; a
+separate retained success variant proves all three incarnations and restart.
 
 `testdata/parity/replay-corpus.json` declares the golden view. Records, manifests,
 ledgers, statuses, replay reports and observed output digests remain exact; only
