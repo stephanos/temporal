@@ -162,17 +162,23 @@ python3 tools/gomad/scripts/behavioral-parity \
   --replay-release-binary /absolute/ordinary-release/gomad \
   --replay-baseline /absolute/authenticated/go-baseline \
   --replay-source /absolute/extracted/baseline/source \
-  --replay-cluster-baseline /absolute/current-go-and-helper-reference \
-  --replay-cluster-source /absolute/current-go-source \
+  --replay-cluster-baseline /absolute/pinned-pre-v4-go-and-helper-reference \
+  --replay-cluster-source /absolute/extracted/pre-v4/source \
   --replay-go-compiler /absolute/pinned/go1.27.1/bin/go \
   --replay-preparation-root /absolute/retained/replay-toolchain-preparation \
   --output-root /absolute/new/replay-check
 ```
 
-The standalone replay/divergence baseline stays frozen. Cluster, network and
-registered inspection lanes use an archived current Go launcher and matching
-helper because fn235 deliberately changes cluster failure semantics and
-inspection World commitments. The original failing registered guest remains a failure case; a
+The standalone replay/divergence and network baselines stay frozen. Cluster
+and registered inspection lanes use the pinned pre-v4 Go launcher, matching
+helper and source archive declared as `cluster_reference` in
+`testdata/parity/replay-corpus.json`, because fn235 deliberately changes cluster
+failure semantics and inspection World commitments. The lane refuses any other
+launcher, helper or archive bytes, and authenticates the extracted source tree against
+that archive (revision, contents, modes, links and no unarchived files) before use;
+`replay-source-pin.py --selftest` proves each modification refuses. The newest Go launcher records a complete v4
+choice trace but its artifact validator still requires v3, so it exits 3 before
+publication; that refusal is retained as regression evidence, not normalized. The original failing registered guest remains a failure case; a
 separate retained success variant proves all three incarnations and restart.
 The standalone network lane compares every field and type in the modeled JSON
 document, including local faults and World history, and its exact encoded byte

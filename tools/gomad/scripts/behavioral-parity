@@ -484,7 +484,7 @@ def main():
         if not all((args.replay_baseline, args.replay_source, args.replay_go_compiler, args.output_root,
                     args.replay_stress_binary, args.replay_determinism_binary, args.replay_release_binary,
                     args.replay_preparation_root, args.replay_cluster_baseline, args.replay_cluster_source)):
-            fail("$replay", "replay requires frozen standalone and current cluster baselines/sources, Go compiler, all compiled roles, release binary, stable preparation root and fresh output root")
+            fail("$replay", "replay requires frozen standalone and pinned pre-v4 cluster baselines/sources, Go compiler, all compiled roles, release binary, stable preparation root and fresh output root")
         result = subprocess.run(["python3", str(args.corpus / "replay-lane.py"),
             "--binary", str(args.replay_binary), "--baseline", str(args.replay_baseline),
             "--source", str(args.replay_source), "--go-compiler", str(args.replay_go_compiler),

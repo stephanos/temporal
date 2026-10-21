@@ -1177,3 +1177,25 @@ normalization of failure status or qualification claim is authorized.
 Independent review: every item is met except current-candidate qualification of the rotated contract, so .2 stays open, blocked on fn-232.13, and fn-235 stays open. Evidence: `.flow/artifacts/fn235-commitment-cost-2026-10-21.md`. Helper identity: no new rotation. This work merged no helper source; the cohort used private 10 s-checkpoint builds that are not for release.
 
 Temporary worktrees: `fn224-premerge`, `fn224-at92c6`, `fn235-measure-before`, `fn235-measure-after` and `fn235-measure-after-tipsrc` hold the evidence candidates. They are retained until fn-224.2 and fn-235.2 close. Nothing was pushed.
+
+### fn232.6 replay closure (worker A, 2026-10-21)
+
+fn232.6 is done. The conductor decision (owner-delegated) pins the World/cluster/registered Go comparisons
+to an explicit pre-v4 producer, declared as `cluster_reference` in replay-corpus.json and enforced by
+replay-lane.py. It consists of launcher fef8769b (no-VCS builds of 294b5e66e5 and 46aca8c3ec are identical),
+helper 71f7dc47 (a fresh compile of 46aca8c3ec reproduces it) and the 46aca8c3ec archive. The extracted
+tree is authenticated against that archive before use. Bundle:
+`/home/agent/wt/evidence/fn232/go-cluster-baseline-46aca8c3ec`. The newest Go v3-only publication refusal
+stays supplementary regression evidence; the Go validator was not patched and nothing was normalized.
+
+Fresh roles were built after package cleans with asserted `Compiling` lines (candidate-v3:
+fixture 31b3187b, release 6db9daa2, stress 496339c5, determinism e869f407, helper 8ca97310). A build
+from an older-mtime tree silently reused newer artifacts; this confirms the cache mechanism, and every
+build now cleans first. Master regeneration1b and 2c pass with byte-identical goldens; strictb and
+strictc (with source pin) pass. Five attempts failed only on 30s/60s inspection-search wall budgets
+under shared-host load (load 6-27). Each is preserved with a note; budgets are unchanged. These
+searches need about 3.3s per evaluation at load 5-7, so future lane runs need a quiet slot (1-minute load below 2.5).
+The runtime stock-profile delta is input-driven (retained 2x2 control). Independent codex review returned
+NEEDS_WORK (two findings, both fixed), then re-review SHIP. Evidence: `/home/agent/wt/evidence/fn232-replay-closeout`.
+Commits 5e9e6dd9aa, 30db0b985d, 0a7186e73f on fn232-replay. .7 is now running in fn232-campaign.
+
