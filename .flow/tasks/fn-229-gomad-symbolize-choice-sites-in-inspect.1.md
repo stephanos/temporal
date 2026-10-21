@@ -7,10 +7,17 @@ satisfies: [R3, R4, R7, R8]
 **Semantic references only:** tools/gomad/internal/model/runtimesource/gomad_semantics.go.txt, tools/gomad/internal/backends/wasm/toolchain/{overlay.go,runtime_wasm.go.txt}; the Rust symbolizer paths above are proposed implementation surfaces.
 
 ## Description
-Reopened after the prior SHIP for source-derived R7 under-accounting in eager parser-internal TryTable catch vectors (and related variable-sized operators). Research is `.flow/tmp/fn229-parser-internal-budget-research.md`; its concrete construction is not yet executed. Add a true regression, prove actual pre-work cumulative step/entry/allocation accounting, preserve existing valid attribution/fallback/reason behavior, refresh authenticated gates, and obtain independent review before restoring done. Existing parser/fixture proof and prior receipts remain history, not proof of this path. Task .2 proceeds provisionally on the unchanged resolver interface; this reopens no record/wire contract and waives no limit.
+The task was reopened after its prior SHIP for source-derived R7 under-accounting
+in eager parser-internal TryTable catch vectors and related variable-sized
+operators. The concrete eighteen-million-catch regression reproduced the defect;
+integrated commits be38ee5fae and 3d1c24cc35 repair it through pre-work cumulative
+step/entry/allocation accounting. Fresh integrated tests and independent review
+restore completion; see the done summary for evidence. Earlier research at
+.flow/tmp/fn229-parser-internal-budget-research.md and prior receipts remain
+history. Task .2 still owns public consumer integration; no record/wire contract
+or limit changed.
 
 Implement R3/R4/R7/R8 once in the Rust evidence layer after fn-232.5. Register the symbolizer in evidence/mod.rs and expose Wasmtime's existing wasmparser through the helper library's public re-export surface in lib.rs (reuse an equivalent existing public re-export if present). The host gomad crate consumes that helper re-export with the checked pinned Go metadata reader; it gains no direct Wasmtime or new parser dependency. Provide a Rust-internal resolver over a site value plus its missing flag and the authenticated retained-module handle; preserve the spec's Symbol shape and unavailable reasons. No Go-host implementation, Go decoder subprocess or new dependency.
-
 ## Approach
 - Decode active constant-offset data into the bounded sparse view; handle split tables and zero gaps without whole-memory allocation. Locate a unique structurally validated pcHeader/moduledata pair, validate sorted functab/sentinel and names, and follow checked gofunc-relative funcdata/inline and PC-value tables. Never assume named runtime DATA symbols or use the zero header textStart word.
 - Interpret compressed textOff at physical-function scale; validate text base and imported-function/defined-ordinal mapping. Derive exact Go names from pclntab; cross-check a present name section only after pinned ASCII-word/dot normalization. A missing required name cross-check means no_symbols even with retained pclntab; a present disagreement/malformed table means symbol_mismatch, under the spec's precedence.

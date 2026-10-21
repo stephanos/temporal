@@ -483,6 +483,9 @@ Remaining worktrees are the main integration checkout; fn185-attribution-fix,
 fn221, fn224, fn229-budget-fix, fn229-symbolize, fn232-foundation,
 fn232-replay, fn232-campaign, fn235 and fn235-failure-repair for their open
 owners; and qualification-final-frozen for retained qualification inputs.
+After verified fn-229.1 completion its clean fn229-budget-fix worktree was
+removed and the worktree registry pruned. Its branch commits and immutable
+evidence remain available; no active worker or unique work was removed.
 The old frozen checkout's inactive `wasmhost/target/debug/incremental` cache
 was checked for live users and moved to
 `/Users/stephan/Workspace/skunkworks/gomad/.build-cache/frozen-qualification-incremental`
