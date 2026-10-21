@@ -100,7 +100,10 @@ pub(super) fn run_with_replay(
             memory_bytes: configuration.limits.memory_bytes,
             output_bytes: configuration.limits.output_bytes,
             evidence_bytes: configuration.limits.evidence_bytes,
-            wall_timeout: timeout.min(Duration::from_millis(configuration.limits.wall_millis)),
+            wall_timeout: timeout.min(preflight::wall_timeout(
+                &configuration.limits,
+                configuration.wall_nanos,
+            )?),
         },
     };
     #[cfg(feature = "determinism-fixture")]
@@ -162,6 +165,25 @@ pub(super) fn publication(
             "watchdog_timeout" | "cancelled"
         )
     {
+        if !payloads.contains_key("evidence/choice")
+            && observed
+                .outcome
+                .local_model
+                .as_deref()
+                .is_some_and(|model| {
+                    model["configured"].as_bool() == Some(true)
+                        && model["finished"].as_bool() == Some(true)
+                        && model["records"].as_u64() == Some(0)
+                })
+        {
+            insert(
+                &mut payloads,
+                &mut streams,
+                "evidence/choice",
+                Vec::new(),
+                0,
+            );
+        }
         let trace = payloads
             .get("evidence/choice")
             .ok_or("runner_failure: missing campaign choice evidence")?;

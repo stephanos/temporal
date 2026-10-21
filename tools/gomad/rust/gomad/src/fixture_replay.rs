@@ -6,12 +6,12 @@ use crate::{
         record::{Outcome, Record, Stream},
         store::{Opened, Publication, Store},
     },
-    replay::preflight::{Configuration, FILE, Inputs, implementation, platform},
+    replay::preflight::{Configuration, FILE, Inputs, implementation, platform, wall_timeout},
 };
 use gomad_wasmhost::linked;
 use serde::Deserialize;
 use sha2::Digest as _;
-use std::{collections::BTreeMap, path::Path, time::Duration};
+use std::{collections::BTreeMap, path::Path};
 
 #[derive(Deserialize)]
 #[serde(deny_unknown_fields)]
@@ -79,7 +79,7 @@ fn execute(case: Case, conditions: linked::Conditions) -> Result<Publication, St
             fuel: configuration.limits.fuel,
             output_bytes: configuration.limits.output_bytes,
             evidence_bytes: configuration.limits.evidence_bytes,
-            wall_timeout: Duration::from_millis(configuration.limits.wall_millis),
+            wall_timeout: wall_timeout(&configuration.limits, configuration.wall_nanos)?,
         },
     })
     .map_err(|error| format!("{}: {error}", case.name))?;

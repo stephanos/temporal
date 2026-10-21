@@ -13,6 +13,8 @@ pub struct Configuration {
     pub engine: String,
     pub profile: String,
     pub limits: crate::evidence::record::Limits,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub wall_nanos: Option<u64>,
     pub arguments: Vec<String>,
     pub environment: BTreeMap<String, String>,
     #[serde(default, skip_serializing_if = "std::ops::Not::not")]
@@ -24,6 +26,19 @@ pub struct Configuration {
     pub namespace: Option<linked::NamespaceImage>,
     #[serde(default)]
     pub storage: Option<linked::StorageInput>,
+}
+
+pub(crate) fn wall_timeout(
+    limits: &crate::evidence::record::Limits,
+    nanos: Option<u64>,
+) -> Result<Duration, String> {
+    if let Some(nanos) = nanos {
+        if nanos == 0 || (nanos - 1) / 1_000_000 + 1 != limits.wall_millis {
+            return Err("WASM exact deadline and recorded limit mismatch".into());
+        }
+        return Ok(Duration::from_nanos(nanos));
+    }
+    Ok(Duration::from_millis(limits.wall_millis))
 }
 
 #[derive(Deserialize, Serialize)]
@@ -306,7 +321,7 @@ fn prepare_internal(
             fuel: record.limits.fuel,
             output_bytes: record.limits.output_bytes,
             evidence_bytes: record.limits.evidence_bytes,
-            wall_timeout: Duration::from_millis(record.limits.wall_millis),
+            wall_timeout: wall_timeout(&record.limits, inputs.configuration.wall_nanos)?,
         },
         model: model.map(|configuration| linked::ModelInput {
             configuration,

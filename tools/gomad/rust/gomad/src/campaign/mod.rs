@@ -430,6 +430,14 @@ fn run(
             scope.spawn(move || {
                 while let Ok(job) = rx.recv() {
                     let result = std::panic::catch_unwind(std::panic::AssertUnwindSafe(|| {
+                        #[cfg(feature = "determinism-fixture")]
+                        if std::env::var("GOMAD_FIXTURE_CAMPAIGN_PANIC_SEED")
+                            .ok()
+                            .as_deref()
+                            == Some(job.seed.to_string().as_str())
+                        {
+                            panic!("campaign fixture slot panic");
+                        }
                         let remaining = deadline.saturating_duration_since(Instant::now());
                         if remaining.is_zero() {
                             return Err("overall_timeout: campaign deadline exceeded".into());

@@ -397,7 +397,8 @@ fn prepare_before_deadline(
         output.to_string_lossy().into_owned(),
         options.source.clone(),
     ]);
-    environment.insert(
+    let mut compilation_environment = environment.clone();
+    compilation_environment.insert(
         "GOCACHE".into(),
         temporary.0.join("objects").to_string_lossy().into_owned(),
     );
@@ -405,7 +406,7 @@ fn prepare_before_deadline(
         &installed.compiler_path,
         &build,
         &directory,
-        &environment,
+        &compilation_environment,
         &temporary.0,
         4 << 20,
         deadline,
@@ -576,19 +577,26 @@ fn configuration(
         )
         .and_then(|v| v.checked_add(128 << 20))
         .ok_or("capacity: evidence bounds overflow")?;
+    let wall_nanos = u64::try_from(options.execution_timeout.as_nanos()).map_err(failure)?;
+    let wall_millis = wall_nanos
+        .checked_sub(1)
+        .ok_or("execution timeout must be positive")?
+        / 1_000_000
+        + 1;
     Ok(Configuration {
         engine: linked::CONFIGURATION.into(),
         profile: installed.profile.clone(),
         limits: Limits {
             fuel: installed.fuel,
             memory_bytes: installed.memory_bytes,
-            wall_millis: u64::try_from(options.execution_timeout.as_millis()).map_err(failure)?,
+            wall_millis,
             output_bytes: options.output_limit,
             evidence_bytes: evidence,
         },
         arguments: std::iter::once("gomad-target".into())
             .chain(options.target_args.iter().cloned())
             .collect(),
+        wall_nanos: Some(wall_nanos),
         environment,
         derive_seed_environment: true,
         runtime_sha256: None,
