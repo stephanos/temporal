@@ -105,8 +105,9 @@ compatibility World proves lifecycle refinement against the retained six-phase g
 The realization reads the world from the observed start
 request and the live slice proves one retry then completion. The lifter admits `impl Phased` and
 `reject!` so TLC checks the activity Model.
-Native World task .1 is in progress under a task-scoped work run. The current
-native implementation review is in its fix loop; parent plan review remains NEEDS_WORK.
+The native World checkpoint is complete locally with SHIP review, all three final gates
+and unchanged original artifacts. Source/TLC binding in .7 is next; parent plan review
+remains NEEDS_WORK. Final timing was 93.288s against the 30s soft target, with a 5.035s inner loop.
 On 2026-10-21 the owner approved all three contract amendments: lifecycle refinement
 in place of impossible old-byte equality; cooperative cancellation with explicit protocol
 evidence; and optional actual-request Observation evidence at tag 4. Heartbeat signals a
@@ -119,7 +120,6 @@ was completed by the approvals.
 
 | Name | Status | What |
 | --- | --- | --- |
-| fn-227.1 | 🔄 in progress | Native declared World, typed adapters, computed starts and owned suite binding (R1, R3) |
 | fn-227.7 | ⬜ todo | After .1: independent typed World/source binding, whole-state Init, all CFGs and `parameterized_world` TLC proof (R1, R3) |
 | fn-227.2 | ⬜ todo | After .1 and .7: `Finite` and action inputs; `action_inputs` fixture with TLC (R2, R3) |
 | fn-227.3 | ⬜ todo | After .2: lifter admits `Phased`/`reject!`; activity `maximum_attempts` and retryable failure (R3, R4) |
