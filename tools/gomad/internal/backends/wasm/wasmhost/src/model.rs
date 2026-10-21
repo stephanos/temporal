@@ -61,7 +61,7 @@ pub struct ModelLimits {
     pub transcript_bytes: u64,
     pub pending_events: u64,
 }
-#[derive(Clone, Debug, Deserialize, Serialize)]
+#[derive(Clone, Debug, Deserialize, Eq, PartialEq, Serialize)]
 #[serde(deny_unknown_fields, rename_all = "PascalCase")]
 pub struct Decision {
     ordinal: u64,
@@ -74,15 +74,99 @@ pub struct Decision {
     data: u32,
     selected_identity: [u8; 32],
     alternative_set_digest: [u8; 32],
+    #[serde(skip)]
+    creation_sites: Vec<CreationSite>,
 }
-#[derive(Serialize)]
+
+#[derive(Clone, Debug, Eq, PartialEq)]
+pub struct CreationSite {
+    pub identity: [u8; 32],
+    pub site_offset: u64,
+    pub site_missing: bool,
+}
+
+impl CreationSite {
+    #[must_use]
+    pub fn fingerprint(&self, target: [u8; 32]) -> Option<String> {
+        replay_plan::site_fingerprint(target, 4, self.site_offset, self.site_missing)
+    }
+}
+
+impl Decision {
+    #[must_use]
+    pub fn creation_sites(&self) -> &[CreationSite] {
+        &self.creation_sites
+    }
+    #[must_use]
+    pub fn site_fingerprint(&self, target: [u8; 32]) -> Option<String> {
+        replay_plan::site_fingerprint(target, self.kind, self.site_offset, self.site_missing)
+    }
+    #[must_use]
+    pub fn ordinal(&self) -> u64 {
+        self.ordinal
+    }
+    #[must_use]
+    pub fn kind(&self) -> u8 {
+        self.kind
+    }
+    #[must_use]
+    pub fn alternatives(&self) -> u32 {
+        self.alternatives
+    }
+    #[must_use]
+    pub fn selected(&self) -> u32 {
+        self.selected
+    }
+    #[must_use]
+    pub fn data(&self) -> u32 {
+        self.data
+    }
+    #[must_use]
+    pub fn alternative_set_digest(&self) -> [u8; 32] {
+        self.alternative_set_digest
+    }
+    #[must_use]
+    pub fn selected_identity(&self) -> [u8; 32] {
+        self.selected_identity
+    }
+    #[must_use]
+    pub fn rank_override(&self) -> bool {
+        self.rank_override
+    }
+    #[must_use]
+    pub fn site(&self) -> (u64, bool) {
+        (self.site_offset, self.site_missing)
+    }
+}
+
+#[derive(Clone, Debug, Deserialize, Eq, PartialEq, Serialize)]
 #[serde(rename_all = "PascalCase")]
 pub struct Divergence {
-    ordinal: u64,
-    reason: u8,
-    expected: Option<Decision>,
-    observed: Option<Decision>,
-    tape_records: u64,
+    pub ordinal: u64,
+    pub reason: u8,
+    pub expected: Option<Decision>,
+    pub observed: Option<Decision>,
+    pub tape_records: u64,
+}
+
+impl Divergence {
+    #[must_use]
+    pub fn reason_name(&self) -> &'static str {
+        match self.reason {
+            1 => "kind",
+            2 => "site",
+            3 => "alternatives",
+            4 => "selected",
+            5 => "alternative_set",
+            6 => "tape_exhausted",
+            7 => "tape_unconsumed",
+            8 => "identity_missing",
+            9 => "identity_duplicate",
+            10 => "alternative_capacity",
+            11 => "observation",
+            _ => "unknown",
+        }
+    }
 }
 /// A remote reply that would exceed a retained-evidence limit; classified as
 /// the deterministic `capacity` outcome rather than a protocol violation.
@@ -134,6 +218,10 @@ pub struct Model {
 
 #[cfg(any(feature = "determinism-fixture", feature = "stress-jitter"))]
 impl Model {
+    #[cfg(feature = "determinism-fixture")]
+    pub(crate) fn fixture_choice_mode(&self) -> u8 {
+        self.config.mode
+    }
     pub fn event_context(&self) -> crate::event_order::Context {
         let handle = self.event_owner.as_ref().unwrap_or(&self.inspection.handle);
         crate::event_order::Context {
@@ -375,6 +463,128 @@ mod tests {
         model.runtime("runtime_config", vec![0; 16]).unwrap();
     }
     #[test]
+    fn runtime_creation_divergence_keeps_an_inspectable_prefix() {
+        let mut recorded = model();
+        bootstrap(&mut recorded);
+        recorded.runtime("runtime_decision", decision()).unwrap();
+        let raw = &recorded.pending["choice"];
+        let mut expected = Decision {
+            ordinal: 0,
+            kind: 2,
+            site_offset: 42,
+            site_missing: false,
+            rank_override: false,
+            alternatives: 2,
+            selected: 0,
+            data: 0,
+            selected_identity: [1; 32],
+            alternative_set_digest: raw[64..].try_into().unwrap(),
+            creation_sites: Vec::new(),
+        };
+        for reason in [1, 2, 3, 5, 4] {
+            expected.kind = if reason == 1 { 2 } else { 1 };
+            expected.site_offset = if reason == 2 { 43 } else { 42 };
+            expected.alternatives = if reason == 3 { 3 } else { 2 };
+            expected.alternative_set_digest = if reason == 5 {
+                [9; 32]
+            } else {
+                raw[64..].try_into().unwrap()
+            };
+            expected.selected_identity = if reason == 4 { [9; 32] } else { [1; 32] };
+            let mut replayed = model();
+            replayed.config.mode = 2;
+            replayed.config.tape = Some(vec![expected.clone()]);
+            bootstrap(&mut replayed);
+            let mut input = decision();
+            set32(&mut input, 0, 2);
+            input.resize(128, 0);
+            replayed.runtime("runtime_decision", input).unwrap_err();
+            assert_eq!(replayed.divergence.as_ref().unwrap().reason, reason);
+            assert_eq!(replayed.divergence.as_ref().unwrap().ordinal, 0);
+            assert_eq!(replayed.records, 0);
+            assert!(replayed.pending.get("choice").is_none_or(Vec::is_empty));
+        }
+    }
+    #[test]
+    fn runtime_creation_sites_preserve_alternative_identities_and_exact_replay() {
+        let identity = replay_plan::ExecutionIdentity {
+            target_sha256: [1; 32],
+            toolchain_build_key: "02".repeat(32),
+            goos: "wasip1".into(),
+            goarch: "wasm".into(),
+            implementation_sha256: [3; 32],
+        };
+        let mut previous = model();
+        bootstrap(&mut previous);
+        previous.runtime("runtime_decision", decision()).unwrap();
+        let previous_trace = previous.pending["choice"].clone();
+        let previous_plan = replay_plan::project(&previous_trace, &identity).unwrap();
+        assert_eq!(previous_plan.decisions[0].creation_sites(), []);
+        let mut input = decision();
+        set32(&mut input, 0, 2);
+        input.resize(128, 0);
+        set64(&mut input, 96, 123);
+        input[120] = 4;
+        let mut recorded = model();
+        bootstrap(&mut recorded);
+        recorded.runtime("runtime_decision", input.clone()).unwrap();
+        let trace = recorded.pending["choice"].clone();
+        assert_eq!(&trace[192 + 8..], &previous_trace[8..]);
+        let plan = replay_plan::project(&trace, &identity).unwrap();
+        let sites = plan.decisions[0].creation_sites();
+        assert_eq!(
+            sites,
+            &[
+                CreationSite {
+                    identity: [1; 32],
+                    site_offset: 0,
+                    site_missing: true
+                },
+                CreationSite {
+                    identity: [2; 32],
+                    site_offset: 123,
+                    site_missing: false
+                },
+            ]
+        );
+        assert!(sites[0].fingerprint(identity.target_sha256).is_none());
+        let inspected = replay_plan::inspect(&trace, &identity).unwrap();
+        assert!(
+            inspected
+                .sites
+                .iter()
+                .any(|site| site.kind == "goroutine-creation"
+                    && site.site_offset == 123
+                    && site.fingerprint == sites[1].fingerprint(identity.target_sha256).unwrap())
+        );
+        for (tape, expected, request) in [
+            (plan.decisions, trace, input),
+            (previous_plan.decisions, previous_trace, decision()),
+        ] {
+            let mut replayed = model();
+            replayed.config.mode = 2;
+            replayed.config.tape = Some(tape);
+            bootstrap(&mut replayed);
+            replayed.runtime("runtime_decision", request).unwrap();
+            assert_eq!(replayed.pending["choice"], expected);
+        }
+    }
+    #[test]
+    fn runtime_creation_diagnostics_keep_trace_ordinals() {
+        let mut recorded = model();
+        recorded.config.diagnostics = true;
+        bootstrap(&mut recorded);
+        let mut input = decision();
+        set32(&mut input, 0, 2);
+        input.resize(224, 0);
+        recorded.runtime("runtime_decision", input).unwrap();
+        let diagnostics = &recorded.pending["diagnostic"];
+        assert_eq!(diagnostics.len(), 288);
+        for ordinal in 0..3 {
+            assert_eq!(get64(diagnostics, ordinal * 96), ordinal as u64);
+        }
+    }
+    #[test]
     fn debug_exchange_preserves_open_clock_run_and_canonical_state() {
         let mut model = model();
         bootstrap(&mut model);
@@ -451,6 +661,7 @@ mod tests {
             data: 0,
             selected_identity: [1; 32],
             alternative_set_digest: bytes[64..].try_into().unwrap(),
+            creation_sites: Vec::new(),
         };
         let mut replay = model();
         replay.config.mode = 2;
@@ -895,6 +1106,7 @@ mod tests {
                     request_scratch: Vec::new(),
                     write_scratch: protocol::WriteBuffers::default(),
                     broker: None,
+                    network: None,
                 };
                 let invoke = |state: &mut State, op: &str, bytes: Vec<u8>| {
                     let name = format!("runtime_{op}");

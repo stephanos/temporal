@@ -422,7 +422,82 @@ def main():
     parser.add_argument("--inspect-baseline", type=Path)
     parser.add_argument("--inspect-source", type=Path)
     parser.add_argument("--inspect-go-compiler", type=Path)
+    parser.add_argument("--replay-binary", type=Path)
+    parser.add_argument("--replay-baseline", type=Path)
+    parser.add_argument("--replay-source", type=Path)
+    parser.add_argument("--replay-go-compiler", type=Path)
+    parser.add_argument("--replay-stress-binary", type=Path)
+    parser.add_argument("--replay-determinism-binary", type=Path)
+    parser.add_argument("--replay-release-binary", type=Path)
+    parser.add_argument("--replay-preparation-root", type=Path)
+    parser.add_argument("--campaign-binary", type=Path)
+    parser.add_argument("--campaign-baseline", type=Path)
+    parser.add_argument("--campaign-source", type=Path)
+    parser.add_argument("--campaign-go-compiler", type=Path)
+    parser.add_argument("--campaign-input", type=Path)
+    parser.add_argument("--campaign-preparation-root", type=Path)
+    for name in ("binary", "baseline", "source", "go-compiler", "go-cache", "preparation-root", "golden"):
+        parser.add_argument("--minimize-" + name, type=Path)
+    for name in ("binary", "baseline", "source", "go-compiler", "input", "preparation-root",
+                 "divergence-binary", "conformance-helper", "go-base"):
+        parser.add_argument("--exploration-" + name, type=Path)
+    parser.add_argument("--replay-cluster-baseline", type=Path)
+    parser.add_argument("--replay-cluster-source", type=Path)
     args = parser.parse_args()
+    if args.verb == "minimize" and args.minimize_binary:
+        if not all((args.minimize_baseline, args.minimize_source, args.minimize_go_compiler, args.output_root)):
+            fail("$minimize", "minimize requires frozen baseline/source/compiler, fixture-enabled Rust binary and fresh output root")
+        command = ["python3", str(args.corpus / "minimize-reference-lane.py"),
+                   "--rust-binary", str(args.minimize_binary), "--output", str(args.output_root)]
+        for name in ("baseline", "source", "go-compiler", "go-cache", "preparation-root", "golden"):
+            value = getattr(args, "minimize_" + name.replace("-", "_"))
+            if value is not None:
+                command.extend(["--" + name, str(value)])
+        if subprocess.run(command).returncode:
+            fail("$minimize", "mandatory fresh minimization lane failed")
+        return
+    if args.verb in ("explore", "resume") and args.exploration_binary:
+        names = ("binary", "baseline", "source", "go-compiler", "input", "preparation-root",
+                 "divergence-binary", "conformance-helper", "go-base")
+        if not args.output_root or not all(getattr(args, "exploration_" + name.replace("-", "_")) for name in names):
+            fail("$exploration", "exploration requires all frozen Go inputs, ordinary and divergence roles, conformance helper, Go base request, stable preparation root and fresh output root")
+        command = ["python3", str(args.corpus / "exploration-lane.py"), "--verb", args.verb,
+                   "--work", str(args.output_root)]
+        for name in names:
+            command.extend(["--" + name, str(getattr(args, "exploration_" + name.replace("-", "_")))])
+        if subprocess.run(command).returncode:
+            fail("$exploration", "mandatory fresh exploration lane failed")
+        return
+    if args.verb in ("explore", "resume", "execute-shard", "merge") and args.campaign_binary:
+        if not all((args.campaign_baseline, args.campaign_source, args.campaign_go_compiler,
+                    args.campaign_input, args.campaign_preparation_root, args.output_root)):
+            fail("$campaign", "campaign verbs require frozen baseline/source/compiler, fresh replay configuration input, stable preparation root and fresh output root")
+        result = subprocess.run(["python3", str(args.corpus / "campaign-lane.py"),
+            "--verb", args.verb, "--binary", str(args.campaign_binary),
+            "--baseline", str(args.campaign_baseline), "--source", str(args.campaign_source),
+            "--go-compiler", str(args.campaign_go_compiler), "--input", str(args.campaign_input),
+            "--preparation-root", str(args.campaign_preparation_root), "--work", str(args.output_root)])
+        if result.returncode:
+            fail("$campaign", "mandatory fresh campaign lane failed")
+        return
+    if args.verb == "replay" and args.replay_binary:
+        if not all((args.replay_baseline, args.replay_source, args.replay_go_compiler, args.output_root,
+                    args.replay_stress_binary, args.replay_determinism_binary, args.replay_release_binary,
+                    args.replay_preparation_root, args.replay_cluster_baseline, args.replay_cluster_source)):
+            fail("$replay", "replay requires frozen standalone and current cluster baselines/sources, Go compiler, all compiled roles, release binary, stable preparation root and fresh output root")
+        result = subprocess.run(["python3", str(args.corpus / "replay-lane.py"),
+            "--binary", str(args.replay_binary), "--baseline", str(args.replay_baseline),
+            "--source", str(args.replay_source), "--go-compiler", str(args.replay_go_compiler),
+            "--stress-binary", str(args.replay_stress_binary),
+            "--determinism-binary", str(args.replay_determinism_binary),
+            "--release-binary", str(args.replay_release_binary),
+            "--preparation-root", str(args.replay_preparation_root),
+            "--cluster-baseline", str(args.replay_cluster_baseline),
+            "--cluster-source", str(args.replay_cluster_source),
+            "--work", str(args.output_root)])
+        if result.returncode:
+            fail("$replay", "mandatory replay lane failed")
+        return
     if args.verb == "inspect" and args.inspect_binary:
         if not args.inspect_baseline or not args.inspect_source or not args.inspect_go_compiler or not args.output_root:
             fail("$inspect", "inspect requires baseline, source, Go compiler and fresh output root")

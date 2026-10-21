@@ -128,13 +128,22 @@ pub(crate) fn publish_bundle(
     name: &str,
     records: Vec<Publication>,
 ) -> Result<(), String> {
+    publish_bundle_with_budget(root, name, records, 64 << 20)
+}
+
+pub(crate) fn publish_bundle_with_budget(
+    root: &std::path::Path,
+    name: &str,
+    records: Vec<Publication>,
+    maximum_bytes: u64,
+) -> Result<(), String> {
     use serde_json::json;
     std::os::unix::fs::DirBuilderExt::mode(&mut std::fs::DirBuilder::new(), 0o700)
         .create(root)
         .map_err(|error| error.to_string())?;
     let store = Store {
         root: root.join("artifacts"),
-        maximum_bytes: 1 << 20,
+        maximum_bytes,
         target_pool: Some(root.join("pool")),
         fault: None,
     };
@@ -181,9 +190,37 @@ pub(crate) fn publish_bundle(
 )]
 pub fn dispatch(arguments: &[String]) -> Option<Result<(), Error>> {
     let command = arguments.first()?.as_str();
+    if matches!(
+        command,
+        "fixture-simulation-controller"
+            | "fixture-choice-controller"
+            | "fixture-minimize-controller"
+    ) {
+        return Some((|| {
+            if arguments.len() != 3 || arguments[1] != "--input" {
+                return Err("fixture-simulation-controller requires --input FILE".into());
+            }
+            let path = std::path::Path::new(&arguments[2]);
+            if command == "fixture-minimize-controller" {
+                crate::minimize::fixture::run(path).map_err(Error::from)
+            } else if command == "fixture-choice-controller" {
+                crate::campaign::exploration::choice_corpus::run(path).map_err(Error::from)
+            } else {
+                crate::campaign::exploration::simulation_corpus::run(path).map_err(Error::from)
+            }
+        })());
+    }
     if !matches!(
         command,
         "fixture-execution-bundle"
+            | "fixture-replay-role"
+            | "fixture-replay-cluster-execution"
+            | "fixture-replay-cluster-input"
+            | "fixture-replay-storage-prefix"
+            | "fixture-replay-input"
+            | "fixture-replay-divergence"
+            | "fixture-replay-pinned"
+            | "fixture-replay-execution"
             | "fixture-inspect-execution"
             | "fixture-inspect-details"
             | "fixture-watchdog-cancel"
@@ -200,6 +237,100 @@ pub fn dispatch(arguments: &[String]) -> Option<Result<(), Error>> {
         return None;
     }
     Some((|| {
+        if command == "fixture-replay-storage-prefix" {
+            if arguments.len() != 5 || arguments[1] != "--root" || arguments[3] != "--input" {
+                return Err("fixture-replay-storage-prefix --root ROOT --input FILE".into());
+            }
+            return crate::fixture_storage::run(
+                std::path::Path::new(&arguments[2]),
+                std::path::Path::new(&arguments[4]),
+            )
+            .map_err(Into::into);
+        }
+        if command == "fixture-replay-cluster-input" {
+            if arguments.len() != 5 || arguments[1] != "--root" || arguments[3] != "--input" {
+                return Err("fixture-replay-cluster-input --root ROOT --input FILE".into());
+            }
+            return crate::fixture_cluster::input(
+                std::path::Path::new(&arguments[2]),
+                std::path::Path::new(&arguments[4]),
+            )
+            .map_err(Into::into);
+        }
+        if command == "fixture-replay-role" {
+            if !matches!(arguments.len(), 5 | 7)
+                || arguments[1] != "--root"
+                || arguments[3] != "--corpus"
+                || (arguments.len() == 7 && arguments[5] != "--role")
+            {
+                return Err("fixture-replay-role --root ROOT --corpus CORPUS [--role ROLE]".into());
+            }
+            return crate::fixture_role::run(
+                std::path::Path::new(&arguments[2]),
+                std::path::Path::new(&arguments[4]),
+                arguments.get(6).map_or("ordinary", String::as_str),
+            )
+            .map_err(Into::into);
+        }
+        if command == "fixture-replay-cluster-execution" {
+            if arguments.len() != 5 || arguments[1] != "--root" || arguments[3] != "--corpus" {
+                return Err("fixture-replay-cluster-execution --root ROOT --corpus CORPUS".into());
+            }
+            return crate::fixture_cluster::bundle(
+                std::path::Path::new(&arguments[2]),
+                std::path::Path::new(&arguments[4]),
+            )
+            .map_err(Into::into);
+        }
+        if command == "fixture-replay-input" {
+            if !matches!(arguments.len(), 5 | 7)
+                || arguments[1] != "--root"
+                || arguments[3] != "--input"
+                || (arguments.len() == 7 && arguments[5] != "--role")
+            {
+                return Err("fixture-replay-input --root ROOT --input FILE [--role ROLE]".into());
+            }
+            return crate::fixture_replay::bundle(
+                std::path::Path::new(&arguments[2]),
+                std::path::Path::new(&arguments[4]),
+                arguments.get(6).map_or("ordinary", String::as_str),
+            )
+            .map_err(Into::into);
+        }
+        if command == "fixture-replay-divergence" {
+            if arguments.len() != 6 || arguments[2] != "--root" || arguments[4] != "--trace" {
+                return Err("fixture-replay-divergence ARTIFACT --root ROOT --trace FILE".into());
+            }
+            return crate::fixture_replay::divergence(
+                std::path::Path::new(&arguments[1]),
+                std::path::Path::new(&arguments[3]),
+                std::path::Path::new(&arguments[5]),
+            )
+            .map_err(Into::into);
+        }
+        if command == "fixture-replay-pinned" {
+            if arguments.len() != 2 {
+                return Err("fixture-replay-pinned ARTIFACT".into());
+            }
+            let path = std::path::Path::new(&arguments[1]);
+            let opened = Opened::open(path)?;
+            std::fs::rename(path, path.with_extension("pinned-original"))
+                .map_err(|error| error.to_string())?;
+            std::os::unix::fs::DirBuilderExt::mode(&mut std::fs::DirBuilder::new(), 0o700)
+                .create(path)
+                .map_err(|error| error.to_string())?;
+            let prepared = crate::replay::preflight::prepare(opened)?;
+            let status =
+                crate::cli::replay::run_prepared(prepared, None, &mut std::io::stdout().lock())
+                    .map_err(|error| Error {
+                        status: error.status,
+                        message: error.message,
+                    })?;
+            if status != 0 {
+                return Err("pinned replay did not reproduce success".into());
+            }
+            return Ok(());
+        }
         if command == "fixture-inspect-details" {
             if arguments.len() != 5 || arguments[1] != "--root" || arguments[3] != "--input" {
                 return Err("fixture-inspect-details --root ROOT --input FILE".into());
@@ -221,12 +352,25 @@ pub fn dispatch(arguments: &[String]) -> Option<Result<(), Error>> {
         }
         if matches!(
             command,
-            "fixture-execution-bundle" | "fixture-inspect-execution"
+            "fixture-execution-bundle" | "fixture-inspect-execution" | "fixture-replay-execution"
         ) {
+            if command == "fixture-inspect-execution"
+                && arguments.len() == 5
+                && arguments[1] == "--root"
+                && arguments[3] == "--input"
+            {
+                return crate::fixture_execute::inspection_input(
+                    std::path::Path::new(&arguments[2]),
+                    std::path::Path::new(&arguments[4]),
+                )
+                .map_err(Into::into);
+            }
             if arguments.len() != 5 || arguments[1] != "--root" || arguments[3] != "--corpus" {
                 return Err("fixture-execution-bundle --root ROOT --corpus CORPUS".into());
             }
-            let bundle = if command == "fixture-inspect-execution" {
+            let bundle = if command == "fixture-replay-execution" {
+                crate::fixture_execute::replay_bundle
+            } else if command == "fixture-inspect-execution" {
                 crate::fixture_execute::inspection_bundle
             } else {
                 crate::fixture_execute::bundle
@@ -367,4 +511,19 @@ pub fn dispatch(arguments: &[String]) -> Option<Result<(), Error>> {
         );
         Ok(())
     })())
+}
+
+pub(crate) fn execution_started() -> Result<(), crate::cli::Error> {
+    let Some(path) = std::env::var_os("GOMAD_FIXTURE_GUEST_START_FILE") else {
+        return Ok(());
+    };
+    let mut file = OpenOptions::new()
+        .write(true)
+        .create_new(true)
+        .mode(0o600)
+        .open(path)
+        .map_err(|error| error.to_string())?;
+    file.write_all(b"linked execution entered\n")
+        .map_err(|error| error.to_string())?;
+    Ok(())
 }

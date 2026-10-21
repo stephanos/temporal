@@ -228,6 +228,7 @@ func Within(path, root string) bool { return within(path, root) }
 var sourceExclusions = []string{
 	"internal/model/cluster/testdata/simulation_exploration", "internal/model/cluster/testdata/simulation_replay",
 	"cmd/gomad/testdata", "internal/evidence/qualification/corpus",
+	"testdata/parity/site_scope",
 	"internal/backends/wasm/testdata", "internal/backends/wasm/wasi/testdata", "internal/backends/wasm/toolchain/testdata", "internal/backends/wasm/cluster/testdata", "internal/backends/wasm/qualification/testdata", "internal/backends/wasm/command/testdata",
 }
 

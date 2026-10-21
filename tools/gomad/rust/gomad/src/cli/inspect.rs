@@ -1,4 +1,8 @@
 use crate::evidence::inspection::{Choices, Details, Minimization, Output, Simulation, World};
+use crate::evidence::symbolize::{
+    self,
+    inspection::{Trace, choice_sites, symbolize_choices},
+};
 use crate::evidence::{canonical, record::Record, store::Opened};
 use serde::Serialize;
 use std::{
@@ -23,7 +27,7 @@ struct Artifact<'a> {
     files: &'a std::collections::BTreeMap<String, crate::evidence::store::FileEntry>,
     stdout: Output,
     stderr: Output,
-    choices: Option<Choices>,
+    choices: Option<Choices<Trace<'a>>>,
     world: Option<&'a World>,
     simulation: Option<&'a Simulation>,
     minimization: Option<&'a Minimization>,
@@ -76,6 +80,9 @@ pub fn run(arguments: &[String], output: &mut dyn Write) -> Result<(), super::Er
     }
     let path = artifact_path(path.ok_or("usage: gomad inspect [--json] [--choices] ARTIFACT")?)?;
     let path = path.as_path();
+    if crate::campaign::inspect::is_campaign(path)? {
+        return crate::campaign::inspect::run(path, json, choices, output).map_err(Into::into);
+    }
     let opened =
         Opened::open(path).map_err(|error| format!("inspect {}: {error}", path.display()))?;
     if opened.manifest().files.contains_key("record.json")
@@ -94,6 +101,14 @@ pub fn run(arguments: &[String], output: &mut dyn Write) -> Result<(), super::Er
         .map(|evidence| evidence.inspect(&opened))
         .transpose()?;
     opened.authenticate_all()?;
+    let symbols = projected_choices
+        .as_ref()
+        .filter(|_| choices)
+        .map(|choices| symbolize::resolve(&opened, choice_sites(choices)))
+        .transpose()?;
+    let projected_choices = projected_choices
+        .zip(symbols.as_ref())
+        .map(|(choices, symbols)| symbolize_choices(choices, symbols));
     let manifest = opened.manifest();
     let report = Inspection {
         schema: "gomad.inspect/v9",
@@ -107,7 +122,7 @@ pub fn run(arguments: &[String], output: &mut dyn Write) -> Result<(), super::Er
             files: &manifest.files,
             stdout: Output::read(&opened, details.as_ref(), "stdout")?,
             stderr: Output::read(&opened, details.as_ref(), "stderr")?,
-            choices: if choices { projected_choices } else { None },
+            choices: projected_choices,
             world: details.as_ref().and_then(|details| details.world.as_ref()),
             simulation: details
                 .as_ref()

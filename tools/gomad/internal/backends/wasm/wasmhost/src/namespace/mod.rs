@@ -44,21 +44,24 @@ pub const OPEN_FLAGS_UNSUPPORTED: &str = "open flags outside volatile profile";
 pub const READLINK_UNSUPPORTED: &str = "operation outside stock WASI profile: path_readlink";
 const BUFFER_LIMIT: usize = 4 << 20;
 
-#[derive(Clone, Debug)]
+#[derive(Clone, Debug, serde::Deserialize, serde::Serialize)]
+#[serde(deny_unknown_fields)]
 pub struct Limits {
     pub files: u64,
     pub descriptors: u64,
     pub filesystem_bytes: u64,
     pub output_bytes: u64,
 }
-#[derive(Clone, Debug)]
+#[derive(Clone, Debug, serde::Deserialize, serde::Serialize)]
+#[serde(deny_unknown_fields)]
 pub struct ImageEntry {
     pub path: Vec<u8>,
     pub directory: bool,
     pub readonly: bool,
     pub data: Vec<u8>,
 }
-#[derive(Clone, Debug)]
+#[derive(Clone, Debug, serde::Deserialize, serde::Serialize)]
+#[serde(deny_unknown_fields)]
 pub struct Image {
     pub entries: Vec<ImageEntry>,
     pub writable_directories: Vec<Vec<u8>>,
@@ -840,6 +843,11 @@ impl Namespace {
     }
     pub fn storage(&self) -> Option<&Storage> {
         self.storage.as_ref()
+    }
+    #[cfg(not(feature = "conformance"))]
+    pub(crate) fn storage_mut(&mut self) -> Option<&mut Storage> {
+        self.touch();
+        self.storage.as_mut()
     }
     /// Go `CrashStorage`: the image of the selected durable state. Descriptor
     /// numbers and open volume handles belong to the discarded incarnation.

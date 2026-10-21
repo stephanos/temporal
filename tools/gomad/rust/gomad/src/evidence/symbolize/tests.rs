@@ -139,6 +139,12 @@ fn assert_reason(bytes: &[u8], reason: Reason) {
 }
 
 #[test]
+fn symbolize_no_binary_metadata_is_unavailable() {
+    assert_reason(b"(module)", Reason::NoSymbols);
+    assert_reason(b"\0asm\x01\0\0\0\0", Reason::SymbolMismatch);
+}
+
+#[test]
 fn symbolize_missing_flag_precedes_absent_metadata() {
     let site = Site {
         value: u64::MAX,
@@ -281,6 +287,76 @@ fn symbolize_name_mismatch_and_malformed_name_sections() {
     let mut malformed = original;
     malformed.extend_from_slice(&[0, 7, 4, b'n', b'a', b'm', b'e', 1, 255]);
     assert_reason(&malformed, Reason::SymbolMismatch);
+}
+
+#[test]
+fn symbolize_module_name_uses_the_fixed_string_limit() {
+    let original = fixture("guest.wasm");
+    for length in [100_001, 1 << 20, (1 << 20) + 1] {
+        let mut name = Vec::new();
+        leb(length, &mut name);
+        name.resize(name.len() + usize::try_from(length).unwrap(), b'x');
+        let mut subsection = vec![0];
+        leb(name.len() as u64, &mut subsection);
+        subsection.extend(name);
+        let mut changed = original[..8].to_vec();
+        for (id, data) in sections(&original) {
+            let mut payload = data.to_vec();
+            if id == 0 && data.starts_with(b"\x04name") {
+                payload.splice(5..5, subsection.iter().copied());
+            }
+            changed.push(id);
+            leb(payload.len() as u64, &mut changed);
+            changed.extend(payload);
+        }
+        if length > 1 << 20 {
+            assert_reason(&changed, Reason::SymbolTableTooLarge);
+        } else {
+            assert_eq!(
+                resolve_bytes(&changed, [site(5383)])[&site(5383)],
+                resolve_bytes(&original, [site(5383)])[&site(5383)],
+            );
+        }
+    }
+}
+
+#[test]
+fn symbolize_indirect_and_producer_names_use_the_fixed_string_limit() {
+    let original = fixture("guest.wasm");
+    for id in [2, 3, 10, 255] {
+        for length in [100_001, (1 << 20) + 1] {
+            let mut name = Vec::new();
+            leb(length, &mut name);
+            name.resize(name.len() + usize::try_from(length).unwrap(), b'x');
+            let mut changed = original[..8].to_vec();
+            for (section, data) in sections(&original) {
+                let mut payload = data.to_vec();
+                if id == 255 && section == 0 && data.starts_with(b"\x09producers") {
+                    payload = b"\x09producers\x01\x08language\x01".to_vec();
+                    payload.extend(&name);
+                    payload.extend_from_slice(b"\x011");
+                } else if id != 255 && section == 0 && data.starts_with(b"\x04name") {
+                    let mut map = vec![1, 0, 1, 0];
+                    map.extend(&name);
+                    payload.push(id);
+                    leb(map.len() as u64, &mut payload);
+                    payload.extend(map);
+                }
+                changed.push(section);
+                leb(payload.len() as u64, &mut changed);
+                changed.extend(payload);
+            }
+            if length > 1 << 20 {
+                assert_reason(&changed, Reason::SymbolTableTooLarge);
+            } else {
+                assert_eq!(
+                    resolve_bytes(&changed, [site(5383)])[&site(5383)],
+                    resolve_bytes(&original, [site(5383)])[&site(5383)],
+                    "name kind {id} length {length}",
+                );
+            }
+        }
+    }
 }
 
 #[test]
@@ -1022,6 +1098,148 @@ fn symbolize_try_table_preserves_the_physical_site() {
     assert!(
         matches!(&actual[&site(5383)], Symbol::Resolved { frame: Frame { function, file: None, line: None, .. }, inlined_from } if function == "positive" && inlined_from.is_empty())
     );
+}
+
+#[test]
+fn symbolize_bounds_cumulative_parser_catch_vectors_across_sites() {
+    let original = fixture("guest.wasm");
+    let mut budget = bytes::Budget::default();
+    let module = wasm::Module::read(&original, &mut budget).unwrap();
+    let tables = tables::Tables::read(&module, &mut budget).unwrap();
+    let indices: Vec<_> = tables
+        .functions
+        .iter()
+        .filter(|function| (5383..=5387).contains(&function.offset))
+        .map(|function| function.index - module.imported)
+        .collect();
+    assert_eq!(indices.len(), 5);
+    let mut code = Vec::new();
+    leb(module.functions.len() as u64, &mut code);
+    let mut catch_entries = 0;
+    for (ordinal, body) in module.functions.iter().enumerate() {
+        let mut encoded = original[body.range()].to_vec();
+        if indices.contains(&(ordinal as u64)) {
+            let start =
+                body.get_operators_reader().unwrap().original_position() - body.range().start;
+            encoded.truncate(start);
+            encoded.extend_from_slice(&[0x02, 0x40]);
+            for _ in 0..360 {
+                encoded.extend_from_slice(&[0x1f, 0x40]);
+                leb(10_000, &mut encoded);
+                for _ in 0..10_000 {
+                    encoded.extend_from_slice(&[0x02, 0]);
+                    catch_entries += 1;
+                }
+                encoded.push(0x0b);
+            }
+            encoded.extend_from_slice(&[0x0b, 0x0b]);
+            assert!(encoded.len() < 7_654_321);
+        }
+        leb(encoded.len() as u64, &mut code);
+        code.extend_from_slice(&encoded);
+    }
+    assert_eq!(catch_entries, 18_000_000);
+    assert!(code.len() as u64 <= bytes::BYTE_LIMIT);
+    let changed = replace_section(&original, 10, &code);
+    let requested: Vec<_> = (5383..=5387).map(site).collect();
+    let actual = resolve_bytes(&changed, requested.iter().copied());
+    for key in requested {
+        assert_eq!(actual[&key], unavailable(Reason::SymbolTableTooLarge));
+    }
+    assert!(actual.entries.is_empty());
+    assert_eq!(
+        actual[&Site {
+            value: 0,
+            missing: true
+        }],
+        unavailable(Reason::SiteMissing)
+    );
+}
+
+#[test]
+fn symbolize_precharges_variable_operators_before_decoder_work() {
+    use gomad_wasmhost::wasmparser::{BinaryReader, FunctionBody};
+    for (name, header) in [
+        ("try_table", vec![0x1f, 0x40, 2]),
+        ("typed_select", vec![0x1c, 2]),
+        ("br_table", vec![0x0e, 2]),
+        ("resume", vec![0xe3, 0, 2]),
+        ("resume_throw", vec![0xe4, 0, 0, 2]),
+        ("resume_throw_ref", vec![0xe5, 0, 2]),
+    ] {
+        let mut encoded = vec![0];
+        encoded.extend_from_slice(&header);
+        let function = FunctionBody::new(BinaryReader::new(&encoded, 0));
+        // Missing vector contents distinguish pre-work refusal from a decoder error.
+        for mut budget in [
+            bytes::Budget {
+                entries: bytes::ENTRY_LIMIT - 1,
+                ..Default::default()
+            },
+            bytes::Budget {
+                steps: bytes::STEP_LIMIT - 4,
+                ..Default::default()
+            },
+            bytes::Budget {
+                bytes: bytes::BYTE_LIMIT - (9 * 256 + 16 + 8),
+                ..Default::default()
+            },
+        ] {
+            // br_table borrows its contents and never allocates a vector.
+            if name == "br_table" && budget.bytes != 0 {
+                continue;
+            }
+            assert_eq!(
+                wasm::returns(&function, 7, 0x1000_0000, &mut budget),
+                Err(Reason::SymbolTableTooLarge),
+                "{name}"
+            );
+        }
+    }
+}
+
+#[test]
+fn symbolize_parser_vector_budget_boundaries_and_block_types() {
+    use gomad_wasmhost::wasmparser::{BinaryReader, FunctionBody};
+    for encoded in [
+        vec![0, 0x1f, 0x40, 2, 2, 0, 2, 0, 0x0b, 0x0b],
+        vec![0, 0x1f, 0x7f, 2, 2, 0, 2, 0, 0x0b, 0x0b],
+        vec![0, 0x1f, 0x63, 0x70, 2, 2, 0, 2, 0, 0x0b, 0x0b],
+        vec![0, 0x1f, 0x80, 0, 2, 2, 0, 2, 0, 0x0b, 0x0b],
+        vec![0, 0x1c, 2, 0x7f, 0x7e, 0x0b],
+        vec![0, 0x0e, 2, 0, 0, 0, 0x0b],
+        vec![0, 0xe3, 0, 2, 1, 0, 1, 0, 0x0b],
+        vec![0, 0xe4, 0, 0, 2, 1, 0, 1, 0, 0x0b],
+        vec![0, 0xe5, 0, 2, 1, 0, 1, 0, 0x0b],
+    ] {
+        let function = FunctionBody::new(BinaryReader::new(&encoded, 0));
+        let mut used = bytes::Budget::default();
+        assert_eq!(wasm::returns(&function, 7, 0, &mut used), Ok(None));
+        assert_eq!(used.entries, 2);
+        let mut exact = bytes::Budget {
+            bytes: bytes::BYTE_LIMIT - used.bytes,
+            entries: bytes::ENTRY_LIMIT - used.entries,
+            steps: bytes::STEP_LIMIT - used.steps,
+            ..Default::default()
+        };
+        assert_eq!(wasm::returns(&function, 7, 0, &mut exact), Ok(None));
+        assert_eq!(exact.bytes, bytes::BYTE_LIMIT);
+        assert_eq!(exact.entries, bytes::ENTRY_LIMIT);
+        assert_eq!(exact.steps, bytes::STEP_LIMIT);
+        for (bytes, entries, steps) in [(1, 0, 0), (0, 1, 0), (0, 0, 1)] {
+            let mut over = bytes::Budget {
+                bytes: bytes::BYTE_LIMIT - used.bytes + bytes,
+                entries: bytes::ENTRY_LIMIT - used.entries + entries,
+                steps: bytes::STEP_LIMIT - used.steps + steps,
+                ..Default::default()
+            };
+            assert_eq!(
+                wasm::returns(&function, 7, 0, &mut over),
+                Err(Reason::SymbolTableTooLarge),
+                "{encoded:02x?}"
+            );
+        }
+    }
 }
 
 #[test]

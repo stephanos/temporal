@@ -76,9 +76,9 @@ pub struct State {
     pub request_scratch: Vec<u8>,
     pub write_scratch: protocol::WriteBuffers,
     /// A cluster instance's seat in the in-process broker (fn-178.7), with its
-    /// endpoint on the shared Rust network owner (fn-178.12); single executions
-    /// forward `runtime_idle`'s broker role and `net_stream` to Go instead.
+    /// endpoint on the shared Rust network owner (fn-178.12).
     pub broker: Option<crate::cluster::handoff::Member>,
+    pub(crate) network: Option<crate::cluster::network::Endpoint>,
 }
 /// Where an inspection snapshot is taken: it decides which commitments must
 /// be current when the call returns.
@@ -104,7 +104,7 @@ impl State {
         use crate::model::inspection::{NetworkState, StorageEvidence, StorageState};
         #[cfg(test)]
         if crate::model::inspection::eager_oracle() {
-            return self.inspection_snapshot_eager(at == Snapshot::Boundary);
+            return self.inspection_snapshot_eager(at);
         }
         let Some(model) = self.model.as_mut() else {
             return;
@@ -144,20 +144,35 @@ impl State {
             }
         }
         let mut network = None;
-        let mut network_bytes = None;
+        if let Some(endpoint) = &mut self.network {
+            if let Ok((digest, _)) =
+                endpoint.inspection_network(crate::model::inspection::network_commitment)
+            {
+                network = Some(Some(digest));
+            } else {
+                model.inspection.lock().exhausted = true;
+                return;
+            }
+        }
         if let Some(member) = &mut self.broker
             && let Some(endpoint) = &mut member.network
         {
             let observed = if at == Snapshot::Call {
                 endpoint.evidence_check().map(|()| (None, None))
+            } else if at == Snapshot::Terminal {
+                endpoint.evidence().map(|bytes| {
+                    (
+                        Some(crate::model::inspection::network_commitment(&bytes)),
+                        None,
+                    )
+                })
             } else {
                 endpoint
                     .inspection_network(crate::model::inspection::network_commitment)
                     .map(|(digest, bytes)| (Some(digest), bytes))
             };
-            if let Ok((digest, bytes)) = observed {
+            if let Ok((digest, _)) = observed {
                 network = Some(digest);
-                network_bytes = bytes;
             } else {
                 model.inspection.lock().exhausted = true;
                 return;
@@ -197,22 +212,8 @@ impl State {
             let commitment = match &self.broker {
                 Some(member) => {
                     let identity = member.network.as_ref().map(|_| digests.network.unwrap());
-                    let mut world = member.broker.inspection_world_commitment(
-                        identity.map(|identity| (identity, network_bytes.as_deref())),
-                    );
-                    if let (Ok(None), Some(identity), Some(endpoint)) =
-                        (&world, identity, &member.network)
-                    {
-                        // The World changed under an unchanged network
-                        // commitment: rebuild the identical evidence bytes.
-                        world = match endpoint.evidence() {
-                            Ok(bytes) => member
-                                .broker
-                                .inspection_world_commitment(Some((identity, Some(&bytes)))),
-                            Err(error) => Err(error),
-                        };
-                    }
-                    if let Ok(Some(digest)) = world {
+                    let world = member.broker.inspection_world_commitment(identity);
+                    if let Ok(digest) = world {
                         digest.to_vec()
                     } else {
                         model.inspection.lock().exhausted = true;
@@ -227,7 +228,7 @@ impl State {
     /// Test oracle: the original eager snapshot, which re-encodes and
     /// re-hashes every input on every call, with an uncached World wire.
     #[cfg(test)]
-    fn inspection_snapshot_eager(&mut self, boundary: bool) {
+    fn inspection_snapshot_eager(&mut self, at: Snapshot) {
         let Some(model) = self.model.as_mut() else {
             return;
         };
@@ -253,10 +254,23 @@ impl State {
             }
         }
         let mut network = Vec::new();
+        if let Some(endpoint) = &self.network {
+            if let Ok(bytes) = endpoint.evidence() {
+                network = bytes;
+            } else {
+                model.inspection.lock().exhausted = true;
+                return;
+            }
+        }
         if let Some(member) = &self.broker
             && let Some(endpoint) = &member.network
         {
-            if let Ok(bytes) = endpoint.evidence() {
+            let evidence = if at == Snapshot::Terminal {
+                endpoint.evidence()
+            } else {
+                endpoint.inspection_network_eager()
+            };
+            if let Ok(bytes) = evidence {
                 network = bytes;
             } else {
                 model.inspection.lock().exhausted = true;
@@ -271,17 +285,16 @@ impl State {
         {
             return;
         }
-        if boundary {
+        if at == Snapshot::Boundary {
             model.inspection.world_commitment = match &self.broker {
                 Some(member) => {
-                    if let Ok(wire) = member.broker.world_wire() {
-                        match &member.network {
-                            Some(_) => crate::model::inspection::commitment_parts(
-                                "world",
-                                &[&wire, &(network.len() as u64).to_le_bytes(), &network],
-                            ),
-                            None => crate::model::inspection::commitment("world", &wire),
-                        }
+                    if let Ok(commitment) = member.broker.inspection_world_commitment(
+                        member
+                            .network
+                            .as_ref()
+                            .map(|_| crate::model::inspection::network_commitment(&network)),
+                    ) {
+                        commitment.to_vec()
                     } else {
                         model.inspection.lock().exhausted = true;
                         return;
@@ -362,6 +375,9 @@ impl State {
                 Err(Failure::Invalid(dimension)) => boundary("invalid", dimension),
                 Err(Failure::Capacity(dimension)) => boundary("capacity", dimension),
                 Err(Failure::Boundary(kind, dimension)) => boundary(kind, dimension),
+                // Classified capacity by its `WASI capacity:` text, as a
+                // boundary is, keeping the limit accounting in the message.
+                Err(exhausted @ Failure::Exhausted { .. }) => Err(Error::msg(exhausted.message())),
                 Err(Failure::Infrastructure(message)) => Ok(Some(message)),
             }
         });
@@ -382,7 +398,7 @@ impl State {
     ) -> Result<T> {
         self.model_operation(|model, _, id| body(model, id))
     }
-    fn model_operation<T>(
+    pub(crate) fn model_operation<T>(
         &mut self,
         body: impl FnOnce(
             &mut crate::model::Model,
@@ -1030,6 +1046,7 @@ pub(crate) fn new_state(
         request_scratch: Vec::new(),
         write_scratch: protocol::WriteBuffers::default(),
         broker: None,
+        network: None,
     }
 }
 
@@ -1039,6 +1056,11 @@ pub(crate) fn linker(engine: &Engine, module: &Module) -> Result<Linker<State>> 
     let mut defined = HashSet::new();
     for import in module.imports() {
         if !defined.insert((import.module().to_owned(), import.name().to_owned())) {
+            continue;
+        }
+        #[cfg(feature = "determinism-fixture")]
+        if crate::linked_fixture::signature(import.module(), import.name()).is_some() {
+            crate::linked_fixture::link(&mut linker)?;
             continue;
         }
         abi::Operation::resolve(import.module(), import.name())
@@ -1139,6 +1161,20 @@ pub(crate) fn finish_storage(
 
 /// Flushes the cooperative model's evidence and adds its result metadata.
 pub(crate) fn finish_model(state: &mut State, outcome: &mut Outcome) -> Result<()> {
+    let mut network_error = None;
+    if let (Some(network), Some(model)) = (&state.network, &mut state.model) {
+        match network.evidence() {
+            Ok(bytes) => {
+                let handle = model.inspection.handle.clone();
+                model
+                    .inspection
+                    .lock()
+                    .terminal_network_json(&handle, bytes.clone());
+                model.network_evidence(&bytes);
+            }
+            Err(failure) => network_error = Some(crate::linked_network::error(failure)),
+        }
+    }
     if let Some(model) = &mut state.model
         && !model.inspection.sealed
     {
@@ -1149,7 +1185,13 @@ pub(crate) fn finish_model(state: &mut State, outcome: &mut Outcome) -> Result<(
     if let Some(model) = &mut state.model {
         let metadata = {
             let mut recorder = model.inspection.lock();
-            if model.inspection.started {
+            let admitted_owner = !standalone
+                && recorder
+                    .evidence
+                    .incarnations
+                    .iter()
+                    .any(|owner| owner.handle == model.inspection.handle);
+            if model.inspection.started || admitted_owner {
                 recorder.terminal(
                     &model.inspection.handle,
                     outcome.termination != "exit" || outcome.exit_code != Some(0),
@@ -1173,7 +1215,7 @@ pub(crate) fn finish_model(state: &mut State, outcome: &mut Outcome) -> Result<(
         outcome.local_model = Some(Box::new(model.metadata(state.completed_calls)));
         outcome.divergence = model.divergence.take().map(Box::new);
     }
-    Ok(())
+    network_error.map_or(Ok(()), Err)
 }
 
 fn module_bytes(request: &Execute) -> std::result::Result<Vec<u8>, Outcome> {
@@ -1267,13 +1309,17 @@ pub(crate) fn describe_module(
         };
         let params: Vec<_> = ty.params().map(type_name).collect();
         let results: Vec<_> = ty.results().map(type_name).collect();
-        let Some(operation) = abi::Operation::resolve(import.module(), import.name()) else {
+        let signature =
+            abi::Operation::resolve(import.module(), import.name()).map(abi::Operation::signature);
+        #[cfg(feature = "determinism-fixture")]
+        let signature =
+            signature.or_else(|| crate::linked_fixture::signature(import.module(), import.name()));
+        let Some((expected_params, expected_results)) = signature else {
             return Err(Outcome::new(
                 "unsupported",
                 format!("unknown import {}::{}", import.module(), import.name()),
             ));
         };
-        let (expected_params, expected_results) = operation.signature();
         if params != expected_params || results != expected_results {
             return Err(Outcome::new(
                 "unsupported",
@@ -2309,6 +2355,7 @@ mod tests {
             request_scratch: Vec::new(),
             write_scratch: protocol::WriteBuffers::default(),
             broker: None,
+            network: None,
         }
     }
     fn inspection_state() -> State {
@@ -2344,7 +2391,7 @@ mod tests {
         state
     }
     #[test]
-    fn unchanged_boundaries_materialize_and_hash_world_once() {
+    fn unchanged_boundaries_never_materialize_world() {
         let mut state = inspection_state();
         let owner = state.broker.as_ref().unwrap().broker.clone();
         for _ in 0..100 {
@@ -2354,7 +2401,7 @@ mod tests {
             owner
                 .world_materializations
                 .load(std::sync::atomic::Ordering::Relaxed),
-            1
+            0
         );
         assert_eq!(
             state
@@ -2547,6 +2594,7 @@ mod tests {
             request_scratch: Vec::new(),
             write_scratch: protocol::WriteBuffers::default(),
             broker: None,
+            network: None,
         };
         assert!(state.callback("sched_yield", json!({})).is_err());
         assert_eq!(state.terminal.unwrap().termination, "infrastructure");

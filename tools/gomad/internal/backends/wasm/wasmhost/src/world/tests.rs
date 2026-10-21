@@ -27,6 +27,125 @@ fn request(key: &str) -> Request {
 }
 
 #[test]
+fn inspection_chain_tracks_every_mutation_and_exact_expanded_wire_size() {
+    let mut model = Model::new(Config {
+        seed: 7,
+        limits: limits(),
+    })
+    .unwrap();
+    let check = |model: &Model| {
+        let mut wire = Vec::new();
+        wire_generated::write_snapshot(model, &mut wire).unwrap();
+        assert_eq!(model.snapshot_bytes(), wire.len() as u64);
+        let mut head = digest::empty_digest();
+        for transition in model.transitions() {
+            assert_eq!(transition.previous_digest, head);
+            head = digest::transition_digest(transition);
+            assert_eq!(transition.digest, head);
+        }
+        assert_eq!(&head, model.transcript_digest());
+    };
+    check(&model);
+    for queued in [false, true] {
+        let id = model
+            .register(Request {
+                payload: vec![1, 2, 3],
+                ..request("λ")
+            })
+            .unwrap();
+        check(&model);
+        if queued {
+            model
+                .ready(Readiness {
+                    request_id: id,
+                    at: model.now() + 3,
+                    kind: "timer".into(),
+                    payload: vec![4, 5],
+                    equivalence_class: "group".into(),
+                })
+                .unwrap();
+            check(&model);
+        } else {
+            model.quiesce().unwrap();
+            check(&model);
+        }
+        model.cancel(id).unwrap();
+        check(&model);
+        model.cancel(id).unwrap();
+        check(&model);
+    }
+    for _ in 0..2 {
+        let id = model.register(request("batch")).unwrap();
+        check(&model);
+        model
+            .ready(Readiness {
+                request_id: id,
+                at: model.now() + 9,
+                kind: "ready".into(),
+                payload: vec![7],
+                equivalence_class: String::new(),
+            })
+            .unwrap();
+        check(&model);
+    }
+    model.quiesce().unwrap();
+    check(&model);
+    model.cancel(3).unwrap();
+    check(&model);
+    model.quiesce().unwrap();
+    check(&model);
+    let before = model.inspection_commitment();
+    assert!(model.cancel(0).is_err());
+    assert_eq!(model.inspection_commitment(), before);
+    check(&model);
+}
+
+#[test]
+fn inspection_chain_binds_configuration_order_and_length_framed_payloads() {
+    let make = |seed, keys: &[&str], payload: &[u8]| {
+        let mut model = Model::new(Config {
+            seed,
+            limits: limits(),
+        })
+        .unwrap();
+        for key in keys {
+            model
+                .register(Request {
+                    payload: payload.to_vec(),
+                    ..request(key)
+                })
+                .unwrap();
+        }
+        model.inspection_commitment()
+    };
+    let cases = [
+        make(7, &["ab", "c"], &[1, 2]),
+        make(7, &["a", "bc"], &[1, 2]),
+        make(7, &["c", "ab"], &[1, 2]),
+        make(7, &["ab", "c"], &[1, 2, 0]),
+        make(8, &["ab", "c"], &[1, 2]),
+        make(7, &["ab"], &[1, 2]),
+    ];
+    for (index, digest) in cases.iter().enumerate() {
+        for other in &cases[index + 1..] {
+            assert_ne!(digest, other);
+        }
+    }
+    assert_eq!(cases[0], make(7, &["ab", "c"], &[1, 2]));
+    let mut model = Model::new(Config {
+        seed: 7,
+        limits: limits(),
+    })
+    .unwrap();
+    let before = model.inspection_commitment();
+    model.config.limits.max_payload_bytes += 1;
+    assert_ne!(before, model.inspection_commitment());
+    let before = model.inspection_commitment();
+    model.now += 1;
+    assert_ne!(before, model.inspection_commitment());
+}
+
+#[test]
 fn exhausted_transition_revision_refuses_every_mutation_before_state_changes() {
     let mut model = Model::new(Config {
         seed: 7,

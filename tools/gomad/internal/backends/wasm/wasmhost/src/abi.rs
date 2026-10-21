@@ -1286,7 +1286,7 @@ fn invoke_runtime(
     #[cfg(feature = "diagnostic-profile")]
     serve(
         if matches!(op, Operation::RuntimeIdle | Operation::RuntimeNetStream)
-            && guest.caller.data().broker.is_some()
+            && (guest.caller.data().broker.is_some() || guest.caller.data().network.is_some())
         {
             if op == Operation::RuntimeIdle {
                 Owner::SchedulerHandoff
@@ -1312,15 +1312,19 @@ fn invoke_runtime(
         let maximum = match op {
             Operation::RuntimeConfig | Operation::RuntimeFinish | Operation::RuntimeIdle => 16,
             Operation::RuntimeNetStream => 64 + 64 * 1024,
-            Operation::RuntimeDecision => 32 + 256 * 32 + 96,
+            Operation::RuntimeDecision => 32 + 256 * 48 + 96,
             Operation::RuntimeObservation => 192,
             _ => return Err(Error::msg("unsupported runtime import")),
         };
-        if length > maximum {
+        if length > maximum
+            || op == Operation::RuntimeDecision
+                && length > 32 + 256 * 32 + 96
+                && !(length - 32).is_multiple_of(16)
+        {
             return Err(Error::msg("runtime ABI buffer capacity"));
         }
         let valid_length = match op {
-            Operation::RuntimeDecision => length >= 96 && (length - 32).is_multiple_of(32),
+            Operation::RuntimeDecision => length >= 96 && (length - 32).is_multiple_of(16),
             Operation::RuntimeObservation => length == 96 || length == 192,
             Operation::RuntimeNetStream => (64..=64 + 64 * 1024).contains(&length),
             _ => length == 16,
@@ -1331,8 +1335,11 @@ fn invoke_runtime(
         let bytes = guest.bytes(pointer, length)?;
         if op == Operation::RuntimeDecision {
             let count = u32::from_be_bytes(bytes[20..24].try_into().unwrap()) as usize;
+            let version = u32::from_be_bytes(bytes[..4].try_into().unwrap());
+            let kind = u32::from_be_bytes(bytes[4..8].try_into().unwrap());
+            let stride = if version == 2 && kind == 1 { 48 } else { 32 };
             if !(2..=256).contains(&count)
-                || (length != 32 + count * 32 && length != 32 + count * 32 + 96)
+                || (length != 32 + count * stride && length != 32 + count * stride + 96)
             {
                 return Err(Error::msg("invalid runtime decision buffer layout"));
             }
@@ -1353,6 +1360,27 @@ fn invoke_runtime(
             return Err(guest.caller.data_mut().fail(kind, message));
         }
     };
+    if matches!(op, Operation::RuntimeIdle | Operation::RuntimeNetStream)
+        && guest
+            .caller
+            .data()
+            .broker
+            .as_ref()
+            .is_none_or(|member| member.network.is_none())
+        && (guest.caller.data().network.is_some()
+            || op == Operation::RuntimeNetStream
+                && guest
+                    .caller
+                    .data()
+                    .model
+                    .as_ref()
+                    .is_some_and(|model| model.linked_evidence.is_some()))
+    {
+        let bytes = guest.caller.data_mut().network_call(op, input)?;
+        guest.write(pointer, &bytes)?;
+        results[0] = Val::I32(0);
+        return Ok(());
+    }
     if matches!(op, Operation::RuntimeIdle | Operation::RuntimeNetStream)
         && guest.caller.data().broker.is_some()
     {

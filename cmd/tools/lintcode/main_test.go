@@ -351,7 +351,7 @@ func TestWASMLintRoutesTemporalDiagnosticFixtures(t *testing.T) {
 
 func TestWASMLintRoutesRuntimeQualificationFixtures(t *testing.T) {
 	t.Parallel()
-	for _, fixture := range []string{"toolchain/testdata/choices", "testdata/runtime_probes", "testdata/time_probes", "testdata/unsupported_clock", "testdata/network_probes", "testdata/prototype_temporal"} {
+	for _, fixture := range []string{"toolchain/testdata/choices", "toolchain/testdata/choice_divergence", "testdata/runtime_probes", "testdata/time_probes", "testdata/unsupported_clock", "testdata/network_probes", "testdata/prototype_temporal"} {
 		t.Run(fixture, func(t *testing.T) {
 			t.Parallel()
 			repo := newLintRepo(t)

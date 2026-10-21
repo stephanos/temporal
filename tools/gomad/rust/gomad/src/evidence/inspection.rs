@@ -101,7 +101,7 @@ pub struct ChoiceEvidence {
 }
 
 #[derive(Serialize)]
-pub struct Choices {
+pub struct Choices<T = linked::TraceInspection> {
     pub schema: &'static str,
     pub profile: String,
     pub implementation_sha256: String,
@@ -111,7 +111,7 @@ pub struct Choices {
     pub terminal_state: String,
     pub exact_replay_available: bool,
     #[serde(flatten)]
-    pub trace: linked::TraceInspection,
+    pub trace: T,
 }
 
 #[derive(Deserialize, Serialize)]
@@ -252,10 +252,10 @@ impl Details {
                 &simulation.candidate_sha256,
                 &simulation.outcome_sha256,
             ] {
-                digest(hash)?;
+                digest(hash.strip_prefix("sha256:").unwrap_or(hash))?;
             }
             if let Some(hash) = &simulation.failure_sha256 {
-                digest(hash)?;
+                digest(hash.strip_prefix("sha256:").unwrap_or(hash))?;
             }
             simulation.plan.authenticate(opened)?;
             simulation.record.authenticate(opened)?;
@@ -272,12 +272,14 @@ impl ChoiceEvidence {
     /// Refuses invalid metadata, malformed traces and inconsistent exact-tape declarations.
     pub fn inspect(&self, opened: &Opened) -> Result<Choices, String> {
         digest(&self.implementation_sha256)?;
-        if self.profile != "gomad-choice-trace/v3"
-            || self.trace.schema != self.profile
+        if !matches!(
+            self.profile.as_str(),
+            "gomad-choice-trace/v3" | "gomad-choice-trace/v4"
+        ) || self.trace.schema != self.profile
             || self.identity.toolchain_build_key != opened.manifest().record.identity.toolchain
             || !matches!(
                 self.terminal_state.as_str(),
-                "complete" | "overflow" | "interrupted"
+                "complete" | "overflow" | "interrupted" | "diverged"
             )
         {
             return Err("unsupported choice trace metadata".into());
@@ -298,15 +300,29 @@ impl ChoiceEvidence {
         let interrupted = outcome.class == "runner_failure"
             && outcome.exit_code.is_none()
             && (outcome.termination == "watchdog_timeout"
+                || outcome.termination == "storage_crash"
                 || outcome.termination == "cancelled" && outcome.reason == "runner_cancelled");
+        let diverged = outcome.class == "target_failure"
+            && matches!(outcome.termination.as_str(), "divergence" | "diverged")
+            && outcome.exit_code.is_none();
         if match self.terminal_state.as_str() {
             "overflow" => !overflow,
             "interrupted" => !interrupted,
-            _ => overflow || interrupted,
+            "diverged" => !diverged,
+            _ => overflow || interrupted || diverged,
         } {
             return Err("choice terminal outcome mismatch".into());
         }
         let bytes = self.trace.authenticate(opened)?;
+        if self.profile == "gomad-choice-trace/v3"
+            && bytes
+                .as_chunks::<96>()
+                .0
+                .iter()
+                .any(|record| record[8] == 4)
+        {
+            return Err("previous choice trace carries creation metadata".into());
+        }
         let mut trace = linked::inspect_choices(&bytes, &self.identity).map_err(str::to_owned)?;
         if trace.records != self.records || bytes.len() as u64 + 64 > self.trace.limit {
             return Err("choice trace bounds mismatch".into());
@@ -348,7 +364,6 @@ impl Minimization {
             || self.final_forced_decisions >= self.original_forced_decisions
             || self.accepted.is_empty()
             || self.accepted.len() as u64 > self.attempts
-            || self.parent_failure_signature != self.predicate.failure_signature
             || !self.predicate.replay_match
         {
             return Err("invalid minimization evidence".into());

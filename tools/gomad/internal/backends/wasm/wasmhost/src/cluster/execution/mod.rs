@@ -499,6 +499,7 @@ pub fn execute(
                         None,
                         None,
                         false,
+                        None,
                     ),
                 }));
                 match ran {
@@ -631,7 +632,11 @@ fn run_instance(
     namespace: Option<crate::namespace::Namespace>,
     storage: Option<crate::storage_transport::StorageDescriptor>,
     measured: bool,
+    on_terminal: Option<&dyn Fn(&Outcome)>,
 ) -> std::result::Result<Report, (&'static str, String)> {
+    if let Coordinator::Broker(broker) = coordinator {
+        broker.wait_terminal(index);
+    }
     // Each store thread profiles into its own thread profile, merged into
     // the process report when the session closes (fn-185).
     #[cfg(feature = "diagnostic-profile")]
@@ -752,6 +757,9 @@ fn run_instance(
         return Err(("infrastructure", outcome.message));
     }
     let state = store.data_mut();
+    if let Coordinator::Broker(broker) = coordinator {
+        broker.wait_terminal(index);
+    }
     let image = record_terminal(state, storage.as_ref(), &mut outcome)?;
     let termination = outcome.termination;
     let host_nanos = state.host_nanos.unwrap_or(0);
@@ -766,11 +774,20 @@ fn run_instance(
     // Automatic handoff must follow the result so the next instance cannot
     // overtake it. Manual control must observe a finished incarnation when
     // Go answers the result with its next command.
-    if coordinator.driven() {
+    if coordinator.driven()
+        && let Some(on_terminal) = on_terminal
+    {
+        on_terminal(&outcome);
+    }
+    let draining = matches!(coordinator, Coordinator::Broker(broker) if broker.terminal_failed());
+    if coordinator.driven() && !draining {
         coordinator.finish(index);
     }
     if let Err(error) = protocol::send_frame(&mut state.output, &outcome) {
         return Err(("infrastructure", format!("result transport: {error:#}")));
+    }
+    if coordinator.driven() && draining {
+        coordinator.finish(index);
     }
     Ok(Report {
         termination,
@@ -782,11 +799,33 @@ fn run_instance(
     })
 }
 
+pub(crate) fn terminal_failure(outcome: &Outcome) -> Option<(&'static str, String)> {
+    match outcome.termination {
+        "exit" if outcome.exit_code == Some(0) => None,
+        "exit" => Some((
+            "trap",
+            format!(
+                "WASM guest exited with code {}",
+                outcome.exit_code.unwrap_or(1)
+            ),
+        )),
+        "crash"
+        | "stop"
+        | "storage_crash"
+        | "inspection_aborted"
+        | "inspected_prefix"
+        | "instrumentation_divergence"
+        | "debug_error"
+        | "probe_fuel_limit" => None,
+        termination => Some((termination, outcome.message.clone())),
+    }
+}
+
 /// An instance's terminal evidence after its store stopped: recovery
 /// storage, terminal network and the local model's result, then the check
 /// that no deferred network commitment survives into the instance's finish.
 /// Returns the crash image for a later incarnation.
-pub(super) fn record_terminal(
+pub(crate) fn record_terminal(
     state: &mut State,
     storage: Option<&crate::storage_transport::StorageDescriptor>,
     outcome: &mut Outcome,
@@ -825,7 +864,26 @@ pub(super) fn record_terminal(
                 Err(_) => recorder.exhausted = true,
             }
         }
-        network_evidence(endpoint, &mut state.output, outcome)?;
+        if let Some(sink) = state
+            .model
+            .as_ref()
+            .and_then(|model| model.linked_evidence.as_ref())
+        {
+            let bytes = endpoint
+                .evidence()
+                .map_err(|failure| (failure.termination(), failure.message()))?;
+            if bytes.len() as u64 > endpoint.transcript_limit() {
+                let capacity = Failure::Capacity("network-v2-evidence-bytes");
+                outcome.termination = capacity.termination();
+                outcome.message = capacity.message();
+                outcome.exit_code = None;
+            } else {
+                sink.append("network", &bytes)
+                    .map_err(|error| (protocol::classification(&error), error.to_string()))?;
+            }
+        } else {
+            network_evidence(endpoint, &mut state.output, outcome)?;
+        }
     }
     if let Err(error) = crate::engine::finish_model(state, outcome) {
         return Err(("infrastructure", format!("result transport: {error:#}")));

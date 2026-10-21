@@ -1,6 +1,6 @@
 //! Cluster execution owns instance handoff, broker scheduling and shared networking.
 #[cfg(not(feature = "conformance"))]
-mod execution;
+pub(crate) mod execution;
 #[cfg(not(feature = "conformance"))]
 pub(crate) mod handoff;
 pub(crate) mod network;

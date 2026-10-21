@@ -288,12 +288,15 @@ func gomadChoiceSite(pc uintptr) (uint64, uint8) {
 }
 
 func gomadChoiceRootIdentity(gp *g) {
+	gp.gomadCreationSite = 0
+	gp.gomadCreationFlags = gomadChoiceFlagSiteMissing
 	gp.gomadChild = 0
 	gp.gomadTimer = 0
 	gp.gomadID = gomadChoiceHash([]byte("gomad-choice-goroutine-root/v1"))
 }
 
 func gomadChoiceAssignGoroutineIdentity(newg, parent *g, pc uintptr) {
+	newg.gomadCreationSite, newg.gomadCreationFlags = gomadChoiceSite(pc)
 	newg.gomadChild = 0
 	newg.gomadTimer = 0
 	var hasher gomadChoiceHasher
@@ -396,6 +399,8 @@ func gomadChoiceRunqIndex(pp *p, head, tail uint32) uint32 {
 			continue
 		}
 		alternatives[users] = gp.gomadID
+		gomadChoiceSchedulerSites[users] = gp.gomadCreationSite
+		gomadChoiceSchedulerSiteFlags[users] = gp.gomadCreationFlags
 		gomadChoiceSchedulerOffsets[users] = offset
 		users++
 	}

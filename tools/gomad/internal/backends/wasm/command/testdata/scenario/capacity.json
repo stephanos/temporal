@@ -1,0 +1,11 @@
+{
+  "schema": "gomad-wasm.scenario/v1",
+  "spec": {
+    "schema": "gomad.simulation-spec/v8", "backend": "wasm", "fidelity": "simulation_model", "seed": 0,
+    "limits": {"nodes": 2, "directional_links": 2, "volumes": 1, "scenario_actions": 16, "scenario_decisions": 16, "fault_actions": 4, "history_operations": 16, "observations": 16, "oracle_results": 16, "scenario_evidence_bytes": 16777216, "boot_config_bytes": 1048576, "volume_capacity_bytes": 8388608, "observation_bytes": 4096, "network_listeners": 8, "network_connections": 8, "network_bytes": 1048576, "network_connection_bytes": 1048576, "network_stall_nanos": 10000000000, "network_transitions": 10000, "volume_operations": 10000, "volume_transitions": 10000, "crash_states": 32, "crash_depth": 32, "crash_bytes": 8388608, "crash_wall_nanos": 1000000000},
+    "nodes": [{"id": "a", "boot": "ping", "address": "10.0.0.1"}, {"id": "b", "boot": "echo", "address": "10.0.0.2"}],
+    "links": [{"from": "a", "to": "b", "enabled": true, "delay_nanos": 1000000}, {"from": "b", "to": "a", "enabled": true, "delay_nanos": 1000000}]
+  },
+  "boots": [{"id": "ping", "args": ["ping-loop"]}, {"id": "echo", "args": ["echo-loop"]}],
+  "actions": [{"action": "start", "handle": {"node": "b", "incarnation": 1}}, {"action": "start", "handle": {"node": "a", "incarnation": 1}}, {"action": "wait", "handle": {"node": "a", "incarnation": 1}}, {"action": "wait", "handle": {"node": "b", "incarnation": 1}}]
+}

@@ -5,7 +5,7 @@
   "priority": null,
   "spec": "fn-229-gomad-symbolize-choice-sites-in-inspect",
   "spec_path": ".flow/tasks/fn-229-gomad-symbolize-choice-sites-in-inspect.1.md",
-  "status": "todo",
+  "status": "done",
   "title": "Symbolize package: locate pclntab in the retained module and resolve text offsets",
-  "updated_at": "2026-10-21T01:59:19.954808Z"
+  "updated_at": "2026-10-21T06:05:26.042428Z"
 }

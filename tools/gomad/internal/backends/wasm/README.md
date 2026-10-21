@@ -108,6 +108,24 @@ authenticated stop boundaries, separate tape/trace coordinates, stacks/heap,
 Temporal snapshots and probes, and bounded invariant search. Inspection terminates
 at `inspected_prefix`; it does not assert full failure reproduction. Old artifacts
 without complete authenticated metadata cannot be inspected by rebuilding them.
+Inspection World commitments use `gomad.inspection-world-sha256/v2`. They bind
+the initial World configuration, clock, next IDs, payload accounting, expanded
+wire size and ordered transition hash chain, followed by an explicit optional
+network commitment. Each field has fixed width or canonical length framing.
+Every successful World mutation extends the chain; rejected operations leave it
+unchanged. Boundaries hash this fixed-size material instead of the entire
+history. Canonical World snapshot and transition bytes remain unchanged, and
+the expanded snapshot capacity is still enforced. The v2 encoding and helper
+identity rotate together; v1 inspection commitments are refused, not converted.
+Inspection state encoding is `gomad.inspection-state-sha256/v2`. Live network
+cuts bind the profile, framed native snapshot with ordered per-lane transition
+chains, operations-log size/count/hash and local World chain. Canonical native
+history ignores inter-lane order; lane chains preserve that equivalence and
+bind order within each lane. The original 128 MiB native-wire and 1 MiB string
+guards remain enforced incrementally. Terminal cuts still bind the retained
+full `GMNETEV1` document, distinguished by their nonzero `network_bytes`.
+Full network and World evidence bytes are unchanged. Network hash domains and
+state-encoding admission rotate to v2; storage/recovery hash domains do not.
 The cooperative installation supports bounded `explore --scenario FILE` seed
 campaigns with typed nodes, modeled network/storage and declared lifecycle
 boundaries. The shared campaign store retains prepared inputs for detached
@@ -274,7 +292,13 @@ to `tools/gomad/internal/model/runtimesource`. The overlays copy its package-run
 sources verbatim and hash the copied bytes. The former native overlay directory
 is no longer a valid runtime source root. This extraction rotates runtime and
 model identities; retained qualifications bind their historical candidate and
-must not be relabeled as current. Choice records and replay schemas are unchanged.
+must not be relabeled as current. Choice trace v4 adds creation-site metadata for
+each runnable alternative, preserving goroutine identity derivation and the v3
+decision tape. The helper validates ordered creation identities against the
+runnable alternative-set digest before exposing their sites. Previous v3 traces
+still inspect and project the same tape and have no creation sites. This runtime,
+schema and helper change rotates implementation identities; refreshed installations
+and frozen-candidate qualification are required.
 
 `toolchain/runtime_wasm.go.txt` contains the cooperative runtime;
 `toolchain/runtime_inspect_wasm.go.txt` contains its `gomadDebug*` inspection

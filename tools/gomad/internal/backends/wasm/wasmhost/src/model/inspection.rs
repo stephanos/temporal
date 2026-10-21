@@ -8,9 +8,9 @@ use wasmtime::{Error, Result};
 pub const MAX_METADATA: usize = 64 << 20;
 pub const MAX_OUTPUT: usize = 8 << 20;
 pub const MAX_FRAME: usize = 32 + 64 * 1024;
-pub const STATE_ENCODING: &str = "gomad.inspection-state-sha256/v1";
-pub const WORLD_ENCODING: &str = "gomad.inspection-world-sha256/v1";
-const WORLD_HEADER: &[u8] = b"gomad.inspection-world-commitments/v1\0";
+pub const STATE_ENCODING: &str = "gomad.inspection-state-sha256/v2";
+pub const WORLD_ENCODING: &str = "gomad.inspection-world-sha256/v2";
+pub(crate) const WORLD_HEADER: &[u8] = b"gomad.inspection-world-commitments/v2\0";
 pub const BOUNDARY_ENCODING: &str = "gomad.inspection-boundaries-binary/v1";
 pub const LIFECYCLE_ENCODING: &str = "gomad.inspection-lifecycle-binary/v1";
 const BOUNDARY_HEADER: &[u8] = b"GMWIB\x01\0\0";
@@ -61,29 +61,46 @@ pub struct Witness {
     pub runtime_state: Vec<u8>,
 }
 impl Witness {
+    /// # Errors
+    /// Refuses malformed compulsory runtime witness bytes and inconsistent counters.
     pub fn decode(bytes: &[u8]) -> Result<Self> {
-        if bytes.len() != 128 {
-            return Err(Error::msg("invalid compulsory runtime witness"));
-        }
-        let u64_at = |at| u64::from_be_bytes(bytes[at..at + 8].try_into().unwrap());
-        let u32_at = |at| u64::from(u32::from_be_bytes(bytes[at..at + 4].try_into().unwrap()));
+        let invalid = || Error::msg("invalid compulsory runtime witness");
+        let bytes: &[u8; 128] = bytes.try_into().map_err(|_| invalid())?;
+        let u64_at = |at| -> Result<u64> {
+            Ok(u64::from_be_bytes(
+                bytes
+                    .get(at..at + 8)
+                    .ok_or_else(invalid)?
+                    .try_into()
+                    .map_err(|_| invalid())?,
+            ))
+        };
+        let u32_at = |at| -> Result<u64> {
+            Ok(u64::from(u32::from_be_bytes(
+                bytes
+                    .get(at..at + 4)
+                    .ok_or_else(invalid)?
+                    .try_into()
+                    .map_err(|_| invalid())?,
+            )))
+        };
         let mut counters = [0; 7];
         for (index, counter) in counters.iter_mut().enumerate() {
-            *counter = u64_at(40 + index * 8);
+            *counter = u64_at(40 + index * 8)?;
         }
-        let choices = u64_at(104);
-        let records = u64_at(0);
-        if choices > records || u64_at(112) == 0 {
+        let choices = u64_at(104)?;
+        let records = u64_at(0)?;
+        if choices > records || u64_at(112)? == 0 {
             return Err(Error::msg("invalid runtime witness counters"));
         }
         Ok(Self {
-            allocations: u64_at(16),
-            allocated_bytes: u64_at(96),
-            gc_cycles: u32_at(24),
+            allocations: u64_at(16)?,
+            allocated_bytes: u64_at(96)?,
+            gc_cycles: u32_at(24)?,
             gc_phase: u64::from(bytes[28]),
-            goroutines: u64_at(112),
-            run_queue: u32_at(32),
-            global_run_queue: u64_at(120),
+            goroutines: u64_at(112)?,
+            run_queue: u32_at(32)?,
+            global_run_queue: u64_at(120)?,
             seeded_draws: counters
                 .iter()
                 .fold(0u64, |total, n| total.wrapping_add(*n)),
@@ -590,6 +607,12 @@ impl Recorder {
         owner.failure_order = failed.then_some(order);
     }
     pub fn terminal_network(&mut self, handle: &Handle, bytes: Vec<u8>) {
+        self.terminal_network_encoded(handle, bytes, "gomad.cluster-network-binary/v1");
+    }
+    pub(crate) fn terminal_network_json(&mut self, handle: &Handle, bytes: Vec<u8>) {
+        self.terminal_network_encoded(handle, bytes, "");
+    }
+    fn terminal_network_encoded(&mut self, handle: &Handle, bytes: Vec<u8>, encoding: &str) {
         if self.sealed || self.exhausted {
             return;
         }
@@ -601,7 +624,7 @@ impl Recorder {
         let state = commitment("network", &bytes);
         let streams = &mut self.owner(handle).streams;
         streams.network = bytes;
-        streams.network_encoding = "gomad.cluster-network-binary/v1".into();
+        streams.network_encoding = encoding.into();
         if let Some(cut) = self.cuts.get_mut(handle) {
             cut.network_bytes = length;
             cut.network_state = state;
@@ -1022,6 +1045,16 @@ fn boundary_frame(boundary: &Boundary) -> Result<Vec<u8>> {
 pub fn network_commitment(evidence: &[u8]) -> [u8; 32] {
     commitment("network", evidence).try_into().unwrap()
 }
+
+pub fn world_chain_commitment(world: &[u8; 32], network: Option<[u8; 32]>) -> Vec<u8> {
+    let mut bytes = Vec::with_capacity(65);
+    bytes.extend_from_slice(world);
+    bytes.push(u8::from(network.is_some()));
+    if let Some(network) = network {
+        bytes.extend_from_slice(&network);
+    }
+    commitment("world", &bytes)
+}
 pub fn commitment(kind: &str, bytes: &[u8]) -> Vec<u8> {
     commitment_parts(kind, &[bytes])
 }
@@ -1033,7 +1066,9 @@ pub(crate) fn commitment_parts(kind: &str, parts: &[&[u8]]) -> Vec<u8> {
     }
     let mut hash = Sha256::new();
     if kind == "world" {
-        hash.update(b"gomad.inspection-world-sha256/v1\0");
+        hash.update(b"gomad.inspection-world-sha256/v2\0");
+    } else if kind == "network" {
+        hash.update(b"gomad.inspection-state-sha256/v2/network\0");
     } else {
         hash.update(b"gomad.inspection-state-sha256/v1/");
         hash.update(kind.as_bytes());

@@ -18,7 +18,7 @@ func TestWASMInspectionCommitmentsUseOwnerDomainsAndLengthFraming(t *testing.T) 
 		golden   string
 	}{
 		{"storage", []byte("abc"), "bc21ac8235dac2e82b5ff9401aec3720cbe19d167569211b906be2b290c51b7a"},
-		{"network", nil, "9cf01abb216e9758d088460097ca46d1fdde9e1f2045bf8b719450202698a51e"},
+		{"network", nil, "b046127a3118bdab069bcdeccf6a48566a6d24c65300356f054d89f7bd05cc2c"},
 	} {
 		digest, err := WASMInspectionStateCommitment(test.kind, test.material)
 		require.NoError(t, err)
@@ -41,6 +41,10 @@ func TestWASMInspectionCommitmentEncodingAndFramingRefusals(t *testing.T) {
 	}{
 		{"old raw schema", func(m *WASMInspectionEvidence) { m.Schema = "gomad.wasm-inspection/v1" }},
 		{"missing World discriminator", func(m *WASMInspectionEvidence) { m.WorldEncoding = "" }},
+		{"old full-wire World encoding", func(m *WASMInspectionEvidence) { m.WorldEncoding = "gomad.inspection-world-sha256/v1" }},
+		{"old full-wire network encoding", func(m *WASMInspectionEvidence) {
+			m.Boundaries[0].Cuts[0].StateEncoding = "gomad.inspection-state-sha256/v1"
+		}},
 		{"unknown World discriminator", func(m *WASMInspectionEvidence) { m.WorldEncoding = "unknown" }},
 		{"raw World snapshot", func(m *WASMInspectionEvidence) { m.World = []byte("raw snapshot") }},
 		{"World length", func(m *WASMInspectionEvidence) {

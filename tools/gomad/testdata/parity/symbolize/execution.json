@@ -1,0 +1,50 @@
+{
+  "schema": "gomad.inspect-execution-corpus/v1",
+  "profile": "gomad.wasi-cooperative/v1",
+  "read_step_nanos": 0,
+  "seeds": [7, 8],
+  "cases": [
+    {
+      "name": "go-symbols",
+      "module": "symbolize/guest.wasm",
+      "module_sha256": "7bd52a2fe1346cd1bee23225f987a71c7b196d798645fccb5005a3ebeff6566d",
+      "compiler_sha256": "1675694ef690db0f18fbe7046a886170904bede1d9db6ec96ae27945c1705c64",
+      "runtime_implementation_sha256": "cafaeba88a381446f0d20bcb590f83242e7b0bc1fd4eaaa3b003726b5383d565",
+      "fuel": 100000000,
+      "memory_bytes": 67108864,
+      "wall_millis": 30000,
+      "modeled": true,
+      "runtime": true,
+      "choice_limit": 1048576,
+      "termination": "exit"
+    },
+    {
+      "name": "go-stripped-symbols",
+      "module": "symbolize/guest-stripped.wasm",
+      "module_sha256": "3c17b81e3e0e910b1a2bcadaa91cf58849d2a421f864683098ee18779bcdb188",
+      "compiler_sha256": "1675694ef690db0f18fbe7046a886170904bede1d9db6ec96ae27945c1705c64",
+      "runtime_implementation_sha256": "cafaeba88a381446f0d20bcb590f83242e7b0bc1fd4eaaa3b003726b5383d565",
+      "fuel": 100000000,
+      "memory_bytes": 67108864,
+      "wall_millis": 30000,
+      "modeled": true,
+      "runtime": true,
+      "choice_limit": 1048576,
+      "termination": "exit"
+    },
+    {
+      "name": "go-single-alternative-and-runnable",
+      "module": "symbolize/guest-nonbranch.wasm",
+      "module_sha256": "b4fd5ebdbe7ff85d927a7e2cc925d127ced22ec390b7c62794b74406a6554dcc",
+      "compiler_sha256": "1675694ef690db0f18fbe7046a886170904bede1d9db6ec96ae27945c1705c64",
+      "runtime_implementation_sha256": "cafaeba88a381446f0d20bcb590f83242e7b0bc1fd4eaaa3b003726b5383d565",
+      "fuel": 100000000,
+      "memory_bytes": 67108864,
+      "wall_millis": 30000,
+      "modeled": true,
+      "runtime": true,
+      "choice_limit": 1048576,
+      "termination": "exit"
+    }
+  ]
+}

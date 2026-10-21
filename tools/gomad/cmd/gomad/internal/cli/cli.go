@@ -142,7 +142,7 @@ func (app application) run(arguments []string, stdout, stderr io.Writer) int {
 	case "doctor":
 		return app.runDoctor(arguments[1:], stdout, stderr)
 	case "inspect":
-		return runInspectWithCapabilities(arguments[1:], stdout, stderr, app.capabilities)
+		return runInspectWithCapabilities(arguments[1:], stdout, stderr, app.capabilities, app.clusterInspection)
 	default:
 		if _, printErr := fmt.Fprintf(stderr, "unknown gomad command %q\n%s", arguments[0], usage); printErr != nil {
 			return 2
@@ -152,10 +152,10 @@ func (app application) run(arguments []string, stdout, stderr io.Writer) int {
 }
 
 func runInspect(arguments []string, stdout, stderr io.Writer) int {
-	return runInspectWithCapabilities(arguments, stdout, stderr, nil)
+	return runInspectWithCapabilities(arguments, stdout, stderr, nil, nil)
 }
 
-func runInspectWithCapabilities(arguments []string, stdout, stderr io.Writer, capabilities *backends.Capabilities) int {
+func runInspectWithCapabilities(arguments []string, stdout, stderr io.Writer, capabilities *backends.Capabilities, cluster func(string) (*inspect.ClusterInspection, error)) int {
 	flags := flag.NewFlagSet("gomad inspect", flag.ContinueOnError)
 	flags.SetOutput(stderr)
 	jsonOutput := flags.Bool("json", false, "emit stable JSON")
@@ -178,6 +178,9 @@ func runInspectWithCapabilities(arguments []string, stdout, stderr io.Writer, ca
 			return status
 		}
 		return 2
+	}
+	if err == nil && report.Artifact != nil && cluster != nil {
+		report.Artifact.Cluster, err = cluster(flags.Arg(0))
 	}
 	if err != nil {
 		if _, writeErr := fmt.Fprintf(stderr, "inspect %s: %v\n", flags.Arg(0), err); writeErr != nil {
@@ -366,6 +369,16 @@ func printArtifactInspection(printer *inspectionPrinter, inspected *inspect.Arti
 	}
 	if simulation := inspected.Simulation; simulation != nil {
 		printer.printf("simulation: profile=%s controller=%s execution=%s candidate=%s outcome=%s failure=%s plan-schema=%s plan-bytes=%d plan-sha256=%s record-schema=%s record-bytes=%d record-limit=%d record-sha256=%s\n", simulation.Profile, simulation.ControllerSHA256, simulation.ExecutionSHA256, simulation.CandidateSHA256, simulation.OutcomeSHA256, simulation.FailureSHA256, simulation.Plan.Schema, simulation.Plan.Bytes, simulation.Plan.SHA256, simulation.Record.Schema, simulation.Record.Bytes, simulation.Record.Limit, simulation.Record.SHA256)
+	}
+	if cluster := inspected.Cluster; cluster != nil {
+		exhausted := "none"
+		if limit := cluster.Exhausted; limit != nil {
+			exhausted = fmt.Sprintf("%s limit=%d used=%d delta=%d", limit.Dimension, limit.Limit, limit.Used, limit.Delta)
+		}
+		printer.printf("cluster: evidence=%s outcome=%s reason=%q virtual-elapsed-nanos=%d exhausted=%s\n", cluster.EvidenceSchema, cluster.Outcome, cluster.Reason, cluster.VirtualElapsedNanos, exhausted)
+		for _, instance := range cluster.Instances {
+			printer.printf("cluster-instance: node=%s incarnation=%d state=%s interrupted=%t reason=%q stdout-bytes=%d stderr-bytes=%d stdout-tail=%q stderr-tail=%q\n", instance.Node, instance.Incarnation, instance.State, instance.Interrupted, instance.Reason, instance.Stdout.Bytes, instance.Stderr.Bytes, instance.Stdout.Tail, instance.Stderr.Tail)
+		}
 	}
 	if minimization := inspected.Minimization; minimization != nil {
 		printer.printf("minimization: parent=%s failure=%s candidate=%s->%s forced=%d->%d attempts=%d/%d accepted=%d replay=%t choice=%s simulation=%s implementation=%s\n", minimization.ParentRecordHash, minimization.ParentFailureSignature, minimization.OriginalCandidateSHA256, minimization.FinalCandidateSHA256, minimization.OriginalForcedDecisions, minimization.FinalForcedDecisions, minimization.Attempts, minimization.AttemptBudget, len(minimization.Accepted), minimization.Predicate.ReplayMatch, minimization.Predicate.ChoiceReplay, minimization.Predicate.SimulationReplay, minimization.ImplementationSHA256)

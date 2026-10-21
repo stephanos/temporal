@@ -7,6 +7,10 @@ evidence and a guest epoch watchdog. The public seam is
 `gomad_wasmhost::linked::{Request, Limits, ModelInput, Execution}`; modeled guests
 use the existing sealed namespace and model implementations. Replay bytes enter
 the helper's existing preflight validator, never a host-projected decision tape.
+`Prepared::network` attaches the standalone stream-network owner before execution,
+including the retained node-local partition, heal, delay and named reset schedule.
+Each prepared execution owns fresh network and World state; network evidence is
+bounded standalone JSON, while clusters keep their shared owner and binary evidence.
 
 The watchdog starts before compilation and refuses guest instantiation after an
 expired compilation, but pinned Wasmtime's synchronous compiler cannot be
@@ -18,8 +22,19 @@ No detached compiler thread or per-execution subprocess is used.
 The public `inspect` verb reads Rust-lineage artifacts through the shared
 authenticated opener. Its JSON shape and mandatory fresh Go/Rust comparison
 are documented in [the maintainer CLI guide](../CLI.md#rust-artifact-inspection).
+The public `replay` verb uses helper-owned semantic tape admission and typed
+standalone/cluster execution. Its inspection and compiled diagnostic-role mapping
+are documented in [the maintainer CLI guide](../CLI.md#rust-retained-replay).
+Seed `explore`, `resume`, `execute-shard` and `merge` use Rust-owned preparation,
+ordered campaign policy, authenticated journals and retained target pools. Their
+source preparation and differential lanes are documented in
+[the maintainer CLI guide](../CLI.md#rust-seed-campaigns).
+The public `minimize` verb reduces retained standalone failures with bounded
+attempts, authenticated checkpoints and `--resume`. Its public flags are unchanged;
+the JSON result and retained failure-signature semantics are documented in
+[the maintainer CLI guide](../CLI.md#rust-minimization).
 Other public host verbs remain with their later fn-232 tasks. The
-`determinism-fixture` feature exposes the foundation and inspect test drivers;
+`determinism-fixture` feature exposes the foundation, inspect, replay and campaign test drivers;
 their commands and fault controls are absent from ordinary builds. Run from the
 repository root:
 
@@ -68,3 +83,11 @@ bundle and each fresh raw Go result, independently authenticates the Rust bundle
 then compares concrete termination and guest exit status. Stock-WASI WAT cases
 have no cooperative choice imports: baseline seeds label two fresh repetitions,
 while the Rust concurrent ledger carries the requested execution seeds.
+
+The replay parity lane uses its frozen Go launcher, matching helper and archived
+runtime source for standalone recordings, including all four network cases.
+Registered inspection and cluster cases use the separately declared current
+producer pair for intentional World/lifecycle changes. These references are not
+interchangeable: the newer Go-owned network replay path can refuse input-tape
+attestation that the frozen launcher does not require. Its retained status-3
+receipts describe that newer-producer regression, not frozen-baseline parity.

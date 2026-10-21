@@ -18,7 +18,34 @@ return status 2 with no report; report write failures return 3. Every payload
 is authenticated through the shared pinned-root opener, including payloads
 not displayed in the selected view. `--choices` requires recorded choice
 metadata and validates the raw trace through the helper's replay projector.
-Sites retain their existing fingerprints and raw module offsets.
+Sites retain their existing fingerprints, kind, count and maximum alternatives;
+listed decisions retain their recorded offsets and missing-site flags.
+
+With `--choices`, every aggregate site and listed decision adds `symbol`,
+computed only from the authenticated retained module. Available symbols contain
+`package`, `function` and `inlined_from`, with `file` and `line` when proved.
+An inline chain requires complete agreement among compatible retained select
+calls. Physical fallback has an empty `inlined_from` and omits unproved
+locations; it does not establish that the compiler performed no inlining.
+Single-alternative sites receive symbols even without a listed replay decision.
+Runnable sites recorded as missing retain `{"unavailable":"site_missing"}`.
+
+Other unavailable reasons are `no_symbols`, `offset_out_of_range`,
+`symbol_mismatch` and `symbol_table_too_large`. A real `-s` Go module can retain
+pclntab but lack the name cross-check required for attribution; this yields
+`no_symbols`, as does actual pclntab absence. Contradictory metadata yields
+`symbol_mismatch`. Module read/digest failures retain the existing open error.
+One immutable result map covers unique requested sites, with cumulative limits
+of 64 MiB each for metadata/allocation and inspected code, 1,048,576 entries,
+16,777,216 traversal steps, 256 inline frames and 1 MiB per name/path. Exhaustion
+replaces all nonmissing results with `symbol_table_too_large`, including any
+previously resolved site. No attribution is written into the artifact, record
+hash, failure signature or execution identity.
+
+Campaign expected/observed divergence symbols require fn-232.7/.8's authenticated
+execution-ledger consumer. They are not artifact choice-trace fields; standalone
+replay text does not supply that consumer. fn-229.2 remains open until its public
+campaign fixtures cover both decisions against each execution's retained module.
 
 The JSON schema changes from Go's `gomad.inspect/v8` to `gomad.inspect/v9`:
 
@@ -90,6 +117,290 @@ The existing ARM CI runner source runs the Rust inspect consumer, opener and
 golden gates. Fresh Go/Rust CI parity still needs reproducible provisioning of
 the authenticated baseline bundle, extracted source and compiler; fn-232.13
 owns that final execution wiring. The local gate above remains mandatory.
+
+## Rust retained replay
+
+`gomad replay [--verify-only] [--observed DIR] ARTIFACT` consumes Rust-lineage
+retained inputs through the same authenticated pinned-root opener as inspect.
+It does not rebuild targets or reopen original source, captured input paths,
+compiler or runtime files. Verify-only also validates the helper-owned semantic
+choice tape before returning status 0, without creating an engine or guest.
+Exact cooperative replay and observed stock replay keep the existing text
+reports: matching success returns 0, matching target failure or divergence
+returns 1, incompatible artifacts return 2 and execution infrastructure errors
+return 3. `--toolchain-root` retains its native-only refusal.
+
+Replay inspection retains `--stop`, `--instance`, `--incarnation`, `--dump`,
+`--probe`, `--check`, `--choice-range`, `--search-mode`, `--debug-output` and
+their existing bounded search/debug controls. Stacks and heap use the built-in
+`--dump stacks` and `--dump heap` selectors. A stop validates a retained prefix
+and reports inspection results; it does not claim full reproduction. Inspection
+requires complete cooperative metadata, with an explicit target for clusters.
+Cluster replay uses typed, bytes-owned incarnations over the existing helper
+broker, storage, namespace and clock owners. No artifact pathname is reopened.
+Retained cluster replay preserves its existing refusal of `--verify-only` and
+`--observed`; those options apply to standalone replay.
+
+The Go launcher's diagnostic launcher-plus-helper pair maps to one matching
+compiled Rust binary. Build `helper-stress-jitter` for `--stress-jitter`, or
+`helper-determinism-fixture` for `--determinism-fixture`; these remain explicit
+cooperative inspection opt-ins. An ordinary release binary refuses either role.
+The separate `determinism-fixture` host feature exposes only test drivers and
+does not enable a helper role. Qualification uses an ordinary release with
+neither host fixtures nor diagnostic roles. Diagnostic conditions and bounded
+event-order collection belong to each fresh execution, including cluster threads.
+
+The mandatory local command supplies the authenticated frozen Go baseline and
+its extracted source and pinned compiler:
+
+```sh
+python3 tools/gomad/scripts/behavioral-parity \
+  --corpus tools/gomad/testdata/parity --verb replay \
+  --replay-binary /absolute/fixture-enabled/gomad \
+  --replay-stress-binary /absolute/stress-role/fixture-enabled/gomad \
+  --replay-determinism-binary /absolute/determinism-role/fixture-enabled/gomad \
+  --replay-release-binary /absolute/ordinary-release/gomad \
+  --replay-baseline /absolute/authenticated/go-baseline \
+  --replay-source /absolute/extracted/baseline/source \
+  --replay-cluster-baseline /absolute/current-go-and-helper-reference \
+  --replay-cluster-source /absolute/current-go-source \
+  --replay-go-compiler /absolute/pinned/go1.27.1/bin/go \
+  --replay-preparation-root /absolute/retained/replay-toolchain-preparation \
+  --output-root /absolute/new/replay-check
+```
+
+The standalone replay/divergence baseline stays frozen. Cluster, network and
+registered inspection lanes use an archived current Go launcher and matching
+helper because fn235 deliberately changes cluster failure semantics and
+inspection World commitments. The original failing registered guest remains a failure case; a
+separate retained success variant proves all three incarnations and restart.
+The standalone network lane compares every field and type in the modeled JSON
+document, including local faults and World history, and its exact encoded byte
+count. Rust orders JSON object keys differently from Go; each lineage's raw
+payload digest is independently authenticated before that comparison.
+
+`testdata/parity/replay-corpus.json` declares the golden view. Records, manifests,
+ledgers, statuses, replay reports and observed output digests remain exact; only
+the verified artifact operand's output-root prefix changes. Independent raw
+record/payload and ledger validation precedes comparison. Set
+`GOMAD_GOLDEN_REGENERATE=1` to regenerate after reviewing expectation changes;
+each run first compares two fresh executions, and a second regeneration must
+produce identical golden bytes. This lane supplies replay acceptance evidence,
+not final runtime/workload qualification or a compiler hard-wall guarantee.
+
+Keep the declared preparation root fixed across recordings and regeneration.
+Frozen Go binds absolute overlay paths into its toolchain provenance, so a new
+preparation directory is a different authenticated input, even when guest bytes
+agree. Every execution still produces fresh Go/Rust artifacts in its new output
+root; neither provenance identities nor raw hashes are normalized.
+
+## Rust seed campaigns
+
+The linked Rust host accepts the original WASM seed grammar, environment policy,
+failure policy and retention bounds. `go-run` and `go-test` preparation invokes
+the pinned stock Go compiler and original runtime overlay builder; campaign
+selection, scheduling, journal transactions and recovery stay in Rust. The
+internal `gomad.rust-wasm-installation/v1` manifest binds the compiler, runtime,
+helper and host identities. Public installation publication belongs to the
+installation task; a frozen fixture target is not a replacement for source
+preparation.
+
+Campaigns use `gomad.campaign-storage/v2` and hash-linked canonical journal
+envelopes. Resume authenticates the complete prefix and retained prepared target
+before admitting work. Only a torn final append may be repaired under the writer
+lock; complete malformed records, changed identities or changed bounds refuse.
+Admission, raw completion receipts and ordered policy decisions are separate
+durable events. A committed policy decision reconciles discarded artifacts;
+shared module pool links remain authenticated by the existing store capability.
+
+`execute-shard --shard INDEX/COUNT PLAN` reads a retained seed plan. `merge`
+authenticates every source shard and its original plan before publishing a
+global-order result; `--partial` records missing ordinal intervals explicitly.
+Duplicate, overlapping or incompatible shards refuse. `inspect --json --choices`
+projects typed divergence from the authenticated execution ledger and resolves
+raw expected/observed sites only against that execution's retained module.
+
+The mandatory fresh local lane is:
+
+```sh
+python3 tools/gomad/scripts/behavioral-parity \
+  --corpus tools/gomad/testdata/parity --verb explore \
+  --campaign-binary /absolute/fixture-enabled/gomad \
+  --campaign-baseline /absolute/authenticated/go-baseline \
+  --campaign-source /absolute/extracted/baseline/source \
+  --campaign-go-compiler /absolute/pinned/go1.27.1/bin/go \
+  --campaign-input /absolute/identity-matching/replay-input.json \
+  --campaign-preparation-root /absolute/retained/campaign-preparation \
+  --output-root /absolute/new/campaign-check
+```
+
+The same lane accepts `--verb resume`, `execute-shard` and `merge` and exercises
+all four operations. The frozen Go WASM public CLI refuses shard/merge verbs;
+the lane records those real refusals separately and calls the unchanged Go
+Runner API through a fixture-only reference adapter to attempt shard/merge
+semantics. The adapter calls the original provider and Runner owners without
+altering their preparation, authentication or capability policy.
+Those API-reference results are not public-CLI positive parity.
+Rust positive paths remain actual public CLI invocations. This admission
+discrepancy remains an explicit integrated-acceptance question, not a normalized
+semantic match.
+
+The original WASM provider prepares directly in the bundle directory while the
+portable-plan owner requires a private child preparation directory, so the
+unmodified API first refuses that layout. The frozen implementation also drops
+backend metadata when it
+reopens a prepared target and rejects backend payload files in its bundle.
+Consequently the original WASM portable API lane currently fails closed rather
+than supplying a positive shard/merge reference. Its failure is an unresolved
+differential criterion, not a skipped gate or an authenticated match.
+
+The mandatory lane also includes typed scenario public execution and exact
+replay, with malformed-input refusals and independently authenticated retained
+reports. `campaign-scenario-check.py` can run this Rust scenario check directly
+with `--binary`, `--input`, `--go-compiler`, `--preparation-root` and `--work`.
+`campaign-scenario-reference-check.py` independently authenticates fresh original
+Go public-CLI captures and compares lifecycle steps, guest output bytes and
+handled assertion reports with retained Rust scenario runs. This focused
+scenario comparison does not waive the portable shard/merge criterion.
+
+Raw record, payload, plan and journal integrity checks run independently of
+goldens. `GOMAD_GOLDEN_REGENERATE=1` requires repeated fresh agreement and a
+byte-identical second regeneration. Host-only journal interruption controls
+require `determinism-fixture` and are absent from ordinary release binaries.
+
+## Rust choice and simulation exploration
+
+`explore --strategy=choice-exploration` explores helper-validated forced prefixes
+in bounded breadth-first rounds. Select exactly one seed and provide positive
+`--max-executions`, `--max-choice-depth` and `--max-exploration-bytes` bounds.
+`--choice-start-ordinal` optionally skips earlier branching decisions.
+`--site-scope=PACKAGE[,PACKAGE...]` restricts forcing to Go package paths or
+prefixes ending in `/...`. For example,
+`--site-scope=go.temporal.io/server/service/history/...,net/http` includes those
+packages and history's subpackages. The flag requires choice exploration;
+empty patterns, whitespace and invalid import paths return status 2 before
+execution. Scoped targets require symbol information. Unavailable symbols are
+out of scope; other decisions remain seed-driven and recorded for replay.
+
+```sh
+gomad explore --strategy=choice-exploration --seeds=7 --parallel=2 \
+  --max-executions=16 --max-choice-depth=4 --max-exploration-bytes=64MiB \
+  --artifacts /absolute/campaigns go-test ./package -- '-test.run=^TestExample$'
+```
+
+`--strategy=simulation-exploration` combines runtime, scenario, network, storage,
+fault and crash decisions. It requires positive `--max-executions`,
+`--max-forced-decisions`, `--max-exploration-bytes`,
+`--max-exploration-result-bytes` and all six `--max-DIMENSION-decisions` bounds.
+Its actual execution decisions are retained in `simulation/record.json`;
+controller fixtures alone do not establish producer or workload qualification.
+
+Both strategies retain typed transactions containing a complete round and its
+authenticated execution observations. `resume CAMPAIGN` restores the recorded
+bounds and frontier; it refuses malformed complete journal entries and may
+truncate an interrupted final entry before retrying that round. `inspect --json
+--choices CAMPAIGN` reports the explored envelope and typed replay divergence,
+with site symbols resolved from each retained execution's matching module.
+
+Scoped campaign plans retain `site_scope.patterns`, `resolved_sha256` and
+`resolved_count`. Each round reports `forced_in_scope` and `skipped_out_of_scope`;
+an unmatched base trace stops with `site_scope_empty` and retains its base
+artifact. Select decisions use their site package; runnable decisions use
+alternative goroutines' creation packages when the trace carries creation sites.
+Older traces without creation sites leave runnable decisions out of scope.
+`resume --site-scope=PATTERNS CAMPAIGN` checks the persisted scope rather than
+changing it; omission restores it. Changed patterns or resolved site digests
+refuse with the campaign changed-bound error.
+
+The reusable choice plan configuration validates scope blocks when a campaign
+opens. The public Rust `plan` verb and its `--site-scope` admission remain open
+under fn-232.11; this receiving seam does not supply that public command.
+
+The mandatory exploration lane runs through the behavioral harness, separately
+from the seed campaign lane:
+
+```sh
+python3 tools/gomad/scripts/behavioral-parity \
+  --corpus tools/gomad/testdata/parity --verb explore \
+  --exploration-binary /absolute/host-fixture-enabled/gomad \
+  --exploration-divergence-binary /absolute/explicit-helper-fixture/gomad \
+  --exploration-conformance-helper /absolute/current/conformance-helper \
+  --exploration-baseline /absolute/authenticated/go-baseline \
+  --exploration-source /absolute/extracted/baseline/source \
+  --exploration-go-compiler /absolute/pinned/go1.27.1/bin/go \
+  --exploration-input /absolute/replay-fixture-input.json \
+  --exploration-go-base /absolute/original-go-wasi-request.json \
+  --exploration-preparation-root /absolute/stable/exploration-preparation \
+  --output-root /absolute/new/exploration-check
+```
+
+`--verb resume` selects the same complete lane. Exploration routing takes
+precedence over `--campaign-binary` for these two verbs. All listed inputs are
+required; missing roles or reference inputs fail before execution. Use a fresh
+preparation root for the current checkout; both simulation runs reuse that exact
+root and compare observations and all eight raw simulation record digests.
+
+The lane requires nine choice and twelve simulation controller cases, actual
+public choice exploration against fresh Go CLI results, two six-dimension live
+simulation runs with eight artifact replays each, scenario startup against fresh
+original Go API executions, and real typed divergence inspection. The divergence
+binary explicitly enables the helper fixture role; its mode-sensitive Go guest
+uses real runtime decisions. The ordinary role must refuse that fixture without
+committing an execution. This fixture proves inspect projection, not ordinary
+workload qualification.
+
+Frozen Go's public combined simulation CLI refusal is retained as a boundary
+receipt. The scenario API comparison and required current Go Namespace, Volume,
+network adapter, network cluster and broker conformance tests are separate
+evidence; they do not establish positive combined Go CLI parity. Receipts and the
+final result are written under the fresh output root. The inexpensive routing
+check is `python3 tools/gomad/testdata/parity/exploration-lane.py --selftest`.
+
+## Rust minimization
+
+The public flags are unchanged:
+
+```sh
+gomad minimize [--json] [--resume] [--attempt-budget N] \
+  [--artifacts DIR] [--max-bytes SIZE] ARTIFACT_DIR
+```
+
+The attempt budget defaults to 64. Output lives under `DIR/minimized`, with
+`DIR` defaulting to `.gomad/artifacts`. `--max-bytes` accepts a positive byte
+count or `KiB`, `MiB`, `GiB` suffix; omitting it leaves that optional bound unset.
+`--resume` continues the artifact's authenticated minimization checkpoint.
+Eligibility requires a standalone cooperative target failure with complete exact
+choice evidence. Cluster and simulation-profile minimization retain their public
+refusals; the six-dimensional controller corpus does not add those capabilities.
+
+`--json` returns `artifact_path`, `record_hash`, `changed`, `attempts`,
+`attempt_budget`, `accepted` and `stop_reason`. A changed result refers to the
+published decorated artifact. Adding minimization evidence changes its full
+record and seed-excluded failure signature. The immutable
+`predicate.failure_signature` retains the failure signature used to admit
+candidates; `parent_failure_signature` separately preserves the parent's full
+failure signature. These identities must not be compared as though decoration
+left the complete record unchanged.
+
+The mandatory local lane runs fresh public Go and Rust minimizers against
+retained cooperative failures, using the authenticated frozen Go baseline:
+
+```sh
+python3 tools/gomad/scripts/behavioral-parity \
+  --corpus tools/gomad/testdata/parity --verb minimize \
+  --minimize-binary /absolute/host-fixture-enabled/gomad \
+  --minimize-baseline /absolute/authenticated/go-baseline \
+  --minimize-source /absolute/extracted/baseline/source \
+  --minimize-go-compiler /absolute/pinned/go1.27.1/bin/go \
+  --output-root /absolute/new/minimize-check
+```
+
+These inputs are required. Optional `--minimize-go-cache` and
+`--minimize-preparation-root` select reusable cache roots;
+`--minimize-golden FILE` compares the reviewed semantic projection.
+The lane authenticates each lineage's retained bytes before comparing semantic
+results. Runner provisioning of the frozen baseline, extracted source and Go
+compiler remains necessary before this lane can run in CI.
 
 ## Shared generated contracts
 

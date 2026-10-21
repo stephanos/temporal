@@ -11,6 +11,7 @@ import (
 	"io"
 	"path/filepath"
 	"sort"
+	"strings"
 	"sync"
 	"time"
 
@@ -593,6 +594,10 @@ func (session *ClusterSession) Wait(ctx context.Context, node string, incarnatio
 			session.mu.Unlock()
 			return Result{}, err
 		}
+		if session.failureObserved() {
+			session.mu.Unlock()
+			return session.Observe(ctx, node, incarnation)
+		}
 		if turn := session.turn; turn != nil {
 			session.mu.Unlock()
 			select {
@@ -663,7 +668,7 @@ func (session *ClusterSession) Finish(ctx context.Context) (ClusterResult, error
 	for _, state := range session.states {
 		inspected = inspected || state.inspection && inspectionTermination(state.result.Termination)
 	}
-	if session.finishing || session.terminal {
+	if session.finishing || session.terminal || session.failureObserved() {
 		session.mu.Unlock()
 		select {
 		case <-session.done:
@@ -702,6 +707,15 @@ func (session *ClusterSession) Finish(ctx context.Context) (ClusterResult, error
 
 func (session *ClusterSession) Shutdown(ctx context.Context) error {
 	session.mu.Lock()
+	if session.failureObserved() {
+		session.mu.Unlock()
+		select {
+		case <-session.done:
+			return session.err
+		case <-ctx.Done():
+			return ctx.Err()
+		}
+	}
 	var live []BrokerNode
 	for handle, state := range session.states {
 		select {
@@ -885,7 +899,7 @@ func (stream *clusterStream) frame(data []byte) error {
 	}
 	switch kind {
 	case "cluster_network":
-		if !s.finishing || s.config.Broker.Network == nil {
+		if !s.finishing && !s.completedFailure("trap") && !s.completedFailure("capacity") || s.config.Broker.Network == nil {
 			return invalid("unsolicited final cluster network")
 		}
 		var evidence struct {
@@ -1009,7 +1023,7 @@ func (stream *clusterStream) frame(data []byte) error {
 			s.inspectionWire = append(s.inspectionWire, evidence.Data...)
 			return nil
 		}
-		if !s.finishing {
+		if !s.finishing && !s.completedFailure("trap") && !s.completedFailure("capacity") {
 			return invalid("cluster World evidence before finish")
 		}
 		if evidence.Stream != "world" || len(evidence.Data) == 0 || len(evidence.Data) > 64<<10 || uint64(len(s.worldWire)+len(evidence.Data)) > world.CompressedSnapshotProfile().MaxExpandedBytes {
@@ -1108,7 +1122,12 @@ func (state *clusterState) collect(frame *validatedFrame, config BrokerConfig, i
 		state.executionClassifiedAt = time.Now()
 		return nil
 	}
-	if interrupted {
+	// An exhausted broker World limit stops the runtime at a host call like a
+	// revocation: its choice prefix is the replayable evidence (fn-235 R3).
+	// Output or choice capacity leaves incomplete evidence and stays refused.
+	dimension, _, _ := strings.Cut(strings.TrimPrefix(terminal.Message, "WASI capacity: "), " ")
+	exhausted := terminal.Termination == "capacity" && brokerWorldCapacity[dimension] && terminal.LocalModel != nil && terminal.LocalModel.Configured && !terminal.LocalModel.Finished
+	if interrupted || exhausted {
 		if terminal.LocalModel == nil || terminal.LocalModel.Finished {
 			return invalid("cluster completed interrupted runtime")
 		}
@@ -1138,6 +1157,33 @@ func (state *clusterState) collect(frame *validatedFrame, config BrokerConfig, i
 	return nil
 }
 
+// brokerWorldCapacity names the broker World limits (model/world capacity
+// dimensions) the helper reports as `WASI capacity: <dimension> limit=...`.
+var brokerWorldCapacity = map[string]bool{"event-ids": true, "events": true, "payload-bytes": true, "queued-events": true, "request-ids": true, "requests": true, "transition-bytes": true, "transition-sequences": true, "transitions": true}
+
+func (session *ClusterSession) failureObserved() bool {
+	for _, state := range session.states {
+		r := state.result
+		if r.Termination == "trap" || r.Termination == "capacity" || r.Termination == "exit" && r.ExitCode != nil && *r.ExitCode != 0 {
+			return true
+		}
+	}
+	return false
+}
+
+func (session *ClusterSession) completedFailure(termination string) bool {
+	failed := false
+	for _, state := range session.states {
+		select {
+		case <-state.done:
+		default:
+			return false
+		}
+		failed = failed || state.result.Termination == termination || termination == "trap" && state.result.Termination == "exit" && state.result.ExitCode != nil && *state.result.ExitCode != 0
+	}
+	return failed
+}
+
 func (session *ClusterSession) collect(frame *validatedFrame) error {
 	var terminal struct {
 		Type        string `json:"type"`
@@ -1163,7 +1209,8 @@ func (session *ClusterSession) collect(frame *validatedFrame) error {
 		return err
 	}
 	inspected := terminal.Termination == "inspected_prefix"
-	if terminal.Termination != "exit" && !inspected {
+	failed := (terminal.Termination == "trap" || terminal.Termination == "capacity") && session.completedFailure(terminal.Termination)
+	if terminal.Termination != "exit" && !inspected && !failed {
 		switch terminal.Termination {
 		case "invalid", "infrastructure", "capacity", "unsupported", "instrumentation_divergence", "debug_error", "probe_fuel_limit":
 			return &BoundaryError{Kind: terminal.Termination, Dimension: "cluster run: " + terminal.Message}
@@ -1171,7 +1218,7 @@ func (session *ClusterSession) collect(frame *validatedFrame) error {
 			return invalid("cluster run termination")
 		}
 	}
-	if !session.finishing && !inspected || len(terminal.Instances) != len(session.states) {
+	if !session.finishing && !inspected && !failed || len(terminal.Instances) != len(session.states) {
 		return invalid("cluster terminal incarnation count")
 	}
 	seen := map[BrokerNode]bool{}

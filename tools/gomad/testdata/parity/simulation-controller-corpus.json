@@ -1,0 +1,17 @@
+{
+  "schema": "gomad.simulation-controller-inputs/v1",
+  "cases": [
+    {"name": "six-dimension-breadth-first", "max_executions": 24, "max_forced_decisions": 2},
+    {"name": "serial-rounds", "parallel": 1, "max_executions": 12},
+    {"name": "execution-bound", "max_executions": 1},
+    {"name": "combined-depth-bound", "max_forced_decisions": 0},
+    {"name": "dimension-bound", "ordinal": 1, "dimension_limit": 1},
+    {"name": "capacity-bound", "max_exploration_bytes": 1000},
+    {"name": "typed-divergence", "diverged_execution": 0},
+    {"name": "failure-budget", "failed_execution": 1, "failure_budget": 1},
+    {"name": "exhausted", "dimensions": []},
+    {"name": "malformed-result-bound", "max_result_bytes": 1, "error": "result"},
+    {"name": "malformed-config", "parallel": 0, "error": "positive"},
+    {"name": "malformed-decision", "selected": 99, "error": "invalid"}
+  ]
+}

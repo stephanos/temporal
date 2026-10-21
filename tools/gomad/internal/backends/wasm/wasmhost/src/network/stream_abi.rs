@@ -73,6 +73,19 @@ pub fn decode(data: &[u8]) -> Result<Call, Invalid> {
     })
 }
 
+pub fn query(call: &Call, length: usize) -> Result<(), Invalid> {
+    if length != HEADER
+        || call.id != 0
+        || call.handle != 0
+        || call.deadline != 0
+        || call.port != 0
+        || call.count != 0
+    {
+        return Err(Invalid("network v2 query"));
+    }
+    Ok(())
+}
+
 /// Go's per-operation payload rule: writes and reads carry exactly `count`
 /// payload bytes, polls any buffer, every other operation only the header.
 pub fn check_payload(call: &Call, length: usize) -> Result<(), Invalid> {

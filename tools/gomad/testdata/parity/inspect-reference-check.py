@@ -129,12 +129,14 @@ def compare_choices(run, baseline, rust_binary, go_root, rust_root, corpus):
         right = rust["choices"]
         for key in ("schema", "profile", "limit", "payload_bytes", "records", "decisions", "branching_records",
                     "terminal_state", "exact_replay_available", "runnable", "select_poll",
-                    "select_result", "sites"):
+                    "select_result"):
             equal(right[key], left[key], label + ".choices." + key)
+        equal(right['sites'], [dict(site, symbol={'unavailable': 'no_symbols'}) for site in left['sites']],
+              label + '.choices.sites')
         equal(right["terminal_state"], "overflow" if overflow else "complete", label + ".choices.terminal_state")
         equal(right["exact_replay_available"], not overflow, label + ".choices.exact_replay_available")
         equal(right["limit"], 160 if overflow else 4096, label + ".choices.limit")
-        decisions = [dict(item, site_missing=item.get("site_missing", False))
+        decisions = [dict(item, site_missing=item.get("site_missing", False), symbol={'unavailable': 'no_symbols'})
                      for item in left.get("replay_decisions", [])]
         equal(right["replay_decisions"], decisions, label + ".choices.replay_decisions")
         equal(left["decisions"], len(decisions), label + ".choices.decisions")

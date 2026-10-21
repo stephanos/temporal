@@ -13,8 +13,8 @@ The owned behavior has reviewed golden fixtures, repeated-execution agreement an
 All owned public-command lanes have parity and golden fixtures; qualify matches verdicts per cell; a failed repetition or replay fails the cell with an explicit report; reports are retained under the new schema.
 
 ## Done summary
-TBD
-
+Not completed; returned to todo:
+Provisional qualification admission is withdrawn under the user's closure-first request. Its fn232.9 predecessor has not completed acceptance. The actual WASM dispatch uses qualify --spec FILE, not the dormant generic parser; preparatory generic Rust code was removed before integration. No qualification implementation or positive acceptance remains in flight. Checkpoint 280ff70271 retains only actual live-grammar RED fixtures and contract notes. Return this task to todo after this dependency block; this is scheduling, not completion or a scope waiver. Resume the full Spec/Freeze/Run/cost/Result/receipt port after the current closure batch.
 ## Evidence
 - Commits:
 - Tests:

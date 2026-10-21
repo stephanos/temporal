@@ -201,6 +201,16 @@ impl Config {
 }
 impl Model {
     pub fn new(config: Config) -> Self {
+        Self::construct(config, false)
+    }
+
+    pub fn new_linked(config: Config) -> Self {
+        Self::construct(config, true)
+    }
+
+    fn construct(config: Config, linked: bool) -> Self {
+        #[cfg(not(feature = "determinism-fixture"))]
+        let _ = linked;
         // Split ownership confirms the broker-adopted clock before its first
         // local call, as the Go-owned path raises `now` at its first call.
         let sync_pending = config.split;
@@ -213,7 +223,11 @@ impl Model {
             #[cfg(any(feature = "determinism-fixture", feature = "stress-jitter"))]
             event_owner: None,
             #[cfg(feature = "determinism-fixture")]
-            fixture_fault: crate::determinism_fixture::Fault::from_environment(),
+            fixture_fault: if linked {
+                crate::determinism_fixture::Fault::none()
+            } else {
+                crate::determinism_fixture::Fault::from_environment()
+            },
             now: config.now,
             config,
             advances: 0,
@@ -239,6 +253,12 @@ impl Model {
     /// Whether the cooperative runtime is configured and not yet finished.
     pub fn runtime_active(&self) -> bool {
         self.configured && !self.finished
+    }
+    pub(crate) fn epoch_nanos(&self) -> u64 {
+        self.config.epoch_nanos
+    }
+    pub(crate) fn transcript_limit(&self) -> u64 {
+        self.config.limits.transcript_bytes
     }
     pub fn split(&self) -> bool {
         self.config.split

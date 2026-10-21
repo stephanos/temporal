@@ -101,7 +101,10 @@ func (e *execution) softAssertionOracles() ([]gomadsim.OracleResult, error) {
 	for _, handle := range handles {
 		result, exists := e.results[handle]
 		policy, requested := policies[handle]
-		complete := exists && result.Reaped && result.Termination != "capacity" && (!result.Cancelled || result.RuntimeInterrupted) && !result.WatchdogTimeout && result.OfferedOutputBytes == uint64(len(result.Stdout))+uint64(len(result.Stderr))
+		// An exhausted cluster limit interrupts the runtime like a revocation
+		// (fn-235): its streams are complete up to that stop, and retained
+		// replay validation rebuilds them as such.
+		complete := exists && result.Reaped && (result.Termination != "capacity" || result.RuntimeInterrupted) && (!result.Cancelled || result.RuntimeInterrupted) && !result.WatchdogTimeout && result.OfferedOutputBytes == uint64(len(result.Stdout))+uint64(len(result.Stderr))
 		observation := softassert.Observe(result.Stdout, result.Stderr, complete)
 		if len(observation.Messages) == 0 && observation.Complete && !requested {
 			continue

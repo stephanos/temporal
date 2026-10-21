@@ -1,0 +1,17 @@
+{
+  "schema": "gomad.replay-corpus/v1",
+  "verb": "replay",
+  "targets": ["targets/execution-exit.wat", "targets/execution-modeled.wat", "targets/inspect-choice.wat", "targets/replay-storage-prefix.wat", "targets/replay-exit-failure.wat", "targets/replay-network.go.txt", "targets/replay-network-scheduler.go.txt"],
+  "seeds": [7, 8],
+  "profiles": ["gomad.wasi-stock-exploratory/v1", "gomad.wasi-cooperative/v1"],
+  "goldens": ["goldens-replay/replay.json", "goldens-replay/runtime.json", "goldens-replay/network-ordinary-scheduled.json", "goldens-replay/network-faults-scheduled.json", "goldens-replay/network-ordinary-empty.json", "goldens-replay/network-faults-original.json", "goldens-replay/cluster-public.json", "goldens-replay/cluster-api-failure.json", "goldens-replay/cluster-api-alternate.json", "goldens-replay/cluster-api-success.json"],
+  "projection": {
+    "record": "exact canonical bytes; no normalization",
+    "manifest": "exact canonical bytes; all payload identities retained",
+    "ledger": "exact raw bytes after independent hash-link verification",
+    "status": "exact process status",
+    "replay": "exact stdout bytes",
+    "verify": "only the artifact operand prefix becomes <output>; relative suffix retained",
+    "observed": "exact byte count and SHA-256 of stdout, stderr and backend evidence"
+  }
+}

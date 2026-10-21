@@ -7,6 +7,18 @@ use std::io::Write;
 use wasmtime::{Error, Result};
 
 impl Model {
+    pub(crate) fn interrupted(&mut self) -> Result<()> {
+        if self.finished {
+            return Err(Error::msg("completed runtime on storage interruption"));
+        }
+        if self.config.mode != 1
+            && let Some(tape) = &self.config.tape
+            && let Some(expected) = tape.get(self.cursor).cloned()
+        {
+            return Err(self.diverge(7, Some(expected), None));
+        }
+        Ok(())
+    }
     pub fn inspection_cut(&self) -> inspection::Cut {
         inspection::Cut {
             handle: self.inspection.handle.clone(),
@@ -71,6 +83,7 @@ impl Model {
                 "storage",
                 "storage_state",
                 "storage_image",
+                "network",
                 "inspection",
                 "debug",
             ],
@@ -122,6 +135,9 @@ impl Model {
             let bytes = std::mem::take(&mut self.inspection.output);
             self.queue("debug", &bytes);
         }
+    }
+    pub(crate) fn network_evidence(&mut self, bytes: &[u8]) {
+        self.queue("network", bytes);
     }
     pub fn namespace_output(&mut self, stdout: &[u8], stderr: &[u8]) {
         self.queue("stdout", stdout);

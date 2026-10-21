@@ -1,10 +1,11 @@
 use super::{FileEntry, Manifest, Opened, canonical, lineage, open, pool};
 use crate::evidence::record::Record;
 use rustix::fs::{self, AtFlags, FlockOperation, Mode, OFlags};
+use sha2::{Digest, Sha256};
 use std::{
-    collections::BTreeMap,
+    collections::{BTreeMap, BTreeSet},
     fs::{DirBuilder, File},
-    io::Write,
+    io::{Read, Write},
     os::unix::fs::DirBuilderExt,
     path::{Path, PathBuf},
     sync::atomic::{AtomicU64, Ordering},
@@ -180,19 +181,319 @@ fn remove_stage(root: &File, name: &str) -> Result<(), String> {
     fs::unlinkat(root, name, AtFlags::REMOVEDIR).map_err(|error| error.to_string())
 }
 
-fn rename_exclusive(root: &File, source: &str, target: &str) -> Result<(), rustix::io::Errno> {
+fn rename_exclusive(
+    source_root: &File,
+    source: &str,
+    target_root: &File,
+    target: &str,
+) -> Result<(), rustix::io::Errno> {
     #[cfg(any(target_os = "linux", target_os = "macos"))]
     {
-        fs::renameat_with(root, source, root, target, fs::RenameFlags::NOREPLACE)
+        fs::renameat_with(
+            source_root,
+            source,
+            target_root,
+            target,
+            fs::RenameFlags::NOREPLACE,
+        )
     }
     #[cfg(not(any(target_os = "linux", target_os = "macos")))]
     {
-        let _ = (root, source, target);
+        let _ = (source_root, source, target_root, target);
         Err(rustix::io::Errno::NOSYS)
     }
 }
 
+fn staging(root: &File) -> Result<(String, File), String> {
+    loop {
+        let sequence = STAGING_SEQUENCE.fetch_add(1, Ordering::Relaxed);
+        let name = format!(".publish-{}-{sequence}", std::process::id());
+        match fs::mkdirat(root, name.as_str(), Mode::from_raw_mode(0o700)) {
+            Ok(()) => return Ok((name.clone(), open::child(root, &name, true, false)?)),
+            Err(error) if error == rustix::io::Errno::EXIST => {}
+            Err(error) => return Err(error.to_string()),
+        }
+    }
+}
+
+fn artifact_name(name: &str) -> bool {
+    canonical::valid_digest(name)
+        || name
+            .strip_prefix("execution-")
+            .is_some_and(canonical::valid_digest)
+}
+
+fn unlink_checked(root: &File, name: &str, file: &File, directory: bool) -> Result<(), String> {
+    let opened = fs::fstat(file).map_err(|error| error.to_string())?;
+    let named =
+        fs::statat(root, name, AtFlags::SYMLINK_NOFOLLOW).map_err(|error| error.to_string())?;
+    if !open::same(&opened, &named) {
+        return Err("retiring artifact entry substituted".into());
+    }
+    fs::unlinkat(
+        root,
+        name,
+        if directory {
+            AtFlags::REMOVEDIR
+        } else {
+            AtFlags::empty()
+        },
+    )
+    .map_err(|error| error.to_string())
+}
+
+fn retire_file(root: &File, name: &str, entry: &FileEntry) -> Result<(), String> {
+    let mut file = open::child(root, name, false, entry.module)?;
+    let before = fs::fstat(&file).map_err(|error| error.to_string())?;
+    if u64::try_from(before.st_size) != Ok(entry.bytes) {
+        return Err("retiring artifact payload size mismatch".into());
+    }
+    let mut hash = Sha256::new();
+    let mut buffer = vec![0_u8; 64 << 10];
+    let mut count = 0_u64;
+    loop {
+        let size = file.read(&mut buffer).map_err(|error| error.to_string())?;
+        if size == 0 {
+            break;
+        }
+        count = count
+            .checked_add(size as u64)
+            .ok_or("retiring artifact payload size overflow")?;
+        if count > entry.bytes {
+            return Err("retiring artifact payload grew while reading".into());
+        }
+        hash.update(&buffer[..size]);
+    }
+    if count != entry.bytes
+        || format!("{:x}", hash.finalize()) != entry.sha256
+        || !open::same(
+            &before,
+            &fs::fstat(&file).map_err(|error| error.to_string())?,
+        )
+    {
+        return Err("retiring artifact payload authentication failed".into());
+    }
+    unlink_checked(root, name, &file, false)
+}
+
+fn retire_payloads(root: &File, prefix: &str, manifest: &Manifest) -> Result<(), String> {
+    for name in open::entries(root)? {
+        if prefix.is_empty() && matches!(name.as_str(), "manifest.json" | "storage.json") {
+            continue;
+        }
+        let path = if prefix.is_empty() {
+            name.clone()
+        } else {
+            format!("{prefix}/{name}")
+        };
+        if let Some(entry) = manifest.files.get(&path) {
+            retire_file(root, &name, entry)?;
+        } else {
+            let nested = format!("{path}/");
+            if !manifest.files.keys().any(|path| path.starts_with(&nested)) {
+                return Err("retiring artifact contains an unlisted payload".into());
+            }
+            let directory = open::child(root, &name, true, false)?;
+            retire_payloads(&directory, &path, manifest)?;
+            unlink_checked(root, &name, &directory, true)?;
+        }
+    }
+    root.sync_all().map_err(|error| error.to_string())
+}
+
+fn retire_pending(root: &File, name: &str) -> Result<(), String> {
+    let original = name
+        .strip_prefix(".retire-")
+        .filter(|name| artifact_name(name))
+        .ok_or("invalid artifact retirement name")?;
+    let directory = open::child(root, name, true, false)?;
+    let bytes = match open::read(&directory, "manifest.json", 16 << 20, false) {
+        Ok(bytes) => bytes,
+        Err(error)
+            if error == rustix::io::Errno::NOENT.to_string()
+                && open::entries(&directory)?.is_empty() =>
+        {
+            unlink_checked(root, name, &directory, true)?;
+            return root.sync_all().map_err(|error| error.to_string());
+        }
+        Err(error) => return Err(error),
+    };
+    let manifest: Manifest = serde_json::from_slice(&bytes).map_err(|error| error.to_string())?;
+    manifest.validate()?;
+    if canonical::encode(&manifest)? != bytes
+        || (original != manifest.record.failure_signature()?
+            && original != format!("execution-{}", manifest.record_sha256))
+    {
+        return Err("retiring artifact manifest identity mismatch".into());
+    }
+    match open::read(&directory, "storage.json", 4096, false) {
+        Ok(bytes) => lineage::validate(&bytes)?,
+        Err(error) if error == rustix::io::Errno::NOENT.to_string() => {}
+        Err(error) => return Err(error),
+    }
+    retire_payloads(&directory, "", &manifest)?;
+    match open::child(&directory, "storage.json", false, false) {
+        Ok(_) => retire_file(
+            &directory,
+            "storage.json",
+            &FileEntry {
+                bytes: lineage::ENVELOPE.len() as u64,
+                sha256: canonical::digest(lineage::ENVELOPE),
+                module: false,
+            },
+        )?,
+        Err(error) if error == rustix::io::Errno::NOENT.to_string() => {}
+        Err(error) => return Err(error),
+    }
+    directory.sync_all().map_err(|error| error.to_string())?;
+    retire_file(
+        &directory,
+        "manifest.json",
+        &FileEntry {
+            bytes: bytes.len() as u64,
+            sha256: canonical::digest(&bytes),
+            module: false,
+        },
+    )?;
+    directory.sync_all().map_err(|error| error.to_string())?;
+    unlink_checked(root, name, &directory, true)?;
+    root.sync_all().map_err(|error| error.to_string())
+}
+
 impl Store {
+    #[cfg_attr(
+        not(feature = "determinism-fixture"),
+        expect(
+            clippy::unused_self,
+            clippy::unnecessary_wraps,
+            reason = "Immutable-file faults are absent from ordinary builds"
+        )
+    )]
+    fn immutable_checkpoint(&self, module: bool, point: &str) -> Result<(), String> {
+        #[cfg(feature = "determinism-fixture")]
+        self.checkpoint(&format!(
+            "{}_{point}",
+            if module { "pool" } else { "layout" }
+        ))?;
+        let _ = (module, point);
+        Ok(())
+    }
+
+    pub(super) fn immutable_file(
+        &self,
+        root: &File,
+        name: &str,
+        bytes: &[u8],
+        module: bool,
+    ) -> Result<(), String> {
+        match open::child(root, name, false, module) {
+            Ok(mut file) => {
+                self.reuse_immutable(&mut file, bytes, module)?;
+                return root.sync_all().map_err(|error| error.to_string());
+            }
+            Err(error) if error == rustix::io::Errno::NOENT.to_string() => {}
+            Err(error) => return Err(error),
+        }
+        let (stage_name, stage) = staging(root)?;
+        let mut file = File::from(
+            fs::openat(
+                &stage,
+                "payload",
+                OFlags::WRONLY | OFlags::CREATE | OFlags::EXCL | OFlags::CLOEXEC | OFlags::NOFOLLOW,
+                Mode::from_raw_mode(0o600),
+            )
+            .map_err(|error| error.to_string())?,
+        );
+        self.immutable_checkpoint(module, "file_created")?;
+        let (first, rest) = bytes.split_at(bytes.len() / 2);
+        file.write_all(first).map_err(|error| error.to_string())?;
+        self.immutable_checkpoint(module, "file_partial")?;
+        file.write_all(rest).map_err(|error| error.to_string())?;
+        self.immutable_checkpoint(module, "before_file_sync")?;
+        self.immutable_checkpoint(module, "file_sync_error")?;
+        file.sync_all().map_err(|error| error.to_string())?;
+        self.immutable_checkpoint(module, "file_durable")?;
+        stage.sync_all().map_err(|error| error.to_string())?;
+        match rename_exclusive(&stage, "payload", root, name) {
+            Ok(()) => self.immutable_checkpoint(module, "file_published")?,
+            Err(error) if error == rustix::io::Errno::EXIST => {
+                let mut existing = open::child(root, name, false, module)?;
+                self.reuse_immutable(&mut existing, bytes, module)?;
+            }
+            Err(error) => return Err(format!("exclusive immutable publication refused: {error}")),
+        }
+        remove_stage(root, &stage_name)?;
+        root.sync_all().map_err(|error| error.to_string())
+    }
+
+    fn reuse_immutable(&self, file: &mut File, bytes: &[u8], module: bool) -> Result<(), String> {
+        let bound = if module { bytes.len() as u64 } else { 4096 };
+        if open::read_handle(file, bound, || Ok(()))? != bytes {
+            return Err(if module {
+                "target pool identity mismatch".into()
+            } else {
+                "unsupported artifact store layout".into()
+            });
+        }
+        self.immutable_checkpoint(module, "before_file_sync")?;
+        self.immutable_checkpoint(module, "file_sync_error")?;
+        file.sync_all().map_err(|error| error.to_string())?;
+        self.immutable_checkpoint(module, "file_durable")
+    }
+
+    pub(crate) fn retire(root: &File, live: &BTreeSet<String>) -> Result<(), String> {
+        let pool = open::child(root, ".targets", true, false)?;
+        let _locks = ordered_roots(root, &[&pool])?
+            .into_iter()
+            .map(lock)
+            .collect::<Result<Vec<_>, _>>()?;
+        if open::read(root, ".store.json", 4096, false)? != open::LAYOUT {
+            return Err("unsupported artifact store layout".into());
+        }
+        if live.iter().any(|name| !artifact_name(name)) {
+            return Err("invalid live artifact reference".into());
+        }
+        for name in open::entries(root)? {
+            if name.starts_with(".retire-") {
+                retire_pending(root, &name)?;
+            }
+        }
+        for name in open::entries(root)? {
+            if matches!(name.as_str(), ".store.json" | ".lock" | ".targets") {
+                continue;
+            }
+            if name.starts_with(".publish-") {
+                open::child(root, &name, true, false)?;
+                continue;
+            }
+            if !artifact_name(&name) {
+                return Err("unexpected artifact store entry during retirement".into());
+            }
+            if live.contains(&name) {
+                continue;
+            }
+            let directory = open::child(root, &name, true, false)?;
+            let before = fs::fstat(&directory).map_err(|error| error.to_string())?;
+            let opened = Opened::from_root_with_pool(directory, Some(&pool))?;
+            opened.authenticate_all()?;
+            if name != opened.manifest().record.failure_signature()?
+                && name != format!("execution-{}", opened.manifest().record_sha256)
+            {
+                return Err("retiring artifact name does not match its record".into());
+            }
+            let after = fs::statat(root, name.as_str(), AtFlags::SYMLINK_NOFOLLOW)
+                .map_err(|error| error.to_string())?;
+            if !open::same(&before, &after) {
+                return Err("retiring artifact directory substituted".into());
+            }
+            let retired = format!(".retire-{name}");
+            rename_exclusive(root, &name, root, &retired).map_err(|error| error.to_string())?;
+            root.sync_all().map_err(|error| error.to_string())?;
+            retire_pending(root, &retired)?;
+        }
+        root.sync_all().map_err(|error| error.to_string())
+    }
+
     #[cfg_attr(
         not(feature = "determinism-fixture"),
         expect(
@@ -263,7 +564,7 @@ impl Store {
         if self.fault.as_deref() == Some("rename_unsupported") {
             return Err(rustix::io::Errno::NOSYS);
         }
-        rename_exclusive(root, source, target)
+        rename_exclusive(root, source, root, target)
     }
 
     /// # Errors
@@ -296,6 +597,18 @@ impl Store {
                 "directory_created",
                 "before_parent_sync",
                 "parent_durable",
+                "pool_file_created",
+                "pool_file_partial",
+                "pool_before_file_sync",
+                "pool_file_sync_error",
+                "pool_file_durable",
+                "pool_file_published",
+                "layout_file_created",
+                "layout_file_partial",
+                "layout_before_file_sync",
+                "layout_file_sync_error",
+                "layout_file_durable",
+                "layout_file_published",
             ]
             .contains(&point)
             {
@@ -322,15 +635,7 @@ impl Store {
             .into_iter()
             .map(lock)
             .collect::<Result<Vec<_>, _>>()?;
-        match open::read(&root, ".store.json", 4096, false) {
-            Ok(layout) if layout == open::LAYOUT => {}
-            Ok(_) => return Err("unsupported artifact store layout".into()),
-            Err(error) if error == rustix::io::Errno::NOENT.to_string() => {
-                write(&root, ".store.json", open::LAYOUT)?;
-                root.sync_all().map_err(|error| error.to_string())?;
-            }
-            Err(error) => return Err(error),
-        }
+        self.immutable_file(&root, ".store.json", open::LAYOUT, false)?;
         publication.record.validate()?;
         if publication.payloads.is_empty() {
             return Err("artifact requires payloads".into());
@@ -407,16 +712,7 @@ impl Store {
                 self.maximum_bytes
             ));
         }
-        let stage_name = loop {
-            let sequence = STAGING_SEQUENCE.fetch_add(1, Ordering::Relaxed);
-            let name = format!(".publish-{}-{sequence}", std::process::id());
-            match fs::mkdirat(&root, name.as_str(), Mode::from_raw_mode(0o700)) {
-                Ok(()) => break name,
-                Err(error) if error == rustix::io::Errno::EXIST => {}
-                Err(error) => return Err(error.to_string()),
-            }
-        };
-        let stage = open::child(&root, &stage_name, true, false)?;
+        let (stage_name, stage) = staging(&root)?;
         self.checkpoint("stage_created")?;
         for (name, bytes) in &publication.payloads {
             let (directory, basename) = destination(&stage, name)?;
@@ -426,9 +722,9 @@ impl Store {
                 let local = fs::fstat(&pool_root).map_err(|error| error.to_string())?;
                 let shared = fs::fstat(pool).map_err(|error| error.to_string())?;
                 if local.st_dev != shared.st_dev || local.st_ino != shared.st_ino {
-                    pool::place(pool, &pool_root, &canonical::digest(bytes), bytes)?;
+                    pool::place(self, pool, &pool_root, &canonical::digest(bytes), bytes)?;
                 }
-                pool::place(&pool_root, &directory, &basename, bytes)?;
+                pool::place(self, &pool_root, &directory, &basename, bytes)?;
             } else {
                 write(&directory, &basename, bytes)?;
             }

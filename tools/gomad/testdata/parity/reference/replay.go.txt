@@ -1,0 +1,122 @@
+package main
+
+import (
+	"encoding/json"
+	"flag"
+	"fmt"
+	"os"
+
+	"go.temporal.io/server/tools/gomad/internal/evidence/artifact"
+	"go.temporal.io/server/tools/gomad/internal/evidence/record"
+	"go.temporal.io/server/tools/gomad/internal/model/choice"
+)
+
+func main() {
+	input := flag.String("artifact", "", "fresh baseline artifact")
+	output := flag.String("output", "", "separate publication root")
+	mutation := flag.String("mutation", "site", "site or stdout")
+	flag.Parse()
+	if err := run(*input, *output, *mutation); err != nil {
+		fmt.Fprintln(os.Stderr, err)
+		os.Exit(1)
+	}
+}
+
+func run(input, output, mutation string) (retErr error) {
+	opened, err := artifact.OpenArtifact(input)
+	if err != nil {
+		return err
+	}
+	defer func() {
+		if err := opened.Close(); retErr == nil {
+			retErr = err
+		}
+	}()
+	manifest := opened.Manifest()
+	payloads := []artifact.Payload{}
+	for _, file := range manifest.Files {
+		data, err := opened.ReadPayload(file.Path, uint64(file.Size))
+		if err != nil {
+			return err
+		}
+		payloads = append(payloads, artifact.Payload{Path: file.Path, Mode: 0600, Data: data, SHA256: file.SHA256, Size: file.Size})
+	}
+	if mutation == "site" {
+		if manifest.ChoiceProfile == nil {
+			return fmt.Errorf("site mutation requires complete choices")
+		}
+		metadata := &manifest.ChoiceProfile.Trace
+		data, err := opened.ReadPayload(metadata.File, uint64(metadata.Bytes))
+		if err != nil {
+			return err
+		}
+		digest, err := metadata.SHA256.Bytes()
+		if err != nil {
+			return err
+		}
+		trace, err := choice.DecodeStoredTrace(choice.Profile, data, choice.TerminalMetadata{State: choice.TerminalComplete, Limit: uint64(metadata.Limit), Records: uint64(metadata.Records), SHA256: digest})
+		if err != nil {
+			return err
+		}
+		found := false
+		for index := range trace.Records {
+			if trace.Records[index].Flags&choice.FlagDecision != 0 {
+				trace.Records[index].Flags &^= choice.FlagSiteMissing
+				trace.Records[index].SiteOffset++
+				found = true
+				break
+			}
+		}
+		if !found {
+			return fmt.Errorf("fixture contains no replay decision")
+		}
+		trace, err = choice.BuildTrace(trace.Records, choice.TerminalComplete)
+		if err != nil {
+			return err
+		}
+		target, err := manifest.Target.SHA256.Bytes()
+		if err != nil {
+			return err
+		}
+		implementation, err := manifest.ChoiceProfile.ImplementationSHA256.Bytes()
+		if err != nil {
+			return err
+		}
+		tape, err := choice.ProjectReplayPlan(trace, choice.ExecutionIdentity{TargetSHA256: target, ToolchainBuildKey: manifest.Toolchain.BuildKey, GOOS: "wasip1", GOARCH: "wasm", ImplementationSHA256: implementation})
+		if err != nil {
+			return err
+		}
+		metadata.SHA256 = record.SHA256FromSum(trace.SHA256)
+		metadata.TapeSHA256 = record.SHA256FromSum(tape.SHA256)
+		for index := range payloads {
+			if payloads[index].Path == metadata.File {
+				payloads[index].Data = trace.Bytes
+				payloads[index].SHA256 = metadata.SHA256
+			}
+		}
+	} else if mutation == "stdout" {
+		for index := range payloads {
+			if payloads[index].Path == manifest.Streams.Stdout.File {
+				if len(payloads[index].Data) == 0 {
+					return fmt.Errorf("stdout mutation requires nonempty output")
+				}
+				payloads[index].Data[0] ^= 1
+				payloads[index].SHA256 = record.HashBytes(payloads[index].Data)
+				manifest.Streams.Stdout.FullSHA256 = payloads[index].SHA256
+				manifest.Streams.Stdout.RetainedSHA256 = payloads[index].SHA256
+			}
+		}
+	} else {
+		return fmt.Errorf("unsupported mutation %q", mutation)
+	}
+	published, err := (artifact.Store{Root: output, Key: artifact.StoreKeyRecord}).PublishArtifact(artifact.Publication{Record: manifest, Payloads: payloads})
+	if err != nil {
+		return err
+	}
+	encoded, err := json.Marshal(map[string]any{"artifact": published.Path, "record_hash": published.Manifest.RecordHash, "mutation": mutation})
+	if err != nil {
+		return err
+	}
+	fmt.Println(string(encoded))
+	return nil
+}

@@ -10,7 +10,8 @@
 use crate::network::stream_abi::{self, Call, HEADER, MAXIMUM_CHUNK_BYTES};
 use crate::network::{Domain, Model as Owner, OperationResult, Request, history};
 use crate::world;
-use serde::Deserialize;
+use serde::{Deserialize, Serialize};
+use sha2::{Digest, Sha256};
 use std::collections::{BTreeMap, BTreeSet};
 use std::sync::{Arc, Mutex};
 
@@ -32,6 +33,20 @@ pub enum Failure {
     Boundary(&'static str, &'static str),
     Invalid(&'static str),
     Capacity(&'static str),
+    /// A broker World limit exhausted, with its accounting (fn-235).
+    #[cfg_attr(
+        feature = "conformance",
+        allow(
+            dead_code,
+            reason = "Only the broker World raises it; the conformance build excludes the broker."
+        )
+    )]
+    Exhausted {
+        dimension: &'static str,
+        limit: u64,
+        used: u64,
+        delta: u64,
+    },
     Infrastructure(String),
 }
 
@@ -40,7 +55,7 @@ impl Failure {
         match self {
             Self::Boundary(kind, _) => kind,
             Self::Invalid(_) => "invalid",
-            Self::Capacity(_) => "capacity",
+            Self::Capacity(_) | Self::Exhausted { .. } => "capacity",
             Self::Infrastructure(_) => "infrastructure",
         }
     }
@@ -50,6 +65,12 @@ impl Failure {
             Self::Boundary(kind, dimension) => format!("WASI {kind}: {dimension}"),
             Self::Invalid(dimension) => format!("WASI invalid: {dimension}"),
             Self::Capacity(dimension) => format!("WASI capacity: {dimension}"),
+            Self::Exhausted {
+                dimension,
+                limit,
+                used,
+                delta,
+            } => format!("WASI capacity: {dimension} limit={limit} used={used} delta={delta}"),
             Self::Infrastructure(message) => message.clone(),
         }
     }
@@ -59,7 +80,7 @@ fn infrastructure(error: impl Into<String>) -> Failure {
     Failure::Infrastructure(error.into())
 }
 
-#[derive(Clone, Debug, Deserialize)]
+#[derive(Clone, Debug, Deserialize, Serialize)]
 #[serde(deny_unknown_fields)]
 pub struct Limits {
     pub listeners: u64,
@@ -71,7 +92,7 @@ pub struct Limits {
 }
 
 /// Go `NetworkFaultV2`: a node-local fault, which brokered nodes refuse.
-#[derive(Clone, Debug, Deserialize)]
+#[derive(Clone, Debug, Deserialize, Serialize)]
 #[serde(deny_unknown_fields)]
 pub struct LocalFault {
     pub name: String,
@@ -84,7 +105,7 @@ pub struct LocalFault {
 }
 
 /// Go `NetworkModelV2`.
-#[derive(Clone, Debug, Deserialize)]
+#[derive(Clone, Debug, Deserialize, Serialize)]
 #[serde(deny_unknown_fields)]
 pub struct ModelV2 {
     pub profile: String,
@@ -94,7 +115,7 @@ pub struct ModelV2 {
 }
 
 /// Go `BrokerLink`.
-#[derive(Clone, Debug, Deserialize)]
+#[derive(Clone, Debug, Deserialize, Serialize)]
 #[serde(deny_unknown_fields)]
 pub struct Link {
     pub from: String,
@@ -105,7 +126,7 @@ pub struct Link {
 }
 
 /// Go `BrokerNetworkFault`.
-#[derive(Clone, Debug, Deserialize)]
+#[derive(Clone, Debug, Deserialize, Serialize)]
 #[serde(deny_unknown_fields)]
 pub struct Fault {
     pub name: String,
@@ -120,7 +141,7 @@ pub struct Fault {
 }
 
 /// The cluster `network` object: Go `BrokerConfig`'s network fields.
-#[derive(Clone, Debug, Deserialize)]
+#[derive(Clone, Debug, Deserialize, Serialize)]
 #[serde(deny_unknown_fields)]
 pub struct Config {
     pub model: ModelV2,
@@ -224,6 +245,7 @@ pub struct Shared {
     clients: BTreeMap<String, String>,
     faults: Vec<Fault>,
     fault: usize,
+    simulation: Option<crate::linked_simulation::Shared>,
 }
 
 /// The shared owner with a revision that every mutable access advances, so
@@ -264,13 +286,45 @@ fn joined(results: [Result<(), String>; 2]) -> Result<(), String> {
 }
 
 impl Shared {
+    pub(crate) fn attach_simulation(&mut self, controller: crate::linked_simulation::Shared) {
+        self.simulation = Some(controller);
+    }
+
+    fn simulation_choice(
+        &self,
+        dimension: crate::linked_simulation::Dimension,
+        site: &str,
+        alternatives: Vec<String>,
+    ) -> Result<usize, Failure> {
+        let Some(controller) = &self.simulation else {
+            return Ok(0);
+        };
+        if alternatives.len() < 2 {
+            return Ok(0);
+        }
+        let selected = controller
+            .lock()
+            .map_err(|_| infrastructure("simulation controller poisoned"))?
+            .choose(dimension, site, alternatives, 0)
+            .map_err(infrastructure)?;
+        usize::try_from(selected).map_err(|error| infrastructure(error.to_string()))
+    }
+
     /// Go `newBrokerNetwork` for the cluster's instances (sorted ids, all at
     /// incarnation 1), then the broker's initial advance to time 1.
+    pub fn new(config: &Config, ids: &[String]) -> Result<Self, Failure> {
+        Self::new_with_simulation(config, ids, None)
+    }
+
     #[expect(
         clippy::too_many_lines,
         reason = "The ordered model transition preserves Go admission, mutation and refusal order"
     )]
-    pub fn new(config: &Config, ids: &[String]) -> Result<Self, Failure> {
+    pub(crate) fn new_with_simulation(
+        config: &Config,
+        ids: &[String],
+        simulation: Option<crate::linked_simulation::Shared>,
+    ) -> Result<Self, Failure> {
         validate_model(&config.model)?;
         if !config.model.faults.is_empty() {
             return Err(Failure::Invalid("broker requires central fault schedule"));
@@ -369,6 +423,7 @@ impl Shared {
             clients,
             faults: config.faults.clone(),
             fault: 0,
+            simulation: None,
         };
         #[cfg(any(feature = "determinism-fixture", feature = "stress-jitter"))]
         let _event_scope = crate::event_order::enter(crate::event_order::owner("controller", 0, 1));
@@ -388,6 +443,9 @@ impl Shared {
             if !matches!(fault.action.as_str(), "partition" | "heal" | "delay") {
                 return Err(Failure::Invalid("broker fault action"));
             }
+        }
+        if let Some(simulation) = simulation {
+            shared.attach_simulation(simulation);
         }
         shared.advance(1)?;
         Ok(shared)
@@ -444,9 +502,39 @@ impl Shared {
 
     /// Go `brokerNetwork.advance`: due faults at their own time, then `now`.
     pub fn advance(&mut self, now: u64) -> Result<(), Failure> {
-        while let Some(fault) = self.faults.get(self.fault).cloned()
-            && fault.at_nanos <= now
+        while let Some(next) = self.faults.get(self.fault)
+            && next.at_nanos <= now
         {
+            if self.simulation.is_some() {
+                let at = next.at_nanos;
+                let count = self.faults[self.fault..]
+                    .iter()
+                    .take_while(|fault| fault.at_nanos == at)
+                    .count();
+                let alternatives = self.faults[self.fault..self.fault + count]
+                    .iter()
+                    .map(|fault| {
+                        crate::linked_simulation::domain_hash(
+                            "gomad-simulation-network-fault/v1",
+                            &serde_json::json!(fault),
+                        )
+                    })
+                    .collect::<Result<Vec<_>, _>>()
+                    .map_err(infrastructure)?;
+                let site = crate::linked_simulation::domain_hash(
+                    "gomad-simulation-network-site/v1",
+                    &serde_json::json!({"fault_at_nanos":at}),
+                )
+                .map_err(infrastructure)?;
+                let selected = self.simulation_choice(
+                    crate::linked_simulation::Dimension::Fault,
+                    &site,
+                    alternatives,
+                )?;
+                let fault = self.faults.remove(self.fault + selected);
+                self.faults.insert(self.fault, fault);
+            }
+            let fault = self.faults[self.fault].clone();
             self.owner
                 .advance_before(fault.at_nanos)
                 .map_err(infrastructure)?;
@@ -523,12 +611,14 @@ pub struct Endpoint {
     attached: bool,
     transcript_limit: u64,
     handles: BTreeMap<u64, Domain>,
+    local: Option<standalone::Local>,
     requests: BTreeMap<u64, Domain>,
     world: world::Model,
     world_requests: BTreeMap<u64, u64>,
     world_ready: BTreeSet<u64>,
     log_json_bytes: u64,
     entries: Vec<u8>,
+    entries_hash: Sha256,
     entry_count: u64,
     /// Process-unique identity and a revision every public `&mut self`
     /// entry point advances (private fields: no other writer exists).
@@ -579,12 +669,14 @@ impl Endpoint {
             attached: false,
             transcript_limit,
             handles: BTreeMap::new(),
+            local: None,
             requests: BTreeMap::new(),
             world,
             world_requests: BTreeMap::new(),
             world_ready: BTreeSet::new(),
             log_json_bytes: 0,
             entries: Vec::new(),
+            entries_hash: Sha256::new(),
             entry_count: 0,
             identity: ENDPOINT_IDENTITIES.fetch_add(1, std::sync::atomic::Ordering::Relaxed),
             revision: 0,
@@ -631,7 +723,13 @@ impl Endpoint {
             return Err(Failure::Capacity("network-v2-transcript-bytes"));
         }
         self.log_json_bytes += length;
-        self.entries.extend(binary);
+        if let Some(local) = &mut self.local {
+            local.log.push(json.as_ref().to_vec());
+        }
+        if self.local.is_none() {
+            self.entries_hash.update(&binary);
+            self.entries.extend(binary);
+        }
         self.entry_count += 1;
         Ok(())
     }
@@ -640,10 +738,20 @@ impl Endpoint {
     /// shared owner at `now`, deliver this instance's newly ready requests
     /// through its network World, and log the quiescence.
     fn advance(&mut self, shared: &mut Shared, now: u64) -> Result<(), Failure> {
+        self.advance_faults(shared, now)?;
         shared.owner.advance_before(now).map_err(infrastructure)?;
-        let ids = shared.owner.advance(now).map_err(infrastructure)?;
+        let ids = shared
+            .owner
+            .advance(now)
+            .map_err(infrastructure)?
+            .unwrap_or_default();
+        let ids = if shared.simulation.is_some() {
+            self.simulation_ready_order(shared, ids, now)?
+        } else {
+            ids
+        };
         let mut ready = false;
-        for global in ids.unwrap_or_default() {
+        for global in ids {
             if global < self.request_base || global - self.request_base >= 1 << 48 {
                 continue;
             }
@@ -665,19 +773,82 @@ impl Endpoint {
                 .map_err(|error| infrastructure(error.to_string()))?;
             self.world_ready.insert(id);
             ready = true;
+            if shared.simulation.is_some() {
+                self.deliver_ready(now)?;
+                ready = false;
+            }
         }
         if ready {
-            let quiescence = self
-                .world
-                .quiesce()
-                .map_err(|error| infrastructure(error.to_string()))?;
-            if quiescence.after != world::INITIAL_TIME + now.cast_signed() {
-                return Err(Failure::Invalid("network readiness advanced outside idle"));
-            }
-            let (json, binary) = evidence::quiescence_entry(&quiescence);
-            self.append(json, binary)?;
+            self.deliver_ready(now)?;
         }
         Ok(())
+    }
+
+    fn deliver_ready(&mut self, now: u64) -> Result<(), Failure> {
+        let quiescence = self
+            .world
+            .quiesce()
+            .map_err(|error| infrastructure(error.to_string()))?;
+        if quiescence.after != world::INITIAL_TIME + now.cast_signed() {
+            return Err(Failure::Invalid("network readiness advanced outside idle"));
+        }
+        let (json, binary) = evidence::quiescence_entry(&quiescence);
+        self.append(json, binary)
+    }
+
+    fn simulation_ready_order(
+        &self,
+        shared: &Shared,
+        ids: Vec<u64>,
+        now: u64,
+    ) -> Result<Vec<u64>, Failure> {
+        let mut pending = ids
+            .into_iter()
+            .filter(|global| {
+                *global >= self.request_base
+                    && *global - self.request_base < 1 << 48
+                    && !self.world_ready.contains(&(*global - self.request_base))
+                    && self
+                        .world_requests
+                        .contains_key(&(*global - self.request_base))
+            })
+            .map(|global| {
+                let pending = shared.owner.pending.get(&global)
+                    .ok_or_else(|| infrastructure("simulation ready request is missing"))?;
+                let request = &pending.request;
+                crate::linked_simulation::domain_hash(
+                    "gomad-simulation-network-ready/v1",
+                    &serde_json::json!({
+                        "request_id":global,
+                        "request":{
+                            "domain":request.domain,"op":request.op,"handle":request.handle,
+                            "host":request.host,"port":request.port,"bytes":request.bytes,
+                            "count":request.count,"deadline":request.deadline
+                        },
+                        "accepted":pending.accepted,"deadline":pending.deadline,"result":pending.result
+                    }),
+                )
+                .map(|identity| (global, identity))
+                .map_err(infrastructure)
+            })
+            .collect::<Result<Vec<_>, _>>()
+            ?;
+        let site = crate::linked_simulation::domain_hash("gomad-simulation-network-site/v1",
+            &serde_json::json!({"node":self.client.node,"incarnation":self.client.incarnation,"at_nanos":now}))
+            .map_err(infrastructure)?;
+        let mut ordered = Vec::with_capacity(pending.len());
+        while !pending.is_empty() {
+            let selected = shared.simulation_choice(
+                crate::linked_simulation::Dimension::Network,
+                &site,
+                pending
+                    .iter()
+                    .map(|(_, identity)| identity.clone())
+                    .collect(),
+            )?;
+            ordered.push(pending.remove(selected).0);
+        }
+        Ok(ordered)
     }
 
     /// Go `runtimeNetworkStream`: serves one `net_stream` buffer in place.
@@ -694,15 +865,7 @@ impl Endpoint {
         self.attach(&mut lock(&shared))?;
         let call: Call = stream_abi::decode(data).map_err(|invalid| Failure::Invalid(invalid.0))?;
         if call.op == 0 {
-            if data.len() != HEADER
-                || call.id != 0
-                || call.handle != 0
-                || call.deadline != 0
-                || call.port != 0
-                || call.count != 0
-            {
-                return Err(Failure::Invalid("network v2 query"));
-            }
+            stream_abi::query(&call, data.len()).map_err(|invalid| Failure::Invalid(invalid.0))?;
             return Ok(());
         }
         if !runtime
@@ -814,8 +977,14 @@ impl Endpoint {
             stream_abi::set_u32(data, 40, 1);
         } else {
             if result.handle != 0 {
-                // Go also records the handle's port, read only by node-local
-                // reset faults, which brokered nodes refuse.
+                if let Some(local) = &mut self.local {
+                    let port = if call.op == 1 || call.op == 3 {
+                        result.local.port
+                    } else {
+                        result.remote.port
+                    };
+                    local.ports.insert(result.handle, port);
+                }
                 self.handles.insert(result.handle, domain);
             }
             self.requests.remove(&call.id);
@@ -853,6 +1022,9 @@ impl Endpoint {
     }
 
     fn evidence_locked(&self, shared: &Shared) -> Result<Vec<u8>, Failure> {
+        if self.local.is_some() {
+            return self.standalone_evidence(shared);
+        }
         let record = shared.record().map_err(infrastructure)?;
         let mut wire = Vec::new();
         world::wire_generated::write_snapshot(&self.world, &mut wire)
@@ -866,8 +1038,36 @@ impl Endpoint {
         ))
     }
 
-    /// `commit(evidence)` (the inspection network commitment) and, when it
-    /// was not already known for the current key, the evidence it hashed.
+    fn inspection_material(&self, native: &str, entries: [u8; 32]) -> Vec<u8> {
+        let mut bytes = b"gomad/network/inspection-material/v2\0".to_vec();
+        for value in [PROFILE.as_bytes(), native.as_bytes()] {
+            bytes.extend_from_slice(&(value.len() as u64).to_le_bytes());
+            bytes.extend_from_slice(value);
+        }
+        for value in [
+            self.log_json_bytes,
+            self.entry_count,
+            self.entries.len() as u64,
+        ] {
+            bytes.extend_from_slice(&value.to_le_bytes());
+        }
+        bytes.extend_from_slice(&entries);
+        bytes.extend_from_slice(&self.world.inspection_commitment());
+        bytes
+    }
+
+    #[cfg(test)]
+    pub(crate) fn inspection_network_eager(&self) -> Result<Vec<u8>, Failure> {
+        let shared = lock(&self.shared);
+        let native = shared
+            .owner
+            .inspection_digest_eager()
+            .map_err(infrastructure)?;
+        Ok(self.inspection_material(&native, Sha256::digest(&self.entries).into()))
+    }
+
+    /// Commits bounded current state plus append-only transcript heads.
+    /// Full canonical evidence remains available through [`Self::evidence`].
     pub fn inspection_network(
         &mut self,
         commit: impl FnOnce(&[u8]) -> [u8; 32],
@@ -881,7 +1081,12 @@ impl Endpoint {
             return Ok((digest, None));
         }
         self.inspection = None;
-        let evidence = self.evidence_locked(&shared)?;
+        let evidence = if self.local.is_some() {
+            self.evidence_locked(&shared)?
+        } else {
+            let native = shared.owner.inspection_digest().map_err(infrastructure)?;
+            self.inspection_material(&native, self.entries_hash.clone().finalize().into())
+        };
         let digest = commit(&evidence);
         self.inspection = Some((key, digest));
         Ok((digest, Some(evidence)))
@@ -891,9 +1096,12 @@ impl Endpoint {
     /// owner `Record` is its only fallible part, since the network World's
     /// wire bounds every string by its 1 KiB limit and writes to memory.
     pub fn evidence_check(&self) -> Result<(), Failure> {
+        if self.local.is_some() {
+            return self.evidence_locked(&lock(&self.shared)).map(|_| ());
+        }
         lock(&self.shared)
             .owner
-            .record_check()
+            .inspection_check()
             .map_err(infrastructure)
     }
 
@@ -918,6 +1126,7 @@ fn empty_domain() -> Domain {
 }
 
 pub mod evidence;
+mod standalone;
 
 #[cfg(test)]
 mod tests;

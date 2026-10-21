@@ -136,6 +136,25 @@ Before starting the implementation or review of any request, you MUST REVIEW the
 - Before ending a session or handing over, list remaining worktrees and scratch roots in the
   handover with the reason each is kept.
 
+## Disk Hygiene Between Tasks
+
+- Check `df -h . /home/agent` between tasks, before each build wave, and after large test runs.
+  The checkout and build caches can occupy different filesystems. If space is low, measure
+  the relevant directories with `du` and reclaim safe outputs before starting another large build.
+- Clean in order: closed-spec worktrees, branches and evidence under the ownership rules above;
+  abandoned, unregistered checkouts and scratch staging directories; then unused build caches.
+  Check `.worktrees`, `.claude/worktrees`, `.flow/tmp` and `/home/agent/wt`, not just Git's registry.
+- For `/home/agent/.cache/codex-build`, prefer removing inactive targets' `debug/incremental`
+  directories first. Preserve binaries, test outputs and profiling/source files referenced by
+  open specs. Treat Go caches and temporary build directories as shared until ownership is known.
+- Before deleting cache outputs, check live process working directories, open files, mapped
+  binaries and target/cache environment variables, and coordinate with active workers/sessions.
+  A quiet process snapshot alone does not release an assigned build target. Keep active Cargo
+  targets, live temporary directories and required evidence; never blanket-wipe a shared cache.
+- Use exact validated paths, recheck free space after cleanup, and report what was removed and
+  whether it is recoverable from Git or regenerable. If safe cleanup is insufficient, report the
+  remaining consumers instead of deleting another session's in-flight files.
+
 # Primary Workflows
 
 ## Software Engineering Tasks
