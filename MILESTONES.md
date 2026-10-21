@@ -116,6 +116,9 @@ The same day the owner moved the timeout semantics (old R5: facts .9, optional v
 deadlines/Tick/cooperative cancel .4, plus the cooperative-cancellation part of .5 and the final
 one-tick compatibility re-run) to fn-237. fn-227 keeps R3 in full, including .11, so TLC checks
 the real activity Model; the owner holds TLC and Apalache scaling as crucial.
+After a complexity audit and a simplification scout, the owner approved .13 and .14
+(about 1,200 source and 850 test lines removed, goldens and TLC unchanged), run before .8's
+review: [simplification report](.flow/artifacts/fn-227-parameterized-models-declared-worlds/simplify-report.md).
 On 2026-10-21 the owner approved all three contract amendments: lifecycle refinement
 in place of impossible old-byte equality; cooperative cancellation with explicit protocol
 evidence; and optional actual-request Observation evidence at tag 4. Heartbeat signals a
@@ -128,7 +131,9 @@ The review passed; each consumer still waits for its declared support dependenci
 
 | Name | Status | What |
 | --- | --- | --- |
-| fn-227.8 | ⏸️ deferred | Source inputs and exact-payload fairness committed (`3fd1d2f551`, `0469334f91`) with Quick gates green; review and Full gates stopped when the owner paused fn-227 on 2026-10-21 (R2, R3) |
+| fn-227.13 | ⬜ todo | Simplify: one `#[machine]` generator, no module generics, method-level `#[starts]`; goldens and TLC unchanged (R1) |
+| fn-227.14 | ⬜ todo | After .13: derived value handoff replaces the augmented-copy binding route (R1, R3) |
+| fn-227.8 | ⏸️ deferred | Source inputs and exact-payload fairness committed (`3fd1d2f551`, `0469334f91`); guest refresh, review and Full gates resume after .14 (R2, R3) |
 | fn-227.11 | ⬜ todo | After .8: source `Phased`/`reject!` and closure laws, with unchanged activity behavior (R3) |
 | fn-227.3 | ⬜ todo | After .2 and .11: activity attempts/retryable failure and retained-lifecycle refinement (R3, R4) |
 | fn-227.12 | ⬜ todo | Actual-request Observation transport and owned same-invocation SDK capture (R6) |
