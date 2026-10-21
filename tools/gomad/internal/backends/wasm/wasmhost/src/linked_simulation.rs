@@ -167,6 +167,7 @@ pub struct Divergence {
 pub struct Controller {
     plan: Plan,
     maximum: u64,
+    retained_bytes: u64,
     decisions: Vec<Decision>,
     ordinals: BTreeMap<Dimension, u64>,
     consumed: BTreeSet<(Dimension, u64)>,
@@ -351,6 +352,7 @@ impl Controller {
         Ok(Self {
             plan,
             maximum,
+            retained_bytes: 0,
             decisions: Vec::new(),
             ordinals: BTreeMap::new(),
             consumed: BTreeSet::new(),
@@ -396,7 +398,15 @@ impl Controller {
         if self.divergence.is_some() {
             return Err("simulation exploration replay divergence".into());
         }
-        if self.decisions.len() as u64 >= self.maximum {
+        let decision_bytes = (alternatives.len() as u64)
+            .checked_mul(74)
+            .and_then(|bytes| bytes.checked_add(512));
+        if self.decisions.len() as u64 >= self.maximum
+            || alternatives.len() > 65536
+            || decision_bytes
+                .and_then(|bytes| self.retained_bytes.checked_add(bytes))
+                .is_none_or(|bytes| bytes > 128 << 20)
+        {
             return Err("simulation exploration decisions capacity".into());
         }
         if !valid_sha(site)
@@ -452,6 +462,7 @@ impl Controller {
             }
         }
         let selected = decision.selected;
+        self.retained_bytes += decision_bytes.ok_or("simulation exploration decisions capacity")?;
         self.decisions.push(decision);
         self.ordinals.insert(dimension, ordinal + 1);
         Ok(selected)
@@ -564,5 +575,29 @@ mod tests {
         assert!(next_step(&mut changed, Some(&controller), 0).is_err());
         assert_eq!(changed.len(), 4);
         assert!(controller.lock().unwrap().divergence().is_some());
+    }
+
+    #[test]
+    fn decision_byte_capacity_stops_before_recording_or_consuming_a_choice() {
+        let controller = shared(Vec::new());
+        let mut controller = controller.lock().unwrap();
+        controller.retained_bytes = (128 << 20) - 1;
+        assert!(
+            controller
+                .choose(
+                    Dimension::Scenario,
+                    &format!("sha256:{}", "c".repeat(64)),
+                    vec![
+                        format!("sha256:{}", "d".repeat(64)),
+                        format!("sha256:{}", "e".repeat(64))
+                    ],
+                    0
+                )
+                .unwrap_err()
+                .contains("capacity")
+        );
+        assert!(controller.decisions.is_empty());
+        assert!(controller.ordinals.is_empty());
+        assert!(controller.consumed.is_empty());
     }
 }
