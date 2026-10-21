@@ -45,8 +45,22 @@ func main() {
 				ready <- listener
 			}()
 		}
+		deadline := time.Now().Add(time.Second)
+		finished := make(chan error, 2)
 		for range 2 {
-			check((<-ready).Close())
+			listener := <-ready
+			check(listener.(*net.TCPListener).SetDeadline(deadline))
+			go func() {
+				defer listener.Close()
+				_, err := listener.Accept()
+				finished <- err
+			}()
+		}
+		for range 2 {
+			err := <-finished
+			if timeout, ok := err.(net.Error); !ok || !timeout.Timeout() {
+				panic(fmt.Sprintf("simulation accept: %v", err))
+			}
 		}
 		fmt.Println("pending simulation write")
 		time.Sleep(time.Hour)
