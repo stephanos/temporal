@@ -116,7 +116,7 @@ fn scenario_forcing_runs_fresh_stores_and_retains_repeatable_actual_world() {
     let baseline = simulation::execute(prepared_cluster(), plan(Vec::new()), 16).unwrap();
     assert_eq!(baseline.cluster.outcome.termination, "exit");
     assert_eq!(baseline.cluster.incarnations.len(), 2);
-    assert!(!baseline.cluster.world.is_empty());
+    assert_ne!(baseline.cluster.world, [] as [u8; 0]);
     let observed = baseline
         .decisions
         .iter()

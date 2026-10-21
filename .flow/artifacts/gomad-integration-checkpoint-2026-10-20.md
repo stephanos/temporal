@@ -633,3 +633,68 @@ compiler gate, against the current integrated helper. All earlier worktree
 reasons remain valid; fn232-minimize is additionally retained for active source
 implementation. No predecessor acceptance, final qualification, hard-deadline
 contract or public-Go reference gap is waived by this admission.
+
+### Choice/simulation integration checkpoint, 2026-10-21
+
+The exploration branch integrates the seed exact-duration, actual lifecycle-prefix
+and oracle-authentication seams, current compact-network commitments, real model
+simulation hooks and authenticated retained replay. Source checkpoint
+`777648c596` preserves the separate typed complete-round journal, shared plan
+admission, six-dimension producer/consumer and immutable undecorated behavioral
+record for the minimizer. Simulation replay authenticates both the actual executed
+scope and an internal original recipe, applying the forced plan exactly once.
+
+Ordinary-helper candidate V8 is retained at
+`/home/agent/wt/evidence/fn232-exploration-live-candidate-v8` (SHA-256
+`72d80207c616e07477b7a6ddc2344d9ebe1d532032e261c536bb2370b29c88d9`).
+Public simulation checks `fn232-simulation-public-09` and `-10` each run
+explore/inspect/resume and replay all eight retained artifacts successfully.
+They require consumed overrides in all six dimensions and actual effects:
+network-stream changes, native fault evidence changes, reordered executed
+lifecycle steps, and recovered storage/crash bytes. Observations are byte-identical
+on the second regeneration (SHA-256
+`6c345e58e116fd95ac915b8339dfd030061b43a95d6e5dbf8c85b820a5e695dc`),
+as are the sorted SHA-256 sets of the eight raw simulation records.
+
+Fresh Go runtime/choice public parity is retained in
+`fn232-choice-public-07` (20 commands). Fresh actual Go scenario producer parity
+is retained in `fn232-scenario-producer-parity-02`: the frozen Go
+`model.RunWASM`/`Choose` API runs the same guest and both forced start orders.
+The frozen Go public CLI refuses combined scenario exploration; the API boundary
+is explicit. Network/storage/fault/crash use fresh existing Go model-conformance
+checks plus the actual Rust public six-dimension run, not a claim that the Go CLI
+produces combined six-dimension records or that complete record bytes match Go.
+The Go required namespace/volume/network-adapter/network-cluster/broker suite
+passes against the retained current conformance helper; its log is
+`fn232-exploration-validation/fresh-go-model-conformance.log`.
+
+The fn-229 R2 campaign consumer proof is retained in
+`fn232-choice-divergence-06/{commands,divergence-observations}.json` using the
+explicit helper-determinism-fixture role V3 (SHA-256
+`9c5208848ac70da64712610d8f47312802074a5e8996e7a194ebf4cc3dd83cbf`).
+Four actual helper-produced divergences across three cases verify both raw typed
+decisions, named expected/observed symbols, either missing-site side, shared
+immutable symbol resolution, unchanged ledger/record fields, byte-identical
+repeated inspection and unchanged campaign file digests. The ordinary role refuses
+the fixture guest without committing any execution. This is actual authenticated
+consumer coverage, not ordinary-role producer or runtime qualification.
+
+Integrated tagged host all-target Clippy and 50 library tests pass. Default helper
+library tests pass 158 with two explicit ignores, and all four fresh-store/broker
+simulation integration tests pass. Fresh Go/Rust controller fixtures pass all nine
+choice and twelve simulation cases; their golden files were independently
+regenerated twice byte-identically. Logs are under
+`/home/agent/wt/evidence/fn232-exploration-validation/`. Final tagged helper
+all-target Clippy passes after a test-assertion-only correction. Ordinary-helper
+candidate V9 builds successfully (SHA-256
+`77481909355d906ba5db34dc5a288e02d99e7b573e0a2cc2828eff80376bb520`),
+and its 50 host library tests and all-target Clippy pass. Its public simulation
+refresh is running. Main-harness exploration routing was found absent and is being
+wired to the existing actual public/controller/model-conformance checks. Independent
+implementation review, parent integration, Flow completion and the frozen R12/task
+.13 qualification remain pending. No task is marked done by this checkpoint.
+
+All worktrees listed above remain retained for their open-spec source/evidence;
+the current registry additionally includes fn232-minimize with incomplete source.
+The active exploration, seed and producer checkouts are not cleanup targets.
+No worktree or evidence was deleted, no PR was opened, and nothing was pushed.
