@@ -1,8 +1,8 @@
 # Task 2 verification ledger
 
-All required pre-review checks passed. This ledger supersedes the pending gate
-statements in the earlier source-freeze artifact. Formal review and final worker
-verification remain separate requirements; this is not a shipping verdict.
+All required pre-review checks and post-SHIP final worker verification passed.
+This ledger supersedes the pending gate statements in the earlier source-freeze
+artifact. Formal verdict provenance is in `task-2-formal-review.md`.
 
 - `make umpire-check-model-slice umpire-check-model-gaps`: exit 0. Slice package
   1.111 s; complete gaps package 355.473 s. All 2336 unique gaps subtests passed
@@ -44,6 +44,29 @@ verification remain separate requirements; this is not a shipping verdict.
 The two original static quality audits and two timing-fixture delta audits found
 zero findings. Their complete reports are preserved in `task-2-quality-audits.md`.
 They are same-family static assessments, not substitutes for formal review.
+
+## Final worker verification after SHIP
+
+Classification required FULL (`.gitattributes` is unmatched). Actual default and
+required-backend gates both passed again, exit 0, with Temporal host durations
+9.795 s and 9.822 s. Actual final `make model-time` passed, exit 0: full gate
+85.295 s, above the unchanged 30 s soft target; inner loop 1.648 s, below 10 s.
+Freshness took 33.026 s, native tests 24.218 s, guest builds 14.538 s and Temporal
+Go tests 9.941 s. Logs/statuses are `verify-model-check.*`,
+`verify-model-check-required.*` and `verify-model-time.*` under `.flow/tmp/fn2302/`.
+
+Changed-Go formatting, integration-tag root lint, whole-changed-file host lint,
+host/integration vet, script syntax and diff checks passed again. After all gates,
+the built stock/Temporal outputs still compare byte-identically with the renewed
+proof, and Temporal equals the committed embedded asset. There are no surviving
+task-owned commands. The isolated metadata worktree and branch were normally
+retired after archival; proof clones/targets and actual report snapshot remain
+retained for parent completion review. Latest disk observation: 61 GiB free.
+
+All three receipt-writing attempts correctly refused foreign milestone dirt
+(`NO_RECEIPT`); none was represented as a green reusable receipt. CLI configuration
+confirmed plan sync false, tracker disabled with no linked tracker, and QA mode
+unset. No external lifecycle action or parent completion is performed by this task.
 
 Changed-Go formatting, integration-tag root lint, scoped whole-changed-file host
 lint and both host/integration vet passed. The earlier unfiltered host lint found

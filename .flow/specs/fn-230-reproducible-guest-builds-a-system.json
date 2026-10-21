@@ -9,7 +9,8 @@
   "depends_on_epics": [],
   "id": "fn-230-reproducible-guest-builds-a-system",
   "impl_review_rounds": {
-    "fn-230-reproducible-guest-builds-a-system.1": 0
+    "fn-230-reproducible-guest-builds-a-system.1": 0,
+    "fn-230-reproducible-guest-builds-a-system.2": 0
   },
   "next_task": 1,
   "plan_review_rounds": 0,
@@ -50,15 +51,52 @@
       "task": "fn-230-reproducible-guest-builds-a-system.1",
       "timestamp": "2026-10-21T07:03:19.697733Z",
       "verdict": "SHIP"
+    },
+    {
+      "artifact_sha256": "5644d9b7baf4b3512bfadce2b7d7ff3197f4fe142ef891e21e0f9240c2cbb0bf",
+      "backend": "codex",
+      "base_sha": "22c015e7deae3b5f65a7f5c93ff94dc1fe8d19c9",
+      "counter_kind": "impl",
+      "effort": "high",
+      "failure_class": null,
+      "finalized": {
+        "digest": "complete",
+        "receipt": "complete",
+        "status": "not_applicable"
+      },
+      "findings_digest": {
+        "backend": "codex",
+        "digest_truncated": false,
+        "items": [],
+        "reviewKind": "implementation"
+      },
+      "forced": false,
+      "hash_epoch": 0,
+      "head_sha": "7413dcaa968502e6cf06467b09df3eb1ac36b778",
+      "head_sha_observed": true,
+      "kind": "impl",
+      "model": "gpt-6.1-sol",
+      "outcome": "verdict",
+      "output_bytes": 158,
+      "output_sha256": "6ff70da3d83706800ca3cabc6ba62603ba0485fcf5259d27f1be54ce68686975",
+      "reservation_id": "4bc45a27513b409491223aee00e9761d",
+      "round_consumed": true,
+      "scope": "impl:fn-230-reproducible-guest-builds-a-system.2",
+      "superseded_by": null,
+      "task": "fn-230-reproducible-guest-builds-a-system.2",
+      "timestamp": "2026-10-21T09:09:36.463669Z",
+      "verdict": "SHIP"
     }
   ],
   "review_hash_epoch": {
-    "impl:fn-230-reproducible-guest-builds-a-system.1": 1
+    "impl:fn-230-reproducible-guest-builds-a-system.1": 1,
+    "impl:fn-230-reproducible-guest-builds-a-system.2": 1
   },
   "review_pending_rounds": {},
   "review_reservations": {},
   "review_transport_failures": {
-    "impl:fn-230-reproducible-guest-builds-a-system.1": 0
+    "impl:fn-230-reproducible-guest-builds-a-system.1": 0,
+    "impl:fn-230-reproducible-guest-builds-a-system.2": 0
   },
   "spec_path": ".flow/specs/fn-230-reproducible-guest-builds-a-system.md",
   "status": "open",
@@ -74,5 +112,5 @@
     "mergeBaseTracker": null,
     "url": null
   },
-  "updated_at": "2026-10-21T07:03:19.702247Z"
+  "updated_at": "2026-10-21T09:09:36.466690Z"
 }
