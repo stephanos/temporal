@@ -60,9 +60,26 @@ separate. Main-owned MILESTONES and foreign fn-233 plans remain outside commits.
 - [ ] DESIGN.md section written
 
 ## Done summary
-TBD
+Implemented the activity realization coverage golden through a registered Temporal fixture consumer of generated runtime metadata and admitted RPC bindings. The report distinguishes all five contexts and pins mapped/ignored/unsupported fields; compiler refusals, the actual added-field rebuild control and DESIGN's complete-file counts establish the R2/R4 contract.
 
+Tier: session (jev-unavailable(no_key)); judge advisory unavailable, retain project pin.
+stage: quality-audits - ran (correctness and standards; zero findings in each axis).
+stage: impl-review - ran [2026-10-21T12:43:36Z..2026-10-21T12:46:54.529862Z] (SHIP on first round; actual reviewer model gpt-6.1-sol at high, same-family).
+
+Baseline was green before edits at e114c16910a388e4dec8b873d0c7476998d17301. Parent/spec base remains b9f26782e39f815d740ea4b89925a723303c861d. Installed standalone worker.md is absent; supplied worker instructions plus the complete work skill/phases governed the fallback. All historical setup/pin mismatches remain disclosed in task-2-verification.md.
+
+Final native/shared-graph/admission/UI/expansion/fixtures/cover/boundary controls, strict clippy, formatting and guest rebuild returned 0. The real descriptor-plus-catalog added-field control passed after its child compiled metadata and actually failed the unchanged golden with the exact new unsupported path. Its actual pending output is retained as task-2-added-field-control.txt. No Model, phase mapping, generic core, protocol/ABI, third-party dependency/version, existing golden, gate or limit changed.
+
+The actual renewed slice returned 0 in 1.158s and gaps/privacy returned 0 in 351.881s. All 2336 unique RUN/PASS pairs match this task's baseline inventory. Actual report bytes remain SHA256 a3974ea8da0f3c46234770068fe0f163d5e17529b275cea086c2292a124284a0; exact refreshed guest remains 3329990 bytes/SHA256 10724102d03e1659f28b07c3a0c848d2cac5876668f3be9261d0a3b65023cf06. Historical predecessor proof was not reassigned.
+
+All three post-SHIP full gates returned 0. Timing measured full 85.697s versus unchanged soft target 30s, and inner 2.149s versus 10s. The existing full-gate overrun remains explicit; predecessor .1 measured 85.714s. All receipt attempts refused foreign MILESTONES.md dirt, so no reusable receipt or skipped gate is claimed.
+
+Authority lives in .flow/artifacts/fn-231-declarative-realizations-the/task-2-verification.md, task-2-quality-audits.md and task-2-formal-review.md. Exact SHIP receipt is task-2-formal-ship-receipt.json; live receipt is /tmp/impl-review-receipt-8f37faba39e2-fn-231-declarative-realizations-the.2.json. Raw formal draws are preserved separately. DESIGN is 998 lines; the activity file measures 110 before and 197 after, a disclosed 87-line increase.
+
+Foreign MILESTONES/fn233 files remain excluded. Own control worktrees/branches are removed and every started command is terminal. Parent completion, milestones, fn232 cross-OS proof and seven inherited broad umbrella failures remain conductor-owned. Source/index and the serial fn2301-unwind Cargo/Go cache leases return after committed closure. Tracker sync is n/a (bridge inactive).
+
+stage: plan-sync - skipped(config: planSync.enabled != true)
 ## Evidence
-- Commits:
-- Tests:
+- Commits: 0e3e137265249daea6d9751f12342c629e9b76bf, 3dab57e5d3817f677fbc57ddfd3ba39756f2b938, df88dab1247075f1eee44b16318147dbcd2ace24, 3c77e1aeb52d18b1932dff0d8f2d932f77e2b27a, 55147c764f9fc6dfbdbeb81eb79ba7e76e4de320
+- Tests: cd model && INSTA_UPDATE=no mise exec -- cargo test -p umpire-temporal-api -p umpire-temporal-annotate-syntax -p umpire-temporal-realization-macros -p umpire-temporal -p umpire-temporal-tests --all-features, cd model && mise exec -- cargo clippy -p umpire-temporal-api -p umpire-temporal-annotate-syntax -p umpire-temporal-realization-macros -p umpire-temporal -p umpire-temporal-tests --all-targets --all-features -- -D warnings, cd model && mise exec -- cargo fmt --all --check, cd model && mise exec -- cargo test -p umpire-temporal-tests --test fixtures added_catalog_field_fails_the_real_coverage_golden -- --ignored, make umpire-guest, make umpire-check-model-slice, make umpire-check-model-gaps, make model-check, UMPIRE_BACKENDS=require make model-check, make model-time
 - PRs:
