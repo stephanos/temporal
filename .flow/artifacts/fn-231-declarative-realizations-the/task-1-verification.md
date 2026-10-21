@@ -1,6 +1,6 @@
 # Task 1 verification and review context
 
-Task: fn-231-declarative-realizations-the.1. Full task base: b9f26782e39f815d740ea4b89925a723303c861d. Preformal implementation checkpoint: 22482ab2cc5a4cc592d5bbb52cb483b37668add4. The first formal round reviewed through 653fd40331fb5740940d6f91df8ad3c234ab9c4e and returned NEEDS_WORK with two introduced findings. Its bounded fix loop is active. The three final full gates remain pending until after SHIP.
+Task: fn-231-declarative-realizations-the.1. Full task base: b9f26782e39f815d740ea4b89925a723303c861d. Preformal implementation checkpoint: 22482ab2cc5a4cc592d5bbb52cb483b37668add4. The first formal round reviewed through 653fd40331fb5740940d6f91df8ad3c234ab9c4e and returned NEEDS_WORK with two introduced findings. Round 2 reviewed their committed fix f8df139c1cb23586972f4841ffb9358942cf74a1 and returned SHIP, both fixed and no blockers. All three final full gates subsequently returned 0. Source remains unchanged since the reviewed fix.
 
 ## Scope and preservation
 
@@ -65,8 +65,22 @@ Owner five-package all-feature native tests, strict all-target/all-feature clipp
 
 The admitted generic guest rebuild returned 0 after 30.06s in fn2311-round2-quick-guest.log. Actual cmp against both the captured eddb guest and the leased target output returned 0. SHA256 remains 10724102d03e1659f28b07c3a0c848d2cac5876668f3be9261d0a3b65023cf06, so the retained renewed slice, complete 2336-case gaps, privacy and byte-identical report evidence still applies to the exact rebuilt guest. No redundant live rerun or full-gate receipt was fabricated. The fix is ready for the bounded single round-2 review, not yet SHIP.
 
-## Remaining gates and ownership
+## Final Verify after SHIP
 
-After formal SHIP, run actual make model-check, UMPIRE_BACKENDS=require make model-check and make model-time. No post-edit pass for these full commands is claimed here. Dirty foreign work may prevent gate receipts; it must not be hidden or used to fabricate a skip.
+The cumulative base diff classified full, not docs-only. All commands actually ran after SHIP with the authorized serial cache lease, unchanged limits and captured regular logs:
+
+| Full command | Terminal result | Log |
+| --- | --- | --- |
+| make model-check | 0; default backend mode, complete gate and host checks | fn2311-final-model-check.log |
+| UMPIRE_BACKENDS=require make model-check | 0; real required TLC agreement/semantic suites and complete gate | fn2311-final-model-check-required.log |
+| make model-time | 0; instrumented complete gate and edited-checker inner loop | fn2311-final-model-time.log |
+
+Timing measured total 85.714s versus the unchanged 30s soft target, and inner loop 1.634s versus 10s. Dominant steps were Temporal guest freshness 33.172s, tests 24.554s and generic guest controls 14.474s. The predecessor fn230 final measurement was 85.295s with inner 1.648s (task-2-verification.md); this remains the existing full-gate soft-target overrun, not a newly green latency claim. No budget was extended or note suppressed.
+
+Gate receipt attempts used unittest/default, required/required-backend and timing/model-time identities. All returned 1 with written:false because MILESTONES.md is dirty outside the ignore set. Their exact outputs are fn2311-final-{model-check,model-check-required,model-time}-receipt.json. Actual passes stand independently; no gate skip or reusable receipt was fabricated. The foreign dirt was never stashed or hidden.
+
+Phase 4.5 captured the nontrivial review fix after a narrow no-match search and low-score overlap check as bug/integration/prove-result-shape-before-propagating-2026-10-21. Original audit reports and first-round reviews remain retained. Final source diff is empty against reviewed f8df139, nine preservation hashes match, and guest cmp against the actual renewed-live capture remains 0/SHA1072 unchanged. Every started command is terminal.
+
+## Successor ownership
 
 Task .2 owns the full realization.snap.txt consumer/coverage golden and DESIGN changes. fn232 owns cross-platform proof. Seven broad legacy umbrella failures are inherited conductor evidence and remain outside this task; these focused/model gates do not claim those failures green. No parent completion, milestone edit or next-task admission is performed by this worker.

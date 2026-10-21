@@ -181,3 +181,39 @@ Classification counts: 1 introduced, 0 pre_existing.
 ```
 
 <verdict>NEEDS_WORK</verdict>
+
+## Round 2: SHIP
+
+The fix was committed as f8df139c1cb23586972f4841ffb9358942cf74a1 after actual RED/GREEN and owner integrated Quick/guest verification. The single re-review used the same receipt and primary session 01a15e3e-49b1-78e3-a759-2146b749ca52, explicit codex:gpt-6.1-sol:high, read-only and MAX_REVIEW_ITERATIONS=3. Host handle 60250 returned exit 0. Reservation: 22a0416dbf6f460e86e41ff1d6cd4df5. Actual receipt timestamp: 2026-10-21T11:59:33.310803Z.
+
+The actual receipt retains findings.round=2, supersedes the first receipt and marks both findings fixed. Its terminal verdict is SHIP with zero introduced, pre-existing or unaddressed findings. The CLI summary review_rounds=0 is not evidence of resetting the review cycle. Exact terminal receipt is archived in task-1-formal-ship-receipt.json. No new fan-out, forced review, model fallback or verdict refund occurred.
+
+### Round-2 reviewer text
+
+Prior finding #1: fixed
+Prior finding #2: fixed
+
+Method results now default to unresolved instead of inheriting receiver positions. Regression controls cover `map_err`, custom `unwrap`, and wrapper removal.
+
+Rest patterns now cover omitted payload positions using tracked arity, with controls for `Some(..)`, tuple rests, and prefix/suffix alignment.
+
+Re-ran retained focused binaries: all 26 tests passed, including the new controls, expansion snapshot, realization tests, and generic boundary scan. No fresh build ran in this read-only review. No remaining findings or new blockers.
+
+## Requirements coverage
+
+| R-ID | Status | Evidence |
+|---|---|---|
+| R1 | met | Both admission gaps fixed; focused regression controls pass. |
+| R2 | deferred | Coverage golden belongs to task .2. |
+| R3 | met | Model unchanged; generic boundary scan passes. |
+| R4 | partial | Expansion snapshot passes; remaining DESIGN work deferred to task .2. |
+
+Unaddressed R-IDs: []
+
+Classification counts: 0 introduced, 0 pre_existing.
+
+```json
+{"classification_counts":{"introduced":0,"pre_existing":0},"unaddressed":[]}
+```
+
+<verdict>SHIP</verdict> - Both prior findings are fixed; no blocking findings remain.

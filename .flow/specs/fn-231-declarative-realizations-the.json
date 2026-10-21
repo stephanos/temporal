@@ -12,7 +12,7 @@
   ],
   "id": "fn-231-declarative-realizations-the",
   "impl_review_rounds": {
-    "fn-231-declarative-realizations-the.1": 1
+    "fn-231-declarative-realizations-the.1": 0
   },
   "next_task": 1,
   "plan_review_rounds": 0,
@@ -70,9 +70,63 @@
       "task": "fn-231-declarative-realizations-the.1",
       "timestamp": "2026-10-21T11:44:21.455042Z",
       "verdict": "NEEDS_WORK"
+    },
+    {
+      "artifact_sha256": "bebac41e9a3ff6fa0f926e7dc72307ee86ac918d86424dcd6114389115a76911",
+      "backend": "codex",
+      "base_sha": "b9f26782e39f815d740ea4b89925a723303c861d",
+      "counter_kind": "impl",
+      "effort": "high",
+      "failure_class": null,
+      "finalized": {
+        "digest": "complete",
+        "receipt": "complete",
+        "status": "not_applicable"
+      },
+      "findings_digest": {
+        "backend": "codex",
+        "digest_truncated": false,
+        "items": [
+          {
+            "chainRoot": "finding-b2277a4e86bb9c978953eca311de96f5",
+            "classification": "introduced",
+            "findingId": "finding-b2277a4e86bb9c978953eca311de96f5",
+            "firstSeenThisRound": false,
+            "severity": "P2",
+            "status": "fixed"
+          },
+          {
+            "chainRoot": "finding-c266e6f8e92f27805d6d6c8894ed72fc",
+            "classification": "introduced",
+            "findingId": "finding-c266e6f8e92f27805d6d6c8894ed72fc",
+            "firstSeenThisRound": false,
+            "severity": "P2",
+            "status": "fixed"
+          }
+        ],
+        "reviewKind": "implementation"
+      },
+      "forced": false,
+      "hash_epoch": 0,
+      "head_sha": "f8df139c1cb23586972f4841ffb9358942cf74a1",
+      "head_sha_observed": true,
+      "kind": "impl",
+      "model": "gpt-6.1-sol",
+      "outcome": "verdict",
+      "output_bytes": 1192,
+      "output_sha256": "f08840a1532c3abd864451ef8f15a0a363070e1beae9ec7b457c5d98ad714e92",
+      "reservation_id": "22a0416dbf6f460e86e41ff1d6cd4df5",
+      "round_consumed": true,
+      "scope": "impl:fn-231-declarative-realizations-the.1",
+      "superseded_by": null,
+      "task": "fn-231-declarative-realizations-the.1",
+      "timestamp": "2026-10-21T11:59:33.313393Z",
+      "verdict": "SHIP"
     }
   ],
-  "review_hash_epoch": {},
+  "review_hash_epoch": {
+    "impl:fn-231-declarative-realizations-the.1": 1
+  },
   "review_pending_rounds": {},
   "review_reservations": {},
   "review_transport_failures": {
@@ -92,5 +146,5 @@
     "mergeBaseTracker": null,
     "url": null
   },
-  "updated_at": "2026-10-21T11:44:21.458076Z"
+  "updated_at": "2026-10-21T11:59:33.318642Z"
 }

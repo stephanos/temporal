@@ -1,0 +1,61 @@
+{
+  "base": "b9f26782e39f815d740ea4b89925a723303c861d",
+  "effort": "high",
+  "findings": {
+    "backend": "codex",
+    "baseSha": "b9f26782e39f815d740ea4b89925a723303c861d",
+    "headSha": "f8df139c1cb23586972f4841ffb9358942cf74a1",
+    "items": [
+      {
+        "body": "Method calls named `map_err`, `unwrap`, `unwrap_or_else`, or `expect` inherit the receiver\u2019s enum positions without accounting for their result type. For example:",
+        "classification": "introduced",
+        "confidence": 100,
+        "firstSeenReceiptId": "review-ca5e531dec1317a2ed4898ce6e2e6079e62f94a73d2c67ea9c75e6e4e987c949",
+        "id": "finding-b2277a4e86bb9c978953eca311de96f5",
+        "lastSeenReceiptId": "review-5070319e18ac811aea0b7bad155d6d30d85cbab69615cfb540d96534dd204a91",
+        "ordinal": 1,
+        "rIds": [
+          "R1"
+        ],
+        "severity": "P2",
+        "status": "fixed",
+        "suggestion": "Treat unproved method results as unresolved. Preserve positions only when the receiver identity and the operation\u2019s type transformation are established. Add a refusal control for this example.",
+        "title": "Method calls named `map_err`, `unwrap`, `unwrap_or_else`, or `expect` inherit the receiver\u2019s enum positions without accounting for their result type"
+      },
+      {
+        "body": "Rest patterns bypass wildcard detection. For `value: Option<Status>`, this is admitted:",
+        "classification": "introduced",
+        "confidence": 100,
+        "firstSeenReceiptId": "review-ca5e531dec1317a2ed4898ce6e2e6079e62f94a73d2c67ea9c75e6e4e987c949",
+        "id": "finding-c266e6f8e92f27805d6d6c8894ed72fc",
+        "lastSeenReceiptId": "review-5070319e18ac811aea0b7bad155d6d30d85cbab69615cfb540d96534dd204a91",
+        "ordinal": 2,
+        "rIds": [
+          "R1"
+        ],
+        "severity": "P2",
+        "status": "fixed",
+        "suggestion": "Recognize rest patterns covering tracked positions as wildcards, including correct positional handling around tuple rests. Add refusal controls for `Some(..)` and tuple rests.",
+        "title": "Rest patterns bypass wildcard detection"
+      }
+    ],
+    "reviewKind": "implementation",
+    "round": 2,
+    "schemaVersion": 1,
+    "sourceReceiptId": "review-5070319e18ac811aea0b7bad155d6d30d85cbab69615cfb540d96534dd204a91",
+    "supersedesReceiptId": "review-ca5e531dec1317a2ed4898ce6e2e6079e62f94a73d2c67ea9c75e6e4e987c949"
+  },
+  "id": "fn-231-declarative-realizations-the.1",
+  "introduced_count": 0,
+  "mode": "codex",
+  "model": "gpt-6.1-sol",
+  "pre_existing_count": 0,
+  "review": "Prior finding #1: fixed\nPrior finding #2: fixed\n\nMethod results now default to unresolved instead of inheriting receiver positions. Regression controls cover `map_err`, custom `unwrap`, and wrapper removal.\n\nRest patterns now cover omitted payload positions using tracked arity, with controls for `Some(..)`, tuple rests, and prefix/suffix alignment.\n\nRe-ran retained focused binaries: all 26 tests passed, including the new controls, expansion snapshot, realization tests, and generic boundary scan. No fresh build ran in this read-only review. No remaining findings or new blockers.\n\n## Requirements coverage\n\n| R-ID | Status | Evidence |\n|---|---|---|\n| R1 | met | Both admission gaps fixed; focused regression controls pass. |\n| R2 | deferred | Coverage golden belongs to task .2. |\n| R3 | met | Model unchanged; generic boundary scan passes. |\n| R4 | partial | Expansion snapshot passes; remaining DESIGN work deferred to task .2. |\n\nUnaddressed R-IDs: []\n\nClassification counts: 0 introduced, 0 pre_existing.\n\n```json\n{\"classification_counts\":{\"introduced\":0,\"pre_existing\":0},\"unaddressed\":[]}\n```\n\n<verdict>SHIP</verdict> - Both prior findings are fixed; no blocking findings remain.\n",
+  "review_reservation_id": "22a0416dbf6f460e86e41ff1d6cd4df5",
+  "session_id": "01a15e3e-49b1-78e3-a759-2146b749ca52",
+  "spec": "codex:gpt-6.1-sol:high",
+  "timestamp": "2026-10-21T11:59:33.310803Z",
+  "type": "impl_review",
+  "unaddressed": [],
+  "verdict": "SHIP"
+}
