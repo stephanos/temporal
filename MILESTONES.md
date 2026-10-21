@@ -326,8 +326,7 @@ First in the delivery order (owner decision 2026-10-20). New evidence lineage; b
 | Name / ID | Status | Description |
 | --- | --- | --- |
 | [fn-232-gomad-rewrite-the-host-side-in-rust.1](.flow/tasks/fn-232-gomad-rewrite-the-host-side-in-rust.1.md) | ⏸ Parked | gomad binary crate linking the helper library; in-process execution with slots and bounds |
-| [fn-232-gomad-rewrite-the-host-side-in-rust.6](.flow/tasks/fn-232-gomad-rewrite-the-host-side-in-rust.6.md) | 🚧 Running | replay in Rust on the helper library tape path |
-| [fn-232-gomad-rewrite-the-host-side-in-rust.7](.flow/tasks/fn-232-gomad-rewrite-the-host-side-in-rust.7.md) | ⏸ Parked | seed explore, resume and merge in Rust |
+| [fn-232-gomad-rewrite-the-host-side-in-rust.7](.flow/tasks/fn-232-gomad-rewrite-the-host-side-in-rust.7.md) | 🚧 Running | seed explore, resume and merge in Rust |
 | [fn-232-gomad-rewrite-the-host-side-in-rust.8](.flow/tasks/fn-232-gomad-rewrite-the-host-side-in-rust.8.md) | ⏸ Parked | choice exploration and simulation exploration in Rust |
 | [fn-232-gomad-rewrite-the-host-side-in-rust.9](.flow/tasks/fn-232-gomad-rewrite-the-host-side-in-rust.9.md) | ⏸ Parked | minimize in Rust |
 | [fn-232-gomad-rewrite-the-host-side-in-rust.10](.flow/tasks/fn-232-gomad-rewrite-the-host-side-in-rust.10.md) | ⬜ Todo | qualify and report in Rust |
