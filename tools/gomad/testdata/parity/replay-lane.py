@@ -65,7 +65,8 @@ run('roles', [sys.executable, corpus / 'replay-role-check.py', '--ordinary-binar
 cluster_arguments = ['--baseline', args.cluster_baseline, '--source', args.cluster_source, '--compiler', args.go_compiler]
 for network in ('ordinary', 'faults'):
     for scheduler in (False, True):
-        name = 'standalone-network-' + network + ('-scheduled' if scheduler else '-empty')
+        name = 'standalone-network-' + network + (
+            '-scheduled' if scheduler else '-empty' if network == 'ordinary' else '-original')
         run(name, [sys.executable, corpus / 'replay-inspection-fixture.py',
             '--binary', args.binary, *cluster_arguments, '--network', network,
             *(['--network-scheduler'] if scheduler else []),

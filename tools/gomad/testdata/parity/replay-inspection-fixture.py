@@ -161,7 +161,8 @@ case = {'name': 'registered-seed7', 'module_path': str(module_path), 'module_sha
         'choice_identity': {'TargetSHA256': list(bytes.fromhex(sha(module))), 'ToolchainBuildKey': provenance['BuildKey'],
                             'GOOS': 'wasip1', 'GOARCH': 'wasm', 'ImplementationSHA256': list(bytes.fromhex(implementation))}}
 if args.network:
-    case['name'] = 'network-' + args.network + ('-scheduled' if args.network_scheduler else '-empty')
+    case['name'] = 'network-' + args.network + (
+        '-scheduled' if args.network_scheduler else '-empty' if args.network == 'ordinary' else '-original')
 input_path = args.work / 'registered-input.json'
 input_path.write_bytes(canonical({'schema': 'gomad.replay-fixture-input/v1', 'cases': [case]}))
 reference = {'schema': 'gomad.replay-inspection-reference/v1', 'go_binary_sha256': sha(baseline.read_bytes()),
@@ -188,7 +189,7 @@ if go_replay_status == 3:
 else:
     assert b'reproduced=true' in go_replay
 if args.network:
-    assert bool((artifact / 'choices.bin').read_bytes()) == args.network_scheduler
+    assert bool((artifact / 'choices.bin').read_bytes()) == (args.network_scheduler or args.network == 'faults')
     envelope = json.loads((artifact / manifest['target']['backend']['evidence']['file']).read_bytes())
     network = base64.b64decode(envelope['Network'], validate=True)
     rust_network = (rust_artifact / 'evidence/network').read_bytes()
