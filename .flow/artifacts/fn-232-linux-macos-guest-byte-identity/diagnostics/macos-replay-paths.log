@@ -1,0 +1,11 @@
++ repository=/Users/stephan/Workspace/skunkworks/umpire/temporal
++ root=/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/fn232-diagnosis
++ source=/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/fn232-certification-macos/source-a
++ export CARGO_TARGET_DIR=/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/fn232-diagnosis/target-macos-replay CARGO_BUILD_JOBS=2
++ CARGO_TARGET_DIR=/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/fn232-diagnosis/target-macos-replay
++ CARGO_BUILD_JOBS=2
++ unset RUSTFLAGS CARGO_ENCODED_RUSTFLAGS
++ mise exec -- cargo clean --manifest-path /Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/fn232-certification-macos/source-a/model/Cargo.toml -p umpire-wasm --profile guest --target wasm32-wasip1 --target-dir /Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/fn232-diagnosis/target-macos-replay
+error: cannot clean `/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/fn232-diagnosis/target-macos-replay`: missing or invalid `CACHEDIR.TAG` file
+  |
+  = note: cleaning has been aborted to prevent accidental deletion of unrelated files

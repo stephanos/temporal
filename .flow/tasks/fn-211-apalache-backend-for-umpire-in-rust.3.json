@@ -7,10 +7,13 @@
     "fn-211-apalache-backend-for-umpire-in-rust.2"
   ],
   "id": "fn-211-apalache-backend-for-umpire-in-rust.3",
+  "impl": null,
   "priority": 2,
+  "review": null,
   "spec": "fn-211-apalache-backend-for-umpire-in-rust",
   "spec_path": ".flow/tasks/fn-211-apalache-backend-for-umpire-in-rust.3.md",
   "status": "todo",
-  "title": "ITF counterexamples decoded through Spell and replayed through the Model",
-  "updated_at": "2026-10-18T22:44:18.978124Z"
+  "sync": null,
+  "title": "ITF counterexamples decoded through typed Schema/Value decoding and replayed through the Model",
+  "updated_at": "2026-10-21T17:35:59.775272Z"
 }

@@ -7,10 +7,13 @@
     "fn-211-apalache-backend-for-umpire-in-rust.1"
   ],
   "id": "fn-211-apalache-backend-for-umpire-in-rust.2",
+  "impl": null,
   "priority": 2,
+  "review": null,
   "spec": "fn-211-apalache-backend-for-umpire-in-rust",
   "spec_path": ".flow/tasks/fn-211-apalache-backend-for-umpire-in-rust.2.md",
   "status": "todo",
+  "sync": null,
   "title": "umpire-apalache: pinned release, bounded check per invariant, deterministic lifecycle",
-  "updated_at": "2026-10-18T22:44:18.440640Z"
+  "updated_at": "2026-10-21T17:35:59.272208Z"
 }

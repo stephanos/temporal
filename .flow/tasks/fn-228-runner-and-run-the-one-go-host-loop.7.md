@@ -6,6 +6,10 @@ satisfies: [R7]
 ## Description
 Add the DESIGN.md section recording the vocabulary sentence, Propose, the Run schema, per-package counts before and after, live timings and make model-time; mark the R33 to R40 table rows discharged with pointers; update README and MIGRATE for the runner package and renames. MILESTONES.md is the root agent's.
 
+### Required integration contract
+
+Document the actual bootstrap and polling protocol, exact replay event schema, immutable publication key, progress contract and before/after counts including relocated Runner code. Update current names and milestone references; retain historical evidence. R33-R40 close only with the recorded real live/replay and deletion-coverage proof.
+
 ## Acceptance
 - [ ] DESIGN.md section and R33 to R40 rows updated
 - [ ] README and MIGRATE updated

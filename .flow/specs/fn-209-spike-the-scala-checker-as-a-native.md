@@ -1,5 +1,12 @@
 # Spike: the Scala checker as a portable binary (GraalVM native-image, Scala Native, WebAssembly)
 
+## Execution status (2026-10-21 backlog audit)
+
+Deferred by the owner. The Rust decision has been made and the active workspace is `model/`; the former Scala tree is frozen under `model/archived/` and is not expected to build (AGENTS.md and MILESTONES.md). The earlier “until the Rust verdict” note is historical, not an automatic release of this spec. Existing task states and old SHIP reviews describe historical checkpoints, not current implementation readiness.
+
+Resume only after an explicit owner decision and a fresh scope/dependency review against the Rust architecture. Scala paths and commands below describe the archived layout; do not run them as current gates or mechanically port the plan. Preserve unfinished requirements and completion evidence; successor Rust work does not discharge this spec without an explicit requirement mapping. Taskless proposals remain deferred captures, not executable plans.
+
+
 ## Conversation Evidence
 
 > user (2026-10-18): "if we had a GraalVM native image; would we still need to have any model evaluation/verification (via CEL etc) in the testpilot IR at all? we could just run the model itself, no?"
@@ -71,4 +78,3 @@ The descriptor route (fn-204) was designed so that conformance runs without a JV
 2026-10-18, snapshot revision (owner): co-snapshotting the Model with the simulation in one wasmtime store is a convenience, not a correctness requirement. Both sides are deterministic, so a restore needs only to put the Model back to the same point, by replaying the observation prefix or, cheaper, by the Model's own snapshot ids over its immutable state values (the checker already stores exactly those). Consequences: WebAssembly is preferred for the simulation on per-step latency and single-artifact packaging, no longer required for correctness; GraalVM native-image is viable for the simulation as a synchronous sidecar (a pipe round trip per step is deterministic, only slower), provided the adapter interface carries snapshot and restore (fn-202) and the measured latency fits the exploration volume; the simulation therefore does not hinge on the experimental scala-wasm fork. R3b is narrowed to loading and latency; R3c states the restore contract for every hosting.
 
 2026-10-18, deferred (owner): all specs other than fn-210 (the Rust prototype of the framework in `temporal/model2`) are deferred until fn-210's write-up recommends whether to extend the Rust prototype or stay on Scala. Flow has no deferred status; this line is the record. MILESTONES.md was reset to the prototype alone and no longer lists this spec. Nothing in this spec changes; resume or close it after that decision.
-

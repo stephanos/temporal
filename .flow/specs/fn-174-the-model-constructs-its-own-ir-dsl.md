@@ -1,5 +1,12 @@
 # The Model constructs its own IR: DSL types build `ir` messages, capture points lift function bodies, the lifter retires
 
+## Execution status (2026-10-21 backlog audit)
+
+Deferred by the owner. The Rust decision has been made and the active workspace is `model/`; the former Scala tree is frozen under `model/archived/` and is not expected to build (AGENTS.md and MILESTONES.md). The earlier “until the Rust verdict” note is historical, not an automatic release of this spec. Existing task states and old SHIP reviews describe historical checkpoints, not current implementation readiness.
+
+Resume only after an explicit owner decision and a fresh scope/dependency review against the Rust architecture. Scala paths and commands below describe the archived layout; do not run them as current gates or mechanically port the plan. Preserve unfinished requirements and completion evidence; successor Rust work does not discharge this spec without an explicit requirement mapping. Taskless proposals remain deferred captures, not executable plans.
+
+
 ## DSL-first execution hold (owner override)
 
 All remaining work in this spec follows native framework DSL completion. Committed native checkpoints are fn-164.2/.11/.10, fn-165.7-.9, fn-173.10-.17, fn-123.9/.10 and fn-153.7; fn-188.3 is complete with formal native-batch review SHIP. Any demonstrated unmet framework DSL requirement takes priority over this spec. Native APIs, caller migration and public API retirement do not wait for this spec, its full closure, default/Class IR reconciliation in .24, or broad exporter verification. Completion of the native gate does not release this spec; later IR work still needs an explicit scheduling decision after DSL requirement triage. Re-anchor capture/export consumers to the final native surface afterwards. Preserve every unfinished exact IR, schema, driver, metadata and consumer proof; none becomes complete through the priority change. Temporal integration stays excluded entirely, including disabled source contents, and requires new owner authority.

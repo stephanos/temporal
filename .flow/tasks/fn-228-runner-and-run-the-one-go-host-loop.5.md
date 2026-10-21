@@ -6,6 +6,12 @@ satisfies: [R5]
 ## Description
 Add a local gRPC endpoint on the Runner that forwards Answer for out-of-process workers, carrying a protocol version; a thin forwarder returns result, failure, heartbeat or delay; unknown version is a Refusal; unreachable endpoint and callback timeout are DriverFault events. Prove with one non-Go SDK worker control (the smallest SDK the repository already provisions) and a Go-side fake for the four reply kinds.
 
+### Required integration contract
+
+Route Shim callbacks through the same correlated event queue and serialized Host used by in-process callbacks; return each Answer to its originating worker, enforce version and bounded context, and test cancellation/late/duplicate replies.
+
+**Touches:** model/umpire/hosts/go/umpire/runner/**, common/testing/testpilot/temporal/worker/**, model/umpire/proto/**, model/umpire/hosts/go/go.{mod,sum}, go.{mod,sum}, Makefile, tests/testcore/testpilot/** and the chosen existing non-Go worker fixture. Task .6 follows this task; no parallel shared-manifest writes.
+
 ## Acceptance
 - [ ] Shim endpoint and forwarder; four reply kinds proven
 - [ ] Unknown version refused; unreachable and timeout recorded as DriverFault

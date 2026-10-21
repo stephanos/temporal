@@ -17,7 +17,7 @@
   "plan_review_rounds": 0,
   "plan_review_status": "ship",
   "plan_reviewed_at": "2026-10-08T18:51:41.609694Z",
-  "ready": true,
+  "ready": false,
   "review_attempts": [
     {
       "artifact_sha256": "39e288f6db4fb4d040aeea51b0d80fd53bdffdea6d5de900b131dc522625fc10",
@@ -572,5 +572,5 @@
     "mergeBaseTracker": null,
     "url": null
   },
-  "updated_at": "2026-10-18T19:34:34.158708Z"
+  "updated_at": "2026-10-21T17:35:21.222298Z"
 }

@@ -4,11 +4,16 @@ satisfies: [R6]
 # fn-173-reachable-exploration-drop-full-tables.5 Phase 4: DSL and lifter: native collections and Int in state, oneOf inputs, input-reading guards, Inbox recognized by type
 
 ## Description
+> Deferred: the parent spec's 2026-10-21 execution hold applies. These criteria preserve the filed scope; they do not authorize work on the frozen Scala tree. Revalidate against current Rust/successor work before resuming.
+
 **Recut 2026-10-18 (one-language series):** The DSL part is done; the lifter part goes to fn-190.9 and fn-201.
 
-TBD
+This is a retained reconciliation task, not an executable native implementation plan. R6 native work and the named lifting successors must be mapped before resumption.
 ## Acceptance
-- [ ] TBD
+- [ ] Before any resumption, map each R6 native and lifting obligation to its actual completed checkpoint or the recorded fn-190.9/fn-201 successor; retain evidence and uncovered requirements.
+- [ ] Native collection/Int/input/Inbox semantics are not implemented twice or credited as backend proof.
+- [ ] Each remaining lifting obligation has explicit schema/type, input-guard and Inbox-by-type acceptance and negative controls in its owning resumed task. A reference to an unfinished successor alone does not close R6.
+- [ ] No Scala or Temporal work starts under this task while the owner hold remains.
 
 ## Done summary
 Blocked:

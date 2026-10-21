@@ -4,6 +4,8 @@ satisfies: [R3]
 # fn-171-clean-up-testpilot.3 Tidy: current docs, package docs, test-only exports, generated-case loaders to lower, canary preflight import
 
 ## Description
+> Deferred: the parent spec's 2026-10-21 execution hold applies. These criteria preserve the filed scope; they do not authorize work on the frozen Scala tree. Revalidate against current Rust/successor work before resuming.
+
 **Recut 2026-10-18 (one-language series):** Drop the loader move to `tools/umpire/lower` (deleted by fn-208); generated-case loaders go to `tools/testpilot`. The docs part stays.
 
 From the Testpilot research (2026-10-12).
@@ -12,7 +14,10 @@ From the Testpilot research (2026-10-12).
 3. Move `GeneratedCases`/`LoadGeneratedCase`/`GeneratedCaseName` (which wrap `lower.GeneratedCase`) into `tools/umpire/lower`, and make `tools/canary/preflight/harness_test.go` import them from there, not from `tests/testcore/testpilot` (contradicting `UMPIRE_MODULES.md:73`).
 4. Optional, size only: the oversized files `execution/scheduler.go` (1,316 lines), `execution/dataflow.go`, `delivery/ledger.go`, `assessment.go` and `execution/prepare.go`.
 ## Acceptance
-- [ ] TBD
+- [ ] Current docs name the actually admitted artifact/version and existing exported interfaces; historical Case guidance is not restored after fn-228.
+- [ ] Surviving packages have the described package docs; test-only exports remain test-only with all consumers compiling.
+- [ ] Generated-loader ownership and canary imports follow the surviving successor tooling, with no test-package production dependency; retired loaders are not recreated.
+- [ ] Scope remains behavior-preserving; optional file splitting is not required for completion.
 
 ## Done summary
 Blocked:

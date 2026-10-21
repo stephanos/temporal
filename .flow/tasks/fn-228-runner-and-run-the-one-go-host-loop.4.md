@@ -6,6 +6,10 @@ satisfies: [R4]
 ## Description
 Reduce the retained temporal/* driver to a runner.Driver: send the proposed request over the generated API, collect Observations with poll interval, read timeout and backoff from instruction fields, capture and redaction as field paths, RPC completion and evidence well-formedness checks; surface SDK callbacks from the in-process Go worker. Run the live activity slice (start, retry then completion, cancellation, host refusal) through umpire explore with the Run as the only artifact; make umpire-check-model-slice invokes it. Read timeout without Model acceptance is a DriverFault event; malformed evidence refused before Judge.
 
+### Required integration contract
+
+Integrate the incremental Exchange contract and Model-owned continue_polling signal with the real Temporal Driver. Start uses bootstrap and same-invocation World admission from fn-227; callbacks are serviced while the RPC/poll is active. Prove retry/completion/cancellation and an intermediate read with intervening callback before completion. Record the real Run and replay all protocol events without a live server. Preserve guest embedding/freshness and keep poll timing/backoff as transport mechanics.
+
 ## Acceptance
 - [ ] Temporal Driver implements runner.Driver without interpreting Temporal messages
 - [ ] Live slice passes through umpire explore; Run is the only artifact

@@ -10,5 +10,5 @@
   "spec_path": ".flow/tasks/fn-171-clean-up-testpilot.1.md",
   "status": "todo",
   "title": "Generic core self-contained: remove adapter back-edges, absolute import rule, offline readers off the runtime, Temporal files named in execution",
-  "updated_at": "2026-10-18T17:30:31.347434Z"
+  "updated_at": "2026-10-21T17:35:54.749991Z"
 }

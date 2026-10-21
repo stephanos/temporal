@@ -16,8 +16,47 @@ sysroot=$(mise exec -- rustc --print sysroot) || exit 1
 cargo_home=${CARGO_HOME:-$HOME/.cargo}
 target=${CARGO_TARGET_DIR:-$workspace/target}
 mkdir -p "$target"
-export CARGO_TARGET_DIR
-CARGO_TARGET_DIR=$(cd "$target" && pwd -P)
+target=$(cd "$target" && pwd -P)
+wrapper="$workspace/scripts/guest-rustc.py"
+export UMPIRE_GUEST_COMPILER
+UMPIRE_GUEST_COMPILER=$(mise exec -- rustc -V) || exit 1
+cache_key=$(python3 - "$wrapper" "$workspace/Cargo.lock" "$UMPIRE_GUEST_COMPILER" <<'PY'
+import hashlib
+import json
+from pathlib import Path
+import sys
+
+inputs = [hashlib.sha256(Path(path).read_bytes()).hexdigest() for path in sys.argv[1:3]]
+inputs.append(sys.argv[3])
+print(hashlib.sha256(json.dumps(inputs).encode()).hexdigest()[:16])
+PY
+)
+export CARGO_TARGET_DIR="$target/guest-cache/$cache_key"
+launcher="$target/guest-wrappers/$cache_key/guest-rustc.py"
+python3 - "$wrapper" "$launcher" <<'PY'
+from pathlib import Path
+import os
+import sys
+
+if any(character.isspace() for character in sys.executable):
+    sys.exit("guest build requires a Python executable path without whitespace")
+source, launcher = map(Path, sys.argv[1:])
+# /usr/bin/env clears Cargo's dynamic-library environment on macOS.
+content = b"#!" + os.fsencode(sys.executable) + b"\n" + source.read_bytes().split(b"\n", 1)[1]
+launcher.parent.mkdir(parents=True, exist_ok=True)
+temporary = launcher.with_name(launcher.name + "." + str(os.getpid()))
+temporary.write_bytes(content)
+temporary.chmod(0o755)
+temporary.replace(launcher)
+PY
+wrapper=$launcher
+export UMPIRE_GUEST_WORKSPACE="$workspace" UMPIRE_GUEST_SYSROOT="$sysroot"
+export UMPIRE_GUEST_CARGO_HOME="$cargo_home" UMPIRE_GUEST_TARGET="$CARGO_TARGET_DIR"
+export UMPIRE_GUEST_LOCKFILE="$workspace/Cargo.lock"
+if [ "${RUSTC_WRAPPER:-}" != "$wrapper" ]; then
+  export UMPIRE_GUEST_PREVIOUS_WRAPPER="${RUSTC_WRAPPER:-}"
+fi
+export RUSTC_WRAPPER="$wrapper"
 flags=${CARGO_ENCODED_RUSTFLAGS:-}
 if [ -z "$flags" ] && [ -n "${RUSTFLAGS:-}" ]; then
   read -r -a rustflags <<< "$RUSTFLAGS"

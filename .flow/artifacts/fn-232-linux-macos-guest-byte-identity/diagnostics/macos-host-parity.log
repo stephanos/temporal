@@ -1,0 +1,312 @@
++ repository=/Users/stephan/Workspace/skunkworks/umpire/temporal
++ root=/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/fn232-diagnosis
++ proof=/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/fn232-certification-macos
++ source=/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/fn232-certification-macos/source-a
++ export UMPIRE_WASM=/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/fn232-diagnosis/stock-macos-replay-paths.wasm
++ UMPIRE_WASM=/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/fn232-diagnosis/stock-macos-replay-paths.wasm
++ export UMPIRE_STATEFUL_WASM=/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/fn232-certification-macos/target-a/wasm32-wasip1/guest/stateful_control.wasm
++ UMPIRE_STATEFUL_WASM=/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/fn232-certification-macos/target-a/wasm32-wasip1/guest/stateful_control.wasm
++ export UMPIRE_CAUGHT_PANIC_WASM=/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/fn232-certification-macos/target-a/wasm32-wasip1/guest/caught_panic_control.wasm
++ UMPIRE_CAUGHT_PANIC_WASM=/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/fn232-certification-macos/target-a/wasm32-wasip1/guest/caught_panic_control.wasm
++ export UMPIRE_OVERFLOW_WASM=/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/fn232-certification-macos/target-a/wasm32-wasip1/guest/overflow_control.wasm
++ UMPIRE_OVERFLOW_WASM=/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/fn232-certification-macos/target-a/wasm32-wasip1/guest/overflow_control.wasm
++ export UMPIRE_PANIC_NATIVE=/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/fn232-certification-macos/target-a/panic-native
++ UMPIRE_PANIC_NATIVE=/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/fn232-certification-macos/target-a/panic-native
++ cd /Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/fn232-certification-macos/source-a
++ bash model/scripts/tests/guest-parity.sh
+=== RUN   TestGuestProfileCaughtPanicParity
+=== RUN   TestGuestProfileCaughtPanicParity/effect_panic
+=== RUN   TestGuestProfileCaughtPanicParity/effect_overflow
+--- PASS: TestGuestProfileCaughtPanicParity (0.02s)
+    --- PASS: TestGuestProfileCaughtPanicParity/effect_panic (0.01s)
+    --- PASS: TestGuestProfileCaughtPanicParity/effect_overflow (0.01s)
+=== RUN   TestGuestProfileUncaughtPanicsTrap
+=== RUN   TestGuestProfileUncaughtPanicsTrap/observation
+=== RUN   TestGuestProfileUncaughtPanicsTrap/outcome_comparison
+--- PASS: TestGuestProfileUncaughtPanicsTrap (0.01s)
+    --- PASS: TestGuestProfileUncaughtPanicsTrap/observation (0.01s)
+    --- PASS: TestGuestProfileUncaughtPanicsTrap/outcome_comparison (0.00s)
+=== RUN   TestGuestExports
+--- PASS: TestGuestExports (0.01s)
+=== RUN   TestBoundaryControls
+=== RUN   TestBoundaryControls/valid
+=== RUN   TestBoundaryControls/trap
+=== RUN   TestBoundaryControls/exhausted
+=== RUN   TestBoundaryControls/bounds
+=== RUN   TestBoundaryControls/huge
+=== RUN   TestBoundaryControls/overlap
+=== RUN   TestBoundaryControls/malformed
+=== RUN   TestBoundaryControls/wrong_outcome
+=== RUN   TestBoundaryControls/empty_outcome
+--- PASS: TestBoundaryControls (0.00s)
+    --- PASS: TestBoundaryControls/valid (0.00s)
+    --- PASS: TestBoundaryControls/trap (0.00s)
+    --- PASS: TestBoundaryControls/exhausted (0.00s)
+    --- PASS: TestBoundaryControls/bounds (0.00s)
+    --- PASS: TestBoundaryControls/huge (0.00s)
+    --- PASS: TestBoundaryControls/overlap (0.00s)
+    --- PASS: TestBoundaryControls/malformed (0.00s)
+    --- PASS: TestBoundaryControls/wrong_outcome (0.00s)
+    --- PASS: TestBoundaryControls/empty_outcome (0.00s)
+=== RUN   TestRejectsModuleContract
+=== RUN   TestRejectsModuleContract/signature
+=== RUN   TestRejectsModuleContract/clock
+=== RUN   TestRejectsModuleContract/filesystem
+=== RUN   TestRejectsModuleContract/unknown
+=== RUN   TestRejectsModuleContract/fd_signature
+=== RUN   TestRejectsModuleContract/env_signature
+=== RUN   TestRejectsModuleContract/env_sizes_signature
+=== RUN   TestRejectsModuleContract/exit_signature
+--- PASS: TestRejectsModuleContract (0.00s)
+    --- PASS: TestRejectsModuleContract/signature (0.00s)
+    --- PASS: TestRejectsModuleContract/clock (0.00s)
+    --- PASS: TestRejectsModuleContract/filesystem (0.00s)
+    --- PASS: TestRejectsModuleContract/unknown (0.00s)
+    --- PASS: TestRejectsModuleContract/fd_signature (0.00s)
+    --- PASS: TestRejectsModuleContract/env_signature (0.00s)
+    --- PASS: TestRejectsModuleContract/env_sizes_signature (0.00s)
+    --- PASS: TestRejectsModuleContract/exit_signature (0.00s)
+=== RUN   TestRejectsApplicationExports
+=== RUN   TestRejectsApplicationExports/umpire_buffer_alloc/missing
+=== RUN   TestRejectsApplicationExports/umpire_buffer_alloc/signature
+=== RUN   TestRejectsApplicationExports/umpire_buffer_release/missing
+=== RUN   TestRejectsApplicationExports/umpire_buffer_release/signature
+=== RUN   TestRejectsApplicationExports/umpire_call/missing
+=== RUN   TestRejectsApplicationExports/umpire_call/signature
+=== RUN   TestRejectsApplicationExports/unexpected/alloc
+=== RUN   TestRejectsApplicationExports/unexpected/free
+=== RUN   TestRejectsApplicationExports/unexpected/call
+=== RUN   TestRejectsApplicationExports/unexpected/umpire_free
+=== RUN   TestRejectsApplicationExports/unexpected/extra
+--- PASS: TestRejectsApplicationExports (0.00s)
+    --- PASS: TestRejectsApplicationExports/umpire_buffer_alloc/missing (0.00s)
+    --- PASS: TestRejectsApplicationExports/umpire_buffer_alloc/signature (0.00s)
+    --- PASS: TestRejectsApplicationExports/umpire_buffer_release/missing (0.00s)
+    --- PASS: TestRejectsApplicationExports/umpire_buffer_release/signature (0.00s)
+    --- PASS: TestRejectsApplicationExports/umpire_call/missing (0.00s)
+    --- PASS: TestRejectsApplicationExports/umpire_call/signature (0.00s)
+    --- PASS: TestRejectsApplicationExports/unexpected/alloc (0.00s)
+    --- PASS: TestRejectsApplicationExports/unexpected/free (0.00s)
+    --- PASS: TestRejectsApplicationExports/unexpected/call (0.00s)
+    --- PASS: TestRejectsApplicationExports/unexpected/umpire_free (0.00s)
+    --- PASS: TestRejectsApplicationExports/unexpected/extra (0.00s)
+=== RUN   TestTrapIdentifiesABIAndLogicalMethod
+=== RUN   TestTrapIdentifiesABIAndLogicalMethod/umpire_buffer_alloc
+=== RUN   TestTrapIdentifiesABIAndLogicalMethod/umpire_buffer_release
+=== RUN   TestTrapIdentifiesABIAndLogicalMethod/umpire_call
+--- PASS: TestTrapIdentifiesABIAndLogicalMethod (0.00s)
+    --- PASS: TestTrapIdentifiesABIAndLogicalMethod/umpire_buffer_alloc (0.00s)
+    --- PASS: TestTrapIdentifiesABIAndLogicalMethod/umpire_buffer_release (0.00s)
+    --- PASS: TestTrapIdentifiesABIAndLogicalMethod/umpire_call (0.00s)
+=== RUN   TestGuestAllocationGuards
+=== RUN   TestGuestAllocationGuards/zero
+=== RUN   TestGuestAllocationGuards/oversize
+=== RUN   TestGuestAllocationGuards/initialized
+=== RUN   TestGuestAllocationGuards/inexact_call
+=== RUN   TestGuestAllocationGuards/invalid_free
+=== RUN   TestGuestAllocationGuards/double_free
+--- PASS: TestGuestAllocationGuards (0.04s)
+    --- PASS: TestGuestAllocationGuards/zero (0.01s)
+    --- PASS: TestGuestAllocationGuards/oversize (0.01s)
+    --- PASS: TestGuestAllocationGuards/initialized (0.01s)
+    --- PASS: TestGuestAllocationGuards/inexact_call (0.01s)
+    --- PASS: TestGuestAllocationGuards/invalid_free (0.01s)
+    --- PASS: TestGuestAllocationGuards/double_free (0.01s)
+=== RUN   TestRefusals
+--- PASS: TestRefusals (0.02s)
+=== RUN   TestRepeatedAndConcurrentCalls
+--- PASS: TestRepeatedAndConcurrentCalls (0.11s)
+=== RUN   TestGuestExhaustionPreservesExploration
+--- PASS: TestGuestExhaustionPreservesExploration (0.03s)
+=== RUN   TestKettleParity
+--- PASS: TestKettleParity (0.04s)
+=== RUN   TestProtocolResponseValidation
+=== RUN   TestProtocolResponseValidation/METHOD_EXPLORE/outcome1
+=== RUN   TestProtocolResponseValidation/METHOD_EXPLORE/outcome2
+=== RUN   TestProtocolResponseValidation/METHOD_EXPLORE/outcome3
+=== RUN   TestProtocolResponseValidation/METHOD_EXPLORE/outcome4
+=== RUN   TestProtocolResponseValidation/METHOD_EXPLORE/outcome5
+=== RUN   TestProtocolResponseValidation/METHOD_ROWS/outcome1
+=== RUN   TestProtocolResponseValidation/METHOD_ROWS/outcome2
+=== RUN   TestProtocolResponseValidation/METHOD_ROWS/outcome3
+=== RUN   TestProtocolResponseValidation/METHOD_ROWS/outcome4
+=== RUN   TestProtocolResponseValidation/METHOD_ROWS/outcome5
+=== RUN   TestProtocolResponseValidation/METHOD_RESET/outcome1
+=== RUN   TestProtocolResponseValidation/METHOD_RESET/outcome2
+=== RUN   TestProtocolResponseValidation/METHOD_RESET/outcome3
+=== RUN   TestProtocolResponseValidation/METHOD_RESET/outcome4
+=== RUN   TestProtocolResponseValidation/METHOD_RESET/outcome5
+=== RUN   TestProtocolResponseValidation/METHOD_JUDGE/outcome1
+=== RUN   TestProtocolResponseValidation/METHOD_JUDGE/outcome2
+=== RUN   TestProtocolResponseValidation/METHOD_JUDGE/outcome3
+=== RUN   TestProtocolResponseValidation/METHOD_JUDGE/outcome4
+=== RUN   TestProtocolResponseValidation/METHOD_JUDGE/outcome5
+=== RUN   TestProtocolResponseValidation/METHOD_ANSWER/outcome1
+=== RUN   TestProtocolResponseValidation/METHOD_ANSWER/outcome2
+=== RUN   TestProtocolResponseValidation/METHOD_ANSWER/outcome3
+=== RUN   TestProtocolResponseValidation/METHOD_ANSWER/outcome4
+=== RUN   TestProtocolResponseValidation/METHOD_ANSWER/outcome5
+=== RUN   TestProtocolResponseValidation/judge_missing_judgment
+=== RUN   TestProtocolResponseValidation/answer_missing_reply
+=== RUN   TestProtocolResponseValidation/answer_empty_reply_type
+=== RUN   TestProtocolResponseValidation/unknown_refusal
+=== RUN   TestProtocolResponseValidation/REFUSAL_CODE_UNSPECIFIED
+=== RUN   TestProtocolResponseValidation/REFUSAL_CODE_UNKNOWN_METHOD
+=== RUN   TestProtocolResponseValidation/REFUSAL_CODE_MALFORMED_REQUEST
+=== RUN   TestProtocolResponseValidation/REFUSAL_CODE_BUDGET
+=== RUN   TestProtocolResponseValidation/REFUSAL_CODE_STATE
+=== RUN   TestProtocolResponseValidation/REFUSAL_CODE_NOT_EXPLORED
+=== RUN   TestProtocolResponseValidation/REFUSAL_CODE_ALLOCATION
+=== RUN   TestProtocolResponseValidation/REFUSAL_CODE_SCOPE_ACTION
+=== RUN   TestProtocolResponseValidation/REFUSAL_CODE_UNSUPPORTED
+--- PASS: TestProtocolResponseValidation (0.00s)
+    --- PASS: TestProtocolResponseValidation/METHOD_EXPLORE/outcome1 (0.00s)
+    --- PASS: TestProtocolResponseValidation/METHOD_EXPLORE/outcome2 (0.00s)
+    --- PASS: TestProtocolResponseValidation/METHOD_EXPLORE/outcome3 (0.00s)
+    --- PASS: TestProtocolResponseValidation/METHOD_EXPLORE/outcome4 (0.00s)
+    --- PASS: TestProtocolResponseValidation/METHOD_EXPLORE/outcome5 (0.00s)
+    --- PASS: TestProtocolResponseValidation/METHOD_ROWS/outcome1 (0.00s)
+    --- PASS: TestProtocolResponseValidation/METHOD_ROWS/outcome2 (0.00s)
+    --- PASS: TestProtocolResponseValidation/METHOD_ROWS/outcome3 (0.00s)
+    --- PASS: TestProtocolResponseValidation/METHOD_ROWS/outcome4 (0.00s)
+    --- PASS: TestProtocolResponseValidation/METHOD_ROWS/outcome5 (0.00s)
+    --- PASS: TestProtocolResponseValidation/METHOD_RESET/outcome1 (0.00s)
+    --- PASS: TestProtocolResponseValidation/METHOD_RESET/outcome2 (0.00s)
+    --- PASS: TestProtocolResponseValidation/METHOD_RESET/outcome3 (0.00s)
+    --- PASS: TestProtocolResponseValidation/METHOD_RESET/outcome4 (0.00s)
+    --- PASS: TestProtocolResponseValidation/METHOD_RESET/outcome5 (0.00s)
+    --- PASS: TestProtocolResponseValidation/METHOD_JUDGE/outcome1 (0.00s)
+    --- PASS: TestProtocolResponseValidation/METHOD_JUDGE/outcome2 (0.00s)
+    --- PASS: TestProtocolResponseValidation/METHOD_JUDGE/outcome3 (0.00s)
+    --- PASS: TestProtocolResponseValidation/METHOD_JUDGE/outcome4 (0.00s)
+    --- PASS: TestProtocolResponseValidation/METHOD_JUDGE/outcome5 (0.00s)
+    --- PASS: TestProtocolResponseValidation/METHOD_ANSWER/outcome1 (0.00s)
+    --- PASS: TestProtocolResponseValidation/METHOD_ANSWER/outcome2 (0.00s)
+    --- PASS: TestProtocolResponseValidation/METHOD_ANSWER/outcome3 (0.00s)
+    --- PASS: TestProtocolResponseValidation/METHOD_ANSWER/outcome4 (0.00s)
+    --- PASS: TestProtocolResponseValidation/METHOD_ANSWER/outcome5 (0.00s)
+    --- PASS: TestProtocolResponseValidation/judge_missing_judgment (0.00s)
+    --- PASS: TestProtocolResponseValidation/answer_missing_reply (0.00s)
+    --- PASS: TestProtocolResponseValidation/answer_empty_reply_type (0.00s)
+    --- PASS: TestProtocolResponseValidation/unknown_refusal (0.00s)
+    --- PASS: TestProtocolResponseValidation/REFUSAL_CODE_UNSPECIFIED (0.00s)
+    --- PASS: TestProtocolResponseValidation/REFUSAL_CODE_UNKNOWN_METHOD (0.00s)
+    --- PASS: TestProtocolResponseValidation/REFUSAL_CODE_MALFORMED_REQUEST (0.00s)
+    --- PASS: TestProtocolResponseValidation/REFUSAL_CODE_BUDGET (0.00s)
+    --- PASS: TestProtocolResponseValidation/REFUSAL_CODE_STATE (0.00s)
+    --- PASS: TestProtocolResponseValidation/REFUSAL_CODE_NOT_EXPLORED (0.00s)
+    --- PASS: TestProtocolResponseValidation/REFUSAL_CODE_ALLOCATION (0.00s)
+    --- PASS: TestProtocolResponseValidation/REFUSAL_CODE_SCOPE_ACTION (0.00s)
+    --- PASS: TestProtocolResponseValidation/REFUSAL_CODE_UNSUPPORTED (0.00s)
+=== RUN   TestProtocolWrappers
+=== RUN   TestProtocolWrappers/reset
+=== RUN   TestProtocolWrappers/explained
+=== RUN   TestProtocolWrappers/unexplained
+=== RUN   TestProtocolWrappers/answer
+=== RUN   TestProtocolWrappers/nil_reset
+=== RUN   TestProtocolWrappers/nil_judge
+=== RUN   TestProtocolWrappers/missing_observation
+=== RUN   TestProtocolWrappers/empty_observation_type
+=== RUN   TestProtocolWrappers/nil_answer
+=== RUN   TestProtocolWrappers/missing_callback
+=== RUN   TestProtocolWrappers/empty_callback_type
+--- PASS: TestProtocolWrappers (0.00s)
+    --- PASS: TestProtocolWrappers/reset (0.00s)
+    --- PASS: TestProtocolWrappers/explained (0.00s)
+    --- PASS: TestProtocolWrappers/unexplained (0.00s)
+    --- PASS: TestProtocolWrappers/answer (0.00s)
+    --- PASS: TestProtocolWrappers/nil_reset (0.00s)
+    --- PASS: TestProtocolWrappers/nil_judge (0.00s)
+    --- PASS: TestProtocolWrappers/missing_observation (0.00s)
+    --- PASS: TestProtocolWrappers/empty_observation_type (0.00s)
+    --- PASS: TestProtocolWrappers/nil_answer (0.00s)
+    --- PASS: TestProtocolWrappers/missing_callback (0.00s)
+    --- PASS: TestProtocolWrappers/empty_callback_type (0.00s)
+=== RUN   TestExplanationOutcomeWireCompatibility
+--- PASS: TestExplanationOutcomeWireCompatibility (0.00s)
+=== RUN   TestProtocolWireCompatibility
+=== RUN   TestProtocolWireCompatibility/explore_request
+=== RUN   TestProtocolWireCompatibility/rows_request
+=== RUN   TestProtocolWireCompatibility/explore_response
+=== RUN   TestProtocolWireCompatibility/rows_response
+=== RUN   TestProtocolWireCompatibility/refusal_0
+=== RUN   TestProtocolWireCompatibility/refusal_1
+=== RUN   TestProtocolWireCompatibility/refusal_2
+=== RUN   TestProtocolWireCompatibility/refusal_3
+=== RUN   TestProtocolWireCompatibility/refusal_4
+=== RUN   TestProtocolWireCompatibility/refusal_5
+=== RUN   TestProtocolWireCompatibility/refusal_6
+=== RUN   TestProtocolWireCompatibility/refusal_7
+--- PASS: TestProtocolWireCompatibility (0.00s)
+    --- PASS: TestProtocolWireCompatibility/explore_request (0.00s)
+    --- PASS: TestProtocolWireCompatibility/rows_request (0.00s)
+    --- PASS: TestProtocolWireCompatibility/explore_response (0.00s)
+    --- PASS: TestProtocolWireCompatibility/rows_response (0.00s)
+    --- PASS: TestProtocolWireCompatibility/refusal_0 (0.00s)
+    --- PASS: TestProtocolWireCompatibility/refusal_1 (0.00s)
+    --- PASS: TestProtocolWireCompatibility/refusal_2 (0.00s)
+    --- PASS: TestProtocolWireCompatibility/refusal_3 (0.00s)
+    --- PASS: TestProtocolWireCompatibility/refusal_4 (0.00s)
+    --- PASS: TestProtocolWireCompatibility/refusal_5 (0.00s)
+    --- PASS: TestProtocolWireCompatibility/refusal_6 (0.00s)
+    --- PASS: TestProtocolWireCompatibility/refusal_7 (0.00s)
+=== RUN   TestCoreProtocolWireCompatibility
+=== RUN   TestCoreProtocolWireCompatibility/reset_response
+=== RUN   TestCoreProtocolWireCompatibility/judge_request
+=== RUN   TestCoreProtocolWireCompatibility/answer_request
+=== RUN   TestCoreProtocolWireCompatibility/judge_explained
+=== RUN   TestCoreProtocolWireCompatibility/judge_unexplained
+=== RUN   TestCoreProtocolWireCompatibility/answer_response
+--- PASS: TestCoreProtocolWireCompatibility (0.00s)
+    --- PASS: TestCoreProtocolWireCompatibility/reset_response (0.00s)
+    --- PASS: TestCoreProtocolWireCompatibility/judge_request (0.00s)
+    --- PASS: TestCoreProtocolWireCompatibility/answer_request (0.00s)
+    --- PASS: TestCoreProtocolWireCompatibility/judge_explained (0.00s)
+    --- PASS: TestCoreProtocolWireCompatibility/judge_unexplained (0.00s)
+    --- PASS: TestCoreProtocolWireCompatibility/answer_response (0.00s)
+=== RUN   TestProtocolNamespace
+--- PASS: TestProtocolNamespace (0.00s)
+=== RUN   TestStatefulGuestReplayFreezeResetAndIsolation
+--- PASS: TestStatefulGuestReplayFreezeResetAndIsolation (0.01s)
+=== RUN   TestStatefulResponseExhaustionPreservesRunAndOwnership
+=== RUN   TestStatefulResponseExhaustionPreservesRunAndOwnership/METHOD_JUDGE
+=== RUN   TestStatefulResponseExhaustionPreservesRunAndOwnership/METHOD_ANSWER
+=== RUN   TestStatefulResponseExhaustionPreservesRunAndOwnership/METHOD_RESET
+--- PASS: TestStatefulResponseExhaustionPreservesRunAndOwnership (0.04s)
+    --- PASS: TestStatefulResponseExhaustionPreservesRunAndOwnership/METHOD_JUDGE (0.02s)
+    --- PASS: TestStatefulResponseExhaustionPreservesRunAndOwnership/METHOD_ANSWER (0.01s)
+    --- PASS: TestStatefulResponseExhaustionPreservesRunAndOwnership/METHOD_RESET (0.01s)
+=== RUN   TestDeniedDescriptorImports
+=== RUN   TestDeniedDescriptorImports/fd_close
+=== RUN   TestDeniedDescriptorImports/fd_seek
+--- PASS: TestDeniedDescriptorImports (0.00s)
+    --- PASS: TestDeniedDescriptorImports/fd_close (0.00s)
+    --- PASS: TestDeniedDescriptorImports/fd_seek (0.00s)
+=== RUN   TestRejectsDescriptorImportContracts
+=== RUN   TestRejectsDescriptorImportContracts/fd_close/other
+=== RUN   TestRejectsDescriptorImportContracts/fd_close/wasi_snapshot_preview1
+=== RUN   TestRejectsDescriptorImportContracts/fd_close/wasi_snapshot_preview1#01
+=== RUN   TestRejectsDescriptorImportContracts/fd_close/wasi_snapshot_preview1#02
+=== RUN   TestRejectsDescriptorImportContracts/fd_seek/other
+=== RUN   TestRejectsDescriptorImportContracts/fd_seek/wasi_snapshot_preview1
+=== RUN   TestRejectsDescriptorImportContracts/fd_seek/wasi_snapshot_preview1#01
+=== RUN   TestRejectsDescriptorImportContracts/fd_seek/wasi_snapshot_preview1#02
+--- PASS: TestRejectsDescriptorImportContracts (0.00s)
+    --- PASS: TestRejectsDescriptorImportContracts/fd_close/other (0.00s)
+    --- PASS: TestRejectsDescriptorImportContracts/fd_close/wasi_snapshot_preview1 (0.00s)
+    --- PASS: TestRejectsDescriptorImportContracts/fd_close/wasi_snapshot_preview1#01 (0.00s)
+    --- PASS: TestRejectsDescriptorImportContracts/fd_close/wasi_snapshot_preview1#02 (0.00s)
+    --- PASS: TestRejectsDescriptorImportContracts/fd_seek/other (0.00s)
+    --- PASS: TestRejectsDescriptorImportContracts/fd_seek/wasi_snapshot_preview1 (0.00s)
+    --- PASS: TestRejectsDescriptorImportContracts/fd_seek/wasi_snapshot_preview1#01 (0.00s)
+    --- PASS: TestRejectsDescriptorImportContracts/fd_seek/wasi_snapshot_preview1#02 (0.00s)
+PASS
+ok  	umpire.local/model	0.781s
+?   	umpire.local/model/umpire/model/v1	[no test files]
++ cmp /Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/fn232-diagnosis/temporal-macos-replay-paths.wasm model/temporal/hosts/go/umpire_temporal_guest.wasm
++ CGO_ENABLED=0
++ mise exec -- go -C model/temporal/hosts/go test -tags test_dep -count=1 ./...
+ok  	umpire.local/temporal	12.945s
+?   	umpire.local/temporal/umpire/temporal/v1	[no test files]
+++ git status --porcelain --untracked-files=all
++ test -z ''

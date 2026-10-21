@@ -37,6 +37,12 @@ records commands, platform/toolchain details, source guards, target identities,
 hashes, sizes, comparisons and host-parity results. Historical fn-230 receipts
 remain in `model/GUEST_BUILDS.md`.
 
+Subsequent [diagnosis](../artifacts/fn-232-linux-macos-guest-byte-identity/diagnosis.md)
+isolated Cargo metadata and generated-output path hashes. A controlled native
+macOS replay matched both full Linux guests exactly. The replay reads reference
+Linux values; a separately scoped self-contained builder fix and renewed clean
+certification are still required.
+
 ## Done summary
 Blocked:
 Certification failed at source `8d429e97409b1537ecb347c359129bffafa63f78` on

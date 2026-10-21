@@ -4,6 +4,8 @@ satisfies: [R1, R2, R3, R4, R10, R11, R12, R13, R16]
 # fn-190-models-are-plain-scala-state-as-vars.9 Phase 2: lift vars, assignment effects, transitions and check blocks; State record, schema and init from declarations
 
 ## Description
+> Deferred: the parent spec's 2026-10-21 execution hold applies. These criteria preserve the filed scope; they do not authorize work on the frozen Scala tree. Revalidate against current Rust/successor work before resuming.
+
 **Recut 2026-10-18 (one-language series):** Keep the lifting: fn-206/207's TLA+ emitter and fn-203's Case producer need vars, effects and transitions. Re-anchor to `framework/lift` (fn-201) and fn-198 case folders, not the export suites; no checked-in IR is written.
 
 **Phase 2 (IR and plugin), owner phasing 2026-10-17.** Starts after phase 1 (fn-190.7: the six samples compile in the plain form and their native suites pass).
@@ -23,7 +25,11 @@ The plugin and lifter half of fn-190.1, .2, .4 and .6, moved here so the IR and 
 - A fixture Machine with every supported var type lifts to the expected State record and schema; refusal fixtures report the exact texts.
 - Focused export/reify suites pass; the full framework gate runs once at the end of phase 2.
 ## Acceptance
-- [ ] TBD
+- [ ] Supported state declarations produce the ordered State record, schema and starts; missing vars and unsupported types yield the specified located refusals.
+- [ ] Sequential assignments, branches, reads/before, claims, outcomes/facts, scenarios and exact input domains retain the specified semantics, covered by positive/negative fixtures.
+- [ ] Typed Hole.reached forms preserve Hole identity and unknown results; facet removal leaves no stale carrier/context representation.
+- [ ] Focused source/lift fixtures pass and full-mode/warm-helper obligations remain owned by fn-189.7; native-only results cannot close them.
+- [ ] On explicit resumption, use the recorded lift/case-folder successors, without restoring checked-in IR or running archived paths as current gates.
 
 ## Done summary
 TBD

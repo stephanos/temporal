@@ -4,6 +4,8 @@ satisfies: [R1, R2, R3, R4, R5, R6, R7, R8, R9]
 # fn-156-let-the-scala-compiler-and-lint-enforce.7 Document enforcement and verify exact artifacts and full gates
 
 ## Description
+> Deferred: the parent spec's 2026-10-21 execution hold applies. These criteria preserve the filed scope; they do not authorize work on the frozen Scala tree. Revalidate against current Rust/successor work before resuming.
+
 **Note 2026-10-18 (one-language series):** 'Full Go suite and model gate' means the Scala framework gate plus `tools/testpilot` tests after fn-208.
 
 Complete R9 and the spec's documentation and integration checks at one standalone boundary before Batch 2. This task owns the full gates once after all source changes and reports their actual dispositions.
@@ -82,4 +84,6 @@ Lane w-fn156 (Batch 1c close), on integrated umpire ae3f36ee51; source checkpoin
 - PRs:
 
 ## Acceptance
-- [ ] TBD
+- [ ] Exact regeneration/manifests satisfy R9 without normalization; partial or deferred gates do not count as passes.
+- [ ] Final compiler/lint/IR-generation/Model/Case and canonical Go gates have recorded outcomes; all unmet obligations remain explicit.
+- [ ] Enforcement docs, compiler trial reports, law dispositions and ownership handoffs cover R1-R8, with independent review of evidence.

@@ -154,8 +154,8 @@ their native full responses and existing report goldens across repeated calls an
 The default gate builds the same unwind profile. [Commands and timing](GUEST_BUILDS.md).
 fn-232 at `8d429e97409b1537ecb347c359129bffafa63f78` failed cross-OS identity on 2026-10-21.
 Two paths per OS matched; Linux/aarch64 and macOS 25.6.0/arm64 differed for both guests.
-[Certification evidence](../.flow/artifacts/fn-232-linux-macos-guest-byte-identity/proof.md) records commands, sizes, hashes and comparisons.
-Temporal embeds these committed bytes; `model-check` checks freshness and `umpire-guest` refreshes them.
+[Historical evidence](../.flow/artifacts/fn-232-linux-macos-guest-byte-identity/proof.md) records that failure; fn-236 normalizes compiler identities and generated paths.
+Temporal embeds the current asset; [build details and renewed proof](GUEST_BUILDS.md) cover freshness, cache identities and cross-OS verification.
 
 ## Capability and panic boundaries
 

@@ -1,0 +1,16 @@
+{
+  "assignee": null,
+  "claim_note": "",
+  "claimed_at": null,
+  "created_at": "2026-10-21T02:50:10.189174Z",
+  "depends_on": [
+    "fn-233-kettle-service-a-framework-owned-end-to.3"
+  ],
+  "id": "fn-233-kettle-service-a-framework-owned-end-to.4",
+  "priority": null,
+  "spec": "fn-233-kettle-service-a-framework-owned-end-to",
+  "spec_path": ".flow/tasks/fn-233-kettle-service-a-framework-owned-end-to.4.md",
+  "status": "todo",
+  "title": "Seeded server mutants and the detection golden",
+  "updated_at": "2026-10-21T17:29:39.068798Z"
+}

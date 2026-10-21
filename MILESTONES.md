@@ -55,7 +55,7 @@ is Rust. The guest now directly exports `umpire_buffer_alloc`, `umpire_buffer_re
 
 | Phase | Specs and tasks | Scope |
 | --- | --- | --- |
-| After the Rust verdict | fn-217 → fn-230 → fn-231 → fn-227 → fn-211 → fn-228 | Owner priority order (fn-231 after fn-217 and fn-229, before fn-228.2 if possible; fn-229 is complete; fn-230 has no dependency and must land before fn-228.4; fn-227 placed before fn-211 on 2026-10-20 so Apalache arrives to a parameterized Model; fn-228 depends on fn-227 only, its place relative to fn-211 is the owner's). fn-233 (Kettle service, filed 2026-10-21) depends on fn-217; its place in the order is the owner's. fn-210, fn-212, fn-213, fn-214, fn-215, fn-216, fn-218, fn-221, fn-223, fn-224, fn-225, fn-226 and fn-229 are complete locally with their scoped reviews and gates passed; fn-225 and fn-226's single-task reviews cover their full specs. fn-216's broad umbrella retains seven documented pre-existing failures. The recommendation is Rust under stock WASM/Go parity alone. Preserve each spec's prerequisites; priority does not add dependency edges or mark deferred work ready. fn-212 supplies lifting and TLC for its admitted source subset; fn-211 adds Apalache over its emitter. The former "Case slice" is filed as fn-228 (Runner and Run): the Model as umpire, one Model per Run, Propose on the protocol, one Go host loop, Driver and Shim, observations plus judgment and the never-overwrite publish store. Targets are at most 5,000 generic-runtime and 11,000 total non-test Testpilot Go lines. Standalone extraction remains a plan in `MIGRATE.md`. |
+| After the Rust verdict | fn-217 → fn-230 → fn-231 → fn-227 → fn-211 → fn-228 | Owner priority order (fn-231 after fn-217 and fn-229, before fn-228.2 if possible; fn-229 is complete; fn-230 has no dependency and must land before fn-228.4; fn-227 placed before fn-211 on 2026-10-20 so Apalache arrives to a parameterized Model; fn-228 depends on fn-227 only, its place relative to fn-211 is the owner's). fn-233 (Kettle service, filed 2026-10-21) depends on fn-217 and fn-227 (preserving request evidence during envelope extraction); its place relative to the other successors is the owner's. fn-210, fn-212, fn-213, fn-214, fn-215, fn-216, fn-218, fn-221, fn-223, fn-224, fn-225, fn-226 and fn-229 are complete locally with their scoped reviews and gates passed; fn-225 and fn-226's single-task reviews cover their full specs. fn-216's broad umbrella retains seven documented pre-existing failures. The recommendation is Rust under stock WASM/Go parity alone. Preserve each spec's prerequisites; priority does not add dependency edges or mark deferred work ready. fn-212 supplies lifting and TLC for its admitted source subset; fn-211 adds Apalache over its emitter. The former "Case slice" is filed as fn-228 (Runner and Run): the Model as umpire, one Model per Run, Propose on the protocol, one Go host loop, Driver and Shim, observations plus judgment and the never-overwrite publish store. Targets are at most 5,000 generic-runtime and 11,000 total non-test Testpilot Go lines. Standalone extraction remains a plan in `MIGRATE.md`. |
 
 ## Specs
 
@@ -69,14 +69,16 @@ validators and scoped limits, a `derive(Catalog)` catalog, a `Realize` binding a
 live run through the Go host, and seeded server mutants the framework must name. Its first task
 moves the envelopes and descriptor coverage check out of `temporal/`, measuring what is
 generic today; validator generation and Go source walking are outside the updated scope.
-Spec-level dependency on fn-217; .3 needs the fn-217.6 derive. R5's Kettle-first spike
-chronology still needs reconciliation with the already-completed Temporal catalog.
+Spec-level dependencies on fn-217 and fn-227 serialize envelope extraction after actual-request
+evidence. Kettle is the already-shipped derive's second consumer (R5), not a retroactive first spike.
+The reviewed plan covers generic catalog/code-generation extraction, selected live initialization
+without changing the canonical Model, and differential healthy-versus-mutant detection.
 [Spec](.flow/specs/fn-233-kettle-service-a-framework-owned-end-to.md).
 
 | Name | Status | What |
 | --- | --- | --- |
-| fn-233.1 | ⬜ todo | Move envelopes and the descriptor coverage check under `umpire/`; Temporal goldens byte-identical (R1) |
-| fn-233.2 | ⬜ todo | Kettle service proto, Go reference server, realization, guest, Judge-only live run with transcript golden (R2) |
+| fn-233.1 | ⬜ todo | Extract generic catalog tooling and envelopes; preserve Model/semantic goldens and explicitly migrate Any identities (R1) |
+| fn-233.2 | ⬜ todo | Kettle service proto, Go reference server, realization, guest, selected-start Judge/Answer live run with exact RPC projections and transcript golden (R2) |
 | fn-233.3 | ⬜ todo | Kettle `derive(Catalog)` catalog, `config.rs`, Annotate in the live run, `coverage.snap` and `gaps.txt` (R3, R5) |
 | fn-233.4 | ⬜ todo | Seeded mutants, one-line switches, each named by the framework in `mutants.snap.txt` (R4) |
 
@@ -106,8 +108,13 @@ The realization reads the world from the observed start
 request and the live slice proves one retry then completion. The lifter admits `impl Phased` and
 `reject!` so TLC checks the activity Model.
 The native World checkpoint is complete locally with SHIP review, all three final gates
-and unchanged original artifacts. Source/TLC binding in .7 is next; the revised parent
-plan passed SHIP review. Final timing was 93.288s against the 30s soft target, with a 5.035s inner loop.
+and unchanged original artifacts. Its final timing was 93.288s against the 30s soft target,
+with a 5.035s inner loop. The revised parent plan passed SHIP review.
+Source/TLC binding in .7 is committed as a checkpoint with focused default/required checks,
+actual TLC proof and both static audits green. Final full verification and formal review remain
+open. The attempted full gate timed out after 600s; concurrent uncommitted guest-build inputs
+also prevent attributable final proof. The owner requested wrapping in-flight work and stopping;
+.7 is blocked, not complete, and no later task is admitted by this run.
 On 2026-10-21 the owner approved all three contract amendments: lifecycle refinement
 in place of impossible old-byte equality; cooperative cancellation with explicit protocol
 evidence; and optional actual-request Observation evidence at tag 4. Heartbeat signals a
@@ -120,7 +127,7 @@ The review passed; each consumer still waits for its declared support dependenci
 
 | Name | Status | What |
 | --- | --- | --- |
-| fn-227.7 | 🔄 in progress | After .1: independent typed World/source binding, whole-state Init, all CFGs and `parameterized_world` TLC proof (R1, R3) |
+| fn-227.7 | ⛔ blocked | World/source/TLC checkpoint committed; final gates and review require a stable external guest-build boundary (R1, R3) |
 | fn-227.2 | ⬜ todo | After .1 and .7: native `Finite`, typed World-dependent domains and checked catalog admission (R2) |
 | fn-227.8 | ⬜ todo | After .2 and .7: independent source inputs, exact-payload fairness and `action_inputs` TLC proof (R2, R3) |
 | fn-227.11 | ⬜ todo | After .8: source `Phased`/`reject!` and closure laws, with unchanged activity behavior (R3) |
@@ -137,16 +144,16 @@ The review passed; each consumer still waits for its declared support dependenci
 Captured on 2026-10-18 as a follow-up, after fn-210, fn-212 and (since 2026-10-20) fn-227, and only if their verdicts are to continue in
 Rust. Adds Apalache as a second TLA+ backend over the same lifted tree and emitter: Snowcat type
 annotations in the emitter, a pinned Apalache release run on the mise JDK with one bounded check
-per invariant at the native depth plus one, ITF counterexamples decoded through `Spell` and
+per invariant at the native depth plus one, ITF counterexamples decoded through typed source values and
 replayed through the Model, and an Apalache consumer selected by `expected/apalache.txt`. No
 liveness through Apalache; TLC owns progress claims.
 [Spec](.flow/specs/fn-211-apalache-backend-for-umpire-in-rust.md).
 
 | Name | Status | What |
 | --- | --- | --- |
-| fn-211.1 | ⬜ todo | Snowcat type annotations in the TLA+ emitter; TLC results unchanged (R1) |
+| fn-211.1 | ⬜ todo | Typed Apalache safety relation, checked arithmetic and postcondition history; TLC results unchanged (R1) |
 | fn-211.2 | ⬜ todo | After .1: `umpire-apalache` in `umpire/backends/apalache/`, pinned release, bounded check per invariant, deterministic lifecycle (R2) |
-| fn-211.3 | ⬜ todo | After .2: ITF counterexamples decoded through `Spell` and replayed through the Model (R3) |
+| fn-211.3 | ⬜ todo | After .2: ITF counterexamples decoded through typed source values and replayed through the Model (R3) |
 | fn-211.4 | ⬜ todo | After .3: Apalache consumer; Kettle's `apalache.txt` agreement golden (R4, R5) |
 
 ### fn-228: Runner and Run: the one Go host loop over the Model, Propose on the protocol, and the Testpilot shrink (model, temporal)
@@ -158,7 +165,9 @@ Realization is the one word for a binding; new `Propose` on `umpire.model.v1`; G
 with `Runner`, `Run`, `Driver` and `Shim`. The Model is the umpire; the Runtime hosts one Model; a
 Realization binds it to one system; the Runner drives a Driver, asks the Model to Propose, Judge
 and Answer, and records a Run. Deletes verification, evaluation, CEL, contract, casefile, campaign
-and replay; one `umpire` command with five modes.
+and replay; one `umpire` command with five modes. The reviewed contract includes Start bootstrap,
+incremental correlated Driver events, Model-owned polling completion, ordered protocol replay
+including Answer, and immutable publication by model/seed/content hash.
 [Spec](.flow/specs/fn-228-runner-and-run-the-one-go-host-loop.md).
 
 | Name | Status | What |
@@ -168,5 +177,5 @@ and replay; one `umpire` command with five modes.
 | fn-228.3 | ⬜ todo | After .2: Go `runner`: `Runner`, `Run`, `Driver`, five modes, one `umpire` command, publish (R3) |
 | fn-228.4 | ⬜ todo | After .3: Temporal Driver as act-and-observe; live slice through `umpire explore` (R4) |
 | fn-228.5 | ⬜ todo | After .4: Shim endpoint for non-Go SDK workers (R5) |
-| fn-228.6 | ⬜ todo | After .4: delete and shrink Testpilot packages; sizes reported (R6) |
+| fn-228.6 | ⬜ todo | After .4 and .5: delete and shrink Testpilot packages with replacement coverage; include relocated Runner code in counts (R6) |
 | fn-228.7 | ⬜ todo | After .5 and .6: DESIGN.md Runner and Run write-up; R33 to R40 discharged (R7) |

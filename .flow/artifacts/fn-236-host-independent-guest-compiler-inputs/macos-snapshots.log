@@ -1,0 +1,947 @@
++ repository=/Users/stephan/Workspace/skunkworks/umpire/temporal
++ platform=macos
++ proof=/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/fn236-snapshot-proof
++ evidence=/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/artifacts/fn-236-host-independent-guest-compiler-inputs
++ root=/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/fn236-snapshot-proof/macos
++ export CARGO_BUILD_JOBS=2
++ CARGO_BUILD_JOBS=2
++ unset RUSTFLAGS CARGO_ENCODED_RUSTFLAGS CARGO_TARGET_DIR RUSTC_WRAPPER
++ date -u
+Wed Oct 21 17:43:08 UTC 2026
++ uname -a
+Darwin Stephans-MacBook-Pro.local 25.6.0 Darwin Kernel Version 25.6.0: Tue Aug 18 17:50:45 PDT 2026; root:xnu-12377.161.15.700.19~2/RELEASE_ARM64_T6020 arm64
++ for lane in a b
++ source=/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/fn236-snapshot-proof/macos/source-a
++ target=/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/fn236-snapshot-proof/macos/target-a
++ test '!' -e /Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/fn236-snapshot-proof/macos/target-a
++ cd /Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/fn236-snapshot-proof/macos/source-a
++ mise trust /Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/fn236-snapshot-proof/macos/source-a/mise.toml
+mise trusted /Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/fn236-snapshot-proof/macos/source-a
++ mise exec -- rustc -Vv
+rustc 1.99.1 (58cf8f9c3 2026-10-13)
+binary: rustc
+commit-hash: 58cf8f9c35b355199727627d07ae34a4e2846d67
+commit-date: 2026-10-13
+host: aarch64-apple-darwin
+release: 1.99.1
+LLVM version: 23.1.1
++ mise exec -- cargo -V
+cargo 1.99.1 (5f94df478 2026-08-27)
++ mise exec -- go version
+go version go1.27.0 darwin/arm64
++ mise exec -- protoc --version
+libprotoc 29.5
++ git rev-parse HEAD
+77d2e4e90eeea14711ebfd050f41f0ef3b1d0b1e
++ git status --short
+ M model/GUEST_BUILDS.md
+ M model/scripts/guest.sh
+ M model/scripts/tests/test_guest.py
+ M model/scripts/tests/test_guest_freshness.py
+ M model/temporal/hosts/go/umpire_temporal_guest.wasm
+?? model/scripts/guest-rustc.py
+?? model/scripts/tests/test_guest_rustc.py
++ python3 /Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/artifacts/fn-236-host-independent-guest-compiler-inputs/source-manifest.py /Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/fn236-snapshot-proof/macos/source-a
++ cmp /Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/fn236-snapshot-proof/frozen-source.json /Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/artifacts/fn-236-host-independent-guest-compiler-inputs/macos-a-before.json
++ export CARGO_TARGET_DIR=/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/fn236-snapshot-proof/macos/target-a
++ CARGO_TARGET_DIR=/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/fn236-snapshot-proof/macos/target-a
++ bash model/scripts/guest.sh umpire-stock-guest /Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/fn236-snapshot-proof/macos/stock-a.wasm
+   Compiling compiler_builtins v0.1.160 (/Users/stephan/.rustup/toolchains/1.99.1-aarch64-apple-darwin/lib/rustlib/src/rust/library/compiler-builtins/compiler-builtins)
+   Compiling core v0.0.0 (/Users/stephan/.rustup/toolchains/1.99.1-aarch64-apple-darwin/lib/rustlib/src/rust/library/core)
+   Compiling proc-macro2 v1.0.107
+   Compiling quote v1.0.47
+   Compiling unicode-ident v1.0.27
+   Compiling libc v0.2.189
+   Compiling object v0.39.1
+   Compiling std v0.0.0 (/Users/stephan/.rustup/toolchains/1.99.1-aarch64-apple-darwin/lib/rustlib/src/rust/library/std)
+   Compiling syn v2.0.119
+   Compiling syn v3.0.9
+   Compiling rustc-std-workspace-core v1.99.0 (/Users/stephan/.rustup/toolchains/1.99.1-aarch64-apple-darwin/lib/rustlib/src/rust/library/rustc-std-workspace-core)
+   Compiling alloc v0.0.0 (/Users/stephan/.rustup/toolchains/1.99.1-aarch64-apple-darwin/lib/rustlib/src/rust/library/alloc)
+   Compiling unwind v0.0.0 (/Users/stephan/.rustup/toolchains/1.99.1-aarch64-apple-darwin/lib/rustlib/src/rust/library/unwind)
+   Compiling memchr v2.8.3
+   Compiling adler2 v2.0.1
+   Compiling cfg-if v1.0.4
+   Compiling rustc-demangle v0.1.28
+   Compiling rustc-std-workspace-alloc v1.99.0 (/Users/stephan/.rustup/toolchains/1.99.1-aarch64-apple-darwin/lib/rustlib/src/rust/library/rustc-std-workspace-alloc)
+   Compiling panic_unwind v0.0.0 (/Users/stephan/.rustup/toolchains/1.99.1-aarch64-apple-darwin/lib/rustlib/src/rust/library/panic_unwind)
+   Compiling gimli v0.34.0
+   Compiling wasip1 v1.0.0
+   Compiling addr2line v0.27.1
+   Compiling miniz_oxide v0.9.1
+   Compiling hashbrown v0.17.1
+   Compiling std_detect v0.1.5 (/Users/stephan/.rustup/toolchains/1.99.1-aarch64-apple-darwin/lib/rustlib/src/rust/library/std_detect)
+   Compiling panic_abort v0.0.0 (/Users/stephan/.rustup/toolchains/1.99.1-aarch64-apple-darwin/lib/rustlib/src/rust/library/panic_abort)
+   Compiling rustc-literal-escaper v0.0.8
+   Compiling anyhow v1.0.104
+   Compiling libc v0.2.191
+   Compiling either v1.19.0
+   Compiling itertools v0.14.0
+   Compiling proc_macro v0.0.0 (/Users/stephan/.rustup/toolchains/1.99.1-aarch64-apple-darwin/lib/rustlib/src/rust/library/proc_macro)
+   Compiling ident_case v1.0.1
+   Compiling strsim v0.11.1
+   Compiling darling_core v0.24.1
+   Compiling prost-derive v0.14.4
+   Compiling rustix v1.1.5
+   Compiling smallvec v1.16.3
+   Compiling errno v0.3.14
+   Compiling proc-macro-utils v0.10.0
+   Compiling regex-syntax v0.8.11
+   Compiling prettyplease v0.2.37
+   Compiling equivalent v1.0.3
+   Compiling foldhash v0.1.5
+   Compiling bitflags v2.13.2
+   Compiling bytes v1.12.1
+   Compiling prost v0.14.4
+   Compiling regex-automata v0.4.18
+   Compiling hashbrown v0.15.5
+   Compiling indexmap v2.14.2
+   Compiling manyhow-macros v0.14.1
+   Compiling darling_macro v0.24.1
+   Compiling fixedbitset v0.5.7
+   Compiling umpire-dsl-macros v0.0.1 (/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/fn236-snapshot-proof/macos/source-a/model/umpire/dsl/macros)
+   Compiling once_cell v1.21.4
+   Compiling fastrand v2.5.0
+   Compiling tempfile v3.27.0
+   Compiling petgraph v0.8.3
+   Compiling darling v0.24.1
+   Compiling manyhow v0.14.1
+   Compiling regex v1.13.1
+   Compiling prost-types v0.14.4
+   Compiling enum-iterator-derive v1.5.0
+   Compiling log v0.4.34
+   Compiling umpire-dsl v0.0.1 (/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/fn236-snapshot-proof/macos/source-a/model/umpire/dsl)
+   Compiling thiserror v2.0.21
+   Compiling multimap v0.10.1
+   Compiling heck v0.5.0
+   Compiling prost-build v0.14.4
+   Compiling enum-iterator v2.3.0
+   Compiling thiserror-impl v2.0.21
+   Compiling umpire-checker v0.0.1 (/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/fn236-snapshot-proof/macos/source-a/model/umpire/checker)
+warning: unstable feature specified for `-Ctarget-feature`: `exception-handling`
+  |
+  = note: this feature is not stably supported; its behavior can change in the future
+
+warning: `umpire-dsl` (lib) generated 1 warning
+   Compiling umpire-wasm v0.0.1 (/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/fn236-snapshot-proof/macos/source-a/model/umpire/wasm)
+   Compiling rustc-hash v2.1.3
+warning: `umpire-checker` (lib) generated 1 warning (1 duplicate)
+warning: `umpire-wasm` (lib) generated 1 warning (1 duplicate)
+   Compiling umpire-stock-guest v0.0.1 (/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/fn236-snapshot-proof/macos/source-a/model/umpire/wasm/guests/stock)
+warning: `umpire-stock-guest` (lib) generated 1 warning (1 duplicate)
+    Finished `guest` profile [optimized] target(s) in 47.36s
++ bash model/scripts/guest.sh umpire-temporal-guest /Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/fn236-snapshot-proof/macos/temporal-a.wasm
+   Compiling smallvec v1.16.3
+   Compiling indexmap v2.14.2
+   Compiling proc-macro-utils v0.10.0
+   Compiling fixedbitset v0.5.7
+   Compiling manyhow-macros v0.14.1
+   Compiling prost v0.14.4
+   Compiling manyhow v0.14.1
+   Compiling petgraph v0.8.3
+   Compiling umpire-dsl-macros v0.0.1 (/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/fn236-snapshot-proof/macos/source-a/model/umpire/dsl/macros)
+   Compiling prost-types v0.14.4
+   Compiling prost-build v0.14.4
+   Compiling thiserror v2.0.21
+   Compiling umpire-wasm v0.0.1 (/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/fn236-snapshot-proof/macos/source-a/model/umpire/wasm)
+   Compiling umpire-dsl v0.0.1 (/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/fn236-snapshot-proof/macos/source-a/model/umpire/dsl)
+   Compiling enum-iterator v2.3.0
+   Compiling umpire-checker v0.0.1 (/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/fn236-snapshot-proof/macos/source-a/model/umpire/checker)
+   Compiling rustc-hash v2.1.3
+warning: unstable feature specified for `-Ctarget-feature`: `exception-handling`
+  |
+  = note: this feature is not stably supported; its behavior can change in the future
+
+warning: `umpire-dsl` (lib) generated 1 warning
+warning: `umpire-checker` (lib) generated 1 warning (1 duplicate)
+   Compiling umpire-temporal-annotate-syntax v0.0.1 (/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/fn236-snapshot-proof/macos/source-a/model/temporal/annotate/syntax)
+warning: `umpire-wasm` (lib) generated 1 warning (1 duplicate)
+   Compiling umpire-annotations v0.0.1 (/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/fn236-snapshot-proof/macos/source-a/model/umpire/annotations)
+   Compiling umpire-temporal-realization-macros v0.0.1 (/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/fn236-snapshot-proof/macos/source-a/model/temporal/realization/macros)
+warning: `umpire-annotations` (lib) generated 1 warning (1 duplicate)
+   Compiling umpire-temporal-api v0.0.1 (/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/fn236-snapshot-proof/macos/source-a/model/temporal/api)
+   Compiling umpire-temporal-annotate-macros v0.0.1 (/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/fn236-snapshot-proof/macos/source-a/model/temporal/annotate/macros)
+   Compiling umpire-temporal-annotate v0.0.1 (/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/fn236-snapshot-proof/macos/source-a/model/temporal/annotate)
+warning: `umpire-temporal-annotate` (lib) generated 1 warning (1 duplicate)
+   Compiling umpire-temporal v0.0.1 (/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/fn236-snapshot-proof/macos/source-a/model/temporal/realization)
+warning: `umpire-temporal-api` (lib) generated 1 warning (1 duplicate)
+warning: `umpire-temporal` (lib) generated 1 warning (1 duplicate)
+   Compiling umpire-temporal-guest v0.0.1 (/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/fn236-snapshot-proof/macos/source-a/model/temporal/guest)
+warning: `umpire-temporal-guest` (lib) generated 1 warning (1 duplicate)
+    Finished `guest` profile [optimized] target(s) in 1m 56s
++ cmp /Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/fn236-snapshot-proof/macos/temporal-a.wasm model/temporal/hosts/go/umpire_temporal_guest.wasm
++ python3 /Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/artifacts/fn-236-host-independent-guest-compiler-inputs/source-manifest.py /Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/fn236-snapshot-proof/macos/source-a
++ cmp /Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/fn236-snapshot-proof/frozen-source.json /Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/artifacts/fn-236-host-independent-guest-compiler-inputs/macos-a-after.json
++ for lane in a b
++ source=/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/fn236-snapshot-proof/macos/source-b
++ target=/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/fn236-snapshot-proof/macos/target-b
++ test '!' -e /Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/fn236-snapshot-proof/macos/target-b
++ cd /Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/fn236-snapshot-proof/macos/source-b
++ mise trust /Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/fn236-snapshot-proof/macos/source-b/mise.toml
+mise trusted /Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/fn236-snapshot-proof/macos/source-b
++ mise exec -- rustc -Vv
+rustc 1.99.1 (58cf8f9c3 2026-10-13)
+binary: rustc
+commit-hash: 58cf8f9c35b355199727627d07ae34a4e2846d67
+commit-date: 2026-10-13
+host: aarch64-apple-darwin
+release: 1.99.1
+LLVM version: 23.1.1
++ mise exec -- cargo -V
+cargo 1.99.1 (5f94df478 2026-08-27)
++ mise exec -- go version
+go version go1.27.0 darwin/arm64
++ mise exec -- protoc --version
+libprotoc 29.5
++ git rev-parse HEAD
+77d2e4e90eeea14711ebfd050f41f0ef3b1d0b1e
++ git status --short
+ M model/GUEST_BUILDS.md
+ M model/scripts/guest.sh
+ M model/scripts/tests/test_guest.py
+ M model/scripts/tests/test_guest_freshness.py
+ M model/temporal/hosts/go/umpire_temporal_guest.wasm
+?? model/scripts/guest-rustc.py
+?? model/scripts/tests/test_guest_rustc.py
++ python3 /Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/artifacts/fn-236-host-independent-guest-compiler-inputs/source-manifest.py /Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/fn236-snapshot-proof/macos/source-b
++ cmp /Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/fn236-snapshot-proof/frozen-source.json /Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/artifacts/fn-236-host-independent-guest-compiler-inputs/macos-b-before.json
++ export CARGO_TARGET_DIR=/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/fn236-snapshot-proof/macos/target-b
++ CARGO_TARGET_DIR=/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/fn236-snapshot-proof/macos/target-b
++ bash model/scripts/guest.sh umpire-stock-guest /Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/fn236-snapshot-proof/macos/stock-b.wasm
+   Compiling compiler_builtins v0.1.160 (/Users/stephan/.rustup/toolchains/1.99.1-aarch64-apple-darwin/lib/rustlib/src/rust/library/compiler-builtins/compiler-builtins)
+   Compiling core v0.0.0 (/Users/stephan/.rustup/toolchains/1.99.1-aarch64-apple-darwin/lib/rustlib/src/rust/library/core)
+   Compiling proc-macro2 v1.0.107
+   Compiling quote v1.0.47
+   Compiling unicode-ident v1.0.27
+   Compiling libc v0.2.189
+   Compiling object v0.39.1
+   Compiling std v0.0.0 (/Users/stephan/.rustup/toolchains/1.99.1-aarch64-apple-darwin/lib/rustlib/src/rust/library/std)
+   Compiling syn v2.0.119
+   Compiling syn v3.0.9
+   Compiling rustc-std-workspace-core v1.99.0 (/Users/stephan/.rustup/toolchains/1.99.1-aarch64-apple-darwin/lib/rustlib/src/rust/library/rustc-std-workspace-core)
+   Compiling alloc v0.0.0 (/Users/stephan/.rustup/toolchains/1.99.1-aarch64-apple-darwin/lib/rustlib/src/rust/library/alloc)
+   Compiling unwind v0.0.0 (/Users/stephan/.rustup/toolchains/1.99.1-aarch64-apple-darwin/lib/rustlib/src/rust/library/unwind)
+   Compiling memchr v2.8.3
+   Compiling adler2 v2.0.1
+   Compiling rustc-demangle v0.1.28
+   Compiling panic_abort v0.0.0 (/Users/stephan/.rustup/toolchains/1.99.1-aarch64-apple-darwin/lib/rustlib/src/rust/library/panic_abort)
+   Compiling cfg-if v1.0.4
+   Compiling rustc-literal-escaper v0.0.8
+   Compiling anyhow v1.0.104
+   Compiling rustc-std-workspace-alloc v1.99.0 (/Users/stephan/.rustup/toolchains/1.99.1-aarch64-apple-darwin/lib/rustlib/src/rust/library/rustc-std-workspace-alloc)
+   Compiling gimli v0.34.0
+   Compiling wasip1 v1.0.0
+   Compiling addr2line v0.27.1
+   Compiling miniz_oxide v0.9.1
+   Compiling hashbrown v0.17.1
+   Compiling std_detect v0.1.5 (/Users/stephan/.rustup/toolchains/1.99.1-aarch64-apple-darwin/lib/rustlib/src/rust/library/std_detect)
+   Compiling panic_unwind v0.0.0 (/Users/stephan/.rustup/toolchains/1.99.1-aarch64-apple-darwin/lib/rustlib/src/rust/library/panic_unwind)
+   Compiling libc v0.2.191
+   Compiling either v1.19.0
+   Compiling itertools v0.14.0
+   Compiling strsim v0.11.1
+   Compiling ident_case v1.0.1
+   Compiling proc_macro v0.0.0 (/Users/stephan/.rustup/toolchains/1.99.1-aarch64-apple-darwin/lib/rustlib/src/rust/library/proc_macro)
+   Compiling darling_core v0.24.1
+   Compiling prost-derive v0.14.4
+   Compiling rustix v1.1.5
+   Compiling smallvec v1.16.3
+   Compiling proc-macro-utils v0.10.0
+   Compiling errno v0.3.14
+   Compiling regex-syntax v0.8.11
+   Compiling prettyplease v0.2.37
+   Compiling equivalent v1.0.3
+   Compiling foldhash v0.1.5
+   Compiling bitflags v2.13.2
+   Compiling bytes v1.12.1
+   Compiling regex-automata v0.4.18
+   Compiling indexmap v2.14.2
+   Compiling prost v0.14.4
+   Compiling hashbrown v0.15.5
+   Compiling manyhow-macros v0.14.1
+   Compiling darling_macro v0.24.1
+   Compiling once_cell v1.21.4
+   Compiling fastrand v2.5.0
+   Compiling fixedbitset v0.5.7
+   Compiling umpire-dsl-macros v0.0.1 (/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/fn236-snapshot-proof/macos/source-b/model/umpire/dsl/macros)
+   Compiling petgraph v0.8.3
+   Compiling tempfile v3.27.0
+   Compiling darling v0.24.1
+   Compiling manyhow v0.14.1
+   Compiling regex v1.13.1
+   Compiling prost-types v0.14.4
+   Compiling enum-iterator-derive v1.5.0
+   Compiling multimap v0.10.1
+   Compiling heck v0.5.0
+   Compiling log v0.4.34
+   Compiling umpire-dsl v0.0.1 (/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/fn236-snapshot-proof/macos/source-b/model/umpire/dsl)
+   Compiling thiserror v2.0.21
+   Compiling enum-iterator v2.3.0
+   Compiling prost-build v0.14.4
+   Compiling thiserror-impl v2.0.21
+   Compiling umpire-checker v0.0.1 (/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/fn236-snapshot-proof/macos/source-b/model/umpire/checker)
+warning: unstable feature specified for `-Ctarget-feature`: `exception-handling`
+  |
+  = note: this feature is not stably supported; its behavior can change in the future
+
+warning: `umpire-dsl` (lib) generated 1 warning
+   Compiling umpire-wasm v0.0.1 (/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/fn236-snapshot-proof/macos/source-b/model/umpire/wasm)
+   Compiling rustc-hash v2.1.3
+warning: `umpire-checker` (lib) generated 1 warning (1 duplicate)
+warning: `umpire-wasm` (lib) generated 1 warning (1 duplicate)
+   Compiling umpire-stock-guest v0.0.1 (/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/fn236-snapshot-proof/macos/source-b/model/umpire/wasm/guests/stock)
+warning: `umpire-stock-guest` (lib) generated 1 warning (1 duplicate)
+    Finished `guest` profile [optimized] target(s) in 1m 42s
++ bash model/scripts/guest.sh umpire-temporal-guest /Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/fn236-snapshot-proof/macos/temporal-b.wasm
+   Compiling smallvec v1.16.3
+   Compiling indexmap v2.14.2
+   Compiling proc-macro-utils v0.10.0
+   Compiling manyhow-macros v0.14.1
+   Compiling fixedbitset v0.5.7
+   Compiling prost v0.14.4
+   Compiling manyhow v0.14.1
+   Compiling petgraph v0.8.3
+   Compiling umpire-dsl-macros v0.0.1 (/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/fn236-snapshot-proof/macos/source-b/model/umpire/dsl/macros)
+   Compiling prost-types v0.14.4
+   Compiling prost-build v0.14.4
+   Compiling umpire-dsl v0.0.1 (/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/fn236-snapshot-proof/macos/source-b/model/umpire/dsl)
+   Compiling thiserror v2.0.21
+   Compiling enum-iterator v2.3.0
+   Compiling umpire-wasm v0.0.1 (/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/fn236-snapshot-proof/macos/source-b/model/umpire/wasm)
+   Compiling umpire-checker v0.0.1 (/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/fn236-snapshot-proof/macos/source-b/model/umpire/checker)
+   Compiling rustc-hash v2.1.3
+warning: unstable feature specified for `-Ctarget-feature`: `exception-handling`
+  |
+  = note: this feature is not stably supported; its behavior can change in the future
+
+warning: `umpire-dsl` (lib) generated 1 warning
+warning: `umpire-checker` (lib) generated 1 warning (1 duplicate)
+   Compiling umpire-temporal-annotate-syntax v0.0.1 (/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/fn236-snapshot-proof/macos/source-b/model/temporal/annotate/syntax)
+warning: `umpire-wasm` (lib) generated 1 warning (1 duplicate)
+   Compiling umpire-annotations v0.0.1 (/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/fn236-snapshot-proof/macos/source-b/model/umpire/annotations)
+   Compiling umpire-temporal-api v0.0.1 (/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/fn236-snapshot-proof/macos/source-b/model/temporal/api)
+   Compiling umpire-temporal-realization-macros v0.0.1 (/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/fn236-snapshot-proof/macos/source-b/model/temporal/realization/macros)
+warning: `umpire-annotations` (lib) generated 1 warning (1 duplicate)
+   Compiling umpire-temporal-annotate-macros v0.0.1 (/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/fn236-snapshot-proof/macos/source-b/model/temporal/annotate/macros)
+   Compiling umpire-temporal-annotate v0.0.1 (/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/fn236-snapshot-proof/macos/source-b/model/temporal/annotate)
+warning: `umpire-temporal-annotate` (lib) generated 1 warning (1 duplicate)
+   Compiling umpire-temporal v0.0.1 (/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/fn236-snapshot-proof/macos/source-b/model/temporal/realization)
+warning: `umpire-temporal-api` (lib) generated 1 warning (1 duplicate)
+warning: `umpire-temporal` (lib) generated 1 warning (1 duplicate)
+   Compiling umpire-temporal-guest v0.0.1 (/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/fn236-snapshot-proof/macos/source-b/model/temporal/guest)
+warning: `umpire-temporal-guest` (lib) generated 1 warning (1 duplicate)
+    Finished `guest` profile [optimized] target(s) in 3m 35s
++ cmp /Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/fn236-snapshot-proof/macos/temporal-b.wasm model/temporal/hosts/go/umpire_temporal_guest.wasm
++ python3 /Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/artifacts/fn-236-host-independent-guest-compiler-inputs/source-manifest.py /Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/fn236-snapshot-proof/macos/source-b
++ cmp /Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/fn236-snapshot-proof/frozen-source.json /Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/artifacts/fn-236-host-independent-guest-compiler-inputs/macos-b-after.json
++ cmp /Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/fn236-snapshot-proof/macos/stock-a.wasm /Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/fn236-snapshot-proof/macos/stock-b.wasm
++ cmp /Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/fn236-snapshot-proof/macos/temporal-a.wasm /Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/fn236-snapshot-proof/macos/temporal-b.wasm
++ cd /Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/fn236-snapshot-proof/macos/source-a
++ export CARGO_TARGET_DIR=/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/fn236-snapshot-proof/macos/target-a
++ CARGO_TARGET_DIR=/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/fn236-snapshot-proof/macos/target-a
++ bash model/scripts/tests/build-guests.sh
+warning: unstable feature specified for `-Ctarget-feature`: `exception-handling`
+  |
+  = note: this feature is not stably supported; its behavior can change in the future
+
+warning: `umpire-dsl` (lib) generated 1 warning
+warning: `umpire-checker` (lib) generated 1 warning (1 duplicate)
+warning: `umpire-wasm` (lib) generated 1 warning (1 duplicate)
+warning: `umpire-stock-guest` (lib) generated 1 warning (1 duplicate)
+    Finished `guest` profile [optimized] target(s) in 0.91s
+warning: unstable feature specified for `-Ctarget-feature`: `exception-handling`
+  |
+  = note: this feature is not stably supported; its behavior can change in the future
+
+warning: `umpire-dsl` (lib) generated 1 warning
+warning: `umpire-checker` (lib) generated 1 warning (1 duplicate)
+warning: `umpire-wasm` (lib) generated 1 warning (1 duplicate)
+   Compiling umpire-control-guest v0.0.1 (/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/fn236-snapshot-proof/macos/source-a/model/umpire/wasm/guests/control)
+warning: `umpire-control-guest` (lib) generated 1 warning (1 duplicate)
+    Finished `guest` profile [optimized] target(s) in 4.72s
+warning: unstable feature specified for `-Ctarget-feature`: `exception-handling`
+  |
+  = note: this feature is not stably supported; its behavior can change in the future
+
+warning: `umpire-dsl` (lib) generated 1 warning
+warning: `umpire-checker` (lib) generated 1 warning (1 duplicate)
+warning: `umpire-wasm` (lib) generated 1 warning (1 duplicate)
+warning: `umpire-annotations` (lib) generated 1 warning (1 duplicate)
+   Compiling umpire-temporal-realization-macros v0.0.1 (/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/fn236-snapshot-proof/macos/source-a/model/temporal/realization/macros)
+   Compiling umpire-temporal-api v0.0.1 (/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/fn236-snapshot-proof/macos/source-a/model/temporal/api)
+warning: `umpire-temporal-annotate` (lib) generated 1 warning (1 duplicate)
+   Compiling umpire-temporal v0.0.1 (/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/fn236-snapshot-proof/macos/source-a/model/temporal/realization)
+warning: `umpire-temporal-api` (lib) generated 1 warning (1 duplicate)
+warning: `umpire-temporal` (lib) generated 1 warning (1 duplicate)
+   Compiling umpire-temporal-guest v0.0.1 (/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/fn236-snapshot-proof/macos/source-a/model/temporal/guest)
+warning: `umpire-temporal-guest` (lib) generated 1 warning (1 duplicate)
+    Finished `guest` profile [optimized] target(s) in 1m 16s
+warning: unstable feature specified for `-Ctarget-feature`: `exception-handling`
+  |
+  = note: this feature is not stably supported; its behavior can change in the future
+
+warning: `umpire-dsl` (lib) generated 1 warning
+warning: `umpire-checker` (lib) generated 1 warning (1 duplicate)
+warning: `umpire-wasm` (lib) generated 1 warning (1 duplicate)
+   Compiling umpire-caught-panic-guest v0.0.1 (/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/fn236-snapshot-proof/macos/source-a/model/umpire/wasm/guests/caught-panic)
+warning: `umpire-caught-panic-guest` (lib) generated 1 warning (1 duplicate)
+    Finished `guest` profile [optimized] target(s) in 9.08s
+warning: unstable feature specified for `-Ctarget-feature`: `exception-handling`
+  |
+  = note: this feature is not stably supported; its behavior can change in the future
+
+warning: `umpire-dsl` (lib) generated 1 warning
+warning: `umpire-checker` (lib) generated 1 warning (1 duplicate)
+warning: `umpire-wasm` (lib) generated 1 warning (1 duplicate)
+   Compiling umpire-overflow-guest v0.0.1 (/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/fn236-snapshot-proof/macos/source-a/model/umpire/wasm/guests/overflow)
+warning: `umpire-overflow-guest` (lib) generated 1 warning (1 duplicate)
+    Finished `guest` profile [optimized] target(s) in 6.36s
+   Compiling proc-macro2 v1.0.107
+   Compiling quote v1.0.47
+   Compiling unicode-ident v1.0.27
+   Compiling anyhow v1.0.104
+   Compiling syn v2.0.119
+   Compiling syn v3.0.9
+   Compiling either v1.19.0
+   Compiling libc v0.2.191
+   Compiling itertools v0.14.0
+   Compiling ident_case v1.0.1
+   Compiling strsim v0.11.1
+   Compiling darling_core v0.24.1
+   Compiling prost-derive v0.14.4
+   Compiling rustix v1.1.5
+   Compiling smallvec v1.16.3
+   Compiling proc-macro-utils v0.10.0
+   Compiling errno v0.3.14
+   Compiling hashbrown v0.17.1
+   Compiling equivalent v1.0.3
+   Compiling foldhash v0.1.5
+   Compiling bitflags v2.13.2
+   Compiling bytes v1.12.1
+   Compiling prettyplease v0.2.37
+   Compiling regex-syntax v0.8.11
+   Compiling prost v0.14.4
+   Compiling indexmap v2.14.2
+   Compiling regex-automata v0.4.18
+   Compiling hashbrown v0.15.5
+   Compiling manyhow-macros v0.14.1
+   Compiling darling_macro v0.24.1
+   Compiling fixedbitset v0.5.7
+   Compiling umpire-dsl-macros v0.0.1 (/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/fn236-snapshot-proof/macos/source-a/model/umpire/dsl/macros)
+   Compiling once_cell v1.21.4
+   Compiling fastrand v2.5.0
+   Compiling tempfile v3.27.0
+   Compiling darling v0.24.1
+   Compiling petgraph v0.8.3
+   Compiling manyhow v0.14.1
+   Compiling regex v1.13.1
+   Compiling prost-types v0.14.4
+   Compiling enum-iterator-derive v1.5.0
+   Compiling umpire-dsl v0.0.1 (/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/fn236-snapshot-proof/macos/source-a/model/umpire/dsl)
+   Compiling multimap v0.10.1
+   Compiling log v0.4.34
+   Compiling heck v0.5.0
+   Compiling thiserror v2.0.21
+   Compiling prost-build v0.14.4
+   Compiling enum-iterator v2.3.0
+   Compiling thiserror-impl v2.0.21
+   Compiling umpire-checker v0.0.1 (/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/fn236-snapshot-proof/macos/source-a/model/umpire/checker)
+   Compiling umpire-wasm v0.0.1 (/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/fn236-snapshot-proof/macos/source-a/model/umpire/wasm)
+   Compiling rustc-hash v2.1.3
+   Compiling umpire-caught-panic-guest v0.0.1 (/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/fn236-snapshot-proof/macos/source-a/model/umpire/wasm/guests/caught-panic)
+    Finished `guest` profile [optimized] target(s) in 45.15s
+     Running `/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/fn236-snapshot-proof/macos/target-a/guest/panic-control-reports /Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/fn236-snapshot-proof/macos/target-a/panic-native`
+
+thread 'main' (5056954) panicked at umpire/wasm/guests/caught-panic/src/bin/../../../../tests/support/../../../checker/tests/support/mod.rs:74:38:
+broken heater
+note: run with `RUST_BACKTRACE=1` environment variable to display a backtrace
+
+thread 'main' (5056954) panicked at umpire/wasm/guests/caught-panic/src/bin/../../../../tests/support/../../../checker/tests/support/mod.rs:77:53:
+attempt to add with overflow
++ cmp /Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/fn236-snapshot-proof/macos/stock-a.wasm /Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/fn236-snapshot-proof/macos/target-a/wasm32-wasip1/guest/umpire_stock_guest.wasm
++ cmp /Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/fn236-snapshot-proof/macos/temporal-a.wasm /Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/fn236-snapshot-proof/macos/target-a/wasm32-wasip1/guest/umpire_temporal_guest.wasm
++ export UMPIRE_WASM=/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/fn236-snapshot-proof/macos/stock-a.wasm
++ UMPIRE_WASM=/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/fn236-snapshot-proof/macos/stock-a.wasm
++ export UMPIRE_STATEFUL_WASM=/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/fn236-snapshot-proof/macos/target-a/wasm32-wasip1/guest/stateful_control.wasm
++ UMPIRE_STATEFUL_WASM=/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/fn236-snapshot-proof/macos/target-a/wasm32-wasip1/guest/stateful_control.wasm
++ export UMPIRE_CAUGHT_PANIC_WASM=/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/fn236-snapshot-proof/macos/target-a/wasm32-wasip1/guest/caught_panic_control.wasm
++ UMPIRE_CAUGHT_PANIC_WASM=/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/fn236-snapshot-proof/macos/target-a/wasm32-wasip1/guest/caught_panic_control.wasm
++ export UMPIRE_OVERFLOW_WASM=/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/fn236-snapshot-proof/macos/target-a/wasm32-wasip1/guest/overflow_control.wasm
++ UMPIRE_OVERFLOW_WASM=/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/fn236-snapshot-proof/macos/target-a/wasm32-wasip1/guest/overflow_control.wasm
++ export UMPIRE_PANIC_NATIVE=/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/fn236-snapshot-proof/macos/target-a/panic-native
++ UMPIRE_PANIC_NATIVE=/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/fn236-snapshot-proof/macos/target-a/panic-native
++ bash model/scripts/tests/guest-parity.sh
+=== RUN   TestGuestProfileCaughtPanicParity
+=== RUN   TestGuestProfileCaughtPanicParity/effect_panic
+=== RUN   TestGuestProfileCaughtPanicParity/effect_overflow
+--- PASS: TestGuestProfileCaughtPanicParity (0.03s)
+    --- PASS: TestGuestProfileCaughtPanicParity/effect_panic (0.02s)
+    --- PASS: TestGuestProfileCaughtPanicParity/effect_overflow (0.02s)
+=== RUN   TestGuestProfileUncaughtPanicsTrap
+=== RUN   TestGuestProfileUncaughtPanicsTrap/observation
+=== RUN   TestGuestProfileUncaughtPanicsTrap/outcome_comparison
+--- PASS: TestGuestProfileUncaughtPanicsTrap (0.01s)
+    --- PASS: TestGuestProfileUncaughtPanicsTrap/observation (0.01s)
+    --- PASS: TestGuestProfileUncaughtPanicsTrap/outcome_comparison (0.01s)
+=== RUN   TestGuestExports
+--- PASS: TestGuestExports (0.01s)
+=== RUN   TestBoundaryControls
+=== RUN   TestBoundaryControls/valid
+=== RUN   TestBoundaryControls/trap
+=== RUN   TestBoundaryControls/exhausted
+=== RUN   TestBoundaryControls/bounds
+=== RUN   TestBoundaryControls/huge
+=== RUN   TestBoundaryControls/overlap
+=== RUN   TestBoundaryControls/malformed
+=== RUN   TestBoundaryControls/wrong_outcome
+=== RUN   TestBoundaryControls/empty_outcome
+--- PASS: TestBoundaryControls (0.00s)
+    --- PASS: TestBoundaryControls/valid (0.00s)
+    --- PASS: TestBoundaryControls/trap (0.00s)
+    --- PASS: TestBoundaryControls/exhausted (0.00s)
+    --- PASS: TestBoundaryControls/bounds (0.00s)
+    --- PASS: TestBoundaryControls/huge (0.00s)
+    --- PASS: TestBoundaryControls/overlap (0.00s)
+    --- PASS: TestBoundaryControls/malformed (0.00s)
+    --- PASS: TestBoundaryControls/wrong_outcome (0.00s)
+    --- PASS: TestBoundaryControls/empty_outcome (0.00s)
+=== RUN   TestRejectsModuleContract
+=== RUN   TestRejectsModuleContract/signature
+=== RUN   TestRejectsModuleContract/clock
+=== RUN   TestRejectsModuleContract/filesystem
+=== RUN   TestRejectsModuleContract/unknown
+=== RUN   TestRejectsModuleContract/fd_signature
+=== RUN   TestRejectsModuleContract/env_signature
+=== RUN   TestRejectsModuleContract/env_sizes_signature
+=== RUN   TestRejectsModuleContract/exit_signature
+--- PASS: TestRejectsModuleContract (0.00s)
+    --- PASS: TestRejectsModuleContract/signature (0.00s)
+    --- PASS: TestRejectsModuleContract/clock (0.00s)
+    --- PASS: TestRejectsModuleContract/filesystem (0.00s)
+    --- PASS: TestRejectsModuleContract/unknown (0.00s)
+    --- PASS: TestRejectsModuleContract/fd_signature (0.00s)
+    --- PASS: TestRejectsModuleContract/env_signature (0.00s)
+    --- PASS: TestRejectsModuleContract/env_sizes_signature (0.00s)
+    --- PASS: TestRejectsModuleContract/exit_signature (0.00s)
+=== RUN   TestRejectsApplicationExports
+=== RUN   TestRejectsApplicationExports/umpire_buffer_alloc/missing
+=== RUN   TestRejectsApplicationExports/umpire_buffer_alloc/signature
+=== RUN   TestRejectsApplicationExports/umpire_buffer_release/missing
+=== RUN   TestRejectsApplicationExports/umpire_buffer_release/signature
+=== RUN   TestRejectsApplicationExports/umpire_call/missing
+=== RUN   TestRejectsApplicationExports/umpire_call/signature
+=== RUN   TestRejectsApplicationExports/unexpected/alloc
+=== RUN   TestRejectsApplicationExports/unexpected/free
+=== RUN   TestRejectsApplicationExports/unexpected/call
+=== RUN   TestRejectsApplicationExports/unexpected/umpire_free
+=== RUN   TestRejectsApplicationExports/unexpected/extra
+--- PASS: TestRejectsApplicationExports (0.00s)
+    --- PASS: TestRejectsApplicationExports/umpire_buffer_alloc/missing (0.00s)
+    --- PASS: TestRejectsApplicationExports/umpire_buffer_alloc/signature (0.00s)
+    --- PASS: TestRejectsApplicationExports/umpire_buffer_release/missing (0.00s)
+    --- PASS: TestRejectsApplicationExports/umpire_buffer_release/signature (0.00s)
+    --- PASS: TestRejectsApplicationExports/umpire_call/missing (0.00s)
+    --- PASS: TestRejectsApplicationExports/umpire_call/signature (0.00s)
+    --- PASS: TestRejectsApplicationExports/unexpected/alloc (0.00s)
+    --- PASS: TestRejectsApplicationExports/unexpected/free (0.00s)
+    --- PASS: TestRejectsApplicationExports/unexpected/call (0.00s)
+    --- PASS: TestRejectsApplicationExports/unexpected/umpire_free (0.00s)
+    --- PASS: TestRejectsApplicationExports/unexpected/extra (0.00s)
+=== RUN   TestTrapIdentifiesABIAndLogicalMethod
+=== RUN   TestTrapIdentifiesABIAndLogicalMethod/umpire_buffer_alloc
+=== RUN   TestTrapIdentifiesABIAndLogicalMethod/umpire_buffer_release
+=== RUN   TestTrapIdentifiesABIAndLogicalMethod/umpire_call
+--- PASS: TestTrapIdentifiesABIAndLogicalMethod (0.00s)
+    --- PASS: TestTrapIdentifiesABIAndLogicalMethod/umpire_buffer_alloc (0.00s)
+    --- PASS: TestTrapIdentifiesABIAndLogicalMethod/umpire_buffer_release (0.00s)
+    --- PASS: TestTrapIdentifiesABIAndLogicalMethod/umpire_call (0.00s)
+=== RUN   TestGuestAllocationGuards
+=== RUN   TestGuestAllocationGuards/zero
+=== RUN   TestGuestAllocationGuards/oversize
+=== RUN   TestGuestAllocationGuards/initialized
+=== RUN   TestGuestAllocationGuards/inexact_call
+=== RUN   TestGuestAllocationGuards/invalid_free
+=== RUN   TestGuestAllocationGuards/double_free
+--- PASS: TestGuestAllocationGuards (0.06s)
+    --- PASS: TestGuestAllocationGuards/zero (0.01s)
+    --- PASS: TestGuestAllocationGuards/oversize (0.01s)
+    --- PASS: TestGuestAllocationGuards/initialized (0.01s)
+    --- PASS: TestGuestAllocationGuards/inexact_call (0.01s)
+    --- PASS: TestGuestAllocationGuards/invalid_free (0.01s)
+    --- PASS: TestGuestAllocationGuards/double_free (0.01s)
+=== RUN   TestRefusals
+--- PASS: TestRefusals (0.02s)
+=== RUN   TestRepeatedAndConcurrentCalls
+--- PASS: TestRepeatedAndConcurrentCalls (0.16s)
+=== RUN   TestGuestExhaustionPreservesExploration
+--- PASS: TestGuestExhaustionPreservesExploration (0.04s)
+=== RUN   TestKettleParity
+--- PASS: TestKettleParity (0.05s)
+=== RUN   TestProtocolResponseValidation
+=== RUN   TestProtocolResponseValidation/METHOD_EXPLORE/outcome1
+=== RUN   TestProtocolResponseValidation/METHOD_EXPLORE/outcome2
+=== RUN   TestProtocolResponseValidation/METHOD_EXPLORE/outcome3
+=== RUN   TestProtocolResponseValidation/METHOD_EXPLORE/outcome4
+=== RUN   TestProtocolResponseValidation/METHOD_EXPLORE/outcome5
+=== RUN   TestProtocolResponseValidation/METHOD_ROWS/outcome1
+=== RUN   TestProtocolResponseValidation/METHOD_ROWS/outcome2
+=== RUN   TestProtocolResponseValidation/METHOD_ROWS/outcome3
+=== RUN   TestProtocolResponseValidation/METHOD_ROWS/outcome4
+=== RUN   TestProtocolResponseValidation/METHOD_ROWS/outcome5
+=== RUN   TestProtocolResponseValidation/METHOD_RESET/outcome1
+=== RUN   TestProtocolResponseValidation/METHOD_RESET/outcome2
+=== RUN   TestProtocolResponseValidation/METHOD_RESET/outcome3
+=== RUN   TestProtocolResponseValidation/METHOD_RESET/outcome4
+=== RUN   TestProtocolResponseValidation/METHOD_RESET/outcome5
+=== RUN   TestProtocolResponseValidation/METHOD_JUDGE/outcome1
+=== RUN   TestProtocolResponseValidation/METHOD_JUDGE/outcome2
+=== RUN   TestProtocolResponseValidation/METHOD_JUDGE/outcome3
+=== RUN   TestProtocolResponseValidation/METHOD_JUDGE/outcome4
+=== RUN   TestProtocolResponseValidation/METHOD_JUDGE/outcome5
+=== RUN   TestProtocolResponseValidation/METHOD_ANSWER/outcome1
+=== RUN   TestProtocolResponseValidation/METHOD_ANSWER/outcome2
+=== RUN   TestProtocolResponseValidation/METHOD_ANSWER/outcome3
+=== RUN   TestProtocolResponseValidation/METHOD_ANSWER/outcome4
+=== RUN   TestProtocolResponseValidation/METHOD_ANSWER/outcome5
+=== RUN   TestProtocolResponseValidation/judge_missing_judgment
+=== RUN   TestProtocolResponseValidation/answer_missing_reply
+=== RUN   TestProtocolResponseValidation/answer_empty_reply_type
+=== RUN   TestProtocolResponseValidation/unknown_refusal
+=== RUN   TestProtocolResponseValidation/REFUSAL_CODE_UNSPECIFIED
+=== RUN   TestProtocolResponseValidation/REFUSAL_CODE_UNKNOWN_METHOD
+=== RUN   TestProtocolResponseValidation/REFUSAL_CODE_MALFORMED_REQUEST
+=== RUN   TestProtocolResponseValidation/REFUSAL_CODE_BUDGET
+=== RUN   TestProtocolResponseValidation/REFUSAL_CODE_STATE
+=== RUN   TestProtocolResponseValidation/REFUSAL_CODE_NOT_EXPLORED
+=== RUN   TestProtocolResponseValidation/REFUSAL_CODE_ALLOCATION
+=== RUN   TestProtocolResponseValidation/REFUSAL_CODE_SCOPE_ACTION
+=== RUN   TestProtocolResponseValidation/REFUSAL_CODE_UNSUPPORTED
+--- PASS: TestProtocolResponseValidation (0.00s)
+    --- PASS: TestProtocolResponseValidation/METHOD_EXPLORE/outcome1 (0.00s)
+    --- PASS: TestProtocolResponseValidation/METHOD_EXPLORE/outcome2 (0.00s)
+    --- PASS: TestProtocolResponseValidation/METHOD_EXPLORE/outcome3 (0.00s)
+    --- PASS: TestProtocolResponseValidation/METHOD_EXPLORE/outcome4 (0.00s)
+    --- PASS: TestProtocolResponseValidation/METHOD_EXPLORE/outcome5 (0.00s)
+    --- PASS: TestProtocolResponseValidation/METHOD_ROWS/outcome1 (0.00s)
+    --- PASS: TestProtocolResponseValidation/METHOD_ROWS/outcome2 (0.00s)
+    --- PASS: TestProtocolResponseValidation/METHOD_ROWS/outcome3 (0.00s)
+    --- PASS: TestProtocolResponseValidation/METHOD_ROWS/outcome4 (0.00s)
+    --- PASS: TestProtocolResponseValidation/METHOD_ROWS/outcome5 (0.00s)
+    --- PASS: TestProtocolResponseValidation/METHOD_RESET/outcome1 (0.00s)
+    --- PASS: TestProtocolResponseValidation/METHOD_RESET/outcome2 (0.00s)
+    --- PASS: TestProtocolResponseValidation/METHOD_RESET/outcome3 (0.00s)
+    --- PASS: TestProtocolResponseValidation/METHOD_RESET/outcome4 (0.00s)
+    --- PASS: TestProtocolResponseValidation/METHOD_RESET/outcome5 (0.00s)
+    --- PASS: TestProtocolResponseValidation/METHOD_JUDGE/outcome1 (0.00s)
+    --- PASS: TestProtocolResponseValidation/METHOD_JUDGE/outcome2 (0.00s)
+    --- PASS: TestProtocolResponseValidation/METHOD_JUDGE/outcome3 (0.00s)
+    --- PASS: TestProtocolResponseValidation/METHOD_JUDGE/outcome4 (0.00s)
+    --- PASS: TestProtocolResponseValidation/METHOD_JUDGE/outcome5 (0.00s)
+    --- PASS: TestProtocolResponseValidation/METHOD_ANSWER/outcome1 (0.00s)
+    --- PASS: TestProtocolResponseValidation/METHOD_ANSWER/outcome2 (0.00s)
+    --- PASS: TestProtocolResponseValidation/METHOD_ANSWER/outcome3 (0.00s)
+    --- PASS: TestProtocolResponseValidation/METHOD_ANSWER/outcome4 (0.00s)
+    --- PASS: TestProtocolResponseValidation/METHOD_ANSWER/outcome5 (0.00s)
+    --- PASS: TestProtocolResponseValidation/judge_missing_judgment (0.00s)
+    --- PASS: TestProtocolResponseValidation/answer_missing_reply (0.00s)
+    --- PASS: TestProtocolResponseValidation/answer_empty_reply_type (0.00s)
+    --- PASS: TestProtocolResponseValidation/unknown_refusal (0.00s)
+    --- PASS: TestProtocolResponseValidation/REFUSAL_CODE_UNSPECIFIED (0.00s)
+    --- PASS: TestProtocolResponseValidation/REFUSAL_CODE_UNKNOWN_METHOD (0.00s)
+    --- PASS: TestProtocolResponseValidation/REFUSAL_CODE_MALFORMED_REQUEST (0.00s)
+    --- PASS: TestProtocolResponseValidation/REFUSAL_CODE_BUDGET (0.00s)
+    --- PASS: TestProtocolResponseValidation/REFUSAL_CODE_STATE (0.00s)
+    --- PASS: TestProtocolResponseValidation/REFUSAL_CODE_NOT_EXPLORED (0.00s)
+    --- PASS: TestProtocolResponseValidation/REFUSAL_CODE_ALLOCATION (0.00s)
+    --- PASS: TestProtocolResponseValidation/REFUSAL_CODE_SCOPE_ACTION (0.00s)
+    --- PASS: TestProtocolResponseValidation/REFUSAL_CODE_UNSUPPORTED (0.00s)
+=== RUN   TestProtocolWrappers
+=== RUN   TestProtocolWrappers/reset
+=== RUN   TestProtocolWrappers/explained
+=== RUN   TestProtocolWrappers/unexplained
+=== RUN   TestProtocolWrappers/answer
+=== RUN   TestProtocolWrappers/nil_reset
+=== RUN   TestProtocolWrappers/nil_judge
+=== RUN   TestProtocolWrappers/missing_observation
+=== RUN   TestProtocolWrappers/empty_observation_type
+=== RUN   TestProtocolWrappers/nil_answer
+=== RUN   TestProtocolWrappers/missing_callback
+=== RUN   TestProtocolWrappers/empty_callback_type
+--- PASS: TestProtocolWrappers (0.00s)
+    --- PASS: TestProtocolWrappers/reset (0.00s)
+    --- PASS: TestProtocolWrappers/explained (0.00s)
+    --- PASS: TestProtocolWrappers/unexplained (0.00s)
+    --- PASS: TestProtocolWrappers/answer (0.00s)
+    --- PASS: TestProtocolWrappers/nil_reset (0.00s)
+    --- PASS: TestProtocolWrappers/nil_judge (0.00s)
+    --- PASS: TestProtocolWrappers/missing_observation (0.00s)
+    --- PASS: TestProtocolWrappers/empty_observation_type (0.00s)
+    --- PASS: TestProtocolWrappers/nil_answer (0.00s)
+    --- PASS: TestProtocolWrappers/missing_callback (0.00s)
+    --- PASS: TestProtocolWrappers/empty_callback_type (0.00s)
+=== RUN   TestExplanationOutcomeWireCompatibility
+--- PASS: TestExplanationOutcomeWireCompatibility (0.00s)
+=== RUN   TestProtocolWireCompatibility
+=== RUN   TestProtocolWireCompatibility/explore_request
+=== RUN   TestProtocolWireCompatibility/rows_request
+=== RUN   TestProtocolWireCompatibility/explore_response
+=== RUN   TestProtocolWireCompatibility/rows_response
+=== RUN   TestProtocolWireCompatibility/refusal_0
+=== RUN   TestProtocolWireCompatibility/refusal_1
+=== RUN   TestProtocolWireCompatibility/refusal_2
+=== RUN   TestProtocolWireCompatibility/refusal_3
+=== RUN   TestProtocolWireCompatibility/refusal_4
+=== RUN   TestProtocolWireCompatibility/refusal_5
+=== RUN   TestProtocolWireCompatibility/refusal_6
+=== RUN   TestProtocolWireCompatibility/refusal_7
+--- PASS: TestProtocolWireCompatibility (0.00s)
+    --- PASS: TestProtocolWireCompatibility/explore_request (0.00s)
+    --- PASS: TestProtocolWireCompatibility/rows_request (0.00s)
+    --- PASS: TestProtocolWireCompatibility/explore_response (0.00s)
+    --- PASS: TestProtocolWireCompatibility/rows_response (0.00s)
+    --- PASS: TestProtocolWireCompatibility/refusal_0 (0.00s)
+    --- PASS: TestProtocolWireCompatibility/refusal_1 (0.00s)
+    --- PASS: TestProtocolWireCompatibility/refusal_2 (0.00s)
+    --- PASS: TestProtocolWireCompatibility/refusal_3 (0.00s)
+    --- PASS: TestProtocolWireCompatibility/refusal_4 (0.00s)
+    --- PASS: TestProtocolWireCompatibility/refusal_5 (0.00s)
+    --- PASS: TestProtocolWireCompatibility/refusal_6 (0.00s)
+    --- PASS: TestProtocolWireCompatibility/refusal_7 (0.00s)
+=== RUN   TestCoreProtocolWireCompatibility
+=== RUN   TestCoreProtocolWireCompatibility/reset_response
+=== RUN   TestCoreProtocolWireCompatibility/judge_request
+=== RUN   TestCoreProtocolWireCompatibility/answer_request
+=== RUN   TestCoreProtocolWireCompatibility/judge_explained
+=== RUN   TestCoreProtocolWireCompatibility/judge_unexplained
+=== RUN   TestCoreProtocolWireCompatibility/answer_response
+--- PASS: TestCoreProtocolWireCompatibility (0.00s)
+    --- PASS: TestCoreProtocolWireCompatibility/reset_response (0.00s)
+    --- PASS: TestCoreProtocolWireCompatibility/judge_request (0.00s)
+    --- PASS: TestCoreProtocolWireCompatibility/answer_request (0.00s)
+    --- PASS: TestCoreProtocolWireCompatibility/judge_explained (0.00s)
+    --- PASS: TestCoreProtocolWireCompatibility/judge_unexplained (0.00s)
+    --- PASS: TestCoreProtocolWireCompatibility/answer_response (0.00s)
+=== RUN   TestProtocolNamespace
+--- PASS: TestProtocolNamespace (0.00s)
+=== RUN   TestStatefulGuestReplayFreezeResetAndIsolation
+--- PASS: TestStatefulGuestReplayFreezeResetAndIsolation (0.01s)
+=== RUN   TestStatefulResponseExhaustionPreservesRunAndOwnership
+=== RUN   TestStatefulResponseExhaustionPreservesRunAndOwnership/METHOD_JUDGE
+=== RUN   TestStatefulResponseExhaustionPreservesRunAndOwnership/METHOD_ANSWER
+=== RUN   TestStatefulResponseExhaustionPreservesRunAndOwnership/METHOD_RESET
+--- PASS: TestStatefulResponseExhaustionPreservesRunAndOwnership (0.10s)
+    --- PASS: TestStatefulResponseExhaustionPreservesRunAndOwnership/METHOD_JUDGE (0.07s)
+    --- PASS: TestStatefulResponseExhaustionPreservesRunAndOwnership/METHOD_ANSWER (0.02s)
+    --- PASS: TestStatefulResponseExhaustionPreservesRunAndOwnership/METHOD_RESET (0.02s)
+=== RUN   TestDeniedDescriptorImports
+=== RUN   TestDeniedDescriptorImports/fd_close
+=== RUN   TestDeniedDescriptorImports/fd_seek
+--- PASS: TestDeniedDescriptorImports (0.00s)
+    --- PASS: TestDeniedDescriptorImports/fd_close (0.00s)
+    --- PASS: TestDeniedDescriptorImports/fd_seek (0.00s)
+=== RUN   TestRejectsDescriptorImportContracts
+=== RUN   TestRejectsDescriptorImportContracts/fd_close/other
+=== RUN   TestRejectsDescriptorImportContracts/fd_close/wasi_snapshot_preview1
+=== RUN   TestRejectsDescriptorImportContracts/fd_close/wasi_snapshot_preview1#01
+=== RUN   TestRejectsDescriptorImportContracts/fd_close/wasi_snapshot_preview1#02
+=== RUN   TestRejectsDescriptorImportContracts/fd_seek/other
+=== RUN   TestRejectsDescriptorImportContracts/fd_seek/wasi_snapshot_preview1
+=== RUN   TestRejectsDescriptorImportContracts/fd_seek/wasi_snapshot_preview1#01
+=== RUN   TestRejectsDescriptorImportContracts/fd_seek/wasi_snapshot_preview1#02
+--- PASS: TestRejectsDescriptorImportContracts (0.00s)
+    --- PASS: TestRejectsDescriptorImportContracts/fd_close/other (0.00s)
+    --- PASS: TestRejectsDescriptorImportContracts/fd_close/wasi_snapshot_preview1 (0.00s)
+    --- PASS: TestRejectsDescriptorImportContracts/fd_close/wasi_snapshot_preview1#01 (0.00s)
+    --- PASS: TestRejectsDescriptorImportContracts/fd_close/wasi_snapshot_preview1#02 (0.00s)
+    --- PASS: TestRejectsDescriptorImportContracts/fd_seek/other (0.00s)
+    --- PASS: TestRejectsDescriptorImportContracts/fd_seek/wasi_snapshot_preview1 (0.00s)
+    --- PASS: TestRejectsDescriptorImportContracts/fd_seek/wasi_snapshot_preview1#01 (0.00s)
+    --- PASS: TestRejectsDescriptorImportContracts/fd_seek/wasi_snapshot_preview1#02 (0.00s)
+PASS
+ok  	umpire.local/model	1.145s
+?   	umpire.local/model/umpire/model/v1	[no test files]
++ CGO_ENABLED=0
++ mise exec -- go -C model/temporal/hosts/go test -tags test_dep -count=1 -v ./...
+=== RUN   TestTemporalResponseExhaustionRollsBackState
+=== RUN   TestTemporalResponseExhaustionRollsBackState/answer_delivery
+=== RUN   TestTemporalResponseExhaustionRollsBackState/judge_terminal
+=== RUN   TestTemporalResponseExhaustionRollsBackState/reset_started
+=== RUN   TestTemporalResponseExhaustionRollsBackState/reset_frozen
+=== RUN   TestTemporalResponseExhaustionRollsBackState/judge_freeze
+=== RUN   TestTemporalResponseExhaustionRollsBackState/annotate_started
+=== RUN   TestTemporalResponseExhaustionRollsBackState/annotate_frozen
+--- PASS: TestTemporalResponseExhaustionRollsBackState (2.34s)
+    --- PASS: TestTemporalResponseExhaustionRollsBackState/answer_delivery (0.40s)
+    --- PASS: TestTemporalResponseExhaustionRollsBackState/judge_terminal (1.18s)
+    --- PASS: TestTemporalResponseExhaustionRollsBackState/reset_started (0.16s)
+    --- PASS: TestTemporalResponseExhaustionRollsBackState/reset_frozen (0.15s)
+    --- PASS: TestTemporalResponseExhaustionRollsBackState/judge_freeze (0.16s)
+    --- PASS: TestTemporalResponseExhaustionRollsBackState/annotate_started (0.12s)
+    --- PASS: TestTemporalResponseExhaustionRollsBackState/annotate_frozen (0.17s)
+=== RUN   TestAnnotationsPreserveFrozenModelAndActualResponseBytes
+--- PASS: TestAnnotationsPreserveFrozenModelAndActualResponseBytes (0.12s)
+=== RUN   TestAnnotationRefusalsLeaveWasmHostUsable
+--- PASS: TestAnnotationRefusalsLeaveWasmHostUsable (0.15s)
+=== RUN   TestCancelSuccessAndRejectedSelfLoop
+=== RUN   TestCancelSuccessAndRejectedSelfLoop/Completed
+=== RUN   TestCancelSuccessAndRejectedSelfLoop/Failed
+=== RUN   TestCancelSuccessAndRejectedSelfLoop/Canceled
+--- PASS: TestCancelSuccessAndRejectedSelfLoop (0.45s)
+    --- PASS: TestCancelSuccessAndRejectedSelfLoop/Completed (0.14s)
+    --- PASS: TestCancelSuccessAndRejectedSelfLoop/Failed (0.13s)
+    --- PASS: TestCancelSuccessAndRejectedSelfLoop/Canceled (0.18s)
+=== RUN   TestCancelStatusContradictionFreezesAndMalformedEnvelopeRefuses
+--- PASS: TestCancelStatusContradictionFreezesAndMalformedEnvelopeRefuses (3.07s)
+=== RUN   TestObservationResultWireCompatibility
+--- PASS: TestObservationResultWireCompatibility (0.00s)
+=== RUN   TestAnswerDeliveryAndObservedTerminal
+=== RUN   TestAnswerDeliveryAndObservedTerminal/Complete
+=== RUN   TestAnswerDeliveryAndObservedTerminal/Fail
+--- PASS: TestAnswerDeliveryAndObservedTerminal (0.30s)
+    --- PASS: TestAnswerDeliveryAndObservedTerminal/Complete (0.12s)
+    --- PASS: TestAnswerDeliveryAndObservedTerminal/Fail (0.18s)
+=== RUN   TestImpossibleObservationFreezesUntilReset
+=== RUN   TestImpossibleObservationFreezesUntilReset/started_without_delivery
+=== RUN   TestImpossibleObservationFreezesUntilReset/terminal_without_delivery
+=== RUN   TestImpossibleObservationFreezesUntilReset/stale_scheduled_after_delivery
+=== RUN   TestImpossibleObservationFreezesUntilReset/opposite_terminal_after_closure
+--- PASS: TestImpossibleObservationFreezesUntilReset (0.61s)
+    --- PASS: TestImpossibleObservationFreezesUntilReset/started_without_delivery (0.15s)
+    --- PASS: TestImpossibleObservationFreezesUntilReset/terminal_without_delivery (0.13s)
+    --- PASS: TestImpossibleObservationFreezesUntilReset/stale_scheduled_after_delivery (0.15s)
+    --- PASS: TestImpossibleObservationFreezesUntilReset/opposite_terminal_after_closure (0.19s)
+=== RUN   TestCallbackRefusalPreservesScheduled
+=== RUN   TestCallbackRefusalPreservesScheduled/missing_task
+=== RUN   TestCallbackRefusalPreservesScheduled/missing_task_URL
+=== RUN   TestCallbackRefusalPreservesScheduled/wrong_task_type
+=== RUN   TestCallbackRefusalPreservesScheduled/alternate_task_URL
+=== RUN   TestCallbackRefusalPreservesScheduled/malformed_task
+=== RUN   TestCallbackRefusalPreservesScheduled/missing_input
+=== RUN   TestCallbackRefusalPreservesScheduled/zero_payloads
+=== RUN   TestCallbackRefusalPreservesScheduled/two_payloads
+=== RUN   TestCallbackRefusalPreservesScheduled/unknown_policy
+=== RUN   TestCallbackRefusalPreservesScheduled/wrong_encoding
+--- PASS: TestCallbackRefusalPreservesScheduled (1.52s)
+    --- PASS: TestCallbackRefusalPreservesScheduled/missing_task (0.16s)
+    --- PASS: TestCallbackRefusalPreservesScheduled/missing_task_URL (0.12s)
+    --- PASS: TestCallbackRefusalPreservesScheduled/wrong_task_type (0.13s)
+    --- PASS: TestCallbackRefusalPreservesScheduled/alternate_task_URL (0.18s)
+    --- PASS: TestCallbackRefusalPreservesScheduled/malformed_task (0.14s)
+    --- PASS: TestCallbackRefusalPreservesScheduled/missing_input (0.15s)
+    --- PASS: TestCallbackRefusalPreservesScheduled/zero_payloads (0.10s)
+    --- PASS: TestCallbackRefusalPreservesScheduled/two_payloads (0.12s)
+    --- PASS: TestCallbackRefusalPreservesScheduled/unknown_policy (0.14s)
+    --- PASS: TestCallbackRefusalPreservesScheduled/wrong_encoding (0.28s)
+=== RUN   TestObservationRefusalPreservesScheduled
+=== RUN   TestObservationRefusalPreservesScheduled/wrong_outer_type
+=== RUN   TestObservationRefusalPreservesScheduled/alternate_outer_URL
+=== RUN   TestObservationRefusalPreservesScheduled/malformed_envelope
+=== RUN   TestObservationRefusalPreservesScheduled/unsupported_method
+=== RUN   TestObservationRefusalPreservesScheduled/missing_method
+=== RUN   TestObservationRefusalPreservesScheduled/missing_response
+=== RUN   TestObservationRefusalPreservesScheduled/missing_response_URL
+=== RUN   TestObservationRefusalPreservesScheduled/wrong_inner_type
+=== RUN   TestObservationRefusalPreservesScheduled/alternate_inner_URL
+=== RUN   TestObservationRefusalPreservesScheduled/malformed_response
+=== RUN   TestObservationRefusalPreservesScheduled/missing_info
+=== RUN   TestObservationRefusalPreservesScheduled/unknown_status
+=== RUN   TestObservationRefusalPreservesScheduled/unknown_run_state
+=== RUN   TestObservationRefusalPreservesScheduled/unspecified_status
+=== RUN   TestObservationRefusalPreservesScheduled/unspecified_running_state
+=== RUN   TestObservationRefusalPreservesScheduled/paused
+=== RUN   TestObservationRefusalPreservesScheduled/closed_with_running_state
+--- PASS: TestObservationRefusalPreservesScheduled (3.66s)
+    --- PASS: TestObservationRefusalPreservesScheduled/wrong_outer_type (0.29s)
+    --- PASS: TestObservationRefusalPreservesScheduled/alternate_outer_URL (0.18s)
+    --- PASS: TestObservationRefusalPreservesScheduled/malformed_envelope (0.15s)
+    --- PASS: TestObservationRefusalPreservesScheduled/unsupported_method (0.25s)
+    --- PASS: TestObservationRefusalPreservesScheduled/missing_method (0.34s)
+    --- PASS: TestObservationRefusalPreservesScheduled/missing_response (0.62s)
+    --- PASS: TestObservationRefusalPreservesScheduled/missing_response_URL (0.19s)
+    --- PASS: TestObservationRefusalPreservesScheduled/wrong_inner_type (0.24s)
+    --- PASS: TestObservationRefusalPreservesScheduled/alternate_inner_URL (0.18s)
+    --- PASS: TestObservationRefusalPreservesScheduled/malformed_response (0.17s)
+    --- PASS: TestObservationRefusalPreservesScheduled/missing_info (0.13s)
+    --- PASS: TestObservationRefusalPreservesScheduled/unknown_status (0.14s)
+    --- PASS: TestObservationRefusalPreservesScheduled/unknown_run_state (0.16s)
+    --- PASS: TestObservationRefusalPreservesScheduled/unspecified_status (0.19s)
+    --- PASS: TestObservationRefusalPreservesScheduled/unspecified_running_state (0.13s)
+    --- PASS: TestObservationRefusalPreservesScheduled/paused (0.16s)
+    --- PASS: TestObservationRefusalPreservesScheduled/closed_with_running_state (0.15s)
+=== RUN   TestCallbackEnvelopeRefusalPreservesScheduled
+=== RUN   TestCallbackEnvelopeRefusalPreservesScheduled/wrong_outer_type
+=== RUN   TestCallbackEnvelopeRefusalPreservesScheduled/alternate_outer_URL
+=== RUN   TestCallbackEnvelopeRefusalPreservesScheduled/malformed_envelope
+--- PASS: TestCallbackEnvelopeRefusalPreservesScheduled (0.43s)
+    --- PASS: TestCallbackEnvelopeRefusalPreservesScheduled/wrong_outer_type (0.15s)
+    --- PASS: TestCallbackEnvelopeRefusalPreservesScheduled/alternate_outer_URL (0.16s)
+    --- PASS: TestCallbackEnvelopeRefusalPreservesScheduled/malformed_envelope (0.11s)
+=== RUN   TestCancelAndTimeoutDoNotInventEvidence
+=== RUN   TestCancelAndTimeoutDoNotInventEvidence/cancel_scheduled
+=== RUN   TestCancelAndTimeoutDoNotInventEvidence/cancel_started
+=== RUN   TestCancelAndTimeoutDoNotInventEvidence/schedule_to_start_timeout
+=== RUN   TestCancelAndTimeoutDoNotInventEvidence/start_to_close_timeout
+--- PASS: TestCancelAndTimeoutDoNotInventEvidence (0.46s)
+    --- PASS: TestCancelAndTimeoutDoNotInventEvidence/cancel_scheduled (0.12s)
+    --- PASS: TestCancelAndTimeoutDoNotInventEvidence/cancel_started (0.11s)
+    --- PASS: TestCancelAndTimeoutDoNotInventEvidence/schedule_to_start_timeout (0.12s)
+    --- PASS: TestCancelAndTimeoutDoNotInventEvidence/start_to_close_timeout (0.11s)
+=== RUN   TestRepeatedDeliveryAndInstanceIsolation
+--- PASS: TestRepeatedDeliveryAndInstanceIsolation (0.42s)
+=== RUN   TestEmbeddedProbeContextsSurviveResetAndIndependentHosts
+    probes_test.go:51: host=0 context=0 mode=0 round=0 duration=4.459265292s pages=52
+    probes_test.go:51: host=0 context=0 mode=1 round=0 duration=1.408958ms pages=52
+    probes_test.go:51: host=0 context=0 mode=2 round=0 duration=4.982917ms pages=52
+    probes_test.go:51: host=0 context=0 mode=3 round=0 duration=249.908125ms pages=52
+    probes_test.go:51: host=0 context=1 mode=0 round=1 duration=548.005458ms pages=52
+    probes_test.go:51: host=0 context=1 mode=1 round=1 duration=191.083958ms pages=52
+    probes_test.go:51: host=0 context=1 mode=2 round=1 duration=55.721875ms pages=52
+    probes_test.go:51: host=0 context=1 mode=3 round=1 duration=377.751667ms pages=52
+    probes_test.go:51: host=0 context=0 mode=0 round=2 duration=143.663875ms pages=52
+    probes_test.go:51: host=0 context=0 mode=1 round=2 duration=3.538375ms pages=52
+    probes_test.go:51: host=0 context=0 mode=2 round=2 duration=90.8485ms pages=52
+    probes_test.go:51: host=0 context=0 mode=3 round=2 duration=200.468042ms pages=52
+    probes_test.go:51: host=1 context=1 mode=0 round=0 duration=4.548738416s pages=52
+    probes_test.go:51: host=1 context=1 mode=1 round=0 duration=3.885042ms pages=52
+    probes_test.go:51: host=1 context=1 mode=2 round=0 duration=7.18425ms pages=52
+    probes_test.go:51: host=1 context=1 mode=3 round=0 duration=100.15725ms pages=52
+    probes_test.go:51: host=1 context=0 mode=0 round=1 duration=240.587833ms pages=52
+    probes_test.go:51: host=1 context=0 mode=1 round=1 duration=1.688ms pages=52
+    probes_test.go:51: host=1 context=0 mode=2 round=1 duration=2.998375ms pages=52
+    probes_test.go:51: host=1 context=0 mode=3 round=1 duration=413.43375ms pages=52
+    probes_test.go:51: host=1 context=1 mode=0 round=2 duration=749.503916ms pages=52
+    probes_test.go:51: host=1 context=1 mode=1 round=2 duration=1.449167ms pages=52
+    probes_test.go:51: host=1 context=1 mode=2 round=2 duration=8.680625ms pages=52
+    probes_test.go:51: host=1 context=1 mode=3 round=2 duration=445.212625ms pages=52
+--- PASS: TestEmbeddedProbeContextsSurviveResetAndIndependentHosts (13.15s)
+=== RUN   TestProbeLocalRefusalNeverBecomesServerObservation
+--- PASS: TestProbeLocalRefusalNeverBecomesServerObservation (0.00s)
+=== RUN   TestProbeRecipeExpansionAndRefusals
+=== RUN   TestProbeRecipeExpansionAndRefusals/corruption
+=== RUN   TestProbeRecipeExpansionAndRefusals/length
+=== RUN   TestProbeRecipeExpansionAndRefusals/budget
+=== RUN   TestProbeRecipeExpansionAndRefusals/overflow
+=== RUN   TestProbeRecipeExpansionAndRefusals/zero_repeat
+=== RUN   TestProbeRecipeExpansionAndRefusals/empty_literal
+=== RUN   TestProbeRecipeExpansionAndRefusals/segment_budget
+--- PASS: TestProbeRecipeExpansionAndRefusals (0.13s)
+    --- PASS: TestProbeRecipeExpansionAndRefusals/corruption (0.01s)
+    --- PASS: TestProbeRecipeExpansionAndRefusals/length (0.00s)
+    --- PASS: TestProbeRecipeExpansionAndRefusals/budget (0.00s)
+    --- PASS: TestProbeRecipeExpansionAndRefusals/overflow (0.00s)
+    --- PASS: TestProbeRecipeExpansionAndRefusals/zero_repeat (0.00s)
+    --- PASS: TestProbeRecipeExpansionAndRefusals/empty_literal (0.00s)
+    --- PASS: TestProbeRecipeExpansionAndRefusals/segment_budget (0.00s)
+=== RUN   TestProbeObservationPatternAndDetails
+--- PASS: TestProbeObservationPatternAndDetails (0.00s)
+=== RUN   TestGenericProbeObservationMatchesEachPredictionWithoutValues
+--- PASS: TestGenericProbeObservationMatchesEachPredictionWithoutValues (0.00s)
+=== RUN   TestProbeMetadataAdmissionAndRetiredWireFields
+--- PASS: TestProbeMetadataAdmissionAndRetiredWireFields (0.00s)
+PASS
+ok  	umpire.local/temporal	28.431s
+?   	umpire.local/temporal/umpire/temporal/v1	[no test files]
++ python3 /Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/artifacts/fn-236-host-independent-guest-compiler-inputs/source-manifest.py /Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/fn236-snapshot-proof/macos/source-a
++ cmp /Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/fn236-snapshot-proof/frozen-source.json /Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/artifacts/fn-236-host-independent-guest-compiler-inputs/macos-a-final.json
++ date -u
+Wed Oct 21 17:54:40 UTC 2026

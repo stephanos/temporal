@@ -1,0 +1,24 @@
+{
+  "branch_name": "fn-236-host-independent-guest-compiler-inputs",
+  "created_at": "2026-10-21T17:25:07.668019Z",
+  "depends_on_epics": [],
+  "id": "fn-236-host-independent-guest-compiler-inputs",
+  "next_task": 1,
+  "plan_review_status": "unknown",
+  "plan_reviewed_at": null,
+  "spec_path": ".flow/specs/fn-236-host-independent-guest-compiler-inputs.md",
+  "status": "open",
+  "title": "Host-independent guest compiler inputs",
+  "tracker": {
+    "baseHashFlow": null,
+    "baseHashTracker": null,
+    "depRelations": [],
+    "id": null,
+    "identifier": null,
+    "lastSyncedAt": null,
+    "mergeBaseFlow": null,
+    "mergeBaseTracker": null,
+    "url": null
+  },
+  "updated_at": "2026-10-21T17:45:49.494620Z"
+}

@@ -9,6 +9,10 @@ Add an Apalache consumer to the fixture runner, selected per fixture by the pres
 **Files:** the consumer registry in `umpire-testing` and the shared fixtures in `umpire/tests/fixtures/` (fn-210 R29), Kettle's `expected/apalache.txt`, Makefile.
 
 **Quick commands:** `UMPIRE_BACKENDS=require make model-check`; `make model-check` (unchanged default)
+### Required review corrections
+
+Implement disjoint consumer ownership per the parent: apalache.txt plus apalache/paths/*.txt, while native checker retains paths/*.txt. Prove default skipped and required modes with a committed violation path. Add invariant, postcondition and after-filtered negative controls, and ensure NotRun/disagreement cannot pass via golden regeneration. Include inherited parameterized World/input fixtures after fn-227, with explicit supported-source admission.
+
 ## Acceptance
 - Kettle's `apalache.txt` shows agreement for every invariant and postcondition within the bound.
 - Default gate unchanged; a disagreement is listed and fails.

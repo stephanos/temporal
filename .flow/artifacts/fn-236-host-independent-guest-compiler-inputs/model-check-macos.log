@@ -1,0 +1,1226 @@
+[1;36mCheck model (fmt, clippy, docs, tests)...[0m
+TLC backend required: real source-lifted agreement and semantic controls
+warning: unstable feature specified for `-Ctarget-feature`: `exception-handling`
+  |
+  = note: this feature is not stably supported; its behavior can change in the future
+
+warning: `umpire-dsl` (lib) generated 1 warning
+warning: `umpire-checker` (lib) generated 1 warning (1 duplicate)
+warning: `umpire-wasm` (lib) generated 1 warning (1 duplicate)
+warning: `umpire-annotations` (lib) generated 1 warning (1 duplicate)
+warning: `umpire-temporal-annotate` (lib) generated 1 warning (1 duplicate)
+warning: `umpire-temporal-api` (lib) generated 1 warning (1 duplicate)
+warning: `umpire-temporal` (lib) generated 1 warning (1 duplicate)
+warning: `umpire-temporal-guest` (lib) generated 1 warning (1 duplicate)
+    Finished `guest` profile [optimized] target(s) in 2.54s
+................
+----------------------------------------------------------------------
+Ran 16 tests in 26.417s
+
+OK
+capability controls: both core policies reject filesystem, clock and thread APIs/types
+
+running 2 tests
+..
+test result: ok. 2 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.17s
+
+ Downloading crates ...
+  Downloaded proc-macro-crate v3.5.0
+  Downloaded rand_xorshift v0.5.0
+  Downloaded archery v1.2.3
+  Downloaded rand_xoshiro v0.7.0
+  Downloaded cfg_aliases v0.2.2
+  Downloaded target-tuple v1.0.2
+  Downloaded serde_spanned v1.1.2
+  Downloaded glob v0.3.4
+  Downloaded toml_writer v1.1.3+spec-1.1.0
+  Downloaded toml_datetime v1.1.2+spec-1.1.0
+  Downloaded core_detect v1.0.0
+  Downloaded bit-set v0.11.1
+  Downloaded bit-vec v0.10.1
+  Downloaded toml_parser v1.1.5+spec-1.1.0
+  Downloaded trybuild v1.0.122
+  Downloaded borsh-derive v1.8.1
+  Downloaded chacha20 v0.10.2
+  Downloaded bytemuck v1.25.2
+  Downloaded imbl-sized-chunks v0.2.0
+  Downloaded toml v1.1.8+spec-1.1.0
+  Downloaded safe_arch v0.7.4
+  Downloaded toml_edit v0.25.17+spec-1.1.0
+  Downloaded borsh v1.8.1
+  Downloaded rand v0.10.3
+  Downloaded wide v0.7.33
+  Downloaded imbl v7.0.2
+  Downloaded serde_json v1.0.154
+  Downloaded proptest v1.12.0
+   Compiling unicode-ident v1.0.27
+   Compiling smallvec v1.16.3
+   Compiling proc-macro2 v1.0.107
+   Compiling getrandom v0.4.3
+   Compiling quote v1.0.47
+   Compiling syn v3.0.9
+   Compiling syn v2.0.119
+   Compiling darling_core v0.24.1
+   Compiling proc-macro-utils v0.10.0
+   Compiling manyhow-macros v0.14.1
+   Compiling umpire-dsl-macros v0.0.1 (/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/fn236-candidate/model/umpire/dsl/macros)
+   Compiling enum-iterator-derive v1.5.0
+   Compiling darling_macro v0.24.1
+   Compiling darling v0.24.1
+   Compiling manyhow v0.14.1
+   Compiling thiserror-impl v2.0.21
+   Compiling umpire-dsl v0.0.1 (/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/fn236-candidate/model/umpire/dsl)
+   Compiling umpire-checker v0.0.1 (/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/fn236-candidate/model/umpire/checker)
+    Checking equivalent v1.0.3
+    Checking hashbrown v0.17.1
+    Checking foldhash v0.1.5
+    Checking hashbrown v0.15.5
+    Checking indexmap v2.14.2
+    Checking fixedbitset v0.5.7
+    Checking petgraph v0.8.3
+    Checking thiserror v2.0.21
+    Checking enum-iterator v2.3.0
+    Checking rustc-hash v2.1.3
+    Checking libc v0.2.191
+   Compiling prost-derive v0.14.4
+    Checking rand_core v0.10.1
+   Compiling prettyplease v0.2.37
+    Checking cfg-if v1.0.5
+   Compiling errno v0.3.14
+   Compiling bytes v1.12.1
+   Compiling regex-syntax v0.8.11
+   Compiling bitflags v2.13.2
+   Compiling regex-automata v0.4.18
+   Compiling rustix v1.1.5
+   Compiling prost v0.14.4
+   Compiling fastrand v2.5.0
+   Compiling once_cell v1.21.4
+   Compiling tempfile v3.27.0
+   Compiling prost-types v0.14.4
+   Compiling regex v1.13.1
+   Compiling prost-build v0.14.4
+    Checking console v0.16.6
+   Compiling umpire-wasm v0.0.1 (/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/fn236-candidate/model/umpire/wasm)
+    Checking similar v2.7.0
+    Checking insta v1.49.0
+    Checking prettyplease v0.3.0
+    Checking umpire-lift v0.0.1 (/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/fn236-candidate/model/umpire/lift)
+    Checking umpire-tlc v0.0.1 (/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/fn236-candidate/model/umpire/backends/tlc)
+   Compiling serde_core v1.0.229
+   Compiling zmij v1.0.23
+    Checking winnow v1.0.4
+   Compiling target-tuple v1.0.2
+   Compiling serde_json v1.0.154
+   Compiling serde v1.0.229
+    Checking toml_parser v1.1.5+spec-1.1.0
+    Checking toml_datetime v1.1.2+spec-1.1.0
+    Checking serde_spanned v1.1.2
+    Checking memchr v2.8.3
+    Checking itoa v1.0.18
+    Checking toml_writer v1.1.3+spec-1.1.0
+    Checking toml v1.1.8+spec-1.1.0
+   Compiling serde_derive v1.0.229
+    Checking termcolor v1.4.1
+    Checking glob v0.3.4
+    Checking trybuild v1.0.122
+   Compiling umpire-temporal-annotate-syntax v0.0.1 (/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/fn236-candidate/model/temporal/annotate/syntax)
+    Checking umpire-testing v0.0.1 (/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/fn236-candidate/model/umpire/testing)
+    Checking umpire-annotations v0.0.1 (/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/fn236-candidate/model/umpire/annotations)
+   Compiling umpire-suite v0.0.1 (/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/fn236-candidate/model/umpire/suite)
+    Checking bytemuck v1.25.2
+   Compiling umpire-temporal-api v0.0.1 (/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/fn236-candidate/model/temporal/api)
+   Compiling umpire-temporal-annotate-macros v0.0.1 (/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/fn236-candidate/model/temporal/annotate/macros)
+    Checking umpire-temporal-annotate v0.0.1 (/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/fn236-candidate/model/temporal/annotate)
+   Compiling umpire-temporal-realization-macros v0.0.1 (/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/fn236-candidate/model/temporal/realization/macros)
+    Checking safe_arch v0.7.4
+    Checking rand_core v0.9.5
+    Checking rand_xoshiro v0.7.0
+    Checking wide v0.7.33
+    Checking imbl-sized-chunks v0.2.0
+    Checking archery v1.2.3
+    Checking either v1.19.0
+    Checking itertools v0.14.0
+    Checking imbl v7.0.2
+    Checking umpire-temporal v0.0.1 (/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/fn236-candidate/model/temporal/realization)
+   Compiling autocfg v1.5.1
+    Checking multimap v0.10.1
+    Checking heck v0.5.0
+    Checking log v0.4.34
+   Compiling num-traits v0.2.19
+    Checking strsim v0.11.1
+    Checking ident_case v1.0.1
+    Checking wait-timeout v0.2.1
+    Checking fnv v1.0.7
+    Checking bit-vec v0.10.1
+    Checking quick-error v1.2.3
+    Checking rusty-fork v0.3.1
+    Checking bit-set v0.11.1
+    Checking rand v0.10.3
+    Checking chacha20 v0.10.2
+    Checking rand_xorshift v0.5.0
+    Checking unarray v0.1.4
+    Checking core_detect v1.0.0
+    Checking proptest v1.12.0
+   Compiling umpire-temporal-tests v0.0.1 (/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/fn236-candidate/model/temporal/testing)
+warning: umpire-temporal-tests@0.0.1: ../feature/activity/model.rs:31:5: warning: trait or generic impl in machine module is unsupported; TLA+ emission refused
+   Compiling umpire-tests v0.0.1 (/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/fn236-candidate/model/umpire/tests)
+warning: umpire-tests@0.0.1: fixtures/accepted_self_loops/model.rs:28:21: warning: unsupported effect statement; TLA+ emission refused
+warning: umpire-tests@0.0.1: fixtures/kettle_cut/model.rs:1:1: warning: the lifter reads #[machine] Models; this source declares none; TLA+ emission refused
+warning: umpire-tests@0.0.1: fixtures/kettle_progress/model.rs:1:1: warning: the lifter reads #[machine] Models; this source declares none; TLA+ emission refused
+warning: umpire-tests@0.0.1: fixtures/progress_dead_end/model.rs:6:1: warning: the lifter reads #[machine] Models; `impl Machine for ProgressDeadEnd<M>` implements Machine by hand; TLA+ emission refused
+warning: umpire-tests@0.0.1: fixtures/rejecting_steps/model.rs:16:5: warning: unsupported declaration in machine module; TLA+ emission refused
+    Checking umpire-temporal-guest v0.0.1 (/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/fn236-candidate/model/temporal/guest)
+    Checking umpire-overflow-guest v0.0.1 (/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/fn236-candidate/model/umpire/wasm/guests/overflow)
+    Checking umpire-caught-panic-guest v0.0.1 (/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/fn236-candidate/model/umpire/wasm/guests/caught-panic)
+    Checking umpire-control-guest v0.0.1 (/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/fn236-candidate/model/umpire/wasm/guests/control)
+    Checking umpire-stock-guest v0.0.1 (/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/fn236-candidate/model/umpire/wasm/guests/stock)
+    Finished `dev` profile [unoptimized + debuginfo] target(s) in 1m 42s
+
+running 0 tests
+
+test result: ok. 0 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.00s
+
+
+running 6 tests
+......
+test result: ok. 6 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.00s
+
+
+running 15 tests
+...............
+test result: ok. 15 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.31s
+
+
+running 10 tests
+..........
+test result: ok. 10 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.05s
+
+
+running 4 tests
+....
+test result: ok. 4 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.00s
+
+
+running 7 tests
+.......
+test result: ok. 7 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.00s
+
+
+running 5 tests
+.....
+test result: ok. 5 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.00s
+
+
+running 0 tests
+
+test result: ok. 0 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.00s
+
+
+running 0 tests
+
+test result: ok. 0 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.00s
+
+
+running 0 tests
+
+test result: ok. 0 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.00s
+
+
+running 12 tests
+............
+test result: ok. 12 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.37s
+
+
+running 1 test
+.
+test result: ok. 1 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.04s
+
+
+running 0 tests
+
+test result: ok. 0 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.00s
+
+
+running 0 tests
+
+test result: ok. 0 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.00s
+
+
+running 2 tests
+..
+test result: ok. 2 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.00s
+
+
+running 4 tests
+....
+test result: ok. 4 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.01s
+
+
+running 1 test
+.
+test result: ok. 1 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.00s
+
+
+running 1 test
+.
+test result: ok. 1 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.00s
+
+
+running 6 tests
+......
+test result: ok. 6 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.08s
+
+
+running 3 tests
+...
+test result: ok. 3 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.01s
+
+
+running 1 test
+.
+test result: ok. 1 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.00s
+
+
+running 5 tests
+.....
+test result: ok. 5 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.02s
+
+
+running 5 tests
+.....
+test result: ok. 5 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.00s
+
+
+running 4 tests
+....
+test result: ok. 4 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.01s
+
+
+running 4 tests
+....
+test result: ok. 4 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.00s
+
+
+running 13 tests
+.............
+test result: ok. 13 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.09s
+
+
+running 3 tests
+...
+test result: ok. 3 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.00s
+
+
+running 2 tests
+   Compiling proc-macro2 v1.0.107
+   Compiling quote v1.0.47
+   Compiling unicode-ident v1.0.27
+   Compiling libc v0.2.191
+   Compiling syn v3.0.9
+   Compiling strsim v0.11.1
+   Compiling ident_case v1.0.1
+   Compiling smallvec v1.16.3
+   Compiling proc-macro-utils v0.10.0
+   Compiling manyhow-macros v0.14.1
+   Compiling darling_core v0.24.1
+   Compiling syn v2.0.119
+   Compiling darling_macro v0.24.1
+   Compiling umpire-dsl-macros v0.0.1 (/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/fn236-candidate/model/umpire/dsl/macros)
+   Compiling prettyplease v0.3.0
+   Compiling rustix v1.1.5
+   Compiling thiserror v2.0.21
+   Compiling getrandom v0.4.3
+   Compiling enum-iterator-derive v1.5.0
+   Compiling darling v0.24.1
+   Compiling thiserror-impl v2.0.21
+   Compiling manyhow v0.14.1
+    Checking errno v0.3.14
+   Compiling umpire-dsl v0.0.1 (/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/fn236-candidate/model/umpire/dsl)
+    Checking bitflags v2.13.2
+    Checking foldhash v0.1.5
+    Checking cfg-if v1.0.5
+    Checking hashbrown v0.17.1
+    Checking equivalent v1.0.3
+    Checking indexmap v2.14.2
+    Checking hashbrown v0.15.5
+    Checking enum-iterator v2.3.0
+   Compiling umpire-checker v0.0.1 (/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/fn236-candidate/model/umpire/checker)
+    Checking fastrand v2.5.0
+    Checking once_cell v1.21.4
+    Checking fixedbitset v0.5.7
+    Checking petgraph v0.8.3
+    Checking tempfile v3.27.0
+    Checking umpire-lift v0.0.1 (/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/fn236-candidate/model/umpire/lift)
+    Checking console v0.16.6
+    Checking rustc-hash v2.1.3
+    Checking similar v2.7.0
+    Checking insta v1.49.0
+    Checking umpire-tlc v0.0.1 (/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/fn236-candidate/model/umpire/backends/tlc)
+    Checking umpire-testing v0.0.1 (/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/fn236-candidate/model/umpire/testing)
+    Checking umpire-dsl-tests v0.0.0 (/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/fn236-builds/gate-macos/tests/trybuild/umpire-dsl)
+    Finished `dev` profile [unoptimized + debuginfo] target(s) in 19.84s
+
+
+test tests/ui/missing_display_action.rs ... ok
+test tests/ui/missing_display_state.rs ... ok
+
+
+.    Checking umpire-dsl-tests v0.0.0 (/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/fn236-builds/gate-macos/tests/trybuild/umpire-dsl)
+    Finished `dev` profile [unoptimized + debuginfo] target(s) in 0.15s
+
+
+test tests/ui/path_language_claim_no_gap.rs ... ok
+test tests/ui/path_language_claims.rs ... ok
+test tests/ui/path_language_duplicate_fields.rs ... ok
+test tests/ui/path_language_malformed.rs ... ok
+test tests/ui/path_language_outcome_state.rs ... ok
+test tests/ui/path_language_unknown_fields.rs ... ok
+test tests/ui/path_leading_gap.rs ... ok
+test tests/ui/path_no_gap.rs ... ok
+test tests/ui/path_one_waypoint.rs ... ok
+test tests/ui/path_trailing_gap.rs ... ok
+test tests/ui/path_two_gaps.rs ... ok
+
+
+.
+test result: ok. 2 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 28.64s
+
+
+running 1 test
+.
+test result: ok. 1 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.00s
+
+
+running 1 test
+.
+test result: ok. 1 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.00s
+
+
+running 0 tests
+
+test result: ok. 0 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.00s
+
+
+running 3 tests
+    Checking syn v3.0.9
+    Checking strsim v0.11.1
+.    Checking ident_case v1.0.1
+    Checking prettyplease v0.3.0
+    Checking darling_core v0.24.1
+    Checking umpire-lift v0.0.1 (/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/fn236-candidate/model/umpire/lift)
+    Checking umpire-tlc v0.0.1 (/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/fn236-candidate/model/umpire/backends/tlc)
+    Checking manyhow v0.14.1
+    Checking umpire-testing v0.0.1 (/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/fn236-candidate/model/umpire/testing)
+    Checking darling v0.24.1
+    Checking umpire-dsl-macros-tests v0.0.0 (/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/fn236-builds/gate-macos/tests/trybuild/umpire-dsl-macros)
+    Finished `dev` profile [unoptimized + debuginfo] target(s) in 2.04s
+
+
+test tests/ui/action_inputs_duplicate.rs ... ok
+test tests/ui/action_inputs_invalid.rs ... ok
+test tests/ui/action_inputs_missing.rs ... ok
+test tests/ui/action_inputs_variant_fault.rs ... ok
+test tests/ui/machine_actor_arity.rs ... ok
+test tests/ui/machine_actor_mismatch.rs ... ok
+test tests/ui/machine_actor_receiver.rs ... ok
+test tests/ui/machine_claim_async.rs ... ok
+test tests/ui/machine_claim_returns.rs ... ok
+test tests/ui/machine_duplicate_actor.rs ... ok
+test tests/ui/machine_duplicate_kind.rs ... ok
+test tests/ui/machine_effect_arguments.rs ... ok
+test tests/ui/machine_handler_async.rs ... ok
+test tests/ui/machine_handler_returns.rs ... ok
+test tests/ui/machine_legacy_effects.rs ... ok
+test tests/ui/machine_legacy_invariants.rs ... ok
+test tests/ui/machine_legacy_scopes.rs ... ok
+test tests/ui/machine_legacy_transitions.rs ... ok
+test tests/ui/machine_marker_trait.rs ... ok
+test tests/ui/machine_misplaced_effect.rs ... ok
+test tests/ui/machine_missing_actor.rs ... ok
+test tests/ui/machine_mutable_aliased_helper.rs ... ok
+test tests/ui/machine_mutable_const_helper.rs ... ok
+test tests/ui/machine_mutable_helper.rs ... ok
+test tests/ui/machine_mutable_invariant.rs ... ok
+test tests/ui/machine_mutable_local_helper.rs ... ok
+test tests/ui/machine_mutable_local_projection.rs ... ok
+test tests/ui/machine_mutable_nested_helper.rs ... ok
+test tests/ui/machine_mutable_qualified_helper.rs ... ok
+test tests/ui/machine_mutable_typed_helper.rs ... ok
+test tests/ui/machine_nonactor_parameter.rs ... ok
+test tests/ui/machine_noncontiguous_kind.rs ... ok
+test tests/ui/machine_nonexhaustive_actor.rs ... ok
+test tests/ui/machine_out_of_order.rs ... ok
+test tests/ui/machine_post_async.rs ... ok
+test tests/ui/machine_post_returns_unit.rs ... ok
+test tests/ui/machine_progress_chain.rs ... ok
+test tests/ui/machine_scope_actor.rs ... ok
+test tests/ui/machine_stay_effect.rs ... ok
+test tests/ui/machine_stay_helper.rs ... ok
+test tests/ui/machine_unknown_actor.rs ... ok
+test tests/ui/machine_unknown_after.rs ... ok
+test tests/ui/machine_unknown_scope.rs ... ok
+test tests/ui/machine_unsafe_allowed.rs ... ok
+test tests/ui/machine_within_bare.rs ... ok
+test tests/ui/non_range_starts.rs ... ok
+test tests/ui/non_unit_internal.rs ... ok
+test tests/ui/stay_outside_machine.rs ... ok
+test tests/ui/variant_internal.rs ... ok
+test tests/ui/world_duplicate.rs ... ok
+test tests/ui/world_generic_child_readonly.rs ... ok
+test tests/ui/world_generic_readonly.rs ... ok
+test tests/ui/world_parameter_duplicate.rs ... ok
+test tests/ui/world_parameter_mutable.rs ... ok
+test tests/ui/world_parameter_position.rs ... ok
+test tests/ui/world_starts_empty_mixed.rs ... ok
+test tests/ui/world_starts_mixed.rs ... ok
+
+
+.   Compiling unicode-ident v1.0.27
+   Compiling libc v0.2.191
+   Compiling proc-macro2 v1.0.107
+   Compiling quote v1.0.47
+   Compiling syn v3.0.9
+   Compiling errno v0.3.14
+   Compiling cfg-if v1.0.5
+   Compiling foldhash v0.1.5
+   Compiling hashbrown v0.17.1
+   Compiling equivalent v1.0.3
+   Compiling bitflags v2.13.2
+   Compiling rustix v1.1.5
+   Compiling indexmap v2.14.2
+   Compiling prettyplease v0.3.0
+   Compiling hashbrown v0.15.5
+   Compiling getrandom v0.4.3
+   Compiling thiserror v2.0.21
+   Compiling enum-iterator v2.3.0
+   Compiling fastrand v2.5.0
+   Compiling once_cell v1.21.4
+   Compiling fixedbitset v0.5.7
+   Compiling smallvec v1.16.3
+   Compiling strsim v0.11.1
+   Compiling ident_case v1.0.1
+   Compiling darling_core v0.24.1
+   Compiling umpire-dsl v0.0.1 (/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/fn236-candidate/model/umpire/dsl)
+   Compiling petgraph v0.8.3
+   Compiling tempfile v3.27.0
+   Compiling umpire-lift v0.0.1 (/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/fn236-candidate/model/umpire/lift)
+   Compiling console v0.16.6
+   Compiling rustc-hash v2.1.3
+   Compiling similar v2.7.0
+   Compiling insta v1.49.0
+   Compiling umpire-checker v0.0.1 (/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/fn236-candidate/model/umpire/checker)
+   Compiling umpire-tlc v0.0.1 (/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/fn236-candidate/model/umpire/backends/tlc)
+   Compiling umpire-testing v0.0.1 (/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/fn236-candidate/model/umpire/testing)
+   Compiling darling v0.24.1
+   Compiling manyhow v0.14.1
+   Compiling umpire-dsl-macros-tests v0.0.0 (/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/fn236-builds/gate-macos/tests/trybuild/umpire-dsl-macros)
+    Finished `dev` profile [unoptimized + debuginfo] target(s) in 16.11s
+
+
+test tests/pass/private_state.rs ... ok
+test tests/pass/public_actor_private_state.rs ... ok
+
+
+.
+test result: ok. 3 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 38.37s
+
+
+running 0 tests
+
+test result: ok. 0 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.00s
+
+
+running 3 tests
+...
+test result: ok. 3 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 9.29s
+
+
+running 2 tests
+..
+test result: ok. 2 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 1.92s
+
+
+running 1 test
+.
+test result: ok. 1 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 1.97s
+
+
+running 1 test
+.
+test result: ok. 1 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 1.61s
+
+
+running 13 tests
+.............
+test result: ok. 13 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.01s
+
+
+running 4 tests
+....
+test result: ok. 4 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 2.27s
+
+
+running 0 tests
+
+test result: ok. 0 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.00s
+
+
+running 0 tests
+
+test result: ok. 0 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.00s
+
+
+running 11 tests
+...........
+test result: ok. 11 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.01s
+
+
+running 3 tests
+...
+test result: ok. 3 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.00s
+
+
+running 1 test
+.
+test result: ok. 1 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.00s
+
+
+running 3 tests
+...
+test result: ok. 3 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.00s
+
+
+running 1 test
+.
+test result: ok. 1 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.07s
+
+
+running 5 tests
+.....
+test result: ok. 5 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.00s
+
+
+running 4 tests
+....
+test result: ok. 4 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.00s
+
+
+running 6 tests
+......
+test result: ok. 6 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.03s
+
+
+running 1 test
+.
+test result: ok. 1 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.00s
+
+
+running 3 tests
+...
+test result: ok. 3 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 3.17s
+
+
+running 10 tests
+..........
+test result: ok. 10 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.01s
+
+
+running 4 tests
+....
+test result: ok. 4 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.00s
+
+
+running 1 test
+   Compiling anyhow v1.0.104
+   Compiling syn v2.0.119
+   Compiling either v1.19.0
+   Compiling libc v0.2.191
+   Compiling itertools v0.14.0
+   Compiling smallvec v1.16.3
+   Compiling prost-derive v0.14.4
+   Compiling proc-macro-utils v0.10.0
+   Compiling foldhash v0.1.5
+   Compiling hashbrown v0.17.1
+   Compiling equivalent v1.0.3
+   Compiling hashbrown v0.15.5
+   Compiling indexmap v2.14.2
+   Compiling rustix v1.1.5
+   Compiling errno v0.3.14
+   Compiling manyhow-macros v0.14.1
+   Compiling enum-iterator-derive v1.5.0
+   Compiling bitflags v2.13.2
+   Compiling regex-syntax v0.8.11
+   Compiling prettyplease v0.2.37
+   Compiling fixedbitset v0.5.7
+   Compiling bytes v1.12.1
+   Compiling prost v0.14.4
+   Compiling regex-automata v0.4.18
+   Compiling petgraph v0.8.3
+   Compiling manyhow v0.14.1
+   Compiling once_cell v1.21.4
+   Compiling fastrand v2.5.0
+   Compiling tempfile v3.27.0
+   Compiling umpire-dsl-macros v0.0.1 (/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/fn236-candidate/model/umpire/dsl/macros)
+   Compiling regex v1.13.1
+   Compiling prost-types v0.14.4
+   Compiling multimap v0.10.1
+   Compiling log v0.4.34
+   Compiling heck v0.5.0
+   Compiling prost-build v0.14.4
+   Compiling thiserror v2.0.21
+   Compiling enum-iterator v2.3.0
+   Compiling umpire-wasm v0.0.1 (/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/fn236-candidate/model/umpire/wasm)
+   Compiling umpire-dsl v0.0.1 (/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/fn236-candidate/model/umpire/dsl)
+   Compiling umpire-checker v0.0.1 (/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/fn236-candidate/model/umpire/checker)
+   Compiling rustc-hash v2.1.3
+   Compiling umpire-temporal-annotate-syntax v0.0.1 (/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/fn236-candidate/model/temporal/annotate/syntax)
+    Checking umpire-annotations v0.0.1 (/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/fn236-candidate/model/umpire/annotations)
+   Compiling umpire-temporal-realization-macros v0.0.1 (/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/fn236-candidate/model/temporal/realization/macros)
+   Compiling umpire-temporal-api v0.0.1 (/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/fn236-candidate/model/temporal/api)
+   Compiling umpire-temporal-annotate-macros v0.0.1 (/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/fn236-candidate/model/temporal/annotate/macros)
+    Checking umpire-temporal-annotate v0.0.1 (/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/fn236-candidate/model/temporal/annotate)
+    Checking umpire-temporal v0.0.1 (/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/fn236-candidate/model/temporal/realization)
+    Checking umpire-temporal-tests v0.0.0 (/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/fn236-builds/gate-macos/tests/trybuild/umpire-temporal)
+    Finished `dev` profile [unoptimized + debuginfo] target(s) in 23.06s
+
+
+test tests/ui/phase_enum_addition.rs ... ok
+
+
+.
+test result: ok. 1 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 30.76s
+
+
+running 12 tests
+............
+test result: ok. 12 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 20.27s
+
+
+running 14 tests
+..............
+test result: ok. 14 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.00s
+
+
+running 1 test
+    Checking umpire-temporal-tests v0.0.0 (/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/fn236-builds/gate-macos/tests/trybuild/umpire-temporal)
+    Finished `dev` profile [unoptimized + debuginfo] target(s) in 0.78s
+
+
+test tests/ui/realization_alias.rs ... ok
+test tests/ui/realization_duplicate.rs ... ok
+test tests/ui/realization_external_alias.rs ... ok
+test tests/ui/realization_fields.rs ... ok
+test tests/ui/realization_identity.rs ... ok
+test tests/ui/realization_produces.rs ... ok
+test tests/ui/realization_return.rs ... ok
+test tests/ui/realization_source_scope.rs ... ok
+test tests/ui/realization_unknown.rs ... ok
+test tests/ui/realization_variant_alias.rs ... ok
+test tests/ui/realization_wildcard.rs ... ok
+
+
+.
+test result: ok. 1 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 2.57s
+
+
+running 2 tests
+..
+test result: ok. 2 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.00s
+
+
+running 1 test
+    Checking umpire-temporal-tests v0.0.0 (/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/fn236-builds/gate-macos/tests/trybuild/umpire-temporal)
+    Finished `dev` profile [unoptimized + debuginfo] target(s) in 0.13s
+
+
+test tests/ui/supplemental_blank_covers.rs ... ok
+test tests/ui/supplemental_missing_covers.rs ... ok
+test tests/ui/supplemental_missing_expectation.rs ... ok
+test tests/ui/supplemental_presence_missing_expectation.rs ... ok
+
+
+.
+test result: ok. 1 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.64s
+
+
+running 5 tests
+.....
+test result: ok. 5 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.00s
+
+
+running 9 tests
+.........
+test result: ok. 9 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.00s
+
+
+running 4 tests
+....
+test result: ok. 4 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.03s
+
+
+running 6 tests
+......
+test result: ok. 6 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.00s
+
+
+running 1 test
+.
+test result: ok. 1 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.00s
+
+
+running 1 test
+.
+test result: ok. 1 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.00s
+
+
+running 1 test
+.
+test result: ok. 1 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.00s
+
+
+running 1 test
+.
+test result: ok. 1 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.00s
+
+
+running 1 test
+   Compiling enum-iterator v2.3.0
+   Compiling bytes v1.12.1
+   Compiling prost v0.14.4
+   Compiling umpire-annotations v0.0.1 (/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/fn236-candidate/model/umpire/annotations)
+   Compiling umpire-dsl v0.0.1 (/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/fn236-candidate/model/umpire/dsl)
+   Compiling umpire-checker v0.0.1 (/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/fn236-candidate/model/umpire/checker)
+   Compiling umpire-wasm v0.0.1 (/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/fn236-candidate/model/umpire/wasm)
+   Compiling umpire-temporal-annotate v0.0.1 (/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/fn236-candidate/model/temporal/annotate)
+   Compiling umpire-temporal-api v0.0.1 (/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/fn236-candidate/model/temporal/api)
+   Compiling umpire-temporal-annotate-tests v0.0.0 (/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/fn236-builds/gate-macos/tests/trybuild/umpire-temporal-annotate)
+    Finished `dev` profile [unoptimized + debuginfo] target(s) in 9.93s
+
+
+test tests/ui/added_action.rs [should fail to compile] ... ok
+test tests/ui/added_actor.rs [should fail to compile] ... ok
+test tests/ui/added_enum_variant.rs [should fail to compile] ... ok
+test tests/ui/added_oneof_variant.rs [should fail to compile] ... ok
+test tests/ui/contradictory_roles.rs [should fail to compile] ... ok
+test tests/ui/empty_ignored_reason.rs [should fail to compile] ... ok
+test tests/ui/ignored_kind_type.rs [should fail to compile] ... ok
+test tests/ui/ignored_rule.rs [should fail to compile] ... ok
+test tests/ui/incompatible_custom_kind.rs [should fail to compile] ... ok
+test tests/ui/incompatible_tag.rs [should fail to compile] ... ok
+test tests/ui/invalid_response_checks.rs [should fail to compile] ... ok
+test tests/ui/kind_type_mismatch.rs [should fail to compile] ... ok
+test tests/ui/missing_custom_consequence.rs [should fail to compile] ... ok
+test tests/ui/missing_request_expectation.rs [should fail to compile] ... ok
+test tests/ui/missing_rule_expectation.rs [should fail to compile] ... ok
+test tests/ui/missing_validator.rs [should fail to compile] ... ok
+test tests/ui/omitted_field.rs [should fail to compile] ... ok
+test tests/ui/opaque_semantic_kind.rs [should fail to compile] ... ok
+test tests/ui/random_decided.rs [should fail to compile] ... ok
+test tests/ui/repeated_bytes_scalar.rs [should fail to compile] ... ok
+test tests/ui/repeated_text_scalar.rs [should fail to compile] ... ok
+test tests/ui/secret_observed.rs [should fail to compile] ... ok
+test tests/ui/wildcard_action.rs [should fail to compile] ... ok
+test tests/ui-pass/generated_api.rs [should pass] ... ok
+
+
+.
+test result: ok. 1 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 26.02s
+
+
+running 0 tests
+
+test result: ok. 0 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.00s
+
+
+running 7 tests
+.......
+test result: ok. 7 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.00s
+
+
+running 12 tests
+............
+test result: ok. 12 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.01s
+
+
+running 1 test
+.
+test result: ok. 1 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.05s
+
+
+running 8 tests
+........
+test result: ok. 8 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.04s
+
+
+running 0 tests
+
+test result: ok. 0 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.00s
+
+
+running 1 test
+.
+test result: ok. 1 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.00s
+
+
+running 1 test
+.
+test result: ok. 1 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 5.19s
+
+
+running 5 tests
+.....
+test result: ok. 5 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 1.38s
+
+
+running 4 tests
+....
+test result: ok. 4 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 1.22s
+
+
+running 5 tests
+.....
+test result: ok. 5 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.72s
+
+
+running 0 tests
+
+test result: ok. 0 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.00s
+
+
+running 3 tests
+...
+test result: ok. 3 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.77s
+
+
+running 2 tests
+..
+test result: ok. 2 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.27s
+
+
+running 8 tests
+i.......
+test result: ok. 7 passed; 0 failed; 1 ignored; 0 measured; 0 filtered out; finished in 0.11s
+
+
+running 3 tests
+...
+test result: ok. 3 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.00s
+
+
+running 5 tests
+i....
+test result: ok. 4 passed; 0 failed; 1 ignored; 0 measured; 0 filtered out; finished in 0.34s
+
+
+running 2 tests
+..
+test result: ok. 2 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.28s
+
+
+running 1 test
+.
+test result: ok. 1 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.01s
+
+
+running 3 tests
+...
+test result: ok. 3 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.23s
+
+
+running 2 tests
+..
+test result: ok. 2 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.00s
+
+
+running 1 test
+.
+test result: ok. 1 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.00s
+
+
+running 5 tests
+.....
+test result: ok. 5 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.27s
+
+
+running 11 tests
+..........test fixtures has been running for over 60 seconds
+.
+test result: ok. 11 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 105.38s
+
+
+running 7 tests
+.......
+test result: ok. 7 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.24s
+
+
+running 3 tests
+...
+test result: ok. 3 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 54.42s
+
+
+running 1 test
+.
+test result: ok. 1 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 4.93s
+
+
+running 0 tests
+
+test result: ok. 0 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.00s
+
+
+running 3 tests
+...
+test result: ok. 3 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.00s
+
+
+running 1 test
+.
+test result: ok. 1 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.00s
+
+
+running 4 tests
+....
+test result: ok. 4 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.00s
+
+
+running 7 tests
+.......
+test result: ok. 7 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.00s
+
+
+running 1 test
+.
+test result: ok. 1 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.00s
+
+
+running 10 tests
+..........
+test result: ok. 10 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.00s
+
+
+running 1 test
+.
+test result: ok. 1 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.00s
+
+
+running 1 test
+.
+test result: ok. 1 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.01s
+
+
+running 1 test
+.
+test result: ok. 1 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.11s
+
+all doctests ran in 1.38s; merged doctests compilation took 0.79s
+
+running 0 tests
+
+test result: ok. 0 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.00s
+
+
+running 0 tests
+
+test result: ok. 0 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.00s
+
+
+running 0 tests
+
+test result: ok. 0 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.00s
+
+
+running 0 tests
+
+test result: ok. 0 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.00s
+
+
+running 1 test
+i
+test result: ok. 0 passed; 0 failed; 1 ignored; 0 measured; 0 filtered out; finished in 0.00s
+
+
+running 1 test
+.
+test result: ok. 1 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.09s
+
+all doctests ran in 0.82s; merged doctests compilation took 0.21s
+
+running 0 tests
+
+test result: ok. 0 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.00s
+
+
+running 0 tests
+
+test result: ok. 0 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.00s
+
+
+running 0 tests
+
+test result: ok. 0 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.00s
+
+
+running 0 tests
+
+test result: ok. 0 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.00s
+
+
+running 0 tests
+
+test result: ok. 0 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.00s
+
+
+running 0 tests
+
+test result: ok. 0 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.00s
+
+
+running 0 tests
+
+test result: ok. 0 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.00s
+
+
+running 0 tests
+
+test result: ok. 0 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.00s
+
+
+running 0 tests
+
+test result: ok. 0 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.00s
+
+   Compiling umpire-dsl-macros v0.0.1 (/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/fn236-candidate/model/umpire/dsl/macros)
+   Compiling umpire-dsl v0.0.1 (/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/fn236-candidate/model/umpire/dsl)
+    Checking foldhash v0.1.5
+    Checking hashbrown v0.17.1
+    Checking equivalent v1.0.3
+    Checking indexmap v2.14.2
+    Checking hashbrown v0.15.5
+    Checking enum-iterator v2.3.0
+    Checking smallvec v1.16.3
+    Checking fixedbitset v0.5.7
+   Compiling umpire-checker v0.0.1 (/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/fn236-candidate/model/umpire/checker)
+    Checking petgraph v0.8.3
+    Checking thiserror v2.0.21
+    Checking rustc-hash v2.1.3
+    Finished `dev` profile [unoptimized + debuginfo] target(s) in 5.55s
+   Compiling smallvec v1.16.3
+   Compiling indexmap v2.14.2
+   Compiling proc-macro-utils v0.10.0
+   Compiling prost v0.14.4
+   Compiling manyhow-macros v0.14.1
+   Compiling fixedbitset v0.5.7
+   Compiling manyhow v0.14.1
+   Compiling petgraph v0.8.3
+   Compiling prost-types v0.14.4
+   Compiling umpire-dsl-macros v0.0.1 (/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/fn236-candidate/model/umpire/dsl/macros)
+   Compiling prost-build v0.14.4
+   Compiling umpire-wasm v0.0.1 (/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/fn236-candidate/model/umpire/wasm)
+   Compiling umpire-dsl v0.0.1 (/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/fn236-candidate/model/umpire/dsl)
+warning: unstable feature specified for `-Ctarget-feature`: `exception-handling`
+  |
+  = note: this feature is not stably supported; its behavior can change in the future
+
+   Compiling umpire-checker v0.0.1 (/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/fn236-candidate/model/umpire/checker)
+warning: `umpire-dsl` (lib) generated 1 warning
+warning: `umpire-checker` (lib) generated 1 warning (1 duplicate)
+warning: `umpire-wasm` (lib) generated 1 warning (1 duplicate)
+   Compiling umpire-stock-guest v0.0.1 (/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/fn236-candidate/model/umpire/wasm/guests/stock)
+warning: `umpire-stock-guest` (lib) generated 1 warning (1 duplicate)
+    Finished `guest` profile [optimized] target(s) in 22.66s
+warning: unstable feature specified for `-Ctarget-feature`: `exception-handling`
+  |
+  = note: this feature is not stably supported; its behavior can change in the future
+
+warning: `umpire-dsl` (lib) generated 1 warning
+warning: `umpire-checker` (lib) generated 1 warning (1 duplicate)
+warning: `umpire-wasm` (lib) generated 1 warning (1 duplicate)
+   Compiling umpire-control-guest v0.0.1 (/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/fn236-candidate/model/umpire/wasm/guests/control)
+warning: `umpire-control-guest` (lib) generated 1 warning (1 duplicate)
+    Finished `guest` profile [optimized] target(s) in 3.25s
+warning: unstable feature specified for `-Ctarget-feature`: `exception-handling`
+  |
+  = note: this feature is not stably supported; its behavior can change in the future
+
+warning: `umpire-dsl` (lib) generated 1 warning
+warning: `umpire-checker` (lib) generated 1 warning (1 duplicate)
+warning: `umpire-wasm` (lib) generated 1 warning (1 duplicate)
+warning: `umpire-annotations` (lib) generated 1 warning (1 duplicate)
+warning: `umpire-temporal-api` (lib) generated 1 warning (1 duplicate)
+warning: `umpire-temporal-annotate` (lib) generated 1 warning (1 duplicate)
+warning: `umpire-temporal` (lib) generated 1 warning (1 duplicate)
+warning: `umpire-temporal-guest` (lib) generated 1 warning (1 duplicate)
+    Finished `guest` profile [optimized] target(s) in 0.82s
+warning: unstable feature specified for `-Ctarget-feature`: `exception-handling`
+  |
+  = note: this feature is not stably supported; its behavior can change in the future
+
+warning: `umpire-dsl` (lib) generated 1 warning
+warning: `umpire-checker` (lib) generated 1 warning (1 duplicate)
+warning: `umpire-wasm` (lib) generated 1 warning (1 duplicate)
+   Compiling umpire-caught-panic-guest v0.0.1 (/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/fn236-candidate/model/umpire/wasm/guests/caught-panic)
+warning: `umpire-caught-panic-guest` (lib) generated 1 warning (1 duplicate)
+    Finished `guest` profile [optimized] target(s) in 2.99s
+warning: unstable feature specified for `-Ctarget-feature`: `exception-handling`
+  |
+  = note: this feature is not stably supported; its behavior can change in the future
+
+warning: `umpire-dsl` (lib) generated 1 warning
+warning: `umpire-checker` (lib) generated 1 warning (1 duplicate)
+warning: `umpire-wasm` (lib) generated 1 warning (1 duplicate)
+   Compiling umpire-overflow-guest v0.0.1 (/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/fn236-candidate/model/umpire/wasm/guests/overflow)
+warning: `umpire-overflow-guest` (lib) generated 1 warning (1 duplicate)
+    Finished `guest` profile [optimized] target(s) in 3.20s
+   Compiling proc-macro2 v1.0.107
+   Compiling quote v1.0.47
+   Compiling unicode-ident v1.0.27
+   Compiling anyhow v1.0.104
+   Compiling syn v2.0.119
+   Compiling syn v3.0.9
+   Compiling either v1.19.0
+   Compiling libc v0.2.191
+   Compiling itertools v0.14.0
+   Compiling strsim v0.11.1
+   Compiling ident_case v1.0.1
+   Compiling prost-derive v0.14.4
+   Compiling darling_core v0.24.1
+   Compiling rustix v1.1.5
+   Compiling smallvec v1.16.3
+   Compiling proc-macro-utils v0.10.0
+   Compiling errno v0.3.14
+   Compiling prettyplease v0.2.37
+   Compiling regex-syntax v0.8.11
+   Compiling hashbrown v0.17.1
+   Compiling equivalent v1.0.3
+   Compiling foldhash v0.1.5
+   Compiling bitflags v2.13.2
+   Compiling bytes v1.12.1
+   Compiling prost v0.14.4
+   Compiling regex-automata v0.4.18
+   Compiling hashbrown v0.15.5
+   Compiling indexmap v2.14.2
+   Compiling manyhow-macros v0.14.1
+   Compiling darling_macro v0.24.1
+   Compiling fastrand v2.5.0
+   Compiling fixedbitset v0.5.7
+   Compiling umpire-dsl-macros v0.0.1 (/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/fn236-candidate/model/umpire/dsl/macros)
+   Compiling once_cell v1.21.4
+   Compiling tempfile v3.27.0
+   Compiling petgraph v0.8.3
+   Compiling darling v0.24.1
+   Compiling manyhow v0.14.1
+   Compiling regex v1.13.1
+   Compiling prost-types v0.14.4
+   Compiling enum-iterator-derive v1.5.0
+   Compiling umpire-dsl v0.0.1 (/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/fn236-candidate/model/umpire/dsl)
+   Compiling multimap v0.10.1
+   Compiling log v0.4.34
+   Compiling heck v0.5.0
+   Compiling thiserror v2.0.21
+   Compiling prost-build v0.14.4
+   Compiling enum-iterator v2.3.0
+   Compiling thiserror-impl v2.0.21
+   Compiling umpire-checker v0.0.1 (/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/fn236-candidate/model/umpire/checker)
+   Compiling umpire-wasm v0.0.1 (/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/fn236-candidate/model/umpire/wasm)
+   Compiling rustc-hash v2.1.3
+   Compiling umpire-caught-panic-guest v0.0.1 (/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/fn236-candidate/model/umpire/wasm/guests/caught-panic)

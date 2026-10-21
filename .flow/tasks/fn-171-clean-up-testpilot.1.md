@@ -4,6 +4,8 @@ satisfies: [R1]
 # fn-171-clean-up-testpilot.1 Generic core self-contained: remove adapter back-edges, absolute import rule, offline readers off the runtime, Temporal files named in execution
 
 ## Description
+> Deferred: the parent spec's 2026-10-21 execution hold applies. These criteria preserve the filed scope; they do not authorize work on the frozen Scala tree. Revalidate against current Rust/successor work before resuming.
+
 **Recut 2026-10-18 (one-language series):** Absorbed by fn-202 (generic/Temporal runtime split, driver seam); do only what fn-202 leaves.
 
 From the Testpilot research (2026-10-12).
@@ -13,7 +15,10 @@ From the Testpilot research (2026-10-12).
 4. Rename the Temporal-specific files in `internal/execution` (`typed.go`, `carrier.go`, `activity_reset.go`, `activity_external.go`, `activity_external_runtime.go`) to `temporal_*.go`, and add one README paragraph stating that the instruction set is Temporal's.
 Behaviour unchanged: Testpilot tests, the conformance corpus and the recorded-run replays pass.
 ## Acceptance
-- [ ] TBD
+- [ ] On explicit resumption, first map R1 to fn-202 and the current Runner work (fn-228); implement only unfulfilled obligations, without restoring packages retired by a successor.
+- [ ] The generic runtime has no Temporal adapter/API/SDK back-edge or whitelist; boundary tests include a failing forbidden-import control.
+- [ ] Offline readers no longer link the runtime solely for verdict/identity helpers; remaining system-specific execution ownership is documented.
+- [ ] Applicable Testpilot, conformance and recorded-run regression checks preserve behavior, or surviving unmet obligations are recorded rather than closed.
 
 ## Done summary
 Blocked:

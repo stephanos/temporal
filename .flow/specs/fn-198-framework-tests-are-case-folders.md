@@ -1,5 +1,12 @@
 # Framework tests are case folders: sources in, expected files out
 
+## Execution status (2026-10-21 backlog audit)
+
+Deferred by the owner. The Rust decision has been made and the active workspace is `model/`; the former Scala tree is frozen under `model/archived/` and is not expected to build (AGENTS.md and MILESTONES.md). The earlier “until the Rust verdict” note is historical, not an automatic release of this spec. Existing task states and old SHIP reviews describe historical checkpoints, not current implementation readiness.
+
+Resume only after an explicit owner decision and a fresh scope/dependency review against the Rust architecture. Scala paths and commands below describe the archived layout; do not run them as current gates or mechanically port the plan. Preserve unfinished requirements and completion evidence; successor Rust work does not discharge this spec without an explicit requirement mapping. Taskless proposals remain deferred captures, not executable plans.
+
+
 ## Conversation Evidence
 
 > user (2026-10-17): "let's re-imagine testing in temporal/model/framework. how does it work today? how effective is it?"
@@ -197,4 +204,3 @@ fixtures are written once, as cases.
 2026-10-18, one-language series: owner decision "recut: ir.json internal, drop waivers". `export/` becomes `lift/` (fn-201), so the unit layout root is `lift/testdata/<unit>/`. `<root>.ir.json` stays as the lift module's internal expectation only. `<root>.waivers.json` is dropped (fn-200). `lint.txt` is the native lint's output (fn-200). The Go-check edge case and boundary are superseded. New expected kinds for Case protos (fn-203), the conformance descriptor (fn-204) and TLA+ text (fn-206) will be added as new R-IDs when those specs land, with this spec's runner discovering them the same way.
 
 2026-10-18, deferred (owner): all specs other than fn-210 (the Rust prototype of the framework in `temporal/model2`) are deferred until fn-210's write-up recommends whether to extend the Rust prototype or stay on Scala. Flow has no deferred status; this line is the record. MILESTONES.md was reset to the prototype alone and no longer lists this spec. Nothing in this spec changes; resume or close it after that decision.
-

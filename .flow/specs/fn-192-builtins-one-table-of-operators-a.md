@@ -1,5 +1,12 @@
 # Builtins: one table of operators, a generic call in the IR, semantics in the back ends
 
+## Execution status (2026-10-21 backlog audit)
+
+Deferred by the owner. The Rust decision has been made and the active workspace is `model/`; the former Scala tree is frozen under `model/archived/` and is not expected to build (AGENTS.md and MILESTONES.md). The earlier “until the Rust verdict” note is historical, not an automatic release of this spec. Existing task states and old SHIP reviews describe historical checkpoints, not current implementation readiness.
+
+Resume only after an explicit owner decision and a fresh scope/dependency review against the Rust architecture. Scala paths and commands below describe the archived layout; do not run them as current gates or mechanically port the plan. Preserve unfinished requirements and completion evidence; successor Rust work does not discharge this spec without an explicit requirement mapping. Taskless proposals remain deferred captures, not executable plans.
+
+
 ## Conversation Evidence
 
 > user (2026-10-17): "are there any sacrifices we can make in its support to reduce that number dramatically? or reduce it without sacrifices? or find a smarter way that might impact the DSL in minor ways? or find a different approach altogether?"

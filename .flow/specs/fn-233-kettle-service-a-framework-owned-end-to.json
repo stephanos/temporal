@@ -1,0 +1,198 @@
+{
+  "branch_name": "fn-233-kettle-service-a-framework-owned-end-to",
+  "completion_review_status": "unknown",
+  "completion_reviewed_at": null,
+  "created_at": "2026-10-21T02:49:18.365321Z",
+  "default_impl": null,
+  "default_review": null,
+  "default_sync": null,
+  "depends_on_epics": [
+    "fn-217-annotation-catalog-over-the-temporal",
+    "fn-227-parameterized-models-declared-worlds"
+  ],
+  "id": "fn-233-kettle-service-a-framework-owned-end-to",
+  "impl_review_rounds": {},
+  "next_task": 1,
+  "plan_review_rounds": 0,
+  "plan_review_status": "ship",
+  "plan_reviewed_at": "2026-10-21T17:30:48.967562Z",
+  "review_attempts": [
+    {
+      "artifact_sha256": "63ebef397e3b86a017e32cce1831a4b5a410b94f7a9ae8c044dcc8d324c33823",
+      "backend": "codex",
+      "base_sha": "6875191ef7d7ea191549150812c3b7b36507215c",
+      "counter_kind": "plan",
+      "effort": "high",
+      "failure_class": null,
+      "finalized": {
+        "digest": "complete",
+        "receipt": "complete",
+        "status": "complete"
+      },
+      "findings_digest": {
+        "backend": "codex",
+        "digest_truncated": false,
+        "items": [
+          {
+            "chainRoot": "finding-5025b9999dbf42d5d850ec8e8f30421d",
+            "classification": "introduced",
+            "findingId": "finding-5025b9999dbf42d5d850ec8e8f30421d",
+            "firstSeenThisRound": true,
+            "severity": "P0",
+            "status": "open"
+          },
+          {
+            "chainRoot": "finding-d9b732c550cf3075f0f39e370bf10893",
+            "classification": "introduced",
+            "findingId": "finding-d9b732c550cf3075f0f39e370bf10893",
+            "firstSeenThisRound": true,
+            "severity": "P1",
+            "status": "open"
+          },
+          {
+            "chainRoot": "finding-1fe76cf1519822d298112d97bde21a63",
+            "classification": "introduced",
+            "findingId": "finding-1fe76cf1519822d298112d97bde21a63",
+            "firstSeenThisRound": true,
+            "severity": "P1",
+            "status": "open"
+          },
+          {
+            "chainRoot": "finding-d54bd21e9010f3b6cd6437393149ae7a",
+            "classification": "introduced",
+            "findingId": "finding-d54bd21e9010f3b6cd6437393149ae7a",
+            "firstSeenThisRound": true,
+            "severity": "P1",
+            "status": "open"
+          },
+          {
+            "chainRoot": "finding-e24e9743f3bc61cddee5b65f215d4cd8",
+            "classification": "introduced",
+            "findingId": "finding-e24e9743f3bc61cddee5b65f215d4cd8",
+            "firstSeenThisRound": true,
+            "severity": "P1",
+            "status": "open"
+          }
+        ],
+        "reviewKind": "plan"
+      },
+      "forced": false,
+      "hash_epoch": 0,
+      "head_sha": "77d2e4e90eeea14711ebfd050f41f0ef3b1d0b1e",
+      "head_sha_observed": true,
+      "kind": "plan",
+      "model": "gpt-6.1-sol",
+      "outcome": "verdict",
+      "output_bytes": 348664,
+      "output_sha256": "9e0346e9c086e0244361e4c1112c74bf0afc6fcbf17317fb7a182460dd452fe7",
+      "reservation_id": "ae0a14eed8a040f480694bdb9533a7f3",
+      "round_consumed": true,
+      "scope": "plan",
+      "superseded_by": null,
+      "task": null,
+      "timestamp": "2026-10-21T17:27:17.202764Z",
+      "tool_calls": 20,
+      "verdict": "NEEDS_WORK"
+    },
+    {
+      "artifact_sha256": "43c70f40dcb5578ad45af8efb5bf1e53c9a3e7e2c3948aeb1a016caa2b8740fe",
+      "backend": "codex",
+      "base_sha": "6875191ef7d7ea191549150812c3b7b36507215c",
+      "counter_kind": "plan",
+      "effort": "high",
+      "failure_class": null,
+      "finalized": {
+        "digest": "complete",
+        "receipt": "complete",
+        "status": "complete"
+      },
+      "findings_digest": {
+        "backend": "codex",
+        "digest_truncated": false,
+        "items": [
+          {
+            "chainRoot": "finding-5025b9999dbf42d5d850ec8e8f30421d",
+            "classification": "introduced",
+            "findingId": "finding-5025b9999dbf42d5d850ec8e8f30421d",
+            "firstSeenThisRound": false,
+            "severity": "P0",
+            "status": "fixed"
+          },
+          {
+            "chainRoot": "finding-d9b732c550cf3075f0f39e370bf10893",
+            "classification": "introduced",
+            "findingId": "finding-d9b732c550cf3075f0f39e370bf10893",
+            "firstSeenThisRound": false,
+            "severity": "P1",
+            "status": "fixed"
+          },
+          {
+            "chainRoot": "finding-1fe76cf1519822d298112d97bde21a63",
+            "classification": "introduced",
+            "findingId": "finding-1fe76cf1519822d298112d97bde21a63",
+            "firstSeenThisRound": false,
+            "severity": "P1",
+            "status": "fixed"
+          },
+          {
+            "chainRoot": "finding-d54bd21e9010f3b6cd6437393149ae7a",
+            "classification": "introduced",
+            "findingId": "finding-d54bd21e9010f3b6cd6437393149ae7a",
+            "firstSeenThisRound": false,
+            "severity": "P1",
+            "status": "fixed"
+          },
+          {
+            "chainRoot": "finding-e24e9743f3bc61cddee5b65f215d4cd8",
+            "classification": "introduced",
+            "findingId": "finding-e24e9743f3bc61cddee5b65f215d4cd8",
+            "firstSeenThisRound": false,
+            "severity": "P1",
+            "status": "fixed"
+          }
+        ],
+        "reviewKind": "plan"
+      },
+      "forced": false,
+      "hash_epoch": 0,
+      "head_sha": "77d2e4e90eeea14711ebfd050f41f0ef3b1d0b1e",
+      "head_sha_observed": true,
+      "kind": "plan",
+      "model": "gpt-6.1-sol",
+      "outcome": "verdict",
+      "output_bytes": 1476,
+      "output_sha256": "fb0130411e15101d7cbe53f34047013b333c844ac06e6ef7ff355e57a7eab897",
+      "reservation_id": "2face8fd21ca49d7969d48499b17d837",
+      "round_consumed": true,
+      "scope": "plan",
+      "superseded_by": null,
+      "task": null,
+      "timestamp": "2026-10-21T17:30:48.956172Z",
+      "verdict": "SHIP"
+    }
+  ],
+  "review_hash_epoch": {
+    "plan": 1,
+    "plan#completion": 0
+  },
+  "review_pending_rounds": {},
+  "review_reservations": {},
+  "review_transport_failures": {
+    "plan": 0
+  },
+  "spec_path": ".flow/specs/fn-233-kettle-service-a-framework-owned-end-to.md",
+  "status": "open",
+  "title": "Kettle service: a framework-owned end-to-end reference system (model, umpire)",
+  "tracker": {
+    "baseHashFlow": null,
+    "baseHashTracker": null,
+    "depRelations": [],
+    "id": null,
+    "identifier": null,
+    "lastSyncedAt": null,
+    "mergeBaseFlow": null,
+    "mergeBaseTracker": null,
+    "url": null
+  },
+  "updated_at": "2026-10-21T17:30:48.968406Z"
+}

@@ -1,3 +1,6 @@
+---
+satisfies: [R1, R2]
+---
 # fn-219-rename-temporal-activity-feature.1 Rename activity_mini to activity without changing behavior
 
 ## Description

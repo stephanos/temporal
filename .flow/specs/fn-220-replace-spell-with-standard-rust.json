@@ -61,7 +61,7 @@
     "impl:fn-220-replace-spell-with-standard-rust.1": 0
   },
   "spec_path": ".flow/specs/fn-220-replace-spell-with-standard-rust.md",
-  "status": "open",
+  "status": "done",
   "title": "Replace Spell with standard Rust formatting",
   "tracker": {
     "baseHashFlow": null,
@@ -74,5 +74,5 @@
     "mergeBaseTracker": null,
     "url": null
   },
-  "updated_at": "2026-10-19T19:35:14.023347Z"
+  "updated_at": "2026-10-21T17:26:13.106432Z"
 }

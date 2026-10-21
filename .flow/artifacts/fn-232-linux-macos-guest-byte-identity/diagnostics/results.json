@@ -1,0 +1,162 @@
+{
+  "artifacts": {
+    "stock-linux": {
+      "path": "/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/fn232-diagnosis/stock-linux.wasm",
+      "bytes": 192255,
+      "sha256": "5ec57e2e5371723adf318665c1048b5a4021e9f4203ed56884c5f849e7a2dfc1"
+    },
+    "stock-macos": {
+      "path": "/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/fn232-diagnosis/stock-macos.wasm",
+      "bytes": 192263,
+      "sha256": "ea826b9088f9fae68943b149289d5646e349fc8f2751f0bab422312fe74e2e54"
+    },
+    "stock-macos-replay": {
+      "path": "/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/fn232-diagnosis/stock-macos-replay.wasm",
+      "bytes": 192255,
+      "sha256": "e07278b323286617d3ea0a03be79b2b6d91a8f374e82984d38a8e901895b6049"
+    },
+    "stock-macos-replay-paths": {
+      "path": "/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/fn232-diagnosis/stock-macos-replay-paths.wasm",
+      "bytes": 192255,
+      "sha256": "5ec57e2e5371723adf318665c1048b5a4021e9f4203ed56884c5f849e7a2dfc1"
+    },
+    "temporal-linux": {
+      "path": "/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/fn232-diagnosis/temporal-linux.wasm",
+      "bytes": 3329990,
+      "sha256": "10724102d03e1659f28b07c3a0c848d2cac5876668f3be9261d0a3b65023cf06"
+    },
+    "temporal-macos": {
+      "path": "/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/fn232-diagnosis/temporal-macos.wasm",
+      "bytes": 3329996,
+      "sha256": "791b33b3db2e8d57464d94fcdfb8b95594d15b434a6fb7e1c24905a5e4069547"
+    },
+    "temporal-macos-replay-paths": {
+      "path": "/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/fn232-diagnosis/temporal-macos-replay-paths.wasm",
+      "bytes": 3329990,
+      "sha256": "10724102d03e1659f28b07c3a0c848d2cac5876668f3be9261d0a3b65023cf06"
+    }
+  },
+  "comparisons": [
+    {
+      "left": "stock-linux",
+      "right": "stock-macos",
+      "command": [
+        "cmp",
+        "/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/fn232-diagnosis/stock-linux.wasm",
+        "/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/fn232-diagnosis/stock-macos.wasm"
+      ],
+      "exit_code": 1,
+      "stdout": "/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/fn232-diagnosis/stock-linux.wasm /Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/fn232-diagnosis/stock-macos.wasm differ: char 444, line 3\n",
+      "stderr": "",
+      "first_difference_zero_based": 443,
+      "equal_sections": [
+        1,
+        2,
+        4,
+        5,
+        13,
+        6,
+        7
+      ]
+    },
+    {
+      "left": "stock-linux",
+      "right": "stock-macos-replay",
+      "command": [
+        "cmp",
+        "/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/fn232-diagnosis/stock-linux.wasm",
+        "/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/fn232-diagnosis/stock-macos-replay.wasm"
+      ],
+      "exit_code": 1,
+      "stdout": "/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/fn232-diagnosis/stock-linux.wasm /Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/fn232-diagnosis/stock-macos-replay.wasm differ: char 177343, line 1489\n",
+      "stderr": "",
+      "first_difference_zero_based": 177342,
+      "equal_sections": [
+        1,
+        2,
+        3,
+        4,
+        5,
+        13,
+        6,
+        7,
+        9,
+        10
+      ]
+    },
+    {
+      "left": "stock-linux",
+      "right": "stock-macos-replay-paths",
+      "command": [
+        "cmp",
+        "/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/fn232-diagnosis/stock-linux.wasm",
+        "/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/fn232-diagnosis/stock-macos-replay-paths.wasm"
+      ],
+      "exit_code": 0,
+      "stdout": "",
+      "stderr": "",
+      "first_difference_zero_based": null,
+      "equal_sections": [
+        1,
+        2,
+        3,
+        4,
+        5,
+        13,
+        6,
+        7,
+        9,
+        10,
+        11
+      ]
+    },
+    {
+      "left": "temporal-linux",
+      "right": "temporal-macos",
+      "command": [
+        "cmp",
+        "/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/fn232-diagnosis/temporal-linux.wasm",
+        "/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/fn232-diagnosis/temporal-macos.wasm"
+      ],
+      "exit_code": 1,
+      "stdout": "/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/fn232-diagnosis/temporal-linux.wasm /Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/fn232-diagnosis/temporal-macos.wasm differ: char 636, line 2\n",
+      "stderr": "",
+      "first_difference_zero_based": 635,
+      "equal_sections": [
+        1,
+        2,
+        4,
+        5,
+        13,
+        6,
+        7
+      ]
+    },
+    {
+      "left": "temporal-linux",
+      "right": "temporal-macos-replay-paths",
+      "command": [
+        "cmp",
+        "/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/fn232-diagnosis/temporal-linux.wasm",
+        "/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/fn232-diagnosis/temporal-macos-replay-paths.wasm"
+      ],
+      "exit_code": 0,
+      "stdout": "",
+      "stderr": "",
+      "first_difference_zero_based": null,
+      "equal_sections": [
+        1,
+        2,
+        3,
+        4,
+        5,
+        13,
+        6,
+        7,
+        9,
+        10,
+        11
+      ]
+    }
+  ]
+}

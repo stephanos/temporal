@@ -28,9 +28,6 @@ Closable loses its `status` and `terminal` fields and reads "closed" as the `Clo
 - [ ] Refusal fixtures: Closable on a non-`Phased` machine, and on a phase with no `Closed` case, each naming the machine.
 - [ ] The build shows no unchecked warning, and `make umpire-check-model` and `make lint-model` pass.
 
-## Acceptance
-- [ ] TBD
-
 ## Done summary
 Closable now binds only rejection outcomes and reads owned Closed roles through typed Phased projections. A localized DerivedComposition bridge preserves typed phasing and explicit/default end semantics across chained composition derivations. Nine Temporal owners, including four derived owners, migrate; three terminal aliases retire. Focused framework, Temporal, lifter, package, format and scoped lint evidence passed. Full regeneration and batch gates remain deferred by the DSL batch policy.
 

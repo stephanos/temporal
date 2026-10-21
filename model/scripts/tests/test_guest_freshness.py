@@ -56,6 +56,8 @@ class GuestFreshness(unittest.TestCase):
             "    print(json.dumps([] if os.environ.get('MISSING') == tool else [dict(version=json.loads(os.environ['PINS'])[tool], install_path=str(root / tool), installed=True, active=True)]))\n"
             "elif args == ['exec', '--', 'rustc', '--print', 'sysroot']:\n"
             "    print(root / 'rust')\n"
+            "elif args == ['exec', '--', 'rustc', '-V']:\n"
+            "    print('rustc 1.99.1 (58cf8f9c3 2026-10-13)')\n"
             "elif args[:5] == ['exec', '--', 'cargo', 'build', '-p']:\n"
             "    assert args[5] == 'example-guest' or args[5] == 'umpire-temporal-guest', args\n"
             "    (root / 'cargo-called').touch()\n"

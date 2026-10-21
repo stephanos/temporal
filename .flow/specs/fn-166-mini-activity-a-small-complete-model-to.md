@@ -1,5 +1,12 @@
 # Mini activity: the smallest complete feature, the DSL's fast loop and its example
 
+## Execution status (2026-10-21 backlog audit)
+
+Deferred by the owner. The Rust decision has been made and the active workspace is `model/`; the former Scala tree is frozen under `model/archived/` and is not expected to build (AGENTS.md and MILESTONES.md). The earlier “until the Rust verdict” note is historical, not an automatic release of this spec. Existing task states and old SHIP reviews describe historical checkpoints, not current implementation readiness.
+
+Resume only after an explicit owner decision and a fresh scope/dependency review against the Rust architecture. Scala paths and commands below describe the archived layout; do not run them as current gates or mechanically port the plan. Preserve unfinished requirements and completion evidence; successor Rust work does not discharge this spec without an explicit requirement mapping. Taskless proposals remain deferred captures, not executable plans.
+
+
 DSL changes ship a task-named Scalafix rule under `model/migrate/rules/`, prove it on copied `activity_mini` sources before the real-feature sweep, and follow `model/migrate/README.md`; production loading remains held in fn-166.10.
 
 > HTML render lens: `.flow/artifacts/fn-166-mini-activity-a-small-complete-model-to/spec.html` - local-only; regenerable, markdown is the record. <!-- flow-next:artifact-link -->

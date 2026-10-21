@@ -3,6 +3,7 @@
 import os
 from pathlib import Path
 import subprocess
+import sys
 import tempfile
 import unittest
 
@@ -19,12 +20,14 @@ class GuestBuild(unittest.TestCase):
             mise = root / "mise"
             mise.write_text(
                 "#!/usr/bin/env python3\n"
-                "import json, os, sys\n"
+                "import json, os, subprocess, sys\n"
                 "from pathlib import Path\n"
                 "args = sys.argv[1:]\n"
                 "assert args[:2] == ['exec', '--'], args\n"
                 "if args[2:] == ['rustc', '--print', 'sysroot']:\n"
                 "    print('/pinned toolchain/sysroot')\n"
+                "elif args[2:] == ['rustc', '-V']:\n"
+                "    print('rustc 1.99.1 (58cf8f9c3 2026-10-13)')\n"
                 "else:\n"
                 "    assert args[2:5] == ['cargo', 'build', '-p'], args\n"
                 "    assert args[5] == 'example-guest', args\n"
@@ -34,6 +37,14 @@ class GuestBuild(unittest.TestCase):
                 "    assert args[args.index('--target') + 1] == 'wasm32-wasip1', args\n"
                 "    assert '-Zbuild-std=std,panic_unwind' in args, args\n"
                 "    assert os.environ['RUSTC_BOOTSTRAP'] == '1'\n"
+                "    assert Path(os.environ['RUSTC_WRAPPER']).is_file()\n"
+                "    if sys.platform == 'darwin':\n"
+                "        probe = Path(os.environ['ARTIFACT']).with_name('compiler')\n"
+                "        probe.write_text('#!' + sys.executable + '\\nimport os\\nassert os.environ.get(\"DYLD_FALLBACK_LIBRARY_PATH\") == \"/guest-test-marker\"\\n')\n"
+                "        probe.chmod(0o755)\n"
+                "        subprocess.run([os.environ['RUSTC_WRAPPER'], str(probe), '-V'], env=dict(os.environ, DYLD_FALLBACK_LIBRARY_PATH='/guest-test-marker'), check=True)\n"
+                "    assert Path(os.environ['UMPIRE_GUEST_LOCKFILE']).is_file()\n"
+                "    assert os.environ['UMPIRE_GUEST_COMPILER'].startswith('rustc 1.99.1')\n"
                 "    flags = os.environ['CARGO_ENCODED_RUSTFLAGS'].split(chr(31))\n"
                 "    for flag in ['-Cpanic=unwind', '-Ctarget-feature=+exception-handling', '-Cllvm-args=-wasm-use-legacy-eh=false']:\n"
                 "        assert flag in flags, flags\n"
@@ -79,6 +90,10 @@ class GuestBuild(unittest.TestCase):
             failed = run(FAIL_BUILD="1")
             self.assertEqual(failed.returncode, 1, failed.stderr)
             self.assertEqual(output.read_bytes(), b"keep")
+            if sys.platform == "darwin" and Path("/usr/bin/python3").exists():
+                (root / "python3").symlink_to("/usr/bin/python3")
+                system_python = run()
+                self.assertEqual(system_python.returncode, 0, system_python.stderr)
 
 
 if __name__ == "__main__":

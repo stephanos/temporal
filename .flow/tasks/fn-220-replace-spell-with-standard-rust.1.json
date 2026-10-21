@@ -8,7 +8,7 @@
   "priority": null,
   "spec": "fn-220-replace-spell-with-standard-rust",
   "spec_path": ".flow/tasks/fn-220-replace-spell-with-standard-rust.1.md",
-  "status": "todo",
+  "status": "done",
   "title": "Replace Spell end-to-end and refresh formatting goldens",
   "updated_at": "2026-10-19T19:19:32.139784Z"
 }

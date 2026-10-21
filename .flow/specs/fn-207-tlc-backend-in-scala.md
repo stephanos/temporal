@@ -1,5 +1,12 @@
 # TLC backend in Scala
 
+## Execution status (2026-10-21 backlog audit)
+
+Deferred by the owner. The Rust decision has been made and the active workspace is `model/`; the former Scala tree is frozen under `model/archived/` and is not expected to build (AGENTS.md and MILESTONES.md). The earlier “until the Rust verdict” note is historical, not an automatic release of this spec. Existing task states and old SHIP reviews describe historical checkpoints, not current implementation readiness.
+
+Resume only after an explicit owner decision and a fresh scope/dependency review against the Rust architecture. Scala paths and commands below describe the archived layout; do not run them as current gates or mechanically port the plan. Preserve unfinished requirements and completion evidence; successor Rust work does not discharge this spec without an explicit requirement mapping. Taskless proposals remain deferred captures, not executable plans.
+
+
 ## Conversation Evidence
 
 > user (2026-10-18): "we could code up the TLC and Apalache integration in Scala to make it a single full package that only requires Scala instead of Go too"
@@ -55,4 +62,3 @@ TLC is the explicit-state checker: exhaustive over a finite space, with temporal
 The design notes proposed reaching TLC through `quint compile --target tlaplus`, which itself invokes Apalache, and flagged two problems with Quint's TLC wrapper: it disables the deadlock check and returns no structured trace. A direct emitter and a direct `tla2tools` run avoid both and give the state dump, which replaces the Quint one-step dump as the exhaustive comparison. The emitter is shared with fn-206 rather than duplicated; this spec adds the temporal sections. Absorbs deferred fn-173.7 (export coverage) and the TLC half of fn-173.9. Depends on fn-201 (lift tree, numeric contract) and fn-203 R1 (native rows). Filed 2026-10-18 as part of the one-language series (fn-199 through fn-208).
 
 2026-10-18, deferred (owner): all specs other than fn-210 (the Rust prototype of the framework in `temporal/model2`) are deferred until fn-210's write-up recommends whether to extend the Rust prototype or stay on Scala. Flow has no deferred status; this line is the record. MILESTONES.md was reset to the prototype alone and no longer lists this spec. Nothing in this spec changes; resume or close it after that decision.
-

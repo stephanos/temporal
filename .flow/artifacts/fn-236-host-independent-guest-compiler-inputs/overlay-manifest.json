@@ -1,0 +1,9 @@
+{
+  "model/scripts/guest.sh": "a0a4faaafb865548f6992b7f19268c31363f245b72b8248205d3fa8525ee3fba",
+  "model/scripts/guest-rustc.py": "12473d36f56a9ac7e69d16f44a61bd2d75d5f82fccc04209573294440b0b6f33",
+  "model/scripts/tests/test_guest.py": "53bcf495335d737ced18ddc0ec6cf3b96ac76891a1a013cb74d3b21e075303ec",
+  "model/scripts/tests/test_guest_freshness.py": "38deca1aab4fc719ea20d42e98ac6cd9227a10c103f1b74039e143b680bf8311",
+  "model/scripts/tests/test_guest_rustc.py": "eb9de7c661b90de2be042e83a2975a093acd9f1d939de20127ee65bbdb63a830",
+  "model/GUEST_BUILDS.md": "2a012abff83978371b5f985fc9dd228939878e5c6a9685d34fb176006f4cdd60",
+  "model/temporal/hosts/go/umpire_temporal_guest.wasm": "5bd641822d7a124f10b247d022d8f6d296fe13632f418acfa23bd85152a6285e"
+}

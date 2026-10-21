@@ -13,7 +13,7 @@
   "plan_review_rounds": 0,
   "plan_review_status": "unknown",
   "plan_reviewed_at": null,
-  "ready": true,
+  "ready": false,
   "spec_path": ".flow/specs/fn-164-expect-blocks-for-properties.md",
   "status": "open",
   "title": "Expect blocks for Properties",
@@ -28,5 +28,5 @@
     "mergeBaseTracker": null,
     "url": null
   },
-  "updated_at": "2026-10-18T19:34:41.308961Z"
+  "updated_at": "2026-10-21T17:35:34.594847Z"
 }

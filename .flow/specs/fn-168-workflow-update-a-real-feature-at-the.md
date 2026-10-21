@@ -1,5 +1,12 @@
 # Workflow Update: a real feature at the mini feature's size, over a workflow task foundation
 
+## Execution status (2026-10-21 backlog audit)
+
+Deferred by the owner. The Rust decision has been made and the active workspace is `model/`; the former Scala tree is frozen under `model/archived/` and is not expected to build (AGENTS.md and MILESTONES.md). The earlier “until the Rust verdict” note is historical, not an automatic release of this spec. Existing task states and old SHIP reviews describe historical checkpoints, not current implementation readiness.
+
+Resume only after an explicit owner decision and a fresh scope/dependency review against the Rust architecture. Scala paths and commands below describe the archived layout; do not run them as current gates or mechanically port the plan. Preserve unfinished requirements and completion evidence; successor Rust work does not discharge this spec without an explicit requirement mapping. Taskless proposals remain deferred captures, not executable plans.
+
+
 ## Conversation Evidence
 
 > user (2026-10-11): "instead of temporal/model/temporal/features/activity_mini - is there a feature in Temporal that is small enough to be completely defined by a model the size of activity_mini? while being a showcase of the capabiltities of the Umpire DSL and a basis for its rapid development trhough iterations?"

@@ -1,0 +1,139 @@
++ repository=/Users/stephan/Workspace/skunkworks/umpire/temporal
++ root=/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/fn232-diagnosis
++ source=/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/fn232-certification-macos/source-a
++ export CARGO_TARGET_DIR=/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/fn232-diagnosis/target-macos-replay-paths CARGO_BUILD_JOBS=2 RUSTC_WRAPPER=/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/fn232-diagnosis/rustc-replay-paths.py FN232_RUSTC_LOG=/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/fn232-diagnosis/rustc-macos-replay-paths.jsonl FN232_METADATA_MAP=/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/fn232-diagnosis/linux-metadata-map.json FN232_OUT_DIR_MAP=/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/fn232-diagnosis/linux-out-dir-map.json
++ CARGO_TARGET_DIR=/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/fn232-diagnosis/target-macos-replay-paths
++ CARGO_BUILD_JOBS=2
++ RUSTC_WRAPPER=/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/fn232-diagnosis/rustc-replay-paths.py
++ FN232_RUSTC_LOG=/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/fn232-diagnosis/rustc-macos-replay-paths.jsonl
++ FN232_METADATA_MAP=/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/fn232-diagnosis/linux-metadata-map.json
++ FN232_OUT_DIR_MAP=/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/fn232-diagnosis/linux-out-dir-map.json
++ unset RUSTFLAGS CARGO_ENCODED_RUSTFLAGS
++ test '!' -e /Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/fn232-diagnosis/target-macos-replay-paths
++ cd /Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/fn232-certification-macos/source-a
++ bash model/scripts/guest.sh umpire-stock-guest /Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/fn232-diagnosis/stock-macos-replay-paths.wasm
+   Compiling compiler_builtins v0.1.160 (/Users/stephan/.rustup/toolchains/1.99.1-aarch64-apple-darwin/lib/rustlib/src/rust/library/compiler-builtins/compiler-builtins)
+   Compiling core v0.0.0 (/Users/stephan/.rustup/toolchains/1.99.1-aarch64-apple-darwin/lib/rustlib/src/rust/library/core)
+   Compiling proc-macro2 v1.0.107
+   Compiling quote v1.0.47
+   Compiling unicode-ident v1.0.27
+   Compiling libc v0.2.189
+   Compiling object v0.39.1
+   Compiling std v0.0.0 (/Users/stephan/.rustup/toolchains/1.99.1-aarch64-apple-darwin/lib/rustlib/src/rust/library/std)
+   Compiling syn v2.0.119
+   Compiling syn v3.0.9
+   Compiling rustc-std-workspace-core v1.99.0 (/Users/stephan/.rustup/toolchains/1.99.1-aarch64-apple-darwin/lib/rustlib/src/rust/library/rustc-std-workspace-core)
+   Compiling alloc v0.0.0 (/Users/stephan/.rustup/toolchains/1.99.1-aarch64-apple-darwin/lib/rustlib/src/rust/library/alloc)
+   Compiling unwind v0.0.0 (/Users/stephan/.rustup/toolchains/1.99.1-aarch64-apple-darwin/lib/rustlib/src/rust/library/unwind)
+   Compiling memchr v2.8.3
+   Compiling adler2 v2.0.1
+   Compiling rustc-std-workspace-alloc v1.99.0 (/Users/stephan/.rustup/toolchains/1.99.1-aarch64-apple-darwin/lib/rustlib/src/rust/library/rustc-std-workspace-alloc)
+   Compiling gimli v0.34.0
+   Compiling wasip1 v1.0.0
+   Compiling addr2line v0.27.1
+   Compiling miniz_oxide v0.9.1
+   Compiling hashbrown v0.17.1
+   Compiling std_detect v0.1.5 (/Users/stephan/.rustup/toolchains/1.99.1-aarch64-apple-darwin/lib/rustlib/src/rust/library/std_detect)
+   Compiling panic_unwind v0.0.0 (/Users/stephan/.rustup/toolchains/1.99.1-aarch64-apple-darwin/lib/rustlib/src/rust/library/panic_unwind)
+   Compiling rustc-demangle v0.1.28
+   Compiling panic_abort v0.0.0 (/Users/stephan/.rustup/toolchains/1.99.1-aarch64-apple-darwin/lib/rustlib/src/rust/library/panic_abort)
+   Compiling cfg-if v1.0.4
+   Compiling rustc-literal-escaper v0.0.8
+   Compiling anyhow v1.0.104
+   Compiling libc v0.2.191
+   Compiling either v1.19.0
+   Compiling itertools v0.14.0
+   Compiling proc_macro v0.0.0 (/Users/stephan/.rustup/toolchains/1.99.1-aarch64-apple-darwin/lib/rustlib/src/rust/library/proc_macro)
+   Compiling ident_case v1.0.1
+   Compiling strsim v0.11.1
+   Compiling darling_core v0.24.1
+   Compiling prost-derive v0.14.4
+   Compiling rustix v1.1.5
+   Compiling smallvec v1.16.3
+   Compiling errno v0.3.14
+   Compiling proc-macro-utils v0.10.0
+   Compiling bitflags v2.13.2
+   Compiling bytes v1.12.1
+   Compiling regex-syntax v0.8.11
+   Compiling prettyplease v0.2.37
+   Compiling equivalent v1.0.3
+   Compiling foldhash v0.1.5
+   Compiling hashbrown v0.15.5
+   Compiling regex-automata v0.4.18
+   Compiling indexmap v2.14.2
+   Compiling prost v0.14.4
+   Compiling manyhow-macros v0.14.1
+   Compiling darling_macro v0.24.1
+   Compiling fastrand v2.5.0
+   Compiling fixedbitset v0.5.7
+   Compiling umpire-dsl-macros v0.0.1 (/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/fn232-certification-macos/source-a/model/umpire/dsl/macros)
+   Compiling once_cell v1.21.4
+   Compiling tempfile v3.27.0
+warning: stripping debug info with `rust-objcopy` failed: signal: 6 (SIGABRT)
+  |
+  = note: dyld[36639]: Library not loaded: @rpath/libLLVM.dylib
+            Referenced from: <D6B3C499-A2AF-3E42-8F77-C42BD658AAB5> /Users/stephan/.rustup/toolchains/1.99.1-aarch64-apple-darwin/lib/rustlib/aarch64-apple-darwin/bin/rust-objcopy
+            Reason: tried: '/Users/stephan/.rustup/toolchains/1.99.1-aarch64-apple-darwin/lib/rustlib/aarch64-apple-darwin/bin/../lib/libLLVM.dylib' (no such file), '/Users/stephan/.rustup/toolchains/1.99.1-aarch64-apple-darwin/lib/rustlib/aarch64-apple-darwin/bin/../lib/libLLVM.dylib' (no such file)
+          
+
+warning: `umpire-dsl-macros` (build script) generated 1 warning
+   Compiling petgraph v0.8.3
+   Compiling darling v0.24.1
+   Compiling manyhow v0.14.1
+   Compiling prost-types v0.14.4
+   Compiling regex v1.13.1
+   Compiling enum-iterator-derive v1.5.0
+   Compiling log v0.4.34
+   Compiling umpire-dsl v0.0.1 (/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/fn232-certification-macos/source-a/model/umpire/dsl)
+   Compiling thiserror v2.0.21
+   Compiling multimap v0.10.1
+warning: stripping debug info with `rust-objcopy` failed: signal: 6 (SIGABRT)
+  |
+  = note: dyld[36735]: Library not loaded: @rpath/libLLVM.dylib
+            Referenced from: <D6B3C499-A2AF-3E42-8F77-C42BD658AAB5> /Users/stephan/.rustup/toolchains/1.99.1-aarch64-apple-darwin/lib/rustlib/aarch64-apple-darwin/bin/rust-objcopy
+            Reason: tried: '/Users/stephan/.rustup/toolchains/1.99.1-aarch64-apple-darwin/lib/rustlib/aarch64-apple-darwin/bin/../lib/libLLVM.dylib' (no such file), '/Users/stephan/.rustup/toolchains/1.99.1-aarch64-apple-darwin/lib/rustlib/aarch64-apple-darwin/bin/../lib/libLLVM.dylib' (no such file)
+          
+
+warning: `umpire-dsl` (build script) generated 1 warning
+   Compiling heck v0.5.0
+   Compiling prost-build v0.14.4
+   Compiling enum-iterator v2.3.0
+   Compiling thiserror-impl v2.0.21
+   Compiling umpire-checker v0.0.1 (/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/fn232-certification-macos/source-a/model/umpire/checker)
+warning: stripping debug info with `rust-objcopy` failed: signal: 6 (SIGABRT)
+  |
+  = note: dyld[36816]: Library not loaded: @rpath/libLLVM.dylib
+            Referenced from: <D6B3C499-A2AF-3E42-8F77-C42BD658AAB5> /Users/stephan/.rustup/toolchains/1.99.1-aarch64-apple-darwin/lib/rustlib/aarch64-apple-darwin/bin/rust-objcopy
+            Reason: tried: '/Users/stephan/.rustup/toolchains/1.99.1-aarch64-apple-darwin/lib/rustlib/aarch64-apple-darwin/bin/../lib/libLLVM.dylib' (no such file), '/Users/stephan/.rustup/toolchains/1.99.1-aarch64-apple-darwin/lib/rustlib/aarch64-apple-darwin/bin/../lib/libLLVM.dylib' (no such file)
+          
+
+warning: `umpire-dsl-macros` (lib) generated 1 warning
+warning: stripping debug info with `rust-objcopy` failed: signal: 6 (SIGABRT)
+  |
+  = note: dyld[36819]: Library not loaded: @rpath/libLLVM.dylib
+            Referenced from: <D6B3C499-A2AF-3E42-8F77-C42BD658AAB5> /Users/stephan/.rustup/toolchains/1.99.1-aarch64-apple-darwin/lib/rustlib/aarch64-apple-darwin/bin/rust-objcopy
+            Reason: tried: '/Users/stephan/.rustup/toolchains/1.99.1-aarch64-apple-darwin/lib/rustlib/aarch64-apple-darwin/bin/../lib/libLLVM.dylib' (no such file), '/Users/stephan/.rustup/toolchains/1.99.1-aarch64-apple-darwin/lib/rustlib/aarch64-apple-darwin/bin/../lib/libLLVM.dylib' (no such file)
+          
+
+warning: `umpire-checker` (build script) generated 1 warning
+warning: unstable feature specified for `-Ctarget-feature`: `exception-handling`
+  |
+  = note: this feature is not stably supported; its behavior can change in the future
+
+warning: `umpire-dsl` (lib) generated 1 warning
+   Compiling umpire-wasm v0.0.1 (/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/fn232-certification-macos/source-a/model/umpire/wasm)
+warning: stripping debug info with `rust-objcopy` failed: signal: 6 (SIGABRT)
+  |
+  = note: dyld[36847]: Library not loaded: @rpath/libLLVM.dylib
+            Referenced from: <D6B3C499-A2AF-3E42-8F77-C42BD658AAB5> /Users/stephan/.rustup/toolchains/1.99.1-aarch64-apple-darwin/lib/rustlib/aarch64-apple-darwin/bin/rust-objcopy
+            Reason: tried: '/Users/stephan/.rustup/toolchains/1.99.1-aarch64-apple-darwin/lib/rustlib/aarch64-apple-darwin/bin/../lib/libLLVM.dylib' (no such file), '/Users/stephan/.rustup/toolchains/1.99.1-aarch64-apple-darwin/lib/rustlib/aarch64-apple-darwin/bin/../lib/libLLVM.dylib' (no such file)
+          
+
+warning: `umpire-wasm` (build script) generated 1 warning
+   Compiling rustc-hash v2.1.3
+warning: `umpire-checker` (lib) generated 1 warning (1 duplicate)
+warning: `umpire-wasm` (lib) generated 1 warning (1 duplicate)
+   Compiling umpire-stock-guest v0.0.1 (/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/fn232-certification-macos/source-a/model/umpire/wasm/guests/stock)
+warning: `umpire-stock-guest` (lib) generated 1 warning (1 duplicate)
+    Finished `guest` profile [optimized] target(s) in 34.57s
++ cmp /Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/fn232-diagnosis/stock-linux.wasm /Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/fn232-diagnosis/stock-macos-replay-paths.wasm

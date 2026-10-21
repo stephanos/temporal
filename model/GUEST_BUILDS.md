@@ -4,11 +4,14 @@
 the mise-pinned Rust 1.99.1 compiler, `--locked`, `wasm32-wasip1` and `profile.guest`.
 It discovers the output through Cargo's artifact messages, including custom library
 names. It requires Bash, Python 3, the pinned toolchain and its `rust-src` component.
+The Python executable path must contain no whitespace; the generated launcher uses
+its absolute shebang to preserve Cargo's macOS loader environment.
 Exit 0 means built or fresh, 1 means build/tool/output failure, and 2 means missing
 or stale output. Staleness reports existing/built sizes and the first differing
 zero-based byte offset, including EOF; check mode never updates the output.
 Relative output paths are relative to the caller. `CARGO_TARGET_DIR` selects the
-build cache, defaulting to `model/target`.
+build cache, defaulting to `model/target`. Guest compilation uses a versioned
+`guest-cache/<identity>` subdirectory beneath it; artifact destinations are unchanged.
 
 The profile inherits release, strips symbols, disables debug information and uses
 fat LTO with one codegen unit and checked overflow. The checker's release profile
@@ -17,6 +20,21 @@ paths are remapped by rustc, including generated protobuf locations under `OUT_D
 No wasm bytes are rewritten after linking. The Temporal API generator sorts merged
 descriptor files before prost generation; otherwise Go map iteration could change
 merged Rust declaration order and the resulting guest bytes.
+
+`guest-rustc.py` derives target symbol identities from the pinned compiler, lockfile,
+normalized package/source paths, crate configuration and dependency identities.
+Cargo retains its own filenames and fingerprints. Atomic per-artifact `.umpire-id`
+files carry the portable identities; missing or malformed records fail the build.
+Records appear before rustc starts because Cargo pipelines dependent compilations
+after metadata emission, and compiler failures remove them. Host proc macros compile
+unchanged; their portable package/feature/profile identities include collision
+witnesses that refuse conflicting native variants in one target dependency graph.
+Each target's `OUT_DIR` remaps to `/generated/<portable identity>`, removing Cargo's
+host-specific directory hash from generated-source locations. Wrapper, lockfile or
+compiler changes select a new cache so older artifacts cannot bypass this evidence.
+Existing `RUSTC_WRAPPER` executables are chained. These inputs support the pinned
+workspace and toolchain; a compiler or dependency upgrade requires renewed native
+cross-OS comparisons and the existing host controls.
 
 ## Unwinding on the pinned compiler
 
@@ -187,8 +205,30 @@ and all twelve actual `cmp` results are under
 [fn-232 evidence](../.flow/artifacts/fn-232-linux-macos-guest-byte-identity/proof.md).
 That report records exact invocations and the separate host-parity results.
 The stock WAT diff changes the element table, function bodies and data layout.
-The compiler/linker cause remains unresolved. A separately scoped reproducibility
-fix must precede renewed certification; no guest bytes or build recipe were changed.
+The subsequent [diagnosis](../.flow/artifacts/fn-232-linux-macos-guest-byte-identity/diagnosis.md)
+isolated Cargo metadata and generated-output path hashes; a controlled macOS
+replay matched both full Linux guests. The separately tracked fn-236 implementation now
+normalizes those compiler inputs without a recorded Linux hash map.
+
+## Host-independent compiler inputs (fn-236)
+
+Four frozen source snapshots at base
+`77d2e4e90eeea14711ebfd050f41f0ef3b1d0b1e` plus the scoped build fix produced
+identical guests from two independent paths on each native OS. Every target was
+initially absent. All twelve actual pairwise comparisons passed, as did both
+stock/control and Temporal host suites on Linux and macOS. The refreshed embedded
+Temporal asset matches all four builds.
+
+| Guest | Bytes in each build | SHA-256 in each build |
+| --- | ---: | --- |
+| Stock | 192271 | `f3da11cbe34e75e24ec698979058a6f300aad016e5215a63fe2d392951341219` |
+| Temporal | 3330006 | `5bd641822d7a124f10b247d022d8f6d296fe13632f418acfa23bd85152a6285e` |
+
+The [fn-236 proof](../.flow/artifacts/fn-236-host-independent-guest-compiler-inputs/proof.md)
+retains source/overlay manifests, toolchains, exact commands, comparisons, host
+logs and independent review. Sixteen focused script tests passed. These frozen
+snapshots contain the uncommitted fix; fn-232's final clean-checkout certification
+requires a user-created source commit. The earlier fn-232 failure remains above.
 
 ## Current verification and measured gate cost
 

@@ -1,5 +1,12 @@
 # Tag protobuf messages with Domains in the Model and IR
 
+## Execution status (2026-10-21 backlog audit)
+
+Deferred by the owner. The Rust decision has been made and the active workspace is `model/`; the former Scala tree is frozen under `model/archived/` and is not expected to build (AGENTS.md and MILESTONES.md). The earlier “until the Rust verdict” note is historical, not an automatic release of this spec. Existing task states and old SHIP reviews describe historical checkpoints, not current implementation readiness.
+
+Resume only after an explicit owner decision and a fresh scope/dependency review against the Rust architecture. Scala paths and commands below describe the archived layout; do not run them as current gates or mechanically port the plan. Preserve unfinished requirements and completion evidence; successor Rust work does not discharge this spec without an explicit requirement mapping. Taskless proposals remain deferred captures, not executable plans.
+
+
 Source: the research note `.plans/PROTO_ANNOTATIONS.md` (2026-10-06), cited below as "the report" with its section numbers. Its section 11, "Decisions (2026-10-06)", records the owner's answers to all 22 questions. They are final, and this spec states them without reopening them. The report holds the research (the inventory of the server's validators, prior art, Scala libraries, generation tactics). This spec cites it and does not repeat it.
 
 Source tags: **[paraphrase Dn]** restates decision n of the report's section 11. **[paraphrase §n]** restates the design in section n of the report, which the owner's decisions shape. **[inferred]** is this spec's own derivation, made where the report is silent or reads two ways. Decision Context lists each [inferred] item that interprets the report.

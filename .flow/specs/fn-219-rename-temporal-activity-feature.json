@@ -7,7 +7,7 @@
   "plan_review_status": "unknown",
   "plan_reviewed_at": null,
   "spec_path": ".flow/specs/fn-219-rename-temporal-activity-feature.md",
-  "status": "open",
+  "status": "done",
   "title": "Rename Temporal activity feature directory",
   "tracker": {
     "baseHashFlow": null,
@@ -20,5 +20,5 @@
     "mergeBaseTracker": null,
     "url": null
   },
-  "updated_at": "2026-10-19T19:16:18.047251Z"
+  "updated_at": "2026-10-21T17:35:51.694950Z"
 }

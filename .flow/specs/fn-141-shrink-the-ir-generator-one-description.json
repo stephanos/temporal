@@ -13,7 +13,7 @@
   "plan_review_rounds": 0,
   "plan_review_status": "unknown",
   "plan_reviewed_at": null,
-  "ready": true,
+  "ready": false,
   "spec_path": ".flow/specs/fn-141-shrink-the-ir-generator-one-description.md",
   "status": "open",
   "title": "Shrink the IR generator: one description of each DSL construct",
@@ -28,5 +28,5 @@
     "mergeBaseTracker": null,
     "url": null
   },
-  "updated_at": "2026-10-18T19:34:35.023851Z"
+  "updated_at": "2026-10-21T17:35:23.077557Z"
 }

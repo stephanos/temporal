@@ -7,10 +7,13 @@
     "fn-211-apalache-backend-for-umpire-in-rust.3"
   ],
   "id": "fn-211-apalache-backend-for-umpire-in-rust.4",
+  "impl": null,
   "priority": 3,
+  "review": null,
   "spec": "fn-211-apalache-backend-for-umpire-in-rust",
   "spec_path": ".flow/tasks/fn-211-apalache-backend-for-umpire-in-rust.4.md",
   "status": "todo",
+  "sync": null,
   "title": "Apalache consumer in the fixture runner; Kettle agreement golden",
-  "updated_at": "2026-10-18T22:43:11.734563Z"
+  "updated_at": "2026-10-21T17:36:00.276312Z"
 }

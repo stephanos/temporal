@@ -1,5 +1,12 @@
 # Testpilot schema in the framework, Temporal-agnostic
 
+## Execution status (2026-10-21 backlog audit)
+
+Deferred by the owner. The Rust decision has been made and the active workspace is `model/`; the former Scala tree is frozen under `model/archived/` and is not expected to build (AGENTS.md and MILESTONES.md). The earlier “until the Rust verdict” note is historical, not an automatic release of this spec. Existing task states and old SHIP reviews describe historical checkpoints, not current implementation readiness.
+
+Resume only after an explicit owner decision and a fresh scope/dependency review against the Rust architecture. Scala paths and commands below describe the archived layout; do not run them as current gates or mechanically port the plan. Preserve unfinished requirements and completion evidence; successor Rust work does not discharge this spec without an explicit requirement mapping. Taskless proposals remain deferred captures, not executable plans.
+
+
 ## Conversation Evidence
 
 > user (2026-10-18): "I think we'll need to make TestPilot Temporal-agnostic; and part of the framework. (I believe PLang does sth similar). It would be a conformance descriptor that the tools/testpilot would have to interpret for temporal (and the cases would contain temporal-specifics like RPCs from model/temporal anyway)."
@@ -61,4 +68,3 @@ Leaving the schema under the server's internal protos keeps Testpilot a Temporal
 2026-10-18, snapshot and restore (owner): the generic adapter interface carries `snapshot() -> id` and `restore(id)` on the oracle side, over the Model's immutable state, claim and monitor values; a host that can snapshot its own store may ignore them, a host driving a sidecar must use them. This is what lets a native-image oracle serve the deterministic simulation and keeps the interface identical across the wasm and native hostings.
 
 2026-10-18, deferred (owner): all specs other than fn-210 (the Rust prototype of the framework in `temporal/model2`) are deferred until fn-210's write-up recommends whether to extend the Rust prototype or stay on Scala. Flow has no deferred status; this line is the record. MILESTONES.md was reset to the prototype alone and no longer lists this spec. Nothing in this spec changes; resume or close it after that decision.
-

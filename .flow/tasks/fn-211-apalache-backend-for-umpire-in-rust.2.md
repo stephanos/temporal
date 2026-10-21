@@ -11,6 +11,10 @@ New crate next to `umpire-tlc`. Fetch a pinned Apalache release into `model/buil
 **Files:** model/umpire/backends/apalache/, model/Cargo.toml (members), Makefile.
 
 **Quick commands:** `cd model && UMPIRE_BACKENDS=require mise exec -- cargo test -p umpire-apalache`
+### Required review corrections
+
+Implement the parent bound/agreement and runner-lifecycle contracts, including length-zero/one controls, incomplete-native refusal, required-mode failure on NotRun, per-property progress, timeouts/reaping, canonical-root/symlink containment and atomic concurrent tool installation. Reuse the tool admission helper introduced by .1. Focused fake-tool tests exercise every failure path; real Kettle remains the integration control.
+
 ## Acceptance
 - Kettle's invariants each return a bounded verdict.
 - Missing or mis-versioned release fails before tests; a tool failure is NotRun with its message.
