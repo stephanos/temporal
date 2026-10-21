@@ -139,6 +139,12 @@ fn assert_reason(bytes: &[u8], reason: Reason) {
 }
 
 #[test]
+fn symbolize_no_binary_metadata_is_unavailable() {
+    assert_reason(b"(module)", Reason::NoSymbols);
+    assert_reason(b"\0asm\x01\0\0\0\0", Reason::SymbolMismatch);
+}
+
+#[test]
 fn symbolize_missing_flag_precedes_absent_metadata() {
     let site = Site {
         value: u64::MAX,
@@ -281,6 +287,76 @@ fn symbolize_name_mismatch_and_malformed_name_sections() {
     let mut malformed = original;
     malformed.extend_from_slice(&[0, 7, 4, b'n', b'a', b'm', b'e', 1, 255]);
     assert_reason(&malformed, Reason::SymbolMismatch);
+}
+
+#[test]
+fn symbolize_module_name_uses_the_fixed_string_limit() {
+    let original = fixture("guest.wasm");
+    for length in [100_001, 1 << 20, (1 << 20) + 1] {
+        let mut name = Vec::new();
+        leb(length, &mut name);
+        name.resize(name.len() + usize::try_from(length).unwrap(), b'x');
+        let mut subsection = vec![0];
+        leb(name.len() as u64, &mut subsection);
+        subsection.extend(name);
+        let mut changed = original[..8].to_vec();
+        for (id, data) in sections(&original) {
+            let mut payload = data.to_vec();
+            if id == 0 && data.starts_with(b"\x04name") {
+                payload.splice(5..5, subsection.iter().copied());
+            }
+            changed.push(id);
+            leb(payload.len() as u64, &mut changed);
+            changed.extend(payload);
+        }
+        if length > 1 << 20 {
+            assert_reason(&changed, Reason::SymbolTableTooLarge);
+        } else {
+            assert_eq!(
+                resolve_bytes(&changed, [site(5383)])[&site(5383)],
+                resolve_bytes(&original, [site(5383)])[&site(5383)],
+            );
+        }
+    }
+}
+
+#[test]
+fn symbolize_indirect_and_producer_names_use_the_fixed_string_limit() {
+    let original = fixture("guest.wasm");
+    for id in [2, 3, 10, 255] {
+        for length in [100_001, (1 << 20) + 1] {
+            let mut name = Vec::new();
+            leb(length, &mut name);
+            name.resize(name.len() + usize::try_from(length).unwrap(), b'x');
+            let mut changed = original[..8].to_vec();
+            for (section, data) in sections(&original) {
+                let mut payload = data.to_vec();
+                if id == 255 && section == 0 && data.starts_with(b"\x09producers") {
+                    payload = b"\x09producers\x01\x08language\x01".to_vec();
+                    payload.extend(&name);
+                    payload.extend_from_slice(b"\x011");
+                } else if id != 255 && section == 0 && data.starts_with(b"\x04name") {
+                    let mut map = vec![1, 0, 1, 0];
+                    map.extend(&name);
+                    payload.push(id);
+                    leb(map.len() as u64, &mut payload);
+                    payload.extend(map);
+                }
+                changed.push(section);
+                leb(payload.len() as u64, &mut changed);
+                changed.extend(payload);
+            }
+            if length > 1 << 20 {
+                assert_reason(&changed, Reason::SymbolTableTooLarge);
+            } else {
+                assert_eq!(
+                    resolve_bytes(&changed, [site(5383)])[&site(5383)],
+                    resolve_bytes(&original, [site(5383)])[&site(5383)],
+                    "name kind {id} length {length}",
+                );
+            }
+        }
+    }
 }
 
 #[test]

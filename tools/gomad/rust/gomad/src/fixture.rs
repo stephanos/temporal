@@ -128,7 +128,7 @@ pub(crate) fn publish_bundle(
     name: &str,
     records: Vec<Publication>,
 ) -> Result<(), String> {
-    publish_bundle_with_budget(root, name, records, 1 << 20)
+    publish_bundle_with_budget(root, name, records, 64 << 20)
 }
 
 pub(crate) fn publish_bundle_with_budget(
@@ -334,6 +334,17 @@ pub fn dispatch(arguments: &[String]) -> Option<Result<(), Error>> {
             command,
             "fixture-execution-bundle" | "fixture-inspect-execution" | "fixture-replay-execution"
         ) {
+            if command == "fixture-inspect-execution"
+                && arguments.len() == 5
+                && arguments[1] == "--root"
+                && arguments[3] == "--input"
+            {
+                return crate::fixture_execute::inspection_input(
+                    std::path::Path::new(&arguments[2]),
+                    std::path::Path::new(&arguments[4]),
+                )
+                .map_err(Into::into);
+            }
             if arguments.len() != 5 || arguments[1] != "--root" || arguments[3] != "--corpus" {
                 return Err("fixture-execution-bundle --root ROOT --corpus CORPUS".into());
             }

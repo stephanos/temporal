@@ -18,7 +18,34 @@ return status 2 with no report; report write failures return 3. Every payload
 is authenticated through the shared pinned-root opener, including payloads
 not displayed in the selected view. `--choices` requires recorded choice
 metadata and validates the raw trace through the helper's replay projector.
-Sites retain their existing fingerprints and raw module offsets.
+Sites retain their existing fingerprints, kind, count and maximum alternatives;
+listed decisions retain their recorded offsets and missing-site flags.
+
+With `--choices`, every aggregate site and listed decision adds `symbol`,
+computed only from the authenticated retained module. Available symbols contain
+`package`, `function` and `inlined_from`, with `file` and `line` when proved.
+An inline chain requires complete agreement among compatible retained select
+calls. Physical fallback has an empty `inlined_from` and omits unproved
+locations; it does not establish that the compiler performed no inlining.
+Single-alternative sites receive symbols even without a listed replay decision.
+Runnable sites recorded as missing retain `{"unavailable":"site_missing"}`.
+
+Other unavailable reasons are `no_symbols`, `offset_out_of_range`,
+`symbol_mismatch` and `symbol_table_too_large`. A real `-s` Go module can retain
+pclntab but lack the name cross-check required for attribution; this yields
+`no_symbols`, as does actual pclntab absence. Contradictory metadata yields
+`symbol_mismatch`. Module read/digest failures retain the existing open error.
+One immutable result map covers unique requested sites, with cumulative limits
+of 64 MiB each for metadata/allocation and inspected code, 1,048,576 entries,
+16,777,216 traversal steps, 256 inline frames and 1 MiB per name/path. Exhaustion
+replaces all nonmissing results with `symbol_table_too_large`, including any
+previously resolved site. No attribution is written into the artifact, record
+hash, failure signature or execution identity.
+
+Campaign expected/observed divergence symbols require fn-232.7/.8's authenticated
+execution-ledger consumer. They are not artifact choice-trace fields; standalone
+replay text does not supply that consumer. fn-229.2 remains open until its public
+campaign fixtures cover both decisions against each execution's retained module.
 
 The JSON schema changes from Go's `gomad.inspect/v8` to `gomad.inspect/v9`:
 

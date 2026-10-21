@@ -51,6 +51,10 @@ pub struct TraceSite {
     pub kind: &'static str,
     pub count: u64,
     pub maximum_alternatives: u32,
+    #[serde(skip)]
+    pub site_offset: u64,
+    #[serde(skip)]
+    pub site_missing: bool,
 }
 
 #[derive(Serialize)]
@@ -101,6 +105,8 @@ pub fn inspect(
                 kind: kind_name(decision.kind),
                 count: 0,
                 maximum_alternatives: 0,
+                site_offset: decision.site_offset,
+                site_missing: decision.site_missing,
             });
         site.count += 1;
         site.maximum_alternatives = site.maximum_alternatives.max(decision.alternatives);

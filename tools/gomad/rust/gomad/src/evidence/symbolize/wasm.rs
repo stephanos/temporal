@@ -3,8 +3,8 @@ use super::{
     bytes::{BYTE_LIMIT, Budget, Memory, Result, Segment, add, mul, size},
 };
 use gomad_wasmhost::wasmparser::{
-    self, BinaryReader, CustomSectionReader, FunctionBody, KnownCustom, Name, Operator, Parser,
-    Payload, TypeRef,
+    self, BinaryReader, CustomSectionReader, FunctionBody, Name, Operator, Parser, Payload,
+    Subsection, TypeRef,
 };
 use std::collections::BTreeMap;
 
@@ -168,12 +168,37 @@ impl<'a> Module<'a> {
     fn read_names(&mut self, section: &CustomSectionReader<'a>, budget: &mut Budget) -> Result<()> {
         budget.bytes(section.data().len() as u64)?;
         budget.steps(section.data().len() as u64)?;
-        let KnownCustom::Name(reader) = section.as_known() else {
-            return Err(Reason::SymbolMismatch);
-        };
-        for name in reader {
+        let mut reader = BinaryReader::new(section.data(), section.data_offset());
+        while !reader.eof() {
             budget.entries(1)?;
-            match checked(name)? {
+            let id = checked(reader.read_u8())?;
+            if id > 127 {
+                return Err(Reason::SymbolMismatch);
+            }
+            let mut subsection = checked(reader.read_reader())?;
+            if id == 0 {
+                read_name(&mut subsection)?;
+                if !subsection.eof() {
+                    return Err(Reason::SymbolMismatch);
+                }
+                continue;
+            }
+            if matches!(id, 2 | 3 | 10) {
+                for _ in 0..checked(subsection.read_var_u32())? {
+                    budget.entries(1)?;
+                    checked(subsection.read_var_u32())?;
+                    for _ in 0..checked(subsection.read_var_u32())? {
+                        budget.entries(1)?;
+                        checked(subsection.read_var_u32())?;
+                        read_name(&mut subsection)?;
+                    }
+                }
+                if !subsection.eof() {
+                    return Err(Reason::SymbolMismatch);
+                }
+                continue;
+            }
+            match checked(Name::from_reader(id, subsection))? {
                 Name::Function(map) => {
                     for name in map {
                         budget.entries(1)?;
@@ -185,15 +210,6 @@ impl<'a> Module<'a> {
                         budget.bytes(128)?;
                         if self.names.insert(name.index, name.name).is_some() {
                             return Err(Reason::SymbolMismatch);
-                        }
-                    }
-                }
-                Name::Local(map) | Name::Label(map) | Name::Field(map) => {
-                    for item in map {
-                        budget.entries(1)?;
-                        for name in checked(item)?.names {
-                            budget.entries(1)?;
-                            bounded_name(checked(name)?.name)?;
                         }
                     }
                 }
@@ -209,7 +225,9 @@ impl<'a> Module<'a> {
                         bounded_name(checked(name)?.name)?;
                     }
                 }
-                Name::Module { name, .. } => bounded_name(name)?,
+                Name::Local(_) | Name::Label(_) | Name::Field(_) | Name::Module { .. } => {
+                    return Err(Reason::SymbolMismatch);
+                }
                 Name::Unknown { .. } => {}
             }
         }
@@ -245,22 +263,34 @@ impl<'a> Module<'a> {
 fn producers(section: &CustomSectionReader<'_>, budget: &mut Budget) -> Result<()> {
     budget.bytes(section.data().len() as u64)?;
     budget.steps(section.data().len() as u64)?;
-    let KnownCustom::Producers(reader) = section.as_known() else {
-        return Err(Reason::SymbolMismatch);
-    };
-    for field in reader {
+    let mut reader = BinaryReader::new(section.data(), section.data_offset());
+    for _ in 0..checked(reader.read_var_u32())? {
         budget.entries(1)?;
-        for value in checked(field)?.values {
+        if !matches!(read_name(&mut reader)?, "language" | "sdk" | "processed-by") {
+            return Err(Reason::SymbolMismatch);
+        }
+        for _ in 0..checked(reader.read_var_u32())? {
             budget.entries(1)?;
-            let value = checked(value)?;
-            bounded_name(value.name)?;
-            bounded_name(value.version)?;
-            if matches!(value.name, "Go" | "Go cmd/compile") && value.version != "go1.27.1" {
+            let name = read_name(&mut reader)?;
+            let version = read_name(&mut reader)?;
+            if matches!(name, "Go" | "Go cmd/compile") && version != "go1.27.1" {
                 return Err(Reason::NoSymbols);
             }
         }
     }
+    if !reader.eof() {
+        return Err(Reason::SymbolMismatch);
+    }
     Ok(())
+}
+
+fn read_name<'a>(reader: &mut BinaryReader<'a>) -> Result<&'a str> {
+    let length = u64::from(checked(reader.read_var_u32())?);
+    if length > super::bytes::STRING_LIMIT {
+        return Err(Reason::SymbolTableTooLarge);
+    }
+    std::str::from_utf8(checked(reader.read_bytes(size(length)?))?)
+        .map_err(|_| Reason::SymbolMismatch)
 }
 
 fn bounded_name(name: &str) -> Result<()> {

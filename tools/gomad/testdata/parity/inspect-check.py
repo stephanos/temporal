@@ -65,8 +65,10 @@ for entry in bundle['records']:
     else:
         complete_artifact = choice_artifact
         assert choice['replay_decisions'] == [dict(ordinal=0, kind='runnable', site_offset=42,
-                                                   site_missing=False, alternatives=2, selected=choice['replay_decisions'][0]['selected'])]
+                                                   site_missing=False, alternatives=2, selected=choice['replay_decisions'][0]['selected'],
+                                                   symbol={'unavailable': 'no_symbols'})]
     assert len(choice['sites']) == 1 and choice['sites'][0]['count'] == 1
+    assert choice['sites'][0]['symbol'] == {'unavailable': 'no_symbols'}
     if not is_overflow:
         assert '"site_offset":42' in run('inspect', '--choices', choice_artifact)
     expected_fingerprint = hashlib.sha256(bytes.fromhex(inspected['artifact']['record']['identity']['target']) + b'\x01' + (42).to_bytes(8, 'big')).hexdigest()
