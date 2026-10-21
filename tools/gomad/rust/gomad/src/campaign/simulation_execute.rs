@@ -73,8 +73,7 @@ pub(super) fn run(
         }
         let mut admitted = linked_cluster::prepare(bound.request)
             .map_err(|error| format!("runner_failure: {error}"))?;
-        #[cfg(feature = "helper-determinism-fixture")]
-        admitted.conditions(linked::Conditions::determinism_fixture_replay());
+        admitted.conditions(linked::Conditions::compiled());
         admitted.cancellation(cancellation.clone());
         #[cfg(feature = "determinism-fixture")]
         crate::fixture::execution_started().map_err(|error| error.message)?;

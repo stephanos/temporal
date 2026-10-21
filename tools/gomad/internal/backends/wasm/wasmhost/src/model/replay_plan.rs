@@ -247,10 +247,19 @@ impl ReplayPlan {
                 end += 1;
             }
             let readiness = |index: usize| {
-                let offset = index.checked_mul(RECORD_BYTES)?.checked_add(HEADER_BYTES)?.checked_add(10)?;
-                self.bytes.get(offset..)?.first_chunk::<2>().map(|bytes| u16::from_be_bytes(*bytes))
+                let offset = index
+                    .checked_mul(RECORD_BYTES)?
+                    .checked_add(HEADER_BYTES)?
+                    .checked_add(10)?;
+                self.bytes
+                    .get(offset..)?
+                    .first_chunk::<2>()
+                    .map(|bytes| u16::from_be_bytes(*bytes))
             };
-            let Some(word) = readiness(start) else { start = end; continue; };
+            let Some(word) = readiness(start) else {
+                start = end;
+                continue;
+            };
             let known = word & 1 != 0;
             let ready = word >> 6;
             let flags = word & 0b11_1110;

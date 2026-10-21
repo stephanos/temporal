@@ -1277,8 +1277,7 @@ pub(super) fn execute(
     bound.request.wall_timeout = bound.request.wall_timeout.min(timeout);
     let mut execution =
         helper::prepare(bound.request).map_err(|error| format!("runner_failure: {error}"))?;
-    #[cfg(feature = "helper-determinism-fixture")]
-    execution.conditions(linked::Conditions::determinism_fixture_replay());
+    execution.conditions(linked::Conditions::compiled());
     execution.cancellation(cancellation.clone());
     #[cfg(feature = "determinism-fixture")]
     crate::fixture::execution_started().map_err(|error| error.message)?;
