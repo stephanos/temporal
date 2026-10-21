@@ -83,6 +83,7 @@ impl Model {
                 "storage",
                 "storage_state",
                 "storage_image",
+                "network",
                 "inspection",
                 "debug",
             ],
@@ -134,6 +135,9 @@ impl Model {
             let bytes = std::mem::take(&mut self.inspection.output);
             self.queue("debug", &bytes);
         }
+    }
+    pub(crate) fn network_evidence(&mut self, bytes: &[u8]) {
+        self.queue("network", bytes);
     }
     pub fn namespace_output(&mut self, stdout: &[u8], stderr: &[u8]) {
         self.queue("stdout", stdout);

@@ -607,6 +607,12 @@ impl Recorder {
         owner.failure_order = failed.then_some(order);
     }
     pub fn terminal_network(&mut self, handle: &Handle, bytes: Vec<u8>) {
+        self.terminal_network_encoded(handle, bytes, "gomad.cluster-network-binary/v1");
+    }
+    pub(crate) fn terminal_network_json(&mut self, handle: &Handle, bytes: Vec<u8>) {
+        self.terminal_network_encoded(handle, bytes, "");
+    }
+    fn terminal_network_encoded(&mut self, handle: &Handle, bytes: Vec<u8>, encoding: &str) {
         if self.sealed || self.exhausted {
             return;
         }
@@ -618,7 +624,7 @@ impl Recorder {
         let state = commitment("network", &bytes);
         let streams = &mut self.owner(handle).streams;
         streams.network = bytes;
-        streams.network_encoding = "gomad.cluster-network-binary/v1".into();
+        streams.network_encoding = encoding.into();
         if let Some(cut) = self.cuts.get_mut(handle) {
             cut.network_bytes = length;
             cut.network_state = state;
