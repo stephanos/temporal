@@ -40,6 +40,7 @@ pub fn execute(
                 return Err(error.to_string());
             }
             crate::linked_cluster::Execution {
+                executed_steps: Vec::new(),
                 outcome: crate::protocol::Outcome::new(
                     "instrumentation_divergence",
                     error.to_string(),
