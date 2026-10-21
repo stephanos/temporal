@@ -107,7 +107,9 @@ World/input work is independent; no requirement or old assertion has been waived
 Formal plan review returned NEEDS_WORK. Before activity/live work, the owner must resolve
 the incompatible old-byte witness and cancellation contract; the pinned protocol signals
 pending cancellation on heartbeat and permits completion/failure races. Engineering plan
-gaps remain in fact emission, optional ticks and transactional Start evidence admission.
+briefs now specify fact emission, optional ticks and transactional Start admission;
+they still need task sizing and review. Carrying the actual Start request also needs
+approval for an additive Observation request field; no unchanged-envelope route exists.
 [Spec](.flow/specs/fn-227-parameterized-models-declared-worlds.md).
 
 | Name | Status | What |
@@ -161,5 +163,9 @@ and replay; one `umpire` command with five modes.
 
 ## Open for the owner
 
+- fn-227 needs approval for three contract amendments before activity/live work:
+  semantic compatibility in place of impossible literal old bytes; cooperative cancellation
+  with an explicit protocol evidence binding; optional actual-request evidence on Observation.
+  The original requirements remain unchanged, and the proposed amendments are not approved.
 - fn-232's separately tracked Linux/macOS byte-identity proof needs a reachable macOS executor.
   Two Linux checkouts prove path independence, not cross-OS identity.
