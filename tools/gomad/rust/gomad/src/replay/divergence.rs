@@ -35,6 +35,7 @@ pub fn first(record: &Record, observed: &linked::Execution) -> Option<String> {
         ("transcript", "io_profile.transcript.sha256"),
         ("choice", "choice_profile.trace.sha256"),
         ("diagnostic", "diagnostic_profile.trace.sha256"),
+        ("network", "backend.evidence.sha256"),
         ("storage", "backend.evidence.sha256"),
         ("storage_state", "backend.evidence.sha256"),
         ("storage_image", "backend.evidence.sha256"),
