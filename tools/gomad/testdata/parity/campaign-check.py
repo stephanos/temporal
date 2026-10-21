@@ -392,6 +392,24 @@ def main():
     run('resume-again', [*binary, 'resume', '--json', interrupted], 2)
     equal((interrupted / 'journal.jsonl').read_bytes(), before, 'resume.idempotent')
 
+    retiring_destination = args.work / 'retiring-interruption'
+    retiring_command = explore_command(case, retiring_destination)
+    retiring_command[retiring_command.index('--keep-successes=all')] = '--keep-successes=none'
+    retiring_command.remove('--success-limit=8')
+    retiring_command.remove('--success-bytes=256MiB')
+    run('retire-interrupt', retiring_command, 86, {'GOMAD_FIXTURE_CAMPAIGN_INTERRUPT_AFTER': '2'})
+    retiring = campaign_root(retiring_destination)
+    retired_prefix = authenticate_campaign(retiring, complete=False)
+    equal([row['artifact'] for row in retired_prefix['executions']], [None], 'retirement.durable_discard')
+    equal(len(list((retiring / 'evidence').glob('*/manifest.json'))), 1, 'retirement.crash_gap_candidate')
+    run('retire-resume', [*binary, 'resume', '--json', retiring])
+    retired = authenticate_campaign(retiring)
+    equal([row['artifact'] for row in retired['executions']], [None, None], 'retirement.completed_discard')
+    equal(list((retiring / 'evidence').glob('*/manifest.json')), [], 'retirement.reconciled_candidates')
+    equal(list((retiring / 'evidence').glob('.retire-*')), [], 'retirement.no_partial_tombstone')
+    prepared_module = retiring / retired['plan']['prepared_artifact'] / 'target/module.wasm'
+    equal(parity.digest(prepared_module.read_bytes()), retired['plan']['module_sha256'], 'retirement.prepared_module_preserved')
+
     source = roots['runtime']
     shards = []
     shard_records = []

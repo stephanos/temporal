@@ -5,6 +5,7 @@ import base64
 import copy
 from importlib.machinery import SourceFileLoader
 from importlib.util import module_from_spec, spec_from_loader
+import json
 import os
 from pathlib import Path
 import shlex
@@ -45,6 +46,29 @@ def authenticate_scenario(root, declared):
             boot = boots[bindings.get(handle, nodes[handle[0]]['boot'])]
             if boot.get('args') is not None:
                 check.equal(item['arguments'][1:], boot['args'], 'cluster.boot_arguments')
+            storage = boot.get('storage')
+            if storage is None:
+                check.equal(item['storage'], None, 'cluster.boot_storage')
+            else:
+                go_model = dict(volumes=[dict(ID=volume['ID'], Path=volume['Path'], CapacityBytes=volume['CapacityBytes'])
+                                        for volume in storage['volumes']],
+                    limits=dict(PendingOperations=storage['limits']['PendingOperations'],
+                                Transitions=storage['limits']['Transitions']))
+                if storage.get('faults'):
+                    go_model['faults'] = []
+                    for fault in storage['faults']:
+                        row = {name: fault[name] for name in ('name', 'resource', 'operation', 'occurrence', 'action')}
+                        if fault.get('bytes'):
+                            row['bytes'] = fault['bytes']
+                        go_model['faults'].append(row)
+                if storage.get('sqlite_lock_databases'):
+                    go_model['sqlite_lock_databases'] = storage['sqlite_lock_databases']
+                encoded = json.dumps(go_model, ensure_ascii=False, separators=(',', ':'))
+                for character, escaped in (('&', '\\u0026'), ('<', '\\u003c'), ('>', '\\u003e'),
+                                           ('\u2028', '\\u2028'), ('\u2029', '\\u2029')):
+                    encoded = encoded.replace(character, escaped)
+                check.equal(item['storage']['descriptor']['model_identity'],
+                    'sha256:' + check.parity.digest(encoded.encode()), 'cluster.original_go_storage_model_identity')
             module = item['module']
             raw = check.parity.contained(artifact, module['file']).read_bytes()
             check.equal((len(raw), check.parity.digest(raw)), (module['bytes'], module['sha256']), 'cluster.module')
@@ -237,9 +261,25 @@ func TestTruncated(t *testing.T) {
                 arguments.insert(target, '--soft-assertion-report-only')
             if output_limit:
                 arguments.insert(target, '--output-limit=' + output_limit)
-            run(f'{name}-{repetition}', arguments, status)
+            stdout = run(f'{name}-{repetition}', arguments, status)
             roots = list((destination / 'campaigns').glob('campaign-*'))
             check.equal(len(roots), 1, name + '.campaign_count')
+            if output_limit:
+                events = [check.parity.decode(line) for line in stdout.splitlines()]
+                errors = [event for event in events if event.get('type') == 'error']
+                check.equal(len(errors), 1, name + '.capacity_errors')
+                check.equal(errors[0]['classification'], 'runner_failure', name + '.capacity_class')
+                check.equal(errors[0]['message'], 'WASI capacity: offered-output-bytes', name + '.capacity_dimension')
+                validated = check.authenticate_campaign(roots[0], complete=False)
+                check.equal(validated['executions'], [], name + '.no_fabricated_completion')
+                check.equal([row['event'] for row in validated['journal']],
+                    [dict(kind='admit', jobs=[dict(ordinal=0, seed=7)])], name + '.authenticated_admitted_prefix')
+                check.equal(sorted(str(path.relative_to(roots[0])) for path in roots[0].rglob('manifest.json')),
+                    [str(Path(validated['plan']['prepared_artifact']) / 'manifest.json')], name + '.no_execution_artifact')
+                check.equal(list(roots[0].rglob('soft-assertions.json')), [], name + '.no_fabricated_soft_assertion_report')
+                view[name] = dict(plan=validated['plan'], journal=validated['journal'],
+                                  records=check.execution_view(validated), error=errors[0])
+                continue
             validated = authenticate_scenario(roots[0], check.parity.read(scenario_path))
             check.equal(len(validated['executions']), 1, name + '.executions')
             execution = validated['executions'][0]
@@ -250,16 +290,14 @@ func TestTruncated(t *testing.T) {
                        for item in report['incarnations']}
             first = reports[('a', 1)]
             check.equal(first['report_only'], report_only, name + '.policy')
-            check.equal(first['inconclusive'], bool(output_limit), name + '.completeness')
-            check.equal(first['messages'], ['truncated invariant' if output_limit else
-                'crash invariant' if restart else 'scenario invariant'], name + '.messages')
+            check.equal(first['inconclusive'], False, name + '.completeness')
+            check.equal(first['messages'], ['crash invariant' if restart else 'scenario invariant'], name + '.messages')
             check.equal(execution['record']['outcome']['class'],
-                'runner_failure' if output_limit else 'success' if report_only else 'target_failure', name + '.class')
+                'success' if report_only else 'target_failure', name + '.class')
             if restart:
                 check.equal(sorted(reports), [('a', 1), ('a', 2)] if report_only else [('a', 1)], name + '.handles')
-            if not output_limit:
-                replayed = run(f'{name}-replay-{repetition}', ['replay', artifact], 0 if report_only else 1)
-                check.equal(b'reproduced=true ' in replayed, True, name + '.replay_reproduced')
+            replayed = run(f'{name}-replay-{repetition}', ['replay', artifact], 0 if report_only else 1)
+            check.equal(b'reproduced=true ' in replayed, True, name + '.replay_reproduced')
             view[name] = dict(plan=validated['plan'], journal=validated['journal'],
                               records=check.execution_view(validated), reports=report)
 
