@@ -81,6 +81,18 @@ def authenticate_campaign(root, complete=True):
     if len(raw) > storage['max_bytes']:
         raise ValueError('journal exceeds authenticated bound')
     equal(raw.endswith(b'\n') or not raw, True, 'journal.complete_lines')
+    live_receipts, live_outcomes = {}, set()
+    for line in raw.splitlines():
+        event = parity.decode(line)['event']
+        if event['kind'] == 'receipt':
+            execution = event['execution']
+            live_receipts[execution['ordinal']] = execution['artifact']
+        elif event['kind'] == 'outcome':
+            for execution in event['executions']:
+                live_receipts.pop(execution['ordinal'], None)
+                if execution['artifact'] is not None:
+                    live_outcomes.add(execution['artifact'])
+    live_artifacts = live_outcomes | {reference for reference in live_receipts.values() if reference is not None}
     previous = storage['plan_sha256']
     pending, receipts, executions = {}, {}, []
     shard = plan['shard'] or {'index': 0, 'count': 1}
@@ -126,9 +138,12 @@ def authenticate_campaign(root, complete=True):
             artifact = root / execution['artifact']
             if not artifact.resolve().is_relative_to(root.resolve()):
                 raise ValueError('execution artifact escapes campaign')
-            retained = authenticate_artifact(artifact)
-            equal(parity.digest(parity.canonical(dict(retained, seed=0))),
-                  parity.digest(parity.canonical(dict(record, seed=0))), 'retained.failure_signature')
+            if execution['artifact'] in live_artifacts:
+                retained = authenticate_artifact(artifact)
+                equal(parity.digest(parity.canonical(dict(retained, seed=0))),
+                      parity.digest(parity.canonical(dict(record, seed=0))), 'retained.failure_signature')
+                equal(sum(child.stat().st_size for child in artifact.rglob('*') if child.is_file()),
+                      execution['stored_bytes'], 'retained.logical_byte_accounting')
         return record
 
     for ordinal, line in enumerate(raw.splitlines()):
@@ -281,6 +296,62 @@ def main():
             roots[name] = root
         views.append(view)
     equal(views[0], views[1], 'fresh repeated campaign projection')
+
+    runtime = authenticate_campaign(roots['runtime'])
+    first_features, second_features = [set(row['choice_features']) for row in runtime['executions']]
+    if not first_features & second_features or not second_features - first_features:
+        raise ValueError('runtime same-target coverage must overlap and add distinct features')
+    module_paths = [roots['runtime'] / runtime['plan']['prepared_artifact'] / 'target/module.wasm']
+    module_paths += [roots['runtime'] / row['artifact'] / 'target/module.wasm' for row in runtime['executions']]
+    equal(len({(path.stat().st_dev, path.stat().st_ino) for path in module_paths}), 1,
+          'shared_pool.prepared_and_execution_module_inode')
+    if any(path.stat().st_nlink < len(module_paths) for path in module_paths):
+        raise ValueError('shared module pool lost retained hardlink ownership')
+    novel_destination = args.work / 'novel'
+    novel_command = explore_command(declaration['cases'][0], novel_destination)
+    novel_command[novel_command.index('--keep-successes=all')] = '--keep-successes=novel'
+    novel_command.insert(novel_command.index('--keep-successes=novel'), '--coverage=choice')
+    run('novel-overlap', novel_command)
+    novel = authenticate_campaign(campaign_root(novel_destination))
+    equal([row['seed'] for row in novel['executions'] if row['artifact'] is not None], seeds(declaration['seeds']),
+          'novel.same_target_overlapping_distinct_successes')
+    budget_destination = args.work / 'retention-count-bound'
+    budget_command = explore_command(declaration['cases'][0], budget_destination)
+    budget_command[budget_command.index('--success-limit=8')] = '--success-limit=1'
+    run('retention-count-bound', budget_command, 3)
+    budget = authenticate_campaign(campaign_root(budget_destination), complete=False)
+    equal(len(budget['executions']), 1, 'retention_count_bound.committed_prefix')
+
+    failure_case = next(case for case in declaration['cases'] if case['name'] == 'failure')
+    for policy, expected_count in [('first', 1), ('budget', 1), ('all', 2)]:
+        destination = args.work / ('policy-' + policy)
+        command = explore_command(failure_case, destination)
+        command[command.index('--on-failure=all')] = '--on-failure=' + policy
+        command.insert(command.index('--on-failure=' + policy), '--failure-budget=1')
+        run('policy-' + policy, command, 1)
+        observed = authenticate_campaign(campaign_root(destination))
+        equal(len(observed['executions']), expected_count, 'policy.' + policy + '.ordered_attempts')
+    destination = args.work / 'parallel-first'
+    command = explore_command(failure_case, destination)
+    command[command.index('--on-failure=all')] = '--on-failure=first'
+    command[command.index('--parallel=1')] = '--parallel=2'
+    run('parallel-first', command, 1)
+    observed = authenticate_campaign(campaign_root(destination))
+    equal([row['ordinal'] for row in observed['executions']], [0, 1], 'parallel_first.ordered_drain')
+    equal(observed['executions'][0]['record']['outcome']['class'], 'target_failure', 'parallel_first.failure')
+    destination = args.work / 'watchdog'
+    command = explore_command(declaration['cases'][0], destination)
+    command[command.index('--execution-timeout=30s')] = '--execution-timeout=1ns'
+    command.insert(command.index('--execution-timeout=1ns'), '--terminate-grace=0s')
+    run('watchdog', command, 1)
+    observed = authenticate_campaign(campaign_root(destination))
+    equal([row['record']['outcome']['class'] for row in observed['executions']], ['watchdog', 'watchdog'],
+          'watchdog.exact_classification')
+    destination = args.work / 'slot-panic'
+    run('slot-panic', explore_command(declaration['cases'][0], destination), 3,
+        {'GOMAD_FIXTURE_CAMPAIGN_PANIC_SEED': '8'})
+    observed = authenticate_campaign(campaign_root(destination), complete=False)
+    equal(observed['executions'], [], 'panic.no_fabricated_completion')
 
     case = declaration['cases'][0]
     interrupted_destination = args.work / 'interrupted'

@@ -479,6 +479,7 @@ pub(crate) fn replay_bundle(root: &Path, corpus: &Path) -> Result<(), String> {
                     arguments: publication.record.arguments.clone(),
                     environment: publication.record.environment.clone(),
                     derive_seed_environment: false,
+                    wall_nanos: None,
                     network: None,
                     runtime_sha256: runtime
                         .then(|| canonical::digest(b"inspect-runtime-implementation/v1")),
