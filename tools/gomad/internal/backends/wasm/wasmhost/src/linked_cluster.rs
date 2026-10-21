@@ -1,7 +1,7 @@
 //! Bytes-owned cluster lifecycle execution over the helper's shared broker.
 pub use crate::model::inspection::Handle;
 use crate::{cluster, engine, linked, metrics::Metrics, namespace, protocol};
-use cluster::handoff::{Broker, Member};
+use cluster::handoff::{Broker, Command, Member};
 pub use cluster::handoff::{Config as BrokerConfig, WorldLimits};
 pub use cluster::network::{Config as NetworkConfig, ModelV2 as NetworkModel};
 use cluster::network::{Endpoint, Shared};
@@ -745,8 +745,17 @@ fn execute_inner(
             Err(Error::msg("incomplete cluster incarnation lifecycle"))
         }
     });
+    let divergent = prepared.simulation.as_ref().is_some_and(|controller| {
+        controller
+            .lock()
+            .is_ok_and(|controller| controller.divergence().is_some())
+    });
     if let Err(error) = &driven {
-        broker.abort("infrastructure", error.to_string());
+        if divergent && !timed_out.load(Ordering::Acquire) && broker.failure().is_none() {
+            stop_live(&prepared.ids, broker, &mut running, &mut completed, error);
+        } else {
+            broker.abort("infrastructure", error.to_string());
+        }
     }
     if timed_out.load(Ordering::Acquire) {
         broker.abort("watchdog_timeout", "execution watchdog timeout".into());
@@ -764,15 +773,10 @@ fn execute_inner(
             Err(_) => {}
         }
     }
-    if let Err(error) = driven {
-        let divergent = prepared.simulation.as_ref().is_some_and(|controller| {
-            controller
-                .lock()
-                .is_ok_and(|controller| controller.divergence().is_some())
-        });
-        if !divergent {
-            return Err(error);
-        }
+    if let Err(error) = driven
+        && !divergent
+    {
+        return Err(error);
     }
     if let Some(error) = join_error {
         return Err(error);
@@ -831,6 +835,59 @@ fn execute_inner(
         virtual_elapsed_nanos: broker.current(),
         event_order: None,
     })
+}
+
+/// Go `ClusterSession.Shutdown` for a session that ends early without a
+/// cluster failure: revoke every live incarnation with `stop` in
+/// (ID, Incarnation) order, then drive and join each in that order, so their
+/// stop terminals and the retained World evidence never depend on start or
+/// thread order. An incarnation that already finished is only joined; any
+/// other refusal falls back to the abort.
+fn stop_live(
+    ids: &[String],
+    broker: &Arc<Broker>,
+    running: &mut BTreeMap<Handle, Running>,
+    completed: &mut BTreeMap<Handle, IncarnationResult>,
+    error: &Error,
+) {
+    let index = |handle: &Handle| ids.iter().position(|id| id == &handle.node);
+    for handle in running.keys() {
+        let revoked = index(handle).is_some_and(|index| {
+            broker
+                .command(Command::Revoke {
+                    index,
+                    incarnation: handle.incarnation,
+                    kind: "stop",
+                })
+                .is_ok()
+                || broker.finished(index)
+        });
+        if !revoked {
+            broker.abort("infrastructure", error.to_string());
+            return;
+        }
+    }
+    let handles: Vec<Handle> = running.keys().cloned().collect();
+    for handle in handles {
+        let driven =
+            index(&handle).is_some_and(|index| broker.run(index, handle.incarnation).is_ok());
+        if !driven {
+            broker.abort("infrastructure", error.to_string());
+            return;
+        }
+        let Some(pending) = running.remove(&handle) else {
+            continue;
+        };
+        match joined(pending) {
+            Ok(observed) => {
+                completed.insert(handle, observed.result);
+            }
+            Err(failure) => {
+                broker.abort("infrastructure", failure.to_string());
+                return;
+            }
+        }
+    }
 }
 
 /// # Errors
