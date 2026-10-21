@@ -16,6 +16,14 @@ fn prepared_cluster_with(
     module: &[u8],
     network: Option<cluster::NetworkConfig>,
 ) -> cluster::Prepared {
+    prepared_cluster_fueled(module, network, 10000)
+}
+
+fn prepared_cluster_fueled(
+    module: &[u8],
+    network: Option<cluster::NetworkConfig>,
+    fuel: u64,
+) -> cluster::Prepared {
     let handles: Vec<_> = ["a", "b"]
         .into_iter()
         .map(|node| cluster::Handle {
@@ -27,14 +35,14 @@ fn prepared_cluster_with(
         handle:handle.clone(), network:network.as_ref().map(|network| network.model.clone()),
         request:linked::Request {
             module:module.to_vec(),module_sha256:format!("{:x}", Sha256::digest(module)),
-            limits:linked::Limits {fuel:10000,memory_bytes:65536,output_bytes:1024,evidence_bytes:1<<20,wall_timeout:Duration::from_secs(5)},
+            limits:linked::Limits {fuel,memory_bytes:65536,output_bytes:1024,evidence_bytes:1<<20,wall_timeout:Duration::from_secs(5)},
             namespace:Some(linked::NamespaceImage {
                 entries:Vec::new(),writable_directories:Vec::new(),preopens:vec![b"/".to_vec()],working_directory:b"/".to_vec(),stdin:Vec::new(),
                 limits:linked::NamespaceLimits {files:16,descriptors:16,filesystem_bytes:4096,output_bytes:1024},epoch_nanos:0,
             }),
             storage:None,
             model:Some(linked::ModelInput {
-                configuration:serde_json::from_value(json!({"entropy_key":vec![0_u8;32],"working_directory_sha256":format!("{:x}",Sha256::digest(b"/")),"arguments":{"bytes":0,"count":0,"chunks":0},"environment":{"bytes":0,"count":0,"chunks":0},"seed":89,"mode":1,"limit":4096,"diagnostics":false,"epoch_nanos":0,"read_step_nanos":0,"now":1,"limits":{"calls":100,"transcript_bytes":4096,"pending_events":16}})).unwrap(),
+                configuration:serde_json::from_value(json!({"entropy_key":vec![0_u8;32],"working_directory_sha256":format!("{:x}",Sha256::digest(b"/")),"arguments":{"bytes":0,"count":0,"chunks":0},"environment":{"bytes":0,"count":0,"chunks":0},"seed":89,"mode":1,"limit":4096,"diagnostics":false,"epoch_nanos":0,"read_step_nanos":0,"now":1,"limits":{"calls":if fuel > 10000 {1_000_000} else {100},"transcript_bytes":if fuel > 10000 {1 << 24} else {4096},"pending_events":16}})).unwrap(),
                 arguments:Vec::new(),environment:vec!["PWD=/".into()],replay_trace:None,
             }),
         },
@@ -208,4 +216,39 @@ fn unconsumed_or_changed_live_alternatives_preserve_typed_divergence() {
     let divergence = changed.divergence().unwrap();
     assert!(divergence.actual_exploration.is_some());
     assert!(changed.decisions().is_empty());
+}
+
+/// fn-227 R1 guard (received by fn-232.8): a watchdog-ended session with two
+/// admitted live incarnations (one running guest code, one awaiting its turn)
+/// drains them with repeatable outcome and network evidence across runs.
+#[test]
+fn live_incarnation_watchdog_shutdown_evidence_is_repeatable() {
+    let network: cluster::NetworkConfig = serde_json::from_value(json!({
+        "model":{"profile":"gomad.simulation-network-stream/v3","limits":{
+            "listeners":8,"connections":8,"bytes":1_048_576,"connection_bytes":1_048_576,
+            "stall_nanos":10_000_000_000_u64,"transitions":10000}},
+        "addresses":{},"links":[],"strict_topology":false,"faults":[]
+    }))
+    .unwrap();
+    let spin = br#"(module
+        (import "wasi_snapshot_preview1" "sched_yield" (func $yield (result i32)))
+        (memory (export "memory") 1)
+        (func (export "_start") (drop (call $yield)) (drop (call $yield)) (loop (br 0))))"#;
+    let mut first = None;
+    for _ in 0..16 {
+        let mut prepared = prepared_cluster_fueled(spin, Some(network.clone()), u64::MAX >> 2);
+        prepared
+            .bound_wall_timeout(Duration::from_millis(200))
+            .unwrap();
+        let observed = cluster::execute_prepared(prepared).unwrap();
+        let view = (observed.outcome.termination, observed.network.clone());
+        if let Some(first) = &first {
+            assert_eq!(&view, first, "live-node shutdown evidence changed");
+        } else {
+            first = Some(view);
+        }
+    }
+    let (termination, network) = first.unwrap();
+    assert_eq!(termination, "watchdog_timeout");
+    assert_ne!(network.len(), 0);
 }

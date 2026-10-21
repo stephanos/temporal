@@ -56,7 +56,7 @@ func helperCorpusRefusalLiteral(name string, actual any) error {
 		case name == "admission_storage_context_400":
 			want = "storage crash context diverged from prior observation"
 		case name == "admission_storage_context_399":
-			want = "WASI invalid: storage crash context"
+			want = "WASI invalid: storage crash context inventory"
 		case name == "admission_storage_context_missing_end":
 			want = "unexpected protocol EOF"
 		case name == "admission_model_input_missing_nul":
