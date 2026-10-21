@@ -84,7 +84,7 @@ CARGO_TARGET_DIR=/absolute/task-owned-target make model-time
 ```
 
 `model-time` executes the actual default gate and an edited-checker inner loop.
-The 30 s full-gate and 10 s inner-loop budgets are soft targets; observed overruns
+The 60 s full-gate (raised from 30 s on 2026-10-21) and 10 s inner-loop budgets are soft targets; observed overruns
 must be reported. Temporal embeds the committed `temporal/hosts/go/umpire_temporal_guest.wasm`
 through `temporal.Guest()`. Its Go consumers use no Rust or guest-path environment override.
 

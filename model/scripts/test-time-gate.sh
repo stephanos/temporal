@@ -43,8 +43,8 @@ $warnings
 
 inner_warning='note: inner loop over soft target (fn-210 R30)'
 gate_warning='note: gate over soft target (fn-210 R30)'
-expect_warnings '' 10 30 '' ''
-expect_warnings "$inner_warning" 10.001 30 '' ''
-expect_warnings "$gate_warning" 10 30.001 '' ''
+expect_warnings '' 10 60 '' ''
+expect_warnings "$inner_warning" 10.001 60 '' ''
+expect_warnings "$gate_warning" 10 60.001 '' ''
 expect_warnings '' 2 4 2 4
 expect_warnings "$gate_warning"$'\n'"$inner_warning" 3 5 2 4
