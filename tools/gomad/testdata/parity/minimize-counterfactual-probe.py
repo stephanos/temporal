@@ -8,10 +8,10 @@ from pathlib import Path
 import subprocess
 
 
-def prepare(binary, installation, output, run):
+def prepare(binary, installation, output, run, guest=None):
     output.mkdir(mode=0o700, parents=True, exist_ok=False)
-    guest = output / 'guest'
-    guest.mkdir(mode=0o700)
+    guest = guest or output / 'guest'
+    guest.mkdir(mode=0o700, parents=True, exist_ok=True)
     (guest / 'go.mod').write_text('module gomad.minimize-counterfactual\n\ngo 1.27.1\n')
     (guest / 'failure_test.go').write_text('''package minimizecounterfactual
 import ("runtime"; "testing")

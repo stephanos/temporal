@@ -218,8 +218,9 @@ def main():
     run('go-install', [go, 'install', '--compiler', args.go_compiler, '--helper', args.baseline / 'bin/gomad-wasmhost',
                       '--profile', 'gomad.wasi-cooperative/v1', '--runtime-root', module / 'internal/model/runtimesource',
                       '--cache', (args.preparation_root or args.output) / 'minimize-preparation', '--output', installation])
-    guest = args.output / 'guest'
-    guest.mkdir(mode=0o700)
+    corpus_sources = (args.preparation_root or args.output) / 'minimize-corpus-sources'
+    guest = corpus_sources / 'constant-failure'
+    guest.mkdir(mode=0o700, parents=True, exist_ok=True)
     (guest / 'go.mod').write_text('module gomad.minimize-fixture\n\ngo 1.27.1\n')
     (guest / 'failure_test.go').write_text('''package minimizefixture
 import ("runtime"; "testing")
@@ -235,11 +236,12 @@ func TestFailure(t *testing.T) {
                        '--on-failure=all', '--working-dir', guest,
                        '--build-tag=gomad_fixture', '--build-tag=test_dep', '--execution-timeout=30s', '--overall-timeout=5m',
                        '--artifacts', args.output / 'go-parents', 'go-test', '.', '--', '-test.run=^TestFailure$', '-test.v'], 1)
-    parents = sorted(path.parent for path in (args.output / 'go-parents').rglob('manifest.json')
-                     if json.loads(path.read_bytes()).get('artifact_kind') == 'gomad.target-failure/v1')
+    parents = sorted((path.parent for path in (args.output / 'go-parents').rglob('manifest.json')
+                      if json.loads(path.read_bytes()).get('artifact_kind') == 'gomad.target-failure/v1'),
+                     key=lambda path: int(json.loads((path / 'manifest.json').read_bytes())['seed']))
     equal(len(parents), 2, 'fresh Go parents')
     witness = runpy.run_path(str(corpus / 'minimize-counterfactual-probe.py'))['prepare'](
-        go, installation, args.output / 'counterfactual', run)
+        go, installation, args.output / 'counterfactual', run, corpus_sources / 'counterfactual')
     parents.append(Path(witness['artifact']))
     cases = [rust_case(parent, args.output / f'seed{index}.wasm') for index, parent in enumerate(parents)]
     cases[-1].update(name=f'counterfactual-seed{witness["seed"]}',
@@ -264,7 +266,7 @@ func TestFailure(t *testing.T) {
     cluster_driver = corpus / 'minimize-cluster-refusal.py'
     run('cluster-refusal', [sys.executable, cluster_driver, '--binary', args.rust_binary,
         '--baseline', args.baseline, '--source', corpus.parents[3], '--go-compiler', args.go_compiler,
-        '--work', cluster_work, '--input', input_path,
+        '--work', cluster_work, '--input', input_path, '--guest', guest,
         '--preparation-root', (args.preparation_root or args.output) / 'cluster-refusal-preparation'])
     cluster_report = json.loads((cluster_work / 'minimize-cluster-refusal-result.json').read_bytes())
     equal(cluster_report['schema'], 'gomad.minimize-cluster-refusal/v1', 'cluster refusal report schema')
