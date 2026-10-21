@@ -138,10 +138,12 @@ class GuestFreshness(unittest.TestCase):
                 self.assertFalse((self.root / "cargo-called").exists())
 
     def test_stale_guest_fails_real_model_check(self):
+        env = dict(self.env)
+        env.pop("UMPIRE_TIME_STEPS", None)
         result = subprocess.run(
             ["make", "--no-print-directory", "model-check",
              f"PROTOC_GEN_GO={self.root / 'go/bin/go'}", f"API_BINPB={self.root / 'go/bin/go'}"],
-            cwd=REPO, env=self.env, capture_output=True, text=True, check=False,
+            cwd=REPO, env=env, capture_output=True, text=True, check=False,
         )
         self.assertNotEqual(result.returncode, 0, result.stdout + result.stderr)
         self.assertIn("stale guest", result.stderr)
