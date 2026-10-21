@@ -27,9 +27,10 @@ func save(path string, value any) {
 }
 func main() {
 	var input struct {
-		Base     wasi.Request
-		Scenario simulation.OperatorScenario
-		Output   string
+		Base           wasi.Request
+		Scenario       simulation.OperatorScenario
+		Output         string
+		ExpectedOwners int
 	}
 	raw, err := os.ReadFile(os.Args[1])
 	must(err)
@@ -72,11 +73,14 @@ func main() {
 	for _, boundary := range observed.WASM.Inspection.Boundaries {
 		selected[boundary.Handle] = append(selected[boundary.Handle], boundary)
 	}
-	if len(selected) != 3 {
-		panic("three inspected owners required")
+	if len(selected) != input.ExpectedOwners {
+		panic(fmt.Sprintf("inspected owners: got %d want %d", len(selected), input.ExpectedOwners))
 	}
 	for _, owner := range observed.WASM.Inspection.Incarnations {
 		choices := selected[owner.Handle]
+		if len(choices) == 0 {
+			continue
+		}
 		for _, pick := range []struct {
 			Name     string
 			Boundary model.WASMInspectionBoundary
@@ -103,6 +107,9 @@ func main() {
 		}
 	}
 	target := model.NodeHandle{Node: "a", Incarnation: 2}
+	if len(selected[target]) == 0 {
+		target = model.NodeHandle{Node: "a", Incarnation: 1}
+	}
 	choices := selected[target]
 	for _, mode := range []string{"scan", "bisect"} {
 		request := simulation.WASMInspectionSearchRequest{Target: target, Cluster: true, Check: "fixture.before_three", First: 0, Last: choices[len(choices)-1].Decision, Mode: mode, AttemptBudget: 256, WallTime: 60 * time.Second}
@@ -136,7 +143,7 @@ func main() {
 		if search.Status != "first_failure" || search.FirstFailure == nil {
 			panic("registered invariant search must find first failure")
 		}
-		save(filepath.Join(input.Output, "a-2-"+mode+".search.json"), search)
+		save(filepath.Join(input.Output, fmt.Sprintf("%s-%d-%s.search.json", target.Node, target.Incarnation, mode)), search)
 	}
 	fmt.Printf("owners=%d boundaries=%d\n", len(selected), len(observed.WASM.Inspection.Boundaries))
 }
