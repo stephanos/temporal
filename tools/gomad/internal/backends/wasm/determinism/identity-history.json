@@ -1074,5 +1074,9 @@
  {
   "id": "engine.linked-epoch-watchdog",
   "site": "engine-setting:epoch_interruption(watchdog || cfg!(feature = \"guest-profile\"))"
+ },
+ {
+  "id": "helper.cluster.execution.manual.thread-builders",
+  "site": "helper-source:cluster/execution/manual.rs|thread::Builder|2"
  }
 ]

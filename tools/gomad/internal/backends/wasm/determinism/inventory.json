@@ -2287,9 +2287,21 @@
    "layer": "helper",
    "class": "thread-order",
    "site": "helper-source:cluster/execution/manual.rs|thread::Builder|1",
+   "disposition": "rejected",
+   "owner": "wasmhost cluster/execution/manual.rs",
+   "rule": "Retired by fn-235: manual.rs now builds two threads, inventoried as helper.cluster.execution.manual.thread-builders.",
+   "evidence": [
+    "rust:tests/inventory.rs:helper_source_scan_sites_are_inventoried"
+   ]
+  },
+  {
+   "id": "helper.cluster.execution.manual.thread-builders",
+   "layer": "helper",
+   "class": "thread-order",
+   "site": "helper-source:cluster/execution/manual.rs|thread::Builder|2",
    "disposition": "controlled",
    "owner": "wasmhost cluster/execution/manual.rs",
-   "rule": "One OS thread per started incarnation; the baton admits exactly one thread at a time in recorded cluster order, so host thread scheduling cannot reorder guest steps.",
+   "rule": "One OS thread per started incarnation; the baton admits exactly one thread at a time in recorded cluster order, so host thread scheduling cannot reorder guest steps. One control-pipe reader thread reads exactly one Go control frame per control-loop request, so frames are processed in pipe order; it only lets an incarnation failure end the run instead of waiting for a frame Go never sends (fn-235).",
    "evidence": [
     "rust:tests/inventory.rs:helper_source_scan_sites_are_inventoried",
     "rust:src/cluster/handoff/baton.rs:cluster_baton_serializes_in_instance_order"
