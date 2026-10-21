@@ -936,3 +936,61 @@ clean staged work at3c50e1945c, including unstub3925d83499 and the measured
 integration order waits for the sweep unless that sweep requests the unstub
 early. No fn221/fn224 worktree or source was mutated, and no premature closure
 or new long-running sweep was started during this closure batch.
+
+### Accepted foundation closures and store durability repair
+
+Root verified fn232.2 done, then committed its receipt and milestone removal at
+7a3bc17ca3. Root verified fn232.4 done, then committed its receipt and milestone
+removal at9fb8c8a7cf. Fresh root foundation-check against the frozen copied
+fixture binary returned0 at `.build-cache/fn232-foundation-closeout/root-closure-strict`.
+This runs both repetitions, authenticates records/payloads/ledgers and matches
+the checked-in goldens. All15 golden manifest hashes verified. Fresh semantic
+subprocess selftests and release fixture exclusion also returned0. The latter
+reports14/14 fixture entry points absent. Flow validation returned valid with
+zero errors/warnings; tracker sync is inactive. These close only the tasks'
+explicit foundation scope, with no public-verb or final qualification claim.
+
+The fresh independent foundation_acceptance_review returned SHIP for .2 R2/R14
+and .4 foundation R13/R14, but NEEDS_WORK for .3 R3. The reviewer authenticated
+all15 goldens, four frozen Go input identities, candidate binaries, retained
+four-lane execution/store receipts and18 release fixture/fault refusals. Its
+concrete finding is direct-final immutable-file creation. An interruption can
+leave partial canonical pool/layout files that poison ordinary retries, or
+complete unsynced files which retries reuse while syncing directories only.
+Directory sync does not establish payload file durability. The existing crash
+matrix does not enter these windows. The fix remains required under .3.
+
+Root created `/home/agent/wt/fn232-store-fix` on branch `fn232-store-fix` from
+0e86de56d4. Replay owner acknowledged and owns its sole mutable source lane and
+the shared RELEASE Cargo target lease, jobs1/offline/incremental0. The task is
+to capture actual CLI RED creation/partial-write/pre-file-sync retry cases,
+then stage and sync immutable bytes before exclusive publication using pinned
+FDs and the existing NOREPLACE primitive. Pool and layout share the repair;
+conflict refusals and existing fault-point semantics remain. Evidence belongs
+to `/home/agent/wt/evidence/fn232-store-fix`. Source integration, final green
+checks, two audited golden regenerations and independent re-review remain
+pending. Root has made only Flow/docs changes since0e86. No new task admitted.
+
+Minimizer goldens integrated at0e86de56d4 match both corrected generations.
+The independent minimizer_acceptance_review accepts R8 and ownedR13/R14 with
+no findings. Each generation has94 main and9 cluster command receipts; six
+Rust raw record/payload pairs, six Go hash/payload pairs and nine checkpoints
+match. Root rechecked golden SHA256
+`d8f7795d5bb4c4d9a54b38e361dc8b5fe4e0b0065336d8d0671127650dbcc070`
+and cross-generation receipt SHA256
+`ba32569cec41f58b852c5801f8f5fc3b770333d774e04c2d85d761f32b4e4315`.
+Receipt path is `.build-cache/fn232-minimize/v6-stable2/cross-generation-raw-comparison.json`
+relative to the workspace parent of temporal. fn232.9 remains in_progress.
+Its original admission expressly retained .8 acceptance before integrated
+completion, and .8 still has mandatory parity gaps. Own-scope acceptance does
+not waive that prerequisite. Private fn235 target lease is released.
+
+Current registered worktrees remain those listed in the prior handover plus
+fn232-store-fix. fn232-minimize is clean/inactive and retained for its open
+dependency-held task evidence. Foundation/replay/campaign/exploration/simulation
+trees retain open fn232 inputs. fn230-sites retains open .1/public-plan work;
+fn185/fn221/fn224/fn235 trees retain their open acceptance inputs. Qualification
+tree remains stopped at280ff70271 for todo .10. Detached fn235 progress and
+qualification-final-frozen trees retain required performance/qualification
+inputs and cannot be deleted on age alone. Store-fix is active and must not be
+removed. Last free space is24GiB overlay/34GiB host; no cache cleanup occurred.
