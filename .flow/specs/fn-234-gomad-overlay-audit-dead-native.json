@@ -1,7 +1,7 @@
 {
   "branch_name": "fn-234-gomad-overlay-audit-dead-native",
-  "completion_review_status": "unknown",
-  "completion_reviewed_at": null,
+  "completion_review_status": "ship",
+  "completion_reviewed_at": "2026-10-21T01:52:55.882413Z",
   "created_at": "2026-10-20T23:23:20.171281Z",
   "default_impl": null,
   "default_review": null,
@@ -297,23 +297,60 @@
       "task": "fn-234-gomad-overlay-audit-dead-native.1",
       "timestamp": "2026-10-21T01:44:18.471958Z",
       "verdict": "SHIP"
+    },
+    {
+      "artifact_sha256": "edee0d252418f7afc1febc53e5bd7db4daeba5c6c11308389bf28c209283a307",
+      "backend": "codex",
+      "base_sha": "fe0c2fff2aaad3e8332ce136c4165ef0a07c605d",
+      "counter_kind": "plan",
+      "effort": "high",
+      "failure_class": null,
+      "finalized": {
+        "digest": "complete",
+        "receipt": "complete",
+        "status": "complete"
+      },
+      "findings_digest": {
+        "backend": "codex",
+        "digest_truncated": false,
+        "items": [],
+        "reviewKind": "completion"
+      },
+      "forced": false,
+      "hash_epoch": 0,
+      "head_sha": "8e22e30ef26236b0a0dbb38e6ca17cbcb6492e74",
+      "head_sha_observed": true,
+      "kind": "completion",
+      "model": "gpt-6.1-sol",
+      "outcome": "verdict",
+      "output_bytes": 1869730,
+      "output_sha256": "86111b0f37c042bc76d8f005e5e676478d1122ec9a2c59a6c6b332dd54376f63",
+      "reservation_id": "621a3b1d99f447f9a13ffcba97cc375d",
+      "round_consumed": true,
+      "scope": "completion",
+      "superseded_by": null,
+      "task": null,
+      "timestamp": "2026-10-21T01:52:55.856522Z",
+      "tool_calls": 24,
+      "verdict": "SHIP"
     }
   ],
   "review_hash_epoch": {
     "impl:fn-234-gomad-overlay-audit-dead-native.1": 1,
     "impl:fn-234-gomad-overlay-audit-dead-native.2": 1,
     "plan": 1,
-    "plan#completion": 0
+    "plan#completion": 1
   },
   "review_pending_rounds": {},
   "review_reservations": {},
   "review_transport_failures": {
+    "completion": 0,
     "impl:fn-234-gomad-overlay-audit-dead-native.1": 0,
     "impl:fn-234-gomad-overlay-audit-dead-native.2": 0,
     "plan": 0
   },
   "spec_path": ".flow/specs/fn-234-gomad-overlay-audit-dead-native.md",
-  "status": "open",
+  "status": "done",
   "title": "Gomad: overlay audit, dead native leftovers and inspection split",
   "tracker": {
     "baseHashFlow": null,
@@ -326,5 +363,5 @@
     "mergeBaseTracker": null,
     "url": null
   },
-  "updated_at": "2026-10-21T01:44:18.484069Z"
+  "updated_at": "2026-10-21T01:55:58.038894Z"
 }

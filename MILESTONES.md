@@ -323,22 +323,14 @@ First in the delivery order (owner decision 2026-10-20). New evidence lineage; b
 | [fn-232-gomad-rewrite-the-host-side-in-rust.12](.flow/tasks/fn-232-gomad-rewrite-the-host-side-in-rust.12.md) | ⬜ Todo | Keep Go overlay, models, generator and corpora green under the Rust binary |
 | [fn-232-gomad-rewrite-the-host-side-in-rust.13](.flow/tasks/fn-232-gomad-rewrite-the-host-side-in-rust.13.md) | ⬜ Todo | Qualification cycle on the Rust binary and Go host retirement |
 
-### Overlay audit — [fn-234](.flow/specs/fn-234-gomad-overlay-audit-dead-native.md)
-
-Owner request 2026-10-20: bounded audit, no capability change. Dead intercept list and proven-unreferenced leftovers deleted; inspection code split out of the wasip1 runtime file under a declaration-list gate and the fresh-execution behavioral gate. Lands as one batch; overlay identity changes once and caches are rebuilt. The frozen pre-fn-228 Go baseline is untouched.
-
-| Name / ID | Status | Description |
-| --- | --- | --- |
-| [fn-234-gomad-overlay-audit-dead-native.1](.flow/tasks/fn-234-gomad-overlay-audit-dead-native.1.md) | 🚧 In progress | Delete the dead Go 1.27.1 intercept list and proven-unreferenced overlay leftovers |
-| [fn-234-gomad-overlay-audit-dead-native.2](.flow/tasks/fn-234-gomad-overlay-audit-dead-native.2.md) | 🚧 In progress | Split inspection code out of the wasip1 runtime overlay with declaration and behavioral gates |
-
 ### Choice-site symbolization, explore site scope and minimizer ordering — [fn-229](.flow/specs/fn-229-gomad-symbolize-choice-sites-in-inspect.md), [fn-230](.flow/specs/fn-230-gomad-explore-site-scope-for-choice.md), [fn-231](.flow/specs/fn-231-gomad-site-aware-minimizer-ordering-and.md)
 
 Interleave with the Rust host: fn-229 after fn-232.5 inspect, fn-230 after fn-232.8 exploration and fn-229, then fn-231 after fn-232.9 minimize and both preceding site specs. No feature waits for the entire fn-232 rewrite.
 
 | Name / ID | Status | Description |
 | --- | --- | --- |
-| [fn-229-gomad-symbolize-choice-sites-in-inspect.2](.flow/tasks/fn-229-gomad-symbolize-choice-sites-in-inspect.2.md) | ⬜ Todo | Inspect output: attach symbols to sites, decisions and divergences |
+| [fn-229-gomad-symbolize-choice-sites-in-inspect.1](.flow/tasks/fn-229-gomad-symbolize-choice-sites-in-inspect.1.md) | 🚧 In progress | Reproduce and close parser-internal cumulative budget gap |
+| [fn-229-gomad-symbolize-choice-sites-in-inspect.2](.flow/tasks/fn-229-gomad-symbolize-choice-sites-in-inspect.2.md) | 🚧 In progress | Inspect output: attach symbols to sites, decisions and divergences |
 
 | Name / ID | Status | Description |
 | --- | --- | --- |
