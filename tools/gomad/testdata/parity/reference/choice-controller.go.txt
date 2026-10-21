@@ -1,0 +1,76 @@
+package main
+
+import (
+    "crypto/sha256"
+    "encoding/json"
+    "fmt"
+    "os"
+    "go.temporal.io/server/tools/gomad/internal/evidence/record"
+    "go.temporal.io/server/tools/gomad/internal/model/choice"
+    "go.temporal.io/server/tools/gomad/internal/runner/internal/exploration"
+)
+
+type traceInput struct {
+    Selected []uint32 `json:"selected"`
+    Raw []uint64 `json:"raw"`
+}
+type input struct {
+    Config exploration.ChoiceConfig `json:"config"`
+    Traces []traceInput `json:"traces"`
+    Failed []uint64 `json:"failed_executions"`
+}
+func traces() error {
+    values := []traceInput{}
+    for a := uint32(0); a < 2; a++ { for b := uint32(0); b < 3; b++ {
+        selected := []uint32{a,b}
+        records := []choice.Record{}
+        for ordinal, count := range []uint32{2,3} {
+            identities := make([][32]byte,count)
+            for rank := range identities { identities[rank] = sha256.Sum256([]byte{byte(ordinal),byte(rank+1)}) }
+            // Controller testdata contains canonical observed records for every rank.
+            ordered := append([][32]byte{},identities...)
+            for i := range ordered { for j:=i+1;j<len(ordered);j++ { if string(ordered[i][:])>string(ordered[j][:]) {ordered[i],ordered[j]=ordered[j],ordered[i]} } }
+            decision,err := choice.CanonicalDecision(uint64(ordinal),choice.KindRunnable,uint64(ordinal+1),false,identities,ordered[selected[ordinal]],0)
+            if err != nil { return err }; records=append(records,decision.Record())
+        }
+        trace,err := choice.BuildTrace(records,choice.TerminalComplete); if err != nil{return err}
+        raw:=make([]uint64,len(trace.Bytes));for i,value:=range trace.Bytes{raw[i]=uint64(value)}
+        values=append(values,traceInput{selected,raw})
+    } }
+    return json.NewEncoder(os.Stdout).Encode(values)
+}
+func run() error {
+    if len(os.Args)>1 && os.Args[1]=="--traces" {return traces()}
+    var request input
+    decoder:=json.NewDecoder(os.Stdin);decoder.DisallowUnknownFields()
+    if err:=decoder.Decode(&request);err!=nil{return err}
+    state,err:=exploration.NewChoice(request.Config);if err!=nil{return err}
+    views:=[]any{}
+    for {
+        round,ok:=state.NextRound();if !ok{break}
+        results:=make([]exploration.ChoiceResult,len(round.Candidates));candidates:=[]any{}
+        for index,candidate:=range round.Candidates {
+            prefix,err:=candidate.PrefixReplayPlan(state.Config.Execution);if err!=nil{return err}
+            var raw []byte
+            for _,source:=range request.Traces {
+                matches:=true
+                for i,decision:=range prefix.Decisions{if i>=len(source.Selected)||source.Selected[i]!=decision.Selected{matches=false;break}}
+                if matches {raw=make([]byte,len(source.Raw));for i,value:=range source.Raw{if value>255{return fmt.Errorf("raw byte overflow")};raw[i]=byte(value)};break}
+            }
+            if raw==nil{return fmt.Errorf("fixture lacks matching trace")}
+            count,err:=choice.TraceRecordCount(raw);if err!=nil{return err};limit,err:=choice.TraceBytes(count);if err!=nil{return err}
+            trace,err:=choice.DecodeStoredTrace(choice.Profile,raw,choice.TerminalMetadata{State:choice.TerminalComplete,Limit:limit,Records:count,SHA256:sha256.Sum256(raw)});if err!=nil{return err}
+            tape,err:=choice.ProjectReplayPlan(trace,state.Config.Execution);if err!=nil{return err}
+            ordinal:=state.LogicalExecutions+uint64(index);failed:=false;for _,value:=range request.Failed{if value==ordinal{failed=true}}
+            failure:=record.SHA256("");if failed{failure=record.HashBytes([]byte(fmt.Sprintf("controller-failure-%d",ordinal)))}
+            results[index]=exploration.ChoiceResult{CandidateSHA256:candidate.SHA256,OutcomeSHA256:record.HashBytes([]byte("controller-outcome")),Failed:failed,FailureSHA256:failure,Trace:&tape,SourceTrace:raw}
+            candidates=append(candidates,map[string]any{"sha256":candidate.SHA256,"parent_sha256":candidate.ParentSHA256,"forced_depth":candidate.ForcedDepth,"prefix_sha256":candidate.PrefixSHA256})
+        }
+        next,segment,err:=exploration.CommitChoiceRound(state,round,results);if err!=nil{return err}
+        replayed,err:=exploration.ChoiceReplaySegment(state,segment);if err!=nil{return err}
+        left,err:=json.Marshal(next);if err!=nil{return err};right,err:=json.Marshal(replayed);if err!=nil{return err};if string(left)!=string(right){return fmt.Errorf("Go choice replay differs")}
+        views=append(views,map[string]any{"index":round.Index,"candidates":candidates,"summary":next.Summary()});state=next
+    }
+    return json.NewEncoder(os.Stdout).Encode(map[string]any{"schema":"gomad.choice-controller-corpus/v1","view":views})
+}
+func main(){if err:=run();err!=nil{fmt.Fprintln(os.Stderr,err);os.Exit(2)}}

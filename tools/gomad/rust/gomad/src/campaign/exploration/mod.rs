@@ -1,4 +1,6 @@
 pub(crate) mod choice;
+#[cfg(feature = "determinism-fixture")]
+pub(crate) mod choice_corpus;
 pub(crate) mod plan;
 pub(crate) mod round;
 pub(crate) mod simulation;

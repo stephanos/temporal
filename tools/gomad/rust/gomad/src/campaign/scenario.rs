@@ -982,11 +982,6 @@ pub(super) fn execute(
     timeout: Duration,
     cancellation: &linked::Cancellation,
 ) -> Result<super::execution::Result, String> {
-    use crate::evidence::{
-        identity::Identity,
-        record::{Outcome, Record, Stream},
-        store::Publication,
-    };
     let mut bound = bind(
         prepared
             .scenario
@@ -1020,14 +1015,29 @@ pub(super) fn execute(
     crate::fixture::execution_started().map_err(|error| error.message)?;
     let execution =
         helper::execute_prepared(execution).map_err(|error| format!("runner_failure: {error}"))?;
+    publication(prepared, job, bound.configuration, execution)
+}
+
+#[expect(
+    clippy::too_many_lines,
+    reason = "Publication binds every incarnation stream and shared observation before returning a campaign receipt"
+)]
+pub(super) fn publication(
+    prepared: &super::prepare::Prepared,
+    job: &super::ledger::Job,
+    configuration: cluster::Configuration,
+    execution: helper::Execution,
+) -> Result<super::execution::Result, String> {
+    use crate::evidence::{identity::Identity, record::{Outcome, Record, Stream}, store::Publication};
+    let scenario = parse(prepared.scenario.as_deref().ok_or("missing campaign scenario")?)?;
     let reports = assertions(
         &execution,
-        &bound.configuration,
+        &configuration,
         prepared.soft_assertion_report_only,
         scenario.spec.limits.oracle_results,
         scenario.spec.limits.scenario_evidence_bytes,
     )?;
-    if execution.incarnations.len() != bound.configuration.incarnations.len()
+    if execution.incarnations.len() != configuration.incarnations.len()
         && !matches!(
             execution.outcome.termination,
             "cancelled" | "watchdog_timeout"
@@ -1038,8 +1048,7 @@ pub(super) fn execute(
     let mut retained = Vec::new();
     let mut features = Vec::new();
     for item in &execution.incarnations {
-        let configuration = bound
-            .configuration
+        let configuration = configuration
             .incarnations
             .iter()
             .find(|value| value.handle == item.handle)
@@ -1142,7 +1151,7 @@ pub(super) fn execute(
         host_sha256: env!("GOMAD_HOST_IMPLEMENTATION_SHA256").into(),
         runtime_implementation_sha256: env!("GOMAD_RUNTIME_IMPLEMENTATION_SHA256").into(),
         toolchain_sha256: prepared.toolchain.clone(),
-        configuration: bound.configuration,
+        configuration,
         retained,
     };
     let identity = Identity {

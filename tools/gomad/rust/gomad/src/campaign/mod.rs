@@ -2,6 +2,7 @@ mod execution;
 pub(crate) mod choice;
 pub(crate) mod exploration;
 pub(crate) mod simulation;
+mod simulation_execute;
 mod failure_policy;
 pub(crate) mod inspect;
 pub(crate) mod ledger;

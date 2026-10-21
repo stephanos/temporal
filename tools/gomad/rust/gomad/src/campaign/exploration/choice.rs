@@ -5,6 +5,10 @@ use serde::{Deserialize, Serialize};
 use serde_json::json;
 use std::collections::{BTreeMap, BTreeSet};
 
+#[cfg(test)]
+#[path = "choice_tests.rs"]
+mod tests;
+
 pub(crate) const SCHEMA: &str = "gomad.choice-exploration-round/v3";
 
 pub(crate) fn implementation() -> String {
