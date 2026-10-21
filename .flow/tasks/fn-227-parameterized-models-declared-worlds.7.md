@@ -61,17 +61,12 @@ Full from repository root: `make model-check`, `UMPIRE_BACKENDS=require make mod
 - [ ] The new two-parameter `parameterized_world` fixture has native report/rows/states/paths plus source/TLC artifacts and actual agreement. All old goldens/expansions are byte-identical; Quick/full gates pass with timing output retained and any necessary rebuilt-guest live slice/gap/privacy proof. Together with native predecessor this discharges the World portion of R1/R3; input and activity portions remain open under their existing tasks and owner amendments.
 
 ## Done summary
-Blocked:
-BLOCKED: EXTERNAL_BLOCKED
-Task: fn-227-parameterized-models-declared-worlds.7
-Summary: external_source_concurrency prevents attributable final verification; the owner requested wrapping the in-flight checkpoint and stopping.
-Impact: The World source/TLC checkpoint is preserved, but final full verification, implementation review and task closure remain open. No further task is admitted.
-Suggested resolution: Coordinate a stable guest recipe/compiler-helper/embedded-asset ownership boundary, re-anchor this checkpoint and any intervening foreign commits, run fresh scoped required-backend and all three full gates, obtain the required independent implementation-review verdict, then complete the task normally. Never reuse the mixed-input gate as a green receipt.
+Declared World source binding is complete. A compiler-checked augmented copy projects private World/state fields inside the machine module while admission reads the untouched model.rs; tests.rs scope is preserved. One owned World and one start enumeration feed binding, native checking (`Checker::refuted_from` / `explore_from`) and same-World TLC replay. World/source/state/before identities stay distinct; whole-state Init emits correlated alternatives; all five CFG families carry identical CONSTANT assignments and pass real TLC. World integers outside 0..=i32::MAX are refused with located diagnostics (TLC .cfg cannot parse negatives). New `parameterized_world` fixture (three selections) with native and source/TLC goldens; all 794 baseline goldens and the embedded guest are byte-identical.
 
-The unowned, uncommitted guest recipe, compiler helper/tests and embedded asset differ from the pinned pre-edit baseline. They were detected while the final full gate was active; no isolated stable owned input manifest supports attributing that gate to Task 7. This is an evidence/attribution gap, not a claimed test failure or a claim about exactly when an individual stage read a changed file.
+Review: round 1 NEEDS_WORK (negative World constants), round 2 SHIP (.flow/tmp/fn2277-review.md, fn2277-review2.md). Gates: Quick default/required, `make model-check` (1m23s), `UMPIRE_BACKENDS=require make model-check` (9m17s), `make model-time` 52.3s gate (over 30s soft target) / 7.4s inner loop.
 
-Default and required-backend scoped Quick commands passed, including actual binding-sensitive TLC executions of all five configuration families and same-World false-claim replay. Scoped strict clippy and formatting passed. Both fresh static quality audits returned zero findings and are retained verbatim. The task has no formal implementation-review verdict and is not complete.
+stage: plan-sync - skipped(config: planSync.enabled != true)
 ## Evidence
-- Commits:
-- Tests:
+- Commits: 53349d60ac, 380ed2a607, aa5bca1c23, d953705b13
+- Tests: mise exec -- cargo test -p umpire-lift -p umpire-testing -p umpire-tests, UMPIRE_BACKENDS=require mise exec -- cargo test -p umpire-lift -p umpire-testing -p umpire-tests, make model-check, UMPIRE_BACKENDS=require make model-check, make model-time
 - PRs:

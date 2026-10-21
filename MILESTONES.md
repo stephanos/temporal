@@ -102,13 +102,11 @@ request and the live slice proves one retry then completion. The lifter admits `
 The native World checkpoint is complete locally with SHIP review, all three final gates
 and unchanged original artifacts. Its final timing was 93.288s against the 30s soft target,
 with a 5.035s inner loop. The revised parent plan passed SHIP review.
-Source/TLC binding in .7 is committed as a checkpoint with focused default/required checks,
-actual TLC proof and both static audits green. Final full verification and formal review remain
-open. The attempted full gate timed out after 600s, and its mixed guest-build inputs leave
-that attempt unattributable. The guest inputs are now committed and certified by fn-236 and
-fn-232 (closures committed in `2fc73cc6a3`). .7 resumed on 2026-10-21 under the renewed goal:
-re-anchoring and fresh full gates are in progress, then independent implementation review.
-Later fn-227 tasks wait for .7's closure.
+Source/TLC World binding (.7) is complete locally: one owned World and one start enumeration
+feed binding, native checking and same-World TLC replay across all five CFG families, with the
+new `parameterized_world` fixture and unchanged baseline goldens and guest. Its second review
+passed after World integers outside TLC's `.cfg` range became located refusals. Final timing
+was 52.327s against the 30s soft target, with a 7.362s inner loop.
 On 2026-10-21 the owner approved all three contract amendments: lifecycle refinement
 in place of impossible old-byte equality; cooperative cancellation with explicit protocol
 evidence; and optional actual-request Observation evidence at tag 4. Heartbeat signals a
@@ -121,8 +119,7 @@ The review passed; each consumer still waits for its declared support dependenci
 
 | Name | Status | What |
 | --- | --- | --- |
-| fn-227.7 | 🔄 in progress | World/source/TLC checkpoint committed; re-anchored to committed guest inputs, fresh full gates running, then independent implementation review (R1, R3) |
-| fn-227.2 | ⬜ todo | After .1 and .7: native `Finite`, typed World-dependent domains and checked catalog admission (R2) |
+| fn-227.2 | 🔄 in progress | After .1 and .7: native `Finite`, typed World-dependent domains and checked catalog admission (R2) |
 | fn-227.8 | ⬜ todo | After .2 and .7: independent source inputs, exact-payload fairness and `action_inputs` TLC proof (R2, R3) |
 | fn-227.11 | ⬜ todo | After .8: source `Phased`/`reject!` and closure laws, with unchanged activity behavior (R3) |
 | fn-227.3 | ⬜ todo | After .2 and .11: activity attempts/retryable failure and retained-lifecycle refinement (R3, R4) |
