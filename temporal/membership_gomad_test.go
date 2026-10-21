@@ -1,4 +1,4 @@
-//go:build gomad || gomad_wasm_slim
+//go:build gomad
 
 package temporal
 
@@ -11,5 +11,5 @@ import (
 
 func TestDefaultMembershipRefusesUnbuiltRingpop(t *testing.T) {
 	err := fx.New(defaultMembershipModule(), fx.NopLogger).Err()
-	require.ErrorContains(t, err, "ringpop membership is not built under the gomad or gomad_wasm_slim build tags; supply StaticServiceHosts")
+	require.ErrorContains(t, err, "ringpop membership is not built under the gomad build tag; supply StaticServiceHosts")
 }
