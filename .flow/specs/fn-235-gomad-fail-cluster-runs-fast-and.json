@@ -146,7 +146,7 @@
     "plan": 0
   },
   "spec_path": ".flow/specs/fn-235-gomad-fail-cluster-runs-fast-and.md",
-  "status": "open",
+  "status": "done",
   "title": "Gomad: fail cluster runs fast and classified when a limit is exhausted",
   "tracker": {
     "baseHashFlow": null,
@@ -159,5 +159,5 @@
     "mergeBaseTracker": null,
     "url": null
   },
-  "updated_at": "2026-10-21T18:04:48.002423Z"
+  "updated_at": "2026-10-21T19:58:52.052877Z"
 }

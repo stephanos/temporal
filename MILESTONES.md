@@ -301,14 +301,6 @@ Owner decision 2026-10-19: support ringpop enough to verify a multi-node members
 | --- | --- | --- |
 | [fn-224.2](.flow/tasks/fn-224-gomad-ringpop-membership-on-wasm-within.2.md) | ⛔ Blocked | Run the ringpop unit tests under the cooperative profile and classify every outcome |
 
-### Fail cluster runs fast on exhausted limits — [fn-235](.flow/specs/fn-235-gomad-fail-cluster-runs-fast-and.md)
-
-Owner decision 2026-10-21: an exhausted limit must not be silent. Found in fn-224.3; lands in the Rust helper, merged in step with the fn-232 helper batch.
-
-| Name / ID | Status | Description |
-| --- | --- | --- |
-| [fn-235-gomad-fail-cluster-runs-fast-and.2](.flow/tasks/fn-235-gomad-fail-cluster-runs-fast-and.2.md) | ⛔ Blocked | Measure and remove superlinear World inspection commitment cost in long cluster runs |
-
 ### WASM host-side execution cost profile — [fn-185](.flow/specs/fn-185-gomad-wasm-host-side-execution-cost.md)
 
 | Name / ID | Status | Description |
