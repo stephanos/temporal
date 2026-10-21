@@ -12,7 +12,8 @@
   ],
   "id": "fn-231-declarative-realizations-the",
   "impl_review_rounds": {
-    "fn-231-declarative-realizations-the.1": 0
+    "fn-231-declarative-realizations-the.1": 0,
+    "fn-231-declarative-realizations-the.2": 0
   },
   "next_task": 1,
   "plan_review_rounds": 0,
@@ -122,15 +123,52 @@
       "task": "fn-231-declarative-realizations-the.1",
       "timestamp": "2026-10-21T11:59:33.313393Z",
       "verdict": "SHIP"
+    },
+    {
+      "artifact_sha256": "4a8b7afa4a300bd88e6cd0992c515f173b4e7e6939d030f3178c95179876aae9",
+      "backend": "codex",
+      "base_sha": "e114c16910a388e4dec8b873d0c7476998d17301",
+      "counter_kind": "impl",
+      "effort": "high",
+      "failure_class": null,
+      "finalized": {
+        "digest": "complete",
+        "receipt": "complete",
+        "status": "not_applicable"
+      },
+      "findings_digest": {
+        "backend": "codex",
+        "digest_truncated": false,
+        "items": [],
+        "reviewKind": "implementation"
+      },
+      "forced": false,
+      "hash_epoch": 0,
+      "head_sha": "3c77e1aeb52d18b1932dff0d8f2d932f77e2b27a",
+      "head_sha_observed": true,
+      "kind": "impl",
+      "model": "gpt-6.1-sol",
+      "outcome": "verdict",
+      "output_bytes": 158,
+      "output_sha256": "6ff70da3d83706800ca3cabc6ba62603ba0485fcf5259d27f1be54ce68686975",
+      "reservation_id": "eb2987987f5849219f0ad3a3eeb90608",
+      "round_consumed": true,
+      "scope": "impl:fn-231-declarative-realizations-the.2",
+      "superseded_by": null,
+      "task": "fn-231-declarative-realizations-the.2",
+      "timestamp": "2026-10-21T12:46:54.530643Z",
+      "verdict": "SHIP"
     }
   ],
   "review_hash_epoch": {
-    "impl:fn-231-declarative-realizations-the.1": 1
+    "impl:fn-231-declarative-realizations-the.1": 1,
+    "impl:fn-231-declarative-realizations-the.2": 1
   },
   "review_pending_rounds": {},
   "review_reservations": {},
   "review_transport_failures": {
-    "impl:fn-231-declarative-realizations-the.1": 0
+    "impl:fn-231-declarative-realizations-the.1": 0,
+    "impl:fn-231-declarative-realizations-the.2": 0
   },
   "spec_path": ".flow/specs/fn-231-declarative-realizations-the.md",
   "status": "open",
@@ -146,5 +184,5 @@
     "mergeBaseTracker": null,
     "url": null
   },
-  "updated_at": "2026-10-21T11:59:33.318642Z"
+  "updated_at": "2026-10-21T12:46:54.533301Z"
 }

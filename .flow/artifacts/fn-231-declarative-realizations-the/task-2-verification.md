@@ -44,6 +44,20 @@ The actual final report compares byte-for-byte with the unchanged gaps golden an
 
 The source was frozen at df88dab1247075f1eee44b16318147dbcd2ace24 while renewed live checks and two fresh read-only quality axes ran. Both axes reported zero findings, worst tier none. Their verbatim separate reports are task-2-quality-audits.md. No source changed after those audits; source-only Model/test/phase/generic-core comparisons remain empty. The coverage golden has five contexts, six mapped fields, 78 ignored fields and one unsupported field (cause).
 
-## Remaining verification at this checkpoint
+## Formal review and final full gates
 
-Mandatory formal review and the three post-review full gates remain pending. No review verdict or task completion is claimed here.
+The mandatory pinned read-only review returned first-round SHIP, with zero findings from all three draws. Its exact receipt and raw messages are preserved separately under task-2-formal-*.json/md; task-2-formal-review.md records the round, sessions and limits. No source changed from the reviewed checkpoint.
+
+All three authoritative full commands actually ran after SHIP with the leased caches and unchanged 600-second command bounds:
+
+| Command | Terminal result | Regular log |
+| --- | --- | --- |
+| make model-check | 0 | fn2312-final-model-check.log |
+| UMPIRE_BACKENDS=require make model-check | 0 | fn2312-final-model-check-required.log |
+| make model-time | 0 | fn2312-final-model-time.log |
+
+The default and required-backend gates include native tests, clippy, docs, boundary/capability controls, protobuf freshness, guest builds/freshness and both Go host modules. Required backend mode retains actual backend admission/agreement obligations. Timing runs the full gate and the edited-checker inner loop. This single warm measurement was 85.697s total against the unchanged 30s soft target, and 2.149s inner against 10s. The existing over-target note remains explicit. Predecessor .1 measured 85.714s total and 1.634s inner; these observations do not establish a latency improvement. No limit or timeout changed.
+
+All three receipt attempts returned written:false because foreign MILESTONES.md is dirty outside the ignore set. Their exact JSON outputs are fn2312-final-{model-check,model-check-required,model-time}-receipt.json. Actual command passes stand independently; no reusable green receipt, docs-only classification or GATE_SKIPPED line is claimed. Foreign dirt was never hidden or stashed.
+
+Task-owned control worktrees and branches were normally removed, and all started processes are terminal. Source/index/cache ownership returns to the conductor after committed task closure. Parent completion, MILESTONES edits, fn232 cross-OS proof and the seven inherited broad legacy umbrella failures remain separate conductor-owned work. This task claims only its actual focused/live/model gates.
