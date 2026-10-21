@@ -307,10 +307,7 @@ fn named_guest_adapter_preserves_the_independent_report_and_ordered_rows() {
     else {
         panic!("missing exploration")
     };
-    assert_eq!(
-        exploration.report,
-        include_str!("../../feature/activity/expected/report.snap.txt")
-    );
+    assert_eq!(exploration.report, include_str!("../../feature/activity/expected/report.snap.txt"));
     let mut rows = String::new();
     for state_id in 0..exploration.reached {
         let Some(Outcome::Rows(value)) =
