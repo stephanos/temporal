@@ -2,7 +2,7 @@ mod execution;
 mod failure_policy;
 pub(crate) mod inspect;
 pub(crate) mod ledger;
-mod prepare;
+pub(crate) mod prepare;
 mod retention;
 mod scenario;
 pub(crate) mod seeds;
@@ -15,7 +15,7 @@ use crate::{
         canonical,
         identity::Identity,
         record::{Outcome, Record},
-        store::{Publication, Store},
+        store::{Opened, Publication, Store},
     },
     replay::preflight::{self, Configuration, Inputs},
 };
@@ -52,10 +52,14 @@ pub(crate) fn merge(
 }
 
 fn store(root: PathBuf, maximum_bytes: u64) -> Store {
+    let target_pool = root
+        .parent()
+        .and_then(Path::parent)
+        .map(|parent| parent.join(".campaign-targets"));
     Store {
         root,
         maximum_bytes,
-        target_pool: None,
+        target_pool,
         #[cfg(feature = "determinism-fixture")]
         fault: None,
     }
@@ -71,9 +75,9 @@ fn campaign_path(artifacts: &Path) -> Result<PathBuf, String> {
         .join(format!("campaign-{}-{time}", std::process::id())))
 }
 
-pub(crate) fn explore(options: ExploreOptions, output: &mut dyn Write) -> Result<i32, String> {
+pub(crate) fn explore(options: &ExploreOptions, output: &mut dyn Write) -> Result<i32, String> {
     let started = Instant::now();
-    let prepared = prepare::prepare(&options)?;
+    let prepared = prepare::prepare(options)?;
     let selection = seeds::SeedSelection::parse(&options.seeds)?;
     if selection.count() > 1_000_000 {
         return Err("capacity: campaign execution capacity exceeds 1000000".into());
@@ -185,17 +189,23 @@ fn retain_prepared(
 
 fn restore(journal: &Journal) -> Result<prepare::Prepared, String> {
     let plan = journal.plan();
-    if plan["schema"] != "gomad.seed-campaign-plan/v2"
-        || plan["host_sha256"] != env!("GOMAD_HOST_IMPLEMENTATION_SHA256")
-        || plan["helper_sha256"] != gomad_wasmhost::linked::IMPLEMENTATION_SHA256
-    {
-        return Err("campaign implementation identity mismatch".into());
+    if plan["schema"] != "gomad.seed-campaign-plan/v2" {
+        return Err("unsupported resumable seed campaign plan".into());
     }
     let opened = journal.open_artifact(
         plan["prepared_artifact"]
             .as_str()
             .ok_or("missing campaign prepared artifact")?,
     )?;
+    restore_from_plan(plan, &opened)
+}
+
+fn restore_from_plan(plan: &Value, opened: &Opened) -> Result<prepare::Prepared, String> {
+    if plan["host_sha256"] != env!("GOMAD_HOST_IMPLEMENTATION_SHA256")
+        || plan["helper_sha256"] != gomad_wasmhost::linked::IMPLEMENTATION_SHA256
+    {
+        return Err("campaign implementation identity mismatch".into());
+    }
     opened.authenticate_all()?;
     let bytes = opened.payload(preflight::FILE, 16 << 20)?;
     let inputs: Inputs = serde_json::from_slice(&bytes).map_err(|error| error.to_string())?;
@@ -295,7 +305,7 @@ fn frontier(journal: &Journal, selection: &seeds::SeedSelection) -> Result<Front
                 }
                 admit(&mut result, admitted);
                 if stop_reason.is_some() {
-                    result.stop = stop_reason.clone();
+                    result.stop.clone_from(stop_reason);
                 }
             }
             Event::Complete { stop_reason } => {
@@ -345,6 +355,10 @@ fn admit(
     jobs
 }
 
+#[expect(
+    clippy::too_many_lines,
+    reason = "The scoped scheduler keeps durable admission, receipt, ordered policy and cancellation in one lifetime"
+)]
 fn run(
     journal: &mut Journal,
     prepared: &prepare::Prepared,
@@ -410,10 +424,9 @@ fn run(
         let _cancel_guard = CancelGuard(&cancellations);
         let (completion_tx, completion_rx) = mpsc::channel();
         let mut slots = Vec::new();
-        for slot in 0..parallel {
+        for (slot, cancellation) in cancellations.iter().enumerate() {
             let (tx, rx) = mpsc::channel::<Job>();
             let completed = completion_tx.clone();
-            let cancellation = &cancellations[slot];
             scope.spawn(move || {
                 while let Ok(job) = rx.recv() {
                     let result = std::panic::catch_unwind(std::panic::AssertUnwindSafe(|| {
@@ -582,37 +595,37 @@ fn run(
                 }
             }
         }
-        if failure.is_none() {
-            if let Some(reason) = state.stop.clone() {
-                let mut group = Vec::new();
-                for receipt in state.receipts.values() {
-                    let mut receipt = receipt.clone();
-                    decide(
-                        journal,
-                        &plan,
-                        &mut receipt,
-                        &mut pending_publications,
-                        &mut retention,
-                        &mut retained_failures,
-                    )?;
-                    retention.retained(&receipt)?;
-                    if matches!(
-                        receipt.record.outcome.class.as_str(),
-                        "target_failure" | "watchdog"
-                    ) {
-                        failures.insert(receipt.record.failure_signature()?);
-                    }
-                    group.push(receipt);
+        if failure.is_none()
+            && let Some(reason) = state.stop.clone()
+        {
+            let mut group = Vec::new();
+            for receipt in state.receipts.values() {
+                let mut receipt = receipt.clone();
+                decide(
+                    journal,
+                    &plan,
+                    &mut receipt,
+                    &mut pending_publications,
+                    &mut retention,
+                    &mut retained_failures,
+                )?;
+                retention.retained(&receipt)?;
+                if matches!(
+                    receipt.record.outcome.class.as_str(),
+                    "target_failure" | "watchdog"
+                ) {
+                    failures.insert(receipt.record.failure_signature()?);
                 }
-                journal.append(Event::Outcome {
-                    executions: group.clone(),
-                    admitted: Vec::new(),
-                    stop_reason: Some(reason),
-                })?;
-                state.committed.extend(group);
-                state.receipts.clear();
-                state.admitted.clear();
+                group.push(receipt);
             }
+            journal.append(Event::Outcome {
+                executions: group.clone(),
+                admitted: Vec::new(),
+                stop_reason: Some(reason),
+            })?;
+            state.committed.extend(group);
+            state.receipts.clear();
+            state.admitted.clear();
         }
         drop(slots);
         Ok(())
@@ -755,13 +768,13 @@ fn report(
                 distinct.insert(execution.record.failure_signature()?);
             }
             _ => cancelled += 1,
-        };
-        if let Some(reference) = &execution.artifact {
-            if artifacts.insert(reference) {
-                retained_bytes = retained_bytes
-                    .checked_add(execution.stored_bytes)
-                    .ok_or("retained bytes overflow")?;
-            }
+        }
+        if let Some(reference) = &execution.artifact
+            && artifacts.insert(reference)
+        {
+            retained_bytes = retained_bytes
+                .checked_add(execution.stored_bytes)
+                .ok_or("retained bytes overflow")?;
         }
     }
     let (index, count) = shard(journal.plan())?;

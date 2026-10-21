@@ -221,6 +221,10 @@ struct StorageFault {
     bytes: u64,
 }
 
+#[expect(
+    clippy::trivially_copy_pass_by_ref,
+    reason = "Serde skip_serializing_if predicates borrow their field"
+)]
 fn is_zero(value: &u64) -> bool {
     *value == 0
 }
@@ -272,7 +276,7 @@ fn marker(value: &Binary) -> Result<Vec<u8>, String> {
         return Err("invalid WASM lifecycle marker".into());
     }
     let mut decoded = Vec::new();
-    for (index, chunk) in value.chunks_exact(4).enumerate() {
+    for (index, chunk) in value.as_chunks::<4>().0.iter().enumerate() {
         let mut digits = [0u8; 4];
         let mut padding = 0;
         for (offset, byte) in chunk.iter().copied().enumerate() {
@@ -316,7 +320,7 @@ fn parse(raw: &[u8]) -> Result<Scenario, String> {
     Ok(scenario)
 }
 
-struct UniqueNames;
+pub(super) struct UniqueNames;
 
 impl<'de> Deserialize<'de> for UniqueNames {
     fn deserialize<D: serde::Deserializer<'de>>(decoder: D) -> Result<Self, D::Error> {
@@ -597,6 +601,116 @@ pub struct Bound {
     pub request: helper::Request,
 }
 
+#[derive(Serialize)]
+struct IncarnationAssertions {
+    handle: helper::Handle,
+    report: super::soft_assertions::Report,
+}
+
+#[derive(Serialize)]
+struct Assertions {
+    schema: &'static str,
+    incarnations: Vec<IncarnationAssertions>,
+}
+
+impl Assertions {
+    fn failed(&self) -> bool {
+        self.incarnations.iter().any(|item| {
+            item.report.inconclusive || !item.report.report_only && !item.report.messages.is_empty()
+        })
+    }
+}
+
+fn complete_output(execution: &linked::Execution) -> bool {
+    let outcome = &execution.outcome;
+    let capacity_interruption = outcome.termination == "capacity"
+        && outcome
+            .local_model
+            .as_deref()
+            .is_some_and(|model| model["configured"] == true && model["finished"] == false)
+        && outcome
+            .message
+            .strip_prefix("WASI capacity: ")
+            .is_some_and(|message| {
+                matches!(
+                    message.split(' ').next().unwrap_or(""),
+                    "event-ids"
+                        | "events"
+                        | "payload-bytes"
+                        | "queued-events"
+                        | "request-ids"
+                        | "requests"
+                        | "transition-bytes"
+                        | "transition-sequences"
+                        | "transitions"
+                )
+            });
+    let captured_bytes = ["stdout", "stderr"]
+        .into_iter()
+        .map(|name| {
+            execution
+                .evidence
+                .get(name)
+                .map_or(0, |bytes| bytes.len() as u64)
+        })
+        .sum::<u64>();
+    (outcome.termination != "capacity" || capacity_interruption)
+        && !matches!(outcome.termination, "cancelled" | "watchdog_timeout")
+        && outcome.output_bytes == captured_bytes
+}
+
+fn assertions(
+    execution: &helper::Execution,
+    configuration: &cluster::Configuration,
+    report_only: bool,
+    maximum_results: u64,
+    maximum_bytes: u64,
+) -> Result<Option<Assertions>, String> {
+    let observed: BTreeMap<_, _> = execution
+        .incarnations
+        .iter()
+        .map(|item| (&item.handle, &item.execution))
+        .collect();
+    let mut reports = BTreeMap::new();
+    for incarnation in &configuration.incarnations {
+        let observed = observed.get(&incarnation.handle);
+        if observed.is_none() && !report_only {
+            continue;
+        }
+        let stdout = observed
+            .and_then(|execution| execution.evidence.get("stdout"))
+            .map_or(&[][..], Vec::as_slice);
+        let stderr = observed
+            .and_then(|execution| execution.evidence.get("stderr"))
+            .map_or(&[][..], Vec::as_slice);
+        if let Some(report) = super::soft_assertions::observe(
+            stdout,
+            stderr,
+            observed.is_some_and(|execution| complete_output(execution)),
+            report_only,
+        ) {
+            reports.insert(incarnation.handle.clone(), report);
+        }
+    }
+    if reports.is_empty() {
+        return Ok(None);
+    }
+    if reports.len() as u64 > maximum_results {
+        return Err("capacity: scenario soft assertion results".into());
+    }
+    let reports = Assertions {
+        schema: "gomad.cluster-soft-assertions/v1",
+        incarnations: reports
+            .into_iter()
+            .map(|(handle, report)| IncarnationAssertions { handle, report })
+            .collect(),
+    };
+    if canonical::encode(&reports)?.len() as u64 > maximum_bytes {
+        return Err("capacity: scenario soft assertion evidence bytes".into());
+    }
+    Ok(Some(reports))
+}
+
 fn storage_input(storage: &Storage) -> Result<linked::StorageInput, String> {
     let encoded = serde_json::to_string(storage)
         .map_err(|error| error.to_string())?
@@ -666,102 +780,10 @@ fn boot_request(
     })
 }
 
-#[cfg(test)]
-mod tests {
-    use super::*;
-
-    const DURABLE: &[u8] =
-        include_bytes!("../../../../internal/backends/wasm/command/testdata/scenario/durable.json");
-    const NETWORK: &[u8] =
-        include_bytes!("../../../../internal/backends/wasm/command/testdata/scenario/network.json");
-
-    #[test]
-    fn complete_public_scenario_fixtures_round_trip() {
-        for fixture in [DURABLE, NETWORK] {
-            let normalized = normalize(fixture).unwrap();
-            assert_eq!(normalize(&normalized).unwrap(), normalized);
-        }
-        let scenario = parse(DURABLE).unwrap();
-        let storage = scenario.boots[0].storage.as_ref().unwrap();
-        let input = storage_input(storage).unwrap();
-        let descriptor = serde_json::to_value(input).unwrap();
-        assert_eq!(descriptor["descriptor"]["model_identity"],
-            format!("sha256:{}", canonical::digest(br#"{"volumes":[{"ID":"a-store","Path":"/workspace","CapacityBytes":8388608}],"limits":{"PendingOperations":1024,"Transitions":10000}}"#)));
-        assert_eq!(
-            marker(&scenario.output_crashes[0].marker).unwrap(),
-            b"committed durable-a"
-        );
-    }
-
-    #[test]
-    fn malformed_and_inconsistent_scenarios_refuse() {
-        let original: Value = serde_json::from_slice(DURABLE).unwrap();
-        let mutations: &[(&str, fn(&mut Value))] = &[
-            ("unknown field", |value| value["extra"] = json!(true)),
-            ("unknown nested field", |value| {
-                value["spec"]["nodes"][0]["extra"] = json!(true)
-            }),
-            ("capacity", |value| {
-                value["spec"]["limits"]["nodes"] = json!(1)
-            }),
-            ("unknown limit", |value| {
-                value["spec"]["limits"]["extra"] = json!(1)
-            }),
-            ("unsorted nodes", |value| {
-                value["spec"]["nodes"].as_array_mut().unwrap().swap(0, 1)
-            }),
-            ("unknown boot", |value| {
-                value["spec"]["nodes"][0]["boot"] = json!("missing")
-            }),
-            ("mount mismatch", |value| {
-                value["boots"][0]["storage"]["volumes"][0]["CapacityBytes"] = json!(1)
-            }),
-            ("restart storage mismatch", |value| {
-                value["boots"][1]["storage"] = Value::Null
-            }),
-            ("missing boundary", |value| {
-                value["output_crashes"] = json!([])
-            }),
-            ("invalid marker", |value| {
-                value["output_crashes"][0]["marker"] = json!("!!!!")
-            }),
-            ("unused binding", |value| {
-                value["incarnation_boots"][0]["handle"]["incarnation"] = json!(3)
-            }),
-            ("incomplete lifecycle", |value| {
-                value["actions"].as_array_mut().unwrap().pop();
-            }),
-            ("restart while running", |value| {
-                value["actions"][2]["action"] = json!("restart")
-            }),
-            ("unknown action", |value| {
-                value["actions"][0]["action"] = json!("run")
-            }),
-        ];
-        for (name, mutate) in mutations {
-            let mut value = original.clone();
-            mutate(&mut value);
-            assert!(
-                normalize(&serde_json::to_vec(&value).unwrap()).is_err(),
-                "{name}"
-            );
-        }
-        for raw in [
-            &b"{} {}"[..],
-            &b"{"[..],
-            &b""[..],
-            &br#"{"faults":null,"faults":null}"#[..],
-        ] {
-            assert!(normalize(raw).is_err());
-        }
-    }
-}
-
 /// # Errors
 /// Binds admitted scenario declarations to fresh per-incarnation helper inputs and retained replay inputs.
 #[expect(
     clippy::too_many_lines,
-    clippy::too_many_arguments,
     reason = "The adapter binds one prepared target to the complete declared lifecycle"
 )]
 pub fn bind(
@@ -909,7 +931,14 @@ pub fn bind(
         })
     })
     .collect::<Result<Vec<_>, String>>()?;
+    let nodes: Vec<_> = scenario
+        .spec
+        .nodes
+        .iter()
+        .map(|node| node.id.clone())
+        .collect();
     let request = helper::Request {
+        nodes: nodes.clone(),
         broker: broker.clone(),
         network: network_config.clone(),
         incarnations,
@@ -926,6 +955,7 @@ pub fn bind(
     execution_limits.evidence_bytes = request.evidence_bytes;
     Ok(Bound {
         configuration: cluster::Configuration {
+            nodes,
             engine: base.engine.clone(),
             profile: base.profile.clone(),
             limits: execution_limits,
@@ -971,6 +1001,17 @@ pub(super) fn execute(
         prepared.network.as_ref(),
         job.seed,
     )?;
+    let scenario = parse(
+        prepared
+            .scenario
+            .as_deref()
+            .ok_or("missing campaign scenario")?,
+    )?;
+    if prepared.soft_assertion_report_only
+        && bound.configuration.incarnations.len() as u64 > scenario.spec.limits.oracle_results
+    {
+        return Err("capacity: scenario soft assertion policy results".into());
+    }
     bound.request.wall_timeout = bound.request.wall_timeout.min(timeout);
     let mut execution =
         helper::prepare(bound.request).map_err(|error| format!("runner_failure: {error}"))?;
@@ -979,6 +1020,13 @@ pub(super) fn execute(
     crate::fixture::execution_started().map_err(|error| error.message)?;
     let execution =
         helper::execute_prepared(execution).map_err(|error| format!("runner_failure: {error}"))?;
+    let reports = assertions(
+        &execution,
+        &bound.configuration,
+        prepared.soft_assertion_report_only,
+        scenario.spec.limits.oracle_results,
+        scenario.spec.limits.scenario_evidence_bytes,
+    )?;
     if execution.incarnations.len() != bound.configuration.incarnations.len()
         && !matches!(
             execution.outcome.termination,
@@ -1076,6 +1124,18 @@ pub(super) fn execute(
         );
         payloads.insert(file, bytes);
     }
+    if let Some(reports) = &reports {
+        let bytes = canonical::encode(reports)?;
+        streams.insert(
+            "evidence/soft-assertions.json".into(),
+            Stream {
+                bytes: bytes.len() as u64,
+                sha256: canonical::digest(&bytes),
+                records: reports.incarnations.len() as u64,
+            },
+        );
+        payloads.insert("evidence/soft-assertions.json".into(), bytes);
+    }
     let inputs = cluster::Inputs {
         schema: "gomad.cluster-replay-inputs/v1".into(),
         helper_sha256: linked::IMPLEMENTATION_SHA256.into(),
@@ -1103,10 +1163,10 @@ pub(super) fn execute(
     );
     payloads.insert(cluster::FILE.into(), raw);
     let class = match observed.outcome.termination {
+        "exit" if reports.as_ref().is_some_and(Assertions::failed) => "target_failure",
         "exit" if observed.outcome.exit_code == Some(0) => "success",
         "exit" | "trap" => "target_failure",
         "watchdog_timeout" => "watchdog",
-        "cancelled" => "runner_failure",
         _ => "runner_failure",
     };
     let record = Record {
@@ -1150,4 +1210,150 @@ pub(super) fn execute(
         },
         publication: Publication { record, payloads },
     })
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    #[test]
+    fn soft_assertions_preserve_boundary_completeness_and_policy() {
+        let stdout = b"failed assertion: invariant\n";
+        for (termination, message, complete) in [
+            ("exit", "", true),
+            ("trap", "", true),
+            ("crash", "", true),
+            ("stop", "", true),
+            ("storage_crash", "", true),
+            ("capacity", "WASI capacity: requests limit=1", true),
+            ("capacity", "output capacity", false),
+            ("cancelled", "seed execution was cancelled", false),
+            ("watchdog_timeout", "execution watchdog timeout", false),
+        ] {
+            let mut outcome = linked::Outcome::new(termination, message);
+            outcome.local_model = Some(Box::new(json!({"configured":true,"finished":false})));
+            outcome.output_bytes = stdout.len() as u64;
+            let mut execution = linked::Execution {
+                outcome,
+                evidence: BTreeMap::from([("stdout".into(), stdout.to_vec())]),
+                event_order: None,
+            };
+            assert_eq!(
+                complete_output(&execution),
+                complete,
+                "{termination}: {message}"
+            );
+            let report = super::super::soft_assertions::observe(
+                stdout,
+                &[],
+                complete_output(&execution),
+                false,
+            )
+            .unwrap();
+            assert_eq!(report.messages, vec!["invariant"]);
+            assert_eq!(report.inconclusive, !complete);
+            let mut reports = Assertions {
+                schema: "gomad.cluster-soft-assertions/v1",
+                incarnations: vec![IncarnationAssertions {
+                    handle: helper::Handle {
+                        node: "a".into(),
+                        incarnation: 1,
+                    },
+                    report,
+                }],
+            };
+            assert!(reports.failed());
+            reports.incarnations[0].report.report_only = true;
+            assert_eq!(reports.failed(), !complete);
+            execution.outcome.output_bytes += 1;
+            assert!(!complete_output(&execution), "truncated {termination}");
+        }
+    }
+
+    const DURABLE: &[u8] =
+        include_bytes!("../../../../internal/backends/wasm/command/testdata/scenario/durable.json");
+    const NETWORK: &[u8] =
+        include_bytes!("../../../../internal/backends/wasm/command/testdata/scenario/network.json");
+
+    #[test]
+    fn complete_public_scenario_fixtures_round_trip() {
+        for fixture in [DURABLE, NETWORK] {
+            let normalized = normalize(fixture).unwrap();
+            assert_eq!(normalize(&normalized).unwrap(), normalized);
+        }
+        let scenario = parse(DURABLE).unwrap();
+        let storage = scenario.boots[0].storage.as_ref().unwrap();
+        let input = storage_input(storage).unwrap();
+        let descriptor = serde_json::to_value(input).unwrap();
+        assert_eq!(descriptor["descriptor"]["model_identity"],
+            format!("sha256:{}", canonical::digest(br#"{"volumes":[{"ID":"a-store","Path":"/workspace","CapacityBytes":8388608}],"limits":{"PendingOperations":1024,"Transitions":10000}}"#)));
+        assert_eq!(
+            marker(&scenario.output_crashes[0].marker).unwrap(),
+            b"committed durable-a"
+        );
+    }
+
+    #[test]
+    fn malformed_and_inconsistent_scenarios_refuse() {
+        type Mutation = (&'static str, fn(&mut Value));
+        let original: Value = serde_json::from_slice(DURABLE).unwrap();
+        let mutations: &[Mutation] = &[
+            ("unknown field", |value| value["extra"] = json!(true)),
+            ("unknown nested field", |value| {
+                value["spec"]["nodes"][0]["extra"] = json!(true);
+            }),
+            ("capacity", |value| {
+                value["spec"]["limits"]["nodes"] = json!(1);
+            }),
+            ("unknown limit", |value| {
+                value["spec"]["limits"]["extra"] = json!(1);
+            }),
+            ("unsorted nodes", |value| {
+                value["spec"]["nodes"].as_array_mut().unwrap().swap(0, 1);
+            }),
+            ("unknown boot", |value| {
+                value["spec"]["nodes"][0]["boot"] = json!("missing");
+            }),
+            ("mount mismatch", |value| {
+                value["boots"][0]["storage"]["volumes"][0]["CapacityBytes"] = json!(1);
+            }),
+            ("restart storage mismatch", |value| {
+                value["boots"][1]["storage"] = Value::Null;
+            }),
+            ("missing boundary", |value| {
+                value["output_crashes"] = json!([]);
+            }),
+            ("invalid marker", |value| {
+                value["output_crashes"][0]["marker"] = json!("!!!!");
+            }),
+            ("unused binding", |value| {
+                value["incarnation_boots"][0]["handle"]["incarnation"] = json!(3);
+            }),
+            ("incomplete lifecycle", |value| {
+                value["actions"].as_array_mut().unwrap().pop();
+            }),
+            ("restart while running", |value| {
+                value["actions"][2]["action"] = json!("restart");
+            }),
+            ("unknown action", |value| {
+                value["actions"][0]["action"] = json!("run");
+            }),
+        ];
+        for (name, mutate) in mutations {
+            let mut value = original.clone();
+            mutate(&mut value);
+            assert!(
+                normalize(&serde_json::to_vec(&value).unwrap()).is_err(),
+                "{name}"
+            );
+        }
+        for raw in [
+            &b"{} {}"[..],
+            &b"{"[..],
+            &b""[..],
+            &br#"{"faults":null,"faults":null}"#[..],
+        ] {
+            assert!(normalize(raw).is_err());
+        }
+    }
 }

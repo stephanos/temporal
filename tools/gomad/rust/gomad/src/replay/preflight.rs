@@ -206,6 +206,19 @@ fn prepare_internal(
             if object.insert("seed".into(), record.seed.into()).is_some() {
                 return Err("retained configuration must derive seed from record".to_owned());
             }
+            if inputs.configuration.derive_seed_environment
+                && record.profile == "gomad.wasi-stock-exploratory/v1"
+            {
+                object.insert(
+                    "entropy_key".into(),
+                    serde_json::json!(
+                        sha2::Sha256::digest(
+                            format!("{}:{}", inputs.toolchain_sha256, record.seed).as_bytes()
+                        )
+                        .to_vec()
+                    ),
+                );
+            }
             serde_json::from_value::<linked::ModelConfig>(value).map_err(|error| error.to_string())
         })
         .transpose()?;
@@ -304,7 +317,12 @@ fn prepare_internal(
         namespace: inputs.configuration.namespace,
         storage: inputs.configuration.storage,
     };
-    let execution = linked::prepare(request).map_err(|error| error.to_string())?;
+    let mut execution = linked::prepare(request).map_err(|error| error.to_string())?;
+    if let Some(network) = inputs.configuration.network {
+        execution
+            .network(network)
+            .map_err(|error| error.to_string())?;
+    }
     Ok(Prepared {
         opened,
         execution: Execution::Standalone(Box::new(execution)),

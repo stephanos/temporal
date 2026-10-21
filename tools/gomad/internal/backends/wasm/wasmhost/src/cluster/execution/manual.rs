@@ -675,24 +675,8 @@ pub(super) fn execute(
                             storage,
                             true,
                             Some(&|outcome| {
-                                let failure = match outcome.termination {
-                                    "exit" if outcome.exit_code == Some(0) => return,
-                                    "exit" => (
-                                        "trap",
-                                        format!(
-                                            "WASM guest exited with code {}",
-                                            outcome.exit_code.unwrap_or(1)
-                                        ),
-                                    ),
-                                    "crash"
-                                    | "stop"
-                                    | "storage_crash"
-                                    | "inspection_aborted"
-                                    | "inspected_prefix"
-                                    | "instrumentation_divergence"
-                                    | "debug_error"
-                                    | "probe_fuel_limit" => return,
-                                    termination => (termination, outcome.message.clone()),
+                                let Some(failure) = super::terminal_failure(outcome) else {
+                                    return;
                                 };
                                 let _ = failed.send(Event::Failed(failure.0, failure.1.clone()));
                                 broker.abort_terminal(index, failure.0, failure.1);

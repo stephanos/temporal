@@ -59,6 +59,7 @@ pub struct Incarnation {
 }
 
 pub struct Request {
+    pub nodes: Vec<String>,
     pub broker: BrokerConfig,
     pub network: Option<NetworkConfig>,
     pub incarnations: Vec<Incarnation>,
@@ -202,7 +203,18 @@ fn lifecycle(request: &Request, handles: &BTreeSet<Handle>) -> Result<Vec<String
             return Err(Error::msg("invalid cluster output crash group"));
         }
     }
-    Ok(current.into_keys().collect())
+    if request.nodes.is_empty() {
+        return Ok(current.into_keys().collect());
+    }
+    let nodes: BTreeSet<_> = request.nodes.iter().cloned().collect();
+    if nodes.len() > 64
+        || nodes.len() != request.nodes.len()
+        || nodes.iter().any(|node| !valid_id(node))
+        || current.keys().any(|node| !nodes.contains(node))
+    {
+        return Err(Error::msg("invalid declared cluster nodes"));
+    }
+    Ok(nodes.into_iter().collect())
 }
 
 /// # Errors
@@ -348,6 +360,7 @@ fn run_instance(
     index: usize,
     slot: u64,
 ) -> Result<Completed> {
+    broker.wait_terminal(index);
     let sink = linked::Sink::new(sealed.execution.request.limits.evidence_bytes);
     let mut model = sealed
         .execution
@@ -428,6 +441,7 @@ fn run_instance(
         .storage
         .as_ref()
         .map(linked::StorageInput::descriptor);
+    broker.wait_terminal(index);
     let image = cluster::execution::record_terminal(store.data_mut(), descriptor, &mut outcome)
         .map_err(|(kind, message)| Error::msg(format!("{kind}: {message}")))?;
     drop(store);
@@ -618,9 +632,8 @@ fn execute_inner(
                         match &result {
                             Ok(completed) => {
                                 let observed = &completed.result.execution.outcome;
-                                if observed.termination == "trap"
-                                    || (observed.termination == "exit"
-                                        && observed.exit_code != Some(0))
+                                if let Some((kind, message)) =
+                                    cluster::execution::terminal_failure(observed)
                                 {
                                     let mut failure = first_failure
                                         .lock()
@@ -632,13 +645,15 @@ fn execute_inner(
                                         );
                                         outcome.exit_code = observed.exit_code;
                                         *failure = Some(outcome);
-                                        broker.abort("trap", "cluster application failed".into());
                                     }
+                                    broker.abort_terminal(index, kind, message);
                                 }
-                                broker.finish(index);
                             }
-                            Err(error) => broker.abort("infrastructure", error.to_string()),
+                            Err(error) => {
+                                broker.abort_terminal(index, "infrastructure", error.to_string())
+                            }
                         }
+                        broker.finish(index);
                         result
                     })?;
                 running.insert(step.handle, Running { thread });
@@ -715,7 +730,7 @@ fn execute_inner(
     {
         outcome = failure;
     }
-    let world = if matches!(outcome.termination, "exit" | "trap") {
+    let world = if matches!(outcome.termination, "exit" | "trap" | "capacity") {
         broker
             .world_wire()
             .map_err(|failure| Error::msg(failure.message()))?

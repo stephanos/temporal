@@ -40,7 +40,8 @@ manifest = json.loads((artifact / 'manifest.json').read_bytes())
 cluster_file = next(name for name in manifest['record']['streams'] if name.endswith('/cluster-replay.json'))
 retained = json.loads((artifact / cluster_file).read_bytes())
 for name, module, termination, exit_code in [('trap', 'execution-trap.wat', 'trap', None),
-                                           ('exit', 'replay-exit-failure.wat', 'exit', 2)]:
+                                           ('exit', 'replay-exit-failure.wat', 'exit', 2),
+                                           ('capacity', 'execution-modeled.wat', 'capacity', None)]:
     configuration = json.loads(json.dumps(retained['configuration']))
     configuration['incarnations'] = configuration['incarnations'][:2]
     configuration['steps'] = [dict(action=action, handle=dict(node=node, incarnation=1))
@@ -49,6 +50,9 @@ for name, module, termination, exit_code in [('trap', 'execution-trap.wat', 'tra
     raw = module_path.read_bytes()
     module_sha = hashlib.sha256(raw).hexdigest()
     first = configuration['incarnations'][0]
+    if name == 'capacity':
+        first['limits']['output_bytes'] = 1
+        first['namespace']['limits']['output_bytes'] = 1
     first['module'].update(bytes=len(raw), sha256=module_sha)
     first['choice_identity']['TargetSHA256'] = list(bytes.fromhex(module_sha))
     second = configuration['incarnations'][1]
@@ -68,5 +72,17 @@ for name, module, termination, exit_code in [('trap', 'execution-trap.wat', 'tra
     summary = json.loads((path / 'evidence/cluster_summary').read_bytes())
     assert summary['incarnations'][0]['termination'] == termination, summary
     assert summary['incarnations'][1]['termination'] == 'stop', summary
+    if name == 'capacity':
+        world = (path / 'evidence/world').read_bytes()
+        assert world, 'capacity must retain terminal World evidence'
+        assert json.loads(world)['schemaVersion'] == 1
     assert b'reproduced=true' in run(name + '-replay', ['replay', path], 1)
+    for repetition in range(2):
+        repeated_root = args.work / (name + '-repeat-' + str(repetition))
+        repeated = json.loads(run(name + '-repeat-' + str(repetition),
+            ['fixture-replay-cluster-input', '--root', repeated_root, '--input', input_path]))
+        parity.authenticate(repeated_root, repeated)
+        repeated_path = repeated_root / repeated['records'][0]['artifact']
+        for retained_file in ['record.json', 'manifest.json', *json.loads((path / 'manifest.json').read_bytes())['record']['streams']]:
+            assert (path / retained_file).read_bytes() == (repeated_path / retained_file).read_bytes(), retained_file
 print('linked cluster guest failures: first outcome retained, peer stopped and replay reproduced')

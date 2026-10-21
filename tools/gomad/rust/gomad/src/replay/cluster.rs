@@ -58,6 +58,8 @@ pub struct Incarnation {
 #[derive(Deserialize, Serialize)]
 #[serde(deny_unknown_fields)]
 pub struct Configuration {
+    #[serde(default, skip_serializing_if = "Vec::is_empty")]
+    pub nodes: Vec<String>,
     pub engine: String,
     pub profile: String,
     pub limits: Limits,
@@ -278,6 +280,7 @@ pub fn prepare(opened: Opened, control: Option<&inspection::Request>) -> Result<
     opened.authenticate_all()?;
     let configuration = inputs.configuration;
     let execution = helper::prepare(helper::Request {
+        nodes: configuration.nodes,
         broker: configuration.broker,
         network: configuration.network,
         incarnations,
