@@ -522,11 +522,35 @@ counters at the store's boundaries.
   - largest execution or replay store wall, 15 min;
   - largest waited compiler child peak, 6 GiB;
   - each guest linear-memory peak, at most its instance limit.
-- **Upper-bound limits:** the operator-only 2 GiB ceiling and the helper
-  warm 4 GiB, cold 6 GiB and resident 8 GiB ceilings each apply to one component
-  of the linked peak. The linked peak proves such a limit only when it fits under
-  it. Above a limit, the check is `unattributed` and listed in `pending`: it is
-  neither charged to one owner nor a pass.
+- **Phase attribution (Linux).** `qualify` resets the image high water at each
+  phase boundary (writes `5` to `/proc/self/clear_refs`, then reads `VmHWM`).
+  This separates operator phases (everything outside guest stores) from each
+  fresh store window (Wasmtime compilation, instantiation and guest execution).
+  Each phase is mapped to the ceiling that bounded it in the Go host
+  (`internal/backends/wasm/QUALIFICATION.md#measured-costs`, Go
+  `qualification.EvaluateBudget`):
+
+  | Phase | Historical ceiling | Check |
+  | --- | --- | --- |
+  | Operator phases | fresh operator lifetime peak, 2 GiB | exact |
+  | Single-guest store window | cold-cache-miss helper peak, 6 GiB | exact |
+  | Single-guest store window | warm-cache-hit helper peak, 4 GiB | upper bound |
+  | Cluster store window | resident helper peak, 8 GiB | exact |
+
+  A store window in the linked host always compiles, because each store gets a
+  fresh engine and there is no compile cache, so the cold ceiling governs it. The
+  warm ceiling bounded execution without compilation, and no linked window
+  executes without compiling. The window peak is therefore only an upper bound of
+  that phase: within when the window fits under 4 GiB, unattributed otherwise.
+  Splitting compilation from execution would need a helper-owned boundary. As in
+  the Go host, cluster windows are not subject to the single-guest limits. The
+  receipt's terminal operator check uses the operator phases through
+  publication.
+- **Without attribution** (another platform, a refused `clear_refs` write, or any
+  window lacking its peak), the lifetime linked peak upper-bounds every component.
+  It proves a limit only when it fits under it. Above a limit, the check is
+  `unattributed` and listed in `pending`: it is neither charged to one owner nor a
+  pass.
 - **Concurrent stores.** A cluster execution or replay retains one sample per
   incarnation store (`node/incarnation`). Each sample carries that store's own
   fuel, trace bytes, guest linear-memory peak and limit. All of them share one
@@ -618,12 +642,12 @@ host repair, and its replay of a one-box Temporal trace fails
 (`choice trace malformed`). The `onebox` cell therefore runs as its own
 invocation (`--qualify-cells onebox`) against a Go reference built from a
 v4-repaired `gomad` revision. On this host the Rust one-box cell qualifies
-semantically, matching Go's verdict, but its linked peak (about 6 GiB, which
-includes the guest's 4 GiB-limited store) exceeds the operator-only 2 GiB and
-warm-helper 4 GiB ceilings. Those checks and the terminal receipt stay
-unattributed, so the command exits 3, naming the reason. It is not a pass. Closing
-it needs an owner decision on a linked-process ceiling, or per-component RSS
-attribution that the host does not have today. These are provisional fixture-binary lanes. The onebox row is the corpus family
+semantically, matching Go's verdict. Before phase attribution, its 6.2 GiB
+lifetime linked peak, almost all in-process Wasmtime compilation (the guest
+peak is 141 MiB), left the operator and warm checks unattributed, and the
+command exited 3. With phase attribution, the operator phases and store windows
+are checked against their own ceilings. The attributed onebox run is pending the
+conductor's execution window. These are provisional fixture-binary lanes. The onebox row is the corpus family
 cell (`./tests/gomadfunctional`, `TestFrontendSystemInfo`). The mandatory
 `unchanged-workflow-type-smoke` selection and every one-box gate remain with
 fn-222.1. Qualification on the release binary alone remains with fn-232.13.

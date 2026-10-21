@@ -61,6 +61,7 @@ pub fn run(
     output: &mut dyn Write,
     installation: Option<&Path>,
 ) -> Result<i32, super::Error> {
+    usage::enable_phases();
     let start = usage::snapshot();
     let path = single_flag(
         arguments,

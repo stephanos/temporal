@@ -1282,10 +1282,14 @@ pub(super) fn execute(
     execution.cancellation(cancellation.clone());
     #[cfg(feature = "determinism-fixture")]
     crate::fixture::execution_started().map_err(|error| error.message)?;
+    crate::qualify::usage::store_begin();
     let started = std::time::Instant::now();
-    let execution =
-        helper::execute_prepared(execution).map_err(|error| format!("runner_failure: {error}"))?;
-    let metrics = store_metrics(&execution, &limits, started.elapsed());
+    let execution = helper::execute_prepared(execution);
+    let wall = started.elapsed();
+    let store_peak = crate::qualify::usage::store_end();
+    let execution = execution.map_err(|error| format!("runner_failure: {error}"))?;
+    let mut metrics = store_metrics(&execution, &limits, wall);
+    metrics.store_peak_rss_bytes = store_peak;
     let mut result = publication(prepared, job, bound.configuration, execution, false)?;
     result.metrics = metrics;
     Ok(result)
@@ -1312,6 +1316,7 @@ pub(crate) fn store_metrics(
 ) -> super::execution::Metrics {
     super::execution::Metrics {
         wall_nanos: super::execution::nanos(wall),
+        store_peak_rss_bytes: None,
         stores: execution
             .incarnations
             .iter()

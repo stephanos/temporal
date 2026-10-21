@@ -23,6 +23,9 @@ pub(crate) struct Result {
 #[derive(Clone, Debug, Default)]
 pub(crate) struct Metrics {
     pub wall_nanos: u64,
+    /// The linked image high water of this store window, when qualification
+    /// attributes process memory by phase.
+    pub store_peak_rss_bytes: Option<u64>,
     /// One entry per fresh guest store; a cluster has one per incarnation.
     pub stores: Vec<StoreMetrics>,
 }
@@ -66,6 +69,7 @@ impl Metrics {
     ) -> Self {
         Self {
             wall_nanos: nanos(wall),
+            store_peak_rss_bytes: None,
             stores: vec![StoreMetrics::observed(
                 None,
                 execution,
@@ -184,10 +188,15 @@ pub(crate) fn run_with_replay(
             .map_err(|error| format!("runner_failure: admit standalone network: {error}"))?;
     }
     admitted.cancellation(cancellation.clone());
+    crate::qualify::usage::store_begin();
     let started = std::time::Instant::now();
-    let observed = linked::execute_prepared(admitted)
-        .map_err(|error| format!("runner_failure: execute campaign target: {error}"))?;
-    let metrics = Metrics::observed(&observed, &configuration.limits, started.elapsed());
+    let observed = linked::execute_prepared(admitted);
+    let wall = started.elapsed();
+    let store_peak = crate::qualify::usage::store_end();
+    let observed =
+        observed.map_err(|error| format!("runner_failure: execute campaign target: {error}"))?;
+    let mut metrics = Metrics::observed(&observed, &configuration.limits, wall);
+    metrics.store_peak_rss_bytes = store_peak;
     let mut result = publication(prepared, job, observed)?;
     result.metrics = metrics;
     Ok(result)

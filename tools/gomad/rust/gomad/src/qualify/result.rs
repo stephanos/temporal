@@ -154,6 +154,9 @@ pub(crate) struct Receipt {
     pub result_sha256: String,
     pub operator_process_id: u64,
     pub linked_after: Option<Usage>,
+    /// The operator-phase high water through publication, when attributed.
+    #[serde(default)]
+    pub operator_peak_rss_bytes: Option<u64>,
 }
 
 /// The conductor's sha256sum manifest: lowercase hex, two spaces, absolute
@@ -452,5 +455,5 @@ pub(crate) fn validate_receipt(
     let after = receipt
         .linked_after
         .ok_or("missing or mismatched publication self observation")?;
-    cost::terminal(&result.observations, after)
+    cost::terminal(&result.observations, after, receipt.operator_peak_rss_bytes)
 }

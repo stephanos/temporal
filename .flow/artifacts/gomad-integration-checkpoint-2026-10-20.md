@@ -1432,3 +1432,33 @@ committed. They depend on the host identity and are regenerated after the
 post-.8 merge. `accounting.json` and `tamper.json` are committed.
 
 Evidence: `/home/agent/wt/evidence/fn232-qualify/d/`.
+
+**Conductor rulings, 2026-10-21.**
+
+- *Scenario admission.* Rust `qualify --spec` admitting multi-instance
+  scenarios is APPROVED. It adds availability and removes nothing. This is
+  recorded in the fn-232.10 task and in CLI.md.
+- *Onebox memory: phase attribution.* No combined ceiling is requested. Instead,
+  `qualify` attributes Linux phase peaks: it writes `5` to
+  `/proc/self/clear_refs` at every store boundary and reads `VmHWM`. Each phase
+  maps to the ceiling that bounded it in the Go host
+  (QUALIFICATION.md#measured-costs, Go `EvaluateBudget`):
+  - operator phases: operator lifetime peak, 2 GiB, exact;
+  - single store window: cold-cache-miss helper peak, 6 GiB, exact. Every
+    linked window compiles in a fresh engine, with no compile cache;
+  - single store window as an upper bound of execution without compilation:
+    warm helper peak, 4 GiB;
+  - cluster window: resident helper peak, 8 GiB, exact;
+  - receipt: the terminal operator check uses the operator-phase peak.
+
+  Any missing phase observation falls back to the unattributed upper-bound
+  rule. The accounting corpus gains 9 phase cases (38 total). They are authored
+  but not yet run: the conductor window is closed and no build has been done
+  beyond a `-j1` clippy check (clean).
+- *Expectation for onebox.* The earlier unattributed run measured a 6.2 GiB
+  lifetime peak with a 141 MiB guest peak. If the attributed store window is
+  still above 4 GiB, the warm check stays an upper-bound pending item, because
+  no linked execution runs without compiling. Splitting compilation from
+  execution would need a helper-owned boundary. If the window exceeds the cold
+  6 GiB ceiling, that is a real owner-level question. I will report the
+  numbers after the window.

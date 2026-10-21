@@ -397,6 +397,7 @@ fn samples(
             virtual_time_nanos,
             linked_before: before,
             linked_after: after,
+            store_peak_rss_bytes: metrics.store_peak_rss_bytes,
         })
         .collect()
 }
@@ -474,7 +475,10 @@ fn replay(path: &Path, iteration: u64) -> Result<(Replay, Vec<Sample>), String> 
     let started = Instant::now();
     let (observed, metrics, virtual_time) = match prepared.execution {
         preflight::Execution::Cluster(cluster) => {
-            let observed = crate::replay::cluster::execute(*cluster)
+            usage::store_begin();
+            let observed = crate::replay::cluster::execute(*cluster);
+            let store_peak = usage::store_end();
+            let observed = observed
                 .map_err(|error| format!("runner_failure: execute replay target: {error}"))?;
             // Every retained incarnation runs under the record's shared bounds.
             let limits = observed
@@ -487,16 +491,23 @@ fn replay(path: &Path, iteration: u64) -> Result<(Replay, Vec<Sample>), String> 
                     )
                 })
                 .collect();
-            let metrics = campaign::scenario::store_metrics(&observed, &limits, started.elapsed());
+            let mut metrics =
+                campaign::scenario::store_metrics(&observed, &limits, started.elapsed());
+            metrics.store_peak_rss_bytes = store_peak;
             let virtual_time = observed.virtual_elapsed_nanos;
             let projected = crate::replay::cluster::project(observed)
                 .map_err(|error| format!("runner_failure: project cluster replay: {error}"))?;
             (projected, metrics, virtual_time)
         }
         execution @ preflight::Execution::Standalone(_) => {
-            let observed = preflight::execute(execution)
+            usage::store_begin();
+            let observed = preflight::execute(execution);
+            let wall = started.elapsed();
+            let store_peak = usage::store_end();
+            let observed = observed
                 .map_err(|error| format!("runner_failure: execute replay target: {error}"))?;
-            let metrics = Metrics::observed(&observed, &record.limits, started.elapsed());
+            let mut metrics = Metrics::observed(&observed, &record.limits, wall);
+            metrics.store_peak_rss_bytes = store_peak;
             let virtual_time = observed
                 .outcome
                 .local_model
@@ -643,6 +654,7 @@ pub(crate) fn run(frozen: &Frozen) -> Result<QualificationResult, String> {
         executed: usage::snapshot(),
         preparation_wall_nanos: frozen.preparation_wall_nanos,
         samples,
+        operator_peak_rss_bytes: usage::operator_peak(),
     };
     let (cost, cost_failure, budget, budget_failure) = cost::evaluate(&observations, &report);
     Ok(QualificationResult {
@@ -673,6 +685,7 @@ pub(crate) fn publish(frozen: &Frozen, result: QualificationResult) -> Result<Qu
         result_sha256: digest.clone(),
         operator_process_id: u64::from(std::process::id()),
         linked_after: usage::linked(),
+        operator_peak_rss_bytes: usage::operator_peak(),
     };
     let observation = match result::validate_receipt(&result, &receipt, &digest) {
         Ok(terminal) if terminal.status != "within" => Some(

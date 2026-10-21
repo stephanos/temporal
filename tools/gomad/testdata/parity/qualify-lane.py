@@ -240,7 +240,9 @@ def go_scenario_reference(run, args, case, installation, go_spec):
 def unattributed(result, response):
     """Linked-process peaks over a former operator-only or helper-only ceiling
     stay pending (never passed and never charged to one owner)."""
-    terminal = response['operator_receipt']['linked_after']['peak_rss_bytes'] > 2 << 30
+    receipt = response['operator_receipt']
+    attributed = receipt.get('operator_peak_rss_bytes') is not None and result['observations']['operator_peak_rss_bytes'] is not None
+    terminal = (receipt['operator_peak_rss_bytes'] if attributed else receipt['linked_after']['peak_rss_bytes']) > 2 << 30
     return bool(result['budget'] and result['budget']['pending']) or terminal
 
 

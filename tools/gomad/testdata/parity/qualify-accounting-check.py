@@ -109,10 +109,23 @@ def oracle(case):
             'resident guests': 'within' if observations['resident_stores'] <= 2 else 'exceeded',
         }
         peak = executed['linked']['peak_rss_bytes']
-        for name, limit in (('operator lifetime peak RSS', 2 * GIB), ('individual warm helper peak RSS', 4 * GIB),
-                            ('individual cold helper peak RSS', 6 * GIB),
-                            ('conservative resident helper peak upper bound', 8 * GIB)):
-            statuses[name] = 'within' if peak <= limit else 'unattributed'
+        groups = windows(samples)
+        operator = observations.get('operator_peak_rss_bytes')
+        if operator is not None and all(window[0].get('store_peak_rss_bytes') is not None for window in groups):
+            # Phase attribution: operator phases, single store windows (always
+            # compiling) and cluster windows meet their own historical ceilings.
+            single = max([window[0]['store_peak_rss_bytes'] for window in groups if len(window) == 1] or [0])
+            clusters = [window[0]['store_peak_rss_bytes'] for window in groups if len(window) > 1]
+            statuses['operator lifetime peak RSS'] = 'within' if operator <= 2 * GIB else 'exceeded'
+            statuses['individual warm helper peak RSS'] = 'within' if single <= 4 * GIB else 'unattributed'
+            statuses['individual cold helper peak RSS'] = 'within' if single <= 6 * GIB else 'exceeded'
+            if clusters:
+                statuses['conservative resident helper peak upper bound'] = 'within' if max(clusters) <= 8 * GIB else 'exceeded'
+        else:
+            for name, limit in (('operator lifetime peak RSS', 2 * GIB), ('individual warm helper peak RSS', 4 * GIB),
+                                ('individual cold helper peak RSS', 6 * GIB),
+                                ('conservative resident helper peak upper bound', 8 * GIB)):
+                statuses[name] = 'within' if peak <= limit else 'unattributed'
         for sample in samples:
             if sample['guest_peak_memory_bytes'] > sample['guest_memory_limit_bytes']:
                 store = ' ' + sample['incarnation'] if sample.get('incarnation') else ''
@@ -158,11 +171,15 @@ def check(case, row):
     if 'terminal' in case:
         terminal = case['terminal']
         executed = case['observations']['executed']['linked']
-        if not monotone(terminal, executed):
+        operator = case.get('terminal_operator_peak_rss_bytes')
+        retained = case['observations'].get('operator_peak_rss_bytes')
+        attributed = operator is not None and retained is not None
+        if not monotone(terminal, executed) or attributed and operator < retained:
             equal('failure' in row['terminal'], True, name + '.terminal_refused')
         else:
-            equal(row['terminal'], {'cpu_nanos': cpu(terminal, executed), 'peak_rss_bytes': terminal['peak_rss_bytes'],
-                                    'status': 'within' if terminal['peak_rss_bytes'] <= 2 * GIB else 'unattributed'},
+            peak = operator if attributed else terminal['peak_rss_bytes']
+            status = 'within' if peak <= 2 * GIB else 'exceeded' if attributed else 'unattributed'
+            equal(row['terminal'], {'cpu_nanos': cpu(terminal, executed), 'peak_rss_bytes': peak, 'status': status},
                   name + '.terminal_tail')
 
 

@@ -32,6 +32,8 @@ struct Case {
     runs: Vec<Run>,
     observations: Observations,
     terminal: Option<Usage>,
+    #[serde(default)]
+    terminal_operator_peak_rss_bytes: Option<u64>,
 }
 
 #[derive(Deserialize)]
@@ -113,9 +115,13 @@ pub(crate) fn run(path: &Path) -> Result<(), String> {
         )?;
         let (cost, cost_failure, budget, budget_failure) =
             cost::evaluate(&case.observations, &report);
-        let terminal = case
-            .terminal
-            .map(|after| cost::terminal(&case.observations, after));
+        let terminal = case.terminal.map(|after| {
+            cost::terminal(
+                &case.observations,
+                after,
+                case.terminal_operator_peak_rss_bytes,
+            )
+        });
         rows.push(json!({
             "name": case.name,
             "classification": report::classification(&report),

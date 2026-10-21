@@ -40,9 +40,90 @@ pub(crate) fn snapshot() -> Option<Snapshot> {
 pub(crate) fn linked() -> Option<Usage> {
     let mut usage = platform::sample(platform::SELF)?;
     if let Some(peak) = own_peak_rss() {
-        usage.peak_rss_bytes = peak;
+        // After a phase reset the image high water restarts; the lifetime peak
+        // is the largest high water observed across every phase.
+        usage.peak_rss_bytes = peak.max(phases::LIFETIME.load(Ordering::Acquire));
     }
     Some(usage)
+}
+
+use std::sync::atomic::{AtomicBool, AtomicU64, Ordering};
+
+/// Phase attribution of the linked process's image high water. Qualification
+/// enables it once per process; every other command leaves it off and never
+/// resets the kernel counter. On Linux, writing `5` to `/proc/self/clear_refs`
+/// restarts `VmHWM`, so the high water read at the next boundary belongs to
+/// the phase in between: operator work outside guest stores, or one fresh
+/// store window (Wasmtime compilation, instantiation and guest execution).
+mod phases {
+    use super::{AtomicBool, AtomicU64};
+    pub(super) static ENABLED: AtomicBool = AtomicBool::new(false);
+    pub(super) static ATTRIBUTED: AtomicBool = AtomicBool::new(false);
+    pub(super) static OPERATOR: AtomicU64 = AtomicU64::new(0);
+    pub(super) static LIFETIME: AtomicU64 = AtomicU64::new(0);
+}
+
+#[cfg(target_os = "linux")]
+fn reset_peak() -> bool {
+    std::fs::write("/proc/self/clear_refs", b"5").is_ok()
+}
+
+#[cfg(not(target_os = "linux"))]
+fn reset_peak() -> bool {
+    false
+}
+
+/// Reads the current phase's high water, folds it into the lifetime peak and
+/// restarts it. Returns `None` once attribution has failed.
+fn close_phase() -> Option<u64> {
+    let peak = own_peak_rss();
+    if let Some(peak) = peak {
+        phases::LIFETIME.fetch_max(peak, Ordering::AcqRel);
+    }
+    if peak.is_none() || !reset_peak() {
+        phases::ATTRIBUTED.store(false, Ordering::Release);
+        return None;
+    }
+    peak.filter(|_| phases::ATTRIBUTED.load(Ordering::Acquire))
+}
+
+/// Enables phase attribution for this process; the first operator phase
+/// starts now. Unavailable counters leave attribution off (pending).
+pub(crate) fn enable_phases() {
+    phases::ATTRIBUTED.store(true, Ordering::Release);
+    phases::ENABLED.store(true, Ordering::Release);
+    if let Some(peak) = close_phase() {
+        phases::OPERATOR.fetch_max(peak, Ordering::AcqRel);
+    }
+}
+
+/// Ends the preceding operator phase before a fresh guest store starts.
+pub(crate) fn store_begin() {
+    if phases::ENABLED.load(Ordering::Acquire)
+        && let Some(peak) = close_phase()
+    {
+        phases::OPERATOR.fetch_max(peak, Ordering::AcqRel);
+    }
+}
+
+/// Ends a store window and returns its own image high water when attributed.
+pub(crate) fn store_end() -> Option<u64> {
+    if !phases::ENABLED.load(Ordering::Acquire) {
+        return None;
+    }
+    close_phase()
+}
+
+/// The largest operator-phase high water so far, including the open phase.
+pub(crate) fn operator_peak() -> Option<u64> {
+    if !phases::ENABLED.load(Ordering::Acquire) {
+        return None;
+    }
+    let open = own_peak_rss()?;
+    phases::LIFETIME.fetch_max(open, Ordering::AcqRel);
+    phases::ATTRIBUTED
+        .load(Ordering::Acquire)
+        .then(|| phases::OPERATOR.load(Ordering::Acquire).max(open))
 }
 
 /// Linux `ru_maxrss` for this process also folds in the address space replaced

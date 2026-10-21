@@ -37,6 +37,10 @@ pub(crate) struct Sample {
     /// and are never summed into CPU, which the operator interval already holds.
     pub linked_before: Option<Usage>,
     pub linked_after: Option<Usage>,
+    /// The linked image high water of this store's window alone (Wasmtime
+    /// compilation, instantiation and guest execution), when attributed.
+    #[serde(default)]
+    pub store_peak_rss_bytes: Option<u64>,
 }
 
 /// Raw, retained measurements. Missing platform observations stay `None`.
@@ -51,6 +55,10 @@ pub(crate) struct Observations {
     pub executed: Option<Snapshot>,
     pub preparation_wall_nanos: u64,
     pub samples: Vec<Sample>,
+    /// The largest linked high water of the operator phases outside every
+    /// store window, when phase attribution held for the whole interval.
+    #[serde(default)]
+    pub operator_peak_rss_bytes: Option<u64>,
 }
 
 #[derive(Clone, Debug, Deserialize, Eq, PartialEq, Serialize)]
@@ -151,6 +159,7 @@ fn interval(observations: &Observations) -> Result<(Snapshot, Snapshot, Snapshot
 struct Group<'a> {
     phase: &'a str,
     wall_nanos: u64,
+    store_peak_rss_bytes: Option<u64>,
     virtual_time_nanos: u64,
     residents: u64,
     stores: Vec<&'a Sample>,
@@ -212,6 +221,7 @@ fn groups(
                 || store.virtual_time_nanos != first.virtual_time_nanos
                 || store.linked_before != first.linked_before
                 || store.linked_after != first.linked_after
+                || store.store_peak_rss_bytes != first.store_peak_rss_bytes
             {
                 return Err("concurrent stores must share their execution window".into());
             }
@@ -238,6 +248,7 @@ fn groups(
         groups.push(Group {
             phase: &first.phase,
             wall_nanos: first.wall_nanos,
+            store_peak_rss_bytes: first.store_peak_rss_bytes,
             virtual_time_nanos: first.virtual_time_nanos,
             residents: (nodes.len() as u64).max(1),
             stores,
@@ -405,7 +416,6 @@ pub(crate) fn budget(observations: &Observations) -> Result<Budget, String> {
         .map(|group| group.wall_nanos)
         .max()
         .ok_or("measured budget requires guest store samples")?;
-    let linked = executed.linked.peak_rss_bytes;
     let mut checks = vec![
         check(
             "preparation wall",
@@ -454,20 +464,11 @@ pub(crate) fn budget(observations: &Observations) -> Result<Budget, String> {
             ));
         }
     }
-    for (name, limit) in [
-        ("operator lifetime peak RSS", 2 * GIB),
-        ("individual warm helper peak RSS", 4 * GIB),
-        ("individual cold helper peak RSS", 6 * GIB),
-        ("conservative resident helper peak upper bound", 8 * GIB),
-    ] {
-        checks.push(check(
-            name,
-            "linked process upper bound",
-            linked,
-            limit,
-            false,
-        ));
-    }
+    checks.extend(memory_checks(
+        observations,
+        &groups,
+        executed.linked.peak_rss_bytes,
+    ));
     let violations = checks
         .iter()
         .filter(|check| check.status == "exceeded")
@@ -485,6 +486,86 @@ pub(crate) fn budget(observations: &Observations) -> Result<Budget, String> {
         violations,
         pending,
     })
+}
+
+/// Maps process memory onto the ceilings that historically bounded each
+/// phase (QUALIFICATION.md#measured-costs; Go `EvaluateBudget`):
+///
+/// - operator work outside guest stores: operator lifetime peak, 2 GiB;
+/// - a single-guest store window, which always compiles in the linked host
+///   (fresh engine, no compile cache): the cold-cache-miss helper peak, 6 GiB;
+/// - execution without compilation: the warm-cache-hit helper peak, 4 GiB. No
+///   linked window executes without compiling, so the window peak is only an
+///   upper bound of it;
+/// - a cluster window, which holds every resident guest at once: the resident
+///   helper peak, 8 GiB, never the single-guest limits.
+///
+/// Without attributed phases, the lifetime linked peak upper-bounds every
+/// component and proves a limit only when it fits under it.
+fn memory_checks(observations: &Observations, groups: &[Group<'_>], linked: u64) -> Vec<Check> {
+    let windows = groups
+        .iter()
+        .map(|group| {
+            group
+                .store_peak_rss_bytes
+                .map(|peak| (group.stores.len() == 1, peak))
+        })
+        .collect::<Option<Vec<_>>>();
+    let (Some(operator), Some(windows)) = (observations.operator_peak_rss_bytes, windows) else {
+        return [
+            ("operator lifetime peak RSS", 2 * GIB),
+            ("individual warm helper peak RSS", 4 * GIB),
+            ("individual cold helper peak RSS", 6 * GIB),
+            ("conservative resident helper peak upper bound", 8 * GIB),
+        ]
+        .into_iter()
+        .map(|(name, limit)| check(name, "linked process upper bound", linked, limit, false))
+        .collect();
+    };
+    let single = windows
+        .iter()
+        .filter(|(single, _)| *single)
+        .map(|(_, peak)| *peak)
+        .max()
+        .unwrap_or(0);
+    let cluster = windows
+        .iter()
+        .filter(|(single, _)| !*single)
+        .map(|(_, peak)| *peak)
+        .max();
+    let mut checks = vec![
+        check(
+            "operator lifetime peak RSS",
+            "operator phases",
+            operator,
+            2 * GIB,
+            true,
+        ),
+        check(
+            "individual warm helper peak RSS",
+            "single store window upper bound",
+            single,
+            4 * GIB,
+            false,
+        ),
+        check(
+            "individual cold helper peak RSS",
+            "single store window",
+            single,
+            6 * GIB,
+            true,
+        ),
+    ];
+    if let Some(cluster) = cluster {
+        checks.push(check(
+            "conservative resident helper peak upper bound",
+            "cluster store window",
+            cluster,
+            8 * GIB,
+            true,
+        ));
+    }
+    checks
 }
 
 /// Recomputes cost and budget, retaining a failure message instead of a
@@ -516,18 +597,31 @@ pub(crate) struct Terminal {
     pub status: String,
 }
 
-pub(crate) fn terminal(observations: &Observations, after: Usage) -> Result<Terminal, String> {
+pub(crate) fn terminal(
+    observations: &Observations,
+    after: Usage,
+    operator_peak: Option<u64>,
+) -> Result<Terminal, String> {
     let (_, _, executed) = interval(observations)?;
     if after.peak_rss_bytes == 0 {
         return Err("terminal linked-process peak RSS is unavailable".into());
     }
+    // With attributed phases the operator ceiling applies to operator phases
+    // only; otherwise the lifetime linked peak is its upper bound.
+    let attributed = operator_peak.filter(|_| observations.operator_peak_rss_bytes.is_some());
+    if attributed.is_some_and(|peak| peak < observations.operator_peak_rss_bytes.unwrap_or(0)) {
+        return Err("terminal operator phase peak moved backwards".into());
+    }
+    let (peak, exact) = attributed.map_or((after.peak_rss_bytes, false), |peak| (peak, true));
     Ok(Terminal {
         cpu_nanos: cpu(after, executed.linked)?,
-        peak_rss_bytes: after.peak_rss_bytes,
-        status: if after.peak_rss_bytes > 2 * GIB {
-            "unattributed"
-        } else {
+        peak_rss_bytes: peak,
+        status: if peak <= 2 * GIB {
             "within"
+        } else if exact {
+            "exceeded"
+        } else {
+            "unattributed"
         }
         .into(),
     })
