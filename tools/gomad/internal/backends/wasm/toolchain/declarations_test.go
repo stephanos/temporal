@@ -12,11 +12,13 @@ import (
 	"slices"
 	"strings"
 	"testing"
+
+	"go.temporal.io/server/tools/gomad/internal/backends/wasm/internal/stockgo"
 )
 
 func TestOverlayPreservesRuntimeDeclarations(t *testing.T) {
 	t.Parallel()
-	root := stockRoot(t)
+	root := stockgo.Root(t)
 	overlay, _, err := BuildOverlay(root, nativeRoot(t), t.TempDir())
 	if err != nil {
 		t.Fatal(err)
