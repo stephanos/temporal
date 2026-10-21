@@ -299,9 +299,7 @@ Owner decision 2026-10-19: support ringpop enough to verify a multi-node members
 
 | Name / ID | Status | Description |
 | --- | --- | --- |
-| [fn-224.1](.flow/tasks/fn-224-gomad-ringpop-membership-on-wasm-within.1.md) | ⏸ Parked | Unstub ringpop in the slim guest and record the module size delta |
-| [fn-224.2](.flow/tasks/fn-224-gomad-ringpop-membership-on-wasm-within.2.md) | ⏸ Parked | Run the ringpop unit tests under the cooperative profile and classify every outcome |
-| [fn-224.3](.flow/tasks/fn-224-gomad-ringpop-membership-on-wasm-within.3.md) | ⏸ Parked | Add a multi-node ringpop partition/heal scenario and document it |
+| [fn-224.2](.flow/tasks/fn-224-gomad-ringpop-membership-on-wasm-within.2.md) | ⛔ Blocked | Run the ringpop unit tests under the cooperative profile and classify every outcome |
 
 ### Fail cluster runs fast on exhausted limits — [fn-235](.flow/specs/fn-235-gomad-fail-cluster-runs-fast-and.md)
 
