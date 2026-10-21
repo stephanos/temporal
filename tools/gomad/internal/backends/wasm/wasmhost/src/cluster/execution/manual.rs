@@ -644,11 +644,12 @@ pub(super) fn execute(
             let incarnation = control.incarnation;
             let slot = node.slot;
             let failed = events.clone();
+            let broker = broker.clone();
             let spawned = std::thread::Builder::new()
                 .name(format!("instance-{index}-{incarnation}"))
                 .stack_size(STORE_THREAD_STACK)
                 .spawn(move || {
-                    if !coordinator.acquire(index) {
+                    if !coordinator.acquire(index) && !broker.terminal_failed() {
                         if coordinator.inspection_stopped() {
                             return refuse_instance(
                                 Outcome::new("inspection_aborted", "cluster inspection stopped"),
@@ -673,6 +674,29 @@ pub(super) fn execute(
                             namespace,
                             storage,
                             true,
+                            Some(&|outcome| {
+                                let failure = match outcome.termination {
+                                    "exit" if outcome.exit_code == Some(0) => return,
+                                    "exit" => (
+                                        "trap",
+                                        format!(
+                                            "WASM guest exited with code {}",
+                                            outcome.exit_code.unwrap_or(1)
+                                        ),
+                                    ),
+                                    "crash"
+                                    | "stop"
+                                    | "storage_crash"
+                                    | "inspection_aborted"
+                                    | "inspected_prefix"
+                                    | "instrumentation_divergence"
+                                    | "debug_error"
+                                    | "probe_fuel_limit" => return,
+                                    termination => (termination, outcome.message.clone()),
+                                };
+                                let _ = failed.send(Event::Failed(failure.0, failure.1.clone()));
+                                coordinator.abort(failure.0, failure.1);
+                            }),
                         )
                     }));
                     let report = match ran {
@@ -748,7 +772,7 @@ pub(super) fn execute(
     if let Some((kind, message)) = broker.failure() {
         result = ClusterResult::new(kind, message);
     }
-    if result.termination == "exit"
+    if matches!(result.termination, "exit" | "trap" | "capacity")
         && let Some(shared) = &request.shared
     {
         let source = ids
@@ -787,7 +811,7 @@ pub(super) fn execute(
             Err(failure) => result = ClusterResult::new(failure.termination(), failure.message()),
         }
     }
-    if result.termination == "exit" {
+    if matches!(result.termination, "exit" | "trap" | "capacity") {
         match broker.world_wire() {
             Ok(wire) => {
                 for chunk in wire.chunks(64 * 1024) {
