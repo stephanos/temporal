@@ -63,7 +63,7 @@ const INITIAL_TIME: i64 = world::INITIAL_TIME;
 const MAXIMUM_RELATIVE: u64 = (i64::MAX - INITIAL_TIME) as u64;
 
 /// The cluster `broker` object: Go `BrokerConfig`'s World fields.
-#[derive(Clone, Debug, Deserialize)]
+#[derive(Clone, Debug, Deserialize, Serialize)]
 #[serde(deny_unknown_fields)]
 pub struct Config {
     pub seed: u64,
@@ -73,12 +73,8 @@ pub struct Config {
     pub pause_on_settle: bool,
 }
 
-#[derive(Clone, Debug, Deserialize)]
+#[derive(Clone, Debug, Deserialize, Serialize)]
 #[serde(deny_unknown_fields)]
-#[expect(
-    clippy::struct_field_names,
-    reason = "Field names are the serialized broker limits contract"
-)]
 pub struct WorldLimits {
     pub max_requests: u64,
     pub max_events: u64,
@@ -106,6 +102,9 @@ impl Config {
 
     /// Go `world.ValidateCompressedSnapshotConfiguration` with the compressed
     /// profile, as `NewBroker` checks before anything starts.
+    ///
+    /// # Errors
+    /// Refuses bounds outside the existing compressed World configuration.
     pub fn validate(&self) -> Result<(), String> {
         let limits = &self.limits;
         for (dimension, actual, maximum) in [

@@ -2,14 +2,14 @@
 //! its Go-compatible JSON identity.
 
 use super::state::{VolumeConfig, VolumeLimits};
-use serde::Deserialize;
+use serde::{Deserialize, Serialize};
 use sha2::{Digest, Sha256};
 use std::fmt::Write as _;
 
 pub(crate) const MAXIMUM_PATH_BYTES: usize = 4096;
 const BUFFER_LIMIT: u64 = 4 << 20;
 
-#[derive(Clone, Debug, Deserialize, PartialEq, Eq)]
+#[derive(Clone, Debug, Deserialize, Serialize, PartialEq, Eq)]
 #[serde(deny_unknown_fields)]
 pub(crate) struct StorageFault {
     pub(crate) name: String,
@@ -21,7 +21,7 @@ pub(crate) struct StorageFault {
     pub(crate) bytes: u64,
 }
 
-#[derive(Clone, Debug, Deserialize, PartialEq, Eq)]
+#[derive(Clone, Debug, Deserialize, Serialize, PartialEq, Eq)]
 #[serde(deny_unknown_fields)]
 pub(crate) struct StorageModel {
     pub(crate) volumes: Option<Vec<VolumeConfig>>,

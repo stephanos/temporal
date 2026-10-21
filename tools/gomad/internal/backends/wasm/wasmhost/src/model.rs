@@ -61,7 +61,7 @@ pub struct ModelLimits {
     pub transcript_bytes: u64,
     pub pending_events: u64,
 }
-#[derive(Clone, Debug, Deserialize, Serialize)]
+#[derive(Clone, Debug, Deserialize, Eq, PartialEq, Serialize)]
 #[serde(deny_unknown_fields, rename_all = "PascalCase")]
 pub struct Decision {
     ordinal: u64,
@@ -75,14 +75,42 @@ pub struct Decision {
     selected_identity: [u8; 32],
     alternative_set_digest: [u8; 32],
 }
-#[derive(Serialize)]
+
+impl Decision {
+    #[must_use]
+    pub fn site(&self) -> (u64, bool) {
+        (self.site_offset, self.site_missing)
+    }
+}
+
+#[derive(Clone, Debug, Deserialize, Eq, PartialEq, Serialize)]
 #[serde(rename_all = "PascalCase")]
 pub struct Divergence {
-    ordinal: u64,
-    reason: u8,
-    expected: Option<Decision>,
-    observed: Option<Decision>,
-    tape_records: u64,
+    pub ordinal: u64,
+    pub reason: u8,
+    pub expected: Option<Decision>,
+    pub observed: Option<Decision>,
+    pub tape_records: u64,
+}
+
+impl Divergence {
+    #[must_use]
+    pub fn reason_name(&self) -> &'static str {
+        match self.reason {
+            1 => "kind",
+            2 => "site",
+            3 => "alternatives",
+            4 => "selected",
+            5 => "alternative_set",
+            6 => "tape_exhausted",
+            7 => "tape_unconsumed",
+            8 => "identity_missing",
+            9 => "identity_duplicate",
+            10 => "alternative_capacity",
+            11 => "observation",
+            _ => "unknown",
+        }
+    }
 }
 /// A remote reply that would exceed a retained-evidence limit; classified as
 /// the deterministic `capacity` outcome rather than a protocol violation.

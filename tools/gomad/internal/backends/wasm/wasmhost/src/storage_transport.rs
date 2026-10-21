@@ -29,7 +29,7 @@ pub struct StorageCrashContext {
     pub operations: Vec<volume::Operation>,
 }
 
-#[derive(Clone, Debug, Deserialize)]
+#[derive(Clone, Debug, Deserialize, Serialize)]
 #[serde(deny_unknown_fields)]
 pub struct ChunkedDescriptor {
     pub chunks: u64,
@@ -37,7 +37,7 @@ pub struct ChunkedDescriptor {
     pub sha256: String,
 }
 
-#[derive(Clone, Debug, Deserialize)]
+#[derive(Clone, Debug, Deserialize, Serialize)]
 #[serde(deny_unknown_fields)]
 pub struct StorageDescriptor {
     pub model: StorageModel,
@@ -216,6 +216,27 @@ impl StorageDescriptor {
         self.validate_context()
     }
 
+    pub(crate) fn attach_context_bytes(
+        &mut self,
+        bytes: Option<&[u8]>,
+        maximum: u64,
+    ) -> Result<()> {
+        authenticate_bytes(bytes, self.crash_context.as_ref(), maximum, &CONTEXT_STREAM)?;
+        self.observed_context = bytes
+            .map(serde_json::from_slice)
+            .transpose()
+            .map_err(Error::new)?;
+        self.validate_context()
+    }
+
+    pub(crate) fn authenticate_image_bytes(
+        &self,
+        bytes: Option<&[u8]>,
+        maximum: u64,
+    ) -> Result<()> {
+        authenticate_bytes(bytes, self.image.as_ref(), maximum, &IMAGE_STREAM)
+    }
+
     /// Reads the declared recovery image frames after the namespace image.
     pub fn read_image(&self, input: &mut dyn BufRead, maximum: u64) -> Result<Option<Vec<u8>>> {
         #[cfg(feature = "diagnostic-profile")]
@@ -301,6 +322,37 @@ const CONTEXT_STREAM: ChunkedStream = ChunkedStream {
     oversize_dimension: "storage-context-bytes",
 };
 
+fn authenticate_bytes(
+    bytes: Option<&[u8]>,
+    declared: Option<&ChunkedDescriptor>,
+    maximum: u64,
+    stream: &ChunkedStream,
+) -> Result<()> {
+    let (bytes, declared) = match (bytes, declared) {
+        (None, None) => return Ok(()),
+        (Some(bytes), Some(declared)) => (bytes, declared),
+        _ => {
+            return Err(Error::msg(format!(
+                "{} bytes/declaration mismatch",
+                stream.label
+            )));
+        }
+    };
+    if declared.bytes > maximum {
+        return Err(Error::new(crate::namespace::Boundary {
+            kind: stream.oversize_kind,
+            dimension: stream.oversize_dimension,
+        }));
+    }
+    if bytes.len() as u64 != declared.bytes {
+        return Err(Error::msg(format!("invalid {} byte count", stream.label)));
+    }
+    if format!("{:x}", Sha256::digest(bytes)) != declared.sha256 {
+        return Err(Error::msg(format!("{} digest mismatch", stream.label)));
+    }
+    Ok(())
+}
+
 fn read_chunks(
     input: &mut dyn BufRead,
     declared: &ChunkedDescriptor,
@@ -348,9 +400,7 @@ fn read_chunks(
     if end.kind != stream.end_kind {
         return Err(Error::msg(format!("invalid {label} end")));
     }
-    if format!("{:x}", Sha256::digest(&bytes)) != declared.sha256 {
-        return Err(Error::msg(format!("{label} digest mismatch")));
-    }
+    authenticate_bytes(Some(&bytes), Some(declared), maximum, stream)?;
     Ok(bytes)
 }
 

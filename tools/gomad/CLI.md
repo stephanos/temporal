@@ -18,7 +18,34 @@ return status 2 with no report; report write failures return 3. Every payload
 is authenticated through the shared pinned-root opener, including payloads
 not displayed in the selected view. `--choices` requires recorded choice
 metadata and validates the raw trace through the helper's replay projector.
-Sites retain their existing fingerprints and raw module offsets.
+Sites retain their existing fingerprints, kind, count and maximum alternatives;
+listed decisions retain their recorded offsets and missing-site flags.
+
+With `--choices`, every aggregate site and listed decision adds `symbol`,
+computed only from the authenticated retained module. Available symbols contain
+`package`, `function` and `inlined_from`, with `file` and `line` when proved.
+An inline chain requires complete agreement among compatible retained select
+calls. Physical fallback has an empty `inlined_from` and omits unproved
+locations; it does not establish that the compiler performed no inlining.
+Single-alternative sites receive symbols even without a listed replay decision.
+Runnable sites recorded as missing retain `{"unavailable":"site_missing"}`.
+
+Other unavailable reasons are `no_symbols`, `offset_out_of_range`,
+`symbol_mismatch` and `symbol_table_too_large`. A real `-s` Go module can retain
+pclntab but lack the name cross-check required for attribution; this yields
+`no_symbols`, as does actual pclntab absence. Contradictory metadata yields
+`symbol_mismatch`. Module read/digest failures retain the existing open error.
+One immutable result map covers unique requested sites, with cumulative limits
+of 64 MiB each for metadata/allocation and inspected code, 1,048,576 entries,
+16,777,216 traversal steps, 256 inline frames and 1 MiB per name/path. Exhaustion
+replaces all nonmissing results with `symbol_table_too_large`, including any
+previously resolved site. No attribution is written into the artifact, record
+hash, failure signature or execution identity.
+
+Campaign expected/observed divergence symbols require fn-232.7/.8's authenticated
+execution-ledger consumer. They are not artifact choice-trace fields; standalone
+replay text does not supply that consumer. fn-229.2 remains open until its public
+campaign fixtures cover both decisions against each execution's retained module.
 
 The JSON schema changes from Go's `gomad.inspect/v8` to `gomad.inspect/v9`:
 
@@ -90,6 +117,70 @@ The existing ARM CI runner source runs the Rust inspect consumer, opener and
 golden gates. Fresh Go/Rust CI parity still needs reproducible provisioning of
 the authenticated baseline bundle, extracted source and compiler; fn-232.13
 owns that final execution wiring. The local gate above remains mandatory.
+
+## Rust retained replay
+
+`gomad replay [--verify-only] [--observed DIR] ARTIFACT` consumes Rust-lineage
+retained inputs through the same authenticated pinned-root opener as inspect.
+It does not rebuild targets or reopen original source, captured input paths,
+compiler or runtime files. Verify-only also validates the helper-owned semantic
+choice tape before returning status 0, without creating an engine or guest.
+Exact cooperative replay and observed stock replay keep the existing text
+reports: matching success returns 0, matching target failure or divergence
+returns 1, incompatible artifacts return 2 and execution infrastructure errors
+return 3. `--toolchain-root` retains its native-only refusal.
+
+Replay inspection retains `--stop`, `--instance`, `--incarnation`, `--dump`,
+`--probe`, `--check`, `--choice-range`, `--search-mode`, `--debug-output` and
+their existing bounded search/debug controls. Stacks and heap use the built-in
+`--dump stacks` and `--dump heap` selectors. A stop validates a retained prefix
+and reports inspection results; it does not claim full reproduction. Inspection
+requires complete cooperative metadata, with an explicit target for clusters.
+Cluster replay uses typed, bytes-owned incarnations over the existing helper
+broker, storage, namespace and clock owners. No artifact pathname is reopened.
+Retained cluster replay preserves its existing refusal of `--verify-only` and
+`--observed`; those options apply to standalone replay.
+
+The Go launcher's diagnostic launcher-plus-helper pair maps to one matching
+compiled Rust binary. Build `helper-stress-jitter` for `--stress-jitter`, or
+`helper-determinism-fixture` for `--determinism-fixture`; these remain explicit
+cooperative inspection opt-ins. An ordinary release binary refuses either role.
+The separate `determinism-fixture` host feature exposes only test drivers and
+does not enable a helper role. Qualification uses an ordinary release with
+neither host fixtures nor diagnostic roles. Diagnostic conditions and bounded
+event-order collection belong to each fresh execution, including cluster threads.
+
+The mandatory local command supplies the authenticated frozen Go baseline and
+its extracted source and pinned compiler:
+
+```sh
+python3 tools/gomad/scripts/behavioral-parity \
+  --corpus tools/gomad/testdata/parity --verb replay \
+  --replay-binary /absolute/fixture-enabled/gomad \
+  --replay-stress-binary /absolute/stress-role/fixture-enabled/gomad \
+  --replay-determinism-binary /absolute/determinism-role/fixture-enabled/gomad \
+  --replay-release-binary /absolute/ordinary-release/gomad \
+  --replay-baseline /absolute/authenticated/go-baseline \
+  --replay-source /absolute/extracted/baseline/source \
+  --replay-go-compiler /absolute/pinned/go1.27.1/bin/go \
+  --replay-preparation-root /absolute/retained/replay-toolchain-preparation \
+  --output-root /absolute/new/replay-check
+```
+
+`testdata/parity/replay-corpus.json` declares the golden view. Records, manifests,
+ledgers, statuses, replay reports and observed output digests remain exact; only
+the verified artifact operand's output-root prefix changes. Independent raw
+record/payload and ledger validation precedes comparison. Set
+`GOMAD_GOLDEN_REGENERATE=1` to regenerate after reviewing expectation changes;
+each run first compares two fresh executions, and a second regeneration must
+produce identical golden bytes. This lane supplies replay acceptance evidence,
+not final runtime/workload qualification or a compiler hard-wall guarantee.
+
+Keep the declared preparation root fixed across recordings and regeneration.
+Frozen Go binds absolute overlay paths into its toolchain provenance, so a new
+preparation directory is a different authenticated input, even when guest bytes
+agree. Every execution still produces fresh Go/Rust artifacts in its new output
+root; neither provenance identities nor raw hashes are normalized.
 
 ## Shared generated contracts
 

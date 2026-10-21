@@ -38,6 +38,16 @@ mod event_order;
 mod guest_profile;
 #[cfg(not(feature = "conformance"))]
 pub mod linked;
+#[cfg(not(feature = "conformance"))]
+mod linked_cancellation;
+#[cfg(not(feature = "conformance"))]
+pub mod linked_cluster;
+#[cfg(not(feature = "conformance"))]
+mod linked_conditions;
+#[cfg(not(feature = "conformance"))]
+pub mod linked_inspection;
+#[cfg(not(feature = "conformance"))]
+mod linked_storage;
 mod local_model;
 #[cfg(not(feature = "conformance"))]
 mod metrics;

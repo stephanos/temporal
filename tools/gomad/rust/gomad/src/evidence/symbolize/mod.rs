@@ -50,20 +50,12 @@ pub(crate) struct Site {
 }
 
 #[derive(Debug)]
-#[allow(
-    dead_code,
-    reason = "The inspect consumer is implemented in dependent fn-229.2."
-)]
 pub(crate) struct Symbols {
     entries: BTreeMap<Site, Symbol>,
     failure: Option<Symbol>,
 }
 
 impl Symbols {
-    #[allow(
-        dead_code,
-        reason = "The inspect consumer is implemented in dependent fn-229.2."
-    )]
     pub(crate) fn get(&self, site: Site) -> &Symbol {
         const MISSING: Symbol = Symbol::Unavailable {
             unavailable: Reason::SiteMissing,
@@ -89,10 +81,6 @@ impl Symbols {
     }
 }
 
-#[allow(
-    dead_code,
-    reason = "The inspect consumer is implemented in dependent fn-229.2."
-)]
 pub(crate) fn resolve(
     opened: &super::store::Opened,
     sites: impl IntoIterator<Item = Site>,
@@ -129,6 +117,9 @@ fn resolve_bytes(bytes: &[u8], sites: impl IntoIterator<Item = Site>) -> Symbols
             return Symbols::failed(Reason::SymbolTableTooLarge);
         }
         requested.insert(site, unavailable(Reason::NoSymbols));
+    }
+    if !bytes.starts_with(b"\0asm") {
+        return Symbols::failed(Reason::NoSymbols);
     }
     let parsed = {
         wasm::Module::read(bytes, &mut budget).and_then(|module| {

@@ -340,6 +340,21 @@ pub struct Opened {
 
 impl Opened {
     /// # Errors
+    /// Clones pinned capabilities without reopening a pathname or accepting a new manifest.
+    pub fn try_clone(&self) -> Result<Self, String> {
+        Ok(Self {
+            root: self.root.try_clone().map_err(|error| error.to_string())?,
+            pool: self
+                .pool
+                .as_ref()
+                .map(File::try_clone)
+                .transpose()
+                .map_err(|error| error.to_string())?,
+            manifest: self.manifest.clone(),
+            stored_bytes: self.stored_bytes,
+        })
+    }
+    /// # Errors
     /// Refuses unsafe roots, unsupported lineage and unauthenticated manifests or entries.
     pub fn open(path: &Path) -> Result<Self, String> {
         let root = pin(path)?;

@@ -1,0 +1,23 @@
+package main
+
+import (
+	"reflect"
+	"runtime"
+)
+
+//go:noinline
+func single(a chan int) {
+	reflect.Select([]reflect.SelectCase{{Dir: reflect.SelectRecv, Chan: reflect.ValueOf(a)}})
+}
+
+func main() {
+	a := make(chan int, 1)
+	a <- 1
+	single(a)
+	done := make(chan struct{}, 2)
+	go func() { done <- struct{}{} }()
+	go func() { done <- struct{}{} }()
+	runtime.Gosched()
+	<-done
+	<-done
+}

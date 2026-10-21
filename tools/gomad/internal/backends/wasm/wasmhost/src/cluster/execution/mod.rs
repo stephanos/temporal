@@ -786,7 +786,7 @@ fn run_instance(
 /// storage, terminal network and the local model's result, then the check
 /// that no deferred network commitment survives into the instance's finish.
 /// Returns the crash image for a later incarnation.
-pub(super) fn record_terminal(
+pub(crate) fn record_terminal(
     state: &mut State,
     storage: Option<&crate::storage_transport::StorageDescriptor>,
     outcome: &mut Outcome,
@@ -825,7 +825,26 @@ pub(super) fn record_terminal(
                 Err(_) => recorder.exhausted = true,
             }
         }
-        network_evidence(endpoint, &mut state.output, outcome)?;
+        if let Some(sink) = state
+            .model
+            .as_ref()
+            .and_then(|model| model.linked_evidence.as_ref())
+        {
+            let bytes = endpoint
+                .evidence()
+                .map_err(|failure| (failure.termination(), failure.message()))?;
+            if bytes.len() as u64 > endpoint.transcript_limit() {
+                let capacity = Failure::Capacity("network-v2-evidence-bytes");
+                outcome.termination = capacity.termination();
+                outcome.message = capacity.message();
+                outcome.exit_code = None;
+            } else {
+                sink.append("network", &bytes)
+                    .map_err(|error| (protocol::classification(&error), error.to_string()))?;
+            }
+        } else {
+            network_evidence(endpoint, &mut state.output, outcome)?;
+        }
     }
     if let Err(error) = crate::engine::finish_model(state, outcome) {
         return Err(("infrastructure", format!("result transport: {error:#}")));

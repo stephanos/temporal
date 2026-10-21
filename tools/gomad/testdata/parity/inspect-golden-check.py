@@ -102,10 +102,12 @@ def inspect(root, item, show_choices):
                                   select_result=int, sites=list, replay_decisions=list,
                                   tape_sha256=str), '$inspect.artifact.choices')
         for site in choice['sites']:
-            parity.fields(site, dict(fingerprint=str, kind=str, count=int, maximum_alternatives=int), '$inspect.artifact.choices.sites')
+            parity.fields(site, dict(fingerprint=str, kind=str, count=int, maximum_alternatives=int, symbol=dict), '$inspect.artifact.choices.sites')
+            assert site['symbol'] == {'unavailable': 'no_symbols'}
         for decision in choice['replay_decisions']:
             parity.fields(decision, dict(ordinal=int, kind=str, site_offset=int, site_missing=bool,
-                                        alternatives=int, selected=int), '$inspect.artifact.choices.replay_decisions')
+                                        alternatives=int, selected=int, symbol=dict), '$inspect.artifact.choices.replay_decisions')
+            assert decision['symbol'] == {'unavailable': 'no_symbols'}
     if 'evidence/inspection.json' in value['files']:
         details = parity.decode((artifact / 'evidence/inspection.json').read_bytes())
         for section in ('world', 'simulation', 'minimization'):

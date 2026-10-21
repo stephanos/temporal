@@ -26,7 +26,14 @@ impl Fault {
         }
     }
 
+    pub fn none() -> Self {
+        Self::new("")
+    }
+
     pub fn from_environment() -> Self {
+        if crate::linked_conditions::current().is_some() {
+            return Self::none();
+        }
         Self::new(&std::env::var("GOMAD_WASM_DETERMINISM_FAULT").unwrap_or_default())
     }
 
@@ -71,6 +78,9 @@ impl Fault {
 static OUTPUT_COMMITTED: std::sync::atomic::AtomicBool = std::sync::atomic::AtomicBool::new(false);
 
 pub fn output_committed() {
+    if crate::linked_conditions::current().is_some() {
+        return;
+    }
     OUTPUT_COMMITTED.store(true, std::sync::atomic::Ordering::Relaxed);
 }
 

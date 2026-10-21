@@ -1,0 +1,22 @@
+{
+  "schema": "gomad.symbolize-nonbranch-fixture-proof/v1",
+  "source": "guest-nonbranch.go.txt",
+  "source_sha256": "80b95555354e2e3ddb5f76aef239e861e30298c87f2dba967a9dce44b801bec2",
+  "module": "guest-nonbranch.wasm",
+  "module_sha256": "b4fd5ebdbe7ff85d927a7e2cc925d127ced22ec390b7c62794b74406a6554dcc",
+  "compiler_version": "go1.27.1 linux/arm64",
+  "compiler_sha256": "1675694ef690db0f18fbe7046a886170904bede1d9db6ec96ae27945c1705c64",
+  "runtime_implementation_sha256": "cafaeba88a381446f0d20bcb590f83242e7b0bc1fd4eaaa3b003726b5383d565",
+  "module_name": "gomad.fixture/nonbranch",
+  "source_filename": "main.go",
+  "build_flags": ["-mod=readonly", "-trimpath", "-buildvcs=false", "-pgo=off", "-overlay", "<retained-fn229-overlay>/overlay.json", "-tags", "test_dep"],
+  "build_environment": {"GOENV":"off","GOFLAGS":"","GOTOOLCHAIN":"local","GOWORK":"off","GOOS":"wasip1","GOARCH":"wasm","CGO_ENABLED":"0","GOEXPERIMENT":"nogreenteagc","GOCACHEPROG":""},
+  "overlay_address": "6453d2a998662888534e8641ff68e6411e6adc14d5315ca7ee873b8a7ce8e506",
+  "build_exits": [0, 0],
+  "second_build_byte_comparison_exit": 0,
+  "recorded_site": {"kind":"select-result","site_offset":5350,"site_missing":false,"alternatives":1},
+  "expected_symbol": {"package":"reflect","function":"rselect","file":"runtime/select.go","line":629,"inlined_from":[]},
+  "independent_location_proof": "The retained overlay select.go line 629 calls selectgo from reflect_rselect, linked as reflect.rselect.",
+  "raw_execution_proof": "/home/agent/wt/evidence/fn229-inspect/final-symbols-third/first/foundation-result.json",
+  "build_evidence": "/home/agent/wt/evidence/fn229-inspect/nonbranch-source"
+}
