@@ -24,6 +24,15 @@ func main() {
 		}
 	}
 	switch os.Args[1] {
+	case "fail-peer":
+		fmt.Fprintln(os.Stderr, "failing peer started")
+		time.Sleep(time.Second)
+		panic("intentional asymmetric peer failure")
+	case "wait-peer":
+		fmt.Fprintln(os.Stderr, "waiting peer started")
+		for {
+			time.Sleep(time.Second)
+		}
 	case "durable":
 		file, err := os.Create("/workspace/value")
 		check(err)

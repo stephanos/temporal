@@ -371,6 +371,31 @@ func TestInstalledOperatorTypedScenarioDetachedReplay(t *testing.T) {
 // waiting for the wall-clock execution watchdog (fn-235 R1-R4). A capacity
 // abort keeps each incarnation's partial streams in a retained, inspectable
 // and replayable artifact. Before fn-235 both runs hung until the watchdog.
+func TestInstalledOperatorAsymmetricGuestFailureEndsPromptly(t *testing.T) {
+	f := newTypedOperator(t)
+	scenario := typedScenario(t, "deadlock", "")
+	scenario.Boots[0].Args = []string{"fail-peer"}
+	scenario.Boots[1].Args = []string{"wait-peer"}
+	scenario.Actions[2].Handle.Node = "b"
+	scenario.Actions[3].Handle.Node = "a"
+	path := filepath.Join(f.root, "asymmetric-failure.json")
+	writeTypedJSON(t, path, scenario)
+	arguments := f.explore(path, filepath.Join(f.root, "artifacts"), "7")
+	for index, argument := range arguments {
+		if argument == "--execution-timeout=30s" {
+			arguments[index] = "--execution-timeout=3m"
+		}
+	}
+	began := time.Now()
+	explored := invokeOperator(t, f.binary, 1, arguments...)
+	if wall := time.Since(began); wall > 10*time.Second {
+		t.Fatalf("asymmetric guest failure waited %s: %s", wall, explored)
+	}
+	if !bytes.Contains(explored, []byte(`"classification":"target_failure"`)) || !bytes.Contains(explored, []byte("intentional asymmetric peer failure")) {
+		t.Fatalf("asymmetric guest failure classification = %s", explored)
+	}
+}
+
 func TestInstalledOperatorClusterFailureEndsPromptly(t *testing.T) {
 	f := newTypedOperator(t)
 	explore := func(fixture string) ([]byte, string) {
