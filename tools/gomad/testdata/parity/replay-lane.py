@@ -64,6 +64,7 @@ cluster_arguments = ['--baseline', args.cluster_baseline, '--source', args.clust
 for network in ('ordinary', 'faults'):
     run('standalone-network-' + network, [sys.executable, corpus / 'replay-inspection-fixture.py',
         '--binary', args.binary, *cluster_arguments, '--network', network,
+        '--preparation-root', args.preparation_root / ('current-network-' + network),
         '--work', args.work / ('standalone-network-' + network)])
 run('public-cluster-reference', [sys.executable, corpus / 'replay-cluster-reference.py', *cluster_arguments,
     '--work', args.work / 'public-cluster'])

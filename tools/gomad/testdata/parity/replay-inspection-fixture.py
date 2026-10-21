@@ -18,6 +18,7 @@ for name in ('binary', 'baseline', 'source', 'compiler', 'work'):
 p.add_argument('--role', choices=['stress-jitter', 'determinism-fixture'])
 p.add_argument('--success', action='store_true', help='separate successful registered guest for restart coverage')
 p.add_argument('--network', choices=['ordinary', 'faults'], help='standalone network exact-replay fixture')
+p.add_argument('--preparation-root', type=Path, help='declared stable toolchain preparation input for network goldens')
 args = p.parse_args()
 for name in ('binary', 'baseline', 'source', 'compiler', 'work'):
     setattr(args, name, getattr(args, name).resolve())
@@ -51,6 +52,7 @@ baseline = args.baseline / 'bin/gomad'
 guest_package = './common/gomaddebug/testdata/fixture'
 fixture_source = args.source / guest_package / 'main.go'
 assert not (args.success and args.network), 'success registry and network fixtures are separate'
+assert not args.network or args.preparation_root, 'network fixtures require a stable declared preparation root'
 if args.network:
     original = (Path(__file__).resolve().parent / 'targets/replay-network.go.txt' if args.network == 'ordinary'
                 else args.source / 'tools/gomad/internal/backends/wasm/testdata/network_streams/main.go')
@@ -92,7 +94,7 @@ installation = args.work / 'exact-installation.json'
 run('go-install', [baseline, 'install', '--compiler', args.compiler,
                   '--helper', args.baseline / 'bin/gomad-wasmhost', '--profile', 'gomad.wasi-cooperative/v1',
                   '--runtime-root', args.source / 'tools/gomad/internal/model/runtimesource',
-                  '--fuel', str(1 << 60), '--cache', args.work / 'preparation', '--output', installation,
+                  '--fuel', str(1 << 60), '--cache', args.preparation_root or args.work / 'preparation', '--output', installation,
                   *installation_options])
 run('go-explore', [baseline, '--installation', installation, 'explore', '--json', '--choices',
                   '--keep-successes=all',
@@ -181,5 +183,19 @@ if args.network:
     if args.network == 'faults':
         for fault in ('stream-delay', 'dial-partition', 'dial-heal', 'connection-reset'):
             assert fault.encode() in network
+    repeated_root = args.work / 'rust-repeat'
+    repeated = json.loads(run('rust-repeat', [args.binary, 'fixture-replay-input', '--root', repeated_root, '--input', input_path]))
+    parity.authenticate(repeated_root, repeated)
+    repeated_artifact = repeated_root / repeated['records'][0]['artifact']
+    view = dict(schema='gomad.replay-network-golden/v1',
+        record=(rust_artifact / 'record.json').read_text(), manifest=(rust_artifact / 'manifest.json').read_text(),
+        ledger=(args.work / 'rust' / bundle['ledger_file']).read_text(), network=dict(bytes=len(rust_network), sha256=sha(rust_network)))
+    repeated_network = (repeated_artifact / 'evidence/network').read_bytes()
+    repeated_view = dict(schema='gomad.replay-network-golden/v1',
+        record=(repeated_artifact / 'record.json').read_text(), manifest=(repeated_artifact / 'manifest.json').read_text(),
+        ledger=(repeated_root / repeated['ledger_file']).read_text(), network=dict(bytes=len(repeated_network), sha256=sha(repeated_network)))
+    parity.check_equal(view, repeated_view)
+    parity.golden(Path(__file__).resolve().parent / 'goldens-replay' / ('network-' + args.network + '.json'),
+                  view, os.environ.get('GOMAD_GOLDEN_REGENERATE') == '1')
 print(json.dumps({'artifact': str(rust_artifact), 'go_reference': str(args.work / 'registered-reference.json'),
                   'input': str(input_path), 'go_binary': str(baseline)}))
