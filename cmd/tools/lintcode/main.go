@@ -367,6 +367,8 @@ func (p ownership) classify(path string, modules []string) (source, error) {
 		entry.disposition = "simulation fixture"
 	case within(path, wasmBackend+"/testdata/environment"):
 		entry.disposition = "WASM environment fixture"
+	case within(path, wasmBackend+"/toolchain/testdata/choice_divergence"):
+		entry.disposition = "WASM helper-role divergence fixture"
 	case within(path, wasmBackend+"/toolchain/testdata/choices"), within(path, wasmBackend+"/testdata/runtime_probes"):
 		entry.disposition = "WASM runtime qualification fixture"
 	case within(path, wasmBackend+"/testdata/frontend_namespace"), within(path, wasmBackend+"/testdata/sqlite_contention"):
