@@ -93,6 +93,24 @@ fn declared_world_computed_starts_admit_before_value_binding()
     assert_eq!(module.metadata.postconditions.len(), 6);
     assert!(!module.tla.contains("__umpire_world_limit'"));
     assert!(module.tla.contains("__umpire_outcome'"));
+    // `world: &Self` is the before-state: its `value` is unprimed state, never the World constant.
+    for (operator, outcome) in [
+        ("Post_before_world", ""),
+        ("Post_before_outcome_world", "((__umpire_outcome') = (<<>>)), "),
+    ] {
+        let line = module
+            .tla
+            .lines()
+            .find(|line| line.starts_with(&format!("{operator} ==")))
+            .ok_or(operator)?;
+        assert!(
+            line.contains(&format!(
+                "<<((value') > (value)), {outcome}((value') <= (__umpire_world_limit))>>"
+            )),
+            "{line}"
+        );
+        assert!(!line.contains("__umpire_world_value"), "{line}");
+    }
     Ok(())
 }
 
@@ -151,6 +169,36 @@ fn binding_refuses_malformed_world_and_complete_state_values()
         located(&error);
         assert!(error.message.contains(message), "{error}");
     }
+    // Admission already refuses integer types wider than TLC's i32, so only negatives reach here.
+    let signed = Lift::parse(
+        "counter/model.rs",
+        r"
+        use umpire_dsl::machine;
+        #[machine] mod signed {
+            use umpire_dsl::{Action, State, World};
+            #[derive(World)] struct World { offset: i32, bias: i8 }
+            #[derive(State)] struct Model { on: bool }
+            #[derive(Action)] enum User { Hold }
+            #[starts] impl Model {
+                fn starts(w: &World) -> impl IntoIterator<Item = Self> { [] }
+            }
+            impl Model {
+                #[on(User)] fn user(&mut self, action: User) { match action { _ => {} } }
+            }
+        }
+    ",
+    )?;
+    let world = |offset: i128, bias: i128| Binding {
+        world: vec![("offset".into(), Literal::Int(offset)), ("bias".into(), Literal::Int(bias))],
+        starts: Vec::new(),
+    };
+    for (offset, bias) in [(-1, 3), (i128::from(i32::MIN), 3), (1, -1)] {
+        let error = signed.bind(&world(offset, bias)).err().ok_or("negative World admitted")?;
+        located(&error);
+        assert!(error.message.contains("not representable as a TLC .cfg constant"), "{error}");
+    }
+    let edge = Tla::emit(&signed.bind(&world(i128::from(i32::MAX), 0))?)?;
+    assert!(edge.cfg.contains("= 2147483647"), "{}", edge.cfg);
     Ok(())
 }
 

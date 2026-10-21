@@ -84,7 +84,8 @@ impl Lifted {
     /// Validate projected literals against original-source schemas and bind complete starts.
     ///
     /// # Errors
-    /// Refuses absent, duplicate, extra or incorrectly typed fields by source location.
+    /// Refuses absent, duplicate, extra or incorrectly typed fields, and World integers outside
+    /// TLC's `.cfg` range, by source location.
     pub fn bind(&self, binding: &Binding) -> Result<Self, Diagnostic> {
         if !self.requires_binding() {
             return Err(message(&self.location, "this source has no declared World to bind"));
@@ -95,6 +96,19 @@ impl Lifted {
             &self.location,
             "World",
         )?;
+        // TLC's .cfg parser accepts only non-negative integers up to i32::MAX as CONSTANT values.
+        for (field, value) in self.world_fields.iter().zip(&world) {
+            if !cfg_representable(value) {
+                return Err(message(
+                    &field.location,
+                    format!(
+                        "World field `{}` value is not representable as a TLC .cfg constant (0..={})",
+                        field.name,
+                        i32::MAX
+                    ),
+                ));
+            }
+        }
         let mut starts = Vec::new();
         for row in &binding.starts {
             let state = bind_fields(
@@ -149,6 +163,14 @@ fn bind_fields<'a>(
             })
         })
         .collect()
+}
+
+fn cfg_representable(value: &Expr) -> bool {
+    match &value.kind {
+        ExprKind::Int(value) => (0..=i128::from(i32::MAX)).contains(value),
+        ExprKind::Sequence(values) => values.iter().all(cfg_representable),
+        _ => true,
+    }
 }
 
 fn literal(value: &Literal, ty: &Type) -> Option<Expr> {
