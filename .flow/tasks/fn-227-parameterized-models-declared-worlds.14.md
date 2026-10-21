@@ -10,6 +10,8 @@ Owner decision 2026-10-21 (`.flow/artifacts/fn-227-parameterized-models-declared
 
 **Size:** M.
 
+**Forward compatibility (owner, 2026-10-21):** Umpire is to eventually meet Quint's capabilities fully, including set-, map-, tuple- and record-valued constants and state. Today World/state values are scalars; design `Value`/`IntoValue` so those kinds can be added without reshaping the handoff (an enum with room for composite variants, no scalar-only assumptions in `bound()`), but implement only what current fixtures use.
+
 ### Approach
 
 1. `umpire-dsl`: a small `Value` type mirroring `umpire_lift::Literal` (so Model crates never depend on the lifter), `Values`/`IntoValue` traits; hidden `values()` from `derive(World)` and `derive(State)` (private fields readable, visibility unchanged); hidden concrete-catalog/domain export from `derive(Action)`; fieldless-enum `IntoValue`.
