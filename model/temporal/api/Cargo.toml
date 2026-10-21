@@ -16,6 +16,7 @@ prost-build.workspace = true
 umpire-temporal-annotate-syntax.workspace = true
 
 [dev-dependencies]
+prost-build.workspace = true
 umpire-temporal-annotate-syntax.workspace = true
 
 [[test]]

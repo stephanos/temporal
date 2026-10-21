@@ -11,6 +11,8 @@ use umpire_temporal_annotate_syntax::{
     descriptor::{self, Coverage},
 };
 
+mod codegen;
+
 fn main() -> io::Result<()> {
     let root = PathBuf::from(
         env::var_os("CARGO_MANIFEST_DIR")
@@ -48,27 +50,12 @@ fn main() -> io::Result<()> {
     catalog_inputs(&root.join("model/temporal/features"), &mut coverage)?;
     descriptor::check(&fs::read(&linked)?, &coverage).map_err(io::Error::other)?;
 
-    let mut files = prost_build::Config::new()
-        .file_descriptor_set_path(&upstream)
-        .skip_protoc_run()
-        .load_fds(&[] as &[&str], &[] as &[&str])?;
-    let mut config = prost_build::Config::new();
-    config
-        .enable_type_names()
-        .type_name_domain(["."], "type.googleapis.com")
-        .compile_well_known_types()
-        .btree_map(["."])
-        .extern_path(".google.protobuf", "::umpire_wasm::google::protobuf")
-        .include_file("protocol.rs")
-        .disable_comments(["."])
-        .protoc_arg(format!("--descriptor_set_in={}", upstream.display()));
-    let extension = config.load_fds(&[schema], &["../proto"])?;
-    for file in extension.file {
-        if !files.file.iter().any(|existing| existing.name == file.name) {
-            files.file.push(file);
-        }
-    }
-    config.compile_fds(files)
+    codegen::generate(
+        &mut prost_build::Config::new(),
+        &upstream,
+        Path::new(schema),
+        Path::new("../proto"),
+    )
 }
 
 fn catalog_inputs(path: &Path, coverage: &mut Coverage) -> io::Result<()> {
