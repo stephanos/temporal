@@ -1,5 +1,4 @@
 //! Temporal realization facade for the mini activity guest.
-#![cfg(not(test))]
 
 pub mod support;
 

@@ -885,3 +885,24 @@ pub fn probe(request: &ProbeRequest) -> Result<ProbeResponse> {
         Operation::Classify => report::classify(request, &entries, generic_entries),
     }
 }
+
+#[cfg(test)]
+mod tests {
+    use super::{Result, generic, inventory};
+
+    #[test]
+    fn validated_inventories_are_reused() -> Result<()> {
+        let contextual = inventory()?;
+        let contextual_again = inventory()?;
+        let generic = generic::inventory()?;
+        let generic_again = generic::inventory()?;
+        assert!(!contextual.is_empty());
+        assert!(!generic.is_empty());
+        assert_eq!(
+            (contextual.as_ptr(), generic.as_ptr()),
+            (contextual_again.as_ptr(), generic_again.as_ptr()),
+            "successfully validated metadata must not be rebuilt for each probe"
+        );
+        Ok(())
+    }
+}
