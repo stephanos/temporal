@@ -76,9 +76,44 @@ The conductor authorized `#[mirror(response_checks = RawRetryPolicy)]` on the fu
 - [ ] Proto declaration order of fields, oneof alternatives and methods is a build error naming the first out-of-place item.
 - [ ] `coverage.snap` carries the same messages and classifications as before (field-level presence splits are the only expected diff, listed in the PR); `gaps.txt` shows inherited and loose patterns; `temporal/annotate/README.md` documents the surface, the single-parser rule and the single-crate orphan-rule caveat; `make model-check` passes.
 ## Done summary
-TBD
+Implemented readable derive(Catalog) mirrors with exactly rule/mirror namespaces,
+item-level presence algebra, shared parser/descriptor admission, generated typed
+inspection and RPC dispatch, reviewed enum inventories, dynamic limits and fallible
+setters. Preserved Model transitions, panic behavior, judgment, ABI and protocol.
 
+Replaced validator-source mappings with independent raw-schema mutations for all
+373 request fields (2,238 generic cases). The reviewed report has 79 confirmed
+strict cases, 754 actual generic observations and 1,484 explicit local untested
+outcomes. All 217 narrowly dated Unannotated dispositions remain visible; no
+prefix/future-case waiver exists. Exact golden approval and verbatim correctness/
+standards audits are in .flow/artifacts/fn-217-annotation-catalog-over-the-temporal/.
+
+The first formal review delivered NEEDS_WORK with one actionable required-Number
+generation defect. Actual seed-3 RED/GREEN drove fix 06caf99b. Renewed default,
+required-backend and full live gates pass against the rebuilt guest. The single
+resumed review returned SHIP, prior finding fixed, no unaddressed R-IDs. The
+reviewer explicitly withdrew the duplicate guard finding against locked Syn 3.
+Review session 01a15d09-1a64-76f3-a6a8-6612cfec3574; receipt
+/tmp/impl-review-receipt-8f37faba39e2-fn-217-annotation-catalog-over-the-temporal.6.json.
+Both writer and reviewer are Codex-family; actual reviewer gpt-6.1-sol.
+
+Final live log is complete and uncompromised: 2,317 corpus identities match PASS
+subtests, plus 19 boundary controls; privacy canary passes. Actual report equals
+the approved golden SHA a3974ea8da0f3c46234770068fe0f163d5e17529b275cea086c2292a124284a0.
+Frame sizes 692785/503633/879201 remain under 1 MiB. Timing exits 0: full gate
+165.509s misses soft 30s target; inner 1.954s meets soft 10s target. No reduced
+corpus, skipped assertion or claimed activity TLC agreement; unsupported activity
+source remains explicitly refused while the required backend's admitted controls run.
+
+Foreign fn-233 plans and MILESTONES changes remain preserved outside task commits.
+Dirty MILESTONES prevents reusable clean-worktree receipts; passing full commands
+are actual execution evidence, not fabricated receipt reuse. Integrated task-owned
+worktrees were normally removed with verified recovery archives retained.
+
+stage: impl-review - ran [2026-10-21T05:57..2026-10-21T06:27UTC], NEEDS_WORK then SHIP after one committed fix and renewed gates (model: gpt-6.1-sol)
+stage: plan-sync - skipped(config: planSync.enabled=false)
+stage: QA - skipped(config: pipeline.qa=off)
 ## Evidence
-- Commits:
-- Tests:
+- Commits: 1c4770b9260eae3cddbdbfd96d1a0b2a4a907a5e, e101cda4322a20bc086069ee19e39fb9cd49fc19, f55725be9b1ea31908870e265ed3a2ae42c89209, edd4829162610c9d840dd50e4cf5ef56b746208c, 43cf9d0e50705493be83ed91d9a1ad0c481a850a, a4ac04c739469f7de89a5ff3d671ead01174012f, 424f6eb7a7b8c160b7270c8ce21b639aa3aedaea, 616d378223cd29b38af4771f11fa126542377406, 8f59fcf4e85cb7fc7cf6f9f519338f5bee4c1885, 870ee1de9ac33b9e87428cac03c8a3f2e7b243b5, 06caf99bcc0614463c4316db7414eb0f184ae71d, 01c90fbce3, 2fc8a58d6b
+- Tests: make model-check: session82482 exit0 at06caf99b; default TLC skip explicit, UMPIRE_BACKENDS=require make model-check: session62470 exit0 at06caf99b, real admitted-source TLC controls, make umpire-check-model-gaps: session52071 exit0,563.085s; all2317 corpus+19 boundary controls and privacy; exact approved golden, make model-time: session25337 exit0; gate165.509s soft30MISS; inner1.954s soft10PASS, Focused parser/derive/trybuild/descriptor/setter/native suites, malformed-byte RED/GREEN, required-Number seed3 RED/GREEN, scoped integration Go lint: passed; tracked verification/audit artifacts retain details, flowctl codex impl-review: single resumed session50211 exit0, VERDICT=SHIP at2fc8a58d; receipt round2, prior finding fixed, zero unaddressed R-IDs
 - PRs:
