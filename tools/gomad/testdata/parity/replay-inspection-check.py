@@ -53,6 +53,9 @@ def grammar():
         assert result.returncode == 2, (name, result.returncode, result.stderr)
         assert diagnostic in result.stderr.decode(), (name, result.stderr)
         assert b'unknown replay option' not in result.stderr, (name, result.stderr)
+    for role in ('stress-jitter', 'determinism-fixture'):
+        result = run('stock-role-' + role, ['replay', '--' + role, '--stop=choice=0', artifact])
+        assert result.returncode == 2 and b'requires a cooperative WASM installation' in result.stderr, result.stderr
     print('replay inspection: bounded grammar and preflight refusals')
 
 
@@ -63,6 +66,19 @@ else:
 
 if args.artifact:
     artifact = args.artifact.resolve()
+    for selected in (None, 'stress-jitter', 'determinism-fixture'):
+        if selected == args.role:
+            continue
+        flags = ['--' + selected] if selected else []
+        result = run('public-wrong-role-' + (selected or 'default'),
+                     ['replay', *flags, '--stop=choice=0', artifact], args.binary)
+        assert result.returncode == 3 and b'WASM instrumentation divergence' in result.stderr, result.stderr
+        assert not result.stdout, result.stdout
+    for name, flags in [('role-conflict', ['--stress-jitter', '--determinism-fixture', '--stop=choice=0']),
+                        ('stress-no-stop', ['--stress-jitter']),
+                        ('determinism-no-stop', ['--determinism-fixture'])]:
+        result = run('public-' + name, ['replay', *flags, artifact], args.binary)
+        assert result.returncode == 2 and not result.stdout, (name, result.returncode, result.stderr)
     manifest = json.loads((artifact / 'manifest.json').read_bytes())
     metadata = json.loads((artifact / 'evidence/inspection').read_bytes())
     assert metadata['complete'], 'positive inspection requires complete retained metadata'
