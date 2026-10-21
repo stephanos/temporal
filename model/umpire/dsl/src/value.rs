@@ -1,0 +1,62 @@
+/// A Model value exported for the source lifter's binding: the selected World's fields, each
+/// start's fields and each catalog action's payload. It mirrors the lifter's literals, so a
+/// Model crate never depends on the lifter. Composite kinds extend this enum.
+#[derive(Clone, Debug, PartialEq, Eq)]
+pub enum Value {
+    /// A boolean.
+    Bool(bool),
+    /// An integer of any admitted width.
+    Int(i128),
+    /// A fieldless enum's qualified variant, such as `Phase::Open`.
+    Enum(&'static str),
+    /// Ordered elements.
+    Sequence(Vec<Value>),
+}
+
+/// Converts one field value into a [`Value`].
+#[diagnostic::on_unimplemented(
+    message = "`{Self}` has no exported Model value",
+    label = "not `IntoValue`",
+    note = "a declared World's fields, state fields and action payloads are bool, an integer, or a fieldless enum deriving `Finite`"
+)]
+pub trait IntoValue {
+    /// This value's exported form.
+    fn value(&self) -> Value;
+}
+
+impl IntoValue for bool {
+    fn value(&self) -> Value {
+        Value::Bool(*self)
+    }
+}
+
+macro_rules! integers {
+    ($($ty:ty),*) => {$(
+        impl IntoValue for $ty {
+            fn value(&self) -> Value {
+                Value::Int(i128::from(*self))
+            }
+        }
+    )*};
+}
+
+integers!(i8, i16, i32, i64, u8, u16, u32, u64);
+
+/// A declared World's or state's named field values in declaration order, private fields
+/// included. `derive(World)` and `derive(State)` implement it inside a declared-World
+/// `#[machine]`; it exposes what their derived `Debug` already prints.
+pub trait Values {
+    /// Field names and values in declaration order.
+    fn values(&self) -> Vec<(&'static str, Value)>;
+}
+
+/// A declared-World actor's concrete action values and its World-bound input domains.
+pub trait ActionValues<W> {
+    /// The qualified variant, such as `Worker::Poll`, and its payload fields in declaration
+    /// order; tuple fields are named by position.
+    fn action_value(&self) -> (&'static str, Vec<(&'static str, Value)>);
+
+    /// Each `#[domain]` field's values for `world` as `(variant, field, values)`, stopping one
+    /// value past `limit` so an oversized domain is refused rather than truncated.
+    fn domains(world: &W, limit: usize) -> Vec<(&'static str, &'static str, Vec<Value>)>;
+}

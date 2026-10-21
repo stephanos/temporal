@@ -83,6 +83,7 @@ pub(crate) fn expand(input: &syn::DeriveInput) -> manyhow::Result<TokenStream> {
         }
     }
     errors.into_result()?;
+    let exported = world.as_ref().map(|world| action_values(input, data, &variant_domains, world));
     let dependent = world.is_some()
         && variant_domains.iter().flatten().any(|domain| matches!(domain, FieldDomain::World(_)));
     let world = world.filter(|_| dependent);
@@ -90,10 +91,11 @@ pub(crate) fn expand(input: &syn::DeriveInput) -> manyhow::Result<TokenStream> {
         expansion.domains(input, variant, domains, world.as_ref());
     }
     let fields: Vec<_> = data.variants.iter().flat_map(|variant| variant.fields.iter()).collect();
-    Ok(match world {
+    let implementations = match world {
         Some(world) => world_implementations(input, &fields, internal, fault, &world, expansion),
         None => implementations(input, &fields, internal, fault, expansion),
-    })
+    };
+    Ok(quote!(#implementations #exported))
 }
 
 impl Expansion {
@@ -167,12 +169,77 @@ fn world_context(input: &syn::DeriveInput, errors: &mut manyhow::Emitter) -> Opt
             "#[domain] belongs on one variant field, not the action enum",
         ));
     }
-    let attr = input.attrs.iter().find(|attr| attr.path().is_ident("__umpire_world"))?;
-    match attr.parse_args::<syn::Type>() {
-        Ok(world) => Some(world),
-        Err(error) => {
-            errors.emit(error);
-            None
+    // `#[machine]` marks each actor of a module that declares `World`.
+    input
+        .attrs
+        .iter()
+        .any(|attr| attr.path().is_ident("__umpire_world"))
+        .then(|| syn::parse_quote!(World))
+}
+
+/// Exports each action's qualified variant and payload values, and each `#[domain]` field's
+/// values for a supplied World, to the source lifter's binding.
+fn action_values(
+    input: &syn::DeriveInput,
+    data: &syn::DataEnum,
+    domains: &[Vec<FieldDomain>],
+    world: &syn::Type,
+) -> TokenStream {
+    let name = &input.ident;
+    let exportable = crate::state::deferred(
+        &input.generics,
+        data.variants.iter().flat_map(|variant| &variant.fields).map(|field| &field.ty),
+    );
+    let (implementation, types, constraints) = exportable.split_for_impl();
+    let mut arms = Vec::new();
+    let mut exported = Vec::new();
+    for (variant, domains) in data.variants.iter().zip(domains) {
+        let label = format!("{name}::{}", variant.ident);
+        let keys: Vec<_> = variant
+            .fields
+            .iter()
+            .enumerate()
+            .map(|(index, field)| {
+                field.ident.as_ref().map_or_else(|| index.to_string(), ToString::to_string)
+            })
+            .collect();
+        let bindings: Vec<_> =
+            (0..keys.len()).map(|index| format_ident!("__umpire_field_{index}")).collect();
+        let pattern = pattern_for(variant, &bindings);
+        arms.push(quote! {
+            #pattern => (#label, ::std::vec![#((#keys, ::umpire_dsl::IntoValue::value(#bindings))),*])
+        });
+        // Reads the World-bound builder's typed domain, so a mistyped `#[domain]` function is
+        // reported once, where the builder is declared.
+        let builder = format_ident!("__umpire_path_{}_in", variant.ident);
+        for ((index, field), (key, domain)) in
+            variant.fields.iter().enumerate().zip(keys.iter().zip(domains))
+        {
+            if matches!(domain, FieldDomain::World(_)) {
+                let member = field.ident.clone().unwrap_or_else(|| format_ident!("field_{index}"));
+                exported.push(quote! {
+                    (#label, #key, {
+                        let __umpire_retain = __umpire_limit.saturating_add(1);
+                        let __umpire_domain = Self::#builder(__umpire_world, __umpire_retain).#member;
+                        let __umpire_count = __umpire_domain.count().map_or(__umpire_retain, |count| count.min(__umpire_retain));
+                        (0..__umpire_count)
+                            .map(|index| ::umpire_dsl::IntoValue::value(&__umpire_domain.get(index)))
+                            .collect()
+                    })
+                });
+            }
+        }
+    }
+    quote! {
+        #[doc(hidden)]
+        impl #implementation ::umpire_dsl::ActionValues<#world> for #name #types #constraints {
+            fn action_value(&self) -> (&'static str, ::std::vec::Vec<(&'static str, ::umpire_dsl::Value)>) {
+                match *self { #(#arms),* }
+            }
+            #[allow(unused_variables)]
+            fn domains(__umpire_world: &#world, __umpire_limit: usize) -> ::std::vec::Vec<(&'static str, &'static str, ::std::vec::Vec<::umpire_dsl::Value>)> {
+                ::std::vec![#(#exported),*]
+            }
         }
     }
 }

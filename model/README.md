@@ -211,10 +211,17 @@ manual `Registered` implementations remain compatible through the additive `Asso
 Declared states implement only the association, so their constants must be supplied explicitly.
 
 Declared Worlds with admitted scalar/enum constants also support independent source lifting.
-Shared fixtures compile a disposable copy with a typed projection inside the original machine
-module, so private fields stay private. Admission still reads the untouched authored `model.rs`.
-The authored `tests.rs` hook selects its World in its own lexical scope; one selection and one
-complete-start enumeration feed binding, native checking and TLC counterexample replay.
+Only values cross from native code to the lifter: inside a declared-World `#[machine]`,
+`derive(World)` and `derive(State)` add a hidden `Values` impl listing the named field values,
+private fields included, and `derive(Action)` a hidden `ActionValues` impl giving each action's
+variant and payload and each `#[domain]` field's values for a World. Field visibility is
+unchanged; the export shows what the derived `Debug` already prints. Fieldless enums get their
+value from `derive(Finite)`. A field type without a value leaves the Model compiling and is
+refused only where a binding is requested. Admission still reads the authored `model.rs` on its
+own and translates every transition and claim itself. In a shared fixture,
+`fixture!(World = World::new(1, 3), 64, negative)` defines `bound()`, and `bound_for(world)` for
+another World: one World, one start enumeration and one checked catalog feed binding, native
+checking and TLC counterexample replay.
 
 Methods of each kind are contiguous, in `#[on]`, optional `#[effect]`, `#[invariant]`,
 `#[postcondition]`, `#[assumption]`, `#[progress]` order. A postcondition may filter its action
@@ -661,17 +668,17 @@ configuration values must be integers in `0..=i32::MAX`, so negative World integ
 Whole-state Init preserves correlations, deduplicates identical rows and admits empty starts.
 The selected World constants have the same assignments in the main, invariant,
 postcondition, negative and progress configurations. `parameterized_world` exercises three
-selections (two checked against TLC, one with empty starts), private-field projection and
+selections (two checked against TLC, one with empty starts), private-field values and
 same-World replay of a deliberately false claim.
 
 Under a declared World, the lifter also admits action inputs: tuple and named-field variants
 whose `bool`, admitted-integer or local fieldless-enum fields declare `#[inputs(lo..=hi)]`,
 `#[inputs([..])]`, a `#[derive(Finite)]` domain or a field `#[domain(f)]`. Source reads only the
 signature of `fn f(&World) -> impl Iterator<Item = T>`; the binding supplies its values for the
-selected World together with the checked native catalog, projected through generated typed
-match arms. Binding refuses a missing, duplicate or mistyped domain, a domain or catalog above
-4,096 actions, and any catalog that differs from the source declaration-order product in
-count, variant, field order or value. Positional duplicates stay in the catalog, and an empty
+selected World together with the checked native catalog, exported by the derives. Binding
+refuses a missing, duplicate or mistyped domain, a domain or catalog above 4,096 actions, and
+any catalog that differs from the source declaration-order product in count, variant, field
+order or value. Positional duplicates stay in the catalog, and an empty
 domain keeps its variant with zero actions. Arms bind payload fields by tuple or named
 patterns (with `_`, `..` and literal or constant subpatterns), guards and effects see them
 through their own typed names, and a payload name shadows a World parameter of the same

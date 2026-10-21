@@ -63,41 +63,21 @@ pub fn check_machine<M: Machine>(
     native: &crate::Files,
 ) -> crate::RunResult {
     let starts = world.starts();
-    let native_graph = umpire_checker::Checker::explore_from(world, starts.clone(), 1 << 20)?;
-    check_exploration(world, &starts, &native_graph, module, folder, native)
+    let native_graph = umpire_checker::Checker::explore_within(
+        world,
+        starts.clone(),
+        1 << 20,
+        umpire_checker::Checker::CATALOG_LIMIT,
+    )?;
+    check_exploration(world, &starts, &native_graph, module, folder, native, None)
 }
 
 /// Execute an independently emitted module against a retained native exploration and starts.
-pub fn check_exploration<M: Machine>(
-    world: &M,
-    starts: &[M::State],
-    native_graph: &umpire_checker::Result<M>,
-    module: &Module,
-    folder: &std::path::Path,
-    native: &crate::Files,
-) -> crate::RunResult {
-    exploration(world, starts, native_graph, module, folder, native, None)
-}
-
-/// Like [`check_exploration`], replaying input-bearing edges by catalog ordinal: the native
-/// catalog action at that ordinal must project, through the generated typed `identity`, to
-/// exactly the emitted concrete identity.
-#[expect(clippy::too_many_arguments, reason = "The typed identity extends the shared route")]
-pub fn check_typed_exploration<M: Machine>(
-    world: &M,
-    starts: &[M::State],
-    native_graph: &umpire_checker::Result<M>,
-    module: &Module,
-    folder: &std::path::Path,
-    native: &crate::Files,
-    identity: &dyn Fn(&M::Action) -> Concrete,
-) -> crate::RunResult {
-    exploration(world, starts, native_graph, module, folder, native, Some(identity))
-}
-
+/// An input catalog replays edges by catalog ordinal: the native action at that ordinal must
+/// project, through the typed `identity`, to exactly the emitted concrete identity.
 #[allow(clippy::print_stderr)]
 #[expect(clippy::too_many_arguments, reason = "The typed identity extends the shared route")]
-fn exploration<M: Machine>(
+pub fn check_exploration<M: Machine>(
     world: &M,
     starts: &[M::State],
     native_graph: &umpire_checker::Result<M>,

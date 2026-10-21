@@ -4,8 +4,11 @@ pub mod backend;
 pub mod boundary;
 pub mod discovery;
 
+mod bound;
 mod render;
 mod runner;
+
+pub use bound::{Bound, Declared, bound};
 
 pub use render::{add_paths, render, render_rows};
 pub use runner::{
@@ -25,8 +28,29 @@ pub type Fixture = (&'static str, fn() -> RunResult);
 /// Define a golden producer, optionally with a negative claim and additional files.
 /// `fixture!(world, budget, negative, extra = files)` evaluates `files` once after
 /// the checker reports and refuses paths that would replace an existing output.
+/// `fixture!(World = selected, budget, negative)` names a declared World's type and also
+/// defines `bound()`, which hands that one World to the source lifter as values, and
+/// `bound_for(world)`, the same hook for another World of the Model.
 #[macro_export]
 macro_rules! fixture {
+    (@bound $ty:ident, $world:expr, $budget:expr, $negative:expr) => {
+        pub(crate) fn bound() -> $crate::Bound<$ty> {
+            bound_for($world)
+        }
+        #[allow(dead_code)]
+        pub(crate) fn bound_for(world: $ty) -> $crate::Bound<$ty> {
+            $crate::bound(world, $budget, $negative)
+        }
+        pub(crate) fn run() -> $crate::RunResult {
+            bound().run()
+        }
+    };
+    ($ty:ident = $world:expr, $budget:expr) => {
+        $crate::fixture!(@bound $ty, $world, $budget, None);
+    };
+    ($ty:ident = $world:expr, $budget:expr, $negative:expr) => {
+        $crate::fixture!(@bound $ty, $world, $budget, Some($negative));
+    };
     ($world:expr, $budget:expr) => {
         pub(crate) fn run() -> $crate::RunResult {
             Ok($crate::render(&$crate::Checker::explore(&$world, $budget)?)?)

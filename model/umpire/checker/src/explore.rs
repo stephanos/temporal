@@ -88,15 +88,6 @@ impl Checker {
         )
     }
 
-    /// Explores the given ordered starts in place of the world's own, under the world's claims.
-    pub fn explore_from<M: Machine>(
-        world: &M,
-        starts: Vec<M::State>,
-        budget: usize,
-    ) -> std::result::Result<Result<M>, Refusal> {
-        Self::explore_claims(world, starts, budget, Self::CATALOG_LIMIT, &world.invariants(), None)
-    }
-
     /// Checks an additional state predicate with the default million-state budget.
     pub fn refuted<M: Machine>(
         world: &M,

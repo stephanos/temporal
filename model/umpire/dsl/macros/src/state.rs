@@ -76,6 +76,7 @@ fn expand_struct(input: &syn::DeriveInput, world: bool) -> manyhow::Result<Token
         }
     });
     let constructor = world.then(|| constructor(input, &fields, &names));
+    let exported = exported_values(input, &fields, &names);
 
     Ok(quote! {
         #[automatically_derived]
@@ -110,6 +111,30 @@ fn expand_struct(input: &syn::DeriveInput, world: bool) -> manyhow::Result<Token
         }
         #starts
         #constructor
+        #exported
+    })
+}
+
+/// Inside a declared-World `#[machine]`, exports the named field values to the source lifter's
+/// binding.
+fn exported_values(
+    input: &syn::DeriveInput,
+    fields: &[&Field],
+    names: &[&syn::Ident],
+) -> Option<TokenStream> {
+    let name = &input.ident;
+    input.attrs.iter().any(|attr| attr.path().is_ident("__umpire_world")).then(|| {
+        let exportable = deferred(&input.generics, fields.iter().map(|field| &field.ty));
+        let (implementation, type_generics, constraints) = exportable.split_for_impl();
+        let keys = names.iter().map(ToString::to_string);
+        quote! {
+            #[doc(hidden)]
+            impl #implementation ::umpire_dsl::Values for #name #type_generics #constraints {
+                fn values(&self) -> ::std::vec::Vec<(&'static str, ::umpire_dsl::Value)> {
+                    ::std::vec![#((#keys, ::umpire_dsl::IntoValue::value(&self.#names))),*]
+                }
+            }
+        }
     })
 }
 
@@ -135,6 +160,22 @@ fn constructor(input: &syn::DeriveInput, fields: &[&Field], names: &[&syn::Ident
             #visibility fn new(#(#names: #types),*) -> Self { Self { #(#names),* } }
         }
     }
+}
+
+/// Requires each field type to export a value, as a higher-ranked bound so that a field without
+/// one leaves the Model compiling and refuses only where its values are requested.
+pub(crate) fn deferred<'a>(
+    generics: &Generics,
+    types: impl IntoIterator<Item = &'a syn::Type>,
+) -> Generics {
+    let mut generics = generics.clone();
+    for ty in types {
+        generics
+            .make_where_clause()
+            .predicates
+            .push(syn::parse_quote!(for<'__umpire> #ty: ::umpire_dsl::IntoValue));
+    }
+    generics
 }
 
 fn bounded(generics: &Generics, fields: &[&Field], bound: &TokenStream) -> Generics {

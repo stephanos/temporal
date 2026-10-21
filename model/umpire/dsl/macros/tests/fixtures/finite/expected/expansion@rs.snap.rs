@@ -4,6 +4,15 @@ impl ::umpire_dsl::Finite for Speed {
         ::core::iter::IntoIterator::into_iter([Self::Slow, Self::Fast] as [Self; 2usize])
     }
 }
+#[doc(hidden)]
+impl ::umpire_dsl::IntoValue for Speed {
+    fn value(&self) -> ::umpire_dsl::Value {
+        match *self {
+            Self::Slow => ::umpire_dsl::Value::Enum("Speed::Slow"),
+            Self::Fast => ::umpire_dsl::Value::Enum("Speed::Fast"),
+        }
+    }
+}
 #[automatically_derived]
 impl ::umpire_dsl::Finite for Level {
     fn domain() -> impl ::core::iter::Iterator<Item = Self> {

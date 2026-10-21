@@ -13,13 +13,20 @@ pub(crate) fn expand(input: &syn::DeriveInput) -> manyhow::Result<TokenStream> {
             if let Some(variant) = data.variants.iter().find(|variant| !variant.fields.is_empty()) {
                 manyhow::bail!(variant, "{SHAPE}; give a variant with fields to derive(Action)");
             }
-            let variants = data.variants.iter().map(|variant| &variant.ident);
+            let variants: Vec<_> = data.variants.iter().map(|variant| &variant.ident).collect();
+            let labels = variants.iter().map(|variant| format!("{name}::{variant}"));
             let count = data.variants.len();
             Ok(quote! {
                 #[automatically_derived]
                 impl #implementation ::umpire_dsl::Finite for #name #types #constraints {
                     fn domain() -> impl ::core::iter::Iterator<Item = Self> {
                         ::core::iter::IntoIterator::into_iter([#(Self::#variants),*] as [Self; #count])
+                    }
+                }
+                #[doc(hidden)]
+                impl #implementation ::umpire_dsl::IntoValue for #name #types #constraints {
+                    fn value(&self) -> ::umpire_dsl::Value {
+                        match *self { #(Self::#variants => ::umpire_dsl::Value::Enum(#labels)),* }
                     }
                 }
             })

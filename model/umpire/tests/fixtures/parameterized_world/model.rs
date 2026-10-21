@@ -2,18 +2,6 @@
 
 use umpire_dsl::machine;
 
-std::thread_local! {
-    static ENUMERATIONS: std::cell::Cell<usize> = const { std::cell::Cell::new(0) };
-}
-
-pub(crate) fn enumerations() -> usize {
-    ENUMERATIONS.get()
-}
-
-pub(crate) fn reset_enumerations() {
-    ENUMERATIONS.set(0);
-}
-
 #[machine]
 pub mod counter {
     use umpire_dsl::{Action, State, World, check, path};
@@ -38,7 +26,6 @@ pub mod counter {
     impl Model {
         #[starts]
         fn starts(selected: &World) -> impl IntoIterator<Item = Self> {
-            super::ENUMERATIONS.set(super::ENUMERATIONS.get() + 1);
             if selected.value >= selected.limit {
                 Vec::new()
             } else {

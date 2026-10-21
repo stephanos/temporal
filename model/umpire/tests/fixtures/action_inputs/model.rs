@@ -38,7 +38,7 @@ pub mod inputs {
 
     impl Model {
         #[starts]
-        fn starts(_selected: &World) -> impl IntoIterator<Item = Self> {
+        fn initial() -> impl IntoIterator<Item = Self> {
             [Self { attempt: 1, done: false, failed: false, skipped: false }]
         }
 

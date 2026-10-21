@@ -16,6 +16,7 @@ mod path_input;
 mod phased;
 mod progress;
 mod scope;
+mod value;
 
 pub use action::{Actor, ActorProjection, ActorValue, RegisteredActor};
 pub use catalog::{ActionCatalog, CATALOG_LIMIT, CatalogError, CatalogVariant};
@@ -38,6 +39,8 @@ pub use scope::{Assumption, AssumptionExt, Scope};
 #[doc(hidden)]
 pub use umpire_dsl_macros::__path_parse;
 pub use umpire_dsl_macros::{Action, Finite, State, World, machine};
+#[doc(hidden)]
+pub use value::{ActionValues, IntoValue, Value, Values};
 
 /// The checker's aggregate claim result, distinct from a domain's step outcome.
 #[derive(Clone, Copy, Debug, PartialEq, Eq)]

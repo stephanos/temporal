@@ -2,17 +2,20 @@
 mod correlated {
     use umpire_dsl::{Action, State, World, check};
     #[derive(World)]
+    #[__umpire_world]
     pub(super) struct World {
         first: u8,
         second: u8,
     }
     #[derive(State)]
     #[__umpire_computed_starts]
+    #[__umpire_world]
     pub(super) struct Model {
         pub(super) left: u8,
         pub(super) right: u8,
     }
     #[derive(Action, Copy)]
+    #[__umpire_world]
     pub(super) enum User {
         Swap,
     }
@@ -140,6 +143,34 @@ mod correlated {
         }
         fn claim_order(&self) -> ::std::vec::Vec<&'static str> {
             ::std::vec!["correlated"]
+        }
+    }
+    #[doc(hidden)]
+    impl ::umpire_dsl::ActionValues<World> for Action
+    where
+        for<'__umpire> User: ::umpire_dsl::ActionValues<World>,
+    {
+        fn action_value(
+            &self,
+        ) -> (&'static str, ::std::vec::Vec<(&'static str, ::umpire_dsl::Value)>) {
+            match self {
+                Self::User(value) => {
+                    ::umpire_dsl::ActionValues::<World>::action_value(value)
+                }
+            }
+        }
+        fn domains(
+            world: &World,
+            limit: usize,
+        ) -> ::std::vec::Vec<
+            (&'static str, &'static str, ::std::vec::Vec<::umpire_dsl::Value>),
+        > {
+            let mut domains = ::std::vec::Vec::new();
+            domains
+                .extend(
+                    <User as ::umpire_dsl::ActionValues<World>>::domains(world, limit),
+                );
+            domains
         }
     }
 }

@@ -152,15 +152,14 @@ impl Lifted {
     fn bound_domains(&self, binding: &Binding) -> Result<Vec<Vec<Vec<Expr>>>, Diagnostic> {
         let mut supplied = BTreeMap::new();
         for domain in &binding.domains {
-            let declared = self
-                .actions
-                .iter()
-                .find(|action| action.name == domain.action)
-                .and_then(|action| {
-                    action.fields.iter().find(|field| {
-                        field.name == domain.field && matches!(field.domain, InputDomain::World(_))
-                    })
-                });
+            let declared =
+                self.actions.iter().find(|action| action.name == domain.action).and_then(
+                    |action| {
+                        action.fields.iter().find(|field| {
+                            field.name == domain.field && matches!(field.domain, InputDomain::World)
+                        })
+                    },
+                );
             let Some(field) = declared else {
                 return Err(message(
                     &self.location,
@@ -180,7 +179,7 @@ impl Lifted {
             for field in &action.fields {
                 let values = match &field.domain {
                     InputDomain::Values(values) => values.clone(),
-                    InputDomain::World(_) => {
+                    InputDomain::World => {
                         let domain = supplied
                             .get(&(action.name.as_str(), field.name.as_str()))
                             .ok_or_else(|| {
@@ -524,7 +523,7 @@ pub(crate) enum InputDomain {
     /// Values the source declares, in order, including positional duplicates.
     Values(Vec<Expr>),
     /// A World-dependent `#[domain]` function, whose values the selected binding supplies.
-    World(String),
+    World,
 }
 /// A concrete action named in an assumption: a variant and its exact payload values.
 #[derive(Clone, Debug, PartialEq, Eq)]

@@ -664,19 +664,46 @@ fn world_dependent(actor: &syn::ItemEnum) -> bool {
         .any(|field| field.attrs.iter().any(|attribute| attribute.path().is_ident("domain")))
 }
 
-/// Names the declared World on each World-dependent actor so its derived domains receive it.
-fn bind_worlds(items: &mut [Item], actors: &[syn::Ident]) -> Vec<bool> {
+/// Marks the declared World, the state and each actor so their derives export values to the
+/// source lifter's binding and World-dependent domains receive the World; returns which actors
+/// are World-dependent.
+fn bind_worlds(items: &mut [Item], state: &syn::Ident, actors: &[syn::Ident]) -> Vec<bool> {
     let mut dependent = vec![false; actors.len()];
     for item in items {
-        if let Item::Enum(item) = item
-            && let Some(index) = actors.iter().position(|actor| item.ident == *actor)
-            && world_dependent(item)
-        {
-            item.attrs.push(syn::parse_quote!(#[__umpire_world(World)]));
-            dependent[index] = true;
+        match item {
+            Item::Enum(item) => {
+                if let Some(index) = actors.iter().position(|actor| item.ident == *actor) {
+                    item.attrs.push(syn::parse_quote!(#[__umpire_world]));
+                    dependent[index] = world_dependent(item);
+                }
+            }
+            Item::Struct(item) if item.ident == "World" || item.ident == *state => {
+                item.attrs.push(syn::parse_quote!(#[__umpire_world]));
+            }
+            _ => {}
         }
     }
     dependent
+}
+
+/// The carrier's values delegate to each actor's derived export.
+fn action_values(actors: &[syn::Ident]) -> TokenStream {
+    quote! {
+        #[doc(hidden)]
+        impl ::umpire_dsl::ActionValues<World> for Action
+        where
+            #(for<'__umpire> #actors: ::umpire_dsl::ActionValues<World>),*
+        {
+            fn action_value(&self) -> (&'static str, ::std::vec::Vec<(&'static str, ::umpire_dsl::Value)>) {
+                match self { #(Self::#actors(value) => ::umpire_dsl::ActionValues::<World>::action_value(value)),* }
+            }
+            fn domains(world: &World, limit: usize) -> ::std::vec::Vec<(&'static str, &'static str, ::std::vec::Vec<::umpire_dsl::Value>)> {
+                let mut domains = ::std::vec::Vec::new();
+                #(domains.extend(<#actors as ::umpire_dsl::ActionValues<World>>::domains(world, limit));)*
+                domains
+            }
+        }
+    }
 }
 
 /// Counts each declared variant's lazy domain before materializing, for machines with inputs.
@@ -944,8 +971,10 @@ fn assumption_claims(registration: &Registrations, state: &syn::Ident) -> Vec<To
 
 fn starts_call(registration: &Registrations, state: &syn::Ident) -> TokenStream {
     if let Some((method, has_world)) = &registration.starts {
-        let argument = has_world.then(|| quote!(self));
-        quote!(#state::#method(#argument).into_iter().collect())
+        // A wrong return type is reported at the method, not at the state declaration.
+        let state = syn::Ident::new(&state.to_string(), method.span());
+        let argument = has_world.then(|| quote_spanned!(method.span()=> self));
+        quote_spanned!(method.span()=> #state::#method(#argument).into_iter().collect())
     } else {
         quote!(#state::starts())
     }
@@ -1027,7 +1056,9 @@ pub(crate) fn expand(args: &TokenStream, input: &ItemMod) -> manyhow::Result<Tok
     if registration.starts.is_some() {
         computed_starts(items, &state)?;
     }
-    let dependent = if declared { bind_worlds(items, &actors) } else { vec![false; actors.len()] };
+    let dependent =
+        if declared { bind_worlds(items, &state, &actors) } else { vec![false; actors.len()] };
+    let values = declared.then(|| action_values(&actors));
     let post_tokens = postconditions(&registration, &actions)?;
     let progress_tokens = progress_claims(&registration);
     let invariant_tokens = invariant_claims(&registration);
@@ -1098,6 +1129,7 @@ pub(crate) fn expand(args: &TokenStream, input: &ItemMod) -> manyhow::Result<Tok
         }
 
         #registered
+        #values
     };
     items.extend(syn::parse2::<syn::File>(generated)?.items);
     Ok(quote!(#input))

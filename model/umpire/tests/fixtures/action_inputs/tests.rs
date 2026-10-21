@@ -1,54 +1,38 @@
 use crate::action_inputs::inputs;
+use inputs::World;
 use umpire_dsl::{CATALOG_LIMIT, Claim, Machine};
 
-std::thread_local! {
-    static SELECTION: std::cell::Cell<u8> = const { std::cell::Cell::new(0) };
-}
-
-/// The golden World polls up to two attempts and has no skip slots; the second World allows
-/// three attempts and two skip slots.
-fn choose_world() -> inputs::World {
-    match SELECTION.get() {
-        0 => inputs::World::new(2, 0),
-        _ => inputs::World::new(3, 2),
-    }
-}
-
+// The golden World polls up to two attempts and has no skip slots.
 umpire_testing::fixture!(
-    choose_world(),
+    World = World::new(2, 0),
     64,
     Claim::new("never_retried", |_, state: &inputs::Model| (state.attempt == 1).into())
 );
 
-fn selected<T>(selection: u8, operation: impl FnOnce() -> T) -> T {
-    let previous = SELECTION.replace(selection);
-    let result = operation();
-    SELECTION.set(previous);
-    result
+/// The golden World, and a second World with three attempts and two skip slots.
+fn worlds() -> [World; 2] {
+    [World::new(2, 0), World::new(3, 2)]
 }
 
 #[test]
 fn two_selected_worlds_differ_in_domains_counts_transitions_and_verdicts()
 -> umpire_testing::TestResult {
-    for (selection, actions, states, edges, vacuity, current) in
-        [(0, 4, 6, 16, true, "Verified"), (1, 7, 18, 84, false, "Refuted")]
+    for (world, (actions, states, edges, vacuity, current)) in
+        worlds().into_iter().zip([(4, 6, 16, true, "Verified"), (7, 18, 84, false, "Refuted")])
     {
-        selected(selection, || -> umpire_testing::TestResult {
-            assert_eq!(choose_world().checked_catalog(CATALOG_LIMIT)?.actions().len(), actions);
-            let files = run()?;
-            assert_eq!(files["states.txt"].lines().count(), states);
-            assert_eq!(files["rows.txt"].lines().count(), edges, "{}", files["rows.txt"]);
-            assert_eq!(files["rows.txt"].contains("Worker::Skip"), !vacuity);
-            let report = &files["negative_report.txt"];
-            assert_eq!(report.contains("vacuity: variant Worker::Skip has no actions"), vacuity);
-            assert!(report.contains(&format!("claim current_poll_settles: {current}")), "{report}");
-            for claim in
-                ["never_retried", "stale_poll_settles", "excluded_poll_settles", "settles_within_four"]
-            {
-                assert!(report.contains(&format!("claim {claim}: Refuted")), "{report}");
-            }
-            Ok(())
-        })?;
+        assert_eq!(world.checked_catalog(CATALOG_LIMIT)?.actions().len(), actions);
+        let files = bound_for(world).run()?;
+        assert_eq!(files["states.txt"].lines().count(), states);
+        assert_eq!(files["rows.txt"].lines().count(), edges, "{}", files["rows.txt"]);
+        assert_eq!(files["rows.txt"].contains("Worker::Skip"), !vacuity);
+        let report = &files["negative_report.txt"];
+        assert_eq!(report.contains("vacuity: variant Worker::Skip has no actions"), vacuity);
+        assert!(report.contains(&format!("claim current_poll_settles: {current}")), "{report}");
+        for claim in
+            ["never_retried", "stale_poll_settles", "excluded_poll_settles", "settles_within_four"]
+        {
+            assert!(report.contains(&format!("claim {claim}: Refuted")), "{report}");
+        }
     }
     Ok(())
 }
@@ -56,10 +40,11 @@ fn two_selected_worlds_differ_in_domains_counts_transitions_and_verdicts()
 #[test]
 fn each_source_binding_carries_its_selected_catalog_into_every_configuration()
 -> umpire_testing::TestResult {
-    let modules = [0, 1]
-        .map(|selection| selected(selection, || crate::lifted("action_inputs")));
-    let [first, second] = modules;
+    let model =
+        std::path::Path::new(env!("CARGO_MANIFEST_DIR")).join("fixtures/action_inputs/model.rs");
+    let [first, second] = worlds().map(|world| bound_for(world).lift(&model));
     let (first, second) = (first?, second?);
+    assert_eq!(first.tla, crate::lifted("action_inputs")?.tla);
     for (module, catalog, skip, constants) in [
         (
             &first,
@@ -118,14 +103,14 @@ fn actual_tlc_agrees_and_replays_in_both_selected_worlds() -> umpire_testing::Te
         return Ok(());
     }
     let folder = std::path::Path::new(env!("CARGO_MANIFEST_DIR")).join("fixtures/action_inputs");
-    for (selection, states, verdict, replayed) in [(0, 6, "Verified", 4), (1, 18, "Refuted", 5)] {
-        selected(selection, || -> umpire_testing::TestResult {
-            let report = &crate::render_tlc(run, &folder)?["tlc.txt"];
-            assert!(report.contains(&format!("states: {states}; native: {states}; agreement: yes")));
-            assert!(report.contains(&format!("claim current_poll_settles: {verdict}")), "{report}");
-            assert!(report.contains(&format!("counterexamples replayed: {replayed}")), "{report}");
-            Ok(())
-        })?;
+    for (world, (states, verdict, replayed)) in
+        worlds().into_iter().zip([(6, "Verified", 4), (18, "Refuted", 5)])
+    {
+        let files = bound_for(world).check(&folder)?;
+        let report = &files["tlc.txt"];
+        assert!(report.contains(&format!("states: {states}; native: {states}; agreement: yes")));
+        assert!(report.contains(&format!("claim current_poll_settles: {verdict}")), "{report}");
+        assert!(report.contains(&format!("counterexamples replayed: {replayed}")), "{report}");
     }
     Ok(())
 }
@@ -165,7 +150,7 @@ fn exact_payload_fairness_mutations_disagree_with_the_native_verdicts()
     if std::env::var("UMPIRE_BACKENDS").as_deref() != Ok("require") {
         return Ok(());
     }
-    let module = selected(0, || crate::lifted("action_inputs"))?;
+    let module = crate::lifted("action_inputs")?;
     let fair = "Fair_current_poll_settles_Worker_Poll_2 == (__umpire_pending = 1) /\\ Worker_Poll_At(2)";
     let readmitted = " /\\ WF_vars(Fair_excluded_poll_settles_Worker_Poll_2)";
     for (claim, edits, native, mutant) in [

@@ -230,6 +230,24 @@ fn complete_starts_preserve_correlation_deduplicate_and_keep_empty()
 }
 
 #[test]
+fn world_free_starts_of_any_name_admit_and_bind() -> Result<(), Box<dyn std::error::Error>> {
+    let source = WORLD.replace(
+        "fn starts(w: &World) -> impl IntoIterator<Item = Self> {\n                [Self { value: w.value, origin: w.value },\n                 Self { value: w.value + 1, origin: w.value + 1 }]",
+        "fn initial() -> impl IntoIterator<Item = Self> {\n                [Self { value: 1, origin: 1 }, Self { value: 2, origin: 2 }]",
+    );
+    assert_ne!(source, WORLD);
+    let lifted = Lift::parse("counter/model.rs", &source)?;
+    assert!(lifted.requires_binding());
+    // The method body is native only: Init comes from the bound complete starts.
+    let authored = Lift::parse("counter/model.rs", WORLD)?;
+    assert_eq!(
+        Tla::emit(&lifted.bind(&binding(1, 3))?)?.tla,
+        Tla::emit(&authored.bind(&binding(1, 3))?)?.tla
+    );
+    Ok(())
+}
+
+#[test]
 fn typed_world_signatures_and_outcome_fields_refuse_by_source_location()
 -> Result<(), Box<dyn std::error::Error>> {
     for (from, to) in [

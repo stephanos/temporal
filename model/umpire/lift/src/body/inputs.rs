@@ -60,7 +60,7 @@ impl Environment<'_> {
                 )
             })?;
             self.domain_signature(item, &ty, &context)?;
-            InputDomain::World(function.to_string())
+            InputDomain::World
         } else if let Some(inputs) = attr(&field.attrs, "inputs") {
             let value = inputs
                 .parse_args::<RustExpr>()
@@ -217,7 +217,7 @@ impl Environment<'_> {
                 .iter()
                 .map(|field| match &field.domain {
                     InputDomain::Values(values) => values.len(),
-                    InputDomain::World(_) => 0,
+                    InputDomain::World => 0,
                 })
                 .collect();
             let count = if sizes.contains(&0) {
