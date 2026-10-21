@@ -277,7 +277,7 @@ impl ChoiceEvidence {
             || self.identity.toolchain_build_key != opened.manifest().record.identity.toolchain
             || !matches!(
                 self.terminal_state.as_str(),
-                "complete" | "overflow" | "interrupted"
+                "complete" | "overflow" | "interrupted" | "diverged"
             )
         {
             return Err("unsupported choice trace metadata".into());
@@ -300,10 +300,14 @@ impl ChoiceEvidence {
             && (outcome.termination == "watchdog_timeout"
                 || outcome.termination == "storage_crash"
                 || outcome.termination == "cancelled" && outcome.reason == "runner_cancelled");
+        let diverged = outcome.class == "target_failure"
+            && matches!(outcome.termination.as_str(), "divergence" | "diverged")
+            && outcome.exit_code.is_none();
         if match self.terminal_state.as_str() {
             "overflow" => !overflow,
             "interrupted" => !interrupted,
-            _ => overflow || interrupted,
+            "diverged" => !diverged,
+            _ => overflow || interrupted || diverged,
         } {
             return Err("choice terminal outcome mismatch".into());
         }

@@ -36,7 +36,7 @@ pub fn run(arguments: &[String], output: &mut dyn Write) -> Result<i32, super::E
     })();
     match result {
         Ok(status) => Ok(status),
-        Err(error) => report_error(error, json, output),
+        Err(error) => report_error(&error, json, output),
     }
 }
 
@@ -87,6 +87,6 @@ pub fn execute_shard(arguments: &[String], output: &mut dyn Write) -> Result<i32
     })();
     match result {
         Ok(status) => Ok(status),
-        Err(error) => report_error(error, json, output),
+        Err(error) => report_error(&error, json, output),
     }
 }
