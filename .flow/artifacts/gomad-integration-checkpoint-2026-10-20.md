@@ -1305,3 +1305,16 @@ fixed, then re-review SHIP. Evidence: `/home/agent/wt/evidence/fn232-campaign-cl
 92e583b3f0, 5d7c29f10a on fn232-campaign. .8 is now running on branch fn232-exploration-closeout,
 including the fn-227 R1/R2 receiving work.
 
+
+### Go-host evidence pruning, 2026-10-21
+
+The owner asked to drop evidence that only measured the Go host. The following were deleted:
+- `evidence/fn185/{current-proof,proof,receipts}` (~4.4 GiB): Go-host attribution and runtime-cost runs. fn-185.1 R4 and .2/.3 are re-scoped to the Rust binary after fn-232.10/.13 and do not compare against the Go host.
+- `evidence/fn188/fixtures` and `stress-helper-*` (~0.6 GiB): Go-host determinism fixture outputs and stress helpers. fn-188.5 reruns on the Rust binary, and .6 gate wiring lands in fn-232.13.
+
+Paths cited above for those roots in this file and in `fn185-attribution-port-2026-10-20.md` and `fn188-source-acceptance-2026-10-20.md` are now historical. The written findings stand.
+
+Kept:
+- `evidence/fn185/r6/isolation`, the measurement method cited by fn-185 and fn-185.2;
+- the small fn-185/fn-188 reports and logs;
+- all of `evidence/fn221`: the sweep matrix is guest knowledge that carries over to the Rust host and is the input for fn-221.2's 337-unit rerun and fn-221.3.
