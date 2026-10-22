@@ -1,11 +1,65 @@
 {
   "branch_name": "fn-238-shared-front-end-one-model-reading-for",
+  "completion_review_status": "unknown",
+  "completion_reviewed_at": null,
   "created_at": "2026-10-21T21:58:12.291265Z",
+  "default_impl": null,
+  "default_review": null,
+  "default_sync": null,
   "depends_on_epics": [],
   "id": "fn-238-shared-front-end-one-model-reading-for",
+  "impl_review_rounds": {
+    "fn-238-shared-front-end-one-model-reading-for.9": 0
+  },
   "next_task": 1,
+  "plan_review_rounds": 0,
   "plan_review_status": "unknown",
   "plan_reviewed_at": null,
+  "review_attempts": [
+    {
+      "artifact_sha256": "f3e6680791c37d9f2d78d64494edbbc6e2e0644683b5cd3147992784afba93af",
+      "backend": "codex",
+      "base_sha": "f11cecbee9f2f1201e18be785f59e22b32e62c61",
+      "counter_kind": "impl",
+      "effort": "high",
+      "failure_class": null,
+      "finalized": {
+        "digest": "complete",
+        "receipt": "complete",
+        "status": "not_applicable"
+      },
+      "findings_digest": {
+        "backend": "codex",
+        "digest_truncated": false,
+        "items": [],
+        "reviewKind": "implementation"
+      },
+      "forced": false,
+      "hash_epoch": 0,
+      "head_sha": "11436f2f2b29aebb5ee5af2e380cb9145fc4ef5a",
+      "head_sha_observed": true,
+      "kind": "impl",
+      "model": "gpt-6.1-sol",
+      "outcome": "verdict",
+      "output_bytes": 158,
+      "output_sha256": "6ff70da3d83706800ca3cabc6ba62603ba0485fcf5259d27f1be54ce68686975",
+      "reservation_id": "6815a562a5ba47a7b9e6b67e8c91d00c",
+      "round_consumed": true,
+      "scope": "impl:fn-238-shared-front-end-one-model-reading-for.9",
+      "superseded_by": null,
+      "task": "fn-238-shared-front-end-one-model-reading-for.9",
+      "timestamp": "2026-10-22T20:14:13.249233Z",
+      "verdict": "SHIP"
+    }
+  ],
+  "review_hash_epoch": {
+    "impl:fn-238-shared-front-end-one-model-reading-for.9": 1
+  },
+  "review_pending_rounds": {},
+  "review_reservations": {},
+  "review_transport_failures": {
+    "impl:fn-238-shared-front-end-one-model-reading-for.9": 0
+  },
   "spec_path": ".flow/specs/fn-238-shared-front-end-one-model-reading-for.md",
   "status": "open",
   "title": "Shared front end: one Model reading for the native checker and the lifter (model)",
@@ -20,5 +74,5 @@
     "mergeBaseTracker": null,
     "url": null
   },
-  "updated_at": "2026-10-21T21:58:12.307550Z"
+  "updated_at": "2026-10-22T20:14:13.252148Z"
 }
