@@ -17,9 +17,12 @@ The guest's focused script tests (`model/scripts/tests`), `make umpire-guest` re
 - [ ] Whether fn-232's certification needs renewal is recorded.
 
 ## Done summary
-TBD
+Guest crate identities hash only each crate's own lockfile dependency closure (`model/scripts/guest-lock.py` over `cargo metadata --locked`, all platforms, dev-dependencies excluded, path packages without location) instead of the whole Cargo.lock. The closure map is written once under its content hash; the guest cache key includes `guest-lock.py`; missing, ambiguous, mixed path/registry and checksum-less registry entries refuse; std crates need Cargo's std marker plus a sysroot location or std's own lockfile. Controls: two clean paths byte-identical; an unrelated workspace crate leaves both guests unchanged (the same edit at the old base changed the Temporal guest); optional-feature activation over-hashes (documented and pinned). 27 script tests. Guest refreshed once (3,332,314 bytes, sha256 0248382e...). fn-232's cross-OS certification needs renewal: filed as standalone fn-239 (blocked on a native macOS run).
 
+Built in worktree `work/fn2388-guest-identity`, merged as cbe2c6fcb7. Review: NEEDS_WORK (cache key missed guest-lock.py; docs overstated), then SHIP (.flow/tmp/fn2388-review.md, fn2388-review2.md). Full gates on the merged tree: `UMPIRE_BACKENDS=require make model-check` 406s, `make model-time` 50.199s gate / 6.128s inner loop, slice 20s, gaps 371s.
+
+stage: plan-sync - skipped(config: planSync.enabled != true)
 ## Evidence
-- Commits:
-- Tests:
+- Commits: 107285ac64, 62d210388e, 9df904d985, a9351de8cd, ec72646fa7, cbe2c6fcb7
+- Tests: python3 -m unittest discover -s model/scripts/tests, UMPIRE_BACKENDS=require make model-check, make model-time, make umpire-check-model-slice, make umpire-check-model-gaps
 - PRs:

@@ -157,13 +157,14 @@ The design ([shared-front-end.md](model/design/shared-front-end.md)) measured ab
 lines per side and recommends one shared admission crate first (Option A, .2-.4), then the
 interpreted checker behind a measured gate (Option B, .5-.6); the guest and replay stay compiled.
 .2 is complete locally: `umpire-front` owns admission, goldens and IR unchanged; timing was
-measured under concurrent load (119.6s) and is re-measured at the next idle gate.
+measured under concurrent load (119.6s); idle re-measurements since are 50-54s.
+.8 is complete locally: guest identities hash only each crate's lockfile closure, so unrelated
+workspace crates no longer stale the guest; timing 50.199s gate, 6.128s inner loop.
 [Spec](.flow/specs/fn-238-shared-front-end-one-model-reading-for.md).
 
 | Name | Status | What |
 | --- | --- | --- |
-| fn-238.8 | 🔄 in progress | Guest identity hashes only the guest's dependency closure, so unrelated workspace crates stop staling the guest; before .3 (R3) |
-| fn-238.3 | ⬜ todo | After .2: macros read through `umpire-front`; one diagnostic per form; fn-227.8 follow-ups (R2, R3) |
+| fn-238.3 | 🔄 in progress | After .2: macros read through `umpire-front`; one diagnostic per form; fn-227.8 follow-ups (R2, R3) |
 | fn-238.4 | ⬜ todo | After .3: macro embeds the admitted Model; lifter emits from it, no `model.rs` re-read (R2-R4) |
 | fn-238.5 | ⬜ todo | After .4: interpreted checker as a differential check (R2, R3) |
 | fn-238.6 | ⬜ todo | After .5: interpreted checker by default only if at most 2x slower and at most 25% more per-construct cost (R2, R3) |
