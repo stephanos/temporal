@@ -105,7 +105,9 @@ func TestObservationResultWireCompatibility(t *testing.T) {
 	}{
 		{&temporalv1.Observation{Method: "m", Result: &temporalv1.Observation_Response{Response: &anypb.Any{TypeUrl: "x", Value: []byte{1, 2}}}}, []byte{10, 1, 'm', 18, 7, 10, 1, 'x', 18, 2, 1, 2}},
 		{&temporalv1.Observation{Method: "m", Result: &temporalv1.Observation_Error{Error: &temporalv1.Error{Code: 5, Message: "x"}}}, []byte{10, 1, 'm', 26, 5, 8, 5, 18, 1, 'x'}},
-		// Go emits the oneof after regular fields; Rust's number order is pinned as decode-only below.
+		// Deliberate protobuf-go upgrade tripwire: this release emits the oneof after regular
+		// fields, an order protobuf does not promise. If an upgrade changes it, re-pin these
+		// bytes; the decode equality with Rust's number order below is the compatibility claim.
 		{&temporalv1.Observation{Method: "m", Result: &temporalv1.Observation_Response{Response: &anypb.Any{TypeUrl: "x", Value: []byte{1, 2}}}, Request: &anypb.Any{TypeUrl: "r", Value: []byte{3}}}, []byte{10, 1, 'm', 34, 6, 10, 1, 'r', 18, 1, 3, 18, 7, 10, 1, 'x', 18, 2, 1, 2}},
 	} {
 		encoded, err := proto.Marshal(tc.value)
@@ -117,10 +119,11 @@ func TestObservationResultWireCompatibility(t *testing.T) {
 			t.Fatalf("decoded %v, %v; want %v", &decoded, err, tc.value)
 		}
 	}
+	want := &temporalv1.Observation{Method: "m", Result: &temporalv1.Observation_Response{Response: &anypb.Any{TypeUrl: "x", Value: []byte{1, 2}}}, Request: &anypb.Any{TypeUrl: "r", Value: []byte{3}}}
 	var decoded temporalv1.Observation
 	rust := []byte{10, 1, 'm', 18, 7, 10, 1, 'x', 18, 2, 1, 2, 34, 6, 10, 1, 'r', 18, 1, 3}
-	if err := proto.Unmarshal(rust, &decoded); err != nil || decoded.GetRequest().GetTypeUrl() != "r" || decoded.GetResponse().GetTypeUrl() != "x" {
-		t.Fatalf("decoded Rust order %v, %v", &decoded, err)
+	if err := proto.Unmarshal(rust, &decoded); err != nil || !proto.Equal(want, &decoded) {
+		t.Fatalf("decoded Rust order %v, %v; want %v", &decoded, err, want)
 	}
 }
 

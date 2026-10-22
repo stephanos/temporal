@@ -96,23 +96,24 @@ func (a *modelSliceAnnotations) intercept(ctx context.Context, method string, re
 		}()
 	}
 	err := invoke(ctx, method, request, response, connection, options...)
-	if capture != nil && !proto.Equal(capture.request, request.(proto.Message)) {
-		capture.localErr = status.Error(codes.Internal, "annotation request changed after capture")
-		a.record(fmt.Sprintf("method=%s failure=request changed after capture", method), true)
-		return capture.localErr
+	if capture != nil {
+		// Record the raw result first so every later refusal keeps it.
+		capture.rpcErr = err
+		if message, ok := response.(proto.Message); ok && err == nil {
+			capture.response = proto.Clone(message)
+		}
+		if !proto.Equal(capture.request, request.(proto.Message)) {
+			capture.localErr = status.Error(codes.Internal, "annotation request changed after capture")
+			a.record(fmt.Sprintf("method=%s failure=request changed after capture", method), true)
+			return capture.localErr
+		}
 	}
 	if err != nil {
-		if capture != nil {
-			capture.rpcErr = err
-		}
 		a.record(fmt.Sprintf("method=%s rpc_error=%s", method, status.Code(err)), false)
 		return err
 	}
 	if capture == nil {
 		return a.annotate(method, true, response)
-	}
-	if message, ok := response.(proto.Message); ok {
-		capture.response = proto.Clone(message)
 	}
 	capture.localErr = a.annotate(method, true, response)
 	return capture.localErr
@@ -393,9 +394,23 @@ func modelSliceAnnotationControls(t *testing.T, wasm []byte) {
 		capture := captures.single(t)
 		require.Empty(t, capture.request.(*workflowservice.StartActivityExecutionRequest).GetIdentity())
 		require.NoError(t, capture.rpcErr)
+		require.NotEmpty(t, capture.response.(*workflowservice.StartActivityExecutionResponse).GetRunId(), "refusal keeps the raw result")
 		require.Error(t, capture.localErr)
 		require.Len(t, annotations.failures, 1)
 		require.Contains(t, annotations.failures[0], "request changed after capture")
+		failing := newAnnotations(t)
+		ctx, captures = modelSliceCapturing(t.Context())
+		err = failing.intercept(ctx, workflowservice.WorkflowService_StartActivityExecution_FullMethodName, start(),
+			new(workflowservice.StartActivityExecutionResponse), nil,
+			func(_ context.Context, _ string, request, _ any, _ *grpc.ClientConn, _ ...grpc.CallOption) error {
+				request.(*workflowservice.StartActivityExecutionRequest).Identity = "later-interceptor"
+				return status.Error(codes.Unavailable, "retry")
+			})
+		require.Equal(t, codes.Internal, status.Code(err))
+		capture = captures.single(t)
+		require.Equal(t, codes.Unavailable, status.Code(capture.rpcErr), "refusal keeps the raw RPC error")
+		require.Nil(t, capture.response)
+		require.Equal(t, int32(codes.Unavailable), capture.observation(t).GetError().GetCode())
 	})
 	t.Run("OverlappingReversedResponsesKeepTheirInvocation", func(t *testing.T) {
 		annotations := newAnnotations(t)
