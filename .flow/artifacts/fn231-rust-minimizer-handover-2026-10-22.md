@@ -187,3 +187,136 @@ This follow-up ran format, both parity-driver Python syntax checks and diff
 checking only, all exit 0. No Cargo build, guest or qualification command ran.
 The conductor owns the new integrated strict Clippy and runtime gates; the
 remaining integrated baseline diagnostics remain with their existing owners.
+
+
+## Prepared integrated public validation plan (not executed)
+
+Run only after the conductor supplies the new integrated fixture path and its
+source/binary/helper receipts. The fixture must enable the host
+`determinism-fixture` commands while embedding the ordinary helper role. The scope
+driver's `fixture-replay-input` defaults to ordinary; a diagnostic, stress or
+helper-determinism role is incompatible. Do not use the earlier immutable 374c
+fixture. Run the integrated scripts from the same new source checkout as that
+fixture, not this feature worktree's old checkout. No Cargo invocation is needed
+for these commands once that fixture is supplied.
+
+Exact bindings below use the existing immutable Go/reference inputs and warm
+preparation caches. `FN231_SOURCE`, `FN231_FIXTURE` and `FN231_OUTPUT` are the three
+conductor-supplied absolute paths: integrated checkout, freshly built fixture and
+new private evidence parent. Require all four child output roots and both golden
+candidate paths to be absent before the first command. Record binary/helper,
+compiler, driver and input SHA-256 values with the source revision before running.
+
+```bash
+CORPUS="$FN231_SOURCE/tools/gomad/testdata/parity"
+COMPILER=/Users/stephan/Workspace/skunkworks/gomad/.build-cache/fn232-stock-go1.27.1/bin/go
+REFERENCE=/home/agent/wt/evidence/fn232/go-baseline-1d7b37f00a
+REFERENCE_SOURCE=/home/agent/wt/fn232-go-source/temporal-1d7b37f00a
+REPLAY_INPUT=/home/agent/wt/evidence/fn232-replay/stable-reference2/replay-input.json
+MIN_CACHE=/Users/stephan/Workspace/skunkworks/gomad/.build-cache/fn232-refresh-minimize-go-cache
+MIN_PREP=/Users/stephan/Workspace/skunkworks/gomad/.build-cache/fn232-refresh-minimize-preparation
+```
+
+Execute this pair first with `FN231_RUN=01`, then with `FN231_RUN=02`, sequentially;
+these are two fresh full generations, not a rerun against already populated roots.
+The reference driver builds the frozen Go wrapper from authenticated archived
+source; it does not use the current Rust host as its reference.
+
+```bash
+python3 "$CORPUS/choice-live-check.py" \
+  --binary "$FN231_FIXTURE" --go-compiler "$COMPILER" \
+  --input "$REPLAY_INPUT" --go-cache /home/agent/.cache/go-build-local \
+  --site-scope-only --work "$FN231_OUTPUT/scope-$FN231_RUN"
+
+GOMAD_GOLDEN_REGENERATE=1 python3 "$FN231_SOURCE/tools/gomad/scripts/behavioral-parity" \
+  --corpus "$CORPUS" --verb minimize --minimize-binary "$FN231_FIXTURE" \
+  --minimize-baseline "$REFERENCE" --minimize-source "$REFERENCE_SOURCE" \
+  --minimize-go-compiler "$COMPILER" --minimize-go-cache "$MIN_CACHE" \
+  --minimize-preparation-root "$MIN_PREP" \
+  --minimize-golden "$FN231_OUTPUT/semantic-$FN231_RUN.json" \
+  --output-root "$FN231_OUTPUT/minimize-$FN231_RUN"
+```
+
+Input commitments already inspected (recheck before running): compiler
+`1675694ef690db0f18fbe7046a886170904bede1d9db6ec96ae27945c1705c64`;
+reference inventory `0621a68952a5561c2e820f8cf753c43df12d2902e44f3747fec388d0d1172d94`;
+reference archive `d1b96fd47f9e165793555040ff2d223a44bdfc922124fcdbb66cc309498aacd4`;
+replay input `7293780ca18b7c24feaad6cc731de6127f31dba5d417891f892d1b2728b9fc32`.
+Replay input module paths already exist: exact-seed7/8 share module hash
+`e2b37ae878119478496e75bc60fc11b68dc2ab612c1a89724dc32d318a720ffb`,
+observed-seed7/8 share
+`c776ba5a4d7c82501b05eaeffbf17d88de1bc3dfd8052317eac4d69139ec0bf5`.
+The scope driver builds the existing `site_scope` and
+`live_backend/minimization` Go guests from the integrated tree using the current
+runtime overlay. It does not introduce a new Go-host feature.
+
+Coverage and required review of each pair:
+
+| Requirement | Actual driver evidence and bounded supplements |
+| --- | --- |
+| R1 | Reference content controllers show stable out/mixed/in ordering and changed attempt counts; public prefix cases preserve suffix-only behavior. Direct minimizer invalid-pattern probes below supplement the exploration parser probes. Scoped stripped-parent refusal remains covered by the shared-opener/source units; the scope driver additionally proves actual stripped exploration refusal. |
+| R2 | Scope driver authenticates every retained pre-round context, copies an actual `target_failure`, deletes its producing campaign, then minimizes the detached parent with inherited `main`; explicit `runtime` override and malformed-present context status 2 are actual CLI cases. Confirm diagnostic names detached parent. |
+| R3 | Controller scoped/unscoped predicate results and attempt counts; actual minimized failure replays reproduced. Do not require identical greedy content minima in general. |
+| R4 | Actual completed resume agrees and changed explicit scope refuses 3; reference lane exercises bound/implementation/parent/predicate checkpoint corruption. Add interrupted scoped resume and changed valid context probes below. |
+| R5 | Actual minimized inspection contains removed-decision symbols and final grouping totals. Reference lane detached source reporting authenticates source payloads. Unit fixtures retain stripped and missing-site unavailable reasons and paired-payload tamper negatives. |
+| R6 | Actual JSON inherited/override scope and per-reduction inside+outside totals equal removed counts; controller reports independently cover classifications. |
+| R7 | Inspect leaves retained inspection bytes unchanged; actual replay and frozen failure metadata stay fixed. Journal publication/reopen and qualified wrong-context refusal, same-record/different-context collision and source candidate commitments are the already passing meaningful unit regressions, not invented public publisher commands. |
+| R8 | Frozen unscoped Go/Rust prefix and content controller comparisons, repeated records and reductions stay exact; compare existing golden fields before accepting scoped additions. |
+
+After each scope driver, its real detached parent is exactly
+`$FN231_OUTPUT/scope-$FN231_RUN/scope-failure-detached`. With fresh artifacts roots,
+run `"$FN231_FIXTURE" minimize --json --site-scope=PATTERN --artifacts OUT PARENT`
+for patterns `''`, `'main,'`, `'main/ child'`, `'main/*'`: require status 2 and no
+OUT directory. Run the same invocation with `gomad.invalid/no-match`: require
+success, an empty resolution and all removed counts out of scope. These are
+ordinary existing CLI arguments, not fixture controls.
+
+For scoped recovery, run the inherited minimize command with fresh OUT and
+`GOMAD_FIXTURE_MINIMIZE_CONTROLS=CONTROL`
+plus `GOMAD_FIXTURE_MINIMIZE_INTERRUPT='after accepted'`, then separately
+`'after publication'`. Require status 3 and the corresponding existing
+`interrupted ...` diagnostic. Resume each with the interrupt variable absent,
+`--resume`, the same parent and CONTROL: compare final record hash, accepted
+reductions and attempts with the driver's completed inherited result; after
+accepted, require no repeated committed attempt lengths in CONTROL. These are
+existing controls used by `live-backend-minimize.py`; no new control is proposed.
+For changed-context resume, copy the detached parent outside managed stores,
+increment its valid context round and reseal that payload's bytes/SHA-256 in
+`manifest.json` only. Keep record and source unchanged. Resume against the
+completed inherited output with the changed copy: require changed-bound status 3.
+Retain both raw contexts and manifests to show the source binding changed. No
+negative may be replaced by publisher early refusal.
+
+The direct probes and stripped-parent unit coverage are stated separately because
+the current two drivers do not themselves execute all these cases. A dedicated
+actual stripped failing parent/minimize probe, if required for final public
+coverage, needs the existing guest compiled with `-ldflags=-s -w` and ordinary
+prepared provenance before discovery; reusing the symbol-bearing retained parent
+with a substituted module would test identity corruption instead of R1. Do not
+claim that actual case from the current stripped exploration probe.
+
+Golden review: the existing checked
+`goldens-minimize/semantic.json` SHA-256 is
+`d8f7795d5bb4c4d9a54b38e361dc8b5fe4e0b0065336d8d0671127650dbcc070`.
+Keep it unchanged during both generations. Compare the two complete candidate
+files byte-for-byte, then compare the existing `comparisons`, `controllers`,
+`failure_groups`, `cluster_refusals` fields exactly to the checked file and retain
+all existing named refusal/status pairs. Review the new complete
+`scoped_controllers`, `scoped_reports` and additional refusal rows deliberately
+before updating the checked golden. Do not discard source/context commitments
+or acceptance fields to obtain agreement. Scope observation files contain fresh
+absolute paths: compare their semantic values with paths resolved to and
+authenticated against their respective raw artifacts; whole-file equality across
+fresh roots is not appropriate.
+
+Scheduling estimates, not measured performance: serial guest execution, two pairs
+plus probes, budget 20–40 minutes per enhanced reference generation and 3–10
+minutes per scope generation on warm caches. Historical reference outputs were
+388 MiB per generation (94 top-level commands); old scope output was 79 MiB
+before the new failure cases. Reserve 2–4 GiB additional disk for both enhanced
+pairs/probes and allow 2–4 GiB host RSS pending measurement; configured guest
+linear memory is 256 MiB, which does not bound Wasmtime host memory. Check free
+space before starting and keep compile/Cargo activity stopped during the guest
+wave. No new target or duplicated dependency build is needed. Record each actual
+session/log/terminal exit; these estimates and source inspection are not runtime
+acceptance. Integrated strict Clippy remains the conductor's gate.
