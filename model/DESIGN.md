@@ -20,7 +20,7 @@ Both checkers read a Model through one front end and differ only in their back e
 - **Emission back end.** `umpire-lift` emits TLA+ and `.cfg` from the embedded tree with the
   same-process World, starts and catalog. It reads `tests.rs` for hook claims, and `model.rs` only
   to locate a refusal when the checked World embeds no `#[machine]` (`kettle_cut`,
-  `kettle_progress`, `progress_dead_end`). fn-211's Apalache projection is another emitter.
+  `kettle_progress`, `progress_dead_end`). fn-211's Apalache projection will be another emitter.
 - **Compiled cross-checks.** The wasm guest and typed replay of every TLC counterexample run the
   compiled `checked_step`, so rustc's reading of each handler still checks the front end's.
 
@@ -42,7 +42,7 @@ compiled bodies and TLC agreement on complete reached sets and verdicts are the 
 
 The design estimated −850 to −1,600; the core crates grew **+107** (+239 with `testing`, 1,538
 to 1,670). Its lifter duplication column mostly counted lowering with no macro counterpart, so .3
-moved the macros' 1,153 reading lines into `front` and collapsed only about 113 lifter lines.
+moved the macros' 1,150 reading lines into `front` and collapsed only about 150 lifter lines.
 Body lowering (about 1,380) and emission stay by design; embedding costs about 420 (printer 277,
 `Source`/`Embedded`, hooks, probe) against `build.rs` (−241) and binding re-validation (−200).
 
@@ -935,7 +935,7 @@ empty diagnostic items in **0.051902 s**. Source hash remained identical; shutdo
 not universal diagnostics for arbitrary macros or generic blanket traits.
 
 An initial push-only client never received the typo diagnostic (`fn2107-ra-final-result.json`,
-`-experimental-result.json`, `-overlay-result.json`); the server advertises `diagnosticProvider`,
+`fn2107-ra-experimental-result.json`, `fn2107-ra-overlay-result.json`); the server advertises `diagnosticProvider`,
 and the corrected pull run is `fn2107-ra-pull-result.json`. This was a client correction, with
 no macro change; the analyzer was stopped before benchmark and gate timing runs.
 
