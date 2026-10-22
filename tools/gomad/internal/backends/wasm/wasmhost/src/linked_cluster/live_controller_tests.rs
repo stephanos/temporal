@@ -451,9 +451,12 @@ fn final_network_uses_finished_shared_owner_instead_of_cached_incarnation() {
     assert_eq!(observed.outcome.exit_code, Some(0));
     assert_eq!(
         observed.world,
-        STANDARD
-            .decode(reference["result"]["World"].as_str().unwrap())
-            .unwrap()
+        crate::world::retained::expand(
+            &STANDARD
+                .decode(reference["result"]["World"].as_str().unwrap())
+                .unwrap()
+        )
+        .unwrap()
     );
     assert_eq!(observed.incarnations.len(), 3);
     for item in &observed.incarnations {
