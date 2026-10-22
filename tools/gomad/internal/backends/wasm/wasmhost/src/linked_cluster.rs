@@ -475,7 +475,9 @@ pub fn prepare(mut request: Request) -> Result<Prepared> {
 struct NoRemote(Activity);
 impl Write for NoRemote {
     fn write(&mut self, _: &[u8]) -> io::Result<usize> {
-        self.0.remote_callback_attempts.fetch_add(1, Ordering::Release);
+        self.0
+            .remote_callback_attempts
+            .fetch_add(1, Ordering::Release);
         Err(io::Error::new(
             io::ErrorKind::Unsupported,
             "linked cluster forbids transport callbacks",

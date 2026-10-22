@@ -17,17 +17,21 @@ pub fn first(record: &Record, observed: &linked::Execution) -> Option<String> {
             let report = crate::campaign::soft_assertions::observe(
                 observed.evidence.get("stdout").map_or(&[], Vec::as_slice),
                 observed.evidence.get("stderr").map_or(&[], Vec::as_slice),
-                matches!(observed.outcome.termination, "exit" | "trap"), report_only,
+                matches!(observed.outcome.termination, "exit" | "trap"),
+                report_only,
             );
             if let Some(report) = report
-                && canonical::encode(&report).is_ok_and(|bytes| canonical::digest(&bytes) == stream.sha256)
+                && canonical::encode(&report)
+                    .is_ok_and(|bytes| canonical::digest(&bytes) == stream.sha256)
             {
                 reason = crate::campaign::soft_assertions::reason(Some(&report), reason);
                 matched = true;
                 break;
             }
         }
-        if !matched { return Some("soft_assertions.observation".into()); }
+        if !matched {
+            return Some("soft_assertions.observation".into());
+        }
     }
     for (different, path) in [
         (
@@ -38,10 +42,7 @@ pub fn first(record: &Record, observed: &linked::Execution) -> Option<String> {
             record.outcome.exit_code != observed.outcome.exit_code,
             "outcome.exit_code",
         ),
-        (
-            record.outcome.reason != reason,
-            "outcome.reason",
-        ),
+        (record.outcome.reason != reason, "outcome.reason"),
     ] {
         if different {
             return Some(path.into());

@@ -24,11 +24,11 @@ pub use crate::model::replay_plan::{
     inspect as inspect_choices, project as project_choices,
 };
 pub use crate::model::{Config as ModelConfig, CreationSite, Decision, Divergence, ModelLimits};
+pub use crate::module_metadata::{ModuleImport, ModuleMetadata, module_metadata};
 pub use crate::namespace::{
     Image as NamespaceImage, ImageEntry as NamespaceEntry, Limits as NamespaceLimits,
 };
 pub use crate::protocol::Outcome;
-pub use crate::module_metadata::{ModuleImport, ModuleMetadata, module_metadata};
 
 #[cfg(feature = "stress-jitter")]
 pub use crate::stress_jitter::statistics as stress_jitter_statistics;

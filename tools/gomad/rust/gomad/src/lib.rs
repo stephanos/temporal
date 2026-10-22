@@ -15,16 +15,16 @@ mod fixture_replay;
 mod fixture_role;
 #[cfg(feature = "determinism-fixture")]
 mod fixture_storage;
-pub(crate) mod minimize;
-pub(crate) mod qualify;
-pub mod replay;
-pub mod slots;
-pub(crate) mod stress;
 #[cfg(feature = "determinism-fixture")]
-mod live_runtime;
+pub(crate) mod live_backend;
 #[cfg(feature = "determinism-fixture")]
 mod live_broker;
 #[cfg(feature = "determinism-fixture")]
 mod live_cluster;
 #[cfg(feature = "determinism-fixture")]
-pub(crate) mod live_backend;
+mod live_runtime;
+pub(crate) mod minimize;
+pub(crate) mod qualify;
+pub mod replay;
+pub mod slots;
+pub(crate) mod stress;

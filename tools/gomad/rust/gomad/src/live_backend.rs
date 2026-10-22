@@ -19,8 +19,12 @@ pub(crate) fn after_execution(
     cancellation: &linked::Cancellation,
 ) -> Result<(), String> {
     if let Some(path) = std::env::var_os("GOMAD_FIXTURE_BACKEND_EXECUTIONS") {
-        let mut file = OpenOptions::new().append(true).create(true).mode(0o600)
-            .open(path).map_err(|error| error.to_string())?;
+        let mut file = OpenOptions::new()
+            .append(true)
+            .create(true)
+            .mode(0o600)
+            .open(path)
+            .map_err(|error| error.to_string())?;
         writeln!(file, "{ordinal}").map_err(|error| error.to_string())?;
     }
     if std::env::var("GOMAD_FIXTURE_BACKEND_CANCEL").as_deref() == Ok("choice-second")
@@ -47,7 +51,9 @@ pub(crate) fn minimize_control(decisions: u64) -> Result<(), String> {
 
 pub(crate) fn minimize_checkpoint(phase: &str) -> Result<(), String> {
     if std::env::var("GOMAD_FIXTURE_MINIMIZE_INTERRUPT").as_deref() == Ok(phase) {
-        return Err(format!("runner_failure: minimization fixture interrupted {phase}"));
+        return Err(format!(
+            "runner_failure: minimization fixture interrupted {phase}"
+        ));
     }
     Ok(())
 }

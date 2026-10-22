@@ -1180,16 +1180,26 @@ mod live_backend_tests {
                     "output_bytes":1048576,"evidence_bytes":16777216},
                 "virtual_time_nanos":0,"outcome":{"class":"success","termination":"exit","exit_code":0,"reason":""},"streams":{}}
         });
-        for name in ["target", "toolchain", "platform", "implementation", "configuration"] {
+        for name in [
+            "target",
+            "toolchain",
+            "platform",
+            "implementation",
+            "configuration",
+        ] {
             value["record"]["identity"][name] = "0".repeat(64).into();
         }
-        let identity: crate::evidence::identity::Identity = serde_json::from_value(value["record"]["identity"].clone()).unwrap();
+        let identity: crate::evidence::identity::Identity =
+            serde_json::from_value(value["record"]["identity"].clone()).unwrap();
         value["record"]["execution_identity"] = identity.digest().unwrap().into();
         let bytes = crate::evidence::canonical::encode(&report).unwrap();
         value["record"]["streams"]["evidence/soft-assertions.json"] = serde_json::json!({
             "bytes":bytes.len(), "sha256":crate::evidence::canonical::digest(&bytes), "records":1});
         let decoded = serde_json::from_value::<super::Execution>(value.clone());
-        assert!(decoded.is_ok(), "committed unretained observation was lost: {decoded:?}");
+        assert!(
+            decoded.is_ok(),
+            "committed unretained observation was lost: {decoded:?}"
+        );
         let mut decoded = decoded.unwrap();
         assert_eq!(serde_json::to_value(&decoded).unwrap(), value);
         super::validate_execution(&decoded).unwrap();
