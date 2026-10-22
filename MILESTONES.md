@@ -310,7 +310,7 @@ First in the delivery order (owner decision 2026-10-20). New evidence lineage; b
 | --- | --- | --- |
 | [fn-232-gomad-rewrite-the-host-side-in-rust.10](.flow/tasks/fn-232-gomad-rewrite-the-host-side-in-rust.10.md) | ▶ Running | qualify and report in Rust; close remaining public refusal/parity acceptance |
 | [fn-232-gomad-rewrite-the-host-side-in-rust.11](.flow/tasks/fn-232-gomad-rewrite-the-host-side-in-rust.11.md) | ⬜ Todo | install, doctor, discover, plan and recover in Rust |
-| [fn-232-gomad-rewrite-the-host-side-in-rust.12](.flow/tasks/fn-232-gomad-rewrite-the-host-side-in-rust.12.md) | ▶ Running | Keep Go overlay, models, generator and corpora green under the Rust binary |
+| [fn-232-gomad-rewrite-the-host-side-in-rust.12](.flow/tasks/fn-232-gomad-rewrite-the-host-side-in-rust.12.md) | ✅ Done | Go oracles and generated codecs validated against the linked Rust library; retained/retiring Go inventory separated |
 | [fn-232-gomad-rewrite-the-host-side-in-rust.13](.flow/tasks/fn-232-gomad-rewrite-the-host-side-in-rust.13.md) | ⬜ Todo | Qualification cycle on the Rust binary and Go host retirement |
 
 ### Go-command interception — [fn-233](.flow/specs/fn-233-gomad-intercept-the-go-command-so-make.md)
