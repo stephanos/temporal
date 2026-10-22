@@ -4,6 +4,7 @@ pub(crate) mod exploration;
 mod failure_policy;
 pub(crate) mod inspect;
 pub(crate) mod ledger;
+pub(crate) mod preparation;
 pub(crate) mod prepare;
 mod retention;
 pub(crate) mod scenario;
@@ -97,6 +98,22 @@ pub(crate) fn explore_prepared(
     observer: Option<Observer<'_>>,
     output: &mut dyn Write,
 ) -> Result<i32, String> {
+    let mut journal = seed_journal(options, prepared)?;
+    let remaining = options
+        .overall_timeout
+        .checked_sub(started.elapsed())
+        .ok_or("overall_timeout: campaign deadline exceeded during preparation")?;
+    run_observed(
+        &mut journal,
+        prepared,
+        remaining,
+        options.json,
+        output,
+        observer,
+    )
+}
+
+fn seed_journal(options: &ExploreOptions, prepared: &prepare::Prepared) -> Result<Journal, String> {
     let selection = seeds::SeedSelection::parse(&options.seeds)?;
     if selection.count() > 1_000_000 {
         return Err("capacity: campaign execution capacity exceeds 1000000".into());
@@ -120,19 +137,7 @@ pub(crate) fn explore_prepared(
         "scenario":prepared.scenario,"network":prepared.network,"soft_assertion_report_only":prepared.soft_assertion_report_only,
     });
     retain_prepared(&path, prepared, &mut plan)?;
-    let mut journal = Journal::create(&path, &plan, journal_bytes)?;
-    let remaining = options
-        .overall_timeout
-        .checked_sub(started.elapsed())
-        .ok_or("overall_timeout: campaign deadline exceeded during preparation")?;
-    run_observed(
-        &mut journal,
-        prepared,
-        remaining,
-        options.json,
-        output,
-        observer,
-    )
+    Journal::create(&path, &plan, journal_bytes)
 }
 
 fn prepared_publication(prepared: &prepare::Prepared) -> Result<Publication, String> {

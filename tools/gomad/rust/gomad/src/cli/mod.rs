@@ -25,3 +25,8 @@ impl From<&str> for Error {
 }
 
 pub mod stress;
+pub mod discover;
+pub mod doctor;
+pub mod install;
+pub mod plan;
+pub mod recover;

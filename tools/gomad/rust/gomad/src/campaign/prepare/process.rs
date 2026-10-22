@@ -8,9 +8,9 @@ use std::{
     time::{Duration, Instant},
 };
 
-pub(super) struct Temporary(pub PathBuf);
+pub(crate) struct Temporary(pub PathBuf);
 impl Temporary {
-    pub(super) fn new(root: &Path) -> Result<Self, String> {
+    pub(crate) fn new(root: &Path) -> Result<Self, String> {
         use std::os::unix::fs::DirBuilderExt as _;
         static NEXT: AtomicU64 = AtomicU64::new(0);
         fs::create_dir_all(root).map_err(failure)?;
@@ -35,7 +35,7 @@ impl Drop for Temporary {
     }
 }
 
-pub(super) fn environment() -> Result<BTreeMap<String, String>, String> {
+pub(crate) fn environment() -> Result<BTreeMap<String, String>, String> {
     let mut values = BTreeMap::new();
     for (name, value) in std::env::vars_os() {
         let name = name
@@ -74,6 +74,11 @@ pub(super) fn environment() -> Result<BTreeMap<String, String>, String> {
     }
     for (name, value) in [
         ("GOENV", "off"),
+        ("GOPROXY", "off"),
+        ("GOSUMDB", "off"),
+        ("GOPRIVATE", ""),
+        ("GONOPROXY", "none"),
+        ("GOVCS", "*:off"),
         ("GOFLAGS", ""),
         ("GOTOOLCHAIN", "local"),
         ("GOWORK", "off"),
@@ -90,14 +95,14 @@ pub(super) fn environment() -> Result<BTreeMap<String, String>, String> {
     Ok(values)
 }
 
-pub(super) fn check_deadline(deadline: Instant) -> Result<(), String> {
+pub(crate) fn check_deadline(deadline: Instant) -> Result<(), String> {
     if Instant::now() >= deadline {
         return Err("overall_timeout: preparation budget exhausted".into());
     }
     Ok(())
 }
 
-pub(super) fn command(
+pub(crate) fn command(
     compiler: &Path,
     args: &[String],
     directory: &Path,

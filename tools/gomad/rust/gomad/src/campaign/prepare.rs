@@ -14,8 +14,8 @@ use std::{
     time::Instant,
 };
 
-mod inventory;
-mod process;
+pub(crate) mod inventory;
+pub(crate) mod process;
 
 const MAXIMUM: u64 = 512 << 20;
 
@@ -30,31 +30,7 @@ pub struct Prepared {
     pub soft_assertion_report_only: bool,
 }
 
-#[derive(Deserialize, Serialize)]
-#[serde(deny_unknown_fields)]
-pub struct Installation {
-    pub schema: String,
-    pub compiler_path: PathBuf,
-    pub compiler_sha256: String,
-    pub go_version: String,
-    pub runtime_root: PathBuf,
-    #[serde(default)]
-    pub overlay_module_root: Option<PathBuf>,
-    pub cache_root: PathBuf,
-    pub profile: String,
-    pub fuel: u64,
-    pub memory_bytes: u64,
-    pub helper_sha256: String,
-    pub host_sha256: String,
-    pub runtime_implementation_sha256: Option<String>,
-    pub model: Value,
-    pub namespace: linked::NamespaceImage,
-    pub storage: Option<linked::StorageInput>,
-    #[serde(default)]
-    pub network: Option<gomad_wasmhost::linked_cluster::NetworkModel>,
-    #[serde(default)]
-    pub build_tags: Vec<String>,
-}
+pub use crate::install::manifest::Installation;
 
 #[derive(Deserialize, Serialize)]
 #[serde(deny_unknown_fields)]
@@ -101,14 +77,6 @@ pub(crate) fn authenticate_module_metadata(
     Ok(())
 }
 
-#[derive(Deserialize)]
-#[serde(deny_unknown_fields)]
-struct Overlay {
-    path: PathBuf,
-    identity: String,
-    implementation_sha256: String,
-}
-
 fn failure(error: impl std::fmt::Display) -> String {
     format!("runner_failure: {error}")
 }
@@ -130,58 +98,10 @@ pub(super) fn read(path: &Path, limit: u64) -> Result<Vec<u8>, String> {
     Ok(bytes)
 }
 
-fn executable(path: &Path, expected: &str) -> Result<(), String> {
-    use std::os::unix::fs::PermissionsExt as _;
-    let meta = fs::symlink_metadata(path).map_err(failure)?;
-    if !path.is_absolute()
-        || !meta.is_file()
-        || meta.permissions().mode() & 0o111 == 0
-        || !canonical::valid_digest(expected)
-        || canonical::digest(&read(path, MAXIMUM)?) != expected
-    {
-        return Err(failure("pinned compiler identity mismatch"));
-    }
-    Ok(())
-}
-
 fn installation(options: &ExploreOptions) -> Result<Installation, String> {
-    let path = if let Some(path) = &options.installation {
-        path.clone()
-    } else if let Some(path) = std::env::var_os("GOMAD_WASM_INSTALLATION").filter(|s| !s.is_empty())
-    {
-        PathBuf::from(path)
-    } else {
-        std::env::current_exe()
-            .map_err(failure)?
-            .with_file_name("gomad-wasm.json")
-    };
-    let installed: Installation =
-        serde_json::from_slice(&read(&path, 16 << 20)?).map_err(failure)?;
-    if installed.schema != "gomad.rust-wasm-installation/v1"
-        || installed.helper_sha256 != linked::IMPLEMENTATION_SHA256
-        || installed.host_sha256 != env!("GOMAD_HOST_IMPLEMENTATION_SHA256")
-        || !installed.cache_root.is_absolute()
-        || installed.fuel == 0
-        || installed.memory_bytes == 0
-        || !matches!(installed.go_version.as_str(), "go1.27.0" | "go1.27.1")
-    {
-        return Err(failure(
-            "unsupported Rust installation or pinned implementation mismatch",
-        ));
-    }
-    match installed.profile.as_str() {
-        "gomad.wasi-cooperative/v1"
-            if installed.go_version == "go1.27.1"
-                && installed.runtime_root.is_absolute()
-                && installed.runtime_implementation_sha256.as_deref()
-                    == Some(env!("GOMAD_RUNTIME_IMPLEMENTATION_SHA256")) => {}
-        "gomad.wasi-stock-exploratory/v1"
-            if installed.runtime_implementation_sha256.is_none()
-                && installed.runtime_root.as_os_str().is_empty() => {}
-        _ => return Err(failure("unsupported runtime profile or implementation")),
-    }
-    executable(&installed.compiler_path, &installed.compiler_sha256)?;
-    Ok(installed)
+    let description = crate::install::manifest::resolve(options.installation.as_deref())?;
+    crate::install::manifest::admit_build(&description.manifest)?;
+    Ok(description.manifest)
 }
 
 /// # Errors
@@ -287,38 +207,13 @@ fn prepare_before_deadline(
         if !module_root.is_absolute() {
             return Err(failure("absolute overlay module owner is required"));
         }
-        let mut host_environment = environment.clone();
-        for name in ["GOOS", "GOARCH", "GOEXPERIMENT"] {
-            host_environment.remove(name);
-        }
-        let result = process::command(
-            &installed.compiler_path,
-            &[
-                "run".into(),
-                "-mod=readonly".into(),
-                "./internal/backends/wasm/toolchain/cmd/overlay".into(),
-                root.to_string_lossy().into_owned(),
-                installed.runtime_root.to_string_lossy().into_owned(),
-                installed
-                    .cache_root
-                    .join("runtime-overlay")
-                    .to_string_lossy()
-                    .into_owned(),
-            ],
-            module_root,
-            &host_environment,
+        let generated = crate::install::toolchain::overlay(
+            &installed,
+            &root,
+            &environment,
             &temporary.0,
-            4 << 20,
             deadline,
         )?;
-        let generated: Overlay = serde_json::from_slice(&result).map_err(failure)?;
-        if !canonical::valid_digest(&generated.identity)
-            || generated.implementation_sha256 != env!("GOMAD_RUNTIME_IMPLEMENTATION_SHA256")
-        {
-            return Err(failure(
-                "invalid overlay identity or runtime implementation changed",
-            ));
-        }
         let value: Value =
             serde_json::from_slice(&read(&generated.path, 16 << 20)?).map_err(failure)?;
         replacements = serde_json::from_value(
@@ -402,6 +297,11 @@ fn prepare_before_deadline(
             matches!(
                 name.as_str(),
                 "GOENV"
+                    | "GOPROXY"
+                    | "GOSUMDB"
+                    | "GOPRIVATE"
+                    | "GONOPROXY"
+                    | "GOVCS"
                     | "GOFLAGS"
                     | "GOTOOLCHAIN"
                     | "GOWORK"
@@ -415,7 +315,7 @@ fn prepare_before_deadline(
             )
         })
         .collect::<BTreeMap<_, _>>();
-    let mut inputs = json!({"schema":"gomad.rust-wasm-build-inputs/v1", "compiler":compiler,"compiler_sha256":installed.compiler_sha256,
+    let mut inputs = json!({"schema":"gomad.rust-wasm-build-inputs/v1", "compiler":compiler,"compiler_path":installed.compiler_path,"compiler_sha256":installed.compiler_sha256,
         "go_version":installed.go_version,"sources":sources,"runtime":runtime,"runtime_implementation":installed.runtime_implementation_sha256,
         "helper":linked::IMPLEMENTATION_SHA256,"host":env!("GOMAD_HOST_IMPLEMENTATION_SHA256"),"kind":options.target_kind,"source":options.source,
         "directory":directory,"arguments":options.target_args,"tags":tags,"configuration":configuration,"scenario":scenario,"network":installed.network,
@@ -472,7 +372,7 @@ fn prepare_before_deadline(
     }
     inventory::verify(&compiler)?;
     inventory::verify(&sources)?;
-    executable(&installed.compiler_path, &installed.compiler_sha256)?;
+    crate::install::manifest::executable(&installed.compiler_path, &installed.compiler_sha256)?;
     let (after_compiler, after_root) = inventory::compiler(
         &installed.compiler_path,
         &directory,
@@ -554,7 +454,12 @@ fn configuration(
     options: &ExploreOptions,
     installed: &Installation,
 ) -> Result<Configuration, String> {
-    let mut environment = BTreeMap::new();
+    let mut environment = installed
+        .admission
+        .as_ref()
+        .map(|admission| admission.environment.clone())
+        .unwrap_or_default();
+    let mut supplied = std::collections::BTreeSet::new();
     for entry in &options.environment {
         let (name, value) = entry
             .split_once('=')
@@ -562,10 +467,11 @@ fn configuration(
         if name.is_empty()
             || name.contains('\0')
             || value.contains('\0')
-            || environment.insert(name.into(), value.into()).is_some()
+            || !supplied.insert(name.to_owned())
         {
             return Err("unsupported_target: invalid or duplicate environment entry".into());
         }
+        environment.insert(name.into(), value.into());
     }
     let working =
         String::from_utf8(installed.namespace.working_directory.clone()).map_err(failure)?;

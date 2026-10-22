@@ -7,7 +7,7 @@ use std::{
     time::Instant,
 };
 
-pub(super) fn verify(inputs: &BTreeMap<PathBuf, String>) -> Result<(), String> {
+pub(crate) fn verify(inputs: &BTreeMap<PathBuf, String>) -> Result<(), String> {
     for (path, expected) in inputs {
         if canonical::digest(&read(path, MAXIMUM)?) != *expected {
             return Err(failure(format!("build input changed: {}", path.display())));
@@ -16,7 +16,7 @@ pub(super) fn verify(inputs: &BTreeMap<PathBuf, String>) -> Result<(), String> {
     Ok(())
 }
 
-pub(super) fn compiler(
+pub(crate) fn compiler(
     compiler: &Path,
     directory: &Path,
     environment: &BTreeMap<String, String>,
@@ -74,7 +74,7 @@ fn hash(paths: BTreeSet<PathBuf>) -> Result<BTreeMap<PathBuf, String>, String> {
         .collect()
 }
 
-pub(super) fn sources(
+pub(crate) fn sources(
     data: &[u8],
     include: &Path,
     replacements: &BTreeMap<String, String>,

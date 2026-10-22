@@ -45,13 +45,15 @@ def crc32c(raw):
     return value ^ 0xffffffff
 
 
-def frames(root, incomplete=False):
+def frames(root, incomplete=False, exploration=False):
     """Validate the frozen codec's CRC32C framing, lengths, order and raw JSON."""
     raw = (root / 'store/log').read_bytes()
     result, offset = [], 0
     bounds = {1: (1 << 20) + (64 << 10), 2: 64 << 10, 3: 1 << 20,
               4: 1 << 30, 5: 16 << 20, 6: 64 << 20, 7: 64 << 20,
               16: 16 << 20, 18: 16 << 20, 19: 16 << 20}
+    if exploration:
+        bounds.update({8: 1 << 20, 9: 4 << 10, 10: 1 << 30})
     while offset < len(raw):
         header = raw[offset:offset + 16]
         if len(header) < 16 and incomplete:

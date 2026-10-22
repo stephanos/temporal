@@ -23,6 +23,10 @@ jobs:
           python3 tools/gomad/scripts/behavioral-parity --corpus tools/gomad/testdata/parity --selftest
           python3 tools/gomad/testdata/parity/minimize-reference-lane.py --help
           python3 tools/gomad/testdata/parity/qualify-lane.py --help
+          python3 tools/gomad/testdata/parity/installation-lane.py --help
+          python3 tools/gomad/testdata/parity/installation-numeric-check.py --help
+          python3 tools/gomad/testdata/parity/plan-check.py --help
+          python3 tools/gomad/testdata/parity/recover-check.py --help
           python3 tools/gomad/testdata/parity/semantic/selftest.py
   linked-foundation:
     runs-on: ubuntu-24.04-arm

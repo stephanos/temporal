@@ -26,6 +26,28 @@ use std::{
 pub(crate) fn explore(options: &ExplorationOptions, output: &mut dyn Write) -> Result<i32, String> {
     let started = Instant::now();
     let prepared = super::prepare::prepare(&options.base)?;
+    let (mut journal, initial) = prepare_journal(options, &prepared, started)?;
+    let remaining = options
+        .base
+        .overall_timeout
+        .checked_sub(started.elapsed())
+        .ok_or("overall_timeout: choice exploration deadline exceeded during preparation")?;
+    run(
+        &mut journal,
+        &prepared,
+        remaining,
+        options.base.json,
+        output,
+        initial,
+        false,
+    )
+}
+
+pub(super) fn prepare_journal(
+    options: &ExplorationOptions,
+    prepared: &Prepared,
+    started: Instant,
+) -> Result<(RoundJournal, Option<execution::Result>), String> {
     if prepared.scenario.is_some() {
         return Err(
             "unsupported_target: cluster-global forced choice exploration is unavailable".into(),
@@ -61,7 +83,7 @@ pub(crate) fn explore(options: &ExplorationOptions, output: &mut dyn Write) -> R
             .checked_sub(started.elapsed())
             .ok_or("overall_timeout: choice exploration deadline exceeded during preparation")?;
         let completion = execution::run(
-            &prepared,
+            prepared,
             &Job {
                 ordinal: 0,
                 seed: config.base_seed,
@@ -76,20 +98,26 @@ pub(crate) fn explore(options: &ExplorationOptions, output: &mut dyn Write) -> R
         config.site_scope = Some(resolution.scope(patterns));
         initial = Some(completion);
     }
-    let mut journal = plan::create(options, &prepared, RoundStrategy::Choice(config))?;
-    let remaining = options
-        .base
-        .overall_timeout
-        .checked_sub(started.elapsed())
-        .ok_or("overall_timeout: choice exploration deadline exceeded during preparation")?;
+    let journal = plan::create(options, prepared, RoundStrategy::Choice(config))?;
+    Ok((journal, initial))
+}
+
+pub(super) fn commit_planned_base(
+    journal: &mut RoundJournal,
+    prepared: &Prepared,
+    remaining: Duration,
+    initial: execution::Result,
+) -> Result<(), String> {
     run(
-        &mut journal,
-        &prepared,
+        journal,
+        prepared,
         remaining,
-        options.base.json,
-        output,
-        initial,
-    )
+        false,
+        &mut std::io::sink(),
+        Some(initial),
+        true,
+    )?;
+    Ok(())
 }
 
 pub(crate) fn resume(path: &Path, json: bool, output: &mut dyn Write) -> Result<i32, String> {
@@ -102,7 +130,15 @@ pub(crate) fn resume(path: &Path, json: bool, output: &mut dyn Write) -> Result<
     )?;
     let prepared = plan::restore(&journal)?;
     let remaining = plan::duration(&journal)?;
-    run(&mut journal, &prepared, remaining, json, output, None)
+    run(
+        &mut journal,
+        &prepared,
+        remaining,
+        json,
+        output,
+        None,
+        false,
+    )
 }
 
 #[expect(
@@ -116,6 +152,7 @@ fn run(
     json_output: bool,
     output: &mut dyn Write,
     mut initial: Option<execution::Result>,
+    base_only: bool,
 ) -> Result<i32, String> {
     let deadline = Instant::now()
         .checked_add(duration)
@@ -235,6 +272,9 @@ fn run(
             executions,
             segment,
         })?;
+        if base_only {
+            break;
+        }
         if json_output {
             for (seed, report) in reports {
                 super::soft_assertions::progress(output, journal.path(), seed, &report)?;

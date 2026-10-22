@@ -23,6 +23,7 @@ mod live_broker;
 mod live_cluster;
 #[cfg(feature = "determinism-fixture")]
 mod live_runtime;
+pub mod install;
 pub(crate) mod minimize;
 pub(crate) mod qualify;
 pub mod replay;

@@ -440,6 +440,7 @@ pub struct Journal {
     max_bytes: u64,
     poisoned: bool,
     observed: fs::Stat,
+    recovery_changed: bool,
 }
 
 impl Journal {
@@ -515,6 +516,7 @@ impl Journal {
             max_bytes,
             poisoned: false,
             observed,
+            recovery_changed: false,
         })
     }
 
@@ -597,6 +599,7 @@ impl Journal {
             max_bytes: storage.max_bytes,
             poisoned: false,
             observed,
+            recovery_changed: false,
         };
         let complete_bytes = data
             .iter()
@@ -648,10 +651,11 @@ impl Journal {
                 .map_err(|error| error.to_string())?;
             writer.sync_all().map_err(|error| error.to_string())?;
             journal.observed = fs::fstat(writer).map_err(|error| error.to_string())?;
+            journal.recovery_changed = true;
         }
         journal.bytes = complete_bytes as u64;
         if writable {
-            journal.reconcile_artifacts()?;
+            journal.recovery_changed |= journal.reconcile_artifacts()?;
         }
         Ok(journal)
     }
@@ -798,7 +802,7 @@ impl Journal {
 
     /// # Errors
     /// Refuses unlocked mutation, invalid live evidence and unauthenticated retirement entries.
-    pub fn reconcile_artifacts(&self) -> Result<(), String> {
+    pub fn reconcile_artifacts(&self) -> Result<bool, String> {
         if self.writer.is_none() || self.lock.is_none() || self.poisoned {
             return Err("campaign artifact reconciliation requires its healthy writer lock".into());
         }
@@ -831,7 +835,7 @@ impl Journal {
         let store = match open::child(&self.root, "evidence", true, false) {
             Ok(store) => store,
             Err(error) if error == rustix::io::Errno::NOENT.to_string() && live.is_empty() => {
-                return Ok(());
+                return Ok(false);
             }
             Err(error) => return Err(error),
         };
@@ -853,17 +857,24 @@ impl Journal {
                         }
                     }
                 }
-                return Ok(());
+                return Ok(false);
             }
             _ => return Err("unsupported campaign artifact store layout".into()),
         }
-        crate::evidence::store::Store::retire(&store, &live)
+        let before = open::entries(&store)?;
+        crate::evidence::store::Store::retire(&store, &live)?;
+        Ok(before != open::entries(&store)?)
     }
 
     /// # Errors
     /// Refuses unsafe references, substituted entries and unauthenticated artifact manifests.
     pub fn open_artifact(&self, reference: &str) -> Result<Opened, String> {
         open_artifact(&self.root, reference)
+    }
+
+    #[must_use]
+    pub fn recovery_changed(&self) -> bool {
+        self.recovery_changed
     }
 
     #[must_use]

@@ -1,0 +1,123 @@
+{
+  "schema": "gomad.installation-corpus/v1",
+  "grammar": [
+    {
+      "name": "missing-output",
+      "argv": [
+        "install"
+      ],
+      "status": 2,
+      "stderr_contains": "install requires --output"
+    },
+    {
+      "name": "unknown-flag",
+      "argv": [
+        "install",
+        "--unknown"
+      ],
+      "status": 2,
+      "stderr_contains": "flag provided but not defined"
+    },
+    {
+      "name": "discover-arguments",
+      "argv": [
+        "discover",
+        "extra"
+      ],
+      "status": 2,
+      "stderr_contains": "discover accepts no command arguments"
+    },
+    {
+      "name": "analyze-bare",
+      "argv": [
+        "analyze"
+      ],
+      "status": 2,
+      "selected": true,
+      "unsupported": true
+    },
+    {
+      "name": "analyze-help",
+      "argv": [
+        "analyze",
+        "--help"
+      ],
+      "status": 2,
+      "selected": true,
+      "unsupported": true
+    },
+    {
+      "name": "analyze-arguments",
+      "argv": [
+        "analyze",
+        "--json"
+      ],
+      "status": 2,
+      "selected": true,
+      "unsupported": true
+    },
+    {
+      "name": "doctor-bare",
+      "argv": [
+        "doctor"
+      ],
+      "status": 2,
+      "selected": true,
+      "unsupported": true
+    },
+    {
+      "name": "doctor-help",
+      "argv": [
+        "doctor",
+        "--help"
+      ],
+      "status": 2,
+      "selected": true,
+      "unsupported": true
+    },
+    {
+      "name": "doctor-arguments",
+      "argv": [
+        "doctor",
+        "--json"
+      ],
+      "status": 2,
+      "selected": true,
+      "unsupported": true
+    }
+  ],
+  "profiles": [
+    "gomad.wasi-stock-exploratory/v1",
+    "gomad.wasi-cooperative/v1"
+  ],
+  "required": [
+    "helper-default",
+    "helper-matching",
+    "helper-mismatch",
+    "compiler-missing",
+    "compiler-version",
+    "publication-collision",
+    "go-lineage",
+    "explicit-precedence",
+    "environment-precedence",
+    "sibling",
+    "invalid-explicit",
+    "invalid-environment",
+    "removed-build-inputs",
+    "changed-compiler",
+    "configured-limits",
+    "temporal-policy",
+    "captured-payload-mismatch",
+    "captured-descriptor-mismatch",
+    "schema-symlink",
+    "changed-runtime",
+    "missing-runtime",
+    "external-helper-never-executed",
+    "seed-plan",
+    "scoped-plan",
+    "seed-recovery",
+    "round-recovery",
+    "duplicate-configuration-member",
+    "numeric-grammar"
+  ]
+}
