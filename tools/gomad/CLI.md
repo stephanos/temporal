@@ -543,7 +543,7 @@ peak). Only the Go compiler and its descendants run as children (`children`,
 snapshots of both. It also retains, for each store, the wall time, fuel, guest
 linear-memory peak and limit, trace bytes (the Go owner's WASI transcript,
 choice, diagnostic, storage and network traces; a cluster's shared network
-trace counts once, on its first store) and virtual time, plus the self
+trace counts once, on its first store, and never per store) and virtual time, plus the self
 counters at the store's boundaries.
 
 - **CPU** is the children delta plus the linked delta, each counted once. Store
@@ -597,7 +597,7 @@ counters at the store's boundaries.
   window must fit the lifetime peaks around it before the fallback is used,
   and a measured phase that already exceeds its ceiling stays `exceeded`: a
   missing measurement never erases a known violation (the receipt's terminal
-  check keeps a retained operator overrun the same way). A zero phase peak is a missing measurement. A
+  check keeps a retained or receipt operator overrun the same way). A zero phase peak is a missing measurement. A
   window whose stores carry `node/incarnation` handles is a cluster window,
   even with a single node.
 - **Without attribution** (another platform, a refused `clear_refs` write, or any

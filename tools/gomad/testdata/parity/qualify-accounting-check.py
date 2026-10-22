@@ -231,7 +231,8 @@ def check(case, row):
             equal('failure' in row['terminal'], True, name + '.terminal_refused')
         else:
             # A retained operator overrun stays exceeded without the receipt's own figure.
-            overrun = retained if retained is not None and retained > 2 * GIB else None
+            overrun = (retained if retained is not None and retained > 2 * GIB
+                       else operator if operator is not None and operator > 2 * GIB else None)
             exact = attributed or overrun is not None
             peak = operator if attributed else overrun if overrun is not None else terminal['peak_rss_bytes']
             status = 'within' if peak <= 2 * GIB else 'exceeded' if exact else 'unattributed'

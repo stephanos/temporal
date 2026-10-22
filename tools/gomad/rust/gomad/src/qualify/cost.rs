@@ -719,9 +719,12 @@ pub(crate) fn terminal(
     }
     // A retained operator overrun stays exceeded even when the receipt lacks
     // its own operator measurement.
+    // So does a receipt operator overrun when the Result lacks its own
+    // operator figure: a known measurement is never discarded.
     let retained = observations
         .operator_peak_rss_bytes
-        .filter(|peak| *peak > 2 * GIB);
+        .filter(|peak| *peak > 2 * GIB)
+        .or(operator_peak.filter(|peak| *peak > 2 * GIB));
     let (peak, exact) = match (attributed, retained) {
         (Some(peak), _) | (None, Some(peak)) => (peak, true),
         (None, None) => (after.peak_rss_bytes, false),

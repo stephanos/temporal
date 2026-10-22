@@ -50,16 +50,22 @@ impl StoreMetrics {
         memory_bytes: u64,
     ) -> Self {
         let outcome = &execution.outcome;
+        let cluster = incarnation.is_some();
         Self {
             incarnation,
             fuel_used: fuel.saturating_sub(outcome.fuel_remaining),
             // The Go qualification owner's trace bytes: WASI transcript,
             // choice, diagnostic, storage and network traces. Output streams,
             // inspection data and storage snapshots are not traces.
+            // A cluster's network trace is one shared stream, counted once by
+            // the cluster (`scenario::store_metrics`), never per store.
             trace_bytes: execution
                 .evidence
                 .iter()
-                .filter(|(name, _)| TRACE_STREAMS.contains(&name.as_str()))
+                .filter(|(name, _)| {
+                    TRACE_STREAMS.contains(&name.as_str())
+                        && !(cluster && name.as_str() == "network")
+                })
                 .map(|(_, bytes)| bytes.len() as u64)
                 .sum(),
             guest_peak_memory_bytes: outcome.peak_memory_bytes as u64,
