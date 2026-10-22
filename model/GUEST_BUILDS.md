@@ -275,7 +275,7 @@ and historical failed fn-232/Linux-only proofs remain separate records.
 
 ## Lockfile closure identities (fn-238.8)
 
-At source `107285ac64`, two clean clones at different absolute paths with initially
+At source `107285ac64`, and again after the review follow-ups at `9df904d985`, two clean clones at different absolute paths with initially
 absent independent targets built identical guests on Linux 7.0.14/aarch64 with the
 pinned toolchain, four Cargo jobs and clean source checks before and after. A third
 clone added an unrelated workspace crate and a dev-dependency on it from
