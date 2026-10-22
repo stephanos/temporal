@@ -22,5 +22,15 @@
     "verified_roundtrip": true,
     "command": "make umpire-check-model-gaps",
     "exit": 0
+  },
+  {
+    "raw_path": "task16-slice.log",
+    "compressed_path": "task16-slice.log.gz",
+    "summary": "task16-slice-summary.txt",
+    "raw_bytes": 458881,
+    "raw_lines": 1342,
+    "raw_sha256": "90ef5d693ce9457b7508ef37601af190926ecad3a602f52e580a30756c1a381e",
+    "compressed_sha256": "3230e7b426b86289e696d950034b85d705b5b97029ebd58d05ad419f7f2dc001",
+    "roundtrip_verified": true
   }
 ]

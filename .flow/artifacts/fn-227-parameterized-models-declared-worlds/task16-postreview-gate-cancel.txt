@@ -15,3 +15,4 @@ Owned process group before TERM:
 2784310 2767199 2758890 /home/agent/.cache/codex-build/cargo-target/debug/deps/world-c37f79209ed9fa4b --quiet
 2784337 2784310 2758890 /home/agent/.local/share/mise/installs/java/temurin-27/bin/java -version
 Original handle closed with suite_rc=15; owned process group absent after termination.
+At cancellation the owned process tree was executing the workspace tests stage (world control). The timing wrapper buffers its nested stage log in an EXIT-cleaned temporary file; no partial stage durations were emitted or retained, so no durations or stage passes are inferred for this cancelled attempt.

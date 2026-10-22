@@ -93,21 +93,30 @@ fn conditional_length() -> String {
 }
 
 fn untouched_vector() -> String {
-    saved_length().replace("let length = self.values.len();", "if self.values.is_empty() {} let length = self.values.len();")
+    saved_length().replace(
+        "let length = self.values.len();",
+        "if self.values.is_empty() {} let length = self.values.len();",
+    )
 }
 
 #[test]
-fn unrelated_conditionals_preserve_vector_length_identity() -> Result<(), Box<dyn std::error::Error>> {
+fn unrelated_conditionals_preserve_vector_length_identity() -> Result<(), Box<dyn std::error::Error>>
+{
     let source = untouched_vector();
     for source in [
         source.clone(),
         source.replace("let length = self.values.len(); if length < 2", "if self.values.len() < 2"),
-        source.replace("if self.values.is_empty() {}", "if self.values.is_empty() { if self.values.len() == 0 {} }"),
-        source.replace("pub values: Vector<u8>,", "pub values: Vector<u8>, pub count: u8,")
+        source.replace(
+            "if self.values.is_empty() {}",
+            "if self.values.is_empty() { if self.values.len() == 0 {} }",
+        ),
+        source
+            .replace("pub values: Vector<u8>,", "pub values: Vector<u8>, pub count: u8,")
             .replace("if self.values.is_empty() {}", "if self.count == 0 { self.count += 1; }"),
     ] {
         Lift::parse("untouched_vector.rs", &source)?;
-        let unbounded = source.replace("length < 2", "true").replace("self.values.len() < 2", "true");
+        let unbounded =
+            source.replace("length < 2", "true").replace("self.values.len() < 2", "true");
         assert!(Lift::parse("unbounded_untouched_vector.rs", &unbounded).is_err());
     }
     Ok(())
@@ -126,6 +135,18 @@ fn unsupported_vector_operations_and_unbounded_growth_refuse()
                     "pub values: Vector<u8>, pub other: Vector<u8>,",
                 )
                 .replace("else { self.values.len() }", "else { self.other.len() }"),
+            "bounded",
+        ),
+        (
+            untouched_vector()
+                .replace(
+                    "pub values: Vector<u8>,",
+                    "pub values: Vector<u8>, pub other: Vector<u8>,",
+                )
+                .replace(
+                    "if self.values.is_empty() {}",
+                    "if self.values.is_empty() { self.values = self.other; }",
+                ),
             "bounded",
         ),
         (source.replace("self.values.push_back(7);", "self.values.pop_back();"), "pop_back"),

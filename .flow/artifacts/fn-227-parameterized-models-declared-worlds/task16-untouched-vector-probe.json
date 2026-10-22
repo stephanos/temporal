@@ -1,0 +1,12 @@
+{
+  "base": "d70684bca2a7f0974abedee129db1ef480cecf56",
+  "base_provenance": "task16-pinned-pre-task-source.json and archive; fresh source reconstruction build log task16-pinned-pre-task-probe2.log",
+  "current_source": "79fe477d3f",
+  "old_result": "Ok(())",
+  "new_result": "bounded guard refusal",
+  "probe_source": "task16-untouched-vector-probe.rs.txt",
+  "binaries": {
+    "base": "81017bfd5114c9ce47dc46eff13f98516f2bb17e7523877cdd3ec83a247becf6",
+    "current": "4a584a2a207b6094575305a875c77e55cc28f6b3c99ac01d38a3c024ec7ded61"
+  }
+}

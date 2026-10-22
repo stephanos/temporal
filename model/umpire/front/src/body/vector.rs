@@ -290,6 +290,7 @@ fn bounded(
 #[derive(Clone, Copy, PartialEq, Eq)]
 enum Bound {
     Unknown,
+    Sequence,
     Length,
     Finite,
     Upper,
@@ -303,15 +304,18 @@ fn bound(value: &Expr, field: &str, bounds: &BTreeMap<&str, Bound>) -> Bound {
     match &value.kind {
         ExprKind::Bool(false) => Bound::Upper,
         ExprKind::Local(name) => bounds.get(name.as_str()).copied().unwrap_or(Bound::Unknown),
-        ExprKind::Length(sequence) if matches!(&sequence.kind, ExprKind::Var(name, false) if name == field) => {
+        ExprKind::Var(name, false) if name == field => Bound::Sequence,
+        ExprKind::Length(sequence) if bound(sequence, field, bounds) == Bound::Sequence => {
             Bound::Length
         }
         ExprKind::Int(value) if *value >= 0 && *value < i128::from(i32::MAX) => Bound::Finite,
-        ExprKind::If(_, yes, no)
-            if bound(yes, field, bounds) == Bound::Length
-                && bound(no, field, bounds) == Bound::Length =>
-        {
-            Bound::Length
+        ExprKind::If(_, yes, no) => {
+            let yes = bound(yes, field, bounds);
+            if matches!(yes, Bound::Sequence | Bound::Length) && bound(no, field, bounds) == yes {
+                yes
+            } else {
+                Bound::Unknown
+            }
         }
         ExprKind::Binary(op, left, right) => {
             let (left, right) = (bound(left, field, bounds), bound(right, field, bounds));

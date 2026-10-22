@@ -30,7 +30,8 @@
   "reused_actual_gates": [
     {
       "command": "make umpire-check-model-slice",
-      "log": "task16-slice.log",
+      "log": "task16-slice.log.gz",
+      "summary": "task16-slice-summary.txt",
       "exit": 0,
       "controls": 6
     },
