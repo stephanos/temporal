@@ -127,8 +127,9 @@ Unexplained. Each witness uses identical prepared wire input against fresh healt
 single-mutant servers. Healthy-equivalent no-op responses, missing witness registrations,
 unknown mutants and transport failures cannot count as detection. Select a server-local
 mutation with `kettle.Options{Mutant: name}`; `kettle.Mutants()` lists the supported names.
-These controls run in `make model-check`. The focused differential run takes about 23 s;
-the preceding full gate took 438.622 s, exceeding R30's 60 s soft target.
+These controls run in `make model-check`. The focused differential run took 20.546 s;
+the full Go host suite took 39.087 s and `make model-check` took 546.668 s, exceeding
+R30's 60 s soft target.
 
 ## Writing a Model
 

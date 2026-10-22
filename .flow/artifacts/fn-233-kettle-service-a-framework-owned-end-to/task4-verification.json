@@ -1,0 +1,16 @@
+{
+  "command": "make model-check",
+  "exit_code": 0,
+  "elapsed_seconds": 546.668,
+  "task": "fn-233-kettle-service-a-framework-owned-end-to.4",
+  "verified_commit": "ef3b492d9a",
+  "baseline": "green: focused Kettle/server tests pre-edit, 19.231s",
+  "failing_first": "all four no-op mutants fail naming mutant and driver in task4-mutants-red.log.gz",
+  "focused_go_seconds": 41.038,
+  "differential_go_seconds": 20.546,
+  "full_go_host_seconds": 39.087,
+  "server_race": "green",
+  "lint": "strict changed-line Go-host and root lint-code-fast green; fix=false",
+  "protected_goldens": "no changes to canonical Kettle Model/report/transcript or extension semantic goldens",
+  "later_changes": "README timing prose and Flow artifacts only"
+}
