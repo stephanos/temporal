@@ -1,0 +1,9 @@
+{
+  "success": true,
+  "gate_id": "model-gaps",
+  "head_sha": "6184bd1b3eee1499cf133e3c08ca39ee2336762d",
+  "sha8": "6184bd1b",
+  "command_sha256": "bbb6d1c601d2e95943b0cc41491066c9ec18bde17edfd81e56b57a185491438f",
+  "path": ".flow/tmp/green-receipts/6184bd1b-model-gaps.json",
+  "timestamp": "2026-10-22T22:26:05.115221Z"
+}

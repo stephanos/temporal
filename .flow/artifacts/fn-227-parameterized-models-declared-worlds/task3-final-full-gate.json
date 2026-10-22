@@ -1,0 +1,44 @@
+{
+  "command": "UMPIRE_BACKENDS=require make model-time",
+  "exit": 0,
+  "base": "376fda53b344e5503a69e628195b87c71837a4c5",
+  "tested_head": "6184bd1b3eee1499cf133e3c08ca39ee2336762d",
+  "started": "2026-10-22T22:10:13Z",
+  "ended": "2026-10-22T22:19:08Z",
+  "required_tlc_literal": true,
+  "completed_stages": {
+    "temporal-guest-freshness": 30.099,
+    "timing-controls": 0.022,
+    "guest-build-controls": 3.339,
+    "capability-controls": 0.089,
+    "source-boundary": 3.855,
+    "protobuf-freshness": 0.09,
+    "kettle-protobuf-freshness": 0.091,
+    "temporal-protobuf-freshness": 0.055,
+    "fmt": 0.554,
+    "clippy": 3.552,
+    "docs": 9.611,
+    "tests": 373.241,
+    "wasm32-wasip1": 0.199,
+    "core-wasm-clippy": 0.202,
+    "wasm-guest": 54.739,
+    "go-host": 39.288,
+    "temporal-go-host": 10.199
+  },
+  "gate_seconds": 529.403,
+  "inner_seconds": 6.179,
+  "gate_soft_target_seconds": 60,
+  "inner_soft_target_seconds": 10,
+  "timing_context": "Observed shared-host validation. No idle, isolated or steady-state performance claim.",
+  "guest": {
+    "bytes": 3363120,
+    "sha256": "0b18d500ae6bd1b5996d2806eb74d139846b738f4765a68363ed20684a0660b9"
+  },
+  "log": {
+    "path": "task3-final-model-time-retry.log.gz",
+    "raw_sha256": "b6631a3877acb9228c066d0ee26c96f995ace2387d149f74f49b660134297215",
+    "gzip_sha256": "b7be05667c88fb886d1ab836d9cba0ce72bccaef211423ec7fd39d2a1ee74e9d",
+    "roundtrip": true
+  },
+  "supersedes_failed_run_for_acceptance": "task3-expansion-mirror-fix.json; failed run remains retained and is not green"
+}

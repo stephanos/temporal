@@ -1,0 +1,9 @@
+{
+  "success": true,
+  "gate_id": "unittest",
+  "head_sha": "6184bd1b3eee1499cf133e3c08ca39ee2336762d",
+  "sha8": "6184bd1b",
+  "command_sha256": "7b609b1de73939df71922756e6dbb6ed05918a2b361bee438c6b552d29cc8140",
+  "path": ".flow/tmp/green-receipts/6184bd1b-unittest.json",
+  "timestamp": "2026-10-22T22:19:37.548180Z"
+}
