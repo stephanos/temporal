@@ -73,6 +73,12 @@ pub struct Prepared {
 }
 
 impl Prepared {
+    /// The execution wall bound the host's process-wide deadline backstop arms.
+    #[must_use]
+    pub fn wall_timeout(&self) -> Duration {
+        self.request.limits.wall_timeout
+    }
+
     /// # Errors
     /// Admits a fresh standalone network owner with the retained local fault schedule.
     pub fn network(&mut self, configuration: NetworkModel) -> wasmtime::Result<()> {

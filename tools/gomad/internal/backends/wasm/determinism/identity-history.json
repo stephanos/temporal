@@ -1098,5 +1098,9 @@
  {
   "id": "host-go.wasi.cluster.clustersession.failureobserved.map-range.session.states",
   "site": "host-go:wasi/cluster.go|ClusterSession.failureObserved|map-range|session.states|1"
+ },
+ {
+  "id": "host-go.wasi.runtime.runtimesession.handle.unstable-sort.slices.sortfunc_creations",
+  "site": "host-go:wasi/runtime.go|runtimeSession.handle|unstable-sort|slices.SortFunc creations|1"
  }
 ]

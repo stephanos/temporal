@@ -77,8 +77,10 @@ pub(super) fn run(
         admitted.cancellation(cancellation.clone());
         #[cfg(feature = "determinism-fixture")]
         crate::fixture::execution_started().map_err(|error| error.message)?;
-        let observed = linked_simulation::execute(admitted, plan, 65536)
-            .map_err(|error| format!("runner_failure: {error}"))?;
+        let observed = crate::backstop::within(admitted.wall_timeout(), || {
+            linked_simulation::execute(admitted, plan, 65536)
+        })
+        .map_err(|error| format!("runner_failure: {error}"))?;
         let primary = observed.cluster.incarnations.first();
         let trace = primary
             .and_then(|item| item.execution.evidence.get("choice"))

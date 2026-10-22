@@ -15,9 +15,10 @@ The owned behavior has reviewed golden fixtures, repeated-execution agreement an
 Harness lane matches accepted reductions on the corpus failures; changed bounds, corrupt state, concurrent writer and changed identities refuse with status 3; a signature-changing candidate is rejected.
 
 ## Done summary
-TBD
+Minimize in Rust. Candidate-v6 minimize lane: two identical regenerations plus strict, semantic golden unchanged. Codex review SHIP. Merged f16f53e59d.
 
+stage: plan-sync - skipped(config: planSync.enabled != true)
 ## Evidence
-- Commits:
-- Tests:
+- Commits: c04d3a4ba4, c1c3383b74, dda8a82900, 487051cd96, f16f53e59d
+- Tests: six-lane refresh v6 (2 regen + strict each), make validate, codex re-review SHIP
 - PRs:

@@ -537,3 +537,38 @@ pub(crate) fn execution_started() -> Result<(), crate::cli::Error> {
         .map_err(|error| error.to_string())?;
     Ok(())
 }
+
+static BACKSTOP_WINDOWS: std::sync::atomic::AtomicU64 = std::sync::atomic::AtomicU64::new(0);
+
+/// Numbers armed backstop windows in this process (fixture builds only).
+pub(crate) fn backstop_window() -> u64 {
+    BACKSTOP_WINDOWS.fetch_add(1, std::sync::atomic::Ordering::SeqCst)
+}
+
+/// Fixture-only stand-in for a native compiler or store teardown that never
+/// returns: `GOMAD_FIXTURE_BACKSTOP_STALL=compile|teardown` stalls armed window
+/// `GOMAD_FIXTURE_BACKSTOP_STALL_WINDOW` (default 0) forever, after recording
+/// `GOMAD_FIXTURE_BACKSTOP_STALL_FILE` when set. Only the deadline backstop
+/// can end the process from there.
+pub(crate) fn backstop_stall(phase: &str, window: u64) {
+    if std::env::var("GOMAD_FIXTURE_BACKSTOP_STALL")
+        .ok()
+        .as_deref()
+        != Some(phase)
+    {
+        return;
+    }
+    let selected = std::env::var("GOMAD_FIXTURE_BACKSTOP_STALL_WINDOW")
+        .ok()
+        .and_then(|value| value.parse::<u64>().ok())
+        .unwrap_or(0);
+    if selected != window {
+        return;
+    }
+    if let Some(path) = std::env::var_os("GOMAD_FIXTURE_BACKSTOP_STALL_FILE") {
+        let _ = std::fs::write(path, format!("{phase} {window}\n"));
+    }
+    loop {
+        std::thread::park();
+    }
+}

@@ -29,3 +29,13 @@ for fault in ['crash:directory_created','pause:directory_created','audit:parent_
     (output/('fault-'+fault.replace(':','-')+'.json')).write_text(json.dumps(dict(argv=args,status=result.returncode,stdout=result.stdout,stderr=result.stderr),sort_keys=True))
     assert result.returncode==2 and 'unsupported command' in result.stderr and not result.stdout,fault
 assert not (output/'forbidden-store').exists()
+# Release builds refuse the fixture-only deadline backstop stall controls
+# before any command runs (fn-232 R1 hooks are fixture-build only).
+for control in ['GOMAD_FIXTURE_BACKSTOP_STALL', 'GOMAD_FIXTURE_BACKSTOP_STALL_WINDOW', 'GOMAD_FIXTURE_BACKSTOP_STALL_FILE']:
+    args = [binary, 'explore', '--json', 'go-run', './missing']
+    result = subprocess.run(args, capture_output=True, text=True, timeout=5,
+                            env={'PATH': '/usr/bin:/bin', control: 'compile'})
+    (output / ('control-' + control + '.json')).write_text(json.dumps(dict(argv=args, control=control,
+        status=result.returncode, stdout=result.stdout, stderr=result.stderr), sort_keys=True))
+    assert result.returncode == 2 and result.stderr == 'gomad: unsupported fixture control\n' and not result.stdout, control
+print('release backstop stall controls refused: 3/3')

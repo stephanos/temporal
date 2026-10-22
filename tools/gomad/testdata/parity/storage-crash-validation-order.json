@@ -1,0 +1,333 @@
+{
+ "schema": "gomad.storage-crash-validation-order/v1",
+ "owner": "fn-227 R2 received by fn-232.8; Go ValidateStorageCrashSelection is the semantic reference",
+ "volumes": [
+  "a",
+  "b"
+ ],
+ "pending_operations": 100,
+ "rule": "every case is evaluated with its selection and context entries in listed and reversed insertion order; the first refusal must equal want",
+ "cases": [
+  {
+   "name": "selection-zero-before-duplicate",
+   "selection": [
+    [
+     "b",
+     [
+      1,
+      1
+     ]
+    ],
+    [
+     "a",
+     [
+      0
+     ]
+    ]
+   ],
+   "context": null,
+   "want": "WASI invalid: storage crash selection zero operation"
+  },
+  {
+   "name": "selection-sorted-zero-before-unconfigured-volume",
+   "selection": [
+    [
+     "c",
+     [
+      1
+     ]
+    ],
+    [
+     "a",
+     [
+      0
+     ]
+    ]
+   ],
+   "context": null,
+   "want": "WASI invalid: storage crash selection zero operation"
+  },
+  {
+   "name": "selection-prior-observation-before-zero",
+   "selection": [
+    [
+     "b",
+     [
+      0
+     ]
+    ],
+    [
+     "a",
+     [
+      1
+     ]
+    ]
+   ],
+   "context": null,
+   "want": "WASI invalid: storage crash selection requires prior observation"
+  },
+  {
+   "name": "selection-unknown-operation-before-zero",
+   "selection": [
+    [
+     "b",
+     [
+      0
+     ]
+    ],
+    [
+     "a",
+     [
+      5
+     ]
+    ]
+   ],
+   "context": [
+    [
+     "a",
+     {
+      "PendingSHA256": "sha256:aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+      "Operations": [
+       {
+        "ID": 1,
+        "Kind": "namespace",
+        "Dependencies": null,
+        "Inode": 2,
+        "Offset": 0,
+        "Bytes": 0,
+        "PayloadSHA256": "",
+        "EffectSHA256": "",
+        "Path": "/f1",
+        "Destination": ""
+       }
+      ]
+     }
+    ]
+   ],
+   "want": "WASI invalid: storage crash selection unknown operation"
+  },
+  {
+   "name": "selection-dependency-closure-before-context",
+   "selection": [
+    [
+     "a",
+     [
+      2
+     ]
+    ]
+   ],
+   "context": [
+    [
+     "b",
+     {
+      "PendingSHA256": "invalid",
+      "Operations": [
+       {
+        "ID": 1,
+        "Kind": "namespace",
+        "Dependencies": null,
+        "Inode": 2,
+        "Offset": 0,
+        "Bytes": 0,
+        "PayloadSHA256": "",
+        "EffectSHA256": "",
+        "Path": "/f1",
+        "Destination": ""
+       }
+      ]
+     }
+    ],
+    [
+     "a",
+     {
+      "PendingSHA256": "sha256:aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+      "Operations": [
+       {
+        "ID": 1,
+        "Kind": "namespace",
+        "Dependencies": null,
+        "Inode": 2,
+        "Offset": 0,
+        "Bytes": 0,
+        "PayloadSHA256": "",
+        "EffectSHA256": "",
+        "Path": "/f1",
+        "Destination": ""
+       },
+       {
+        "ID": 2,
+        "Kind": "namespace",
+        "Dependencies": [
+         1
+        ],
+        "Inode": 3,
+        "Offset": 0,
+        "Bytes": 0,
+        "PayloadSHA256": "",
+        "EffectSHA256": "",
+        "Path": "/f2",
+        "Destination": ""
+       }
+      ]
+     }
+    ]
+   ],
+   "want": "WASI invalid: storage crash selection is not dependency-closed"
+  },
+  {
+   "name": "context-inventory-before-operation-order",
+   "selection": null,
+   "context": [
+    [
+     "b",
+     {
+      "PendingSHA256": "sha256:aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+      "Operations": [
+       {
+        "ID": 0,
+        "Kind": "namespace",
+        "Dependencies": null,
+        "Inode": 1,
+        "Offset": 0,
+        "Bytes": 0,
+        "PayloadSHA256": "",
+        "EffectSHA256": "",
+        "Path": "/f0",
+        "Destination": ""
+       }
+      ]
+     }
+    ],
+    [
+     "a",
+     {
+      "PendingSHA256": "invalid",
+      "Operations": [
+       {
+        "ID": 1,
+        "Kind": "namespace",
+        "Dependencies": null,
+        "Inode": 2,
+        "Offset": 0,
+        "Bytes": 0,
+        "PayloadSHA256": "",
+        "EffectSHA256": "",
+        "Path": "/f1",
+        "Destination": ""
+       }
+      ]
+     }
+    ]
+   ],
+   "want": "WASI invalid: storage crash context inventory"
+  },
+  {
+   "name": "context-operation-order-before-unconfigured-volume",
+   "selection": null,
+   "context": [
+    [
+     "z",
+     {
+      "PendingSHA256": "sha256:aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+      "Operations": [
+       {
+        "ID": 1,
+        "Kind": "namespace",
+        "Dependencies": null,
+        "Inode": 2,
+        "Offset": 0,
+        "Bytes": 0,
+        "PayloadSHA256": "",
+        "EffectSHA256": "",
+        "Path": "/f1",
+        "Destination": ""
+       }
+      ]
+     }
+    ],
+    [
+     "a",
+     {
+      "PendingSHA256": "sha256:aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+      "Operations": [
+       {
+        "ID": 2,
+        "Kind": "namespace",
+        "Dependencies": null,
+        "Inode": 3,
+        "Offset": 0,
+        "Bytes": 0,
+        "PayloadSHA256": "",
+        "EffectSHA256": "",
+        "Path": "/f2",
+        "Destination": ""
+       },
+       {
+        "ID": 1,
+        "Kind": "namespace",
+        "Dependencies": null,
+        "Inode": 2,
+        "Offset": 0,
+        "Bytes": 0,
+        "PayloadSHA256": "",
+        "EffectSHA256": "",
+        "Path": "/f1",
+        "Destination": ""
+       }
+      ]
+     }
+    ]
+   ],
+   "want": "WASI invalid: storage crash context operation order"
+  },
+  {
+   "name": "context-dependency-before-inventory",
+   "selection": null,
+   "context": [
+    [
+     "b",
+     {
+      "PendingSHA256": "invalid",
+      "Operations": [
+       {
+        "ID": 1,
+        "Kind": "namespace",
+        "Dependencies": null,
+        "Inode": 2,
+        "Offset": 0,
+        "Bytes": 0,
+        "PayloadSHA256": "",
+        "EffectSHA256": "",
+        "Path": "/f1",
+        "Destination": ""
+       }
+      ]
+     }
+    ],
+    [
+     "a",
+     {
+      "PendingSHA256": "sha256:aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+      "Operations": [
+       {
+        "ID": 1,
+        "Kind": "namespace",
+        "Dependencies": [
+         1
+        ],
+        "Inode": 2,
+        "Offset": 0,
+        "Bytes": 0,
+        "PayloadSHA256": "",
+        "EffectSHA256": "",
+        "Path": "/f1",
+        "Destination": ""
+       }
+      ]
+     }
+    ]
+   ],
+   "want": "WASI invalid: storage crash context dependency"
+  }
+ ]
+}

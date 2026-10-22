@@ -201,18 +201,30 @@ pub(crate) fn run_with_replay(
             .map_err(|error| format!("runner_failure: admit standalone network: {error}"))?;
     }
     admitted.cancellation(cancellation.clone());
+    let (observed, metrics) = measured(admitted, &configuration.limits)?;
+    let mut result = publication(prepared, job, observed)?;
+    result.metrics = metrics;
+    Ok(result)
+}
+
+/// Runs one admitted store inside the whole-process backstop and its
+/// qualification phase window (`qualify::usage`).
+fn measured(
+    admitted: linked::Prepared,
+    limits: &crate::evidence::record::Limits,
+) -> std::result::Result<(linked::Execution, Metrics), String> {
     crate::qualify::usage::store_begin();
     let started = std::time::Instant::now();
-    let observed = linked::execute_prepared(admitted);
+    let observed = crate::backstop::within(admitted.wall_timeout(), || {
+        linked::execute_prepared(admitted)
+    });
     let wall = started.elapsed();
     let store_peak = crate::qualify::usage::store_end();
     let observed =
         observed.map_err(|error| format!("runner_failure: execute campaign target: {error}"))?;
-    let mut metrics = Metrics::observed(&observed, &configuration.limits, wall);
+    let mut metrics = Metrics::observed(&observed, limits, wall);
     metrics.store_peak_rss_bytes = store_peak;
-    let mut result = publication(prepared, job, observed)?;
-    result.metrics = metrics;
-    Ok(result)
+    Ok((observed, metrics))
 }
 
 #[expect(

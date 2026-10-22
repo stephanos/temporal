@@ -1495,3 +1495,42 @@ fixed, then re-review SHIP. Evidence: `/home/agent/wt/evidence/fn232-campaign-cl
 92e583b3f0, 5d7c29f10a on fn232-campaign. .8 is now running on branch fn232-exploration-closeout,
 including the fn-227 R1/R2 receiving work.
 
+
+### Go-host evidence pruning, 2026-10-21
+
+The owner asked to drop evidence that only measured the Go host. The following were deleted:
+- `evidence/fn185/{current-proof,proof,receipts}` (~4.4 GiB): Go-host attribution and runtime-cost runs. fn-185.1 R4 and .2/.3 are re-scoped to the Rust binary after fn-232.10/.13 and do not compare against the Go host.
+- `evidence/fn188/fixtures` and `stress-helper-*` (~0.6 GiB): Go-host determinism fixture outputs and stress helpers. fn-188.5 reruns on the Rust binary, and .6 gate wiring lands in fn-232.13.
+
+Paths cited above for those roots in this file and in `fn185-attribution-port-2026-10-20.md` and `fn188-source-acceptance-2026-10-20.md` are now historical. The written findings stand.
+
+Kept:
+- `evidence/fn185/r6/isolation`, the measurement method cited by fn-185 and fn-185.2;
+- the small fn-185/fn-188 reports and logs;
+- all of `evidence/fn221`: the sweep matrix is guest knowledge that carries over to the Rust host and is the input for fn-221.2's 337-unit rerun and fn-221.3.
+
+### Wrap-up stop state, 2026-10-22
+
+The owner asked to wrap up and stop.
+
+**Merged.** fn232-exploration-closeout is merged as `f16f53e59d`. fn-232.1, .8 and .9 are done.
+- Codex re-review verdict: SHIP.
+- Six lanes ran on candidate-v6, each with two identical regenerations plus strict.
+- `make validate` passes.
+- The identity handoff is in `fn232.8-identity-handoff-2026-10-22.txt`, and notes were appended to fn-232.13 and fn-227.1.
+- Two Go `wasm/backend` inspection tests fail on the pre-existing baseline; they are already on fn-232.13's live-gate list.
+
+**Parked, not merged: fn-232.10** on branch `fn232-qualify`, worktree `/home/agent/wt/fn232-qualify`. The qualify and report port is review-ready.
+- Final candidate v16: all lanes passed; nine codex rounds, with round 9's P1 fixed.
+- Evidence: `/home/agent/wt/evidence/fn232-qualify/d/v16`.
+- Onebox memory after the malloc_trim phase fix (`0284cac125`): operator 0.71–0.77 GiB, store window 3.53 GiB, compiler 2.09 GiB. All are within their ceilings.
+- Before merge, it must merge gomad (`f16f53e59d` rotates the host identity), then do a final double regeneration plus strict of the qualify goldens.
+- The task stays open in any case, because porting `qualify-set`, `merge-set` and `compare-support` is still owed.
+- The out-of-scope forge-and-rehash limit is filed in IDEAS.md.
+
+**Parked, not started: fn-222.1.** Start it after fn-232.10 merges, on a new branch from gomad. It needs `qualify --spec` and `report`, not the set verbs, and it owns the Rust support-list producer.
+
+**Parked, not started: fn-221.2.** The conductor recommends rerunning only the 344 load-sensitive units on a quiet host and merging them into the existing matrix `evidence/fn221/full-1d7b37f00a`, instead of a new 24-hour sweep.
+- The 344 units are 337 helper-link-count infrastructure rows plus 7 wall-clock timeouts.
+- Guest outcomes are deterministic on the modeled clock, so the other classes don't depend on host load.
+- The prepared launcher `full-sweep-final.sh` needs `/home/agent/wt/qualification-final-frozen` at `03542bfd6f`, which was removed in cleanup. Recreate it as a clean detached worktree; the freeze manifest is under `evidence/qualification-final/freeze`.

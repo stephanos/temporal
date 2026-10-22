@@ -20,3 +20,11 @@ TBD
 - Commits:
 - Tests:
 - PRs:
+
+
+### Rust ordering received from fn-232.8 (2026-10-22, merge f16f53e59d)
+- R1 (c4fff357dc) and R2 (6aca443134) are implemented in Rust, with RED and GREEN receipts; see `.flow/artifacts/fn232.8-identity-handoff-2026-10-22.txt`.
+- Remaining here:
+  - name the Rust tests in the determinism inventory rows for ClusterSession.Shutdown and execution.Shutdown;
+  - fn-232.13's frozen-candidate qualification.
+- Not complete.

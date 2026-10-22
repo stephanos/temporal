@@ -15,6 +15,9 @@ use wasmtime::{Error, Result};
 mod crash_failure_corpus;
 
 #[cfg(test)]
+mod validation_order_corpus;
+
+#[cfg(test)]
 mod simulation_tests {
     use super::*;
     use crate::linked_simulation::{Controller, Dimension, Override, Plan};
@@ -236,43 +239,10 @@ impl StorageDescriptor {
         if self.model.identity() != self.model_identity {
             return Err(Error::msg("storage model identity mismatch"));
         }
-        // Go refuses the same before execution: a selection names only
-        // configured volumes.
-        if self.crash_selection.as_ref().is_some_and(|selection| {
-            selection
-                .keys()
-                .any(|id| !self.model.volumes().iter().any(|config| &config.id == id))
-        }) {
-            return Err(Error::new(crate::namespace::Boundary {
-                kind: "invalid",
-                dimension: "storage crash selection volume",
-            }));
-        }
-        let invalid = |dimension| {
-            Error::new(crate::namespace::Boundary {
-                kind: "invalid",
-                dimension,
-            })
-        };
-        for operations in self
-            .crash_selection
-            .as_ref()
-            .into_iter()
-            .flat_map(|selection| selection.values())
-        {
-            let operations = operations.as_deref().unwrap_or_default();
-            let selected: BTreeSet<_> = operations.iter().copied().collect();
-            if selected.contains(&0) {
-                return Err(invalid("storage crash selection zero operation"));
-            }
-            if selected.len() != operations.len() {
-                return Err(invalid("storage crash selection duplicate operation"));
-            }
-            if !selected.is_empty() && self.crash_context.is_none() {
-                return Err(invalid(
-                    "storage crash selection requires prior observation",
-                ));
-            }
+        // Without a declared crash context every selection check is decidable now;
+        // with one, the whole Go-ordered pass runs once the context is attached.
+        if self.crash_context.is_none() {
+            self.validate_crash_controls(None)?;
         }
         for (declared, dimension) in [
             (&self.image, "invalid storage image descriptor"),
@@ -297,79 +267,94 @@ impl StorageDescriptor {
     }
 
     fn validate_context(&self) -> Result<()> {
+        self.validate_crash_controls(self.observed_context.as_ref())
+    }
+
+    /// Mirrors Go `ValidateStorageCrashSelection`: selected volumes in sorted
+    /// order (membership, operations in sequence, prior observation, unknown
+    /// operations, dependency closure), then context volumes in sorted order.
+    /// The first refusal therefore never depends on map insertion order.
+    fn validate_crash_controls(
+        &self,
+        context: Option<&BTreeMap<String, StorageCrashContext>>,
+    ) -> Result<()> {
         let invalid = |dimension| {
             Error::new(crate::namespace::Boundary {
                 kind: "invalid",
                 dimension,
             })
         };
-        if let Some(context) = &self.observed_context {
-            for (id, prior) in context {
-                if !self.model.volumes().iter().any(|config| &config.id == id)
-                    || prior.pending_sha256.len() != 71
-                    || !prior.pending_sha256.starts_with("sha256:")
-                    || !prior.pending_sha256.as_bytes()[7..]
-                        .iter()
-                        .all(|byte| byte.is_ascii_digit() || (b'a'..=b'f').contains(byte))
-                    || prior.operations.len() as u64 > self.model.limits.pending_operations
-                {
-                    return Err(invalid("storage crash context"));
+        let configured = |id: &String| self.model.volumes().iter().any(|config| &config.id == id);
+        for (id, operations) in self.crash_selection.iter().flatten() {
+            if !configured(id) {
+                return Err(invalid("storage crash selection volume"));
+            }
+            let selected = operations.as_deref().unwrap_or_default();
+            let mut seen = BTreeSet::new();
+            for operation in selected {
+                if *operation == 0 {
+                    return Err(invalid("storage crash selection zero operation"));
                 }
-                let mut previous = 0;
-                for operation in &prior.operations {
-                    if operation.id <= previous
-                        || operation
-                            .dependencies
-                            .as_deref()
-                            .unwrap_or_default()
-                            .iter()
-                            .any(|dependency| *dependency == 0 || *dependency >= operation.id)
-                    {
-                        return Err(invalid("storage crash context"));
-                    }
-                    previous = operation.id;
+                if !seen.insert(*operation) {
+                    return Err(invalid("storage crash selection duplicate operation"));
+                }
+            }
+            let prior = context.and_then(|context| context.get(id));
+            if selected.is_empty() && prior.is_none() {
+                continue;
+            }
+            let prior = prior
+                .ok_or_else(|| invalid("storage crash selection requires prior observation"))?;
+            let pending: BTreeMap<_, _> = prior
+                .operations
+                .iter()
+                .map(|operation| (operation.id, operation))
+                .collect();
+            for id in selected {
+                let operation = pending
+                    .get(id)
+                    .ok_or_else(|| invalid("storage crash selection unknown operation"))?;
+                if operation
+                    .dependencies
+                    .as_deref()
+                    .unwrap_or_default()
+                    .iter()
+                    .any(|dependency| {
+                        pending.contains_key(dependency) && !seen.contains(dependency)
+                    })
+                {
+                    return Err(invalid("storage crash selection is not dependency-closed"));
                 }
             }
         }
-        for (id, operations) in self.crash_selection.as_ref().into_iter().flatten() {
-            let selected: BTreeSet<_> = operations
-                .as_deref()
-                .unwrap_or_default()
-                .iter()
-                .copied()
-                .collect();
-            if selected.is_empty() {
-                continue;
+        for (id, prior) in context.into_iter().flatten() {
+            if !configured(id) {
+                return Err(invalid("storage crash context volume"));
             }
-            let prior = self
-                .observed_context
-                .as_ref()
-                .and_then(|context| context.get(id))
-                .ok_or_else(|| invalid("storage crash selection requires prior observation"))?;
-            let pending: BTreeSet<_> = prior
-                .operations
-                .iter()
-                .map(|operation| operation.id)
-                .collect();
-            if !selected.is_subset(&pending) {
-                return Err(invalid("storage crash selection unknown operation"));
-            }
-            if prior
-                .operations
-                .iter()
-                .filter(|operation| selected.contains(&operation.id))
-                .any(|operation| {
-                    operation
-                        .dependencies
-                        .as_deref()
-                        .unwrap_or_default()
-                        .iter()
-                        .any(|dependency| {
-                            pending.contains(dependency) && !selected.contains(dependency)
-                        })
-                })
+            if prior.pending_sha256.len() != 71
+                || !prior.pending_sha256.starts_with("sha256:")
+                || !prior.pending_sha256.as_bytes()[7..]
+                    .iter()
+                    .all(|byte| byte.is_ascii_digit() || (b'a'..=b'f').contains(byte))
+                || prior.operations.len() as u64 > self.model.limits.pending_operations
             {
-                return Err(invalid("storage crash selection is not dependency-closed"));
+                return Err(invalid("storage crash context inventory"));
+            }
+            let mut previous = 0;
+            for operation in &prior.operations {
+                if operation.id <= previous {
+                    return Err(invalid("storage crash context operation order"));
+                }
+                previous = operation.id;
+                if operation
+                    .dependencies
+                    .as_deref()
+                    .unwrap_or_default()
+                    .iter()
+                    .any(|dependency| *dependency == 0 || *dependency >= operation.id)
+                {
+                    return Err(invalid("storage crash context dependency"));
+                }
             }
         }
         Ok(())
