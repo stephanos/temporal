@@ -30,6 +30,7 @@ class GuestBuild(unittest.TestCase):
                 "    print('rustc 1.99.1 (58cf8f9c3 2026-10-13)')\n"
                 "elif args[2:5] == ['cargo', 'metadata', '--format-version']:\n"
                 "    assert '--locked' in args, args\n"
+                "    sys.exit(41) if os.environ.get('FAIL_METADATA') else None\n"
                 "    print(json.dumps({'packages': [], 'resolve': {'nodes': []}}))\n"
                 "else:\n"
                 "    assert args[2:5] == ['cargo', 'build', '-p'], args\n"
@@ -46,7 +47,10 @@ class GuestBuild(unittest.TestCase):
                 "        probe.write_text('#!' + sys.executable + '\\nimport os\\nassert os.environ.get(\"DYLD_FALLBACK_LIBRARY_PATH\") == \"/guest-test-marker\"\\n')\n"
                 "        probe.chmod(0o755)\n"
                 "        subprocess.run([os.environ['RUSTC_WRAPPER'], str(probe), '-V'], env=dict(os.environ, DYLD_FALLBACK_LIBRARY_PATH='/guest-test-marker'), check=True)\n"
-                "    assert json.loads(Path(os.environ['UMPIRE_GUEST_LOCK']).read_text()) == {}\n"
+                "    lock = Path(os.environ['UMPIRE_GUEST_LOCK'])\n"
+                "    assert lock.parent == Path(os.environ['CARGO_TARGET_DIR']), lock\n"
+                "    assert lock.name.startswith('umpire-lock-') and json.loads(lock.read_text()) == {}, lock\n"
+                "    if os.environ.get('RECORD'): Path(os.environ['RECORD']).write_text(os.environ['CARGO_TARGET_DIR'])\n"
                 "    assert os.environ['UMPIRE_GUEST_COMPILER'].startswith('rustc 1.99.1')\n"
                 "    flags = os.environ['CARGO_ENCODED_RUSTFLAGS'].split(chr(31))\n"
                 "    for flag in ['-Cpanic=unwind', '-Ctarget-feature=+exception-handling', '-Cllvm-args=-wasm-use-legacy-eh=false']:\n"
@@ -64,11 +68,35 @@ class GuestBuild(unittest.TestCase):
                        CARGO_TARGET_DIR=str(root / "target"))
             output = root / "output.wasm"
 
-            def run(*args, **extra):
+            def run(*args, script=SCRIPT, **extra):
                 return subprocess.run(
-                    ["bash", str(SCRIPT), "example-guest", str(output), *args],
+                    ["bash", str(script), "example-guest", str(output), *args],
                     env=dict(env, **extra), capture_output=True, text=True, check=False,
                 )
+
+            # Every identity input selects its own cache, including the closure script.
+            copy = root / "copy" / "model"
+            (copy / "scripts").mkdir(parents=True)
+            (copy / "Cargo.lock").write_bytes((SCRIPT.parents[1] / "Cargo.lock").read_bytes())
+            for name in ["guest.sh", "guest-rustc.py", "guest-lock.py"]:
+                (copy / "scripts" / name).write_bytes((SCRIPT.parent / name).read_bytes())
+            caches = []
+            for edit in [None, "guest-lock.py", "guest-rustc.py", "../Cargo.lock"]:
+                if edit is not None:
+                    with open(copy / "scripts" / edit, "a") as file:
+                        file.write("\n# changed identity input\n")
+                record = root / "record"
+                result = run(script=copy / "scripts/guest.sh", RECORD=str(record))
+                self.assertEqual(result.returncode, 0, result.stderr)
+                caches.append(record.read_text())
+            self.assertEqual(len(set(caches)), len(caches), caches)
+            # A failed metadata query stops before Cargo builds anything.
+            output.unlink()
+            record.unlink()
+            failed = run(FAIL_METADATA="1", RECORD=str(record))
+            self.assertEqual(failed.returncode, 1, failed.stderr)
+            self.assertFalse(output.exists())
+            self.assertFalse(record.exists())
 
             built = run()
             self.assertEqual(built.returncode, 0, built.stderr)

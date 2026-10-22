@@ -25,10 +25,18 @@ merged Rust declaration order and the resulting guest bytes.
 crate's own lockfile closure, normalized package/source paths, crate configuration
 and dependency identities. Before building, `guest-lock.py` digests, for every
 workspace-resolved package, the lockfile coordinates and checksums of its non-dev
-dependency closure across all platforms; path packages carry no location. Adding
-an unrelated workspace crate, or a dev-dependency anywhere, changes no guest bytes.
-Packages that share a name and version across sources, or lack a closure, refuse
-the build. Build-std units take no workspace closure; the pinned compiler fixes theirs.
+dependency closure across all platforms; path packages carry no location. The map
+is written as `umpire-lock-<content hash>.json` in the guest cache. Adding an
+unrelated workspace crate, or a dev-dependency, changes no guest bytes unless it
+changes the resolved dependencies of a package in a guest's closure. `cargo metadata`
+resolves optional dependencies across the whole workspace, so enabling an optional
+dependency or feature of a shared crate still changes the guest. This over-hashes but
+never under-hashes; the build's own `--unit-graph` would be an exact per-unit
+refinement. Packages that share a name and version across sources, or lack a closure,
+refuse the build, as does a registry package without a lockfile entry. Build-std units
+carry Cargo's std marker and come from the sysroot or from registry crates in the
+sysroot's own `library/Cargo.lock`; they take no workspace closure, since the pinned
+compiler fixes theirs.
 Cargo retains its own filenames and fingerprints. Atomic per-artifact `.umpire-id`
 files carry the portable identities; missing or malformed records fail the build.
 Records appear before rustc starts because Cargo pipelines dependent compilations
@@ -36,9 +44,9 @@ after metadata emission, and compiler failures remove them. Host proc macros com
 unchanged; their portable package/feature/profile identities include collision
 witnesses that refuse conflicting native variants in one target dependency graph.
 Each target's `OUT_DIR` remaps to `/generated/<portable identity>`, removing Cargo's
-host-specific directory hash from generated-source locations. Wrapper, lockfile or
-compiler changes still select a new cache so older artifacts cannot bypass this evidence;
-a cache-only lockfile change rebuilds identical bytes.
+host-specific directory hash from generated-source locations. Wrapper, closure script,
+lockfile or compiler changes select a new cache so older artifacts cannot bypass this
+evidence; a lockfile change outside every guest closure rebuilds identical bytes.
 Existing `RUSTC_WRAPPER` executables are chained. These inputs support the pinned
 workspace and toolchain; a compiler or dependency upgrade requires renewed native
 cross-OS comparisons and the existing host controls.

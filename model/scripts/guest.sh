@@ -20,14 +20,14 @@ target=$(cd "$target" && pwd -P)
 wrapper="$workspace/scripts/guest-rustc.py"
 export UMPIRE_GUEST_COMPILER
 UMPIRE_GUEST_COMPILER=$(mise exec -- rustc -V) || exit 1
-cache_key=$(python3 - "$wrapper" "$workspace/Cargo.lock" "$UMPIRE_GUEST_COMPILER" <<'PY'
+cache_key=$(python3 - "$wrapper" "$workspace/scripts/guest-lock.py" "$workspace/Cargo.lock" "$UMPIRE_GUEST_COMPILER" <<'PY'
 import hashlib
 import json
 from pathlib import Path
 import sys
 
-inputs = [hashlib.sha256(Path(path).read_bytes()).hexdigest() for path in sys.argv[1:3]]
-inputs.append(sys.argv[3])
+inputs = [hashlib.sha256(Path(path).read_bytes()).hexdigest() for path in sys.argv[1:4]]
+inputs.append(sys.argv[4])
 print(hashlib.sha256(json.dumps(inputs).encode()).hexdigest()[:16])
 PY
 )
@@ -52,10 +52,9 @@ PY
 wrapper=$launcher
 export UMPIRE_GUEST_WORKSPACE="$workspace" UMPIRE_GUEST_SYSROOT="$sysroot"
 export UMPIRE_GUEST_CARGO_HOME="$cargo_home" UMPIRE_GUEST_TARGET="$CARGO_TARGET_DIR"
-export UMPIRE_GUEST_LOCK="$CARGO_TARGET_DIR/umpire-lock.json"
-mkdir -p "$CARGO_TARGET_DIR"
-mise exec -- cargo metadata --format-version 1 --locked \
-  | python3 "$workspace/scripts/guest-lock.py" "$workspace/Cargo.lock" "$UMPIRE_GUEST_LOCK" || exit 1
+UMPIRE_GUEST_LOCK=$(mise exec -- cargo metadata --format-version 1 --locked \
+  | python3 "$workspace/scripts/guest-lock.py" "$workspace/Cargo.lock" "$CARGO_TARGET_DIR") || exit 1
+export UMPIRE_GUEST_LOCK
 if [ "${RUSTC_WRAPPER:-}" != "$wrapper" ]; then
   export UMPIRE_GUEST_PREVIOUS_WRAPPER="${RUSTC_WRAPPER:-}"
 fi

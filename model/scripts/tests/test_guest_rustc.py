@@ -96,8 +96,23 @@ class GuestRustc(unittest.TestCase):
     def test_build_std_units_need_no_workspace_lock_closure(self):
         args, env = self.invocation("linux")
         self.lock.write_text("{}")
-        _, _, record = guest_rustc.prepare(args + ["-Z", "force-unstable-if-unmarked"], env)
-        self.assertIsNotNone(record)
+        library = self.root / "linux/rust/lib/rustlib/src/rust/library"
+        library.mkdir(parents=True)
+        (library / "Cargo.lock").write_text(
+            'version = 4\n\n[[package]]\nname = "example"\nversion = "1.0.0"\n')
+        registry = self.root / "linux/cargo/registry/src/index/example-1.0.0"
+        flagged = args + ["-Z", "force-unstable-if-unmarked"]
+        for manifest in [library / "std", registry]:
+            with self.subTest(manifest=manifest):
+                _, _, record = guest_rustc.prepare(flagged, dict(env, CARGO_MANIFEST_DIR=str(manifest)))
+                self.assertIsNotNone(record)
+        refused = [(args, dict(env, CARGO_MANIFEST_DIR=str(library / "std"))),
+                   (args + ["-Zforce-unstable-if-unmarked"], env),
+                   (flagged, dict(env, CARGO_MANIFEST_DIR=str(registry), CARGO_PKG_VERSION="2.0.0"))]
+        for variant, environment in refused:
+            with self.subTest(args=variant[-1], manifest=environment["CARGO_MANIFEST_DIR"]):
+                with self.assertRaisesRegex(ValueError, "lockfile closure"):
+                    guest_rustc.prepare(variant, environment)
 
     def test_missing_or_corrupt_dependency_identity_refuses(self):
         args, env = self.invocation("linux", dependency="a" * 64)

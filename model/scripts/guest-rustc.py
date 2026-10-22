@@ -8,6 +8,7 @@ from pathlib import Path
 import re
 import subprocess
 import sys
+import tomllib
 
 
 def options(arguments):
@@ -36,6 +37,20 @@ def identity_file(artifact):
     if stem.startswith("lib"):
         stem = stem[3:]
     return artifact.with_name(stem + ".umpire-id")
+
+
+def standard(target, parsed, manifest, package, environment):
+    """Build-std units carry Cargo's std marker and come from the pinned compiler's sources
+    or the registry crates its own library lockfile resolves."""
+    if target != "wasm32-wasip1" or "force-unstable-if-unmarked" not in parsed.get("-Z", []):
+        return False
+    if manifest.startswith("/rust/sysroot/"):
+        return True
+    if not manifest.startswith("/cargo/registry/"):
+        return False
+    library = Path(environment["UMPIRE_GUEST_SYSROOT"]) / "lib/rustlib/src/rust/library/Cargo.lock"
+    return package in {entry["name"] + " " + entry["version"]
+                       for entry in tomllib.loads(library.read_text()).get("package", [])}
 
 
 def prepare(arguments, environment):
@@ -90,10 +105,9 @@ def prepare(arguments, environment):
         cfg = [value for value in cfg if value.startswith('feature=')]
         codegen = [value for value in codegen if value.partition("=")[0] in
                    {"opt-level", "debug-assertions", "overflow-checks", "panic", "codegen-units", "lto"}]
-    # Cargo marks build-std units this way; the pinned compiler's sources fix their resolution.
+    package = environment["CARGO_PKG_NAME"] + " " + environment["CARGO_PKG_VERSION"]
     lock = None
-    if target != "wasm32-wasip1" or "force-unstable-if-unmarked" not in parsed.get("-Z", []):
-        package = environment["CARGO_PKG_NAME"] + " " + environment["CARGO_PKG_VERSION"]
+    if not standard(target, parsed, normalized(manifest), package, environment):
         lock = json.loads(Path(environment["UMPIRE_GUEST_LOCK"]).read_text()).get(package)
         if not isinstance(lock, str) or re.fullmatch(r"[0-9a-f]{64}", lock) is None:
             raise ValueError(f"no unambiguous lockfile closure for guest package: {package}")
