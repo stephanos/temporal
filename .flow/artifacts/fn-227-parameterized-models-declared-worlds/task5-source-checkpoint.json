@@ -102,5 +102,7 @@
   },
   "originals": "15 original activity artifacts verified by compatibility/verify.py; native compatibility remains in full gate",
   "full_gate": "not yet run; awaiting source audits and normal review",
-  "logs": ".flow/tmp/fn-227.5"
+  "logs": ".flow/tmp/fn-227.5",
+  "checkpoint": "2554d54ac3",
+  "scope": "Initial source checkpoint before the normal-review retry-observation correction."
 }

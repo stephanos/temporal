@@ -1,0 +1,30 @@
+{
+  "task": "fn-227-parameterized-models-declared-worlds.5",
+  "review_round": 1,
+  "finding": "correctness:1 P2/R6 retry Describe races an already polling worker",
+  "reproduction_commit": "2bdcbd9d39",
+  "red": {
+    "command": "make umpire-check-model-slice",
+    "exit": 2,
+    "seconds": 22.154383420944214
+  },
+  "red_observation": "After actual failed-attempt RPC success and a timer beyond maximum retry interval, fresh Describe reported attempt 2 Started; Judge refused State.",
+  "green": {
+    "command": "make umpire-check-model-slice",
+    "exit": 0,
+    "seconds": 21.546591997146606
+  },
+  "green_observation": "The same delayed fresh Describe reports attempt 2 Scheduled; a single actual-Poll delivery permit remains held until Judge explains the retry, then permits attempt 2 delivery and completion.",
+  "lint": {
+    "command": "GOLANGCI_LINT_FIX=false GOLANGCI_LINT_BASE_REV=c8e29dc48b6dd2a77fb51cae1eb682ed517b3e55 make lint-code-fast TEST_TAG=integration",
+    "exit": 0,
+    "seconds": 21.114039659500122
+  },
+  "source_sha256": {
+    "tests/testpilot_model_slice_test.go": "e3d9cce3a51487f8b42b993a2f097155fe6ee77c4d1bb0a0b6a0ced6cc13411a",
+    "model/temporal/realization/README.md": "88ba507195257e3cb08f908a4ea964e00981ca63bf4a68e6b3152a5007c29ff4"
+  },
+  "guest_sha256": "f832a33c3024a8752976d146be839b62a95afde4790fa0db60f1dac9004b4e7e",
+  "guest_rebuild": "not needed; correction changes only the Go integration harness and realization guide",
+  "rust_surface_diff_since_checkpoint": []
+}

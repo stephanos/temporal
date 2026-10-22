@@ -189,6 +189,9 @@ a later host read failure cannot undo its commit. A remote successful Start is a
 the live owner retains the same capture to retry publication idempotently.
 
 The live SDK proof admits Start before worker startup and holds callbacks while synchronously
-reading and judging actual Describe. `RetryThenComplete` observes Scheduled attempt two before
-answering its real second delivery, then observes completion. The six existing Complete, Fail,
+reading and judging actual Describe. `RetryThenComplete` serializes actual Poll RPCs with one delivery permit. Empty and failed
+polls restore permission; a nonempty delivery consumes it. After the real failed-attempt RPC
+succeeds, the proof delays Describe beyond the retry interval while the next Poll remains
+blocked. It judges fresh Scheduled attempt two, releases the next Poll and answers that real
+second delivery, then observes completion. The six existing Complete, Fail,
 HostRefusal, context-Cancellation and before/after-start cancellation controls remain separate.

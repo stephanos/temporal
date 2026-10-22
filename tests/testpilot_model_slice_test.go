@@ -152,8 +152,24 @@ func TestTestpilotModelSlice(t *testing.T) {
 			finished := make(chan error, 1)
 			var calls atomic.Int32
 			failedAttempt := make(chan struct{}, 1)
+			pollPermission := make(chan struct{}, 1)
+			pollPermission <- struct{}{}
 			retryTransport := func(callCtx context.Context, method string, req, reply any, conn *grpc.ClientConn, invoke grpc.UnaryInvoker, opts ...grpc.CallOption) error {
+				gatedPoll := scenario == "RetryThenComplete" && method == workflowservice.WorkflowService_PollActivityTaskQueue_FullMethodName
+				if gatedPoll {
+					select {
+					case <-pollPermission:
+					case <-callCtx.Done():
+						return callCtx.Err()
+					}
+				}
 				err := invoke(callCtx, method, req, reply, conn, opts...)
+				if gatedPoll {
+					task, ok := reply.(*workflowservice.PollActivityTaskQueueResponse)
+					if err != nil || !ok || len(task.GetTaskToken()) == 0 {
+						pollPermission <- struct{}{}
+					}
+				}
 				if scenario == "RetryThenComplete" && method == workflowservice.WorkflowService_RespondActivityTaskFailed_FullMethodName && err == nil {
 					select {
 					case failedAttempt <- struct{}{}:
@@ -416,6 +432,8 @@ func TestTestpilotModelSlice(t *testing.T) {
 						t.Fatal(ctx.Err())
 					}
 				}
+				require.EqualValues(t, 1, calls.Load(), "retry Poll must remain blocked through delayed Describe")
+				pollPermission <- struct{}{}
 				select {
 				case delivery = <-deliveries:
 				case <-ctx.Done():
