@@ -57,6 +57,9 @@ def main():
         if not actual["report"]["qualified"] or len(actual["report"]["executions"])!=2 or any(not row["replay"]["matched"] for row in actual["report"]["executions"]):
             raise ValueError("selected original durable state did not recover and replay exactly")
         results.append(dict(index=index,state=selected["Identity"],result_path=str(path),result_sha256=digest(path.read_bytes())))
+    if digest(result.read_bytes())!=producer_receipt["result_sha256"] or json.loads((artifact/"manifest.json").read_bytes())["record"]!=manifest["record"]:
+        raise ValueError("original primary Result or committed record changed during selected-state producers")
+    producer.run(root,"primary-final-report",[str(args.binary.resolve()),"report","--result",str(result)],0)
     producer.write(root/"recovery-receipt.json",dict(schema="gomad.rust-temporal-crash-recovery/v1",primary_result=str(result),primary_result_sha256=digest(result.read_bytes()),
         catalogue=enumeration,context=context,results=results,subgates=[dict(id="TestTemporalCommittedWorkflowFreshGuestCrashReopen",status="PASS",executed=True,exit=0)]))
     print(json.dumps(dict(receipt=str(root/"recovery-receipt.json"))))
