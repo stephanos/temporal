@@ -1,0 +1,74 @@
+[
+  {
+    "artifact": ".flow/artifacts/fn-227-parameterized-models-declared-worlds/task3-red-mismatched-callback.log.gz",
+    "raw_sha256": "6bda6bd81b09ad2398001d412110e1aefb5911cc94b4d4d7d61fcc3475c9efb9",
+    "gzip_sha256": "e8ed0274fc106e2f619dc57f1de6d47d259c14bc66c3c4e386c927f8c57c5c25",
+    "roundtrip": true
+  },
+  {
+    "artifact": ".flow/artifacts/fn-227-parameterized-models-declared-worlds/task3-green-mismatched-callback.log.gz",
+    "raw_sha256": "cd577179542a458a104931366bf0d2769280e69411e39f8e4294adc972416cbf",
+    "gzip_sha256": "3cfb607d5a8b054009b2e7c82db451e485fde47bd12ab99b5f12cd529a32927b",
+    "roundtrip": true
+  },
+  {
+    "artifact": ".flow/artifacts/fn-227-parameterized-models-declared-worlds/task3-red-distinct-payload.log.gz",
+    "raw_sha256": "7a5b7b9d9679fed91a5768e63c03354efeaef319dac48aadb457446b1281bbe1",
+    "gzip_sha256": "551f2a364c52df7c624b01d6aa808c3970e167c6f253b3b0d969c01a9285b74e",
+    "roundtrip": true
+  },
+  {
+    "artifact": ".flow/artifacts/fn-227-parameterized-models-declared-worlds/task3-green-distinct-payload.log.gz",
+    "raw_sha256": "ec4093d2aed3407775aefe5462ccfd3c32233d9c7227b8641d9d6ba9540243c1",
+    "gzip_sha256": "45df887f31cf18e7f511a06bae00ec72905488ece1916b63a0c4eb5f078b41b2",
+    "roundtrip": true
+  },
+  {
+    "artifact": ".flow/artifacts/fn-227-parameterized-models-declared-worlds/task3-red-guest-slice.log.gz",
+    "raw_sha256": "3434d8081765b73c82658ec048423342d14eb48774ee77e4a7c30f442b051178",
+    "gzip_sha256": "112ed556095240181f66d97ced01f9cb41b071d5186f410c25f0cdb6b082f81b",
+    "roundtrip": true
+  },
+  {
+    "artifact": ".flow/artifacts/fn-227-parameterized-models-declared-worlds/task3-green-guest-slice.log.gz",
+    "raw_sha256": "9b7f4fb261270ad84ef0332e542fafd3011b640dfa6fc54273fec36d181580a1",
+    "gzip_sha256": "4c10bd685e2ba28d2228a79832b906fcee23fa131c17c9fc563835687d65e0d1",
+    "roundtrip": true
+  },
+  {
+    "artifact": ".flow/artifacts/fn-227-parameterized-models-declared-worlds/task3-temporal-go-host.log.gz",
+    "raw_sha256": "7c5c29d5635a3b9683fcd4cd0271dedf7bf29a894e2131b579d20e3d177f55b0",
+    "gzip_sha256": "3b6a2af19e76b2b0ac71a3cd1548fb00ab7ce318f0d27c3704bc1808b2ab3d98",
+    "roundtrip": true
+  },
+  {
+    "artifact": ".flow/artifacts/fn-227-parameterized-models-declared-worlds/task3-required-source-replay-raw.log.gz",
+    "raw_sha256": "098c6115b5206dd72e4195b2b14441886bb5e09f044186fb5a1153651c38266d",
+    "gzip_sha256": "ce203562ba1e08720f2c9d7660e0efb8276fb17e66d7c31ed7e8e39594554fd5",
+    "roundtrip": true
+  },
+  {
+    "artifact": ".flow/artifacts/fn-227-parameterized-models-declared-worlds/task3-clippy-review-fix.log.gz",
+    "raw_sha256": "59c630ea85c051312966a26a37a690e3605e578d1e3a53cfcc6475b892aece08",
+    "gzip_sha256": "7070bfa486d0841a41882fe833acf2031f2c20506b531bebe0c031adcc61e474",
+    "roundtrip": true
+  },
+  {
+    "artifact": ".flow/artifacts/fn-227-parameterized-models-declared-worlds/task3-go-lint-review-fix.log.gz",
+    "raw_sha256": "ea10ebc2458cfc5a285e5c87da03475a10e247bdfa58be2df64c12392d37cb98",
+    "gzip_sha256": "12c6a0b6d67211f9ab0193ffab8690c25e0056b63e4d45fb74dad3ac26a0737a",
+    "roundtrip": true
+  },
+  {
+    "artifact": ".flow/artifacts/fn-227-parameterized-models-declared-worlds/task3-guest-review-fix.log.gz",
+    "raw_sha256": "001502cbc6b3d97ca5bdfc956db0c6404ddd8135d7179238cfa814f6669e4fb9",
+    "gzip_sha256": "bd83222f4b9a03656664c7b05e38c7a2509594492f3881778eebe0e2e9ed5582",
+    "roundtrip": true
+  },
+  {
+    "artifact": ".flow/artifacts/fn-227-parameterized-models-declared-worlds/task3-realization-stable.log.gz",
+    "raw_sha256": "b9dfbc79da67cca90e8b60d99eb17a8a73e21a52d057324328a62cd5630fdcf6",
+    "gzip_sha256": "1117e27901bf2861beeae2a43293c07423bef2cb2096b8e2edeed42aa0726270",
+    "roundtrip": true
+  }
+]

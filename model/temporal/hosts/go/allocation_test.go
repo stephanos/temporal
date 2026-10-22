@@ -166,7 +166,7 @@ func TestTemporalResponseExhaustionRollsBackState(t *testing.T) {
 			var frozen *modelv1.JudgeResponse
 			if tc.frozen {
 				frozen = g.judge(t, scheduled(t))
-				unexplained(t, frozen, "Client::Cancel", "Worker::RespondCompleted", "Worker::RespondFailed", "Deadline::StartToClose")
+				unexplained(t, frozen, "Client::Cancel", "Worker::Poll(2)", "Worker::Poll(3)", "Worker::RespondCompleted", "Worker::RespondFailed { retryable: false }", "Worker::RespondFailed { retryable: true }", "Deadline::StartToClose")
 			}
 			g.call(t, tc.method, tc.request(t), true)
 			after := g.judge(t, matching)

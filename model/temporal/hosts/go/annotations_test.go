@@ -17,7 +17,7 @@ import (
 func TestAnnotationsPreserveFrozenModelAndActualResponseBytes(t *testing.T) {
 	h := guest(t)
 	frozen := judge(t, h, observation(t, enumspb.ACTIVITY_EXECUTION_STATUS_COMPLETED, 0))
-	unexplained(t, frozen, "Client::Cancel", "Worker::Poll", "Deadline::ScheduleToStart")
+	unexplained(t, frozen, "Client::Cancel", "Worker::Poll(1)", "Worker::Poll(2)", "Worker::Poll(3)", "Deadline::ScheduleToStart")
 	message, err := proto.Marshal(&workflowservice.DescribeActivityExecutionResponse{
 		Info: &activitypb.ActivityExecutionInfo{Status: 999},
 	})

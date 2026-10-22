@@ -167,7 +167,10 @@ impl Realization {
             deployment_options = "The SDK supplies deployment routing"
         ))
     )]
-    fn respond(task: PollActivityTaskQueueResponse) -> Result<Reply<Worker>, Refusal> {
+    fn respond(
+        task: PollActivityTaskQueueResponse,
+        state: &activity::Model,
+    ) -> Result<Reply<Worker>, Refusal> {
         let input = task.input.ok_or_else(|| Refusal::malformed("callback input is missing"))?;
         let [payload] = input.payloads.as_slice() else {
             return Err(Refusal::malformed("callback requires exactly one input payload"));
@@ -195,6 +198,12 @@ impl Realization {
         };
         let attempt = u8::try_from(task.attempt)
             .map_err(|_| Refusal::unsupported("callback attempt is outside maximum_attempts"))?;
+        if attempt != state.attempt {
+            return Err(Refusal::new(
+                umpire_wasm::protocol::RefusalCode::State,
+                "callback attempt does not match the current attempt",
+            ));
+        }
         Ok(Reply { delivery: vec![Worker::Poll(attempt)], action, request: response })
     }
 }

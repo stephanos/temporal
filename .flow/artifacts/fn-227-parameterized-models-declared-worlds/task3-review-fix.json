@@ -1,0 +1,30 @@
+{
+  "callback_fix": "existing state-aware answer handler rejects mismatched attempt before reply planning",
+  "reproduction_commit": "24b0e4bc7f",
+  "native": {
+    "red_exit": 101,
+    "green_tests": 18
+  },
+  "live_slice": {
+    "old_guest_red_exit": 2,
+    "refreshed_guest_green_exit": 0,
+    "controls": [
+      "Complete",
+      "Fail",
+      "HostRefusal",
+      "Cancellation",
+      "CancelAfterCompletion",
+      "CancelBeforeWorkerStart"
+    ]
+  },
+  "catalog_control": {
+    "payload_specific_mutant_exit": 101,
+    "restored_green_tests": 5
+  },
+  "temporal_go_host_exit": 0,
+  "guest": {
+    "bytes": 3363120,
+    "sha256": "0b18d500ae6bd1b5996d2806eb74d139846b738f4765a68363ed20684a0660b9"
+  },
+  "remaining": "same-cycle re-review, final required full timing gate and actual gap gate"
+}

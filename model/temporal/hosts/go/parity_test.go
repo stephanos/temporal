@@ -70,7 +70,7 @@ func TestCancelStatusContradictionFreezesAndMalformedEnvelopeRefuses(t *testing.
 				continue
 			}
 			h := guest(t)
-			expected := []string{"Client::Cancel", "Worker::Poll", "Deadline::ScheduleToStart"}
+			expected := []string{"Client::Cancel", "Worker::Poll(1)", "Worker::Poll(2)", "Worker::Poll(3)", "Deadline::ScheduleToStart"}
 			if closed {
 				explained(t, judge(t, h, cancelObservation(t, 0)), "Client::Cancel")
 				expected = []string{"Client::Cancel"}
@@ -206,6 +206,7 @@ func started(t *testing.T) *anypb.Any {
 func callback(t *testing.T, policy string) *anypb.Any {
 	t.Helper()
 	return pack(t, &realizationv1.Callback{Task: pack(t, &workflowservice.PollActivityTaskQueueResponse{
+		Attempt: 1,
 		Input: &commonpb.Payloads{Payloads: []*commonpb.Payload{{
 			Metadata: map[string][]byte{"encoding": []byte("binary/plain")}, Data: []byte(policy),
 		}}},
@@ -281,7 +282,7 @@ func TestAnswerDeliveryAndObservedTerminal(t *testing.T) {
 		step   string
 	}{
 		{"Complete", enumspb.ACTIVITY_EXECUTION_STATUS_COMPLETED, "Worker::RespondCompleted"},
-		{"Fail", enumspb.ACTIVITY_EXECUTION_STATUS_FAILED, "Worker::RespondFailed"},
+		{"Fail", enumspb.ACTIVITY_EXECUTION_STATUS_FAILED, "Worker::RespondFailed { retryable: false }"},
 	} {
 		t.Run(tc.policy, func(t *testing.T) {
 			h := guest(t)
@@ -330,9 +331,9 @@ func TestImpossibleObservationFreezesUntilReset(t *testing.T) {
 		bad      func(*testing.T) *anypb.Any
 		expected []string
 	}{
-		{"started without delivery", nil, started, []string{"Client::Cancel", "Worker::Poll", "Deadline::ScheduleToStart"}},
-		{"terminal without delivery", nil, func(t *testing.T) *anypb.Any { return observation(t, enumspb.ACTIVITY_EXECUTION_STATUS_COMPLETED, 0) }, []string{"Client::Cancel", "Worker::Poll", "Deadline::ScheduleToStart"}},
-		{"stale scheduled after delivery", func(t *testing.T, h *model.Host) { answer(t, h, "Complete") }, scheduled, []string{"Client::Cancel", "Worker::RespondCompleted", "Worker::RespondFailed", "Deadline::StartToClose"}},
+		{"started without delivery", nil, started, []string{"Client::Cancel", "Worker::Poll(1)", "Worker::Poll(2)", "Worker::Poll(3)", "Deadline::ScheduleToStart"}},
+		{"terminal without delivery", nil, func(t *testing.T) *anypb.Any { return observation(t, enumspb.ACTIVITY_EXECUTION_STATUS_COMPLETED, 0) }, []string{"Client::Cancel", "Worker::Poll(1)", "Worker::Poll(2)", "Worker::Poll(3)", "Deadline::ScheduleToStart"}},
+		{"stale scheduled after delivery", func(t *testing.T, h *model.Host) { answer(t, h, "Complete") }, scheduled, []string{"Client::Cancel", "Worker::Poll(2)", "Worker::Poll(3)", "Worker::RespondCompleted", "Worker::RespondFailed { retryable: false }", "Worker::RespondFailed { retryable: true }", "Deadline::StartToClose"}},
 		{"opposite terminal after closure", func(t *testing.T, h *model.Host) {
 			answer(t, h, "Complete")
 			explained(t, judge(t, h, observation(t, enumspb.ACTIVITY_EXECUTION_STATUS_COMPLETED, 0)), "Worker::RespondCompleted")
@@ -506,9 +507,9 @@ func TestCancelAndTimeoutDoNotInventEvidence(t *testing.T) {
 			if tc.delivered {
 				answer(t, h, "Complete")
 			}
-			want := []string{"Client::Cancel", "Worker::Poll", "Deadline::ScheduleToStart"}
+			want := []string{"Client::Cancel", "Worker::Poll(1)", "Worker::Poll(2)", "Worker::Poll(3)", "Deadline::ScheduleToStart"}
 			if tc.delivered {
-				want = []string{"Client::Cancel", "Worker::RespondCompleted", "Worker::RespondFailed", "Deadline::StartToClose"}
+				want = []string{"Client::Cancel", "Worker::Poll(2)", "Worker::Poll(3)", "Worker::RespondCompleted", "Worker::RespondFailed { retryable: false }", "Worker::RespondFailed { retryable: true }", "Deadline::StartToClose"}
 			}
 			unexplained(t, judge(t, h, observation(t, tc.status, 0)), want...)
 			_, err := h.Answer(context.Background(), &modelv1.AnswerRequest{Callback: callback(t, "Complete")})
@@ -525,7 +526,7 @@ func TestRepeatedDeliveryAndInstanceIsolation(t *testing.T) {
 	explained(t, judge(t, first, started(t)))
 	explained(t, judge(t, second, scheduled(t)))
 	answer(t, second, "Fail")
-	explained(t, judge(t, second, observation(t, enumspb.ACTIVITY_EXECUTION_STATUS_FAILED, 0)), "Worker::RespondFailed")
+	explained(t, judge(t, second, observation(t, enumspb.ACTIVITY_EXECUTION_STATUS_FAILED, 0)), "Worker::RespondFailed { retryable: false }")
 	reset(t, second)
 	explained(t, judge(t, second, scheduled(t)))
 	explained(t, judge(t, first, started(t)))

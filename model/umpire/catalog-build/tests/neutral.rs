@@ -273,7 +273,12 @@ fn payload_classification_binds_every_value_and_rejects_duplicate_variants()
         ("Device::Poll(1)", "Device::Poll(3)"),
         ("Device::Failed { retryable: false }", "Device::Failed { retryable: true }"),
     ] {
-        let duplicate = source.replace("Device::Set", first).replace("Device::Poll(1)", second);
+        let duplicate = format!(
+            "fn classify(method: DeviceMethod) -> RpcRole {{ match method {{
+            DeviceMethod::Set => RpcRole::Action(ModelAction::Device({first})),
+            DeviceMethod::Poll => RpcRole::Action(ModelAction::Device({second})),
+        }} }}"
+        );
         let parsed = classifications(&duplicate, config.service, config.method_enum)?;
         let error = services::generate(&bytes, &Coverage::default(), &parsed, &config)
             .err()

@@ -9,7 +9,7 @@ Deliver the retry/refinement consumer after phase/rejection checkpoint P (.11), 
 **Size:** M after P. Model retry state/actions, adapting the existing realization and proving one retained-graph comparison form one activity checkpoint. P separately owns phase/reject/helper/law source admission; no laws, native/TLC evidence or refinement control are omitted.
 **Dependencies:** Retain fn-227-parameterized-models-declared-worlds.2 and consume .11 (P), which consumes .8 (I). The saved direct .2 edge remains intentional. No F/O requirement (now fn-237.1/fn-237.2) while this checkpoint retains old deadline actions and empty facts.
 **Files:** `model/temporal/feature/activity/{model.rs,tests.rs,temporal.rs}`; `model/temporal/feature/activity/expected/**` for new activity evidence; a new owned `model/temporal/feature/activity/compatibility/**` reference/harness input tree outside consumer discovery; `model/temporal/realization/tests/realization.rs`; `tests/testpilot_model_slice_test.go` only for necessary existing-control adaptation; `model/temporal/hosts/go/umpire_temporal_guest.wasm`; `model/README.md`.
-**Touches:** [model/temporal/feature/activity/**, model/temporal/realization/tests/realization.rs, model/temporal/hosts/go/umpire_temporal_guest.wasm, tests/testpilot_model_slice_test.go, model/README.md, model/temporal/realization/tests/declarative.rs, model/temporal/realization/tests/ui/realization_alias.rs, model/temporal/realization/tests/ui/realization_external_alias.rs, model/temporal/realization/tests/ui/realization_source_scope.rs, model/temporal/realization/tests/ui/realization_variant_alias.rs, model/umpire/catalog/syntax/src/services.rs, model/umpire/catalog-build/src/services.rs, model/umpire/catalog-build/tests/neutral.rs]
+**Touches:** [model/temporal/feature/activity/**, model/temporal/realization/tests/realization.rs, model/temporal/hosts/go/umpire_temporal_guest.wasm, model/temporal/hosts/go/parity_test.go, model/temporal/hosts/go/annotations_test.go, model/temporal/hosts/go/allocation_test.go, tests/testpilot_model_slice_test.go, model/README.md, model/temporal/realization/tests/declarative.rs, model/temporal/realization/tests/ui/realization_alias.rs, model/temporal/realization/tests/ui/realization_external_alias.rs, model/temporal/realization/tests/ui/realization_source_scope.rs, model/temporal/realization/tests/ui/realization_variant_alias.rs, model/umpire/catalog/syntax/src/services.rs, model/umpire/catalog-build/src/services.rs, model/umpire/catalog-build/tests/neutral.rs]
 
 ### Required catalog prerequisite (conductor scope amendment)
 
@@ -18,6 +18,8 @@ The retry consumer now supplies tuple `Poll(attempt)` and struct `RespondFailed 
 The existing `model/temporal/realization/tests/declarative.rs` control also constructs the formerly unit World. Mechanically adapt its constructors to the explicit three-attempt fixture World and its callback fixtures to real attempt one; retain all declarative projection/coverage assertions.
 
 The four existing alias/source-scope UI controls (`realization_alias.rs`, `realization_external_alias.rs`, `realization_source_scope.rs`, `realization_variant_alias.rs`) likewise need only their `main` unit-World value changed to `World::new(3)`. Keep their intended compile-fail diagnostics; do not update snapshots to absorb an unrelated constructor error.
+
+The existing Temporal host controls in `parity_test.go`, `annotations_test.go` and `allocation_test.go` need real attempt-one callback fixtures and payload-aware action expectations after the Model change. Preserve their refusal/freeze/allocation assertions. Review also reproduced a stale callback receiving Answer after a valid attempt-one delivery: a rejected Poll self-loop cannot authorize a worker reply. Use the already supported state-aware realization handler to reject an attempt mismatch before reply preparation, and cover state preservation natively and in the actual refreshed guest/live controls. No generic runtime production change is needed.
 
 ### Approach
 
@@ -49,6 +51,7 @@ Full from root: `make model-check`, `UMPIRE_BACKENDS=require make model-check`, 
 - [ ] Default activity goldens/coverage state Cases(n); existing realization/live controls pass with only the necessary normal refresh and fatal-only interim Fail mapping.
 - [ ] Unrelated golden/expansion bytes stay exact, full gates and timing/count evidence are retained, and the final one-tick compatibility witness is explicitly handed to fn-237.3.
 - [ ] Shared RPC classification/reverse generation handles unit, tuple and struct action variants; payload-wildcard matching covers all payload values without weakening duplicate-variant or exhaustive-match controls, and both existing consumers pass.
+- [ ] A mismatched observed callback attempt cannot publish a worker reply, including while already Started; native and actual refreshed-guest/live controls prove refusal and state preservation. Existing host callback fixtures and payload expectations retain their original assertions.
 ## Done summary
 TBD
 

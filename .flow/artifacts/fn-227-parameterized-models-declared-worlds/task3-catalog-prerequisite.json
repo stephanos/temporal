@@ -29,5 +29,14 @@
       "model/temporal/realization/tests/ui/realization_variant_alias.rs"
     ],
     "scope": "only main unit-World constructor substitution; preserve intended compile-fail diagnostics"
+  },
+  "mechanical_host_adaptations": {
+    "paths": [
+      "model/temporal/hosts/go/parity_test.go",
+      "model/temporal/hosts/go/annotations_test.go",
+      "model/temporal/hosts/go/allocation_test.go"
+    ],
+    "scope": "actual attempt-one callback fixtures, payload-aware action expectations and stale-callback refusal/state-preservation regression; preserve freeze/allocation assertions",
+    "trigger": "root found callback Attempt omitted and unit action labels in these files; actual3axis review reproduced stale callback Answer via rejected Poll selfloop"
   }
 }

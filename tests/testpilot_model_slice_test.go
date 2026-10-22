@@ -340,6 +340,14 @@ func TestTestpilotModelSlice(t *testing.T) {
 				return
 			}
 			require.NoError(t, answerErr)
+			for _, attempt := range []int32{2, 3} {
+				mismatched := proto.Clone(delivery.task).(*workflowservice.PollActivityTaskQueueResponse)
+				mismatched.Attempt = attempt
+				_, mismatchErr := host.Answer(ctx, &modelv1.AnswerRequest{Callback: modelSliceAny(t, &realizationv1.Callback{Task: modelSliceAny(t, mismatched)})})
+				var refusal *model.RefusalError
+				require.ErrorAs(t, mismatchErr, &refusal)
+				require.Equal(t, modelv1.RefusalCode_REFUSAL_CODE_STATE, refusal.Code)
+			}
 			bodyErr := waitBody()
 			wantStatus := enumspb.ACTIVITY_EXECUTION_STATUS_COMPLETED
 			wantStep := "Worker::RespondCompleted"

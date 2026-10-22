@@ -692,13 +692,21 @@ fn mismatched_callback_after_delivery_is_refused_without_changing_state() {
         let mut guest = Guest::new(runtime());
         assert!(matches!(answer(&mut guest, callback(policy)).outcome, Some(Outcome::Answer(_))));
         for attempt in [2, 3] {
-            let mut task: PollActivityTaskQueueResponse = umpire_temporal::support::callback(&callback(policy))
-                .unwrap_or_else(|error| panic!("{error:?}"));
+            let mut task: PollActivityTaskQueueResponse =
+                umpire_temporal::support::callback(&callback(policy))
+                    .unwrap_or_else(|error| panic!("{error:?}"));
             task.attempt = attempt;
-            refused(answer(&mut guest, Any::pack(&Callback { task: Some(Any::pack(&task)) })), protocol::RefusalCode::State);
+            refused(
+                answer(&mut guest, Any::pack(&Callback { task: Some(Any::pack(&task)) })),
+                protocol::RefusalCode::State,
+            );
             explained(judge(&mut guest, observation(1, 2)), &[]);
         }
-        let (status, action) = if policy == b"Complete" { (2, "Worker::RespondCompleted") } else { (3, "Worker::RespondFailed { retryable: false }") };
+        let (status, action) = if policy == b"Complete" {
+            (2, "Worker::RespondCompleted")
+        } else {
+            (3, "Worker::RespondFailed { retryable: false }")
+        };
         explained(judge(&mut guest, observation(status, 0)), &[action]);
     }
 }

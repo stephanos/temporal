@@ -1,0 +1,6 @@
+{
+  "mutation": "payload-specific duplicate key",
+  "test_exit": 101,
+  "before_sha256": "826ba6583f047261d9c53437be8ea41033d72c930d1373595027fff1a303a53c",
+  "restored_sha256": "826ba6583f047261d9c53437be8ea41033d72c930d1373595027fff1a303a53c"
+}

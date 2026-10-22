@@ -1,0 +1,44 @@
+{
+  "success": true,
+  "type": "impl_review",
+  "id": "fn-227-parameterized-models-declared-worlds.3",
+  "verdict": "NEEDS_WORK",
+  "session_id": "01a16598-6f2d-76c3-8042-4c07e829ab3e",
+  "mode": "codex",
+  "model": "gpt-6.1-sol",
+  "effort": "high",
+  "spec": "codex:gpt-6.1-sol:high",
+  "standalone": false,
+  "review": "## Issue 1\n- **Severity**: P2\n- **Title**: A callback with the wrong attempt can receive a successful reply\n- **Confidence**: 75\n- **Classification**: introduced\n- **Problem**: A callback with the wrong attempt can receive a successful reply. After answering a Complete callback for attempt 1, the model remains Started at attempt 1. A subsequent callback for attempt 2 produces `Poll(2)`, which emits a rejected self-loop. Runtime delivery replay accepts that emitted step without checking its outcome, then finds `RespondCompleted` enabled. Reproduced against the committed WASM guest: callbacks for attempts 1, 2 and 3 all returned Answer without a retry transition.\n- **Suggestion**: Require successful delivery before publishing the reply, or validate the callback attempt against the current model attempt. Add a guest regression that accepts attempt 1, then refuses a mismatched callback while preserving state.\n- **File:Line**: model/temporal/feature/activity/temporal.rs:198\n- **R-IDs**: R4\n\n```json\n{\"classification_counts\": {\"introduced\": 1, \"pre_existing\": 0}, \"unaddressed\": [\"R4\"], \"suppressed_count\": {}}\n```\n\n<verdict>NEEDS_WORK</verdict>\n",
+  "draws": [
+    {
+      "axis": "correctness",
+      "model": "gpt-6.1-sol",
+      "session_id": "01a16598-6f2d-76c3-8042-4c07e829ab3e",
+      "verdict": "NEEDS_WORK",
+      "failed": false
+    },
+    {
+      "axis": "contracts",
+      "model": "gpt-6.1-sol",
+      "session_id": "01a16598-6f2d-7a52-94d7-b4d8c6206390",
+      "verdict": "NEEDS_WORK",
+      "failed": false
+    },
+    {
+      "axis": "integration",
+      "model": "gpt-6.1-sol",
+      "session_id": "01a16598-6f2d-73b0-8d0e-b9677d13b858",
+      "verdict": "NEEDS_WORK",
+      "failed": false
+    }
+  ],
+  "needs_work_survivors": 1,
+  "introduced_count": 1,
+  "pre_existing_count": 0,
+  "unaddressed": [
+    "R4"
+  ],
+  "review_rounds": 1,
+  "review_rounds_cap": 8
+}
