@@ -142,7 +142,7 @@ The review passed; each consumer still waits for its declared support dependenci
 
 | Name | Status | What |
 | --- | --- | --- |
-| fn-227.11 | ⬜ todo | fn-238.4 done: source `Phased`/`reject!` and closure laws, built once on the shared front end, with unchanged activity behavior (R3) |
+| fn-227.11 | 🔄 in progress | fn-238.4 done: source `Phased`/`reject!` and closure laws, built once on the shared front end, with unchanged activity behavior (R3) |
 | fn-227.3 | ⬜ todo | After .2 and .11: activity attempts/retryable failure and retained-lifecycle refinement (R3, R4) |
 | fn-227.5 | ⬜ todo | After .3 and .12: transactional live World admission (`maximum_attempts`) and SDK retry proof (R6) |
 | fn-227.6 | ⬜ todo | After .5: DESIGN.md parameterized worlds, inputs and retries write-up and readiness table closure (R7) |
@@ -169,13 +169,14 @@ for declaration-level constructs. Option B would make body-level constructs cost
 .6 are deferred until a concrete need appears (owner confirmed 2026-10-22).
 .4 is complete locally: the macro embeds the admitted Model and the lifter emits from it, with
 no `model.rs` re-read; core crates 8,297 lines against 8,190 before .2; timing 47.6s gate, 7.3s inner loop.
+.7 recorded the boundary and measurements in [DESIGN.md](model/DESIGN.md#front-end-and-back-ends-fn-238).
+Only the deferred .5 and .6 remain open.
 [Spec](.flow/specs/fn-238-shared-front-end-one-model-reading-for.md).
 
 | Name | Status | What |
 | --- | --- | --- |
 | fn-238.5 | ⏸️ deferred | Deferred 2026-10-22 (owner confirmed): interpreted checker as a differential check; revive on a concrete need such as checker speed (R2, R3) |
 | fn-238.6 | ⏸️ deferred | Deferred with .5: interpreted checker by default behind the 2x / 25% gate (R2, R3) |
-| fn-238.7 | 🔄 in progress | After .4: boundary write-up with measured line counts and per-construct cost (R4) |
 
 ### fn-239: Renew the Linux/macOS guest byte-identity certification (model)
 
