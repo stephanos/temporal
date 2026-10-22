@@ -1,5 +1,7 @@
 use super::*;
 
+pub(crate) mod collection;
+
 #[derive(Deserialize, Serialize)]
 #[serde(deny_unknown_fields)]
 pub(crate) struct Recipe {
@@ -408,10 +410,24 @@ impl Recipe {
     }
 
     pub(crate) fn admit_external(
+        self,
+        module: Vec<u8>,
+        arguments: Vec<String>,
+        invocation: &super::super::origin::Invocation,
+        deadline: Instant,
+    ) -> Result<Prepared, String> {
+        let expected = self.driver_arguments(&std::env::current_exe().map_err(failure)?)?;
+        let metadata = crate::evidence::symbolize::build_info::read(&module)?;
+        self.admit_external_bound(module, arguments, invocation, &expected, metadata, deadline)
+    }
+
+    fn admit_external_bound(
         mut self,
         module: Vec<u8>,
         arguments: Vec<String>,
         invocation: &super::super::origin::Invocation,
+        expected_argv: &[String],
+        metadata: crate::evidence::symbolize::build_info::BuildInfo,
         deadline: Instant,
     ) -> Result<Prepared, String> {
         invocation.validate()?;
@@ -433,8 +449,7 @@ impl Recipe {
         {
             return Err(failure("intercepted driver recipe identity mismatch"));
         }
-        let expected = self
-            .driver_arguments(&std::env::current_exe().map_err(failure)?)?
+        let expected = expected_argv
             .iter()
             .map(|arg| super::super::origin::argument(std::ffi::OsStr::new(arg)))
             .collect::<Vec<_>>();
@@ -445,7 +460,6 @@ impl Recipe {
         }
         inventory::verify(&self.compiler)?;
         inventory::verify(&self.sources)?;
-        let metadata = crate::evidence::symbolize::build_info::read(&module)?;
         self.authenticate_build_info(&metadata)?;
         self.inputs["go_build_info"] = serde_json::to_value(&metadata).map_err(failure)?;
         self.admit(module, arguments, deadline)
@@ -493,9 +507,7 @@ impl Recipe {
             .map(|v| v.as_str().ok_or_else(|| failure("invalid recipe tag")))
             .collect::<Result<Vec<_>, _>>()?
             .join(",");
-        if !expected_tags.is_empty()
-            && values.get("-tags").map(String::as_str) != Some(expected_tags.as_str())
-        {
+        if values.get("-tags").map_or("", String::as_str) != expected_tags {
             return Err(failure("intercepted module build tags mismatch"));
         }
         Ok(())

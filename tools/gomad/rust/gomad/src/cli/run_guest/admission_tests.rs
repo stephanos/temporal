@@ -122,10 +122,12 @@ fn repeated_and_concurrent_admissions_have_private_distinct_bindings() {
     });
     let [third, fourth] = concurrent;
     let receipts = [first, second, third, fourth];
+    let mut launch_ids = std::collections::BTreeSet::new();
     for (index, (path, receipt, digest)) in receipts.iter().enumerate() {
         let (_, prepared) = preparation::open_receipt(path, digest).unwrap();
         let bound = origin::from_preparation(&prepared).unwrap().unwrap();
         assert_eq!(bound.invocation, invocation);
+        assert!(launch_ids.insert(bound.launch.as_ref().unwrap().invocation_id.clone()));
         assert_eq!(bound.module_sha256, receipt.module_sha256);
         assert_eq!(
             canonical::digest(&prepared.provenance),
@@ -447,4 +449,199 @@ fn qualification_source_probe_reaches_target_refusal_after_valid_digest() {
     .err()
     .expect("prepared artifact source unexpectedly admitted");
     assert_eq!(error, "unsupported WASM source preparation request");
+}
+
+#[test]
+fn retained_launch_renewal_preserves_driver_and_authenticated_preparation() {
+    let invocation = invocation();
+    let mut prepared = prepared("renewed", &invocation);
+    let original = origin::from_preparation(&prepared).unwrap().unwrap();
+    let receipt_sha256 = "6".repeat(64);
+    origin::renew_launch(&mut prepared, receipt_sha256.clone()).unwrap();
+    let renewed = origin::from_preparation(&prepared).unwrap().unwrap();
+    assert_eq!(renewed.invocation, original.invocation);
+    assert_eq!(renewed.module_sha256, original.module_sha256);
+    assert_eq!(renewed.preparation_sha256, original.preparation_sha256);
+    assert_ne!(renewed.launch, original.launch);
+    assert_eq!(
+        renewed.launch.as_ref().unwrap().preparation_receipt_sha256,
+        Some(receipt_sha256)
+    );
+    let unchanged = prepared.provenance.clone();
+    assert!(origin::renew_launch(&mut prepared, "not-a-digest".into()).is_err());
+    assert_eq!(prepared.provenance, unchanged);
+    for field in [
+        "invocation_id",
+        "process_id",
+        "argv",
+        "preparation_receipt_sha256",
+    ] {
+        let mut value = serde_json::to_value(&renewed).unwrap();
+        value["launch"][field] = match field {
+            "invocation_id" => json!(invocation.id),
+            "process_id" => json!(0),
+            "argv" => json!(["not hexadecimal"]),
+            "preparation_receipt_sha256" => json!("not-a-digest"),
+            _ => unreachable!(),
+        };
+        let invalid: origin::Intercepted = serde_json::from_value(value).unwrap();
+        assert!(invalid.validate().is_err(), "{field}");
+    }
+}
+
+#[test]
+fn same_driver_launches_have_distinct_campaigns_and_record_commitments() {
+    use crate::campaign::ledger::{Event, Journal};
+    use std::{collections::BTreeSet, time::Duration};
+    let root = std::env::temp_dir().join(format!(
+        "gomad-shared-driver-{}",
+        origin::identity().unwrap()
+    ));
+    let invocation = invocation();
+    let run = || {
+        let module = br#"(module
+            (import "wasi_snapshot_preview1" "proc_exit" (func $exit (param i32)))
+            (memory (export "memory") 1)
+            (func (export "_start") (call $exit (i32.const 0))))"#
+            .to_vec();
+        let prepared = prepared_module("same-package", &invocation, module);
+        let binding = origin::from_preparation(&prepared).unwrap().unwrap();
+        let mut ignored = false;
+        let mut options = super::super::explore::parse(
+            &["--seeds=7".into(), "go-run".into(), "fixture".into()],
+            &mut ignored,
+        )
+        .unwrap();
+        options.artifacts = root.clone();
+        options.json = true;
+        let prepared = retain_admission(&options, prepared).unwrap();
+        let outcome =
+            launcher::run(&options, &prepared, Instant::now() + Duration::from_secs(5)).unwrap();
+        assert_eq!(
+            (outcome.status, outcome.attempted, outcome.unexecuted),
+            (0, 1, 0)
+        );
+        let journal = Journal::open(&outcome.campaign, false).unwrap();
+        let receipt = journal
+            .events()
+            .iter()
+            .find_map(|event| match event {
+                Event::Receipt { execution } => Some(execution),
+                _ => None,
+            })
+            .unwrap();
+        let opened = crate::evidence::store::Opened::open(
+            &outcome.campaign.join(receipt.artifact.as_ref().unwrap()),
+        )
+        .unwrap();
+        opened.authenticate_all().unwrap();
+        assert_eq!(origin::authenticate(&opened).unwrap().unwrap(), binding);
+        let launch_id = binding.launch.unwrap().invocation_id;
+        assert_eq!(
+            outcome.campaign.file_name().unwrap(),
+            OsStr::new(&format!("campaign-{launch_id}"))
+        );
+        (
+            outcome.campaign.clone(),
+            launch_id,
+            opened.manifest().record_sha256.clone(),
+        )
+    };
+    let first = run();
+    let second = run();
+    let concurrent = std::thread::scope(|scope| {
+        let a = scope.spawn(&run);
+        let b = scope.spawn(&run);
+        [a.join().unwrap(), b.join().unwrap()]
+    });
+    let [third, fourth] = concurrent;
+    let observations = [first, second, third, fourth];
+    assert_eq!(
+        observations
+            .iter()
+            .map(|value| &value.0)
+            .collect::<BTreeSet<_>>()
+            .len(),
+        4
+    );
+    assert_eq!(
+        observations
+            .iter()
+            .map(|value| &value.1)
+            .collect::<BTreeSet<_>>()
+            .len(),
+        4
+    );
+    assert_eq!(
+        observations
+            .iter()
+            .map(|value| &value.2)
+            .collect::<BTreeSet<_>>()
+            .len(),
+        4
+    );
+    assert_eq!(
+        fs::read_dir(root.join("admissions").join(&invocation.id))
+            .unwrap()
+            .count(),
+        4
+    );
+    fs::remove_dir_all(root).unwrap();
+}
+
+#[test]
+fn legacy_intercepted_artifact_remains_readable_without_launch_extension() {
+    use crate::campaign::{execution, ledger::Job};
+    use gomad_wasmhost::linked;
+    use std::time::Duration;
+    let module = br#"(module (memory (export "memory") 1) (func (export "_start")))"#.to_vec();
+    let mut prepared = prepared_module("legacy", &invocation(), module);
+    let mut provenance: serde_json::Value = serde_json::from_slice(&prepared.provenance).unwrap();
+    provenance["origin"]
+        .as_object_mut()
+        .unwrap()
+        .remove("launch");
+    crate::campaign::prepare::typed_provenance(&provenance).unwrap();
+    prepared.provenance = canonical::encode(&provenance).unwrap();
+    assert!(
+        origin::from_preparation(&prepared)
+            .unwrap()
+            .unwrap()
+            .launch
+            .is_none()
+    );
+    let execution = execution::run_with_replay(
+        &prepared,
+        &Job {
+            ordinal: 0,
+            seed: 7,
+        },
+        Duration::from_secs(1),
+        &linked::Cancellation::default(),
+        None,
+        None,
+    )
+    .unwrap();
+    let root = std::env::temp_dir().join(format!(
+        "gomad-legacy-origin-{}",
+        origin::identity().unwrap()
+    ));
+    let store = crate::evidence::store::Store {
+        root: root.clone(),
+        maximum_bytes: 64 << 20,
+        target_pool: None,
+        #[cfg(feature = "determinism-fixture")]
+        fault: None,
+    };
+    let published = store.publish(execution.publication).unwrap();
+    let opened = crate::evidence::store::Opened::open(&published.path).unwrap();
+    opened.authenticate_all().unwrap();
+    assert!(
+        origin::authenticate(&opened)
+            .unwrap()
+            .unwrap()
+            .launch
+            .is_none()
+    );
+    fs::remove_dir_all(root).unwrap();
 }
