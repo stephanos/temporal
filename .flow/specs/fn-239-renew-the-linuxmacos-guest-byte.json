@@ -1,13 +1,66 @@
 {
   "branch_name": "fn-239-renew-the-linuxmacos-guest-byte",
+  "completion_review_status": "ship",
+  "completion_reviewed_at": "2026-10-22T17:21:37.474725Z",
   "created_at": "2026-10-22T01:12:11.236421Z",
+  "default_impl": null,
+  "default_review": null,
+  "default_sync": null,
   "depends_on_epics": [],
   "id": "fn-239-renew-the-linuxmacos-guest-byte",
+  "impl_review_rounds": {},
   "next_task": 1,
+  "plan_review_rounds": 0,
   "plan_review_status": "unknown",
   "plan_reviewed_at": null,
+  "review_attempts": [
+    {
+      "artifact_sha256": "b00625987e7aa1dc04da7c7aa92dd89778cd48b8c0e9ca85838096eb8911363e",
+      "backend": "codex",
+      "base_sha": "a96a4c6550b468c5d7c3011a7961d4e118dacd93",
+      "counter_kind": "plan",
+      "effort": "high",
+      "failure_class": null,
+      "finalized": {
+        "digest": "complete",
+        "receipt": "complete",
+        "status": "complete"
+      },
+      "findings_digest": {
+        "backend": "codex",
+        "digest_truncated": false,
+        "items": [],
+        "reviewKind": "completion"
+      },
+      "forced": false,
+      "hash_epoch": 0,
+      "head_sha": "93ef3f52903e30b78d9a060fd796d0b6b681a5c6",
+      "head_sha_observed": true,
+      "kind": "completion",
+      "model": "gpt-6.1-sol",
+      "outcome": "verdict",
+      "output_bytes": 243240,
+      "output_sha256": "5462c4785921acd31b2f81f0a3ff70e031506d61cfc363f96b821d352baf0d0e",
+      "reservation_id": "8cdf97035e4341caa7023f4d2cea4609",
+      "round_consumed": true,
+      "scope": "completion",
+      "superseded_by": null,
+      "task": null,
+      "timestamp": "2026-10-22T17:21:37.358931Z",
+      "tool_calls": 19,
+      "verdict": "SHIP"
+    }
+  ],
+  "review_hash_epoch": {
+    "plan#completion": 1
+  },
+  "review_pending_rounds": {},
+  "review_reservations": {},
+  "review_transport_failures": {
+    "completion": 0
+  },
   "spec_path": ".flow/specs/fn-239-renew-the-linuxmacos-guest-byte.md",
-  "status": "open",
+  "status": "done",
   "title": "Renew the Linux/macOS guest byte-identity certification (model)",
   "tracker": {
     "baseHashFlow": null,
@@ -20,5 +73,5 @@
     "mergeBaseTracker": null,
     "url": null
   },
-  "updated_at": "2026-10-22T01:12:11.244818Z"
+  "updated_at": "2026-10-22T17:22:05.531164Z"
 }

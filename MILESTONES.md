@@ -2,7 +2,7 @@
 
 The owner's overview of what is open, in what order, and why. One page, describing the present.
 
-As of 2026-10-21.
+As of 2026-10-22.
 
 ## Keeping this page current
 
@@ -84,7 +84,7 @@ without changing the canonical Model, and differential healthy-versus-mutant det
 
 | Name | Status | What |
 | --- | --- | --- |
-| fn-233.1 | ⬜ todo | Extract generic catalog tooling and envelopes; preserve Model/semantic goldens and explicitly migrate Any identities (R1) |
+| fn-233.1 | 🔄 in progress | Extract generic catalog tooling and envelopes; preserve Model/semantic goldens and explicitly migrate Any identities (R1) |
 | fn-233.2 | ⬜ todo | Kettle service proto, Go reference server, realization, guest, selected-start Judge/Answer live run with exact RPC projections and transcript golden (R2) |
 | fn-233.3 | ⬜ todo | Kettle `derive(Catalog)` catalog, `config.rs`, Annotate in the live run, `coverage.snap` and `gaps.txt` (R3, R5) |
 | fn-233.4 | ⬜ todo | Seeded mutants, one-line switches, each named by the framework in `mutants.snap.txt` (R4) |
@@ -183,17 +183,6 @@ Only the deferred .5 and .6 remain open.
 | fn-238.5 | ⏸️ deferred | Deferred 2026-10-22 (owner confirmed): interpreted checker as a differential check; revive on a concrete need such as checker speed (R2, R3) |
 | fn-238.6 | ⏸️ deferred | Deferred with .5: interpreted checker by default behind the 2x / 25% gate (R2, R3) |
 | fn-238.9 | ⬜ todo | Derive the IR token printer instead of hand-writing it (about -190 lines; owner-approved); after fn-227 (R2) |
-
-### fn-239: Renew the Linux/macOS guest byte-identity certification (model)
-
-fn-239 renewed fn-232's certification after fn-238.8's per-crate lockfile closure change.
-Four clean builds at `a96a4c6550` passed all twelve byte comparisons and both host suites
-on Linux and native macOS. Standalone, by owner request; nothing waits on it.
-[Spec](.flow/specs/fn-239-renew-the-linuxmacos-guest-byte.md).
-
-| Name | Status | What |
-| --- | --- | --- |
-| fn-239.1 | ✅ done | Four clean builds at `a96a4c6550`; all twelve comparisons and both host suites passed on Linux and native macOS; proof retained (R1, R2) |
 
 ### fn-237: Activity timeouts, heartbeat and cooperative cancellation (model, temporal)
 
