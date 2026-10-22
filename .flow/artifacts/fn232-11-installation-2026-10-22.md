@@ -258,3 +258,20 @@ retained in the golden. Overlay bytes must match their own source inventory.
 Selection, arguments, Go refusal/explore and Rust zero-execution behavior checks
 remain. No hash is substituted or normalized; no cross-lineage module byte parity
 is claimed. Independent integrated batch review must cover this changed premise.
+
+Focused plan 02 (session 80788) completed exit 0 with full raw authentic plan,
+portable receipt, metadata attacks, scoped bases, stripped-symbol refusal and
+separate Go/Rust lineage checks. Full lane 07 (session 19493) then terminated
+exit 1 at the first Rust recovery seed preparation: the cooperative installation
+requires --choices, which seed recovery omitted (round already included it).
+The same missing seed trace flag was present in Go recovery. Both harnesses now
+derive seed trace flags from their actual installed profile, preserving stock
+and round flags. Full 07 is retained; 08 was not started.
+
+Independent source review also found cooperative-only lineage assertions would
+regress stock plan+Go-reference calls. They now keep common own-module, compiler,
+version and argv checks, while stock explicitly requires absent choice profiles
+and absent overlays; cooperative still requires literal Go v3/Rust v4 and full
+own-overlay authentication. Stock lineage fields retain null values; no identity
+is fabricated. AST3 and diff-check exit 0; actual focused recovery and stock plan
+checks remain pending the conductor's integrated resource window.

@@ -556,7 +556,8 @@ def go_recovery_check(args, installation, root, run, decode, kind):
     fixture = CORPUS.parents[1] / 'internal/backends/wasm/qualification/testdata/fixture'
     target = '.'
     artifacts = root / ('go-' + kind + '-recovery-artifacts')
-    strategy = [] if kind == 'seed' else ['--strategy=choice-exploration', '--choices', '--max-executions=1',
+    trace_flags = ['--choices'] if decode(installation.read_bytes())['options']['Config']['Profile'] == 'gomad.wasi-cooperative/v1' else []
+    strategy = trace_flags if kind == 'seed' else ['--strategy=choice-exploration', '--choices', '--max-executions=1',
         '--max-choice-depth=1', '--max-exploration-bytes=1MiB']
     run(f'go-{kind}-recovery-explore-{root.name}', [args.go_binary, '--installation', installation,
         'explore', '--json', '--seeds=7', '--parallel=1', '--on-failure=all', '--keep-successes=all',

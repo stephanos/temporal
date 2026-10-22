@@ -25,6 +25,7 @@ def check(binary, installation, root, working_dir,
     root.mkdir(parents=True)
     parity = runpy.run_path(str(Path(__file__).with_name('campaign-check.py')))
     receipts, observations = [], []
+    trace_flags = ['--choices'] if json.loads(installation.read_bytes())['profile'] == 'gomad.wasi-cooperative/v1' else []
     environment = {key: value for key, value in os.environ.items() if not key.startswith("GOMAD_")}
 
     def run(name, arguments, status):
@@ -40,7 +41,7 @@ def check(binary, installation, root, working_dir,
 
     for kind in ('seed', 'round'):
         output = root / (kind + '-plan.json')
-        extra = [] if kind == 'seed' else ['--strategy=choice-exploration', '--choices',
+        extra = trace_flags if kind == 'seed' else ['--strategy=choice-exploration', '--choices',
             '--max-executions=1', '--max-choice-depth=1', '--max-exploration-bytes=1MiB']
         prepared = run(kind + '-plan', ['--installation', installation, 'plan', '--json',
             '--output', output, '--artifacts', root / (kind + '-artifacts'),

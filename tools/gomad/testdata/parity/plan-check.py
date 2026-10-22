@@ -400,25 +400,33 @@ def check(binary, installation, root, working_dir, package='./...', go_binary=No
             go_manifest['target']['backend']['provenance']['file']).read_bytes())
         assert go_provenance['ModuleSHA256'] == 'sha256:' + digest(go_target)
         assert provenance['module_sha256'] == receipt['module_sha256'] == digest(module)
-        assert go_manifest['choice_profile']['name'] == 'gomad-choice-trace/v3'
-        assert provenance['configuration']['environment']['GOMAD_CHOICE_PROFILE'] == 'gomad-choice-trace/v4'
         assert go_provenance['CompilerSHA256'] == 'sha256:' + provenance['inputs']['compiler_sha256']
         assert go_provenance['GoVersion'] == provenance['inputs']['go_version']
+        go_choice = rust_choice = go_overlay_sha = rust_overlay_sha = None
         go_flags = go_provenance['BuildFlags']
-        go_overlay = Path(go_flags[go_flags.index('-overlay') + 1])
-        go_overlay_sha = 'sha256:' + digest(go_overlay.read_bytes())
-        assert any(row['Path'] == str(go_overlay) and row['SHA256'] == go_overlay_sha
-            for row in go_provenance['Sources'])
         rust_overlays = [(Path(path), sha) for path, sha in provenance['inputs']['compiler'].items()
             if Path(path).name == 'overlay.json']
-        assert len(rust_overlays) == 1
-        rust_overlay, rust_overlay_sha = rust_overlays[0]
-        assert digest(rust_overlay.read_bytes()) == rust_overlay_sha
+        if trace_flags:
+            go_choice = go_manifest['choice_profile']['name']
+            rust_choice = provenance['configuration']['environment']['GOMAD_CHOICE_PROFILE']
+            assert go_choice == 'gomad-choice-trace/v3'
+            assert rust_choice == 'gomad-choice-trace/v4'
+            go_overlay = Path(go_flags[go_flags.index('-overlay') + 1])
+            go_overlay_sha = 'sha256:' + digest(go_overlay.read_bytes())
+            assert any(row['Path'] == str(go_overlay) and row['SHA256'] == go_overlay_sha
+                for row in go_provenance['Sources'])
+            assert len(rust_overlays) == 1
+            rust_overlay, rust_overlay_sha = rust_overlays[0]
+            assert digest(rust_overlay.read_bytes()) == rust_overlay_sha
+        else:
+            assert not go_manifest.get('choice_profile')
+            assert 'GOMAD_CHOICE_PROFILE' not in provenance['configuration']['environment']
+            assert '-overlay' not in go_flags and not rust_overlays
         lineages = dict(
-            go=dict(choice_profile=go_manifest['choice_profile']['name'], module_sha256=go_provenance['ModuleSHA256'],
-                runtime_sha256=go_provenance['RuntimeSHA256'],
-                runtime_implementation_sha256=go_provenance['RuntimeImplementationSHA256'], overlay_sha256=go_overlay_sha),
-            rust=dict(choice_profile=provenance['configuration']['environment']['GOMAD_CHOICE_PROFILE'],
+            go=dict(choice_profile=go_choice, module_sha256=go_provenance['ModuleSHA256'],
+                runtime_sha256=go_provenance.get('RuntimeSHA256'),
+                runtime_implementation_sha256=go_provenance.get('RuntimeImplementationSHA256'), overlay_sha256=go_overlay_sha),
+            rust=dict(choice_profile=rust_choice,
                 module_sha256=provenance['module_sha256'], runtime_sha256=provenance['inputs']['runtime'],
                 runtime_implementation_sha256=provenance['inputs']['runtime_implementation'], overlay_sha256=rust_overlay_sha))
         assert go_manifest['target']['argv'] == plan['configuration']['arguments']
