@@ -34,6 +34,29 @@ const DIRECTORY: [&str; 2] = ["rust-qualifications", "v1"];
 const MAXIMUM_RESULT_BYTES: u64 = 64 << 20;
 const MAXIMUM_RECEIPT_BYTES: u64 = 8 << 10;
 const COOPERATIVE_PROFILE: &str = "gomad.wasi-cooperative/v1";
+/// The build-input fields, in canonical (sorted) order.
+const INPUT_FIELDS: [&str; 20] = [
+    "arguments",
+    "build_flags",
+    "compiler",
+    "compiler_sha256",
+    "configuration",
+    "directory",
+    "environment",
+    "go_version",
+    "helper",
+    "host",
+    "kind",
+    "network",
+    "runtime",
+    "runtime_implementation",
+    "scenario",
+    "schema",
+    "soft_assertion_report_only",
+    "source",
+    "sources",
+    "tags",
+];
 /// The provenance fields, in canonical (sorted) order.
 const PROVENANCE_FIELDS: [&str; 8] = [
     "build_key",
@@ -90,7 +113,16 @@ fn derive(provenance: &serde_json::Value) -> Result<Derived, String> {
     {
         return Err(refuse());
     }
+    // Every typed level is exact, and the build inputs carry exactly their
+    // declared fields.
+    crate::campaign::prepare::typed_provenance(provenance).map_err(|_| refuse())?;
     let inputs = &provenance["inputs"];
+    if !inputs
+        .as_object()
+        .is_some_and(|object| object.keys().map(String::as_str).eq(INPUT_FIELDS))
+    {
+        return Err(refuse());
+    }
     let configuration = &provenance["configuration"];
     let toolchain = digest(inputs)?;
     if text(&provenance["build_key"])? != toolchain {
@@ -191,18 +223,48 @@ fn standalone_inputs(
 }
 
 /// A cluster execution ran the retained configuration's limits, except that
-/// its evidence bound is reduced to the scenario's `scenario_evidence_bytes`.
+/// its evidence bound is exactly the smaller of the configuration's and the
+/// retained scenario's `scenario_evidence_bytes`.
 fn cluster_limits(
     limits: &crate::evidence::record::Limits,
-    configuration: &serde_json::Value,
+    provenance: &serde_json::Value,
 ) -> bool {
-    let mut observed = serde_json::json!(limits);
-    let retained = &configuration["limits"];
-    let reduced = retained["evidence_bytes"]
-        .as_u64()
-        .is_some_and(|bound| limits.evidence_bytes <= bound);
-    observed["evidence_bytes"] = retained["evidence_bytes"].clone();
-    reduced && observed == *retained
+    let retained = &provenance["configuration"]["limits"];
+    let scenario = serde_json::from_value::<Vec<u8>>(provenance["scenario"].clone())
+        .ok()
+        .and_then(|bytes| crate::campaign::scenario::evidence_limit(&bytes).ok());
+    let mut expected = retained.clone();
+    match (retained["evidence_bytes"].as_u64(), scenario) {
+        (Some(bound), Some(scenario)) => {
+            expected["evidence_bytes"] = bound.min(scenario).into();
+        }
+        _ => return false,
+    }
+    serde_json::json!(limits) == expected
+}
+
+/// The Go owner's trace bytes an execution record retains: each store's
+/// transcript, choice, diagnostic and storage streams plus the network trace,
+/// which a cluster shares once across its incarnations.
+fn recorded_trace_bytes(record: &crate::evidence::record::Record) -> u64 {
+    record
+        .streams
+        .iter()
+        .filter(|(name, _)| {
+            let Some(rest) = name.strip_prefix("evidence/") else {
+                return false;
+            };
+            let stream = match rest.strip_prefix("cluster/") {
+                Some(store) => match store.splitn(3, '/').nth(2) {
+                    Some(stream) if stream != "network" => stream,
+                    _ => return false,
+                },
+                None => rest,
+            };
+            crate::campaign::execution::TRACE_STREAMS.contains(&stream)
+        })
+        .map(|(_, stream)| stream.bytes)
+        .sum()
 }
 
 /// Refuses a manifest whose identities differ from its retained provenance.
@@ -487,6 +549,28 @@ pub(crate) fn validate(result: &QualificationResult) -> Result<(), String> {
         }
     }
     bind_cluster_handles(result)?;
+    // Each execution's samples, and each matched replay's, measured exactly
+    // the trace bytes its record retains.
+    for execution in &result.report.executions {
+        let recorded = recorded_trace_bytes(&execution.record);
+        let matched = execution
+            .replay
+            .as_ref()
+            .is_some_and(|replay| replay.matched);
+        for phase in ["execute", "replay"] {
+            let measured = result
+                .observations
+                .samples
+                .iter()
+                .filter(|sample| sample.phase == phase && sample.iteration == execution.iteration)
+                .map(|sample| sample.trace_bytes)
+                .try_fold(0_u64, u64::checked_add)
+                .ok_or("qualification trace bytes overflow")?;
+            if (phase == "execute" || matched) && measured != recorded {
+                return Err("qualification trace bytes differ from the execution record".into());
+            }
+        }
+    }
     // Every store, executed or replayed, ran under the frozen guest limit;
     // only multi-instance stores carry node/incarnation handles.
     let cluster = manifest.workload == "multi-instance";

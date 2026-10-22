@@ -153,10 +153,18 @@ def oracle(case):
             if clusters:
                 statuses['conservative resident helper peak upper bound'] = 'within' if max(clusters) <= 8 * GIB else 'exceeded'
         else:
-            for name, limit in (('operator lifetime peak RSS', 2 * GIB), ('individual warm helper peak RSS', 4 * GIB),
-                                ('individual cold helper peak RSS', 6 * GIB),
-                                ('conservative resident helper peak upper bound', 8 * GIB)):
-                statuses[name] = 'within' if peak <= limit else 'unattributed'
+            # A measured overrun survives the fallback; otherwise the lifetime
+            # peak upper-bounds the phase.
+            def known(cluster):
+                peaks = [window[0]['store_peak_rss_bytes'] for window in groups if window[0].get('store_peak_rss_bytes')
+                         and (window[0].get('incarnation') is not None) == cluster]
+                return max(peaks) if peaks else None
+            for name, measured, limit in (('operator lifetime peak RSS', operator, 2 * GIB),
+                                          ('individual warm helper peak RSS', None, 4 * GIB),
+                                          ('individual cold helper peak RSS', known(False), 6 * GIB),
+                                          ('conservative resident helper peak upper bound', known(True), 8 * GIB)):
+                statuses[name] = ('exceeded' if measured is not None and measured > limit
+                                  else 'within' if peak <= limit else 'unattributed')
         for sample in samples:
             if sample['guest_peak_memory_bytes'] > sample['guest_memory_limit_bytes']:
                 store = ' ' + sample['incarnation'] if sample.get('incarnation') else ''
@@ -222,8 +230,11 @@ def check(case, row):
         if not monotone(terminal, executed) or attributed and operator < retained or unexplained:
             equal('failure' in row['terminal'], True, name + '.terminal_refused')
         else:
-            peak = operator if attributed else terminal['peak_rss_bytes']
-            status = 'within' if peak <= 2 * GIB else 'exceeded' if attributed else 'unattributed'
+            # A retained operator overrun stays exceeded without the receipt's own figure.
+            overrun = retained if retained is not None and retained > 2 * GIB else None
+            exact = attributed or overrun is not None
+            peak = operator if attributed else overrun if overrun is not None else terminal['peak_rss_bytes']
+            status = 'within' if peak <= 2 * GIB else 'exceeded' if exact else 'unattributed'
             equal(row['terminal'], {'cpu_nanos': cpu(terminal, executed), 'peak_rss_bytes': peak, 'status': status},
                   name + '.terminal_tail')
 

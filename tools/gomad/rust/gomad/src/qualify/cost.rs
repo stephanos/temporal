@@ -551,15 +551,7 @@ fn memory_checks(
         );
     }
     let (Some(operator), Some(windows)) = (operator, windows) else {
-        return Ok([
-            ("operator lifetime peak RSS", 2 * GIB),
-            ("individual warm helper peak RSS", 4 * GIB),
-            ("individual cold helper peak RSS", 6 * GIB),
-            ("conservative resident helper peak upper bound", 8 * GIB),
-        ]
-        .into_iter()
-        .map(|(name, limit)| check(name, "linked process upper bound", linked, limit, false))
-        .collect());
+        return Ok(fallback_checks(groups, operator, linked));
     };
     let largest = windows.iter().map(|(_, peak)| *peak).max().unwrap_or(0);
     // Follow the lifetime peak from the operator baseline through every
@@ -630,6 +622,46 @@ fn memory_checks(
     Ok(checks)
 }
 
+/// Without full attribution: a measured phase that already exceeds its
+/// ceiling stays a violation, since a missing measurement never erases it;
+/// otherwise the lifetime peak upper-bounds the phase.
+fn fallback_checks(groups: &[Group<'_>], operator: Option<u64>, linked: u64) -> Vec<Check> {
+    let known = |cluster: bool| {
+        groups
+            .iter()
+            .filter(|group| group.stores[0].incarnation.is_some() == cluster)
+            .filter_map(|group| group.store_peak_rss_bytes.filter(|peak| *peak > 0))
+            .max()
+    };
+    [
+        (
+            "operator lifetime peak RSS",
+            "operator phases",
+            operator,
+            2 * GIB,
+        ),
+        ("individual warm helper peak RSS", "", None, 4 * GIB),
+        (
+            "individual cold helper peak RSS",
+            "single store window",
+            known(false),
+            6 * GIB,
+        ),
+        (
+            "conservative resident helper peak upper bound",
+            "cluster store window",
+            known(true),
+            8 * GIB,
+        ),
+    ]
+    .into_iter()
+    .map(|(name, quantity, measured, limit)| match measured {
+        Some(peak) if peak > limit => check(name, quantity, peak, limit, true),
+        _ => check(name, "linked process upper bound", linked, limit, false),
+    })
+    .collect()
+}
+
 /// Recomputes cost and budget, retaining a failure message instead of a
 /// fabricated measurement when an observation is missing.
 pub(crate) fn evaluate(
@@ -685,7 +717,15 @@ pub(crate) fn terminal(
     {
         return Err("terminal lifetime peak rise is not attributed to the operator phase".into());
     }
-    let (peak, exact) = attributed.map_or((after.peak_rss_bytes, false), |peak| (peak, true));
+    // A retained operator overrun stays exceeded even when the receipt lacks
+    // its own operator measurement.
+    let retained = observations
+        .operator_peak_rss_bytes
+        .filter(|peak| *peak > 2 * GIB);
+    let (peak, exact) = match (attributed, retained) {
+        (Some(peak), _) | (None, Some(peak)) => (peak, true),
+        (None, None) => (after.peak_rss_bytes, false),
+    };
     Ok(Terminal {
         cpu_nanos: cpu(after, executed.linked)?,
         peak_rss_bytes: peak,

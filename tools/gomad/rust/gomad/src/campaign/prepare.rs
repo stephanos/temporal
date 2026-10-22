@@ -69,6 +69,16 @@ struct Provenance {
     network: Option<gomad_wasmhost::linked_cluster::NetworkModel>,
 }
 
+/// Refuses a provenance value that is not exactly its typed, canonical form:
+/// any unknown or ill-typed field at any typed level is refused.
+pub(crate) fn typed_provenance(value: &Value) -> Result<(), String> {
+    let typed: Provenance = serde_json::from_value(value.clone()).map_err(failure)?;
+    if serde_json::to_value(&typed).map_err(failure)? != *value {
+        return Err(failure("provenance is not in its typed canonical form"));
+    }
+    Ok(())
+}
+
 #[derive(Deserialize)]
 #[serde(deny_unknown_fields)]
 struct Overlay {

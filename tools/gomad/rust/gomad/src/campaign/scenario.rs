@@ -588,6 +588,11 @@ impl Scenario {
 
 /// # Errors
 /// Refuses malformed, unknown, unbounded and inconsistent scenario declarations.
+/// The scenario's evidence bound for one cluster execution.
+pub(crate) fn evidence_limit(normalized: &[u8]) -> Result<u64, String> {
+    Ok(parse(normalized)?.spec.limits.scenario_evidence_bytes)
+}
+
 pub fn normalize(raw: &[u8]) -> Result<Vec<u8>, String> {
     let normalized = canonical::encode(&parse(raw)?)?;
     if normalized.len() > 256 << 10 {

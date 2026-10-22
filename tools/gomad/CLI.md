@@ -519,11 +519,13 @@ profile (`cooperative` is `gomad.wasi-cooperative/v1`, `controlled` is
 `gomad.wasi-stock-exploratory/v1`; any other is refused). A standalone record
 must also carry exactly the retained configuration's limits, arguments and
 environment, as replay preflight requires; a cluster record carries the
-retained limits except for an evidence bound reduced to the scenario's
-`scenario_evidence_bytes`. A success outcome is a normal exit with status zero,
+retained limits except for an evidence bound of exactly the smaller of the
+configuration's and the retained scenario's `scenario_evidence_bytes`. Each
+execution's samples, and each matched replay's, must measure exactly the trace
+bytes its record's trace streams retain. A success outcome is a normal exit with status zero,
 and any other zero exit is a target failure with soft-assertion evidence, as
 the campaign ledger requires. The provenance carries exactly its declared
-fields. Every store sample,
+fields at every typed level, and its build inputs exactly theirs. Every store sample,
 executed or replayed, must carry the frozen guest limit, and only
 multi-instance stores carry `node/incarnation` handles. Each measured cluster
 window, executed or replayed, carries exactly the incarnations its record's
@@ -592,7 +594,10 @@ counters at the store's boundaries.
   peak, because operator phases begin before the baseline snapshot; and the
   largest phase reaches the lifetime peak. Otherwise the budget is refused
   (`budget_failure`). Even when attribution is incomplete, every measured
-  window must fit the lifetime peaks around it before the fallback is used. A zero phase peak is a missing measurement. A
+  window must fit the lifetime peaks around it before the fallback is used,
+  and a measured phase that already exceeds its ceiling stays `exceeded`: a
+  missing measurement never erases a known violation (the receipt's terminal
+  check keeps a retained operator overrun the same way). A zero phase peak is a missing measurement. A
   window whose stores carry `node/incarnation` handles is a cluster window,
   even with a single node.
 - **Without attribution** (another platform, a refused `clear_refs` write, or any

@@ -450,6 +450,13 @@ def cluster_tamper(run, binary, path, work):
         result['report']['record_sha256'] = result['report']['executions'][0]['record_sha256']
     cases.append(('cluster-wall-limit', rewrite('cluster-wall-limit', wall)))
 
+    def evidence(result):
+        for execution in result['report']['executions']:
+            execution['record']['limits']['evidence_bytes'] = 1
+            execution['record_sha256'] = parity.digest(parity.canonical(execution['record']))
+        result['report']['record_sha256'] = result['report']['executions'][0]['record_sha256']
+    cases.append(('cluster-evidence-limit', rewrite('cluster-evidence-limit', evidence)))
+
     def dropped(result):
         samples = result['observations']['samples']
         samples.remove(next(sample for sample in samples if sample['phase'] == 'execute' and sample['incarnation'] != 'a/1'))
@@ -459,6 +466,7 @@ def cluster_tamper(run, binary, path, work):
         'cluster-provenance-configuration': b'retained provenance does not bind',
         'cluster-provenance-runtime': b'retained provenance does not bind',
         'cluster-wall-limit': b'execution identity differs from the frozen manifest',
+        'cluster-evidence-limit': b'execution identity differs from the frozen manifest',
         'cluster-sample-dropped': b"differ from the record's incarnations"})
 
 
@@ -572,6 +580,15 @@ def tamper(run, binary, path, work):
         result['provenance']['unexpected'] = True
     cases.append(('provenance-unknown-field', rewrite('provenance-unknown-field', unknown_provenance)))
 
+    def nested_provenance(result):
+        result['provenance']['choice_identity']['unexpected'] = True
+    cases.append(('provenance-nested-field', rewrite('provenance-nested-field', nested_provenance)))
+
+    def trace(result):
+        for sample in result['observations']['samples']:
+            sample['trace_bytes'] = 0
+    cases.append(('trace-bytes-zeroed', rewrite('trace-bytes-zeroed', trace)))
+
     def contradiction(result):
         # A matched replay that claims no choice-tape consultation.
         replay = result['report']['executions'][0]['replay']
@@ -588,6 +605,8 @@ def tamper(run, binary, path, work):
                   'replay-choice-contradiction': b'replay evidence is invalid',
                   'outcome-contradiction': b'outcome is contradictory',
                   'provenance-unknown-field': b'retained provenance does not bind',
+                  'provenance-nested-field': b'retained provenance does not bind',
+                  'trace-bytes-zeroed': b'trace bytes differ from the execution record',
                   'source-manifest-utf8': b'malformed integrated source manifest line',
                   'receipt-counter': b'receipt content identity changed',
                   'receipt-duplicate': b'exactly one publication receipt',
