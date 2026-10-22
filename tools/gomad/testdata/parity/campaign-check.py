@@ -12,6 +12,7 @@ import signal
 import subprocess
 import sys
 import termios
+import threading
 import time
 
 sys.dont_write_bytecode = True
@@ -427,13 +428,31 @@ def main():
                      GOMAD_FIXTURE_BACKSTOP_STALL_FILE=str(marker)), start_new_session=True)
         if full_stderr:
             os.close(stderr_end)
-        try:
-            stdout, stderr = child.communicate(timeout=120)
-        except subprocess.TimeoutExpired:
+        # Elapsed time is measured on this process's monotonic clock from the
+        # first observation of the stall marker to the observed exit; marker
+        # file timestamps come from another clock (the artifact filesystem) and
+        # are not comparable with it.
+        drained = {}
+        drains = [threading.Thread(target=lambda name=name, stream=stream: drained.__setitem__(name, stream.read()))
+                  for name, stream in (('stdout', child.stdout), ('stderr', child.stderr)) if stream is not None]
+        for drain in drains:
+            drain.start()
+        poll = 0.02
+        limit = time.monotonic() + 120
+        stall_seen = None
+        while child.poll() is None and time.monotonic() < limit:
+            if stall_seen is None and marker.exists():
+                stall_seen = time.monotonic()
+            time.sleep(poll)
+        if child.poll() is None:
             os.killpg(child.pid, signal.SIGKILL)
             child.wait()
             raise ValueError('backstop.' + label + '.bounded_exit: no exit within 120 s; process group killed')
-        exited = time.time()
+        exited = time.monotonic()
+        for drain in drains:
+            drain.join()
+        stdout, stderr = drained['stdout'], drained.get('stderr', b'')
+        equal(stall_seen is not None, True, 'backstop.' + label + '.stall_observed_before_exit')
         if full_stderr:
             # Still never drained: the pipe stays full until the reader closes.
             queued = int.from_bytes(fcntl.ioctl(held, termios.FIONREAD, b'\0' * 4), sys.byteorder)
@@ -451,10 +470,11 @@ def main():
             equal(b'deadline backstop ended the process' in stderr, True, 'backstop.' + label + '.message')
         # Armed for the 10 s wall plus 5 s cleanup grace; the stall itself never
         # returns, so the exit follows the stall by at most that bound.
-        stalled = exited - marker.stat().st_mtime
+        # Both observations may lag their events by one poll interval.
+        stalled = exited - stall_seen
         commands[-1]['seconds_after_stall'] = round(stalled, 3)
         (args.work / 'commands.json').write_bytes(parity.canonical(commands) + b'\n')
-        equal(stalled < 15 + 5, True, 'backstop.' + label + '.bounded_exit: ' + str(stalled))
+        equal(0 <= stalled < 15 + 5, True, 'backstop.' + label + '.bounded_exit: ' + str(stalled))
         if phase == 'compile':
             equal(stalled >= 15 - 1, True, 'backstop.compile.waited_for_cleanup_grace: ' + str(stalled))
         try:
