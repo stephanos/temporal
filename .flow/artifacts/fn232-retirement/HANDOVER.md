@@ -206,3 +206,56 @@ custody; final all-verb local parity and final frozen Rust qualification only
 after mandatory precrash image/Go import, fn231 and fn233 source integration.
 Mandatory new projection/precrash source remains a later root-owned merge.
 No final source freeze or existing evidence reuse for changed identities is implied.
+
+## Prospective source integration of 1b61ab0a52 and real moved-Go validation
+
+Merged root main 1b61ab0a52, including reviewed mandatory precrash-image/native
+import/observer/driver source and completed .11 installation corpus, into this
+prospective branch. Root now owns .13 in_progress; this branch still supplies no
+main retirement, final freeze, qualification or acceptance. fn231/fn233 source
+integration remains pending. The new recovery-image test reads the existing
+corpus at `../wasi/testdata/volume-conformance/vectors/image-admission.json` from
+the real relocated volume package. No overlay or copied package validates it.
+
+The all-verb installation caller forwards the authenticated same-candidate
+`stress-release` binding to the required `--role-binary`; its source-bound build
+receipt requires helper-stress-jitter and its SHA must differ from release.
+This satisfies the behavioral-parity `--installation-role-binary` receiving
+contract without executing that supplied role as a helper. The literal role
+hashes in the .11 golden must be deliberately reviewed/regenerated for the
+final frozen role binaries; no golden was rewritten here.
+
+Root granted only focused pure Go validation. Package inspection found no
+TestMain/init in the three selected packages; the five selected root tests use
+in-memory recovery/import/enumeration and native request admission, without
+helper build/guest execution. Pinned compiler reports go1.27.1 linux/arm64. From
+`tools/gomad`, the final exact command was:
+
+```sh
+env -u GOROOT -u GOMADSEED -u GOMAD_CHILD_SEED GOENV=off GOTOOLCHAIN=local GOWORK=off GOMAXPROCS=1 /home/agent/go/pkg/mod/golang.org/toolchain@v0.0.1-go1.27.1.linux-arm64/bin/go test -v -tags test_dep -p 1 -parallel 1 -count=1 -timeout=2m -run '^(TestCrashRecoveryImage(AdmissionCorpus|PreservesOriginalEnumeration|RefusesMalformedPendingState)|TestSQLiteCrashCatalogueUsesOriginalEnumeration|TestActualStorageInputRejectsWrongBoundsAndChangedPayload)$' ./internal/model/volume ./internal/model/wasi ./internal/model/cmd/sqlite-native
+```
+
+Authoritative final exit 0: five root PASS, zero FAIL/SKIP across all three real
+moved packages, with their original positive/negative subtests preserved. Raw
+outputs are `validation/pure-go-check{1,2,3,4}.log`. First compilation exposed an
+unused sync import in extracted transport.go; the first shell wrapper returned
+cat's status and did not capture Go's status, but its raw output explicitly
+records build failure. Second attempt exit 1 exposed the missing math/rand/v2
+test import and duplicate := after schema extraction. Those source errors were
+fixed; third and final fourth attempts exit 0. No failure log was relabeled.
+This validates actual relocated import/facade source, replacing the earlier
+temporary-overlay check; it is not actual guest/native projection equivalence
+or qualification.
+
+Removing the unused transport import legitimately rotates the current logical
+Go WASI reference identity from 5d3d…6e02 to
+`sha256:bd45d4831ca0f417b6411a29b70cf1070a779e5f04591a679c180d925b586d15`.
+The retained calculator again reproduces the historical 5fdd…91bc3 before deriving
+this current identity. Exactly 123 current reference-fixture origin strings plus
+the current Rust pin and live Go identity test expectation follow that measured
+rotation; every fixture change is an exact identity-only replacement. Original
+Go control source, model algorithms and all historical receipts remain unchanged.
+Thirteen all-verb negative checks and static diff checks also exit 0. No Rust
+build/Cargo command, whole-Go suite, guest, profile, parity lane, qualification,
+CI, Flow operation, PR or push ran in this wave. Final integrated code-size
+counts remain deferred until the final frozen source.

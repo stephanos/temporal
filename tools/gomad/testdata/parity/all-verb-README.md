@@ -109,3 +109,10 @@ copies. The final binding authentication still reads the original input trees;
 new wrapper files remain retained derived outputs rather than being excluded
 from or normalized out of the original source guard. Do not precreate wrappers
 inside a frozen source tree.
+
+The installation lane receives the already authenticated `stress-release` binary
+as its required `--role-binary`. Its source-bound build receipt requires the
+actual `helper-stress-jitter` compiled role, and its SHA must differ from ordinary
+release. This passes `--installation-role-binary`'s distinct-role contract without
+executing the supplied executable as a helper. Final role hashes require a
+deliberately reviewed installation golden for the final frozen binaries.

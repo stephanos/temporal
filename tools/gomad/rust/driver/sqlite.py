@@ -2,6 +2,8 @@
 import base64
 import copy
 import json
+import hashlib
+import re
 from pathlib import Path
 
 from driver import Unexecuted, command, read, require, sha, write
@@ -29,7 +31,7 @@ def selection_spec(template, primary_path, primary_sha256, state, context, desti
     specification = copy.deepcopy(template)
     identity = state['Identity']
     require(identity.startswith('sha256:') and len(identity) == 71, 'native Go state identity encoding changed')
-    specification['Manifest']['ID'] = 'sqlite-durable-selection-' + identity[7:]
+    require(specification['Manifest']['ID'] == 'sqlite-durable-recovery', 'selection requires the registered primary SQLite manifest identity')
     specification['Manifest']['Cell'] = 'success'
     specification['Manifest']['Seed'] = 7
     specification['Manifest']['Repeat'] = 2
@@ -91,6 +93,33 @@ def select(config, root, label, entry):
     return passed(label)
 
 
+def native_input(artifact, inspected, native):
+    from adapters import payload
+    state_name = 'evidence/cluster/sqlite/2/storage_state'
+    log_name = 'evidence/cluster/sqlite/2/storage'
+    image_name = 'evidence/cluster/sqlite/2/storage_precrash_image'
+    state = payload(artifact, inspected, state_name)
+    log = payload(artifact, inspected, log_name)
+    image = payload(artifact, inspected, image_name)
+    require(len(image) <= 9 << 20, 'changed original SQLite filesystem-derived image bound')
+    require(hashlib.sha256(state).hexdigest() == native['storage_state_sha256'], 'catalogue storage-state binding')
+    retained = json.loads(payload(artifact, inspected, 'evidence/cluster-replay.json'))
+    configuration = retained['configuration']
+    encoded = json.dumps(configuration, sort_keys=True, separators=(',', ':'), ensure_ascii=False).encode()
+    require(hashlib.sha256(encoded).hexdigest() == inspected['artifact']['record']['identity']['configuration'],
+            'native oracle configuration binding')
+    owners = [row for row in configuration['incarnations'] if row['handle'] == dict(node='sqlite', incarnation=2)]
+    require(len(owners) == 1, 'native oracle requires exactly the actual SQLite crash owner')
+    descriptor = (owners[0].get('storage') or {}).get('descriptor') or {}
+    model_identity = descriptor.get('model_identity')
+    require(isinstance(model_identity, str) and re.fullmatch(r'sha256:[0-9a-f]{64}', model_identity) is not None,
+            'native oracle requires authenticated actual descriptor model identity')
+    return dict(storage_state_path=str(Path(artifact) / state_name), storage_state_sha256=hashlib.sha256(state).hexdigest(),
+                storage_log_path=str(Path(artifact) / log_name), storage_log_sha256=hashlib.sha256(log).hexdigest(),
+                precrash_image_path=str(Path(artifact) / image_name), precrash_image_sha256=hashlib.sha256(image).hexdigest(),
+                model_identity=model_identity, limits=dict(states=32, operations=8, depth=8, bytes=4 << 20, work=1 << 16))
+
+
 def aggregate(config, root, label, entry):
     from adapters import public, result_report, passed
     reference = read(Path(config['root']) / 'stages/workload-sqlite-cooperative-success/result.json')
@@ -103,13 +132,8 @@ def aggregate(config, root, label, entry):
         raise Unexecuted('independent retained Go native enumeration/context oracle is not integrated')
     artifact = primary['report']['executions'][0]['artifact_path']
     inspected = json.loads(command(config, root, 'primary-inspect', public(config) + ['inspect', '--json', artifact]))
-    state_name = 'evidence/cluster/sqlite/2/storage_state'
-    from adapters import payload
-    state_bytes = payload(artifact, inspected, state_name)
-    require(__import__('hashlib').sha256(state_bytes).hexdigest() == native['storage_state_sha256'], 'catalogue storage-state binding')
     request = root / 'oracle-input.json'
-    write(request, dict(storage_state_path=str(Path(artifact) / state_name), storage_state_sha256=native['storage_state_sha256'],
-                        limits=dict(states=32, operations=8, depth=8, bytes=4 << 20, work=1 << 16)))
+    write(request, native_input(artifact, inspected, native))
     require(oracle[0] in config['files'], 'unsealed independent native oracle')
     actual = json.loads(command(config, root, 'native-Go-oracle', oracle + ['--input', str(request)]))
     require(actual['enumeration'] == native['enumeration'] and actual['context'] == native['context'],

@@ -13,7 +13,6 @@ import (
 	"runtime"
 	"slices"
 	"strings"
-	"sync"
 	"time"
 
 	"go.temporal.io/server/tools/gomad/internal/model/choice"

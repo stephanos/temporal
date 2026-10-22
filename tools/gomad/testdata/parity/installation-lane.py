@@ -50,6 +50,7 @@ def main():
     for name in ('binary', 'go-binary', 'go-helper', 'go-compiler', 'go-source', 'preparation-root', 'work'):
         parser.add_argument('--' + name, type=Path, required=True)
     parser.add_argument('--grammar-only', action='store_true')
+    parser.add_argument('--role-binary', type=Path)
     args = parser.parse_args()
     for key, value in vars(args).items():
         if isinstance(value, Path):
@@ -59,6 +60,10 @@ def main():
                    CORPUS / 'installation-corpus.json', CORPUS / 'installation-lane.py',
                    CORPUS / 'plan-check.py', CORPUS / 'recover-check.py', CORPUS / 'installation-numeric-check.py',
                    CORPUS / 'campaign-reference-check.py', CORPUS.parents[1] / 'scripts/behavioral-parity']
+    if not args.grammar_only and args.role_binary is None:
+        raise ValueError('full installation lane requires --role-binary')
+    if args.role_binary is not None:
+        input_paths.append(args.role_binary)
     input_digests = {str(path): digest(path.read_bytes()) for path in input_paths}
     (args.work / 'inputs.json').write_bytes(encode(input_digests) + b'\n')
     parity = runpy.run_path(str(CORPUS.parents[1] / 'scripts/behavioral-parity'))
@@ -72,7 +77,7 @@ def main():
     equal(set(declaration['required']), {'helper-default', 'helper-matching', 'helper-mismatch', 'compiler-missing',
         'compiler-version', 'publication-collision', 'go-lineage', 'explicit-precedence', 'environment-precedence',
         'sibling', 'invalid-explicit', 'invalid-environment', 'removed-build-inputs', 'changed-compiler',
-        'configured-limits', 'temporal-policy', 'captured-payload-mismatch', 'captured-descriptor-mismatch', 'schema-symlink', 'changed-runtime', 'missing-runtime', 'external-helper-never-executed', 'seed-plan', 'scoped-plan', 'seed-recovery', 'round-recovery', 'duplicate-configuration-member', 'numeric-grammar', 'clock-defaults', 'configuration-aliases', 'configuration-nulls', 'captured-descriptor-aliases'}, 'corpus.required')
+        'configured-limits', 'temporal-policy', 'captured-payload-mismatch', 'captured-descriptor-mismatch', 'schema-symlink', 'changed-runtime', 'missing-runtime', 'external-helper-never-executed', 'seed-plan', 'scoped-plan', 'seed-recovery', 'round-recovery', 'duplicate-configuration-member', 'numeric-grammar', 'clock-defaults', 'configuration-aliases', 'configuration-nulls', 'captured-descriptor-aliases', 'helper-mutated-copy', 'helper-different-role'}, 'corpus.required')
     environment = {key: value for key, value in os.environ.items() if not key.startswith('GOMAD_') and key != 'GOROOT'}
     environment.update(GOENV='off', GOWORK='off', GOTOOLCHAIN='local', GOMAXPROCS='2', GOPROXY='off', GOSUMDB='off')
     receipts = []
@@ -97,6 +102,7 @@ def main():
         equal(value['manifest'], decode(raw), name + '.manifest_bytes')
         return value
 
+    fixture = CORPUS.parents[1] / 'internal/backends/wasm/qualification/testdata/fixture'
     views = []
     for attempt in range(2):
         receipt_start = len(receipts)
@@ -209,10 +215,10 @@ def main():
         configuration_refusals(args, manifests, root, run, decode)
         seed_plan = runpy.run_path(str(CORPUS / 'plan-check.py'))['check'](
             args.binary, manifests['rust', 'cooperative'], root / 'seed-plan',
-            CORPUS.parents[1], './internal/backends/wasm/qualification/testdata/fixture',
-            go_binary=args.go_binary, go_installation=manifests['go', 'cooperative'], go_working_dir=CORPUS.parents[1])
+            fixture, '.', go_binary=args.go_binary, go_installation=manifests['go', 'cooperative'],
+            go_working_dir=fixture, support_dir=CORPUS.parents[1])
         recovery = runpy.run_path(str(CORPUS / 'recover-check.py'))['check'](
-            args.binary, manifests['rust', 'cooperative'], root / 'recovery', CORPUS.parents[1])
+            args.binary, manifests['rust', 'cooperative'], root / 'recovery', fixture, '.')
         go_recovery = {kind: go_recovery_check(args, manifests['go', 'cooperative'], root, run, decode, kind)
                        for kind in ('seed', 'round')}
         for campaign in recovery['campaigns']:
@@ -229,6 +235,16 @@ def main():
         duplicate_manifest.chmod(0o600)
         run(f'rust-duplicate-configuration-member-{attempt}',
             [args.binary, '--installation', duplicate_manifest, 'discover'], 3)
+        resolution = []
+
+        def selected(lineage, requested, value, manifest):
+            equal(value['path'], str(manifest.resolve()), lineage + '.' + requested + '.selected_path')
+            equal(value['sha256'], ('sha256:' if lineage == 'go' else '') + digest(manifest.read_bytes()),
+                  lineage + '.' + requested + '.selected_digest')
+            equal(value['source'], 'explicit' if lineage == 'go' else requested, lineage + '.' + requested + '.reported_source')
+            resolution.append(dict(lineage=lineage, requested_origin=requested, reported_origin=value['source'],
+                selected_path='$RUN/' + str(manifest.relative_to(root)), manifest_sha256=value['sha256']))
+
         for lineage, binary, manifest in (('go', args.go_binary, go_manifest), ('rust', args.binary, rust_manifest)):
             for verb in ('doctor', 'analyze'):
                 refusal = run(f'{lineage}-installed-{verb}-{attempt}', [binary, '--installation', manifest, verb, '--help'], 2)
@@ -237,9 +253,9 @@ def main():
             equal(default_analyze.stdout, b'', lineage + '.analyze.default_stdout')
             value = discover(f'{lineage}-explicit-{attempt}', binary, manifest,
                              {'GOMAD_WASM_INSTALLATION': str(root / 'missing.json')})
-            equal(value['source'], 'explicit', lineage + '.explicit_precedence')
+            selected(lineage, 'explicit', value, manifest)
             value = discover(f'{lineage}-environment-{attempt}', binary, extra={'GOMAD_WASM_INSTALLATION': str(manifest)})
-            equal(value['source'], 'environment', lineage + '.environment_precedence')
+            selected(lineage, 'environment', value, manifest)
             run(f'{lineage}-invalid-explicit-{attempt}', [binary, '--installation', root / 'missing.json', 'discover'], 3,
                 {'GOMAD_WASM_INSTALLATION': str(manifest)})
             sibling_dir = root / (lineage + '-sibling')
@@ -248,7 +264,7 @@ def main():
             shutil.copy2(binary, sibling_binary)
             shutil.copy2(manifest, sibling_dir / 'gomad-wasm.json')
             value = discover(f'{lineage}-sibling-{attempt}', sibling_binary)
-            equal(value['source'], 'executable-sibling', lineage + '.sibling')
+            selected(lineage, 'executable-sibling', value, sibling_dir / 'gomad-wasm.json')
             run(f'{lineage}-invalid-environment-{attempt}', [sibling_binary, 'discover'], 3,
                 {'GOMAD_WASM_INSTALLATION': str(root / 'missing.json')})
         run(f'rust-go-lineage-{attempt}', [args.binary, '--installation', go_manifest, 'discover'], 3)
@@ -257,6 +273,21 @@ def main():
         matching = discover(f'rust-helper-matching-discover-{attempt}', args.binary, root / 'matching.json')
         equal(matching['manifest']['admission']['explicit_helper'],
               dict(path=str(root / 'rust-sibling/gomad'), sha256=digest(args.binary.read_bytes())), 'helper.explicit_pin')
+        helper_boundaries = []
+        for label, raw in [('mutated-copy', args.binary.read_bytes()[:-1] + bytes([args.binary.read_bytes()[-1] ^ 1])),
+                           ('different-role', args.role_binary.read_bytes())]:
+            helper_path = root / ('helper-' + label)
+            with helper_path.open('xb') as writer:
+                writer.write(raw)
+            helper_path.chmod(0o500)
+            equal(digest(raw) == digest(args.binary.read_bytes()), False, label + '.different_implementation')
+            refusal = run(f'rust-helper-{label}-{attempt}', [*base, '--helper', helper_path,
+                '--output', root / (label + '.json')], 2)
+            equal(b'pinned helper identity does not match the linked Rust implementation' in refusal.stderr,
+                  True, label + '.identity_refusal')
+            equal((root / (label + '.json')).exists(), False, label + '.no_publication')
+            helper_boundaries.append(dict(case=label, supplied_sha256=digest(raw), supplied_bytes=len(raw),
+                linked_executable_sha256=digest(args.binary.read_bytes()), status=refusal.returncode))
         hostile = root / 'hostile-helper'
         marker = root / 'external-helper-was-executed'
         hostile.write_text('#!/bin/sh\necho executed > "' + str(marker) + '"\nexit 0\n')
@@ -302,13 +333,14 @@ def main():
                 runtime_file.unlink()
             run(f'rust-{kind}-runtime-plan-{attempt}', [args.binary, '--installation', detached_path, 'plan', '--json',
                 '--output', root / (kind + '-runtime-plan.json'), '--artifacts', root / (kind + '-runtime-artifacts'),
-                '--working-dir', CORPUS.parents[1], 'go-run', './internal/backends/wasm/qualification/testdata/fixture'], 3)
+                '--working-dir', fixture, 'go-run', '.'], 3)
             equal((root / (kind + '-runtime-plan.json')).exists(), False, kind + '_runtime.no_plan_published')
             runtime_file.write_bytes(runtime_bytes)
+        private_compiler.chmod(stat.S_IMODE(private_compiler.stat().st_mode) | stat.S_IWUSR)
         private_compiler.write_bytes(b'changed compiler bytes')
         run(f'rust-changed-compiler-plan-{attempt}', [args.binary, '--installation', detached_path, 'plan', '--json',
             '--output', root / 'refused-plan.json', '--artifacts', root / 'refused-artifacts',
-            '--working-dir', CORPUS.parents[1], 'go-run', './internal/backends/wasm/qualification/testdata/fixture'], 3)
+            '--working-dir', fixture, 'go-run', '.'], 3)
         equal((root / 'refused-plan.json').exists(), False, 'changed_compiler.no_plan_published')
         changed = discover(f'rust-changed-compiler-{attempt}', args.binary, detached_path)
         equal(changed, before, 'discover.changed_build_input_does_not_change_manifest_identity')
@@ -320,7 +352,7 @@ def main():
                               else row['name'].removesuffix(f'-{attempt}'), status=row['status'])
                     for row in receipts[receipt_start:]]
         views.append(dict(schema='gomad.installation-golden/v1', grammar=grammar, doctor=doctors[1],
-                          installations=installed, seed_plan=seed_plan, recovery=recovery, go_recovery=go_recovery, numeric=numeric_rust, clocks=clocks, descriptors=descriptor_cases, commands=commands))
+                          installations=installed, seed_plan=seed_plan, recovery=recovery, go_recovery=go_recovery, numeric=numeric_rust, clocks=clocks, descriptors=descriptor_cases, resolution=resolution, helper_boundaries=helper_boundaries, commands=commands))
     equal({str(path): digest(path.read_bytes()) for path in input_paths}, input_digests, 'installation.unchanged_inputs')
     equal(views[0], views[1], 'installation.repeated_agreement')
     golden = CORPUS / 'goldens-installation' / ('grammar.json' if args.grammar_only else 'installation.json')
@@ -552,14 +584,16 @@ def authenticate_captured(configuration):
 
 def go_recovery_check(args, installation, root, run, decode, kind):
     """Fresh Go campaign with Go-native CRC framing; never use Rust journals."""
-    target = './internal/backends/wasm/qualification/testdata/fixture'
+    fixture = CORPUS.parents[1] / 'internal/backends/wasm/qualification/testdata/fixture'
+    target = '.'
     artifacts = root / ('go-' + kind + '-recovery-artifacts')
-    strategy = [] if kind == 'seed' else ['--strategy=choice-exploration', '--choices', '--max-executions=1',
+    trace_flags = ['--choices'] if decode(installation.read_bytes())['options']['Config']['Profile'] == 'gomad.wasi-cooperative/v1' else []
+    strategy = trace_flags if kind == 'seed' else ['--strategy=choice-exploration', '--choices', '--max-executions=1',
         '--max-choice-depth=1', '--max-exploration-bytes=1MiB']
     run(f'go-{kind}-recovery-explore-{root.name}', [args.go_binary, '--installation', installation,
         'explore', '--json', '--seeds=7', '--parallel=1', '--on-failure=all', '--keep-successes=all',
         '--success-limit=1', '--success-bytes=256MiB', '--execution-timeout=120s', '--overall-timeout=240s',
-        '--artifacts', artifacts, '--working-dir', CORPUS.parents[1], *strategy, 'go-run', target,
+        '--artifacts', artifacts, '--working-dir', fixture, *strategy, 'go-run', target,
         '--', '-test.run=^TestPrepareOnlyNeverExecuted$'], 0)
     logs = list(artifacts.rglob('store/log'))
     equal(len(logs), 1, 'go.recovery.campaign_count')

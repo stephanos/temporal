@@ -247,7 +247,7 @@ func namespaceR3ConformanceScripts(t *testing.T) []namespaceConformanceScript {
 	if err != nil {
 		t.Fatal(err)
 	}
-	inputs, err := temporalinput.CaptureSchema(repo)
+	inputs, err = temporalinput.CaptureSchema(repo)
 	if err != nil {
 		t.Fatal(err)
 	}

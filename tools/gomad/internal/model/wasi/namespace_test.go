@@ -9,6 +9,7 @@ import (
 	"encoding/hex"
 	"encoding/json"
 	"flag"
+	"math/rand/v2"
 	"os"
 	"os/exec"
 	"path/filepath"

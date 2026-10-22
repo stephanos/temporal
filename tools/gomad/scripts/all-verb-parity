@@ -177,7 +177,7 @@ def load_bindings(path, expected):
                 row['features'] == features and row['profile'] == 'release' and
                 type(row['exit']) is int and row['exit'] == 0 and
                 row['compiler_sha256'] == value['files']['rust-compiler']['sha256'], 'unadmitted role build: ' + role)
-    for role in ('fixture', 'stress', 'determinism'):
+    for role in ('fixture', 'stress', 'stress-release', 'determinism'):
         require(value['files'][role]['sha256'] != value['files']['release']['sha256'],
                 'release binary substituted for compiled fixture role')
     for endpoint in ENDPOINTS:
@@ -294,7 +294,7 @@ def run_all(bindings, binding_sha256, work):
          work=work / 'qualify-report', cells='fixture,fixture-canary,sqlite,onebox,cluster',
          **{'preparation-root': work / 'preparation/qualify'})), ('qualify', 'report'), command_root='')
     lane('installation', 'installation-lane.py', flags(dict(go, binary=files['release'], work=work / 'installation',
-         **{'preparation-root': work / 'preparation/installation'})),
+         **{'preparation-root': work / 'preparation/installation', 'role-binary': files['stress-release']})),
          ('install', 'discover', 'doctor', 'plan', 'recover', 'analyze'), command_root='', checked_in_lane=True)
     for verb in ('qualify-set', 'merge-set', 'compare-support'):
         observed = []

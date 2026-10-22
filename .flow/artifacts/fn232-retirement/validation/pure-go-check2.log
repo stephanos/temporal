@@ -1,0 +1,7 @@
+ok  	go.temporal.io/server/tools/gomad/internal/model/volume	0.002s
+# go.temporal.io/server/tools/gomad/internal/model/wasi [go.temporal.io/server/tools/gomad/internal/model/wasi.test]
+internal/model/wasi/namespace_conformance_test.go:250:14: no new variables on left side of :=
+internal/model/wasi/namespace_test.go:594:12: undefined: rand
+FAIL	go.temporal.io/server/tools/gomad/internal/model/wasi [build failed]
+ok  	go.temporal.io/server/tools/gomad/internal/model/cmd/sqlite-native	0.002s
+FAIL

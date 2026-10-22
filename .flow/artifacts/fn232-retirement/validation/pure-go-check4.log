@@ -1,0 +1,126 @@
+=== RUN   TestCrashRecoveryImageAdmissionCorpus
+=== RUN   TestCrashRecoveryImageAdmissionCorpus/authentic-go-image
+=== RUN   TestCrashRecoveryImageAdmissionCorpus/invalid-frame-offset-0
+=== RUN   TestCrashRecoveryImageAdmissionCorpus/invalid-frame-offset-8
+=== RUN   TestCrashRecoveryImageAdmissionCorpus/invalid-frame-offset-12
+=== RUN   TestCrashRecoveryImageAdmissionCorpus/invalid-frame-offset-16
+=== RUN   TestCrashRecoveryImageAdmissionCorpus/impossible-section-length
+=== RUN   TestCrashRecoveryImageAdmissionCorpus/trailing-byte
+=== RUN   TestCrashRecoveryImageAdmissionCorpus/truncated
+=== RUN   TestCrashRecoveryImageAdmissionCorpus/tampered-digest
+=== RUN   TestCrashRecoveryImageAdmissionCorpus/model-mismatch
+=== RUN   TestCrashRecoveryImageAdmissionCorpus/exact-image-capacity-refused
+=== RUN   TestCrashRecoveryImageAdmissionCorpus/volume-config-mismatch
+=== RUN   TestCrashRecoveryImageAdmissionCorpus/invalid-next-inode-18446744073709551615
+=== RUN   TestCrashRecoveryImageAdmissionCorpus/invalid-next-inode-18446744073709551614
+=== RUN   TestCrashRecoveryImageAdmissionCorpus/invalid-next-inode-0
+=== RUN   TestCrashRecoveryImageAdmissionCorpus/invalid-next-inode-1
+=== RUN   TestCrashRecoveryImageAdmissionCorpus/invalid-next-inode-4
+=== RUN   TestCrashRecoveryImageAdmissionCorpus/path-inode-alias-directory-false
+=== RUN   TestCrashRecoveryImageAdmissionCorpus/path-inode-alias-directory-true
+=== RUN   TestCrashRecoveryImageAdmissionCorpus/reserved-object-inode-1
+=== RUN   TestCrashRecoveryImageAdmissionCorpus/reserved-object-inode-2
+=== RUN   TestCrashRecoveryImageAdmissionCorpus/sqlite-lock-path
+=== RUN   TestCrashRecoveryImageAdmissionCorpus/cross-volume-object-alias-3-orphan-false
+=== RUN   TestCrashRecoveryImageAdmissionCorpus/cross-volume-object-alias-3-orphan-true
+=== RUN   TestCrashRecoveryImageAdmissionCorpus/cross-volume-object-alias-1-orphan-false
+=== RUN   TestCrashRecoveryImageAdmissionCorpus/cross-volume-object-alias-2-orphan-false
+=== RUN   TestCrashRecoveryImageAdmissionCorpus/exact-rebuild-headroom-no-volumes-overflow-false
+=== RUN   TestCrashRecoveryImageAdmissionCorpus/exact-rebuild-headroom-no-volumes-overflow-true
+=== RUN   TestCrashRecoveryImageAdmissionCorpus/exact-rebuild-headroom-workspace-overflow-false
+=== RUN   TestCrashRecoveryImageAdmissionCorpus/exact-rebuild-headroom-workspace-overflow-true
+=== RUN   TestCrashRecoveryImageAdmissionCorpus/exact-rebuild-headroom-deep-mount-overflow-false
+=== RUN   TestCrashRecoveryImageAdmissionCorpus/exact-rebuild-headroom-deep-mount-overflow-true
+=== RUN   TestCrashRecoveryImageAdmissionCorpus/exact-rebuild-headroom-shared-and-temp-overflow-false
+=== RUN   TestCrashRecoveryImageAdmissionCorpus/exact-rebuild-headroom-shared-and-temp-overflow-true
+=== RUN   TestCrashRecoveryImageAdmissionCorpus/orphan-object-exact-rebuild-headroom
+--- PASS: TestCrashRecoveryImageAdmissionCorpus (0.00s)
+    --- PASS: TestCrashRecoveryImageAdmissionCorpus/authentic-go-image (0.00s)
+    --- PASS: TestCrashRecoveryImageAdmissionCorpus/invalid-frame-offset-0 (0.00s)
+    --- PASS: TestCrashRecoveryImageAdmissionCorpus/invalid-frame-offset-8 (0.00s)
+    --- PASS: TestCrashRecoveryImageAdmissionCorpus/invalid-frame-offset-12 (0.00s)
+    --- PASS: TestCrashRecoveryImageAdmissionCorpus/invalid-frame-offset-16 (0.00s)
+    --- PASS: TestCrashRecoveryImageAdmissionCorpus/impossible-section-length (0.00s)
+    --- PASS: TestCrashRecoveryImageAdmissionCorpus/trailing-byte (0.00s)
+    --- PASS: TestCrashRecoveryImageAdmissionCorpus/truncated (0.00s)
+    --- PASS: TestCrashRecoveryImageAdmissionCorpus/tampered-digest (0.00s)
+    --- PASS: TestCrashRecoveryImageAdmissionCorpus/model-mismatch (0.00s)
+    --- PASS: TestCrashRecoveryImageAdmissionCorpus/exact-image-capacity-refused (0.00s)
+    --- PASS: TestCrashRecoveryImageAdmissionCorpus/volume-config-mismatch (0.00s)
+    --- PASS: TestCrashRecoveryImageAdmissionCorpus/invalid-next-inode-18446744073709551615 (0.00s)
+    --- PASS: TestCrashRecoveryImageAdmissionCorpus/invalid-next-inode-18446744073709551614 (0.00s)
+    --- PASS: TestCrashRecoveryImageAdmissionCorpus/invalid-next-inode-0 (0.00s)
+    --- PASS: TestCrashRecoveryImageAdmissionCorpus/invalid-next-inode-1 (0.00s)
+    --- PASS: TestCrashRecoveryImageAdmissionCorpus/invalid-next-inode-4 (0.00s)
+    --- PASS: TestCrashRecoveryImageAdmissionCorpus/path-inode-alias-directory-false (0.00s)
+    --- PASS: TestCrashRecoveryImageAdmissionCorpus/path-inode-alias-directory-true (0.00s)
+    --- PASS: TestCrashRecoveryImageAdmissionCorpus/reserved-object-inode-1 (0.00s)
+    --- PASS: TestCrashRecoveryImageAdmissionCorpus/reserved-object-inode-2 (0.00s)
+    --- PASS: TestCrashRecoveryImageAdmissionCorpus/sqlite-lock-path (0.00s)
+    --- PASS: TestCrashRecoveryImageAdmissionCorpus/cross-volume-object-alias-3-orphan-false (0.00s)
+    --- PASS: TestCrashRecoveryImageAdmissionCorpus/cross-volume-object-alias-3-orphan-true (0.00s)
+    --- PASS: TestCrashRecoveryImageAdmissionCorpus/cross-volume-object-alias-1-orphan-false (0.00s)
+    --- PASS: TestCrashRecoveryImageAdmissionCorpus/cross-volume-object-alias-2-orphan-false (0.00s)
+    --- PASS: TestCrashRecoveryImageAdmissionCorpus/exact-rebuild-headroom-no-volumes-overflow-false (0.00s)
+    --- PASS: TestCrashRecoveryImageAdmissionCorpus/exact-rebuild-headroom-no-volumes-overflow-true (0.00s)
+    --- PASS: TestCrashRecoveryImageAdmissionCorpus/exact-rebuild-headroom-workspace-overflow-false (0.00s)
+    --- PASS: TestCrashRecoveryImageAdmissionCorpus/exact-rebuild-headroom-workspace-overflow-true (0.00s)
+    --- PASS: TestCrashRecoveryImageAdmissionCorpus/exact-rebuild-headroom-deep-mount-overflow-false (0.00s)
+    --- PASS: TestCrashRecoveryImageAdmissionCorpus/exact-rebuild-headroom-deep-mount-overflow-true (0.00s)
+    --- PASS: TestCrashRecoveryImageAdmissionCorpus/exact-rebuild-headroom-shared-and-temp-overflow-false (0.00s)
+    --- PASS: TestCrashRecoveryImageAdmissionCorpus/exact-rebuild-headroom-shared-and-temp-overflow-true (0.00s)
+    --- PASS: TestCrashRecoveryImageAdmissionCorpus/orphan-object-exact-rebuild-headroom (0.00s)
+=== RUN   TestCrashRecoveryImagePreservesOriginalEnumeration
+--- PASS: TestCrashRecoveryImagePreservesOriginalEnumeration (0.00s)
+=== RUN   TestCrashRecoveryImageRefusesMalformedPendingState
+=== RUN   TestCrashRecoveryImageRefusesMalformedPendingState/pending-limit
+=== RUN   TestCrashRecoveryImageRefusesMalformedPendingState/history-limit
+=== RUN   TestCrashRecoveryImageRefusesMalformedPendingState/pending-effect-forged
+=== RUN   TestCrashRecoveryImageRefusesMalformedPendingState/pending-order
+=== RUN   TestCrashRecoveryImageRefusesMalformedPendingState/future-dependency
+=== RUN   TestCrashRecoveryImageRefusesMalformedPendingState/missing-alloc-object
+=== RUN   TestCrashRecoveryImageRefusesMalformedPendingState/overflowing-effect
+=== RUN   TestCrashRecoveryImageRefusesMalformedPendingState/forged-last
+=== RUN   TestCrashRecoveryImageRefusesMalformedPendingState/unsupported-kind
+=== RUN   TestCrashRecoveryImageRefusesMalformedPendingState/invalid-path
+--- PASS: TestCrashRecoveryImageRefusesMalformedPendingState (0.00s)
+    --- PASS: TestCrashRecoveryImageRefusesMalformedPendingState/pending-limit (0.00s)
+    --- PASS: TestCrashRecoveryImageRefusesMalformedPendingState/history-limit (0.00s)
+    --- PASS: TestCrashRecoveryImageRefusesMalformedPendingState/pending-effect-forged (0.00s)
+    --- PASS: TestCrashRecoveryImageRefusesMalformedPendingState/pending-order (0.00s)
+    --- PASS: TestCrashRecoveryImageRefusesMalformedPendingState/future-dependency (0.00s)
+    --- PASS: TestCrashRecoveryImageRefusesMalformedPendingState/missing-alloc-object (0.00s)
+    --- PASS: TestCrashRecoveryImageRefusesMalformedPendingState/overflowing-effect (0.00s)
+    --- PASS: TestCrashRecoveryImageRefusesMalformedPendingState/forged-last (0.00s)
+    --- PASS: TestCrashRecoveryImageRefusesMalformedPendingState/unsupported-kind (0.00s)
+    --- PASS: TestCrashRecoveryImageRefusesMalformedPendingState/invalid-path (0.00s)
+PASS
+ok  	go.temporal.io/server/tools/gomad/internal/model/volume	0.003s
+=== RUN   TestSQLiteCrashCatalogueUsesOriginalEnumeration
+=== RUN   TestSQLiteCrashCatalogueUsesOriginalEnumeration/forged-catalogue
+=== RUN   TestSQLiteCrashCatalogueUsesOriginalEnumeration/forged-context-and-history
+=== RUN   TestSQLiteCrashCatalogueUsesOriginalEnumeration/missing-image
+=== RUN   TestSQLiteCrashCatalogueUsesOriginalEnumeration/wrong-model
+--- PASS: TestSQLiteCrashCatalogueUsesOriginalEnumeration (0.00s)
+    --- PASS: TestSQLiteCrashCatalogueUsesOriginalEnumeration/forged-catalogue (0.00s)
+    --- PASS: TestSQLiteCrashCatalogueUsesOriginalEnumeration/forged-context-and-history (0.00s)
+    --- PASS: TestSQLiteCrashCatalogueUsesOriginalEnumeration/missing-image (0.00s)
+    --- PASS: TestSQLiteCrashCatalogueUsesOriginalEnumeration/wrong-model (0.00s)
+PASS
+ok  	go.temporal.io/server/tools/gomad/internal/model/wasi	0.003s
+=== RUN   TestActualStorageInputRejectsWrongBoundsAndChangedPayload
+=== RUN   TestActualStorageInputRejectsWrongBoundsAndChangedPayload/changed-original-bound
+=== RUN   TestActualStorageInputRejectsWrongBoundsAndChangedPayload/changed-actual-state
+=== RUN   TestActualStorageInputRejectsWrongBoundsAndChangedPayload/changed-actual-log
+=== RUN   TestActualStorageInputRejectsWrongBoundsAndChangedPayload/changed-precrash-image
+=== RUN   TestActualStorageInputRejectsWrongBoundsAndChangedPayload/changed-model-identity
+=== RUN   TestActualStorageInputRejectsWrongBoundsAndChangedPayload/relative-foreign-path
+--- PASS: TestActualStorageInputRejectsWrongBoundsAndChangedPayload (0.00s)
+    --- PASS: TestActualStorageInputRejectsWrongBoundsAndChangedPayload/changed-original-bound (0.00s)
+    --- PASS: TestActualStorageInputRejectsWrongBoundsAndChangedPayload/changed-actual-state (0.00s)
+    --- PASS: TestActualStorageInputRejectsWrongBoundsAndChangedPayload/changed-actual-log (0.00s)
+    --- PASS: TestActualStorageInputRejectsWrongBoundsAndChangedPayload/changed-precrash-image (0.00s)
+    --- PASS: TestActualStorageInputRejectsWrongBoundsAndChangedPayload/changed-model-identity (0.00s)
+    --- PASS: TestActualStorageInputRejectsWrongBoundsAndChangedPayload/relative-foreign-path (0.00s)
+PASS
+ok  	go.temporal.io/server/tools/gomad/internal/model/cmd/sqlite-native	0.002s

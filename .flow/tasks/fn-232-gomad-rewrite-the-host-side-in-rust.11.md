@@ -14,8 +14,15 @@ The owned behavior has reviewed golden fixtures, repeated-execution agreement an
 Fresh install pins the same unchanged compiler/runtime/input digests and actual new Rust implementation identities; all owned public verbs have parity and golden fixtures; missing or mismatched tools refused; Go-version manifest refused; discover works after build inputs are removed; omitted --helper derives the linked implementation, a matching explicit path is admitted and a mismatched/legacy helper is refused, with CLI documentation and golden coverage for this explicit default exception.
 
 ## Done summary
-TBD
+R10/R13/R14 accepted for the exact declared installation corpus and immutable integrated fixture 63c43b4525d16dae1aa1432ddbff8424516c8595c31b3f67c37eaadcda133500 (source82ba157e16). Full15 regeneration and full16 independent strict checking each exited0 with316 direct public commands plus authenticated receipt/scoped-plan/recovery child lanes; four independent attempts agreed and all12 raw input digests remain unchanged. Golden654693efd83b2e9e49d0b420d623a5f364ca24c1ba58527be5b59f3ffaf4ff1b is committed in64f90e84c3. Fresh independent same-family source review has no remaining findings and sampled all8 new mutated/different-role helper refusals.
 
+Install/discover/doctor/analyze refusal, exact compiler/runtime/configuration admission, linked default/identical helper copy and mismatches without external execution, removed-input discovery, explicit/env/sibling precedence with no fallback, zero-guest portable seed preparation, actual module-metadata tamper refusals, authenticated matching/empty scoped bases, stripped-debug refusal, and genuine Rust/Go seed+round recovery/no-op/lock/error cases passed. Retain literal Go-v3/Rust-v4 module/overlay identities and Go's actual lossy source reporting separately; do not normalize them or claim cross-lineage byte parity. The new typed Go-compatible configuration/descriptor decoder is covered by actual native Go/Rust cases and aliases/null/default/arity negatives.
+
+Root current ordinary release frome8754d1cf8 built0, excludes fixture-preparation-open and reaches ordinary qualification input admission; its immutable81657d713cbb33ff3ca82bf8e92c224030097bb11d341fe59ab613e4556cb5a6 and raw receipt remain retained. Source integration94 library tests, shared oracle projection regression1 and driver4 tests passed. Single handover .flow/artifacts/fn232-11-installation-2026-10-22.md retains exact argv/statuses, earlier failures, source fixes and all raw paths. Task13/R12 still owns final CURRENT integrated-candidate identity refresh and complete frozen runtime/workload/replay qualification. No Go retirement, performance/support claim, CI dispatch, push or PR.
+
+stage: impl-review - ran (fresh gpt-6.1-sol high; same-family independent context; no remaining findings)
+
+stage: plan-sync - skipped(config: planSync.enabled != true)
 ## Autonomous continuation design (2026-10-22)
 
 Resume after .10 acceptance. Extract the existing `campaign/prepare.rs`
@@ -44,6 +51,6 @@ collision, plan receipts/scope and repeated recovery through fresh public CLI
 fixtures, raw authentication and repeated byte-identical golden regeneration.
 
 ## Evidence
-- Commits:
-- Tests:
+- Commits: 942dadb6b2, 06e45c2cfb, 9c97d59ff7, 565ae1cbb3, cbdb0f5737, 21adc20beb, e5ea438c90, 46bfeb127c, a3a9222b51, f08f060e2d, 0ab3817c06, fd132cc66d, d43f137340, 42f7e93276, 76f565c9eb, 64f90e84c3
+- Tests: full installation lane15 regeneration: exit0,316 direct commands plus authenticated child lanes; /home/agent/wt/evidence/fn232-install-integrated-15.log, full installation lane16 strict existing-golden check: exit0,316 direct commands plus authenticated child lanes; /home/agent/wt/evidence/fn232-install-integrated-16.log, root rehashed all12 actual input paths in both final roots: unchanged, focused plan02, recovery01 (Rust+Go seed/round), stock-plan01, resolution01, private-copy01 and helper-negatives: exit0, ordinary release build/no-feature fixture exclusion and ordinary role input admission: exit0 verifier; /home/agent/wt/evidence/fn232-integrated-ordinary-release/receipt.json, integrated cargo +1.99.1 test --locked --release -p gomad --lib:94passed; shared projection regression1passed; driver SQLite4passed, fresh independent source review and8 actual new helper refusal receipts: no remaining findings
 - PRs:

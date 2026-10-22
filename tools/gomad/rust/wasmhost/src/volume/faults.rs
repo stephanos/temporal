@@ -190,6 +190,10 @@ impl Storage {
         self.fs.enumerate_crash_states(volume, limits, exploration)
     }
 
+    pub(crate) fn reference_image(&self, maximum: u64) -> Result<Vec<u8>, Error> {
+        RecoveryImage::encode(&self.fs, &self.model_identity, &self.occurrences, maximum)
+    }
+
     /// Go `CrashStorage`: advances the lifecycle with the selected pending
     /// operations and produces the durable recovery image. The namespace
     /// discards its descriptors separately.
