@@ -38,5 +38,18 @@
     ],
     "scope": "actual attempt-one callback fixtures, payload-aware action expectations and stale-callback refusal/state-preservation regression; preserve freeze/allocation assertions",
     "trigger": "root found callback Attempt omitted and unit action labels in these files; actual3axis review reproduced stale callback Answer via rejected Poll selfloop"
+  },
+  "mechanical_macro_mirror": {
+    "path": "model/temporal/realization/macros/src/snapshots/umpire_temporal_realization_macros__tests__activity-realization.snap",
+    "trigger": "finalfull exited2 in tests101; .snap.newdiff reproduces intended actualhandlerexpansion",
+    "root_reviewed_diff": [
+      "RespondFailed{retryable:false}",
+      "Poll observedattempt",
+      "state-aware respond mismatchState refusal",
+      "mappedattemptmetadata",
+      "generated respond(task,state)"
+    ],
+    "scope": "exact generatedsnapshotmirror only; no macroproductionchange",
+    "verification": "focused macro red/green, same-cycle re-review, finalfullretry; include in declaredrelatedgoldenchanges"
   }
 }

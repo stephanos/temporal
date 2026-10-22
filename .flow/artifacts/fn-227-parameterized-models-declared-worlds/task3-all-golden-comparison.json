@@ -1,0 +1,71 @@
+{
+  "base": "376fda53b344e5503a69e628195b87c71837a4c5",
+  "inventory": "task3-golden-inventory.json",
+  "script": "task3-compare-goldens.py",
+  "total": 805,
+  "unchanged": 795,
+  "changed": [
+    {
+      "path": "model/temporal/feature/activity/expected/Activity@cfg.snap.cfg",
+      "before_sha256": "2f790dc8c30ae62bdd9a444517ca7931323e269c3c0883880203b2d81ade0cfa",
+      "after_sha256": "b3a72c2dec7be3dc94ba568115f35c7926c913bbfc12860c8cf269613672bbc7",
+      "changed": true
+    },
+    {
+      "path": "model/temporal/feature/activity/expected/Activity@tla.snap.tla",
+      "before_sha256": "651a08b840df9fcd10d0f4da129f449272a9f9c48acbcffe8d992c5b52045064",
+      "after_sha256": "092a11ae6372c60bfe540a2f4f16ac704342dd00dd703f8f3138c6f0914293dc",
+      "changed": true
+    },
+    {
+      "path": "model/temporal/feature/activity/expected/coverage.snap.txt",
+      "before_sha256": "dff85c941be647cca77e11749b6c8cc921960c7dab6758217f1b9030022b789f",
+      "after_sha256": "cac7031def0169101579d49fd29f756291a755a3845f959d397830efbbb72566",
+      "changed": true
+    },
+    {
+      "path": "model/temporal/feature/activity/expected/expansion/closings.snap.txt",
+      "before_sha256": "c2bebbdf72b27b5bf4011689f613a30a1628b09fea9a5d6666e2c93fa2ba7ea8",
+      "after_sha256": "7a6af81a81d2ddf313d3361212fe51b3e426feee4447e839632dbf643b347918",
+      "changed": true
+    },
+    {
+      "path": "model/temporal/feature/activity/expected/realization.snap.txt",
+      "before_sha256": "88a00db7d38337b3ea57a358f938eb4cbcae5120e73b6f4f2ad7470f3ff68c8e",
+      "after_sha256": "1a9ed4e7481f191801e29d0d92ca7a67ec02409c869f59b87343f19614a3f2b8",
+      "changed": true
+    },
+    {
+      "path": "model/temporal/feature/activity/expected/report.snap.txt",
+      "before_sha256": "cd0343ba3eb50dc78bc0b6b14f3a327b120fe44ef46600253554f3fd7af5f5d3",
+      "after_sha256": "b10f2f726064bbde6da5705dfc6fbbc6307e7ca54d0774a2928139071401a06a",
+      "changed": true
+    },
+    {
+      "path": "model/temporal/feature/activity/expected/rows.snap.txt",
+      "before_sha256": "a111619002e42cfd12d0279028b2b88ef049a7682a85516cfc8e134f210556e8",
+      "after_sha256": "84ed55cdf89e0cd202ef5cb5301482b964d883832985462bf93e1e61ab740acb",
+      "changed": true
+    },
+    {
+      "path": "model/temporal/feature/activity/expected/states.snap.txt",
+      "before_sha256": "21219b834f051b851e78c9280688fce443dc7e4913bcaa3bd38add809eff5381",
+      "after_sha256": "087049634a3821ef62ca74cec5ebcc014c617d8477a9894998c388064485e245",
+      "changed": true
+    },
+    {
+      "path": "model/temporal/feature/activity/expected/tlc.snap.txt",
+      "before_sha256": "3b1a4e3cf2372055afdf8573b4d41c785617ed0140baf27a529fc61ae5eb365d",
+      "after_sha256": "532c19cd2d6212c0a846a9becee4351520efd327754990c79cc8d791077212c0",
+      "changed": true
+    },
+    {
+      "path": "model/temporal/realization/macros/src/snapshots/umpire_temporal_realization_macros__tests__activity-realization.snap",
+      "before_sha256": "7a74d67a3b25c0bcfc35c6f84cf7ddc34f3d33ccb140a8fac7d24c0b83f79420",
+      "after_sha256": "e7f61a0f44c15b47e5f9fd0d6388b988b13189f8e45607f1cfce73de6a147a53",
+      "changed": true
+    }
+  ],
+  "all_unrelated_exact": true,
+  "related_expansion": "model/temporal/realization/macros/src/snapshots/umpire_temporal_realization_macros__tests__activity-realization.snap"
+}

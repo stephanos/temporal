@@ -1,0 +1,35 @@
+{
+  "failed_full_command": "UMPIRE_BACKENDS=require make model-time",
+  "failed_full_exit": 2,
+  "failed_stage": "workspace tests exit101; stale activity realization expansion pin",
+  "completed_stages": 11,
+  "focused_macro_red_exit": 101,
+  "focused_macro_green": "3 passed, no update flags",
+  "intent": "Refresh only the existing snapshot of the reviewed activity handler; no macro production edit",
+  "logs": [
+    {
+      "artifact": ".flow/artifacts/fn-227-parameterized-models-declared-worlds/task3-final-model-time.log.gz",
+      "raw_sha256": "ab07d26ad4c3db49675041f75e12f78de8eef713c87a27cd3a0ff9698380436f",
+      "gzip_sha256": "7335a8e4ea7d2b3133ce5c9211621f85e311294bf670ec8ce1228faea321162c",
+      "roundtrip": true
+    },
+    {
+      "artifact": ".flow/artifacts/fn-227-parameterized-models-declared-worlds/task3-red-expansion-snapshot.log.gz",
+      "raw_sha256": "ee9817df70bcd750288cfbb188e0ea7420883d3b71c6c7c5bf089fea09b7ca88",
+      "gzip_sha256": "3c38df296efd35d7369f426e3eda5e3cf5c54c14b3d0258d6b0ec268a3e24fe5",
+      "roundtrip": true
+    },
+    {
+      "artifact": ".flow/artifacts/fn-227-parameterized-models-declared-worlds/task3-update-expansion-snapshot.log.gz",
+      "raw_sha256": "21a41178095b5e7003d9bc59b62e54e73ba458ca40c5a55206511262aa96abfa",
+      "gzip_sha256": "cdf13a5af0a690ac3b897d9d671fcbc88b1e3a990d421eac99b8856361f864bb",
+      "roundtrip": true
+    },
+    {
+      "artifact": ".flow/artifacts/fn-227-parameterized-models-declared-worlds/task3-green-expansion-snapshot.log.gz",
+      "raw_sha256": "9e5ae2cfb03552c2b297f8015ddbee691bf43e87f2352b510f7ed68af3987e92",
+      "gzip_sha256": "1b870fd467f30ab8f3e548a4309cad6a271c8819e72296164dcd01a4a8a1e226",
+      "roundtrip": true
+    }
+  ]
+}
