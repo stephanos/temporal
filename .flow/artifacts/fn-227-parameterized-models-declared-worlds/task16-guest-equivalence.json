@@ -33,6 +33,13 @@
       "compile_seconds": 33.86,
       "source": "36e5611d55",
       "sha256": "d544b0b2d8c835034fc0e070e875ad3b90fbf512e9132a79196c64fa7788652d"
+    },
+    {
+      "command": "make umpire-guest",
+      "log": "task16-common-facts-guest.log",
+      "exit": 0,
+      "source": "28306365be",
+      "sha256": "d544b0b2d8c835034fc0e070e875ad3b90fbf512e9132a79196c64fa7788652d"
     }
   ],
   "reused_actual_gates": [
@@ -52,6 +59,6 @@
     }
   ],
   "reuse_outcome": "Conductor-authorized reuse: actual slice/gap passes ran against the same byte-identical pinned guest, with unchanged Go host/server surface. Final reviewed-source required full/timing gate runs separately.",
-  "final_refresh_source": "79fe477d3f690a6ace3f8f0c43ef940a9e6476b2",
+  "final_refresh_source": "28306365be",
   "final_sha256": "d544b0b2d8c835034fc0e070e875ad3b90fbf512e9132a79196c64fa7788652d"
 }
