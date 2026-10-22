@@ -4955,7 +4955,7 @@
       "guest_peak_memory_bytes": 67108864,
       "iteration": 1,
       "linked_after": {
-       "peak_rss_bytes": 314572800,
+       "peak_rss_bytes": 6203392000,
        "system_nanos": 1000000000,
        "user_nanos": 4000000000
       },
@@ -4976,12 +4976,12 @@
       "guest_peak_memory_bytes": 67108864,
       "iteration": 2,
       "linked_after": {
-       "peak_rss_bytes": 367001600,
+       "peak_rss_bytes": 6203392000,
        "system_nanos": 1000000000,
        "user_nanos": 6000000000
       },
       "linked_before": {
-       "peak_rss_bytes": 314572800,
+       "peak_rss_bytes": 6203392000,
        "system_nanos": 1000000000,
        "user_nanos": 4000000000
       },
@@ -4997,12 +4997,12 @@
       "guest_peak_memory_bytes": 67108864,
       "iteration": 1,
       "linked_after": {
-       "peak_rss_bytes": 398458880,
+       "peak_rss_bytes": 6203392000,
        "system_nanos": 1000000000,
        "user_nanos": 7000000000
       },
       "linked_before": {
-       "peak_rss_bytes": 367001600,
+       "peak_rss_bytes": 6203392000,
        "system_nanos": 1000000000,
        "user_nanos": 6000000000
       },
@@ -5018,12 +5018,12 @@
       "guest_peak_memory_bytes": 67108864,
       "iteration": 2,
       "linked_after": {
-       "peak_rss_bytes": 408944640,
+       "peak_rss_bytes": 6203392000,
        "system_nanos": 2000000000,
        "user_nanos": 8000000000
       },
       "linked_before": {
-       "peak_rss_bytes": 398458880,
+       "peak_rss_bytes": 6203392000,
        "system_nanos": 1000000000,
        "user_nanos": 7000000000
       },
@@ -5408,7 +5408,7 @@
       "guest_peak_memory_bytes": 67108864,
       "iteration": 1,
       "linked_after": {
-       "peak_rss_bytes": 314572800,
+       "peak_rss_bytes": 1073741824,
        "system_nanos": 1000000000,
        "user_nanos": 4000000000
       },
@@ -5429,12 +5429,12 @@
       "guest_peak_memory_bytes": 67108864,
       "iteration": 2,
       "linked_after": {
-       "peak_rss_bytes": 367001600,
+       "peak_rss_bytes": 1073741824,
        "system_nanos": 1000000000,
        "user_nanos": 6000000000
       },
       "linked_before": {
-       "peak_rss_bytes": 314572800,
+       "peak_rss_bytes": 1073741824,
        "system_nanos": 1000000000,
        "user_nanos": 4000000000
       },
@@ -5450,12 +5450,12 @@
       "guest_peak_memory_bytes": 67108864,
       "iteration": 1,
       "linked_after": {
-       "peak_rss_bytes": 398458880,
+       "peak_rss_bytes": 1073741824,
        "system_nanos": 1000000000,
        "user_nanos": 7000000000
       },
       "linked_before": {
-       "peak_rss_bytes": 367001600,
+       "peak_rss_bytes": 1073741824,
        "system_nanos": 1000000000,
        "user_nanos": 6000000000
       },
@@ -5471,12 +5471,12 @@
       "guest_peak_memory_bytes": 67108864,
       "iteration": 2,
       "linked_after": {
-       "peak_rss_bytes": 408944640,
+       "peak_rss_bytes": 1073741824,
        "system_nanos": 2000000000,
        "user_nanos": 8000000000
       },
       "linked_before": {
-       "peak_rss_bytes": 398458880,
+       "peak_rss_bytes": 1073741824,
        "system_nanos": 1000000000,
        "user_nanos": 7000000000
       },
@@ -5559,7 +5559,7 @@
       "guest_peak_memory_bytes": 67108864,
       "iteration": 1,
       "linked_after": {
-       "peak_rss_bytes": 314572800,
+       "peak_rss_bytes": 6203392000,
        "system_nanos": 1000000000,
        "user_nanos": 4000000000
       },
@@ -5580,12 +5580,12 @@
       "guest_peak_memory_bytes": 67108864,
       "iteration": 2,
       "linked_after": {
-       "peak_rss_bytes": 367001600,
+       "peak_rss_bytes": 6203392000,
        "system_nanos": 1000000000,
        "user_nanos": 6000000000
       },
       "linked_before": {
-       "peak_rss_bytes": 314572800,
+       "peak_rss_bytes": 6203392000,
        "system_nanos": 1000000000,
        "user_nanos": 4000000000
       },
@@ -5601,12 +5601,12 @@
       "guest_peak_memory_bytes": 67108864,
       "iteration": 1,
       "linked_after": {
-       "peak_rss_bytes": 398458880,
+       "peak_rss_bytes": 6203392000,
        "system_nanos": 1000000000,
        "user_nanos": 7000000000
       },
       "linked_before": {
-       "peak_rss_bytes": 367001600,
+       "peak_rss_bytes": 6203392000,
        "system_nanos": 1000000000,
        "user_nanos": 6000000000
       },
@@ -5622,12 +5622,12 @@
       "guest_peak_memory_bytes": 67108864,
       "iteration": 2,
       "linked_after": {
-       "peak_rss_bytes": 408944640,
+       "peak_rss_bytes": 6203392000,
        "system_nanos": 2000000000,
        "user_nanos": 8000000000
       },
       "linked_before": {
-       "peak_rss_bytes": 398458880,
+       "peak_rss_bytes": 6203392000,
        "system_nanos": 1000000000,
        "user_nanos": 7000000000
       },
@@ -5710,7 +5710,7 @@
       "guest_peak_memory_bytes": 67108864,
       "iteration": 1,
       "linked_after": {
-       "peak_rss_bytes": 314572800,
+       "peak_rss_bytes": 6549825126,
        "system_nanos": 1000000000,
        "user_nanos": 4000000000
       },
@@ -5731,12 +5731,12 @@
       "guest_peak_memory_bytes": 67108864,
       "iteration": 2,
       "linked_after": {
-       "peak_rss_bytes": 367001600,
+       "peak_rss_bytes": 6549825126,
        "system_nanos": 1000000000,
        "user_nanos": 6000000000
       },
       "linked_before": {
-       "peak_rss_bytes": 314572800,
+       "peak_rss_bytes": 6549825126,
        "system_nanos": 1000000000,
        "user_nanos": 4000000000
       },
@@ -5752,12 +5752,12 @@
       "guest_peak_memory_bytes": 67108864,
       "iteration": 1,
       "linked_after": {
-       "peak_rss_bytes": 398458880,
+       "peak_rss_bytes": 6549825126,
        "system_nanos": 1000000000,
        "user_nanos": 7000000000
       },
       "linked_before": {
-       "peak_rss_bytes": 367001600,
+       "peak_rss_bytes": 6549825126,
        "system_nanos": 1000000000,
        "user_nanos": 6000000000
       },
@@ -5773,12 +5773,12 @@
       "guest_peak_memory_bytes": 67108864,
       "iteration": 2,
       "linked_after": {
-       "peak_rss_bytes": 408944640,
+       "peak_rss_bytes": 6549825126,
        "system_nanos": 2000000000,
        "user_nanos": 8000000000
       },
       "linked_before": {
-       "peak_rss_bytes": 398458880,
+       "peak_rss_bytes": 6549825126,
        "system_nanos": 1000000000,
        "user_nanos": 7000000000
       },
@@ -5882,7 +5882,7 @@
       "guest_peak_memory_bytes": 67108864,
       "iteration": 2,
       "linked_after": {
-       "peak_rss_bytes": 367001600,
+       "peak_rss_bytes": 314572800,
        "system_nanos": 1000000000,
        "user_nanos": 6000000000
       },
@@ -5903,12 +5903,12 @@
       "guest_peak_memory_bytes": 67108864,
       "iteration": 1,
       "linked_after": {
-       "peak_rss_bytes": 398458880,
+       "peak_rss_bytes": 314572800,
        "system_nanos": 1000000000,
        "user_nanos": 7000000000
       },
       "linked_before": {
-       "peak_rss_bytes": 367001600,
+       "peak_rss_bytes": 314572800,
        "system_nanos": 1000000000,
        "user_nanos": 6000000000
       },
@@ -5924,12 +5924,12 @@
       "guest_peak_memory_bytes": 67108864,
       "iteration": 2,
       "linked_after": {
-       "peak_rss_bytes": 408944640,
+       "peak_rss_bytes": 314572800,
        "system_nanos": 2000000000,
        "user_nanos": 8000000000
       },
       "linked_before": {
-       "peak_rss_bytes": 398458880,
+       "peak_rss_bytes": 314572800,
        "system_nanos": 1000000000,
        "user_nanos": 7000000000
       },
@@ -6012,7 +6012,7 @@
       "guest_peak_memory_bytes": 67108864,
       "iteration": 1,
       "linked_after": {
-       "peak_rss_bytes": 314572800,
+       "peak_rss_bytes": 6442450945,
        "system_nanos": 1000000000,
        "user_nanos": 4000000000
       },
@@ -6033,12 +6033,12 @@
       "guest_peak_memory_bytes": 67108864,
       "iteration": 2,
       "linked_after": {
-       "peak_rss_bytes": 367001600,
+       "peak_rss_bytes": 6442450945,
        "system_nanos": 1000000000,
        "user_nanos": 6000000000
       },
       "linked_before": {
-       "peak_rss_bytes": 314572800,
+       "peak_rss_bytes": 6442450945,
        "system_nanos": 1000000000,
        "user_nanos": 4000000000
       },
@@ -6054,12 +6054,12 @@
       "guest_peak_memory_bytes": 67108864,
       "iteration": 1,
       "linked_after": {
-       "peak_rss_bytes": 398458880,
+       "peak_rss_bytes": 6442450945,
        "system_nanos": 1000000000,
        "user_nanos": 7000000000
       },
       "linked_before": {
-       "peak_rss_bytes": 367001600,
+       "peak_rss_bytes": 6442450945,
        "system_nanos": 1000000000,
        "user_nanos": 6000000000
       },
@@ -6075,12 +6075,12 @@
       "guest_peak_memory_bytes": 67108864,
       "iteration": 2,
       "linked_after": {
-       "peak_rss_bytes": 408944640,
+       "peak_rss_bytes": 6442450945,
        "system_nanos": 2000000000,
        "user_nanos": 8000000000
       },
       "linked_before": {
-       "peak_rss_bytes": 398458880,
+       "peak_rss_bytes": 6442450945,
        "system_nanos": 1000000000,
        "user_nanos": 7000000000
       },
@@ -6157,7 +6157,7 @@
       "guest_peak_memory_bytes": 67108864,
       "iteration": 1,
       "linked_after": {
-       "peak_rss_bytes": 314572800,
+       "peak_rss_bytes": 1073741824,
        "system_nanos": 1000000000,
        "user_nanos": 4000000000
       },
@@ -6178,12 +6178,12 @@
       "guest_peak_memory_bytes": 67108864,
       "iteration": 2,
       "linked_after": {
-       "peak_rss_bytes": 367001600,
+       "peak_rss_bytes": 1073741824,
        "system_nanos": 1000000000,
        "user_nanos": 6000000000
       },
       "linked_before": {
-       "peak_rss_bytes": 314572800,
+       "peak_rss_bytes": 1073741824,
        "system_nanos": 1000000000,
        "user_nanos": 4000000000
       },
@@ -6199,12 +6199,12 @@
       "guest_peak_memory_bytes": 67108864,
       "iteration": 1,
       "linked_after": {
-       "peak_rss_bytes": 398458880,
+       "peak_rss_bytes": 1073741824,
        "system_nanos": 1000000000,
        "user_nanos": 7000000000
       },
       "linked_before": {
-       "peak_rss_bytes": 367001600,
+       "peak_rss_bytes": 1073741824,
        "system_nanos": 1000000000,
        "user_nanos": 6000000000
       },
@@ -6220,12 +6220,12 @@
       "guest_peak_memory_bytes": 67108864,
       "iteration": 2,
       "linked_after": {
-       "peak_rss_bytes": 408944640,
+       "peak_rss_bytes": 1073741824,
        "system_nanos": 2000000000,
        "user_nanos": 8000000000
       },
       "linked_before": {
-       "peak_rss_bytes": 398458880,
+       "peak_rss_bytes": 1073741824,
        "system_nanos": 1000000000,
        "user_nanos": 7000000000
       },
@@ -6309,7 +6309,7 @@
       "incarnation": "a/1",
       "iteration": 1,
       "linked_after": {
-       "peak_rss_bytes": 314572800,
+       "peak_rss_bytes": 7516192768,
        "system_nanos": 1000000000,
        "user_nanos": 4000000000
       },
@@ -6331,7 +6331,7 @@
       "incarnation": "b/1",
       "iteration": 1,
       "linked_after": {
-       "peak_rss_bytes": 314572800,
+       "peak_rss_bytes": 7516192768,
        "system_nanos": 1000000000,
        "user_nanos": 4000000000
       },
@@ -6353,12 +6353,12 @@
       "incarnation": "a/1",
       "iteration": 2,
       "linked_after": {
-       "peak_rss_bytes": 367001600,
+       "peak_rss_bytes": 7516192768,
        "system_nanos": 1000000000,
        "user_nanos": 6000000000
       },
       "linked_before": {
-       "peak_rss_bytes": 314572800,
+       "peak_rss_bytes": 7516192768,
        "system_nanos": 1000000000,
        "user_nanos": 4000000000
       },
@@ -6375,12 +6375,12 @@
       "incarnation": "b/1",
       "iteration": 2,
       "linked_after": {
-       "peak_rss_bytes": 367001600,
+       "peak_rss_bytes": 7516192768,
        "system_nanos": 1000000000,
        "user_nanos": 6000000000
       },
       "linked_before": {
-       "peak_rss_bytes": 314572800,
+       "peak_rss_bytes": 7516192768,
        "system_nanos": 1000000000,
        "user_nanos": 4000000000
       },
@@ -6397,12 +6397,12 @@
       "incarnation": "a/1",
       "iteration": 1,
       "linked_after": {
-       "peak_rss_bytes": 398458880,
+       "peak_rss_bytes": 7516192768,
        "system_nanos": 1000000000,
        "user_nanos": 7000000000
       },
       "linked_before": {
-       "peak_rss_bytes": 367001600,
+       "peak_rss_bytes": 7516192768,
        "system_nanos": 1000000000,
        "user_nanos": 6000000000
       },
@@ -6419,12 +6419,12 @@
       "incarnation": "b/1",
       "iteration": 1,
       "linked_after": {
-       "peak_rss_bytes": 398458880,
+       "peak_rss_bytes": 7516192768,
        "system_nanos": 1000000000,
        "user_nanos": 7000000000
       },
       "linked_before": {
-       "peak_rss_bytes": 367001600,
+       "peak_rss_bytes": 7516192768,
        "system_nanos": 1000000000,
        "user_nanos": 6000000000
       },
@@ -6441,12 +6441,12 @@
       "incarnation": "a/1",
       "iteration": 2,
       "linked_after": {
-       "peak_rss_bytes": 408944640,
+       "peak_rss_bytes": 7516192768,
        "system_nanos": 2000000000,
        "user_nanos": 8000000000
       },
       "linked_before": {
-       "peak_rss_bytes": 398458880,
+       "peak_rss_bytes": 7516192768,
        "system_nanos": 1000000000,
        "user_nanos": 7000000000
       },
@@ -6463,12 +6463,12 @@
       "incarnation": "b/1",
       "iteration": 2,
       "linked_after": {
-       "peak_rss_bytes": 408944640,
+       "peak_rss_bytes": 7516192768,
        "system_nanos": 2000000000,
        "user_nanos": 8000000000
       },
       "linked_before": {
-       "peak_rss_bytes": 398458880,
+       "peak_rss_bytes": 7516192768,
        "system_nanos": 1000000000,
        "user_nanos": 7000000000
       },
@@ -6546,7 +6546,7 @@
       "incarnation": "a/1",
       "iteration": 1,
       "linked_after": {
-       "peak_rss_bytes": 314572800,
+       "peak_rss_bytes": 8589934593,
        "system_nanos": 1000000000,
        "user_nanos": 4000000000
       },
@@ -6568,7 +6568,7 @@
       "incarnation": "b/1",
       "iteration": 1,
       "linked_after": {
-       "peak_rss_bytes": 314572800,
+       "peak_rss_bytes": 8589934593,
        "system_nanos": 1000000000,
        "user_nanos": 4000000000
       },
@@ -6590,12 +6590,12 @@
       "incarnation": "a/1",
       "iteration": 2,
       "linked_after": {
-       "peak_rss_bytes": 367001600,
+       "peak_rss_bytes": 8589934593,
        "system_nanos": 1000000000,
        "user_nanos": 6000000000
       },
       "linked_before": {
-       "peak_rss_bytes": 314572800,
+       "peak_rss_bytes": 8589934593,
        "system_nanos": 1000000000,
        "user_nanos": 4000000000
       },
@@ -6612,12 +6612,12 @@
       "incarnation": "b/1",
       "iteration": 2,
       "linked_after": {
-       "peak_rss_bytes": 367001600,
+       "peak_rss_bytes": 8589934593,
        "system_nanos": 1000000000,
        "user_nanos": 6000000000
       },
       "linked_before": {
-       "peak_rss_bytes": 314572800,
+       "peak_rss_bytes": 8589934593,
        "system_nanos": 1000000000,
        "user_nanos": 4000000000
       },
@@ -6634,12 +6634,12 @@
       "incarnation": "a/1",
       "iteration": 1,
       "linked_after": {
-       "peak_rss_bytes": 398458880,
+       "peak_rss_bytes": 8589934593,
        "system_nanos": 1000000000,
        "user_nanos": 7000000000
       },
       "linked_before": {
-       "peak_rss_bytes": 367001600,
+       "peak_rss_bytes": 8589934593,
        "system_nanos": 1000000000,
        "user_nanos": 6000000000
       },
@@ -6656,12 +6656,12 @@
       "incarnation": "b/1",
       "iteration": 1,
       "linked_after": {
-       "peak_rss_bytes": 398458880,
+       "peak_rss_bytes": 8589934593,
        "system_nanos": 1000000000,
        "user_nanos": 7000000000
       },
       "linked_before": {
-       "peak_rss_bytes": 367001600,
+       "peak_rss_bytes": 8589934593,
        "system_nanos": 1000000000,
        "user_nanos": 6000000000
       },
@@ -6678,12 +6678,12 @@
       "incarnation": "a/1",
       "iteration": 2,
       "linked_after": {
-       "peak_rss_bytes": 408944640,
+       "peak_rss_bytes": 8589934593,
        "system_nanos": 2000000000,
        "user_nanos": 8000000000
       },
       "linked_before": {
-       "peak_rss_bytes": 398458880,
+       "peak_rss_bytes": 8589934593,
        "system_nanos": 1000000000,
        "user_nanos": 7000000000
       },
@@ -6700,17 +6700,166 @@
       "incarnation": "b/1",
       "iteration": 2,
       "linked_after": {
-       "peak_rss_bytes": 408944640,
+       "peak_rss_bytes": 8589934593,
        "system_nanos": 2000000000,
        "user_nanos": 8000000000
       },
       "linked_before": {
-       "peak_rss_bytes": 398458880,
+       "peak_rss_bytes": 8589934593,
        "system_nanos": 1000000000,
        "user_nanos": 7000000000
       },
       "phase": "replay",
       "store_peak_rss_bytes": 8589934593,
+      "trace_bytes": 4096,
+      "virtual_time_nanos": 5000000,
+      "wall_nanos": 2000000000
+     }
+    ],
+    "start": {
+     "children": {
+      "peak_rss_bytes": 0,
+      "system_nanos": 0,
+      "user_nanos": 0
+     },
+     "linked": {
+      "peak_rss_bytes": 104857600,
+      "system_nanos": 500000000,
+      "user_nanos": 1000000000
+     }
+    }
+   },
+   "runs": [
+    {
+     "class": "success",
+     "exit_code": 0,
+     "replayed": true,
+     "virtual_time_nanos": 5000000
+    },
+    {
+     "class": "success",
+     "exit_code": 0,
+     "replayed": true,
+     "virtual_time_nanos": 5000000
+    }
+   ]
+  },
+  {
+   "name": "phases-single-node-cluster-window",
+   "observations": {
+    "executed": {
+     "children": {
+      "peak_rss_bytes": 943718400,
+      "system_nanos": 5000000000,
+      "user_nanos": 30000000000
+     },
+     "linked": {
+      "peak_rss_bytes": 7516192768,
+      "system_nanos": 2000000000,
+      "user_nanos": 10000000000
+     }
+    },
+    "operator_peak_rss_bytes": 524288000,
+    "operator_process_id": 4242,
+    "preparation_wall_nanos": 40000000000,
+    "prepared": {
+     "children": {
+      "peak_rss_bytes": 943718400,
+      "system_nanos": 5000000000,
+      "user_nanos": 30000000000
+     },
+     "linked": {
+      "peak_rss_bytes": 209715200,
+      "system_nanos": 1000000000,
+      "user_nanos": 2000000000
+     }
+    },
+    "resident_stores": 1,
+    "samples": [
+     {
+      "fuel_used": 1000,
+      "guest_memory_limit_bytes": 268435456,
+      "guest_peak_memory_bytes": 67108864,
+      "incarnation": "a/1",
+      "iteration": 1,
+      "linked_after": {
+       "peak_rss_bytes": 7516192768,
+       "system_nanos": 1000000000,
+       "user_nanos": 4000000000
+      },
+      "linked_before": {
+       "peak_rss_bytes": 209715200,
+       "system_nanos": 1000000000,
+       "user_nanos": 2000000000
+      },
+      "phase": "execute",
+      "store_peak_rss_bytes": 7516192768,
+      "trace_bytes": 4096,
+      "virtual_time_nanos": 5000000,
+      "wall_nanos": 2000000000
+     },
+     {
+      "fuel_used": 1000,
+      "guest_memory_limit_bytes": 268435456,
+      "guest_peak_memory_bytes": 67108864,
+      "incarnation": "a/1",
+      "iteration": 2,
+      "linked_after": {
+       "peak_rss_bytes": 7516192768,
+       "system_nanos": 1000000000,
+       "user_nanos": 6000000000
+      },
+      "linked_before": {
+       "peak_rss_bytes": 7516192768,
+       "system_nanos": 1000000000,
+       "user_nanos": 4000000000
+      },
+      "phase": "execute",
+      "store_peak_rss_bytes": 7516192768,
+      "trace_bytes": 4096,
+      "virtual_time_nanos": 5000000,
+      "wall_nanos": 2000000000
+     },
+     {
+      "fuel_used": 1000,
+      "guest_memory_limit_bytes": 268435456,
+      "guest_peak_memory_bytes": 67108864,
+      "incarnation": "a/1",
+      "iteration": 1,
+      "linked_after": {
+       "peak_rss_bytes": 7516192768,
+       "system_nanos": 1000000000,
+       "user_nanos": 7000000000
+      },
+      "linked_before": {
+       "peak_rss_bytes": 7516192768,
+       "system_nanos": 1000000000,
+       "user_nanos": 6000000000
+      },
+      "phase": "replay",
+      "store_peak_rss_bytes": 7516192768,
+      "trace_bytes": 4096,
+      "virtual_time_nanos": 5000000,
+      "wall_nanos": 2000000000
+     },
+     {
+      "fuel_used": 1000,
+      "guest_memory_limit_bytes": 268435456,
+      "guest_peak_memory_bytes": 67108864,
+      "incarnation": "a/1",
+      "iteration": 2,
+      "linked_after": {
+       "peak_rss_bytes": 7516192768,
+       "system_nanos": 2000000000,
+       "user_nanos": 8000000000
+      },
+      "linked_before": {
+       "peak_rss_bytes": 7516192768,
+       "system_nanos": 1000000000,
+       "user_nanos": 7000000000
+      },
+      "phase": "replay",
+      "store_peak_rss_bytes": 7516192768,
       "trace_bytes": 4096,
       "virtual_time_nanos": 5000000,
       "wall_nanos": 2000000000
@@ -7098,7 +7247,7 @@
       "guest_peak_memory_bytes": 67108864,
       "iteration": 2,
       "linked_after": {
-       "peak_rss_bytes": 367001600,
+       "peak_rss_bytes": 314572800,
        "system_nanos": 1000000000,
        "user_nanos": 6000000000
       },
@@ -7119,12 +7268,12 @@
       "guest_peak_memory_bytes": 67108864,
       "iteration": 1,
       "linked_after": {
-       "peak_rss_bytes": 398458880,
+       "peak_rss_bytes": 314572800,
        "system_nanos": 1000000000,
        "user_nanos": 7000000000
       },
       "linked_before": {
-       "peak_rss_bytes": 367001600,
+       "peak_rss_bytes": 314572800,
        "system_nanos": 1000000000,
        "user_nanos": 6000000000
       },
@@ -7140,12 +7289,12 @@
       "guest_peak_memory_bytes": 67108864,
       "iteration": 2,
       "linked_after": {
-       "peak_rss_bytes": 408944640,
+       "peak_rss_bytes": 314572800,
        "system_nanos": 2000000000,
        "user_nanos": 8000000000
       },
       "linked_before": {
-       "peak_rss_bytes": 398458880,
+       "peak_rss_bytes": 314572800,
        "system_nanos": 1000000000,
        "user_nanos": 7000000000
       },
@@ -7189,6 +7338,157 @@
     "user_nanos": 11000000000
    },
    "terminal_operator_peak_rss_bytes": 104857600
+  },
+  {
+   "name": "phases-terminal-unattributed-rise",
+   "observations": {
+    "executed": {
+     "children": {
+      "peak_rss_bytes": 943718400,
+      "system_nanos": 5000000000,
+      "user_nanos": 30000000000
+     },
+     "linked": {
+      "peak_rss_bytes": 419430400,
+      "system_nanos": 2000000000,
+      "user_nanos": 10000000000
+     }
+    },
+    "operator_peak_rss_bytes": 419430400,
+    "operator_process_id": 4242,
+    "preparation_wall_nanos": 40000000000,
+    "prepared": {
+     "children": {
+      "peak_rss_bytes": 943718400,
+      "system_nanos": 5000000000,
+      "user_nanos": 30000000000
+     },
+     "linked": {
+      "peak_rss_bytes": 209715200,
+      "system_nanos": 1000000000,
+      "user_nanos": 2000000000
+     }
+    },
+    "resident_stores": 1,
+    "samples": [
+     {
+      "fuel_used": 1000,
+      "guest_memory_limit_bytes": 268435456,
+      "guest_peak_memory_bytes": 67108864,
+      "iteration": 1,
+      "linked_after": {
+       "peak_rss_bytes": 314572800,
+       "system_nanos": 1000000000,
+       "user_nanos": 4000000000
+      },
+      "linked_before": {
+       "peak_rss_bytes": 209715200,
+       "system_nanos": 1000000000,
+       "user_nanos": 2000000000
+      },
+      "phase": "execute",
+      "store_peak_rss_bytes": 314572800,
+      "trace_bytes": 4096,
+      "virtual_time_nanos": 5000000,
+      "wall_nanos": 2000000000
+     },
+     {
+      "fuel_used": 1000,
+      "guest_memory_limit_bytes": 268435456,
+      "guest_peak_memory_bytes": 67108864,
+      "iteration": 2,
+      "linked_after": {
+       "peak_rss_bytes": 314572800,
+       "system_nanos": 1000000000,
+       "user_nanos": 6000000000
+      },
+      "linked_before": {
+       "peak_rss_bytes": 314572800,
+       "system_nanos": 1000000000,
+       "user_nanos": 4000000000
+      },
+      "phase": "execute",
+      "store_peak_rss_bytes": 314572800,
+      "trace_bytes": 4096,
+      "virtual_time_nanos": 5000000,
+      "wall_nanos": 2000000000
+     },
+     {
+      "fuel_used": 1000,
+      "guest_memory_limit_bytes": 268435456,
+      "guest_peak_memory_bytes": 67108864,
+      "iteration": 1,
+      "linked_after": {
+       "peak_rss_bytes": 314572800,
+       "system_nanos": 1000000000,
+       "user_nanos": 7000000000
+      },
+      "linked_before": {
+       "peak_rss_bytes": 314572800,
+       "system_nanos": 1000000000,
+       "user_nanos": 6000000000
+      },
+      "phase": "replay",
+      "store_peak_rss_bytes": 314572800,
+      "trace_bytes": 4096,
+      "virtual_time_nanos": 5000000,
+      "wall_nanos": 2000000000
+     },
+     {
+      "fuel_used": 1000,
+      "guest_memory_limit_bytes": 268435456,
+      "guest_peak_memory_bytes": 67108864,
+      "iteration": 2,
+      "linked_after": {
+       "peak_rss_bytes": 314572800,
+       "system_nanos": 2000000000,
+       "user_nanos": 8000000000
+      },
+      "linked_before": {
+       "peak_rss_bytes": 314572800,
+       "system_nanos": 1000000000,
+       "user_nanos": 7000000000
+      },
+      "phase": "replay",
+      "store_peak_rss_bytes": 314572800,
+      "trace_bytes": 4096,
+      "virtual_time_nanos": 5000000,
+      "wall_nanos": 2000000000
+     }
+    ],
+    "start": {
+     "children": {
+      "peak_rss_bytes": 0,
+      "system_nanos": 0,
+      "user_nanos": 0
+     },
+     "linked": {
+      "peak_rss_bytes": 104857600,
+      "system_nanos": 500000000,
+      "user_nanos": 1000000000
+     }
+    }
+   },
+   "runs": [
+    {
+     "class": "success",
+     "exit_code": 0,
+     "replayed": true,
+     "virtual_time_nanos": 5000000
+    },
+    {
+     "class": "success",
+     "exit_code": 0,
+     "replayed": true,
+     "virtual_time_nanos": 5000000
+    }
+   ],
+   "terminal": {
+    "peak_rss_bytes": 9663676416,
+    "system_nanos": 2000000000,
+    "user_nanos": 11000000000
+   },
+   "terminal_operator_peak_rss_bytes": 429916160
   }
  ],
  "schema": "gomad.qualify-accounting-corpus/v1"

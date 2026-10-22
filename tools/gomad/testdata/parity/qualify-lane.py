@@ -174,6 +174,9 @@ def authenticate(response, expected_root):
             bound += (record['identity']['configuration'],)
         equal(bound, (manifest['module_sha256'], manifest['toolchain_sha256'], manifest['host_config_sha256'])[:len(bound)],
               'result.record_identity')
+        provenances = list(Path(execution['campaign_path']).glob('prepared/*/target/provenance.json'))
+        equal(len(provenances), 1, 'result.campaign_provenance')
+        equal(result['provenance'], parity.decode(provenances[0].read_bytes()), 'result.provenance')
         artifact = check.authenticate_artifact(Path(execution['artifact_path']))
         equal(artifact, record, 'result.artifact_record')
         equal(Path(execution['artifact_path']).is_relative_to(Path(execution['campaign_path'])), True, 'result.artifact_containment')
@@ -423,6 +426,18 @@ def tamper(run, binary, path, work):
         result['manifest']['profile'] = 'controlled' if result['manifest']['profile'] == 'cooperative' else 'cooperative'
     cases.append(('identity-profile', rewrite('identity-profile', profile)))
 
+    def compiler(result):
+        result['manifest']['compiler_sha256'] = '2' * 64
+    cases.append(('identity-compiler', rewrite('identity-compiler', compiler)))
+
+    def provenance(result):
+        result['provenance']['inputs']['tags'] = result['provenance']['inputs']['tags'] + ['tampered']
+    cases.append(('provenance-inputs', rewrite('provenance-inputs', provenance)))
+
+    def sample_limit(result):
+        result['observations']['samples'][-1]['guest_memory_limit_bytes'] *= 2
+    cases.append(('sample-limit', rewrite('sample-limit', sample_limit)))
+
     def success_failure(result):
         # A consistent failed report whose failure claims success.
         result['report'].update(qualified=False, deterministic=False, target_success=False,
@@ -440,9 +455,13 @@ def tamper(run, binary, path, work):
         reason = {'failure-success-class': b'failure result is inconsistent',
                   'source-manifest-utf8': b'malformed integrated source manifest line',
                   'receipt-counter': b'receipt content identity changed',
-                  'receipt-duplicate': b'exactly one publication receipt'}.get(name)
-        if reason is None and name.startswith('identity-'):
-            reason = b'execution identity differs from the frozen manifest'
+                  'receipt-duplicate': b'exactly one publication receipt',
+                  'identity-implementation': b'differs from its retained provenance',
+                  'identity-compiler': b'differs from its retained provenance',
+                  'identity-profile': b'differs from its retained provenance',
+                  'identity-platform': b'execution identity differs from the frozen manifest',
+                  'provenance-inputs': b'retained provenance does not bind',
+                  'sample-limit': b'differs from the frozen limits or workload'}.get(name)
         if reason is not None:
             equal(reason in refused.stderr, True, f'tamper.{name}.reason: {refused.stderr!r}')
     return [name for name, _ in cases]

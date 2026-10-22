@@ -159,6 +159,8 @@ fn interval(observations: &Observations) -> Result<(Snapshot, Snapshot, Snapshot
 struct Group<'a> {
     phase: &'a str,
     wall_nanos: u64,
+    /// The linked lifetime peaks at the boundaries around the window.
+    peaks: (u64, u64),
     store_peak_rss_bytes: Option<u64>,
     virtual_time_nanos: u64,
     residents: u64,
@@ -248,6 +250,7 @@ fn groups(
         groups.push(Group {
             phase: &first.phase,
             wall_nanos: first.wall_nanos,
+            peaks: (before.peak_rss_bytes, after.peak_rss_bytes),
             store_peak_rss_bytes: first.store_peak_rss_bytes,
             virtual_time_nanos: first.virtual_time_nanos,
             residents: (nodes.len() as u64).max(1),
@@ -507,7 +510,12 @@ pub(crate) fn budget(observations: &Observations) -> Result<Budget, String> {
 /// Attributed phases must account for the lifetime peak: every window lies
 /// within it and the largest phase reaches it (each phase high water is folded
 /// into the lifetime peak; the operator figure is read last, so it may exceed
-/// it). Phases that understate the lifetime peak refuse the budget.
+/// it). Each window also lies within the lifetime peak observed after it, and
+/// any rise across its boundaries is explained by the window or by operator
+/// work. Phases that understate the lifetime peak refuse the budget.
+///
+/// A cluster window is one whose stores carry `node/incarnation` handles, even
+/// a single-node one; only standalone stores meet the single-guest ceilings.
 fn memory_checks(
     observations: &Observations,
     groups: &[Group<'_>],
@@ -519,7 +527,7 @@ fn memory_checks(
             group
                 .store_peak_rss_bytes
                 .filter(|peak| *peak > 0)
-                .map(|peak| (group.stores.len() == 1, peak))
+                .map(|peak| (group.stores[0].incarnation.is_none(), peak))
         })
         .collect::<Option<Vec<_>>>();
     let operator = observations
@@ -537,7 +545,11 @@ fn memory_checks(
         .collect());
     };
     let largest = windows.iter().map(|(_, peak)| *peak).max().unwrap_or(0);
-    if largest > linked || largest.max(operator) < linked {
+    let unexplained = groups.iter().zip(&windows).any(|(group, (_, window))| {
+        let (before, after) = group.peaks;
+        *window > after || after > before.max(*window).max(operator)
+    });
+    if unexplained || largest > linked || largest.max(operator) < linked {
         return Err(
             "phase memory attribution is inconsistent with the lifetime linked peak".into(),
         );
@@ -635,6 +647,13 @@ pub(crate) fn terminal(
     });
     if attributed.is_some_and(|peak| peak < observations.operator_peak_rss_bytes.unwrap_or(0)) {
         return Err("terminal operator phase peak moved backwards".into());
+    }
+    // After the sealed Result only operator work runs, so an attributed
+    // terminal operator phase must explain any rise of the lifetime peak.
+    if attributed
+        .is_some_and(|peak| after.peak_rss_bytes > peak.max(executed.linked.peak_rss_bytes))
+    {
+        return Err("terminal lifetime peak rise is not attributed to the operator phase".into());
     }
     let (peak, exact) = attributed.map_or((after.peak_rss_bytes, false), |peak| (peak, true));
     Ok(Terminal {

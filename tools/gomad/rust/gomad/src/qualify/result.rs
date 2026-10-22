@@ -27,6 +27,111 @@ const DIRECTORY: [&str; 2] = ["rust-qualifications", "v1"];
 const MAXIMUM_RESULT_BYTES: u64 = 64 << 20;
 const MAXIMUM_RECEIPT_BYTES: u64 = 8 << 10;
 const COOPERATIVE_PROFILE: &str = "gomad.wasi-cooperative/v1";
+const CONTROLLED_PROFILE: &str = "gomad.wasi-stock-exploratory/v1";
+
+/// The manifest profile name of an installed runtime profile; any other
+/// runtime profile has no admitted qualification owner.
+pub(crate) fn profile_name(runtime: &str) -> Result<&'static str, String> {
+    match runtime {
+        COOPERATIVE_PROFILE => Ok("cooperative"),
+        CONTROLLED_PROFILE => Ok("controlled"),
+        _ => Err(format!(
+            "unsupported WASM profile {runtime:?}: no admitted backend owner"
+        )),
+    }
+}
+
+/// The manifest identities derived from the retained provenance; freeze and
+/// `report` both bind the manifest to them.
+struct Derived {
+    pub workload_source_sha256: String,
+    pub runtime_sha256: String,
+    pub compiler_sha256: String,
+    pub helper_sha256: String,
+    pub host_sha256: String,
+    pub model_sha256: String,
+    pub engine_sha256: String,
+    pub host_config_sha256: String,
+    pub module_sha256: String,
+    pub toolchain_sha256: String,
+    pub scenario_sha256: Option<String>,
+    pub profile: &'static str,
+    pub fuel: u64,
+    pub memory_bytes: u64,
+}
+
+fn derive(provenance: &serde_json::Value) -> Result<Derived, String> {
+    use serde_json::Value;
+    let refuse = || "retained provenance does not bind the qualification identities".to_owned();
+    let digest = |value: &Value| canonical::encode(value).map(|bytes| canonical::digest(&bytes));
+    let text = |value: &Value| value.as_str().map(str::to_owned).ok_or_else(refuse);
+    if provenance["schema"] != "gomad.rust-wasm-provenance/v1" {
+        return Err(refuse());
+    }
+    let inputs = &provenance["inputs"];
+    let configuration = &provenance["configuration"];
+    let toolchain = digest(inputs)?;
+    if text(&provenance["build_key"])? != toolchain {
+        return Err(refuse());
+    }
+    let scenario = match &provenance["scenario"] {
+        Value::Null => None,
+        bytes => Some(canonical::digest(
+            &serde_json::from_value::<Vec<u8>>(bytes.clone()).map_err(|_| refuse())?,
+        )),
+    };
+    Ok(Derived {
+        workload_source_sha256: digest(&inputs["sources"])?,
+        runtime_sha256: digest(&inputs["compiler"])?,
+        compiler_sha256: text(&inputs["compiler_sha256"])?,
+        helper_sha256: text(&inputs["helper"])?,
+        host_sha256: text(&inputs["host"])?,
+        model_sha256: digest(configuration.get("model").unwrap_or(&Value::Null))?,
+        engine_sha256: canonical::digest(text(&configuration["engine"])?.as_bytes()),
+        host_config_sha256: digest(configuration)?,
+        module_sha256: text(&provenance["module_sha256"])?,
+        toolchain_sha256: toolchain,
+        scenario_sha256: scenario,
+        profile: profile_name(configuration["profile"].as_str().ok_or_else(refuse)?)?,
+        fuel: configuration["limits"]["fuel"]
+            .as_u64()
+            .ok_or_else(refuse)?,
+        memory_bytes: configuration["limits"]["memory_bytes"]
+            .as_u64()
+            .ok_or_else(refuse)?,
+    })
+}
+
+/// Refuses a manifest whose identities differ from its retained provenance.
+pub(crate) fn bind_provenance(
+    manifest: &Manifest,
+    provenance: &serde_json::Value,
+) -> Result<(), String> {
+    let derived = derive(provenance)?;
+    let digests = [
+        (
+            &derived.workload_source_sha256,
+            &manifest.workload_source_sha256,
+        ),
+        (&derived.runtime_sha256, &manifest.runtime_sha256),
+        (&derived.compiler_sha256, &manifest.compiler_sha256),
+        (&derived.helper_sha256, &manifest.helper_sha256),
+        (&derived.host_sha256, &manifest.host_sha256),
+        (&derived.model_sha256, &manifest.model_sha256),
+        (&derived.engine_sha256, &manifest.engine_sha256),
+        (&derived.host_config_sha256, &manifest.host_config_sha256),
+        (&derived.module_sha256, &manifest.module_sha256),
+        (&derived.toolchain_sha256, &manifest.toolchain_sha256),
+    ];
+    if digests.iter().any(|(derived, frozen)| derived != frozen)
+        || derived.scenario_sha256 != manifest.scenario_sha256
+        || derived.profile != manifest.profile
+        || (derived.fuel, derived.memory_bytes) != (manifest.fuel, manifest.memory_bytes)
+    {
+        return Err("qualification manifest identity differs from its retained provenance".into());
+    }
+    Ok(())
+}
 
 /// A frozen comparison cell, not an assertion that it passed. Every identity
 /// is a Rust-lineage digest observed during freeze.
@@ -147,6 +252,10 @@ pub(crate) struct QualificationResult {
     pub budget: Option<Budget>,
     pub budget_failure: Option<String>,
     pub integrated_source_manifest: Option<String>,
+    /// The prepared target's `gomad.rust-wasm-provenance/v1` preimage: build
+    /// inputs, build key, module digest, final configuration and scenario.
+    /// Every manifest identity is recomputed from it.
+    pub provenance: serde_json::Value,
 }
 
 #[derive(Clone, Debug, Deserialize, Eq, PartialEq, Serialize)]
@@ -252,14 +361,14 @@ pub(crate) fn validate(result: &QualificationResult) -> Result<(), String> {
     }))?);
     let platform =
         canonical::digest(format!("{}/{}", manifest.host_os, manifest.host_arch).as_bytes());
-    let cooperative = manifest.profile == "cooperative";
+    bind_provenance(manifest, &result.provenance)?;
     for execution in &result.report.executions {
         let identity = &execution.record.identity;
         if identity.target != manifest.module_sha256
             || identity.toolchain != manifest.toolchain_sha256
             || identity.implementation != implementation
             || identity.platform != platform
-            || (execution.record.profile == COOPERATIVE_PROFILE) != cooperative
+            || profile_name(&execution.record.profile).ok() != Some(manifest.profile.as_str())
             || manifest.scenario_sha256.is_none()
                 && identity.configuration != manifest.host_config_sha256
             || execution.record.limits.fuel != manifest.fuel
@@ -267,6 +376,15 @@ pub(crate) fn validate(result: &QualificationResult) -> Result<(), String> {
         {
             return Err("qualification execution identity differs from the frozen manifest".into());
         }
+    }
+    // Every store, executed or replayed, ran under the frozen guest limit;
+    // only multi-instance stores carry node/incarnation handles.
+    let cluster = manifest.workload == "multi-instance";
+    if result.observations.samples.iter().any(|sample| {
+        sample.guest_memory_limit_bytes != manifest.memory_bytes
+            || sample.incarnation.is_some() != cluster
+    }) {
+        return Err("qualification store sample differs from the frozen limits or workload".into());
     }
     let (cost, cost_failure, budget, budget_failure) =
         cost::evaluate(&result.observations, &result.report);

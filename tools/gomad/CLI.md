@@ -494,11 +494,18 @@ JSON differences from the Go host, by design of the new lineage:
 `report` reads no installation, source, compiler or helper. It refuses a changed
 content address, non-canonical bytes and unknown fields. It also refuses any
 verdict, record hash, cost or budget claim that differs from its recomputation
-over the retained records and raw observations. Every record must bind the
-frozen module, toolchain, configuration, limits, implementation (recomputed
-from the manifest's helper and host digests), platform (`host_os/host_arch`)
-and profile. A retained failure carries one of the runner's failure classes,
-never a success class.
+over the retained records and raw observations. The Result retains the
+prepared target's `gomad.rust-wasm-provenance/v1` preimage (`provenance`), and
+`report` recomputes every manifest identity from it: workload sources, runtime
+and compiler, helper and host, model, engine, configuration, module, build key
+(toolchain), scenario, profile and limits. Every record must bind the frozen
+module, toolchain, configuration, limits, implementation (recomputed from the
+helper and host digests), platform (`host_os/host_arch`) and exact runtime
+profile (`cooperative` is `gomad.wasi-cooperative/v1`, `controlled` is
+`gomad.wasi-stock-exploratory/v1`; any other is refused). Every store sample,
+executed or replayed, must carry the frozen guest limit, and only
+multi-instance stores carry `node/incarnation` handles. A retained failure
+carries one of the runner's failure classes, never a success class.
 
 ### Linked-process accounting
 
@@ -552,9 +559,12 @@ counters at the store's boundaries.
   receipt's terminal operator check uses the operator phases through
   publication.
 - **Attributed phases account for the lifetime peak.** Every window lies within
-  the lifetime linked peak and the largest phase reaches it; otherwise the
-  budget is refused (`budget_failure`). A zero phase peak is a missing
-  measurement.
+  the lifetime linked peak and within the lifetime peak observed after it; any
+  rise across a window's boundaries is explained by the window or by operator
+  work; and the largest phase reaches the lifetime peak. Otherwise the budget
+  is refused (`budget_failure`). A zero phase peak is a missing measurement. A
+  window whose stores carry `node/incarnation` handles is a cluster window,
+  even with a single node.
 - **Without attribution** (another platform, a refused `clear_refs` write, or any
   window lacking its peak), the lifetime linked peak upper-bounds every component.
   It proves a limit only when it fits under it. Above a limit, the check is
@@ -580,7 +590,9 @@ counters at the store's boundaries.
 - **The receipt's terminal linked peak** must fit the 2 GiB ceiling, or
   `qualify` returns 3 for every cell, as the Go host did. `report` still opens
   such a Result and labels the receipt `unattributed`. Missing or backward
-  counters and binding errors are refused.
+  counters and binding errors are refused. With attributed phases, a terminal
+  lifetime peak above both the Result's lifetime peak and the terminal
+  operator phase is unexplained and refused.
 
 ### Verification lanes
 

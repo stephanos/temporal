@@ -114,14 +114,22 @@ def oracle(case):
         operator = observations.get('operator_peak_rss_bytes') or None
         attributed = operator is not None and all(window[0].get('store_peak_rss_bytes') for window in groups)
         largest = attributed and max(window[0]['store_peak_rss_bytes'] for window in groups)
-        if attributed and (largest > peak or max(largest, operator) < peak):
+        # Each window lies within the lifetime peak after it; any rise across
+        # its boundaries is explained by the window or by operator work.
+        unexplained = attributed and any(
+            window[0]['store_peak_rss_bytes'] > window[0]['linked_after']['peak_rss_bytes']
+            or window[0]['linked_after']['peak_rss_bytes'] > max(window[0]['linked_before']['peak_rss_bytes'],
+                                                                 window[0]['store_peak_rss_bytes'], operator)
+            for window in groups)
+        if attributed and (unexplained or largest > peak or max(largest, operator) < peak):
             # Attributed phases must account for the lifetime peak.
             expected['budget_failure'] = 'attribution'
         elif attributed:
-            # Phase attribution: operator phases, single store windows (always
-            # compiling) and cluster windows meet their own historical ceilings.
-            single = max([window[0]['store_peak_rss_bytes'] for window in groups if len(window) == 1] or [0])
-            clusters = [window[0]['store_peak_rss_bytes'] for window in groups if len(window) > 1]
+            # Phase attribution: operator phases, standalone store windows (always
+            # compiling) and cluster windows (stores with node/incarnation
+            # handles, even a single node) meet their own historical ceilings.
+            single = max([window[0]['store_peak_rss_bytes'] for window in groups if window[0].get('incarnation') is None] or [0])
+            clusters = [window[0]['store_peak_rss_bytes'] for window in groups if window[0].get('incarnation') is not None]
             statuses['operator lifetime peak RSS'] = 'within' if operator <= 2 * GIB else 'exceeded'
             statuses['individual warm helper peak RSS'] = 'within' if single <= 4 * GIB else 'unattributed'
             statuses['individual cold helper peak RSS'] = 'within' if single <= 6 * GIB else 'exceeded'
@@ -191,7 +199,10 @@ def check(case, row):
         operator = case.get('terminal_operator_peak_rss_bytes')
         retained = case['observations'].get('operator_peak_rss_bytes') or None
         attributed = operator is not None and retained is not None
-        if not monotone(terminal, executed) or attributed and operator < retained:
+        # After the sealed Result only operator work runs, so an attributed
+        # terminal operator phase must explain any lifetime-peak rise.
+        unexplained = attributed and terminal['peak_rss_bytes'] > max(operator, executed['peak_rss_bytes'])
+        if not monotone(terminal, executed) or attributed and operator < retained or unexplained:
             equal('failure' in row['terminal'], True, name + '.terminal_refused')
         else:
             peak = operator if attributed else terminal['peak_rss_bytes']
@@ -217,6 +228,8 @@ def unit_pins(rows):
     equal(statuses['phases-window-6.1GiB-cold-exceeded']['individual cold helper peak RSS'], 'exceeded', 'units.cold_exceeded')
     equal(statuses['phases-zero-window-falls-back']['individual warm helper peak RSS'], 'unattributed', 'units.zero_window_pending')
     equal(statuses['phases-zero-operator-falls-back']['operator lifetime peak RSS'], 'unattributed', 'units.zero_operator_pending')
+    equal(statuses['phases-single-node-cluster-window']['conservative resident helper peak upper bound'], 'within',
+          'units.single_node_cluster_ceiling')
 
 
 def main():

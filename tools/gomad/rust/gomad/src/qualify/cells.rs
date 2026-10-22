@@ -32,6 +32,8 @@ pub(crate) struct Qualified {
 pub(crate) struct Frozen {
     pub options: ExploreOptions,
     pub prepared: prepare::Prepared,
+    /// The decoded provenance the manifest identities were bound to.
+    pub provenance: Value,
     pub manifest: Manifest,
     pub integrated_source_manifest: Option<String>,
     pub artifact_root: PathBuf,
@@ -270,12 +272,7 @@ pub(crate) fn freeze(
         .then(|| declared_manifest.integrated_source_manifest_path.clone()),
         id: declared_manifest.id.clone(),
         workload: declared_manifest.workload.clone(),
-        profile: if configuration.profile == "gomad.wasi-cooperative/v1" {
-            "cooperative"
-        } else {
-            "controlled"
-        }
-        .into(),
+        profile: result::profile_name(&configuration.profile)?.into(),
         cell: (!declared_manifest.cell.is_empty()).then(|| declared_manifest.cell.clone()),
         integrated_source_sha256: integrated,
         workload_source_sha256: digest(&inputs["sources"])?,
@@ -300,6 +297,8 @@ pub(crate) fn freeze(
         memory_bytes: configuration.limits.memory_bytes,
         unsupported: declared_manifest.unsupported.clone(),
     };
+    // The frozen identities are exactly those `report` recomputes later.
+    result::bind_provenance(&manifest, &provenance)?;
     for (name, value, observed) in [
         (
             "workload source",
@@ -358,6 +357,7 @@ pub(crate) fn freeze(
     Ok(Frozen {
         options,
         prepared,
+        provenance,
         manifest,
         integrated_source_manifest,
         artifact_root: spec.artifact_root.clone(),
@@ -667,6 +667,7 @@ pub(crate) fn run(frozen: &Frozen) -> Result<QualificationResult, String> {
         budget,
         budget_failure,
         integrated_source_manifest: frozen.integrated_source_manifest.clone(),
+        provenance: frozen.provenance.clone(),
     })
 }
 
