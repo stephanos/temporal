@@ -96,8 +96,15 @@ fn unsupported_vector_operations_and_unbounded_growth_refuse()
     let source = include_str!("fixtures/vector.rs");
     for (source, reason) in [
         (conditional_length().replace("else { self.values.len() }", "else { 0 }"), "bounded"),
-        (conditional_length().replace("pub values: Vector<u8>,", "pub values: Vector<u8>, pub other: Vector<u8>,").replace("else { self.values.len() }", "else { self.other.len() }"), "bounded"),
-
+        (
+            conditional_length()
+                .replace(
+                    "pub values: Vector<u8>,",
+                    "pub values: Vector<u8>, pub other: Vector<u8>,",
+                )
+                .replace("else { self.values.len() }", "else { self.other.len() }"),
+            "bounded",
+        ),
         (source.replace("self.values.push_back(7);", "self.values.pop_back();"), "pop_back"),
         (source.replace("self.values.len() < 2", "true"), "bounded"),
         (

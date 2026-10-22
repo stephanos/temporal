@@ -1,0 +1,14 @@
+Reconstructed 34 pinned source/manifest files from d70684bca2a7f0974abedee129db1ef480cecf56
+   Compiling proc-macro2 v1.0.107
+   Compiling quote v1.0.47
+   Compiling unicode-ident v1.0.27
+   Compiling prettyplease v0.3.0
+   Compiling syn v3.0.9
+   Compiling umpire-ir-derive v0.0.1 (/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/fn-227.16/pre-task-source/model/umpire/ir-derive)
+   Compiling umpire-ir v0.0.1 (/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/fn-227.16/pre-task-source/model/umpire/ir)
+   Compiling umpire-front v0.0.1 (/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/fn-227.16/pre-task-source/model/umpire/front)
+   Compiling umpire-lift v0.0.1 (/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/fn-227.16/pre-task-source/model/umpire/lift)
+   Compiling task16-pre-task-probe v0.0.1 (/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/fn-227.16/pre-task-source/model/probe)
+    Finished `dev` profile [unoptimized + debuginfo] target(s) in 5.08s
+     Running `.flow/tmp/fn-227.16/pre-task-target/debug/task16-pre-task-probe`
+Ok(())

@@ -1,0 +1,18 @@
+Reconstructed 34 pinned source/manifest files from d70684bca2a7f0974abedee129db1ef480cecf56
+error: failed to load manifest for workspace member `/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/fn-227.16/pre-task-source/model/probe`
+referenced by workspace at `/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/fn-227.16/pre-task-source/model/Cargo.toml`
+
+Caused by:
+  failed to load manifest for dependency `umpire-lift`
+
+Caused by:
+  failed to load manifest for dependency `umpire-front`
+
+Caused by:
+  failed to parse manifest at `/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/fn-227.16/pre-task-source/model/umpire/front/Cargo.toml`
+
+Caused by:
+  error inheriting `prettyplease` from workspace root manifest's `workspace.dependencies.prettyplease`
+
+Caused by:
+  `dependency.prettyplease` was not found in `workspace.dependencies`

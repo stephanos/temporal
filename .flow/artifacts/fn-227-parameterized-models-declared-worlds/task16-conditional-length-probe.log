@@ -3,3 +3,4 @@ retained pre-task cache: /home/agent/.cache/codex-build/cargo-target/debug/deps/
 Output order: current, then retained pre-task library.
 Err(Diagnostic { file: "conditional_length.rs", line: 25, column: 31, message: "Vector push_back on `values` requires an authored bounded length guard" })
 Ok(())
+Cached-library source provenance is unverified. Pinned reconstruction from d70684bca2 supersedes this cached observation; see task16-pinned-pre-task-probe2.log and source archive manifest.

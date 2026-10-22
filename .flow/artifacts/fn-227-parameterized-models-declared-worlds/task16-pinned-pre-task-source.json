@@ -1,0 +1,10 @@
+{
+  "base": "d70684bca2a7f0974abedee129db1ef480cecf56",
+  "archive_sha256": "583832b87325af94c8fb963b606d4f45f7401b147a7e2727c7a1d592ab97b9b4",
+  "verified_rust_source_count": 30,
+  "registry_identity_match": true,
+  "proof_result": "Ok(())",
+  "proof_exit": 0,
+  "log": "task16-pinned-pre-task-probe2.log",
+  "cached_library_provenance": "The earlier cached library has no source-commit proof. This source-pinned reconstruction supersedes it as the baseline acceptance evidence."
+}

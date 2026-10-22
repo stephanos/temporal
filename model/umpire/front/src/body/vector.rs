@@ -307,6 +307,12 @@ fn bound(value: &Expr, field: &str, bounds: &BTreeMap<&str, Bound>) -> Bound {
             Bound::Length
         }
         ExprKind::Int(value) if *value >= 0 && *value < i128::from(i32::MAX) => Bound::Finite,
+        ExprKind::If(_, yes, no)
+            if bound(yes, field, bounds) == Bound::Length
+                && bound(no, field, bounds) == Bound::Length =>
+        {
+            Bound::Length
+        }
         ExprKind::Binary(op, left, right) => {
             let (left, right) = (bound(left, field, bounds), bound(right, field, bounds));
             let upper = match op {
