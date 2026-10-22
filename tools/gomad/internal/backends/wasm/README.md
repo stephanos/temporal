@@ -88,7 +88,10 @@ server-free. The shared volume (`internal/model/volume`) and network
 were promoted from projections of the native overlay in fn-219 and no longer
 read or track it. Their generated wire codecs come from
 `internal/model/cmd/protocolgen` (`make generate`, checked by `make validate`)
-with stock Go and no build tag. The native backend and its generated consumers
+with stock Go and no build tag. This includes the linked Rust choice encoder,
+replay tape framing and World codec. `make validate` runs the retained Go producers
+and the default linked library's model corpus tests twice; clock, network and
+World corpus drivers use the library's actual modules. The native backend and its generated consumers
 were removed by fn-223.
 
 Qualified Temporal guests build with the guest-only `gomad_wasm_slim` tag

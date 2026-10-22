@@ -372,3 +372,22 @@ qualification pass.
 - [Architecture](ARCHITECTURE.md) for ownership and design rationale.
 - [Milestones](../../MILESTONES.md) for delivery order and open acceptance.
 - [Maintainer guide](CLI.md) for shared generated contracts and qualification ownership.
+
+## Retained Go oracles and generated codecs
+
+`make -C tools/gomad generate` uses the Go protocol generator to write the Go
+oracle codecs, guest overlay codecs, and the Rust choice and World codecs
+consumed by the linked helper library. `make -C tools/gomad validate` refuses
+stale outputs and checks isolated, byte-identical second generation. It compares
+the Go-produced helper transcript, replay-plan, namespace, volume, network, clock
+and World corpora with their Rust consumers. Clock, network and World corpus
+drivers execute inside the helper library against the modules linked by the CLI;
+namespace, volume and replay-plan corpus tests use that library's default build.
+The Go producers and linked library suite run twice. Namespace transport tests
+require the test conformance helper and fail if it is unavailable.
+
+Archcheck's source inventory reports `RetainedGo` for the models, schema generator,
+runtime overlay and architecture checks, and `RetiringGo` for the remaining Go host
+packages. Both sets retain their existing architecture checks. The inventory
+records transition ownership; removal and the prohibition on default dependencies
+on retired host packages remain gated by fn-232.13's final Rust qualification.

@@ -12,12 +12,10 @@ including the retained node-local partition, heal, delay and named reset schedul
 Each prepared execution owns fresh network and World state; network evidence is
 bounded standalone JSON, while clusters keep their shared owner and binary evidence.
 
-The watchdog starts before compilation and refuses guest instantiation after an
-expired compilation, but pinned Wasmtime's synchronous compiler cannot be
-preempted or reclaimed in-process. The old Go process watchdog also bounded
-compilation and teardown. That existing hard-wall guarantee is therefore an open
-fn232.1 acceptance gap, not a completed bound or an authorized contract change.
-No detached compiler thread or per-execution subprocess is used.
+The process-wide deadline backstop is armed before compilation and stays armed
+through teardown. Cooperative cancellation first stops work; if compilation or
+cleanup cannot honor the bound, the backstop exits the CLI with the infrastructure
+classification. It covers all active slots without per-execution subprocesses.
 
 The public `inspect` verb reads Rust-lineage artifacts through the shared
 authenticated opener. Its JSON shape and mandatory fresh Go/Rust comparison

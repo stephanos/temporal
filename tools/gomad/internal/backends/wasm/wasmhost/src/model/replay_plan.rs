@@ -2,8 +2,10 @@ use super::{CreationSite, Decision, get32, get64, set32, set64};
 use serde::{Deserialize, Serialize};
 use sha2::{Digest, Sha256};
 
-const RECORD_BYTES: usize = 96;
-const HEADER_BYTES: usize = 264;
+use super::choice_wire_generated::{
+    RECORD_BYTES, TAPE_CHECKSUM_OFFSET, TAPE_HEADER_BYTES as HEADER_BYTES, TAPE_HEADER_WIRE_BYTES,
+    TAPE_MAGIC, TAPE_RECORD_BYTES,
+};
 
 #[derive(Clone, Deserialize, Serialize)]
 #[serde(deny_unknown_fields, rename_all = "PascalCase")]
@@ -334,8 +336,8 @@ impl ReplayPlan {
         set64(&mut self.bytes, 32, control.cutoff);
         let payload = Sha256::digest(&self.bytes[HEADER_BYTES..]);
         self.bytes[200..232].copy_from_slice(&payload);
-        let checksum = Sha256::digest(&self.bytes[..232]);
-        self.bytes[232..264].copy_from_slice(&checksum);
+        let checksum = Sha256::digest(&self.bytes[..TAPE_CHECKSUM_OFFSET]);
+        self.bytes[TAPE_CHECKSUM_OFFSET..HEADER_BYTES].copy_from_slice(&checksum);
         self.sha256 = Sha256::digest(&self.bytes).into();
         Ok(self)
     }
@@ -550,10 +552,10 @@ pub fn project(trace: &[u8], identity: &ExecutionIdentity) -> Result<ReplayPlan,
     platform.update([0]);
     platform.update(identity.goarch.as_bytes());
     let mut bytes = vec![0; HEADER_BYTES];
-    bytes[..8].copy_from_slice(b"GOMADTP\x03");
+    bytes[..8].copy_from_slice(&TAPE_MAGIC);
     set32(&mut bytes, 8, 3);
-    set32(&mut bytes, 12, 264);
-    set32(&mut bytes, 16, 96);
+    set32(&mut bytes, 12, TAPE_HEADER_WIRE_BYTES);
+    set32(&mut bytes, 16, TAPE_RECORD_BYTES);
     set64(&mut bytes, 24, (HEADER_BYTES + payload.len()) as u64);
     set64(&mut bytes, 32, decisions.len() as u64);
     bytes[40..72].copy_from_slice(&Sha256::digest(trace));
@@ -562,8 +564,8 @@ pub fn project(trace: &[u8], identity: &ExecutionIdentity) -> Result<ReplayPlan,
     bytes[136..168].copy_from_slice(&key);
     bytes[168..200].copy_from_slice(&platform.finalize());
     bytes[200..232].copy_from_slice(&Sha256::digest(&payload));
-    let checksum = Sha256::digest(&bytes[..232]);
-    bytes[232..264].copy_from_slice(&checksum);
+    let checksum = Sha256::digest(&bytes[..TAPE_CHECKSUM_OFFSET]);
+    bytes[TAPE_CHECKSUM_OFFSET..HEADER_BYTES].copy_from_slice(&checksum);
     bytes.extend(payload);
     Ok(ReplayPlan {
         decisions,

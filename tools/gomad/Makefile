@@ -2,6 +2,8 @@
 
 .DEFAULT_GOAL := generate
 
+.NOTPARALLEL: validate
+
 GOMAD_TEST_TAGS := test_dep
 GOMAD_STOCK_GO ?=
 
@@ -55,10 +57,11 @@ wasm-test-helper:
 generate:
 	go run ./internal/model/cmd/protocolgen
 
-validate: validate-protocol validate-replay-plan validate-wasm-determinism
+validate: validate-protocol validate-replay-plan validate-model-corpora validate-wasm-determinism
 
 validate-protocol:
 	go run ./internal/model/cmd/protocolgen -check
+	go test -tags $(GOMAD_TEST_TAGS) -count=1 ./internal/model/generation/protocol
 
 .PHONY: validate-replay-plan
 validate-replay-plan:
@@ -71,6 +74,23 @@ validate-replay-plan:
 	diff -ru internal/backends/wasm/wasmhost/tests/testdata/replay_plan "$$corpus_tmp/first" && \
 		diff -ru "$$corpus_tmp/first" "$$corpus_tmp/second"
 	cargo +1.99.1 test --manifest-path internal/backends/wasm/wasmhost/Cargo.toml --release --locked --lib replay_plan
+
+.PHONY: validate-model-corpora
+validate-model-corpora:
+	cargo +1.99.1 build --manifest-path internal/backends/wasm/wasmhost/Cargo.toml --release --locked --features conformance
+	@target_root="$${CARGO_TARGET_DIR:-$(CURDIR)/internal/backends/wasm/wasmhost/target}"; \
+	cp "$$target_root/release/gomad-wasmhost" "$$target_root/release/gomad-model-conformance"
+	$(MAKE) wasm-helper
+	@target_root="$${CARGO_TARGET_DIR:-$(CURDIR)/internal/backends/wasm/wasmhost/target}"; \
+	env -u GOMADSEED -u GOMAD_CHILD_SEED GOWORK=off \
+		GOMAD_WASM_TEST_HELPER='$(CURDIR)/internal/backends/wasm/wasmhost/target/release/gomad-wasmhost' \
+		GOMAD_WASM_CONFORMANCE_HELPER="$$target_root/release/gomad-model-conformance" GOMAD_WASM_CONFORMANCE_REQUIRED=1 \
+		go test -tags $(GOMAD_TEST_TAGS) -count=2 \
+		-run '^(TestNetworkCorpus|TestClockConformance|TestWorldConformance|TestNamespace.*Conformance|TestVolume|TestHelperCorpus$$)' \
+		./internal/model/network ./internal/backends/wasm/cluster ./internal/backends/wasm/wasi
+	@for pass in first second; do \
+		cargo +1.99.1 test --manifest-path internal/backends/wasm/wasmhost/Cargo.toml --release --locked --lib || exit $$?; \
+	done
 
 .PHONY: lint-code
 lint-code:

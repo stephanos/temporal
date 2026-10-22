@@ -704,7 +704,7 @@ func readClockConformance(t *testing.T, path string) clockConformanceCorpus {
 
 // TestClockConformanceCorpusIsCurrent fails on any shared-clock behavior change
 // until the corpus is regenerated, which forces the Rust clock replay
-// (`cargo test --test clock_conformance`) to be rerun against it.
+// (`cargo test --lib clock_conformance`) to be rerun against it.
 func TestClockConformanceCorpusIsCurrent(t *testing.T) {
 	regenerate := os.Getenv("GOMAD_CLOCK_CONFORMANCE_REGENERATE") == "1"
 	if regenerate {

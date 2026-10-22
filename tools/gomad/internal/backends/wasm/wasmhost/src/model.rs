@@ -3,6 +3,7 @@ use serde::{Deserialize, Serialize};
 use sha2::Sha256;
 use std::collections::HashMap;
 
+mod choice_wire_generated;
 mod guest_state;
 mod imports;
 pub mod inspection;
