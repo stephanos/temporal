@@ -85,9 +85,10 @@ compiler, external module cache or Go temporary file may be recreated for replay
 
 ## Real parallel package proof
 
-Current single-recipe fixture metadata cannot admit two package operands. Extend
-only the bounded PRIVATE collection contract, reusing the shared prepare/admit
-algorithm; do not introduce a new operator verb or a shim implementation.
+The source extension uses a bounded PRIVATE collection contract and the shared
+prepare/admit algorithm. It is not compiled or actual acceptance evidence yet.
+The original single-recipe encoding remains unchanged. No operator verb or shim
+is introduced.
 
 The collection must bind one real Go PID and full argv to an exact set of two
 existing packages under the same installation/profile. Bind each package's source
@@ -98,14 +99,45 @@ per-launch invocation identity and private attempt/campaign while preserving the
 shared authenticated Go-run and wrapper association. No input-metadata match alone
 admits a module.
 
-Choose the second existing registered package after inspecting its actual build
-recipe and side effects; record that concrete selection before root grants a wave.
+Root approved the concrete existing pair `./tests/gomadfunctional` /
+`TestFrontendSystemInfo` and `./common/tasktoken` / `TestWorkerTaskID` with selector
+`^(TestFrontendSystemInfo|TestWorkerTaskID)$`. Source inspection of tasktoken found
+no TestMain/init; the selected test checks existing string/strconv helpers with
+testify assertions. This approval registers the inputs, not an execution grant.
+After the single-package proof and the separate setup grant, generate a fresh
+private collection at a new path, using the same installation and unchanged caps:
+
+```sh
+GOMAXPROCS=2 "$PROOF_BINARY" fixture-driver-prepare \
+  --output "$PROOF_ROOT/parallel-invocation" \
+  --installation "$PROOF_ROOT/installation.json" \
+  --package ./common/tasktoken \
+  --choices --seeds 1 --execution-timeout 5m --overall-timeout 10m \
+  --artifacts "$PROOF_ROOT/artifacts" --working-dir "$PROOF_SOURCE" \
+  go-test ./tests/gomadfunctional -- \
+  '-test.run=^(TestFrontendSystemInfo|TestWorkerTaskID)$' -test.v=true
+```
+
+The private exporter derives the exact `-p=2` Go command, freezes both distinct
+import paths/inventories and registers the full argv before exec. Preserve those
+actual bytes/digests and the real registration; do not construct a lookalike
+single-package invocation. Launch the exported invocation only after root grants
+that actual wave, under the original external 600s supervision/5s cleanup.
+
 Run ONE pinned `go test -p=2` with TWO DIFFERENT package operands, count1, the complete
 shared recipe and the real launcher. Repeated identical package operands are
 Go-deduplicated and are not proof. Cap active launchers at2, retain actual overlap
 observations, distinct receipts/campaigns/origins and both package statuses at one
 artifact root. Separate concurrent Go drivers are useful additional checks but do
 not replace this wave. Replay both artifacts after temporary inputs are hidden.
+
+Focused source regressions to run only after a compile-lane grant: original single
+recipe canonical bytes and argv; exact two-package argv/member selection;
+missing/duplicate/ambiguous/settings/config/compiler refusal; per-launch identity
+and receipt renewal; four sequential/concurrent campaigns with the same driver
+association and shared artifact root; and authenticated legacy artifact reading
+without the optional launch extension. These tiny WAT/source fixtures supplement
+the actual Go proof and do not establish its acceptance.
 
 ## Public CLI corpus automation
 

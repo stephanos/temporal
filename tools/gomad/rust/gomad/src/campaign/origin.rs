@@ -38,6 +38,57 @@ pub(crate) struct Intercepted {
     pub invocation: Invocation,
     pub module_sha256: String,
     pub preparation_sha256: String,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub launch: Option<Launch>,
+}
+
+#[derive(Clone, Debug, Deserialize, Eq, PartialEq, Serialize)]
+#[serde(deny_unknown_fields)]
+pub(crate) struct Launch {
+    pub invocation_id: String,
+    pub argv: Vec<String>,
+    pub process_id: u32,
+    pub parent_process_id: Option<u32>,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub preparation_receipt_sha256: Option<String>,
+}
+
+impl Launch {
+    fn current(preparation_receipt_sha256: Option<String>) -> Result<Self, String> {
+        Ok(Self {
+            invocation_id: identity()?,
+            argv: std::env::args_os().map(|value| argument(&value)).collect(),
+            process_id: std::process::id(),
+            parent_process_id: rustix::process::getppid()
+                .and_then(|pid| u32::try_from(pid.as_raw_pid()).ok()),
+            preparation_receipt_sha256,
+        })
+    }
+
+    fn validate(&self, driver: &Invocation) -> Result<(), String> {
+        if !canonical::valid_digest(&self.invocation_id)
+            || self.invocation_id == driver.id
+            || self.invocation_id == driver.wrapper_run_id
+            || self.process_id == 0
+            || self.parent_process_id == Some(0)
+            || self.argv.is_empty()
+            || self.argv.len() > 65536
+            || self.argv.iter().any(|value| {
+                value.len() > 2 << 20
+                    || value.len() % 2 != 0
+                    || !value
+                        .bytes()
+                        .all(|byte| byte.is_ascii_digit() || (b'a'..=b'f').contains(&byte))
+            })
+            || self
+                .preparation_receipt_sha256
+                .as_ref()
+                .is_some_and(|value| !canonical::valid_digest(value))
+        {
+            return Err("invalid intercepted launch association".into());
+        }
+        Ok(())
+    }
 }
 
 pub(crate) fn identity() -> Result<String, String> {
@@ -121,6 +172,9 @@ pub(crate) fn read_private(path: &Path, expected: &str) -> Result<Vec<u8>, Strin
 impl Intercepted {
     pub(crate) fn validate(&self) -> Result<(), String> {
         self.invocation.validate()?;
+        if let Some(launch) = &self.launch {
+            launch.validate(&self.invocation)?;
+        }
         if self.schema != "gomad.intercepted-origin/v1"
             || self.origin != "intercepted-go"
             || !canonical::valid_digest(&self.module_sha256)
@@ -244,6 +298,7 @@ pub(crate) fn intercept(
         invocation,
         module_sha256: canonical::digest(&prepared.module),
         preparation_sha256: canonical::digest(&prepared.provenance),
+        launch: Some(Launch::current(None)?),
     };
     origin.validate()?;
     let mut provenance: serde_json::Value =
@@ -257,6 +312,21 @@ pub(crate) fn intercept(
         );
     prepared.provenance = canonical::encode(&provenance)?;
     Ok(origin)
+}
+
+pub(crate) fn renew_launch(
+    prepared: &mut super::prepare::Prepared,
+    receipt_sha256: String,
+) -> Result<(), String> {
+    let mut origin =
+        from_preparation(prepared)?.ok_or("standalone preparation has no intercepted origin")?;
+    origin.launch = Some(Launch::current(Some(receipt_sha256))?);
+    origin.validate()?;
+    let mut provenance: serde_json::Value =
+        serde_json::from_slice(&prepared.provenance).map_err(|error| error.to_string())?;
+    provenance["origin"] = serde_json::to_value(origin).map_err(|error| error.to_string())?;
+    prepared.provenance = canonical::encode(&provenance)?;
+    Ok(())
 }
 
 #[derive(Deserialize, Serialize)]

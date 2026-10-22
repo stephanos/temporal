@@ -232,26 +232,43 @@ fn admit(
         .ok_or("invocation owner missing")?
         .join(&invocation.recipe_file);
     let bytes = origin::read_private(&recipe_path, &invocation.recipe_sha256)?;
-    let mut recipe: driver::Recipe = serde_json::from_slice(&bytes).map_err(|e| e.to_string())?;
-    if canonical::encode(&recipe)? != bytes {
+    let mut recipes: driver::collection::Recipes =
+        serde_json::from_slice(&bytes).map_err(|e| e.to_string())?;
+    if canonical::encode(&recipes)? != bytes {
         return Err("noncanonical driver preparation recipe".into());
     }
+    recipes.validate()?;
     let selected = crate::install::manifest::resolve(installation)?;
-    if canonical::encode(&selected.manifest)? != canonical::encode(&recipe.installed)?
-        || selected.sha256 != invocation.installation_sha256
-    {
-        return Err("launcher installation differs from preparation".into());
+    for recipe in recipes.packages_mut() {
+        if canonical::encode(&selected.manifest)? != canonical::encode(&recipe.installed)?
+            || selected.sha256 != invocation.installation_sha256
+        {
+            return Err("launcher installation differs from preparation".into());
+        }
+        recipe.options.installation = Some(selected.path.clone());
+        apply_options(&mut recipe.options, arguments)?;
     }
-    recipe.options.installation = Some(selected.path.clone());
-    apply_options(&mut recipe.options, arguments)?;
-    let options = recipe.options.clone();
+    let options = recipes.first()?.options.clone();
     deadline.limit(options.overall_timeout)?;
     let mut prepared =
-        recipe.admit_external(module, arguments.argv.clone(), &invocation, deadline.at)?;
-    let invocation_id = invocation.id.clone();
+        recipes.admit_external(module, arguments.argv.clone(), &invocation, deadline.at)?;
     origin::intercept(&mut prepared, invocation)?;
-    let retained = preparation::retain_admitted(&options, prepared)?;
-    let admission_root = admission_attempt(&options.artifacts, &invocation_id)?;
+    let prepared = retain_admission(&options, prepared)?;
+    Ok(Admitted {
+        prepared,
+        options,
+        installation: selected.path,
+    })
+}
+
+fn retain_admission(
+    options: &super::explore::ExploreOptions,
+    prepared: crate::campaign::prepare::Prepared,
+) -> Result<crate::campaign::prepare::Prepared, String> {
+    let bound =
+        origin::from_preparation(&prepared)?.ok_or("admission requires intercepted origin")?;
+    let retained = preparation::retain_admitted(options, prepared)?;
+    let admission_root = admission_attempt(&options.artifacts, &bound.invocation.id)?;
     retained.publish(
         &admission_root.join("plan.json"),
         std::env::args_os()
@@ -262,12 +279,7 @@ fn admit(
             })
             .collect::<Result<Vec<_>, _>>()?,
     )?;
-    let prepared = retained.prepared;
-    Ok(Admitted {
-        prepared,
-        options,
-        installation: selected.path,
-    })
+    Ok(retained.prepared)
 }
 
 fn admission_attempt(artifacts: &Path, invocation_id: &str) -> Result<PathBuf, String> {
@@ -297,7 +309,7 @@ fn admit_retained(
 ) -> Result<Admitted, String> {
     let digest = std::env::var("GOMAD_PREPARATION_RECEIPT_SHA256")
         .map_err(|_| "run-guest requires prepared receipt digest")?;
-    let (_, prepared) = preparation::open_receipt(Path::new(receipt_path), &digest)?;
+    let (_, mut prepared) = preparation::open_receipt(Path::new(receipt_path), &digest)?;
     let origin = origin::from_preparation(&prepared)?
         .ok_or("run-guest requires intercepted preparation origin")?;
     let selected = crate::install::manifest::resolve(installation)?;
@@ -309,6 +321,7 @@ fn admit_retained(
             "standalone module, arguments or installation differ from the prepared receipt".into(),
         );
     }
+    origin::renew_launch(&mut prepared, digest)?;
     let mut ignored = false;
     let mut options = super::explore::parse(
         &[
@@ -323,6 +336,7 @@ fn admit_retained(
     options.installation = Some(selected.path.clone());
     apply_options(&mut options, arguments)?;
     deadline.limit(options.overall_timeout)?;
+    let prepared = retain_admission(&options, prepared)?;
     Ok(Admitted {
         prepared,
         options,
@@ -367,11 +381,31 @@ pub(crate) fn fixture_prepare(arguments: &[String]) -> Result<(), String> {
         .create(&root)
         .map_err(|e| e.to_string())?;
     let selected = crate::install::manifest::resolve(Some(Path::new(&arguments[3])))?;
+    let (second, preparation_arguments) =
+        if arguments.get(4).map(String::as_str) == Some("--package") {
+            (
+                Some(
+                    arguments
+                        .get(5)
+                        .ok_or("private second package operand missing")?,
+                ),
+                &arguments[6..],
+            )
+        } else {
+            (None, &arguments[4..])
+        };
     let mut json = false;
-    let mut options = super::explore::parse(&arguments[4..], &mut json)?;
+    let mut options = super::explore::parse(preparation_arguments, &mut json)?;
     options.installation = Some(selected.path);
-    let recipe = driver::prepare(&options, Instant::now() + options.overall_timeout)?;
-    let bytes = canonical::encode(&recipe)?;
+    let deadline = Instant::now() + options.overall_timeout;
+    let recipe = driver::prepare(&options, deadline)?;
+    let recipes = if let Some(second) = second {
+        options.source.clone_from(second);
+        driver::collection::Recipes::new(vec![recipe, driver::prepare(&options, deadline)?])?
+    } else {
+        driver::collection::Recipes::Single(Box::new(recipe))
+    };
+    let bytes = canonical::encode(&recipes)?;
     let recipe_file = "driver-recipe.json";
     let publish = |name: &str, bytes: &[u8]| -> Result<(), String> {
         let mut file = fs::OpenOptions::new()
@@ -385,7 +419,8 @@ pub(crate) fn fixture_prepare(arguments: &[String]) -> Result<(), String> {
             .map_err(|e| e.to_string())
     };
     publish(recipe_file, &bytes)?;
-    let argv = recipe.driver_arguments(&std::env::current_exe().map_err(|e| e.to_string())?)?;
+    let argv = recipes.driver_arguments(&std::env::current_exe().map_err(|e| e.to_string())?)?;
+    let recipe = recipes.first()?;
     let argv_bytes = argv
         .iter()
         .map(|a| origin::argument(OsStr::new(a)))
@@ -425,14 +460,21 @@ pub(crate) fn fixture_driver_run(arguments: &[String]) -> Result<(), String> {
     let invocation: origin::Invocation =
         serde_json::from_slice(&bytes).map_err(|e| e.to_string())?;
     invocation.validate()?;
+    if canonical::encode(&invocation)? != bytes {
+        return Err("noncanonical intercepted invocation".into());
+    }
     let root = path.parent().ok_or("invocation root missing")?;
     let recipe_bytes = origin::read_private(
         &root.join(&invocation.recipe_file),
         &invocation.recipe_sha256,
     )?;
-    let recipe: driver::Recipe =
+    let recipes: driver::collection::Recipes =
         serde_json::from_slice(&recipe_bytes).map_err(|e| e.to_string())?;
-    let argv = recipe.driver_arguments(&std::env::current_exe().map_err(|e| e.to_string())?)?;
+    if canonical::encode(&recipes)? != recipe_bytes {
+        return Err("noncanonical driver preparation recipe".into());
+    }
+    let argv = recipes.driver_arguments(&std::env::current_exe().map_err(|e| e.to_string())?)?;
+    let recipe = recipes.first()?;
     if argv
         .iter()
         .map(|a| origin::argument(OsStr::new(a)))
