@@ -23,6 +23,7 @@ pub(crate) struct Outcome {
     pub unexecuted: u64,
     pub failure: Option<(String, Option<PathBuf>)>,
     execution_guard: Option<crate::backstop::Guard>,
+    rows: Vec<serde_json::Value>,
 }
 
 struct Chunk {
@@ -184,6 +185,7 @@ pub(crate) fn run(
         unexecuted: selection.count(),
         failure: None,
         execution_guard: None,
+        rows: Vec::new(),
     };
     for ordinal in 0..selection.count() {
         let job = Job {
@@ -233,6 +235,9 @@ pub(crate) fn run(
             admitted: Vec::new(),
             stop_reason: stopping.clone(),
         })?;
+        result
+            .rows
+            .push(outcome_row(&observed.execution, &published)?);
         result.attempted += 1;
         result.unexecuted -= 1;
         if status != 0 {
@@ -259,6 +264,31 @@ pub(crate) fn run(
         .into(),
     })?;
     Ok(result)
+}
+
+pub(crate) fn outcome_row(
+    execution: &super::ledger::Execution,
+    published: &crate::evidence::store::Published,
+) -> Result<serde_json::Value, String> {
+    let record = &execution.record;
+    if record.seed != execution.seed
+        || canonical::digest(&record.bytes()?) != published.record_sha256
+    {
+        return Err("launcher outcome record differs from publication".into());
+    }
+    let origin = record
+        .streams
+        .get(origin::FILE)
+        .ok_or("launcher outcome has no bound origin")?;
+    Ok(json!({
+        "type":"outcome", "origin":"intercepted-go", "ordinal":execution.ordinal,
+        "seed":execution.seed, "status":status(&record.outcome), "class":record.outcome.class,
+        "termination":record.outcome.termination, "exit_code":record.outcome.exit_code,
+        "reason":record.outcome.reason, "artifact_path":published.path,
+        "record_sha256":published.record_sha256, "execution_identity":record.execution_identity,
+        "module_sha256":record.identity.target, "origin_sha256":origin.sha256,
+        "stored_bytes":published.stored_bytes
+    }))
 }
 
 pub(crate) fn status(outcome: &crate::evidence::record::Outcome) -> i32 {
@@ -356,7 +386,13 @@ pub(crate) fn report(
     diagnostics: &mut dyn Write,
 ) -> Result<(), String> {
     if json_output {
-        writeln!(output, "{}", String::from_utf8(canonical::encode(&json!({"type":"result","origin":"intercepted-go","campaign_path":outcome.campaign,"status":outcome.status,"attempted":outcome.attempted,"unexecuted":outcome.unexecuted}))?).map_err(|e| e.to_string())?).map_err(|e| e.to_string())?;
+        for row in &outcome.rows {
+            json_line(output, row)?;
+        }
+        json_line(
+            output,
+            &json!({"type":"result","origin":"intercepted-go","campaign_path":outcome.campaign,"status":outcome.status,"attempted":outcome.attempted,"unexecuted":outcome.unexecuted}),
+        )?;
     }
     if let Some((message, replay)) = &outcome.failure {
         writeln!(diagnostics, "gomad run-guest: {message}").map_err(|e| e.to_string())?;
@@ -379,6 +415,13 @@ pub(crate) fn report(
         }
     }
     Ok(())
+}
+
+fn json_line(output: &mut dyn Write, value: &serde_json::Value) -> Result<(), String> {
+    output
+        .write_all(&canonical::encode(value)?)
+        .and_then(|()| output.write_all(b"\n"))
+        .map_err(|error| error.to_string())
 }
 
 fn quote(value: &std::ffi::OsStr) -> String {
@@ -475,6 +518,7 @@ mod tests {
             unexecuted: 0,
             failure: Some(("output forwarding deadline exceeded".into(), None)),
             execution_guard: None,
+            rows: Vec::new(),
         };
         let _ = report_process(&outcome, false, Path::new("installation"), deadline);
         std::process::exit(3);
