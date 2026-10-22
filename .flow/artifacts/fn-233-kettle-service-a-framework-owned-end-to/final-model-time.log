@@ -1,0 +1,30 @@
+[1;36mTime the model feedback loop (fn-210 R30)...[0m
+step (warm)                         time
+gate command: UMPIRE_TIME_STEPS=1 make -C .. model-check
+make[1]: Entering directory '/Users/stephan/Workspace/skunkworks/umpire/temporal'
+[1;36mCheck model (fmt, clippy, docs, tests)...[0m
+TLC backend skipped: no execution/agreement evidence; use UMPIRE_BACKENDS=require
+temporal-guest-freshness         30.507s
+timing-controls                   0.016s
+guest-build-controls              3.254s
+capability-controls               0.079s
+source-boundary                   3.092s
+protobuf-freshness                0.076s
+kettle-protobuf-freshness         0.078s
+temporal-protobuf-freshness       0.050s
+fmt                               0.477s
+clippy                            3.500s
+docs                              7.002s
+tests                            219.185s
+wasm32-wasip1                     0.340s
+core-wasm-clippy                  0.091s
+wasm-guest                       45.991s
+go-host                          39.855s
+temporal-go-host                 10.768s
+make[1]: Leaving directory '/Users/stephan/Workspace/skunkworks/umpire/temporal'
+inner source: umpire/checker/src/lib.rs
+inner command: mise exec -- cargo test -p umpire-checker --quiet
+inner loop (edit+test)            6.066s
+gate total                       364.531s  (soft target 60s)
+inner loop                        6.066s  (soft target 10s)
+note: gate over soft target (fn-210 R30)

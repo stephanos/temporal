@@ -1,7 +1,7 @@
 {
   "branch_name": "fn-233-kettle-service-a-framework-owned-end-to",
-  "completion_review_status": "unknown",
-  "completion_reviewed_at": null,
+  "completion_review_status": "ship",
+  "completion_reviewed_at": "2026-10-22T19:25:05.363533Z",
   "created_at": "2026-10-21T02:49:18.365321Z",
   "default_impl": null,
   "default_review": null,
@@ -313,6 +313,42 @@
       "task": "fn-233-kettle-service-a-framework-owned-end-to.4",
       "timestamp": "2026-10-22T19:17:53.830863Z",
       "verdict": "SHIP"
+    },
+    {
+      "artifact_sha256": "abb9e967829e8854bfd17235a73bca8cd777a29bd496d1a81c528cc3497ffda1",
+      "backend": "codex",
+      "base_sha": "8715c740adb9819d47b3ed9b927d5972ce766049",
+      "counter_kind": "plan",
+      "effort": "high",
+      "failure_class": null,
+      "finalized": {
+        "digest": "complete",
+        "receipt": "complete",
+        "status": "complete"
+      },
+      "findings_digest": {
+        "backend": "codex",
+        "digest_truncated": false,
+        "items": [],
+        "reviewKind": "completion"
+      },
+      "forced": false,
+      "hash_epoch": 0,
+      "head_sha": "24d5638c5e87b75887457edb060e569c97e1749f",
+      "head_sha_observed": true,
+      "kind": "completion",
+      "model": "gpt-6.1-sol",
+      "outcome": "verdict",
+      "output_bytes": 663049,
+      "output_sha256": "71118ba12e2410eaeb4a3c88128edb1eaab1f661a9c9cced8ffcfab57bc75388",
+      "reservation_id": "1eb8ecfee46e4324bfa5c20f99581e70",
+      "round_consumed": true,
+      "scope": "completion",
+      "superseded_by": null,
+      "task": null,
+      "timestamp": "2026-10-22T19:25:05.347633Z",
+      "tool_calls": 25,
+      "verdict": "SHIP"
     }
   ],
   "review_hash_epoch": {
@@ -321,11 +357,12 @@
     "impl:fn-233-kettle-service-a-framework-owned-end-to.3": 1,
     "impl:fn-233-kettle-service-a-framework-owned-end-to.4": 1,
     "plan": 1,
-    "plan#completion": 0
+    "plan#completion": 1
   },
   "review_pending_rounds": {},
   "review_reservations": {},
   "review_transport_failures": {
+    "completion": 0,
     "impl:fn-233-kettle-service-a-framework-owned-end-to.1": 0,
     "impl:fn-233-kettle-service-a-framework-owned-end-to.2": 0,
     "impl:fn-233-kettle-service-a-framework-owned-end-to.3": 0,
@@ -346,5 +383,5 @@
     "mergeBaseTracker": null,
     "url": null
   },
-  "updated_at": "2026-10-22T19:17:53.834586Z"
+  "updated_at": "2026-10-22T19:25:05.367531Z"
 }
