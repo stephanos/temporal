@@ -29,6 +29,19 @@ This task explicitly accepts the outstanding fn-228 R7 final frozen Rust runtime
 
 Pending fn-185.1/R4 receiving obligation: this task's frozen Rust qualification window must supply the actual runtime-cost-equivalent release-behavior check and qualified-workload preservation comparisons for choice, WASI, network, stdout and stderr, with original assertions, inputs and bounds intact. Record candidate/source/helper/model/module/compiler/runtime identities, exact comparison commands, raw results and numeric exits under the unchanged 3,600-second limit. Preserve the older f172 raw early-proof observations as historical evidence, not proof for the current or final Rust candidate; never migrate artifacts, normalize identity-bound digests or relabel old results. This is a pending receiving/evidence dependency, not a transfer that discharges fn-185.1/R4: R4 remains OPEN in fn-185.1 until the actual receiving proof exists and is reconciled there, and this task cannot report that obligation passed without it. No new Go-only profiling run or second Go full-qualification cycle is authorized; no existing release-preservation, dependency/lockfile or qualified-workload requirement is waived.
 
+### Go versus Rust code-size closeout
+
+Owner request 2026-10-22: after the rewrite and Go host deletion, compare the
+Go and Rust implementations by size. This task owns the comparison alongside
+retirement; no separate deletion task is needed. Retain reproducible commands,
+counter/version, exact baseline and final revisions, and explicit path lists.
+Report file counts, source bytes and code lines, separating production code,
+tests and generated code. Compare the removed Go host with its Rust replacement;
+show the preexisting linked Rust helper and retained Go overlay/models/generator/
+corpora separately so shared code is not counted as a new port. Include supporting
+languages and the net repository change after deletion. Record measurements in
+this task's existing closeout ledger.
+
 ### Single Cargo workspace at Go host retirement
 
 Owner decision 2026-10-21: when the Go host retires, move `gomad-wasmhost` (`tools/gomad/internal/backends/wasm/wasmhost`) into the `tools/gomad/rust/` workspace with one `Cargo.lock` and one shared target. Its standalone `gomad-wasmhost` binary exists only for the Go host; remove it or keep it as a fixture-only target that the release exclusion check covers. Reconcile the two lockfiles without changing resolved dependency versions unless separately reviewed, and record the resulting helper/implementation identity rotation in the closeout ledger. Make, CI and docs build through the single workspace.
