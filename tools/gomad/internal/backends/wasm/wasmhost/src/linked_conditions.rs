@@ -9,6 +9,7 @@ use wasmtime::{Error, Result};
 pub enum Conditions {
     #[default]
     Ordinary,
+    DiagnosticProfile,
     StressReplay,
     DeterminismFixtureReplay,
 }
@@ -20,7 +21,9 @@ thread_local! {
 impl Conditions {
     #[must_use]
     pub fn compiled() -> Self {
-        if cfg!(feature = "stress-jitter") {
+        if cfg!(feature = "diagnostic-profile") {
+            Self::DiagnosticProfile
+        } else if cfg!(feature = "stress-jitter") {
             Self::StressReplay
         } else if cfg!(feature = "determinism-fixture") {
             Self::DeterminismFixtureReplay
@@ -43,6 +46,7 @@ impl Conditions {
     pub fn configuration(self) -> String {
         let suffix = match self {
             Self::Ordinary => "",
+            Self::DiagnosticProfile => "-diagnostic-profile",
             Self::StressReplay => "-stress-jitter",
             Self::DeterminismFixtureReplay => "-determinism-fixture",
         };
@@ -268,5 +272,61 @@ mod tests {
             assert!(output.iter().any(|row| row["type"] == "incomplete"));
             assert!(!output.iter().any(|row| row["type"] == "complete"));
         }
+    }
+}
+
+#[cfg(all(
+    test,
+    not(any(feature = "stress-jitter", feature = "determinism-fixture"))
+))]
+mod role_tests {
+    use super::Conditions;
+
+    #[cfg(feature = "diagnostic-profile")]
+    #[test]
+    fn diagnostic_helper_cannot_authorize_an_ordinary_role() {
+        assert!(Conditions::compiled() != Conditions::Ordinary);
+        assert!(Conditions::Ordinary.validate().is_err());
+        assert!(Conditions::Ordinary.enter().is_err());
+        assert!(super::current().is_none());
+        assert!(Conditions::compiled().validate().is_ok());
+        assert!(
+            Conditions::compiled()
+                .configuration()
+                .ends_with("-diagnostic-profile")
+        );
+    }
+
+    #[cfg(not(any(
+        feature = "diagnostic-profile",
+        feature = "stress-jitter",
+        feature = "determinism-fixture"
+    )))]
+    #[test]
+    fn empty_feature_helper_preserves_ordinary_role() {
+        assert!(Conditions::compiled() == Conditions::Ordinary);
+        assert!(Conditions::Ordinary.validate().is_ok());
+        assert_eq!(
+            Conditions::compiled().configuration(),
+            crate::linked::CONFIGURATION
+        );
+    }
+}
+
+#[cfg(all(test, any(feature = "stress-jitter", feature = "determinism-fixture")))]
+mod nonordinary_role_tests {
+    use super::Conditions;
+
+    #[test]
+    fn existing_nonordinary_roles_cannot_authorize_ordinary() {
+        assert!(Conditions::compiled() != Conditions::Ordinary);
+        assert!(Conditions::Ordinary.validate().is_err());
+        assert!(Conditions::compiled().validate().is_ok());
+        let expected = if cfg!(feature = "stress-jitter") {
+            "-stress-jitter"
+        } else {
+            "-determinism-fixture"
+        };
+        assert!(Conditions::compiled().configuration().ends_with(expected));
     }
 }
