@@ -395,6 +395,36 @@ fn prepared(input: &Value) -> Prepared {
     prepared
 }
 
+fn assert_original_incarnations_match(observed: &Execution, reference: &Value) {
+    use base64::{Engine as _, engine::general_purpose::STANDARD};
+
+    for item in &observed.incarnations {
+        let original = reference["states"]
+            .as_array()
+            .unwrap()
+            .iter()
+            .find(|state| {
+                state["handle"]["ID"] == item.handle.node
+                    && state["handle"]["Incarnation"] == item.handle.incarnation
+            })
+            .unwrap();
+        assert_eq!(
+            item.execution.outcome.termination,
+            original["result"]["Termination"].as_str().unwrap()
+        );
+        assert_eq!(
+            item.interrupted,
+            original["result"]["RuntimeInterrupted"].as_bool().unwrap()
+        );
+        assert_eq!(
+            item.execution.evidence["network"],
+            STANDARD
+                .decode(original["network_wire"].as_str().unwrap())
+                .unwrap()
+        );
+    }
+}
+
 #[test]
 #[ignore = "requires authenticated original open-streams service input and Go final network wire"]
 fn final_network_uses_finished_shared_owner_instead_of_cached_incarnation() {
@@ -445,7 +475,7 @@ fn final_network_uses_finished_shared_owner_instead_of_cached_incarnation() {
     let expected = STANDARD
         .decode(reference["network_wire"].as_str().unwrap())
         .unwrap();
-    assert!(!expected.is_empty());
+    assert_ne!(expected, Vec::<u8>::new());
     let observed = execute_prepared(prepare(request).unwrap()).unwrap();
     assert_eq!(observed.outcome.termination, "exit");
     assert_eq!(observed.outcome.exit_code, Some(0));
@@ -459,31 +489,7 @@ fn final_network_uses_finished_shared_owner_instead_of_cached_incarnation() {
         .unwrap()
     );
     assert_eq!(observed.incarnations.len(), 3);
-    for item in &observed.incarnations {
-        let original = reference["states"]
-            .as_array()
-            .unwrap()
-            .iter()
-            .find(|state| {
-                state["handle"]["ID"] == item.handle.node
-                    && state["handle"]["Incarnation"] == item.handle.incarnation
-            })
-            .unwrap();
-        assert_eq!(
-            item.execution.outcome.termination,
-            original["result"]["Termination"].as_str().unwrap()
-        );
-        assert_eq!(
-            item.interrupted,
-            original["result"]["RuntimeInterrupted"].as_bool().unwrap()
-        );
-        assert_eq!(
-            item.execution.evidence["network"],
-            STANDARD
-                .decode(original["network_wire"].as_str().unwrap())
-                .unwrap()
-        );
-    }
+    assert_original_incarnations_match(&observed, &reference);
     let recovered = observed
         .incarnations
         .iter()

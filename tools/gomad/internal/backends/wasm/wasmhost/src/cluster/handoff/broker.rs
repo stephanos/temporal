@@ -313,6 +313,11 @@ impl Broker {
         })
     }
 
+    pub(crate) fn incarnation_slot(&self, me: usize) -> (u64, u64) {
+        let inner = lock(&self.inner);
+        (inner.sessions[me].incarnation, inner.sessions[me].slot)
+    }
+
     /// Go `Broker.Current`: relative virtual time.
     pub fn current(&self) -> u64 {
         (lock(&self.inner).clock.current() - INITIAL_TIME).cast_unsigned()

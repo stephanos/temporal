@@ -772,6 +772,24 @@ fn execute_inner(
 ) -> Result<Execution> {
     let execution_started = std::time::Instant::now();
     let modules = compile(engine, &prepared)?;
+    let final_network_source = prepared
+        .ids
+        .iter()
+        .enumerate()
+        .filter_map(|(index, id)| {
+            let source = prepared.incarnations.get(&Handle {
+                node: id.clone(),
+                incarnation: 1,
+            })?;
+            Some((
+                source.transcript_limit,
+                index,
+                id.clone(),
+                source.network.clone()?,
+                source.initial_namespace.epoch_nanos,
+            ))
+        })
+        .max_by_key(|source| source.0);
     let mut running: BTreeMap<Handle, Running> = BTreeMap::new();
     let mut completed = BTreeMap::new();
     let mut images: BTreeMap<String, Vec<u8>> = BTreeMap::new();
@@ -1218,12 +1236,28 @@ fn execute_inner(
             Vec::new()
         }
     };
-    let network = completed
-        .values()
-        .rev()
-        .find_map(|value| value.execution.evidence.get("network"))
-        .cloned()
-        .unwrap_or_default();
+    let network = if matches!(outcome.termination, "exit" | "trap" | "capacity") {
+        if let Some(shared) = network {
+            let (transcript_limit, index, id, profile, epoch) = final_network_source
+                .ok_or_else(|| Error::msg("missing final cluster network source"))?;
+            let (incarnation, slot) = broker.incarnation_slot(index);
+            Endpoint::new(
+                shared.clone(),
+                &id,
+                incarnation,
+                slot,
+                &profile,
+                epoch,
+                transcript_limit,
+            )
+            .and_then(|endpoint| endpoint.evidence())
+            .map_err(|failure| Error::msg(failure.message()))?
+        } else {
+            Vec::new()
+        }
+    } else {
+        Vec::new()
+    };
     let retained = completed
         .values()
         .flat_map(|value| value.execution.evidence.values())
