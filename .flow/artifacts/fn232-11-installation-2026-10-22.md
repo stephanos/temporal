@@ -1,9 +1,11 @@
 # fn-232.11 installation receiver checkpoint
 
 Task `fn-232-gomad-rewrite-the-host-side-in-rust.11` remains **in_progress**.
-This is the coherent source checkpoint requested for independent review while
-the shared host schedules the remaining actual public corpus. It is not an
-acceptance or qualification claim. Root owns review, integration and Flow.
+Implementation and the completed actual public corpus are ready for conductor
+acceptance. This handover retains the earlier failed attempts and repairs below;
+its earlier queued/pending notes describe those checkpoints, superseded by the
+final observations at the end. Root owns integrated review and Flow. No final
+R12 candidate qualification is claimed.
 
 The Rust CLI now owns install, discover, documented doctor refusal/reporting,
 public seed/scoped-choice plan and journal-only recovery. Installation separates
@@ -26,7 +28,7 @@ Go's actual public plan/selected-doctor refusals remain explicit corpus cases.
 
 ## Verification observed
 
-All commands below used the assigned worktree and dedicated
+The focused Rust source checks below used the assigned worktree and dedicated
 `CARGO_TARGET_DIR=/home/agent/.cache/codex-build/fn232-install`, jobs 4 and Rust
 `+1.99.1`; exact commands are in the evidence JSON. Numeric exit observations,
 not log scraping, determined status.
@@ -341,3 +343,85 @@ refreshes the golden. Each attempt owns executable copies, mutates one current
 byte, requires exact identity refusals/no manifest, and preserves hostile-script
 no-execution proof. The retirement/all-verb caller owner was notified. AST2,
 JSON and diff checks exit 0; completed-corpus regeneration/strict check pending.
+
+## Completed public corpus handover
+
+The completed corpus passed full regeneration 15 (session 59182,
+2026-10-22T21:58:45Z–22:00:03Z, exit **0**) and independent strict run 16
+(session 33744, 22:00:16Z–22:01:35Z, exit **0**). Each ran **316 direct public
+commands plus authenticated child lanes** over two independent attempts.
+Regeneration's second write agreed byte-for-byte. Both runs required unchanged
+before/after input digests and authenticated raw artifacts/journals independently
+of golden comparison. Together these are four independent actual executions of
+the complete owned corpus, not scraped or synthetic results.
+
+Raw roots and adjacent `.log` files:
+`/home/agent/wt/evidence/fn232-install-integrated-15` and `-16`.
+The exact main-generated golden is committed without edits at
+`tools/gomad/testdata/parity/goldens-installation/installation.json`, **1637059
+bytes**, SHA-256
+`654693efd83b2e9e49d0b420d623a5f364ca24c1ba58527be5b59f3ffaf4ff1b`.
+It contains 158 direct case observations per attempt, 27 configuration cases,
+three real Temporal descriptor cases, both explicit helper negatives and the
+retained plan/recovery/lineage observations. No identity, cost or behavior was
+normalized. Declared run/preparation path substitutions remain independently
+checked against their actual selected paths.
+
+Actual binary: immutable
+`/home/agent/wt/evidence/fn232-integrated-install-fixture/gomad-63c43b4525d16dae1aa1432ddbff8424516c8595c31b3f67c37eaadcda133500`,
+built from integrated main `82ba157e16`; its source inventory receipt is adjacent
+(SHA `21175ebbdbfa3f46baaac3f57616d02b0ff740fe4018049d84883572a25bf09c`).
+Final harness source integration was `76f565c9eb`. Historical role input and
+its source/build/role receipts are retained under the open fn232 evidence owner
+as described above. The later mandatory/helper source integrations require
+final-candidate regeneration in task 13; these observations bind this actual
+immutable installation candidate rather than claiming that later qualification.
+
+The full command is recorded literally in the evidence JSON. It invokes
+`tools/gomad/scripts/behavioral-parity --corpus tools/gomad/testdata/parity --verb
+install` with the immutable Rust binary, explicit role binary, frozen Go
+launcher/helper, pinned stock Go1.27.1 compiler, frozen Go source
+`/home/agent/wt/fn232-go-source/temporal-1d7b37f00a`, stable preparation root and
+fresh output root. Run 15 sets `GOMAD_GOLDEN_REGENERATE=1`; run 16 does not.
+No process was restarted to observe an outcome. All owned processes are terminal.
+
+Owned requirement evidence:
+
+- **R10:** real install/discover/default doctor and selected doctor/analyze
+  refusals; compiler/runtime/config inventory admission; missing/mismatched
+  tools, Go-lineage and collision refusals; explicit/environment/sibling exact
+  selection and invalid-choice no fallback; discovery after compiler/runtime
+  removal; linked default and exact-copy helper positive; mutated, legacy Go,
+  hostile and genuinely different Rust role negatives. No external helper is
+  selected for execution. Literal Go origin-reporting difference is documented
+  and retained rather than copied into Rust.
+- **R13:** fresh actual Go/Rust public execution, each lineage's own authenticated
+  artifacts and unchanged compiler/config inputs. Go public plan refusal remains
+  2; its genuine explore reference succeeds 0. Authorized Go v3/Rust v4 generated
+  runtime differences retain both literal identities, never module-byte parity.
+- **R14:** complete literal golden, independent raw authentication, repeated
+  executions, byte-identical second regeneration and strict fresh verification.
+  Root separately built ordinary release from `e8754d1cf8`, exit 0, immutable
+  `81657d713cbb33ff3ca82bf8e92c224030097bb11d341fe59ab613e4556cb5a6` under
+  `fn232-integrated-ordinary-release`: actual fixture-preparation-open refuses
+  unsupported 2; ordinary qualify reaches missing-spec input 2 rather than a
+  nonordinary-role guard. Raw outputs/build receipt are adjacent and the build
+  log is `fn232-integration-rust/ordinary-release-build.log`. This proves release
+  exclusion, not qualification; its earlier help-verifier premise failure is
+  retained by root.
+- **fn-222 preparation receiver:** actual seed preparation, authenticated portable
+  retained module/provenance and receipt, zero guest executions; reopen succeeds
+  after original compiler/source removal. Resealed imports/memory metadata lies
+  refuse while honest legacy absent/absent admission remains intact.
+- **fn-230.1 receiver:** public unscoped plan has zero executions; matching and
+  empty scopes each execute and authenticate exactly one retained base, including
+  default-success retention. Original scope validators and stripped-symbol
+  refusal remain exercised.
+- **Recovery:** actual Rust and Go seed/round journals repair torn tails and repeat
+  as no-op; Rust real writer-lock and malformed-input refusals leave state
+  unchanged. Rust recovery starts no guests.
+
+Remaining conductor actions are integrated review/acceptance and Flow lifecycle.
+The task stays **in_progress** here. Task 13 owns the final frozen candidate,
+full unchanged-budget qualification, new-source identity/golden refresh, and Go
+retirement. No CI execution, push, PR, history rewrite or retirement occurred.
