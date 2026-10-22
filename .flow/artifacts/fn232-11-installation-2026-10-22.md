@@ -203,3 +203,18 @@ Raw two-command receipt and source hashes:
 `/home/agent/wt/evidence/fn232-install-nested-module-regression`.
 Python AST checks (2 files) and git diff --check both exit 0. No production
 source or guest bounds changed. Fresh full lanes remain pending integration.
+
+Integrated lane 03 (session 90033) terminated exit 1 after seed preparation and
+first authentic portable opener both succeeded. Its later collision probe kept
+`--working-dir` pointing to the deliberately deleted source directory, so CLI
+validation correctly refused that directory before output collision admission.
+The harness now uses a distinct directory containing only the original go.mod
+for collision probes; the original compiler and source remain deleted. This
+preserves both exact collision messages, unchanged output/receipt assertions,
+detached opener, metadata attacks and all missing-input proofs. An actual tiny
+probe first confirmed an empty directory without go.mod is also invalid, then
+both corrected collision commands returned status 2 with `output already
+exists`, without changing original plan/receipt or recreating source/compiler.
+Raw evidence: `/home/agent/wt/evidence/fn232-install-collision-cwd-regression`.
+Lane 01 and 03 failures remain intact; 02 and 04 were not started. No production
+source, compiler build or guest execution was changed by this repair.

@@ -89,11 +89,17 @@ def check_retained(binary, installation, root, working_dir, environment):
     shutil.rmtree(alias)
     shutil.rmtree(source)
     assert not alias.exists() and not source.exists()
-    error = json.loads(run('existing-plan-before-missing-tools', vector, 2))
+    collision_working_dir = root / 'collision-working-dir'
+    collision_working_dir.mkdir()
+    shutil.copy2(working_dir / 'internal/backends/wasm/qualification/testdata/fixture/go.mod',
+        collision_working_dir / 'go.mod')
+    collision_command = list(vector)
+    collision_command[collision_command.index('--working-dir') + 1] = collision_working_dir
+    error = json.loads(run('existing-plan-before-missing-tools', collision_command, 2))
     assert 'output already exists' in error['message']
     receipt_collision = root / 'receipt-collision.json.preparation.json'
     receipt_collision.write_bytes(b'existing receipt')
-    collision_vector = list(vector)
+    collision_vector = list(collision_command)
     collision_vector[collision_vector.index('--output') + 1] = root / 'receipt-collision.json'
     error = json.loads(run('existing-receipt-before-missing-tools', collision_vector, 2))
     assert 'output already exists' in error['message']
