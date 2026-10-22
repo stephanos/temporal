@@ -1,0 +1,12 @@
+{
+  "spec": "fn-233-kettle-service-a-framework-owned-end-to",
+  "closure_commit": "9dc99a9c36ebbc065915c7f4dd1d911e6be443cb",
+  "removed_paths": [
+    ".flow/tmp/fn-233",
+    ".flow/review-fanout/87ab1e54159247c2aeff8c40e496466b",
+    ".flow/review-fanout/1f70599a2edb43229e8e6dcf10783bda",
+    ".flow/review-fanout/3258832840e7402988285f089996c612",
+    ".flow/review-fanout/a319b807a1de42eaa3bdbffac684c1a8"
+  ],
+  "preserved": "tracked code, goldens, task/parent reviews, verification records and final gate logs"
+}
