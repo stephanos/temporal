@@ -135,7 +135,7 @@ The review passed; each consumer still waits for its declared support dependenci
 
 | Name | Status | What |
 | --- | --- | --- |
-| fn-227.3 | ⬜ todo | After .2, .11, .15 and .16: activity attempts/retryable failure and retained-lifecycle refinement (R3, R4) |
+| fn-227.3 | 🔄 in progress | After .2, .11, .15 and .16: activity attempts/retryable failure and retained-lifecycle refinement (R3, R4) |
 | fn-227.5 | ⬜ todo | After .3 and .12: transactional live World admission (`maximum_attempts`) and SDK retry proof (R6) |
 | fn-227.6 | ⬜ todo | After .5: DESIGN.md parameterized worlds, inputs and retries write-up and readiness table closure (R7) |
 

@@ -1,0 +1,16 @@
+{
+  "task": "fn-227-parameterized-models-declared-worlds.3",
+  "integrated_predecessor_closure": "7a4ac050c9",
+  "conductor_verification": "1fd1e4e178",
+  "scheduling": "single-worker sequential chain; current branch umpire per AGENTS.md",
+  "tier_line": "Tier: session (jev-unavailable(no_key))",
+  "implementer_override": "gpt-6.1-sol at medium (AGENTS.md Codex implementer routing)",
+  "review": "codex:gpt-6.1-sol:high; same family, fresh initial context",
+  "disk_free_gib_approx": 113,
+  "baseline": "No BASELINE_HANDOFF: intervening MILESTONES.md edit. Run task Quick before implementation; do not run a redundant full pre-edit baseline.",
+  "reference_pin": "af0ebafc571d33651fdf2c008d4415ad72467a0d",
+  "original_manifest": ".flow/artifacts/fn-227-parameterized-models-declared-worlds/original-artifacts.sha256",
+  "scope": "Activity retries and one-attempt/direct-deadline/atomic-cancel lifecycle refinement. Actual Start World admission/live retry belongs to task .5; timeout/heartbeat/cooperative cancel remains fn-237.",
+  "plan_sync": "disabled",
+  "publication": "local only; no push/PR"
+}
