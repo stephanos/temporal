@@ -182,7 +182,10 @@ def main():
         # Retain scope on a real failure, then discard its campaign before minimizing.
         failure_destination = args.work / 'scope-failure'
         invocation = command(failure_destination, executions=8, depth=1024, scope='main')
-        invocation[invocation.index('go-run') + 1] = './testdata/parity/live_backend/minimization'
+        failure_directory = MODULE / 'testdata/parity/live_backend/minimization'
+        assert (failure_directory / 'go.mod').is_file()
+        invocation[invocation.index('--working-dir') + 1] = failure_directory
+        invocation[invocation.index('go-run') + 1] = '.'
         run('scope-failure', invocation, (1,))
         failure_root = locate(failure_destination)
         failure_checked = rounds['authenticate'](failure_root)
@@ -299,12 +302,14 @@ def main():
         prepared = rounds['authenticate'](scoped_root)['plan']['prepared']
         provenance = json.loads((scoped_root / prepared['prepared_artifact'] / 'target/provenance.json').read_bytes())
 
-        def build_stripped(name, package, original_provenance):
+        def build_stripped(name, original_provenance):
+            directory = Path(original_provenance['inputs']['directory'])
+            package = original_provenance['inputs']['source']
             stripped = args.work / (name + '.wasm')
             build_environment = dict(original_provenance['inputs']['environment'], GOCACHE=str(args.go_cache.resolve()))
             run(name + '-build', [args.go_compiler, 'build', '-mod=readonly', '-pgo=off',
                 '-overlay', current_overlay['path'], '-trimpath', '-buildvcs=false', '-ldflags=-s -w',
-                '-o', stripped, package], extra=build_environment, cwd=MODULE)
+                '-o', stripped, package], extra=build_environment, cwd=directory)
             stripped_provenance = copy.deepcopy(original_provenance)
             stripped_provenance['inputs']['build_flags'].append('-ldflags=-s -w')
             stripped_provenance['build_key'] = digest(encode(stripped_provenance['inputs']))
@@ -315,7 +320,7 @@ def main():
             provenance_path.write_bytes(encode(stripped_provenance))
             return stripped, provenance_path
 
-        stripped, provenance_path = build_stripped('stripped', './testdata/parity/site_scope', provenance)
+        stripped, provenance_path = build_stripped('stripped', provenance)
         destination = args.work / 'scope-no-symbols'
         invocation = scoped_command(destination, scope='main')
         invocation[invocation.index('exec'):] = ['exec', '--provenance', provenance_path, '--', stripped]
@@ -323,8 +328,7 @@ def main():
         assert 'symbol information' in error['message'] and 'no_symbols' in error['message'], error
         assert not destination.exists(), destination
         observations['no_symbols'] = dict(module_sha256=digest(stripped.read_bytes()), error=error)
-        stripped_failure, stripped_failure_provenance = build_stripped('stripped-failure',
-            './testdata/parity/live_backend/minimization', failure_provenance)
+        stripped_failure, stripped_failure_provenance = build_stripped('stripped-failure', failure_provenance)
         stripped_destination = args.work / 'scope-stripped-failure'
         invocation = command(stripped_destination, executions=8, depth=1024)
         target = invocation.index('go-run')

@@ -337,3 +337,35 @@ module before the scoped minimizer negative. No new CLI, schema, Go guest, golde
 build target or runtime control was introduced. Python AST and diff checks pass;
 these added actual cases await execution with the conductor's new integrated
 fixture. No compiler, Cargo or guest command ran for this source-only checkpoint.
+
+
+## First actual integrated scope attempt and module-root correction
+
+Immutable fixture `e9d7b6715480f7afc7059a9924ad7210dfefc97c5860883291e0bf9407aa3439`,
+source `00a97c42ee371656e9b3655a3056b521bac8d4ce`, ran scope01 under the
+conductor's explicit resource grant. Exec session 97675, launcher PID 3247012,
+driver PID 3247054, exited **1** after 26.78 seconds;
+source/binary/input bindings were unchanged. Raw stdout/stderr and terminal
+receipt remain in `/home/agent/wt/evidence/fn231-public-00a97c42/scope01`;
+per-command outputs remain in sibling `scope-01`. No retry, cleanup or semantic
+generation followed. The failed child command was `scope-failure`, status 3:
+`--working-dir .../tools/gomad go-run ./testdata/parity/live_backend/minimization`.
+That target is a nested module (`gomad.wasm.exploration.fixture`), so the outer
+module correctly refused to list it.
+
+The driver now uses the target's own working directory and `go-run .`. The
+stripped compiler helper takes both directory and package directly from the
+authenticated producing provenance, preserving the correct source coordinates
+for both the outer-module site-scope guest and the nested failing guest. The
+unchanged guest, budgets and runtime flags are retained.
+
+A source-only regression extracts and executes the actual command-assembly AST
+from the old and corrected drivers, checks the real nested `go.mod` boundary,
+and executes the actual stripped-build helper against a recording compiler stub
+to assert its cwd/package and original-provenance immutability. Old source
+exits 1 on the wrong module root; corrected source exits 0 on both paths.
+Evidence: `/home/agent/evidence/fn231-module-command-{red,green}.log` and
+`fn231-module-command-regression.py`. Both driver AST checks and diff check
+also pass. This causal source correction did not run Go, Cargo or a guest; a
+fresh authorized public attempt remains necessary. The first failed receipts
+remain immutable.
