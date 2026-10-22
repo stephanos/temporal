@@ -138,12 +138,6 @@ func TestTestpilotModelSlice(t *testing.T) {
 	env := activityEnvironment(t)
 	annotations := &modelSliceAnnotations{host: host}
 	t.Cleanup(func() { annotations.assert(t) })
-	sdkClient, err := client.Dial(client.Options{
-		HostPort: env.FrontendGRPCAddress(), Namespace: env.Namespace().String(), Logger: log.NewSdkLogger(env.Logger),
-		ConnectionOptions: client.ConnectionOptions{DialOptions: []grpc.DialOption{grpc.WithChainUnaryInterceptor(annotations.intercept)}},
-	})
-	require.NoError(t, err)
-	t.Cleanup(sdkClient.Close)
 	dc := converter.GetDefaultDataConverter()
 
 	for _, scenario := range []string{"Complete", "Fail", "HostRefusal", "Cancellation", "CancelAfterCompletion", "CancelBeforeWorkerStart", "RetryThenComplete"} {
@@ -157,6 +151,23 @@ func TestTestpilotModelSlice(t *testing.T) {
 			deliveries := make(chan modelSliceDelivery)
 			finished := make(chan error, 1)
 			var calls atomic.Int32
+			failedAttempt := make(chan struct{}, 1)
+			retryTransport := func(callCtx context.Context, method string, req, reply any, conn *grpc.ClientConn, invoke grpc.UnaryInvoker, opts ...grpc.CallOption) error {
+				err := invoke(callCtx, method, req, reply, conn, opts...)
+				if scenario == "RetryThenComplete" && method == workflowservice.WorkflowService_RespondActivityTaskFailed_FullMethodName && err == nil {
+					select {
+					case failedAttempt <- struct{}{}:
+					default:
+					}
+				}
+				return err
+			}
+			sdkClient, err := client.Dial(client.Options{
+				HostPort: env.FrontendGRPCAddress(), Namespace: env.Namespace().String(), Logger: log.NewSdkLogger(env.Logger),
+				ConnectionOptions: client.ConnectionOptions{DialOptions: []grpc.DialOption{grpc.WithChainUnaryInterceptor(annotations.intercept, retryTransport)}},
+			})
+			require.NoError(t, err)
+			t.Cleanup(sdkClient.Close)
 			w := worker.New(sdkClient, queue, worker.Options{
 				DisableWorkflowWorker: true, WorkerStopTimeout: time.Second,
 			})
@@ -374,6 +385,19 @@ func TestTestpilotModelSlice(t *testing.T) {
 				require.ErrorAs(t, bodyErr, &failure)
 				require.False(t, failure.NonRetryable())
 				require.Equal(t, "Retry", failure.Message())
+				select {
+				case <-failedAttempt:
+				case <-ctx.Done():
+					t.Fatal(ctx.Err())
+				}
+				delayedDescribe := time.NewTimer(retryPolicy.MaximumInterval + 10*time.Millisecond)
+				defer delayedDescribe.Stop()
+				select {
+				case <-delayedDescribe.C:
+				case <-ctx.Done():
+					t.Fatal(ctx.Err())
+				}
+				t.Logf("retry Describe delayed beyond maximum retry interval=%s after actual failure RPC success", retryPolicy.MaximumInterval)
 				retryPoll := time.NewTicker(10 * time.Millisecond)
 				defer retryPoll.Stop()
 				for {
