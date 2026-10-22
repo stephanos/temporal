@@ -365,10 +365,7 @@ pub(crate) fn fixture_prepare(arguments: &[String]) -> Result<(), String> {
 pub(crate) fn fixture_driver_run(arguments: &[String]) -> Result<(), String> {
     use std::{
         fs,
-        os::unix::{
-            fs::{DirBuilderExt as _, OpenOptionsExt as _},
-            process::ExitStatusExt as _,
-        },
+        os::unix::fs::DirBuilderExt as _,
         process::{Command, Stdio},
     };
     if arguments.len() != 4 || arguments[0] != "--invocation" || arguments[2] != "--sha256" {
@@ -400,7 +397,8 @@ pub(crate) fn fixture_driver_run(arguments: &[String]) -> Result<(), String> {
         .mode(0o700)
         .create(&module_root)
         .map_err(|e| e.to_string())?;
-    let mut child = Command::new(&argv[0])
+    let mut command = Command::new(&argv[0]);
+    command
         .args(&argv[1..])
         .current_dir(&recipe.directory)
         .env_clear()
@@ -420,39 +418,42 @@ pub(crate) fn fixture_driver_run(arguments: &[String]) -> Result<(), String> {
         .env("GOMAD_SHIM_SEEDS", &recipe.options.seeds)
         .stdin(Stdio::inherit())
         .stdout(Stdio::inherit())
-        .stderr(Stdio::inherit())
-        .spawn()
-        .map_err(|e| e.to_string())?;
+        .stderr(Stdio::inherit());
     let registration = origin::DriverRegistration {
         schema: "gomad.driver-registration/v1".into(),
-        process_id: child.id(),
+        process_id: std::process::id(),
         invocation_sha256: arguments[3].clone(),
         compiler_sha256: invocation.compiler_sha256.clone(),
         driver_argv_sha256: canonical::digest(&canonical::encode(&invocation.driver_argv)?),
         module_root,
     };
-    let publication = (|| -> Result<(), String> {
-        let mut file = fs::OpenOptions::new()
-            .write(true)
-            .create_new(true)
-            .mode(0o600)
-            .open(root.join("driver-registration.json"))
-            .map_err(|e| e.to_string())?;
-        file.write_all(&canonical::encode(&registration)?)
-            .and_then(|()| file.sync_all())
-            .map_err(|e| e.to_string())
-    })();
-    if let Err(error) = publication {
-        let _ = child.kill();
-        let _ = child.wait();
-        return Err(error);
-    }
-    let status = child.wait().map_err(|e| e.to_string())?;
-    std::process::exit(
-        status
-            .code()
-            .unwrap_or_else(|| 128 + status.signal().unwrap_or(1)),
-    );
+    registered_exec(root, &registration, &mut command)
+}
+
+#[cfg(feature = "determinism-fixture")]
+fn registered_exec(
+    root: &Path,
+    registration: &origin::DriverRegistration,
+    command: &mut std::process::Command,
+) -> Result<(), String> {
+    use std::{
+        fs,
+        os::unix::{fs::OpenOptionsExt as _, process::CommandExt as _},
+    };
+    let mut file = fs::OpenOptions::new()
+        .write(true)
+        .create_new(true)
+        .mode(0o600)
+        .open(root.join("driver-registration.json"))
+        .map_err(|e| e.to_string())?;
+    file.write_all(&canonical::encode(registration)?)
+        .and_then(|()| file.sync_all())
+        .map_err(|e| e.to_string())?;
+    fs::File::open(root)
+        .and_then(|directory| directory.sync_all())
+        .map_err(|e| e.to_string())?;
+    drop(file);
+    Err(format!("exec pinned driver: {}", command.exec()))
 }
 
 #[cfg(test)]
@@ -465,5 +466,65 @@ mod tests {
         assert_eq!(parsed.seeds.as_deref(), Some("7,8"));
         assert!(!parsed.json);
         assert_eq!(parsed.argv, ["--json", "--seeds=99"]);
+    }
+}
+
+#[cfg(all(test, feature = "determinism-fixture"))]
+mod synchronization_tests {
+    use super::*;
+    #[test]
+    fn registration_is_visible_before_exec_and_has_the_preserved_child_pid() {
+        use std::{fs, os::unix::fs::DirBuilderExt as _, process::Command};
+        let root = std::env::temp_dir().join(format!(
+            "gomad-registration-{}",
+            origin::identity().unwrap()
+        ));
+        fs::DirBuilder::new().mode(0o700).create(&root).unwrap();
+        let child = Command::new(std::env::current_exe().unwrap())
+            .args([
+                "--exact",
+                "cli::run_guest::synchronization_tests::registration_exec_child",
+            ])
+            .env("GOMAD_TEST_EXEC_ROOT", &root)
+            .stdout(std::process::Stdio::piped())
+            .stderr(std::process::Stdio::piped())
+            .spawn()
+            .unwrap();
+        let pid = child.id();
+        let output = child.wait_with_output().unwrap();
+        assert!(
+            output.status.success(),
+            "{}",
+            String::from_utf8_lossy(&output.stderr)
+        );
+        let start = output
+            .stdout
+            .iter()
+            .position(|byte| *byte == b'{')
+            .expect("execed program did not observe registration");
+        let registration: origin::DriverRegistration =
+            serde_json::from_slice(&output.stdout[start..]).unwrap();
+        assert_eq!(registration.process_id, pid);
+        assert_eq!(registration.invocation_sha256, "1".repeat(64));
+        fs::remove_dir_all(root).unwrap();
+    }
+    #[test]
+    fn registration_exec_child() {
+        let Some(root) = std::env::var_os("GOMAD_TEST_EXEC_ROOT") else {
+            return;
+        };
+        let root = Path::new(&root);
+        let registration = origin::DriverRegistration {
+            schema: "gomad.driver-registration/v1".into(),
+            process_id: std::process::id(),
+            invocation_sha256: "1".repeat(64),
+            compiler_sha256: "2".repeat(64),
+            driver_argv_sha256: "3".repeat(64),
+            module_root: root.into(),
+        };
+        let mut command = std::process::Command::new("/bin/cat");
+        command.arg(root.join("driver-registration.json"));
+        let error = registered_exec(root, &registration, &mut command).unwrap_err();
+        panic!("{error}");
     }
 }
