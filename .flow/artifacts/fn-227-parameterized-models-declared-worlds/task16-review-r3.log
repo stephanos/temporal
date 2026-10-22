@@ -1,0 +1,27 @@
+review-parse: suppressed_count via json
+review-parse: classification_counts via json
+review-parse: unaddressed via json
+Prior finding #1: fixed
+
+The cache preserves length identities through locals and conditional expressions whose arms reference the same vector’s length. Negative controls reject mixed-vector and non-length alternatives.
+
+All 11 tests in the existing vector and phased binaries passed. Retained required-TLC evidence confirms saved, chained, and conditional-length controls preserve states and verdicts. No new blocking findings.
+
+## Requirements coverage
+
+| R-ID | Status | Evidence |
+|---|---|---|
+| R3 | met | Within task .16’s scope: admission restored, linear-growth controls pass, and focused required-TLC agreement is retained. |
+
+Unaddressed R-IDs: []
+
+Classification counts: 0 introduced, 0 pre_existing.
+
+```json
+{"classification_counts":{"introduced":0,"pre_existing":0},"unaddressed":[]}
+```
+
+<verdict>SHIP</verdict>
+
+
+VERDICT=SHIP
