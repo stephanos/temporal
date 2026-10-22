@@ -86,3 +86,12 @@ TBD
 - Commits:
 - Tests:
 - PRs:
+
+
+### Received from fn-232.8 (2026-10-22, merge f16f53e59d)
+Candidate-v6 implementation identities and binary hashes are in `.flow/artifacts/fn232.8-identity-handoff-2026-10-22.txt`. Key values:
+- helper `GOMAD_LINKED_IMPLEMENTATION_SHA256` 54773ee7…;
+- fixture-role host 09017ee1…;
+- runtime 4a82aea2…;
+- Go WASI 5fddc30f….
+The release-role host identity differs, because the host identity hashes the cargo features, so measure it from gomad-release. Two Go `wasm/backend` inspection tests fail on the pre-existing baseline; they are on this task's transferred live-gate list.

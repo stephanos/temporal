@@ -15,15 +15,16 @@ Reuse task .6's typed linked cluster replay/inspection execution seam over the e
 Receive fn-229 R2 with .7's campaign inspection consumer: actual choice-round divergence must retain the helper-owned typed ordinal/reason/tape_records and optional expected/observed raw decisions in the authenticated ledger. Wire symbol enrichment through the shared immutable resolver and each execution's identity-matching retained module; do not move divergence into artifact choice metadata or parse standalone replay's textual path. Public inspect fixtures must exercise actual validated campaign divergence, both expected/observed symbols, missing-site behavior and unchanged raw ledger/record identities. Keep fn-229.2/R2 open until this consumer integration is proven; no producer/qualification claim follows from a typed-only fixture.
 
 ## Acceptance
-- [ ] Consume fn-227's multiple-live-node and multiple-invalid-volume cases as Rust behavioral/golden fixtures. Varied insertion order preserves exact stop order, World/network evidence, refusal class and message; malformed/incomplete scenarios still refuse.
-- [ ] Retain linked shutdown/cleanup proof and deterministic pre-execution crash-selection refusal evidence, then hand actual implementation/model identities to fn-232.13 final qualification and reconcile fn-227.1. A source-only inventory update or existing incomplete-lifecycle abort cannot close this receiving acceptance.
+- [x] Consume fn-227's multiple-live-node and multiple-invalid-volume cases as Rust behavioral/golden fixtures. Varied insertion order preserves exact stop order, World/network evidence, refusal class and message; malformed/incomplete scenarios still refuse.
+- [x] Retain linked shutdown/cleanup proof and deterministic pre-execution crash-selection refusal evidence, then hand actual implementation/model identities to fn-232.13 final qualification and reconcile fn-227.1. A source-only inventory update or existing incomplete-lifecycle abort cannot close this receiving acceptance.
 The owned behavior has reviewed golden fixtures, repeated-execution agreement and byte-identical second regeneration (R14); public verbs also run their fresh Go/Rust semantic parity lane (R13).
 Harness lane matches frontier order and envelope reports on the corpus plans; exhausted bounds report the envelope; malformed plan refused on open.
 
 ## Done summary
-TBD
+Choice and simulation exploration in Rust, including fn-227 R1/R2 ordering. Candidate-v6 exploration lane: two identical regenerations plus strict. Codex review SHIP. Identities handed to .13; fn-227.1 note appended. Merged f16f53e59d.
 
+stage: plan-sync - skipped(config: planSync.enabled != true)
 ## Evidence
-- Commits:
-- Tests:
+- Commits: c04d3a4ba4, c1c3383b74, dda8a82900, 487051cd96, f16f53e59d
+- Tests: six-lane refresh v6 (2 regen + strict each), make validate, codex re-review SHIP
 - PRs:

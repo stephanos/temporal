@@ -1,0 +1,43 @@
+fn-232.8 receiving acceptance: identity handoff to fn-232.13 and fn-227.1 reconciliation note
+(worker A', branch fn232-exploration-closeout at f0f5c3669f; not a qualification pass)
+
+Candidate: /Users/stephan/Workspace/skunkworks/gomad/.build-cache/fn232-refresh-candidate-v6
+  candidate.json (same file: /home/agent/wt/evidence/fn232-refresh-v6/candidate.json), built at c04d3a4ba4.
+  Later commits c1c3383b74 (Go-side pins/corpora; no .rs), dda8a82900 (goldens), 487051cd96 (harness) and merge f0f5c3669f (docs) change no Rust identity input.
+  Binary sha256:
+    gomad-fixture              665c0c22bdece3c543c98ff20e19a5130258ed4291d9887f53edeca90842c043
+    gomad-release              9130553bfef3fc8a3d1bb8715791a7e66b586fb36bfe2afaf1af5b3426a2ff46
+    gomad-stress-fixture       97ad9829628a403957578d38f16db5bfaecf9f4491684e87c2c54d10e26acc28
+    gomad-determinism-fixture  a155ff4963f2c846508fdf22fbcfdedbcec635b07cf016a3b9fcbc9f49736889
+    gomad-wasmhost             1697bc446c2ef49e4f543b815bdddce678eb71e686a292d4558d80d929048ff5 (unchanged from v5)
+    gomad-wasmhost-conformance 2f2395532d16b615fb7f1062dfca717b022b162ec948ef57a232a845460e9505 (unchanged from v5)
+  Implementation identities as recorded by the fixture role (installation.json of
+  .build-cache/fn232-refresh6b-campaign-strict/rust):
+    GOMAD_LINKED_IMPLEMENTATION_SHA256 (helper_sha256)   54773ee79492c60e23585b9dfe3f71dd4e9e3aada19d06a5b7af045768b3c2a3 (unchanged from v5)
+    GOMAD_HOST_IMPLEMENTATION_SHA256 (host_sha256, fixture features) 09017ee12fb6a9c82a1a54140f58839fe55de3a82714095519897eeb33664c56
+    GOMAD_RUNTIME_IMPLEMENTATION_SHA256                  4a82aea212c3832d762d31cdf548172bdc881b18458078b3b9ead0c83cfc5266
+    Go WASI model ImplementationSHA256 (current source)  sha256:5fddc30fd325f3168d32a0084a3e76e3a10b341da7aee86ddcd9f3b2a8b91bc3
+  The host identity hashes the cargo feature set, so the release role's host identity differs from the
+  fixture role's; fn-232.13 must measure it from gomad-release itself (not asserted here).
+
+fn-227.1 reconciliation (R1/R2 Rust behavior received from fn-232.8):
+  R1 ordered stop cleanup: c4fff357dc; test wasmhost tests/linked_simulation_corpus.rs
+     divergence_stops_live_incarnations_in_sorted_order. RED on original executor:
+     /home/agent/wt/evidence/fn232-exploration-closeout/r1-red-original-executor.*; GREEN:
+     /home/agent/wt/evidence/fn232-refresh-v6/helper-tests-determinism-fixture-linked.stdout.
+  R2 sorted crash-selection/context validation: 6aca443134; shared corpus
+     tools/gomad/testdata/parity/storage-crash-validation-order.json consumed by Rust
+     storage_transport::validation_order_corpus::first_refusal_is_insertion_order_independent_and_matches_go
+     and Go wasi/storage_selection_order_corpus_test.go. RED: /home/agent/wt/evidence/fn232-r2-red/;
+     GREEN: /home/agent/wt/evidence/fn232-refresh-v6/helper-tests.stdout,
+     /home/agent/wt/evidence/fn232-exploration-closeout/r2-go-wasi-tests.*.
+  Inventory rows (tools/gomad/internal/backends/wasm/determinism/inventory.json) for
+  ClusterSession.Shutdown / execution.Shutdown still describe the Go sites; naming the Rust tests above
+  in them is fn-227.1's own work (it owns determinism/**) and is NOT done here.
+  fn-232.13 frozen-candidate runtime/workload/replay qualification remains PENDING.
+
+Pre-existing failures (not introduced here, accepted by conductor): wasm/backend
+  TestInspectionRetainedClusterNetworkStoppedPrefix, TestInspectionRetainedClusterTargetsRestartedIncarnation.
+  gomad baseline: /home/agent/wt/evidence/fn230-r12-characterization-repair/backend-inspection-cluster-tip.log;
+  transferred list: /home/agent/wt/evidence/fn232/fn223-fn228-closeout-2026-10-20/flow/fn-232.13.md;
+  this branch before/after corpus regeneration: /home/agent/wt/evidence/fn232-go-corpora/go-tests-{before,after}-regeneration.*

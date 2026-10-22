@@ -14,9 +14,10 @@ The parent whole-process deadline contract applies from compilation through tear
 Use the foundation's fixture-only driver for the execution/store behavior below; no later public verb is a prerequisite. Actual public-verb goldens land with their owning tasks.
 Golden corpus lane: fixture guests reach exit, trap, fuel exhaustion and watchdog timeout with the same termination classes as the Go backend, diffed as golden `--json` output; two slots run two seeds concurrently with a golden ledger; `make validate` still passes for the helper library. Unit tests only for the slot-panic abort path, which names its invariant.
 ## Done summary
-TBD
+Binary crate with in-process slots and a whole-process deadline backstop. The exit is independent of the diagnostic write (500 ms bounded, then exit 3). External compile, teardown and full-stderr cases exit in 13-15 s, timed with a monotonic clock. Old binary RED: hangs at 120 s. make validate passes. Merged f16f53e59d.
 
+stage: plan-sync - skipped(config: planSync.enabled != true)
 ## Evidence
-- Commits:
-- Tests:
+- Commits: c04d3a4ba4, c1c3383b74, dda8a82900, 487051cd96, f16f53e59d
+- Tests: six-lane refresh v6 (2 regen + strict each), make validate, codex re-review SHIP
 - PRs:
