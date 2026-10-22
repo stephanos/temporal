@@ -1,0 +1,17 @@
+INCONCLUSIVE: cancelled obsolete full gate after reproduced untouched-vector admission regression; no passing claim. Original session78433.
+Owned process group before TERM:
+2758890 2758889 2758890 timeout 1800 env UMPIRE_BACKENDS=require make model-time
+2758891 2758890 2758890 make model-time
+2758976 2758891 2758890 bash /Users/stephan/Workspace/skunkworks/umpire/temporal/model/scripts/time-gate.sh
+2758979 2758976 2758890 bash /Users/stephan/Workspace/skunkworks/umpire/temporal/model/scripts/time-gate.sh
+2758980 2758979 2758890 make -C .. model-check
+2767192 2758980 2758890 /bin/sh -c cd model && /bin/bash /Users/stephan/Workspace/skunkworks/umpire/temporal/model/scripts/time-gate.sh --step tests mise exec -- cargo test --workspace --quiet
+2767193 2767192 2758890 /bin/bash /Users/stephan/Workspace/skunkworks/umpire/temporal/model/scripts/time-gate.sh --step tests mise exec -- cargo test --workspace --quiet
+2767195 2767193 2758890 /bin/bash /Users/stephan/Workspace/skunkworks/umpire/temporal/model/scripts/time-gate.sh --step tests mise exec -- cargo test --workspace --quiet
+2767196 2767195 2758890 /bin/bash /Users/stephan/Workspace/skunkworks/umpire/temporal/model/scripts/time-gate.sh --step tests mise exec -- cargo test --workspace --quiet
+2767197 2767196 2758890 /bin/bash /Users/stephan/Workspace/skunkworks/umpire/temporal/model/scripts/time-gate.sh --step tests mise exec -- cargo test --workspace --quiet
+2767198 2767196 2758890 tail -n1
+2767199 2767197 2758890 /home/agent/.rustup/toolchains/1.99.1-aarch64-unknown-linux-gnu/bin/cargo test --workspace --quiet
+2784310 2767199 2758890 /home/agent/.cache/codex-build/cargo-target/debug/deps/world-c37f79209ed9fa4b --quiet
+2784337 2784310 2758890 /home/agent/.local/share/mise/installs/java/temurin-27/bin/java -version
+Original handle closed with suite_rc=15; owned process group absent after termination.

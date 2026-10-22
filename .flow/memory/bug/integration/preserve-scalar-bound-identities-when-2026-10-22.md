@@ -3,7 +3,7 @@ title: Preserve scalar bound identities when naming shared IR expressions
 date: "2026-10-22"
 track: bug
 category: integration
-module: model/umpire/front/src/vector.rs
+module: model/umpire/front/src/body/vector.rs
 tags: [rust, ir, admission, compatibility]
 problem_type: integration
 symptoms: Saved vector length guards refused after replacing substitutions with named locals
@@ -19,7 +19,7 @@ Naming shared IR expressions caused a previously admitted bounded vector update 
 Recursively expanding local definitions preserved shape but repeated work exponentially for shared Boolean DAGs. Caching only whether each definition proved an upper bound avoided expansion while losing length identities needed by subsequent comparisons.
 
 ## Solution
-The vector validator computes abstract facts once in dependency order: unknown, the current vector length, finite scalar, or upper-bound guard. Comparisons consume those facts; conditional lengths retain identity only when both arms refer to the current vector. Sequence checks separately memoize local references and their limited state. See model/umpire/front/src/vector.rs.
+The vector validator computes abstract facts once in dependency order: unknown, the current vector length, finite scalar, or upper-bound guard. Comparisons consume those facts; conditional lengths retain identity only when both arms refer to the current vector. Sequence checks separately memoize local references and their limited state. See model/umpire/front/src/body/vector.rs.
 
 ## Prevention
 Keep positive direct, chained and same-origin conditional length controls beside stale-length, cross-field, mixed-arm and unknown-arm refusal controls. Exercise repeated shared Boolean locals at a size that times out with recursive expansion. Run actual required-TLC native/state/verdict agreement for admitted variants, rather than checking admission alone.

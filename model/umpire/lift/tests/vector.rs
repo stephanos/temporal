@@ -59,12 +59,14 @@ fn real_vector_native_and_tlc_states_and_properties_agree() -> Result<(), Box<dy
         "let first = self.values.len(); let second = first; let length = second;",
     );
     let conditional = conditional_length();
+    let after_if = untouched_vector();
     let root = Path::new(env!("CARGO_MANIFEST_DIR")).join("../../..");
     for (name, source) in [
         ("vector", source),
         ("vector_saved_length", saved.as_str()),
         ("vector_chained_length", chained.as_str()),
         ("vector_conditional_length", conditional.as_str()),
+        ("vector_after_if", after_if.as_str()),
     ] {
         let module = Tla::emit(&Lift::parse("vector.rs", source)?)?;
         let result = umpire_tlc::Tlc::discover(&root)?.check_module(&module)?;
@@ -88,6 +90,27 @@ fn saved_length() -> String {
 
 fn conditional_length() -> String {
     saved_length().replace("let length = self.values.len();", "let condition = self.values.is_empty() && self.values.is_empty(); let length = if condition { self.values.len() } else { self.values.len() };")
+}
+
+fn untouched_vector() -> String {
+    saved_length().replace("let length = self.values.len();", "if self.values.is_empty() {} let length = self.values.len();")
+}
+
+#[test]
+fn unrelated_conditionals_preserve_vector_length_identity() -> Result<(), Box<dyn std::error::Error>> {
+    let source = untouched_vector();
+    for source in [
+        source.clone(),
+        source.replace("let length = self.values.len(); if length < 2", "if self.values.len() < 2"),
+        source.replace("if self.values.is_empty() {}", "if self.values.is_empty() { if self.values.len() == 0 {} }"),
+        source.replace("pub values: Vector<u8>,", "pub values: Vector<u8>, pub count: u8,")
+            .replace("if self.values.is_empty() {}", "if self.count == 0 { self.count += 1; }"),
+    ] {
+        Lift::parse("untouched_vector.rs", &source)?;
+        let unbounded = source.replace("length < 2", "true").replace("self.values.len() < 2", "true");
+        assert!(Lift::parse("unbounded_untouched_vector.rs", &unbounded).is_err());
+    }
+    Ok(())
 }
 
 #[test]

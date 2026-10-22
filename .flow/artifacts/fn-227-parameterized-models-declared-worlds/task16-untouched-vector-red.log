@@ -1,0 +1,19 @@
+   Compiling umpire-lift v0.0.1 (/Users/stephan/Workspace/skunkworks/umpire/temporal/model/umpire/lift)
+    Finished `test` profile [unoptimized + debuginfo] target(s) in 1.65s
+     Running tests/vector.rs (/home/agent/.cache/codex-build/cargo-target/debug/deps/vector-7cd9e225c61cd866)
+
+running 1 test
+test unrelated_conditionals_preserve_vector_length_identity ... FAILED
+
+failures:
+
+---- unrelated_conditionals_preserve_vector_length_identity stdout ----
+Error: Diagnostic { file: "untouched_vector.rs", line: 25, column: 31, message: "Vector push_back on `values` requires an authored bounded length guard" }
+
+
+failures:
+    unrelated_conditionals_preserve_vector_length_identity
+
+test result: FAILED. 0 passed; 1 failed; 0 ignored; 0 measured; 5 filtered out; finished in 0.00s
+
+error: test failed, to rerun pass `-p umpire-lift --test vector`

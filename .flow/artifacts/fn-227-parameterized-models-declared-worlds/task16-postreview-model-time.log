@@ -1,0 +1,4 @@
+[1;36mTime the model feedback loop (fn-210 R30)...[0m
+step (warm)                         time
+gate command: UMPIRE_TIME_STEPS=1 make -C .. model-check
+make: *** [Makefile:1490: model-time] Terminated
