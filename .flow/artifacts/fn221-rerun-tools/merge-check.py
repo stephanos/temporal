@@ -59,20 +59,35 @@ check(bool(headers), "rerun appended no invocation header")
 check(bool(new_lines) and new_lines[0]["kind"] == "header", "rerun observations precede the first invocation header")
 original_header = next(json.loads(line)["header"] for line in orig_bytes.splitlines()
                        if json.loads(line)["kind"] == "header")
-strip = lambda p: {k: v for k, v in p.items() if k != "module_directory"}
 check(orig["candidate"] == original_header["candidate"], "original sidecar candidate differs from immutable journal")
 check(orig["budget"] == {k: original_header[k] for k in ("overall_budget", "max_tests", "retain_bytes")},
       "original sidecar budget differs from immutable journal")
-check([strip(p) for p in orig["packages"]] == [strip(p) for p in original_header["packages"]],
+check(orig["packages"] == original_header["packages"],
       "original sidecar enumeration differs from immutable journal")
 
 
-def normalized_command(command):
-    command = list(command)
-    for flag in ("--checkout", "--compiler", "--runtime-root", "--out", "--work", "--artifacts"):
-        if command.count(flag) == 1 and command.index(flag) + 1 < len(command):
-            command[command.index(flag) + 1] = "<relocated-path>"
-    return command
+# These exact relocations belong to the retained rerun-20261022T1705Z cohort.
+path_relocations = {
+    "/home/agent/wt/fn221": "/home/agent/wt/fn221-rerun-src",
+    "/home/agent/wt/qualification-final-frozen/tools/gomad/.toolchain/stock/29cb18ad2b9f5aee/go/bin/go":
+        "/home/agent/wt/evidence/fn221/rerun-tools/go1.27.1/bin/go",
+    "/home/agent/wt/fn221/tools/gomad/internal/model/runtimesource":
+        "/home/agent/wt/fn221-rerun-src/tools/gomad/internal/model/runtimesource",
+    "/home/agent/wt/evidence/fn221/full-1d7b37f00a/matrix":
+        "/home/agent/wt/evidence/fn221/rerun-20261022T1705Z/matrix",
+    "/home/agent/wt/evidence/fn221/full-1d7b37f00a/work":
+        "/home/agent/wt/evidence/fn221/rerun-20261022T1705Z/work",
+    "/home/agent/wt/evidence/fn221/full-1d7b37f00a/retained":
+        "/home/agent/wt/evidence/fn221/rerun-20261022T1705Z/retained",
+}
+expected_command = [path_relocations.get(arg, arg) for arg in original_header["command"]]
+module_relocations = {
+    "/home/agent/wt/fn221": "/home/agent/wt/fn221-rerun-src",
+    "/home/agent/wt/fn221/tests/mixedbrain": "/home/agent/wt/fn221-rerun-src/tests/mixedbrain",
+}
+expected_packages = [{**p, "module_directory": module_relocations.get(p["module_directory"])}
+                     for p in original_header["packages"]]
+check(all(p["module_directory"] for p in expected_packages), "original package has an unapproved module directory")
 
 
 for index, row in enumerate(headers, 1):
@@ -82,10 +97,10 @@ for index, row in enumerate(headers, 1):
     check(header.get("candidate") == original_header["candidate"], f"{prefix}: candidate/configuration/execution budget differs")
     for field in ("statement", "overall_budget", "max_tests", "retain_bytes"):
         check(header.get(field) == original_header[field], f"{prefix}: {field} differs")
-    check([strip(p) for p in header.get("packages", [])] == [strip(p) for p in original_header["packages"]],
-          f"{prefix}: package enumeration differs (ignoring module_directory)")
-    check(normalized_command(header.get("command", [])) == normalized_command(original_header["command"]),
-          f"{prefix}: command flags/budgets differ")
+    check(header.get("packages") == expected_packages,
+          f"{prefix}: package enumeration/module directories differ from authorized relocation")
+    check(header.get("command") == expected_command,
+          f"{prefix}: command flags/budgets/authorized paths differ")
 check(len(inval_rows) == len(selection), "invalidation row count differs from selection")
 check(all(r.get("kind") in ("header", "test", "warmup") and r.get("schema") == "gomad-wasm.sweep-journal/v1"
           for r in new_lines), "unknown rerun journal kind/schema")
@@ -108,7 +123,7 @@ check(merged["candidate_key"] == orig["candidate_key"] == ORIG_KEY, "candidate k
 check(merged["schema"] == orig["schema"] == "gomad-wasm.sweep/v2", "schema")
 check(merged["statement"] == orig["statement"], "statement")
 check(merged["budget"] == orig["budget"], "budget differs")
-check([strip(p) for p in merged["packages"]] == [strip(p) for p in orig["packages"]], "package enumeration differs (ignoring module_directory)")
+check(merged["packages"] == expected_packages, "package enumeration/module directories differ from authorized relocation")
 
 # 3. Rows: every unit exactly once; non-selected rows identical; selected rows = rerun observation.
 units = [(p["pattern"], n) for p in merged["packages"] for n in p["tests"]]

@@ -4,7 +4,22 @@ Task .2 remains in progress. The actual run at `/home/agent/wt/evidence/fn221/re
 
 `merge-check.py` is the maintained replacement for the external historical `/home/agent/wt/evidence/fn221/rerun-prep/merge-check.py`, SHA-256 `aed05c442756c348db80181298b63ff83a7c14fe18967a25c4350a8e9eb317dc`. That historical file was read and copied, never modified. Its immutable original journal digest remains `839654fcfc60bd65a5ea740b6ec01543336d2f0576798614220cb06be35dafb6`; candidate key remains `sha256:9bf9e9064761a8afcc075d6cba9aed57a57baa6a1f6de36f092233eb5c01040c`.
 
-The replacement admits repeated matching invocation headers, including empty interrupted invocations. Each header must match the immutable original journal's candidate (including configuration and execution/preparation budgets), enumeration, statement, overall/max-test/retention budgets and journal schema. Recorded commands must match apart from the six relocated path arguments already authorized for this rerun: checkout, compiler, runtime root, output, work and artifact roots. The original byte prefix, selection, 344 replacements, 1144 unchanged rows, 1488 ordered units, module bindings and recomputed aggregate checks remain enforced. Duplicate/missing selected observations and pending not-run rows fail; multiple headers do not excuse duplicate outcomes. A missing sidecar writes an explicit incomplete report and exits 1.
+The replacement admits repeated matching invocation headers, including empty interrupted invocations. Each header must match the immutable original journal's candidate (including configuration and execution/preparation budgets), enumeration, statement, overall/max-test/retention budgets and journal schema. Recorded commands must match the exact original-to-rerun path mapping below; arbitrary path masking is forbidden. Package module directories in every appended header and the final sidecar must use the same authorized checkout relocation, including the nested mixedbrain module. The original byte prefix, selection, 344 replacements, 1144 unchanged rows, 1488 ordered units, module bindings and recomputed aggregate checks remain enforced. Duplicate/missing selected observations and pending not-run rows fail; multiple headers do not excuse duplicate outcomes. A missing sidecar writes an explicit incomplete report and exits 1.
+
+Authorized path mappings (absolute paths, exact spelling):
+
+| Input | Original | Authorized rerun |
+| --- | --- | --- |
+| Checkout | `/home/agent/wt/fn221` | `/home/agent/wt/fn221-rerun-src` |
+| Compiler | `/home/agent/wt/qualification-final-frozen/tools/gomad/.toolchain/stock/29cb18ad2b9f5aee/go/bin/go` | `/home/agent/wt/evidence/fn221/rerun-tools/go1.27.1/bin/go` |
+| Runtime root | `/home/agent/wt/fn221/tools/gomad/internal/model/runtimesource` | `/home/agent/wt/fn221-rerun-src/tools/gomad/internal/model/runtimesource` |
+| Output | `/home/agent/wt/evidence/fn221/full-1d7b37f00a/matrix` | `/home/agent/wt/evidence/fn221/rerun-20261022T1705Z/matrix` |
+| Work | `/home/agent/wt/evidence/fn221/full-1d7b37f00a/work` | `/home/agent/wt/evidence/fn221/rerun-20261022T1705Z/work` |
+| Artifacts | `/home/agent/wt/evidence/fn221/full-1d7b37f00a/retained` | `/home/agent/wt/evidence/fn221/rerun-20261022T1705Z/retained` |
+| Root package module directory | `/home/agent/wt/fn221` | `/home/agent/wt/fn221-rerun-src` |
+| Nested package module directory | `/home/agent/wt/fn221/tests/mixedbrain` | `/home/agent/wt/fn221-rerun-src/tests/mixedbrain` |
+
+These mappings come from the retained run's `RESUME.md`, `command.txt`, `tools.sha256`, `source-head.txt` and appended header, and the original immutable journal. Compiler identity is supported by `rerun-prep/provenance-toolchain-files.sha256`, its `tree-*.sha256` files and `rerun-tools/go1.27.1-modcache-tree.sha256`; live tool/source rechecks remain mandatory before actual resume. The checker validates recorded paths and identities without executing tools or rehashing the entire toolchain during host measurement.
 
 ## Checker tests only
 
@@ -14,7 +29,7 @@ From the checkout containing this directory:
 python3 -B .flow/artifacts/fn221-rerun-tools/test_merge_check.py
 ```
 
-Nine test methods passed. Fixtures copy the actual immutable original journal and selection so the pinned digest check is exercised. All appended outcomes and complete sidecars created by the tests are **synthetic checker fixtures**, never guest observations. Temporary fixture directories are created here and removed after each test. Tests read external evidence and write only temporary local fixtures.
+Eleven test methods passed. Fixtures copy the actual immutable original journal and selection so the pinned digest check is exercised. All appended outcomes and complete sidecars created by the tests are **synthetic checker fixtures**, never guest observations. Temporary fixture directories are created here and removed after each test. Tests read external evidence and write only temporary local fixtures.
 
 Test-first reproduction against the unchanged historical checker:
 
@@ -24,7 +39,7 @@ FN221_CHECKER=/home/agent/wt/evidence/fn221/rerun-prep/merge-check.py \
   MergeCheckTests.test_repeated_same_candidate_headers
 ```
 
-Expected historical failure: sole finding `rerun appended 2 headers, want 1`. The historical checker also incorrectly accepts nine altered single-header payload/budget/enumeration/schema/command cases exercised by `test_foreign_resume_header`; the replacement rejects them. Tests additionally cover a foreign later header, five legitimate headers, missing/duplicate/non-selected/not-run units, altered original bytes, duplicate invalidations, changed retained rows/modules/counts, explicit timeout-to-network-capacity flags, and the actual incomplete run. Only Python tests and source checks were performed; no Go/Cargo build or live guest execution occurred.
+Expected historical failure: sole finding `rerun appended 2 headers, want 1`. The historical checker also incorrectly accepts nine altered single-header payload/budget/enumeration/schema/command cases exercised by `test_foreign_resume_header`; the replacement rejects them. Path regression tests first reproduced ten erroneous acceptances: six unapproved second-header command paths and root/nested module-directory substitutions in both the second header and merged sidecar. All now fail closed; positive fixtures retain the actual documented relocation. Tests additionally cover a foreign later header, five legitimate headers, missing/duplicate/non-selected/not-run units, altered original bytes, duplicate invalidations, changed retained rows/modules/counts, explicit timeout-to-network-capacity flags, and the actual incomplete run. Only Python tests and source checks were performed; no Go/Cargo build or live guest execution occurred.
 
 ## Actual resume procedure (future quiet-host window)
 

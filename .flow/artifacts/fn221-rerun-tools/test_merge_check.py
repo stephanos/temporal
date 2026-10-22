@@ -26,6 +26,7 @@ class MergeCheckTests(unittest.TestCase):
         self.invalidation = (EVIDENCE / 'rerun-20261022T1705Z/invalidation-rows.jsonl').read_bytes()
         self.selected = {(r['test']['package'], r['test']['name']) for r in map(json.loads, self.invalidation.splitlines())}
         self.header = next(json.loads(line) for line in reversed((EVIDENCE / 'rerun-20261022T1705Z/matrix/sweep.jsonl').read_bytes().splitlines()) if json.loads(line)['kind'] == 'header')
+        self.sidecar['packages'] = copy.deepcopy(self.header['header']['packages'])
         self.tests = [dict(schema=self.header['schema'], kind='test', candidate=self.header['candidate'], time=self.header['time'], test=copy.deepcopy(r)) for r in self.sidecar['rows'] if (r['package'], r['name']) in self.selected]
         self.records = [copy.deepcopy(self.header), *self.tests[:4], copy.deepcopy(self.header), *self.tests[4:]]
 
@@ -104,6 +105,32 @@ class MergeCheckTests(unittest.TestCase):
         result, report = self.run_checker()
         self.assertNotEqual(result.returncode, 0)
         self.assertTrue(any('header 2:' in f and 'candidate' in f for f in report['findings']))
+
+    def test_unapproved_paths_in_later_header(self):
+        for flag in ('--checkout', '--compiler', '--runtime-root', '--out', '--work', '--artifacts'):
+            with self.subTest(flag=flag):
+                saved = copy.deepcopy(self.records)
+                command = self.records[5]['header']['command']
+                command[command.index(flag) + 1] = '/foreign/unapproved/path'
+                result, report = self.run_checker()
+                self.assertNotEqual(result.returncode, 0)
+                self.assertTrue(any('header 2:' in f and 'command' in f for f in report['findings']))
+                self.records = saved
+
+    def test_unapproved_module_directory(self):
+        for location in ('later-header', 'merged-sidecar'):
+            for package_index in (0, 3):
+                with self.subTest(location=location, package_index=package_index):
+                    saved_records = copy.deepcopy(self.records)
+                    saved_sidecar = copy.deepcopy(self.sidecar)
+                    packages = (self.records[5]['header']['packages'] if location == 'later-header'
+                                else self.sidecar['packages'])
+                    packages[package_index]['module_directory'] = '/foreign/unapproved/path'
+                    result, report = self.run_checker()
+                    self.assertNotEqual(result.returncode, 0)
+                    self.assertTrue(any('package enumeration' in f for f in report['findings']))
+                    self.records = saved_records
+                    self.sidecar = saved_sidecar
 
     def test_missing_duplicate_or_nonselected_unit(self):
         for name in ['missing', 'duplicate', 'nonselected', 'not-run']:
