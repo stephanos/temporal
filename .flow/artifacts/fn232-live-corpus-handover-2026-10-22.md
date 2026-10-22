@@ -131,3 +131,38 @@ Observed payloads:69 cluster JSON,92 Run JSON,42 broker JSON,2 actual modules. I
 All owned CPU/guest commands are terminal. Linked Rust32–39 comparisons/private35, provider19 original observation, fresh release-role fixture execution and remaining gates still await parent scheduling and final integration.
 
 Authenticated light staging (no Rust admission or guest execution) projected all77 v4 linked inputs with exact expected per-root counts4/8/27/16/18/4. Paths `/home/agent/wt/evidence/fn232-live-broker-inputs-v4/stage.json` plus `cell-*.json`/forcing traces. The separate mandatory private35 input is `/home/agent/wt/evidence/fn232-live-private35-input-v4/input.json`, SHA256 `859387f77386e74220db3978c03c56f1139ae12baaf8d8334ce10495601d1406`, with authenticated original-row/index binding in `source.json`. Its schema is the projected `gomad.live-cluster-observation/v1` input, not the unprojected original Go row. These are preparation inputs only; no source-stage result substitutes for the pending live gates. After the parent-owned helper move, update the private35 command's Cargo manifest path to `tools/gomad/rust/wasmhost/Cargo.toml` while preserving exact selection and16 iterations.
+
+## Integrated82ba Rust counterpart execution plan (not executed)
+
+Ownership release: no jobs remain assigned to `/home/agent/.cache/codex-build/fn232-live-corpus`. Its `debug/incremental` directory is regenerable, is not required evidence, and may be removed by the root owner after its active-handle inspection. Preserve all binaries/dependencies, release cache and evidence. Future private35 compilation requires a new serialized target lease; this plan does not reserve the cache against fn233 work.
+
+The immutable integrated fixture's actual SHA256 was read and matches `63c43b4525d16dae1aa1432ddbff8424516c8595c31b3f67c37eaadcda133500`. Its receipt binds source `82ba157e16fc2dd70abd43cd007fbfe1a431109d`, Rust1.99.1, jobs4, host `determinism-fixture` only, and source inventory SHA256 `21175ebbdbfa3f46baaac3f57616d02b0ff740fe4018049d84883572a25bf09c`. There is no helper fixture feature in that receipt. Reuse this binary for the77 Rust executions; no fresh CLI/helper build is needed. The selected checker and helper source currently match82ba. The82ba helper manifest is still the old path below; the prospective retirement branch's new manifest path must not be substituted while claiming82ba source.
+
+After explicit resource release, run from `/Users/stephan/Workspace/skunkworks/gomad/temporal`, with inherited `GOMAD_*` removed. Both output directories must be absent. Capture stdout/stderr, actual start/end/PIDs/numeric exit and immutable fixture hash before/after.
+
+```bash
+python3 -B tools/gomad/testdata/parity/live-broker-cluster-check.py \
+ --binary /home/agent/wt/evidence/fn232-integrated-install-fixture/gomad-63c43b4525d16dae1aa1432ddbff8424516c8595c31b3f67c37eaadcda133500 \
+ --observation /home/agent/wt/evidence/fn232-live-broker-owners-v4 \
+ --work /home/agent/wt/evidence/fn232-live-rust-broker-77-integrated82ba-01 \
+ --roots 32,33,34,35,36,39
+```
+
+This runs77 fresh CLI processes sequentially: root32=4,33=8,34=27,35=16,36=18,39=4. At most2 guest stores reside at once. Actual v4 bound inspection shows all77 inputs preserve256MiB per incarnation, fuel4,000,000,000, wall60,000ms, output1MiB and evidence64MiB; original per-stream/network/storage/choice limits remain in each authenticated request. The checker has an outer180s process ceiling per cell; that does not change the60s guest bound. It authenticates the v4 index, compares raw streams/World/network/metrics and the original variants, and requires root36 diversity. Retain all77 command receipts even on failure. Expected successful `result.json` has executions77 and the exact6 roots; it still explicitly marks root35 private reinsertion pending and `qualification:false`.
+
+Then run the mandatory private35 default-feature proof, after verifying the helper source still matches82ba and acquiring the existing target exclusively. This is an additional16 actual iterations, not a replacement for the16 ordinary root35 rows above:
+
+```bash
+git diff --exit-code 82ba157e16 -- tools/gomad/internal/backends/wasm/wasmhost
+GOMAD_LIVE_CLUSTER_SHUTDOWN_INPUT=/home/agent/wt/evidence/fn232-live-private35-input-v4/input.json \
+GOMAD_LIVE_CLUSTER_SHUTDOWN_OUTPUT=/home/agent/wt/evidence/fn232-live-rust-private35-integrated82ba-01 \
+CARGO_TARGET_DIR=/home/agent/.cache/codex-build/fn232-live-corpus CARGO_BUILD_JOBS=4 \
+cargo +1.99.1 test --release --locked --no-default-features \
+ --manifest-path tools/gomad/internal/backends/wasm/wasmhost/Cargo.toml \
+ --lib linked_cluster::live_controller_tests::shutdown_reinsertion_preserves_actual_live_guest_world \
+ -- --ignored --exact --nocapture
+```
+
+Only the two declared `GOMAD_LIVE_CLUSTER_SHUTDOWN_*` variables may be present for this gate. Preserve source inventories before/after compile and actual selected test count1, exit0,16 iteration receipts, ordinary compiled Conditions and same-live-handle reinsertion evidence. Compilation is the only required new build in this pair; no reusable release private35 test executable currently exists in the released target. If main helper source changes or retirement lands first, this command needs a freshly declared source/role binding rather than inheriting82ba. Do not rebuild the already pinned CLI as part of this pair.
+
+The original Go v4 source/assertion/index gate is reusable authenticated input, not a substitute for either Rust gate. Original37/38 v2 six-cell observation can separately feed `live-broker-owner-check.py --binary SAME_IMMUTABLE_FIXTURE --observation /home/agent/wt/evidence/fn232-live-broker-owners-v2 --work FRESH_ROOT` for its pending16 executions. Provider19 and the remaining corpus families remain separately pending. None of these planned commands was run during this source-only ownership request; no qualification, acceptance or lifecycle change follows from this plan.
