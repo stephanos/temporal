@@ -28,6 +28,7 @@ pub use crate::namespace::{
     Image as NamespaceImage, ImageEntry as NamespaceEntry, Limits as NamespaceLimits,
 };
 pub use crate::protocol::Outcome;
+pub use crate::module_metadata::{ModuleImport, ModuleMetadata, module_metadata};
 
 #[cfg(feature = "stress-jitter")]
 pub use crate::stress_jitter::statistics as stress_jitter_statistics;
@@ -60,6 +61,7 @@ pub struct Request {
 }
 
 pub struct Execution {
+    pub authorization_to_terminal_nanos: Option<u64>,
     pub outcome: Outcome,
     pub evidence: BTreeMap<String, Vec<u8>>,
     pub event_order: Option<Vec<u8>>,
@@ -322,8 +324,9 @@ pub fn execute_prepared(prepared: Prepared) -> wasmtime::Result<Execution> {
     }
     let preparation = std::time::Instant::now();
     let engine = Engine::new(&engine::configuration(true))?;
-    let _registration = cancellation.attach(&engine, None)?;
+    let registration = cancellation.attach(&engine, None)?;
     let timed_out = AtomicBool::new(false);
+    let mut authorization_started = None;
     let mut outcome = thread::scope(|scope| -> wasmtime::Result<Outcome> {
         let (done, completed) = mpsc::sync_channel::<()>(0);
         let watcher =
@@ -342,6 +345,7 @@ pub fn execute_prepared(prepared: Prepared) -> wasmtime::Result<Execution> {
                 }
             };
             metrics.prepare_nanos = crate::metrics::elapsed(preparation);
+            authorization_started = Some(std::time::Instant::now());
             let mut store = Store::new(
                 &engine,
                 engine::new_state(
@@ -411,7 +415,11 @@ pub fn execute_prepared(prepared: Prepared) -> wasmtime::Result<Execution> {
     cancellation.apply(&mut outcome);
     let evidence = sink.into_streams()?;
     let event_order = conditions.finish();
+    drop(registration);
+    drop(engine);
+    let authorization_to_terminal_nanos = authorization_started.map(crate::metrics::elapsed);
     Ok(Execution {
+        authorization_to_terminal_nanos,
         outcome,
         evidence,
         event_order,
@@ -462,6 +470,12 @@ mod live_metrics_tests {
         })
         .unwrap();
         assert_eq!(result.outcome.termination, "exit");
+        assert!(
+            result
+                .authorization_to_terminal_nanos
+                .expect("linked authorization span missing")
+                > 0
+        );
         let metrics = result
             .outcome
             .metrics

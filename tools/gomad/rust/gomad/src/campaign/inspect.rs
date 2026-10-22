@@ -169,6 +169,9 @@ pub(super) fn project_execution(
         }
         value["divergence"] = divergence_value;
     }
+    if let Some(report) = &execution.soft_assertions {
+        value["soft_assertions"] = report.clone();
+    }
     if let Some(opened) = opened
         && execution
             .record

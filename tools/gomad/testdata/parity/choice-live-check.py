@@ -153,7 +153,8 @@ def main():
                     [*prefix, 'resume', '--json', '--site-scope=net/http', root], (2,)))
                 assert 'exploration plan identity or bounds changed' in refusal['message'], refusal
                 assert rounds['snapshot'](root) == before
-                run('scope-' + name + '-same-resume', [*prefix, 'resume', '--json', '--site-scope=' + pattern, root], (0, 1))
+                same = json.loads(run('scope-' + name + '-same-resume', [*prefix, 'resume', '--json', '--site-scope=' + pattern, root], (2,)))
+                assert same['classification'] == 'invalid_input' and 'complete' in same['message'], same
                 assert rounds['snapshot'](root) == before
                 if name == 'empty':
                     assert envelope['stop_reason'] == 'site_scope_empty' and envelope['logical_executions'] == 1, envelope
@@ -298,7 +299,10 @@ def main():
     report = run('explore', command(destination), (0, 1))
     campaign = locate(destination)
     run('inspect', [*prefix, 'inspect', '--json', campaign])
-    run('resume-complete', [*prefix, 'resume', '--json', campaign], (0, 1))
+    before = rounds['snapshot'](campaign)
+    complete = json.loads(run('resume-complete', [*prefix, 'resume', '--json', campaign], (2,)))
+    assert complete['classification'] == 'invalid_input' and 'complete' in complete['message'], complete
+    assert rounds['snapshot'](campaign) == before
     baseline = events(campaign)
     authenticated_campaign = rounds['authenticate'](campaign)
     rounds['negative_checks'](campaign, args.work / 'independent-negatives')
@@ -328,7 +332,8 @@ def main():
     before = journal.read_bytes()
     run('inspect-torn-refusal', [*prefix, 'inspect', '--json', torn], (2,))
     assert journal.read_bytes() == before
-    run('resume-torn', [*prefix, 'resume', '--json', torn], (0, 1))
+    complete = json.loads(run('resume-torn', [*prefix, 'resume', '--json', torn], (2,)))
+    assert complete['classification'] == 'invalid_input' and 'complete' in complete['message'], complete
     assert events(torn) == baseline
 
     malformed = args.work / 'malformed-tail'

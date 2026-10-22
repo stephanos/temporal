@@ -87,7 +87,10 @@ fn publication(corpus: &Path, seed: u64) -> Result<Publication, String> {
             "ImplementationSHA256":sha2::Sha256::digest(b"inspect-runtime-implementation/v1").to_vec() }))
             .map_err(|error| error.to_string())?;
         incarnations.push(Incarnation {
+            workload_kind: String::new(),
             handle,
+            imports: None,
+            storage_crash_selection: None,
             module: descriptor("target/module.wasm".into(), &module, 512 << 20),
             limits: limits.clone(),
             wall_nanos: None,
@@ -102,7 +105,11 @@ fn publication(corpus: &Path, seed: u64) -> Result<Publication, String> {
         });
     }
     let configuration = Configuration {
+        original_limits: None,
+        oracle_plan: None,
         simulation_original: None,
+        world_encoding: String::new(),
+        world_profile: None,
         wall_nanos: None,
         nodes: Vec::new(),
         engine: linked::CONFIGURATION.into(),
@@ -126,11 +133,27 @@ fn publication(corpus: &Path, seed: u64) -> Result<Publication, String> {
     clippy::too_many_lines,
     reason = "Fixture publication binds the exact recording inputs to every incarnation stream and the resulting record"
 )]
-fn execute_configuration(
-    configuration: Configuration,
+pub(crate) fn execute_configuration(
+    mut configuration: Configuration,
     toolchain: String,
     modules: BTreeMap<String, Vec<u8>>,
 ) -> Result<Publication, String> {
+    configuration.encoded_world_format()?;
+    for item in &mut configuration.incarnations {
+        if let Some(module) = modules.get(&item.module.file)
+            && module.starts_with(b"\0asm")
+        {
+            let actual = cluster::module_imports(module)?;
+            if item
+                .imports
+                .as_ref()
+                .is_some_and(|retained| *retained != actual)
+            {
+                return Err("cluster import binding mismatch".into());
+            }
+            item.imports = Some(actual);
+        }
+    }
     let limits = configuration.limits.clone();
     let seed = configuration.broker.seed;
     let target = configuration
@@ -140,77 +163,11 @@ fn execute_configuration(
         .module
         .sha256
         .clone();
-    let mut executions = Vec::new();
-    for item in &configuration.incarnations {
-        let module = modules
-            .get(&item.module.file)
-            .ok_or("missing fixture cluster module")?;
-        if module.len() as u64 != item.module.bytes
-            || canonical::digest(module) != item.module.sha256
-            || item.module.bytes > item.module.limit
-            || item.module.limit > 512 << 20
-        {
-            return Err("fixture cluster module identity/bound mismatch".into());
-        }
-        let mut model = item.model.clone();
-        if model
-            .as_object_mut()
-            .ok_or("invalid fixture cluster model")?
-            .insert("seed".into(), seed.into())
-            .is_some()
-        {
-            return Err("fixture cluster seed must derive from broker".into());
-        }
-        executions.push(helper::Incarnation {
-            handle: item.handle.clone(),
-            network: item.network.clone(),
-            request: linked::Request {
-                module: module.clone(),
-                module_sha256: item.module.sha256.clone(),
-                limits: linked::Limits {
-                    memory_bytes: item.limits.memory_bytes,
-                    fuel: item.limits.fuel,
-                    output_bytes: item.limits.output_bytes,
-                    evidence_bytes: item.limits.evidence_bytes,
-                    wall_timeout: crate::replay::preflight::wall_timeout(
-                        &item.limits,
-                        item.wall_nanos,
-                    )?,
-                },
-                model: Some(linked::ModelInput {
-                    configuration: serde_json::from_value(model)
-                        .map_err(|error| error.to_string())?,
-                    arguments: item.arguments.clone(),
-                    environment: item
-                        .environment
-                        .iter()
-                        .map(|(key, value)| format!("{key}={value}"))
-                        .collect(),
-                    replay_trace: None,
-                }),
-                namespace: Some(item.namespace.clone()),
-                storage: item.storage.clone(),
-            },
-        });
-    }
-    let execution = helper::execute_prepared(
-        helper::prepare(helper::Request {
-            nodes: configuration.nodes.clone(),
-            broker: configuration.broker.clone(),
-            network: configuration.network.clone(),
-            incarnations: executions,
-            steps: configuration.steps.clone(),
-            boundaries: configuration.boundaries.clone(),
-            crash_groups: configuration.crash_groups.clone(),
-            wall_timeout: crate::replay::preflight::wall_timeout(
-                &limits,
-                configuration.wall_nanos,
-            )?,
-            evidence_bytes: limits.evidence_bytes,
-        })
-        .map_err(|error| error.to_string())?,
-    )
-    .map_err(|error| error.to_string())?;
+    let prepared = prepare_configuration(&configuration, &modules)?;
+    crate::fixture::execution_started().map_err(|error| error.message)?;
+    let execution = crate::backstop::within(prepared.wall_timeout(), || {
+        helper::execute_prepared(prepared).map_err(|error| error.to_string())
+    })?;
     let mut retained = Vec::new();
     for item in &execution.incarnations {
         let mut evidence: BTreeMap<_, _> = item
@@ -247,7 +204,16 @@ fn execute_configuration(
             evidence,
         });
     }
-    let mut observed = cluster::project(execution)?;
+    let assessment = cluster::oracles::capacity_observation(&execution, &configuration);
+    if !assessment["capacity_failure"].is_null() {
+        return Err(format!(
+            "capacity: output capacity; {}",
+            assessment["capacity_failure"]["detail"]
+        ));
+    }
+    let oracle_report = cluster::oracles::assess(&execution, &configuration)?;
+    let mut observed = cluster::project_encoded(execution, configuration.encoded_world_format()?)?;
+    cluster::oracles::apply(&mut observed, oracle_report)?;
     for item in &retained {
         observed
             .evidence
@@ -329,6 +295,135 @@ fn execute_configuration(
     };
     payloads.insert("record.json".into(), record.bytes()?);
     Ok(Publication { record, payloads })
+}
+
+#[derive(Deserialize)]
+#[serde(deny_unknown_fields)]
+pub(crate) struct Forcing {
+    trace_path: String,
+    mode: u32,
+    identity: linked::ChoiceIdentity,
+}
+
+pub(crate) fn prepare_configuration(
+    configuration: &Configuration,
+    modules: &BTreeMap<String, Vec<u8>>,
+) -> Result<helper::Prepared, String> {
+    prepare_configuration_forced(configuration, modules, &BTreeMap::new())
+}
+
+pub(crate) fn prepare_configuration_forced(
+    configuration: &Configuration,
+    modules: &BTreeMap<String, Vec<u8>>,
+    forcing: &BTreeMap<String, Forcing>,
+) -> Result<helper::Prepared, String> {
+    cluster::oracles::validate(configuration)?;
+    if configuration.engine != linked::CONFIGURATION
+        || configuration.profile != "gomad.wasi-cooperative/v1"
+    {
+        return Err("live cluster requires explicit pinned cooperative engine".into());
+    }
+    configuration.encoded_world_format()?;
+    if forcing.keys().any(|key| {
+        !configuration
+            .incarnations
+            .iter()
+            .any(|item| key == &format!("{}/{}", item.handle.node, item.handle.incarnation))
+    }) {
+        return Err("unknown live cluster forcing owner".into());
+    }
+    let seed = configuration.broker.seed;
+    let limits = &configuration.limits;
+    let mut executions = Vec::new();
+    for item in &configuration.incarnations {
+        let module = modules
+            .get(&item.module.file)
+            .ok_or("missing fixture cluster module")?;
+        if module.len() as u64 != item.module.bytes
+            || canonical::digest(module) != item.module.sha256
+            || item.module.bytes > item.module.limit
+            || item.module.limit > 512 << 20
+        {
+            return Err("fixture cluster module identity/bound mismatch".into());
+        }
+        if let Some(imports) = &item.imports
+            && cluster::module_imports(module)? != *imports
+        {
+            return Err("cluster import binding mismatch".into());
+        }
+        let mut model = item.model.clone();
+        if model
+            .as_object_mut()
+            .ok_or("invalid fixture cluster model")?
+            .insert("seed".into(), seed.into())
+            .is_some()
+        {
+            return Err("fixture cluster seed must derive from broker".into());
+        }
+        let replay_trace = if let Some(forced) =
+            forcing.get(&format!("{}/{}", item.handle.node, item.handle.incarnation))
+        {
+            if !matches!(forced.mode, 2 | 3)
+                || !Path::new(&forced.trace_path).is_absolute()
+                || canonical::encode(&forced.identity)? != canonical::encode(&item.choice_identity)?
+            {
+                return Err("invalid live cluster forcing binding".into());
+            }
+            let raw = std::fs::read(&forced.trace_path).map_err(|error| error.to_string())?;
+            let trace = linked::inspect_choices(&raw, &forced.identity).map_err(str::to_owned)?;
+            model["mode"] = json!(forced.mode);
+            model["replay"] = json!({"schema":"gomad.replay-trace/v1", "execution_identity":forced.identity,
+                "trace_sha256":canonical::digest(&raw),"tape_sha256":trace.tape_sha256,"decisions":trace.decisions,
+                "trace_bytes":raw.len(),"trace_frames":(raw.len() as u64).div_ceil(65536),
+                "prefix_control":if forced.mode == 3 {Some(json!({"cutoff":trace.decisions,"override":null}))} else {None}});
+            Some(raw)
+        } else {
+            None
+        };
+        executions.push(helper::Incarnation {
+            handle: item.handle.clone(),
+            network: item.network.clone(),
+            request: linked::Request {
+                module: module.clone(),
+                module_sha256: item.module.sha256.clone(),
+                limits: linked::Limits {
+                    memory_bytes: item.limits.memory_bytes,
+                    fuel: item.limits.fuel,
+                    output_bytes: item.limits.output_bytes,
+                    evidence_bytes: item.limits.evidence_bytes,
+                    wall_timeout: crate::replay::preflight::wall_timeout(
+                        &item.limits,
+                        item.wall_nanos,
+                    )?,
+                },
+                model: Some(linked::ModelInput {
+                    configuration: serde_json::from_value(model)
+                        .map_err(|error| error.to_string())?,
+                    arguments: item.arguments.clone(),
+                    environment: item
+                        .environment
+                        .iter()
+                        .map(|(key, value)| format!("{key}={value}"))
+                        .collect(),
+                    replay_trace,
+                }),
+                namespace: Some(item.namespace.clone()),
+                storage: cluster::storage_input(item)?,
+            },
+        });
+    }
+    helper::prepare(helper::Request {
+        nodes: configuration.nodes.clone(),
+        broker: configuration.broker.clone(),
+        network: configuration.network.clone(),
+        incarnations: executions,
+        steps: configuration.steps.clone(),
+        boundaries: configuration.boundaries.clone(),
+        crash_groups: configuration.crash_groups.clone(),
+        wall_timeout: crate::replay::preflight::wall_timeout(&limits, configuration.wall_nanos)?,
+        evidence_bytes: limits.evidence_bytes,
+    })
+    .map_err(|error| error.to_string())
 }
 
 #[derive(Deserialize)]

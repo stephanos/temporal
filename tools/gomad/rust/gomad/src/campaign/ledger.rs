@@ -36,6 +36,8 @@ pub struct Execution {
     pub choice_features: Vec<String>,
     pub divergence: Option<gomad_wasmhost::linked::Divergence>,
     #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub soft_assertions: Option<Value>,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
     pub scenario_steps: Option<Vec<gomad_wasmhost::linked_cluster::Step>>,
 }
 
@@ -350,6 +352,22 @@ fn is_failure(execution: &Execution) -> bool {
 
 pub(crate) fn validate_execution(execution: &Execution) -> Result<(), String> {
     execution.record.validate()?;
+    if let Some(report) = &execution.soft_assertions {
+        let typed: super::soft_assertions::Report =
+            serde_json::from_value(report.clone()).map_err(|error| error.to_string())?;
+        let bytes = canonical::encode(&typed)?;
+        let stream = execution
+            .record
+            .streams
+            .get("evidence/soft-assertions.json")
+            .ok_or("committed soft assertion observation has no bound stream")?;
+        if serde_json::to_value(typed).map_err(|error| error.to_string())? != *report
+            || stream.sha256 != canonical::digest(&bytes)
+            || stream.bytes != bytes.len() as u64
+        {
+            return Err("committed soft assertion observation identity mismatch".into());
+        }
+    }
     if execution
         .scenario_steps
         .as_ref()
@@ -905,6 +923,11 @@ pub(crate) fn authenticate_execution(
     execution: &Execution,
 ) -> Result<(), String> {
     validate_execution_plan_record(plan, root, execution)?;
+    if let Some(report) = &execution.soft_assertions
+        && report["report_only"] != plan["soft_assertion_report_only"]
+    {
+        return Err("committed soft assertion policy differs from campaign".into());
+    }
     if let Some(reference) = &execution.artifact {
         if !reference.starts_with("evidence/") {
             return Err("campaign execution references a non-execution artifact".into());
@@ -1139,4 +1162,38 @@ fn verify_named(root: &File, name: &str, file: &File) -> Result<(), String> {
         return Err("campaign journal entry substituted".into());
     }
     Ok(())
+}
+
+#[cfg(test)]
+mod live_backend_tests {
+    #[test]
+    fn unretained_soft_assertion_roundtrip() {
+        let report = serde_json::json!({"messages":["invalid fixture state"],"report_only":true,"inconclusive":false});
+        let mut value = serde_json::json!({
+            "ordinal":0,"seed":7,"artifact":null,"stored_bytes":0,
+            "semantic_probes":[],"choice_features":[],"divergence":null,
+            "soft_assertions":report,
+            "record":{"schema":"gomad.execution-record/v2","execution_identity":"",
+                "identity":{"target":"","toolchain":"","platform":"","implementation":"","configuration":""},
+                "profile":"gomad.wasi-cooperative/v1","seed":7,"arguments":[],"environment":{},
+                "limits":{"fuel":4000000000_u64,"memory_bytes":268435456,"wall_millis":300000,
+                    "output_bytes":1048576,"evidence_bytes":16777216},
+                "virtual_time_nanos":0,"outcome":{"class":"success","termination":"exit","exit_code":0,"reason":""},"streams":{}}
+        });
+        for name in ["target", "toolchain", "platform", "implementation", "configuration"] {
+            value["record"]["identity"][name] = "0".repeat(64).into();
+        }
+        let identity: crate::evidence::identity::Identity = serde_json::from_value(value["record"]["identity"].clone()).unwrap();
+        value["record"]["execution_identity"] = identity.digest().unwrap().into();
+        let bytes = crate::evidence::canonical::encode(&report).unwrap();
+        value["record"]["streams"]["evidence/soft-assertions.json"] = serde_json::json!({
+            "bytes":bytes.len(), "sha256":crate::evidence::canonical::digest(&bytes), "records":1});
+        let decoded = serde_json::from_value::<super::Execution>(value.clone());
+        assert!(decoded.is_ok(), "committed unretained observation was lost: {decoded:?}");
+        let mut decoded = decoded.unwrap();
+        assert_eq!(serde_json::to_value(&decoded).unwrap(), value);
+        super::validate_execution(&decoded).unwrap();
+        decoded.soft_assertions.as_mut().unwrap()["messages"] = serde_json::json!(["changed"]);
+        assert!(super::validate_execution(&decoded).is_err());
+    }
 }

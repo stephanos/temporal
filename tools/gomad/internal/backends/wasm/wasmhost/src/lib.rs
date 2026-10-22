@@ -59,6 +59,8 @@ mod local_model;
 mod metrics;
 #[cfg(not(feature = "conformance"))]
 mod model;
+#[cfg(not(feature = "conformance"))]
+mod module_metadata;
 mod namespace;
 #[cfg(any(test, not(feature = "conformance")))]
 mod network;

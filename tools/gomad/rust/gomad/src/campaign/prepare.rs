@@ -63,6 +63,8 @@ struct Provenance {
     inputs: Value,
     build_key: String,
     module_sha256: String,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    module_metadata: Option<linked::ModuleMetadata>,
     configuration: Configuration,
     choice_identity: Option<linked::ChoiceIdentity>,
     scenario: Option<Vec<u8>>,
@@ -75,6 +77,26 @@ pub(crate) fn typed_provenance(value: &Value) -> Result<(), String> {
     let typed: Provenance = serde_json::from_value(value.clone()).map_err(failure)?;
     if serde_json::to_value(&typed).map_err(failure)? != *value {
         return Err(failure("provenance is not in its typed canonical form"));
+    }
+    Ok(())
+}
+
+pub(crate) fn authenticate_module_metadata(
+    retained: Option<&linked::ModuleMetadata>,
+    inputs: &Value,
+    module: &[u8],
+) -> Result<(), String> {
+    let bound = retained
+        .map(serde_json::to_value)
+        .transpose()
+        .map_err(failure)?;
+    if inputs.get("module_metadata") != bound.as_ref() {
+        return Err(failure("prepared module metadata binding mismatch"));
+    }
+    if let Some(retained) = retained
+        && *retained != linked::module_metadata(module).map_err(failure)?
+    {
+        return Err(failure("prepared module metadata mismatch"));
     }
     Ok(())
 }
@@ -393,12 +415,11 @@ fn prepare_before_deadline(
             )
         })
         .collect::<BTreeMap<_, _>>();
-    let inputs = json!({"schema":"gomad.rust-wasm-build-inputs/v1", "compiler":compiler,"compiler_sha256":installed.compiler_sha256,
+    let mut inputs = json!({"schema":"gomad.rust-wasm-build-inputs/v1", "compiler":compiler,"compiler_sha256":installed.compiler_sha256,
         "go_version":installed.go_version,"sources":sources,"runtime":runtime,"runtime_implementation":installed.runtime_implementation_sha256,
         "helper":linked::IMPLEMENTATION_SHA256,"host":env!("GOMAD_HOST_IMPLEMENTATION_SHA256"),"kind":options.target_kind,"source":options.source,
         "directory":directory,"arguments":options.target_args,"tags":tags,"configuration":configuration,"scenario":scenario,"network":installed.network,
         "build_flags":["-mod=readonly","-trimpath","-buildvcs=false","-pgo=off"],"environment":build_environment,"soft_assertion_report_only":options.soft_assertion_report_only});
-    let toolchain = canonical::digest(&canonical::encode(&inputs)?);
     let output = temporary.0.join("module.wasm");
     let mut build = if options.target_kind == "go-test" {
         vec!["test".into(), "-c".into()]
@@ -428,6 +449,9 @@ fn prepare_before_deadline(
         deadline,
     )?;
     let module = read(&output, MAXIMUM)?;
+    let module_metadata = linked::module_metadata(&module).map_err(failure)?;
+    inputs["module_metadata"] = serde_json::to_value(&module_metadata).map_err(failure)?;
+    let toolchain = canonical::digest(&canonical::encode(&inputs)?);
     let after = inventory::sources(
         &process::command(
             &installed.compiler_path,
@@ -482,6 +506,7 @@ fn prepare_before_deadline(
         inputs,
         build_key: toolchain.clone(),
         module_sha256: canonical::digest(&module),
+        module_metadata: Some(module_metadata),
         configuration,
         choice_identity,
         scenario,
@@ -630,6 +655,11 @@ fn prepared_exec(options: &ExploreOptions, installed: &Installation) -> Result<P
     let raw = read(Path::new(&options.provenance), 16 << 20)?;
     let provenance: Provenance = serde_json::from_slice(&raw).map_err(failure)?;
     let module = read(Path::new(&options.source), MAXIMUM)?;
+    authenticate_module_metadata(
+        provenance.module_metadata.as_ref(),
+        &provenance.inputs,
+        &module,
+    )?;
     if provenance.schema != "gomad.rust-wasm-provenance/v1"
         || canonical::encode(&provenance)? != raw
         || provenance.module_sha256 != canonical::digest(&module)

@@ -12,7 +12,7 @@ use std::{
     panic::{AssertUnwindSafe, catch_unwind},
     sync::{
         Arc, Mutex,
-        atomic::{AtomicBool, Ordering},
+        atomic::{AtomicBool, AtomicU64, Ordering},
         mpsc,
     },
     thread::{self, JoinHandle},
@@ -77,7 +77,57 @@ struct Sealed {
     transcript_limit: u64,
 }
 
+#[derive(Clone, Deserialize, Serialize)]
+#[serde(deny_unknown_fields)]
+pub struct LinkControl {
+    pub action: String,
+    pub from: String,
+    pub to: String,
+    pub delay: u64,
+    pub symmetric: bool,
+}
+
+pub enum CleanupMode {
+    Shutdown,
+    Error(String),
+    ContextCancellation,
+}
+
+struct Observation {
+    marker: Vec<u8>,
+    send: mpsc::SyncSender<()>,
+    receive: mpsc::Receiver<()>,
+}
+
+struct Cleanup {
+    after: Option<Handle>,
+    mode: CleanupMode,
+}
+
+#[derive(Clone, Default)]
+pub struct Activity {
+    launched_stores: Arc<AtomicU64>,
+    remote_callback_attempts: Arc<AtomicU64>,
+}
+
+#[derive(Serialize)]
+pub struct ActivitySnapshot {
+    pub launched_stores: u64,
+    pub remote_callback_attempts: u64,
+}
+
+impl Activity {
+    #[must_use]
+    pub fn snapshot(&self) -> ActivitySnapshot {
+        ActivitySnapshot {
+            launched_stores: self.launched_stores.load(Ordering::Acquire),
+            remote_callback_attempts: self.remote_callback_attempts.load(Ordering::Acquire),
+        }
+    }
+}
+
 pub struct Prepared {
+    activity: Activity,
     incarnations: BTreeMap<Handle, Sealed>,
     broker: BrokerConfig,
     network: Option<NetworkConfig>,
@@ -90,13 +140,99 @@ pub struct Prepared {
     conditions: linked::Conditions,
     cancellation: linked::Cancellation,
     simulation: Option<crate::linked_simulation::Shared>,
+    observations: BTreeMap<Handle, Observation>,
+    cleanup: Option<Cleanup>,
+    initial_links: Vec<LinkControl>,
+    action_limit: usize,
+    #[cfg(test)]
+    shutdown_reinsertion: Option<(bool, Arc<AtomicBool>)>,
 }
 
 impl Prepared {
+    #[must_use]
+    pub fn activity(&self) -> Activity {
+        self.activity.clone()
+    }
+
     /// The cluster wall bound the host's process-wide deadline backstop arms.
     #[must_use]
     pub fn wall_timeout(&self) -> Duration {
         self.wall_timeout
+    }
+
+    /// # Errors
+    /// Installs a controller observation without binding a guest output to a revocation.
+    pub fn observe_revocation(&mut self, handle: Handle, marker: Vec<u8>) -> Result<()> {
+        if !self.incarnations.contains_key(&handle)
+            || marker.is_empty()
+            || marker.len() > 4096
+            || self.observations.contains_key(&handle)
+        {
+            return Err(Error::msg("invalid linked controller observation"));
+        }
+        let (send, receive) = mpsc::sync_channel(1);
+        self.observations.insert(
+            handle,
+            Observation {
+                marker,
+                send,
+                receive,
+            },
+        );
+        Ok(())
+    }
+
+    /// # Errors
+    /// Cleanup joins every started store without adding authored lifecycle steps.
+    pub fn cleanup_after_starts(&mut self, mode: CleanupMode) -> Result<()> {
+        if self.cleanup.is_some()
+            || self
+                .steps
+                .iter()
+                .take(self.action_limit.min(self.steps.len()))
+                .any(|step| !matches!(step.action, Action::Start))
+        {
+            return Err(Error::msg("invalid cleanup lifecycle"));
+        }
+        self.cleanup = Some(Cleanup { after: None, mode });
+        Ok(())
+    }
+
+    /// # Errors
+    /// Drives a real acknowledgment before ending a scenario and joining its live stores.
+    pub fn cleanup_after_output(
+        &mut self,
+        handle: Handle,
+        marker: Vec<u8>,
+        mode: CleanupMode,
+    ) -> Result<()> {
+        self.cleanup_after_starts(mode)?;
+        self.observe_revocation(handle.clone(), marker)?;
+        self.cleanup
+            .as_mut()
+            .ok_or_else(|| Error::msg("missing cleanup"))?
+            .after = Some(handle);
+        Ok(())
+    }
+
+    /// # Errors
+    /// A scenario action budget is checked before the next action can mutate a model.
+    pub fn action_limit(&mut self, maximum: usize) -> Result<()> {
+        if maximum == 0 || maximum > 65536 {
+            return Err(Error::msg("invalid cluster action limit"));
+        }
+        self.action_limit = maximum;
+        Ok(())
+    }
+
+    /// # Errors
+    /// Controller links use the existing bounded fault-action capacity.
+    pub fn link_before_start(&mut self, link: LinkControl) -> Result<()> {
+        if self.initial_links.len() >= 4096 {
+            return Err(Error::msg("cluster controller link capacity"));
+        }
+        self.initial_links.push(link);
+        Ok(())
     }
 
     pub(crate) fn simulation(
@@ -314,6 +450,7 @@ pub fn prepare(mut request: Request) -> Result<Prepared> {
         );
     }
     Ok(Prepared {
+        activity: Activity::default(),
         incarnations,
         broker: request.broker,
         network: request.network,
@@ -326,12 +463,19 @@ pub fn prepare(mut request: Request) -> Result<Prepared> {
         conditions: linked::Conditions::default(),
         cancellation: linked::Cancellation::default(),
         simulation: None,
+        observations: BTreeMap::new(),
+        cleanup: None,
+        initial_links: Vec::new(),
+        action_limit: 65536,
+        #[cfg(test)]
+        shutdown_reinsertion: None,
     })
 }
 
-struct NoRemote;
+struct NoRemote(Activity);
 impl Write for NoRemote {
     fn write(&mut self, _: &[u8]) -> io::Result<usize> {
+        self.0.remote_callback_attempts.fetch_add(1, Ordering::Release);
         Err(io::Error::new(
             io::ErrorKind::Unsupported,
             "linked cluster forbids transport callbacks",
@@ -390,7 +534,9 @@ fn run_instance(
     handle: Handle,
     index: usize,
     slot: u64,
+    activity: Activity,
 ) -> Result<Completed> {
+    let authorization_started = std::time::Instant::now();
     broker.wait_terminal(index);
     let sink = linked::Sink::new(sealed.execution.request.limits.evidence_bytes);
     let mut model = sealed
@@ -423,7 +569,7 @@ fn run_instance(
     let limits = &sealed.execution.request.limits;
     let mut state = engine::new_state(
         Box::new(Cursor::new(Vec::<u8>::new())),
-        Box::new(NoRemote),
+        Box::new(NoRemote(activity.clone())),
         limits.memory_bytes,
         limits.output_bytes,
         Some(model),
@@ -436,9 +582,11 @@ fn run_instance(
         network: endpoint,
     });
     let mut store = Store::new(engine, state);
+    activity.launched_stores.fetch_add(1, Ordering::Release);
     store.limiter(|state| &mut state.limits);
     store.set_fuel(limits.fuel)?;
     store.set_epoch_deadline(1);
+    let mut metrics = Metrics::default();
     let executed = broker
         .check(index, handle.incarnation)
         .map_err(|failure| {
@@ -446,11 +594,18 @@ fn run_instance(
                 .data_mut()
                 .fail(failure.termination(), failure.message())
         })
-        .and_then(|()| pre.instantiate(&mut store))
-        .and_then(|instance| {
+        .and_then(|()| {
+            let started = std::time::Instant::now();
+            let instance = pre.instantiate(&mut store);
+            metrics.instantiate_nanos = crate::metrics::elapsed(started);
             instance
-                .get_typed_func::<(), ()>(&mut store, "_start")?
-                .call(&mut store, ())
+        })
+        .and_then(|instance| {
+            let start = instance.get_typed_func::<(), ()>(&mut store, "_start")?;
+            let started = std::time::Instant::now();
+            let result = start.call(&mut store, ());
+            metrics.execute_nanos = crate::metrics::elapsed(started);
+            result
         });
     let mut outcome = engine::terminal_outcome(&mut store, executed, limits.fuel)?;
     if matches!(
@@ -476,12 +631,17 @@ fn run_instance(
     let image = cluster::execution::record_terminal(store.data_mut(), descriptor, &mut outcome)
         .map_err(|(kind, message)| Error::msg(format!("{kind}: {message}")))?;
     drop(store);
+    metrics.sample_process();
+    outcome.metrics = Some(Box::new(metrics));
     let evidence = sink.into_streams()?;
+    drop(sealed);
+    let authorization_to_terminal_nanos = Some(crate::metrics::elapsed(authorization_started));
     Ok(Completed {
         result: IncarnationResult {
             handle,
             interrupted: interrupted(&outcome),
             execution: linked::Execution {
+                authorization_to_terminal_nanos,
                 outcome,
                 evidence,
                 event_order: None,
@@ -534,6 +694,7 @@ fn execute_inner(
     timed_out: &AtomicBool,
     session: &crate::linked_conditions::Session,
 ) -> Result<Execution> {
+    let execution_started = std::time::Instant::now();
     let modules = compile(engine, &prepared)?;
     let mut running: BTreeMap<Handle, Running> = BTreeMap::new();
     let mut completed = BTreeMap::new();
@@ -548,8 +709,20 @@ fn execute_inner(
             .map_err(|failure| Error::msg(failure.message()))?;
     }
     broker.start();
+    for link in std::mem::take(&mut prepared.initial_links) {
+        broker
+            .command(Command::Link {
+                action: link.action,
+                from: link.from,
+                to: link.to,
+                delay: link.delay,
+                symmetric: link.symmetric,
+            })
+            .map_err(|error| Error::msg(error.message()))?;
+    }
     let mut script = std::collections::VecDeque::from(std::mem::take(&mut prepared.steps));
     let mut executed_steps = Vec::new();
+    let mut action_capacity = false;
     let driven = (|| -> Result<()> {
         while !script.is_empty() {
             if timed_out.load(Ordering::Acquire)
@@ -561,6 +734,10 @@ fn execute_inner(
                     .map_err(|_| Error::msg("cluster failure lock poisoned"))?
                     .is_some()
             {
+                break;
+            }
+            if executed_steps.len() >= prepared.action_limit {
+                action_capacity = true;
                 break;
             }
             let step = crate::linked_simulation::next_step(
@@ -622,6 +799,16 @@ fn execute_inner(
                         )
                         .map_err(|failure| Error::msg(failure.message()))?;
                 }
+                if let Some(observation) = prepared.observations.get(&step.handle) {
+                    broker
+                        .observe_output(
+                            index,
+                            step.handle.incarnation,
+                            observation.marker.clone(),
+                            observation.send.clone(),
+                        )
+                        .map_err(|error| Error::msg(error.message()))?;
+                }
                 let pre = modules[&sealed.execution.request.module_sha256].clone();
                 let (engine, broker, network, handle) = (
                     engine.clone(),
@@ -631,6 +818,7 @@ fn execute_inner(
                 );
                 let (session, conditions) = (session.clone(), prepared.conditions);
                 let first_failure = first_failure.clone();
+                let activity = prepared.activity.clone();
                 let thread = thread::Builder::new()
                     .name(format!("instance-{}-{}", handle.node, handle.incarnation))
                     .stack_size(8 << 20)
@@ -642,6 +830,7 @@ fn execute_inner(
                                     handle,
                                     interrupted: false,
                                     execution: linked::Execution {
+                                        authorization_to_terminal_nanos: None,
                                         outcome: protocol::Outcome::new(
                                             "inspection_aborted",
                                             "cluster inspection stopped",
@@ -663,6 +852,7 @@ fn execute_inner(
                                 handle,
                                 index,
                                 slot,
+                                activity,
                             )
                         }))
                         .map_err(|_| Error::msg("cluster store panicked"))
@@ -699,6 +889,31 @@ fn execute_inner(
                 broker
                     .run(index, step.handle.incarnation)
                     .map_err(|failure| Error::msg(failure.message()))?;
+                if let Some(observation) = prepared.observations.remove(&step.handle) {
+                    observation
+                        .receive
+                        .recv_timeout(
+                            prepared
+                                .wall_timeout
+                                .saturating_sub(execution_started.elapsed()),
+                        )
+                        .map_err(|_| Error::msg("controller output observation abandoned"))?;
+                    let kind = match step.action {
+                        Action::Crash => "crash",
+                        Action::Stop => "stop",
+                        _ => return Err(Error::msg("observation requires unbound revocation")),
+                    };
+                    broker
+                        .command(Command::Revoke {
+                            index,
+                            incarnation: step.handle.incarnation,
+                            kind,
+                        })
+                        .map_err(|error| Error::msg(error.message()))?;
+                    broker
+                        .run(index, step.handle.incarnation)
+                        .map_err(|error| Error::msg(error.message()))?;
+                }
                 let observed = joined(
                     running
                         .remove(&step.handle)
@@ -732,6 +947,89 @@ fn execute_inner(
                     outcome.exit_code = observed.result.execution.outcome.exit_code;
                 }
                 completed.insert(step.handle, observed.result);
+            }
+        }
+        if action_capacity && prepared.cleanup.is_none() {
+            prepared.cleanup = Some(Cleanup {
+                after: None,
+                mode: CleanupMode::Shutdown,
+            });
+        }
+        if let Some(cleanup) = prepared.cleanup.take() {
+            if let Some(handle) = cleanup.after {
+                let index = prepared
+                    .ids
+                    .iter()
+                    .position(|id| id == &handle.node)
+                    .ok_or_else(|| Error::msg("unknown cleanup acknowledgment owner"))?;
+                let observation = prepared
+                    .observations
+                    .remove(&handle)
+                    .ok_or_else(|| Error::msg("missing cleanup observation"))?;
+                broker
+                    .run(index, handle.incarnation)
+                    .map_err(|error| Error::msg(error.message()))?;
+                observation
+                    .receive
+                    .recv_timeout(
+                        prepared
+                            .wall_timeout
+                            .saturating_sub(execution_started.elapsed()),
+                    )
+                    .map_err(|_| Error::msg("cleanup acknowledgment abandoned"))?;
+            }
+            #[cfg(test)]
+            if let Some((reverse, verified)) = prepared.shutdown_reinsertion.take() {
+                let states = std::mem::take(&mut running);
+                let mut entries: Vec<_> = states.into_iter().collect();
+                if reverse {
+                    entries.reverse();
+                }
+                let live = entries.len() == 2
+                    && completed.is_empty()
+                    && entries
+                        .iter()
+                        .all(|(_, pending)| !pending.thread.is_finished());
+                for (handle, pending) in entries {
+                    running.insert(handle, pending);
+                }
+                if !live {
+                    return Err(Error::msg(
+                        "root35 handle finished before shutdown reinsertion",
+                    ));
+                }
+                verified.store(true, Ordering::Release);
+            }
+            match cleanup.mode {
+                CleanupMode::ContextCancellation => prepared.cancellation.cancel(),
+                mode => {
+                    let reason = match mode {
+                        CleanupMode::Shutdown => None,
+                        CleanupMode::Error(message) => Some(protocol::bounded_message(message)),
+                        CleanupMode::ContextCancellation => {
+                            return Err(Error::msg("invalid cleanup dispatch"));
+                        }
+                    };
+                    stop_live(
+                        &prepared.ids,
+                        broker,
+                        &mut running,
+                        &mut completed,
+                        &Error::msg(reason.clone().unwrap_or_else(|| "cluster shutdown".into())),
+                    );
+                    if action_capacity {
+                        outcome = protocol::Outcome::new(
+                            "capacity",
+                            format!(
+                                "scenario action capacity limit={} used={} delta=1",
+                                prepared.action_limit,
+                                executed_steps.len()
+                            ),
+                        );
+                    } else if let Some(reason) = reason {
+                        outcome = protocol::Outcome::new("scenario_failure", reason);
+                    }
+                }
             }
         }
         Ok(())
@@ -974,3 +1272,53 @@ fn cancelled_execution() -> Execution {
         event_order: None,
     }
 }
+
+/// Validates retained expanded World bytes against the exact broker configuration.
+///
+/// # Errors
+/// Rejects malformed, noncanonical or foreign model state before guest admission.
+pub fn validate_world(bytes: &[u8], broker: &BrokerConfig) -> Result<(), String> {
+    crate::world::retained::validate(
+        bytes,
+        &crate::world::Config {
+            seed: broker.seed,
+            limits: crate::world::Limits {
+                max_requests: broker.limits.max_requests,
+                max_events: broker.limits.max_events,
+                max_queued_events: broker.limits.max_queued_events,
+                max_transitions: broker.limits.max_transitions,
+                max_payload_bytes: broker.limits.max_payload_bytes,
+                max_string_bytes: broker.limits.max_string_bytes,
+            },
+        },
+    )
+}
+
+/// # Errors
+/// Encodes the existing retained compressed World envelope without guest execution.
+pub fn encode_world(bytes: &[u8], encoding: &str) -> Result<Vec<u8>, String> {
+    match encoding {
+        "" => Ok(bytes.to_vec()),
+        crate::world::retained::COMPRESSED => crate::world::retained::compress(bytes),
+        _ => Err("unknown retained World encoding".into()),
+    }
+}
+
+/// # Errors
+/// Authenticates the retained envelope and replays its bounded World transitions.
+pub fn validate_encoded_world(
+    bytes: &[u8],
+    encoding: &str,
+    broker: &BrokerConfig,
+) -> Result<(), String> {
+    match encoding {
+        "" => validate_world(bytes, broker),
+        crate::world::retained::COMPRESSED => {
+            validate_world(&crate::world::retained::expand(bytes)?, broker)
+        }
+        _ => Err("unknown retained World encoding".into()),
+    }
+}
+
+#[cfg(test)]
+mod live_controller_tests;

@@ -10,6 +10,25 @@ pub fn first(record: &Record, observed: &linked::Execution) -> Option<String> {
             divergence.reason_name()
         ));
     }
+    let mut reason = observed.outcome.message.clone();
+    if let Some(stream) = record.streams.get("evidence/soft-assertions.json") {
+        let mut matched = false;
+        for report_only in [false, true] {
+            let report = crate::campaign::soft_assertions::observe(
+                observed.evidence.get("stdout").map_or(&[], Vec::as_slice),
+                observed.evidence.get("stderr").map_or(&[], Vec::as_slice),
+                matches!(observed.outcome.termination, "exit" | "trap"), report_only,
+            );
+            if let Some(report) = report
+                && canonical::encode(&report).is_ok_and(|bytes| canonical::digest(&bytes) == stream.sha256)
+            {
+                reason = crate::campaign::soft_assertions::reason(Some(&report), reason);
+                matched = true;
+                break;
+            }
+        }
+        if !matched { return Some("soft_assertions.observation".into()); }
+    }
     for (different, path) in [
         (
             record.outcome.termination != observed.outcome.termination,
@@ -20,7 +39,7 @@ pub fn first(record: &Record, observed: &linked::Execution) -> Option<String> {
             "outcome.exit_code",
         ),
         (
-            record.outcome.reason != observed.outcome.message,
+            record.outcome.reason != reason,
             "outcome.reason",
         ),
     ] {

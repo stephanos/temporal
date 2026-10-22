@@ -19,5 +19,12 @@ pub(crate) mod minimize;
 pub(crate) mod qualify;
 pub mod replay;
 pub mod slots;
-
 pub(crate) mod stress;
+#[cfg(feature = "determinism-fixture")]
+mod live_runtime;
+#[cfg(feature = "determinism-fixture")]
+mod live_broker;
+#[cfg(feature = "determinism-fixture")]
+mod live_cluster;
+#[cfg(feature = "determinism-fixture")]
+pub(crate) mod live_backend;

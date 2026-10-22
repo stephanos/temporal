@@ -94,6 +94,8 @@ pub(crate) fn explore(options: &ExplorationOptions, output: &mut dyn Write) -> R
 
 pub(crate) fn resume(path: &Path, json: bool, output: &mut dyn Write) -> Result<i32, String> {
     let mut journal = RoundJournal::open(path, true)?;
+    let summary = journal.summary()?;
+    resume_admission(summary["stop_reason"].as_str().ok_or("campaign completion state missing")?)?;
     let prepared = plan::restore(&journal)?;
     let remaining = plan::duration(&journal)?;
     run(&mut journal, &prepared, remaining, json, output, None)
@@ -216,11 +218,23 @@ fn run(
             results.push(result);
         }
         let (_, segment) = state.commit(&round, &results)?;
+        let reports = executions
+            .iter()
+            .filter_map(|execution| {
+                execution
+                    .soft_assertions
+                    .as_ref()
+                    .map(|report| (execution.seed, report.clone()))
+            })
+            .collect::<Vec<_>>();
         journal.append(RoundEvent::Choice {
             executions,
             segment,
         })?;
         if json_output {
+            for (seed, report) in reports {
+                super::soft_assertions::progress(output, journal.path(), seed, &report)?;
+            }
             writeln!(output, "{}", json!({"schema":"gomad.explore-event/v3","type":"round",
                 "campaign":journal.path(),"strategy":"choice-exploration","envelope":journal.summary()?}))
                 .map_err(|error| error.to_string())?;
@@ -327,4 +341,19 @@ pub(crate) fn report(
         .map_err(|error| error.to_string())?;
     }
     Ok(i32::from(failures != 0))
+}
+
+fn resume_admission(stop_reason: &str) -> Result<(), String> {
+    if stop_reason.is_empty() { Ok(()) } else { Err("choice exploration campaign is complete".into()) }
+}
+
+#[cfg(test)]
+mod live_backend_tests {
+    #[test]
+    fn completed_choice_resume_refuses_before_restoration() {
+        assert!(super::resume_admission("").is_ok());
+        for reason in ["max_executions", "choice_depth_complete", "exploration_capacity", "exploration_exhausted"] {
+            assert!(super::resume_admission(reason).is_err(), "completed campaign admitted: {reason}");
+        }
+    }
 }
