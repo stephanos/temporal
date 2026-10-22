@@ -20,7 +20,8 @@ pub(crate) const MAXIMUM: u64 = 32 << 20;
 pub(crate) struct Invocation {
     pub schema: String,
     pub wrapper_run_id: String,
-    pub invocation_id: String,
+    #[serde(rename = "invocation_id")]
+    pub id: String,
     pub original_argv: Vec<String>,
     pub driver_argv: Vec<String>,
     pub compiler_sha256: String,
@@ -56,11 +57,13 @@ pub(crate) fn identity() -> Result<String, String> {
 }
 
 pub(crate) fn argument(value: &OsStr) -> String {
-    value
-        .as_bytes()
-        .iter()
-        .map(|b| format!("{b:02x}"))
-        .collect()
+    const HEX: &[u8; 16] = b"0123456789abcdef";
+    let mut encoded = String::with_capacity(value.as_bytes().len() * 2);
+    for byte in value.as_bytes() {
+        encoded.push(char::from(HEX[usize::from(byte >> 4)]));
+        encoded.push(char::from(HEX[usize::from(byte & 15)]));
+    }
+    encoded
 }
 
 impl Invocation {
@@ -72,7 +75,7 @@ impl Invocation {
             || self.driver_argv.len() > 65536
             || [
                 &self.wrapper_run_id,
-                &self.invocation_id,
+                &self.id,
                 &self.compiler_sha256,
                 &self.installation_sha256,
                 &self.recipe_sha256,
@@ -200,17 +203,6 @@ pub(crate) fn validate_record(origin: &serde_json::Value, record: &Record) -> Re
     Ok(())
 }
 
-#[cfg(test)]
-mod tests {
-    use super::*;
-    #[test]
-    fn exact_argument_bytes_and_distinct_identities() {
-        assert_eq!(argument(OsStr::from_bytes(b" a'\xff")), "206127ff");
-        assert_eq!(argument(OsStr::new("")), "");
-        assert_ne!(identity().unwrap(), identity().unwrap());
-    }
-}
-
 pub(crate) fn from_preparation(
     prepared: &super::prepare::Prepared,
 ) -> Result<Option<Intercepted>, String> {
@@ -306,4 +298,15 @@ pub(crate) fn authenticate_driver(
     }
     open::pin(&registration.module_root)?;
     Ok(())
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+    #[test]
+    fn exact_argument_bytes_and_distinct_identities() {
+        assert_eq!(argument(OsStr::from_bytes(b" a'\xff")), "206127ff");
+        assert_eq!(argument(OsStr::new("")), "");
+        assert_ne!(identity().unwrap(), identity().unwrap());
+    }
 }

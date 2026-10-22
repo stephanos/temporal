@@ -21,6 +21,7 @@ const _: () = {
 
 pub(super) struct Module<'a> {
     pub memory: Memory<'a>,
+    pub pinned_go_producer: bool,
     pub imported: u64,
     pub functions: Vec<FunctionBody<'a>>,
     pub names: BTreeMap<u32, &'a str>,
@@ -31,16 +32,21 @@ fn checked<T>(value: wasmparser::Result<T>) -> Result<T> {
 }
 
 impl<'a> Module<'a> {
-    pub fn read(bytes: &'a [u8], budget: &mut Budget) -> Result<Self> {
-        let mut module = Self {
+    fn empty() -> Self {
+        Self {
             memory: Memory {
                 segments: Vec::new(),
                 end: 0,
             },
+            pinned_go_producer: false,
             imported: 0,
             functions: Vec::new(),
             names: BTreeMap::new(),
-        };
+        }
+    }
+
+    pub fn read(bytes: &'a [u8], budget: &mut Budget) -> Result<Self> {
+        let mut module = Self::empty();
         let mut count = 0;
         let mut memory_count = 0;
         let mut has_names = false;
@@ -128,7 +134,7 @@ impl<'a> Module<'a> {
                         return Err(Reason::SymbolMismatch);
                     }
                     has_producers = true;
-                    producers(&section, budget)?;
+                    module.pinned_go_producer = producers(&section, budget)?;
                 }
                 _ => {}
             }
@@ -264,13 +270,16 @@ impl<'a> Module<'a> {
     }
 }
 
-fn producers(section: &CustomSectionReader<'_>, budget: &mut Budget) -> Result<()> {
+fn producers(section: &CustomSectionReader<'_>, budget: &mut Budget) -> Result<bool> {
     budget.bytes(section.data().len() as u64)?;
     budget.steps(section.data().len() as u64)?;
     let mut reader = BinaryReader::new(section.data(), section.data_offset());
+    let mut language = false;
+    let mut compiler = false;
     for _ in 0..checked(reader.read_var_u32())? {
         budget.entries(1)?;
-        if !matches!(read_name(&mut reader)?, "language" | "sdk" | "processed-by") {
+        let field = read_name(&mut reader)?;
+        if !matches!(field, "language" | "sdk" | "processed-by") {
             return Err(Reason::SymbolMismatch);
         }
         for _ in 0..checked(reader.read_var_u32())? {
@@ -280,12 +289,14 @@ fn producers(section: &CustomSectionReader<'_>, budget: &mut Budget) -> Result<(
             if matches!(name, "Go" | "Go cmd/compile") && version != "go1.27.1" {
                 return Err(Reason::NoSymbols);
             }
+            language |= field == "language" && name == "Go";
+            compiler |= field == "processed-by" && name == "Go cmd/compile";
         }
     }
     if !reader.eof() {
         return Err(Reason::SymbolMismatch);
     }
-    Ok(())
+    Ok(language && compiler)
 }
 
 fn read_name<'a>(reader: &mut BinaryReader<'a>) -> Result<&'a str> {

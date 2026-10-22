@@ -459,12 +459,10 @@ pub(crate) fn publication(
             exit_code: observed.outcome.exit_code,
             reason: if termination == "cancelled" {
                 "runner_cancelled".into()
+            } else if matches!(termination, "exit" | "trap") {
+                super::soft_assertions::reason(assertions.as_ref(), observed.outcome.message)
             } else {
-                if matches!(termination, "exit" | "trap") {
-                    super::soft_assertions::reason(assertions.as_ref(), observed.outcome.message)
-                } else {
-                    observed.outcome.message
-                }
+                observed.outcome.message
             },
         },
         streams,

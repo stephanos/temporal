@@ -1,3 +1,5 @@
+mod input;
+
 use crate::{
     campaign::{launcher, origin, preparation, prepare::driver},
     evidence::canonical,
@@ -45,7 +47,7 @@ pub fn run(arguments: &[OsString], installation: Option<&Path>) -> Result<i32, s
 
 struct Arguments {
     module: PathBuf,
-    arguments: Vec<String>,
+    argv: Vec<String>,
     seeds: Option<String>,
     artifacts: Option<PathBuf>,
     json: bool,
@@ -92,7 +94,7 @@ fn parse(arguments: &[OsString]) -> Result<Arguments, super::Error> {
                         .to_str()
                         .ok_or("seed selection is not UTF-8")?
                         .into(),
-                )
+                );
             }
             _ => artifacts = Some(supplied.into()),
         }
@@ -111,7 +113,7 @@ fn parse(arguments: &[OsString]) -> Result<Arguments, super::Error> {
         .collect::<Result<Vec<_>, _>>()?;
     Ok(Arguments {
         module,
-        arguments,
+        argv: arguments,
         seeds,
         artifacts,
         json,
@@ -122,108 +124,161 @@ fn execute(
     arguments: &Arguments,
     installation: Option<&Path>,
 ) -> Result<(launcher::Outcome, PathBuf), (i32, String)> {
-    let setup = || -> Result<_, String> {
-        arguments
-            .module
-            .to_str()
-            .ok_or("guest module path must be UTF-8")?;
-        if let Some(receipt_path) = std::env::var_os("GOMAD_PREPARATION_RECEIPT") {
-            let digest = std::env::var("GOMAD_PREPARATION_RECEIPT_SHA256")
-                .map_err(|_| "run-guest requires prepared receipt digest")?;
-            let (_, prepared) = preparation::open_receipt(Path::new(&receipt_path), &digest)?;
-            let origin = origin::from_preparation(&prepared)?
-                .ok_or("run-guest requires intercepted preparation origin")?;
-            let selected = crate::install::manifest::resolve(installation)?;
-            if origin.invocation.installation_sha256 != selected.sha256
-                || canonical::digest(&crate::install::manifest::read(
-                    &arguments.module,
-                    512 << 20,
-                )?) != canonical::digest(&prepared.module)
-                || prepared.configuration.arguments.get(1..) != Some(arguments.arguments.as_slice())
-            {
-                return Err(
-                    "standalone module, arguments or installation differ from the prepared receipt"
-                        .into(),
-                );
-            }
-            let mut ignored = false;
-            let mut options = super::explore::parse(
-                &[
-                    "--choices".into(),
-                    "--execution-timeout=5m".into(),
-                    "--overall-timeout=10m".into(),
-                    "go-test".into(),
-                    "retained".into(),
-                ],
-                &mut ignored,
-            )?;
-            options.installation = Some(selected.path.clone());
-            apply_options(&mut options, arguments)?;
-            return Ok((prepared, options, selected.path));
+    let artifacts = arguments
+        .artifacts
+        .clone()
+        .or_else(|| std::env::var_os("GOMAD_SHIM_ARTIFACTS").map(PathBuf::from))
+        .unwrap_or_else(|| ".gomad/artifacts".into());
+    let mut staged =
+        input::Input::capture(&arguments.module, &artifacts).map_err(|message| (2, message))?;
+    let module = std::mem::take(&mut staged.bytes);
+    let Admitted {
+        prepared,
+        options,
+        installation,
+    } = match admit(arguments, installation, module) {
+        Ok(result) => {
+            staged.accepted().map_err(|message| (3, message))?;
+            result
         }
-        let invocation_path = std::env::var_os("GOMAD_SHIM_INVOCATION")
-            .ok_or("run-guest requires authenticated preparation metadata")?;
-        let invocation_digest = std::env::var("GOMAD_SHIM_INVOCATION_SHA256")
-            .map_err(|_| "run-guest requires preparation metadata digest")?;
-        let path = Path::new(&invocation_path);
-        let bytes = origin::read_private(path, &invocation_digest)?;
-        let invocation: origin::Invocation =
-            serde_json::from_slice(&bytes).map_err(|e| e.to_string())?;
-        invocation.validate()?;
-        if canonical::encode(&invocation)? != bytes {
-            return Err("noncanonical intercepted invocation".into());
+        Err(message) => {
+            let status = 2;
+            let directory = staged.directory.clone();
+            staged.reject(status, &message).map_err(|error| {
+                (
+                    3,
+                    format!("{message}; unaccepted input diagnostic publication failed: {error}"),
+                )
+            })?;
+            return Err((
+                status,
+                format!(
+                    "{message}; unaccepted input retained at {}",
+                    directory.display()
+                ),
+            ));
         }
-        origin::authenticate_driver(path, &invocation_digest, &invocation, &arguments.module)?;
-        let recipe_path = path
-            .parent()
-            .ok_or("invocation owner missing")?
-            .join(&invocation.recipe_file);
-        let bytes = origin::read_private(&recipe_path, &invocation.recipe_sha256)?;
-        let mut recipe: driver::Recipe =
-            serde_json::from_slice(&bytes).map_err(|e| e.to_string())?;
-        if canonical::encode(&recipe)? != bytes {
-            return Err("noncanonical driver preparation recipe".into());
-        }
-        let selected = crate::install::manifest::resolve(installation)?;
-        if canonical::encode(&selected.manifest)? != canonical::encode(&recipe.installed)?
-            || selected.sha256 != invocation.installation_sha256
-        {
-            return Err("launcher installation differs from preparation".into());
-        }
-        recipe.options.installation = Some(selected.path.clone());
-        apply_options(&mut recipe.options, arguments)?;
-        let options = recipe.options.clone();
-        let deadline = Instant::now()
-            .checked_add(options.overall_timeout)
-            .ok_or("launcher preparation deadline exceeds clock range")?;
-        let mut prepared = recipe.admit_external(
-            &arguments.module,
-            arguments.arguments.clone(),
-            &invocation,
-            deadline,
-        )?;
-        let invocation_id = invocation.invocation_id.clone();
-        origin::intercept(&mut prepared, invocation)?;
-        let retained = preparation::retain_admitted(&options, prepared)?;
-        let admission_root = options.artifacts.join("admissions").join(invocation_id);
-        crate::evidence::store::durable_directory(&admission_root, |_| Ok(()))?;
-        retained.publish(
-            &admission_root.join("plan.json"),
-            std::env::args_os()
-                .map(|argument| {
-                    argument
-                        .into_string()
-                        .map_err(|_| "portable preparation command requires UTF-8 arguments")
-                })
-                .collect::<Result<Vec<_>, _>>()?,
-        )?;
-        let prepared = retained.prepared;
-        Ok((prepared, options, selected.path))
     };
-    let (prepared, options, installation) = setup().map_err(|message| (2, message))?;
     launcher::run(&options, &prepared)
         .map(|outcome| (outcome, installation))
         .map_err(|message| (3, message))
+}
+
+struct Admitted {
+    prepared: crate::campaign::prepare::Prepared,
+    options: super::explore::ExploreOptions,
+    installation: PathBuf,
+}
+
+fn admit(
+    arguments: &Arguments,
+    installation: Option<&Path>,
+    module: Vec<u8>,
+) -> Result<Admitted, String> {
+    arguments
+        .module
+        .to_str()
+        .ok_or("guest module path must be UTF-8")?;
+    if let Some(receipt_path) = std::env::var_os("GOMAD_PREPARATION_RECEIPT") {
+        return admit_retained(arguments, installation, &module, &receipt_path);
+    }
+    let invocation_path = std::env::var_os("GOMAD_SHIM_INVOCATION")
+        .ok_or("run-guest requires authenticated preparation metadata")?;
+    let invocation_digest = std::env::var("GOMAD_SHIM_INVOCATION_SHA256")
+        .map_err(|_| "run-guest requires preparation metadata digest")?;
+    let path = Path::new(&invocation_path);
+    let bytes = origin::read_private(path, &invocation_digest)?;
+    let invocation: origin::Invocation =
+        serde_json::from_slice(&bytes).map_err(|e| e.to_string())?;
+    invocation.validate()?;
+    if canonical::encode(&invocation)? != bytes {
+        return Err("noncanonical intercepted invocation".into());
+    }
+    origin::authenticate_driver(path, &invocation_digest, &invocation, &arguments.module)?;
+    let recipe_path = path
+        .parent()
+        .ok_or("invocation owner missing")?
+        .join(&invocation.recipe_file);
+    let bytes = origin::read_private(&recipe_path, &invocation.recipe_sha256)?;
+    let mut recipe: driver::Recipe = serde_json::from_slice(&bytes).map_err(|e| e.to_string())?;
+    if canonical::encode(&recipe)? != bytes {
+        return Err("noncanonical driver preparation recipe".into());
+    }
+    let selected = crate::install::manifest::resolve(installation)?;
+    if canonical::encode(&selected.manifest)? != canonical::encode(&recipe.installed)?
+        || selected.sha256 != invocation.installation_sha256
+    {
+        return Err("launcher installation differs from preparation".into());
+    }
+    recipe.options.installation = Some(selected.path.clone());
+    apply_options(&mut recipe.options, arguments)?;
+    let options = recipe.options.clone();
+    let deadline = Instant::now()
+        .checked_add(options.overall_timeout)
+        .ok_or("launcher preparation deadline exceeds clock range")?;
+    let mut prepared =
+        recipe.admit_external(module, arguments.argv.clone(), &invocation, deadline)?;
+    let invocation_id = invocation.id.clone();
+    origin::intercept(&mut prepared, invocation)?;
+    let retained = preparation::retain_admitted(&options, prepared)?;
+    let admission_root = options.artifacts.join("admissions").join(invocation_id);
+    crate::evidence::store::durable_directory(&admission_root, |_| Ok(()))?;
+    retained.publish(
+        &admission_root.join("plan.json"),
+        std::env::args_os()
+            .map(|argument| {
+                argument
+                    .into_string()
+                    .map_err(|_| "portable preparation command requires UTF-8 arguments")
+            })
+            .collect::<Result<Vec<_>, _>>()?,
+    )?;
+    let prepared = retained.prepared;
+    Ok(Admitted {
+        prepared,
+        options,
+        installation: selected.path,
+    })
+}
+
+fn admit_retained(
+    arguments: &Arguments,
+    installation: Option<&Path>,
+    module: &[u8],
+    receipt_path: &OsStr,
+) -> Result<Admitted, String> {
+    let digest = std::env::var("GOMAD_PREPARATION_RECEIPT_SHA256")
+        .map_err(|_| "run-guest requires prepared receipt digest")?;
+    let (_, prepared) = preparation::open_receipt(Path::new(receipt_path), &digest)?;
+    let origin = origin::from_preparation(&prepared)?
+        .ok_or("run-guest requires intercepted preparation origin")?;
+    let selected = crate::install::manifest::resolve(installation)?;
+    if origin.invocation.installation_sha256 != selected.sha256
+        || canonical::digest(module) != canonical::digest(&prepared.module)
+        || prepared.configuration.arguments.get(1..) != Some(arguments.argv.as_slice())
+    {
+        return Err(
+            "standalone module, arguments or installation differ from the prepared receipt".into(),
+        );
+    }
+    let mut ignored = false;
+    let mut options = super::explore::parse(
+        &[
+            "--choices".into(),
+            "--execution-timeout=5m".into(),
+            "--overall-timeout=10m".into(),
+            "go-test".into(),
+            "retained".into(),
+        ],
+        &mut ignored,
+    )?;
+    options.installation = Some(selected.path.clone());
+    apply_options(&mut options, arguments)?;
+    Ok(Admitted {
+        prepared,
+        options,
+        installation: selected.path,
+    })
 }
 
 fn apply_options(
@@ -289,7 +344,7 @@ pub(crate) fn fixture_prepare(arguments: &[String]) -> Result<(), String> {
     let invocation = origin::Invocation {
         schema: "gomad.intercepted-invocation/v1".into(),
         wrapper_run_id: origin::identity()?,
-        invocation_id: origin::identity()?,
+        id: origin::identity()?,
         original_argv: argv_bytes.clone(),
         driver_argv: argv_bytes,
         compiler_sha256: recipe.installed.compiler_sha256.clone(),
@@ -409,6 +464,6 @@ mod tests {
         let parsed = parse(&args).unwrap_or_else(|error| panic!("{}", error.message));
         assert_eq!(parsed.seeds.as_deref(), Some("7,8"));
         assert!(!parsed.json);
-        assert_eq!(parsed.arguments, ["--json", "--seeds=99"]);
+        assert_eq!(parsed.argv, ["--json", "--seeds=99"]);
     }
 }

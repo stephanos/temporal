@@ -407,8 +407,8 @@ impl Recipe {
     }
 
     pub(crate) fn admit_external(
-        self,
-        module_path: &Path,
+        mut self,
+        module: Vec<u8>,
         arguments: Vec<String>,
         invocation: &super::super::origin::Invocation,
         deadline: Instant,
@@ -444,73 +444,42 @@ impl Recipe {
         }
         inventory::verify(&self.compiler)?;
         inventory::verify(&self.sources)?;
-        let module = crate::install::manifest::read(module_path, MAXIMUM)?;
-        let temporary = process::Temporary::new(&self.installed.cache_root)?;
-        let metadata = process::command(
-            &self.installed.compiler_path,
-            &[
-                "version".into(),
-                "-m".into(),
-                "-json".into(),
-                module_path
-                    .to_str()
-                    .ok_or("module path is not UTF-8")?
-                    .into(),
-            ],
-            &self.directory,
-            &self.environment,
-            &temporary.0,
-            1 << 20,
-            deadline,
-        )?;
-        let metadata: Value = serde_json::from_slice(&metadata).map_err(failure)?;
+        let metadata = crate::evidence::symbolize::build_info::read(&module)?;
         self.authenticate_build_info(&metadata)?;
-        if canonical::digest(&crate::install::manifest::read(module_path, MAXIMUM)?)
-            != canonical::digest(&module)
-        {
-            return Err(failure("intercepted module changed during admission"));
-        }
+        self.inputs["go_build_info"] = serde_json::to_value(&metadata).map_err(failure)?;
         self.admit(module, arguments, deadline)
     }
 
-    fn authenticate_build_info(&self, info: &Value) -> Result<(), String> {
+    fn authenticate_build_info(
+        &self,
+        info: &crate::evidence::symbolize::build_info::BuildInfo,
+    ) -> Result<(), String> {
         let expected_path = if self.options.target_kind == "go-test" {
             format!("{}.test", self.import_path)
         } else {
             self.import_path.clone()
         };
-        if info["GoVersion"] != self.installed.go_version || info["Path"] != expected_path {
-            return Err(failure("intercepted module compiler or package mismatch"));
+        if info.compiler_version != self.installed.go_version || info.path != expected_path {
+            return Err(failure("intercepted module package mismatch"));
         }
-        let settings = info["Settings"]
-            .as_array()
-            .ok_or_else(|| failure("intercepted module settings missing"))?;
-        let mut values = BTreeMap::new();
-        for setting in settings {
-            let name = setting["Key"]
-                .as_str()
-                .ok_or_else(|| failure("invalid intercepted build setting"))?;
-            let value = setting["Value"]
-                .as_str()
-                .ok_or_else(|| failure("invalid intercepted build setting"))?;
-            if values.insert(name, value).is_some() {
-                return Err(failure("duplicate intercepted build setting"));
-            }
-        }
+        let values = &info.settings;
         for (name, expected) in [
             ("GOOS", "wasip1"),
             ("GOARCH", "wasm"),
             ("CGO_ENABLED", "0"),
             ("-trimpath", "true"),
+            ("-compiler", "gc"),
+            ("-buildmode", "exe"),
+            ("GOEXPERIMENT", "nogreenteagc"),
         ] {
-            if values.get(name) != Some(&expected) {
+            if values.get(name).map(String::as_str) != Some(expected) {
                 return Err(failure(format!(
                     "intercepted module setting {name} mismatch"
                 )));
             }
         }
         for name in ["-race", "-msan", "-asan", "-cover"] {
-            if values.get(name).is_some_and(|value| *value != "false") {
+            if values.get(name).is_some_and(|value| value != "false") {
                 return Err(failure(
                     "intercepted module has unsupported instrumentation",
                 ));
@@ -523,7 +492,9 @@ impl Recipe {
             .map(|v| v.as_str().ok_or_else(|| failure("invalid recipe tag")))
             .collect::<Result<Vec<_>, _>>()?
             .join(",");
-        if !expected_tags.is_empty() && values.get("-tags") != Some(&expected_tags.as_str()) {
+        if !expected_tags.is_empty()
+            && values.get("-tags").map(String::as_str) != Some(expected_tags.as_str())
+        {
             return Err(failure("intercepted module build tags mismatch"));
         }
         Ok(())

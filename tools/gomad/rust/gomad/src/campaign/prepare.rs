@@ -124,10 +124,6 @@ pub fn prepare(options: &ExploreOptions) -> Result<Prepared, String> {
     result
 }
 
-#[expect(
-    clippy::too_many_lines,
-    reason = "The ordinary source build uses the same authenticated driver recipe as interception"
-)]
 fn prepare_before_deadline(
     options: &ExploreOptions,
     deadline: Instant,

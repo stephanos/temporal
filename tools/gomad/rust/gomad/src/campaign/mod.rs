@@ -135,7 +135,6 @@ fn seed_journal_policy(
         .ok_or("capacity: campaign journal byte capacity overflows")?;
     let path = campaign_path(&options.artifacts)?;
     let mut plan = json!({
-        "origin": origin::from_preparation(prepared)?.map_or_else(|| json!("operator"), |origin| json!(origin)),
         "schema":"gomad.seed-campaign-plan/v2","selection":selection.to_string(),"selection_count":selection.count(),"parallel":options.parallel,
         "on_failure":options.on_failure,"failure_budget":options.failure_budget,"shard":null,"journal_bytes":journal_bytes,
         "overall_millis":u64::try_from(options.overall_timeout.as_millis()).map_err(|_|"overall timeout overflows")?,
@@ -217,6 +216,8 @@ fn retain_prepared(
     prepared: &prepare::Prepared,
     plan: &mut Value,
 ) -> Result<(), String> {
+    plan["origin"] = origin::from_preparation(prepared)?
+        .map_or_else(|| json!("operator"), |origin| json!(origin));
     let publication = prepared_publication(prepared)?;
     let maximum = publication
         .payloads
@@ -648,7 +649,7 @@ fn run_observed(
                             || failure.is_some())
                     {
                         if execution.record.outcome.termination == "capacity" {
-                            failed_assertions = execution.soft_assertions.clone();
+                            failed_assertions.clone_from(&execution.soft_assertions);
                         }
                         failure.get_or_insert_with(|| {
                             format!("runner_failure: {}", execution.record.outcome.reason)

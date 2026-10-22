@@ -313,7 +313,10 @@ fn quote(value: &std::ffi::OsStr) -> String {
     }
     let mut result = String::from("$'");
     for byte in bytes {
-        result.push_str(&format!("\\{byte:03o}"));
+        result.push('\\');
+        for shift in [6, 3, 0] {
+            result.push(char::from(b'0' + ((byte >> shift) & 7)));
+        }
     }
     result.push('\'');
     result
