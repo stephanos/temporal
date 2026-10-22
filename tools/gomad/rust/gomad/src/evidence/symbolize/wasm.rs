@@ -46,8 +46,17 @@ impl<'a> Module<'a> {
     }
 
     pub fn read(bytes: &'a [u8], budget: &mut Budget) -> Result<Self> {
+        Self::read_parts(bytes, budget, true)
+    }
+
+    pub fn read_metadata(bytes: &'a [u8], budget: &mut Budget) -> Result<Self> {
+        Self::read_parts(bytes, budget, false)
+    }
+
+    fn read_parts(bytes: &'a [u8], budget: &mut Budget, symbols: bool) -> Result<Self> {
         let mut module = Self::empty();
         let mut count = 0;
+        let mut bodies = 0;
         let mut memory_count = 0;
         let mut has_names = false;
         let mut has_producers = false;
@@ -76,8 +85,10 @@ impl<'a> Module<'a> {
                 Payload::FunctionSection(reader) => {
                     count = u64::from(reader.count());
                     budget.entries(count)?;
-                    budget.bytes(mul(count, 128)?)?;
-                    module.functions = Vec::with_capacity(size(count)?);
+                    if symbols {
+                        budget.bytes(mul(count, 128)?)?;
+                        module.functions = Vec::with_capacity(size(count)?);
+                    }
                     for entry in reader {
                         checked(entry)?;
                     }
@@ -99,7 +110,9 @@ impl<'a> Module<'a> {
                 Payload::DataSection(reader) => {
                     // Advancing the lazy Data reader would parse arbitrary expressions and
                     // allocate their control stacks before our budget/grammar checks.
-                    budget.steps(reader.range().len() as u64)?;
+                    if symbols {
+                        budget.steps(reader.range().len() as u64)?;
+                    }
                     budget.entries(u64::from(reader.count()))?;
                     let mut data = BinaryReader::new(
                         &bytes[reader.original_position()..reader.range().end],
@@ -116,11 +129,14 @@ impl<'a> Module<'a> {
                     count: declared, ..
                 } if u64::from(declared) != count => return Err(Reason::SymbolMismatch),
                 Payload::CodeSectionEntry(body) => {
-                    if module.functions.len() as u64 >= count {
+                    if bodies >= count {
                         return Err(Reason::SymbolMismatch);
                     }
-                    Budget::charge(&mut budget.code, body.range().len() as u64, BYTE_LIMIT)?;
-                    module.functions.push(body);
+                    bodies += 1;
+                    if symbols {
+                        Budget::charge(&mut budget.code, body.range().len() as u64, BYTE_LIMIT)?;
+                        module.functions.push(body);
+                    }
                 }
                 Payload::CustomSection(section) if section.name() == "name" => {
                     if has_names {
@@ -139,11 +155,11 @@ impl<'a> Module<'a> {
                 _ => {}
             }
         }
-        module.finish(count, budget)
+        module.finish(count, bodies, budget)
     }
 
-    fn finish(mut self, count: u64, budget: &mut Budget) -> Result<Self> {
-        if self.functions.len() as u64 != count {
+    fn finish(mut self, count: u64, bodies: u64, budget: &mut Budget) -> Result<Self> {
+        if bodies != count {
             return Err(Reason::SymbolMismatch);
         }
         let total = add(self.imported, count)?;

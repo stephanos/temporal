@@ -500,3 +500,39 @@ impl Recipe {
         Ok(())
     }
 }
+
+#[cfg(test)]
+mod retained_input_tests {
+    use super::*;
+    use crate::install::manifest;
+
+    #[test]
+    #[ignore = "requires explicitly retained unaccepted input and its original private recipe"]
+    fn retained_actual_wasm_metadata_matches_only_its_original_recipe() {
+        let module_path =
+            std::env::var_os("GOMAD_TEST_UNACCEPTED_MODULE").expect("retained module");
+        let recipe_path =
+            std::env::var_os("GOMAD_TEST_UNACCEPTED_RECIPE").expect("original recipe");
+        let module = manifest::read(Path::new(&module_path), 512 << 20).unwrap();
+        let expected = std::env::var("GOMAD_TEST_UNACCEPTED_SHA256").expect("retained digest");
+        assert_eq!(canonical::digest(&module), expected);
+        let recipe: Recipe =
+            serde_json::from_slice(&manifest::read(Path::new(&recipe_path), 32 << 20).unwrap())
+                .unwrap();
+        let start = Instant::now();
+        let (mut info, work) = crate::evidence::symbolize::build_info::measured(&module).unwrap();
+        recipe.authenticate_build_info(&info).unwrap();
+        println!(
+            "unaccepted input metadata only: module_bytes={} elapsed_ms={} {work}",
+            module.len(),
+            start.elapsed().as_millis()
+        );
+        let path = info.path.clone();
+        info.path.push_str(".unrelated");
+        assert!(recipe.authenticate_build_info(&info).is_err());
+        info.path = path;
+        info.settings.insert("-tags".into(), "unrelated".into());
+        assert!(recipe.authenticate_build_info(&info).is_err());
+        // This does not authenticate a live Go parent or produce an accepted artifact.
+    }
+}

@@ -24,12 +24,25 @@ pub(crate) fn read(bytes: &[u8]) -> Result<BuildInfo, String> {
         .map_err(|reason| format!("invalid pinned WASM build information: {reason:?}"))
 }
 
+#[cfg(test)]
+pub(crate) fn measured(bytes: &[u8]) -> Result<(BuildInfo, String), String> {
+    let mut budget = Budget::default();
+    let info = read_with_budget(bytes, &mut budget).map_err(|reason| format!("{reason:?}"))?;
+    Ok((
+        info,
+        format!(
+            "bytes={} code={} entries={} steps={}",
+            budget.bytes, budget.code, budget.entries, budget.steps
+        ),
+    ))
+}
+
 fn read_with_budget(bytes: &[u8], budget: &mut Budget) -> Result<BuildInfo, Reason> {
-    let module = Module::read(bytes, budget)?;
+    let module = Module::read_metadata(bytes, budget)?;
     if !module.pinned_go_producer {
         return Err(Reason::NoSymbols);
     }
-    let starts = module.memory.matches(&START, false, budget)?;
+    let starts = module.memory.framing_matches(&START, budget)?;
     if starts.len() != 1 {
         return Err(Reason::SymbolMismatch);
     }
@@ -331,6 +344,52 @@ mod tests {
             }],
         };
         assert!(super::framed(&truncated, 0, &mut Budget::default()).is_err());
+    }
+
+    #[test]
+    fn chunk_scan_preserves_every_segment_boundary_and_existing_step_limit() {
+        use super::super::bytes::{STEP_LIMIT, Segment};
+        let mut bytes = vec![42; 37];
+        bytes.extend_from_slice(&START);
+        bytes.extend_from_slice(&[42; 37]);
+        for split in 0..=bytes.len() {
+            let memory = Memory {
+                end: bytes.len() as u64,
+                segments: vec![
+                    Segment {
+                        start: 0,
+                        bytes: &bytes[..split],
+                    },
+                    Segment {
+                        start: split as u64,
+                        bytes: &bytes[split..],
+                    },
+                ],
+            };
+            assert_eq!(
+                memory
+                    .framing_matches(&START, &mut Budget::default())
+                    .unwrap(),
+                [37]
+            );
+        }
+        let memory = Memory {
+            end: bytes.len() as u64,
+            segments: vec![Segment {
+                start: 0,
+                bytes: &bytes,
+            }],
+        };
+        assert_eq!(
+            memory.framing_matches(
+                &START,
+                &mut Budget {
+                    steps: STEP_LIMIT,
+                    ..Budget::default()
+                }
+            ),
+            Err(Reason::SymbolTableTooLarge)
+        );
     }
 
     #[test]
