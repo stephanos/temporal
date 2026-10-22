@@ -617,13 +617,30 @@ mod fidelity_tests {
     fn single_linked_helper_refuses_hard_isolation() {
         let mut limits = serde_json::Map::new();
         for name in [
-            "nodes", "directional_links", "volumes", "scenario_actions",
-            "scenario_decisions", "fault_actions", "history_operations", "observations",
-            "oracle_results", "scenario_evidence_bytes", "boot_config_bytes",
-            "volume_capacity_bytes", "observation_bytes", "network_listeners",
-            "network_connections", "network_bytes", "network_connection_bytes",
-            "network_stall_nanos", "network_transitions", "volume_operations",
-            "volume_transitions", "crash_states", "crash_depth", "crash_bytes",
+            "nodes",
+            "directional_links",
+            "volumes",
+            "scenario_actions",
+            "scenario_decisions",
+            "fault_actions",
+            "history_operations",
+            "observations",
+            "oracle_results",
+            "scenario_evidence_bytes",
+            "boot_config_bytes",
+            "volume_capacity_bytes",
+            "observation_bytes",
+            "network_listeners",
+            "network_connections",
+            "network_bytes",
+            "network_connection_bytes",
+            "network_stall_nanos",
+            "network_transitions",
+            "volume_operations",
+            "volume_transitions",
+            "crash_states",
+            "crash_depth",
+            "crash_bytes",
             "crash_wall_nanos",
         ] {
             limits.insert(name.into(), json!(1));
@@ -641,10 +658,13 @@ mod fidelity_tests {
                 {"action":"start", "handle":{"node":"a", "incarnation":1}},
                 {"action":"wait", "handle":{"node":"a", "incarnation":1}}
             ]
-        })).expect("bounded ordinary scenario");
+        }))
+        .expect("bounded ordinary scenario");
         scenario.validate().expect("ordinary simulation model");
         scenario.spec.fidelity = "hard_isolation".into();
-        let failure = scenario.validate().expect_err("one helper cannot promise hard isolation");
+        let failure = scenario
+            .validate()
+            .expect_err("one helper cannot promise hard isolation");
         assert!(failure.contains("hard isolation"), "{failure}");
     }
 }
@@ -1477,10 +1497,11 @@ pub(crate) fn publication(
             item.execution.outcome.termination,
             "cancelled" | "watchdog_timeout"
         ) {
-            for feature in
-                linked::choice_features(trace, &configuration.choice_identity, "complete")
-                    .map_err(str::to_owned)?
-            {
+            for feature in incarnation_choice_features(
+                trace,
+                &configuration.choice_identity,
+                item.execution.outcome.termination,
+            )? {
                 features.push(format!(
                     "{}/{}/{feature}",
                     item.handle.node, item.handle.incarnation
@@ -1625,4 +1646,54 @@ pub(crate) fn publication(
         publication: Publication { record, payloads },
         metrics: super::execution::Metrics::default(),
     })
+}
+
+fn incarnation_choice_features(
+    trace: &[u8],
+    identity: &linked::ChoiceIdentity,
+    _termination: &str,
+) -> Result<Vec<String>, String> {
+    linked::choice_features(trace, identity, "complete").map_err(str::to_owned)
+}
+
+#[cfg(test)]
+mod interrupted_coverage_tests {
+    #[test]
+    fn interrupted_incarnations_retain_records_without_completed_terminal() {
+        let identity = gomad_wasmhost::linked::ChoiceIdentity {
+            target_sha256: [1; 32],
+            toolchain_build_key: "02".repeat(32),
+            goos: "wasip1".into(),
+            goarch: "wasm".into(),
+            implementation_sha256: [3; 32],
+        };
+        let mut trace = [0; 96];
+        trace[8] = 1;
+        trace[9] = 5;
+        trace[12..16].copy_from_slice(&1u32.to_be_bytes());
+        trace[32..64].fill(1);
+        trace[64..96].fill(2);
+        let complete = super::incarnation_choice_features(&trace, &identity, "exit").unwrap();
+        assert!(
+            complete
+                .iter()
+                .any(|feature| feature == "terminal/complete")
+        );
+        let records: Vec<_> = complete
+            .into_iter()
+            .filter(|feature| feature != "terminal/complete")
+            .collect();
+        assert!(
+            records
+                .iter()
+                .any(|feature| feature.starts_with("record_kind/"))
+        );
+        for termination in ["crash", "stop", "storage_crash"] {
+            assert_eq!(
+                super::incarnation_choice_features(&trace, &identity, termination).unwrap(),
+                records,
+                "{termination} must preserve record features without claiming completion"
+            );
+        }
+    }
 }

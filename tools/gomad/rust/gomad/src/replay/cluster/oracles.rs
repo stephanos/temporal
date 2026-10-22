@@ -444,6 +444,115 @@ pub(crate) fn apply(observed: &mut linked::Execution, report: Report) -> Result<
     Ok(())
 }
 
+#[cfg(test)]
+mod replay_tests {
+    use super::*;
+    use crate::evidence::{
+        identity::Identity,
+        record::{Limits, Outcome, Record, Stream},
+    };
+
+    #[test]
+    fn replay_compares_actual_canonical_cluster_oracle_report() {
+        let mut outcome = gomad_wasmhost::protocol::Outcome::new("exit", "");
+        outcome.exit_code = Some(0);
+        let mut observed = linked::Execution {
+            authorization_to_terminal_nanos: None,
+            outcome,
+            evidence: BTreeMap::new(),
+            event_order: None,
+        };
+        apply(
+            &mut observed,
+            Report {
+                schema: "gomad.cluster-oracles/v1",
+                outcome: "completed",
+                reason: "",
+                failure_identity: String::new(),
+                oracles: vec![Oracle {
+                    name: "history".into(),
+                    passed: true,
+                    soft_assertion: false,
+                    report_only: false,
+                    inconclusive: false,
+                    evidence: vec![Evidence {
+                        label: "history".into(),
+                        value: "committed".into(),
+                        full_sha256: canonical::digest(b"committed"),
+                    }],
+                    failure_identity: String::new(),
+                    identity: canonical::digest(b"history"),
+                }],
+            },
+        )
+        .unwrap();
+        let identity = Identity {
+            target: canonical::digest(b"target"),
+            toolchain: canonical::digest(b"toolchain"),
+            platform: canonical::digest(b"platform"),
+            implementation: canonical::digest(b"implementation"),
+            configuration: canonical::digest(b"configuration"),
+        };
+        let raw = &observed.evidence["cluster_oracles"];
+        let retained_report = raw.clone();
+        let mut record = Record {
+            schema: "gomad.execution-record/v2".into(),
+            execution_identity: identity.digest().unwrap(),
+            identity,
+            profile: "cooperative".into(),
+            seed: 7,
+            arguments: vec![],
+            environment: BTreeMap::new(),
+            limits: Limits {
+                fuel: 1,
+                memory_bytes: 1,
+                wall_millis: 1,
+                output_bytes: 1,
+                evidence_bytes: 4096,
+            },
+            virtual_time_nanos: 0,
+            outcome: Outcome {
+                class: "success".into(),
+                termination: "exit".into(),
+                exit_code: Some(0),
+                reason: String::new(),
+            },
+            streams: BTreeMap::from([(
+                "evidence/cluster_oracles".into(),
+                Stream {
+                    bytes: raw.len() as u64,
+                    sha256: canonical::digest(raw),
+                    records: 0,
+                },
+            )]),
+        };
+        record.bytes().unwrap();
+        assert_eq!(crate::replay::divergence::first(&record, &observed), None);
+        let mut changed: Value = serde_json::from_slice(raw).unwrap();
+        changed["oracles"][0]["evidence"][0]["value"] = json!("different history");
+        let changed = canonical::encode(&changed).unwrap();
+        observed.evidence.insert("cluster_oracles".into(), changed);
+        assert_eq!(
+            crate::replay::divergence::first(&record, &observed).as_deref(),
+            Some("backend.evidence.sha256")
+        );
+        observed.evidence.remove("cluster_oracles");
+        assert_eq!(
+            crate::replay::divergence::first(&record, &observed).as_deref(),
+            Some("backend.evidence.sha256")
+        );
+        record.streams.clear();
+        assert_eq!(crate::replay::divergence::first(&record, &observed), None);
+        observed
+            .evidence
+            .insert("cluster_oracles".into(), retained_report);
+        assert_eq!(
+            crate::replay::divergence::first(&record, &observed).as_deref(),
+            Some("backend.evidence.sha256")
+        );
+    }
+}
+
 #[cfg(feature = "determinism-fixture")]
 pub(crate) fn capacity_observation(
     execution: &helper::Execution,
