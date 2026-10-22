@@ -94,8 +94,10 @@ was 52.327s against the 30s soft target, with a 7.362s inner loop.
 Native `Finite`, World-dependent `#[domain]` inputs and checked catalog admission (.2) are
 complete locally with SHIP review, required/timing gates and the refreshed guest's live slice
 and gap proof; timing 56.276s gate, 9.852s inner loop (just under its 10s target).
-On 2026-10-21 the owner paused fn-227 during .8's review; its successors fn-211 and fn-228
-wait with it. fn-233 no longer depends on fn-227 (owner, 2026-10-22).
+On 2026-10-21 the owner paused fn-227 during .8's review. Execution has resumed under
+the active milestone-completion goal, after fn-233 and the approved IR-printer cleanup.
+Its successors fn-211 and fn-228 still await the remaining prerequisites. fn-233 no longer
+depends on fn-227 (owner, 2026-10-22).
 The same day the owner moved the timeout semantics (old R5: facts .9, optional values .10,
 deadlines/Tick/cooperative cancel .4, plus the cooperative-cancellation part of .5 and the final
 one-tick compatibility re-run) to fn-237. fn-227 keeps R3 in full, including .11, so TLC checks
@@ -129,7 +131,7 @@ The review passed; each consumer still waits for its declared support dependenci
 
 | Name | Status | What |
 | --- | --- | --- |
-| fn-227.16 | ⬜ todo | After .15: named IR intermediates so admitted trees stay linear in conditional returns; lift the 10,000-node budget (R3) |
+| fn-227.16 | 🔄 in progress | After .15: named IR intermediates so admitted trees stay linear in conditional returns; lift the 10,000-node budget (R3) |
 | fn-227.3 | ⬜ todo | After .2, .11, .15 and .16: activity attempts/retryable failure and retained-lifecycle refinement (R3, R4) |
 | fn-227.5 | ⬜ todo | After .3 and .12: transactional live World admission (`maximum_attempts`) and SDK retry proof (R6) |
 | fn-227.6 | ⬜ todo | After .5: DESIGN.md parameterized worlds, inputs and retries write-up and readiness table closure (R7) |
