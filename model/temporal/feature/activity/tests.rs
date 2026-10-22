@@ -172,3 +172,56 @@ fn hypothetical_accepted_and_wrong_rejection_refute_registered_closed_rejection(
         }
     }
 }
+
+/// TLC refutes the closure laws the native hypothetical controls refute, on mutants of this
+/// source, which are read as the macro reads them rather than compiled: a reopening, an
+/// accepted step from closure and a wrong rejection.
+#[test]
+fn tlc_refutes_closure_law_mutants_of_this_source() -> umpire_testing::TestResult {
+    use umpire_tlc::Verdict::{Refuted, Verified};
+    if std::env::var("UMPIRE_BACKENDS").as_deref() != Ok("require") {
+        return Ok(());
+    }
+    let manifest = std::path::Path::new(env!("CARGO_MANIFEST_DIR"));
+    let source = std::fs::read_to_string(manifest.join("../feature/activity/model.rs"))?;
+    let tlc = umpire_tlc::Tlc::discover(&manifest.join("../../.."))?;
+    for (edit, laws) in [
+        (None, [Verified, Verified]),
+        (
+            Some((
+                "Worker::Poll if self.phase == Phase::Scheduled =>",
+                "Worker::Poll if self.phase == Phase::Scheduled || self.phase == Phase::Canceled =>",
+            )),
+            [Refuted, Refuted],
+        ),
+        (
+            Some((
+                "Deadline::StartToClose if self.phase == Phase::Started => {",
+                "_ if self.closed() => stay!(),\n                Deadline::StartToClose if self.phase == Phase::Started => {",
+            )),
+            [Verified, Refuted],
+        ),
+        (
+            Some((
+                "Client::Cancel if self.closed() => reject!(Rejection::NotFound),",
+                "Client::Cancel if self.closed() => reject!(Rejection::FailedPrecondition),",
+            )),
+            [Verified, Refuted],
+        ),
+    ] {
+        let mutant = match edit {
+            Some((from, to)) => {
+                assert_eq!(source.matches(from).count(), 1, "{from}");
+                source.replace(from, to)
+            }
+            None => source.clone(),
+        };
+        let module = umpire_lift::Tla::emit(&umpire_lift::Lift::parse("model.rs", &mutant)?)?;
+        let result = tlc.check_module(&module)?;
+        for (law, verdict) in ["terminal_remains", "closed_rejects"].into_iter().zip(laws) {
+            let actual = result.properties[&format!("Post_{law}")].verdict;
+            assert_eq!(actual, verdict, "{law} after {edit:?}");
+        }
+    }
+    Ok(())
+}

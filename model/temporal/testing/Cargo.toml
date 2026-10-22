@@ -24,6 +24,7 @@ umpire-dsl.workspace = true
 umpire-checker.workspace = true
 umpire-testing.workspace = true
 umpire-lift.workspace = true
+umpire-tlc.workspace = true
 umpire-suite.workspace = true
 umpire-temporal.workspace = true
 umpire-temporal-api.workspace = true

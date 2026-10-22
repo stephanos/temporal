@@ -1049,6 +1049,7 @@ dependencies = [
  "umpire-temporal",
  "umpire-temporal-api",
  "umpire-testing",
+ "umpire-tlc",
  "umpire-wasm",
 ]
 
