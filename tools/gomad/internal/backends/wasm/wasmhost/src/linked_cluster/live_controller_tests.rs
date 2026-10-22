@@ -2,6 +2,78 @@ use super::*;
 use serde_json::{Value, json};
 use std::{fs, path::Path};
 
+#[test]
+fn conditional_output_boundary_preserves_wait_lifecycle() {
+    let handle = Handle {
+        node: "a".into(),
+        incarnation: 1,
+    };
+    let handles = BTreeSet::from([handle.clone()]);
+    let mut request = Request {
+        nodes: vec!["a".into()],
+        broker: BrokerConfig {
+            seed: 7,
+            limits: WorldLimits {
+                max_requests: 100,
+                max_events: 100,
+                max_queued_events: 100,
+                max_transitions: 1000,
+                max_payload_bytes: 4096,
+                max_string_bytes: 1024,
+            },
+            pause_on_settle: false,
+        },
+        network: None,
+        incarnations: vec![],
+        steps: vec![
+            Step {
+                action: Action::Start,
+                handle: handle.clone(),
+            },
+            Step {
+                action: Action::Wait,
+                handle: handle.clone(),
+            },
+        ],
+        boundaries: vec![Boundary {
+            handle: handle.clone(),
+            action: Action::Crash,
+            marker: b"committed durable-a".to_vec(),
+        }],
+        crash_groups: vec![],
+        wall_timeout: Duration::from_secs(60),
+        evidence_bytes: 64 << 20,
+    };
+    for boundary_action in [Action::Crash, Action::Stop] {
+        request.boundaries[0].action = boundary_action;
+        for terminal_action in [boundary_action, Action::Wait] {
+            request.steps[1].action = terminal_action;
+            assert_eq!(lifecycle(&request, &handles).unwrap(), ["a"]);
+            assert_eq!(request.steps[1].action, terminal_action);
+        }
+        request.boundaries[0].marker.clear();
+        assert!(lifecycle(&request, &handles).is_err());
+        request.boundaries[0].marker = vec![1; 4097];
+        assert!(lifecycle(&request, &handles).is_err());
+        request.boundaries[0].marker = b"committed durable-a".to_vec();
+        request.boundaries.push(request.boundaries[0].clone());
+        assert!(lifecycle(&request, &handles).is_err());
+        request.boundaries.pop();
+        request.steps[1].action = if boundary_action == Action::Crash {
+            Action::Stop
+        } else {
+            Action::Crash
+        };
+        assert!(lifecycle(&request, &handles).is_err());
+    }
+    request.steps[1].action = Action::Wait;
+    request.boundaries[0].action = Action::Wait;
+    assert!(lifecycle(&request, &handles).is_err());
+    request.boundaries[0].action = Action::Crash;
+    request.boundaries[0].handle.node = "unknown".into();
+    assert!(lifecycle(&request, &handles).is_err());
+}
+
 fn number(value: &Value, field: &str) -> u64 {
     value[field]
         .as_u64()
