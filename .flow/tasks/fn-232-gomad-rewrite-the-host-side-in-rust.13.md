@@ -6,6 +6,11 @@ satisfies: [R12, R13, R14]
 **Touches:** tools/gomad/cmd/gomad, tools/gomad/internal/runner, tools/gomad/internal/evidence, tools/gomad/internal/cli, tools/gomad/Makefile, .github/workflows/gomad.yml, tools/gomad/internal/archcheck/**, tools/gomad/ARCHITECTURE.md, tools/gomad/CLI.md, MILESTONES.md
 
 ## Description
+Current implementation and verification map:
+[Rust qualification design](../artifacts/fn232-rust-qualification-design-2026-10-22.md).
+It maps every transferred live root and the remaining release-executable gates;
+the map records no qualification pass and does not replace those gates.
+
 Frozen Go baseline owner/input index: /home/agent/wt/evidence/fn232/go-baseline-1d7b37f00a/README.md. Preserve its independently copied launcher/helper, source archive and receipts/tool pins for fresh equivalence; it supplies no qualification claim.
 fn-228 R7 receiving acceptance: retain the exact deletion-free replay ledger at .flow/artifacts/fn228-replay-identity-ledger-2026-10-20.md and use the independent receiver index /home/agent/wt/evidence/fn232/fn228-replay-inputs-2026-10-20/FINAL_CUSTODY.md. The verified root inputs.sha256 digest is 8ff5fd82a1b0442c44004c73b90bd0f82806bbb40424f9732a64fc991519afd8; combined/inputs.sha256 is 2d853237dfa74d71e22ff4ad81c027c1a8efdcef6e6e5ec460eb01cc0443fe1a. Receiver-owned handover/, r7-fresh/, source/ and bin/ preserve the exact deletion-free pair c36dddcb3e29498d36ed207d2a5b9f4013b32cb2 → 12cdc816727a232eb7d0b1ff26cc3cfe951527ea, helper b25439140f0c850a82f99471c9fd48ac864569a75e407a76850873f6ece055a1 → ab4059583f7d3ca265cdbce2de064cd2e54b744b9943cf38e2addf45e1825193, and WASI ModelSHA256 73c1a4f3f64dedd4c18dad47849f6dcc8bc04d08e27067dedd096acde05e2e60 → 18a88761bf147ca7436ffe0782e6a4c6f9ddf816e782bd42a90ea41a492987b7 from the four measured WASI input changes. Full old/new source manifests and exact per-artifact BuildKey/Choice/tape/failure values remain unmodified in that custody. The earlier fresh own-artifact comparison passed with zero branching; separate 407-terminal/full-divergence comparisons and 59-fixture/nonzero prefix-oracle checks do not replace final qualification. These are Go-lineage historical inputs, not artifacts to migrate or cross-admit under Rust.
 
