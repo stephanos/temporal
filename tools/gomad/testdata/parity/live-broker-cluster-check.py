@@ -208,14 +208,54 @@ def raw_input(row, payload, work, index):
                 modules=payload['modules'], controls=controls, forcing=forcing)
 
 
-def compare(output, row):
+def forged_storage_cleanup(row):
+    absent = [state for state in row['states']
+              if state.get('collection', {}).get('status') == 'host_cleanup_without_result']
+    if not absent:
+        return None
+    assert row['test'] in {observe.ROOTS[34] + f'/storage-crash/seed-{seed}' for seed in (7, 19, 42)}
+    expected = {(state['handle']['ID'], state['handle']['Incarnation']): state for state in row['states']}
+    assert len(row['states']) == len(expected) == 2 and set(expected) == {('a', 1), ('b', 1)}
+    assert len(absent) == 1 and absent[0] is expected['b', 1]
+    for state in row['states']:
+        observe.validate_collection(state, row['result']['GroupGone'])
+    assert expected['a', 1]['collection']['status'] == 'collected'
+    original = expected['a', 1]['result']
+    assert original['Termination'] == 'invalid' and original['Message'] == 'storage crash context diverged from prior observation'
+    assert original['StorageImage'] is None
+    assert row['result']['GroupGone'] is True and row['result']['Frames']['Results'] == 1
+    assert [(step['action'], step['node'], step['incarnation']) for step in row['steps']] == [
+        ('start', 'a', 1), ('start', 'b', 1), ('wait', 'a', 1)]
+    instances = {item['ID']: item['Request'] for item in row['configuration']['Instances']}
+    assert len(row['configuration']['Instances']) == 2 and set(instances) == {'a', 'b'}
+    context = instances['a']['StorageCrashContext']
+    assert set(context) == {'a-store'} and context['a-store']['PendingSHA256'] == 'sha256:' + '0' * 64
+    return 'b', 1
+
+
+def compare(output, row, process_exit=None):
     summary = json.loads((output / 'result.json').read_bytes())
     assert summary['schema'] == 'gomad.live-cluster-observation/v1' and summary['execution_returned']
     expected = {(item['handle']['ID'], item['handle']['Incarnation']): item for item in row['states']}
-    assert len(summary['incarnations']) == len(expected)
+    uncollected = forged_storage_cleanup(row)
+    if uncollected is None:
+        assert len(summary['incarnations']) == len(expected)
+    else:
+        assert process_exit == 0, 'original host cleanup requires actual completed CLI process'
+        assert summary['outcome']['termination'] == 'invalid'
+        assert summary['outcome']['message'] == expected['a', 1]['result']['Message']
+        assert [(step['action'], step['handle']['node'], step['handle']['incarnation']) for step in summary['executed_steps']] == [
+            ('start', 'a', 1), ('start', 'b', 1), ('wait', 'a', 1)]
+        handles = [(item['handle']['node'], item['handle']['incarnation']) for item in summary['incarnations']]
+        assert len(handles) == len(set(handles)) and ('a', 1) in handles and set(handles) <= set(expected)
+        image = output / 'incarnations/a/1/storage_image'
+        assert not image.exists() or not image.read_bytes(), 'forged context produced a storage image'
     for item in summary['incarnations']:
         handle, actual = item['handle'], item['outcome']
         state = expected[handle['node'], handle['incarnation']]
+        if (handle['node'], handle['incarnation']) == uncollected:
+            assert actual['termination'], 'uncollected original peer cannot supply a phantom Rust result'
+            continue
         result = state['result']
         assert actual['termination'] == result['Termination'], (row['test'], actual, result['Termination'])
         assert actual.get('exit_code') == result['ExitCode']
@@ -241,6 +281,11 @@ def compare(output, row):
             assert metrics['execute_nanos'] > 0 and metrics['resource_usage_available'] and metrics['peak_rss_bytes'] > 0
             assert summary['wall_elapsed_nanos'] > 0
             assert item['authorization_to_terminal_nanos'] > 0
+    if uncollected is not None:
+        return dict(kind='original-forged-storage-negative', uncollected_go_peer=dict(node='b', incarnation=1),
+                    go_collected_results=1, rust_published_results=len(summary['incarnations']),
+                    cleanup='actual CLI exit0 after linked execution returned', collected_network_compared=True,
+                    unpublished_original_aggregate='no original final World/network assertion in this negative case')
     assert (output / 'streams/world').read_bytes() == b64(row['result']['World'])
     assert (output / 'streams/network').read_bytes() == b64(row['network_wire'])
     if 'Frames' in row['result']:
@@ -262,6 +307,7 @@ def main():
     assert sha((observations / 'test-only-helper.go').read_bytes()) == derivation['helper_sha256']
     assert sha((observations / 'test-only.diff').read_bytes()) == derivation['diff_sha256']
     index = json.loads((observations / 'observation-index.json').read_bytes())
+    observe.validate_versions(index, derivation)
     assert index['derivation_sha256'] == sha((observations / 'derivation.json').read_bytes())
     assert index['go_test_sha256'] == sha((observations / 'go-test.jsonl').read_bytes())
     rows, brokers, runs = [], [], []
@@ -269,6 +315,8 @@ def main():
         assert Path(name).name == name
         raw = (observations / 'observations' / name).read_bytes()
         assert len(raw) == descriptor['bytes'] and sha(raw) == descriptor['sha256']
+        if name.endswith('.json'):
+            observe.validate_row(json.loads(raw), index)
         if name.startswith('broker-'):
             brokers.append(json.loads(raw))
         if name.startswith('observation-'):
@@ -293,7 +341,8 @@ def main():
         receipts.append(dict(test=row['test'], command=command, exit=result.returncode))
         (work / 'commands.json').write_bytes(canonical(receipts))
         assert result.returncode == 0, (row['test'], result.stderr)
-        compare(output, row)
+        receipts[-1]['comparison'] = compare(output, row, process_exit=result.returncode)
+        (work / 'commands.json').write_bytes(canonical(receipts))
         if row['test'].startswith(observe.ROOTS[36] + '/') and row['steps'][0]['runtime']['Choice']['Mode'] == 1:
             fixture = row['test'].split('/')[-1]
             raw = (output / 'incarnations/a/1/choice').read_bytes()

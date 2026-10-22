@@ -1,6 +1,7 @@
 #!/usr/bin/env python3
 """Observe the unchanged Go-owner assertions in an explicitly derived test checkout."""
 import argparse
+import base64
 import hashlib
 from datetime import datetime, timezone
 import json
@@ -97,6 +98,7 @@ func providerObserveFinish(t *testing.T, opened gomadsim.WASMExecution) (gomadsi
 HELPER = r'''package wasi
 
 import (
+    "bytes"
     "context"
     "crypto/sha256"
     "encoding/json"
@@ -110,6 +112,57 @@ import (
 
 var brokerObservationOrdinal atomic.Uint64
 var brokerObservationWorld sync.Map
+var brokerObservationNetworks sync.Map
+
+type brokerObservedNetwork struct { wire, document []byte }
+
+func brokerObserveNetwork(state *clusterState) error {
+    if (len(state.network) == 0) != (len(state.result.NetworkTranscript) == 0) {
+        return fmt.Errorf("unpaired collected network evidence")
+    }
+    captured := brokerObservedNetwork{append([]byte(nil), state.network...), append([]byte(nil), state.result.NetworkTranscript...)}
+    if _, loaded := brokerObservationNetworks.LoadOrStore(state, captured); loaded {
+        return fmt.Errorf("duplicate pre-clear network observation")
+    }
+    return nil
+}
+
+type brokerObservedCollection struct {
+    Status string `json:"status"`
+    SinkRetained bool `json:"sink_retained"`
+    StateError string `json:"state_error"`
+    DoneClosed bool `json:"done_closed"`
+    Classified bool `json:"classified"`
+    Reaped bool `json:"reaped"`
+    GroupGone bool `json:"group_gone"`
+    WireBytes int `json:"wire_bytes"`
+    DocumentBytes int `json:"document_bytes"`
+}
+
+func brokerObservedNetworkFor(state *clusterState, groupGone bool) ([]byte, brokerObservedCollection, error) {
+    status := brokerObservedCollection{SinkRetained:state.sink != nil,
+        Classified:!state.executionClassifiedAt.IsZero(), Reaped:state.result.Reaped,
+        GroupGone:groupGone, WireBytes:len(state.network), DocumentBytes:len(state.result.NetworkTranscript)}
+    if state.err != nil { status.StateError = state.err.Error() }
+    select { case <-state.done: status.DoneClosed = true; default: }
+    value, ok := brokerObservationNetworks.LoadAndDelete(state)
+    if !ok {
+        if status.SinkRetained && status.StateError != "" && status.DoneClosed && status.Classified &&
+            status.Reaped && status.GroupGone && state.result.Termination == "" &&
+            status.WireBytes == 0 && status.DocumentBytes == 0 {
+            status.Status = "host_cleanup_without_result"
+            return nil, status, nil
+        }
+        return nil, status, fmt.Errorf("missing pre-clear network observation")
+    }
+    captured, ok := value.(brokerObservedNetwork)
+    if !ok || status.SinkRetained || !bytes.Equal(captured.document, state.result.NetworkTranscript) {
+        return nil, status, fmt.Errorf("changed collected network document")
+    }
+    status.Status = "collected"
+    status.WireBytes = len(captured.wire)
+    return captured.wire, status, nil
+}
 
 func brokerObserveWorld(broker *Broker) ([]byte, error) {
     world, err := broker.EncodeWorldEvidence()
@@ -144,7 +197,7 @@ func brokerObserveRun(t *testing.T, ctx context.Context, request Request) (Resul
         var image []byte
         imageIdentity := ""
         if result.StorageImage != nil { image, imageIdentity = result.StorageImage.data, result.StorageImage.Identity() }
-        raw, marshalErr := json.Marshal(map[string]any{"test":t.Name(), "ordinal":ordinal,
+        raw, marshalErr := json.Marshal(map[string]any{"test":t.Name(), "ordinal":ordinal, "go_owner_implementation_sha256":ImplementationSHA256(),
             "remote_model":remote, "node":node, "request":snapshot, "result":result,
             "storage_image":image, "storage_image_identity":imageIdentity, "request_storage_image":priorImage})
         if marshalErr != nil { t.Error(marshalErr); return }
@@ -173,7 +226,7 @@ func brokerObserveNew(t *testing.T, configuration BrokerConfig) (*Broker, error)
             if recordErr != nil { t.Error(recordErr); return }
             network = record
         }
-        raw, marshalErr := json.Marshal(map[string]any{"test":t.Name(), "ordinal":ordinal,
+        raw, marshalErr := json.Marshal(map[string]any{"test":t.Name(), "ordinal":ordinal, "go_owner_implementation_sha256":ImplementationSHA256(),
             "configuration":configuration, "world":world, "network":network})
         if marshalErr != nil { t.Error(marshalErr); return }
         path := filepath.Join(os.Getenv("GOMAD_BROKER_OBSERVATION_ROOT"), fmt.Sprintf("broker-%06d.json",ordinal))
@@ -231,11 +284,13 @@ func brokerObserveOpen(t *testing.T, ctx context.Context, configuration ClusterR
                 streams = map[string][]byte{"choice":evidence.choice,"diagnostic":evidence.diagnostic,"transcript":evidence.transcript,
                     "stdout":evidence.stdout,"stderr":evidence.stderr,"storage":evidence.storage,"storage_state":evidence.storageState,"storage_image":evidence.storageImage}
             }
-            states = append(states, map[string]any{"handle":handle, "result":state.result, "network_wire":state.network, "streams":streams})
+            network, collection, observeErr := brokerObservedNetworkFor(state, session.result.GroupGone)
+            if observeErr != nil { session.mu.Unlock(); t.Error(observeErr); return }
+            states = append(states, map[string]any{"handle":handle, "result":state.result, "network_wire":network, "collection":collection, "streams":streams})
         }
         result := session.result
         session.mu.Unlock()
-        raw, err := json.Marshal(map[string]any{"test":t.Name(), "ordinal":ordinal,
+        raw, err := json.Marshal(map[string]any{"test":t.Name(), "ordinal":ordinal, "go_owner_implementation_sha256":ImplementationSHA256(),
             "configuration":input, "steps":wrapped.steps, "states":states, "result":result, "network_wire":session.networkWire, "reverse_insertion":wrapped.reverseInsertion})
         if err != nil { t.Error(err); return }
         if err := os.WriteFile(filepath.Join(root, fmt.Sprintf("cluster-%06d.json",ordinal)), raw, 0600); err != nil { t.Error(err) }
@@ -306,6 +361,71 @@ def instrument(raw):
     return source.encode()
 
 
+NETWORK_CAPTURE = 'successful-original-collect/pre-clear-owned-copy'
+
+
+def instrument_cluster(raw):
+    collected = b'\t\tif err := state.collect(frame, s.config.Broker, inspecting); err != nil {\n\t\t\treturn err\n\t\t}\n'
+    clearing = b'\t\tstate.sink = nil\n\t\tstate.network = nil\n'
+    boundary = collected + clearing
+    if raw.count(boundary) != 1:
+        raise ValueError('original cluster collection boundary changed')
+    return raw.replace(boundary, collected +
+        b'\t\tif err := brokerObserveNetwork(state); err != nil { return err }\n' + clearing)
+
+
+def validate_versions(index, derivation):
+    version = index.get('schema')
+    if version == 'gomad.live-broker-observation-index/v1':
+        if derivation.get('schema') != 'gomad.live-broker-observation-derivation/v1' or 'network_capture' in index or 'network_capture' in derivation:
+            raise ValueError('mixed original observation versions')
+        return
+    if version != 'gomad.live-broker-observation-index/v2' or derivation.get('schema') != 'gomad.live-broker-observation-derivation/v2':
+        raise ValueError('unknown observation version')
+    capture = index.get('network_capture')
+    if not isinstance(capture, dict) or capture != derivation.get('network_capture') or set(capture) != {'boundary', 'derived_go_implementation_sha256'} or capture.get('boundary') != NETWORK_CAPTURE or not re.fullmatch(r'sha256:[0-9a-f]{64}', capture.get('derived_go_implementation_sha256', '')):
+        raise ValueError('invalid network capture identity')
+    source = derivation.get('cluster_source')
+    if not isinstance(source, dict) or source.get('path') != 'tools/gomad/internal/backends/wasm/wasi/cluster.go' or any(not re.fullmatch(r'[0-9a-f]{64}', source.get(field, '')) for field in ('original_sha256', 'observed_sha256')) or source['original_sha256'] == source['observed_sha256']:
+        raise ValueError('invalid derived cluster source binding')
+
+
+def validate_collection(state, group_gone):
+    collection = state.get('collection')
+    fields = {'status', 'sink_retained', 'state_error', 'done_closed', 'classified', 'reaped',
+              'group_gone', 'wire_bytes', 'document_bytes'}
+    if not isinstance(collection, dict) or set(collection) != fields:
+        raise ValueError('missing typed collection status')
+    if any(type(collection[name]) is not bool for name in ('sink_retained', 'done_closed', 'classified', 'reaped', 'group_gone')) or not isinstance(collection['state_error'], str):
+        raise ValueError('invalid collection lifecycle types')
+    if any(collection[name] is not True for name in ('done_closed', 'classified', 'reaped', 'group_gone')) or group_gone is not True or state['result'].get('Reaped') is not True:
+        raise ValueError('unclosed original collection lifecycle')
+    if 'network_wire' not in state:
+        raise ValueError('missing observed network wire field')
+    wire = base64.b64decode(state['network_wire'] or '', validate=True)
+    document = base64.b64decode(state['result'].get('NetworkTranscript') or '', validate=True)
+    if any(type(collection[name]) is not int for name in ('wire_bytes', 'document_bytes')) or collection['wire_bytes'] != len(wire) or collection['document_bytes'] != len(document):
+        raise ValueError('collection byte accounting mismatch')
+    if collection['status'] == 'collected':
+        if collection['sink_retained'] or collection['state_error'] or not state['result'].get('Termination') or bool(wire) != bool(document):
+            raise ValueError('invalid collected network evidence')
+    elif collection['status'] == 'host_cleanup_without_result':
+        if not collection['sink_retained'] or not collection['state_error'] or state['result'].get('Termination') != '' or wire or document:
+            raise ValueError('ambiguous uncollected host cleanup')
+    else:
+        raise ValueError('unknown collection status')
+    return collection['status']
+
+
+def validate_row(row, index):
+    if index['schema'] != 'gomad.live-broker-observation-index/v2':
+        return
+    if row.get('go_owner_implementation_sha256') != index['network_capture']['derived_go_implementation_sha256']:
+        raise ValueError('observed derived Go identity mismatch')
+    for state in row.get('states', []):
+        validate_collection(state, row['result'].get('GroupGone'))
+
+
 def instrument_provider(raw):
     source = raw.decode()
     pattern = r'(^func ' + ROOTS[19] + r'\(.*?)(?=^func |\Z)'
@@ -347,10 +467,28 @@ def validate_events(raw, roots):
 def index_observations(root):
     files = {path.name: dict(bytes=path.stat().st_size, sha256=sha(path.read_bytes()))
              for path in sorted((root / 'observations').iterdir()) if path.is_file()}
-    (root / 'observation-index.json').write_text(json.dumps(dict(
-        schema='gomad.live-broker-observation-index/v1',
-        derivation_sha256=sha((root / 'derivation.json').read_bytes()),
-        go_test_sha256=sha((root / 'go-test.jsonl').read_bytes()), files=files), indent=2) + '\n')
+    derivation_path = root / 'derivation.json'
+    derivation = json.loads(derivation_path.read_bytes())
+    version = 2 if derivation['schema'] == 'gomad.live-broker-observation-derivation/v2' else 1
+    capture = None
+    if version == 2:
+        rows = [json.loads((root / 'observations' / name).read_bytes()) for name in files if name.endswith('.json')]
+        identities = {row.get('go_owner_implementation_sha256') for row in rows}
+        if len(identities) != 1 or not re.fullmatch(r'sha256:[0-9a-f]{64}', next(iter(identities), '') or ''):
+            raise ValueError('missing or inconsistent derived Go identity')
+        capture = dict(boundary=NETWORK_CAPTURE, derived_go_implementation_sha256=identities.pop())
+        derivation['network_capture'] = capture
+        derivation_path.write_text(json.dumps(derivation, indent=2) + '\n')
+    index = dict(schema=f'gomad.live-broker-observation-index/v{version}',
+        derivation_sha256=sha(derivation_path.read_bytes()),
+        go_test_sha256=sha((root / 'go-test.jsonl').read_bytes()), files=files)
+    if capture is not None:
+        index['network_capture'] = capture
+    validate_versions(index, derivation)
+    if version == 2:
+        for row in rows:
+            validate_row(row, index)
+    (root / 'observation-index.json').write_text(json.dumps(index, indent=2) + '\n')
 
 
 def main():
@@ -383,10 +521,21 @@ def main():
     helper = derived / relative.parent / 'live_broker_observation_test.go'
     helper.write_text(PROVIDER_HELPER if provider else HELPER)
     subprocess.run([str(args.compiler.resolve().with_name('gofmt')), '-w', str(helper)], check=True)
-    diff = subprocess.check_output(['git', '-C', str(derived), 'diff', '--', str(relative)])
+    changed = [str(relative)]
+    cluster_source = None
+    if not provider:
+        cluster_path = Path('tools/gomad/internal/backends/wasm/wasi/cluster.go')
+        original_cluster = (source / cluster_path).read_bytes()
+        if (derived / cluster_path).read_bytes() != original_cluster:
+            raise ValueError('cluster source differs from committed derivation base')
+        observed_cluster = instrument_cluster(original_cluster)
+        (derived / cluster_path).write_bytes(observed_cluster)
+        changed.append(str(cluster_path))
+        cluster_source = dict(path=str(cluster_path), original_sha256=sha(original_cluster), observed_sha256=sha(observed_cluster))
+    diff = subprocess.check_output(['git', '-C', str(derived), 'diff', '--', *changed])
     (work / 'test-only.diff').write_bytes(diff)
     (work / 'test-only-helper.go').write_bytes(helper.read_bytes())
-    identity = dict(schema='gomad.live-broker-observation-derivation/v1',
+    identity = dict(schema='gomad.live-broker-observation-derivation/v1' if provider else 'gomad.live-broker-observation-derivation/v2',
                     scope='derived test-only observation; not frozen baseline or qualification',
                     base_commit=base, source=str(source), derived=str(derived),
                     compiler_sha256=sha(args.compiler.resolve().read_bytes()), oracle_helper_sha256=sha(args.helper.resolve().read_bytes()),
@@ -394,6 +543,9 @@ def main():
                     helper_sha256=sha(helper.read_bytes()), diff_sha256=sha(diff), roots=roots,
                     original_source_path=str(relative),
                     oracle_role='original-private-go-broker-reference-and-original-one-helper-provider' if provider else 'original-go-owner')
+    if cluster_source is not None:
+        identity['cluster_source'] = cluster_source
+        identity['derived_go_identity_role'] = 'actual derived embedded source identity; not frozen baseline identity'
     (work / 'derivation.json').write_text(json.dumps(identity, indent=2) + '\n')
     if args.derive_only:
         return
@@ -402,7 +554,7 @@ def main():
     output.mkdir(mode=0o700)
     environment.update(GOMAD_STOCK_GO=str(args.compiler.resolve()), GOMAD_WASM_TEST_HELPER=str(args.helper.resolve()),
                        GOMAD_BROKER_OBSERVATION_ROOT=str(output), GOENV='off', GOTOOLCHAIN='local', GOWORK='off')
-    command = [str(args.compiler.resolve()), 'test', '-json', '-tags', 'test_dep', '-count=1', '-timeout=30m',
+    command = [str(args.compiler.resolve()), 'test', '-json', '-tags', 'test_dep', '-parallel=1', '-count=1', '-timeout=30m',
                '-run', '^(' + '|'.join(ROOTS[root] for root in roots) + ')$',
                './internal/backends/wasm/cluster' if provider else './internal/backends/wasm/wasi']
     started = datetime.now(timezone.utc).isoformat()
