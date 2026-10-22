@@ -1,0 +1,65 @@
+{
+  "task": "fn-227-parameterized-models-declared-worlds.5",
+  "base": "c8e29dc48b6dd2a77fb51cae1eb682ed517b3e55",
+  "production_checkpoint": "2554d54ac3aa37480d367a7375866e2b601ea99b",
+  "reviewed_correction": "059795fab050ed9eb2ef02be892745b88a82146c",
+  "tested_head": "fcbed683496e760acab514788f0e4be26dd55d2c",
+  "closure": "232677d27512732bf17fca730541216f8ae9f77b",
+  "flow_status": "done",
+  "validation": "valid;13 tasks;no errors or warnings",
+  "gate_classification": "FULL: unmatched model/README.md",
+  "gate_receipts": [
+    {
+      "gate": "unittest",
+      "command": "UMPIRE_BACKENDS=require make model-time",
+      "outcome": "HONORED",
+      "receipt": "fcbed683"
+    },
+    {
+      "gate": "gaps",
+      "command": "make umpire-check-model-gaps",
+      "outcome": "HONORED",
+      "receipt": "fcbed683"
+    }
+  ],
+  "timing": {
+    "gate_seconds": 581.229,
+    "gate_soft_target_seconds": 60,
+    "inner_seconds": 6.084,
+    "inner_soft_target_seconds": 10,
+    "full_outer_wall_seconds": 587.5282940864563,
+    "context": "shared-host whole-gate observation; no isolated performance claim"
+  },
+  "live": {
+    "current_delayed_slice": "all seven scenarios passed; actual idempotent Start false and retry attempt2 Scheduled before Poll release, then completion",
+    "gap_go_test_seconds": 361.572,
+    "gap_outer_wall_seconds": 367.0849139690399,
+    "required_gap_privacy_controls": "both passed"
+  },
+  "guest_sha256": "f832a33c3024a8752976d146be839b62a95afde4790fa0db60f1dac9004b4e7e",
+  "verification": "Root read actual final SHIP, handover and terminal full/live/gap evidence; verified54 raw/gzip logs including hashes/bytecounts/roundtrips, final16source surface hashes, all819 before/after golden pairs (817exact;twoauthorizedmirrors),15 original artifacts and unchanged independentModel/coreproduction/compatibility source.",
+  "audits": {
+    "correctness": {
+      "findings": 0,
+      "new_in_addendum": 0,
+      "unresolved": 0
+    },
+    "standards": {
+      "findings": 0,
+      "new_in_addendum": 0,
+      "unresolved": 0
+    },
+    "normal_review": "One P2 scheduling race missed by quality audit; actual delayed old-path red committed2bdcbd9d39, Poll permit correction059795 with same control green and normalfollowupSHIP. No Model change.",
+    "withdrawn_candidate": "Existing State/Unsupported assertion already discriminates premature full Freeze; no unnecessary fix.",
+    "test_budget": "Mandatory native and Wasm atomicity/identity/live regression matrices justify advisory gross ratio before excluding setup."
+  },
+  "review_execution_limit": "Reviewer could not create build files in read-only sandbox; writer actual gates plus root terminal/hash verification provide execution evidence.",
+  "whitespace": "Scoped git diff --check base HEAD -- model tests passed",
+  "worktrees": "Single checkout on umpire; prune complete; worker reports no owned command live; full/gap original processes terminal.",
+  "disk_free_gib_approx": 98,
+  "cleanup": "Parent open; owned scratch and protected certification proofs retained.",
+  "plan_sync": "skipped(config false)",
+  "tracker_sync": "n/a (bridge inactive); root sync check firstClaim,done since22:30:09.443895Z returned empty successfully",
+  "publication": "local only; no push or PR",
+  "next": "fn-227-parameterized-models-declared-worlds.6"
+}

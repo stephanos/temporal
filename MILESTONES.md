@@ -129,20 +129,24 @@ and all 21 retry/ending coverage cases have witnesses. The one-attempt projectio
 matches the retained six-state lifecycle, including direct deadlines and atomic cancellation.
 All 15 original artifacts remain hash-verified. Final required gate took 529.403s against 60s;
 inner loop 6.179s met its 10s target, and live gap/privacy controls passed in 358.223s.
-Actual-request World admission and live SDK retry remain with .5.
+.5 is complete locally with SHIP review and all full/live gates passed. The actual captured
+Start selects a World with one through three attempts; immutable receipt replay, first refusal
+freeze and Reset publish transactionally. Native and actual Wasm allocation controls pass.
+The SDK retry proof synchronizes actual Poll RPCs and retains a delayed-observation red/green
+regression. All seven live slice scenarios and gap/privacy controls pass. The final required
+gate took 581.229s against 60s; inner loop 6.084s met 10s. Documentation/readiness remains in .6.
 On 2026-10-21 the owner approved all three contract amendments: lifecycle refinement
 in place of impossible old-byte equality; cooperative cancellation with explicit protocol
 evidence; and optional actual-request Observation evidence at tag 4. Heartbeat signals a
 pending request without closing, and completion/failure races remain. Preserve old lifecycle
 evidence and prove the stated projection, including the final one-tick compatibility World.
-The twelve-task decomposition separates native/source inputs, facts, optional ticks,
-phase/rejection lifting and request capture from their activity/live consumers.
+The support tasks separate native/source inputs, facts, phase/rejection lifting and request
+capture from their activity/live consumers; optional ticks remain in fn-237.
 The review passed; each consumer still waits for its declared support dependencies.
 [Spec](.flow/specs/fn-227-parameterized-models-declared-worlds.md).
 
 | Name | Status | What |
 | --- | --- | --- |
-| fn-227.5 | 🔄 in progress | After .3 and .12: transactional live World admission (`maximum_attempts`) and SDK retry proof (R6) |
 | fn-227.6 | ⬜ todo | After .5: DESIGN.md parameterized worlds, inputs and retries write-up and readiness table closure (R7) |
 
 ### fn-238: Shared front end: one Model reading for the native checker and the lifter (model)
