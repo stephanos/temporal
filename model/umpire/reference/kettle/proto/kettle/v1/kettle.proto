@@ -1,0 +1,94 @@
+syntax = "proto3";
+package umpire.reference.kettle.v1;
+option go_package = "umpire.local/model/reference/kettle/v1;kettlev1";
+import "google/protobuf/duration.proto";
+service KettleService {
+  rpc Fill(FillRequest) returns (FillResponse);
+  rpc Heat(HeatRequest) returns (HeatResponse);
+  rpc Pour(PourRequest) returns (PourResponse);
+  rpc Describe(DescribeRequest) returns (DescribeResponse);
+  rpc PollHeating(PollHeatingRequest) returns (PollHeatingResponse);
+  rpc RespondHeating(RespondHeatingRequest) returns (RespondHeatingResponse);
+  rpc ListKettles(ListKettlesRequest) returns (ListKettlesResponse);
+  rpc ResetKettle(ResetKettleRequest) returns (ResetKettleResponse);
+}
+message State {
+  int32 temperature = 1;
+  bool heating_on = 2;
+  bool beeping = 3;
+}
+enum HeatingAction {
+  HEATING_ACTION_UNSPECIFIED = 0;
+  HEATING_ACTION_HEAT = 1;
+  HEATING_ACTION_FAILOVER = 2;
+}
+message FillRequest {
+  message FillOptions {
+    enum WaterKind {
+      WATER_KIND_UNSPECIFIED = 0;
+      WATER_KIND_TAP = 1;
+      WATER_KIND_FILTERED = 2;
+    }
+    WaterKind water_kind = 1;
+    oneof source {
+      string tap = 2;
+      bytes cartridge = 3;
+    }
+    map<string, string> labels = 4;
+    repeated string tags = 5;
+    google.protobuf.Duration timeout = 6;
+    string legacy_note = 7 [deprecated = true];
+  }
+  string kettle_id = 1;
+  FillOptions options = 2;
+  string idempotency_key = 3;
+}
+message FillResponse {
+  State state = 1;
+}
+message HeatRequest {
+  string kettle_id = 1;
+  bool enabled = 2;
+}
+message HeatResponse {
+  State state = 1;
+}
+message PourRequest {
+  string kettle_id = 1;
+}
+message PourResponse {
+  State state = 1;
+}
+message DescribeRequest {
+  string kettle_id = 1;
+}
+message DescribeResponse {
+  State state = 1;
+}
+message PollHeatingRequest {
+  string kettle_id = 1;
+}
+message PollHeatingResponse {
+  State state = 1;
+  HeatingAction action = 2;
+  string kettle_id = 3;
+}
+message RespondHeatingRequest {
+  string kettle_id = 1;
+  HeatingAction action = 2;
+}
+message RespondHeatingResponse {
+  State state = 1;
+  HeatingAction action = 2;
+}
+message ListKettlesRequest {
+}
+message ListKettlesResponse {
+  repeated string kettle_ids = 1;
+}
+message ResetKettleRequest {
+  string kettle_id = 1;
+}
+message ResetKettleResponse {
+  State state = 1;
+}

@@ -1,0 +1,39 @@
+{
+  "baseline": "green focused runtime and configured Go host suite before edits; initial wrong-cwd and missing-profile-env invocations corrected before baseline",
+  "model_gate_elapsed_seconds": 426.52,
+  "observations": [
+    {
+      "command": "make model-check",
+      "exit_code": 0,
+      "log": ".flow/tmp/fn-233/task2-model-check.log",
+      "sha256": "b13ebc17b0429113a6f824baba559cb6517a4aaacb10a1c10c80efd0071ac286"
+    },
+    {
+      "command": "cd model/umpire/hosts/go && mise exec -- go test -tags test_dep -count=1 -run '^TestKettle' .",
+      "exit_code": 0,
+      "log": ".flow/tmp/fn-233/task2-live-green.log",
+      "sha256": "39003d812d02236f36f7b56f9a2b42c5d9a698e08aa75b5d24448fae60b62357"
+    },
+    {
+      "command": "golangci-lint v2.13.1 run --build-tags test_dep --new-from-patch <task2-go.patch> ./... (generic host module, repository config)",
+      "exit_code": 0,
+      "log": ".flow/tmp/fn-233/task2-go-lint.log",
+      "sha256": "e92606b0bf483111dff0a120c315ea165821348f31365020e2468a0059095c47"
+    },
+    {
+      "command": "make lint-code-fast GOLANGCI_LINT_BASE_REV=82ce151d4c8f634012a527f6001ca7f84cab04ed GOLANGCI_LINT_FIX=false",
+      "exit_code": 0,
+      "log": ".flow/tmp/fn-233/task2-root-lint-scoped.log",
+      "sha256": "189777baf01a1f7a2788fbffb301f153ab7044ff664de20c80d2c2fe0bad4fa4"
+    },
+    {
+      "command": "cd model/umpire/hosts/go && mise exec -- go test -tags test_dep -run '^TestKettle' . (guest missing)",
+      "exit_code": 1,
+      "log": ".flow/tmp/fn-233/task2-live-red.log",
+      "sha256": "c2347f84249f7a93efe4a95a5009c5e65f9c17cf5383c4fd19ad8fc2684693c5"
+    }
+  ],
+  "canonical_kettle_model_and_goldens": "unchanged; reference report byte-identical to canonical",
+  "root_lint_default": "inherited unrelated findings and default autofixes; saved induced diff and restored all 10 unrelated files; task-base check with FIX=false passed",
+  "review_family": "same-family by explicit repository routing"
+}

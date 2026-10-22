@@ -8,6 +8,7 @@ target=$(cd "$target" && pwd -P)
 export CARGO_TARGET_DIR="$target"
 for pair in \
   umpire-stock-guest:umpire_stock_guest \
+  umpire-kettle-guest:umpire_kettle_guest \
   umpire-control-guest:stateful_control \
   umpire-temporal-guest:umpire_temporal_guest \
   umpire-caught-panic-guest:caught_panic_control \

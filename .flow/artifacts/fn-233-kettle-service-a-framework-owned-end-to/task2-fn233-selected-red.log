@@ -1,0 +1,39 @@
+   Compiling umpire-wasm v0.0.1 (/Users/stephan/Workspace/skunkworks/umpire/temporal/model/umpire/wasm)
+error[E0599]: no associated function or constant named `with_initial` found for struct `Runtime<M, R>` in the current scope
+   --> umpire/wasm/tests/selected_start.rs:72:14
+    |
+ 72 |     Runtime::with_initial(World, support::Realization, State { value: 1, marker: false })
+    |              ^^^^^^^^^^^^ associated function or constant not found in `Runtime<_, _>`
+    |
+note: if you're trying to build a new `Runtime<_, _>`, consider using `Runtime::<M, R>::new` which returns `Runtime<_, _>`
+   --> umpire/wasm/src/runtime.rs:118:5
+    |
+118 |     pub fn new(machine: M, realization: R) -> Self {
+    |     ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+error[E0599]: no associated function or constant named `with_initial` found for struct `Runtime<M, R>` in the current scope
+   --> umpire/wasm/tests/selected_start.rs:108:37
+    |
+108 |         let Err(refusal) = Runtime::with_initial(World, support::Realization, state) else {
+    |                                     ^^^^^^^^^^^^ associated function or constant not found in `Runtime<_, _>`
+    |
+note: if you're trying to build a new `Runtime<_, _>`, consider using `Runtime::<M, R>::new` which returns `Runtime<_, _>`
+   --> umpire/wasm/src/runtime.rs:118:5
+    |
+118 |     pub fn new(machine: M, realization: R) -> Self {
+    |     ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+error[E0599]: no associated function or constant named `with_initial` found for struct `Runtime<M, R>` in the current scope
+   --> umpire/wasm/tests/selected_start.rs:114:31
+    |
+114 |         let result = Runtime::with_initial(
+    |                               ^^^^^^^^^^^^ associated function or constant not found in `Runtime<_, _>`
+    |
+note: if you're trying to build a new `Runtime<_, _>`, consider using `Runtime::<M, R>::new` which returns `Runtime<_, _>`
+   --> umpire/wasm/src/runtime.rs:118:5
+    |
+118 |     pub fn new(machine: M, realization: R) -> Self {
+    |     ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+For more information about this error, try `rustc --explain E0599`.
+error: could not compile `umpire-wasm` (test "selected_start") due to 3 previous errors

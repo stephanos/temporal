@@ -90,6 +90,7 @@ pub struct Runtime<M: Machine, R: Realize<M>> {
     machine: M,
     realization: R,
     state: Option<M::State>,
+    initial: Option<M::State>,
     frozen: Option<protocol::Unexplained>,
     exploration: Option<umpire_checker::Result<M>>,
 }
@@ -117,7 +118,38 @@ impl<M: Machine, R: Realize<M>> Runtime<M, R> {
     /// Creates a private run. Stateful calls refuse zero or multiple declared starts.
     pub fn new(machine: M, realization: R) -> Self {
         let state = unique_start(&machine).ok();
-        Self { machine, realization, state, frozen: None, exploration: None }
+        Self {
+            machine,
+            realization,
+            initial: state.clone(),
+            state,
+            frozen: None,
+            exploration: None,
+        }
+    }
+
+    /// Creates a private run from an exact member of the Model's declared starts.
+    ///
+    /// Returns a State refusal when the complete initial state is not declared.
+    pub fn with_initial(
+        machine: M,
+        realization: R,
+        initial: M::State,
+    ) -> Result<Self, protocol::Refusal> {
+        if !machine.starts().contains(&initial) {
+            return Err(protocol::Refusal::new(
+                protocol::RefusalCode::State,
+                "initial state is not a declared start",
+            ));
+        }
+        Ok(Self {
+            machine,
+            realization,
+            state: Some(initial.clone()),
+            initial: Some(initial),
+            frozen: None,
+            exploration: None,
+        })
     }
 
     /// Dispatches natively, committing after the response encodes successfully.
@@ -150,7 +182,12 @@ impl<M: Machine, R: Realize<M>> Runtime<M, R> {
             3 => {
                 decode::<protocol::ResetRequest>(request)?;
                 self.require_binding()?;
-                let state = unique_start(&self.machine)?;
+                let state = self.initial.clone().ok_or_else(|| {
+                    protocol::Refusal::new(
+                        protocol::RefusalCode::State,
+                        "stateful run requires exactly one start",
+                    )
+                })?;
                 Ok((
                     protocol::response::Outcome::Reset(protocol::ResetResponse {}),
                     Some(Transaction { change: Change::Run { state, frozen: None } }),

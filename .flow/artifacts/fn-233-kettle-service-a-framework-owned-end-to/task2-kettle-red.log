@@ -1,0 +1,13 @@
+   Compiling umpire-wasm v0.0.1 (/Users/stephan/Workspace/skunkworks/umpire/temporal/model/umpire/wasm)
+   Compiling umpire-reference-kettle v0.0.1 (/Users/stephan/Workspace/skunkworks/umpire/temporal/model/umpire/reference/kettle)
+error[E0432]: unresolved imports `umpire_reference_kettle::api`, `umpire_reference_kettle::runtime`
+ --> umpire/reference/kettle/tests/realization.rs:3:31
+  |
+3 | use umpire_reference_kettle::{api::*, runtime};
+  |                               ^^^     ^^^^^^^ no `runtime` in the root
+  |                               |
+  |                               could not find `api` in `umpire_reference_kettle`
+
+For more information about this error, try `rustc --explain E0432`.
+error: could not compile `umpire-reference-kettle` (test "realization") due to 1 previous error
+warning: build failed, waiting for other jobs to finish...

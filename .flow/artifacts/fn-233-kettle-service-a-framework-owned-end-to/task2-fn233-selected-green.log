@@ -1,0 +1,28 @@
+    Blocking waiting for file lock on build directory
+   Compiling umpire-wasm v0.0.1 (/Users/stephan/Workspace/skunkworks/umpire/temporal/model/umpire/wasm)
+    Finished `test` profile [unoptimized + debuginfo] target(s) in 2.18s
+     Running tests/selected_start.rs (/home/agent/.cache/codex-build/cargo-target/debug/deps/selected_start-7b1f63dd5813cb47)
+
+running 3 tests
+test selected_initial_requires_exact_membership_including_other_fields ... ok
+test selected_reset_after_freeze_restores_initial_without_restricting_exploration ... ok
+test selected_publication_failures_preserve_advancement_freeze_and_reset ... ok
+
+test result: ok. 3 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.00s
+
+     Running tests/stateful.rs (/home/agent/.cache/codex-build/cargo-target/debug/deps/stateful-ecdc5f99c685b43d)
+
+running 10 tests
+test failed_unexplained_publication_does_not_freeze_the_run ... ok
+test answer_validates_the_response_before_committing_delivery_and_awaits_response_evidence ... ok
+test explanations_carry_all_replayed_non_clone_outcomes ... ok
+test explanations_replay_whole_candidate_sequences_and_isolate_instances ... ok
+test failed_response_publication_preserves_judge_answer_reset_and_exploration ... ok
+test judge_replays_model_steps_and_repeated_current_observations_are_positive ... ok
+test runtime_formats_unit_outcomes_with_debug ... ok
+test stateful_operations_require_a_unique_initial_state ... ok
+test invalid_candidates_freeze_the_first_enabled_actions_until_reset ... ok
+test malformed_and_unknown_requests_preserve_the_current_run ... ok
+
+test result: ok. 10 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.00s
+

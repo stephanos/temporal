@@ -18,6 +18,8 @@ members = [
     "umpire/front",
     "umpire/lift",
     "umpire/backends/tlc",
+    "umpire/reference/kettle",
+    "umpire/reference/kettle/guest",
     "umpire/wasm",
     "umpire/wasm/guests/stock",
     "umpire/wasm/guests/control",
@@ -41,6 +43,7 @@ publish = false
 license = "MIT"
 
 [workspace.dependencies]
+umpire-reference-kettle = { version = "0.0.1", path = "umpire/reference/kettle" }
 umpire-catalog = { version = "0.0.1", path = "umpire/catalog" }
 umpire-catalog-macros = { version = "0.0.1", path = "umpire/catalog/macros" }
 umpire-catalog-syntax = { version = "0.0.1", path = "umpire/catalog/syntax" }
