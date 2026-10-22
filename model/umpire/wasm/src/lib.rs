@@ -18,7 +18,7 @@ mod generated {
 }
 
 pub use abi::Guest;
-pub use annotation_dispatch::AnnotationRuntime;
+pub use annotation_dispatch::{AnnotationRuntime, probe_recipe};
 pub use envelopes::{Observed, callback, reply};
 pub use generated::{
     google,

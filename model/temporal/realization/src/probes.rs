@@ -1,9 +1,8 @@
 //! Stateless typed witnesses and value-free classification for activity RPCs.
 
 use umpire_wasm::annotations::ProbeCase;
-use umpire_wasm::annotations::ProbeRecipe;
 use umpire_wasm::annotations::ProbeResponse;
-use umpire_wasm::annotations::ProbeSegment;
+use umpire_wasm::probe_recipe as recipe;
 
 use crate::foundation::dc::Limits;
 
@@ -779,40 +778,6 @@ fn mutate_queue(queue: &mut TaskQueue, field: &str, entry: &Entry) -> Result<()>
         _ => return Err("unsupported task queue field".into()),
     }
     Ok(())
-}
-
-fn recipe(bytes: &[u8]) -> Result<ProbeRecipe> {
-    if bytes.len() > 16 * 1024 * 1024 {
-        return Err("probe exceeds recipe bound".into());
-    }
-    let mut segments = Vec::new();
-    let mut literal = Vec::new();
-    let mut index = 0;
-    while index < bytes.len() {
-        let mut end = index + 1;
-        while end < bytes.len() && bytes[end] == bytes[index] {
-            end += 1;
-        }
-        if end - index >= 16 {
-            if !literal.is_empty() {
-                segments.push(ProbeSegment { literal: std::mem::take(&mut literal), repeat: 1 });
-            }
-            segments.push(ProbeSegment {
-                literal: vec![bytes[index]],
-                repeat: u32::try_from(end - index)?,
-            });
-        } else {
-            literal.extend_from_slice(&bytes[index..end]);
-        }
-        index = end;
-    }
-    if !literal.is_empty() {
-        segments.push(ProbeSegment { literal, repeat: 1 });
-    }
-    let fnv64 = bytes.iter().fold(0xcbf2_9ce4_8422_2325_u64, |hash, byte| {
-        (hash ^ u64::from(*byte)).wrapping_mul(0x0000_0100_0000_01b3)
-    });
-    Ok(ProbeRecipe { segments, decoded_length: u32::try_from(bytes.len())?, fnv64 })
 }
 
 /// Enumerates, prepares and classifies activity probes independently of Model state.

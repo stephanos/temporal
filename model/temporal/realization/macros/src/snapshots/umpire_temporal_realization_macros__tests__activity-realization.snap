@@ -1,5 +1,6 @@
 ---
 source: temporal/realization/macros/src/lib.rs
+assertion_line: 159
 expression: "prettyplease::unparse(&syn::parse2(expanded)?)"
 ---
 impl Realization {
@@ -651,8 +652,7 @@ impl ::umpire_wasm::Realize<activity::World> for Realization {
         ::umpire_wasm::protocol::Refusal,
     > {
         let _ = state;
-        let __callback: ::umpire_wasm::realization::Callback = value
-            .unpack()?;
+        let __callback: ::umpire_wasm::realization::Callback = value.unpack()?;
         let __task_any = ::umpire_wasm::google::protobuf::Any::required(
             __callback.task,
         )?;

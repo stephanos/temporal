@@ -98,3 +98,6 @@ impl std::fmt::Display for UnknownEnum {
 }
 
 impl std::error::Error for UnknownEnum {}
+
+mod transport;
+pub use transport::{AnnotationResult, annotate_message, annotation_findings};
