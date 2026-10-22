@@ -21,7 +21,7 @@ The Go server and generated API live in the generic host module at
 the pinned protoc 29.5, protoc-gen-go v1.36.6 and protoc-gen-go-grpc v1.3.0 output.
 The host test requires the built guest and fails if it is missing.
 
-The task's measured live Kettle tests took 0.525 seconds. The first Kettle guest
+Task fn-233.2's measured live Kettle tests took 0.525 seconds. The first Kettle guest
 build took 25.81 seconds and a warm rebuild took 2.38 seconds. The full
 `make model-check` run took 426.52 seconds, exceeding the 60-second R30 soft
 target while rebuilding existing compile-failure fixtures and guest profiles.
@@ -38,3 +38,9 @@ The Go actual-wire probe test owns `expected/gaps.txt`; from `model/umpire/hosts
 refresh with `UMPIRE_UPDATE_KETTLE_GAPS=1 go test -tags test_dep -run '^TestKettleAnnotationCoverageAndActualWireGaps$' -count=1 .`.
 Invalid probes bypass normal request filling so the original bytes reach the server;
 unsupported mutations and transport failures cannot establish a server finding.
+
+Task fn-233.3's complete annotation/probe Go selection took 26.480 seconds
+(27.754 seconds wall time), including fresh healthy controls for each applicable
+wire mutation. Its final full `make model-check` took 438.622 seconds. This exceeds
+the R30 60-second whole-gate soft target; the record retains that cost rather than
+changing the test selection. Native probe execution took 0.16 seconds.
