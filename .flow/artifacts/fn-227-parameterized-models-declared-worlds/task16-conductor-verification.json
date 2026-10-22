@@ -1,0 +1,36 @@
+{
+  "task": "fn-227-parameterized-models-declared-worlds.16",
+  "base": "d70684bca2a7f0974abedee129db1ef480cecf56",
+  "source": "28306365be80e87fecb2328e831fda559c536bc5",
+  "closure": "7a4ac050c9",
+  "flow_status": "done",
+  "validation": "valid;13 tasks;no errors or warnings",
+  "gate_classification": "FULL: unmatched:model/README.md",
+  "gate_receipt": {
+    "gate": "unittest",
+    "command": "UMPIRE_BACKENDS=require make model-time",
+    "outcome": "HONORED",
+    "receipt": "d3205722"
+  },
+  "verification": "Root read complete final required-TLC17-stage log and final SHIP receipt; actual source diff changes exactly six declared TLA expected payloads. All3 compressed proof logs independently decompressed and raw/compressed hashes and byte counts verified.",
+  "audits": {
+    "correctness": {
+      "findings": 1,
+      "worst": "Should Fix",
+      "resolved": 1
+    },
+    "standards": {
+      "findings": 1,
+      "worst": "Should Fix",
+      "resolved": 1
+    }
+  },
+  "whitespace": "Scoped model source diff --check passes. Unfiltered check reports trailing/EOF whitespace in preserved raw logs and generated anchor; raw evidence is retained unchanged.",
+  "worktrees": "Single root checkout on umpire; prune completed; no owned command live at handoff.",
+  "disk_free_gib_approx": 112,
+  "cleanup": "Parent fn-227 remains open; active-spec scratch/proofs preserved. No task-owned worktree to retire.",
+  "plan_sync": "skipped(config false)",
+  "tracker_sync": "n/a (bridge inactive); sync check work.firstClaim,work.done since claim completed with empty output",
+  "publication": "0;local only;no push or PR authorized",
+  "next": "fn-227-parameterized-models-declared-worlds.3"
+}
