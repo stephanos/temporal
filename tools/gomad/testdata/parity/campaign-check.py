@@ -2,13 +2,16 @@
 """Exercise public seed campaigns and independently authenticate retained evidence."""
 import argparse
 import copy
+import fcntl
 from importlib.machinery import SourceFileLoader
 from importlib.util import module_from_spec, spec_from_loader
 import os
 from pathlib import Path
 import shutil
+import signal
 import subprocess
 import sys
+import termios
 import time
 
 sys.dont_write_bytecode = True
@@ -393,31 +396,65 @@ def main():
     # stall inside the second execution's armed window (compile or teardown)
     # must end the whole CLI with the infrastructure status within the wall
     # bound plus bounded cleanup, leave no process behind, keep the committed
-    # prefix authenticated, and recover through an ordinary resume.
-    for phase in ('compile', 'teardown'):
-        destination = args.work / ('backstop-' + phase)
-        marker = args.work / ('backstop-' + phase + '.stalled')
+    # prefix authenticated, and recover through an ordinary resume. The
+    # full-stderr case holds stderr as a full pipe that is never drained, so
+    # termination cannot depend on delivering the backstop diagnostic.
+    for label, phase, full_stderr in (('compile', 'compile', False), ('teardown', 'teardown', False),
+                                      ('teardown-full-stderr', 'teardown', True)):
+        destination = args.work / ('backstop-' + label)
+        marker = args.work / ('backstop-' + label + '.stalled')
         command = explore_command(case, destination)
         command[command.index('--execution-timeout=30s')] = '--execution-timeout=10s'
-        child = subprocess.Popen(list(map(str, command)), stdout=subprocess.PIPE, stderr=subprocess.PIPE,
+        held = None
+        if full_stderr:
+            held, stderr_end = os.pipe()
+            # Fill through a separate open file description so the child's
+            # inherited stderr stays a blocking descriptor.
+            filler = os.open('/proc/self/fd/' + str(stderr_end), os.O_WRONLY | os.O_NONBLOCK)
+            try:
+                while True:
+                    os.write(filler, b'\0' * 4096)
+            except BlockingIOError:
+                pass
+            os.close(filler)
+            equal(os.get_blocking(stderr_end), True, 'backstop.' + label + '.blocking_stderr')
+            capacity = fcntl.fcntl(held, 1032)  # F_GETPIPE_SZ
+            queued = int.from_bytes(fcntl.ioctl(held, termios.FIONREAD, b'\0' * 4), sys.byteorder)
+            equal(queued, capacity, 'backstop.' + label + '.stderr_full')
+        child = subprocess.Popen(list(map(str, command)), stdout=subprocess.PIPE,
+            stderr=stderr_end if full_stderr else subprocess.PIPE,
             env=dict(environment, GOMAD_FIXTURE_BACKSTOP_STALL=phase, GOMAD_FIXTURE_BACKSTOP_STALL_WINDOW='1',
                      GOMAD_FIXTURE_BACKSTOP_STALL_FILE=str(marker)), start_new_session=True)
-        stdout, stderr = child.communicate(timeout=120)
+        if full_stderr:
+            os.close(stderr_end)
+        try:
+            stdout, stderr = child.communicate(timeout=120)
+        except subprocess.TimeoutExpired:
+            os.killpg(child.pid, signal.SIGKILL)
+            child.wait()
+            raise ValueError('backstop.' + label + '.bounded_exit: no exit within 120 s; process group killed')
         exited = time.time()
-        (args.work / ('backstop-' + phase + '.stdout')).write_bytes(stdout)
-        (args.work / ('backstop-' + phase + '.stderr')).write_bytes(stderr)
-        commands.append(dict(name='backstop-' + phase, argv=list(map(str, command)), status=child.returncode, expected=3,
+        if full_stderr:
+            # Still never drained: the pipe stays full until the reader closes.
+            queued = int.from_bytes(fcntl.ioctl(held, termios.FIONREAD, b'\0' * 4), sys.byteorder)
+            equal(queued, capacity, 'backstop.' + label + '.stderr_undrained')
+            os.close(held)
+            stderr = b''
+        (args.work / ('backstop-' + label + '.stdout')).write_bytes(stdout)
+        (args.work / ('backstop-' + label + '.stderr')).write_bytes(stderr)
+        commands.append(dict(name='backstop-' + label, argv=list(map(str, command)), status=child.returncode, expected=3,
             stdout_sha256=parity.digest(stdout), stderr_sha256=parity.digest(stderr)))
         (args.work / 'commands.json').write_bytes(parity.canonical(commands) + b'\n')
-        equal(child.returncode, 3, 'backstop.' + phase + '.status: ' + stderr.decode(errors='replace'))
-        equal(marker.read_text(), phase + ' 1\n', 'backstop.' + phase + '.stalled_window')
-        equal(b'deadline backstop ended the process' in stderr, True, 'backstop.' + phase + '.message')
+        equal(child.returncode, 3, 'backstop.' + label + '.status: ' + stderr.decode(errors='replace'))
+        equal(marker.read_text(), phase + ' 1\n', 'backstop.' + label + '.stalled_window')
+        if not full_stderr:
+            equal(b'deadline backstop ended the process' in stderr, True, 'backstop.' + label + '.message')
         # Armed for the 10 s wall plus 5 s cleanup grace; the stall itself never
         # returns, so the exit follows the stall by at most that bound.
         stalled = exited - marker.stat().st_mtime
         commands[-1]['seconds_after_stall'] = round(stalled, 3)
         (args.work / 'commands.json').write_bytes(parity.canonical(commands) + b'\n')
-        equal(stalled < 15 + 5, True, 'backstop.' + phase + '.bounded_exit: ' + str(stalled))
+        equal(stalled < 15 + 5, True, 'backstop.' + label + '.bounded_exit: ' + str(stalled))
         if phase == 'compile':
             equal(stalled >= 15 - 1, True, 'backstop.compile.waited_for_cleanup_grace: ' + str(stalled))
         try:
@@ -425,16 +462,16 @@ def main():
             survived = True
         except ProcessLookupError:
             survived = False
-        equal(survived, False, 'backstop.' + phase + '.no_surviving_process')
+        equal(survived, False, 'backstop.' + label + '.no_surviving_process')
         stopped = campaign_root(destination)
         committed = authenticate_campaign(stopped, complete=False)
         equal([row['seed'] for row in committed['executions']], [views[0]['runtime']['records'][0]['seed']],
-              'backstop.' + phase + '.committed_prefix')
-        run('backstop-' + phase + '-resume', [*binary, 'resume', '--json', stopped], case['status'])
+              'backstop.' + label + '.committed_prefix')
+        run('backstop-' + label + '-resume', [*binary, 'resume', '--json', stopped], case['status'])
         # The plan keeps its 2 s bound, so compare selection and outcomes.
         outcomes = lambda rows: [(row['seed'], row['record']['outcome']) for row in rows]
         equal(outcomes(execution_view(authenticate_campaign(stopped))), outcomes(views[0]['runtime']['records']),
-              'backstop.' + phase + '.resumed_outcomes')
+              'backstop.' + label + '.resumed_outcomes')
     malformed_tail = args.work / 'noncanonical-tail'
     shutil.copytree(interrupted, malformed_tail)
     with (malformed_tail / 'journal.jsonl').open('ab') as stream:

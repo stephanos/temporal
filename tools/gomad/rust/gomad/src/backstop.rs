@@ -19,6 +19,8 @@ use std::time::{Duration, Instant};
 pub const CLEANUP_GRACE: Duration = Duration::from_secs(5);
 /// The existing CLI status for execution infrastructure failures.
 pub const STATUS: i32 = 3;
+/// Upper bound on waiting for the best-effort backstop diagnostic.
+const DIAGNOSTIC_GRACE: Duration = Duration::from_millis(500);
 
 #[derive(Default)]
 struct Armed {
@@ -75,11 +77,24 @@ fn monitor(backstop: &'static Backstop) -> ! {
     }
 }
 
-/// Writes without taking the standard error lock, which a stalled thread may
-/// hold, then exits without joining any thread.
+/// Exits with the infrastructure status without joining any thread. The
+/// diagnostic is best effort: a detached writer bypasses the standard error
+/// lock, which a stalled thread may hold, and termination waits on it for at
+/// most `DIAGNOSTIC_GRACE`, so a full, undrained stderr pipe (or any other
+/// blocked write) cannot keep the process alive. The shared open file
+/// description is never switched to non-blocking mode.
 fn fail(message: &str) -> ! {
     let line = format!("gomad: runner_failure: {message}\n");
-    let _ = rustix::io::write(std::io::stderr().as_fd(), line.as_bytes());
+    let (written, delivered) = std::sync::mpsc::channel();
+    let writer = std::thread::Builder::new()
+        .name("gomad-deadline-diagnostic".into())
+        .spawn(move || {
+            let _ = rustix::io::write(std::io::stderr().as_fd(), line.as_bytes());
+            let _ = written.send(());
+        });
+    if writer.is_ok() {
+        let _ = delivered.recv_timeout(DIAGNOSTIC_GRACE);
+    }
     std::process::exit(STATUS)
 }
 
