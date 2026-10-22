@@ -207,6 +207,30 @@ def main():
                 equal(actual, expected, prefix + '.repeated controller')
             expected = actual
         controllers.append({'name': name, **expected})
+    scoped_controllers = []
+    runtime_request = {'Operation': 'canonical', 'config': config, 'original': {'overrides': [
+        dict(overrides[0], ordinal=index) for index in range(3)]}}
+    runtime = json.loads(run('scoped-controller-canonical', [executable], stdin=canonical(runtime_request)))
+    decision = lambda forced: {key: forced[key] for key in ('dimension', 'ordinal', 'identity')}
+    runtime_decisions = [decision(forced) for forced in runtime['original']['overrides']]
+    predicate = [runtime_decisions[0], runtime_decisions[2]]
+    for name, inside, attempts in [('unscoped', None, 2), ('same-minimum', [0, 2], 3), ('distinct-minimum', [1, 2], 4)]:
+        repeated = []
+        for repeat in range(2):
+            request = dict(runtime, attempt_budget=100, accepted_indices=[], accept_when_remaining_any=predicate)
+            if inside is not None:
+                request['ordering'] = dict(key={'algorithm': 'fixture/site-ordering/v1'},
+                    in_scope=[runtime_decisions[index] for index in inside])
+            path = args.output / f'scoped-controller-{name}-{repeat}.json'
+            path.write_bytes(canonical(request))
+            row = json.loads(run(f'scoped-controller-{name}-{repeat}', [args.rust_binary, 'fixture-minimize-controller', '--input', path]))
+            equal(row['attempts'], attempts, name + '.content predicate attempt count')
+            final_sha = row['accepted'][-1]['after_sha256']
+            final = next(proposal['candidate'] for proposal in row['proposals'] if proposal['candidate']['sha256'] == final_sha)
+            equal(any(decision(forced) in predicate for forced in final['overrides']), True, name + '.same content predicate')
+            repeated.append(controller_view(row))
+        equal(repeated[0], repeated[1], name + '.repeated scoped controller')
+        scoped_controllers.append(dict(name=name, **repeated[0]))
     run('controller-nil-go-refusal', [executable], 3, stdin=canonical({'Operation': 'proposals', 'config': config,
         'original': {'overrides': None}, 'attempt_budget': 4, 'accepted_indices': []}))
     nil = json.loads(run('controller-nil-canonical', [executable], stdin=canonical({'Operation': 'canonical', 'config': config,
@@ -285,7 +309,7 @@ func TestFailure(t *testing.T) {
     shared_bound = max(len((rust_root / entry['artifact'] / 'manifest.json').read_bytes()) +
                        sum(item['bytes'] for item in json.loads((rust_root / entry['artifact'] / 'manifest.json').read_bytes())['files'].values())
                        for entry in parent_records) + (1 << 20)
-    comparisons, signatures, repeat_records = [], [], []
+    comparisons, signatures, repeat_records, scoped_reports = [], [], [], []
     for index, (parent, entry) in enumerate(zip(parents, parent_records)):
         kind = 'counterfactual' if index == 2 else 'constant-failure'
         rust_parent = rust_root / entry['artifact']
@@ -316,6 +340,45 @@ func TestFailure(t *testing.T) {
             equal(metadata['parent_record_hash'], entry['record_sha256'], prefix + '.parent record identity')
             inspected = json.loads(run(prefix + '-rust-inspect',
                                        [args.rust_binary, 'inspect', '--json', minimized]))['artifact']
+            equal('site_scope' in rust_result, False, prefix + '.legacy absence remains unscoped')
+            for reduction in rust_result['accepted']:
+                equal((reduction['removed_in_scope'], reduction['removed_out_of_scope']),
+                      (0, len(reduction['removed'])), prefix + '.unscoped removal counts')
+            manifest = json.loads((minimized / 'manifest.json').read_bytes())
+            for name in ('minimization/source-choice.bin', 'minimization/source-choice.json'):
+                raw = (minimized / name).read_bytes()
+                equal((len(raw), sha(raw)), (manifest['files'][name]['bytes'], manifest['files'][name]['sha256']), prefix + '.' + name)
+                equal(name in manifest['record']['streams'], False, prefix + '.source provenance is manifest-only')
+            equal((minimized / 'minimization/source-choice.bin').read_bytes(),
+                  (rust_parent / 'evidence/choice').read_bytes(), prefix + '.source is original parent tape')
+            equal(sum(group['count'] for group in inspected['minimization']['final_forced_by_symbol']),
+                  metadata['final_forced_decisions'], prefix + '.symbol group count')
+            equal(all('symbol' in decision for reduction in inspected['minimization']['accepted']
+                      for decision in reduction['removed']), True, prefix + '.removed decisions have symbol reports')
+            equal(json.loads((minimized / 'evidence/inspection.json').read_bytes())['minimization'], metadata,
+                  prefix + '.inspection leaves raw evidence unchanged')
+            detached = args.output / (prefix + '-detached-minimum')
+            shutil.copytree(minimized, detached)
+            detached_report = json.loads(run(prefix + '-rust-detached-inspect',
+                [args.rust_binary, 'inspect', '--json', detached]))['artifact']['minimization']
+            equal(detached_report, inspected['minimization'], prefix + '.detached symbol report')
+            explicit_output = args.output / (prefix + '-rust-explicit-scope')
+            explicit = json.loads(run(prefix + '-rust-explicit-scope', [args.rust_binary, 'minimize', '--json',
+                '--site-scope=runtime/...', '--artifacts', explicit_output, rust_parent]))
+            equal({'changed': explicit['changed'], 'attempts': int(explicit['attempts']),
+                  'stop_reason': explicit['stop_reason'], 'accepted': reductions(explicit)},
+                  {'changed': rust_result['changed'], 'attempts': int(rust_result['attempts']),
+                   'stop_reason': rust_result['stop_reason'], 'accepted': reductions(rust_result)}, prefix + '.public prefix order exception')
+            equal(explicit['site_scope']['patterns'], ['runtime/...'], prefix + '.explicit scope report')
+            equal(explicit['record_hash'], rust_result['record_hash'], prefix + '.scope reporting leaves fixed prefix record unchanged')
+            for reduction in explicit['accepted']:
+                equal(reduction['removed_in_scope'] + reduction['removed_out_of_scope'], len(reduction['removed']), prefix + '.scoped removal counts')
+            scoped_reports.append(dict(kind=kind, seed=rust_record['seed'], site_scope=explicit['site_scope'],
+                accepted=[dict(reduction, removed_in_scope=raw['removed_in_scope'], removed_out_of_scope=raw['removed_out_of_scope'])
+                          for reduction, raw in zip(reductions(explicit), explicit['accepted'])],
+                attempts=explicit['attempts'], final_forced_by_symbol=inspected['minimization']['final_forced_by_symbol']))
+            run(prefix + '-rust-scope-resume-refusal', [args.rust_binary, 'minimize', '--resume', '--site-scope=testing',
+                '--artifacts', explicit_output, rust_parent], 3)
             full_signature = sha(canonical(dict(json.loads((minimized / 'record.json').read_bytes()), seed=0)))
             equal(inspected['failure_signature'], full_signature, prefix + '.independent decorated failure signature')
             equal(full_signature != metadata['predicate']['failure_signature'], True,
@@ -450,7 +513,7 @@ func TestFailure(t *testing.T) {
               'cluster_driver_sha256': cluster_report['driver_sha256'], 'cluster_refusals': cluster_projection,
               'input_sha256': sha(input_path.read_bytes()), 'comparisons': comparisons,
               'counterfactual_witness': witness, 'failure_groups': failure_groups,
-              'controllers': controllers,
+              'controllers': controllers, 'scoped_controllers': scoped_controllers, 'scoped_reports': scoped_reports,
               'byte_identical_repeated_records': repeat_records,
               'go_nil_controller_candidate': 'frozen Go refuses nil overrides after canonical clone; excluded from admitted parity cases',
               'nil_controller_wrapper_status': {'go': 3, 'rust': 2},
@@ -461,6 +524,7 @@ func TestFailure(t *testing.T) {
               'signature_changing_candidate': 'rejected by both fresh executions'}
     if args.golden:
         raw = canonical({'comparisons': comparisons, 'controllers': controllers,
+                         'scoped_controllers': scoped_controllers, 'scoped_reports': scoped_reports,
                          'failure_groups': failure_groups,
                          'cluster_refusals': cluster_projection,
                          'refusals': [{'name': row['name'], 'status': row['status']} for row in commands

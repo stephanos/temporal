@@ -1,4 +1,4 @@
-use crate::evidence::inspection::{Choices, Details, Minimization, Output, Simulation, World};
+use crate::evidence::inspection::{Choices, Details, Output, Simulation, World};
 use crate::evidence::symbolize::{
     self,
     inspection::{Trace, choice_sites, symbolize_choices},
@@ -30,7 +30,7 @@ struct Artifact<'a> {
     choices: Option<Choices<Trace<'a>>>,
     world: Option<&'a World>,
     simulation: Option<&'a Simulation>,
-    minimization: Option<&'a Minimization>,
+    minimization: Option<crate::minimize::report::Report<'a>>,
 }
 
 fn artifact_path(operand: &Path) -> Result<PathBuf, String> {
@@ -46,9 +46,7 @@ fn artifact_path(operand: &Path) -> Result<PathBuf, String> {
     Ok(path)
 }
 
-/// # Errors
-/// Refuses invalid flags, unsupported artifacts and unauthenticated retained evidence.
-pub fn run(arguments: &[String], output: &mut dyn Write) -> Result<(), super::Error> {
+fn parse(arguments: &[String]) -> Result<(bool, bool, PathBuf), super::Error> {
     let mut json = false;
     let mut choices = false;
     let mut positional = false;
@@ -79,6 +77,13 @@ pub fn run(arguments: &[String], output: &mut dyn Write) -> Result<(), super::Er
         }
     }
     let path = artifact_path(path.ok_or("usage: gomad inspect [--json] [--choices] ARTIFACT")?)?;
+    Ok((json, choices, path))
+}
+
+/// # Errors
+/// Refuses invalid flags, unsupported artifacts and unauthenticated retained evidence.
+pub fn run(arguments: &[String], output: &mut dyn Write) -> Result<(), super::Error> {
+    let (json, choices, path) = parse(arguments)?;
     let path = path.as_path();
     if crate::campaign::inspect::is_campaign(path)? {
         return crate::campaign::inspect::run(path, json, choices, output).map_err(Into::into);
@@ -101,12 +106,37 @@ pub fn run(arguments: &[String], output: &mut dyn Write) -> Result<(), super::Er
         .map(|evidence| evidence.inspect(&opened))
         .transpose()?;
     opened.authenticate_all()?;
-    let symbols = projected_choices
+    let minimization = details
         .as_ref()
-        .filter(|_| choices)
-        .map(|choices| symbolize::resolve(&opened, choice_sites(choices)))
+        .and_then(|details| details.minimization.as_ref());
+    let minimization_projection = minimization
+        .map(|metadata| crate::minimize::report::Projection::read(&opened, metadata))
+        .transpose()?;
+    let symbols = if choices || minimization.is_some() {
+        Some(symbolize::resolve(
+            &opened,
+            projected_choices
+                .as_ref()
+                .into_iter()
+                .filter(|_| choices)
+                .flat_map(choice_sites)
+                .chain(
+                    minimization_projection
+                        .as_ref()
+                        .into_iter()
+                        .flat_map(crate::minimize::report::Projection::sites),
+                ),
+        )?)
+    } else {
+        None
+    };
+    let minimization = minimization
+        .zip(minimization_projection.as_ref())
+        .zip(symbols.as_ref())
+        .map(|((metadata, projection), symbols)| projection.report(metadata, symbols))
         .transpose()?;
     let projected_choices = projected_choices
+        .filter(|_| choices)
         .zip(symbols.as_ref())
         .map(|(choices, symbols)| symbolize_choices(choices, symbols));
     let manifest = opened.manifest();
@@ -127,9 +157,7 @@ pub fn run(arguments: &[String], output: &mut dyn Write) -> Result<(), super::Er
             simulation: details
                 .as_ref()
                 .and_then(|details| details.simulation.as_ref()),
-            minimization: details
-                .as_ref()
-                .and_then(|details| details.minimization.as_ref()),
+            minimization,
         },
     };
     let bytes = if json {

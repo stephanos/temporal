@@ -204,6 +204,16 @@ fn run(
                 result
             })?
         };
+        let context = journal
+            .search_context(completions.first().and_then(|completion| {
+                completion
+                    .publication
+                    .payloads
+                    .get("evidence/choice")
+                    .map(Vec::as_slice)
+            }))?
+            .map(|context| context.bytes())
+            .transpose()?;
         let mut results = Vec::new();
         let mut executions = Vec::new();
         for (candidate, mut completion) in round.candidates.iter().zip(completions) {
@@ -249,6 +259,12 @@ fn run(
                         .cloned(),
                 }
             };
+            if let Some(context) = &context {
+                completion.publication.payloads.insert(
+                    crate::evidence::search_context::FILE.into(),
+                    context.clone(),
+                );
+            }
             retain(
                 journal,
                 &mut completion.execution,

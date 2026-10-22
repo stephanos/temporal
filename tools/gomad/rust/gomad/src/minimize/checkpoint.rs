@@ -23,6 +23,8 @@ pub(crate) struct Binding {
     pub attempt_budget: u64,
     pub maximum_bytes: u64,
     pub original_predicate_identity: Value,
+    #[serde(default)]
+    pub ordering: Option<super::proposals::Ordering>,
 }
 
 #[derive(Clone, Debug, Deserialize, PartialEq, Eq, Serialize)]

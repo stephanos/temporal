@@ -396,11 +396,9 @@ check is `python3 tools/gomad/testdata/parity/exploration-lane.py --selftest`.
 
 ## Rust minimization
 
-The public flags are unchanged:
-
 ```sh
 gomad minimize [--json] [--resume] [--attempt-budget N] \
-  [--artifacts DIR] [--max-bytes SIZE] ARTIFACT_DIR
+  [--site-scope PACKAGE[,PACKAGE...]] [--artifacts DIR] [--max-bytes SIZE] ARTIFACT_DIR
 ```
 
 The attempt budget defaults to 64. Output lives under `DIR/minimized`, with
@@ -411,6 +409,22 @@ Eligibility requires a standalone cooperative target failure with complete exact
 choice evidence. Cluster and simulation-profile minimization retain their public
 refusals; the six-dimensional controller corpus does not add those capabilities.
 
+`--site-scope` accepts the same package paths and `/...` prefixes as explore.
+Without the flag, minimize inherits a valid scope from the parent's authenticated
+`provenance/search-context.json`, including after the artifact is copied away
+from its campaign. Legacy artifacts without that payload are unscoped. An
+explicit flag replaces the selected patterns; malformed present provenance
+still refuses with status 2. Scoped minimization requires retained module symbols.
+Changing the selected scope or its authenticated source refuses resume with
+status 3 before another attempt.
+
+The controller tries removals containing only out-of-scope decisions first,
+then mixed removals, then removals containing only in-scope decisions. Order
+within each category stays stable. Public standalone choice minimization keeps
+its existing increasing-prefix search and suffix removals. Scope changes its
+checkpoint binding and reports, while the runtime acceptance and exact replay
+checks stay the same.
+
 `--json` returns `artifact_path`, `record_hash`, `changed`, `attempts`,
 `attempt_budget`, `accepted` and `stop_reason`. A changed result refers to the
 published decorated artifact. Adding minimization evidence changes its full
@@ -419,6 +433,22 @@ record and seed-excluded failure signature. The immutable
 candidates; `parent_failure_signature` separately preserves the parent's full
 failure signature. These identities must not be compared as though decoration
 left the complete record unchanged.
+
+Each accepted reduction in `minimize --json` also includes `removed_in_scope`
+and `removed_out_of_scope`. Their sum is the number of removed decisions.
+When a scope is selected, `site_scope` contains `patterns`, `resolved_sha256`
+and `resolved_count`, as in explore. Unscoped results omit `site_scope`, report
+zero in-scope removals and count every removed decision as out of scope.
+
+For minimized artifacts, `inspect --json` adds a `symbol` to each removed
+decision and `final_forced_by_symbol` to `artifact.minimization`. Resolved groups
+contain `package`, `function` and `count`, sorted by package and function;
+unavailable groups contain `unavailable` and `count`, sorted by reason after
+resolved groups. Counts sum to `final_forced_decisions`. Reporting uses the
+retained module and authenticated original source tape, so neither the parent
+artifact nor its campaign or source checkout is needed. Legacy missing joins
+report `site_missing`; stripped modules report `no_symbols`. Inspection does
+not change retained minimization evidence or record identities.
 
 The mandatory local lane runs fresh public Go and Rust minimizers against
 retained cooperative failures, using the authenticated frozen Go baseline:

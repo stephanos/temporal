@@ -1,8 +1,11 @@
 mod checkpoint;
 #[cfg(feature = "determinism-fixture")]
 pub(crate) mod fixture;
+pub(crate) mod ordering;
 mod predicate;
 mod proposals;
+pub(crate) mod report;
+pub(crate) mod source;
 
 use crate::{
     campaign::exploration::simulation::Dimension,
@@ -111,6 +114,7 @@ pub(crate) fn run(
     attempt_budget: u64,
     maximum_bytes: Option<u64>,
     resume: bool,
+    admission: ordering::Admission,
 ) -> Result<Value, String> {
     if attempt_budget == 0 || attempt_budget > 1_000_000 || maximum_bytes == Some(0) {
         return Err("invalid minimizer bounds".into());
@@ -120,9 +124,15 @@ pub(crate) fn run(
         parent.trace.clone(),
         parent.identity.clone(),
         attempt_budget,
-    )?;
-    let maximum_bytes =
-        maximum_bytes.unwrap_or_else(|| parent.opened.stored_bytes().saturating_add(1 << 20));
+    )?
+    .with_ordering(admission.ordering.clone())?;
+    let maximum_bytes = maximum_bytes.unwrap_or_else(|| {
+        parent
+            .opened
+            .stored_bytes()
+            .saturating_add(parent.trace.len() as u64)
+            .saturating_add(1 << 20)
+    });
     std::fs::DirBuilder::new()
         .recursive(true)
         .mode(0o700)
@@ -134,6 +144,7 @@ pub(crate) fn run(
         implementation_sha256: preflight::implementation()?,
         attempt_budget,
         maximum_bytes,
+        ordering: admission.ordering.clone(),
         original_predicate_identity: serde_json::to_value(&parent.original)
             .map_err(|error| error.to_string())?,
     };
@@ -248,6 +259,34 @@ pub(crate) fn run(
                 "evidence/inspection.json",
                 canonical::encode(&details)?,
             );
+            let parent_details =
+                Details::read(&parent.opened)?.ok_or("parent inspection missing")?;
+            let source = source::Source {
+                raw: parent.trace.clone(),
+                identity: parent.identity.clone(),
+                parent_record_sha256: parent.opened.manifest().record_sha256.clone(),
+                limit: parent_details
+                    .choices
+                    .as_ref()
+                    .ok_or("parent choice evidence missing")?
+                    .trace
+                    .limit,
+            };
+            source.attach(&mut publication)?;
+            if parent
+                .opened
+                .manifest()
+                .files
+                .contains_key(crate::evidence::search_context::FILE)
+            {
+                publication.payloads.insert(
+                    crate::evidence::search_context::FILE.into(),
+                    parent.opened.payload(
+                        crate::evidence::search_context::FILE,
+                        crate::evidence::search_context::MAX_BYTES,
+                    )?,
+                );
+            }
             let record = publication.record.bytes()?;
             insert(&mut publication, "record.json", record);
             let staged = store(&workspace.accepted_root(), u64::MAX).publish(publication)?;
@@ -274,7 +313,26 @@ pub(crate) fn run(
         }
     }
     workspace.complete()?;
-    Ok(
-        json!({"artifact_path":artifact_path,"record_hash":record_hash,"changed":!state.accepted.is_empty(),"attempts":state.attempts,"attempt_budget":state.attempt_budget,"accepted":state.accepted,"stop_reason":state.stop_reason}),
-    )
+    let mut accepted = serde_json::to_value(&state.accepted).map_err(|error| error.to_string())?;
+    for (row, reduction) in accepted
+        .as_array_mut()
+        .ok_or("accepted report is not an array")?
+        .iter_mut()
+        .zip(&state.accepted)
+    {
+        let inside = admission.ordering.as_ref().map_or(0, |ordering| {
+            reduction
+                .removed
+                .iter()
+                .filter(|decision| ordering.in_scope.contains(*decision))
+                .count()
+        });
+        row["removed_in_scope"] = json!(inside);
+        row["removed_out_of_scope"] = json!(reduction.removed.len() - inside);
+    }
+    let mut result = json!({"artifact_path":artifact_path,"record_hash":record_hash,"changed":!state.accepted.is_empty(),"attempts":state.attempts,"attempt_budget":state.attempt_budget,"accepted":accepted,"stop_reason":state.stop_reason});
+    if let Some(scope) = admission.scope {
+        result["site_scope"] = serde_json::to_value(scope).map_err(|error| error.to_string())?;
+    }
+    Ok(result)
 }
