@@ -1281,8 +1281,10 @@ pub(super) fn execute(
     execution.cancellation(cancellation.clone());
     #[cfg(feature = "determinism-fixture")]
     crate::fixture::execution_started().map_err(|error| error.message)?;
-    let execution =
-        helper::execute_prepared(execution).map_err(|error| format!("runner_failure: {error}"))?;
+    let execution = crate::backstop::within(execution.wall_timeout(), || {
+        helper::execute_prepared(execution)
+    })
+    .map_err(|error| format!("runner_failure: {error}"))?;
     publication(prepared, job, bound.configuration, execution, false)
 }
 

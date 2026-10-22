@@ -110,11 +110,13 @@ pub struct Execution {
 }
 
 pub(crate) fn execute(execution: Execution) -> Result<helper::Execution, String> {
-    if let Some(plan) = execution.simulation {
-        Ok(simulation::execute(execution.prepared, plan, 65536)?.cluster)
-    } else {
-        helper::execute_prepared(execution.prepared).map_err(|error| error.to_string())
-    }
+    crate::backstop::within(execution.prepared.wall_timeout(), || {
+        if let Some(plan) = execution.simulation {
+            Ok(simulation::execute(execution.prepared, plan, 65536)?.cluster)
+        } else {
+            helper::execute_prepared(execution.prepared).map_err(|error| error.to_string())
+        }
+    })
 }
 
 pub(crate) fn execute_projected(execution: Execution) -> Result<linked::Execution, String> {

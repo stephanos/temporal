@@ -650,7 +650,15 @@ pub(crate) fn validate_divergence(
                 .map_err(|_| "divergence ordinal exceeds host size")?,
         )
         .ok_or("missing divergence decision")?;
-    if divergence.expected.as_ref() != Some(expected) {
+    // The expected decision is a replay tape record: creation sites are not
+    // part of the tape (nor of persisted divergence evidence), so both sides
+    // compare as tape views.
+    if divergence
+        .expected
+        .as_ref()
+        .map(linked::Decision::tape_view)
+        != Some(expected.tape_view())
+    {
         return Err("choice divergence expected decision differs from candidate prefix".into());
     }
     if let Some(observed) = &divergence.observed

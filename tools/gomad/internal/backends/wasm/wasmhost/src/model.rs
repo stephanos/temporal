@@ -97,6 +97,17 @@ impl Decision {
     pub fn creation_sites(&self) -> &[CreationSite] {
         &self.creation_sites
     }
+
+    /// This decision as a replay tape records it. Tape records carry no
+    /// creation sites, so a divergence's expected decision, which comes from
+    /// the tape, compares against this view of a projected plan decision.
+    #[must_use]
+    pub fn tape_view(&self) -> Self {
+        Self {
+            creation_sites: Vec::new(),
+            ..self.clone()
+        }
+    }
     #[must_use]
     pub fn site_fingerprint(&self, target: [u8; 32]) -> Option<String> {
         replay_plan::site_fingerprint(target, self.kind, self.site_offset, self.site_missing)

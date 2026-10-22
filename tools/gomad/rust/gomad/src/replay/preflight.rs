@@ -68,9 +68,10 @@ pub enum Execution {
 /// Executes the admitted bytes using the matching typed helper core.
 pub fn execute(execution: Execution) -> Result<linked::Execution, String> {
     match execution {
-        Execution::Standalone(prepared) => {
-            linked::execute_prepared(*prepared).map_err(|error| error.to_string())
-        }
+        Execution::Standalone(prepared) => crate::backstop::within(prepared.wall_timeout(), || {
+            linked::execute_prepared(*prepared)
+        })
+        .map_err(|error| error.to_string()),
         Execution::Cluster(prepared) => super::cluster::execute_projected(*prepared),
     }
 }
@@ -104,7 +105,10 @@ pub fn execute_inspection(
     }
     match prepared.execution {
         Execution::Standalone(execution) => {
-            linked::execute_prepared(*execution).map_err(|error| error.to_string())
+            crate::backstop::within(execution.wall_timeout(), || {
+                linked::execute_prepared(*execution)
+            })
+            .map_err(|error| error.to_string())
         }
         Execution::Cluster(execution) => {
             super::cluster::project_inspection(super::cluster::execute(*execution)?, target)

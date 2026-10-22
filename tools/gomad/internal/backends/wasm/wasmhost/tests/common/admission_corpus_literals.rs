@@ -91,7 +91,7 @@ pub(super) fn check_admission_literals(name: &str, actual: &Value) -> Result<(),
             "admission_storage_context_400" => {
                 "storage crash context diverged from prior observation"
             }
-            "admission_storage_context_399" => "WASI invalid: storage crash context",
+            "admission_storage_context_399" => "WASI invalid: storage crash context inventory",
             "admission_storage_context_missing_end" => "unexpected protocol EOF",
             _ => return Err(format!("{name}: missing storage admission literal")),
         };

@@ -127,10 +127,15 @@ def compare_choices(run, baseline, rust_binary, go_root, rust_root, corpus):
         equal(go["outcome"].get("exit_code"), record["outcome"]["exit_code"], label + ".exit_code")
         left = go["choices"]
         right = rust["choices"]
-        for key in ("schema", "profile", "limit", "payload_bytes", "records", "decisions", "branching_records",
+        for key in ("schema", "limit", "payload_bytes", "records", "decisions", "branching_records",
                     "terminal_state", "exact_replay_available", "runnable", "select_poll",
                     "select_result"):
             equal(right[key], left[key], label + ".choices." + key)
+        # fn230 moved Rust recording to choice trace v4 (versioned creation
+        # sites); the frozen Go reference still records v3. Each lineage must
+        # report exactly its own declared profile.
+        equal(left["profile"], "gomad-choice-trace/v3", label + ".go.choices.profile")
+        equal(right["profile"], "gomad-choice-trace/v4", label + ".rust.choices.profile")
         equal(right['sites'], [dict(site, symbol={'unavailable': 'no_symbols'}) for site in left['sites']],
               label + '.choices.sites')
         equal(right["terminal_state"], "overflow" if overflow else "complete", label + ".choices.terminal_state")
