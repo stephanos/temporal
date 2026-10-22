@@ -179,6 +179,7 @@ Only the deferred .5 and .6 remain open.
 | --- | --- | --- |
 | fn-238.5 | ⏸️ deferred | Deferred 2026-10-22 (owner confirmed): interpreted checker as a differential check; revive on a concrete need such as checker speed (R2, R3) |
 | fn-238.6 | ⏸️ deferred | Deferred with .5: interpreted checker by default behind the 2x / 25% gate (R2, R3) |
+| fn-238.9 | ⬜ todo | Derive the IR token printer instead of hand-writing it (about -190 lines; owner-approved); after fn-227 (R2) |
 
 ### fn-239: Renew the Linux/macOS guest byte-identity certification (model)
 
