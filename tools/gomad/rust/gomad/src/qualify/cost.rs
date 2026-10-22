@@ -538,6 +538,18 @@ fn memory_checks(
     let operator = observations
         .operator_peak_rss_bytes
         .filter(|peak| *peak > 0);
+    // Even when attribution is incomplete, every measured window must fit the
+    // lifetime peaks around it before the fallback figure is used.
+    let (start, prepared, executed) = boundaries;
+    if groups.iter().any(|group| {
+        group
+            .store_peak_rss_bytes
+            .is_some_and(|window| window > group.peaks.1 || window > executed)
+    }) {
+        return Err(
+            "phase memory attribution is inconsistent with the lifetime linked peak".into(),
+        );
+    }
     let (Some(operator), Some(windows)) = (operator, windows) else {
         return Ok([
             ("operator lifetime peak RSS", 2 * GIB),
@@ -554,9 +566,11 @@ fn memory_checks(
     // boundary: a rise inside a window is explained by that window or by
     // operator work around it, any other rise (preparation, between windows,
     // after the last one) by operator work alone.
-    let (start, prepared, executed) = boundaries;
+    // The operator phases begin before the baseline snapshot, so the
+    // operator figure covers the initial peak and every later rise outside
+    // windows.
     let mut previous = prepared;
-    let mut unexplained = prepared > start.max(operator);
+    let mut unexplained = start > operator || prepared > start.max(operator);
     for (group, (_, window)) in groups.iter().zip(&windows) {
         let (before, after) = group.peaks;
         unexplained |= before > previous.max(operator)

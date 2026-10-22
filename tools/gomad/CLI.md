@@ -502,7 +502,8 @@ and compiler, helper and host, model, engine, configuration, module, build key
 scenario, network and configuration must agree with its hashed build inputs
 (the configuration differs only in the cooperative runtime implementation), and
 a cooperative choice identity (`wasip1`/`wasm`) must bind the build key, the
-module and the configuration's runtime implementation; a controlled
+module and the configuration's runtime implementation, which `report`
+recomputes from the build key and the choice sources compiled into this lineage; a controlled
 configuration carries no runtime implementation. A matched cooperative replay
 records `exact` choice replay and a matched controlled one `none`; neither
 profile records the other's value. Every record
@@ -510,7 +511,9 @@ must bind the frozen
 module, toolchain, configuration, limits, implementation (recomputed from the
 helper and host digests), platform (`host_os/host_arch`) and exact runtime
 profile (`cooperative` is `gomad.wasi-cooperative/v1`, `controlled` is
-`gomad.wasi-stock-exploratory/v1`; any other is refused). Every store sample,
+`gomad.wasi-stock-exploratory/v1`; any other is refused). A standalone record
+must also carry exactly the retained configuration's limits, arguments and
+environment, as replay preflight requires. Every store sample,
 executed or replayed, must carry the frozen guest limit, and only
 multi-instance stores carry `node/incarnation` handles. Each measured cluster
 window, executed or replayed, carries exactly the incarnations its record's
@@ -573,9 +576,11 @@ counters at the store's boundaries.
   the lifetime linked peak and within the lifetime peak observed after it; any
   rise across a window's boundaries is explained by the window or by operator
   work; any other rise (preparation, between windows, after the last window)
-  is explained by operator work alone; and the largest phase reaches the
-  lifetime peak. Otherwise the budget
-  is refused (`budget_failure`). A zero phase peak is a missing measurement. A
+  is explained by operator work alone; the operator figure covers the initial
+  peak, because operator phases begin before the baseline snapshot; and the
+  largest phase reaches the lifetime peak. Otherwise the budget is refused
+  (`budget_failure`). Even when attribution is incomplete, every measured
+  window must fit the lifetime peaks around it before the fallback is used. A zero phase peak is a missing measurement. A
   window whose stores carry `node/incarnation` handles is a cluster window,
   even with a single node.
 - **Without attribution** (another platform, a refused `clear_refs` write, or any
@@ -650,6 +655,10 @@ memory:
 The onebox parity and canonical runs both use its owner values, plus choice
 traces of 64 MiB, success bytes of 2 GiB and the owner environment. Each canonical
 cell runs twice in fresh processes and roots, and both stable views must agree.
+Each canonical installation also pins the owner's `wasi.Config` model and
+namespace limits (calls, transcript bytes, pending events, descriptors, files,
+filesystem and output bytes; `OWNER_LIMITS` in `qualify-lane.py`), and the
+retained configuration must carry exactly those values.
 Each run must retain `limits.wall_millis` equal to the owner execution timeout
 and pass the unchanged cost/budget gate with its declared status: no cost or
 budget failure, no violation, no pending check and an attributed terminal
@@ -669,7 +678,10 @@ receipts, readdressed implementation, platform and profile changes, a failure
 claiming success and a malformed retained source manifest. The stable
 view compares cell identities, records, replays, outcomes, verdicts, structural
 costs, store handles and budget statuses. Its kept and excluded field sets are
-declared; any other cost or sample field refuses the projection. It excludes the measured PID, CPU, RSS and wall
+declared at every level (Result, report, executions, observations, cost,
+samples, budget and checks); any other field refuses the projection. Each
+retained campaign journal is authenticated and must commit exactly the Result's
+execution record. It excludes the measured PID, CPU, RSS and wall
 values and replaces the campaign IDs and installation/spec paths with tokens.
 Goldens are per cell (`goldens-qualify/cells/NAME.json`, with the parity view,
 the canonical view and the Go verdict) plus `goldens-qualify/tamper.json`.

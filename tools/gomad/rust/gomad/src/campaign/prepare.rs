@@ -490,7 +490,7 @@ fn prepare_before_deadline(
     })
 }
 
-fn choice_implementation(key: &str) -> Result<sha2::digest::Output<Sha256>, String> {
+pub(crate) fn choice_implementation(key: &str) -> Result<sha2::digest::Output<Sha256>, String> {
     let mut source = Sha256::new();
     source.update(b"gomad-choice-implementation-source-v3");
     let inputs: &[&[u8]] = &[

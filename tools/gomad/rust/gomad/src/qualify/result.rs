@@ -85,10 +85,17 @@ fn derive(provenance: &serde_json::Value) -> Result<Derived, String> {
     let choice = &provenance["choice_identity"];
     // The cooperative runtime implementation is the choice identity's; a
     // controlled configuration carries none.
+    // The choice implementation is a pure function of the build key and the
+    // choice sources compiled into this lineage, so it is recomputed.
     let runtime = if cooperative {
+        let expected = hex(&crate::campaign::prepare::choice_implementation(
+            &toolchain,
+        )?);
         serde_json::from_value::<[u8; 32]>(choice["ImplementationSHA256"].clone())
             .ok()
-            .map(|implementation| Value::String(hex(&implementation)))
+            .map(|implementation| hex(&implementation))
+            .filter(|implementation| *implementation == expected)
+            .map(Value::String)
     } else {
         Some(Value::Null)
     };
@@ -143,6 +150,22 @@ fn hex(bytes: &[u8]) -> String {
         let _ = write!(out, "{byte:02x}");
         out
     })
+}
+
+/// A standalone record ran exactly the retained configuration's limits,
+/// arguments and environment, as replay preflight requires.
+fn standalone_inputs(
+    record: &crate::evidence::record::Record,
+    configuration: &serde_json::Value,
+) -> bool {
+    let observed = serde_json::json!({
+        "limits": record.limits,
+        "arguments": record.arguments,
+        "environment": record.environment,
+    });
+    ["limits", "arguments", "environment"]
+        .iter()
+        .all(|field| observed[field] == configuration[field])
 }
 
 /// Refuses a manifest whose identities differ from its retained provenance.
@@ -413,7 +436,8 @@ pub(crate) fn validate(result: &QualificationResult) -> Result<(), String> {
             || identity.platform != platform
             || profile_name(&execution.record.profile).ok() != Some(manifest.profile.as_str())
             || manifest.scenario_sha256.is_none()
-                && identity.configuration != manifest.host_config_sha256
+                && (identity.configuration != manifest.host_config_sha256
+                    || !standalone_inputs(&execution.record, &result.provenance["configuration"]))
             || execution.record.limits.fuel != manifest.fuel
             || execution.record.limits.memory_bytes != manifest.memory_bytes
         {

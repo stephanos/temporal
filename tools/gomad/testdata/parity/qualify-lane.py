@@ -72,6 +72,21 @@ CANONICAL = {
                    fuel=1 << 50, memory=4 << 30),
 }
 
+# The owner's wasi.Config model and namespace limits per canonical cell
+# (integration_test.go and cluster_test.go: 10,000 calls, 8 MiB transcript;
+# sqlite_test.go: 100,000 calls, 32 MiB; onebox_test.go: 2^28 calls, 1 GiB),
+# pinned into the canonical installation and asserted on the retained
+# configuration.
+OWNER_LIMITS = {
+    'fixture': dict(model=dict(calls=10_000, transcript_bytes=8 << 20, pending_events=4096),
+                    namespace=dict(descriptors=64, files=1000, filesystem_bytes=8 << 20, output_bytes=1 << 20)),
+    'sqlite': dict(model=dict(calls=100_000, transcript_bytes=32 << 20, pending_events=4096),
+                   namespace=dict(descriptors=128, files=1024, filesystem_bytes=8 << 20, output_bytes=1 << 20)),
+    'onebox': dict(model=dict(calls=1 << 28, transcript_bytes=1 << 30, pending_events=4096),
+                   namespace=dict(descriptors=4096, files=100_000, filesystem_bytes=512 << 20, output_bytes=256 << 20)),
+}
+OWNER_LIMITS['cluster'] = OWNER_LIMITS['fixture']
+
 # Lane-local parity budgets. They are not qualification budgets: parity runs
 # compare Go/Rust verdicts under shared host load, so the execution and overall
 # deadlines are widened for the lane only. Canonical runs below use CANONICAL.
@@ -113,9 +128,14 @@ def spec(case, root, provisional, source_manifest=None, canonical=False):
 
 
 def canonical_installation(prepare, cell, destination):
-    """A copy of the lane's Rust installation pinned to the owner's fuel and memory."""
+    """A copy of the lane's Rust installation pinned to the owner's fuel,
+    memory and model/namespace limits."""
     installation = parity.decode((prepare / f'rust-{TARGETS[cell]["installation"]}-installation.json').read_bytes())
     installation.update(fuel=CANONICAL[cell]['fuel'], memory_bytes=CANONICAL[cell]['memory'])
+    equal(set(installation['model']['limits']), set(OWNER_LIMITS[cell]['model']), 'canonical.model_limit_names')
+    equal(set(installation['namespace']['limits']), set(OWNER_LIMITS[cell]['namespace']), 'canonical.namespace_limit_names')
+    installation['model']['limits'] = OWNER_LIMITS[cell]['model']
+    installation['namespace']['limits'] = OWNER_LIMITS[cell]['namespace']
     destination.write_bytes(parity.canonical(installation))
     return destination
 
@@ -174,6 +194,8 @@ def authenticate(response, expected_root):
             bound += (record['identity']['configuration'],)
         equal(bound, (manifest['module_sha256'], manifest['toolchain_sha256'], manifest['host_config_sha256'])[:len(bound)],
               'result.record_identity')
+        campaign = check.authenticate_campaign(Path(execution['campaign_path']))
+        equal([item['record'] for item in campaign['executions']], [record], 'result.campaign_execution')
         provenances = list(Path(execution['campaign_path']).glob('prepared/*/target/provenance.json'))
         equal(len(provenances), 1, 'result.campaign_provenance')
         equal(result['provenance'], parity.decode(provenances[0].read_bytes()), 'result.provenance')
@@ -186,6 +208,15 @@ def authenticate(response, expected_root):
 
 def stable(result, response_status, tokens):
     """The declared qualification golden projection; variable measurements are excluded."""
+    declared(result, RESULT_STABLE, RESULT_VARIABLE, 'stable.result_fields')
+    declared(result['report'], REPORT_STABLE, set(), 'stable.report_fields')
+    declared(result['observations'], OBSERVATIONS_STABLE, OBSERVATIONS_VARIABLE, 'stable.observation_fields')
+    for execution in result['report']['executions']:
+        declared(execution, EXECUTION_STABLE, EXECUTION_VARIABLE, 'stable.execution_fields')
+    if result['budget']:
+        declared(result['budget'], BUDGET_STABLE, BUDGET_VARIABLE, 'stable.budget_fields')
+        for row in result['budget']['checks']:
+            declared(row, CHECK_STABLE, CHECK_VARIABLE, 'stable.check_fields')
     manifest = dict(result['manifest'])
     manifest['integrated_source_manifest_path'] = manifest['integrated_source_manifest_path'] and '$SOURCE_MANIFEST'
     report = result['report']
@@ -207,14 +238,20 @@ def stable(result, response_status, tokens):
     # exact check's status. The binary's own recomputation and expected_status
     # authenticate the measured statuses on each run.
     budget = result['budget'] and dict(violations=result['budget']['violations'],
+        resident_stores=result['budget']['resident_stores'],
         checks=[{key: check_row[key] for key in {'name', 'quantity', 'limit'}
                  | ({'status'} if check_row['quantity'] != 'linked process upper bound' else set())}
                 for check_row in result['budget']['checks']])
-    return dict(status=response_status, manifest=manifest, report=dict(
+    return dict(status=response_status, schema=result['schema'], manifest=manifest, report=dict(
         {key: report[key] for key in ('schema', 'qualified', 'deterministic', 'target_success', 'seed', 'repeat',
                                        'record_sha256', 'first_divergence', 'failure')}, command=command, executions=executions),
         cost=cost, cost_failure=result['cost_failure'], budget=budget, budget_failure=result['budget_failure'],
+        resident_stores=result['observations']['resident_stores'],
         samples=[stable_sample(sample) for sample in result['observations']['samples']])
+
+
+def declared(value, kept, excluded, label):
+    equal(set(value), kept | excluded, label)
 
 
 # The declared golden projection: stable fields are kept, variable
@@ -227,6 +264,24 @@ COST_VARIABLE = {'compiler_cpu_nanos', 'compiler_peak_rss_bytes', 'cpu_nanos', '
 SAMPLE_STABLE = {'phase', 'iteration', 'incarnation', 'fuel_used', 'guest_peak_memory_bytes',
                  'guest_memory_limit_bytes', 'trace_bytes', 'virtual_time_nanos'}
 SAMPLE_VARIABLE = {'wall_nanos', 'linked_before', 'linked_after', 'store_peak_rss_bytes'}
+
+
+# Excluded result fields carry absolute paths or variable process figures:
+# the retained source manifest and provenance (authenticated separately), the
+# PID, the counters and the wall/RSS measurements.
+RESULT_STABLE = {'schema', 'manifest', 'report', 'observations', 'cost', 'cost_failure', 'budget', 'budget_failure'}
+RESULT_VARIABLE = {'integrated_source_manifest', 'provenance'}
+REPORT_STABLE = {'schema', 'qualified', 'deterministic', 'target_success', 'seed', 'repeat', 'command', 'record_sha256',
+                 'first_divergence', 'executions', 'failure'}
+EXECUTION_STABLE = {'iteration', 'record', 'record_sha256', 'replay'}
+EXECUTION_VARIABLE = {'campaign_path', 'artifact_path'}
+OBSERVATIONS_STABLE = {'resident_stores', 'samples'}
+OBSERVATIONS_VARIABLE = {'operator_process_id', 'start', 'prepared', 'executed', 'preparation_wall_nanos',
+                         'operator_peak_rss_bytes'}
+BUDGET_STABLE = {'resident_stores', 'checks', 'violations'}
+BUDGET_VARIABLE = {'within_budget', 'pending'}
+CHECK_STABLE = {'name', 'quantity', 'limit', 'status'}
+CHECK_VARIABLE = {'observed'}
 
 
 def stable_sample(sample):
@@ -301,6 +356,9 @@ def canonical_gate(case, result, response, label):
     within 2 GiB."""
     equal((result['cost_failure'], result['budget_failure'], result['budget']['violations'], result['budget']['pending'],
            result['budget']['within_budget']), (None, None, [], [], True), label + '.canonical_budget')
+    configuration = result['provenance']['configuration']
+    equal((configuration['model']['limits'], configuration['namespace']['limits']),
+          (OWNER_LIMITS[case['cell']]['model'], OWNER_LIMITS[case['cell']]['namespace']), label + '.canonical_owner_limits')
     receipt = response['operator_receipt']
     equal(receipt['operator_peak_rss_bytes'] is not None and result['observations']['operator_peak_rss_bytes'] is not None,
           True, label + '.canonical_terminal_attributed')
