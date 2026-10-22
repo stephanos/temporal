@@ -8,14 +8,6 @@ pub(super) fn typed<T: DeserializeOwned>(value: Value) -> Result<T, String> {
     T::deserialize(Fields(value)).map_err(|error| error.to_string())
 }
 
-pub(super) fn zero<'de, T, D>(deserializer: D) -> Result<T, D::Error>
-where
-    T: serde::Deserialize<'de> + Default,
-    D: serde::Deserializer<'de>,
-{
-    <Option<T> as serde::Deserialize>::deserialize(deserializer).map(Option::unwrap_or_default)
-}
-
 // Go's pinned MatchCaseSensitiveDelimiter(true) uses EqualFold. All declared
 // config fields are ASCII; Kelvin K and long S are its two non-ASCII aliases.
 fn equal_field(declared: &str, supplied: &str) -> bool {
@@ -39,17 +31,34 @@ impl IntoDeserializer<'_, serde_json::Error> for Fields {
         self
     }
 }
+macro_rules! null_numbers {
+    ($($($method:ident)+ => $visit:ident($zero:expr);)*) => {$($(
+        fn $method<V: Visitor<'de>>(self, visitor: V) -> Result<V::Value, Self::Error> {
+            if self.0.is_null() { visitor.$visit($zero) } else { self.deserialize_any(visitor) }
+        }
+    )*)*};
+}
+
 impl<'de> serde::Deserializer<'de> for Fields {
     type Error = serde_json::Error;
 
     fn deserialize_any<V: Visitor<'de>>(self, visitor: V) -> Result<V::Value, Self::Error> {
         match self.0 {
-            Value::Object(values) => visitor.visit_map(MapDeserializer::<_, Self::Error>::new(
-                values.into_iter().map(|(key, value)| (key, Fields(value))),
-            )),
-            Value::Array(values) => visitor.visit_seq(SeqDeserializer::<_, Self::Error>::new(
-                values.into_iter().map(Fields),
-            )),
+            Value::Object(values) => {
+                let mut values = MapDeserializer::<_, Self::Error>::new(
+                    values.into_iter().map(|(key, value)| (key, Fields(value))),
+                );
+                let result = visitor.visit_map(&mut values)?;
+                values.end()?;
+                Ok(result)
+            }
+            Value::Array(values) => {
+                let mut values =
+                    SeqDeserializer::<_, Self::Error>::new(values.into_iter().map(Fields));
+                let result = visitor.visit_seq(&mut values)?;
+                values.end()?;
+                Ok(result)
+            }
             value => value.into_deserializer().deserialize_any(visitor),
         }
     }
@@ -62,6 +71,7 @@ impl<'de> serde::Deserializer<'de> for Fields {
     ) -> Result<V::Value, Self::Error> {
         let values = match self.0 {
             Value::Object(values) => values,
+            Value::Null => serde_json::Map::new(),
             value => return Fields(value).deserialize_any(visitor),
         };
         let mut canonical = serde_json::Map::new();
@@ -76,7 +86,67 @@ impl<'de> serde::Deserializer<'de> for Fields {
                 )));
             }
         }
+        for field in fields {
+            canonical.entry((*field).to_owned()).or_insert(Value::Null);
+        }
         Fields(Value::Object(canonical)).deserialize_any(visitor)
+    }
+
+    fn deserialize_seq<V: Visitor<'de>>(self, visitor: V) -> Result<V::Value, Self::Error> {
+        if self.0.is_null() {
+            Fields(Value::Array(Vec::new())).deserialize_any(visitor)
+        } else {
+            self.deserialize_any(visitor)
+        }
+    }
+
+    fn deserialize_map<V: Visitor<'de>>(self, visitor: V) -> Result<V::Value, Self::Error> {
+        if self.0.is_null() {
+            Fields(Value::Object(serde_json::Map::new())).deserialize_any(visitor)
+        } else {
+            self.deserialize_any(visitor)
+        }
+    }
+
+    fn deserialize_tuple<V: Visitor<'de>>(
+        self,
+        length: usize,
+        visitor: V,
+    ) -> Result<V::Value, Self::Error> {
+        if self.0.is_null() {
+            Fields(Value::Array(vec![Value::Null; length])).deserialize_any(visitor)
+        } else {
+            self.deserialize_any(visitor)
+        }
+    }
+
+    fn deserialize_tuple_struct<V: Visitor<'de>>(
+        self,
+        _name: &'static str,
+        length: usize,
+        visitor: V,
+    ) -> Result<V::Value, Self::Error> {
+        self.deserialize_tuple(length, visitor)
+    }
+
+    fn deserialize_bool<V: Visitor<'de>>(self, visitor: V) -> Result<V::Value, Self::Error> {
+        if self.0.is_null() {
+            visitor.visit_bool(false)
+        } else {
+            self.deserialize_any(visitor)
+        }
+    }
+
+    fn deserialize_str<V: Visitor<'de>>(self, visitor: V) -> Result<V::Value, Self::Error> {
+        self.deserialize_string(visitor)
+    }
+
+    fn deserialize_string<V: Visitor<'de>>(self, visitor: V) -> Result<V::Value, Self::Error> {
+        if self.0.is_null() {
+            visitor.visit_string(String::new())
+        } else {
+            self.deserialize_any(visitor)
+        }
     }
 
     fn deserialize_option<V: Visitor<'de>>(self, visitor: V) -> Result<V::Value, Self::Error> {
@@ -106,8 +176,12 @@ impl<'de> serde::Deserializer<'de> for Fields {
             .deserialize_enum(name, variants, visitor)
     }
 
+    null_numbers! {
+        deserialize_i8 deserialize_i16 deserialize_i32 deserialize_i64 => visit_i64(0);
+        deserialize_u8 deserialize_u16 deserialize_u32 deserialize_u64 => visit_u64(0);
+        deserialize_f32 deserialize_f64 => visit_f64(0.0);
+    }
     serde::forward_to_deserialize_any! {
-        bool i8 i16 i32 i64 u8 u16 u32 u64 f32 f64 char str string bytes byte_buf
-        unit unit_struct seq tuple tuple_struct map identifier ignored_any
+        i128 u128 char bytes byte_buf unit unit_struct identifier ignored_any
     }
 }

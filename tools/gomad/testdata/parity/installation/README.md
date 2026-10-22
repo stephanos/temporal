@@ -20,6 +20,12 @@ the same bounds; signs, invalid octal, malformed underscores and overflow refuse
 Both lineages retain the literal argument vectors and parsed values. A duplicated
 member inside the admitted guest configuration must refuse before discovery.
 
+The configuration table checks Go field aliases, zero defaults, null values and
+fixed entropy-array length against both public installers. Accepted original
+configuration bytes and their hashes remain literal. Temporal descriptor aliases
+use authenticated descriptor bytes with recomputed length and SHA-256; duplicate
+aliases and inserted delimiters must refuse.
+
 Discovery retains the frozen Go `gomad-choice-trace/v3` and Rust
 `gomad-choice-trace/v4` capability names literally. Each lineage's expected
 format is checked separately; the remaining capabilities compare directly,

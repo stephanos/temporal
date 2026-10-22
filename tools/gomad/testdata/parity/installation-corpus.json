@@ -120,6 +120,8 @@
     "duplicate-configuration-member",
     "numeric-grammar",
     "clock-defaults",
-    "configuration-aliases"
+    "configuration-aliases",
+    "configuration-nulls",
+    "captured-descriptor-aliases"
   ]
 }

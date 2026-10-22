@@ -63,7 +63,7 @@ struct Guest {
     stdin: Option<String>,
     #[serde(default)]
     entropy_key: [u8; 32],
-    #[serde(default, deserialize_with = "decode::zero")]
+    #[serde(default)]
     clock: Clock,
     limits: Limits,
     #[serde(default, rename = "storage")]
@@ -74,9 +74,7 @@ struct Guest {
 #[derive(Default, serde::Deserialize)]
 #[serde(default, deny_unknown_fields, rename_all = "PascalCase")]
 struct Clock {
-    #[serde(deserialize_with = "decode::zero")]
     epoch_nanos: u64,
-    #[serde(deserialize_with = "decode::zero")]
     read_step_nanos: u64,
 }
 #[derive(serde::Deserialize)]
@@ -241,7 +239,7 @@ fn capture(
     {
         return Err("captured descriptor identity mismatch".into());
     }
-    let descriptor: Descriptor = crate::qualify::spec::strict(&bytes)?;
+    let descriptor: Descriptor = decode::typed(crate::qualify::spec::strict(&bytes)?)?;
     let limits = CaptureLimits {
         directory_entries: number(&descriptor.limits.directory_entries)?,
         files: number(&descriptor.limits.files)?,

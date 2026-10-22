@@ -72,7 +72,7 @@ def main():
     equal(set(declaration['required']), {'helper-default', 'helper-matching', 'helper-mismatch', 'compiler-missing',
         'compiler-version', 'publication-collision', 'go-lineage', 'explicit-precedence', 'environment-precedence',
         'sibling', 'invalid-explicit', 'invalid-environment', 'removed-build-inputs', 'changed-compiler',
-        'configured-limits', 'temporal-policy', 'captured-payload-mismatch', 'captured-descriptor-mismatch', 'schema-symlink', 'changed-runtime', 'missing-runtime', 'external-helper-never-executed', 'seed-plan', 'scoped-plan', 'seed-recovery', 'round-recovery', 'duplicate-configuration-member', 'numeric-grammar', 'clock-defaults', 'configuration-aliases'}, 'corpus.required')
+        'configured-limits', 'temporal-policy', 'captured-payload-mismatch', 'captured-descriptor-mismatch', 'schema-symlink', 'changed-runtime', 'missing-runtime', 'external-helper-never-executed', 'seed-plan', 'scoped-plan', 'seed-recovery', 'round-recovery', 'duplicate-configuration-member', 'numeric-grammar', 'clock-defaults', 'configuration-aliases', 'configuration-nulls', 'captured-descriptor-aliases'}, 'corpus.required')
     environment = {key: value for key, value in os.environ.items() if not key.startswith('GOMAD_') and key != 'GOROOT'}
     environment.update(GOENV='off', GOWORK='off', GOTOOLCHAIN='local', GOMAXPROCS='2', GOPROXY='off', GOSUMDB='off')
     receipts = []
@@ -205,6 +205,7 @@ def main():
         equal(numeric_go, numeric_rust, 'installation.numeric_parity')
         equal(len(numeric_go), 12, 'installation.numeric_case_count')
         clocks = clock_cases(args, root, run, decode)
+        descriptor_cases = captured_descriptor_cases(args, manifests, root, run, decode)
         configuration_refusals(args, manifests, root, run, decode)
         seed_plan = runpy.run_path(str(CORPUS / 'plan-check.py'))['check'](
             args.binary, manifests['rust', 'cooperative'], root / 'seed-plan',
@@ -319,7 +320,7 @@ def main():
                               else row['name'].removesuffix(f'-{attempt}'), status=row['status'])
                     for row in receipts[receipt_start:]]
         views.append(dict(schema='gomad.installation-golden/v1', grammar=grammar, doctor=doctors[1],
-                          installations=installed, seed_plan=seed_plan, recovery=recovery, go_recovery=go_recovery, numeric=numeric_rust, clocks=clocks, commands=commands))
+                          installations=installed, seed_plan=seed_plan, recovery=recovery, go_recovery=go_recovery, numeric=numeric_rust, clocks=clocks, descriptors=descriptor_cases, commands=commands))
     equal({str(path): digest(path.read_bytes()) for path in input_paths}, input_digests, 'installation.unchanged_inputs')
     equal(views[0], views[1], 'installation.repeated_agreement')
     golden = CORPUS / 'goldens-installation' / ('grammar.json' if args.grammar_only else 'installation.json')
@@ -384,9 +385,26 @@ def clock_cases(args, root, run, decode):
     config = copy.deepcopy(canonical)
     config['Clock']['Unknown'] = 1
     additions.append(('unknown-clock', config, 2, None))
+    for name, field, value, expected in [
+        ('null-entropy-key', 'EntropyKey', None, 0),
+        ('null-captured-inputs', 'CapturedInputs', None, 0),
+        ('null-captured-manifest', 'CapturedInputs', {'Manifest': None}, 0),
+        ('null-capture-limits', 'CapturedInputs', {'Manifest': {'Limits': None}}, 0),
+        ('null-argument-item', 'Args', [None], 0),
+        ('null-limits', 'Limits', None, 2),
+        ('entropy-short', 'EntropyKey', [0] * 31, 2),
+        ('entropy-long', 'EntropyKey', [0] * 33, 2),
+        ('null-entropy-items', 'EntropyKey', [None] * 32, 0),
+    ]:
+        config = copy.deepcopy(canonical)
+        config[field] = value
+        additions.append((name, config, expected, canonical['Clock'] if not expected else None))
+    config = copy.deepcopy(canonical)
+    config['Limits']['OutputBytes'] = None
+    additions.append(('null-output-limit', config, 2, None))
     configured.extend((name, 'gomad.wasi-cooperative/v1', config, expected, defaults)
                       for name, config, expected, defaults in additions)
-    equal(len(configured), 17, 'configuration.clock_and_alias_case_count')
+    equal(len(configured), 27, 'configuration.clock_and_alias_case_count')
     views = []
     for name, profile, config, expected, defaults in configured:
         config_path = root / ('clock-' + name + '.json')
@@ -408,7 +426,8 @@ def clock_cases(args, root, run, decode):
             else:
                 manifest = decode(output.read_bytes())
                 if lineage == 'go':
-                    go_clock = manifest['options']['Config']['Clock']
+                    go_config = manifest['options']['Config']
+                    go_clock = go_config['Clock']
                     equal(go_clock, defaults, name + '.go_zero_defaults')
                 else:
                     original = manifest['admission']['guest_configuration']
@@ -416,10 +435,63 @@ def clock_cases(args, root, run, decode):
                     equal(manifest['admission']['configuration_sha256'], digest(encode(original)), name + '.configuration_preimage')
                     model_clock = dict(EpochNanos=manifest['model']['epoch_nanos'], ReadStepNanos=manifest['model']['read_step_nanos'])
                     equal(model_clock, go_clock, name + '.model_clock_parity')
+                    equal(manifest['model']['entropy_key'], go_config['EntropyKey'], name + '.entropy_key_parity')
+                    equal(manifest['admission']['arguments'], go_config['Args'] or [], name + '.arguments_parity')
+                    equal(manifest['admission']['environment'], dict(item.split('=', 1) for item in go_config['Environment'] or []),
+                          name + '.environment_parity')
         equal(observed, [expected, expected], name + '.status_parity')
         views.append(dict(case=name, status=expected, configuration=config,
             **(dict(go_clock=go_clock, model_clock=model_clock,
-                    configuration_sha256=manifest['admission']['configuration_sha256'], admitted_configuration=original)
+                    configuration_sha256=manifest['admission']['configuration_sha256'], admitted_configuration=original,
+                    entropy_key=manifest['model']['entropy_key'], arguments=manifest['admission']['arguments'],
+                    environment=manifest['admission']['environment'])
+               if not expected else {})))
+    return views
+
+
+def captured_descriptor_cases(args, manifests, root, run, decode):
+    original = decode(manifests['go', 'temporal'].read_bytes())['options']['Config']
+    canonical_namespace = decode(manifests['rust', 'temporal'].read_bytes())['namespace']
+    raw = base64.b64decode(original['CapturedInputs']['Descriptor'], validate=True)
+    needle = b'"entries":'
+    equal(raw.count(needle), 1, 'descriptor.entries_object_count')
+    cases = [
+        ('alias', raw.replace(needle, b'"Entries":', 1), 0),
+        ('duplicate-alias', raw.replace(needle, b'"Entries":[],"entries":', 1), 2),
+        ('delimiter', raw.replace(needle, b'"entr_ies":', 1), 2),
+    ]
+    views = []
+    for name, descriptor, expected in cases:
+        config = copy.deepcopy(original)
+        config['CapturedInputs']['Descriptor'] = base64.b64encode(descriptor).decode()
+        config['CapturedInputs']['Manifest']['Bytes'] = len(descriptor)
+        config['CapturedInputs']['Manifest']['SHA256'] = 'sha256:' + digest(descriptor)
+        config_path = root / ('descriptor-' + name + '.json')
+        config_path.write_bytes(encode(config))
+        statuses = []
+        for lineage, binary, helper in [('go', args.go_binary, args.go_helper), ('rust', args.binary, None)]:
+            output = root / (lineage + '-descriptor-' + name + '-installation.json')
+            command = [binary, 'install', '--compiler', args.go_compiler,
+                '--cache', args.preparation_root / (lineage + '-cache'), '--profile', 'gomad.wasi-cooperative/v1',
+                '--runtime-root', args.go_source / 'tools/gomad/internal/model/runtimesource',
+                '--config', config_path, '--output', output, '--fuel', str(1 << 50), '--memory-bytes', str(4 << 30)]
+            if helper:
+                command += ['--helper', helper]
+            result = run(f'{lineage}-descriptor-{name}-{root.name}', command, expected)
+            statuses.append(result.returncode)
+            if expected:
+                equal(output.exists(), False, name + '.no_installation')
+            else:
+                manifest = decode(output.read_bytes())
+                if lineage == 'rust':
+                    equal(manifest['admission']['guest_configuration'], config, name + '.original_configuration')
+                    equal(manifest['admission']['configuration_sha256'], digest(encode(config)), name + '.configuration_preimage')
+                    equal(manifest['namespace'], canonical_namespace, name + '.unchanged_namespace')
+        equal(statuses, [expected, expected], name + '.descriptor_status_parity')
+        views.append(dict(case=name, status=expected, configuration=config,
+            descriptor_sha256=digest(descriptor), descriptor_bytes=len(descriptor),
+            **(dict(admitted_configuration=manifest['admission']['guest_configuration'],
+                    configuration_sha256=manifest['admission']['configuration_sha256'], namespace=manifest['namespace'])
                if not expected else {})))
     return views
 

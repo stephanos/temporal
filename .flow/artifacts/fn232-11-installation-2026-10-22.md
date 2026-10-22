@@ -72,8 +72,9 @@ with the existing capacity exemption. Ordinary matching scoped exploration
 retention is unchanged. The existing public corpus authenticates both matching
 and empty-scope retained base artifacts; this actual public proof remains queued.
 
-Review also found missing Go clock zero defaults. The repair handles omitted or
-null clock values and numeric members without changing clock bounds. The pinned
+Review also found missing Go clock zero defaults. The typed adapter handles Go zero defaults for omitted/null typed members,
+including clocks, entropy arrays, empty capture metadata, primitive values and
+collections, without changing semantic admission bounds. The pinned
 Go decoder explicitly uses case-insensitive matching with sensitive delimiters,
 and rejects differently spelled aliases of the same typed field. A private
 Serde adapter obtains actual schema member names from derives, matches EqualFold
@@ -95,13 +96,41 @@ focused GREEN exited 0 for two probes covering seven clock/default/bounds cases
 and the 21 exact Go inputs (`.flow/tmp/install-review-clock-red.log` and
 `.flow/tmp/install-review-config-green.log`). Temporary observable probes were
 removed after the run; retained source is `.flow/tmp/install-review-probes.rs`.
-The lasting public matrix has 17 explicit clock/alias/null/range/refusal rows.
+The lasting public matrix now has 27 explicit config/alias/null/range/refusal
+rows plus three actual Temporal descriptor cases.
 Initial focused Clippy exited 101 for one elidable lifetime; its mechanical fix
 passes Clippy `--lib --features determinism-fixture -- -D warnings` (exit 0,
 `.flow/tmp/install-review-repair-clippy-green.log`). Formatting, five Python
 syntax checks and diff checks pass. No fixture rebuild or guest execution has
 occurred after this repair; the successor fixture and complete corpus remain
 pending the shared host window.
+
+The follow-up source review identified the captured descriptor's typed decoder
+bypassing the field adapter. Capture now authenticates the original raw byte
+length/SHA-256 first, parses strict raw JSON, then applies the same typed decoder
+to the descriptor and its nested fields. Arbitrary raw Values and payload map
+keys retain their literal bytes. The adapter also verifies complete sequence/map
+consumption: a 33-byte entropy array had previously escaped the array visitor's
+length check, while Go rejects both 31- and 33-byte arrays.
+
+A second pinned Go oracle passed 34 exact decoder/model inputs (exit 0), including
+actual Temporal descriptor alias/duplicate/delimiter mutations with recomputed
+raw descriptor length/hash; null entropy/capture/manifest/limits and primitive
+items; invalid zero limits; and exact entropy array arity. Its source, inputs,
+command and observations are at
+`/home/agent/wt/evidence/fn232-install-corpus/config-alias-oracle2`.
+The original Rust source failed ten concrete comparisons (RED exit 101,
+`.flow/tmp/install-review-null-red.log`); the initial repair failed only the
+33-byte tail (exit 101, `.flow/tmp/install-review-null-green.log`). After exact
+sequence/map end checks, all 34 decoder/model cases agree (exit 0, one focused
+probe, `.flow/tmp/install-review-null-green-final.log`). The probe additionally
+checks admitted clock, entropy, arguments and unchanged original config. Its
+source was removed after validation and retained in
+`.flow/tmp/install-null-probe-passed.rs`; raw Rust comparisons remain beside the
+Go oracle. Final production library Clippy passes (exit 0,
+`.flow/tmp/install-review-null-clippy.log`), with formatting/Python syntax/diff
+checks passing. These bounded probes start no guest or overlay/compiler
+preparation. No successor fixture build or full public corpus has run yet.
 
 ## Pending acceptance
 
