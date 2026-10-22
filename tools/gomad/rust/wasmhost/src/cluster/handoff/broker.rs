@@ -140,6 +140,7 @@ struct Session {
     incarnation: u64,
     slot: u64,
     revoked: Option<&'static str>,
+    output_revoked: bool,
     hold: Option<clock::Handle>,
     marker: Vec<u8>,
     boundary: &'static str,
@@ -260,6 +261,7 @@ impl Broker {
                 incarnation: 1,
                 slot: sessions.len() as u64 + 1,
                 revoked: None,
+                output_revoked: false,
                 hold: None,
                 marker: Vec::new(),
                 boundary: "crash",
@@ -564,6 +566,7 @@ impl Broker {
         }
         if own == Some("crash") {
             self.revoke_locked(&mut inner, me, "crash")?;
+            inner.sessions[me].output_revoked = true;
             return Err(Failure::Boundary("crash", "broker output trigger"));
         } else if all {
             let nodes: Vec<_> = inner
@@ -576,10 +579,12 @@ impl Broker {
             inner.barrier.clear();
             for node in nodes {
                 self.revoke_locked(&mut inner, node, "crash")?;
+                inner.sessions[node].output_revoked = true;
             }
             return Err(Failure::Boundary("crash", "broker output barrier"));
         } else if own == Some("stop") {
             self.revoke_locked(&mut inner, me, "stop")?;
+            inner.sessions[me].output_revoked = true;
             return Err(Failure::Boundary("stop", "broker output trigger"));
         }
         Self::check_locked(&inner, me, incarnation)
@@ -587,6 +592,15 @@ impl Broker {
 
     pub fn finished(&self, me: usize) -> bool {
         lock(&self.inner).sessions[me].state == State::Finished
+    }
+
+    pub(crate) fn output_terminal(&self, me: usize, incarnation: u64) -> Option<&'static str> {
+        let inner = lock(&self.inner);
+        inner
+            .sessions
+            .get(me)
+            .filter(|session| session.incarnation == incarnation && session.output_revoked)
+            .and_then(|session| session.revoked)
     }
 
     fn revoke_locked(
@@ -692,6 +706,7 @@ impl Broker {
             handle,
             state: State::Runnable,
             revoked: None,
+            output_revoked: false,
             hold: None,
             marker: Vec::new(),
             boundary: "crash",

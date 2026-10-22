@@ -166,3 +166,46 @@ cargo +1.99.1 test --release --locked --no-default-features \
 Only the two declared `GOMAD_LIVE_CLUSTER_SHUTDOWN_*` variables may be present for this gate. Preserve source inventories before/after compile and actual selected test count1, exit0,16 iteration receipts, ordinary compiled Conditions and same-live-handle reinsertion evidence. Compilation is the only required new build in this pair; no reusable release private35 test executable currently exists in the released target. If main helper source changes or retirement lands first, this command needs a freshly declared source/role binding rather than inheriting82ba. Do not rebuild the already pinned CLI as part of this pair.
 
 The original Go v4 source/assertion/index gate is reusable authenticated input, not a substitute for either Rust gate. Original37/38 v2 six-cell observation can separately feed `live-broker-owner-check.py --binary SAME_IMMUTABLE_FIXTURE --observation /home/agent/wt/evidence/fn232-live-broker-owners-v2 --work FRESH_ROOT` for its pending16 executions. Provider19 and the remaining corpus families remain separately pending. None of these planned commands was run during this source-only ownership request; no qualification, acceptance or lifecycle change follows from this plan.
+
+### First actual integrated Rust77 attempt: retained admission failure
+
+The explicitly granted integrated82ba wave was actually launched21:30:57.394421Z under main `f08f060e2d89cb18c1e5f1d1b09c84df58a4d624`; checker/helper source matched82ba before/after. Controller2875991/checker2876043/session49514 terminated21:30:57.811059Z, checkerexit1. Exactly1 of77 cells was attempted: original32/read-step-0 CLIexit2, `invalid cluster output boundary`;76 remain unexecuted. No retry occurred. Raw `/home/agent/wt/evidence/fn232-live-rust-broker-77-integrated82ba-01/` has command/input/stderr/classification; sibling `-launch/` has stdout/stderr/start/end/PIDs/source-before/source-after and terminal. Immutable fixture SHA remained63c43… and source inventory was unchanged. Space observed after terminal:20,372,856,832bytes free. This is a real Rust admission failure, not an observation error or a qualified cell.
+
+Source diagnosis: `linked_cluster::lifecycle` requires each armed output boundary to have an explicit matching Crash/Stop terminal step. Original32 arms CrashOnOutput then waits for the actual Run terminal, and original33 deliberately arms the same boundary while a stderr-only marker must still exit normally. The projected Wait preserves that original conditional behavior. Dropping the marker or rewriting every Wait to Crash would lose the stderr non-trigger assertion. Execution already arms boundaries before launch and Wait joins the actual terminal. The minimal proposed preservation fix admits a known boundary's matching Wait terminal alongside its existing matching explicit Crash/Stop, retaining all marker/handle/uniqueness/action guards.
+
+Pure reproduction source checkpoint `a70251888c` is ready but not yet executed: `linked_cluster::live_controller_tests::conditional_output_boundary_preserves_wait_lifecycle`, Crash/Stop with explicit terminal/Wait plus malformed marker, duplicate, mismatched action and unknown-handle refusals. Production proposal remains UNAPPLIED at `.flow/tmp/live-boundary-production-proposal.patch`. Await root target/resource grant for observed pure RED→GREEN, then a newly source-bound immutable fixture and focused actual32/33 comparisons before any fresh77 retry. Main was not edited. Private35 Cargo remains held under the fn233 target lease.
+
+### Conditional boundary preservation fix: focused observed RED→GREEN
+
+Root granted the exclusive warmed target for this helper-only round. Exact command used both times, with source frozen throughout each command:
+
+```bash
+CARGO_TARGET_DIR=/home/agent/.cache/codex-build/fn232-live-corpus CARGO_BUILD_JOBS=2 \
+cargo +1.99.1 test --release --locked --no-default-features \
+ --manifest-path tools/gomad/internal/backends/wasm/wasmhost/Cargo.toml \
+ --lib conditional_output_boundary_preserves_wait_lifecycle
+```
+
+RED session19018: suiteexit101, exactly1 selected, failed `invalid cluster output boundary` at the first Wait case after its matching explicit terminal passed. Raw `.flow/tmp/live-boundary-wait-red.log`. Then applied only the proposed production condition: the same known handle may be joined by Wait or its explicitly matching Crash/Stop. No boundary, lifecycle step, marker or limit was removed or rewritten. GREEN session50000: suiteexit0, exactly1 selected, all4 positive combinations and10 invalid controls passed; `.flow/tmp/live-boundary-wait-green.log`. Both sessions are terminal. Formatting afterward normalized the predicate and an existing NoRemote counter line; no extra behavior changed. Whitespace check0.
+
+This proves the focused admission correction, not actual guest equivalence. Main remained untouched; no CLI rebuild, private35 execution or new77 wave occurred. Parent owns source review/integration, new immutable fixture binding, focused original32/33 live comparison and any subsequent complete77 authorization. The target has no remaining assigned jobs from this worker after this round.
+
+### Conditional Wait execution correction after independent source finding
+
+The admission-only patch was insufficient: an actual marker-induced crash/stop joined by Wait still promoted that interruption to aggregate failure, excluding the original required World bytes. The coherent correction records a private per-incarnation causal fact only after successful output-trigger/group revocation. Wait suppresses aggregate promotion only when that actual fact matches the observed terminal kind. Restart resets the fact; raw per-incarnation outcomes, interruption flags, lifecycle steps and the World retention allowlist remain unchanged. Merely arming a marker does not suppress a failure. No public schema, feature admission, guest resource bounds or cancellation behavior changed.
+
+Execution regression source was checkpointed at `7d8ed8e84f`; fixture setup was corrected before meaningful RED. Exact command prefix for this round:
+
+```bash
+CARGO_TARGET_DIR=/home/agent/.cache/codex-build/fn232-live-corpus CARGO_BUILD_JOBS=2 \
+cargo +1.99.1 test --release --locked --no-default-features \
+ --manifest-path tools/gomad/internal/backends/wasm/wasmhost/Cargo.toml --lib SELECTOR
+```
+
+`conditional_output_wait_retains_world_and_actual_terminal`: meaningful RED session56201 exit101/selected1, aggregate crash instead of exit after the actual stdout marker; `.flow/tmp/live-boundary-execution-red.log`. After the causal production patch, GREEN session69485 exit0/selected1; `.flow/tmp/live-boundary-execution-green.log`. It exercises Crash/Stop with stdout-triggered and stderr-untriggered markers, actual retained World validation, a two-node grouped crash using the existing cooperative runtime idle ABI, and unexpected trap/nonzero-exit controls. The actual per-incarnation interruption remains observable while successfully joined conditional boundaries yield exit0 and retained World.
+
+`unbound_same_kind_and_cancellation_remain_failures_with_armed_marker`: final session3271 exit0/selected1, `.flow/tmp/live-boundary-unexpected-green.log`. Actual external broker Crash/Stop commands with an armed but unmatched marker still promote failure and omit World; actual cancellation after Store launch still reports exact cancelled outcome/message/no exit code. `conditional_output_boundary_preserves_wait_lifecycle`: same sequential session3271 exit0/selected1, `.flow/tmp/live-boundary-admission-green.log`, retaining all malformed/duplicate/mismatched/unknown-handle controls. Whitespace check0. All commands are terminal; the exclusive live-corpus Cargo lease is released.
+
+Fixture/debug failures are retained separately and are not called meaningful RED or GREEN: missing PWD and overlapping writable-root setup (`live-boundary-execution-fixture-error{,-2}.log`); grouped guest WASI clock/poll loops that did not yield through the broker and hit capacity (`live-boundary-execution-group-fixture-error{,-2}.log`); inner-executor cancellation assumption (`live-boundary-unexpected-inner-fixture-error.log`); and an unsupported assertion that cancellation must erase World (`live-boundary-cancellation-world-assumption-error.log`). Existing public execution applies cancellation to the outcome after the unchanged World allowlist; the corrected control tests that existing outcome contract without changing production cancellation or World policy.
+
+No CLI rebuild, private35, actual original32/33 comparison or full77 retry occurred in this round. Parent owns independent followup review, integration, a new immutable fixture and authorization of actual focused32/33 before any complete77 retry. Task13 remains provisional TODO; these focused checks do not qualify the full candidate.

@@ -259,3 +259,26 @@ Thirteen all-verb negative checks and static diff checks also exit 0. No Rust
 build/Cargo command, whole-Go suite, guest, profile, parity lane, qualification,
 CI, Flow operation, PR or push ran in this wave. Final integrated code-size
 counts remain deferred until the final frozen source.
+
+## Prospective broker-correction integration through 374c62ecce
+
+Root independently reviewed 913bc6d48f as SHIP with no blocking source findings,
+including the current measured bd45…6d15 identity, exact 123 metadata-only
+rotations and five-root actual relocated-Go validation receipt. That review does
+not accept final retirement or qualification.
+
+Merged reviewed root main 374c62ecce into this prospective branch. The moved
+broker causal revocation source, linked-cluster coordinator and complete expanded
+live-controller tests match the corresponding reviewed main source byte-for-byte;
+the already integrated mandatory precrash image/native projection source remains
+present. No main checkout or frozen external Go control source was changed.
+
+Static-only checks exit 0: direct pinned1.99.1 rustfmt --edition2024 --check on the
+three changed Rust files; exact incoming broker/coordinator/controller source
+comparisons; all Rust include/path-attribute resolution; unchanged 127 original
+helper lock entries; source-tool Python AST parsing; original/current logical
+model-hash reporting (current still bd45…6d15); diff checks. No Cargo, Go, guest,
+new Python test suite, profile, actual parity or qualification ran in this wave.
+Root's integrated helper test session51796 was still pending at dispatch; its
+outcome belongs to root and is not claimed here. fn231/fn233 source integration
+and the final endpoint/identity freeze remain outstanding before any final cycle.

@@ -412,10 +412,10 @@ fn lifecycle(request: &Request, handles: &BTreeSet<Handle>) -> Result<Vec<String
             || boundary.marker.is_empty()
             || boundary.marker.len() > 4096
             || !boundaries.insert(boundary.handle.clone())
-            || !request
-                .steps
-                .iter()
-                .any(|step| step.handle == boundary.handle && step.action == boundary.action)
+            || !request.steps.iter().any(|step| {
+                step.handle == boundary.handle
+                    && (step.action == Action::Wait || step.action == boundary.action)
+            })
         {
             return Err(Error::msg("invalid cluster output boundary"));
         }
@@ -1040,6 +1040,8 @@ fn execute_inner(
                     images.insert(step.handle.node.clone(), image);
                 }
                 if step.action == Action::Wait
+                    && broker.output_terminal(index, step.handle.incarnation)
+                        != Some(observed.result.execution.outcome.termination)
                     && observed.result.execution.outcome.termination != "inspected_prefix"
                     && (observed.result.execution.outcome.termination != "exit"
                         || observed.result.execution.outcome.exit_code != Some(0))
