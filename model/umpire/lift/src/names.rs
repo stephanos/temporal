@@ -1,50 +1,310 @@
 use crate::{Diagnostic, Lifted};
 use proc_macro2::Span;
 use quote::ToTokens;
-use std::collections::BTreeSet;
-use umpire_front::RESERVED_NAMES;
+use std::collections::{BTreeMap, BTreeSet};
+use umpire_front::expr::{Expr, ExprKind};
+
+/// TLA+ keywords, standard-module operators and fixed emitted names that no generated or
+/// authored symbol may take.
+const RESERVED_NAMES: &[&str] = &[
+    "vars",
+    "ModelVars",
+    "Init",
+    "ModelNext",
+    "ModelEdge",
+    "Edge",
+    "Complete",
+    "Next",
+    "Spec",
+    "__umpire_Div",
+    "__umpire_a",
+    "__umpire_b",
+    "__umpire_d",
+    "__umpire_n",
+    "__umpire_q",
+    "__umpire_r",
+    "__umpire_negative",
+    "__umpire_edge_tick",
+    "__umpire_pending",
+    "__umpire_steps",
+    "__umpire_action",
+    "__umpire_choice",
+    "__umpire_outcome",
+    "__umpire_facts",
+    "__umpire_input",
+    "TRUE",
+    "FALSE",
+    "BOOLEAN",
+    "Int",
+    "Nat",
+    "Assert",
+    "Seq",
+    "Len",
+    "Append",
+    "Head",
+    "Tail",
+    "SubSeq",
+    "SelectSeq",
+    "DOMAIN",
+    "IF",
+    "THEN",
+    "ELSE",
+    "CASE",
+    "OTHER",
+    "LET",
+    "IN",
+    "UNCHANGED",
+    "ENABLED",
+    "SUBSET",
+    "UNION",
+    "CHOOSE",
+    "ASSUME",
+    "THEOREM",
+    "VARIABLE",
+    "VARIABLES",
+    "CONSTANT",
+    "CONSTANTS",
+    "MODULE",
+    "INSTANCE",
+    "LOCAL",
+    "EXTENDS",
+];
+
+/// The TLA+ names emission gives a Model's World fields, action inputs, catalog position and
+/// module constants.
+#[derive(Clone, Debug)]
+pub(crate) struct Names {
+    /// One per World field.
+    pub(crate) world: Vec<String>,
+    /// One per input field of each action; chosen values are LET-bound inside one variant's
+    /// relation, so each variant allocates its names apart from the others.
+    pub(crate) inputs: Vec<Vec<String>>,
+    /// A catalog position inside input relations.
+    pub(crate) index: String,
+    /// Module constants under a declared World.
+    pub(crate) constants: BTreeMap<String, String>,
+}
+
+/// An action's TLA+ relation operator.
+pub(crate) fn operator(action: &str) -> String {
+    action.replace("::", "_")
+}
+
+/// Allocate the generated names, never like an authored or reserved name, and rename the
+/// World and input references of the admitted tree to them.
+pub(crate) fn assign(ast: &syn::File, model: &mut umpire_front::Lifted) -> Names {
+    let mut generated = BTreeSet::new();
+    let world: Vec<_> = model
+        .world_fields
+        .iter()
+        .map(|field| allocate(ast, &format!("__umpire_world_{}", field.name), &mut generated))
+        .collect();
+    let inputs: Vec<Vec<_>> = model
+        .actions
+        .iter()
+        .map(|action| {
+            let mut scope = generated.clone();
+            action
+                .fields
+                .iter()
+                .map(|field| allocate(ast, &format!("__umpire_input_{}", field.name), &mut scope))
+                .collect()
+        })
+        .collect();
+    let index = allocate(ast, "__umpire_i", &mut generated);
+    let constants = if model.declared_world {
+        model
+            .constants
+            .keys()
+            .map(|name| {
+                (name.clone(), allocate(ast, &format!("__umpire_source_{name}"), &mut generated))
+            })
+            .collect()
+    } else {
+        BTreeMap::new()
+    };
+    let worlds: BTreeMap<_, _> =
+        model.world_fields.iter().map(|field| field.name.clone()).zip(world.clone()).collect();
+    let rename_world = |expr: &mut Expr| {
+        rename(expr, &|kind| match kind {
+            ExprKind::World(name) => worlds.get(name.as_str()).cloned().map(ExprKind::World),
+            _ => None,
+        });
+    };
+    for value in model.constants.values_mut() {
+        rename_world(value);
+    }
+    for field in &mut model.fields {
+        match &mut field.start {
+            umpire_front::tree::Start::Computed => {}
+            umpire_front::tree::Start::Value(value) => rename_world(value),
+            umpire_front::tree::Start::Range(lo, hi)
+            | umpire_front::tree::Start::ExclusiveRange(lo, hi) => {
+                rename_world(lo);
+                rename_world(hi);
+            }
+        }
+    }
+    for (action, symbols) in model.actions.iter_mut().zip(&inputs) {
+        let chosen: BTreeMap<_, _> =
+            action.fields.iter().map(|field| field.name.clone()).zip(symbols.clone()).collect();
+        let rename_branch = |expr: &mut Expr| {
+            rename(expr, &|kind| match kind {
+                ExprKind::World(name) => worlds.get(name.as_str()).cloned().map(ExprKind::World),
+                ExprKind::Input(name) => chosen.get(name.as_str()).cloned().map(ExprKind::Input),
+                _ => None,
+            });
+        };
+        for branch in &mut action.branches {
+            rename_branch(&mut branch.guard);
+            branch.updates.values_mut().for_each(rename_branch);
+            branch.checks.iter_mut().for_each(rename_branch);
+            rename_branch(&mut branch.outcome);
+        }
+    }
+    for claim in model.invariants.iter_mut().chain(&mut model.negative) {
+        rename_world(&mut claim.expr);
+    }
+    for claim in &mut model.postconditions {
+        rename_world(&mut claim.expr);
+    }
+    for claim in &mut model.progress {
+        rename_world(&mut claim.trigger);
+        rename_world(&mut claim.target);
+    }
+    Names { world, inputs, index, constants }
+}
+
+fn rename(expr: &mut Expr, renamed: &dyn Fn(&ExprKind) -> Option<ExprKind>) {
+    if let Some(kind) = renamed(&expr.kind) {
+        expr.kind = kind;
+        return;
+    }
+    match &mut expr.kind {
+        ExprKind::Unary(_, value) | ExprKind::Length(value) => rename(value, renamed),
+        ExprKind::Binary(_, left, right) | ExprKind::Append(left, right) => {
+            rename(left, renamed);
+            rename(right, renamed);
+        }
+        ExprKind::If(first, second, third) | ExprKind::GetOr(first, second, third) => {
+            rename(first, renamed);
+            rename(second, renamed);
+            rename(third, renamed);
+        }
+        ExprKind::Tuple(values) | ExprKind::Sequence(values) | ExprKind::Checks(values) => {
+            for value in values {
+                rename(value, renamed);
+            }
+        }
+        ExprKind::Bool(_)
+        | ExprKind::Int(_)
+        | ExprKind::Text(_)
+        | ExprKind::Unit
+        | ExprKind::Var(..)
+        | ExprKind::World(_)
+        | ExprKind::Input(_)
+        | ExprKind::Enum(_) => {}
+    }
+}
+
+fn allocate(ast: &syn::File, base: &str, generated: &mut BTreeSet<String>) -> String {
+    struct Occupied<'a>(&'a mut BTreeSet<String>);
+    impl<'ast> syn::visit::Visit<'ast> for Occupied<'_> {
+        fn visit_ident(&mut self, ident: &'ast syn::Ident) {
+            self.0.insert(ident.to_string());
+        }
+        fn visit_item_enum(&mut self, value: &'ast syn::ItemEnum) {
+            for variant in &value.variants {
+                self.0.insert(format!("{}_{}", value.ident, variant.ident));
+            }
+            syn::visit::visit_item_enum(self, value);
+        }
+        fn visit_impl_item_fn(&mut self, value: &'ast syn::ImplItemFn) {
+            for prefix in [
+                "Invariant",
+                "Post",
+                "Negative",
+                "Assumption",
+                "Scoped",
+                "Activate",
+                "Monitor",
+                "ActiveEdge",
+                "PrefixEdge",
+                "Complete",
+                "ProgressNext",
+                "ProgressSpec",
+                "Maximal",
+                "Progress",
+            ] {
+                self.0.insert(format!("{prefix}_{}", value.sig.ident));
+            }
+            syn::visit::visit_impl_item_fn(self, value);
+        }
+    }
+    let mut occupied: BTreeSet<_> = RESERVED_NAMES.iter().map(|name| (*name).to_owned()).collect();
+    syn::visit::Visit::visit_file(&mut Occupied(&mut occupied), ast);
+    occupied.extend(generated.iter().cloned());
+    let mut name = base.to_owned();
+    let mut suffix = 0;
+    while occupied.contains(&name) {
+        suffix += 1;
+        name = format!("{base}_{suffix}");
+    }
+    generated.insert(name.clone());
+    name
+}
 
 pub(crate) fn validate(file: &str, ast: &syn::File, model: &Lifted) -> Result<(), Diagnostic> {
+    for field in &model.fields {
+        if crate::emit::OBSERVERS.contains(&field.name.as_str()) || field.name == crate::emit::INPUT
+        {
+            return Err(Diagnostic::of(
+                file,
+                &field.location,
+                format!("reserved observer name `{}`", field.name),
+            ));
+        }
+    }
     validate_text(file, ast.to_token_stream())?;
-    let mut names: BTreeSet<String> = RESERVED_NAMES.iter().map(|name| (*name).into()).collect();
+    let mut names = Registry {
+        file,
+        ast,
+        names: RESERVED_NAMES.iter().map(|name| (*name).into()).collect(),
+        prefixes: Vec::new(),
+    };
     // Input symbols are scoped to one variant's relation and may repeat across variants.
     let mut symbols = BTreeSet::new();
-    for action in &model.actions {
+    for (action, inputs) in model.actions.iter().zip(&model.names.inputs) {
         let variant = action.name.rsplit("::").next().unwrap_or(&action.name);
-        register(file, ast, &mut names, &action.operator, variant)?;
+        let operator = operator(&action.name);
+        names.register(&operator, variant)?;
         if !action.fields.is_empty() {
             for suffix in ["Inputs", "At"] {
-                register(file, ast, &mut names, &format!("{}_{suffix}", action.operator), variant)?;
+                names.register(&format!("{operator}_{suffix}"), variant)?;
             }
-            for field in &action.fields {
-                if !symbols.contains(&field.symbol) {
-                    register(file, ast, &mut names, &field.symbol, &field.name)?;
-                    symbols.insert(field.symbol.clone());
+            for (field, symbol) in action.fields.iter().zip(inputs) {
+                if !symbols.contains(symbol) {
+                    names.register(symbol, &field.name)?;
+                    symbols.insert(symbol.clone());
                 }
             }
         }
     }
     if model.has_inputs() {
-        register(file, ast, &mut names, &model.index_symbol, "__umpire_i")?;
+        names.register(&model.names.index, "__umpire_i")?;
     }
     for claim in &model.invariants {
-        register(file, ast, &mut names, &format!("Invariant_{}", claim.name), &claim.name)?;
+        names.register(&format!("Invariant_{}", claim.name), &claim.name)?;
     }
     for claim in &model.postconditions {
-        register(file, ast, &mut names, &format!("Post_{}", claim.name), &claim.name)?;
+        names.register(&format!("Post_{}", claim.name), &claim.name)?;
     }
     for claim in &model.negative {
-        register(file, ast, &mut names, &format!("Negative_{}", claim.name), &claim.name)?;
+        names.register(&format!("Negative_{}", claim.name), &claim.name)?;
     }
     for assumption in &model.assumptions {
         if model.progress.iter().any(|claim| claim.assumption.same_scope(assumption)) {
-            register(
-                file,
-                ast,
-                &mut names,
-                &format!("Assumption_{}", assumption.name),
-                &assumption.name,
-            )?;
+            names.register(&format!("Assumption_{}", assumption.name), &assumption.name)?;
         }
     }
     for claim in &model.progress {
@@ -60,57 +320,86 @@ pub(crate) fn validate(file: &str, ast: &syn::File, model: &Lifted) -> Result<()
             "Maximal",
             "Progress",
         ] {
-            register(file, ast, &mut names, &format!("{prefix}_{}", claim.name), &claim.name)?;
+            names.register(&format!("{prefix}_{}", claim.name), &claim.name)?;
         }
         for action in &model.actions {
             if !claim.assumption.fair.iter().any(|fair| fair.name == action.name) {
                 continue;
             }
-            let fair = format!("Fair_{}_{}", claim.name, action.operator);
+            let fair = format!("Fair_{}_{}", claim.name, operator(&action.name));
             if action.fields.is_empty() {
-                register(file, ast, &mut names, &fair, &claim.name)?;
+                names.register(&fair, &claim.name)?;
             } else {
                 // Exact payload obligations append a catalog position once the World is bound.
-                register_prefix(file, ast, &format!("{fair}_"), &claim.name)?;
+                names.register_prefix(&format!("{fair}_"), &claim.name)?;
             }
         }
     }
     for field in &model.fields {
-        register(file, ast, &mut names, &field.name, &field.name)?;
+        names.register(&field.name, &field.name)?;
     }
     for name in model.constants.keys() {
-        register(file, ast, &mut names, model.constant_symbols.get(name).unwrap_or(name), name)?;
+        names.register(model.names.constants.get(name).unwrap_or(name), name)?;
     }
-    for field in &model.world_fields {
-        register(file, ast, &mut names, &field.symbol, &field.name)?;
+    for (field, symbol) in model.world_fields.iter().zip(&model.names.world) {
+        names.register(symbol, &field.name)?;
     }
     Ok(())
 }
 
-fn register_prefix(
-    file: &str,
-    ast: &syn::File,
-    prefix: &str,
-    source: &str,
-) -> Result<(), Diagnostic> {
-    struct Prefixed<'a>(&'a str, bool);
-    impl<'ast> syn::visit::Visit<'ast> for Prefixed<'_> {
-        fn visit_ident(&mut self, ident: &'ast syn::Ident) {
-            self.1 |= ident.to_string().starts_with(self.0);
+/// The generated names taken so far, and the prefixes that catalog positions extend.
+struct Registry<'a> {
+    file: &'a str,
+    ast: &'a syn::File,
+    names: BTreeSet<String>,
+    prefixes: Vec<String>,
+}
+impl Registry<'_> {
+    fn register(&mut self, name: &str, source: &str) -> Result<(), Diagnostic> {
+        if !self.prefixes.iter().any(|prefix| positioned(name, prefix))
+            && self.names.insert(name.into())
+            && !name.starts_with("r#")
+            && name.chars().all(|c| c.is_ascii_alphanumeric() || c == '_')
+        {
+            return Ok(());
         }
+        Err(self.collision(source, &format!("generated TLA+ name `{name}`")))
     }
-    let mut prefixed = Prefixed(prefix, false);
-    syn::visit::Visit::visit_file(&mut prefixed, ast);
-    if !prefixed.1 {
-        return Ok(());
+
+    /// A prefix of generated `<prefix><position>` names, which no authored identifier and no
+    /// other generated name may share.
+    fn register_prefix(&mut self, prefix: &str, source: &str) -> Result<(), Diagnostic> {
+        struct Prefixed<'a>(&'a str, bool);
+        impl<'ast> syn::visit::Visit<'ast> for Prefixed<'_> {
+            fn visit_ident(&mut self, ident: &'ast syn::Ident) {
+                self.1 |= ident.to_string().starts_with(self.0);
+            }
+        }
+        let mut prefixed = Prefixed(prefix, false);
+        syn::visit::Visit::visit_file(&mut prefixed, self.ast);
+        if prefixed.1 || self.names.iter().any(|name| positioned(name, prefix)) {
+            return Err(self.collision(source, &format!("generated TLA+ names `{prefix}*`")));
+        }
+        self.prefixes.push(prefix.into());
+        Ok(())
     }
-    let mut found = Find { name: source, span: None };
-    syn::visit::Visit::visit_file(&mut found, ast);
-    Err(Diagnostic::span(
-        file,
-        found.span.unwrap_or_else(Span::call_site),
-        format!("authored declaration collides with generated TLA+ names `{prefix}*`"),
-    ))
+
+    fn collision(&self, source: &str, generated: &str) -> Diagnostic {
+        let mut found = Find { name: source, span: None };
+        syn::visit::Visit::visit_file(&mut found, self.ast);
+        Diagnostic::span(
+            self.file,
+            found.span.unwrap_or_else(Span::call_site),
+            format!("authored declaration collides with {generated}"),
+        )
+    }
+}
+
+/// Whether `name` is `prefix` followed by a catalog position.
+fn positioned(name: &str, prefix: &str) -> bool {
+    name.strip_prefix(prefix).is_some_and(|position| {
+        !position.is_empty() && position.bytes().all(|b| b.is_ascii_digit())
+    })
 }
 
 fn validate_text(file: &str, tokens: proc_macro2::TokenStream) -> Result<(), Diagnostic> {
@@ -151,25 +440,4 @@ impl<'ast> syn::visit::Visit<'ast> for Find<'_> {
             self.span = Some(literal.span());
         }
     }
-}
-fn register(
-    file: &str,
-    ast: &syn::File,
-    names: &mut BTreeSet<String>,
-    name: &str,
-    source: &str,
-) -> Result<(), Diagnostic> {
-    if names.insert(name.into())
-        && !name.starts_with("r#")
-        && name.chars().all(|c| c.is_ascii_alphanumeric() || c == '_')
-    {
-        return Ok(());
-    }
-    let mut found = Find { name: source, span: None };
-    syn::visit::Visit::visit_file(&mut found, ast);
-    Err(Diagnostic::span(
-        file,
-        found.span.unwrap_or_else(Span::call_site),
-        format!("authored declaration collides with generated TLA+ name `{name}`"),
-    ))
 }

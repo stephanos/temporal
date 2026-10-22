@@ -12,8 +12,10 @@ pub enum ExprKind {
     Text(String),
     Unit,
     Var(String, bool),
+    /// A World field, by name; a back end may rename it.
     World(String),
-    /// A chosen action input value, named by its generated TLA+ symbol.
+    /// A chosen action input value of the enclosing action, by field name; a back end may
+    /// rename it.
     Input(String),
     Enum(String),
     Unary(Unary, Box<Expr>),

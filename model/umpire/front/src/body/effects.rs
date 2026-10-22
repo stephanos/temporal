@@ -11,9 +11,6 @@ use syn::{BinOp, Expr as RustExpr, Pat, Stmt};
 impl Environment {
     pub(crate) fn handler<'a>(&self, method: &'a syn::ImplItemFn) -> Result<&'a syn::ExprMatch> {
         let parameters = self.parameters(method)?;
-        if parameters.positional.len() != 1 {
-            return self.err(method, "a handler requires its actor and an optional trailing World");
-        }
         let [Stmt::Expr(RustExpr::Match(matched), _)] = method.block.stmts.as_slice() else {
             return self.err(method, "action handler must match its action parameter");
         };

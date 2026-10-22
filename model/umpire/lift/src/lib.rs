@@ -14,6 +14,7 @@ pub use umpire_front::{CATALOG_LIMIT, Type};
 pub struct Lifted {
     file: String,
     model: umpire_front::Lifted,
+    names: names::Names,
 }
 impl std::ops::Deref for Lifted {
     type Target = umpire_front::Lifted;
@@ -200,7 +201,7 @@ pub struct Module {
     /// Projection metadata.
     pub metadata: Metadata,
 }
-/// Independent authored-source admission.
+/// Authored-source reading through `umpire-front`.
 pub struct Lift;
 impl Lift {
     /// Read a source root, with the golden hook from a `tests.rs` beside it.
@@ -231,7 +232,7 @@ impl Lift {
     }
     fn lift(file: &str, ast: &syn::File, hooks: &[Hook<'_>]) -> Result<Lifted, Diagnostic> {
         let macros: Vec<_> = hooks.iter().map(|hook| hook.mac).collect();
-        let model = umpire_front::read(ast, &macros).map_err(|refusal| match refusal {
+        let mut model = umpire_front::read(ast, &macros).map_err(|refusal| match refusal {
             umpire_front::Refusal::Model(location) => {
                 Diagnostic::of(file, &location, location.message.clone())
             }
@@ -239,7 +240,8 @@ impl Lift {
                 Diagnostic::of(hooks[index].file, &location, location.message.clone())
             }
         })?;
-        let lifted = Lifted { file: file.into(), model };
+        let names = names::assign(ast, &mut model);
+        let lifted = Lifted { file: file.into(), model, names };
         names::validate(file, ast, &lifted)?;
         Ok(lifted)
     }

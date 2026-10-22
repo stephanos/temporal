@@ -20,10 +20,11 @@ impl Environment {
         }
         self.assumption(tail(&method.block)?, actions, &self.method_env(method)?, 0)
     }
-    pub(crate) fn action_name(&self, node: &RustExpr, actions: &[ActionDef]) -> Result<String> {
+    /// A postcondition's `after` action; the declarations already named a declared variant.
+    pub(crate) fn action_name(&self, node: &syn::Path, actions: &[ActionDef]) -> Result<String> {
         let name = path_name(&node.to_token_stream().to_string());
         let Some(action) = actions.iter().find(|a| a.name == name) else {
-            return self.err(node, format!("unknown action `{name}`"));
+            return self.err(node, format!("unknown after action {name}"));
         };
         if !action.fields.is_empty() {
             return self
@@ -182,10 +183,7 @@ impl Environment {
             return self.err(node, "progress bound must be a positive literal");
         };
         if n <= 0 || n >= i128::from(i32::MAX) {
-            return self.err(
-                node,
-                "progress bound must be in 1..2147483647 for TLC's capped transition observer",
-            );
+            return self.err(node, "progress bound must be in 1..2147483647");
         }
         u64::try_from(n).map_err(|_| Diagnostic::at(node, "progress bound exceeds u64"))
     }

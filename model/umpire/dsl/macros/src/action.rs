@@ -1,7 +1,7 @@
-use darling::FromMeta;
 use proc_macro2::TokenStream;
 use quote::{format_ident, quote};
 use syn::{Expr, Field, Generics};
+use umpire_front::declare::{self, FieldDomain};
 
 #[derive(Default)]
 struct Expansion {
@@ -20,69 +20,26 @@ struct Expansion {
     finite: Vec<syn::Type>,
 }
 
-#[derive(Clone)]
-enum FieldDomain {
-    Explicit(Expr),
-    Finite,
-    World(syn::Path),
-}
-
 pub(crate) fn expand(input: &syn::DeriveInput) -> manyhow::Result<TokenStream> {
-    let syn::Data::Enum(data) = &input.data else {
-        manyhow::bail!(input, "Action requires an enum");
-    };
+    // `#[machine]` marks each actor of a module that declares `World`.
+    let world = input
+        .attrs
+        .iter()
+        .any(|attr| attr.path().is_ident("__umpire_world"))
+        .then(|| syn::parse_quote!(World));
+    let declare::ActionEnum { internal, fault, variants: variant_domains } =
+        declare::action_enum(input, world.is_some())?;
+    let syn::Data::Enum(data) = &input.data else { unreachable!("declare reads enums") };
     let name = &input.ident;
-    let mut errors = manyhow::Emitter::new();
-    let mut flags = [false; 2];
-    for (flag, enabled) in ["internal", "fault"].into_iter().zip(&mut flags) {
-        for attr in input.attrs.iter().filter(|attr| attr.path().is_ident(flag)) {
-            if let Err(error) = darling::util::Flag::from_meta(&attr.meta) {
-                errors.emit(error);
-            }
-            *enabled = true;
-        }
-    }
-    let world = world_context(input, &mut errors);
-    let [internal, fault] = flags;
     let mut expansion = Expansion::default();
-    let mut variant_domains = Vec::new();
-    for variant in &data.variants {
-        let ident = &variant.ident;
-        for attr in &variant.attrs {
-            for flag in ["internal", "fault"] {
-                if attr.path().is_ident(flag) {
-                    errors.emit(syn::Error::new_spanned(
-                        attr,
-                        format!("#[{flag}] belongs on the action enum, not a variant"),
-                    ));
-                }
-            }
-            if attr.path().is_ident("domain") {
-                errors.emit(syn::Error::new_spanned(
-                    attr,
-                    "#[domain] belongs on one variant field, not the variant",
-                ));
-            }
-        }
+    for (variant, domains) in data.variants.iter().zip(&variant_domains) {
         expansion.value_arms(name, variant);
-        let fields: Vec<_> = variant.fields.iter().collect();
-        let mut domains = Vec::new();
-        for (index, field) in fields.iter().enumerate() {
-            match domain(field, &format!("{name}::{ident}"), index, world.is_some()) {
-                Ok(domain) => {
-                    if matches!(domain, FieldDomain::Finite) {
-                        expansion.finite.push(field.ty.clone());
-                    }
-                    domains.push(domain);
-                }
-                Err(error) => errors.emit(error),
+        for (field, domain) in variant.fields.iter().zip(domains) {
+            if matches!(domain, FieldDomain::Finite) {
+                expansion.finite.push(field.ty.clone());
             }
-        }
-        if domains.len() == fields.len() {
-            variant_domains.push(domains);
         }
     }
-    errors.into_result()?;
     let exported = world.as_ref().map(|world| action_values(input, data, &variant_domains, world));
     let dependent = world.is_some()
         && variant_domains.iter().flatten().any(|domain| matches!(domain, FieldDomain::World(_)));
@@ -160,21 +117,6 @@ impl Expansion {
 
 fn path_span(path: &syn::Path) -> proc_macro2::Span {
     syn::spanned::Spanned::span(path)
-}
-
-fn world_context(input: &syn::DeriveInput, errors: &mut manyhow::Emitter) -> Option<syn::Type> {
-    for attr in input.attrs.iter().filter(|attr| attr.path().is_ident("domain")) {
-        errors.emit(syn::Error::new_spanned(
-            attr,
-            "#[domain] belongs on one variant field, not the action enum",
-        ));
-    }
-    // `#[machine]` marks each actor of a module that declares `World`.
-    input
-        .attrs
-        .iter()
-        .any(|attr| attr.path().is_ident("__umpire_world"))
-        .then(|| syn::parse_quote!(World))
 }
 
 /// Exports each action's qualified variant and payload values, and each `#[domain]` field's
@@ -713,68 +655,4 @@ fn bounded(generics: &Generics, fields: &[&Field], bound: &TokenStream) -> Gener
         generics.make_where_clause().predicates.push(syn::parse_quote!(#ty: #bound));
     }
     generics
-}
-
-fn domain(field: &Field, action: &str, index: usize, world: bool) -> syn::Result<FieldDomain> {
-    let field_name = field.ident.as_ref().map_or_else(|| index.to_string(), ToString::to_string);
-    let context = format!("{action} field `{field_name}`");
-    let mut domains = field.attrs.iter().filter(|attr| attr.path().is_ident("domain"));
-    if let Some(domain) = domains.next() {
-        if let Some(duplicate) = domains.next() {
-            return Err(syn::Error::new_spanned(
-                duplicate,
-                format!("{context} has duplicate #[domain] declarations"),
-            ));
-        }
-        if let Some(inputs) = field.attrs.iter().find(|attr| attr.path().is_ident("inputs")) {
-            return Err(syn::Error::new_spanned(
-                inputs,
-                format!("{context} declares both #[inputs] and #[domain]; declare one domain"),
-            ));
-        }
-        let path = domain.parse_args::<syn::Path>().map_err(|_| {
-            syn::Error::new_spanned(
-                domain,
-                format!("{context} #[domain] names a function, such as #[domain(sizes)]"),
-            )
-        })?;
-        if !world {
-            return Err(syn::Error::new_spanned(
-                domain,
-                format!(
-                    "{context} #[domain] requires the World of a #[machine] module that declares #[derive(World)]"
-                ),
-            ));
-        }
-        return Ok(FieldDomain::World(path));
-    }
-    let mut attrs = field.attrs.iter().filter(|attr| attr.path().is_ident("inputs"));
-    let Some(attr) = attrs.next() else {
-        if crate::finite::integer(&field.ty) {
-            return Err(syn::Error::new_spanned(
-                field,
-                format!("{context} requires #[inputs] with a bounded range or finite list"),
-            ));
-        }
-        return Ok(FieldDomain::Finite);
-    };
-    if let Some(duplicate) = attrs.next() {
-        return Err(syn::Error::new_spanned(
-            duplicate,
-            format!("{context} has duplicate #[inputs] domains"),
-        ));
-    }
-    let value = attr.parse_args::<Expr>()?;
-    match &value {
-        Expr::Range(range) if range.start.is_some() && range.end.is_some() => {
-            Ok(FieldDomain::Explicit(value))
-        }
-        Expr::Array(_) => Ok(FieldDomain::Explicit(value)),
-        _ => Err(syn::Error::new_spanned(
-            attr,
-            format!(
-                "{context} #[inputs] requires a bounded range or finite list, such as 0..=3 or [false, true]"
-            ),
-        )),
-    }
 }

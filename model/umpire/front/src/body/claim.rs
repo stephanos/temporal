@@ -16,19 +16,16 @@ impl Environment {
     }
     pub(crate) fn postcondition(&self, method: &syn::ImplItemFn) -> Result<Expr> {
         let parameters = self.parameters(method)?;
-        if parameters.positional.len() > 2 || method.sig.receiver().is_none() {
-            return self.err(
-                method,
-                "postconditions require &self, optional before: &Self, then optional outcome: &()",
-            );
-        }
         let mut env = self.method_env(method)?;
         if let Some(input) = parameters.positional.first() {
-            if !matches!(input.ty.as_ref(), syn::Type::Reference(reference) if reference.mutability.is_none() && matches!(reference.elem.as_ref(), syn::Type::Path(path) if path.path.is_ident("Self") || path.path.is_ident("Model")))
+            if !matches!(input.ty.as_ref(), syn::Type::Reference(reference) if reference.mutability.is_none() && matches!(reference.elem.as_ref(), syn::Type::Path(path) if path.path.is_ident("Self") || path.path.is_ident(&self.state)))
             {
                 return self.err(
                     &input.ty,
-                    "the before-state parameter must be an immutable &Self or &Model",
+                    format!(
+                        "the before-state parameter must be an immutable &Self or &{}",
+                        self.state
+                    ),
                 );
             }
             if let Pat::Ident(id) = input.pat.as_ref() {

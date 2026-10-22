@@ -1,0 +1,5 @@
+error: a path gap is .. or ..=n
+  --> tests/ui/machine_progress_gap.rs:16:61
+   |
+16 |         fn claim(&self) -> LeadsTo { path![self.value == 0, 1..3, self.value == 1] }
+   |                                                             ^^^^

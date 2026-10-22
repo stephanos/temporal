@@ -95,6 +95,33 @@ fn each_source_binding_carries_its_selected_catalog_into_every_configuration()
     Ok(())
 }
 
+/// Weak fairness is machine-closed here and bounded steps saturate at bound + 1, so fairness
+/// cannot change a bounded verdict and no TLC run tells a fair bounded specification apart.
+/// The rule that a bound receives no fairness benefit is pinned structurally instead: no
+/// bounded claim's specification carries a fairness obligation, though its assumption has one.
+#[test]
+fn bounded_claims_carry_no_fairness_obligation() -> umpire_testing::TestResult {
+    let model =
+        std::path::Path::new(env!("CARGO_MANIFEST_DIR")).join("fixtures/action_inputs/model.rs");
+    for world in worlds() {
+        let module = bound_for(world).lift(&model)?;
+        let bounded: Vec<_> =
+            module.metadata.progress.iter().filter(|claim| claim.bound.is_some()).collect();
+        assert!(!bounded.is_empty());
+        for claim in bounded {
+            assert!(!claim.fair_inputs.is_empty(), "{} assumes no fairness", claim.name);
+            let header = format!("ProgressSpec_{} ==", claim.name);
+            let spec = module
+                .tla
+                .lines()
+                .find(|line| line.starts_with(&header))
+                .ok_or_else(|| format!("missing {header}"))?;
+            assert!(!spec.contains("WF_vars"), "{spec}");
+        }
+    }
+    Ok(())
+}
+
 #[test]
 #[allow(clippy::print_stderr)]
 fn actual_tlc_agrees_and_replays_in_both_selected_worlds() -> umpire_testing::TestResult {
@@ -172,6 +199,16 @@ fn exact_payload_fairness_mutations_disagree_with_the_native_verdicts()
             vec![(fair, "Fair_current_poll_settles_Worker_Poll_2 == (__umpire_pending = 1) /\\ Worker_Poll_At(1)")],
             Verified,
             Refuted,
+        ),
+        // Fairness alone readmitting the excluded first attempt, with its scope unchanged.
+        (
+            "excluded_poll_settles",
+            vec![(
+                readmitted,
+                " /\\ WF_vars(Fair_excluded_poll_settles_Worker_Poll_2) /\\ WF_vars((__umpire_pending = 1) /\\ Worker_Poll_At(1) /\\ Monitor_excluded_poll_settles)",
+            )],
+            Refuted,
+            Verified,
         ),
         // Fair membership readmitting the excluded first attempt.
         (

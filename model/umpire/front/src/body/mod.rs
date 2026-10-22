@@ -66,6 +66,8 @@ pub(super) struct Parameters<'a> {
 }
 
 pub(crate) struct Environment {
+    /// The State struct's name, which `&Self` also spells.
+    pub(crate) state: String,
     pub(crate) fields: Vec<FieldDef>,
     pub(crate) declared_world: bool,
     pub(crate) world_fields: Vec<WorldField>,
@@ -92,36 +94,22 @@ impl Environment {
             .collect()
     }
     pub(super) fn parameters<'a>(&self, method: &'a syn::ImplItemFn) -> Result<Parameters<'a>> {
+        let declared = crate::declare::world_parameter(&method.sig).map_err(Diagnostic::from)?;
         let mut world = None;
         let mut positional = Vec::new();
         for (index, input) in method.sig.inputs.iter().enumerate() {
             let syn::FnArg::Typed(input) = input else { continue };
-            let ty = match input.ty.as_ref() {
-                syn::Type::Reference(reference) => reference.elem.as_ref(),
-                ty => ty,
-            };
-            let is_world = matches!(ty, syn::Type::Path(path) if path.path.segments.last().is_some_and(|segment| segment.ident == "World"));
-            if !is_world {
+            if declared != Some(index) {
                 positional.push(input);
                 continue;
             }
             if !self.declared_world {
                 return self.err(input, "a World parameter requires a declared World");
             }
-            if !matches!(ty, syn::Type::Path(path) if path.qself.is_none() && path.path.is_ident("World"))
+            if !matches!(input.ty.as_ref(), syn::Type::Reference(reference) if matches!(reference.elem.as_ref(), syn::Type::Path(path) if path.path.is_ident("World")))
             {
                 return self
                     .err(&input.ty, "qualified or generic World source types are unsupported");
-            }
-            if world.is_some() {
-                return self.err(input, "declare the World parameter once");
-            }
-            if !matches!(input.ty.as_ref(), syn::Type::Reference(reference) if reference.mutability.is_none())
-            {
-                return self.err(&input.ty, "the World parameter must be an immutable &World");
-            }
-            if index + 1 != method.sig.inputs.len() {
-                return self.err(input, "the World parameter must be last");
             }
             world = Some(input);
         }
@@ -142,7 +130,7 @@ impl Environment {
                 for field in &self.world_fields {
                     env.insert(
                         format!("{name}.{}", field.name),
-                        Expr { kind: ExprKind::World(field.symbol.clone()), ty: field.ty.clone() },
+                        Expr { kind: ExprKind::World(field.name.clone()), ty: field.ty.clone() },
                     );
                 }
                 env.world = Some(name);

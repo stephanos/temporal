@@ -69,7 +69,6 @@ prost-build = "0.14"
 syn = { version = "3", features = ["full", "visit", "extra-traits"] }
 quote = "1.0"
 proc-macro2 = { version = "1.0", features = ["span-locations"] }
-darling = "0.24"
 manyhow = "0.14"
 prettyplease = "0.3"
 # tests

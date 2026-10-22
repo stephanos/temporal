@@ -1,6 +1,7 @@
 use super::{Env, Environment, Result};
 use crate::{
     CATALOG_LIMIT, Diagnostic, Type,
+    declare::FieldDomain,
     expr::{Expr, ExprKind, Op},
     syntax::{attr, path_name},
     tree::{ActionDef, ActionRef, InputDomain, InputField, Shape},
@@ -16,13 +17,13 @@ pub(crate) struct Matched {
 }
 
 impl Environment {
-    /// Admit one payload field and its finite domain, independently of native enumeration.
+    /// Admit one payload field and the values of its declared domain.
     pub(crate) fn input_field(
         &self,
         field: &syn::Field,
         index: usize,
         action: &str,
-        symbol: String,
+        declared: &FieldDomain,
     ) -> Result<InputField> {
         for attribute in &field.attrs {
             let name = attribute.path().to_token_stream().to_string();
@@ -36,51 +37,43 @@ impl Environment {
         if !matches!(ty, Type::Bool | Type::Int { .. } | Type::Enum { .. }) {
             return self.err(field, format!("{context}: inputs require admitted scalar types"));
         }
-        let count = |name| field.attrs.iter().filter(|a| a.path().is_ident(name)).count();
-        if count("domain") > 1 || count("inputs") > 1 {
-            return self.err(field, format!("{context} declares its domain more than once"));
-        }
-        let domain = if let Some(domain) = attr(&field.attrs, "domain") {
-            if let Some(inputs) = attr(&field.attrs, "inputs") {
-                return self
-                    .err(inputs, format!("{context} declares both #[inputs] and #[domain]"));
+        let domain = match declared {
+            FieldDomain::World(function) => {
+                let domain = attr(&field.attrs, "domain")
+                    .unwrap_or_else(|| unreachable!("a World domain is declared"));
+                let item = function
+                    .get_ident()
+                    .and_then(|function| self.domain_functions.get(&function.to_string()))
+                    .ok_or_else(|| {
+                        Diagnostic::at(
+                            domain,
+                            format!(
+                                "{context}: #[domain({})] names no local function",
+                                function.to_token_stream()
+                            ),
+                        )
+                    })?;
+                self.domain_signature(item, &ty, &context)?;
+                InputDomain::World
             }
-            let function = domain.parse_args::<syn::Ident>().map_err(|_| {
-                Diagnostic::at(domain, format!("{context}: #[domain] names a local function"))
-            })?;
-            let item = self.domain_functions.get(&function.to_string()).ok_or_else(|| {
-                Diagnostic::at(
-                    domain,
-                    format!("{context}: #[domain({function})] names no local function"),
-                )
-            })?;
-            self.domain_signature(item, &ty, &context)?;
-            InputDomain::World
-        } else if let Some(inputs) = attr(&field.attrs, "inputs") {
-            let value = inputs
-                .parse_args::<RustExpr>()
-                .map_err(|e| Diagnostic::span(e.span(), e.to_string()))?;
-            InputDomain::Values(self.declared_values(inputs, &value, &ty, &context)?)
-        } else {
-            InputDomain::Values(match &ty {
+            FieldDomain::Explicit(value) => {
+                let inputs = attr(&field.attrs, "inputs")
+                    .unwrap_or_else(|| unreachable!("explicit inputs are declared"));
+                InputDomain::Values(self.declared_values(inputs, value, &ty, &context)?)
+            }
+            FieldDomain::Finite => InputDomain::Values(match &ty {
                 Type::Bool => vec![Expr::bool(false), Expr::bool(true)],
                 Type::Enum { name, variants } if self.finite.contains(name) => variants
                     .iter()
                     .map(|variant| Expr { kind: ExprKind::Enum(variant.clone()), ty: ty.clone() })
                     .collect(),
-                Type::Int { .. } => {
-                    return self.err(
-                        field,
-                        format!("{context} requires #[inputs] with a bounded range or finite list"),
-                    );
-                }
                 _ => {
                     return self
                         .err(field, format!("{context}: its type has no admitted Finite domain"));
                 }
-            })
+            }),
         };
-        Ok(InputField { name, ty, domain, symbol, location: Diagnostic::at(field, "") })
+        Ok(InputField { name, ty, domain, location: Diagnostic::at(field, "") })
     }
 
     fn declared_values(
@@ -93,8 +86,7 @@ impl Environment {
         match value {
             RustExpr::Range(range) if matches!(ty, Type::Int { .. }) => {
                 let (Some(lo), Some(hi)) = (&range.start, &range.end) else {
-                    return self
-                        .err(attribute, format!("{context}: #[inputs] ranges need two bounds"));
+                    unreachable!("the action declaration admits only bounded input ranges")
                 };
                 let (ExprKind::Int(lo), ExprKind::Int(hi)) =
                     (self.literal(lo, ty)?.kind, self.literal(hi, ty)?.kind)
@@ -328,7 +320,7 @@ impl Environment {
         let mut condition = Expr::bool(true);
         let mut bindings = Vec::new();
         for (field, pattern) in fields {
-            let value = Expr { kind: ExprKind::Input(field.symbol.clone()), ty: field.ty.clone() };
+            let value = Expr { kind: ExprKind::Input(field.name.clone()), ty: field.ty.clone() };
             match pattern {
                 Pat::Ident(id)
                     if id.by_ref.is_none()

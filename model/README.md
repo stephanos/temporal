@@ -416,12 +416,16 @@ Scala tree was not revived to repair those legacy expectations.
 
 ## Testing
 
-Admission lives in `umpire-front` (`umpire/front/`): `shape.rs` discovers declarations and their
-order, then delegates each body to `body/` with a typed environment. Body lowering reads no module
-items; `tree.rs` holds the declarations and `expr.rs` their typed expressions. Its `Diagnostic`
-carries line, column and message; `umpire-lift` reads the source files, calls `umpire_front::read`,
-names the file in each refusal, binds the selected World (`bind.rs`) and emits TLA+, with the same
-public API as before.
+Models are read once, in `umpire-front` (`umpire/front/`). `declare/` reads the declarations:
+attribute kinds and their order, registration, the State/World/actor schema, starts, input
+domains and `&World` parameters, and `path.rs` the `path!` language. The macros in
+`umpire-dsl-macros` only generate from what `declare/` read, and report its refusals as compile
+errors. `shape.rs` takes the same declarations and admits the subset, delegating each body to
+`body/` with a typed environment; these refusals are soft, since the Model still checks natively.
+Body lowering reads no module items; `tree.rs` holds the admitted tree and `expr.rs` its typed
+expressions. Its `Diagnostic` carries line, column and message; `umpire-lift` reads the source
+files, calls `umpire_front::read`, names the file in each refusal, gives the tree its TLA+ names
+(`names.rs`), binds the selected World (`bind.rs`) and emits TLA+.
 
 End to end, by golden files (fn-210 R8, R23, R29). A test is a fixture, an input plus the output it
 produces (`model.rs`, `tests.rs` and `expected/`). "Fixture", not

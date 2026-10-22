@@ -1,4 +1,6 @@
-use crate::{Action, Diagnostic, Field, Lifted, Metadata, Module, Progress, Property, Type};
+use crate::{
+    Action, Diagnostic, Field, Lifted, Metadata, Module, Progress, Property, Type, names::operator,
+};
 use std::collections::BTreeMap;
 use std::fmt::Write;
 use umpire_front::{
@@ -6,7 +8,7 @@ use umpire_front::{
     tree::{ActionDef, ActionRef, AssumptionDef, Entry, Start},
 };
 
-const OBSERVERS: [&str; 7] = [
+pub(crate) const OBSERVERS: [&str; 7] = [
     "__umpire_edge_tick",
     "__umpire_pending",
     "__umpire_steps",
@@ -32,36 +34,16 @@ pub(crate) fn emit(model: &Lifted) -> Result<Module, Diagnostic> {
     if inputs {
         observers.push(INPUT);
     }
-    for field in &model.fields {
-        if observers.contains(&field.name.as_str()) {
-            return Err(Diagnostic::span(
-                &model.file,
-                proc_macro2::Span::call_site(),
-                format!("reserved observer name `{}`", field.name),
-            ));
-        }
-    }
     let mut out = String::new();
     line(&mut out, format!("---- MODULE {} ----", model.name));
     line(&mut out, "EXTENDS Integers, TLC, Sequences");
     if !model.world_fields.is_empty() {
-        line(
-            &mut out,
-            format!(
-                "CONSTANTS {}",
-                model
-                    .world_fields
-                    .iter()
-                    .map(|field| field.symbol.as_str())
-                    .collect::<Vec<_>>()
-                    .join(", ")
-            ),
-        );
+        line(&mut out, format!("CONSTANTS {}", model.names.world.join(", ")));
     }
     let mut constants_cfg = String::new();
     if let Some(values) = &model.world_values {
-        for (field, value) in model.world_fields.iter().zip(values) {
-            line(&mut constants_cfg, format!("CONSTANT {} = {}", field.symbol, expr(value)));
+        for (symbol, value) in model.names.world.iter().zip(values) {
+            line(&mut constants_cfg, format!("CONSTANT {symbol} = {}", expr(value)));
         }
     }
     line(
@@ -82,7 +64,7 @@ pub(crate) fn emit(model: &Lifted) -> Result<Module, Diagnostic> {
     );
     line(&mut out, "");
     for (name, value) in &model.constants {
-        let name = model.constant_symbols.get(name).unwrap_or(name);
+        let name = model.names.constants.get(name).unwrap_or(name);
         line(&mut out, format!("{name} == {}", expr(value)));
     }
     let fields: Vec<_> = model.fields.iter().map(|f| f.name.as_str()).collect();
@@ -152,7 +134,7 @@ pub(crate) fn emit(model: &Lifted) -> Result<Module, Diagnostic> {
         let identity = if action.fields.is_empty() {
             entries.first().map(|entry| entry.ordinal.to_string())
         } else {
-            Some(format!("{}_Inputs[{}][1]", action.operator, model.index_symbol))
+            Some(format!("{}_Inputs[{}][1]", operator(&action.name), model.names.index))
         };
         let branches = action
             .branches
@@ -202,16 +184,16 @@ pub(crate) fn emit(model: &Lifted) -> Result<Module, Diagnostic> {
             })
             .collect();
         if action.fields.is_empty() {
-            line(&mut out, format!("{} == {}", action.operator, disjoin(branches)));
+            line(&mut out, format!("{} == {}", operator(&action.name), disjoin(branches)));
         } else {
-            input_relation(&mut out, model, action, &entries, disjoin(branches));
+            input_relation(&mut out, model, index, &entries, disjoin(branches));
         }
     }
     line(
         &mut out,
         format!(
             "ModelNext == {}",
-            disjoin(model.actions.iter().map(|a| a.operator.clone()).collect())
+            disjoin(model.actions.iter().map(|a| operator(&a.name)).collect())
         ),
     );
     line(&mut out, "ModelEdge == __umpire_edge_tick' # __umpire_edge_tick");
@@ -430,7 +412,7 @@ pub(crate) fn emit(model: &Lifted) -> Result<Module, Diagnostic> {
                 .iter()
                 .map(|a| Action {
                     name: a.name.clone(),
-                    operator: a.operator.clone(),
+                    operator: operator(&a.name),
                     internal: a.internal,
                     fields: a
                         .fields
@@ -450,18 +432,20 @@ pub(crate) fn emit(model: &Lifted) -> Result<Module, Diagnostic> {
         },
     })
 }
-const INPUT: &str = "__umpire_input";
+pub(crate) const INPUT: &str = "__umpire_input";
 
 /// A payload variant's concrete inputs as `<<ordinal, values..>>` rows in catalog order, its
 /// relation at one catalog position, and the finite existential choice over every position.
 fn input_relation(
     out: &mut String,
     model: &Lifted,
-    action: &ActionDef,
+    action: usize,
     entries: &[&Entry],
     branches: String,
 ) {
-    let index = &model.index_symbol;
+    let symbols = &model.names.inputs[action];
+    let operator = operator(&model.actions[action].name);
+    let index = &model.names.index;
     let rows = entries
         .iter()
         .map(|entry| {
@@ -470,23 +454,15 @@ fn input_relation(
             format!("<<{}>>", row.join(", "))
         })
         .collect::<Vec<_>>();
-    line(out, format!("{}_Inputs == <<{}>>", action.operator, rows.join(", ")));
+    line(out, format!("{operator}_Inputs == <<{}>>", rows.join(", ")));
     let mut body = branches;
-    for (position, field) in action.fields.iter().enumerate().rev() {
-        body = format!(
-            "LET {} == {}_Inputs[{index}][{}] IN {body}",
-            field.symbol,
-            action.operator,
-            position + 2
-        );
+    for (position, symbol) in symbols.iter().enumerate().rev() {
+        body = format!("LET {symbol} == {operator}_Inputs[{index}][{}] IN {body}", position + 2);
     }
-    line(out, format!("{}_At({index}) == {body}", action.operator));
+    line(out, format!("{operator}_At({index}) == {body}"));
     line(
         out,
-        format!(
-            "{} == \\E {index} \\in DOMAIN {}_Inputs : {}_At({index})",
-            action.operator, action.operator, action.operator
-        ),
+        format!("{operator} == \\E {index} \\in DOMAIN {operator}_Inputs : {operator}_At({index})"),
     );
 }
 
@@ -515,15 +491,15 @@ fn scoped_relations(model: &Lifted, assumption: &AssumptionDef) -> Vec<String> {
         let admitted: Vec<_> =
             all.iter().filter(|(_, reference, _)| assumption.allows(reference)).collect();
         if admitted.len() == all.len() {
-            relations.push(action.operator.clone());
+            relations.push(operator(&action.name));
         } else if !admitted.is_empty() {
-            let index = &model.index_symbol;
+            let index = &model.names.index;
             let selected =
                 admitted.iter().map(|(position, _, _)| position.to_string()).collect::<Vec<_>>();
             relations.push(format!(
                 "\\E {index} \\in {{{}}} : {}_At({index})",
                 selected.join(", "),
-                action.operator
+                operator(&action.name)
             ));
         }
     }
@@ -545,14 +521,14 @@ fn fair_relations(
             if !assumption.allows(&reference) || !assumption.is_fair(&reference) {
                 continue;
             }
+            let operator = operator(&action.name);
             if action.fields.is_empty() {
-                relations
-                    .push((format!("Fair_{claim}_{}", action.operator), action.operator.clone()));
+                relations.push((format!("Fair_{claim}_{operator}"), operator));
             } else if !seen.contains(&ordinal) {
                 seen.push(ordinal);
                 relations.push((
-                    format!("Fair_{claim}_{}_{position}", action.operator),
-                    format!("{}_At({position})", action.operator),
+                    format!("Fair_{claim}_{operator}_{position}"),
+                    format!("{operator}_At({position})"),
                 ));
             }
         }

@@ -4,7 +4,7 @@ use std::collections::BTreeMap;
 /// An admitted Model. Its typed expression tree has no public stability promise.
 #[derive(Clone, Debug)]
 pub struct Lifted {
-    /// TLA+ module name, from the machine module.
+    /// Model name, from the machine module.
     pub name: String,
     /// Authored state struct name.
     pub state_name: String,
@@ -26,8 +26,6 @@ pub struct Lifted {
     pub fields: Vec<FieldDef>,
     /// Module constants by authored name.
     pub constants: BTreeMap<String, Expr>,
-    /// Generated TLA+ names of module constants, under a declared World.
-    pub constant_symbols: BTreeMap<String, String>,
     /// Actions in catalog order.
     pub actions: Vec<ActionDef>,
     /// Registered state claims.
@@ -42,8 +40,6 @@ pub struct Lifted {
     pub negative: Vec<ClaimDef>,
     /// The bound concrete catalog, in native catalog order.
     pub catalog: Option<Vec<Entry>>,
-    /// The generated TLA+ name of a catalog position inside input relations.
-    pub index_symbol: String,
 }
 /// One concrete catalog action: an index into `Lifted::actions` and its payload values.
 #[derive(Clone, Debug)]
@@ -65,7 +61,6 @@ pub struct FieldDef {
 pub struct WorldField {
     pub name: String,
     pub ty: Type,
-    pub symbol: String,
     pub location: Diagnostic,
 }
 #[derive(Clone, Debug)]
@@ -91,7 +86,6 @@ impl Lifted {
 #[derive(Clone, Debug)]
 pub struct ActionDef {
     pub name: String,
-    pub operator: String,
     pub internal: bool,
     pub branches: Vec<Branch>,
     pub shape: Shape,
@@ -111,8 +105,6 @@ pub struct InputField {
     pub name: String,
     pub ty: Type,
     pub domain: InputDomain,
-    /// The TLA+ name of the chosen value inside the variant's relation.
-    pub symbol: String,
     pub location: Diagnostic,
 }
 #[derive(Clone, Debug)]

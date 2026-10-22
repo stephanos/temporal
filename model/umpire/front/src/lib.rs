@@ -1,23 +1,29 @@
-//! Admit authored `#[machine]` Models into a checked internal tree, shared by Umpire's back ends.
+//! Read authored `#[machine]` Models once, for Umpire's native generation and its lifted back ends.
 //!
-//! The collection subset admits canonical `imbl::Vector<T>` fields whose elements are scalar
-//! booleans, admitted integers, or fieldless enums. Defaults and `Vector::new/default()` are empty;
-//! `len`, `is_empty`, and ordered `push_back` map to TLA+ sequences. Growth needs an authored finite
+//! [`declare`] reads the declarations both consumers need; its refusals are structural, and the
+//! macros report them as compile errors. [`read`] then admits the bodies into a checked internal
+//! tree; its refusals are soft, since a Model outside the subset still checks natively.
+//!
+//! The admitted integers are signed 32-bit. The collection subset admits canonical
+//! `imbl::Vector<T>` fields whose elements are scalar booleans, admitted integers, or fieldless
+//! enums. Defaults and `Vector::new/default()` are empty; `len`, `is_empty`, and ordered
+//! `push_back` read as sequence length, emptiness and append. Growth needs an authored finite
 //! length guard. Reads admit `get(index).copied().unwrap_or(default)` (including eager default
-//! evaluation), `get(index).is_some()`, and `get(index).is_none()`. Indices must fit the nonnegative
-//! signed 32-bit domain. Other collection operations, aliases, and unchecked unwraps refuse by
-//! source location; this is a method table rather than general Rust collection interpretation.
+//! evaluation), `get(index).is_some()`, and `get(index).is_none()`. Indices must fit the
+//! nonnegative signed 32-bit domain. Other collection operations, aliases, and unchecked unwraps
+//! refuse by source location; this is a method table rather than general Rust collection
+//! interpretation.
 use proc_macro2::Span;
 use quote::ToTokens;
 mod body;
+pub mod declare;
 #[doc(hidden)]
 pub mod expr;
-mod names;
+pub mod path;
 mod shape;
 mod syntax;
 #[doc(hidden)]
 pub mod tree;
-pub use names::RESERVED_NAMES;
 pub use tree::Lifted;
 
 /// Admitted value types for typed backend decoding.
@@ -71,6 +77,11 @@ impl Diagnostic {
     pub(crate) fn span(span: Span, message: impl Into<String>) -> Self {
         let location = span.start();
         Self { line: location.line, column: location.column + 1, message: message.into() }
+    }
+}
+impl From<syn::Error> for Diagnostic {
+    fn from(error: syn::Error) -> Self {
+        Self::span(error.span(), error.to_string())
     }
 }
 /// A refusal and the input it locates into.

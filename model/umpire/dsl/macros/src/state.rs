@@ -1,6 +1,7 @@
 use proc_macro2::TokenStream;
 use quote::{format_ident, quote};
-use syn::{Attribute, Expr, ExprRange, Field, Generics};
+use syn::{Field, Generics};
+use umpire_front::declare;
 
 pub(crate) fn expand(input: &syn::DeriveInput) -> manyhow::Result<TokenStream> {
     expand_struct(input, false)
@@ -11,8 +12,8 @@ pub(crate) fn expand_world(input: &syn::DeriveInput) -> manyhow::Result<TokenStr
 }
 
 fn expand_struct(input: &syn::DeriveInput, world: bool) -> manyhow::Result<TokenStream> {
-    let fields = named_fields(input, world)?;
-    let ranges = start_ranges(&fields)?;
+    let fields = declare::named_fields(input, world)?;
+    let ranges = declare::start_ranges(&fields)?;
     let computed =
         world || input.attrs.iter().any(|attr| attr.path().is_ident("__umpire_computed_starts"));
 
@@ -138,17 +139,6 @@ fn exported_values(
     })
 }
 
-fn named_fields(input: &syn::DeriveInput, world: bool) -> manyhow::Result<Vec<&Field>> {
-    let label = if world { "World" } else { "State" };
-    let syn::Data::Struct(data) = &input.data else {
-        manyhow::bail!(input, "{} requires a named-field struct", label);
-    };
-    let syn::Fields::Named(fields) = &data.fields else {
-        manyhow::bail!(input, "{} requires a named-field struct", label);
-    };
-    Ok(fields.named.iter().collect())
-}
-
 fn constructor(input: &syn::DeriveInput, fields: &[&Field], names: &[&syn::Ident]) -> TokenStream {
     let name = &input.ident;
     let visibility = &input.vis;
@@ -185,32 +175,4 @@ fn bounded(generics: &Generics, fields: &[&Field], bound: &TokenStream) -> Gener
         generics.make_where_clause().predicates.push(syn::parse_quote!(#ty: #bound));
     }
     generics
-}
-
-fn start_ranges(fields: &[&Field]) -> manyhow::Result<Vec<Option<ExprRange>>> {
-    let mut errors = manyhow::Emitter::new();
-    let mut ranges = Vec::new();
-    for field in fields {
-        let mut range = None;
-        for attr in field.attrs.iter().filter(|attr| attr.path().is_ident("starts")) {
-            match start_range(attr) {
-                Ok(value) if range.is_none() => range = Some(value),
-                Ok(_) => errors.emit(syn::Error::new_spanned(attr, "duplicate #[starts] domain")),
-                Err(error) => errors.emit(error),
-            }
-        }
-        ranges.push(range);
-    }
-    errors.into_result()?;
-    Ok(ranges)
-}
-
-fn start_range(attr: &Attribute) -> syn::Result<ExprRange> {
-    match attr.parse_args::<Expr>()? {
-        Expr::Range(range) if range.start.is_some() && range.end.is_some() => Ok(range),
-        value => Err(syn::Error::new_spanned(
-            value,
-            "#[starts] requires a bounded range, such as 0..=40",
-        )),
-    }
 }

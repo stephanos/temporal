@@ -22,6 +22,20 @@ fn kettle_source_lifts_registered_properties_and_explicit_assumptions()
 }
 
 #[test]
+fn the_state_struct_keeps_its_authored_name() -> Result<(), Box<dyn std::error::Error>> {
+    // Native generation accepts any `#[derive(State)]` name; emission never names the struct.
+    let renamed = KETTLE.replace("Model", "Brew");
+    let original = Tla::emit(&Lift::parse("sample_kettle/model.rs", KETTLE)?)?;
+    let module = Tla::emit(&Lift::parse("sample_kettle/model.rs", &renamed)?)?;
+    assert_eq!(module.metadata.state_name, "Brew");
+    assert_eq!((module.tla, module.cfg), (original.tla, original.cfg));
+    let before = renamed.replace("before: &Self", "before: &Brew");
+    assert_ne!(before, renamed, "the before-state parameter is spelled &Self");
+    Tla::emit(&Lift::parse("sample_kettle/model.rs", &before)?)?;
+    Ok(())
+}
+
+#[test]
 fn unsupported_expression_refuses_with_source_location() -> Result<(), Box<dyn std::error::Error>> {
     let source =
         KETTLE.replace("self.temperature += 1;", "self.temperature = mystery(self.temperature);");

@@ -266,42 +266,85 @@ fn assumptions_naming_values_outside_the_selected_catalog_refuse_as_natively()
 
 #[test]
 fn unsupported_input_sources_refuse_by_location() -> Result<(), Box<dyn std::error::Error>> {
-    for (from, to) in [
-        ("Hold,", "Hold, Text(#[inputs([1])] String),"),
-        ("Hold,", "Hold, Raw(u8),"),
-        ("#[derive(Finite)] enum Color", "enum Color"),
-        ("Take(#[domain(slots)] u8)", "Take(#[domain(slots)] #[inputs(0..=1)] u8)"),
-        ("Take(#[domain(slots)] u8)", "Take(#[domain(missing)] u8)"),
-        ("Take(#[domain(slots)] u8)", "Take(#[domain(slots)] u16)"),
-        ("fn slots(world: &World)", "fn slots(world: World)"),
-        ("-> impl Iterator<Item = u8> { 0..", "-> Vec<u8> { 0.."),
+    for (from, to, message) in [
+        ("Hold,", "Hold, Text(#[inputs([1])] String),", "unsupported type `String`"),
+        ("Hold,", "Hold, Raw(u8),", "User::Raw field `0` requires #[inputs]"),
+        ("#[derive(Finite)] enum Color", "enum Color", "its type has no admitted Finite domain"),
+        (
+            "Take(#[domain(slots)] u8)",
+            "Take(#[domain(slots)] #[inputs(0..=1)] u8)",
+            "declares both #[inputs] and #[domain]",
+        ),
+        // `slots` stays referenced, so only the unknown function refuses.
+        (
+            "Take(#[domain(slots)] u8)",
+            "Take(#[domain(missing)] u8, #[domain(slots)] u8)",
+            "#[domain(missing)] names no local function",
+        ),
+        ("Take(#[domain(slots)] u8)", "Take(#[domain(slots)] u16)", "item type differs"),
+        ("fn slots(world: &World)", "fn slots(world: World)", "a #[domain] function is fn(&World)"),
+        (
+            "-> impl Iterator<Item = u8> { 0..",
+            "-> Vec<u8> { 0..",
+            "a #[domain] function is fn(&World)",
+        ),
+        // A free function no `#[domain]` names is no admitted declaration.
         (
             "fn slots(world: &World) -> impl Iterator<Item = u8> { 0..world.slots }",
             "fn helper() {}",
+            "unsupported declaration in machine module",
         ),
-        ("#[inputs([1, 1, 3])] u8", "#[inputs([1, limit + 1])] u8"),
-        ("#[inputs([1, 1, 3])] u8", "#[inputs(0..)] u8"),
-        ("#[inputs([1, 1, 3])] u8", "#[inputs(0..=4096)] u16"),
-        ("Never(#[inputs(1..1)] u8)", "Never(#[inputs(0..=100)] u8, #[inputs(0..=100)] u8)"),
-        ("#[derive(World)] struct World { slots: u8 }", ""),
-        ("User::Take(..) => stay!(),", "User::Take(ref slot) => stay!(),"),
-        ("User::Take(..) => stay!(),", "User::Take(0..=1) => stay!(),"),
-        ("User::Take(..) => stay!(),", "User::Take(a, b) => stay!(),"),
-        ("User::Take(..) => stay!(),", "User::Take => stay!(),"),
-        ("User::Take(..) => stay!(),", "User::Take(a) | User::Take(a) => stay!(),"),
-        ("User::Paint { color }", "User::Paint { shade }"),
-        ("User::Paint { color }", "User::Paint {}"),
-        ("User::Set(1, true)", "User::Set"),
-        ("User::Set(1, true)", "User::Set(1)"),
-        ("User::Set(1, true)", "User::Set(1, selected)"),
-        ("User::Paint { color: Color::Green }", "User::Paint { color: Color::Green, .. }"),
+        ("#[inputs([1, 1, 3])] u8", "#[inputs([1, limit + 1])] u8", "must be literals"),
+        ("#[inputs([1, 1, 3])] u8", "#[inputs(0..)] u8", "requires a bounded range or finite list"),
+        ("#[inputs([1, 1, 3])] u8", "#[inputs(0..=4096)] u16", "above the catalog limit 4096"),
         (
-            "#[invariant]",
-            "#[postcondition(after = User::Take)] fn after(&self) { check!(true); }\n#[invariant]",
+            "Never(#[inputs(1..1)] u8)",
+            "Never(#[inputs(0..=100)] u8, #[inputs(0..=100)] u8)",
+            "action catalog has 10210 concrete actions",
+        ),
+        (
+            "User::Take(..) => stay!(),",
+            "User::Take(ref slot) => stay!(),",
+            "unsupported input pattern",
+        ),
+        (
+            "User::Take(..) => stay!(),",
+            "User::Take(0..=1) => stay!(),",
+            "unsupported input pattern",
+        ),
+        ("User::Take(..) => stay!(),", "User::Take(a, b) => stay!(),", "pattern arity differs"),
+        (
+            "User::Take(..) => stay!(),",
+            "User::Take => stay!(),",
+            "carries inputs; match its fields",
+        ),
+        (
+            "User::Take(..) => stay!(),",
+            "User::Take(a) | User::Take(a) => stay!(),",
+            "or-patterns binding action inputs",
+        ),
+        ("User::Paint { color }", "User::Paint { shade }", "has no field `shade`"),
+        ("User::Paint { color }", "User::Paint {}", "pattern omits fields"),
+        ("User::Set(1, true)", "User::Set", "names no concrete action"),
+        ("User::Set(1, true)", "User::Set(1)", "requires exactly one value for `1`"),
+        ("User::Set(1, true)", "User::Set(1, selected)", "unresolved name `selected`"),
+        (
+            "User::Paint { color: Color::Green }",
+            "User::Paint { color: Color::Green, .. }",
+            "unsupported action in an assumption list",
+        ),
+        (
+            "#[progress]",
+            "#[postcondition(after = User::Take)] fn after(&self) { check!(true); }\n#[progress]",
+            "`User::Take` carries inputs; it is not one catalog action",
         ),
         // Generated relation names collide with an authored variant or obligation prefix.
-        ("Hold,", "Hold, Set_At,"),
-        ("const limit: u8 = 3;", "const limit: u8 = 3; const Fair_paints_User_Set_9: u8 = 0;"),
+        ("Hold,", "Hold, Set_At,", "generated TLA+ name `User_Set_At`"),
+        (
+            "const limit: u8 = 3;",
+            "const limit: u8 = 3; const Fair_paints_User_Set_9: u8 = 0;",
+            "generated TLA+ names `Fair_paints_User_Set_*`",
+        ),
     ] {
         let source = INPUTS.replace(from, to);
         assert_ne!(source, INPUTS, "mutation target missing: {from}");
@@ -309,7 +352,46 @@ fn unsupported_input_sources_refuse_by_location() -> Result<(), Box<dyn std::err
             .err()
             .ok_or_else(|| format!("unsupported input source admitted: {to}"))?;
         located(&error);
+        assert!(error.message.contains(message), "{to}: {error}");
     }
+    Ok(())
+}
+
+#[test]
+fn a_fair_unit_variant_named_like_a_fair_position_refuses() -> Result<(), Box<dyn std::error::Error>>
+{
+    // `Fair_paints_User_Set_2` would be both the unit variant's obligation and the second
+    // position of the fair payload variant `User::Set`.
+    let source = INPUTS
+        .replace("Hold,", "Hold, Set_2,")
+        .replace("fair([User::Set(1, true),", "fair([User::Set(1, true), User::Set_2,");
+    let error =
+        Lift::parse("picks/model.rs", &source).err().ok_or("colliding fairness admitted")?;
+    located(&error);
+    assert!(error.message.contains("generated TLA+ name `Fair_paints_User_Set_2`"), "{error}");
+    Ok(())
+}
+
+#[test]
+fn inputs_without_a_declared_world_refuse_at_the_variant() -> Result<(), Box<dyn std::error::Error>>
+{
+    // Native generation admits this Model under the unit World; its catalog identity needs a
+    // declared World's binding, so the lifted reading refuses it.
+    let source = r"
+        use umpire_dsl::machine;
+        #[machine] mod picks {
+            use umpire_dsl::{Action, State};
+            #[derive(State)] struct Model { total: u8 }
+            #[derive(Action)] enum User { Set(#[inputs(0..=1)] u8) }
+            impl Model {
+                #[on(User)]
+                fn user(&mut self, action: User) { match action { User::Set(amount) => { self.total = amount; } } }
+            }
+        }
+    ";
+    let error = Lift::parse("picks/model.rs", source).err().ok_or("World-less inputs admitted")?;
+    assert_eq!((error.line, error.column), (6, 43), "{error}");
+    assert!(error.message.contains("action inputs require a declared World"), "{error}");
     Ok(())
 }
 

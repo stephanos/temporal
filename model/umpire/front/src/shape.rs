@@ -1,6 +1,7 @@
 use crate::{
     Diagnostic, Type,
     body::{Env, Environment},
+    declare::{self, Kind},
     syntax::{attr, has, path_name},
     tree::{ActionDef, ClaimDef, FieldDef, Lifted, PostDef, Shape, Start, WorldField},
 };
@@ -29,7 +30,7 @@ pub(crate) fn parse(
         return Err(Diagnostic::at(ast, "expected exactly one inline #[machine] module"));
     }
     let module = modules[0];
-    canonical_machine(ast, module)?;
+    let marker = canonical_machine(ast, module)?;
     let mut conditional = Conditional(None);
     syn::visit::Visit::visit_item_mod(&mut conditional, module);
     if let Some(attribute) = conditional.0 {
@@ -75,10 +76,17 @@ pub(crate) fn parse(
             ));
         }
     }
+    let arguments = match &marker.meta {
+        syn::Meta::List(list) => list.tokens.clone(),
+        _ => proc_macro2::TokenStream::new(),
+    };
+    let declared = declare::machine(&arguments, module).map_err(Diagnostic::from)?;
+    let declarations = Declarations::read(items, &declared)?;
     let domain_functions = domain_functions(items);
     let mut parser = Environment {
+        state: declared.state.to_string(),
         fields: Vec::new(),
-        declared_world: false,
+        declared_world: declared.world,
         world_fields: Vec::new(),
         constants: Env::new(),
         enums: BTreeMap::new(),
@@ -101,14 +109,6 @@ pub(crate) fn parse(
                 return Err(Diagnostic::at(item, "unsupported declaration in machine module"));
             }
         };
-        if let Item::Impl(value) = item
-            && let Some(attribute) = attr(&value.attrs, "starts")
-        {
-            return Err(Diagnostic::at(
-                attribute,
-                "#[starts] marks a method in impl Model: #[starts] fn starts(world: &World)",
-            ));
-        }
         attrs(attributes, &["doc", "derive", "internal"])?;
         if let Item::Fn(function) = item {
             parser.domain_functions.insert(function.sig.ident.to_string(), function.clone());
@@ -143,53 +143,27 @@ pub(crate) fn parse(
             parser.enums.insert(name.clone(), Type::Enum { name, variants });
         }
     }
-    let worlds: Vec<_> = items
-        .iter()
-        .filter_map(|item| match item {
-            Item::Struct(value) if derives(&value.attrs, "World") => Some(value),
-            _ => None,
-        })
-        .collect();
-    if worlds.len() > 1 {
-        return Err(Diagnostic::at(worlds[1], "declare one World"));
-    }
-    let mut generated = BTreeSet::new();
-    if let Some(world) = worlds.first() {
-        parser.declared_world = true;
-        if world.ident != "World" || !world.generics.params.is_empty() {
-            return Err(Diagnostic::at(world, "source World must be a nongeneric named World"));
-        }
+    if let Some((world, fields)) = &declarations.world {
         if !admitted_imports.iter().any(|name| name == "World") {
             return Err(Diagnostic::at(
-                world,
+                *world,
                 "derive requires explicit canonical umpire_dsl::World import",
             ));
         }
-        let syn::Fields::Named(fields) = &world.fields else {
-            return Err(Diagnostic::at(world, "World must have named fields"));
-        };
-        for field in &fields.named {
+        for (name, field) in fields {
             attrs(&field.attrs, &["doc"])?;
-            let name = field
-                .ident
-                .as_ref()
-                .ok_or_else(|| Diagnostic::at(field, "unnamed World field"))?
-                .to_string();
             let ty = parser.ty(&field.ty)?;
             if !matches!(ty, Type::Bool | Type::Int { .. } | Type::Enum { .. }) {
-                return Err(Diagnostic::at(field, "World fields require admitted scalar types"));
+                return Err(Diagnostic::at(*field, "World fields require admitted scalar types"));
             }
-            let symbol =
-                crate::names::allocate(ast, &format!("__umpire_world_{name}"), &mut generated);
             parser.world_fields.push(WorldField {
-                name,
+                name: name.clone(),
                 ty,
-                symbol,
-                location: Diagnostic::at(field, ""),
+                location: Diagnostic::at(*field, ""),
             });
         }
     }
-    let mut computed = None;
+    let state_name = declared.state.to_string();
     for item in items {
         if let Item::Const(value) = item {
             let ty = parser.ty(&value.ty)?;
@@ -232,8 +206,8 @@ pub(crate) fn parse(
                     ));
                 }
                 if has(&method.attrs, "starts") {
-                    computed_starts(&parser, method, owner == "Model", &mut computed)?;
-                } else if owner == "Model" {
+                    // Computed starts are native only; Init comes from the bound complete starts.
+                } else if owner == state_name {
                     parser.methods.insert(method.sig.ident.to_string(), method.clone());
                 } else {
                     parser.helpers.insert(format!("{owner}::{}", method.sig.ident), method.clone());
@@ -241,50 +215,17 @@ pub(crate) fn parse(
             }
         }
     }
-    let states: Vec<_> = items
-        .iter()
-        .filter_map(|item| match item {
-            Item::Struct(value) if derives(&value.attrs, "State") => Some(value),
-            _ => None,
-        })
-        .collect();
-    if states.len() != 1 || states[0].ident != "Model" {
-        return Err(Diagnostic::at(module, "machine requires one named Model state"));
-    }
-    let state = states[0];
-    if !state.generics.params.is_empty() {
-        return Err(Diagnostic::at(state, "generic state is unsupported"));
-    }
-    let syn::Fields::Named(fields) = &state.fields else {
-        return Err(Diagnostic::at(state, "state must have named fields"));
-    };
-    for field in &fields.named {
+    for (name, field, range) in &declarations.state {
         attrs(&field.attrs, &["doc", "starts"])?;
-        let name = field
-            .ident
-            .as_ref()
-            .ok_or_else(|| Diagnostic::at(field, "unnamed state field"))?
-            .to_string();
-        if reserved(&name) {
-            return Err(Diagnostic::at(field, format!("reserved observer name `{name}`")));
-        }
         let ty = parser.ty(&field.ty)?;
-        let start = if computed.is_some() {
-            if let Some(attribute) = attr(&field.attrs, "starts") {
-                return Err(Diagnostic::at(
-                    attribute,
-                    "computed starts cannot be combined with field starts",
-                ));
-            }
+        let start = if declared.starts().is_some() {
             Start::Computed
-        } else if let Some(attr) = attr(&field.attrs, "starts") {
-            let range: syn::ExprRange =
-                attr.parse_args().map_err(|e| Diagnostic::span(e.span(), e.to_string()))?;
-            let (Some(lo), Some(hi)) = (range.start, range.end) else {
-                return Err(Diagnostic::at(attr, "start range must have two finite bounds"));
+        } else if let Some(range) = range {
+            let (Some(lo), Some(hi)) = (&range.start, &range.end) else {
+                unreachable!("the State declaration admits only bounded start ranges")
             };
-            let lo = parser.expr(&lo, &Env::new(), &Env::new(), Some(&ty), 0)?;
-            let hi = parser.expr(&hi, &Env::new(), &Env::new(), Some(&ty), 0)?;
+            let lo = parser.expr(lo, &Env::new(), &Env::new(), Some(&ty), 0)?;
+            let hi = parser.expr(hi, &Env::new(), &Env::new(), Some(&ty), 0)?;
             if matches!(range.limits, syn::RangeLimits::HalfOpen(_)) {
                 Start::ExclusiveRange(lo, hi)
             } else {
@@ -293,57 +234,49 @@ pub(crate) fn parse(
         } else {
             Start::Value(parser.default_value(&ty)?)
         };
-        parser.fields.push(FieldDef { name, ty, start, location: Diagnostic::at(field, "") });
+        parser.fields.push(FieldDef {
+            name: name.clone(),
+            ty,
+            start,
+            location: Diagnostic::at(*field, ""),
+        });
     }
     let initial = parser.field_env(false);
     let mut actions = Vec::new();
-    for item in items {
-        if let Item::Enum(actor) = item {
-            if !derives(&actor.attrs, "Action") {
-                continue;
-            }
-            let actor_name = actor.ident.to_string();
-            for variant in &actor.variants {
-                let name = format!("{actor_name}::{}", variant.ident);
-                let (shape, fields) = match &variant.fields {
-                    syn::Fields::Unit => (Shape::Unit, Vec::new()),
-                    syn::Fields::Unnamed(fields) => {
-                        (Shape::Tuple, fields.unnamed.iter().collect::<Vec<_>>())
-                    }
-                    syn::Fields::Named(fields) => {
-                        (Shape::Named, fields.named.iter().collect::<Vec<_>>())
-                    }
-                };
-                if shape != Shape::Unit {
-                    attrs(&variant.attrs, &["doc"])?;
-                    if !parser.declared_world {
-                        return Err(Diagnostic::at(
-                            variant,
-                            "action inputs require a declared World, whose binding supplies their typed catalog identity",
-                        ));
-                    }
+    for (actor, inputs) in &declarations.actors {
+        let actor_name = actor.ident.to_string();
+        for (variant, domains) in actor.variants.iter().zip(&inputs.variants) {
+            let name = format!("{actor_name}::{}", variant.ident);
+            let (shape, fields) = match &variant.fields {
+                syn::Fields::Unit => (Shape::Unit, Vec::new()),
+                syn::Fields::Unnamed(fields) => {
+                    (Shape::Tuple, fields.unnamed.iter().collect::<Vec<_>>())
                 }
-                // Chosen values are LET-bound inside one variant's relation, so each variant
-                // allocates its names apart from the others but never like a module name.
-                let mut scope = generated.clone();
-                let mut inputs = Vec::new();
-                for (index, field) in fields.into_iter().enumerate() {
-                    let base =
-                        field.ident.as_ref().map_or_else(|| index.to_string(), ToString::to_string);
-                    let symbol =
-                        crate::names::allocate(ast, &format!("__umpire_input_{base}"), &mut scope);
-                    inputs.push(parser.input_field(field, index, &name, symbol)?);
+                syn::Fields::Named(fields) => {
+                    (Shape::Named, fields.named.iter().collect::<Vec<_>>())
                 }
-                actions.push(ActionDef {
-                    operator: operator(&name),
-                    name,
-                    internal: has(&actor.attrs, "internal"),
-                    branches: Vec::new(),
-                    shape,
-                    fields: inputs,
-                    location: Diagnostic::at(variant, ""),
-                });
+            };
+            if shape != Shape::Unit {
+                attrs(&variant.attrs, &["doc"])?;
+                if !parser.declared_world {
+                    return Err(Diagnostic::at(
+                        variant,
+                        "action inputs require a declared World, whose binding supplies their typed catalog identity",
+                    ));
+                }
             }
+            let mut fields_in = Vec::new();
+            for (index, (field, domain)) in fields.into_iter().zip(domains).enumerate() {
+                fields_in.push(parser.input_field(field, index, &name, domain)?);
+            }
+            actions.push(ActionDef {
+                name,
+                internal: inputs.internal,
+                branches: Vec::new(),
+                shape,
+                fields: fields_in,
+                location: Diagnostic::at(variant, ""),
+            });
         }
     }
     parser.static_catalog(&actions, module)?;
@@ -351,20 +284,16 @@ pub(crate) fn parse(
     let mut postconditions = Vec::new();
     let mut progress = Vec::new();
     let mut assumptions = Vec::new();
-    for item in items {
-        let Item::Impl(implementation) = item else { continue };
-        if path_name(&implementation.self_ty.to_token_stream().to_string()) != "Model" {
-            continue;
-        }
-        for method in &implementation.items {
-            let ImplItem::Fn(method) = method else { continue };
-            if has(&method.attrs, "on") {
-                let actor = attr(&method.attrs, "on")
-                    .ok_or_else(|| Diagnostic::at(method, "missing actor"))?
-                    .parse_args::<syn::Path>()
-                    .map_err(|e| Diagnostic::span(e.span(), e.to_string()))?
-                    .to_token_stream()
-                    .to_string();
+    for registered in &declared.methods {
+        let Item::Impl(implementation) = &items[registered.item] else {
+            unreachable!("methods are registered in an impl")
+        };
+        let ImplItem::Fn(method) = &implementation.items[registered.index] else {
+            unreachable!("registered methods are functions")
+        };
+        match registered.kind {
+            Kind::On => {
+                let actor = registered.actor.as_ref().map(ToString::to_string).unwrap_or_default();
                 let matched = parser.handler(method)?;
                 for action in
                     actions.iter_mut().filter(|a| a.name.starts_with(&format!("{actor}::")))
@@ -372,60 +301,27 @@ pub(crate) fn parse(
                     let branches = parser.branches(matched, action, &parser.method_env(method)?)?;
                     action.branches.extend(branches);
                 }
-            } else if has(&method.attrs, "invariant") {
-                invariants.push(ClaimDef {
-                    name: method.sig.ident.to_string(),
-                    expr: parser.invariant(method, &initial)?,
-                });
-            } else if has(&method.attrs, "postcondition") {
-                let after = if let Some(attr) = attr(&method.attrs, "postcondition") {
-                    match &attr.meta {
-                        syn::Meta::List(list) => {
-                            let arg: syn::MetaNameValue = syn::parse2(list.tokens.clone())
-                                .map_err(|e| Diagnostic::span(e.span(), e.to_string()))?;
-                            if !arg.path.is_ident("after") {
-                                return Err(Diagnostic::at(
-                                    &arg,
-                                    "unsupported postcondition filter",
-                                ));
-                            }
-                            Some(parser.action_name(&arg.value, &actions)?)
-                        }
-                        _ => None,
-                    }
-                } else {
-                    None
-                };
-                postconditions.push(PostDef {
-                    name: method.sig.ident.to_string(),
-                    after,
-                    expr: parser.postcondition(method)?,
-                });
-            } else if has(&method.attrs, "assumption") || has(&method.attrs, "scope") {
+            }
+            Kind::Invariant => invariants.push(ClaimDef {
+                name: method.sig.ident.to_string(),
+                expr: parser.invariant(method, &initial)?,
+            }),
+            Kind::Postcondition => postconditions.push(PostDef {
+                name: method.sig.ident.to_string(),
+                after: registered
+                    .after
+                    .as_ref()
+                    .map(|after| parser.action_name(after, &actions))
+                    .transpose()?,
+                expr: parser.postcondition(method)?,
+            }),
+            Kind::Assumption => {
                 let mut assumption = parser.assumption_body(method, &actions)?;
                 assumption.name = method.sig.ident.to_string();
                 assumptions.push(assumption);
-            } else if has(&method.attrs, "progress") {
-                progress.push(parser.progress(method, &actions)?);
-            } else if !has(&method.attrs, "effect") {
-                // Unmarked helpers are admitted only when their bodies are consumed through expression lowering.
-                if method.sig.receiver().is_some_and(|r| r.mutability.is_some()) {
-                    return Err(Diagnostic::at(method, "unmarked mutable helper is unsupported"));
-                }
             }
-        }
-    }
-    for action in &actions {
-        if !parser.methods.values().any(|m| {
-            attr(&m.attrs, "on").is_some_and(|a| {
-                a.parse_args::<syn::Path>()
-                    .is_ok_and(|p| action.name.starts_with(&format!("{}::", p.to_token_stream())))
-            })
-        }) {
-            return Err(Diagnostic::at(
-                module,
-                format!("action `{}` has no admitted handler", action.name),
-            ));
+            Kind::Progress => progress.push(parser.progress(method, &actions)?),
+            Kind::Starts | Kind::Effect => {}
         }
     }
     let mut negative = Vec::new();
@@ -435,24 +331,9 @@ pub(crate) fn parse(
         );
     }
     let name = pascal(&module.ident.to_string());
-    let index_symbol = crate::names::allocate(ast, "__umpire_i", &mut generated);
-    let constant_symbols = if parser.declared_world {
-        parser
-            .constants
-            .keys()
-            .map(|name| {
-                (
-                    name.clone(),
-                    crate::names::allocate(ast, &format!("__umpire_source_{name}"), &mut generated),
-                )
-            })
-            .collect()
-    } else {
-        BTreeMap::new()
-    };
     Ok(Lifted {
         name,
-        state_name: state.ident.to_string(),
+        state_name,
         outcome_type: Type::Unit,
         world_path: if parser.declared_world {
             format!("{}::World", module.ident)
@@ -466,7 +347,6 @@ pub(crate) fn parse(
         location: Diagnostic::at(module, ""),
         fields: parser.fields,
         constants: parser.constants.values,
-        constant_symbols,
         actions,
         invariants,
         postconditions,
@@ -474,8 +354,57 @@ pub(crate) fn parse(
         assumptions,
         negative,
         catalog: None,
-        index_symbol,
     })
+}
+
+/// The State, World and actor declarations, read as their derives read them.
+struct Declarations<'a> {
+    /// State fields with their `#[starts]` ranges.
+    state: Vec<(String, &'a syn::Field, Option<syn::ExprRange>)>,
+    /// The declared World and its fields.
+    world: Option<(&'a syn::ItemStruct, Vec<(String, &'a syn::Field)>)>,
+    /// Actor enums with their markers and input domains.
+    actors: Vec<(&'a syn::ItemEnum, declare::ActionEnum)>,
+}
+impl<'a> Declarations<'a> {
+    fn read(items: &'a [Item], machine: &declare::Machine) -> Result<Self> {
+        let named = |fields: Vec<&'a syn::Field>| {
+            fields
+                .into_iter()
+                .filter_map(|field| field.ident.as_ref().map(|name| (name.to_string(), field)))
+                .collect::<Vec<_>>()
+        };
+        let mut declarations = Self { state: Vec::new(), world: None, actors: Vec::new() };
+        for item in items {
+            match item {
+                Item::Struct(state) if state.ident == machine.state => {
+                    let fields = declare::struct_fields(state, Some(&state.fields), false)
+                        .map_err(Diagnostic::from)?;
+                    let ranges = declare::start_ranges(&fields).map_err(Diagnostic::from)?;
+                    declarations.state = named(fields)
+                        .into_iter()
+                        .zip(ranges)
+                        .map(|((name, field), range)| (name, field, range))
+                        .collect();
+                }
+                Item::Struct(world) if machine.world && world.ident == "World" => {
+                    let fields = declare::struct_fields(world, Some(&world.fields), true)
+                        .map_err(Diagnostic::from)?;
+                    declarations.world = Some((world, named(fields)));
+                }
+                Item::Enum(actor)
+                    if machine.actors.iter().any(|known| known.ident == actor.ident) =>
+                {
+                    let input = syn::DeriveInput::from(actor.clone());
+                    let inputs =
+                        declare::action_enum(&input, machine.world).map_err(Diagnostic::from)?;
+                    declarations.actors.push((actor, inputs));
+                }
+                _ => {}
+            }
+        }
+        Ok(declarations)
+    }
 }
 
 /// Free functions named by a variant field's `#[domain(..)]`, admitted only as domain sources.
@@ -493,36 +422,6 @@ fn domain_functions(items: &[Item]) -> BTreeSet<String> {
         .collect()
 }
 
-/// Admits the one `#[starts]` method: an associated fn of `impl Model` taking only an optional
-/// trailing `&World`. Its body is native only; Init comes from the bound complete starts.
-fn computed_starts<'a>(
-    parser: &Environment,
-    method: &'a syn::ImplItemFn,
-    model: bool,
-    computed: &mut Option<&'a syn::ImplItemFn>,
-) -> Result<()> {
-    let attribute = attr(&method.attrs, "starts").unwrap_or_else(|| unreachable!("marked"));
-    if !parser.declared_world {
-        return Err(Diagnostic::at(attribute, "computed starts require a declared World"));
-    }
-    if computed.is_some() {
-        return Err(Diagnostic::at(attribute, "declare starts once"));
-    }
-    let parameters = parser.parameters(method)?;
-    if !model
-        || !matches!(attribute.meta, syn::Meta::Path(_))
-        || method.sig.receiver().is_some()
-        || !parameters.positional.is_empty()
-    {
-        return Err(Diagnostic::at(
-            method,
-            "#[starts] requires an associated fn of impl Model taking only an optional trailing &World",
-        ));
-    }
-    *computed = Some(method);
-    Ok(())
-}
-
 struct Conditional<'a>(Option<&'a syn::Attribute>);
 impl<'ast> syn::visit::Visit<'ast> for Conditional<'ast> {
     fn visit_attribute(&mut self, attribute: &'ast syn::Attribute) {
@@ -532,16 +431,9 @@ impl<'ast> syn::visit::Visit<'ast> for Conditional<'ast> {
     }
 }
 
+/// The module's declarations already read, so a malformed derive refuses there first.
 fn derives(attrs: &[syn::Attribute], name: &str) -> bool {
-    attrs.iter().filter(|a| a.path().is_ident("derive")).any(|a| {
-        a.parse_args_with(
-            syn::punctuated::Punctuated::<syn::Path, syn::Token![,]>::parse_terminated,
-        )
-        .is_ok_and(|paths| paths.iter().any(|p| p.is_ident(name)))
-    })
-}
-fn operator(name: &str) -> String {
-    name.replace("::", "_")
+    declare::derives(attrs, name).unwrap_or(false)
 }
 fn pascal(name: &str) -> String {
     name.split('_')
@@ -553,19 +445,6 @@ fn pascal(name: &str) -> String {
                 .map_or(String::new(), |c| c.to_uppercase().collect::<String>() + chars.as_str())
         })
         .collect()
-}
-fn reserved(name: &str) -> bool {
-    [
-        "__umpire_edge_tick",
-        "__umpire_pending",
-        "__umpire_steps",
-        "__umpire_action",
-        "__umpire_choice",
-        "__umpire_outcome",
-        "__umpire_facts",
-        "__umpire_input",
-    ]
-    .contains(&name)
 }
 fn attrs(attrs: &[syn::Attribute], allowed: &[&str]) -> Result<()> {
     for attr in attrs {
@@ -581,7 +460,7 @@ fn attrs(attrs: &[syn::Attribute], allowed: &[&str]) -> Result<()> {
     }
     Ok(())
 }
-fn canonical_machine(ast: &syn::File, module: &syn::ItemMod) -> Result<()> {
+fn canonical_machine<'a>(ast: &syn::File, module: &'a syn::ItemMod) -> Result<&'a syn::Attribute> {
     let marker = module
         .attrs
         .iter()
@@ -603,7 +482,7 @@ fn canonical_machine(ast: &syn::File, module: &syn::ItemMod) -> Result<()> {
             "machine marker requires one explicit canonical umpire_dsl::machine import",
         ));
     }
-    Ok(())
+    Ok(marker)
 }
 fn imports(tree: &syn::UseTree, prefix: &str, out: &mut Vec<(String, String)>) {
     match tree {

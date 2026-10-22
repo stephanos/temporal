@@ -170,7 +170,7 @@ impl Environment {
                 .base10_parse::<i128>()
                 .map_err(|error| crate::Diagnostic::at(node, error.to_string()))?;
             if index > i128::from(i32::MAX) {
-                return self.err(node, "Vector index exceeds the TLC signed 32-bit domain");
+                return self.err(node, "Vector index exceeds the admitted signed 32-bit integers");
             }
             return Ok(Expr::int(index, index_type()));
         }

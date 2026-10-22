@@ -18,7 +18,9 @@ impl Environment {
             {
                 return self.err(
                     ty,
-                    format!("integer type `{name}` exceeds TLC's signed 32-bit integer range"),
+                    format!(
+                        "integer type `{name}` is wider than the admitted signed 32-bit integers"
+                    ),
                 );
             }
             return Ok(scalar);
