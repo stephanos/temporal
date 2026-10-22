@@ -170,32 +170,9 @@ pub(crate) fn retained(
     String,
 > {
     use crate::evidence::store::Opened;
-    let scenario = &result.provenance["scenario"];
-    if scenario.is_null() {
-        match recovery::from_provenance(&canonical::encode(&result.provenance)?)? {
-            Some(recovery::Request::TemporalRetry)
-                if result.manifest.id == "temporal-named-network-reset" =>
-            {
-                retry::retained(result)?
-            }
-            Some(_) => {
-                return Err(
-                    "runtime workload requires its registered base scenario and identity".into(),
-                );
-            }
-            None => (),
-        }
-        return Ok((Vec::new(), None));
-    }
-    let raw: Vec<u8> =
-        serde_json::from_value(scenario.clone()).map_err(|error| error.to_string())?;
-    let scenario: Value = super::spec::strict(&raw)?;
-    let workload: Option<Workload> =
-        serde_json::from_value(scenario["workload"].clone()).map_err(|error| error.to_string())?;
-    let Some(workload) = workload else {
+    let Some(workload) = retained_workload(result)? else {
         return Ok((Vec::new(), None));
     };
-    workload.validate()?;
     let mut catalogues = Vec::new();
     let mut selection = match &workload {
         Workload::SQLite { selection } => selection.clone(),
@@ -216,37 +193,7 @@ pub(crate) fn retained(
             super::spec::strict(&opened.payload(crate::replay::cluster::FILE, 64 << 20)?)?;
         let actual_workload = inputs.configuration.workload.as_ref();
         runtime_binding(result, &opened, actual_workload, &workload)?;
-        let mut streams = BTreeMap::new();
-        for name in execution
-            .record
-            .streams
-            .keys()
-            .filter_map(|name| name.strip_prefix("evidence/"))
-        {
-            if [
-                "/stdout",
-                "/storage",
-                "/choice",
-                "/storage_state",
-                "/recovery_image_primary",
-                "/recovery_image_input",
-            ]
-            .iter()
-            .any(|suffix| name.ends_with(suffix))
-            {
-                streams.insert(
-                    name.to_owned(),
-                    opened.payload(
-                        &format!("evidence/{name}"),
-                        execution
-                            .record
-                            .limits
-                            .evidence_bytes
-                            .max(execution.record.limits.output_bytes),
-                    )?,
-                );
-            }
-        }
+        let streams = retained_streams(&opened, &execution.record)?;
         if let Some(Workload::SQLite {
             selection: Some(actual),
         }) = actual_workload
@@ -380,4 +327,96 @@ fn temporal_catalogue(
         }
     }
     Ok(())
+}
+
+fn retained_workload(
+    result: &super::result::QualificationResult,
+) -> Result<Option<Workload>, String> {
+    let scenario = &result.provenance["scenario"];
+    if scenario.is_null() {
+        match recovery::from_provenance(&canonical::encode(&result.provenance)?)? {
+            Some(recovery::Request::TemporalRetry)
+                if result.manifest.id == "temporal-named-network-reset" =>
+            {
+                retry::retained(result)?
+            }
+            Some(_) => {
+                return Err(
+                    "runtime workload requires its registered base scenario and identity".into(),
+                );
+            }
+            None if result.manifest.id == "temporal-named-network-reset" => {
+                return Err(
+                    "named reset Result omitted its authenticated runtime workload intent".into(),
+                );
+            }
+            None => (),
+        }
+        return Ok(None);
+    }
+    let raw: Vec<u8> =
+        serde_json::from_value(scenario.clone()).map_err(|error| error.to_string())?;
+    let scenario: Value = super::spec::strict(&raw)?;
+    let workload: Option<Workload> =
+        serde_json::from_value(scenario["workload"].clone()).map_err(|error| error.to_string())?;
+    let Some(workload) = workload else {
+        if matches!(
+            result.manifest.id.as_str(),
+            "sqlite-durable-recovery"
+                | "temporal-committed-workflow-crash-reopen"
+                | "independent-temporal-replication-durable-restart"
+        ) {
+            return Err("registered mandatory Result omitted its known workload".into());
+        }
+        return Ok(None);
+    };
+    let expected = match &workload {
+        Workload::SQLite { .. } => Some("sqlite-durable-recovery"),
+        Workload::TemporalReplication { .. } => {
+            Some("independent-temporal-replication-durable-restart")
+        }
+        Workload::TemporalRecovery { .. } => Some("temporal-committed-workflow-crash-reopen"),
+        Workload::TemporalInspection => None,
+    };
+    if expected.is_some_and(|expected| result.manifest.id != expected) {
+        return Err("mandatory workload Result has another registry identity".into());
+    }
+    workload.validate()?;
+    Ok(Some(workload))
+}
+
+fn retained_streams(
+    opened: &crate::evidence::store::Opened,
+    record: &crate::evidence::record::Record,
+) -> Result<BTreeMap<String, Vec<u8>>, String> {
+    let mut streams = BTreeMap::new();
+    for file in record
+        .streams
+        .keys()
+        .filter(|file| file.starts_with("evidence/cluster/"))
+    {
+        let name = file
+            .strip_prefix("evidence/")
+            .ok_or("cluster evidence prefix absent")?;
+        if [
+            "/stdout",
+            "/storage",
+            "/choice",
+            "/storage_state",
+            "/recovery_image_primary",
+            "/recovery_image_input",
+        ]
+        .iter()
+        .any(|suffix| name.ends_with(suffix))
+        {
+            streams.insert(
+                name.to_owned(),
+                opened.payload(
+                    file,
+                    record.limits.evidence_bytes.max(record.limits.output_bytes),
+                )?,
+            );
+        }
+    }
+    Ok(streams)
 }
