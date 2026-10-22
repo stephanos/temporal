@@ -770,3 +770,153 @@ pub(crate) fn project_workload(
     }
     Ok(projected)
 }
+
+#[cfg(test)]
+mod projection_tests {
+    use super::*;
+
+    const ENCODING: &str = "gomad/world/compressed-snapshot/v2";
+
+    fn configuration() -> (Configuration, Vec<u8>) {
+        // Expanded bytes from the unchanged compressed-world-single-terminal-owner corpus.
+        let raw_world = crate::qualify::cells::base64("R01XU05BUDEAAAABAAAAAAAAAAAAAAAAACAAAAAAAAAAIAAAAAAAAAAD0JAAAAAAAIAAAAAAAAAEAAAA/////w0jTM9SQwAAAAAAAAAAAAEAAAAAAAAAAQAAAAAAAAABAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA47DEQpj8HBSa+/TImW+5JCeuQeRkm5NMpJWZG3hSuFVkPwAshKEN5wBwZmobp69AiLehiWr2Xs5nRltJYTzTVQAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA==").unwrap();
+        let limits = json!({"fuel":100_000,"memory_bytes":65_536,"wall_millis":1000,
+            "output_bytes":1<<20,"evidence_bytes":64<<20});
+        let namespace = json!({"entries":[],"writable_directories":[],"preopens":[[47]],
+            "working_directory":[47],"stdin":[],"epoch_nanos":0,
+            "limits":{"files":1024,"descriptors":128,"filesystem_bytes":8<<20,"output_bytes":1<<20}});
+        let owners = [2, 3].map(|incarnation| json!({
+            "handle":{"node":"sqlite","incarnation":incarnation},
+            "module":{"file":"target/module.wasm","bytes":0,"sha256":"a".repeat(64),"limit":512<<20},
+            "limits":limits,"arguments":[],"environment":{},"runtime_sha256":"b".repeat(64),
+            "model":{},"namespace":namespace,"storage":null,"network":null,
+            "choice_identity":{"TargetSHA256":vec![0u8;32],"ToolchainBuildKey":"c".repeat(64),
+                "GOOS":"wasip1","GOARCH":"wasm","ImplementationSHA256":vec![0u8;32]}
+        }));
+        let configuration: Configuration = serde_json::from_value(json!({
+            "workload":{"kind":"sqlite-durable-recovery","selection":null},
+            "oracle_plan":{"schema":"gomad.wasm.history-observation/v1","prefix":"LIVE ","maximum_bytes":1<<20,
+                "histories":[{"name":"live-history","expected":{"node":"sqlite","incarnation":2},
+                    "actual":{"node":"sqlite","incarnation":3},"expected_events":["1","2"]}]},
+            "engine":linked::CONFIGURATION,"profile":"gomad.wasi-cooperative/v1",
+            "world_encoding":ENCODING,"world_profile":ENCODING,"limits":limits,
+            "broker":{"seed":0,"limits":{"max_requests":2_097_152,"max_events":2_097_152,
+                "max_queued_events":250_000,"max_transitions":8_388_608,"max_payload_bytes":67_108_864,"max_string_bytes":u32::MAX}},
+            "network":null,"incarnations":owners,"steps":[],"boundaries":[],"crash_groups":[]
+        })).unwrap();
+        helper::validate_world(&raw_world, &configuration.broker).unwrap();
+        (configuration, raw_world)
+    }
+
+    fn observe(raw_world: &[u8], bad_live: bool, bad_mandatory: bool) -> helper::Execution {
+        let history = |payload| {
+            format!(
+                "LIVE {}\n",
+                json!({"cluster_id":"sqlite",
+                "history":payload,"event_ids":[1,2],"types":["a","b"]})
+            )
+        };
+        let outputs = [
+            format!("ACK 2\n{}", history("aGlzdG9yeQ==")),
+            format!(
+                "INTEGRITY ok\nHISTORY {}\n{}",
+                if bad_mandatory {
+                    "1:committed"
+                } else {
+                    "1:committed,2:committed"
+                },
+                history(if bad_live { "YmFk" } else { "aGlzdG9yeQ==" })
+            ),
+        ];
+        let mut outcome = linked::Outcome::new("exit", "");
+        outcome.exit_code = Some(0);
+        helper::Execution {
+            outcome,
+            executed_steps: vec![],
+            incarnations: outputs
+                .into_iter()
+                .enumerate()
+                .map(|(index, stdout)| {
+                    let mut outcome = linked::Outcome::new("exit", "");
+                    outcome.exit_code = Some(0);
+                    helper::IncarnationResult {
+                        handle: helper::Handle {
+                            node: "sqlite".into(),
+                            incarnation: u64::try_from(index).unwrap() + 2,
+                        },
+                        interrupted: false,
+                        execution: linked::Execution {
+                            authorization_to_terminal_nanos: None,
+                            outcome,
+                            evidence: BTreeMap::from([("stdout".into(), stdout.into_bytes())]),
+                            event_order: None,
+                        },
+                    }
+                })
+                .collect(),
+            world: raw_world.to_vec(),
+            network: vec![],
+            inspection: vec![],
+            virtual_elapsed_nanos: 0,
+            event_order: None,
+        }
+    }
+
+    #[test]
+    fn shared_projection_preserves_mandatory_live_oracles_and_retained_world() {
+        let (configuration, raw_world) = configuration();
+        for (bad_live, bad_mandatory) in [(false, false), (true, false), (false, true)] {
+            let projected = Projection {
+                configuration: configuration.clone(),
+                world_encoding: ENCODING.into(),
+                simulation: false,
+            }
+            .project(observe(&raw_world, bad_live, bad_mandatory))
+            .unwrap();
+            let mandatory: Value =
+                serde_json::from_slice(&projected.evidence["workload-oracles.json"]).unwrap();
+            let live: Value =
+                serde_json::from_slice(&projected.evidence["cluster_oracles"]).unwrap();
+            assert_eq!(
+                mandatory["checks"]
+                    .as_object()
+                    .unwrap()
+                    .values()
+                    .all(|check| check == true),
+                !bad_mandatory
+            );
+            assert_eq!(live["oracles"].as_array().unwrap().len(), 3);
+            assert_eq!(
+                live["outcome"],
+                if bad_live {
+                    "oracle_failed"
+                } else {
+                    "completed"
+                }
+            );
+            assert_eq!(
+                projected.outcome.termination,
+                if bad_live { "oracle_failed" } else { "exit" }
+            );
+            assert_eq!(
+                projected.outcome.exit_code,
+                if bad_live { None } else { Some(0) }
+            );
+            if bad_mandatory {
+                assert_eq!(
+                    projected.outcome.message,
+                    "mandatory workload oracle failed"
+                );
+            } else if !bad_live {
+                assert!(projected.outcome.message.is_empty());
+            }
+            let world = &projected.evidence["world"];
+            assert_ne!(world, &raw_world);
+            assert!(world.starts_with(b"GMWORLD2"));
+            helper::validate_encoded_world(world, ENCODING, &configuration.broker).unwrap();
+            let summary: Value =
+                serde_json::from_slice(&projected.evidence["cluster_summary"]).unwrap();
+            assert_eq!(summary["world_sha256"], canonical::digest(world));
+        }
+    }
+}
