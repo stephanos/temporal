@@ -4,6 +4,11 @@ import importlib.util
 import json
 from pathlib import Path
 import sys
+import os
+import shutil
+import subprocess
+import tempfile
+from datetime import datetime, timezone
 import unittest
 
 sys.dont_write_bytecode = True
@@ -11,6 +16,108 @@ path = Path(__file__).with_name('live-broker-observe.py')
 spec = importlib.util.spec_from_file_location('observe', path)
 observe = importlib.util.module_from_spec(spec)
 spec.loader.exec_module(observe)
+
+POINTER_PROBE = r'''
+type choiceControl struct { Mode uint8; Trace []byte; Identity map[string]string }
+type runtimeControl struct { Choice *choiceControl }
+type configuration struct { Args []string; Env map[string]string }
+type BrokerNode struct { ID string; Incarnation uint64 }
+type brokerSession struct { Node BrokerNode }
+type image struct { data []byte }
+func (*image) Identity() string { return "probe-image" }
+type Request struct {
+    ModulePath string
+    Broker *brokerSession
+    StdoutMirror any
+    CompileCache string
+    StorageImage *image
+    Runtime *runtimeControl
+    Config configuration
+    StorageCrashSelection map[string][]uint64
+    remoteModel bool
+}
+type Result struct { StorageImage *image }
+var runCalls int
+func Run(_ context.Context, request Request) (Result, error) {
+    runCalls++
+    request.Runtime.Choice.Identity["inside-run"] = "mutated"
+    return Result{}, nil
+}
+
+func TestCallTimeRequestSurvivesPointerMutation(t *testing.T) {
+    root := t.TempDir()
+    t.Setenv("GOMAD_BROKER_OBSERVATION_ROOT", root)
+    module := filepath.Join(root, "input.wasm")
+    if err := os.WriteFile(module, []byte("probe-module"), 0600); err != nil { t.Fatal(err) }
+    request := Request{ModulePath:module, Runtime:&runtimeControl{Choice:&choiceControl{
+        Mode:3, Trace:[]byte{1,2,3}, Identity:map[string]string{"source":"original"}}},
+        Config:configuration{Args:[]string{"original"},Env:map[string]string{"mode":"original"}},
+        StorageCrashSelection:map[string][]uint64{"write":{7}}, StorageImage:&image{data:[]byte{4,5}},
+        Broker:&brokerSession{Node:BrokerNode{ID:"a",Incarnation:1}},remoteModel:true}
+    t.Run("original-assertions",func(t *testing.T) {
+        if _,err := brokerObserveRun(t, context.Background(),request); err != nil { t.Fatal(err) }
+        if runCalls != 1 { t.Fatalf("original Run calls=%d",runCalls) }
+        if _,err := os.Stat(filepath.Join(root,"observation-000001.json")); !os.IsNotExist(err) {
+            t.Fatal("observation published before original assertions")
+        }
+        request.Runtime.Choice.Mode=1
+        request.Runtime.Choice.Trace[0]=9
+        request.Runtime.Choice.Identity["source"]="mutated"
+        request.Config.Args[0]="mutated"
+        request.Config.Env["mode"]="mutated"
+        request.StorageCrashSelection["write"][0]=9
+        request.StorageImage.data[0]=9
+        request.Broker.Node.ID="mutated"
+    })
+    raw,err := os.ReadFile(filepath.Join(root,"observation-000001.json"))
+    if err != nil { t.Fatal(err) }
+    var row struct { Request Request `json:"request"`; Node BrokerNode `json:"node"`; Prior []byte `json:"request_storage_image"`; Remote bool `json:"remote_model"` }
+    if err := json.Unmarshal(raw,&row); err != nil { t.Fatal(err) }
+    got := row.Request
+    if got.Runtime.Choice.Mode != 3 || string(got.Runtime.Choice.Trace) != string([]byte{1,2,3}) ||
+        got.Runtime.Choice.Identity["source"] != "original" || got.Runtime.Choice.Identity["inside-run"] != "" ||
+        got.Config.Args[0] != "original" || got.Config.Env["mode"] != "original" ||
+        got.StorageCrashSelection["write"][0] != 7 || string(row.Prior) != string([]byte{4,5}) || row.Node.ID != "a" || !row.Remote {
+        t.Fatalf("call-time request snapshot changed: %s",raw)
+    }
+}
+'''
+
+
+class RequestSnapshot(unittest.TestCase):
+    def test_actual_go_observer_freezes_nested_call_time_request(self):
+        compiler = os.environ.get('GOMAD_OBSERVATION_PROBE_GO') or shutil.which('go')
+        self.assertIsNotNone(compiler, 'Go compiler required for actual observer probe')
+        if os.environ.get('GOMAD_OBSERVATION_PROBE_ROOT'):
+            evidence = Path(os.environ['GOMAD_OBSERVATION_PROBE_ROOT'])
+        else:
+            temporary = tempfile.TemporaryDirectory(prefix='gomad-observer-probe-')
+            self.addCleanup(temporary.cleanup)
+            evidence = Path(temporary.name) / 'probe'
+        evidence.mkdir(parents=True, exist_ok=False)
+        function = observe.HELPER.split('func brokerObserveRun(', 1)[1].split('\nfunc brokerObserveNew(', 1)[0]
+        source = '''package wasi
+import ("context"; "crypto/sha256"; "encoding/json"; "fmt"; "os"; "path/filepath"; "sync/atomic"; "testing")
+var brokerObservationOrdinal atomic.Uint64
+func brokerObserveRun(''' + function + POINTER_PROBE
+        (evidence / 'go.mod').write_text('module gomad-observer-pointer-probe\n\ngo 1.18\n')
+        (evidence / 'snapshot_test.go').write_text(source)
+        command = [compiler, 'test', '-count=1', '-v', '-run', '^TestCallTimeRequestSurvivesPointerMutation$', '.']
+        started = datetime.now(timezone.utc).isoformat()
+        with subprocess.Popen(command, cwd=evidence, stdout=subprocess.PIPE, stderr=subprocess.PIPE,
+                              env={**os.environ, 'GOWORK':'off', 'GOTOOLCHAIN':'local', 'GOENV':'off'}) as process:
+            try:
+                stdout, stderr = process.communicate(timeout=60)
+            except subprocess.TimeoutExpired:
+                process.kill()
+                process.communicate()
+                raise
+            (evidence / 'stdout.log').write_bytes(stdout)
+            (evidence / 'stderr.log').write_bytes(stderr)
+            (evidence / 'command.json').write_text(json.dumps(dict(argv=command, exit=process.returncode,
+                pid=process.pid, started_at=started, ended_at=datetime.now(timezone.utc).isoformat(),
+                source_sha256=observe.sha(source.encode()), helper_sha256=observe.sha(observe.HELPER.encode()))) + '\n')
+            self.assertEqual(process.returncode, 0, stdout.decode() + stderr.decode())
 
 
 class ExactSelection(unittest.TestCase):

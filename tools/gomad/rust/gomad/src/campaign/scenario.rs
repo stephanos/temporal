@@ -1651,9 +1651,14 @@ pub(crate) fn publication(
 fn incarnation_choice_features(
     trace: &[u8],
     identity: &linked::ChoiceIdentity,
-    _termination: &str,
+    termination: &str,
 ) -> Result<Vec<String>, String> {
-    linked::choice_features(trace, identity, "complete").map_err(str::to_owned)
+    let mut features =
+        linked::choice_features(trace, identity, "complete").map_err(str::to_owned)?;
+    if matches!(termination, "crash" | "stop" | "storage_crash") {
+        features.retain(|feature| feature != "terminal/complete");
+    }
+    Ok(features)
 }
 
 #[cfg(test)]

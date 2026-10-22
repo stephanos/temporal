@@ -451,10 +451,11 @@ mod replay_tests {
         identity::Identity,
         record::{Limits, Outcome, Record, Stream},
     };
+    use serde_json::Value;
 
     #[test]
     fn replay_compares_actual_canonical_cluster_oracle_report() {
-        let mut outcome = gomad_wasmhost::protocol::Outcome::new("exit", "");
+        let mut outcome = linked::Outcome::new("exit", "");
         outcome.exit_code = Some(0);
         let mut observed = linked::Execution {
             authorization_to_terminal_nanos: None,

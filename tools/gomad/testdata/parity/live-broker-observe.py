@@ -110,10 +110,19 @@ import (
 var brokerObservationOrdinal atomic.Uint64
 
 func brokerObserveRun(t *testing.T, ctx context.Context, request Request) (Result, error) {
+    retained := request
+    retained.Broker, retained.StdoutMirror, retained.CompileCache = nil, nil, ""
+    requestJSON, snapshotErr := json.Marshal(retained)
+    remote := request.remoteModel
+    node := BrokerNode{}
+    if request.Broker != nil { node = request.Broker.Node }
+    var priorImage []byte
+    if request.StorageImage != nil { priorImage = append([]byte(nil), request.StorageImage.data...) }
     result, err := Run(ctx, request)
     ordinal := brokerObservationOrdinal.Add(1)
     t.Cleanup(func() {
         if t.Failed() || err != nil { return }
+        if snapshotErr != nil { t.Error(snapshotErr); return }
         root := os.Getenv("GOMAD_BROKER_OBSERVATION_ROOT")
         if root == "" { t.Fatal("observation root is required"); return }
         module, readErr := os.ReadFile(request.ModulePath)
@@ -121,16 +130,14 @@ func brokerObserveRun(t *testing.T, ctx context.Context, request Request) (Resul
         digest := fmt.Sprintf("%x", sha256.Sum256(module))
         modulePath := filepath.Join(root, digest+".wasm")
         if writeErr := os.WriteFile(modulePath, module, 0600); writeErr != nil { t.Error(writeErr); return }
-        remote := request.remoteModel
-        node := BrokerNode{}
-        if request.Broker != nil { node = request.Broker.Node }
-        request.ModulePath, request.Broker, request.StdoutMirror, request.CompileCache = modulePath, nil, nil, ""
-        var image, priorImage []byte
+        var snapshot map[string]json.RawMessage
+        if decodeErr := json.Unmarshal(requestJSON, &snapshot); decodeErr != nil { t.Error(decodeErr); return }
+        snapshot["ModulePath"], _ = json.Marshal(modulePath)
+        var image []byte
         imageIdentity := ""
         if result.StorageImage != nil { image, imageIdentity = result.StorageImage.data, result.StorageImage.Identity() }
-        if request.StorageImage != nil { priorImage = request.StorageImage.data }
         raw, marshalErr := json.Marshal(map[string]any{"test":t.Name(), "ordinal":ordinal,
-            "remote_model":remote, "node":node, "request":request, "result":result,
+            "remote_model":remote, "node":node, "request":snapshot, "result":result,
             "storage_image":image, "storage_image_identity":imageIdentity, "request_storage_image":priorImage})
         if marshalErr != nil { t.Error(marshalErr); return }
         if writeErr := os.WriteFile(filepath.Join(root, fmt.Sprintf("observation-%06d.json",ordinal)), raw, 0600); writeErr != nil { t.Error(writeErr) }
