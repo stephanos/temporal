@@ -25,3 +25,14 @@ TBD
 - Commits:
 - Tests:
 - PRs:
+
+### Rust gate attempt, 2026-10-22 (conductor note)
+Stopped at gate 1: the Rust binary has no prepare-only freeze that retains the module receipt, so no measured gate was run. The row stays pending. Checkpoint: `.flow/artifacts/fn222-rust-onebox-gates-2026-10-22.md`.
+
+Additional ordering: this task also needs four pieces of Rust tooling.
+- **Install for the `./tests` namespace** (fn-232.11). Current test tooling hard-codes `./tests/gomadfunctional`.
+- **Prepare-only freeze** with the module receipt (gate 1).
+- **Onebox storage/transport inspection cell equivalent.**
+- **Support-list producer and validator** (this task's own `rust/gomad/src/qualification/**`).
+
+Resume after fn-232.11. The last three items are this task's own work or belong to fn-232.10/.11, whichever owns the verb.
