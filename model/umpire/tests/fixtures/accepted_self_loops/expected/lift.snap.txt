@@ -1,1 +1,6 @@
-fixtures/accepted_self_loops/model.rs:28:21: warning: unsupported effect statement; TLA+ emission refused
+fixtures/accepted_self_loops/model.rs:36:20: warning: unsupported expression `match outcome
+{
+    Outcome :: Accepted => self.value == 1 || self == before, Outcome ::
+    Rejected(rejection) =>
+    { * rejection == Rejection :: FailedPrecondition && self == before }
+}`; TLA+ emission refused

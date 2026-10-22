@@ -36,6 +36,35 @@ pub enum Type {
     /// Sequence.
     Seq(Box<Type>),
 }
+/// The stock `umpire_dsl::Rejection` variants, in declaration order.
+pub const REJECTIONS: [&str; 6] = [
+    "NotFound",
+    "AlreadyExists",
+    "FailedPrecondition",
+    "InvalidArgument",
+    "PermissionDenied",
+    "Unavailable",
+];
+impl Type {
+    /// The stock `umpire_dsl::Rejection`, a fieldless enum.
+    #[must_use]
+    pub fn rejection() -> Self {
+        Self::Enum {
+            name: "Rejection".into(),
+            variants: REJECTIONS.iter().map(|variant| format!("Rejection::{variant}")).collect(),
+        }
+    }
+    /// The stock `umpire_dsl::Outcome`, encoded as its finite values: `Outcome::Accepted` and
+    /// each `Outcome::Rejected(variant)`, spelled as their `Debug` text after the prefix.
+    #[must_use]
+    pub fn outcome() -> Self {
+        let rejected = REJECTIONS.iter().map(|variant| format!("Outcome::Rejected({variant})"));
+        Self::Enum {
+            name: "Outcome".into(),
+            variants: std::iter::once("Outcome::Accepted".into()).chain(rejected).collect(),
+        }
+    }
+}
 /// A located refusal of unsupported source behavior; the consumer names the file.
 #[derive(Clone, Debug, PartialEq, Eq)]
 pub struct Diagnostic {

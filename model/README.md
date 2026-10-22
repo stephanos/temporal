@@ -720,10 +720,26 @@ Attribute Models also admit explicitly imported `imbl::Vector<T>` with scalar/en
 (`is_some`/`is_none` or `copied().unwrap_or(default)`). Growth requires an authored finite
 length guard; arbitrary collection methods, indexing and panicking `unwrap` refuse.
 Action inputs without a declared World, generic or aliased input types and custom `Finite`
-implementations, generic delegating adapters and arbitrary Rust remain outside the subset. `Phased`,
-`reject!`, and imported generic `closable` laws also currently refuse; that source shape
-has no system TLC agreement evidence. System fixture roots may retain located refusal
-goldens while the required shared gate still mandates attribute Kettle execution.
+implementations, generic delegating adapters and arbitrary Rust remain outside the subset.
+
+Phase access, rejection and closure laws are admitted together (fn-227.11). `impl
+umpire_dsl::Phase` for a local fieldless enum and `impl Phased` for the State admit their
+pure methods, and `Phased`'s default `closed` is read from `umpire-dsl`'s own source; other
+trait impls refuse at the impl. A module with `reject!` has the stock `Outcome`, emitted as
+the finite strings `Outcome::Accepted` and `Outcome::Rejected(rejection)`. `reject!(r)` is
+read by Umpire's name only; it records the first rejection, returns from its function (an
+`#[effect]` helper's rejection returns from the helper alone), and later effects apply only
+where the step still runs. A rejection is an enabled self-loop, never a dropped branch, and a
+rejection after a state change fails TLC with an assertion, as `checked_step` refuses it
+natively. Postconditions take `&Outcome`, compare whole states field by field and build
+`Outcome::Rejected(..)` values. A `closable::` law call is lowered from the law's source in
+`umpire-dsl/src/closable.rs`, with its generic state, outcome and value arguments bound; no
+law is recognized by name. Shared `phased_rejection` breaks three terminal transitions, so TLC
+and the native checker agree on each law's refutation and replay its counterexamples through
+rejected edges and exact payloads; stale rejecting claims cannot discharge current-claim
+fairness. The activity Model is admitted and checked by TLC in the required gate, and its
+tests show TLC refuting reopening, accepted-closed-step and wrong-rejection mutants of its
+source.
 
 The default gate needs only the Rust toolchain and workspace dependencies. The optional `cargo-insta`
 CLI supports interactive review and acceptance (`cargo install cargo-insta --locked`). Its real

@@ -1,4 +1,7 @@
-use super::{Env, Environment, Result};
+use super::{
+    Env, Environment, Result,
+    outcome::{Flow, rejects},
+};
 use crate::{
     Diagnostic, Locate, Type,
     expr::{Expr, ExprKind, Op},
@@ -65,13 +68,16 @@ impl Environment {
             let mut state = self.field_env(false);
             let mut checks = Vec::new();
             let (body, stays) = without_stay(&arm.body);
-            self.effects(&body, &mut state, &mut locals, &mut checks, 0)?;
+            let mut flow = Flow::new(&self.outcome_type);
+            self.effects(&body, &mut state, &mut locals, &mut checks, &mut flow, 0)?;
             self.bounded_vector_growth(&body, &state, &effective)?;
+            // A rejection is an enabled self-loop, as natively; it is never a dropped branch.
+            let stays = stays || rejects(&flow.outcome);
             branches.push(Branch {
                 guard: effective,
                 updates: state.values,
                 checks,
-                outcome: Expr::unit(),
+                outcome: flow.outcome,
                 preserve_self_loop: stays,
             });
         }
@@ -81,21 +87,56 @@ impl Environment {
         clippy::too_many_lines,
         reason = "SSA lowering follows the admitted statement variants"
     )]
+    #[expect(clippy::too_many_arguments, reason = "SSA lowering threads its frame by reference")]
     fn effects(
         &self,
         node: &RustExpr,
         state: &mut Env,
         locals: &mut Env,
         checks: &mut Vec<Expr>,
+        flow: &mut Flow,
         depth: usize,
     ) -> Result<()> {
         if depth > 32 {
             return self.err(node, "recursive effects are unsupported");
         }
+        if flow.diverged()
+            && match node {
+                RustExpr::Assign(_) | RustExpr::Binary(_) => true,
+                RustExpr::MethodCall(call) => call.method == "push_back",
+                _ => false,
+            }
+        {
+            // After a conditional return, an update applies only where the step still runs.
+            let mut updated = state.clone();
+            let mut inner = Vec::new();
+            self.effects(
+                node,
+                &mut updated,
+                locals,
+                &mut inner,
+                &mut Flow::new(&Type::Unit),
+                depth,
+            )?;
+            for (name, value) in updated.values {
+                let before = state[&name].clone();
+                if value != before {
+                    state.insert(name, flow.guard(value, before));
+                }
+            }
+            checks.extend(inner.into_iter().map(|check| {
+                let otherwise = default_expr(&check.ty);
+                flow.guard(check, otherwise)
+            }));
+            return Ok(());
+        }
         match node {
             RustExpr::Block(block) => {
                 let mut scoped = locals.clone();
                 for statement in &block.block.stmts {
+                    if flow.returned() {
+                        break;
+                    }
                     match statement {
                         Stmt::Local(local) => {
                             let Pat::Ident(id) = &local.pat else {
@@ -108,11 +149,14 @@ impl Environment {
                                 return self.err(local, "let-else is unsupported");
                             }
                             let value = self.expr(&init.expr, state, &scoped, None, depth)?;
-                            checks.push(value.clone());
+                            checks.push(flow.guard(value.clone(), default_expr(&value.ty)));
                             scoped.insert(id.ident.to_string(), value);
                         }
                         Stmt::Expr(expr, _) => {
-                            self.effects(expr, state, &mut scoped, checks, depth)?;
+                            self.effects(expr, state, &mut scoped, checks, flow, depth)?;
+                        }
+                        Stmt::Macro(mac) if Self::is_reject(&mac.mac) => {
+                            self.reject(&mac.mac, state, &scoped, flow, depth)?;
                         }
                         _ => return self.err(statement, "unsupported effect statement"),
                     }
@@ -156,15 +200,18 @@ impl Environment {
                 let mut no = state.clone();
                 let mut yc = Vec::new();
                 let mut nc = Vec::new();
+                let mut yf = flow.clone();
+                let mut nf = flow.clone();
                 let yes_expr = RustExpr::Block(syn::ExprBlock {
                     attrs: Vec::new(),
                     label: None,
                     block: condition.then_branch.clone(),
                 });
-                self.effects(&yes_expr, &mut yes, &mut locals.clone(), &mut yc, depth)?;
+                self.effects(&yes_expr, &mut yes, &mut locals.clone(), &mut yc, &mut yf, depth)?;
                 if let Some((_, other)) = &condition.else_branch {
-                    self.effects(other, &mut no, &mut locals.clone(), &mut nc, depth)?;
+                    self.effects(other, &mut no, &mut locals.clone(), &mut nc, &mut nf, depth)?;
                 }
+                *flow = Flow::join(&cond, yf, nf);
                 for (name, value) in state.iter_mut() {
                     *value = Expr::select(cond.clone(), yes[name].clone(), no[name].clone());
                 }
@@ -177,6 +224,9 @@ impl Environment {
             }
             RustExpr::MethodCall(call) if call.method == "push_back" => {
                 self.vector_push(call, state, locals, checks, depth)?;
+            }
+            RustExpr::Macro(mac) if Self::is_reject(&mac.mac) => {
+                self.reject(&mac.mac, state, locals, flow, depth)?;
             }
             RustExpr::MethodCall(call) if matches!(call.receiver.as_ref(),RustExpr::Path(p)if p.path.is_ident("self")) =>
             {
@@ -195,13 +245,17 @@ impl Environment {
                     label: None,
                     block: method.block.clone(),
                 });
+                // A rejection returns from the helper only; its caller runs on.
+                let running = flow.running.clone();
                 self.effects(
                     &body,
                     state,
                     &mut self.helper_env(method, &call.args, locals)?,
                     checks,
+                    flow,
                     depth + 1,
                 )?;
+                flow.running = running;
             }
             _ => return self.err(node, format!("unsupported effect `{}`", node.to_token_stream())),
         }

@@ -88,7 +88,7 @@ impl Environment {
             RustExpr::Path(path) => {
                 let name = path_name(&path.path.to_token_stream().to_string());
                 if locals.world.as_ref() == Some(&name)
-                    || locals.state.as_ref() == Some(&name)
+                    || locals.states.contains(&name)
                     || locals.outcome.as_ref() == Some(&name)
                 {
                     return self.err(node, "complete World, state and borrowed outcome parameters are not scalar expressions");
@@ -162,6 +162,21 @@ impl Environment {
             RustExpr::Binary(binary) => {
                 let op = super::typer::binary_op(&binary.op)
                     .ok_or_else(|| Diagnostic::at(node, "unsupported binary operator"))?;
+                if let (Some(left), Some(right)) = (
+                    self.whole(&binary.left, state, locals),
+                    self.whole(&binary.right, state, locals),
+                ) && matches!(op, Op::Eq | Op::Ne)
+                {
+                    let equal = self.fields.iter().fold(Expr::bool(true), |all, field| {
+                        all.and(Expr::binary(
+                            Op::Eq,
+                            left[&field.name].clone(),
+                            right[&field.name].clone(),
+                        ))
+                    });
+                    let value = if op == Op::Eq { equal } else { equal.not() };
+                    return self.require(node, value, expected);
+                }
                 let bool_op = matches!(op, Op::And | Op::Or);
                 let arithmetic = matches!(op, Op::Add | Op::Sub | Op::Mul | Op::Div | Op::Rem);
                 let context = if bool_op {
@@ -218,6 +233,9 @@ impl Environment {
                     }
                 }
             }
+            RustExpr::Call(call) if self.is_rejected(call) => {
+                self.rejected_call(call, state, locals, depth)?
+            }
             RustExpr::Call(call) => match self.vector_constructor(call, expected)? {
                 Some(value) => value,
                 None => {
@@ -229,16 +247,16 @@ impl Environment {
                 if let Some(value) = self.vector_method(call, state, locals, expected, depth)? {
                     return self.require(node, value, expected);
                 }
-                if matches!(call.receiver.as_ref(),RustExpr::Path(path)if path.path.is_ident("self"))
-                    && let Some(method) = self.methods.get(&call.method.to_string())
+                if let Some(receiver) = self.whole(&call.receiver, state, locals)
+                    && let Some(method) = self.state_method(&call.method.to_string())
                 {
                     if method.sig.receiver().is_none_or(|r| r.mutability.is_some()) {
                         return self.err(node, "only pure helpers are admitted in expressions");
                     }
                     return self.expr(
                         tail(&method.block)?,
-                        state,
-                        &self.helper_env(method, &call.args, locals)?,
+                        &receiver,
+                        &self.helper_env(&method, &call.args, locals)?,
                         expected,
                         depth + 1,
                     );

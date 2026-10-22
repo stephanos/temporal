@@ -54,7 +54,9 @@ fn backend_type(ty: &LiftType, depth: usize) -> Result<Type, Refusal> {
             if variants.is_empty()
                 || variants.iter().collect::<BTreeSet<_>>().len() != variants.len()
                 || variants.iter().any(|variant| {
-                    variant.strip_prefix(&prefix).is_none_or(|variant| identifier(variant).is_err())
+                    variant
+                        .strip_prefix(&prefix)
+                        .is_none_or(|variant| self::variant(variant).is_err())
                 })
             {
                 return Err(Refusal(format!("invalid declared enum variants for {name}")));
@@ -67,6 +69,14 @@ fn backend_type(ty: &LiftType, depth: usize) -> Result<Type, Refusal> {
         ),
         LiftType::Seq(inner) => Type::Seq(Box::new(backend_type(inner, depth + 1)?)),
     })
+}
+
+/// A variant name, or a variant carrying one fieldless variant, such as `Rejected(NotFound)`.
+fn variant(name: &str) -> Result<(), Refusal> {
+    match name.strip_suffix(')').and_then(|name| name.split_once('(')) {
+        Some((variant, payload)) => identifier(variant).and_then(|()| identifier(payload)),
+        None => identifier(name),
+    }
 }
 
 fn identifier(name: &str) -> Result<(), Refusal> {
@@ -121,4 +131,22 @@ fn validate_properties(module: &Module) -> Result<(), Refusal> {
         return Err(Refusal("module property declarations differ from registered claims".into()));
     }
     Ok(())
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    #[test]
+    fn enum_variants_admit_one_fieldless_payload_only() {
+        assert!(backend_type(&LiftType::outcome(), 0).is_ok());
+        for variant in ["Rejected()", "Rejected(Not Found)", "Rejected(A)(B)", "(A)", "Rejected(A"]
+        {
+            let ty = LiftType::Enum {
+                name: "Outcome".into(),
+                variants: vec![format!("Outcome::{variant}")],
+            };
+            assert!(backend_type(&ty, 0).is_err(), "{variant}");
+        }
+    }
 }

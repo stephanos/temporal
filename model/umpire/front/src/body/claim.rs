@@ -25,26 +25,31 @@ impl Environment {
                 );
             }
             if let Pat::Ident(id) = input.pat.as_ref() {
-                env.state = Some(id.ident.to_string());
-                for field in &self.fields {
-                    env.insert(
-                        format!("{}.{}", id.ident, field.name),
-                        Expr::var(&field.name, field.ty.clone(), false),
-                    );
-                }
+                env.bind_state(&id.ident.to_string(), &self.fields, &self.field_env(false));
             }
         }
         if let Some(input) = parameters.positional.get(1) {
-            if !matches!(input.ty.as_ref(), syn::Type::Reference(reference) if reference.mutability.is_none() && matches!(reference.elem.as_ref(), syn::Type::Tuple(tuple) if tuple.elems.is_empty()))
-            {
+            let unit = self.outcome_type == Type::Unit;
+            if !matches!(input.ty.as_ref(), syn::Type::Reference(reference) if reference.mutability.is_none() && match reference.elem.as_ref() {
+                syn::Type::Tuple(tuple) => unit && tuple.elems.is_empty(),
+                syn::Type::Path(path) => !unit && self.dsl_path(&path.path).as_deref() == Some("Outcome"),
+                _ => false,
+            }) {
                 return self.err(
                     &input.ty,
-                    "source postconditions currently admit only the immutable unit outcome &()",
+                    if unit {
+                        "source postconditions currently admit only the immutable unit outcome &()"
+                    } else {
+                        "a rejecting Model's postcondition outcome must be the immutable &Outcome"
+                    },
                 );
             }
             if let Pat::Ident(id) = input.pat.as_ref() {
                 let name = id.ident.to_string();
-                env.insert(name.clone(), Expr { kind: ExprKind::Outcome, ty: Type::Unit });
+                env.insert(
+                    name.clone(),
+                    Expr { kind: ExprKind::Outcome, ty: self.outcome_type.clone() },
+                );
                 env.outcome = Some(name);
             }
         }
@@ -80,13 +85,7 @@ impl Environment {
                 if let Some(pat) = closure.inputs.iter().nth(1) {
                     let pat = if let Pat::Type(p) = pat { p.pat.as_ref() } else { pat };
                     if let Pat::Ident(id) = pat {
-                        env.state = Some(id.ident.to_string());
-                        for f in &self.fields {
-                            env.insert(
-                                format!("{}.{}", id.ident, f.name),
-                                Expr::var(&f.name, f.ty.clone(), false),
-                            );
-                        }
+                        env.bind_state(&id.ident.to_string(), &self.fields, initial);
                     }
                 }
                 negative.push((
@@ -143,6 +142,9 @@ impl Environment {
                         yes
                     }
                 }
+                Stmt::Expr(RustExpr::Call(call), Some(_)) if self.closure_law(call).is_some() => {
+                    self.law(call, state, locals, depth)?
+                }
                 _ => {
                     return self
                         .err(statement, "claim body supports check! and conditional checks only");
@@ -151,5 +153,75 @@ impl Environment {
             checks.push(value);
         }
         Ok(Expr { kind: ExprKind::Checks(checks), ty: Type::Bool })
+    }
+}
+
+impl Environment {
+    /// The `umpire_dsl::closable` law a claim statement calls, if it calls one.
+    fn closure_law(&self, call: &syn::ExprCall) -> Option<syn::ItemFn> {
+        let RustExpr::Path(path) = call.func.as_ref() else { return None };
+        let path = self.dsl_path(&path.path)?;
+        crate::library::law(path.strip_prefix("closable::")?)
+    }
+    /// A closure law's checks, read from its library source with its arguments bound: whole
+    /// states, the judged edge's outcome, and typed values.
+    fn law(&self, call: &syn::ExprCall, state: &Env, locals: &Env, depth: usize) -> Result<Expr> {
+        let law = self.closure_law(call).ok_or_else(|| Diagnostic::at(call, "unknown law"))?;
+        let name = format!("umpire_dsl::closable::{}", law.sig.ident);
+        if law.sig.inputs.len() != call.args.len() {
+            return self.err(call, format!("`{name}` takes {} arguments", law.sig.inputs.len()));
+        }
+        let generic: Vec<_> = law.sig.generics.type_params().map(|param| &param.ident).collect();
+        let mut env = Env::new();
+        for (input, argument) in law.sig.inputs.iter().zip(&call.args) {
+            let syn::FnArg::Typed(input) = input else {
+                return self.err(call, format!("`{name}` is not a free function"));
+            };
+            let Pat::Ident(parameter) = input.pat.as_ref() else {
+                return self.err(call, format!("`{name}` has a pattern parameter"));
+            };
+            let parameter = parameter.ident.to_string();
+            let borrowed = match input.ty.as_ref() {
+                syn::Type::Reference(reference) if reference.mutability.is_none() => {
+                    match reference.elem.as_ref() {
+                        syn::Type::Path(path) => path.path.get_ident(),
+                        _ => None,
+                    }
+                }
+                _ => None,
+            };
+            if let Some(ty) = borrowed.filter(|ty| generic.contains(ty)) {
+                let fields = self.whole(argument, state, locals).ok_or_else(|| {
+                    Diagnostic::at(argument, format!("`{name}` reads a whole state `{ty}` here"))
+                })?;
+                env.bind_state(&parameter, &self.fields, &fields);
+            } else if borrowed.is_some_and(|ty| ty == "Outcome") {
+                let outcome = match argument {
+                    RustExpr::Path(path) => locals
+                        .outcome
+                        .as_ref()
+                        .filter(|outcome| path.path.is_ident(outcome))
+                        .and_then(|outcome| locals.get(outcome)),
+                    _ => None,
+                }
+                .ok_or_else(|| {
+                    Diagnostic::at(
+                        argument,
+                        format!("`{name}` reads the judged edge's outcome here"),
+                    )
+                })?;
+                env.insert(parameter.clone(), outcome.clone());
+                env.outcome = Some(parameter);
+            } else {
+                let ty = self.ty(&input.ty).map_err(|refusal| {
+                    Diagnostic::at(argument, format!("`{name}`: {}", refusal.message))
+                })?;
+                let value = self.expr(argument, state, locals, Some(&ty), depth)?;
+                env.insert(parameter, value);
+            }
+        }
+        // A refusal inside the library body locates at the call that brought it in.
+        self.claim(&law.block, &Env::new(), &env, depth + 1)
+            .map_err(|refusal| Diagnostic::at(call, format!("in `{name}`: {}", refusal.message)))
     }
 }

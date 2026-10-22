@@ -11,6 +11,7 @@ mod claim;
 mod effects;
 mod expr;
 mod inputs;
+mod outcome;
 mod progress;
 mod typer;
 mod vector;
@@ -20,7 +21,8 @@ type Result<T> = std::result::Result<T, Diagnostic>;
 pub(crate) struct Env {
     pub(crate) values: BTreeMap<String, Expr>,
     world: Option<String>,
-    state: Option<String>,
+    /// Names bound to a whole state, whose fields are bound as `name.field`.
+    states: Vec<String>,
     outcome: Option<String>,
 }
 impl Env {
@@ -29,18 +31,31 @@ impl Env {
     }
     pub(crate) fn insert(&mut self, name: String, value: Expr) -> Option<Expr> {
         if !name.contains('.') {
-            self.values.retain(|key, _| !key.starts_with(&format!("{name}.")));
-            if self.world.as_ref() == Some(&name) {
-                self.world = None;
-            }
-            if self.state.as_ref() == Some(&name) {
-                self.state = None;
-            }
-            if self.outcome.as_ref() == Some(&name) {
-                self.outcome = None;
-            }
+            self.shadow(&name);
         }
         self.values.insert(name, value)
+    }
+    /// Forget what `name` was bound to, as a new binding of it does.
+    fn shadow(&mut self, name: &str) {
+        self.values.retain(|key, _| !key.starts_with(&format!("{name}.")));
+        if self.world.as_deref() == Some(name) {
+            self.world = None;
+        }
+        self.states.retain(|state| state != name);
+        if self.outcome.as_deref() == Some(name) {
+            self.outcome = None;
+        }
+    }
+    /// Bind `name` to a whole state with these field values.
+    pub(crate) fn bind_state(&mut self, name: &str, fields: &[FieldDef], values: &Env) {
+        self.shadow(name);
+        self.values.remove(name);
+        for field in fields {
+            if let Some(value) = values.get(&field.name) {
+                self.values.insert(format!("{name}.{}", field.name), value.clone());
+            }
+        }
+        self.states.push(name.to_owned());
     }
 }
 impl std::ops::Deref for Env {
@@ -77,6 +92,12 @@ pub(crate) struct Environment {
     pub(crate) helpers: BTreeMap<String, syn::ImplItemFn>,
     pub(crate) methods: BTreeMap<String, syn::ImplItemFn>,
     pub(crate) vector_imported: bool,
+    /// The step outcome type: unit, or the stock outcome of a rejecting Model.
+    pub(crate) outcome_type: Type,
+    /// Whether the State implements `umpire_dsl::Phased`, whose default methods it then has.
+    pub(crate) phased: bool,
+    /// The module's `use umpire_dsl::...` bindings: bound name to the path after `umpire_dsl::`.
+    pub(crate) dsl: BTreeMap<String, String>,
 }
 impl Environment {
     /// The environment golden hook claims read in: the admitted Model's schema and constants.
@@ -115,6 +136,9 @@ impl Environment {
             helpers: BTreeMap::new(),
             methods: BTreeMap::new(),
             vector_imported: model.fields.iter().any(|field| matches!(field.ty, Type::Seq(_))),
+            outcome_type: model.outcome_type.clone(),
+            phased: false,
+            dsl: BTreeMap::new(),
         }
     }
     #[expect(clippy::unused_self, reason = "refusals read as methods of the admitting environment")]
@@ -197,6 +221,45 @@ impl Environment {
                 .err(argument, "helper World argument must be the selected World parameter");
         }
         self.method_env(method)
+    }
+}
+impl Environment {
+    /// A path's meaning inside `umpire_dsl`, written in full or through the module's imports.
+    pub(crate) fn dsl_path(&self, path: &syn::Path) -> Option<String> {
+        let mut segments = path.segments.iter().map(|segment| segment.ident.to_string());
+        let first = segments.next()?;
+        let head = if first == "umpire_dsl" { None } else { Some(self.dsl.get(&first)?.clone()) };
+        let parts: Vec<_> = head.into_iter().chain(segments).collect();
+        (!parts.is_empty()).then(|| parts.join("::"))
+    }
+    /// The field values of a whole-state expression: `self`, or a name bound to a state.
+    pub(crate) fn whole(&self, node: &RustExpr, state: &Env, locals: &Env) -> Option<Env> {
+        let RustExpr::Path(path) = node else { return None };
+        if path.path.is_ident("self") {
+            return self
+                .fields
+                .iter()
+                .all(|field| state.contains_key(&field.name))
+                .then(|| state.clone());
+        }
+        let name = path.path.get_ident()?.to_string();
+        if !locals.states.contains(&name) {
+            return None;
+        }
+        self.fields
+            .iter()
+            .map(|field| {
+                let value = locals.get(&format!("{name}.{}", field.name))?;
+                Some((field.name.clone(), value.clone()))
+            })
+            .collect()
+    }
+    /// A pure State method: an inherent or trait-impl method, or a `Phased` default.
+    pub(crate) fn state_method(&self, name: &str) -> Option<syn::ImplItemFn> {
+        self.methods
+            .get(name)
+            .cloned()
+            .or_else(|| self.phased.then(|| crate::library::phased_default(name)).flatten())
     }
 }
 fn tail(block: &syn::Block) -> Result<&RustExpr> {

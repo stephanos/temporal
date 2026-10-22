@@ -612,6 +612,71 @@ mod tests {
         Ok(())
     }
 
+    /// Action `1` is a rejected self-loop from `0`.
+    struct Rejecting;
+
+    impl Machine for Rejecting {
+        type State = Polled;
+        type Action = u8;
+        type Outcome = umpire_dsl::Outcome;
+        type Fact = ();
+
+        fn starts(&self) -> Vec<Polled> {
+            vec![Polled(0)]
+        }
+        fn actions(&self) -> Vec<u8> {
+            vec![1]
+        }
+        fn internal(&self, _: &u8) -> bool {
+            false
+        }
+        fn step(&self, state: &Polled, _: u8) -> umpire_dsl::Steps<Polled, Self::Outcome, ()> {
+            let rejected = umpire_dsl::Outcome::Rejected(umpire_dsl::Rejection::NotFound);
+            umpire_dsl::Steps::from_iter([(rejected, Vec::new(), state.clone())])
+        }
+    }
+
+    #[test]
+    fn replay_compares_the_typed_outcome_of_a_rejected_self_loop() -> crate::TestResult {
+        let mut module = module(Vec::new(), Vec::new());
+        module.metadata.fields[0].ty = Type::Int { min: 0, max: 1 };
+        module.metadata.outcome_type = Type::outcome();
+        module
+            .metadata
+            .observer_types
+            .insert("__umpire_facts".into(), Type::Seq(Box::new(Type::Unit)));
+        let starts = [Polled(0)];
+        let native = BTreeMap::from([("Model { value: 0 }".to_owned(), &starts[0])]);
+        let state = |tick: bool, outcome: Value| umpire_tlc::TraceState {
+            state: State::from([("value".into(), Value::Int(0))]),
+            observers: State::from([
+                ("__umpire_edge_tick".into(), Value::Bool(tick)),
+                ("__umpire_action".into(), Value::Text(if tick { "1" } else { "" }.into())),
+                ("__umpire_choice".into(), Value::Int(0)),
+                ("__umpire_outcome".into(), outcome),
+                ("__umpire_facts".into(), Value::Seq(Vec::new())),
+            ]),
+        };
+        let replayed = |outcome: &str| {
+            let accepted = Value::Text("Outcome::Accepted".into());
+            let trace = umpire_tlc::Trace {
+                states: vec![state(false, accepted), state(true, Value::Text(outcome.into()))],
+                back_to: None,
+            };
+            replay(&Rejecting, &starts, &module, &native, &trace, None)
+        };
+        replayed("Outcome::Rejected(NotFound)")?;
+        for (outcome, reason) in [
+            ("Outcome::Accepted", "outcome/facts differ"),
+            ("Outcome::Rejected(Unavailable)", "outcome/facts differ"),
+            ("Rejected(NotFound)", "does not match authored type"),
+        ] {
+            let error = replayed(outcome).err().ok_or(outcome)?;
+            assert!(error.to_string().contains(reason), "{outcome}: {error}");
+        }
+        Ok(())
+    }
+
     #[test]
     fn agreement_compares_complete_sets_and_every_verdict() -> crate::TestResult {
         let native = Files::from([

@@ -18,13 +18,14 @@ use proc_macro2::{Span, TokenStream};
 use quote::ToTokens;
 mod body;
 pub mod declare;
+mod library;
 pub mod path;
 mod shape;
 mod source;
 mod syntax;
 pub use source::source;
 #[doc(hidden)]
-pub use umpire_ir::{Diagnostic, Embedded, Lifted, Source, Type, expr, tree};
+pub use umpire_ir::{Diagnostic, Embedded, Lifted, REJECTIONS, Source, Type, expr, tree};
 
 /// Locating a front-end refusal at a syntax node or span.
 pub(crate) trait Locate: Sized {

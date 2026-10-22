@@ -50,6 +50,19 @@ impl<M: Declared> Bound<M> {
             .map_err(|diagnostic| diagnostic.to_string())
     }
 
+    /// Source text, such as a mutant of this World's Model, read as the `#[machine]` macro
+    /// would, bound to this World and emitted.
+    ///
+    /// # Errors
+    /// Returns the catalog refusal or the lifter's diagnostic.
+    pub fn lift_source(&self, file: &str, source: &str) -> Result<Module, String> {
+        let binding = self.binding.as_ref().map_err(Clone::clone)?;
+        umpire_lift::Lift::parse(file, source)
+            .and_then(|lifted| lifted.bind(binding))
+            .and_then(|lifted| umpire_lift::Tla::emit(&lifted))
+            .map_err(|diagnostic| diagnostic.to_string())
+    }
+
     /// The native checker's files for this World.
     ///
     /// # Errors
@@ -63,14 +76,23 @@ impl<M: Declared> Bound<M> {
     ///
     /// # Errors
     /// Returns any lift, checker or backend failure, or a disagreement.
-    pub fn check(mut self, folder: &Path) -> crate::RunResult {
+    pub fn check(self, folder: &Path) -> crate::RunResult {
         let module = self.lift(folder.join("model.rs"))?;
+        self.check_module(folder, &module)
+    }
+
+    /// Checks an emitted module, such as a mutated one, with TLC against the native
+    /// exploration of this World and starts.
+    ///
+    /// # Errors
+    /// Returns any checker or backend failure, or a disagreement.
+    pub fn check_module(mut self, folder: &Path, module: &Module) -> crate::RunResult {
         let (graph, files) = self.native()?;
         crate::backend::check_exploration(
             &self.world,
             &self.starts,
             &graph,
-            &module,
+            module,
             folder,
             &files,
             Some(&concrete::<M>),

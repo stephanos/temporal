@@ -47,6 +47,14 @@ pub(crate) fn parse(declared: &declare::Machine, module: &syn::ItemMod) -> Resul
         helpers: BTreeMap::new(),
         methods: BTreeMap::new(),
         vector_imported: admit_imports(items)?,
+        outcome_type: if declared.rejecting { Type::outcome() } else { Type::Unit },
+        phased: false,
+        dsl: imports(items)
+            .into_iter()
+            .filter_map(|(_, name, path)| {
+                Some((name, path.strip_prefix("umpire_dsl::")?.to_owned()))
+            })
+            .collect(),
     };
     for item in items {
         let attributes = match item {
@@ -88,6 +96,11 @@ pub(crate) fn parse(declared: &declare::Machine, module: &syn::ItemMod) -> Resul
             parser.enums.insert(name.clone(), Type::Enum { name, variants });
         }
     }
+    for stock in [Type::outcome(), Type::rejection()] {
+        if let Type::Enum { name, .. } = &stock {
+            parser.enums.entry(name.clone()).or_insert(stock);
+        }
+    }
     if let Some((_, fields)) = &declarations.world {
         for (name, field) in fields {
             attrs(&field.attrs, &["doc"])?;
@@ -103,6 +116,13 @@ pub(crate) fn parse(declared: &declare::Machine, module: &syn::ItemMod) -> Resul
         }
     }
     let state_name = declared.state.to_string();
+    let local_enums: BTreeSet<String> = items
+        .iter()
+        .filter_map(|item| match item {
+            Item::Enum(value) => Some(value.ident.to_string()),
+            _ => None,
+        })
+        .collect();
     for item in items {
         if let Item::Const(value) = item {
             let ty = parser.ty(&value.ty)?;
@@ -110,14 +130,38 @@ pub(crate) fn parse(declared: &declare::Machine, module: &syn::ItemMod) -> Resul
             parser.constants.insert(value.ident.to_string(), expr);
         }
         if let Item::Impl(value) = item {
-            if value.trait_.is_some() || !value.generics.params.is_empty() {
+            let owner = path_name(&value.self_ty.to_token_stream().to_string());
+            let stock = match &value.trait_ {
+                _ if !value.generics.params.is_empty() => None,
+                None => Some(None),
+                _ if value.unsafety.is_some() || value.modifiers.polarity.is_some() => None,
+                Some((path, _)) => match parser.dsl_path(path).as_deref() {
+                    Some("Phase") if local_enums.contains(&owner) => Some(Some("Phase")),
+                    Some("Phased") if owner == state_name => Some(Some("Phased")),
+                    _ => None,
+                },
+            };
+            let Some(stock) = stock else {
                 return Err(Diagnostic::at(
                     value,
                     "trait or generic impl in machine module is unsupported",
                 ));
-            }
-            let owner = path_name(&value.self_ty.to_token_stream().to_string());
+            };
+            parser.phased |= stock == Some("Phased");
             for entry in &value.items {
+                if let ImplItem::Type(phase) = entry
+                    && stock == Some("Phased")
+                    && phase.ident == "Phase"
+                {
+                    if !matches!(parser.ty(&phase.ty), Ok(Type::Enum { name, .. }) if local_enums.contains(&name))
+                    {
+                        return Err(Diagnostic::at(
+                            &phase.ty,
+                            "the Phased phase must be a local fieldless enum",
+                        ));
+                    }
+                    continue;
+                }
                 let ImplItem::Fn(method) = entry else {
                     return Err(Diagnostic::at(entry, "unsupported impl item"));
                 };
@@ -146,10 +190,18 @@ pub(crate) fn parse(declared: &declare::Machine, module: &syn::ItemMod) -> Resul
                 }
                 if declared.starts().is_some_and(|starts| starts.ident == method.sig.ident) {
                     // Computed starts are native only; Init comes from the bound complete starts.
-                } else if owner == state_name {
-                    parser.methods.insert(method.sig.ident.to_string(), method.clone());
                 } else {
-                    parser.helpers.insert(format!("{owner}::{}", method.sig.ident), method.clone());
+                    let (table, name) = if owner == state_name {
+                        (&mut parser.methods, method.sig.ident.to_string())
+                    } else {
+                        (&mut parser.helpers, format!("{owner}::{}", method.sig.ident))
+                    };
+                    // Rust resolves an inherent method before a trait method of the same name.
+                    if stock.is_none() {
+                        table.insert(name, method.clone());
+                    } else {
+                        table.entry(name).or_insert_with(|| method.clone());
+                    }
                 }
             }
         }
@@ -265,7 +317,7 @@ pub(crate) fn parse(declared: &declare::Machine, module: &syn::ItemMod) -> Resul
     Ok(Lifted {
         name,
         state_name,
-        outcome_type: Type::Unit,
+        outcome_type: parser.outcome_type,
         world_path: if parser.declared_world {
             format!("{}::World", module.ident)
         } else {

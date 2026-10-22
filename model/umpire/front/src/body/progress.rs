@@ -129,7 +129,7 @@ impl Environment {
             node = &call.receiver;
         }
         if let RustExpr::Macro(call) = node
-            && path_name(&call.mac.path.to_token_stream().to_string()).ends_with("path")
+            && call.mac.path.is_ident("path")
         {
             return self.path_claim(method, call, assumption, &locals);
         }

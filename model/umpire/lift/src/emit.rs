@@ -6,7 +6,7 @@ use std::collections::BTreeMap;
 use std::fmt::Write;
 use umpire_front::{
     expr::{Expr, ExprKind, Op, Unary},
-    tree::{ActionDef, ActionRef, AssumptionDef, Start},
+    tree::{ActionDef, ActionRef, AssumptionDef, FieldDef, Start},
 };
 
 /// The observer holding an edge's outcome.
@@ -148,24 +148,53 @@ pub(crate) fn emit(model: &Lifted) -> Result<Module, Diagnostic> {
                     let value = expr(check);
                     terms.push(format!("({value}) = ({value})"));
                 }
-                if !branch.preserve_self_loop {
-                    terms.push(disjoin(
-                        model
-                            .fields
-                            .iter()
-                            .map(|f| {
-                                format!(
-                                    "{} # {}",
-                                    expr(branch.updates.get(&f.name).unwrap_or(&Expr::var(
-                                        &f.name,
-                                        f.ty.clone(),
-                                        false
-                                    ))),
-                                    f.name
-                                )
-                            })
-                            .collect(),
+                let updated = |f: &FieldDef| {
+                    branch
+                        .updates
+                        .get(&f.name)
+                        .filter(|value| value.kind != ExprKind::Var(f.name.clone(), false))
+                };
+                let may_reject = !matches!(&branch.outcome.kind, ExprKind::Unit)
+                    && branch.outcome.kind != ExprKind::Enum(ACCEPTED.into());
+                let changed: Vec<_> = model
+                    .fields
+                    .iter()
+                    .filter_map(|f| updated(f).map(|value| (f, value)))
+                    .collect();
+                if may_reject && !changed.is_empty() {
+                    // A rejecting step that changed its state is a Model error, as natively.
+                    terms.push(format!(
+                        "Assert(({} = {}) \\/ ({}), \"rejecting step changed state\")",
+                        expr(&branch.outcome),
+                        text(ACCEPTED),
+                        conjoin(changed.iter().map(|(f, value)| format!(
+                            "{} = {}",
+                            expr(value),
+                            f.name
+                        )))
                     ));
+                }
+                if !branch.preserve_self_loop {
+                    let mut steps: Vec<_> = model
+                        .fields
+                        .iter()
+                        .map(|f| {
+                            format!(
+                                "{} # {}",
+                                expr(branch.updates.get(&f.name).unwrap_or(&Expr::var(
+                                    &f.name,
+                                    f.ty.clone(),
+                                    false
+                                ))),
+                                f.name
+                            )
+                        })
+                        .collect();
+                    // A rejection is emitted even when it leaves the state unchanged.
+                    if may_reject {
+                        steps.push(format!("{} # {}", expr(&branch.outcome), text(ACCEPTED)));
+                    }
+                    terms.push(disjoin(steps));
                 }
                 for field in &model.fields {
                     terms.push(format!(
@@ -436,6 +465,8 @@ pub(crate) fn emit(model: &Lifted) -> Result<Module, Diagnostic> {
     })
 }
 pub(crate) const INPUT: &str = "__umpire_input";
+/// The stock accepted outcome, as the front end spells it.
+const ACCEPTED: &str = "Outcome::Accepted";
 
 /// A payload variant's concrete inputs as `<<ordinal, values..>>` rows in catalog order, its
 /// relation at one catalog position, and the finite existential choice over every position.

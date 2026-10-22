@@ -156,3 +156,36 @@ fn a_field_comparison_named_reject_keeps_unit_outcomes() {
     assert_eq!(steps.len(), 1);
     assert_ne!(steps[0].2, *state);
 }
+
+/// The lifted back ends encode the stock outcome by these names; replay compares them with
+/// `Debug`, so they must be exactly the native catalog's spelling.
+#[test]
+fn the_lifted_stock_outcome_spells_every_native_outcome() {
+    use umpire_dsl::__lifted::Type;
+    let Type::Enum { variants, .. } = Type::outcome() else { panic!("stock outcome is an enum") };
+    let catalog: Vec<_> = Outcome::catalog().into_iter().map(|class| class.name).collect();
+    let lifted: Vec<_> = variants.iter().map(|name| name.trim_start_matches("Outcome::")).collect();
+    assert_eq!(lifted, catalog);
+    let rejections = [
+        Rejection::NotFound,
+        Rejection::AlreadyExists,
+        Rejection::FailedPrecondition,
+        Rejection::InvalidArgument,
+        Rejection::PermissionDenied,
+        Rejection::Unavailable,
+    ];
+    // A new Rejection variant fails to compile here until the lifted spelling lists it.
+    let position = |rejection: Rejection| match rejection {
+        Rejection::NotFound => 0,
+        Rejection::AlreadyExists => 1,
+        Rejection::FailedPrecondition => 2,
+        Rejection::InvalidArgument => 3,
+        Rejection::PermissionDenied => 4,
+        Rejection::Unavailable => 5,
+    };
+    assert!(rejections.into_iter().map(position).eq(0..rejections.len()));
+    for (rejection, outcome) in rejections.into_iter().zip(&lifted[1..]) {
+        assert_eq!(format!("{:?}", Outcome::Rejected(rejection)), *outcome);
+    }
+    assert_eq!(format!("{:?}", Outcome::Accepted), lifted[0]);
+}
