@@ -110,8 +110,14 @@ def oracle(case):
         }
         peak = executed['linked']['peak_rss_bytes']
         groups = windows(samples)
-        operator = observations.get('operator_peak_rss_bytes')
-        if operator is not None and all(window[0].get('store_peak_rss_bytes') is not None for window in groups):
+        # A zero phase peak is a missing measurement, never an attributed one.
+        operator = observations.get('operator_peak_rss_bytes') or None
+        attributed = operator is not None and all(window[0].get('store_peak_rss_bytes') for window in groups)
+        largest = attributed and max(window[0]['store_peak_rss_bytes'] for window in groups)
+        if attributed and (largest > peak or max(largest, operator) < peak):
+            # Attributed phases must account for the lifetime peak.
+            expected['budget_failure'] = 'attribution'
+        elif attributed:
             # Phase attribution: operator phases, single store windows (always
             # compiling) and cluster windows meet their own historical ceilings.
             single = max([window[0]['store_peak_rss_bytes'] for window in groups if len(window) == 1] or [0])
@@ -143,7 +149,7 @@ def check(case, row):
     name = case['name']
     if row.get('budget'):
         for item in row['budget']['checks']:
-            show = gib if 'RSS' in item['name'] or 'memory' in item['name'] else str
+            show = gib if any(word in item['name'] for word in ('RSS', 'memory', 'peak')) else str
             print(f"{name}: {item['name']}: {show(item['observed'])} vs {show(item['limit'])}: {item['status']}")
     if expected['interval_failure'] is not None:
         equal(row['cost'], None, name + '.cost_refused')
@@ -151,9 +157,12 @@ def check(case, row):
         equal(bool(row['cost_failure']) and bool(row['budget_failure']), True, name + '.failures_named')
         return
     budget = row['budget']
-    equal({check['name']: check['status'] for check in budget['checks']}, expected['statuses'], name + '.statuses')
-    equal(budget['within_budget'], all(status == 'within' for status in expected['statuses'].values()), name + '.within')
-    equal(budget['pending'], [n for n, s in expected['statuses'].items() if s == 'unattributed'], name + '.pending')
+    if expected.get('budget_failure'):
+        equal((budget, 'inconsistent' in (row['budget_failure'] or '')), (None, True), name + '.attribution_refused')
+    else:
+        equal({check['name']: check['status'] for check in budget['checks']}, expected['statuses'], name + '.statuses')
+        equal(budget['within_budget'], all(status == 'within' for status in expected['statuses'].values()), name + '.within')
+        equal(budget['pending'], [n for n, s in expected['statuses'].items() if s == 'unattributed'], name + '.pending')
     groups = windows(case['observations']['samples'])
     executed_windows = [window for window in groups if window[0]['phase'] == 'execute']
     executes = len(executed_windows)
@@ -180,7 +189,7 @@ def check(case, row):
         terminal = case['terminal']
         executed = case['observations']['executed']['linked']
         operator = case.get('terminal_operator_peak_rss_bytes')
-        retained = case['observations'].get('operator_peak_rss_bytes')
+        retained = case['observations'].get('operator_peak_rss_bytes') or None
         attributed = operator is not None and retained is not None
         if not monotone(terminal, executed) or attributed and operator < retained:
             equal('failure' in row['terminal'], True, name + '.terminal_refused')
@@ -206,6 +215,8 @@ def unit_pins(rows):
     equal(statuses['phases-onebox-measured-5.78GiB-warm-pending']['individual cold helper peak RSS'], 'within', 'units.measured_window')
     equal(statuses['phases-onebox-measured-5.78GiB-warm-pending']['individual warm helper peak RSS'], 'unattributed', 'units.measured_warm')
     equal(statuses['phases-window-6.1GiB-cold-exceeded']['individual cold helper peak RSS'], 'exceeded', 'units.cold_exceeded')
+    equal(statuses['phases-zero-window-falls-back']['individual warm helper peak RSS'], 'unattributed', 'units.zero_window_pending')
+    equal(statuses['phases-zero-operator-falls-back']['operator lifetime peak RSS'], 'unattributed', 'units.zero_operator_pending')
 
 
 def main():
@@ -240,6 +251,37 @@ def main():
     parity.golden(golden, dict(schema=view['schema'], cases=parity.decode(outputs[1].rstrip(b'\n'))['cases']), regenerate)
     equal(golden.read_bytes(), first, 'accounting.second_regeneration_bytes')
     print(f'qualify accounting: {len(rows)} controlled cases agree with the oracle and golden')
+    phase_boundaries(args)
+
+
+PHASE_FACTS = ('freed_window_measured', 'freed_window_heap_not_charged_to_operator',
+               'live_window_measured', 'live_window_heap_charged_to_operator')
+
+
+def phase_boundaries(args):
+    """Real Linux phase boundaries in fresh fixture processes: heap a store
+    window freed is not charged to the next operator phase; heap it left live is."""
+    if not sys.platform.startswith('linux'):
+        print('qualify phase boundaries: attribution is Linux-only; budgets stay pending elsewhere')
+        return
+    views = []
+    for attempt in range(2):
+        result = subprocess.run([str(args.binary.resolve()), 'fixture-qualify-phases'], capture_output=True, timeout=120,
+                                env={'PATH': os.environ.get('PATH', '')})
+        (args.work / f'phases-{attempt}.stdout').write_bytes(result.stdout)
+        (args.work / f'phases-{attempt}.stderr').write_bytes(result.stderr)
+        equal(result.returncode, 0, f'phases[{attempt}].status: {result.stderr!r}')
+        view = parity.decode(result.stdout.rstrip(b'\n'))
+        equal(view, dict(schema='gomad.qualify-phase-fixture/v1', **{fact: True for fact in PHASE_FACTS}),
+              f'phases[{attempt}].facts')
+        views.append(view)
+    golden = CORPUS / 'goldens-qualify/phases.json'
+    regenerate = os.environ.get('GOMAD_GOLDEN_REGENERATE') == '1'
+    parity.golden(golden, views[0], regenerate)
+    first = golden.read_bytes()
+    parity.golden(golden, views[1], regenerate)
+    equal(golden.read_bytes(), first, 'phases.second_regeneration_bytes')
+    print('qualify phase boundaries: freed window heap is released, live window heap stays charged')
 
 
 if __name__ == '__main__':

@@ -473,8 +473,9 @@ The Result `gomad.rust-qualification-result/v1` and the receipt
 `gomad.rust-qualification-receipt/v1` are canonical JSON. They are published
 content addressed with no-replace rename under
 `ArtifactRoot/rust-qualifications/v1/`, as
-`result-SHA256.json` and `result-SHA256.json.publication.json`. A collision is
-reused only when its bytes are identical. stdout is the bounded
+`result-SHA256.json` and `result-SHA256.json.publication-RECEIPTSHA256.json`;
+the receipt is addressed by its own bytes. A collision is reused only when its
+bytes are identical, and a second, different receipt for one Result is refused. stdout is the bounded
 `{"operator_receipt":{...},"result_path":"..."}` response (8 KiB, absolute path
 of at most 1024 bytes).
 
@@ -486,14 +487,18 @@ JSON differences from the Go host, by design of the new lineage:
   instead of the bare Result. `publication` holds the receipt's terminal
   `cpu_nanos`, `peak_rss_bytes` and a `status` of `within`, or `unattributed`
   when the terminal linked peak exceeds the operator-only 2 GiB ceiling.
-- `report` requires the receipt and refuses a missing, unbound or
-  wrong-process receipt.
+- `report` requires exactly one receipt and refuses a missing, duplicate,
+  readdressed-in-place, unbound or wrong-process receipt.
 - Costs carry integer `{numerator,denominator}` ratios instead of floats.
 
 `report` reads no installation, source, compiler or helper. It refuses a changed
 content address, non-canonical bytes and unknown fields. It also refuses any
 verdict, record hash, cost or budget claim that differs from its recomputation
-over the retained records and raw observations.
+over the retained records and raw observations. Every record must bind the
+frozen module, toolchain, configuration, limits, implementation (recomputed
+from the manifest's helper and host digests), platform (`host_os/host_arch`)
+and profile. A retained failure carries one of the runner's failure classes,
+never a success class.
 
 ### Linked-process accounting
 
@@ -516,6 +521,14 @@ counters at the store's boundaries.
   - each guest linear-memory peak, at most its instance limit.
 - **Phase attribution (Linux).** `qualify` resets the image high water at each
   phase boundary (writes `5` to `/proc/self/clear_refs`, then reads `VmHWM`).
+  The reset restarts `VmHWM` at the current RSS, and glibc keeps freed heap
+  resident, so between reading a phase's high water and the reset, `qualify`
+  returns freed heap to the kernel (`malloc_trim(0)`). Otherwise the next phase
+  would start from the previous phase's freed memory, for example a store
+  window's compiler and guest heap charged to the operator. Memory that stays
+  live across a boundary is still charged to the phase that holds it.
+  `fixture-qualify-phases` proves both in a fresh process
+  (`goldens-qualify/phases.json`).
   This separates operator phases (everything outside guest stores) from each
   fresh store window (Wasmtime compilation, instantiation and guest execution).
   Each phase is mapped to the ceiling that bounded it in the Go host
@@ -538,6 +551,10 @@ counters at the store's boundaries.
   the Go host, cluster windows are not subject to the single-guest limits. The
   receipt's terminal operator check uses the operator phases through
   publication.
+- **Attributed phases account for the lifetime peak.** Every window lies within
+  the lifetime linked peak and the largest phase reaches it; otherwise the
+  budget is refused (`budget_failure`). A zero phase peak is a missing
+  measurement.
 - **Without attribution** (another platform, a refused `clear_refs` write, or any
   window lacking its peak), the lifetime linked peak upper-bounds every component.
   It proves a limit only when it fits under it. Above a limit, the check is
@@ -607,8 +624,11 @@ memory:
 
 The onebox parity and canonical runs both use its owner values, plus choice
 traces of 64 MiB, success bytes of 2 GiB and the owner environment. Each canonical
-cell must reach its declared status, retain `limits.wall_millis` equal to the
-owner execution timeout, and pass the unchanged cost/budget gate.
+cell runs twice in fresh processes and roots, and both stable views must agree.
+Each run must retain `limits.wall_millis` equal to the owner execution timeout
+and pass the unchanged cost/budget gate with its declared status: no cost or
+budget failure, no violation, no pending check and an attributed terminal
+operator peak within 2 GiB.
 
 For each cell (default `fixture`, `fixture-canary`, `sqlite` and `cluster`;
 `onebox` is selected with `--qualify-cells onebox`), the lane runs one Go and two Rust
@@ -617,10 +637,14 @@ refusal. Its verdict instead comes from two fresh Go `explore --scenario`
 campaigns and a fresh `replay` of each retained artifact. It authenticates each Rust Result, receipt,
 record hash and retained artifact on raw bytes. Both Rust runs must agree on the
 declared stable view, and the Go and Rust verdicts must match. The lane also runs
-`report` without an installation and exercises the grammar, spec refusals and ten
-tamper refusals. The stable
+`report` without an installation and exercises the grammar, spec refusals
+(including a multibyte character at a source-manifest separator) and the tamper
+refusals in `goldens-qualify/tamper.json`, among them in-place and duplicate
+receipts, readdressed implementation, platform and profile changes, a failure
+claiming success and a malformed retained source manifest. The stable
 view compares cell identities, records, replays, outcomes, verdicts, structural
-costs and budget statuses. It excludes the measured PID, CPU, RSS and wall
+costs, store handles and budget statuses. Its kept and excluded field sets are
+declared; any other cost or sample field refuses the projection. It excludes the measured PID, CPU, RSS and wall
 values and replaces the campaign IDs and installation/spec paths with tokens.
 Goldens are per cell (`goldens-qualify/cells/NAME.json`, with the parity view,
 the canonical view and the Go verdict) plus `goldens-qualify/tamper.json`.

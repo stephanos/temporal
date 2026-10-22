@@ -126,6 +126,22 @@ def wait_for_quiet_host(limit=2.5):
         time.sleep(15)
 
 
+def receipt_of(path):
+    """The single content-addressed receipt `NAME.publication-SHA256.json`."""
+    receipts = sorted(path.parent.glob(path.name + '.publication-*.json'))
+    equal(len(receipts), 1, 'receipt.single')
+    return receipts[0]
+
+
+def write_receipt(path, receipt):
+    """Writes a (re)addressed receipt beside the Result at PATH."""
+    encoded = parity.canonical(receipt) + b'\n'
+    target = path.parent / (path.name + '.publication-' + parity.digest(encoded) + '.json')
+    target.write_bytes(encoded)
+    target.chmod(0o600)
+    return target
+
+
 def authenticate(response, expected_root):
     """Authenticates a Rust Result and receipt on raw bytes; returns the Result."""
     path = Path(response['result_path'])
@@ -136,7 +152,9 @@ def authenticate(response, expected_root):
     equal(parity.canonical(result) + b'\n', raw, 'result.canonical')
     equal(result['schema'], 'gomad.rust-qualification-result/v1', 'result.schema')
     equal(oct(path.stat().st_mode & 0o777), oct(0o600), 'result.mode')
-    receipt_raw = Path(str(path) + '.publication.json').read_bytes()
+    receipt_path = receipt_of(path)
+    receipt_raw = receipt_path.read_bytes()
+    equal(receipt_path.name, path.name + '.publication-' + parity.digest(receipt_raw) + '.json', 'receipt.content_address')
     receipt = parity.decode(receipt_raw)
     equal(parity.canonical(receipt) + b'\n', receipt_raw, 'receipt.canonical')
     equal(receipt, response['operator_receipt'], 'receipt.response')
@@ -178,9 +196,9 @@ def stable(result, response_status, tokens):
     command = list(report['command'])
     equal((command[1], command[3], command[4], len(command)), ('--installation', 'qualify', '--spec', 6), 'report.command')
     command[2], command[5] = '$INSTALLATION', '$SPEC'
-    cost = result['cost'] and {key: result['cost'][key] for key in (
-        'executions', 'replays', 'distinct_outcomes', 'replayable_bugs', 'fuel_used', 'trace_bytes',
-        'virtual_time_nanos', 'guest_peak_memory_bytes')}
+    if result['cost']:
+        equal(set(result['cost']), COST_STABLE | COST_VARIABLE, 'stable.cost_fields')
+    cost = result['cost'] and {key: result['cost'][key] for key in sorted(COST_STABLE)}
     # Linked-process upper-bound statuses (and so `pending`/`within_budget`)
     # follow measured RSS; the golden keeps their names and limits, and every
     # exact check's status. The binary's own recomputation and expected_status
@@ -193,9 +211,24 @@ def stable(result, response_status, tokens):
         {key: report[key] for key in ('schema', 'qualified', 'deterministic', 'target_success', 'seed', 'repeat',
                                        'record_sha256', 'first_divergence', 'failure')}, command=command, executions=executions),
         cost=cost, cost_failure=result['cost_failure'], budget=budget, budget_failure=result['budget_failure'],
-        samples=[{key: sample[key] for key in ('phase', 'iteration', 'fuel_used', 'guest_peak_memory_bytes',
-                                                'guest_memory_limit_bytes', 'trace_bytes', 'virtual_time_nanos')}
-                 for sample in result['observations']['samples']])
+        samples=[stable_sample(sample) for sample in result['observations']['samples']])
+
+
+# The declared golden projection: stable fields are kept, variable
+# measurements excluded, and any other field refuses the projection.
+COST_STABLE = {'executions', 'replays', 'distinct_outcomes', 'replayable_bugs', 'fuel_used', 'trace_bytes',
+               'virtual_time_nanos', 'guest_peak_memory_bytes'}
+COST_VARIABLE = {'compiler_cpu_nanos', 'compiler_peak_rss_bytes', 'cpu_nanos', 'execution_wall_nanos',
+                 'linked_cpu_nanos', 'linked_peak_rss_bytes', 'preparation_wall_nanos', 'replay_wall_nanos',
+                 'replayable_bugs_per_compute_hour', 'virtual_to_wall'}
+SAMPLE_STABLE = {'phase', 'iteration', 'incarnation', 'fuel_used', 'guest_peak_memory_bytes',
+                 'guest_memory_limit_bytes', 'trace_bytes', 'virtual_time_nanos'}
+SAMPLE_VARIABLE = {'wall_nanos', 'linked_before', 'linked_after', 'store_peak_rss_bytes'}
+
+
+def stable_sample(sample):
+    equal(set(sample), SAMPLE_STABLE | SAMPLE_VARIABLE, 'stable.sample_fields')
+    return {key: sample[key] for key in sorted(SAMPLE_STABLE)}
 
 
 def go_scenario_reference(run, args, case, installation, go_spec):
@@ -240,7 +273,7 @@ def go_scenario_reference(run, args, case, installation, go_spec):
 def log_memory(args, name, result):
     """Records every memory check in bytes and binary GiB beside the receipts."""
     def show(item, value):
-        if 'RSS' in item['name'] or 'memory' in item['name']:
+        if any(word in item['name'] for word in ('RSS', 'memory', 'peak')):
             return f'{value} B ({value / (1 << 30):.3f} GiB)'
         return str(value)
     lines = [f"{name}: {item['name']} [{item['quantity']}]: {show(item, item['observed'])} vs {show(item, item['limit'])}: {item['status']}"
@@ -257,6 +290,18 @@ def unattributed(result, response):
     attributed = receipt.get('operator_peak_rss_bytes') is not None and result['observations']['operator_peak_rss_bytes'] is not None
     terminal = (receipt['operator_peak_rss_bytes'] if attributed else receipt['linked_after']['peak_rss_bytes']) > 2 << 30
     return bool(result['budget'] and result['budget']['pending']) or terminal
+
+
+def canonical_gate(case, result, response, label):
+    """Canonical acceptance: the declared status, no cost/budget failure,
+    violation or pending check, and an attributed terminal operator peak
+    within 2 GiB."""
+    equal((result['cost_failure'], result['budget_failure'], result['budget']['violations'], result['budget']['pending'],
+           result['budget']['within_budget']), (None, None, [], [], True), label + '.canonical_budget')
+    receipt = response['operator_receipt']
+    equal(receipt['operator_peak_rss_bytes'] is not None and result['observations']['operator_peak_rss_bytes'] is not None,
+          True, label + '.canonical_terminal_attributed')
+    equal(receipt['operator_peak_rss_bytes'] <= 2 << 30, True, label + '.canonical_terminal_within')
 
 
 def expected_status(case, result, response, rust):
@@ -289,7 +334,7 @@ def tamper(run, binary, path, work):
         mutate(result)
         encoded = parity.canonical(result) + b'\n'
         target = copied.parent / ('result-' + parity.digest(encoded) + '.json')
-        receipt_path = Path(str(copied) + '.publication.json')
+        receipt_path = receipt_of(copied)
         receipt = parity.decode(receipt_path.read_bytes())
         receipt['result_sha256'] = parity.digest(encoded)
         if receipt_mutate:
@@ -298,8 +343,7 @@ def tamper(run, binary, path, work):
         receipt_path.unlink()
         target.write_bytes(encoded)
         target.chmod(0o600)
-        Path(str(target) + '.publication.json').write_bytes(parity.canonical(receipt) + b'\n')
-        Path(str(target) + '.publication.json').chmod(0o600)
+        write_receipt(target, receipt)
         return target
 
     cases = []
@@ -334,24 +378,73 @@ def tamper(run, binary, path, work):
     cases.append(('receipt-process', rewrite('receipt-process', lambda result: None,
                                              lambda receipt: receipt.__setitem__('operator_process_id', receipt['operator_process_id'] + 1))))
     unbound = copy('receipt-unbound')
-    receipt_path = Path(str(unbound) + '.publication.json')
+    receipt_path = receipt_of(unbound)
     receipt = parity.decode(receipt_path.read_bytes())
     receipt['result_sha256'] = '0' * 64
-    receipt_path.write_bytes(parity.canonical(receipt) + b'\n')
+    receipt_path.unlink()
+    write_receipt(unbound, receipt)
     cases.append(('receipt-unbound', unbound))
+    # In place, without readdressing: the receipt's own content address refuses it.
+    counter = copy('receipt-counter')
+    receipt_path = receipt_of(counter)
+    receipt = parity.decode(receipt_path.read_bytes())
+    receipt['linked_after']['user_nanos'] += 1
+    receipt_path.write_bytes(parity.canonical(receipt) + b'\n')
+    cases.append(('receipt-counter', counter))
+    duplicate = copy('receipt-duplicate')
+    receipt = parity.decode(receipt_of(duplicate).read_bytes())
+    receipt['linked_after']['user_nanos'] += 1
+    write_receipt(duplicate, receipt)
+    cases.append(('receipt-duplicate', duplicate))
     absent = copy('receipt-absent')
-    Path(str(absent) + '.publication.json').unlink()
+    receipt_of(absent).unlink()
     cases.append(('receipt-absent', absent))
     noncanonical = copy('noncanonical')
     pretty = json.dumps(parity.decode(noncanonical.read_bytes()), indent=1, sort_keys=True, ensure_ascii=False).encode() + b'\n'
     renamed = noncanonical.parent / ('result-' + parity.digest(pretty) + '.json')
-    os.rename(Path(str(noncanonical) + '.publication.json'), Path(str(renamed) + '.publication.json'))
+    receipt_path = receipt_of(noncanonical)
+    os.rename(receipt_path, renamed.parent / receipt_path.name.replace(noncanonical.name, renamed.name, 1))
     noncanonical.unlink()
     renamed.write_bytes(pretty)
     renamed.chmod(0o600)
     cases.append(('noncanonical', renamed))
+
+    # Readdressed identity changes: every record must still bind the frozen
+    # implementation (helper and host), platform and profile.
+    def helper(result):
+        result['manifest']['helper_sha256'] = '1' * 64
+    cases.append(('identity-implementation', rewrite('identity-implementation', helper)))
+
+    def platform(result):
+        result['manifest']['host_arch'] = 'x86_64' if result['manifest']['host_arch'] != 'x86_64' else 'aarch64'
+    cases.append(('identity-platform', rewrite('identity-platform', platform)))
+
+    def profile(result):
+        result['manifest']['profile'] = 'controlled' if result['manifest']['profile'] == 'cooperative' else 'cooperative'
+    cases.append(('identity-profile', rewrite('identity-profile', profile)))
+
+    def success_failure(result):
+        # A consistent failed report whose failure claims success.
+        result['report'].update(qualified=False, deterministic=False, target_success=False,
+                                failure=dict(classification='qualified', message='claimed success', iteration=1))
+    cases.append(('failure-success-class', rewrite('failure-success-class', success_failure)))
+
+    def utf8(result):
+        # 64 hex digits followed by a multibyte character at the separator.
+        encoded = '0' * 64 + '\u20ac /x\n'
+        result['integrated_source_manifest'] = encoded
+        result['manifest']['integrated_source_sha256'] = parity.digest(encoded.encode())
+    cases.append(('source-manifest-utf8', rewrite('source-manifest-utf8', utf8)))
     for name, target in cases:
-        run('rust-report-refuse-' + name, [binary, 'report', '--result', target], 3)
+        refused = run('rust-report-refuse-' + name, [binary, 'report', '--result', target], 3)
+        reason = {'failure-success-class': b'failure result is inconsistent',
+                  'source-manifest-utf8': b'malformed integrated source manifest line',
+                  'receipt-counter': b'receipt content identity changed',
+                  'receipt-duplicate': b'exactly one publication receipt'}.get(name)
+        if reason is None and name.startswith('identity-'):
+            reason = b'execution identity differs from the frozen manifest'
+        if reason is not None:
+            equal(reason in refused.stderr, True, f'tamper.{name}.reason: {refused.stderr!r}')
     return [name for name, _ in cases]
 
 
@@ -414,6 +507,16 @@ def main():
         path.write_bytes(parity.canonical(value))
         run('rust-spec-refuse-' + name, [args.binary, '--installation', prepare / 'rust-fixture-installation.json',
             'qualify', '--spec', path], status)
+    # A multibyte character at the manifest separator refuses (never panics).
+    bad_sources = args.work / 'refused-source-manifest-utf8.sha256'
+    bad_sources.write_bytes(('0' * 64 + '\u20ac /x\n').encode())
+    path = args.work / 'refused-source-manifest-utf8.json'
+    path.write_bytes(parity.canonical(dict(base, Manifest=dict(
+        base['Manifest'], Provisional=False, Cell='success', IntegratedSourceManifestPath=str(bad_sources),
+        IntegratedSourceSHA256='sha256:' + parity.digest(bad_sources.read_bytes())))))
+    refused = run('rust-spec-refuse-source-manifest-utf8', [args.binary, '--installation',
+                  prepare / 'rust-fixture-installation.json', 'qualify', '--spec', path], 3)
+    equal(b'malformed integrated source manifest line' in refused.stderr, True, 'refusal.source_manifest_utf8')
     duplicate = args.work / 'refused-duplicate.json'
     duplicate.write_bytes(b'{"Manifest":{},"Manifest":{},"Campaign":{}}')
     run('rust-spec-refuse-duplicate', [args.binary, 'qualify', '--spec', duplicate], 2)
@@ -480,36 +583,38 @@ def main():
     files = sorted({path for case in cases for path in (MODULE / TARGETS[case['cell']]['directory']).resolve().glob('*')
                     if path.is_file()})
     sources.write_bytes(b''.join(f'{parity.digest(path.read_bytes())}  {path}\n'.encode() for path in files))
-    finals = {}
+    # Each canonical cell runs twice in fresh processes and roots; both are
+    # authenticated and their independent stable views must agree.
+    finals = [{}, {}]
     for case in cases:
-        root = args.work / f'rust-canonical-{case["name"]}'
-        final_spec = args.work / f'rust-canonical-{case["name"]}.json'
-        final_spec.write_bytes(parity.canonical(spec(case, root, False, sources, canonical=True)))
-        installation = canonical_installation(prepare, case['cell'], args.work / f'rust-canonical-{case["name"]}-installation.json')
-        wait_for_quiet_host()
-        rust = run(f'rust-canonical-{case["name"]}', [args.binary, '--installation', installation,
-                   'qualify', '--spec', final_spec], None)
-        response = parity.decode(rust.stdout)
-        path, result = authenticate(response, root)
-        log_memory(args, f'rust-canonical-{case["name"]}', result)
-        equal(rust.returncode, expected_status(case, result, response, rust), f'rust-canonical-{case["name"]}.status')
-        equal(result['integrated_source_manifest'], sources.read_text(), 'canonical.source_manifest')
-        equal((result['manifest']['fuel'], result['manifest']['memory_bytes']),
-              (CANONICAL[case['cell']]['fuel'], CANONICAL[case['cell']]['memory']), 'canonical.installation_bounds')
-        for execution in result['report']['executions']:
-            equal(execution['record']['limits']['wall_millis'],
-                  CANONICAL[case['cell']]['campaign']['ExecutionTimeout'] // 1_000_000, 'canonical.execution_wall')
-        equal((result['cost_failure'], result['budget_failure'], result['budget']['violations']), (None, None, []),
-              'canonical.budget')
-        equal(result['budget']['within_budget'], not result['budget']['pending'], 'canonical.budget_within')
-        finals[case['name']] = stable(result, rust.returncode, {})
+        for attempt in range(2):
+            label = f'rust-canonical-{case["name"]}-{attempt}'
+            root = args.work / label
+            final_spec = args.work / f'{label}.json'
+            final_spec.write_bytes(parity.canonical(spec(case, root, False, sources, canonical=True)))
+            installation = canonical_installation(prepare, case['cell'], args.work / f'{label}-installation.json')
+            wait_for_quiet_host()
+            rust = run(label, [args.binary, '--installation', installation, 'qualify', '--spec', final_spec], None)
+            response = parity.decode(rust.stdout)
+            path, result = authenticate(response, root)
+            log_memory(args, label, result)
+            equal(rust.returncode, case['status'], f'{label}.status')
+            equal(result['integrated_source_manifest'], sources.read_text(), 'canonical.source_manifest')
+            equal((result['manifest']['fuel'], result['manifest']['memory_bytes']),
+                  (CANONICAL[case['cell']]['fuel'], CANONICAL[case['cell']]['memory']), 'canonical.installation_bounds')
+            for execution in result['report']['executions']:
+                equal(execution['record']['limits']['wall_millis'],
+                      CANONICAL[case['cell']]['campaign']['ExecutionTimeout'] // 1_000_000, 'canonical.execution_wall')
+            canonical_gate(case, result, response, label)
+            finals[attempt][case['name']] = stable(result, rust.returncode, {})
+        equal(finals[1][case['name']], finals[0][case['name']], case['name'] + '.canonical_repeated_stable_view')
     regenerate = os.environ.get('GOMAD_GOLDEN_REGENERATE') == '1'
     goldens = CORPUS / 'goldens-qualify'
     targets = [(goldens / 'tamper.json', [dict(schema='gomad.rust-qualify-tamper-golden/v1', refused=tampered)] * 2)]
     for case in cases:
         targets.append((goldens / 'cells' / (case['name'] + '.json'),
                         [dict(schema='gomad.rust-qualify-golden/v1', cell=views[attempt][case['name']],
-                              canonical=finals[case['name']], go_verdict=verdicts[case['name']]) for attempt in range(2)]))
+                              canonical=finals[attempt][case['name']], go_verdict=verdicts[case['name']]) for attempt in range(2)]))
     for golden, (first_view, second_view) in targets:
         parity.golden(golden, first_view, regenerate)
         first = golden.read_bytes()

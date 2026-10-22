@@ -1,5 +1,6 @@
 //! Retained qualification `Result` and `PublicationReceipt` in the Rust lineage.
-//! Both are canonical JSON, content addressed and published without replace.
+//! Both are canonical JSON, content addressed and published without replace;
+//! the receipt is `result-SHA256.json.publication-SHA256.json`.
 
 use super::{
     cost::{self, Budget, Cost, Observations},
@@ -25,6 +26,7 @@ pub(crate) const RECEIPT_SCHEMA: &str = "gomad.rust-qualification-receipt/v1";
 const DIRECTORY: [&str; 2] = ["rust-qualifications", "v1"];
 const MAXIMUM_RESULT_BYTES: u64 = 64 << 20;
 const MAXIMUM_RECEIPT_BYTES: u64 = 8 << 10;
+const COOPERATIVE_PROFILE: &str = "gomad.wasi-cooperative/v1";
 
 /// A frozen comparison cell, not an assertion that it passed. Every identity
 /// is a Rust-lineage digest observed during freeze.
@@ -178,7 +180,8 @@ pub(crate) fn validate_source_manifest(encoded: &[u8], check_files: bool) -> Res
     let mut seen = std::collections::BTreeSet::new();
     let mut total = 0_u64;
     for line in lines {
-        if line.len() < 67 || !line.is_char_boundary(64) || &line[64..66] != "  " {
+        // Bytes 64 and 65 are ASCII spaces, so both are character boundaries.
+        if line.len() < 67 || line.as_bytes()[64..66] != *b"  " {
             return Err("malformed integrated source manifest line".into());
         }
         let (digest, path) = (&line[..64], &line[66..]);
@@ -241,10 +244,22 @@ pub(crate) fn validate(result: &QualificationResult) -> Result<(), String> {
     if result.report.seed != manifest.seed || result.report.repeat != manifest.repeat {
         return Err("retained qualification report differs from frozen sample selection".into());
     }
+    // The record's implementation and platform digests are recomputed from
+    // the frozen helper/host identities and host platform, exactly as the
+    // runner derives them (`replay::preflight::{implementation, platform}`).
+    let implementation = canonical::digest(&canonical::encode(&serde_json::json!({
+        "host": manifest.host_sha256, "helper": manifest.helper_sha256
+    }))?);
+    let platform =
+        canonical::digest(format!("{}/{}", manifest.host_os, manifest.host_arch).as_bytes());
+    let cooperative = manifest.profile == "cooperative";
     for execution in &result.report.executions {
         let identity = &execution.record.identity;
         if identity.target != manifest.module_sha256
             || identity.toolchain != manifest.toolchain_sha256
+            || identity.implementation != implementation
+            || identity.platform != platform
+            || (execution.record.profile == COOPERATIVE_PROFILE) != cooperative
             || manifest.scenario_sha256.is_none()
                 && identity.configuration != manifest.host_config_sha256
             || execution.record.limits.fuel != manifest.fuel
@@ -383,17 +398,49 @@ fn pinned_parent(path: &Path) -> Result<(File, String), String> {
     Ok((open::pin(parent)?, name.to_owned()))
 }
 
-/// Publishes the receipt measured after the sealed Result publication.
+fn receipt_prefix(name: &str) -> String {
+    format!("{name}.publication-")
+}
+
+/// The single retained receipt of a Result: `NAME.publication-SHA256.json`,
+/// content addressed like the Result itself. Several receipts are ambiguous.
+fn receipt_names(pinned: &File, name: &str) -> Result<Vec<String>, String> {
+    let prefix = receipt_prefix(name);
+    let mut names = Vec::new();
+    for entry in fsx::Dir::read_from(pinned).map_err(|error| error.to_string())? {
+        let entry = entry.map_err(|error| error.to_string())?;
+        if let Ok(entry) = entry.file_name().to_str()
+            && let Some(digest) = entry
+                .strip_prefix(prefix.as_str())
+                .and_then(|rest| rest.strip_suffix(".json"))
+        {
+            if !canonical::valid_digest(digest) {
+                return Err("malformed qualification publication receipt name".into());
+            }
+            names.push(entry.to_owned());
+        }
+    }
+    Ok(names)
+}
+
+/// Publishes the receipt measured after the sealed Result publication under
+/// its own content address; a different receipt for the same Result collides.
 pub(crate) fn publish_receipt(path: &Path, receipt: &Receipt) -> Result<(), String> {
     let (pinned, name) = pinned_parent(path)?;
     let mut encoded = canonical::encode(receipt)?;
     encoded.push(b'\n');
-    publish_bytes(
-        &pinned,
-        &format!("{name}.publication.json"),
-        &encoded,
-        MAXIMUM_RECEIPT_BYTES,
-    )
+    let receipt_name = format!(
+        "{}{}.json",
+        receipt_prefix(&name),
+        canonical::digest(&encoded)
+    );
+    if receipt_names(&pinned, &name)?
+        .iter()
+        .any(|existing| *existing != receipt_name)
+    {
+        return Err("immutable qualification publication receipt collision".into());
+    }
+    publish_bytes(&pinned, &receipt_name, &encoded, MAXIMUM_RECEIPT_BYTES)
 }
 
 /// Opens a retained Result without installation, source or compiler: bounded
@@ -421,12 +468,17 @@ pub(crate) fn open_receipt(
 ) -> Result<(Receipt, cost::Terminal), String> {
     let digest = result_identity(path)?;
     let (pinned, name) = pinned_parent(path)?;
-    let encoded = open::read(
-        &pinned,
-        &format!("{name}.publication.json"),
-        MAXIMUM_RECEIPT_BYTES,
-        false,
-    )?;
+    let [receipt_name] = <[String; 1]>::try_from(receipt_names(&pinned, &name)?)
+        .map_err(|_| "qualification Result requires exactly one publication receipt")?;
+    let encoded = open::read(&pinned, &receipt_name, MAXIMUM_RECEIPT_BYTES, false)?;
+    if format!(
+        "{}{}.json",
+        receipt_prefix(&name),
+        canonical::digest(&encoded)
+    ) != receipt_name
+    {
+        return Err("qualification publication receipt content identity changed".into());
+    }
     let receipt: Receipt = super::spec::strict(&encoded)?;
     let mut canonical_bytes = canonical::encode(&receipt)?;
     canonical_bytes.push(b'\n');

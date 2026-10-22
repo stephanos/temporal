@@ -468,7 +468,7 @@ pub(crate) fn budget(observations: &Observations) -> Result<Budget, String> {
         observations,
         &groups,
         executed.linked.peak_rss_bytes,
-    ));
+    )?);
     let violations = checks
         .iter()
         .filter(|check| check.status == "exceeded")
@@ -501,18 +501,32 @@ pub(crate) fn budget(observations: &Observations) -> Result<Budget, String> {
 ///   helper peak, 8 GiB, never the single-guest limits.
 ///
 /// Without attributed phases, the lifetime linked peak upper-bounds every
-/// component and proves a limit only when it fits under it.
-fn memory_checks(observations: &Observations, groups: &[Group<'_>], linked: u64) -> Vec<Check> {
+/// component and proves a limit only when it fits under it. A zero phase peak
+/// is a missing measurement, never an attributed one.
+///
+/// Attributed phases must account for the lifetime peak: every window lies
+/// within it and the largest phase reaches it (each phase high water is folded
+/// into the lifetime peak; the operator figure is read last, so it may exceed
+/// it). Phases that understate the lifetime peak refuse the budget.
+fn memory_checks(
+    observations: &Observations,
+    groups: &[Group<'_>],
+    linked: u64,
+) -> Result<Vec<Check>, String> {
     let windows = groups
         .iter()
         .map(|group| {
             group
                 .store_peak_rss_bytes
+                .filter(|peak| *peak > 0)
                 .map(|peak| (group.stores.len() == 1, peak))
         })
         .collect::<Option<Vec<_>>>();
-    let (Some(operator), Some(windows)) = (observations.operator_peak_rss_bytes, windows) else {
-        return [
+    let operator = observations
+        .operator_peak_rss_bytes
+        .filter(|peak| *peak > 0);
+    let (Some(operator), Some(windows)) = (operator, windows) else {
+        return Ok([
             ("operator lifetime peak RSS", 2 * GIB),
             ("individual warm helper peak RSS", 4 * GIB),
             ("individual cold helper peak RSS", 6 * GIB),
@@ -520,8 +534,14 @@ fn memory_checks(observations: &Observations, groups: &[Group<'_>], linked: u64)
         ]
         .into_iter()
         .map(|(name, limit)| check(name, "linked process upper bound", linked, limit, false))
-        .collect();
+        .collect());
     };
+    let largest = windows.iter().map(|(_, peak)| *peak).max().unwrap_or(0);
+    if largest > linked || largest.max(operator) < linked {
+        return Err(
+            "phase memory attribution is inconsistent with the lifetime linked peak".into(),
+        );
+    }
     let single = windows
         .iter()
         .filter(|(single, _)| *single)
@@ -565,7 +585,7 @@ fn memory_checks(observations: &Observations, groups: &[Group<'_>], linked: u64)
             true,
         ));
     }
-    checks
+    Ok(checks)
 }
 
 /// Recomputes cost and budget, retaining a failure message instead of a
@@ -608,7 +628,11 @@ pub(crate) fn terminal(
     }
     // With attributed phases the operator ceiling applies to operator phases
     // only; otherwise the lifetime linked peak is its upper bound.
-    let attributed = operator_peak.filter(|_| observations.operator_peak_rss_bytes.is_some());
+    let attributed = operator_peak.filter(|_| {
+        observations
+            .operator_peak_rss_bytes
+            .is_some_and(|retained| retained > 0)
+    });
     if attributed.is_some_and(|peak| peak < observations.operator_peak_rss_bytes.unwrap_or(0)) {
         return Err("terminal operator phase peak moved backwards".into());
     }

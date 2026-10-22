@@ -200,7 +200,10 @@ pub(crate) fn validate(report: &Report) -> Result<(), String> {
     let completed = report.executions.len() as u64;
     match &report.failure {
         Some(failure) => {
-            if failure.classification.is_empty()
+            // Only a class `classify_error` and the runner produce; `capacity`
+            // is always retained as `runner_failure`.
+            if !CLASSIFICATIONS.contains(&failure.classification.as_str())
+                || failure.classification == "capacity"
                 || failure.message.is_empty()
                 || failure.iteration == 0
                 || failure.iteration > report.repeat
