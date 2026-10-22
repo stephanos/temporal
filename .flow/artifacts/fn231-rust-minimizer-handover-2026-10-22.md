@@ -172,3 +172,18 @@ merged into this isolated branch; no integration conflicts were introduced here.
 The target lease is released, and five private failed-review fixture roots were
 cleaned after their exact test PIDs were verified exited. The three own worktrees
 listed above remain for integration/review; latest free space was 15 GiB.
+
+## Integrated strict-lint follow-up
+
+Root's integrated source passed 117 unit tests and format checking. Its strict
+Clippy run found two feature-owned test diagnostics: the minimized fixture helper
+crossed 100 lines after the real candidate commitments were added, and the actual
+malformed-context CLI test used `result.err().expect()`. The candidate sequence
+calculation is now a small fixture helper using the same controller calls, and
+the CLI refusal uses `expect_err` (its success type is `i32`). No assertions,
+production behavior, fixture inputs, bounds or lint allowances changed.
+
+This follow-up ran format, both parity-driver Python syntax checks and diff
+checking only, all exit 0. No Cargo build, guest or qualification command ran.
+The conductor owns the new integrated strict Clippy and runtime gates; the
+remaining integrated baseline diagnostics remain with their existing owners.

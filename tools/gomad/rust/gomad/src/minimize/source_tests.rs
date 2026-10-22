@@ -48,6 +48,27 @@ fn minimized() -> Publication {
     minimized_with_symbols(false)
 }
 
+fn candidate_hashes(raw: &[u8], identity: &linked::ChoiceIdentity) -> (String, String) {
+    let mut state =
+        crate::minimize::proposals::State::choice(raw.to_vec(), identity.clone(), 8).unwrap();
+    state = state
+        .commit(&state.next().unwrap().unwrap(), false)
+        .unwrap();
+    state = state.commit(&state.next().unwrap().unwrap(), true).unwrap();
+    (
+        state
+            .original
+            .sha256
+            .trim_start_matches("sha256:")
+            .to_owned(),
+        state
+            .current
+            .sha256
+            .trim_start_matches("sha256:")
+            .to_owned(),
+    )
+}
+
 fn minimized_with_symbols(symbols: bool) -> Publication {
     let mut publication = publication(0);
     publication
@@ -81,26 +102,8 @@ fn minimized_with_symbols(symbols: bool) -> Publication {
     let original = publication.record.bytes().unwrap();
     let parent_hash = publication.record.hash().unwrap();
     let signature = publication.record.failure_signature().unwrap();
-    let mut state = crate::minimize::proposals::State::choice(
-        raw.clone(),
-        details.choices.as_ref().unwrap().identity.clone(),
-        8,
-    )
-    .unwrap();
-    state = state
-        .commit(&state.next().unwrap().unwrap(), false)
-        .unwrap();
-    state = state.commit(&state.next().unwrap().unwrap(), true).unwrap();
-    let original_candidate = state
-        .original
-        .sha256
-        .trim_start_matches("sha256:")
-        .to_owned();
-    let final_candidate = state
-        .current
-        .sha256
-        .trim_start_matches("sha256:")
-        .to_owned();
+    let (original_candidate, final_candidate) =
+        candidate_hashes(&raw, &details.choices.as_ref().unwrap().identity);
     let raw_final = raw[..96].to_vec();
     choices(details.choices.as_mut().unwrap(), &raw_final);
     details.minimization = Some(inspection::Minimization {
@@ -440,7 +443,7 @@ fn minimize_malformed_present_context_names_parent_before_workspace_creation() {
         ],
         &mut Vec::new(),
     );
-    let error = result.err().expect("malformed present context accepted");
+    let error = result.expect_err("malformed present context accepted");
     assert_eq!(error.status, 2);
     assert!(
         error
