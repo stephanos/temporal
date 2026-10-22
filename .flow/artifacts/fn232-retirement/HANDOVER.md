@@ -155,3 +155,12 @@ source assertions require authenticated original Go integration/provider test
 bytes from configured frozen custody or retained fixtures, never a skipped guard.
 Mandatory projection façade/observer checkpoint 537be69421 uses model/wasi;
 its helper known-image source seam must survive the Rust helper move.
+
+The e253 repair accidentally overwrote the existing helper_model_test.go while
+restoring its missing network refusal test. Re-review caught the deletion of
+nine retained pure tests and their helper functions. The correction restores the
+complete b64 file byte-for-byte and appends only the exact original missing test.
+A read-only function inventory confirms all twelve preexisting test/helper
+functions are unchanged and the appended test is the sole addition (ten tests
+total). No original test/helper content is removed. Actual Go tests remain unrun
+under the root resource hold; gofmt parsing and diff checks exit 0.
