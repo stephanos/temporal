@@ -142,3 +142,43 @@ pub(crate) fn run(path: &Path) -> Result<(), String> {
     );
     Ok(())
 }
+
+/// Phase-boundary attribution on the real Linux counters, in a fresh process:
+/// heap a store window frees (fragmented below the mmap threshold, so glibc
+/// would keep it resident) must not be charged to the next operator phase,
+/// while heap the window leaves live must be. Prints the facts, not RSS.
+pub(crate) fn phases() -> Result<(), String> {
+    use super::usage;
+    const CHUNK: usize = 64 << 10;
+    const MIB: u64 = 1 << 20;
+    fn fill(bytes: usize) -> Vec<Vec<u8>> {
+        (0..bytes / CHUNK).map(|_| vec![0x5a_u8; CHUNK]).collect()
+    }
+    usage::enable_phases();
+    let before = usage::operator_peak().ok_or("phase attribution unavailable")?;
+    usage::store_begin();
+    let freed = fill(512 << 20);
+    // A live allocation above the freed chunks keeps glibc from trimming the
+    // heap top on its own; only an explicit release returns the chunks.
+    let pin = std::hint::black_box(vec![0x5a_u8; 4096]);
+    drop(std::hint::black_box(freed));
+    let freed_window = usage::store_end().ok_or("store window peak unavailable")?;
+    let after_freed = usage::operator_peak().ok_or("phase attribution lost")?;
+    usage::store_begin();
+    let live = std::hint::black_box(fill(256 << 20));
+    let live_window = usage::store_end().ok_or("store window peak unavailable")?;
+    let after_live = usage::operator_peak().ok_or("phase attribution lost")?;
+    drop(std::hint::black_box((pin, live)));
+    println!(
+        "{}",
+        String::from_utf8(canonical::encode(&json!({
+            "schema": "gomad.qualify-phase-fixture/v1",
+            "freed_window_measured": freed_window >= before + 448 * MIB,
+            "freed_window_heap_not_charged_to_operator": after_freed < before + 128 * MIB,
+            "live_window_measured": live_window >= after_freed + 224 * MIB,
+            "live_window_heap_charged_to_operator": after_live >= after_freed + 224 * MIB,
+        }))?)
+        .map_err(|error| error.to_string())?
+    );
+    Ok(())
+}

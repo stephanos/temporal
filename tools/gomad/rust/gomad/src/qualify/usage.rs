@@ -73,13 +73,35 @@ fn reset_peak() -> bool {
     false
 }
 
-/// Reads the current phase's high water, folds it into the lifetime peak and
-/// restarts it. Returns `None` once attribution has failed.
+/// Returns heap the closed phase freed to the kernel. `clear_refs` restarts
+/// `VmHWM` at the current RSS, and glibc keeps freed arena pages resident, so
+/// without this the next phase would start from the previous phase's freed
+/// memory (a store window's compiler and guest heap charged to the operator).
+/// Live memory stays resident and stays charged to the phase that holds it.
+#[cfg(all(target_os = "linux", target_env = "gnu"))]
+fn release_freed_heap() {
+    unsafe extern "C" {
+        fn malloc_trim(pad: usize) -> std::ffi::c_int;
+    }
+    // SAFETY: glibc `malloc_trim` only returns free heap pages; it has no
+    // preconditions and its result (whether memory was released) is advisory.
+    unsafe {
+        malloc_trim(0);
+    }
+}
+
+#[cfg(not(all(target_os = "linux", target_env = "gnu")))]
+fn release_freed_heap() {}
+
+/// Reads the current phase's high water, folds it into the lifetime peak,
+/// releases freed heap and restarts it. Returns `None` once attribution has
+/// failed.
 fn close_phase() -> Option<u64> {
     let peak = own_peak_rss();
     if let Some(peak) = peak {
         phases::LIFETIME.fetch_max(peak, Ordering::AcqRel);
     }
+    release_freed_heap();
     if peak.is_none() || !reset_peak() {
         phases::ATTRIBUTED.store(false, Ordering::Release);
         return None;

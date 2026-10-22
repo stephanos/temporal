@@ -190,6 +190,13 @@ pub(crate) fn publish_bundle_with_budget(
 )]
 pub fn dispatch(arguments: &[String]) -> Option<Result<(), Error>> {
     let command = arguments.first()?.as_str();
+    if command == "fixture-qualify-phases" {
+        return Some(if arguments.len() == 1 {
+            crate::qualify::fixture::phases().map_err(Error::from)
+        } else {
+            Err("fixture-qualify-phases takes no arguments".into())
+        });
+    }
     if matches!(
         command,
         "fixture-simulation-controller"
