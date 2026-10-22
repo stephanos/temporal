@@ -1,0 +1,44 @@
+{
+  "success": true,
+  "type": "impl_review",
+  "id": "fn-227-parameterized-models-declared-worlds.5",
+  "verdict": "NEEDS_WORK",
+  "session_id": "01a165d4-7a73-7a60-ba11-6db121aec1b0",
+  "mode": "codex",
+  "model": "gpt-6.1-sol",
+  "effort": "high",
+  "spec": "codex:gpt-6.1-sol:high",
+  "standalone": false,
+  "review": "## Issue 1\n- **Severity**: P2\n- **Title**: The retry proof races the running worker\n- **Confidence**: 75\n- **Classification**: introduced\n- **Problem**: The retry proof races the running worker. After releasing attempt one\u2019s failure, the test relies on a two-second backoff to observe attempt two as Scheduled. The worker continues polling and can start attempt two before that Describe completes. For example, delaying the first retry Describe beyond the backoff produces Started/attempt-two while the Model remains Started/attempt-one; Judge returns State and fails an otherwise valid execution. Holding the callback on `deliveries` does not prevent the server from marking it Started.\n- **Suggestion**: Synchronize retry polling or dispatch so attempt two remains Scheduled until its actual Describe has been judged. Add a control that delays observation beyond the retry interval.\n- **File:Line**: tests/testpilot_model_slice_test.go:380\n- **R-IDs**: R6\n\n```json\n{\"classification_counts\": {\"introduced\": 1, \"pre_existing\": 0}, \"unaddressed\": [\"R6\"], \"suppressed_count\": {}}\n```\n\n<verdict>NEEDS_WORK</verdict>\n",
+  "draws": [
+    {
+      "axis": "correctness",
+      "model": "gpt-6.1-sol",
+      "session_id": "01a165d4-7a73-7a60-ba11-6db121aec1b0",
+      "verdict": "NEEDS_WORK",
+      "failed": false
+    },
+    {
+      "axis": "contracts",
+      "model": "gpt-6.1-sol",
+      "session_id": "01a165d4-7a73-7082-b531-1db2640059a9",
+      "verdict": "SHIP",
+      "failed": false
+    },
+    {
+      "axis": "integration",
+      "model": "gpt-6.1-sol",
+      "session_id": "01a165d4-7a73-7111-9690-016432767220",
+      "verdict": "SHIP",
+      "failed": false
+    }
+  ],
+  "needs_work_survivors": 1,
+  "introduced_count": 1,
+  "pre_existing_count": 0,
+  "unaddressed": [
+    "R6"
+  ],
+  "review_rounds": 1,
+  "review_rounds_cap": 8
+}

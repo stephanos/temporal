@@ -1,0 +1,45 @@
+{
+  "base": "c8e29dc48b6dd2a77fb51cae1eb682ed517b3e55",
+  "effort": "high",
+  "findings": {
+    "backend": "codex",
+    "baseSha": "c8e29dc48b6dd2a77fb51cae1eb682ed517b3e55",
+    "headSha": "059795fab050ed9eb2ef02be892745b88a82146c",
+    "items": [
+      {
+        "body": "The retry proof races the running worker. After releasing attempt one\u2019s failure, the test relies on a two-second backoff to observe attempt two as Scheduled. The worker continues polling and can start attempt two before that Describe completes. For example, delaying the first retry Describe beyond the backoff produces Started/attempt-two while the Model remains Started/attempt-one; Judge returns State and fails an otherwise valid execution. Holding the callback on `deliveries` does not prevent the server from marking it Started.",
+        "classification": "introduced",
+        "confidence": 75,
+        "firstSeenReceiptId": "review-913a2127da30a9a5b60d54da72ddab66068c91ac88269ccd72d15a5858bb831c",
+        "id": "finding-51c877c6624961ed4a7d4579729fc01c",
+        "lastSeenReceiptId": "review-4ff8c3cb4b46504987382696f9407cfa4c6bc1b20a3fb64ee5dd46a48c5f3ff2",
+        "ordinal": 1,
+        "rIds": [
+          "R6"
+        ],
+        "severity": "P2",
+        "status": "fixed",
+        "suggestion": "Synchronize retry polling or dispatch so attempt two remains Scheduled until its actual Describe has been judged. Add a control that delays observation beyond the retry interval.",
+        "title": "The retry proof races the running worker"
+      }
+    ],
+    "reviewKind": "implementation",
+    "round": 2,
+    "schemaVersion": 1,
+    "sourceReceiptId": "review-4ff8c3cb4b46504987382696f9407cfa4c6bc1b20a3fb64ee5dd46a48c5f3ff2",
+    "supersedesReceiptId": "review-913a2127da30a9a5b60d54da72ddab66068c91ac88269ccd72d15a5858bb831c"
+  },
+  "id": "fn-227-parameterized-models-declared-worlds.5",
+  "introduced_count": 0,
+  "mode": "codex",
+  "model": "gpt-6.1-sol",
+  "pre_existing_count": 0,
+  "review": "Prior finding #1: fixed\n\nThe single-permit Poll gate prevents attempt two from starting until its Scheduled Describe has been judged. Empty or failed polls restore the permit; successful delivery consumes it. The regression control delays Describe beyond the retry interval.\n\nRecorded logs reproduce the original failure and show the corrected slice passing, including existing scenarios. Correction hashes match current files. Independent execution was blocked by the read-only build directory; `git diff --check` passed.\n\nNo new blocking findings.\n\n## Requirements coverage\n\n| R-ID | Status | Evidence |\n| --- | --- | --- |\n| R6 | met | Admission coverage retained; retry proof now synchronizes actual polling and includes a delayed-observation regression control. |\n\nUnaddressed R-IDs: []\n\nClassification counts: 0 introduced, 0 pre_existing.\n\n```json\n{\"classification_counts\":{\"introduced\":0,\"pre_existing\":0},\"unaddressed\":[]}\n```\n\n<verdict>SHIP</verdict> - Prior finding fixed; no new blockers.\n",
+  "review_reservation_id": "79040836a3684e559762f6e075fa4292",
+  "session_id": "01a165d4-7a73-7a60-ba11-6db121aec1b0",
+  "spec": "codex:gpt-6.1-sol:high",
+  "timestamp": "2026-10-22T23:06:35.158334Z",
+  "type": "impl_review",
+  "unaddressed": [],
+  "verdict": "SHIP"
+}

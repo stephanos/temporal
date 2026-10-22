@@ -1,0 +1,60 @@
+{
+  "success": true,
+  "type": "impl_review_fanout",
+  "phase": "dispatch",
+  "id": "fn-227-parameterized-models-declared-worlds.5",
+  "rid": "b882af81ae4c4a45bd37b63eaa558b8a",
+  "reservation_id": "b882af81ae4c4a45bd37b63eaa558b8a",
+  "standalone": false,
+  "dir": "/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/review-fanout/b882af81ae4c4a45bd37b63eaa558b8a",
+  "draws": [
+    {
+      "axis": "correctness",
+      "parse_status": {
+        "status": "parsed",
+        "reason": null,
+        "block": null
+      },
+      "verdict": "NEEDS_WORK",
+      "failed": false,
+      "failure_class": null,
+      "session_id": "01a165d4-7a73-7a60-ba11-6db121aec1b0",
+      "model": "gpt-6.1-sol",
+      "review_path": "/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/review-fanout/b882af81ae4c4a45bd37b63eaa558b8a/correctness.review.md",
+      "output_path": "/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/review-fanout/b882af81ae4c4a45bd37b63eaa558b8a/correctness.out.txt"
+    },
+    {
+      "axis": "contracts",
+      "parse_status": {
+        "status": "parsed",
+        "reason": null,
+        "block": null
+      },
+      "verdict": "SHIP",
+      "failed": false,
+      "failure_class": null,
+      "session_id": "01a165d4-7a73-7082-b531-1db2640059a9",
+      "model": "gpt-6.1-sol",
+      "review_path": "/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/review-fanout/b882af81ae4c4a45bd37b63eaa558b8a/contracts.review.md",
+      "output_path": "/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/review-fanout/b882af81ae4c4a45bd37b63eaa558b8a/contracts.out.txt"
+    },
+    {
+      "axis": "integration",
+      "parse_status": {
+        "status": "parsed",
+        "reason": null,
+        "block": null
+      },
+      "verdict": "SHIP",
+      "failed": false,
+      "failure_class": null,
+      "session_id": "01a165d4-7a73-7111-9690-016432767220",
+      "model": "gpt-6.1-sol",
+      "review_path": "/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/review-fanout/b882af81ae4c4a45bd37b63eaa558b8a/integration.review.md",
+      "output_path": "/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/review-fanout/b882af81ae4c4a45bd37b63eaa558b8a/integration.out.txt"
+    }
+  ],
+  "failed_draws": 0,
+  "merged": false,
+  "next": "merge the surviving draws' findings, then run: flowctl codex impl-review-fanout-finalize --rid b882af81ae4c4a45bd37b63eaa558b8a --merge-plan <merge-plan.json>"
+}

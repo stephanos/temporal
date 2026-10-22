@@ -15,7 +15,7 @@
     "fn-227-parameterized-models-declared-worlds.1": 0,
     "fn-227-parameterized-models-declared-worlds.16": 0,
     "fn-227-parameterized-models-declared-worlds.3": 0,
-    "fn-227-parameterized-models-declared-worlds.5": 1
+    "fn-227-parameterized-models-declared-worlds.5": 0
   },
   "next_task": 1,
   "plan_review_rounds": 0,
@@ -722,12 +722,57 @@
       "task": "fn-227-parameterized-models-declared-worlds.5",
       "timestamp": "2026-10-22T23:01:37.615202Z",
       "verdict": "NEEDS_WORK"
+    },
+    {
+      "artifact_sha256": "4f306ab387367262ab0e949bce7a9caff59615b883ce8337cf315feeed24a46c",
+      "backend": "codex",
+      "base_sha": "c8e29dc48b6dd2a77fb51cae1eb682ed517b3e55",
+      "counter_kind": "impl",
+      "effort": "high",
+      "failure_class": null,
+      "finalized": {
+        "digest": "complete",
+        "receipt": "complete",
+        "status": "not_applicable"
+      },
+      "findings_digest": {
+        "backend": "codex",
+        "digest_truncated": false,
+        "items": [
+          {
+            "chainRoot": "finding-51c877c6624961ed4a7d4579729fc01c",
+            "classification": "introduced",
+            "findingId": "finding-51c877c6624961ed4a7d4579729fc01c",
+            "firstSeenThisRound": false,
+            "severity": "P2",
+            "status": "fixed"
+          }
+        ],
+        "reviewKind": "implementation"
+      },
+      "forced": false,
+      "hash_epoch": 0,
+      "head_sha": "059795fab050ed9eb2ef02be892745b88a82146c",
+      "head_sha_observed": true,
+      "kind": "impl",
+      "model": "gpt-6.1-sol",
+      "outcome": "verdict",
+      "output_bytes": 1001,
+      "output_sha256": "4d205ae2071b12a34e1ded8e1a0c8fd5c8548a52e450246ff8a9965364da5153",
+      "reservation_id": "79040836a3684e559762f6e075fa4292",
+      "round_consumed": true,
+      "scope": "impl:fn-227-parameterized-models-declared-worlds.5",
+      "superseded_by": null,
+      "task": "fn-227-parameterized-models-declared-worlds.5",
+      "timestamp": "2026-10-22T23:06:35.161831Z",
+      "verdict": "SHIP"
     }
   ],
   "review_hash_epoch": {
     "impl:fn-227-parameterized-models-declared-worlds.1": 1,
     "impl:fn-227-parameterized-models-declared-worlds.16": 4,
     "impl:fn-227-parameterized-models-declared-worlds.3": 2,
+    "impl:fn-227-parameterized-models-declared-worlds.5": 1,
     "plan": 1,
     "plan#completion": 0
   },
@@ -754,5 +799,5 @@
     "mergeBaseTracker": null,
     "url": null
   },
-  "updated_at": "2026-10-22T23:01:37.619501Z"
+  "updated_at": "2026-10-22T23:06:35.167165Z"
 }
