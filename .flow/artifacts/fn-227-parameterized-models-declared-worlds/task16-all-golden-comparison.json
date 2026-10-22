@@ -1,5 +1,7 @@
 {
   "base": "d70684bca2a7f0974abedee129db1ef480cecf56",
+  "source_commit": "28306365be",
+  "full_gate_log": "task16-accepted-model-time.log",
   "count": 782,
   "unchanged": 776,
   "changed": [
@@ -10,5 +12,5 @@
     "model/umpire/tests/fixtures/sample_kettle/expected/Kettle@tla.snap.tla",
     "model/umpire/tests/fixtures/shared_returns/expected/Gate@tla.snap.tla"
   ],
-  "semantics": "all native reports/states/rows/verdicts/replays/refusals byte-identical after final required full gate"
+  "semantics": "All native reports/states/rows/verdicts/replays/refusals and snapshot metadata byte-identical after final required full gate. Only six listed TLA+ payloads differ for named LET definitions."
 }
