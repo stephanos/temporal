@@ -173,7 +173,7 @@ fn prepare_internal(
     if inputs.helper_sha256 != linked::IMPLEMENTATION_SHA256
         || inputs.host_sha256 != env!("GOMAD_HOST_IMPLEMENTATION_SHA256")
         || record.identity.implementation != implementation()?
-        || inputs.configuration.engine != linked::CONFIGURATION
+        || inputs.configuration.engine != linked::Conditions::compiled().configuration()
     {
         return Err("WASM compiler/helper/engine/model/limits identity mismatch".into());
     }

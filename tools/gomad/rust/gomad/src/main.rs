@@ -27,7 +27,14 @@ fn main() {
     if let Some(command) = arguments.first().map(String::as_str).filter(|command| {
         matches!(
             *command,
-            "explore" | "resume" | "execute-shard" | "merge" | "minimize" | "qualify" | "report"
+            "explore"
+                | "resume"
+                | "execute-shard"
+                | "merge"
+                | "minimize"
+                | "qualify"
+                | "report"
+                | "stress"
         )
     }) {
         let mut output = std::io::stdout().lock();
@@ -39,6 +46,7 @@ fn main() {
             ),
             "resume" => gomad::cli::resume::run(&arguments[1..], &mut output),
             "minimize" => gomad::cli::minimize::run(&arguments[1..], &mut output),
+            "stress" => gomad::cli::stress::run(&arguments[1..], &mut output),
             "qualify" => {
                 gomad::cli::qualify::run(&arguments[1..], &mut output, installation.as_deref())
             }

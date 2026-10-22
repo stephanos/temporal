@@ -29,6 +29,9 @@ pub use crate::namespace::{
 };
 pub use crate::protocol::Outcome;
 
+#[cfg(feature = "stress-jitter")]
+pub use crate::stress_jitter::statistics as stress_jitter_statistics;
+
 pub const IMPLEMENTATION_SHA256: &str = env!("GOMAD_LINKED_IMPLEMENTATION_SHA256");
 pub const CONFIGURATION: &str = "cranelift-fuel-nan-canonical-nounwind-epoch-v1";
 

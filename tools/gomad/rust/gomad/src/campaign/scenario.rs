@@ -1348,7 +1348,7 @@ pub(crate) fn store_metrics(
     clippy::too_many_lines,
     reason = "Publication binds every incarnation stream and shared observation before returning a campaign receipt"
 )]
-pub(super) fn publication(
+pub(crate) fn publication(
     prepared: &super::prepare::Prepared,
     job: &super::ledger::Job,
     mut configuration: cluster::Configuration,
@@ -1455,6 +1455,9 @@ pub(super) fn publication(
     features.sort();
     features.dedup();
     let mut observed = cluster::project(execution)?;
+    if let Some(raw) = observed.event_order.take() {
+        observed.evidence.insert("event-order".into(), raw);
+    }
     for item in &retained {
         observed
             .evidence

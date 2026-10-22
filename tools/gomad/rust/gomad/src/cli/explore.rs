@@ -5,7 +5,8 @@ use std::{
     time::Duration,
 };
 
-#[derive(Clone, Debug)]
+#[derive(Clone, Debug, serde::Deserialize, serde::Serialize)]
+#[serde(deny_unknown_fields)]
 #[expect(
     clippy::struct_excessive_bools,
     reason = "Independent original CLI switches retain their separate meanings"

@@ -1012,7 +1012,10 @@ impl Endpoint {
             }
         }
         let (json, binary) = evidence::operation_entry(now, &request, &result);
-        self.append(json, binary)
+        let reply = self.append(json, binary);
+        #[cfg(feature = "stress-jitter")]
+        crate::stress_jitter::delay();
+        reply
     }
 
     /// The instance's binary network evidence at its termination: the

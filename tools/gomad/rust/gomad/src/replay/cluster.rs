@@ -237,7 +237,7 @@ fn bind(opened: &Opened, inputs: &Inputs) -> Result<(), String> {
         || inputs.toolchain_sha256 != record.identity.toolchain
         || record.identity.implementation != super::preflight::implementation()?
         || record.identity.platform != super::preflight::platform()
-        || inputs.configuration.engine != linked::CONFIGURATION
+        || inputs.configuration.engine != linked::Conditions::compiled().configuration()
         || inputs.configuration.profile != record.profile
         || record.profile != "gomad.wasi-cooperative/v1"
         || inputs.configuration.limits != record.limits

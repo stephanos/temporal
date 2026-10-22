@@ -93,3 +93,5 @@ producer pair for intentional World/lifecycle changes. These references are not
 interchangeable: the newer Go-owned network replay path can refuse input-tape
 attestation that the frozen launcher does not require. Its retained status-3
 receipts describe that newer-producer regression, not frozen-baseline parity.
+
+Fresh same-seed host perturbations use the explicitly admitted [stress producer](STRESS.md). Its full frozen-candidate matrix remains a separate acceptance gate.

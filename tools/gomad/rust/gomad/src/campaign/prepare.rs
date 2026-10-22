@@ -600,7 +600,7 @@ fn configuration(
         / 1_000_000
         + 1;
     Ok(Configuration {
-        engine: linked::CONFIGURATION.into(),
+        engine: linked::Conditions::compiled().configuration(),
         profile: installed.profile.clone(),
         limits: Limits {
             fuel: installed.fuel,

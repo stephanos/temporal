@@ -167,7 +167,7 @@ fn scenario_bytes(value: &Value) -> Result<Vec<u8>, String> {
 }
 
 /// Standard padded base64, as Go's `encoding/json` emits for `[]byte`.
-fn base64(text: &str) -> Option<Vec<u8>> {
+pub(crate) fn base64(text: &str) -> Option<Vec<u8>> {
     let digit = |byte: u8| match byte {
         b'A'..=b'Z' => Some(byte - b'A'),
         b'a'..=b'z' => Some(byte - b'a' + 26),
@@ -224,6 +224,7 @@ pub(crate) fn freeze(
     command: Vec<String>,
     start: Option<Snapshot>,
 ) -> Result<Frozen, String> {
+    crate::qualify::require_release_role()?;
     let declared_manifest = &spec.manifest;
     if !declared_manifest.provisional && start.is_none() {
         return Err("final qualification requires operator baseline before setup".into());

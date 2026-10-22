@@ -23,3 +23,5 @@ impl From<&str> for Error {
         message.to_owned().into()
     }
 }
+
+pub mod stress;

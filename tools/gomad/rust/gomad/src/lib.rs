@@ -19,3 +19,5 @@ pub(crate) mod minimize;
 pub(crate) mod qualify;
 pub mod replay;
 pub mod slots;
+
+pub(crate) mod stress;

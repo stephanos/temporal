@@ -236,6 +236,10 @@ pub(super) fn publication(
     job: &ledger::Job,
     observed: linked::Execution,
 ) -> std::result::Result<Result, String> {
+    let mut observed = observed;
+    if let Some(raw) = observed.event_order.take() {
+        observed.evidence.insert("event-order".into(), raw);
+    }
     let configuration = &prepared.configuration;
     let assertions = super::soft_assertions::assessed(prepared, &observed)?;
     let mut streams = BTreeMap::new();
