@@ -47,9 +47,12 @@ Full from root: `make model-check`, `UMPIRE_BACKENDS=require make model-check`, 
 - [ ] Required TLC executes both the generic control and the unchanged activity; false-law counterexamples replay, including rejected edges and payload identity.
 - [ ] Native activity behavior and unrelated golden/expansion bytes remain exact. Specifically reviewed admission-artifact changes, full gates, counts and timings are retained.
 ## Done summary
-TBD
+Phase access, rejection and closure laws are admitted once in the shared front end, so TLC checks the unchanged activity Model: 6 states, both closure laws Verified, agreeing with native. Front: `impl Phase`/`impl Phased` (default `closed` read from umpire-dsl's own source), `reject!` (first rejection wins, returns from its function or `#[effect]` helper, effects after a conditional rejection apply only where the step runs, always an enabled self-loop), closure laws lowered from `umpire/dsl/src/closable.rs` through the normal claim lowering (no recognition by name), postconditions over `&Outcome` with whole-state comparison. Lifter: rejected disjunct; rejection after a state change fails TLC through an Assert, as native refuses it. fn-238.4's `path!` match fix (`is_ident`) included. Generic fixture `phased_rejection` (8 claims agree, 5 counterexamples replay), fairness, agreement-mutation and real-activity mutant controls, 12-entry refusal golden.
 
+Goldens: new activity `Activity.tla`/`.cfg`/`tlc.txt` and `phased_rejection` goldens; activity and `accepted_self_loops` `lift.snap.txt` changed (admission, moved refusal); native activity goldens byte-identical; guest unchanged. Per-construct cost on the shared front end: front +486/-50, ir +29, lift +49/-18, tlc +29, testing +89, macros 0. Review: SHIP (.flow/tmp/fn22711-review.md); M1/M2/L1/L3/L4/L6 filed as fn-227.15 before .3. Gates: Quick default/required; `UMPIRE_BACKENDS=require make model-check` 283s; `make model-time` 47.680s gate / 7.149s inner loop; slice 6s; gaps 355s.
+
+stage: plan-sync - skipped(config: planSync.enabled != true)
 ## Evidence
-- Commits:
-- Tests:
+- Commits: a507f7878d, ee1a6370a6
+- Tests: UMPIRE_BACKENDS=require make model-check, make model-time, make umpire-check-model-slice, make umpire-check-model-gaps
 - PRs:
