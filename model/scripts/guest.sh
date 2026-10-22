@@ -52,7 +52,10 @@ PY
 wrapper=$launcher
 export UMPIRE_GUEST_WORKSPACE="$workspace" UMPIRE_GUEST_SYSROOT="$sysroot"
 export UMPIRE_GUEST_CARGO_HOME="$cargo_home" UMPIRE_GUEST_TARGET="$CARGO_TARGET_DIR"
-export UMPIRE_GUEST_LOCKFILE="$workspace/Cargo.lock"
+export UMPIRE_GUEST_LOCK="$CARGO_TARGET_DIR/umpire-lock.json"
+mkdir -p "$CARGO_TARGET_DIR"
+mise exec -- cargo metadata --format-version 1 --locked \
+  | python3 "$workspace/scripts/guest-lock.py" "$workspace/Cargo.lock" "$UMPIRE_GUEST_LOCK" || exit 1
 if [ "${RUSTC_WRAPPER:-}" != "$wrapper" ]; then
   export UMPIRE_GUEST_PREVIOUS_WRAPPER="${RUSTC_WRAPPER:-}"
 fi

@@ -90,8 +90,14 @@ def prepare(arguments, environment):
         cfg = [value for value in cfg if value.startswith('feature=')]
         codegen = [value for value in codegen if value.partition("=")[0] in
                    {"opt-level", "debug-assertions", "overflow-checks", "panic", "codegen-units", "lto"}]
-    key = dict(schema=1, compiler=environment["UMPIRE_GUEST_COMPILER"],
-               lock=hashlib.sha256(Path(environment["UMPIRE_GUEST_LOCKFILE"]).read_bytes()).hexdigest(),
+    # Cargo marks build-std units this way; the pinned compiler's sources fix their resolution.
+    lock = None
+    if target != "wasm32-wasip1" or "force-unstable-if-unmarked" not in parsed.get("-Z", []):
+        package = environment["CARGO_PKG_NAME"] + " " + environment["CARGO_PKG_VERSION"]
+        lock = json.loads(Path(environment["UMPIRE_GUEST_LOCK"]).read_text()).get(package)
+        if not isinstance(lock, str) or re.fullmatch(r"[0-9a-f]{64}", lock) is None:
+            raise ValueError(f"no unambiguous lockfile closure for guest package: {package}")
+    key = dict(schema=1, compiler=environment["UMPIRE_GUEST_COMPILER"], lock=lock,
                package=[environment["CARGO_PKG_NAME"], environment["CARGO_PKG_VERSION"], normalized(manifest)],
                name=name, source=normalized(os.path.join(manifest, source)), types=types,
                target="wasm32-wasip1" if target == "wasm32-wasip1" else "proc-macro-host",

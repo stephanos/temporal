@@ -3,7 +3,7 @@
 `bash model/scripts/guest.sh <crate> <output> [--check]` builds any cdylib with
 the mise-pinned Rust 1.99.1 compiler, `--locked`, `wasm32-wasip1` and `profile.guest`.
 It discovers the output through Cargo's artifact messages, including custom library
-names. It requires Bash, Python 3, the pinned toolchain and its `rust-src` component.
+names. It requires Bash, Python 3.11+, the pinned toolchain and its `rust-src` component.
 The Python executable path must contain no whitespace; the generated launcher uses
 its absolute shebang to preserve Cargo's macOS loader environment.
 Exit 0 means built or fresh, 1 means build/tool/output failure, and 2 means missing
@@ -21,8 +21,14 @@ No wasm bytes are rewritten after linking. The Temporal API generator sorts merg
 descriptor files before prost generation; otherwise Go map iteration could change
 merged Rust declaration order and the resulting guest bytes.
 
-`guest-rustc.py` derives target symbol identities from the pinned compiler, lockfile,
-normalized package/source paths, crate configuration and dependency identities.
+`guest-rustc.py` derives target symbol identities from the pinned compiler, the
+crate's own lockfile closure, normalized package/source paths, crate configuration
+and dependency identities. Before building, `guest-lock.py` digests, for every
+workspace-resolved package, the lockfile coordinates and checksums of its non-dev
+dependency closure across all platforms; path packages carry no location. Adding
+an unrelated workspace crate, or a dev-dependency anywhere, changes no guest bytes.
+Packages that share a name and version across sources, or lack a closure, refuse
+the build. Build-std units take no workspace closure; the pinned compiler fixes theirs.
 Cargo retains its own filenames and fingerprints. Atomic per-artifact `.umpire-id`
 files carry the portable identities; missing or malformed records fail the build.
 Records appear before rustc starts because Cargo pipelines dependent compilations
@@ -31,7 +37,8 @@ unchanged; their portable package/feature/profile identities include collision
 witnesses that refuse conflicting native variants in one target dependency graph.
 Each target's `OUT_DIR` remaps to `/generated/<portable identity>`, removing Cargo's
 host-specific directory hash from generated-source locations. Wrapper, lockfile or
-compiler changes select a new cache so older artifacts cannot bypass this evidence.
+compiler changes still select a new cache so older artifacts cannot bypass this evidence;
+a cache-only lockfile change rebuilds identical bytes.
 Existing `RUSTC_WRAPPER` executables are chained. These inputs support the pinned
 workspace and toolchain; a compiler or dependency upgrade requires renewed native
 cross-OS comparisons and the existing host controls.
