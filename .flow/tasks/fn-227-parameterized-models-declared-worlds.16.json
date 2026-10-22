@@ -1,0 +1,16 @@
+{
+  "assignee": null,
+  "claim_note": "",
+  "claimed_at": null,
+  "created_at": "2026-10-22T06:08:11.479000Z",
+  "depends_on": [
+    "fn-227-parameterized-models-declared-worlds.15"
+  ],
+  "id": "fn-227-parameterized-models-declared-worlds.16",
+  "priority": null,
+  "spec": "fn-227-parameterized-models-declared-worlds",
+  "spec_path": ".flow/tasks/fn-227-parameterized-models-declared-worlds.16.md",
+  "status": "todo",
+  "title": "Named intermediates in the IR so admitted trees stay linear in conditional returns",
+  "updated_at": "2026-10-22T06:08:11.479000Z"
+}
