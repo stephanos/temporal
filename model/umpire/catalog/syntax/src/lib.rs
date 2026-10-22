@@ -135,3 +135,26 @@ impl Catalog {
         }
     }
 }
+
+#[cfg(test)]
+mod tests {
+    #[test]
+    fn context_and_api_parameters_require_the_catalog_item() -> syn::Result<()> {
+        for attribute in [
+            "context = crate::Other",
+            "api = crate::other",
+            "also(text, context = crate::Other)",
+            "also(text, api = crate::other)",
+        ] {
+            let source = format!(
+                "#[mirror(response = \"example.Wire\", type = Wire)] struct Mirror {{ #[mirror({attribute})] value: Text }}"
+            );
+            let input = syn::parse_str(&source)?;
+            assert!(
+                super::DeriveCatalog::parse(&input).is_err(),
+                "accepted field parameter: {attribute}"
+            );
+        }
+        Ok(())
+    }
+}

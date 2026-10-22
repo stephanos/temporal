@@ -759,6 +759,12 @@ fn parse_also(input: ParseStream<'_>) -> syn::Result<ApiAttributes> {
         body.parse::<Token![,]>()?;
         body.parse()?
     };
+    if attributes.context.is_some() || attributes.api.is_some() {
+        return Err(syn::Error::new(
+            kind.span(),
+            "context and API roots belong on the catalog item",
+        ));
+    }
     attributes.also_kind = Some(kind);
     Ok(attributes)
 }
