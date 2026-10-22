@@ -76,7 +76,7 @@ fn storage_state_authenticates_sections_and_rejects_trailing_or_changed_bytes() 
     raw.extend_from_slice(&3u32.to_le_bytes());
     raw.extend_from_slice(&6u32.to_le_bytes());
     for (tag, bytes) in sections.iter().enumerate() {
-        raw.extend_from_slice(&(tag as u32 + 1).to_le_bytes());
+        raw.extend_from_slice(&(u32::try_from(tag).unwrap() + 1).to_le_bytes());
         raw.extend_from_slice(&(bytes.len() as u64).to_le_bytes());
         raw.extend_from_slice(bytes);
     }

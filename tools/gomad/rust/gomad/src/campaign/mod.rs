@@ -630,7 +630,7 @@ fn run_observed(
                             || failure.is_some())
                     {
                         if execution.record.outcome.termination == "capacity" {
-                            failed_assertions = execution.soft_assertions.clone();
+                            failed_assertions.clone_from(&execution.soft_assertions);
                         }
                         failure.get_or_insert_with(|| {
                             format!("runner_failure: {}", execution.record.outcome.reason)
