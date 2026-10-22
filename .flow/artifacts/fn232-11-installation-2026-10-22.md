@@ -275,3 +275,24 @@ and absent overlays; cooperative still requires literal Go v3/Rust v4 and full
 own-overlay authentication. Stock lineage fields retain null values; no identity
 is fabricated. AST3 and diff-check exit 0; actual focused recovery and stock plan
 checks remain pending the conductor's integrated resource window.
+
+Focused real recovery 01 (session 41492) completed exit 0: actual Rust and Go
+seed/round journals repair torn tails, repeat as no-op, and retain authenticated
+artifacts; Rust real lock and malformed refusals remain unchanged. Focused stock
+plan/reference 01 (session 14352) completed exit 0 with actual stock preparation,
+zero guest receipt and Go refusal/explore reference. Full lane 09 ran
+21:40:00Z–21:40:38Z (session 82894), exit 1 after complete plan/recovery families,
+at public Go environment origin reporting. Full 10 was not started.
+
+Source cause: `cmd/gomad/internal/cli/launcher.go` first resolves leading flag,
+environment and sibling into local `path`, then its line-122 closure calls
+installation.Resolve with ExplicitManifest:path for every origin. The backend
+`internal/backends/wasm/installation/installation.go` otherwise distinguishes
+all three origins, but public Go consequently reports literal `explicit` for
+environment/sibling too. Rust truthfully retains the actual origin. Root
+explicitly authorized this diagnostic difference rather than copying the Go
+reporting defect. The harness now verifies the exact selected path and literal
+manifest digest for BOTH lineages and retains requested/reported origins and
+literal digests in the golden, with declared run-path substitution only.
+Invalid explicit/environment selection refusal and no fallback checks remain
+unchanged. No production behavior or identity normalization was introduced.

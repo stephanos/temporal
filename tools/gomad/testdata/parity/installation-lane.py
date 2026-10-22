@@ -230,6 +230,16 @@ def main():
         duplicate_manifest.chmod(0o600)
         run(f'rust-duplicate-configuration-member-{attempt}',
             [args.binary, '--installation', duplicate_manifest, 'discover'], 3)
+        resolution = []
+
+        def selected(lineage, requested, value, manifest):
+            equal(value['path'], str(manifest.resolve()), lineage + '.' + requested + '.selected_path')
+            equal(value['sha256'], ('sha256:' if lineage == 'go' else '') + digest(manifest.read_bytes()),
+                  lineage + '.' + requested + '.selected_digest')
+            equal(value['source'], 'explicit' if lineage == 'go' else requested, lineage + '.' + requested + '.reported_source')
+            resolution.append(dict(lineage=lineage, requested_origin=requested, reported_origin=value['source'],
+                selected_path='$RUN/' + str(manifest.relative_to(root)), manifest_sha256=value['sha256']))
+
         for lineage, binary, manifest in (('go', args.go_binary, go_manifest), ('rust', args.binary, rust_manifest)):
             for verb in ('doctor', 'analyze'):
                 refusal = run(f'{lineage}-installed-{verb}-{attempt}', [binary, '--installation', manifest, verb, '--help'], 2)
@@ -238,9 +248,9 @@ def main():
             equal(default_analyze.stdout, b'', lineage + '.analyze.default_stdout')
             value = discover(f'{lineage}-explicit-{attempt}', binary, manifest,
                              {'GOMAD_WASM_INSTALLATION': str(root / 'missing.json')})
-            equal(value['source'], 'explicit', lineage + '.explicit_precedence')
+            selected(lineage, 'explicit', value, manifest)
             value = discover(f'{lineage}-environment-{attempt}', binary, extra={'GOMAD_WASM_INSTALLATION': str(manifest)})
-            equal(value['source'], 'environment', lineage + '.environment_precedence')
+            selected(lineage, 'environment', value, manifest)
             run(f'{lineage}-invalid-explicit-{attempt}', [binary, '--installation', root / 'missing.json', 'discover'], 3,
                 {'GOMAD_WASM_INSTALLATION': str(manifest)})
             sibling_dir = root / (lineage + '-sibling')
@@ -249,7 +259,7 @@ def main():
             shutil.copy2(binary, sibling_binary)
             shutil.copy2(manifest, sibling_dir / 'gomad-wasm.json')
             value = discover(f'{lineage}-sibling-{attempt}', sibling_binary)
-            equal(value['source'], 'executable-sibling', lineage + '.sibling')
+            selected(lineage, 'executable-sibling', value, sibling_dir / 'gomad-wasm.json')
             run(f'{lineage}-invalid-environment-{attempt}', [sibling_binary, 'discover'], 3,
                 {'GOMAD_WASM_INSTALLATION': str(root / 'missing.json')})
         run(f'rust-go-lineage-{attempt}', [args.binary, '--installation', go_manifest, 'discover'], 3)
@@ -321,7 +331,7 @@ def main():
                               else row['name'].removesuffix(f'-{attempt}'), status=row['status'])
                     for row in receipts[receipt_start:]]
         views.append(dict(schema='gomad.installation-golden/v1', grammar=grammar, doctor=doctors[1],
-                          installations=installed, seed_plan=seed_plan, recovery=recovery, go_recovery=go_recovery, numeric=numeric_rust, clocks=clocks, descriptors=descriptor_cases, commands=commands))
+                          installations=installed, seed_plan=seed_plan, recovery=recovery, go_recovery=go_recovery, numeric=numeric_rust, clocks=clocks, descriptors=descriptor_cases, resolution=resolution, commands=commands))
     equal({str(path): digest(path.read_bytes()) for path in input_paths}, input_digests, 'installation.unchanged_inputs')
     equal(views[0], views[1], 'installation.repeated_agreement')
     golden = CORPUS / 'goldens-installation' / ('grammar.json' if args.grammar_only else 'installation.json')
