@@ -18,6 +18,7 @@ pub struct Observed {
     /// Fully qualified RPC method path.
     pub method: String,
     result: Option<ObservationResult>,
+    request: Option<Any>,
 }
 
 impl Observed {
@@ -27,7 +28,16 @@ impl Observed {
         if observation.method.is_empty() {
             return Err(Refusal::malformed("observation method is missing"));
         }
-        Ok(Self { method: observation.method, result: observation.result })
+        Ok(Self {
+            method: observation.method,
+            result: observation.result,
+            request: observation.request,
+        })
+    }
+
+    /// Decode the same invocation's actual request, or `None` when no owner captured it.
+    pub fn request<T: Name + Default>(&self) -> Result<Option<T>, Refusal> {
+        self.request.as_ref().map(Any::unpack).transpose()
     }
 
     /// Decode a successful typed response; errors and absent results are malformed.

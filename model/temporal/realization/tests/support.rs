@@ -31,9 +31,12 @@ fn observation_admission_preserves_envelope_and_result_precedence() {
     assert_eq!(code(Observed::new(&Any::default())), malformed);
     assert_eq!(code(Observed::new(&Any::pack(&Reply::default()))), unsupported);
     assert_eq!(code(Observed::new(&Any::pack(&Observation::default()))), malformed);
-    let observed =
-        Observed::new(&Any::pack(&Observation { method: "unknown".into(), result: None }))
-            .unwrap_or_else(|e| panic!("{e:?}"));
+    let observed = Observed::new(&Any::pack(&Observation {
+        method: "unknown".into(),
+        result: None,
+        request: None,
+    }))
+    .unwrap_or_else(|e| panic!("{e:?}"));
     assert_eq!(observed.method, "unknown");
     assert_eq!(code(observed.response::<Reply>()), malformed);
     assert_eq!(code(observed.code()), malformed);
@@ -42,11 +45,42 @@ fn observation_admission_preserves_envelope_and_result_precedence() {
         (ResultValue::Response(Any::pack(&Callback::default())), unsupported),
         (ResultValue::Error(Error { code: 5, message: String::new() }), malformed),
     ] {
-        let observed =
-            Observed::new(&Any::pack(&Observation { method: "m".into(), result: Some(result) }))
-                .unwrap_or_else(|e| panic!("{e:?}"));
+        let observed = Observed::new(&Any::pack(&Observation {
+            method: "m".into(),
+            result: Some(result),
+            request: None,
+        }))
+        .unwrap_or_else(|e| panic!("{e:?}"));
         assert_eq!(code(observed.response::<Reply>()), expected);
     }
+}
+
+#[test]
+fn actual_request_is_optional_and_typed() {
+    let observed = |request| {
+        Observed::new(&Any::pack(&Observation {
+            method: "m".into(),
+            result: Some(ResultValue::Response(Any::pack(&Reply::default()))),
+            request,
+        }))
+        .unwrap_or_else(|e| panic!("{e:?}"))
+    };
+    assert_eq!(observed(None).request::<Callback>().unwrap_or_else(|e| panic!("{e:?}")), None);
+    let request = Callback { task: Some(Any::pack(&Reply::default())) };
+    assert_eq!(
+        observed(Some(Any::pack(&request)))
+            .request::<Callback>()
+            .unwrap_or_else(|e| panic!("{e:?}")),
+        Some(request)
+    );
+    assert_eq!(
+        code(observed(Some(Any::pack(&Reply::default()))).request::<Callback>()),
+        RefusalCode::Unsupported
+    );
+    assert_eq!(
+        code(observed(Some(Any::default())).request::<Callback>()),
+        RefusalCode::MalformedRequest
+    );
 }
 
 #[test]
@@ -56,9 +90,12 @@ fn response_and_grpc_codes_are_distinct() {
         ResultValue::Error(Error { code: 5, message: String::new() }),
     ] {
         let is_error = matches!(result, ResultValue::Error(_));
-        let observed =
-            Observed::new(&Any::pack(&Observation { method: "m".into(), result: Some(result) }))
-                .unwrap_or_else(|e| panic!("{e:?}"));
+        let observed = Observed::new(&Any::pack(&Observation {
+            method: "m".into(),
+            result: Some(result),
+            request: None,
+        }))
+        .unwrap_or_else(|e| panic!("{e:?}"));
         assert_eq!(observed.code().unwrap_or_else(|e| panic!("{e:?}")), is_error.then_some(5));
         if !is_error {
             assert_eq!(

@@ -345,8 +345,9 @@ Generic Any helpers derive canonical type URLs from generated `prost::Name`; onl
 Describe and cancel RPC method paths are binding constants. The policy parser and reply constructor
 keep the remaining binding specific to Temporal.
 
-Exactly three envelopes live under `temporal/proto`: Observation carries a method and
-a response Any or error, Callback a task Any, Reply a request Any. The real upstream API descriptor
+Exactly three envelopes live under `temporal/proto`: Observation carries a method,
+a response Any or error, and an optional actual-request Any at tag 4, Callback a task Any,
+Reply a request Any. The real upstream API descriptor
 closure is compiled natively and for WASM, with generated well-known types owned once
 by `umpire_wasm::google::protobuf`. The closure's file count is not a schema invariant.
 No Testpilot schema is moved, imported or copied. Shared WKT ownership means checker

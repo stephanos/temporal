@@ -52,11 +52,18 @@ func modelSliceAny(t *testing.T, message proto.Message) *anypb.Any {
 	return value
 }
 
-func modelSliceJudge(ctx context.Context, t *testing.T, host *model.Host, response *workflowservice.DescribeActivityExecutionResponse) *modelv1.JudgeResponse {
+// modelSliceDescribed is one captured Describe invocation's actual request and result.
+type modelSliceDescribed struct {
+	*workflowservice.DescribeActivityExecutionResponse
+	request *workflowservice.DescribeActivityExecutionRequest
+}
+
+func modelSliceJudge(ctx context.Context, t *testing.T, host *model.Host, described modelSliceDescribed) *modelv1.JudgeResponse {
 	t.Helper()
 	return modelSliceJudgeObservation(ctx, t, host, &temporalv1.Observation{
-		Method: workflowservice.WorkflowService_DescribeActivityExecution_FullMethodName,
-		Result: &temporalv1.Observation_Response{Response: modelSliceAny(t, response)},
+		Method:  workflowservice.WorkflowService_DescribeActivityExecution_FullMethodName,
+		Result:  &temporalv1.Observation_Response{Response: modelSliceAny(t, described.DescribeActivityExecutionResponse)},
+		Request: modelSliceAny(t, described.request),
 	})
 }
 
@@ -70,7 +77,7 @@ func modelSliceJudgeObservation(ctx context.Context, t *testing.T, host *model.H
 	return judgment
 }
 
-func modelSliceExplained(t *testing.T, judgment *modelv1.JudgeResponse, response *workflowservice.DescribeActivityExecutionResponse, steps ...string) {
+func modelSliceExplained(t *testing.T, judgment *modelv1.JudgeResponse, response modelSliceDescribed, steps ...string) {
 	t.Helper()
 	require.NotNil(t, judgment.GetExplained(), "unexplained Describe status: %s", response.GetInfo().GetStatus())
 	require.Equal(t, steps, judgment.GetExplained().GetSteps())
@@ -211,32 +218,51 @@ func TestTestpilotModelSlice(t *testing.T) {
 			if scenario == "Cancellation" || scenario == "CancelAfterCompletion" || scenario == "CancelBeforeWorkerStart" {
 				input = "Complete"
 			}
-			handle, err := sdkClient.ExecuteActivity(ctx, client.StartActivityOptions{
+			startCtx, starts := modelSliceCapturing(ctx)
+			handle, err := sdkClient.ExecuteActivity(startCtx, client.StartActivityOptions{
 				ID: uuid.NewString(), TaskQueue: queue, StartToCloseTimeout: 20 * time.Second,
 				RetryPolicy: &temporal.RetryPolicy{MaximumAttempts: 1},
 			}, "ModelSlice", []byte(input))
 			require.NoError(t, err)
-			describe := func() *workflowservice.DescribeActivityExecutionResponse {
-				response, err := sdkClient.WorkflowService().DescribeActivityExecution(ctx, &workflowservice.DescribeActivityExecutionRequest{
+			// The Start pair is transported only; .5 owns its admission.
+			startCapture := starts.single(t)
+			require.NoError(t, startCapture.rpcErr)
+			require.NoError(t, startCapture.localErr)
+			startRequest := startCapture.request.(*workflowservice.StartActivityExecutionRequest)
+			startResponse := startCapture.response.(*workflowservice.StartActivityExecutionResponse)
+			require.Equal(t, env.Namespace().String(), startRequest.GetNamespace())
+			require.Equal(t, handle.GetID(), startRequest.GetActivityId())
+			require.NotEmpty(t, startRequest.GetRequestId())
+			require.EqualValues(t, 1, startRequest.GetRetryPolicy().GetMaximumAttempts())
+			require.Equal(t, handle.GetRunID(), startResponse.GetRunId())
+			require.True(t, startResponse.GetStarted())
+			startObservation := startCapture.observation(t)
+			require.Equal(t, workflowservice.WorkflowService_StartActivityExecution_FullMethodName, startObservation.GetMethod())
+			require.True(t, startObservation.GetRequest().MessageIs(startRequest))
+			require.True(t, startObservation.GetResponse().MessageIs(startResponse))
+			describe := func() modelSliceDescribed {
+				describeCtx, captures := modelSliceCapturing(ctx)
+				_, err := sdkClient.WorkflowService().DescribeActivityExecution(describeCtx, &workflowservice.DescribeActivityExecutionRequest{
 					Namespace: env.Namespace().String(), ActivityId: handle.GetID(), RunId: handle.GetRunID(), IncludeOutcome: true,
 				})
 				require.NoError(t, err)
-				return response
+				capture := captures.single(t)
+				return modelSliceDescribed{
+					DescribeActivityExecutionResponse: capture.response.(*workflowservice.DescribeActivityExecutionResponse),
+					request:                           capture.request.(*workflowservice.DescribeActivityExecutionRequest),
+				}
 			}
 			cancelActivity := func() (*temporalv1.Observation, error) {
-				response, err := sdkClient.WorkflowService().RequestCancelActivityExecution(ctx, &workflowservice.RequestCancelActivityExecutionRequest{
+				cancelCtx, captures := modelSliceCapturing(ctx)
+				_, err := sdkClient.WorkflowService().RequestCancelActivityExecution(cancelCtx, &workflowservice.RequestCancelActivityExecutionRequest{
 					Namespace: env.Namespace().String(), ActivityId: handle.GetID(), RunId: handle.GetRunID(),
 					Identity: "model-slice", RequestId: uuid.NewString(), Reason: scenario,
 				})
-				observation := &temporalv1.Observation{Method: workflowservice.WorkflowService_RequestCancelActivityExecution_FullMethodName}
+				capture := captures.single(t)
+				require.NoError(t, capture.localErr)
+				observation := capture.observation(t)
 				if err != nil {
-					rpcStatus := serviceerror.ToStatus(err)
-					observation.Result = &temporalv1.Observation_Error{Error: &temporalv1.Error{
-						Code: int32(rpcStatus.Code()), Message: rpcStatus.Message(),
-					}}
-				} else {
-					require.NotNil(t, response)
-					observation.Result = &temporalv1.Observation_Response{Response: modelSliceAny(t, response)}
+					require.Equal(t, int32(serviceerror.ToStatus(err).Code()), observation.GetError().GetCode())
 				}
 				t.Logf("actual cancel observation method=%s code=%d", observation.GetMethod(), observation.GetError().GetCode())
 				return observation, err
@@ -329,7 +355,7 @@ func TestTestpilotModelSlice(t *testing.T) {
 			}
 			poll := time.NewTicker(10 * time.Millisecond)
 			defer poll.Stop()
-			var terminalResponse *workflowservice.DescribeActivityExecutionResponse
+			var terminalResponse modelSliceDescribed
 			for {
 				response := describe()
 				judgment := modelSliceJudge(ctx, t, host, response)
@@ -383,7 +409,7 @@ func TestTestpilotModelSlice(t *testing.T) {
 				require.True(t, proto.Equal(frozen, modelSliceJudgeObservation(ctx, t, host, observation)))
 				require.True(t, proto.Equal(frozen, modelSliceJudge(ctx, t, host, describe())))
 			} else {
-				impossible := proto.Clone(terminalResponse).(*workflowservice.DescribeActivityExecutionResponse)
+				impossible := modelSliceDescribed{proto.Clone(terminalResponse.DescribeActivityExecutionResponse).(*workflowservice.DescribeActivityExecutionResponse), terminalResponse.request}
 				impossible.Info.Status = enumspb.ACTIVITY_EXECUTION_STATUS_FAILED
 				if wantStatus == enumspb.ACTIVITY_EXECUTION_STATUS_FAILED {
 					impossible.Info.Status = enumspb.ACTIVITY_EXECUTION_STATUS_COMPLETED

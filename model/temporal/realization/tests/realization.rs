@@ -9,7 +9,10 @@ use umpire_temporal_api::{
     temporal::api::{
         activity::v1::ActivityExecutionInfo,
         common::v1::{Payload, Payloads},
-        workflowservice::v1::{DescribeActivityExecutionResponse, PollActivityTaskQueueResponse},
+        workflowservice::v1::{
+            DescribeActivityExecutionRequest, DescribeActivityExecutionResponse,
+            PollActivityTaskQueueResponse, RequestCancelActivityExecutionRequest,
+        },
     },
     umpire::temporal::v1::{
         Callback, Error, Observation, observation::Result as ObservationResult,
@@ -32,6 +35,7 @@ fn successful_cancel_is_an_explained_step_and_reaches_canceled() {
     let cancel = Any::pack(&Observation {
         method: CANCEL.into(),
         result: Some(ObservationResult::Response(Any::pack(&response))),
+        request: None,
     });
     explained(judge(&mut guest, cancel), &["Client::Cancel"]);
     explained(judge(&mut guest, observation(4, 0)), &[]);
@@ -53,6 +57,7 @@ fn observation(status: i32, run_state: i32) -> Any {
                     ..Default::default()
                 },
             ))),
+            request: None,
         },
     )
 }
@@ -126,6 +131,7 @@ fn cancel(error: Option<i32>) -> Any {
             )),
             |code| ObservationResult::Error(Error { code, message: "actual server status".into() }),
         )),
+        request: None,
     })
 }
 
@@ -233,12 +239,12 @@ fn contradictory_and_unknown_cancel_statuses_freeze_the_current_expected_actions
 fn cancel_envelope_refusals_preserve_state_and_frozen_evidence() {
     let malformed = protocol::RefusalCode::MalformedRequest;
     let cases = [
-        (Observation { method: "unknown".into(), result: Some(ObservationResult::Error(Error { code: 5, message: String::new() })) }, protocol::RefusalCode::Unsupported),
-        (Observation { method: String::new(), result: Some(ObservationResult::Error(Error::default())) }, malformed),
-        (Observation { method: CANCEL.into(), result: None }, malformed),
-        (Observation { method: CANCEL.into(), result: Some(ObservationResult::Response(Any::default())) }, malformed),
-        (Observation { method: CANCEL.into(), result: Some(ObservationResult::Response(Any::pack(&DescribeActivityExecutionResponse::default()))) }, malformed),
-        (Observation { method: CANCEL.into(), result: Some(ObservationResult::Response(Any { type_url: "type.googleapis.com/temporal.api.workflowservice.v1.RequestCancelActivityExecutionResponse".into(), value: vec![255] })) }, malformed),
+        (Observation { method: "unknown".into(), result: Some(ObservationResult::Error(Error { code: 5, message: String::new() })), request: None }, protocol::RefusalCode::Unsupported),
+        (Observation { method: String::new(), result: Some(ObservationResult::Error(Error::default())), request: None }, malformed),
+        (Observation { method: CANCEL.into(), result: None, request: None }, malformed),
+        (Observation { method: CANCEL.into(), result: Some(ObservationResult::Response(Any::default())), request: None }, malformed),
+        (Observation { method: CANCEL.into(), result: Some(ObservationResult::Response(Any::pack(&DescribeActivityExecutionResponse::default()))), request: None }, malformed),
+        (Observation { method: CANCEL.into(), result: Some(ObservationResult::Response(Any { type_url: "type.googleapis.com/temporal.api.workflowservice.v1.RequestCancelActivityExecutionResponse".into(), value: vec![255] })), request: None }, malformed),
     ];
     let mut guest = Guest::new(runtime());
     for (value, code) in &cases {
@@ -280,10 +286,71 @@ fn observation_response_tag_stays_pinned_and_error_uses_tag_three() {
             vec![10, 1, b'm', 26, 5, 8, 5, 18, 1, b'x'],
         ),
     ] {
-        let observation = Observation { method: "m".into(), result: Some(result) };
+        let observation = Observation { method: "m".into(), result: Some(result), request: None };
         assert_eq!(observation.encode_to_vec(), bytes);
         assert_eq!(Observation::decode(bytes.as_slice()), Ok(observation));
     }
+}
+
+#[test]
+fn observation_request_uses_tag_four_after_the_unchanged_result() {
+    let observation = Observation {
+        method: "m".into(),
+        result: Some(ObservationResult::Response(Any { type_url: "x".into(), value: vec![1, 2] })),
+        request: Some(Any { type_url: "r".into(), value: vec![3] }),
+    };
+    let bytes = vec![10, 1, b'm', 18, 7, 10, 1, b'x', 18, 2, 1, 2, 34, 6, 10, 1, b'r', 18, 1, 3];
+    assert_eq!(observation.encode_to_vec(), bytes);
+    assert_eq!(Observation::decode(bytes.as_slice()), Ok(observation.clone()));
+    let go = [10, 1, b'm', 34, 6, 10, 1, b'r', 18, 1, 3, 18, 7, 10, 1, b'x', 18, 2, 1, 2];
+    assert_eq!(Observation::decode(go.as_slice()), Ok(observation));
+}
+
+#[test]
+fn actual_requests_leave_current_judgments_unchanged() {
+    let describe = DescribeActivityExecutionRequest {
+        namespace: "model-slice".into(),
+        activity_id: "activity".into(),
+        run_id: "run".into(),
+        include_outcome: true,
+        ..Default::default()
+    };
+    let cancel_request = RequestCancelActivityExecutionRequest {
+        namespace: "model-slice".into(),
+        activity_id: "activity".into(),
+        run_id: "run".into(),
+        request_id: "request".into(),
+        ..Default::default()
+    };
+    let pair = |value: Any, request: Any| {
+        let mut carried: Observation = value.unpack().unwrap_or_else(|e| panic!("{e:?}"));
+        carried.request = Some(request);
+        (value, Any::pack(&carried))
+    };
+    let script = [
+        pair(observation(1, 1), Any::pack(&describe)),
+        pair(cancel(None), Any::pack(&cancel_request)),
+        pair(observation(4, 0), Any::pack(&describe)),
+        pair(cancel(Some(5)), Any::pack(&cancel_request)),
+        pair(observation(2, 0), Any::pack(&describe)),
+    ];
+    let mut absent = Guest::new(runtime());
+    let mut present = Guest::new(runtime());
+    let judged: Vec<_> = script
+        .into_iter()
+        .map(|(value, carried)| {
+            let response = judge(&mut present, carried);
+            assert_eq!(response, judge(&mut absent, value));
+            response
+        })
+        .collect();
+    let [scheduled, canceled, closed, after, impossible] =
+        judged.try_into().unwrap_or_else(|_| panic!("five judgments"));
+    explained(scheduled, &[]);
+    explained(canceled, &["Client::Cancel"]);
+    explained(closed, &[]);
+    assert_eq!(explanation(after).outcomes, ["Rejected(NotFound)"]);
+    assert_eq!(unexplained(impossible), ["Client::Cancel"]);
 }
 
 fn unexplained(response: protocol::Response) -> Vec<String> {
@@ -437,6 +504,7 @@ fn malformed_and_unsupported_observations_preserve_run_and_frozen_evidence() {
                 "temporal.api.workflowservice.v1.DescribeActivityExecutionResponse",
                 &DescribeActivityExecutionResponse::default(),
             ))),
+            request: None,
         },
     );
     let cases = [
@@ -458,14 +526,14 @@ fn malformed_and_unsupported_observations_preserve_run_and_frozen_evidence() {
         (
             any(
                 "umpire.temporal.v1.Observation",
-                &Observation { method: "wrong".into(), result: None },
+                &Observation { method: "wrong".into(), result: None, request: None },
             ),
             unsupported,
         ),
         (
             any(
                 "umpire.temporal.v1.Observation",
-                &Observation { method: DESCRIBE.into(), result: None },
+                &Observation { method: DESCRIBE.into(), result: None, request: None },
             ),
             malformed,
         ),
