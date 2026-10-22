@@ -33,7 +33,8 @@ impl Cancellation {
         }
     }
 
-    pub(crate) fn cancelled(&self) -> bool {
+    #[must_use]
+    pub fn cancelled(&self) -> bool {
         self.0.cancelled.load(Ordering::Acquire)
     }
 

@@ -69,6 +69,14 @@ impl Model {
     pub fn flush(&mut self, output: &mut dyn Write, all: bool) -> Result<()> {
         #[cfg(feature = "diagnostic-profile")]
         let _flush = crate::diagnostic::WallSpan::new(crate::diagnostic::Nested::Flush);
+        if !all
+            && self
+                .linked_evidence
+                .as_ref()
+                .is_some_and(crate::linked::Sink::streaming)
+        {
+            self.flush_output(output)?;
+        }
         if all && !self.inspection.sealed {
             self.close_clock_run();
         }
@@ -104,8 +112,9 @@ impl Model {
                 while bytes.len() >= CHUNK || all && !bytes.is_empty() {
                     let count = bytes.len().min(CHUNK);
                     if let Some(sink) = &self.linked_evidence {
-                        sink.append(stream, &bytes[..count])?;
+                        let result = sink.append(stream, &bytes[..count]);
                         bytes.drain(..count);
+                        result?;
                         continue;
                     }
                     protocol::send_frame(

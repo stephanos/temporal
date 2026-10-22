@@ -67,6 +67,20 @@ pub struct Execution {
     pub event_order: Option<Vec<u8>>,
 }
 
+#[derive(Clone, Copy, Debug, Eq, PartialEq)]
+pub enum OutputStream {
+    Stdout,
+    Stderr,
+}
+
+/// Consumes accepted output synchronously. Calls are serialized per request.
+/// Implementations must bound their I/O and must not reenter the request's sink.
+pub trait OutputConsumer: Send + Sync {
+    /// # Errors
+    /// A write failure stops execution and retains the accepted evidence prefix.
+    fn write(&self, stream: OutputStream, bytes: &[u8]) -> io::Result<()>;
+}
+
 pub struct Prepared {
     pub(crate) request: Request,
     pub(crate) execute: protocol::Execute,
@@ -74,6 +88,7 @@ pub struct Prepared {
     pub(crate) namespace: Option<namespace::Namespace>,
     pub(crate) conditions: Conditions,
     cancellation: Cancellation,
+    output: Option<Arc<dyn OutputConsumer>>,
     network: Option<crate::cluster::network::Endpoint>,
 }
 
@@ -101,6 +116,10 @@ impl Prepared {
         self.cancellation = cancellation;
     }
 
+    pub fn output(&mut self, output: Arc<dyn OutputConsumer>) {
+        self.output = Some(output);
+    }
+
     pub fn conditions(&mut self, conditions: Conditions) {
         self.conditions = conditions;
     }
@@ -119,6 +138,13 @@ impl Prepared {
 pub(crate) struct Sink {
     streams: Arc<Mutex<BTreeMap<String, Vec<u8>>>>,
     maximum: u64,
+    output: Option<Arc<Output>>,
+}
+
+struct Output {
+    consumer: Arc<dyn OutputConsumer>,
+    failure: Mutex<Option<String>>,
+    cancellation: Cancellation,
 }
 
 impl Sink {
@@ -126,7 +152,37 @@ impl Sink {
         Self {
             streams: Arc::new(Mutex::new(BTreeMap::new())),
             maximum,
+            output: None,
         }
+    }
+
+    fn with_output(
+        mut self,
+        consumer: Option<Arc<dyn OutputConsumer>>,
+        cancellation: Cancellation,
+    ) -> Self {
+        self.output = consumer.map(|consumer| {
+            Arc::new(Output {
+                consumer,
+                failure: Mutex::new(None),
+                cancellation,
+            })
+        });
+        self
+    }
+
+    pub(crate) fn streaming(&self) -> bool {
+        self.output.is_some()
+    }
+
+    fn output_failure(&self) -> Option<String> {
+        self.output.as_ref().and_then(|output| {
+            output
+                .failure
+                .lock()
+                .unwrap_or_else(std::sync::PoisonError::into_inner)
+                .clone()
+        })
     }
 
     pub(crate) fn into_streams(self) -> wasmtime::Result<BTreeMap<String, Vec<u8>>> {
@@ -144,6 +200,21 @@ impl Sink {
             .ok_or_else(|| Error::msg("linked evidence capacity overflow"))
     }
     pub(crate) fn append(&self, stream: &str, bytes: &[u8]) -> wasmtime::Result<()> {
+        let output = self.output.as_ref().and_then(|output| {
+            let stream = match stream {
+                "stdout" => OutputStream::Stdout,
+                "stderr" => OutputStream::Stderr,
+                _ => return None,
+            };
+            Some((output, stream))
+        });
+        // Acquire before evidence admission to preserve each stream's order.
+        let mut forwarding = output.map(|(output, _)| {
+            output
+                .failure
+                .lock()
+                .unwrap_or_else(std::sync::PoisonError::into_inner)
+        });
         let mut streams = self
             .streams
             .lock()
@@ -158,6 +229,17 @@ impl Sink {
             .entry(stream.into())
             .or_default()
             .extend_from_slice(bytes);
+        drop(streams);
+        if let (Some((output, stream)), Some(failure)) = (output, forwarding.as_mut())
+            && failure.is_none()
+            && !bytes.is_empty()
+            && let Err(error) = output.consumer.write(stream, bytes)
+        {
+            let message = format!("linked output consumer: {error}");
+            **failure = Some(message.clone());
+            output.cancellation.cancel();
+            return Err(Error::new(io::Error::other(message)));
+        }
         Ok(())
     }
 }
@@ -292,6 +374,7 @@ pub fn prepare(mut request: Request) -> wasmtime::Result<Prepared> {
         namespace,
         conditions: Conditions::default(),
         cancellation: Cancellation::default(),
+        output: None,
         network: None,
     })
 }
@@ -312,13 +395,14 @@ pub fn execute_prepared(prepared: Prepared) -> wasmtime::Result<Execution> {
         namespace,
         conditions,
         cancellation,
+        output,
         network,
     } = prepared;
     if cancellation.cancelled() {
         return Ok(Cancellation::execution());
     }
     let mut conditions = conditions.enter()?;
-    let sink = Sink::new(request.limits.evidence_bytes);
+    let sink = Sink::new(request.limits.evidence_bytes).with_output(output, cancellation.clone());
     if let Some(model) = &mut model {
         model.linked_evidence = Some(sink.clone());
     }
@@ -412,7 +496,13 @@ pub fn execute_prepared(prepared: Prepared) -> wasmtime::Result<Execution> {
         result
     })?;
     apply_watchdog(&timed_out, &mut outcome);
-    cancellation.apply(&mut outcome);
+    if let Some(message) = sink.output_failure() {
+        outcome.termination = "infrastructure";
+        outcome.exit_code = None;
+        outcome.message = message;
+    } else {
+        cancellation.apply(&mut outcome);
+    }
     let evidence = sink.into_streams()?;
     let event_order = conditions.finish();
     drop(registration);
@@ -513,3 +603,7 @@ mod evidence_bounds_tests {
         assert_eq!(error.to_string(), "linked evidence capacity overflow");
     }
 }
+
+#[cfg(test)]
+#[path = "linked/streaming_tests.rs"]
+mod streaming_tests;

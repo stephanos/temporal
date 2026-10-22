@@ -1,6 +1,7 @@
 use serde::Serialize;
 use std::collections::BTreeMap;
 
+pub(crate) mod build_info;
 mod bytes;
 pub(crate) mod inspection;
 mod tables;

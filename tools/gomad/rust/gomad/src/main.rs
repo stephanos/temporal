@@ -4,8 +4,24 @@ fn main() {
         eprintln!("gomad: unsupported fixture control");
         std::process::exit(2);
     }
-    let mut arguments = std::env::args().skip(1).collect::<Vec<_>>();
+    let mut arguments = std::env::args_os().skip(1).collect::<Vec<_>>();
     let installation = take_installation(&mut arguments);
+    if arguments
+        .first()
+        .is_some_and(|argument| argument == "run-guest")
+    {
+        let status = gomad::cli::run_guest::run(&arguments[1..], installation.as_deref());
+        std::process::exit(status);
+    }
+    let arguments = arguments
+        .into_iter()
+        .map(|argument| {
+            argument.into_string().unwrap_or_else(|_| {
+                eprintln!("gomad: command arguments must be UTF-8");
+                std::process::exit(2);
+            })
+        })
+        .collect::<Vec<_>>();
     if let Some(command) = arguments.first().map(String::as_str).filter(|command| {
         matches!(
             *command,
@@ -95,7 +111,7 @@ fn main() {
     std::process::exit(2);
 }
 
-fn take_installation(arguments: &mut Vec<String>) -> Option<std::path::PathBuf> {
+fn take_installation(arguments: &mut Vec<std::ffi::OsString>) -> Option<std::path::PathBuf> {
     let mut installation = None;
     loop {
         if arguments
@@ -109,9 +125,13 @@ fn take_installation(arguments: &mut Vec<String>) -> Option<std::path::PathBuf> 
             installation = Some(std::path::PathBuf::from(&arguments[1]));
             arguments.drain(..2);
         } else if let Some(value) = arguments.first().and_then(|value| {
+            use std::os::unix::ffi::OsStrExt as _;
             value
-                .strip_prefix("--installation=")
-                .or_else(|| value.strip_prefix("-installation="))
+                .as_os_str()
+                .as_bytes()
+                .strip_prefix(b"--installation=")
+                .or_else(|| value.as_os_str().as_bytes().strip_prefix(b"-installation="))
+                .map(std::ffi::OsStr::from_bytes)
         }) {
             installation = Some(std::path::PathBuf::from(value));
             arguments.remove(0);
