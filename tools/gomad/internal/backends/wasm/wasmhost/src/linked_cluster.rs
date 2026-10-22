@@ -1040,6 +1040,8 @@ fn execute_inner(
                     images.insert(step.handle.node.clone(), image);
                 }
                 if step.action == Action::Wait
+                    && broker.output_terminal(index, step.handle.incarnation)
+                        != Some(observed.result.execution.outcome.termination)
                     && observed.result.execution.outcome.termination != "inspected_prefix"
                     && (observed.result.execution.outcome.termination != "exit"
                         || observed.result.execution.outcome.exit_code != Some(0))

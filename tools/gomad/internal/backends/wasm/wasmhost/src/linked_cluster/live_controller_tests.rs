@@ -7,6 +7,8 @@ fn output_wait_request(fd: u32, after: &str, nodes: &[&str], action: Action) -> 
     let module = format!(r#"(module
         (import "wasi_snapshot_preview1" "fd_write" (func $write (param i32 i32 i32 i32) (result i32)))
         (import "wasi_snapshot_preview1" "clock_time_get" (func $clock (param i32 i64 i32) (result i32)))
+        (import "gomad_wasm_v1" "config" (func $config (param i32 i32) (result i32)))
+        (import "gomad_wasm_v1" "idle" (func $idle (param i32 i32) (result i32)))
         (import "wasi_snapshot_preview1" "proc_exit" (func $exit (param i32)))
         (memory (export "memory") 1)
         (data (i32.const 128) "mark")
@@ -24,18 +26,19 @@ fn output_wait_request(fd: u32, after: &str, nodes: &[&str], action: Action) -> 
                 output_bytes: 1024, evidence_bytes: 1 << 20, wall_timeout: Duration::from_secs(5) },
             model: Some(linked::ModelInput {
                 configuration: serde_json::from_value(json!({
-                    "entropy_key":vec![0u8;32], "working_directory_sha256":format!("{:x}", Sha256::digest(b"/")),
+                    "entropy_key":vec![0u8;32], "working_directory_sha256":format!("{:x}", Sha256::digest(b"/workspace")),
                     "arguments":{"bytes":0,"count":0,"chunks":0},
                     "environment":{"bytes":0,"count":0,"chunks":0},
                     "seed":7,"mode":1,"limit":1048576,"diagnostics":false,
                     "epoch_nanos":946684800000000000u64,"read_step_nanos":0,"now":1,
                     "limits":{"calls":1048576,"transcript_bytes":1048576,"pending_events":1024}
                 })).unwrap(),
-                arguments: vec![], environment: vec![], replay_trace: None,
+                arguments: vec![], environment: vec!["PWD=/workspace".into()], replay_trace: None,
             }),
             namespace: Some(namespace::Image {
-                entries: vec![], writable_directories: vec![b"/".to_vec()], preopens: vec![b"/".to_vec()],
-                working_directory: b"/".to_vec(), stdin: vec![], epoch_nanos: 946684800000000000,
+                entries: vec![namespace::ImageEntry {path:b"/workspace".to_vec(), directory:true, readonly:false, data:vec![]}],
+                writable_directories: vec![b"/workspace".to_vec()], preopens: vec![b"/workspace".to_vec()],
+                working_directory: b"/workspace".to_vec(), stdin: vec![], epoch_nanos: 946684800000000000,
                 limits: namespace::Limits { files: 100, descriptors: 16, filesystem_bytes: 4096, output_bytes: 1024 },
             }),
             storage: None,
@@ -115,7 +118,12 @@ fn conditional_output_wait_retains_world_and_actual_terminal() {
             crate::world::retained::validate(&execution.world, &world_config).unwrap();
         }
     }
-    let loop_after = "(loop i32.const 1 i64.const 1 i32.const 64 call $clock drop br 0)";
+    let loop_after = "i32.const 512 i32.const 16 call $config drop
+        (loop
+            i32.const 768 i64.const 0 i64.store
+            i32.const 776 i64.const 0 i64.store
+            i32.const 771 i32.const 1 i32.store8
+            i32.const 768 i32.const 16 call $idle drop br 0)";
     let mut request = output_wait_request(1, loop_after, &["a", "b"], Action::Crash);
     request.boundaries.clear();
     request.crash_groups.push(CrashGroup {
@@ -123,7 +131,11 @@ fn conditional_output_wait_retains_world_and_actual_terminal() {
         marker: b"mark".to_vec(),
     });
     let execution = execute_prepared(prepare(request).unwrap()).unwrap();
-    assert_eq!(execution.outcome.termination, "exit");
+    assert_eq!(
+        execution.outcome.termination, "exit",
+        "{}",
+        execution.outcome.message
+    );
     assert_eq!(execution.outcome.exit_code, Some(0));
     assert!(!execution.world.is_empty());
     assert_eq!(execution.incarnations.len(), 2);
@@ -153,7 +165,7 @@ fn conditional_output_wait_retains_world_and_actual_terminal() {
 #[test]
 fn unbound_same_kind_and_cancellation_remain_failures_with_armed_marker() {
     let loop_after = "(loop i32.const 1 i64.const 1 i32.const 64 call $clock drop br 0)";
-    for terminal in ["crash", "stop", "cancelled"] {
+    for terminal in ["crash", "stop"] {
         let action = if terminal == "stop" {
             Action::Stop
         } else {
@@ -163,7 +175,7 @@ fn unbound_same_kind_and_cancellation_remain_failures_with_armed_marker() {
         request.boundaries[0].marker = b"never".to_vec();
         let prepared = prepare(request).unwrap();
         let activity = prepared.activity();
-        let mut conditions = prepared.conditions.enter().unwrap();
+        let conditions = prepared.conditions.enter().unwrap();
         let session = conditions.session();
         let engine = Engine::new(&engine::configuration(true)).unwrap();
         let broker = Arc::new(Broker::new(&prepared.broker, &prepared.ids, None, None).unwrap());
@@ -177,17 +189,13 @@ fn unbound_same_kind_and_cancellation_remain_failures_with_armed_marker() {
                     assert!(started.elapsed() < Duration::from_secs(5));
                     thread::sleep(Duration::from_millis(1));
                 }
-                if terminal == "cancelled" {
-                    cancellation.cancel();
-                } else {
-                    controller_broker
-                        .command(Command::Revoke {
-                            index: 0,
-                            incarnation: 1,
-                            kind: terminal,
-                        })
-                        .unwrap();
-                }
+                controller_broker
+                    .command(Command::Revoke {
+                        index: 0,
+                        incarnation: 1,
+                        kind: terminal,
+                    })
+                    .unwrap();
             });
             execute_inner(
                 &engine,
@@ -205,6 +213,26 @@ fn unbound_same_kind_and_cancellation_remain_failures_with_armed_marker() {
             "unexpected {terminal} must not retain World"
         );
     }
+    let mut request = output_wait_request(1, loop_after, &["a"], Action::Crash);
+    request.boundaries[0].marker = b"never".to_vec();
+    let prepared = prepare(request).unwrap();
+    let activity = prepared.activity();
+    let cancellation = prepared.cancellation.clone();
+    let execution = thread::scope(|scope| {
+        scope.spawn(move || {
+            let started = std::time::Instant::now();
+            while activity.snapshot().launched_stores == 0 {
+                assert!(started.elapsed() < Duration::from_secs(5));
+                thread::sleep(Duration::from_millis(1));
+            }
+            cancellation.cancel();
+        });
+        execute_prepared(prepared)
+    })
+    .unwrap();
+    assert_eq!(execution.outcome.termination, "cancelled");
+    assert_eq!(execution.outcome.exit_code, None);
+    assert_eq!(execution.outcome.message, "seed execution was cancelled");
 }
 
 #[test]
