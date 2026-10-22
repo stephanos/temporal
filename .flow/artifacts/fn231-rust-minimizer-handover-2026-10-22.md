@@ -369,3 +369,30 @@ Evidence: `/home/agent/evidence/fn231-module-command-{red,green}.log` and
 also pass. This causal source correction did not run Go, Cargo or a guest; a
 fresh authorized public attempt remains necessary. The first failed receipts
 remain immutable.
+
+
+## Scope resolution cache correction
+
+The fn230 completion review identified repeated symbol resolution of cached
+offsets in `Resolution::observe`. Observation now filters missing and cached
+offsets before calling the resolver, deduplicates new offsets, and skips the
+resolver altogether when none remain. The shared trace observer still records
+each trace's matching fingerprints; unavailable package observations remain
+cached as `None`. A private injectable resolver seam enables a meaningful call
+regression without global instrumentation or changes to persisted formats.
+
+Focused RED on the former behavior exited 101: the third batch incorrectly
+contained new 5384 plus cached 5383. GREEN exited 0, proving only unique new
+offsets reach the resolver, unavailable offsets are cached, cached/missing-only
+traces make zero resolver calls, and fingerprint updates still happen. The
+affected site_scope suite and workspace format/diff checks also exited 0. Logs
+are `/home/agent/evidence/fn230-site-cache-focused-{red,green}.log` and
+`fn230-site-cache-suite-green.log`. Commands used release/locked/jobs2 on the
+authorized warmed `fn232-retained-validation` target. No Go or guests ran.
+
+The first attempted focused invocation mistakenly named a new `retained-validation`
+target. It was stopped with exit 143 before tests (not counted as RED), and its
+190134716 bytes were removed after its cargo/compiler processes exited and exact
+private path/ownership were verified. The existing warmed target was preserved.
+Correct target RED session 56991 exited 101; GREEN session 11814 exited 0.
+The affected suite ran to immediate exit 0. No target process remains owned.

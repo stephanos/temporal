@@ -98,19 +98,34 @@ impl Resolution {
         identity: &linked::ChoiceIdentity,
         patterns: &[String],
     ) -> Result<(), String> {
+        self.observe_with(raw, identity, patterns, |sites| {
+            symbolize::resolve_bytes(module, sites)
+        })
+    }
+
+    fn observe_with(
+        &mut self,
+        raw: &[u8],
+        identity: &linked::ChoiceIdentity,
+        patterns: &[String],
+        resolve: impl FnOnce(Vec<Site>) -> symbolize::Symbols,
+    ) -> Result<(), String> {
         let trace = linked::inspect_choices(raw, identity)?;
-        let symbols = symbolize::resolve_bytes(
-            module,
-            trace
-                .sites
-                .iter()
-                .filter(|site| !site.site_missing)
-                .map(|site| Site {
-                    value: site.site_offset,
-                    missing: false,
-                }),
-        );
-        self.observe_symbols(raw, identity, patterns, &symbols)
+        let sites = trace
+            .sites
+            .iter()
+            .filter(|site| !site.site_missing && !self.packages.contains_key(&site.site_offset))
+            .map(|site| site.site_offset)
+            .collect::<BTreeSet<_>>()
+            .into_iter()
+            .map(|value| Site {
+                value,
+                missing: false,
+            })
+            .collect::<Vec<_>>();
+        let symbols = (!sites.is_empty()).then(|| resolve(sites));
+        self.observe_trace(trace, patterns, symbols.as_ref());
+        Ok(())
     }
 
     pub(crate) fn observe_symbols(
@@ -121,16 +136,28 @@ impl Resolution {
         symbols: &symbolize::Symbols,
     ) -> Result<(), String> {
         let trace = linked::inspect_choices(raw, identity)?;
-        for site in &trace.sites {
-            if !site.site_missing && !self.packages.contains_key(&site.site_offset) {
-                let package = match symbols.get(Site {
-                    value: site.site_offset,
-                    missing: false,
-                }) {
-                    Symbol::Resolved { frame, .. } => Some(frame.package.clone()),
-                    Symbol::Unavailable { .. } => None,
-                };
-                self.packages.insert(site.site_offset, package);
+        self.observe_trace(trace, patterns, Some(symbols));
+        Ok(())
+    }
+
+    fn observe_trace(
+        &mut self,
+        trace: linked::TraceInspection,
+        patterns: &[String],
+        symbols: Option<&symbolize::Symbols>,
+    ) {
+        if let Some(symbols) = symbols {
+            for site in &trace.sites {
+                if !site.site_missing && !self.packages.contains_key(&site.site_offset) {
+                    let package = match symbols.get(Site {
+                        value: site.site_offset,
+                        missing: false,
+                    }) {
+                        Symbol::Resolved { frame, .. } => Some(frame.package.clone()),
+                        Symbol::Unavailable { .. } => None,
+                    };
+                    self.packages.insert(site.site_offset, package);
+                }
             }
         }
         for site in trace.sites {
@@ -138,7 +165,6 @@ impl Resolution {
                 self.fingerprints.insert(site.fingerprint);
             }
         }
-        Ok(())
     }
 
     pub(crate) fn validate(&self, module: &[u8]) -> Result<(), String> {
@@ -347,6 +373,39 @@ mod tests {
             let resolution: Resolution = serde_json::from_value(value).unwrap();
             assert!(resolution.validate(&module).is_err());
         }
+    }
+
+    #[test]
+    fn site_scope_resolves_only_new_unique_offsets_and_caches_unavailable() {
+        let module = fixture_module();
+        let patterns = vec!["main".into()];
+        let identity = identity();
+        let mut resolution = Resolution::default();
+        let mut batches = Vec::new();
+        for sites in [
+            [Some(5383), Some(5383)],
+            [Some(u64::MAX), Some(u64::MAX)],
+            [Some(5383), Some(5384)],
+        ] {
+            resolution
+                .observe_with(&runnable_trace(sites), &identity, &patterns, |sites| {
+                    batches.push(sites.iter().map(|site| site.value).collect::<Vec<_>>());
+                    symbolize::resolve_bytes(&module, sites)
+                })
+                .unwrap();
+        }
+        assert_eq!(batches, [vec![5383], vec![u64::MAX], vec![5384]]);
+        assert_eq!(resolution.packages.get(&u64::MAX), Some(&None));
+        assert_eq!(resolution.packages.len(), 3);
+        resolution.fingerprints.clear();
+        for sites in [[Some(5383), Some(u64::MAX)], [None, None]] {
+            resolution
+                .observe_with(&runnable_trace(sites), &identity, &patterns, |_| {
+                    panic!("cached or missing sites must not invoke the resolver")
+                })
+                .unwrap();
+        }
+        assert_eq!(resolution.scope(&patterns).resolved_count, 1);
     }
 
     #[test]
