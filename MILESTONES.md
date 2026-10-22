@@ -132,6 +132,8 @@ the .13/.14 migration; its minor follow-ups moved to fn-238.3.
 merged from its worktree with the guest rebuilt; timing 53.993s gate, 7.088s inner loop.
 .11 is complete locally: TLC checks the unchanged activity Model (6 states, both closure laws
 Verified), built once on the shared front end; timing 47.680s gate, 7.149s inner loop.
+.15 is complete locally: emitted TLA+ grows linearly with conditional returns (probe 706 MB ->
+6 KB at six returns), verdicts unchanged; a node budget caps the admitted tree until .16.
 On 2026-10-21 the owner approved all three contract amendments: lifecycle refinement
 in place of impossible old-byte equality; cooperative cancellation with explicit protocol
 evidence; and optional actual-request Observation evidence at tag 4. Heartbeat signals a
@@ -144,8 +146,8 @@ The review passed; each consumer still waits for its declared support dependenci
 
 | Name | Status | What |
 | --- | --- | --- |
-| fn-227.15 | 🔄 in progress | After .11: compact emitted TLA+ for conditional returns (linear size), payload counterexample, small refusals (R3) |
-| fn-227.3 | ⬜ todo | After .2, .11 and .15: activity attempts/retryable failure and retained-lifecycle refinement (R3, R4) |
+| fn-227.16 | ⬜ todo | After .15: named IR intermediates so admitted trees stay linear in conditional returns; lift the 10,000-node budget (R3) |
+| fn-227.3 | ⬜ todo | After .2, .11, .15 and .16: activity attempts/retryable failure and retained-lifecycle refinement (R3, R4) |
 | fn-227.5 | ⬜ todo | After .3 and .12: transactional live World admission (`maximum_attempts`) and SDK retry proof (R6) |
 | fn-227.6 | ⬜ todo | After .5: DESIGN.md parameterized worlds, inputs and retries write-up and readiness table closure (R7) |
 
