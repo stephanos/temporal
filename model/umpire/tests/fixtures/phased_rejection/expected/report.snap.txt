@@ -18,5 +18,7 @@ claim touch_rejects: Refuted
 failure touch_rejects: check!(*outcome == Outcome::Rejected(expected)) failed at Model { phase: Dropped, attempt: 1 }
 claim recheck_rejects: Refuted
 failure recheck_rejects: check!(*outcome == Outcome::Rejected(expected)) failed at Model { phase: Dropped, attempt: 1 }
+claim steps_accept: Refuted
+failure steps_accept: check!(*outcome == Outcome::Accepted || self.closed()) failed at Model { phase: Queued, attempt: 1 }
 claim queued_job_runs: Verified
 vacuity: none

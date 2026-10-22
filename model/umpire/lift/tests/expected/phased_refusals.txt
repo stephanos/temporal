@@ -1,12 +1,14 @@
-phased.rs:30:5: warning: trait or generic impl in machine module is unsupported; TLA+ emission refused
-phased.rs:61:5: warning: trait or generic impl in machine module is unsupported; TLA+ emission refused
-phased.rs:62:22: warning: the Phased phase must be a local fieldless enum; TLA+ emission refused
-phased.rs:67:9: warning: unsupported impl item; TLA+ emission refused
-phased.rs:113:13: warning: claim body supports check! and conditional checks only; TLA+ emission refused
-phased.rs:113:46: warning: `umpire_dsl::closable::terminal_remains` reads a whole state `S` here; TLA+ emission refused
-phased.rs:118:52: warning: `umpire_dsl::closable::closed_rejects` reads the judged edge's outcome here; TLA+ emission refused
-phased.rs:117:58: warning: a rejecting Model's postcondition outcome must be the immutable &Outcome; TLA+ emission refused
-phased.rs:99:53: warning: reject! takes one rejection; TLA+ emission refused
-phased.rs:99:53: warning: unsupported effect `umpire_dsl :: reject ! (Rejection :: Unavailable)`; TLA+ emission refused
-phased.rs:99:61: warning: type mismatch: expected Some(Enum { name: "Rejection", variants: ["Rejection::NotFound", "Rejection::AlreadyExists", "Rejection::FailedPrecondition", "Rejection::InvalidArgument", "Rejection::PermissionDenied", "Rejection::Unavailable"] }), got Enum { name: "Phase", variants: ["Phase::Queued", "Phase::Running", "Phase::Done", "Phase::Dropped"] }; TLA+ emission refused
-phased.rs:155:13: warning: progress requires whenever; TLA+ emission refused
+phased.rs:32:5: warning: trait or generic impl in machine module is unsupported; TLA+ emission refused
+phased.rs:63:5: warning: trait or generic impl in machine module is unsupported; TLA+ emission refused
+phased.rs:64:22: warning: the Phased phase must be a local fieldless enum; TLA+ emission refused
+phased.rs:69:9: warning: unsupported impl item; TLA+ emission refused
+phased.rs:115:13: warning: unknown `umpire_dsl::closable` law `reopened`; TLA+ emission refused
+phased.rs:115:46: warning: `umpire_dsl::closable::terminal_remains` reads a whole state `S` here; TLA+ emission refused
+phased.rs:120:52: warning: `umpire_dsl::closable::closed_rejects` reads the judged edge's outcome here; TLA+ emission refused
+phased.rs:119:58: warning: a rejecting Model's postcondition outcome must be the immutable &Outcome; TLA+ emission refused
+phased.rs:101:53: warning: reject! takes one rejection; TLA+ emission refused
+phased.rs:101:53: warning: unsupported effect `umpire_dsl :: reject ! (Rejection :: Unavailable)`; TLA+ emission refused
+phased.rs:101:61: warning: type mismatch: expected Some(Enum { name: "Rejection", variants: ["Rejection::NotFound", "Rejection::AlreadyExists", "Rejection::FailedPrecondition", "Rejection::InvalidArgument", "Rejection::PermissionDenied", "Rejection::Unavailable"] }), got Enum { name: "Phase", variants: ["Phase::Queued", "Phase::Running", "Phase::Done", "Phase::Dropped"] }; TLA+ emission refused
+phased.rs:164:13: warning: progress requires whenever; TLA+ emission refused
+phased.rs:72:12: warning: inherent `closed` shadows `umpire_dsl::Phased::closed`, which Umpire's library calls; TLA+ emission refused
+phased.rs:39:12: warning: inherent `closed` shadows `umpire_dsl::Phase::closed`, which Umpire's library calls; TLA+ emission refused

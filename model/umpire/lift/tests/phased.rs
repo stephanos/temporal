@@ -55,6 +55,15 @@ fn unsupported_phase_rejection_and_law_forms_refuse_at_their_location()
         vec![("reject!(Rejection::Unavailable)", "reject!(Phase::Done)")],
         // Only Umpire's own path! is a path claim.
         vec![("path![self.phase == Phase::Queued", "crate::path![self.phase == Phase::Queued")],
+        // An inherent method shadowing a Phased or Phase method that library bodies call.
+        vec![(
+            "    impl Model {\n        #[on(Worker)]",
+            "    impl Model {\n        fn closed(&self) -> bool {\n            false\n        }\n\n        #[on(Worker)]",
+        )],
+        vec![(
+            "    #[derive(Action, Copy)]\n    pub enum Worker {",
+            "    impl Phase {\n        fn closed(&self) -> bool {\n            false\n        }\n    }\n\n    #[derive(Action, Copy)]\n    pub enum Worker {",
+        )],
     ] {
         let source = mutant(&edits)?;
         let error = Lift::parse("phased.rs", &source)
@@ -107,5 +116,59 @@ fn rejections_lower_to_typed_outcomes_and_kept_self_loops() -> Result<(), Box<dy
         Lift::parse("phased.rs", &source)
             .is_err_and(|error| error.message.contains("unresolved name `reject`"))
     );
+    Ok(())
+}
+
+/// The emitted step of a handler with `returns` sequential conditional returns, each followed
+/// by an update that the later conditions read.
+fn sequential_returns(returns: usize) -> Result<String, Box<dyn std::error::Error>> {
+    let body = "if self.count == 3 {\n                        reject!(Rejection::NotFound);\n                    }\n                    self.count += 1;\n                    "
+        .repeat(returns);
+    let source = format!(
+        r"use umpire_dsl::machine;
+
+#[machine]
+pub mod gate {{
+    use umpire_dsl::{{Action, Rejection, State, reject}};
+
+    #[derive(Action, Copy)]
+    pub enum Client {{
+        Step,
+    }}
+
+    #[derive(State)]
+    pub struct Model {{
+        pub count: u8,
+        pub done: bool,
+    }}
+
+    impl Model {{
+        #[on(Client)]
+        fn client(&mut self, action: Client) {{
+            match action {{
+                Client::Step => {{
+                    {body}self.done = true;
+                }}
+            }}
+        }}
+    }}
+}}
+"
+    );
+    let module = umpire_lift::Tla::emit(&Lift::parse("gate.rs", &source)?)?;
+    let step = module.tla.lines().find(|line| line.starts_with("Client_Step ==")).ok_or("step")?;
+    Ok(step.to_owned())
+}
+
+#[test]
+fn emitted_size_is_linear_in_sequential_conditional_returns()
+-> Result<(), Box<dyn std::error::Error>> {
+    // Inlined, each return multiplied the step about thirteenfold (2,356 to 706,669,127 bytes
+    // from one to six returns); shared, each further return adds the same few hundred bytes.
+    let sizes = (3..=5)
+        .map(|returns| sequential_returns(returns).map(|step| step.len()))
+        .collect::<Result<Vec<_>, _>>()?;
+    let [three, four, five] = sizes[..] else { return Err("three sizes".into()) };
+    assert!((four - three).abs_diff(five - four) < 8 && five - four < 1_000, "{sizes:?}");
     Ok(())
 }

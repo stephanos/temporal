@@ -37,7 +37,8 @@ fn closure_laws_keep_source_order_and_the_stock_outcome() -> umpire_testing::Tes
             "reopen_remains",
             "touch_remains",
             "touch_rejects",
-            "recheck_rejects"
+            "recheck_rejects",
+            "steps_accept"
         ]
     );
     assert_eq!(module.metadata.outcome_type, umpire_lift::Type::outcome());
@@ -143,5 +144,56 @@ fn rejecting_after_a_mutation_fails_in_tlc() -> umpire_testing::TestResult {
         .err()
         .ok_or("TLC admitted a rejection after a mutation")?;
     assert!(error.to_string().contains("rejecting step changed state"), "{error}");
+    Ok(())
+}
+
+/// A rejection computed from the state lowers to a choice over the stock rejections, with the
+/// same outcomes as the literal it replaces in every closed state.
+#[test]
+fn a_computed_rejection_agrees_with_the_literal() -> umpire_testing::TestResult {
+    let source = std::fs::read_to_string(folder().join("model.rs"))?.replace(
+        "Client::Recheck if self.closed() => reject!(Rejection::Unavailable),",
+        "Client::Recheck if self.closed() => reject!(if self.phase == Phase::Queued {\n                    Rejection::NotFound\n                } else {\n                    Rejection::Unavailable\n                }),",
+    );
+    let module = bound().lift_source("model.rs", &source)?;
+    let recheck =
+        module.tla.lines().find(|line| line.starts_with("Client_Recheck ==")).ok_or("Recheck")?;
+    assert!(
+        recheck.contains("= (\"Rejection::NotFound\")) THEN \"Outcome::Rejected(NotFound)\""),
+        "{recheck}"
+    );
+    if required() {
+        bound().check_module(&folder(), &module)?;
+    }
+    Ok(())
+}
+
+/// TLC's counterexample to `steps_accept` is the stale claim's rejected payload edge, which the
+/// fixture's replay then checks against the native step.
+#[test]
+fn the_steps_accept_counterexample_is_a_rejected_payload_edge() -> umpire_testing::TestResult {
+    use umpire_tlc::Value::{Int, Text};
+    if !required() {
+        return Ok(());
+    }
+    let mut module = bound().lift(folder().join("model.rs"))?;
+    module.metadata.postconditions.retain(|claim| claim.name == "steps_accept");
+    module.metadata.progress.clear();
+    module.cfg = module
+        .cfg
+        .lines()
+        .filter(|line| !line.starts_with("PROPERTY") || *line == "PROPERTY Post_steps_accept")
+        .flat_map(|line| [line, "\n"])
+        .collect();
+    let root = std::path::Path::new(env!("CARGO_MANIFEST_DIR")).join("../../..");
+    let result = umpire_tlc::Tlc::discover(&root)?.check_module(&module)?;
+    let trace = result.properties["Post_steps_accept"].trace.as_ref().ok_or("no counterexample")?;
+    let [_, edge] = &trace.states[..] else { return Err("expected one edge".into()) };
+    assert_eq!(edge.observers["__umpire_action"], Text("Worker::Claim".into()));
+    assert_eq!(edge.observers["__umpire_input"], Int(1));
+    assert_eq!(
+        edge.observers["__umpire_outcome"],
+        Text("Outcome::Rejected(FailedPrecondition)".into())
+    );
     Ok(())
 }

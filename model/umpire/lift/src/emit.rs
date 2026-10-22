@@ -6,7 +6,7 @@ use std::collections::BTreeMap;
 use std::fmt::Write;
 use umpire_front::{
     expr::{Expr, ExprKind, Op, Unary},
-    tree::{ActionDef, ActionRef, AssumptionDef, FieldDef, Start},
+    tree::{ActionDef, ActionRef, AssumptionDef, Branch, FieldDef, Start},
 };
 
 /// The observer holding an edge's outcome.
@@ -139,86 +139,28 @@ pub(crate) fn emit(model: &Lifted) -> Result<Module, Diagnostic> {
         } else {
             Some(format!("{}_Inputs[{}][1]", operator(&action.name), model.names.index))
         };
+        let identity = identity.as_deref();
+        let mut shared = Shared::default();
+        for branch in &action.branches {
+            step(model, &action.name, branch, identity, &mut |value| {
+                shared.count(value);
+                String::new()
+            });
+        }
         let branches = action
             .branches
             .iter()
             .map(|branch| {
-                let mut terms = vec![expr(&branch.guard)];
-                for check in &branch.checks {
-                    let value = expr(check);
-                    terms.push(format!("({value}) = ({value})"));
-                }
-                let updated = |f: &FieldDef| {
-                    branch
-                        .updates
-                        .get(&f.name)
-                        .filter(|value| value.kind != ExprKind::Var(f.name.clone(), false))
-                };
-                let may_reject = !matches!(&branch.outcome.kind, ExprKind::Unit)
-                    && branch.outcome.kind != ExprKind::Enum(ACCEPTED.into());
-                let changed: Vec<_> = model
-                    .fields
-                    .iter()
-                    .filter_map(|f| updated(f).map(|value| (f, value)))
-                    .collect();
-                if may_reject && !changed.is_empty() {
-                    // A rejecting step that changed its state is a Model error, as natively.
-                    terms.push(format!(
-                        "Assert(({} = {}) \\/ ({}), \"rejecting step changed state\")",
-                        expr(&branch.outcome),
-                        text(ACCEPTED),
-                        conjoin(changed.iter().map(|(f, value)| format!(
-                            "{} = {}",
-                            expr(value),
-                            f.name
-                        )))
-                    ));
-                }
-                if !branch.preserve_self_loop {
-                    let mut steps: Vec<_> = model
-                        .fields
-                        .iter()
-                        .map(|f| {
-                            format!(
-                                "{} # {}",
-                                expr(branch.updates.get(&f.name).unwrap_or(&Expr::var(
-                                    &f.name,
-                                    f.ty.clone(),
-                                    false
-                                ))),
-                                f.name
-                            )
-                        })
-                        .collect();
-                    // A rejection is emitted even when it leaves the state unchanged.
-                    if may_reject {
-                        steps.push(format!("{} # {}", expr(&branch.outcome), text(ACCEPTED)));
-                    }
-                    terms.push(disjoin(steps));
-                }
-                for field in &model.fields {
-                    terms.push(format!(
-                        "{}' = {}",
-                        field.name,
-                        branch.updates.get(&field.name).map_or_else(|| field.name.clone(), expr)
-                    ));
-                }
-                terms.extend([
-                    format!("__umpire_action' = {}", text(&action.name)),
-                    "__umpire_choice' = 0".into(),
-                    format!("__umpire_outcome' = {}", expr(&branch.outcome)),
-                    "__umpire_facts' = <<>>".into(),
-                ]);
-                if inputs && let Some(identity) = &identity {
-                    terms.push(format!("{INPUT}' = {identity}"));
-                }
-                conjoin(terms)
+                conjoin(step(model, &action.name, branch, identity, &mut |value| {
+                    shared.emit(value)
+                }))
             })
             .collect();
+        let branches = format!("{}{}", shared.definitions.concat(), disjoin(branches));
         if action.fields.is_empty() {
-            line(&mut out, format!("{} == {}", operator(&action.name), disjoin(branches)));
+            line(&mut out, format!("{} == {branches}", operator(&action.name)));
         } else {
-            input_relation(&mut out, model, index, &entries, disjoin(branches));
+            input_relation(&mut out, model, index, &entries, branches);
         }
     }
     line(
@@ -464,6 +406,75 @@ pub(crate) fn emit(model: &Lifted) -> Result<Module, Diagnostic> {
         },
     })
 }
+/// One branch's conjuncts, with each of its expressions as `value` emits it.
+fn step<'e>(
+    model: &Lifted,
+    action: &str,
+    branch: &'e Branch,
+    identity: Option<&str>,
+    value: &mut dyn FnMut(&'e Expr) -> String,
+) -> Vec<String> {
+    let mut terms = vec![value(&branch.guard)];
+    for check in &branch.checks {
+        let check = value(check);
+        terms.push(format!("({check}) = ({check})"));
+    }
+    let updated = |f: &FieldDef| {
+        branch
+            .updates
+            .get(&f.name)
+            .filter(|value| value.kind != ExprKind::Var(f.name.clone(), false))
+    };
+    let may_reject = !matches!(&branch.outcome.kind, ExprKind::Unit)
+        && branch.outcome.kind != ExprKind::Enum(ACCEPTED.into());
+    let changed: Vec<_> =
+        model.fields.iter().filter_map(|f| updated(f).map(|update| (f, update))).collect();
+    if may_reject && !changed.is_empty() {
+        // A rejecting step that changed its state is a Model error, as natively.
+        let outcome = value(&branch.outcome);
+        let unchanged = conjoin(
+            changed
+                .iter()
+                .map(|(f, update)| format!("{} = {}", value(update), f.name))
+                .collect::<Vec<_>>(),
+        );
+        terms.push(format!(
+            "Assert(({outcome} = {}) \\/ ({unchanged}), \"rejecting step changed state\")",
+            text(ACCEPTED)
+        ));
+    }
+    if !branch.preserve_self_loop {
+        let mut steps: Vec<_> = model
+            .fields
+            .iter()
+            .map(|f| {
+                let next = branch.updates.get(&f.name).map_or_else(|| f.name.clone(), &mut *value);
+                format!("{next} # {}", f.name)
+            })
+            .collect();
+        // A rejection is emitted even when it leaves the state unchanged.
+        if may_reject {
+            steps.push(format!("{} # {}", value(&branch.outcome), text(ACCEPTED)));
+        }
+        terms.push(disjoin(steps));
+    }
+    for field in &model.fields {
+        let next = branch.updates.get(&field.name).map_or_else(|| field.name.clone(), &mut *value);
+        terms.push(format!("{}' = {next}", field.name));
+    }
+    terms.extend([
+        format!("__umpire_action' = {}", text(action)),
+        "__umpire_choice' = 0".into(),
+        format!("__umpire_outcome' = {}", value(&branch.outcome)),
+        "__umpire_facts' = <<>>".into(),
+    ]);
+    if model.has_inputs()
+        && let Some(identity) = identity
+    {
+        terms.push(format!("{INPUT}' = {identity}"));
+    }
+    terms
+}
 pub(crate) const INPUT: &str = "__umpire_input";
 /// The stock accepted outcome, as the front end spells it.
 const ACCEPTED: &str = "Outcome::Accepted";
@@ -679,6 +690,12 @@ fn quotient(left: &str, right: &str, ty: &Type) -> String {
     }
 }
 fn expr(value: &Expr) -> String {
+    render(value, &mut |child| expr(child))
+}
+/// One node as TLA+, with each child as `child` emits it, once per textual occurrence.
+fn render<'e>(value: &'e Expr, child: &mut dyn FnMut(&'e Expr) -> String) -> String {
+    let mut list =
+        |values: &'e [Expr]| values.iter().map(&mut *child).collect::<Vec<_>>().join(", ");
     match &value.kind {
         ExprKind::Bool(v) => {
             if *v {
@@ -693,37 +710,35 @@ fn expr(value: &Expr) -> String {
         ExprKind::Var(name, primed) => format!("{name}{}", if *primed { "'" } else { "" }),
         ExprKind::World(name) | ExprKind::Input(name) => name.clone(),
         ExprKind::Outcome => format!("{OUTCOME}'"),
-        ExprKind::Tuple(values) | ExprKind::Sequence(values) => {
-            format!("<<{}>>", values.iter().map(expr).collect::<Vec<_>>().join(", "))
+        ExprKind::Tuple(values) | ExprKind::Sequence(values) => format!("<<{}>>", list(values)),
+        ExprKind::Length(sequence) => format!("Len({})", child(sequence)),
+        ExprKind::Checks(checks) => {
+            format!("(<<{}>> = <<{}>>)", list(checks), vec!["TRUE"; checks.len()].join(", "))
         }
-        ExprKind::Length(sequence) => format!("Len({})", expr(sequence)),
-        ExprKind::Checks(checks) => format!(
-            "(<<{}>> = <<{}>>)",
-            checks.iter().map(expr).collect::<Vec<_>>().join(", "),
-            vec!["TRUE"; checks.len()].join(", ")
-        ),
-        ExprKind::Append(sequence, value) => format!("Append({}, {})", expr(sequence), expr(value)),
+        ExprKind::Append(sequence, value) => {
+            format!("Append({}, {})", child(sequence), child(value))
+        }
         ExprKind::GetOr(sequence, index, fallback) => {
-            let sequence = expr(sequence);
-            let index = expr(index);
-            let fallback = expr(fallback);
+            let sequence = child(sequence);
+            let index = child(index);
+            let fallback = child(fallback);
             format!(
                 "(IF ({fallback}) = ({fallback}) THEN (IF ({index}) < Len({sequence}) THEN ({sequence})[({index}) + 1] ELSE ({fallback})) ELSE ({fallback}))"
             )
         }
         ExprKind::Unary(op, inner) => {
-            let inner = expr(inner);
+            let inner = child(inner);
             match op {
                 Unary::Not => format!("~({inner})"),
                 Unary::Neg => checked(format!("-({inner})"), &value.ty),
             }
         }
         ExprKind::If(condition, yes, no) => {
-            format!("(IF {} THEN {} ELSE {})", expr(condition), expr(yes), expr(no))
+            format!("(IF {} THEN {} ELSE {})", child(condition), child(yes), child(no))
         }
         ExprKind::Binary(op, left, right) => {
-            let left = expr(left);
-            let right = expr(right);
+            let left = child(left);
+            let right = child(right);
             let symbol = match op {
                 Op::Add => "+",
                 Op::Sub => "-",
@@ -751,6 +766,65 @@ fn expr(value: &Expr) -> String {
                 format!("({raw})")
             }
         }
+    }
+}
+
+/// The subexpressions one step operator repeats, each emitted once as a `LET` definition when
+/// it is longer than `SHARED`. The front end lowers each statement over the values before it,
+/// so a later condition or update re-reads whole earlier values; inlined, the text multiplies
+/// with every conditional return and checked operation, while shared it stays linear.
+#[derive(Default)]
+struct Shared<'a> {
+    nodes: std::collections::HashMap<&'a Expr, Node>,
+    definitions: Vec<String>,
+}
+#[derive(Default)]
+struct Node {
+    /// Textual occurrences: under each distinct parent, and as a root.
+    uses: usize,
+    /// Inlined length, saturating.
+    length: usize,
+    name: Option<String>,
+}
+const SHARED: usize = 400;
+impl<'a> Shared<'a> {
+    /// Count one textual occurrence of `value`, and its children's the first time.
+    fn count(&mut self, value: &'a Expr) {
+        let node = self.nodes.entry(value).or_default();
+        node.uses += 1;
+        if node.uses > 1 {
+            return;
+        }
+        let mut children = Vec::new();
+        let mut length = render(value, &mut |child| {
+            children.push(child);
+            String::new()
+        })
+        .len();
+        for child in children {
+            self.count(child);
+            length = length.saturating_add(self.nodes[child].length);
+        }
+        if let Some(node) = self.nodes.get_mut(value) {
+            node.length = length;
+        }
+    }
+    fn emit(&mut self, value: &'a Expr) -> String {
+        let shared =
+            self.nodes.get(value).is_some_and(|node| node.uses > 1 && node.length > SHARED);
+        if !shared {
+            return render(value, &mut |child| self.emit(child));
+        }
+        if let Some(name) = self.nodes.get(value).and_then(|node| node.name.clone()) {
+            return name;
+        }
+        let body = render(value, &mut |child| self.emit(child));
+        let name = format!("__umpire_s{}", self.definitions.len() + 1);
+        self.definitions.push(format!("LET {name} == {body} IN "));
+        if let Some(node) = self.nodes.get_mut(value) {
+            node.name = Some(name.clone());
+        }
+        name
     }
 }
 

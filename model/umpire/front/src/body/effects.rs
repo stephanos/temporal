@@ -72,12 +72,13 @@ impl Environment {
             self.effects(&body, &mut state, &mut locals, &mut checks, &mut flow, 0)?;
             self.bounded_vector_growth(&body, &state, &effective)?;
             // A rejection is an enabled self-loop, as natively; it is never a dropped branch.
-            let stays = stays || rejects(&flow.outcome);
+            let outcome = flow.outcome();
+            let stays = stays || rejects(&outcome);
             branches.push(Branch {
                 guard: effective,
                 updates: state.values,
                 checks,
-                outcome: flow.outcome,
+                outcome,
                 preserve_self_loop: stays,
             });
         }
@@ -99,36 +100,6 @@ impl Environment {
     ) -> Result<()> {
         if depth > 32 {
             return self.err(node, "recursive effects are unsupported");
-        }
-        if flow.diverged()
-            && match node {
-                RustExpr::Assign(_) | RustExpr::Binary(_) => true,
-                RustExpr::MethodCall(call) => call.method == "push_back",
-                _ => false,
-            }
-        {
-            // After a conditional return, an update applies only where the step still runs.
-            let mut updated = state.clone();
-            let mut inner = Vec::new();
-            self.effects(
-                node,
-                &mut updated,
-                locals,
-                &mut inner,
-                &mut Flow::new(&Type::Unit),
-                depth,
-            )?;
-            for (name, value) in updated.values {
-                let before = state[&name].clone();
-                if value != before {
-                    state.insert(name, flow.guard(value, before));
-                }
-            }
-            checks.extend(inner.into_iter().map(|check| {
-                let otherwise = default_expr(&check.ty);
-                flow.guard(check, otherwise)
-            }));
-            return Ok(());
         }
         match node {
             RustExpr::Block(block) => {
@@ -171,8 +142,10 @@ impl Environment {
                     .ok_or_else(|| Diagnostic::at(node, "unknown assignment field"))?
                     .ty;
                 let value = self.expr(&assign.right, state, locals, Some(ty), depth)?;
-                checks.push(value.clone());
-                state.insert(field, value);
+                // After a conditional return, an update applies only where the step still runs.
+                checks.push(flow.guard(value.clone(), default_expr(&value.ty)));
+                let before = state[&field].clone();
+                state.insert(field, flow.guard(value, before));
             }
             RustExpr::Binary(binary) => {
                 let op = match binary.op {
@@ -190,9 +163,9 @@ impl Environment {
                     return self.err(node, "compound assignment requires an integer");
                 }
                 let right = self.expr(&binary.right, state, locals, Some(&left.ty), depth)?;
-                let value = Expr::binary(op, left, right);
-                checks.push(value.clone());
-                state.insert(field, value);
+                let value = Expr::binary(op, left.clone(), right);
+                checks.push(flow.guard(value.clone(), default_expr(&value.ty)));
+                state.insert(field, flow.guard(value, left));
             }
             RustExpr::If(condition) => {
                 let cond = self.expr(&condition.cond, state, locals, Some(&Type::Bool), depth)?;
@@ -211,7 +184,7 @@ impl Environment {
                 if let Some((_, other)) = &condition.else_branch {
                     self.effects(other, &mut no, &mut locals.clone(), &mut nc, &mut nf, depth)?;
                 }
-                *flow = Flow::join(&cond, yf, nf);
+                flow.join(&cond, yf, nf);
                 for (name, value) in state.iter_mut() {
                     *value = Expr::select(cond.clone(), yes[name].clone(), no[name].clone());
                 }
@@ -223,7 +196,7 @@ impl Environment {
                 }
             }
             RustExpr::MethodCall(call) if call.method == "push_back" => {
-                self.vector_push(call, state, locals, checks, depth)?;
+                self.vector_push(call, state, locals, checks, flow, depth)?;
             }
             RustExpr::Macro(mac) if Self::is_reject(&mac.mac) => {
                 self.reject(&mac.mac, state, locals, flow, depth)?;
@@ -291,7 +264,7 @@ fn without_stay(body: &RustExpr) -> (RustExpr, bool) {
         _ => (body.clone(), false),
     }
 }
-fn default_expr(ty: &Type) -> Expr {
+pub(super) fn default_expr(ty: &Type) -> Expr {
     match ty {
         Type::Bool => Expr::bool(false),
         Type::Int { .. } => Expr::int(0, ty.clone()),

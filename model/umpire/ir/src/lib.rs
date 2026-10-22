@@ -9,7 +9,7 @@ use std::collections::BTreeMap;
 pub use tree::Lifted;
 
 /// Admitted value types for typed backend decoding.
-#[derive(Clone, Debug, PartialEq, Eq)]
+#[derive(Clone, Debug, PartialEq, Eq, Hash)]
 pub enum Type {
     /// Boolean.
     Bool,

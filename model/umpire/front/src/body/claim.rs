@@ -142,7 +142,7 @@ impl Environment {
                         yes
                     }
                 }
-                Stmt::Expr(RustExpr::Call(call), Some(_)) if self.closure_law(call).is_some() => {
+                Stmt::Expr(RustExpr::Call(call), Some(_)) if self.law_name(call).is_some() => {
                     self.law(call, state, locals, depth)?
                 }
                 _ => {
@@ -157,16 +157,18 @@ impl Environment {
 }
 
 impl Environment {
-    /// The `umpire_dsl::closable` law a claim statement calls, if it calls one.
-    fn closure_law(&self, call: &syn::ExprCall) -> Option<syn::ItemFn> {
+    /// The name of the `umpire_dsl::closable` function a claim statement calls, if it calls one.
+    fn law_name(&self, call: &syn::ExprCall) -> Option<String> {
         let RustExpr::Path(path) = call.func.as_ref() else { return None };
-        let path = self.dsl_path(&path.path)?;
-        crate::library::law(path.strip_prefix("closable::")?)
+        self.dsl_path(&path.path)?.strip_prefix("closable::").map(str::to_owned)
     }
     /// A closure law's checks, read from its library source with its arguments bound: whole
     /// states, the judged edge's outcome, and typed values.
     fn law(&self, call: &syn::ExprCall, state: &Env, locals: &Env, depth: usize) -> Result<Expr> {
-        let law = self.closure_law(call).ok_or_else(|| Diagnostic::at(call, "unknown law"))?;
+        let name = self.law_name(call).unwrap_or_default();
+        let law = crate::library::law(&name).ok_or_else(|| {
+            Diagnostic::at(call, format!("unknown `umpire_dsl::closable` law `{name}`"))
+        })?;
         let name = format!("umpire_dsl::closable::{}", law.sig.ident);
         if law.sig.inputs.len() != call.args.len() {
             return self.err(call, format!("`{name}` takes {} arguments", law.sig.inputs.len()));

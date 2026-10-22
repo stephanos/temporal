@@ -1,12 +1,12 @@
 use crate::Type;
 
-#[derive(Clone, Debug, PartialEq, Eq)]
+#[derive(Clone, Debug, PartialEq, Eq, Hash)]
 #[must_use]
 pub struct Expr {
     pub kind: ExprKind,
     pub ty: Type,
 }
-#[derive(Clone, Debug, PartialEq, Eq)]
+#[derive(Clone, Debug, PartialEq, Eq, Hash)]
 pub enum ExprKind {
     Bool(bool),
     Int(i128),
@@ -31,12 +31,12 @@ pub enum ExprKind {
     GetOr(Box<Expr>, Box<Expr>, Box<Expr>),
     Checks(Vec<Expr>),
 }
-#[derive(Clone, Copy, Debug, PartialEq, Eq)]
+#[derive(Clone, Copy, Debug, PartialEq, Eq, Hash)]
 pub enum Unary {
     Not,
     Neg,
 }
-#[derive(Clone, Copy, Debug, PartialEq, Eq)]
+#[derive(Clone, Copy, Debug, PartialEq, Eq, Hash)]
 pub enum Op {
     Add,
     Sub,
@@ -100,10 +100,40 @@ impl Expr {
     pub fn implies(self, other: Self) -> Self {
         self.not().or(other)
     }
+    /// `IF condition THEN yes ELSE no`; equal arms fold when the condition cannot fail.
     pub fn select(condition: Self, yes: Self, no: Self) -> Self {
+        if yes == no && condition.infallible() {
+            return yes;
+        }
         Self {
             ty: yes.ty.clone(),
             kind: ExprKind::If(Box::new(condition), Box::new(yes), Box::new(no)),
+        }
+    }
+    /// Whether evaluating this cannot fail: no checked arithmetic and no sequence indexing.
+    pub fn infallible(&self) -> bool {
+        match &self.kind {
+            ExprKind::Bool(_)
+            | ExprKind::Int(_)
+            | ExprKind::Text(_)
+            | ExprKind::Unit
+            | ExprKind::Var(..)
+            | ExprKind::World(_)
+            | ExprKind::Input(_)
+            | ExprKind::Outcome
+            | ExprKind::Enum(_) => true,
+            ExprKind::Unary(Unary::Neg, _) | ExprKind::GetOr(..) => false,
+            ExprKind::Unary(Unary::Not, value) | ExprKind::Length(value) => value.infallible(),
+            ExprKind::Binary(op, left, right) => {
+                !matches!(op, Op::Add | Op::Sub | Op::Mul | Op::Div | Op::Rem)
+                    && left.infallible()
+                    && right.infallible()
+            }
+            ExprKind::If(a, b, c) => a.infallible() && b.infallible() && c.infallible(),
+            ExprKind::Append(a, b) => a.infallible() && b.infallible(),
+            ExprKind::Tuple(values) | ExprKind::Sequence(values) | ExprKind::Checks(values) => {
+                values.iter().all(Self::infallible)
+            }
         }
     }
 }

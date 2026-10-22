@@ -123,6 +123,9 @@ pub(crate) fn parse(declared: &declare::Machine, module: &syn::ItemMod) -> Resul
             _ => None,
         })
         .collect();
+    // Inherent methods, and the Umpire traits implemented, per owner.
+    let mut inherent = Vec::new();
+    let mut implemented = Vec::new();
     for item in items {
         if let Item::Const(value) = item {
             let ty = parser.ty(&value.ty)?;
@@ -148,6 +151,9 @@ pub(crate) fn parse(declared: &declare::Machine, module: &syn::ItemMod) -> Resul
                 ));
             };
             parser.phased |= stock == Some("Phased");
+            if let Some(stock) = stock {
+                implemented.push((owner.clone(), stock));
+            }
             for entry in &value.items {
                 if let ImplItem::Type(phase) = entry
                     && stock == Some("Phased")
@@ -198,11 +204,26 @@ pub(crate) fn parse(declared: &declare::Machine, module: &syn::ItemMod) -> Resul
                     };
                     // Rust resolves an inherent method before a trait method of the same name.
                     if stock.is_none() {
+                        inherent.push((owner.clone(), method));
                         table.insert(name, method.clone());
                     } else {
                         table.entry(name).or_insert_with(|| method.clone());
                     }
                 }
+            }
+        }
+    }
+    // Library bodies call the trait method, which the front end would read as the inherent one.
+    for (owner, method) in &inherent {
+        let name = method.sig.ident.to_string();
+        for (_, stock) in implemented.iter().filter(|(implementor, _)| implementor == owner) {
+            if crate::library::trait_methods(stock).contains(&name) {
+                return Err(Diagnostic::at(
+                    &method.sig.ident,
+                    format!(
+                        "inherent `{name}` shadows `umpire_dsl::{stock}::{name}`, which Umpire's library calls"
+                    ),
+                ));
             }
         }
     }

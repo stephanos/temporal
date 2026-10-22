@@ -7,7 +7,9 @@ use umpire_dsl::machine;
 
 #[machine]
 pub mod job {
-    use umpire_dsl::{Action, Outcome, Phased, Rejection, State, World, closable, path, reject, stay};
+    use umpire_dsl::{
+        Action, Outcome, Phased, Rejection, State, World, check, closable, path, reject, stay,
+    };
 
     #[derive(World)]
     pub struct World {
@@ -141,6 +143,13 @@ pub mod job {
         #[postcondition(after = Client::Recheck)]
         fn recheck_rejects(&self, before: &Self, outcome: &Outcome) {
             closable::closed_rejects(self, before, outcome, Rejection::NotFound);
+        }
+
+        /// Broken: a step that leaves the job open is accepted. Only a stale claim rejects
+        /// there, so the counterexample replays a rejected payload edge.
+        #[postcondition]
+        fn steps_accept(&self, _before: &Self, outcome: &Outcome) {
+            check!(*outcome == Outcome::Accepted || self.closed());
         }
 
         #[assumption]

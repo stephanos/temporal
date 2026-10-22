@@ -177,12 +177,14 @@ impl Environment {
         self.expr(node, state, locals, Some(&index_type()), depth)
     }
 
+    #[expect(clippy::too_many_arguments, reason = "SSA lowering threads its frame by reference")]
     pub(super) fn vector_push(
         &self,
         call: &syn::ExprMethodCall,
         state: &mut Env,
         locals: &Env,
         checks: &mut Vec<Expr>,
+        flow: &super::outcome::Flow,
         depth: usize,
     ) -> Result<()> {
         if call.args.len() != 1 {
@@ -197,14 +199,12 @@ impl Environment {
             return self.err(call, "push_back requires an admitted Vector field");
         };
         let value = self.expr(&call.args[0], state, locals, Some(element), depth)?;
-        checks.push(value.clone());
-        state.insert(
-            field,
-            Expr {
-                ty: sequence.ty.clone(),
-                kind: ExprKind::Append(Box::new(sequence), Box::new(value)),
-            },
-        );
+        checks.push(flow.guard(value.clone(), super::effects::default_expr(&value.ty)));
+        let pushed = Expr {
+            ty: sequence.ty.clone(),
+            kind: ExprKind::Append(Box::new(sequence.clone()), Box::new(value)),
+        };
+        state.insert(field, flow.guard(pushed, sequence));
         Ok(())
     }
 
