@@ -448,7 +448,7 @@ pub fn prepare(opened: Opened, control: Option<&inspection::Request>) -> Result<
         .as_deref()
         .unwrap_or(&inputs.configuration)
         .clone();
-    let execution = helper::prepare(helper::Request {
+    let mut execution = helper::prepare(helper::Request {
         nodes: configuration.nodes,
         broker: configuration.broker,
         network: configuration.network,
@@ -463,6 +463,14 @@ pub fn prepare(opened: Opened, control: Option<&inspection::Request>) -> Result<
         evidence_bytes: configuration.limits.evidence_bytes,
     })
     .map_err(|error| error.to_string())?;
+    if matches!(
+        configuration.workload,
+        Some(crate::qualify::workloads::Workload::TemporalRecovery { forcing: None })
+    ) {
+        execution
+            .committed_temporal_reopens()
+            .map_err(|error| error.to_string())?;
+    }
     Ok(Prepared {
         opened,
         execution: Execution {

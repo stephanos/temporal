@@ -6,7 +6,6 @@ import json
 from pathlib import Path
 import sys
 sys.dont_write_bytecode=True
-import native
 import producer
 import workloads
 
@@ -35,8 +34,10 @@ def main():
     artifact=Path(retained["report"]["executions"][0]["artifact_path"])
     manifest=json.loads((artifact/"manifest.json").read_bytes())
     state=(artifact/"evidence/cluster/temporal/1/storage_state").read_bytes()
-    log=(artifact/"evidence/cluster/temporal/1/storage").read_bytes()
-    enumeration,context=native.catalogue(state,log,"temporal")
+    catalogues=retained["native_crash_catalogues"]
+    if len(catalogues)!=1 or catalogues[0]["volume"]!="temporal" or catalogues[0]["storage_state_sha256"]!=digest(state):
+        raise ValueError("actual authenticated primary Temporal catalogue unavailable")
+    enumeration,context=catalogues[0]["enumeration"],catalogues[0]["context"]
     prefix=(artifact/"evidence/cluster/temporal/1/choice").read_bytes()
     base=json.loads((primary/"qualification-spec.json").read_bytes())
     results=[]
@@ -57,7 +58,7 @@ def main():
             raise ValueError("selected original durable state did not recover and replay exactly")
         results.append(dict(index=index,state=selected["Identity"],result_path=str(path),result_sha256=digest(path.read_bytes())))
     producer.write(root/"recovery-receipt.json",dict(schema="gomad.rust-temporal-crash-recovery/v1",primary_result=str(result),primary_result_sha256=digest(result.read_bytes()),
-        catalogue=enumeration,context=context,results=results,subgates=[dict(id="TestTemporalStorageRecoveryCommitsWorkflowHistoryAfterCrash",status="PASS",executed=True,exit=0)]))
+        catalogue=enumeration,context=context,results=results,subgates=[dict(id="TestTemporalCommittedWorkflowFreshGuestCrashReopen",status="PASS",executed=True,exit=0)]))
     print(json.dumps(dict(receipt=str(root/"recovery-receipt.json"))))
 
 

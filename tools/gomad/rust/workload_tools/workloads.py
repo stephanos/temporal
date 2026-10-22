@@ -84,7 +84,7 @@ def temporal_replication_scenario(canary=False):
     value["network_faults"] = [dict(Name="temporal-active-to-standby-"+operation, Action=operation, From="active", To="standby", AtNanos=at)
                                 for operation, at in [("partition", 1), ("heal", 30_000_000_000)]]
     value["actions"] = [action(kind, role, incarnation) for incarnation in [1, 2]
-                        for kind in (["start", "wait"] if incarnation == 1 else ["restart", "wait"])
+                        for kind in (["start", "crash"] if incarnation == 1 else ["restart", "wait"])
                         for role in ["active", "standby"]]
     return value
 
@@ -166,7 +166,7 @@ def qualification_spec(repo, root, workload, canary=False, source=None, source_m
                   Scenario=base64.b64encode(canonical(scenario)).decode())
     campaign = dict(Target=target, ExecutionTimeout=(900 if temporal else 60)*10**9, OverallTimeout=(3600 if temporal else 180)*10**9,
                     TerminateGrace=100_000_000, OutputLimit=8 << 20 if temporal else 1 << 20, WorldTransitionLimit=32 << 20,
-                    ChoiceTraceLimit=64 << 20 if temporal else 8 << 20, SuccessBytesLimit=2 << 30 if temporal else 256 << 20,
+                    ChoiceTraceLimit=1<<30 if workload=="recovery" else 64 << 20 if temporal else 8 << 20, SuccessBytesLimit=2 << 30 if temporal else 256 << 20,
                     Environment=TEMPORAL_ENVIRONMENT.copy() if temporal else ["PWD=/workspace","TZ=UTC"],
                     OnFailure="all", FailureBudget=1, Artifacts=str(root/"artifacts"))
     return dict(Manifest=manifest, Campaign=campaign, ArtifactRoot=str(root))
@@ -235,14 +235,14 @@ def temporal_recovery_scenario():
     value["spec"]["volumes"]=[dict(id="temporal",capacity_bytes=256<<20)]
     arguments=["-test.v","-test.count=1","-test.timeout=1h","-test.run=^TestCommittedWorkflowCrashRecovery$","-persistenceType=sql","-persistenceDriver=sqlite"]
     value["boots"]=[dict(id=phase,args=arguments.copy(),storage=temporal_storage("temporal")) for phase in ["commit","reopen"]]
-    value["incarnation_boots"]=[dict(handle=handle("temporal",2),boot="reopen")]
-    value["actions"]=[action("start","temporal",1),action("wait","temporal",1),action("restart","temporal",2),action("wait","temporal",2)]
+    value["incarnation_boots"]=[dict(handle=handle("temporal",incarnation),boot="reopen") for incarnation in [2,3]]
+    value["actions"]=[action("start","temporal",1),action("crash","temporal",1),action("restart","temporal",2),action("wait","temporal",2),action("restart","temporal",3),action("wait","temporal",3)]
     value["output_crashes"]=[dict(handle=handle("temporal",1),marker=base64.b64encode(b"GOMAD_TEMPORAL_OBSERVATION ").decode())]
     return value
 
 SUPPORT_ROWS={
     "smoke":("unchanged-workflow-type-smoke","./tests","/workspace/tests","^TestWorkflowTypeEncodingSuite$/^TestPlainASCII$/^Succeeds$"),
-    "frontend":("frontend","./tests/gomadfunctional","/workspace/tests/gomadfunctional","^TestFrontendSystemInfo$"),
+    "frontend":("frontend-system-info","./tests/gomadfunctional","/workspace/tests/gomadfunctional","^TestFrontendSystemInfo$"),
     "retry":("temporal-named-network-reset",None,"/workspace/network-temporal","^TestTemporalWorkflowRecoversNamedNetworkReset$"),
 }
 

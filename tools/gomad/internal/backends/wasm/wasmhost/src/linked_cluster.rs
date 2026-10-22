@@ -75,6 +75,7 @@ struct Sealed {
     initial_namespace: namespace::Image,
     network: Option<NetworkModel>,
     transcript_limit: u64,
+    recovery_source: Option<(Handle, String, u64)>,
 }
 
 pub struct Prepared {
@@ -90,9 +91,34 @@ pub struct Prepared {
     conditions: linked::Conditions,
     cancellation: linked::Cancellation,
     simulation: Option<crate::linked_simulation::Shared>,
+    committed_temporal_reopens: bool,
 }
 
 impl Prepared {
+    /// Bind the original committed-workflow variant: two fresh stores recover
+    /// from the identical actual image produced by temporal/1.
+    /// # Errors
+    /// Refuses any other handle set or missing durable storage owner.
+    pub fn committed_temporal_reopens(&mut self) -> Result<()> {
+        let handles = self
+            .incarnations
+            .keys()
+            .map(|handle| (handle.node.as_str(), handle.incarnation))
+            .collect::<Vec<_>>();
+        if handles != [("temporal", 1), ("temporal", 2), ("temporal", 3)]
+            || self
+                .incarnations
+                .values()
+                .any(|sealed| sealed.execution.request.storage.is_none())
+        {
+            return Err(Error::msg(
+                "committed Temporal recovery requires exactly its three durable incarnations",
+            ));
+        }
+        self.committed_temporal_reopens = true;
+        Ok(())
+    }
+
     /// The cluster wall bound the host's process-wide deadline backstop arms.
     #[must_use]
     pub fn wall_timeout(&self) -> Duration {
@@ -311,6 +337,7 @@ pub fn prepare(mut request: Request) -> Result<Prepared> {
                 initial_namespace,
                 network: incarnation.network,
                 transcript_limit,
+                recovery_source: None,
             },
         );
     }
@@ -327,6 +354,7 @@ pub fn prepare(mut request: Request) -> Result<Prepared> {
         conditions: linked::Conditions::default(),
         cancellation: linked::Cancellation::default(),
         simulation: None,
+        committed_temporal_reopens: false,
     })
 }
 
@@ -477,7 +505,10 @@ fn run_instance(
     let image = cluster::execution::record_terminal(store.data_mut(), descriptor, &mut outcome)
         .map_err(|(kind, message)| Error::msg(format!("{kind}: {message}")))?;
     drop(store);
-    let evidence = sink.into_streams()?;
+    let mut evidence = sink.into_streams()?;
+    if let Some((source_handle, image_sha256, image_bytes)) = sealed.recovery_source {
+        evidence.insert("recovery_image_input".into(),serde_json::to_vec(&serde_json::json!({"source_handle":source_handle,"image_sha256":image_sha256,"image_bytes":image_bytes}))?);
+    }
     Ok(Completed {
         result: IncarnationResult {
             handle,
@@ -539,6 +570,7 @@ fn execute_inner(
     let mut running: BTreeMap<Handle, Running> = BTreeMap::new();
     let mut completed = BTreeMap::new();
     let mut images: BTreeMap<String, Vec<u8>> = BTreeMap::new();
+    let mut committed_image: Option<Vec<u8>> = None;
     let first_failure = Arc::new(Mutex::new(None::<protocol::Outcome>));
     let mut outcome = protocol::Outcome::new("exit", "");
     outcome.exit_code = Some(0);
@@ -583,9 +615,23 @@ fn execute_inner(
                 if step.action == Action::Restart
                     && let Some(storage) = &sealed.execution.request.storage
                 {
-                    let image = images
-                        .get(&step.handle.node)
-                        .ok_or_else(|| Error::msg("cluster restart lacks recovery image"))?;
+                    let image = restart_image(
+                        &images,
+                        committed_image.as_ref(),
+                        prepared.committed_temporal_reopens,
+                        &step.handle.node,
+                    )?;
+                    if prepared.committed_temporal_reopens {
+                        use sha2::Digest as _;
+                        sealed.recovery_source = Some((
+                            Handle {
+                                node: "temporal".into(),
+                                incarnation: 1,
+                            },
+                            format!("{:x}", sha2::Sha256::digest(image)),
+                            image.len() as u64,
+                        ));
+                    }
                     let mut storage = storage.with_recovery_image(image.clone())?;
                     let mut namespace = namespace::Namespace::new(sealed.initial_namespace.clone())
                         .map_err(Error::new)?;
@@ -700,7 +746,7 @@ fn execute_inner(
                 broker
                     .run(index, step.handle.incarnation)
                     .map_err(|failure| Error::msg(failure.message()))?;
-                let observed = joined(
+                let mut observed = joined(
                     running
                         .remove(&step.handle)
                         .ok_or_else(|| Error::msg("cluster incarnation is not running"))?,
@@ -719,6 +765,19 @@ fn execute_inner(
                     ));
                 }
                 if let Some(image) = observed.image {
+                    if prepared.committed_temporal_reopens && step.handle.incarnation == 1 {
+                        if image.len() as u64 > prepared.evidence_bytes {
+                            return Err(Error::msg(
+                                "committed image exceeds existing evidence bound",
+                            ));
+                        }
+                        observed
+                            .result
+                            .execution
+                            .evidence
+                            .insert("recovery_image_primary".into(), image.clone());
+                        committed_image = Some(image.clone());
+                    }
                     images.insert(step.handle.node.clone(), image);
                 }
                 if step.action == Action::Wait
@@ -973,5 +1032,44 @@ fn cancelled_execution() -> Execution {
         inspection: Vec::new(),
         virtual_elapsed_nanos: 0,
         event_order: None,
+    }
+}
+
+fn restart_image<'a>(
+    images: &'a BTreeMap<String, Vec<u8>>,
+    committed: Option<&'a Vec<u8>>,
+    original: bool,
+    node: &str,
+) -> Result<&'a Vec<u8>> {
+    if original {
+        committed.ok_or_else(|| Error::msg("original committed Temporal image absent"))
+    } else {
+        images
+            .get(node)
+            .ok_or_else(|| Error::msg("cluster restart lacks recovery image"))
+    }
+}
+
+#[cfg(test)]
+mod committed_image_tests {
+    use super::*;
+    #[test]
+    fn second_store_writes_do_not_replace_the_primary_reopen_image() {
+        let original = vec![1, 2, 3];
+        let mut latest = BTreeMap::from([("temporal".to_owned(), original.clone())]);
+        assert_eq!(
+            restart_image(&latest, Some(&original), true, "temporal").unwrap(),
+            &[1, 2, 3]
+        );
+        latest.insert("temporal".into(), vec![4, 5, 6]);
+        assert_eq!(
+            restart_image(&latest, Some(&original), true, "temporal").unwrap(),
+            &[1, 2, 3]
+        );
+        assert_eq!(
+            restart_image(&latest, Some(&original), false, "temporal").unwrap(),
+            &[4, 5, 6]
+        );
+        assert!(restart_image(&latest, None, true, "temporal").is_err());
     }
 }

@@ -73,7 +73,11 @@ fn read_history(output: &[u8], prefix: &str) -> Result<History, String> {
     if value.cluster_id.is_empty()
         || value.event_ids.is_empty()
         || value.event_ids.len() != value.types.len()
-        || value.event_ids.iter().any(|id| *id <= 0)
+        || value
+            .event_ids
+            .iter()
+            .enumerate()
+            .any(|(index, id)| *id != index as i64 + 1)
         || value.types.iter().any(String::is_empty)
         || super::cells::base64(&value.payload).is_none_or(|bytes| bytes.is_empty())
     {
@@ -219,7 +223,16 @@ pub(crate) fn retained(
             .keys()
             .filter_map(|name| name.strip_prefix("evidence/"))
         {
-            if name.ends_with("/stdout") || name.ends_with("/storage") || name.ends_with("/choice")
+            if [
+                "/stdout",
+                "/storage",
+                "/choice",
+                "/storage_state",
+                "/recovery_image_primary",
+                "/recovery_image_input",
+            ]
+            .iter()
+            .any(|suffix| name.ends_with(suffix))
             {
                 streams.insert(
                     name.to_owned(),
@@ -256,6 +269,9 @@ pub(crate) fn retained(
             && result.manifest.cell.as_deref() != Some("canary")
         {
             sqlite_catalogue(&opened, &mut catalogues, selection.as_ref())?;
+        }
+        if let Some(Workload::TemporalRecovery { forcing }) = actual_workload {
+            temporal_catalogue(&opened, &mut catalogues, forcing.as_ref())?;
         }
     }
     Ok((catalogues, selection))
@@ -330,6 +346,38 @@ fn sqlite_catalogue(
         }
         let recovered = opened.payload("evidence/cluster/sqlite/3/storage_state", 8 << 20)?;
         native_crash::marker(&recovered, &selection.state)?;
+    }
+    Ok(())
+}
+
+fn temporal_catalogue(
+    opened: &crate::evidence::store::Opened,
+    catalogues: &mut Vec<native_crash::Catalogue>,
+    forcing: Option<&recovery::Forcing>,
+) -> Result<(), String> {
+    let state = opened.payload("evidence/cluster/temporal/1/storage_state", 256 << 20)?;
+    let log = opened.payload("evidence/cluster/temporal/1/storage", 128 << 20)?;
+    let catalogue = native_crash::temporal(&state, &log)?;
+    if let Some(first) = catalogues.first() {
+        if first != &catalogue {
+            return Err("Temporal complete native catalogue differs across fresh repeats".into());
+        }
+    } else {
+        catalogues.push(catalogue);
+    }
+    if let Some(forcing) = forcing {
+        let catalogue = &catalogues[0];
+        if catalogue.context != forcing.context
+            || !catalogue
+                .enumeration
+                .states
+                .as_ref()
+                .is_some_and(|states| states.contains(&forcing.state))
+        {
+            return Err(
+                "Temporal selected state or context differs from actual complete catalogue".into(),
+            );
+        }
     }
     Ok(())
 }

@@ -151,6 +151,20 @@ fn explore_options(
     let mut options = crate::cli::explore::parse(&arguments, &mut json)?;
     options.installation = installation.map(Path::to_path_buf);
     options.scenario = scenario;
+    if spec.manifest.id == "temporal-committed-workflow-crash-reopen" {
+        if campaign.choice_trace_limit != 1 << 30
+            || options.scenario.as_ref().is_none_or(|raw| {
+                serde_json::from_slice::<Value>(raw)
+                    .ok()
+                    .is_none_or(|scenario| {
+                        scenario["workload"]["kind"] != "temporal-committed-workflow-crash-reopen"
+                    })
+            })
+        {
+            return Err("committed Temporal recovery requires its exact registered original 1GiB choice bound".into());
+        }
+        options.choice_bytes = 1 << 30;
+    }
     if matches!(
         spec.runtime_workload,
         Some(super::workloads::recovery::Request::TemporalRetry)

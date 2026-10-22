@@ -49,7 +49,21 @@ def main():
         results={}
         for mode in ["success","canary"]:
             response=producer.run(cell,mode,[sys.executable,str(Path(__file__).with_name("producer.py")),*common,"--root",str(cell/mode),"--workload",row,"--mode",mode,"--source-manifest",str(args.source_manifest.resolve())],0)
-            results[mode]=response["result_path"]
+            result_path=Path(response["result_path"])
+            actual=json.loads(result_path.read_bytes())
+            if actual["manifest"]["module_sha256"]!=prepared["module_sha256"]:
+                raise ValueError("row preparation and both measured cells must use the same unchanged module")
+            for execution in actual["report"]["executions"]:
+                if mode=="success":
+                    stdout=Path(execution["artifact_path"])/"output/stdout"
+                    raw=stdout.read_bytes()
+                    stream=execution["record"]["streams"]["output/stdout"]
+                    if len(raw)!=stream["bytes"] or hashlib.sha256(raw).hexdigest()!=stream["sha256"]:
+                        raise ValueError("support named-PASS stdout changed")
+                    required=([b"--- PASS: TestWorkflowTypeEncodingSuite",b"TestPlainASCII/Succeeds"] if row=="smoke" else [b"--- PASS: TestFrontendSystemInfo"])
+                    if any(marker not in raw for marker in required):
+                        raise ValueError("original exact selected workflow/frontend test did not pass")
+            results[mode]=str(result_path)
         if row=="smoke":
             inspection=producer.run(cell,"inspection",[sys.executable,str(Path(__file__).with_name("temporal-inspection.py")),*common,"--root",str(root/"inspection"),"--owner","onebox"],0)
         rows.append(dict(row=row,preparation=prepared,results=results))

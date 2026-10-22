@@ -88,3 +88,28 @@ manifest, retains authenticated plan receipts with `guest_executions=0`, and
 emits the four support gate rows only after both exact smoke and frontend pairs
 and the original onebox inspection have passed. The final full driver remains
 the owner of serial/parallel ordering and aggregate acceptance.
+
+The independent SQLite oracle builds from the retained Go reference only:
+`go build -tags=test_dep -o /ABS/sqlite-native ./tools/gomad/internal/model/cmd/sqlite-native`.
+Its sealed command is `/ABS/sqlite-native --input /ABS/oracle-input.json`.
+Input contains `storage_state_path`, `storage_state_sha256`,
+`storage_log_path`, `storage_log_sha256`, and exact lowercase limits
+`{states:32,operations:8,depth:8,bytes:4194304,work:65536}`. It authenticates
+both actual files, calls the original Go GMSTORE decoder and storage evidence
+admission, and outputs full PascalCase `enumeration`/`context`. It executes no
+guest and supplies no Rust Result identity. The conductor's source relocation
+places the shared reference implementation under `internal/model/wasi` before
+this endpoint is built.
+
+The original committed-workflow primary retains commit `temporal/1` and two
+fresh reopens `temporal/2` and `/3` from the identical actual primary image.
+The internal runtime pins those bytes before either reopen and retains
+`recovery_image_primary` plus each `recovery_image_input` source handle/digest
+receipt. Reopen writes cannot replace the primary pin. Domain report/replay
+recomputes the image binding against native storage state. Selected-state
+producers retain the original single-reopen variant and authenticate their
+source primary image, complete catalogue, context and interrupted tape.
+
+Known recovery and onebox-inspection workloads resolve their original 1 GiB
+choice bound before preparation, including the checked aggregate evidence
+bound; the base request and preparation identity record that actual limit.

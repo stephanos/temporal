@@ -97,6 +97,7 @@ pub(super) fn replication(
             history_operation(&actual.payload)?.len(),
         ])?;
         oracle_bytes([expected.cluster_id.len(), actual.cluster_id.len()])?;
+        event_bytes(&expected, &actual)?;
         checks.insert(
             format!("{role}-durable-recovery.history"),
             expected.payload == actual.payload,
@@ -139,27 +140,38 @@ pub(super) fn recovery(
     let mut checks = BTreeMap::new();
 
     let expected = read_history(output("temporal", 1)?, "GOMAD_TEMPORAL_OBSERVATION ")?;
-    let actual = read_history(output("temporal", 2)?, "GOMAD_TEMPORAL_OBSERVATION ")?;
-    oracle_bytes([
-        history_operation(&expected.payload)?.len(),
-        history_operation(&actual.payload)?.len(),
-    ])?;
-    checks.insert(
-        "temporal-recovery.history".into(),
-        expected.payload == actual.payload,
-    );
-    checks.insert(
-        "temporal-recovery.events".into(),
-        expected.event_ids == actual.event_ids,
-    );
-    checks.insert(
-        "temporal-recovery.identity".into(),
-        expected.cluster_id == actual.cluster_id,
-    );
-    checks.insert(
-        "temporal-recovery.types".into(),
-        expected.types == actual.types,
-    );
+    for incarnation in 2..=if forcing.is_some() { 2 } else { 3 } {
+        let actual = read_history(
+            output("temporal", incarnation)?,
+            "GOMAD_TEMPORAL_OBSERVATION ",
+        )?;
+        oracle_bytes([
+            history_operation(&expected.payload)?.len(),
+            history_operation(&actual.payload)?.len(),
+        ])?;
+        event_bytes(&expected, &actual)?;
+        oracle_bytes([expected.cluster_id.len(), actual.cluster_id.len()])?;
+        checks.insert(
+            format!("temporal-recovery-{incarnation}.history"),
+            expected.payload == actual.payload,
+        );
+        checks.insert(
+            format!("temporal-recovery-{incarnation}.events"),
+            expected.event_ids == actual.event_ids,
+        );
+        checks.insert(
+            format!("temporal-recovery-{incarnation}.identity"),
+            expected.cluster_id == actual.cluster_id,
+        );
+        checks.insert(
+            format!("temporal-recovery-{incarnation}.types"),
+            expected.types == actual.types,
+        );
+    }
+    if forcing.is_none() {
+        recovery_pin(streams)?;
+        checks.insert("original-image-two-fresh-reopens".into(), true);
+    }
     if let Some(forcing) = forcing {
         for (name, expected) in [
             ("stdout", &forcing.stdout_sha256),
@@ -208,4 +220,46 @@ pub(super) fn inspection(
     );
 
     Ok(checks)
+}
+
+fn event_bytes(expected: &History, actual: &History) -> Result<(), String> {
+    let encode = |value: &History| {
+        canonical::encode(
+            &value
+                .event_ids
+                .iter()
+                .map(ToString::to_string)
+                .collect::<Vec<_>>(),
+        )
+    };
+    oracle_bytes([encode(expected)?.len(), encode(actual)?.len()])
+}
+
+fn recovery_pin(streams: &BTreeMap<String, Vec<u8>>) -> Result<(), String> {
+    let raw = streams
+        .get("cluster/temporal/1/recovery_image_primary")
+        .ok_or("original committed recovery image absent")?;
+    let state = streams
+        .get("cluster/temporal/1/storage_state")
+        .ok_or("original committed storage state absent")?;
+    let digest = canonical::digest(raw);
+    if super::native_crash::sections(state)?[&4] != digest.as_bytes() {
+        return Err("actual primary image differs from native storage-state image binding".into());
+    }
+    let expected = serde_json::json!({"source_handle":{"node":"temporal","incarnation":1},"image_sha256":digest,"image_bytes":raw.len()});
+    for incarnation in [2, 3] {
+        let receipt = streams
+            .get(&format!(
+                "cluster/temporal/{incarnation}/recovery_image_input"
+            ))
+            .ok_or("original fresh reopen image-input receipt absent")?;
+        let actual: serde_json::Value = super::super::spec::strict(receipt)?;
+        if actual != expected {
+            return Err(
+                "fresh Temporal reopen used another image instead of the same acknowledged primary"
+                    .into(),
+            );
+        }
+    }
+    Ok(())
 }

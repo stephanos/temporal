@@ -190,9 +190,13 @@ pub(super) fn temporal_recovery(bound: &mut Bound) -> Result<(), String> {
         .iter()
         .map(|item| (item.handle.node.as_str(), item.handle.incarnation))
         .collect::<Vec<_>>();
-    if handles != [("temporal", 1), ("temporal", 2)] {
+    if bound.request.network.is_some()
+        || bound.configuration.network.is_some()
+        || handles != [("temporal", 1), ("temporal", 2), ("temporal", 3)]
+    {
         return Err(
-            "Temporal recovery requires original commit and fresh reopen incarnations".into(),
+            "Temporal recovery requires original commit and two fresh reopens of that same image"
+                .into(),
         );
     }
     for item in &mut bound.request.incarnations {

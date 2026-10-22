@@ -160,7 +160,7 @@ pub(super) fn retained(result: &QualificationResult) -> Result<(), String> {
         }
         super::recovery::validate_retry(&inputs.configuration)?;
         witness(
-            &opened.payload("evidence/stdout", 256 << 20)?,
+            &opened.payload("output/stdout", 256 << 20)?,
             &opened.payload("evidence/network", 1 << 30)?,
         )?;
     }

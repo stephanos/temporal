@@ -124,7 +124,7 @@ fn bound(raw: &[u8], sqlite: bool) -> Bound {
     })).unwrap();
     let identity = serde_json::from_value(json!({"TargetSHA256":sha2::Sha256::digest(module).to_vec(),
         "ToolchainBuildKey":"a".repeat(64),"GOOS":"wasip1","GOARCH":"wasm","ImplementationSHA256":vec![0u8;32]})).unwrap();
-    let network = (!sqlite).then(||serde_json::from_value(json!({"profile":"gomad.simulation-network-stream/v3",
+    let network = (!sqlite && serde_json::from_slice::<Value>(raw).unwrap()["workload"]["kind"]=="independent-temporal-replication-durable-restart").then(||serde_json::from_value(json!({"profile":"gomad.simulation-network-stream/v3",
         "limits":{"listeners":128,"connections":4096,"bytes":128<<20,"connection_bytes":4<<20,"stall_nanos":10_000_000_000u64,"transitions":1<<20}})).unwrap());
     crate::campaign::scenario::bind(raw, &base, module, &identity, network.as_ref(), 7).unwrap()
 }
@@ -296,4 +296,56 @@ fn named_reset_requires_actual_established_connection_and_inflight_retry() {
         )
         .is_err()
     );
+}
+
+#[test]
+fn native_context_allows_persisted_dependencies_but_rejects_invalid_pending_order() {
+    let mut state:native_crash::State=serde_json::from_value(json!({"Volume":"sqlite","PendingSHA256":format!("sha256:{}","b".repeat(64)),"SelectedOperations":[2],"Entries":[],"Identity":format!("sha256:{}","c".repeat(64))})).unwrap();
+    let mut context:native_crash::Context=serde_json::from_value(json!({"PendingSHA256":state.pending_sha256,"Operations":[{"ID":2,"Kind":"write","Dependencies":[1],"Inode":1,"Offset":0,"Bytes":1,"PayloadSHA256":"","EffectSHA256":"","Path":"/db","Destination":""}]})).unwrap();
+    native_crash::validate_state(&state, &context, "sqlite", 8).unwrap();
+    context.operations[0].dependencies = Some(vec![2]);
+    assert!(native_crash::validate_state(&state, &context, "sqlite", 8).is_err());
+    context.operations[0].dependencies = Some(vec![1]);
+    let mut earlier = context.operations[0].clone();
+    earlier.id = 1;
+    earlier.dependencies = None;
+    context.operations.push(earlier);
+    assert!(native_crash::validate_state(&state, &context, "sqlite", 8).is_err());
+    context.operations.sort_by_key(|operation| operation.id);
+    assert!(native_crash::validate_state(&state, &context, "sqlite", 8).is_err());
+    state.selected_operations = vec![1, 2];
+    native_crash::validate_state(&state, &context, "sqlite", 8).unwrap();
+}
+
+#[test]
+fn recovery_keeps_original_three_incarnations_and_complete_crash_bound() {
+    let actual = bound(include_bytes!("testdata/recovery.json"), false);
+    assert!(actual.request.network.is_none());
+    assert_eq!(actual.request.incarnations.len(), 3);
+    for (index, item) in actual.request.incarnations.iter().enumerate() {
+        let model = item.request.model.as_ref().unwrap();
+        assert_eq!(model.configuration.limit, 1 << 30);
+        assert!(model.environment.contains(&format!(
+            "GOMAD_TEMPORAL_PHASE={}",
+            if index == 0 { "commit" } else { "reopen" }
+        )));
+        let storage = serde_json::to_value(item.request.storage.as_ref().unwrap()).unwrap();
+        assert_eq!(!storage["descriptor"]["crash_limits"].is_null(), index == 0);
+        if index == 0 {
+            assert_eq!(
+                storage["descriptor"]["crash_limits"],
+                json!({"States":128,"Operations":256,"Depth":256,"Bytes":256<<20,"Work":1<<20})
+            );
+        }
+    }
+    for ids in [vec![1, 1], vec![2, 1], vec![1, 3]] {
+        let value = json!({"cluster_id":"cluster","history":"AQ==","event_ids":ids,"types":["start","complete"]});
+        assert!(
+            read_history(
+                format!("GOMAD_TEMPORAL_OBSERVATION {value}\n").as_bytes(),
+                "GOMAD_TEMPORAL_OBSERVATION "
+            )
+            .is_err()
+        );
+    }
 }

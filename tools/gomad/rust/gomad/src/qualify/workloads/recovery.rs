@@ -47,6 +47,7 @@ pub struct Forcing {
     pub storage_state_sha256: String,
     pub storage_sha256: String,
     pub stdout_sha256: String,
+    pub primary_image_sha256: String,
     pub state: native_crash::State,
     pub context: native_crash::Context,
     pub expected: History,
@@ -153,7 +154,7 @@ fn source(primary: &Primary) -> Result<Source, String> {
     if !matches!(
         inputs.configuration.workload,
         Some(Workload::TemporalRecovery { forcing: None })
-    ) || inputs.configuration.incarnations.len() != 2
+    ) || inputs.configuration.incarnations.len() != 3
     {
         return Err("Temporal primary is not the unselected original recovery workload".into());
     }
@@ -168,6 +169,7 @@ fn source(primary: &Primary) -> Result<Source, String> {
         ("storage_state", 256 << 20),
         ("storage", 128 << 20),
         ("stdout", 8 << 20),
+        ("recovery_image_primary", record.limits.evidence_bytes),
     ] {
         payloads.insert(
             name.into(),
@@ -200,6 +202,7 @@ fn source(primary: &Primary) -> Result<Source, String> {
         storage_state_sha256: primary.storage_state_sha256.clone(),
         storage_sha256: canonical::digest(&payloads["storage"]),
         stdout_sha256: canonical::digest(&payloads["stdout"]),
+        primary_image_sha256: canonical::digest(&payloads["recovery_image_primary"]),
         state: primary.state.clone(),
         context: primary.context.clone(),
         expected,
@@ -278,6 +281,22 @@ pub(crate) fn bind(prepared: &Prepared, bound: &mut Bound) -> Result<(), String>
         .find(|item| item.handle == commit.handle)
         .ok_or("retained Temporal commit boot missing")?
         .storage = Some(storage.clone());
+    bound
+        .request
+        .incarnations
+        .retain(|item| item.handle.incarnation != 3);
+    bound
+        .request
+        .steps
+        .retain(|item| item.handle.incarnation != 3);
+    bound
+        .configuration
+        .incarnations
+        .retain(|item| item.handle.incarnation != 3);
+    bound
+        .configuration
+        .steps
+        .retain(|item| item.handle.incarnation != 3);
     bound.configuration.workload = Some(Workload::TemporalRecovery {
         forcing: Some(source.forcing),
     });
@@ -339,6 +358,11 @@ pub(crate) fn authenticate(opened: &Opened, forcing: &Forcing) -> Result<(), Str
         ("storage_state", 256 << 20, &forcing.storage_state_sha256),
         ("storage", 128 << 20, &forcing.storage_sha256),
         ("stdout", 8 << 20, &forcing.stdout_sha256),
+        (
+            "recovery_image_primary",
+            record.limits.evidence_bytes,
+            &forcing.primary_image_sha256,
+        ),
     ] {
         let raw = read(name, maximum)?;
         if canonical::digest(&raw) != *expected

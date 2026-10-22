@@ -99,10 +99,19 @@ pub(super) fn validate_state(
         return Err("native crash selection lacks exact state/context binding".into());
     }
     let mut operations = BTreeMap::new();
+    let mut previous = 0;
     for operation in &context.operations {
-        if operation.id == 0 || operations.insert(operation.id, operation).is_some() {
+        if operation.id <= previous
+            || operation.dependencies.as_ref().is_some_and(|dependencies| {
+                dependencies
+                    .iter()
+                    .any(|dependency| *dependency == 0 || *dependency >= operation.id)
+            })
+            || operations.insert(operation.id, operation).is_some()
+        {
             return Err("duplicate or invalid pending operation".into());
         }
+        previous = operation.id;
     }
     let selected = state
         .selected_operations
@@ -116,9 +125,9 @@ pub(super) fn validate_state(
                 .dependencies
                 .as_ref()
                 .is_some_and(|dependencies| {
-                    dependencies
-                        .iter()
-                        .any(|dependency| !selected.contains(dependency))
+                    dependencies.iter().any(|dependency| {
+                        operations.contains_key(dependency) && !selected.contains(dependency)
+                    })
                 })
         })
     {

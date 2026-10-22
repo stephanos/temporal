@@ -27,7 +27,7 @@ class WorkloadTests(unittest.TestCase):
     def test_recovery_and_retry_preserve_original_storage_and_network_domains(self):
         recovery=workloads.temporal_recovery_scenario()
         self.assertEqual(recovery["workload"],dict(kind="temporal-committed-workflow-crash-reopen",forcing=None))
-        self.assertEqual([row["action"] for row in recovery["actions"]],["start","wait","restart","wait"])
+        self.assertEqual([row["action"] for row in recovery["actions"]],["start","crash","restart","wait","restart","wait"])
         self.assertEqual(recovery["boots"][0]["args"][3],"-test.run=^TestCommittedWorkflowCrashRecovery$")
         self.assertNotIn("network_v2",workloads.policy("recovery",{"schema":"authenticated-test-input"}))
         policy=workloads.support_policy("retry",{"schema":"authenticated-test-input"})

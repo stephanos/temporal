@@ -598,6 +598,32 @@ pub(crate) fn evidence_limit(normalized: &[u8]) -> Result<u64, String> {
     Ok(parse(normalized)?.spec.limits.scenario_evidence_bytes)
 }
 
+pub(super) fn original_choice_bytes(raw: Option<&[u8]>, requested: u64) -> Result<u64, String> {
+    if let Some(raw) = raw {
+        let scenario = parse(raw)?;
+        if matches!(
+            scenario.workload,
+            Some(
+                crate::qualify::workloads::Workload::TemporalRecovery { .. }
+                    | crate::qualify::workloads::Workload::TemporalInspection
+            )
+        ) {
+            if requested != 0 && requested != 1 << 30 {
+                return Err(
+                    "registered Temporal workload requires its original 1GiB choice bound".into(),
+                );
+            }
+            return Ok(1 << 30);
+        }
+        if requested == 0 {
+            return Ok(8 << 20);
+        }
+    }
+    Ok(requested.max(160))
+}
+
+/// # Errors
+/// Refuses malformed, unknown, unbounded and inconsistent scenario declarations.
 pub fn normalize(raw: &[u8]) -> Result<Vec<u8>, String> {
     let normalized = canonical::encode(&parse(raw)?)?;
     if normalized.len() > 256 << 10 {
@@ -1294,6 +1320,14 @@ pub(super) fn execute(
     let limits = store_limits(&bound.request.incarnations);
     let mut execution =
         helper::prepare(bound.request).map_err(|error| format!("runner_failure: {error}"))?;
+    if matches!(
+        bound.configuration.workload,
+        Some(crate::qualify::workloads::Workload::TemporalRecovery { forcing: None })
+    ) {
+        execution
+            .committed_temporal_reopens()
+            .map_err(|error| error.to_string())?;
+    }
     execution.conditions(linked::Conditions::compiled());
     execution.cancellation(cancellation.clone());
     #[cfg(feature = "determinism-fixture")]
