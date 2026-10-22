@@ -288,7 +288,7 @@ fn cluster_role_inputs_are_preserved_in_the_retained_configuration() {
     let mut bound = crate::campaign::scenario::bind(
         &canonical::encode(&scenario).unwrap(),
         &base,
-        b"(module)",
+        b"\0asm\x01\0\0\0\x05\x03\x01\x00\x01",
         &identity,
         Some(&network),
         7,
@@ -374,6 +374,7 @@ fn canonical_soft_assertion_failure_cannot_pass_any_stress_workload() {
         let mut stdout = b"--- PASS: TestWorkflowTypeEncodingSuite\nPASS\n".to_vec();
         stdout.extend_from_slice(assertion);
         let execution = linked::Execution {
+            authorization_to_terminal_nanos: None,
             outcome: terminal,
             evidence: BTreeMap::from([("stdout".into(), stdout)]),
             event_order: None,

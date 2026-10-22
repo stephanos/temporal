@@ -317,6 +317,18 @@ fn valid_inventory(value: &Value) -> bool {
     })
 }
 
+fn authenticate_provenance_module(provenance: &Value, module: &[u8]) -> Result<(), String> {
+    super::prepare::typed_provenance(provenance)?;
+    let module_metadata: Option<gomad_wasmhost::linked::ModuleMetadata> =
+        serde_json::from_value(provenance["module_metadata"].clone())
+            .map_err(|error| error.to_string())?;
+    super::prepare::authenticate_module_metadata(
+        module_metadata.as_ref(),
+        &provenance["inputs"],
+        module,
+    )
+}
+
 fn validate(
     receipt: &PreparationReceipt,
     plan: &Value,
@@ -347,7 +359,7 @@ fn validate(
     let prepared = super::restore_from_plan(metadata(plan), opened)?;
     let provenance: Value =
         serde_json::from_slice(&prepared.provenance).map_err(|error| error.to_string())?;
-    super::prepare::typed_provenance(&provenance)?;
+    authenticate_provenance_module(&provenance, &prepared.module)?;
     let mut configuration =
         serde_json::to_value(&prepared.configuration).map_err(|error| error.to_string())?;
     configuration["runtime_sha256"] = Value::Null;
