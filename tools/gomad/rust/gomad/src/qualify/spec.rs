@@ -121,6 +121,8 @@ pub(crate) struct Campaign {
 #[derive(Debug, Deserialize)]
 #[serde(deny_unknown_fields)]
 pub(crate) struct Spec {
+    #[serde(rename = "RuntimeWorkload", default)]
+    pub runtime_workload: Option<super::workloads::recovery::Request>,
     #[serde(rename = "Manifest")]
     pub manifest: DeclaredManifest,
     #[serde(rename = "Campaign")]

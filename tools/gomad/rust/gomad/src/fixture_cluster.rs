@@ -107,6 +107,7 @@ fn publication(corpus: &Path, seed: u64) -> Result<Publication, String> {
     let configuration = Configuration {
         original_limits: None,
         oracle_plan: None,
+        workload: None,
         simulation_original: None,
         world_encoding: String::new(),
         world_profile: None,

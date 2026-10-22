@@ -108,6 +108,8 @@ pub struct Configuration {
     #[serde(default, skip_serializing_if = "Option::is_none")]
     pub oracle_plan: Option<OraclePlan>,
     #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub workload: Option<crate::qualify::workloads::Workload>,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
     pub simulation_original: Option<Box<Configuration>>,
     #[serde(default, skip_serializing_if = "Vec::is_empty")]
     pub nodes: Vec<String>,
@@ -210,26 +212,49 @@ pub(crate) fn execute(execution: Execution) -> Result<helper::Execution, String>
     })
 }
 
-pub(crate) fn execute_projected(execution: Execution) -> Result<linked::Execution, String> {
-    let simulation = execution.simulation.is_some();
-    let encoding = execution.world_encoding.clone();
-    let oracle_configuration = execution.oracle_configuration.clone();
-    let observed = execute(execution)?;
-    let oracle_report = oracles::assess(&observed, &oracle_configuration)?;
-    let primary = simulation.then(|| {
-        observed
-            .incarnations
-            .first()
-            .and_then(|item| item.execution.evidence.get("choice"))
-            .cloned()
-            .unwrap_or_default()
-    });
-    let mut projected = project_encoded(observed, &encoding)?;
-    oracles::apply(&mut projected, oracle_report)?;
-    if let Some(primary) = primary {
-        projected.evidence.insert("choice".into(), primary);
+pub(crate) struct Projection {
+    configuration: Configuration,
+    world_encoding: String,
+    simulation: bool,
+}
+
+impl Execution {
+    pub(crate) fn projection(&self) -> Projection {
+        Projection {
+            configuration: self.oracle_configuration.clone(),
+            world_encoding: self.world_encoding.clone(),
+            simulation: self.simulation.is_some(),
+        }
     }
-    Ok(projected)
+}
+
+impl Projection {
+    pub(crate) fn project(self, observed: helper::Execution) -> Result<linked::Execution, String> {
+        let oracle_report = oracles::assess(&observed, &self.configuration)?;
+        let primary = self.simulation.then(|| {
+            observed
+                .incarnations
+                .first()
+                .and_then(|item| item.execution.evidence.get("choice"))
+                .cloned()
+                .unwrap_or_default()
+        });
+        let mut projected = project_workload(
+            observed,
+            self.configuration.workload.as_ref(),
+            &self.world_encoding,
+        )?;
+        oracles::apply(&mut projected, oracle_report)?;
+        if let Some(primary) = primary {
+            projected.evidence.insert("choice".into(), primary);
+        }
+        Ok(projected)
+    }
+}
+
+pub(crate) fn execute_projected(execution: Execution) -> Result<linked::Execution, String> {
+    let projection = execution.projection();
+    projection.project(execute(execution)?)
 }
 
 fn simulation_plan(opened: &Opened, inputs: &Inputs) -> Result<Option<simulation::Plan>, String> {
@@ -324,7 +349,7 @@ pub fn inputs(opened: &Opened) -> Result<Inputs, String> {
     Ok(value)
 }
 
-fn bind(opened: &Opened, inputs: &Inputs) -> Result<(), String> {
+pub(crate) fn bind(opened: &Opened, inputs: &Inputs) -> Result<(), String> {
     let record = &opened.manifest().record;
     if inputs.helper_sha256 != linked::IMPLEMENTATION_SHA256
         || inputs.host_sha256 != env!("GOMAD_HOST_IMPLEMENTATION_SHA256")
@@ -341,6 +366,18 @@ fn bind(opened: &Opened, inputs: &Inputs) -> Result<(), String> {
             != record.identity.configuration
     {
         return Err("WASM retained cluster implementation/configuration identity mismatch".into());
+    }
+    if let Some(crate::qualify::workloads::Workload::SQLite {
+        selection: Some(selection),
+    }) = &inputs.configuration.workload
+    {
+        crate::qualify::workloads::sqlite::authenticate(opened, selection)?;
+    }
+    if let Some(crate::qualify::workloads::Workload::TemporalRecovery {
+        forcing: Some(forcing),
+    }) = &inputs.configuration.workload
+    {
+        crate::qualify::workloads::recovery::authenticate(opened, forcing)?;
     }
     let original = inputs.configuration.simulation_original.as_deref();
     if let Some(original) = original {
@@ -555,7 +592,7 @@ pub fn prepare(opened: Opened, control: Option<&inspection::Request>) -> Result<
         .unwrap_or(&inputs.configuration)
         .clone();
     let oracle_configuration = configuration.clone();
-    let execution = helper::prepare(helper::Request {
+    let mut execution = helper::prepare(helper::Request {
         nodes: configuration.nodes,
         broker: configuration.broker,
         network: configuration.network,
@@ -570,6 +607,24 @@ pub fn prepare(opened: Opened, control: Option<&inspection::Request>) -> Result<
         evidence_bytes: configuration.limits.evidence_bytes,
     })
     .map_err(|error| error.to_string())?;
+    match &configuration.workload {
+        Some(crate::qualify::workloads::Workload::SQLite { .. }) => {
+            execution.sqlite_crash_reference()
+        }
+        Some(crate::qualify::workloads::Workload::TemporalRecovery { .. }) => {
+            execution.temporal_crash_reference()
+        }
+        _ => Ok(()),
+    }
+    .map_err(|error| error.to_string())?;
+    if matches!(
+        configuration.workload,
+        Some(crate::qualify::workloads::Workload::TemporalRecovery { forcing: None })
+    ) {
+        execution
+            .committed_temporal_reopens()
+            .map_err(|error| error.to_string())?;
+    }
     Ok(Prepared {
         opened,
         execution: Execution {
@@ -699,4 +754,19 @@ pub fn project_inspection(
         .insert("inspection".into(), observed.inspection);
     selected.event_order = observed.event_order;
     Ok(selected)
+}
+
+/// Projects the sealed mandatory oracle against fresh execution output.
+/// # Errors
+/// Refuses missing, ambiguous or malformed actual workload observations.
+pub(crate) fn project_workload(
+    observed: helper::Execution,
+    workload: Option<&crate::qualify::workloads::Workload>,
+    encoding: &str,
+) -> Result<linked::Execution, String> {
+    let mut projected = project_encoded(observed, encoding)?;
+    if let Some(workload) = workload {
+        crate::qualify::workloads::project(workload, &mut projected)?;
+    }
+    Ok(projected)
 }

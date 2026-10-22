@@ -51,6 +51,7 @@ pub fn first(record: &Record, observed: &linked::Execution) -> Option<String> {
     for (name, path) in [
         ("cluster_summary", "backend.evidence.sha256"),
         ("cluster_oracles", "backend.evidence.sha256"),
+        ("workload-oracles.json", "backend.evidence.sha256"),
         ("stdout", "stdout.full_sha256"),
         ("stderr", "stderr.full_sha256"),
         ("transcript", "io_profile.transcript.sha256"),

@@ -35,6 +35,8 @@ pub use crate::install::manifest::Installation;
 #[derive(Deserialize, Serialize)]
 #[serde(deny_unknown_fields)]
 struct Provenance {
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    runtime_workload: Option<crate::qualify::workloads::recovery::Request>,
     schema: String,
     inputs: Value,
     build_key: String,
@@ -402,6 +404,7 @@ fn prepare_before_deadline(
         None
     };
     let provenance = canonical::encode(&Provenance {
+        runtime_workload: None,
         schema: "gomad.rust-wasm-provenance/v1".into(),
         inputs,
         build_key: toolchain.clone(),
@@ -494,11 +497,8 @@ fn configuration(
     let object = model
         .as_object_mut()
         .ok_or_else(|| failure("model must be an object"))?;
-    let choice_limit = if options.scenario.is_some() && options.choice_bytes == 0 {
-        8 << 20
-    } else {
-        options.choice_bytes.max(160)
-    };
+    let choice_limit =
+        super::scenario::original_choice_bytes(options.scenario.as_deref(), options.choice_bytes)?;
     object.insert("mode".into(), json!(1));
     object.insert("limit".into(), json!(choice_limit));
     object.insert("diagnostics".into(), json!(options.diagnostics));
@@ -514,8 +514,7 @@ fn configuration(
     let checked_model: linked::ModelConfig =
         serde_json::from_value(checked_model).map_err(failure)?;
     checked_model.validate().map_err(failure)?;
-    let evidence = options
-        .choice_bytes
+    let evidence = choice_limit
         .checked_add(
             options
                 .output_limit

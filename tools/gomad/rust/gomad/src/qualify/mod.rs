@@ -10,6 +10,8 @@ pub(crate) mod result;
 pub(crate) mod spec;
 pub(crate) mod usage;
 
+pub(crate) mod workloads;
+
 pub(crate) fn require_release_role() -> Result<(), String> {
     if gomad_wasmhost::linked::Conditions::compiled()
         != gomad_wasmhost::linked::Conditions::Ordinary

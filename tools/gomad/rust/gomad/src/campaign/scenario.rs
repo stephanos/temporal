@@ -43,6 +43,8 @@ scenario_limits! {
 #[derive(Deserialize, Serialize)]
 #[serde(deny_unknown_fields)]
 struct Scenario {
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    workload: Option<crate::qualify::workloads::Workload>,
     schema: String,
     spec: Spec,
     boots: Vec<Boot>,
@@ -387,6 +389,9 @@ impl Scenario {
         reason = "Admission preserves the complete public scenario grammar before preparing any guest"
     )]
     fn validate(&self) -> Result<(), String> {
+        if let Some(workload) = &self.workload {
+            workload.validate()?;
+        }
         let spec = &self.spec;
         if spec.fidelity == "hard_isolation" {
             return Err("one-helper WASM clusters cannot provide hard isolation".into());
@@ -601,6 +606,32 @@ pub(crate) fn evidence_limit(normalized: &[u8]) -> Result<u64, String> {
     Ok(parse(normalized)?.spec.limits.scenario_evidence_bytes)
 }
 
+pub(super) fn original_choice_bytes(raw: Option<&[u8]>, requested: u64) -> Result<u64, String> {
+    if let Some(raw) = raw {
+        let scenario = parse(raw)?;
+        if matches!(
+            scenario.workload,
+            Some(
+                crate::qualify::workloads::Workload::TemporalRecovery { .. }
+                    | crate::qualify::workloads::Workload::TemporalInspection
+            )
+        ) {
+            if requested != 0 && requested != 1 << 30 {
+                return Err(
+                    "registered Temporal workload requires its original 1GiB choice bound".into(),
+                );
+            }
+            return Ok(1 << 30);
+        }
+        if requested == 0 {
+            return Ok(8 << 20);
+        }
+    }
+    Ok(requested.max(160))
+}
+
+/// # Errors
+/// Refuses malformed, unknown, unbounded and inconsistent scenario declarations.
 pub fn normalize(raw: &[u8]) -> Result<Vec<u8>, String> {
     let normalized = canonical::encode(&parse(raw)?)?;
     if normalized.len() > 256 << 10 {
@@ -1298,13 +1329,14 @@ pub fn bind(
     };
     let mut execution_limits = base.limits.clone();
     execution_limits.evidence_bytes = request.evidence_bytes;
-    Ok(Bound {
+    let mut bound = Bound {
         configuration: cluster::Configuration {
             original_limits: None,
             oracle_plan: None,
             world_encoding: String::new(),
             world_profile: None,
             simulation_original: None,
+            workload: scenario.workload.clone(),
             nodes,
             engine: base.engine.clone(),
             profile: base.profile.clone(),
@@ -1318,7 +1350,11 @@ pub fn bind(
             crash_groups: Vec::new(),
         },
         request,
-    })
+    };
+    if let Some(workload) = &scenario.workload {
+        workload.bind(&mut bound)?;
+    }
+    Ok(bound)
 }
 
 /// # Errors
@@ -1343,6 +1379,7 @@ pub(super) fn execute(
         prepared.network.as_ref(),
         job.seed,
     )?;
+    crate::qualify::workloads::recovery::bind(prepared, &mut bound)?;
     let scenario = parse(
         prepared
             .scenario
@@ -1358,6 +1395,24 @@ pub(super) fn execute(
     let limits = store_limits(&bound.request.incarnations);
     let mut execution =
         helper::prepare(bound.request).map_err(|error| format!("runner_failure: {error}"))?;
+    match &bound.configuration.workload {
+        Some(crate::qualify::workloads::Workload::SQLite { .. }) => {
+            execution.sqlite_crash_reference()
+        }
+        Some(crate::qualify::workloads::Workload::TemporalRecovery { .. }) => {
+            execution.temporal_crash_reference()
+        }
+        _ => Ok(()),
+    }
+    .map_err(|error| error.to_string())?;
+    if matches!(
+        bound.configuration.workload,
+        Some(crate::qualify::workloads::Workload::TemporalRecovery { forcing: None })
+    ) {
+        execution
+            .committed_temporal_reopens()
+            .map_err(|error| error.to_string())?;
+    }
     execution.conditions(linked::Conditions::compiled());
     execution.cancellation(cancellation.clone());
     #[cfg(feature = "determinism-fixture")]
@@ -1530,7 +1585,7 @@ pub(crate) fn publication(
     }
     features.sort();
     features.dedup();
-    let mut observed = cluster::project(execution)?;
+    let mut observed = cluster::project_workload(execution, configuration.workload.as_ref(), "")?;
     if let Some(raw) = observed.event_order.take() {
         observed.evidence.insert("event-order".into(), raw);
     }
@@ -1553,6 +1608,17 @@ pub(crate) fn publication(
                 bytes: bytes.len() as u64,
                 sha256: canonical::digest(&bytes),
                 records: 0,
+            },
+        );
+        payloads.insert(file, bytes);
+    }
+    for (file, bytes) in crate::qualify::workloads::recovery::payloads(prepared)? {
+        streams.insert(
+            file.clone(),
+            Stream {
+                bytes: bytes.len() as u64,
+                sha256: canonical::digest(&bytes),
+                records: 1,
             },
         );
         payloads.insert(file, bytes);
@@ -1596,7 +1662,12 @@ pub(crate) fn publication(
     );
     payloads.insert(cluster::FILE.into(), raw);
     let class = match observed.outcome.termination {
-        "exit" if reports.as_ref().is_some_and(Assertions::failed) => "target_failure",
+        "exit"
+            if reports.as_ref().is_some_and(Assertions::failed)
+                || observed.outcome.message == "mandatory workload oracle failed" =>
+        {
+            "target_failure"
+        }
         "exit" if observed.outcome.exit_code == Some(0) => "success",
         "exit" | "trap" => "target_failure",
         "watchdog_timeout" => "watchdog",

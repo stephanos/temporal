@@ -147,10 +147,12 @@ fn derive(report: &Report) -> Result<Derived, String> {
         // status zero; any other zero exit is a soft-assertion target failure.
         let exited_zero = outcome.termination == "exit" && outcome.exit_code == Some(0);
         let soft_failure = outcome.class == "target_failure"
-            && execution
-                .record
-                .streams
-                .contains_key("evidence/soft-assertions.json");
+            && [
+                "evidence/soft-assertions.json",
+                "evidence/workload-oracles.json",
+            ]
+            .iter()
+            .any(|name| execution.record.streams.contains_key(*name));
         if outcome.class == "success" && !exited_zero
             || exited_zero && outcome.class != "success" && !soft_failure
         {

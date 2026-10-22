@@ -107,9 +107,13 @@ fn derive(provenance: &serde_json::Value) -> Result<Derived, String> {
     let digest = |value: &Value| canonical::encode(value).map(|bytes| canonical::digest(&bytes));
     let text = |value: &Value| value.as_str().map(str::to_owned).ok_or_else(refuse);
     if provenance["schema"] != "gomad.rust-wasm-provenance/v1"
-        || !provenance
-            .as_object()
-            .is_some_and(|object| object.keys().map(String::as_str).eq(PROVENANCE_FIELDS))
+        || !provenance.as_object().is_some_and(|object| {
+            object
+                .keys()
+                .map(String::as_str)
+                .filter(|field| *field != "runtime_workload")
+                .eq(PROVENANCE_FIELDS)
+        })
     {
         return Err(refuse());
     }
@@ -386,9 +390,11 @@ impl Manifest {
             .scenario_sha256
             .as_deref()
             .is_some_and(|digest| !canonical::valid_digest(digest))
-            || self.scenario_sha256.is_some() != (self.workload == "multi-instance")
+            || self.scenario_sha256.is_some()
+                != (self.workload == "multi-instance"
+                    || (self.workload == "sqlite" && self.id == "sqlite-durable-recovery"))
         {
-            return Err("multi-instance cells, and only they, bind one scenario identity".into());
+            return Err("cluster workload cells require their frozen scenario identity".into());
         }
         if !matches!(
             self.workload.as_str(),
@@ -422,6 +428,10 @@ pub(crate) struct QualificationResult {
     /// inputs, build key, module digest, final configuration and scenario.
     /// Every manifest identity is recomputed from it.
     pub provenance: serde_json::Value,
+    #[serde(default, skip_serializing_if = "Vec::is_empty")]
+    pub native_crash_catalogues: Vec<super::workloads::native_crash::Catalogue>,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub native_crash_selection: Option<super::workloads::native_crash::Selection>,
 }
 
 #[derive(Clone, Debug, Deserialize, Eq, PartialEq, Serialize)]
@@ -547,6 +557,12 @@ pub(crate) fn validate(result: &QualificationResult) -> Result<(), String> {
         }
     }
     bind_cluster_handles(result)?;
+    let (catalogues, selection) = super::workloads::retained(result)?;
+    if catalogues != result.native_crash_catalogues || selection != result.native_crash_selection {
+        return Err(
+            "retained native crash projection differs from authenticated workload records".into(),
+        );
+    }
     // Each execution's samples, and each matched replay's, measured exactly
     // the trace bytes its record retains.
     for execution in &result.report.executions {
@@ -571,7 +587,7 @@ pub(crate) fn validate(result: &QualificationResult) -> Result<(), String> {
     }
     // Every store, executed or replayed, ran under the frozen guest limit;
     // only multi-instance stores carry node/incarnation handles.
-    let cluster = manifest.workload == "multi-instance";
+    let cluster = manifest.scenario_sha256.is_some();
     if result.observations.samples.iter().any(|sample| {
         sample.guest_memory_limit_bytes != manifest.memory_bytes
             || sample.incarnation.is_some() != cluster
@@ -603,7 +619,7 @@ pub(crate) fn validate(result: &QualificationResult) -> Result<(), String> {
 /// execution was measured, so no store's measurement can be dropped.
 fn bind_cluster_handles(result: &QualificationResult) -> Result<(), String> {
     use std::collections::{BTreeMap, BTreeSet};
-    if result.manifest.workload != "multi-instance" {
+    if result.manifest.scenario_sha256.is_none() {
         return Ok(());
     }
     let mut measured: BTreeMap<(&str, u64), BTreeSet<&str>> = BTreeMap::new();
