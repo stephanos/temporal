@@ -25,4 +25,3 @@ test invalid_candidates_freeze_the_first_enabled_actions_until_reset ... ok
 test malformed_and_unknown_requests_preserve_the_current_run ... ok
 
 test result: ok. 10 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.00s
-
