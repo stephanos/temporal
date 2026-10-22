@@ -747,7 +747,7 @@ Emitted steps stay linear in their conditional returns (fn-227.15). The outcome 
 reached rejection, one `IF` per `reject!`; an `if` whose arms leave a value equal folds when
 its condition cannot fail; and a subexpression longer than 400 characters that one step
 operator repeats is emitted once, as a `LET` definition before its branches. A condition after
-a return is evaluated only where the step still runs. A step whose admitted tree passes 100,000
+a return is evaluated only where the step still runs. A step whose admitted tree passes 10,000
 nodes refuses at the statement, since re-reading updates after returns copies earlier values.
 
 The default gate needs only the Rust toolchain and workspace dependencies. The optional `cargo-insta`

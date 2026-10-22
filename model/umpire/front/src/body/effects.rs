@@ -295,7 +295,7 @@ pub(super) fn default_expr(ty: &Type) -> Expr {
 /// The admitted tree copies each earlier value a later statement reads, so a handler that
 /// re-reads updates after conditional returns grows multiplicatively; past this many nodes it
 /// is refused rather than left to stall the macro.
-const NODE_BUDGET: usize = 100_000;
+const NODE_BUDGET: usize = 10_000;
 /// Whether `value` has at most `budget` nodes, counting them off `budget`.
 fn within(value: &Expr, budget: &mut usize) -> bool {
     let Some(left) = budget.checked_sub(1) else { return false };
