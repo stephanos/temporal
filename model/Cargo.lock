@@ -997,6 +997,11 @@ version = "0.0.1"
 dependencies = [
  "prost",
  "prost-build",
+ "trybuild",
+ "umpire-annotations",
+ "umpire-catalog",
+ "umpire-catalog-build",
+ "umpire-catalog-syntax",
  "umpire-checker",
  "umpire-dsl",
  "umpire-wasm",

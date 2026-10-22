@@ -6,9 +6,32 @@ pub use model::kettle;
 
 /// Generated reference service messages.
 #[allow(missing_docs, clippy::all, clippy::pedantic)]
-pub mod api {
-    include!(concat!(env!("OUT_DIR"), "/umpire.reference.kettle.v1.rs"));
+pub mod wire {
+    pub use umpire_wasm::google;
+    pub mod umpire {
+        pub mod reference {
+            pub mod kettle {
+                pub mod v1 {
+                    include!(concat!(env!("OUT_DIR"), "/umpire.reference.kettle.v1.rs"));
+                }
+            }
+        }
+    }
 }
+#[allow(missing_docs, deprecated, clippy::all, clippy::pedantic)]
+#[macro_use]
+mod generated {
+    include!(concat!(env!("OUT_DIR"), "/services.rs"));
+    include!(concat!(env!("OUT_DIR"), "/wire_schema.rs"));
+}
+pub use generated::*;
+/// Exhaustive annotation mirrors.
+pub mod api;
+/// Explicit static and per-kettle limits.
+pub mod config;
+/// Stateless generic probe controls.
+pub mod probes;
+
 /// Evidence projection and callback binding.
 pub mod realization;
 pub use realization::Realization;
@@ -25,3 +48,17 @@ pub fn runtime() -> KettleRuntime {
     )
     .unwrap_or_else(|error| panic!("canonical Kettle start is missing: {}", error.message))
 }
+
+/// Kettle Model dispatcher with independent annotation and probe operations.
+pub type AnnotationRuntime = umpire_wasm::AnnotationRuntime<
+    KettleRuntime,
+    fn(
+        &umpire_wasm::google::protobuf::Any,
+    ) -> Result<umpire_wasm::google::protobuf::Any, umpire_wasm::protocol::Refusal>,
+>;
+
+/// Creates the selected live run and its stateless annotation extension.
+pub fn annotation_runtime() -> AnnotationRuntime {
+    umpire_wasm::AnnotationRuntime::new(runtime(), transport::dispatch)
+}
+mod transport;

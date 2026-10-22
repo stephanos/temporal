@@ -26,3 +26,15 @@ build took 25.81 seconds and a warm rebuild took 2.38 seconds. The full
 `make model-check` run took 426.52 seconds, exceeding the 60-second R30 soft
 target while rebuilding existing compile-failure fixtures and guest profiles.
 These measurements include the new reference in the normal gate.
+
+`api.rs` is the exhaustive annotation mirror catalog; generated messages live under
+`wire::umpire::reference::kettle::v1`. `config.rs` resolves the static ID limit and
+per-kettle tag limit through the shared resolved-limit context. The live guest uses
+`annotation_runtime()` so every healthy RPC request and response is inspected.
+
+The native `tests/probes.rs` checks the catalog coverage snapshot. Refresh it with
+`UMPIRE_UPDATE_KETTLE_COVERAGE=1 mise exec -- cargo test -p umpire-reference-kettle --test probes`.
+The Go actual-wire probe test owns `expected/gaps.txt`; from `model/umpire/hosts/go`,
+refresh with `UMPIRE_UPDATE_KETTLE_GAPS=1 go test -tags test_dep -run '^TestKettleAnnotationCoverageAndActualWireGaps$' -count=1 .`.
+Invalid probes bypass normal request filling so the original bytes reach the server;
+unsupported mutations and transport failures cannot establish a server finding.

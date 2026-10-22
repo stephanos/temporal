@@ -64,6 +64,150 @@ where
     }
 }
 
+/// Typed alternative access used by generated oneof catalogs.
+pub struct OneofProjection<M, T> {
+    get: fn(&M) -> Option<&T>,
+    set: fn(&mut M, Option<T>),
+}
+impl<M, T> OneofProjection<M, T> {
+    /// Records exhaustive access to one selected alternative.
+    pub fn new(get: fn(&M) -> Option<&T>, set: fn(&mut M, Option<T>)) -> Self {
+        Self { get, set }
+    }
+}
+
+/// Message fallback; scalar alternatives use their native field value instead.
+pub trait MessageOneof<M> {
+    /// Builds a projected message field with transactional decoding.
+    fn field(
+        self,
+        path: &str,
+        text: umpire_annotations::StringRules,
+        bytes: umpire_annotations::BytesRules,
+    ) -> umpire_annotations::Field<M, Option<Vec<u8>>>;
+}
+impl<M: 'static, T: Message + Default + 'static> MessageOneof<M> for OneofProjection<M, T> {
+    fn field(
+        self,
+        path: &str,
+        _: umpire_annotations::StringRules,
+        bytes: umpire_annotations::BytesRules,
+    ) -> umpire_annotations::Field<M, Option<Vec<u8>>> {
+        umpire_annotations::Field::try_projected(
+            path,
+            Kind::Bytes(bytes),
+            move |message| (self.get)(message).map(Message::encode_to_vec),
+            move |message, value: Option<Vec<u8>>| {
+                let value = value.as_deref().map(decode_message).transpose()?;
+                (self.set)(message, value);
+                Ok(())
+            },
+        )
+    }
+}
+macro_rules! scalar_oneof {
+    ($ty:ty, $kind:ident, $rules:tt) => {
+        impl<M: 'static> OneofProjection<M, $ty> {
+            /// Builds a field retaining the scalar's native value and selected-default presence.
+            pub fn field(
+                self,
+                path: &str,
+                text: umpire_annotations::StringRules,
+                bytes: umpire_annotations::BytesRules,
+            ) -> umpire_annotations::Field<M, Option<$ty>> {
+                let _ = (&text, &bytes);
+                umpire_annotations::Field::try_projected(
+                    path,
+                    Kind::$kind((text, bytes).$rules),
+                    move |message| (self.get)(message).cloned(),
+                    move |message, value| {
+                        (self.set)(message, value);
+                        Ok(())
+                    },
+                )
+            }
+        }
+    };
+}
+scalar_oneof!(String, Text, 0);
+scalar_oneof!(Vec<u8>, Bytes, 1);
+impl<C> crate::Inspect<C> for String {
+    fn inspect(
+        &self,
+        _: &C,
+        _: bool,
+        _: &mut Vec<umpire_annotations::Violation>,
+    ) -> Result<(), umpire_annotations::AdmissionErrors> {
+        Ok(())
+    }
+}
+impl<C> crate::Inspect<C> for u8 {
+    fn inspect(
+        &self,
+        _: &C,
+        _: bool,
+        _: &mut Vec<umpire_annotations::Violation>,
+    ) -> Result<(), umpire_annotations::AdmissionErrors> {
+        Ok(())
+    }
+}
+
+/// Protobuf map entry whose value is text.
+#[derive(Clone, PartialEq, Message)]
+pub struct TextEntry {
+    /// Entry key.
+    #[prost(string, tag = "1")]
+    pub key: String,
+    /// Entry text value.
+    #[prost(string, tag = "2")]
+    pub value: String,
+}
+
+/// Enumerates text map entries in deterministic key order.
+pub fn text_entries<'a>(
+    values: impl IntoIterator<Item = (&'a String, &'a String)>,
+) -> Vec<TextEntry> {
+    let mut entries: Vec<_> = values
+        .into_iter()
+        .map(|(key, value)| TextEntry { key: key.clone(), value: value.clone() })
+        .collect();
+    entries.sort_by(|a, b| a.key.cmp(&b.key));
+    entries
+}
+
+impl<K: 'static, V: 'static> View<kinds::Map<K, V>> for std::collections::BTreeMap<String, String>
+where
+    String: View<K> + View<V>,
+{
+    type Out = Vec<Vec<u8>>;
+    fn view(&self) -> Self::Out {
+        text_entries(self).iter().map(Message::encode_to_vec).collect()
+    }
+    fn set(&mut self, value: Self::Out) -> Result<(), GenerationError> {
+        let entries: Vec<TextEntry> =
+            value.iter().map(|bytes| decode_message(bytes)).collect::<Result<_, _>>()?;
+        *self = entries.into_iter().map(|entry| (entry.key, entry.value)).collect();
+        Ok(())
+    }
+}
+impl<K: 'static, V: 'static, S: std::hash::BuildHasher> View<kinds::Map<K, V>>
+    for std::collections::HashMap<String, String, S>
+where
+    String: View<K> + View<V>,
+{
+    type Out = Vec<Vec<u8>>;
+    fn view(&self) -> Self::Out {
+        text_entries(self).iter().map(Message::encode_to_vec).collect()
+    }
+    fn set(&mut self, value: Self::Out) -> Result<(), GenerationError> {
+        let entries: Vec<TextEntry> =
+            value.iter().map(|bytes| decode_message(bytes)).collect::<Result<_, _>>()?;
+        self.clear();
+        self.extend(entries.into_iter().map(|entry| (entry.key, entry.value)));
+        Ok(())
+    }
+}
+
 /// Encodes a nested message for a generated projection.
 pub fn encode_message<T: Message>(value: &T) -> Vec<u8> {
     value.encode_to_vec()

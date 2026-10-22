@@ -1,11 +1,11 @@
 //! Exact Kettle observation and callback controls.
 use prost::{Message, Name};
 use umpire_reference_kettle::{
-    api::{
+    runtime,
+    wire::umpire::reference::kettle::v1::{
         DescribeResponse, HeatRequest, HeatResponse, HeatingAction, PollHeatingResponse,
         RespondHeatingRequest, RespondHeatingResponse, State,
     },
-    runtime,
 };
 use umpire_wasm::{
     google::protobuf::Any,

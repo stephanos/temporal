@@ -1018,3 +1018,45 @@ than reusable transport. Its realization-handler source analysis and upstream gr
 remain extension-owned because they resolve authored API types and service shorthand;
 this extraction does not introduce another realization authoring surface. No required
 generic catalog or transport implementation remains behind that boundary.
+
+## Kettle second catalog consumer (fn-233.3)
+
+Kettle's `reference/kettle/api.rs` mirrors the complete in-scope descriptor closure,
+including the nested fill options, map entries and well-known duration. Descriptor
+admission checks fields, enum variants and all service methods; generated Rust
+patterns additionally check fields, oneof alternatives, enums and every canonical
+Model action. The reference crate depends only on framework crates. The guest uses
+`AnnotationRuntime`, and the healthy Go interceptor annotates both directions of
+all six RPCs, fills an omitted idempotency key and retains the existing semantic
+transcript. Response annotation preserves the actual wire bytes.
+
+The second consumer exposed three reusable implementation gaps:
+
+- Scalar oneof alternatives had been encoded and inspected as messages. Typed
+  `OneofProjection` now retains string/bytes values and selected-default presence,
+  while message alternatives keep transactional protobuf decoding. The generic
+  scalar-carrier control and existing extension derive/projected-oneof controls
+  exercise both paths.
+- Maps assumed byte-valued metadata. String-valued entries now use a typed
+  `TextEntry`, deterministic ordering and the same projection/inspection runtime;
+  the byte-entry carrier and existing extension metadata controls stay unchanged.
+- Resolved limit storage was still extension-owned. Shared `Limit<S>` and `Limits`
+  now store declared defaults and resolved overrides. Each consumer owns its scope
+  type and precedence policy: Kettle resolves compact-kettle tag overrides; the
+  extension keeps its existing dynamic-configuration scope declarations.
+
+Kettle-specific predicates use the derive's existing typed `via` projection:
+water-kind/source correlation, nonblank taps, nonempty cartridges and nonempty
+label keys/values. Nested message Rust types use the existing explicit `type`
+parameter where protobuf nesting differs from module naming. These are consumer
+policy and existing authoring controls, rather than new generic syntax.
+
+The probe inventory comes from the shared descriptor wire traversal and mutation
+setters. Each applicable case runs an independent healthy server baseline and
+witness. Deliberate invalid bytes reach the server even when Annotate predicts a
+rejection; the shared black-box classifier compares actual responses with those
+predictions. Transport/unknown failures refuse classification. Unsupported,
+unchanged and state-prerequisite mutations remain explicitly Unverifiable, and
+the deprecated note's Ignored reason remains visible. `coverage.snap` records the
+full catalog; `gaps.txt` is generated only from the actual Go server observations.
+No Model or canonical behavior golden changes are needed.

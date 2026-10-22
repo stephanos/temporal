@@ -3,6 +3,7 @@
 pub use umpire_catalog_macros::{Catalog, annotate};
 
 pub mod kinds;
+pub mod limits;
 pub mod views;
 pub use views::*;
 

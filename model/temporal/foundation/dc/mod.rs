@@ -1,7 +1,5 @@
 //! Server limit declarations and the explicit catalog-factory context.
 
-use std::collections::BTreeMap;
-
 /// The setting kind controlling server-side precedence for one key.
 #[derive(Clone, Copy, Debug, PartialEq, Eq)]
 pub enum Scope {
@@ -21,16 +19,8 @@ pub enum Scope {
     Destination,
 }
 
-/// One server limit with its documented default and setting kind.
-#[derive(Clone, Copy, Debug, PartialEq, Eq)]
-pub struct Limit {
-    /// Dynamic configuration key.
-    pub key: &'static str,
-    /// Server default when no override is supplied.
-    pub default: u64,
-    /// Setting kind; precedence is resolved by the server for this kind.
-    pub scope: Scope,
-}
+/// A server limit retaining the extension's setting scope.
+pub type Limit = umpire_catalog::limits::Limit<Scope>;
 
 /// Maximum encoded identifier length.
 pub const MAX_ID_LENGTH: Limit =
@@ -39,19 +29,19 @@ pub const MAX_ID_LENGTH: Limit =
 pub const BLOB_SIZE_ERROR: Limit =
     Limit { key: "limit.blobSize.error", default: 2 * 1024 * 1024, scope: Scope::Namespace };
 
-/// Already-resolved limits for a catalog invocation.
+/// Resolved limits retain the extension's local inspection context identity.
 #[derive(Clone, Debug, Default)]
 pub struct Limits {
-    values: BTreeMap<&'static str, u64>,
+    values: umpire_catalog::limits::Limits,
 }
 
 impl Limits {
     /// Returns an override or the declared server default.
     pub fn get(&self, limit: &Limit) -> u64 {
-        self.values.get(limit.key).copied().unwrap_or(limit.default)
+        self.values.get(limit)
     }
     /// Supplies an explicitly resolved value for a declaration.
     pub fn set(&mut self, limit: &Limit, value: u64) {
-        self.values.insert(limit.key, value);
+        self.values.set(limit, value);
     }
 }

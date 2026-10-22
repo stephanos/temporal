@@ -1,6 +1,7 @@
 package model
 
 import (
+	"bytes"
 	"context"
 	"fmt"
 	"net"
@@ -17,6 +18,7 @@ import (
 	"google.golang.org/protobuf/types/known/anypb"
 	"umpire.local/model/reference/kettle"
 	kettlev1 "umpire.local/model/reference/kettle/v1"
+	annotationsv1 "umpire.local/model/umpire/annotations/v1"
 	modelv1 "umpire.local/model/umpire/model/v1"
 	realizationv1 "umpire.local/model/umpire/realization/v1"
 )
@@ -26,6 +28,8 @@ type kettleRun struct {
 	ctx        context.Context
 	host       *Host
 	client     kettlev1.KettleServiceClient
+	connection *grpc.ClientConn
+	annotated  map[string][2]int
 	transcript strings.Builder
 }
 
@@ -39,7 +43,8 @@ func newKettleRun(t *testing.T) *kettleRun {
 	}
 	stop := kettle.Serve(listener, kettle.Options{})
 	t.Cleanup(stop)
-	conn, err := grpc.NewClient(listener.Addr().String(), grpc.WithTransportCredentials(insecure.NewCredentials()))
+	r := &kettleRun{t: t, ctx: ctx, annotated: make(map[string][2]int)}
+	conn, err := grpc.NewClient(listener.Addr().String(), grpc.WithTransportCredentials(insecure.NewCredentials()), grpc.WithUnaryInterceptor(r.annotateRPC))
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -71,7 +76,51 @@ func newKettleRun(t *testing.T) *kettleRun {
 			t.Error(err)
 		}
 	})
-	return &kettleRun{t: t, ctx: ctx, host: host, client: kettlev1.NewKettleServiceClient(conn)}
+	r.host, r.connection, r.client = host, conn, kettlev1.NewKettleServiceClient(conn)
+	return r
+}
+
+type kettleProbeContextKey struct{}
+
+func (r *kettleRun) annotateRPC(ctx context.Context, method string, request, response any, connection *grpc.ClientConn, invoke grpc.UnaryInvoker, options ...grpc.CallOption) error {
+	if probe, _ := ctx.Value(kettleProbeContextKey{}).(bool); probe {
+		return invoke(ctx, method, request, response, connection, options...)
+	}
+	if err := r.annotateMessage(ctx, method, request.(proto.Message), false); err != nil {
+		return err
+	}
+	if err := invoke(ctx, method, request, response, connection, options...); err != nil {
+		return err
+	}
+	return r.annotateMessage(ctx, method, response.(proto.Message), true)
+}
+
+func (r *kettleRun) annotateMessage(ctx context.Context, method string, message proto.Message, response bool) error {
+	wire, err := proto.Marshal(message)
+	if err != nil {
+		return err
+	}
+	annotated, err := Annotate(ctx, r.host, &annotationsv1.AnnotationRequest{Method: method, Response: response, Message: wire, Seed: 233})
+	if err != nil {
+		return err
+	}
+	if annotated.GetOutOfScope() != "" || len(annotated.GetViolations()) != 0 {
+		return fmt.Errorf("%s response=%t annotation: %v", method, response, annotated)
+	}
+	counts := r.annotated[method]
+	if response {
+		if !bytes.Equal(annotated.Message, wire) {
+			return fmt.Errorf("%s annotation changed actual response bytes", method)
+		}
+		counts[1]++
+	} else {
+		if err := proto.Unmarshal(annotated.Message, message); err != nil {
+			return err
+		}
+		counts[0]++
+	}
+	r.annotated[method] = counts
+	return nil
 }
 
 func kettlePack(t *testing.T, message proto.Message) *anypb.Any {
@@ -106,10 +155,13 @@ func (r *kettleRun) judge(method string, request, response proto.Message, state 
 
 func (r *kettleRun) fill() {
 	r.t.Helper()
-	request := &kettlev1.FillRequest{KettleId: "room", IdempotencyKey: "fill-room"}
+	request := &kettlev1.FillRequest{KettleId: "room"}
 	response, err := r.client.Fill(r.ctx, request)
 	if err != nil {
 		r.t.Fatal(err)
+	}
+	if request.GetIdempotencyKey() == "" {
+		r.t.Fatal("Annotate did not fill the omitted idempotency key")
 	}
 	if !proto.Equal(response.GetState(), &kettlev1.State{Temperature: 20}) {
 		r.t.Fatalf("Fill: %v", response)
@@ -212,6 +264,11 @@ func TestKettleJudgeAnswerTranscript(t *testing.T) {
 		r.judge("RespondHeating", request, response, response.GetState(), step)
 	}
 	r.describe(&kettlev1.State{Temperature: 100, Beeping: true})
+	for method, want := range map[string]int{"Fill": 1, "Heat": 3, "Pour": 1, "Describe": 4, "PollHeating": 81, "RespondHeating": 81} {
+		if got := r.annotated["/umpire.reference.kettle.v1.KettleService/"+method]; got != [2]int{want, want} {
+			t.Fatalf("%s request/response annotation counts=%v, want %d each", method, got, want)
+		}
+	}
 	exploration, err := r.host.Explore(r.ctx, &modelv1.ExploreRequest{Budget: 1024})
 	if err != nil {
 		t.Fatal(err)

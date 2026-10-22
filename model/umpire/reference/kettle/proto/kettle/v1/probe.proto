@@ -1,0 +1,14 @@
+syntax = "proto3";
+package umpire.reference.kettle.v1;
+option go_package = "umpire.local/model/reference/kettle/v1;kettlev1";
+import "umpire/annotations/v1/annotations.proto";
+
+// Consumer setup slots; probe observations and results use the shared protocol.
+message ProbeRequest {
+  enum Operation { INVENTORY = 0; PREPARE = 1; CLASSIFY = 2; COVERAGE = 3; }
+  Operation operation = 1;
+  string case_id = 2;
+  bool baseline = 3;
+  string kettle_id = 4;
+  repeated umpire.annotations.v1.ProbeObservation observations = 9;
+}

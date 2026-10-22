@@ -200,44 +200,66 @@ fn field_expansion(catalog: &DeriveCatalog, field: &DeriveField) -> syn::Result<
             syn::Error::new_spanned(&field.ty, "OneOf requires its protobuf enum type")
         })?;
         let source = &field.name;
+        let ty = &catalog.ty;
         let mut expansions = Vec::new();
         for (variant, proto) in &field.attributes.variants {
             let path = format!("{}.{}", catalog.proto.value(), proto.value());
-            let get = quote!(match message.#source.as_ref() {
-                Some(#oneof::#variant(value)) => Some(::umpire_catalog::views::encode_message(value)),
+            let get = quote!(|message: &#ty| match message.#source.as_ref() {
+                Some(#oneof::#variant(value)) => Some(value),
                 _ => None,
             });
-            let set = quote! {
+            let set = quote!(|message: &mut #ty, value| {
                 match value {
-                    Some(bytes) => {
-                        let value = ::umpire_catalog::views::decode_message(&bytes)?;
-                        message.#source = Some(#oneof::#variant(value));
-                    }
+                    Some(value) => message.#source = Some(#oneof::#variant(value)),
                     None if matches!(message.#source, Some(#oneof::#variant(_))) => message.#source = None,
                     None => (),
                 }
-                Ok(())
-            };
-            let mut projected = field.clone();
-            projected.ty = syn::parse_quote!(::umpire_catalog::kinds::Bytes);
-            expansions.push(field_projection(catalog, &projected, Some((path, get, set)))?);
+            });
+            let string_rules = payload_rules(
+                field,
+                &["min_len", "max_len", "min_bytes", "max_bytes", "prefix", "suffix", "contains"],
+                false,
+            );
+            let bytes_rules = payload_rules(field, &["min_len", "max_len"], false);
+            let projection = quote!({
+                use ::umpire_catalog::views::MessageOneof as _;
+                ::umpire_catalog::views::OneofProjection::new(#get, #set).field(
+                    #path,
+                    ::umpire_annotations::StringRules { #(#string_rules,)* ..Default::default() },
+                    ::umpire_annotations::BytesRules { #(#bytes_rules,)* ..Default::default() },
+                )
+            });
+            expansions.push(field_projection(catalog, field, Some((path, projection)))?);
         }
         return Ok(quote!(#(#expansions)*));
     }
     field_projection(catalog, field, None)
 }
 
+fn payload_rules(field: &DeriveField, names: &[&str], numeric: bool) -> Vec<TokenStream> {
+    field
+        .attributes
+        .constraints
+        .iter()
+        .filter(|(name, _)| names.contains(&name.to_string().as_str()))
+        .map(|(name, value)| {
+            let value = constraint_value(name, value, numeric);
+            quote!(#name: Some(#value))
+        })
+        .collect()
+}
+
 fn field_projection(
     catalog: &DeriveCatalog,
     field: &DeriveField,
-    projection: Option<(String, TokenStream, TokenStream)>,
+    projection: Option<(String, TokenStream)>,
 ) -> syn::Result<TokenStream> {
     let attrs = &field.attributes;
     let ty = &catalog.ty;
     let name = &field.name;
     let path = projection.as_ref().map_or_else(
         || format!("{}.{}", catalog.proto.value(), name.unraw()),
-        |(path, _, _)| path.clone(),
+        |(path, _)| path.clone(),
     );
     let kind = kind_expansion(&field.ty, attrs)?;
     let marker_ty = &field.ty;
@@ -251,9 +273,7 @@ fn field_projection(
             ))
         });
     }
-    let (get, set) = if let Some((_, get, set)) = projection {
-        (get, set)
-    } else if let Some(via) = &attrs.via {
+    let (get, set) = if let Some(via) = &attrs.via {
         (quote!(#via::view(message)), quote!(#via::set(message, value)))
     } else {
         (
@@ -289,10 +309,15 @@ fn field_projection(
     let repeated = (!repeated.is_empty()).then(|| quote!(.repeated(::umpire_annotations::RepeatedRules { #(#repeated,)* ..::core::default::Default::default() })));
     let repeated_check =
         repeated.as_ref().map(|_| quote!(::umpire_annotations::types::check_repeated(&value);));
-    Ok(quote! {
-        .field(::umpire_annotations::Field::try_projected(
+    let projected_field = if let Some((_, projection)) = projection {
+        projection
+    } else {
+        quote!(::umpire_annotations::Field::try_projected(
             #path, #kind, |message: &#ty| { let value = #get; #repeated_check value }, |message: &mut #ty, value| { #set },
-        ).description(#description) #(#tags)* #repeated #expected)
+        ))
+    };
+    Ok(quote! {
+        .field(#projected_field.description(#description) #(#tags)* #repeated #expected)
     })
 }
 
@@ -329,6 +354,12 @@ fn map_factory(catalog: &DeriveCatalog, field: &DeriveField) -> syn::Result<Toke
         return Err(syn::Error::new_spanned(&field.ty, "Map requires key and value kind types"));
     };
     let factory = format_ident!("__{}_entry_catalog", field.name.unraw());
+    let entry =
+        if matches!(marker(value)?.ident.to_string().as_str(), "Text" | "Identifier" | "Uuid") {
+            quote!(::umpire_catalog::views::TextEntry)
+        } else {
+            quote!(::umpire_catalog::views::MetadataEntry)
+        };
     let proto = crate::derive::map_entry_proto(&catalog.proto, &field.name);
     let key_path = format!("{proto}.key");
     let value_path = format!("{proto}.value");
@@ -336,18 +367,18 @@ fn map_factory(catalog: &DeriveCatalog, field: &DeriveField) -> syn::Result<Toke
     let value_kind = kind_expansion(value, &ApiAttributes::default())?;
     Ok(quote! {
         /// Admits the generated protobuf map-entry catalog.
-        pub fn #factory(limits: &#context) -> Result<::umpire_annotations::Catalog<::umpire_catalog::views::MetadataEntry>, ::umpire_annotations::AdmissionErrors> {
+        pub fn #factory(limits: &#context) -> Result<::umpire_annotations::Catalog<#entry>, ::umpire_annotations::AdmissionErrors> {
             let _ = limits;
             ::umpire_annotations::Catalog::response(#proto)
                 .field(::umpire_annotations::Field::try_projected(
                     #key_path, #key_kind,
-                    |entry: &::umpire_catalog::views::MetadataEntry| <_ as ::umpire_catalog::views::View<#key>>::view(&entry.key),
-                    |entry: &mut ::umpire_catalog::views::MetadataEntry, value| <_ as ::umpire_catalog::views::View<#key>>::set(&mut entry.key, value),
+                    |entry: &#entry| <_ as ::umpire_catalog::views::View<#key>>::view(&entry.key),
+                    |entry: &mut #entry, value| <_ as ::umpire_catalog::views::View<#key>>::set(&mut entry.key, value),
                 ).tag(&::umpire_annotations::Consequence::Decided))
                 .field(::umpire_annotations::Field::try_projected(
                     #value_path, #value_kind,
-                    |entry: &::umpire_catalog::views::MetadataEntry| <_ as ::umpire_catalog::views::View<#value>>::view(&entry.value),
-                    |entry: &mut ::umpire_catalog::views::MetadataEntry, value| <_ as ::umpire_catalog::views::View<#value>>::set(&mut entry.value, value),
+                    |entry: &#entry| <_ as ::umpire_catalog::views::View<#value>>::view(&entry.value),
+                    |entry: &mut #entry, value| <_ as ::umpire_catalog::views::View<#value>>::set(&mut entry.value, value),
                 ).tag(&::umpire_annotations::Consequence::Decided))
                 .build()
         }
@@ -381,8 +412,20 @@ fn inspect_expansion(catalog: &DeriveCatalog) -> syn::Result<TokenStream> {
         }
         if kind == "Map" {
             let factory = format_ident!("__{}_entry_catalog", field.name.unraw());
+            let args = generic_types(&field.ty)?;
+            let entries = format_ident!(
+                "{}",
+                if args.get(1).is_some_and(|value| marker(value).is_ok_and(|kind| matches!(
+                    kind.ident.to_string().as_str(),
+                    "Text" | "Identifier" | "Uuid"
+                ))) {
+                    "text_entries"
+                } else {
+                    "metadata_entries"
+                }
+            );
             nested.push(quote! {
-                for entry in ::umpire_catalog::views::metadata_entries(&self.#name) {
+                for entry in ::umpire_catalog::views::#entries(&self.#name) {
                     output.extend(::umpire_annotations::validate(&entry, &#mirror::#factory(context)?));
                 }
             });

@@ -1,9 +1,9 @@
 use crate::{
-    api::{
+    kettle::{self, Action, Heater, Model, User},
+    wire::umpire::reference::kettle::v1::{
         DescribeResponse, FillResponse, HeatRequest, HeatResponse, HeatingAction,
         PollHeatingResponse, PourResponse, RespondHeatingRequest, RespondHeatingResponse, State,
     },
-    kettle::{self, Action, Heater, Model, User},
 };
 use umpire_dsl::Machine;
 use umpire_wasm::{

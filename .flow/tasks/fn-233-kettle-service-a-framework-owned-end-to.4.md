@@ -7,7 +7,7 @@ satisfies: [R4]
 Wire the seeded defects: `KETTLE_MUTANT` selects exactly one of the enumerated mutants in `mutants.go` (at least: accept an over-long kettle ID, report Boiled before RespondHeating, silently stop rejecting a field, return a wrong status code). `kettle_test.go` runs the live driver once per mutant and asserts the framework names it: an `Accepted` or `Mismatch` in `gaps.txt`, an `Unexplained` from Judge, a differential actual-server gap finding. `expected/mutants.snap.txt` pins mutant → detecting driver → finding.
 
 **Size:** M
-**Touches:** `model/umpire/hosts/go/reference/kettle/*.go` (mutant switches and server controls), `model/umpire/reference/kettle/expected/mutants.snap.txt`, `model/umpire/hosts/go/kettle_test.go`, `model/README.md`
+**Touches:** `model/umpire/hosts/go/reference/kettle/*.go` (mutant switches and server controls), `model/umpire/reference/kettle/expected/mutants.snap.txt`, `model/umpire/hosts/go/kettle*_test.go`, `model/README.md`
 
 ### Approach
 Each mutant is a one-line switch in the server, not a fork. The test enumerates the mutant list from the server package so a mutant without a test entry fails, and an undetected mutant fails naming the mutant and the driver that should have caught it.
