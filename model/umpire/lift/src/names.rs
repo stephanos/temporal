@@ -82,6 +82,8 @@ pub(crate) struct Names {
     pub(crate) inputs: Vec<Vec<String>>,
     /// A catalog position inside input relations.
     pub(crate) index: String,
+    /// The prefix of a step operator's numbered shared definitions.
+    pub(crate) shared: String,
     /// Module constants under a declared World.
     pub(crate) constants: BTreeMap<String, String>,
 }
@@ -114,6 +116,7 @@ pub(crate) fn assign(source: &Source, model: &mut umpire_front::Lifted) -> Names
         })
         .collect();
     let index = allocate(taken, "__umpire_i", &mut generated);
+    let shared = numbered(taken, "__umpire_s", &mut generated);
     let constants = if model.declared_world {
         model
             .constants
@@ -174,7 +177,7 @@ pub(crate) fn assign(source: &Source, model: &mut umpire_front::Lifted) -> Names
         rename_world(&mut claim.trigger);
         rename_world(&mut claim.target);
     }
-    Names { world, inputs, index, constants }
+    Names { world, inputs, index, shared, constants }
 }
 
 fn rename(expr: &mut Expr, renamed: &dyn Fn(&ExprKind) -> Option<ExprKind>) {
@@ -413,4 +416,20 @@ fn positioned(name: &str, prefix: &str) -> bool {
     name.strip_prefix(prefix).is_some_and(|position| {
         !position.is_empty() && position.bytes().all(|b| b.is_ascii_digit())
     })
+}
+
+/// A prefix that no authored, reserved or generated name extends with digits alone.
+fn numbered(occupied: &BTreeSet<String>, base: &str, generated: &mut BTreeSet<String>) -> String {
+    let extends = |prefix: &str, name: &String| {
+        name.strip_prefix(prefix)
+            .is_some_and(|rest| !rest.is_empty() && rest.bytes().all(|byte| byte.is_ascii_digit()))
+    };
+    let mut prefix = base.to_owned();
+    let mut suffix = 0;
+    while occupied.iter().chain(generated.iter()).any(|name| extends(&prefix, name)) {
+        suffix += 1;
+        prefix = format!("{base}_{suffix}_");
+    }
+    generated.insert(prefix.clone());
+    prefix
 }

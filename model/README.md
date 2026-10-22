@@ -727,7 +727,8 @@ umpire_dsl::Phase` for a local fieldless enum and `impl Phased` for the State ad
 pure methods, and `Phased`'s default `closed` is read from `umpire-dsl`'s own source; other
 trait impls refuse at the impl. A module with `reject!` has the stock `Outcome`, emitted as
 the finite strings `Outcome::Accepted` and `Outcome::Rejected(rejection)`. Only the unqualified,
-imported `reject!(r)` is read (a qualified `umpire_dsl::reject!` refuses); it records the first
+imported `reject!(r)` is read (a qualified `umpire_dsl::reject!` refuses, as does a
+qualified `path!`); it records the first
 rejection, returns from its function (an `#[effect]` helper's rejection returns from the helper
 alone), and later effects apply only where the step still runs. A rejection is an enabled self-loop, never a dropped branch, and a
 rejection after a state change fails TLC with an assertion, as `checked_step` refuses it
@@ -735,7 +736,7 @@ natively. Postconditions take `&Outcome`, compare whole states field by field an
 `Outcome::Rejected(..)` values. A `closable::` law call is lowered from the law's source in
 `umpire-dsl/src/closable.rs`, with its generic state, outcome and value arguments bound; no
 law is recognized by name. Shared `phased_rejection` breaks three terminal transitions and claims that every
-`Claim` is accepted, so TLC and the native checker agree on each refutation and replay the
+step leaving the job open is accepted, so TLC and the native checker agree on each refutation and replay the
 counterexamples through rejected edges and exact payloads; stale rejecting claims cannot discharge current-claim
 fairness. The activity Model is admitted and checked by TLC in the required gate, and its
 tests show TLC refuting reopening, accepted-closed-step and wrong-rejection mutants of its
@@ -745,7 +746,9 @@ bodies call the trait's.
 Emitted steps stay linear in their conditional returns (fn-227.15). The outcome is the first
 reached rejection, one `IF` per `reject!`; an `if` whose arms leave a value equal folds when
 its condition cannot fail; and a subexpression longer than 400 characters that one step
-operator repeats is emitted once, as a `LET` definition before its branches.
+operator repeats is emitted once, as a `LET` definition before its branches. A condition after
+a return is evaluated only where the step still runs. A step whose admitted tree passes 100,000
+nodes refuses at the statement, since re-reading updates after returns copies earlier values.
 
 The default gate needs only the Rust toolchain and workspace dependencies. The optional `cargo-insta`
 CLI supports interactive review and acceptance (`cargo install cargo-insta --locked`). Its real

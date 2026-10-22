@@ -140,7 +140,7 @@ pub(crate) fn emit(model: &Lifted) -> Result<Module, Diagnostic> {
             Some(format!("{}_Inputs[{}][1]", operator(&action.name), model.names.index))
         };
         let identity = identity.as_deref();
-        let mut shared = Shared::default();
+        let mut shared = Shared::new(&model.names.shared);
         for branch in &action.branches {
             step(model, &action.name, branch, identity, &mut |value| {
                 shared.count(value);
@@ -773,10 +773,10 @@ fn render<'e>(value: &'e Expr, child: &mut dyn FnMut(&'e Expr) -> String) -> Str
 /// it is longer than `SHARED`. The front end lowers each statement over the values before it,
 /// so a later condition or update re-reads whole earlier values; inlined, the text multiplies
 /// with every conditional return and checked operation, while shared it stays linear.
-#[derive(Default)]
 struct Shared<'a> {
     nodes: std::collections::HashMap<&'a Expr, Node>,
     definitions: Vec<String>,
+    prefix: &'a str,
 }
 #[derive(Default)]
 struct Node {
@@ -788,6 +788,9 @@ struct Node {
 }
 const SHARED: usize = 400;
 impl<'a> Shared<'a> {
+    fn new(prefix: &'a str) -> Self {
+        Self { nodes: std::collections::HashMap::new(), definitions: Vec::new(), prefix }
+    }
     /// Count one textual occurrence of `value`, and its children's the first time.
     fn count(&mut self, value: &'a Expr) {
         let node = self.nodes.entry(value).or_default();
@@ -819,7 +822,7 @@ impl<'a> Shared<'a> {
             return name;
         }
         let body = render(value, &mut |child| self.emit(child));
-        let name = format!("__umpire_s{}", self.definitions.len() + 1);
+        let name = format!("{}{}", self.prefix, self.definitions.len() + 1);
         self.definitions.push(format!("LET {name} == {body} IN "));
         if let Some(node) = self.nodes.get_mut(value) {
             node.name = Some(name.clone());

@@ -119,12 +119,12 @@ fn rejections_lower_to_typed_outcomes_and_kept_self_loops() -> Result<(), Box<dy
     Ok(())
 }
 
-/// The emitted step of a handler with `returns` sequential conditional returns, each followed
-/// by an update that the later conditions read.
-fn sequential_returns(returns: usize) -> Result<String, Box<dyn std::error::Error>> {
+/// A handler with `returns` sequential conditional returns, each followed by an update that
+/// the later conditions read, and a final update of `last`.
+fn sequential_returns(returns: usize, last: &str) -> String {
     let body = "if self.count == 3 {\n                        reject!(Rejection::NotFound);\n                    }\n                    self.count += 1;\n                    "
         .repeat(returns);
-    let source = format!(
+    format!(
         r"use umpire_dsl::machine;
 
 #[machine]
@@ -139,7 +139,7 @@ pub mod gate {{
     #[derive(State)]
     pub struct Model {{
         pub count: u8,
-        pub done: bool,
+        pub {last}: bool,
     }}
 
     impl Model {{
@@ -147,15 +147,19 @@ pub mod gate {{
         fn client(&mut self, action: Client) {{
             match action {{
                 Client::Step => {{
-                    {body}self.done = true;
+                    {body}self.{last} = true;
                 }}
             }}
         }}
     }}
 }}
 "
-    );
-    let module = umpire_lift::Tla::emit(&Lift::parse("gate.rs", &source)?)?;
+    )
+}
+
+/// The emitted step operator of a source.
+fn step(source: &str) -> Result<String, Box<dyn std::error::Error>> {
+    let module = umpire_lift::Tla::emit(&Lift::parse("gate.rs", source)?)?;
     let step = module.tla.lines().find(|line| line.starts_with("Client_Step ==")).ok_or("step")?;
     Ok(step.to_owned())
 }
@@ -165,10 +169,32 @@ fn emitted_size_is_linear_in_sequential_conditional_returns()
 -> Result<(), Box<dyn std::error::Error>> {
     // Inlined, each return multiplied the step about thirteenfold (2,356 to 706,669,127 bytes
     // from one to six returns); shared, each further return adds the same few hundred bytes.
-    let sizes = (3..=5)
-        .map(|returns| sequential_returns(returns).map(|step| step.len()))
+    // TLC and native agreement on shared steps are checked by the shared_returns fixture.
+    let steps = (3..=5)
+        .map(|returns| step(&sequential_returns(returns, "done")))
         .collect::<Result<Vec<_>, _>>()?;
-    let [three, four, five] = sizes[..] else { return Err("three sizes".into()) };
-    assert!((four - three).abs_diff(five - four) < 8 && five - four < 1_000, "{sizes:?}");
+    assert!(steps[0].starts_with("Client_Step == LET __umpire_s1 == "), "{}", steps[0]);
+    let [three, four, five] = [&steps[0], &steps[1], &steps[2]].map(String::len);
+    assert!(
+        (four - three).abs_diff(five - four) < 8 && five - four < 1_000,
+        "{three} {four} {five}"
+    );
     Ok(())
+}
+
+#[test]
+fn shared_definitions_never_take_an_authored_name() -> Result<(), Box<dyn std::error::Error>> {
+    let step = step(&sequential_returns(3, "__umpire_s1"))?;
+    assert!(step.starts_with("Client_Step == LET __umpire_s_1_1 == "), "{step}");
+    assert!(!step.contains("LET __umpire_s1 =="), "{step}");
+    Ok(())
+}
+
+#[test]
+fn a_step_past_the_node_budget_refuses_at_its_statement() {
+    let error = Lift::parse("gate.rs", &sequential_returns(9, "done"))
+        .err()
+        .map(|error| error.to_string())
+        .unwrap_or_default();
+    assert!(error.starts_with("gate.rs:") && error.contains("split the handler"), "{error}");
 }

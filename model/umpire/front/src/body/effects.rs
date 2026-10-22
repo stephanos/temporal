@@ -131,6 +131,19 @@ impl Environment {
                         }
                         _ => return self.err(statement, "unsupported effect statement"),
                     }
+                    let mut budget = NODE_BUDGET;
+                    if !state
+                        .values()
+                        .chain([&flow.running])
+                        .all(|value| within(value, &mut budget))
+                    {
+                        return self.err(
+                            statement,
+                            format!(
+                                "the step lowers to more than {NODE_BUDGET} expression nodes here; split the handler"
+                            ),
+                        );
+                    }
                 }
             }
             RustExpr::Assign(assign) => {
@@ -169,6 +182,9 @@ impl Environment {
             }
             RustExpr::If(condition) => {
                 let cond = self.expr(&condition.cond, state, locals, Some(&Type::Bool), depth)?;
+                // After a conditional return, the condition is evaluated only where the step
+                // still runs, as natively; `/\` stops at a returned path.
+                let cond = if flow.diverged() { flow.running.clone().and(cond) } else { cond };
                 let mut yes = state.clone();
                 let mut no = state.clone();
                 let mut yc = Vec::new();
@@ -273,5 +289,28 @@ pub(super) fn default_expr(ty: &Type) -> Expr {
             Expr { kind: ExprKind::Enum(variants[0].clone()), ty: ty.clone() }
         }
         _ => Expr::unit(),
+    }
+}
+
+/// The admitted tree copies each earlier value a later statement reads, so a handler that
+/// re-reads updates after conditional returns grows multiplicatively; past this many nodes it
+/// is refused rather than left to stall the macro.
+const NODE_BUDGET: usize = 100_000;
+/// Whether `value` has at most `budget` nodes, counting them off `budget`.
+fn within(value: &Expr, budget: &mut usize) -> bool {
+    let Some(left) = budget.checked_sub(1) else { return false };
+    *budget = left;
+    match &value.kind {
+        ExprKind::Unary(_, a) | ExprKind::Length(a) => within(a, budget),
+        ExprKind::Binary(_, a, b) | ExprKind::Append(a, b) => {
+            within(a, budget) && within(b, budget)
+        }
+        ExprKind::If(a, b, c) | ExprKind::GetOr(a, b, c) => {
+            within(a, budget) && within(b, budget) && within(c, budget)
+        }
+        ExprKind::Tuple(values) | ExprKind::Sequence(values) | ExprKind::Checks(values) => {
+            values.iter().all(|value| within(value, budget))
+        }
+        _ => true,
     }
 }
