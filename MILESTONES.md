@@ -41,9 +41,10 @@ reviews passed, all three conductor gates and unchanged live gap/privacy proof.
 Its final timing gate took 87.140s, above the 30s soft target; inner loop was 1.672s.
 fn-236's permanent guest compiler-input fix and fn-232's Linux/macOS certification are
 complete locally. Four clean clones at `3c314fb5b85427471a1525d6f190fe5d1fb9f3b2`
-passed all twelve stock/Temporal byte comparisons and both platforms' host suites. fn-238.8 later
-changed guest identity inputs, so that certification needs renewal (fn-239).
-[Certification evidence](.flow/artifacts/fn-232-linux-macos-guest-byte-identity/certification-3c314fb5b8/proof.md).
+passed all twelve stock/Temporal byte comparisons and both platforms' host suites. fn-239 renewed
+that certification after fn-238.8's guest identity changes at `a96a4c6550`, with all twelve
+comparisons and both host suites passing on each OS.
+[Renewed certification evidence](.flow/artifacts/fn-239-renew-the-linuxmacos-guest-byte/certification-a96a4c6550/proof.md).
 TLC is implemented for its admitted source subset; unsupported source,
 including the current Phased/reject activity Model, is explicitly refused.
 
@@ -185,14 +186,14 @@ Only the deferred .5 and .6 remain open.
 
 ### fn-239: Renew the Linux/macOS guest byte-identity certification (model)
 
-fn-238.8 changed guest identity inputs (per-crate lockfile closure), so fn-232's certification at
-`3c314fb5b8` needs renewal at a revision at or after `cbe2c6fcb7`. Standalone, by owner request;
-nothing waits on it. Needs a native macOS run on the owner's Mac.
+fn-239 renewed fn-232's certification after fn-238.8's per-crate lockfile closure change.
+Four clean builds at `a96a4c6550` passed all twelve byte comparisons and both host suites
+on Linux and native macOS. Standalone, by owner request; nothing waits on it.
 [Spec](.flow/specs/fn-239-renew-the-linuxmacos-guest-byte.md).
 
 | Name | Status | What |
 | --- | --- | --- |
-| fn-239.1 | ⛔ blocked | Four clean builds on Linux and native macOS, twelve comparisons and both host suites; commands in the task (R1, R2) |
+| fn-239.1 | ✅ done | Four clean builds at `a96a4c6550`; all twelve comparisons and both host suites passed on Linux and native macOS; proof retained (R1, R2) |
 
 ### fn-237: Activity timeouts, heartbeat and cooperative cancellation (model, temporal)
 

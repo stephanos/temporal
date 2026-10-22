@@ -288,9 +288,28 @@ changed the Temporal guest. The refreshed embedded asset matches all three build
 | Stock | 192489 | `4fc5c19ff069c954c4aaef3d97d014f8dc029951d8401b50d501987fa2a41b61` |
 | Temporal | 3332314 | `0248382ec34f616078a97190dd0ae49544851800e54b5ecb47aaa772d056cae0` |
 
-The closure digest is a new compiler identity input, so the committed fn-232
-Linux/macOS certification above no longer covers the current derivation. It needs
-renewal with its retained runner at a later pin; it was not rerun here.
+## Renewed committed Linux/macOS certification (fn-239)
+
+Certification passed at `a96a4c6550b468c5d7c3011a7961d4e118dacd93` on 2026-10-22,
+after fn-238.8 and its front-end integration. Linux 7.0.14/aarch64 and macOS
+25.6.0/arm64 each used two clean detached clones with initially absent independent
+targets. All twelve actual byte comparisons passed, both stock/control and Temporal
+host suites passed on each OS, and the Temporal outputs match the committed asset.
+The precheck and all four builds produced identical lockfile closure maps.
+
+| Guest | Bytes in every clone | SHA-256 in every clone |
+| --- | ---: | --- |
+| Stock | 192489 | `bae203f82ecea5183d592232c62b746f6ccabda9944df53e46dd442482d1bc63` |
+| Temporal | 3332314 | `d8127a2bf8c72de75cfafde655e35b5b1aa6355a023628708dd8ec6d22f83370` |
+
+Every clone used Rust 1.99.1 (`58cf8f9c35b355199727627d07ae34a4e2846d67`), LLVM
+23.1.1, Cargo 1.99.1 (`5f94df478`), Go 1.27.0 and protoc 29.5. The retained
+fn-232 runner and comparator changed only their source pin and task output paths.
+The [fn-239 proof](../.flow/artifacts/fn-239-renew-the-linuxmacos-guest-byte/certification-a96a4c6550/proof.md)
+retains exact commands, toolchain and host transcripts, source/target guards,
+manifests, closure-map checks and all twelve comparison results. This renews the
+certification for the per-crate closure identity input. Earlier proofs retain
+their historical source pins and hashes.
 
 ## Current verification and measured gate cost
 

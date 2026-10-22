@@ -1,0 +1,9 @@
+{
+  "pin": "a96a4c6550b468c5d7c3011a7961d4e118dacd93",
+  "paths": [
+    ".flow/tmp/fn239-precheck-a96a4c6550/linux/umpire-lock-88d30b801c701567.json",
+    ".flow/tmp/fn239-precheck-a96a4c6550/macos/umpire-lock-88d30b801c701567.json"
+  ],
+  "cmp_exit_code": 0,
+  "sha256": "88d30b801c70156705f41f569e6d1837daa5b6b831cc0fba990a50343bb71022"
+}

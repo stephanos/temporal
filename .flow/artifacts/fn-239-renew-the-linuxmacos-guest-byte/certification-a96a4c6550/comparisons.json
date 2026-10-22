@@ -1,0 +1,159 @@
+{
+  "pin": "a96a4c6550b468c5d7c3011a7961d4e118dacd93",
+  "sources": {
+    "linux-a": {
+      "path": "/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/fn239-certified-linux-a96a4c6550/source-a",
+      "revision": "a96a4c6550b468c5d7c3011a7961d4e118dacd93",
+      "tree": "be79df01a505e77128b8f0724106e3639689f607",
+      "status": ""
+    },
+    "linux-b": {
+      "path": "/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/fn239-certified-linux-a96a4c6550/source-b",
+      "revision": "a96a4c6550b468c5d7c3011a7961d4e118dacd93",
+      "tree": "be79df01a505e77128b8f0724106e3639689f607",
+      "status": ""
+    },
+    "macos-a": {
+      "path": "/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/fn239-certified-macos-a96a4c6550/source-a",
+      "revision": "a96a4c6550b468c5d7c3011a7961d4e118dacd93",
+      "tree": "be79df01a505e77128b8f0724106e3639689f607",
+      "status": ""
+    },
+    "macos-b": {
+      "path": "/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/fn239-certified-macos-a96a4c6550/source-b",
+      "revision": "a96a4c6550b468c5d7c3011a7961d4e118dacd93",
+      "tree": "be79df01a505e77128b8f0724106e3639689f607",
+      "status": ""
+    }
+  },
+  "targets": {
+    "linux-a": {
+      "path": "/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/fn239-certified-linux-a96a4c6550/target-a",
+      "device": 16777231,
+      "inode": 456597740
+    },
+    "linux-b": {
+      "path": "/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/fn239-certified-linux-a96a4c6550/target-b",
+      "device": 16777231,
+      "inode": 456623496
+    },
+    "macos-a": {
+      "path": "/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/fn239-certified-macos-a96a4c6550/target-a",
+      "device": 16777231,
+      "inode": 456583716
+    },
+    "macos-b": {
+      "path": "/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/fn239-certified-macos-a96a4c6550/target-b",
+      "device": 16777231,
+      "inode": 456640868
+    }
+  },
+  "artifacts": {
+    "linux/stock-a.wasm": {
+      "bytes": 192489,
+      "sha256": "bae203f82ecea5183d592232c62b746f6ccabda9944df53e46dd442482d1bc63"
+    },
+    "linux/temporal-a.wasm": {
+      "bytes": 3332314,
+      "sha256": "d8127a2bf8c72de75cfafde655e35b5b1aa6355a023628708dd8ec6d22f83370"
+    },
+    "linux/stock-b.wasm": {
+      "bytes": 192489,
+      "sha256": "bae203f82ecea5183d592232c62b746f6ccabda9944df53e46dd442482d1bc63"
+    },
+    "linux/temporal-b.wasm": {
+      "bytes": 3332314,
+      "sha256": "d8127a2bf8c72de75cfafde655e35b5b1aa6355a023628708dd8ec6d22f83370"
+    },
+    "macos/stock-a.wasm": {
+      "bytes": 192489,
+      "sha256": "bae203f82ecea5183d592232c62b746f6ccabda9944df53e46dd442482d1bc63"
+    },
+    "macos/temporal-a.wasm": {
+      "bytes": 3332314,
+      "sha256": "d8127a2bf8c72de75cfafde655e35b5b1aa6355a023628708dd8ec6d22f83370"
+    },
+    "macos/stock-b.wasm": {
+      "bytes": 192489,
+      "sha256": "bae203f82ecea5183d592232c62b746f6ccabda9944df53e46dd442482d1bc63"
+    },
+    "macos/temporal-b.wasm": {
+      "bytes": 3332314,
+      "sha256": "d8127a2bf8c72de75cfafde655e35b5b1aa6355a023628708dd8ec6d22f83370"
+    }
+  },
+  "comparisons": [
+    {
+      "first": "linux/stock-a.wasm",
+      "second": "linux/stock-b.wasm",
+      "exit_code": 0,
+      "output": ""
+    },
+    {
+      "first": "linux/stock-a.wasm",
+      "second": "macos/stock-a.wasm",
+      "exit_code": 0,
+      "output": ""
+    },
+    {
+      "first": "linux/stock-a.wasm",
+      "second": "macos/stock-b.wasm",
+      "exit_code": 0,
+      "output": ""
+    },
+    {
+      "first": "linux/stock-b.wasm",
+      "second": "macos/stock-a.wasm",
+      "exit_code": 0,
+      "output": ""
+    },
+    {
+      "first": "linux/stock-b.wasm",
+      "second": "macos/stock-b.wasm",
+      "exit_code": 0,
+      "output": ""
+    },
+    {
+      "first": "macos/stock-a.wasm",
+      "second": "macos/stock-b.wasm",
+      "exit_code": 0,
+      "output": ""
+    },
+    {
+      "first": "linux/temporal-a.wasm",
+      "second": "linux/temporal-b.wasm",
+      "exit_code": 0,
+      "output": ""
+    },
+    {
+      "first": "linux/temporal-a.wasm",
+      "second": "macos/temporal-a.wasm",
+      "exit_code": 0,
+      "output": ""
+    },
+    {
+      "first": "linux/temporal-a.wasm",
+      "second": "macos/temporal-b.wasm",
+      "exit_code": 0,
+      "output": ""
+    },
+    {
+      "first": "linux/temporal-b.wasm",
+      "second": "macos/temporal-a.wasm",
+      "exit_code": 0,
+      "output": ""
+    },
+    {
+      "first": "linux/temporal-b.wasm",
+      "second": "macos/temporal-b.wasm",
+      "exit_code": 0,
+      "output": ""
+    },
+    {
+      "first": "macos/temporal-a.wasm",
+      "second": "macos/temporal-b.wasm",
+      "exit_code": 0,
+      "output": ""
+    }
+  ]
+}

@@ -62,7 +62,7 @@ returns on a concrete need: checker speed, or a construct rustc cannot run.
 crate's `-C metadata` hashed the whole `Cargo.lock`; it now hashes the crate's own lockfile
 closure (`scripts/guest-lock.py`), and a control shows an unrelated crate leaves both guests
 identical. .3 and .4 refreshed it because the macros and `umpire-dsl` gained front/ir dependencies.
-fn-232's Linux/macOS certification predates this; renewal is fn-239, blocked on macOS.
+fn-239 renewed Linux/macOS certification at `a96a4c6550`; all twelve byte comparisons and both host suites passed.
 
 **Timing.** Warm `make model-time` receipts (soft targets 60 s gate, 10 s inner loop):
 
@@ -213,7 +213,7 @@ fn-232 certified source `3c314fb5b85427471a1525d6f190fe5d1fb9f3b2` on 2026-10-21
 Linux 7.0.14/aarch64 and macOS 25.6.0/arm64 matched stock (192271 bytes) and Temporal (3330006 bytes); all twelve comparisons and both native host suites passed.
 [Certification evidence](../.flow/artifacts/fn-232-linux-macos-guest-byte-identity/certification-3c314fb5b8/proof.md) records source/toolchain guards, independent targets, exact commands, sizes and hashes.
 Temporal embeds the current asset; [build details and renewed proof](GUEST_BUILDS.md) cover freshness, cache identities and cross-OS verification.
-That cross-OS proof predates fn-238.8's lockfile closure identity input, which changed every guest; its renewal is pending ([closure identities](GUEST_BUILDS.md#lockfile-closure-identities-fn-2388)).
+fn-239 renewed that proof after fn-238.8 at `a96a4c6550b468c5d7c3011a7961d4e118dacd93` on 2026-10-22. Four clean clones matched stock (192489 bytes) and Temporal (3332314 bytes); all twelve comparisons and both host suites passed on each OS. [Renewed certification](../.flow/artifacts/fn-239-renew-the-linuxmacos-guest-byte/certification-a96a4c6550/proof.md) retains closure maps, commands, toolchains and results.
 
 ## Capability and panic boundaries
 
