@@ -1,6 +1,211 @@
 use super::*;
 use serde_json::{Value, json};
+use sha2::{Digest, Sha256};
 use std::{fs, path::Path};
+
+fn output_wait_request(fd: u32, after: &str, nodes: &[&str], action: Action) -> Request {
+    let module = format!(r#"(module
+        (import "wasi_snapshot_preview1" "fd_write" (func $write (param i32 i32 i32 i32) (result i32)))
+        (import "wasi_snapshot_preview1" "clock_time_get" (func $clock (param i32 i64 i32) (result i32)))
+        (import "wasi_snapshot_preview1" "proc_exit" (func $exit (param i32)))
+        (memory (export "memory") 1)
+        (data (i32.const 128) "mark")
+        (func (export "_start")
+            i32.const 0 i32.const 128 i32.store
+            i32.const 4 i32.const 4 i32.store
+            i32.const {fd} i32.const 0 i32.const 1 i32.const 16 call $write drop
+            {after}))"#).into_bytes();
+    let incarnations = nodes.iter().map(|node| Incarnation {
+        handle: Handle { node: (*node).into(), incarnation: 1 },
+        network: None,
+        request: linked::Request {
+            module_sha256: format!("{:x}", Sha256::digest(&module)), module: module.clone(),
+            limits: linked::Limits { memory_bytes: 65536, fuel: 1_000_000,
+                output_bytes: 1024, evidence_bytes: 1 << 20, wall_timeout: Duration::from_secs(5) },
+            model: Some(linked::ModelInput {
+                configuration: serde_json::from_value(json!({
+                    "entropy_key":vec![0u8;32], "working_directory_sha256":format!("{:x}", Sha256::digest(b"/")),
+                    "arguments":{"bytes":0,"count":0,"chunks":0},
+                    "environment":{"bytes":0,"count":0,"chunks":0},
+                    "seed":7,"mode":1,"limit":1048576,"diagnostics":false,
+                    "epoch_nanos":946684800000000000u64,"read_step_nanos":0,"now":1,
+                    "limits":{"calls":1048576,"transcript_bytes":1048576,"pending_events":1024}
+                })).unwrap(),
+                arguments: vec![], environment: vec![], replay_trace: None,
+            }),
+            namespace: Some(namespace::Image {
+                entries: vec![], writable_directories: vec![b"/".to_vec()], preopens: vec![b"/".to_vec()],
+                working_directory: b"/".to_vec(), stdin: vec![], epoch_nanos: 946684800000000000,
+                limits: namespace::Limits { files: 100, descriptors: 16, filesystem_bytes: 4096, output_bytes: 1024 },
+            }),
+            storage: None,
+        },
+    }).collect::<Vec<_>>();
+    let handles = incarnations
+        .iter()
+        .map(|item| item.handle.clone())
+        .collect::<Vec<_>>();
+    Request {
+        nodes: nodes.iter().map(|node| (*node).into()).collect(),
+        broker: BrokerConfig {
+            seed: 7,
+            pause_on_settle: false,
+            limits: WorldLimits {
+                max_requests: 65536,
+                max_events: 65536,
+                max_queued_events: 1024,
+                max_transitions: 1 << 20,
+                max_payload_bytes: 1 << 20,
+                max_string_bytes: 1024,
+            },
+        },
+        network: None,
+        incarnations,
+        steps: [Action::Start, Action::Wait]
+            .into_iter()
+            .flat_map(|action| {
+                handles
+                    .iter()
+                    .cloned()
+                    .map(move |handle| Step { action, handle })
+            })
+            .collect(),
+        boundaries: handles
+            .into_iter()
+            .map(|handle| Boundary {
+                handle,
+                action,
+                marker: b"mark".to_vec(),
+            })
+            .collect(),
+        crash_groups: vec![],
+        wall_timeout: Duration::from_secs(5),
+        evidence_bytes: 4 << 20,
+    }
+}
+
+#[test]
+fn conditional_output_wait_retains_world_and_actual_terminal() {
+    for (action, terminal) in [(Action::Crash, "crash"), (Action::Stop, "stop")] {
+        for fd in [1, 2] {
+            let request = output_wait_request(fd, "", &["a"], action);
+            let world_config = crate::world::Config {
+                seed: request.broker.seed,
+                limits: crate::world::Limits {
+                    max_requests: request.broker.limits.max_requests,
+                    max_events: request.broker.limits.max_events,
+                    max_queued_events: request.broker.limits.max_queued_events,
+                    max_transitions: request.broker.limits.max_transitions,
+                    max_payload_bytes: request.broker.limits.max_payload_bytes,
+                    max_string_bytes: request.broker.limits.max_string_bytes,
+                },
+            };
+            let execution = execute_prepared(prepare(request).unwrap()).unwrap();
+            assert_eq!(execution.incarnations.len(), 1);
+            let item = &execution.incarnations[0];
+            assert_eq!(
+                item.execution.outcome.termination,
+                if fd == 1 { terminal } else { "exit" }
+            );
+            assert_eq!(item.interrupted, fd == 1);
+            assert_eq!(execution.executed_steps[1].action, Action::Wait);
+            assert_eq!(execution.outcome.termination, "exit", "{action:?} fd={fd}");
+            assert_eq!(execution.outcome.exit_code, Some(0));
+            assert!(!execution.world.is_empty(), "{action:?} fd={fd}");
+            crate::world::retained::validate(&execution.world, &world_config).unwrap();
+        }
+    }
+    let loop_after = "(loop i32.const 1 i64.const 1 i32.const 64 call $clock drop br 0)";
+    let mut request = output_wait_request(1, loop_after, &["a", "b"], Action::Crash);
+    request.boundaries.clear();
+    request.crash_groups.push(CrashGroup {
+        nodes: vec!["a".into(), "b".into()],
+        marker: b"mark".to_vec(),
+    });
+    let execution = execute_prepared(prepare(request).unwrap()).unwrap();
+    assert_eq!(execution.outcome.termination, "exit");
+    assert_eq!(execution.outcome.exit_code, Some(0));
+    assert!(!execution.world.is_empty());
+    assert_eq!(execution.incarnations.len(), 2);
+    assert!(
+        execution
+            .incarnations
+            .iter()
+            .all(|item| item.interrupted && item.execution.outcome.termination == "crash")
+    );
+    for (after, terminal, code) in [
+        ("unreachable", "trap", None),
+        ("i32.const 17 call $exit", "exit", Some(17)),
+    ] {
+        let execution = execute_prepared(
+            prepare(output_wait_request(2, after, &["a"], Action::Crash)).unwrap(),
+        )
+        .unwrap();
+        assert_eq!(execution.outcome.termination, terminal);
+        assert_eq!(execution.outcome.exit_code, code);
+        assert_eq!(
+            execution.incarnations[0].execution.outcome.termination,
+            terminal
+        );
+    }
+}
+
+#[test]
+fn unbound_same_kind_and_cancellation_remain_failures_with_armed_marker() {
+    let loop_after = "(loop i32.const 1 i64.const 1 i32.const 64 call $clock drop br 0)";
+    for terminal in ["crash", "stop", "cancelled"] {
+        let action = if terminal == "stop" {
+            Action::Stop
+        } else {
+            Action::Crash
+        };
+        let mut request = output_wait_request(1, loop_after, &["a"], action);
+        request.boundaries[0].marker = b"never".to_vec();
+        let prepared = prepare(request).unwrap();
+        let activity = prepared.activity();
+        let mut conditions = prepared.conditions.enter().unwrap();
+        let session = conditions.session();
+        let engine = Engine::new(&engine::configuration(true)).unwrap();
+        let broker = Arc::new(Broker::new(&prepared.broker, &prepared.ids, None, None).unwrap());
+        let cancellation = prepared.cancellation.clone();
+        let _registration = cancellation.attach(&engine, Some(broker.clone())).unwrap();
+        let execution = thread::scope(|scope| {
+            let controller_broker = broker.clone();
+            scope.spawn(move || {
+                let started = std::time::Instant::now();
+                while activity.snapshot().launched_stores == 0 {
+                    assert!(started.elapsed() < Duration::from_secs(5));
+                    thread::sleep(Duration::from_millis(1));
+                }
+                if terminal == "cancelled" {
+                    cancellation.cancel();
+                } else {
+                    controller_broker
+                        .command(Command::Revoke {
+                            index: 0,
+                            incarnation: 1,
+                            kind: terminal,
+                        })
+                        .unwrap();
+                }
+            });
+            execute_inner(
+                &engine,
+                prepared,
+                &broker,
+                None,
+                &AtomicBool::new(false),
+                &session,
+            )
+        })
+        .unwrap();
+        assert_eq!(execution.outcome.termination, terminal);
+        assert!(
+            execution.world.is_empty(),
+            "unexpected {terminal} must not retain World"
+        );
+    }
+}
 
 #[test]
 fn conditional_output_boundary_preserves_wait_lifecycle() {
