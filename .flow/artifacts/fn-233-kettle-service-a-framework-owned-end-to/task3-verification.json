@@ -1,0 +1,39 @@
+{
+  "task": "fn-233-kettle-service-a-framework-owned-end-to.3",
+  "base_commit": "20a6f2a52881c0d2673b553e39da78b913cca203",
+  "baseline": "green; focused catalog/syntax/build and Go healthy transcript before edits",
+  "full_gate": {
+    "command": "make model-check",
+    "exit_code": 0,
+    "elapsed_seconds": 438.622,
+    "verified_commit": "5f7531e227",
+    "later_changes": "README measurement prose and .flow evidence only"
+  },
+  "temporal_slice": {
+    "command": "make umpire-check-model-slice",
+    "exit_code": 0
+  },
+  "temporal_gaps": {
+    "command": "make umpire-check-model-gaps",
+    "exit_code": 0,
+    "elapsed_seconds": 374.233
+  },
+  "inconclusive_attempt": "An earlier Go package exit0 lost its mandatory Make summary because the worker read a child stdout pipe. The Make target failed; its log is retained as inconclusive, followed by the independent untouched passing rerun.",
+  "kettle_live": {
+    "command": "go test -tags test_dep -run '^TestKettle' -count=1 .",
+    "package_seconds": 26.48,
+    "wall_seconds": 27.754
+  },
+  "protected_unchanged": [
+    "model/umpire/tests/fixtures/sample_kettle",
+    "model/temporal/feature/activity/expected",
+    "model/umpire/reference/kettle/expected/transcript.snap.txt",
+    "model/umpire/reference/kettle/expected/report.snap.txt"
+  ],
+  "generic_gaps_closed": [
+    "scalar oneof projection/inspection",
+    "string-valued maps",
+    "shared resolved limit context with local consumer wrappers"
+  ],
+  "temporal_dependencies_in_kettle": false
+}
