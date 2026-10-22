@@ -1,7 +1,7 @@
 ---
-satisfies: [R3]
+satisfies: [R1, R2]
 ---
-# fn-238-shared-front-end-one-model-reading-for.9 Renew the Linux/macOS guest byte-identity certification after the closure identity change
+# fn-239-renew-the-linuxmacos-guest-byte.1 Run and record the renewed Linux/macOS guest certification
 
 ## Description
 fn-238.8 added a per-crate lockfile closure digest to every guest crate identity, so fn-232's certification at 3c314fb5b8 no longer covers how identities are derived. Renewal needs a native macOS run on the owner's Mac (the original ran Linux via `sbx exec dev-build` and macOS natively on the host; this sandbox has no macOS executor).
@@ -18,7 +18,7 @@ bash .flow/artifacts/fn-232-linux-macos-guest-byte-identity/certification-3c314f
 python3 .flow/artifacts/fn-232-linux-macos-guest-byte-identity/certification-3c314fb5b8/compare.py "$PWD"
 ```
 
-Retain proof, manifests and comparisons under `.flow/artifacts/fn-238-shared-front-end-one-model-reading-for/certification-<rev>/`.
+Retain proof, manifests and comparisons under `.flow/artifacts/fn-239-renew-the-linuxmacos-guest-byte/certification-<rev>/`.
 
 ## Acceptance
 - [ ] Four clean builds (two per OS) at one committed revision produce byte-identical stock and Temporal guests; all twelve comparisons pass.

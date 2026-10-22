@@ -42,7 +42,7 @@ Its final timing gate took 87.140s, above the 30s soft target; inner loop was 1.
 fn-236's permanent guest compiler-input fix and fn-232's Linux/macOS certification are
 complete locally. Four clean clones at `3c314fb5b85427471a1525d6f190fe5d1fb9f3b2`
 passed all twelve stock/Temporal byte comparisons and both platforms' host suites. fn-238.8 later
-changed guest identity inputs, so that certification needs renewal (fn-238.9).
+changed guest identity inputs, so that certification needs renewal (fn-239).
 [Certification evidence](.flow/artifacts/fn-232-linux-macos-guest-byte-identity/certification-3c314fb5b8/proof.md).
 TLC is implemented for its admitted source subset; unsupported source,
 including the current Phased/reject activity Model, is explicitly refused.
@@ -163,12 +163,22 @@ measured under concurrent load (119.6s) and is re-measured at the next idle gate
 | Name | Status | What |
 | --- | --- | --- |
 | fn-238.8 | 🔄 in progress | Guest identity hashes only the guest's dependency closure, so unrelated workspace crates stop staling the guest; before .3 (R3) |
-| fn-238.9 | ⛔ blocked | Renew the Linux/macOS guest certification after .8's identity change; needs a native macOS run on the owner's Mac (R3) |
 | fn-238.3 | ⬜ todo | After .2: macros read through `umpire-front`; one diagnostic per form; fn-227.8 follow-ups (R2, R3) |
 | fn-238.4 | ⬜ todo | After .3: macro embeds the admitted Model; lifter emits from it, no `model.rs` re-read (R2-R4) |
 | fn-238.5 | ⬜ todo | After .4: interpreted checker as a differential check (R2, R3) |
 | fn-238.6 | ⬜ todo | After .5: interpreted checker by default only if at most 2x slower and at most 25% more per-construct cost (R2, R3) |
 | fn-238.7 | ⬜ todo | After .4 (and .6 if taken): boundary write-up and measurements (R4) |
+
+### fn-239: Renew the Linux/macOS guest byte-identity certification (model)
+
+fn-238.8 changed guest identity inputs (per-crate lockfile closure), so fn-232's certification at
+`3c314fb5b8` needs renewal at a revision at or after `cbe2c6fcb7`. Standalone, by owner request;
+nothing waits on it. Needs a native macOS run on the owner's Mac.
+[Spec](.flow/specs/fn-239-renew-the-linuxmacos-guest-byte.md).
+
+| Name | Status | What |
+| --- | --- | --- |
+| fn-239.1 | ⛔ blocked | Four clean builds on Linux and native macOS, twelve comparisons and both host suites; commands in the task (R1, R2) |
 
 ### fn-237: Activity timeouts, heartbeat and cooperative cancellation (model, temporal)
 
