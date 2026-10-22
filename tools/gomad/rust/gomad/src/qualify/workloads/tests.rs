@@ -310,11 +310,12 @@ fn native_context_allows_persisted_dependencies_but_rejects_invalid_pending_orde
     earlier.id = 1;
     earlier.dependencies = None;
     context.operations.push(earlier);
+    state.selected_operations = vec![1, 2];
     assert!(native_crash::validate_state(&state, &context, "sqlite", 8).is_err());
     context.operations.sort_by_key(|operation| operation.id);
-    assert!(native_crash::validate_state(&state, &context, "sqlite", 8).is_err());
-    state.selected_operations = vec![1, 2];
     native_crash::validate_state(&state, &context, "sqlite", 8).unwrap();
+    state.selected_operations = vec![2];
+    assert!(native_crash::validate_state(&state, &context, "sqlite", 8).is_err());
 }
 
 #[test]
