@@ -236,9 +236,21 @@ pub(crate) fn validate(report: &Report) -> Result<(), String> {
                     replay.choice_replay.as_str(),
                     "none" | "exact" | "diverged" | "unavailable"
                 )
+                // Cooperative replays consult the choice tape (`exact` when
+                // matched); controlled ones have none (`none` when matched).
+                || replay.choice_replay
+                    == if execution.record.profile == "gomad.wasi-cooperative/v1" {
+                        "none"
+                    } else {
+                        "exact"
+                    }
                 || replay.matched
-                    && execution.record.profile == "gomad.wasi-cooperative/v1"
-                    && replay.choice_replay != "exact"
+                    && replay.choice_replay
+                        != if execution.record.profile == "gomad.wasi-cooperative/v1" {
+                            "exact"
+                        } else {
+                            "none"
+                        }
             {
                 return Err(format!(
                     "qualification execution {index} replay evidence is invalid"

@@ -379,6 +379,12 @@ def cluster_tamper(run, binary, path, work):
         result['manifest']['host_config_sha256'] = parity.digest(parity.canonical(configured))
     cases.append(('cluster-provenance-configuration', rewrite('cluster-provenance-configuration', configuration)))
 
+    def runtime(result):
+        configured = result['provenance']['configuration']
+        configured['runtime_sha256'] = '3' * 64
+        result['manifest']['host_config_sha256'] = parity.digest(parity.canonical(configured))
+    cases.append(('cluster-provenance-runtime', rewrite('cluster-provenance-runtime', runtime)))
+
     def dropped(result):
         samples = result['observations']['samples']
         samples.remove(next(sample for sample in samples if sample['phase'] == 'execute' and sample['incarnation'] != 'a/1'))
@@ -386,6 +392,7 @@ def cluster_tamper(run, binary, path, work):
     return refuse_all(run, binary, cases, {
         'cluster-provenance-scenario': b'retained provenance does not bind',
         'cluster-provenance-configuration': b'retained provenance does not bind',
+        'cluster-provenance-runtime': b'retained provenance does not bind',
         'cluster-sample-dropped': b"differ from the record's incarnations"})
 
 
@@ -487,6 +494,12 @@ def tamper(run, binary, path, work):
                                 failure=dict(classification='qualified', message='claimed success', iteration=1))
     cases.append(('failure-success-class', rewrite('failure-success-class', success_failure)))
 
+    def contradiction(result):
+        # A matched replay that claims no choice-tape consultation.
+        replay = result['report']['executions'][0]['replay']
+        replay['choice_replay'] = 'exact' if replay['choice_replay'] == 'none' else 'none'
+    cases.append(('replay-choice-contradiction', rewrite('replay-choice-contradiction', contradiction)))
+
     def utf8(result):
         # 64 hex digits followed by a multibyte character at the separator.
         encoded = '0' * 64 + '\u20ac /x\n'
@@ -494,6 +507,7 @@ def tamper(run, binary, path, work):
         result['manifest']['integrated_source_sha256'] = parity.digest(encoded.encode())
     cases.append(('source-manifest-utf8', rewrite('source-manifest-utf8', utf8)))
     return refuse_all(run, binary, cases, {'failure-success-class': b'failure result is inconsistent',
+                  'replay-choice-contradiction': b'replay evidence is invalid',
                   'source-manifest-utf8': b'malformed integrated source manifest line',
                   'receipt-counter': b'receipt content identity changed',
                   'receipt-duplicate': b'exactly one publication receipt',

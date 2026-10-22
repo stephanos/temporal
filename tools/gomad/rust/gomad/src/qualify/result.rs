@@ -83,7 +83,18 @@ fn derive(provenance: &serde_json::Value) -> Result<Derived, String> {
     }
     let cooperative = configuration["profile"] == COOPERATIVE_PROFILE;
     let choice = &provenance["choice_identity"];
+    // The cooperative runtime implementation is the choice identity's; a
+    // controlled configuration carries none.
+    let runtime = if cooperative {
+        serde_json::from_value::<[u8; 32]>(choice["ImplementationSHA256"].clone())
+            .ok()
+            .map(|implementation| Value::String(hex(&implementation)))
+    } else {
+        Some(Value::Null)
+    };
     if inputs["schema"] != "gomad.rust-wasm-build-inputs/v1"
+        || runtime.as_ref() != Some(&configuration["runtime_sha256"])
+        || !choice.is_null() && (choice["GOOS"] != "wasip1" || choice["GOARCH"] != "wasm")
         || inputs["scenario"] != provenance["scenario"]
         || inputs["network"] != provenance["network"]
         || inputs["configuration"] != built

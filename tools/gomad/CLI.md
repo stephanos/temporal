@@ -501,7 +501,11 @@ and compiler, helper and host, model, engine, configuration, module, build key
 (toolchain), scenario, profile and limits. The provenance's duplicated
 scenario, network and configuration must agree with its hashed build inputs
 (the configuration differs only in the cooperative runtime implementation), and
-a cooperative choice identity must bind the build key and module. Every record
+a cooperative choice identity (`wasip1`/`wasm`) must bind the build key, the
+module and the configuration's runtime implementation; a controlled
+configuration carries no runtime implementation. A matched cooperative replay
+records `exact` choice replay and a matched controlled one `none`; neither
+profile records the other's value. Every record
 must bind the frozen
 module, toolchain, configuration, limits, implementation (recomputed from the
 helper and host digests), platform (`host_os/host_arch`) and exact runtime
