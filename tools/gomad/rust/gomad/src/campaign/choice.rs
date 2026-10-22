@@ -254,6 +254,7 @@ fn run(
                 &mut completion.execution,
                 completion.publication,
                 &mut retention,
+                base_only,
             )?;
             executions.push(completion.execution);
             results.push(result);
@@ -292,6 +293,7 @@ fn retain(
     execution: &mut Execution,
     publication: Publication,
     retention: &mut Retention,
+    base_only: bool,
 ) -> Result<(), String> {
     let metadata = &journal.plan().prepared;
     let failed = matches!(
@@ -299,7 +301,7 @@ fn retain(
         "target_failure" | "watchdog"
     ) || execution.divergence.is_some();
     let scoped_base = execution.ordinal == 0
-        && matches!(&journal.plan().strategy, RoundStrategy::Choice(config) if config.site_scope.as_ref().is_some_and(|scope| scope.resolved_count == 0));
+        && matches!(&journal.plan().strategy, RoundStrategy::Choice(config) if config.site_scope.as_ref().is_some_and(|scope| base_only || scope.resolved_count == 0));
     let keep = scoped_base
         || failed
         || retention.keep(

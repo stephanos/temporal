@@ -56,12 +56,52 @@ The unchanged Go model/generator validate baseline is reused from root's
 `CARGO_BUILD_JOBS=4 CARGO_TARGET_DIR=/home/agent/.cache/codex-build/fn232-retained-validation make -C tools/gomad validate`, session 3110 exit 0.
 No shared Go generator/protocol inputs were edited here.
 
-Final immutable fixture:
+Pre-review immutable fixture (retained for actual RED proofs):
 `/home/agent/wt/evidence/fn232-install-final-fixture/gomad-567df2b234e8d79931399740cb7111cd0bf16e5e87934ddc13d1aeeaaf0b47f9`.
 Its SHA-256 is the filename suffix. Exact 4,453-file source inventories before
 and after build plus binary metadata are retained beside it. The sole source
 inventory delta was the controlled Python detached-compiler distribution
 layout correction during compilation; no Rust/compiler identity input changed.
+
+## Independent review repair batch
+
+Source review found that matching scoped public plans could discard the
+successful base under `keep_successes=none`. The repair passes the existing
+plan-only execution mode into retention, forcing scoped ordinal-zero retention
+with the existing capacity exemption. Ordinary matching scoped exploration
+retention is unchanged. The existing public corpus authenticates both matching
+and empty-scope retained base artifacts; this actual public proof remains queued.
+
+Review also found missing Go clock zero defaults. The repair handles omitted or
+null clock values and numeric members without changing clock bounds. The pinned
+Go decoder explicitly uses case-insensitive matching with sensitive delimiters,
+and rejects differently spelled aliases of the same typed field. A private
+Serde adapter obtains actual schema member names from derives, matches EqualFold
+(including Kelvin-K and long-S for ASCII schema names), retains `_`/`-`, rejects
+duplicate aliases and leaves arbitrary map keys/raw Values unchanged. The
+original configuration and its digest preimage remain literal.
+
+The actual pinned Go decoder/model oracle passed 21 inputs (exit 0); source,
+command, inputs and raw results are retained at
+`/home/agent/wt/evidence/fn232-install-corpus/config-alias-oracle`. Rust agrees
+on all 21 accepted/refused results and admitted clocks; `A`/`a` payload map keys
+remain distinct. Actual pre-review public Rust calls failed the intended mixed
+case/null accepted-Go inputs before a deliberately missing compiler: aggregate
+RED exit 1, three child exits 2, no cache/compiler/guest, retained under
+`/home/agent/wt/evidence/fn232-install-corpus/old-config-red`.
+
+Development Cargo clock probe RED exited 101 for omitted read-step admission;
+focused GREEN exited 0 for two probes covering seven clock/default/bounds cases
+and the 21 exact Go inputs (`.flow/tmp/install-review-clock-red.log` and
+`.flow/tmp/install-review-config-green.log`). Temporary observable probes were
+removed after the run; retained source is `.flow/tmp/install-review-probes.rs`.
+The lasting public matrix has 17 explicit clock/alias/null/range/refusal rows.
+Initial focused Clippy exited 101 for one elidable lifetime; its mechanical fix
+passes Clippy `--lib --features determinism-fixture -- -D warnings` (exit 0,
+`.flow/tmp/install-review-repair-clippy-green.log`). Formatting, five Python
+syntax checks and diff checks pass. No fixture rebuild or guest execution has
+occurred after this repair; the successor fixture and complete corpus remain
+pending the shared host window.
 
 ## Pending acceptance
 

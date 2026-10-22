@@ -118,6 +118,8 @@
     "seed-recovery",
     "round-recovery",
     "duplicate-configuration-member",
-    "numeric-grammar"
+    "numeric-grammar",
+    "clock-defaults",
+    "configuration-aliases"
   ]
 }

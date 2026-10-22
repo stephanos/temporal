@@ -23,7 +23,7 @@ CORPUS = Path(__file__).resolve().parent
 
 
 def encode(value):
-    return json.dumps(value, sort_keys=True, separators=(',', ':'), allow_nan=False).encode()
+    return json.dumps(value, sort_keys=True, separators=(',', ':'), ensure_ascii=False, allow_nan=False).encode()
 
 
 def digest(raw):
@@ -72,7 +72,7 @@ def main():
     equal(set(declaration['required']), {'helper-default', 'helper-matching', 'helper-mismatch', 'compiler-missing',
         'compiler-version', 'publication-collision', 'go-lineage', 'explicit-precedence', 'environment-precedence',
         'sibling', 'invalid-explicit', 'invalid-environment', 'removed-build-inputs', 'changed-compiler',
-        'configured-limits', 'temporal-policy', 'captured-payload-mismatch', 'captured-descriptor-mismatch', 'schema-symlink', 'changed-runtime', 'missing-runtime', 'external-helper-never-executed', 'seed-plan', 'scoped-plan', 'seed-recovery', 'round-recovery', 'duplicate-configuration-member', 'numeric-grammar'}, 'corpus.required')
+        'configured-limits', 'temporal-policy', 'captured-payload-mismatch', 'captured-descriptor-mismatch', 'schema-symlink', 'changed-runtime', 'missing-runtime', 'external-helper-never-executed', 'seed-plan', 'scoped-plan', 'seed-recovery', 'round-recovery', 'duplicate-configuration-member', 'numeric-grammar', 'clock-defaults', 'configuration-aliases'}, 'corpus.required')
     environment = {key: value for key, value in os.environ.items() if not key.startswith('GOMAD_') and key != 'GOROOT'}
     environment.update(GOENV='off', GOWORK='off', GOTOOLCHAIN='local', GOMAXPROCS='2', GOPROXY='off', GOSUMDB='off')
     receipts = []
@@ -204,6 +204,7 @@ def main():
         numeric_rust = numeric_check(args.binary, args.go_compiler, root / 'rust-numeric')
         equal(numeric_go, numeric_rust, 'installation.numeric_parity')
         equal(len(numeric_go), 12, 'installation.numeric_case_count')
+        clocks = clock_cases(args, root, run, decode)
         configuration_refusals(args, manifests, root, run, decode)
         seed_plan = runpy.run_path(str(CORPUS / 'plan-check.py'))['check'](
             args.binary, manifests['rust', 'cooperative'], root / 'seed-plan',
@@ -318,7 +319,7 @@ def main():
                               else row['name'].removesuffix(f'-{attempt}'), status=row['status'])
                     for row in receipts[receipt_start:]]
         views.append(dict(schema='gomad.installation-golden/v1', grammar=grammar, doctor=doctors[1],
-                          installations=installed, seed_plan=seed_plan, recovery=recovery, go_recovery=go_recovery, numeric=numeric_rust, commands=commands))
+                          installations=installed, seed_plan=seed_plan, recovery=recovery, go_recovery=go_recovery, numeric=numeric_rust, clocks=clocks, commands=commands))
     equal({str(path): digest(path.read_bytes()) for path in input_paths}, input_digests, 'installation.unchanged_inputs')
     equal(views[0], views[1], 'installation.repeated_agreement')
     golden = CORPUS / 'goldens-installation' / ('grammar.json' if args.grammar_only else 'installation.json')
@@ -330,6 +331,97 @@ def main():
             first = golden.read_bytes()
     equal(golden.read_bytes(), first, 'installation.second_regeneration_bytes')
     print(f'installation: {len(receipts)} direct public commands plus authenticated child lanes; repeated strict golden agreement')
+
+
+def clock_cases(args, root, run, decode):
+    base = dict(Args=['fixture-argument'], Environment=['PWD=/workspace', 'TZ=UTC'],
+        WorkingDirectory='/workspace', WritableDirectories=['/workspace', '/tmp'],
+        Limits=dict(OutputBytes=1048576, TranscriptBytes=8388608, Calls=10000, Descriptors=64,
+                    Files=1000, FilesystemBytes=8388608, PendingEvents=4096))
+    cases = [
+        ('omitted-read-step', 'gomad.wasi-cooperative/v1', {'EpochNanos': 946684800000000000}, 0,
+         {'EpochNanos': 946684800000000000, 'ReadStepNanos': 0}),
+        ('empty-clock', 'gomad.wasi-cooperative/v1', {}, 0, {'EpochNanos': 0, 'ReadStepNanos': 0}),
+        ('missing-clock', 'gomad.wasi-cooperative/v1', None, 0, {'EpochNanos': 0, 'ReadStepNanos': 0}),
+        ('stock-missing-clock', 'gomad.wasi-stock-exploratory/v1', None, 2, None),
+        ('stock-zero-step', 'gomad.wasi-stock-exploratory/v1', {'EpochNanos': 946684800000000000, 'ReadStepNanos': 0}, 2, None),
+        ('epoch-overflow', 'gomad.wasi-cooperative/v1', {'EpochNanos': 9223372036854775808, 'ReadStepNanos': 0}, 2, None),
+        ('read-step-overflow', 'gomad.wasi-cooperative/v1', {'EpochNanos': 0, 'ReadStepNanos': 1000000001}, 2, None),
+    ]
+    configured = []
+    for name, profile, clock, expected, defaults in cases:
+        config = dict(base, Profile=profile)
+        if clock is not None:
+            config['Clock'] = clock
+        configured.append((name, profile, config, expected, defaults))
+    canonical = dict(base, Profile='gomad.wasi-cooperative/v1',
+                     Clock=dict(EpochNanos=946684800000000000, ReadStepNanos=0))
+    def mixed(value):
+        return {''.join(char.upper() if index % 2 == 0 else char.lower() for index, char in enumerate(key)): mixed(item)
+                for key, item in value.items()} if isinstance(value, dict) else value
+    additions = [('mixed-all-typed', mixed(canonical), 0, canonical['Clock'])]
+    config = copy.deepcopy(canonical)
+    config['ClocK'] = config.pop('Clock')
+    additions.append(('kelvin-clock', config, 0, canonical['Clock']))
+    config = copy.deepcopy(canonical)
+    config['Limitſ'] = config.pop('Limits')
+    additions.append(('long-s-limits', config, 0, canonical['Clock']))
+    for name, clock in [('null-clock', None), ('null-numerics', {'EpochNanos': None, 'ReadStepNanos': None})]:
+        config = dict(canonical, Clock=clock)
+        additions.append((name, config, 0, {'EpochNanos': 0, 'ReadStepNanos': 0}))
+    config = copy.deepcopy(canonical)
+    config['Cl_ock'] = config.pop('Clock')
+    additions.append(('delimiter-root', config, 2, None))
+    config = copy.deepcopy(canonical)
+    config['Clock']['Epoch_Nanos'] = config['Clock'].pop('EpochNanos')
+    additions.append(('delimiter-nested', config, 2, None))
+    config = copy.deepcopy(canonical)
+    config['clock'] = config['Clock']
+    additions.append(('duplicate-alias-root', config, 2, None))
+    config = copy.deepcopy(canonical)
+    config['Clock']['epochnanos'] = config['Clock']['EpochNanos']
+    additions.append(('duplicate-alias-nested', config, 2, None))
+    config = copy.deepcopy(canonical)
+    config['Clock']['Unknown'] = 1
+    additions.append(('unknown-clock', config, 2, None))
+    configured.extend((name, 'gomad.wasi-cooperative/v1', config, expected, defaults)
+                      for name, config, expected, defaults in additions)
+    equal(len(configured), 17, 'configuration.clock_and_alias_case_count')
+    views = []
+    for name, profile, config, expected, defaults in configured:
+        config_path = root / ('clock-' + name + '.json')
+        config_path.write_bytes(encode(config))
+        observed = []
+        for lineage, binary, helper in [('go', args.go_binary, args.go_helper), ('rust', args.binary, None)]:
+            output = root / (lineage + '-clock-' + name + '-installation.json')
+            command = [binary, 'install', '--compiler', args.go_compiler,
+                '--cache', args.preparation_root / (lineage + '-cache'), '--profile', profile,
+                '--config', config_path, '--output', output, '--fuel', '123456789', '--memory-bytes', '134217728']
+            if profile == 'gomad.wasi-cooperative/v1':
+                command += ['--runtime-root', args.go_source / 'tools/gomad/internal/model/runtimesource']
+            if helper:
+                command += ['--helper', helper]
+            result = run(f'{lineage}-clock-{name}-{root.name}', command, expected)
+            observed.append(result.returncode)
+            if expected:
+                equal(output.exists(), False, name + '.no_installation')
+            else:
+                manifest = decode(output.read_bytes())
+                if lineage == 'go':
+                    go_clock = manifest['options']['Config']['Clock']
+                    equal(go_clock, defaults, name + '.go_zero_defaults')
+                else:
+                    original = manifest['admission']['guest_configuration']
+                    equal(original, config, name + '.original_configuration')
+                    equal(manifest['admission']['configuration_sha256'], digest(encode(original)), name + '.configuration_preimage')
+                    model_clock = dict(EpochNanos=manifest['model']['epoch_nanos'], ReadStepNanos=manifest['model']['read_step_nanos'])
+                    equal(model_clock, go_clock, name + '.model_clock_parity')
+        equal(observed, [expected, expected], name + '.status_parity')
+        views.append(dict(case=name, status=expected, configuration=config,
+            **(dict(go_clock=go_clock, model_clock=model_clock,
+                    configuration_sha256=manifest['admission']['configuration_sha256'], admitted_configuration=original)
+               if not expected else {})))
+    return views
 
 
 def configuration_refusals(args, manifests, root, run, decode):

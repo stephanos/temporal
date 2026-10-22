@@ -1,3 +1,5 @@
+mod decode;
+
 use gomad_wasmhost::{linked, linked_cluster};
 use serde_json::Value;
 use sha2::Digest as _;
@@ -61,6 +63,7 @@ struct Guest {
     stdin: Option<String>,
     #[serde(default)]
     entropy_key: [u8; 32],
+    #[serde(default, deserialize_with = "decode::zero")]
     clock: Clock,
     limits: Limits,
     #[serde(default, rename = "storage")]
@@ -68,10 +71,12 @@ struct Guest {
     #[serde(default, rename = "network_v2")]
     network: Option<linked_cluster::NetworkModel>,
 }
-#[derive(serde::Deserialize)]
-#[serde(deny_unknown_fields, rename_all = "PascalCase")]
+#[derive(Default, serde::Deserialize)]
+#[serde(default, deny_unknown_fields, rename_all = "PascalCase")]
 struct Clock {
+    #[serde(deserialize_with = "decode::zero")]
     epoch_nanos: u64,
+    #[serde(deserialize_with = "decode::zero")]
     read_step_nanos: u64,
 }
 #[derive(serde::Deserialize)]
@@ -618,7 +623,7 @@ fn go_bytes<T: serde::Serialize>(value: &T) -> Result<Vec<u8>, String> {
 }
 fn storage(value: Option<Value>) -> Result<Option<linked::StorageInput>, String> {
     let Some(value) = value else { return Ok(None) };
-    let mut model: Storage = serde_json::from_value(value).map_err(|e| e.to_string())?;
+    let mut model: Storage = decode::typed(value)?;
     if model.faults.as_ref().is_some_and(Vec::is_empty) {
         model.faults = None;
     }
@@ -637,7 +642,7 @@ fn storage(value: Option<Value>) -> Result<Option<linked::StorageInput>, String>
     reason = "Configuration admission validates policy, namespace, storage and network together before returning a sealed model"
 )]
 pub(crate) fn convert(original: Value, profile: &str) -> Result<Configuration, String> {
-    let guest: Guest = serde_json::from_value(original.clone()).map_err(|e| e.to_string())?;
+    let guest: Guest = decode::typed(original.clone())?;
     if guest.profile != profile || !matches!(profile, STOCK | COOPERATIVE) {
         return Err("configuration profile does not match selected profile".into());
     }
