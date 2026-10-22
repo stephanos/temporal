@@ -429,16 +429,7 @@ impl Model {
                 #[cfg(feature = "diagnostic-profile")]
                 let encoding =
                     crate::diagnostic::WallSpan::new(crate::diagnostic::Nested::Encoding);
-                let mut record = [0u8; 96];
-                set64(&mut record, 0, observed.ordinal);
-                record[8] = observed.kind;
-                record[9] = 1 | if observed.site_missing { 4 } else { 0 };
-                set32(&mut record, 12, observed.alternatives);
-                set32(&mut record, 16, observed.selected);
-                set32(&mut record, 20, observed.data);
-                set64(&mut record, 24, observed.site_offset);
-                record[32..64].copy_from_slice(&observed.selected_identity);
-                record[64..96].copy_from_slice(&observed.alternative_set_digest);
+                let record = super::choice_wire_generated::encode_decision(&observed);
                 #[cfg(feature = "diagnostic-profile")]
                 drop(encoding);
                 let mut diagnostic = data[diagnostic_offset..].to_vec();

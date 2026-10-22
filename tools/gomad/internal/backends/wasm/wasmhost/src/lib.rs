@@ -94,3 +94,10 @@ pub fn transport() -> wasmtime::Result<()> {
     drop(session);
     result
 }
+
+#[cfg(all(test, not(feature = "conformance")))]
+mod clock_conformance;
+#[cfg(all(test, not(feature = "conformance")))]
+mod network_corpus;
+#[cfg(all(test, not(feature = "conformance")))]
+mod world_conformance;

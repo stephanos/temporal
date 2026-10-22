@@ -711,7 +711,7 @@ func readWorldConformance(t *testing.T, path string) worldConformanceCorpus {
 
 // TestWorldConformanceCorpusIsCurrent fails on any Go World behavior change
 // until the corpus is regenerated, which then forces the Rust replay
-// (`cargo test --test world_conformance`) to be rerun against it.
+// (`cargo test --lib world_conformance`) to be rerun against it.
 func TestWorldConformanceCorpusIsCurrent(t *testing.T) {
 	regenerate := os.Getenv("GOMAD_WORLD_CONFORMANCE_REGENERATE") == "1"
 	if regenerate {

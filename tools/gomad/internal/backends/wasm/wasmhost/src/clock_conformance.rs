@@ -1,10 +1,4 @@
-//! Replays the Go-generated clock conformance corpus
-//! (`internal/backends/wasm/cluster/clock_conformance_test.go`).
-#[allow(dead_code)]
-#[path = "../src/clock.rs"]
-mod clock;
-
-use clock::{Answer, Clock, Event, Handle, Quiesced, TimeRequest};
+use crate::clock::{self, Answer, Clock, Event, Handle, Quiesced, TimeRequest};
 use serde_json::{Value, json};
 use std::collections::BTreeMap;
 use std::path::PathBuf;

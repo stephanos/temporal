@@ -210,7 +210,7 @@
     "go:internal/backends/wasm/wasi:TestDeterminismInventoryCoversGoImportTables",
     "go:internal/backends/wasm/wasi:TestTranscriptClockRunFoldsAndPreservesDigestModes",
     "go:internal/backends/wasm/wasi:TestExploratoryClockAndPollDoNotUseWallTimeOrYieldTicks",
-    "rust:tests/clock_conformance.rs:clock_corpus_replays_exactly",
+    "rust:src/clock_conformance.rs:clock_corpus_replays_exactly",
     "corpus:wasmhost/tests/testdata/helper_transcript/local_clock_literal_transcript.json"
    ]
   },
@@ -227,7 +227,7 @@
     "go:internal/backends/wasm/wasi:TestDeterminismInventoryCoversGoImportTables",
     "go:internal/backends/wasm/wasi:TestTranscriptClockRunFoldsAndPreservesDigestModes",
     "go:internal/backends/wasm/wasi:TestExploratoryClockAndPollDoNotUseWallTimeOrYieldTicks",
-    "rust:tests/clock_conformance.rs:clock_corpus_replays_exactly",
+    "rust:src/clock_conformance.rs:clock_corpus_replays_exactly",
     "corpus:wasmhost/tests/testdata/helper_transcript/marshal_poll_subscriptions.json"
    ]
   },
@@ -816,7 +816,7 @@
     "rust:tests/inventory.rs:inventory_covers_every_operation",
     "go:internal/backends/wasm/wasi:TestDeterminismInventoryCoversGoImportTables",
     "go:internal/backends/wasm/wasi:TestNetworkV2StateRejectsInvalidProfile",
-    "rust:tests/network_corpus.rs:network_full_corpus_requires_all_scripts_every_step_and_final_record",
+    "rust:src/network_corpus.rs:network_full_corpus_requires_all_scripts_every_step_and_final_record",
     "go:internal/backends/wasm/wasi:TestDeterminismInventoryCooperativeImportsRefuseUnlisted"
    ]
   },

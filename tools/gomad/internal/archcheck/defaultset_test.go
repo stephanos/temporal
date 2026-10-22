@@ -2,13 +2,16 @@ package archcheck_test
 
 import (
 	"bytes"
+	"encoding/json"
 	"os"
 	"os/exec"
 	"path/filepath"
+	"runtime"
 	"slices"
 	"strings"
 	"testing"
 
+	"go.temporal.io/server/tools/gomad/internal/archcheck"
 	"golang.org/x/mod/modfile"
 )
 
@@ -138,7 +141,51 @@ func TestDefaultMakeTargetsKeepSharedValidation(t *testing.T) {
 			t.Errorf("default targets select %q:\n%s", forbidden, output)
 		}
 	}
+	for _, required := range []string{"--locked --lib", "TestNetworkCorpus", "TestClockConformance", "TestNamespace.*Conformance", "TestVolume|", "GOMAD_WASM_CONFORMANCE_REQUIRED=1"} {
+		if !bytes.Contains(output, []byte(required)) {
+			t.Errorf("validate omits retained conformance gate %q", required)
+		}
+	}
 	if !bytes.Contains(output, []byte("go run ./internal/model/cmd/protocolgen -check")) {
 		t.Errorf("validate does not check the shared protocol outputs:\n%s", output)
+	}
+}
+
+// Inventory ownership cannot be observed through a public CLI fixture.
+func TestInventorySeparatesRetainedGoFromRetiringHost(t *testing.T) {
+	root := t.TempDir()
+	files := map[string]string{
+		"go.mod":                         "module example.invalid/retention\n\ngo 1.27.1\n",
+		"internal/model/world/source.go": "package world\n",
+		"internal/backends/wasm/toolchain/source.go": "package toolchain\n",
+		"internal/archcheck/source.go":               "package archcheck\n",
+		"internal/runner/source.go":                  "package runner\n",
+		"cmd/gomad/source.go":                        "package main\nfunc main() {}\n",
+	}
+	for name, source := range files {
+		path := filepath.Join(root, name)
+		if err := os.MkdirAll(filepath.Dir(path), 0700); err != nil {
+			t.Fatal(err)
+		}
+		if err := os.WriteFile(path, []byte(source), 0600); err != nil {
+			t.Fatal(err)
+		}
+	}
+	inventory, _, err := archcheck.Discover(root, sourceGoCommand(), archcheck.Platform{OS: runtime.GOOS, Arch: runtime.GOARCH})
+	if err != nil {
+		t.Fatal(err)
+	}
+	encoded, err := json.Marshal(inventory)
+	if err != nil {
+		t.Fatal(err)
+	}
+	var got struct{ RetainedGo, RetiringGo []string }
+	if err := json.Unmarshal(encoded, &got); err != nil {
+		t.Fatal(err)
+	}
+	wantRetained := []string{"example.invalid/retention/internal/archcheck", "example.invalid/retention/internal/backends/wasm/toolchain", "example.invalid/retention/internal/model/world"}
+	wantRetiring := []string{"example.invalid/retention/cmd/gomad", "example.invalid/retention/internal/runner"}
+	if !slices.Equal(got.RetainedGo, wantRetained) || !slices.Equal(got.RetiringGo, wantRetiring) {
+		t.Fatalf("inventory retention = %+v, want retained %v, retiring %v", got, wantRetained, wantRetiring)
 	}
 }

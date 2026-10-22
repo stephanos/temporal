@@ -1,13 +1,4 @@
-//! Replays the Go-generated World conformance corpus
-//! (`internal/backends/wasm/cluster/world_conformance_test.go`).
-#[cfg(any(feature = "determinism-fixture", feature = "stress-jitter"))]
-#[allow(dead_code)]
-#[path = "../src/event_order.rs"]
-mod event_order;
-#[allow(dead_code)]
-#[path = "../src/world/mod.rs"]
-mod world;
-
+use crate::world;
 use base64::{Engine, engine::general_purpose::STANDARD};
 use serde_json::{Value, json};
 use sha2::Digest;

@@ -1,15 +1,4 @@
-#[cfg(any(feature = "determinism-fixture", feature = "stress-jitter"))]
-#[allow(dead_code)]
-#[path = "../src/event_order.rs"]
-mod event_order;
-#[allow(dead_code)]
-#[path = "../src/network/mod.rs"]
-mod network;
-// The cluster glue inside the network module uses the World model.
-#[allow(dead_code)]
-#[path = "../src/world/mod.rs"]
-mod world;
-use network::history;
+use crate::network::{self, history};
 
 use base64::Engine;
 use serde_json::Value;

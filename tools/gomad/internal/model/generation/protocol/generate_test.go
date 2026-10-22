@@ -108,6 +108,24 @@ func TestGenerateWritesAndChecksEverySharedOutput(t *testing.T) {
 			t.Fatalf("isolated generation of %s differs from the tree: %v", target.Path, err)
 		}
 	}
+	// A second generation must preserve every byte, including Rust codec output.
+	before := make(map[string]string)
+	for _, target := range SharedTargets() {
+		value, err := os.ReadFile(filepath.Join(root, filepath.FromSlash(target.Path)))
+		if err != nil {
+			t.Fatal(err)
+		}
+		before[target.Path] = string(value)
+	}
+	if _, err := Generate(root, root, SharedTargets(), SharedHeaders, false); err != nil {
+		t.Fatal(err)
+	}
+	for path, want := range before {
+		got, err := os.ReadFile(filepath.Join(root, filepath.FromSlash(path)))
+		if err != nil || string(got) != want {
+			t.Fatalf("second generation differs at %s: %v", path, err)
+		}
+	}
 	if stale, err := Generate(root, root, SharedTargets(), SharedHeaders, true); err != nil || len(stale) != 0 {
 		t.Fatalf("check after generate = %v, %v", stale, err)
 	}
@@ -150,4 +168,14 @@ func TestGenerateReportsSchemaAndTemplateErrors(t *testing.T) {
 	if _, err := Generate(moduleRoot, moduleRoot, SharedTargets()[:1], nil, true); err == nil || !strings.Contains(err.Error(), "header") {
 		t.Fatalf("missing header = %v", err)
 	}
+}
+
+// CLI execution cannot prove that regeneration owns the binary codec.
+func TestSharedSetIncludesLinkedChoiceCodec(t *testing.T) {
+	for _, target := range SharedTargets() {
+		if target.Path == "internal/backends/wasm/wasmhost/src/model/choice_wire_generated.rs" && target.Family == FamilyChoice && target.Unformatted {
+			return
+		}
+	}
+	t.Fatal("shared generation omits the linked Rust choice codec")
 }

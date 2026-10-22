@@ -22,9 +22,10 @@ type HostPackage struct {
 }
 
 type Inventory struct {
-	root             string
-	Packages         []HostPackage
-	Sources, Modules []string
+	root                   string
+	Packages               []HostPackage
+	Sources, Modules       []string
+	RetainedGo, RetiringGo []string
 }
 
 func Environment(platform Platform) []string {
@@ -214,6 +215,16 @@ func discover(root, goCommand string, platform Platform, legacy bool) (Inventory
 			}
 		}
 	}
+	for _, pkg := range inventory.Packages {
+		relative := strings.TrimPrefix(pkg.ImportPath, module+"/")
+		if Within(relative, "internal/model") || Within(relative, "internal/backends/wasm/toolchain") || Within(relative, "internal/archcheck") {
+			inventory.RetainedGo = append(inventory.RetainedGo, pkg.ImportPath)
+		} else {
+			inventory.RetiringGo = append(inventory.RetiringGo, pkg.ImportPath)
+		}
+	}
+	slices.Sort(inventory.RetainedGo)
+	slices.Sort(inventory.RetiringGo)
 	slices.Sort(inventory.Sources)
 	slices.Sort(inventory.Modules)
 	slices.SortFunc(inventory.Packages, func(a, b HostPackage) int { return strings.Compare(a.ImportPath, b.ImportPath) })

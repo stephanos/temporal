@@ -1,0 +1,24 @@
+{{header}}
+
+use super::{Decision, set32, set64};
+
+pub(super) const RECORD_BYTES: usize = {{.Schema.Trace.RecordBytes}};
+pub(super) const TAPE_HEADER_BYTES: usize = {{.Schema.Tape.HeaderBytes}};
+pub(super) const TAPE_HEADER_WIRE_BYTES: u32 = {{.Schema.Tape.HeaderBytes}};
+pub(super) const TAPE_RECORD_BYTES: u32 = {{.Schema.Tape.RecordBytes}};
+pub(super) const TAPE_CHECKSUM_OFFSET: usize = {{.Schema.Tape.ChecksumOffset}};
+pub(super) const TAPE_MAGIC: [u8; 8] = [{{hexbytes .Schema.Tape.Magic}}];
+
+pub(super) fn encode_decision(decision: &Decision) -> [u8; RECORD_BYTES] {
+    let mut bytes = [0; RECORD_BYTES];
+    set64(&mut bytes, 0, decision.ordinal);
+    bytes[8] = decision.kind;
+    bytes[9] = {{.Schema.Flags.Decision}} | if decision.site_missing { {{.Schema.Flags.SiteMissing}} } else { 0 };
+    set32(&mut bytes, 12, decision.alternatives);
+    set32(&mut bytes, 16, decision.selected);
+    set32(&mut bytes, 20, decision.data);
+    set64(&mut bytes, 24, decision.site_offset);
+    bytes[32..64].copy_from_slice(&decision.selected_identity);
+    bytes[64..RECORD_BYTES].copy_from_slice(&decision.alternative_set_digest);
+    bytes
+}
