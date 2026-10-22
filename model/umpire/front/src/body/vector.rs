@@ -311,7 +311,7 @@ fn bound(value: &Expr, field: &str, bounds: &BTreeMap<&str, Bound>) -> Bound {
         ExprKind::Int(value) if *value >= 0 && *value < i128::from(i32::MAX) => Bound::Finite,
         ExprKind::If(_, yes, no) => {
             let yes = bound(yes, field, bounds);
-            if matches!(yes, Bound::Sequence | Bound::Length) && bound(no, field, bounds) == yes {
+            if yes != Bound::Unknown && bound(no, field, bounds) == yes {
                 yes
             } else {
                 Bound::Unknown

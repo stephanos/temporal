@@ -1,0 +1,11 @@
+{
+  "base": "d70684bca2a7f0974abedee129db1ef480cecf56",
+  "base_provenance": "task16-pinned-pre-task-source.json, fresh reconstructed source build task16-pinned-pre-task-probe2.log",
+  "current_source": "36e5611d55",
+  "confirmed_compatibility_cases": [
+    "conditional Boolean bounded test (both arms)",
+    "inline conditional finite limit (both arms)"
+  ],
+  "results": "pinned base accepts both, pre-fix source refuses both; raw logs and probe source retained",
+  "refuted_probe_forms": "Saved unsuffixed integer and usize limits refused at both source pins for type reasons; these were not acceptance evidence."
+}

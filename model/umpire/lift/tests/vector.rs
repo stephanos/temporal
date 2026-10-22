@@ -60,6 +60,11 @@ fn real_vector_native_and_tlc_states_and_properties_agree() -> Result<(), Box<dy
     );
     let conditional = conditional_length();
     let after_if = untouched_vector();
+    let conditional_boolean = conditional_guard(
+        "let allowed = if condition { self.values.len() < 2 } else { self.values.len() < 2 }; if allowed",
+    );
+    let conditional_limit =
+        conditional_guard("if self.values.len() < (if condition { 2 } else { 2 })");
     let root = Path::new(env!("CARGO_MANIFEST_DIR")).join("../../..");
     for (name, source) in [
         ("vector", source),
@@ -67,6 +72,8 @@ fn real_vector_native_and_tlc_states_and_properties_agree() -> Result<(), Box<dy
         ("vector_chained_length", chained.as_str()),
         ("vector_conditional_length", conditional.as_str()),
         ("vector_after_if", after_if.as_str()),
+        ("vector_conditional_boolean", conditional_boolean.as_str()),
+        ("vector_conditional_limit", conditional_limit.as_str()),
     ] {
         let module = Tla::emit(&Lift::parse("vector.rs", source)?)?;
         let result = umpire_tlc::Tlc::discover(&root)?.check_module(&module)?;
