@@ -39,6 +39,9 @@ pub(crate) struct StoreMetrics {
     pub guest_memory_limit_bytes: u64,
 }
 
+pub(crate) const TRACE_STREAMS: [&str; 5] =
+    ["transcript", "choice", "diagnostic", "storage", "network"];
+
 impl StoreMetrics {
     pub(crate) fn observed(
         incarnation: Option<String>,
@@ -50,10 +53,14 @@ impl StoreMetrics {
         Self {
             incarnation,
             fuel_used: fuel.saturating_sub(outcome.fuel_remaining),
+            // The Go qualification owner's trace bytes: WASI transcript,
+            // choice, diagnostic, storage and network traces. Output streams,
+            // inspection data and storage snapshots are not traces.
             trace_bytes: execution
                 .evidence
-                .values()
-                .map(|bytes| bytes.len() as u64)
+                .iter()
+                .filter(|(name, _)| TRACE_STREAMS.contains(&name.as_str()))
+                .map(|(_, bytes)| bytes.len() as u64)
                 .sum(),
             guest_peak_memory_bytes: outcome.peak_memory_bytes as u64,
             guest_memory_limit_bytes: memory_bytes,

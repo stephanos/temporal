@@ -142,7 +142,21 @@ fn derive(report: &Report) -> Result<Derived, String> {
                 ));
             }
         }
-        target_success &= execution.record.outcome.class == "success";
+        let outcome = &execution.record.outcome;
+        // As the campaign ledger requires: a success is a normal exit with
+        // status zero; any other zero exit is a soft-assertion target failure.
+        let exited_zero = outcome.termination == "exit" && outcome.exit_code == Some(0);
+        let soft_failure = outcome.class == "target_failure"
+            && execution
+                .record
+                .streams
+                .contains_key("evidence/soft-assertions.json");
+        if outcome.class == "success" && !exited_zero
+            || exited_zero && outcome.class != "success" && !soft_failure
+        {
+            return Err("qualification execution outcome is contradictory".into());
+        }
+        target_success &= outcome.class == "success";
         replayed &= execution
             .replay
             .as_ref()

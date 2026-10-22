@@ -1314,18 +1314,26 @@ pub(crate) fn store_metrics(
     limits: &BTreeMap<String, (u64, u64)>,
     wall: Duration,
 ) -> super::execution::Metrics {
+    let mut stores: Vec<_> = execution
+        .incarnations
+        .iter()
+        .map(|item| {
+            let name = format!("{}/{}", item.handle.node, item.handle.incarnation);
+            let (fuel, memory) = limits.get(&name).copied().unwrap_or((0, 0));
+            super::execution::StoreMetrics::observed(Some(name), &item.execution, fuel, memory)
+        })
+        .collect();
+    // The cluster network trace is one shared stream; it is counted once, on
+    // the first store, so the per-execution sum matches the owner's total.
+    if let Some(first) = stores.first_mut() {
+        first.trace_bytes = first
+            .trace_bytes
+            .saturating_add(execution.network.len() as u64);
+    }
     super::execution::Metrics {
         wall_nanos: super::execution::nanos(wall),
         store_peak_rss_bytes: None,
-        stores: execution
-            .incarnations
-            .iter()
-            .map(|item| {
-                let name = format!("{}/{}", item.handle.node, item.handle.incarnation);
-                let (fuel, memory) = limits.get(&name).copied().unwrap_or((0, 0));
-                super::execution::StoreMetrics::observed(Some(name), &item.execution, fuel, memory)
-            })
-            .collect(),
+        stores,
     }
 }
 

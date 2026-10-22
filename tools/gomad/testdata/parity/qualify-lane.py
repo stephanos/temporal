@@ -443,6 +443,13 @@ def cluster_tamper(run, binary, path, work):
         result['manifest']['host_config_sha256'] = parity.digest(parity.canonical(configured))
     cases.append(('cluster-provenance-runtime', rewrite('cluster-provenance-runtime', runtime)))
 
+    def wall(result):
+        for execution in result['report']['executions']:
+            execution['record']['limits']['wall_millis'] = 1
+            execution['record_sha256'] = parity.digest(parity.canonical(execution['record']))
+        result['report']['record_sha256'] = result['report']['executions'][0]['record_sha256']
+    cases.append(('cluster-wall-limit', rewrite('cluster-wall-limit', wall)))
+
     def dropped(result):
         samples = result['observations']['samples']
         samples.remove(next(sample for sample in samples if sample['phase'] == 'execute' and sample['incarnation'] != 'a/1'))
@@ -451,6 +458,7 @@ def cluster_tamper(run, binary, path, work):
         'cluster-provenance-scenario': b'retained provenance does not bind',
         'cluster-provenance-configuration': b'retained provenance does not bind',
         'cluster-provenance-runtime': b'retained provenance does not bind',
+        'cluster-wall-limit': b'execution identity differs from the frozen manifest',
         'cluster-sample-dropped': b"differ from the record's incarnations"})
 
 
@@ -552,6 +560,18 @@ def tamper(run, binary, path, work):
                                 failure=dict(classification='qualified', message='claimed success', iteration=1))
     cases.append(('failure-success-class', rewrite('failure-success-class', success_failure)))
 
+    def outcome(result):
+        # Every record claims success with a failing exit status.
+        for execution in result['report']['executions']:
+            execution['record']['outcome']['exit_code'] = 1
+            execution['record_sha256'] = parity.digest(parity.canonical(execution['record']))
+        result['report']['record_sha256'] = result['report']['executions'][0]['record_sha256']
+    cases.append(('outcome-contradiction', rewrite('outcome-contradiction', outcome)))
+
+    def unknown_provenance(result):
+        result['provenance']['unexpected'] = True
+    cases.append(('provenance-unknown-field', rewrite('provenance-unknown-field', unknown_provenance)))
+
     def contradiction(result):
         # A matched replay that claims no choice-tape consultation.
         replay = result['report']['executions'][0]['replay']
@@ -566,6 +586,8 @@ def tamper(run, binary, path, work):
     cases.append(('source-manifest-utf8', rewrite('source-manifest-utf8', utf8)))
     return refuse_all(run, binary, cases, {'failure-success-class': b'failure result is inconsistent',
                   'replay-choice-contradiction': b'replay evidence is invalid',
+                  'outcome-contradiction': b'outcome is contradictory',
+                  'provenance-unknown-field': b'retained provenance does not bind',
                   'source-manifest-utf8': b'malformed integrated source manifest line',
                   'receipt-counter': b'receipt content identity changed',
                   'receipt-duplicate': b'exactly one publication receipt',

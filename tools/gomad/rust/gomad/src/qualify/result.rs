@@ -1,6 +1,13 @@
 //! Retained qualification `Result` and `PublicationReceipt` in the Rust lineage.
 //! Both are canonical JSON, content addressed and published without replace;
 //! the receipt is `result-SHA256.json.publication-SHA256.json`.
+//!
+//! Receipts and Results are content addressed, not signed. `report` refuses any
+//! edit that is not consistently re-hashed and recomputes every verdict, cost
+//! and budget input from the retained records, configuration and raw
+//! observations. A writer who rewrites records, Result and receipt together
+//! can still produce a self-consistent forgery of identity fields that do not
+//! feed the verdict; that is outside this format's threat model.
 
 use super::{
     cost::{self, Budget, Cost, Observations},
@@ -27,6 +34,17 @@ const DIRECTORY: [&str; 2] = ["rust-qualifications", "v1"];
 const MAXIMUM_RESULT_BYTES: u64 = 64 << 20;
 const MAXIMUM_RECEIPT_BYTES: u64 = 8 << 10;
 const COOPERATIVE_PROFILE: &str = "gomad.wasi-cooperative/v1";
+/// The provenance fields, in canonical (sorted) order.
+const PROVENANCE_FIELDS: [&str; 8] = [
+    "build_key",
+    "choice_identity",
+    "configuration",
+    "inputs",
+    "module_sha256",
+    "network",
+    "scenario",
+    "schema",
+];
 const CONTROLLED_PROFILE: &str = "gomad.wasi-stock-exploratory/v1";
 
 /// The manifest profile name of an installed runtime profile; any other
@@ -65,7 +83,11 @@ fn derive(provenance: &serde_json::Value) -> Result<Derived, String> {
     let refuse = || "retained provenance does not bind the qualification identities".to_owned();
     let digest = |value: &Value| canonical::encode(value).map(|bytes| canonical::digest(&bytes));
     let text = |value: &Value| value.as_str().map(str::to_owned).ok_or_else(refuse);
-    if provenance["schema"] != "gomad.rust-wasm-provenance/v1" {
+    if provenance["schema"] != "gomad.rust-wasm-provenance/v1"
+        || !provenance
+            .as_object()
+            .is_some_and(|object| object.keys().map(String::as_str).eq(PROVENANCE_FIELDS))
+    {
         return Err(refuse());
     }
     let inputs = &provenance["inputs"];
@@ -166,6 +188,21 @@ fn standalone_inputs(
     ["limits", "arguments", "environment"]
         .iter()
         .all(|field| observed[field] == configuration[field])
+}
+
+/// A cluster execution ran the retained configuration's limits, except that
+/// its evidence bound is reduced to the scenario's `scenario_evidence_bytes`.
+fn cluster_limits(
+    limits: &crate::evidence::record::Limits,
+    configuration: &serde_json::Value,
+) -> bool {
+    let mut observed = serde_json::json!(limits);
+    let retained = &configuration["limits"];
+    let reduced = retained["evidence_bytes"]
+        .as_u64()
+        .is_some_and(|bound| limits.evidence_bytes <= bound);
+    observed["evidence_bytes"] = retained["evidence_bytes"].clone();
+    reduced && observed == *retained
 }
 
 /// Refuses a manifest whose identities differ from its retained provenance.
@@ -438,6 +475,11 @@ pub(crate) fn validate(result: &QualificationResult) -> Result<(), String> {
             || manifest.scenario_sha256.is_none()
                 && (identity.configuration != manifest.host_config_sha256
                     || !standalone_inputs(&execution.record, &result.provenance["configuration"]))
+            || manifest.scenario_sha256.is_some()
+                && !cluster_limits(
+                    &execution.record.limits,
+                    &result.provenance["configuration"],
+                )
             || execution.record.limits.fuel != manifest.fuel
             || execution.record.limits.memory_bytes != manifest.memory_bytes
         {

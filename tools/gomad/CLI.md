@@ -491,6 +491,11 @@ JSON differences from the Go host, by design of the new lineage:
   readdressed-in-place, unbound or wrong-process receipt.
 - Costs carry integer `{numerator,denominator}` ratios instead of floats.
 
+Results and receipts are content addressed, not signed. `report` refuses any
+edit that is not consistently re-hashed and recomputes every verdict, cost and
+budget input; a writer who rewrites records, Result and receipt together can
+still forge identity fields that do not feed the verdict.
+
 `report` reads no installation, source, compiler or helper. It refuses a changed
 content address, non-canonical bytes and unknown fields. It also refuses any
 verdict, record hash, cost or budget claim that differs from its recomputation
@@ -513,7 +518,12 @@ helper and host digests), platform (`host_os/host_arch`) and exact runtime
 profile (`cooperative` is `gomad.wasi-cooperative/v1`, `controlled` is
 `gomad.wasi-stock-exploratory/v1`; any other is refused). A standalone record
 must also carry exactly the retained configuration's limits, arguments and
-environment, as replay preflight requires. Every store sample,
+environment, as replay preflight requires; a cluster record carries the
+retained limits except for an evidence bound reduced to the scenario's
+`scenario_evidence_bytes`. A success outcome is a normal exit with status zero,
+and any other zero exit is a target failure with soft-assertion evidence, as
+the campaign ledger requires. The provenance carries exactly its declared
+fields. Every store sample,
 executed or replayed, must carry the frozen guest limit, and only
 multi-instance stores carry `node/incarnation` handles. Each measured cluster
 window, executed or replayed, carries exactly the incarnations its record's
@@ -529,7 +539,9 @@ store share one process self figure (`linked`, `RUSAGE_SELF` CPU, Linux `VmHWM`
 peak). Only the Go compiler and its descendants run as children (`children`,
 `RUSAGE_CHILDREN`). The Result retains raw `start`, `prepared` and `executed`
 snapshots of both. It also retains, for each store, the wall time, fuel, guest
-linear-memory peak and limit, trace bytes and virtual time, plus the self
+linear-memory peak and limit, trace bytes (the Go owner's WASI transcript,
+choice, diagnostic, storage and network traces; a cluster's shared network
+trace counts once, on its first store) and virtual time, plus the self
 counters at the store's boundaries.
 
 - **CPU** is the children delta plus the linked delta, each counted once. Store
