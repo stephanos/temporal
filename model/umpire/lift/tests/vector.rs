@@ -52,15 +52,36 @@ fn real_vector_native_and_tlc_states_and_properties_agree() -> Result<(), Box<dy
         eprintln!("Vector native checks passed; no TLC evidence (set UMPIRE_BACKENDS=require)");
         return Ok(());
     }
-    let module = Tla::emit(&Lift::parse("vector.rs", include_str!("fixtures/vector.rs"))?)?;
+    let source = include_str!("fixtures/vector.rs");
+    let saved = saved_length();
+    let chained = saved.replace(
+        "let length = self.values.len();",
+        "let first = self.values.len(); let second = first; let length = second;",
+    );
     let root = Path::new(env!("CARGO_MANIFEST_DIR")).join("../../..");
-    let result = umpire_tlc::Tlc::discover(&root)?.check_module(&module)?;
-    fs::create_dir_all(root.join(".flow/tmp/tlc-controls"))?;
-    fs::write(root.join(".flow/tmp/tlc-controls/vector.txt"), &result.output)?;
-    assert_eq!(result.states, expected);
-    assert_eq!(result.properties["Invariant_contents"].verdict, Verdict::Verified);
-    assert_eq!(result.properties["Invariant_never_two"].verdict, Verdict::Refuted);
+    for (name, source) in [
+        ("vector", source),
+        ("vector_saved_length", saved.as_str()),
+        ("vector_chained_length", chained.as_str()),
+    ] {
+        let module = Tla::emit(&Lift::parse("vector.rs", source)?)?;
+        let result = umpire_tlc::Tlc::discover(&root)?.check_module(&module)?;
+        fs::create_dir_all(root.join(".flow/tmp/tlc-controls"))?;
+        fs::write(root.join(format!(".flow/tmp/tlc-controls/{name}.txt")), &result.output)?;
+        assert_eq!(result.states, expected);
+        assert_eq!(result.properties["Invariant_contents"].verdict, Verdict::Verified);
+        assert_eq!(result.properties["Invariant_never_two"].verdict, Verdict::Refuted);
+    }
     Ok(())
+}
+
+fn saved_length() -> String {
+    include_str!("fixtures/vector.rs")
+        .replace(
+            "User::Push if self.values.len() < 2 => {",
+            "User::Push => { let length = self.values.len(); if length < 2 {",
+        )
+        .replace("self.values.push_back(7);", "self.values.push_back(7); }")
 }
 
 #[test]
@@ -76,6 +97,23 @@ fn unsupported_vector_operations_and_unbounded_growth_refuse()
                 "self.values.get(0).copied().unwrap()",
             ),
             "unwrap",
+        ),
+        (saved_length().replace("length < 2", "true"), "bounded"),
+        (
+            saved_length().replace(
+                "let length = self.values.len();",
+                "self.values.push_back(7); let length = self.values.len();",
+            ),
+            "bounded",
+        ),
+        (
+            saved_length()
+                .replace(
+                    "pub values: Vector<u8>,",
+                    "pub values: Vector<u8>, pub other: Vector<u8>,",
+                )
+                .replace("let length = self.values.len();", "let length = self.other.len();"),
+            "bounded",
         ),
     ] {
         let error = Lift::parse("unsupported_vector.rs", &source)
@@ -127,12 +165,19 @@ fn shared_boolean_guards_keep_vector_admission_linear() -> Result<(), Box<dyn st
         .replace("self.values.push_back(7);", "self.values.push_back(7); }");
     for saved in [false, true] {
         let source = if saved {
-            source.replace("if a40 && self.values.len() < 2", "let length = self.values.len(); if a40 && length < 2")
-        } else { source.clone() };
+            source.replace(
+                "if a40 && self.values.len() < 2",
+                "let length = self.values.len(); if a40 && length < 2",
+            )
+        } else {
+            source.clone()
+        };
         Lift::parse("shared_vector.rs", &source)?;
-        let unbounded = source.replace("self.values.len() < 2", "true").replace("length < 2", "true");
+        let unbounded =
+            source.replace("self.values.len() < 2", "true").replace("length < 2", "true");
         let error = Lift::parse("unbounded_shared_vector.rs", &unbounded)
-            .err().ok_or("unbounded append admitted")?;
+            .err()
+            .ok_or("unbounded append admitted")?;
         assert!(error.message.contains("bounded length guard"), "{error}");
     }
     Ok(())

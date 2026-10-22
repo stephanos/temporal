@@ -221,7 +221,7 @@ impl Environment {
         for (field, value) in state.iter().filter(|(_, value)| matches!(value.ty, Type::Seq(_))) {
             let mut bounds = BTreeMap::new();
             for (name, definition) in definitions {
-                let bound = upper_bound(definition, field, &bounds);
+                let bound = bound(definition, field, &bounds);
                 bounds.insert(name.as_str(), bound);
             }
             if !bounded(
@@ -249,7 +249,7 @@ fn bounded(
     limited: bool,
     field: &str,
     definitions: &BTreeMap<&str, &Expr>,
-    bounds: &BTreeMap<&str, bool>,
+    bounds: &BTreeMap<&str, Bound>,
     memo: &mut BTreeMap<(String, bool), bool>,
 ) -> bool {
     match &value.kind {
@@ -287,22 +287,37 @@ fn bounded(
         _ => true,
     }
 }
-fn upper_bound(guard: &Expr, field: &str, bounds: &BTreeMap<&str, bool>) -> bool {
-    match &guard.kind {
-        ExprKind::Bool(false) => true,
-        ExprKind::Local(name) => bounds.get(name.as_str()).copied().unwrap_or(false),
-        ExprKind::Binary(Op::And, left, right) => {
-            upper_bound(left, field, bounds) || upper_bound(right, field, bounds)
+#[derive(Clone, Copy, PartialEq, Eq)]
+enum Bound {
+    Unknown,
+    Length,
+    Finite,
+    Upper,
+}
+
+fn upper_bound(guard: &Expr, field: &str, bounds: &BTreeMap<&str, Bound>) -> bool {
+    bound(guard, field, bounds) == Bound::Upper
+}
+
+fn bound(value: &Expr, field: &str, bounds: &BTreeMap<&str, Bound>) -> Bound {
+    match &value.kind {
+        ExprKind::Bool(false) => Bound::Upper,
+        ExprKind::Local(name) => bounds.get(name.as_str()).copied().unwrap_or(Bound::Unknown),
+        ExprKind::Length(sequence) if matches!(&sequence.kind, ExprKind::Var(name, false) if name == field) => {
+            Bound::Length
         }
-        ExprKind::Binary(Op::Or, left, right) => {
-            upper_bound(left, field, bounds) && upper_bound(right, field, bounds)
-        }
+        ExprKind::Int(value) if *value >= 0 && *value < i128::from(i32::MAX) => Bound::Finite,
         ExprKind::Binary(op, left, right) => {
-            let len = |expr: &Expr| matches!(&expr.kind,ExprKind::Length(value)if matches!(&value.kind,ExprKind::Var(name,false)if name==field));
-            let finite = |expr: &Expr| matches!(expr.kind,ExprKind::Int(value)if value>=0&&value<i128::from(i32::MAX));
-            (matches!(op, Op::Lt | Op::Le | Op::Eq) && len(left) && finite(right))
-                || (matches!(op, Op::Gt | Op::Ge | Op::Eq) && finite(left) && len(right))
+            let (left, right) = (bound(left, field, bounds), bound(right, field, bounds));
+            let upper = match op {
+                Op::And => left == Bound::Upper || right == Bound::Upper,
+                Op::Or => left == Bound::Upper && right == Bound::Upper,
+                Op::Lt | Op::Le | Op::Eq if left == Bound::Length && right == Bound::Finite => true,
+                Op::Gt | Op::Ge | Op::Eq if left == Bound::Finite && right == Bound::Length => true,
+                _ => false,
+            };
+            if upper { Bound::Upper } else { Bound::Unknown }
         }
-        _ => false,
+        _ => Bound::Unknown,
     }
 }

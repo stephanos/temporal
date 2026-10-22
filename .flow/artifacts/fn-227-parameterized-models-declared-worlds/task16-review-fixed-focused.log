@@ -1,0 +1,152 @@
+   Compiling umpire-front v0.0.1 (/Users/stephan/Workspace/skunkworks/umpire/temporal/model/umpire/front)
+   Compiling umpire-lift v0.0.1 (/Users/stephan/Workspace/skunkworks/umpire/temporal/model/umpire/lift)
+    Finished `test` profile [unoptimized + debuginfo] target(s) in 1.69s
+     Running unittests src/lib.rs (/home/agent/.cache/codex-build/cargo-target/debug/deps/umpire_front-1f68685c3c24a4bf)
+
+running 1 test
+test library::tests::library_sources_parse_and_declare_the_laws_and_traits ... ok
+
+test result: ok. 1 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.00s
+
+     Running unittests src/lib.rs (/home/agent/.cache/codex-build/cargo-target/debug/deps/umpire_ir-5325d5ee2fb1922b)
+
+running 1 test
+test printing_controls::new_fields_and_variants_print_without_registration ... ok
+
+test result: ok. 1 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.00s
+
+     Running unittests src/lib.rs (/home/agent/.cache/codex-build/cargo-target/debug/deps/umpire_lift-8318534ec55e4f7c)
+
+running 0 tests
+
+test result: ok. 0 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.00s
+
+     Running tests/emission.rs (/home/agent/.cache/codex-build/cargo-target/debug/deps/emission-4d089071b3351e31)
+
+running 3 tests
+test real_tlc_empty_half_open_starts_have_no_checked_underflow ... ok
+test real_tlc_preserves_ordered_mutations_and_reports_checked_overflow ... ok
+test real_tlc_signed_division_and_remainder_use_rust_rounding ... ok
+
+test result: ok. 3 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 4.54s
+
+     Running tests/inputs.rs (/home/agent/.cache/codex-build/cargo-target/debug/deps/inputs-7babdc398237375f)
+
+running 12 tests
+test the_source_limit_is_the_native_catalog_limit ... ok
+test inputs_without_a_declared_world_refuse_at_the_variant ... ok
+test a_fair_unit_variant_named_like_a_fair_position_refuses ... ok
+test catalog_values_outside_their_admitted_types_refuse_at_the_source_declaration ... ok
+test exact_payload_scopes_and_fairness_specialize_the_variant_relation ... ok
+test internal_payload_actors_keep_their_classification ... ok
+test inputs_bind_in_declaration_product_order_keeping_duplicates_and_empty_variants ... ok
+test native_domain_forms_lift_from_the_bound_catalog ... ok
+test payload_patterns_resolve_lexically_through_their_typed_identities ... ok
+test assumptions_naming_values_outside_the_selected_catalog_refuse_as_natively ... ok
+test unsupported_input_sources_refuse_by_location ... ok
+test the_catalog_limit_boundary_binds_and_emits ... ok
+
+test result: ok. 12 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.19s
+
+     Running tests/narrow_remainder.rs (/home/agent/.cache/codex-build/cargo-target/debug/deps/narrow_remainder-fb6fa42ed7e390c8)
+
+running 2 tests
+test i8_min_remainder_negative_one_refuses ... ok
+test i16_min_remainder_negative_one_refuses ... ok
+
+test result: ok. 2 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.73s
+
+     Running tests/phased.rs (/home/agent/.cache/codex-build/cargo-target/debug/deps/phased-601aabe97613deb3)
+
+running 6 tests
+test large_handlers_compile_with_their_admitted_data ... ok
+test rejections_lower_to_typed_outcomes_and_kept_self_loops ... ok
+test emitted_size_is_linear_in_sequential_conditional_returns ... ok
+test unsupported_phase_rejection_and_law_forms_refuse_at_their_location ... ok
+test admitted_tree_and_constructor_data_grow_linearly ... ok
+test shared_definitions_never_take_an_authored_name ... ok
+
+test result: ok. 6 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.68s
+
+     Running tests/sequential_checks.rs (/home/agent/.cache/codex-build/cargo-target/debug/deps/sequential_checks-4c2a82e2741d5c93)
+
+running 1 test
+test failed_check_does_not_hide_a_later_division_failure ... ok
+
+test result: ok. 1 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 1.27s
+
+     Running tests/shadowing.rs (/home/agent/.cache/codex-build/cargo-target/debug/deps/shadowing-381fa71843e1904b)
+
+running 1 test
+test nested_blocks_and_effect_helpers_preserve_caller_locals ... ok
+
+test result: ok. 1 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 1.32s
+
+     Running tests/source.rs (/home/agent/.cache/codex-build/cargo-target/debug/deps/source-b70c6faa24ea3bba)
+
+running 18 tests
+test hand_written_machine_refusal_prints_the_type_as_written ... ok
+test a_hook_claim_name_collision_refuses_in_tests_rs ... ok
+test integer_literal_types_follow_field_context_on_either_side ... ok
+test enum_helper_and_terminal_postcondition_are_admitted ... ok
+test inherent_enum_into_is_resolved_before_primitive_conversion ... ok
+test kettle_source_lifts_registered_properties_and_explicit_assumptions ... ok
+test a_world_of_another_machine_refuses_at_this_source ... ok
+test path_claims_refuse_builders_chains_and_other_gaps ... ok
+test hook_refusal_in_tests_rs_names_tests_rs ... ok
+test unsupported_expression_refuses_with_source_location ... ok
+test generated_tla_names_refuse_authored_namespace_collisions ... ok
+test imports_that_can_rebind_a_macro_read_by_name_refuse ... ok
+test admission_refuses_type_cfg_resolution_and_observer_collisions ... ok
+test progress_bounds_are_fail_closed ... ok
+test repeated_progress_builders_refuse_instead_of_reversing_rust_order ... ok
+test pure_same_impl_helper_is_typed_and_lifted ... ok
+test unsupported_control_characters_refuse_at_the_authored_literal ... ok
+test the_state_struct_keeps_its_authored_name ... ok
+
+test result: ok. 18 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.02s
+
+     Running tests/vector.rs (/home/agent/.cache/codex-build/cargo-target/debug/deps/vector-7cd9e225c61cd866)
+
+running 5 tests
+test bounded_vector_operations_are_lifted_with_safe_defaulted_get ... ok
+test unsupported_vector_operations_and_unbounded_growth_refuse ... ok
+test shared_boolean_guards_keep_vector_admission_linear ... ok
+test vector_get_keeps_eager_default_failures_when_element_is_present ... ok
+test real_vector_native_and_tlc_states_and_properties_agree ... ok
+
+test result: ok. 5 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 5.80s
+
+     Running tests/world.rs (/home/agent/.cache/codex-build/cargo-target/debug/deps/world-4b634f3b92f712b8)
+
+running 9 tests
+test scalar_enum_world_and_sequence_starts_use_the_admitted_types ... ok
+test declared_world_computed_starts_admit_before_value_binding ... ok
+test generated_world_constants_avoid_synthesized_action_names ... ok
+test complete_starts_preserve_correlation_deduplicate_and_keep_empty ... ok
+test binding_refuses_malformed_world_and_complete_state_values ... ok
+test bare_world_and_before_parameters_do_not_resolve_as_source_constants ... ok
+test world_free_starts_of_any_name_admit_and_bind ... ok
+test typed_world_signatures_and_outcome_fields_refuse_by_source_location ... ok
+test real_tlc_executes_each_cfg_family_with_both_world_bindings ... ok
+
+test result: ok. 9 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 19.64s
+
+   Doc-tests umpire_front
+
+running 0 tests
+
+test result: ok. 0 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.00s
+
+   Doc-tests umpire_ir
+
+running 0 tests
+
+test result: ok. 0 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.00s
+
+   Doc-tests umpire_lift
+
+running 0 tests
+
+test result: ok. 0 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.00s
+
