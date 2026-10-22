@@ -1,0 +1,204 @@
+{
+  "baseline.json": [
+    {
+      "command": "mise exec -- cargo test --manifest-path temporal/realization/Cargo.toml",
+      "cwd": "model",
+      "exit": 0,
+      "seconds": 63.11328101158142
+    },
+    {
+      "command": "mise exec -- cargo test -p umpire-wasm -p umpire-temporal-tests",
+      "cwd": "model",
+      "exit": 0,
+      "seconds": 6.374575138092041
+    },
+    {
+      "command": "go test -tags test_dep ./...",
+      "cwd": "model/temporal/hosts/go",
+      "exit": 0,
+      "seconds": 11.532926797866821
+    }
+  ],
+  "baseline-slice.json": {
+    "command": "make umpire-check-model-slice",
+    "exit": 0,
+    "seconds": 5.294924020767212
+  },
+  "clippy-10.json": {
+    "command": "mise exec -- cargo fmt --package umpire-temporal && mise exec -- cargo clippy -p umpire-temporal --all-targets -- -D warnings",
+    "cwd": "model",
+    "exit": 0,
+    "seconds": 3.1927356719970703
+  },
+  "native-focused-8.json": {
+    "command": "mise exec -- cargo test -p umpire-temporal --test admission --test annotations --test realization",
+    "cwd": "model",
+    "exit": 0,
+    "seconds": 9.810953378677368
+  },
+  "mirror-coverage-green.json": {
+    "command": "mise exec -- cargo test -p umpire-temporal-realization-macros --lib && mise exec -- cargo test -p umpire-temporal-tests --test fixtures fixtures -- --exact",
+    "cwd": "model",
+    "exit": 0,
+    "seconds": 8.27899432182312
+  },
+  "guest-build-3.json": {
+    "command": "make umpire-guest",
+    "cwd": ".",
+    "exit": 0,
+    "seconds": 34.250946044921875
+  },
+  "go-host-3.json": {
+    "command": "go test -tags test_dep ./...",
+    "cwd": "model/temporal/hosts/go",
+    "exit": 0,
+    "seconds": 12.789493799209595
+  },
+  "go-host-lint-2.json": {
+    "command": "/Users/stephan/Workspace/skunkworks/umpire/temporal/.bin/golangci-lint-v2.13.1 run --fix=false --build-tags test_dep --timeout 10m --new-from-rev c8e29dc48b6dd2a77fb51cae1eb682ed517b3e55 --config /Users/stephan/Workspace/skunkworks/umpire/temporal/.github/.golangci.yml ./...",
+    "cwd": "model/temporal/hosts/go",
+    "exit": 0,
+    "seconds": 0.9722476005554199
+  },
+  "go-lint-integration-3.json": {
+    "command": "GOLANGCI_LINT_FIX=false GOLANGCI_LINT_BASE_REV=c8e29dc48b6dd2a77fb51cae1eb682ed517b3e55 make lint-code-fast TEST_TAG=integration",
+    "exit": 0,
+    "seconds": 21.114039659500122
+  },
+  "original-artifacts.json": {
+    "command": "python3 model/temporal/feature/activity/compatibility/verify.py",
+    "exit": 0,
+    "seconds": 0.03459572792053223
+  },
+  "retry-race-red.json": {
+    "command": "make umpire-check-model-slice",
+    "exit": 2,
+    "seconds": 22.154383420944214
+  },
+  "retry-race-green.json": {
+    "command": "make umpire-check-model-slice",
+    "exit": 0,
+    "seconds": 21.546591997146606
+  },
+  "final-classify.json": {
+    "exit": 1,
+    "output": "FULL: unmatched: model/README.md\n"
+  },
+  "final-model-time-start.json": {
+    "command": "UMPIRE_BACKENDS=require make model-time",
+    "head": "fcbed683496e760acab514788f0e4be26dd55d2c",
+    "started_at": "2026-10-22T23:08:23.032452+00:00",
+    "outer_timeout_seconds": 2400,
+    "log": ".flow/tmp/fn-227.5/final-model-time.log"
+  },
+  "final-model-time.json": {
+    "command": "UMPIRE_BACKENDS=require make model-time",
+    "head": "fcbed683496e760acab514788f0e4be26dd55d2c",
+    "exit": 0,
+    "seconds": 587.5282940864563,
+    "completed_at": "2026-10-22T23:18:10.551238+00:00"
+  },
+  "final-model-receipt.json": {
+    "success": true,
+    "gate_id": "unittest",
+    "head_sha": "fcbed683496e760acab514788f0e4be26dd55d2c",
+    "sha8": "fcbed683",
+    "command_sha256": "7b609b1de73939df71922756e6dbb6ed05918a2b361bee438c6b552d29cc8140",
+    "path": ".flow/tmp/green-receipts/fcbed683-unittest.json",
+    "timestamp": "2026-10-22T23:18:48.578927Z"
+  },
+  "final-gaps-start.json": {
+    "command": "make umpire-check-model-gaps",
+    "head": "fcbed683496e760acab514788f0e4be26dd55d2c",
+    "started_at": "2026-10-22T23:18:48.614598+00:00",
+    "outer_timeout_seconds": 2400,
+    "inner_test_timeout_seconds": 1200,
+    "log": ".flow/tmp/fn-227.5/final-gaps.log"
+  },
+  "final-gaps.json": {
+    "command": "make umpire-check-model-gaps",
+    "head": "fcbed683496e760acab514788f0e4be26dd55d2c",
+    "exit": 0,
+    "seconds": 367.0849139690399,
+    "completed_at": "2026-10-22T23:24:55.698224+00:00"
+  },
+  "final-gaps-receipt.json": {
+    "success": true,
+    "gate_id": "gaps",
+    "head_sha": "fcbed683496e760acab514788f0e4be26dd55d2c",
+    "sha8": "fcbed683",
+    "command_sha256": "bbb6d1c601d2e95943b0cc41491066c9ec18bde17edfd81e56b57a185491438f",
+    "path": ".flow/tmp/green-receipts/fcbed683-gaps.json",
+    "timestamp": "2026-10-22T23:25:29.264256Z"
+  },
+  "end-sync-check-meta.json": {
+    "command": "python3 /home/agent/.codex/scripts/flowctl.py sync check fn-227-parameterized-models-declared-worlds --events work.done --since 2026-10-22T22:30:09.443895Z --json",
+    "exit": 0,
+    "stdout_bytes": 0,
+    "active": false
+  },
+  "scope-audit.json": {
+    "base": "c8e29dc48b6dd2a77fb51cae1eb682ed517b3e55",
+    "head": "fcbed683496e760acab514788f0e4be26dd55d2c",
+    "all_history_paths": [
+      ".flow/artifacts/fn-227-parameterized-models-declared-worlds/task5-generated-mirror-scope.json",
+      ".flow/artifacts/fn-227-parameterized-models-declared-worlds/task5-golden-inventory.json",
+      ".flow/artifacts/fn-227-parameterized-models-declared-worlds/task5-memory-add.json",
+      ".flow/artifacts/fn-227-parameterized-models-declared-worlds/task5-memory-add.txt",
+      ".flow/artifacts/fn-227-parameterized-models-declared-worlds/task5-review-correction.json",
+      ".flow/artifacts/fn-227-parameterized-models-declared-worlds/task5-review-fanout.json",
+      ".flow/artifacts/fn-227-parameterized-models-declared-worlds/task5-review-finalize.json",
+      ".flow/artifacts/fn-227-parameterized-models-declared-worlds/task5-review-followup-1.json",
+      ".flow/artifacts/fn-227-parameterized-models-declared-worlds/task5-review-receipt.json",
+      ".flow/artifacts/fn-227-parameterized-models-declared-worlds/task5-source-checkpoint.json",
+      ".flow/memory/bug/test-failures/gate-retry-polling-before-observing-2026-10-22.md",
+      ".flow/specs/fn-227-parameterized-models-declared-worlds.json",
+      ".flow/tasks/fn-227-parameterized-models-declared-worlds.5.json",
+      ".flow/tasks/fn-227-parameterized-models-declared-worlds.5.md",
+      "model/README.md",
+      "model/temporal/feature/activity/expected/realization.snap.txt",
+      "model/temporal/feature/activity/temporal.rs",
+      "model/temporal/hosts/go/allocation_test.go",
+      "model/temporal/hosts/go/parity_test.go",
+      "model/temporal/hosts/go/umpire_temporal_guest.wasm",
+      "model/temporal/realization/README.md",
+      "model/temporal/realization/macros/src/snapshots/umpire_temporal_realization_macros__tests__activity-realization.snap",
+      "model/temporal/realization/src/annotations.rs",
+      "model/temporal/realization/src/live.rs",
+      "model/temporal/realization/tests/admission.rs",
+      "model/temporal/realization/tests/admission/publication.rs",
+      "model/temporal/realization/tests/annotations.rs",
+      "model/temporal/realization/tests/common/mod.rs",
+      "model/temporal/realization/tests/realization.rs",
+      "tests/testpilot_model_slice_test.go"
+    ],
+    "out_of_scope": [],
+    "authored_files_over_1000_lines": {},
+    "guest_sha256": "f832a33c3024a8752976d146be839b62a95afde4790fa0db60f1dac9004b4e7e",
+    "model_source_changed": false,
+    "core_production_changed": false,
+    "milestones_changed": false,
+    "original_artifacts_changed": false
+  },
+  "timing": {
+    "gate_seconds": 581.229,
+    "gate_soft_target_seconds": 60,
+    "gate_soft_target_met": false,
+    "inner_seconds": 6.084,
+    "inner_soft_target_seconds": 10,
+    "inner_soft_target_met": true,
+    "full_outer_wall_seconds": 587.5282940864563,
+    "gap_go_test_seconds": 361.572,
+    "gap_outer_wall_seconds": 367.0849139690399
+  },
+  "guest_sha256": "f832a33c3024a8752976d146be839b62a95afde4790fa0db60f1dac9004b4e7e",
+  "current_source_checkpoint": "059795fab0",
+  "verification_head": "fcbed683496e760acab514788f0e4be26dd55d2c",
+  "notes": [
+    "The current delayed slice is retry-race-green, after the same control failed in retry-race-red. Earlier slice logs are historical.",
+    "Required model-time ran once after review SHIP and includes all 17 stages. No isolated performance claim.",
+    "Read-only reviewer execution was blocked; writer command exits provide execution evidence.",
+    "Raw ignored logs remain available; gzip archives decompress byte-for-byte to the recorded raw hashes.",
+    "Root quality audit reports and addenda are retained in .flow/tmp/fn-227.5/root-audits.md; root owns durable audit integration."
+  ]
+}
