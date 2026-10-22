@@ -1,0 +1,39 @@
+{
+  "artifact": "model/temporal/hosts/go/umpire_temporal_guest.wasm",
+  "base": "d70684bca2a7f0974abedee129db1ef480cecf56",
+  "first_refresh_source": "5c26527df4",
+  "corrected_refresh_source": "54cced51cb",
+  "base_sha256": "d544b0b2d8c835034fc0e070e875ad3b90fbf512e9132a79196c64fa7788652d",
+  "first_and_final_sha256": "d544b0b2d8c835034fc0e070e875ad3b90fbf512e9132a79196c64fa7788652d",
+  "byte_identical": true,
+  "go_surface_changed": false,
+  "refreshes": [
+    {
+      "command": "make umpire-guest",
+      "log": "task16-guest-refresh.log",
+      "exit": 0,
+      "compile_seconds": 34.85
+    },
+    {
+      "command": "make umpire-guest",
+      "log": "task16-final-guest-refresh.log",
+      "exit": 0,
+      "compile_seconds": 35.41
+    }
+  ],
+  "reused_actual_gates": [
+    {
+      "command": "make umpire-check-model-slice",
+      "log": "task16-slice.log",
+      "exit": 0,
+      "controls": 6
+    },
+    {
+      "command": "make umpire-check-model-gaps",
+      "log": "task16-gaps.log",
+      "exit": 0,
+      "seconds": 369.07
+    }
+  ],
+  "reuse_outcome": "Conductor-authorized reuse of actual slice/gap passes against byte-identical final pinned guest with unchanged Go host/server tests. Required final corrected-source full gate and freshness run independently."
+}
