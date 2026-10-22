@@ -126,9 +126,45 @@ def check_retained(binary, installation, root, working_dir, environment):
     module.write_bytes(b'changed module')
     run('refuse-changed-module', opener, 2)
     module.write_bytes(module_bytes)
+    artifact = Path(receipt['campaign']) / receipt['prepared_artifact']
+    provenance_path = artifact / receipt['provenance_file']
+    provenance, original_provenance = read(provenance_path)
+    artifact_manifest_path = artifact / 'manifest.json'
+    artifact_manifest, original_artifact_manifest = read(artifact_manifest_path)
+    actual_metadata = provenance['module_metadata']
+    assert actual_metadata == provenance['inputs']['module_metadata']
+    assert actual_metadata['imports'] and isinstance(actual_metadata['initial_memory_pages'], int)
+    authenticate = runpy.run_path(str(Path(__file__).with_name('campaign-check.py')))['authenticate_artifact']
+    for name in ('imports', 'memory'):
+        label = 'refuse-resealed-module-metadata-' + name
+        changed_provenance = copy.deepcopy(provenance)
+        if name == 'imports':
+            changed_provenance['module_metadata']['imports'] = []
+        else:
+            changed_provenance['module_metadata']['initial_memory_pages'] += 1
+        changed_raw = encode(changed_provenance)
+        changed_manifest = copy.deepcopy(artifact_manifest)
+        changed_manifest['files'][receipt['provenance_file']].update(bytes=len(changed_raw), sha256=digest(changed_raw))
+        changed_manifest_raw = encode(changed_manifest)
+        changed_receipt_raw = encode(dict(receipt, provenance_bytes=len(changed_raw), provenance_sha256=digest(changed_raw)))
+        (root / (label + '-provenance.json')).write_bytes(changed_raw)
+        (root / (label + '-manifest.json')).write_bytes(changed_manifest_raw)
+        (root / (label + '-receipt.json')).write_bytes(changed_receipt_raw)
+        try:
+            provenance_path.write_bytes(changed_raw)
+            artifact_manifest_path.write_bytes(changed_manifest_raw)
+            receipt_path.write_bytes(changed_receipt_raw)
+            authenticate(artifact)
+            run(label, [*opener[:-1], digest(changed_receipt_raw)], 2)
+            assert b'prepared module metadata' in (root / (label + '.stderr')).read_bytes()
+        finally:
+            provenance_path.write_bytes(original_provenance)
+            artifact_manifest_path.write_bytes(original_artifact_manifest)
+            receipt_path.write_bytes(receipt_bytes)
+        assert json.loads(run('open-restored-after-' + name, opener)) == admitted
     assert json.loads(run('open-restored', opener)) == admitted
     return dict(opened=admitted, removed_source_and_compiler=True,
-        refusals=['wrong_receipt_digest', 'changed_plan', 'unknown_receipt_field', 'changed_resource_observation', 'changed_module'])
+        refusals=['wrong_receipt_digest', 'changed_plan', 'unknown_receipt_field', 'changed_resource_observation', 'changed_module', 'resealed_metadata_imports', 'resealed_metadata_memory'])
 
 
 def check_scope(binary, installation, root, working_dir, environment):

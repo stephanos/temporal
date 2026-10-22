@@ -1,0 +1,17 @@
+--- a/tools/gomad/rust/gomad/src/campaign/preparation.rs
++++ b/tools/gomad/rust/gomad/src/campaign/preparation.rs
+@@ -348,6 +348,14 @@
+     let provenance: Value =
+         serde_json::from_slice(&prepared.provenance).map_err(|error| error.to_string())?;
+     super::prepare::typed_provenance(&provenance)?;
++    let module_metadata: Option<gomad_wasmhost::linked::ModuleMetadata> =
++        serde_json::from_value(provenance["module_metadata"].clone())
++            .map_err(|error| error.to_string())?;
++    super::prepare::authenticate_module_metadata(
++        module_metadata.as_ref(),
++        &provenance["inputs"],
++        &prepared.module,
++    )?;
+     let mut configuration =
+         serde_json::to_value(&prepared.configuration).map_err(|error| error.to_string())?;
+     configuration["runtime_sha256"] = Value::Null;

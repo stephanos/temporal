@@ -132,6 +132,35 @@ Go oracle. Final production library Clippy passes (exit 0,
 checks passing. These bounded probes start no guest or overlay/compiler
 preparation. No successor fixture build or full public corpus has run yet.
 
+## Merged receipt metadata seam
+
+Root integrated the reviewed installation source while preserving task 13's new
+optional typed module metadata. That merge exposed a receiver gap: receipt
+validation restored module/provenance and checked typed canonical provenance,
+but bypassed the shared actual-module metadata authenticator. The source-only
+integration patch is
+`.flow/artifacts/fn232-11-receipt-metadata-integration.patch`. It parses the
+actual retained optional metadata after canonical typed admission and calls
+`prepare::authenticate_module_metadata(top, inputs, module)`. That existing
+owner binds the typed top-level value to its input preimage and actual WASM
+imports/memory pages; no metadata algorithm is duplicated. Its honest legacy
+`None`/absent-input admission remains unchanged. Fresh preparation emits actual
+metadata. The isolated branch deliberately does not reference the not-yet-
+received live API in compiled source; root applies the narrow patch to the
+merged production owner.
+
+Two public receipt cases now mutate the actual retained top-level imports or
+initial memory pages, reseal the provenance file, artifact manifest and receipt,
+and independently authenticate all outer artifact hashes before requiring the
+named metadata refusal. Inputs, build key, actual module, configuration and
+record remain unchanged, so the unpatched merged reader would admit these
+lying top-level values. Original bytes are restored and reopened after each
+case. These source cases require the fresh merged producer's actual metadata;
+none is fabricated for a positive admission. Patch application check, Python
+syntax and diff checks pass (exit 0). Runtime RED/GREEN remains deferred during
+the profile gate; no Cargo, Go, fixture build or guest was started for this
+integration patch.
+
 ## Pending acceptance
 
 R10 implementation and focused boundaries are present; its complete actual
