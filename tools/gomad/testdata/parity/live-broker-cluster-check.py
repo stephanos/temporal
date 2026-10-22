@@ -25,6 +25,7 @@ def load(name):
 
 observe = load('live-broker-observe')
 owner = load('live-broker-owner-check')
+storage_model = load('storage-model')
 
 
 def canonical(value):
@@ -43,7 +44,7 @@ def storage(request):
     model = request['Config'].get('storage')
     if model is None:
         return None
-    descriptor = dict(model=model, model_identity='sha256:' + sha(canonical(model)), return_image=False)
+    descriptor = dict(model=model, model_identity='sha256:' + sha(storage_model.encode(model)), return_image=False)
     if request.get('StorageCrashLimits'):
         descriptor['crash_limits'] = request['StorageCrashLimits']
     if request.get('StorageCrashSelection') is not None:
