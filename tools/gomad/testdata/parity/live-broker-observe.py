@@ -103,11 +103,19 @@ import (
     "fmt"
     "os"
     "path/filepath"
+    "sync"
     "sync/atomic"
     "testing"
 )
 
 var brokerObservationOrdinal atomic.Uint64
+var brokerObservationWorld sync.Map
+
+func brokerObserveWorld(broker *Broker) ([]byte, error) {
+    world, err := broker.EncodeWorldEvidence()
+    if err == nil { brokerObservationWorld.Store(broker, append([]byte(nil), world...)) }
+    return world, err
+}
 
 func brokerObserveRun(t *testing.T, ctx context.Context, request Request) (Result, error) {
     retained := request
@@ -151,8 +159,14 @@ func brokerObserveNew(t *testing.T, configuration BrokerConfig) (*Broker, error)
     ordinal := brokerObservationOrdinal.Add(1)
     t.Cleanup(func() {
         if t.Failed() { return }
-        world, encodeErr := broker.EncodeWorldEvidence()
-        if encodeErr != nil { t.Error(encodeErr); return }
+        var world []byte
+        if captured, ok := brokerObservationWorld.LoadAndDelete(broker); ok {
+            world = captured.([]byte)
+        } else {
+            var encodeErr error
+            world, encodeErr = broker.EncodeWorldEvidence()
+            if encodeErr != nil { t.Error(encodeErr); return }
+        }
         var network any
         if configuration.Network != nil {
             record, recordErr := broker.NetworkRecord()
@@ -282,6 +296,7 @@ def instrument(raw):
         body = source[match.start():end]
         body = re.sub(r'(?<![\w.])Run\(', 'brokerObserveRun(t, ', body)
         body = re.sub(r'(?<![\w.])NewBroker\(', 'brokerObserveNew(t, ', body)
+        body = re.sub(r'\b(\w+)\.EncodeWorldEvidence\(\)', r'brokerObserveWorld(\1)', body)
         body = re.sub(r'(?<![\w.])OpenCluster\(', 'brokerObserveOpen(t, ', body)
         if match[1] == ROOTS[35]:
             body = body.replace('brokerObserveOpen(t, ', 'brokerObserveOpenWithOrder(t, iteration%2 != 0, ')

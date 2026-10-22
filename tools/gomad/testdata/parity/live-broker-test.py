@@ -83,26 +83,86 @@ func TestCallTimeRequestSurvivesPointerMutation(t *testing.T) {
 }
 '''
 
+WORLD_PROBE = r'''
+type BrokerConfig struct { Network any }
+type Broker struct { calls int }
+func NewBroker(BrokerConfig) (*Broker,error) { return &Broker{},nil }
+func (broker *Broker) EncodeWorldEvidence() ([]byte,error) {
+    broker.calls++
+    if broker.calls != 1 { return nil,fmt.Errorf("broker World finalized") }
+    return []byte{1,2,3},nil
+}
+func (*Broker) NetworkRecord() (any,error) { return nil,nil }
+
+func TestOriginalWorldEncodingIsNotRepeatedByCleanup(t *testing.T) {
+    for _, originalEncoded := range []bool{true,false} {
+        t.Run(fmt.Sprint(originalEncoded),func(t *testing.T) {
+            root := t.TempDir()
+            t.Setenv("GOMAD_BROKER_OBSERVATION_ROOT",root)
+            var broker *Broker
+            t.Run("original-assertions",func(t *testing.T) {
+                var err error
+                broker,err=brokerObserveNew(t,BrokerConfig{})
+                if err != nil { t.Fatal(err) }
+                if originalEncoded {
+                    ORIGINAL_ENCODING_CALL
+                    if err != nil || string(wantWorld) != string([]byte{1,2,3}) { t.Fatalf("original encoding: %v",err) }
+                    if broker.calls != 1 { t.Fatal("original call count changed") }
+                    wantWorld[0]=9
+                }
+                matches,err := filepath.Glob(filepath.Join(root,"broker-*.json"))
+                if err != nil || len(matches) != 0 { t.Fatal("observation published before assertions") }
+            })
+            if broker.calls != 1 { t.Fatalf("encoder calls=%d, want exactly1",broker.calls) }
+            matches,err := filepath.Glob(filepath.Join(root,"broker-*.json"))
+            if err != nil || len(matches) != 1 { t.Fatalf("postassertion observations=%v %v",matches,err) }
+            raw,err := os.ReadFile(matches[0])
+            if err != nil { t.Fatal(err) }
+            var row struct { World []byte `json:"world"` }
+            if err := json.Unmarshal(raw,&row); err != nil { t.Fatal(err) }
+            if string(row.World) != string([]byte{1,2,3}) { t.Fatalf("raw World changed: %x",row.World) }
+        })
+    }
+}
+'''
+
 
 class RequestSnapshot(unittest.TestCase):
     def test_actual_go_observer_freezes_nested_call_time_request(self):
-        compiler = os.environ.get('GOMAD_OBSERVATION_PROBE_GO') or shutil.which('go')
-        self.assertIsNotNone(compiler, 'Go compiler required for actual observer probe')
-        if os.environ.get('GOMAD_OBSERVATION_PROBE_ROOT'):
-            evidence = Path(os.environ['GOMAD_OBSERVATION_PROBE_ROOT'])
-        else:
-            temporary = tempfile.TemporaryDirectory(prefix='gomad-observer-probe-')
-            self.addCleanup(temporary.cleanup)
-            evidence = Path(temporary.name) / 'probe'
-        evidence.mkdir(parents=True, exist_ok=False)
         function = observe.HELPER.split('func brokerObserveRun(', 1)[1].split('\nfunc brokerObserveNew(', 1)[0]
         source = '''package wasi
 import ("context"; "crypto/sha256"; "encoding/json"; "fmt"; "os"; "path/filepath"; "sync/atomic"; "testing")
 var brokerObservationOrdinal atomic.Uint64
 func brokerObserveRun(''' + function + POINTER_PROBE
+        self.run_probe(source, 'TestCallTimeRequestSurvivesPointerMutation')
+
+    def test_actual_go_observer_reuses_original_single_use_world_encoding(self):
+        original = (Path(__file__).resolve().parents[2] / 'internal/backends/wasm/wasi/integration_test.go').read_bytes()
+        observed = observe.instrument(original).decode()
+        call = next(line.strip() for line in observed.splitlines() if 'wantWorld, err :=' in line)
+        helper = observe.HELPER.split('func brokerObserveNew(', 1)[1].split('\ntype brokerObservedCluster', 1)[0]
+        capture = ''
+        if 'func brokerObserveWorld(' in observe.HELPER:
+            capture = '\nvar brokerObservationWorld sync.Map\nfunc brokerObserveWorld(' + observe.HELPER.split('func brokerObserveWorld(',1)[1].split('\nfunc ',1)[0]
+        source = '''package wasi
+import ("encoding/json"; "fmt"; "os"; "path/filepath"; "sync/atomic"; "testing"; SYNC_IMPORT)
+var brokerObservationOrdinal atomic.Uint64
+'''.replace('SYNC_IMPORT','"sync"' if capture else '') + capture + '\nfunc brokerObserveNew(' + helper + WORLD_PROBE.replace('ORIGINAL_ENCODING_CALL',call)
+        self.run_probe(source, 'TestOriginalWorldEncodingIsNotRepeatedByCleanup')
+
+    def run_probe(self, source, name):
+        compiler = os.environ.get('GOMAD_OBSERVATION_PROBE_GO') or shutil.which('go')
+        self.assertIsNotNone(compiler, 'Go compiler required for actual observer probe')
+        if os.environ.get('GOMAD_OBSERVATION_PROBE_ROOT'):
+            evidence = Path(os.environ['GOMAD_OBSERVATION_PROBE_ROOT']) / name
+        else:
+            temporary = tempfile.TemporaryDirectory(prefix='gomad-observer-probe-')
+            self.addCleanup(temporary.cleanup)
+            evidence = Path(temporary.name) / 'probe'
+        evidence.mkdir(parents=True, exist_ok=False)
         (evidence / 'go.mod').write_text('module gomad-observer-pointer-probe\n\ngo 1.18\n')
         (evidence / 'snapshot_test.go').write_text(source)
-        command = [compiler, 'test', '-count=1', '-v', '-run', '^TestCallTimeRequestSurvivesPointerMutation$', '.']
+        command = [compiler, 'test', '-count=1', '-v', '-run', '^' + name + '$', '.']
         started = datetime.now(timezone.utc).isoformat()
         with subprocess.Popen(command, cwd=evidence, stdout=subprocess.PIPE, stderr=subprocess.PIPE,
                               env={**os.environ, 'GOWORK':'off', 'GOTOOLCHAIN':'local', 'GOENV':'off'}) as process:
