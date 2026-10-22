@@ -24,6 +24,8 @@ path = "tests/realize.rs"
 workspace = true
 
 [dependencies]
+umpire-catalog-build.workspace = true
+umpire-catalog-syntax.workspace = true
 syn.workspace = true
 quote.workspace = true
 proc-macro2.workspace = true

@@ -214,3 +214,20 @@ fn oneof_rules_require_known_nonignored_source_aliases_and_projection() {
         }
     }
 }
+
+#[test]
+fn catalog_expansion_accepts_a_caller_owned_context_and_api_root()
+-> Result<(), Box<dyn std::error::Error>> {
+    let input = syn::parse_str::<syn::DeriveInput>(
+        r#"
+        #[mirror(response = "example.v1.Response", context = crate::Limits, api = crate::api)]
+        struct Response { value: Counter }
+    "#,
+    )?;
+    let catalog = umpire_temporal_annotate_syntax::DeriveCatalog::parse(&input)?;
+    let output = umpire_temporal_annotate_syntax::expand_derive(&catalog)?.to_string();
+    assert!(output.contains("crate :: Limits"));
+    assert!(output.contains("crate :: api :: example :: v1 :: Response"));
+    assert!(!output.contains("foundation"));
+    Ok(())
+}

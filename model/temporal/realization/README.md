@@ -21,7 +21,7 @@ produces(Request, fields(path), ignores(path = "reason")))]` declares incoming c
 and outgoing request contexts separately. Each answer declares at least one produced
 request type and returns `Reply<A> { delivery, action, request }`. `request` is the raw
 typed request packed with `Any::pack(&request)`. Generated code validates its declared
-field presence and wraps it in the Temporal Reply envelope exactly once. These are
+field presence and wraps it in the shared `umpire.realization.v1.Reply` envelope exactly once. These are
 partial SDK requests: the macro does not run whole-request catalog constraints or require
 SDK-filled task tokens. `#[propose]` is reserved and refuses compilation.
 
@@ -55,7 +55,7 @@ reasons for each observed response, incoming callback and outgoing request. Outg
 mapped paths mean produced fields. The expansion is pinned after formatting with
 prettyplease; runtime state, freezing and publication remain owned by the generic runtime.
 
-Judge accepts `umpire.temporal.v1.Observation` containing the exact Describe RPC
+Judge accepts `umpire.realization.v1.Observation` containing the exact Describe RPC
 method `/temporal.api.workflowservice.v1.WorkflowService/DescribeActivityExecution`
 and a `temporal.api.workflowservice.v1.DescribeActivityExecutionResponse` Any.
 Running status requires Scheduled or Started run state. Terminal statuses use
@@ -63,7 +63,7 @@ Unspecified run state, as emitted by the server. Judge never manufactures Poll;
 only a validated callback supplies delivery evidence.
 
 Observation carries a result oneof, with response Any at tag 2 or error at tag 3.
-The local `umpire.temporal.v1.Error` has code and message because `google.rpc.Status`
+The local `umpire.realization.v1.Error` has code and message because `google.rpc.Status`
 is absent from the upstream descriptor closure used by generation. The host transports
 the envelope as opaque Any; the Temporal binding owns numeric status interpretation.
 
@@ -95,12 +95,12 @@ Unexplained plus freezing on later genuine observations. Live cancellation in St
 is excluded because the real server passes through CancelRequested, which the independent
 six-phase Model omits. Repeated request IDs, repeated cancel and late replies are unmodeled.
 
-Answer accepts `umpire.temporal.v1.Callback` with a partial
+Answer accepts `umpire.realization.v1.Callback` with a partial
 `temporal.api.workflowservice.v1.PollActivityTaskQueueResponse`. The input must
 contain exactly one Payload with exactly one metadata entry,
 `encoding = binary/plain`, and bytes `Complete` or `Fail`.
 
-The returned `umpire.temporal.v1.Reply` contains a partial completed request with
+The returned `umpire.realization.v1.Reply` contains a partial completed request with
 one binary/plain `Complete` result, or a partial failed request with message
 `Fail`, application failure type `MiniActivityFailure`, and non_retryable true.
 The SDK owns task tokens, identity, timestamps, namespace, worker metadata and
@@ -118,7 +118,7 @@ protobuf bytes and seed to `activity_api::annotate`. The response retains filled
 request bytes or unchanged server response bytes, violations and any explicit
 OutOfScope reason. This validates full SDK wire messages separately from the partial
 callback/reply projection above, including after Judge freezes the run. The Go
-`temporal.Annotate` helper transports these envelopes through `Host.Annotate`.
+`umpire.Annotate` helper transports these envelopes through `Host.Annotate`.
 
 The same Annotate Any also accepts `ProbeRequest`. Inventory derives expectation
 identities from typed catalogs and registers their RPC contexts, including nested

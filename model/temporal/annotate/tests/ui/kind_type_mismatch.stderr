@@ -5,7 +5,7 @@ error[E0277]: the trait bound `std::string::String: View<umpire_temporal_annotat
   |          ^^^^^^^ the trait `View<umpire_temporal_annotate::kinds::Counter>` is not implemented for `std::string::String`
   |
 help: `std::string::String` implements trait `View<K>`
- --> src/views.rs
+ --> $WORKSPACE/umpire/catalog/src/views.rs
   |
   |         impl View<$kind> for $ty {
   |         ^^^^^^^^^^^^^^^^^^^^^^^^

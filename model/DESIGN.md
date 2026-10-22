@@ -776,7 +776,7 @@ this atomic six-phase restriction. The Model and realization were unchanged for 
 The Go host continues to transport opaque Any values without Temporal imports.
 
 The Observation result oneof keeps response tag 2 and adds error tag 3. It uses the local
-two-field `umpire.temporal.v1.Error` because `google.rpc.Status` is absent from the actual
+two-field `umpire.realization.v1.Error` because `google.rpc.Status` is absent from the actual
 upstream descriptor closure. `Explanation.outcomes` parallels `steps`; replay supplies the
 final actual outcome to matching and supplies None for zero-step current checks.
 
@@ -998,3 +998,23 @@ sample/control names. Logs are `fn2107-baseline-release.log`, `fn2107-model-chec
 Superseded above; raw output is under `.flow/tmp/fn210-9-*`. fn-210.9's 2,872,544-byte guest
 took a median 27.874 ms per cold load and 14,003 ns/op per Rows call; `make model2-time` took
 5.069 s gate and 1.210 s inner loop. The fn-210.16 direct-export guest was 3,370,765 bytes.
+
+## Shared catalog and envelope extraction (fn-233.1)
+
+The framework owns catalog syntax, derive expansion, semantic views, recursive
+inspection/fill, descriptor coverage and method/mutation generation. Context types,
+API roots, service identities and request roots come from each caller. Temporal keeps
+its catalog declarations, dynamic-config policy and upstream descriptor acquisition.
+The independent Kettle catalog fixture consumes this implementation without a Temporal
+dependency; canonical Model and semantic outputs are unchanged.
+
+Realization envelopes now use `umpire.realization.v1`; generic annotation and probe
+transport uses `umpire.annotations.v1`. Any identities deliberately migrate, while field
+numbers and payload encodings remain fixed, including Observation.request at tag 4.
+The stateless annotation dispatcher and Go annotation/probe transport are shared.
+Temporal retains ProbeRequest's namespace/activity/queue/run/token controls and its
+activity witness registry and recipes: these encode that API's prerequisites rather
+than reusable transport. Its realization-handler source analysis and upstream graph
+remain extension-owned because they resolve authored API types and service shorthand;
+this extraction does not introduce another realization authoring surface. No required
+generic catalog or transport implementation remains behind that boundary.

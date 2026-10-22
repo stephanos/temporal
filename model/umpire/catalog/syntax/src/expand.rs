@@ -352,9 +352,9 @@ fn enumeration(enumeration: &Enum) -> TokenStream {
     let paths: Vec<_> = enumeration.variants.iter().map(|variant| &variant.path).collect();
     quote! {
         #[doc = concat!("Converts a known `", #proto, "` discriminant.")]
-        pub fn #factory(value: i32) -> ::core::result::Result<#ty, ::umpire_temporal_annotate::UnknownEnum> {
+        pub fn #factory(value: i32) -> ::core::result::Result<#ty, ::umpire_catalog::UnknownEnum> {
             let variant = <#ty as ::core::convert::TryFrom<i32>>::try_from(value)
-                .map_err(|_| ::umpire_temporal_annotate::UnknownEnum { value, enum_name: #proto })?;
+                .map_err(|_| ::umpire_catalog::UnknownEnum { value, enum_name: #proto })?;
             match variant { #(#paths => ()),* }
             Ok(variant)
         }
@@ -373,13 +373,13 @@ fn action(actions: &Actions) -> TokenStream {
         let arms = bindings.iter().map(|(pattern, binding)| {
             let kind = &binding.kind;
             let target = &binding.target;
-            quote! { #pattern => ::umpire_temporal_annotate::Binding::#kind(#target) }
+            quote! { #pattern => ::umpire_catalog::Binding::#kind(#target) }
         });
         quote! { #actor(actor) => match actor { #(#arms),* } }
     });
     quote! {
         /// Classifies every declared model action.
-        pub fn #factory(action: &#ty) -> ::umpire_temporal_annotate::Binding {
+        pub fn #factory(action: &#ty) -> ::umpire_catalog::Binding {
             match action { #(#actors),* }
         }
     }

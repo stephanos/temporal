@@ -1,0 +1,31 @@
+syntax = "proto3";
+
+package umpire.realization.v1;
+
+option go_package = "umpire.local/model/umpire/realization/v1";
+
+import "google/protobuf/any.proto";
+
+message Observation {
+  string method = 1;
+  oneof result {
+    google.protobuf.Any response = 2;
+    Error error = 3;
+  }
+  // The actual completed request of the same invocation, when its transport owner captured it.
+  google.protobuf.Any request = 4;
+}
+
+message Error {
+  int32 code = 1;
+  string message = 2;
+}
+
+message Callback {
+  google.protobuf.Any task = 1;
+}
+
+message Reply {
+  google.protobuf.Any request = 1;
+}
+

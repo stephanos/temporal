@@ -9,7 +9,9 @@ use Display; domain outcomes and facts use Debug.
 Reset (3), Judge (4) and Answer (5) carry the core run protocol. Judge accepts an opaque
 observation Any and returns either a present Explanation (including zero steps) or
 Unexplained with expected actions. Answer accepts an opaque callback Any and returns an
-opaque reply Any. System payload registries own type-URL admission; the old namespace
+opaque reply Any. `umpire.realization.v1` supplies Observation, Error, Callback and Reply envelopes.
+Observation retains optional request Any at tag 4 and unchanged absent-request bytes.
+System payload registries own type-URL admission; the old namespace
 is not an alias for the new one. The Kettle guest currently refuses these three operations
 with Unsupported (8). The export-free `umpire-wasm` library supplies the transactional
 runtime and ABI; system guests supply a `Machine` and `Realize` binding. Reset restores
@@ -23,8 +25,9 @@ constructors; the registry remains system-owned. Existing method IDs and old wir
 remain pinned by host tests.
 
 Annotate (7) carries an opaque input Any and returns an opaque output Any at
-Response tag 8. System dispatchers own annotation schemas and handle this stateless
-operation independently of Judge's frozen run. Method 6 and Response tag 7 remain
+Response tag 8. Shared `umpire.annotations.v1` messages carry annotation requests,
+results and probe metadata; system probe controls remain system-owned.
+`AnnotationRuntime` dispatches this stateless operation independently of Judge's frozen run. Method 6 and Response tag 7 remain
 reserved for Propose; every existing method and field number is unchanged.
 
 The wasm32-wasip1 guest directly exports application functions
@@ -61,3 +64,11 @@ Use `--check` for byte-for-byte freshness; `make model-check` provisions the pin
 generator and runs freshness, native controls, both guests and both Go modules.
 The system extension and its reproduction commands are documented in `model/README.md`
 relative to the server root; its upstream schemas never become generic protocol inputs.
+
+The sibling `umpire.realization.v1` package owns Observation, Error, Callback and
+Reply. Observation carries its RPC method, one response or error, and an optional
+actual-request Any at tag 4; absent requests retain their original encoding.
+Callback carries a task Any and Reply a request Any. `umpire.annotations.v1`
+owns stateless annotation and generic probe metadata, results and recipe transport.
+System-specific controls remain in their owner's protocol. Regenerate these Go
+messages together with the core contract using `bash model/scripts/proto-go.sh`.

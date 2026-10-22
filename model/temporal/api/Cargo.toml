@@ -13,15 +13,13 @@ umpire-wasm.workspace = true
 prost.workspace = true
 
 [build-dependencies]
+umpire-catalog-build.workspace = true
 prost-build.workspace = true
-prost.workspace = true
-quote.workspace = true
-umpire-wasm.workspace = true
 umpire-temporal-annotate-syntax.workspace = true
 
 [dev-dependencies]
+umpire-catalog-build.workspace = true
 prost-build.workspace = true
-quote.workspace = true
 umpire-temporal-annotate-syntax.workspace = true
 
 [[test]]

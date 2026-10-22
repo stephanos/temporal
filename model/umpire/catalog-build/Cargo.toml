@@ -1,0 +1,18 @@
+[package]
+name = "umpire-catalog-build"
+description = "Descriptor coverage and API generation for catalog consumers"
+version.workspace = true
+edition.workspace = true
+publish.workspace = true
+license.workspace = true
+rust-version.workspace = true
+
+[dependencies]
+prost.workspace = true
+prost-build.workspace = true
+quote.workspace = true
+umpire-catalog-syntax.workspace = true
+umpire-wasm.workspace = true
+
+[lints]
+workspace = true

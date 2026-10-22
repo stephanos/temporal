@@ -1,5 +1,10 @@
 //! Stateless typed witnesses and value-free classification for activity RPCs.
 
+use umpire_wasm::annotations::ProbeCase;
+use umpire_wasm::annotations::ProbeRecipe;
+use umpire_wasm::annotations::ProbeResponse;
+use umpire_wasm::annotations::ProbeSegment;
+
 use crate::foundation::dc::Limits;
 
 use crate::activity_api::{
@@ -26,9 +31,7 @@ use umpire_temporal_api::{
             RespondActivityTaskFailedRequest, StartActivityExecutionRequest,
         },
     },
-    umpire::temporal::v1::{
-        ProbeCase, ProbeRecipe, ProbeRequest, ProbeResponse, ProbeSegment, probe_request::Operation,
-    },
+    umpire::temporal::v1::{ProbeRequest, probe_request::Operation},
 };
 use umpire_wasm::google::protobuf::Duration;
 

@@ -4,7 +4,7 @@ This isolated module runs the generated model v1 contract using wazero v1.12.0
 with Go 1.27.0 and `CGO_ENABLED=0`. It uses wazero's interpreter with experimental
 WebAssembly exception handling enabled for Rust unwinding. It has no dependency
 on the server module.
-The protobuf source is `../../proto/umpire/model/v1/model.proto`;
+The protobuf sources are under `../../proto/umpire/{model,realization,annotations}/v1`;
 generated Go uses protoc 29.5, protoc-gen-go v1.36.6 and protobuf v1.36.11.
 
 Build the stock and generic control guests with the unwind profile before running:
@@ -73,3 +73,10 @@ The Rows benchmark includes protobuf marshal, guest allocation, memory write,
 call, copy, free and protobuf unmarshal. It cycles state IDs modulo 283 and
 reports memory pages plus a byte-count sink. ColdLoad includes compilation,
 instantiation and closure; benchmark results use separate instances.
+
+`Annotate` transports generic annotation messages through the core host method.
+`Probe` accepts a caller-owned protobuf request and returns shared probe metadata.
+`DispatchProbe` takes the caller's fully qualified service name, validates that it
+resolves to a service, and sends the selected typed request through the provided
+connection. `ExpandProbeRecipe` and `ObserveProbe` preserve bounded recipe decoding
+and value-free result classification independently of a system's probe controls.

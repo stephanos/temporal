@@ -14,8 +14,10 @@ import (
 	"google.golang.org/grpc/status"
 	"google.golang.org/protobuf/proto"
 	"google.golang.org/protobuf/reflect/protoreflect"
-	"umpire.local/model"
+	model "umpire.local/model"
+	annotationsv1 "umpire.local/model/umpire/annotations/v1"
 	modelv1 "umpire.local/model/umpire/model/v1"
+	realizationv1 "umpire.local/model/umpire/realization/v1"
 	temporalmodel "umpire.local/temporal"
 	temporalv1 "umpire.local/temporal/umpire/temporal/v1"
 )
@@ -23,7 +25,7 @@ import (
 func TestEmbeddedProbeContextsSurviveResetAndIndependentHosts(t *testing.T) {
 	hosts := []*model.Host{guest(t), guest(t)}
 	coldPages := hosts[1].Pages()
-	seen := make(map[[2]int]*temporalv1.ProbeResponse)
+	seen := make(map[[2]int]*annotationsv1.ProbeResponse)
 	const genericCase = "generic::DescribeActivityExecution::temporal.api.workflowservice.v1.DescribeActivityExecutionRequest.activity_id:mutation.empty"
 	for hostIndex, host := range hosts {
 		var warmPages uint32
@@ -118,9 +120,9 @@ func (*probeConnection) NewStream(context.Context, *grpc.StreamDesc, string, ...
 
 func TestProbeLocalRefusalNeverBecomesServerObservation(t *testing.T) {
 	connection := new(probeConnection)
-	response, err := temporalmodel.DispatchProbe(context.Background(), connection, &temporalv1.ProbeResponse{
+	response, err := temporalmodel.DispatchProbe(context.Background(), connection, &annotationsv1.ProbeResponse{
 		Method: workflowservice.WorkflowService_StartActivityExecution_FullMethodName,
-		Recipe: &temporalv1.ProbeRecipe{DecodedLength: 1, Segments: []*temporalv1.ProbeSegment{{Literal: []byte{'x'}, Repeat: 1}}},
+		Recipe: &annotationsv1.ProbeRecipe{DecodedLength: 1, Segments: []*annotationsv1.ProbeSegment{{Literal: []byte{'x'}, Repeat: 1}}},
 	})
 	if err == nil || response != nil || connection.invoked {
 		t.Fatal("corrupt recipe must fail before invoking the server")
@@ -131,30 +133,30 @@ func TestProbeRecipeExpansionAndRefusals(t *testing.T) {
 	large := bytes.Repeat([]byte{'x'}, 2<<20+1)
 	hash := fnv.New64a()
 	_, _ = hash.Write(large)
-	recipe := &temporalv1.ProbeRecipe{
-		Segments:      []*temporalv1.ProbeSegment{{Literal: []byte{'x'}, Repeat: uint32(len(large))}},
+	recipe := &annotationsv1.ProbeRecipe{
+		Segments:      []*annotationsv1.ProbeSegment{{Literal: []byte{'x'}, Repeat: uint32(len(large))}},
 		DecodedLength: uint32(len(large)), Fnv64: hash.Sum64(),
 	}
-	got, err := temporalmodel.ExpandProbeRecipe(recipe)
+	got, err := model.ExpandProbeRecipe(recipe)
 	if err != nil || !bytes.Equal(got, large) {
 		t.Fatal("actual oversized expansion failed")
 	}
 	for _, tc := range []struct {
 		name   string
-		mutate func(*temporalv1.ProbeRecipe)
+		mutate func(*annotationsv1.ProbeRecipe)
 	}{
-		{"corruption", func(r *temporalv1.ProbeRecipe) { r.Segments[0].Literal[0] = 'y' }},
-		{"length", func(r *temporalv1.ProbeRecipe) { r.DecodedLength++ }},
-		{"budget", func(r *temporalv1.ProbeRecipe) { r.DecodedLength = 16<<20 + 1 }},
-		{"overflow", func(r *temporalv1.ProbeRecipe) { r.Segments[0].Repeat = ^uint32(0) }},
-		{"zero_repeat", func(r *temporalv1.ProbeRecipe) { r.Segments[0].Repeat = 0 }},
-		{"empty_literal", func(r *temporalv1.ProbeRecipe) { r.Segments[0].Literal = nil }},
-		{"segment_budget", func(r *temporalv1.ProbeRecipe) { r.Segments = make([]*temporalv1.ProbeSegment, 65537) }},
+		{"corruption", func(r *annotationsv1.ProbeRecipe) { r.Segments[0].Literal[0] = 'y' }},
+		{"length", func(r *annotationsv1.ProbeRecipe) { r.DecodedLength++ }},
+		{"budget", func(r *annotationsv1.ProbeRecipe) { r.DecodedLength = 16<<20 + 1 }},
+		{"overflow", func(r *annotationsv1.ProbeRecipe) { r.Segments[0].Repeat = ^uint32(0) }},
+		{"zero_repeat", func(r *annotationsv1.ProbeRecipe) { r.Segments[0].Repeat = 0 }},
+		{"empty_literal", func(r *annotationsv1.ProbeRecipe) { r.Segments[0].Literal = nil }},
+		{"segment_budget", func(r *annotationsv1.ProbeRecipe) { r.Segments = make([]*annotationsv1.ProbeSegment, 65537) }},
 	} {
 		t.Run(tc.name, func(t *testing.T) {
-			bad := proto.Clone(recipe).(*temporalv1.ProbeRecipe)
+			bad := proto.Clone(recipe).(*annotationsv1.ProbeRecipe)
 			tc.mutate(bad)
-			if _, err := temporalmodel.ExpandProbeRecipe(bad); err == nil {
+			if _, err := model.ExpandProbeRecipe(bad); err == nil {
 				t.Fatal("invalid recipe admitted")
 			}
 		})
@@ -162,7 +164,7 @@ func TestProbeRecipeExpansionAndRefusals(t *testing.T) {
 }
 
 func TestProbeObservationPatternAndDetails(t *testing.T) {
-	testCase := &temporalv1.ProbeCase{Id: "case", Code: 3, MessagePattern: "too long|invalid"}
+	testCase := &annotationsv1.ProbeCase{Id: "case", Code: 3, MessagePattern: "too long|invalid"}
 	for _, tc := range []struct {
 		pattern string
 		message string
@@ -176,25 +178,25 @@ func TestProbeObservationPatternAndDetails(t *testing.T) {
 		{"^invalid$", "invalid suffix", false},
 	} {
 		testCase.MessagePattern = tc.pattern
-		observation, err := temporalmodel.ObserveProbe(testCase, status.Error(codes.InvalidArgument, tc.message))
+		observation, err := model.ObserveProbe(testCase, status.Error(codes.InvalidArgument, tc.message))
 		if err != nil || observation.MessageMatches != tc.matches || observation.Code != 3 || observation.Accepted {
 			t.Fatal("observation contract mismatch")
 		}
 	}
 	testCase.MessagePattern = "["
-	if _, err := temporalmodel.ObserveProbe(testCase, status.Error(codes.InvalidArgument, "private-message")); err == nil || err.Error() != "invalid probe pattern for case" {
+	if _, err := model.ObserveProbe(testCase, status.Error(codes.InvalidArgument, "private-message")); err == nil || err.Error() != "invalid probe pattern for case" {
 		t.Fatal("malformed pattern must refuse without raw pattern or message")
 	}
 	testCase.MessagePattern = "invalid"
-	detailErr, err := status.New(codes.FailedPrecondition, "invalid").WithDetails(&temporalv1.Error{})
+	detailErr, err := status.New(codes.FailedPrecondition, "invalid").WithDetails(&realizationv1.Error{})
 	if err != nil {
 		t.Fatal(err)
 	}
-	observation, err := temporalmodel.ObserveProbe(testCase, detailErr.Err())
-	if err != nil || observation.DetailsType != "umpire.temporal.v1.Error" || observation.Code != 9 {
+	observation, err := model.ObserveProbe(testCase, detailErr.Err())
+	if err != nil || observation.DetailsType != "umpire.realization.v1.Error" || observation.Code != 9 {
 		t.Fatal("status detail identity lost")
 	}
-	observation, err = temporalmodel.ObserveProbe(testCase, nil)
+	observation, err = model.ObserveProbe(testCase, nil)
 	if err != nil || !observation.Accepted {
 		t.Fatal("actual acceptance lost")
 	}
@@ -202,14 +204,14 @@ func TestProbeObservationPatternAndDetails(t *testing.T) {
 
 func TestGenericProbeObservationMatchesEachPredictionWithoutValues(t *testing.T) {
 	const private = "private-request-token-error"
-	testCase := &temporalv1.ProbeCase{
+	testCase := &annotationsv1.ProbeCase{
 		Id: "generic-case", Generic: true,
-		Predictions: []*temporalv1.ProbeExpectation{
+		Predictions: []*annotationsv1.ProbeExpectation{
 			{Id: "generic-case::prediction:first", MessagePattern: "missing identity"},
 			{Id: "generic-case::prediction:second", MessagePattern: "different failure"},
 		},
 	}
-	observation, err := temporalmodel.ObserveProbe(testCase, status.Error(codes.InvalidArgument, "missing identity "+private))
+	observation, err := model.ObserveProbe(testCase, status.Error(codes.InvalidArgument, "missing identity "+private))
 	if err != nil || observation.PredictionCount != 2 || len(observation.Predictions) != 2 {
 		t.Fatal("each prepared prediction requires an observation")
 	}
@@ -221,29 +223,29 @@ func TestGenericProbeObservationMatchesEachPredictionWithoutValues(t *testing.T)
 		t.Fatal("generic observations must remain value-free")
 	}
 	testCase.Predictions[1].MessagePattern = "["
-	if _, err := temporalmodel.ObserveProbe(testCase, status.Error(codes.InvalidArgument, private)); err == nil || err.Error() != "invalid probe pattern for generic-case" {
+	if _, err := model.ObserveProbe(testCase, status.Error(codes.InvalidArgument, private)); err == nil || err.Error() != "invalid probe pattern for generic-case" {
 		t.Fatal("a malformed prediction pattern must fail without its contents")
 	}
 }
 
 func TestProbeMetadataAdmissionAndRetiredWireFields(t *testing.T) {
-	valid := &temporalv1.ProbeCase{Id: "generic-case", Generic: true, Predictions: []*temporalv1.ProbeExpectation{{Id: "generic-case::prediction:claim"}}}
-	for _, change := range []func(*temporalv1.ProbeCase){
-		func(c *temporalv1.ProbeCase) { c.Applicability = 99 },
-		func(c *temporalv1.ProbeCase) { c.Generic = false },
-		func(c *temporalv1.ProbeCase) { c.MessagePattern = "strict/generic mix" },
-		func(c *temporalv1.ProbeCase) {
-			c.Predictions = append(c.Predictions, proto.Clone(c.Predictions[0]).(*temporalv1.ProbeExpectation))
+	valid := &annotationsv1.ProbeCase{Id: "generic-case", Generic: true, Predictions: []*annotationsv1.ProbeExpectation{{Id: "generic-case::prediction:claim"}}}
+	for _, change := range []func(*annotationsv1.ProbeCase){
+		func(c *annotationsv1.ProbeCase) { c.Applicability = 99 },
+		func(c *annotationsv1.ProbeCase) { c.Generic = false },
+		func(c *annotationsv1.ProbeCase) { c.MessagePattern = "strict/generic mix" },
+		func(c *annotationsv1.ProbeCase) {
+			c.Predictions = append(c.Predictions, proto.Clone(c.Predictions[0]).(*annotationsv1.ProbeExpectation))
 		},
-		func(c *temporalv1.ProbeCase) { c.Predictions[0].Id = "foreign-case::prediction:claim" },
-		func(c *temporalv1.ProbeCase) {
-			c.Applicability = temporalv1.ProbeApplicability_REFUSED
+		func(c *annotationsv1.ProbeCase) { c.Predictions[0].Id = "foreign-case::prediction:claim" },
+		func(c *annotationsv1.ProbeCase) {
+			c.Applicability = annotationsv1.ProbeApplicability_REFUSED
 			c.Refusal = "local"
 		},
 	} {
-		invalid := proto.Clone(valid).(*temporalv1.ProbeCase)
+		invalid := proto.Clone(valid).(*annotationsv1.ProbeCase)
 		change(invalid)
-		if _, err := temporalmodel.ObserveProbe(invalid, nil); err == nil {
+		if _, err := model.ObserveProbe(invalid, nil); err == nil {
 			t.Fatal("invalid probe metadata admitted")
 		}
 	}
@@ -258,7 +260,7 @@ func TestProbeMetadataAdmissionAndRetiredWireFields(t *testing.T) {
 			t.Fatal("retired request name reused")
 		}
 	}
-	caseDescriptor := (&temporalv1.ProbeCase{}).ProtoReflect().Descriptor()
+	caseDescriptor := (&annotationsv1.ProbeCase{}).ProtoReflect().Descriptor()
 	if !caseDescriptor.ReservedRanges().Has(8) || !caseDescriptor.ReservedNames().Has("covers") {
 		t.Fatal("retired mapping wire fields must stay reserved")
 	}

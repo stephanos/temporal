@@ -11,6 +11,7 @@ rust-version.workspace = true
 workspace = true
 
 [dependencies]
+umpire-catalog.workspace = true
 prost.workspace = true
 umpire-wasm.workspace = true
 umpire-annotations.workspace = true

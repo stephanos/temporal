@@ -2,7 +2,11 @@
 #![cfg(not(test))]
 
 mod abi;
+#[path = "annotations.rs"]
+mod annotation_dispatch;
 mod any;
+#[path = "realization.rs"]
+mod envelopes;
 mod refusal;
 mod runtime;
 mod stock;
@@ -14,7 +18,14 @@ mod generated {
 }
 
 pub use abi::Guest;
-pub use generated::{google, umpire::model::v1 as protocol};
+pub use annotation_dispatch::AnnotationRuntime;
+pub use envelopes::{Observed, callback, reply};
+pub use generated::{
+    google,
+    umpire::{
+        annotations::v1 as annotations, model::v1 as protocol, realization::v1 as realization,
+    },
+};
 pub use runtime::{AnswerPlan, Candidate, Projection, Realize, Runtime, Transaction, Transition};
 pub use stock::Model;
 

@@ -1,19 +1,20 @@
 //! Controls for shared Temporal helpers and realization-only phase decoding.
 
+use umpire_wasm::realization::Callback;
+use umpire_wasm::realization::Error;
+use umpire_wasm::realization::Observation;
+use umpire_wasm::realization::Reply;
+use umpire_wasm::realization::observation::Result as ResultValue;
+
 use std::collections::BTreeMap;
 
 use umpire_dsl::Rejection;
 use umpire_temporal::support::{
     ApplicationFailure, Observed, WorkflowService, callback, method, plain_text, rejection, reply,
 };
-use umpire_temporal_api::{
-    temporal::api::{
-        common::v1::Payload,
-        failure::v1::{Failure, failure::FailureInfo},
-    },
-    umpire::temporal::v1::{
-        Callback, Error, Observation, Reply, observation::Result as ResultValue,
-    },
+use umpire_temporal_api::temporal::api::{
+    common::v1::Payload,
+    failure::v1::{Failure, failure::FailureInfo},
 };
 use umpire_wasm::{
     google::protobuf::Any,

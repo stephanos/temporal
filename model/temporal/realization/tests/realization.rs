@@ -1,21 +1,21 @@
 //! Native realization controls against the independently fixed activity Model.
 
+use umpire_wasm::realization::Callback;
+use umpire_wasm::realization::Error;
+use umpire_wasm::realization::Observation;
+use umpire_wasm::realization::observation::Result as ObservationResult;
+
 use std::collections::BTreeMap;
 
 use prost::Message;
 use umpire_dsl::{Machine, Outcome as StepOutcome, Rejection};
 use umpire_temporal::{Realization, activity, runtime};
-use umpire_temporal_api::{
-    temporal::api::{
-        activity::v1::ActivityExecutionInfo,
-        common::v1::{Payload, Payloads},
-        workflowservice::v1::{
-            DescribeActivityExecutionRequest, DescribeActivityExecutionResponse,
-            PollActivityTaskQueueResponse, RequestCancelActivityExecutionRequest,
-        },
-    },
-    umpire::temporal::v1::{
-        Callback, Error, Observation, observation::Result as ObservationResult,
+use umpire_temporal_api::temporal::api::{
+    activity::v1::ActivityExecutionInfo,
+    common::v1::{Payload, Payloads},
+    workflowservice::v1::{
+        DescribeActivityExecutionRequest, DescribeActivityExecutionResponse,
+        PollActivityTaskQueueResponse, RequestCancelActivityExecutionRequest,
     },
 };
 use umpire_wasm::{
@@ -47,7 +47,7 @@ fn any(name: &str, value: &impl Message) -> Any {
 
 fn observation(status: i32, run_state: i32) -> Any {
     any(
-        "umpire.temporal.v1.Observation",
+        "umpire.realization.v1.Observation",
         &Observation {
             method: DESCRIBE.into(),
             result: Some(ObservationResult::Response(any(
@@ -64,7 +64,7 @@ fn observation(status: i32, run_state: i32) -> Any {
 
 fn callback(policy: &[u8]) -> Any {
     any(
-        "umpire.temporal.v1.Callback",
+        "umpire.realization.v1.Callback",
         &Callback {
             task: Some(any(
                 "temporal.api.workflowservice.v1.PollActivityTaskQueueResponse",
@@ -403,7 +403,7 @@ fn callback_delivery_precedes_terminal_replay_and_repeated_matches_are_zero_step
         };
         assert_eq!(
             value.reply.unwrap_or_else(|| panic!("reply missing")).type_url,
-            "type.googleapis.com/umpire.temporal.v1.Reply"
+            "type.googleapis.com/umpire.realization.v1.Reply"
         );
         explained(judge(&mut guest, observation(1, 2)), &[]);
         explained(judge(&mut guest, observation(1, 2)), &[]);
@@ -424,7 +424,7 @@ fn complete_reply_drops_external_payload_references() {
         common::v1::payload::ExternalPayloadDetails,
         workflowservice::v1::RespondActivityTaskCompletedRequest,
     };
-    use umpire_temporal_api::umpire::temporal::v1::Reply;
+    use umpire_wasm::realization::Reply;
 
     let mut task: PollActivityTaskQueueResponse =
         umpire_temporal::support::callback(&callback(b"Complete"))
@@ -497,7 +497,7 @@ fn malformed_and_unsupported_observations_preserve_run_and_frozen_evidence() {
     let malformed = protocol::RefusalCode::MalformedRequest;
     let unsupported = protocol::RefusalCode::Unsupported;
     let missing_info = any(
-        "umpire.temporal.v1.Observation",
+        "umpire.realization.v1.Observation",
         &Observation {
             method: DESCRIBE.into(),
             result: Some(ObservationResult::Response(any(
@@ -518,21 +518,21 @@ fn malformed_and_unsupported_observations_preserve_run_and_frozen_evidence() {
         ),
         (
             Any {
-                type_url: "type.googleapis.com/umpire.temporal.v1.Observation".into(),
+                type_url: "type.googleapis.com/umpire.realization.v1.Observation".into(),
                 value: vec![255],
             },
             malformed,
         ),
         (
             any(
-                "umpire.temporal.v1.Observation",
+                "umpire.realization.v1.Observation",
                 &Observation { method: "wrong".into(), result: None, request: None },
             ),
             unsupported,
         ),
         (
             any(
-                "umpire.temporal.v1.Observation",
+                "umpire.realization.v1.Observation",
                 &Observation { method: DESCRIBE.into(), result: None, request: None },
             ),
             malformed,
@@ -579,11 +579,11 @@ fn invalid_callback_projection_cannot_partially_commit_poll() {
     let mut cases = vec![
         (Any { type_url: String::new(), value: vec![] }, malformed),
         (Any { type_url: "wrong".into(), value: vec![] }, unsupported),
-        (Any { type_url: "type.googleapis.com/umpire.temporal.v1.Callback".into(), value: vec![255] }, malformed),
-        (any("umpire.temporal.v1.Callback", &Callback { task: None }), malformed),
-        (any("umpire.temporal.v1.Callback", &Callback { task: Some(Any { type_url: String::new(), value: vec![] }) }), malformed),
-        (any("umpire.temporal.v1.Callback", &Callback { task: Some(Any { type_url: "wrong".into(), value: vec![] }) }), unsupported),
-        (any("umpire.temporal.v1.Callback", &Callback { task: Some(Any { type_url: "type.googleapis.com/temporal.api.workflowservice.v1.PollActivityTaskQueueResponse".into(), value: vec![255] }) }), malformed),
+        (Any { type_url: "type.googleapis.com/umpire.realization.v1.Callback".into(), value: vec![255] }, malformed),
+        (any("umpire.realization.v1.Callback", &Callback { task: None }), malformed),
+        (any("umpire.realization.v1.Callback", &Callback { task: Some(Any { type_url: String::new(), value: vec![] }) }), malformed),
+        (any("umpire.realization.v1.Callback", &Callback { task: Some(Any { type_url: "wrong".into(), value: vec![] }) }), unsupported),
+        (any("umpire.realization.v1.Callback", &Callback { task: Some(Any { type_url: "type.googleapis.com/temporal.api.workflowservice.v1.PollActivityTaskQueueResponse".into(), value: vec![255] }) }), malformed),
         (callback(b"Unknown"), unsupported),
     ];
     let valid = PollActivityTaskQueueResponse {
@@ -618,7 +618,7 @@ fn invalid_callback_projection_cannot_partially_commit_poll() {
         }
         cases.push((
             any(
-                "umpire.temporal.v1.Callback",
+                "umpire.realization.v1.Callback",
                 &Callback {
                     task: Some(any(
                         "temporal.api.workflowservice.v1.PollActivityTaskQueueResponse",

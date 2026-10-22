@@ -30,7 +30,8 @@ import (
 	"google.golang.org/grpc/status"
 	"google.golang.org/protobuf/proto"
 	"google.golang.org/protobuf/types/known/durationpb"
-	"umpire.local/model"
+	model "umpire.local/model"
+	annotationsv1 "umpire.local/model/umpire/annotations/v1"
 	temporalmodel "umpire.local/temporal"
 	temporalv1 "umpire.local/temporal/umpire/temporal/v1"
 )
@@ -107,7 +108,7 @@ func TestTestpilotModelGapLoggerPreservesFailuresWithoutPrivateOutput(t *testing
 	require.Contains(t, recorded.output.String(), "level=Error [redacted]")
 	require.Contains(t, recorded.output.String(), "server log failure [redacted]")
 	for _, expectedCode := range []int32{int32(codes.InvalidArgument), 0} {
-		observation, err := temporalmodel.ObserveProbe(&temporalv1.ProbeCase{
+		observation, err := model.ObserveProbe(&annotationsv1.ProbeCase{
 			Id: "loose-rejection", Code: expectedCode,
 		}, status.Error(codes.InvalidArgument, secret))
 		require.NoError(t, err)
@@ -346,11 +347,11 @@ func TestTestpilotModelGaps(t *testing.T) {
 	namespace, connection := newModelGapConnection(t)
 	checkModelGapScopeBoundaries(t, namespace, connection)
 	service := workflowservice.NewWorkflowServiceClient(connection)
-	var observations []*temporalv1.ProbeObservation
+	var observations []*annotationsv1.ProbeObservation
 	for _, testCase := range inventory.Cases {
 		t.Run(testCase.Id, func(t *testing.T) {
-			if testCase.Generic && testCase.Applicability != temporalv1.ProbeApplicability_APPLICABLE {
-				observation, observeErr := temporalmodel.ObserveProbe(testCase, nil)
+			if testCase.Generic && testCase.Applicability != annotationsv1.ProbeApplicability_APPLICABLE {
+				observation, observeErr := model.ObserveProbe(testCase, nil)
 				require.NoError(t, observeErr)
 				observations = append(observations, observation)
 				return
@@ -360,7 +361,7 @@ func TestTestpilotModelGaps(t *testing.T) {
 					ctx, cancel := context.WithTimeout(t.Context(), 30*time.Second)
 					defer cancel()
 					request := isolatedProbeRequest(testCase.Id, namespace, baseline)
-					prepare := func(selector string) *temporalv1.ProbeResponse {
+					prepare := func(selector string) *annotationsv1.ProbeResponse {
 						preparedRequest := proto.Clone(request).(*temporalv1.ProbeRequest)
 						preparedRequest.CaseId, preparedRequest.Baseline = selector, true
 						prepared, err := temporalmodel.Probe(ctx, host, preparedRequest)
@@ -413,9 +414,9 @@ func TestTestpilotModelGaps(t *testing.T) {
 						observationCase = prepared.Cases[0]
 						require.Equal(t, testCase.Id, observationCase.Id)
 						require.Equal(t, testCase.Method, observationCase.Method)
-						if observationCase.Applicability != temporalv1.ProbeApplicability_APPLICABLE {
+						if observationCase.Applicability != annotationsv1.ProbeApplicability_APPLICABLE {
 							require.False(t, baseline)
-							observation, observeErr := temporalmodel.ObserveProbe(observationCase, nil)
+							observation, observeErr := model.ObserveProbe(observationCase, nil)
 							require.NoError(t, observeErr)
 							observations = append(observations, observation)
 							return
@@ -426,7 +427,7 @@ func TestTestpilotModelGaps(t *testing.T) {
 					if started, ok := response.(*workflowservice.StartActivityExecutionResponse); ok && rpcErr == nil {
 						encoded := prepared.Message
 						if prepared.Recipe != nil {
-							encoded, err = temporalmodel.ExpandProbeRecipe(prepared.Recipe)
+							encoded, err = model.ExpandProbeRecipe(prepared.Recipe)
 							require.NoError(t, err)
 						}
 						actual := new(workflowservice.StartActivityExecutionRequest)
@@ -437,7 +438,7 @@ func TestTestpilotModelGaps(t *testing.T) {
 						require.True(t, rpcErr == nil, "valid baseline rpc_code=%s", status.Code(rpcErr))
 						return
 					}
-					observation, observeErr := temporalmodel.ObserveProbe(observationCase, rpcErr)
+					observation, observeErr := model.ObserveProbe(observationCase, rpcErr)
 					require.NoError(t, observeErr)
 					observations = append(observations, observation)
 				}()

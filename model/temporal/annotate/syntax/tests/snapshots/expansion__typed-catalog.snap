@@ -1,5 +1,6 @@
 ---
 source: temporal/annotate/syntax/tests/expansion.rs
+assertion_line: 20
 expression: "prettyplease::unparse(&file)"
 ---
 mod controls {
@@ -23,9 +24,9 @@ mod controls {
     #[doc = concat!("Converts a known `", "test.Status", "` discriminant.")]
     pub fn status(
         value: i32,
-    ) -> ::core::result::Result<Status, ::umpire_temporal_annotate::UnknownEnum> {
+    ) -> ::core::result::Result<Status, ::umpire_catalog::UnknownEnum> {
         let variant = <Status as ::core::convert::TryFrom<i32>>::try_from(value)
-            .map_err(|_| ::umpire_temporal_annotate::UnknownEnum {
+            .map_err(|_| ::umpire_catalog::UnknownEnum {
                 value,
                 enum_name: "test.Status",
             })?;
@@ -271,23 +272,19 @@ mod controls {
             .build()
     }
     /// Classifies every declared model action.
-    pub fn bind(action: &Action) -> ::umpire_temporal_annotate::Binding {
+    pub fn bind(action: &Action) -> ::umpire_catalog::Binding {
         match action {
             Action::Client(actor) => {
                 match actor {
-                    Client::Start => {
-                        ::umpire_temporal_annotate::Binding::Rpc("test.Service.Start")
-                    }
+                    Client::Start => ::umpire_catalog::Binding::Rpc("test.Service.Start"),
                     Client::Cancel { .. } => {
-                        ::umpire_temporal_annotate::Binding::Environmental(
-                            "cancellation",
-                        )
+                        ::umpire_catalog::Binding::Environmental("cancellation")
                     }
                 }
             }
             Action::Worker(actor) => {
                 match actor {
-                    Worker::Poll => ::umpire_temporal_annotate::Binding::Observed("poll"),
+                    Worker::Poll => ::umpire_catalog::Binding::Observed("poll"),
                 }
             }
         }

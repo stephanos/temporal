@@ -1,16 +1,18 @@
 //! Generated handler conversion and contextual reply controls.
 
+use umpire_wasm::realization::Callback;
+use umpire_wasm::realization::Observation;
+use umpire_wasm::realization::Reply;
+use umpire_wasm::realization::observation::Result as ObservationResult;
+
 use umpire_dsl::{Machine, Outcome};
 use umpire_temporal::{Realization, Step, activity, realization};
-use umpire_temporal_api::{
-    temporal::api::{
-        activity::v1::{ActivityExecutionOutcome, activity_execution_outcome::Value},
-        common::v1::{Payload, Payloads},
-        workflowservice::v1::{
-            DescribeActivityExecutionResponse, RequestCancelActivityExecutionResponse,
-        },
+use umpire_temporal_api::temporal::api::{
+    activity::v1::{ActivityExecutionOutcome, activity_execution_outcome::Value},
+    common::v1::{Payload, Payloads},
+    workflowservice::v1::{
+        DescribeActivityExecutionResponse, RequestCancelActivityExecutionResponse,
     },
-    umpire::temporal::v1::{Observation, observation::Result as ObservationResult},
 };
 use umpire_wasm::{
     Projection, Realize,
@@ -147,14 +149,11 @@ fn opaque_ignored_catalog_fields_still_have_real_decoded_presence() {
 #[test]
 fn reply_requests_are_partial_and_wrapped_exactly_once() {
     use std::collections::BTreeMap;
-    use umpire_temporal_api::{
-        temporal::api::{
-            failure::v1::failure::FailureInfo,
-            workflowservice::v1::{
-                RespondActivityTaskCompletedRequest, RespondActivityTaskFailedRequest,
-            },
+    use umpire_temporal_api::temporal::api::{
+        failure::v1::failure::FailureInfo,
+        workflowservice::v1::{
+            RespondActivityTaskCompletedRequest, RespondActivityTaskFailedRequest,
         },
-        umpire::temporal::v1::{Callback, Reply},
     };
     let state = activity::World.starts().remove(0);
     for policy in [b"Complete".as_slice(), b"Fail".as_slice()] {

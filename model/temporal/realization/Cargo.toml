@@ -8,6 +8,7 @@ license.workspace = true
 rust-version.workspace = true
 
 [dependencies]
+umpire-catalog.workspace = true
 umpire-dsl.workspace = true
 umpire-wasm.workspace = true
 umpire-temporal-api.workspace = true

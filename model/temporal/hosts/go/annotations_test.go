@@ -9,9 +9,9 @@ import (
 	enumspb "go.temporal.io/api/enums/v1"
 	workflowservice "go.temporal.io/api/workflowservice/v1"
 	"google.golang.org/protobuf/proto"
+	model "umpire.local/model"
+	annotationsv1 "umpire.local/model/umpire/annotations/v1"
 	modelv1 "umpire.local/model/umpire/model/v1"
-	temporalmodel "umpire.local/temporal"
-	temporalv1 "umpire.local/temporal/umpire/temporal/v1"
 )
 
 func TestAnnotationsPreserveFrozenModelAndActualResponseBytes(t *testing.T) {
@@ -24,7 +24,7 @@ func TestAnnotationsPreserveFrozenModelAndActualResponseBytes(t *testing.T) {
 	if err != nil {
 		t.Fatal(err)
 	}
-	response, err := temporalmodel.Annotate(context.Background(), h, &temporalv1.AnnotationRequest{
+	response, err := model.Annotate(context.Background(), h, &annotationsv1.AnnotationRequest{
 		Method: describeMethod, Response: true, Message: message,
 	})
 	if err != nil {
@@ -33,7 +33,7 @@ func TestAnnotationsPreserveFrozenModelAndActualResponseBytes(t *testing.T) {
 	if !bytes.Equal(response.Message, message) || len(response.Violations) == 0 {
 		t.Fatalf("response bytes changed or finding missing: %v", response.Violations)
 	}
-	response, err = temporalmodel.Annotate(context.Background(), h, &temporalv1.AnnotationRequest{
+	response, err = model.Annotate(context.Background(), h, &annotationsv1.AnnotationRequest{
 		Method: "/temporal.api.workflowservice.v1.WorkflowService/PollActivityTaskQueue", Response: true,
 	})
 	if err != nil || len(response.GetViolations()) != 0 {
@@ -55,7 +55,7 @@ func TestAnnotationRefusalsLeaveWasmHostUsable(t *testing.T) {
 		{"UnknownRpc", []byte("private-task-token"), modelv1.RefusalCode_REFUSAL_CODE_UNSUPPORTED},
 		{"PollActivityTaskQueue", []byte{255}, modelv1.RefusalCode_REFUSAL_CODE_MALFORMED_REQUEST},
 	} {
-		_, err := temporalmodel.Annotate(context.Background(), h, &temporalv1.AnnotationRequest{
+		_, err := model.Annotate(context.Background(), h, &annotationsv1.AnnotationRequest{
 			Method: tc.method, Response: true, Message: tc.bytes,
 		})
 		refusal(t, err, tc.code)

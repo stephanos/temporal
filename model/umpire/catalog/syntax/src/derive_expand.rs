@@ -8,6 +8,7 @@ use crate::{ApiAttributes, ApiExpectation, DeriveCatalog, DeriveField, DeriveRul
 
 /// Generates a catalog factory and exhaustive, recursive transport inspection.
 pub fn expand_derive(catalog: &DeriveCatalog) -> syn::Result<TokenStream> {
+    let context = &catalog.context;
     let name = &catalog.name;
     let ty = &catalog.ty;
     let proto = &catalog.proto;
@@ -42,7 +43,7 @@ pub fn expand_derive(catalog: &DeriveCatalog) -> syn::Result<TokenStream> {
             let extra = DeriveCatalog::supplemental_field(field, additional)?;
             let expanded = field_expansion(catalog, &extra)?;
             supplemental_factories.push(quote! {
-                fn #factory(limits: &crate::foundation::dc::Limits) -> Result<::umpire_annotations::Catalog<#ty>, ::umpire_annotations::AdmissionErrors> {
+                fn #factory(limits: &#context) -> Result<::umpire_annotations::Catalog<#ty>, ::umpire_annotations::AdmissionErrors> {
                     let _ = limits;
                     ::umpire_annotations::Catalog::<#ty>::#policy(#proto) #expanded .build()
                 }
@@ -58,7 +59,7 @@ pub fn expand_derive(catalog: &DeriveCatalog) -> syn::Result<TokenStream> {
         #[allow(deprecated)]
         impl #name {
             /// Admits the typed catalog with the supplied dynamic configuration.
-            pub fn catalog(limits: &crate::foundation::dc::Limits) -> ::core::result::Result<
+            pub fn catalog(limits: &#context) -> ::core::result::Result<
                 ::umpire_annotations::Catalog<#ty>, ::umpire_annotations::AdmissionErrors
             > {
                 #pattern
@@ -70,7 +71,7 @@ pub fn expand_derive(catalog: &DeriveCatalog) -> syn::Result<TokenStream> {
                     .build()
             }
             /// All primary and supplemental field intents for this mirror.
-            pub fn catalogs(limits: &crate::foundation::dc::Limits) -> Result<Vec<::umpire_annotations::Catalog<#ty>>, ::umpire_annotations::AdmissionErrors> {
+            pub fn catalogs(limits: &#context) -> Result<Vec<::umpire_annotations::Catalog<#ty>>, ::umpire_annotations::AdmissionErrors> {
                 Ok(vec![Self::catalog(limits)?, #(Self::#supplemental_names(limits)?),*])
             }
             #(#supplemental_factories)*
@@ -135,7 +136,7 @@ fn kind_expansion(ty: &Type, attrs: &ApiAttributes) -> syn::Result<TokenStream> 
         return Ok(if let Some(defined_only) = defined_only {
             quote!({
                 if #defined_only {
-                    ::umpire_temporal_annotate::defined_enum::<#enum_type>()
+                    ::umpire_catalog::defined_enum::<#enum_type>()
                 } else {
                     ::umpire_annotations::Kind::Enum(::umpire_annotations::EnumRules {
                         defined_only: false,
@@ -144,7 +145,7 @@ fn kind_expansion(ty: &Type, attrs: &ApiAttributes) -> syn::Result<TokenStream> 
                 }
             })
         } else {
-            quote!(::umpire_temporal_annotate::defined_enum::<#enum_type>())
+            quote!(::umpire_catalog::defined_enum::<#enum_type>())
         });
     }
     let (runtime, rules, numeric) = match kind_name.as_str() {
@@ -203,13 +204,13 @@ fn field_expansion(catalog: &DeriveCatalog, field: &DeriveField) -> syn::Result<
         for (variant, proto) in &field.attributes.variants {
             let path = format!("{}.{}", catalog.proto.value(), proto.value());
             let get = quote!(match message.#source.as_ref() {
-                Some(#oneof::#variant(value)) => Some(::umpire_temporal_annotate::views::encode_message(value)),
+                Some(#oneof::#variant(value)) => Some(::umpire_catalog::views::encode_message(value)),
                 _ => None,
             });
             let set = quote! {
                 match value {
                     Some(bytes) => {
-                        let value = ::umpire_temporal_annotate::views::decode_message(&bytes)?;
+                        let value = ::umpire_catalog::views::decode_message(&bytes)?;
                         message.#source = Some(#oneof::#variant(value));
                     }
                     None if matches!(message.#source, Some(#oneof::#variant(_))) => message.#source = None,
@@ -218,7 +219,7 @@ fn field_expansion(catalog: &DeriveCatalog, field: &DeriveField) -> syn::Result<
                 Ok(())
             };
             let mut projected = field.clone();
-            projected.ty = syn::parse_quote!(::umpire_temporal_annotate::kinds::Bytes);
+            projected.ty = syn::parse_quote!(::umpire_catalog::kinds::Bytes);
             expansions.push(field_projection(catalog, &projected, Some((path, get, set)))?);
         }
         return Ok(quote!(#(#expansions)*));
@@ -256,8 +257,8 @@ fn field_projection(
         (quote!(#via::view(message)), quote!(#via::set(message, value)))
     } else {
         (
-            quote!(<_ as ::umpire_temporal_annotate::views::View<#marker_ty>>::view(&message.#name)),
-            quote!(<_ as ::umpire_temporal_annotate::views::View<#marker_ty>>::set(&mut message.#name, value)),
+            quote!(<_ as ::umpire_catalog::views::View<#marker_ty>>::view(&message.#name)),
+            quote!(<_ as ::umpire_catalog::views::View<#marker_ty>>::set(&mut message.#name, value)),
         )
     };
     let description = &field.description;
@@ -322,6 +323,7 @@ fn rule_expansion(rule: &DeriveRule) -> TokenStream {
 }
 
 fn map_factory(catalog: &DeriveCatalog, field: &DeriveField) -> syn::Result<TokenStream> {
+    let context = &catalog.context;
     let args = generic_types(&field.ty)?;
     let [key, value] = args.as_slice() else {
         return Err(syn::Error::new_spanned(&field.ty, "Map requires key and value kind types"));
@@ -334,18 +336,18 @@ fn map_factory(catalog: &DeriveCatalog, field: &DeriveField) -> syn::Result<Toke
     let value_kind = kind_expansion(value, &ApiAttributes::default())?;
     Ok(quote! {
         /// Admits the generated protobuf map-entry catalog.
-        pub fn #factory(limits: &crate::foundation::dc::Limits) -> Result<::umpire_annotations::Catalog<::umpire_temporal_annotate::views::MetadataEntry>, ::umpire_annotations::AdmissionErrors> {
+        pub fn #factory(limits: &#context) -> Result<::umpire_annotations::Catalog<::umpire_catalog::views::MetadataEntry>, ::umpire_annotations::AdmissionErrors> {
             let _ = limits;
             ::umpire_annotations::Catalog::response(#proto)
                 .field(::umpire_annotations::Field::try_projected(
                     #key_path, #key_kind,
-                    |entry: &::umpire_temporal_annotate::views::MetadataEntry| <_ as ::umpire_temporal_annotate::views::View<#key>>::view(&entry.key),
-                    |entry: &mut ::umpire_temporal_annotate::views::MetadataEntry, value| <_ as ::umpire_temporal_annotate::views::View<#key>>::set(&mut entry.key, value),
+                    |entry: &::umpire_catalog::views::MetadataEntry| <_ as ::umpire_catalog::views::View<#key>>::view(&entry.key),
+                    |entry: &mut ::umpire_catalog::views::MetadataEntry, value| <_ as ::umpire_catalog::views::View<#key>>::set(&mut entry.key, value),
                 ).tag(&::umpire_annotations::Consequence::Decided))
                 .field(::umpire_annotations::Field::try_projected(
                     #value_path, #value_kind,
-                    |entry: &::umpire_temporal_annotate::views::MetadataEntry| <_ as ::umpire_temporal_annotate::views::View<#value>>::view(&entry.value),
-                    |entry: &mut ::umpire_temporal_annotate::views::MetadataEntry, value| <_ as ::umpire_temporal_annotate::views::View<#value>>::set(&mut entry.value, value),
+                    |entry: &::umpire_catalog::views::MetadataEntry| <_ as ::umpire_catalog::views::View<#value>>::view(&entry.value),
+                    |entry: &mut ::umpire_catalog::views::MetadataEntry, value| <_ as ::umpire_catalog::views::View<#value>>::set(&mut entry.value, value),
                 ).tag(&::umpire_annotations::Consequence::Decided))
                 .build()
         }
@@ -353,6 +355,7 @@ fn map_factory(catalog: &DeriveCatalog, field: &DeriveField) -> syn::Result<Toke
 }
 
 fn inspect_expansion(catalog: &DeriveCatalog) -> syn::Result<TokenStream> {
+    let context = &catalog.context;
     let ty = &catalog.ty;
     let mirror = &catalog.name;
     let response_checks = catalog.response_checks.as_ref().map(|checks| {
@@ -373,13 +376,13 @@ fn inspect_expansion(catalog: &DeriveCatalog) -> syn::Result<TokenStream> {
         }
         let semantic = marker(crate::derive::semantic_type(&field.ty)?)?.ident.to_string();
         if kind == "Message" || (kind == "Vec" && semantic == "Message") {
-            nested.push(quote!(::umpire_temporal_annotate::Inspect::inspect(&self.#name, context, response, output)?;));
-            fill_nested.push(quote!(changed |= ::umpire_temporal_annotate::Inspect::<crate::foundation::dc::Limits>::fill_ids(&mut self.#name, seed)?;));
+            nested.push(quote!(::umpire_catalog::Inspect::inspect(&self.#name, context, response, output)?;));
+            fill_nested.push(quote!(changed |= ::umpire_catalog::Inspect::<#context>::fill_ids(&mut self.#name, seed)?;));
         }
         if kind == "Map" {
             let factory = format_ident!("__{}_entry_catalog", field.name.unraw());
             nested.push(quote! {
-                for entry in ::umpire_temporal_annotate::views::metadata_entries(&self.#name) {
+                for entry in ::umpire_catalog::views::metadata_entries(&self.#name) {
                     output.extend(::umpire_annotations::validate(&entry, &#mirror::#factory(context)?));
                 }
             });
@@ -398,10 +401,10 @@ fn inspect_expansion(catalog: &DeriveCatalog) -> syn::Result<TokenStream> {
             let variants =
                 field.attributes.variants.iter().map(|(variant, _)| variant).collect::<Vec<_>>();
             nested.push(quote! {
-                if let Some(value) = self.#name.as_ref() { match value { #(#oneof::#variants(value) => ::umpire_temporal_annotate::Inspect::inspect(value, context, response, output)?),* } }
+                if let Some(value) = self.#name.as_ref() { match value { #(#oneof::#variants(value) => ::umpire_catalog::Inspect::inspect(value, context, response, output)?),* } }
             });
             fill_nested.push(quote! {
-                if let Some(value) = self.#name.as_mut() { match value { #(#oneof::#variants(value) => changed |= ::umpire_temporal_annotate::Inspect::<crate::foundation::dc::Limits>::fill_ids(value, seed)?),* } }
+                if let Some(value) = self.#name.as_mut() { match value { #(#oneof::#variants(value) => changed |= ::umpire_catalog::Inspect::<#context>::fill_ids(value, seed)?),* } }
             });
         }
         if field.attributes.tags.iter().any(|tag| tag.name == "IdempotencyKey") {
@@ -415,8 +418,8 @@ fn inspect_expansion(catalog: &DeriveCatalog) -> syn::Result<TokenStream> {
         }
     }
     Ok(quote! {
-        impl ::umpire_temporal_annotate::Inspect<crate::foundation::dc::Limits> for #ty {
-            fn inspect(&self, context: &crate::foundation::dc::Limits, response: bool, output: &mut Vec<::umpire_annotations::Violation>) -> Result<(), ::umpire_annotations::AdmissionErrors> {
+        impl ::umpire_catalog::Inspect<#context> for #ty {
+            fn inspect(&self, context: &#context, response: bool, output: &mut Vec<::umpire_annotations::Violation>) -> Result<(), ::umpire_annotations::AdmissionErrors> {
                 for catalog in #mirror::catalogs(context)? {
                     output.extend(::umpire_annotations::validate(self, &catalog));
                 }

@@ -4,6 +4,8 @@ package umpire.temporal.v1;
 
 option go_package = "umpire.local/temporal/umpire/temporal/v1";
 
+import "umpire/annotations/v1/annotations.proto";
+
 // Stateless activity probe operations carried by the existing Annotate Any.
 message ProbeRequest {
   enum Operation { INVENTORY = 0; PREPARE = 1; CLASSIFY = 2; }
@@ -15,79 +17,7 @@ message ProbeRequest {
   string task_queue = 6;
   string run_id = 7;
   bytes task_token = 8;
-  repeated ProbeObservation observations = 9;
+  repeated umpire.annotations.v1.ProbeObservation observations = 9;
   reserved 10, 11;
   reserved "uncovered_validators", "unresolved_validators";
-}
-
-message ProbeCase {
-  string id = 1;
-  string method = 2;
-  // start, scheduled, completed, poll, token, or canceled_token.
-  string prerequisite = 3;
-  bool accepts = 4;
-  int32 code = 5;
-  string message_pattern = 6;
-  string details_type = 7;
-  reserved 8;
-  reserved "covers";
-  bool generic = 9;
-  string refusal = 10;
-  repeated ProbeExpectation predictions = 11;
-  ProbeApplicability applicability = 12;
-}
-
-enum ProbeApplicability {
-  APPLICABLE = 0;
-  NOT_APPLICABLE = 1;
-  REFUSED = 2;
-  UNCHANGED = 3;
-}
-
-message ProbeExpectation {
-  string id = 1;
-  bool accepts = 2;
-  int32 code = 3;
-  string message_pattern = 4;
-  string details_type = 5;
-}
-
-message ProbeObservation {
-  string case_id = 1;
-  bool accepted = 2;
-  int32 code = 3;
-  bool message_matches = 4;
-  string details_type = 5;
-  repeated ProbeMatch predictions = 6;
-  uint32 prediction_count = 7;
-  ProbeApplicability applicability = 8;
-  string refusal = 9;
-}
-
-message ProbeMatch {
-  uint32 index = 1;
-  string prediction_id = 2;
-  bool message_matches = 3;
-  string details_type = 4;
-}
-
-message ProbeSegment {
-  bytes literal = 1;
-  uint32 repeat = 2;
-}
-
-message ProbeRecipe {
-  repeated ProbeSegment segments = 1;
-  uint32 decoded_length = 2;
-  // FNV-1a 64 detects accidental byte corruption, not malicious modification.
-  uint64 fnv64 = 3;
-}
-
-message ProbeResponse {
-  repeated ProbeCase cases = 1;
-  string method = 2;
-  bytes message = 3;
-  ProbeRecipe recipe = 4;
-  string report = 5;
-  bool fails = 6;
 }

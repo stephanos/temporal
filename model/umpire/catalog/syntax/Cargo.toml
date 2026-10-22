@@ -1,0 +1,21 @@
+[package]
+name = "umpire-catalog-syntax"
+description = "Shared catalog grammar and descriptor admission"
+version.workspace = true
+edition.workspace = true
+publish.workspace = true
+license.workspace = true
+rust-version.workspace = true
+
+[lints]
+workspace = true
+
+[dependencies]
+syn.workspace = true
+quote.workspace = true
+proc-macro2.workspace = true
+umpire-wasm.workspace = true
+prost.workspace = true
+
+[dev-dependencies]
+prettyplease.workspace = true

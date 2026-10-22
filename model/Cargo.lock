@@ -846,6 +846,48 @@ dependencies = [
 ]
 
 [[package]]
+name = "umpire-catalog"
+version = "0.0.1"
+dependencies = [
+ "prost",
+ "trybuild",
+ "umpire-annotations",
+ "umpire-catalog-macros",
+ "umpire-wasm",
+]
+
+[[package]]
+name = "umpire-catalog-build"
+version = "0.0.1"
+dependencies = [
+ "prost",
+ "prost-build",
+ "quote",
+ "umpire-catalog-syntax",
+ "umpire-wasm",
+]
+
+[[package]]
+name = "umpire-catalog-macros"
+version = "0.0.1"
+dependencies = [
+ "syn 3.0.9",
+ "umpire-catalog-syntax",
+]
+
+[[package]]
+name = "umpire-catalog-syntax"
+version = "0.0.1"
+dependencies = [
+ "prettyplease 0.3.0",
+ "proc-macro2",
+ "prost",
+ "quote",
+ "syn 3.0.9",
+ "umpire-wasm",
+]
+
+[[package]]
 name = "umpire-caught-panic-guest"
 version = "0.0.1"
 dependencies = [
@@ -965,6 +1007,7 @@ dependencies = [
  "prost",
  "trybuild",
  "umpire-annotations",
+ "umpire-catalog",
  "umpire-dsl",
  "umpire-temporal-annotate",
  "umpire-temporal-api",
@@ -980,6 +1023,7 @@ dependencies = [
  "prost",
  "trybuild",
  "umpire-annotations",
+ "umpire-catalog",
  "umpire-temporal-annotate-macros",
  "umpire-temporal-api",
  "umpire-wasm",
@@ -1003,6 +1047,8 @@ dependencies = [
  "prost",
  "quote",
  "syn 3.0.9",
+ "umpire-catalog-build",
+ "umpire-catalog-syntax",
  "umpire-wasm",
 ]
 
@@ -1012,8 +1058,8 @@ version = "0.0.1"
 dependencies = [
  "prost",
  "prost-build",
- "quote",
  "umpire-annotations",
+ "umpire-catalog-build",
  "umpire-temporal-annotate-syntax",
  "umpire-wasm",
 ]

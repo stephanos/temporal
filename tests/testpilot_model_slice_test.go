@@ -31,12 +31,12 @@ import (
 	"google.golang.org/protobuf/types/known/timestamppb"
 	"umpire.local/model"
 	modelv1 "umpire.local/model/umpire/model/v1"
+	realizationv1 "umpire.local/model/umpire/realization/v1"
 	temporalmodel "umpire.local/temporal"
-	temporalv1 "umpire.local/temporal/umpire/temporal/v1"
 )
 
 type modelSliceReply struct {
-	reply *temporalv1.Reply
+	reply *realizationv1.Reply
 	err   error
 }
 
@@ -60,14 +60,14 @@ type modelSliceDescribed struct {
 
 func modelSliceJudge(ctx context.Context, t *testing.T, host *model.Host, described modelSliceDescribed) *modelv1.JudgeResponse {
 	t.Helper()
-	return modelSliceJudgeObservation(ctx, t, host, &temporalv1.Observation{
+	return modelSliceJudgeObservation(ctx, t, host, &realizationv1.Observation{
 		Method:  workflowservice.WorkflowService_DescribeActivityExecution_FullMethodName,
-		Result:  &temporalv1.Observation_Response{Response: modelSliceAny(t, described.DescribeActivityExecutionResponse)},
+		Result:  &realizationv1.Observation_Response{Response: modelSliceAny(t, described.DescribeActivityExecutionResponse)},
 		Request: modelSliceAny(t, described.request),
 	})
 }
 
-func modelSliceJudgeObservation(ctx context.Context, t *testing.T, host *model.Host, observation *temporalv1.Observation) *modelv1.JudgeResponse {
+func modelSliceJudgeObservation(ctx context.Context, t *testing.T, host *model.Host, observation *realizationv1.Observation) *modelv1.JudgeResponse {
 	t.Helper()
 	request := &modelv1.JudgeRequest{Observation: modelSliceAny(t, observation)}
 	judgeStart := time.Now()
@@ -88,7 +88,7 @@ func modelSliceExplained(t *testing.T, judgment *modelv1.JudgeResponse, response
 	require.Equal(t, outcomes, judgment.GetExplained().GetOutcomes())
 }
 
-func modelSliceReturn(reply *temporalv1.Reply, dc converter.DataConverter) ([]byte, error) {
+func modelSliceReturn(reply *realizationv1.Reply, dc converter.DataConverter) ([]byte, error) {
 	request := reply.GetRequest()
 	if request == nil {
 		return nil, errors.New("Model reply has no request")
@@ -252,7 +252,7 @@ func TestTestpilotModelSlice(t *testing.T) {
 					request:                           capture.request.(*workflowservice.DescribeActivityExecutionRequest),
 				}
 			}
-			cancelActivity := func() (*temporalv1.Observation, error) {
+			cancelActivity := func() (*realizationv1.Observation, error) {
 				cancelCtx, captures := modelSliceCapturing(ctx)
 				_, err := sdkClient.WorkflowService().RequestCancelActivityExecution(cancelCtx, &workflowservice.RequestCancelActivityExecutionRequest{
 					Namespace: env.Namespace().String(), ActivityId: handle.GetID(), RunId: handle.GetRunID(),
@@ -321,11 +321,11 @@ func TestTestpilotModelSlice(t *testing.T) {
 				require.EqualValues(t, 1, calls.Load())
 				return
 			}
-			callback := modelSliceAny(t, &temporalv1.Callback{Task: modelSliceAny(t, delivery.task)})
+			callback := modelSliceAny(t, &realizationv1.Callback{Task: modelSliceAny(t, delivery.task)})
 			answerStart := time.Now()
 			answer, answerErr := host.Answer(ctx, &modelv1.AnswerRequest{Callback: callback})
 			t.Logf("Answer latency=%s scenario=%s", time.Since(answerStart), scenario)
-			reply := new(temporalv1.Reply)
+			reply := new(realizationv1.Reply)
 			if answerErr == nil {
 				answerErr = answer.GetReply().UnmarshalTo(reply)
 			}
@@ -402,7 +402,7 @@ func TestTestpilotModelSlice(t *testing.T) {
 				repeated = describe()
 				require.Equal(t, enumspb.ACTIVITY_EXECUTION_STATUS_COMPLETED, repeated.GetInfo().GetStatus())
 				modelSliceExplained(t, modelSliceJudge(ctx, t, host, repeated), repeated)
-				mutated := proto.Clone(observation).(*temporalv1.Observation)
+				mutated := proto.Clone(observation).(*realizationv1.Observation)
 				mutated.GetError().Code = int32(codes.FailedPrecondition)
 				frozen = modelSliceJudgeObservation(ctx, t, host, mutated)
 				require.Equal(t, int32(codes.NotFound), observation.GetError().GetCode())

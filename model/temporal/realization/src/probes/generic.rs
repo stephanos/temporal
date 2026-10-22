@@ -6,13 +6,14 @@ use umpire_annotations::{
     mutation_entries, wire_cases,
 };
 use umpire_temporal_api::{
-    WorkflowServiceMethod, mutate_workflow_request,
-    umpire::temporal::v1::{
-        ProbeApplicability, ProbeCase, ProbeExpectation, ProbeObservation, ProbeRequest,
-        ProbeResponse,
-    },
+    WorkflowServiceMethod, mutate_workflow_request, umpire::temporal::v1::ProbeRequest,
     workflow_request_fields,
 };
+use umpire_wasm::annotations::ProbeApplicability;
+use umpire_wasm::annotations::ProbeCase;
+use umpire_wasm::annotations::ProbeExpectation;
+use umpire_wasm::annotations::ProbeObservation;
+use umpire_wasm::annotations::ProbeResponse;
 
 pub(super) const MAX_CASES: usize = 32_768;
 pub(super) const MAX_PREDICTIONS: usize = 256;

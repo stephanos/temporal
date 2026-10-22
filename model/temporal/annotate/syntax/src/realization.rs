@@ -141,20 +141,12 @@ pub struct ClassifiedField {
     pub reason: Option<String>,
 }
 
-/// Catalog sources and the directories whose additions must invalidate generation.
-#[derive(Debug, Default)]
-pub struct CatalogInputs {
-    /// Admitted source files in deterministic discovery order.
-    pub files: Vec<PathBuf>,
-    /// Every visited directory, including those with no catalog file yet.
-    pub directories: Vec<PathBuf>,
-}
+/// Catalog sources and their directory freshness inputs.
+pub use umpire_catalog_build::coverage::Inputs as CatalogInputs;
 
-/// Discover the shared catalog filename policy and all directory freshness inputs.
+/// Discover declarations using the framework-owned catalog filename policy.
 pub fn catalog_inputs(root: &Path) -> Result<CatalogInputs, String> {
-    let mut inputs = CatalogInputs::default();
-    collect_catalog_inputs(root, &mut inputs)?;
-    Ok(inputs)
+    umpire_catalog_build::coverage::inputs(root).map_err(|error| error.to_string())
 }
 
 impl Schema {
@@ -470,27 +462,6 @@ fn overlaps(left: &str, right: &str) -> bool {
     left == right
         || left.starts_with(&format!("{right}."))
         || right.starts_with(&format!("{left}."))
-}
-
-fn collect_catalog_inputs(root: &Path, inputs: &mut CatalogInputs) -> Result<(), String> {
-    inputs.directories.push(root.to_owned());
-    let mut entries: Vec<_> = fs::read_dir(root)
-        .map_err(|error| error.to_string())?
-        .collect::<Result<_, _>>()
-        .map_err(|error| error.to_string())?;
-    entries.sort_by_key(fs::DirEntry::path);
-    for entry in entries {
-        let path = entry.path();
-        if entry.file_type().map_err(|error| error.to_string())?.is_dir() {
-            collect_catalog_inputs(&path, inputs)?;
-        } else if path
-            .file_name()
-            .is_some_and(|name| name == "api.rs" || name == "enum_inventory.rs")
-        {
-            inputs.files.push(path);
-        }
-    }
-    Ok(())
 }
 
 fn collect(

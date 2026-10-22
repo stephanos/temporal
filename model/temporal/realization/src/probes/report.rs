@@ -1,7 +1,8 @@
 use super::{Entry, Result, dispositions, generic};
 use std::{collections::BTreeSet, fmt::Write};
 use umpire_annotations::{Expectation, GapEntry, GapOutcome, GapReport, ProbeResult};
-use umpire_temporal_api::umpire::temporal::v1::{ProbeRequest, ProbeResponse};
+use umpire_temporal_api::umpire::temporal::v1::ProbeRequest;
+use umpire_wasm::annotations::ProbeResponse;
 
 pub(super) fn classify(
     request: &ProbeRequest,
@@ -140,9 +141,7 @@ fn classify_generic(
     Ok(fails)
 }
 
-fn observation_result(
-    observation: &umpire_temporal_api::umpire::temporal::v1::ProbeObservation,
-) -> ProbeResult {
+fn observation_result(observation: &umpire_wasm::annotations::ProbeObservation) -> ProbeResult {
     if observation.accepted {
         ProbeResult::Accepted
     } else {

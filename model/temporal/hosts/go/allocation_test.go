@@ -11,9 +11,9 @@ import (
 	enumspb "go.temporal.io/api/enums/v1"
 	"google.golang.org/protobuf/proto"
 	"google.golang.org/protobuf/types/known/anypb"
+	annotationsv1 "umpire.local/model/umpire/annotations/v1"
 	modelv1 "umpire.local/model/umpire/model/v1"
 	temporalmodel "umpire.local/temporal"
-	temporalv1 "umpire.local/temporal/umpire/temporal/v1"
 )
 
 type rawGuest struct {
@@ -183,7 +183,7 @@ func TestTemporalResponseExhaustionRollsBackState(t *testing.T) {
 
 func annotationPoll(t *testing.T) proto.Message {
 	t.Helper()
-	return &modelv1.AnnotateRequest{Input: pack(t, &temporalv1.AnnotationRequest{
+	return &modelv1.AnnotateRequest{Input: pack(t, &annotationsv1.AnnotationRequest{
 		Method: "/temporal.api.workflowservice.v1.WorkflowService/PollActivityTaskQueue", Response: true,
 	})}
 }

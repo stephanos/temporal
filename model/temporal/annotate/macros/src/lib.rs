@@ -4,10 +4,14 @@
 #[proc_macro_derive(Catalog, attributes(rule, mirror))]
 pub fn derive_catalog(input: proc_macro::TokenStream) -> proc_macro::TokenStream {
     let input = syn::parse_macro_input!(input as syn::DeriveInput);
-    umpire_temporal_annotate_syntax::DeriveCatalog::parse(&input)
-        .and_then(|catalog| umpire_temporal_annotate_syntax::expand_derive(&catalog))
-        .unwrap_or_else(syn::Error::into_compile_error)
-        .into()
+    umpire_temporal_annotate_syntax::DeriveCatalog::parse_with(
+        &input,
+        syn::parse_quote!(crate::foundation::dc::Limits),
+        &syn::parse_quote!(::umpire_temporal_api),
+    )
+    .and_then(|catalog| umpire_temporal_annotate_syntax::expand_derive(&catalog))
+    .unwrap_or_else(syn::Error::into_compile_error)
+    .into()
 }
 
 /// Generate typed catalogs and exhaustive enum and model action bindings.

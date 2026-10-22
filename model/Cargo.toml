@@ -4,6 +4,10 @@
 resolver = "3"
 members = [
     "umpire/annotations",
+    "umpire/catalog",
+    "umpire/catalog/macros",
+    "umpire/catalog/syntax",
+    "umpire/catalog-build",
     "umpire/dsl",
     "umpire/dsl/macros",
     "umpire/checker",
@@ -37,6 +41,10 @@ publish = false
 license = "MIT"
 
 [workspace.dependencies]
+umpire-catalog = { version = "0.0.1", path = "umpire/catalog" }
+umpire-catalog-macros = { version = "0.0.1", path = "umpire/catalog/macros" }
+umpire-catalog-syntax = { version = "0.0.1", path = "umpire/catalog/syntax" }
+umpire-catalog-build = { version = "0.0.1", path = "umpire/catalog-build" }
 umpire-annotations = { version = "0.0.1", path = "umpire/annotations" }
 umpire-dsl = { version = "0.0.1", path = "umpire/dsl" }
 umpire-dsl-macros = { version = "0.0.1", path = "umpire/dsl/macros" }

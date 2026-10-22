@@ -15,8 +15,8 @@ import (
 	"google.golang.org/protobuf/types/known/anypb"
 	"umpire.local/model"
 	modelv1 "umpire.local/model/umpire/model/v1"
+	realizationv1 "umpire.local/model/umpire/realization/v1"
 	temporalmodel "umpire.local/temporal"
-	temporalv1 "umpire.local/temporal/umpire/temporal/v1"
 )
 
 const describeMethod = "/temporal.api.workflowservice.v1.WorkflowService/DescribeActivityExecution"
@@ -24,11 +24,11 @@ const cancelMethod = "/temporal.api.workflowservice.v1.WorkflowService/RequestCa
 
 func cancelObservation(t *testing.T, code int32) *anypb.Any {
 	t.Helper()
-	value := &temporalv1.Observation{Method: cancelMethod}
+	value := &realizationv1.Observation{Method: cancelMethod}
 	if code == 0 {
-		value.Result = &temporalv1.Observation_Response{Response: pack(t, &workflowservice.RequestCancelActivityExecutionResponse{})}
+		value.Result = &realizationv1.Observation_Response{Response: pack(t, &workflowservice.RequestCancelActivityExecutionResponse{})}
 	} else {
-		value.Result = &temporalv1.Observation_Error{Error: &temporalv1.Error{Code: code, Message: "actual server status"}}
+		value.Result = &realizationv1.Observation_Error{Error: &realizationv1.Error{Code: code, Message: "actual server status"}}
 	}
 	return pack(t, value)
 }
@@ -84,12 +84,12 @@ func TestCancelStatusContradictionFreezesAndMalformedEnvelopeRefuses(t *testing.
 		}
 	}
 	for _, tc := range []struct {
-		value *temporalv1.Observation
+		value *realizationv1.Observation
 		code  modelv1.RefusalCode
 	}{
-		{&temporalv1.Observation{Method: "unknown", Result: &temporalv1.Observation_Error{Error: &temporalv1.Error{Code: 5}}}, modelv1.RefusalCode_REFUSAL_CODE_UNSUPPORTED},
-		{&temporalv1.Observation{Method: cancelMethod}, modelv1.RefusalCode_REFUSAL_CODE_MALFORMED_REQUEST},
-		{&temporalv1.Observation{Method: cancelMethod, Result: &temporalv1.Observation_Response{Response: pack(t, &workflowservice.DescribeActivityExecutionResponse{})}}, modelv1.RefusalCode_REFUSAL_CODE_MALFORMED_REQUEST},
+		{&realizationv1.Observation{Method: "unknown", Result: &realizationv1.Observation_Error{Error: &realizationv1.Error{Code: 5}}}, modelv1.RefusalCode_REFUSAL_CODE_UNSUPPORTED},
+		{&realizationv1.Observation{Method: cancelMethod}, modelv1.RefusalCode_REFUSAL_CODE_MALFORMED_REQUEST},
+		{&realizationv1.Observation{Method: cancelMethod, Result: &realizationv1.Observation_Response{Response: pack(t, &workflowservice.DescribeActivityExecutionResponse{})}}, modelv1.RefusalCode_REFUSAL_CODE_MALFORMED_REQUEST},
 	} {
 		h := guest(t)
 		_, err := h.Judge(context.Background(), &modelv1.JudgeRequest{Observation: pack(t, tc.value)})
@@ -100,27 +100,27 @@ func TestCancelStatusContradictionFreezesAndMalformedEnvelopeRefuses(t *testing.
 
 func TestObservationResultWireCompatibility(t *testing.T) {
 	for _, tc := range []struct {
-		value *temporalv1.Observation
+		value *realizationv1.Observation
 		wire  []byte
 	}{
-		{&temporalv1.Observation{Method: "m", Result: &temporalv1.Observation_Response{Response: &anypb.Any{TypeUrl: "x", Value: []byte{1, 2}}}}, []byte{10, 1, 'm', 18, 7, 10, 1, 'x', 18, 2, 1, 2}},
-		{&temporalv1.Observation{Method: "m", Result: &temporalv1.Observation_Error{Error: &temporalv1.Error{Code: 5, Message: "x"}}}, []byte{10, 1, 'm', 26, 5, 8, 5, 18, 1, 'x'}},
+		{&realizationv1.Observation{Method: "m", Result: &realizationv1.Observation_Response{Response: &anypb.Any{TypeUrl: "x", Value: []byte{1, 2}}}}, []byte{10, 1, 'm', 18, 7, 10, 1, 'x', 18, 2, 1, 2}},
+		{&realizationv1.Observation{Method: "m", Result: &realizationv1.Observation_Error{Error: &realizationv1.Error{Code: 5, Message: "x"}}}, []byte{10, 1, 'm', 26, 5, 8, 5, 18, 1, 'x'}},
 		// Deliberate protobuf-go upgrade tripwire: this release emits the oneof after regular
 		// fields, an order protobuf does not promise. If an upgrade changes it, re-pin these
 		// bytes; the decode equality with Rust's number order below is the compatibility claim.
-		{&temporalv1.Observation{Method: "m", Result: &temporalv1.Observation_Response{Response: &anypb.Any{TypeUrl: "x", Value: []byte{1, 2}}}, Request: &anypb.Any{TypeUrl: "r", Value: []byte{3}}}, []byte{10, 1, 'm', 34, 6, 10, 1, 'r', 18, 1, 3, 18, 7, 10, 1, 'x', 18, 2, 1, 2}},
+		{&realizationv1.Observation{Method: "m", Result: &realizationv1.Observation_Response{Response: &anypb.Any{TypeUrl: "x", Value: []byte{1, 2}}}, Request: &anypb.Any{TypeUrl: "r", Value: []byte{3}}}, []byte{10, 1, 'm', 34, 6, 10, 1, 'r', 18, 1, 3, 18, 7, 10, 1, 'x', 18, 2, 1, 2}},
 	} {
 		encoded, err := proto.Marshal(tc.value)
 		if err != nil || !bytes.Equal(encoded, tc.wire) {
 			t.Fatalf("encoded %x, %v; want %x", encoded, err, tc.wire)
 		}
-		var decoded temporalv1.Observation
+		var decoded realizationv1.Observation
 		if err := proto.Unmarshal(tc.wire, &decoded); err != nil || !proto.Equal(tc.value, &decoded) {
 			t.Fatalf("decoded %v, %v; want %v", &decoded, err, tc.value)
 		}
 	}
-	want := &temporalv1.Observation{Method: "m", Result: &temporalv1.Observation_Response{Response: &anypb.Any{TypeUrl: "x", Value: []byte{1, 2}}}, Request: &anypb.Any{TypeUrl: "r", Value: []byte{3}}}
-	var decoded temporalv1.Observation
+	want := &realizationv1.Observation{Method: "m", Result: &realizationv1.Observation_Response{Response: &anypb.Any{TypeUrl: "x", Value: []byte{1, 2}}}, Request: &anypb.Any{TypeUrl: "r", Value: []byte{3}}}
+	var decoded realizationv1.Observation
 	rust := []byte{10, 1, 'm', 18, 7, 10, 1, 'x', 18, 2, 1, 2, 34, 6, 10, 1, 'r', 18, 1, 3}
 	if err := proto.Unmarshal(rust, &decoded); err != nil || !proto.Equal(want, &decoded) {
 		t.Fatalf("decoded Rust order %v, %v; want %v", &decoded, err, want)
@@ -129,7 +129,7 @@ func TestObservationResultWireCompatibility(t *testing.T) {
 
 func TestActualRequestLeavesJudgmentsUnchanged(t *testing.T) {
 	carry := func(value *anypb.Any, request proto.Message) *anypb.Any {
-		observation := new(temporalv1.Observation)
+		observation := new(realizationv1.Observation)
 		if err := value.UnmarshalTo(observation); err != nil {
 			t.Fatal(err)
 		}
@@ -185,9 +185,9 @@ func pack(t *testing.T, message proto.Message) *anypb.Any {
 
 func observation(t *testing.T, status enumspb.ActivityExecutionStatus, run enumspb.PendingActivityState) *anypb.Any {
 	t.Helper()
-	return pack(t, &temporalv1.Observation{
+	return pack(t, &realizationv1.Observation{
 		Method: describeMethod,
-		Result: &temporalv1.Observation_Response{Response: pack(t, &workflowservice.DescribeActivityExecutionResponse{Info: &activitypb.ActivityExecutionInfo{
+		Result: &realizationv1.Observation_Response{Response: pack(t, &workflowservice.DescribeActivityExecutionResponse{Info: &activitypb.ActivityExecutionInfo{
 			Status: status, RunState: run,
 		}})},
 	})
@@ -205,7 +205,7 @@ func started(t *testing.T) *anypb.Any {
 
 func callback(t *testing.T, policy string) *anypb.Any {
 	t.Helper()
-	return pack(t, &temporalv1.Callback{Task: pack(t, &workflowservice.PollActivityTaskQueueResponse{
+	return pack(t, &realizationv1.Callback{Task: pack(t, &workflowservice.PollActivityTaskQueueResponse{
 		Input: &commonpb.Payloads{Payloads: []*commonpb.Payload{{
 			Metadata: map[string][]byte{"encoding": []byte("binary/plain")}, Data: []byte(policy),
 		}}},
@@ -250,16 +250,16 @@ func refusal(t *testing.T, err error, code modelv1.RefusalCode) {
 	}
 }
 
-func answer(t *testing.T, h *model.Host, policy string) *temporalv1.Reply {
+func answer(t *testing.T, h *model.Host, policy string) *realizationv1.Reply {
 	t.Helper()
 	response, err := h.Answer(context.Background(), &modelv1.AnswerRequest{Callback: callback(t, policy)})
 	if err != nil {
 		t.Fatal(err)
 	}
-	if response.GetReply().GetTypeUrl() != "type.googleapis.com/umpire.temporal.v1.Reply" {
+	if response.GetReply().GetTypeUrl() != "type.googleapis.com/umpire.realization.v1.Reply" {
 		t.Fatalf("reply envelope = %v", response)
 	}
-	reply := new(temporalv1.Reply)
+	reply := new(realizationv1.Reply)
 	if err := response.GetReply().UnmarshalTo(reply); err != nil {
 		t.Fatal(err)
 	}
@@ -361,41 +361,41 @@ func TestImpossibleObservationFreezesUntilReset(t *testing.T) {
 func TestCallbackRefusalPreservesScheduled(t *testing.T) {
 	for _, tc := range []struct {
 		name   string
-		mutate func(*testing.T, *temporalv1.Callback)
+		mutate func(*testing.T, *realizationv1.Callback)
 		code   modelv1.RefusalCode
 	}{
-		{"missing task", func(_ *testing.T, c *temporalv1.Callback) { c.Task = nil }, modelv1.RefusalCode_REFUSAL_CODE_MALFORMED_REQUEST},
-		{"missing task URL", func(_ *testing.T, c *temporalv1.Callback) { c.Task.TypeUrl = "" }, modelv1.RefusalCode_REFUSAL_CODE_MALFORMED_REQUEST},
-		{"wrong task type", func(_ *testing.T, c *temporalv1.Callback) {
+		{"missing task", func(_ *testing.T, c *realizationv1.Callback) { c.Task = nil }, modelv1.RefusalCode_REFUSAL_CODE_MALFORMED_REQUEST},
+		{"missing task URL", func(_ *testing.T, c *realizationv1.Callback) { c.Task.TypeUrl = "" }, modelv1.RefusalCode_REFUSAL_CODE_MALFORMED_REQUEST},
+		{"wrong task type", func(_ *testing.T, c *realizationv1.Callback) {
 			c.Task.TypeUrl = "type.googleapis.com/temporal.api.workflowservice.v1.DescribeActivityExecutionResponse"
 		}, modelv1.RefusalCode_REFUSAL_CODE_UNSUPPORTED},
-		{"alternate task URL", func(_ *testing.T, c *temporalv1.Callback) {
+		{"alternate task URL", func(_ *testing.T, c *realizationv1.Callback) {
 			c.Task.TypeUrl = "other/temporal.api.workflowservice.v1.PollActivityTaskQueueResponse"
 		}, modelv1.RefusalCode_REFUSAL_CODE_UNSUPPORTED},
-		{"malformed task", func(_ *testing.T, c *temporalv1.Callback) { c.Task.Value = []byte{255} }, modelv1.RefusalCode_REFUSAL_CODE_MALFORMED_REQUEST},
-		{"missing input", func(t *testing.T, c *temporalv1.Callback) {
+		{"malformed task", func(_ *testing.T, c *realizationv1.Callback) { c.Task.Value = []byte{255} }, modelv1.RefusalCode_REFUSAL_CODE_MALFORMED_REQUEST},
+		{"missing input", func(t *testing.T, c *realizationv1.Callback) {
 			c.Task = pack(t, &workflowservice.PollActivityTaskQueueResponse{})
 		}, modelv1.RefusalCode_REFUSAL_CODE_MALFORMED_REQUEST},
-		{"zero payloads", func(t *testing.T, c *temporalv1.Callback) {
+		{"zero payloads", func(t *testing.T, c *realizationv1.Callback) {
 			c.Task = pack(t, &workflowservice.PollActivityTaskQueueResponse{Input: &commonpb.Payloads{}})
 		}, modelv1.RefusalCode_REFUSAL_CODE_MALFORMED_REQUEST},
-		{"two payloads", func(t *testing.T, c *temporalv1.Callback) {
+		{"two payloads", func(t *testing.T, c *realizationv1.Callback) {
 			c.Task = pack(t, &workflowservice.PollActivityTaskQueueResponse{Input: &commonpb.Payloads{Payloads: []*commonpb.Payload{{}, {}}}})
 		}, modelv1.RefusalCode_REFUSAL_CODE_MALFORMED_REQUEST},
-		{"unknown policy", func(t *testing.T, c *temporalv1.Callback) {
-			value := new(temporalv1.Callback)
+		{"unknown policy", func(t *testing.T, c *realizationv1.Callback) {
+			value := new(realizationv1.Callback)
 			if err := callback(t, "Retry").UnmarshalTo(value); err != nil {
 				t.Fatal(err)
 			}
 			c.Task = value.Task
 		}, modelv1.RefusalCode_REFUSAL_CODE_UNSUPPORTED},
-		{"wrong encoding", func(t *testing.T, c *temporalv1.Callback) {
+		{"wrong encoding", func(t *testing.T, c *realizationv1.Callback) {
 			c.Task = pack(t, &workflowservice.PollActivityTaskQueueResponse{Input: &commonpb.Payloads{Payloads: []*commonpb.Payload{{Metadata: map[string][]byte{"encoding": []byte("json/plain")}, Data: []byte("Complete")}}}})
 		}, modelv1.RefusalCode_REFUSAL_CODE_UNSUPPORTED},
 	} {
 		t.Run(tc.name, func(t *testing.T) {
 			h := guest(t)
-			value := new(temporalv1.Callback)
+			value := new(realizationv1.Callback)
 			if err := callback(t, "Complete").UnmarshalTo(value); err != nil {
 				t.Fatal(err)
 			}
@@ -418,31 +418,31 @@ func TestObservationRefusalPreservesScheduled(t *testing.T) {
 		{"wrong outer type", func(t *testing.T) *anypb.Any { return callback(t, "Complete") }, modelv1.RefusalCode_REFUSAL_CODE_UNSUPPORTED},
 		{"alternate outer URL", func(t *testing.T) *anypb.Any {
 			a := scheduled(t)
-			a.TypeUrl = "other/umpire.temporal.v1.Observation"
+			a.TypeUrl = "other/umpire.realization.v1.Observation"
 			return a
 		}, modelv1.RefusalCode_REFUSAL_CODE_UNSUPPORTED},
 		{"malformed envelope", func(t *testing.T) *anypb.Any { a := scheduled(t); a.Value = []byte{255}; return a }, modelv1.RefusalCode_REFUSAL_CODE_MALFORMED_REQUEST},
 		{"unsupported method", func(t *testing.T) *anypb.Any {
-			return pack(t, &temporalv1.Observation{Method: "DescribeActivityExecution", Result: &temporalv1.Observation_Response{Response: pack(t, &workflowservice.DescribeActivityExecutionResponse{})}})
+			return pack(t, &realizationv1.Observation{Method: "DescribeActivityExecution", Result: &realizationv1.Observation_Response{Response: pack(t, &workflowservice.DescribeActivityExecutionResponse{})}})
 		}, modelv1.RefusalCode_REFUSAL_CODE_UNSUPPORTED},
 		{"missing method", func(t *testing.T) *anypb.Any {
-			return pack(t, &temporalv1.Observation{Result: &temporalv1.Observation_Response{Response: pack(t, &workflowservice.DescribeActivityExecutionResponse{})}})
+			return pack(t, &realizationv1.Observation{Result: &realizationv1.Observation_Response{Response: pack(t, &workflowservice.DescribeActivityExecutionResponse{})}})
 		}, modelv1.RefusalCode_REFUSAL_CODE_MALFORMED_REQUEST},
-		{"missing response", func(t *testing.T) *anypb.Any { return pack(t, &temporalv1.Observation{Method: describeMethod}) }, modelv1.RefusalCode_REFUSAL_CODE_MALFORMED_REQUEST},
+		{"missing response", func(t *testing.T) *anypb.Any { return pack(t, &realizationv1.Observation{Method: describeMethod}) }, modelv1.RefusalCode_REFUSAL_CODE_MALFORMED_REQUEST},
 		{"missing response URL", func(t *testing.T) *anypb.Any {
-			return pack(t, &temporalv1.Observation{Method: describeMethod, Result: &temporalv1.Observation_Response{Response: &anypb.Any{}}})
+			return pack(t, &realizationv1.Observation{Method: describeMethod, Result: &realizationv1.Observation_Response{Response: &anypb.Any{}}})
 		}, modelv1.RefusalCode_REFUSAL_CODE_MALFORMED_REQUEST},
 		{"wrong inner type", func(t *testing.T) *anypb.Any {
-			return pack(t, &temporalv1.Observation{Method: describeMethod, Result: &temporalv1.Observation_Response{Response: pack(t, &workflowservice.PollActivityTaskQueueResponse{})}})
+			return pack(t, &realizationv1.Observation{Method: describeMethod, Result: &realizationv1.Observation_Response{Response: pack(t, &workflowservice.PollActivityTaskQueueResponse{})}})
 		}, modelv1.RefusalCode_REFUSAL_CODE_UNSUPPORTED},
 		{"alternate inner URL", func(t *testing.T) *anypb.Any {
-			return pack(t, &temporalv1.Observation{Method: describeMethod, Result: &temporalv1.Observation_Response{Response: &anypb.Any{TypeUrl: "other/temporal.api.workflowservice.v1.DescribeActivityExecutionResponse"}}})
+			return pack(t, &realizationv1.Observation{Method: describeMethod, Result: &realizationv1.Observation_Response{Response: &anypb.Any{TypeUrl: "other/temporal.api.workflowservice.v1.DescribeActivityExecutionResponse"}}})
 		}, modelv1.RefusalCode_REFUSAL_CODE_UNSUPPORTED},
 		{"malformed response", func(t *testing.T) *anypb.Any {
-			return pack(t, &temporalv1.Observation{Method: describeMethod, Result: &temporalv1.Observation_Response{Response: &anypb.Any{TypeUrl: "type.googleapis.com/temporal.api.workflowservice.v1.DescribeActivityExecutionResponse", Value: []byte{255}}}})
+			return pack(t, &realizationv1.Observation{Method: describeMethod, Result: &realizationv1.Observation_Response{Response: &anypb.Any{TypeUrl: "type.googleapis.com/temporal.api.workflowservice.v1.DescribeActivityExecutionResponse", Value: []byte{255}}}})
 		}, modelv1.RefusalCode_REFUSAL_CODE_MALFORMED_REQUEST},
 		{"missing info", func(t *testing.T) *anypb.Any {
-			return pack(t, &temporalv1.Observation{Method: describeMethod, Result: &temporalv1.Observation_Response{Response: pack(t, &workflowservice.DescribeActivityExecutionResponse{})}})
+			return pack(t, &realizationv1.Observation{Method: describeMethod, Result: &realizationv1.Observation_Response{Response: pack(t, &workflowservice.DescribeActivityExecutionResponse{})}})
 		}, modelv1.RefusalCode_REFUSAL_CODE_MALFORMED_REQUEST},
 		{"unknown status", func(t *testing.T) *anypb.Any { return observation(t, 999, 1) }, modelv1.RefusalCode_REFUSAL_CODE_UNSUPPORTED},
 		{"unknown run state", func(t *testing.T) *anypb.Any { return observation(t, enumspb.ACTIVITY_EXECUTION_STATUS_RUNNING, 999) }, modelv1.RefusalCode_REFUSAL_CODE_UNSUPPORTED},
@@ -475,7 +475,7 @@ func TestCallbackEnvelopeRefusalPreservesScheduled(t *testing.T) {
 		{"wrong outer type", scheduled, modelv1.RefusalCode_REFUSAL_CODE_UNSUPPORTED},
 		{"alternate outer URL", func(t *testing.T) *anypb.Any {
 			a := callback(t, "Complete")
-			a.TypeUrl = "other/umpire.temporal.v1.Callback"
+			a.TypeUrl = "other/umpire.realization.v1.Callback"
 			return a
 		}, modelv1.RefusalCode_REFUSAL_CODE_UNSUPPORTED},
 		{"malformed envelope", func(t *testing.T) *anypb.Any { a := callback(t, "Complete"); a.Value = []byte{255}; return a }, modelv1.RefusalCode_REFUSAL_CODE_MALFORMED_REQUEST},

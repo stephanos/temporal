@@ -12,6 +12,8 @@ use crate::{Catalog, Expected, Field, Message, Projection, Rule, Tag};
 /// A checked mirror struct, parsed identically by the derive and build script.
 #[derive(Debug)]
 pub struct DeriveCatalog {
+    /// Caller-owned inspection and limit context.
+    pub context: Path,
     /// Author's mirror type.
     pub name: Ident,
     /// Concrete protobuf message type.
@@ -72,6 +74,10 @@ pub enum ApiExpectation {
 /// Parsed helper attributes; shared with descriptor and compiler consumers.
 #[derive(Debug, Clone, Default)]
 pub struct ApiAttributes {
+    /// Caller-owned context type.
+    pub context: Option<Path>,
+    /// Root of generated protobuf modules.
+    pub api: Option<Path>,
     /// Typed supplemental response mirror.
     pub response_checks: Option<Path>,
     /// Message direction and protobuf name.
@@ -127,6 +133,11 @@ impl syn::parse::Parse for ApiAttributes {
                         span,
                         "message direction",
                     )?;
+                }
+                "context" | "api" => {
+                    input.parse::<Token![=]>()?;
+                    let slot = if key == "context" { &mut result.context } else { &mut result.api };
+                    set_once(slot, input.parse()?, span, &key.to_string())?;
                 }
                 "type" => {
                     input.parse::<Token![=]>()?;
@@ -227,7 +238,9 @@ fn attributes(attrs: &[Attribute]) -> syn::Result<Vec<ApiAttributes>> {
         .filter(|attr| attr.path().is_ident("rule") || attr.path().is_ident("mirror"))
         .map(|attr| {
             let parsed: ApiAttributes = attr.parse_args()?;
-            let mapping = parsed.direction.is_some()
+            let mapping = parsed.context.is_some()
+                || parsed.api.is_some()
+                || parsed.direction.is_some()
                 || parsed.proto_type.is_some()
                 || parsed.supplemental
                 || parsed.response_checks.is_some()
@@ -259,6 +272,8 @@ fn merge(mut lines: Vec<ApiAttributes>) -> syn::Result<ApiAttributes> {
     let mut result = ApiAttributes::default();
     for mut line in lines.drain(..) {
         for (target, value, label) in [
+            (&mut result.context, line.context.take(), "context"),
+            (&mut result.api, line.api.take(), "api"),
             (&mut result.response_checks, line.response_checks.take(), "response_checks"),
             (&mut result.via, line.via.take(), "via"),
             (&mut result.proto_type, line.proto_type.take(), "type"),
@@ -317,6 +332,11 @@ pub fn marker(ty: &Type) -> syn::Result<&syn::PathSegment> {
 impl DeriveCatalog {
     /// Parses and admits a mirror using the shared catalog admission rules.
     pub fn parse(input: &DeriveInput) -> syn::Result<Self> {
+        Self::parse_with(input, syn::parse_quote!(crate::CatalogContext), &syn::parse_quote!(crate))
+    }
+
+    /// Parse with consumer defaults; explicit mirror parameters take precedence.
+    pub fn parse_with(input: &DeriveInput, context: Path, api: &Path) -> syn::Result<Self> {
         if !input.generics.params.is_empty() {
             return Err(syn::Error::new_spanned(
                 &input.generics,
@@ -367,7 +387,10 @@ impl DeriveCatalog {
         if proto.value().trim().is_empty() {
             return Err(syn::Error::new(proto.span(), "message requires a nonempty name"));
         }
-        let ty = item.proto_type.clone().map_or_else(|| inferred_type(&proto), Ok)?;
+        let ty = item
+            .proto_type
+            .clone()
+            .map_or_else(|| inferred_type(&proto, item.api.as_ref().unwrap_or(api)), Ok)?;
         let syn::Data::Struct(data) = &input.data else {
             return Err(syn::Error::new_spanned(input, "Catalog requires a mirror struct"));
         };
@@ -380,6 +403,7 @@ impl DeriveCatalog {
             .map(|field| parse_field(field, request))
             .collect::<syn::Result<_>>()?;
         let result = Self {
+            context: item.context.clone().unwrap_or(context),
             name: input.ident.clone(),
             ty,
             proto,
@@ -400,6 +424,7 @@ impl DeriveCatalog {
             for additional in &field.attributes.also {
                 let extra = Self::supplemental_field(field, additional)?;
                 Self {
+                    context: self.context.clone(),
                     name: self.name.clone(),
                     ty: self.ty.clone(),
                     proto: self.proto.clone(),
@@ -431,7 +456,7 @@ impl DeriveCatalog {
         }
         Ok(DeriveField {
             name: field.name.clone(),
-            ty: syn::parse_quote!(::umpire_temporal_annotate::kinds::#kind),
+            ty: syn::parse_quote!(::umpire_catalog::kinds::#kind),
             description: field.description.clone(),
             attributes,
         })
@@ -552,7 +577,7 @@ impl DeriveCatalog {
                 messages.push(Message {
                     request: false,
                     factory: format_ident!("{}_entry", field.name.unraw()),
-                    ty: syn::parse_quote!(::umpire_temporal_annotate::views::MetadataEntry),
+                    ty: syn::parse_quote!(::umpire_catalog::views::MetadataEntry),
                     proto: LitStr::new(&entry, field.name.span()),
                     fields: ["key", "value"]
                         .map(|name| Field {
@@ -621,7 +646,7 @@ fn snake(name: &str) -> String {
     result
 }
 
-fn inferred_type(proto: &LitStr) -> syn::Result<Path> {
+fn inferred_type(proto: &LitStr, api: &Path) -> syn::Result<Path> {
     let name = proto.value();
     let mut parts: Vec<_> = name.split('.').collect();
     let message = parts
@@ -631,7 +656,10 @@ fn inferred_type(proto: &LitStr) -> syn::Result<Path> {
     let path = if package == "google::protobuf" {
         format!("::umpire_wasm::google::protobuf::{message}")
     } else {
-        format!("::umpire_temporal_api::{package}::{message}")
+        {
+            let root = quote::quote!(#api).to_string();
+            format!("{root}::{package}::{message}")
+        }
     };
     syn::parse_str(&path).map_err(|_| syn::Error::new(proto.span(), "invalid protobuf name"))
 }
@@ -745,7 +773,9 @@ fn parse_field(field: &syn::Field, request: bool) -> syn::Result<DeriveField> {
         return Err(syn::Error::new_spanned(field, "presence rules belong on the catalog item"));
     }
     let mut attrs = merge(field_lines)?;
-    if attrs.direction.is_some()
+    if attrs.context.is_some()
+        || attrs.api.is_some()
+        || attrs.direction.is_some()
         || attrs.proto_type.is_some()
         || attrs.supplemental
         || attrs.response_checks.is_some()

@@ -24,9 +24,9 @@ import (
 	"google.golang.org/grpc/status"
 	"google.golang.org/protobuf/proto"
 	"google.golang.org/protobuf/types/known/durationpb"
-	"umpire.local/model"
-	temporalmodel "umpire.local/temporal"
-	temporalv1 "umpire.local/temporal/umpire/temporal/v1"
+	model "umpire.local/model"
+	annotationsv1 "umpire.local/model/umpire/annotations/v1"
+	realizationv1 "umpire.local/model/umpire/realization/v1"
 )
 
 type modelSliceAnnotations struct {
@@ -69,14 +69,14 @@ func (c *modelSliceCaptures) single(t *testing.T) *modelSliceCapture {
 }
 
 // observation transports the owned pair; local validation errors never become RPC results.
-func (c *modelSliceCapture) observation(t *testing.T) *temporalv1.Observation {
+func (c *modelSliceCapture) observation(t *testing.T) *realizationv1.Observation {
 	t.Helper()
-	observation := &temporalv1.Observation{Method: c.method, Request: modelSliceAny(t, c.request)}
+	observation := &realizationv1.Observation{Method: c.method, Request: modelSliceAny(t, c.request)}
 	if c.rpcErr != nil {
 		rpcStatus := status.Convert(c.rpcErr)
-		observation.Result = &temporalv1.Observation_Error{Error: &temporalv1.Error{Code: int32(rpcStatus.Code()), Message: rpcStatus.Message()}}
+		observation.Result = &realizationv1.Observation_Error{Error: &realizationv1.Error{Code: int32(rpcStatus.Code()), Message: rpcStatus.Message()}}
 	} else {
-		observation.Result = &temporalv1.Observation_Response{Response: modelSliceAny(t, c.response)}
+		observation.Result = &realizationv1.Observation_Response{Response: modelSliceAny(t, c.response)}
 	}
 	return observation
 }
@@ -147,7 +147,7 @@ func (a *modelSliceAnnotations) annotate(method string, response bool, value any
 	}
 	ctx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
 	defer cancel()
-	output, err := temporalmodel.Annotate(ctx, a.host, &temporalv1.AnnotationRequest{Method: method, Response: response, Message: data, Seed: a.seed.Add(1)})
+	output, err := model.Annotate(ctx, a.host, &annotationsv1.AnnotationRequest{Method: method, Response: response, Message: data, Seed: a.seed.Add(1)})
 	if err != nil {
 		return fail("guest refused")
 	}

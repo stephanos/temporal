@@ -651,7 +651,7 @@ impl ::umpire_wasm::Realize<activity::World> for Realization {
         ::umpire_wasm::protocol::Refusal,
     > {
         let _ = state;
-        let __callback: ::umpire_temporal_api::umpire::temporal::v1::Callback = value
+        let __callback: ::umpire_wasm::realization::Callback = value
             .unpack()?;
         let __task_any = ::umpire_wasm::google::protobuf::Any::required(
             __callback.task,
@@ -729,7 +729,7 @@ impl ::umpire_wasm::Realize<activity::World> for Realization {
                     __delivery,
                     __action,
                     ::umpire_wasm::google::protobuf::Any::pack(
-                        &::umpire_temporal_api::umpire::temporal::v1::Reply {
+                        &::umpire_wasm::realization::Reply {
                             request: Some(__reply.request),
                         },
                     ),

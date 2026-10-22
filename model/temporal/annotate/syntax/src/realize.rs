@@ -488,7 +488,7 @@ fn answer(
                 }).collect();
             return Ok(::umpire_wasm::AnswerPlan::new(__delivery, __action,
                 ::umpire_wasm::google::protobuf::Any::pack(
-                    &::umpire_temporal_api::umpire::temporal::v1::Reply {
+                    &::umpire_wasm::realization::Reply {
                         request: Some(__reply.request),
                     }
                 )
@@ -893,7 +893,7 @@ fn expand_scoped(
             fn answer(&self, value: &::umpire_wasm::google::protobuf::Any, state: &#model::Model)
                 -> Result<::umpire_wasm::AnswerPlan<<#model::World as ::umpire_dsl::Machine>::Action>, ::umpire_wasm::protocol::Refusal> {
                 let _ = state;
-                let __callback: ::umpire_temporal_api::umpire::temporal::v1::Callback = value.unpack()?;
+                let __callback: ::umpire_wasm::realization::Callback = value.unpack()?;
                 let __task_any = ::umpire_wasm::google::protobuf::Any::required(__callback.task)?;
                 if __task_any.type_url.is_empty() {
                     return Err(::umpire_wasm::protocol::Refusal::malformed("Any type URL is missing"));

@@ -1,33 +1,18 @@
-//! Generate the upstream API closure and local envelopes.
-
+//! API closure generation with shared protocol imports.
 use std::{io, path::Path};
-
 pub(crate) fn generate(
     config: &mut prost_build::Config,
     upstream: &Path,
     schema: &Path,
     include: &Path,
 ) -> io::Result<()> {
-    let mut files = prost_build::Config::new()
-        .file_descriptor_set_path(upstream)
-        .skip_protoc_run()
-        .load_fds(&[] as &[&str], &[] as &[&str])?;
     config
-        .enable_type_names()
-        .type_name_domain(["."], "type.googleapis.com")
-        .compile_well_known_types()
-        .btree_map(["."])
-        .extern_path(".google.protobuf", "::umpire_wasm::google::protobuf")
-        .include_file("protocol.rs")
-        .disable_comments(["."])
-        .protoc_arg(format!("--descriptor_set_in={}", upstream.display()));
-    let extension = config.load_fds(&[schema], &[include])?;
-    for file in extension.file {
-        if !files.file.iter().any(|existing| existing.name == file.name) {
-            files.file.push(file);
-        }
-    }
-    // Same-package definitions are emitted in descriptor file order.
-    files.file.sort_by(|a, b| a.name.cmp(&b.name));
-    config.compile_fds(files)
+        .extern_path(".umpire.realization.v1", "::umpire_wasm::realization")
+        .extern_path(".umpire.annotations.v1", "::umpire_wasm::annotations");
+    umpire_catalog_build::codegen::generate(
+        config,
+        upstream,
+        schema,
+        &[include, &include.join("../../umpire/proto")],
+    )
 }

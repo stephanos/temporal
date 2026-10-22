@@ -1,15 +1,18 @@
 //! Typed transport annotation controls preserve the independent Model run.
 
+use umpire_wasm::annotations::AnnotationRequest;
+use umpire_wasm::annotations::AnnotationResponse;
+use umpire_wasm::annotations::ProbeResponse;
+use umpire_wasm::realization::Observation;
+use umpire_wasm::realization::observation;
+
 use prost::Message;
 use umpire_temporal::annotation_runtime;
 use umpire_temporal_api::{
     temporal::api::{
         activity::v1::ActivityExecutionInfo, workflowservice::v1::DescribeActivityExecutionResponse,
     },
-    umpire::temporal::v1::{
-        AnnotationRequest, AnnotationResponse, Observation, ProbeRequest, ProbeResponse,
-        observation,
-    },
+    umpire::temporal::v1::ProbeRequest,
 };
 use umpire_wasm::{Dispatch, Guest, google::protobuf::Any, protocol};
 
@@ -117,7 +120,7 @@ fn annotation_envelope_and_unknown_traffic_refuse_without_payload_diagnostics() 
         (
             protocol::AnnotateRequest {
                 input: Some(Any {
-                    type_url: "type.googleapis.com/umpire.temporal.v1.AnnotationRequest".into(),
+                    type_url: "type.googleapis.com/umpire.annotations.v1.AnnotationRequest".into(),
                     value: vec![255],
                 }),
             },
