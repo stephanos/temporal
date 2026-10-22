@@ -142,7 +142,7 @@ The review passed; each consumer still waits for its declared support dependenci
 
 | Name | Status | What |
 | --- | --- | --- |
-| fn-227.5 | ⬜ todo | After .3 and .12: transactional live World admission (`maximum_attempts`) and SDK retry proof (R6) |
+| fn-227.5 | 🔄 in progress | After .3 and .12: transactional live World admission (`maximum_attempts`) and SDK retry proof (R6) |
 | fn-227.6 | ⬜ todo | After .5: DESIGN.md parameterized worlds, inputs and retries write-up and readiness table closure (R7) |
 
 ### fn-238: Shared front end: one Model reading for the native checker and the lifter (model)

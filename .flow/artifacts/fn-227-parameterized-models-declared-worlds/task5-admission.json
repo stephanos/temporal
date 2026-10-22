@@ -1,0 +1,16 @@
+{
+  "task": "fn-227-parameterized-models-declared-worlds.5",
+  "integrated_predecessor_closure": "ea4cf6a503683dd3a6f4c397dc4886ecabd52dae",
+  "conductor_verification": "becab4c298",
+  "scheduling": "single-worker sequential chain; current branch umpire per AGENTS.md",
+  "tier_line": "Tier: session (jev-unavailable(no_key))",
+  "implementer_override": "gpt-6.1-sol at medium (AGENTS.md Codex implementer routing)",
+  "review": "codex:gpt-6.1-sol:high; fresh context; same family",
+  "disk_free_gib_approx": 110,
+  "baseline": "No BASELINE_HANDOFF: intervening MILESTONES edits and different Quick. Run focused task Quick before implementation; no redundant full pre-edit baseline.",
+  "scope": "Actual-request maximum_attempts World admission, transactional receipt/freeze/reset, execution identity and real SDK retry. Timeout fields recorded-not-admitted; fn237 remains deferred; no core production runtime/ABI change.",
+  "preflight": ".flow/tmp/fn-227.5/preflight.json (read-only observations; reanchor current owners)",
+  "plan_sync": "disabled",
+  "tracker_sync": "inactive",
+  "publication": "local only; no push/PR"
+}
