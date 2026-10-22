@@ -1,0 +1,1 @@
+{"schema":"gomad.network-adapter-corpus/v1","implementation_sha256":"sha256:5d3d138dadd52ebfeaee7d45cb5077d4212ebe7131685e37b384364e65186e02","name":"profile-bound-to-identity","network":null,"epoch":0,"creation_error":"","initial":{"data":null,"error":"","identity":"aa6807fb273d0d8e0b74a937df86735435f79f3a69642cb32b596cde56acc084","now":1},"steps":null}

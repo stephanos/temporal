@@ -108,13 +108,13 @@ func TestLoadPureSet(t *testing.T) {
 		t.Fatal(err)
 	}
 	pure := func(path string) bool {
-		prefixes := []string{"internal/model/world/", "internal/evidence/record/", "internal/runner/internal/exploration/"}
+		prefixes := []string{"internal/model/world/"}
 		for _, prefix := range prefixes {
 			if strings.HasPrefix(path, prefix) && !strings.HasPrefix(path, "internal/model/world/process/") {
 				return true
 			}
 		}
-		return path == "internal/runner/internal/campaign/controller.go" || path == "internal/model/clock/simulation_progress.go"
+		return path == "internal/model/clock/simulation_progress.go"
 	}
 	started := time.Now()
 	p, err := load(root, goCommand(), host, pure)
@@ -125,8 +125,10 @@ func TestLoadPureSet(t *testing.T) {
 	if elapsed >= 30*time.Second {
 		t.Fatalf("pure set loading took %s, limit 30s", elapsed)
 	}
-	if len(p.packages) < 6 {
-		t.Fatalf("incomplete pure set: %d packages", len(p.packages))
+	for _, required := range []string{"internal/model/world", "internal/model/world/mailbox", "internal/model/clock"} {
+		if p.packages["go.temporal.io/server/tools/gomad/"+required] == nil {
+			t.Errorf("retained pure package %s was omitted", required)
+		}
 	}
 	t.Logf("loaded %d pure-source packages using export data in %s", len(p.packages), elapsed)
 }

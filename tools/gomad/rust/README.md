@@ -1,7 +1,10 @@
-# Rust host foundation
+# Rust host
 
-This workspace links the existing `gomad-wasmhost` library in-process. The helper
-binary still uses that same library for its existing transport protocol. Each
+This single workspace contains `gomad` and the linked `gomad-wasmhost` library,
+with one `Cargo.lock` and the shared `rust/target` output directory (or explicit
+`CARGO_TARGET_DIR`). Only `gomad` is a default workspace member. The standalone
+protocol binary requires `reference-helper` and exists for oracle fixtures; it
+is never the installed host or a qualification producer. Each
 linked execution creates a fresh engine and store, with fuel, memory, output,
 evidence and a guest epoch watchdog. The public seam is
 `gomad_wasmhost::linked::{Request, Limits, ModelInput, Execution}`; modeled guests
@@ -35,7 +38,8 @@ the JSON result and retained failure-signature semantics are documented in
 on the linked host and reopen its retained Result. Their spec mapping,
 linked-process accounting and lanes are documented in
 [the maintainer CLI guide](../CLI.md#rust-qualification).
-Other public host verbs remain with their later fn-232 tasks. The
+Install, doctor, discover, plan and recover use the Rust installation and
+preparation owners. The
 `determinism-fixture` feature exposes the foundation, inspect, replay and campaign test drivers;
 their commands and fault controls are absent from ordinary builds. Run from the
 repository root:

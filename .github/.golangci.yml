@@ -236,16 +236,6 @@ linters:
       - text: "SA1019: go.temporal.io/server/service/history/hsm/(callbacks|nexusoperations) is deprecated"
         linters:
           - staticcheck
-      - path: ^tools/gomad/internal/runner/internal/campaign/controller\.go$
-        source: '^\t\tpanic\("gomad: completed a campaign attempt without a classification"\)$'
-        text: '^use of `panic` forbidden because "Please avoid using panic in application code"$'
-        linters:
-          - forbidigo
-      - path: ^tools/gomad/internal/runner/inspect/inspect\.go$
-        source: '^\t\tpanic\(fmt\.Sprintf\("unknown validated choice kind %d", kind\)\)$'
-        text: '^use of `panic` forbidden because "Please avoid using panic in application code"$'
-        linters:
-          - forbidigo
       # Underscores in method names are allowed in test code.
       - path: _test\.go|tests/.+\.go|common/testing/
         text: "ST1003: should not use underscores in Go names; (func|method) "

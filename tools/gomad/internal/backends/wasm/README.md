@@ -1,5 +1,15 @@
 # Gomad WASM
 
+The host implementation now lives in the single [Rust workspace](../../../rust/README.md).
+The Go CLI, runner and host qualification producers described in older sections
+are retired source; retained Go code owns models, protocol generation, conformance
+oracles and the guest runtime overlay. Current build and reference checks are
+`make -C tools/gomad build`, `validate` and `test-wasm`. Final qualification uses
+the [Rust driver](../../../rust/driver/README.md) with frozen authenticated inputs and the unchanged
+3,600-second limit. This prospective source consolidation supplies no R12/R13
+acceptance; the conductor retains the frozen Go baseline until those gates pass.
+
+
 This directory owns Gomad's experimental WASM execution backend for Temporal tests
 within the `tools/gomad` Go module.
 The implementation uses a fresh engine helper, captured inputs and modeled
@@ -163,14 +173,14 @@ The Rust loader in `wasmhost/tests/helper_corpus.rs` and Go's `TestHelperCorpus`
 consume `wasmhost/tests/testdata/helper_transcript`; each case records complete
 projected replies, terminal outcome and evidence. Regenerate reviewed expectations
 with `GOMAD_HELPER_CORPUS_REGENERATE=1 cargo +1.99.1 test --release --locked
---manifest-path tools/gomad/internal/backends/wasm/wasmhost/Cargo.toml --test
+--manifest-path tools/gomad/rust/wasmhost/Cargo.toml --test
 helper_corpus` from the repository root. Regeneration checks repeated executions
 for equality; a second regeneration must leave the corpus byte-identical.
 The binary cluster-network evidence fixtures
 `wasmhost/tests/testdata/cluster_network/{a,b}.gmnetev1`, which the Go decoder
 tests also read, are written by the `go_network_cluster_corpus` Rust test under
 `GOMAD_CLUSTER_NETWORK_FIXTURE_REGENERATE=1 cargo +1.99.1 test --release
---locked --manifest-path tools/gomad/internal/backends/wasm/wasmhost/Cargo.toml
+--locked --manifest-path tools/gomad/rust/wasmhost/Cargo.toml
 --lib go_network_cluster_corpus`; rerun the Go WASI tests
 afterwards.
 Original scenarios without an equivalent corpus assertion remain Rust tests,

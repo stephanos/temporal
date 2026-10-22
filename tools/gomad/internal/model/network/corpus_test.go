@@ -15,7 +15,7 @@ import (
 	"testing"
 )
 
-const networkCorpusDirectory = "../../backends/wasm/wasmhost/tests/testdata/network_v2"
+const networkCorpusDirectory = "../../../rust/wasmhost/tests/testdata/network_v2"
 
 // Inputs are concrete Model calls, including resolved handles and ports, so a
 // consumer needs neither Go's scenario builders nor the net_stream ABI.

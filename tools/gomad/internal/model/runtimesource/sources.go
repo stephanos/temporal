@@ -6,7 +6,7 @@ import (
 	"fmt"
 	"path/filepath"
 
-	hostfs "go.temporal.io/server/tools/gomad/internal/host/fs"
+	hostfs "go.temporal.io/server/tools/gomad/internal/support/fs"
 )
 
 // Read returns package-runtime sources keyed by their overlay filename.

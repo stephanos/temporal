@@ -10,7 +10,7 @@ helper-stress-jitter = ["gomad-wasmhost/stress-jitter"]
 helper-determinism-fixture = ["gomad-wasmhost/determinism-fixture"]
 
 [dependencies]
-gomad-wasmhost = { path = "../../internal/backends/wasm/wasmhost" }
+gomad-wasmhost = { path = "../wasmhost" }
 serde.workspace = true
 serde_json.workspace = true
 sha2.workspace = true

@@ -5,7 +5,7 @@ replayable artifacts. This guide follows the current WASM path from installation
 to a retained failure, then shows how to select a test from a consumer checkout.
 
 The cooperative WASM profile builds ordinary Go source with a pinned runtime
-overlay. A Rust helper executes the module with controlled scheduling, virtual
+overlay. The linked Rust engine executes the module with controlled scheduling, virtual
 time and modeled WASI operations. Each execution starts with fresh guest state.
 The shared Gomad Runner owns campaigns, evidence storage, inspection and replay.
 
@@ -18,17 +18,18 @@ Read the [milestones](../../MILESTONES.md) and
 [WASM qualification contract](internal/backends/wasm/QUALIFICATION.md) before
 making a support claim.
 
-## Install the WASM launcher and helper
+## Build and install the Rust host
 
 You need this repository, Make, an existing stock **Go 1.27.1** distribution, and
-**Rust 1.99.1** to build the helper. Cargo uses the checked lock file and Wasmtime
+**Rust 1.99.1** to build the host. Cargo uses the checked lock file and Wasmtime
 47.0.3. The module's [mise configuration](mise.toml) selects Rust with rustfmt
 and Clippy; it does not install Go.
 
 The cooperative compiler must live outside the Go module cache. Installation
-requires regular executable files for the compiler and helper and rejects
-symbolic links. Rust is needed to build or update the helper. Retained replay
-needs the compatible helper, but does not require Rust or the compiler.
+requires regular executable files and rejects symbolic links. The engine is
+linked into `gomad`; optional `--helper` admits only the same host executable
+or a byte-identical copy. Rust is needed to build or update the host. Retained
+replay needs the compatible host, but does not require Rust or the compiler.
 Preparing new Go targets requires the pinned compiler.
 
 Choose absolute paths for your checkout, compiler and private operator directory.
@@ -42,14 +43,11 @@ export GOMAD_OPERATOR=/absolute/private/gomad-operator
 cd "$GOMAD_CHECKOUT/tools/gomad"
 mise install rust
 mise exec -- rustc --version
-mise exec -- make wasm-helper
+mise exec -- make build
 mkdir -p "$GOMAD_OPERATOR/bin"
-env -u GOROOT GOENV=off GOTOOLCHAIN=local GOWORK=off \
-  "$GOMAD_STOCK_GO" build -trimpath \
-  -o "$GOMAD_OPERATOR/bin/gomad" ./cmd/gomad
+cp "${CARGO_TARGET_DIR:-$GOMAD_CHECKOUT/tools/gomad/rust/target}/release/gomad" "$GOMAD_OPERATOR/bin/gomad"
 "$GOMAD_OPERATOR/bin/gomad" install \
   --compiler "$GOMAD_STOCK_GO" \
-  --helper "$GOMAD_CHECKOUT/tools/gomad/internal/backends/wasm/wasmhost/target/release/gomad-wasmhost" \
   --runtime-root "$GOMAD_CHECKOUT/tools/gomad/internal/model/runtimesource" \
   --profile gomad.wasi-cooperative/v1 \
   --cache "$GOMAD_OPERATOR/preparation" \
@@ -60,8 +58,8 @@ export GOMAD_WASM_INSTALLATION="$GOMAD_OPERATOR/bin/gomad-wasm.json"
 ```
 
 Without mise, install the crate's pinned Rust toolchain through rustup and run
-`make -C tools/gomad wasm-helper` from the repository root. The target invokes
-`cargo +1.99.1 build --release --locked` through the backend Makefile.
+`make -C tools/gomad build` from the repository root. The target invokes
+`cargo +1.99.1 build --release --locked` from the single workspace in `tools/gomad/rust`.
 
 `install` pins existing tools and writes a new mode-0600 manifest. It refuses to
 overwrite one and does not download a compiler. Changed helper/runtime/model
@@ -176,7 +174,6 @@ env -i "$GOMAD_OPERATOR/bin/gomad" install \
   --temporal-checkout "$GOMAD_CHECKOUT" \
   --temporal-package ./tests/gomadfunctional \
   --compiler "$GOMAD_STOCK_GO" \
-  --helper "$GOMAD_CHECKOUT/tools/gomad/internal/backends/wasm/wasmhost/target/release/gomad-wasmhost" \
   --runtime-root "$GOMAD_CHECKOUT/tools/gomad/internal/model/runtimesource" \
   --cache "$GOMAD_OPERATOR/temporal-preparation" \
   --compile-cache "$GOMAD_OPERATOR/temporal-engine" \
@@ -331,24 +328,19 @@ The [network contract](SPEC.md#simulationnetwork-network-model) and
 [architecture](ARCHITECTURE.md#clusters-and-scenarios) define stream,
 partition, lifecycle, fidelity and replay semantics.
 
-### Go caller migrations
-
-Runner operations and `backends.Provider` own campaign preparation and
-execution. See [campaign intent and construction](ARCHITECTURE.md#one-execution-end-to-end)
-for the current Go interface boundary; Git history retains prior migrations.
-
 ## Maintainer checks
 
-The isolated Rust host foundation and its fixture-only execution, evidence/store
-and parity gates are documented in [rust/README.md](rust/README.md). Rust artifact
-inspection is implemented; later public verbs remain with their fn-232 tasks.
-fn232.1 still has an explicit in-process compiler hard-wall gap.
+The Rust host, linked engine, fixture-only execution and evidence/store gates
+are documented in [rust/README.md](rust/README.md). `make build` produces the
+ordinary Rust host. `make test-wasm` executes the Rust suites and retained Go
+reference models. `make qualify` requires a frozen driver configuration and
+its SHA-256; source checks never replace the final runtime/workload/replay cycle.
 
 Rust and Go consume the same helper transcript corpus as their wire/evidence
 contract. Regeneration compares repeated executions; a second pass must leave
 the fixtures byte-identical. Keep unit tests for invariants a corpus cannot
-express. Measurement producers run through the explicit `wasmmeasure` command,
-not test targets. The [WASM implementation guide](internal/backends/wasm/README.md)
+express. Qualification and measurement use the Rust driver with explicit authenticated
+inputs; the retired Go host producers are absent. The [WASM implementation guide](internal/backends/wasm/README.md)
 documents regeneration commands, retained invariants and measurement admission.
 
 Shared wire codecs are generated from the schemas under `internal/model` by
@@ -386,8 +378,9 @@ namespace, volume and replay-plan corpus tests use that library's default build.
 The Go producers and linked library suite run twice. Namespace transport tests
 require the test conformance helper and fail if it is unavailable.
 
-Archcheck's source inventory reports `RetainedGo` for the models, schema generator,
-runtime overlay and architecture checks, and `RetiringGo` for the remaining Go host
-packages. Both sets retain their existing architecture checks. The inventory
-records transition ownership; removal and the prohibition on default dependencies
-on retired host packages remain gated by fn-232.13's final Rust qualification.
+Archcheck inventories only retained Go models, generators, conformance oracles,
+runtime overlays, filesystem support and architecture checks. Default packages
+outside that set fail as `retired-host-source`. The Go CLI, runner and host
+qualification producers are absent from this prospective retirement source.
+The frozen fn-232 Go baseline and binaries remain independent reference custody
+until actual all-verb parity and final R12 qualification permit retirement.

@@ -44,7 +44,7 @@ type replayPlanResult struct {
 }
 
 func replayPlanCorpusDirectory() string {
-	return filepath.FromSlash("../../backends/wasm/wasmhost/tests/testdata/replay_plan")
+	return filepath.FromSlash("../../../rust/wasmhost/tests/testdata/replay_plan")
 }
 
 func projectReplayPlanCorpus(corpus replayPlanCorpus) replayPlanResult {

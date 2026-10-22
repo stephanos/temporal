@@ -1,13 +1,8 @@
 package main
 
 import (
-	"bytes"
 	"crypto/sha256"
 	"encoding/json"
-	"go/ast"
-	"go/format"
-	"go/parser"
-	"go/token"
 	"os"
 	"os/exec"
 	"path/filepath"
@@ -91,8 +86,6 @@ func TestLintPolicyPathExpressions(t *testing.T) {
 		{"legacy eventually", []lintPolicyRuleID{{text: "Eventually", linter: "forbidigo"}}, false, []string{"tests/nexus_standalone_test.go", "tests/nexus_workflow_test.go"}, []string{"tests/schedule_test.go", "tests/schedule_migration_test.go", "tests/nexus_standalone_testXgo", "tests/schedule_test.go.txt", "tests/schedule_extra_test.go", "tests/nested/schedule_test.go"}},
 		{"legacy collect", []lintPolicyRuleID{{text: "assert\\.CollectT", linter: "forbidigo"}}, false, []string{"tests/nexus_standalone_test.go", "tests/nexus_workflow_test.go"}, []string{"tests/schedule_test.go", "tests/nexus_workflow_testXgo", "tests/nexus_workflow_test.go.txt", "tests/nested/nexus_workflow_test.go"}},
 		{"tools revive", []lintPolicyRuleID{{text: "", linter: "revive"}}, false, []string{"tools/gomad/policy.go", "tools/gomad/internal/model/cluster/policy_test.go", "tools/helper.go"}, []string{"tools_extra/helper.go", "ordinary/tools/helper.go", "../tools/gomad/policy.go", "tools/helperXgo", "tools/helper.txt"}},
-		{"campaign completion invariants", []lintPolicyRuleID{{text: "^use of `panic` forbidden because \"Please avoid using panic in application code\"$", linter: "forbidigo", path: "^tools/gomad/internal/runner/internal/campaign/controller\\.go$"}}, false, []string{"tools/gomad/internal/runner/internal/campaign/controller.go"}, []string{"tools/gomad/internal/runner/internal/campaign/other.go", "tools/gomad/internal/runner/internal/campaign/controller_test.go", "tools/gomad/internal/runner/internal/campaign/controllerXgo", "tools/gomad/internal/runner/internal/campaign/controller.go.txt", "ordinary/tools/gomad/internal/runner/internal/campaign/controller.go", "../tools/gomad/internal/runner/internal/campaign/controller.go"}},
-		{"inspection choice invariants", []lintPolicyRuleID{{text: "^use of `panic` forbidden because \"Please avoid using panic in application code\"$", linter: "forbidigo", path: "^tools/gomad/internal/runner/inspect/inspect\\.go$"}}, false, []string{"tools/gomad/internal/runner/inspect/inspect.go"}, []string{"tools/gomad/internal/runner/inspect/other.go", "tools/gomad/internal/runner/inspect/inspect_test.go", "tools/gomad/internal/runner/inspect/inspectXgo", "tools/gomad/internal/runner/inspect/inspect.go.txt", "ordinary/tools/gomad/internal/runner/inspect/inspect.go", "../tools/gomad/internal/runner/inspect/inspect.go"}},
 	} {
 		t.Run(tc.name, func(t *testing.T) {
 			for _, id := range tc.rules {
@@ -121,46 +114,6 @@ func TestLintPolicyPathExpressions(t *testing.T) {
 		require.True(t, compiled.MatchString(tc.match))
 		require.False(t, compiled.MatchString(tc.miss))
 	}
-}
-
-func TestLintPolicyCampaignInvariantSourceBinding(t *testing.T) {
-	t.Parallel()
-	rules, _ := readLintPolicy(t)
-	rule := lintPolicyRuleByIdentity(t, rules, lintPolicyRuleID{text: "^use of `panic` forbidden because \"Please avoid using panic in application code\"$", linter: "forbidigo", path: "^tools/gomad/internal/runner/internal/campaign/controller\\.go$"}, false)
-	pattern, err := regexp.Compile(rule.Source)
-	require.NoError(t, err)
-	data, err := os.ReadFile("../../../tools/gomad/internal/runner/internal/campaign/controller.go")
-	require.NoError(t, err)
-	fset := token.NewFileSet()
-	file, err := parser.ParseFile(fset, "controller.go", data, 0)
-	require.NoError(t, err)
-	var record *ast.FuncDecl
-	for _, declaration := range file.Decls {
-		function, ok := declaration.(*ast.FuncDecl)
-		if ok && function.Name.Name == "Record" && function.Recv != nil {
-			var receiver bytes.Buffer
-			require.NoError(t, format.Node(&receiver, fset, function.Recv.List[0].Type))
-			if receiver.String() == "*CampaignStatistics" {
-				require.Nil(t, record)
-				record = function
-			}
-		}
-	}
-	require.NotNil(t, record)
-	require.GreaterOrEqual(t, len(record.Body.List), 2)
-	guard, ok := record.Body.List[0].(*ast.IfStmt)
-	require.True(t, ok)
-	var statement bytes.Buffer
-	require.NoError(t, format.Node(&statement, fset, guard))
-	require.Equal(t, "if completion.Kind == completionInvalid || completion.Kind > completionFailure {\n\tpanic(\"gomad: completed a campaign attempt without a classification\")\n}", statement.String())
-	approvedLines := []int{fset.Position(guard.Body.List[0].Pos()).Line}
-	var excludedLines []int
-	for index, line := range strings.Split(string(data), "\n") {
-		if pattern.MatchString(line) {
-			excludedLines = append(excludedLines, index+1)
-		}
-	}
-	require.Equal(t, approvedLines, excludedLines, "only the pre-mutation guard in CampaignStatistics.Record may match the source exception")
 }
 
 func TestLintPolicyRealGolangci(t *testing.T) {
@@ -239,118 +192,5 @@ func TestLintPolicyRealGolangci(t *testing.T) {
 			require.Equal(t, tc.findings, got, "actual command: %q; output: %s", args, output)
 			t.Logf("cwd=%s argv=%q findings=%v", tc.dir, args, got)
 		})
-	}
-	for _, module := range []string{".", "tools/gomad"} {
-		t.Run("campaign invariants "+module, func(t *testing.T) {
-			fixture := &lintRepo{t: t, root: t.TempDir()}
-			fixture.write(".github/.golangci.yml", string(config))
-			fixture.write("go.mod", "module example.invalid/policy\n\ngo 1.27.1\n")
-			if module != "." {
-				fixture.write(module+"/go.mod", "module example.invalid/nested\n\ngo 1.27.1\n")
-			}
-			fixture.git("init", "-q")
-			for _, tc := range []struct {
-				name, path, source string
-				allowed            bool
-			}{
-				{"approved guard", "tools/gomad/internal/runner/internal/campaign/controller.go", "func Record(classified bool) bool {\nif !classified {\npanic(\"gomad: completed a campaign attempt without a classification\")\n}\nreturn false\n}", true},
-				{"retired inactive panic at approved path", "tools/gomad/internal/runner/internal/campaign/controller.go", "func Fail(active bool) {\nif !active {\npanic(\"gomad: completed an inactive campaign attempt\")\n}\n}", false},
-				{"other panic at approved path", "tools/gomad/internal/runner/internal/campaign/controller.go", "func Fail(active bool) {\nif !active {\npanic(\"ordinary finding\")\n}\n}", false},
-				{"inactive panic at other path", "tools/gomad/internal/runner/internal/campaign/other.go", "func Fail(active bool) {\nif !active {\npanic(\"gomad: completed an inactive campaign attempt\")\n}\n}", false},
-				{"classification panic at other path", "tools/gomad/internal/runner/internal/campaign/other.go", "func Fail(active bool) {\nif !active {\npanic(\"gomad: completed a campaign attempt without a classification\")\n}\n}", false},
-				{"changed message at approved path", "tools/gomad/internal/runner/internal/campaign/controller.go", "func Fail(active bool) {\nif !active {\npanic(\"gomad: completed a campaign attempt without a classification extra\")\n}\n}", false},
-				{"trailing comment on approved line", "tools/gomad/internal/runner/internal/campaign/controller.go", "func Fail(active bool) {\nif !active {\npanic(\"gomad: completed a campaign attempt without a classification\") // other source\n}\n}", false},
-			} {
-				t.Run(tc.name, func(t *testing.T) {
-					formatted, err := format.Source([]byte("package campaign\n\n" + tc.source + "\n"))
-					require.NoError(t, err)
-					fixture.write(tc.path, string(formatted))
-					t.Cleanup(func() { require.NoError(t, os.Remove(filepath.Join(fixture.root, tc.path))) })
-					outputPath := filepath.Join(t.TempDir(), "issues.json")
-					packagePath := "./tools/gomad/internal/runner/internal/campaign"
-					if module != "." {
-						packagePath = "./internal/runner/internal/campaign"
-					}
-					args := []string{"run", "--config=" + filepath.Join(fixture.root, ".github/.golangci.yml"), "--fix=false", "--build-tags=test_dep", "--output.json.path=" + outputPath, packagePath}
-					command := exec.CommandContext(t.Context(), binary, args...)
-					command.Dir = filepath.Join(fixture.root, module)
-					output, runErr := command.CombinedOutput()
-					if tc.allowed {
-						require.NoError(t, runErr, string(output))
-					} else {
-						var exit *exec.ExitError
-						require.ErrorAs(t, runErr, &exit, string(output))
-						require.Equal(t, 1, exit.ExitCode(), string(output))
-					}
-					data, err := os.ReadFile(outputPath)
-					require.NoError(t, err, string(output))
-					var report struct {
-						Issues []struct {
-							FromLinter string
-							Pos        struct{ Filename string }
-						}
-					}
-					require.NoError(t, json.Unmarshal(data, &report))
-					if tc.allowed {
-						require.Empty(t, report.Issues)
-					} else {
-						require.Len(t, report.Issues, 1)
-						require.Equal(t, "forbidigo", report.Issues[0].FromLinter)
-						require.Equal(t, tc.path, filepath.ToSlash(report.Issues[0].Pos.Filename))
-					}
-					t.Logf("cwd=%s argv=%q allowed=%t findings=%v source=%q", module, args, tc.allowed, report.Issues, string(formatted))
-				})
-			}
-		})
-	}
-}
-
-func TestLintPolicyInspectionInvariantSourceBinding(t *testing.T) {
-	t.Parallel()
-	rules, _ := readLintPolicy(t)
-	rule := lintPolicyRuleByIdentity(t, rules, lintPolicyRuleID{text: "^use of `panic` forbidden because \"Please avoid using panic in application code\"$", linter: "forbidigo", path: "^tools/gomad/internal/runner/inspect/inspect\\.go$"}, false)
-	require.Equal(t, []string{"forbidigo"}, rule.Linters)
-	require.Equal(t, "^use of `panic` forbidden because \"Please avoid using panic in application code\"$", rule.Text)
-	pattern, err := regexp.Compile(rule.Source)
-	require.NoError(t, err)
-	data, err := os.ReadFile("../../../tools/gomad/internal/runner/inspect/inspect.go")
-	require.NoError(t, err)
-	files := token.NewFileSet()
-	file, err := parser.ParseFile(files, "inspect.go", data, 0)
-	require.NoError(t, err)
-	var approvedLine int
-	for _, declaration := range file.Decls {
-		function, ok := declaration.(*ast.FuncDecl)
-		if !ok || function.Name.Name != "choiceKind" {
-			continue
-		}
-		ast.Inspect(function.Body, func(node ast.Node) bool {
-			call, ok := node.(*ast.CallExpr)
-			if !ok {
-				return true
-			}
-			name, ok := call.Fun.(*ast.Ident)
-			if ok && name.Name == "panic" {
-				require.Zero(t, approvedLine)
-				approvedLine = files.Position(call.Pos()).Line
-			}
-			return true
-		})
-	}
-	require.Positive(t, approvedLine)
-	var excluded []int
-	for index, line := range strings.Split(string(data), "\n") {
-		if pattern.MatchString(line) {
-			excluded = append(excluded, index+1)
-		}
-	}
-	require.Equal(t, []int{approvedLine}, excluded)
-	for _, line := range []string{
-		"\t\tpanic(fmt.Sprintf(\"unknown validated choice kind %d extra\", kind))",
-		"\t\tpanic(fmt.Sprintf(\"unknown validated choice kind %d\", other))",
-		"\t\tpanic(fmt.Sprintf(\"unknown validated choice kind %d\", kind)) // other source",
-		"\t\tpanic(\"ordinary finding\")",
-	} {
-		require.False(t, pattern.MatchString(line), "%q must not match the inspection source exception", line)
 	}
 }

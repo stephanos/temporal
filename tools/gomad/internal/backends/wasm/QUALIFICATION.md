@@ -1,5 +1,15 @@
 # WASM qualification
 
+The host implementation now lives in the single [Rust workspace](../../../rust/README.md).
+The Go CLI, runner and host qualification producers described in older sections
+are retired source; retained Go code owns models, protocol generation, conformance
+oracles and the guest runtime overlay. Current build and reference checks are
+`make -C tools/gomad build`, `validate` and `test-wasm`. Final qualification uses
+the [Rust driver](../../../rust/driver/README.md) with frozen authenticated inputs and the unchanged
+3,600-second limit. This prospective source consolidation supplies no R12/R13
+acceptance; the conductor retains the frozen Go baseline until those gates pass.
+
+
 Qualification is on demand. A planned repetition budget is not a determinism
 bound, and passing a fixture is not a Temporal/storage support claim.
 
@@ -235,7 +245,7 @@ that cell and supplies no recovery qualification for it:
 ```sh
 cd tools/gomad
 GOMAD_STOCK_GO=/absolute/stock-go/bin/go \
-GOMAD_WASM_TEST_HELPER=/absolute/checkout/tools/gomad/internal/backends/wasm/wasmhost/target/release/gomad-wasmhost \
+GOMAD_WASM_TEST_HELPER=/absolute/checkout/tools/gomad/rust/wasmhost/target/release/gomad-wasmhost \
   /absolute/stock-go/bin/go test -v -tags test_dep -count=1 -timeout=20m \
   -run '^TestInstalledOperatorTypedScenario(DetachedReplay|KillResume)$' \
   ./internal/backends/wasm/command

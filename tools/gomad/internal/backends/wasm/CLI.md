@@ -1,5 +1,15 @@
 # WASM operator entrypoint
 
+The host implementation now lives in the single [Rust workspace](../../../rust/README.md).
+The Go CLI, runner and host qualification producers described in older sections
+are retired source; retained Go code owns models, protocol generation, conformance
+oracles and the guest runtime overlay. Current build and reference checks are
+`make -C tools/gomad build`, `validate` and `test-wasm`. Final qualification uses
+the [Rust driver](../../../rust/driver/README.md) with frozen authenticated inputs and the unchanged
+3,600-second limit. This prospective source consolidation supplies no R12/R13
+acceptance; the conductor retains the frozen Go baseline until those gates pass.
+
+
 The unified `gomad --installation FILE` launcher selects the provider declared
 by its installation manifest. A WASM installation enables the commands below.
 Campaign parsing, logical execution order, artifact layout, inspection, recovery,
@@ -109,7 +119,7 @@ cd tools/gomad
   -o /absolute/operator/bin/gomad ./cmd/gomad
 /absolute/operator/bin/gomad install \
   --compiler /absolute/stock-go/bin/go \
-  --helper /absolute/checkout/tools/gomad/internal/backends/wasm/wasmhost/target/release/gomad-wasmhost \
+  --helper /absolute/checkout/tools/gomad/rust/wasmhost/target/release/gomad-wasmhost \
   --runtime-root /absolute/checkout/tools/gomad/internal/model/runtimesource \
   --profile gomad.wasi-cooperative/v1 \
   --cache /absolute/operator/cache/preparation \
@@ -144,7 +154,7 @@ env -i /absolute/operator/bin/gomad install \
   --temporal-checkout /absolute/checkout \
   --temporal-package ./tests/gomadfunctional \
   --compiler /absolute/stock-go/bin/go \
-  --helper /absolute/checkout/tools/gomad/internal/backends/wasm/wasmhost/target/release/gomad-wasmhost \
+  --helper /absolute/checkout/tools/gomad/rust/wasmhost/target/release/gomad-wasmhost \
   --runtime-root /absolute/checkout/tools/gomad/internal/model/runtimesource \
   --cache /absolute/operator/temporal-preparation \
   --compile-cache /absolute/operator/temporal-engine \
@@ -242,7 +252,7 @@ installation with their complete cooperative network configuration:
 ```sh
 /absolute/operator/bin/gomad install \
   --compiler /absolute/stock-go/bin/go \
-  --helper /absolute/checkout/tools/gomad/internal/backends/wasm/wasmhost/target/release/gomad-wasmhost \
+  --helper /absolute/checkout/tools/gomad/rust/wasmhost/target/release/gomad-wasmhost \
   --runtime-root /absolute/checkout/tools/gomad/internal/model/runtimesource \
   --profile gomad.wasi-cooperative/v1 \
   --config tools/gomad/internal/backends/wasm/command/testdata/scenario/config.json \

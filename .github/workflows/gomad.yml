@@ -99,23 +99,23 @@ jobs:
       - name: Install pinned Rust toolchain
         run: rustup toolchain install 1.99.1 --profile minimal --component rustfmt --component clippy
 
-      - name: Restore WASM helper build cache
+      - name: Restore Rust workspace build cache
         id: helper-cache
         uses: actions/cache/restore@27d5ce7f107fe9357f9df03efb73ab90386fccae # v5.0.5
         with:
           path: |
             ~/.cargo/registry
             ~/.cargo/git
-            tools/gomad/internal/backends/wasm/wasmhost/target
-          key: gomad-wasm-${{ runner.os }}-${{ runner.arch }}-rust1.99.1-${{ hashFiles('tools/gomad/internal/backends/wasm/wasmhost/Cargo.lock', 'tools/gomad/internal/backends/wasm/wasmhost/Cargo.toml', 'tools/gomad/internal/backends/wasm/wasmhost/src/**') }}
+            tools/gomad/rust/target
+          key: gomad-wasm-${{ runner.os }}-${{ runner.arch }}-rust1.99.1-${{ hashFiles('tools/gomad/rust/Cargo.lock', 'tools/gomad/rust/Cargo.toml', 'tools/gomad/rust/rust-toolchain.toml', 'tools/gomad/rust/*/Cargo.toml', 'tools/gomad/rust/*/build.rs', 'tools/gomad/rust/*/src/**') }}
           restore-keys: |
             gomad-wasm-${{ runner.os }}-${{ runner.arch }}-rust1.99.1-
 
       - name: Check Rust formatting and Clippy
         run: make -C tools/gomad/internal/backends/wasm lint-rust
 
-      - name: Build pinned WASM helper
-        run: cargo +1.99.1 build --manifest-path tools/gomad/internal/backends/wasm/wasmhost/Cargo.toml --release --locked
+      - name: Build Rust host
+        run: make -C tools/gomad build
 
       - name: Test slim guest refusals with stock Go
         # go test -tags gomad_wasm_slim,test_dep -run <refusal tests> ./common/archiver/provider ./temporal ./tests/testcore
@@ -124,17 +124,17 @@ jobs:
       - name: Test WASM with stock Go
         run: GOMAD_STOCK_GO="$(command -v go)" make -C tools/gomad test-wasm
 
-      - name: Save WASM helper build cache
+      - name: Save Rust workspace build cache
         if: ${{ steps.helper-cache.outputs.cache-hit != 'true' }}
         uses: actions/cache/save@27d5ce7f107fe9357f9df03efb73ab90386fccae # v5.0.5
         with:
           path: |
             ~/.cargo/registry
             ~/.cargo/git
-            tools/gomad/internal/backends/wasm/wasmhost/target
+            tools/gomad/rust/target
           key: ${{ steps.helper-cache.outputs.cache-primary-key }}
 
-  host-tools-linux:
+  reference-tools-linux:
     needs: changes
     if: ${{ needs.changes.outputs.wasm == 'true' }}
     runs-on: ubuntu-latest
@@ -149,7 +149,7 @@ jobs:
           check-latest: false
           cache: true
 
-      - name: Build and vet the default host set
+      - name: Build and vet retained Go reference tools
         working-directory: tools/gomad
         run: go build ./... && go vet ./...
 
@@ -160,10 +160,8 @@ jobs:
       - name: Lint Gomad host module
         run: make GOLANGCI_LINT_FIX=false GOLANGCI_LINT_BASE_REV=HEAD~ lint-code-gomad
 
-      - name: Test platform-neutral host tooling
+      - name: Test retained reference tooling
         working-directory: tools/gomad
         run: >-
           go test -count=1 -tags test_dep
-          ./internal/host/exec
-          ./internal/host/fs
-          ./cmd/gomad/internal/cli ./internal/runner/... ./internal/archcheck
+          ./internal/model/... ./internal/support/... ./internal/archcheck
