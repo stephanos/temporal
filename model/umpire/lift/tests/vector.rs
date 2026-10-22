@@ -113,17 +113,23 @@ fn vector_get_keeps_eager_default_failures_when_element_is_present()
 
 #[test]
 fn shared_boolean_guards_keep_vector_admission_linear() -> Result<(), Box<dyn std::error::Error>> {
+    use std::fmt::Write as _;
     let mut bindings = String::from("let a0 = self.flag;");
     for index in 1..=40 {
-        bindings.push_str(&format!("let a{index} = a{} && a{};", index - 1, index - 1));
+        write!(bindings, "let a{index} = a{} && a{};", index - 1, index - 1)?;
     }
     let source = include_str!("fixtures/vector.rs")
         .replace("pub values: Vector<u8>,", "pub values: Vector<u8>, pub flag: bool,")
-        .replace("User::Push if self.values.len() < 2 => {", &format!("User::Push => {{ {bindings} if a40 && self.values.len() < 2 {{"))
+        .replace(
+            "User::Push if self.values.len() < 2 => {",
+            &format!("User::Push => {{ {bindings} if a40 && self.values.len() < 2 {{"),
+        )
         .replace("self.values.push_back(7);", "self.values.push_back(7); }");
     Lift::parse("shared_vector.rs", &source)?;
     let unbounded = source.replace("self.values.len() < 2", "true");
-    let error = Lift::parse("unbounded_shared_vector.rs", &unbounded).err().ok_or("unbounded append admitted")?;
+    let error = Lift::parse("unbounded_shared_vector.rs", &unbounded)
+        .err()
+        .ok_or("unbounded append admitted")?;
     assert!(error.message.contains("bounded length guard"), "{error}");
     Ok(())
 }

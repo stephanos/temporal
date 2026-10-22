@@ -1,0 +1,18 @@
+   Compiling umpire-front v0.0.1 (/Users/stephan/Workspace/skunkworks/umpire/temporal/model/umpire/front)
+   Compiling umpire-lift v0.0.1 (/Users/stephan/Workspace/skunkworks/umpire/temporal/model/umpire/lift)
+   Compiling umpire-tlc v0.0.1 (/Users/stephan/Workspace/skunkworks/umpire/temporal/model/umpire/backends/tlc)
+   Compiling umpire-dsl-macros v0.0.1 (/Users/stephan/Workspace/skunkworks/umpire/temporal/model/umpire/dsl/macros)
+   Compiling umpire-dsl v0.0.1 (/Users/stephan/Workspace/skunkworks/umpire/temporal/model/umpire/dsl)
+   Compiling umpire-checker v0.0.1 (/Users/stephan/Workspace/skunkworks/umpire/temporal/model/umpire/checker)
+    Finished `test` profile [unoptimized + debuginfo] target(s) in 2.64s
+     Running tests/vector.rs (/home/agent/.cache/codex-build/cargo-target/debug/deps/vector-7cd9e225c61cd866)
+
+running 5 tests
+test bounded_vector_operations_are_lifted_with_safe_defaulted_get ... ok
+test unsupported_vector_operations_and_unbounded_growth_refuse ... ok
+test shared_boolean_guards_keep_vector_admission_linear ... ok
+test vector_get_keeps_eager_default_failures_when_element_is_present ... ok
+test real_vector_native_and_tlc_states_and_properties_agree ... ok
+
+test result: ok. 5 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 1.93s
+
