@@ -7,6 +7,11 @@ use umpire_front::{
 };
 
 impl Lifted {
+    /// A refusal at a front-end location in this Model's file.
+    fn refuse(&self, location: &FrontDiagnostic, text: impl Into<String>) -> Diagnostic {
+        message(&self.file, location, text)
+    }
+
     /// Validate projected literals against original-source schemas and bind complete starts.
     ///
     /// # Errors
@@ -14,11 +19,7 @@ impl Lifted {
     /// TLC's `.cfg` range, by source location.
     pub fn bind(&self, binding: &Binding) -> Result<Self, Diagnostic> {
         if !self.requires_binding() {
-            return Err(message(
-                &self.file,
-                &self.location,
-                "this source has no declared World to bind",
-            ));
+            return Err(self.refuse(&self.location, "this source has no declared World to bind"));
         }
         let world = bind_fields(
             &self.file,
@@ -30,9 +31,7 @@ impl Lifted {
         // TLC's .cfg parser accepts only non-negative integers up to i32::MAX as CONSTANT values.
         for (field, value) in self.world_fields.iter().zip(&world) {
             if !cfg_representable(value) {
-                return Err(message(
-                    &self.file,
-                    &field.location,
+                return Err(self.refuse(&field.location,
                     format!(
                         "World field `{}` value is not representable as a TLC .cfg constant (0..={})",
                         field.name,
@@ -56,9 +55,9 @@ impl Lifted {
         }
         let catalog = self.bind_catalog(binding)?;
         let mut bound = self.clone();
-        bound.world_values = Some(world);
-        bound.complete_starts = Some(starts);
-        bound.catalog = Some(catalog);
+        bound.model.world_values = Some(world);
+        bound.model.complete_starts = Some(starts);
+        bound.model.catalog = Some(catalog);
         Ok(bound)
     }
 
@@ -76,15 +75,13 @@ impl Lifted {
                     },
                 );
             let Some(field) = declared else {
-                return Err(message(
-                    &self.file,
+                return Err(self.refuse(
                     &self.location,
                     format!("extra action domain `{}` field `{}`", domain.action, domain.field),
                 ));
             };
             if supplied.insert((domain.action.as_str(), domain.field.as_str()), domain).is_some() {
-                return Err(message(
-                    &self.file,
+                return Err(self.refuse(
                     &field.location,
                     format!("duplicate action domain `{}` field `{}`", domain.action, domain.field),
                 ));
@@ -100,8 +97,7 @@ impl Lifted {
                         let domain = supplied
                             .get(&(action.name.as_str(), field.name.as_str()))
                             .ok_or_else(|| {
-                                message(
-                                    &self.file,
+                                self.refuse(
                                     &field.location,
                                     format!(
                                         "missing action domain `{}` field `{}`",
@@ -110,9 +106,7 @@ impl Lifted {
                                 )
                             })?;
                         if domain.values.len() > CATALOG_LIMIT {
-                            return Err(message(
-                                &self.file,
-                                &field.location,
+                            return Err(self.refuse(&field.location,
                                 format!(
                                     "action domain `{}` field `{}` exceeds the catalog limit {CATALOG_LIMIT}",
                                     action.name, field.name
@@ -124,9 +118,7 @@ impl Lifted {
                             .iter()
                             .map(|value| {
                                 literal(value, &field.ty).ok_or_else(|| {
-                                    message(
-                                        &self.file,
-                                        &field.location,
+                                    self.refuse(&field.location,
                                         format!(
                                             "action domain `{}` field `{}` value does not match admitted type {:?}",
                                             action.name, field.name, field.ty
@@ -151,12 +143,10 @@ impl Lifted {
             domains.iter().try_fold(0usize, |total, fields| total.checked_add(product(fields)?));
         match count {
             None => {
-                return Err(message(&self.file, &self.location, "action catalog count overflows"));
+                return Err(self.refuse(&self.location, "action catalog count overflows"));
             }
             Some(count) if count > CATALOG_LIMIT => {
-                return Err(message(
-                    &self.file,
-                    &self.location,
+                return Err(self.refuse(&self.location,
                     format!(
                         "action catalog has {count} concrete actions, above the limit {CATALOG_LIMIT}"
                     ),
@@ -175,8 +165,7 @@ impl Lifted {
             }
         }
         if binding.actions.len() != expected.len() {
-            return Err(message(
-                &self.file,
+            return Err(self.refuse(
                 &self.location,
                 format!(
                     "native catalog has {} concrete actions; the source domains admit {}",
@@ -215,9 +204,7 @@ impl Lifted {
                     } else {
                         format!("{}({})", listed.name, values.join(", "))
                     };
-                    return Err(message(
-                        &self.file,
-                        &self.location,
+                    return Err(self.refuse(&self.location,
                         format!(
                             "progress `{}` names `{spelled}`, which the selected World's catalog lacks",
                             claim.name
@@ -228,8 +215,7 @@ impl Lifted {
             if (assumption.only.is_some() || !assumption.without.is_empty())
                 && !references.iter().any(|reference| assumption.allows(reference))
             {
-                return Err(message(
-                    &self.file,
+                return Err(self.refuse(
                     &self.location,
                     format!("progress `{}` assumption admits no catalog action", claim.name),
                 ));

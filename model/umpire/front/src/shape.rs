@@ -10,8 +10,8 @@ use syn::{ImplItem, Item};
 
 type Result<T> = std::result::Result<T, Diagnostic>;
 
-#[expect(clippy::too_many_lines, reason = "The admission pass preserves source declaration order")]
 /// Admit the one `#[machine]` module; a refusal inside a hook names it in `failed_hook`.
+#[expect(clippy::too_many_lines, reason = "The admission pass preserves source declaration order")]
 pub(crate) fn parse(
     ast: &syn::File,
     hooks: &[&syn::ItemMacro],

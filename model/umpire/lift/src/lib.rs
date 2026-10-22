@@ -21,11 +21,6 @@ impl std::ops::Deref for Lifted {
         &self.model
     }
 }
-impl std::ops::DerefMut for Lifted {
-    fn deref_mut(&mut self) -> &mut Self::Target {
-        &mut self.model
-    }
-}
 /// A located warning refusing unsupported source behavior.
 #[derive(Clone, Debug, PartialEq, Eq)]
 pub struct Diagnostic {

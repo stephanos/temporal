@@ -266,3 +266,21 @@ fn hand_written_machine_refusal_prints_the_type_as_written()
     assert!(error.message.contains("`impl Machine for &'static mut W`"), "{error}");
     Ok(())
 }
+
+#[test]
+fn hook_refusal_in_tests_rs_names_tests_rs() -> Result<(), Box<dyn std::error::Error>> {
+    let root = std::env::temp_dir().join(format!("umpire-hook-refusal-{}", std::process::id()));
+    std::fs::create_dir_all(&root)?;
+    std::fs::write(root.join("model.rs"), KETTLE)?;
+    std::fs::write(
+        root.join("tests.rs"),
+        "use super::*;\n\numpire_testing::fixture!(\n    kettle::world(),\n    16,\n    Claim::new(\"bad\", |_, state: &kettle::Model| mystery(state.beeping).into())\n);\n",
+    )?;
+    let error = Lift::source(root.join("model.rs")).err().ok_or("refused hook claim admitted");
+    std::fs::remove_dir_all(&root)?;
+    let error = error?;
+    assert!(error.file.ends_with("tests.rs"), "{error}");
+    assert_eq!(error.line, 6, "{error}");
+    assert!(error.message.contains("mystery"), "{error}");
+    Ok(())
+}

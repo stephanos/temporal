@@ -4,23 +4,41 @@ use std::collections::BTreeMap;
 /// An admitted Model. Its typed expression tree has no public stability promise.
 #[derive(Clone, Debug)]
 pub struct Lifted {
+    /// TLA+ module name, from the machine module.
     pub name: String,
+    /// Authored state struct name.
     pub state_name: String,
+    /// Outcome type.
     pub outcome_type: Type,
+    /// Unit World constructor or declared World type path.
     pub world_path: String,
+    /// Whether the Model declares a World, so emission needs a bound one.
     pub declared_world: bool,
+    /// Declared World fields in declaration order.
     pub world_fields: Vec<WorldField>,
+    /// Selected World values, set by the consumer after binding.
     pub world_values: Option<Vec<Expr>>,
+    /// Complete start states, set by the consumer after binding.
     pub complete_starts: Option<Vec<Vec<Expr>>>,
+    /// The machine module, for refusals that name no narrower node.
     pub location: Diagnostic,
+    /// State fields in declaration order.
     pub fields: Vec<FieldDef>,
+    /// Module constants by authored name.
     pub constants: BTreeMap<String, Expr>,
+    /// Generated TLA+ names of module constants, under a declared World.
     pub constant_symbols: BTreeMap<String, String>,
+    /// Actions in catalog order.
     pub actions: Vec<ActionDef>,
+    /// Registered state claims.
     pub invariants: Vec<ClaimDef>,
+    /// Registered action claims.
     pub postconditions: Vec<PostDef>,
+    /// Progress claims.
     pub progress: Vec<ProgressDef>,
+    /// Scheduling assumptions.
     pub assumptions: Vec<AssumptionDef>,
+    /// Supplemental negative claims from golden hooks.
     pub negative: Vec<ClaimDef>,
     /// The bound concrete catalog, in native catalog order.
     pub catalog: Option<Vec<Entry>>,

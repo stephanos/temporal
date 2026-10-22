@@ -89,7 +89,7 @@ pub fn read(ast: &syn::File, hooks: &[&syn::ItemMacro]) -> Result<Lifted, Refusa
     if !ast
         .items
         .iter()
-        .any(|item| matches!(item, syn::Item::Mod(module) if syntax::has(&module.attrs,"machine")))
+        .any(|item| matches!(item, syn::Item::Mod(module) if syntax::has(&module.attrs, "machine")))
     {
         return Err(Refusal::Model(not_attribute(ast)));
     }
