@@ -228,7 +228,8 @@ def stable(result, response_status, tokens):
             artifact=str(Path(execution['artifact_path']).relative_to(campaign)), record=execution['record'],
             record_sha256=execution['record_sha256'], replay=execution['replay']))
     command = list(report['command'])
-    equal((command[1], command[3], command[4], len(command)), ('--installation', 'qualify', '--spec', 6), 'report.command')
+    equal((command[1], command[3], command[4]), ('--installation', 'qualify', '--spec'), 'report.command')
+    equal(len(command) == 6 or len(command) == 7 and command[-1] == '--', True, 'report.command_terminator')
     command[2], command[5] = '$INSTALLATION', '$SPEC'
     if result['cost']:
         equal(set(result['cost']), COST_STABLE | COST_VARIABLE, 'stable.cost_fields')
@@ -644,8 +645,11 @@ def main():
     environment.update(GOENV='off', GOWORK='off', GOTOOLCHAIN='local', GOMAXPROCS='2')
     receipts = []
 
-    def run(name, argv, status, timeout=1800):
-        result = subprocess.run(list(map(str, argv)), env=environment, capture_output=True, timeout=timeout)
+    def run(name, argv, status, timeout=1800, harness=False):
+        child_environment = dict(environment)
+        if harness and os.environ.get('GOMAD_GOLDEN_REGENERATE') == '1':
+            child_environment['GOMAD_GOLDEN_REGENERATE'] = '1'
+        result = subprocess.run(list(map(str, argv)), env=child_environment, capture_output=True, timeout=timeout)
         (args.work / (name + '.stdout')).write_bytes(result.stdout)
         (args.work / (name + '.stderr')).write_bytes(result.stderr)
         receipts.append(dict(name=name, argv=list(map(str, argv)), status=result.returncode, expected=status,
@@ -666,13 +670,8 @@ def main():
     equal([case['name'] for case in cases], selected, 'corpus.cells')
 
     # Live grammar and owner-spec refusals; none compiles or executes a workload.
-    for case in declaration['grammar']:
-        argv = [str(args.work / 'missing-spec.json') if item == '$MISSING_SPEC' else item for item in case['argv']]
-        result = run('rust-grammar-' + case['name'], [args.binary, *argv], case['status'])
-        equal(case['stderr_contains'].encode() in result.stderr, True, 'grammar.' + case['name'] + '.stderr')
-    for case in declaration['refusals']:
-        result = run('rust-refusal-' + case['name'], [args.binary, *case['argv']], case['status'])
-        equal(b'unsupported command' in result.stderr, True, 'refusal.' + case['name'])
+    run('public-grammar', [sys.executable, CORPUS / 'qualify-check.py', '--grammar-only',
+        '--binary', args.binary, '--go-binary', args.go_binary, '--work', args.work / 'grammar'], 0, harness=True)
     run('rust-report-grammar', [args.binary, 'report'], 2)
     run('rust-report-unknown-flag', [args.binary, 'report', '--json'], 2)
     base = spec(cases[0], args.work / 'refused', True)
@@ -709,6 +708,7 @@ def main():
     views, verdicts, tampered, cluster_tampered = [{}, {}], {}, [], {}
     for case in cases:
         cell = case['cell']
+        terminator = ['--'] if cell == 'fixture' else []
         go_root = args.work / ('go-' + case['name'])
         go_spec = args.work / ('go-' + case['name'] + '.json')
         go_spec.write_bytes(parity.canonical(spec(case, go_root, True)))
@@ -717,11 +717,17 @@ def main():
             go_verdict = go_scenario_reference(run, args, case, go_installation, go_spec)
         else:
             go = run('go-qualify-' + case['name'], [args.go_binary, '--installation', go_installation,
-                     'qualify', '--spec', go_spec], case['status'])
+                     'qualify', '--spec', go_spec, *terminator], case['status'])
             go_response = json.loads(go.stdout)
             go_result = json.loads(Path(go_response['result_path']).read_bytes())
             go_report = run('go-report-' + case['name'], [args.go_binary, '--installation', '/missing/report-installation.json',
                             'report', '--result', go_response['result_path']], 0)
+            terminated_report = run('go-report-terminator-' + case['name'], [args.go_binary,
+                '--installation', '/missing/report-installation.json', 'report', '--result',
+                go_response['result_path'], '--'], 0)
+            equal(terminated_report.stdout, go_report.stdout, case['name'] + '.go_report_terminator')
+            run('go-report-terminator-positional-' + case['name'], [args.go_binary, 'report', '--result',
+                go_response['result_path'], '--', 'extra'], 2)
             equal(json.loads(go_report.stdout)['Qualification'], go_result['Qualification'], case['name'] + '.go_report')
             go_verdict = dict(status=go.returncode, qualified=go_result['Qualification']['qualified'],
                               deterministic=go_result['Qualification']['deterministic'],
@@ -733,7 +739,7 @@ def main():
             rust_spec = args.work / f'rust-{case["name"]}-{attempt}.json'
             rust_spec.write_bytes(parity.canonical(spec(case, root, True)))
             rust = run(f'rust-qualify-{case["name"]}-{attempt}', [args.binary, '--installation',
-                       prepare / f'rust-{TARGETS[cell]["installation"]}-installation.json', 'qualify', '--spec', rust_spec], None)
+                       prepare / f'rust-{TARGETS[cell]["installation"]}-installation.json', 'qualify', '--spec', rust_spec, *terminator], None)
             response = parity.decode(rust.stdout)
             equal(len(rust.stdout) <= 8 << 10, True, 'response.bound')
             path, result = authenticate(response, root)
@@ -741,6 +747,11 @@ def main():
             equal(rust.returncode, expected_status(case, result, response, rust), f'rust-qualify-{case["name"]}-{attempt}.status')
             report = run(f'rust-report-{case["name"]}-{attempt}', [args.binary, '--installation', '/missing/report-installation.json',
                          'report', '--result', path], 0)
+            terminated_report = run(f'rust-report-terminator-{case["name"]}-{attempt}', [args.binary,
+                '--installation', '/missing/report-installation.json', 'report', '--result', path, '--'], 0)
+            equal(terminated_report.stdout, report.stdout, case['name'] + '.rust_report_terminator')
+            run(f'rust-report-terminator-positional-{case["name"]}-{attempt}', [args.binary,
+                'report', '--result', path, '--', 'extra'], 2)
             reported = parity.decode(report.stdout)
             equal(reported['result'], result, 'report.result')
             classification = reported['classification']
@@ -771,6 +782,7 @@ def main():
     # authenticated and their independent stable views must agree.
     finals = [{}, {}]
     for case in cases:
+        terminator = ['--'] if case['cell'] == 'fixture' else []
         for attempt in range(2):
             label = f'rust-canonical-{case["name"]}-{attempt}'
             root = args.work / label
@@ -778,7 +790,7 @@ def main():
             final_spec.write_bytes(parity.canonical(spec(case, root, False, sources, canonical=True)))
             installation = canonical_installation(prepare, case['cell'], args.work / f'{label}-installation.json')
             wait_for_quiet_host()
-            rust = run(label, [args.binary, '--installation', installation, 'qualify', '--spec', final_spec], None)
+            rust = run(label, [args.binary, '--installation', installation, 'qualify', '--spec', final_spec, *terminator], None)
             response = parity.decode(rust.stdout)
             path, result = authenticate(response, root)
             log_memory(args, label, result)

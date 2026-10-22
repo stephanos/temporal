@@ -24,6 +24,9 @@ fn single_flag<'a>(
     let mut index = 0;
     while index < arguments.len() {
         let argument = &arguments[index];
+        if argument == "--" && index + 1 == arguments.len() {
+            break;
+        }
         let Some(flag) = argument
             .strip_prefix("--")
             .or_else(|| argument.strip_prefix('-'))

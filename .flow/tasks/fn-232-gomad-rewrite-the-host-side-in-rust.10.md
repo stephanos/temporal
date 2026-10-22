@@ -34,6 +34,4 @@ Provisional qualification admission is withdrawn under the user's closure-first 
 - Onebox memory: operator 0.74–0.75 GiB, store window 3.53 GiB, compiler about 2.1 GiB, all within their ceilings.
 - Review threat model (conductor ruling): unrehashed tampering refuses, and verdict, cost and budget inputs are recomputed from the authenticated records. Forge-and-rehash binding of fields that don't feed the verdict is out of scope; see IDEAS.md "Signed qualification receipts".
 
-Remaining for this task:
-- port `qualify-set`, `merge-set` and `compare-support`, with parity lanes;
-- the matching acceptance.
+Final receiving acceptance (2026-10-22): all owned requirements are verified in [the closure handover](../artifacts/fn232-10-qualification-closure-2026-10-22.md). The actual Go WASM dispatcher refuses `qualify-set`, `merge-set` and `compare-support`; 18 repeated Go/Rust refusal cases preserve that availability. Five fresh cell lanes, independent golden generations, strict ordinary-release recomputation, accounting and independent review passed. Final whole-candidate qualification remains fn-232.13.

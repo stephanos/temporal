@@ -122,6 +122,29 @@
    ],
    "status": 2,
    "stderr_contains": "no such file or directory"
+  },
+  {
+   "name": "missing-spec-file-terminator",
+   "argv": [
+    "qualify",
+    "--spec",
+    "$MISSING_SPEC",
+    "--"
+   ],
+   "status": 2,
+   "stderr_contains": "no such file or directory"
+  },
+  {
+   "name": "spec-terminator-positional",
+   "argv": [
+    "qualify",
+    "--spec",
+    "$MISSING_SPEC",
+    "--",
+    "extra"
+   ],
+   "status": 2,
+   "stderr_contains": "qualify requires --spec FILE"
   }
  ],
  "refusals": [
@@ -130,21 +153,63 @@
    "argv": [
     "qualify-set"
    ],
-   "status": 2
+   "status": 2,
+   "variants": {
+    "bare": [],
+    "help": [
+     "--help"
+    ],
+    "arguments": [
+     "--manifest",
+     "missing-manifest.json",
+     "--working-dir",
+     "missing-workdir",
+     "--output",
+     "refused-output.json",
+     "--format=json"
+    ]
+   }
   },
   {
    "name": "merge-set",
    "argv": [
     "merge-set"
    ],
-   "status": 2
+   "status": 2,
+   "variants": {
+    "bare": [],
+    "help": [
+     "--help"
+    ],
+    "arguments": [
+     "--manifest",
+     "missing-manifest.json",
+     "--output",
+     "refused-output.json",
+     "--format=json",
+     "missing-shard.json"
+    ]
+   }
   },
   {
    "name": "compare-support",
    "argv": [
     "compare-support"
    ],
-   "status": 2
+   "status": 2,
+   "variants": {
+    "bare": [],
+    "help": [
+     "--help"
+    ],
+    "arguments": [
+     "--baseline",
+     "missing-baseline.json",
+     "--candidate",
+     "missing-candidate.json",
+     "--format=json"
+    ]
+   }
   }
  ]
 }

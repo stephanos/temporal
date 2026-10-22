@@ -1,22 +1,33 @@
-# Qualification contract checkpoint
+# Qualification parity
 
 The actual public Go WASM grammar is `qualify --spec FILE`. Backend command
 interception runs before the generic host CLI. Both frozen Go references reject
 `qualify --json` with status 2, `flag provided but not defined: -json`, and usage
 listing only `-spec`. Generic host workload flags cannot establish public parity.
 
-`../qualify-corpus.json` records intended fixture, fixture canary, file-backed
-SQLite (`setup WAL`) and onebox (`TestFrontendSystemInfo`) inputs. Actual
-multi-instance cluster execution is pending. No corpus cell has a positive
-qualification result or reviewed golden in this checkpoint.
+`../qualify-corpus.json` records fixture, fixture canary, file-backed
+SQLite (`setup WAL`) and onebox (`TestFrontendSystemInfo`) inputs. The cluster
+case uses two resident nodes, crash and durable restart. Reviewed goldens cover
+every cell; retained results qualify only their named candidate.
 
-`../qualify-check.py --grammar-only` runs cheap Go probes for rejected generic
+`../qualify-check.py --grammar-only` probes both binaries for rejected generic
 flags, absent specs and unreadable spec files, plus the three set-command
-refusals on both binaries. It then probes Rust's actual `qualify --spec` command.
-The Rust verb now exists. The grammar mode checks that its missing-spec refusal
-matches Go, and `qualify-lane.py` owns workload parity, Result/receipt
-authentication and the reviewed goldens (see `CLI.md#rust-qualification`).
-Neither check mode compiles or executes a workload.
+refusals on both binaries. Each refused verb is tested bare, with help and with
+its former generic flags, using both default and missing installations. All
+18 cases run twice on each binary, compare status 2, empty stdout and the
+unsupported-command classification, and match `goldens-qualify/refusals.json`.
+Raw stdout/stderr and command hashes are retained separately; diagnostic wording
+is not normalized into execution evidence. The lane supports the same
+`GOMAD_GOLDEN_REGENERATE=1` repeated-agreement and byte-identical second
+regeneration rule as the other qualification goldens. The grammar probes also
+check a final `--` terminator and refusal of positional arguments after it.
+They compile and execute no workload.
+
+`qualify-lane.py` owns workload parity, Result/receipt authentication and the
+reviewed goldens (see `CLI.md#rust-qualification`).
+Fixture qualification invocations include a final `--`; other cells retain the
+original spelling. Report runs compare both forms byte-for-byte and refuse
+arguments after the terminator.
 
 Preparation remains available separately, reusing public Go installation, the
 existing Rust fixture identity bootstrap and the existing namespace-image
@@ -35,18 +46,14 @@ The actual owner spec contains `Manifest`, `ArtifactRoot` and `Campaign`.
 status 3, `unsupported WASM source preparation request`. The Go response names
 `result_path` and `operator_receipt`; its Result retains `Qualification`,
 base64 `QualificationBytes`, candidate identity Manifest and measured costs.
-A resumed implementation must authenticate original result, report, receipt,
-campaign and payload bytes before projecting semantic verdicts. Rust needs its
-own reviewed schema rather than Go storage identities.
+The workload lane authenticates raw result, report, receipt, campaign and payload
+bytes before comparing semantic verdicts and stable golden projections. Rust
+uses its own Result schema and storage identities. The lane covers all five
+cells, tamper negatives, repeated agreement and golden regeneration.
 
-Preparation passed under
-`/home/agent/wt/evidence/fn232-qualify-prepare-02`. Existing Rust missing-verb
-and Go generic-grammar refusals were observed on 2026-10-21. The final
-`--grammar-only` mode retained all twelve command receipts under
-`/home/agent/wt/evidence/fn232-qualify/grammar-01` and exited 1 at the expected
-`$.rust.qualify.availability` difference. All five Go grammar probes and the
-three unavailable set-command probes on each binary returned status 2.
-That checkpoint predates the Rust port. `qualify-lane.py` now covers the fixture,
-fixture-canary and SQLite cells, raw-integrity and tamper negatives, repeated
-agreement and golden regeneration. The onebox and cluster cells and acceptance
-on the integrated candidate remain open under fn-232.10.
+The v17 retained lanes under
+`/home/agent/wt/evidence/fn232-qualify/d/v17` passed all five cells, including
+canonical budgets, two regenerations and strict comparison. Those results retain
+their original candidate scope; current-source checks and their limitations are
+recorded in the fn-232.10 Flow handover. Final whole-candidate qualification
+belongs to fn-232.13.

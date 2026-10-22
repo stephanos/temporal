@@ -109,6 +109,40 @@ def prepare(args, run):
         setattr(args, 'rust_' + cell + '_installation', manifest)
 
 
+def refusal_lane(args, declaration, run):
+    parity = runpy.run_path(str(CORPUS / 'campaign-check.py'))['parity']
+    views = []
+    for attempt in range(2):
+        rows = []
+        for case in declaration['refusals']:
+            for variant, suffix in case['variants'].items():
+                argv = [*case['argv'], *suffix]
+                for installation in ('default', 'missing'):
+                    prefix = [] if installation == 'default' else [
+                        '--installation', str(args.work / 'missing-installation.json')]
+                    observed = []
+                    for lineage, binary in (('go', args.go_binary), ('rust', args.binary)):
+                        name = f'{lineage}-{case["name"]}-{variant}-{installation}-{attempt}'
+                        result = run(name, [binary, *prefix, *argv], case['status'])
+                        equal(result.stdout, b'', '$.' + name + '.stdout')
+                        equal(any(marker in result.stderr for marker in
+                                  (b'unknown command', b'unknown gomad command', b'unsupported command')),
+                              True, '$.' + name + '.unknown_command')
+                        observed.append(dict(status=result.returncode, classification='unsupported_command', stdout=''))
+                    equal(observed[1], observed[0], '$.' + name + '.parity')
+                    rows.append(dict(command=case['name'], variant=variant, installation=installation,
+                                     **observed[0]))
+        views.append(dict(schema='gomad.qualify-refusals-golden/v1', cases=rows))
+    equal(views[1], views[0], '$.refusals.repeated_agreement')
+    golden = CORPUS / 'goldens-qualify/refusals.json'
+    regenerate = os.environ.get('GOMAD_GOLDEN_REGENERATE') == '1'
+    parity.golden(golden, views[0], regenerate)
+    first = golden.read_bytes()
+    parity.golden(golden, views[1], regenerate)
+    equal(golden.read_bytes(), first, '$.refusals.second_regeneration_bytes')
+    print(f'qualification refusals: {len(rows)} Go/Rust cases agree twice with the golden')
+
+
 def main():
     parser = argparse.ArgumentParser(description=__doc__)
     for name in ('binary', 'go-binary', 'work'):
@@ -146,19 +180,14 @@ def main():
     declaration = load(CORPUS / 'qualify-corpus.json')
     equal(declaration['schema'], 'gomad.qualify-corpus/v1', '$.corpus.schema')
     if args.grammar_only:
-        for case in declaration['grammar']:
-            argv = [str(args.work / 'missing-spec.json') if item == '$MISSING_SPEC' else item
-                    for item in case['argv']]
-            result = run('go-' + case['name'], [args.go_binary, *argv], case['status'])
-            equal(case['stderr_contains'].encode() in result.stderr, True,
-                  '$.go.' + case['name'] + '.stderr')
         for lineage, binary in (('go', args.go_binary), ('rust', args.binary)):
-            for case in declaration['refusals']:
-                result = run(lineage + '-' + case['name'], [binary, *case['argv']], case['status'])
-                combined = result.stdout + result.stderr
-                equal(any(marker in combined for marker in
-                          (b'unknown command', b'unknown gomad command', b'unsupported command')),
-                      True, '$.' + lineage + '.' + case['name'] + '.unknown_command')
+            for case in declaration['grammar']:
+                argv = [str(args.work / 'missing-spec.json') if item == '$MISSING_SPEC' else item
+                        for item in case['argv']]
+                result = run(lineage + '-' + case['name'], [binary, *argv], case['status'])
+                equal(case['stderr_contains'].encode() in result.stderr, True,
+                      '$.' + lineage + '.' + case['name'] + '.stderr')
+        refusal_lane(args, declaration, run)
     result = run('rust-qualify-spec',
                  [args.binary, 'qualify', '--spec', args.work / 'missing-spec.json'], 2)
     if b'unsupported command' in result.stdout + result.stderr:
