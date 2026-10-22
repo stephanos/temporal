@@ -230,3 +230,31 @@ The bounded source sweep found no sibling all-entry campaign-count assertions
 in plan-check, recover-check or installation-lane; existing Go checks enumerate
 actual journals. No production/evidence-store behavior changed. Full lane 05
 raw failure remains under its original evidence root and adjacent log.
+
+Focused actual plan lane 01 (session 8543) terminated exit 1 only at the final
+cross-lineage module equality premise. Detached opening, both resealed metadata
+attacks, matching/empty scoped retained bases and stripped-symbol refusal passed;
+Go public plan refused 2 and actual Go explore succeeded 0. Frozen Go v3 runtime
+and current Rust v4 runtime have authorized fn230 site-attribution input changes:
+first differing generated file gomad_wasm.go is
+`2716bf5007ef48bc788726b4f0dd3e036e7655fac7aade785793bc0f9af6198a`
+(Go) versus `dd217006f5c56bc9ea5fe8d53911fc852ef8e9e6fcbfe0edc287c1d95af8ecc8`
+(Rust), adding scheduler site/flag arrays and decision wire-v2 attribution.
+Generated runtime2.go is
+`2610721f6ce37cac278ba8ed4df31e9184f53b92b1ac24ce99b20434cb960614`
+versus `d25bd036dee54ceb8762195695715774c2008c91d1dad933123d97a5c8a61c4d`,
+adding g.gomadCreationSite/Flags. Exact generated diff and both source hashes are
+retained in focused-plan-01/overlay-difference.txt. Go module is
+`175e59ce0266c83d22c33ec76fe80251bbb6ddff2e8e74878d350d06e7dba2bb`
+(2554819 bytes); Rust is
+`a54c96c9e44342a5df0e3e9eeb11a6a191d5d99d854351d1900fb0deed934c91`
+(2556163 bytes). Code, data and buildid differ because inputs differ.
+
+Root explicitly authorized replacing this invalid equality premise with separate
+lineage authentication: each actual module matches its own authenticated artifact,
+provenance and receipt; exact same compiler hash/version still compare; literal
+Go v3/Rust v4 profiles and both module/runtime/implementation/overlay hashes are
+retained in the golden. Overlay bytes must match their own source inventory.
+Selection, arguments, Go refusal/explore and Rust zero-execution behavior checks
+remain. No hash is substituted or normalized; no cross-lineage module byte parity
+is claimed. Independent integrated batch review must cover this changed premise.

@@ -396,11 +396,36 @@ def check(binary, installation, root, working_dir, package='./...', go_binary=No
             go_artifact = roots[0] / go_artifact
         go_manifest = reference['authenticate_artifact'](go_artifact)
         go_target = reference['contained'](go_artifact, go_manifest['target']['file']).read_bytes()
-        assert digest(go_target) == receipt['module_sha256']
+        go_provenance = json.loads(reference['contained'](go_artifact,
+            go_manifest['target']['backend']['provenance']['file']).read_bytes())
+        assert go_provenance['ModuleSHA256'] == 'sha256:' + digest(go_target)
+        assert provenance['module_sha256'] == receipt['module_sha256'] == digest(module)
+        assert go_manifest['choice_profile']['name'] == 'gomad-choice-trace/v3'
+        assert provenance['configuration']['environment']['GOMAD_CHOICE_PROFILE'] == 'gomad-choice-trace/v4'
+        assert go_provenance['CompilerSHA256'] == 'sha256:' + provenance['inputs']['compiler_sha256']
+        assert go_provenance['GoVersion'] == provenance['inputs']['go_version']
+        go_flags = go_provenance['BuildFlags']
+        go_overlay = Path(go_flags[go_flags.index('-overlay') + 1])
+        go_overlay_sha = 'sha256:' + digest(go_overlay.read_bytes())
+        assert any(row['Path'] == str(go_overlay) and row['SHA256'] == go_overlay_sha
+            for row in go_provenance['Sources'])
+        rust_overlays = [(Path(path), sha) for path, sha in provenance['inputs']['compiler'].items()
+            if Path(path).name == 'overlay.json']
+        assert len(rust_overlays) == 1
+        rust_overlay, rust_overlay_sha = rust_overlays[0]
+        assert digest(rust_overlay.read_bytes()) == rust_overlay_sha
+        lineages = dict(
+            go=dict(choice_profile=go_manifest['choice_profile']['name'], module_sha256=go_provenance['ModuleSHA256'],
+                runtime_sha256=go_provenance['RuntimeSHA256'],
+                runtime_implementation_sha256=go_provenance['RuntimeImplementationSHA256'], overlay_sha256=go_overlay_sha),
+            rust=dict(choice_profile=provenance['configuration']['environment']['GOMAD_CHOICE_PROFILE'],
+                module_sha256=provenance['module_sha256'], runtime_sha256=provenance['inputs']['runtime'],
+                runtime_implementation_sha256=provenance['inputs']['runtime_implementation'], overlay_sha256=rust_overlay_sha))
         assert go_manifest['target']['argv'] == plan['configuration']['arguments']
         go_view = {'public_plan_status': 2, 'public_explore_status': 0,
             'selection': plan['selection'], 'selection_count': plan['selection_count'],
-            'module_sha256': digest(go_target), 'argv': go_manifest['target']['argv'], 'executed_seed': int(execution['seed'])}
+            'module_sha256': digest(go_target), 'argv': go_manifest['target']['argv'], 'executed_seed': int(execution['seed']),
+            'preparation_lineages': lineages}
     return {'schema': response['schema'], 'guest_executions': receipt['guest_executions'],
         'prepared_record': record, 'prepared_record_sha256': receipt['record_sha256'],
         'module_sha256': receipt['module_sha256'], 'module_bytes': receipt['module_bytes'],
