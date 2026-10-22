@@ -143,7 +143,8 @@ def check(case, row):
     name = case['name']
     if row.get('budget'):
         for item in row['budget']['checks']:
-            print(f"{name}: {item['name']}: {gib(item['observed'])} vs {gib(item['limit'])}: {item['status']}")
+            show = gib if 'RSS' in item['name'] or 'memory' in item['name'] else str
+            print(f"{name}: {item['name']}: {show(item['observed'])} vs {show(item['limit'])}: {item['status']}")
     if expected['interval_failure'] is not None:
         equal(row['cost'], None, name + '.cost_refused')
         equal(row['budget'], None, name + '.budget_refused')

@@ -239,8 +239,11 @@ def go_scenario_reference(run, args, case, installation, go_spec):
 
 def log_memory(args, name, result):
     """Records every memory check in bytes and binary GiB beside the receipts."""
-    lines = [f"{name}: {item['name']} [{item['quantity']}]: {item['observed']} B ({item['observed'] / (1 << 30):.3f} GiB)"
-             f" vs {item['limit']} B ({item['limit'] / (1 << 30):.3f} GiB): {item['status']}"
+    def show(item, value):
+        if 'RSS' in item['name'] or 'memory' in item['name']:
+            return f'{value} B ({value / (1 << 30):.3f} GiB)'
+        return str(value)
+    lines = [f"{name}: {item['name']} [{item['quantity']}]: {show(item, item['observed'])} vs {show(item, item['limit'])}: {item['status']}"
              for item in (result['budget'] or {}).get('checks', [])]
     with (args.work / 'memory.txt').open('a') as stream:
         stream.write(''.join(line + '\n' for line in lines))
