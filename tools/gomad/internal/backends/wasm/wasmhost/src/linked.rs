@@ -130,17 +130,20 @@ impl Sink {
             .into_inner()
             .map_err(|_| Error::msg("linked evidence lock poisoned"))
     }
+    fn retained_bytes(streams: &BTreeMap<String, Vec<u8>>, offered: u64) -> wasmtime::Result<u64> {
+        streams
+            .values()
+            .try_fold(offered, |total, value| {
+                total.checked_add(value.len() as u64)
+            })
+            .ok_or_else(|| Error::msg("linked evidence capacity overflow"))
+    }
     pub(crate) fn append(&self, stream: &str, bytes: &[u8]) -> wasmtime::Result<()> {
         let mut streams = self
             .streams
             .lock()
             .map_err(|_| Error::msg("linked evidence lock poisoned"))?;
-        let retained = streams
-            .values()
-            .try_fold(bytes.len() as u64, |total, value| {
-                total.checked_add(value.len() as u64)
-            })
-            .ok_or_else(|| Error::msg("linked evidence capacity overflow"))?;
+        let retained = Self::retained_bytes(&streams, bytes.len() as u64)?;
         if retained > self.maximum {
             return Err(Error::new(model::RemoteCapacity(
                 "linked evidence capacity",
@@ -177,7 +180,6 @@ fn admitted(
     let limits = &request.limits;
     if request.module.len() > 512 * 1024 * 1024
         || limits.evidence_bytes == 0
-        || limits.evidence_bytes > 1 << 30
         || limits.wall_timeout.is_zero()
     {
         return Err(Error::msg("invalid linked execution bounds"));
@@ -467,5 +469,30 @@ mod live_metrics_tests {
         assert!(metrics.execute_nanos > 0);
         assert!(metrics.resource_usage_available);
         assert!(metrics.peak_rss_bytes > 0);
+    }
+}
+
+#[cfg(test)]
+mod evidence_bounds_tests {
+    use super::Sink;
+    use std::collections::BTreeMap;
+
+    #[test]
+    fn aggregate_is_combined_and_failed_append_preserves_prefix() {
+        let sink = Sink::new(3);
+        sink.append("stdout", b"ab").unwrap();
+        sink.append("stderr", b"c").unwrap();
+        assert!(sink.append("choice", b"d").is_err());
+        let streams = sink.into_streams().unwrap();
+        assert_eq!(streams.len(), 2);
+        assert_eq!(streams["stdout"], b"ab");
+        assert_eq!(streams["stderr"], b"c");
+    }
+
+    #[test]
+    fn aggregate_addition_overflow_is_refused() {
+        let streams = BTreeMap::from([("choice".into(), vec![0])]);
+        let error = Sink::retained_bytes(&streams, u64::MAX).unwrap_err();
+        assert_eq!(error.to_string(), "linked evidence capacity overflow");
     }
 }

@@ -254,7 +254,6 @@ pub fn prepare(mut request: Request) -> Result<Prepared> {
     if request.incarnations.is_empty()
         || request.incarnations.len() > 65536
         || request.evidence_bytes == 0
-        || request.evidence_bytes > 1 << 30
         || request.wall_timeout.is_zero()
     {
         return Err(Error::msg("invalid linked cluster bounds"));
