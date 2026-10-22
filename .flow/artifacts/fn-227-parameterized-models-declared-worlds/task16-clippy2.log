@@ -1,0 +1,31 @@
+   Compiling umpire-dsl-macros v0.0.1 (/Users/stephan/Workspace/skunkworks/umpire/temporal/model/umpire/dsl/macros)
+    Checking umpire-lift v0.0.1 (/Users/stephan/Workspace/skunkworks/umpire/temporal/model/umpire/lift)
+   Compiling umpire-tests v0.0.1 (/Users/stephan/Workspace/skunkworks/umpire/temporal/model/umpire/tests)
+    Checking umpire-tlc v0.0.1 (/Users/stephan/Workspace/skunkworks/umpire/temporal/model/umpire/backends/tlc)
+    Checking umpire-dsl v0.0.1 (/Users/stephan/Workspace/skunkworks/umpire/temporal/model/umpire/dsl)
+    Checking umpire-checker v0.0.1 (/Users/stephan/Workspace/skunkworks/umpire/temporal/model/umpire/checker)
+    Checking umpire-suite v0.0.1 (/Users/stephan/Workspace/skunkworks/umpire/temporal/model/umpire/suite)
+    Checking umpire-testing v0.0.1 (/Users/stephan/Workspace/skunkworks/umpire/temporal/model/umpire/testing)
+error: this function has too many lines (204/100)
+  --> umpire/lift/tests/fixtures/linear_returns.rs:18:9
+   |
+18 |         fn client(&mut self, action: Client) {
+   |         ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+   |
+   = help: for further information visit https://rust-lang.github.io/rust-clippy/rust-1.99.0/index.html#too_many_lines
+   = note: `-D clippy::too-many-lines` implied by `-D warnings`
+   = help: to override `-D warnings` add `#[allow(clippy::too_many_lines)]`
+
+error: allocating a local array larger than 16384 bytes
+ --> umpire/lift/tests/fixtures/linear_returns.rs:3:1
+  |
+3 | #[machine]
+  | ^^^^^^^^^^
+  |
+  = help: for further information visit https://rust-lang.github.io/rust-clippy/rust-1.99.0/index.html#large_stack_arrays
+  = note: `-D clippy::large-stack-arrays` implied by `-D warnings`
+  = help: to override `-D warnings` add `#[allow(clippy::large_stack_arrays)]`
+  = note: this error originates in the attribute macro `machine` (in Nightly builds, run with -Z macro-backtrace for more info)
+
+error: could not compile `umpire-lift` (test "phased") due to 2 previous errors
+warning: build failed, waiting for other jobs to finish...

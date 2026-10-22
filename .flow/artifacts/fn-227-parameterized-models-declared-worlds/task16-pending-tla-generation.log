@@ -1,0 +1,39 @@
+   Compiling umpire-dsl-macros v0.0.1 (/Users/stephan/Workspace/skunkworks/umpire/temporal/model/umpire/dsl/macros)
+   Compiling umpire-tests v0.0.1 (/Users/stephan/Workspace/skunkworks/umpire/temporal/model/umpire/tests)
+   Compiling umpire-dsl v0.0.1 (/Users/stephan/Workspace/skunkworks/umpire/temporal/model/umpire/dsl)
+   Compiling umpire-checker v0.0.1 (/Users/stephan/Workspace/skunkworks/umpire/temporal/model/umpire/checker)
+   Compiling umpire-wasm v0.0.1 (/Users/stephan/Workspace/skunkworks/umpire/temporal/model/umpire/wasm)
+   Compiling umpire-suite v0.0.1 (/Users/stephan/Workspace/skunkworks/umpire/temporal/model/umpire/suite)
+   Compiling umpire-testing v0.0.1 (/Users/stephan/Workspace/skunkworks/umpire/temporal/model/umpire/testing)
+   Compiling umpire-catalog-syntax v0.0.1 (/Users/stephan/Workspace/skunkworks/umpire/temporal/model/umpire/catalog/syntax)
+   Compiling umpire-catalog-build v0.0.1 (/Users/stephan/Workspace/skunkworks/umpire/temporal/model/umpire/catalog-build)
+   Compiling umpire-temporal-annotate-syntax v0.0.1 (/Users/stephan/Workspace/skunkworks/umpire/temporal/model/temporal/annotate/syntax)
+   Compiling umpire-catalog-macros v0.0.1 (/Users/stephan/Workspace/skunkworks/umpire/temporal/model/umpire/catalog/macros)
+   Compiling umpire-temporal-api v0.0.1 (/Users/stephan/Workspace/skunkworks/umpire/temporal/model/temporal/api)
+   Compiling umpire-temporal-realization-macros v0.0.1 (/Users/stephan/Workspace/skunkworks/umpire/temporal/model/temporal/realization/macros)
+   Compiling umpire-temporal-annotate-macros v0.0.1 (/Users/stephan/Workspace/skunkworks/umpire/temporal/model/temporal/annotate/macros)
+   Compiling umpire-catalog v0.0.1 (/Users/stephan/Workspace/skunkworks/umpire/temporal/model/umpire/catalog)
+   Compiling umpire-temporal-annotate v0.0.1 (/Users/stephan/Workspace/skunkworks/umpire/temporal/model/temporal/annotate)
+   Compiling umpire-temporal v0.0.1 (/Users/stephan/Workspace/skunkworks/umpire/temporal/model/temporal/realization)
+   Compiling umpire-temporal-tests v0.0.1 (/Users/stephan/Workspace/skunkworks/umpire/temporal/model/temporal/testing)
+    Finished `test` profile [unoptimized + debuginfo] target(s) in 1m 12s
+     Running fixtures.rs (/home/agent/.cache/codex-build/cargo-target/debug/deps/fixtures-68b3001bee239495)
+
+running 1 test
+test fixtures ... ok
+
+test result: ok. 1 passed; 0 failed; 0 ignored; 0 measured; 8 filtered out; finished in 0.44s
+
+     Running fixtures.rs (/home/agent/.cache/codex-build/cargo-target/debug/deps/fixtures-abe965145cfb6d3c)
+
+running 1 test
+stored new snapshot /Users/stephan/Workspace/skunkworks/umpire/temporal/model/umpire/tests/fixtures/action_inputs/expected/Inputs@tla.snap.new
+stored new snapshot /Users/stephan/Workspace/skunkworks/umpire/temporal/model/umpire/tests/fixtures/changed_state/expected/ChangedState@tla.snap.new
+stored new snapshot /Users/stephan/Workspace/skunkworks/umpire/temporal/model/umpire/tests/fixtures/parameterized_world/expected/Counter@tla.snap.new
+stored new snapshot /Users/stephan/Workspace/skunkworks/umpire/temporal/model/umpire/tests/fixtures/phased_rejection/expected/Job@tla.snap.new
+stored new snapshot /Users/stephan/Workspace/skunkworks/umpire/temporal/model/umpire/tests/fixtures/sample_kettle/expected/Kettle@tla.snap.new
+stored new snapshot /Users/stephan/Workspace/skunkworks/umpire/temporal/model/umpire/tests/fixtures/shared_returns/expected/Gate@tla.snap.new
+test fixtures ... ok
+
+test result: ok. 1 passed; 0 failed; 0 ignored; 0 measured; 25 filtered out; finished in 4.25s
+

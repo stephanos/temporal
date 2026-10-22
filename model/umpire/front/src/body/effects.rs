@@ -69,12 +69,22 @@ impl Environment {
             let mut checks = Vec::new();
             let (body, stays) = without_stay(&arm.body);
             let mut flow = Flow::new(&self.outcome_type);
-            self.effects(&body, &mut state, &mut locals, &mut checks, &mut flow, 0)?;
-            self.bounded_vector_growth(&body, &state, &effective)?;
+            let mut definitions = Vec::new();
+            self.effects(
+                &body,
+                &mut state,
+                &mut locals,
+                &mut checks,
+                &mut flow,
+                &mut definitions,
+                0,
+            )?;
+            self.bounded_vector_growth(&body, &state, &effective, &definitions)?;
             // A rejection is an enabled self-loop, as natively; it is never a dropped branch.
             let outcome = flow.outcome();
             let stays = stays || rejects(&outcome);
             branches.push(Branch {
+                definitions,
                 guard: effective,
                 updates: state.values,
                 checks,
@@ -96,6 +106,7 @@ impl Environment {
         locals: &mut Env,
         checks: &mut Vec<Expr>,
         flow: &mut Flow,
+        definitions: &mut Vec<(String, Expr)>,
         depth: usize,
     ) -> Result<()> {
         if depth > 32 {
@@ -121,28 +132,23 @@ impl Environment {
                             }
                             let value = self.expr(&init.expr, state, &scoped, None, depth)?;
                             checks.push(flow.guard(value.clone(), default_expr(&value.ty)));
-                            scoped.insert(id.ident.to_string(), value);
+                            scoped.insert(id.ident.to_string(), define(value, definitions));
                         }
                         Stmt::Expr(expr, _) => {
-                            self.effects(expr, state, &mut scoped, checks, flow, depth)?;
+                            self.effects(
+                                expr,
+                                state,
+                                &mut scoped,
+                                checks,
+                                flow,
+                                definitions,
+                                depth,
+                            )?;
                         }
                         Stmt::Macro(mac) if Self::is_reject(&mac.mac) => {
                             self.reject(&mac.mac, state, &scoped, flow, depth)?;
                         }
                         _ => return self.err(statement, "unsupported effect statement"),
-                    }
-                    let mut budget = NODE_BUDGET;
-                    if !state
-                        .values()
-                        .chain([&flow.running])
-                        .all(|value| within(value, &mut budget))
-                    {
-                        return self.err(
-                            statement,
-                            format!(
-                                "the step lowers to more than {NODE_BUDGET} expression nodes here; split the handler"
-                            ),
-                        );
                     }
                 }
             }
@@ -185,6 +191,7 @@ impl Environment {
                 // After a conditional return, the condition is evaluated only where the step
                 // still runs, as natively; `/\` stops at a returned path.
                 let cond = if flow.diverged() { flow.running.clone().and(cond) } else { cond };
+                let cond = define(cond, definitions);
                 let mut yes = state.clone();
                 let mut no = state.clone();
                 let mut yc = Vec::new();
@@ -196,9 +203,25 @@ impl Environment {
                     label: None,
                     block: condition.then_branch.clone(),
                 });
-                self.effects(&yes_expr, &mut yes, &mut locals.clone(), &mut yc, &mut yf, depth)?;
+                self.effects(
+                    &yes_expr,
+                    &mut yes,
+                    &mut locals.clone(),
+                    &mut yc,
+                    &mut yf,
+                    definitions,
+                    depth,
+                )?;
                 if let Some((_, other)) = &condition.else_branch {
-                    self.effects(other, &mut no, &mut locals.clone(), &mut nc, &mut nf, depth)?;
+                    self.effects(
+                        other,
+                        &mut no,
+                        &mut locals.clone(),
+                        &mut nc,
+                        &mut nf,
+                        definitions,
+                        depth,
+                    )?;
                 }
                 flow.join(&cond, yf, nf);
                 for (name, value) in state.iter_mut() {
@@ -242,12 +265,17 @@ impl Environment {
                     &mut self.helper_env(method, &call.args, locals)?,
                     checks,
                     flow,
+                    definitions,
                     depth + 1,
                 )?;
                 flow.running = running;
             }
             _ => return self.err(node, format!("unsupported effect `{}`", node.to_token_stream())),
         }
+        for value in state.values_mut() {
+            *value = define(value.clone(), definitions);
+        }
+        flow.running = define(flow.running.clone(), definitions);
         Ok(())
     }
     pub(super) fn assigned_field(&self, node: &RustExpr) -> Result<String> {
@@ -292,25 +320,25 @@ pub(super) fn default_expr(ty: &Type) -> Expr {
     }
 }
 
-/// The admitted tree copies each earlier value a later statement reads, so a handler that
-/// re-reads updates after conditional returns grows multiplicatively; past this many nodes it
-/// is refused rather than left to stall the macro.
-const NODE_BUDGET: usize = 10_000;
-/// Whether `value` has at most `budget` nodes, counting them off `budget`.
-fn within(value: &Expr, budget: &mut usize) -> bool {
-    let Some(left) = budget.checked_sub(1) else { return false };
-    *budget = left;
-    match &value.kind {
-        ExprKind::Unary(_, a) | ExprKind::Length(a) => within(a, budget),
-        ExprKind::Binary(_, a, b) | ExprKind::Append(a, b) => {
-            within(a, budget) && within(b, budget)
-        }
-        ExprKind::If(a, b, c) | ExprKind::GetOr(a, b, c) => {
-            within(a, budget) && within(b, budget) && within(c, budget)
-        }
-        ExprKind::Tuple(values) | ExprKind::Sequence(values) | ExprKind::Checks(values) => {
-            values.iter().all(|value| within(value, budget))
-        }
-        _ => true,
+/// Keep values referenced by later statements as leaves rather than copying their trees.
+fn define(value: Expr, definitions: &mut Vec<(String, Expr)>) -> Expr {
+    if matches!(
+        value.kind,
+        ExprKind::Unary(..)
+            | ExprKind::Binary(..)
+            | ExprKind::If(..)
+            | ExprKind::Tuple(..)
+            | ExprKind::Sequence(..)
+            | ExprKind::Length(..)
+            | ExprKind::Append(..)
+            | ExprKind::GetOr(..)
+            | ExprKind::Checks(..)
+    ) {
+        let name = definitions.len().to_string();
+        let ty = value.ty.clone();
+        definitions.push((name.clone(), value));
+        Expr { kind: ExprKind::Local(name), ty }
+    } else {
+        value
     }
 }

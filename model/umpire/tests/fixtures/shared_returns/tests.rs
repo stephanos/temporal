@@ -9,7 +9,7 @@ fn sequential_returns_share_definitions_in_unit_and_payload_steps() -> umpire_te
     let module = bound().lift(folder.join("model.rs"))?;
     for operator in ["Client_Step ==", "Client_Add_At("] {
         let step = module.tla.lines().find(|line| line.starts_with(operator)).ok_or(operator)?;
-        assert!(step.contains("LET __umpire_s1 =="), "{step}");
+        assert!(step.contains("LET __umpire_l1 =="), "{step}");
     }
     Ok(())
 }

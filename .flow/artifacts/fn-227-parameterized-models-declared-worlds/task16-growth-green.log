@@ -1,0 +1,17 @@
+   Compiling umpire-ir v0.0.1 (/Users/stephan/Workspace/skunkworks/umpire/temporal/model/umpire/ir)
+   Compiling umpire-front v0.0.1 (/Users/stephan/Workspace/skunkworks/umpire/temporal/model/umpire/front)
+   Compiling umpire-lift v0.0.1 (/Users/stephan/Workspace/skunkworks/umpire/temporal/model/umpire/lift)
+   Compiling umpire-tlc v0.0.1 (/Users/stephan/Workspace/skunkworks/umpire/temporal/model/umpire/backends/tlc)
+   Compiling umpire-dsl-macros v0.0.1 (/Users/stephan/Workspace/skunkworks/umpire/temporal/model/umpire/dsl/macros)
+   Compiling umpire-dsl v0.0.1 (/Users/stephan/Workspace/skunkworks/umpire/temporal/model/umpire/dsl)
+   Compiling umpire-checker v0.0.1 (/Users/stephan/Workspace/skunkworks/umpire/temporal/model/umpire/checker)
+    Finished `test` profile [unoptimized + debuginfo] target(s) in 3.16s
+     Running tests/phased.rs (/home/agent/.cache/codex-build/cargo-target/debug/deps/phased-601aabe97613deb3)
+
+running 1 test
+linear repeated_updates=false count=8: nodes=266 constructor_bytes=77782 elapsed=15.551ms
+linear repeated_updates=false count=16: nodes=522 constructor_bytes=149982 elapsed=2.278501751s
+error: test failed, to rerun pass `-p umpire-lift --test phased`
+
+Caused by:
+  process didn't exit successfully: `/home/agent/.cache/codex-build/cargo-target/debug/deps/phased-601aabe97613deb3 admitted_tree_and_constructor_data_grow_linearly --nocapture` (signal: 15, SIGTERM: termination signal)

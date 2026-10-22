@@ -150,7 +150,8 @@ fn payload_patterns_resolve_lexically_through_their_typed_identities()
     // A later arm is guarded by the failure of the first, and its local shadows the payload.
     assert!(set.contains("~(((__umpire_input_0) = (3)))"), "{set}");
     assert!(set.contains("((__umpire_input_0) < (__umpire_world_slots))"), "{set}");
-    assert!(set.contains("total' = (IF Assert(((__umpire_input_0) + (1))"), "{set}");
+    assert!(set.contains("LET __umpire_l1 == (IF Assert(((__umpire_input_0) + (1))"), "{set}");
+    assert!(set.contains("total' = __umpire_l1"), "{set}");
     let take = line(&module.tla, "User_Take_At");
     // `selected` binds the payload, shadowing the World parameter of the same name.
     assert!(take.contains("((__umpire_input_0) > (total))"), "{take}");

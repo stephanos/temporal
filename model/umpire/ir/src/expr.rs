@@ -22,6 +22,8 @@ pub enum ExprKind {
     Input(String),
     /// The outcome of the edge a postcondition judges; a back end names it.
     Outcome,
+    /// An ordered definition in the enclosing branch.
+    Local(String),
     Enum(String),
     Unary(Unary, Box<Expr>),
     Binary(Op, Box<Expr>, Box<Expr>),
@@ -126,7 +128,7 @@ impl Expr {
             | ExprKind::Input(_)
             | ExprKind::Outcome
             | ExprKind::Enum(_) => true,
-            ExprKind::Unary(Unary::Neg, _) | ExprKind::GetOr(..) => false,
+            ExprKind::Local(_) | ExprKind::Unary(Unary::Neg, _) | ExprKind::GetOr(..) => false,
             ExprKind::Unary(Unary::Not, value) | ExprKind::Length(value) => value.infallible(),
             ExprKind::Binary(op, left, right) => {
                 !matches!(op, Op::Add | Op::Sub | Op::Mul | Op::Div | Op::Rem)

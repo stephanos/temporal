@@ -108,6 +108,8 @@ pub struct ActionRef {
 #[derive(Clone, Debug, umpire_ir_derive::Print)]
 #[print_path(::umpire_dsl::__lifted::tree::Branch)]
 pub struct Branch {
+    /// Single-assignment values, in dependency order, scoped to this branch.
+    pub definitions: Vec<(String, Expr)>,
     pub guard: Expr,
     pub updates: BTreeMap<String, Expr>,
     pub checks: Vec<Expr>,

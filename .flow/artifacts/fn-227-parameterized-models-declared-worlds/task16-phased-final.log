@@ -1,0 +1,36 @@
+   Compiling umpire-ir v0.0.1 (/Users/stephan/Workspace/skunkworks/umpire/temporal/model/umpire/ir)
+   Compiling umpire-front v0.0.1 (/Users/stephan/Workspace/skunkworks/umpire/temporal/model/umpire/front)
+   Compiling umpire-lift v0.0.1 (/Users/stephan/Workspace/skunkworks/umpire/temporal/model/umpire/lift)
+   Compiling umpire-tlc v0.0.1 (/Users/stephan/Workspace/skunkworks/umpire/temporal/model/umpire/backends/tlc)
+   Compiling umpire-dsl-macros v0.0.1 (/Users/stephan/Workspace/skunkworks/umpire/temporal/model/umpire/dsl/macros)
+   Compiling umpire-dsl v0.0.1 (/Users/stephan/Workspace/skunkworks/umpire/temporal/model/umpire/dsl)
+   Compiling umpire-checker v0.0.1 (/Users/stephan/Workspace/skunkworks/umpire/temporal/model/umpire/checker)
+    Finished `test` profile [unoptimized + debuginfo] target(s) in 1.99s
+     Running tests/phased.rs (/home/agent/.cache/codex-build/cargo-target/debug/deps/phased-601aabe97613deb3)
+
+running 6 tests
+Error: "Diagnostic { line: 17, column: 9, message: \"unsupported attribute `expect` (cfg and external resolution are not inferred)\" }"
+test large_handlers_compile_with_their_admitted_data ... FAILED
+linear pattern=returns count=8: nodes=266 constructor_bytes=77332 elapsed=12.330458ms
+test rejections_lower_to_typed_outcomes_and_kept_self_loops ... ok
+test emitted_size_is_linear_in_sequential_conditional_returns ... ok
+linear pattern=returns count=16: nodes=522 constructor_bytes=149292 elapsed=22.200542ms
+linear pattern=returns count=32: nodes=1034 constructor_bytes=293467 elapsed=42.879209ms
+test unsupported_phase_rejection_and_law_forms_refuse_at_their_location ... ok
+linear pattern=updates count=8: nodes=138 constructor_bytes=38161 elapsed=6.427875ms
+linear pattern=updates count=16: nodes=234 constructor_bytes=61953 elapsed=9.464459ms
+linear pattern=updates count=32: nodes=426 constructor_bytes=109537 elapsed=16.0065ms
+linear pattern=vectors count=8: nodes=129 constructor_bytes=38742 elapsed=6.456625ms
+linear pattern=vectors count=16: nodes=209 constructor_bytes=60158 elapsed=10.771833ms
+linear pattern=vectors count=32: nodes=369 constructor_bytes=102990 elapsed=16.214875ms
+test admitted_tree_and_constructor_data_grow_linearly ... ok
+test shared_definitions_never_take_an_authored_name ... ok
+
+failures:
+
+failures:
+    large_handlers_compile_with_their_admitted_data
+
+test result: FAILED. 5 passed; 1 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.75s
+
+error: test failed, to rerun pass `-p umpire-lift --test phased`

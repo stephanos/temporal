@@ -140,23 +140,26 @@ pub(crate) fn emit(model: &Lifted) -> Result<Module, Diagnostic> {
             Some(format!("{}_Inputs[{}][1]", operator(&action.name), model.names.index))
         };
         let identity = identity.as_deref();
-        let mut shared = Shared::new(&model.names.shared);
-        for branch in &action.branches {
-            step(model, &action.name, branch, identity, &mut |value| {
-                shared.count(value);
-                String::new()
-            });
-        }
         let branches = action
             .branches
             .iter()
             .map(|branch| {
-                conjoin(step(model, &action.name, branch, identity, &mut |value| {
+                let mut shared = Shared::new(&model.names.shared);
+                step(model, &action.name, branch, identity, &mut |value| {
+                    shared.count(value);
+                    String::new()
+                });
+                let terms = conjoin(step(model, &action.name, branch, identity, &mut |value| {
                     shared.emit(value)
-                }))
+                }));
+                let mut definitions = String::new();
+                for (name, value) in &branch.definitions {
+                    let _ = write!(definitions, "LET {name} == {} IN ", expr(value));
+                }
+                format!("{definitions}{}{terms}", shared.definitions.concat())
             })
             .collect();
-        let branches = format!("{}{}", shared.definitions.concat(), disjoin(branches));
+        let branches = disjoin(branches);
         if action.fields.is_empty() {
             line(&mut out, format!("{} == {branches}", operator(&action.name)));
         } else {
@@ -708,7 +711,7 @@ fn render<'e>(value: &'e Expr, child: &mut dyn FnMut(&'e Expr) -> String) -> Str
         ExprKind::Text(v) | ExprKind::Enum(v) => text(v),
         ExprKind::Unit => "<<>>".into(),
         ExprKind::Var(name, primed) => format!("{name}{}", if *primed { "'" } else { "" }),
-        ExprKind::World(name) | ExprKind::Input(name) => name.clone(),
+        ExprKind::World(name) | ExprKind::Input(name) | ExprKind::Local(name) => name.clone(),
         ExprKind::Outcome => format!("{OUTCOME}'"),
         ExprKind::Tuple(values) | ExprKind::Sequence(values) => format!("<<{}>>", list(values)),
         ExprKind::Length(sequence) => format!("Len({})", child(sequence)),
@@ -769,10 +772,7 @@ fn render<'e>(value: &'e Expr, child: &mut dyn FnMut(&'e Expr) -> String) -> Str
     }
 }
 
-/// The subexpressions one step operator repeats, each emitted once as a `LET` definition when
-/// it is longer than `SHARED`. The front end lowers each statement over the values before it,
-/// so a later condition or update re-reads whole earlier values; inlined, the text multiplies
-/// with every conditional return and checked operation, while shared it stays linear.
+/// Large repeated subexpressions, emitted once within their branch's local definitions.
 struct Shared<'a> {
     nodes: std::collections::HashMap<&'a Expr, Node>,
     definitions: Vec<String>,

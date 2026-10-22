@@ -1,0 +1,14 @@
+{
+  "base": "d70684bca2a7f0974abedee129db1ef480cecf56",
+  "count": 782,
+  "unchanged": 776,
+  "changed": [
+    "model/umpire/tests/fixtures/action_inputs/expected/Inputs@tla.snap.tla",
+    "model/umpire/tests/fixtures/changed_state/expected/ChangedState@tla.snap.tla",
+    "model/umpire/tests/fixtures/parameterized_world/expected/Counter@tla.snap.tla",
+    "model/umpire/tests/fixtures/phased_rejection/expected/Job@tla.snap.tla",
+    "model/umpire/tests/fixtures/sample_kettle/expected/Kettle@tla.snap.tla",
+    "model/umpire/tests/fixtures/shared_returns/expected/Gate@tla.snap.tla"
+  ],
+  "semantics": "all native reports/states/rows/verdicts/replays/refusals byte-identical"
+}

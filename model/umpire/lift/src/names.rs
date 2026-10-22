@@ -117,6 +117,7 @@ pub(crate) fn assign(source: &Source, model: &mut umpire_front::Lifted) -> Names
         .collect();
     let index = allocate(taken, "__umpire_i", &mut generated);
     let shared = numbered(taken, "__umpire_s", &mut generated);
+    let local = numbered(taken, "__umpire_l", &mut generated);
     let constants = if model.declared_world {
         model
             .constants
@@ -153,14 +154,24 @@ pub(crate) fn assign(source: &Source, model: &mut umpire_front::Lifted) -> Names
     for (action, symbols) in model.actions.iter_mut().zip(&inputs) {
         let chosen: BTreeMap<_, _> =
             action.fields.iter().map(|field| field.name.clone()).zip(symbols.clone()).collect();
-        let rename_branch = |expr: &mut Expr| {
-            rename(expr, &|kind| match kind {
-                ExprKind::World(name) => worlds.get(name.as_str()).cloned().map(ExprKind::World),
-                ExprKind::Input(name) => chosen.get(name.as_str()).cloned().map(ExprKind::Input),
-                _ => None,
-            });
-        };
+        let mut next_local = 0;
         for branch in &mut action.branches {
+            let locals = local_names(branch, &local, &mut next_local);
+            let rename_branch = |expr: &mut Expr| {
+                rename(expr, &|kind| match kind {
+                    ExprKind::World(name) => {
+                        worlds.get(name.as_str()).cloned().map(ExprKind::World)
+                    }
+                    ExprKind::Input(name) => {
+                        chosen.get(name.as_str()).cloned().map(ExprKind::Input)
+                    }
+                    ExprKind::Local(name) => locals.get(name).cloned().map(ExprKind::Local),
+                    _ => None,
+                });
+            };
+            for (_, value) in &mut branch.definitions {
+                rename_branch(value);
+            }
             rename_branch(&mut branch.guard);
             branch.updates.values_mut().for_each(rename_branch);
             branch.checks.iter_mut().for_each(rename_branch);
@@ -178,6 +189,22 @@ pub(crate) fn assign(source: &Source, model: &mut umpire_front::Lifted) -> Names
         rename_world(&mut claim.target);
     }
     Names { world, inputs, index, shared, constants }
+}
+
+fn local_names(
+    branch: &mut umpire_front::tree::Branch,
+    prefix: &str,
+    next: &mut usize,
+) -> BTreeMap<String, String> {
+    branch
+        .definitions
+        .iter_mut()
+        .map(|(name, _)| {
+            *next += 1;
+            let generated = format!("{prefix}{next}");
+            (std::mem::replace(name, generated.clone()), generated)
+        })
+        .collect()
 }
 
 fn rename(expr: &mut Expr, renamed: &dyn Fn(&ExprKind) -> Option<ExprKind>) {
@@ -209,6 +236,7 @@ fn rename(expr: &mut Expr, renamed: &dyn Fn(&ExprKind) -> Option<ExprKind>) {
         | ExprKind::World(_)
         | ExprKind::Input(_)
         | ExprKind::Outcome
+        | ExprKind::Local(_)
         | ExprKind::Enum(_) => {}
     }
 }

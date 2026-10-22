@@ -1,0 +1,7 @@
+model/umpire/tests/fixtures/action_inputs/expected/Inputs@tla.snap.tla
+model/umpire/tests/fixtures/changed_state/expected/ChangedState@tla.snap.tla
+model/umpire/tests/fixtures/parameterized_world/expected/Counter@tla.snap.tla
+model/umpire/tests/fixtures/phased_rejection/expected/Job@tla.snap.tla
+model/umpire/tests/fixtures/sample_kettle/expected/Kettle@tla.snap.tla
+model/umpire/tests/fixtures/shared_returns/expected/Gate@tla.snap.tla
+Mechanism: ordered branch LET definitions replace duplicated statement values; generated names remain below the input LET scope. Only these TLA+ payloads were accepted; metadata retained.

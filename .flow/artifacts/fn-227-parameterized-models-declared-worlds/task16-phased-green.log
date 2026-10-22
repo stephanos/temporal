@@ -1,0 +1,57 @@
+   Compiling umpire-front v0.0.1 (/Users/stephan/Workspace/skunkworks/umpire/temporal/model/umpire/front)
+   Compiling umpire-lift v0.0.1 (/Users/stephan/Workspace/skunkworks/umpire/temporal/model/umpire/lift)
+   Compiling umpire-dsl-macros v0.0.1 (/Users/stephan/Workspace/skunkworks/umpire/temporal/model/umpire/dsl/macros)
+   Compiling umpire-tlc v0.0.1 (/Users/stephan/Workspace/skunkworks/umpire/temporal/model/umpire/backends/tlc)
+   Compiling umpire-dsl v0.0.1 (/Users/stephan/Workspace/skunkworks/umpire/temporal/model/umpire/dsl)
+   Compiling umpire-checker v0.0.1 (/Users/stephan/Workspace/skunkworks/umpire/temporal/model/umpire/checker)
+warning: unreachable `pub` item
+ --> umpire/lift/tests/fixtures/linear_returns.rs:4:1
+  |
+4 | pub mod linear {
+  | ---^^^^^^^^^^^
+  | |
+  | help: consider restricting its visibility: `pub(crate)`
+  |
+  = help: or consider exporting it for use by other crates
+  = note: requested on the command line with `-W unreachable-pub`
+
+warning: unreachable `pub` item
+ --> umpire/lift/tests/fixtures/linear_returns.rs:7:5
+  |
+7 |     pub struct Model {
+  |     ---^^^^^^^^^^^^^
+  |     |
+  |     help: consider restricting its visibility: `pub(crate)`
+  |
+  = help: or consider exporting it for use by other crates
+
+warning: unreachable `pub` item
+  --> umpire/lift/tests/fixtures/linear_returns.rs:12:5
+   |
+12 |     pub enum Client {
+   |     ---^^^^^^^^^^^^
+   |     |
+   |     help: consider restricting its visibility: `pub(crate)`
+   |
+   = help: or consider exporting it for use by other crates
+
+warning: `umpire-lift` (test "phased") generated 3 warnings (run `cargo fix --test "phased" -p umpire-lift` to apply 3 suggestions)
+    Finished `test` profile [unoptimized + debuginfo] target(s) in 5.76s
+     Running tests/phased.rs (/home/agent/.cache/codex-build/cargo-target/debug/deps/phased-601aabe97613deb3)
+
+running 6 tests
+test shared_definitions_never_take_an_authored_name ... ok
+test large_handlers_compile_with_their_admitted_data ... ok
+linear repeated_updates=false count=8: nodes=266 constructor_bytes=77782 elapsed=41.775917ms
+test rejections_lower_to_typed_outcomes_and_kept_self_loops ... ok
+test emitted_size_is_linear_in_sequential_conditional_returns ... ok
+linear repeated_updates=false count=16: nodes=522 constructor_bytes=149982 elapsed=62.153791ms
+test unsupported_phase_rejection_and_law_forms_refuse_at_their_location ... ok
+linear repeated_updates=false count=32: nodes=1034 constructor_bytes=294637 elapsed=124.062875ms
+linear repeated_updates=true count=8: nodes=138 constructor_bytes=38401 elapsed=32.208709ms
+linear repeated_updates=true count=16: nodes=234 constructor_bytes=62193 elapsed=17.667917ms
+linear repeated_updates=true count=32: nodes=426 constructor_bytes=109777 elapsed=38.885584ms
+test admitted_tree_and_constructor_data_grow_linearly ... ok
+
+test result: ok. 6 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.33s
+

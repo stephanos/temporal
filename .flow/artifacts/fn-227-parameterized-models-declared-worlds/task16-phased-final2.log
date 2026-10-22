@@ -1,0 +1,23 @@
+   Compiling umpire-lift v0.0.1 (/Users/stephan/Workspace/skunkworks/umpire/temporal/model/umpire/lift)
+    Finished `test` profile [unoptimized + debuginfo] target(s) in 1.57s
+     Running tests/phased.rs (/home/agent/.cache/codex-build/cargo-target/debug/deps/phased-601aabe97613deb3)
+
+running 6 tests
+test large_handlers_compile_with_their_admitted_data ... ok
+linear pattern=returns count=8: nodes=266 constructor_bytes=77332 elapsed=12.533041ms
+test rejections_lower_to_typed_outcomes_and_kept_self_loops ... ok
+test emitted_size_is_linear_in_sequential_conditional_returns ... ok
+linear pattern=returns count=16: nodes=522 constructor_bytes=149292 elapsed=22.12225ms
+linear pattern=returns count=32: nodes=1034 constructor_bytes=293467 elapsed=44.861875ms
+linear pattern=updates count=8: nodes=138 constructor_bytes=38161 elapsed=7.366208ms
+test unsupported_phase_rejection_and_law_forms_refuse_at_their_location ... ok
+linear pattern=updates count=16: nodes=234 constructor_bytes=61953 elapsed=10.366125ms
+linear pattern=updates count=32: nodes=426 constructor_bytes=109537 elapsed=17.488709ms
+linear pattern=vectors count=8: nodes=129 constructor_bytes=38742 elapsed=7.63775ms
+linear pattern=vectors count=16: nodes=209 constructor_bytes=60158 elapsed=11.597834ms
+linear pattern=vectors count=32: nodes=369 constructor_bytes=102990 elapsed=17.059459ms
+test admitted_tree_and_constructor_data_grow_linearly ... ok
+test shared_definitions_never_take_an_authored_name ... ok
+
+test result: ok. 6 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.79s
+

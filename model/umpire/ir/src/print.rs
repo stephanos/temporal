@@ -50,7 +50,7 @@ impl Print for i128 {
 impl<T: Print> Print for Vec<T> {
     fn print(&self) -> TokenStream {
         let values = self.iter().map(Print::print);
-        quote!(::std::vec::Vec::from([#(#values),*]))
+        quote!(::std::vec![#(#values),*])
     }
 }
 impl<T: Print> Print for Box<T> {

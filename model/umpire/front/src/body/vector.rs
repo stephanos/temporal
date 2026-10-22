@@ -213,9 +213,18 @@ impl Environment {
         node: &RustExpr,
         state: &Env,
         guard: &Expr,
+        definitions: &[(String, Expr)],
     ) -> Result<()> {
         for (field, value) in state.iter() {
-            if !bounded(value, guard, field) {
+            if matches!(value.ty, Type::Seq(_))
+                && !bounded(
+                    value,
+                    upper_bound(guard, field, definitions),
+                    field,
+                    definitions,
+                    &mut std::collections::BTreeMap::new(),
+                )
+            {
                 return self.err(
                     node,
                     format!(
@@ -228,26 +237,59 @@ impl Environment {
     }
 }
 
-fn bounded(value: &Expr, guard: &Expr, field: &str) -> bool {
+fn bounded(
+    value: &Expr,
+    limited: bool,
+    field: &str,
+    definitions: &[(String, Expr)],
+    memo: &mut std::collections::BTreeMap<(String, bool), bool>,
+) -> bool {
     match &value.kind {
+        ExprKind::Local(name) => {
+            let key = (name.clone(), limited);
+            if let Some(result) = memo.get(&key) {
+                return *result;
+            }
+            let result = definitions
+                .iter()
+                .find(|(id, _)| id == name)
+                .is_some_and(|(_, value)| bounded(value, limited, field, definitions, memo));
+            memo.insert(key, result);
+            result
+        }
         ExprKind::Append(sequence, _) => {
-            upper_bound(guard, field) && bounded(sequence, guard, field)
+            limited && bounded(sequence, limited, field, definitions, memo)
         }
         ExprKind::If(condition, yes, no) => {
-            bounded(yes, &guard.clone().and((**condition).clone()), field)
-                && bounded(no, &guard.clone().and(condition.clone().not()), field)
+            bounded(
+                yes,
+                limited || upper_bound(condition, field, definitions),
+                field,
+                definitions,
+                memo,
+            ) && bounded(
+                no,
+                limited || upper_bound(&condition.clone().not(), field, definitions),
+                field,
+                definitions,
+                memo,
+            )
         }
         _ => true,
     }
 }
-fn upper_bound(guard: &Expr, field: &str) -> bool {
+fn upper_bound(guard: &Expr, field: &str, definitions: &[(String, Expr)]) -> bool {
     match &guard.kind {
         ExprKind::Bool(false) => true,
+        ExprKind::Local(name) => definitions
+            .iter()
+            .find(|(id, _)| id == name)
+            .is_some_and(|(_, value)| upper_bound(value, field, definitions)),
         ExprKind::Binary(Op::And, left, right) => {
-            upper_bound(left, field) || upper_bound(right, field)
+            upper_bound(left, field, definitions) || upper_bound(right, field, definitions)
         }
         ExprKind::Binary(Op::Or, left, right) => {
-            upper_bound(left, field) && upper_bound(right, field)
+            upper_bound(left, field, definitions) && upper_bound(right, field, definitions)
         }
         ExprKind::Binary(op, left, right) => {
             let len = |expr: &Expr| matches!(&expr.kind,ExprKind::Length(value)if matches!(&value.kind,ExprKind::Var(name,false)if name==field));

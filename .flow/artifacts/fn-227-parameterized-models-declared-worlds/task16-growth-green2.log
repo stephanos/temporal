@@ -1,0 +1,20 @@
+   Compiling umpire-front v0.0.1 (/Users/stephan/Workspace/skunkworks/umpire/temporal/model/umpire/front)
+   Compiling umpire-lift v0.0.1 (/Users/stephan/Workspace/skunkworks/umpire/temporal/model/umpire/lift)
+   Compiling umpire-dsl-macros v0.0.1 (/Users/stephan/Workspace/skunkworks/umpire/temporal/model/umpire/dsl/macros)
+   Compiling umpire-tlc v0.0.1 (/Users/stephan/Workspace/skunkworks/umpire/temporal/model/umpire/backends/tlc)
+   Compiling umpire-dsl v0.0.1 (/Users/stephan/Workspace/skunkworks/umpire/temporal/model/umpire/dsl)
+   Compiling umpire-checker v0.0.1 (/Users/stephan/Workspace/skunkworks/umpire/temporal/model/umpire/checker)
+    Finished `test` profile [unoptimized + debuginfo] target(s) in 3.48s
+     Running tests/phased.rs (/home/agent/.cache/codex-build/cargo-target/debug/deps/phased-601aabe97613deb3)
+
+running 1 test
+linear repeated_updates=false count=8: nodes=266 constructor_bytes=77782 elapsed=13.390334ms
+linear repeated_updates=false count=16: nodes=522 constructor_bytes=149982 elapsed=30.8475ms
+linear repeated_updates=false count=32: nodes=1034 constructor_bytes=294637 elapsed=86.878125ms
+linear repeated_updates=true count=8: nodes=138 constructor_bytes=38401 elapsed=8.735667ms
+linear repeated_updates=true count=16: nodes=234 constructor_bytes=62193 elapsed=9.878125ms
+linear repeated_updates=true count=32: nodes=426 constructor_bytes=109777 elapsed=18.161542ms
+test admitted_tree_and_constructor_data_grow_linearly ... ok
+
+test result: ok. 1 passed; 0 failed; 0 ignored; 0 measured; 5 filtered out; finished in 0.17s
+

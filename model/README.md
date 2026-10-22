@@ -779,12 +779,14 @@ tests show TLC refuting reopening, accepted-closed-step and wrong-rejection muta
 source. An inherent method that shadows a `Phase` or `Phased` method refuses, since library
 bodies call the trait's.
 
-Emitted steps stay linear in their conditional returns (fn-227.15). The outcome is the first
-reached rejection, one `IF` per `reject!`; an `if` whose arms leave a value equal folds when
-its condition cannot fail; and a subexpression longer than 400 characters that one step
-operator repeats is emitted once, as a `LET` definition before its branches. A condition after
-a return is evaluated only where the step still runs. A step whose admitted tree passes 10,000
-nodes refuses at the statement, since re-reading updates after returns copies earlier values.
+Admitted steps and embedded constructor data stay linear in sequential conditional returns
+and repeated updates (fn-227.16). Each branch carries ordered single-assignment definitions;
+later statements reference those values through typed local leaves, and emission binds them
+with hygienically allocated `LET` names inside the branch and its payload scope. The outcome
+keeps the first reached rejection, and checks retain their original execution guards. The
+former 10,000-node refusal is removed: compilation controls embed 32 sequential returns and
+64 repeated updates without expanding earlier values. Large repeated expressions within a
+step still use the emitter's existing shared `LET` definitions.
 
 The default gate needs only the Rust toolchain and workspace dependencies. The optional `cargo-insta`
 CLI supports interactive review and acceptance (`cargo install cargo-insta --locked`). Its real

@@ -1,0 +1,44 @@
+    Blocking waiting for file lock on build directory
+    Checking umpire-ir v0.0.1 (/Users/stephan/Workspace/skunkworks/umpire/temporal/model/umpire/ir)
+   Compiling umpire-dsl-macros v0.0.1 (/Users/stephan/Workspace/skunkworks/umpire/temporal/model/umpire/dsl/macros)
+   Compiling umpire-tests v0.0.1 (/Users/stephan/Workspace/skunkworks/umpire/temporal/model/umpire/tests)
+   Compiling umpire-front v0.0.1 (/Users/stephan/Workspace/skunkworks/umpire/temporal/model/umpire/front)
+    Checking umpire-lift v0.0.1 (/Users/stephan/Workspace/skunkworks/umpire/temporal/model/umpire/lift)
+error: use of `format!` to build up a string from an iterator
+   --> umpire/lift/src/emit.rs:155:43
+    |
+155 |                   let definitions: String = branch
+    |  ___________________________________________^
+156 | |                     .definitions
+157 | |                     .iter()
+158 | |                     .map(|(name, value)| format!("LET {name} == {} IN ", expr(value)))
+159 | |                     .collect();
+    | |______________________________^
+    |
+help: call `fold` instead
+   --> umpire/lift/src/emit.rs:158:22
+    |
+158 |                     .map(|(name, value)| format!("LET {name} == {} IN ", expr(value)))
+    |                      ^^^
+help: ... and use the `write!` macro here
+   --> umpire/lift/src/emit.rs:158:42
+    |
+158 |                     .map(|(name, value)| format!("LET {name} == {} IN ", expr(value)))
+    |                                          ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+    = note: this can be written more efficiently by appending to a `String` directly
+    = help: for further information visit https://rust-lang.github.io/rust-clippy/rust-1.99.0/index.html#format_collect
+    = note: `-D clippy::format-collect` implied by `-D warnings`
+    = help: to override `-D warnings` add `#[allow(clippy::format_collect)]`
+
+error: this function has too many lines (101/100)
+  --> umpire/lift/src/names.rs:98:1
+   |
+98 | pub(crate) fn assign(source: &Source, model: &mut umpire_front::Lifted) -> Names {
+   | ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+   |
+   = help: for further information visit https://rust-lang.github.io/rust-clippy/rust-1.99.0/index.html#too_many_lines
+   = note: `-D clippy::too-many-lines` implied by `-D warnings`
+   = help: to override `-D warnings` add `#[allow(clippy::too_many_lines)]`
+
+error: could not compile `umpire-lift` (lib) due to 2 previous errors
+warning: build failed, waiting for other jobs to finish...

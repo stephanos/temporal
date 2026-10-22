@@ -167,53 +167,83 @@ fn step(source: &str) -> Result<String, Box<dyn std::error::Error>> {
 #[test]
 fn emitted_size_is_linear_in_sequential_conditional_returns()
 -> Result<(), Box<dyn std::error::Error>> {
-    // Inlined, each return multiplied the step about thirteenfold (2,356 to 706,669,127 bytes
-    // from one to six returns); shared, each further return adds the same few hundred bytes.
-    // TLC and native agreement on shared steps are checked by the shared_returns fixture.
-    // Four returns is the most this pattern admits under the front end's node budget.
-    let [three, four] = [3, 4].map(|returns| step(&sequential_returns(returns, "done")));
-    let (three, four) = (three?, four?);
-    for shared in [&three, &four] {
-        assert!(shared.starts_with("Client_Step == LET __umpire_s1 == "), "{shared}");
-    }
-    assert!(four.len() - three.len() < 1_000, "{} {}", three.len(), four.len());
+    let [sixteen, thirty_two] = [16, 32].map(|returns| step(&sequential_returns(returns, "done")));
+    let (sixteen, thirty_two) = (sixteen?, thirty_two?);
+    assert!(thirty_two.len() < sixteen.len() * 2 + 1024, "{} {}", sixteen.len(), thirty_two.len());
     Ok(())
 }
 
 #[test]
 fn shared_definitions_never_take_an_authored_name() -> Result<(), Box<dyn std::error::Error>> {
-    let step = step(&sequential_returns(3, "__umpire_s1"))?;
-    assert!(step.starts_with("Client_Step == LET __umpire_s_1_1 == "), "{step}");
-    assert!(!step.contains("LET __umpire_s1 =="), "{step}");
+    let source = sequential_returns(0, "__umpire_l1").replace(
+        "self.__umpire_l1 = true;",
+        "if self.count == 2 { reject!(Rejection::NotFound); } let __umpire_l_1_1 = self.count + 1; self.count = __umpire_l_1_1; self.__umpire_l1 = true;",
+    );
+    let step = step(&source)?;
+    assert!(step.contains("LET __umpire_l_2_1 == "), "{step}");
+    assert!(!step.contains("LET __umpire_l1 =="), "{step}");
+    assert!(!step.contains("LET __umpire_l_1_1 =="), "{step}");
+    if std::env::var("UMPIRE_BACKENDS").as_deref() == Ok("require") {
+        use umpire_tlc::{State, Value};
+        let module = umpire_lift::Tla::emit(&Lift::parse("collision.rs", &source)?)?;
+        let root = std::path::Path::new(env!("CARGO_MANIFEST_DIR")).join("../../..");
+        let result = umpire_tlc::Tlc::discover(&root)?.check_module(&module)?;
+        let expected = [(0, false), (1, true), (2, true)]
+            .map(|(count, done)| {
+                State::from([
+                    ("count".into(), Value::Int(count)),
+                    ("__umpire_l1".into(), Value::Bool(done)),
+                ])
+            })
+            .into_iter()
+            .collect();
+        assert_eq!(result.states, expected);
+    }
     Ok(())
 }
 
+#[path = "fixtures/linear_returns.rs"]
+mod compiled;
+
 #[test]
-fn a_step_past_the_node_budget_refuses_at_its_statement() {
-    let error = Lift::parse("gate.rs", &sequential_returns(9, "done"))
-        .err()
-        .map(|error| error.to_string())
-        .unwrap_or_default();
-    assert!(error.starts_with("gate.rs:") && error.contains("split the handler"), "{error}");
+fn large_handlers_compile_with_their_admitted_data() -> Result<(), Box<dyn std::error::Error>> {
+    use umpire_dsl::__lifted::Lifts;
+    let embedded = compiled::linear::World::__umpire_lifted();
+    let tree = embedded.model.map_err(|error| format!("{error:?}"))?;
+    assert_eq!(tree.actions.len(), 2);
+    assert!(tree.actions.iter().all(|action| !action.branches[0].definitions.is_empty()));
+    Ok(())
 }
 
 #[test]
 #[allow(clippy::print_stderr)]
 fn admitted_tree_and_constructor_data_grow_linearly() -> Result<(), Box<dyn std::error::Error>> {
     use umpire_dsl::__lifted::print::Print;
-    for repeated_updates in [false, true] {
+    for pattern in ["returns", "updates", "vectors"] {
         let mut sizes = Vec::new();
         for count in [8, 16, 32] {
             let mut source = sequential_returns(count, "done");
-            if repeated_updates {
+            if pattern != "returns" {
                 let body = "if self.count == 3 { reject!(Rejection::NotFound); } self.count += 1;";
-                source = sequential_returns(0, "done").replace("self.done = true;", &format!("{body} {} self.done = true;", "self.count += 1;".repeat(count)));
+                source = sequential_returns(0, "done").replace(
+                    "self.done = true;",
+                    &format!("{body} {} self.done = true;", "self.count += 1;".repeat(count)),
+                );
+            }
+            if pattern == "vectors" {
+                source = source
+                    .replace("pub count: u8,", "pub count: u8, pub values: imbl::Vector<u8>,")
+                    .replace("Client::Step =>", "Client::Step if self.values.len() < 64 =>")
+                    .replace("self.count += 1;", "self.values.push_back(1);");
             }
             let started = std::time::Instant::now();
             let tree = Lift::parse("linear.rs", &source)?;
             let nodes = format!("{tree:?}").matches("Expr {").count();
             let bytes = tree.print().to_string().len();
-            eprintln!("linear repeated_updates={repeated_updates} count={count}: nodes={nodes} constructor_bytes={bytes} elapsed={:?}", started.elapsed());
+            eprintln!(
+                "linear pattern={pattern} count={count}: nodes={nodes} constructor_bytes={bytes} elapsed={:?}",
+                started.elapsed()
+            );
             sizes.push((nodes, bytes));
         }
         for pair in sizes.windows(2) {
