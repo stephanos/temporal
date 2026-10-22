@@ -27,7 +27,9 @@ pub enum Workload {
     #[serde(rename = "independent-temporal-replication-durable-restart")]
     TemporalReplication { canary: bool },
     #[serde(rename = "temporal-committed-workflow-crash-reopen")]
-    TemporalRecovery { forcing: Option<recovery::Forcing> },
+    TemporalRecovery {
+        forcing: Option<Box<recovery::Forcing>>,
+    },
     #[serde(rename = "temporal-onebox-stopped-inspection")]
     TemporalInspection,
 }
@@ -73,11 +75,12 @@ fn read_history(output: &[u8], prefix: &str) -> Result<History, String> {
     if value.cluster_id.is_empty()
         || value.event_ids.is_empty()
         || value.event_ids.len() != value.types.len()
-        || value
-            .event_ids
-            .iter()
-            .enumerate()
-            .any(|(index, id)| *id != index as i64 + 1)
+        || value.event_ids.iter().enumerate().any(|(index, id)| {
+            i64::try_from(index)
+                .ok()
+                .and_then(|index| index.checked_add(1))
+                != Some(*id)
+        })
         || value.types.iter().any(String::is_empty)
         || super::cells::base64(&value.payload).is_none_or(|bytes| bytes.is_empty())
     {
@@ -136,7 +139,7 @@ impl Workload {
         let checks = match self {
             Self::SQLite { .. } => oracles::sqlite(streams)?,
             Self::TemporalReplication { canary } => oracles::replication(streams, *canary)?,
-            Self::TemporalRecovery { forcing } => oracles::recovery(streams, forcing.as_ref())?,
+            Self::TemporalRecovery { forcing } => oracles::recovery(streams, forcing.as_deref())?,
             Self::TemporalInspection => oracles::inspection(streams)?,
         };
         Ok(Observation {
@@ -218,7 +221,7 @@ pub(crate) fn retained(
             sqlite_catalogue(&opened, &mut catalogues, selection.as_ref())?;
         }
         if let Some(Workload::TemporalRecovery { forcing }) = actual_workload {
-            temporal_catalogue(&opened, &mut catalogues, forcing.as_ref())?;
+            temporal_catalogue(&opened, &mut catalogues, forcing.as_deref())?;
         }
     }
     Ok((catalogues, selection))
@@ -270,6 +273,7 @@ fn sqlite_catalogue(
     catalogues: &mut Vec<native_crash::Catalogue>,
     selection: Option<&native_crash::Selection>,
 ) -> Result<(), String> {
+    opened.payload("evidence/cluster/sqlite/2/storage_precrash_image", 5 << 20)?;
     let state = opened.payload("evidence/cluster/sqlite/2/storage_state", 8 << 20)?;
     let log = opened.payload("evidence/cluster/sqlite/2/storage", 32 << 20)?;
     let catalogue = native_crash::capture(&state, &log)?;
@@ -302,6 +306,10 @@ fn temporal_catalogue(
     catalogues: &mut Vec<native_crash::Catalogue>,
     forcing: Option<&recovery::Forcing>,
 ) -> Result<(), String> {
+    opened.payload(
+        "evidence/cluster/temporal/1/storage_precrash_image",
+        257 << 20,
+    )?;
     let state = opened.payload("evidence/cluster/temporal/1/storage_state", 256 << 20)?;
     let log = opened.payload("evidence/cluster/temporal/1/storage", 128 << 20)?;
     let catalogue = native_crash::temporal(&state, &log)?;
@@ -338,7 +346,7 @@ fn retained_workload(
             Some(recovery::Request::TemporalRetry)
                 if result.manifest.id == "temporal-named-network-reset" =>
             {
-                retry::retained(result)?
+                retry::retained(result)?;
             }
             Some(_) => {
                 return Err(
@@ -403,6 +411,7 @@ fn retained_streams(
             "/storage",
             "/choice",
             "/storage_state",
+            "/storage_precrash_image",
             "/recovery_image_primary",
             "/recovery_image_input",
         ]

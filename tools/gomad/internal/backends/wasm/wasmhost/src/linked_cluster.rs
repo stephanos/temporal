@@ -95,6 +95,49 @@ pub struct Prepared {
 }
 
 impl Prepared {
+    /// Retain the actual precrash state for the registered SQLite reference oracle.
+    /// # Errors
+    /// Refuses another incarnation graph or a missing enumerated storage owner.
+    pub fn sqlite_crash_reference(&mut self) -> Result<()> {
+        self.native_crash_reference("sqlite", 2, &[1, 2, 3])
+    }
+
+    /// Retain the actual precrash state for the registered Temporal recovery oracle.
+    /// # Errors
+    /// Refuses another incarnation graph or a missing enumerated storage owner.
+    pub fn temporal_crash_reference(&mut self) -> Result<()> {
+        let expected: &[u64] = if self.incarnations.len() == 3 {
+            &[1, 2, 3]
+        } else {
+            &[1, 2]
+        };
+        self.native_crash_reference("temporal", 1, expected)
+    }
+
+    fn native_crash_reference(&mut self, node: &str, source: u64, expected: &[u64]) -> Result<()> {
+        let handles = self
+            .incarnations
+            .keys()
+            .map(|handle| (handle.node.as_str(), handle.incarnation))
+            .collect::<Vec<_>>();
+        if handles
+            != expected
+                .iter()
+                .map(|incarnation| (node, *incarnation))
+                .collect::<Vec<_>>()
+        {
+            return Err(Error::msg(
+                "native crash reference requires its registered incarnation graph",
+            ));
+        }
+        self.incarnations
+            .iter_mut()
+            .find(|(handle, _)| handle.incarnation == source)
+            .and_then(|(_, sealed)| sealed.execution.request.storage.as_mut())
+            .ok_or_else(|| Error::msg("native crash reference requires durable storage"))?
+            .retain_native_crash_reference()
+    }
+
     /// Bind the original committed-workflow variant: two fresh stores recover
     /// from the identical actual image produced by temporal/1.
     /// # Errors

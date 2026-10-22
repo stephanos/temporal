@@ -74,6 +74,37 @@ mod simulation_tests {
     }
 
     #[test]
+    fn reference_precrash_image_keeps_actual_pending_effects() {
+        let model: StorageModel = serde_json::from_value(serde_json::json!({
+            "volumes":[{"ID":"db","Path":"/data","CapacityBytes":4096}],
+            "limits":{"PendingOperations":100,"Transitions":1000}
+        }))
+        .unwrap();
+        let mut descriptor: StorageDescriptor = serde_json::from_value(serde_json::json!({
+            "model":model,"model_identity":model.identity(),"return_image":true,
+            "crash_limits":{"States":16,"Operations":100,"Depth":100,"Bytes":1_048_576,"Work":1000}
+        }))
+        .unwrap();
+        let mut ordinary = fixture(&descriptor);
+        assert!(
+            recovery_evidence(&mut ordinary, &descriptor)
+                .precrash_image
+                .is_none()
+        );
+        descriptor.reference_precrash = true;
+        let mut namespace = fixture(&descriptor);
+        let storage = namespace.storage().unwrap();
+        assert!(!storage.fs.pending_operations()["db"].is_empty());
+        let expected = storage
+            .reference_image(StorageDescriptor::image_limit(namespace.filesystem_bytes()))
+            .unwrap();
+        let evidence = recovery_evidence(&mut namespace, &descriptor);
+        assert_eq!(evidence.failure, None);
+        assert_eq!(evidence.precrash_image.as_ref(), Some(&expected));
+        assert_ne!(evidence.precrash_image, evidence.image);
+    }
+
+    #[test]
     fn exploration_crash_selection_changes_recovered_bytes() {
         let model: StorageModel = serde_json::from_value(serde_json::json!({
             "volumes":[{"ID":"db","Path":"/data","CapacityBytes":4096}],
@@ -178,6 +209,8 @@ pub struct StorageDescriptor {
     observed_context: Option<BTreeMap<String, StorageCrashContext>>,
     #[serde(skip)]
     simulation: Option<crate::linked_simulation::Shared>,
+    #[serde(skip)]
+    pub(crate) reference_precrash: bool,
     pub return_image: bool,
     #[serde(default)]
     pub image: Option<ChunkedDescriptor>,
@@ -570,6 +603,7 @@ pub struct Evidence {
     pub log: Vec<u8>,
     pub state: Vec<u8>,
     pub image: Option<Vec<u8>>,
+    pub precrash_image: Option<Vec<u8>>,
     pub failure: Option<(&'static str, String)>,
 }
 
@@ -646,6 +680,7 @@ fn collect(
         ),
         log: log.clone(),
         image: None,
+        precrash_image: None,
         failure: Some(failure),
     };
     if let Err(error) = persistence {
@@ -696,6 +731,14 @@ fn collect(
         },
         None => descriptor.selections(),
     };
+    let precrash_image = if descriptor.reference_precrash {
+        match storage.reference_image(StorageDescriptor::image_limit(filesystem_bytes)) {
+            Ok(bytes) => Some(bytes),
+            Err(error) => return partial(&enumerations, 2, crash_failure(error)),
+        }
+    } else {
+        None
+    };
     let image = match namespace.crash_storage(
         &selections,
         StorageDescriptor::image_limit(filesystem_bytes),
@@ -723,6 +766,7 @@ fn collect(
         log,
         state,
         image: return_image.then_some(image.bytes),
+        precrash_image,
         failure: None,
     }
 }

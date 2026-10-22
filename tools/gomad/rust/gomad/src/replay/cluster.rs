@@ -463,6 +463,16 @@ pub fn prepare(opened: Opened, control: Option<&inspection::Request>) -> Result<
         evidence_bytes: configuration.limits.evidence_bytes,
     })
     .map_err(|error| error.to_string())?;
+    match &configuration.workload {
+        Some(crate::qualify::workloads::Workload::SQLite { .. }) => {
+            execution.sqlite_crash_reference()
+        }
+        Some(crate::qualify::workloads::Workload::TemporalRecovery { .. }) => {
+            execution.temporal_crash_reference()
+        }
+        _ => Ok(()),
+    }
+    .map_err(|error| error.to_string())?;
     if matches!(
         configuration.workload,
         Some(crate::qualify::workloads::Workload::TemporalRecovery { forcing: None })

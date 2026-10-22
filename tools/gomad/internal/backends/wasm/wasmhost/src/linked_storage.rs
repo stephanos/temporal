@@ -13,6 +13,16 @@ pub struct Input {
 }
 
 impl Input {
+    pub(crate) fn retain_native_crash_reference(&mut self) -> Result<()> {
+        if self.descriptor.crash_limits.is_none() {
+            return Err(Error::msg(
+                "native crash reference requires an enumerated durable owner",
+            ));
+        }
+        self.descriptor.reference_precrash = true;
+        Ok(())
+    }
+
     pub(crate) fn set_simulation(&mut self, controller: crate::linked_simulation::Shared) {
         self.descriptor.set_simulation(controller);
     }

@@ -10,6 +10,14 @@ import producer
 import workloads
 
 
+def selected_pass(raw, row):
+    selected = "TestWorkflowTypeEncodingSuite/TestPlainASCII/Succeeds" if row == "smoke" else "TestFrontendSystemInfo"
+    marker = ("--- PASS: " + selected).encode()
+    lines = [line.strip() for line in raw.splitlines()]
+    if not any(line == marker or line.startswith(marker + b" (") for line in lines) or b"--- SKIP:" in raw or b"no tests to run" in raw:
+        raise ValueError("original exact selected workflow/frontend test did not pass")
+
+
 def main():
     parser=argparse.ArgumentParser(description=__doc__)
     for name in ["binary","repo","root","compiler","runtime-root","cache","captured-config"]:
@@ -60,9 +68,7 @@ def main():
                     stream=execution["record"]["streams"]["output/stdout"]
                     if len(raw)!=stream["bytes"] or hashlib.sha256(raw).hexdigest()!=stream["sha256"]:
                         raise ValueError("support named-PASS stdout changed")
-                    required=([b"--- PASS: TestWorkflowTypeEncodingSuite",b"TestPlainASCII/Succeeds"] if row=="smoke" else [b"--- PASS: TestFrontendSystemInfo"])
-                    if any(marker not in raw for marker in required):
-                        raise ValueError("original exact selected workflow/frontend test did not pass")
+                    selected_pass(raw,row)
             results[mode]=str(result_path)
         if row=="smoke":
             inspection=producer.run(cell,"inspection",[sys.executable,str(Path(__file__).with_name("temporal-inspection.py")),*common,"--root",str(root/"inspection"),"--owner","onebox"],0)

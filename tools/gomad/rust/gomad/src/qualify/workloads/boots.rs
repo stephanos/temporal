@@ -208,25 +208,7 @@ pub(super) fn temporal_recovery(bound: &mut Bound) -> Result<(), String> {
             .model
             .as_mut()
             .ok_or("Temporal recovery model missing")?;
-        let expected = [
-            "-test.v",
-            "-test.count=1",
-            "-test.timeout=1h",
-            "-test.run=^TestCommittedWorkflowCrashRecovery$",
-            "-persistenceType=sql",
-            "-persistenceDriver=sqlite",
-        ];
-        if model
-            .arguments
-            .iter()
-            .skip(1)
-            .map(String::as_str)
-            .ne(expected)
-            || model.configuration.limits.calls != 4_000_000
-            || model.configuration.limits.transcript_bytes != 128 << 20
-        {
-            return Err("Temporal recovery changed original selection or model limits".into());
-        }
+        recovery_selection(model)?;
         model.configuration.limit = 1 << 30;
         model
             .environment
@@ -278,6 +260,29 @@ pub(super) fn temporal_recovery(bound: &mut Bound) -> Result<(), String> {
                     .ok_or("invalid Temporal recovery environment")
             })
             .collect::<Result<_, _>>()?;
+    }
+    Ok(())
+}
+
+fn recovery_selection(model: &gomad_wasmhost::linked::ModelInput) -> Result<(), String> {
+    let expected = [
+        "-test.v",
+        "-test.count=1",
+        "-test.timeout=1h",
+        "-test.run=^TestCommittedWorkflowCrashRecovery$",
+        "-persistenceType=sql",
+        "-persistenceDriver=sqlite",
+    ];
+    if model
+        .arguments
+        .iter()
+        .skip(1)
+        .map(String::as_str)
+        .ne(expected)
+        || model.configuration.limits.calls != 4_000_000
+        || model.configuration.limits.transcript_bytes != 128 << 20
+    {
+        return Err("Temporal recovery changed original selection or model limits".into());
     }
     Ok(())
 }

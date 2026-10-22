@@ -46,7 +46,18 @@ across fresh records. Four-state completeness, state/context binding,
 dependency closure, append-only selection and recovered marker presence,
 mode/time/size/hash are checked. The qualification driver's `sqlite.py` owns
 primary Result authentication, the four fresh selected producers, independent
-Go catalogue comparison and complete coverage aggregation.
+Go catalogue comparison and complete coverage aggregation. The closed SQLite
+and committed-workflow adapters also retain the actual `storage_precrash_image`
+GMVOLIMG bytes before lifecycle advancement. Ordinary workloads emit no extra
+image. Public report requires and authenticates that stream; exact replay binds
+it in the cluster summary. `internal/model/cmd/sqlite-native --input FILE`
+authenticates `storage_state_path`/`storage_state_sha256`,
+`storage_log_path`/`storage_log_sha256`, `precrash_image_path`/
+`precrash_image_sha256`, and the actual descriptor's `model_identity`, with the
+unchanged original SQLite limits. The retained Go model strictly imports the
+full persisted objects and pending effects, independently enumerates them using
+the original algorithm, and compares the complete catalogue and context. It
+does not accept the supplied catalogue as an independent oracle.
 
 `temporal-inspection.py` executes each original `shard`, `workflow`, or `onebox`
 selection with its original bounds. It detaches staged source, makes installation,

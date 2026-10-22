@@ -11,6 +11,7 @@ import (
 	"io"
 	"os"
 	"path/filepath"
+	"strings"
 
 	"go.temporal.io/server/tools/gomad/internal/model/strictjson"
 	"go.temporal.io/server/tools/gomad/internal/model/wasi"
@@ -24,11 +25,14 @@ type bounds struct {
 	Work       uint64 `json:"work"`
 }
 type request struct {
-	StatePath   string `json:"storage_state_path"`
-	StateSHA256 string `json:"storage_state_sha256"`
-	LogPath     string `json:"storage_log_path"`
-	LogSHA256   string `json:"storage_log_sha256"`
-	Limits      bounds `json:"limits"`
+	PrecrashPath   string `json:"precrash_image_path"`
+	PrecrashSHA256 string `json:"precrash_image_sha256"`
+	ModelIdentity  string `json:"model_identity"`
+	StatePath      string `json:"storage_state_path"`
+	StateSHA256    string `json:"storage_state_sha256"`
+	LogPath        string `json:"storage_log_path"`
+	LogSHA256      string `json:"storage_log_sha256"`
+	Limits         bounds `json:"limits"`
 }
 
 func read(path string, maximum int64) ([]byte, error) {
@@ -100,7 +104,15 @@ func project(path string, output io.Writer) error {
 	if err != nil {
 		return err
 	}
-	enumeration, context, err := wasi.ProjectSQLiteCrashCatalogue(state, log)
+	precrash, err := authenticated(input.PrecrashPath, input.PrecrashSHA256, 5<<20)
+	if err != nil {
+		return err
+	}
+	model, err := hex.DecodeString(strings.TrimPrefix(input.ModelIdentity, "sha256:"))
+	if err != nil || len(model) != 32 || "sha256:"+hex.EncodeToString(model) != input.ModelIdentity {
+		return errors.New("native oracle requires canonical model identity")
+	}
+	enumeration, context, err := wasi.ProjectSQLiteCrashCatalogue(state, log, precrash, input.ModelIdentity)
 	if err != nil {
 		return err
 	}

@@ -298,7 +298,7 @@ pub(crate) fn bind(prepared: &Prepared, bound: &mut Bound) -> Result<(), String>
         .steps
         .retain(|item| item.handle.incarnation != 3);
     bound.configuration.workload = Some(Workload::TemporalRecovery {
-        forcing: Some(source.forcing),
+        forcing: Some(Box::new(source.forcing)),
     });
     Ok(())
 }
@@ -438,7 +438,7 @@ pub(super) fn validate_retry(
         || config.arguments.iter().map(String::as_str).ne(expected)
         || model["limit"] != 1u64 << 30
         || model["digest_only"].as_bool().unwrap_or(false)
-        || model["epoch_nanos"] != 946684800000000000u64
+        || model["epoch_nanos"] != 946_684_800_000_000_000_u64
         || model["read_step_nanos"] != 0
         || model["entropy_key"] != json!(sha2::Sha256::digest(b"gomad-wasm-prototype/v1").to_vec())
         || model["limits"]["calls"] != 1u64 << 28

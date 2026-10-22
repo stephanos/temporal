@@ -80,6 +80,7 @@ def temporal_replication_scenario(canary=False):
         for phase in ["commit", "reopen"]:
             value["boots"].append(dict(id=role+"-"+phase, args=REPLICATION_ARGS.copy(), storage=temporal_storage(role)))
         value["incarnation_boots"].append(dict(handle=handle(role, 2), boot=role+"-reopen"))
+    value["output_crashes"]=[dict(handle=handle(role,1),marker=base64.b64encode(b"GOMAD_TEMPORAL_OBSERVATION ").decode()) for role in ["active","standby"]]
     value["spec"]["links"] = [dict(**{"from": a, "to": b}, enabled=True) for a, b in [("active", "standby"), ("standby", "active")]]
     value["network_faults"] = [dict(Name="temporal-active-to-standby-"+operation, Action=operation, From="active", To="standby", AtNanos=at)
                                 for operation, at in [("partition", 1), ("heal", 30_000_000_000)]]

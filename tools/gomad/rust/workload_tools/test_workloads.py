@@ -1,4 +1,5 @@
 import importlib.util
+import sys
 from pathlib import Path
 import tempfile
 import unittest
@@ -43,6 +44,16 @@ class WorkloadTests(unittest.TestCase):
             self.assertEqual(target["Args"],["-test.v","-test.count=1","-test.timeout=72h","-test.run="+selection,"-persistenceType=sql","-persistenceDriver=sqlite"])
             self.assertNotIn("network_v2",workloads.support_policy(row,{"schema":"authenticated-test-input"}))
             self.assertEqual(spec["Campaign"]["ChoiceTraceLimit"],64<<20)
+
+    def test_support_requires_actual_selected_leaf_pass(self):
+        sys.path.insert(0, str(Path(__file__).parent))
+        module_spec = importlib.util.spec_from_file_location("temporal_support", Path(__file__).with_name("temporal-support.py"))
+        support = importlib.util.module_from_spec(module_spec)
+        module_spec.loader.exec_module(support)
+        support.selected_pass(b"    --- PASS: TestWorkflowTypeEncodingSuite/TestPlainASCII/Succeeds (0.01s)\n", "smoke")
+        for raw in [b"--- PASS: TestWorkflowTypeEncodingSuite\n--- SKIP: TestWorkflowTypeEncodingSuite/TestPlainASCII/Succeeds\n", b"--- PASS: TestWorkflowTypeEncodingSuite\nTestPlainASCII/Succeeds", b"--- PASS: TestWorkflowTypeEncodingSuite/TestPlainASCII/SucceedsOther (0.01s)"]:
+            with self.subTest(raw=raw), self.assertRaises(ValueError):
+                support.selected_pass(raw, "smoke")
 
     def test_staging_rejects_changed_original_and_unexpected_files(self):
         repo = Path(__file__).resolve().parents[4]

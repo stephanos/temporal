@@ -126,8 +126,7 @@ fn explore_options(
             "--choice-bytes".into(),
             campaign
                 .choice_trace_limit
-                .max(1 << 20)
-                .min(64 << 20)
+                .clamp(1 << 20, 64 << 20)
                 .to_string(),
             "--coverage".into(),
             "choice".into(),
@@ -151,8 +150,13 @@ fn explore_options(
     let mut options = crate::cli::explore::parse(&arguments, &mut json)?;
     options.installation = installation.map(Path::to_path_buf);
     options.scenario = scenario;
+    original_choice_bound(spec, &mut options)?;
+    Ok(options)
+}
+
+fn original_choice_bound(spec: &Spec, options: &mut ExploreOptions) -> Result<(), String> {
     if spec.manifest.id == "temporal-committed-workflow-crash-reopen" {
-        if campaign.choice_trace_limit != 1 << 30
+        if spec.campaign.choice_trace_limit != 1 << 30
             || options.scenario.as_ref().is_none_or(|raw| {
                 serde_json::from_slice::<Value>(raw)
                     .ok()
@@ -170,7 +174,7 @@ fn explore_options(
         Some(super::workloads::recovery::Request::TemporalRetry)
     ) {
         if spec.manifest.id != "temporal-named-network-reset"
-            || campaign.choice_trace_limit != 1 << 30
+            || spec.campaign.choice_trace_limit != 1 << 30
         {
             return Err(
                 "named Temporal reset requires its original registered 1GiB choice bound".into(),
@@ -178,7 +182,7 @@ fn explore_options(
         }
         options.choice_bytes = 1 << 30;
     }
-    Ok(options)
+    Ok(())
 }
 
 /// The owner spec carries `Target.Scenario` as Go's base64 `[]byte` encoding of

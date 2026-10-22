@@ -1320,6 +1320,16 @@ pub(super) fn execute(
     let limits = store_limits(&bound.request.incarnations);
     let mut execution =
         helper::prepare(bound.request).map_err(|error| format!("runner_failure: {error}"))?;
+    match &bound.configuration.workload {
+        Some(crate::qualify::workloads::Workload::SQLite { .. }) => {
+            execution.sqlite_crash_reference()
+        }
+        Some(crate::qualify::workloads::Workload::TemporalRecovery { .. }) => {
+            execution.temporal_crash_reference()
+        }
+        _ => Ok(()),
+    }
+    .map_err(|error| error.to_string())?;
     if matches!(
         bound.configuration.workload,
         Some(crate::qualify::workloads::Workload::TemporalRecovery { forcing: None })
