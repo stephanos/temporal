@@ -308,3 +308,36 @@ mutating its bytes. Original compiler bytes/mode remain untouched and final raw
 input digest guard remains required. Other copied inputs are only read/deleted;
 all earlier runtime/artifact mutations actually passed. Full 11 remains intact,
 12 was not started; no production source or build changed.
+
+Complete prior corpus acceptance for immutable `63c43b45...`:
+full 13 regeneration, session 24587, 21:49:14Z–21:50:33Z, exit 0;
+strict full 14, session 35153, 21:50:55Z–21:52:16Z, exit 0.
+Each ran 312 direct public calls plus authenticated child lanes, two independent
+executions and unchanged raw-input guards; regeneration agreed byte-for-byte on
+its second write. Literal golden SHA was
+`bded8fc97b41954567a0e0e9c188b2ca4d9b664f8c55323644832dfc960c8a38`.
+These are genuine passes for that exact prior corpus, not final R12 qualification.
+
+Final coverage audit found two explicit parent-required helper proof negatives
+missing from that corpus: a mutated copy of the current executable and an actual
+differently compiled Rust role. Both actual focused calls now pass (overall exit
+0, each public install refusal 2 with exact helper-identity message and no
+manifest). Raw evidence:
+`/home/agent/wt/evidence/fn232-install-focused-helper-identities-01`.
+
+The actual historical diagnostic host supplied by root is independently copied
+to `/home/agent/wt/evidence/fn232-install-helper-inputs/diagnostic-gomad-59de1818de322a5194922589b18387014111084d0881f9b195a10f4d7261e844`,
+22652720 bytes. Its original build log, role-check JSON, source-binding artifact
+and their SHA receipts are retained alongside it. The source artifact identifies
+fn188 checkpoint `79dbece295` plus temporary typed-role overlay `cac5b294eb`;
+this is a historical negative input, not current qualification evidence.
+
+The diagnostic harness adds required full-lane `--installation-role-binary`
+(forwarded to child `--role-binary`), with before/after input hash admission and
+literal supplied/current hashes in new golden cases. No operator CLI/API changes.
+It has no permanent role SHA allowlist: a future frozen cycle supplies its own
+actual different-role host with original build/role receipts and deliberately
+refreshes the golden. Each attempt owns executable copies, mutates one current
+byte, requires exact identity refusals/no manifest, and preserves hostile-script
+no-execution proof. The retirement/all-verb caller owner was notified. AST2,
+JSON and diff checks exit 0; completed-corpus regeneration/strict check pending.

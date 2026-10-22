@@ -50,6 +50,7 @@ def main():
     for name in ('binary', 'go-binary', 'go-helper', 'go-compiler', 'go-source', 'preparation-root', 'work'):
         parser.add_argument('--' + name, type=Path, required=True)
     parser.add_argument('--grammar-only', action='store_true')
+    parser.add_argument('--role-binary', type=Path)
     args = parser.parse_args()
     for key, value in vars(args).items():
         if isinstance(value, Path):
@@ -59,6 +60,10 @@ def main():
                    CORPUS / 'installation-corpus.json', CORPUS / 'installation-lane.py',
                    CORPUS / 'plan-check.py', CORPUS / 'recover-check.py', CORPUS / 'installation-numeric-check.py',
                    CORPUS / 'campaign-reference-check.py', CORPUS.parents[1] / 'scripts/behavioral-parity']
+    if not args.grammar_only and args.role_binary is None:
+        raise ValueError('full installation lane requires --role-binary')
+    if args.role_binary is not None:
+        input_paths.append(args.role_binary)
     input_digests = {str(path): digest(path.read_bytes()) for path in input_paths}
     (args.work / 'inputs.json').write_bytes(encode(input_digests) + b'\n')
     parity = runpy.run_path(str(CORPUS.parents[1] / 'scripts/behavioral-parity'))
@@ -72,7 +77,7 @@ def main():
     equal(set(declaration['required']), {'helper-default', 'helper-matching', 'helper-mismatch', 'compiler-missing',
         'compiler-version', 'publication-collision', 'go-lineage', 'explicit-precedence', 'environment-precedence',
         'sibling', 'invalid-explicit', 'invalid-environment', 'removed-build-inputs', 'changed-compiler',
-        'configured-limits', 'temporal-policy', 'captured-payload-mismatch', 'captured-descriptor-mismatch', 'schema-symlink', 'changed-runtime', 'missing-runtime', 'external-helper-never-executed', 'seed-plan', 'scoped-plan', 'seed-recovery', 'round-recovery', 'duplicate-configuration-member', 'numeric-grammar', 'clock-defaults', 'configuration-aliases', 'configuration-nulls', 'captured-descriptor-aliases'}, 'corpus.required')
+        'configured-limits', 'temporal-policy', 'captured-payload-mismatch', 'captured-descriptor-mismatch', 'schema-symlink', 'changed-runtime', 'missing-runtime', 'external-helper-never-executed', 'seed-plan', 'scoped-plan', 'seed-recovery', 'round-recovery', 'duplicate-configuration-member', 'numeric-grammar', 'clock-defaults', 'configuration-aliases', 'configuration-nulls', 'captured-descriptor-aliases', 'helper-mutated-copy', 'helper-different-role'}, 'corpus.required')
     environment = {key: value for key, value in os.environ.items() if not key.startswith('GOMAD_') and key != 'GOROOT'}
     environment.update(GOENV='off', GOWORK='off', GOTOOLCHAIN='local', GOMAXPROCS='2', GOPROXY='off', GOSUMDB='off')
     receipts = []
@@ -268,6 +273,21 @@ def main():
         matching = discover(f'rust-helper-matching-discover-{attempt}', args.binary, root / 'matching.json')
         equal(matching['manifest']['admission']['explicit_helper'],
               dict(path=str(root / 'rust-sibling/gomad'), sha256=digest(args.binary.read_bytes())), 'helper.explicit_pin')
+        helper_boundaries = []
+        for label, raw in [('mutated-copy', args.binary.read_bytes()[:-1] + bytes([args.binary.read_bytes()[-1] ^ 1])),
+                           ('different-role', args.role_binary.read_bytes())]:
+            helper_path = root / ('helper-' + label)
+            with helper_path.open('xb') as writer:
+                writer.write(raw)
+            helper_path.chmod(0o500)
+            equal(digest(raw) == digest(args.binary.read_bytes()), False, label + '.different_implementation')
+            refusal = run(f'rust-helper-{label}-{attempt}', [*base, '--helper', helper_path,
+                '--output', root / (label + '.json')], 2)
+            equal(b'pinned helper identity does not match the linked Rust implementation' in refusal.stderr,
+                  True, label + '.identity_refusal')
+            equal((root / (label + '.json')).exists(), False, label + '.no_publication')
+            helper_boundaries.append(dict(case=label, supplied_sha256=digest(raw), supplied_bytes=len(raw),
+                linked_executable_sha256=digest(args.binary.read_bytes()), status=refusal.returncode))
         hostile = root / 'hostile-helper'
         marker = root / 'external-helper-was-executed'
         hostile.write_text('#!/bin/sh\necho executed > "' + str(marker) + '"\nexit 0\n')
@@ -332,7 +352,7 @@ def main():
                               else row['name'].removesuffix(f'-{attempt}'), status=row['status'])
                     for row in receipts[receipt_start:]]
         views.append(dict(schema='gomad.installation-golden/v1', grammar=grammar, doctor=doctors[1],
-                          installations=installed, seed_plan=seed_plan, recovery=recovery, go_recovery=go_recovery, numeric=numeric_rust, clocks=clocks, descriptors=descriptor_cases, resolution=resolution, commands=commands))
+                          installations=installed, seed_plan=seed_plan, recovery=recovery, go_recovery=go_recovery, numeric=numeric_rust, clocks=clocks, descriptors=descriptor_cases, resolution=resolution, helper_boundaries=helper_boundaries, commands=commands))
     equal({str(path): digest(path.read_bytes()) for path in input_paths}, input_digests, 'installation.unchanged_inputs')
     equal(views[0], views[1], 'installation.repeated_agreement')
     golden = CORPUS / 'goldens-installation' / ('grammar.json' if args.grammar_only else 'installation.json')

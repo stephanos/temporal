@@ -441,7 +441,7 @@ def main():
     for name in ("binary", "go-binary", "go-helper", "go-source", "go-compiler", "input", "preparation-root"):
         parser.add_argument("--qualify-" + name, type=Path)
     parser.add_argument("--qualify-cells", default="fixture,fixture-canary,sqlite,cluster")
-    for name in ("binary", "go-binary", "go-helper", "go-source", "go-compiler", "preparation-root"):
+    for name in ("binary", "go-binary", "go-helper", "go-source", "go-compiler", "preparation-root", "role-binary"):
         parser.add_argument("--installation-" + name, type=Path)
     for name in ("binary", "baseline", "source", "go-compiler", "input", "preparation-root",
                  "divergence-binary", "conformance-helper", "go-base"):
@@ -450,9 +450,9 @@ def main():
     parser.add_argument("--replay-cluster-source", type=Path)
     args = parser.parse_args()
     if args.verb in ("install", "doctor", "discover", "plan", "recover", "analyze") and args.installation_binary:
-        names = ("binary", "go-binary", "go-helper", "go-source", "go-compiler", "preparation-root")
+        names = ("binary", "go-binary", "go-helper", "go-source", "go-compiler", "preparation-root", "role-binary")
         if not args.output_root or not all(getattr(args, "installation_" + name.replace("-", "_")) for name in names):
-            fail("$installation", "installation requires current Rust binary, frozen Go binary/helper/source/compiler and fresh output root")
+            fail("$installation", "installation requires current Rust binary, pinned distinct-role Rust binary, frozen Go binary/helper/source/compiler and fresh output root")
         command = ["python3", str(args.corpus / "installation-lane.py"), "--work", str(args.output_root)]
         for name in names:
             command.extend(["--" + name, str(getattr(args, "installation_" + name.replace("-", "_")))])

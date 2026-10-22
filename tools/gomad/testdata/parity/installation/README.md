@@ -57,6 +57,7 @@ GOMAD_GOLDEN_REGENERATE=1 tools/gomad/scripts/behavioral-parity \
   --installation-binary /absolute/current/gomad \
   --installation-go-binary /absolute/frozen/gomad \
   --installation-go-helper /absolute/frozen/gomad-wasmhost \
+  --installation-role-binary /absolute/pinned/diagnostic-gomad \
   --installation-go-compiler /absolute/pinned/go \
   --installation-go-source /absolute/frozen/source \
   --installation-preparation-root /absolute/stable/preparation \
@@ -68,3 +69,11 @@ second regeneration must reproduce the first file byte-for-byte. Run again
 without the flag in a different fresh output root to check the reviewed corpus.
 `--grammar-only` on the child script probes grammar and default doctor without
 invoking installation preparation. Missing cases and missing goldens fail.
+
+The diagnostic harness also requires a frozen distinct-role Rust host input
+with its original build/role receipts retained by the caller. Its digest is
+guarded before/after execution and pinned by the reviewed golden. It is read,
+copied and refused as an
+explicit helper without execution. A mutated current executable copy is refused
+separately; both supplied hashes remain literal in the golden. This harness
+argument adds no operator CLI option.

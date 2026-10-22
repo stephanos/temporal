@@ -122,6 +122,8 @@
     "clock-defaults",
     "configuration-aliases",
     "configuration-nulls",
-    "captured-descriptor-aliases"
+    "captured-descriptor-aliases",
+    "helper-mutated-copy",
+    "helper-different-role"
   ]
 }
