@@ -1,0 +1,45 @@
+{
+  "base": "376fda53b344e5503a69e628195b87c71837a4c5",
+  "effort": "high",
+  "findings": {
+    "backend": "codex",
+    "baseSha": "376fda53b344e5503a69e628195b87c71837a4c5",
+    "headSha": "3245a62e2bd764e85026d72b32c8111f13ba015a",
+    "items": [
+      {
+        "body": "A callback with the wrong attempt can receive a successful reply. After answering a Complete callback for attempt 1, the model remains Started at attempt 1. A subsequent callback for attempt 2 produces `Poll(2)`, which emits a rejected self-loop. Runtime delivery replay accepts that emitted step without checking its outcome, then finds `RespondCompleted` enabled. Reproduced against the committed WASM guest: callbacks for attempts 1, 2 and 3 all returned Answer without a retry transition.",
+        "classification": "introduced",
+        "confidence": 75,
+        "firstSeenReceiptId": "review-967d8d76a98500d9d35af181a60279215745f153f66751b315c143e488cd9088",
+        "id": "finding-c1c42ec9ca8be33a32536b41161e5a0c",
+        "lastSeenReceiptId": "review-aae02ec06a80135e055ac57c258472b84dd6f053eb027fc8d45aeefbbe8111a3",
+        "ordinal": 1,
+        "rIds": [
+          "R4"
+        ],
+        "severity": "P2",
+        "status": "fixed",
+        "suggestion": "Require successful delivery before publishing the reply, or validate the callback attempt against the current model attempt. Add a guest regression that accepts attempt 1, then refuses a mismatched callback while preserving state.",
+        "title": "A callback with the wrong attempt can receive a successful reply"
+      }
+    ],
+    "reviewKind": "implementation",
+    "round": 2,
+    "schemaVersion": 1,
+    "sourceReceiptId": "review-aae02ec06a80135e055ac57c258472b84dd6f053eb027fc8d45aeefbbe8111a3",
+    "supersedesReceiptId": "review-967d8d76a98500d9d35af181a60279215745f153f66751b315c143e488cd9088"
+  },
+  "id": "fn-227-parameterized-models-declared-worlds.3",
+  "introduced_count": 0,
+  "mode": "codex",
+  "model": "gpt-6.1-sol",
+  "pre_existing_count": 0,
+  "review": "Prior finding #1: fixed\n\nThe realization now checks the callback attempt against current state before returning a reply. Verified directly against the rebuilt WASM: attempts 2 and 3 receive State refusals after attempt 1, preserve Started, and allow subsequent terminal observations for both Complete and Fail. The cached native realization binary passed all 18 tests.\n\nNo surviving findings.\n\n## Requirements coverage\n\n| R-ID | Status | Evidence |\n|---|---|---|\n| R3 | met | Source-lifting and TLC agreement controls retained. |\n| R4 | met | Retry/refinement controls retained; mismatched callback refusal and state preservation verified. |\n\nUnaddressed R-IDs: []\n\nClassification counts: 0 introduced, 0 pre_existing.\n\n```json\n{\"classification_counts\":{\"introduced\":0,\"pre_existing\":0},\"unaddressed\":[]}\n```\n\n<verdict>SHIP</verdict>\n",
+  "review_reservation_id": "61da61f3be374ea69738cbc39302a99f",
+  "session_id": "01a16598-6f2d-76c3-8042-4c07e829ab3e",
+  "spec": "codex:gpt-6.1-sol:high",
+  "timestamp": "2026-10-22T21:59:47.514799Z",
+  "type": "impl_review",
+  "unaddressed": [],
+  "verdict": "SHIP"
+}
