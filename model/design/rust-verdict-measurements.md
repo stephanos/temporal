@@ -195,4 +195,3 @@ sample/control names. Logs are `fn2107-baseline-release.log`, `fn2107-model-chec
 Superseded above; raw output is under `.flow/tmp/fn210-9-*`. fn-210.9's 2,872,544-byte guest
 took a median 27.874 ms per cold load and 14,003 ns/op per Rows call; `make model2-time` took
 5.069 s gate and 1.210 s inner loop. The fn-210.16 direct-export guest was 3,370,765 bytes.
-
