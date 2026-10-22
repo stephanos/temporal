@@ -50,8 +50,8 @@ review and correctness/standards audits. The independent Kettle service exercise
 catalogs, envelopes, annotations, live Judge/Answer and four differential mutants with
 unchanged canonical Models and semantic goldens. Full gates passed; the warm gate took
 364.531s against its 60s soft target and the inner loop took 6.066s against 10s.
-TLC is implemented for its admitted source subset; unsupported source,
-including the current Phased/reject activity Model, is explicitly refused.
+TLC checks its admitted source subset, including the Phased/reject activity Model
+with retries; unsupported source is explicitly refused.
 
 Umpire in Rust lives in `temporal/model`, a Cargo workspace pinned through `mise.toml`
 (`rust = "1.99.1"`), with crates under `model/umpire/`: `dsl` (with `dsl/macros`), `checker`,
@@ -123,6 +123,13 @@ admission and constructor data linear, and actual 32-return/64-update compilatio
 10,000-node cap. Review and both quality audits passed after compatibility fixes; native semantic
 goldens are unchanged, with six justified TLA+ text changes. Final required gate took 611.465s
 against 60s, with external build overlap observed; inner loop 7.880s met its 10s target.
+.3 is complete locally with SHIP review, resolved correctness findings and full/live gates.
+The three-attempt World reaches 18 states with 48 emitted edges; both closure laws are Verified
+and all 21 retry/ending coverage cases have witnesses. The one-attempt projection exactly
+matches the retained six-state lifecycle, including direct deadlines and atomic cancellation.
+All 15 original artifacts remain hash-verified. Final required gate took 529.403s against 60s;
+inner loop 6.179s met its 10s target, and live gap/privacy controls passed in 358.223s.
+Actual-request World admission and live SDK retry remain with .5.
 On 2026-10-21 the owner approved all three contract amendments: lifecycle refinement
 in place of impossible old-byte equality; cooperative cancellation with explicit protocol
 evidence; and optional actual-request Observation evidence at tag 4. Heartbeat signals a
@@ -135,7 +142,6 @@ The review passed; each consumer still waits for its declared support dependenci
 
 | Name | Status | What |
 | --- | --- | --- |
-| fn-227.3 | 🔄 in progress | After .2, .11, .15 and .16: activity attempts/retryable failure and retained-lifecycle refinement (R3, R4) |
 | fn-227.5 | ⬜ todo | After .3 and .12: transactional live World admission (`maximum_attempts`) and SDK retry proof (R6) |
 | fn-227.6 | ⬜ todo | After .5: DESIGN.md parameterized worlds, inputs and retries write-up and readiness table closure (R7) |
 

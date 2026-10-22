@@ -1,0 +1,55 @@
+{
+  "task": "fn-227-parameterized-models-declared-worlds.3",
+  "base": "376fda53b344e5503a69e628195b87c71837a4c5",
+  "production_source": "3245a62e2bd764e85026d72b32c8111f13ba015a",
+  "reviewed_tested_head": "6184bd1b3eee1499cf133e3c08ca39ee2336762d",
+  "closure": "ea4cf6a503683dd3a6f4c397dc4886ecabd52dae",
+  "flow_status": "done",
+  "validation": "valid;13 tasks;no errors or warnings",
+  "gate_classification": "FULL; source and model/README.md changes",
+  "gate_receipts": [
+    {
+      "gate": "unittest",
+      "command": "UMPIRE_BACKENDS=require make model-time",
+      "outcome": "HONORED",
+      "receipt": "6184bd1b"
+    },
+    {
+      "gate": "model-gaps",
+      "command": "make umpire-check-model-gaps",
+      "outcome": "HONORED",
+      "receipt": "6184bd1b"
+    }
+  ],
+  "timing": {
+    "gate_seconds": 529.403,
+    "gate_soft_target_seconds": 60,
+    "inner_seconds": 6.179,
+    "inner_soft_target_seconds": 10,
+    "context": "shared-host observation; no isolated or steady-state claim"
+  },
+  "live": "actual corrected-guest slice all six controls; actual gaps/privacy exit0,358.223s,2336 subtests",
+  "guest_sha256": "0b18d500ae6bd1b5996d2806eb74d139846b738f4765a68363ed20684a0660b9",
+  "evidence": "Root read final SHIP receipt, actual full/gap terminal outputs and handover; independently verified43 gzip/raw hashes and bytecounts where recorded, original15 pinned artifacts,805 baseline inventory/795 exact/10 related changes.",
+  "failed_observations": "First full gate failed stale generated activity realization mirror; focused red/green exact mirror update and normal SHIP re-review preceded corrected full pass. Failure retained, never green.",
+  "audits": {
+    "correctness": {
+      "ShouldFix": 1,
+      "resolved": 1,
+      "unresolved": 0
+    },
+    "standards": {
+      "Consider": 1,
+      "decision": "bounded source-only outcome replay helper retained; new generic API out of scope"
+    },
+    "normal_review_callback_defect": "fixed; native and actual guest/live red/green; subsequent SHIP"
+  },
+  "whitespace": "git diff --check base HEAD -- model tests passed",
+  "worktrees": "Single checkout on umpire; prune completed; worker no owned command live at handoff.",
+  "disk_free_gib_approx": 110,
+  "cleanup": "Parent open; scratch and protected certification proofs retained.",
+  "plan_sync": "skipped(config false)",
+  "tracker_sync": "n/a (bridge inactive); sync check firstClaim,done since claim completed empty",
+  "publication": "local only; no push or PR",
+  "next": "fn-227-parameterized-models-declared-worlds.5"
+}
