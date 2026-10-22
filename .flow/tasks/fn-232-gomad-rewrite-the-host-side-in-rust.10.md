@@ -21,17 +21,10 @@ The owned behavior has reviewed golden fixtures, repeated-execution agreement an
 All owned public-command lanes have parity and golden fixtures; qualify matches verdicts per cell; a failed repetition or replay fails the cell with an explicit report; reports are retained under the new schema.
 
 ## Done summary
-Not completed; returned to todo:
-Provisional qualification admission is withdrawn under the user's closure-first request. Its fn232.9 predecessor has not completed acceptance. The actual WASM dispatch uses qualify --spec FILE, not the dormant generic parser; preparatory generic Rust code was removed before integration. No qualification implementation or positive acceptance remains in flight. Checkpoint 280ff70271 retains only actual live-grammar RED fixtures and contract notes. Return this task to todo after this dependency block; this is scheduling, not completion or a scope waiver. Resume the full Spec/Freeze/Run/cost/Result/receipt port after the current closure batch.
+Accepted qualify and installation-free report on the integrated Rust host. All five fresh cell lanes passed with 20 independent Results, byte-identical independent golden generations, 155 authenticated original command receipts and 78 fresh ordinary-release reports. All 51 accounting cases and real Linux phase checks passed. Preserved three actual WASM command refusals with 18 repeated Go/Rust cases. Independent source and golden review: SHIP, no findings. Exact commands, exits, scope and identities: .flow/artifacts/fn232-10-qualification-closure-2026-10-22.md. Final whole-candidate qualification remains fn-232.13.
+
+stage: plan-sync - skipped(config: planSync.enabled != true)
 ## Evidence
-- Commits:
-- Tests:
+- Commits: 780099bf90
+- Tests: final-small-regen: exit 0, final-onebox-regen: exit 0, strict-retained small+onebox: exit 0, qualify-accounting-check: 51 cases and Linux phase checks exit 0, fixture and release grammar: exit 0, Rust focused tests, clippy, fmt: exit 0, Independent source and five-cell golden review: SHIP
 - PRs:
-
-### Partial progress merged, 2026-10-22
-`qualify --spec` and `report` in Rust are merged into gomad (branch fn232-qualify).
-- Final v17 lanes: two identical regenerations plus strict, onebox included; evidence in `/home/agent/wt/evidence/fn232-qualify/d/v17`.
-- Onebox memory: operator 0.74–0.75 GiB, store window 3.53 GiB, compiler about 2.1 GiB, all within their ceilings.
-- Review threat model (conductor ruling): unrehashed tampering refuses, and verdict, cost and budget inputs are recomputed from the authenticated records. Forge-and-rehash binding of fields that don't feed the verdict is out of scope; see IDEAS.md "Signed qualification receipts".
-
-Final receiving acceptance (2026-10-22): all owned requirements are verified in [the closure handover](../artifacts/fn232-10-qualification-closure-2026-10-22.md). The actual Go WASM dispatcher refuses `qualify-set`, `merge-set` and `compare-support`; 18 repeated Go/Rust refusal cases preserve that availability. Five fresh cell lanes, independent golden generations, strict ordinary-release recomputation, accounting and independent review passed. Final whole-candidate qualification remains fn-232.13.

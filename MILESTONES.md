@@ -309,7 +309,7 @@ First in the delivery order (owner decision 2026-10-20). New evidence lineage; b
 | Name / ID | Status | Description |
 | --- | --- | --- |
 | [fn-232-gomad-rewrite-the-host-side-in-rust.10](.flow/tasks/fn-232-gomad-rewrite-the-host-side-in-rust.10.md) | ✅ Done | qualify and installation-free report in Rust; five cell parity/golden lanes, accounting and public refusals accepted |
-| [fn-232-gomad-rewrite-the-host-side-in-rust.11](.flow/tasks/fn-232-gomad-rewrite-the-host-side-in-rust.11.md) | ⬜ Todo | install, doctor, discover, plan and recover in Rust |
+| [fn-232-gomad-rewrite-the-host-side-in-rust.11](.flow/tasks/fn-232-gomad-rewrite-the-host-side-in-rust.11.md) | ▶ Running | install, doctor, discover, plan and recover in Rust |
 | [fn-232-gomad-rewrite-the-host-side-in-rust.12](.flow/tasks/fn-232-gomad-rewrite-the-host-side-in-rust.12.md) | ✅ Done | Go oracles and generated codecs validated against the linked Rust library; retained/retiring Go inventory separated |
 | [fn-232-gomad-rewrite-the-host-side-in-rust.13](.flow/tasks/fn-232-gomad-rewrite-the-host-side-in-rust.13.md) | ⬜ Todo | Qualification cycle on the Rust binary and Go host retirement |
 
