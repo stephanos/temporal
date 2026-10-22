@@ -78,9 +78,18 @@ unmet soft targets, without claiming fn-232 certification.
 - [ ] DESIGN remains within 1000 lines, existing documentation/formatting checks
   and full gates pass, and unrelated evidence/goldens and fn-232 status are preserved.
 ## Done summary
-TBD
+DESIGN and README now document delivered declared Worlds, typed callbacks, computed starts, finite/domain inputs and catalog admission, selected native/TLC counts, and the retry-era activity World/state table. The exact README block compiles as a DSL fixture with explicit selected-World binding; its synchronization test failed against the old block before replacement, then both example tests passed.
 
+Baseline: green focused declared_world/finite_domains tests (9 cases); the requested DSL doctest command passed with zero doctests and is not presented as example coverage. Initial cwd/discovery mistakes, the intended README mismatch and intermediate lint failures remain explicitly non-green in task6-final-verification.json and hashed compressed logs. DESIGN is 969 lines; local Markdown links, fmt, strict workspace clippy, docs and all 15 original activity artifacts pass. No unrelated golden or production file changed.
+
+One UMPIRE_BACKENDS=require make model-time passed all 17 stages on source checkpoint cb8b9a76d2: gate 582.209 s missed the 60 s soft target, inner 6.112 s met 10 s, outer 588.537 s. These are shared-host observations, not isolated performance measurements. Full verbatim output, per-stage timings, raw/gzip hashes and exact command exit are retained in .flow/artifacts/fn-227-parameterized-models-declared-worlds/task6-final-verification.json and task6-log-integrity.json. All 215 production-surface files and the f832a33c3024a8752976d146be839b62a95afde4790fa0db60f1dac9004b4e7e guest match .5; its actual seven-scenario retry, gaps and privacy evidence is reused with hash and full-history proof. Historical failed fn-232 observations and later fn-232/fn-239 certifications remain at their own pins.
+
+stage: impl-review - ran. First fanout NEEDS_WORK identified only the pending final evidence; after the one full gate, the same-cycle codex:gpt-6.1-sol:high follow-up returned SHIP, all R7 requirements met and no remaining findings. Writer and explicitly configured reviewer are the same GPT family. Mechanical evidence population required no nontrivial memory capture.
+GATE_SKIPPED:unittest:green-receipt 8e84f41c - final required model-time reused; subsequent history changes only .flow/
+
+Tier: session (jev-unavailable(no_key)); AGENTS implementer override above.
+stage: plan-sync - skipped(config: planSync.enabled=false). Tracker sync is inactive; the post-done lifecycle audit uses the actual work.done event and .6 claim timestamp 2026-10-22T23:29:13.977542Z. Parent completion review/closure and MILESTONES remain conductor-owned. fn-237 and fn-238.5/.6 stay explicitly deferred. All owned long-running commands have exited.
 ## Evidence
-- Commits:
-- Tests:
+- Commits: cb8b9a76d20410339fda4e2efa6d086ebd5012df, 8e84f41cf95bc67f24ce0f5536ae764a42292191, e4f17cbd5fb61a91585d239ee46591e34cfbf6d7
+- Tests: mise exec -- cargo test -p umpire-dsl --doc, mise exec -- cargo test -p umpire-dsl --test declared_world --test finite_domains, mise exec -- cargo test -p umpire-dsl --test readme, mise exec -- cargo fmt --all --check, mise exec -- cargo clippy --workspace --all-targets --all-features -- -D warnings, python3 .flow/artifacts/fn-227-parameterized-models-declared-worlds/task6-check-docs.py, python3 model/temporal/feature/activity/compatibility/verify.py, UMPIRE_BACKENDS=require make model-time, GATE_SKIPPED:unittest:green-receipt 8e84f41c - final required model-time reused; subsequent history changes only .flow/
 - PRs:

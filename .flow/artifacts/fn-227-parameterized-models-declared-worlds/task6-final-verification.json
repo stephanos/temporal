@@ -1,6 +1,6 @@
 {
   "task": "fn-227-parameterized-models-declared-worlds.6",
-  "status": "final authoring gate passed; implementation review SHIP",
+  "status": "task done; final authoring gate passed; implementation review SHIP",
   "base_commit": "ae9e3157e5bbf431432d93023c3963c07c2ff375",
   "source_checkpoint": "cb8b9a76d20410339fda4e2efa6d086ebd5012df",
   "final_required_model_time": {
@@ -159,5 +159,8 @@
     "command": "mise exec -- cargo fmt --all --check && mise exec -- cargo clippy --workspace --all-targets --all-features -- -D warnings",
     "exit": 0,
     "log": "task6-logs/final-lint.log.gz"
-  }
+  },
+  "postreview_gate_reuse": "task6-postreview-verification.json",
+  "conductor_verification": "task6-conductor-source-verification.json",
+  "completion_sync": "task6-completion-sync.json"
 }

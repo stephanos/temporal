@@ -1,0 +1,9 @@
+{
+  "command": "python3 /home/agent/.codex/scripts/flowctl.py sync check fn-227-parameterized-models-declared-worlds --events work.done --since 2026-10-22T23:29:13.977542Z --json",
+  "trigger": "actual task6 flowctl done returned done before this check",
+  "exit": 0,
+  "stdout_bytes": 0,
+  "stderr": "",
+  "active": false,
+  "checked_at": "2026-10-22T23:54:02.138876+00:00"
+}
