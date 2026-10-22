@@ -944,6 +944,7 @@ dependencies = [
  "trybuild",
  "umpire-dsl",
  "umpire-front",
+ "umpire-ir",
  "umpire-testing",
 ]
 
@@ -961,6 +962,20 @@ dependencies = [
 [[package]]
 name = "umpire-ir"
 version = "0.0.1"
+dependencies = [
+ "proc-macro2",
+ "quote",
+ "umpire-ir-derive",
+]
+
+[[package]]
+name = "umpire-ir-derive"
+version = "0.0.1"
+dependencies = [
+ "proc-macro2",
+ "quote",
+ "syn 3.0.9",
+]
 
 [[package]]
 name = "umpire-kettle-guest"

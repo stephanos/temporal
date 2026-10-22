@@ -1,0 +1,4 @@
+   Compiling fn2389-token-probe v0.0.0 (/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/fn-238.9/token-probe)
+    Finished `dev` profile [unoptimized + debuginfo] target(s) in 0.54s
+     Running `/home/agent/.cache/codex-build/cargo-target/debug/fn2389-token-probe`
+26 admitted/refused Models: old and derived constructor tokens byte-identical

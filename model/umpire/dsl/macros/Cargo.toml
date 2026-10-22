@@ -14,6 +14,7 @@ proc-macro = true
 workspace = true
 
 [dependencies]
+umpire-ir.workspace = true
 umpire-front.workspace = true
 syn = { workspace = true, features = ["visit-mut"] }
 quote.workspace = true

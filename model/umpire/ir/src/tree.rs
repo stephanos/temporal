@@ -2,7 +2,8 @@ use crate::{Diagnostic, Type, expr::Expr};
 use std::collections::BTreeMap;
 
 /// An admitted Model. Its typed expression tree has no public stability promise.
-#[derive(Clone, Debug)]
+#[derive(Clone, Debug, umpire_ir_derive::Print)]
+#[print_path(::umpire_dsl::__lifted::Lifted)]
 pub struct Lifted {
     /// Model name, from the machine module.
     pub name: String,
@@ -35,20 +36,23 @@ pub struct Lifted {
     /// Supplemental negative claims from golden hooks.
     pub negative: Vec<ClaimDef>,
 }
-#[derive(Clone, Debug)]
+#[derive(Clone, Debug, umpire_ir_derive::Print)]
+#[print_path(::umpire_dsl::__lifted::tree::FieldDef)]
 pub struct FieldDef {
     pub name: String,
     pub ty: Type,
     pub start: Start,
     pub location: Diagnostic,
 }
-#[derive(Clone, Debug)]
+#[derive(Clone, Debug, umpire_ir_derive::Print)]
+#[print_path(::umpire_dsl::__lifted::tree::WorldField)]
 pub struct WorldField {
     pub name: String,
     pub ty: Type,
     pub location: Diagnostic,
 }
-#[derive(Clone, Debug)]
+#[derive(Clone, Debug, umpire_ir_derive::Print)]
+#[print_path(::umpire_dsl::__lifted::tree::Start)]
 pub enum Start {
     Computed,
     Value(Expr),
@@ -68,7 +72,8 @@ impl Lifted {
         self.actions.iter().any(|action| !action.fields.is_empty())
     }
 }
-#[derive(Clone, Debug)]
+#[derive(Clone, Debug, umpire_ir_derive::Print)]
+#[print_path(::umpire_dsl::__lifted::tree::ActionDef)]
 pub struct ActionDef {
     pub name: String,
     pub internal: bool,
@@ -77,14 +82,16 @@ pub struct ActionDef {
     pub fields: Vec<InputField>,
     pub location: Diagnostic,
 }
-#[derive(Clone, Copy, Debug, PartialEq, Eq)]
+#[derive(Clone, Copy, Debug, PartialEq, Eq, umpire_ir_derive::Print)]
+#[print_path(::umpire_dsl::__lifted::tree::Shape)]
 pub enum Shape {
     Unit,
     Tuple,
     Named,
 }
 /// One payload field of an action variant, with its independently admitted domain.
-#[derive(Clone, Debug)]
+#[derive(Clone, Debug, umpire_ir_derive::Print)]
+#[print_path(::umpire_dsl::__lifted::tree::InputField)]
 pub struct InputField {
     /// Field name, or its position in a tuple variant.
     pub name: String,
@@ -92,12 +99,14 @@ pub struct InputField {
     pub location: Diagnostic,
 }
 /// A concrete action named in an assumption: a variant and its exact payload values.
-#[derive(Clone, Debug, PartialEq, Eq)]
+#[derive(Clone, Debug, PartialEq, Eq, umpire_ir_derive::Print)]
+#[print_path(::umpire_dsl::__lifted::tree::ActionRef)]
 pub struct ActionRef {
     pub name: String,
     pub values: Vec<Expr>,
 }
-#[derive(Clone, Debug)]
+#[derive(Clone, Debug, umpire_ir_derive::Print)]
+#[print_path(::umpire_dsl::__lifted::tree::Branch)]
 pub struct Branch {
     pub guard: Expr,
     pub updates: BTreeMap<String, Expr>,
@@ -105,18 +114,21 @@ pub struct Branch {
     pub outcome: Expr,
     pub preserve_self_loop: bool,
 }
-#[derive(Clone, Debug)]
+#[derive(Clone, Debug, umpire_ir_derive::Print)]
+#[print_path(::umpire_dsl::__lifted::tree::ClaimDef)]
 pub struct ClaimDef {
     pub name: String,
     pub expr: Expr,
 }
-#[derive(Clone, Debug)]
+#[derive(Clone, Debug, umpire_ir_derive::Print)]
+#[print_path(::umpire_dsl::__lifted::tree::PostDef)]
 pub struct PostDef {
     pub name: String,
     pub expr: Expr,
     pub after: Option<String>,
 }
-#[derive(Clone, Debug)]
+#[derive(Clone, Debug, umpire_ir_derive::Print)]
+#[print_path(::umpire_dsl::__lifted::tree::ProgressDef)]
 pub struct ProgressDef {
     pub name: String,
     pub trigger: Expr,
@@ -124,7 +136,8 @@ pub struct ProgressDef {
     pub assumption: AssumptionDef,
     pub bound: Option<u64>,
 }
-#[derive(Clone, Debug, Default)]
+#[derive(Clone, Debug, Default, umpire_ir_derive::Print)]
+#[print_path(::umpire_dsl::__lifted::tree::AssumptionDef)]
 pub struct AssumptionDef {
     pub name: String,
     pub only: Option<Vec<ActionRef>>,

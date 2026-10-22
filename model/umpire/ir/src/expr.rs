@@ -1,12 +1,14 @@
 use crate::Type;
 
-#[derive(Clone, Debug, PartialEq, Eq, Hash)]
+#[derive(Clone, Debug, PartialEq, Eq, Hash, umpire_ir_derive::Print)]
 #[must_use]
+#[print_path(::umpire_dsl::__lifted::expr::Expr)]
 pub struct Expr {
     pub kind: ExprKind,
     pub ty: Type,
 }
-#[derive(Clone, Debug, PartialEq, Eq, Hash)]
+#[derive(Clone, Debug, PartialEq, Eq, Hash, umpire_ir_derive::Print)]
+#[print_path(::umpire_dsl::__lifted::expr::ExprKind)]
 pub enum ExprKind {
     Bool(bool),
     Int(i128),
@@ -31,12 +33,14 @@ pub enum ExprKind {
     GetOr(Box<Expr>, Box<Expr>, Box<Expr>),
     Checks(Vec<Expr>),
 }
-#[derive(Clone, Copy, Debug, PartialEq, Eq, Hash)]
+#[derive(Clone, Copy, Debug, PartialEq, Eq, Hash, umpire_ir_derive::Print)]
+#[print_path(::umpire_dsl::__lifted::expr::Unary)]
 pub enum Unary {
     Not,
     Neg,
 }
-#[derive(Clone, Copy, Debug, PartialEq, Eq, Hash)]
+#[derive(Clone, Copy, Debug, PartialEq, Eq, Hash, umpire_ir_derive::Print)]
+#[print_path(::umpire_dsl::__lifted::expr::Op)]
 pub enum Op {
     Add,
     Sub,

@@ -1,0 +1,19 @@
+[package]
+name = "umpire-ir-derive"
+description = "Constructor token printing for the admitted Model tree"
+version.workspace = true
+edition.workspace = true
+publish.workspace = true
+license.workspace = true
+rust-version.workspace = true
+
+[lib]
+proc-macro = true
+
+[lints]
+workspace = true
+
+[dependencies]
+syn.workspace = true
+quote.workspace = true
+proc-macro2.workspace = true

@@ -1,0 +1,48 @@
+{
+  "files": [
+    {
+      "path": "model/umpire/dsl/macros/src/lifted.rs",
+      "before_source": 277,
+      "after_source": 23,
+      "before_tests": 0,
+      "after_tests": 0
+    },
+    {
+      "path": "model/umpire/ir/src/lib.rs",
+      "before_source": 101,
+      "after_source": 108,
+      "before_tests": 0,
+      "after_tests": 42
+    },
+    {
+      "path": "model/umpire/ir/src/tree.rs",
+      "before_source": 146,
+      "after_source": 159,
+      "before_tests": 0,
+      "after_tests": 0
+    },
+    {
+      "path": "model/umpire/ir/src/expr.rs",
+      "before_source": 139,
+      "after_source": 143,
+      "before_tests": 0,
+      "after_tests": 0
+    },
+    {
+      "path": "model/umpire/ir/src/print.rs",
+      "before_source": 0,
+      "after_source": 103,
+      "before_tests": 0,
+      "after_tests": 0
+    },
+    {
+      "path": "model/umpire/ir-derive/src/lib.rs",
+      "before_source": 0,
+      "after_source": 67,
+      "before_tests": 0,
+      "after_tests": 0
+    }
+  ],
+  "source_delta": -60,
+  "test_delta": 42
+}

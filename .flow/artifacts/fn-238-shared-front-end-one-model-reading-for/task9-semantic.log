@@ -1,0 +1,43 @@
+   Compiling umpire-ir v0.0.1 (/Users/stephan/Workspace/skunkworks/umpire/temporal/model/umpire/ir)
+   Compiling umpire-front v0.0.1 (/Users/stephan/Workspace/skunkworks/umpire/temporal/model/umpire/front)
+   Compiling umpire-lift v0.0.1 (/Users/stephan/Workspace/skunkworks/umpire/temporal/model/umpire/lift)
+   Compiling umpire-tlc v0.0.1 (/Users/stephan/Workspace/skunkworks/umpire/temporal/model/umpire/backends/tlc)
+   Compiling umpire-dsl-macros v0.0.1 (/Users/stephan/Workspace/skunkworks/umpire/temporal/model/umpire/dsl/macros)
+   Compiling umpire-dsl v0.0.1 (/Users/stephan/Workspace/skunkworks/umpire/temporal/model/umpire/dsl)
+   Compiling umpire-checker v0.0.1 (/Users/stephan/Workspace/skunkworks/umpire/temporal/model/umpire/checker)
+   Compiling umpire-suite v0.0.1 (/Users/stephan/Workspace/skunkworks/umpire/temporal/model/umpire/suite)
+   Compiling umpire-testing v0.0.1 (/Users/stephan/Workspace/skunkworks/umpire/temporal/model/umpire/testing)
+   Compiling umpire-tests v0.0.1 (/Users/stephan/Workspace/skunkworks/umpire/temporal/model/umpire/tests)
+    Finished `test` profile [unoptimized + debuginfo] target(s) in 8.74s
+     Running fixtures.rs (/home/agent/.cache/codex-build/cargo-target/debug/deps/fixtures-a222eb03e88b3b7f)
+
+running 26 tests
+test action_inputs_tests::actual_tlc_agrees_and_replays_in_both_selected_worlds ... ok
+test action_inputs_tests::exact_payload_fairness_mutations_disagree_with_the_native_verdicts ... ok
+test parameterized_world_tests::actual_tlc_replays_the_false_claim_in_the_same_selected_world ... ok
+test phased_rejection_tests::emitted_outcome_and_action_mutations_fail_agreement ... ok
+test phased_rejection_tests::a_stale_rejecting_claim_cannot_discharge_current_claim_fairness ... ok
+test phased_rejection_tests::the_steps_accept_counterexample_is_a_rejected_payload_edge ... ok
+test sample_kettle_tests::examples::boundary_from_99_to_100_and_the_failover_guard ... ok
+test parameterized_world_tests::each_selected_world_checks_natively ... ok
+test action_inputs_tests::two_selected_worlds_differ_in_domains_counts_transitions_and_verdicts ... ok
+test sample_kettle_tests::explorations::a_budget_of_10_answers_unknown_and_a_counterexample_before_a_cut_stands ... ok
+test sample_kettle_tests::examples::archived_enabledness_table_keeps_every_positive_and_disabled_row ... ok
+test sample_kettle_tests::explorations::failing_over_above_boiling_refutes_fails_over_at_boiling ... ok
+test sample_kettle_tests::explorations::every_start_from_minus_40_to_40_boils_within_141_steps ... ok
+test sample_kettle_tests::explorations::never_beeps_is_refuted_by_press_80_heats_and_failover ... ok
+test sample_kettle_tests::explorations::without_the_heater_fails_over_at_boiling_is_never_triggered ... ok
+test sample_kettle_tests::explorations::beeps_only_when_off_holds_quiet_hot_and_heating_and_a_heating_beeping_start_refutes_it ... ok
+test sample_kettle_tests::examples::switched_on_at_room_temperature_beeps_after_80_heats_and_the_failover ... ok
+test sample_kettle_tests::explorations::claims_hold_from_room_and_coldest_and_boils_in_81_steps_from_room ... ok
+test parameterized_world_tests::each_source_binding_preserves_selection_and_empty_starts ... ok
+test action_inputs_tests::bounded_claims_carry_no_fairness_obligation ... ok
+test phased_rejection_tests::closure_laws_keep_source_order_and_the_stock_outcome ... ok
+test phased_rejection_tests::rejecting_after_a_mutation_fails_in_tlc ... ok
+test action_inputs_tests::each_source_binding_carries_its_selected_catalog_into_every_configuration ... ok
+test phased_rejection_tests::a_computed_rejection_agrees_with_the_literal ... ok
+test shared_returns_tests::sequential_returns_share_definitions_in_unit_and_payload_steps ... ok
+test fixtures ... ok
+
+test result: ok. 26 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.67s
+

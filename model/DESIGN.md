@@ -15,6 +15,8 @@ Both checkers read a Model through one front end and differ only in their back e
   soft located `Diagnostic`, the same for every consumer, and the Model still checks natively.
 - **Admitted tree.** `umpire-ir` holds the typed tree and the module's `Source` identifiers.
   The macro embeds it as data (`__lifted::Lifts`, off `wasm32`, hidden, never checked in).
+  `umpire-ir-derive::Print` derives constructors from its fields and variants; `ir::print`
+  retains shared scalar/container printing. A new IR field needs no printer registration.
 - **Native back end.** `umpire-dsl-macros` generates the executable Model from the front end's
   declarations; the native checker explores the compiled bodies.
 - **Emission back end.** `umpire-lift` emits TLA+ and `.cfg` from the embedded tree with the
@@ -52,6 +54,15 @@ costs, unmeasured so far. Body-level ones cost the same: fn-227.11's `Phased`/`r
 laws need `impl Phased` admission (20–40 lines), lowering (100–250) and emission (30–80), the
 same work `lift` held before fn-238, plus a printer arm per new IR node. Quint parity is mostly
 body- and value-level; a new back end such as Apalache costs only its emitter.
+
+**Derived printing** (fn-238.9). The 277-line handwritten printer is replaced by a
+67-line proc macro and shared scalar/container implementations in `umpire-ir`.
+Across the changed Rust files, production source shrank 60 lines and the field/variant
+control added 42 test lines (18 net lines removed); this misses the roughly −190 estimate.
+The retained scalar/container code, constructor path annotations and the derive offset most
+of the deleted record registrations and enum arms. Existing expansion and semantic goldens
+remain byte-identical; a scratch oracle compares old and derived constructor tokens for
+26 Models, including admitted trees and located refusals.
 
 **Option B deferred** (owner, 2026-10-22). An interpreted checker (.5, .6) would add an
 interpreter case and a `Value` bridge per body-level construct on top of lowering and emission

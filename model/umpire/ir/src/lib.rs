@@ -4,12 +4,15 @@
 #[doc(hidden)]
 pub mod expr;
 #[doc(hidden)]
+pub mod print;
+#[doc(hidden)]
 pub mod tree;
 use std::collections::BTreeMap;
 pub use tree::Lifted;
 
 /// Admitted value types for typed backend decoding.
-#[derive(Clone, Debug, PartialEq, Eq, Hash)]
+#[derive(Clone, Debug, PartialEq, Eq, Hash, umpire_ir_derive::Print)]
+#[print_path(::umpire_dsl::__lifted::Type)]
 pub enum Type {
     /// Boolean.
     Bool,
@@ -66,7 +69,8 @@ impl Type {
     }
 }
 /// A located refusal of unsupported source behavior; the consumer names the file.
-#[derive(Clone, Debug, PartialEq, Eq)]
+#[derive(Clone, Debug, PartialEq, Eq, umpire_ir_derive::Print)]
+#[print_path(::umpire_dsl::__lifted::Diagnostic)]
 pub struct Diagnostic {
     /// One-based line.
     pub line: usize,
@@ -76,7 +80,8 @@ pub struct Diagnostic {
     pub message: String,
 }
 /// The names a `#[machine]` module spells, which generated back-end names keep apart from.
-#[derive(Clone, Debug, Default, PartialEq, Eq)]
+#[derive(Clone, Debug, Default, PartialEq, Eq, umpire_ir_derive::Print)]
+#[print_path(::umpire_dsl::__lifted::Source)]
 pub struct Source {
     /// Every identifier.
     pub idents: Vec<String>,
@@ -90,7 +95,8 @@ pub struct Source {
     pub control: Option<Diagnostic>,
 }
 /// What the `#[machine]` macro embeds in a compiled Model.
-#[derive(Clone, Debug)]
+#[derive(Clone, Debug, umpire_ir_derive::Print)]
+#[print_path(::umpire_dsl::__lifted::Embedded)]
 pub struct Embedded {
     /// The canonical path of the source file the module is written in.
     pub file: String,
@@ -98,4 +104,47 @@ pub struct Embedded {
     pub model: Result<Lifted, Diagnostic>,
     /// The module's names.
     pub source: Source,
+}
+
+#[cfg(test)]
+mod printing_controls {
+    use crate::print::Print;
+
+    #[derive(umpire_ir_derive::Print)]
+    #[print_path(::umpire_dsl::__lifted::Control)]
+    struct Control {
+        original: String,
+        added: Choice,
+    }
+
+    #[derive(umpire_ir_derive::Print)]
+    #[print_path(::umpire_dsl::__lifted::Choice)]
+    enum Choice {
+        Unit,
+        Tuple(i128, bool),
+        Added { extra: Option<u64> },
+    }
+
+    #[test]
+    fn new_fields_and_variants_print_without_registration() -> Result<(), Box<dyn std::error::Error>>
+    {
+        for (added, expected) in [
+            (Choice::Unit, "::umpire_dsl::__lifted::Choice::Unit"),
+            (
+                Choice::Tuple(i128::MIN, true),
+                "::umpire_dsl::__lifted::Choice::Tuple(::core::primitive::i128::MIN, true)",
+            ),
+            (
+                Choice::Added { extra: Some(7) },
+                "::umpire_dsl::__lifted::Choice::Added { extra: ::core::option::Option::Some(7u64) }",
+            ),
+        ] {
+            let value = Control { original: "kept".into(), added };
+            let expected: proc_macro2::TokenStream = format!(
+                "::umpire_dsl::__lifted::Control {{ original: ::std::string::String::from(\"kept\"), added: {expected} }}"
+            ).parse()?;
+            assert_eq!(value.print().to_string(), expected.to_string());
+        }
+        Ok(())
+    }
 }

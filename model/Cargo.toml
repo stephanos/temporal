@@ -15,6 +15,7 @@ members = [
     "umpire/testing",
     "umpire/suite",
     "umpire/ir",
+    "umpire/ir-derive",
     "umpire/front",
     "umpire/lift",
     "umpire/backends/tlc",
@@ -54,6 +55,7 @@ umpire-dsl-macros = { version = "0.0.1", path = "umpire/dsl/macros" }
 umpire-checker = { version = "0.0.1", path = "umpire/checker" }
 umpire-testing = { version = "0.0.1", path = "umpire/testing" }
 umpire-suite = { version = "0.0.1", path = "umpire/suite" }
+umpire-ir-derive = { version = "0.0.1", path = "umpire/ir-derive" }
 umpire-ir = { version = "0.0.1", path = "umpire/ir" }
 umpire-front = { version = "0.0.1", path = "umpire/front" }
 umpire-lift = { version = "0.0.1", path = "umpire/lift" }

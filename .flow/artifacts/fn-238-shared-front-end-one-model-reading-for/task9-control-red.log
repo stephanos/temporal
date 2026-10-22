@@ -1,0 +1,51 @@
+   Compiling umpire-ir v0.0.1 (/Users/stephan/Workspace/skunkworks/umpire/temporal/model/umpire/ir)
+error[E0432]: unresolved import `crate::print`
+   --> umpire/ir/src/lib.rs:105:16
+    |
+105 |     use crate::print::Print;
+    |                ^^^^^ could not find `print` in the crate root
+
+error[E0433]: cannot find module or crate `umpire_ir_derive` in this scope
+   --> umpire/ir/src/lib.rs:107:14
+    |
+107 |     #[derive(umpire_ir_derive::Print)]
+    |              ^^^^^^^^^^^^^^^^ use of unresolved module or unlinked crate `umpire_ir_derive`
+
+error[E0433]: cannot find module or crate `umpire_ir_derive` in this scope
+   --> umpire/ir/src/lib.rs:114:14
+    |
+114 |     #[derive(umpire_ir_derive::Print)]
+    |              ^^^^^^^^^^^^^^^^ use of unresolved module or unlinked crate `umpire_ir_derive`
+
+error: cannot find attribute `print_path` in this scope
+   --> umpire/ir/src/lib.rs:108:7
+    |
+108 |     #[print_path(::umpire_dsl::__lifted::Control)]
+    |       ^^^^^^^^^^
+
+error: cannot find attribute `print_path` in this scope
+   --> umpire/ir/src/lib.rs:115:7
+    |
+115 |     #[print_path(::umpire_dsl::__lifted::Choice)]
+    |       ^^^^^^^^^^
+
+error[E0599]: no method named `print` found for struct `Control` in the current scope
+   --> umpire/ir/src/lib.rs:133:30
+    |
+109 |     struct Control {
+    |     -------------- method `print` not found for this struct
+...
+133 |             assert_eq!(value.print().to_string(), expected.to_string());
+    |                              ^^^^^ method not found in `Control`
+
+error[E0433]: cannot find module or crate `proc_macro2` in this scope
+   --> umpire/ir/src/lib.rs:130:27
+    |
+130 |             let expected: proc_macro2::TokenStream = format!(
+    |                           ^^^^^^^^^^^ use of unresolved module or unlinked crate `proc_macro2`
+    |
+    = help: if you wanted to use a crate named `proc_macro2`, use `cargo add proc_macro2` to add it to your `Cargo.toml`
+
+Some errors have detailed explanations: E0432, E0433, E0599.
+For more information about an error, try `rustc --explain E0432`.
+error: could not compile `umpire-ir` (lib test) due to 7 previous errors

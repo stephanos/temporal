@@ -9,3 +9,8 @@ rust-version.workspace = true
 
 [lints]
 workspace = true
+
+[dependencies]
+umpire-ir-derive.workspace = true
+quote.workspace = true
+proc-macro2.workspace = true
