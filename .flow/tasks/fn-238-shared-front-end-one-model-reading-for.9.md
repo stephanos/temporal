@@ -13,6 +13,15 @@ Schedule after fn-227 closes or before the next batch of new IR constructs.
 ### Verification
 All goldens byte-identical, including expansion snapshots, and the fn-238 IR dump unchanged. The new crate enters `umpire-dsl`'s lockfile closure, so refresh the guest once in a separate commit and run slice and gaps. Quick then Full gates; report line deltas.
 
+
+**Size:** M
+**Touches:** `model/Cargo.toml`, `model/Cargo.lock`, `model/umpire/ir/**`, `model/umpire/ir-derive/**`, `model/umpire/dsl/macros/**`, `model/DESIGN.md`, `model/temporal/hosts/go/umpire_temporal_guest.wasm` (generated refresh only, separate commit).
+
+### Execution and gates
+
+Run before fn-227.16 introduces new IR constructs, as allowed by the scheduling rule above. Retain the deferred status of fn-238.5 and .6. Reuse the current IR, front-end and DSL module boundaries. The derive must cover structs and enums and preserve the exact printed constructors; handwritten generic container/scalar support may remain shared. Do not update expansion, semantic or IR goldens to accept output changes.
+
+Quick baseline and post-edit checks: `cd model && mise exec -- cargo test -p umpire-ir -p umpire-dsl-macros --lib`; run focused derive/added-field controls and IR/expansion comparisons appropriate to the implementation. Full gate: `UMPIRE_BACKENDS=require make model-check`, once Quick passes and the separate guest-refresh commit is present. Refresh the embedded guest once through `make umpire-guest` in a separate commit, then `make umpire-check-model-slice` and `make umpire-check-model-gaps`. Record source/test line deltas and full/inner-loop timing without hiding soft-target overruns. Required TLC verifies that moving constructor printing preserves backend behavior.
 ## Acceptance
 - [ ] IR token printing is derived; the hand-written printer is gone; adding an IR field needs no printer edit (control).
 - [ ] All goldens and the IR dump unchanged; guest refreshed once with slice/gaps green.
