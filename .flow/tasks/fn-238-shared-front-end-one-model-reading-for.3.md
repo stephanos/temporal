@@ -21,9 +21,12 @@ Follow the preservation plan in `model/design/shared-front-end.md` (Migration): 
 - [ ] fn-227.8 follow-ups m1-m4 resolved.
 
 ## Done summary
-TBD
+Macros read Models only through `umpire-front`: new `umpire_front::declare` (attributes and order, registration, State/World/actor schema, starts, input domains, Finite, integer widths, `&World`) and `umpire_front::path` (`path!` grammar, progress validation); `machine/registration.rs` and the darling dependency deleted; the lifter calls the same readers and its duplicate checks are gone. TLA+ naming moved back to `umpire-lift` (`names.rs`); front refusals worded in Model terms. Drifts: any State struct name is accepted (TLA+/cfg identical after a rename, tested); inputs without a declared World stay a located lift refusal. fn-227.8 follow-ups m1-m4 done (fairness-name collision refused, fairness-only readmission control, bounded no-fairness pin, input refusals assert messages). Only new golden: `machine_progress_gap.stderr`; all other goldens and the IR dump unchanged except the newly admitted `progress_bounds` fixture.
 
+Lines: dsl/macros 3,306 -> 2,153; front 3,103 -> 4,253; lift +246 (net about +240): the design's lifter duplication column mostly counted lowering that rustc does natively, so .3 had little to merge. Guest refreshed (dbd9221ef2, 3,332,298 bytes) because the macro crate's lockfile closure changed. Review: SHIP (.flow/tmp/fn2383-review.md); follow-ups m1-m3 and nits carried into .4. Gates: Quick default/required (207); `UMPIRE_BACKENDS=require make model-check` 282s; `make model-time` 51.307s gate / 8.822s inner loop; slice 21s; gaps 358s.
+
+stage: plan-sync - skipped(config: planSync.enabled != true)
 ## Evidence
-- Commits:
-- Tests:
+- Commits: 1dc089a8ce, dbd9221ef2
+- Tests: UMPIRE_BACKENDS=require make model-check, make model-time, make umpire-check-model-slice, make umpire-check-model-gaps
 - PRs:

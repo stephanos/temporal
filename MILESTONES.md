@@ -160,12 +160,14 @@ interpreted checker behind a measured gate (Option B, .5-.6); the guest and repl
 measured under concurrent load (119.6s); idle re-measurements since are 50-54s.
 .8 is complete locally: guest identities hash only each crate's lockfile closure, so unrelated
 workspace crates no longer stale the guest; timing 50.199s gate, 6.128s inner loop.
+.3 is complete locally: the macros read Models only through `umpire-front` (dsl/macros
+3,306 -> 2,153 lines). Net size was flat because most measured lifter "duplication" was lowering
+rustc does natively; .4's deletion of the source re-read and re-validation is where lines drop.
 [Spec](.flow/specs/fn-238-shared-front-end-one-model-reading-for.md).
 
 | Name | Status | What |
 | --- | --- | --- |
-| fn-238.3 | 🔄 in progress | After .2: macros read through `umpire-front`; one diagnostic per form; fn-227.8 follow-ups (R2, R3) |
-| fn-238.4 | ⬜ todo | After .3: macro embeds the admitted Model; lifter emits from it, no `model.rs` re-read (R2-R4) |
+| fn-238.4 | 🔄 in progress | After .3: macro embeds the admitted Model; lifter emits from it, no `model.rs` re-read (R2-R4) |
 | fn-238.5 | ⬜ todo | After .4: interpreted checker as a differential check (R2, R3) |
 | fn-238.6 | ⬜ todo | After .5: interpreted checker by default only if at most 2x slower and at most 25% more per-construct cost (R2, R3) |
 | fn-238.7 | ⬜ todo | After .4 (and .6 if taken): boundary write-up and measurements (R4) |
