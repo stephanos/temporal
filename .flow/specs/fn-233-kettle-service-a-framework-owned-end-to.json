@@ -7,8 +7,7 @@
   "default_review": null,
   "default_sync": null,
   "depends_on_epics": [
-    "fn-217-annotation-catalog-over-the-temporal",
-    "fn-227-parameterized-models-declared-worlds"
+    "fn-217-annotation-catalog-over-the-temporal"
   ],
   "id": "fn-233-kettle-service-a-framework-owned-end-to",
   "impl_review_rounds": {},
@@ -194,5 +193,5 @@
     "mergeBaseTracker": null,
     "url": null
   },
-  "updated_at": "2026-10-21T17:30:48.968406Z"
+  "updated_at": "2026-10-22T14:41:12.935650Z"
 }
