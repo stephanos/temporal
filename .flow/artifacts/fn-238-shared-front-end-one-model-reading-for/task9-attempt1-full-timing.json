@@ -1,0 +1,7 @@
+{
+  "command": "UMPIRE_BACKENDS=require make model-time",
+  "exit_code": 124,
+  "seconds": 600.1543398270005,
+  "gate_soft_target_seconds": 60,
+  "soft_target_overrun": true
+}

@@ -1,0 +1,5 @@
+--- PASS: TestTestpilotModelGapLoggerPreservesFailuresWithoutPrivateOutput (0.01s)
+--- PASS: TestTestpilotModelGaps (433.13s)
+PASS
+ok  	go.temporal.io/server/tests	433.268s
+Complete log retained in task9-gaps.log.gz; 9842772 uncompressed bytes, 125129 lines.

@@ -260,6 +260,7 @@ fn main() {
     let list = std::process::Command::new("git").arg("ls-files").current_dir(root).output().unwrap();
     let mut count = 0;
     let mut dump = String::new();
+    let mut reconstruct = String::from("fn main() { let mut dump = String::new();\n");
     for file in String::from_utf8(list.stdout).unwrap().lines().filter(|file|
         file.starts_with("model/") && !file.contains("/archived/") && file.ends_with("/model.rs")) {
         let text = std::fs::read_to_string(root.join(file)).unwrap();
@@ -272,6 +273,7 @@ fn main() {
                 let value = Embedded { file: file.into(), model: umpire_front::admit(&declared, module), source: umpire_front::source(module) };
                 assert_eq!(OldPrint::print(&value).to_string(), umpire_ir::print::Print::print(&value).to_string(), "{file}");
                 dump.push_str(&format!("== {file}\n{value:#?}\n"));
+                reconstruct.push_str(&format!("let value: Embedded = {}; dump.push_str(&format!(\"== {}\\n{{value:#?}}\\n\"));\n", OldPrint::print(&value).to_string().replace(":: umpire_dsl :: __lifted", "crate"), file));
                 count += 1;
                 found = true;
             }
@@ -280,5 +282,9 @@ fn main() {
     }
     assert!(count > 20, "empty/incomplete fixture selection: {count}");
     std::fs::write(root.join(".flow/artifacts/fn-238-shared-front-end-one-model-reading-for/task9-ir-dump.txt"), dump).unwrap();
+    reconstruct.push_str("std::fs::write(\"/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/fn-238.9/baseline-ir-dump.txt\", dump).unwrap(); }\n");
+    let path = root.join(".flow/tmp/fn-238.9/baseline-ir/src/main.rs");
+    let definitions = std::fs::read_to_string(&path).unwrap();
+    std::fs::write(path, definitions + &reconstruct).unwrap();
     println!("{count} admitted/refused Models: old and derived constructor tokens byte-identical");
 }

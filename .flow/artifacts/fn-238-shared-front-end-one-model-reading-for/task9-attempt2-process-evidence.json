@@ -1,0 +1,13 @@
+{
+  "observed_at": "2026-10-22T20:10:11.749249+00:00",
+  "attempt": 2,
+  "processes": [
+    {
+      "kind": "Rust compilation",
+      "pid": "2529827",
+      "elapsed": "00:02",
+      "cpu": "74.6",
+      "args": "/home/agent/.rustup/toolchains/1.99.1-aarch64-unknown-linux-gnu/bin/rustc --crate-name gomad --edition=2024 gomad/src/lib.rs --error-format=json --json=diagnostic-rendered-ansi,artifacts,future-incompat --emit=dep-info,link -C opt-level=3 -C embed-bitcode=no --warn=clippy::pedantic --warn=clippy::all --warn=clippy::unimplemented --warn=clippy::undocumented_unsafe_blocks --warn=clippy::todo --warn=clippy::redundant_clone --warn=clippy::needless_collect --warn=clippy::fallible_impl_from --warn=clippy::dbg_macro --test --check-cfg cfg(docsrs,test) --check-cfg cfg(feature, values(\"determinism-fixture\", \"helper-determinism-fixture\", \"helper-stress-jitter\")) -C metadata=6ba319a9701c5b40 -C extra-filename=-447f1f9c514ffc67 --out-dir /home/agent/.cache/codex-build/fn188-rust-stress/release/deps -C strip=debuginfo -L dependency=/home/agent/.cache/codex-build/fn188-rust-stress/release/deps --extern gomad_wasmhost=/home/agent/.cache/codex-build/fn188-rust-stress/release/deps/libgomad_wasmhost-e9873a3987abab6c.rlib --extern rustix=/home/agent/.cache/codex-build/fn188-rust-stress/release/deps/librustix-36526d528f9ee998.rlib --extern serde=/home/agent/.cache/codex-build/fn188-rust-stress/release/deps/libserde-3f8c3525e70d006f.rlib --extern serde_json=/home/agent/.cache/codex-build/fn188-rust-stress/release/deps/libserde_json-b8861e4056934ae9.rlib --extern sha2=/home/agent/.cache/codex-build/fn188-rust-stress/release/deps/libsha2-93ee7e80cb187a73.rlib -L native=/home/agent/.cache/codex-build/fn188-rust-stress/release/build/sha2-asm-1b47d633f84c1b86/out -L native=/home/agent/.cache/codex-build/fn188-rust-stress/release/build/wasmtime-163093dc6510bca4/out"
+    }
+  ]
+}

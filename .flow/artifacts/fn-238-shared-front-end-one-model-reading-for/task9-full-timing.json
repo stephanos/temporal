@@ -1,0 +1,17 @@
+{
+  "command": "UMPIRE_BACKENDS=require make model-time",
+  "exit_code": 0,
+  "seconds": 542.3472906329989,
+  "gate_soft_target_seconds": 60,
+  "soft_target_overrun": true,
+  "gate_seconds": 532.677,
+  "inner_seconds": 9.272,
+  "inner_soft_target_seconds": 10,
+  "inner_soft_target_overrun": false,
+  "attempt": 2,
+  "workspace_tests_seconds": 379.304,
+  "wasm_guest_seconds": 44.523,
+  "go_host_seconds": 43.091,
+  "temporal_go_host_seconds": 10.684,
+  "context": "Completed after inconclusive cold attempt1; still includes guest and host fixture compilation."
+}

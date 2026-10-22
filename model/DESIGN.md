@@ -52,7 +52,7 @@ Body lowering (about 1,380) and emission stay by design; embedding costs about 4
 World or input feature), now read once: the design estimates 55–60% of fn-227's World and inputs
 costs, unmeasured so far. Body-level ones cost the same: fn-227.11's `Phased`/`reject!`/closure
 laws need `impl Phased` admission (20–40 lines), lowering (100–250) and emission (30–80), the
-same work `lift` held before fn-238, plus a printer arm per new IR node. Quint parity is mostly
+same work `lift` held before fn-238; constructor printing is derived since .9. Quint parity is mostly
 body- and value-level; a new back end such as Apalache costs only its emitter.
 
 **Derived printing** (fn-238.9). The 277-line handwritten printer is replaced by a
@@ -63,6 +63,11 @@ The retained scalar/container code, constructor path annotations and the derive 
 of the deleted record registrations and enum arms. Existing expansion and semantic goldens
 remain byte-identical; a scratch oracle compares old and derived constructor tokens for
 26 Models, including admitted trees and located refusals.
+The required-TLC full gate took 532.677 s and the inner loop 9.272 s. The gate
+exceeded the 60 s soft target; the inner loop met 10 s. A first attempt timed out
+at 600 s during cold guest compilation, after rebuilding trybuild closures.
+The completed run still includes guest/host fixture compilation and is not a
+steady-state comparison with the earlier default-gate timings.
 
 **Option B deferred** (owner, 2026-10-22). An interpreted checker (.5, .6) would add an
 interpreter case and a `Value` bridge per body-level construct on top of lowering and emission

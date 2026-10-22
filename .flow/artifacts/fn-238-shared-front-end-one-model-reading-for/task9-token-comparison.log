@@ -1,4 +1,6 @@
+   Compiling umpire-ir v0.0.1 (/Users/stephan/Workspace/skunkworks/umpire/temporal/model/umpire/ir)
+   Compiling umpire-front v0.0.1 (/Users/stephan/Workspace/skunkworks/umpire/temporal/model/umpire/front)
    Compiling fn2389-token-probe v0.0.0 (/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/fn-238.9/token-probe)
-    Finished `dev` profile [unoptimized + debuginfo] target(s) in 0.54s
+    Finished `dev` profile [unoptimized + debuginfo] target(s) in 0.90s
      Running `/home/agent/.cache/codex-build/cargo-target/debug/fn2389-token-probe`
 26 admitted/refused Models: old and derived constructor tokens byte-identical

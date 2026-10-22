@@ -1,0 +1,1 @@
+Pre-task IR definitions reconstructed from the pre-task printer constructors versus current admitted tree: byte-identical Debug dumps for 26 Models (19 admitted, 7 refused), no normalization. SHA-256 c611feb8ff5d79c0291ddf7eb84c29f3ba7b7635660d03944569224ecc64f17d; 4425591 bytes.

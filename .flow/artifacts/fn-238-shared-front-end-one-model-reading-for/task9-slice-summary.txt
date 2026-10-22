@@ -1,0 +1,4 @@
+--- PASS: TestTestpilotModelSlice (1.78s)
+PASS
+ok  	go.temporal.io/server/tests	1.804s
+Complete log retained in task9-slice.log.gz; 413417 uncompressed bytes, 1210 lines.
