@@ -45,6 +45,11 @@ passed all twelve stock/Temporal byte comparisons and both platforms' host suite
 that certification after fn-238.8's guest identity changes at `a96a4c6550`, with all twelve
 comparisons and both host suites passing on each OS.
 [Renewed certification evidence](.flow/artifacts/fn-239-renew-the-linuxmacos-guest-byte/certification-a96a4c6550/proof.md).
+fn-233 is complete locally with all four tasks, three-draw task reviews, parent completion
+review and correctness/standards audits. The independent Kettle service exercises shared
+catalogs, envelopes, annotations, live Judge/Answer and four differential mutants with
+unchanged canonical Models and semantic goldens. Full gates passed; the warm gate took
+364.531s against its 60s soft target and the inner loop took 6.066s against 10s.
 TLC is implemented for its admitted source subset; unsupported source,
 including the current Phased/reject activity Model, is explicitly refused.
 
@@ -62,35 +67,9 @@ is Rust. The guest now directly exports `umpire_buffer_alloc`, `umpire_buffer_re
 
 | Phase | Specs and tasks | Scope |
 | --- | --- | --- |
-| After the Rust verdict | fn-217 → fn-230 → fn-231 → fn-227 → fn-211 → fn-228 | Owner priority order (fn-231 after fn-217 and fn-229, before fn-228.2 if possible; fn-229 is complete; fn-230 has no dependency and must land before fn-228.4; fn-227 placed before fn-211 on 2026-10-20 so Apalache arrives to a parameterized Model; fn-228 depends on fn-227 only, its place relative to fn-211 is the owner's). fn-233 (Kettle service, filed 2026-10-21) depends on fn-217 alone: on 2026-10-22 the owner dropped its fn-227 dependency, since its task .1 needs only fn-227.12's request evidence, which is complete. Owner-approved successor order: fn-233, then fn-211, then fn-228. fn-210, fn-212, fn-213, fn-214, fn-215, fn-216, fn-218, fn-221, fn-223, fn-224, fn-225, fn-226 and fn-229 are complete locally with their scoped reviews and gates passed; fn-225 and fn-226's single-task reviews cover their full specs. fn-216's broad umbrella retains seven documented pre-existing failures. The recommendation is Rust under stock WASM/Go parity alone. Preserve each spec's prerequisites; priority does not add dependency edges or mark deferred work ready. fn-212 supplies lifting and TLC for its admitted source subset; fn-211 adds Apalache over its emitter. The former "Case slice" is filed as fn-228 (Runner and Run): the Model as umpire, one Model per Run, Propose on the protocol, one Go host loop, Driver and Shim, observations plus judgment and the never-overwrite publish store. Targets are at most 5,000 generic-runtime and 11,000 total non-test Testpilot Go lines. Standalone extraction remains a plan in `MIGRATE.md`. |
+| After the Rust verdict | fn-217 → fn-230 → fn-231 → fn-227 → fn-211 → fn-228 | Owner priority order (fn-231 after fn-217 and fn-229, before fn-228.2 if possible; fn-229 is complete; fn-230 has no dependency and must land before fn-228.4; fn-227 placed before fn-211 on 2026-10-20 so Apalache arrives to a parameterized Model; fn-228 depends on fn-227 only, its place relative to fn-211 is the owner's). fn-233 (Kettle service, filed 2026-10-21) depends on fn-217 alone: on 2026-10-22 the owner dropped its fn-227 dependency, since its task .1 needs only fn-227.12's request evidence, which is complete. fn-233 is complete. Owner-approved successor order remains fn-211, then fn-228, after their fn-227 prerequisites. fn-210, fn-212, fn-213, fn-214, fn-215, fn-216, fn-218, fn-221, fn-223, fn-224, fn-225, fn-226 and fn-229 are complete locally with their scoped reviews and gates passed; fn-225 and fn-226's single-task reviews cover their full specs. fn-216's broad umbrella retains seven documented pre-existing failures. The recommendation is Rust under stock WASM/Go parity alone. Preserve each spec's prerequisites; priority does not add dependency edges or mark deferred work ready. fn-212 supplies lifting and TLC for its admitted source subset; fn-211 adds Apalache over its emitter. The former "Case slice" is filed as fn-228 (Runner and Run): the Model as umpire, one Model per Run, Propose on the protocol, one Go host loop, Driver and Shim, observations plus judgment and the never-overwrite publish store. Targets are at most 5,000 generic-runtime and 11,000 total non-test Testpilot Go lines. Standalone extraction remains a plan in `MIGRATE.md`. |
 
 ## Specs
-
-### fn-233: Kettle service: a framework-owned end-to-end reference system (model, umpire)
-
-Captured on 2026-10-21, after fn-217. The only end-to-end chain (proto, catalog, realization, guest,
-Go host, live system, Judge, Answer, Annotate, gap report) runs against Temporal;
-under `umpire/` the pieces exist only in isolation. This spec gives the canonical Kettle Model a
-framework-owned Kettle service: an awkward-on-purpose proto, a Go reference server with named
-validators and scoped limits, a `derive(Catalog)` catalog, a `Realize` binding and guest, a
-live run through the Go host, and seeded server mutants the framework must name. Its first task
-moves the envelopes and descriptor coverage check out of `temporal/`, measuring what is
-generic today; validator generation and Go source walking are outside the updated scope.
-Spec-level dependencies on fn-217 and fn-227 serialize envelope extraction after actual-request
-evidence. Kettle is the already-shipped derive's second consumer (R5), not a retroactive first spike.
-The reviewed plan covers generic catalog/code-generation extraction, selected live initialization
-without changing the canonical Model, and differential healthy-versus-mutant detection.
-Shared catalog/descriptor tooling and realization envelopes are extracted (.1), with unchanged
-Model/semantic goldens, full model/live gates and three implementation review passes green.
-The selected-start runtime and healthy Kettle service (.2) are complete with an exact live
-transcript, unchanged canonical goldens, full gate and all three review passes green.
-The exhaustive catalog, wire annotations and real-server gap probes (.3) are complete; the
-second-consumer portability fixes, both-consumer live gates and all review passes are green.
-[Spec](.flow/specs/fn-233-kettle-service-a-framework-owned-end-to.md).
-
-| Name | Status | What |
-| --- | --- | --- |
-| fn-233.4 | 🔄 in progress | Seeded mutants, one-line switches, each named by the framework in `mutants.snap.txt` (R4) |
 
 ### fn-227: Parameterized Models: declared worlds, action inputs, and the activity Model with retries (model, temporal)
 

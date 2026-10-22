@@ -70,3 +70,21 @@ The parent completion review's reverse-coverage notes identify separately author
 One `make model-time` at executable source `ef3b492d9a` and committed task closure `24d5638c5e` exited 0. Gate 364.531s exceeds the 60s soft target. Checker edit/test 6.066s meets the 10s soft target. The retained step table identifies Rust fixtures at 219.185s (60.1% of total), guest build 45.991s, generic Go host 39.855s, Temporal guest freshness 30.507s and Temporal Go host 10.768s. This gate is successful but remains above its feedback-loop target. The gate explicitly skipped TLC execution; fn-233 preserved the canonical Model and TLC goldens and relied on its required model/live/annotation/mutant controls.
 
 Earlier task measurements and focused controls remain in task verification records. The warm timing run measures the complete gate, including existing compile-refusal fixtures and the new Kettle checks. No before/after claim is inferred from these different runs. Historical measurements moved after this run; only documentation and evidence changed afterward.
+
+The post-documentation full `make model-check` also exited 0 at `750ab9c162`, including generic Go host 41.081s and Temporal Go host 10.262s. The source and documentation checks are complete.
+
+Spec: fn-233-kettle-service-a-framework-owned-end-to
+Tasks: 4/4 done
+Tests: make model-check and make model-time passed; focused/live/race evidence retained per task
+Review: SHIP for all task draws and the parent completion review; no correctness findings
+Gates: full (warm make model-time)
+Gates: full (post-documentation make model-check; classifier required full and no receipt was honorable)
+Tracker sync: n/a (bridge inactive; sync check ran)
+Shipped: 0 (local completion; no publishing authorized)
+Next: execute fn-238.9 before fn-227.16 adds IR constructs
+
+stage: plan-sync - skipped (disabled)
+stage: impl-review - ran (each task's three draws SHIP, gpt-6.1-sol high, same family)
+stage: completion-review - ran (SHIP, R1-R5 met, gpt-6.1-sol high)
+stage: QA - skipped (opt-in live-app stage disabled; required Kettle and Temporal live controls ran)
+stage: wave - ran (serial, one writer on umpire)
