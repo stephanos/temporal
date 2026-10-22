@@ -2,7 +2,7 @@
 
 Task13 remains TODO under the authorized provisional-interface batch. This checkpoint supplies runnable behavioral ports for all39 original roots; **no complete root or complete corpus is declared qualified**. Parent owns independent review, integration, identity freeze, final release execution, lifecycle and acceptance. All commands owned by this worker are terminal. Heavy builds/guest waves are held for the profiling schedule.
 
-Workspace `/home/agent/wt/fn232-live-corpus`, base `1d695061b6382009d0659238c652a5a765b1d5f5f`, source checkpoints through `db628f0120`. The exact original obligations/bounds remain in `.flow/artifacts/fn232-rust-qualification-design-2026-10-22.md` and the independently retained original live-gate-names/source selector evidence. Existing Go owners/tests were retained. Ports preserve original numeric bounds, unchanged guest source and semantic assertions; focused execution remains required to establish this against actual guests.
+Workspace `/home/agent/wt/fn232-live-corpus`, base `1d695061b6382009d0659238c652a5a765b1d5f5`, source checkpoints through `db628f0120`. The exact original obligations/bounds remain in `.flow/artifacts/fn232-rust-qualification-design-2026-10-22.md` and the independently retained original live-gate-names/source selector evidence. Existing Go owners/tests were retained. Ports preserve original numeric bounds, unchanged guest source and semantic assertions; focused execution remains required to establish this against actual guests.
 
 ## Exact root mapping
 
