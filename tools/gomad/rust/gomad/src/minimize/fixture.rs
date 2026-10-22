@@ -1,4 +1,4 @@
-use super::proposals::State;
+use super::proposals::{Decision, Ordering, State};
 use crate::campaign::exploration::simulation::{SimulationCandidate, SimulationConfig};
 use serde::Deserialize;
 use serde_json::json;
@@ -10,7 +10,10 @@ struct Input {
     config: SimulationConfig,
     original: SimulationCandidate,
     attempt_budget: u64,
+    #[serde(default)]
     accepted_indices: BTreeSet<u64>,
+    ordering: Option<Ordering>,
+    accept_when_remaining_any: Option<BTreeSet<Decision>>,
 }
 
 pub(crate) fn run(path: &Path) -> Result<(), String> {
@@ -22,10 +25,20 @@ pub(crate) fn run(path: &Path) -> Result<(), String> {
     if input.attempt_budget > 128 || input.original.overrides.len() > 32 {
         return Err("minimizer fixture envelope is too large".into());
     }
-    let mut state = State::simulation(input.config, input.original, input.attempt_budget)?;
+    let mut state = State::simulation(input.config, input.original, input.attempt_budget)?
+        .with_ordering(input.ordering)?;
     let mut proposals = Vec::new();
     while let Some(attempt) = state.next()? {
-        let accepted = input.accepted_indices.contains(&attempt.index);
+        let accepted = input.accept_when_remaining_any.as_ref().map_or_else(
+            || input.accepted_indices.contains(&attempt.index),
+            |decisions| {
+                attempt
+                    .candidate
+                    .overrides
+                    .iter()
+                    .any(|forced| decisions.contains(&Decision::from(forced)))
+            },
+        );
         state = state.commit(&attempt, accepted)?;
         proposals.push(attempt);
     }

@@ -282,3 +282,22 @@ new Python test suite, profile, actual parity or qualification ran in this wave.
 Root's integrated helper test session51796 was still pending at dispatch; its
 outcome belongs to root and is not claimed here. fn231/fn233 source integration
 and the final endpoint/identity freeze remain outstanding before any final cycle.
+
+## Prospective fn231 source integration through 9a96fcc914
+
+Merged root's reviewed minimizer source main9a96fcc914c17917b23ad0878d8aec698aba5efa
+without conflicts. All twenty incoming Rust files match reviewed main bytes
+exactly, preserving the producing-round scope/search context, context-qualified
+store publication/opening, ledger/digest binding, checkpoint admission and
+reporting. Existing moved helper broker and mandatory precrash sources remain
+unchanged. Direct pinned rustfmt checks for all twenty files, all Rust include/
+path-attribute resolution, source-tool Python AST parsing, exact original127
+helper lock entries and diff checks exit0. No Cargo, Go, guest or test ran here.
+
+Parent reports the ordinary private35 gate passed all sixteen original cases
+with every retained World/network assertion. Parent's subsequent full77 attempt
+failed its thirteenth root after twelve passes (original34 storage model identity
+mismatch);64 roots remain unrun and diagnosis belongs to root. These reported
+outcomes do not qualify this prospective identity. Integrated minimizer runtime,
+strict lint, launcher proof and remaining source integration/final freeze remain
+required; worker unit results and source review are not actual runtime acceptance.

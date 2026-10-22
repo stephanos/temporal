@@ -561,7 +561,6 @@ impl RoundJournal {
                 journal.consume(line)?;
             }
         }
-        journal.authenticate_events()?;
         journal.authenticate_prepared()?;
         if complete_bytes != data.len() {
             let tail = &data[complete_bytes..];
@@ -669,17 +668,52 @@ impl RoundJournal {
         let envelope: Envelope =
             serde_json::from_slice(bytes).map_err(|error| error.to_string())?;
         self.validate_envelope(&envelope, bytes)?;
+        self.authenticate_event(&envelope.event)?;
         self.state.apply(&envelope.event, &self.plan)?;
         self.previous = envelope.sha256;
         self.events.push(envelope.event);
         Ok(())
     }
 
-    fn authenticate_events(&self) -> Result<(), String> {
-        for event in &self.events {
-            self.authenticate_event(event)?;
+    pub(crate) fn search_context(
+        &self,
+        base_trace: Option<&[u8]>,
+    ) -> Result<Option<crate::evidence::search_context::Context>, String> {
+        let RoundState::Choice(state) = &self.state else {
+            return Ok(None);
+        };
+        let Some(scope) = &state.config.site_scope else {
+            return Ok(None);
+        };
+        let mut resolution = state
+            .site_scope_resolution
+            .clone()
+            .ok_or("scoped round resolution missing")?;
+        if state.committed_rounds == 0 {
+            let reference = self.plan.prepared["prepared_artifact"]
+                .as_str()
+                .ok_or("prepared artifact missing")?;
+            let prepared = self.open_artifact(reference)?;
+            let entry = prepared
+                .manifest()
+                .files
+                .get("target/module.wasm")
+                .ok_or("prepared module missing")?;
+            let module = prepared.payload("target/module.wasm", entry.bytes)?;
+            if let Some(raw) = base_trace {
+                resolution.observe(&module, raw, &state.config.execution, &scope.patterns)?;
+            }
+            if resolution.scope(&scope.patterns) != *scope {
+                return Err("exploration plan identity or bounds changed: search context base resolution differs from plan scope".into());
+            }
         }
-        Ok(())
+        Ok(Some(crate::evidence::search_context::Context::new(
+            scope.patterns.clone(),
+            resolution,
+            canonical::digest(&canonical::encode(&self.plan)?),
+            state.committed_rounds,
+            state.config.execution.clone(),
+        )))
     }
 
     fn authenticate_event(&self, event: &RoundEvent) -> Result<(), String> {
@@ -691,6 +725,22 @@ impl RoundJournal {
             segment,
         } = event
         {
+            let base_trace = segment
+                .results
+                .first()
+                .and_then(|result| result.source_trace.as_deref());
+            let expected = self.search_context(base_trace)?;
+            for execution in executions {
+                if let Some(reference) = &execution.artifact {
+                    let opened = self.open_artifact(reference)?;
+                    if crate::evidence::search_context::read(&opened)? != expected {
+                        return Err(
+                            "search context differs from producing plan or pre-round snapshot"
+                                .into(),
+                        );
+                    }
+                }
+            }
             for (execution, result) in executions.iter().zip(&segment.results) {
                 if let Some(raw) = &result.source_trace {
                     let stream = execution
@@ -882,3 +932,7 @@ fn verify_named(root: &File, name: &str, file: &File) -> Result<(), String> {
     }
     Ok(())
 }
+
+#[cfg(test)]
+#[path = "round_tests.rs"]
+mod tests;

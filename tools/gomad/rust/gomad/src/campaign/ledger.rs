@@ -1095,9 +1095,7 @@ pub(crate) fn open_artifact(root: &File, reference: &str) -> Result<Opened, Stri
     let pool = open::child(&store, ".targets", true, false)?;
     let artifact = open::child(&store, parts[1], true, false)?;
     let opened = Opened::from_root_with_pool(artifact, Some(&pool))?;
-    if opened.manifest().record.failure_signature()? != parts[1]
-        && format!("execution-{}", opened.manifest().record_sha256) != parts[1]
-    {
+    if !crate::evidence::store::matches_name(parts[1], opened.manifest())? {
         return Err("campaign artifact name does not match its record".into());
     }
     Ok(opened)
@@ -1107,10 +1105,7 @@ fn artifact_reference(reference: &str) -> Result<Vec<&str>, String> {
     let parts = open::components(reference)?;
     if parts.len() != 2
         || !matches!(parts[0], "evidence" | "prepared")
-        || !(canonical::valid_digest(parts[1])
-            || parts[1]
-                .strip_prefix("execution-")
-                .is_some_and(canonical::valid_digest))
+        || !crate::evidence::store::artifact_name(parts[1])
     {
         return Err("unsafe campaign artifact reference".into());
     }
