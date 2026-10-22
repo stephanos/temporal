@@ -1,0 +1,15 @@
+{
+  "source_commit": "db7f65db5c",
+  "command": "UMPIRE_BACKENDS=require make model-time",
+  "outer_bound_seconds": 1800,
+  "exit": 0,
+  "tlc_required_literal": "TLC backend required: real source-lifted agreement and semantic controls",
+  "gate_seconds": 586.31,
+  "inner_seconds": 7.381,
+  "gate_soft_target_seconds": 60,
+  "inner_soft_target_seconds": 10,
+  "gate_overrun": true,
+  "inner_overrun": false,
+  "measurement_context": "Corrected-source closure validation. No concurrent gap gate; preceding source closure changed, so not an isolated steady-state performance claim. Earlier concurrent pre-correction run was cancelled and is inconclusive.",
+  "log": "task16-final-model-time.log"
+}

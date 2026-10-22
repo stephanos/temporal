@@ -1,0 +1,26 @@
+[
+  {
+    "original": "task16-fixtures-required.log",
+    "gzip": "task16-fixtures-required.log.gz",
+    "original_sha256": "76dcedcf9e158e43a4671801f843609f8c191d3809344dbd29860a1fc2f27a63",
+    "gzip_sha256": "a6e22aca0ecaa480c138edbd1a99e5e00a7b65e241153ebcdcab0cde9deb0e4b",
+    "original_bytes": 866580,
+    "original_lines": 20343,
+    "compressed_bytes": 33632,
+    "verified_roundtrip": true,
+    "command": "UMPIRE_BACKENDS=require mise exec -- cargo test -p umpire-tests -p umpire-temporal-tests --test fixtures -- --nocapture",
+    "exit": 0
+  },
+  {
+    "original": "task16-gaps.log",
+    "gzip": "task16-gaps.log.gz",
+    "original_sha256": "2acd3e0d9a01feb2b971bff34fcec75b62d507e12ea501e39e649437c62de748",
+    "gzip_sha256": "9bd54cd4b9202ada064e59203e31f68cb6635dcc40abbfe5b38cc9f13706a60b",
+    "original_bytes": 9365815,
+    "original_lines": 118745,
+    "compressed_bytes": 77884,
+    "verified_roundtrip": true,
+    "command": "make umpire-check-model-gaps",
+    "exit": 0
+  }
+]

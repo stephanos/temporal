@@ -30,9 +30,10 @@
     },
     {
       "command": "make umpire-check-model-gaps",
-      "log": "task16-gaps.log",
+      "log": "task16-gaps.log.gz",
       "exit": 0,
-      "seconds": 369.07
+      "seconds": 369.07,
+      "summary": "task16-gaps-summary.txt"
     }
   ],
   "reuse_outcome": "Conductor-authorized reuse of actual slice/gap passes against byte-identical final pinned guest with unchanged Go host/server tests. Required final corrected-source full gate and freshness run independently."

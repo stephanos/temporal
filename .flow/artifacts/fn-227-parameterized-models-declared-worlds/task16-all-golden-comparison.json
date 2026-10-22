@@ -10,5 +10,5 @@
     "model/umpire/tests/fixtures/sample_kettle/expected/Kettle@tla.snap.tla",
     "model/umpire/tests/fixtures/shared_returns/expected/Gate@tla.snap.tla"
   ],
-  "semantics": "all native reports/states/rows/verdicts/replays/refusals byte-identical"
+  "semantics": "all native reports/states/rows/verdicts/replays/refusals byte-identical after final required full gate"
 }

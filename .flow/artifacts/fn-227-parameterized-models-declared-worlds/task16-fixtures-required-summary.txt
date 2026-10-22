@@ -1,0 +1,228 @@
+Command: UMPIRE_BACKENDS=require mise exec -- cargo test -p umpire-tests -p umpire-temporal-tests --test fixtures -- --nocapture
+Observed exit: 0 (original live handle completed)
+Source checkpoint: implementation before 5c26527df4; the final required full gate independently validates the finished source.
+Full log: task16-fixtures-required.log.gz
+Original SHA-256: 76dcedcf9e158e43a4671801f843609f8c191d3809344dbd29860a1fc2f27a63
+
+TLC fixture activity: checking the lifted Model
+TLC fixture activity: TLC 1.7.4; complete source-lifted exploration
+states: 6; native: 6; agreement: yes
+claim closed_rejects: Verified; native: Verified; agreement: yes
+claim terminal_remains: Verified; native: Verified; agreement: yes
+counterexamples replayed: 0
+TLC fixture activity: checking the lifted Model
+TLC fixture activity: TLC 1.7.4; complete source-lifted exploration
+states: 6; native: 6; agreement: yes
+claim closed_rejects: Verified; native: Verified; agreement: yes
+claim terminal_remains: Verified; native: Verified; agreement: yes
+counterexamples replayed: 0
+test result: ok. 8 passed; 0 failed; 1 ignored; 0 measured; 0 filtered out; finished in 11.22s
+TLC fixture action_inputs: checking the lifted Model
+TLC fixture action_inputs: TLC 1.7.4; complete source-lifted exploration
+states: 6; native: 6; agreement: yes
+claim attempts_bounded: Verified; native: Verified; agreement: yes
+claim attempts_never_decrease: Verified; native: Verified; agreement: yes
+claim current_poll_settles: Verified; native: Verified; agreement: yes
+claim excluded_poll_settles: Refuted; native: Refuted; agreement: yes
+claim never_retried: Refuted; native: Refuted; agreement: yes
+claim settles_within_four: Refuted; native: Refuted; agreement: yes
+claim stale_poll_settles: Refuted; native: Refuted; agreement: yes
+counterexamples replayed: 4
+TLC fixture action_inputs: checking the lifted Model
+TLC fixture action_inputs: TLC 1.7.4; complete source-lifted exploration
+states: 6; native: 6; agreement: yes
+claim attempts_bounded: Verified; native: Verified; agreement: yes
+claim attempts_never_decrease: Verified; native: Verified; agreement: yes
+claim current_poll_settles: Verified; native: Verified; agreement: yes
+claim excluded_poll_settles: Refuted; native: Refuted; agreement: yes
+claim never_retried: Refuted; native: Refuted; agreement: yes
+claim settles_within_four: Refuted; native: Refuted; agreement: yes
+claim stale_poll_settles: Refuted; native: Refuted; agreement: yes
+counterexamples replayed: 4
+TLC fixture changed_state: checking the lifted Model
+TLC fixture changed_state: TLC 1.7.4; complete source-lifted exploration
+states: 2; native: 2; agreement: yes
+claim actual_change_checked: Refuted; native: Refuted; agreement: yes
+claim mutate_restore_checked: Verified; native: Verified; agreement: yes
+claim no_change_checked: Verified; native: Verified; agreement: yes
+claim same_value_checked: Verified; native: Verified; agreement: yes
+counterexamples replayed: 1
+TLC fixture changed_state: checking the lifted Model
+TLC fixture changed_state: TLC 1.7.4; complete source-lifted exploration
+states: 2; native: 2; agreement: yes
+claim actual_change_checked: Refuted; native: Refuted; agreement: yes
+claim mutate_restore_checked: Verified; native: Verified; agreement: yes
+claim no_change_checked: Verified; native: Verified; agreement: yes
+claim same_value_checked: Verified; native: Verified; agreement: yes
+counterexamples replayed: 1
+TLC fixture parameterized_world: checking the lifted Model
+TLC fixture parameterized_world: TLC 1.7.4; complete source-lifted exploration
+states: 5; native: 5; agreement: yes
+claim advances: Verified; native: Verified; agreement: yes
+claim bounded: Verified; native: Verified; agreement: yes
+claim finishes: Verified; native: Verified; agreement: yes
+claim never_three: Refuted; native: Refuted; agreement: yes
+counterexamples replayed: 1
+TLC fixture parameterized_world: checking the lifted Model
+TLC fixture parameterized_world: TLC 1.7.4; complete source-lifted exploration
+states: 5; native: 5; agreement: yes
+claim advances: Verified; native: Verified; agreement: yes
+claim bounded: Verified; native: Verified; agreement: yes
+claim finishes: Verified; native: Verified; agreement: yes
+claim never_three: Refuted; native: Refuted; agreement: yes
+counterexamples replayed: 1
+TLC fixture phased_rejection: checking the lifted Model
+TLC fixture phased_rejection: TLC 1.7.4; complete source-lifted exploration
+states: 8; native: 8; agreement: yes
+claim closed_rejects: Refuted; native: Refuted; agreement: yes
+claim drop_rejects: Verified; native: Verified; agreement: yes
+claim queued_job_runs: Verified; native: Verified; agreement: yes
+claim recheck_rejects: Refuted; native: Refuted; agreement: yes
+claim reopen_remains: Refuted; native: Refuted; agreement: yes
+claim steps_accept: Refuted; native: Refuted; agreement: yes
+claim terminal_remains: Refuted; native: Refuted; agreement: yes
+claim touch_rejects: Refuted; native: Refuted; agreement: yes
+claim touch_remains: Verified; native: Verified; agreement: yes
+counterexamples replayed: 6
+TLC fixture phased_rejection: checking the lifted Model
+TLC fixture phased_rejection: TLC 1.7.4; complete source-lifted exploration
+states: 8; native: 8; agreement: yes
+claim closed_rejects: Refuted; native: Refuted; agreement: yes
+claim drop_rejects: Verified; native: Verified; agreement: yes
+claim queued_job_runs: Verified; native: Verified; agreement: yes
+claim recheck_rejects: Refuted; native: Refuted; agreement: yes
+claim reopen_remains: Refuted; native: Refuted; agreement: yes
+claim steps_accept: Refuted; native: Refuted; agreement: yes
+claim terminal_remains: Refuted; native: Refuted; agreement: yes
+claim touch_rejects: Refuted; native: Refuted; agreement: yes
+claim touch_remains: Verified; native: Verified; agreement: yes
+counterexamples replayed: 6
+TLC fixture progress_continuous: checking the lifted Model
+TLC fixture progress_continuous: TLC 1.7.4; complete source-lifted exploration
+states: 3; native: 3; agreement: yes
+claim reaches_target: Verified; native: Verified; agreement: yes
+counterexamples replayed: 0
+TLC fixture progress_continuous: checking the lifted Model
+TLC fixture progress_continuous: TLC 1.7.4; complete source-lifted exploration
+states: 3; native: 3; agreement: yes
+claim reaches_target: Verified; native: Verified; agreement: yes
+counterexamples replayed: 0
+TLC fixture progress_excluded_prefix: checking the lifted Model
+TLC fixture progress_excluded_prefix: TLC 1.7.4; complete source-lifted exploration
+states: 2; native: 2; agreement: yes
+claim reaches_target: Refuted; native: Refuted; agreement: yes
+counterexamples replayed: 1
+TLC fixture progress_excluded_prefix: checking the lifted Model
+TLC fixture progress_excluded_prefix: TLC 1.7.4; complete source-lifted exploration
+states: 2; native: 2; agreement: yes
+claim reaches_target: Refuted; native: Refuted; agreement: yes
+counterexamples replayed: 1
+TLC fixture progress_fulfilled: checking the lifted Model
+TLC fixture progress_fulfilled: TLC 1.7.4; complete source-lifted exploration
+states: 1; native: 1; agreement: yes
+claim reaches_target: Verified; native: Verified; agreement: yes
+counterexamples replayed: 0
+TLC fixture progress_fulfilled: checking the lifted Model
+TLC fixture progress_fulfilled: TLC 1.7.4; complete source-lifted exploration
+states: 1; native: 1; agreement: yes
+claim reaches_target: Verified; native: Verified; agreement: yes
+counterexamples replayed: 0
+TLC fixture progress_graph: checking the lifted Model
+TLC fixture progress_graph: TLC 1.7.4; complete source-lifted exploration
+states: 3; native: 3; agreement: yes
+claim reaches_target: Refuted; native: Refuted; agreement: yes
+counterexamples replayed: 1
+TLC fixture progress_graph: checking the lifted Model
+TLC fixture progress_graph: TLC 1.7.4; complete source-lifted exploration
+states: 3; native: 3; agreement: yes
+claim reaches_target: Refuted; native: Refuted; agreement: yes
+counterexamples replayed: 1
+TLC fixture progress_intermittent: checking the lifted Model
+TLC fixture progress_intermittent: TLC 1.7.4; complete source-lifted exploration
+states: 3; native: 3; agreement: yes
+claim reaches_target: Refuted; native: Refuted; agreement: yes
+counterexamples replayed: 1
+TLC fixture progress_intermittent: checking the lifted Model
+TLC fixture progress_intermittent: TLC 1.7.4; complete source-lifted exploration
+states: 3; native: 3; agreement: yes
+claim reaches_target: Refuted; native: Refuted; agreement: yes
+counterexamples replayed: 1
+TLC fixture progress_scope_exit: checking the lifted Model
+TLC fixture progress_scope_exit: TLC 1.7.4; complete source-lifted exploration
+states: 2; native: 2; agreement: yes
+claim reaches_target: Refuted; native: Refuted; agreement: yes
+counterexamples replayed: 1
+TLC fixture progress_scope_exit: checking the lifted Model
+TLC fixture progress_scope_exit: TLC 1.7.4; complete source-lifted exploration
+states: 2; native: 2; agreement: yes
+claim reaches_target: Refuted; native: Refuted; agreement: yes
+counterexamples replayed: 1
+TLC fixture progress_self_loop: checking the lifted Model
+TLC fixture progress_self_loop: TLC 1.7.4; complete source-lifted exploration
+states: 1; native: 1; agreement: yes
+claim reaches_target: Refuted; native: Refuted; agreement: yes
+counterexamples replayed: 1
+TLC fixture progress_self_loop: checking the lifted Model
+TLC fixture progress_self_loop: TLC 1.7.4; complete source-lifted exploration
+states: 1; native: 1; agreement: yes
+claim reaches_target: Refuted; native: Refuted; agreement: yes
+counterexamples replayed: 1
+TLC fixture progress_target_barrier: checking the lifted Model
+TLC fixture progress_target_barrier: TLC 1.7.4; complete source-lifted exploration
+states: 3; native: 3; agreement: yes
+claim reaches_target: Verified; native: Verified; agreement: yes
+counterexamples replayed: 0
+TLC fixture progress_target_barrier: checking the lifted Model
+TLC fixture progress_target_barrier: TLC 1.7.4; complete source-lifted exploration
+states: 3; native: 3; agreement: yes
+claim reaches_target: Verified; native: Verified; agreement: yes
+counterexamples replayed: 0
+TLC fixture progress_trigger_stops: checking the lifted Model
+TLC fixture progress_trigger_stops: TLC 1.7.4; complete source-lifted exploration
+states: 3; native: 3; agreement: yes
+claim reaches_target: Verified; native: Verified; agreement: yes
+counterexamples replayed: 0
+TLC fixture progress_trigger_stops: checking the lifted Model
+TLC fixture progress_trigger_stops: TLC 1.7.4; complete source-lifted exploration
+states: 3; native: 3; agreement: yes
+claim reaches_target: Verified; native: Verified; agreement: yes
+counterexamples replayed: 0
+TLC fixture progress_two_lobes: checking the lifted Model
+TLC fixture progress_two_lobes: TLC 1.7.4; complete source-lifted exploration
+states: 4; native: 4; agreement: yes
+claim reaches_target: Refuted; native: Refuted; agreement: yes
+counterexamples replayed: 1
+TLC fixture progress_two_lobes: checking the lifted Model
+TLC fixture progress_two_lobes: TLC 1.7.4; complete source-lifted exploration
+states: 4; native: 4; agreement: yes
+claim reaches_target: Refuted; native: Refuted; agreement: yes
+counterexamples replayed: 1
+TLC fixture sample_kettle: checking the lifted Model
+TLC fixture sample_kettle: TLC 1.7.4; complete source-lifted exploration
+states: 283; native: 283; agreement: yes
+claim beeps_only_when_off: Verified; native: Verified; agreement: yes
+claim boils: Verified; native: Verified; agreement: yes
+claim fails_over_at_boiling: Verified; native: Verified; agreement: yes
+claim never_beeps: Refuted; native: Refuted; agreement: yes
+claim warms_only_when_on: Verified; native: Verified; agreement: yes
+counterexamples replayed: 1
+TLC fixture sample_kettle: checking the lifted Model
+TLC fixture sample_kettle: TLC 1.7.4; complete source-lifted exploration
+states: 283; native: 283; agreement: yes
+claim beeps_only_when_off: Verified; native: Verified; agreement: yes
+claim boils: Verified; native: Verified; agreement: yes
+claim fails_over_at_boiling: Verified; native: Verified; agreement: yes
+claim never_beeps: Refuted; native: Refuted; agreement: yes
+claim warms_only_when_on: Verified; native: Verified; agreement: yes
+counterexamples replayed: 1
+TLC fixture shared_returns: checking the lifted Model
+TLC fixture shared_returns: TLC 1.7.4; complete source-lifted exploration
+states: 18; native: 18; agreement: yes
+claim steps_accept: Refuted; native: Refuted; agreement: yes
+counterexamples replayed: 1
+TLC fixture shared_returns: checking the lifted Model
+TLC fixture shared_returns: TLC 1.7.4; complete source-lifted exploration
+states: 18; native: 18; agreement: yes
+claim steps_accept: Refuted; native: Refuted; agreement: yes
+counterexamples replayed: 1
+test result: ok. 26 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 126.60s

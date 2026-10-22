@@ -1,0 +1,10 @@
+Command: make umpire-check-model-gaps
+Observed exit: 0 (original live handle completed)
+Source pin: 5e568d1584
+Full log: task16-gaps.log.gz
+Original SHA-256: 2acd3e0d9a01feb2b971bff34fcec75b62d507e12ea501e39e649437c62de748
+
+--- PASS: TestTestpilotModelGapLoggerPreservesFailuresWithoutPrivateOutput (0.00s)
+--- PASS: TestTestpilotModelGaps (369.01s)
+PASS
+ok  	go.temporal.io/server/tests	369.070s
