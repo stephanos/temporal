@@ -218,3 +218,15 @@ exists`, without changing original plan/receipt or recreating source/compiler.
 Raw evidence: `/home/agent/wt/evidence/fn232-install-collision-cwd-regression`.
 Lane 01 and 03 failures remain intact; 02 and 04 were not started. No production
 source, compiler build or guest execution was changed by this repair.
+
+Integrated lane 05 (session 11602) terminated exit 1 after portable preparation,
+opening and both corrected collision refusals passed. Its next harness assertion
+counted the shared `.campaign-targets` evidence pool as a second campaign.
+The container actually held exactly that pool and the one receipt-named campaign.
+The harness now snapshots all container entry names, asserts exactly the one
+receipt-named `campaign-*` directory and an empty journal before collision calls,
+then requires the exact unchanged entries, one campaign and empty journal after.
+The bounded source sweep found no sibling all-entry campaign-count assertions
+in plan-check, recover-check or installation-lane; existing Go checks enumerate
+actual journals. No production/evidence-store behavior changed. Full lane 05
+raw failure remains under its original evidence root and adjacent log.

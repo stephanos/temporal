@@ -86,6 +86,11 @@ def check_retained(binary, installation, root, working_dir, environment):
     assert receipt['command'] == list(map(str, vector))
     opener = [binary, 'fixture-preparation-open', '--receipt', receipt_path, '--sha256', response['preparation_receipt_sha256']]
     admitted = json.loads(run('open-before-removal', opener))
+    campaigns = root / 'artifacts/campaigns'
+    campaign_entries = sorted(path.name for path in campaigns.iterdir())
+    assert list(campaigns.glob('campaign-*')) == [Path(receipt['campaign'])]
+    journal = Path(receipt['campaign']) / 'journal.jsonl'
+    assert journal.read_bytes() == b''
     shutil.rmtree(alias)
     shutil.rmtree(source)
     assert not alias.exists() and not source.exists()
@@ -105,7 +110,9 @@ def check_retained(binary, installation, root, working_dir, environment):
     assert 'output already exists' in error['message']
     assert receipt_collision.read_bytes() == b'existing receipt'
     assert not (root / 'receipt-collision.json').exists()
-    assert len(list((root / 'artifacts/campaigns').iterdir())) == 1
+    assert sorted(path.name for path in campaigns.iterdir()) == campaign_entries
+    assert list(campaigns.glob('campaign-*')) == [Path(receipt['campaign'])]
+    assert journal.read_bytes() == b''
     assert json.loads(run('open-after-removal', opener)) == admitted
     assert admitted['guest_executions'] == 0 and admitted['module_sha256'] == response['module_sha256']
     wrong_hash = [*opener[:-1], '0' * 64]
