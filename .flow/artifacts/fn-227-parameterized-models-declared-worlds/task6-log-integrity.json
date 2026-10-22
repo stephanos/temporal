@@ -86,5 +86,21 @@
     "gzip_path": ".flow/artifacts/fn-227-parameterized-models-declared-worlds/task6-logs/review-finalize.stderr.log.gz",
     "gzip_bytes": 92,
     "gzip_sha256": "80dcedcb642d6be14994b57512b5e5b96911f0b63dabb0232a78654ddb0838a9"
+  },
+  {
+    "raw_path": ".flow/tmp/fn-227.6/review-followup.stderr.log",
+    "raw_bytes": 120,
+    "raw_sha256": "755f7fbda9196f2a7477adaee3a63556a81f63defcc3d5e06d949cee0cc94459",
+    "gzip_path": ".flow/artifacts/fn-227-parameterized-models-declared-worlds/task6-logs/review-followup.stderr.log.gz",
+    "gzip_bytes": 91,
+    "gzip_sha256": "20b8d8704b43eb9655eeb8aeedb3e2e9ceafccd7399ef63d8f28dd14cbe56e9a"
+  },
+  {
+    "raw_path": ".flow/tmp/fn-227.6/final-lint.log",
+    "raw_bytes": 3305,
+    "raw_sha256": "5e5b76716752f1f763acd9f731ca2bb42e428e83642ba0c6932211442fa0b42a",
+    "gzip_path": ".flow/artifacts/fn-227-parameterized-models-declared-worlds/task6-logs/final-lint.log.gz",
+    "gzip_bytes": 468,
+    "gzip_sha256": "4d56caf50ed2446778ee72b4d5fc632e3f87f33fd7e66f18eeac883d84874964"
   }
 ]

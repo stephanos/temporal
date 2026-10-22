@@ -1,0 +1,45 @@
+{
+  "base": "ae9e3157e5bbf431432d93023c3963c07c2ff375",
+  "effort": "high",
+  "findings": {
+    "backend": "codex",
+    "baseSha": "ae9e3157e5bbf431432d93023c3963c07c2ff375",
+    "headSha": "8e84f41cf95bc67f24ce0f5536ae764a42292191",
+    "items": [
+      {
+        "body": "The documentation says the linked artifact records this task\u2019s final model-time output and timings, but that artifact contains only `{\"status\":\"pending final required model-time; no pass claimed\"}`. The displayed timings belong to task .5. This makes the new documentation inaccurate and leaves R7\u2019s final-output deliverable incomplete.",
+        "classification": "introduced",
+        "confidence": 100,
+        "firstSeenReceiptId": "review-9985232a51392a08f56194f953bac18ce16360ef27d82a8f4f714761441f97e8",
+        "id": "finding-c83681b30fa20e48b4d1a288419f4b8e",
+        "lastSeenReceiptId": "review-f6b970742b05e914aaa8108088fc6f431a556da52930feb48b9c6c6fcd77f62d",
+        "ordinal": 1,
+        "rIds": [
+          "R7"
+        ],
+        "severity": "P2",
+        "status": "fixed",
+        "suggestion": "Retain the complete final timing output and measured results in the artifact, then update this statement to match the evidence.",
+        "title": "The documentation says the linked artifact records this task\u2019s final model-time output and timings, but that artifact contains only `{\"status\":\"pending final required model-time; no pass claimed\"}`"
+      }
+    ],
+    "reviewKind": "implementation",
+    "round": 2,
+    "schemaVersion": 1,
+    "sourceReceiptId": "review-f6b970742b05e914aaa8108088fc6f431a556da52930feb48b9c6c6fcd77f62d",
+    "supersedesReceiptId": "review-9985232a51392a08f56194f953bac18ce16360ef27d82a8f4f714761441f97e8"
+  },
+  "id": "fn-227-parameterized-models-declared-worlds.6",
+  "introduced_count": 0,
+  "mode": "codex",
+  "model": "gpt-6.1-sol",
+  "pre_existing_count": 0,
+  "review": "Prior finding #1: fixed\n\nThe verification artifact now retains the final required model-time output, matching the archived log byte-for-byte. All 17 stages completed successfully: gate 582.209 s (60 s soft target missed), inner loop 6.112 s (10 s target met). The documented sources match the tested checkpoint.\n\nNo remaining blocking findings.\n\n## Requirements coverage\n\n| R-ID | Status | Evidence |\n|---|---|---|\n| R1 | met | Retained World/start fixtures and compiled example. |\n| R2 | met | Retained input-domain and native/TLC evidence. |\n| R3 | met | Retained emission and activity TLC evidence. |\n| R4 | met | Retry tests, coverage and compatibility proof. |\n| R5 | deferred | Moved to fn-237 by owner decision. |\n| R6 | met | Retained live retry proof and unchanged-production evidence. |\n| R7 | met | Documentation, selected-World counts and complete final timing output. |\n\nUnaddressed R-IDs: []\n\nClassification counts: 0 introduced, 0 pre_existing.\n\n```json\n{\"classification_counts\":{\"introduced\":0,\"pre_existing\":0},\"unaddressed\":[]}\n```\n\n<verdict>SHIP</verdict> - Ready to merge.\n",
+  "review_reservation_id": "ac393828a74d44e5a4661d3558a53ea8",
+  "session_id": "01a165f9-73dc-7880-8438-3da592a63e1f",
+  "spec": "codex:gpt-6.1-sol:high",
+  "timestamp": "2026-10-22T23:50:58.136744Z",
+  "type": "impl_review",
+  "unaddressed": [],
+  "verdict": "SHIP"
+}

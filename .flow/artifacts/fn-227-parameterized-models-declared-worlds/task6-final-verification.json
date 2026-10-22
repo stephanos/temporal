@@ -1,6 +1,6 @@
 {
   "task": "fn-227-parameterized-models-declared-worlds.6",
-  "status": "final authoring gate passed; normal review follow-up pending",
+  "status": "final authoring gate passed; implementation review SHIP",
   "base_commit": "ae9e3157e5bbf431432d93023c3963c07c2ff375",
   "source_checkpoint": "cb8b9a76d20410339fda4e2efa6d086ebd5012df",
   "final_required_model_time": {
@@ -143,5 +143,21 @@
     "No new live SDK, gap or privacy run: all 215 selected production-surface files and exact guest match the retained .5 verification.",
     "Current guest is not claimed freshly cross-OS certified; prior failed fn-232 evidence and later fn-232/fn-239 successes remain at their source pins.",
     "The single review finding was missing final task6 evidence; this artifact supplies it without changing documentation source during the gate."
-  ]
+  ],
+  "review": {
+    "verdict": "SHIP",
+    "session_id": "01a165f9-73dc-7880-8438-3da592a63e1f",
+    "model": "gpt-6.1-sol",
+    "effort": "high",
+    "introduced_count": 0,
+    "pre_existing_count": 0,
+    "unaddressed": [],
+    "receipt": "task6-review-receipt.json"
+  },
+  "gate_receipt": "task6-final-model-receipt.json",
+  "postreview_lint": {
+    "command": "mise exec -- cargo fmt --all --check && mise exec -- cargo clippy --workspace --all-targets --all-features -- -D warnings",
+    "exit": 0,
+    "log": "task6-logs/final-lint.log.gz"
+  }
 }

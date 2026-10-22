@@ -30,5 +30,10 @@
   ],
   "production_and_guest_unchanged": true,
   "scoped_diff_check": "passed",
-  "design_lines": 969
+  "design_lines": 969,
+  "log_round_trips": 11,
+  "production_manifest_hashes": 215,
+  "final_gate_terminal_exit": 0,
+  "final_gate_stages": 17,
+  "full_output_exact": true
 }

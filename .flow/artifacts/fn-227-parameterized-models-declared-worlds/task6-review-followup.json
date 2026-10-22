@@ -1,0 +1,18 @@
+{
+  "success": true,
+  "type": "impl_review",
+  "id": "fn-227-parameterized-models-declared-worlds.6",
+  "verdict": "SHIP",
+  "session_id": "01a165f9-73dc-7880-8438-3da592a63e1f",
+  "mode": "codex",
+  "model": "gpt-6.1-sol",
+  "effort": "high",
+  "spec": "codex:gpt-6.1-sol:high",
+  "standalone": false,
+  "review": "Prior finding #1: fixed\n\nThe verification artifact now retains the final required model-time output, matching the archived log byte-for-byte. All 17 stages completed successfully: gate 582.209 s (60 s soft target missed), inner loop 6.112 s (10 s target met). The documented sources match the tested checkpoint.\n\nNo remaining blocking findings.\n\n## Requirements coverage\n\n| R-ID | Status | Evidence |\n|---|---|---|\n| R1 | met | Retained World/start fixtures and compiled example. |\n| R2 | met | Retained input-domain and native/TLC evidence. |\n| R3 | met | Retained emission and activity TLC evidence. |\n| R4 | met | Retry tests, coverage and compatibility proof. |\n| R5 | deferred | Moved to fn-237 by owner decision. |\n| R6 | met | Retained live retry proof and unchanged-production evidence. |\n| R7 | met | Documentation, selected-World counts and complete final timing output. |\n\nUnaddressed R-IDs: []\n\nClassification counts: 0 introduced, 0 pre_existing.\n\n```json\n{\"classification_counts\":{\"introduced\":0,\"pre_existing\":0},\"unaddressed\":[]}\n```\n\n<verdict>SHIP</verdict> - Ready to merge.\n",
+  "introduced_count": 0,
+  "pre_existing_count": 0,
+  "unaddressed": [],
+  "review_rounds": 0,
+  "review_rounds_cap": 8
+}
