@@ -2,9 +2,10 @@
 
 Source checkpoint: `2ac50dcabf`, branch `fn231-rust-minimizer`, base
 `e5ea438c90`. Both fn231 tasks have source implementations in one coherent batch.
-Task completion and predecessor acceptance remain with the conductor. This is
-provisional implementation against the integrated fn232.9/.11 and site APIs;
-it does not accept fn232.11 or claim runtime/qualification results.
+Task completion remains with the conductor. The initial checkpoint was provisional
+against the integrated fn232.9/.11 and site APIs. The conductor subsequently
+accepted fn232.11 and fn230.1 and started fn231.1; this batch does not imply its
+own acceptance or claim runtime/qualification results.
 
 ## Implemented surfaces
 
@@ -112,3 +113,62 @@ No other worker's target, worktree or scratch root was removed. Other registered
 worktrees remain with their existing owners. Latest observed free space was
 18 GiB on the shared filesystem; no Cargo process or target grant remains owned
 by this worker at handover.
+
+## Independent-review corrections — source `83f69b33b0`
+
+All three confirmed findings against the initial checkpoint are corrected:
+
+- Campaign artifact references now reuse the store's exact qualified-name grammar
+  and manifest/name binding. A real prepared-artifact publication and scoped
+  execution publication go through `RoundJournal::append` and `open`. The same
+  regression refuses an otherwise valid wrong-round context before writing the
+  journal, and refuses a qualified suffix that differs from its manifest digest.
+- Source admission reconstructs original and final prefix candidate commitments
+  using the exact existing candidate hash helper shared with the controller.
+  A detached artifact with resealed source bytes/descriptor/manifest, unchanged
+  selected identities and unchanged canonical record/minimization bytes now
+  refuses a substituted removed-decision site. A separate negative covers the
+  final prefix commitment with the original commitment intact. Test fixtures
+  now use real controller-derived candidate hashes rather than arbitrary labels.
+- Preflight errors now name the parent before ordering admission. A malformed
+  present context reaches the actual opener path, exits 2, names its parent,
+  and creates no minimizer output directory even with an explicit scope flag.
+
+The scoped live driver also keeps the existing valid `all` failure policy's
+budget of one; increasing that budget was an invalid input for this controller,
+not permission to execute more rounds. The execution bound still selects eight.
+No acceptance predicate, retained evidence schema or candidate bytes changed.
+
+Review REDs ran before production fixes on root's exclusively assigned warmed
+`fn232-live-corpus` target, release/locked/jobs2, with no guest executions:
+
+| Focused filter | RED exit / cause | GREEN exit / result | Raw logs |
+| --- | --- | --- | --- |
+| `source_choice_resealed_site_substitution` | 101; resealed site substitution accepted | 0 within minimize suite | `/home/agent/evidence/fn231-review-source-red.log` |
+| `minimize_malformed_present_context_names_parent` | 101; actual context error omitted the parent | 0 within minimize suite | `/home/agent/evidence/fn231-review-diagnostic-red.log` |
+| `scoped_context_publication_appends_reopens` | 101; unsafe qualified campaign reference | 0; publication/append/reopen and wrong-context negatives pass | `/home/agent/evidence/fn231-review-journal-red-2.log`, `/home/agent/evidence/fn231-review-journal-green.log` |
+
+The journal fixture's first RED stopped on a stale empty-tape digest after its
+module identity changed. Updating that digest reached the intended reference
+failure. The first GREEN compile exposed ownership of the prefix plan; validation
+now consumes full then final prefixes while retaining the original identity map.
+That compile failure remains in `fn231-review-minimize-green.log`.
+
+Final corrected source verification:
+`cargo +1.99.1 test --manifest-path tools/gomad/rust/Cargo.toml --locked --release
+-p gomad --lib minimize` exited 0 with 18 tests;
+its raw log is `/home/agent/evidence/fn231-review-minimize-green-2.log`.
+The conductor then authorized one full default host unit run with the same flags
+and no filter: exit 0, **105 passed**, zero failed, 0.52 seconds test runtime,
+`/home/agent/evidence/fn231-review-lib-final.log`. This includes context, store,
+scope and bounded/paired metadata regressions. Format, diff and both Python
+syntax checks also exited 0. Strict Clippy has not been rerun on this correction;
+the earlier baseline failure remains explicitly outstanding until the conductor's
+integrated strict gate. No lint allowances or weakened assertions were added.
+
+Fresh review of the corrected checkpoint and two fresh affected public runtime
+lanes/golden generations remain outstanding. Root's source advances were not
+merged into this isolated branch; no integration conflicts were introduced here.
+The target lease is released, and five private failed-review fixture roots were
+cleaned after their exact test PIDs were verified exited. The three own worktrees
+listed above remain for integration/review; latest free space was 15 GiB.
