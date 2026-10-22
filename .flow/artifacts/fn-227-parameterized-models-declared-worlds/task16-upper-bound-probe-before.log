@@ -1,0 +1,9 @@
+N=10 elapsed=11.030292ms result=Ok(())
+  exit= 0
+N=14 elapsed=8.807ms result=Ok(())
+  exit= 0
+N=18 elapsed=18.694709ms result=Ok(())
+  exit= 0
+N=22 elapsed=212.835875ms result=Ok(())
+  exit= 0
+N=26 elapsed=2.592059627s result=Ok(())

@@ -1,0 +1,5 @@
+   Compiling umpire-lift v0.0.1 (/Users/stephan/Workspace/skunkworks/umpire/temporal/model/umpire/lift)
+    Finished `test` profile [unoptimized + debuginfo] target(s) in 1.46s
+     Running tests/vector.rs (/home/agent/.cache/codex-build/cargo-target/debug/deps/vector-7cd9e225c61cd866)
+
+running 1 test

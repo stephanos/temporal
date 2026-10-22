@@ -1,0 +1,13 @@
+fn main() {
+    let n: usize = std::env::args().nth(1).unwrap().parse().unwrap();
+    let mut bindings = String::from("let a0 = self.flag;");
+    for i in 1..=n { bindings.push_str(&format!("let a{i} = a{} && a{};", i-1, i-1)); }
+    let source = include_str!("/Users/stephan/Workspace/skunkworks/umpire/temporal/model/umpire/lift/tests/fixtures/vector.rs")
+      .replace("pub values: Vector<u8>,", "pub values: Vector<u8>, pub flag: bool,")
+      .replace("User::Push if self.values.len() < 2 => {", &format!("User::Push => {{ {bindings} if a{n} && self.values.len() < 2 {{"))
+      .replace("self.values.push_back(7);", "self.values.push_back(7); }");
+    let start = std::time::Instant::now();
+    let result = umpire_lift::Lift::parse("probe.rs", &source);
+    println!("N={n} elapsed={:?} result={:?}", start.elapsed(), result.as_ref().map(|_| ()));
+    assert!(result.is_ok());
+}

@@ -1,7 +1,27 @@
 model/umpire/tests/fixtures/action_inputs/expected/Inputs@tla.snap.tla
+  operators: Worker_Fail_At(__umpire_i)
+  bytes: 13934 -> 13609
+  reason: ordered branch LET definitions replace copied statement values; payload definitions remain inside the input LET scope.
 model/umpire/tests/fixtures/changed_state/expected/ChangedState@tla.snap.tla
+  operators: User_MutateRestore
+  bytes: 3932 -> 3963
+  reason: ordered branch LET definitions replace copied statement values; payload definitions remain inside the input LET scope.
 model/umpire/tests/fixtures/parameterized_world/expected/Counter@tla.snap.tla
+  operators: User_Advance
+  bytes: 4740 -> 4669
+  reason: ordered branch LET definitions replace copied statement values; payload definitions remain inside the input LET scope.
 model/umpire/tests/fixtures/phased_rejection/expected/Job@tla.snap.tla
+  operators: Worker_Reopen, Client_Drop
+  bytes: 12799 -> 12997
+  reason: ordered branch LET definitions replace copied statement values; payload definitions remain inside the input LET scope.
 model/umpire/tests/fixtures/sample_kettle/expected/Kettle@tla.snap.tla
+  operators: Heater_Heat
+  bytes: 7196 -> 7084
+  reason: ordered branch LET definitions replace copied statement values; payload definitions remain inside the input LET scope.
 model/umpire/tests/fixtures/shared_returns/expected/Gate@tla.snap.tla
-Mechanism: ordered branch LET definitions replace duplicated statement values; generated names remain below the input LET scope. Only these TLA+ payloads were accepted; metadata retained.
+  operators: Client_Step, Client_Add_At(__umpire_i), Client_Bump
+  bytes: 18172 -> 13939
+  reason: ordered branch LET definitions replace copied statement values; payload definitions remain inside the input LET scope.
+Only these six TLA+ payloads were accepted. Snapshot metadata and all native/TLC reports, states, rows, verdicts, paths/replays and refusal outputs are exact.
+Generation used INSTA_UPDATE=new INSTA_FORCE_PASS=1 solely to produce pending snapshots. Its exit is not gate evidence; only the listed TLA+ payloads were copied. Subsequent unmodified required-TLC fixture tests passed.
+Shared generic Vec printer spelling changed from Vec::from([..]) to vec![..] to allocate large embedded vectors on the heap; task9 constructor-token equivalence remains historical at its source pin.
