@@ -104,3 +104,7 @@ Candidate-v6 implementation identities and binary hashes are in `.flow/artifacts
 - runtime 4a82aea2…;
 - Go WASI 5fddc30f….
 The release-role host identity differs, because the host identity hashes the cargo features, so measure it from gomad-release. Two Go `wasm/backend` inspection tests fail on the pre-existing baseline; they are on this task's transferred live-gate list.
+
+### Provisional transferred-live-corpus development, 2026-10-22
+
+With .10 accepted and .11 implementing the declared preparation/retention interface, develop the exact 39 transferred live-root ports in an isolated worktree under the milestone provisional-interface batch policy. This starts executable corpus development only; .13 lifecycle/acceptance still waits its predecessors, and no retirement, full frozen cycle or qualification pass is authorized by this note. Preserve every original variant, fixture, assertion and bound from the existing mapping. Integrate these ports before the final identity freeze; test names or source mapping alone cannot earn a pass. Root owns scheduling of expensive guest gates and final review.
