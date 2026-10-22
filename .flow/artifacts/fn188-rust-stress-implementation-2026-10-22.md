@@ -16,7 +16,7 @@ The report uses the existing authenticated first-divergence schema and chooses t
 
 Baseline default release library tests passed before edits: 66 tests, exit 0 (`.flow/tmp/fn188-baseline.log`). Root explicitly scoped this worker to focused Rust checks and deferred the shared full gates and heavy guest execution.
 
-Final checks used this source plus attribution's exact typed-role checkpoint `cac5b294eb` as a temporary overlay. The overlay was reversed before staging; this commit does not own `linked_conditions.rs`. Integrate that checkpoint with this implementation for the diagnostic refusal proof.
+Initial checkpoint `79dbece295` checks used that source plus attribution's exact typed-role checkpoint `cac5b294eb` as a temporary overlay. The overlay was reversed before staging; this commit does not own `linked_conditions.rs`. Integrate that checkpoint with this implementation for the diagnostic refusal proof.
 
 | Check | Result | Retained log under `.flow/tmp/` |
 | --- | --- | --- |
@@ -51,3 +51,11 @@ Those frozen inputs are pending, not fabricated artifacts. Root must populate th
 Workspace `/home/agent/wt/fn188-rust-stress`, branch `fn188-rust-stress`, base `b17912883f2a6f8b248bd4689c84774d281f7e67`. The worktree stays registered for integration/review. All other registered worktrees belong to other active owners and were left untouched. `.flow/tmp/` retains the baseline, red/green and final logs, source overlay patch, focused binaries and evidence JSON for root review. Failed unit-fixture scratch roots were removed after log capture. The isolated target `/home/agent/.cache/codex-build/fn188-rust-stress` remains reusable while .5 is open (about 1.1 GiB); no shared cache was wiped. Last observed free disk was 26 GiB. No owned command remains running.
 
 stage: impl-review - skipped(policy: conductor owns the gate)
+
+## Review repair checkpoint
+
+The canonical outcome gate now runs before every standalone or cluster custom oracle. Zero-exit PASS output cannot override `target_failure`, including soft assertions and inconclusive assertion assessment. The original runtime exit-17 canary remains narrowly admitted only with its exact witness, target-failure class and no retained assertion report.
+
+Retained reproducer commands now invoke `stress --rerun REQUEST --root NEW_ROOT`. Typed supervision bounds preserve CPU workers, cohort size, repetition and member. The supervisor starts the original CPU load and launches the complete cohort through the existing barrier, retaining every result. Actual direct child argv remains in `executed_command`. No guest execution or qualification owner was added.
+
+The regression uses the actual existing execution publisher to classify zero-exit/PASS plus soft-assertion or inconclusive output, then checks standalone and cluster stress admission. The unchanged gate reproduced all four bad accepts with exit 101 (`fn188-review-outcome-both-red.log`). The focused suite additionally checks the narrow runtime exception and launches a small Python rendezvous probe that fails if the full concurrent cohort is serialized or incomplete. CPU bounds and retained supervisor argv are checked without running a heavy workload. Root authorized this one bounded focused review-fix round; current-source focused suite passed 9 tests, exit 0, retained in `fn188-review-fixes-final-green.log`. Git whitespace checks and rustfmt also exited 0. No all-target or release-binary rebuild ran in this repair round. Earlier all-target/binary checks above describe the initial implementation checkpoint; integrated final gates remain with root.

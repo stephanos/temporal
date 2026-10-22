@@ -88,6 +88,65 @@ pub(super) fn cohort(
     })
 }
 
+pub(super) fn supervision_requests(request: &Request, root: &Path) -> Result<Vec<Request>, String> {
+    let bounds = &request.supervision;
+    if !root.is_absolute()
+        || bounds.repetition >= 256
+        || bounds.member >= bounds.cohort_size
+        || !(1..=256).contains(&bounds.cohort_size)
+        || match request.axis.as_str() {
+            "cpu" => !(1..=256).contains(&bounds.cpu_workers) || bounds.cohort_size != 1,
+            "concurrent" => bounds.cpu_workers != 0 || bounds.cohort_size < 2,
+            "reference" | "layout" | "handoff" => {
+                bounds.cpu_workers != 0 || bounds.cohort_size != 1
+            }
+            _ => true,
+        }
+    {
+        return Err("invalid retained stress supervision bounds".into());
+    }
+    Ok((0..bounds.cohort_size)
+        .map(|member| {
+            let mut next = request.clone();
+            next.root = root.join(format!("member-{member}"));
+            next.supervision.member = member;
+            next
+        })
+        .collect())
+}
+
+pub(super) fn supervise(binary: &Path, request: &Request, root: &Path) -> Result<Value, String> {
+    let requests = supervision_requests(request, root)?;
+    directory(root)?;
+    for member in &requests {
+        directory(&member.root)?;
+    }
+    let load = Load::new(request.supervision.cpu_workers);
+    let mut runs = Vec::new();
+    let mut errors = Vec::new();
+    for result in cohort(binary, requests, request.supervision.repetition) {
+        match result {
+            Ok(run) => runs.push(run),
+            Err(error) => errors.push(error),
+        }
+    }
+    drop(load);
+    let passed = errors.is_empty()
+        && runs.len() == request.supervision.cohort_size
+        && runs.iter().all(|run| {
+            run["oracle_error"].is_null()
+                && run["perturbation_error"].is_null()
+                && run["event_order_error"].is_null()
+        });
+    let report = json!({"schema":"gomad.stress-rerun/v1","axis":request.axis,"seed":request.seed,
+        "supervision":request.supervision,"runs":runs,"errors":errors,"passed":passed});
+    write(
+        &root.join("rerun-report.json"),
+        &canonical::encode(&report)?,
+    )?;
+    Ok(report)
+}
+
 pub(super) fn execute(
     binary: &Path,
     request: &Request,

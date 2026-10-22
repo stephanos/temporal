@@ -1,6 +1,6 @@
 use super::{
-    AXES, ExploreOptions, Request, Spec, canonical, cases, cell_status, directory, inputs, options,
-    prepare, process, report, source, write,
+    AXES, ExploreOptions, Request, Spec, Supervision, canonical, cases, cell_status, directory,
+    inputs, options, prepare, process, report, source, write,
 };
 use serde_json::{Value, json};
 use std::{collections::BTreeMap, path::Path};
@@ -83,6 +83,12 @@ fn perturbed(
                         root,
                         source_sha256: spec.source_sha256.clone(),
                         target_pool: spec.root.join(".targets"),
+                        supervision: Supervision {
+                            cpu_workers: if axis == "cpu" { spec.cpu_workers } else { 0 },
+                            cohort_size: fanout,
+                            repetition: round,
+                            member,
+                        },
                     })
                 })
                 .collect::<Result<Vec<_>, String>>()?;
@@ -161,6 +167,12 @@ pub(super) fn run(binary: &Path, spec: &Spec, prepared: &Preparation) -> Result<
                 root: reference_root,
                 source_sha256: spec.source_sha256.clone(),
                 target_pool: spec.root.join(".targets"),
+                supervision: Supervision {
+                    cpu_workers: 0,
+                    cohort_size: 1,
+                    repetition: 0,
+                    member: 0,
+                },
             },
             0,
         ) {

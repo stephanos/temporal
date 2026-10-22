@@ -231,7 +231,7 @@ fn measured(
     clippy::too_many_lines,
     reason = "Publication binds raw helper streams, typed outcome and immutable replay inputs in one record"
 )]
-pub(super) fn publication(
+pub(crate) fn publication(
     prepared: &Prepared,
     job: &ledger::Job,
     observed: linked::Execution,

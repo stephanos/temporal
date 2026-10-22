@@ -50,7 +50,16 @@ struct Spec {
     workloads: Vec<Workload>,
 }
 
-#[derive(Deserialize, Serialize)]
+#[derive(Clone, Deserialize, Serialize)]
+#[serde(deny_unknown_fields)]
+struct Supervision {
+    cpu_workers: usize,
+    cohort_size: usize,
+    repetition: usize,
+    member: usize,
+}
+
+#[derive(Clone, Deserialize, Serialize)]
 #[serde(deny_unknown_fields)]
 struct Request {
     workload: String,
@@ -60,6 +69,7 @@ struct Request {
     root: PathBuf,
     source_sha256: String,
     target_pool: PathBuf,
+    supervision: Supervision,
 }
 
 fn cases() -> Vec<(&'static str, u64)> {
@@ -348,7 +358,7 @@ fn rerun(binary: &Path, command: &[String], root: &Path) -> Result<Vec<String>, 
     rerun.extend([
         binary.to_string_lossy().into_owned(),
         "stress".into(),
-        "--cell".into(),
+        "--rerun".into(),
         request_path,
     ]);
     rerun.extend([
@@ -424,7 +434,7 @@ fn cell(request: &Request, binary: &Path, command: &[String]) -> Result<Value, S
         .err();
     let rerun = rerun(binary, command, &request.root)?;
     let observation = json!({"fresh":true,"workload":request.workload,"seed":request.seed,"axis":request.axis,"identities":identities,
-        "oracle_error":oracle_error,"event_order_error":event_order_error,"perturbation_error":perturbation_error,"process_id":std::process::id(),"artifact":published.path,"record_sha256":published.record_sha256,"binary":binary,"command":rerun,"executed_command":command,
+        "oracle_error":oracle_error,"event_order_error":event_order_error,"perturbation_error":perturbation_error,"process_id":std::process::id(),"artifact":published.path,"record_sha256":published.record_sha256,"binary":binary,"command":rerun,"executed_command":command,"supervision":request.supervision,
         "host_conditions":{"cwd":std::env::current_dir().map_err(|error| error.to_string())?,"executable":std::env::current_exe().map_err(|error| error.to_string())?,
             "padding_bytes":std::env::var_os("GOMAD_STRESS_PADDING").map_or(0, |value| value.len()),"jitter":std::env::var_os("GOMAD_WASM_STRESS_JITTER").is_some(),
             "jitter_delay_calls":jitter.0,"jitter_delay_micros":jitter.1,
@@ -446,6 +456,12 @@ pub(crate) fn run(arguments: &[String], output: &mut dyn Write) -> Result<i32, S
     }
     let binary = std::env::current_exe().map_err(|error| error.to_string())?;
     let command: Vec<String> = std::env::args().collect();
+    if arguments.len() == 4 && arguments[0] == "--rerun" && arguments[2] == "--root" {
+        let request: Request = read(Path::new(&arguments[1]))?;
+        let report = process::supervise(&binary, &request, Path::new(&arguments[3]))?;
+        writeln!(output, "{report}").map_err(|error| error.to_string())?;
+        return Ok(i32::from(report["passed"] != true));
+    }
     if (arguments.len() == 2 || arguments.len() == 4 && arguments[2] == "--root")
         && arguments[0] == "--cell"
     {

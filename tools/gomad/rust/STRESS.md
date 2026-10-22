@@ -58,6 +58,9 @@ SQLite schema and writable namespace, pinned compiler and cooperative overlay.
 Calls, pending events, namespace capacities, assertions and model limits retain
 the original stress recipes. The spec must provide those installations; the
 producer rejects changed guest and WASI bounds, forced modes and assertion bypass.
+Every workload must have a successful canonical outcome before its custom
+oracles can pass. The original runtime exit-17 canary is the sole exception and
+requires its exact witness without a retained assertion failure.
 
 The original two-cluster scenario starts active/standby incarnation 1, crashes
 both after their grouped observation acknowledgments, restarts incarnation 2,
@@ -101,9 +104,12 @@ time and both values using `gomad.wasm-first-divergence/v1`. A replay stop is em
 only after the common preceding event marker matches a retained inspection
 boundary and the linked helper authenticates its actual stream/World prefix.
 Missing diagnostics or prefix evidence is explicitly `undiagnosable`. Exact cell
-reruns use the retained private request and a new output root; their executable
-hardlinks stay inside the retained report tree; rerun argv restores the actual cwd
-through `env -C` as well as the captured host environment.
+reruns invoke a supervisor with the retained private request and a new output
+root. The bound CPU worker count, full concurrent cohort, launch barrier and
+layout repetition are recreated. Direct child argv stays separately recorded as
+`executed_command`; it is not the perturbation reproducer. Executable hardlinks
+stay inside the retained report tree; rerun argv restores the actual cwd through
+`env -C` as well as the captured host environment.
 
 Focused role checks (no matrix or workload execution):
 

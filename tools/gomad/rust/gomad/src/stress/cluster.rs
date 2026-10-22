@@ -366,11 +366,42 @@ fn verify(observed: &helper::Execution) -> Result<(), String> {
     Ok(())
 }
 
+pub(super) fn canonical_outcome(name: &str, publication: &Publication) -> Result<(), String> {
+    let outcome = &publication.record.outcome;
+    let intentional_canary = name == "runtime"
+        && outcome.class == "target_failure"
+        && outcome.termination == "exit"
+        && outcome.exit_code == Some(17)
+        && !publication
+            .payloads
+            .contains_key("evidence/soft-assertions.json")
+        && publication
+            .payloads
+            .get("output/stdout")
+            .is_some_and(|stdout| {
+                stdout
+                    .windows(b"canary 2\n".len())
+                    .any(|window| window == b"canary 2\n")
+            });
+    if !intentional_canary
+        && (outcome.class != "success"
+            || outcome.termination != "exit"
+            || outcome.exit_code != Some(0))
+    {
+        return Err(
+            "stress requires a successful canonical outcome or the original runtime exit17 canary"
+                .into(),
+        );
+    }
+    Ok(())
+}
+
 pub(super) fn outcome(
     name: &str,
     prepared: &Prepared,
     publication: &Publication,
 ) -> Result<(), String> {
+    canonical_outcome(name, publication)?;
     if name == "two-cluster" {
         let report: Value = crate::qualify::spec::strict(
             publication
@@ -388,11 +419,6 @@ pub(super) fn outcome(
         .payloads
         .get("output/stdout")
         .ok_or("stress guest omitted stdout")?;
-    if outcome.termination != "exit"
-        || !(outcome.exit_code == Some(0) || name == "runtime" && outcome.exit_code == Some(17))
-    {
-        return Err("stress guest did not complete its expected application outcome".into());
-    }
     let text = String::from_utf8_lossy(stdout);
     if name == "runtime" {
         for witness in [
