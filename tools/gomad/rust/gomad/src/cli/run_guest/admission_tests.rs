@@ -422,3 +422,29 @@ fn structured_all_pass_reports_both_authenticated_outcomes_then_summary() {
     assert_eq!(diagnostics.as_slice(), b"");
     fs::remove_dir_all(root).unwrap();
 }
+
+#[test]
+fn qualification_source_probe_reaches_target_refusal_after_valid_digest() {
+    let value = json!({
+        "Manifest":{"Provisional":true,"IntegratedSourceSHA256":format!("sha256:{}", "0".repeat(64))},
+        "Campaign":{"Target":{"Backend":"wasm","Kind":"exec","Source":"/sealed/intercepted-artifact"}},
+        "ArtifactRoot":"/unused/qualification-result"
+    });
+    let spec = crate::qualify::spec::strict::<crate::qualify::spec::Spec>(
+        &canonical::encode(&value).unwrap(),
+    )
+    .unwrap();
+    assert_eq!(
+        crate::qualify::spec::declared_digest(&spec.manifest.integrated_source_sha256).unwrap(),
+        Some("0".repeat(64))
+    );
+    let error = crate::qualify::cells::freeze(
+        &spec,
+        Some(Path::new("/must-not-resolve-installation")),
+        vec!["qualify".into()],
+        None,
+    )
+    .err()
+    .expect("prepared artifact source unexpectedly admitted");
+    assert_eq!(error, "unsupported WASM source preparation request");
+}
