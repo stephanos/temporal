@@ -1,15 +1,17 @@
 package wasi
 
 import (
+	"crypto/sha256"
 	"errors"
+	"fmt"
+	"reflect"
 
 	"go.temporal.io/server/tools/gomad/internal/model/volume"
 )
 
-// ProjectSQLiteCrashCatalogue applies the original reference owner's evidence
-// decoder and context admission to actual retained SQLite storage streams.
-// It neither opens a guest nor constructs a new enumeration algorithm.
-func ProjectSQLiteCrashCatalogue(state, log []byte) (volume.CrashEnumeration, StorageCrashContext, error) {
+// ProjectSQLiteCrashCatalogue imports the actual pre-crash image into the original
+// volume model and checks its enumeration and pending inventory against evidence.
+func ProjectSQLiteCrashCatalogue(state, log, precrash []byte, modelIdentity string) (volume.CrashEnumeration, StorageCrashContext, error) {
 	refuse := func() (volume.CrashEnumeration, StorageCrashContext, error) {
 		return volume.CrashEnumeration{}, StorageCrashContext{}, errors.New("complete original four-state SQLite catalogue required")
 	}
@@ -51,5 +53,26 @@ func ProjectSQLiteCrashCatalogue(state, log []byte) (volume.CrashEnumeration, St
 			return refuse()
 		}
 	}
-	return enumeration, context, nil
+	fs, err := volume.DecodeCrashRecoveryImage(precrash, fmt.Sprintf("%x", sha256.Sum256(precrash)), modelIdentity, model.Volumes, model.Limits, model.SQLiteLockDatabases, storageImageLimit(request.Config))
+	if err != nil {
+		return volume.CrashEnumeration{}, StorageCrashContext{}, err
+	}
+	original, err := fs.EnumerateCrashStates("sqlite", *request.StorageCrashLimits, nil)
+	if err != nil {
+		return volume.CrashEnumeration{}, StorageCrashContext{}, err
+	}
+	pending := make(map[uint64]bool)
+	for _, operation := range fs.ConformanceState().Volumes[0].Pending {
+		pending[operation.ID] = true
+	}
+	originalContext := StorageCrashContext{PendingSHA256: fs.VolumeSnapshots()[0].PendingSHA256, Operations: []volume.Operation{}}
+	for _, operation := range fs.Operations()["sqlite"] {
+		if pending[operation.ID] {
+			originalContext.Operations = append(originalContext.Operations, operation)
+		}
+	}
+	if !reflect.DeepEqual(original, enumeration) || !originalContext.Equal(context) {
+		return volume.CrashEnumeration{}, StorageCrashContext{}, errors.New("SQLite catalogue or context differs from original volume model")
+	}
+	return original, originalContext, nil
 }
