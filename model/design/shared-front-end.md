@@ -4,6 +4,11 @@ Design for fn-238.1, written 2026-10-21 at `ae4527965f`, after fn-227.13 (one `#
 and fn-227.14 (derived value handoff). Paths are relative to `model/`. Line counts are physical
 lines of the `src/` ranges cited, counted with `sed -n 'a,bp' | wc -l`.
 
+**Status, 2026-10-22.** Option A landed in .2–.4, with .8's guest identity fix. The core crates
+went from 8,190 to 8,297 lines (+107), missing the −850 to −1,600 estimate below. The owner
+confirmed that .5 and .6 (Option B) stay deferred. The boundary as built, the measurements and
+the reasons for the miss are in [DESIGN.md](../DESIGN.md#front-end-and-back-ends-fn-238).
+
 ## Decision
 
 **Take a staged A-then-B path.**

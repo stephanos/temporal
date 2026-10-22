@@ -4,28 +4,91 @@ The workspace now lives at `model/`, with the frozen Scala reference under `mode
 Run `make model-check` and `make model-time` from the repository root. Measurements below retain
 the command names used when they were recorded, before the workspace move.
 
+## Front end and back ends (fn-238)
+
+Both checkers read a Model through one front end and differ only in their back end (owner,
+2026-10-21; [design and evidence](design/shared-front-end.md)).
+
+- **Front end.** `umpire-front` reads each `#[machine]` module once, inside the macro: attributes,
+  registration, schema, starts, input domains, `&World` and `path!` (`declare`, `path`), then the
+  body subset (`shape`, `body/`). Structural refusals are compile errors; subset refusals are one
+  soft located `Diagnostic`, the same for every consumer, and the Model still checks natively.
+- **Admitted tree.** `umpire-ir` holds the typed tree and the module's `Source` identifiers.
+  The macro embeds it as data (`__lifted::Lifts`, off `wasm32`, hidden, never checked in).
+- **Native back end.** `umpire-dsl-macros` generates the executable Model from the front end's
+  declarations; the native checker explores the compiled bodies.
+- **Emission back end.** `umpire-lift` emits TLA+ and `.cfg` from the embedded tree with the
+  same-process World, starts and catalog. It reads `tests.rs` for hook claims, and `model.rs` only
+  to locate a refusal when the checked World embeds no `#[machine]` (`kettle_cut`,
+  `kettle_progress`, `progress_dead_end`). fn-211's Apalache projection is another emitter.
+- **Compiled cross-checks.** The wasm guest and typed replay of every TLC counterexample run the
+  compiled `checked_step`, so rustc's reading of each handler still checks the front end's.
+
+**Independent source admission is retired for new work** (owner, 2026-10-21). fn-212, fn-227 and
+fn-211 had the lifter admit source on its own with no shared interpretation; that is traded for
+one reading, accepting that a front-end misreading reaches both checkers. Typed replay through
+compiled bodies and TLC agreement on complete reached sets and verdicts are the cross-checks.
+
+**Size.** Physical `src/` lines per crate, from the repository root:
+`git ls-tree -r --name-only <rev> -- model/umpire/<crate>/src | grep '\.rs$' | while read f; do git show "<rev>:$f"; done | wc -l`.
+
+| Crate | Before .2 (`29dbe75072`) | After .2 (`1511cf5aeb`) | After .3 (`3fa7390dad`) | After .4 (`0bbeb1ff35`) |
+| --- | ---: | ---: | ---: | ---: |
+| `dsl/macros` | 3,306 | 3,306 | 2,156 | 2,439 |
+| `front` | — | 3,103 | 4,253 | 3,844 |
+| `ir` | — | — | — | 327 |
+| `lift` | 4,884 | 1,852 | 2,098 | 1,687 |
+| **Core crates** | **8,190** | 8,261 | 8,507 | **8,297** |
+
+The design estimated −850 to −1,600; the core crates grew **+107** (+239 with `testing`, 1,538
+to 1,670). Its lifter duplication column mostly counted lowering with no macro counterpart, so .3
+moved the macros' 1,153 reading lines into `front` and collapsed only about 113 lifter lines.
+Body lowering (about 1,380) and emission stay by design; embedding costs about 420 (printer 277,
+`Source`/`Embedded`, hooks, probe) against `build.rs` (−241) and binding re-validation (−200).
+
+**Per-construct cost** halves only for declaration-level constructs (an attribute, claim kind,
+World or input feature), now read once: the design estimates 55–60% of fn-227's World and inputs
+costs, unmeasured so far. Body-level ones cost the same: fn-227.11's `Phased`/`reject!`/closure
+laws need `impl Phased` admission (20–40 lines), lowering (100–250) and emission (30–80), the
+same work `lift` held before fn-238, plus a printer arm per new IR node. Quint parity is mostly
+body- and value-level; a new back end such as Apalache costs only its emitter.
+
+**Option B deferred** (owner, 2026-10-22). An interpreted checker (.5, .6) would add an
+interpreter case and a `Value` bridge per body-level construct on top of lowering and emission
+(+35–55%, the archived Scala's "written three times"), while native speed limits no gate. It
+returns on a concrete need: checker speed, or a construct rustc cannot run.
+
+**Guest identity** (fn-238.8). .2 changed the Temporal guest without a code change because each
+crate's `-C metadata` hashed the whole `Cargo.lock`; it now hashes the crate's own lockfile
+closure (`scripts/guest-lock.py`), and a control shows an unrelated crate leaves both guests
+identical. .3 and .4 refreshed it because the macros and `umpire-dsl` gained front/ir dependencies.
+fn-232's Linux/macOS certification predates this; renewal is fn-239, blocked on macOS.
+
+**Timing.** Warm `make model-time` receipts (soft targets 60 s gate, 10 s inner loop):
+
+| Receipt | Gate total | Inner loop | Log under `.flow/tmp/` |
+| --- | ---: | ---: | --- |
+| fn-227.14, before .2 | 50.532 s | 7.908 s | `fn22714-full2-model-time.log` |
+| .2 (fn-227.12 lane running concurrently) | 119.588 s | 19.589 s | `fn2382-full2-model-time.log` |
+| .8 merged | 50.199 s | 6.128 s | `fn2388-merge-model-time.log` |
+| .3 | 51.307 s | 8.822 s | `fn2383-full-time.log` |
+| .4 | 47.592 s | 7.272 s | `fn2384-full-model-time.log` |
+
+No warm regression. Touching `dsl/macros/src/lib.rs` then `cargo build --tests --workspace`
+took 14.56 s (`fn2384-compile.log`); no pre-.4 counterpart was measured.
+
 ## TLC source backend (fn-212)
 
-`umpire-lift` reads authored source with `syn`; the fixture build scripts publish emitted
-modules, configurations and typed decoding metadata. It never calls the native explorer.
-It reads one source form, the `#[machine]` attribute subset; source admission,
-expression/type lowering, progress builders and emission have separate modules. fn-223
-deleted the manual-trait lowering (`lift/src/manual*`): the lifter's source went from 5,048
-lines to 3,022, and its review follow-ups to 2,978
-(`cat model/umpire/lift/src/*.rs model/umpire/lift/src/*/*.rs | wc -l`). The follow-ups
-removed what only the manual form produced: explicit start lists, tuple-state labels,
-multi-file inputs, and per-branch choice indices and facts. The emitted observers keep
-`__umpire_choice = 0` and `__umpire_facts = <<>>`, so modules and replay are unchanged;
-choice and facts must be re-added with the attribute surface that states them. The tree keeps
-`outcome` (`reject!`) and `preserve_self_loop`, which `stay!()` sets (fn-224).
-Source that implements `Machine` by hand is refused at its `impl Machine` item
-(`progress_dead_end`'s lift golden pins the message).
-The shape/body seam (fn-225) keeps item discovery, imports, attributes and declaration order
-in `lift/src/shape.rs`. `body/` lowers supplied bodies against a typed environment without
-walking items, including helper expansion, effects, claims and progress. `tree.rs` owns
-declarations and `expr.rs` owns typed expressions; the public API and emitted artifacts are unchanged.
-Unsupported syntax, references, conditional compilation and generated-name collisions
-produce located warnings and refuse emission. `#[machine]` remains registration-only.
+`umpire-lift` emits modules, configurations and typed decoding metadata from the embedded
+admitted Model at test time; it never calls the native explorer. fn-223 deleted the manual-trait
+lowering (the lifter went from 5,048 to 2,978 lines) and what only that form produced: explicit
+start lists, tuple-state labels, multi-file inputs, and per-branch choice indices and facts.
+The emitted observers keep `__umpire_choice = 0` and `__umpire_facts = <<>>`, so modules and
+replay are unchanged; choice and facts must be re-added with the attribute surface that states
+them. The tree keeps `outcome` (`reject!`) and `preserve_self_loop`, which `stay!()` sets
+(fn-224). Source that implements `Machine` by hand is refused at its `impl Machine` item
+(`progress_dead_end`'s lift golden pins the message). Unsupported syntax, references,
+conditional compilation and generated-name collisions produce located warnings and refuse emission.
 
 `umpire-tlc::Tlc::check_module` executes that module without requiring a native graph.
 It retains the unrestricted complete reached set and separately checks every registered
@@ -34,7 +97,7 @@ observer scopes do not replace the unrestricted set. Native agreement is a separ
 layer: it requires complete sets and every verdict to agree, and replays returned traces
 through actual Model steps, including action, choice, outcome and facts. A native cut cannot
 certify agreement. A control deliberately cuts native exploration at one state while the
-same independently lifted source reaches its complete four-state set in TLC.
+same lifted Model reaches its complete four-state set in TLC.
 
 The observer encoding from [the decision](design/second-opinion.md) is exercised with real
 TLC controls for idle versus maximal paths, acyclic progress without fairness, finite dead
@@ -84,12 +147,8 @@ are attribute-surface facts for a later spec, not filled here:
 | `shared_starts` | checker-only | Duplicate starts `[0, 1, 0]` and `bool` outcomes (its self-loop is stateable since fn-224); `#[starts]` enumerates a duplicate-free field range. TLC loses the duplicate-start control (TLA+ `Init` is a set). |
 | `deep_chain` | checker-only | State carries a shared `Rc<Cell>` clone counter and the hook asserts linear clone work; a checker property, already refused by the lifter. |
 | `interleaved_claims` | checker-only | Claim order interleaves kinds (`claim_order`) and the hook adds a supplemental manual claim; attribute claims are contiguous per kind. Already refused by the lifter. |
-| `progress_graph` (cycle) | attribute | |
-| `progress_continuous` | attribute | |
-| `progress_intermittent` | attribute | |
+| `progress_graph` (cycle), `progress_continuous`, `progress_intermittent`, `progress_fulfilled`, `progress_trigger_stops` | attribute | |
 | `progress_two_lobes` | attribute | Catalog order is `Enter, Escape, Left, Right` (was `Enter, Left, Right, Escape`); `Enter`/`Escape` never fire, so every golden is unchanged. |
-| `progress_fulfilled` | attribute | |
-| `progress_trigger_stops` | attribute | |
 | `progress_self_loop` | attribute (fn-224) | Authored self-loop, written with `stay!()`. |
 | `progress_multiple_starts` | checker-only | Starts `[9, 0]` outside a field range (its self-loop is stateable since fn-224). |
 | `progress_target_barrier` | attribute (fn-224) | Self-loop after the target, written with `stay!()`. |
@@ -108,11 +167,9 @@ report, rows, states and paths goldens kept fn-223's two spellings and TLC agree
 Real TLC execution is selected by `UMPIRE_BACKENDS=require`; the default gate checks source
 artifacts/refusals and explicitly reports no TLC execution evidence. Required shared runs
 mandate attribute Kettle and every admitted fixture's selected TLC goldens. Both renders in
-the existing determinism contract execute the backend. The final required full gate took
-144 s, including 101.60 s for the shared fixture double render. The final warm default gate
-took 9.564 s and its edit/test inner loop 4.986 s (pre-edit baseline: 11.086 s / 4.295 s).
-These single cached measurements distinguish the opt-in backend cost from the default
-feedback loop; they are not a scaling benchmark or a claim that TLC is faster than native.
+the existing determinism contract execute the backend. At fn-212 the required full gate took
+144 s (101.60 s for the double render) against a 9.564 s warm default gate; single cached
+observations, not a scaling benchmark. Current receipts are under the front end section.
 
 ## Stock-toolchain wasm verdict (fn-210 R24)
 
@@ -501,7 +558,7 @@ Kettle itself proves only its unit-world, nongeneric, unit-action use case.
 | `#[starts(range)]` supports static ranges, including `COLDEST_TEMPERATURE`, but not world-dependent/computed starts. | A `#[starts]` method in the main `impl Model` (any name, optional trailing `&World`) supplies computed starts; keep field `#[starts(range)]` for literal/static domains. |
 | `derive(Action)` requires unit variants; no input fields or domains. | Action variants carry inputs; domains come from `Finite` or the world. |
 | `#[machine]` rejects generic registered impls and its generated adapters name bare nongeneric types. | Retired (fn-227.13): `#[machine]` refuses generic `Model`, `World` and actor declarations with one located error, as the lifter does; standalone derives keep their generics. |
-| The lifter's World values came from a compiled copy of `model.rs` with a projection spliced into the machine module, so no native interface read private fields. | Settled (fn-227.14): values alone cross, through hidden derived `Values`/`ActionValues` exports in the type's own module, exposing what the derived `Debug` already prints; transitions and claims never cross. The lifter still admits and translates `model.rs` itself, and `Lifted::bind` keeps every refusal. `Value` mirrors the lifter's literals, so Model crates need no lifter dependency, and leaves room for set, map, tuple and record values. |
+| The lifter's World values came from a compiled copy of `model.rs` with a projection spliced into the machine module, so no native interface read private fields. | Settled (fn-227.14): values alone cross, through hidden derived `Values`/`ActionValues` exports in the type's own module, exposing what the derived `Debug` already prints; transitions and claims never cross. Since fn-238.4 the lifter emits from the embedded tree, and binding keeps only the `.cfg` range and value-type checks. `Value` mirrors the lifter's literals, so Model crates need no lifter dependency, and leaves room for set, map, tuple and record values. |
 
 Numeric `.within(n)` is available on `LeadsTo`; the manual trait's `.within(scope)` retains its
 environment-assumption meaning and uses `.within_steps(n)` for numeric bounds.
@@ -561,7 +618,7 @@ The post-verdict Case plan must carry these requirements; none is implemented by
 | R33, later owner amendment | The owner superseded schema-copy guidance with `umpire.model.v1` and Reset/Judge/Answer over opaque Any, plus exactly three Temporal envelopes over the upstream API. Fn-216 delivers that protocol slice without copying/importing Testpilot's schema. The broader Program remains data the Model replays; remove Contract/correlated-clause/CEL verification and bind Case identity to the Model content hash, Model and protocol version in the later Case plan. |
 | R34, tightened by R35/R37 | Target at most **5,000 generic** and **11,000 total non-test Go lines** in Testpilot, down from the historical approximately 20,000 / 29,000 inventory. Remove `internal/verification` (2,725) and `evaluation` (849); shrink `internal/ir` (4,105) to instruction decoding, `internal/execution` (6,575) to act-and-observe, `replay` (1,513) to Model search, and `campaign` (1,261) to the host loop. Retain needed recording/storage and most Temporal driver work (about 8,600 before callback simplification); report achieved sizes. Older 6,000/14,000 and 5,000/13,000 targets are superseded. |
 | R35 | Remove all CEL, `cel`/`predicate`, the IR CEL bridge and `cel-go`. The Model decides read completion on each observation. Instructions contain interval/timeout/backoff mechanics; capture and redaction are field paths. A read timeout without Model acceptance is an incomplete read in the Run, judged by the Model. Execution checks still enforce RPC completion, evidence well-formedness and redaction. |
-| R36 | Keep `#[machine]` registration-only. Lifted trees, subset diagnostics and TLC's second opinion belong to fn-212, which first judges whether their machinery is worthwhile. |
+| R36 | Keep `#[machine]` registration-only. Lifted trees, subset diagnostics and TLC's second opinion belong to fn-212, which first judges whether their machinery is worthwhile. Superseded: fn-212 added the lifter, and since fn-238.4 `#[machine]` embeds the admitted Model. |
 | R37 | At every SDK callback ask the Model what to return; serialize callbacks into the run's one Model instance. Remove worker interpreter/expression/typed-script behavior. Record a callback the Model cannot answer in the Run for Model judgment. |
 | R38 | Replace the separate run/fuzz/replay/assess/repeat commands with one host loop and modes/drivers for a Model question, exploration, reduction, recorded Run or many Runs. Remove the NDJSON campaign/replay bridge. |
 | R39 | A Run contains its observation log and Model judgment. Remove evaluation profiles, receipts and provenance documents. Keep `publish` as a never-overwrite store and keep only the canary's lease and policy. |
@@ -877,14 +934,10 @@ empty diagnostic items in **0.051902 s**. Source hash remained identical; shutdo
 0 with both reader threads stopped. These results establish the tested fields/helper,
 not universal diagnostics for arbitrary macros or generic blanket traits.
 
-The initial push-only client timed out waiting ten seconds for the typo, with both default
-and experimental diagnostics. A third diagnostic investigation confirmed updated expansion
-and a null typo hover but still no push. Those failed observations remain in
-`fn2107-ra-final-result.json`, `fn2107-ra-experimental-result.json` and
-`fn2107-ra-overlay-result.json`. The installed server advertises `diagnosticProvider`;
-the corrected pull-protocol run is `fn2107-ra-pull-result.json`, including every raw
-request/response, expansion and diagnostic. This was a client correction, with no production
-macro change. The analyzer was stopped before benchmark and gate timing runs.
+An initial push-only client never received the typo diagnostic (`fn2107-ra-final-result.json`,
+`-experimental-result.json`, `-overlay-result.json`); the server advertises `diagnosticProvider`,
+and the corrected pull run is `fn2107-ra-pull-result.json`. This was a client correction, with
+no macro change; the analyzer was stopped before benchmark and gate timing runs.
 
 ### Final stock guest and Go host
 
@@ -925,35 +978,11 @@ without selecting the fastest result. Raw logs are `fn2107-measure-final/go-*`.
 
 ### Final feedback loop and verification
 
-Exactly one warm `CARGO_TARGET_DIR=/home/agent/.cache/codex-build/cargo-target mise exec --
-make model-time` ran after the source checkpoint, exiting 0 without retry. The complete
-output is `.flow/tmp/fn2107-model-time.log`; its actual step measurements are:
-
-```text
-step (warm)                         time
-gate command: UMPIRE_TIME_STEPS=1 make -C .. model-check
-timing-controls                   0.022s
-capability-controls               0.144s
-protobuf-freshness                0.099s
-fmt                               0.158s
-clippy                            0.136s
-docs                              0.119s
-tests                             1.198s
-wasm32-wasip1                     0.080s
-core-wasm-clippy                  0.090s
-wasm-guest                        0.108s
-go-host                           1.875s
-inner source: umpire/checker/src/lib.rs
-inner command: mise exec -- cargo test -p umpire-checker --quiet
-inner loop (edit+test)            6.569s
-gate total                        4.279s  (soft target 30s)
-inner loop                        6.569s  (soft target 10s)
-```
-
-Both observations meet the current soft targets. This includes the real complete gate and
-a separate checker source-mtime touch/rebuild/test loop. Earlier per-task timings remain
-historical; fn-210.22's 3.038 s inner / 3.629 s gate observation was retained without retry
-and also meets the revised targets.
+Exactly one warm `make model-time` ran after the source checkpoint, exiting 0 without retry:
+gate total 4.279 s (then a 30 s soft target) and checker edit/test inner loop 6.569 s (10 s),
+with every step under 2 s (`.flow/tmp/fn2107-model-time.log` keeps the step table).
+fn-210.22's 3.038 s inner / 3.629 s gate observation was retained without retry. The current
+receipts, after the gate grew, are under [Front end and back ends](#front-end-and-back-ends-fn-238).
 
 The pre-edit release workspace baseline passed. Final `make model-check` and
 `cargo test --workspace --release --message-format=json` both exited 0, covering the real
@@ -966,37 +995,6 @@ sample/control names. Logs are `fn2107-baseline-release.log`, `fn2107-model-chec
 
 ## Historical measurements
 
-The direct-export guest built for fn-210.16 on 2026-10-18 is 3,370,765 bytes,
-including debug information, using the same release profile and toolchain below.
-
-The following host latency and memory measurements were taken for fn-210.9 on
-2026-10-18, before the direct-export rename in fn-210.16. They do not measure the
-current binary; the final measurements above supersede them for the current source.
-
-Measured on Linux arm64 with stock Rust 1.99.1, Go 1.27.0, protoc 29.5,
-prost/prost-build 0.14.4, protoc-gen-go v1.36.6 and protobuf Go v1.36.11.
-The release profile uses overflow checks, debug=1, thin LTO and one codegen unit;
-that earlier wasm file was 2,872,544 bytes including debug information.
-
-Five cold compile/instantiate/close runs, excluding file reading, took 29.217,
-28.059, 27.874, 26.774 and 26.766 ms (median 27.874 ms).
-Five runs of exactly 100,000 real Rows calls took 14,003, 13,838, 13,686, 24,061
-and 24,269 ns/op (median 14,003 ns/op; range 13,686–24,269). These are aggregate
-per-operation means, not latency percentiles. Each call includes protobuf
-marshal, alloc/write/call/read-copy/free and protobuf decode, cycles state IDs
-modulo 283, and consumes row text. Each run consumed 17,705,239 bytes; guest
-memory stayed at 17 pages before and after every run. Go allocation counts were
-28 allocs/op and 1,437–1,447 B/op. Runs include ordinary host scheduling noise.
-
-Reproduce from `umpire/hosts/go` inside `model/`, with `UMPIRE_WASM` naming the built guest:
-
-```sh
-CGO_ENABLED=0 mise exec -- go test -run '^$' -bench '^BenchmarkColdLoad$' -benchtime=1x -count=5
-CGO_ENABLED=0 mise exec -- go test -run '^$' -bench '^BenchmarkRows$' -benchtime=100000x -count=5 -benchmem
-```
-
-In fn-210.9, the integrated `make model2-time` passed with a 5.069 s warm full gate (30 s
-budget) and 1.210 s checker edit/rebuild/test loop (3 s budget). This includes
-capability/export controls, generation freshness, native checks, wasm builds
-and uncached CGO-disabled Go parity tests. Raw measurements and final gate
-output are retained in the fn-210.9 task evidence under `.flow/tmp/fn210-9-*`.
+Superseded above; raw output is under `.flow/tmp/fn210-9-*`. fn-210.9's 2,872,544-byte guest
+took a median 27.874 ms per cold load and 14,003 ns/op per Rows call; `make model2-time` took
+5.069 s gate and 1.210 s inner loop. The fn-210.16 direct-export guest was 3,370,765 bytes.
