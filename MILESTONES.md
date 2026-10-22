@@ -159,6 +159,7 @@ interpreted checker behind a measured gate (Option B, .5-.6); the guest and repl
 | Name | Status | What |
 | --- | --- | --- |
 | fn-238.2 | 🔄 in progress | `umpire-front`: move the lifter's admission into a shared crate, no behaviour change (R2) |
+| fn-238.8 | ⬜ todo | Guest identity hashes only the guest's dependency closure, so unrelated workspace crates stop staling the guest; before .3 (R3) |
 | fn-238.3 | ⬜ todo | After .2: macros read through `umpire-front`; one diagnostic per form; fn-227.8 follow-ups (R2, R3) |
 | fn-238.4 | ⬜ todo | After .3: macro embeds the admitted Model; lifter emits from it, no `model.rs` re-read (R2-R4) |
 | fn-238.5 | ⬜ todo | After .4: interpreted checker as a differential check (R2, R3) |
