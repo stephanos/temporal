@@ -75,6 +75,85 @@ def stable_rows(rows, paths):
     return rows
 
 
+def selected_seeds(text):
+    if not isinstance(text, str) or len(text) > 256:
+        raise ValueError('bounded seed selection required')
+    selected = []
+    for term in text.split(','):
+        endpoints = term.split('-')
+        if len(endpoints) not in (1, 2) or any(not value.isascii() or not value.isdecimal() for value in endpoints):
+            raise ValueError('invalid seed selection')
+        first, last = int(endpoints[0]), int(endpoints[-1])
+        if not 0 <= first <= last < 1 << 64 or last - first >= 64 or len(selected) + last - first + 1 > 64:
+            raise ValueError('focused corpus selection exceeds 64 seeds')
+        selected.extend(range(first, last + 1))
+    if len(set(selected)) != len(selected):
+        raise ValueError('duplicate seed selection')
+    return selected
+
+
+def validate_cases(inputs, declaration):
+    equal(inputs['schema'], 'gomad.interception-corpus-inputs/v1', 'inputs.schema')
+    equal(sorted(case['name'] for case in inputs['cases']), sorted(declaration['required_cases']), 'complete_case_set')
+    for case in inputs['cases']:
+        name = case['name']
+        selected = selected_seeds(case['seeds'])
+        if type(case['json']) is not bool or type(case['replayable']) is not bool or type(case['status']) is not int:
+            raise ValueError(name + ': explicit reporting/replay/status types required')
+        expected = case['outcomes']
+        if len(expected) > len(selected):
+            raise ValueError(name + ': more outcomes than selected seeds')
+        failed = False
+        for ordinal, row in enumerate(expected):
+            equal((row['ordinal'], row['seed']), (ordinal, selected[ordinal]), name + '.expected_prefix')
+            if failed:
+                raise ValueError(name + ': executions declared after first failure')
+            failed = row['status'] != 0
+            if row['class'] == 'success':
+                equal((row['termination'], row['status']), ('exit', 0), name + '.expected_success')
+            elif not failed:
+                raise ValueError(name + ': non-success outcome cannot have success status')
+        equal(case['status'], expected[-1]['status'] if expected else 2, name + '.expected_terminal_status')
+        if name == 'unprepared-module':
+            equal((case['status'], expected, case['json'], case['replayable']), (2, [], False, False), name + '.refusal')
+            if 'receipt' in case or 'receipt_sha256' in case:
+                raise ValueError(name + ': unprepared case must not supply preparation metadata')
+        else:
+            if not expected:
+                raise ValueError(name + ': real attempted outcome required')
+            digest = case['receipt_sha256']
+            if len(digest) != 64 or any(byte not in '0123456789abcdef' for byte in digest):
+                raise ValueError(name + ': exact receipt digest required')
+            if not Path(case['receipt']).is_absolute():
+                raise ValueError(name + ': absolute receipt path required')
+        if not Path(case['module']).is_absolute():
+            raise ValueError(name + ': absolute module path required')
+        if name in ('success', 'standalone-json'):
+            equal((case['status'], len(expected)), (0, len(selected)), name + '.all_selected_pass')
+            equal(case['json'], name == 'standalone-json', name + '.report_mode')
+            if name == 'standalone-json' and len(expected) < 2:
+                raise ValueError(name + ': two genuine outcome rows required')
+        if name == 'first-failure':
+            equal((len(expected), expected[0]['class'], case['json']), (1, 'target_failure', False), name + '.first_seed_fails')
+            if len(selected) < 2 or case.get('later_would_pass_seed') not in selected[1:]:
+                raise ValueError(name + ': a later selected would-pass seed is mandatory')
+            equal(case.get('later_outcome'), dict(**{'class':'success'}, termination='exit'), name + '.mandatory_pass_probe')
+        if name == 'failure-with-replay':
+            equal((expected[-1]['class'], case['replayable'], case['json']), ('target_failure', True, False), name + '.replayable_target_failure')
+        if name == 'infrastructure':
+            equal((case['status'], len(expected), case['json']), (3, 1, False), name + '.real_infrastructure')
+            if expected[0]['class'] not in ('runner_failure', 'watchdog') or expected[0]['termination'] not in ('capacity', 'fuel', 'infrastructure', 'watchdog_timeout', 'cancelled'):
+                raise ValueError(name + ': actual infrastructure outcome required')
+            if len(selected) < 2:
+                raise ValueError(name + ': retain an unexecuted later seed')
+
+
+def bind_module_input(record, manifest, module_sha256, module_bytes):
+    entry = manifest['files']['target/module.wasm']
+    equal(record['identity']['target'], module_sha256, 'supplied_module.target')
+    equal((entry['sha256'], entry['bytes']), (module_sha256, module_bytes), 'supplied_module.bytes')
+
+
 class Runner:
     def __init__(self, args):
         self.args = args
@@ -128,7 +207,7 @@ def qualification_refusal(runner, name, artifact, root):
           True, name + '.actual_provenance_boundary')
     # Qualify itself has source-only grammar. This is recorded separately, not
     # mislabelled as either a fixture-role refusal or the provenance check above.
-    spec = dict(Manifest=dict(Provisional=True, IntegratedSourceSHA256='0' * 64),
+    spec = dict(Manifest=dict(Provisional=True, IntegratedSourceSHA256='sha256:' + '0' * 64),
                 Campaign=dict(Target=dict(Backend='wasm', Kind='exec', Source=str(artifact))),
                 ArtifactRoot=str(root / 'qualification'))
     path = root / 'qualification-source-refusal.json'
@@ -154,6 +233,8 @@ def execute_case(runner, case, root, label):
     if case['name'] != 'unprepared-module':
         extra = dict(GOMAD_PREPARATION_RECEIPT=case['receipt'],
                      GOMAD_PREPARATION_RECEIPT_SHA256=case['receipt_sha256'])
+    module_bytes = Path(case['module']).read_bytes()
+    module_sha256 = parity.digest(module_bytes)
     stdout, stderr = runner.run(name, argv, case['status'], extra)
     roots = sorted((destination / 'campaigns').glob('campaign-*'))
     paths = {str(destination): '$ARTIFACTS'}
@@ -171,6 +252,7 @@ def execute_case(runner, case, root, label):
     equal(len(roots), 1, name + '.one_launcher_campaign')
     validated = campaign.authenticate_campaign(roots[0])
     equal(validated['plan']['origin']['origin'], 'intercepted-go', name + '.campaign_origin')
+    equal(campaign.seeds(validated['plan']['selection']), selected_seeds(case['seeds']), name + '.actual_selection')
     executions = sorted(validated['executions'], key=lambda row: row['ordinal'])
     equal(len(executions), len(case['outcomes']), name + '.attempted_only')
     rows = []
@@ -183,6 +265,7 @@ def execute_case(runner, case, root, label):
         equal((record['outcome']['class'], record['outcome']['termination']),
               (expected['class'], expected['termination']), name + '.outcome')
         manifest = campaign.canonical_file(artifact / 'manifest.json')
+        bind_module_input(record, manifest, module_sha256, len(module_bytes))
         equal(mapped_status(record['outcome']), expected['status'], name + '.status_mapping')
         row = dict(type='outcome', origin='intercepted-go', ordinal=execution['ordinal'], seed=execution['seed'],
                    status=expected['status'], **record['outcome'], artifact_path=str(artifact), stored_bytes=execution['stored_bytes'],
@@ -254,14 +337,7 @@ def main():
         setattr(args, name, getattr(args, name).resolve())
     declaration = document(HERE / 'interception-corpus.json')
     inputs = document(args.inputs)
-    equal(inputs['schema'], 'gomad.interception-corpus-inputs/v1', 'inputs.schema')
-    equal(sorted(case['name'] for case in inputs['cases']), sorted(declaration['required_cases']), 'complete_case_set')
-    for case in inputs['cases']:
-        if len(case['outcomes']) > 64:
-            raise ValueError('focused corpus case exceeds 64 expected attempts')
-        for key in ('module', *(() if case['name'] == 'unprepared-module' else ('receipt',))):
-            if not Path(case[key]).is_absolute():
-                raise ValueError('prepared corpus input paths must be absolute: ' + key)
+    validate_cases(inputs, declaration)
     args.work.mkdir(mode=0o700, parents=True, exist_ok=False)
     runner = Runner(args)
     views = []
