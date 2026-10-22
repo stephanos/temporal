@@ -71,7 +71,7 @@ def compare(root, expected, choice_limit):
         if name == 'diagnostic':
             require_diagnostic(actual, original, choice_limit)
         else:
-            assert actual == original, f'{root.name}/{name}: owner evidence differs' 
+            assert actual == original, f'{root.name}/{name}: owner evidence differs'
     metadata = outcome['local_model']
     assert metadata['finished'] and metadata['records'] > 0
     assert metadata['calls'] == expected['Calls']
@@ -130,7 +130,7 @@ def main():
         assert len(local) == 1, 'original helper-owner recording must be paired with its Go owner'
         assert local[0]['request']['Config'] == request['Config']
         assert local[0]['result']['EnvironmentIdentity'] == oracle['EnvironmentIdentity']
-        assert local[0]['result']['GoFilesystemCalls'] == {}, 'original helper owner leaked filesystem callbacks' 
+        assert local[0]['result']['GoFilesystemCalls'] == {}, 'original helper owner leaked filesystem callbacks'
         assert request['MemoryBytes'] == 256 << 20 and request['Fuel'] == 4000000000
         assert request['Timeout'] == 60000000000 and request['Runtime']['Seed'] == 7
         assert request['Runtime']['Choice']['Limit'] == 1 << 20
