@@ -4,6 +4,8 @@ satisfies: [R3]
 # fn-227-parameterized-models-declared-worlds.11 Independent phase, rejection and closure-law source admission
 
 ## Description
+**From fn-238.4's review:** `front/src/body/progress.rs:132` treats any macro path ending in `path` as Umpire's `path!`; use `call.mac.path.is_ident("path")` with a test.
+
 **Scheduling (owner, 2026-10-21):** run after fn-238's shared front end migration, and build this construct once in the shared front end rather than separately in the macros and the lifter.
 
 Deliver the framework source-admission frontier separated from .3, leaving the original .3 ID for the retry/refinement checkpoint. This is phase/rejection checkpoint P, allocated as fn-227-parameterized-models-declared-worlds.11. Admit the actual phase/reject/closure-law source forms required by the current activity Model and a generic control, through actual TLC replay. Change no activity lifecycle behavior or native golden. Owner amendments at `bbf0835fbf` preserve all laws; source omission of a law is failure.

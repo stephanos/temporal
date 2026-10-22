@@ -18,9 +18,12 @@ Follow the preservation plan in `model/design/shared-front-end.md` (Migration): 
 - [ ] Measured deletion against the -850 to -1,600 estimate; `make model-time` recorded.
 
 ## Done summary
-TBD
+The `#[machine]` macro embeds the admitted Model (new `umpire-ir` crate; `Lifts` trait, off wasm32, never checked in) and the lifter emits TLA+ from the compiled Model with same-process World, starts and catalog. Deleted: `lift/src/build.rs` and `Lift::source`, the `model.rs` re-read (kept only to locate refusals when no `#[machine]` is embedded: kettle_cut, kettle_progress, progress_dead_end), tautological binding checks, the dead action-input domain admission (Models with computed domains now lift), and the naming source walk. Kept: `.cfg` range/value-type checks and the `tests.rs` hook read (hook claims are lowered against the tree; documented that they cannot call Model helpers). Shadowing imports of the Umpire macros are refused; the tree printer uses one `record!` macro (277 lines); declarations are read once per `#[machine]`; binding outputs live in the lifter. Spike: located spans work inside the macro on Rust 1.99.1.
 
+Goldens: TLA+/cfg, `lift.snap.txt`, expansion, checker and trybuild unchanged; three new trybuild controls. Guest refreshed (0d3179714f) for the umpire-ir lockfile closure. Lines: core crates 8,297 against 8,190 before fn-238.2 (design estimated -850 to -1,600; .3 moved rather than merged, body lowering and emission stay, embedding costs about 420). Review: NEEDS_WORK (dead domain admission, import shadowing), then SHIP (.flow/tmp/fn2384-review.md, fn2384-review2.md); the qualified `path!` match (`front/src/body/progress.rs:132`) is carried into fn-227.11. Gates: Quick default/required (221); `UMPIRE_BACKENDS=require make model-check` 247s; `make model-time` 47.6s gate / 7.3s inner loop; slice 7s; gaps 359s.
+
+stage: plan-sync - skipped(config: planSync.enabled != true)
 ## Evidence
-- Commits:
-- Tests:
+- Commits: df29486f10, 0d3179714f, 0bbeb1ff35
+- Tests: UMPIRE_BACKENDS=require make model-check, make model-time, make umpire-check-model-slice, make umpire-check-model-gaps
 - PRs:
