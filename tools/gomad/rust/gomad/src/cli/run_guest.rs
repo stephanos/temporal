@@ -1,47 +1,77 @@
 mod input;
 
+#[cfg(feature = "determinism-fixture")]
+use std::io::Write as _;
+
 use crate::{
     campaign::{launcher, origin, preparation, prepare::driver},
     evidence::canonical,
 };
 use std::{
     ffi::{OsStr, OsString},
-    io::Write,
     path::{Path, PathBuf},
     time::Instant,
 };
 
-/// # Errors
-/// Refuses missing or incompatible preparation bindings before guest admission.
-pub fn run(arguments: &[OsString], installation: Option<&Path>) -> Result<i32, super::Error> {
-    let parsed = parse(arguments)?;
-    match execute(&parsed, installation) {
+/// Refuses incompatible preparation bindings and bounds all final output.
+#[must_use]
+pub fn run(arguments: &[OsString], installation: Option<&Path>) -> i32 {
+    let mut deadline = Deadline::new();
+    let parsed = match parse(arguments) {
+        Ok(parsed) => parsed,
+        Err(error) => {
+            return if launcher::refusal_process(&error.message, deadline.at).is_ok() {
+                error.status
+            } else {
+                3
+            };
+        }
+    };
+    match execute(&parsed, installation, &mut deadline) {
         Ok((outcome, installation)) => {
-            launcher::report(
-                &outcome,
-                parsed.json,
-                &installation,
-                &mut std::io::stdout(),
-                &mut std::io::stderr(),
-            )
-            .map_err(|message| super::Error { status: 3, message })?;
-            Ok(outcome.status)
+            if launcher::report_process(&outcome, parsed.json, &installation, deadline.at).is_err()
+            {
+                return 3;
+            }
+            outcome.status
         }
         Err((status, message)) => {
-            let mut stderr = std::io::stderr();
-            writeln!(stderr, "gomad run-guest: {message}")
-                .and_then(|()| {
-                    writeln!(
-                        stderr,
-                        "gomad run-guest: no replayable artifact was retained"
-                    )
-                })
-                .map_err(|e| super::Error {
-                    status: 3,
-                    message: e.to_string(),
-                })?;
-            Ok(status)
+            if launcher::refusal_process(&message, deadline.at).is_err() {
+                3
+            } else {
+                status
+            }
         }
+    }
+}
+
+struct Deadline {
+    started: Instant,
+    at: Instant,
+    guard: crate::backstop::Guard,
+}
+
+impl Deadline {
+    fn new() -> Self {
+        let started = Instant::now();
+        let overall = std::time::Duration::from_secs(600);
+        Self {
+            started,
+            at: started + overall,
+            guard: crate::backstop::arm_until(started + overall),
+        }
+    }
+    fn limit(&mut self, overall: std::time::Duration) -> Result<(), String> {
+        let at = self
+            .started
+            .checked_add(overall)
+            .ok_or("launcher deadline exceeds clock range")?;
+        if at <= Instant::now() {
+            return Err("overall_timeout: launcher preparation deadline exceeded".into());
+        }
+        self.guard = crate::backstop::arm_until(at);
+        self.at = at;
+        Ok(())
     }
 }
 
@@ -123,6 +153,7 @@ fn parse(arguments: &[OsString]) -> Result<Arguments, super::Error> {
 fn execute(
     arguments: &Arguments,
     installation: Option<&Path>,
+    deadline: &mut Deadline,
 ) -> Result<(launcher::Outcome, PathBuf), (i32, String)> {
     let artifacts = arguments
         .artifacts
@@ -136,7 +167,7 @@ fn execute(
         prepared,
         options,
         installation,
-    } = match admit(arguments, installation, module) {
+    } = match admit(arguments, installation, module, deadline) {
         Ok(result) => {
             staged.accepted().map_err(|message| (3, message))?;
             result
@@ -159,7 +190,7 @@ fn execute(
             ));
         }
     };
-    launcher::run(&options, &prepared)
+    launcher::run(&options, &prepared, deadline.at)
         .map(|outcome| (outcome, installation))
         .map_err(|message| (3, message))
 }
@@ -174,13 +205,14 @@ fn admit(
     arguments: &Arguments,
     installation: Option<&Path>,
     module: Vec<u8>,
+    deadline: &mut Deadline,
 ) -> Result<Admitted, String> {
     arguments
         .module
         .to_str()
         .ok_or("guest module path must be UTF-8")?;
     if let Some(receipt_path) = std::env::var_os("GOMAD_PREPARATION_RECEIPT") {
-        return admit_retained(arguments, installation, &module, &receipt_path);
+        return admit_retained(arguments, installation, &module, &receipt_path, deadline);
     }
     let invocation_path = std::env::var_os("GOMAD_SHIM_INVOCATION")
         .ok_or("run-guest requires authenticated preparation metadata")?;
@@ -213,16 +245,13 @@ fn admit(
     recipe.options.installation = Some(selected.path.clone());
     apply_options(&mut recipe.options, arguments)?;
     let options = recipe.options.clone();
-    let deadline = Instant::now()
-        .checked_add(options.overall_timeout)
-        .ok_or("launcher preparation deadline exceeds clock range")?;
+    deadline.limit(options.overall_timeout)?;
     let mut prepared =
-        recipe.admit_external(module, arguments.argv.clone(), &invocation, deadline)?;
+        recipe.admit_external(module, arguments.argv.clone(), &invocation, deadline.at)?;
     let invocation_id = invocation.id.clone();
     origin::intercept(&mut prepared, invocation)?;
     let retained = preparation::retain_admitted(&options, prepared)?;
-    let admission_root = options.artifacts.join("admissions").join(invocation_id);
-    crate::evidence::store::durable_directory(&admission_root, |_| Ok(()))?;
+    let admission_root = admission_attempt(&options.artifacts, &invocation_id)?;
     retained.publish(
         &admission_root.join("plan.json"),
         std::env::args_os()
@@ -241,11 +270,30 @@ fn admit(
     })
 }
 
+fn admission_attempt(artifacts: &Path, invocation_id: &str) -> Result<PathBuf, String> {
+    use std::{fs, os::unix::fs::DirBuilderExt as _};
+    if !canonical::valid_digest(invocation_id) {
+        return Err("invalid admission invocation identity".into());
+    }
+    let parent = artifacts.join("admissions").join(invocation_id);
+    crate::evidence::store::durable_directory(&parent, |_| Ok(()))?;
+    let path = parent.join(origin::identity()?);
+    fs::DirBuilder::new()
+        .mode(0o700)
+        .create(&path)
+        .map_err(|error| error.to_string())?;
+    fs::File::open(&parent)
+        .and_then(|directory| directory.sync_all())
+        .map_err(|error| error.to_string())?;
+    Ok(path)
+}
+
 fn admit_retained(
     arguments: &Arguments,
     installation: Option<&Path>,
     module: &[u8],
     receipt_path: &OsStr,
+    deadline: &mut Deadline,
 ) -> Result<Admitted, String> {
     let digest = std::env::var("GOMAD_PREPARATION_RECEIPT_SHA256")
         .map_err(|_| "run-guest requires prepared receipt digest")?;
@@ -274,6 +322,7 @@ fn admit_retained(
     )?;
     options.installation = Some(selected.path.clone());
     apply_options(&mut options, arguments)?;
+    deadline.limit(options.overall_timeout)?;
     Ok(Admitted {
         prepared,
         options,
@@ -457,8 +506,22 @@ fn registered_exec(
 }
 
 #[cfg(test)]
+mod admission_tests;
+
+#[cfg(test)]
 mod tests {
     use super::*;
+    #[test]
+    fn preparation_consumes_the_original_overall_deadline() {
+        let mut deadline = Deadline::new();
+        let duration = std::time::Duration::from_millis(100);
+        std::thread::sleep(std::time::Duration::from_millis(10));
+        deadline.limit(duration).unwrap();
+        assert_eq!(deadline.at, deadline.started + duration);
+        assert!(deadline.at.duration_since(Instant::now()) < duration);
+        assert!(deadline.limit(std::time::Duration::from_nanos(1)).is_err());
+    }
+
     #[test]
     fn module_boundary_preserves_guest_flag_lookalikes() {
         let args = ["--seeds", "7,8", "module.wasm", "--json", "--seeds=99"].map(OsString::from);

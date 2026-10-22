@@ -1209,7 +1209,7 @@ mod live_backend_tests {
             "record":{"schema":"gomad.execution-record/v2","execution_identity":"",
                 "identity":{"target":"","toolchain":"","platform":"","implementation":"","configuration":""},
                 "profile":"gomad.wasi-cooperative/v1","seed":7,"arguments":[],"environment":{},
-                "limits":{"fuel":4000000000_u64,"memory_bytes":268_435_456,"wall_millis":300000,
+                "limits":{"fuel":4_000_000_000_u64,"memory_bytes":268_435_456,"wall_millis":300_000,
                     "output_bytes":1_048_576,"evidence_bytes":16_777_216},
                 "virtual_time_nanos":0,"outcome":{"class":"success","termination":"exit","exit_code":0,"reason":""},"streams":{}}
         });

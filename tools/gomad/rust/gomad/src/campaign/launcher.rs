@@ -22,6 +22,7 @@ pub(crate) struct Outcome {
     pub attempted: u64,
     pub unexecuted: u64,
     pub failure: Option<(String, Option<PathBuf>)>,
+    execution_guard: Option<crate::backstop::Guard>,
 }
 
 struct Chunk {
@@ -165,15 +166,16 @@ impl Drop for Forwarder {
     }
 }
 
-pub(crate) fn run(options: &ExploreOptions, prepared: &Prepared) -> Result<Outcome, String> {
+pub(crate) fn run(
+    options: &ExploreOptions,
+    prepared: &Prepared,
+    deadline: Instant,
+) -> Result<Outcome, String> {
     if origin::from_preparation(prepared)?.is_none() {
         return Err("launcher requires intercepted origin".into());
     }
     let mut journal = super::seed_journal_policy(options, prepared, true)?;
     let selection = SeedSelection::parse(&options.seeds)?;
-    let deadline = Instant::now()
-        .checked_add(options.overall_timeout)
-        .ok_or("launcher deadline exceeds clock range")?;
     let capacity = super::artifact_capacity(journal.plan(), prepared)?;
     let mut result = Outcome {
         status: 0,
@@ -181,6 +183,7 @@ pub(crate) fn run(options: &ExploreOptions, prepared: &Prepared) -> Result<Outco
         attempted: 0,
         unexecuted: selection.count(),
         failure: None,
+        execution_guard: None,
     };
     for ordinal in 0..selection.count() {
         let job = Job {
@@ -197,11 +200,13 @@ pub(crate) fn run(options: &ExploreOptions, prepared: &Prepared) -> Result<Outco
             .checked_duration_since(Instant::now())
             .ok_or("overall_timeout: launcher deadline exceeded")?;
         let timeout = remaining.min(options.execution_timeout);
+        let execution_deadline = Instant::now() + timeout;
+        result.execution_guard = Some(crate::backstop::arm_until(execution_deadline));
         let output = if options.json {
             None
         } else {
             Some(Arc::new(
-                Forwarder::new(cancellation.clone(), Instant::now() + timeout)
+                Forwarder::new(cancellation.clone(), execution_deadline)
                     .map_err(|e| e.to_string())?,
             ) as Arc<dyn linked::OutputConsumer>)
         };
@@ -269,6 +274,80 @@ pub(crate) fn status(outcome: &crate::evidence::record::Outcome) -> i32 {
     }
 }
 
+pub(crate) fn report_process(
+    outcome: &Outcome,
+    json_output: bool,
+    installation: &Path,
+    deadline: Instant,
+) -> Result<(), String> {
+    let mut output = Vec::new();
+    let mut diagnostics = Vec::new();
+    report(
+        outcome,
+        json_output,
+        installation,
+        &mut output,
+        &mut diagnostics,
+    )?;
+    let output = deliver(linked::OutputStream::Stdout, output, deadline);
+    let diagnostics = deliver(linked::OutputStream::Stderr, diagnostics, deadline);
+    output.and(diagnostics)
+}
+
+pub(crate) fn refusal_process(message: &str, deadline: Instant) -> Result<(), String> {
+    deliver(
+        linked::OutputStream::Stderr,
+        format!(
+            "gomad run-guest: {message}\ngomad run-guest: no replayable artifact was retained\n"
+        )
+        .into_bytes(),
+        deadline,
+    )
+}
+
+fn deliver(stream: linked::OutputStream, bytes: Vec<u8>, deadline: Instant) -> Result<(), String> {
+    use std::os::fd::AsFd as _;
+    if bytes.is_empty() {
+        return Ok(());
+    }
+    let remaining = deadline
+        .checked_add(crate::backstop::CLEANUP_GRACE)
+        .and_then(|deadline| deadline.checked_duration_since(Instant::now()))
+        .filter(|remaining| !remaining.is_zero())
+        .ok_or("final output deadline exceeded")?
+        .min(Duration::from_millis(500));
+    let (completed, receive) = mpsc::sync_channel(1);
+    thread::Builder::new()
+        .name("gomad-final-output".into())
+        .spawn(move || {
+            let write = || -> Result<(), String> {
+                let mut pending = bytes.as_slice();
+                while !pending.is_empty() {
+                    let count = match stream {
+                        linked::OutputStream::Stdout => {
+                            rustix::io::write(io::stdout().as_fd(), pending)
+                        }
+                        linked::OutputStream::Stderr => {
+                            rustix::io::write(io::stderr().as_fd(), pending)
+                        }
+                    };
+                    match count {
+                        Ok(0) => return Err("final output made no progress".into()),
+                        Ok(count) => pending = &pending[count..],
+                        Err(rustix::io::Errno::INTR) => (),
+                        Err(error) => return Err(error.to_string()),
+                    }
+                }
+                Ok(())
+            };
+            let _ = completed.send(write());
+        })
+        .map_err(|error| error.to_string())?;
+    receive
+        .recv_timeout(remaining)
+        .map_err(|_| "final output delivery deadline exceeded".to_owned())?
+}
+
 pub(crate) fn report(
     outcome: &Outcome,
     json_output: bool,
@@ -326,6 +405,81 @@ fn quote(value: &std::ffi::OsStr) -> String {
 mod tests {
     use super::*;
     use crate::evidence::record::Outcome;
+    #[test]
+    fn undrained_stderr_and_final_report_finish_within_the_bound() {
+        use std::{
+            io::Read as _,
+            process::{Command, Stdio},
+        };
+        let mut child = Command::new(std::env::current_exe().unwrap())
+            .args([
+                "--exact",
+                "campaign::launcher::tests::blocked_stderr_child",
+                "--nocapture",
+            ])
+            .env("GOMAD_TEST_BLOCKED_STDERR", "1")
+            .stdout(Stdio::piped())
+            .stderr(Stdio::piped())
+            .spawn()
+            .unwrap();
+        let deadline = Instant::now() + Duration::from_secs(2);
+        let status = loop {
+            if let Some(status) = child.try_wait().unwrap() {
+                break status;
+            }
+            if Instant::now() >= deadline {
+                child.kill().unwrap();
+                child.wait().unwrap();
+                panic!("final reporting hung after the output callback deadline");
+            }
+            thread::sleep(Duration::from_millis(10));
+        };
+        assert_eq!(status.code(), Some(3));
+        let mut output = Vec::new();
+        child
+            .stdout
+            .take()
+            .unwrap()
+            .read_to_end(&mut output)
+            .unwrap();
+        assert!(String::from_utf8_lossy(&output).contains("callback deadline observed"));
+        let mut stderr = Vec::new();
+        child
+            .stderr
+            .take()
+            .unwrap()
+            .read_to_end(&mut stderr)
+            .unwrap();
+        assert!(stderr.len() >= 4096, "stderr pipe was not filled");
+        assert!(stderr.iter().all(|byte| *byte == b'X'));
+    }
+
+    #[test]
+    fn blocked_stderr_child() {
+        use linked::OutputConsumer as _;
+        if std::env::var_os("GOMAD_TEST_BLOCKED_STDERR").is_none() {
+            return;
+        }
+        let deadline = Instant::now() + Duration::from_millis(100);
+        let forwarder = Forwarder::new(linked::Cancellation::default(), deadline).unwrap();
+        let error = forwarder
+            .write(linked::OutputStream::Stderr, &vec![b'X'; 2 << 20])
+            .unwrap_err();
+        assert_eq!(error.kind(), io::ErrorKind::TimedOut);
+        drop(forwarder);
+        println!("callback deadline observed");
+        let outcome = super::Outcome {
+            status: 3,
+            campaign: "unused".into(),
+            attempted: 1,
+            unexecuted: 0,
+            failure: Some(("output forwarding deadline exceeded".into(), None)),
+            execution_guard: None,
+        };
+        let _ = report_process(&outcome, false, Path::new("installation"), deadline);
+        std::process::exit(3);
+    }
+
     #[test]
     fn guest_failures_and_infrastructure_preserve_separate_statuses() {
         let outcome = |class: &str, termination: &str, exit_code| Outcome {

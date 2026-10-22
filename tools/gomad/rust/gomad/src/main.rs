@@ -10,13 +10,7 @@ fn main() {
         .first()
         .is_some_and(|argument| argument == "run-guest")
     {
-        let status = match gomad::cli::run_guest::run(&arguments[1..], installation.as_deref()) {
-            Ok(status) => status,
-            Err(error) => {
-                eprintln!("gomad: {}", error.message);
-                error.status
-            }
-        };
+        let status = gomad::cli::run_guest::run(&arguments[1..], installation.as_deref());
         std::process::exit(status);
     }
     let arguments = arguments
