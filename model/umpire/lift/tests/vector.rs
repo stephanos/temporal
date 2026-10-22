@@ -122,6 +122,34 @@ fn unrelated_conditionals_preserve_vector_length_identity() -> Result<(), Box<dy
     Ok(())
 }
 
+fn conditional_guard(comparison: &str) -> String {
+    saved_length().replace(
+        "let length = self.values.len(); if length < 2",
+        &format!("let condition = self.values.is_empty() && self.values.is_empty(); {comparison}"),
+    )
+}
+
+#[test]
+fn conditional_guards_preserve_common_bound_facts() -> Result<(), Box<dyn std::error::Error>> {
+    for (positive, negative) in [
+        (
+            "let allowed = if condition { self.values.len() < 2 } else { self.values.len() < 2 }; if allowed",
+            "let allowed = if condition { self.values.len() < 2 } else { true }; if allowed",
+        ),
+        (
+            "if self.values.len() < (if condition { 2 } else { 2 })",
+            "if self.values.len() < (if condition { 2 } else { self.values.len() })",
+        ),
+    ] {
+        Lift::parse("conditional_bound.rs", &conditional_guard(positive))?;
+        let error = Lift::parse("unknown_conditional_bound.rs", &conditional_guard(negative))
+            .err()
+            .ok_or("unknown conditional bound admitted")?;
+        assert!(error.message.contains("bounded length guard"), "{error}");
+    }
+    Ok(())
+}
+
 #[test]
 fn unsupported_vector_operations_and_unbounded_growth_refuse()
 -> Result<(), Box<dyn std::error::Error>> {

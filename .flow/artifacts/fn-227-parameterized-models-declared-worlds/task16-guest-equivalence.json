@@ -25,6 +25,14 @@
       "log": "task16-postreview-guest.log",
       "exit": 0,
       "source": "79fe477d3f690a6ace3f8f0c43ef940a9e6476b2"
+    },
+    {
+      "command": "make umpire-guest",
+      "log": "task16-vector-origin-guest.log",
+      "exit": 0,
+      "compile_seconds": 33.86,
+      "source": "36e5611d55",
+      "sha256": "d544b0b2d8c835034fc0e070e875ad3b90fbf512e9132a79196c64fa7788652d"
     }
   ],
   "reused_actual_gates": [

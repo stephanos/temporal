@@ -456,11 +456,55 @@
       "task": "fn-227-parameterized-models-declared-worlds.16",
       "timestamp": "2026-10-22T21:11:21.369285Z",
       "verdict": "SHIP"
+    },
+    {
+      "artifact_sha256": "ea2459ef2a52390344858131b1f3d0ccdf63a8e5d0cc6d5bef4923f6e371cea2",
+      "backend": "codex",
+      "base_sha": "d70684bca2a7f0974abedee129db1ef480cecf56",
+      "counter_kind": "impl",
+      "effort": "high",
+      "failure_class": null,
+      "finalized": {
+        "digest": "complete",
+        "receipt": "complete",
+        "status": "not_applicable"
+      },
+      "findings_digest": {
+        "backend": "codex",
+        "digest_truncated": false,
+        "items": [
+          {
+            "chainRoot": "finding-351d611ace06f8e0abd7acc868b75e56",
+            "classification": "introduced",
+            "findingId": "finding-351d611ace06f8e0abd7acc868b75e56",
+            "firstSeenThisRound": false,
+            "severity": "P2",
+            "status": "fixed"
+          }
+        ],
+        "reviewKind": "implementation"
+      },
+      "forced": false,
+      "hash_epoch": 2,
+      "head_sha": "36e5611d559e511a23a3b6f47372627044605c63",
+      "head_sha_observed": true,
+      "kind": "impl",
+      "model": "gpt-6.1-sol",
+      "outcome": "verdict",
+      "output_bytes": 782,
+      "output_sha256": "bfe95d11407b60809ab09a4f878d9af55c556f841e9d2ca9753277af37cfa866",
+      "reservation_id": "2fe4b52c2d15408ba5cf27ac95c18953",
+      "round_consumed": true,
+      "scope": "impl:fn-227-parameterized-models-declared-worlds.16",
+      "superseded_by": null,
+      "task": "fn-227-parameterized-models-declared-worlds.16",
+      "timestamp": "2026-10-22T21:19:43.963054Z",
+      "verdict": "SHIP"
     }
   ],
   "review_hash_epoch": {
     "impl:fn-227-parameterized-models-declared-worlds.1": 1,
-    "impl:fn-227-parameterized-models-declared-worlds.16": 2,
+    "impl:fn-227-parameterized-models-declared-worlds.16": 3,
     "plan": 1,
     "plan#completion": 0
   },
@@ -485,5 +529,5 @@
     "mergeBaseTracker": null,
     "url": null
   },
-  "updated_at": "2026-10-22T21:11:21.373284Z"
+  "updated_at": "2026-10-22T21:19:43.965989Z"
 }

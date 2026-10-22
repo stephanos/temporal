@@ -1,0 +1,19 @@
+   Compiling umpire-lift v0.0.1 (/Users/stephan/Workspace/skunkworks/umpire/temporal/model/umpire/lift)
+    Finished `test` profile [unoptimized + debuginfo] target(s) in 0.90s
+     Running tests/vector.rs (/home/agent/.cache/codex-build/cargo-target/debug/deps/vector-7cd9e225c61cd866)
+
+running 1 test
+test conditional_guards_preserve_common_bound_facts ... FAILED
+
+failures:
+
+---- conditional_guards_preserve_common_bound_facts stdout ----
+Error: Diagnostic { file: "conditional_bound.rs", line: 25, column: 31, message: "Vector push_back on `values` requires an authored bounded length guard" }
+
+
+failures:
+    conditional_guards_preserve_common_bound_facts
+
+test result: FAILED. 0 passed; 1 failed; 0 ignored; 0 measured; 6 filtered out; finished in 0.00s
+
+error: test failed, to rerun pass `-p umpire-lift --test vector`
