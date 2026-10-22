@@ -1,0 +1,120 @@
+"""Four actual SQLite selections, immutable primary pairs and independent catalogue admission."""
+import base64
+import copy
+import json
+from pathlib import Path
+
+from driver import Unexecuted, command, read, require, sha, write
+
+
+def catalogue(result):
+    if 'native_crash_catalogues' not in result:
+        raise Unexecuted('actual Rust Result has no native crash catalogue projection')
+    rows = result['native_crash_catalogues']
+    require(len(rows) == 1, 'exactly one deduplicated native SQLite catalogue required')
+    row = rows[0]
+    require(row['handle'] == dict(node='sqlite', incarnation=2) and row['volume'] == 'sqlite', 'wrong native catalogue owner')
+    enumeration, context = row['enumeration'], row['context']
+    require(enumeration['Complete'] is True and not enumeration['Capacity'] and len(enumeration['States']) == 4,
+            'actual reviewed four-state complete enumeration required')
+    states = enumeration['States']
+    require(len({state['Identity'] for state in states}) == 4, 'duplicate native crash state')
+    require(len(context['Operations']) <= 8, 'changed native pending-operation bound')
+    require(all(state['Volume'] == 'sqlite' and state['PendingSHA256'] == context['PendingSHA256']
+                and len(state['SelectedOperations']) <= 8 for state in states), 'native state/context mismatch')
+    return row
+
+
+def selection_spec(template, primary_sha256, state, context, destination):
+    specification = copy.deepcopy(template)
+    identity = state['Identity']
+    require(identity.startswith('sha256:') and len(identity) == 71, 'native Go state identity encoding changed')
+    specification['Manifest']['ID'] = 'sqlite-durable-selection-' + identity[7:]
+    specification['Manifest']['Cell'] = 'success'
+    specification['Manifest']['Seed'] = 7
+    specification['Manifest']['Repeat'] = 2
+    scenario = json.loads(base64.b64decode(specification['Campaign']['Target']['Scenario'], validate=True))
+    require(scenario['workload'] == dict(kind='sqlite-durable-recovery', selection=None), 'not a primary actual SQLite scenario')
+    scenario['workload']['selection'] = dict(primary_result_sha256=primary_sha256, state=state, context=context)
+    specification['Campaign']['Target']['Scenario'] = base64.b64encode(
+        json.dumps(scenario, sort_keys=True, separators=(',', ':')).encode()).decode()
+    specification['ArtifactRoot'] = destination
+    specification['Campaign']['Artifacts'] = str(Path(destination) / 'artifacts')
+    specification['Campaign']['Target']['PreparationRoot'] = str(Path(destination) / 'preparation')
+    return specification
+
+
+def select(config, root, label, entry):
+    from adapters import public, result_report, passed
+    index = int(label.rsplit('-', 1)[1])
+    primary_stage = Path(config['root']) / 'stages/workload-sqlite-cooperative-success'
+    reference = read(primary_stage / 'result.json')
+    primary_path = reference['path']
+    require(sha(primary_path) == reference['sha256'], 'primary Result changed before selection')
+    primary = result_report(config, root, 'primary-report', primary_path)
+    native = catalogue(primary)
+    state, context = native['enumeration']['States'][index], native['context']
+    source = read(config['stages']['workload-sqlite-cooperative-success']['spec'])
+    specification = selection_spec(source, reference['sha256'], state, context, str(root / 'selected'))
+    spec_path = root / 'selection-spec.json'
+    write(spec_path, specification)
+    installation = config['installations'][entry['installation']]
+    response = json.loads(command(config, root, 'qualify', public(config, installation) + ['qualify', '--spec', str(spec_path)]))
+    selected_path = response['result_path']
+    result = result_report(config, root, 'selected-report', selected_path)
+    require(result['manifest']['id'] == specification['Manifest']['ID'], 'wrong selected state ID')
+    expected = dict(primary_result_sha256=reference['sha256'], state=state, context=context)
+    require(result.get('native_crash_selection') == expected, 'selected Result lacks exact actual state/context/primary binding')
+    require(catalogue(result) == native, 'selected execution does not reproduce complete primary catalogue')
+    require(result['observations']['operator_process_id'] == read(root / 'qualify.command.json')['pid']
+            and result['observations']['operator_process_id'] != reference['pid'], 'selection borrowed producer/preparation measurement')
+    for field in ('workload_source_sha256', 'integrated_source_sha256', 'host_os', 'host_arch', 'fuel', 'memory_bytes', 'seed', 'repeat'):
+        require(result['manifest'][field] == primary['manifest'][field], 'selected/primary input mismatch: ' + field)
+    require(sha(primary_path) == reference['sha256'], 'selection changed primary Result')
+    write(root / 'selection.json', dict(index=index, path=selected_path, sha256=sha(selected_path),
+          pid=result['observations']['operator_process_id'], primary_sha256=reference['sha256'], selection=expected))
+    return passed(label)
+
+
+def aggregate(config, root, label, entry):
+    from adapters import public, result_report, passed
+    reference = read(Path(config['root']) / 'stages/workload-sqlite-cooperative-success/result.json')
+    require(sha(reference['path']) == reference['sha256'], 'primary Result changed before catalogue')
+    primary = result_report(config, root, 'primary-report', reference['path'])
+    native = catalogue(primary)
+    # The Go oracle receives the actual authenticated GMSTORE state and original limits.
+    oracle = entry.get('oracle')
+    if not oracle:
+        raise Unexecuted('independent retained Go native enumeration/context oracle is not integrated')
+    artifact = primary['report']['executions'][0]['artifact_path']
+    inspected = json.loads(command(config, root, 'primary-inspect', public(config) + ['inspect', '--json', artifact]))
+    state_name = 'evidence/cluster/sqlite/2/storage_state'
+    from adapters import payload
+    state_bytes = payload(artifact, inspected, state_name)
+    require(__import__('hashlib').sha256(state_bytes).hexdigest() == native['storage_state_sha256'], 'catalogue storage-state binding')
+    request = root / 'oracle-input.json'
+    write(request, dict(storage_state_path=str(Path(artifact) / state_name), storage_state_sha256=native['storage_state_sha256'],
+                        limits=dict(states=32, operations=8, depth=8, bytes=4 << 20, work=1 << 16)))
+    require(oracle[0] in config['files'], 'unsealed independent native oracle')
+    actual = json.loads(command(config, root, 'native-Go-oracle', oracle + ['--input', str(request)]))
+    require(actual['enumeration'] == native['enumeration'] and actual['context'] == native['context'],
+            'actual native Go catalogue/context differs from Rust owner')
+    seen, processes, cpu, terminal_cpu = set(), {reference['pid']}, 0, 0
+    for index in range(4):
+        selected = read(Path(config['root']) / 'stages' / f'sqlite-selection-{index}' / 'selection.json')
+        require(selected['index'] == index and selected['primary_sha256'] == reference['sha256']
+                and sha(selected['path']) == selected['sha256'], 'missing/stale native selected Result')
+        result = result_report(config, root, f'selected-report-{index}', selected['path'])
+        expected = dict(primary_result_sha256=reference['sha256'], state=native['enumeration']['States'][index], context=native['context'])
+        require(result['native_crash_selection'] == selected['selection'] == expected and catalogue(result) == native,
+                'selected state/context or complete enumeration differs')
+        require(selected['sha256'] not in seen and selected['pid'] not in processes, 'duplicate selected Result or producer')
+        require(result['observations']['operator_process_id'] == selected['pid'], 'selected operator PID binding')
+        seen.add(selected['sha256']); processes.add(selected['pid'])
+        cpu += result['cost']['cpu_nanos']
+        terminal_cpu += result['_driver_publication']['cpu_nanos']
+    require(len(seen) == 4, 'all four actual selected states required')
+    write(root / 'catalogue.json', dict(primary=reference['sha256'], selected=sorted(seen), producer_pids=sorted(processes),
+          selected_execution_cpu_nanos=cpu, selected_terminal_cpu_nanos=terminal_cpu,
+          selected_total_cpu_nanos=cpu+terminal_cpu, primary_cpu_counted=False))
+    return passed(label)

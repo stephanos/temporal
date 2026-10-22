@@ -1,0 +1,1019 @@
+[
+  {
+    "label": "validate",
+    "original_function": "step_validate",
+    "original_body": "  cd \"$module\"\n  stage validate make validate\n",
+    "required_subgates": [
+      "validate"
+    ],
+    "repetitions": 1
+  },
+  {
+    "label": "portable",
+    "original_function": "step_portable",
+    "original_body": "  cd \"$module\"\n  stage portable \"$qualification_go\" test -v -tags test_dep -count=1 -timeout=20m ./internal/model/... ./internal/evidence/... ./internal/host/... ./internal/backends/target/...\n",
+    "required_subgates": [
+      "portable"
+    ],
+    "repetitions": 1
+  },
+  {
+    "label": "default-build",
+    "original_function": "step_default_build",
+    "original_body": "  cd \"$module\"\n  stage default-build \"$qualification_go\" build ./...\n",
+    "required_subgates": [
+      "default-build"
+    ],
+    "repetitions": 1
+  },
+  {
+    "label": "default-vet",
+    "original_function": "step_default_vet",
+    "original_body": "  cd \"$module\"\n  stage default-vet \"$qualification_go\" vet -tags test_dep ./...\n",
+    "required_subgates": [
+      "default-vet"
+    ],
+    "repetitions": 1
+  },
+  {
+    "label": "compile-only",
+    "original_function": "step_compile_only",
+    "original_body": "  cd \"$module\"\n  stage compile-only \"$qualification_go\" test -exec /bin/true -tags test_dep -count=1 -run '^$' ./internal/backends/wasm/... ./internal/runner/... ./cmd/...\n",
+    "required_subgates": [
+      "compile-only"
+    ],
+    "repetitions": 1
+  },
+  {
+    "label": "lint-router",
+    "original_function": "step_lint_router",
+    "original_body": "  cd \"$QUAL_REPO\"\n  stage lint-router \"$qualification_go\" test -v -tags test_dep -count=1 ./cmd/tools/lintcode\n",
+    "required_subgates": [
+      "lint-router"
+    ],
+    "repetitions": 1
+  },
+  {
+    "label": "lint-router-vet",
+    "original_function": "step_lint_router_vet",
+    "original_body": "  cd \"$QUAL_REPO\"\n  stage lint-router-vet \"$qualification_go\" vet -tags test_dep ./cmd/tools/lintcode\n",
+    "required_subgates": [
+      "lint-router-vet"
+    ],
+    "repetitions": 1
+  },
+  {
+    "label": "actionlint-build",
+    "original_function": "step_actionlint_build",
+    "original_body": "  cd \"$QUAL_REPO\"\n  actionlint_pin\n  stage actionlint-build env \"GOBIN=$QUAL_ROOT/bin\" \"$qualification_go\" install \"github.com/rhysd/actionlint/cmd/actionlint@$actionlint_version\"\n",
+    "required_subgates": [
+      "actionlint-build"
+    ],
+    "repetitions": 1
+  },
+  {
+    "label": "actionlint-version",
+    "original_function": "step_actionlint_version",
+    "original_body": "  cd \"$QUAL_REPO\"\n  actionlint_pin\n  stage actionlint-version \"$QUAL_ROOT/bin/actionlint\" -version\n  rg -qx \"$actionlint_version\" \"$QUAL_ROOT/actionlint-version.log\"\n  atomic_output \"$QUAL_ROOT/actionlint.sha256\" sha256sum -- \"$QUAL_ROOT/bin/actionlint\"\n",
+    "required_subgates": [
+      "actionlint-version"
+    ],
+    "repetitions": 1
+  },
+  {
+    "label": "workflow-lint",
+    "original_function": "step_workflow_lint",
+    "original_body": "  cd \"$QUAL_REPO\"\n  workflow_prefixes=()\n  for prefix in gomad3 gomad; do\n    if [[ -f \".github/workflows/$prefix.yml\" && -f \".github/workflows/$prefix-smoke.yml\" ]] && \\\n      rg -Fq \"tools/$module_name/\" \".github/workflows/$prefix.yml\" && \\\n      rg -Fq \"tools/$module_name/\" \".github/workflows/$prefix-smoke.yml\"; then\n      workflow_prefixes+=(\"$prefix\")\n    fi\n  done\n  test \"${#workflow_prefixes[@]}\" -eq 1\n  workflow_prefix=\"${workflow_prefixes[0]}\"\n  stage workflow-lint \"$QUAL_ROOT/bin/actionlint\" \".github/workflows/$workflow_prefix.yml\" \".github/workflows/$workflow_prefix-smoke.yml\"\n  sha256sum -c \"$QUAL_ROOT/actionlint.sha256\" > /dev/null\n",
+    "required_subgates": [
+      "workflow-lint"
+    ],
+    "repetitions": 1
+  },
+  {
+    "label": "lint-module",
+    "original_function": "step_lint_module",
+    "original_body": "  cd \"$QUAL_REPO\"\n  lint_target=\"lint-code-$module_name\"\n  if ! rg -q \"^$lint_target:\" Makefile; then lint_target=lint-code-gomad-wasm; fi\n  sed -n \"/^$lint_target:/,+1p\" Makefile | rg -q -- \"-module tools/$module_name$\"\n  stage lint-module env GOCACHE=/home/agent/.cache/go-build-local make \"$lint_target\" \"GOLANGCI_LINT_BASE_REV=$lint_base\" GOLANGCI_LINT_FIX=false \\\n    \"GOLANGCI_LINT=$host_tools/golangci-lint-v2.13.0\" \"ERRORTYPE=$host_tools/errortype\"\n",
+    "required_subgates": [
+      "lint-module"
+    ],
+    "repetitions": 1
+  },
+  {
+    "label": "architecture",
+    "original_function": "step_architecture",
+    "original_body": "  cd \"$module\"\n  stage architecture env GOMAD_ARCH_ALL_PLATFORMS=1 \"$qualification_go\" test -v -tags test_dep -count=1 -timeout=15m ./internal/archcheck\n",
+    "required_subgates": [
+      "architecture"
+    ],
+    "repetitions": 1
+  },
+  {
+    "label": "lint-root",
+    "original_function": "step_lint_root",
+    "original_body": "  cd \"$QUAL_REPO\"\n  stage lint-root env GOCACHE=/home/agent/.cache/go-build-local make lint-code-fast \"GOLANGCI_LINT_BASE_REV=$lint_base\" GOLANGCI_LINT_FIX=false \\\n    \"GOLANGCI_LINT=$host_tools/golangci-lint-v2.13.0\" \"ERRORTYPE=$host_tools/errortype\"\n",
+    "required_subgates": [
+      "lint-root"
+    ],
+    "repetitions": 1
+  },
+  {
+    "label": "test-harness",
+    "original_function": "step_test_harness",
+    "original_body": "  cd \"$module\"\n  stage test-harness env GOMAXPROCS=2 make test-harness\n",
+    "required_subgates": [
+      "test-harness"
+    ],
+    "repetitions": 1
+  },
+  {
+    "label": "world-race",
+    "original_function": "step_world_race",
+    "original_body": "  cd \"$module\"\n  stage world-race \"$qualification_go\" test -race -tags=test_dep -p=1 -parallel=1 -count=1 ./internal/model/world/...\n",
+    "required_subgates": [
+      "world-race"
+    ],
+    "repetitions": 1
+  },
+  {
+    "label": "rust-lint",
+    "original_function": "step_rust_lint",
+    "original_body": "  cd \"$wasm\"\n  stage rust-lint env CARGO_BUILD_JOBS=1 make lint-rust\n",
+    "required_subgates": [
+      "rust-lint"
+    ],
+    "repetitions": 1
+  },
+  {
+    "label": "rust-default-test",
+    "original_function": "step_rust_default_test",
+    "original_body": "  cd \"$wasm\"\n  rust_test rust-default-test\n",
+    "required_subgates": [
+      "rust-default-test"
+    ],
+    "repetitions": 1
+  },
+  {
+    "label": "rust-conformance-unit",
+    "original_function": "step_rust_conformance_unit",
+    "original_body": "  cd \"$wasm\"\n  rust_test rust-conformance-unit --features conformance --bin gomad-wasmhost\n",
+    "required_subgates": [
+      "rust-conformance-unit"
+    ],
+    "repetitions": 1
+  },
+  {
+    "label": "rust-diagnostic-test",
+    "original_function": "step_rust_diagnostic_test",
+    "original_body": "  cd \"$wasm\"\n  rust_test rust-diagnostic-test --features diagnostic-profile\n",
+    "required_subgates": [
+      "rust-diagnostic-test"
+    ],
+    "repetitions": 1
+  },
+  {
+    "label": "rust-fuel-off-test",
+    "original_function": "step_rust_fuel_off_test",
+    "original_body": "  cd \"$wasm\"\n  rust_test rust-fuel-off-test --features diagnostic-fuel-off\n",
+    "required_subgates": [
+      "rust-fuel-off-test"
+    ],
+    "repetitions": 1
+  },
+  {
+    "label": "rust-guest-profile-test",
+    "original_function": "step_rust_guest_profile_test",
+    "original_body": "  cd \"$wasm\"\n  rust_test rust-guest-profile-test --features guest-profile\n",
+    "required_subgates": [
+      "rust-guest-profile-test"
+    ],
+    "repetitions": 1
+  },
+  {
+    "label": "rust-combined-test",
+    "original_function": "step_rust_combined_test",
+    "original_body": "  cd \"$wasm\"\n  rust_test rust-combined-test --features guest-profile,diagnostic-fuel-off\n",
+    "required_subgates": [
+      "rust-combined-test"
+    ],
+    "repetitions": 1
+  },
+  {
+    "label": "helper-corpus-regen-1",
+    "original_function": "step_helper_corpus_regen_1",
+    "original_body": "  cd \"$wasm\"\n  stage helper-corpus-regen-1 env GOMAD_HELPER_CORPUS_REGENERATE=1 CARGO_BUILD_JOBS=1 RUST_TEST_THREADS=1 \\\n    cargo +1.99.1 test --manifest-path wasmhost/Cargo.toml --release --locked --test helper_corpus\n",
+    "required_subgates": [
+      "helper-corpus-regen-1"
+    ],
+    "repetitions": 1
+  },
+  {
+    "label": "helper-corpus-regen-2",
+    "original_function": "step_helper_corpus_regen_2",
+    "original_body": "  cd \"$wasm\"\n  stage helper-corpus-regen-2 env GOMAD_HELPER_CORPUS_REGENERATE=1 CARGO_BUILD_JOBS=1 RUST_TEST_THREADS=1 \\\n    cargo +1.99.1 test --manifest-path wasmhost/Cargo.toml --release --locked --test helper_corpus\n  rm -rf -- \"${CARGO_TARGET_DIR:?}\"\n",
+    "required_subgates": [
+      "helper-corpus-regen-2"
+    ],
+    "repetitions": 1
+  },
+  {
+    "label": "wasmmeasure-build",
+    "original_function": "step_wasmmeasure_build",
+    "original_body": "  cd \"$wasm\"\n  stage wasmmeasure-build \"$qualification_go\" build -trimpath=false -o \"$QUAL_ROOT/bin/wasmmeasure\" ./cmd/wasmmeasure\n  atomic_output \"$QUAL_ROOT/wasmmeasure.sha256\" sha256sum -- \"$QUAL_ROOT/bin/wasmmeasure\"\n",
+    "required_subgates": [
+      "wasmmeasure-build"
+    ],
+    "repetitions": 1
+  },
+  {
+    "label": "terminal-controls",
+    "original_function": "step_terminal_controls",
+    "original_body": "  cd \"$wasm\"\n  stage terminal-controls \"$qualification_go\" test -v -tags test_dep -count=1 -timeout=15m -run '^TestTerminalExit' ./wasi\n",
+    "required_subgates": [
+      "TestTerminalExitAuthorizationMismatchAfterStarted",
+      "TestTerminalExitExpiredContextDoesNotLaunchHelper",
+      "TestTerminalExitMeasurementControls",
+      "TestTerminalExitMeasurementSendsCapturedInputsBeforeStarted",
+      "TestTerminalExitObserverReceivesCompleteAcceptedFrameBeforeValidation"
+    ],
+    "repetitions": 1
+  },
+  {
+    "label": "helper-build",
+    "original_function": "step_helper_build",
+    "original_body": "  cd \"$wasm\"\n  # This producer owns pinned Cargo/rustc provenance, no wrappers, empty features,\n  # raw build capture and the single-link immutable helper admission receipt.\n  export GOMAD_WASM_TERMINAL_EXIT_HELPER_BUILD_ROOT=\"$QUAL_ROOT/helper-build\"\n  stage helper-build clean_measure 60m terminal-exit-helper-build --terminal-exit-helper-build-root \"$QUAL_ROOT/helper-build\"\n  unset GOMAD_WASM_TERMINAL_EXIT_HELPER_BUILD_ROOT\n  one_path helper_admission \"$QUAL_ROOT/helper-build\" helper-admission.json\n  admitted_helper=\"$(jq -er '.Helper' \"$helper_admission\")\"\n  expected_helper=\"$(jq -er '.HelperSHA256' \"$helper_admission\")\"\n  test \"$(digest_file \"$admitted_helper\")\" = \"$expected_helper\"\n  mkdir -p \"$(dirname \"$installed_helper\")\"\n  if [[ -e \"$installed_helper\" ]]; then\n    test -f \"$installed_helper\" && test ! -L \"$installed_helper\"\n    cp -p -- \"$installed_helper\" \"$QUAL_ROOT/previous-installed-helper\"\n  fi\n  install_tmp=\"$(mktemp \"$(dirname \"$installed_helper\")/qualification-helper.XXXXXX\")\"\n  cp -- \"$admitted_helper\" \"$install_tmp\"\n  chmod 755 \"$install_tmp\"\n  cmp \"$admitted_helper\" \"$install_tmp\"\n  mv -f -- \"$install_tmp\" \"$installed_helper\"\n  atomic_output \"$QUAL_ROOT/helper.sha256\" sha256sum -- \"$installed_helper\" \"$admitted_helper\"\n  atomic_output \"$QUAL_ROOT/state/helper.env\" printf 'expected_helper=%q\\nadmitted_helper=%q\\nhelper_admission=%q\\n' \\\n    \"$expected_helper\" \"$admitted_helper\" \"$helper_admission\"\n  helper_ready=true\n  check_source\n",
+    "required_subgates": [
+      "helper-build"
+    ],
+    "repetitions": 1
+  },
+  {
+    "label": "conformance-helper-build",
+    "original_function": "step_conformance_helper_build",
+    "original_body": "  # Independent of the release helper's bytes, so it builds next to\n  # helper-build; installation and the distinct-file check follow both builds\n  # (ordinary-helper-publication), as in the serial order.\n  cd \"$wasm\"\n  export GOMAD_WASM_TEST_HELPER=\"$installed_helper\"\n  stage conformance-helper-build cargo +1.99.1 build --manifest-path wasmhost/Cargo.toml --release --locked \\\n    --no-default-features --features conformance --target-dir \"$scratch/conformance-target\"\n",
+    "required_subgates": [
+      "conformance-helper-build"
+    ],
+    "repetitions": 1
+  },
+  {
+    "label": "ordinary-helper-publication",
+    "original_function": "step_ordinary_helper_publication",
+    "original_body": "  cd \"$wasm\"\n  test \"$helper_ready\" = true\n  mkdir -p \"$QUAL_ROOT/helpers/conformance\"\n  install -m 755 \"$scratch/conformance-target/release/gomad-wasmhost\" \"$QUAL_ROOT/helpers/conformance/gomad-wasmhost\"\n  cmp \"$scratch/conformance-target/release/gomad-wasmhost\" \"$QUAL_ROOT/helpers/conformance/gomad-wasmhost\"\n  rm -rf -- \"${scratch:?}/conformance-target\"\n  env_helper\n  python3 \"$driver_dir/helper-files.py\" \"$installed_helper\" \"$admitted_helper\" \"$GOMAD_WASM_CONFORMANCE_HELPER\"\n  atomic_output \"$QUAL_ROOT/conformance-helper.sha256\" sha256sum -- \"$GOMAD_WASM_CONFORMANCE_HELPER\"\n  stage ordinary-helper-publication publish_ordinary_helper\n",
+    "required_subgates": [
+      "ordinary-helper-publication"
+    ],
+    "repetitions": 1
+  },
+  {
+    "label": "ordinary",
+    "original_function": "step_ordinary",
+    "original_body": "  cd \"$module\"; env_helper\n  stage ordinary make test-wasm \"GOMAD_STOCK_GO=$qualification_go\"\n",
+    "required_subgates": [
+      "TestNamespaceConformanceCorpus"
+    ],
+    "repetitions": 1
+  },
+  {
+    "label": "retained-durable-restart",
+    "original_function": "step_retained_durable_restart",
+    "original_body": "  cd \"$wasm\"; env_helper\n  named_test retained-durable-restart TestProviderActualCrashDurableRestart 15m ./cluster\n",
+    "required_subgates": [
+      "TestProviderActualCrashDurableRestart"
+    ],
+    "repetitions": 1
+  },
+  {
+    "label": "cluster-provider",
+    "original_function": "step_cluster_provider",
+    "original_body": "  cd \"$wasm\"; env_helper\n  stage cluster-provider \"$qualification_go\" test -v -tags test_dep -count=1 -timeout=30m ./cluster\n",
+    "required_subgates": [
+      "TestBinaryWorldEvidenceUsesSharedOwnerDecoder",
+      "TestBoundRetainedReplayRejectsBeforeWritingInputs",
+      "TestBrokerWorldUsesBinaryOwnerCodec",
+      "TestClockConformanceCorpusIsCurrent",
+      "TestClockConformanceDriftPinIsCurrent",
+      "TestClockConformanceGenerationIsDeterministic",
+      "TestClusterShutdownBoundsFinishedClusterByExecutionDeadline",
+      "TestCompletedResultsDetachMutableObservationAndCostSurfaces",
+      "TestCompletedSummariesDetachCountersWithoutEvidencePayloads",
+      "TestCompressedWorldOwnerMeasuredCardinality",
+      "TestExplicitWorldProfileRequiresExplicitCapacities",
+      "TestHistoryObservationRejectsAmbiguousInputs",
+      "TestImplementationIdentityBindsInspectionOwners",
+      "TestInspectionCapacityRetainsTemporalScaleBoundariesAndEffects",
+      "TestInspectionChoiceMappingUsesDecisionsRatherThanObservations",
+      "TestInspectionChoiceMappingUsesPredecisionCoordinateForCreationSites",
+      "TestInspectionControlAuthenticatesRawCutAndRegistry",
+      "TestInspectionControlRefusesUnregisteredAndIncompleteBeforeReplay",
+      "TestInspectionInterruptedSelectPrefixKeepsDecisionMapping",
+      "TestInspectionNetworkRawStreamBindsCanonicalIdentity",
+      "TestInspectionSearchBisectDeclaresConditionalityAndRejectsObservedReversal",
+      "TestInspectionSearchBudgetsAndPredicateErrorsStayInconclusive",
+      "TestInspectionSearchRejectsRequestsBeforeEvaluation",
+      "TestInspectionSearchScanDoesNotSkipRecoveredFailures",
+      "TestInspectionSearchWallBoundIncludesEvaluatorCleanup",
+      "TestMarkerBoundaryPreservesSelectedCapacityAndPriorErrors",
+      "TestOpenClusterRecordsHelperExecutionDeadline",
+      "TestOperatorAcceptsDeclaredStorageCrash",
+      "TestOperatorArgumentsSurviveNormalization",
+      "TestOperatorStopsActionsAfterFailedWait",
+      "TestOperatorStrictPreflight",
+      "TestProviderActualCrashDurableRestart",
+      "TestProviderBindsEverySelectedBootNetworkLimit",
+      "TestProviderCanceledSplitRevocationCancelsAndReaps",
+      "TestProviderClusterStartsOnlyRequestedIncarnations",
+      "TestProviderCompressedIndependentGuestsLifecycleReplay",
+      "TestProviderDetachedOracleCanarySourceLessReplay",
+      "TestProviderGroupedAcknowledgmentCrashSourceLessReplay",
+      "TestProviderIndependentGuestsLifecycleReplay",
+      "TestProviderMandatoryCleanupReapsWithoutLifecycleActions",
+      "TestProviderOutputCrashKeepsItsExistingBoundary",
+      "TestProviderStopReapsGuestAndPeerContinues",
+      "TestProviderStorageCrashRequiresActualDurableBoundary",
+      "TestProviderUnboundRevocationOfSplitStorageNodeRestarts",
+      "TestRejectedRestartLeavesNoUnownedBrokerSession",
+      "TestRetainedAdmissionConsumesPrivateInputsOnlyOnce",
+      "TestRetainedCanonicalDecodeAvoidsWholeBundleEncodingAllocation",
+      "TestRetainedCanonicalWriterChecksEveryWriteAndBase64Close",
+      "TestRetainedCanonicalWriterMatchesAllDeclaredFields",
+      "TestRetainedDecodeAcceptsOrdinarySpellingsAndRejectsStrictInput",
+      "TestRetainedDecoderAcceptsSharedCampaignPayloadPath",
+      "TestRetainedLifecycleRejectsHostCallbacksBeforeReplay",
+      "TestRetainedOrdinarySpellingKeepsRawAuthenticationAndPresence",
+      "TestRetainedPrimaryBindingRejectsMissingAndForeignModules",
+      "TestRetainedReplayRejectsTamperedOrMismatchedTargetModule",
+      "TestRetainedReplayRequiresTheInstalledHelper",
+      "TestRetainedSchemaV1IsRefusedWithVersionedError",
+      "TestRetainedStorageSelectionProjectionIsDetached",
+      "TestRetentionCapacityPreflightUsesEncodedLowerBound",
+      "TestSQLiteObservationUsesFreshFixedLines",
+      "TestSQLiteObservationsForwardToNativeOracleOwner",
+      "TestSQLiteOraclePlanRequiresSealedIntent",
+      "TestSoftAssertionActualClusterGuestAndRetainedReplay",
+      "TestSoftAssertionActualClusterOutputCapacityRemainsInfrastructureFailure",
+      "TestSoftAssertionCapacityPrecedesFinalizationErrors",
+      "TestSoftAssertionClusterCapacityCountersNeverProveCompleteness",
+      "TestSoftAssertionClusterOptOutRequiresRecordedTestWorkload",
+      "TestSoftAssertionIncompleteClusterEvidenceIsInconclusive",
+      "TestSoftAssertionOutputCapacityAnnotationDoesNotBroadenOtherFailures",
+      "TestSoftAssertionRetainedEvidenceRequiresActualOutput",
+      "TestSoftAssertionRetainedLiteralBracesRederiveCompleteMessage",
+      "TestSoftAssertionRetainedTruncatedOutputIsInconclusive",
+      "TestStorageCrashBoundOnlyByCrashBefore",
+      "TestStressRetainedReopenPreservesBoundInputsAndRestoresHostOptIn",
+      "TestWorldConformanceCorpusIsCurrent",
+      "TestWorldConformanceDriftPinIsCurrent",
+      "TestWorldConformanceFinalWireRoundTrips",
+      "TestWorldOwnerCodecMeasuredCardinality"
+    ],
+    "repetitions": 1
+  },
+  {
+    "label": "cluster-functional",
+    "original_function": "step_cluster_functional",
+    "original_body": "  cd \"$wasm\"; env_helper\n  stage cluster-functional \"$qualification_go\" test -v -tags test_dep -count=1 -timeout=30m \\\n    -run 'TestCluster|TestBrokerOrders|TestWorld|TestClock|TestStorageCrash|TestImplementationIdentity' ./wasi\n",
+    "required_subgates": [
+      "TestBrokerOrdersAreCurrent",
+      "TestBrokerOrdersRustNetworkEvidenceRebuildsGoDocuments",
+      "TestClusterBootAdmitsStorageCrashSelectionBeforeSealing",
+      "TestClusterBrokerDurableRestartParity",
+      "TestClusterEventOrderAccessorIsDetached",
+      "TestClusterFinishPreservesSessionWithLiveIncarnations",
+      "TestClusterFinishWaitsForInspectionCleanup",
+      "TestClusterHostTerminationStatus",
+      "TestClusterInspectedPrefixRequiresRequestedSealedInstance",
+      "TestClusterInspectionAbortsNeighborsWithoutCompletingTheirTapes",
+      "TestClusterInspectionMetadataDoesNotReplaceWorldEvidence",
+      "TestClusterInternalDeadlineIsWatchdog",
+      "TestClusterNetworkDecoderRefusesMalformedEvidence",
+      "TestClusterNetworkFrameRefusesWhatTheGoBrokerRefuses",
+      "TestClusterNetworkRustEvidenceRebuildsTheGoBrokerDocument",
+      "TestClusterOutputBoundaryParity",
+      "TestClusterPreservesWholeRunInfrastructureFailure",
+      "TestClusterProtocolFailureIsNotCancellation",
+      "TestClusterRefusedRestartLeavesIncarnationRetryable",
+      "TestClusterRejectsGuestCallbacks",
+      "TestClusterRejectsResultWithoutModelEvidence",
+      "TestClusterRejectsUnattributableFrames",
+      "TestClusterRetentionRefusesGoServedCalls",
+      "TestClusterShutdownControlOrder",
+      "TestClusterShutdownLiveNodesEvidenceOrder",
+      "TestClusterShutdownWaitsForObservedFailureDrain",
+      "TestClusterStartAndObserveLeaveControllerPaused",
+      "TestClusterTransportCodecCorpus",
+      "TestClusterTransportCodecCorpusIsCurrent",
+      "TestClusterTransportCodecLiteralStageGuards",
+      "TestClusterTransportStageCorpus",
+      "TestClusterTransportStageCorpusIsCurrent",
+      "TestClusterTransportStageLiteralGuards",
+      "TestClusterWaitSerializesTurnsWithoutBlockingLiveControls",
+      "TestImplementationIdentityBindsCompiledModelDigest",
+      "TestImplementationIdentityBindsStorageEvidenceSources",
+      "TestImplementationIdentityBindsStrictJSONOwner",
+      "TestImplementationIdentityFailsClosedOnMissingSource",
+      "TestStorageCrashContextAdmission",
+      "TestStorageCrashContextEqualIsExact",
+      "TestStorageCrashContextEvidenceRefusal",
+      "TestStorageCrashContextLargeChunkTransport",
+      "TestStorageCrashContextLargeObservedSelection",
+      "TestStorageCrashContextSelectedOwnersAndDivergence",
+      "TestStorageCrashValidationOrderCorpus",
+      "TestStorageCrashValidationVolumeOrder"
+    ],
+    "repetitions": 1
+  },
+  {
+    "label": "busy-boundaries",
+    "original_function": "step_busy_boundaries",
+    "original_body": "  cd \"$wasm\"; env_helper\n  stage busy-boundaries busy12 \"$qualification_go\" test -v -tags test_dep -count=1 -timeout=30m \\\n    -run '^(TestClusterOutputBoundaryParity|TestClusterBrokerDurableRestartParity)$' ./wasi\n",
+    "required_subgates": [
+      "TestClusterBrokerDurableRestartParity",
+      "TestClusterOutputBoundaryParity"
+    ],
+    "repetitions": 1
+  },
+  {
+    "label": "busy-grouped",
+    "original_function": "step_busy_grouped",
+    "original_body": "  cd \"$wasm\"; env_helper\n  stage busy-grouped busy12 \"$qualification_go\" test -v -tags test_dep -count=10 -timeout=30m \\\n    -run '^TestProviderGroupedAcknowledgmentCrashSourceLessReplay$' ./cluster\n",
+    "required_subgates": [
+      "TestProviderGroupedAcknowledgmentCrashSourceLessReplay"
+    ],
+    "repetitions": 10
+  },
+  {
+    "label": "network-streams",
+    "original_function": "step_network_streams",
+    "original_body": "  cd \"$wasm\"; env_helper\n  export GOMAD_WASM_TEMPORAL_RECOVERY_ROOT=\"$QUAL_ROOT/network-streams\"\n  named_test network-streams TestBrokerIndependentGuestStreamsReplay 30m ./wasi\n  unset GOMAD_WASM_TEMPORAL_RECOVERY_ROOT\n  jq -e --arg helper \"$expected_helper\" '.network_owner == \"rust-cluster\" and (.network_owner_implementation_sha256 == $helper or .network_owner_implementation_sha256 == (\"sha256:\" + $helper)) and\n    .reference_network_owner == \"go-broker-reference\" and .distinct_choice_traces >= 2' \"$QUAL_ROOT/network-streams/broker-network-streams-report.json\" > /dev/null\n",
+    "required_subgates": [
+      "TestBrokerIndependentGuestStreamsReplay"
+    ],
+    "repetitions": 1
+  },
+  {
+    "label": "retained-cluster",
+    "original_function": "step_retained_cluster",
+    "original_body": "  cd \"$wasm\"; env_helper\n  stage retained-cluster \"$qualification_go\" test -v -tags test_dep -count=1 -timeout=30m -run 'Retained|Replay' ./cluster\n",
+    "required_subgates": [
+      "TestBoundRetainedReplayRejectsBeforeWritingInputs",
+      "TestInspectionControlRefusesUnregisteredAndIncompleteBeforeReplay",
+      "TestProviderCompressedIndependentGuestsLifecycleReplay",
+      "TestProviderDetachedOracleCanarySourceLessReplay",
+      "TestProviderGroupedAcknowledgmentCrashSourceLessReplay",
+      "TestProviderIndependentGuestsLifecycleReplay",
+      "TestRetainedAdmissionConsumesPrivateInputsOnlyOnce",
+      "TestRetainedCanonicalDecodeAvoidsWholeBundleEncodingAllocation",
+      "TestRetainedCanonicalWriterChecksEveryWriteAndBase64Close",
+      "TestRetainedCanonicalWriterMatchesAllDeclaredFields",
+      "TestRetainedDecodeAcceptsOrdinarySpellingsAndRejectsStrictInput",
+      "TestRetainedDecoderAcceptsSharedCampaignPayloadPath",
+      "TestRetainedLifecycleRejectsHostCallbacksBeforeReplay",
+      "TestRetainedOrdinarySpellingKeepsRawAuthenticationAndPresence",
+      "TestRetainedPrimaryBindingRejectsMissingAndForeignModules",
+      "TestRetainedReplayRejectsTamperedOrMismatchedTargetModule",
+      "TestRetainedReplayRequiresTheInstalledHelper",
+      "TestRetainedSchemaV1IsRefusedWithVersionedError",
+      "TestRetainedStorageSelectionProjectionIsDetached",
+      "TestSoftAssertionActualClusterGuestAndRetainedReplay",
+      "TestSoftAssertionRetainedEvidenceRequiresActualOutput",
+      "TestSoftAssertionRetainedLiteralBracesRederiveCompleteMessage",
+      "TestSoftAssertionRetainedTruncatedOutputIsInconclusive",
+      "TestStressRetainedReopenPreservesBoundInputsAndRestoresHostOptIn"
+    ],
+    "repetitions": 1
+  },
+  {
+    "label": "terminal-module",
+    "original_function": "step_terminal_module",
+    "original_body": "  cd \"$wasm\"; env_helper\n  export GOMAD_WASM_TERMINAL_EXIT_PREPARE_ROOT=\"$QUAL_ROOT/terminal-module\"\n  named_test terminal-module TestPrepareTemporalTerminalExitModule 60m ./backend\n  unset GOMAD_WASM_TERMINAL_EXIT_PREPARE_ROOT\n  one_path module_receipt \"$QUAL_ROOT/terminal-module\" temporal-producer.json\n  atomic_output \"$QUAL_ROOT/state/module-receipt.path\" printf '%s\\n' \"$module_receipt\"\n",
+    "required_subgates": [
+      "TestPrepareTemporalTerminalExitModule"
+    ],
+    "repetitions": 1
+  },
+  {
+    "label": "terminal-host-admission",
+    "original_function": "step_terminal_host_admission",
+    "original_body": "  cd \"$wasm\"; env_terminal_exit\n  capture_host_cpu terminal-host\n  named_test terminal-host-admission TestDiagnosticPerformanceCurrentHostAdmission 15m ./internal/measure\n  jq -n --arg head \"$expected_head\" --arg source \"sha256:$expected_source\" \\\n    --arg helper \"sha256:$expected_helper\" --arg module \"$(digest_file \"$GOMAD_WASM_TERMINAL_EXIT_MODULE\")\" \\\n    --arg cpu \"$(digest_file \"$QUAL_ROOT/terminal-host-cpuinfo.txt\")\" \\\n    --arg receipt \"$module_receipt\" --arg admission \"$helper_admission\" \\\n    '{source_revision:$head,source_manifest_sha256:$source,helper_sha256:$helper,module_sha256:(\"sha256:\"+$module),\n      cpuinfo_sha256:(\"sha256:\"+$cpu),module_receipt:$receipt,helper_admission:$admission,\n      required_host:\"linux/arm64\",cpuinfo_byte_limit:1048576}' > \"$QUAL_ROOT/terminal-host-binding.json\"\n",
+    "required_subgates": [
+      "TestDiagnosticPerformanceCurrentHostAdmission"
+    ],
+    "repetitions": 1
+  },
+  {
+    "label": "terminal-exit",
+    "original_function": "step_terminal_exit",
+    "original_body": "  cd \"$wasm\"; env_terminal_exit\n  stage terminal-exit clean_measure 60m terminal-exit \\\n    --stock-go \"$qualification_go\" --test-helper \"$admitted_helper\" \\\n    --terminal-exit-root \"$QUAL_ROOT/terminal-exit\" \\\n    --terminal-exit-helper-receipt \"$helper_admission\" \\\n    --terminal-exit-module \"$GOMAD_WASM_TERMINAL_EXIT_MODULE\" \\\n    --terminal-exit-module-receipt \"$module_receipt\"\n  sha256sum -c \"$QUAL_ROOT/terminal-host-cpuinfo.sha256\" > /dev/null\n  prune_bulk \"$QUAL_ROOT/terminal-module\" terminal-module\n  prune_bulk \"$QUAL_ROOT/terminal-exit\" terminal-exit\n",
+    "required_subgates": [
+      "terminal-exit"
+    ],
+    "repetitions": 1
+  },
+  {
+    "label": "runtime-0",
+    "original_function": "step_runtime",
+    "original_body": "  local index=\"$1\"\n  cd \"$wasm\"; env_integrated\n  [[ \"$index\" =~ ^([0-9]|[12][0-9]|3[01])$ ]]\n  export GOMAD_WASM_QUALIFICATION_ROOT=\"$QUAL_ROOT/runtime\"\n  export GOMAD_WASM_QUALIFICATION_INDEX=\"$index\"\n  named_test \"runtime-$index\" TestCooperativeRuntimeQualification 10m ./wasi\n",
+    "required_subgates": [
+      "TestCooperativeRuntimeQualification"
+    ],
+    "repetitions": 1
+  },
+  {
+    "label": "runtime-1",
+    "original_function": "step_runtime",
+    "original_body": "  local index=\"$1\"\n  cd \"$wasm\"; env_integrated\n  [[ \"$index\" =~ ^([0-9]|[12][0-9]|3[01])$ ]]\n  export GOMAD_WASM_QUALIFICATION_ROOT=\"$QUAL_ROOT/runtime\"\n  export GOMAD_WASM_QUALIFICATION_INDEX=\"$index\"\n  named_test \"runtime-$index\" TestCooperativeRuntimeQualification 10m ./wasi\n",
+    "required_subgates": [
+      "TestCooperativeRuntimeQualification"
+    ],
+    "repetitions": 1
+  },
+  {
+    "label": "runtime-2",
+    "original_function": "step_runtime",
+    "original_body": "  local index=\"$1\"\n  cd \"$wasm\"; env_integrated\n  [[ \"$index\" =~ ^([0-9]|[12][0-9]|3[01])$ ]]\n  export GOMAD_WASM_QUALIFICATION_ROOT=\"$QUAL_ROOT/runtime\"\n  export GOMAD_WASM_QUALIFICATION_INDEX=\"$index\"\n  named_test \"runtime-$index\" TestCooperativeRuntimeQualification 10m ./wasi\n",
+    "required_subgates": [
+      "TestCooperativeRuntimeQualification"
+    ],
+    "repetitions": 1
+  },
+  {
+    "label": "runtime-3",
+    "original_function": "step_runtime",
+    "original_body": "  local index=\"$1\"\n  cd \"$wasm\"; env_integrated\n  [[ \"$index\" =~ ^([0-9]|[12][0-9]|3[01])$ ]]\n  export GOMAD_WASM_QUALIFICATION_ROOT=\"$QUAL_ROOT/runtime\"\n  export GOMAD_WASM_QUALIFICATION_INDEX=\"$index\"\n  named_test \"runtime-$index\" TestCooperativeRuntimeQualification 10m ./wasi\n",
+    "required_subgates": [
+      "TestCooperativeRuntimeQualification"
+    ],
+    "repetitions": 1
+  },
+  {
+    "label": "runtime-4",
+    "original_function": "step_runtime",
+    "original_body": "  local index=\"$1\"\n  cd \"$wasm\"; env_integrated\n  [[ \"$index\" =~ ^([0-9]|[12][0-9]|3[01])$ ]]\n  export GOMAD_WASM_QUALIFICATION_ROOT=\"$QUAL_ROOT/runtime\"\n  export GOMAD_WASM_QUALIFICATION_INDEX=\"$index\"\n  named_test \"runtime-$index\" TestCooperativeRuntimeQualification 10m ./wasi\n",
+    "required_subgates": [
+      "TestCooperativeRuntimeQualification"
+    ],
+    "repetitions": 1
+  },
+  {
+    "label": "runtime-5",
+    "original_function": "step_runtime",
+    "original_body": "  local index=\"$1\"\n  cd \"$wasm\"; env_integrated\n  [[ \"$index\" =~ ^([0-9]|[12][0-9]|3[01])$ ]]\n  export GOMAD_WASM_QUALIFICATION_ROOT=\"$QUAL_ROOT/runtime\"\n  export GOMAD_WASM_QUALIFICATION_INDEX=\"$index\"\n  named_test \"runtime-$index\" TestCooperativeRuntimeQualification 10m ./wasi\n",
+    "required_subgates": [
+      "TestCooperativeRuntimeQualification"
+    ],
+    "repetitions": 1
+  },
+  {
+    "label": "runtime-6",
+    "original_function": "step_runtime",
+    "original_body": "  local index=\"$1\"\n  cd \"$wasm\"; env_integrated\n  [[ \"$index\" =~ ^([0-9]|[12][0-9]|3[01])$ ]]\n  export GOMAD_WASM_QUALIFICATION_ROOT=\"$QUAL_ROOT/runtime\"\n  export GOMAD_WASM_QUALIFICATION_INDEX=\"$index\"\n  named_test \"runtime-$index\" TestCooperativeRuntimeQualification 10m ./wasi\n",
+    "required_subgates": [
+      "TestCooperativeRuntimeQualification"
+    ],
+    "repetitions": 1
+  },
+  {
+    "label": "runtime-7",
+    "original_function": "step_runtime",
+    "original_body": "  local index=\"$1\"\n  cd \"$wasm\"; env_integrated\n  [[ \"$index\" =~ ^([0-9]|[12][0-9]|3[01])$ ]]\n  export GOMAD_WASM_QUALIFICATION_ROOT=\"$QUAL_ROOT/runtime\"\n  export GOMAD_WASM_QUALIFICATION_INDEX=\"$index\"\n  named_test \"runtime-$index\" TestCooperativeRuntimeQualification 10m ./wasi\n",
+    "required_subgates": [
+      "TestCooperativeRuntimeQualification"
+    ],
+    "repetitions": 1
+  },
+  {
+    "label": "runtime-8",
+    "original_function": "step_runtime",
+    "original_body": "  local index=\"$1\"\n  cd \"$wasm\"; env_integrated\n  [[ \"$index\" =~ ^([0-9]|[12][0-9]|3[01])$ ]]\n  export GOMAD_WASM_QUALIFICATION_ROOT=\"$QUAL_ROOT/runtime\"\n  export GOMAD_WASM_QUALIFICATION_INDEX=\"$index\"\n  named_test \"runtime-$index\" TestCooperativeRuntimeQualification 10m ./wasi\n",
+    "required_subgates": [
+      "TestCooperativeRuntimeQualification"
+    ],
+    "repetitions": 1
+  },
+  {
+    "label": "runtime-9",
+    "original_function": "step_runtime",
+    "original_body": "  local index=\"$1\"\n  cd \"$wasm\"; env_integrated\n  [[ \"$index\" =~ ^([0-9]|[12][0-9]|3[01])$ ]]\n  export GOMAD_WASM_QUALIFICATION_ROOT=\"$QUAL_ROOT/runtime\"\n  export GOMAD_WASM_QUALIFICATION_INDEX=\"$index\"\n  named_test \"runtime-$index\" TestCooperativeRuntimeQualification 10m ./wasi\n",
+    "required_subgates": [
+      "TestCooperativeRuntimeQualification"
+    ],
+    "repetitions": 1
+  },
+  {
+    "label": "runtime-10",
+    "original_function": "step_runtime",
+    "original_body": "  local index=\"$1\"\n  cd \"$wasm\"; env_integrated\n  [[ \"$index\" =~ ^([0-9]|[12][0-9]|3[01])$ ]]\n  export GOMAD_WASM_QUALIFICATION_ROOT=\"$QUAL_ROOT/runtime\"\n  export GOMAD_WASM_QUALIFICATION_INDEX=\"$index\"\n  named_test \"runtime-$index\" TestCooperativeRuntimeQualification 10m ./wasi\n",
+    "required_subgates": [
+      "TestCooperativeRuntimeQualification"
+    ],
+    "repetitions": 1
+  },
+  {
+    "label": "runtime-11",
+    "original_function": "step_runtime",
+    "original_body": "  local index=\"$1\"\n  cd \"$wasm\"; env_integrated\n  [[ \"$index\" =~ ^([0-9]|[12][0-9]|3[01])$ ]]\n  export GOMAD_WASM_QUALIFICATION_ROOT=\"$QUAL_ROOT/runtime\"\n  export GOMAD_WASM_QUALIFICATION_INDEX=\"$index\"\n  named_test \"runtime-$index\" TestCooperativeRuntimeQualification 10m ./wasi\n",
+    "required_subgates": [
+      "TestCooperativeRuntimeQualification"
+    ],
+    "repetitions": 1
+  },
+  {
+    "label": "runtime-12",
+    "original_function": "step_runtime",
+    "original_body": "  local index=\"$1\"\n  cd \"$wasm\"; env_integrated\n  [[ \"$index\" =~ ^([0-9]|[12][0-9]|3[01])$ ]]\n  export GOMAD_WASM_QUALIFICATION_ROOT=\"$QUAL_ROOT/runtime\"\n  export GOMAD_WASM_QUALIFICATION_INDEX=\"$index\"\n  named_test \"runtime-$index\" TestCooperativeRuntimeQualification 10m ./wasi\n",
+    "required_subgates": [
+      "TestCooperativeRuntimeQualification"
+    ],
+    "repetitions": 1
+  },
+  {
+    "label": "runtime-13",
+    "original_function": "step_runtime",
+    "original_body": "  local index=\"$1\"\n  cd \"$wasm\"; env_integrated\n  [[ \"$index\" =~ ^([0-9]|[12][0-9]|3[01])$ ]]\n  export GOMAD_WASM_QUALIFICATION_ROOT=\"$QUAL_ROOT/runtime\"\n  export GOMAD_WASM_QUALIFICATION_INDEX=\"$index\"\n  named_test \"runtime-$index\" TestCooperativeRuntimeQualification 10m ./wasi\n",
+    "required_subgates": [
+      "TestCooperativeRuntimeQualification"
+    ],
+    "repetitions": 1
+  },
+  {
+    "label": "runtime-14",
+    "original_function": "step_runtime",
+    "original_body": "  local index=\"$1\"\n  cd \"$wasm\"; env_integrated\n  [[ \"$index\" =~ ^([0-9]|[12][0-9]|3[01])$ ]]\n  export GOMAD_WASM_QUALIFICATION_ROOT=\"$QUAL_ROOT/runtime\"\n  export GOMAD_WASM_QUALIFICATION_INDEX=\"$index\"\n  named_test \"runtime-$index\" TestCooperativeRuntimeQualification 10m ./wasi\n",
+    "required_subgates": [
+      "TestCooperativeRuntimeQualification"
+    ],
+    "repetitions": 1
+  },
+  {
+    "label": "runtime-15",
+    "original_function": "step_runtime",
+    "original_body": "  local index=\"$1\"\n  cd \"$wasm\"; env_integrated\n  [[ \"$index\" =~ ^([0-9]|[12][0-9]|3[01])$ ]]\n  export GOMAD_WASM_QUALIFICATION_ROOT=\"$QUAL_ROOT/runtime\"\n  export GOMAD_WASM_QUALIFICATION_INDEX=\"$index\"\n  named_test \"runtime-$index\" TestCooperativeRuntimeQualification 10m ./wasi\n",
+    "required_subgates": [
+      "TestCooperativeRuntimeQualification"
+    ],
+    "repetitions": 1
+  },
+  {
+    "label": "runtime-16",
+    "original_function": "step_runtime",
+    "original_body": "  local index=\"$1\"\n  cd \"$wasm\"; env_integrated\n  [[ \"$index\" =~ ^([0-9]|[12][0-9]|3[01])$ ]]\n  export GOMAD_WASM_QUALIFICATION_ROOT=\"$QUAL_ROOT/runtime\"\n  export GOMAD_WASM_QUALIFICATION_INDEX=\"$index\"\n  named_test \"runtime-$index\" TestCooperativeRuntimeQualification 10m ./wasi\n",
+    "required_subgates": [
+      "TestCooperativeRuntimeQualification"
+    ],
+    "repetitions": 1
+  },
+  {
+    "label": "runtime-17",
+    "original_function": "step_runtime",
+    "original_body": "  local index=\"$1\"\n  cd \"$wasm\"; env_integrated\n  [[ \"$index\" =~ ^([0-9]|[12][0-9]|3[01])$ ]]\n  export GOMAD_WASM_QUALIFICATION_ROOT=\"$QUAL_ROOT/runtime\"\n  export GOMAD_WASM_QUALIFICATION_INDEX=\"$index\"\n  named_test \"runtime-$index\" TestCooperativeRuntimeQualification 10m ./wasi\n",
+    "required_subgates": [
+      "TestCooperativeRuntimeQualification"
+    ],
+    "repetitions": 1
+  },
+  {
+    "label": "runtime-18",
+    "original_function": "step_runtime",
+    "original_body": "  local index=\"$1\"\n  cd \"$wasm\"; env_integrated\n  [[ \"$index\" =~ ^([0-9]|[12][0-9]|3[01])$ ]]\n  export GOMAD_WASM_QUALIFICATION_ROOT=\"$QUAL_ROOT/runtime\"\n  export GOMAD_WASM_QUALIFICATION_INDEX=\"$index\"\n  named_test \"runtime-$index\" TestCooperativeRuntimeQualification 10m ./wasi\n",
+    "required_subgates": [
+      "TestCooperativeRuntimeQualification"
+    ],
+    "repetitions": 1
+  },
+  {
+    "label": "runtime-19",
+    "original_function": "step_runtime",
+    "original_body": "  local index=\"$1\"\n  cd \"$wasm\"; env_integrated\n  [[ \"$index\" =~ ^([0-9]|[12][0-9]|3[01])$ ]]\n  export GOMAD_WASM_QUALIFICATION_ROOT=\"$QUAL_ROOT/runtime\"\n  export GOMAD_WASM_QUALIFICATION_INDEX=\"$index\"\n  named_test \"runtime-$index\" TestCooperativeRuntimeQualification 10m ./wasi\n",
+    "required_subgates": [
+      "TestCooperativeRuntimeQualification"
+    ],
+    "repetitions": 1
+  },
+  {
+    "label": "runtime-20",
+    "original_function": "step_runtime",
+    "original_body": "  local index=\"$1\"\n  cd \"$wasm\"; env_integrated\n  [[ \"$index\" =~ ^([0-9]|[12][0-9]|3[01])$ ]]\n  export GOMAD_WASM_QUALIFICATION_ROOT=\"$QUAL_ROOT/runtime\"\n  export GOMAD_WASM_QUALIFICATION_INDEX=\"$index\"\n  named_test \"runtime-$index\" TestCooperativeRuntimeQualification 10m ./wasi\n",
+    "required_subgates": [
+      "TestCooperativeRuntimeQualification"
+    ],
+    "repetitions": 1
+  },
+  {
+    "label": "runtime-21",
+    "original_function": "step_runtime",
+    "original_body": "  local index=\"$1\"\n  cd \"$wasm\"; env_integrated\n  [[ \"$index\" =~ ^([0-9]|[12][0-9]|3[01])$ ]]\n  export GOMAD_WASM_QUALIFICATION_ROOT=\"$QUAL_ROOT/runtime\"\n  export GOMAD_WASM_QUALIFICATION_INDEX=\"$index\"\n  named_test \"runtime-$index\" TestCooperativeRuntimeQualification 10m ./wasi\n",
+    "required_subgates": [
+      "TestCooperativeRuntimeQualification"
+    ],
+    "repetitions": 1
+  },
+  {
+    "label": "runtime-22",
+    "original_function": "step_runtime",
+    "original_body": "  local index=\"$1\"\n  cd \"$wasm\"; env_integrated\n  [[ \"$index\" =~ ^([0-9]|[12][0-9]|3[01])$ ]]\n  export GOMAD_WASM_QUALIFICATION_ROOT=\"$QUAL_ROOT/runtime\"\n  export GOMAD_WASM_QUALIFICATION_INDEX=\"$index\"\n  named_test \"runtime-$index\" TestCooperativeRuntimeQualification 10m ./wasi\n",
+    "required_subgates": [
+      "TestCooperativeRuntimeQualification"
+    ],
+    "repetitions": 1
+  },
+  {
+    "label": "runtime-23",
+    "original_function": "step_runtime",
+    "original_body": "  local index=\"$1\"\n  cd \"$wasm\"; env_integrated\n  [[ \"$index\" =~ ^([0-9]|[12][0-9]|3[01])$ ]]\n  export GOMAD_WASM_QUALIFICATION_ROOT=\"$QUAL_ROOT/runtime\"\n  export GOMAD_WASM_QUALIFICATION_INDEX=\"$index\"\n  named_test \"runtime-$index\" TestCooperativeRuntimeQualification 10m ./wasi\n",
+    "required_subgates": [
+      "TestCooperativeRuntimeQualification"
+    ],
+    "repetitions": 1
+  },
+  {
+    "label": "runtime-24",
+    "original_function": "step_runtime",
+    "original_body": "  local index=\"$1\"\n  cd \"$wasm\"; env_integrated\n  [[ \"$index\" =~ ^([0-9]|[12][0-9]|3[01])$ ]]\n  export GOMAD_WASM_QUALIFICATION_ROOT=\"$QUAL_ROOT/runtime\"\n  export GOMAD_WASM_QUALIFICATION_INDEX=\"$index\"\n  named_test \"runtime-$index\" TestCooperativeRuntimeQualification 10m ./wasi\n",
+    "required_subgates": [
+      "TestCooperativeRuntimeQualification"
+    ],
+    "repetitions": 1
+  },
+  {
+    "label": "runtime-25",
+    "original_function": "step_runtime",
+    "original_body": "  local index=\"$1\"\n  cd \"$wasm\"; env_integrated\n  [[ \"$index\" =~ ^([0-9]|[12][0-9]|3[01])$ ]]\n  export GOMAD_WASM_QUALIFICATION_ROOT=\"$QUAL_ROOT/runtime\"\n  export GOMAD_WASM_QUALIFICATION_INDEX=\"$index\"\n  named_test \"runtime-$index\" TestCooperativeRuntimeQualification 10m ./wasi\n",
+    "required_subgates": [
+      "TestCooperativeRuntimeQualification"
+    ],
+    "repetitions": 1
+  },
+  {
+    "label": "runtime-26",
+    "original_function": "step_runtime",
+    "original_body": "  local index=\"$1\"\n  cd \"$wasm\"; env_integrated\n  [[ \"$index\" =~ ^([0-9]|[12][0-9]|3[01])$ ]]\n  export GOMAD_WASM_QUALIFICATION_ROOT=\"$QUAL_ROOT/runtime\"\n  export GOMAD_WASM_QUALIFICATION_INDEX=\"$index\"\n  named_test \"runtime-$index\" TestCooperativeRuntimeQualification 10m ./wasi\n",
+    "required_subgates": [
+      "TestCooperativeRuntimeQualification"
+    ],
+    "repetitions": 1
+  },
+  {
+    "label": "runtime-27",
+    "original_function": "step_runtime",
+    "original_body": "  local index=\"$1\"\n  cd \"$wasm\"; env_integrated\n  [[ \"$index\" =~ ^([0-9]|[12][0-9]|3[01])$ ]]\n  export GOMAD_WASM_QUALIFICATION_ROOT=\"$QUAL_ROOT/runtime\"\n  export GOMAD_WASM_QUALIFICATION_INDEX=\"$index\"\n  named_test \"runtime-$index\" TestCooperativeRuntimeQualification 10m ./wasi\n",
+    "required_subgates": [
+      "TestCooperativeRuntimeQualification"
+    ],
+    "repetitions": 1
+  },
+  {
+    "label": "runtime-28",
+    "original_function": "step_runtime",
+    "original_body": "  local index=\"$1\"\n  cd \"$wasm\"; env_integrated\n  [[ \"$index\" =~ ^([0-9]|[12][0-9]|3[01])$ ]]\n  export GOMAD_WASM_QUALIFICATION_ROOT=\"$QUAL_ROOT/runtime\"\n  export GOMAD_WASM_QUALIFICATION_INDEX=\"$index\"\n  named_test \"runtime-$index\" TestCooperativeRuntimeQualification 10m ./wasi\n",
+    "required_subgates": [
+      "TestCooperativeRuntimeQualification"
+    ],
+    "repetitions": 1
+  },
+  {
+    "label": "runtime-29",
+    "original_function": "step_runtime",
+    "original_body": "  local index=\"$1\"\n  cd \"$wasm\"; env_integrated\n  [[ \"$index\" =~ ^([0-9]|[12][0-9]|3[01])$ ]]\n  export GOMAD_WASM_QUALIFICATION_ROOT=\"$QUAL_ROOT/runtime\"\n  export GOMAD_WASM_QUALIFICATION_INDEX=\"$index\"\n  named_test \"runtime-$index\" TestCooperativeRuntimeQualification 10m ./wasi\n",
+    "required_subgates": [
+      "TestCooperativeRuntimeQualification"
+    ],
+    "repetitions": 1
+  },
+  {
+    "label": "runtime-30",
+    "original_function": "step_runtime",
+    "original_body": "  local index=\"$1\"\n  cd \"$wasm\"; env_integrated\n  [[ \"$index\" =~ ^([0-9]|[12][0-9]|3[01])$ ]]\n  export GOMAD_WASM_QUALIFICATION_ROOT=\"$QUAL_ROOT/runtime\"\n  export GOMAD_WASM_QUALIFICATION_INDEX=\"$index\"\n  named_test \"runtime-$index\" TestCooperativeRuntimeQualification 10m ./wasi\n",
+    "required_subgates": [
+      "TestCooperativeRuntimeQualification"
+    ],
+    "repetitions": 1
+  },
+  {
+    "label": "runtime-31",
+    "original_function": "step_runtime",
+    "original_body": "  local index=\"$1\"\n  cd \"$wasm\"; env_integrated\n  [[ \"$index\" =~ ^([0-9]|[12][0-9]|3[01])$ ]]\n  export GOMAD_WASM_QUALIFICATION_ROOT=\"$QUAL_ROOT/runtime\"\n  export GOMAD_WASM_QUALIFICATION_INDEX=\"$index\"\n  named_test \"runtime-$index\" TestCooperativeRuntimeQualification 10m ./wasi\n",
+    "required_subgates": [
+      "TestCooperativeRuntimeQualification"
+    ],
+    "repetitions": 1
+  },
+  {
+    "label": "runtime-aggregate",
+    "original_function": "step_runtime_aggregate",
+    "original_body": "  cd \"$wasm\"; env_integrated\n  export GOMAD_WASM_QUALIFICATION_ROOT=\"$QUAL_ROOT/runtime\"\n  named_test runtime-aggregate TestCooperativeRuntimeQualificationAggregate 15m ./wasi\n",
+    "required_subgates": [
+      "TestCooperativeRuntimeQualificationAggregate"
+    ],
+    "repetitions": 1
+  },
+  {
+    "label": "artifact",
+    "original_function": "step_artifact",
+    "original_body": "  cd \"$wasm\"; env_after_runtime\n  export GOMAD_WASM_TASK4_EVIDENCE_ROOT=\"$QUAL_ROOT/artifact\"\n  named_test artifact TestIntegratedFailureArtifactFreshObservedReplays 15m ./backend\n",
+    "required_subgates": [
+      "TestIntegratedFailureArtifactFreshObservedReplays"
+    ],
+    "repetitions": 1
+  },
+  {
+    "label": "operator",
+    "original_function": "step_operator",
+    "original_body": "  cd \"$wasm\"; env_after_runtime\n  named_test operator TestInstalledOperatorDiscoversInspectsAndReplaysWithoutBuildInputs 30m ./command\n",
+    "required_subgates": [
+      "TestInstalledOperatorDiscoversInspectsAndReplaysWithoutBuildInputs"
+    ],
+    "repetitions": 1
+  },
+  {
+    "label": "storage",
+    "original_function": "step_storage",
+    "original_body": "  cd \"$wasm\"; env_after_runtime\n  export GOMAD_WASM_TEMPORAL_RECOVERY_ROOT=\"$QUAL_ROOT/storage\"\n  named_test storage TestTemporalCommittedWorkflowFreshGuestCrashReopen 90m ./wasi\n  prune_bulk \"$QUAL_ROOT/storage\" storage\n",
+    "required_subgates": [
+      "TestTemporalCommittedWorkflowFreshGuestCrashReopen"
+    ],
+    "repetitions": 1
+  },
+  {
+    "label": "temporal-inspection",
+    "original_function": "step_temporal_inspection",
+    "original_body": "  cd \"$wasm\"; env_after_runtime\n  export GOMAD_WASM_TEMPORAL_RECOVERY_ROOT=\"$QUAL_ROOT/storage\"\n  export GOMAD_WASM_TEMPORAL_INSPECTION_ROOT=\"$QUAL_ROOT/inspection\"\n  named_test temporal-inspection TestTemporalInspectionRetainedFailure 90m ./backend\n  for owner in shard workflow onebox; do\n    rg -q \"^[[:space:]]+--- PASS: TestTemporalInspectionRetainedFailure/$owner \" \"$QUAL_ROOT/temporal-inspection.log\"\n  done\n  unset GOMAD_WASM_TEMPORAL_INSPECTION_ROOT\n  prune_bulk \"$QUAL_ROOT/inspection\" inspection\n",
+    "required_subgates": [
+      "TestTemporalInspectionRetainedFailure",
+      "TestTemporalInspectionRetainedFailure/shard",
+      "TestTemporalInspectionRetainedFailure/workflow",
+      "TestTemporalInspectionRetainedFailure/onebox"
+    ],
+    "repetitions": 1
+  },
+  {
+    "label": "network",
+    "original_function": "step_network",
+    "original_body": "  cd \"$wasm\"; env_after_runtime\n  export GOMAD_WASM_TEMPORAL_RECOVERY_ROOT=\"$QUAL_ROOT/storage\"\n  export GOMAD_WASM_NETWORK_TEMPORAL_ROOT=\"$QUAL_ROOT/network\"\n  named_test network TestTemporalNetworkNamedResetRetriesAndExactReplay 90m ./wasi\n  unset GOMAD_WASM_NETWORK_TEMPORAL_ROOT\n  prune_bulk \"$QUAL_ROOT/network\" network\n",
+    "required_subgates": [
+      "TestTemporalNetworkNamedResetRetriesAndExactReplay"
+    ],
+    "repetitions": 1
+  },
+  {
+    "label": "clusters",
+    "original_function": "step_clusters",
+    "original_body": "  cd \"$wasm\"; env_after_runtime\n  export GOMAD_WASM_TEMPORAL_RECOVERY_ROOT=\"$QUAL_ROOT/clusters\"\n  named_test clusters TestTemporalIndependentClustersPartitionHealWholeClusterCrash 90m ./wasi\n  unset GOMAD_WASM_TEMPORAL_RECOVERY_ROOT\n  one_path clusters_owner \"$QUAL_ROOT/clusters\" two-cluster-owner.json\n  jq -e --arg helper \"$expected_helper\" '.network_owner == \"rust-cluster\" and (.network_owner_implementation_sha256 == $helper or .network_owner_implementation_sha256 == (\"sha256:\" + $helper))' \"$clusters_owner\" > /dev/null\n  # Serial: once, after clusters and before the first workload cell (cells now run concurrently).\n  workload_inputs\n",
+    "required_subgates": [
+      "TestTemporalIndependentClustersPartitionHealWholeClusterCrash"
+    ],
+    "repetitions": 1
+  },
+  {
+    "label": "workload-fixture-controlled-success",
+    "original_function": "step_workload_cell",
+    "original_body": "  local wanted=\"$1\" entry workload profile gate cell\n  cd \"$wasm\"\n  test -s \"$QUAL_ROOT/broker-source.path\"\n  for entry in 'fixture controlled TestActualMatchedFixtureQualification' 'fixture cooperative TestActualMatchedFixtureQualification' \\\n    'sqlite cooperative TestActualSQLiteDurableQualification' 'onebox cooperative TestActualOneboxQualification' \\\n    'multi-instance cooperative TestActualTemporalClusterQualification'; do\n    read -r workload profile gate <<< \"$entry\"\n    for cell in success canary; do\n      [[ \"workload-$workload-$profile-$cell\" == \"$wanted\" ]] || continue\n      env_workloads\n      export GOMAD_WASM_QUALIFICATION_PROFILE=\"$profile\"\n      export GOMAD_WASM_QUALIFICATION_CELL=\"$cell\"\n      named_test \"workload-$workload-$profile-$cell\" \"$gate\" 90m ./qualification\n      return 0\n    done\n  done\n  return 1\n",
+    "required_subgates": [
+      "TestActualMatchedFixtureQualification"
+    ],
+    "repetitions": 1
+  },
+  {
+    "label": "workload-fixture-controlled-canary",
+    "original_function": "step_workload_cell",
+    "original_body": "  local wanted=\"$1\" entry workload profile gate cell\n  cd \"$wasm\"\n  test -s \"$QUAL_ROOT/broker-source.path\"\n  for entry in 'fixture controlled TestActualMatchedFixtureQualification' 'fixture cooperative TestActualMatchedFixtureQualification' \\\n    'sqlite cooperative TestActualSQLiteDurableQualification' 'onebox cooperative TestActualOneboxQualification' \\\n    'multi-instance cooperative TestActualTemporalClusterQualification'; do\n    read -r workload profile gate <<< \"$entry\"\n    for cell in success canary; do\n      [[ \"workload-$workload-$profile-$cell\" == \"$wanted\" ]] || continue\n      env_workloads\n      export GOMAD_WASM_QUALIFICATION_PROFILE=\"$profile\"\n      export GOMAD_WASM_QUALIFICATION_CELL=\"$cell\"\n      named_test \"workload-$workload-$profile-$cell\" \"$gate\" 90m ./qualification\n      return 0\n    done\n  done\n  return 1\n",
+    "required_subgates": [
+      "TestActualMatchedFixtureQualification"
+    ],
+    "repetitions": 1
+  },
+  {
+    "label": "workload-fixture-cooperative-success",
+    "original_function": "step_workload_cell",
+    "original_body": "  local wanted=\"$1\" entry workload profile gate cell\n  cd \"$wasm\"\n  test -s \"$QUAL_ROOT/broker-source.path\"\n  for entry in 'fixture controlled TestActualMatchedFixtureQualification' 'fixture cooperative TestActualMatchedFixtureQualification' \\\n    'sqlite cooperative TestActualSQLiteDurableQualification' 'onebox cooperative TestActualOneboxQualification' \\\n    'multi-instance cooperative TestActualTemporalClusterQualification'; do\n    read -r workload profile gate <<< \"$entry\"\n    for cell in success canary; do\n      [[ \"workload-$workload-$profile-$cell\" == \"$wanted\" ]] || continue\n      env_workloads\n      export GOMAD_WASM_QUALIFICATION_PROFILE=\"$profile\"\n      export GOMAD_WASM_QUALIFICATION_CELL=\"$cell\"\n      named_test \"workload-$workload-$profile-$cell\" \"$gate\" 90m ./qualification\n      return 0\n    done\n  done\n  return 1\n",
+    "required_subgates": [
+      "TestActualMatchedFixtureQualification"
+    ],
+    "repetitions": 1
+  },
+  {
+    "label": "workload-fixture-cooperative-canary",
+    "original_function": "step_workload_cell",
+    "original_body": "  local wanted=\"$1\" entry workload profile gate cell\n  cd \"$wasm\"\n  test -s \"$QUAL_ROOT/broker-source.path\"\n  for entry in 'fixture controlled TestActualMatchedFixtureQualification' 'fixture cooperative TestActualMatchedFixtureQualification' \\\n    'sqlite cooperative TestActualSQLiteDurableQualification' 'onebox cooperative TestActualOneboxQualification' \\\n    'multi-instance cooperative TestActualTemporalClusterQualification'; do\n    read -r workload profile gate <<< \"$entry\"\n    for cell in success canary; do\n      [[ \"workload-$workload-$profile-$cell\" == \"$wanted\" ]] || continue\n      env_workloads\n      export GOMAD_WASM_QUALIFICATION_PROFILE=\"$profile\"\n      export GOMAD_WASM_QUALIFICATION_CELL=\"$cell\"\n      named_test \"workload-$workload-$profile-$cell\" \"$gate\" 90m ./qualification\n      return 0\n    done\n  done\n  return 1\n",
+    "required_subgates": [
+      "TestActualMatchedFixtureQualification"
+    ],
+    "repetitions": 1
+  },
+  {
+    "label": "workload-sqlite-cooperative-success",
+    "original_function": "step_workload_cell",
+    "original_body": "  local wanted=\"$1\" entry workload profile gate cell\n  cd \"$wasm\"\n  test -s \"$QUAL_ROOT/broker-source.path\"\n  for entry in 'fixture controlled TestActualMatchedFixtureQualification' 'fixture cooperative TestActualMatchedFixtureQualification' \\\n    'sqlite cooperative TestActualSQLiteDurableQualification' 'onebox cooperative TestActualOneboxQualification' \\\n    'multi-instance cooperative TestActualTemporalClusterQualification'; do\n    read -r workload profile gate <<< \"$entry\"\n    for cell in success canary; do\n      [[ \"workload-$workload-$profile-$cell\" == \"$wanted\" ]] || continue\n      env_workloads\n      export GOMAD_WASM_QUALIFICATION_PROFILE=\"$profile\"\n      export GOMAD_WASM_QUALIFICATION_CELL=\"$cell\"\n      named_test \"workload-$workload-$profile-$cell\" \"$gate\" 90m ./qualification\n      return 0\n    done\n  done\n  return 1\n",
+    "required_subgates": [
+      "TestActualSQLiteDurableQualification"
+    ],
+    "repetitions": 1
+  },
+  {
+    "label": "workload-sqlite-cooperative-canary",
+    "original_function": "step_workload_cell",
+    "original_body": "  local wanted=\"$1\" entry workload profile gate cell\n  cd \"$wasm\"\n  test -s \"$QUAL_ROOT/broker-source.path\"\n  for entry in 'fixture controlled TestActualMatchedFixtureQualification' 'fixture cooperative TestActualMatchedFixtureQualification' \\\n    'sqlite cooperative TestActualSQLiteDurableQualification' 'onebox cooperative TestActualOneboxQualification' \\\n    'multi-instance cooperative TestActualTemporalClusterQualification'; do\n    read -r workload profile gate <<< \"$entry\"\n    for cell in success canary; do\n      [[ \"workload-$workload-$profile-$cell\" == \"$wanted\" ]] || continue\n      env_workloads\n      export GOMAD_WASM_QUALIFICATION_PROFILE=\"$profile\"\n      export GOMAD_WASM_QUALIFICATION_CELL=\"$cell\"\n      named_test \"workload-$workload-$profile-$cell\" \"$gate\" 90m ./qualification\n      return 0\n    done\n  done\n  return 1\n",
+    "required_subgates": [
+      "TestActualSQLiteDurableQualification"
+    ],
+    "repetitions": 1
+  },
+  {
+    "label": "workload-onebox-cooperative-success",
+    "original_function": "step_workload_cell",
+    "original_body": "  local wanted=\"$1\" entry workload profile gate cell\n  cd \"$wasm\"\n  test -s \"$QUAL_ROOT/broker-source.path\"\n  for entry in 'fixture controlled TestActualMatchedFixtureQualification' 'fixture cooperative TestActualMatchedFixtureQualification' \\\n    'sqlite cooperative TestActualSQLiteDurableQualification' 'onebox cooperative TestActualOneboxQualification' \\\n    'multi-instance cooperative TestActualTemporalClusterQualification'; do\n    read -r workload profile gate <<< \"$entry\"\n    for cell in success canary; do\n      [[ \"workload-$workload-$profile-$cell\" == \"$wanted\" ]] || continue\n      env_workloads\n      export GOMAD_WASM_QUALIFICATION_PROFILE=\"$profile\"\n      export GOMAD_WASM_QUALIFICATION_CELL=\"$cell\"\n      named_test \"workload-$workload-$profile-$cell\" \"$gate\" 90m ./qualification\n      return 0\n    done\n  done\n  return 1\n",
+    "required_subgates": [
+      "TestActualOneboxQualification"
+    ],
+    "repetitions": 1
+  },
+  {
+    "label": "workload-onebox-cooperative-canary",
+    "original_function": "step_workload_cell",
+    "original_body": "  local wanted=\"$1\" entry workload profile gate cell\n  cd \"$wasm\"\n  test -s \"$QUAL_ROOT/broker-source.path\"\n  for entry in 'fixture controlled TestActualMatchedFixtureQualification' 'fixture cooperative TestActualMatchedFixtureQualification' \\\n    'sqlite cooperative TestActualSQLiteDurableQualification' 'onebox cooperative TestActualOneboxQualification' \\\n    'multi-instance cooperative TestActualTemporalClusterQualification'; do\n    read -r workload profile gate <<< \"$entry\"\n    for cell in success canary; do\n      [[ \"workload-$workload-$profile-$cell\" == \"$wanted\" ]] || continue\n      env_workloads\n      export GOMAD_WASM_QUALIFICATION_PROFILE=\"$profile\"\n      export GOMAD_WASM_QUALIFICATION_CELL=\"$cell\"\n      named_test \"workload-$workload-$profile-$cell\" \"$gate\" 90m ./qualification\n      return 0\n    done\n  done\n  return 1\n",
+    "required_subgates": [
+      "TestActualOneboxQualification"
+    ],
+    "repetitions": 1
+  },
+  {
+    "label": "workload-multi-instance-cooperative-success",
+    "original_function": "step_workload_cell",
+    "original_body": "  local wanted=\"$1\" entry workload profile gate cell\n  cd \"$wasm\"\n  test -s \"$QUAL_ROOT/broker-source.path\"\n  for entry in 'fixture controlled TestActualMatchedFixtureQualification' 'fixture cooperative TestActualMatchedFixtureQualification' \\\n    'sqlite cooperative TestActualSQLiteDurableQualification' 'onebox cooperative TestActualOneboxQualification' \\\n    'multi-instance cooperative TestActualTemporalClusterQualification'; do\n    read -r workload profile gate <<< \"$entry\"\n    for cell in success canary; do\n      [[ \"workload-$workload-$profile-$cell\" == \"$wanted\" ]] || continue\n      env_workloads\n      export GOMAD_WASM_QUALIFICATION_PROFILE=\"$profile\"\n      export GOMAD_WASM_QUALIFICATION_CELL=\"$cell\"\n      named_test \"workload-$workload-$profile-$cell\" \"$gate\" 90m ./qualification\n      return 0\n    done\n  done\n  return 1\n",
+    "required_subgates": [
+      "TestActualTemporalClusterQualification"
+    ],
+    "repetitions": 1
+  },
+  {
+    "label": "workload-multi-instance-cooperative-canary",
+    "original_function": "step_workload_cell",
+    "original_body": "  local wanted=\"$1\" entry workload profile gate cell\n  cd \"$wasm\"\n  test -s \"$QUAL_ROOT/broker-source.path\"\n  for entry in 'fixture controlled TestActualMatchedFixtureQualification' 'fixture cooperative TestActualMatchedFixtureQualification' \\\n    'sqlite cooperative TestActualSQLiteDurableQualification' 'onebox cooperative TestActualOneboxQualification' \\\n    'multi-instance cooperative TestActualTemporalClusterQualification'; do\n    read -r workload profile gate <<< \"$entry\"\n    for cell in success canary; do\n      [[ \"workload-$workload-$profile-$cell\" == \"$wanted\" ]] || continue\n      env_workloads\n      export GOMAD_WASM_QUALIFICATION_PROFILE=\"$profile\"\n      export GOMAD_WASM_QUALIFICATION_CELL=\"$cell\"\n      named_test \"workload-$workload-$profile-$cell\" \"$gate\" 90m ./qualification\n      return 0\n    done\n  done\n  return 1\n",
+    "required_subgates": [
+      "TestActualTemporalClusterQualification"
+    ],
+    "repetitions": 1
+  },
+  {
+    "label": "workload-corpus",
+    "original_function": "step_workload_corpus",
+    "original_body": "  cd \"$wasm\"; env_workloads\n  export GOMAD_WASM_QUALIFICATION_PROFILE=cooperative\n  export GOMAD_WASM_QUALIFICATION_CELL=success\n  named_test workload-corpus TestActualMandatoryWorkloadCorpus 15m ./qualification\n  files=(\"$primary_dir\"/*)\n  test \"${#files[@]}\" -eq 20\n  primary_results=()\n  sqlite_sources=()\n  for result in \"${files[@]}\"; do\n    [[ \"$result\" == *.publication.json ]] && continue\n    check_pair \"$result\"\n    primary_results+=(\"$result\")\n    if [[ \"$(jq -r '[.Manifest.Workload,.Manifest.ID,.Manifest.Cell] | join(\"/\")' \"$result\")\" == sqlite/sqlite-durable-recovery/success ]]; then sqlite_sources+=(\"$result\"); fi\n  done\n  test \"${#primary_results[@]}\" -eq 10 && test \"${#sqlite_sources[@]}\" -eq 1\n  sha256sum -- \"${files[@]}\" > \"$QUAL_ROOT/primary-before.sha256\"\n  export GOMAD_WASM_SQLITE_NATIVE_CATALOGUE_RESULT=\"${sqlite_sources[0]}\"\n  primary_sha=\"sha256:$(digest_file \"$GOMAD_WASM_SQLITE_NATIVE_CATALOGUE_RESULT\")\"\n  printf '%s\\n' \"$GOMAD_WASM_SQLITE_NATIVE_CATALOGUE_RESULT\" > \"$QUAL_ROOT/primary-sqlite.path\"\n  jq -e '[.NativeCrashCatalogues[] | select(.Handle.node == \"sqlite\" and .Handle.incarnation == 2 and .Volume == \"sqlite\")] | length == 1 and (.[0].Enumeration.Complete == true) and (.[0].Enumeration.States | length == 4)' \"$GOMAD_WASM_SQLITE_NATIVE_CATALOGUE_RESULT\" > /dev/null\n  mkdir -p \"$selected_dir\"\n  files=(\"$selected_dir\"/*)\n  test \"${#files[@]}\" -eq 0\n  printf '%s\\n' \"${primary_results[@]}\" > \"$QUAL_ROOT/state/primary-results.list\"\n  printf '%s\\n' \"$primary_sha\" > \"$QUAL_ROOT/state/primary-sqlite.sha256\"\n",
+    "required_subgates": [
+      "TestActualMandatoryWorkloadCorpus"
+    ],
+    "repetitions": 1
+  },
+  {
+    "label": "sqlite-selection-0",
+    "original_function": "step_sqlite_selection",
+    "original_body": "  local index=\"$1\"\n  cd \"$wasm\"; env_workloads\n  [[ \"$index\" =~ ^[0-3]$ ]]\n  load_primary_state\n  export GOMAD_WASM_QUALIFICATION_PROFILE=cooperative\n  export GOMAD_WASM_QUALIFICATION_CELL=success\n  check_primary\n  export GOMAD_WASM_QUALIFICATION_ROOT=\"$QUAL_ROOT/workloads\"\n  export GOMAD_WASM_SQLITE_SELECTION_INDEX=\"$index\"\n  named_test \"sqlite-selection-$index\" TestActualSQLiteSelectedCrashQualification 90m ./qualification\n  sha256sum -c \"$QUAL_ROOT/primary-before.sha256\" > /dev/null\n  files=(\"$primary_dir\"/*)\n  test \"${#files[@]}\" -eq 22\n  new_results=()\n  for result in \"${files[@]}\"; do\n    [[ \"$result\" == *.publication.json ]] && continue\n    known=false\n    for original in \"${primary_results[@]}\"; do [[ \"$result\" != \"$original\" ]] || known=true; done\n    [[ \"$known\" == true ]] || new_results+=(\"$result\")\n  done\n  test \"${#new_results[@]}\" -eq 1\n  result=\"${new_results[0]}\"\n  check_pair \"$result\"\n  jq -e --arg source \"$primary_sha\" --argjson index \"$index\" --slurpfile primary \"$GOMAD_WASM_SQLITE_NATIVE_CATALOGUE_RESULT\" \\\n    '([$primary[0].NativeCrashCatalogues[] | select(.Handle.node == \"sqlite\" and .Handle.incarnation == 2 and .Volume == \"sqlite\")][0].Enumeration.States[$index]) as $state |\n     .Manifest.Workload == \"sqlite\" and .Manifest.Cell == \"success\" and .Qualification.qualified == true and\n     .Manifest.ID == (\"sqlite-durable-selection-\" + ($state.Identity | ltrimstr(\"sha256:\"))) and\n     .NativeCrashSelection == $state and .NativeCrashSourceResultSHA256 == $source' \"$result\" > /dev/null\n  destination=\"$selected_dir/$(basename \"$result\")\"\n  test ! -e \"$destination\" && test ! -L \"$destination\"\n  test ! -e \"$destination.publication.json\" && test ! -L \"$destination.publication.json\"\n  result_sha=\"$(digest_file \"$result\")\"\n  receipt_sha=\"$(digest_file \"$result.publication.json\")\"\n  sha256sum -- \"$result\" \"$result.publication.json\" > \"$QUAL_ROOT/sqlite-selection-$index-before.sha256\"\n  printf '%s\\t%s\\t%s\\t%s\\t%s\\n' \"$index\" \"$result\" \"$destination\" \"$result_sha\" \"$receipt_sha\" >> \"$QUAL_ROOT/sqlite-relocations.tsv\"\n  mv -n -- \"$result\" \"$destination\"\n  test ! -e \"$result\"\n  mv -n -- \"$result.publication.json\" \"$destination.publication.json\"\n  test ! -e \"$result.publication.json\"\n  test \"$(digest_file \"$destination\")\" = \"$result_sha\"\n  test \"$(digest_file \"$destination.publication.json\")\" = \"$receipt_sha\"\n  check_pair \"$destination\"\n  sha256sum -- \"$destination\" \"$destination.publication.json\" > \"$QUAL_ROOT/sqlite-selection-$index-after.sha256\"\n  check_primary\n  check_source\n",
+    "required_subgates": [
+      "TestActualSQLiteSelectedCrashQualification"
+    ],
+    "repetitions": 1
+  },
+  {
+    "label": "sqlite-selection-1",
+    "original_function": "step_sqlite_selection",
+    "original_body": "  local index=\"$1\"\n  cd \"$wasm\"; env_workloads\n  [[ \"$index\" =~ ^[0-3]$ ]]\n  load_primary_state\n  export GOMAD_WASM_QUALIFICATION_PROFILE=cooperative\n  export GOMAD_WASM_QUALIFICATION_CELL=success\n  check_primary\n  export GOMAD_WASM_QUALIFICATION_ROOT=\"$QUAL_ROOT/workloads\"\n  export GOMAD_WASM_SQLITE_SELECTION_INDEX=\"$index\"\n  named_test \"sqlite-selection-$index\" TestActualSQLiteSelectedCrashQualification 90m ./qualification\n  sha256sum -c \"$QUAL_ROOT/primary-before.sha256\" > /dev/null\n  files=(\"$primary_dir\"/*)\n  test \"${#files[@]}\" -eq 22\n  new_results=()\n  for result in \"${files[@]}\"; do\n    [[ \"$result\" == *.publication.json ]] && continue\n    known=false\n    for original in \"${primary_results[@]}\"; do [[ \"$result\" != \"$original\" ]] || known=true; done\n    [[ \"$known\" == true ]] || new_results+=(\"$result\")\n  done\n  test \"${#new_results[@]}\" -eq 1\n  result=\"${new_results[0]}\"\n  check_pair \"$result\"\n  jq -e --arg source \"$primary_sha\" --argjson index \"$index\" --slurpfile primary \"$GOMAD_WASM_SQLITE_NATIVE_CATALOGUE_RESULT\" \\\n    '([$primary[0].NativeCrashCatalogues[] | select(.Handle.node == \"sqlite\" and .Handle.incarnation == 2 and .Volume == \"sqlite\")][0].Enumeration.States[$index]) as $state |\n     .Manifest.Workload == \"sqlite\" and .Manifest.Cell == \"success\" and .Qualification.qualified == true and\n     .Manifest.ID == (\"sqlite-durable-selection-\" + ($state.Identity | ltrimstr(\"sha256:\"))) and\n     .NativeCrashSelection == $state and .NativeCrashSourceResultSHA256 == $source' \"$result\" > /dev/null\n  destination=\"$selected_dir/$(basename \"$result\")\"\n  test ! -e \"$destination\" && test ! -L \"$destination\"\n  test ! -e \"$destination.publication.json\" && test ! -L \"$destination.publication.json\"\n  result_sha=\"$(digest_file \"$result\")\"\n  receipt_sha=\"$(digest_file \"$result.publication.json\")\"\n  sha256sum -- \"$result\" \"$result.publication.json\" > \"$QUAL_ROOT/sqlite-selection-$index-before.sha256\"\n  printf '%s\\t%s\\t%s\\t%s\\t%s\\n' \"$index\" \"$result\" \"$destination\" \"$result_sha\" \"$receipt_sha\" >> \"$QUAL_ROOT/sqlite-relocations.tsv\"\n  mv -n -- \"$result\" \"$destination\"\n  test ! -e \"$result\"\n  mv -n -- \"$result.publication.json\" \"$destination.publication.json\"\n  test ! -e \"$result.publication.json\"\n  test \"$(digest_file \"$destination\")\" = \"$result_sha\"\n  test \"$(digest_file \"$destination.publication.json\")\" = \"$receipt_sha\"\n  check_pair \"$destination\"\n  sha256sum -- \"$destination\" \"$destination.publication.json\" > \"$QUAL_ROOT/sqlite-selection-$index-after.sha256\"\n  check_primary\n  check_source\n",
+    "required_subgates": [
+      "TestActualSQLiteSelectedCrashQualification"
+    ],
+    "repetitions": 1
+  },
+  {
+    "label": "sqlite-selection-2",
+    "original_function": "step_sqlite_selection",
+    "original_body": "  local index=\"$1\"\n  cd \"$wasm\"; env_workloads\n  [[ \"$index\" =~ ^[0-3]$ ]]\n  load_primary_state\n  export GOMAD_WASM_QUALIFICATION_PROFILE=cooperative\n  export GOMAD_WASM_QUALIFICATION_CELL=success\n  check_primary\n  export GOMAD_WASM_QUALIFICATION_ROOT=\"$QUAL_ROOT/workloads\"\n  export GOMAD_WASM_SQLITE_SELECTION_INDEX=\"$index\"\n  named_test \"sqlite-selection-$index\" TestActualSQLiteSelectedCrashQualification 90m ./qualification\n  sha256sum -c \"$QUAL_ROOT/primary-before.sha256\" > /dev/null\n  files=(\"$primary_dir\"/*)\n  test \"${#files[@]}\" -eq 22\n  new_results=()\n  for result in \"${files[@]}\"; do\n    [[ \"$result\" == *.publication.json ]] && continue\n    known=false\n    for original in \"${primary_results[@]}\"; do [[ \"$result\" != \"$original\" ]] || known=true; done\n    [[ \"$known\" == true ]] || new_results+=(\"$result\")\n  done\n  test \"${#new_results[@]}\" -eq 1\n  result=\"${new_results[0]}\"\n  check_pair \"$result\"\n  jq -e --arg source \"$primary_sha\" --argjson index \"$index\" --slurpfile primary \"$GOMAD_WASM_SQLITE_NATIVE_CATALOGUE_RESULT\" \\\n    '([$primary[0].NativeCrashCatalogues[] | select(.Handle.node == \"sqlite\" and .Handle.incarnation == 2 and .Volume == \"sqlite\")][0].Enumeration.States[$index]) as $state |\n     .Manifest.Workload == \"sqlite\" and .Manifest.Cell == \"success\" and .Qualification.qualified == true and\n     .Manifest.ID == (\"sqlite-durable-selection-\" + ($state.Identity | ltrimstr(\"sha256:\"))) and\n     .NativeCrashSelection == $state and .NativeCrashSourceResultSHA256 == $source' \"$result\" > /dev/null\n  destination=\"$selected_dir/$(basename \"$result\")\"\n  test ! -e \"$destination\" && test ! -L \"$destination\"\n  test ! -e \"$destination.publication.json\" && test ! -L \"$destination.publication.json\"\n  result_sha=\"$(digest_file \"$result\")\"\n  receipt_sha=\"$(digest_file \"$result.publication.json\")\"\n  sha256sum -- \"$result\" \"$result.publication.json\" > \"$QUAL_ROOT/sqlite-selection-$index-before.sha256\"\n  printf '%s\\t%s\\t%s\\t%s\\t%s\\n' \"$index\" \"$result\" \"$destination\" \"$result_sha\" \"$receipt_sha\" >> \"$QUAL_ROOT/sqlite-relocations.tsv\"\n  mv -n -- \"$result\" \"$destination\"\n  test ! -e \"$result\"\n  mv -n -- \"$result.publication.json\" \"$destination.publication.json\"\n  test ! -e \"$result.publication.json\"\n  test \"$(digest_file \"$destination\")\" = \"$result_sha\"\n  test \"$(digest_file \"$destination.publication.json\")\" = \"$receipt_sha\"\n  check_pair \"$destination\"\n  sha256sum -- \"$destination\" \"$destination.publication.json\" > \"$QUAL_ROOT/sqlite-selection-$index-after.sha256\"\n  check_primary\n  check_source\n",
+    "required_subgates": [
+      "TestActualSQLiteSelectedCrashQualification"
+    ],
+    "repetitions": 1
+  },
+  {
+    "label": "sqlite-selection-3",
+    "original_function": "step_sqlite_selection",
+    "original_body": "  local index=\"$1\"\n  cd \"$wasm\"; env_workloads\n  [[ \"$index\" =~ ^[0-3]$ ]]\n  load_primary_state\n  export GOMAD_WASM_QUALIFICATION_PROFILE=cooperative\n  export GOMAD_WASM_QUALIFICATION_CELL=success\n  check_primary\n  export GOMAD_WASM_QUALIFICATION_ROOT=\"$QUAL_ROOT/workloads\"\n  export GOMAD_WASM_SQLITE_SELECTION_INDEX=\"$index\"\n  named_test \"sqlite-selection-$index\" TestActualSQLiteSelectedCrashQualification 90m ./qualification\n  sha256sum -c \"$QUAL_ROOT/primary-before.sha256\" > /dev/null\n  files=(\"$primary_dir\"/*)\n  test \"${#files[@]}\" -eq 22\n  new_results=()\n  for result in \"${files[@]}\"; do\n    [[ \"$result\" == *.publication.json ]] && continue\n    known=false\n    for original in \"${primary_results[@]}\"; do [[ \"$result\" != \"$original\" ]] || known=true; done\n    [[ \"$known\" == true ]] || new_results+=(\"$result\")\n  done\n  test \"${#new_results[@]}\" -eq 1\n  result=\"${new_results[0]}\"\n  check_pair \"$result\"\n  jq -e --arg source \"$primary_sha\" --argjson index \"$index\" --slurpfile primary \"$GOMAD_WASM_SQLITE_NATIVE_CATALOGUE_RESULT\" \\\n    '([$primary[0].NativeCrashCatalogues[] | select(.Handle.node == \"sqlite\" and .Handle.incarnation == 2 and .Volume == \"sqlite\")][0].Enumeration.States[$index]) as $state |\n     .Manifest.Workload == \"sqlite\" and .Manifest.Cell == \"success\" and .Qualification.qualified == true and\n     .Manifest.ID == (\"sqlite-durable-selection-\" + ($state.Identity | ltrimstr(\"sha256:\"))) and\n     .NativeCrashSelection == $state and .NativeCrashSourceResultSHA256 == $source' \"$result\" > /dev/null\n  destination=\"$selected_dir/$(basename \"$result\")\"\n  test ! -e \"$destination\" && test ! -L \"$destination\"\n  test ! -e \"$destination.publication.json\" && test ! -L \"$destination.publication.json\"\n  result_sha=\"$(digest_file \"$result\")\"\n  receipt_sha=\"$(digest_file \"$result.publication.json\")\"\n  sha256sum -- \"$result\" \"$result.publication.json\" > \"$QUAL_ROOT/sqlite-selection-$index-before.sha256\"\n  printf '%s\\t%s\\t%s\\t%s\\t%s\\n' \"$index\" \"$result\" \"$destination\" \"$result_sha\" \"$receipt_sha\" >> \"$QUAL_ROOT/sqlite-relocations.tsv\"\n  mv -n -- \"$result\" \"$destination\"\n  test ! -e \"$result\"\n  mv -n -- \"$result.publication.json\" \"$destination.publication.json\"\n  test ! -e \"$result.publication.json\"\n  test \"$(digest_file \"$destination\")\" = \"$result_sha\"\n  test \"$(digest_file \"$destination.publication.json\")\" = \"$receipt_sha\"\n  check_pair \"$destination\"\n  sha256sum -- \"$destination\" \"$destination.publication.json\" > \"$QUAL_ROOT/sqlite-selection-$index-after.sha256\"\n  check_primary\n  check_source\n",
+    "required_subgates": [
+      "TestActualSQLiteSelectedCrashQualification"
+    ],
+    "repetitions": 1
+  },
+  {
+    "label": "workload-corpus-after-relocation",
+    "original_function": "step_workload_corpus_after_relocation",
+    "original_body": "  cd \"$wasm\"; env_workloads; load_primary_state\n  export GOMAD_WASM_QUALIFICATION_PROFILE=cooperative\n  export GOMAD_WASM_QUALIFICATION_CELL=success\n  export GOMAD_WASM_QUALIFICATION_ROOT=\"$QUAL_ROOT/workloads\"\n  named_test workload-corpus-after-relocation TestActualMandatoryWorkloadCorpus 15m ./qualification\n",
+    "required_subgates": [
+      "TestActualMandatoryWorkloadCorpus"
+    ],
+    "repetitions": 1
+  },
+  {
+    "label": "sqlite-catalogue",
+    "original_function": "step_sqlite_catalogue",
+    "original_body": "  cd \"$wasm\"; env_workloads; load_primary_state\n  export GOMAD_WASM_QUALIFICATION_PROFILE=cooperative\n  export GOMAD_WASM_QUALIFICATION_CELL=success\n  export GOMAD_WASM_QUALIFICATION_ROOT=\"$QUAL_ROOT/sqlite-selections\"\n  named_test sqlite-catalogue TestActualSQLiteSelectionCatalogue 15m ./qualification\n",
+    "required_subgates": [
+      "TestActualSQLiteSelectionCatalogue"
+    ],
+    "repetitions": 1
+  }
+]

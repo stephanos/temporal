@@ -1,0 +1,371 @@
+#!/usr/bin/env python3
+"""Receiver-owned Rust qualification orchestration; never imports Go qualification producers."""
+import argparse
+import fnmatch
+import hashlib
+import importlib.util
+import json
+import math
+import os
+from pathlib import Path
+from contextlib import contextmanager
+import signal
+import subprocess
+import sys
+import time
+
+sys.dont_write_bytecode = True
+HERE = Path(__file__).resolve().parent
+REPO = HERE.parents[3]
+FROZEN = REPO / '.flow/artifacts/wasm-qualification-driver/parallel'
+DAG = FROZEN / 'dag.tsv'
+
+
+def load_module(name, path):
+    spec = importlib.util.spec_from_file_location(name, path)
+    module = importlib.util.module_from_spec(spec)
+    spec.loader.exec_module(module)
+    return module
+
+
+scheduler = load_module('frozen_qualification_scheduler', FROZEN / 'scheduler.py')
+
+
+class Refusal(ValueError):
+    pass
+
+
+class Unexecuted(Refusal):
+    pass
+
+
+def require(condition, reason):
+    if not condition:
+        raise Refusal(reason)
+
+
+def unique(pairs):
+    result = {}
+    for key, value in pairs:
+        require(key not in result, 'duplicate JSON key: ' + key)
+        result[key] = value
+    return result
+
+
+def read(path):
+    return json.loads(Path(path).read_bytes(), object_pairs_hook=unique,
+                      parse_constant=lambda value: (_ for _ in ()).throw(Refusal('nonfinite JSON: ' + value)))
+
+
+def write(path, value):
+    with Path(path).open('x') as handle:
+        json.dump(value, handle, sort_keys=True, separators=(',', ':'), allow_nan=False)
+        handle.write('\n')
+
+
+def sha(path):
+    with Path(path).open('rb') as handle:
+        return hashlib.file_digest(handle, 'sha256').hexdigest()
+
+
+def check_files(files):
+    require(bool(files), 'empty frozen input set')
+    for name, digest in files.items():
+        path = Path(name)
+        require(path.is_absolute() and path.is_file() and not path.is_symlink(), 'not a regular frozen input: ' + name)
+        require(sha(path) == digest, 'frozen input changed: ' + name)
+
+
+def mapping():
+    rows = read(HERE / 'semantic-map.json')
+    labels = [row['label'] for row in rows]
+    require(len(labels) == len(set(labels)) == 96, 'missing/duplicate semantic stage')
+    require(set(labels) == set(scheduler.load_dag(DAG)), 'semantic stage/DAG mismatch')
+    return {row['label']: row for row in rows}
+
+
+def stage_commands(mode, config):
+    require(mode in ('serial', 'parallel'), 'unknown mode')
+    return {label: [sys.executable, str(HERE / 'driver.py'), 'stage', '--config', str(config), label]
+            for label in mapping()}
+
+
+def coverage(expected, observed):
+    require(len(expected) == len(set(expected)) and expected, 'empty/duplicate required subgates')
+    names = [row['id'] for row in observed]
+    require(len(names) == len(set(names)), 'duplicate observed subgate')
+    require(set(names) == set(expected), 'missing/unexpected subgates: ' + repr(set(expected) ^ set(names)))
+    for row in observed:
+        require(row.get('status') == 'PASS' and row.get('executed') is True and row.get('exit') == 0
+                and not row.get('synthetic', False), 'unexecuted/refused/synthetic subgate: ' + row['id'])
+
+
+def deadline(limit):
+    require(isinstance(limit, (int, float)) and math.isfinite(limit) and 0 < limit <= 3600,
+            'deadline must be positive and at most 3600 seconds')
+    return limit
+
+
+def verdict(status, sent, finished, limit):
+    deadline(limit)
+    return 3 if status == 0 and finished - sent > limit else status
+
+
+def bind_identity(expected_role, expected, role, observed):
+    require(expected_role == role == 'release', 'qualification requires admitted release role')
+    require(bool(expected) and expected == observed, 'candidate identity mismatch')
+    require(all(isinstance(v, str) and len(v) == 64
+                and all(c in '0123456789abcdef' for c in v) for v in expected.values()), 'malformed identity')
+
+
+def completed(code, accepted):
+    require(code in accepted, f'command refused/failed: exit {code}, expected {accepted}')
+
+
+def clean_env(config):
+    env = {key: value for key, value in os.environ.items()
+           if not key.startswith(('GOMAD', 'QUALDRV')) and key not in
+           ('RUSTFLAGS', 'CARGO_ENCODED_RUSTFLAGS', 'GOROOT', 'GOEXPERIMENT', 'GOOS', 'GOARCH')}
+    env.update(config.get('environment', {}))
+    env.update(LC_ALL='C', GOENV='off', GOTOOLCHAIN='local', GOWORK='off', CARGO_INCREMENTAL='0',
+               RUSTC_WRAPPER='', RUSTC_WORKSPACE_WRAPPER='')
+    return env
+
+
+def command(config, root, name, argv, accepted=(0,), timeout=None):
+    require(argv and all(isinstance(arg, str) for arg in argv), 'invalid argv')
+    # All processes are fresh; every actual command, PID, numeric exit and raw stream survives.
+    start = time.time_ns()
+    observation = 'completed'
+    with (root / (name + '.stdout')).open('xb') as stdout, (root / (name + '.stderr')).open('xb') as stderr:
+        proc = subprocess.Popen(argv, cwd=config['repo'], env=clean_env(config), stdout=stdout, stderr=stderr,
+                                start_new_session=True)
+        try:
+            code = proc.wait(timeout=timeout)
+        except BaseException:
+            observation = 'inconclusive'
+            try:
+                os.killpg(proc.pid, signal.SIGKILL)
+            except ProcessLookupError:
+                pass
+            code = proc.wait()
+            raise
+        finally:
+            write(root / (name + '.command.json'), dict(argv=argv, cwd=config['repo'], pid=proc.pid, exit=proc.returncode,
+                  observation=observation, start_ns=start, end_ns=time.time_ns()))
+    completed(code, accepted)
+    return (root / (name + '.stdout')).read_bytes()
+
+
+@contextmanager
+def busy_host(label):
+    workers = []
+    try:
+        if label in ('busy-boundaries', 'busy-grouped'):
+            for _ in range(12):
+                workers.append(subprocess.Popen([sys.executable, '-c', 'while True: pass'],
+                                                stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL))
+        yield
+    finally:
+        for worker in workers:
+            worker.terminate()
+        for worker in workers:
+            worker.wait()
+
+
+def guard(config):
+    require(sha(config['_config_path']) == config['_config_sha256'], 'driver config changed')
+    check_files(config['files'])
+    repo = Path(config['repo'])
+    head = subprocess.check_output(['git', '-C', str(repo), 'rev-parse', 'HEAD'], text=True).strip()
+    require(head == config['head'], 'frozen HEAD changed')
+    tracked = subprocess.check_output(['git', '-C', str(repo), 'ls-files', '-z']).decode().split('\0')
+    wanted = {str(repo / path) for path in tracked if path and not path.startswith('.flow/')
+              and (repo / path).is_file() and not (repo / path).is_symlink()}
+    require(wanted <= set(config['files']), 'incomplete non-Flow source inventory')
+    required_driver = [HERE / 'driver.py', HERE / 'adapters.py', HERE / 'semantic-map.json', HERE / 'required-final.json', HERE / 'sqlite.py',
+                       FROZEN / 'scheduler.py', DAG, FROZEN / 'lib.sh',
+                       FROZEN.parent / 'q1-serial/run-qualification.sh', FROZEN / 'required-roots.py']
+    require(all(str(path) in config['files'] for path in required_driver), 'unsealed driver/reference input')
+    for path, target in config.get('symlinks', {}).items():
+        require(Path(path).is_symlink() and os.readlink(path) == target, 'frozen symlink changed: ' + path)
+    symlinks = {str(repo / path): os.readlink(repo / path) for path in tracked if path and (repo / path).is_symlink()}
+    require(symlinks == config['symlinks'], 'frozen source symlink inventory changed')
+    raw_status = subprocess.check_output(['git', '-C', str(repo), 'status', '--porcelain', '--untracked-files=all', '-z'])
+    allowed = []
+    registry = Path(config['root']) / 'scheduler' / 'registry'
+    for path in registry.glob('*.json'):
+        row = read(path)
+        if 'end_ns' not in row:
+            allowed.extend(row.get('scratch', []))
+    for row in raw_status.decode().split('\0'):
+        if not row:
+            continue
+        name = row[3:]
+        if name.startswith('.flow/'):
+            continue
+        require(row.startswith('?? ') and any(fnmatch.fnmatchcase(name, pattern) or
+                fnmatch.fnmatchcase(name, pattern + '/*') for pattern in allowed), 'dirty frozen source: ' + row)
+    require(config['source_manifest'] in config['files'] and sha(config['source_manifest']) == config['source_sha256'],
+            'frozen source manifest changed')
+
+
+def configured(path):
+    config = read(path)
+    require(config['schema'] == 'gomad.rust-qualification-driver/v1', 'unknown driver config')
+    require(Path(config['repo']).resolve() == REPO, 'wrong candidate checkout')
+    require(set(config['stages']) == set(mapping()), 'missing/unexpected configured stages')
+    require(config.get('synthetic') is not True, 'synthetic fixture cannot qualify')
+    require(set(config['identity']) == {'host', 'helper'}, 'frozen host/helper identities required')
+    require(all(isinstance(config[key], (int, float)) and math.isfinite(config[key]) and config[key] > 0
+                for key in ('cores', 'mem_gib')), 'invalid host resource caps')
+    require(config['cores'] <= (os.cpu_count() or 1), 'core cap exceeds host')
+    require(isinstance(config['sent_epoch'], (int, float)) and math.isfinite(config['sent_epoch'])
+            and config['sent_epoch'] > 0 and config['sent_epoch'] <= time.time(), 'invalid send epoch')
+    deadline(config['deadline_s'])
+    check_files(config['files'])
+    return config
+
+
+def subgates(label):
+    row = mapping()[label]
+    return [name + (f'#{i}' if row['repetitions'] > 1 else '')
+            for name in row['required_subgates'] for i in range(row['repetitions'])]
+
+
+def stage(config, label):
+    from adapters import execute
+    root = Path(config['root']) / 'stages' / label
+    root.mkdir(parents=True, exist_ok=False)
+    started = time.time_ns()
+    status, reason, observed = 1, '', []
+    try:
+        guard(config)
+        observed = execute(config, root, label)
+        coverage(subgates(label), observed)
+        guard(config)
+        status = 0
+    except KeyboardInterrupt:
+        status, reason = 130, 'interrupted'
+    except Unexecuted as error:
+        status, reason = 4, 'UNEXECUTED: ' + str(error)
+    except (Refusal, OSError, ValueError, KeyError, subprocess.SubprocessError) as error:
+        reason = str(error)
+    write(root / 'receipt.json', dict(schema='gomad.rust-driver-stage/v1', stage=label, exit=status,
+          status='PASS' if status == 0 else 'UNEXECUTED' if status == 4 else 'FAIL', reason=reason,
+          start_ns=started, end_ns=time.time_ns(), source=config['source_sha256'],
+          identity=config['identity'], subgates=observed, config_sha256=config['_config_sha256']))
+    return status
+
+
+def final_checks(config):
+    guard(config)
+    receipts = {}
+    for label in mapping():
+        path = Path(config['root']) / 'stages' / label / 'receipt.json'
+        require(path.is_file(), 'UNEXECUTED stage: ' + label)
+        row = read(path)
+        require(row['stage'] == label and row['exit'] == 0 and row['status'] == 'PASS', 'nonpassing stage: ' + label)
+        require(row['source'] == config['source_sha256'] and row['identity'] == config['identity']
+                and row['config_sha256'] == config['_config_sha256'], 'stale stage identity: ' + label)
+        coverage(subgates(label), row['subgates'])
+        receipts[label] = sha(path)
+    reader = config.get('final_reader')
+    if not reader:
+        raise Unexecuted('complete transferred-live/stress/R4/ringpop/test-wasm final reader is not integrated')
+    require(reader[0] in config['files'], 'unsealed final reader')
+    raw = command(config, Path(config['root']), 'final-reader', reader + ['--root', config['root']])
+    report = json.loads(raw)
+    require(report['schema'] == 'gomad.rust-driver-final-check/v1' and report['identity'] == config['identity']
+            and report['source_sha256'] == config['source_sha256'], 'final reader binding mismatch')
+    coverage(read(HERE / 'required-final.json')['subgates'], report['subgates'])
+    guard(config)
+    return receipts
+
+
+def run(config, path, mode):
+    root = Path(config['root'])
+    root.mkdir(parents=True, exist_ok=False)
+    (root / 'scheduler').mkdir()
+    status, reason, receipts = 2, '', {}
+    executor = None
+    try:
+        guard(config)
+        # Host evidence is retained even on admission refusal; no platform is substituted.
+        write(root / 'host.json', dict(uname=list(os.uname()), cpu_count=os.cpu_count(),
+                                      mem_available_gib=scheduler.mem_available_gib(), sent_epoch=config['sent_epoch']))
+        from adapters import admission
+        admission(config, root)
+        stages = scheduler.load_dag(DAG)
+        if mode == 'serial':
+            # Serial reference uses the exact parallel argv, retaining all original resources as evidence.
+            previous = None
+            for stage_row in stages.values():
+                stage_row.cls = 'solo'
+                if previous and previous not in stage_row.deps:
+                    stage_row.deps.append(previous)
+                previous = stage_row.label
+        policy = scheduler.Policy(config['cores'], config['mem_gib'], False,
+                                  config['sent_epoch'] + config['deadline_s'], False,
+                                  live_mem=scheduler.mem_available_gib)
+        runner = [sys.executable, str(HERE / 'driver.py'), 'stage', '--config', str(path),
+                  '--config-sha256', config['_config_sha256']]
+        executor = scheduler.RealExecutor(runner, str(root / 'scheduler'), dict(os.environ))
+        result = scheduler.run(stages, policy, executor)
+        write(root / 'scheduler' / 'schedule.json', result)
+        status = result['status']
+        if status in (0, 3):
+            receipts = final_checks(config)
+    except KeyboardInterrupt:
+        status, reason = 130, 'interrupted'
+    except (Refusal, OSError, ValueError, KeyError, subprocess.SubprocessError) as error:
+        status, reason = 2, str(error)
+    finally:
+        if executor and executor.procs:
+            executor.terminate()
+            # Frozen scheduler termination sends KILL on timeout; reap the killed children too.
+            for proc, log, _ in executor.procs.values():
+                proc.wait()
+                log.close()
+        finished = time.time()
+        status = verdict(status, config['sent_epoch'], finished, config['deadline_s'])
+        write(root / 'outcome.json', dict(schema='gomad.rust-driver-outcome/v1', mode=mode, exit=status,
+              status='PASS' if status == 0 else 'DEADLINE' if status == 3 else 'INCOMPLETE', reason=reason,
+              sent_epoch=config['sent_epoch'], finished_epoch=finished, wall_seconds=finished-config['sent_epoch'],
+              deadline_seconds=config['deadline_s'], identity=config['identity'], receipts=receipts))
+    return status
+
+
+def main():
+    def interrupted(signum, frame):
+        raise KeyboardInterrupt(signal.Signals(signum).name)
+    for signum in (signal.SIGTERM, signal.SIGHUP):
+        signal.signal(signum, interrupted)
+    parser = argparse.ArgumentParser(description=__doc__)
+    parser.add_argument('mode', choices=('serial', 'parallel', 'stage', 'plan'))
+    parser.add_argument('--config', type=Path)
+    parser.add_argument('--config-sha256')
+    parser.add_argument('label', nargs='?')
+    args = parser.parse_args()
+    try:
+        if args.mode == 'plan':
+            print(json.dumps(dict(stages=mapping(), serial=stage_commands('serial', '/config'),
+                                  parallel=stage_commands('parallel', '/config')), indent=2))
+            return 0
+        require(args.config is not None, '--config is required')
+        config = configured(args.config)
+        config['_config_sha256'] = args.config_sha256 or sha(args.config)
+        config['_config_path'] = str(args.config.resolve())
+        require(sha(args.config) == config['_config_sha256'], 'driver config changed')
+        if args.mode == 'stage':
+            require(args.label in mapping(), 'unknown stage')
+            return stage(config, args.label)
+        return run(config, args.config.resolve(), args.mode)
+    except (Refusal, OSError, ValueError, KeyError) as error:
+        print('REFUSED: ' + str(error), file=sys.stderr)
+        return 2
+
+
+if __name__ == '__main__':
+    sys.modules['driver'] = sys.modules[__name__]
+    raise SystemExit(main())

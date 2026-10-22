@@ -1,0 +1,585 @@
+{
+  "schema": "gomad.rust-qualification-driver/v1",
+  "root": "/absolute/new-qualification-root",
+  "sent_epoch": 0,
+  "deadline_s": 3600,
+  "cores": 12,
+  "mem_gib": 16,
+  "binary": "/absolute/frozen/gomad-release",
+  "binary_sha256": "0000000000000000000000000000000000000000000000000000000000000000",
+  "features": [],
+  "build_receipt": "/absolute/frozen/release-build.json",
+  "identity": {
+    "host": "0000000000000000000000000000000000000000000000000000000000000000",
+    "helper": "0000000000000000000000000000000000000000000000000000000000000000"
+  },
+  "installations": {
+    "fixture-controlled": "/absolute/frozen/fixture-controlled.json",
+    "fixture-cooperative": "/absolute/frozen/fixture-cooperative.json",
+    "cooperative-runtime": "/absolute/frozen/cooperative-runtime.json",
+    "onebox-cooperative": "/absolute/frozen/onebox-cooperative.json",
+    "sqlite-cooperative": "/absolute/frozen/sqlite-cooperative.json"
+  },
+  "environment": {
+    "CARGO_BUILD_JOBS": "1",
+    "RUST_TEST_THREADS": "1",
+    "RUSTUP_TOOLCHAIN": "1.99.1",
+    "GOFLAGS": "-p=1"
+  },
+  "inputs": [
+    "/absolute/frozen/release-build.json",
+    "/absolute/stock-go",
+    "/absolute/pinned-rustc",
+    "/absolute/pinned-cargo"
+  ],
+  "final_reader": null,
+  "stages": {
+    "validate": {
+      "adapter": "pending",
+      "reason": "integrated Rust producer and original assertion reader not yet bound: step_validate"
+    },
+    "portable": {
+      "adapter": "pending",
+      "reason": "integrated Rust producer and original assertion reader not yet bound: step_portable"
+    },
+    "default-build": {
+      "adapter": "pending",
+      "reason": "integrated Rust producer and original assertion reader not yet bound: step_default_build"
+    },
+    "default-vet": {
+      "adapter": "pending",
+      "reason": "integrated Rust producer and original assertion reader not yet bound: step_default_vet"
+    },
+    "compile-only": {
+      "adapter": "pending",
+      "reason": "integrated Rust producer and original assertion reader not yet bound: step_compile_only"
+    },
+    "lint-router": {
+      "adapter": "pending",
+      "reason": "integrated Rust producer and original assertion reader not yet bound: step_lint_router"
+    },
+    "lint-router-vet": {
+      "adapter": "pending",
+      "reason": "integrated Rust producer and original assertion reader not yet bound: step_lint_router_vet"
+    },
+    "actionlint-build": {
+      "adapter": "pending",
+      "reason": "integrated Rust producer and original assertion reader not yet bound: step_actionlint_build"
+    },
+    "actionlint-version": {
+      "adapter": "pending",
+      "reason": "integrated Rust producer and original assertion reader not yet bound: step_actionlint_version"
+    },
+    "workflow-lint": {
+      "adapter": "pending",
+      "reason": "integrated Rust producer and original assertion reader not yet bound: step_workflow_lint"
+    },
+    "lint-module": {
+      "adapter": "pending",
+      "reason": "integrated Rust producer and original assertion reader not yet bound: step_lint_module"
+    },
+    "architecture": {
+      "adapter": "pending",
+      "reason": "integrated Rust producer and original assertion reader not yet bound: step_architecture"
+    },
+    "lint-root": {
+      "adapter": "pending",
+      "reason": "integrated Rust producer and original assertion reader not yet bound: step_lint_root"
+    },
+    "test-harness": {
+      "adapter": "pending",
+      "reason": "integrated Rust producer and original assertion reader not yet bound: step_test_harness"
+    },
+    "world-race": {
+      "adapter": "pending",
+      "reason": "integrated Rust producer and original assertion reader not yet bound: step_world_race"
+    },
+    "rust-lint": {
+      "adapter": "pending",
+      "reason": "integrated Rust producer and original assertion reader not yet bound: step_rust_lint"
+    },
+    "rust-default-test": {
+      "adapter": "pending",
+      "reason": "integrated Rust producer and original assertion reader not yet bound: step_rust_default_test"
+    },
+    "rust-conformance-unit": {
+      "adapter": "pending",
+      "reason": "integrated Rust producer and original assertion reader not yet bound: step_rust_conformance_unit"
+    },
+    "rust-diagnostic-test": {
+      "adapter": "pending",
+      "reason": "integrated Rust producer and original assertion reader not yet bound: step_rust_diagnostic_test"
+    },
+    "rust-fuel-off-test": {
+      "adapter": "pending",
+      "reason": "integrated Rust producer and original assertion reader not yet bound: step_rust_fuel_off_test"
+    },
+    "rust-guest-profile-test": {
+      "adapter": "pending",
+      "reason": "integrated Rust producer and original assertion reader not yet bound: step_rust_guest_profile_test"
+    },
+    "rust-combined-test": {
+      "adapter": "pending",
+      "reason": "integrated Rust producer and original assertion reader not yet bound: step_rust_combined_test"
+    },
+    "helper-corpus-regen-1": {
+      "adapter": "pending",
+      "reason": "integrated Rust producer and original assertion reader not yet bound: step_helper_corpus_regen_1"
+    },
+    "helper-corpus-regen-2": {
+      "adapter": "pending",
+      "reason": "integrated Rust producer and original assertion reader not yet bound: step_helper_corpus_regen_2"
+    },
+    "wasmmeasure-build": {
+      "adapter": "pending",
+      "reason": "integrated Rust producer and original assertion reader not yet bound: step_wasmmeasure_build"
+    },
+    "terminal-controls": {
+      "adapter": "pending",
+      "reason": "integrated Rust producer and original assertion reader not yet bound: step_terminal_controls"
+    },
+    "helper-build": {
+      "adapter": "pending",
+      "reason": "integrated Rust producer and original assertion reader not yet bound: step_helper_build"
+    },
+    "conformance-helper-build": {
+      "adapter": "pending",
+      "reason": "integrated Rust producer and original assertion reader not yet bound: step_conformance_helper_build"
+    },
+    "ordinary-helper-publication": {
+      "adapter": "pending",
+      "reason": "integrated Rust producer and original assertion reader not yet bound: step_ordinary_helper_publication"
+    },
+    "ordinary": {
+      "adapter": "pending",
+      "reason": "integrated Rust producer and original assertion reader not yet bound: step_ordinary"
+    },
+    "retained-durable-restart": {
+      "adapter": "pending",
+      "reason": "integrated Rust producer and original assertion reader not yet bound: step_retained_durable_restart"
+    },
+    "cluster-provider": {
+      "adapter": "pending",
+      "reason": "integrated Rust producer and original assertion reader not yet bound: step_cluster_provider"
+    },
+    "cluster-functional": {
+      "adapter": "pending",
+      "reason": "integrated Rust producer and original assertion reader not yet bound: step_cluster_functional"
+    },
+    "busy-boundaries": {
+      "adapter": "pending",
+      "reason": "integrated Rust producer and original assertion reader not yet bound: step_busy_boundaries"
+    },
+    "busy-grouped": {
+      "adapter": "pending",
+      "reason": "integrated Rust producer and original assertion reader not yet bound: step_busy_grouped"
+    },
+    "network-streams": {
+      "adapter": "pending",
+      "reason": "integrated Rust producer and original assertion reader not yet bound: step_network_streams"
+    },
+    "retained-cluster": {
+      "adapter": "pending",
+      "reason": "integrated Rust producer and original assertion reader not yet bound: step_retained_cluster"
+    },
+    "terminal-module": {
+      "adapter": "pending",
+      "reason": "integrated Rust producer and original assertion reader not yet bound: step_terminal_module"
+    },
+    "terminal-host-admission": {
+      "adapter": "pending",
+      "reason": "integrated Rust producer and original assertion reader not yet bound: step_terminal_host_admission"
+    },
+    "terminal-exit": {
+      "adapter": "pending",
+      "reason": "integrated Rust producer and original assertion reader not yet bound: step_terminal_exit"
+    },
+    "runtime-0": {
+      "adapter": "runtime",
+      "installation": "cooperative-runtime",
+      "source": "./internal/backends/wasm/testdata/runtime_probes",
+      "arguments": [
+        "--working-dir",
+        "/home/agent/wt/fn232-rust-driver/tools/gomad"
+      ]
+    },
+    "runtime-1": {
+      "adapter": "runtime",
+      "installation": "cooperative-runtime",
+      "source": "./internal/backends/wasm/testdata/runtime_probes",
+      "arguments": [
+        "--working-dir",
+        "/home/agent/wt/fn232-rust-driver/tools/gomad"
+      ]
+    },
+    "runtime-2": {
+      "adapter": "runtime",
+      "installation": "cooperative-runtime",
+      "source": "./internal/backends/wasm/testdata/runtime_probes",
+      "arguments": [
+        "--working-dir",
+        "/home/agent/wt/fn232-rust-driver/tools/gomad"
+      ]
+    },
+    "runtime-3": {
+      "adapter": "runtime",
+      "installation": "cooperative-runtime",
+      "source": "./internal/backends/wasm/testdata/runtime_probes",
+      "arguments": [
+        "--working-dir",
+        "/home/agent/wt/fn232-rust-driver/tools/gomad"
+      ]
+    },
+    "runtime-4": {
+      "adapter": "runtime",
+      "installation": "cooperative-runtime",
+      "source": "./internal/backends/wasm/testdata/runtime_probes",
+      "arguments": [
+        "--working-dir",
+        "/home/agent/wt/fn232-rust-driver/tools/gomad"
+      ]
+    },
+    "runtime-5": {
+      "adapter": "runtime",
+      "installation": "cooperative-runtime",
+      "source": "./internal/backends/wasm/testdata/runtime_probes",
+      "arguments": [
+        "--working-dir",
+        "/home/agent/wt/fn232-rust-driver/tools/gomad"
+      ]
+    },
+    "runtime-6": {
+      "adapter": "runtime",
+      "installation": "cooperative-runtime",
+      "source": "./internal/backends/wasm/testdata/runtime_probes",
+      "arguments": [
+        "--working-dir",
+        "/home/agent/wt/fn232-rust-driver/tools/gomad"
+      ]
+    },
+    "runtime-7": {
+      "adapter": "runtime",
+      "installation": "cooperative-runtime",
+      "source": "./internal/backends/wasm/testdata/runtime_probes",
+      "arguments": [
+        "--working-dir",
+        "/home/agent/wt/fn232-rust-driver/tools/gomad"
+      ]
+    },
+    "runtime-8": {
+      "adapter": "runtime",
+      "installation": "cooperative-runtime",
+      "source": "./internal/backends/wasm/testdata/runtime_probes",
+      "arguments": [
+        "--working-dir",
+        "/home/agent/wt/fn232-rust-driver/tools/gomad"
+      ]
+    },
+    "runtime-9": {
+      "adapter": "runtime",
+      "installation": "cooperative-runtime",
+      "source": "./internal/backends/wasm/testdata/runtime_probes",
+      "arguments": [
+        "--working-dir",
+        "/home/agent/wt/fn232-rust-driver/tools/gomad"
+      ]
+    },
+    "runtime-10": {
+      "adapter": "runtime",
+      "installation": "cooperative-runtime",
+      "source": "./internal/backends/wasm/testdata/runtime_probes",
+      "arguments": [
+        "--working-dir",
+        "/home/agent/wt/fn232-rust-driver/tools/gomad"
+      ]
+    },
+    "runtime-11": {
+      "adapter": "runtime",
+      "installation": "cooperative-runtime",
+      "source": "./internal/backends/wasm/testdata/runtime_probes",
+      "arguments": [
+        "--working-dir",
+        "/home/agent/wt/fn232-rust-driver/tools/gomad"
+      ]
+    },
+    "runtime-12": {
+      "adapter": "runtime",
+      "installation": "cooperative-runtime",
+      "source": "./internal/backends/wasm/testdata/runtime_probes",
+      "arguments": [
+        "--working-dir",
+        "/home/agent/wt/fn232-rust-driver/tools/gomad"
+      ]
+    },
+    "runtime-13": {
+      "adapter": "runtime",
+      "installation": "cooperative-runtime",
+      "source": "./internal/backends/wasm/testdata/runtime_probes",
+      "arguments": [
+        "--working-dir",
+        "/home/agent/wt/fn232-rust-driver/tools/gomad"
+      ]
+    },
+    "runtime-14": {
+      "adapter": "runtime",
+      "installation": "cooperative-runtime",
+      "source": "./internal/backends/wasm/testdata/runtime_probes",
+      "arguments": [
+        "--working-dir",
+        "/home/agent/wt/fn232-rust-driver/tools/gomad"
+      ]
+    },
+    "runtime-15": {
+      "adapter": "runtime",
+      "installation": "cooperative-runtime",
+      "source": "./internal/backends/wasm/testdata/runtime_probes",
+      "arguments": [
+        "--working-dir",
+        "/home/agent/wt/fn232-rust-driver/tools/gomad"
+      ]
+    },
+    "runtime-16": {
+      "adapter": "runtime",
+      "installation": "cooperative-runtime",
+      "source": "./internal/backends/wasm/testdata/runtime_probes",
+      "arguments": [
+        "--working-dir",
+        "/home/agent/wt/fn232-rust-driver/tools/gomad"
+      ]
+    },
+    "runtime-17": {
+      "adapter": "runtime",
+      "installation": "cooperative-runtime",
+      "source": "./internal/backends/wasm/testdata/runtime_probes",
+      "arguments": [
+        "--working-dir",
+        "/home/agent/wt/fn232-rust-driver/tools/gomad"
+      ]
+    },
+    "runtime-18": {
+      "adapter": "runtime",
+      "installation": "cooperative-runtime",
+      "source": "./internal/backends/wasm/testdata/runtime_probes",
+      "arguments": [
+        "--working-dir",
+        "/home/agent/wt/fn232-rust-driver/tools/gomad"
+      ]
+    },
+    "runtime-19": {
+      "adapter": "runtime",
+      "installation": "cooperative-runtime",
+      "source": "./internal/backends/wasm/testdata/runtime_probes",
+      "arguments": [
+        "--working-dir",
+        "/home/agent/wt/fn232-rust-driver/tools/gomad"
+      ]
+    },
+    "runtime-20": {
+      "adapter": "runtime",
+      "installation": "cooperative-runtime",
+      "source": "./internal/backends/wasm/testdata/runtime_probes",
+      "arguments": [
+        "--working-dir",
+        "/home/agent/wt/fn232-rust-driver/tools/gomad"
+      ]
+    },
+    "runtime-21": {
+      "adapter": "runtime",
+      "installation": "cooperative-runtime",
+      "source": "./internal/backends/wasm/testdata/runtime_probes",
+      "arguments": [
+        "--working-dir",
+        "/home/agent/wt/fn232-rust-driver/tools/gomad"
+      ]
+    },
+    "runtime-22": {
+      "adapter": "runtime",
+      "installation": "cooperative-runtime",
+      "source": "./internal/backends/wasm/testdata/runtime_probes",
+      "arguments": [
+        "--working-dir",
+        "/home/agent/wt/fn232-rust-driver/tools/gomad"
+      ]
+    },
+    "runtime-23": {
+      "adapter": "runtime",
+      "installation": "cooperative-runtime",
+      "source": "./internal/backends/wasm/testdata/runtime_probes",
+      "arguments": [
+        "--working-dir",
+        "/home/agent/wt/fn232-rust-driver/tools/gomad"
+      ]
+    },
+    "runtime-24": {
+      "adapter": "runtime",
+      "installation": "cooperative-runtime",
+      "source": "./internal/backends/wasm/testdata/runtime_probes",
+      "arguments": [
+        "--working-dir",
+        "/home/agent/wt/fn232-rust-driver/tools/gomad"
+      ]
+    },
+    "runtime-25": {
+      "adapter": "runtime",
+      "installation": "cooperative-runtime",
+      "source": "./internal/backends/wasm/testdata/runtime_probes",
+      "arguments": [
+        "--working-dir",
+        "/home/agent/wt/fn232-rust-driver/tools/gomad"
+      ]
+    },
+    "runtime-26": {
+      "adapter": "runtime",
+      "installation": "cooperative-runtime",
+      "source": "./internal/backends/wasm/testdata/runtime_probes",
+      "arguments": [
+        "--working-dir",
+        "/home/agent/wt/fn232-rust-driver/tools/gomad"
+      ]
+    },
+    "runtime-27": {
+      "adapter": "runtime",
+      "installation": "cooperative-runtime",
+      "source": "./internal/backends/wasm/testdata/runtime_probes",
+      "arguments": [
+        "--working-dir",
+        "/home/agent/wt/fn232-rust-driver/tools/gomad"
+      ]
+    },
+    "runtime-28": {
+      "adapter": "runtime",
+      "installation": "cooperative-runtime",
+      "source": "./internal/backends/wasm/testdata/runtime_probes",
+      "arguments": [
+        "--working-dir",
+        "/home/agent/wt/fn232-rust-driver/tools/gomad"
+      ]
+    },
+    "runtime-29": {
+      "adapter": "runtime",
+      "installation": "cooperative-runtime",
+      "source": "./internal/backends/wasm/testdata/runtime_probes",
+      "arguments": [
+        "--working-dir",
+        "/home/agent/wt/fn232-rust-driver/tools/gomad"
+      ]
+    },
+    "runtime-30": {
+      "adapter": "runtime",
+      "installation": "cooperative-runtime",
+      "source": "./internal/backends/wasm/testdata/runtime_probes",
+      "arguments": [
+        "--working-dir",
+        "/home/agent/wt/fn232-rust-driver/tools/gomad"
+      ]
+    },
+    "runtime-31": {
+      "adapter": "runtime",
+      "installation": "cooperative-runtime",
+      "source": "./internal/backends/wasm/testdata/runtime_probes",
+      "arguments": [
+        "--working-dir",
+        "/home/agent/wt/fn232-rust-driver/tools/gomad"
+      ]
+    },
+    "runtime-aggregate": {
+      "adapter": "runtime-aggregate"
+    },
+    "artifact": {
+      "adapter": "pending",
+      "reason": "integrated Rust producer and original assertion reader not yet bound: step_artifact"
+    },
+    "operator": {
+      "adapter": "pending",
+      "reason": "integrated Rust producer and original assertion reader not yet bound: step_operator"
+    },
+    "storage": {
+      "adapter": "pending",
+      "reason": "integrated Rust producer and original assertion reader not yet bound: step_storage"
+    },
+    "temporal-inspection": {
+      "adapter": "pending",
+      "reason": "integrated Rust producer and original assertion reader not yet bound: step_temporal_inspection"
+    },
+    "network": {
+      "adapter": "pending",
+      "reason": "integrated Rust producer and original assertion reader not yet bound: step_network"
+    },
+    "clusters": {
+      "adapter": "pending",
+      "reason": "integrated Rust producer and original assertion reader not yet bound: step_clusters"
+    },
+    "workload-fixture-controlled-success": {
+      "adapter": "qualify",
+      "installation": "fixture-controlled",
+      "spec": "GENERATE"
+    },
+    "workload-fixture-controlled-canary": {
+      "adapter": "qualify",
+      "installation": "fixture-controlled",
+      "spec": "GENERATE"
+    },
+    "workload-fixture-cooperative-success": {
+      "adapter": "qualify",
+      "installation": "fixture-cooperative",
+      "spec": "GENERATE"
+    },
+    "workload-fixture-cooperative-canary": {
+      "adapter": "qualify",
+      "installation": "fixture-cooperative",
+      "spec": "GENERATE"
+    },
+    "workload-sqlite-cooperative-success": {
+      "adapter": "pending",
+      "reason": "integrated Rust producer and original assertion reader not yet bound: step_workload_cell"
+    },
+    "workload-sqlite-cooperative-canary": {
+      "adapter": "pending",
+      "reason": "integrated Rust producer and original assertion reader not yet bound: step_workload_cell"
+    },
+    "workload-onebox-cooperative-success": {
+      "adapter": "qualify",
+      "installation": "onebox-cooperative",
+      "spec": "GENERATE"
+    },
+    "workload-onebox-cooperative-canary": {
+      "adapter": "qualify",
+      "installation": "onebox-cooperative",
+      "spec": "GENERATE"
+    },
+    "workload-multi-instance-cooperative-success": {
+      "adapter": "pending",
+      "reason": "integrated Rust producer and original assertion reader not yet bound: step_workload_cell"
+    },
+    "workload-multi-instance-cooperative-canary": {
+      "adapter": "pending",
+      "reason": "integrated Rust producer and original assertion reader not yet bound: step_workload_cell"
+    },
+    "workload-corpus": {
+      "adapter": "corpus"
+    },
+    "sqlite-selection-0": {
+      "adapter": "sqlite-selection",
+      "installation": "sqlite-cooperative"
+    },
+    "sqlite-selection-1": {
+      "adapter": "sqlite-selection",
+      "installation": "sqlite-cooperative"
+    },
+    "sqlite-selection-2": {
+      "adapter": "sqlite-selection",
+      "installation": "sqlite-cooperative"
+    },
+    "sqlite-selection-3": {
+      "adapter": "sqlite-selection",
+      "installation": "sqlite-cooperative"
+    },
+    "workload-corpus-after-relocation": {
+      "adapter": "corpus"
+    },
+    "sqlite-catalogue": {
+      "adapter": "sqlite-catalogue",
+      "oracle": null
+    }
+  }
+}
