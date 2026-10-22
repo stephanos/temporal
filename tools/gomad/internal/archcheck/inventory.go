@@ -238,13 +238,16 @@ func discover(root, goCommand string, platform Platform, legacy bool) (Inventory
 func Within(path, root string) bool { return within(path, root) }
 
 var sourceExclusions = []string{
+	"rust/wasmhost/src/world/deflate/testdata",
 	"cmd/gomad/testdata", "internal/runner/testdata", "internal/evidence/qualification/corpus",
 	"internal/model/cluster/testdata/simulation_exploration", "internal/model/cluster/testdata/simulation_replay",
-	"testdata/parity/site_scope",
+	"testdata/parity/site_scope", "testdata/parity/live_backend",
 	"internal/backends/wasm/testdata", "internal/model/wasi/testdata", "internal/backends/wasm/toolchain/testdata", "internal/backends/wasm/cluster/testdata", "internal/backends/wasm/qualification/testdata", "internal/backends/wasm/command/testdata",
 }
 
 var expectedModules = map[string]bool{
+	"testdata/parity/live_backend/exploration/go.mod":              true,
+	"testdata/parity/live_backend/minimization/go.mod":             true,
 	"internal/evidence/qualification/corpus/go.mod":                true,
 	"internal/backends/wasm/qualification/testdata/fixture/go.mod": true,
 	"internal/backends/wasm/testdata/io_failure_module/go.mod":     true, "internal/backends/wasm/testdata/ringpop/go.mod": true,

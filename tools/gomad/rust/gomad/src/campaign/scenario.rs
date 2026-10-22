@@ -260,6 +260,14 @@ fn clean_path(value: &str) -> bool {
             .all(|part| !matches!(part, "" | "." | ".."))
 }
 
+pub(crate) fn canonical_base64(value: &str) -> Result<Vec<u8>, String> {
+    let bytes = marker(&Binary::Base64(value.into()))?;
+    if super::exploration::base64(&bytes) != value {
+        return Err("noncanonical base64 payload".into());
+    }
+    Ok(bytes)
+}
+
 fn marker(value: &Binary) -> Result<Vec<u8>, String> {
     let value = match value {
         Binary::Bytes(bytes) if !bytes.is_empty() && bytes.len() <= 4096 => {
@@ -380,13 +388,13 @@ impl Scenario {
     )]
     fn validate(&self) -> Result<(), String> {
         let spec = &self.spec;
+        if spec.fidelity == "hard_isolation" {
+            return Err("one-helper WASM clusters cannot provide hard isolation".into());
+        }
         if self.schema != "gomad-wasm.scenario/v1"
             || spec.schema != "gomad.simulation-spec/v8"
             || spec.backend != "wasm"
-            || !matches!(
-                spec.fidelity.as_str(),
-                "simulation_model" | "hard_isolation"
-            )
+            || spec.fidelity != "simulation_model"
             || spec.seed != 0
             || spec.faults.is_some()
             || spec.exploration.is_some()
@@ -599,6 +607,66 @@ pub fn normalize(raw: &[u8]) -> Result<Vec<u8>, String> {
         return Err("normalized WASM scenario size exceeds bounds".into());
     }
     Ok(normalized)
+}
+
+#[cfg(test)]
+mod fidelity_tests {
+    use super::*;
+
+    #[test]
+    fn single_linked_helper_refuses_hard_isolation() {
+        let mut limits = serde_json::Map::new();
+        for name in [
+            "nodes",
+            "directional_links",
+            "volumes",
+            "scenario_actions",
+            "scenario_decisions",
+            "fault_actions",
+            "history_operations",
+            "observations",
+            "oracle_results",
+            "scenario_evidence_bytes",
+            "boot_config_bytes",
+            "volume_capacity_bytes",
+            "observation_bytes",
+            "network_listeners",
+            "network_connections",
+            "network_bytes",
+            "network_connection_bytes",
+            "network_stall_nanos",
+            "network_transitions",
+            "volume_operations",
+            "volume_transitions",
+            "crash_states",
+            "crash_depth",
+            "crash_bytes",
+            "crash_wall_nanos",
+        ] {
+            limits.insert(name.into(), json!(1));
+        }
+        limits.insert("scenario_actions".into(), json!(2));
+        let mut scenario: Scenario = serde_json::from_value(json!({
+            "schema": "gomad-wasm.scenario/v1",
+            "spec": {
+                "schema": "gomad.simulation-spec/v8", "backend": "wasm",
+                "fidelity": "simulation_model", "limits": limits,
+                "nodes": [{"id":"a", "boot":"guest", "address":"10.0.0.1"}]
+            },
+            "boots": [{"id":"guest"}],
+            "actions": [
+                {"action":"start", "handle":{"node":"a", "incarnation":1}},
+                {"action":"wait", "handle":{"node":"a", "incarnation":1}}
+            ]
+        }))
+        .expect("bounded ordinary scenario");
+        scenario.validate().expect("ordinary simulation model");
+        scenario.spec.fidelity = "hard_isolation".into();
+        let failure = scenario
+            .validate()
+            .expect_err("one helper cannot promise hard isolation");
+        assert!(failure.contains("hard isolation"), "{failure}");
+    }
 }
 
 pub struct Bound {
@@ -882,7 +950,7 @@ impl Assertions {
     }
 }
 
-fn complete_output(execution: &linked::Execution) -> bool {
+pub(crate) fn complete_output(execution: &linked::Execution) -> bool {
     let outcome = &execution.outcome;
     let captured_bytes = ["stdout", "stderr"]
         .into_iter()
@@ -1168,7 +1236,10 @@ pub fn bind(
             request,
         });
         retained.push(cluster::Incarnation {
+            workload_kind: String::new(),
             handle: step.handle.clone(),
+            imports: Some(cluster::module_imports(module)?),
+            storage_crash_selection: None,
             module: cluster::Payload {
                 file: "target/module.wasm".into(),
                 bytes: module.len() as u64,
@@ -1229,6 +1300,10 @@ pub fn bind(
     execution_limits.evidence_bytes = request.evidence_bytes;
     Ok(Bound {
         configuration: cluster::Configuration {
+            original_limits: None,
+            oracle_plan: None,
+            world_encoding: String::new(),
+            world_profile: None,
             simulation_original: None,
             nodes,
             engine: base.engine.clone(),
@@ -1422,10 +1497,11 @@ pub(crate) fn publication(
             item.execution.outcome.termination,
             "cancelled" | "watchdog_timeout"
         ) {
-            for feature in
-                linked::choice_features(trace, &configuration.choice_identity, "complete")
-                    .map_err(str::to_owned)?
-            {
+            for feature in incarnation_choice_features(
+                trace,
+                &configuration.choice_identity,
+                item.execution.outcome.termination,
+            )? {
                 features.push(format!(
                     "{}/{}/{feature}",
                     item.handle.node, item.handle.incarnation
@@ -1565,8 +1641,64 @@ pub(crate) fn publication(
             choice_features: features,
             divergence: None,
             scenario_steps: Some(executed_steps),
+            soft_assertions: None,
         },
         publication: Publication { record, payloads },
         metrics: super::execution::Metrics::default(),
     })
+}
+
+fn incarnation_choice_features(
+    trace: &[u8],
+    identity: &linked::ChoiceIdentity,
+    termination: &str,
+) -> Result<Vec<String>, String> {
+    let mut features =
+        linked::choice_features(trace, identity, "complete").map_err(str::to_owned)?;
+    if matches!(termination, "crash" | "stop" | "storage_crash") {
+        features.retain(|feature| feature != "terminal/complete");
+    }
+    Ok(features)
+}
+
+#[cfg(test)]
+mod interrupted_coverage_tests {
+    #[test]
+    fn interrupted_incarnations_retain_records_without_completed_terminal() {
+        let identity = gomad_wasmhost::linked::ChoiceIdentity {
+            target_sha256: [1; 32],
+            toolchain_build_key: "02".repeat(32),
+            goos: "wasip1".into(),
+            goarch: "wasm".into(),
+            implementation_sha256: [3; 32],
+        };
+        let mut trace = [0; 96];
+        trace[8] = 1;
+        trace[9] = 5;
+        trace[12..16].copy_from_slice(&1u32.to_be_bytes());
+        trace[32..64].fill(1);
+        trace[64..96].fill(2);
+        let complete = super::incarnation_choice_features(&trace, &identity, "exit").unwrap();
+        assert!(
+            complete
+                .iter()
+                .any(|feature| feature == "terminal/complete")
+        );
+        let records: Vec<_> = complete
+            .into_iter()
+            .filter(|feature| feature != "terminal/complete")
+            .collect();
+        assert!(
+            records
+                .iter()
+                .any(|feature| feature.starts_with("record_kind/"))
+        );
+        for termination in ["crash", "stop", "storage_crash"] {
+            assert_eq!(
+                super::incarnation_choice_features(&trace, &identity, termination).unwrap(),
+                records,
+                "{termination} must preserve record features without claiming completion"
+            );
+        }
+    }
 }

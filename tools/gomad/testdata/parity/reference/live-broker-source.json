@@ -1,0 +1,8 @@
+{
+  "schema": "gomad.live-broker-reference-source/v1",
+  "source_revision": "82ba157e16fc2dd70abd43cd007fbfe1a431109d",
+  "files": {
+    "integration": "5e2bfeff4dbd08e5ee9ae0ca6eda649802ab7cd64bca3e5b3c7c1a3f0002ab83",
+    "provider": "bce7c6fe9e573eeea49be57d0882a8ad1da60bd23dbc7499d32c6253de7126c4"
+  }
+}

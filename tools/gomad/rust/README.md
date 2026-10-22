@@ -38,8 +38,9 @@ the JSON result and retained failure-signature semantics are documented in
 on the linked host and reopen its retained Result. Their spec mapping,
 linked-process accounting and lanes are documented in
 [the maintainer CLI guide](../CLI.md#rust-qualification).
-Install, doctor, discover, plan and recover use the Rust installation and
-preparation owners. The
+Installation, discovery, prepare-only planning and journal recovery use the Rust
+owners documented in [the maintainer CLI guide](../CLI.md#rust-installation-and-discovery).
+The
 `determinism-fixture` feature exposes the foundation, inspect, replay and campaign test drivers;
 their commands and fault controls are absent from ordinary builds. Run from the
 repository root:

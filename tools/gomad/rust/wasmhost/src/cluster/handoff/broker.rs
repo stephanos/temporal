@@ -143,6 +143,7 @@ struct Session {
     hold: Option<clock::Handle>,
     marker: Vec<u8>,
     boundary: &'static str,
+    observed: Option<mpsc::SyncSender<()>>,
     output: Vec<u8>,
     key: String,
     handle: clock::Handle,
@@ -262,6 +263,7 @@ impl Broker {
                 hold: None,
                 marker: Vec::new(),
                 boundary: "crash",
+                observed: None,
                 output: Vec::new(),
                 key,
                 handle,
@@ -362,6 +364,9 @@ impl Broker {
                 return Err(Failure::Infrastructure(message.clone()));
             }
             inner.commands.push_back((command, send));
+            for wake in &self.wake {
+                wake.notify_all();
+            }
             if inner.active.is_none() {
                 self.commands(&mut inner);
                 if inner.manual {
@@ -468,6 +473,25 @@ impl Broker {
         Ok(())
     }
 
+    pub fn observe_output(
+        &self,
+        me: usize,
+        incarnation: u64,
+        marker: Vec<u8>,
+        observed: mpsc::SyncSender<()>,
+    ) -> Result<(), Failure> {
+        let mut inner = lock(&self.inner);
+        Self::check_locked(&inner, me, incarnation)?;
+        if marker.is_empty() || marker.len() > 4096 || !inner.sessions[me].marker.is_empty() {
+            return Err(invalid("broker observation marker"));
+        }
+        let session = &mut inner.sessions[me];
+        session.marker = marker;
+        session.boundary = "observe";
+        session.observed = Some(observed);
+        Ok(())
+    }
+
     pub fn barrier(&self, ids: &[String], marker: Vec<u8>) -> Result<(), Failure> {
         let mut inner = lock(&self.inner);
         if ids.len() < 2
@@ -517,6 +541,27 @@ impl Broker {
             *value = true;
         }
         let all = !inner.barrier.is_empty() && inner.barrier.values().all(|seen| *seen);
+        if own == Some("observe") {
+            inner.driver = None;
+            inner.sessions[me].marker.clear();
+            let observed = inner.sessions[me]
+                .observed
+                .take()
+                .ok_or_else(|| invalid("broker observation receiver"))?;
+            observed
+                .send(())
+                .map_err(|_| invalid("broker observation abandoned"))?;
+            loop {
+                self.commands(&mut inner);
+                Self::check_locked(&inner, me, incarnation)?;
+                if let Some((_, message)) = &inner.aborted {
+                    return Err(Failure::Infrastructure(message.clone()));
+                }
+                inner = self.wake[me]
+                    .wait(inner)
+                    .unwrap_or_else(std::sync::PoisonError::into_inner);
+            }
+        }
         if own == Some("crash") {
             self.revoke_locked(&mut inner, me, "crash")?;
             return Err(Failure::Boundary("crash", "broker output trigger"));
@@ -650,6 +695,7 @@ impl Broker {
             hold: None,
             marker: Vec::new(),
             boundary: "crash",
+            observed: None,
             output: Vec::new(),
             resume: None,
             generation: 0,

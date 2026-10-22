@@ -4,8 +4,12 @@
 //! (`tests/testdata/world_conformance`, pinned to `world.ImplementationSHA256`)
 //! keeps the two equal. Single-threaded: the serialized scheduler is the only
 //! caller. Replay plans and recordings are not ported; the broker uses neither.
+mod deflate;
 pub mod digest;
+pub(crate) mod gzip;
 pub mod order;
+#[cfg(not(feature = "conformance"))]
+pub(crate) mod retained;
 #[rustfmt::skip]
 pub mod wire_generated;
 

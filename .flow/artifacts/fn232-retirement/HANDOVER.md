@@ -164,3 +164,45 @@ A read-only function inventory confirms all twelve preexisting test/helper
 functions are unchanged and the appended test is the sole addition (ten tests
 total). No original test/helper content is removed. Actual Go tests remain unrun
 under the root resource hold; gofmt parsing and diff checks exit 0.
+
+## Prospective source integration of 82ba157e16
+
+Merged the root's reviewed main source through 82ba157e16 (source e5ea438c90)
+into this owned prospective branch. Main retirement remains unaccepted; no
+main checkout was changed. File-location conflicts retain every incoming helper
+file in rust/wasmhost, including typed module metadata, complete World/deflate
+codecs, private35 live-controller test and their fixtures/licenses. The README
+keeps the current .11 installation documentation and single-workspace ownership.
+All 2,372 incoming helper source/fixture files map to the new location; the only
+137 byte differences are the existing 123 identity metadata rotations plus 14
+manifest/build/input-path/pin/docs files. The helper's original 127 lock entries,
+dependency lists, exact versions and checksums remain unchanged.
+
+The source-only broker observer tests now read byte-pinned complete original
+integration/provider Go test snapshots under testdata/parity/reference, retained
+from exact incoming revision 82ba157e16. Their assertion/subtest/call-preservation
+checks remain unchanged and both selected Python-only checks pass; no Go probe
+or live observer was invoked. Snapshot provenance and hashes are retained in
+live-broker-source.json, with independent expected hashes in the source checker.
+External actual Go observation still uses its explicit authenticated --source;
+it never executes these inert snapshots. New gzip Go oracle and live_backend
+fixture modules have exact archcheck fixture classifications; no production
+package or dependency boundary was widened.
+
+Integration source checks, exit 0: workspace fmt-check and offline locked
+no-deps metadata;13 all-verb negative checks;3 counter checks;2 broker source
+assertion-preservation checks; current local-Go-import and Rust include/path-
+attribute existence scans; explicit private35 test retention; exact 127 lock-
+entry comparison; diff checks. No Cargo/Go compilation, Go unit test, guest,
+parity lane, profile, qualification or CI execution occurred.
+
+Follow-up after root grants resources: Go build/vet and focused pure-reference
+invariant tests (including all nine preserved helper tests plus restored network
+refusal and both namespace tests); complete make validate and retained model
+corpus reproduction; Rust ordinary/fixture/helper role build/test/Clippy through
+the shared workspace and current source; actual private35 gate with its original
+input/bound/output root; complete live-broker observer checks against original
+custody; final all-verb local parity and final frozen Rust qualification only
+after mandatory precrash image/Go import, fn231 and fn233 source integration.
+Mandatory new projection/precrash source remains a later root-owned merge.
+No final source freeze or existing evidence reuse for changed identities is implied.

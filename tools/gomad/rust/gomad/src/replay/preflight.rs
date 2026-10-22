@@ -188,6 +188,7 @@ fn prepare_internal(
     {
         return Err("WASM immutable configuration identity mismatch".into());
     }
+    authenticate_provenance(&opened, &inputs)?;
     let exact = match record.profile.as_str() {
         "gomad.wasi-cooperative/v1" => {
             if inputs.runtime_implementation_sha256.as_deref()
@@ -346,6 +347,58 @@ fn prepare_internal(
     })
 }
 
+fn authenticate_provenance(opened: &Opened, inputs: &Inputs) -> Result<(), String> {
+    if !opened
+        .manifest()
+        .files
+        .contains_key("target/provenance.json")
+    {
+        return Ok(());
+    }
+    let raw = opened.payload("target/provenance.json", 128 << 20)?;
+    let value: Value = serde_json::from_slice(&raw).map_err(|error| error.to_string())?;
+    crate::campaign::prepare::typed_provenance(&value)?;
+    let metadata: Option<linked::ModuleMetadata> = value
+        .get("module_metadata")
+        .map(|metadata| serde_json::from_value(metadata.clone()))
+        .transpose()
+        .map_err(|error| error.to_string())?;
+    crate::campaign::prepare::authenticate_module_metadata(
+        metadata.as_ref(),
+        &value["inputs"],
+        &opened.payload("target/module.wasm", 512 << 20)?,
+    )?;
+    let record = &opened.manifest().record;
+    let mut build_configuration =
+        serde_json::to_value(&inputs.configuration).map_err(|error| error.to_string())?;
+    build_configuration["runtime_sha256"] = Value::Null;
+    if canonical::encode(&value)? != raw
+        || value["schema"] != "gomad.rust-wasm-provenance/v1"
+        || value["build_key"] != record.identity.toolchain
+        || value["module_sha256"] != record.identity.target
+        || value["build_key"] != canonical::digest(&canonical::encode(&value["inputs"])?)
+        || value["configuration"]
+            != serde_json::to_value(&inputs.configuration).map_err(|error| error.to_string())?
+        || value["inputs"]["configuration"] != build_configuration
+        || value["inputs"]["helper"] != inputs.helper_sha256
+        || value["inputs"]["host"] != inputs.host_sha256
+        || value["inputs"]["network"] != value["network"]
+        || value["inputs"]["scenario"] != value["scenario"]
+    {
+        return Err("WASM prepared provenance identity mismatch".into());
+    }
+    if let Some(identity) = value["choice_identity"].as_object()
+        && (identity.get("ToolchainBuildKey") != Some(&value["build_key"])
+            || identity.get("TargetSHA256")
+                != Some(&serde_json::json!(
+                    sha2::Sha256::digest(opened.payload("target/module.wasm", u64::MAX)?).to_vec()
+                )))
+    {
+        return Err("WASM prepared provenance choice identity mismatch".into());
+    }
+    Ok(())
+}
+
 /// # Errors
 /// Returns a canonical identity for the actual linked host and helper components.
 pub fn implementation() -> Result<String, String> {
@@ -357,4 +410,61 @@ pub fn implementation() -> Result<String, String> {
 #[must_use]
 pub fn platform() -> String {
     canonical::digest(format!("{}/{}", std::env::consts::OS, std::env::consts::ARCH).as_bytes())
+}
+
+#[cfg(test)]
+mod module_metadata_tests {
+    use super::linked;
+
+    #[test]
+    fn module_metadata_reads_actual_imports_and_initial_pages() {
+        let mut bytes = b"\0asm\x01\0\0\0".to_vec();
+        bytes.extend_from_slice(&[1, 8, 2, 0x60, 1, 0x7f, 0, 0x60, 0, 0]);
+        let mut imports = vec![1, 22];
+        imports.extend_from_slice(b"wasi_snapshot_preview1");
+        imports.push(9);
+        imports.extend_from_slice(b"proc_exit");
+        imports.extend_from_slice(&[0, 0]);
+        bytes.extend_from_slice(&[2, u8::try_from(imports.len()).unwrap()]);
+        bytes.extend(imports);
+        bytes.extend_from_slice(&[3, 2, 1, 1, 5, 3, 1, 0, 2]);
+        bytes.extend_from_slice(&[7, 19, 2, 6]);
+        bytes.extend_from_slice(b"memory");
+        bytes.extend_from_slice(&[2, 0, 6]);
+        bytes.extend_from_slice(b"_start");
+        bytes.extend_from_slice(&[0, 1, 10, 4, 1, 2, 0, 0x0b]);
+        let actual = linked::module_metadata(&bytes).unwrap();
+        assert_eq!(
+            actual,
+            linked::ModuleMetadata {
+                imports: vec![linked::ModuleImport {
+                    module: "wasi_snapshot_preview1".into(),
+                    name: "proc_exit".into(),
+                    params: vec!["i32".into()],
+                    results: Vec::new(),
+                }],
+                initial_memory_pages: 2,
+            }
+        );
+        let inputs = serde_json::json!({"module_metadata":actual});
+        crate::campaign::prepare::authenticate_module_metadata(Some(&actual), &inputs, &bytes)
+            .unwrap();
+        for imports in [true, false] {
+            let mut altered = actual.clone();
+            if imports {
+                altered.imports.clear();
+            } else {
+                altered.initial_memory_pages += 1;
+            }
+            let inputs = serde_json::json!({"module_metadata":altered});
+            assert!(
+                crate::campaign::prepare::authenticate_module_metadata(
+                    Some(&altered),
+                    &inputs,
+                    &bytes,
+                )
+                .is_err()
+            );
+        }
+    }
 }

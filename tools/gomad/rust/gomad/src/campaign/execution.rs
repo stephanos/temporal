@@ -114,6 +114,8 @@ pub(crate) fn run_with_replay(
     replay: Option<&linked::ReplayRequest>,
     raw_trace: Option<&[u8]>,
 ) -> std::result::Result<Result, String> {
+    #[cfg(feature = "determinism-fixture")]
+    crate::live_backend::before_execution(job.seed, cancellation)?;
     if prepared.scenario.is_some() {
         if replay.is_some() || raw_trace.is_some() {
             return Err(
@@ -202,6 +204,8 @@ pub(crate) fn run_with_replay(
     }
     admitted.cancellation(cancellation.clone());
     let (observed, metrics) = measured(admitted, &configuration.limits)?;
+    #[cfg(feature = "determinism-fixture")]
+    crate::live_backend::after_execution(job.ordinal, cancellation)?;
     let mut result = publication(prepared, job, observed)?;
     result.metrics = metrics;
     Ok(result)
@@ -244,6 +248,16 @@ pub(crate) fn publication(
     let assertions = super::soft_assertions::assessed(prepared, &observed)?;
     let mut streams = BTreeMap::new();
     let mut payloads = BTreeMap::from([("target/module.wasm".into(), prepared.module.clone())]);
+    insert(
+        &mut payloads,
+        &mut streams,
+        "target/provenance.json",
+        prepared.provenance.clone(),
+        1,
+    );
+    if let Some(bytes) = runtime_terminal(observed.outcome.local_model.as_deref())? {
+        payloads.insert("evidence/runtime-terminal".into(), bytes);
+    }
     for (name, bytes) in &observed.evidence {
         let path = format!(
             "{}/{name}",
@@ -423,7 +437,11 @@ pub(crate) fn publication(
             reason: if termination == "cancelled" {
                 "runner_cancelled".into()
             } else {
-                observed.outcome.message
+                if matches!(termination, "exit" | "trap") {
+                    super::soft_assertions::reason(assertions.as_ref(), observed.outcome.message)
+                } else {
+                    observed.outcome.message
+                }
             },
         },
         streams,
@@ -439,6 +457,11 @@ pub(crate) fn publication(
         choice_features,
         divergence: observed.outcome.divergence.map(|value| *value),
         scenario_steps: None,
+        soft_assertions: assertions
+            .as_ref()
+            .map(serde_json::to_value)
+            .transpose()
+            .map_err(|error| error.to_string())?,
     };
     Ok(Result {
         execution,
@@ -463,4 +486,68 @@ fn insert(
         },
     );
     payloads.insert(name.into(), bytes);
+}
+
+fn runtime_terminal(
+    model: Option<&serde_json::Value>,
+) -> std::result::Result<Option<Vec<u8>>, String> {
+    let Some(model) = model else {
+        return Ok(None);
+    };
+    let finished = model["finished"] == true;
+    let Some(value) = model.get("terminal_base64") else {
+        return if finished {
+            Err("completed runtime terminal is missing".into())
+        } else {
+            Ok(None)
+        };
+    };
+    let text = value
+        .as_str()
+        .ok_or("runtime terminal is not base64 text")?;
+    if text.is_empty() && !finished {
+        return Ok(None);
+    }
+    let bytes = super::scenario::canonical_base64(text)?;
+    if !finished || bytes.len() != 16 || bytes[..4] != 1_u32.to_be_bytes() {
+        return Err("invalid runtime finish terminal".into());
+    }
+    Ok(Some(bytes))
+}
+
+#[cfg(test)]
+mod runtime_terminal_tests {
+    #[test]
+    fn runtime_terminal_exact_finish_and_malformed_refusals() {
+        let bytes = [0, 0, 0, 1, 0, 0, 0, 7, 0, 0, 0, 0, 0, 0, 0, 9];
+        let text = super::super::exploration::base64(&bytes);
+        let model = serde_json::json!({"finished":true,"terminal_base64":text});
+        assert_eq!(
+            super::runtime_terminal(Some(&model)).unwrap(),
+            Some(bytes.to_vec())
+        );
+        assert_eq!(super::runtime_terminal(None).unwrap(), None);
+        assert_eq!(
+            super::runtime_terminal(Some(
+                &serde_json::json!({"finished":false,"terminal_base64":""})
+            ))
+            .unwrap(),
+            None
+        );
+        for model in [
+            serde_json::json!({"finished":true}),
+            serde_json::json!({"finished":true,"terminal_base64":""}),
+            serde_json::json!({"finished":true,"terminal_base64":"!!!!"}),
+            serde_json::json!({"finished":true,"terminal_base64":4}),
+            serde_json::json!({"finished":false,"terminal_base64":text}),
+            serde_json::json!({"finished":true,"terminal_base64":format!("{text}\n")}),
+            serde_json::json!({"finished":true,"terminal_base64":super::super::exploration::base64(&[0;16])}),
+            serde_json::json!({"finished":true,"terminal_base64":super::super::exploration::base64(&bytes[..15])}),
+        ] {
+            assert!(
+                super::runtime_terminal(Some(&model)).is_err(),
+                "malformed runtime finish accepted: {model}"
+            );
+        }
+    }
 }

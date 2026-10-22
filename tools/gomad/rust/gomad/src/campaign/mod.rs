@@ -4,6 +4,7 @@ pub(crate) mod exploration;
 mod failure_policy;
 pub(crate) mod inspect;
 pub(crate) mod ledger;
+pub(crate) mod preparation;
 pub(crate) mod prepare;
 mod retention;
 pub(crate) mod scenario;
@@ -11,7 +12,7 @@ pub(crate) mod seeds;
 mod shards;
 pub(crate) mod simulation;
 mod simulation_execute;
-mod soft_assertions;
+pub(crate) mod soft_assertions;
 
 use crate::{
     cli::explore::ExploreOptions,
@@ -97,6 +98,22 @@ pub(crate) fn explore_prepared(
     observer: Option<Observer<'_>>,
     output: &mut dyn Write,
 ) -> Result<i32, String> {
+    let mut journal = seed_journal(options, prepared)?;
+    let remaining = options
+        .overall_timeout
+        .checked_sub(started.elapsed())
+        .ok_or("overall_timeout: campaign deadline exceeded during preparation")?;
+    run_observed(
+        &mut journal,
+        prepared,
+        remaining,
+        options.json,
+        output,
+        observer,
+    )
+}
+
+fn seed_journal(options: &ExploreOptions, prepared: &prepare::Prepared) -> Result<Journal, String> {
     let selection = seeds::SeedSelection::parse(&options.seeds)?;
     if selection.count() > 1_000_000 {
         return Err("capacity: campaign execution capacity exceeds 1000000".into());
@@ -120,19 +137,7 @@ pub(crate) fn explore_prepared(
         "scenario":prepared.scenario,"network":prepared.network,"soft_assertion_report_only":prepared.soft_assertion_report_only,
     });
     retain_prepared(&path, prepared, &mut plan)?;
-    let mut journal = Journal::create(&path, &plan, journal_bytes)?;
-    let remaining = options
-        .overall_timeout
-        .checked_sub(started.elapsed())
-        .ok_or("overall_timeout: campaign deadline exceeded during preparation")?;
-    run_observed(
-        &mut journal,
-        prepared,
-        remaining,
-        options.json,
-        output,
-        observer,
-    )
+    Journal::create(&path, &plan, journal_bytes)
 }
 
 fn prepared_publication(prepared: &prepare::Prepared) -> Result<Publication, String> {
@@ -458,6 +463,7 @@ fn run_observed(
         .checked_add(duration)
         .ok_or("campaign overall timeout overflows")?;
     let mut failure = None;
+    let mut failed_assertions = None;
     let mut pending_publications = BTreeMap::new();
     let cancellations = (0..parallel)
         .map(|_| gomad_wasmhost::linked::Cancellation::default())
@@ -561,6 +567,9 @@ fn run_observed(
                     stop_reason: None,
                 })?;
                 retention.retained(&receipt)?;
+                if json && let Some(report) = &receipt.soft_assertions {
+                    soft_assertions::progress(output, journal.path(), receipt.seed, report)?;
+                }
                 if matches!(
                     receipt.record.outcome.class.as_str(),
                     "target_failure" | "watchdog"
@@ -620,6 +629,9 @@ fn run_observed(
                         && (execution.record.outcome.termination != "cancelled"
                             || failure.is_some())
                     {
+                        if execution.record.outcome.termination == "capacity" {
+                            failed_assertions = execution.soft_assertions.clone();
+                        }
                         failure.get_or_insert_with(|| {
                             format!("runner_failure: {}", execution.record.outcome.reason)
                         });
@@ -699,6 +711,20 @@ fn run_observed(
         Ok(())
     })?;
     if let Some(error) = failure {
+        if let Some(report) = failed_assertions {
+            if json {
+                writeln!(
+                    output,
+                    "{}",
+                    json!({"schema":"gomad.explore-event/v3", "type":"error",
+                    "classification":"capacity", "message":error,"soft_assertions":report})
+                )
+                .map_err(|error| error.to_string())?;
+            } else {
+                writeln!(output, "gomad: capacity: {error}").map_err(|error| error.to_string())?;
+            }
+            return Ok(3);
+        }
         return Err(error);
     }
     let reason = state.stop.unwrap_or_else(|| "seeds_exhausted".into());

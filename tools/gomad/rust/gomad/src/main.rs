@@ -5,25 +5,7 @@ fn main() {
         std::process::exit(2);
     }
     let mut arguments = std::env::args().skip(1).collect::<Vec<_>>();
-    let mut installation = None;
-    if arguments
-        .first()
-        .is_some_and(|value| value == "--installation" || value == "-installation")
-    {
-        if arguments.len() < 2 {
-            eprintln!("gomad: flag needs an argument: -installation");
-            std::process::exit(2);
-        }
-        installation = Some(std::path::PathBuf::from(&arguments[1]));
-        arguments.drain(..2);
-    } else if let Some(value) = arguments.first().and_then(|value| {
-        value
-            .strip_prefix("--installation=")
-            .or_else(|| value.strip_prefix("-installation="))
-    }) {
-        installation = Some(std::path::PathBuf::from(value));
-        arguments.remove(0);
-    }
+    let installation = take_installation(&mut arguments);
     if let Some(command) = arguments.first().map(String::as_str).filter(|command| {
         matches!(
             *command,
@@ -35,10 +17,24 @@ fn main() {
                 | "qualify"
                 | "report"
                 | "stress"
+                | "install"
+                | "discover"
+                | "doctor"
+                | "plan"
+                | "recover"
         )
     }) {
         let mut output = std::io::stdout().lock();
         let result = match command {
+            "install" => gomad::cli::install::run(&arguments[1..], &mut output),
+            "discover" => {
+                gomad::cli::discover::run(&arguments[1..], &mut output, installation.as_deref())
+            }
+            "doctor" => {
+                gomad::cli::doctor::run(&arguments[1..], &mut output, installation.as_deref())
+            }
+            "plan" => gomad::cli::plan::run(&arguments[1..], &mut output, installation.as_deref()),
+            "recover" => gomad::cli::recover::run(&arguments[1..], &mut output),
             "explore" => gomad::cli::explore::run_with_installation(
                 &arguments[1..],
                 &mut output,
@@ -97,4 +93,31 @@ fn main() {
     }
     eprintln!("gomad: unsupported command");
     std::process::exit(2);
+}
+
+fn take_installation(arguments: &mut Vec<String>) -> Option<std::path::PathBuf> {
+    let mut installation = None;
+    loop {
+        if arguments
+            .first()
+            .is_some_and(|value| value == "--installation" || value == "-installation")
+        {
+            if arguments.len() < 2 {
+                eprintln!("gomad: flag needs an argument: -installation");
+                std::process::exit(2);
+            }
+            installation = Some(std::path::PathBuf::from(&arguments[1]));
+            arguments.drain(..2);
+        } else if let Some(value) = arguments.first().and_then(|value| {
+            value
+                .strip_prefix("--installation=")
+                .or_else(|| value.strip_prefix("-installation="))
+        }) {
+            installation = Some(std::path::PathBuf::from(value));
+            arguments.remove(0);
+        } else {
+            break;
+        }
+    }
+    installation
 }

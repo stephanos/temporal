@@ -64,6 +64,7 @@ impl Cancellation {
 
     pub(crate) fn execution() -> Execution {
         Execution {
+            authorization_to_terminal_nanos: None,
             outcome: Outcome::new("cancelled", "seed execution was cancelled"),
             evidence: BTreeMap::new(),
             event_order: None,

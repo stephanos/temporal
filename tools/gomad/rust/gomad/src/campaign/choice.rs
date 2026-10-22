@@ -26,6 +26,28 @@ use std::{
 pub(crate) fn explore(options: &ExplorationOptions, output: &mut dyn Write) -> Result<i32, String> {
     let started = Instant::now();
     let prepared = super::prepare::prepare(&options.base)?;
+    let (mut journal, initial) = prepare_journal(options, &prepared, started)?;
+    let remaining = options
+        .base
+        .overall_timeout
+        .checked_sub(started.elapsed())
+        .ok_or("overall_timeout: choice exploration deadline exceeded during preparation")?;
+    run(
+        &mut journal,
+        &prepared,
+        remaining,
+        options.base.json,
+        output,
+        initial,
+        false,
+    )
+}
+
+pub(super) fn prepare_journal(
+    options: &ExplorationOptions,
+    prepared: &Prepared,
+    started: Instant,
+) -> Result<(RoundJournal, Option<execution::Result>), String> {
     if prepared.scenario.is_some() {
         return Err(
             "unsupported_target: cluster-global forced choice exploration is unavailable".into(),
@@ -61,7 +83,7 @@ pub(crate) fn explore(options: &ExplorationOptions, output: &mut dyn Write) -> R
             .checked_sub(started.elapsed())
             .ok_or("overall_timeout: choice exploration deadline exceeded during preparation")?;
         let completion = execution::run(
-            &prepared,
+            prepared,
             &Job {
                 ordinal: 0,
                 seed: config.base_seed,
@@ -76,27 +98,47 @@ pub(crate) fn explore(options: &ExplorationOptions, output: &mut dyn Write) -> R
         config.site_scope = Some(resolution.scope(patterns));
         initial = Some(completion);
     }
-    let mut journal = plan::create(options, &prepared, RoundStrategy::Choice(config))?;
-    let remaining = options
-        .base
-        .overall_timeout
-        .checked_sub(started.elapsed())
-        .ok_or("overall_timeout: choice exploration deadline exceeded during preparation")?;
+    let journal = plan::create(options, prepared, RoundStrategy::Choice(config))?;
+    Ok((journal, initial))
+}
+
+pub(super) fn commit_planned_base(
+    journal: &mut RoundJournal,
+    prepared: &Prepared,
+    remaining: Duration,
+    initial: execution::Result,
+) -> Result<(), String> {
     run(
-        &mut journal,
-        &prepared,
+        journal,
+        prepared,
         remaining,
-        options.base.json,
-        output,
-        initial,
-    )
+        false,
+        &mut std::io::sink(),
+        Some(initial),
+        true,
+    )?;
+    Ok(())
 }
 
 pub(crate) fn resume(path: &Path, json: bool, output: &mut dyn Write) -> Result<i32, String> {
     let mut journal = RoundJournal::open(path, true)?;
+    let summary = journal.summary()?;
+    resume_admission(
+        summary["stop_reason"]
+            .as_str()
+            .ok_or("campaign completion state missing")?,
+    )?;
     let prepared = plan::restore(&journal)?;
     let remaining = plan::duration(&journal)?;
-    run(&mut journal, &prepared, remaining, json, output, None)
+    run(
+        &mut journal,
+        &prepared,
+        remaining,
+        json,
+        output,
+        None,
+        false,
+    )
 }
 
 #[expect(
@@ -110,6 +152,7 @@ fn run(
     json_output: bool,
     output: &mut dyn Write,
     mut initial: Option<execution::Result>,
+    base_only: bool,
 ) -> Result<i32, String> {
     let deadline = Instant::now()
         .checked_add(duration)
@@ -211,16 +254,32 @@ fn run(
                 &mut completion.execution,
                 completion.publication,
                 &mut retention,
+                base_only,
             )?;
             executions.push(completion.execution);
             results.push(result);
         }
         let (_, segment) = state.commit(&round, &results)?;
+        let reports = executions
+            .iter()
+            .filter_map(|execution| {
+                execution
+                    .soft_assertions
+                    .as_ref()
+                    .map(|report| (execution.seed, report.clone()))
+            })
+            .collect::<Vec<_>>();
         journal.append(RoundEvent::Choice {
             executions,
             segment,
         })?;
+        if base_only {
+            break;
+        }
         if json_output {
+            for (seed, report) in reports {
+                super::soft_assertions::progress(output, journal.path(), seed, &report)?;
+            }
             writeln!(output, "{}", json!({"schema":"gomad.explore-event/v3","type":"round",
                 "campaign":journal.path(),"strategy":"choice-exploration","envelope":journal.summary()?}))
                 .map_err(|error| error.to_string())?;
@@ -234,6 +293,7 @@ fn retain(
     execution: &mut Execution,
     publication: Publication,
     retention: &mut Retention,
+    base_only: bool,
 ) -> Result<(), String> {
     let metadata = &journal.plan().prepared;
     let failed = matches!(
@@ -241,7 +301,7 @@ fn retain(
         "target_failure" | "watchdog"
     ) || execution.divergence.is_some();
     let scoped_base = execution.ordinal == 0
-        && matches!(&journal.plan().strategy, RoundStrategy::Choice(config) if config.site_scope.as_ref().is_some_and(|scope| scope.resolved_count == 0));
+        && matches!(&journal.plan().strategy, RoundStrategy::Choice(config) if config.site_scope.as_ref().is_some_and(|scope| base_only || scope.resolved_count == 0));
     let keep = scoped_base
         || failed
         || retention.keep(
@@ -327,4 +387,31 @@ pub(crate) fn report(
         .map_err(|error| error.to_string())?;
     }
     Ok(i32::from(failures != 0))
+}
+
+fn resume_admission(stop_reason: &str) -> Result<(), String> {
+    if stop_reason.is_empty() {
+        Ok(())
+    } else {
+        Err("choice exploration campaign is complete".into())
+    }
+}
+
+#[cfg(test)]
+mod live_backend_tests {
+    #[test]
+    fn completed_choice_resume_refuses_before_restoration() {
+        assert!(super::resume_admission("").is_ok());
+        for reason in [
+            "max_executions",
+            "choice_depth_complete",
+            "exploration_capacity",
+            "exploration_exhausted",
+        ] {
+            assert!(
+                super::resume_admission(reason).is_err(),
+                "completed campaign admitted: {reason}"
+            );
+        }
+    }
 }

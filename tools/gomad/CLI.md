@@ -328,8 +328,31 @@ changing it; omission restores it. Changed patterns or resolved site digests
 refuse with the campaign changed-bound error.
 
 The reusable choice plan configuration validates scope blocks when a campaign
-opens. The public Rust `plan` verb and its `--site-scope` admission remain open
-under fn-232.11; this receiving seam does not supply that public command.
+opens. Public Rust `plan --output FILE` accepts the exploration flags and target
+grammar. Seed plans prepare and retain the target with zero guest executions.
+Choice plans accept `--site-scope`; resolving a scope executes and retains exactly
+one base execution. This lane cannot satisfy a prepare-only qualification gate.
+An empty scope still retains the base artifact and records `site_scope_empty`.
+
+`plan --json` returns `gomad.plan-result/v1` with `plan`, `plan_sha256`, `campaign`,
+`module_sha256`, `guest_executions`, `envelope`, `preparation_receipt` and
+`preparation_receipt_sha256`. The choice `envelope` reports the resolved scope,
+base-execution count and stop reason; seed plans return null there. The plan and `FILE.preparation.json` are exclusive,
+mode-0600 canonical JSON publications. Existing destinations are refused.
+The `gomad.rust-preparation-receipt/v1` receipt binds the exact portable plan,
+authenticated preparation record, module bytes and digest, and complete retained
+`gomad.rust-wasm-provenance/v1` payload. Provenance retains compiler/runtime/source
+inventories, build key, source package, directory, tags, arguments, configuration,
+namespace/model/schema inputs and implementation identities. Receipt admission
+recomputes these retained bindings through pinned handles without reopening build
+inputs. The command vector, numeric exit, elapsed preparation observation and
+operator PID are retained. Raw process resource snapshots bracket target
+preparation before any scoped base execution. Compiler CPU is the checked
+waited-child CPU delta; `compiler_lifetime_peak_rss_bytes` is the raw cumulative
+waited-child high water, with both snapshots retained. Unavailable observations
+remain null. These observations do not reset qualification phase counters.
+The synthetic `prepared` record is not an executed success or replay, and the
+receipt makes no measured qualification or cost claim.
 
 The mandatory exploration lane runs through the behavioral harness, separately
 from the seed campaign lane:
@@ -774,3 +797,67 @@ for native deletion do not establish a runtime or workload qualification pass.
 Final changed-candidate runtime, mandatory workload and retained-replay gates,
 including the complete behavioral reach of `make -C tools/gomad test-wasm`,
 remain pending under fn-232 R12/task .13's frozen Rust qualification cycle.
+
+## Rust installation and discovery
+
+The linked Rust host accepts the existing installation grammar:
+
+```sh
+gomad install --compiler /absolute/go --cache /absolute/cache --output gomad-wasm.json \
+  [--helper /absolute/gomad] [--runtime-root /absolute/runtimesource] \
+  [--compile-cache /absolute/cache] [--profile PROFILE] [--go-version go1.27.1] \
+  [--config FILE] [--memory-bytes BYTES] [--fuel COUNT]
+gomad install --compiler /absolute/go --cache /absolute/cache --output gomad-wasm.json \
+  --runtime-root /absolute/runtimesource --temporal-checkout /absolute/temporal \
+  --temporal-package ./tests/gomadfunctional
+gomad [--installation FILE] discover
+gomad doctor [--artifacts DIR] [--json]
+```
+
+`install` publishes a new, exclusive mode-0600
+`gomad.rust-wasm-installation/v1` manifest. Its `admission` block retains the
+original guest configuration and digest, complete compiler/runtime/overlay input
+inventory and digest, actual host executable digest, and any supplied helper
+path/digest. The existing Rust manifest fields retain the actual compiled host,
+linked helper and runtime implementation identities. Go-lineage manifests are
+refused. Configuration JSON uses the existing WASI configuration grammar;
+Temporal setup derives the complete TemporalInstallation policy and guest tags.
+Source preparation replaces configuration argv with the requested target argv,
+as the Go Runner does, and preserves its configured environment.
+
+The linked implementation is the default, so `--helper` is optional. An explicit
+path must name the running Rust host executable or a byte-identical copy of it.
+The installer authenticates its complete executable bytes and records that digest;
+it never executes the supplied path. A standalone helper, legacy Go helper,
+modified executable or differently compiled role is refused. This is the explicit
+linked-host default/requiredness exception; it does not select another execution
+implementation.
+
+Installation validates the existing pinned Go compiler and invokes the retained
+Go overlay generator through it. `GOTOOLCHAIN=local`, `GOPROXY=off` and
+`GOSUMDB=off` prohibit downloads. The manifest pins the overlay generator's source
+owner as well as runtime source and generated replacement bytes. Preparation
+revalidates the pinned inputs before building a target.
+
+Resolution chooses a nonempty leading `--installation`, then
+`GOMAD_WASM_INSTALLATION`, then `gomad-wasm.json` beside the executable. A chosen
+invalid installation fails without fallback. `discover` emits
+`{path, source, sha256, manifest, capabilities}` and authenticates the manifest's
+compiled identities and configuration preimages without opening compiler/runtime
+build inputs. It therefore works after those inputs are removed. Its capability
+list includes the newly available Rust `plan` verb. Its `ChoiceProfiles` retains
+the current `gomad-choice-trace/v4` wire format received from fn-230; the frozen
+Go reference advertises `gomad-choice-trace/v3`. Both literal capability objects
+remain in the differential corpus.
+
+Default `doctor` preserves the unavailable report (`gomad.doctor/v3`, status 2).
+An installation-selected `doctor` and native-only `analyze` retain the actual Go
+WASM unsupported-command refusal (status 2). Invalid installation inputs return
+2, exclusive manifest publication failures return 3, and selected discovery
+failures return 3.
+
+`recover [--json] CAMPAIGN` authenticates and repairs existing seed or exploration
+round journals under their writer lock. It starts no guest. The Rust recovery
+JSON retains `{schema, path, action, changed}`; `action` is `repair` after an actual
+repair and `none` on a subsequent no-op. Rust journals have no Go lifecycle-state
+fields, so those fields are omitted from the Rust response.

@@ -179,6 +179,8 @@ pub(crate) fn run(
         }
     }
     while let Some(attempt) = state.next()? {
+        #[cfg(feature = "determinism-fixture")]
+        crate::live_backend::minimize_control(attempt.candidate.overrides.len() as u64)?;
         let trial = parent.choice(attempt.candidate.overrides.len() as u64, attempt.index)?;
         let behavioral = trial
             .publication
@@ -213,6 +215,10 @@ pub(crate) fn run(
             serde_json::to_value(&state).map_err(|error| error.to_string())?,
             reference,
         )?;
+        #[cfg(feature = "determinism-fixture")]
+        if accepted {
+            crate::live_backend::minimize_checkpoint("after accepted")?;
+        }
     }
     let mut artifact_path = path.to_path_buf();
     let mut record_hash = parent.opened.manifest().record_sha256.clone();
@@ -261,6 +267,8 @@ pub(crate) fn run(
                 record_hash: record_hash.clone(),
             })?;
         }
+        #[cfg(feature = "determinism-fixture")]
+        crate::live_backend::minimize_checkpoint("after publication")?;
         if !predicate::exact(&artifact_path)? {
             return Err("minimized artifact exact replay diverged".into());
         }

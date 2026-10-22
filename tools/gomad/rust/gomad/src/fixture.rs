@@ -190,6 +190,64 @@ pub(crate) fn publish_bundle_with_budget(
 )]
 pub fn dispatch(arguments: &[String]) -> Option<Result<(), Error>> {
     let command = arguments.first()?.as_str();
+    if matches!(
+        command,
+        "fixture-live-runtime" | "fixture-live-broker" | "fixture-live-cluster"
+    ) {
+        return Some((|| {
+            if arguments.len() != 5 || arguments[1] != "--root" || arguments[3] != "--input" {
+                return Err("live fixture requires --root ROOT --input FILE".into());
+            }
+            let root = std::path::Path::new(&arguments[2]);
+            let input = std::path::Path::new(&arguments[4]);
+            match command {
+                "fixture-live-runtime" => crate::live_runtime::run(input, root),
+                "fixture-live-broker" => crate::live_broker::input(root, input),
+                _ => crate::live_cluster::input(root, input),
+            }
+            .map_err(Error::from)
+        })());
+    }
+    if command == "fixture-choice-implementation" {
+        return Some((|| {
+            if arguments.len() != 3
+                || arguments[1] != "--build-key"
+                || !canonical::valid_digest(&arguments[2])
+            {
+                return Err("fixture-choice-implementation requires --build-key SHA256".into());
+            }
+            let implementation = crate::campaign::prepare::choice_implementation(&arguments[2])
+                .map_err(Error::from)?;
+            println!(
+                "{}",
+                serde_json::json!({"runtime_sha256":format!("{implementation:x}"),
+                "implementation_sha256":implementation.as_slice()})
+            );
+            Ok(())
+        })());
+    }
+    if command == "fixture-preparation-open" {
+        return Some((|| {
+            if arguments.len() != 5 || arguments[1] != "--receipt" || arguments[3] != "--sha256" {
+                return Err(
+                    "fixture-preparation-open requires --receipt FILE --sha256 HASH".into(),
+                );
+            }
+            let (receipt, prepared) = crate::campaign::preparation::open_receipt(
+                std::path::Path::new(&arguments[2]),
+                &arguments[4],
+            )
+            .map_err(Error::from)?;
+            println!(
+                "{}",
+                serde_json::json!({"schema":"gomad.preparation-open-check/v1",
+                "module_sha256":canonical::digest(&prepared.module),
+                "provenance_sha256":canonical::digest(&prepared.provenance),
+                "guest_executions":receipt.guest_executions,"record_sha256":receipt.record_sha256})
+            );
+            Ok(())
+        })());
+    }
     if command == "fixture-qualify-phases" {
         return Some(if arguments.len() == 1 {
             crate::qualify::fixture::phases().map_err(Error::from)

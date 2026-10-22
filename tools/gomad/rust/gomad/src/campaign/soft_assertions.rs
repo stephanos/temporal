@@ -5,7 +5,7 @@ const PREFIX: &str = "failed assertion: ";
 
 #[derive(Clone, Debug, Deserialize, Eq, PartialEq, Serialize)]
 #[serde(deny_unknown_fields)]
-pub(super) struct Report {
+pub(crate) struct Report {
     pub messages: Vec<String>,
     #[expect(
         clippy::struct_field_names,
@@ -32,7 +32,7 @@ pub(super) fn assessed(
     ))
 }
 
-pub(super) fn observe(
+pub(crate) fn observe(
     stdout: &[u8],
     stderr: &[u8],
     complete: bool,
@@ -402,5 +402,55 @@ impl<'a> Json<'a> {
             self.at += 1;
         }
         if self.at == start { Err(()) } else { Ok(()) }
+    }
+}
+
+pub(super) fn progress(
+    output: &mut dyn std::io::Write,
+    campaign: &std::path::Path,
+    seed: u64,
+    report: &serde_json::Value,
+) -> Result<(), String> {
+    writeln!(
+        output,
+        "{}",
+        serde_json::json!({
+            "schema":"gomad.explore-event/v3", "type":"soft_assertion",
+            "campaign_path":campaign, "seed":seed, "soft_assertions":report
+        })
+    )
+    .map_err(|error| error.to_string())?;
+    output.flush().map_err(|error| error.to_string())?;
+    #[cfg(feature = "determinism-fixture")]
+    crate::live_backend::progress_acknowledged()?;
+    Ok(())
+}
+
+pub(crate) fn reason(report: Option<&Report>, message: String) -> String {
+    match report {
+        Some(report) if report.inconclusive => "soft_assertion_inconclusive".into(),
+        Some(report) if !report.report_only && !report.messages.is_empty() => {
+            "soft_assertion".into()
+        }
+        _ => message,
+    }
+}
+
+#[cfg(test)]
+mod live_backend_tests {
+    #[test]
+    fn soft_assertion_pass_exit_has_oracle_reason() {
+        for (report_only, inconclusive, expected) in [
+            (false, false, "soft_assertion"),
+            (true, false, ""),
+            (true, true, "soft_assertion_inconclusive"),
+        ] {
+            let report = super::Report {
+                messages: vec!["invalid fixture state".into()],
+                report_only,
+                inconclusive,
+            };
+            assert_eq!(super::reason(Some(&report), String::new()), expected);
+        }
     }
 }

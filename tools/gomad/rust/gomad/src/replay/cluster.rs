@@ -8,6 +8,9 @@ use serde_json::{Value, json};
 use sha2::Digest as _;
 use std::collections::{BTreeMap, BTreeSet};
 
+pub(crate) mod oracles;
+pub use oracles::Plan as OraclePlan;
+
 pub const FILE: &str = "evidence/cluster-replay.json";
 
 #[derive(Clone, Deserialize, Serialize)]
@@ -39,11 +42,25 @@ impl Payload {
     }
 }
 
+pub use linked::ModuleImport as ImportBinding;
+
+pub(crate) fn module_imports(bytes: &[u8]) -> Result<Vec<ImportBinding>, String> {
+    linked::module_metadata(bytes)
+        .map(|metadata| metadata.imports)
+        .map_err(|error| error.to_string())
+}
+
 #[derive(Clone, Deserialize, Serialize)]
 #[serde(deny_unknown_fields)]
 pub struct Incarnation {
+    #[serde(default, skip_serializing_if = "String::is_empty")]
+    pub workload_kind: String,
     pub handle: helper::Handle,
     pub module: Payload,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub imports: Option<Vec<ImportBinding>>,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub storage_crash_selection: Option<BTreeMap<String, Vec<u64>>>,
     pub limits: Limits,
     #[serde(default, skip_serializing_if = "Option::is_none")]
     pub wall_nanos: Option<u64>,
@@ -59,13 +76,47 @@ pub struct Incarnation {
 
 #[derive(Clone, Deserialize, Serialize)]
 #[serde(deny_unknown_fields)]
+pub struct OriginalLimits {
+    pub network_transitions: u64,
+    pub observation_bytes: u64,
+}
+
+pub(crate) fn storage_input(item: &Incarnation) -> Result<Option<linked::StorageInput>, String> {
+    let Some(selection) = item
+        .storage_crash_selection
+        .as_ref()
+        .filter(|selection| !selection.is_empty())
+    else {
+        return Ok(item.storage.clone());
+    };
+    let storage = item
+        .storage
+        .as_ref()
+        .ok_or("storage crash selection requires declared storage volumes")?;
+    let mut value = serde_json::to_value(storage).map_err(|error| error.to_string())?;
+    value["descriptor"]["crash_selection"] = json!(selection);
+    serde_json::from_value(value)
+        .map(Some)
+        .map_err(|error| error.to_string())
+}
+
+#[derive(Clone, Deserialize, Serialize)]
+#[serde(deny_unknown_fields)]
 pub struct Configuration {
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub original_limits: Option<OriginalLimits>,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub oracle_plan: Option<OraclePlan>,
     #[serde(default, skip_serializing_if = "Option::is_none")]
     pub simulation_original: Option<Box<Configuration>>,
     #[serde(default, skip_serializing_if = "Vec::is_empty")]
     pub nodes: Vec<String>,
     pub engine: String,
     pub profile: String,
+    #[serde(default, skip_serializing_if = "String::is_empty")]
+    pub world_encoding: String,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub world_profile: Option<String>,
     pub limits: Limits,
     #[serde(default, skip_serializing_if = "Option::is_none")]
     pub wall_nanos: Option<u64>,
@@ -75,6 +126,44 @@ pub struct Configuration {
     pub steps: Vec<helper::Step>,
     pub boundaries: Vec<helper::Boundary>,
     pub crash_groups: Vec<helper::CrashGroup>,
+}
+
+impl Configuration {
+    pub(crate) fn encoded_world_format(&self) -> Result<&str, String> {
+        if let Some(limits) = &self.original_limits {
+            if limits.network_transitions == 0
+                || limits.network_transitions > 1 << 20
+                || limits.observation_bytes == 0
+                || limits.observation_bytes > 64 << 20
+            {
+                return Err("invalid original cluster scenario limits".into());
+            }
+            if self.world_profile.as_deref() == Some("") {
+                let broker = &self.broker.limits;
+                if broker.max_requests != limits.network_transitions * 2
+                    || broker.max_events != limits.network_transitions * 2
+                    || broker.max_queued_events != (limits.network_transitions * 2).min(65536)
+                    || broker.max_transitions != limits.network_transitions * 8
+                    || broker.max_payload_bytes != limits.observation_bytes
+                    || broker.max_string_bytes != 1024
+                {
+                    return Err("original scenario limits differ from derived broker bounds".into());
+                }
+            }
+        }
+        if let Some(profile) = &self.world_profile {
+            if profile != &self.world_encoding
+                || !matches!(profile.as_str(), "" | "gomad/world/compressed-snapshot/v2")
+            {
+                return Err("retained World profile/encoding mismatch".into());
+            }
+            Ok("gomad/world/compressed-snapshot/v2")
+        } else if self.world_encoding.is_empty() {
+            Ok("")
+        } else {
+            Err("explicit World encoding requires retained profile".into())
+        }
+    }
 }
 
 #[derive(Deserialize, Serialize)]
@@ -105,6 +194,8 @@ pub struct Prepared {
 }
 
 pub struct Execution {
+    oracle_configuration: Configuration,
+    world_encoding: String,
     pub(crate) prepared: helper::Prepared,
     simulation: Option<simulation::Plan>,
 }
@@ -121,7 +212,10 @@ pub(crate) fn execute(execution: Execution) -> Result<helper::Execution, String>
 
 pub(crate) fn execute_projected(execution: Execution) -> Result<linked::Execution, String> {
     let simulation = execution.simulation.is_some();
+    let encoding = execution.world_encoding.clone();
+    let oracle_configuration = execution.oracle_configuration.clone();
     let observed = execute(execution)?;
+    let oracle_report = oracles::assess(&observed, &oracle_configuration)?;
     let primary = simulation.then(|| {
         observed
             .incarnations
@@ -130,7 +224,8 @@ pub(crate) fn execute_projected(execution: Execution) -> Result<linked::Executio
             .cloned()
             .unwrap_or_default()
     });
-    let mut projected = project(observed)?;
+    let mut projected = project_encoded(observed, &encoding)?;
+    oracles::apply(&mut projected, oracle_report)?;
     if let Some(primary) = primary {
         projected.evidence.insert("choice".into(), primary);
     }
@@ -269,6 +364,19 @@ fn bind(opened: &Opened, inputs: &Inputs) -> Result<(), String> {
     {
         return Err("retained cluster incarnation count mismatch".into());
     }
+    if record.outcome.termination == "exit" && record.outcome.exit_code == Some(0) {
+        let mut live = BTreeSet::new();
+        for step in &inputs.configuration.steps {
+            if matches!(step.action, helper::Action::Start | helper::Action::Restart) {
+                live.insert(step.handle.clone());
+            } else {
+                live.remove(&step.handle);
+            }
+        }
+        if !live.is_empty() {
+            return Err("retained completed cluster lacks terminal lifecycle action".into());
+        }
+    }
     let primary = &recipe.incarnations[0].module;
     if primary.file != "target/module.wasm" || primary.sha256 != record.identity.target {
         return Err("retained cluster primary module identity mismatch".into());
@@ -298,6 +406,11 @@ fn incarnation(
     control: Option<&inspection::Request>,
 ) -> Result<helper::Incarnation, String> {
     let module = item.module.read(opened, 512 << 20)?;
+    if let Some(imports) = &item.imports
+        && module_imports(&module)? != *imports
+    {
+        return Err("retained cluster import binding mismatch".into());
+    }
     let identity = &item.choice_identity;
     if identity.toolchain_build_key != inputs.toolchain_sha256
         || identity.goos != "wasip1"
@@ -371,7 +484,7 @@ fn incarnation(
                 replay_trace: raw,
             }),
             namespace: Some(item.namespace.clone()),
-            storage: item.storage.clone(),
+            storage: storage_input(item)?,
         },
     })
 }
@@ -380,7 +493,16 @@ fn incarnation(
 /// Authenticates every retained module and incarnation before preparing the helper lifecycle.
 pub fn prepare(opened: Opened, control: Option<&inspection::Request>) -> Result<Prepared, String> {
     let inputs = inputs(&opened)?;
+    oracles::validate(&inputs.configuration)?;
     bind(&opened, &inputs)?;
+    let world = opened.payload("evidence/world", 384 << 20)?;
+    if !world.is_empty() {
+        helper::validate_encoded_world(
+            &world,
+            inputs.configuration.encoded_world_format()?,
+            &inputs.configuration.broker,
+        )?;
+    }
     let simulation = simulation_plan(&opened, &inputs)?;
     if simulation.is_some() != inputs.configuration.simulation_original.is_some() {
         return Err("simulation replay requires its original authenticated recipe".into());
@@ -432,6 +554,7 @@ pub fn prepare(opened: Opened, control: Option<&inspection::Request>) -> Result<
         .as_deref()
         .unwrap_or(&inputs.configuration)
         .clone();
+    let oracle_configuration = configuration.clone();
     let execution = helper::prepare(helper::Request {
         nodes: configuration.nodes,
         broker: configuration.broker,
@@ -450,7 +573,9 @@ pub fn prepare(opened: Opened, control: Option<&inspection::Request>) -> Result<
     Ok(Prepared {
         opened,
         execution: Execution {
+            oracle_configuration,
             prepared: execution,
+            world_encoding: inputs.configuration.encoded_world_format()?.into(),
             simulation,
         },
         exact: true,
@@ -502,6 +627,16 @@ pub fn authenticate_inspection(
 /// # Errors
 /// Projects typed cluster observations into a single identity-bound comparison stream.
 pub fn project(observed: helper::Execution) -> Result<linked::Execution, String> {
+    project_encoded(observed, "")
+}
+
+pub fn project_encoded(
+    mut observed: helper::Execution,
+    encoding: &str,
+) -> Result<linked::Execution, String> {
+    if !observed.world.is_empty() {
+        observed.world = helper::encode_world(&observed.world, encoding)?;
+    }
     let mut rows = Vec::new();
     let mut outcome = observed.outcome;
     let mut evidence = BTreeMap::new();
@@ -540,6 +675,7 @@ pub fn project(observed: helper::Execution) -> Result<linked::Execution, String>
     evidence.insert("inspection".into(), observed.inspection);
     outcome.local_model = Some(Box::new(json!({"now":observed.virtual_elapsed_nanos})));
     Ok(linked::Execution {
+        authorization_to_terminal_nanos: None,
         outcome,
         evidence,
         event_order: observed.event_order,

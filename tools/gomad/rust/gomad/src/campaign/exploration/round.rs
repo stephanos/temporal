@@ -382,6 +382,7 @@ pub struct RoundJournal {
     max_bytes: u64,
     poisoned: bool,
     observed: fs::Stat,
+    recovery_changed: bool,
 }
 
 impl RoundJournal {
@@ -457,6 +458,7 @@ impl RoundJournal {
             max_bytes,
             poisoned: false,
             observed,
+            recovery_changed: false,
         };
         journal.authenticate_prepared()?;
         journal.bind_scope_module()?;
@@ -543,6 +545,7 @@ impl RoundJournal {
             max_bytes: storage.max_bytes,
             poisoned: false,
             observed,
+            recovery_changed: false,
         };
         if matches!(&journal.state, RoundState::Choice(state) if state.config.site_scope.is_some())
         {
@@ -595,6 +598,7 @@ impl RoundJournal {
                 .map_err(|error| error.to_string())?;
             writer.sync_all().map_err(|error| error.to_string())?;
             journal.observed = fs::fstat(writer).map_err(|error| error.to_string())?;
+            journal.recovery_changed = true;
         }
         journal.bytes = complete_bytes as u64;
         Ok(journal)
@@ -791,6 +795,11 @@ impl RoundJournal {
     /// Refuses unsafe references, substituted entries and unauthenticated artifact manifests.
     pub fn open_artifact(&self, reference: &str) -> Result<Opened, String> {
         ledger::open_artifact(&self.root, reference)
+    }
+
+    #[must_use]
+    pub fn recovery_changed(&self) -> bool {
+        self.recovery_changed
     }
 
     #[must_use]
