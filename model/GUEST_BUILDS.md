@@ -3,7 +3,7 @@
 `bash model/scripts/guest.sh <crate> <output> [--check]` builds any cdylib with
 the mise-pinned Rust 1.99.1 compiler, `--locked`, `wasm32-wasip1` and `profile.guest`.
 It discovers the output through Cargo's artifact messages, including custom library
-names. It requires Bash, Python 3, the pinned toolchain and its `rust-src` component.
+names. It requires Bash, Python 3.11+, the pinned toolchain and its `rust-src` component.
 The Python executable path must contain no whitespace; the generated launcher uses
 its absolute shebang to preserve Cargo's macOS loader environment.
 Exit 0 means built or fresh, 1 means build/tool/output failure, and 2 means missing
@@ -21,8 +21,22 @@ No wasm bytes are rewritten after linking. The Temporal API generator sorts merg
 descriptor files before prost generation; otherwise Go map iteration could change
 merged Rust declaration order and the resulting guest bytes.
 
-`guest-rustc.py` derives target symbol identities from the pinned compiler, lockfile,
-normalized package/source paths, crate configuration and dependency identities.
+`guest-rustc.py` derives target symbol identities from the pinned compiler, the
+crate's own lockfile closure, normalized package/source paths, crate configuration
+and dependency identities. Before building, `guest-lock.py` digests, for every
+workspace-resolved package, the lockfile coordinates and checksums of its non-dev
+dependency closure across all platforms; path packages carry no location. The map
+is written as `umpire-lock-<content hash>.json` in the guest cache. Adding an
+unrelated workspace crate, or a dev-dependency, changes no guest bytes unless it
+changes the resolved dependencies of a package in a guest's closure. `cargo metadata`
+resolves optional dependencies across the whole workspace, so enabling an optional
+dependency or feature of a shared crate still changes the guest. This over-hashes but
+never under-hashes; the build's own `--unit-graph` would be an exact per-unit
+refinement. Packages that share a name and version across sources, or lack a closure,
+refuse the build, as does a registry package without a lockfile entry. Build-std units
+carry Cargo's std marker and come from the sysroot or from registry crates in the
+sysroot's own `library/Cargo.lock`; they take no workspace closure, since the pinned
+compiler fixes theirs.
 Cargo retains its own filenames and fingerprints. Atomic per-artifact `.umpire-id`
 files carry the portable identities; missing or malformed records fail the build.
 Records appear before rustc starts because Cargo pipelines dependent compilations
@@ -30,8 +44,9 @@ after metadata emission, and compiler failures remove them. Host proc macros com
 unchanged; their portable package/feature/profile identities include collision
 witnesses that refuse conflicting native variants in one target dependency graph.
 Each target's `OUT_DIR` remaps to `/generated/<portable identity>`, removing Cargo's
-host-specific directory hash from generated-source locations. Wrapper, lockfile or
-compiler changes select a new cache so older artifacts cannot bypass this evidence.
+host-specific directory hash from generated-source locations. Wrapper, closure script,
+lockfile or compiler changes select a new cache so older artifacts cannot bypass this
+evidence; a lockfile change outside every guest closure rebuilds identical bytes.
 Existing `RUSTC_WRAPPER` executables are chained. These inputs support the pinned
 workspace and toolchain; a compiler or dependency upgrade requires renewed native
 cross-OS comparisons and the existing host controls.
@@ -257,6 +272,25 @@ records the full source pin, exact invocations, platform/toolchain transcripts,
 source and target guards, artifact manifests, actual comparisons and host logs.
 This completes fn-232's committed-source requirement. The frozen fn-236 validation
 and historical failed fn-232/Linux-only proofs remain separate records.
+
+## Lockfile closure identities (fn-238.8)
+
+At source `107285ac64`, and again after the review follow-ups at `9df904d985`, two clean clones at different absolute paths with initially
+absent independent targets built identical guests on Linux 7.0.14/aarch64 with the
+pinned toolchain, four Cargo jobs and clean source checks before and after. A third
+clone added an unrelated workspace crate and a dev-dependency on it from
+`umpire-dsl`, which both guests depend on; its `Cargo.lock` changed, and both guests
+still matched byte for byte. The same edit at the pre-change base `ccacbf4b37`
+changed the Temporal guest. The refreshed embedded asset matches all three builds.
+
+| Guest | Bytes | SHA-256 |
+| --- | ---: | --- |
+| Stock | 192489 | `4fc5c19ff069c954c4aaef3d97d014f8dc029951d8401b50d501987fa2a41b61` |
+| Temporal | 3332314 | `0248382ec34f616078a97190dd0ae49544851800e54b5ecb47aaa772d056cae0` |
+
+The closure digest is a new compiler identity input, so the committed fn-232
+Linux/macOS certification above no longer covers the current derivation. It needs
+renewal with its retained runner at a later pin; it was not rerun here.
 
 ## Current verification and measured gate cost
 

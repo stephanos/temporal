@@ -21,8 +21,10 @@ class GuestRustc(unittest.TestCase):
         self.scratch = tempfile.TemporaryDirectory(prefix="guest identities ")
         self.addCleanup(self.scratch.cleanup)
         self.root = Path(self.scratch.name)
-        self.lock = self.root / "Cargo.lock"
-        self.lock.write_text('version = 4\n')
+        self.lock = self.root / "umpire-lock.json"
+        self.closures = {"example 1.0.0": "e" * 64, "example 2.0.0": "f" * 64,
+                         "another 1.0.0": "0" * 64}
+        self.lock.write_text(json.dumps(self.closures))
 
     def invocation(self, host, metadata="host-hash", dependency=None, **extra):
         workspace = self.root / host / "workspace"
@@ -44,7 +46,7 @@ class GuestRustc(unittest.TestCase):
         env = dict(os.environ, UMPIRE_GUEST_WORKSPACE=str(workspace),
                    UMPIRE_GUEST_SYSROOT=str(self.root / host / "rust"),
                    UMPIRE_GUEST_CARGO_HOME=str(self.root / host / "cargo"),
-                   UMPIRE_GUEST_TARGET=str(target), UMPIRE_GUEST_LOCKFILE=str(self.lock),
+                   UMPIRE_GUEST_TARGET=str(target), UMPIRE_GUEST_LOCK=str(self.lock),
                    UMPIRE_GUEST_COMPILER="rustc 1.99.1 (58cf8f9c3 2026-10-13)",
                    CARGO_MANIFEST_DIR=str(workspace / "crate"), CARGO_PKG_NAME="example",
                    CARGO_PKG_VERSION="1.0.0", OUT_DIR=str(out), **extra)
@@ -80,8 +82,37 @@ class GuestRustc(unittest.TestCase):
         for variant, environment in variants:
             with self.subTest(args=variant, version=environment["CARGO_PKG_VERSION"]):
                 self.assertNotEqual(guest_rustc.prepare(variant, environment)[2], baseline)
-        self.lock.write_text('version = 4\n# different resolution\n')
+        self.lock.write_text(json.dumps(dict(self.closures, **{"example 1.0.0": "1" * 64})))
         self.assertNotEqual(guest_rustc.prepare(args, env)[2], baseline)
+
+    def test_missing_or_ambiguous_lock_closure_refuses(self):
+        args, env = self.invocation("linux")
+        for closures in [{}, {"example 1.0.0": None}, {"example 1.0.0": "invalid"}]:
+            with self.subTest(closures=closures):
+                self.lock.write_text(json.dumps(closures))
+                with self.assertRaisesRegex(ValueError, "lockfile closure"):
+                    guest_rustc.prepare(args, env)
+
+    def test_build_std_units_need_no_workspace_lock_closure(self):
+        args, env = self.invocation("linux")
+        self.lock.write_text("{}")
+        library = self.root / "linux/rust/lib/rustlib/src/rust/library"
+        library.mkdir(parents=True)
+        (library / "Cargo.lock").write_text(
+            'version = 4\n\n[[package]]\nname = "example"\nversion = "1.0.0"\n')
+        registry = self.root / "linux/cargo/registry/src/index/example-1.0.0"
+        flagged = args + ["-Z", "force-unstable-if-unmarked"]
+        for manifest in [library / "std", registry]:
+            with self.subTest(manifest=manifest):
+                _, _, record = guest_rustc.prepare(flagged, dict(env, CARGO_MANIFEST_DIR=str(manifest)))
+                self.assertIsNotNone(record)
+        refused = [(args, dict(env, CARGO_MANIFEST_DIR=str(library / "std"))),
+                   (args + ["-Zforce-unstable-if-unmarked"], env),
+                   (flagged, dict(env, CARGO_MANIFEST_DIR=str(registry), CARGO_PKG_VERSION="2.0.0"))]
+        for variant, environment in refused:
+            with self.subTest(args=variant[-1], manifest=environment["CARGO_MANIFEST_DIR"]):
+                with self.assertRaisesRegex(ValueError, "lockfile closure"):
+                    guest_rustc.prepare(variant, environment)
 
     def test_missing_or_corrupt_dependency_identity_refuses(self):
         args, env = self.invocation("linux", dependency="a" * 64)
