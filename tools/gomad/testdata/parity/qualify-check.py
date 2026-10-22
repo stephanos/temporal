@@ -32,6 +32,24 @@ def equal(actual, expected, path):
         raise ValueError(f'{path}: got {actual!r}, expected {expected!r}')
 
 
+def with_ancestors(image):
+    """Insert the writable ancestor directories the Go host's namespace tree
+    holds implicitly, so nested captured mounts (the one-box schema inputs under
+    /workspace) have parents in the linked helper's ordered image."""
+    present = {bytes(entry['path']) for entry in image['entries']}
+    entries = []
+    for entry in image['entries']:
+        path = bytes(entry['path'])
+        parts = path.split(b'/')[1:-1]
+        for index in range(1, len(parts) + 1):
+            ancestor = b'/' + b'/'.join(parts[:index])
+            if ancestor not in present:
+                present.add(ancestor)
+                entries.append({'path': list(ancestor), 'directory': True, 'readonly': False, 'data': []})
+        entries.append(entry)
+    return dict(image, entries=entries)
+
+
 def prepare(args, run):
     for key in ('input', 'go_compiler', 'go_helper', 'go_source'):
         if getattr(args, key) is None:
@@ -79,11 +97,12 @@ def prepare(args, run):
                 model_identity='sha256:' + digest(json.dumps(storage, separators=(',', ':')).encode())), image=None, context=None)
         installation = dict(schema='gomad.rust-wasm-installation/v1', compiler_path=str(args.go_compiler),
             compiler_sha256=digest(args.go_compiler.read_bytes()), go_version='go1.27.1',
-            runtime_root=str(MODULE / 'internal/model/runtimesource'), cache_root=str(args.work / ('rust-' + cell + '-preparation')),
+            runtime_root=str(MODULE / 'internal/model/runtimesource'),
+            cache_root=str((args.preparation_root or args.work) / ('rust-' + cell + '-preparation')),
             profile='gomad.wasi-cooperative/v1', fuel=options['Fuel'], memory_bytes=options['MemoryBytes'],
             helper_sha256=replay['helper_sha256'], host_sha256=replay['host_sha256'],
             runtime_implementation_sha256=replay['runtime_implementation_sha256'], model=model,
-            namespace=namespace_image(config), storage=storage, network=config.get('network_v2'),
+            namespace=with_ancestors(namespace_image(config)), storage=storage, network=config.get('network_v2'),
             build_tags=options.get('BuildTags') or [])
         manifest = args.work / ('rust-' + cell + '-installation.json')
         manifest.write_bytes(encode(installation))
@@ -94,7 +113,7 @@ def main():
     parser = argparse.ArgumentParser(description=__doc__)
     for name in ('binary', 'go-binary', 'work'):
         parser.add_argument('--' + name, type=Path, required=True)
-    for name in ('input', 'go-compiler', 'go-helper', 'go-source'):
+    for name in ('input', 'go-compiler', 'go-helper', 'go-source', 'preparation-root'):
         parser.add_argument('--' + name, type=Path)
     mode = parser.add_mutually_exclusive_group()
     mode.add_argument('--prepare-only', action='store_true')
@@ -144,7 +163,8 @@ def main():
                  [args.binary, 'qualify', '--spec', args.work / 'missing-spec.json'], 2)
     if b'unsupported command' in result.stdout + result.stderr:
         raise ValueError('$.rust.qualify.availability: actual public qualify --spec command is missing')
-    raise ValueError('$.rust.qualify.result_schema: actual --spec port and reviewed result mapping are required before workload parity or goldens')
+    equal(b'no such file or directory' in result.stderr, True, '$.rust.qualify.missing_spec')
+    print('qualification grammar: Go and Rust probes agree; run qualify-lane.py for workload parity and goldens')
 
 
 if __name__ == '__main__':

@@ -10,6 +10,10 @@ Own both `qualify --spec FILE` and the existing installation-free `report --resu
 
 Port `qualify`, `qualify-set`, `merge-set` and `compare-support`, preserving current WASM supported/refused cases: repeated seeds and fresh instances per cell, replay of every retained execution, report bound to source, helper, module, model, compiler, host, profile and limits in the new schema, for the fixture cell and the SQLite workload first, then the one-box and cluster cells. Add verdict comparison to the harness.
 
+Provisional start (worker D, 2026-10-21): `flowctl start` refused because .9 is in progress, so this records the provisional start instead of forcing a claim. Development continues on branch fn232-qualify against the declared .7/.8/.9 interfaces. Acceptance waits on .9 and the integrated candidate.
+
+Conductor decision (2026-10-21): Rust `qualify --spec` admits multi-instance scenario cells (`Target.Scenario`, `Workload: multi-instance`). The Go host's public verb refuses them (`invalid_input`, status 2), and Go qualifies clusters only through its in-package test API, which the Rust binary does not have. This adds availability and removes nothing, so feature preservation holds. CLI.md documents it as a deliberate availability change. The parity lane derives the Go cluster verdict from Go `explore --scenario` plus `replay`.
+
 ## Acceptance
 Report runs without installation/source/compiler; tampered result/receipt observations or hashes refuse. Fixtures prove CPU counted once, concurrent-store accounting, threshold crossings, missing-measurement failure and independent report recomputation. Authenticate raw variable measurement envelopes before comparing the stable qualification projection; preserve execution-record hashes and traces exactly.
 

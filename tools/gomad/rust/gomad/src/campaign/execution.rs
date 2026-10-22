@@ -16,6 +16,85 @@ use std::{collections::BTreeMap, time::Duration};
 pub(crate) struct Result {
     pub execution: ledger::Execution,
     pub publication: Publication,
+    pub metrics: Metrics,
+}
+
+/// In-process observations of one execution. They never enter records.
+#[derive(Clone, Debug, Default)]
+pub(crate) struct Metrics {
+    pub wall_nanos: u64,
+    /// The linked image high water of this store window, when qualification
+    /// attributes process memory by phase.
+    pub store_peak_rss_bytes: Option<u64>,
+    /// One entry per fresh guest store; a cluster has one per incarnation.
+    pub stores: Vec<StoreMetrics>,
+}
+
+#[derive(Clone, Debug)]
+pub(crate) struct StoreMetrics {
+    pub incarnation: Option<String>,
+    pub fuel_used: u64,
+    pub trace_bytes: u64,
+    pub guest_peak_memory_bytes: u64,
+    pub guest_memory_limit_bytes: u64,
+}
+
+pub(crate) const TRACE_STREAMS: [&str; 5] =
+    ["transcript", "choice", "diagnostic", "storage", "network"];
+
+impl StoreMetrics {
+    pub(crate) fn observed(
+        incarnation: Option<String>,
+        execution: &linked::Execution,
+        fuel: u64,
+        memory_bytes: u64,
+    ) -> Self {
+        let outcome = &execution.outcome;
+        let cluster = incarnation.is_some();
+        Self {
+            incarnation,
+            fuel_used: fuel.saturating_sub(outcome.fuel_remaining),
+            // The Go qualification owner's trace bytes: WASI transcript,
+            // choice, diagnostic, storage and network traces. Output streams,
+            // inspection data and storage snapshots are not traces.
+            // A cluster's network trace is one shared stream, counted once by
+            // the cluster (`scenario::store_metrics`), never per store.
+            trace_bytes: execution
+                .evidence
+                .iter()
+                .filter(|(name, _)| {
+                    TRACE_STREAMS.contains(&name.as_str())
+                        && !(cluster && name.as_str() == "network")
+                })
+                .map(|(_, bytes)| bytes.len() as u64)
+                .sum(),
+            guest_peak_memory_bytes: outcome.peak_memory_bytes as u64,
+            guest_memory_limit_bytes: memory_bytes,
+        }
+    }
+}
+
+impl Metrics {
+    pub(crate) fn observed(
+        execution: &linked::Execution,
+        limits: &crate::evidence::record::Limits,
+        wall: Duration,
+    ) -> Self {
+        Self {
+            wall_nanos: nanos(wall),
+            store_peak_rss_bytes: None,
+            stores: vec![StoreMetrics::observed(
+                None,
+                execution,
+                limits.fuel,
+                limits.memory_bytes,
+            )],
+        }
+    }
+}
+
+pub(crate) fn nanos(wall: Duration) -> u64 {
+    u64::try_from(wall.as_nanos()).unwrap_or(u64::MAX)
 }
 
 pub(super) fn run(
@@ -122,11 +201,30 @@ pub(crate) fn run_with_replay(
             .map_err(|error| format!("runner_failure: admit standalone network: {error}"))?;
     }
     admitted.cancellation(cancellation.clone());
+    let (observed, metrics) = measured(admitted, &configuration.limits)?;
+    let mut result = publication(prepared, job, observed)?;
+    result.metrics = metrics;
+    Ok(result)
+}
+
+/// Runs one admitted store inside the whole-process backstop and its
+/// qualification phase window (`qualify::usage`).
+fn measured(
+    admitted: linked::Prepared,
+    limits: &crate::evidence::record::Limits,
+) -> std::result::Result<(linked::Execution, Metrics), String> {
+    crate::qualify::usage::store_begin();
+    let started = std::time::Instant::now();
     let observed = crate::backstop::within(admitted.wall_timeout(), || {
         linked::execute_prepared(admitted)
-    })
-    .map_err(|error| format!("runner_failure: execute campaign target: {error}"))?;
-    publication(prepared, job, observed)
+    });
+    let wall = started.elapsed();
+    let store_peak = crate::qualify::usage::store_end();
+    let observed =
+        observed.map_err(|error| format!("runner_failure: execute campaign target: {error}"))?;
+    let mut metrics = Metrics::observed(&observed, limits, wall);
+    metrics.store_peak_rss_bytes = store_peak;
+    Ok((observed, metrics))
 }
 
 #[expect(
@@ -341,6 +439,7 @@ pub(super) fn publication(
     Ok(Result {
         execution,
         publication: Publication { record, payloads },
+        metrics: Metrics::default(),
     })
 }
 

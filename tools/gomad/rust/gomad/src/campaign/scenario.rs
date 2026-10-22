@@ -588,6 +588,11 @@ impl Scenario {
 
 /// # Errors
 /// Refuses malformed, unknown, unbounded and inconsistent scenario declarations.
+/// The scenario's evidence bound for one cluster execution.
+pub(crate) fn evidence_limit(normalized: &[u8]) -> Result<u64, String> {
+    Ok(parse(normalized)?.spec.limits.scenario_evidence_bytes)
+}
+
 pub fn normalize(raw: &[u8]) -> Result<Vec<u8>, String> {
     let normalized = canonical::encode(&parse(raw)?)?;
     if normalized.len() > 256 << 10 {
@@ -1275,17 +1280,68 @@ pub(super) fn execute(
         return Err("capacity: scenario soft assertion policy results".into());
     }
     bound.request.wall_timeout = bound.request.wall_timeout.min(timeout);
+    let limits = store_limits(&bound.request.incarnations);
     let mut execution =
         helper::prepare(bound.request).map_err(|error| format!("runner_failure: {error}"))?;
     execution.conditions(linked::Conditions::compiled());
     execution.cancellation(cancellation.clone());
     #[cfg(feature = "determinism-fixture")]
     crate::fixture::execution_started().map_err(|error| error.message)?;
+    crate::qualify::usage::store_begin();
+    let started = std::time::Instant::now();
     let execution = crate::backstop::within(execution.wall_timeout(), || {
         helper::execute_prepared(execution)
-    })
-    .map_err(|error| format!("runner_failure: {error}"))?;
-    publication(prepared, job, bound.configuration, execution, false)
+    });
+    let wall = started.elapsed();
+    let store_peak = crate::qualify::usage::store_end();
+    let execution = execution.map_err(|error| format!("runner_failure: {error}"))?;
+    let mut metrics = store_metrics(&execution, &limits, wall);
+    metrics.store_peak_rss_bytes = store_peak;
+    let mut result = publication(prepared, job, bound.configuration, execution, false)?;
+    result.metrics = metrics;
+    Ok(result)
+}
+
+/// Each incarnation's own fuel and linear-memory bound, keyed by handle.
+pub(crate) fn store_limits(incarnations: &[helper::Incarnation]) -> BTreeMap<String, (u64, u64)> {
+    incarnations
+        .iter()
+        .map(|item| {
+            (
+                format!("{}/{}", item.handle.node, item.handle.incarnation),
+                (item.request.limits.fuel, item.request.limits.memory_bytes),
+            )
+        })
+        .collect()
+}
+
+/// Per-store observations of one shared cluster execution; the wall is shared.
+pub(crate) fn store_metrics(
+    execution: &helper::Execution,
+    limits: &BTreeMap<String, (u64, u64)>,
+    wall: Duration,
+) -> super::execution::Metrics {
+    let mut stores: Vec<_> = execution
+        .incarnations
+        .iter()
+        .map(|item| {
+            let name = format!("{}/{}", item.handle.node, item.handle.incarnation);
+            let (fuel, memory) = limits.get(&name).copied().unwrap_or((0, 0));
+            super::execution::StoreMetrics::observed(Some(name), &item.execution, fuel, memory)
+        })
+        .collect();
+    // The cluster network trace is one shared stream; it is counted once, on
+    // the first store, so the per-execution sum matches the owner's total.
+    if let Some(first) = stores.first_mut() {
+        first.trace_bytes = first
+            .trace_bytes
+            .saturating_add(execution.network.len() as u64);
+    }
+    super::execution::Metrics {
+        wall_nanos: super::execution::nanos(wall),
+        store_peak_rss_bytes: None,
+        stores,
+    }
 }
 
 #[expect(
@@ -1508,5 +1564,6 @@ pub(super) fn publication(
             scenario_steps: Some(executed_steps),
         },
         publication: Publication { record, payloads },
+        metrics: super::execution::Metrics::default(),
     })
 }

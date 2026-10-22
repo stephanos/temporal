@@ -417,6 +417,328 @@ The lane authenticates each lineage's retained bytes before comparing semantic
 results. Runner provisioning of the frozen baseline, extracted source and Go
 compiler remains necessary before this lane can run in CI.
 
+## Rust qualification
+
+The public grammar is unchanged:
+
+```sh
+gomad --installation /absolute/rust-installation.json qualify --spec /absolute/spec.json
+gomad report --result /absolute/root/rust-qualifications/v1/result-HASH.json
+```
+
+`qualify-set`, `merge-set` and `compare-support` keep their WASM refusal
+(status 2, unsupported command). Grammar errors and unreadable, malformed or
+`Options`-bearing specs return 2; freeze, run and publication failures return 3;
+otherwise the exit status is the existing qualification classification
+(`qualified` 0; `target_failure`, `nondeterministic`, `replay_divergence` 1).
+
+The spec keeps the owner field names (`Manifest`, `Campaign`, `ArtifactRoot`) so
+one file drives either binary. Strict decoding refuses duplicate members,
+trailing data, nesting over 128 and unknown fields. `Campaign` accepts
+`Target{Backend,Kind,Source,Args,BuildTags,WorkingDir,PreparationRoot}`,
+`Environment`, the nanosecond `ExecutionTimeout`, `OverallTimeout` and
+`TerminateGrace`, `OnFailure`, `FailureBudget`, `OutputLimit`,
+`WorldTransitionLimit`, `ChoiceTraceLimit`, `SuccessBytesLimit`, `Artifacts` and
+`RunnerBuild`. Every other Go `CampaignSpec` field is refused rather than ignored.
+`PreparationRoot` must be absolute; the Rust installation owns its preparation
+cache. `RunnerBuild` has no Rust meaning, because records bind the linked
+implementation identity. `Target.Backend` must be `wasm` and `Kind`
+`go-run`/`go-test`. `Target.Scenario` carries a multi-instance cell as Go's
+base64 encoding of the same bounded scenario JSON that `explore --scenario FILE`
+reads. The cell must declare `Workload: "multi-instance"`, and its Manifest binds
+`scenario_sha256`.
+
+The Go host's public `qualify --spec` refuses typed scenarios with
+`invalid_input` (status 2), because its owner forces cooperative choice coverage.
+Go qualifies clusters only through its in-package test API. Admitting the cell
+on the Rust verb is therefore a deliberate availability change, made because the
+Rust binary has no test-API entry point. The campaign maps onto the public `explore`
+grammar and inherits its validation. Qualification then fixes the selection:
+seed `Manifest.Seed`, one slot, `keep-successes=all` with one success artifact,
+and, for a cooperative installation without a scenario, choices with at least
+1 MiB and `coverage=choice`. Every declared deadline and limit
+(`ExecutionTimeout`, `OverallTimeout`, `TerminateGrace`, `OutputLimit`,
+`WorldTransitionLimit`, `ChoiceTraceLimit`, `SuccessBytesLimit`) is passed
+through unchanged, and the installation's fuel and memory bound each store. A
+record's `limits.wall_millis` is the declared execution timeout.
+
+Freeze runs one actual preparation and binds Rust-lineage identities in
+`gomad.rust-qualification-manifest/v1`:
+
+- integrated source;
+- workload source and runtime (compiler/overlay) inventories;
+- compiler, linked helper and host implementations;
+- model, engine, configuration, module and toolchain build key;
+- host OS/arch, fuel, memory, seed and repeat.
+
+A declared `sha256:` identity that differs fails closed. A final
+(non-provisional) cell also needs an operator baseline, a `success`/`canary`
+cell, and the conductor's source manifest, whose listed files are re-read and
+authenticated.
+
+Run reuses that frozen preparation. Each of the `Repeat` repetitions is a fresh
+single-seed campaign whose execution runs in a fresh Wasmtime engine and store.
+Every retained artifact, success or failure, is then replayed in a fresh store
+through the shared authenticated opener. Determinism is equality of canonical
+`gomad.execution-record/v2` hashes. A failed repetition, a missing artifact or a
+replay error ends the cell with an explicit `failure` (classification, message,
+iteration), and the completed executions are retained.
+
+### Results and receipts
+
+The Result `gomad.rust-qualification-result/v1` and the receipt
+`gomad.rust-qualification-receipt/v1` are canonical JSON. They are published
+content addressed with no-replace rename under
+`ArtifactRoot/rust-qualifications/v1/`, as
+`result-SHA256.json` and `result-SHA256.json.publication-RECEIPTSHA256.json`;
+the receipt is addressed by its own bytes. A collision is reused only when its
+bytes are identical, and a second, different receipt for one Result is refused. stdout is the bounded
+`{"operator_receipt":{...},"result_path":"..."}` response (8 KiB, absolute path
+of at most 1024 bytes).
+
+JSON differences from the Go host, by design of the new lineage:
+
+- The receipt fields are `result_sha256`, `operator_process_id` and
+  `linked_after`.
+- `report` emits `{"classification","publication","receipt","result"}`
+  instead of the bare Result. `publication` holds the receipt's terminal
+  `cpu_nanos`, `peak_rss_bytes` and a `status` of `within`, or `unattributed`
+  when the terminal linked peak exceeds the operator-only 2 GiB ceiling.
+- `report` requires exactly one receipt and refuses a missing, duplicate,
+  readdressed-in-place, unbound or wrong-process receipt.
+- Costs carry integer `{numerator,denominator}` ratios instead of floats.
+
+Results and receipts are content addressed, not signed. `report` refuses any
+edit that is not consistently re-hashed and recomputes every verdict, cost and
+budget input; a writer who rewrites records, Result and receipt together can
+still forge identity fields that do not feed the verdict.
+
+`report` reads no installation, source, compiler or helper. It refuses a changed
+content address, non-canonical bytes and unknown fields. It also refuses any
+verdict, record hash, cost or budget claim that differs from its recomputation
+over the retained records and raw observations. The Result retains the
+prepared target's `gomad.rust-wasm-provenance/v1` preimage (`provenance`), and
+`report` recomputes every manifest identity from it: workload sources, runtime
+and compiler, helper and host, model, engine, configuration, module, build key
+(toolchain), scenario, profile and limits. The provenance's duplicated
+scenario, network and configuration must agree with its hashed build inputs
+(the configuration differs only in the cooperative runtime implementation), and
+a cooperative choice identity (`wasip1`/`wasm`) must bind the build key, the
+module and the configuration's runtime implementation, which `report`
+recomputes from the build key and the choice sources compiled into this lineage; a controlled
+configuration carries no runtime implementation. A matched cooperative replay
+records `exact` choice replay and a matched controlled one `none`; neither
+profile records the other's value. Every record
+must bind the frozen
+module, toolchain, configuration, limits, implementation (recomputed from the
+helper and host digests), platform (`host_os/host_arch`) and exact runtime
+profile (`cooperative` is `gomad.wasi-cooperative/v1`, `controlled` is
+`gomad.wasi-stock-exploratory/v1`; any other is refused). A standalone record
+must also carry exactly the retained configuration's limits, arguments and
+environment, as replay preflight requires; a cluster record carries the
+retained limits except for an evidence bound of exactly the smaller of the
+configuration's and the retained scenario's `scenario_evidence_bytes`. Each
+execution's samples, and each matched replay's, must measure exactly the trace
+bytes its record's trace streams retain. A success outcome is a normal exit with status zero,
+and any other zero exit is a target failure with soft-assertion evidence, as
+the campaign ledger requires. The provenance carries exactly its declared
+fields at every typed level, and its build inputs exactly theirs. Every store sample,
+executed or replayed, must carry the frozen guest limit, and only
+multi-instance stores carry `node/incarnation` handles. Each measured cluster
+window, executed or replayed, carries exactly the incarnations its record's
+evidence streams name (`evidence/cluster/NODE/INCARNATION/...`), and every
+cluster execution is measured. A retained failure
+carries one of the runner's failure classes, never a success class.
+
+### Linked-process accounting
+
+The Go contract measured a separate helper process for each execution. The Rust
+host links the helper, so the operator, every Wasmtime engine and every guest
+store share one process self figure (`linked`, `RUSAGE_SELF` CPU, Linux `VmHWM`
+peak). Only the Go compiler and its descendants run as children (`children`,
+`RUSAGE_CHILDREN`). The Result retains raw `start`, `prepared` and `executed`
+snapshots of both. It also retains, for each store, the wall time, fuel, guest
+linear-memory peak and limit, trace bytes (the Go owner's WASI transcript,
+choice, diagnostic, storage and network traces; a cluster's shared network
+trace counts once, on its first store, and never per store) and virtual time, plus the self
+counters at the store's boundaries.
+
+- **CPU** is the children delta plus the linked delta, each counted once. Store
+  boundary counters only order the stores and prove they ran one at a time;
+  they are never added. There is no helper CPU field to double-count.
+- **Exact limits:**
+  - preparation wall, 10 min;
+  - largest execution or replay store wall, 15 min;
+  - largest waited compiler child peak, 6 GiB;
+  - each guest linear-memory peak, at most its instance limit.
+- **Phase attribution (Linux).** `qualify` resets the image high water at each
+  phase boundary (writes `5` to `/proc/self/clear_refs`, then reads `VmHWM`).
+  The reset restarts `VmHWM` at the current RSS, and glibc keeps freed heap
+  resident, so between reading a phase's high water and the reset, `qualify`
+  returns freed heap to the kernel (`malloc_trim(0)`). Otherwise the next phase
+  would start from the previous phase's freed memory, for example a store
+  window's compiler and guest heap charged to the operator. Memory that stays
+  live across a boundary is still charged to the phase that holds it.
+  `fixture-qualify-phases` proves both in a fresh process
+  (`goldens-qualify/phases.json`).
+  This separates operator phases (everything outside guest stores) from each
+  fresh store window (Wasmtime compilation, instantiation and guest execution).
+  Each phase is mapped to the ceiling that bounded it in the Go host
+  (`internal/backends/wasm/QUALIFICATION.md#measured-costs`, Go
+  `qualification.EvaluateBudget`):
+
+  | Phase | Historical ceiling | Check |
+  | --- | --- | --- |
+  | Operator phases | fresh operator lifetime peak, 2 GiB | exact |
+  | Single-guest store window | cold-cache-miss helper peak, 6 GiB | exact |
+  | Single-guest store window | warm-cache-hit helper peak, 4 GiB | upper bound |
+  | Cluster store window | resident helper peak, 8 GiB | exact |
+
+  A store window in the linked host always compiles, because each store gets a
+  fresh engine and there is no compile cache, so the cold ceiling governs it. The
+  warm ceiling bounded execution without compilation, and no linked window
+  executes without compiling. The window peak is therefore only an upper bound of
+  that phase: within when the window fits under 4 GiB, unattributed otherwise.
+  Splitting compilation from execution would need a helper-owned boundary. As in
+  the Go host, cluster windows are not subject to the single-guest limits. The
+  receipt's terminal operator check uses the operator phases through
+  publication.
+- **Attributed phases account for the lifetime peak.** Every window lies within
+  the lifetime linked peak and within the lifetime peak observed after it; any
+  rise across a window's boundaries is explained by the window or by operator
+  work; any other rise (preparation, between windows, after the last window)
+  is explained by operator work alone; the operator figure covers the initial
+  peak, because operator phases begin before the baseline snapshot; and the
+  largest phase reaches the lifetime peak. Otherwise the budget is refused
+  (`budget_failure`). Even when attribution is incomplete, every measured
+  window must fit the lifetime peaks around it before the fallback is used,
+  and a measured phase that already exceeds its ceiling stays `exceeded`: a
+  missing measurement never erases a known violation (the receipt's terminal
+  check keeps a retained or receipt operator overrun the same way). A zero phase peak is a missing measurement. A
+  window whose stores carry `node/incarnation` handles is a cluster window,
+  even with a single node.
+- **Without attribution** (another platform, a refused `clear_refs` write, or any
+  window lacking its peak), the lifetime linked peak upper-bounds every component.
+  It proves a limit only when it fits under it. Above a limit, the check is
+  `unattributed` and listed in `pending`: it is neither charged to one owner nor a
+  pass.
+- **Concurrent stores.** A cluster execution or replay retains one sample per
+  incarnation store (`node/incarnation`). Each sample carries that store's own
+  fuel, trace bytes, guest linear-memory peak and limit. All of them share one
+  wall time, virtual time and boundary window. The checks:
+  - each store's guest peak is checked exactly against its own limit;
+  - fuel and trace bytes are summed over the stores;
+  - wall time is counted once per logical execution;
+  - `resident_stores`, the most distinct nodes in one window, is checked exactly
+    against the protocol's two resident guests.
+
+  A missing handle, a duplicate handle, mismatched windows or a wrong resident
+  count refuse cost and budget. Host CPU and RSS cannot be split per store, so
+  they stay linked-process figures under the upper-bound rule above.
+- **Missing observations** produce `cost_failure` or `budget_failure`, never a
+  measured zero.
+- **Final cells** return 3 for any failure, violation or pending check, after the
+  Result and receipt are retained.
+- **The receipt's terminal linked peak** must fit the 2 GiB ceiling, or
+  `qualify` returns 3 for every cell, as the Go host did. `report` still opens
+  such a Result and labels the receipt `unattributed`. Missing or backward
+  counters and binding errors are refused. With attributed phases, a terminal
+  lifetime peak above both the Result's lifetime peak and the terminal
+  operator phase is unexplained and refused.
+
+### Verification lanes
+
+The controlled accounting corpus drives the same evaluators with fixture
+observations. It checks CPU counted once, threshold crossings, unattributed
+peaks, missing measurements, overlapping or concurrent stores, receipt tails and
+bug yield against an independent oracle and
+`testdata/parity/goldens-qualify/accounting.json`:
+
+```sh
+python3 tools/gomad/testdata/parity/qualify-accounting-check.py \
+  --binary /absolute/fixture-enabled/gomad --work /absolute/new/accounting
+```
+
+The mandatory fresh Go/Rust lane runs it, then `qualify-lane.py`:
+
+```sh
+python3 tools/gomad/scripts/behavioral-parity --corpus tools/gomad/testdata/parity \
+  --verb qualify --output-root /absolute/new/qualify \
+  --qualify-binary /absolute/fixture-enabled/gomad \
+  --qualify-go-binary /absolute/frozen/bin/gomad --qualify-go-helper /absolute/frozen/bin/gomad-wasmhost \
+  --qualify-go-source /absolute/frozen/source --qualify-go-compiler /absolute/stock/go1.27.1/bin/go \
+  --qualify-input /absolute/replay-input.json --qualify-preparation-root /absolute/stable/preparation
+```
+
+Parity runs use lane-local budgets (`LANE_CAMPAIGN` in `qualify-lane.py`): a
+300 s execution and 20 min overall deadline, 8 MiB output, 64 MiB World
+transitions and the lane installations' fuel. These budgets are deliberately
+wide, so that shared host load cannot turn a verdict comparison into a watchdog
+result. They are not qualification budgets. Every cell then runs again as a
+final canonical cell on a quiet host (1-minute load below 2.5), with the owner's
+declared values unchanged and an installation pinned to the owner's fuel and
+memory:
+
+| Cell | Owner source | Execution / overall / grace | Output / World | Fuel / memory |
+| --- | --- | --- | --- | --- |
+| `fixture`, `fixture-canary` | `qualification/integration_test.go` | 60 s / 3 min / 100 ms | 1 MiB / 1 MiB | 4e9 / 256 MiB |
+| `sqlite` | `qualification/sqlite_test.go` | 60 s / 3 min / 100 ms | 1 MiB / 1 MiB | 4e9 / 256 MiB |
+| `cluster` | `qualification/cluster_test.go` bounds | 60 s / 3 min / 100 ms | 1 MiB / 1 MiB | 4e9 / 256 MiB |
+| `onebox` | `qualification/onebox_test.go` | 15 min / 30 min / 1 s | 256 MiB / 32 MiB | 2^50 / 4 GiB |
+
+The onebox parity and canonical runs both use its owner values, plus choice
+traces of 64 MiB, success bytes of 2 GiB and the owner environment. Each canonical
+cell runs twice in fresh processes and roots, and both stable views must agree.
+Each canonical installation also pins the owner's `wasi.Config` model and
+namespace limits (calls, transcript bytes, pending events, descriptors, files,
+filesystem and output bytes; `OWNER_LIMITS` in `qualify-lane.py`), and the
+retained configuration must carry exactly those values.
+Each run must retain `limits.wall_millis` equal to the owner execution timeout
+and pass the unchanged cost/budget gate with its declared status: no cost or
+budget failure, no violation, no pending check and an attributed terminal
+operator peak within 2 GiB.
+
+For each cell (default `fixture`, `fixture-canary`, `sqlite` and `cluster`;
+`onebox` is selected with `--qualify-cells onebox`), the lane runs one Go and two Rust
+qualifications. The Go reference for `cluster` records Go's public `qualify`
+refusal. Its verdict instead comes from two fresh Go `explore --scenario`
+campaigns and a fresh `replay` of each retained artifact. It authenticates each Rust Result, receipt,
+record hash and retained artifact on raw bytes. Both Rust runs must agree on the
+declared stable view, and the Go and Rust verdicts must match. The lane also runs
+`report` without an installation and exercises the grammar, spec refusals
+(including a multibyte character at a source-manifest separator) and the tamper
+refusals in `goldens-qualify/tamper.json`, among them in-place and duplicate
+receipts, readdressed implementation, platform and profile changes, a failure
+claiming success and a malformed retained source manifest. The stable
+view compares cell identities, records, replays, outcomes, verdicts, structural
+costs, store handles and budget statuses. Its kept and excluded field sets are
+declared at every level (Result, report, executions, observations, cost,
+samples, budget and checks); any other field refuses the projection. Each
+retained campaign journal is authenticated and must commit exactly the Result's
+execution record. It excludes the measured PID, CPU, RSS and wall
+values and replaces the campaign IDs and installation/spec paths with tokens.
+Goldens are per cell (`goldens-qualify/cells/NAME.json`, with the parity view,
+the canonical view and the Go verdict) plus `goldens-qualify/tamper.json`.
+Regenerate them with `GOMAD_GOLDEN_REGENERATE=1` twice and compare the bytes.
+Linked-process upper-bound statuses follow measured RSS, so the golden keeps
+their names and limits but not their statuses. Each run authenticates them
+through the binary's recomputation.
+
+The frozen Go reference `fn232-replay-294-reference` predates the fn-230 R12 v4
+host repair, and its replay of a one-box Temporal trace fails
+(`choice trace malformed`). The `onebox` cell therefore runs as its own
+invocation (`--qualify-cells onebox`) against a Go reference built from a
+v4-repaired `gomad` revision. On this host the Rust one-box cell qualifies
+semantically, matching Go's verdict. Before phase attribution, its lifetime
+linked peak of 6,203,392,000 bytes (5.777 GiB, 6.20 GB), almost all in-process Wasmtime compilation (the guest
+peak is 141 MiB), left the operator and warm checks unattributed, and the
+command exited 3. With phase attribution, the operator phases and store windows
+are checked against their own ceilings. The attributed onebox run is pending the
+conductor's execution window. These are provisional fixture-binary lanes. The onebox row is the corpus family
+cell (`./tests/gomadfunctional`, `TestFrontendSystemInfo`). The mandatory
+`unchanged-workflow-type-smoke` selection and every one-box gate remain with
+fn-222.1. Qualification on the release binary alone remains with fn-232.13.
+
 ## Shared generated contracts
 
 The Go models, cooperative runtime overlay and Rust helper share wire schemas

@@ -190,18 +190,28 @@ pub(crate) fn publish_bundle_with_budget(
 )]
 pub fn dispatch(arguments: &[String]) -> Option<Result<(), Error>> {
     let command = arguments.first()?.as_str();
+    if command == "fixture-qualify-phases" {
+        return Some(if arguments.len() == 1 {
+            crate::qualify::fixture::phases().map_err(Error::from)
+        } else {
+            Err("fixture-qualify-phases takes no arguments".into())
+        });
+    }
     if matches!(
         command,
         "fixture-simulation-controller"
             | "fixture-choice-controller"
             | "fixture-minimize-controller"
+            | "fixture-qualify-accounting"
     ) {
         return Some((|| {
             if arguments.len() != 3 || arguments[1] != "--input" {
                 return Err("fixture-simulation-controller requires --input FILE".into());
             }
             let path = std::path::Path::new(&arguments[2]);
-            if command == "fixture-minimize-controller" {
+            if command == "fixture-qualify-accounting" {
+                crate::qualify::fixture::run(path).map_err(Error::from)
+            } else if command == "fixture-minimize-controller" {
                 crate::minimize::fixture::run(path).map_err(Error::from)
             } else if command == "fixture-choice-controller" {
                 crate::campaign::exploration::choice_corpus::run(path).map_err(Error::from)

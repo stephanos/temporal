@@ -221,7 +221,7 @@ def authenticate(root, result):
 
 
 VERBS = ("fixture", "inspect", "replay", "explore", "resume", "execute-shard", "merge",
-         "minimize", "qualify", "qualify-set", "merge-set", "compare-support",
+         "minimize", "qualify", "report", "qualify-set", "merge-set", "compare-support",
          "install", "doctor", "discover", "plan", "recover")
 
 
@@ -438,6 +438,9 @@ def main():
     parser.add_argument("--campaign-preparation-root", type=Path)
     for name in ("binary", "baseline", "source", "go-compiler", "go-cache", "preparation-root", "golden"):
         parser.add_argument("--minimize-" + name, type=Path)
+    for name in ("binary", "go-binary", "go-helper", "go-source", "go-compiler", "input", "preparation-root"):
+        parser.add_argument("--qualify-" + name, type=Path)
+    parser.add_argument("--qualify-cells", default="fixture,fixture-canary,sqlite,cluster")
     for name in ("binary", "baseline", "source", "go-compiler", "input", "preparation-root",
                  "divergence-binary", "conformance-helper", "go-base"):
         parser.add_argument("--exploration-" + name, type=Path)
@@ -455,6 +458,21 @@ def main():
                 command.extend(["--" + name, str(value)])
         if subprocess.run(command).returncode:
             fail("$minimize", "mandatory fresh minimization lane failed")
+        return
+    if args.verb in ("qualify", "report") and args.qualify_binary:
+        names = ("binary", "go-binary", "go-helper", "go-source", "go-compiler", "input", "preparation-root")
+        if not args.output_root or not all(getattr(args, "qualify_" + name.replace("-", "_")) for name in names):
+            fail("$qualify", "qualify requires the fixture-enabled Rust binary, frozen Go launcher/helper/source/compiler, replay configuration input, stable preparation root and fresh output root")
+        accounting = subprocess.run(["python3", str(args.corpus / "qualify-accounting-check.py"),
+            "--binary", str(args.qualify_binary), "--work", str(args.output_root / "accounting")])
+        if accounting.returncode:
+            fail("$qualify", "mandatory qualification accounting corpus failed")
+        command = ["python3", str(args.corpus / "qualify-lane.py"), "--work", str(args.output_root / "cells"),
+                   "--cells", args.qualify_cells]
+        for name in names:
+            command.extend(["--" + name, str(getattr(args, "qualify_" + name.replace("-", "_")))])
+        if subprocess.run(command).returncode:
+            fail("$qualify", "mandatory fresh qualification lane failed")
         return
     if args.verb in ("explore", "resume") and args.exploration_binary:
         names = ("binary", "baseline", "source", "go-compiler", "input", "preparation-root",

@@ -1291,6 +1291,196 @@ to the final Rust lanes. Fixing them would be Go host work outside the delivery 
 left unchanged and are not small fixes. The Rust cluster inspection lanes must cover both
 behaviors. Evidence: `/home/agent/wt/evidence/fn230-r12-characterization-repair/`.
 
+### fn232.10 provisional qualify/report port (worker D), 2026-10-21
+
+`flowctl start` refused: .9 is still in progress. The provisional start is recorded
+in the task file and nothing was forced. The work is on branch `fn232-qualify`
+(merged with gomad `8534e10f3d`). It replaces the earlier grammar-only RED
+checkpoint.
+
+**Ported.** `qualify --spec FILE` and installation-free `report --result FILE`
+now run in the Rust binary (`rust/gomad/src/qualify/*`, `src/cli/qualify.rs`).
+`qualify-set`, `merge-set` and `compare-support` keep their status-2 refusal.
+
+- The spec keeps the owner field names. Strict decoding refuses duplicates,
+  trailing data, `Options` and unknown fields. Fields with no Rust meaning are
+  refused, except `PreparationRoot` and `RunnerBuild`, which are accepted.
+- Freeze runs one actual preparation and binds every Rust-lineage identity.
+  A declared identity that differs fails closed.
+- Run reuses the frozen preparation. Each of the `Repeat` repetitions is a fresh
+  single-seed campaign in a fresh Wasmtime store. Every retained artifact is then
+  replayed through the shared opener. A failed repetition or replay produces an
+  explicit failure report.
+- The canonical Result and receipt are published content addressed and
+  no-replace under `ArtifactRoot/rust-qualifications/v1/`.
+- `report` recomputes verdicts, costs and budget from the retained records and
+  raw observations.
+
+**Seams in .7-owned code.** These are small; worker A should expect them when
+merging:
+
+- `campaign::explore_prepared` takes an optional committed-execution observer
+  (`run` becomes a wrapper around `run_observed`).
+- `execution::Result.metrics` carries the in-process wall time, fuel and guest
+  peak memory, which never enter records.
+- `prepare::installation_profile`.
+- `cli::explore::parse` is now `pub(crate)`.
+- `store::durable_directory` is re-exported.
+
+**Accounting decision (R9/R12).** I chose this mapping as my recommendation; it is
+documented in `CLI.md#rust-qualification`:
+
+- CPU is the compiler-children delta plus the linked-process self delta. Each is
+  counted once, and store boundary counters are never added.
+- Preparation wall, store wall, compiler child peak and guest linear memory keep
+  their exact limits.
+- The linked peak is only an upper bound of each former operator-only (2 GiB) or
+  helper (4/6/8 GiB) figure. Over a limit, that check is `unattributed`/pending,
+  never charged to one owner and never a pass.
+- Concurrent stores (the cluster cell) refuse cost and budget because no per-store
+  attribution exists. No limit was widened.
+
+**Evidence and tests.** Evidence is in `/home/agent/wt/evidence/fn232-qualify/d/`.
+
+- The accounting corpus has 21 controlled cases. The evaluators match an
+  independent oracle, two runs agree, and two `GOMAD_GOLDEN_REGENERATE` runs are
+  byte-identical.
+- The live lane (`qualify-lane.py`, `behavioral-parity --verb qualify`) covers the
+  fixture, fixture-canary and sqlite cells. The frozen Go reference
+  `fn232-replay-294-reference` and two fresh Rust runs per cell reach the same
+  verdicts: qualified/0, target_failure/1, qualified/0.
+- The Rust Results, receipts, record hashes and artifacts authenticate on raw
+  bytes. `report` refuses all ten tamper cases with status 3.
+- The grammar and spec refusals match.
+- Final non-provisional fixture/canary cells pass the unchanged budget.
+- The runs `regen-1`, `regen-2` (byte-identical `cells.json`) and `verify-1` all
+  exit 0.
+- Release clippy with `-D warnings`, the 66 release tests and the release-binary
+  fixture-absence check (15/15) pass.
+
+One earlier regen run failed while host load was 24. A sqlite replay ran for
+68 s, past its 60 s execution wall, and was reported as replay divergence
+`outcome.termination`. It is retained as
+`failed-regen-2-sqlite-replay-watchdog-load24`. The lane's spec now uses a 300 s
+execution timeout. The store-wall budget stays unchanged at 15 min. Goldens are
+provisional: the helper rotation in .8 and .1 will stale them.
+
+**Open for acceptance:**
+
+- the onebox cell and the multi-instance/cluster cell (scenario refused, plus
+  concurrent-store accounting);
+- qualification on the release-only binary (.13);
+- the final two regenerations on the integrated post-.8/.9 candidate;
+- independent review.
+
+### fn232.10 continued (worker D): canonical budgets, cluster and onebox cells, 2026-10-21
+
+**Budgets.** The Rust `qualify` passes every declared campaign deadline and
+limit through unchanged. Records retain `limits.wall_millis` equal to the
+declared execution timeout, and the installation owns fuel and memory.
+
+- The lane's 300 s / 20 min values are now named lane-local
+  (`LANE_CAMPAIGN`) and are used only for Go/Rust verdict comparison.
+- Each cell also runs as a final canonical cell with the owner's values
+  unchanged (`CANONICAL`, from `qualification/{integration,sqlite,onebox,cluster}_test.go`;
+  fixture and sqlite use 60 s / 3 min) and an installation copy pinned to the
+  owner's fuel and memory. These runs are gated on a 1-minute load below 2.5.
+- On the lane-r2 runs, canonical fixture, canary, sqlite (at 60 s) and cluster
+  all passed the unchanged budget, with no violations and nothing pending.
+
+**Cluster cell.** Cost and budget are now attributed per store.
+
+- Each incarnation store is a sample with its own fuel, trace bytes, and
+  guest linear-memory peak and limit. All stores share one execution window.
+- The resident-node count is checked exactly against the protocol's two
+  guests.
+- Host CPU and RSS stay linked-process figures under the upper-bound rule.
+- Missing or duplicate handles, mismatched windows and wrong resident counts
+  refuse.
+- `Target.Scenario` (Go base64 `[]byte`) is admitted for
+  `Workload: multi-instance`, and the Manifest binds `scenario_sha256`.
+- The Go host's public `qualify` refuses typed scenarios (`invalid_input`, 2).
+  The lane therefore takes the Go cluster verdict from two Go `explore
+  --scenario` campaigns plus a replay of each retained artifact.
+- Result: Go and Rust are both qualified/0, with replays exact.
+- The accounting corpus is now 29 cases, including 8 cluster cases. Two
+  regenerations are byte-identical.
+
+**Onebox cell** (`TestFrontendSystemInfo`).
+
+- The frozen Go reference fails its replay with `choice trace malformed`
+  (pre-v4 host). The onebox cell therefore uses a Go reference built from gomad
+  `8df43e3bb1` (`go-tip-reference`), and its lane namespace conversion now
+  inserts writable ancestor directories.
+- Rust qualifies semantically and matches Go: deterministic, success, exact
+  replays.
+- The linked peak is 6,203,392,000 bytes (5.777 GiB; earlier misreported as
+  "6.2 GiB", which was decimal GB), almost all in-process Wasmtime compilation; the
+  guest peak is only 141 MiB. That exceeds the operator 2 GiB and warm-helper
+  4 GiB ceilings, so those checks are unattributed and pending, and the cell
+  exits 3. It is not a pass.
+- My recommendation: the owner decides a linked-process ceiling for
+  fn-222.1/R12, or the host adds a compile-phase RSS attribution.
+- `report` now labels an unattributed terminal receipt instead of refusing it.
+
+**Stale baseline.** `diagnostic-identity-choices*.json` (darwin-only, stale v3)
+is recorded in fn-232.13's task.
+
+**Interrupted by conductor.** The lane-r3 regeneration (small cells and onebox)
+was stopped for worker A's exclusive window. Its partial evidence is kept as
+`interrupted-by-conductor-lane-r3-a`. The per-cell goldens are therefore not
+committed. They depend on the host identity and are regenerated after the
+post-.8 merge. `accounting.json` and `tamper.json` are committed.
+
+Evidence: `/home/agent/wt/evidence/fn232-qualify/d/`.
+
+**Conductor rulings, 2026-10-21.**
+
+- *Scenario admission.* Rust `qualify --spec` admitting multi-instance
+  scenarios is APPROVED. It adds availability and removes nothing. This is
+  recorded in the fn-232.10 task and in CLI.md.
+- *Onebox memory: phase attribution.* No combined ceiling is requested. Instead,
+  `qualify` attributes Linux phase peaks: it writes `5` to
+  `/proc/self/clear_refs` at every store boundary and reads `VmHWM`. Each phase
+  maps to the ceiling that bounded it in the Go host
+  (QUALIFICATION.md#measured-costs, Go `EvaluateBudget`):
+  - operator phases: operator lifetime peak, 2 GiB, exact;
+  - single store window: cold-cache-miss helper peak, 6 GiB, exact. Every
+    linked window compiles in a fresh engine, with no compile cache;
+  - single store window as an upper bound of execution without compilation:
+    warm helper peak, 4 GiB;
+  - cluster window: resident helper peak, 8 GiB, exact;
+  - receipt: the terminal operator check uses the operator-phase peak.
+
+  Any missing phase observation falls back to the unattributed upper-bound
+  rule. The accounting corpus gains 9 phase cases (38 total). They are authored
+  but not yet run: the conductor window is closed and no build has been done
+  beyond a `-j1` clippy check (clean).
+- *Expectation for onebox.* The earlier unattributed run measured a 5.777 GiB
+  (6,203,392,000-byte)
+  lifetime peak with a 141 MiB guest peak. If the attributed store window is
+  still above 4 GiB, the warm check stays an upper-bound pending item, because
+  no linked execution runs without compiling. Splitting compilation from
+  execution would need a helper-owned boundary. If the window exceeds the cold
+  6 GiB ceiling, that is a real owner-level question. I will report the
+  numbers after the window.
+
+**Unit correction, 2026-10-21.** All memory limits and checks compare bytes
+against binary ceilings: 6 GiB = 6,442,450,944 bytes. Two figures I reported
+were decimal GB labelled as GiB:
+
+- The onebox lifetime peak, given as "6.2 GiB", is 6,203,392,000 bytes =
+  5.777 GiB. It is under the 6 GiB cold ceiling.
+- The corpus case described as a "6.1 GiB window" encoded 6,100 MiB =
+  5.957 GiB.
+
+The corpus now has two cases with binary-unit pins in
+`qualify-accounting-check.py`:
+
+- the measured onebox shape, 5.777 GiB: cold within, warm pending;
+- a true 6.1 GiB (6,549,825,126-byte) window: cold exceeded.
+
+The lane writes every memory check in bytes and GiB to `memory.txt`.
 ### fn232.7 seed campaign closure (worker A, 2026-10-21)
 
 fn232.7 is done. Conductor decision (owner-delegated): frozen Go WASM has no positive

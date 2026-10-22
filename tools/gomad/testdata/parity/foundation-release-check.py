@@ -12,7 +12,7 @@ commands = ['fixture-record', 'fixture-publish', 'fixture-open', 'fixture-bundle
             'fixture-execution-bundle', 'fixture-watchdog-cancel', 'fixture-bound',
             'fixture-pinned', 'fixture-root-substitution', 'fixture-payload-substitution',
             'fixture-payload-mutation', 'fixture-inspect-execution', 'fixture-inspect-details',
-            'fixture-minimize-controller']
+            'fixture-minimize-controller', 'fixture-qualify-accounting']
 for command in commands:
     result = subprocess.run([binary, command], capture_output=True, text=True, timeout=5)
     (output / (command + '.json')).write_text(json.dumps({

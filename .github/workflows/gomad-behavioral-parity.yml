@@ -22,6 +22,7 @@ jobs:
         run: |
           python3 tools/gomad/scripts/behavioral-parity --corpus tools/gomad/testdata/parity --selftest
           python3 tools/gomad/testdata/parity/minimize-reference-lane.py --help
+          python3 tools/gomad/testdata/parity/qualify-lane.py --help
           python3 tools/gomad/testdata/parity/semantic/selftest.py
   linked-foundation:
     runs-on: ubuntu-24.04-arm
@@ -44,6 +45,12 @@ jobs:
           python3 tools/gomad/testdata/parity/inspect-check.py --binary "$CARGO_TARGET_DIR/release/gomad" --work "$RUNNER_TEMP/inspect-consumer" --details-input tools/gomad/testdata/parity/inspect-details.json
           python3 tools/gomad/testdata/parity/foundation-store-check.py "$CARGO_TARGET_DIR/release/gomad" "$RUNNER_TEMP/inspect-store" --inspect
           python3 tools/gomad/testdata/parity/inspect-golden-check.py --binary "$CARGO_TARGET_DIR/release/gomad" --work "$RUNNER_TEMP/inspect-golden" --details-input tools/gomad/testdata/parity/inspect-details.json
+      - name: Verify controlled qualification accounting
+        run: |
+          python3 tools/gomad/testdata/parity/qualify-accounting-check.py --binary "$CARGO_TARGET_DIR/release/gomad" --work "$RUNNER_TEMP/qualify-accounting"
+      # The fresh Go/Rust qualify lane (behavioral-parity --verb qualify) needs
+      # the same frozen Go launcher/helper/source/compiler provisioning as
+      # inspect; fn-232.13 wires it here. No CI pass is implied.
       # Fresh Go/Rust inspect parity is the mandatory callable local gate in
       # tools/gomad/CLI.md. fn-232.13 must provision its authenticated baseline,
       # extracted source and Go compiler on this known runner before wiring

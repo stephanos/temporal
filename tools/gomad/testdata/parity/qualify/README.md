@@ -13,10 +13,10 @@ qualification result or reviewed golden in this checkpoint.
 `../qualify-check.py --grammar-only` runs cheap Go probes for rejected generic
 flags, absent specs and unreadable spec files, plus the three set-command
 refusals on both binaries. It then probes Rust's actual `qualify --spec` command.
-The missing Rust verb fails at `$.rust.qualify.availability`; a future verb still
-requires an implemented and reviewed result mapping before this gate can pass.
-Without `--grammar-only`, the same Rust prerequisite fails immediately. Neither
-mode compiles or executes a workload.
+The Rust verb now exists. The grammar mode checks that its missing-spec refusal
+matches Go, and `qualify-lane.py` owns workload parity, Result/receipt
+authentication and the reviewed goldens (see `CLI.md#rust-qualification`).
+Neither check mode compiles or executes a workload.
 
 Preparation remains available separately, reusing public Go installation, the
 existing Rust fixture identity bootstrap and the existing namespace-image
@@ -46,7 +46,7 @@ and Go generic-grammar refusals were observed on 2026-10-21. The final
 `/home/agent/wt/evidence/fn232-qualify/grammar-01` and exited 1 at the expected
 `$.rust.qualify.availability` difference. All five Go grammar probes and the
 three unavailable set-command probes on each binary returned status 2.
-Actual fixture/SQLite/onebox/cluster execution, failed repetition/replay reports,
-raw-integrity negatives, repeated agreement and two exact golden regenerations
-remain unrun. There are no qualification goldens and no R9/R13/R14 pass.
-Fn-232.10 remains open.
+That checkpoint predates the Rust port. `qualify-lane.py` now covers the fixture,
+fixture-canary and SQLite cells, raw-integrity and tamper negatives, repeated
+agreement and golden regeneration. The onebox and cluster cells and acceptance
+on the integrated candidate remain open under fn-232.10.

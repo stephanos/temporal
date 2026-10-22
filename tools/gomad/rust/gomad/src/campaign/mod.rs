@@ -82,6 +82,21 @@ fn campaign_path(artifacts: &Path) -> Result<PathBuf, String> {
 pub(crate) fn explore(options: &ExploreOptions, output: &mut dyn Write) -> Result<i32, String> {
     let started = Instant::now();
     let prepared = prepare::prepare(options)?;
+    explore_prepared(options, &prepared, started, None, output)
+}
+
+/// Observes each committed execution with its campaign root and in-process measurements.
+pub(crate) type Observer<'a> = &'a mut dyn FnMut(&Path, &Execution, &execution::Metrics);
+
+/// Runs a seed campaign over an already admitted preparation; qualification
+/// reuses one frozen preparation and still executes every seed in a fresh store.
+pub(crate) fn explore_prepared(
+    options: &ExploreOptions,
+    prepared: &prepare::Prepared,
+    started: Instant,
+    observer: Option<Observer<'_>>,
+    output: &mut dyn Write,
+) -> Result<i32, String> {
     let selection = seeds::SeedSelection::parse(&options.seeds)?;
     if selection.count() > 1_000_000 {
         return Err("capacity: campaign execution capacity exceeds 1000000".into());
@@ -104,13 +119,20 @@ pub(crate) fn explore(options: &ExploreOptions, output: &mut dyn Write) -> Resul
         "host_sha256":env!("GOMAD_HOST_IMPLEMENTATION_SHA256"),"helper_sha256":gomad_wasmhost::linked::IMPLEMENTATION_SHA256,
         "scenario":prepared.scenario,"network":prepared.network,"soft_assertion_report_only":prepared.soft_assertion_report_only,
     });
-    retain_prepared(&path, &prepared, &mut plan)?;
+    retain_prepared(&path, prepared, &mut plan)?;
     let mut journal = Journal::create(&path, &plan, journal_bytes)?;
     let remaining = options
         .overall_timeout
         .checked_sub(started.elapsed())
         .ok_or("overall_timeout: campaign deadline exceeded during preparation")?;
-    run(&mut journal, &prepared, remaining, options.json, output)
+    run_observed(
+        &mut journal,
+        prepared,
+        remaining,
+        options.json,
+        output,
+        observer,
+    )
 }
 
 fn prepared_publication(prepared: &prepare::Prepared) -> Result<Publication, String> {
@@ -368,10 +390,6 @@ fn admit(
     jobs
 }
 
-#[expect(
-    clippy::too_many_lines,
-    reason = "The scoped scheduler keeps durable admission, receipt, ordered policy and cancellation in one lifetime"
-)]
 fn run(
     journal: &mut Journal,
     prepared: &prepare::Prepared,
@@ -379,6 +397,22 @@ fn run(
     json: bool,
     output: &mut dyn Write,
 ) -> Result<i32, String> {
+    run_observed(journal, prepared, duration, json, output, None)
+}
+
+#[expect(
+    clippy::too_many_lines,
+    reason = "The scoped scheduler keeps durable admission, receipt, ordered policy and cancellation in one lifetime"
+)]
+fn run_observed(
+    journal: &mut Journal,
+    prepared: &prepare::Prepared,
+    duration: Duration,
+    json: bool,
+    output: &mut dyn Write,
+    mut observer: Option<Observer<'_>>,
+) -> Result<i32, String> {
+    let mut metrics = BTreeMap::new();
     let plan = journal.plan().clone();
     let selection = seeds::SeedSelection::parse(
         plan["selection"]
@@ -535,6 +569,11 @@ fn run(
                 }
                 state.receipts.remove(&ordinal);
                 state.admitted.remove(&ordinal);
+                if let (Some(observe), Some(measured)) =
+                    (observer.as_deref_mut(), metrics.remove(&ordinal))
+                {
+                    observe(journal.path(), &receipt, &measured);
+                }
                 state.committed.push(receipt);
                 for job in admitted {
                     let slot = free
@@ -575,6 +614,7 @@ fn run(
             running.remove(&job.ordinal);
             match result {
                 Ok(result) => {
+                    metrics.insert(job.ordinal, result.metrics);
                     let mut execution = result.execution;
                     if execution.record.outcome.class == "runner_failure"
                         && (execution.record.outcome.termination != "cancelled"
@@ -644,6 +684,13 @@ fn run(
                 admitted: Vec::new(),
                 stop_reason: Some(reason),
             })?;
+            for receipt in &group {
+                if let (Some(observe), Some(measured)) =
+                    (observer.as_deref_mut(), metrics.remove(&receipt.ordinal))
+                {
+                    observe(journal.path(), receipt, &measured);
+                }
+            }
             state.committed.extend(group);
             state.receipts.clear();
             state.admitted.clear();

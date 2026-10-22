@@ -33,6 +33,10 @@ The public `minimize` verb reduces retained standalone failures with bounded
 attempts, authenticated checkpoints and `--resume`. Its public flags are unchanged;
 the JSON result and retained failure-signature semantics are documented in
 [the maintainer CLI guide](../CLI.md#rust-minimization).
+`qualify --spec` and installation-free `report --result` qualify one WASM cell
+on the linked host and reopen its retained Result. Their spec mapping,
+linked-process accounting and lanes are documented in
+[the maintainer CLI guide](../CLI.md#rust-qualification).
 Other public host verbs remain with their later fn-232 tasks. The
 `determinism-fixture` feature exposes the foundation, inspect, replay and campaign test drivers;
 their commands and fault controls are absent from ordinary builds. Run from the

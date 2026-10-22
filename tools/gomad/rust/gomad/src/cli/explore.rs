@@ -69,7 +69,7 @@ pub fn run_with_installation(
     }
 }
 
-pub(super) fn parse(arguments: &[String], json: &mut bool) -> Result<ExploreOptions, String> {
+pub(crate) fn parse(arguments: &[String], json: &mut bool) -> Result<ExploreOptions, String> {
     parse_for_strategy(arguments, json, false)
 }
 
