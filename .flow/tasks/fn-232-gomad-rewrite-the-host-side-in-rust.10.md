@@ -27,3 +27,13 @@ Provisional qualification admission is withdrawn under the user's closure-first 
 - Commits:
 - Tests:
 - PRs:
+
+### Partial progress merged, 2026-10-22
+`qualify --spec` and `report` in Rust are merged into gomad (branch fn232-qualify).
+- Final v17 lanes: two identical regenerations plus strict, onebox included; evidence in `/home/agent/wt/evidence/fn232-qualify/d/v17`.
+- Onebox memory: operator 0.74–0.75 GiB, store window 3.53 GiB, compiler about 2.1 GiB, all within their ceilings.
+- Review threat model (conductor ruling): unrehashed tampering refuses, and verdict, cost and budget inputs are recomputed from the authenticated records. Forge-and-rehash binding of fields that don't feed the verdict is out of scope; see IDEAS.md "Signed qualification receipts".
+
+Remaining for this task:
+- port `qualify-set`, `merge-set` and `compare-support`, with parity lanes;
+- the matching acceptance.
