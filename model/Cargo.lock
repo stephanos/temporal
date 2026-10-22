@@ -885,6 +885,7 @@ dependencies = [
  "smallvec",
  "trybuild",
  "umpire-dsl-macros",
+ "umpire-ir",
  "umpire-testing",
 ]
 
@@ -912,7 +913,12 @@ dependencies = [
  "proc-macro2",
  "quote",
  "syn 3.0.9",
+ "umpire-ir",
 ]
+
+[[package]]
+name = "umpire-ir"
+version = "0.0.1"
 
 [[package]]
 name = "umpire-lift"
@@ -920,7 +926,6 @@ version = "0.0.1"
 dependencies = [
  "imbl",
  "proc-macro2",
- "quote",
  "syn 3.0.9",
  "umpire-checker",
  "umpire-dsl",

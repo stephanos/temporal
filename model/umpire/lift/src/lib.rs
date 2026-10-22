@@ -3,11 +3,12 @@
 //! The admitted subset, including the `imbl::Vector<T>` method table, is `umpire-front`'s.
 use proc_macro2::Span;
 use std::{collections::BTreeMap, fmt, path::Path};
+use syn::spanned::Spanned;
 mod bind;
-pub mod build;
 mod emit;
 mod names;
-pub use umpire_front::{CATALOG_LIMIT, Type};
+use umpire_front::Source;
+pub use umpire_front::{CATALOG_LIMIT, Embedded, Type};
 
 /// An admitted Model and the source file it was read from.
 #[derive(Clone, Debug)]
@@ -96,27 +97,15 @@ pub struct Concrete {
     /// Payload fields in declaration order; tuple fields are named by position.
     pub fields: Vec<(String, Literal)>,
 }
-/// The values a World-dependent `#[domain]` function yields for one action field.
-#[derive(Clone, Debug, PartialEq, Eq)]
-pub struct Domain {
-    /// Qualified authored variant name.
-    pub action: String,
-    /// Payload field name; tuple fields are named by position.
-    pub field: String,
-    /// Values in enumeration order, including positional duplicates.
-    pub values: Vec<Literal>,
-}
 /// One selected World and its complete authored start states.
 #[derive(Clone, Debug)]
 pub struct Binding {
-    /// Named World fields, validated against the original source declaration.
+    /// Named World fields.
     pub world: Vec<(String, Literal)>,
     /// Complete named state fields for each authored start, in enumeration order.
     pub starts: Vec<Vec<(String, Literal)>>,
     /// The checked native catalog of the same World, in catalog order.
     pub actions: Vec<Concrete>,
-    /// Values of every World-dependent action field for the same World.
-    pub domains: Vec<Domain>,
 }
 /// An authored action.
 #[derive(Clone, Debug)]
@@ -201,70 +190,101 @@ pub struct Module {
     /// Projection metadata.
     pub metadata: Metadata,
 }
-/// Authored-source reading through `umpire-front`.
+/// Reading the admitted Model for emission.
 pub struct Lift;
 impl Lift {
-    /// Read a source root, with the golden hook from a `tests.rs` beside it.
-    pub fn source(path: impl AsRef<Path>) -> Result<Lifted, Diagnostic> {
-        let path = path.as_ref();
+    /// The Model a compiled `#[machine]` World embeds, for the source file the runner names it
+    /// by, with the negative claims of the golden hook in the `tests.rs` beside it. A source
+    /// that declares no `#[machine]` Model of that World is read only to locate the refusal.
+    pub fn embedded(
+        embedded: Option<&Embedded>,
+        source: impl AsRef<Path>,
+    ) -> Result<Lifted, Diagnostic> {
+        let path = source.as_ref();
         let file = path.to_string_lossy();
-        let read = |path: &Path, file: &str| {
-            let source = std::fs::read_to_string(path)
-                .map_err(|error| Diagnostic::span(file, Span::call_site(), error.to_string()))?;
-            syn::parse_file(&source)
-                .map_err(|error| Diagnostic::span(file, error.span(), error.to_string()))
+        let Some(embedded) = embedded.filter(|embedded| same_file(&embedded.file, path)) else {
+            return Err(unlifted(&file, &read(path, &file)?));
         };
-        let ast = read(path, &file)?;
-        let tests_path = path.with_file_name("tests.rs");
-        let tests_file = tests_path.to_string_lossy();
-        let tests = if tests_path.is_file() { Some(read(&tests_path, &tests_file)?) } else { None };
-        let mut hooks = Hook::all(&file, &ast);
-        if let Some(tests) = &tests {
-            hooks.extend(Hook::all(&tests_file, tests));
+        let mut model = embedded
+            .model
+            .clone()
+            .map_err(|refusal| Diagnostic::of(&file, &refusal, refusal.message.clone()))?;
+        let tests = path.with_file_name("tests.rs");
+        if tests.is_file() {
+            let tests_file = tests.to_string_lossy();
+            let ast = read(&tests, &tests_file)?;
+            umpire_front::supplement(&mut model, &hooks(&ast)).map_err(|(_, refusal)| {
+                Diagnostic::of(&tests_file, &refusal, refusal.message.clone())
+            })?;
         }
-        Self::lift(&file, &ast, &hooks)
+        Self::named(&file, model, &embedded.source)
     }
-    /// Parse a source root without executing its Rust transitions.
+    /// Read a source root as the `#[machine]` macro reads its module, without executing its Rust
+    /// transitions; golden hooks in the same source supply negative claims.
     pub fn parse(file: &str, source: &str) -> Result<Lifted, Diagnostic> {
         let ast = syn::parse_file(source)
             .map_err(|error| Diagnostic::span(file, error.span(), error.to_string()))?;
-        Self::lift(file, &ast, &Hook::all(file, &ast))
+        let (model, names) =
+            umpire_front::read(&ast, &hooks(&ast)).map_err(|refusal| match refusal {
+                umpire_front::Refusal::Model(location)
+                | umpire_front::Refusal::Hook(_, location) => {
+                    Diagnostic::of(file, &location, location.message.clone())
+                }
+            })?;
+        Self::named(file, model, &names)
     }
-    fn lift(file: &str, ast: &syn::File, hooks: &[Hook<'_>]) -> Result<Lifted, Diagnostic> {
-        let macros: Vec<_> = hooks.iter().map(|hook| hook.mac).collect();
-        let mut model = umpire_front::read(ast, &macros).map_err(|refusal| match refusal {
-            umpire_front::Refusal::Model(location) => {
-                Diagnostic::of(file, &location, location.message.clone())
-            }
-            umpire_front::Refusal::Hook(index, location) => {
-                Diagnostic::of(hooks[index].file, &location, location.message.clone())
-            }
-        })?;
-        let names = names::assign(ast, &mut model);
+    fn named(
+        file: &str,
+        mut model: umpire_front::Lifted,
+        source: &Source,
+    ) -> Result<Lifted, Diagnostic> {
+        let names = names::assign(source, &mut model);
         let lifted = Lifted { file: file.into(), model, names };
-        names::validate(file, ast, &lifted)?;
+        names::validate(file, source, &lifted)?;
         Ok(lifted)
     }
 }
-/// A golden hook (`fixture!`) and the file it is written in.
-pub(crate) struct Hook<'a> {
-    file: &'a str,
-    mac: &'a syn::ItemMacro,
+fn read(path: &Path, file: &str) -> Result<syn::File, Diagnostic> {
+    let source = std::fs::read_to_string(path)
+        .map_err(|error| Diagnostic::span(file, Span::call_site(), error.to_string()))?;
+    syn::parse_file(&source)
+        .map_err(|error| Diagnostic::span(file, error.span(), error.to_string()))
 }
-impl<'a> Hook<'a> {
-    fn all(file: &'a str, ast: &'a syn::File) -> Vec<Self> {
-        ast.items
-            .iter()
-            .filter_map(|item| match item {
-                syn::Item::Macro(mac)
-                    if mac.mac.path.segments.last().is_some_and(|s| s.ident == "fixture") =>
-                {
-                    Some(Self { file, mac })
-                }
-                _ => None,
-            })
-            .collect()
+/// Whether the embedded file, as rustc named it, is the runner's source file.
+fn same_file(embedded: &str, source: &Path) -> bool {
+    match (Path::new(embedded).canonicalize(), source.canonicalize()) {
+        (Ok(embedded), Ok(source)) => embedded == source,
+        _ => false,
     }
+}
+/// The located refusal for a source without the checked World's `#[machine]` module.
+fn unlifted(file: &str, ast: &syn::File) -> Diagnostic {
+    let module = ast.items.iter().find(|item| {
+        matches!(item, syn::Item::Mod(module) if module.attrs.iter().any(|attr| attr.path().is_ident("machine")))
+    });
+    if let Some(module) = module {
+        return Diagnostic::span(
+            file,
+            module.span(),
+            "the checked World is not the #[machine] World this source declares",
+        );
+    }
+    let location = umpire_front::unlifted(ast);
+    Diagnostic::of(file, &location, location.message.clone())
+}
+/// The golden hooks (`fixture!`) of a source.
+fn hooks(ast: &syn::File) -> Vec<&syn::ItemMacro> {
+    ast.items
+        .iter()
+        .filter_map(|item| match item {
+            syn::Item::Macro(mac)
+                if mac.mac.path.segments.last().is_some_and(|s| s.ident == "fixture") =>
+            {
+                Some(mac)
+            }
+            _ => None,
+        })
+        .collect()
 }
 /// TLA+ emission from the internal typed tree.
 pub struct Tla;

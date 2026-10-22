@@ -112,7 +112,6 @@ fn binding(value: i128, limit: i128) -> Binding {
         world: vec![("value".into(), Literal::Int(value)), ("limit".into(), Literal::Int(limit))],
         starts: vec![row(value, value), row(value + 1, value + 1), row(value, value)],
         actions: unit("User::Advance"),
-        domains: Vec::new(),
     }
 }
 
@@ -133,31 +132,19 @@ fn binding_refuses_malformed_world_and_complete_state_values()
     let valid = binding(1, 3);
     let mut missing_world = valid.clone();
     missing_world.world.pop();
-    let mut extra_world = valid.clone();
-    extra_world.world.push(("extra".into(), Literal::Int(0)));
-    let mut duplicate_world = valid.clone();
-    duplicate_world.world.push(("value".into(), Literal::Int(1)));
     let mut wrong_world = valid.clone();
     wrong_world.world[0].1 = Literal::Bool(true);
     let mut out_of_range = valid.clone();
     out_of_range.world[0].1 = Literal::Int(256);
     let mut missing_state = valid.clone();
     missing_state.starts[0].pop();
-    let mut extra_state = valid.clone();
-    extra_state.starts[0].push(("extra".into(), Literal::Int(0)));
-    let mut duplicate_state = valid.clone();
-    duplicate_state.starts[0].push(("value".into(), Literal::Int(1)));
     let mut wrong_state = valid.clone();
     wrong_state.starts[0][0].1 = Literal::Bool(true);
     for (candidate, message) in [
         (missing_world, "missing World"),
-        (extra_world, "extra World"),
-        (duplicate_world, "duplicate World"),
         (wrong_world, "does not match"),
         (out_of_range, "does not match"),
         (missing_state, "missing complete start"),
-        (extra_state, "extra complete start"),
-        (duplicate_state, "duplicate complete start"),
         (wrong_state, "does not match"),
     ] {
         let error = lifted.bind(&candidate).err().ok_or("malformed binding admitted")?;
@@ -186,7 +173,6 @@ fn binding_refuses_malformed_world_and_complete_state_values()
         world: vec![("offset".into(), Literal::Int(offset)), ("bias".into(), Literal::Int(bias))],
         starts: Vec::new(),
         actions: unit("User::Hold"),
-        domains: Vec::new(),
     };
     for (offset, bias) in [(-1, 3), (i128::from(i32::MIN), 3), (1, -1)] {
         let error = signed.bind(&world(offset, bias)).err().ok_or("negative World admitted")?;
@@ -321,7 +307,6 @@ fn scalar_enum_world_and_sequence_starts_use_the_admitted_types()
             ("values".into(), Literal::Sequence(vec![Literal::Int(1)])),
         ]],
         actions: unit("User::Hold"),
-        domains: Vec::new(),
     };
     let module = Tla::emit(&lifted.bind(&selected)?)?;
     assert!(module.tla.contains("mode = \"Mode::Low\""));

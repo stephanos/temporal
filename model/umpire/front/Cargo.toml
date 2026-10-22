@@ -11,6 +11,7 @@ rust-version.workspace = true
 workspace = true
 
 [dependencies]
+umpire-ir.workspace = true
 syn.workspace = true
 quote.workspace = true
 prettyplease.workspace = true

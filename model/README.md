@@ -658,21 +658,22 @@ The backend admits the official `tla2tools` 1.7.4 artifact by SHA-256 and its TL
 version, using the repository's mise-pinned Temurin 27. Required runs fail for a missing
 or changed tool, unselected admitted fixtures, incomplete exploration, a state-set or
 property difference, or a counterexample that does not replay through the Model.
-The build-time `syn` lifter reads authored source independently of native exploration;
-unsupported source produces located warnings and refuses emission. Each admitted shared
+The `#[machine]` macro admits each Model through `umpire-front` and embeds the admitted tree
+in the compiled Model (off the wasm guest); the lifter emits from it, and Model bodies outside
+the subset carry a located warning that refuses emission. Each admitted shared
 fixture owns emitted module/config and `tlc.txt` agreement goldens. Progress uses explicit
 authored fairness and private observers to distinguish real Model edges from idle stuttering.
 
 For a larger Model, the typed backend entry point needs no native exploration:
 
 ```rust,ignore
-let module = umpire_lift::Tla::emit(&umpire_lift::Lift::source(source_path)?)?;
+let module = umpire_testing::lift(umpire_testing::__embedded!(world).as_ref(), source_path)?;
 let result = umpire_tlc::Tlc::discover(repository_root)?.check_module(&module)?;
 ```
 
-For a declared World, admit the source first, then call `lifted.bind(&binding)` before emission.
-`Binding` contains ordered named World literals and ordered complete start rows; missing,
-duplicate, extra, wrong-type and out-of-range values refuse at the source declaration. TLC
+For a declared World, `lifted.bind(&binding)` precedes emission. `Binding` holds the same
+compiled Model's named World values, complete start rows and checked catalog; a value outside
+its admitted type refuses at the source declaration. TLC
 configuration values must be integers in `0..=i32::MAX`, so negative World integers refuse too.
 Whole-state Init preserves correlations, deduplicates identical rows and admits empty starts.
 The selected World constants have the same assignments in the main, invariant,

@@ -9,6 +9,8 @@ mod progress_starts;
 
 use progress_starts::ProgressStarts;
 
+umpire_testing::lifted!(kettle::world());
+
 fn world<M: Machine<State = kettle::Model>>(
     world: M,
     temperature: i32,

@@ -1,5 +1,5 @@
 //! Independent finite action-input admission, typed catalog binding and exact-payload emission.
-use umpire_lift::{Binding, Concrete, Diagnostic, Domain, Lift, Literal, Tla};
+use umpire_lift::{Binding, Concrete, Diagnostic, Lift, Literal, Tla};
 
 const INPUTS: &str = r"
     use umpire_dsl::machine;
@@ -81,11 +81,6 @@ fn binding(slots: i128) -> Binding {
         world: vec![("slots".into(), Literal::Int(slots))],
         starts: Vec::new(),
         actions: catalog(slots),
-        domains: vec![Domain {
-            action: "User::Take".into(),
-            field: "0".into(),
-            values: (0..slots).map(Literal::Int).collect(),
-        }],
     }
 }
 
@@ -187,51 +182,22 @@ fn exact_payload_scopes_and_fairness_specialize_the_variant_relation()
 }
 
 #[test]
-fn malformed_bindings_refuse_at_the_source_declaration() -> Result<(), Box<dyn std::error::Error>> {
+fn catalog_values_outside_their_admitted_types_refuse_at_the_source_declaration()
+-> Result<(), Box<dyn std::error::Error>> {
+    // The schema and the catalog come from the same compiled Model; binding converts each
+    // native value to its admitted type.
     let lifted = Lift::parse("picks/model.rs", INPUTS)?;
     let valid = binding(2);
     let mut cases: Vec<(Binding, &str)> = Vec::new();
     let mut changed = valid.clone();
-    changed.domains.clear();
-    cases.push((changed, "missing action domain"));
+    changed.actions[0].fields[0].1 = Literal::Bool(true);
+    cases.push((changed, "input field `0` value does not match admitted type"));
     let mut changed = valid.clone();
-    changed.domains.push(valid.domains[0].clone());
-    cases.push((changed, "duplicate action domain"));
-    let mut changed = valid.clone();
-    changed.domains.push(Domain { field: "1".into(), ..valid.domains[0].clone() });
-    cases.push((changed, "extra action domain"));
-    let mut changed = valid.clone();
-    changed.domains[0].values[0] = Literal::Bool(true);
-    cases.push((changed, "does not match admitted type"));
-    let mut changed = valid.clone();
-    changed.domains[0].values = vec![Literal::Int(0); umpire_lift::CATALOG_LIMIT + 1];
-    cases.push((changed, "exceeds the catalog limit"));
-    // A catalog from a crossed World disagrees with the bound domain product.
-    let mut changed = valid.clone();
-    changed.actions = catalog(3);
-    cases.push((changed, "native catalog has 12 concrete actions; the source domains admit 11"));
-    let mut changed = valid.clone();
-    changed.actions.swap(4, 6);
-    cases.push((changed, "native catalog ordinal 4 is `User::Paint`"));
-    // A source-declared value the native catalog does not enumerate.
-    let mut changed = valid.clone();
-    changed.actions[4] = set(2, false);
-    cases.push((changed, "native catalog ordinal 4 field `0` is Int(2)"));
-    let mut changed = valid.clone();
-    changed.actions[0].fields.reverse();
-    cases.push((changed, "orders input field `1`"));
-    let mut changed = valid.clone();
-    changed.actions[0].fields.push(("0".into(), Literal::Int(1)));
-    cases.push((changed, "duplicate input field `0`"));
+    changed.actions[6].fields[0].1 = Literal::Enum("Color::Blue".into());
+    cases.push((changed, "input field `color` value does not match admitted type"));
     let mut changed = valid.clone();
     changed.actions[0].fields.pop();
     cases.push((changed, "missing input field `1`"));
-    let mut changed = valid.clone();
-    changed.actions[0].fields.push(("2".into(), Literal::Int(1)));
-    cases.push((changed, "extra input field `2`"));
-    let mut changed = valid.clone();
-    changed.actions[6].fields[0].1 = Literal::Enum("Color::Blue".into());
-    cases.push((changed, "native catalog ordinal 6 field `color`"));
     for (candidate, message) in cases {
         let error = lifted.bind(&candidate).err().ok_or(message)?;
         located(&error);
@@ -410,11 +376,7 @@ fn the_catalog_limit_admits_its_boundary_and_refuses_one_more()
     let mut selected = binding(0);
     big(&mut selected.actions);
     assert_eq!(Tla::emit(&lifted.bind(&selected)?)?.metadata.catalog.len(), 4096);
-    let mut over = binding(1);
-    big(&mut over.actions);
-    let error = lifted.bind(&over).err().ok_or("4097 actions admitted")?;
-    located(&error);
-    assert!(error.message.contains("has 4097 concrete actions, above the limit 4096"), "{error}");
+    // A bound catalog over the limit never reaches binding: the native checked catalog refuses it.
     let error = Lift::parse("picks/model.rs", &boundary.replace("0..=4086", "0..=4087"))
         .err()
         .ok_or("4097 static actions admitted")?;

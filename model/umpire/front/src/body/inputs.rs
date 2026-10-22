@@ -1,6 +1,6 @@
 use super::{Env, Environment, Result};
 use crate::{
-    CATALOG_LIMIT, Diagnostic, Type,
+    CATALOG_LIMIT, Diagnostic, Locate, Type,
     declare::FieldDomain,
     expr::{Expr, ExprKind, Op},
     syntax::{attr, path_name},

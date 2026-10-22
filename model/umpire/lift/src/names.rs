@@ -1,8 +1,9 @@
 use crate::{Diagnostic, Lifted};
-use proc_macro2::Span;
-use quote::ToTokens;
 use std::collections::{BTreeMap, BTreeSet};
-use umpire_front::expr::{Expr, ExprKind};
+use umpire_front::{
+    Source,
+    expr::{Expr, ExprKind},
+};
 
 /// TLA+ keywords, standard-module operators and fixed emitted names that no generated or
 /// authored symbol may take.
@@ -92,12 +93,13 @@ pub(crate) fn operator(action: &str) -> String {
 
 /// Allocate the generated names, never like an authored or reserved name, and rename the
 /// World and input references of the admitted tree to them.
-pub(crate) fn assign(ast: &syn::File, model: &mut umpire_front::Lifted) -> Names {
+pub(crate) fn assign(source: &Source, model: &mut umpire_front::Lifted) -> Names {
+    let taken = &occupied(source);
     let mut generated = BTreeSet::new();
     let world: Vec<_> = model
         .world_fields
         .iter()
-        .map(|field| allocate(ast, &format!("__umpire_world_{}", field.name), &mut generated))
+        .map(|field| allocate(taken, &format!("__umpire_world_{}", field.name), &mut generated))
         .collect();
     let inputs: Vec<Vec<_>> = model
         .actions
@@ -107,17 +109,17 @@ pub(crate) fn assign(ast: &syn::File, model: &mut umpire_front::Lifted) -> Names
             action
                 .fields
                 .iter()
-                .map(|field| allocate(ast, &format!("__umpire_input_{}", field.name), &mut scope))
+                .map(|field| allocate(taken, &format!("__umpire_input_{}", field.name), &mut scope))
                 .collect()
         })
         .collect();
-    let index = allocate(ast, "__umpire_i", &mut generated);
+    let index = allocate(taken, "__umpire_i", &mut generated);
     let constants = if model.declared_world {
         model
             .constants
             .keys()
             .map(|name| {
-                (name.clone(), allocate(ast, &format!("__umpire_source_{name}"), &mut generated))
+                (name.clone(), allocate(taken, &format!("__umpire_source_{name}"), &mut generated))
             })
             .collect()
     } else {
@@ -203,50 +205,43 @@ fn rename(expr: &mut Expr, renamed: &dyn Fn(&ExprKind) -> Option<ExprKind>) {
         | ExprKind::Var(..)
         | ExprKind::World(_)
         | ExprKind::Input(_)
+        | ExprKind::Outcome
         | ExprKind::Enum(_) => {}
     }
 }
 
-fn allocate(ast: &syn::File, base: &str, generated: &mut BTreeSet<String>) -> String {
-    struct Occupied<'a>(&'a mut BTreeSet<String>);
-    impl<'ast> syn::visit::Visit<'ast> for Occupied<'_> {
-        fn visit_ident(&mut self, ident: &'ast syn::Ident) {
-            self.0.insert(ident.to_string());
-        }
-        fn visit_item_enum(&mut self, value: &'ast syn::ItemEnum) {
-            for variant in &value.variants {
-                self.0.insert(format!("{}_{}", value.ident, variant.ident));
-            }
-            syn::visit::visit_item_enum(self, value);
-        }
-        fn visit_impl_item_fn(&mut self, value: &'ast syn::ImplItemFn) {
-            for prefix in [
-                "Invariant",
-                "Post",
-                "Negative",
-                "Assumption",
-                "Scoped",
-                "Activate",
-                "Monitor",
-                "ActiveEdge",
-                "PrefixEdge",
-                "Complete",
-                "ProgressNext",
-                "ProgressSpec",
-                "Maximal",
-                "Progress",
-            ] {
-                self.0.insert(format!("{prefix}_{}", value.sig.ident));
-            }
-            syn::visit::visit_impl_item_fn(self, value);
+/// The reserved names and every name the source spells or a back end derives from it.
+fn occupied(source: &Source) -> BTreeSet<String> {
+    let mut occupied: BTreeSet<_> = RESERVED_NAMES.iter().map(|name| (*name).to_owned()).collect();
+    occupied.extend(source.idents.iter().cloned());
+    occupied.extend(source.variants.iter().map(|(name, variant)| format!("{name}_{variant}")));
+    for method in &source.methods {
+        for prefix in [
+            "Invariant",
+            "Post",
+            "Negative",
+            "Assumption",
+            "Scoped",
+            "Activate",
+            "Monitor",
+            "ActiveEdge",
+            "PrefixEdge",
+            "Complete",
+            "ProgressNext",
+            "ProgressSpec",
+            "Maximal",
+            "Progress",
+        ] {
+            occupied.insert(format!("{prefix}_{method}"));
         }
     }
-    let mut occupied: BTreeSet<_> = RESERVED_NAMES.iter().map(|name| (*name).to_owned()).collect();
-    syn::visit::Visit::visit_file(&mut Occupied(&mut occupied), ast);
-    occupied.extend(generated.iter().cloned());
+    occupied
+}
+
+fn allocate(occupied: &BTreeSet<String>, base: &str, generated: &mut BTreeSet<String>) -> String {
     let mut name = base.to_owned();
     let mut suffix = 0;
-    while occupied.contains(&name) {
+    while occupied.contains(&name) || generated.contains(&name) {
         suffix += 1;
         name = format!("{base}_{suffix}");
     }
@@ -254,7 +249,7 @@ fn allocate(ast: &syn::File, base: &str, generated: &mut BTreeSet<String>) -> St
     name
 }
 
-pub(crate) fn validate(file: &str, ast: &syn::File, model: &Lifted) -> Result<(), Diagnostic> {
+pub(crate) fn validate(file: &str, source: &Source, model: &Lifted) -> Result<(), Diagnostic> {
     for field in &model.fields {
         if crate::emit::OBSERVERS.contains(&field.name.as_str()) || field.name == crate::emit::INPUT
         {
@@ -265,10 +260,12 @@ pub(crate) fn validate(file: &str, ast: &syn::File, model: &Lifted) -> Result<()
             ));
         }
     }
-    validate_text(file, ast.to_token_stream())?;
+    if let Some(control) = &source.control {
+        return Err(Diagnostic::of(file, control, control.message.clone()));
+    }
     let mut names = Registry {
         file,
-        ast,
+        source,
         names: RESERVED_NAMES.iter().map(|name| (*name).into()).collect(),
         prefixes: Vec::new(),
     };
@@ -350,7 +347,7 @@ pub(crate) fn validate(file: &str, ast: &syn::File, model: &Lifted) -> Result<()
 /// The generated names taken so far, and the prefixes that catalog positions extend.
 struct Registry<'a> {
     file: &'a str,
-    ast: &'a syn::File,
+    source: &'a Source,
     names: BTreeSet<String>,
     prefixes: Vec<String>,
 }
@@ -369,15 +366,9 @@ impl Registry<'_> {
     /// A prefix of generated `<prefix><position>` names, which no authored identifier and no
     /// other generated name may share.
     fn register_prefix(&mut self, prefix: &str, source: &str) -> Result<(), Diagnostic> {
-        struct Prefixed<'a>(&'a str, bool);
-        impl<'ast> syn::visit::Visit<'ast> for Prefixed<'_> {
-            fn visit_ident(&mut self, ident: &'ast syn::Ident) {
-                self.1 |= ident.to_string().starts_with(self.0);
-            }
-        }
-        let mut prefixed = Prefixed(prefix, false);
-        syn::visit::Visit::visit_file(&mut prefixed, self.ast);
-        if prefixed.1 || self.names.iter().any(|name| positioned(name, prefix)) {
+        if self.source.idents.iter().any(|ident| ident.starts_with(prefix))
+            || self.names.iter().any(|name| positioned(name, prefix))
+        {
             return Err(self.collision(source, &format!("generated TLA+ names `{prefix}*`")));
         }
         self.prefixes.push(prefix.into());
@@ -385,13 +376,13 @@ impl Registry<'_> {
     }
 
     fn collision(&self, source: &str, generated: &str) -> Diagnostic {
-        let mut found = Find { name: source, span: None };
-        syn::visit::Visit::visit_file(&mut found, self.ast);
-        Diagnostic::span(
-            self.file,
-            found.span.unwrap_or_else(Span::call_site),
-            format!("authored declaration collides with {generated}"),
-        )
+        let (line, column) = self.source.first.get(source).copied().unwrap_or((1, 1));
+        Diagnostic {
+            file: self.file.into(),
+            line,
+            column,
+            message: format!("authored declaration collides with {generated}"),
+        }
     }
 }
 
@@ -400,44 +391,4 @@ fn positioned(name: &str, prefix: &str) -> bool {
     name.strip_prefix(prefix).is_some_and(|position| {
         !position.is_empty() && position.bytes().all(|b| b.is_ascii_digit())
     })
-}
-
-fn validate_text(file: &str, tokens: proc_macro2::TokenStream) -> Result<(), Diagnostic> {
-    for token in tokens {
-        match token {
-            proc_macro2::TokenTree::Group(group) => validate_text(file, group.stream())?,
-            proc_macro2::TokenTree::Literal(literal) => {
-                if let Ok(text) = syn::parse_str::<syn::LitStr>(&literal.to_string())
-                    && text.value().chars().any(|character| {
-                        character.is_control() && !['\n', '\r', '\t'].contains(&character)
-                    })
-                {
-                    return Err(Diagnostic::span(
-                        file,
-                        literal.span(),
-                        "unsupported string control character",
-                    ));
-                }
-            }
-            _ => {}
-        }
-    }
-    Ok(())
-}
-
-struct Find<'a> {
-    name: &'a str,
-    span: Option<Span>,
-}
-impl<'ast> syn::visit::Visit<'ast> for Find<'_> {
-    fn visit_ident(&mut self, ident: &'ast syn::Ident) {
-        if self.span.is_none() && ident == self.name {
-            self.span = Some(ident.span());
-        }
-    }
-    fn visit_lit_str(&mut self, literal: &'ast syn::LitStr) {
-        if self.span.is_none() && literal.value() == self.name {
-            self.span = Some(literal.span());
-        }
-    }
 }

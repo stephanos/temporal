@@ -85,6 +85,37 @@ pub fn generate(root: &Path, inputs: &[&str], output: &Path) -> io::Result<()> {
     fs::write(output, source)
 }
 
+/// Generate the lift dispatch of shared fixtures. Each `tests.rs` defines `lifted` and `check`
+/// through `fixture!` or `lifted!`; the runner names each Model by its crate-relative source.
+#[allow(dead_code)]
+pub fn generate_lifted(root: &Path, output: &Path) -> io::Result<()> {
+    let fixtures = discover(root, MODEL_AND_TESTS)?;
+    let mut lifted = String::from(
+        "fn lifted(name: &str, folder: &std::path::Path) -> Result<umpire_lift::Module, String> {\n    let source = fixture_source(folder);\n    match name {\n",
+    );
+    let mut check = String::from(
+        "fn check_backend(name: &str, folder: &std::path::Path, run: fn() -> umpire_testing::RunResult) -> umpire_testing::RunResult {\n    let source = fixture_source(folder);\n    match name {\n",
+    );
+    for fixture in &fixtures {
+        let module = input_module(&fixture.module, "tests.rs");
+        writeln!(lifted, "        {:?} => {module}::lifted(&source),", fixture.name)
+            .map_err(io::Error::other)?;
+        writeln!(check, "        {:?} => {module}::check(folder, &source, run),", fixture.name)
+            .map_err(io::Error::other)?;
+    }
+    lifted.push_str(
+        "        _ => Err(format!(\"unregistered source fixture: {name}\")),\n    }\n}\n",
+    );
+    check.push_str(
+        "        _ => Err(format!(\"unregistered source fixture: {name}\").into()),\n    }\n}\n",
+    );
+    lifted.push_str(&check);
+    lifted.push_str(
+        "/// A fixture's `model.rs` as the runner names it, relative to this crate.\nfn fixture_source(folder: &std::path::Path) -> std::path::PathBuf {\n    folder.strip_prefix(env!(\"CARGO_MANIFEST_DIR\")).unwrap_or(folder).join(\"model.rs\")\n}\n/// The fixtures whose Model admits.\nfn admitted(root: &std::path::Path) -> Vec<&'static str> {\n    registered().into_iter().map(|(name, _)| name).filter(|name| lifted(name, &root.join(name)).is_ok()).collect()\n}\n",
+    );
+    fs::write(output, lifted)
+}
+
 fn input_module(module: &str, input: &str) -> String {
     match input.strip_suffix(".rs") {
         Some("model") | None => module.into(),

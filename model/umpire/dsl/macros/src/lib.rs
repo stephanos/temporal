@@ -2,6 +2,7 @@
 
 mod action;
 mod finite;
+mod lifted;
 mod machine;
 mod path;
 mod state;
@@ -50,5 +51,10 @@ pub fn machine(
     args: proc_macro2::TokenStream,
     input: proc_macro2::TokenStream,
 ) -> manyhow::Result<proc_macro2::TokenStream> {
-    machine::expand(&args, &syn::parse2(input)?)
+    let input = syn::parse2(input)?;
+    let mut module = machine::generate(&args, &input)?;
+    if let Some((_, items)) = &mut module.content {
+        items.push(lifted::embed(&args, &input));
+    }
+    Ok(quote::quote!(#module))
 }

@@ -40,7 +40,7 @@ fn each_source_binding_preserves_selection_and_empty_starts() -> umpire_testing:
         .map(|world| bound_for(world).lift(model()));
     let [first, second, empty] = modules;
     let (first, second, empty) = (first?, second?, empty?);
-    assert_eq!(first.tla, crate::lifted("parameterized_world")?.tla);
+    assert_eq!(first.tla, lifted(std::path::Path::new("fixtures/parameterized_world/model.rs"))?.tla);
     assert_ne!(first.cfg, second.cfg);
     assert_ne!(first.tla, second.tla);
     assert!(empty.tla.contains("FALSE"));

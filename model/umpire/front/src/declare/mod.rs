@@ -275,10 +275,17 @@ pub fn machine(args: &TokenStream, input: &ItemMod) -> Result<Machine> {
         computed_starts(items, &state)?;
     }
     for method in &methods {
-        if let Some(path) = &method.after
-            && !actions.iter().any(|known| key(known) == key(path))
-        {
-            bail!(path, "unknown after action {}", key(path));
+        if let Some(path) = &method.after {
+            if !actions.iter().any(|known| key(known) == key(path)) {
+                bail!(path, "unknown after action {}", key(path));
+            }
+            if actors.iter().any(|actor| {
+                actor.variants.iter().any(|(variant, inputs)| {
+                    *inputs && key(path) == format!("{}::{variant}", actor.ident)
+                })
+            }) {
+                bail!(path, "`{}` carries inputs; it is not one catalog action", key(path));
+            }
         }
     }
     let enums = enums(items, &idents)?;
@@ -542,16 +549,37 @@ fn check_progress(method: &syn::ImplItemFn, actors: &[syn::Ident]) -> Result<()>
         actors: &'a [syn::Ident],
         error: Option<syn::Error>,
     }
+    impl ClaimPaths<'_> {
+        fn refuse(&mut self, error: syn::Error) {
+            if let Some(previous) = &mut self.error {
+                previous.combine(error);
+            } else {
+                self.error = Some(error);
+            }
+        }
+    }
     impl syn::visit::Visit<'_> for ClaimPaths<'_> {
+        fn visit_expr_method_call(&mut self, call: &syn::ExprMethodCall) {
+            let mut receiver = call.receiver.as_ref();
+            while let syn::Expr::MethodCall(inner) = receiver {
+                receiver = inner.receiver.as_ref();
+            }
+            if call.method != "assuming"
+                && let syn::Expr::Macro(path) = receiver
+                && path.mac.path.segments.last().is_some_and(|segment| segment.ident == "path")
+            {
+                self.refuse(syn::Error::new_spanned(
+                    path,
+                    "a path! claim takes only .assuming(..)",
+                ));
+            }
+            syn::visit::visit_expr_method_call(self, call);
+        }
         fn visit_macro(&mut self, call: &syn::Macro) {
             if call.path.segments.last().is_some_and(|segment| segment.ident == "path")
                 && let Err(error) = crate::path::validate_claim(call, self.actors)
             {
-                if let Some(previous) = &mut self.error {
-                    previous.combine(error);
-                } else {
-                    self.error = Some(error);
-                }
+                self.refuse(error);
             }
             syn::visit::visit_macro(self, call);
         }
@@ -728,7 +756,26 @@ fn registrations(
             let arity = method.sig.inputs.len() - usize::from(world);
             let mut actor = None;
             let mut after = None;
+            let positional = method
+                .sig
+                .inputs
+                .iter()
+                .filter(|input| matches!(input, syn::FnArg::Typed(_)))
+                .count()
+                - usize::from(world);
             match kind {
+                Kind::Invariant if positional > 0 => {
+                    bail!(method, "an invariant takes only &self and an optional trailing World");
+                }
+                Kind::Assumption if positional > 0 => {
+                    bail!(method, "assumptions take only an optional trailing World");
+                }
+                Kind::Progress if positional > 0 => {
+                    bail!(
+                        method,
+                        "progress methods take only &self and an optional trailing World"
+                    );
+                }
                 Kind::Starts => register_starts(&methods, method, attr, declared, world)?,
                 Kind::On => {
                     actor = Some(register_handler(&methods, method, attr, actors, arity)?.clone());

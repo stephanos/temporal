@@ -1,7 +1,7 @@
 use super::{Env, Environment, Result, tail};
 use crate::syntax::{has, path_name};
 use crate::{
-    Diagnostic, Type,
+    Diagnostic, Locate, Type,
     expr::ExprKind,
     tree::{ActionDef, ActionRef, AssumptionDef, ProgressDef},
 };
@@ -15,22 +15,7 @@ impl Environment {
         method: &syn::ImplItemFn,
         actions: &[ActionDef],
     ) -> Result<AssumptionDef> {
-        if !self.parameters(method)?.positional.is_empty() {
-            return self.err(method, "assumptions take only an optional trailing World");
-        }
         self.assumption(tail(&method.block)?, actions, &self.method_env(method)?, 0)
-    }
-    /// A postcondition's `after` action; the declarations already named a declared variant.
-    pub(crate) fn action_name(&self, node: &syn::Path, actions: &[ActionDef]) -> Result<String> {
-        let name = path_name(&node.to_token_stream().to_string());
-        let Some(action) = actions.iter().find(|a| a.name == name) else {
-            return self.err(node, format!("unknown after action {name}"));
-        };
-        if !action.fields.is_empty() {
-            return self
-                .err(node, format!("`{name}` carries inputs; it is not one catalog action"));
-        }
-        Ok(name)
     }
     pub(super) fn assumption(
         &self,
@@ -108,10 +93,6 @@ impl Environment {
         method: &syn::ImplItemFn,
         actions: &[ActionDef],
     ) -> Result<ProgressDef> {
-        if !self.parameters(method)?.positional.is_empty() {
-            return self
-                .err(method, "progress methods take only &self and an optional trailing World");
-        }
         let locals = self.method_env(method)?;
         let mut node = tail(&method.block)?;
         let mut target = None;
@@ -150,9 +131,6 @@ impl Environment {
         if let RustExpr::Macro(call) = node
             && path_name(&call.mac.path.to_token_stream().to_string()).ends_with("path")
         {
-            if target.is_some() || bound.is_some() {
-                return self.err(node, "a path! claim takes only .assuming(..)");
-            }
             return self.path_claim(method, call, assumption, &locals);
         }
         let RustExpr::Call(call) = node else {
@@ -198,16 +176,13 @@ impl Environment {
         let parts = Punctuated::<RustExpr, Token![,]>::parse_terminated
             .parse2(call.mac.tokens.clone())
             .map_err(|error| Diagnostic::at(call, error.to_string()))?;
+        // `declare::machine` admitted the claim as a trigger, a `..` or `..=n` gap and a target.
         let [trigger, RustExpr::Range(gap), target] = parts.iter().collect::<Vec<_>>()[..] else {
-            return self.err(
-                call,
-                "a progress claim has one trigger and one target; ask a longer progression with find or Run::along",
-            );
+            unreachable!("declare::machine validates path! claims")
         };
         let bound = match (&gap.start, &gap.limits, &gap.end) {
-            (None, RangeLimits::HalfOpen(_), None) => None,
             (None, RangeLimits::Closed(_), Some(bound)) => Some(self.progress_bound(call, bound)?),
-            _ => return self.err(gap, "a path gap is .. or ..=n"),
+            _ => None,
         };
         let predicate =
             |node| self.expr(node, &self.field_env(false), locals, Some(&Type::Bool), 0);

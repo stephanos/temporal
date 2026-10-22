@@ -637,7 +637,14 @@ fn edit_methods(items: &mut [Item], machine: &Machine) {
     }
 }
 
+#[allow(dead_code, reason = "expansion snapshots render the module without its embedded Model")]
 pub(crate) fn expand(args: &TokenStream, input: &ItemMod) -> manyhow::Result<TokenStream> {
+    let module = generate(args, input)?;
+    Ok(quote!(#module))
+}
+
+/// The expanded module: the executable Model.
+pub(crate) fn generate(args: &TokenStream, input: &ItemMod) -> manyhow::Result<ItemMod> {
     let machine = declare::machine(args, input)?;
     let (state, visibility) = (&machine.state, &machine.visibility);
     let actors = machine.actor_idents();
@@ -745,5 +752,5 @@ pub(crate) fn expand(args: &TokenStream, input: &ItemMod) -> manyhow::Result<Tok
         #values
     };
     items.extend(syn::parse2::<syn::File>(generated)?.items);
-    Ok(quote!(#input))
+    Ok(input)
 }

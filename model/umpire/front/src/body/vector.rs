@@ -1,6 +1,6 @@
 use super::{Env, Environment, Result};
 use crate::{
-    Type,
+    Locate, Type,
     expr::{Expr, ExprKind, Op},
 };
 use quote::ToTokens;

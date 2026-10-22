@@ -1,8 +1,8 @@
 use crate::{
-    Diagnostic, Type,
+    Diagnostic, Locate, Type,
     body::{Env, Environment},
     declare::{self, Kind},
-    syntax::{attr, has, path_name},
+    syntax::{has, path_name},
     tree::{ActionDef, ClaimDef, FieldDef, Lifted, PostDef, Shape, Start, WorldField},
 };
 use quote::ToTokens;
@@ -11,26 +11,9 @@ use syn::{ImplItem, Item};
 
 type Result<T> = std::result::Result<T, Diagnostic>;
 
-/// Admit the one `#[machine]` module; a refusal inside a hook names it in `failed_hook`.
+/// Admit a `#[machine]` module, as the macro receives it.
 #[expect(clippy::too_many_lines, reason = "The admission pass preserves source declaration order")]
-pub(crate) fn parse(
-    ast: &syn::File,
-    hooks: &[&syn::ItemMacro],
-    failed_hook: &mut Option<usize>,
-) -> Result<Lifted> {
-    let modules: Vec<_> = ast
-        .items
-        .iter()
-        .filter_map(|item| match item {
-            Item::Mod(module) if has(&module.attrs, "machine") => Some(module),
-            _ => None,
-        })
-        .collect();
-    if modules.len() != 1 {
-        return Err(Diagnostic::at(ast, "expected exactly one inline #[machine] module"));
-    }
-    let module = modules[0];
-    let marker = canonical_machine(ast, module)?;
+pub(crate) fn parse(arguments: &proc_macro2::TokenStream, module: &syn::ItemMod) -> Result<Lifted> {
     let mut conditional = Conditional(None);
     syn::visit::Visit::visit_item_mod(&mut conditional, module);
     if let Some(attribute) = conditional.0 {
@@ -43,46 +26,17 @@ pub(crate) fn parse(
         .content
         .as_ref()
         .ok_or_else(|| Diagnostic::at(module, "external machine modules are unsupported"))?;
-    let mut admitted_imports = Vec::new();
-    for item in items {
-        if let Item::Use(import) = item {
-            let mut bindings = Vec::new();
-            imports(&import.tree, "", &mut bindings);
-            for (binding, path) in bindings {
-                if binding == "*"
-                    || (path != format!("umpire_dsl::{binding}")
-                        && !(binding == "Vector" && path == "imbl::Vector"))
-                {
-                    return Err(Diagnostic::at(
-                        import,
-                        format!("unsupported or aliased source dependency `{path}` as `{binding}`"),
-                    ));
-                }
-                if admitted_imports.contains(&binding) {
-                    return Err(Diagnostic::at(
-                        import,
-                        format!("ambiguous source import `{binding}`"),
-                    ));
-                }
-                admitted_imports.push(binding);
-            }
-        }
-    }
-    for required in ["State", "Action"] {
-        if !admitted_imports.iter().any(|name| name == required) {
-            return Err(Diagnostic::at(
-                module,
-                format!("derive requires explicit canonical umpire_dsl::{required} import"),
-            ));
-        }
-    }
-    let arguments = match &marker.meta {
-        syn::Meta::List(list) => list.tokens.clone(),
-        _ => proc_macro2::TokenStream::new(),
-    };
-    let declared = declare::machine(&arguments, module).map_err(Diagnostic::from)?;
+    let declared = declare::machine(arguments, module).map_err(Diagnostic::syn)?;
     let declarations = Declarations::read(items, &declared)?;
-    let domain_functions = domain_functions(items);
+    let domain_functions: BTreeSet<String> = declarations
+        .actors
+        .iter()
+        .flat_map(|(_, inputs)| inputs.variants.iter().flatten())
+        .filter_map(|domain| match domain {
+            declare::FieldDomain::World(path) => path.get_ident().map(ToString::to_string),
+            declare::FieldDomain::Explicit(_) | declare::FieldDomain::Finite => None,
+        })
+        .collect();
     let mut parser = Environment {
         state: declared.state.to_string(),
         fields: Vec::new(),
@@ -93,7 +47,7 @@ pub(crate) fn parse(
         defaults: BTreeMap::new(),
         helpers: BTreeMap::new(),
         methods: BTreeMap::new(),
-        vector_imported: admitted_imports.iter().any(|name| name == "Vector"),
+        vector_imported: vector_imported(items),
         finite: BTreeSet::new(),
         domain_functions: BTreeMap::new(),
     };
@@ -143,13 +97,7 @@ pub(crate) fn parse(
             parser.enums.insert(name.clone(), Type::Enum { name, variants });
         }
     }
-    if let Some((world, fields)) = &declarations.world {
-        if !admitted_imports.iter().any(|name| name == "World") {
-            return Err(Diagnostic::at(
-                *world,
-                "derive requires explicit canonical umpire_dsl::World import",
-            ));
-        }
+    if let Some((_, fields)) = &declarations.world {
         for (name, field) in fields {
             attrs(&field.attrs, &["doc"])?;
             let ty = parser.ty(&field.ty)?;
@@ -205,7 +153,7 @@ pub(crate) fn parse(
                         "async, unsafe or generic helper is unsupported",
                     ));
                 }
-                if has(&method.attrs, "starts") {
+                if declared.starts().is_some_and(|starts| starts.ident == method.sig.ident) {
                     // Computed starts are native only; Init comes from the bound complete starts.
                 } else if owner == state_name {
                     parser.methods.insert(method.sig.ident.to_string(), method.clone());
@@ -311,8 +259,7 @@ pub(crate) fn parse(
                 after: registered
                     .after
                     .as_ref()
-                    .map(|after| parser.action_name(after, &actions))
-                    .transpose()?,
+                    .map(|after| path_name(&after.to_token_stream().to_string())),
                 expr: parser.postcondition(method)?,
             }),
             Kind::Assumption => {
@@ -323,12 +270,6 @@ pub(crate) fn parse(
             Kind::Progress => progress.push(parser.progress(method, &actions)?),
             Kind::Starts | Kind::Effect => {}
         }
-    }
-    let mut negative = Vec::new();
-    for (index, hook) in hooks.iter().enumerate() {
-        negative.extend(
-            parser.supplemental(&hook.mac, &initial).inspect_err(|_| *failed_hook = Some(index))?,
-        );
     }
     let name = pascal(&module.ident.to_string());
     Ok(Lifted {
@@ -352,7 +293,7 @@ pub(crate) fn parse(
         postconditions,
         progress,
         assumptions,
-        negative,
+        negative: Vec::new(),
         catalog: None,
     })
 }
@@ -379,8 +320,8 @@ impl<'a> Declarations<'a> {
             match item {
                 Item::Struct(state) if state.ident == machine.state => {
                     let fields = declare::struct_fields(state, Some(&state.fields), false)
-                        .map_err(Diagnostic::from)?;
-                    let ranges = declare::start_ranges(&fields).map_err(Diagnostic::from)?;
+                        .map_err(Diagnostic::syn)?;
+                    let ranges = declare::start_ranges(&fields).map_err(Diagnostic::syn)?;
                     declarations.state = named(fields)
                         .into_iter()
                         .zip(ranges)
@@ -389,7 +330,7 @@ impl<'a> Declarations<'a> {
                 }
                 Item::Struct(world) if machine.world && world.ident == "World" => {
                     let fields = declare::struct_fields(world, Some(&world.fields), true)
-                        .map_err(Diagnostic::from)?;
+                        .map_err(Diagnostic::syn)?;
                     declarations.world = Some((world, named(fields)));
                 }
                 Item::Enum(actor)
@@ -397,7 +338,7 @@ impl<'a> Declarations<'a> {
                 {
                     let input = syn::DeriveInput::from(actor.clone());
                     let inputs =
-                        declare::action_enum(&input, machine.world).map_err(Diagnostic::from)?;
+                        declare::action_enum(&input, machine.world).map_err(Diagnostic::syn)?;
                     declarations.actors.push((actor, inputs));
                 }
                 _ => {}
@@ -405,21 +346,6 @@ impl<'a> Declarations<'a> {
         }
         Ok(declarations)
     }
-}
-
-/// Free functions named by a variant field's `#[domain(..)]`, admitted only as domain sources.
-fn domain_functions(items: &[Item]) -> BTreeSet<String> {
-    items
-        .iter()
-        .filter_map(|item| match item {
-            Item::Enum(actor) if derives(&actor.attrs, "Action") => Some(actor),
-            _ => None,
-        })
-        .flat_map(|actor| actor.variants.iter().flat_map(|variant| &variant.fields))
-        .filter_map(|field| attr(&field.attrs, "domain"))
-        .filter_map(|domain| domain.parse_args::<syn::Ident>().ok())
-        .map(|name| name.to_string())
-        .collect()
 }
 
 struct Conditional<'a>(Option<&'a syn::Attribute>);
@@ -460,44 +386,15 @@ fn attrs(attrs: &[syn::Attribute], allowed: &[&str]) -> Result<()> {
     }
     Ok(())
 }
-fn canonical_machine<'a>(ast: &syn::File, module: &'a syn::ItemMod) -> Result<&'a syn::Attribute> {
-    let marker = module
-        .attrs
-        .iter()
-        .find(|attribute| attribute.path().is_ident("machine"))
-        .ok_or_else(|| Diagnostic::at(module, "unsupported machine marker"))?;
-    let mut bindings = Vec::new();
-    for item in &ast.items {
-        if let Item::Use(import) = item {
-            imports(&import.tree, "", &mut bindings);
+/// Whether the module imports `imbl::Vector` under its own name.
+fn vector_imported(items: &[Item]) -> bool {
+    fn names(tree: &syn::UseTree, prefix: &str) -> bool {
+        match tree {
+            syn::UseTree::Path(path) => names(&path.tree, &format!("{prefix}{}::", path.ident)),
+            syn::UseTree::Name(name) => prefix == "imbl::" && name.ident == "Vector",
+            syn::UseTree::Group(group) => group.items.iter().any(|item| names(item, prefix)),
+            syn::UseTree::Rename(_) | syn::UseTree::Glob(_) => false,
         }
     }
-    let markers: Vec<_> = bindings.iter().filter(|(binding, _)| binding == "machine").collect();
-    if markers.len() != 1
-        || markers[0].1 != "umpire_dsl::machine"
-        || bindings.iter().any(|(binding, _)| binding == "*")
-    {
-        return Err(Diagnostic::at(
-            marker,
-            "machine marker requires one explicit canonical umpire_dsl::machine import",
-        ));
-    }
-    Ok(marker)
-}
-fn imports(tree: &syn::UseTree, prefix: &str, out: &mut Vec<(String, String)>) {
-    match tree {
-        syn::UseTree::Path(path) => imports(&path.tree, &format!("{prefix}{}::", path.ident), out),
-        syn::UseTree::Name(name) => {
-            out.push((name.ident.to_string(), format!("{prefix}{}", name.ident)));
-        }
-        syn::UseTree::Rename(rename) => {
-            out.push((rename.rename.to_string(), format!("{prefix}{}", rename.ident)));
-        }
-        syn::UseTree::Group(group) => {
-            for item in &group.items {
-                imports(item, prefix, out);
-            }
-        }
-        syn::UseTree::Glob(_) => out.push(("*".into(), format!("{prefix}*"))),
-    }
+    items.iter().any(|item| matches!(item, Item::Use(import) if names(&import.tree, "")))
 }

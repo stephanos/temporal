@@ -1,15 +1,16 @@
-//! One selected World shared by the native checker and, as values only, the source lifter.
+//! One selected World shared by the native checker and, as values only, the lifter.
 
 use std::path::Path;
 
 use umpire_checker::Checker;
-use umpire_dsl::{ActionValues, CATALOG_LIMIT, Claim, Machine, Value, Values};
-use umpire_lift::{Binding, Concrete, Domain, Literal, Module};
+use umpire_dsl::{__lifted::Lifts, ActionValues, CATALOG_LIMIT, Claim, Machine, Value, Values};
+use umpire_lift::{Binding, Concrete, Literal, Module};
 
-/// A declared World whose derives export its own, its states' and its actions' values.
-pub trait Declared: Machine<State: Values, Action: ActionValues<Self>> + Values {}
+/// A declared World whose derives export its own, its states' and its actions' values, and
+/// whose `#[machine]` embeds the admitted Model.
+pub trait Declared: Machine<State: Values, Action: ActionValues<Self>> + Values + Lifts {}
 
-impl<M: Machine<State: Values, Action: ActionValues<M>> + Values> Declared for M {}
+impl<M: Machine<State: Values, Action: ActionValues<M>> + Values + Lifts> Declared for M {}
 
 /// One selected World, its starts enumerated once and the values of its checked catalog, with a
 /// fixture's state budget and optional negative claim.
@@ -30,27 +31,20 @@ pub fn bound<M: Declared>(world: M, budget: usize, negative: Option<Claim<M>>) -
             world: fields(world.values()),
             starts: starts.iter().map(|state| fields(state.values())).collect(),
             actions: catalog.actions().iter().map(concrete::<M>).collect(),
-            domains: M::Action::domains(&world)
-                .into_iter()
-                .map(|(action, field, values)| Domain {
-                    action: action.into(),
-                    field: field.into(),
-                    values: values.into_iter().map(literal).collect(),
-                })
-                .collect(),
         })
         .map_err(|error| error.to_string());
     Bound { world, starts, binding, budget, negative }
 }
 
 impl<M: Declared> Bound<M> {
-    /// Admits `source` independently, binds it to this World and emits it.
+    /// The Model this World's `#[machine]` embeds, read for `source`, bound to this World and
+    /// emitted.
     ///
     /// # Errors
     /// Returns the catalog refusal or the lifter's diagnostic.
     pub fn lift(&self, source: impl AsRef<Path>) -> Result<Module, String> {
         let binding = self.binding.as_ref().map_err(Clone::clone)?;
-        umpire_lift::Lift::source(source)
+        umpire_lift::Lift::embedded(Some(&M::__umpire_lifted()), source)
             .and_then(|lifted| lifted.bind(binding))
             .and_then(|lifted| umpire_lift::Tla::emit(&lifted))
             .map_err(|diagnostic| diagnostic.to_string())

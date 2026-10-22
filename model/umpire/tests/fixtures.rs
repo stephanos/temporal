@@ -10,7 +10,7 @@ fn fixture_name(folder: &std::path::Path) -> Result<&str, Box<dyn std::error::Er
 const LIFT: umpire_testing::Consumer = umpire_testing::Consumer {
     name: "source lift",
     expected: &["*.tla", "*.cfg", "lift.txt"],
-    render: |_, folder| match lifted(fixture_name(folder)?) {
+    render: |_, folder| match lifted(fixture_name(folder)?, folder) {
         Ok(module) => Ok(umpire_testing::Files::from([
             (format!("{}.tla", module.name), module.tla),
             (format!("{}.cfg", module.name), module.cfg),
@@ -31,7 +31,7 @@ fn render_tlc(
     folder: &std::path::Path,
 ) -> umpire_testing::RunResult {
     let name = fixture_name(folder)?;
-    eprintln!("TLC fixture {name}: checking independently lifted source");
+    eprintln!("TLC fixture {name}: checking the lifted Model");
     let files = check_backend(name, folder, run)?;
     eprintln!(
         "TLC fixture {name}: {}",
@@ -45,12 +45,12 @@ fn fixtures() -> umpire_testing::TestResult {
     let root = std::path::Path::new(env!("CARGO_MANIFEST_DIR")).join("fixtures");
     let required = std::env::var("UMPIRE_BACKENDS").as_deref() == Ok("require");
     if required {
-        if !admitted().contains(&"sample_kettle") {
+        if !admitted(&root).contains(&"sample_kettle") {
             return Err(
                 "unselected backend coverage: attribute Kettle must be source-admitted".into()
             );
         }
-        for name in admitted() {
+        for name in admitted(&root) {
             if !root.join(name).join("expected/tlc.snap.txt").is_file() {
                 return Err(format!("unselected backend coverage: {name} has no TLC golden").into());
             }

@@ -1,8 +1,9 @@
 //! Read authored `#[machine]` Models once, for Umpire's native generation and its lifted back ends.
 //!
 //! [`declare`] reads the declarations both consumers need; its refusals are structural, and the
-//! macros report them as compile errors. [`read`] then admits the bodies into a checked internal
-//! tree; its refusals are soft, since a Model outside the subset still checks natively.
+//! macros report them as compile errors. [`admit`] then admits the bodies into the checked
+//! `umpire-ir` tree, which the macro embeds in the compiled Model; its refusals are soft, since a
+//! Model outside the subset still checks natively.
 //!
 //! The admitted integers are signed 32-bit. The collection subset admits canonical
 //! `imbl::Vector<T>` fields whose elements are scalar booleans, admitted integers, or fieldless
@@ -13,59 +14,26 @@
 //! nonnegative signed 32-bit domain. Other collection operations, aliases, and unchecked unwraps
 //! refuse by source location; this is a method table rather than general Rust collection
 //! interpretation.
-use proc_macro2::Span;
+use proc_macro2::{Span, TokenStream};
 use quote::ToTokens;
 mod body;
 pub mod declare;
-#[doc(hidden)]
-pub mod expr;
 pub mod path;
 mod shape;
+mod source;
 mod syntax;
+pub use source::source;
 #[doc(hidden)]
-pub mod tree;
-pub use tree::Lifted;
+pub use umpire_ir::{Diagnostic, Embedded, Lifted, Source, Type, expr, tree};
 
-/// Admitted value types for typed backend decoding.
-#[derive(Clone, Debug, PartialEq, Eq)]
-pub enum Type {
-    /// Boolean.
-    Bool,
-    /// Checked Rust integer.
-    Int {
-        /// Inclusive minimum.
-        min: i128,
-        /// Inclusive maximum.
-        max: i128,
-    },
-    /// Fieldless enum encoded with qualified variant names.
-    Enum {
-        /// Authored type name.
-        name: String,
-        /// Qualified variant names in declaration order.
-        variants: Vec<String>,
-    },
-    /// String.
-    Text,
-    /// Unit.
-    Unit,
-    /// Tuple.
-    Tuple(Vec<Type>),
-    /// Sequence.
-    Seq(Box<Type>),
+/// Locating a front-end refusal at a syntax node or span.
+pub(crate) trait Locate: Sized {
+    fn at(node: &impl ToTokens, message: impl Into<String>) -> Self;
+    fn span(span: Span, message: impl Into<String>) -> Self;
+    fn syn(error: syn::Error) -> Self;
 }
-/// A located refusal of unsupported source behavior; the consumer names the file.
-#[derive(Clone, Debug, PartialEq, Eq)]
-pub struct Diagnostic {
-    /// One-based line.
-    pub line: usize,
-    /// One-based column.
-    pub column: usize,
-    /// Admission failure.
-    pub message: String,
-}
-impl Diagnostic {
-    pub(crate) fn at(node: &impl ToTokens, message: impl Into<String>) -> Self {
+impl Locate for Diagnostic {
+    fn at(node: &impl ToTokens, message: impl Into<String>) -> Self {
         Self::span(
             node.to_token_stream()
                 .into_iter()
@@ -74,13 +42,11 @@ impl Diagnostic {
             message,
         )
     }
-    pub(crate) fn span(span: Span, message: impl Into<String>) -> Self {
+    fn span(span: Span, message: impl Into<String>) -> Self {
         let location = span.start();
         Self { line: location.line, column: location.column + 1, message: message.into() }
     }
-}
-impl From<syn::Error> for Diagnostic {
-    fn from(error: syn::Error) -> Self {
+    fn syn(error: syn::Error) -> Self {
         Self::span(error.span(), error.to_string())
     }
 }
@@ -95,24 +61,61 @@ pub enum Refusal {
 /// The default concrete action catalog limit, equal to the native checker's.
 pub const CATALOG_LIMIT: usize = 4096;
 
-/// Admit a parsed source root and the golden hooks (`fixture!`) whose negative claims it carries.
-pub fn read(ast: &syn::File, hooks: &[&syn::ItemMacro]) -> Result<Lifted, Refusal> {
-    if !ast
+/// Admit a `#[machine]` module, as the macro receives it, into the tree. The declarations must
+/// already be admitted by [`declare::machine`]; a refusal here is a subset refusal.
+pub fn admit(args: &TokenStream, module: &syn::ItemMod) -> Result<Lifted, Diagnostic> {
+    shape::parse(args, module)
+}
+
+/// Add the negative claims of golden hooks (`fixture!`) to an admitted Model; a refusal names the
+/// failing hook's index.
+pub fn supplement(
+    model: &mut Lifted,
+    hooks: &[&syn::ItemMacro],
+) -> Result<(), (usize, Diagnostic)> {
+    let environment = body::Environment::of(model);
+    let initial = environment.field_env(false);
+    for (index, hook) in hooks.iter().enumerate() {
+        let claims =
+            environment.supplemental(&hook.mac, &initial).map_err(|refusal| (index, refusal))?;
+        model.negative.extend(claims);
+    }
+    Ok(())
+}
+
+/// Read a source file holding one `#[machine]` module as the macro would, with the golden hooks
+/// whose negative claims it carries.
+pub fn read(ast: &syn::File, hooks: &[&syn::ItemMacro]) -> Result<(Lifted, Source), Refusal> {
+    let modules: Vec<_> = ast
         .items
         .iter()
-        .any(|item| matches!(item, syn::Item::Mod(module) if syntax::has(&module.attrs, "machine")))
-    {
-        return Err(Refusal::Model(not_attribute(ast)));
-    }
-    let mut failed_hook = None;
-    shape::parse(ast, hooks, &mut failed_hook).map_err(|diagnostic| match failed_hook {
-        Some(index) => Refusal::Hook(index, diagnostic),
-        None => Refusal::Model(diagnostic),
-    })
+        .filter_map(|item| match item {
+            syn::Item::Mod(module) if syntax::has(&module.attrs, "machine") => Some(module),
+            _ => None,
+        })
+        .collect();
+    let [module] = modules[..] else {
+        return Err(Refusal::Model(if modules.is_empty() {
+            unlifted(ast)
+        } else {
+            Diagnostic::at(ast, "expected exactly one inline #[machine] module")
+        }));
+    };
+    let mut module = module.clone();
+    let marker = module.attrs.iter().position(|attr| attr.path().is_ident("machine"));
+    let args = match marker.map(|index| module.attrs.remove(index).meta) {
+        Some(syn::Meta::List(list)) => list.tokens,
+        _ => TokenStream::new(),
+    };
+    let mut model = admit(&args, &module).map_err(Refusal::Model)?;
+    supplement(&mut model, hooks).map_err(|(index, refusal)| Refusal::Hook(index, refusal))?;
+    Ok((model, source(&module)))
 }
+
 /// The located refusal for source without a `#[machine]` Model: at a hand-written
 /// `impl Machine` when there is one, otherwise at the start of the file.
-fn not_attribute(ast: &syn::File) -> Diagnostic {
+#[must_use]
+pub fn unlifted(ast: &syn::File) -> Diagnostic {
     let by_hand = ast.items.iter().find_map(|item| match item {
         syn::Item::Impl(implementation)
             if implementation

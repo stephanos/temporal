@@ -1,6 +1,6 @@
 use super::{Env, Environment, Result};
 use crate::{
-    Diagnostic, Type,
+    Diagnostic, Locate, Type,
     expr::{Expr, ExprKind},
     tree::ClaimDef,
 };
@@ -8,10 +8,6 @@ use syn::{Expr as RustExpr, Pat, Stmt};
 
 impl Environment {
     pub(crate) fn invariant(&self, method: &syn::ImplItemFn, state: &Env) -> Result<Expr> {
-        if !self.parameters(method)?.positional.is_empty() {
-            return self
-                .err(method, "an invariant takes only &self and an optional trailing World");
-        }
         self.claim(&method.block, state, &self.method_env(method)?, 0)
     }
     pub(crate) fn postcondition(&self, method: &syn::ImplItemFn) -> Result<Expr> {
@@ -48,7 +44,7 @@ impl Environment {
             }
             if let Pat::Ident(id) = input.pat.as_ref() {
                 let name = id.ident.to_string();
-                env.insert(name.clone(), Expr::var("__umpire_outcome", Type::Unit, true));
+                env.insert(name.clone(), Expr { kind: ExprKind::Outcome, ty: Type::Unit });
                 env.outcome = Some(name);
             }
         }

@@ -23,5 +23,3 @@ umpire-lift.workspace = true
 umpire-suite.workspace = true
 umpire-tlc.workspace = true
 
-[build-dependencies]
-umpire-lift.workspace = true

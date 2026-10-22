@@ -1,6 +1,6 @@
 use super::{Env, Environment, Result, tail};
 use crate::{
-    Diagnostic, Type,
+    Diagnostic, Locate, Type,
     expr::{Expr, ExprKind, Op, Unary},
     syntax::path_name,
 };

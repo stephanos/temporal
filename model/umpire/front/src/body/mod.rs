@@ -1,7 +1,7 @@
 use crate::{
-    Diagnostic, Type,
+    Diagnostic, Locate, Type,
     expr::{Expr, ExprKind},
-    tree::{FieldDef, WorldField},
+    tree::{FieldDef, Lifted, WorldField},
 };
 use quote::ToTokens;
 use std::collections::{BTreeMap, BTreeSet};
@@ -83,6 +83,46 @@ pub(crate) struct Environment {
     pub(crate) domain_functions: BTreeMap<String, syn::ItemFn>,
 }
 impl Environment {
+    /// The environment golden hook claims read in: the admitted Model's schema and constants.
+    /// The tree keeps no helper bodies, so a hook claim reads fields, the World and constants.
+    pub(crate) fn of(model: &Lifted) -> Self {
+        fn enums(ty: &Type, out: &mut BTreeMap<String, Type>) {
+            match ty {
+                Type::Enum { name, .. } => {
+                    out.insert(name.clone(), ty.clone());
+                }
+                Type::Tuple(types) => types.iter().for_each(|ty| enums(ty, out)),
+                Type::Seq(inner) => enums(inner, out),
+                Type::Bool | Type::Int { .. } | Type::Text | Type::Unit => {}
+            }
+        }
+        let mut known = BTreeMap::new();
+        let types = model
+            .fields
+            .iter()
+            .map(|field| &field.ty)
+            .chain(model.world_fields.iter().map(|field| &field.ty));
+        for ty in types
+            .chain(model.actions.iter().flat_map(|action| action.fields.iter().map(|f| &f.ty)))
+            .chain(model.constants.values().map(|value| &value.ty))
+        {
+            enums(ty, &mut known);
+        }
+        Self {
+            state: model.state_name.clone(),
+            fields: model.fields.clone(),
+            declared_world: model.declared_world,
+            world_fields: model.world_fields.clone(),
+            constants: model.constants.clone().into_iter().collect(),
+            enums: known,
+            defaults: BTreeMap::new(),
+            helpers: BTreeMap::new(),
+            methods: BTreeMap::new(),
+            vector_imported: model.fields.iter().any(|field| matches!(field.ty, Type::Seq(_))),
+            finite: BTreeSet::new(),
+            domain_functions: BTreeMap::new(),
+        }
+    }
     #[expect(clippy::unused_self, reason = "refusals read as methods of the admitting environment")]
     fn err<T>(&self, node: &impl ToTokens, message: impl Into<String>) -> Result<T> {
         Err(Diagnostic::at(node, message))
@@ -94,7 +134,7 @@ impl Environment {
             .collect()
     }
     pub(super) fn parameters<'a>(&self, method: &'a syn::ImplItemFn) -> Result<Parameters<'a>> {
-        let declared = crate::declare::world_parameter(&method.sig).map_err(Diagnostic::from)?;
+        let declared = crate::declare::world_parameter(&method.sig).map_err(Diagnostic::syn)?;
         let mut world = None;
         let mut positional = Vec::new();
         for (index, input) in method.sig.inputs.iter().enumerate() {

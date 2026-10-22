@@ -8,13 +8,15 @@ use umpire_front::{
     tree::{ActionDef, ActionRef, AssumptionDef, Entry, Start},
 };
 
+/// The observer holding an edge's outcome.
+pub(crate) const OUTCOME: &str = "__umpire_outcome";
 pub(crate) const OBSERVERS: [&str; 7] = [
     "__umpire_edge_tick",
     "__umpire_pending",
     "__umpire_steps",
     "__umpire_action",
     "__umpire_choice",
-    "__umpire_outcome",
+    OUTCOME,
     "__umpire_facts",
 ];
 
@@ -658,6 +660,7 @@ fn expr(value: &Expr) -> String {
         ExprKind::Unit => "<<>>".into(),
         ExprKind::Var(name, primed) => format!("{name}{}", if *primed { "'" } else { "" }),
         ExprKind::World(name) | ExprKind::Input(name) => name.clone(),
+        ExprKind::Outcome => format!("{OUTCOME}'"),
         ExprKind::Tuple(values) | ExprKind::Sequence(values) => {
             format!("<<{}>>", values.iter().map(expr).collect::<Vec<_>>().join(", "))
         }

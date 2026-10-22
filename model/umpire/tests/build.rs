@@ -1,4 +1,4 @@
-//! Discover the shared end-to-end fixtures and lift their authored source.
+//! Discover the shared end-to-end fixtures and their lift hooks.
 
 #[path = "../testing/src/discovery.rs"]
 #[allow(unreachable_pub)]
@@ -9,13 +9,8 @@ fn main() -> std::io::Result<()> {
     println!("cargo:rerun-if-changed=fixtures");
     let output =
         std::env::var_os("OUT_DIR").ok_or_else(|| std::io::Error::other("missing OUT_DIR"))?;
-    let fixtures =
-        discovery::discover(std::path::Path::new("fixtures"), discovery::MODEL_AND_TESTS)?
-            .into_iter()
-            .map(|fixture| (fixture.name, fixture.module, fixture.path))
-            .collect::<Vec<_>>();
     let output = std::path::Path::new(&output);
-    umpire_lift::build::generate(&fixtures, output)?;
+    discovery::generate_lifted(std::path::Path::new("fixtures"), &output.join("lifted.rs"))?;
     discovery::generate(
         std::path::Path::new("fixtures"),
         discovery::MODEL_AND_TESTS,

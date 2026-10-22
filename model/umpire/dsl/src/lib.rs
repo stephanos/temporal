@@ -42,6 +42,18 @@ pub use umpire_dsl_macros::{Action, Finite, State, World, machine};
 #[doc(hidden)]
 pub use value::{ActionValues, IntoValue, Value, Values};
 
+/// The admitted Model a `#[machine]` macro embeds, for the lifted back ends; never in the guest.
+#[cfg(not(target_arch = "wasm32"))]
+#[doc(hidden)]
+pub mod __lifted {
+    pub use umpire_ir::*;
+    /// A `#[machine]` World, which carries its module's admitted Model.
+    pub trait Lifts {
+        /// The embedded Model, or its located subset refusal.
+        fn __umpire_lifted() -> Embedded;
+    }
+}
+
 /// The checker's aggregate claim result, distinct from a domain's step outcome.
 #[derive(Clone, Copy, Debug, PartialEq, Eq)]
 pub enum CheckOutcome {

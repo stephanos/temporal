@@ -1,6 +1,6 @@
 use super::{Environment, Result};
 use crate::{
-    Diagnostic, Type,
+    Diagnostic, Locate, Type,
     expr::{Expr, ExprKind, Op, Unary},
     syntax::path_name,
 };
@@ -12,10 +12,11 @@ impl Environment {
             return Ok(ty);
         }
         let name = path_name(&ty.to_token_stream().to_string());
-        if let Some(scalar) = scalar_type(&name) {
-            if let Type::Int { min, max } = scalar
-                && (min < i128::from(i32::MIN) || max > i128::from(i32::MAX))
-            {
+        if name == "bool" {
+            return Ok(Type::Bool);
+        }
+        if let Some((min, max)) = crate::declare::integer(ty) {
+            if min < i128::from(i32::MIN) || max > i128::from(i32::MAX) {
                 return self.err(
                     ty,
                     format!(
@@ -23,7 +24,7 @@ impl Environment {
                     ),
                 );
             }
-            return Ok(scalar);
+            return Ok(Type::Int { min, max });
         }
         self.enums
             .get(&name)
@@ -52,21 +53,6 @@ impl Environment {
     }
 }
 
-pub(crate) fn scalar_type(name: &str) -> Option<Type> {
-    let (min, max) = match name {
-        "bool" => return Some(Type::Bool),
-        "i8" => (i128::from(i8::MIN), i128::from(i8::MAX)),
-        "i16" => (i128::from(i16::MIN), i128::from(i16::MAX)),
-        "i32" => (i128::from(i32::MIN), i128::from(i32::MAX)),
-        "i64" => (i128::from(i64::MIN), i128::from(i64::MAX)),
-        "u8" => (0, i128::from(u8::MAX)),
-        "u16" => (0, i128::from(u16::MAX)),
-        "u32" => (0, i128::from(u32::MAX)),
-        "u64" => (0, i128::from(u64::MAX)),
-        _ => return None,
-    };
-    Some(Type::Int { min, max })
-}
 pub(crate) fn binary_op(op: &syn::BinOp) -> Option<Op> {
     Some(match op {
         syn::BinOp::Add(_) => Op::Add,

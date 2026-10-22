@@ -1,9 +1,8 @@
-use crate::{Binding, CATALOG_LIMIT, Concrete, Diagnostic, Lifted, Literal, Type};
-use std::collections::BTreeMap;
+use crate::{Binding, Concrete, Diagnostic, Lifted, Literal, Type};
 use umpire_front::{
     Diagnostic as FrontDiagnostic,
     expr::{Expr, ExprKind},
-    tree::{ActionDef, ActionRef, Entry, InputDomain},
+    tree::{ActionRef, Entry},
 };
 
 impl Lifted {
@@ -12,20 +11,20 @@ impl Lifted {
         message(&self.file, location, text)
     }
 
-    /// Validate projected literals against original-source schemas and bind complete starts.
+    /// Bind the selected World's values, complete starts and checked catalog, which the same
+    /// compiled Model exports, as the admitted types.
     ///
     /// # Errors
-    /// Refuses absent, duplicate, extra or incorrectly typed fields, and World integers outside
-    /// TLC's `.cfg` range, by source location.
+    /// Refuses a value outside its admitted type, and World integers outside TLC's `.cfg` range,
+    /// by source location.
     pub fn bind(&self, binding: &Binding) -> Result<Self, Diagnostic> {
         if !self.requires_binding() {
             return Err(self.refuse(&self.location, "this source has no declared World to bind"));
         }
-        let world = bind_fields(
+        let world = typed(
             &self.file,
             self.world_fields.iter().map(|field| (&field.name, &field.ty, &field.location)),
             &binding.world,
-            &self.location,
             "World",
         )?;
         // TLC's .cfg parser accepts only non-negative integers up to i32::MAX as CONSTANT values.
@@ -42,11 +41,10 @@ impl Lifted {
         }
         let mut starts = Vec::new();
         for row in &binding.starts {
-            let state = bind_fields(
+            let state = typed(
                 &self.file,
                 self.fields.iter().map(|field| (&field.name, &field.ty, &field.location)),
                 row,
-                &self.location,
                 "complete start",
             )?;
             if !starts.contains(&state) {
@@ -61,125 +59,34 @@ impl Lifted {
         Ok(bound)
     }
 
-    /// Each variant's per-field domain values: declared in source, or supplied for the selected
-    /// World and checked against the field's admitted type.
-    fn bound_domains(&self, binding: &Binding) -> Result<Vec<Vec<Vec<Expr>>>, Diagnostic> {
-        let mut supplied = BTreeMap::new();
-        for domain in &binding.domains {
-            let declared =
-                self.actions.iter().find(|action| action.name == domain.action).and_then(
-                    |action| {
-                        action.fields.iter().find(|field| {
-                            field.name == domain.field && matches!(field.domain, InputDomain::World)
-                        })
-                    },
-                );
-            let Some(field) = declared else {
+    /// The native catalog as typed entries; positional duplicates share their first ordinal.
+    fn bind_catalog(&self, binding: &Binding) -> Result<Vec<Entry>, Diagnostic> {
+        let mut catalog: Vec<Entry> = Vec::new();
+        for native in &binding.actions {
+            let Some(index) = self.actions.iter().position(|action| action.name == native.action)
+            else {
                 return Err(self.refuse(
                     &self.location,
-                    format!("extra action domain `{}` field `{}`", domain.action, domain.field),
+                    format!("native catalog action `{}` is not declared", native.action),
                 ));
             };
-            if supplied.insert((domain.action.as_str(), domain.field.as_str()), domain).is_some() {
-                return Err(self.refuse(
-                    &field.location,
-                    format!("duplicate action domain `{}` field `{}`", domain.action, domain.field),
-                ));
-            }
-        }
-        let mut domains = Vec::new();
-        for action in &self.actions {
-            let mut fields = Vec::new();
-            for field in &action.fields {
-                let values = match &field.domain {
-                    InputDomain::Values(values) => values.clone(),
-                    InputDomain::World => {
-                        let domain = supplied
-                            .get(&(action.name.as_str(), field.name.as_str()))
-                            .ok_or_else(|| {
-                                self.refuse(
-                                    &field.location,
-                                    format!(
-                                        "missing action domain `{}` field `{}`",
-                                        action.name, field.name
-                                    ),
-                                )
-                            })?;
-                        if domain.values.len() > CATALOG_LIMIT {
-                            return Err(self.refuse(&field.location,
-                                format!(
-                                    "action domain `{}` field `{}` exceeds the catalog limit {CATALOG_LIMIT}",
-                                    action.name, field.name
-                                ),
-                            ));
-                        }
-                        domain
-                            .values
-                            .iter()
-                            .map(|value| {
-                                literal(value, &field.ty).ok_or_else(|| {
-                                    self.refuse(&field.location,
-                                        format!(
-                                            "action domain `{}` field `{}` value does not match admitted type {:?}",
-                                            action.name, field.name, field.ty
-                                        ),
-                                    )
-                                })
-                            })
-                            .collect::<Result<_, _>>()?
-                    }
-                };
-                fields.push(values);
-            }
-            domains.push(fields);
-        }
-        Ok(domains)
-    }
-
-    /// The declaration-order domain product of every variant, checked against the native catalog.
-    fn bind_catalog(&self, binding: &Binding) -> Result<Vec<Entry>, Diagnostic> {
-        let domains = self.bound_domains(binding)?;
-        let count =
-            domains.iter().try_fold(0usize, |total, fields| total.checked_add(product(fields)?));
-        match count {
-            None => {
-                return Err(self.refuse(&self.location, "action catalog count overflows"));
-            }
-            Some(count) if count > CATALOG_LIMIT => {
-                return Err(self.refuse(&self.location,
-                    format!(
-                        "action catalog has {count} concrete actions, above the limit {CATALOG_LIMIT}"
-                    ),
-                ));
-            }
-            Some(_) => {}
-        }
-        let mut expected: Vec<Entry> = Vec::new();
-        for (index, fields) in domains.iter().enumerate() {
-            for values in expand(fields) {
-                let ordinal = expected
+            let values = typed(
+                &self.file,
+                self.actions[index]
+                    .fields
                     .iter()
-                    .find(|entry| entry.action == index && entry.values == values)
-                    .map_or(expected.len(), |entry| entry.ordinal);
-                expected.push(Entry { action: index, values, ordinal });
-            }
+                    .map(|field| (&field.name, &field.ty, &field.location)),
+                &native.fields,
+                "input",
+            )?;
+            let ordinal = catalog
+                .iter()
+                .find(|entry| entry.action == index && entry.values == values)
+                .map_or(catalog.len(), |entry| entry.ordinal);
+            catalog.push(Entry { action: index, values, ordinal });
         }
-        if binding.actions.len() != expected.len() {
-            return Err(self.refuse(
-                &self.location,
-                format!(
-                    "native catalog has {} concrete actions; the source domains admit {}",
-                    binding.actions.len(),
-                    expected.len()
-                ),
-            ));
-        }
-        for (ordinal, (native, entry)) in binding.actions.iter().zip(&expected).enumerate() {
-            let action = &self.actions[entry.action];
-            compare(&self.file, ordinal, native, action, &entry.values)?;
-        }
-        self.scoped_catalog(&expected)?;
-        Ok(expected)
+        self.scoped_catalog(&catalog)?;
+        Ok(catalog)
     }
 
     /// As native progress admission: every listed action is in the selected catalog, and an
@@ -245,100 +152,6 @@ impl Lifted {
     }
 }
 
-fn compare(
-    file: &str,
-    ordinal: usize,
-    native: &Concrete,
-    action: &ActionDef,
-    values: &[Expr],
-) -> Result<(), Diagnostic> {
-    if native.action != action.name {
-        return Err(message(
-            file,
-            &action.location,
-            format!(
-                "native catalog ordinal {ordinal} is `{}`; the source declares `{}`",
-                native.action, action.name
-            ),
-        ));
-    }
-    let mut seen = std::collections::BTreeSet::new();
-    for (name, _) in &native.fields {
-        let Some(field) = action.fields.iter().find(|field| &field.name == name) else {
-            return Err(message(
-                file,
-                &action.location,
-                format!("extra input field `{name}` at native catalog ordinal {ordinal}"),
-            ));
-        };
-        if !seen.insert(name) {
-            return Err(message(
-                file,
-                &field.location,
-                format!("duplicate input field `{name}` at native catalog ordinal {ordinal}"),
-            ));
-        }
-    }
-    if native.fields.len() != action.fields.len() {
-        let missing = action
-            .fields
-            .iter()
-            .find(|field| !seen.contains(&field.name))
-            .unwrap_or(&action.fields[0]);
-        return Err(message(
-            file,
-            &missing.location,
-            format!("missing input field `{}` at native catalog ordinal {ordinal}", missing.name),
-        ));
-    }
-    for (((name, value), field), expected) in native.fields.iter().zip(&action.fields).zip(values) {
-        if name != &field.name {
-            return Err(message(
-                file,
-                &field.location,
-                format!(
-                    "native catalog ordinal {ordinal} orders input field `{name}` where the source declares `{}`",
-                    field.name
-                ),
-            ));
-        }
-        if literal(value, &field.ty).as_ref() != Some(expected) {
-            return Err(message(
-                file,
-                &field.location,
-                format!(
-                    "native catalog ordinal {ordinal} field `{name}` is {value:?}; the source domain product has {}",
-                    crate::emit::rendered(expected)
-                ),
-            ));
-        }
-    }
-    Ok(())
-}
-
-/// The exact product size: an empty factor empties the variant even beside a huge one.
-fn product(fields: &[Vec<Expr>]) -> Option<usize> {
-    if fields.iter().any(Vec::is_empty) {
-        return Some(0);
-    }
-    fields.iter().try_fold(1usize, |total, values| total.checked_mul(values.len()))
-}
-
-/// Declaration-order product, the last field fastest, as the native catalog enumerates.
-fn expand(fields: &[Vec<Expr>]) -> Vec<Vec<Expr>> {
-    fields.iter().fold(vec![Vec::new()], |rows, values| {
-        rows.into_iter()
-            .flat_map(|row| {
-                values.iter().map(move |value| {
-                    let mut row = row.clone();
-                    row.push(value.clone());
-                    row
-                })
-            })
-            .collect()
-    })
-}
-
 fn to_literal(value: &Expr) -> Literal {
     match &value.kind {
         ExprKind::Bool(value) => Literal::Bool(*value),
@@ -353,31 +166,20 @@ fn message(file: &str, location: &FrontDiagnostic, text: impl Into<String>) -> D
     Diagnostic::of(file, location, text)
 }
 
-fn bind_fields<'a>(
+/// Named values in schema order, each as its field's admitted type.
+fn typed<'a>(
     file: &str,
     schema: impl Iterator<Item = (&'a String, &'a Type, &'a FrontDiagnostic)>,
     values: &[(String, Literal)],
-    location: &FrontDiagnostic,
     kind: &str,
 ) -> Result<Vec<Expr>, Diagnostic> {
-    let schema: Vec<_> = schema.collect();
-    let mut supplied = BTreeMap::new();
-    for (name, value) in values {
-        let Some((_, _, field_location)) = schema.iter().find(|(field, _, _)| *field == name)
-        else {
-            return Err(message(file, location, format!("extra {kind} field `{name}`")));
-        };
-        if supplied.insert(name, value).is_some() {
-            return Err(message(file, field_location, format!("duplicate {kind} field `{name}`")));
-        }
-    }
     schema
-        .into_iter()
         .map(|(name, ty, location)| {
-            let value = supplied
-                .get(name)
+            let value = values
+                .iter()
+                .find(|(field, _)| field == name)
                 .ok_or_else(|| message(file, location, format!("missing {kind} field `{name}`")))?;
-            literal(value, ty).ok_or_else(|| {
+            literal(&value.1, ty).ok_or_else(|| {
                 message(
                     file,
                     location,

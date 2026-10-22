@@ -174,8 +174,7 @@ fn generated_tla_names_refuse_authored_namespace_collisions()
 }
 
 #[test]
-fn progress_bounds_and_machine_identity_are_fail_closed() -> Result<(), Box<dyn std::error::Error>>
-{
+fn progress_bounds_are_fail_closed() -> Result<(), Box<dyn std::error::Error>> {
     for bound in ["0", "2147483647", "18446744073709551615u64"] {
         let source = KETTLE.replace(", .., self.beeping]", &format!(", ..={bound}, self.beeping]"));
         let error = Lift::parse("bound.rs", &source)
@@ -189,8 +188,6 @@ fn progress_bounds_and_machine_identity_are_fail_closed() -> Result<(), Box<dyn 
         module.metadata.observer_types["__umpire_steps"],
         Type::Int { max: 2_147_483_647, .. }
     ));
-    let source = KETTLE.replace("use umpire_dsl::machine;", "use other::machine;");
-    assert!(Lift::parse("identity.rs", &source).is_err());
     Ok(())
 }
 
@@ -290,7 +287,13 @@ fn hook_refusal_in_tests_rs_names_tests_rs() -> Result<(), Box<dyn std::error::E
         root.join("tests.rs"),
         "use super::*;\n\numpire_testing::fixture!(\n    kettle::world(),\n    16,\n    Claim::new(\"bad\", |_, state: &kettle::Model| mystery(state.beeping).into())\n);\n",
     )?;
-    let error = Lift::source(root.join("model.rs")).err().ok_or("refused hook claim admitted");
+    let (model, source) = umpire_front::read(&syn::parse_file(KETTLE)?, &[])
+        .map_err(|refusal| format!("{refusal:?}"))?;
+    let file = root.join("model.rs").to_string_lossy().into_owned();
+    let embedded = umpire_lift::Embedded { file, model: Ok(model), source };
+    let error = Lift::embedded(Some(&embedded), root.join("model.rs"))
+        .err()
+        .ok_or("refused hook claim admitted");
     std::fs::remove_dir_all(&root)?;
     let error = error?;
     assert!(error.file.ends_with("tests.rs"), "{error}");

@@ -44,7 +44,7 @@ fn each_source_binding_carries_its_selected_catalog_into_every_configuration()
         std::path::Path::new(env!("CARGO_MANIFEST_DIR")).join("fixtures/action_inputs/model.rs");
     let [first, second] = worlds().map(|world| bound_for(world).lift(&model));
     let (first, second) = (first?, second?);
-    assert_eq!(first.tla, crate::lifted("action_inputs")?.tla);
+    assert_eq!(first.tla, lifted(std::path::Path::new("fixtures/action_inputs/model.rs"))?.tla);
     for (module, catalog, skip, constants) in [
         (
             &first,
@@ -177,7 +177,7 @@ fn exact_payload_fairness_mutations_disagree_with_the_native_verdicts()
     if std::env::var("UMPIRE_BACKENDS").as_deref() != Ok("require") {
         return Ok(());
     }
-    let module = crate::lifted("action_inputs")?;
+    let module = lifted(std::path::Path::new("fixtures/action_inputs/model.rs"))?;
     let fair = "Fair_current_poll_settles_Worker_Poll_2 == (__umpire_pending = 1) /\\ Worker_Poll_At(2)";
     let readmitted = " /\\ WF_vars(Fair_excluded_poll_settles_Worker_Poll_2)";
     for (claim, edits, native, mutant) in [

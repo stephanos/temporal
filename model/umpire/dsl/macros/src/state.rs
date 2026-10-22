@@ -17,15 +17,8 @@ fn expand_struct(input: &syn::DeriveInput, world: bool) -> manyhow::Result<Token
     let computed =
         world || input.attrs.iter().any(|attr| attr.path().is_ident("__umpire_computed_starts"));
 
-    let names: Vec<_> = fields
-        .iter()
-        .map(|field| {
-            field
-                .ident
-                .as_ref()
-                .ok_or_else(|| syn::Error::new_spanned(input, "State requires named fields"))
-        })
-        .collect::<Result<_, _>>()?;
+    // `named_fields` admits named fields only.
+    let names: Vec<_> = fields.iter().filter_map(|field| field.ident.as_ref()).collect();
     let bindings: Vec<_> =
         (0..fields.len()).map(|index| format_ident!("__umpire_field_{index}")).collect();
     let values = bindings.iter().map(|binding| quote!(::core::clone::Clone::clone(&#binding)));

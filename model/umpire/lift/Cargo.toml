@@ -13,7 +13,6 @@ workspace = true
 [dependencies]
 umpire-front.workspace = true
 syn.workspace = true
-quote.workspace = true
 proc-macro2 = { workspace = true, features = ["span-locations"] }
 
 [dev-dependencies]

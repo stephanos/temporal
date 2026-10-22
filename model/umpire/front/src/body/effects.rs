@@ -1,6 +1,6 @@
 use super::{Env, Environment, Result};
 use crate::{
-    Diagnostic, Type,
+    Diagnostic, Locate, Type,
     expr::{Expr, ExprKind, Op},
     syntax::has,
     tree::{ActionDef, Branch},

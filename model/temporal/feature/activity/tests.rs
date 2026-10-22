@@ -1,6 +1,8 @@
 use crate::activity::activity::{Client, Deadline, Model, Phase, Worker, world};
 use umpire_dsl::{Machine, Outcome, Phase as _, Rejection, Verdict};
 
+umpire_testing::lifted!(world());
+
 pub(crate) fn run() -> umpire_testing::RunResult {
     let result = umpire_testing::Checker::explore(&world(), 64)?;
     let mut files = umpire_testing::render(&result)?;

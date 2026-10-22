@@ -30,5 +30,3 @@ umpire-temporal-api.workspace = true
 umpire-wasm.workspace = true
 prost.workspace = true
 
-[build-dependencies]
-umpire-lift.workspace = true

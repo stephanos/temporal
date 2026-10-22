@@ -1,0 +1,5 @@
+error: `User::Set` carries inputs; it is not one catalog action
+  --> tests/ui/machine_after_inputs.rs:15:33
+   |
+15 |         #[postcondition(after = User::Set)]
+   |                                 ^^^^^^^^^

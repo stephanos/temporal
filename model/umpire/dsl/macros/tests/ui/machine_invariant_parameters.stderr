@@ -1,0 +1,6 @@
+error: an invariant takes only &self and an optional trailing World
+  --> tests/ui/machine_invariant_parameters.rs:15:9
+   |
+15 | /         #[invariant]
+16 | |         fn bounded(&self, limit: u8) { check!(self.value <= limit); }
+   | |_____________________________________________________________________^
