@@ -589,6 +589,17 @@ def tamper(run, binary, path, work):
             sample['trace_bytes'] = 0
     cases.append(('trace-bytes-zeroed', rewrite('trace-bytes-zeroed', trace)))
 
+    def overflow(result):
+        # Recorded trace streams whose sizes wrap u64 when summed.
+        for execution in result['report']['executions']:
+            for name in ('evidence/transcript', 'evidence/choice'):
+                execution['record']['streams'][name]['bytes'] = 1 << 63
+            execution['record_sha256'] = parity.digest(parity.canonical(execution['record']))
+        result['report']['record_sha256'] = result['report']['executions'][0]['record_sha256']
+        for sample in result['observations']['samples']:
+            sample['trace_bytes'] = 0
+    cases.append(('trace-bytes-overflow', rewrite('trace-bytes-overflow', overflow)))
+
     def contradiction(result):
         # A matched replay that claims no choice-tape consultation.
         replay = result['report']['executions'][0]['replay']
@@ -607,6 +618,7 @@ def tamper(run, binary, path, work):
                   'provenance-unknown-field': b'retained provenance does not bind',
                   'provenance-nested-field': b'retained provenance does not bind',
                   'trace-bytes-zeroed': b'trace bytes differ from the execution record',
+                  'trace-bytes-overflow': b'trace bytes overflow',
                   'source-manifest-utf8': b'malformed integrated source manifest line',
                   'receipt-counter': b'receipt content identity changed',
                   'receipt-duplicate': b'exactly one publication receipt',

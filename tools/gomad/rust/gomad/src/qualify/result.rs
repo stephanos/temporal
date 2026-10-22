@@ -246,7 +246,7 @@ fn cluster_limits(
 /// The Go owner's trace bytes an execution record retains: each store's
 /// transcript, choice, diagnostic and storage streams plus the network trace,
 /// which a cluster shares once across its incarnations.
-fn recorded_trace_bytes(record: &crate::evidence::record::Record) -> u64 {
+fn recorded_trace_bytes(record: &crate::evidence::record::Record) -> Result<u64, String> {
     record
         .streams
         .iter()
@@ -264,7 +264,8 @@ fn recorded_trace_bytes(record: &crate::evidence::record::Record) -> u64 {
             crate::campaign::execution::TRACE_STREAMS.contains(&stream)
         })
         .map(|(_, stream)| stream.bytes)
-        .sum()
+        .try_fold(0_u64, u64::checked_add)
+        .ok_or_else(|| "qualification trace bytes overflow".into())
 }
 
 /// Refuses a manifest whose identities differ from its retained provenance.
@@ -538,10 +539,7 @@ pub(crate) fn validate(result: &QualificationResult) -> Result<(), String> {
                 && (identity.configuration != manifest.host_config_sha256
                     || !standalone_inputs(&execution.record, &result.provenance["configuration"]))
             || manifest.scenario_sha256.is_some()
-                && !cluster_limits(
-                    &execution.record.limits,
-                    &result.provenance["configuration"],
-                )
+                && !cluster_limits(&execution.record.limits, &result.provenance)
             || execution.record.limits.fuel != manifest.fuel
             || execution.record.limits.memory_bytes != manifest.memory_bytes
         {
@@ -552,7 +550,7 @@ pub(crate) fn validate(result: &QualificationResult) -> Result<(), String> {
     // Each execution's samples, and each matched replay's, measured exactly
     // the trace bytes its record retains.
     for execution in &result.report.executions {
-        let recorded = recorded_trace_bytes(&execution.record);
+        let recorded = recorded_trace_bytes(&execution.record)?;
         let matched = execution
             .replay
             .as_ref()
