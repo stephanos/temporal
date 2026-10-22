@@ -412,10 +412,10 @@ fn lifecycle(request: &Request, handles: &BTreeSet<Handle>) -> Result<Vec<String
             || boundary.marker.is_empty()
             || boundary.marker.len() > 4096
             || !boundaries.insert(boundary.handle.clone())
-            || !request
-                .steps
-                .iter()
-                .any(|step| step.handle == boundary.handle && step.action == boundary.action)
+            || !request.steps.iter().any(|step| {
+                step.handle == boundary.handle
+                    && (step.action == Action::Wait || step.action == boundary.action)
+            })
         {
             return Err(Error::msg("invalid cluster output boundary"));
         }

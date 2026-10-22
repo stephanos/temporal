@@ -174,3 +174,18 @@ The explicitly granted integrated82ba wave was actually launched21:30:57.394421Z
 Source diagnosis: `linked_cluster::lifecycle` requires each armed output boundary to have an explicit matching Crash/Stop terminal step. Original32 arms CrashOnOutput then waits for the actual Run terminal, and original33 deliberately arms the same boundary while a stderr-only marker must still exit normally. The projected Wait preserves that original conditional behavior. Dropping the marker or rewriting every Wait to Crash would lose the stderr non-trigger assertion. Execution already arms boundaries before launch and Wait joins the actual terminal. The minimal proposed preservation fix admits a known boundary's matching Wait terminal alongside its existing matching explicit Crash/Stop, retaining all marker/handle/uniqueness/action guards.
 
 Pure reproduction source checkpoint `a70251888c` is ready but not yet executed: `linked_cluster::live_controller_tests::conditional_output_boundary_preserves_wait_lifecycle`, Crash/Stop with explicit terminal/Wait plus malformed marker, duplicate, mismatched action and unknown-handle refusals. Production proposal remains UNAPPLIED at `.flow/tmp/live-boundary-production-proposal.patch`. Await root target/resource grant for observed pure RED→GREEN, then a newly source-bound immutable fixture and focused actual32/33 comparisons before any fresh77 retry. Main was not edited. Private35 Cargo remains held under the fn233 target lease.
+
+### Conditional boundary preservation fix: focused observed RED→GREEN
+
+Root granted the exclusive warmed target for this helper-only round. Exact command used both times, with source frozen throughout each command:
+
+```bash
+CARGO_TARGET_DIR=/home/agent/.cache/codex-build/fn232-live-corpus CARGO_BUILD_JOBS=2 \
+cargo +1.99.1 test --release --locked --no-default-features \
+ --manifest-path tools/gomad/internal/backends/wasm/wasmhost/Cargo.toml \
+ --lib conditional_output_boundary_preserves_wait_lifecycle
+```
+
+RED session19018: suiteexit101, exactly1 selected, failed `invalid cluster output boundary` at the first Wait case after its matching explicit terminal passed. Raw `.flow/tmp/live-boundary-wait-red.log`. Then applied only the proposed production condition: the same known handle may be joined by Wait or its explicitly matching Crash/Stop. No boundary, lifecycle step, marker or limit was removed or rewritten. GREEN session50000: suiteexit0, exactly1 selected, all4 positive combinations and10 invalid controls passed; `.flow/tmp/live-boundary-wait-green.log`. Both sessions are terminal. Formatting afterward normalized the predicate and an existing NoRemote counter line; no extra behavior changed. Whitespace check0.
+
+This proves the focused admission correction, not actual guest equivalence. Main remained untouched; no CLI rebuild, private35 execution or new77 wave occurred. Parent owns source review/integration, new immutable fixture binding, focused original32/33 live comparison and any subsequent complete77 authorization. The target has no remaining assigned jobs from this worker after this round.
