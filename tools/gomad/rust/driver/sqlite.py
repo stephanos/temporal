@@ -25,7 +25,7 @@ def catalogue(result):
     return row
 
 
-def selection_spec(template, primary_sha256, state, context, destination):
+def selection_spec(template, primary_path, primary_sha256, state, context, destination):
     specification = copy.deepcopy(template)
     identity = state['Identity']
     require(identity.startswith('sha256:') and len(identity) == 71, 'native Go state identity encoding changed')
@@ -35,27 +35,27 @@ def selection_spec(template, primary_sha256, state, context, destination):
     specification['Manifest']['Repeat'] = 2
     scenario = json.loads(base64.b64decode(specification['Campaign']['Target']['Scenario'], validate=True))
     require(scenario['workload'] == dict(kind='sqlite-durable-recovery', selection=None), 'not a primary actual SQLite scenario')
-    scenario['workload']['selection'] = dict(primary_result_sha256=primary_sha256, state=state, context=context)
-    specification['Campaign']['Target']['Scenario'] = base64.b64encode(
-        json.dumps(scenario, sort_keys=True, separators=(',', ':')).encode()).decode()
+    require(Path(primary_path).is_absolute(), 'absolute actual primary Result path required')
+    require('RuntimeWorkload' not in template, 'primary already has runtime selection intent')
+    specification['RuntimeWorkload'] = dict(kind='sqlite-durable-selection', primary_result=primary_path,
+        selection=dict(primary_result_sha256=primary_sha256, state=state, context=context))
     specification['ArtifactRoot'] = destination
     specification['Campaign']['Artifacts'] = str(Path(destination) / 'artifacts')
     specification['Campaign']['Target']['PreparationRoot'] = str(Path(destination) / 'preparation')
     return specification
 
 
-def matched_inputs(primary, selected):
+def matched_inputs(primary, selected, runtime_workload):
     for field in ('workload_source_sha256', 'integrated_source_sha256', 'host_os', 'host_arch', 'fuel',
                   'memory_bytes', 'seed', 'repeat', 'compiler_sha256', 'helper_sha256', 'engine_sha256',
                   'runtime_sha256', 'model_sha256', 'profile', 'host_sha256', 'host_config_sha256', 'module_sha256'):
         require(field in primary['manifest'] and field in selected['manifest']
                 and selected['manifest'][field] == primary['manifest'][field], 'selected/primary input mismatch: ' + field)
-    original = primary['provenance']['inputs']
-    observed = selected['provenance']['inputs']
-    require(original.keys() == observed.keys(), 'selected/primary provenance input fields differ')
-    for field in original:
-        if field != 'scenario':
-            require(original[field] == observed[field], 'selected/primary provenance input mismatch: ' + field)
+    require('runtime_workload' not in primary['provenance'], 'primary already has runtime intent')
+    observed = copy.deepcopy(selected['provenance'])
+    require(observed.pop('runtime_workload', None) == runtime_workload,
+            'selected provenance lacks exact authorized runtime intent')
+    require(observed == primary['provenance'], 'selected/primary preparation provenance differs')
 
 
 def select(config, root, label, entry):
@@ -71,7 +71,7 @@ def select(config, root, label, entry):
     native = catalogue(primary)
     state, context = native['enumeration']['States'][index], native['context']
     source = read(config['stages']['workload-sqlite-cooperative-success']['spec'])
-    specification = selection_spec(source, reference['sha256'], state, context, str(root / 'selected'))
+    specification = selection_spec(source, primary_path, reference['sha256'], state, context, str(root / 'selected'))
     spec_path = root / 'selection-spec.json'
     write(spec_path, specification)
     installation = config['installations'][entry['installation']]
@@ -84,7 +84,7 @@ def select(config, root, label, entry):
     require(catalogue(result) == native, 'selected execution does not reproduce complete primary catalogue')
     require(result['observations']['operator_process_id'] == read(root / 'qualify.command.json')['pid']
             and result['observations']['operator_process_id'] != reference['pid'], 'selection borrowed producer/preparation measurement')
-    matched_inputs(primary, result)
+    matched_inputs(primary, result, specification['RuntimeWorkload'])
     require(sha(primary_path) == reference['sha256'], 'selection changed primary Result')
     write(root / 'selection.json', dict(index=index, path=selected_path, sha256=sha(selected_path),
           pid=result['observations']['operator_process_id'], primary_sha256=reference['sha256'], selection=expected))
@@ -120,8 +120,9 @@ def aggregate(config, root, label, entry):
         require(selected['index'] == index and selected['primary_sha256'] == reference['sha256']
                 and sha(selected['path']) == selected['sha256'], 'missing/stale native selected Result')
         result = result_report(config, root, f'selected-report-{index}', selected['path'])
-        matched_inputs(primary, result)
         expected = dict(primary_result_sha256=reference['sha256'], state=native['enumeration']['States'][index], context=native['context'])
+        matched_inputs(primary, result, dict(kind='sqlite-durable-selection',
+                       primary_result=reference['path'], selection=expected))
         require(result['native_crash_selection'] == selected['selection'] == expected and catalogue(result) == native,
                 'selected state/context or complete enumeration differs')
         require(selected['sha256'] not in seen and selected['pid'] not in processes, 'duplicate selected Result or producer')

@@ -167,6 +167,13 @@ def command(config, root, name, argv, accepted=(0,), timeout=None):
                 os.close(write_gate)
                 signal.pthread_sigmask(signal.SIG_SETMASK, blocked)
             code = proc.wait(timeout=timeout)
+            try:
+                os.killpg(proc.pid, signal.SIGKILL)
+            except ProcessLookupError:
+                pass
+            else:
+                process['cleanup_signal'] = int(signal.SIGKILL)
+                raise Refusal('producer exited with remaining process-group members')
         except BaseException:
             observation = 'inconclusive'
             if proc is not None:

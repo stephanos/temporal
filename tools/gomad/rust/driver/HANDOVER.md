@@ -59,7 +59,7 @@ actual gate. Quiet profile hold was respected throughout.
 1. **Mandatory producer owner** `/root/mandatory_workloads_impl`: finish actual
    durable SQLite and independent Temporal replication scenarios/specs and
    release Result/report recomputation. Proposed schema is Scenario.workload
-   `{kind:"sqlite-durable-recovery",selection:null|{primary_result_sha256,state,context}}`
+   `{kind:"sqlite-durable-recovery",selection:null}`
    or `{kind:"independent-temporal-replication-durable-restart",canary:bool}`;
    Result native_crash_catalogues and native_crash_selection remain typed and
    raw-authenticated. Feed its actual primary scenario/installation into the
@@ -137,9 +137,8 @@ Three confirmed findings were fixed together in receiver-owned files:
 - SQLite selected producers must use the primary installation. Both individual
   selection and independent catalogue aggregation now compare compiler,
   runtime/helper/engine/model/profile, host/config/module, original matching
-  fields and all raw provenance inputs except the authorized scenario input.
-  Selection-specific IDs and derived scenario/BuildKey identities still vary;
-  no retained field is rewritten or normalized.
+  fields and all raw preparation provenance inputs. The later post-preparation contract below
+  supersedes the initial scenario mutation; no retained field is normalized.
 
 Actual lightweight subprocess regressions use the real retained RealExecutor
 and the receiver stage entry. RED observed `[1,2,15]` in the stage's blocked mask
@@ -165,3 +164,34 @@ executed identity-bound frozen Go BrokerReference hard-isolation observation.
 The latter is explicitly a legacy reference architecture observation; no Rust
 hard-isolation support, fake flag, callback port or skipped positive path is
 claimed. The final reader still must authenticate both applicable parts.
+
+
+## Second independent-review follow-up after d6228e884b
+
+Producer completion now checks the registered process group after the direct
+parent exits. Any remaining member triggers SIGKILL and an inconclusive refusal,
+including parent exit 0 or nonzero. The original direct-parent numeric exit is
+retained in both receipts, with cleanup_signal 9 in the process journal. A stage
+cannot earn PASS while producer descendants continue running. Actual short
+Python reproductions were RED: exit 0 incorrectly returned and exit 7 left the
+child sleeping. Both statuses now reject and the children become gone/dead.
+The actual four-test process suite returned **0**, four tests, 0.53 seconds;
+attribution was notified before and after, and further busy-pool tests held.
+
+The mandatory producer owner confirmed the exact post-preparation SQLite seam:
+selected specs preserve the original Scenario bytes and add only
+`RuntimeWorkload={kind:"sqlite-durable-selection",primary_result:ABSOLUTE_RESULT,
+selection:{primary_result_sha256,state,context}}`. All manifest compiler/runtime/
+module/HostConfig and complete preparation provenance remain identical. The
+actual cluster record configuration changes to seal the selection and retained
+primary capsule. Public report authenticates that capsule; this receiver then
+independently requires provenance.runtime_workload to equal the exact expected
+request and every other provenance field to equal primary byte values as parsed.
+No HostConfig hash check is removed or normalized. Both individual selected
+readers and the final catalogue apply this comparison. The old pre-preparation
+scenario-selection description is superseded.
+
+SQLite regressions were RED for missing/wrong intent, changed scenario, unknown
+provenance fields, and changed Scenario bytes. Focused SQLite suite returned
+**0**, three tests. These are receiver fixtures, not actual SQLite qualification.
+Actual producer integration and the existing pending endpoint list remain open.

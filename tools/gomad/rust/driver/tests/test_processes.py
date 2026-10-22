@@ -57,6 +57,35 @@ class ProcessContract(unittest.TestCase):
         for _, log, _ in executor.procs.values():
             log.close()
 
+    def test_exited_producer_cannot_leave_live_descendants(self):
+        import time
+        for status in (0, 7):
+            with self.subTest(status=status), tempfile.TemporaryDirectory() as directory:
+                root = Path(directory)
+                program = "import subprocess,sys; from pathlib import Path; child=subprocess.Popen([sys.executable,'-c','import time; time.sleep(30)']); Path('child.pid').write_text(str(child.pid)); sys.exit("+str(status)+")"
+                try:
+                    with self.assertRaises(driver.Refusal):
+                        driver.command({'repo': str(root)}, root, 'producer', [sys.executable, '-c', program])
+                    child = int((root/'child.pid').read_text())
+                    until = time.monotonic()+2
+                    while time.monotonic()<until:
+                        try:
+                            state = Path(f'/proc/{child}/stat').read_text().split(') ',1)[1].split()[0]
+                        except FileNotFoundError:
+                            state = 'gone'
+                        if state in ('gone','Z','X'): break
+                        time.sleep(0.01)
+                    self.assertIn(state, ('gone','Z','X'))
+                    record = driver.read(root/'producer.process.json')
+                    self.assertEqual(record['exit'], status)
+                    self.assertFalse(record['active'])
+                    self.assertEqual(record['cleanup_signal'], int(signal.SIGKILL))
+                    self.assertEqual(record['observation'], 'inconclusive')
+                finally:
+                    if (root/'producer.process.json').exists():
+                        try: os.killpg(driver.read(root/'producer.process.json')['pid'], signal.SIGKILL)
+                        except ProcessLookupError: pass
+
     def test_actual_frozen_launcher_allows_busy_pool_to_finish(self):
         with tempfile.TemporaryDirectory() as directory:
             root = Path(directory)
