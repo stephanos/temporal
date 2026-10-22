@@ -869,3 +869,26 @@ func TestNamespaceUnsupportedTranscriptExactAdmissionCounters(t *testing.T) {
 		})
 	}
 }
+
+func TestNamespaceHelperOutputRefusesInconsistentOwnership(t *testing.T) {
+	e := newTestEnvironment(t, testConfig())
+	e.helperOwned, e.namespaceOwned = true, false
+	sink := &frameSink{environment: e, started: &Started{}, request: Request{Config: testConfig()}}
+	frame, err := newValidatedFrame([]byte(`{"type":"evidence","stream":"stdout","data_base64":"eg=="}`))
+	if err != nil {
+		t.Fatal(err)
+	}
+	if err := sink.receiveHelperEvidence(frame); err == nil {
+		t.Fatal("remote namespace accepted helper output")
+	}
+}
+
+func TestNamespacePartialEvidenceResultDoesNotAliasTransport(t *testing.T) {
+	sink := &frameSink{helperEvidence: helperEvidence{transcript: []byte("GMWT\x01\x00\x00\x00\x08")}}
+	result := Result{Termination: "infrastructure"}
+	sink.retainPartialHelperEvidence(&result)
+	result.PartialHelperTranscript[0] = 'x'
+	if sink.helperEvidence.transcript[0] != 'G' {
+		t.Fatal("partial result aliases transport evidence")
+	}
+}

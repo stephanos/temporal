@@ -6,6 +6,7 @@ import json
 import os
 from pathlib import Path
 import re
+import shutil
 import subprocess
 import sys
 
@@ -187,11 +188,46 @@ def load_bindings(path, expected):
     return files, trees
 
 
+def source_snapshot(root):
+    rows = {}
+    for item in sorted(root.rglob('*')):
+        relative = item.relative_to(root)
+        if any(part in ('.git', '.flow', '__pycache__') for part in relative.parts):
+            continue
+        if item.is_file():
+            require(item.resolve(strict=True).is_relative_to(root), 'derived source symlink escapes root: ' + str(relative))
+            rows[str(relative)] = digest(item.read_bytes())
+    require(bool(rows), 'empty derived source')
+    return rows
+
+
+def derive_sources(trees, work):
+    # Reference lanes create Go wrappers inside their source module. Their frozen
+    # inputs stay read-only; retain an authenticated, independently copied origin.
+    result, origins = dict(trees), {}
+    for name in ('source', 'cluster-source'):
+        source = trees[name]
+        destination = work / 'derived-sources' / name
+        before = source_snapshot(source)
+        shutil.copytree(source, destination, symlinks=True,
+                        ignore=shutil.ignore_patterns('.git', '.flow', '__pycache__'))
+        require(source_snapshot(destination) == before, 'derived source copy changed bytes: ' + name)
+        require(source_snapshot(source) == before, 'source changed while deriving: ' + name)
+        origins[name] = dict(source=str(source), derived=str(destination), files=before)
+        result[name] = destination
+    (work / 'derived-source-inputs.json').write_bytes(encode(dict(
+        schema='gomad.parity-derived-source-inputs/v1', origins=origins)) + b'\n')
+    return result
+
+
 def run_all(bindings, binding_sha256, work):
     require(not sys.flags.optimize, 'Python optimization disables required lane assertions')
     require(not os.environ.get('GOMAD_GOLDEN_REGENERATE'), 'golden regeneration forbidden in all-verb gate')
     files, trees = load_bindings(bindings, binding_sha256)
+    require(not any(work.is_relative_to(root) for root in trees.values()),
+            'work root must be outside authenticated input trees')
     work.mkdir(mode=0o700, parents=True, exist_ok=False)
+    trees = derive_sources(trees, work)
     environment = {key: value for key, value in os.environ.items()
                    if not key.startswith('GOMAD_') and key not in ('PYTHONOPTIMIZE', 'BASH_ENV', 'SANDBOX_START_DIR', 'GOROOT')}
     environment.update(PYTHONDONTWRITEBYTECODE='1', GOENV='off', GOWORK='off', GOTOOLCHAIN='local')

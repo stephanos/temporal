@@ -99,3 +99,13 @@ Source-only regression checks:
 ```sh
 python3 tools/gomad/testdata/parity/all-verb-selftest.py
 ```
+
+The authenticated frozen `source` and `cluster-source` trees remain read-only.
+The gate requires its fresh work root outside every authenticated tree, copies
+both source trees into `work/derived-sources`, verifies every copied input byte
+against a before/after snapshot, and records `derived-source-inputs.json`.
+Existing reference lanes create their Go wrappers only in these disposable
+copies. The final binding authentication still reads the original input trees;
+new wrapper files remain retained derived outputs rather than being excluded
+from or normalized out of the original source guard. Do not precreate wrappers
+inside a frozen source tree.

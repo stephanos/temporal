@@ -22,6 +22,51 @@ class GateTests(unittest.TestCase):
         cls.gate = importlib.util.module_from_spec(importlib.util.spec_from_loader(loader.name, loader))
         loader.exec_module(cls.gate)
 
+    def test_reference_wrappers_mutate_only_authenticated_derived_copies(self):
+        with tempfile.TemporaryDirectory() as directory:
+            base = Path(directory)
+            trees = {}
+            bindings = {}
+            for name in ('source', 'cluster-source'):
+                root = base / name
+                (root / 'tools/gomad/cmd').mkdir(parents=True)
+                (root / 'tools/gomad/go.mod').write_bytes(b'module reference\n')
+                manifest = base / (name + '.sha256')
+                manifest.write_text(self.gate.digest(b'module reference\n') + '  tools/gomad/go.mod\n')
+                bindings[name] = dict(path=str(root), inventory=str(manifest),
+                                      sha256=self.gate.digest(manifest.read_bytes()))
+                trees[name], _ = self.gate.authenticate_tree(bindings[name], base)
+            original = {name: self.gate.source_snapshot(root) for name, root in trees.items()}
+            work = base / 'work'
+            work.mkdir()
+            derived = self.gate.derive_sources(trees, work)
+            for name in trees:
+                wrapper = derived[name] / 'tools/gomad/cmd/reference-wrapper'
+                wrapper.mkdir()
+                (wrapper / 'main.go').write_bytes(b'package main\n')
+                self.gate.authenticate_tree(bindings[name], base)
+                self.assertEqual(self.gate.source_snapshot(trees[name]), original[name])
+                self.assertNotEqual(self.gate.source_snapshot(derived[name]), original[name])
+            origins = self.gate.decode((work / 'derived-source-inputs.json').read_bytes())
+            self.assertEqual(origins['schema'], 'gomad.parity-derived-source-inputs/v1')
+            self.assertEqual(origins['origins']['source']['files'], original['source'])
+
+    def test_derived_copy_changed_bytes_refused(self):
+        with tempfile.TemporaryDirectory() as directory:
+            base = Path(directory)
+            source, work = base / 'source', base / 'work'
+            source.mkdir()
+            work.mkdir()
+            (source / 'input').write_bytes(b'original')
+            copy = self.gate.shutil.copytree
+            def corrupt(origin, destination, **kwargs):
+                result = copy(origin, destination, **kwargs)
+                (destination / 'input').write_bytes(b'corrupted')
+                return result
+            with patch.object(self.gate.shutil, 'copytree', side_effect=corrupt):
+                with self.assertRaisesRegex(ValueError, 'copy changed bytes'):
+                    self.gate.derive_sources({'source': source, 'cluster-source': source}, work)
+
     def test_duplicate_json_member_refused(self):
         with self.assertRaises(ValueError):
             self.gate.decode(b'{"schema":1,"schema":1}')

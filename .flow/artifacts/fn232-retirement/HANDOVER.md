@@ -125,3 +125,33 @@ worktrees and evidence roots belong to root/other workers and were untouched.
 The owned temporary hash-calculator file was removed after retaining its reporting
 copy. No shared cache/output was removed. Disk last checked: 21 GiB free on the
 shared overlay; do not start builds without root's resource grant and a fresh check.
+
+## Independent-review repairs after b64f3dcb89
+
+Both MED source findings were repaired without running Go/Cargo builds or guests.
+The all-verb gate now requires the fresh work root outside authenticated trees,
+independently copies the original pinned source and cluster-source trees into
+owned disposable derived source directories, verifies byte-for-byte input
+snapshots before/after copy, and retains their original-to-derived inventories.
+Only those derived trees reach reference lanes that create Go wrappers. Original
+source bindings still undergo the unchanged final strict authentication. Added
+source fixtures prove wrappers alter only the derived copies and a corrupted
+copy refuses; all 13 Python gate checks exit 0. This is not actual corpus parity.
+
+Restored the exact original pure invariant tests
+`TestHelperModelRejectsRetiredNetworkEvidence`,
+`TestNamespaceHelperOutputRefusesInconsistentOwnership` and
+`TestNamespacePartialEvidenceResultDoesNotAliasTransport` under model/wasi.
+The ownership test sets namespaceOwned=false and requires refusal; the alias
+test mutates the returned partial transcript then checks the transport buffer.
+These tests have no host Run or guest fixture dependency. They remain unrun
+under the root resource hold. Gofmt parsing, diff checks and exact original-test
+source comparisons pass; the retained reference logical hash remains 5d3d…6e02.
+
+Upstream source integration remains pending root's stable-head relay. Preserve
+live_controller_tests.rs private35 under the moved Rust helper and migrate its
+explicit final-driver command to rust/wasmhost/Cargo.toml. The live-broker-test.py
+source assertions require authenticated original Go integration/provider test
+bytes from configured frozen custody or retained fixtures, never a skipped guard.
+Mandatory projection façade/observer checkpoint 537be69421 uses model/wasi;
+its helper known-image source seam must survive the Rust helper move.
