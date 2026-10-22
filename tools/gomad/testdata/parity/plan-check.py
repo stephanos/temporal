@@ -291,7 +291,8 @@ def check_scope(binary, installation, root, working_dir, environment):
     return observations
 
 
-def check(binary, installation, root, working_dir, package='./...', go_binary=None, go_installation=None, go_working_dir=None, kind='go-run'):
+def check(binary, installation, root, working_dir, package='./...', go_binary=None, go_installation=None, go_working_dir=None, kind='go-run', support_dir=None):
+    support_dir = support_dir or working_dir
     root.mkdir(parents=True)
     output = root / 'plan.json'
     profile = json.loads(installation.read_bytes())['profile']
@@ -344,8 +345,8 @@ def check(binary, installation, root, working_dir, package='./...', go_binary=No
     assert repeated.returncode != 0
     assert prior == (output.read_bytes(), receipt_path.read_bytes())
     assert output.stat().st_mode & 0o777 == receipt_path.stat().st_mode & 0o777 == 0o600
-    retained_view = check_retained(binary, installation, root / 'retained-open', working_dir, environment) if trace_flags else None
-    scope_view = check_scope(binary, installation, root / 'site-scope', working_dir, environment) if trace_flags else None
+    retained_view = check_retained(binary, installation, root / 'retained-open', support_dir, environment) if trace_flags else None
+    scope_view = check_scope(binary, installation, root / 'site-scope', support_dir, environment) if trace_flags else None
     go_view = None
     if go_binary is not None:
         if go_installation is None:

@@ -97,6 +97,7 @@ def main():
         equal(value['manifest'], decode(raw), name + '.manifest_bytes')
         return value
 
+    fixture = CORPUS.parents[1] / 'internal/backends/wasm/qualification/testdata/fixture'
     views = []
     for attempt in range(2):
         receipt_start = len(receipts)
@@ -209,10 +210,10 @@ def main():
         configuration_refusals(args, manifests, root, run, decode)
         seed_plan = runpy.run_path(str(CORPUS / 'plan-check.py'))['check'](
             args.binary, manifests['rust', 'cooperative'], root / 'seed-plan',
-            CORPUS.parents[1], './internal/backends/wasm/qualification/testdata/fixture',
-            go_binary=args.go_binary, go_installation=manifests['go', 'cooperative'], go_working_dir=CORPUS.parents[1])
+            fixture, '.', go_binary=args.go_binary, go_installation=manifests['go', 'cooperative'],
+            go_working_dir=fixture, support_dir=CORPUS.parents[1])
         recovery = runpy.run_path(str(CORPUS / 'recover-check.py'))['check'](
-            args.binary, manifests['rust', 'cooperative'], root / 'recovery', CORPUS.parents[1])
+            args.binary, manifests['rust', 'cooperative'], root / 'recovery', fixture, '.')
         go_recovery = {kind: go_recovery_check(args, manifests['go', 'cooperative'], root, run, decode, kind)
                        for kind in ('seed', 'round')}
         for campaign in recovery['campaigns']:
@@ -302,13 +303,13 @@ def main():
                 runtime_file.unlink()
             run(f'rust-{kind}-runtime-plan-{attempt}', [args.binary, '--installation', detached_path, 'plan', '--json',
                 '--output', root / (kind + '-runtime-plan.json'), '--artifacts', root / (kind + '-runtime-artifacts'),
-                '--working-dir', CORPUS.parents[1], 'go-run', './internal/backends/wasm/qualification/testdata/fixture'], 3)
+                '--working-dir', fixture, 'go-run', '.'], 3)
             equal((root / (kind + '-runtime-plan.json')).exists(), False, kind + '_runtime.no_plan_published')
             runtime_file.write_bytes(runtime_bytes)
         private_compiler.write_bytes(b'changed compiler bytes')
         run(f'rust-changed-compiler-plan-{attempt}', [args.binary, '--installation', detached_path, 'plan', '--json',
             '--output', root / 'refused-plan.json', '--artifacts', root / 'refused-artifacts',
-            '--working-dir', CORPUS.parents[1], 'go-run', './internal/backends/wasm/qualification/testdata/fixture'], 3)
+            '--working-dir', fixture, 'go-run', '.'], 3)
         equal((root / 'refused-plan.json').exists(), False, 'changed_compiler.no_plan_published')
         changed = discover(f'rust-changed-compiler-{attempt}', args.binary, detached_path)
         equal(changed, before, 'discover.changed_build_input_does_not_change_manifest_identity')
@@ -552,14 +553,15 @@ def authenticate_captured(configuration):
 
 def go_recovery_check(args, installation, root, run, decode, kind):
     """Fresh Go campaign with Go-native CRC framing; never use Rust journals."""
-    target = './internal/backends/wasm/qualification/testdata/fixture'
+    fixture = CORPUS.parents[1] / 'internal/backends/wasm/qualification/testdata/fixture'
+    target = '.'
     artifacts = root / ('go-' + kind + '-recovery-artifacts')
     strategy = [] if kind == 'seed' else ['--strategy=choice-exploration', '--choices', '--max-executions=1',
         '--max-choice-depth=1', '--max-exploration-bytes=1MiB']
     run(f'go-{kind}-recovery-explore-{root.name}', [args.go_binary, '--installation', installation,
         'explore', '--json', '--seeds=7', '--parallel=1', '--on-failure=all', '--keep-successes=all',
         '--success-limit=1', '--success-bytes=256MiB', '--execution-timeout=120s', '--overall-timeout=240s',
-        '--artifacts', artifacts, '--working-dir', CORPUS.parents[1], *strategy, 'go-run', target,
+        '--artifacts', artifacts, '--working-dir', fixture, *strategy, 'go-run', target,
         '--', '-test.run=^TestPrepareOnlyNeverExecuted$'], 0)
     logs = list(artifacts.rglob('store/log'))
     equal(len(logs), 1, 'go.recovery.campaign_count')

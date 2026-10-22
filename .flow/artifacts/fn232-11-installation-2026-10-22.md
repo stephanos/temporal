@@ -187,3 +187,19 @@ its typed module metadata/provenance addition and retirement; this checkpoint
 makes no R12 candidate qualification claim. No Go retirement, CI, push or PR.
 
 stage: impl-review - skipped(policy: host-deferred - conductor owns the gate)
+
+Integrated public lane 01 used immutable fixture `63c43b4525d16dae1aa1432ddbff8424516c8595c31b3f67c37eaadcda133500`
+from main `82ba157e16`. Session 19299 / shell PID 2804814 terminated exit 1:
+110 direct commands completed, then seed preparation refused the nested-module
+fixture addressed from its parent module. Raw outputs remain under
+`/home/agent/wt/evidence/fn232-install-integrated-01` and adjacent `.log`;
+no installation golden was published. The fixture has its own unchanged go.mod.
+The harness now uses that module directory with target `.` for seed plan,
+Rust recovery, Go reference recovery and build-input refusals. Its support
+fixture root remains separate for portable-copy and scoped-plan checks.
+Pinned Go `list -json` reproduced parent-target refusal exit 1 and admitted the
+nested-directory target exit 0, binding exact Module.GoMod, Dir and main.go.
+Raw two-command receipt and source hashes:
+`/home/agent/wt/evidence/fn232-install-nested-module-regression`.
+Python AST checks (2 files) and git diff --check both exit 0. No production
+source or guest bounds changed. Fresh full lanes remain pending integration.
