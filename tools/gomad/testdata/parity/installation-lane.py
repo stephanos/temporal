@@ -316,6 +316,7 @@ def main():
                 '--working-dir', fixture, 'go-run', '.'], 3)
             equal((root / (kind + '-runtime-plan.json')).exists(), False, kind + '_runtime.no_plan_published')
             runtime_file.write_bytes(runtime_bytes)
+        private_compiler.chmod(stat.S_IMODE(private_compiler.stat().st_mode) | stat.S_IWUSR)
         private_compiler.write_bytes(b'changed compiler bytes')
         run(f'rust-changed-compiler-plan-{attempt}', [args.binary, '--installation', detached_path, 'plan', '--json',
             '--output', root / 'refused-plan.json', '--artifacts', root / 'refused-artifacts',

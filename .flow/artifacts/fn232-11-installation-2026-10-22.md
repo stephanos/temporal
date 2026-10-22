@@ -296,3 +296,15 @@ manifest digest for BOTH lineages and retains requested/reported origins and
 literal digests in the golden, with declared run-path substitution only.
 Invalid explicit/environment selection refusal and no fallback checks remain
 unchanged. No production behavior or identity normalization was introduced.
+
+Focused resolution 01 completed exit 0: 10 actual Go/Rust public calls verified
+all literal selected path/digest/origin values and both invalid-selection
+no-fallback boundaries. Full 11 ran 21:46:31Z–21:47:19Z (session 41140), exit 1,
+through plan/recovery, resolution, helper admission and changed/missing runtime
+checks. Its next deliberate private compiler mutation failed with PermissionError:
+copy2 preserved the frozen compiler's read-only 0555 permissions. The harness
+now grants owner-write only to its owned private compiler copy immediately before
+mutating its bytes. Original compiler bytes/mode remain untouched and final raw
+input digest guard remains required. Other copied inputs are only read/deleted;
+all earlier runtime/artifact mutations actually passed. Full 11 remains intact,
+12 was not started; no production source or build changed.
