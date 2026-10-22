@@ -157,7 +157,7 @@ mod tests {
         let configuration = json!({
             "engine":linked::Conditions::compiled().configuration(),
             "profile":"gomad.wasi-stock-exploratory/v1",
-            "limits":{"fuel":1000,"memory_bytes":1048576,"wall_millis":1000,"output_bytes":1048576,"evidence_bytes":16777216},
+            "limits":{"fuel":1000,"memory_bytes":1_048_576,"wall_millis":1000,"output_bytes":1_048_576,"evidence_bytes":16_777_216},
             "wall_nanos":null,"arguments":["gomad-target"],"environment":{},
             "derive_seed_environment":true,"network":null,"runtime_sha256":null,
             "model":null,"namespace":null,"storage":null,
@@ -169,11 +169,11 @@ mod tests {
                 "schema":crate::install::manifest::SCHEMA,
                 "compiler_path":"/pinned/go", "compiler_sha256":"1".repeat(64),
                 "go_version":"go1.27.1", "runtime_root":"/runtime", "cache_root":"/cache",
-                "profile":"gomad.wasi-stock-exploratory/v1", "fuel":1000,"memory_bytes":1048576,
+                "profile":"gomad.wasi-stock-exploratory/v1", "fuel":1000,"memory_bytes":1_048_576,
                 "helper_sha256":"2".repeat(64),"host_sha256":"3".repeat(64),
                 "runtime_implementation_sha256":null, "model":{},
                 "namespace":{"entries":[],"writable_directories":[],"preopens":[[47]],"working_directory":[47],"stdin":[],"epoch_nanos":0,
-                             "limits":{"files":16,"descriptors":16,"filesystem_bytes":4096,"output_bytes":1048576}},
+                             "limits":{"files":16,"descriptors":16,"filesystem_bytes":4096,"output_bytes":1_048_576}},
                 "storage":null
             },
             "directory":"/source", "environment":{"GOOS":"wasip1","GOARCH":"wasm"},
