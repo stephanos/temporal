@@ -1,0 +1,16 @@
+{
+  "assignee": null,
+  "claim_note": "",
+  "claimed_at": null,
+  "created_at": "2026-10-22T04:53:07.542139Z",
+  "depends_on": [
+    "fn-227-parameterized-models-declared-worlds.11"
+  ],
+  "id": "fn-227-parameterized-models-declared-worlds.15",
+  "priority": null,
+  "spec": "fn-227-parameterized-models-declared-worlds",
+  "spec_path": ".flow/tasks/fn-227-parameterized-models-declared-worlds.15.md",
+  "status": "todo",
+  "title": "Compact emitted TLA+ for conditional returns before activity retries",
+  "updated_at": "2026-10-22T04:53:07.542139Z"
+}

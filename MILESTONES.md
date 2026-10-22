@@ -143,7 +143,8 @@ The review passed; each consumer still waits for its declared support dependenci
 | Name | Status | What |
 | --- | --- | --- |
 | fn-227.11 | 🔄 in progress | fn-238.4 done: source `Phased`/`reject!` and closure laws, built once on the shared front end, with unchanged activity behavior (R3) |
-| fn-227.3 | ⬜ todo | After .2 and .11: activity attempts/retryable failure and retained-lifecycle refinement (R3, R4) |
+| fn-227.15 | ⬜ todo | After .11: compact emitted TLA+ for conditional returns (linear size), payload counterexample, small refusals (R3) |
+| fn-227.3 | ⬜ todo | After .2, .11 and .15: activity attempts/retryable failure and retained-lifecycle refinement (R3, R4) |
 | fn-227.5 | ⬜ todo | After .3 and .12: transactional live World admission (`maximum_attempts`) and SDK retry proof (R6) |
 | fn-227.6 | ⬜ todo | After .5: DESIGN.md parameterized worlds, inputs and retries write-up and readiness table closure (R7) |
 
