@@ -172,3 +172,139 @@ pub(super) fn temporal_replication(bound: &mut Bound) -> Result<(), String> {
 
     Ok(())
 }
+
+pub(super) fn temporal_recovery(bound: &mut Bound) -> Result<(), String> {
+    let limits = helper::WorldLimits {
+        max_requests: 1_000_000,
+        max_events: 1_000_000,
+        max_queued_events: 65_536,
+        max_transitions: 4_000_000,
+        max_payload_bytes: 64 << 20,
+        max_string_bytes: 1024,
+    };
+    bound.request.broker.limits = limits.clone();
+    bound.configuration.broker.limits = limits;
+    let handles = bound
+        .request
+        .incarnations
+        .iter()
+        .map(|item| (item.handle.node.as_str(), item.handle.incarnation))
+        .collect::<Vec<_>>();
+    if handles != [("temporal", 1), ("temporal", 2)] {
+        return Err(
+            "Temporal recovery requires original commit and fresh reopen incarnations".into(),
+        );
+    }
+    for item in &mut bound.request.incarnations {
+        if item.request.limits.memory_bytes != 4 << 30 || item.request.limits.fuel != 1 << 50 {
+            return Err("Temporal recovery changed original runtime bounds".into());
+        }
+        let model = item
+            .request
+            .model
+            .as_mut()
+            .ok_or("Temporal recovery model missing")?;
+        let expected = [
+            "-test.v",
+            "-test.count=1",
+            "-test.timeout=1h",
+            "-test.run=^TestCommittedWorkflowCrashRecovery$",
+            "-persistenceType=sql",
+            "-persistenceDriver=sqlite",
+        ];
+        if model
+            .arguments
+            .iter()
+            .skip(1)
+            .map(String::as_str)
+            .ne(expected)
+            || model.configuration.limits.calls != 4_000_000
+            || model.configuration.limits.transcript_bytes != 128 << 20
+        {
+            return Err("Temporal recovery changed original selection or model limits".into());
+        }
+        model.configuration.limit = 1 << 30;
+        model
+            .environment
+            .retain(|entry| !entry.starts_with("GOMAD_TEMPORAL_PHASE="));
+        model.environment.push(format!(
+            "GOMAD_TEMPORAL_PHASE={}",
+            if item.handle.incarnation == 1 {
+                "commit"
+            } else {
+                "reopen"
+            }
+        ));
+        model.environment.sort();
+        let storage = item
+            .request
+            .storage
+            .as_mut()
+            .ok_or("Temporal recovery volume missing")?;
+        let mut value = serde_json::to_value(&*storage).map_err(|error| error.to_string())?;
+        let declared = &value["descriptor"]["model"];
+        if declared["volumes"]
+            != json!([{"ID":"temporal","Path":"/volume","CapacityBytes":256<<20}])
+            || declared["limits"] != json!({"PendingOperations":100_000,"Transitions":10_000_000})
+            || declared["sqlite_lock_databases"] != json!(["/volume/temporal.db"])
+            || !declared["faults"].is_null()
+        {
+            return Err("Temporal recovery changed original durable storage model".into());
+        }
+        if item.handle.incarnation == 1 {
+            value["descriptor"]["crash_limits"] =
+                json!({"States":128,"Operations":256,"Depth":256,"Bytes":256<<20,"Work":1<<20});
+        }
+        *storage = serde_json::from_value(value).map_err(|error| error.to_string())?;
+        let retained = bound
+            .configuration
+            .incarnations
+            .iter_mut()
+            .find(|retained| retained.handle == item.handle)
+            .ok_or("Temporal recovery retained boot missing")?;
+        retained.storage = Some(storage.clone());
+        retained.model["limit"] = json!(1 << 30);
+        retained.environment = model
+            .environment
+            .iter()
+            .map(|entry| {
+                entry
+                    .split_once('=')
+                    .map(|(key, value)| (key.to_owned(), value.to_owned()))
+                    .ok_or("invalid Temporal recovery environment")
+            })
+            .collect::<Result<_, _>>()?;
+    }
+    Ok(())
+}
+
+pub(super) fn temporal_inspection(bound: &mut Bound) -> Result<(), String> {
+    if bound.request.incarnations.len() != 1
+        || bound.request.incarnations[0].handle.node != "history"
+        || bound.request.incarnations[0].handle.incarnation != 1
+    {
+        return Err("Temporal onebox inspection requires the original history/1 owner".into());
+    }
+    let item = &mut bound.request.incarnations[0];
+    if item.request.limits.memory_bytes != 4 << 30 || item.request.limits.fuel != 1 << 50 {
+        return Err("Temporal inspection changed original runtime bounds".into());
+    }
+    let model = item
+        .request
+        .model
+        .as_mut()
+        .ok_or("Temporal inspection model missing")?;
+    if model.arguments.get(1..)
+        != Some(
+            &[
+                "-test.run=^TestReplayInspectionWorkflowFailure$".into(),
+                "-test.v".into(),
+            ][..],
+        )
+    {
+        return Err("Temporal onebox inspection changed its original selection".into());
+    }
+    model.configuration.limit = 1 << 30;
+    bound.configuration.incarnations[0].model["limit"] = json!(1 << 30);
+    Ok(())
+}

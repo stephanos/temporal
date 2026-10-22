@@ -55,10 +55,8 @@ def sqlite_storage():
                 sqlite_lock_databases=["/volume/db"])
 
 
-def sqlite_scenario(canary=False, selection=None):
-    if canary and selection is not None:
-        raise ValueError("selected SQLite states require the success cell")
-    value = base_scenario(dict(kind="sqlite-durable-recovery", selection=selection))
+def sqlite_scenario(canary=False):
+    value = base_scenario(dict(kind="sqlite-durable-recovery", selection=None))
     value["spec"]["nodes"] = [dict(id="sqlite", boot="setup-live", address="10.0.0.1", volumes=[dict(volume="sqlite", path="/volume")])]
     value["spec"]["volumes"] = [dict(id="sqlite", capacity_bytes=4 << 20)]
     value["boots"] = [dict(id=phase, args=["unsynced" if canary and phase == "append-crash" else phase, "WAL"], storage=sqlite_storage())
@@ -95,7 +93,7 @@ def stage_temporal(repo, destination, workload):
     sources = {
         "replication": [("temporal_storage/recovery_test.go", "recovery_test.go"), ("temporal_broker/replication_test.go", "replication_test.go")],
         "recovery": [("temporal_storage/recovery_test.go", "recovery_test.go")],
-        "retry": [("network_streams/temporal_retry_test.go", "temporal_retry_test.go")],
+        "retry": [("network_streams/"+path.name,path.name) for path in sorted((Path(repo)/WASM/"testdata/network_streams").glob("*.go"))],
     }[workload]
     destination = Path(destination)
     destination.mkdir(parents=True, mode=0o700, exist_ok=True)
@@ -137,9 +135,12 @@ def policy(workload, captured_inputs=None):
                   Clock=dict(EpochNanos=1700000000000000000 if temporal else 946684800000000000, ReadStepNanos=0), Limits=limits)
     if temporal:
         result["CapturedInputs"] = copy.deepcopy(captured_inputs)
+    if workload == "replication":
         result["network_v2"] = dict(profile="gomad.simulation-network-stream/v3", limits=dict(listeners=128, connections=4096, bytes=128 << 20,
              connection_bytes=4 << 20, stall_nanos=10_000_000_000, transitions=1 << 20))
-    else:
+    if workload == "recovery":
+        result["storage"] = temporal_storage("temporal")
+    if not temporal:
         result["storage"] = sqlite_storage()
     return result
 
@@ -147,13 +148,15 @@ def policy(workload, captured_inputs=None):
 def qualification_spec(repo, root, workload, canary=False, source=None, source_manifest=None):
     """Each caller invokes qualify in its own measured process and fresh root."""
     root = Path(root).resolve()
-    temporal = workload == "replication"
-    if workload not in ("sqlite", "replication"):
+    temporal = workload != "sqlite"
+    if workload not in ("sqlite", "replication", "recovery"):
         raise ValueError("unknown mandatory workload")
     if temporal and not source:
         raise ValueError("fresh unchanged staged Temporal source required")
-    scenario = temporal_replication_scenario(canary) if temporal else sqlite_scenario(canary)
-    manifest = dict(Provisional=source_manifest is None, ID="independent-temporal-replication-durable-restart" if temporal else "sqlite-durable-recovery",
+    if workload == "recovery" and canary:
+        raise ValueError("recovery catalogue is an original success gate")
+    scenario = temporal_recovery_scenario() if workload == "recovery" else temporal_replication_scenario(canary) if temporal else sqlite_scenario(canary)
+    manifest = dict(Provisional=source_manifest is None, ID={"replication":"independent-temporal-replication-durable-restart","recovery":"temporal-committed-workflow-crash-reopen","sqlite":"sqlite-durable-recovery"}[workload],
                     Workload="multi-instance" if temporal else "sqlite", Cell="canary" if canary else "success", Seed=7, Repeat=2,
                     IntegratedSourceSHA256="sha256:"+hashlib.sha256(Path(source_manifest).read_bytes() if source_manifest else canonical(scenario)).hexdigest())
     if source_manifest:
@@ -219,9 +222,59 @@ def inspection_policy(owner, captured_inputs=None):
 
 
 def inspection_scenario(arguments):
-    result = base_scenario(None)
-    del result["workload"]
+    result = base_scenario(dict(kind="temporal-onebox-stopped-inspection"))
     result["spec"]["nodes"] = [dict(id="history", boot="main", address="127.0.0.1")]
     result["boots"] = [dict(id="main", args=arguments)]
     result["actions"] = [action("start", "history", 1), action("wait", "history", 1)]
     return result
+
+
+def temporal_recovery_scenario():
+    value=base_scenario(dict(kind="temporal-committed-workflow-crash-reopen",forcing=None))
+    value["spec"]["nodes"]=[dict(id="temporal",boot="commit",address="127.0.0.1",volumes=[dict(volume="temporal",path="/volume")])]
+    value["spec"]["volumes"]=[dict(id="temporal",capacity_bytes=256<<20)]
+    arguments=["-test.v","-test.count=1","-test.timeout=1h","-test.run=^TestCommittedWorkflowCrashRecovery$","-persistenceType=sql","-persistenceDriver=sqlite"]
+    value["boots"]=[dict(id=phase,args=arguments.copy(),storage=temporal_storage("temporal")) for phase in ["commit","reopen"]]
+    value["incarnation_boots"]=[dict(handle=handle("temporal",2),boot="reopen")]
+    value["actions"]=[action("start","temporal",1),action("wait","temporal",1),action("restart","temporal",2),action("wait","temporal",2)]
+    value["output_crashes"]=[dict(handle=handle("temporal",1),marker=base64.b64encode(b"GOMAD_TEMPORAL_OBSERVATION ").decode())]
+    return value
+
+SUPPORT_ROWS={
+    "smoke":("unchanged-workflow-type-smoke","./tests","/workspace/tests","^TestWorkflowTypeEncodingSuite$/^TestPlainASCII$/^Succeeds$"),
+    "frontend":("frontend","./tests/gomadfunctional","/workspace/tests/gomadfunctional","^TestFrontendSystemInfo$"),
+    "retry":("temporal-named-network-reset",None,"/workspace/network-temporal","^TestTemporalWorkflowRecoversNamedNetworkReset$"),
+}
+
+
+def support_policy(row,captured_inputs):
+    _,_,cwd,_=SUPPORT_ROWS[row]
+    if not captured_inputs:
+        raise ValueError("authenticated complete schema capture required")
+    value=dict(Profile="gomad.wasi-cooperative/v1",Args=None,
+        Environment=["PWD="+cwd,"TEMPORAL_ROOT=/workspace","TMPDIR=/tmp","TZ=UTC","TEMPORAL_TEST_LOG_LEVEL=warn"],
+        WorkingDirectory=cwd,WritableDirectories=["/workspace","/tmp",cwd],CapturedInputs=copy.deepcopy(captured_inputs),
+        EntropyKey=list(hashlib.sha256(b"gomad-wasm-prototype/v1").digest()),Clock=dict(EpochNanos=946684800000000000,ReadStepNanos=0),
+        Limits=dict(OutputBytes=256<<20,TranscriptBytes=1<<30,Calls=1<<28,Descriptors=4096,Files=100000,FilesystemBytes=512<<20,PendingEvents=4096))
+    if row=="retry":
+        value["network_v2"]=policy("replication",captured_inputs)["network_v2"]
+        value["network_v2"]["faults"]=[dict(name="rpc-reset",action="reset",at_nanos=40_000_000_000)]
+    return value
+
+
+def support_spec(repo,root,row,canary=False,source=None,source_manifest=None):
+    identity,package,cwd,selection=SUPPORT_ROWS[row]
+    root=Path(root).resolve()
+    if row=="retry" and (canary or not source):
+        raise ValueError("named reset requires unchanged staged original success target")
+    arguments=["-test.v","-test.count=1","-test.timeout=72h","-test.run="+("[" if canary else selection),"-persistenceType=sql","-persistenceDriver=sqlite"]
+    manifest=dict(Provisional=source_manifest is None,ID=identity,Workload="onebox",Cell="canary" if canary else "success",Seed=7,Repeat=2,
+        IntegratedSourceSHA256="sha256:"+hashlib.sha256(Path(source_manifest).read_bytes() if source_manifest else canonical(arguments)).hexdigest())
+    if source_manifest:
+        manifest["IntegratedSourceManifestPath"]=str(Path(source_manifest).resolve())
+    value=dict(Manifest=manifest,ArtifactRoot=str(root),Campaign=dict(Target=dict(Backend="wasm",Kind="go-test",Source=source or package,WorkingDir=str(Path(repo).resolve()),BuildTags=(["test_dep","disable_grpc_modules","sqlite3_dotlk"] if row=="retry" else TAGS.copy()),Args=arguments),
+        ExecutionTimeout=900*10**9,OverallTimeout=1800*10**9,TerminateGrace=10**9,OutputLimit=256<<20,WorldTransitionLimit=32<<20,
+        ChoiceTraceLimit=1<<30 if row=="retry" else 64<<20,SuccessBytesLimit=2<<30,Environment=support_policy(row,{"unused":True})["Environment"],OnFailure="all",FailureBudget=1,Artifacts=str(root/"artifacts")))
+    if row=="retry":
+        value["RuntimeWorkload"]=dict(kind="temporal-named-network-reset")
+    return value

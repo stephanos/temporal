@@ -87,7 +87,7 @@ def main():
     parser.add_argument("--compiler", required=True, type=Path)
     parser.add_argument("--runtime-root", required=True, type=Path)
     parser.add_argument("--cache", required=True, type=Path)
-    parser.add_argument("--workload", required=True, choices=["sqlite", "replication"])
+    parser.add_argument("--workload", required=True, choices=["sqlite", "replication", "recovery", "retry", "smoke", "frontend"])
     parser.add_argument("--mode", required=True, choices=["success", "canary"])
     parser.add_argument("--source-manifest", type=Path)
     parser.add_argument("--captured-config", type=Path)
@@ -96,25 +96,27 @@ def main():
     root.mkdir(parents=True, mode=0o700, exist_ok=False)
     capture = None
     source = None
-    if args.workload == "replication":
+    if args.workload != "sqlite":
         if not args.captured_config:
             raise ValueError("receiver-owned configuration preimage required")
         capture = captured(repo, args.captured_config)
-        body = b"".join((repo/workloads.WASM/"testdata"/name).read_bytes() for name in ["temporal_storage/recovery_test.go", "temporal_broker/replication_test.go"])
-        stage = repo/".tmp"/("fn232-temporal-replication-"+hashlib.sha256(body).hexdigest()[:16])
-        write(root/"unchanged-source-inputs.json", workloads.stage_temporal(repo, stage, "replication"))
-        source = "./"+str(stage.relative_to(repo))
+        if args.workload in ("replication","recovery","retry"):
+            names={"replication":["temporal_storage/recovery_test.go","temporal_broker/replication_test.go"],"recovery":["temporal_storage/recovery_test.go"],"retry":["network_streams/temporal_retry_test.go"]}[args.workload]
+            body=b"".join((repo/workloads.WASM/"testdata"/name).read_bytes() for name in names)
+            stage=repo/".tmp"/("fn232-temporal-"+args.workload+"-"+hashlib.sha256(body).hexdigest()[:16])
+            write(root/"unchanged-source-inputs.json",workloads.stage_temporal(repo,stage,args.workload))
+            source="./"+str(stage.relative_to(repo))
     policy = root/"policy.json"
-    write(policy, workloads.policy(args.workload, capture))
+    write(policy, workloads.support_policy(args.workload,capture) if args.workload in workloads.SUPPORT_ROWS else workloads.policy(args.workload, capture))
     installation = root/"installation.json"
     run(root, "install", [str(binary), "install", "--compiler", str(args.compiler.resolve()), "--runtime-root", str(args.runtime_root.resolve()),
         "--cache", str(args.cache.resolve()), "--output", str(installation), "--profile", "gomad.wasi-cooperative/v1", "--config", str(policy),
-        "--fuel", str(1 << 50 if args.workload == "replication" else 4_000_000_000), "--memory-bytes", str(4 << 30 if args.workload == "replication" else 256 << 20)], 0, json_output=False)
+        "--fuel", str(1 << 50 if args.workload != "sqlite" else 4_000_000_000), "--memory-bytes", str(4 << 30 if args.workload != "sqlite" else 256 << 20)], 0, json_output=False)
     spec = root/"qualification-spec.json"
-    write(spec, workloads.qualification_spec(repo, root/"cell", args.workload, args.mode == "canary", source, args.source_manifest))
+    write(spec, (workloads.support_spec if args.workload in workloads.SUPPORT_ROWS else workloads.qualification_spec)(repo, root/"cell", args.workload, args.mode == "canary", source, args.source_manifest))
     response = run(root, "qualify", [str(binary), "--installation", str(installation), "qualify", "--spec", str(spec)], 1 if args.mode == "canary" else 0)
     result_path = Path(response["result_path"])
-    report = run(root, "report", [str(binary), "report", "--result", str(result_path)], 1 if args.mode == "canary" else 0)
+    report = run(root, "report", [str(binary), "report", "--result", str(result_path)], 0)
     retained = json.loads(result_path.read_bytes())
     actual = retained["report"]
     if not actual["deterministic"] or actual["target_success"] != (args.mode == "success") or len(actual["executions"]) != 2:

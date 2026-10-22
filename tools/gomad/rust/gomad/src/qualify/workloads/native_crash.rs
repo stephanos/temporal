@@ -71,50 +71,60 @@ pub struct Selection {
 
 impl Selection {
     pub(crate) fn validate(&self) -> Result<(), String> {
-        let native_digest = |value: &str| {
-            value
-                .strip_prefix("sha256:")
-                .is_some_and(canonical::valid_digest)
-        };
-        if !canonical::valid_digest(&self.primary_result_sha256)
-            || !native_digest(&self.state.identity)
-            || !native_digest(&self.state.pending_sha256)
-            || self.state.volume != "sqlite"
-            || self.state.pending_sha256 != self.context.pending_sha256
-            || self.context.operations.len() > 8
-            || self.state.selected_operations.len() > 8
-        {
-            return Err("SQLite selection lacks exact primary/context binding".into());
+        if !canonical::valid_digest(&self.primary_result_sha256) {
+            return Err("SQLite selection lacks primary Result identity".into());
         }
-        let mut operations = BTreeMap::new();
-        for operation in &self.context.operations {
-            if operation.id == 0 || operations.insert(operation.id, operation).is_some() {
-                return Err("duplicate or invalid pending operation".into());
-            }
-        }
-        let selected = self
-            .state
-            .selected_operations
-            .iter()
-            .copied()
-            .collect::<BTreeSet<_>>();
-        if selected.len() != self.state.selected_operations.len()
-            || selected.iter().any(|id| !operations.contains_key(id))
-            || selected.iter().any(|id| {
-                operations[id]
-                    .dependencies
-                    .as_ref()
-                    .is_some_and(|dependencies| {
-                        dependencies
-                            .iter()
-                            .any(|dependency| !selected.contains(dependency))
-                    })
-            })
-        {
-            return Err("SQLite selection is not dependency closed".into());
-        }
-        Ok(())
+        validate_state(&self.state, &self.context, "sqlite", 8)
     }
+}
+
+pub(super) fn validate_state(
+    state: &State,
+    context: &Context,
+    volume: &str,
+    maximum: usize,
+) -> Result<(), String> {
+    let native_digest = |value: &str| {
+        value
+            .strip_prefix("sha256:")
+            .is_some_and(canonical::valid_digest)
+    };
+    if state.volume != volume
+        || state.pending_sha256 != context.pending_sha256
+        || !native_digest(&state.identity)
+        || !native_digest(&state.pending_sha256)
+        || context.operations.len() > maximum
+        || state.selected_operations.len() > maximum
+    {
+        return Err("native crash selection lacks exact state/context binding".into());
+    }
+    let mut operations = BTreeMap::new();
+    for operation in &context.operations {
+        if operation.id == 0 || operations.insert(operation.id, operation).is_some() {
+            return Err("duplicate or invalid pending operation".into());
+        }
+    }
+    let selected = state
+        .selected_operations
+        .iter()
+        .copied()
+        .collect::<BTreeSet<_>>();
+    if selected.len() != state.selected_operations.len()
+        || selected.iter().any(|id| !operations.contains_key(id))
+        || selected.iter().any(|id| {
+            operations[id]
+                .dependencies
+                .as_ref()
+                .is_some_and(|dependencies| {
+                    dependencies
+                        .iter()
+                        .any(|dependency| !selected.contains(dependency))
+                })
+        })
+    {
+        return Err("native crash selection is not dependency closed".into());
+    }
+    Ok(())
 }
 
 #[derive(Clone, Debug, Deserialize, Eq, PartialEq, Serialize)]
@@ -128,7 +138,7 @@ pub(crate) struct Catalogue {
 }
 
 pub(super) fn sections(raw: &[u8]) -> Result<BTreeMap<u32, &[u8]>, String> {
-    if raw.len() < 56 || raw.len() > 8 << 20 || raw.get(..8) != Some(b"GMSTORE\x01") {
+    if raw.len() < 56 || raw.len() > 256 << 20 || raw.get(..8) != Some(b"GMSTORE\x01") {
         return Err("native storage state header/capacity".into());
     }
     let body = raw.len() - 40;
@@ -177,6 +187,17 @@ pub(super) fn sections(raw: &[u8]) -> Result<BTreeMap<u32, &[u8]>, String> {
 }
 
 pub(crate) fn capture(raw: &[u8], log: &[u8]) -> Result<Catalogue, String> {
+    if raw.len() > 8 << 20 {
+        return Err("SQLite native catalogue exceeds original byte bound".into());
+    }
+    capture_volume(raw, log, "sqlite", true)
+}
+
+pub(super) fn temporal(raw: &[u8], log: &[u8]) -> Result<Catalogue, String> {
+    capture_volume(raw, log, "temporal", false)
+}
+
+fn capture_volume(raw: &[u8], log: &[u8], volume: &str, sqlite: bool) -> Result<Catalogue, String> {
     let sections = sections(raw)?;
     let log_binding = sections[&5];
     if log_binding.len() != 40
@@ -192,10 +213,10 @@ pub(crate) fn capture(raw: &[u8], log: &[u8]) -> Result<Catalogue, String> {
     let mut enumerations: BTreeMap<String, Enumeration> = super::super::spec::strict(sections[&3])?;
     let mut contexts: BTreeMap<String, Context> = super::super::spec::strict(sections[&6])?;
     let enumeration = enumerations
-        .remove("sqlite")
+        .remove(volume)
         .ok_or("missing SQLite native enumeration")?;
     let context = contexts
-        .remove("sqlite")
+        .remove(volume)
         .ok_or("missing SQLite pending context")?;
     let states = enumeration
         .states
@@ -204,7 +225,11 @@ pub(crate) fn capture(raw: &[u8], log: &[u8]) -> Result<Catalogue, String> {
     if !enumeration.complete
         || !enumeration.capacity.is_empty()
         || enumeration.choice_exploration.is_some()
-        || states.len() != 4
+        || if sqlite {
+            states.len() != 4
+        } else {
+            states.is_empty() || states.len() > 128
+        }
         || !enumerations.is_empty()
         || !contexts.is_empty()
     {
@@ -212,12 +237,7 @@ pub(crate) fn capture(raw: &[u8], log: &[u8]) -> Result<Catalogue, String> {
     }
     let mut identities = BTreeSet::new();
     for state in states {
-        let selection = Selection {
-            primary_result_sha256: "0".repeat(64),
-            state: state.clone(),
-            context: context.clone(),
-        };
-        selection.validate()?;
+        validate_state(state, &context, volume, if sqlite { 8 } else { 256 })?;
         if state.identity.is_empty()
             || !identities.insert(&state.identity)
             || state.entries.len() > 32768
@@ -227,10 +247,10 @@ pub(crate) fn capture(raw: &[u8], log: &[u8]) -> Result<Catalogue, String> {
     }
     Ok(Catalogue {
         handle: gomad_wasmhost::linked_cluster::Handle {
-            node: "sqlite".into(),
-            incarnation: 2,
+            node: volume.into(),
+            incarnation: if sqlite { 2 } else { 1 },
         },
-        volume: "sqlite".into(),
+        volume: volume.into(),
         storage_state_sha256: canonical::digest(raw),
         enumeration,
         context,
@@ -279,4 +299,51 @@ pub(crate) fn marker(raw: &[u8], selected: &State) -> Result<(), String> {
         }
         _ => Err("recovered marker presence differs from exact selected native state".into()),
     }
+}
+
+pub(super) fn selected_binding(
+    opened: &crate::evidence::store::Opened,
+    volume: &str,
+    incarnation: u64,
+    state: &State,
+    context: &Context,
+) -> Result<(), String> {
+    let inputs = crate::replay::cluster::inputs(opened)?;
+    let boot = inputs
+        .configuration
+        .incarnations
+        .iter()
+        .find(|item| item.handle.node == volume && item.handle.incarnation == incarnation)
+        .ok_or("selected native boot missing")?;
+    let storage = serde_json::to_value(
+        boot.storage
+            .as_ref()
+            .ok_or("selected native storage missing")?,
+    )
+    .map_err(|error| error.to_string())?;
+    let raw = canonical::encode(&BTreeMap::from([(volume, context)]))?;
+    if storage["descriptor"]["crash_selection"]
+        != serde_json::json!({volume:state.selected_operations})
+        || storage["descriptor"]["crash_context"]
+            != serde_json::json!({"bytes":raw.len(),"chunks":raw.len().div_ceil(65536),"sha256":canonical::digest(&raw)})
+        || storage["context"] != serde_json::json!(raw)
+    {
+        return Err(
+            "selected native runtime context differs from authenticated workload intent".into(),
+        );
+    }
+    for other in inputs
+        .configuration
+        .incarnations
+        .iter()
+        .filter(|item| item.handle.node != volume || item.handle.incarnation != incarnation)
+    {
+        if let Some(storage) = &other.storage {
+            let value = serde_json::to_value(storage).map_err(|error| error.to_string())?;
+            if !value["descriptor"]["crash_selection"].is_null() || !value["context"].is_null() {
+                return Err("native selection leaked outside original crash incarnation".into());
+            }
+        }
+    }
+    Ok(())
 }

@@ -53,7 +53,7 @@ def main():
         command += ["--choices","--choice-bytes",str(8<<20)]
     for tag in workloads.TAGS+["gomad"]:
         command += ["--build-tag",tag]
-    command += ["--working-dir",str(stage),"go-test",".","--",*arguments]
+    command += ["--working-dir",str(repo),"go-test","./"+str(stage.relative_to(repo)),"--",*arguments]
     response=producer.run(root,"explore",command,1)
     if response["attempted"]!=1 or response["failures"]!=1 or response["retained_evidence"]!=1:
         raise ValueError("original inspection canary did not retain exactly one actual failure")
@@ -75,7 +75,10 @@ def main():
     stage.rename(detached)
     environment=dict(os.environ,PATH="",GOMAD_WASM_INSTALLATION=str(root/"installation-unavailable.json"),GOMAD_STOCK_GO=str(root/"compiler-unavailable"),
                      GOMAD_WASM_RUNTIME_ROOT=str(root/"runtime-unavailable"))
-    producer.run(root,"detached-replay",[str(binary),"replay",str(artifact)],0,environment=environment)
+    producer.run(root,"detached-replay",[str(binary),"replay",str(artifact)],1,json_output=False,environment=environment)
+    replay_output=(root/"detached-replay.stdout").read_text()
+    if "reproduced=true" not in replay_output or "choice-replay=exact" not in replay_output:
+        raise ValueError("detached replay did not reproduce the exact retained failure")
     command=[str(binary),"replay","--stop=failure","--dump=stacks","--dump=heap","--dump="+dump,"--probe="+probe,
              "--debug-bytes",str(8<<20),"--dump-bytes",str(4<<20),"--debug-output",str(root/"inspection")]
     if args.owner=="onebox":

@@ -233,7 +233,7 @@ pub fn inputs(opened: &Opened) -> Result<Inputs, String> {
     Ok(value)
 }
 
-fn bind(opened: &Opened, inputs: &Inputs) -> Result<(), String> {
+pub(crate) fn bind(opened: &Opened, inputs: &Inputs) -> Result<(), String> {
     let record = &opened.manifest().record;
     if inputs.helper_sha256 != linked::IMPLEMENTATION_SHA256
         || inputs.host_sha256 != env!("GOMAD_HOST_IMPLEMENTATION_SHA256")
@@ -250,6 +250,18 @@ fn bind(opened: &Opened, inputs: &Inputs) -> Result<(), String> {
             != record.identity.configuration
     {
         return Err("WASM retained cluster implementation/configuration identity mismatch".into());
+    }
+    if let Some(crate::qualify::workloads::Workload::SQLite {
+        selection: Some(selection),
+    }) = &inputs.configuration.workload
+    {
+        crate::qualify::workloads::sqlite::authenticate(opened, selection)?;
+    }
+    if let Some(crate::qualify::workloads::Workload::TemporalRecovery {
+        forcing: Some(forcing),
+    }) = &inputs.configuration.workload
+    {
+        crate::qualify::workloads::recovery::authenticate(opened, forcing)?;
     }
     let original = inputs.configuration.simulation_original.as_deref();
     if let Some(original) = original {

@@ -1278,6 +1278,7 @@ pub(super) fn execute(
         prepared.network.as_ref(),
         job.seed,
     )?;
+    crate::qualify::workloads::recovery::bind(prepared, &mut bound)?;
     let scenario = parse(
         prepared
             .scenario
@@ -1484,6 +1485,17 @@ pub(super) fn publication(
                 bytes: bytes.len() as u64,
                 sha256: canonical::digest(&bytes),
                 records: 0,
+            },
+        );
+        payloads.insert(file, bytes);
+    }
+    for (file, bytes) in crate::qualify::workloads::recovery::payloads(prepared)? {
+        streams.insert(
+            file.clone(),
+            Stream {
+                bytes: bytes.len() as u64,
+                sha256: canonical::digest(&bytes),
+                records: 1,
             },
         );
         payloads.insert(file, bytes);

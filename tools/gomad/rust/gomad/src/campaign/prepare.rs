@@ -59,6 +59,8 @@ pub struct Installation {
 #[derive(Deserialize, Serialize)]
 #[serde(deny_unknown_fields)]
 struct Provenance {
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    runtime_workload: Option<crate::qualify::workloads::recovery::Request>,
     schema: String,
     inputs: Value,
     build_key: String,
@@ -478,6 +480,7 @@ fn prepare_before_deadline(
         None
     };
     let provenance = canonical::encode(&Provenance {
+        runtime_workload: None,
         schema: "gomad.rust-wasm-provenance/v1".into(),
         inputs,
         build_key: toolchain.clone(),

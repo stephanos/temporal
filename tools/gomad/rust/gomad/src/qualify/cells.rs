@@ -124,7 +124,11 @@ fn explore_options(
         arguments.extend([
             "--choices".into(),
             "--choice-bytes".into(),
-            campaign.choice_trace_limit.max(1 << 20).to_string(),
+            campaign
+                .choice_trace_limit
+                .max(1 << 20)
+                .min(64 << 20)
+                .to_string(),
             "--coverage".into(),
             "choice".into(),
         ]);
@@ -147,6 +151,19 @@ fn explore_options(
     let mut options = crate::cli::explore::parse(&arguments, &mut json)?;
     options.installation = installation.map(Path::to_path_buf);
     options.scenario = scenario;
+    if matches!(
+        spec.runtime_workload,
+        Some(super::workloads::recovery::Request::TemporalRetry)
+    ) {
+        if spec.manifest.id != "temporal-named-network-reset"
+            || campaign.choice_trace_limit != 1 << 30
+        {
+            return Err(
+                "named Temporal reset requires its original registered 1GiB choice bound".into(),
+            );
+        }
+        options.choice_bytes = 1 << 30;
+    }
     Ok(options)
 }
 
@@ -251,11 +268,30 @@ pub(crate) fn freeze(
         Some(String::from_utf8(encoded).map_err(|_| "integrated source manifest is not UTF-8")?)
     };
     // The installation's pinned profile selects the cooperative choice grammar.
+    if let Some(request) = &spec.runtime_workload {
+        let expected = match request {
+            super::workloads::recovery::Request::SQLiteSelection { .. } => {
+                "sqlite-durable-recovery"
+            }
+            super::workloads::recovery::Request::TemporalRecovery { .. } => {
+                "temporal-committed-workflow-crash-reopen"
+            }
+            super::workloads::recovery::Request::TemporalRetry => "temporal-named-network-reset",
+        };
+        if declared_manifest.id != expected {
+            return Err(
+                "runtime workload requires its exact registered qualification identity".into(),
+            );
+        }
+    }
     let probe = explore_options(spec, installation, declared_manifest.seed, false)?;
     let cooperative = prepare::installation_profile(&probe)? == "gomad.wasi-cooperative/v1";
     let options = explore_options(spec, installation, declared_manifest.seed, cooperative)?;
     let started = Instant::now();
-    let prepared = prepare::prepare(&options)?;
+    let mut prepared = prepare::prepare(&options)?;
+    if let Some(request) = &spec.runtime_workload {
+        super::workloads::recovery::attach(&mut prepared, request)?;
+    }
     let preparation_wall_nanos = u64::try_from(started.elapsed().as_nanos()).unwrap_or(u64::MAX);
     let prepared_usage = usage::snapshot();
     let configuration = &prepared.configuration;

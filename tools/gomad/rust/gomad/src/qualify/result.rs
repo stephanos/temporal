@@ -107,9 +107,13 @@ fn derive(provenance: &serde_json::Value) -> Result<Derived, String> {
     let digest = |value: &Value| canonical::encode(value).map(|bytes| canonical::digest(&bytes));
     let text = |value: &Value| value.as_str().map(str::to_owned).ok_or_else(refuse);
     if provenance["schema"] != "gomad.rust-wasm-provenance/v1"
-        || !provenance
-            .as_object()
-            .is_some_and(|object| object.keys().map(String::as_str).eq(PROVENANCE_FIELDS))
+        || !provenance.as_object().is_some_and(|object| {
+            object
+                .keys()
+                .map(String::as_str)
+                .filter(|field| *field != "runtime_workload")
+                .eq(PROVENANCE_FIELDS)
+        })
     {
         return Err(refuse());
     }
@@ -386,9 +390,11 @@ impl Manifest {
             .scenario_sha256
             .as_deref()
             .is_some_and(|digest| !canonical::valid_digest(digest))
-            || self.scenario_sha256.is_some() != (self.workload == "multi-instance")
+            || self.scenario_sha256.is_some()
+                != (self.workload == "multi-instance"
+                    || (self.workload == "sqlite" && self.id == "sqlite-durable-recovery"))
         {
-            return Err("multi-instance cells, and only they, bind one scenario identity".into());
+            return Err("cluster workload cells require their frozen scenario identity".into());
         }
         if !matches!(
             self.workload.as_str(),

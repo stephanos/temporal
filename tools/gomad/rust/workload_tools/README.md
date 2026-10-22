@@ -6,8 +6,8 @@ replication cell through public `install`, `qualify --spec`, and installation-fr
 in its own process, retains two fresh executions and their exact replays, and
 checks the original success/canary, bug-count and measured-budget conditions.
 Raw nested command exits and stdout/stderr are retained beside the producer
-receipt. A canary's actual `qualify`/`report` exit is 1; only the wrapper's validated
-expected canary outcome is successful.
+receipt. A canary's actual `qualify` exit is 1. Authenticated `report` returns 0 for
+either cell; the wrapper verifies the retained classification and original verdict.
 
 `workloads.py` constructs the original requests and copies original Temporal
 fixture bytes without rewriting them. Temporal installation takes the captured
@@ -22,8 +22,9 @@ The scenario's optional `workload` is a closed typed registry, currently:
   are `setup-live`, `append-crash` (or real omitted-sync `unsynced` canary), and
   `recover`. SQLite alone owns the 4 MiB volume and its exact 32-state,
   8-operation, depth-8, 4 MiB, 65536-work enumeration. A selected-state request
-  substitutes the exact typed `{primary_result_sha256,state,context}` into
-  `selection`; only the append-crash boot receives it.
+  leaves this compiled base scenario unchanged. Its top-level spec `RuntimeWorkload`
+  is `{kind:"sqlite-durable-selection",primary_result:absolute_path,selection:{primary_result_sha256,state,context}}`;
+  only the append-crash boot receives the authenticated storage intent.
 - `{"kind":"independent-temporal-replication-durable-restart","canary":false}`.
   The four actual boots bind active/standby commit and reopen, independently
   seeded entropy, all three peer service addresses, strict bidirectional links,
@@ -58,3 +59,32 @@ Unit/plan tests exercise request construction and guards. Their success is not a
 live workload or frozen qualification pass. Actual producers, selected-state
 runs, Temporal inspection and the final 3600-second cycle remain independently
 scheduled by the conductor.
+
+`producer.py --workload recovery --mode success` prepares and executes the original
+committed-workflow fixture. `temporal-recovery.py --primary ROOT --root NEW_ROOT`
+opens that Result through public report, reads its complete native catalogue,
+and qualifies every state in a fresh producer with exact original primary tape
+forcing, durable reopen assertions, and normal independent retained replay.
+The base Scenario, module BuildKey and ChoiceIdentity remain fixed. A typed
+`RuntimeWorkload` is added only after preparation and retained in provenance;
+execution configuration and own-artifact primary capsules bind its exact
+state, pending context, raw prefix and original history.
+
+`producer.py --workload retry --mode success` uses the unchanged named-reset
+fixture, original 1 GiB choice bound and 40-second rpc-reset. Public report
+recomputes the original network witness from authenticated stdout/network:
+established SDK stream failure, fresh connection and in-flight Unavailable/OK
+RPC retry, plus sequential complete workflow history and exact normal replay.
+
+`producer.py --workload smoke|frontend --mode success|canary` supplies the exact
+fn222 selections, argument order, qualification policy (nil network), original
+clock/entropy, runtime/storage/output bounds and fresh measured Result pairs.
+The smoke is only one row; both rows also require preparation and detached
+inspection receipts before the receiving support gate can pass.
+
+`temporal-support.py` runs the complete receiving sequence through public
+install/plan/qualify/report and detached inspection. It requires a frozen source
+manifest, retains authenticated plan receipts with `guest_executions=0`, and
+emits the four support gate rows only after both exact smoke and frontend pairs
+and the original onebox inspection have passed. The final full driver remains
+the owner of serial/parallel ordering and aggregate acceptance.

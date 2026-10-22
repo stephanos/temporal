@@ -17,7 +17,7 @@ fn sqlite_oracle_preserves_acknowledgment_integrity_and_exact_history() {
         "INTEGRITY corrupt\nHISTORY 1:committed,2:committed\n",
         "INTEGRITY ok\nHISTORY 1:committed\n",
         "INTEGRITY ok\nHISTORY 1:committed,2:wrong\n",
-        "INTEGRITY ok\nHISTORY 2:committed,1:committed\n",
+        "INTEGRITY ok\nHISTORY 2:committed,2:committed\n",
     ] {
         evidence.insert("cluster/sqlite/3/stdout".into(), output.as_bytes().to_vec());
         assert!(!intent.observe(&evidence).unwrap().passed(), "{output}");
@@ -131,12 +131,12 @@ fn bound(raw: &[u8], sqlite: bool) -> Bound {
 
 #[test]
 fn sqlite_bound_seals_original_three_boots_and_append_only_selection() {
-    let mut scenario: Value =
-        serde_json::from_slice(include_bytes!("testdata/sqlite.json")).unwrap();
-    scenario["workload"]["selection"] = json!({"primary_result_sha256":"a".repeat(64),
+    let scenario: Value = serde_json::from_slice(include_bytes!("testdata/sqlite.json")).unwrap();
+    let selection:native_crash::Selection = serde_json::from_value(json!({"primary_result_sha256":"a".repeat(64),
         "state":{"Volume":"sqlite","PendingSHA256":format!("sha256:{}","b".repeat(64)),"SelectedOperations":[],"Entries":[],"Identity":format!("sha256:{}","c".repeat(64))},
-        "context":{"PendingSHA256":format!("sha256:{}","b".repeat(64)),"Operations":[]}});
-    let actual = bound(&canonical::encode(&scenario).unwrap(), true);
+        "context":{"PendingSHA256":format!("sha256:{}","b".repeat(64)),"Operations":[]}})).unwrap();
+    let mut actual = bound(&canonical::encode(&scenario).unwrap(), true);
+    boots::sqlite(&mut actual, Some(&selection)).unwrap();
     for (index, item) in actual.request.incarnations.iter().enumerate() {
         let storage = serde_json::to_value(item.request.storage.as_ref().unwrap()).unwrap();
         let retained = serde_json::to_value(
@@ -222,5 +222,78 @@ fn temporal_history_oracle_keeps_original_one_mib_evidence_bound() {
             .observe(&evidence)
             .is_err(),
         "separate bounded lines must not bypass original combined oracle-evidence budget"
+    );
+}
+
+#[test]
+fn runtime_selection_requires_closed_typed_intent_and_original_context() {
+    let unknown = json!({"kind":"sqlite-durable-selection","primary_result":"/actual/result.json","selection":{},"foreign":true});
+    assert!(serde_json::from_value::<recovery::Request>(unknown).is_err());
+    let request = json!({"kind":"temporal-committed-workflow-crash-reopen","primary":{"artifact_path":"relative/foreign","record_sha256":"a".repeat(64),"prefix_sha256":"b".repeat(64),"storage_state_sha256":"c".repeat(64),
+        "state":{"Volume":"temporal","PendingSHA256":format!("sha256:{}","d".repeat(64)),"SelectedOperations":[],"Entries":[],"Identity":format!("sha256:{}","e".repeat(64))},
+        "context":{"PendingSHA256":format!("sha256:{}","d".repeat(64)),"Operations":[]}}});
+    let recovery::Request::TemporalRecovery { mut primary } =
+        serde_json::from_value::<recovery::Request>(request).unwrap()
+    else {
+        panic!("wrong request")
+    };
+    assert!(primary.validate().is_err());
+    primary.artifact_path = std::path::PathBuf::from("/actual/primary");
+    primary.validate().unwrap();
+    primary.context.pending_sha256 = format!("sha256:{}", "f".repeat(64));
+    assert!(primary.validate().is_err());
+    let mut scenario: Value =
+        serde_json::from_slice(include_bytes!("testdata/sqlite.json")).unwrap();
+    scenario["workload"]["selection"] = json!({"primary_result_sha256":"a".repeat(64),
+        "state":{"Volume":"sqlite","PendingSHA256":format!("sha256:{}","b".repeat(64)),"SelectedOperations":[],"Entries":[],"Identity":format!("sha256:{}","c".repeat(64))},
+        "context":{"PendingSHA256":format!("sha256:{}","b".repeat(64)),"Operations":[]}});
+    assert!(
+        serde_json::from_value::<Workload>(scenario["workload"].clone())
+            .unwrap()
+            .validate()
+            .is_err()
+    );
+}
+
+#[test]
+fn named_reset_requires_actual_established_connection_and_inflight_retry() {
+    let observation = json!({"workflow_id":"workflow","run_id":"run","result":"durable timer survived rpc-reset","history":"AQ==","event_ids":[1],"types":["completed"],
+        "connections":[{"opened_nanos":1,"local_port":100,"remote_port":7233},{"opened_nanos":40_000_000_000u64,"local_port":101,"remote_port":7233}],
+        "attempts":[{"started_nanos":39_000_000_000u64,"ended_nanos":41_000_000_000u64,"code":"Unavailable"},{"started_nanos":42_000_000_000u64,"ended_nanos":43_000_000_000u64,"code":"OK"}]});
+    let stdout = format!(
+        "GOMAD_NETWORK_TEMPORAL_OBSERVATION {}\n",
+        serde_json::to_string(&observation).unwrap()
+    );
+    let operations = json!([
+        {"at":1,"request":{"op":"dial","request_id":1},"result":{"state":"completed","handle":7,"local":{"port":100}}},
+        {"at":40_000_000_000u64,"fault":{"name":"rpc-reset","action":"reset","at_nanos":40_000_000_000u64},"request":{},"result":{}},
+        {"at":41_000_000_000u64,"request":{"op":"read","request_id":2,"handle":7},"result":{"error":"connection reset by peer"}},
+        {"at":42_000_000_000u64,"request":{"op":"dial","request_id":3},"result":{"state":"completed","handle":8,"local":{"port":101}}}
+    ]);
+    let network = canonical::encode(&json!({"operations":operations})).unwrap();
+    retry::witness(stdout.as_bytes(), &network).unwrap();
+    for index in [0usize, 1, 2, 3] {
+        let mut changed = operations.as_array().unwrap().clone();
+        changed.remove(index);
+        assert!(
+            retry::witness(
+                stdout.as_bytes(),
+                &canonical::encode(&json!({"operations":changed})).unwrap()
+            )
+            .is_err()
+        );
+    }
+    let mut changed = observation;
+    changed["attempts"][0]["code"] = json!("OK");
+    assert!(
+        retry::witness(
+            format!(
+                "GOMAD_NETWORK_TEMPORAL_OBSERVATION {}\n",
+                serde_json::to_string(&changed).unwrap()
+            )
+            .as_bytes(),
+            &network
+        )
+        .is_err()
     );
 }

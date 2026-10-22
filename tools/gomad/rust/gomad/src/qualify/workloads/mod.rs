@@ -8,6 +8,10 @@ use std::collections::BTreeMap;
 
 mod boots;
 pub(crate) mod native_crash;
+mod oracles;
+pub(crate) mod recovery;
+mod retry;
+pub(crate) mod sqlite;
 #[cfg(test)]
 mod tests;
 
@@ -22,6 +26,10 @@ pub enum Workload {
     },
     #[serde(rename = "independent-temporal-replication-durable-restart")]
     TemporalReplication { canary: bool },
+    #[serde(rename = "temporal-committed-workflow-crash-reopen")]
+    TemporalRecovery { forcing: Option<recovery::Forcing> },
+    #[serde(rename = "temporal-onebox-stopped-inspection")]
+    TemporalInspection,
 }
 
 #[derive(Clone, Debug, Deserialize, Eq, PartialEq, Serialize)]
@@ -50,14 +58,28 @@ fn line<'a>(bytes: &'a [u8], prefix: &str) -> Result<&'a str, String> {
     Ok(value)
 }
 
-#[derive(Deserialize)]
+#[derive(Clone, Debug, Deserialize, Eq, PartialEq, Serialize)]
 #[serde(deny_unknown_fields)]
-struct History {
+pub struct History {
     cluster_id: String,
     #[serde(rename = "history")]
     payload: String,
     event_ids: Vec<i64>,
     types: Vec<String>,
+}
+
+fn read_history(output: &[u8], prefix: &str) -> Result<History, String> {
+    let value: History = super::spec::strict(line(output, prefix)?.as_bytes())?;
+    if value.cluster_id.is_empty()
+        || value.event_ids.is_empty()
+        || value.event_ids.len() != value.types.len()
+        || value.event_ids.iter().any(|id| *id <= 0)
+        || value.types.iter().any(String::is_empty)
+        || super::cells::base64(&value.payload).is_none_or(|bytes| bytes.is_empty())
+    {
+        return Err("incomplete Temporal history observation".into());
+    }
+    Ok(value)
 }
 
 fn oracle_bytes(lengths: impl IntoIterator<Item = usize>) -> Result<(), String> {
@@ -79,11 +101,13 @@ fn history_operation(history: &str) -> Result<Vec<u8>, String> {
 
 impl Workload {
     pub(crate) fn validate(&self) -> Result<(), String> {
-        if let Self::SQLite {
-            selection: Some(selection),
-        } = self
-        {
-            selection.validate()?;
+        if matches!(
+            self,
+            Self::SQLite { selection: Some(_) } | Self::TemporalRecovery { forcing: Some(_) }
+        ) {
+            return Err(
+                "runtime crash controls require the registered post-preparation intent".into(),
+            );
         }
         Ok(())
     }
@@ -93,6 +117,11 @@ impl Workload {
         match self {
             Self::SQLite { selection } => boots::sqlite(bound, selection.as_ref()),
             Self::TemporalReplication { .. } => boots::temporal_replication(bound),
+            Self::TemporalRecovery { forcing: None } => boots::temporal_recovery(bound),
+            Self::TemporalRecovery { forcing: Some(_) } => {
+                Err("primary forcing requires the post-preparation runtime owner".into())
+            }
+            Self::TemporalInspection => boots::temporal_inspection(bound),
         }
     }
 
@@ -100,99 +129,12 @@ impl Workload {
         &self,
         streams: &BTreeMap<String, Vec<u8>>,
     ) -> Result<Observation, String> {
-        let output = |node: &str, incarnation: u64| {
-            streams
-                .get(&format!("cluster/{node}/{incarnation}/stdout"))
-                .map(Vec::as_slice)
-                .ok_or_else(|| "workload stdout missing".to_owned())
+        let checks = match self {
+            Self::SQLite { .. } => oracles::sqlite(streams)?,
+            Self::TemporalReplication { canary } => oracles::replication(streams, *canary)?,
+            Self::TemporalRecovery { forcing } => oracles::recovery(streams, forcing.as_ref())?,
+            Self::TemporalInspection => oracles::inspection(streams)?,
         };
-        let mut checks = BTreeMap::new();
-        match self {
-            Self::SQLite { .. } => {
-                let ack = line(output("sqlite", 2)?, "ACK ")?;
-                let recovered = output("sqlite", 3)?;
-                let integrity = line(recovered, "INTEGRITY ")?;
-                let history = line(recovered, "HISTORY ")?;
-                let rows = history
-                    .split(',')
-                    .map(|row| row.split_once(':').ok_or("invalid SQLite history"))
-                    .collect::<Result<Vec<_>, _>>()?;
-                if rows.iter().any(|(id, value)| {
-                    id.parse::<u64>()
-                        .ok()
-                        .filter(|id| *id > 0)
-                        .map(|id| id.to_string())
-                        .as_deref()
-                        != Some(*id)
-                        || value.is_empty()
-                        || value.contains([':', '\r', '\n'])
-                }) {
-                    return Err("invalid SQLite history".into());
-                }
-                checks.insert(
-                    "acknowledged-durable-recovery.events".into(),
-                    rows.iter().map(|(id, _)| *id).collect::<Vec<_>>() == ["1", "2"],
-                );
-                checks.insert(
-                    "acknowledged-durable-recovery.integrity".into(),
-                    integrity == "ok",
-                );
-                checks.insert(
-                    "acknowledged-durable-recovery.acknowledged".into(),
-                    ack == "2" && rows.iter().all(|(_, value)| *value == "committed"),
-                );
-            }
-            Self::TemporalReplication { canary } => {
-                let mut recovered = Vec::new();
-                for role in ["active", "standby"] {
-                    let read = |incarnation| -> Result<History, String> {
-                        let value: History = super::spec::strict(
-                            line(output(role, incarnation)?, "GOMAD_TEMPORAL_OBSERVATION ")?
-                                .as_bytes(),
-                        )?;
-                        if value.cluster_id.is_empty()
-                            || value.payload.is_empty()
-                            || value.event_ids.is_empty()
-                            || value.event_ids.len() != value.types.len()
-                            || value.event_ids.iter().any(|id| *id <= 0)
-                            || value.types.iter().any(String::is_empty)
-                            || super::cells::base64(&value.payload)
-                                .is_none_or(|bytes| bytes.is_empty())
-                        {
-                            return Err("incomplete Temporal history observation".into());
-                        }
-                        Ok(value)
-                    };
-                    let expected = read(1)?;
-                    let actual = read(2)?;
-                    oracle_bytes([
-                        history_operation(&expected.payload)?.len(),
-                        history_operation(&actual.payload)?.len(),
-                    ])?;
-                    oracle_bytes([expected.cluster_id.len(), actual.cluster_id.len()])?;
-                    checks.insert(
-                        format!("{role}-durable-recovery.history"),
-                        expected.payload == actual.payload,
-                    );
-                    checks.insert(
-                        format!("{role}-durable-recovery.events"),
-                        !canary && actual.event_ids == [1, 2, 3, 4, 5],
-                    );
-                    checks.insert(
-                        format!("{role}-durable-recovery.identity"),
-                        expected.cluster_id == actual.cluster_id,
-                    );
-                    recovered.push(actual.payload);
-                }
-                oracle_bytes(recovered.iter().map(|history| {
-                    super::cells::base64(history).map_or(usize::MAX, |bytes| bytes.len())
-                }))?;
-                checks.insert(
-                    "independent-replication-convergence".into(),
-                    recovered[0] == recovered[1],
-                );
-            }
-        }
         Ok(Observation {
             schema: "gomad.rust-workload-oracles/v1".into(),
             checks,
@@ -226,6 +168,19 @@ pub(crate) fn retained(
     use crate::evidence::store::Opened;
     let scenario = &result.provenance["scenario"];
     if scenario.is_null() {
+        match recovery::from_provenance(&canonical::encode(&result.provenance)?)? {
+            Some(recovery::Request::TemporalRetry)
+                if result.manifest.id == "temporal-named-network-reset" =>
+            {
+                retry::retained(result)?
+            }
+            Some(_) => {
+                return Err(
+                    "runtime workload requires its registered base scenario and identity".into(),
+                );
+            }
+            None => (),
+        }
         return Ok((Vec::new(), None));
     }
     let raw: Vec<u8> =
@@ -238,9 +193,11 @@ pub(crate) fn retained(
     };
     workload.validate()?;
     let mut catalogues = Vec::new();
-    let selection = match &workload {
+    let mut selection = match &workload {
         Workload::SQLite { selection } => selection.clone(),
-        Workload::TemporalReplication { .. } => None,
+        Workload::TemporalReplication { .. }
+        | Workload::TemporalRecovery { .. }
+        | Workload::TemporalInspection => None,
     };
     for execution in &result.report.executions {
         let path = execution
@@ -253,9 +210,8 @@ pub(crate) fn retained(
         }
         let inputs: crate::replay::cluster::Inputs =
             super::spec::strict(&opened.payload(crate::replay::cluster::FILE, 64 << 20)?)?;
-        if inputs.configuration.workload.as_ref() != Some(&workload) {
-            return Err("retained workload intent differs from frozen scenario".into());
-        }
+        let actual_workload = inputs.configuration.workload.as_ref();
+        runtime_binding(result, &opened, actual_workload, &workload)?;
         let mut streams = BTreeMap::new();
         for name in execution
             .record
@@ -263,17 +219,33 @@ pub(crate) fn retained(
             .keys()
             .filter_map(|name| name.strip_prefix("evidence/"))
         {
-            if name.ends_with("/stdout") {
+            if name.ends_with("/stdout") || name.ends_with("/storage") || name.ends_with("/choice")
+            {
                 streams.insert(
                     name.to_owned(),
                     opened.payload(
                         &format!("evidence/{name}"),
-                        execution.record.limits.output_bytes,
+                        execution
+                            .record
+                            .limits
+                            .evidence_bytes
+                            .max(execution.record.limits.output_bytes),
                     )?,
                 );
             }
         }
-        let observation = workload.observe(&streams)?;
+        if let Some(Workload::SQLite {
+            selection: Some(actual),
+        }) = actual_workload
+        {
+            if selection.as_ref().is_some_and(|prior| prior != actual) {
+                return Err("SQLite runtime selection changed between repetitions".into());
+            }
+            selection = Some(actual.clone());
+        }
+        let observation = actual_workload
+            .ok_or("retained workload missing")?
+            .observe(&streams)?;
         let expected = canonical::encode(&observation)?;
         if opened.payload(&format!("evidence/{ORACLES}"), 1 << 20)? != expected
             || (execution.record.outcome.class == "success") != observation.passed()
@@ -283,34 +255,81 @@ pub(crate) fn retained(
         if matches!(&workload, Workload::SQLite { .. })
             && result.manifest.cell.as_deref() != Some("canary")
         {
-            let state = opened.payload("evidence/cluster/sqlite/2/storage_state", 8 << 20)?;
-            let log = opened.payload("evidence/cluster/sqlite/2/storage", 32 << 20)?;
-            let catalogue = native_crash::capture(&state, &log)?;
-            if let Some(first) = catalogues.first() {
-                if first != &catalogue {
-                    return Err("SQLite native catalogue differs across fresh repeats".into());
-                }
-            } else {
-                catalogues.push(catalogue);
-            }
-            if let Some(selection) = &selection {
-                let catalogue = &catalogues[0];
-                if catalogue.context != selection.context
-                    || !catalogue
-                        .enumeration
-                        .states
-                        .as_ref()
-                        .is_some_and(|states| states.contains(&selection.state))
-                {
-                    return Err(
-                        "selected SQLite state/context differs from actual catalogue".into(),
-                    );
-                }
-                let recovered =
-                    opened.payload("evidence/cluster/sqlite/3/storage_state", 8 << 20)?;
-                native_crash::marker(&recovered, &selection.state)?;
-            }
+            sqlite_catalogue(&opened, &mut catalogues, selection.as_ref())?;
         }
     }
     Ok((catalogues, selection))
+}
+
+fn runtime_binding(
+    result: &super::result::QualificationResult,
+    opened: &crate::evidence::store::Opened,
+    actual_workload: Option<&Workload>,
+    workload: &Workload,
+) -> Result<(), String> {
+    let runtime = recovery::from_provenance(&canonical::encode(&result.provenance)?)?;
+    if let Some(Workload::SQLite {
+        selection: Some(selection),
+    }) = actual_workload
+    {
+        if !matches!(&runtime,Some(recovery::Request::SQLiteSelection {selection:expected,..}) if expected==selection)
+        {
+            return Err(
+                "SQLite selection differs from its authenticated post-preparation intent".into(),
+            );
+        }
+        if result.manifest.id != "sqlite-durable-recovery" {
+            return Err("SQLite runtime selection has a foreign registry identity".into());
+        }
+        sqlite::authenticate(opened, selection)?;
+    } else if let Some(Workload::TemporalRecovery {
+        forcing: Some(forcing),
+    }) = actual_workload
+    {
+        if !runtime
+            .as_ref()
+            .is_some_and(|request| recovery::matches_request(request, forcing))
+        {
+            return Err("Temporal forcing differs from its authenticated runtime intent".into());
+        }
+        if result.manifest.id != "temporal-committed-workflow-crash-reopen" {
+            return Err("Temporal forcing has a foreign registry identity".into());
+        }
+        recovery::authenticate(opened, forcing)?;
+    } else if actual_workload != Some(workload) || runtime.is_some() {
+        return Err("retained workload intent differs from frozen scenario".into());
+    }
+    Ok(())
+}
+
+fn sqlite_catalogue(
+    opened: &crate::evidence::store::Opened,
+    catalogues: &mut Vec<native_crash::Catalogue>,
+    selection: Option<&native_crash::Selection>,
+) -> Result<(), String> {
+    let state = opened.payload("evidence/cluster/sqlite/2/storage_state", 8 << 20)?;
+    let log = opened.payload("evidence/cluster/sqlite/2/storage", 32 << 20)?;
+    let catalogue = native_crash::capture(&state, &log)?;
+    if let Some(first) = catalogues.first() {
+        if first != &catalogue {
+            return Err("SQLite native catalogue differs across fresh repeats".into());
+        }
+    } else {
+        catalogues.push(catalogue);
+    }
+    if let Some(selection) = selection {
+        let catalogue = &catalogues[0];
+        if catalogue.context != selection.context
+            || !catalogue
+                .enumeration
+                .states
+                .as_ref()
+                .is_some_and(|states| states.contains(&selection.state))
+        {
+            return Err("selected SQLite state/context differs from actual catalogue".into());
+        }
+        let recovered = opened.payload("evidence/cluster/sqlite/3/storage_state", 8 << 20)?;
+        native_crash::marker(&recovered, &selection.state)?;
+    }
+    Ok(())
 }
