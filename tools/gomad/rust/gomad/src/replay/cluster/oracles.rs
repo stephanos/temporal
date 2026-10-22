@@ -456,6 +456,45 @@ pub(crate) fn apply(observed: &mut linked::Execution, report: &Report) -> Result
     Ok(())
 }
 
+#[cfg(feature = "determinism-fixture")]
+pub(crate) fn capacity_observation(
+    execution: &helper::Execution,
+    configuration: &Configuration,
+) -> Value {
+    let assessment = assess(execution, configuration);
+    let mut value = match &assessment {
+        Ok(report) => json!({"oracles":report.oracles,"oracle_error":""}),
+        Err(error) => json!({"oracles":[],"oracle_error":error}),
+    };
+    if let Some(item) = execution.incarnations.iter().find(|item| {
+        item.execution.outcome.termination == "capacity"
+            && item.execution.outcome.message == "output capacity"
+    }) {
+        let test_workload = configuration.incarnations.iter().any(|incarnation| {
+            incarnation.handle == item.handle && incarnation.workload_kind == "go-test"
+        });
+        let report = test_workload
+            .then(|| {
+                soft_assertions::observe(
+                    item.execution
+                        .evidence
+                        .get("stdout")
+                        .map_or(&[], Vec::as_slice),
+                    item.execution
+                        .evidence
+                        .get("stderr")
+                        .map_or(&[], Vec::as_slice),
+                    false,
+                    policy(configuration, &item.handle),
+                )
+            })
+            .flatten();
+        value["capacity_failure"] = json!({"termination":"capacity","message":"output capacity", "soft_assertions":report,
+            "detail":assessment.err().unwrap_or_else(|| "choice trace is not complete".into())});
+    }
+    value
+}
+
 #[cfg(test)]
 mod replay_tests {
     use super::*;
@@ -570,43 +609,4 @@ mod replay_tests {
             Some("backend.evidence.sha256")
         );
     }
-}
-
-#[cfg(feature = "determinism-fixture")]
-pub(crate) fn capacity_observation(
-    execution: &helper::Execution,
-    configuration: &Configuration,
-) -> Value {
-    let assessment = assess(execution, configuration);
-    let mut value = match &assessment {
-        Ok(report) => json!({"oracles":report.oracles,"oracle_error":""}),
-        Err(error) => json!({"oracles":[],"oracle_error":error}),
-    };
-    if let Some(item) = execution.incarnations.iter().find(|item| {
-        item.execution.outcome.termination == "capacity"
-            && item.execution.outcome.message == "output capacity"
-    }) {
-        let test_workload = configuration.incarnations.iter().any(|incarnation| {
-            incarnation.handle == item.handle && incarnation.workload_kind == "go-test"
-        });
-        let report = test_workload
-            .then(|| {
-                soft_assertions::observe(
-                    item.execution
-                        .evidence
-                        .get("stdout")
-                        .map_or(&[], Vec::as_slice),
-                    item.execution
-                        .evidence
-                        .get("stderr")
-                        .map_or(&[], Vec::as_slice),
-                    false,
-                    policy(configuration, &item.handle),
-                )
-            })
-            .flatten();
-        value["capacity_failure"] = json!({"termination":"capacity","message":"output capacity", "soft_assertions":report,
-            "detail":assessment.err().unwrap_or_else(|| "choice trace is not complete".into())});
-    }
-    value
 }
