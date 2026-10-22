@@ -2,7 +2,7 @@ use crate::{Binding, Concrete, Diagnostic, Lifted, Literal, Type};
 use umpire_front::{
     Diagnostic as FrontDiagnostic,
     expr::{Expr, ExprKind},
-    tree::{ActionRef, Entry},
+    tree::ActionRef,
 };
 
 impl Lifted {
@@ -53,9 +53,9 @@ impl Lifted {
         }
         let catalog = self.bind_catalog(binding)?;
         let mut bound = self.clone();
-        bound.model.world_values = Some(world);
-        bound.model.complete_starts = Some(starts);
-        bound.model.catalog = Some(catalog);
+        bound.world_values = Some(world);
+        bound.complete_starts = Some(starts);
+        bound.catalog = Some(catalog);
         Ok(bound)
     }
 
@@ -213,4 +213,14 @@ fn literal(value: &Literal, ty: &Type) -> Option<Expr> {
         _ => return None,
     };
     Some(Expr { kind, ty: ty.clone() })
+}
+
+/// One concrete catalog action: an index into `Lifted::actions` and its payload values.
+#[derive(Clone, Debug)]
+pub(crate) struct Entry {
+    pub(crate) action: usize,
+    pub(crate) values: Vec<Expr>,
+    /// The first catalog ordinal with the same identity, so positional duplicates share one
+    /// observable edge as they share one native catalog equality class.
+    pub(crate) ordinal: usize,
 }

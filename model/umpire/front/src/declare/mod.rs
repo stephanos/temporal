@@ -568,7 +568,8 @@ fn check_progress(method: &syn::ImplItemFn, actors: &[syn::Ident]) -> Result<()>
                 && let syn::Expr::Macro(path) = receiver
                 && path.mac.path.segments.last().is_some_and(|segment| segment.ident == "path")
             {
-                self.refuse(syn::Error::new_spanned(
+                // The outermost builder refuses once for the whole chain.
+                return self.refuse(syn::Error::new_spanned(
                     path,
                     "a path! claim takes only .assuming(..)",
                 ));

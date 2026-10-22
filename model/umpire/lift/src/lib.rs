@@ -10,12 +10,20 @@ mod names;
 use umpire_front::Source;
 pub use umpire_front::{CATALOG_LIMIT, Embedded, Type};
 
-/// An admitted Model and the source file it was read from.
+/// An admitted Model, the source file it was read from, and what binding selects.
 #[derive(Clone, Debug)]
 pub struct Lifted {
     file: String,
     model: umpire_front::Lifted,
     names: names::Names,
+    /// Selected World values, after binding.
+    world_values: Option<Vec<umpire_front::expr::Expr>>,
+    /// Complete start states, after binding.
+    complete_starts: Option<Vec<Vec<umpire_front::expr::Expr>>>,
+    /// The bound concrete catalog, in native catalog order.
+    catalog: Option<Vec<bind::Entry>>,
+    /// The file the negative claims are written in, and where each claim's name is.
+    claims: (String, Vec<umpire_front::Diagnostic>),
 }
 impl std::ops::Deref for Lifted {
     type Target = umpire_front::Lifted;
@@ -210,36 +218,49 @@ impl Lift {
             .clone()
             .map_err(|refusal| Diagnostic::of(&file, &refusal, refusal.message.clone()))?;
         let tests = path.with_file_name("tests.rs");
+        let mut claims = (file.to_string(), Vec::new());
         if tests.is_file() {
             let tests_file = tests.to_string_lossy();
             let ast = read(&tests, &tests_file)?;
-            umpire_front::supplement(&mut model, &hooks(&ast)).map_err(|(_, refusal)| {
-                Diagnostic::of(&tests_file, &refusal, refusal.message.clone())
-            })?;
+            claims = (
+                tests_file.to_string(),
+                umpire_front::supplement(&mut model, &hooks(&ast)).map_err(|(_, refusal)| {
+                    Diagnostic::of(&tests_file, &refusal, refusal.message.clone())
+                })?,
+            );
         }
-        Self::named(&file, model, &embedded.source)
+        Self::named(&file, model, &embedded.source, claims)
     }
     /// Read a source root as the `#[machine]` macro reads its module, without executing its Rust
     /// transitions; golden hooks in the same source supply negative claims.
     pub fn parse(file: &str, source: &str) -> Result<Lifted, Diagnostic> {
         let ast = syn::parse_file(source)
             .map_err(|error| Diagnostic::span(file, error.span(), error.to_string()))?;
-        let (model, names) =
+        let (model, names, claims) =
             umpire_front::read(&ast, &hooks(&ast)).map_err(|refusal| match refusal {
                 umpire_front::Refusal::Model(location)
                 | umpire_front::Refusal::Hook(_, location) => {
                     Diagnostic::of(file, &location, location.message.clone())
                 }
             })?;
-        Self::named(file, model, &names)
+        Self::named(file, model, &names, (file.into(), claims))
     }
     fn named(
         file: &str,
         mut model: umpire_front::Lifted,
         source: &Source,
+        claims: (String, Vec<umpire_front::Diagnostic>),
     ) -> Result<Lifted, Diagnostic> {
         let names = names::assign(source, &mut model);
-        let lifted = Lifted { file: file.into(), model, names };
+        let lifted = Lifted {
+            file: file.into(),
+            model,
+            names,
+            world_values: None,
+            complete_starts: None,
+            catalog: None,
+            claims,
+        };
         names::validate(file, source, &lifted)?;
         Ok(lifted)
     }

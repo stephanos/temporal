@@ -52,9 +52,10 @@ pub fn machine(
     input: proc_macro2::TokenStream,
 ) -> manyhow::Result<proc_macro2::TokenStream> {
     let input = syn::parse2(input)?;
-    let mut module = machine::generate(&args, &input)?;
+    let declared = umpire_front::declare::machine(&args, &input)?;
+    let mut module = machine::generate(&declared, &input)?;
     if let Some((_, items)) = &mut module.content {
-        items.push(lifted::embed(&args, &input));
+        items.push(lifted::embed(&declared, &input));
     }
     Ok(quote::quote!(#module))
 }

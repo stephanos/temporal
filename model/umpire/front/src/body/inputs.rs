@@ -1,10 +1,9 @@
 use super::{Env, Environment, Result};
 use crate::{
-    CATALOG_LIMIT, Diagnostic, Locate, Type,
-    declare::FieldDomain,
+    Diagnostic, Locate, Type,
     expr::{Expr, ExprKind, Op},
-    syntax::{attr, path_name},
-    tree::{ActionDef, ActionRef, InputDomain, InputField, Shape},
+    syntax::path_name,
+    tree::{ActionDef, ActionRef, InputField, Shape},
 };
 use quote::ToTokens;
 use syn::{Expr as RustExpr, Pat};
@@ -17,13 +16,13 @@ pub(crate) struct Matched {
 }
 
 impl Environment {
-    /// Admit one payload field and the values of its declared domain.
+    /// Admit one payload field. Its domain is the native catalog's: the bound catalog comes
+    /// from the compiled Model, so the tree keeps no domain values.
     pub(crate) fn input_field(
         &self,
         field: &syn::Field,
         index: usize,
         action: &str,
-        declared: &FieldDomain,
     ) -> Result<InputField> {
         for attribute in &field.attrs {
             let name = attribute.path().to_token_stream().to_string();
@@ -32,87 +31,14 @@ impl Environment {
             }
         }
         let name = field.ident.as_ref().map_or_else(|| index.to_string(), ToString::to_string);
-        let context = format!("{action} field `{name}`");
         let ty = self.ty(&field.ty)?;
         if !matches!(ty, Type::Bool | Type::Int { .. } | Type::Enum { .. }) {
-            return self.err(field, format!("{context}: inputs require admitted scalar types"));
+            return self.err(
+                field,
+                format!("{action} field `{name}`: inputs require admitted scalar types"),
+            );
         }
-        let domain = match declared {
-            FieldDomain::World(function) => {
-                let domain = attr(&field.attrs, "domain")
-                    .unwrap_or_else(|| unreachable!("a World domain is declared"));
-                let item = function
-                    .get_ident()
-                    .and_then(|function| self.domain_functions.get(&function.to_string()))
-                    .ok_or_else(|| {
-                        Diagnostic::at(
-                            domain,
-                            format!(
-                                "{context}: #[domain({})] names no local function",
-                                function.to_token_stream()
-                            ),
-                        )
-                    })?;
-                self.domain_signature(item, &ty, &context)?;
-                InputDomain::World
-            }
-            FieldDomain::Explicit(value) => {
-                let inputs = attr(&field.attrs, "inputs")
-                    .unwrap_or_else(|| unreachable!("explicit inputs are declared"));
-                InputDomain::Values(self.declared_values(inputs, value, &ty, &context)?)
-            }
-            FieldDomain::Finite => InputDomain::Values(match &ty {
-                Type::Bool => vec![Expr::bool(false), Expr::bool(true)],
-                Type::Enum { name, variants } if self.finite.contains(name) => variants
-                    .iter()
-                    .map(|variant| Expr { kind: ExprKind::Enum(variant.clone()), ty: ty.clone() })
-                    .collect(),
-                _ => {
-                    return self
-                        .err(field, format!("{context}: its type has no admitted Finite domain"));
-                }
-            }),
-        };
-        Ok(InputField { name, ty, domain, location: Diagnostic::at(field, "") })
-    }
-
-    fn declared_values(
-        &self,
-        attribute: &syn::Attribute,
-        value: &RustExpr,
-        ty: &Type,
-        context: &str,
-    ) -> Result<Vec<Expr>> {
-        match value {
-            RustExpr::Range(range) if matches!(ty, Type::Int { .. }) => {
-                let (Some(lo), Some(hi)) = (&range.start, &range.end) else {
-                    unreachable!("the action declaration admits only bounded input ranges")
-                };
-                let (ExprKind::Int(lo), ExprKind::Int(hi)) =
-                    (self.literal(lo, ty)?.kind, self.literal(hi, ty)?.kind)
-                else {
-                    return self
-                        .err(attribute, format!("{context}: range bounds must be integers"));
-                };
-                let hi =
-                    if matches!(range.limits, syn::RangeLimits::HalfOpen(_)) { hi - 1 } else { hi };
-                let size = (hi - lo + 1).max(0);
-                if size > i128::try_from(CATALOG_LIMIT).unwrap_or(i128::MAX) {
-                    return self.err(
-                        attribute,
-                        format!("{context}: #[inputs] declares {size} values, above the catalog limit {CATALOG_LIMIT}"),
-                    );
-                }
-                Ok((lo..=hi).map(|value| Expr::int(value, ty.clone())).collect())
-            }
-            RustExpr::Array(array) => {
-                array.elems.iter().map(|element| self.literal(element, ty)).collect()
-            }
-            _ => self.err(
-                attribute,
-                format!("{context}: #[inputs] requires a bounded integer range or a finite list"),
-            ),
-        }
+        Ok(InputField { name, ty, location: Diagnostic::at(field, "") })
     }
 
     /// A typed literal or literal source constant; other expressions refuse.
@@ -122,108 +48,6 @@ impl Environment {
             return self.err(node, "action input values must be literals");
         }
         Ok(value)
-    }
-
-    /// `fn name(world: &World) -> impl Iterator<Item = FieldType>`; its body is never read.
-    fn domain_signature(&self, item: &syn::ItemFn, ty: &Type, context: &str) -> Result<()> {
-        let signature = &item.sig;
-        let message =
-            format!("{context}: a #[domain] function is fn(&World) -> impl Iterator<Item = T>");
-        let world = match signature.inputs.iter().collect::<Vec<_>>().as_slice() {
-            [syn::FnArg::Typed(input)] => {
-                matches!(input.ty.as_ref(), syn::Type::Reference(reference)
-                if reference.mutability.is_none()
-                    && matches!(reference.elem.as_ref(), syn::Type::Path(path) if path.qself.is_none() && path.path.is_ident("World")))
-            }
-            _ => false,
-        };
-        if !world
-            || signature.asyncness.is_some()
-            || matches!(signature.safety, syn::Safety::Unsafe(_))
-            || signature.constness.is_some()
-            || signature.variadic.is_some()
-            || !signature.generics.params.is_empty()
-        {
-            return self.err(item, message);
-        }
-        let item_type = match &signature.output {
-            syn::ReturnType::Type(_, output) => match output.as_ref() {
-                syn::Type::ImplTrait(bounds) => {
-                    match bounds.bounds.iter().collect::<Vec<_>>().as_slice() {
-                        [syn::TypeParamBound::Trait(bound)] => {
-                            bound.path.segments.last().and_then(|segment| {
-                                if segment.ident != "Iterator" {
-                                    return None;
-                                }
-                                let syn::PathArguments::AngleBracketed(arguments) =
-                                    &segment.arguments
-                                else {
-                                    return None;
-                                };
-                                match arguments.args.iter().collect::<Vec<_>>().as_slice() {
-                                    [syn::GenericArgument::AssocType(item)]
-                                        if item.ident == "Item" =>
-                                    {
-                                        Some(&item.ty)
-                                    }
-                                    _ => None,
-                                }
-                            })
-                        }
-                        _ => None,
-                    }
-                }
-                _ => None,
-            },
-            syn::ReturnType::Default => None,
-        };
-        let Some(item_type) = item_type else {
-            return self.err(&signature.output, message);
-        };
-        if self.ty(item_type)? != *ty {
-            return self.err(
-                item_type,
-                format!("{context}: the #[domain] item type differs from the field"),
-            );
-        }
-        Ok(())
-    }
-
-    /// Refuse a statically declared catalog above the limit before any expansion.
-    pub(crate) fn static_catalog(
-        &self,
-        actions: &[ActionDef],
-        module: &syn::ItemMod,
-    ) -> Result<()> {
-        let mut total = Some(0usize);
-        for action in actions {
-            // World-dependent variants are counted once their selected World is bound, and an
-            // empty factor empties a variant even beside an overflowing one.
-            let sizes: Vec<_> = action
-                .fields
-                .iter()
-                .map(|field| match &field.domain {
-                    InputDomain::Values(values) => values.len(),
-                    InputDomain::World => 0,
-                })
-                .collect();
-            let count = if sizes.contains(&0) {
-                Some(0)
-            } else {
-                sizes.iter().try_fold(1usize, |count, size| count.checked_mul(*size))
-            };
-            total = total.zip(count).and_then(|(total, count)| total.checked_add(count));
-        }
-        match total {
-            None => self.err(module, "action catalog count overflows"),
-            Some(count) if count > CATALOG_LIMIT => self.err(
-                module,
-                format!(
-                    "action catalog has {count} concrete actions, above the limit {CATALOG_LIMIT}"
-                ),
-            ),
-            Some(_) => Ok(()),
-        }
     }
 
     /// Whether an arm pattern can match a concrete action of this variant, and under which

@@ -61,31 +61,38 @@ pub enum Refusal {
 /// The default concrete action catalog limit, equal to the native checker's.
 pub const CATALOG_LIMIT: usize = 4096;
 
-/// Admit a `#[machine]` module, as the macro receives it, into the tree. The declarations must
-/// already be admitted by [`declare::machine`]; a refusal here is a subset refusal.
-pub fn admit(args: &TokenStream, module: &syn::ItemMod) -> Result<Lifted, Diagnostic> {
-    shape::parse(args, module)
+/// Admit a `#[machine]` module, as the macro receives it, into the tree, given its declarations
+/// as [`declare::machine`] read them; a refusal here is a subset refusal.
+pub fn admit(declared: &declare::Machine, module: &syn::ItemMod) -> Result<Lifted, Diagnostic> {
+    shape::parse(declared, module)
 }
 
-/// Add the negative claims of golden hooks (`fixture!`) to an admitted Model; a refusal names the
-/// failing hook's index.
+/// Add the negative claims of golden hooks (`fixture!`) to an admitted Model, returning where
+/// each added claim's name is written; a refusal names the failing hook's index.
 pub fn supplement(
     model: &mut Lifted,
     hooks: &[&syn::ItemMacro],
-) -> Result<(), (usize, Diagnostic)> {
+) -> Result<Vec<Diagnostic>, (usize, Diagnostic)> {
     let environment = body::Environment::of(model);
     let initial = environment.field_env(false);
+    let mut locations = Vec::new();
     for (index, hook) in hooks.iter().enumerate() {
         let claims =
             environment.supplemental(&hook.mac, &initial).map_err(|refusal| (index, refusal))?;
-        model.negative.extend(claims);
+        for (claim, location) in claims {
+            model.negative.push(claim);
+            locations.push(location);
+        }
     }
-    Ok(())
+    Ok(locations)
 }
 
 /// Read a source file holding one `#[machine]` module as the macro would, with the golden hooks
-/// whose negative claims it carries.
-pub fn read(ast: &syn::File, hooks: &[&syn::ItemMacro]) -> Result<(Lifted, Source), Refusal> {
+/// whose negative claims it carries, and where those claims' names are written.
+pub fn read(
+    ast: &syn::File,
+    hooks: &[&syn::ItemMacro],
+) -> Result<(Lifted, Source, Vec<Diagnostic>), Refusal> {
     let modules: Vec<_> = ast
         .items
         .iter()
@@ -107,9 +114,12 @@ pub fn read(ast: &syn::File, hooks: &[&syn::ItemMacro]) -> Result<(Lifted, Sourc
         Some(syn::Meta::List(list)) => list.tokens,
         _ => TokenStream::new(),
     };
-    let mut model = admit(&args, &module).map_err(Refusal::Model)?;
-    supplement(&mut model, hooks).map_err(|(index, refusal)| Refusal::Hook(index, refusal))?;
-    Ok((model, source(&module)))
+    let declared =
+        declare::machine(&args, &module).map_err(|error| Refusal::Model(Diagnostic::syn(error)))?;
+    let mut model = admit(&declared, &module).map_err(Refusal::Model)?;
+    let claims =
+        supplement(&mut model, hooks).map_err(|(index, refusal)| Refusal::Hook(index, refusal))?;
+    Ok((model, source(&module), claims))
 }
 
 /// The located refusal for source without a `#[machine]` Model: at a hand-written

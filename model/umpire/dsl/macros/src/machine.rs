@@ -639,13 +639,12 @@ fn edit_methods(items: &mut [Item], machine: &Machine) {
 
 #[allow(dead_code, reason = "expansion snapshots render the module without its embedded Model")]
 pub(crate) fn expand(args: &TokenStream, input: &ItemMod) -> manyhow::Result<TokenStream> {
-    let module = generate(args, input)?;
+    let module = generate(&declare::machine(args, input)?, input)?;
     Ok(quote!(#module))
 }
 
 /// The expanded module: the executable Model.
-pub(crate) fn generate(args: &TokenStream, input: &ItemMod) -> manyhow::Result<ItemMod> {
-    let machine = declare::machine(args, input)?;
+pub(crate) fn generate(machine: &Machine, input: &ItemMod) -> manyhow::Result<ItemMod> {
     let (state, visibility) = (&machine.state, &machine.visibility);
     let actors = machine.actor_idents();
     let outcome_type = if machine.rejecting { quote!(::umpire_dsl::Outcome) } else { quote!(()) };
@@ -655,22 +654,22 @@ pub(crate) fn generate(args: &TokenStream, input: &ItemMod) -> manyhow::Result<I
     let Some((_, items)) = &mut input.content else { unreachable!("declare reads inline modules") };
     admit_handler_stays(items)?;
     check_receivers(items, state)?;
-    edit_methods(items, &machine);
+    edit_methods(items, machine);
     if machine.starts().is_some() {
         mark_computed_starts(items, state);
     }
     let values = machine.world.then(|| {
         bind_worlds(items, state, &actors);
-        let enums = enum_values(&machine);
+        let enums = enum_values(machine);
         let actions = action_values(&actors);
         quote!(#actions #(#enums)*)
     });
-    let post_tokens = postconditions(&machine);
-    let progress_tokens = progress_claims(&machine);
-    let invariant_tokens = invariant_claims(&machine);
-    let assumption_tokens = assumption_claims(&machine);
-    let start = starts_call(&machine);
-    let lists = actor_lists(&machine);
+    let post_tokens = postconditions(machine);
+    let progress_tokens = progress_claims(machine);
+    let invariant_tokens = invariant_claims(machine);
+    let assumption_tokens = assumption_claims(machine);
+    let start = starts_call(machine);
+    let lists = actor_lists(machine);
     let handlers: Vec<_> = machine
         .of(Kind::On)
         .map(|registered| {

@@ -218,8 +218,8 @@ variant and payload and each `#[domain]` field's values for a World. Field visib
 unchanged; the export shows what the derived `Debug` already prints. `#[machine]` exports each
 local fieldless enum's variant, as does `derive(Finite)`. Sequence (`imbl::Vector`) state is not
 exported yet, so it cannot be bound; `Value::Sequence` is its slot. A field type without a value
-leaves the Model compiling and is refused only where a binding is requested. Admission still reads the authored `model.rs` on its
-own and translates every transition and claim itself. In a shared fixture,
+leaves the Model compiling and is refused only where a binding is requested. The `#[machine]` macro admits the Model once and
+embeds the admitted tree; the lifter emits from it. In a shared fixture,
 `fixture!(World = World::new(1, 3), 64, negative)` defines `bound()`, and `bound_for(world)` for
 another World: one World, one start enumeration and one checked catalog feed binding, native
 checking and TLC counterexample replay.
@@ -594,6 +594,8 @@ registration identity, not whole-graph verification. Untapped entries remain vis
 `umpire_testing::SUITE` consumer owns these outputs; register it alongside CHECKER and seed an
 expected payload before updating goldens. Kettle retains its native/negative hook through
 `fixture!(world, budget, negative, extra = suite_files()?)`; duplicate output keys refuse.
+The lifter reads a hook's negative claim from `tests.rs` against the admitted tree, so it may
+read state fields, the World and module constants, but not call Model methods or helpers.
 
 To write a Model's tests, add `mod examples` and `mod explorations` to its `tests.rs`, each with
 `use umpire_suite::*;` and plain `#[test]` functions returning `Result<(), Refusal>` so a refusal
@@ -664,10 +666,13 @@ the subset carry a located warning that refuses emission. Each admitted shared
 fixture owns emitted module/config and `tlc.txt` agreement goldens. Progress uses explicit
 authored fairness and private observers to distinguish real Model edges from idle stuttering.
 
-For a larger Model, the typed backend entry point needs no native exploration:
+For a larger Model, the typed backend entry point needs no native exploration.
+`fixture!`, or `umpire_testing::lifted!(world)` in a `tests.rs` without one, defines
+`lifted(source)`: the module emitted from the Model that World's `#[machine]` embeds.
 
 ```rust,ignore
-let module = umpire_testing::lift(umpire_testing::__embedded!(world).as_ref(), source_path)?;
+umpire_testing::lifted!(counter::world());
+let module = lifted(std::path::Path::new("fixtures/counter/model.rs"))?;
 let result = umpire_tlc::Tlc::discover(repository_root)?.check_module(&module)?;
 ```
 

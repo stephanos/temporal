@@ -3,22 +3,19 @@ use proc_macro2::{Literal, TokenStream};
 use quote::{format_ident, quote};
 use std::collections::BTreeMap;
 use umpire_front::{
-    Diagnostic, Embedded, Lifted, Source, Type,
-    expr::{Expr, ExprKind},
-    tree::{
-        ActionDef, ActionRef, AssumptionDef, Branch, ClaimDef, FieldDef, InputDomain, InputField,
-        PostDef, ProgressDef, Start, WorldField,
-    },
+    Embedded, Type,
+    expr::ExprKind,
+    tree::{Shape, Start},
 };
 
 /// `impl Lifts for World` in the expanded module, off the wasm guest.
-pub(crate) fn embed(args: &TokenStream, input: &syn::ItemMod) -> syn::Item {
+pub(crate) fn embed(declared: &umpire_front::declare::Machine, input: &syn::ItemMod) -> syn::Item {
     let span = input.ident.span();
     // rustc's path for the file; the runner resolves it, since the macro reads no files.
     let file = span.local_file().map_or_else(|| span.file(), |file| file.display().to_string());
     let embedded = Embedded {
         file,
-        model: umpire_front::admit(args, input),
+        model: umpire_front::admit(declared, input),
         source: umpire_front::source(input),
     }
     .print();
@@ -36,9 +33,48 @@ trait Print {
     fn print(&self) -> TokenStream;
 }
 
-fn root() -> TokenStream {
-    quote!(::umpire_dsl::__lifted)
+/// A struct of the tree, printed field by field at its `umpire_dsl::__lifted` path.
+macro_rules! record {
+    ($($path:ident)::+ { $($field:ident),* $(,)? }) => {
+        impl Print for umpire_front::$($path)::+ {
+            fn print(&self) -> TokenStream {
+                $(let $field = self.$field.print();)*
+                quote!(::umpire_dsl::__lifted::$($path)::+ { $($field: #$field),* })
+            }
+        }
+    };
 }
+record!(Embedded { file, model, source });
+record!(Source { idents, variants, methods, first, control });
+record!(Diagnostic { line, column, message });
+record!(Lifted {
+    name,
+    state_name,
+    outcome_type,
+    world_path,
+    declared_world,
+    world_fields,
+    location,
+    fields,
+    constants,
+    actions,
+    invariants,
+    postconditions,
+    progress,
+    assumptions,
+    negative,
+});
+record!(expr::Expr { kind, ty });
+record!(tree::FieldDef { name, ty, start, location });
+record!(tree::WorldField { name, ty, location });
+record!(tree::ActionDef { name, internal, branches, shape, fields, location });
+record!(tree::InputField { name, ty, location });
+record!(tree::Branch { guard, updates, checks, outcome, preserve_self_loop });
+record!(tree::ClaimDef { name, expr });
+record!(tree::PostDef { name, expr, after });
+record!(tree::ProgressDef { name, trigger, target, assumption, bound });
+record!(tree::AssumptionDef { name, only, without, fair });
+record!(tree::ActionRef { name, values });
 
 impl Print for String {
     fn print(&self) -> TokenStream {
@@ -101,6 +137,20 @@ impl<T: Print> Print for Option<T> {
         )
     }
 }
+impl<T: Print, E: Print> Print for Result<T, E> {
+    fn print(&self) -> TokenStream {
+        match self {
+            Ok(value) => {
+                let value = value.print();
+                quote!(::core::result::Result::Ok(#value))
+            }
+            Err(error) => {
+                let error = error.print();
+                quote!(::core::result::Result::Err(#error))
+            }
+        }
+    }
+}
 impl<A: Print, B: Print> Print for (A, B) {
     fn print(&self) -> TokenStream {
         let (first, second) = (self.0.print(), self.1.print());
@@ -125,40 +175,9 @@ fn unit(path: &TokenStream, value: &impl std::fmt::Debug) -> TokenStream {
     quote!(#path::#variant)
 }
 
-impl Print for Embedded {
+impl Print for Shape {
     fn print(&self) -> TokenStream {
-        let root = root();
-        let file = self.file.print();
-        let model = match &self.model {
-            Ok(model) => {
-                let model = model.print();
-                quote!(::core::result::Result::Ok(#model))
-            }
-            Err(refusal) => {
-                let refusal = refusal.print();
-                quote!(::core::result::Result::Err(#refusal))
-            }
-        };
-        let source = self.source.print();
-        quote!(#root::Embedded { file: #file, model: #model, source: #source })
-    }
-}
-impl Print for Source {
-    fn print(&self) -> TokenStream {
-        let root = root();
-        let (idents, variants, methods) =
-            (self.idents.print(), self.variants.print(), self.methods.print());
-        let first = self.first.print();
-        let control = self.control.print();
-        quote!(#root::Source { idents: #idents, variants: #variants, methods: #methods, first: #first, control: #control })
-    }
-}
-impl Print for Diagnostic {
-    fn print(&self) -> TokenStream {
-        let root = root();
-        let (line, column, message) =
-            (self.line.print(), self.column.print(), self.message.print());
-        quote!(#root::Diagnostic { line: #line, column: #column, message: #message })
+        unit(&quote!(::umpire_dsl::__lifted::tree::Shape), self)
     }
 }
 impl Print for Type {
@@ -187,125 +206,6 @@ impl Print for Type {
         }
     }
 }
-impl Print for Expr {
-    fn print(&self) -> TokenStream {
-        let root = root();
-        let (kind, ty) = (self.kind.print(), self.ty.print());
-        quote!(#root::expr::Expr { kind: #kind, ty: #ty })
-    }
-}
-impl Print for ExprKind {
-    fn print(&self) -> TokenStream {
-        let kind = quote!(::umpire_dsl::__lifted::expr::ExprKind);
-        let (unary, op) =
-            (quote!(::umpire_dsl::__lifted::expr::Unary), quote!(::umpire_dsl::__lifted::expr::Op));
-        match self {
-            Self::Bool(value) => quote!(#kind::Bool(#value)),
-            Self::Int(value) => {
-                let value = value.print();
-                quote!(#kind::Int(#value))
-            }
-            Self::Unit => quote!(#kind::Unit),
-            Self::Outcome => quote!(#kind::Outcome),
-            Self::Var(name, primed) => {
-                let name = name.print();
-                quote!(#kind::Var(#name, #primed))
-            }
-            Self::Text(value) | Self::World(value) | Self::Input(value) | Self::Enum(value) => {
-                let variant = format_ident!("{}", variant(self));
-                let value = value.print();
-                quote!(#kind::#variant(#value))
-            }
-            Self::Unary(operator, value) => {
-                let (operator, value) = (unit(&unary, operator), value.print());
-                quote!(#kind::Unary(#operator, #value))
-            }
-            Self::Binary(operator, left, right) => {
-                let (operator, left, right) = (unit(&op, operator), left.print(), right.print());
-                quote!(#kind::Binary(#operator, #left, #right))
-            }
-            Self::Length(value) => {
-                let value = value.print();
-                quote!(#kind::Length(#value))
-            }
-            Self::Append(left, right) => {
-                let (left, right) = (left.print(), right.print());
-                quote!(#kind::Append(#left, #right))
-            }
-            Self::If(first, second, third) | Self::GetOr(first, second, third) => {
-                let variant = format_ident!("{}", variant(self));
-                let (first, second, third) = (first.print(), second.print(), third.print());
-                quote!(#kind::#variant(#first, #second, #third))
-            }
-            Self::Tuple(values) | Self::Sequence(values) | Self::Checks(values) => {
-                let variant = format_ident!("{}", variant(self));
-                let values = values.print();
-                quote!(#kind::#variant(#values))
-            }
-        }
-    }
-}
-/// The variant name of an expression kind.
-fn variant(kind: &ExprKind) -> String {
-    let debug = format!("{kind:?}");
-    debug.split(['(', ' ']).next().unwrap_or_default().to_owned()
-}
-impl Print for Lifted {
-    fn print(&self) -> TokenStream {
-        let root = root();
-        let name = self.name.print();
-        let state_name = self.state_name.print();
-        let outcome_type = self.outcome_type.print();
-        let world_path = self.world_path.print();
-        let declared_world = self.declared_world;
-        let world_fields = self.world_fields.print();
-        let location = self.location.print();
-        let fields = self.fields.print();
-        let constants = self.constants.print();
-        let actions = self.actions.print();
-        let invariants = self.invariants.print();
-        let postconditions = self.postconditions.print();
-        let progress = self.progress.print();
-        let assumptions = self.assumptions.print();
-        let negative = self.negative.print();
-        // World values, complete starts and the catalog are bound later, never admitted.
-        quote!(#root::Lifted {
-            name: #name,
-            state_name: #state_name,
-            outcome_type: #outcome_type,
-            world_path: #world_path,
-            declared_world: #declared_world,
-            world_fields: #world_fields,
-            world_values: ::core::option::Option::None,
-            complete_starts: ::core::option::Option::None,
-            location: #location,
-            fields: #fields,
-            constants: #constants,
-            actions: #actions,
-            invariants: #invariants,
-            postconditions: #postconditions,
-            progress: #progress,
-            assumptions: #assumptions,
-            negative: #negative,
-            catalog: ::core::option::Option::None,
-        })
-    }
-}
-impl Print for FieldDef {
-    fn print(&self) -> TokenStream {
-        let root = root();
-        let (name, ty, start, location) =
-            (self.name.print(), self.ty.print(), self.start.print(), self.location.print());
-        quote!(#root::tree::FieldDef { name: #name, ty: #ty, start: #start, location: #location })
-    }
-}
-impl Print for WorldField {
-    fn print(&self) -> TokenStream {
-        let root = root();
-        let (name, ty, location) = (self.name.print(), self.ty.print(), self.location.print());
-        quote!(#root::tree::WorldField { name: #name, ty: #ty, location: #location })
-    }
-}
 impl Print for Start {
     fn print(&self) -> TokenStream {
         let start = quote!(::umpire_dsl::__lifted::tree::Start);
@@ -315,84 +215,63 @@ impl Print for Start {
                 let value = value.print();
                 quote!(#start::Value(#value))
             }
-            Self::Range(low, high) => {
+            Self::Range(low, high) | Self::ExclusiveRange(low, high) => {
+                let variant = format_ident!(
+                    "{}",
+                    if matches!(self, Self::Range(..)) { "Range" } else { "ExclusiveRange" }
+                );
                 let (low, high) = (low.print(), high.print());
-                quote!(#start::Range(#low, #high))
-            }
-            Self::ExclusiveRange(low, high) => {
-                let (low, high) = (low.print(), high.print());
-                quote!(#start::ExclusiveRange(#low, #high))
+                quote!(#start::#variant(#low, #high))
             }
         }
     }
 }
-impl Print for ActionDef {
+impl Print for ExprKind {
     fn print(&self) -> TokenStream {
-        let root = root();
-        let (name, internal, branches) = (self.name.print(), self.internal, self.branches.print());
-        let shape = unit(&quote!(#root::tree::Shape), &self.shape);
-        let (fields, location) = (self.fields.print(), self.location.print());
-        quote!(#root::tree::ActionDef { name: #name, internal: #internal, branches: #branches, shape: #shape, fields: #fields, location: #location })
-    }
-}
-impl Print for InputField {
-    fn print(&self) -> TokenStream {
-        let root = root();
-        let (name, ty, location) = (self.name.print(), self.ty.print(), self.location.print());
-        let domain = match &self.domain {
-            InputDomain::Values(values) => {
-                let values = values.print();
-                quote!(#root::tree::InputDomain::Values(#values))
-            }
-            InputDomain::World => quote!(#root::tree::InputDomain::World),
+        let kind = quote!(::umpire_dsl::__lifted::expr::ExprKind);
+        let (unary, op) =
+            (quote!(::umpire_dsl::__lifted::expr::Unary), quote!(::umpire_dsl::__lifted::expr::Op));
+        let one = |variant: &str, value: TokenStream| {
+            let variant = format_ident!("{variant}");
+            quote!(#kind::#variant(#value))
         };
-        quote!(#root::tree::InputField { name: #name, ty: #ty, domain: #domain, location: #location })
-    }
-}
-impl Print for Branch {
-    fn print(&self) -> TokenStream {
-        let root = root();
-        let (guard, updates, checks) =
-            (self.guard.print(), self.updates.print(), self.checks.print());
-        let (outcome, preserve) = (self.outcome.print(), self.preserve_self_loop);
-        quote!(#root::tree::Branch { guard: #guard, updates: #updates, checks: #checks, outcome: #outcome, preserve_self_loop: #preserve })
-    }
-}
-impl Print for ClaimDef {
-    fn print(&self) -> TokenStream {
-        let root = root();
-        let (name, expr) = (self.name.print(), self.expr.print());
-        quote!(#root::tree::ClaimDef { name: #name, expr: #expr })
-    }
-}
-impl Print for PostDef {
-    fn print(&self) -> TokenStream {
-        let root = root();
-        let (name, expr, after) = (self.name.print(), self.expr.print(), self.after.print());
-        quote!(#root::tree::PostDef { name: #name, expr: #expr, after: #after })
-    }
-}
-impl Print for ProgressDef {
-    fn print(&self) -> TokenStream {
-        let root = root();
-        let (name, trigger, target) =
-            (self.name.print(), self.trigger.print(), self.target.print());
-        let (assumption, bound) = (self.assumption.print(), self.bound.print());
-        quote!(#root::tree::ProgressDef { name: #name, trigger: #trigger, target: #target, assumption: #assumption, bound: #bound })
-    }
-}
-impl Print for AssumptionDef {
-    fn print(&self) -> TokenStream {
-        let root = root();
-        let (name, only, without, fair) =
-            (self.name.print(), self.only.print(), self.without.print(), self.fair.print());
-        quote!(#root::tree::AssumptionDef { name: #name, only: #only, without: #without, fair: #fair })
-    }
-}
-impl Print for ActionRef {
-    fn print(&self) -> TokenStream {
-        let root = root();
-        let (name, values) = (self.name.print(), self.values.print());
-        quote!(#root::tree::ActionRef { name: #name, values: #values })
+        match self {
+            Self::Bool(value) => quote!(#kind::Bool(#value)),
+            Self::Int(value) => one("Int", value.print()),
+            Self::Text(value) => one("Text", value.print()),
+            Self::Unit => quote!(#kind::Unit),
+            Self::Var(name, primed) => {
+                let name = name.print();
+                quote!(#kind::Var(#name, #primed))
+            }
+            Self::World(name) => one("World", name.print()),
+            Self::Input(name) => one("Input", name.print()),
+            Self::Outcome => quote!(#kind::Outcome),
+            Self::Enum(value) => one("Enum", value.print()),
+            Self::Unary(operator, value) => {
+                let (operator, value) = (unit(&unary, operator), value.print());
+                quote!(#kind::Unary(#operator, #value))
+            }
+            Self::Binary(operator, left, right) => {
+                let (operator, left, right) = (unit(&op, operator), left.print(), right.print());
+                quote!(#kind::Binary(#operator, #left, #right))
+            }
+            Self::If(first, second, third) => {
+                let (first, second, third) = (first.print(), second.print(), third.print());
+                quote!(#kind::If(#first, #second, #third))
+            }
+            Self::GetOr(first, second, third) => {
+                let (first, second, third) = (first.print(), second.print(), third.print());
+                quote!(#kind::GetOr(#first, #second, #third))
+            }
+            Self::Tuple(values) => one("Tuple", values.print()),
+            Self::Sequence(values) => one("Sequence", values.print()),
+            Self::Checks(values) => one("Checks", values.print()),
+            Self::Length(value) => one("Length", value.print()),
+            Self::Append(left, right) => {
+                let (left, right) = (left.print(), right.print());
+                quote!(#kind::Append(#left, #right))
+            }
+        }
     }
 }

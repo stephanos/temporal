@@ -1,11 +1,12 @@
 use crate::{
-    Action, Diagnostic, Field, Lifted, Metadata, Module, Progress, Property, Type, names::operator,
+    Action, Diagnostic, Field, Lifted, Metadata, Module, Progress, Property, Type, bind::Entry,
+    names::operator,
 };
 use std::collections::BTreeMap;
 use std::fmt::Write;
 use umpire_front::{
     expr::{Expr, ExprKind, Op, Unary},
-    tree::{ActionDef, ActionRef, AssumptionDef, Entry, Start},
+    tree::{ActionDef, ActionRef, AssumptionDef, Start},
 };
 
 /// The observer holding an edge's outcome.

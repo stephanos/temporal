@@ -296,9 +296,7 @@ pub(crate) fn validate(file: &str, source: &Source, model: &Lifted) -> Result<()
     for claim in &model.postconditions {
         names.register(&format!("Post_{}", claim.name), &claim.name)?;
     }
-    for claim in &model.negative {
-        names.register(&format!("Negative_{}", claim.name), &claim.name)?;
-    }
+    names.register_negative(model)?;
     for assumption in &model.assumptions {
         if model.progress.iter().any(|claim| claim.assumption.same_scope(assumption)) {
             names.register(&format!("Assumption_{}", assumption.name), &assumption.name)?;
@@ -353,14 +351,38 @@ struct Registry<'a> {
 }
 impl Registry<'_> {
     fn register(&mut self, name: &str, source: &str) -> Result<(), Diagnostic> {
-        if !self.prefixes.iter().any(|prefix| positioned(name, prefix))
-            && self.names.insert(name.into())
-            && !name.starts_with("r#")
-            && name.chars().all(|c| c.is_ascii_alphanumeric() || c == '_')
-        {
+        if self.fresh(name) {
             return Ok(());
         }
         Err(self.collision(source, &format!("generated TLA+ name `{name}`")))
+    }
+
+    /// The negative claims; a hook claim is written in its hook's file, not in the module.
+    fn register_negative(&mut self, model: &Lifted) -> Result<(), Diagnostic> {
+        let (file, locations) = &model.claims;
+        for (index, claim) in model.negative.iter().enumerate() {
+            let name = format!("Negative_{}", claim.name);
+            match locations.get(index) {
+                Some(location) if !self.fresh(&name) => {
+                    return Err(Diagnostic::of(
+                        file,
+                        location,
+                        format!("authored declaration collides with generated TLA+ name `{name}`"),
+                    ));
+                }
+                Some(_) => {}
+                None => self.register(&name, &claim.name)?,
+            }
+        }
+        Ok(())
+    }
+
+    /// Take `name` if no generated name or prefix has it and it is a plain TLA+ identifier.
+    fn fresh(&mut self, name: &str) -> bool {
+        !self.prefixes.iter().any(|prefix| positioned(name, prefix))
+            && self.names.insert(name.into())
+            && !name.starts_with("r#")
+            && name.chars().all(|c| c.is_ascii_alphanumeric() || c == '_')
     }
 
     /// A prefix of generated `<prefix><position>` names, which no authored identifier and no

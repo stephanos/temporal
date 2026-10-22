@@ -4,7 +4,7 @@ use crate::{
     tree::{FieldDef, Lifted, WorldField},
 };
 use quote::ToTokens;
-use std::collections::{BTreeMap, BTreeSet};
+use std::collections::BTreeMap;
 use syn::{Expr as RustExpr, Stmt};
 
 mod claim;
@@ -77,10 +77,6 @@ pub(crate) struct Environment {
     pub(crate) helpers: BTreeMap<String, syn::ImplItemFn>,
     pub(crate) methods: BTreeMap<String, syn::ImplItemFn>,
     pub(crate) vector_imported: bool,
-    /// Local fieldless enums deriving `Finite`.
-    pub(crate) finite: BTreeSet<String>,
-    /// Free functions admitted as World-dependent `#[domain]` sources; bodies are not read.
-    pub(crate) domain_functions: BTreeMap<String, syn::ItemFn>,
 }
 impl Environment {
     /// The environment golden hook claims read in: the admitted Model's schema and constants.
@@ -119,8 +115,6 @@ impl Environment {
             helpers: BTreeMap::new(),
             methods: BTreeMap::new(),
             vector_imported: model.fields.iter().any(|field| matches!(field.ty, Type::Seq(_))),
-            finite: BTreeSet::new(),
-            domain_functions: BTreeMap::new(),
         }
     }
     #[expect(clippy::unused_self, reason = "refusals read as methods of the admitting environment")]

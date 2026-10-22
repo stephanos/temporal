@@ -287,7 +287,7 @@ fn hook_refusal_in_tests_rs_names_tests_rs() -> Result<(), Box<dyn std::error::E
         root.join("tests.rs"),
         "use super::*;\n\numpire_testing::fixture!(\n    kettle::world(),\n    16,\n    Claim::new(\"bad\", |_, state: &kettle::Model| mystery(state.beeping).into())\n);\n",
     )?;
-    let (model, source) = umpire_front::read(&syn::parse_file(KETTLE)?, &[])
+    let (model, source, _) = umpire_front::read(&syn::parse_file(KETTLE)?, &[])
         .map_err(|refusal| format!("{refusal:?}"))?;
     let file = root.join("model.rs").to_string_lossy().into_owned();
     let embedded = umpire_lift::Embedded { file, model: Ok(model), source };
@@ -299,5 +299,62 @@ fn hook_refusal_in_tests_rs_names_tests_rs() -> Result<(), Box<dyn std::error::E
     assert!(error.file.ends_with("tests.rs"), "{error}");
     assert_eq!(error.line, 6, "{error}");
     assert!(error.message.contains("mystery"), "{error}");
+    Ok(())
+}
+
+#[test]
+fn imports_that_can_rebind_a_macro_read_by_name_refuse() -> Result<(), Box<dyn std::error::Error>> {
+    // The subset reads check!, stay!, reject!, unknown!, path! and matches! by name.
+    for import in [
+        "use umpire_dsl::{Action, State, path}; use crate::support::check;",
+        "use umpire_dsl::{Action, State, check, path}; use crate::support::*;",
+        "use umpire_dsl::{Action, State, check, path, stay as matches};",
+    ] {
+        let source = KETTLE.replace("use umpire_dsl::{Action, State, check, path};", import);
+        let error =
+            Lift::parse("imports.rs", &source).err().ok_or("rebinding import was admitted")?;
+        assert!(error.message.contains("can rebind a macro"), "{error}");
+        assert!(error.line > 1, "{error}");
+    }
+    Ok(())
+}
+
+#[test]
+fn a_world_of_another_machine_refuses_at_this_source() -> Result<(), Box<dyn std::error::Error>> {
+    let root = std::env::temp_dir().join(format!("umpire-other-world-{}", std::process::id()));
+    std::fs::create_dir_all(&root)?;
+    std::fs::write(root.join("model.rs"), KETTLE)?;
+    std::fs::write(root.join("other.rs"), KETTLE)?;
+    let (model, source, _) = umpire_front::read(&syn::parse_file(KETTLE)?, &[])
+        .map_err(|refusal| format!("{refusal:?}"))?;
+    let file = root.join("other.rs").to_string_lossy().into_owned();
+    let embedded = umpire_lift::Embedded { file, model: Ok(model), source };
+    let error = Lift::embedded(Some(&embedded), root.join("model.rs")).err();
+    std::fs::remove_dir_all(&root)?;
+    let error = error.ok_or("another source's Model was admitted")?;
+    assert!(error.file.ends_with("model.rs"), "{error}");
+    assert!(error.message.contains("is not the #[machine] World this source declares"), "{error}");
+    Ok(())
+}
+
+#[test]
+fn a_hook_claim_name_collision_refuses_in_tests_rs() -> Result<(), Box<dyn std::error::Error>> {
+    let root = std::env::temp_dir().join(format!("umpire-hook-collision-{}", std::process::id()));
+    std::fs::create_dir_all(&root)?;
+    std::fs::write(root.join("model.rs"), KETTLE)?;
+    std::fs::write(
+        root.join("tests.rs"),
+        "use super::*;\n\numpire_testing::fixture!(\n    kettle::world(),\n    16,\n    Claim::new(\"never beeps\", |_, state: &kettle::Model| (!state.beeping).into())\n);\n",
+    )?;
+    let (model, source, _) = umpire_front::read(&syn::parse_file(KETTLE)?, &[])
+        .map_err(|refusal| format!("{refusal:?}"))?;
+    let file = root.join("model.rs").to_string_lossy().into_owned();
+    let embedded = umpire_lift::Embedded { file, model: Ok(model), source };
+    let error = Lift::embedded(Some(&embedded), root.join("model.rs")).err();
+    std::fs::remove_dir_all(&root)?;
+    let error = error.ok_or("a claim name outside TLA+ identifiers was admitted")?;
+    assert!(error.file.ends_with("tests.rs"), "{error}");
+    assert_eq!((error.line, error.column), (6, 16), "{error}");
+    assert!(error.message.contains("`Negative_never beeps`"), "{error}");
     Ok(())
 }

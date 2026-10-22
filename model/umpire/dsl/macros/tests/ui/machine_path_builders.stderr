@@ -1,0 +1,5 @@
+error: a path! claim takes only .assuming(..)
+  --> tests/ui/machine_path_builders.rs:16:38
+   |
+16 |         fn claim(&self) -> LeadsTo { path![self.value == 0, .., self.value == 1].within(1).within(2) }
+   |                                      ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^

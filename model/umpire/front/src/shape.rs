@@ -13,7 +13,7 @@ type Result<T> = std::result::Result<T, Diagnostic>;
 
 /// Admit a `#[machine]` module, as the macro receives it.
 #[expect(clippy::too_many_lines, reason = "The admission pass preserves source declaration order")]
-pub(crate) fn parse(arguments: &proc_macro2::TokenStream, module: &syn::ItemMod) -> Result<Lifted> {
+pub(crate) fn parse(declared: &declare::Machine, module: &syn::ItemMod) -> Result<Lifted> {
     let mut conditional = Conditional(None);
     syn::visit::Visit::visit_item_mod(&mut conditional, module);
     if let Some(attribute) = conditional.0 {
@@ -26,8 +26,7 @@ pub(crate) fn parse(arguments: &proc_macro2::TokenStream, module: &syn::ItemMod)
         .content
         .as_ref()
         .ok_or_else(|| Diagnostic::at(module, "external machine modules are unsupported"))?;
-    let declared = declare::machine(arguments, module).map_err(Diagnostic::syn)?;
-    let declarations = Declarations::read(items, &declared)?;
+    let declarations = Declarations::read(items, declared)?;
     let domain_functions: BTreeSet<String> = declarations
         .actors
         .iter()
@@ -47,9 +46,7 @@ pub(crate) fn parse(arguments: &proc_macro2::TokenStream, module: &syn::ItemMod)
         defaults: BTreeMap::new(),
         helpers: BTreeMap::new(),
         methods: BTreeMap::new(),
-        vector_imported: vector_imported(items),
-        finite: BTreeSet::new(),
-        domain_functions: BTreeMap::new(),
+        vector_imported: admit_imports(items)?,
     };
     for item in items {
         let attributes = match item {
@@ -64,9 +61,6 @@ pub(crate) fn parse(arguments: &proc_macro2::TokenStream, module: &syn::ItemMod)
             }
         };
         attrs(attributes, &["doc", "derive", "internal"])?;
-        if let Item::Fn(function) = item {
-            parser.domain_functions.insert(function.sig.ident.to_string(), function.clone());
-        }
         if let Item::Enum(value) = item {
             let payload = derives(&value.attrs, "Action")
                 && value.variants.iter().any(|v| !matches!(v.fields, syn::Fields::Unit));
@@ -84,9 +78,6 @@ pub(crate) fn parse(arguments: &proc_macro2::TokenStream, module: &syn::ItemMod)
                 continue;
             }
             let name = value.ident.to_string();
-            if derives(&value.attrs, "Finite") {
-                parser.finite.insert(name.clone());
-            }
             let variants = value.variants.iter().map(|v| format!("{name}::{}", v.ident)).collect();
             if let Some(variant) = value.variants.iter().find(|v| has(&v.attrs, "default")) {
                 parser
@@ -193,7 +184,7 @@ pub(crate) fn parse(arguments: &proc_macro2::TokenStream, module: &syn::ItemMod)
     let mut actions = Vec::new();
     for (actor, inputs) in &declarations.actors {
         let actor_name = actor.ident.to_string();
-        for (variant, domains) in actor.variants.iter().zip(&inputs.variants) {
+        for variant in &actor.variants {
             let name = format!("{actor_name}::{}", variant.ident);
             let (shape, fields) = match &variant.fields {
                 syn::Fields::Unit => (Shape::Unit, Vec::new()),
@@ -214,8 +205,8 @@ pub(crate) fn parse(arguments: &proc_macro2::TokenStream, module: &syn::ItemMod)
                 }
             }
             let mut fields_in = Vec::new();
-            for (index, (field, domain)) in fields.into_iter().zip(domains).enumerate() {
-                fields_in.push(parser.input_field(field, index, &name, domain)?);
+            for (index, field) in fields.into_iter().enumerate() {
+                fields_in.push(parser.input_field(field, index, &name)?);
             }
             actions.push(ActionDef {
                 name,
@@ -227,7 +218,6 @@ pub(crate) fn parse(arguments: &proc_macro2::TokenStream, module: &syn::ItemMod)
             });
         }
     }
-    parser.static_catalog(&actions, module)?;
     let mut invariants = Vec::new();
     let mut postconditions = Vec::new();
     let mut progress = Vec::new();
@@ -283,8 +273,6 @@ pub(crate) fn parse(arguments: &proc_macro2::TokenStream, module: &syn::ItemMod)
         },
         declared_world: parser.declared_world,
         world_fields: parser.world_fields,
-        world_values: None,
-        complete_starts: None,
         location: Diagnostic::at(module, ""),
         fields: parser.fields,
         constants: parser.constants.values,
@@ -294,7 +282,6 @@ pub(crate) fn parse(arguments: &proc_macro2::TokenStream, module: &syn::ItemMod)
         progress,
         assumptions,
         negative: Vec::new(),
-        catalog: None,
     })
 }
 
@@ -386,15 +373,52 @@ fn attrs(attrs: &[syn::Attribute], allowed: &[&str]) -> Result<()> {
     }
     Ok(())
 }
-/// Whether the module imports `imbl::Vector` under its own name.
-fn vector_imported(items: &[Item]) -> bool {
-    fn names(tree: &syn::UseTree, prefix: &str) -> bool {
+/// Each `use` binding of the module: its bound name and the path it imports.
+fn imports(items: &[Item]) -> Vec<(&Item, String, String)> {
+    fn walk(tree: &syn::UseTree, prefix: &str, out: &mut Vec<(String, String)>) {
         match tree {
-            syn::UseTree::Path(path) => names(&path.tree, &format!("{prefix}{}::", path.ident)),
-            syn::UseTree::Name(name) => prefix == "imbl::" && name.ident == "Vector",
-            syn::UseTree::Group(group) => group.items.iter().any(|item| names(item, prefix)),
-            syn::UseTree::Rename(_) | syn::UseTree::Glob(_) => false,
+            syn::UseTree::Path(path) => walk(&path.tree, &format!("{prefix}{}::", path.ident), out),
+            syn::UseTree::Name(name) => {
+                out.push((name.ident.to_string(), format!("{prefix}{}", name.ident)));
+            }
+            syn::UseTree::Rename(rename) => {
+                out.push((rename.rename.to_string(), format!("{prefix}{}", rename.ident)));
+            }
+            syn::UseTree::Group(group) => {
+                group.items.iter().for_each(|item| walk(item, prefix, out));
+            }
+            syn::UseTree::Glob(_) => out.push(("*".into(), format!("{prefix}*"))),
         }
     }
-    items.iter().any(|item| matches!(item, Item::Use(import) if names(&import.tree, "")))
+    let mut out = Vec::new();
+    for item in items {
+        if let Item::Use(import) = item {
+            let mut bindings = Vec::new();
+            walk(&import.tree, "", &mut bindings);
+            out.extend(bindings.into_iter().map(|(name, path)| (item, name, path)));
+        }
+    }
+    out
+}
+
+/// The subset reads these macros by name, as Umpire's and the prelude's.
+const READ_BY_NAME: [&str; 6] = ["check", "stay", "reject", "unknown", "path", "matches"];
+
+/// Refuse an import that could rebind a macro the subset reads by name; whether
+/// `imbl::Vector` is imported under its own name.
+fn admit_imports(items: &[Item]) -> Result<bool> {
+    let mut vector = false;
+    for (item, name, path) in imports(items) {
+        let umpire = path == format!("umpire_dsl::{name}") && name != "matches";
+        if (name == "*" && path != "umpire_dsl::*")
+            || (READ_BY_NAME.contains(&name.as_str()) && !umpire)
+        {
+            return Err(Diagnostic::at(
+                item,
+                format!("`use {path}` can rebind a macro the subset reads as Umpire's"),
+            ));
+        }
+        vector |= name == "Vector" && path == "imbl::Vector";
+    }
+    Ok(vector)
 }

@@ -16,10 +16,6 @@ pub struct Lifted {
     pub declared_world: bool,
     /// Declared World fields in declaration order.
     pub world_fields: Vec<WorldField>,
-    /// Selected World values, set by the consumer after binding.
-    pub world_values: Option<Vec<Expr>>,
-    /// Complete start states, set by the consumer after binding.
-    pub complete_starts: Option<Vec<Vec<Expr>>>,
     /// The machine module, for refusals that name no narrower node.
     pub location: Diagnostic,
     /// State fields in declaration order.
@@ -38,17 +34,6 @@ pub struct Lifted {
     pub assumptions: Vec<AssumptionDef>,
     /// Supplemental negative claims from golden hooks.
     pub negative: Vec<ClaimDef>,
-    /// The bound concrete catalog, in native catalog order.
-    pub catalog: Option<Vec<Entry>>,
-}
-/// One concrete catalog action: an index into `Lifted::actions` and its payload values.
-#[derive(Clone, Debug)]
-pub struct Entry {
-    pub action: usize,
-    pub values: Vec<Expr>,
-    /// The first catalog ordinal with the same identity, so positional duplicates share one
-    /// observable edge as they share one native catalog equality class.
-    pub ordinal: usize,
 }
 #[derive(Clone, Debug)]
 pub struct FieldDef {
@@ -104,15 +89,7 @@ pub struct InputField {
     /// Field name, or its position in a tuple variant.
     pub name: String,
     pub ty: Type,
-    pub domain: InputDomain,
     pub location: Diagnostic,
-}
-#[derive(Clone, Debug)]
-pub enum InputDomain {
-    /// Values the source declares, in order, including positional duplicates.
-    Values(Vec<Expr>),
-    /// A World-dependent `#[domain]` function, whose values the selected binding supplies.
-    World,
 }
 /// A concrete action named in an assumption: a variant and its exact payload values.
 #[derive(Clone, Debug, PartialEq, Eq)]

@@ -235,24 +235,10 @@ fn unsupported_input_sources_refuse_by_location() -> Result<(), Box<dyn std::err
     for (from, to, message) in [
         ("Hold,", "Hold, Text(#[inputs([1])] String),", "unsupported type `String`"),
         ("Hold,", "Hold, Raw(u8),", "User::Raw field `0` requires #[inputs]"),
-        ("#[derive(Finite)] enum Color", "enum Color", "its type has no admitted Finite domain"),
         (
             "Take(#[domain(slots)] u8)",
             "Take(#[domain(slots)] #[inputs(0..=1)] u8)",
             "declares both #[inputs] and #[domain]",
-        ),
-        // `slots` stays referenced, so only the unknown function refuses.
-        (
-            "Take(#[domain(slots)] u8)",
-            "Take(#[domain(missing)] u8, #[domain(slots)] u8)",
-            "#[domain(missing)] names no local function",
-        ),
-        ("Take(#[domain(slots)] u8)", "Take(#[domain(slots)] u16)", "item type differs"),
-        ("fn slots(world: &World)", "fn slots(world: World)", "a #[domain] function is fn(&World)"),
-        (
-            "-> impl Iterator<Item = u8> { 0..",
-            "-> Vec<u8> { 0..",
-            "a #[domain] function is fn(&World)",
         ),
         // A free function no `#[domain]` names is no admitted declaration.
         (
@@ -260,14 +246,7 @@ fn unsupported_input_sources_refuse_by_location() -> Result<(), Box<dyn std::err
             "fn helper() {}",
             "unsupported declaration in machine module",
         ),
-        ("#[inputs([1, 1, 3])] u8", "#[inputs([1, limit + 1])] u8", "must be literals"),
         ("#[inputs([1, 1, 3])] u8", "#[inputs(0..)] u8", "requires a bounded range or finite list"),
-        ("#[inputs([1, 1, 3])] u8", "#[inputs(0..=4096)] u16", "above the catalog limit 4096"),
-        (
-            "Never(#[inputs(1..1)] u8)",
-            "Never(#[inputs(0..=100)] u8, #[inputs(0..=100)] u8)",
-            "action catalog has 10210 concrete actions",
-        ),
         (
             "User::Take(..) => stay!(),",
             "User::Take(ref slot) => stay!(),",
@@ -362,8 +341,7 @@ fn inputs_without_a_declared_world_refuse_at_the_variant() -> Result<(), Box<dyn
 }
 
 #[test]
-fn the_catalog_limit_admits_its_boundary_and_refuses_one_more()
--> Result<(), Box<dyn std::error::Error>> {
+fn the_catalog_limit_boundary_binds_and_emits() -> Result<(), Box<dyn std::error::Error>> {
     // Nine static actions plus the World-sized Take variant.
     let boundary = INPUTS.replace("Hold,", "Hold, Big(#[inputs(0..=4086)] u16),");
     let lifted = Lift::parse("picks/model.rs", &boundary)?;
@@ -376,12 +354,7 @@ fn the_catalog_limit_admits_its_boundary_and_refuses_one_more()
     let mut selected = binding(0);
     big(&mut selected.actions);
     assert_eq!(Tla::emit(&lifted.bind(&selected)?)?.metadata.catalog.len(), 4096);
-    // A bound catalog over the limit never reaches binding: the native checked catalog refuses it.
-    let error = Lift::parse("picks/model.rs", &boundary.replace("0..=4086", "0..=4087"))
-        .err()
-        .ok_or("4097 static actions admitted")?;
-    located(&error);
-    assert!(error.message.contains("has 4097 concrete actions"), "{error}");
+    // A catalog over the limit never reaches binding: the native checked catalog refuses it.
     Ok(())
 }
 
@@ -393,5 +366,21 @@ fn internal_payload_actors_keep_their_classification() -> Result<(), Box<dyn std
     assert!(module.metadata.actions.iter().all(|action| action.internal));
     assert_eq!(module.metadata.actions[0].fields.len(), 2);
     assert!(!module.tla.contains("WF_vars(User_Set)"));
+    Ok(())
+}
+
+#[test]
+fn native_domain_forms_lift_from_the_bound_catalog() -> Result<(), Box<dyn std::error::Error>> {
+    // The catalog comes from the compiled Model, so any domain the native derive accepts lifts:
+    // a `#[domain]` function returning any iterator, and computed `#[inputs]` values.
+    let source = INPUTS
+        .replace(
+            "fn slots(world: &World) -> impl Iterator<Item = u8> { 0..world.slots }",
+            "fn slots(world: &World) -> std::ops::RangeInclusive<u8> { 0..=world.slots }",
+        )
+        .replace("#[inputs([1, 1, 3])] u8", "#[inputs([1, 1, limit])] u8");
+    let lifted = Lift::parse("picks/model.rs", &source)?;
+    let module = Tla::emit(&lifted.bind(&binding(2))?)?;
+    assert_eq!(module.metadata.catalog.len(), catalog(2).len());
     Ok(())
 }

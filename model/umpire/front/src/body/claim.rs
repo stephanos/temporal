@@ -50,7 +50,12 @@ impl Environment {
         }
         self.claim(&method.block, &self.field_env(true), &env, 0)
     }
-    pub(crate) fn supplemental(&self, mac: &syn::Macro, initial: &Env) -> Result<Vec<ClaimDef>> {
+    /// A hook's negative claims, each with the location of its name.
+    pub(crate) fn supplemental(
+        &self,
+        mac: &syn::Macro,
+        initial: &Env,
+    ) -> Result<Vec<(ClaimDef, Diagnostic)>> {
         let mut negative = Vec::new();
         let args = mac
             .parse_body_with(
@@ -84,10 +89,13 @@ impl Environment {
                         }
                     }
                 }
-                negative.push(ClaimDef {
-                    name: name.value(),
-                    expr: self.expr(&closure.body, initial, &env, Some(&Type::Bool), 0)?,
-                });
+                negative.push((
+                    ClaimDef {
+                        name: name.value(),
+                        expr: self.expr(&closure.body, initial, &env, Some(&Type::Bool), 0)?,
+                    },
+                    Diagnostic::at(name, ""),
+                ));
             }
         }
         Ok(negative)
