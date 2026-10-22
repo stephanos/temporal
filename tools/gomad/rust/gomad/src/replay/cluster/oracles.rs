@@ -465,6 +465,31 @@ mod replay_tests {
     };
     use serde_json::Value;
 
+    fn history_report() -> Report {
+        Report {
+            schema: "gomad.cluster-oracles/v1",
+            outcome: "completed",
+            reason: "",
+            failure_identity: String::new(),
+            oracles: vec![Oracle {
+                name: "history".into(),
+                assessment: Assessment {
+                    passed: true,
+                    inconclusive: false,
+                },
+                soft_assertion: false,
+                report_only: false,
+                evidence: vec![Evidence {
+                    label: "history".into(),
+                    value: "committed".into(),
+                    full_sha256: canonical::digest(b"committed"),
+                }],
+                failure_identity: String::new(),
+                identity: canonical::digest(b"history"),
+            }],
+        }
+    }
+
     #[test]
     fn replay_compares_actual_canonical_cluster_oracle_report() {
         let mut outcome = linked::Outcome::new("exit", "");
@@ -475,32 +500,7 @@ mod replay_tests {
             evidence: BTreeMap::new(),
             event_order: None,
         };
-        apply(
-            &mut observed,
-            &Report {
-                schema: "gomad.cluster-oracles/v1",
-                outcome: "completed",
-                reason: "",
-                failure_identity: String::new(),
-                oracles: vec![Oracle {
-                    name: "history".into(),
-                    assessment: Assessment {
-                        passed: true,
-                        inconclusive: false,
-                    },
-                    soft_assertion: false,
-                    report_only: false,
-                    evidence: vec![Evidence {
-                        label: "history".into(),
-                        value: "committed".into(),
-                        full_sha256: canonical::digest(b"committed"),
-                    }],
-                    failure_identity: String::new(),
-                    identity: canonical::digest(b"history"),
-                }],
-            },
-        )
-        .unwrap();
+        apply(&mut observed, &history_report()).unwrap();
         let identity = Identity {
             target: canonical::digest(b"target"),
             toolchain: canonical::digest(b"toolchain"),
