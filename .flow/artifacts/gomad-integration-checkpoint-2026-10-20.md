@@ -1481,3 +1481,17 @@ The corpus now has two cases with binary-unit pins in
 - a true 6.1 GiB (6,549,825,126-byte) window: cold exceeded.
 
 The lane writes every memory check in bytes and GiB to `memory.txt`.
+### fn232.7 seed campaign closure (worker A, 2026-10-21)
+
+fn232.7 is done. Conductor decision (owner-delegated): frozen Go WASM has no positive
+plan/execute-shard/merge surface. Its public CLI lacks the verbs (status 2), and the original Runner
+API refuses the WASM bundle layout (status 3). The campaign reference verifies both refusals exactly;
+Rust execute-shard/merge views are compared against the fresh unsharded Go public explore view, while
+Go explore/resume keep positive parity. On fresh fixture 31b3187b: regeneration1b and regeneration2
+are byte-identical; strict and strict2 pass. Lane corrections: the merge failure-case status now
+matches the other verbs, and the identity refusal now reaches validation on a resumable prefix with
+a control. Golden deltas are identity rotation plus fn230 v4 trace keys. Codex review: NEEDS_WORK,
+fixed, then re-review SHIP. Evidence: `/home/agent/wt/evidence/fn232-campaign-closeout`. Commits
+92e583b3f0, 5d7c29f10a on fn232-campaign. .8 is now running on branch fn232-exploration-closeout,
+including the fn-227 R1/R2 receiving work.
+

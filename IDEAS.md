@@ -1,3 +1,4 @@
 - use build tags to cut down on dependencies we don't need in the WASM module (e.g. elasticsearch)
 - a data race detector
 - can we record external data and replay it; eg for Java SDK
+- split the Rust helper (gomad-wasmhost) into a few crates (model/world, network, cluster, ABI) with per-crate implementation identities, so a cluster-only change stops staling every replay/minimize/inspect golden via GOMAD_LINKED_IMPLEMENTATION_SHA256; changes the identity contract, needs its own spec and owner sign-off
