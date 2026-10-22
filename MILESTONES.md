@@ -147,7 +147,7 @@ The review passed; each consumer still waits for its declared support dependenci
 
 | Name | Status | What |
 | --- | --- | --- |
-| fn-227.6 | ⬜ todo | After .5: DESIGN.md parameterized worlds, inputs and retries write-up and readiness table closure (R7) |
+| fn-227.6 | 🔄 in progress | After .5: DESIGN.md parameterized worlds, inputs and retries write-up and readiness table closure (R7) |
 
 ### fn-238: Shared front end: one Model reading for the native checker and the lifter (model)
 

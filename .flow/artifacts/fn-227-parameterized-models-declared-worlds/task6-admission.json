@@ -1,0 +1,18 @@
+{
+  "task": "fn-227-parameterized-models-declared-worlds.6",
+  "integrated_predecessor_closure": "232677d27512732bf17fca730541216f8ae9f77b",
+  "conductor_verification": "3664f9353b",
+  "scheduling": "single-worker sequential chain; current branch umpire per AGENTS.md",
+  "tier_line": "Tier: session (jev-unavailable(no_key))",
+  "implementer_override": "gpt-6.1-sol at medium (AGENTS.md Codex implementer routing)",
+  "review": "codex:gpt-6.1-sol:high; fresh context, same family",
+  "baseline": "No BASELINE_HANDOFF: milestone edit and different documentation Quick. Focused pre-edit baseline only, no redundant full baseline.",
+  "scope": "R7 documentation/readiness plus one exact compiled README example; no production behavior, protocol or dependency change. Parent completion remains root-owned.",
+  "preflight": ".flow/tmp/fn-227.6/conductor-preflight.json; read-only observations to reanchor, not a substitute for task/spec.",
+  "prior_current_guest_sha256": "f832a33c3024a8752976d146be839b62a95afde4790fa0db60f1dac9004b4e7e",
+  "live_proof": "Task5 current delayed seven-scenario slice and actual gaps passed. Reuse only with exact guest/surface proof for documentation/test-only changes; do not invent current cross-platform recertification.",
+  "disk_free_gib_approx": 98,
+  "plan_sync": "disabled",
+  "tracker_sync": "inactive",
+  "publication": "local only; no push or PR"
+}
