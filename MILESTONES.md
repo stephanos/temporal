@@ -82,12 +82,13 @@ The reviewed plan covers generic catalog/code-generation extraction, selected li
 without changing the canonical Model, and differential healthy-versus-mutant detection.
 Shared catalog/descriptor tooling and realization envelopes are extracted (.1), with unchanged
 Model/semantic goldens, full model/live gates and three implementation review passes green.
+The selected-start runtime and healthy Kettle service (.2) are complete with an exact live
+transcript, unchanged canonical goldens, full gate and all three review passes green.
 [Spec](.flow/specs/fn-233-kettle-service-a-framework-owned-end-to.md).
 
 | Name | Status | What |
 | --- | --- | --- |
-| fn-233.2 | 🔄 in progress | Kettle service proto, Go reference server, realization, guest, selected-start Judge/Answer live run with exact RPC projections and transcript golden (R2) |
-| fn-233.3 | ⬜ todo | Kettle `derive(Catalog)` catalog, `config.rs`, Annotate in the live run, `coverage.snap` and `gaps.txt` (R3, R5) |
+| fn-233.3 | 🔄 in progress | Kettle `derive(Catalog)` catalog, `config.rs`, Annotate in the live run, `coverage.snap` and `gaps.txt` (R3, R5) |
 | fn-233.4 | ⬜ todo | Seeded mutants, one-line switches, each named by the framework in `mutants.snap.txt` (R4) |
 
 ### fn-227: Parameterized Models: declared worlds, action inputs, and the activity Model with retries (model, temporal)
