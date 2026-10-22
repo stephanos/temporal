@@ -139,13 +139,14 @@ optional typed module metadata. That merge exposed a receiver gap: receipt
 validation restored module/provenance and checked typed canonical provenance,
 but bypassed the shared actual-module metadata authenticator. The source-only
 integration patch is
-`.flow/artifacts/fn232-11-receipt-metadata-integration.patch`. It parses the
+`.flow/artifacts/fn232-11-receipt-metadata-integration.patch`. Its private `authenticate_provenance_module` wrapper parses the
 actual retained optional metadata after canonical typed admission and calls
 `prepare::authenticate_module_metadata(top, inputs, module)`. That existing
 owner binds the typed top-level value to its input preimage and actual WASM
 imports/memory pages; no metadata algorithm is duplicated. Its honest legacy
 `None`/absent-input admission remains unchanged. Fresh preparation emits actual
-metadata. The isolated branch deliberately does not reference the not-yet-
+metadata. The wrapper keeps the existing 100-line receipt validator unchanged in size.
+The isolated branch deliberately does not reference the not-yet-
 received live API in compiled source; root applies the narrow patch to the
 merged production owner.
 
