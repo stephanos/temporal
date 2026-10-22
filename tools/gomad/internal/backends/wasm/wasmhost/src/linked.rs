@@ -315,6 +315,7 @@ pub fn execute_prepared(prepared: Prepared) -> wasmtime::Result<Execution> {
     if let Some(model) = &mut model {
         model.linked_evidence = Some(sink.clone());
     }
+    let preparation = std::time::Instant::now();
     let engine = Engine::new(&engine::configuration(true))?;
     let _registration = cancellation.attach(&engine, None)?;
     let timed_out = AtomicBool::new(false);
@@ -328,8 +329,14 @@ pub fn execute_prepared(prepared: Prepared) -> wasmtime::Result<Execution> {
                 .and_then(|module| engine::describe_module(&execute, module))
             {
                 Ok((module, _)) => module,
-                Err(outcome) => return Ok(outcome),
+                Err(mut outcome) => {
+                    metrics.prepare_nanos = crate::metrics::elapsed(preparation);
+                    metrics.sample_process();
+                    outcome.metrics = Some(Box::new(metrics));
+                    return Ok(outcome);
+                }
             };
+            metrics.prepare_nanos = crate::metrics::elapsed(preparation);
             let mut store = Store::new(
                 &engine,
                 engine::new_state(
@@ -352,10 +359,15 @@ pub fn execute_prepared(prepared: Prepared) -> wasmtime::Result<Execution> {
                 Err(Error::msg("execution watchdog timeout"))
             } else {
                 (|| {
-                    let instance = linker.instantiate(&mut store, &module)?;
-                    instance
-                        .get_typed_func::<(), ()>(&mut store, "_start")?
-                        .call(&mut store, ())
+                    let phase = std::time::Instant::now();
+                    let instance = linker.instantiate(&mut store, &module);
+                    metrics.instantiate_nanos = crate::metrics::elapsed(phase);
+                    let instance = instance?;
+                    let start = instance.get_typed_func::<(), ()>(&mut store, "_start")?;
+                    let phase = std::time::Instant::now();
+                    let executed = start.call(&mut store, ());
+                    metrics.execute_nanos = crate::metrics::elapsed(phase);
+                    executed
                 })()
             };
             let mut outcome = engine::terminal_outcome(&mut store, executed, request.limits.fuel)?;
@@ -380,6 +392,8 @@ pub fn execute_prepared(prepared: Prepared) -> wasmtime::Result<Execution> {
                 outcome.exit_code = None;
                 outcome.message = error.to_string();
             }
+            metrics.sample_process();
+            outcome.metrics = Some(Box::new(metrics));
             Ok(outcome)
         })();
         drop(done);
@@ -417,5 +431,41 @@ fn apply_watchdog(timed_out: &AtomicBool, outcome: &mut Outcome) {
         outcome.termination = "watchdog_timeout";
         outcome.exit_code = None;
         outcome.message = "execution watchdog timeout".into();
+    }
+}
+
+#[cfg(test)]
+mod live_metrics_tests {
+    use super::*;
+
+    #[test]
+    fn linked_terminal_retains_actual_phase_and_process_metrics() {
+        let module = b"(module (memory (export \"memory\") 1) (func (export \"_start\")))".to_vec();
+        let result = execute(Request {
+            module_sha256: format!("{:x}", Sha256::digest(&module)),
+            module,
+            limits: Limits {
+                memory_bytes: 65536,
+                fuel: 1000,
+                output_bytes: 1024,
+                evidence_bytes: 4096,
+                wall_timeout: Duration::from_secs(5),
+            },
+            model: None,
+            namespace: None,
+            storage: None,
+        })
+        .unwrap();
+        assert_eq!(result.outcome.termination, "exit");
+        let metrics = result
+            .outcome
+            .metrics
+            .expect("linked phase metrics missing");
+        assert!(metrics.prepare_nanos > 0);
+        assert!(metrics.compile_nanos > 0);
+        assert!(metrics.instantiate_nanos > 0);
+        assert!(metrics.execute_nanos > 0);
+        assert!(metrics.resource_usage_available);
+        assert!(metrics.peak_rss_bytes > 0);
     }
 }
