@@ -1277,3 +1277,122 @@ fn symbolize_bounds_nested_data_before_parser_control_allocation() {
         Err(Reason::SymbolTableTooLarge)
     ));
 }
+
+#[test]
+fn symbolize_integer_reads_charge_one_lookup_for_contiguous_data() {
+    let segments = (0..4096)
+        .map(|index| bytes::Segment {
+            start: index * 16,
+            bytes: &[1; 8],
+        })
+        .collect();
+    let memory = bytes::Memory {
+        segments,
+        end: 65536,
+    };
+    let mut comparisons = 0;
+    let _ = memory.segments.partition_point(|segment| {
+        comparisons += 1;
+        segment.start <= 32768
+    });
+    let initial = bytes::STEP_LIMIT - comparisons - 8;
+    let mut budget = bytes::Budget {
+        steps: initial,
+        entries: bytes::ENTRY_LIMIT,
+        ..Default::default()
+    };
+    assert_eq!(memory.uint::<8>(32768, &mut budget).unwrap(), [1; 8]);
+    assert_eq!(budget.bytes, 8);
+    assert_eq!(budget.steps, bytes::STEP_LIMIT);
+    assert_eq!(budget.entries, bytes::ENTRY_LIMIT);
+    let mut exhausted = bytes::Budget {
+        steps: initial + 1,
+        ..Default::default()
+    };
+    assert_eq!(
+        memory.uint::<8>(32768, &mut exhausted),
+        Err(Reason::SymbolTableTooLarge)
+    );
+}
+
+#[test]
+fn symbolize_integer_reads_span_segments_gaps_and_preserve_boundaries() {
+    let memory = bytes::Memory {
+        segments: vec![
+            bytes::Segment {
+                start: 2,
+                bytes: &[1, 2],
+            },
+            bytes::Segment {
+                start: 4,
+                bytes: &[3, 4],
+            },
+            bytes::Segment {
+                start: 8,
+                bytes: &[5],
+            },
+            bytes::Segment {
+                start: 11,
+                bytes: &[6],
+            },
+        ],
+        end: 12,
+    };
+    let mut budget = bytes::Budget::default();
+    assert_eq!(
+        memory.uint::<12>(0, &mut budget).unwrap(),
+        [0, 0, 1, 2, 3, 4, 0, 0, 5, 0, 0, 6]
+    );
+    assert_eq!(budget.bytes, 12);
+    assert_eq!(
+        memory.u32(2, &mut bytes::Budget::default()).unwrap(),
+        0x0403_0201
+    );
+    assert_eq!(
+        memory.uint::<1>(11, &mut bytes::Budget::default()).unwrap(),
+        [6]
+    );
+    for address in [11, 12, 13] {
+        assert_eq!(
+            memory.uint::<2>(address, &mut bytes::Budget::default()),
+            Err(Reason::SymbolMismatch)
+        );
+    }
+    let framing = bytes::Memory {
+        segments: memory.segments.clone(),
+        end: 20,
+    };
+    assert_eq!(
+        framing
+            .uint::<16>(1, &mut bytes::Budget::default())
+            .unwrap(),
+        [0, 1, 2, 3, 4, 0, 0, 5, 0, 0, 6, 0, 0, 0, 0, 0]
+    );
+    let mut zero = bytes::Budget::default();
+    assert_eq!(memory.uint::<0>(u64::MAX, &mut zero).unwrap(), [0_u8; 0]);
+    assert_eq!((zero.bytes, zero.steps), (0, 0));
+    assert_eq!(
+        memory.uint::<1>(u64::MAX, &mut bytes::Budget::default()),
+        Err(Reason::SymbolTableTooLarge)
+    );
+    assert_eq!(
+        memory.uint::<8>(u64::MAX - 2, &mut bytes::Budget::default()),
+        Err(Reason::SymbolMismatch)
+    );
+    let enormous = bytes::Memory {
+        segments: vec![],
+        end: u64::MAX,
+    };
+    assert_eq!(
+        enormous.uint::<4>(u64::MAX - 2, &mut bytes::Budget::default()),
+        Err(Reason::SymbolTableTooLarge)
+    );
+    let mut bytes_exhausted = bytes::Budget {
+        bytes: bytes::BYTE_LIMIT - 3,
+        ..Default::default()
+    };
+    assert_eq!(
+        memory.uint::<4>(2, &mut bytes_exhausted),
+        Err(Reason::SymbolTableTooLarge)
+    );
+}

@@ -396,3 +396,55 @@ target. It was stopped with exit 143 before tests (not counted as RED), and its
 private path/ownership were verified. The existing warmed target was preserved.
 Correct target RED session 56991 exited 101; GREEN session 11814 exited 0.
 The affected suite ran to immediate exit 0. No target process remains owned.
+
+
+## Actual scoped guest decoder budget correction
+
+The corrected nested-module scope attempt used immutable fixture `b22999a9...`,
+binary source ece8d8c089 and driver/checkpoint HEAD f694270661. Scope01 session
+70239 (launcher 3265681/driver 3265724) exited 1 after 29.16 seconds, bindings
+unchanged; no retries or semantic generation followed. The real scoped base
+completed successfully but stopped `site_scope_empty`: its site 5750 had cached
+package `None`. Read-only retained inspection identified
+`symbol_table_too_large`, rather than a wrong package pattern. Original receipts
+remain in `/home/agent/wt/evidence/fn231-public-modulefix`.
+
+The genuine retained failing-guest module is 2533702 bytes, SHA-256
+`88414b72a129853c6f475bc1325ca658a8a2de69ee3f3da8bddfc1ac6ca1f5a2`,
+with 27830 data segments and 1655 functions. A diagnostic checkout at exact
+f694270661 reproduced the decoder failure without Go or guest execution:
+`Module::read` passed with 1375531 steps; `Tables::read` exhausted the unchanged
+16777216-step cap at 16777219 steps, 11417515 bytes and 117907 entries. The
+preserved diagnostic stack identified `Memory::byte -> Memory::u32 ->
+Tables::read`: each fixed-width integer searched the sparse segment index again
+for every byte. No symbol-site resolution was reached.
+
+`Memory::uint` now looks up each contiguous segment or zero-filled gap once and
+copies that bounded run. It charges each material byte and the comparisons
+actually performed. All numeric byte/entry/step caps are unchanged. Original
+zero-length reads, zero-filled holes, adjacent segments, end/range/overflow
+errors and fixed 16-byte metadata framing remain covered. Portable regressions
+prove one lookup per contiguous read, exact charges and exhaustion, as well as
+the sparse-boundary cases. There is no unbounded segment walk, budget increase,
+pattern change, Go guest translation or acceptance-predicate change.
+
+Causal RED session 14457 exited 101 on the actual authenticated module/table
+cap. GREEN session 35013 exited 0 and resolved site 5750 to package `main`,
+function `choose`, file `gomad.wasm.exploration.fixture/main.go`, line 6, with
+inline caller `main.main`. Table parsing finished at 15436416 steps; complete
+site resolution at 15445910 steps, 12309786 bytes and 129537 entries, within all
+original caps. The first RED attempt (48128) had a test-only empty-array type
+ambiguity; after typing `[0_u8; 0]`, the intended causal RED was reached.
+
+Raw logs: `/home/agent/evidence/fn231-uint-retained-red-2.log`,
+`fn231-uint-retained-green.log`, `fn231-uint-symbolize-suite.log` and
+`fn231-uint-metadata-suite.log`. Entire symbolizer filter exited 0 with 50 tests,
+including all six build-info framing/uniqueness/overlap/budget cases and the
+forensic actual-module test. Metadata filter exited 0 with seven passed and one
+existing ignored test. Workspace format and diff checks exited 0. The absolute
+path diagnostic and all temporary budget tracing were removed from final source;
+the exact forensic test is retained externally as
+`/home/agent/evidence/fn231-uint-retained-diagnostic-test.rs`. Production source
+and portable regressions await independent review and integrated strict gates.
+No Go, guest or new fixture ran for this fix, and no global instrumentation was
+committed.
