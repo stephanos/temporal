@@ -163,14 +163,18 @@ workspace crates no longer stale the guest; timing 50.199s gate, 6.128s inner lo
 .3 is complete locally: the macros read Models only through `umpire-front` (dsl/macros
 3,306 -> 2,153 lines). Net size was flat because most measured lifter "duplication" was lowering
 rustc does natively; .4's deletion of the source re-read and re-validation is where lines drop.
+.4's review found Option A met its structure (one reading, one diagnostic, cheap new back ends)
+but not its size (about +336 lines against -850 to -1,600 promised), and that it halves cost only
+for declaration-level constructs. Option B would make body-level constructs cost more, so .5 and
+.6 are deferred until a concrete need appears; the owner may revive them.
 [Spec](.flow/specs/fn-238-shared-front-end-one-model-reading-for.md).
 
 | Name | Status | What |
 | --- | --- | --- |
 | fn-238.4 | 🔄 in progress | After .3: macro embeds the admitted Model; lifter emits from it, no `model.rs` re-read (R2-R4) |
-| fn-238.5 | ⬜ todo | After .4: interpreted checker as a differential check (R2, R3) |
-| fn-238.6 | ⬜ todo | After .5: interpreted checker by default only if at most 2x slower and at most 25% more per-construct cost (R2, R3) |
-| fn-238.7 | ⬜ todo | After .4 (and .6 if taken): boundary write-up and measurements (R4) |
+| fn-238.5 | ⏸️ deferred | Deferred 2026-10-22 (conductor, reversible): interpreted checker as a differential check; revive on a concrete need such as checker speed (R2, R3) |
+| fn-238.6 | ⏸️ deferred | Deferred with .5: interpreted checker by default behind the 2x / 25% gate (R2, R3) |
+| fn-238.7 | ⬜ todo | After .4: boundary write-up with measured line counts and per-construct cost (R4) |
 
 ### fn-239: Renew the Linux/macOS guest byte-identity certification (model)
 
