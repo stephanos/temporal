@@ -24,3 +24,11 @@ TBD
 - Commits:
 - Tests:
 - PRs:
+
+### Rerun in progress, stopped by owner, 2026-10-22 (conductor note)
+Conductor decision (owner-delegated): rerun only the 344 load-sensitive units, the 337 helper-link-count infrastructure rows plus the 7 wall-clock timeouts, on the same candidate `1d7b37f00a`. Merge the new rows into `evidence/fn221/full-1d7b37f00a`; the other 1144 rows stand as observed. Guest outcomes are deterministic on the modeled clock, so only wall-clock-bound classes depend on host load.
+- **Run root:** `/home/agent/wt/evidence/fn221/rerun-20261022T1705Z`. To resume, follow its `RESUME.md`: rerun the harness command in `command.txt` against the same journal, not the launcher.
+- **Kept for the resume:** the source worktree `/home/agent/wt/fn221-rerun-src` (clean, detached at `1d7b37f00a`) and the artifact worktree `/home/agent/wt/fn221-matrix`.
+- **Compiler:** the Go 1.27.1 tree was copied to `evidence/fn221/rerun-tools/go1.27.1` because the original path was removed. All 2217 provenance-listed toolchain files hash identical, and the candidate key matched. The conductor accepted this.
+- **Progress:** 4 of 344 done, all former timeouts. Each is now capacity-exceeded (WASI network-v2-evidence-bytes) inside the 3m budget; flag this in the artifact. 340 remain: 3 timeouts and 337 infrastructure.
+- **Before the merge:** `merge-check.py` must accept multiple journal headers. Ignore the abandoned attempt in `rerun-20261022T1509Z`.
