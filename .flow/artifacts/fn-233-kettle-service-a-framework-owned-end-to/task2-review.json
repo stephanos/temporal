@@ -1,0 +1,51 @@
+{
+  "base": "82ce151d4c8f634012a527f6001ca7f84cab04ed",
+  "draws": [
+    {
+      "axis": "correctness",
+      "failed": false,
+      "model": "gpt-6.1-sol",
+      "session_id": "01a164d1-68c1-7252-a292-898869e6726d",
+      "verdict": "SHIP"
+    },
+    {
+      "axis": "contracts",
+      "failed": false,
+      "model": "gpt-6.1-sol",
+      "session_id": "01a164d1-68ce-7212-b25a-26a4f99fd5bb",
+      "verdict": "SHIP"
+    },
+    {
+      "axis": "integration",
+      "failed": false,
+      "model": "gpt-6.1-sol",
+      "session_id": "01a164d1-68f6-78b1-aee7-25f64068ddc8",
+      "verdict": "SHIP"
+    }
+  ],
+  "effort": "high",
+  "findings": {
+    "backend": "codex",
+    "baseSha": "82ce151d4c8f634012a527f6001ca7f84cab04ed",
+    "headSha": "b276db05e3205d743f88144f1eba7f0c772bc083",
+    "items": [],
+    "reviewKind": "implementation",
+    "round": 1,
+    "schemaVersion": 1,
+    "sourceReceiptId": "review-0fcc24871376d1ac345545b3fca61e9a419fa19d66ca2669ccac227b0a4a2389"
+  },
+  "id": "fn-233-kettle-service-a-framework-owned-end-to.2",
+  "introduced_count": 0,
+  "mode": "codex",
+  "model": "gpt-6.1-sol",
+  "pre_existing_count": 0,
+  "review": "No findings.\n\n```json\n{\"classification_counts\": {\"introduced\": 0, \"pre_existing\": 0}, \"unaddressed\": [], \"suppressed_count\": {}}\n```\n\n<verdict>SHIP</verdict>\n",
+  "review_reservation_id": "87ab1e54159247c2aeff8c40e496466b",
+  "rid": "87ab1e54159247c2aeff8c40e496466b",
+  "session_id": "01a164d1-68c1-7252-a292-898869e6726d",
+  "spec": "codex:gpt-6.1-sol:high",
+  "timestamp": "2026-10-22T18:15:59.584712Z",
+  "type": "impl_review",
+  "unaddressed": [],
+  "verdict": "SHIP"
+}

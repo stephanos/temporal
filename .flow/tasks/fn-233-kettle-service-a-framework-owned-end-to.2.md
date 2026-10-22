@@ -26,10 +26,27 @@ Implement the parent's explicit RPC mapping and healthy trace. Describe is curre
 
 
 ## Done summary
-TBD
+Kettle now runs its complete healthy client/heater trace through the generic Go host, Judge and Answer, with exact receipt commits and a pinned transcript. Runtime::with_initial validates complete declared-start membership and transactional Reset preserves the selected start; Explore retains all 81 canonical starts.
 
+The independent Go service lives at model/umpire/hosts/go/reference/kettle, with generated API at reference/kettle/v1. Its schema exercises nested messages, enum, oneof, map, repeated, duration, bytes, a deprecated field, and an idempotency key. Named validators enforce static ID and per-kettle tag limits. Mutant names exist as no-op options for task .4; the catalog and Annotate remain task .3.
+
+baseline: green focused runtime (10 stateful tests) and configured Go host suite before edits. Initial wrong-cwd and missing-profile-env invocations were inconclusive/red harness invocations and were corrected before implementation.
+
+Verification covers invalid selected starts, legacy zero/multiple starts, Reset after freeze, failed and panicking response publication, healthy Heat(false), 80 Heat receipts, Failover, neutral Pour, current-only Describe, Answer without commit, premature boil, malformed callbacks/receipts and server rejection without mutation. Focused runtime tests (13), native Kettle tests (6), Go live tests and server race tests pass. make model-check passes, including both Go host modules. Canonical Kettle Model and goldens are unchanged; the reference report matches the canonical report byte for byte.
+
+The full gate took 426.52 seconds, above the R30 60-second soft target while rebuilding existing compile-failure fixtures and guest profiles. Added live tests took 0.525 seconds; the first Kettle guest build took 25.81 seconds and a warm rebuild 2.38 seconds. Measurements and verification metadata live in .flow/artifacts/fn-233-kettle-service-a-framework-owned-end-to/task2-verification.json.
+
+Task-base root lint with GOLANGCI_LINT_FIX=false and strict changed-line submodule lint pass. The initial default root lint selected inherited changes and applied unrelated autofixes; all ten induced edits were restored after preserving their patch in .flow/tmp/fn-233/task2-unrelated-lint-autofixes.patch. No such edit shipped.
+
+Review returned SHIP on correctness, contracts and integration, with zero findings. The reviewer ran gpt-6.1-sol at high in fresh read-only contexts; writer and reviewer are from the same family by explicit repository routing. Review evidence is .flow/artifacts/fn-233-kettle-service-a-framework-owned-end-to/task2-review.json and task2-review-<axis>.md.
+
+GATE_SKIPPED:unittest:green-receipt b276db05 - verification reused prior post-gate pass
+
+Tier: session (jev-unavailable(no_key)); repository implementer override gpt-6.1-sol at medium.
+stage: impl-review - ran (model: gpt-6.1-sol at high; same-family; SHIP)
+
+stage: plan-sync - skipped(config: planSync.enabled != true)
 ## Evidence
-- Commits:
-- Tests:
+- Commits: 683f85f0fb983a73a59d918c30de0968cbdc140a, b276db05e3205d743f88144f1eba7f0c772bc083
+- Tests: cd model && mise exec -- cargo test -p umpire-wasm --test selected_start --test stateful, cd model && mise exec -- cargo test -p umpire-reference-kettle, cd model/umpire/hosts/go && mise exec -- go test -race -tags test_dep ./reference/kettle/..., cd model/umpire/hosts/go && mise exec -- go test -tags test_dep -count=1 -run ^TestKettle ., bash model/scripts/proto-kettle-go.sh --check, make model-check, make lint-code-fast GOLANGCI_LINT_BASE_REV=82ce151d4c8f634012a527f6001ca7f84cab04ed GOLANGCI_LINT_FIX=false, cd /Users/stephan/Workspace/skunkworks/umpire/temporal/model/umpire/hosts/go && timeout 600 /Users/stephan/Workspace/skunkworks/umpire/temporal/.bin/golangci-lint-v2.13.1 run --build-tags test_dep --timeout 10m --config /Users/stephan/Workspace/skunkworks/umpire/temporal/.github/.golangci.yml --new-from-patch /Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/fn-233/task2-go.patch ./..., GATE_SKIPPED:unittest:green-receipt b276db05 - verification reused prior post-gate pass
 - PRs:
-
