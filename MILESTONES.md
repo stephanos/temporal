@@ -157,15 +157,17 @@ for declaration-level constructs. Option B would make body-level constructs cost
 .4 is complete locally: the macro embeds the admitted Model and the lifter emits from it, with
 no `model.rs` re-read; core crates 8,297 lines against 8,190 before .2; timing 47.6s gate, 7.3s inner loop.
 .7 recorded the boundary and measurements in [DESIGN.md](model/DESIGN.md#front-end-and-back-ends-fn-238).
-The deferred .5 and .6 remain open. The approved IR token-printer cleanup (.9) is now running
-before fn-227.16 adds IR constructs, as its scheduling rule permits.
+The approved IR token-printer cleanup (.9) is complete locally before fn-227.16 adds IR
+constructs. All 782 golden/snapshot/refusal files and the 26-Model IR/token comparisons
+are exact; slice, gaps and required-TLC gates passed, and all three review draws returned
+SHIP. Production Rust shrank 60 lines against the roughly 190-line estimate. Required gate
+532.677s exceeded its 60s soft target; inner loop 9.272s met 10s. Only deferred .5 and .6 remain open.
 [Spec](.flow/specs/fn-238-shared-front-end-one-model-reading-for.md).
 
 | Name | Status | What |
 | --- | --- | --- |
 | fn-238.5 | ⏸️ deferred | Deferred 2026-10-22 (owner confirmed): interpreted checker as a differential check; revive on a concrete need such as checker speed (R2, R3) |
 | fn-238.6 | ⏸️ deferred | Deferred with .5: interpreted checker by default behind the 2x / 25% gate (R2, R3) |
-| fn-238.9 | 🔄 in progress | Derive the IR token printer instead of hand-writing it (about -190 lines; owner-approved); before fn-227.16 adds IR constructs (R2) |
 
 ### fn-237: Activity timeouts, heartbeat and cooperative cancellation (model, temporal)
 
