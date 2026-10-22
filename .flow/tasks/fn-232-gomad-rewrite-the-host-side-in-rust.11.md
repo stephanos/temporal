@@ -16,6 +16,33 @@ Fresh install pins the same unchanged compiler/runtime/input digests and actual 
 ## Done summary
 TBD
 
+## Autonomous continuation design (2026-10-22)
+
+Resume after .10 acceptance. Extract the existing `campaign/prepare.rs`
+installation representation and resolution into `install`; separate manifest
+admission from compiler/runtime/source admission so discovery survives removal
+of build inputs. Preserve current Rust-manifest consumers while adding the
+operator installation grammar, exclusive mode-0600 publication, pinned offline
+overlay invocation and linked implementation admission. An explicit helper must
+authenticate the same compiled implementation; it never selects execution.
+
+Expose seed `plan --output FILE` through the existing preparation/retention
+owners with zero guest executions and an authenticated portable module receipt.
+This receives fn-222's prepare-only gate. Receive fn-230.1's scoped choice plan
+through the existing scope validator and base-resolution implementation; record
+its necessary base execution explicitly. Keep measured qualification separate.
+Expose `recover` through the existing seed and round journals without executing
+guests. Repeated recovery must become a no-op.
+
+The Go WASM CLI refuses public `plan`, `analyze`, and installation-selected
+`doctor`; preserve those actual refusal lanes. Rust's positive public plan is
+the already-authorized receiving behavior, compared semantically with Go public
+exploration rather than falsely claiming a successful Go public plan. Cover
+installation flags/configuration, resolution precedence, missing or changed
+inputs, linked-helper defaults and mismatches, removed build inputs, publication
+collision, plan receipts/scope and repeated recovery through fresh public CLI
+fixtures, raw authentication and repeated byte-identical golden regeneration.
+
 ## Evidence
 - Commits:
 - Tests:

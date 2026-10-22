@@ -41,8 +41,9 @@ Running and parked both retain Flow's `in_progress` lifecycle status. Running me
 work is executing now; parked means unfinished work with no active execution.
 Parking neither completes acceptance nor waives dependencies.
 
-Execution scope (2026-10-21): finish the running fn-232.6 replay closeout, then stop.
-Do not start the parked or todo tasks as part of this closeout.
+Execution scope (2026-10-22): complete this delivery ladder in dependency order.
+The owner's autonomous continuation supersedes the earlier replay-only closeout;
+use the documented recommendations when a routine implementation decision is needed.
 
 Work a spec with `/flow-next:work <spec>`; list ready tasks with `flowctl ready`.
 Record a deferred task's revival trigger in its owning Flow task before implementation.
@@ -307,9 +308,9 @@ First in the delivery order (owner decision 2026-10-20). New evidence lineage; b
 
 | Name / ID | Status | Description |
 | --- | --- | --- |
-| [fn-232-gomad-rewrite-the-host-side-in-rust.10](.flow/tasks/fn-232-gomad-rewrite-the-host-side-in-rust.10.md) | ⏸ Parked | qualify and report in Rust |
+| [fn-232-gomad-rewrite-the-host-side-in-rust.10](.flow/tasks/fn-232-gomad-rewrite-the-host-side-in-rust.10.md) | ▶ Running | qualify and report in Rust; close remaining public refusal/parity acceptance |
 | [fn-232-gomad-rewrite-the-host-side-in-rust.11](.flow/tasks/fn-232-gomad-rewrite-the-host-side-in-rust.11.md) | ⬜ Todo | install, doctor, discover, plan and recover in Rust |
-| [fn-232-gomad-rewrite-the-host-side-in-rust.12](.flow/tasks/fn-232-gomad-rewrite-the-host-side-in-rust.12.md) | ⬜ Todo | Keep Go overlay, models, generator and corpora green under the Rust binary |
+| [fn-232-gomad-rewrite-the-host-side-in-rust.12](.flow/tasks/fn-232-gomad-rewrite-the-host-side-in-rust.12.md) | ▶ Running | Keep Go overlay, models, generator and corpora green under the Rust binary |
 | [fn-232-gomad-rewrite-the-host-side-in-rust.13](.flow/tasks/fn-232-gomad-rewrite-the-host-side-in-rust.13.md) | ⬜ Todo | Qualification cycle on the Rust binary and Go host retirement |
 
 ### Go-command interception — [fn-233](.flow/specs/fn-233-gomad-intercept-the-go-command-so-make.md)
