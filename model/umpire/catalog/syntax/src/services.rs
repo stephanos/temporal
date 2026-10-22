@@ -1,7 +1,9 @@
 //! Workflow service classification shared by descriptor admission and code generation.
 
-use quote::ToTokens;
-use syn::{Expr, ExprCall, FnArg, ItemFn, Pat, Stmt, Type, spanned::Spanned, visit::Visit};
+use quote::{ToTokens, quote};
+use syn::{
+    Expr, ExprCall, FnArg, ItemFn, Pat, Stmt, Type, parse::Parser, spanned::Spanned, visit::Visit,
+};
 
 use crate::descriptor::{Disposition, MethodCoverage, ServiceCoverage};
 
@@ -21,8 +23,12 @@ pub struct Classification {
 pub struct ActionBinding {
     /// Original protobuf method name.
     pub method: String,
-    /// Nested Model action constructor, reusable as an exhaustive match pattern.
+    /// Original nested Model action constructor, including representative input values.
     pub action: Expr,
+    /// Exhaustive reverse binding, independent of representative payload values.
+    pub pattern: Pat,
+    /// Nested carrier and actor variant identity, independent of payloads.
+    pub identity: String,
 }
 
 /// Read ordinary `classify` functions over the generated example method enum.
@@ -115,18 +121,19 @@ fn classification(
                     ));
                 };
                 constructor(action, "ModelAction")?;
-                let Expr::Path(leaf) = &action.args[0] else {
-                    return Err(syn::Error::new(action.span(), "expected actor action variant"));
-                };
-                if leaf.path.segments.len() < 2 {
-                    return Err(syn::Error::new(leaf.span(), "expected actor action variant"));
-                }
+                let (leaf, payload) = actor_variant(&action.args[0])?;
+                let carrier = &action.func;
+                let pattern: Pat = Pat::parse_single.parse2(quote!(#carrier(#leaf #payload)))?;
+                let identity = quote!(#carrier(#leaf)).to_string();
                 for method in &methods {
-                    result
-                        .actions
-                        .push(ActionBinding { method: method.clone(), action: value.clone() });
+                    result.actions.push(ActionBinding {
+                        method: method.clone(),
+                        action: value.clone(),
+                        pattern: pattern.clone(),
+                        identity: identity.clone(),
+                    });
                 }
-                Disposition::Action(leaf.path.to_token_stream().to_string().replace(' ', ""))
+                Disposition::Action(leaf.to_token_stream().to_string().replace(' ', ""))
             }
             "Observed" => {
                 reason(value)?;
@@ -149,6 +156,24 @@ fn classification(
         }
     }
     Ok(result)
+}
+
+fn actor_variant(expression: &Expr) -> syn::Result<(&syn::Path, proc_macro2::TokenStream)> {
+    let (path, payload) = match expression {
+        Expr::Path(leaf) => (&leaf.path, quote!()),
+        Expr::Call(tuple) => {
+            let Expr::Path(leaf) = tuple.func.as_ref() else {
+                return Err(syn::Error::new(tuple.span(), "expected actor action variant"));
+            };
+            (&leaf.path, quote!((..)))
+        }
+        Expr::Struct(record) => (&record.path, quote!({ .. })),
+        other => return Err(syn::Error::new(other.span(), "expected actor action variant")),
+    };
+    if path.segments.len() < 2 {
+        return Err(syn::Error::new(path.span(), "expected actor action variant"));
+    }
+    Ok((path, payload))
 }
 
 fn classification_expression(mut expression: &Expr) -> syn::Result<&Expr> {

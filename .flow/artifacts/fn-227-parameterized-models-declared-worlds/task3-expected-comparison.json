@@ -1,0 +1,15 @@
+{
+  "base": "376fda53b344e5503a69e628195b87c71837a4c5",
+  "changed": [
+    "model/temporal/feature/activity/expected/Activity@cfg.snap.cfg",
+    "model/temporal/feature/activity/expected/Activity@tla.snap.tla",
+    "model/temporal/feature/activity/expected/coverage.snap.txt",
+    "model/temporal/feature/activity/expected/expansion/closings.snap.txt",
+    "model/temporal/feature/activity/expected/realization.snap.txt",
+    "model/temporal/feature/activity/expected/report.snap.txt",
+    "model/temporal/feature/activity/expected/rows.snap.txt",
+    "model/temporal/feature/activity/expected/states.snap.txt",
+    "model/temporal/feature/activity/expected/tlc.snap.txt"
+  ],
+  "all_other_expected_files_exact": true
+}

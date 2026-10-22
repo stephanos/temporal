@@ -135,8 +135,8 @@ fn emit_bindings(
     let mut actions = BTreeSet::new();
     for classification in classifications {
         for binding in &classification.actions {
-            let pattern = binding.action.to_token_stream().to_string();
-            if !actions.insert(pattern.clone()) {
+            let pattern = binding.pattern.to_token_stream().to_string();
+            if !actions.insert(binding.identity.clone()) {
                 return Err(format!("duplicate Model action RPC binding: {pattern}"));
             }
             let rpc = format!("{}.{}", config.service, binding.method);

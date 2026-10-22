@@ -34,7 +34,7 @@ impl StepBinding {
 
 #[test]
 fn generated_step_converts_actor_action_and_retains_expected_outcome() {
-    let state = activity::World.starts().remove(0);
+    let state = activity::World::new(3).starts().remove(0);
     let observation = Any::pack(&Observation {
         method: "/temporal.api.workflowservice.v1.WorkflowService/RequestCancelActivityExecution"
             .into(),
@@ -83,7 +83,7 @@ impl PresenceBinding {
 
 #[test]
 fn unsupported_optional_and_oneof_fields_use_decoded_presence() {
-    let state = activity::World.starts().remove(0);
+    let state = activity::World::new(3).starts().remove(0);
     for (input, outcome, refused) in [
         (None, None, false),
         (Some(Payloads::default()), None, true),
@@ -116,7 +116,7 @@ fn unsupported_optional_and_oneof_fields_use_decoded_presence() {
 
 #[test]
 fn opaque_ignored_catalog_fields_still_have_real_decoded_presence() {
-    let state = activity::World.starts().remove(0);
+    let state = activity::World::new(3).starts().remove(0);
     for present in [false, true] {
         let observation = Any::pack(&Observation {
             method: "/temporal.api.workflowservice.v1.WorkflowService/DescribeActivityExecution"
@@ -155,14 +155,14 @@ fn reply_requests_are_partial_and_wrapped_exactly_once() {
             RespondActivityTaskCompletedRequest, RespondActivityTaskFailedRequest,
         },
     };
-    let state = activity::World.starts().remove(0);
+    let state = activity::World::new(3).starts().remove(0);
     for policy in [b"Complete".as_slice(), b"Fail".as_slice()] {
         let callback = Any::pack(&Callback { task: Some(Any::pack(
             &umpire_temporal_api::temporal::api::workflowservice::v1::PollActivityTaskQueueResponse {
                 input: Some(Payloads { payloads: vec![Payload {
                     metadata: BTreeMap::from([("encoding".into(), b"binary/plain".to_vec())]),
                     data: policy.to_vec(), ..Default::default()
-                }] }), ..Default::default()
+                }] }), attempt: 1, ..Default::default()
             }
         )) });
         let plan =

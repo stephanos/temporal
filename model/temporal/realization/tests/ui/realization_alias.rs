@@ -14,6 +14,6 @@ impl Binding {
 }
 
 fn main() {
-    let _ = activity::World;
+    let _ = activity::World::new(3);
     let _ = Status::Running;
 }

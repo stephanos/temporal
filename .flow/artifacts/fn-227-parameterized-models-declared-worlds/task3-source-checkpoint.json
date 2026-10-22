@@ -1,0 +1,38 @@
+{
+  "baseline": "green focused native, realization, required TLC; no full baseline handoff",
+  "source_controls": {
+    "required_activity": "13 passed; 1 existing ignored; no update flags final",
+    "realization": "17 passed",
+    "catalog_neutral": "5 passed",
+    "strict_clippy": 0,
+    "task_scoped_go_lint": 0
+  },
+  "graph": {
+    "maximum_attempts": 3,
+    "starts": 1,
+    "reached": 18,
+    "emitted": 48,
+    "evaluated": 162,
+    "refused": 114,
+    "depth": 6,
+    "Cases": 21
+  },
+  "compatibility": {
+    "original_count": 15,
+    "original_pin": "af0ebafc571d33651fdf2c008d4415ad72467a0d",
+    "states": 6,
+    "edges": 11,
+    "comparison": "exact canonical lifecycle projection; old deadline destination mutant differs"
+  },
+  "guest": {
+    "bytes": 3362989,
+    "sha256": "b1b55f70c62e9d58d89135ce2232ded757a7ddd73b3b8e22a756b3f990ef6938"
+  },
+  "observations": [
+    "Initial baseline wrong cwd failed before test; corrected baseline green.",
+    "Initial Go lint default upstream base reported 764 inherited issues; exact task-base rerun green.",
+    "Full realization observation completed exit0 but overlapped deliberate source mutation and is inconclusive for final source; stable full gate remains required.",
+    "Initial compile-red retry test established missing API; service control red expected actor action variant; observed-attempt mutation red Poll1 versus Poll3.",
+    "Superseded early compile/lint diagnostics were corrected; some iterative logs reused filenames before checkpoint. Final green logs and retained red controls are archived."
+  ]
+}

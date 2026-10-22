@@ -344,7 +344,7 @@ func TestTestpilotModelSlice(t *testing.T) {
 			wantStatus := enumspb.ACTIVITY_EXECUTION_STATUS_COMPLETED
 			wantStep := "Worker::RespondCompleted"
 			if scenario == "Fail" {
-				wantStatus, wantStep = enumspb.ACTIVITY_EXECUTION_STATUS_FAILED, "Worker::RespondFailed"
+				wantStatus, wantStep = enumspb.ACTIVITY_EXECUTION_STATUS_FAILED, "Worker::RespondFailed { retryable: false }"
 				var failure *temporal.ApplicationError
 				require.ErrorAs(t, bodyErr, &failure)
 				require.True(t, failure.NonRetryable())

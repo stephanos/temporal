@@ -29,7 +29,7 @@ type Action = <activity::World as Machine>::Action;
 
 /// Creates one independently owned guest run.
 pub fn runtime() -> umpire_wasm::Runtime<activity::World, Realization> {
-    umpire_wasm::Runtime::new(activity::World, Realization)
+    umpire_wasm::Runtime::new(activity::World::new(3), Realization)
 }
 
 /// The strict mini activity observation and callback registry.
@@ -114,14 +114,16 @@ impl Realization {
         } else {
             match phase {
                 Phase::Completed => Projection::step(Worker::RespondCompleted.into()),
-                Phase::Failed => Projection::step(Worker::RespondFailed.into()),
+                Phase::Failed => {
+                    Projection::step(Worker::RespondFailed { retryable: false }.into())
+                }
                 _ => Projection::steps([]),
             }
         }
     }
 
     #[answer(PollActivityTaskQueueResponse,
-        reads(input.payloads.metadata, input.payloads.data),
+        reads(input.payloads.metadata, input.payloads.data, attempt),
         ignores(
             input.payloads.external_payloads = "External references are accepted then removed from completed results",
             task_token = "The SDK owns task-token transport",
@@ -135,7 +137,6 @@ impl Realization {
             scheduled_time = "Server timing is outside the callback policy",
             current_attempt_scheduled_time = "Retry timing is outside the callback policy",
             started_time = "Server timing is outside the callback policy",
-            attempt = "Retry attempts are outside the six-phase Model",
             schedule_to_close_timeout = "Timing policy is outside the callback projection",
             start_to_close_timeout = "Timing policy is outside the callback projection",
             heartbeat_timeout = "Heartbeat timing is outside the callback projection",
@@ -184,7 +185,7 @@ impl Realization {
                 )
             }
             b"Fail" => (
-                Worker::RespondFailed,
+                Worker::RespondFailed { retryable: false },
                 Any::pack(&RespondActivityTaskFailedRequest {
                     failure: Some(Failure::application("MiniActivityFailure", "Fail", true)),
                     ..Default::default()
@@ -192,6 +193,8 @@ impl Realization {
             ),
             _ => return Err(Refusal::unsupported("unsupported callback policy")),
         };
-        Ok(Reply { delivery: vec![Worker::Poll], action, request: response })
+        let attempt = u8::try_from(task.attempt)
+            .map_err(|_| Refusal::unsupported("callback attempt is outside maximum_attempts"))?;
+        Ok(Reply { delivery: vec![Worker::Poll(attempt)], action, request: response })
     }
 }

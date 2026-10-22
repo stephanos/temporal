@@ -342,12 +342,26 @@ or goldens. Its external live golden is checked by the gap gate, not regenerated
 
 ## Mini activity slice (fn-216)
 
-The independent `temporal/feature/activity/model.rs` fixes a six-phase restriction
-of the archived Product: Scheduled, Started, Completed, Failed, Canceled and TimedOut.
-Its six actions now give one start, six reached states, 11 edges, 36 evaluated actions,
-25 refusals and depth two without a cut. Cancellation is atomic and failure fatal-only;
-there is no cancelRequested state, retry branch or real clock. Successful Start supplies
-Scheduled outside this graph. This is not an exact port of the archived seven-phase Model.
+The independent `temporal/feature/activity/model.rs` declares a bounded retry World
+(`maximum_attempts` one through three), six lifecycle phases and dynamic `attempt` starting
+at one. `Worker::Poll(expected)` rejects stale attempts with FailedPrecondition.
+`RespondFailed { retryable }` schedules attempt + 1 below the cap; cap and nonretryable
+failures close as Failed. Direct ScheduleToStart/StartToClose deadlines and atomic
+cancellation remain. Both shared closure laws are registered across every phase/attempt.
+The default three-attempt graph reaches 18 states, emits 48 choices from 162 evaluations,
+refuses 114 disabled actions and has depth six without a cut. The suite states `Cases(3 * 7)`:
+seven scheduled/started closing or retry alternatives per attempt, with exact retained witnesses.
+
+`temporal/feature/activity/compatibility/` retains all 15 original artifacts from the
+pinned pre-extension commit and verifies their SHA256 manifest. Its test compares exact
+canonical starts, reachable phases and action/outcome/fact/destination relationships after
+an explicit one-attempt lifecycle projection; both deadline edges and four rejected
+terminal Cancel loops remain. Failure payload assignments deduplicate only after projection.
+Changing an original deadline destination fails the same comparison. This is the
+one-attempt/direct-deadline/atomic-cancel checkpoint; fn-237.3 owns the final Tick-era World
+and projection. The current guest uses the default three-attempt World. Callback Poll
+carries the observed attempt, while the existing Fail policy maps to retryable=false;
+actual-request World admission and the live retry proof belong to fn-227.5.
 
 `terminal_remains` and `closed_rejects` are registered postconditions, delegating to the
 shared closure laws. Fn-221 adds a rejected cancel self-loop at each of the four terminal
@@ -373,7 +387,7 @@ checkpoint, run its real added-catalog-field control from `model/` with
 It rebuilds in a disposable worktree and preserves the existing coverage baseline.
 For public states, `#[machine]` exports `World` and `Action`, and `world()` returns
 `World`. Non-public states retain the opaque interface with generated types following
-the state's visibility. The public activity world removes
+the state's visibility. The declared activity World uses `World::new(maximum_attempts)` and removes
 the binding's duplicate action carrier, delegating machine and claim-index re-wrap.
 Generic Any helpers derive canonical type URLs from generated `prost::Name`; only the
 Describe and cancel RPC method paths are binding constants. The policy parser and reply constructor

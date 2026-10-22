@@ -205,3 +205,81 @@ fn coverage_build_reads_the_explicit_catalog_root_and_descriptor_path()
     fs::remove_dir_all(root)?;
     Ok(())
 }
+
+#[test]
+fn payload_classification_binds_every_value_and_rejects_duplicate_variants()
+-> Result<(), Box<dyn std::error::Error>> {
+    use std::{fs, process::Command};
+    use umpire_catalog_syntax::{descriptor::Disposition, services::classifications};
+    let config = service_config();
+    let source = "fn classify(method: DeviceMethod) -> RpcRole { match method {
+        DeviceMethod::Set => RpcRole::Action(ModelAction::Device(Device::Set)),
+        DeviceMethod::Poll => RpcRole::Action(ModelAction::Device(Device::Poll(1))),
+        DeviceMethod::Fail => RpcRole::Action(ModelAction::Device(Device::Failed { retryable: false })),
+    }}";
+    let parsed = classifications(source, config.service, config.method_enum)?;
+    assert_eq!(
+        quote::ToTokens::to_token_stream(&parsed[0].actions[1].action).to_string().replace(' ', ""),
+        "ModelAction::Device(Device::Poll(1))"
+    );
+    assert_eq!(
+        quote::ToTokens::to_token_stream(&parsed[0].actions[2].action).to_string().replace(' ', ""),
+        "ModelAction::Device(Device::Failed{retryable:false})"
+    );
+
+    assert!(
+        matches!(&parsed[0].coverage.methods[1].disposition, Disposition::Action(name) if name == "Device::Poll")
+    );
+    assert!(
+        matches!(&parsed[0].coverage.methods[2].disposition, Disposition::Action(name) if name == "Device::Failed")
+    );
+    let mut descriptors = fixture();
+    for name in ["Poll", "Fail"] {
+        let mut method = descriptors.file[0].service[0].method[0].clone();
+        method.name = Some(name.into());
+        descriptors.file[0].service[0].method.push(method);
+    }
+    let bytes = descriptors.encode_to_vec();
+    let generated = services::generate(&bytes, &Coverage::default(), &parsed, &config)?;
+    let directory =
+        std::env::temp_dir().join(format!("catalog-payload-controls-{}", std::process::id()));
+    fs::create_dir_all(&directory)?;
+    let input = directory.join("control.rs");
+    fs::write(
+        &input,
+        format!(
+            r#"{generated}
+        enum Device {{ Set, Poll(u8), Failed {{ retryable: bool }} }}
+        enum ModelAction {{ Device(Device), Clock }}
+        #[derive(Debug, PartialEq)] enum Binding {{ Rpc(&'static str), Environment }}
+        fn bind(action: ModelAction) -> Binding {{ bind_device!(action, ModelAction::Clock => Binding::Environment) }}
+        fn main() {{
+            assert_eq!(bind(ModelAction::Device(Device::Set)), Binding::Rpc("example.v1.Device.Set"));
+            for attempt in [1, 3] {{ assert_eq!(bind(ModelAction::Device(Device::Poll(attempt))), Binding::Rpc("example.v1.Device.Poll")); }}
+            for retryable in [false, true] {{ assert_eq!(bind(ModelAction::Device(Device::Failed {{ retryable }})), Binding::Rpc("example.v1.Device.Fail")); }}
+        }}"#
+        ),
+    )?;
+    let binary = directory.join("control");
+    let compiled = Command::new("rustc")
+        .args(["--edition=2024", "-Awarnings"])
+        .arg(&input)
+        .arg("-o")
+        .arg(&binary)
+        .output()?;
+    assert!(compiled.status.success(), "{}", String::from_utf8_lossy(&compiled.stderr));
+    assert!(Command::new(&binary).status()?.success());
+    for (first, second) in [
+        ("Device::Poll(1)", "Device::Poll(3)"),
+        ("Device::Failed { retryable: false }", "Device::Failed { retryable: true }"),
+    ] {
+        let duplicate = source.replace("Device::Set", first).replace("Device::Poll(1)", second);
+        let parsed = classifications(&duplicate, config.service, config.method_enum)?;
+        let error = services::generate(&bytes, &Coverage::default(), &parsed, &config)
+            .err()
+            .ok_or("duplicate variant passed")?;
+        assert!(error.contains("duplicate Model action RPC binding"), "{error}");
+    }
+    fs::remove_dir_all(directory)?;
+    Ok(())
+}

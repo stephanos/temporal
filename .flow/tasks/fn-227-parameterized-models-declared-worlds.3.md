@@ -9,7 +9,15 @@ Deliver the retry/refinement consumer after phase/rejection checkpoint P (.11), 
 **Size:** M after P. Model retry state/actions, adapting the existing realization and proving one retained-graph comparison form one activity checkpoint. P separately owns phase/reject/helper/law source admission; no laws, native/TLC evidence or refinement control are omitted.
 **Dependencies:** Retain fn-227-parameterized-models-declared-worlds.2 and consume .11 (P), which consumes .8 (I). The saved direct .2 edge remains intentional. No F/O requirement (now fn-237.1/fn-237.2) while this checkpoint retains old deadline actions and empty facts.
 **Files:** `model/temporal/feature/activity/{model.rs,tests.rs,temporal.rs}`; `model/temporal/feature/activity/expected/**` for new activity evidence; a new owned `model/temporal/feature/activity/compatibility/**` reference/harness input tree outside consumer discovery; `model/temporal/realization/tests/realization.rs`; `tests/testpilot_model_slice_test.go` only for necessary existing-control adaptation; `model/temporal/hosts/go/umpire_temporal_guest.wasm`; `model/README.md`.
-**Touches:** [model/temporal/feature/activity/**, model/temporal/realization/tests/realization.rs, model/temporal/hosts/go/umpire_temporal_guest.wasm, tests/testpilot_model_slice_test.go, model/README.md]
+**Touches:** [model/temporal/feature/activity/**, model/temporal/realization/tests/realization.rs, model/temporal/hosts/go/umpire_temporal_guest.wasm, tests/testpilot_model_slice_test.go, model/README.md, model/temporal/realization/tests/declarative.rs, model/temporal/realization/tests/ui/realization_alias.rs, model/temporal/realization/tests/ui/realization_external_alias.rs, model/temporal/realization/tests/ui/realization_source_scope.rs, model/temporal/realization/tests/ui/realization_variant_alias.rs, model/umpire/catalog/syntax/src/services.rs, model/umpire/catalog-build/src/services.rs, model/umpire/catalog-build/tests/neutral.rs]
+
+### Required catalog prerequisite (conductor scope amendment)
+
+The retry consumer now supplies tuple `Poll(attempt)` and struct `RespondFailed { retryable }` variants already supported by the DSL. The shared RPC classifier introduced by fn-233 only accepts unit variants, and its reverse generator reuses an expression as a pattern. The actual activity build fails with `expected actor action variant`. Extend only `catalog/syntax/src/services.rs`, `catalog-build/src/services.rs` and the nearest `catalog-build/tests/neutral.rs` controls to carry a representative constructor expression separately from its payload-wildcard reverse pattern. Coverage identity remains the actor/variant, and distinct representative payloads must not evade duplicate variant-to-RPC binding rejection. Unit variants and Kettle behavior stay unchanged. Restore the generated Temporal reverse binding; no handwritten bypass or new DSL construct. Retain the red build, syntax/generated-compilation positives, duplicate/malformed/exhaustiveness negatives and both-consumer checks. This bounded prerequisite is necessary for R3/R4 consumption within this task, not a new work lane.
+
+The existing `model/temporal/realization/tests/declarative.rs` control also constructs the formerly unit World. Mechanically adapt its constructors to the explicit three-attempt fixture World and its callback fixtures to real attempt one; retain all declarative projection/coverage assertions.
+
+The four existing alias/source-scope UI controls (`realization_alias.rs`, `realization_external_alias.rs`, `realization_source_scope.rs`, `realization_variant_alias.rs`) likewise need only their `main` unit-World value changed to `World::new(3)`. Keep their intended compile-fail diagnostics; do not update snapshots to absorb an unrelated constructor error.
 
 ### Approach
 
@@ -33,7 +41,6 @@ Required:
 Quick from model/: `mise exec -- cargo test -p umpire-temporal-tests`; `mise exec -- cargo test --manifest-path temporal/realization/Cargo.toml`; run activity backend controls under `UMPIRE_BACKENDS=require`. Run the reference hash/canonical graph harness plus changed-edge and terminal-law mutations. Scoped Rust fmt/strict clippy and changed-Go lint as applicable.
 
 Full from root: `make model-check`, `UMPIRE_BACKENDS=require make model-check`, `make model-time`, `make umpire-guest`, `make umpire-check-model-slice`, `make umpire-check-model-gaps`. Preserve unrelated bytes, original compatibility bytes and all registered laws; update only reviewed activity evidence. Retain native/TLC counts, Cases(n), actual timings and the exact refinement relation/result.
-
 ## Acceptance
 
 - [ ] One/three-attempt retry controls, cap/nonretryable failures and stale Poll rejection hold; all terminal phase/attempt laws retain their positive and broken-law controls.
@@ -41,7 +48,7 @@ Full from root: `make model-check`, `UMPIRE_BACKENDS=require make model-check`, 
 - [ ] Actual independently lifted activity TLC agrees on states/verdicts and replays payload/outcome counterexamples, with every law retained.
 - [ ] Default activity goldens/coverage state Cases(n); existing realization/live controls pass with only the necessary normal refresh and fatal-only interim Fail mapping.
 - [ ] Unrelated golden/expansion bytes stay exact, full gates and timing/count evidence are retained, and the final one-tick compatibility witness is explicitly handed to fn-237.3.
-
+- [ ] Shared RPC classification/reverse generation handles unit, tuple and struct action variants; payload-wildcard matching covers all payload values without weakening duplicate-variant or exhaustive-match controls, and both existing consumers pass.
 ## Done summary
 TBD
 

@@ -1,0 +1,19 @@
+actions:
+  [0] Client::Cancel: touched
+  [1] Worker::Poll: touched
+  [2] Worker::RespondCompleted: touched
+  [3] Worker::RespondFailed: touched
+  [4] Deadline::ScheduleToStart: untouched
+  [5] Deadline::StartToClose: touched
+outcomes:
+  [0] Accepted: touched
+  [1] Rejected(NotFound): untouched
+  [2] Rejected(AlreadyExists): untouched
+  [3] Rejected(FailedPrecondition): untouched
+  [4] Rejected(InvalidArgument): untouched
+  [5] Rejected(PermissionDenied): untouched
+  [6] Rejected(Unavailable): untouched
+faults: complete (empty catalog)
+claims (witness evaluations only):
+  postcondition[0] terminal_remains: touched evaluated=15 triggered=15
+  postcondition[1] closed_rejects: touched evaluated=15 triggered=15

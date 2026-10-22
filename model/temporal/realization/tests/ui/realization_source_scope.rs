@@ -12,5 +12,5 @@ macro_rules! hidden_scope {
 hidden_scope!();
 
 fn main() {
-    let _ = activity::World;
+    let _ = activity::World::new(3);
 }

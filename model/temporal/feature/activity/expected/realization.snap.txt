@@ -70,7 +70,7 @@ message: temporal.api.workflowservice.v1.PollActivityTaskQueueResponse
   ignored scheduled_time - Server timing is outside the callback policy
   ignored current_attempt_scheduled_time - Retry timing is outside the callback policy
   ignored started_time - Server timing is outside the callback policy
-  ignored attempt - Retry attempts are outside the six-phase Model
+  mapped attempt
   ignored schedule_to_close_timeout - Timing policy is outside the callback projection
   ignored start_to_close_timeout - Timing policy is outside the callback projection
   ignored heartbeat_timeout - Heartbeat timing is outside the callback projection

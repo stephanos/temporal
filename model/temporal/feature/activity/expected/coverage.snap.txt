@@ -1,10 +1,13 @@
 actions:
   [0] Client::Cancel: touched
-  [1] Worker::Poll: touched
-  [2] Worker::RespondCompleted: touched
-  [3] Worker::RespondFailed: touched
-  [4] Deadline::ScheduleToStart: untouched
-  [5] Deadline::StartToClose: touched
+  [1] Worker::Poll(1): touched
+  [2] Worker::Poll(2): touched
+  [3] Worker::Poll(3): touched
+  [4] Worker::RespondCompleted: touched
+  [5] Worker::RespondFailed { retryable: false }: touched
+  [6] Worker::RespondFailed { retryable: true }: touched
+  [7] Deadline::ScheduleToStart: touched
+  [8] Deadline::StartToClose: touched
 outcomes:
   [0] Accepted: touched
   [1] Rejected(NotFound): untouched
@@ -15,5 +18,5 @@ outcomes:
   [6] Rejected(Unavailable): untouched
 faults: complete (empty catalog)
 claims (witness evaluations only):
-  postcondition[0] terminal_remains: touched evaluated=15 triggered=15
-  postcondition[1] closed_rejects: touched evaluated=15 triggered=15
+  postcondition[0] terminal_remains: touched evaluated=78 triggered=78
+  postcondition[1] closed_rejects: touched evaluated=78 triggered=78

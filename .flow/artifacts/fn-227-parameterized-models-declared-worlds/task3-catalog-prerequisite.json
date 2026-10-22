@@ -1,0 +1,33 @@
+{
+  "task": "fn-227-parameterized-models-declared-worlds.3",
+  "decision": "bounded scope amendment; same sole writer, no separate lane",
+  "trigger": "actual native activity build fails expected actor action variant after Poll(tuple)/RespondFailed(struct) retry change",
+  "root_verified": [
+    "model/umpire/catalog/syntax/src/services.rs assumes Expr::Path actor leaf",
+    "model/umpire/catalog-build/src/services.rs emits ActionBinding.action expression as reverse match pattern",
+    "existing neutral.rs owns generated Rust compilation/exhaustiveness controls"
+  ],
+  "new_touches": [
+    "model/umpire/catalog/syntax/src/services.rs",
+    "model/umpire/catalog-build/src/services.rs",
+    "model/umpire/catalog-build/tests/neutral.rs"
+  ],
+  "requirements": "R3/R4 existing action-payload consumption; no new Model/DSL construct",
+  "validation": "red/green syntax and generated compilation, wildcard payload values, duplicate variant binding rejection, malformed/exhaustiveness controls, both consumers; normal task final gates/review",
+  "authorization": "active milestone completion goal; owner directs recommendations without further questions",
+  "commit_owner": "worker fn227_3 includes Flow amendment in next checkpoint; root does not stage dirty worker source",
+  "mechanical_consumer_adaptation": {
+    "path": "model/temporal/realization/tests/declarative.rs",
+    "trigger": "four old unit-World value constructors fail compile; callback fixture now needs explicit observed attempt one",
+    "scope": "constructor/callback-fixture adaptation only; retain existing assertions"
+  },
+  "mechanical_ui_adaptations": {
+    "paths": [
+      "model/temporal/realization/tests/ui/realization_alias.rs",
+      "model/temporal/realization/tests/ui/realization_external_alias.rs",
+      "model/temporal/realization/tests/ui/realization_source_scope.rs",
+      "model/temporal/realization/tests/ui/realization_variant_alias.rs"
+    ],
+    "scope": "only main unit-World constructor substitution; preserve intended compile-fail diagnostics"
+  }
+}

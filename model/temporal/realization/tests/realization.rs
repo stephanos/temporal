@@ -79,6 +79,7 @@ fn callback(policy: &[u8]) -> Any {
                             ..Default::default()
                         }],
                     }),
+                    attempt: 1,
                     ..Default::default()
                 },
             )),
@@ -139,7 +140,7 @@ fn cancel(error: Option<i32>) -> Any {
 fn cancel_after_closure_is_a_rejected_step_and_success_contradicts_it() {
     for (policy, terminal, step) in [
         (b"Complete".as_slice(), 2, "Worker::RespondCompleted"),
-        (b"Fail".as_slice(), 3, "Worker::RespondFailed"),
+        (b"Fail".as_slice(), 3, "Worker::RespondFailed { retryable: false }"),
         (b"".as_slice(), 4, "Client::Cancel"),
     ] {
         let mut guest = Guest::new(runtime());
@@ -171,7 +172,7 @@ fn cancel_projection_checks_the_actual_outcome_in_every_phase() {
         activity::Phase::Canceled,
         activity::Phase::TimedOut,
     ] {
-        let before = activity::Model { phase };
+        let before = activity::Model { phase, attempt: 1 };
         let Projection::Candidates(paths) = Realization
             .observe(&cancel(Some(5)), &before)
             .unwrap_or_else(|error| panic!("{error:?}"))
@@ -180,7 +181,7 @@ fn cancel_projection_checks_the_actual_outcome_in_every_phase() {
         };
         assert_eq!(paths.len(), 1);
         assert_eq!(paths[0].path.len(), 1);
-        let (outcome, _, after) = activity::World
+        let (outcome, _, after) = activity::World::new(3)
             .checked_step(&before, paths[0].path[0].action.clone())
             .unwrap_or_else(|error| panic!("{error:?}"))
             .into_iter()
@@ -219,12 +220,21 @@ fn contradictory_and_unknown_cancel_statuses_freeze_the_current_expected_actions
                 answer(&mut guest, callback(b"Complete"));
                 vec![
                     "Client::Cancel",
+                    "Worker::Poll(2)",
+                    "Worker::Poll(3)",
                     "Worker::RespondCompleted",
-                    "Worker::RespondFailed",
+                    "Worker::RespondFailed { retryable: false }",
+                    "Worker::RespondFailed { retryable: true }",
                     "Deadline::StartToClose",
                 ]
             } else {
-                vec!["Client::Cancel", "Worker::Poll", "Deadline::ScheduleToStart"]
+                vec![
+                    "Client::Cancel",
+                    "Worker::Poll(1)",
+                    "Worker::Poll(2)",
+                    "Worker::Poll(3)",
+                    "Deadline::ScheduleToStart",
+                ]
             };
             assert_eq!(unexplained(judge(&mut guest, cancel(Some(code)))), expected);
             assert_eq!(unexplained(judge(&mut guest, cancel(None))), expected);
@@ -393,7 +403,7 @@ fn named_guest_adapter_preserves_the_independent_report_and_ordered_rows() {
 fn callback_delivery_precedes_terminal_replay_and_repeated_matches_are_zero_step() {
     for (policy, terminal, step) in [
         (b"Complete".as_slice(), 2, "Worker::RespondCompleted"),
-        (b"Fail".as_slice(), 3, "Worker::RespondFailed"),
+        (b"Fail".as_slice(), 3, "Worker::RespondFailed { retryable: false }"),
     ] {
         let mut guest = Guest::new(runtime());
         explained(judge(&mut guest, observation(1, 1)), &[]);
@@ -462,7 +472,16 @@ fn observations_never_invent_poll_and_first_impossible_projection_freezes_until_
     for premature in [observation(1, 2), observation(2, 0), observation(3, 0)] {
         let mut guest = Guest::new(runtime());
         let first = unexplained(judge(&mut guest, premature));
-        assert_eq!(first, ["Client::Cancel", "Worker::Poll", "Deadline::ScheduleToStart"]);
+        assert_eq!(
+            first,
+            [
+                "Client::Cancel",
+                "Worker::Poll(1)",
+                "Worker::Poll(2)",
+                "Worker::Poll(3)",
+                "Deadline::ScheduleToStart"
+            ]
+        );
         assert_eq!(unexplained(judge(&mut guest, observation(1, 1))), first);
         refused(answer(&mut guest, callback(b"Complete")), protocol::RefusalCode::State);
         call(&mut guest, 3, &protocol::ResetRequest {});
@@ -474,8 +493,11 @@ fn observations_never_invent_poll_and_first_impossible_projection_freezes_until_
         unexplained(judge(&mut guest, observation(1, 1))),
         [
             "Client::Cancel",
+            "Worker::Poll(2)",
+            "Worker::Poll(3)",
             "Worker::RespondCompleted",
-            "Worker::RespondFailed",
+            "Worker::RespondFailed { retryable: false }",
+            "Worker::RespondFailed { retryable: true }",
             "Deadline::StartToClose"
         ]
     );
@@ -483,8 +505,11 @@ fn observations_never_invent_poll_and_first_impossible_projection_freezes_until_
         unexplained(judge(&mut guest, observation(2, 0))),
         [
             "Client::Cancel",
+            "Worker::Poll(2)",
+            "Worker::Poll(3)",
             "Worker::RespondCompleted",
-            "Worker::RespondFailed",
+            "Worker::RespondFailed { retryable: false }",
+            "Worker::RespondFailed { retryable: true }",
             "Deadline::StartToClose"
         ]
     );
@@ -594,6 +619,7 @@ fn invalid_callback_projection_cannot_partially_commit_poll() {
                 ..Default::default()
             }],
         }),
+        attempt: 1,
         ..Default::default()
     };
     for variant in 0..6 {
@@ -636,4 +662,26 @@ fn invalid_callback_projection_cannot_partially_commit_poll() {
     }
     assert!(matches!(answer(&mut guest, callback(b"Complete")).outcome, Some(Outcome::Answer(_))));
     explained(judge(&mut guest, observation(1, 2)), &[]);
+}
+
+#[test]
+fn callback_uses_observed_attempt_and_retains_fatal_fail_policy() {
+    for attempt in [1, 3] {
+        let mut task: PollActivityTaskQueueResponse =
+            umpire_temporal::support::callback(&callback(b"Fail"))
+                .unwrap_or_else(|error| panic!("{error:?}"));
+        task.attempt = attempt;
+        let request = Any::pack(&Callback { task: Some(Any::pack(&task)) });
+        let state = activity::Model {
+            phase: activity::Phase::Scheduled,
+            attempt: u8::try_from(attempt).unwrap_or_else(|_| panic!("bounded attempt")),
+        };
+        let plan = Realization.answer(&request, &state).unwrap_or_else(|error| panic!("{error:?}"));
+        assert_eq!(plan.delivery.len(), 1);
+        assert_eq!(plan.delivery[0].action, activity::Worker::Poll(state.attempt).into());
+        assert_eq!(
+            plan.response_action,
+            activity::Worker::RespondFailed { retryable: false }.into()
+        );
+    }
 }

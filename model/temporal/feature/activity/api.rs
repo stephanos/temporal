@@ -480,7 +480,7 @@ fn classify(method: WorkflowServiceMethod) -> RpcRole {
             "Workflow execution operations are outside this standalone activity Model",
         ),
         WorkflowServiceMethod::PollActivityTaskQueue => {
-            RpcRole::Action(ModelAction::Worker(Worker::Poll))
+            RpcRole::Action(ModelAction::Worker(Worker::Poll(1)))
         }
         WorkflowServiceMethod::RecordActivityTaskHeartbeat
         | WorkflowServiceMethod::RecordActivityTaskHeartbeatById => RpcRole::OutOfScope(
@@ -493,7 +493,7 @@ fn classify(method: WorkflowServiceMethod) -> RpcRole {
             "This activity operation is not represented by the mini activity lifecycle",
         ),
         WorkflowServiceMethod::RespondActivityTaskFailed => {
-            RpcRole::Action(ModelAction::Worker(Worker::RespondFailed))
+            RpcRole::Action(ModelAction::Worker(Worker::RespondFailed { retryable: false }))
         }
         WorkflowServiceMethod::RespondActivityTaskFailedById => RpcRole::OutOfScope(
             "This activity operation is not represented by the mini activity lifecycle",
