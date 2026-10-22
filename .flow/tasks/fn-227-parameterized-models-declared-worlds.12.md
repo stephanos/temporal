@@ -40,9 +40,12 @@ Full from root: `make model-check`, `UMPIRE_BACKENDS=require make model-check`, 
 - [ ] Overlapping reversed responses and retry/request-ID controls preserve association and ownership without hidden caches. Later RPC observations carry their actual requests.
 - [ ] Existing annotation/parity/live controls and privacy checks pass using refreshed guest bytes. This task installs no World or live receipt and claims no .5 admission result.
 ## Done summary
-TBD
+Observation carries the optional actual request `Any` at fresh tag 4; tags 1-3, request-absent bytes, Callback, Reply, the three-envelope count and the core oracle are unchanged (Go and prost field orders both pinned as decodable). `Observed` keeps the request with typed `request<T>()` decoding; current projections ignore it, so judgments are byte-identical with or without one. A caller-owned context sink records one capture per attempt: request cloned after fill and before invoke, raw result cloned after invoke, RPC errors kept apart from local validation errors, post-capture mutation refused while keeping the raw result (review L1). Controls cover overlap, retries and mutation. The live slice transports the Start pair and checks it against the SDK handle; no World admission (that is .5).
 
+Built in worktree `work/fn22712-request` and merged as ccacbf4b37 with the guest rebuilt on the merged tree (3,332,311 bytes). Review: SHIP (.flow/tmp/fn22712-review.md). Receipt: the filtered `Annotations` command cannot pass because its parent cleanup needs coverage only scenario subtests produce (pre-existing since fn-217.3); the full live slice is the receipt. Full gates on the merged tree: `UMPIRE_BACKENDS=require make model-check` 349s, `make model-time` 53.993s gate / 7.088s inner loop, slice 7s, gaps 364s, full live slice green.
+
+stage: plan-sync - skipped(config: planSync.enabled != true)
 ## Evidence
-- Commits:
-- Tests:
+- Commits: 156b02d165, c108121fe1, f25b1e9a38, ccacbf4b37
+- Tests: UMPIRE_BACKENDS=require make model-check, make model-time, make umpire-check-model-slice, make umpire-check-model-gaps, go test -tags test_dep,integration ./tests -run ^TestTestpilotModelSlice$
 - PRs:

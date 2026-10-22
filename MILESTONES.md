@@ -127,6 +127,8 @@ the augmented-copy binding route; net about -91 source and -70 test lines, golde
 unchanged; timing 50.532s gate, 7.908s inner loop.
 .8 (source inputs and exact-payload fairness) is complete locally with SHIP review at HEAD after
 the .13/.14 migration; its minor follow-ups moved to fn-238.3.
+.12 (actual request at Observation tag 4, owned same-invocation capture) is complete locally,
+merged from its worktree with the guest rebuilt; timing 53.993s gate, 7.088s inner loop.
 On 2026-10-21 the owner approved all three contract amendments: lifecycle refinement
 in place of impossible old-byte equality; cooperative cancellation with explicit protocol
 evidence; and optional actual-request Observation evidence at tag 4. Heartbeat signals a
@@ -141,7 +143,6 @@ The review passed; each consumer still waits for its declared support dependenci
 | --- | --- | --- |
 | fn-227.11 | ⬜ todo | After fn-238.4: source `Phased`/`reject!` and closure laws, built once on the shared front end, with unchanged activity behavior (R3) |
 | fn-227.3 | ⬜ todo | After .2 and .11: activity attempts/retryable failure and retained-lifecycle refinement (R3, R4) |
-| fn-227.12 | 🔄 in progress | Actual-request Observation transport and owned same-invocation SDK capture (R6) |
 | fn-227.5 | ⬜ todo | After .3 and .12: transactional live World admission (`maximum_attempts`) and SDK retry proof (R6) |
 | fn-227.6 | ⬜ todo | After .5: DESIGN.md parameterized worlds, inputs and retries write-up and readiness table closure (R7) |
 
@@ -160,7 +161,7 @@ measured under concurrent load (119.6s) and is re-measured at the next idle gate
 
 | Name | Status | What |
 | --- | --- | --- |
-| fn-238.8 | ⬜ todo | Guest identity hashes only the guest's dependency closure, so unrelated workspace crates stop staling the guest; before .3 (R3) |
+| fn-238.8 | 🔄 in progress | Guest identity hashes only the guest's dependency closure, so unrelated workspace crates stop staling the guest; before .3 (R3) |
 | fn-238.3 | ⬜ todo | After .2: macros read through `umpire-front`; one diagnostic per form; fn-227.8 follow-ups (R2, R3) |
 | fn-238.4 | ⬜ todo | After .3: macro embeds the admitted Model; lifter emits from it, no `model.rs` re-read (R2-R4) |
 | fn-238.5 | ⬜ todo | After .4: interpreted checker as a differential check (R2, R3) |
