@@ -82,10 +82,10 @@ PY
 
 Supervise the new header as it appears after installation, before allowing execution to continue: its key must be the pinned key above and its payload must match the prior valid rerun header's candidate/configuration, budgets and enumeration. Stop the run if they differ. Resume must skip 1144 retained rows and the four completed units, executing the remaining 340. Preserve the same journal throughout interruptions; append another invocation header on the next resume, never reseed invalidations.
 
-After a successful completion, run both independent checks. Set `FN221_TOOLS` to the integrated checkout's directory (the isolated path below is valid before integration):
+After a successful completion, run both independent checks. Set `FN221_TOOLS` to the integrated checkout's directory:
 
 ```sh
-FN221_TOOLS=/home/agent/wt/fn221-resume-tools/.flow/artifacts/fn221-rerun-tools
+FN221_TOOLS=/Users/stephan/Workspace/skunkworks/gomad/temporal/.flow/artifacts/fn221-rerun-tools
 FN221_RUN=/home/agent/wt/evidence/fn221/rerun-20261022T1705Z
 /home/agent/wt/evidence/fn221/full-1d7b37f00a/bin/wasmsweep \
   --verify "$FN221_RUN/matrix/sweep.json" > "$FN221_RUN/verify-resume1.log" 2>&1
@@ -97,4 +97,6 @@ python3 -I "$FN221_TOOLS/merge-check.py" \
 
 Require both exit codes 0 and zero checker findings before rendering or accepting a support matrix. Recheck tool hashes/helper links and clean pinned source at the end; retain host samples from every invocation. Use the existing `rerun-prep/render-matrix.py` on the actual final sidecar and strengthened report, with original and combined rerun host samples, then retain the observation-only matrix and sidecar on `fn221-matrix`. Task .2 is not completed by synthetic tests or this handover.
 
-Kept worktrees/evidence: `fn221-resume-tools` holds this unintegrated repair; `fn221-rerun-src` holds the immutable guest source; `fn221-matrix` owns the eventual matrix; `evidence/fn221/full-1d7b37f00a`, `rerun-20261022T1705Z`, `rerun-prep` and `rerun-tools` remain required inputs of open fn-221. No unrelated worktrees or evidence were changed.
+Kept worktrees/evidence: the repair is integrated as `492707ea91` and `393109ab19`, and its temporary worker worktree is released; `fn221-rerun-src` holds the immutable guest source; `fn221-matrix` owns the eventual matrix; `evidence/fn221/full-1d7b37f00a`, `rerun-20261022T1705Z`, `rerun-prep` and `rerun-tools` remain required inputs of open fn-221. No unrelated worktrees or evidence were changed.
+
+Root integration validation: all eleven checker test methods passed again (exit 0). Independent review returned SHIP for tools only; the actual 340 remaining guest units still require the quiet-host resume.
