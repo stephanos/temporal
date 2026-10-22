@@ -265,6 +265,25 @@ source and target guards, artifact manifests, actual comparisons and host logs.
 This completes fn-232's committed-source requirement. The frozen fn-236 validation
 and historical failed fn-232/Linux-only proofs remain separate records.
 
+## Lockfile closure identities (fn-238.8)
+
+At source `107285ac64`, two clean clones at different absolute paths with initially
+absent independent targets built identical guests on Linux 7.0.14/aarch64 with the
+pinned toolchain, four Cargo jobs and clean source checks before and after. A third
+clone added an unrelated workspace crate and a dev-dependency on it from
+`umpire-dsl`, which both guests depend on; its `Cargo.lock` changed, and both guests
+still matched byte for byte. The same edit at the pre-change base `ccacbf4b37`
+changed the Temporal guest. The refreshed embedded asset matches all three builds.
+
+| Guest | Bytes | SHA-256 |
+| --- | ---: | --- |
+| Stock | 192489 | `4fc5c19ff069c954c4aaef3d97d014f8dc029951d8401b50d501987fa2a41b61` |
+| Temporal | 3332314 | `0248382ec34f616078a97190dd0ae49544851800e54b5ecb47aaa772d056cae0` |
+
+The closure digest is a new compiler identity input, so the committed fn-232
+Linux/macOS certification above no longer covers the current derivation. It needs
+renewal with its retained runner at a later pin; it was not rerun here.
+
 ## Current verification and measured gate cost
 
 Task 2 passed both complete embedded live targets, including the exact existing
