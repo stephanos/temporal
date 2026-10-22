@@ -118,7 +118,7 @@
     "plan": 0
   },
   "spec_path": ".flow/specs/fn-230-gomad-explore-site-scope-for-choice.md",
-  "status": "open",
+  "status": "done",
   "title": "Gomad: explore site scope for choice exploration",
   "tracker": {
     "baseHashFlow": null,
@@ -131,5 +131,5 @@
     "mergeBaseTracker": null,
     "url": null
   },
-  "updated_at": "2026-10-22T23:22:32.335749Z"
+  "updated_at": "2026-10-22T23:31:33.484199Z"
 }
