@@ -317,8 +317,9 @@ def expected_status(case, result, response, rust):
     return 3
 
 
-def tamper(run, binary, path, work):
-    """Every mutation of retained raw bytes or bindings must be refused (status 3)."""
+def tamperers(path, work):
+    """Copies of the retained Result directory: `copy` as is, `rewrite` with a
+    mutated, readdressed Result and receipt."""
     directory = path.parent
 
     def copy(name):
@@ -349,6 +350,48 @@ def tamper(run, binary, path, work):
         write_receipt(target, receipt)
         return target
 
+    return copy, rewrite
+
+
+def refuse_all(run, binary, cases, reasons):
+    for name, target in cases:
+        refused = run('rust-report-refuse-' + name, [binary, 'report', '--result', target], 3)
+        reason = reasons.get(name)
+        if reason is not None:
+            equal(reason in refused.stderr, True, f'tamper.{name}.reason: {refused.stderr!r}')
+    return [name for name, _ in cases]
+
+
+def cluster_tamper(run, binary, path, work):
+    """Cluster-only bindings: the scenario and configuration duplicated in the
+    provenance, and the record's incarnation inventory of every window."""
+    copy, rewrite = tamperers(path, work)
+    cases = []
+
+    def scenario(result):
+        result['provenance']['scenario'] = list(b'{}')
+        result['manifest']['scenario_sha256'] = parity.digest(b'{}')
+    cases.append(('cluster-provenance-scenario', rewrite('cluster-provenance-scenario', scenario)))
+
+    def configuration(result):
+        configured = result['provenance']['configuration']
+        configured['wall_nanos'] += 1
+        result['manifest']['host_config_sha256'] = parity.digest(parity.canonical(configured))
+    cases.append(('cluster-provenance-configuration', rewrite('cluster-provenance-configuration', configuration)))
+
+    def dropped(result):
+        samples = result['observations']['samples']
+        samples.remove(next(sample for sample in samples if sample['phase'] == 'execute' and sample['incarnation'] != 'a/1'))
+    cases.append(('cluster-sample-dropped', rewrite('cluster-sample-dropped', dropped)))
+    return refuse_all(run, binary, cases, {
+        'cluster-provenance-scenario': b'retained provenance does not bind',
+        'cluster-provenance-configuration': b'retained provenance does not bind',
+        'cluster-sample-dropped': b"differ from the record's incarnations"})
+
+
+def tamper(run, binary, path, work):
+    """Every mutation of retained raw bytes or bindings must be refused (status 3)."""
+    copy, rewrite = tamperers(path, work)
     cases = []
     flipped = copy('flipped-byte')
     raw = bytearray(flipped.read_bytes())
@@ -450,9 +493,7 @@ def tamper(run, binary, path, work):
         result['integrated_source_manifest'] = encoded
         result['manifest']['integrated_source_sha256'] = parity.digest(encoded.encode())
     cases.append(('source-manifest-utf8', rewrite('source-manifest-utf8', utf8)))
-    for name, target in cases:
-        refused = run('rust-report-refuse-' + name, [binary, 'report', '--result', target], 3)
-        reason = {'failure-success-class': b'failure result is inconsistent',
+    return refuse_all(run, binary, cases, {'failure-success-class': b'failure result is inconsistent',
                   'source-manifest-utf8': b'malformed integrated source manifest line',
                   'receipt-counter': b'receipt content identity changed',
                   'receipt-duplicate': b'exactly one publication receipt',
@@ -461,10 +502,7 @@ def tamper(run, binary, path, work):
                   'identity-profile': b'differs from its retained provenance',
                   'identity-platform': b'execution identity differs from the frozen manifest',
                   'provenance-inputs': b'retained provenance does not bind',
-                  'sample-limit': b'differs from the frozen limits or workload'}.get(name)
-        if reason is not None:
-            equal(reason in refused.stderr, True, f'tamper.{name}.reason: {refused.stderr!r}')
-    return [name for name, _ in cases]
+                  'sample-limit': b'differs from the frozen limits or workload'})
 
 
 def main():
@@ -543,7 +581,7 @@ def main():
     trailing.write_bytes(parity.canonical(base) + b' {}')
     run('rust-spec-refuse-trailing', [args.binary, 'qualify', '--spec', trailing], 2)
 
-    views, verdicts, tampered = [{}, {}], {}, []
+    views, verdicts, tampered, cluster_tampered = [{}, {}], {}, [], {}
     for case in cases:
         cell = case['cell']
         go_root = args.work / ('go-' + case['name'])
@@ -587,6 +625,8 @@ def main():
             views[attempt][case['name']] = stable(result, rust.returncode, {})
             if attempt == 0 and case['name'] == cases[0]['name']:
                 tampered = tamper(run, args.binary, path, args.work / 'tampered')
+            if attempt == 0 and 'scenario' in TARGETS[cell]:
+                cluster_tampered[case['name']] = cluster_tamper(run, args.binary, path, args.work / 'tampered-cluster')
         equal(rust_verdicts[1], rust_verdicts[0], case['name'] + '.rust_repeated_verdict')
         semantic = lambda verdict: {key: value for key, value in verdict.items() if key != 'status'}
         equal(semantic(rust_verdicts[0]), semantic(go_verdict), case['name'] + '.go_rust_verdict')
@@ -633,7 +673,9 @@ def main():
     for case in cases:
         targets.append((goldens / 'cells' / (case['name'] + '.json'),
                         [dict(schema='gomad.rust-qualify-golden/v1', cell=views[attempt][case['name']],
-                              canonical=finals[attempt][case['name']], go_verdict=verdicts[case['name']]) for attempt in range(2)]))
+                              canonical=finals[attempt][case['name']], go_verdict=verdicts[case['name']],
+                              **({'refused': cluster_tampered[case['name']]} if case['name'] in cluster_tampered else {}))
+                         for attempt in range(2)]))
     for golden, (first_view, second_view) in targets:
         parity.golden(golden, first_view, regenerate)
         first = golden.read_bytes()

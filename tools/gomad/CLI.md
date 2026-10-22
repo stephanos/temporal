@@ -498,13 +498,20 @@ over the retained records and raw observations. The Result retains the
 prepared target's `gomad.rust-wasm-provenance/v1` preimage (`provenance`), and
 `report` recomputes every manifest identity from it: workload sources, runtime
 and compiler, helper and host, model, engine, configuration, module, build key
-(toolchain), scenario, profile and limits. Every record must bind the frozen
+(toolchain), scenario, profile and limits. The provenance's duplicated
+scenario, network and configuration must agree with its hashed build inputs
+(the configuration differs only in the cooperative runtime implementation), and
+a cooperative choice identity must bind the build key and module. Every record
+must bind the frozen
 module, toolchain, configuration, limits, implementation (recomputed from the
 helper and host digests), platform (`host_os/host_arch`) and exact runtime
 profile (`cooperative` is `gomad.wasi-cooperative/v1`, `controlled` is
 `gomad.wasi-stock-exploratory/v1`; any other is refused). Every store sample,
 executed or replayed, must carry the frozen guest limit, and only
-multi-instance stores carry `node/incarnation` handles. A retained failure
+multi-instance stores carry `node/incarnation` handles. Each measured cluster
+window, executed or replayed, carries exactly the incarnations its record's
+evidence streams name (`evidence/cluster/NODE/INCARNATION/...`), and every
+cluster execution is measured. A retained failure
 carries one of the runner's failure classes, never a success class.
 
 ### Linked-process accounting
@@ -561,7 +568,9 @@ counters at the store's boundaries.
 - **Attributed phases account for the lifetime peak.** Every window lies within
   the lifetime linked peak and within the lifetime peak observed after it; any
   rise across a window's boundaries is explained by the window or by operator
-  work; and the largest phase reaches the lifetime peak. Otherwise the budget
+  work; any other rise (preparation, between windows, after the last window)
+  is explained by operator work alone; and the largest phase reaches the
+  lifetime peak. Otherwise the budget
   is refused (`budget_failure`). A zero phase peak is a missing measurement. A
   window whose stores carry `node/incarnation` handles is a cluster window,
   even with a single node.

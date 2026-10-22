@@ -74,6 +74,30 @@ fn derive(provenance: &serde_json::Value) -> Result<Derived, String> {
     if text(&provenance["build_key"])? != toolchain {
         return Err(refuse());
     }
+    // The duplicated fields agree with the hashed build inputs, as the
+    // `exec` opener requires: scenario, network and the configuration whose
+    // only post-build field is the cooperative runtime implementation.
+    let mut built = configuration.clone();
+    if let Some(object) = built.as_object_mut() {
+        object.insert("runtime_sha256".into(), Value::Null);
+    }
+    let cooperative = configuration["profile"] == COOPERATIVE_PROFILE;
+    let choice = &provenance["choice_identity"];
+    if inputs["schema"] != "gomad.rust-wasm-build-inputs/v1"
+        || inputs["scenario"] != provenance["scenario"]
+        || inputs["network"] != provenance["network"]
+        || inputs["configuration"] != built
+        || cooperative == choice.is_null()
+        || !choice.is_null()
+            && (choice["ToolchainBuildKey"] != provenance["build_key"]
+                || serde_json::from_value::<[u8; 32]>(choice["TargetSHA256"].clone())
+                    .ok()
+                    .map(|target| hex(&target))
+                    .as_deref()
+                    != provenance["module_sha256"].as_str())
+    {
+        return Err(refuse());
+    }
     let scenario = match &provenance["scenario"] {
         Value::Null => None,
         bytes => Some(canonical::digest(
@@ -99,6 +123,14 @@ fn derive(provenance: &serde_json::Value) -> Result<Derived, String> {
         memory_bytes: configuration["limits"]["memory_bytes"]
             .as_u64()
             .ok_or_else(refuse)?,
+    })
+}
+
+fn hex(bytes: &[u8]) -> String {
+    use std::fmt::Write as _;
+    bytes.iter().fold(String::new(), |mut out, byte| {
+        let _ = write!(out, "{byte:02x}");
+        out
     })
 }
 
@@ -377,6 +409,7 @@ pub(crate) fn validate(result: &QualificationResult) -> Result<(), String> {
             return Err("qualification execution identity differs from the frozen manifest".into());
         }
     }
+    bind_cluster_handles(result)?;
     // Every store, executed or replayed, ran under the frozen guest limit;
     // only multi-instance stores carry node/incarnation handles.
     let cluster = manifest.workload == "multi-instance";
@@ -401,6 +434,47 @@ pub(crate) fn validate(result: &QualificationResult) -> Result<(), String> {
         } else {
             "retained budget differs from raw measurements".into()
         });
+    }
+    Ok(())
+}
+
+/// A cluster execution's incarnations are named by its record's evidence
+/// streams (`evidence/cluster/NODE/INCARNATION/...`). Every measured cluster
+/// window, executed or replayed, carries exactly that handle set, and every
+/// execution was measured, so no store's measurement can be dropped.
+fn bind_cluster_handles(result: &QualificationResult) -> Result<(), String> {
+    use std::collections::{BTreeMap, BTreeSet};
+    if result.manifest.workload != "multi-instance" {
+        return Ok(());
+    }
+    let mut measured: BTreeMap<(&str, u64), BTreeSet<&str>> = BTreeMap::new();
+    for sample in &result.observations.samples {
+        measured
+            .entry((sample.phase.as_str(), sample.iteration))
+            .or_default()
+            .insert(sample.incarnation.as_deref().unwrap_or_default());
+    }
+    for execution in &result.report.executions {
+        let expected = execution
+            .record
+            .streams
+            .keys()
+            .filter_map(|name| {
+                let mut parts = name.strip_prefix("evidence/cluster/")?.splitn(3, '/');
+                let (node, incarnation) = (parts.next()?, parts.next()?);
+                parts.next()?;
+                Some(format!("{node}/{incarnation}"))
+            })
+            .collect::<BTreeSet<_>>();
+        let expected = expected.iter().map(String::as_str).collect::<BTreeSet<_>>();
+        if expected.is_empty()
+            || measured.get(&("execute", execution.iteration)) != Some(&expected)
+            || measured
+                .get(&("replay", execution.iteration))
+                .is_some_and(|handles| *handles != expected)
+        {
+            return Err("cluster store samples differ from the record's incarnations".into());
+        }
     }
     Ok(())
 }

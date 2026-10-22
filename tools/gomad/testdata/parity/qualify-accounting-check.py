@@ -116,11 +116,18 @@ def oracle(case):
         largest = attributed and max(window[0]['store_peak_rss_bytes'] for window in groups)
         # Each window lies within the lifetime peak after it; any rise across
         # its boundaries is explained by the window or by operator work.
-        unexplained = attributed and any(
-            window[0]['store_peak_rss_bytes'] > window[0]['linked_after']['peak_rss_bytes']
-            or window[0]['linked_after']['peak_rss_bytes'] > max(window[0]['linked_before']['peak_rss_bytes'],
-                                                                 window[0]['store_peak_rss_bytes'], operator)
-            for window in groups)
+        # Rises outside windows (preparation, between windows, after the last)
+        # are explained by operator work alone.
+        unexplained = False
+        if attributed:
+            previous = observations['prepared']['linked']['peak_rss_bytes']
+            unexplained = previous > max(observations['start']['linked']['peak_rss_bytes'], operator)
+            for window in groups:
+                before, after = (window[0][key]['peak_rss_bytes'] for key in ('linked_before', 'linked_after'))
+                store = window[0]['store_peak_rss_bytes']
+                unexplained |= before > max(previous, operator) or store > after or after > max(before, store, operator)
+                previous = after
+            unexplained |= peak > max(previous, operator)
         if attributed and (unexplained or largest > peak or max(largest, operator) < peak):
             # Attributed phases must account for the lifetime peak.
             expected['budget_failure'] = 'attribution'

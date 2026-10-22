@@ -409,7 +409,7 @@ fn check(name: &str, quantity: &str, observed: u64, limit: u64, exact: bool) -> 
 /// helper-only figure, so it proves those limits only when it fits under them
 /// and otherwise leaves them pending rather than being charged to one owner.
 pub(crate) fn budget(observations: &Observations) -> Result<Budget, String> {
-    let (_, prepared, executed) = interval(observations)?;
+    let (start, prepared, executed) = interval(observations)?;
     let groups = groups(observations, prepared, executed)?;
     if observations.preparation_wall_nanos == 0 || executed.children.peak_rss_bytes == 0 {
         return Err("measured budget requires preparation wall and compiler peak RSS".into());
@@ -470,7 +470,11 @@ pub(crate) fn budget(observations: &Observations) -> Result<Budget, String> {
     checks.extend(memory_checks(
         observations,
         &groups,
-        executed.linked.peak_rss_bytes,
+        (
+            start.linked.peak_rss_bytes,
+            prepared.linked.peak_rss_bytes,
+            executed.linked.peak_rss_bytes,
+        ),
     )?);
     let violations = checks
         .iter()
@@ -519,8 +523,9 @@ pub(crate) fn budget(observations: &Observations) -> Result<Budget, String> {
 fn memory_checks(
     observations: &Observations,
     groups: &[Group<'_>],
-    linked: u64,
+    boundaries: (u64, u64, u64),
 ) -> Result<Vec<Check>, String> {
+    let linked = boundaries.2;
     let windows = groups
         .iter()
         .map(|group| {
@@ -545,10 +550,21 @@ fn memory_checks(
         .collect());
     };
     let largest = windows.iter().map(|(_, peak)| *peak).max().unwrap_or(0);
-    let unexplained = groups.iter().zip(&windows).any(|(group, (_, window))| {
+    // Follow the lifetime peak from the operator baseline through every
+    // boundary: a rise inside a window is explained by that window or by
+    // operator work around it, any other rise (preparation, between windows,
+    // after the last one) by operator work alone.
+    let (start, prepared, executed) = boundaries;
+    let mut previous = prepared;
+    let mut unexplained = prepared > start.max(operator);
+    for (group, (_, window)) in groups.iter().zip(&windows) {
         let (before, after) = group.peaks;
-        *window > after || after > before.max(*window).max(operator)
-    });
+        unexplained |= before > previous.max(operator)
+            || *window > after
+            || after > before.max(*window).max(operator);
+        previous = after;
+    }
+    unexplained |= executed > previous.max(operator);
     if unexplained || largest > linked || largest.max(operator) < linked {
         return Err(
             "phase memory attribution is inconsistent with the lifetime linked peak".into(),
