@@ -154,11 +154,12 @@ fn-227.14 and .8, before fn-227.11, so later constructs are built once.
 The design ([shared-front-end.md](model/design/shared-front-end.md)) measured about 1,000 duplicated
 lines per side and recommends one shared admission crate first (Option A, .2-.4), then the
 interpreted checker behind a measured gate (Option B, .5-.6); the guest and replay stay compiled.
+.2 is complete locally: `umpire-front` owns admission, goldens and IR unchanged; timing was
+measured under concurrent load (119.6s) and is re-measured at the next idle gate.
 [Spec](.flow/specs/fn-238-shared-front-end-one-model-reading-for.md).
 
 | Name | Status | What |
 | --- | --- | --- |
-| fn-238.2 | 🔄 in progress | `umpire-front`: move the lifter's admission into a shared crate, no behaviour change (R2) |
 | fn-238.8 | ⬜ todo | Guest identity hashes only the guest's dependency closure, so unrelated workspace crates stop staling the guest; before .3 (R3) |
 | fn-238.3 | ⬜ todo | After .2: macros read through `umpire-front`; one diagnostic per form; fn-227.8 follow-ups (R2, R3) |
 | fn-238.4 | ⬜ todo | After .3: macro embeds the admitted Model; lifter emits from it, no `model.rs` re-read (R2-R4) |
