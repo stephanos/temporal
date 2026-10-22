@@ -1,0 +1,16 @@
+   Compiling umpire-lift v0.0.1 (/Users/stephan/Workspace/skunkworks/umpire/temporal/model/umpire/lift)
+    Finished `test` profile [unoptimized + debuginfo] target(s) in 1.34s
+     Running tests/phased.rs (/home/agent/.cache/codex-build/cargo-target/debug/deps/phased-601aabe97613deb3)
+
+running 1 test
+Error: Diagnostic { file: "linear.rs", line: 39, column: 21, message: "the step lowers to more than 10000 expression nodes here; split the handler" }
+test admitted_tree_and_constructor_data_grow_linearly ... FAILED
+
+failures:
+
+failures:
+    admitted_tree_and_constructor_data_grow_linearly
+
+test result: FAILED. 0 passed; 1 failed; 0 ignored; 0 measured; 5 filtered out; finished in 0.01s
+
+error: test failed, to rerun pass `-p umpire-lift --test phased`

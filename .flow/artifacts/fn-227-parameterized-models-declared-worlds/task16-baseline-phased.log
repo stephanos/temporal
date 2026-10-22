@@ -1,0 +1,13 @@
+   Compiling umpire-lift v0.0.1 (/Users/stephan/Workspace/skunkworks/umpire/temporal/model/umpire/lift)
+    Finished `test` profile [unoptimized + debuginfo] target(s) in 0.68s
+     Running tests/phased.rs (/home/agent/.cache/codex-build/cargo-target/debug/deps/phased-601aabe97613deb3)
+
+running 5 tests
+test a_step_past_the_node_budget_refuses_at_its_statement ... ok
+test shared_definitions_never_take_an_authored_name ... ok
+test rejections_lower_to_typed_outcomes_and_kept_self_loops ... ok
+test unsupported_phase_rejection_and_law_forms_refuse_at_their_location ... ok
+test emitted_size_is_linear_in_sequential_conditional_returns ... ok
+
+test result: ok. 5 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.14s
+

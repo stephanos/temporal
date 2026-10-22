@@ -196,3 +196,30 @@ fn a_step_past_the_node_budget_refuses_at_its_statement() {
         .unwrap_or_default();
     assert!(error.starts_with("gate.rs:") && error.contains("split the handler"), "{error}");
 }
+
+#[test]
+#[allow(clippy::print_stderr)]
+fn admitted_tree_and_constructor_data_grow_linearly() -> Result<(), Box<dyn std::error::Error>> {
+    use umpire_dsl::__lifted::print::Print;
+    for repeated_updates in [false, true] {
+        let mut sizes = Vec::new();
+        for count in [8, 16, 32] {
+            let mut source = sequential_returns(count, "done");
+            if repeated_updates {
+                let body = "if self.count == 3 { reject!(Rejection::NotFound); } self.count += 1;";
+                source = sequential_returns(0, "done").replace("self.done = true;", &format!("{body} {} self.done = true;", "self.count += 1;".repeat(count)));
+            }
+            let started = std::time::Instant::now();
+            let tree = Lift::parse("linear.rs", &source)?;
+            let nodes = format!("{tree:?}").matches("Expr {").count();
+            let bytes = tree.print().to_string().len();
+            eprintln!("linear repeated_updates={repeated_updates} count={count}: nodes={nodes} constructor_bytes={bytes} elapsed={:?}", started.elapsed());
+            sizes.push((nodes, bytes));
+        }
+        for pair in sizes.windows(2) {
+            assert!(pair[1].0 <= pair[0].0 * 2 + 32, "nodes: {sizes:?}");
+            assert!(pair[1].1 <= pair[0].1 * 2 + 4096, "embedded data: {sizes:?}");
+        }
+    }
+    Ok(())
+}
