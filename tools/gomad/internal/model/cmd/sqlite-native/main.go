@@ -104,7 +104,7 @@ func project(path string, output io.Writer) error {
 	if err != nil {
 		return err
 	}
-	precrash, err := authenticated(input.PrecrashPath, input.PrecrashSHA256, 5<<20)
+	precrash, err := authenticated(input.PrecrashPath, input.PrecrashSHA256, 9<<20)
 	if err != nil {
 		return err
 	}

@@ -273,7 +273,7 @@ fn sqlite_catalogue(
     catalogues: &mut Vec<native_crash::Catalogue>,
     selection: Option<&native_crash::Selection>,
 ) -> Result<(), String> {
-    opened.payload("evidence/cluster/sqlite/2/storage_precrash_image", 5 << 20)?;
+    opened.payload("evidence/cluster/sqlite/2/storage_precrash_image", 9 << 20)?;
     let state = opened.payload("evidence/cluster/sqlite/2/storage_state", 8 << 20)?;
     let log = opened.payload("evidence/cluster/sqlite/2/storage", 32 << 20)?;
     let catalogue = native_crash::capture(&state, &log)?;
