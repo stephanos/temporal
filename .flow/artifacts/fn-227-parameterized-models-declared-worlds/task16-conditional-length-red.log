@@ -1,0 +1,19 @@
+   Compiling umpire-lift v0.0.1 (/Users/stephan/Workspace/skunkworks/umpire/temporal/model/umpire/lift)
+    Finished `test` profile [unoptimized + debuginfo] target(s) in 0.80s
+     Running tests/vector.rs (/home/agent/.cache/codex-build/cargo-target/debug/deps/vector-7cd9e225c61cd866)
+
+running 1 test
+test shared_boolean_guards_keep_vector_admission_linear ... FAILED
+
+failures:
+
+---- shared_boolean_guards_keep_vector_admission_linear stdout ----
+Error: Diagnostic { file: "shared_vector.rs", line: 25, column: 31, message: "Vector push_back on `values` requires an authored bounded length guard" }
+
+
+failures:
+    shared_boolean_guards_keep_vector_admission_linear
+
+test result: FAILED. 0 passed; 1 failed; 0 ignored; 0 measured; 4 filtered out; finished in 0.01s
+
+error: test failed, to rerun pass `-p umpire-lift --test vector`

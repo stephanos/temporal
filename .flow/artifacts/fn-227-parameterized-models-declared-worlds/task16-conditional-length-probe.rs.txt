@@ -1,0 +1,6 @@
+fn main() {
+    let source = include_str!("/Users/stephan/Workspace/skunkworks/umpire/temporal/model/umpire/lift/tests/fixtures/vector.rs")
+        .replace("User::Push if self.values.len() < 2 => {", "User::Push => { let condition = self.values.is_empty() && self.values.is_empty(); let length = if condition { self.values.len() } else { self.values.len() }; if length < 2 {")
+        .replace("self.values.push_back(7);", "self.values.push_back(7); }");
+    println!("{:?}", umpire_lift::Lift::parse("conditional_length.rs", &source).map(|_| ()));
+}

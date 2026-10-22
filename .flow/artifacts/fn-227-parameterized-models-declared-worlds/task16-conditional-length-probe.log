@@ -1,0 +1,5 @@
+current d395724b04: /home/agent/.cache/codex-build/cargo-target/debug/deps/libumpire_lift-0ab6adb552706ddb.rlib SHA256=111802a5dba2a1d50f0c799cdabce49be95b37041de909a88d222bf3fa2a3573 mtime=2026-10-22T20:59:33.965239+00:00
+retained pre-task cache: /home/agent/.cache/codex-build/cargo-target/debug/deps/libumpire_lift-c13c95efd8209d27.rlib SHA256=1dc3724b914e116d123301e286afb1d1dee84df28dcfb6f01406a61165e245e9 mtime=2026-10-22T19:42:56.357000+00:00
+Output order: current, then retained pre-task library.
+Err(Diagnostic { file: "conditional_length.rs", line: 25, column: 31, message: "Vector push_back on `values` requires an authored bounded length guard" })
+Ok(())

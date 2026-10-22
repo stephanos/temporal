@@ -58,11 +58,13 @@ fn real_vector_native_and_tlc_states_and_properties_agree() -> Result<(), Box<dy
         "let length = self.values.len();",
         "let first = self.values.len(); let second = first; let length = second;",
     );
+    let conditional = conditional_length();
     let root = Path::new(env!("CARGO_MANIFEST_DIR")).join("../../..");
     for (name, source) in [
         ("vector", source),
         ("vector_saved_length", saved.as_str()),
         ("vector_chained_length", chained.as_str()),
+        ("vector_conditional_length", conditional.as_str()),
     ] {
         let module = Tla::emit(&Lift::parse("vector.rs", source)?)?;
         let result = umpire_tlc::Tlc::discover(&root)?.check_module(&module)?;
@@ -84,11 +86,18 @@ fn saved_length() -> String {
         .replace("self.values.push_back(7);", "self.values.push_back(7); }")
 }
 
+fn conditional_length() -> String {
+    saved_length().replace("let length = self.values.len();", "let condition = self.values.is_empty() && self.values.is_empty(); let length = if condition { self.values.len() } else { self.values.len() };")
+}
+
 #[test]
 fn unsupported_vector_operations_and_unbounded_growth_refuse()
 -> Result<(), Box<dyn std::error::Error>> {
     let source = include_str!("fixtures/vector.rs");
     for (source, reason) in [
+        (conditional_length().replace("else { self.values.len() }", "else { 0 }"), "bounded"),
+        (conditional_length().replace("pub values: Vector<u8>,", "pub values: Vector<u8>, pub other: Vector<u8>,").replace("else { self.values.len() }", "else { self.other.len() }"), "bounded"),
+
         (source.replace("self.values.push_back(7);", "self.values.pop_back();"), "pop_back"),
         (source.replace("self.values.len() < 2", "true"), "bounded"),
         (
@@ -163,8 +172,10 @@ fn shared_boolean_guards_keep_vector_admission_linear() -> Result<(), Box<dyn st
             &format!("User::Push => {{ {bindings} if a40 && self.values.len() < 2 {{"),
         )
         .replace("self.values.push_back(7);", "self.values.push_back(7); }");
-    for saved in [false, true] {
-        let source = if saved {
+    for saved in ["direct", "cached", "conditional"] {
+        let source = if saved == "conditional" {
+            source.replace("if a40 && self.values.len() < 2", "let condition = self.values.is_empty() && self.values.is_empty(); let length = if condition { self.values.len() } else { self.values.len() }; if a40 && length < 2")
+        } else if saved == "cached" {
             source.replace(
                 "if a40 && self.values.len() < 2",
                 "let length = self.values.len(); if a40 && length < 2",
