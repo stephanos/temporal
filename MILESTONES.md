@@ -279,13 +279,13 @@ CI, PR, or push authority.
 
 | Name / ID | Status | Description |
 | --- | --- | --- |
-| [fn-222.1](.flow/tasks/fn-222-gomad-qualify-the-one-box-cell-and.1.md) | ⏸ Parked | Qualify the one-box cell on the current candidate (blocked on fn-232.11 Rust install and Rust prepare-only/inspection/support-list tooling) |
+| [fn-222.1](.flow/tasks/fn-222-gomad-qualify-the-one-box-cell-and.1.md) | ⏸ Parked | Qualify the one-box cell on the current Rust candidate with full workflow smoke, inspection and per-test support gates |
 
 ### WASM determinism boundary audit — [fn-188](.flow/specs/fn-188-gomad-wasm-determinism-boundary-audit.md)
 
 | Name / ID | Status | Description |
 | --- | --- | --- |
-| [fn-188.5](.flow/tasks/fn-188-gomad-wasm-determinism-boundary-audit.5.md) | ▶ Running | Rust same-seed stress producer and linked jitter; final matrix pending integrated candidate |
+| [fn-188.5](.flow/tasks/fn-188-gomad-wasm-determinism-boundary-audit.5.md) | ⏸ Parked | Rust stress producer and linked jitter implemented; full matrix pending integrated candidate |
 | [fn-188.6](.flow/tasks/fn-188-gomad-wasm-determinism-boundary-audit.6.md) | ⬜ Todo | Regression gates, version pinning, validate wiring and the documented contract |
 
 ### Map-order determinism repairs — [fn-227](.flow/specs/fn-227-gomad-close-wasm-map-order-determinism.md)
@@ -308,10 +308,7 @@ First in the delivery order (owner decision 2026-10-20). New evidence lineage; b
 
 | Name / ID | Status | Description |
 | --- | --- | --- |
-| [fn-232-gomad-rewrite-the-host-side-in-rust.10](.flow/tasks/fn-232-gomad-rewrite-the-host-side-in-rust.10.md) | ✅ Done | qualify and installation-free report in Rust; five cell parity/golden lanes, accounting and public refusals accepted |
-| [fn-232-gomad-rewrite-the-host-side-in-rust.11](.flow/tasks/fn-232-gomad-rewrite-the-host-side-in-rust.11.md) | ▶ Running | install, doctor, discover, plan and recover in Rust |
-| [fn-232-gomad-rewrite-the-host-side-in-rust.12](.flow/tasks/fn-232-gomad-rewrite-the-host-side-in-rust.12.md) | ✅ Done | Go oracles and generated codecs validated against the linked Rust library; retained/retiring Go inventory separated |
-| [fn-232-gomad-rewrite-the-host-side-in-rust.13](.flow/tasks/fn-232-gomad-rewrite-the-host-side-in-rust.13.md) | ⬜ Todo | Qualification cycle on the Rust binary and Go host retirement |
+| [fn-232-gomad-rewrite-the-host-side-in-rust.13](.flow/tasks/fn-232-gomad-rewrite-the-host-side-in-rust.13.md) | 🚧 Running | Qualification cycle on the Rust binary and Go host retirement |
 
 ### Go-command interception — [fn-233](.flow/specs/fn-233-gomad-intercept-the-go-command-so-make.md)
 
@@ -319,20 +316,14 @@ Owner request 2026-10-20: a Go one-liner and `gomad -- make <target>` intercepti
 
 | Name / ID | Status | Description |
 | --- | --- | --- |
-| [fn-233-gomad-intercept-the-go-command-so-make.1](.flow/tasks/fn-233-gomad-intercept-the-go-command-so-make.1.md) | ⬜ Todo | run-guest launcher verb behind go -exec with intercepted-origin evidence |
+| [fn-233-gomad-intercept-the-go-command-so-make.1](.flow/tasks/fn-233-gomad-intercept-the-go-command-so-make.1.md) | 🚧 Running | run-guest launcher verb behind go -exec with intercepted-origin evidence |
 | [fn-233-gomad-intercept-the-go-command-so-make.2](.flow/tasks/fn-233-gomad-intercept-the-go-command-so-make.2.md) | ⬜ Todo | go shim: argv[0] dispatch, classification, guest build environment, refusals, host passthrough |
 | [fn-233-gomad-intercept-the-go-command-so-make.3](.flow/tasks/fn-233-gomad-intercept-the-go-command-so-make.3.md) | ⬜ Todo | gomad -- wrapper, gomad.toml and auto-derived installation |
 | [fn-233-gomad-intercept-the-go-command-so-make.4](.flow/tasks/fn-233-gomad-intercept-the-go-command-so-make.4.md) | ⬜ Todo | Temporal Makefile through the wrapper and operator documentation |
 
-### Explore site scope and minimizer ordering — [fn-230](.flow/specs/fn-230-gomad-explore-site-scope-for-choice.md), [fn-231](.flow/specs/fn-231-gomad-site-aware-minimizer-ordering-and.md)
-
-Interleave with the Rust host: fn-229 after fn-232.5 inspect, fn-230 after fn-232.8 exploration and fn-229, then fn-231 after fn-232.9 minimize and both preceding site specs. No feature waits for the entire fn-232 rewrite.
+### Site-aware minimizer ordering — [fn-231](.flow/specs/fn-231-gomad-site-aware-minimizer-ordering-and.md)
 
 | Name / ID | Status | Description |
 | --- | --- | --- |
-| [fn-230-gomad-explore-site-scope-for-choice.1](.flow/tasks/fn-230-gomad-explore-site-scope-for-choice.1.md) | ⏸ Parked | Site scope flag, pattern validation and resolution against the base trace |
-
-| Name / ID | Status | Description |
-| --- | --- | --- |
-| [fn-231-gomad-site-aware-minimizer-ordering-and.1](.flow/tasks/fn-231-gomad-site-aware-minimizer-ordering-and.1.md) | ⬜ Todo | Scoped proposal ordering with checkpoint key and parent-scope default |
+| [fn-231-gomad-site-aware-minimizer-ordering-and.1](.flow/tasks/fn-231-gomad-site-aware-minimizer-ordering-and.1.md) | 🚧 Running | Scoped proposal ordering with checkpoint key and parent-scope default |
 | [fn-231-gomad-site-aware-minimizer-ordering-and.2](.flow/tasks/fn-231-gomad-site-aware-minimizer-ordering-and.2.md) | ⬜ Todo | Symbolized reporting in minimize --json and inspect |
