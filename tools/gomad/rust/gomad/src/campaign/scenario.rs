@@ -43,6 +43,8 @@ scenario_limits! {
 #[derive(Deserialize, Serialize)]
 #[serde(deny_unknown_fields)]
 struct Scenario {
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    workload: Option<crate::qualify::workloads::Workload>,
     schema: String,
     spec: Spec,
     boots: Vec<Boot>,
@@ -379,6 +381,9 @@ impl Scenario {
         reason = "Admission preserves the complete public scenario grammar before preparing any guest"
     )]
     fn validate(&self) -> Result<(), String> {
+        if let Some(workload) = &self.workload {
+            workload.validate()?;
+        }
         let spec = &self.spec;
         if self.schema != "gomad-wasm.scenario/v1"
             || spec.schema != "gomad.simulation-spec/v8"
@@ -1227,9 +1232,10 @@ pub fn bind(
     };
     let mut execution_limits = base.limits.clone();
     execution_limits.evidence_bytes = request.evidence_bytes;
-    Ok(Bound {
+    let mut bound = Bound {
         configuration: cluster::Configuration {
             simulation_original: None,
+            workload: scenario.workload.clone(),
             nodes,
             engine: base.engine.clone(),
             profile: base.profile.clone(),
@@ -1243,7 +1249,11 @@ pub fn bind(
             crash_groups: Vec::new(),
         },
         request,
-    })
+    };
+    if let Some(workload) = &scenario.workload {
+        workload.bind(&mut bound)?;
+    }
+    Ok(bound)
 }
 
 /// # Errors
@@ -1454,7 +1464,7 @@ pub(super) fn publication(
     }
     features.sort();
     features.dedup();
-    let mut observed = cluster::project(execution)?;
+    let mut observed = cluster::project_workload(execution, configuration.workload.as_ref())?;
     for item in &retained {
         observed
             .evidence
@@ -1517,7 +1527,12 @@ pub(super) fn publication(
     );
     payloads.insert(cluster::FILE.into(), raw);
     let class = match observed.outcome.termination {
-        "exit" if reports.as_ref().is_some_and(Assertions::failed) => "target_failure",
+        "exit"
+            if reports.as_ref().is_some_and(Assertions::failed)
+                || observed.outcome.message == "mandatory workload oracle failed" =>
+        {
+            "target_failure"
+        }
         "exit" if observed.outcome.exit_code == Some(0) => "success",
         "exit" | "trap" => "target_failure",
         "watchdog_timeout" => "watchdog",

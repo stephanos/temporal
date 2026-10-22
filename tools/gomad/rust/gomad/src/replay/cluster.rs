@@ -61,6 +61,8 @@ pub struct Incarnation {
 #[serde(deny_unknown_fields)]
 pub struct Configuration {
     #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub workload: Option<crate::qualify::workloads::Workload>,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
     pub simulation_original: Option<Box<Configuration>>,
     #[serde(default, skip_serializing_if = "Vec::is_empty")]
     pub nodes: Vec<String>,
@@ -105,6 +107,7 @@ pub struct Prepared {
 }
 
 pub struct Execution {
+    pub(crate) workload: Option<crate::qualify::workloads::Workload>,
     pub(crate) prepared: helper::Prepared,
     simulation: Option<simulation::Plan>,
 }
@@ -121,6 +124,7 @@ pub(crate) fn execute(execution: Execution) -> Result<helper::Execution, String>
 
 pub(crate) fn execute_projected(execution: Execution) -> Result<linked::Execution, String> {
     let simulation = execution.simulation.is_some();
+    let workload = execution.workload.clone();
     let observed = execute(execution)?;
     let primary = simulation.then(|| {
         observed
@@ -130,7 +134,7 @@ pub(crate) fn execute_projected(execution: Execution) -> Result<linked::Executio
             .cloned()
             .unwrap_or_default()
     });
-    let mut projected = project(observed)?;
+    let mut projected = project_workload(observed, workload.as_ref())?;
     if let Some(primary) = primary {
         projected.evidence.insert("choice".into(), primary);
     }
@@ -451,6 +455,7 @@ pub fn prepare(opened: Opened, control: Option<&inspection::Request>) -> Result<
         opened,
         execution: Execution {
             prepared: execution,
+            workload: configuration.workload,
             simulation,
         },
         exact: true,
@@ -563,4 +568,18 @@ pub fn project_inspection(
         .insert("inspection".into(), observed.inspection);
     selected.event_order = observed.event_order;
     Ok(selected)
+}
+
+/// Projects the sealed mandatory oracle against fresh execution output.
+/// # Errors
+/// Refuses missing, ambiguous or malformed actual workload observations.
+pub(crate) fn project_workload(
+    observed: helper::Execution,
+    workload: Option<&crate::qualify::workloads::Workload>,
+) -> Result<linked::Execution, String> {
+    let mut projected = project(observed)?;
+    if let Some(workload) = workload {
+        crate::qualify::workloads::project(workload, &mut projected)?;
+    }
+    Ok(projected)
 }

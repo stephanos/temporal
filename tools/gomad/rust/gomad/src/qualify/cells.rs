@@ -167,7 +167,7 @@ fn scenario_bytes(value: &Value) -> Result<Vec<u8>, String> {
 }
 
 /// Standard padded base64, as Go's `encoding/json` emits for `[]byte`.
-fn base64(text: &str) -> Option<Vec<u8>> {
+pub(crate) fn base64(text: &str) -> Option<Vec<u8>> {
     let digit = |byte: u8| match byte {
         b'A'..=b'Z' => Some(byte - b'A'),
         b'a'..=b'z' => Some(byte - b'a' + 26),
@@ -475,6 +475,7 @@ fn replay(path: &Path, iteration: u64) -> Result<(Replay, Vec<Sample>), String> 
     let started = Instant::now();
     let (observed, metrics, virtual_time) = match prepared.execution {
         preflight::Execution::Cluster(cluster) => {
+            let workload = cluster.workload.clone();
             usage::store_begin();
             let observed = crate::replay::cluster::execute(*cluster);
             let store_peak = usage::store_end();
@@ -495,8 +496,9 @@ fn replay(path: &Path, iteration: u64) -> Result<(Replay, Vec<Sample>), String> 
                 campaign::scenario::store_metrics(&observed, &limits, started.elapsed());
             metrics.store_peak_rss_bytes = store_peak;
             let virtual_time = observed.virtual_elapsed_nanos;
-            let projected = crate::replay::cluster::project(observed)
-                .map_err(|error| format!("runner_failure: project cluster replay: {error}"))?;
+            let projected =
+                crate::replay::cluster::project_workload(observed, workload.as_ref())
+                    .map_err(|error| format!("runner_failure: project cluster replay: {error}"))?;
             (projected, metrics, virtual_time)
         }
         execution @ preflight::Execution::Standalone(_) => {
@@ -656,10 +658,18 @@ pub(crate) fn run(frozen: &Frozen) -> Result<QualificationResult, String> {
         samples,
         operator_peak_rss_bytes: usage::operator_peak(),
     };
+    complete_workload(frozen, report, observations)
+}
+
+fn complete_workload(
+    frozen: &Frozen,
+    report: report::Report,
+    observations: Observations,
+) -> Result<QualificationResult, String> {
     let (cost, cost_failure, budget, budget_failure) = cost::evaluate(&observations, &report);
-    Ok(QualificationResult {
+    let mut result = QualificationResult {
         schema: result::RESULT_SCHEMA.into(),
-        manifest: manifest.clone(),
+        manifest: frozen.manifest.clone(),
         report,
         observations,
         cost,
@@ -668,7 +678,14 @@ pub(crate) fn run(frozen: &Frozen) -> Result<QualificationResult, String> {
         budget_failure,
         integrated_source_manifest: frozen.integrated_source_manifest.clone(),
         provenance: frozen.provenance.clone(),
-    })
+        native_crash_catalogues: Vec::new(),
+        native_crash_selection: None,
+    };
+    (
+        result.native_crash_catalogues,
+        result.native_crash_selection,
+    ) = super::workloads::retained(&result)?;
+    Ok(result)
 }
 
 /// Publishes the Result, then observes and publishes the terminal receipt.

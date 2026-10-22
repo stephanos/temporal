@@ -9,3 +9,5 @@ pub(crate) mod report;
 pub(crate) mod result;
 pub(crate) mod spec;
 pub(crate) mod usage;
+
+pub(crate) mod workloads;
