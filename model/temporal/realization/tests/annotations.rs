@@ -3,8 +3,8 @@
 use umpire_wasm::annotations::AnnotationRequest;
 use umpire_wasm::annotations::AnnotationResponse;
 use umpire_wasm::annotations::ProbeResponse;
-use umpire_wasm::realization::Observation;
-use umpire_wasm::realization::observation;
+
+mod common;
 
 use prost::Message;
 use umpire_temporal::annotation_runtime;
@@ -56,19 +56,13 @@ fn annotate(
 #[test]
 fn annotation_findings_preserve_server_bytes_and_do_not_change_frozen_judgment() {
     let mut guest = Guest::new(annotation_runtime());
-    let observation = protocol::JudgeRequest {
-        observation: Some(Any::pack(&Observation {
-            method: "/temporal.api.workflowservice.v1.WorkflowService/DescribeActivityExecution"
-                .into(),
-            result: Some(observation::Result::Response(Any::pack(
-                &DescribeActivityExecutionResponse {
-                    info: Some(ActivityExecutionInfo { status: 2, ..Default::default() }),
-                    ..Default::default()
-                },
-            ))),
-            request: None,
-        })),
-    };
+    call(
+        &mut guest,
+        4,
+        &protocol::JudgeRequest { observation: Some(Any::pack(&common::start(3))) },
+    );
+    let observation =
+        protocol::JudgeRequest { observation: Some(Any::pack(&common::describe(1, 2, 0))) };
     let frozen = call(&mut guest, 4, &observation);
     assert!(
         matches!(&frozen.outcome, Some(protocol::response::Outcome::Judge(value)) if matches!(&value.judgment, Some(protocol::judge_response::Judgment::Unexplained(_))))

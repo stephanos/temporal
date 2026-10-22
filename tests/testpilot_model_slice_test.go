@@ -112,8 +112,8 @@ func modelSliceReturn(reply *realizationv1.Reply, dc converter.DataConverter) ([
 		if err := request.UnmarshalTo(failed); err != nil {
 			return nil, err
 		}
-		if failed.GetFailure().GetApplicationFailureInfo() == nil || !failed.GetFailure().GetApplicationFailureInfo().GetNonRetryable() {
-			return nil, errors.New("Model failure requires a non-retryable application failure")
+		if failed.GetFailure().GetApplicationFailureInfo() == nil {
+			return nil, errors.New("Model failure requires an application failure")
 		}
 		return nil, temporal.GetDefaultFailureConverter().FailureToError(failed.Failure)
 	default:
@@ -135,13 +135,6 @@ func TestTestpilotModelSlice(t *testing.T) {
 		defer cancel()
 		require.NoError(t, host.Close(ctx))
 	})
-	isolated, err := model.New(t.Context(), wasm)
-	require.NoError(t, err)
-	t.Cleanup(func() {
-		ctx, cancel := context.WithTimeout(context.WithoutCancel(t.Context()), time.Second)
-		defer cancel()
-		require.NoError(t, isolated.Close(ctx))
-	})
 	env := activityEnvironment(t)
 	annotations := &modelSliceAnnotations{host: host}
 	t.Cleanup(func() { annotations.assert(t) })
@@ -153,12 +146,13 @@ func TestTestpilotModelSlice(t *testing.T) {
 	t.Cleanup(sdkClient.Close)
 	dc := converter.GetDefaultDataConverter()
 
-	for _, scenario := range []string{"Complete", "Fail", "HostRefusal", "Cancellation", "CancelAfterCompletion", "CancelBeforeWorkerStart"} {
+	for _, scenario := range []string{"Complete", "Fail", "HostRefusal", "Cancellation", "CancelAfterCompletion", "CancelBeforeWorkerStart", "RetryThenComplete"} {
 		t.Run(scenario, func(t *testing.T) {
 			ctx, cancel := context.WithTimeout(t.Context(), 30*time.Second)
 			defer cancel()
-			_, err := host.Reset(ctx, &modelv1.ResetRequest{})
+			host, err := model.New(ctx, wasm)
 			require.NoError(t, err)
+			t.Cleanup(func() { require.NoError(t, host.Close(context.Background())) })
 			queue := "model-slice-" + uuid.NewString()
 			deliveries := make(chan modelSliceDelivery)
 			finished := make(chan error, 1)
@@ -182,6 +176,7 @@ func TestTestpilotModelSlice(t *testing.T) {
 				delivery := modelSliceDelivery{
 					task: &workflowservice.PollActivityTaskQueueResponse{
 						TaskToken: info.TaskToken, ActivityId: info.ActivityID,
+						WorkflowNamespace: info.Namespace, ActivityRunId: info.ActivityRunID,
 						ActivityType: &commonpb.ActivityType{Name: info.ActivityType.Name},
 						Input:        payloads, Attempt: info.Attempt,
 						ScheduledTime: timestamppb.New(info.ScheduledTime), StartedTime: timestamppb.New(info.StartedTime),
@@ -218,13 +213,18 @@ func TestTestpilotModelSlice(t *testing.T) {
 			if scenario == "Cancellation" || scenario == "CancelAfterCompletion" || scenario == "CancelBeforeWorkerStart" {
 				input = "Complete"
 			}
+			maximumAttempts := int32(1)
+			retryPolicy := &temporal.RetryPolicy{MaximumAttempts: maximumAttempts}
+			if scenario == "RetryThenComplete" {
+				maximumAttempts = 2
+				retryPolicy = &temporal.RetryPolicy{MaximumAttempts: maximumAttempts, InitialInterval: 2 * time.Second, MaximumInterval: 2 * time.Second}
+			}
 			startCtx, starts := modelSliceCapturing(ctx)
 			handle, err := sdkClient.ExecuteActivity(startCtx, client.StartActivityOptions{
 				ID: uuid.NewString(), TaskQueue: queue, StartToCloseTimeout: 20 * time.Second,
-				RetryPolicy: &temporal.RetryPolicy{MaximumAttempts: 1},
+				RetryPolicy: retryPolicy,
 			}, "ModelSlice", []byte(input))
 			require.NoError(t, err)
-			// The Start pair is transported only; .5 owns its admission.
 			startCapture := starts.single(t)
 			require.NoError(t, startCapture.rpcErr)
 			require.NoError(t, startCapture.localErr)
@@ -233,13 +233,28 @@ func TestTestpilotModelSlice(t *testing.T) {
 			require.Equal(t, env.Namespace().String(), startRequest.GetNamespace())
 			require.Equal(t, handle.GetID(), startRequest.GetActivityId())
 			require.NotEmpty(t, startRequest.GetRequestId())
-			require.EqualValues(t, 1, startRequest.GetRetryPolicy().GetMaximumAttempts())
+			require.Equal(t, maximumAttempts, startRequest.GetRetryPolicy().GetMaximumAttempts())
 			require.Equal(t, handle.GetRunID(), startResponse.GetRunId())
 			require.True(t, startResponse.GetStarted())
 			startObservation := startCapture.observation(t)
 			require.Equal(t, workflowservice.WorkflowService_StartActivityExecution_FullMethodName, startObservation.GetMethod())
 			require.True(t, startObservation.GetRequest().MessageIs(startRequest))
 			require.True(t, startObservation.GetResponse().MessageIs(startResponse))
+			admission := modelSliceJudgeObservation(ctx, t, host, startObservation)
+			require.NotNil(t, admission.GetExplained())
+			require.Empty(t, admission.GetExplained().GetSteps())
+			t.Logf("Start admitted namespace/activity/request/run identities; maximum_attempts=%d timeout recorded=%s", maximumAttempts, startRequest.GetStartToCloseTimeout())
+			replayCtx, replays := modelSliceCapturing(ctx)
+			_, err = sdkClient.WorkflowService().StartActivityExecution(replayCtx, proto.Clone(startRequest).(*workflowservice.StartActivityExecutionRequest))
+			require.NoError(t, err)
+			replayCapture := replays.single(t)
+			require.NoError(t, replayCapture.rpcErr)
+			require.NoError(t, replayCapture.localErr)
+			replayResponse := replayCapture.response.(*workflowservice.StartActivityExecutionResponse)
+			require.False(t, replayResponse.GetStarted())
+			require.Equal(t, handle.GetRunID(), replayResponse.GetRunId())
+			replayObservation := replayCapture.observation(t)
+			require.NotNil(t, modelSliceJudgeObservation(ctx, t, host, replayObservation).GetExplained())
 			describe := func() modelSliceDescribed {
 				describeCtx, captures := modelSliceCapturing(ctx)
 				_, err := sdkClient.WorkflowService().DescribeActivityExecution(describeCtx, &workflowservice.DescribeActivityExecutionRequest{
@@ -340,6 +355,11 @@ func TestTestpilotModelSlice(t *testing.T) {
 				return
 			}
 			require.NoError(t, answerErr)
+			for _, evidence := range []*realizationv1.Observation{startObservation, replayObservation} {
+				replay := modelSliceJudgeObservation(ctx, t, host, evidence)
+				require.NotNil(t, replay.GetExplained())
+				require.Empty(t, replay.GetExplained().GetSteps())
+			}
 			for _, attempt := range []int32{2, 3} {
 				mismatched := proto.Clone(delivery.task).(*workflowservice.PollActivityTaskQueueResponse)
 				mismatched.Attempt = attempt
@@ -349,6 +369,48 @@ func TestTestpilotModelSlice(t *testing.T) {
 				require.Equal(t, modelv1.RefusalCode_REFUSAL_CODE_STATE, refusal.Code)
 			}
 			bodyErr := waitBody()
+			if scenario == "RetryThenComplete" {
+				var failure *temporal.ApplicationError
+				require.ErrorAs(t, bodyErr, &failure)
+				require.False(t, failure.NonRetryable())
+				require.Equal(t, "Retry", failure.Message())
+				retryPoll := time.NewTicker(10 * time.Millisecond)
+				defer retryPoll.Stop()
+				for {
+					response := describe()
+					t.Logf("retry Describe attempt=%d status=%s run_state=%s", response.GetInfo().GetAttempt(), response.GetInfo().GetStatus(), response.GetInfo().GetRunState())
+					judgment := modelSliceJudge(ctx, t, host, response)
+					if response.GetInfo().GetAttempt() == 2 {
+						require.Equal(t, enumspb.PENDING_ACTIVITY_STATE_SCHEDULED, response.GetInfo().GetRunState())
+						modelSliceExplained(t, judgment, response, "Worker::RespondFailed { retryable: true }")
+						break
+					}
+					modelSliceExplained(t, judgment, response)
+					select {
+					case <-retryPoll.C:
+					case <-ctx.Done():
+						t.Fatal(ctx.Err())
+					}
+				}
+				select {
+				case delivery = <-deliveries:
+				case <-ctx.Done():
+					t.Fatal(ctx.Err())
+				}
+				require.EqualValues(t, 2, delivery.task.GetAttempt())
+				require.Equal(t, handle.GetRunID(), delivery.task.GetActivityRunId())
+				callback = modelSliceAny(t, &realizationv1.Callback{Task: modelSliceAny(t, delivery.task)})
+				answer, err := host.Answer(ctx, &modelv1.AnswerRequest{Callback: callback})
+				require.NoError(t, err)
+				reply := new(realizationv1.Reply)
+				require.NoError(t, answer.GetReply().UnmarshalTo(reply))
+				current := describe()
+				require.EqualValues(t, 2, current.GetInfo().GetAttempt())
+				require.Equal(t, enumspb.PENDING_ACTIVITY_STATE_STARTED, current.GetInfo().GetRunState())
+				modelSliceExplained(t, modelSliceJudge(ctx, t, host, current), current)
+				delivery.reply <- modelSliceReply{reply: reply}
+				bodyErr = waitBody()
+			}
 			wantStatus := enumspb.ACTIVITY_EXECUTION_STATUS_COMPLETED
 			wantStep := "Worker::RespondCompleted"
 			if scenario == "Fail" {
@@ -382,8 +444,8 @@ func TestTestpilotModelSlice(t *testing.T) {
 			}
 			repeated = describe()
 			modelSliceExplained(t, modelSliceJudge(ctx, t, host, repeated), repeated)
-			require.EqualValues(t, 1, terminalResponse.GetInfo().GetAttempt())
-			require.EqualValues(t, 1, calls.Load())
+			require.Equal(t, maximumAttempts, terminalResponse.GetInfo().GetAttempt())
+			require.Equal(t, maximumAttempts, calls.Load())
 			var result []byte
 			resultErr := handle.Get(ctx, &result)
 			if scenario == "Fail" {
@@ -427,14 +489,25 @@ func TestTestpilotModelSlice(t *testing.T) {
 			require.NotNil(t, frozen.GetUnexplained())
 			require.Equal(t, []string{"Client::Cancel"}, frozen.GetUnexplained().GetExpectedActions())
 			require.True(t, proto.Equal(frozen, modelSliceJudge(ctx, t, host, terminalResponse)))
-			require.True(t, proto.Equal(frozen, modelSliceJudge(ctx, t, host, scheduled)))
+			if scenario != "RetryThenComplete" {
+				require.True(t, proto.Equal(frozen, modelSliceJudge(ctx, t, host, scheduled)))
+			}
 			_, err = host.Answer(ctx, &modelv1.AnswerRequest{Callback: callback})
 			var refusal *model.RefusalError
 			require.ErrorAs(t, err, &refusal)
 			require.Equal(t, modelv1.RefusalCode_REFUSAL_CODE_STATE, refusal.Code)
+			isolated, err := model.New(ctx, wasm)
+			require.NoError(t, err)
+			defer func() { require.NoError(t, isolated.Close(context.Background())) }()
+			require.NotNil(t, modelSliceJudgeObservation(ctx, t, isolated, startObservation).GetExplained())
 			modelSliceExplained(t, modelSliceJudge(ctx, t, isolated, scheduled), scheduled)
 			_, err = host.Reset(ctx, &modelv1.ResetRequest{})
 			require.NoError(t, err)
+			for _, evidence := range []*realizationv1.Observation{startObservation, replayObservation} {
+				replay := modelSliceJudgeObservation(ctx, t, host, evidence)
+				require.NotNil(t, replay.GetExplained())
+				require.Empty(t, replay.GetExplained().GetSteps())
+			}
 			modelSliceExplained(t, modelSliceJudge(ctx, t, host, scheduled), scheduled)
 		})
 	}

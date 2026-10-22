@@ -1,0 +1,106 @@
+{
+  "task": "fn-227-parameterized-models-declared-worlds.5",
+  "base": "c8e29dc48b6dd2a77fb51cae1eb682ed517b3e55",
+  "tier": "Tier: session (jev-unavailable(no_key)); AGENTS implementer override gpt-6.1-sol at medium.",
+  "proofs": {
+    "baseline": [
+      {
+        "command": "mise exec -- cargo test --manifest-path temporal/realization/Cargo.toml",
+        "cwd": "model",
+        "exit": 0,
+        "seconds": 63.11328101158142
+      },
+      {
+        "command": "mise exec -- cargo test -p umpire-wasm -p umpire-temporal-tests",
+        "cwd": "model",
+        "exit": 0,
+        "seconds": 6.374575138092041
+      },
+      {
+        "command": "go test -tags test_dep ./...",
+        "cwd": "model/temporal/hosts/go",
+        "exit": 0,
+        "seconds": 11.532926797866821
+      }
+    ],
+    "baseline-slice": {
+      "command": "make umpire-check-model-slice",
+      "exit": 0,
+      "seconds": 5.294924020767212
+    },
+    "clippy-10": {
+      "command": "mise exec -- cargo fmt --package umpire-temporal && mise exec -- cargo clippy -p umpire-temporal --all-targets -- -D warnings",
+      "cwd": "model",
+      "exit": 0,
+      "seconds": 3.1927356719970703
+    },
+    "native-focused-8": {
+      "command": "mise exec -- cargo test -p umpire-temporal --test admission --test annotations --test realization",
+      "cwd": "model",
+      "exit": 0,
+      "seconds": 9.810953378677368
+    },
+    "mirror-coverage-green": {
+      "command": "mise exec -- cargo test -p umpire-temporal-realization-macros --lib && mise exec -- cargo test -p umpire-temporal-tests --test fixtures fixtures -- --exact",
+      "cwd": "model",
+      "exit": 0,
+      "seconds": 8.27899432182312
+    },
+    "guest-build-3": {
+      "command": "make umpire-guest",
+      "cwd": ".",
+      "exit": 0,
+      "seconds": 34.250946044921875
+    },
+    "go-host-3": {
+      "command": "go test -tags test_dep ./...",
+      "cwd": "model/temporal/hosts/go",
+      "exit": 0,
+      "seconds": 12.789493799209595
+    },
+    "go-host-lint-2": {
+      "command": "/Users/stephan/Workspace/skunkworks/umpire/temporal/.bin/golangci-lint-v2.13.1 run --fix=false --build-tags test_dep --timeout 10m --new-from-rev c8e29dc48b6dd2a77fb51cae1eb682ed517b3e55 --config /Users/stephan/Workspace/skunkworks/umpire/temporal/.github/.golangci.yml ./...",
+      "cwd": "model/temporal/hosts/go",
+      "exit": 0,
+      "seconds": 0.9722476005554199
+    },
+    "go-lint-integration-2": {
+      "command": "GOLANGCI_LINT_FIX=false GOLANGCI_LINT_BASE_REV=c8e29dc48b6dd2a77fb51cae1eb682ed517b3e55 make lint-code-fast TEST_TAG=integration",
+      "exit": 0,
+      "seconds": 14.727668285369873
+    },
+    "live-slice-2": {
+      "command": "make umpire-check-model-slice",
+      "exit": 0,
+      "seconds": 27.607277870178223,
+      "current_guest": false,
+      "limitation": "Predates the final cancel malformed-response type precedence correction and guest-build-3; fresh final live slice remains required."
+    }
+  },
+  "source_sha256": {
+    "model/README.md": "da82ea4a5b153e2b71b59afef3f00dcf4d95d2b5bd9836d5bd91c3028c4ed3cb",
+    "model/temporal/feature/activity/expected/realization.snap.txt": "e1f0de183678b0f5183a0c3475a638ca6d2bbe821c93ae63db36feada808a4dd",
+    "model/temporal/feature/activity/temporal.rs": "1258e498a8a3d87c9b148ebd988b1bb4b2bb6f73262e7516b02d67c3c6deb316",
+    "model/temporal/hosts/go/allocation_test.go": "4b31bfa4d63f792c53c3074c8487b1ecc07d5ff115919c389383fb7ca4754188",
+    "model/temporal/hosts/go/parity_test.go": "867af8d727caddecc83777f4692b80b77269eb80ddff3c8d77863972ac09c1e3",
+    "model/temporal/hosts/go/umpire_temporal_guest.wasm": "f832a33c3024a8752976d146be839b62a95afde4790fa0db60f1dac9004b4e7e",
+    "model/temporal/realization/README.md": "0be860b66bc381d4d2cbcfe564a30ed7259120d05a1c7211c557fa3ef921970e",
+    "model/temporal/realization/macros/src/snapshots/umpire_temporal_realization_macros__tests__activity-realization.snap": "038e462de233cef4963e1efd30681d6870cb805d36e55a942a59b9ceedf61ab5",
+    "model/temporal/realization/src/annotations.rs": "fd678a643f6b6ab1d30026b60a8071bba9bbb431aaeb944d8c9f06c03fb08b62",
+    "model/temporal/realization/src/live.rs": "2e6b74c0b0916ab1751ff527b313af8031f6cfacc3733776fffb4077854b7da5",
+    "model/temporal/realization/tests/admission.rs": "abca3f7d020f20488039b3fc8d6cc19ee95a8bf0b9cd782f4f2eaff7a5b2265d",
+    "model/temporal/realization/tests/admission/publication.rs": "1b3f1f4834f11704680825277e2766d12d2933d382febd79db1f098d93143159",
+    "model/temporal/realization/tests/annotations.rs": "06458f5d0a49951561b43f2086162d8695423279e0c609f1e45124f4c7bbbde1",
+    "model/temporal/realization/tests/common/mod.rs": "f90b347ca300579e94f4909bd2d203f8d8a2b6f93b64be5d2b36cb7e83ca1e8e",
+    "model/temporal/realization/tests/realization.rs": "b4e398a6226d48a92c26f1e2a89d3dcd4723bd7424f4ed0e489b19b1124fc48c",
+    "tests/testpilot_model_slice_test.go": "8a4f63b0cb9e348baf9b713af596e4233c6190fac989c8dc9a65f41854a23fe5"
+  },
+  "goldens": {
+    "count": 819,
+    "exact": 817,
+    "changes": "only exact generated realization coverage and expansion mirrors"
+  },
+  "originals": "15 original activity artifacts verified by compatibility/verify.py; native compatibility remains in full gate",
+  "full_gate": "not yet run; awaiting source audits and normal review",
+  "logs": ".flow/tmp/fn-227.5"
+}

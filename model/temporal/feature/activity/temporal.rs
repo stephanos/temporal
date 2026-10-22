@@ -56,7 +56,7 @@ impl Realization {
     }
 
     #[observe(WorkflowService::DescribeActivityExecution,
-        reads(info.status, info.run_state),
+        reads(info.status, info.run_state, info.attempt),
         ignores(
             run_id = "Run identity is outside the lifecycle projection",
             input = "Describe input does not evidence callback delivery",
@@ -75,7 +75,6 @@ impl Realization {
             info.heartbeat_details = "Heartbeat payloads are outside the lifecycle projection",
             info.last_heartbeat_time = "Observed timestamps are outside the lifecycle projection",
             info.last_started_time = "Observed timestamps are outside the lifecycle projection",
-            info.attempt = "Retry attempts are outside the six-phase Model",
             info.execution_duration = "Measured duration is outside the lifecycle projection",
             info.schedule_time = "Observed timestamps are outside the lifecycle projection",
             info.expiration_time = "Observed timestamps are outside the lifecycle projection",
@@ -99,20 +98,43 @@ impl Realization {
             info.sdk_version = "SDK identity is outside the lifecycle projection",
             info.start_delay = "Timing policy is outside the lifecycle projection",
             info.execution_time = "Observed timestamps are outside the lifecycle projection"
-        ),
-        project(Self::project_phase)
-    )]
-    fn describe(response: DescribeActivityExecutionResponse) -> Result<Phase, Refusal> {
-        Phase::try_from(
-            response.info.ok_or_else(|| Refusal::malformed("activity info is missing"))?,
         )
+    )]
+    fn describe(
+        response: DescribeActivityExecutionResponse,
+        state: &activity::Model,
+    ) -> Result<Projection<Action>, Refusal> {
+        let info = response.info.ok_or_else(|| Refusal::malformed("activity info is missing"))?;
+        let raw_attempt = info.attempt;
+        let phase = Phase::try_from(info)?;
+        let attempt = u8::try_from(raw_attempt)
+            .map_err(|_| Refusal::unsupported("Describe attempt is outside maximum_attempts"))?;
+        let retry = state.phase == Phase::Started
+            && phase == Phase::Scheduled
+            && state.attempt.checked_add(1) == Some(attempt);
+        if state.attempt != attempt && !retry {
+            return Err(Refusal::new(
+                umpire_wasm::protocol::RefusalCode::State,
+                "Describe attempt does not match the current attempt",
+            ));
+        }
+        Ok(Self::project_phase(state, &activity::Model { phase, attempt }))
     }
 
-    fn project_phase(state: &activity::Model, phase: Phase) -> Projection<Action> {
-        if state.phase == phase {
+    fn project_phase(state: &activity::Model, observed: &activity::Model) -> Projection<Action> {
+        if state == observed {
             Projection::Current
         } else {
-            match phase {
+            if state.phase == Phase::Started
+                && observed.phase == Phase::Scheduled
+                && state.attempt.checked_add(1) == Some(observed.attempt)
+            {
+                return Projection::step(Worker::RespondFailed { retryable: true }.into());
+            }
+            if state.attempt != observed.attempt {
+                return Projection::steps([]);
+            }
+            match observed.phase {
                 Phase::Completed => Projection::step(Worker::RespondCompleted.into()),
                 Phase::Failed => {
                     Projection::step(Worker::RespondFailed { retryable: false }.into())
@@ -176,9 +198,17 @@ impl Realization {
             return Err(Refusal::malformed("callback requires exactly one input payload"));
         };
         let (action, response) = match plain_text(payload)? {
-            b"Complete" => {
+            b"RetryThenComplete" if task.attempt == 1 => (
+                Worker::RespondFailed { retryable: true },
+                Any::pack(&RespondActivityTaskFailedRequest {
+                    failure: Some(Failure::application("MiniActivityFailure", "Retry", false)),
+                    ..Default::default()
+                }),
+            ),
+            b"Complete" | b"RetryThenComplete" => {
                 let mut payload = payload.clone();
                 payload.external_payloads.clear();
+                payload.data = b"Complete".to_vec();
                 (
                     Worker::RespondCompleted,
                     Any::pack(&RespondActivityTaskCompletedRequest {

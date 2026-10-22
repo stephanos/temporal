@@ -6,13 +6,16 @@ import (
 	"errors"
 	"slices"
 	"testing"
+	"time"
 
 	activitypb "go.temporal.io/api/activity/v1"
 	commonpb "go.temporal.io/api/common/v1"
 	enumspb "go.temporal.io/api/enums/v1"
+	taskqueuepb "go.temporal.io/api/taskqueue/v1"
 	"go.temporal.io/api/workflowservice/v1"
 	"google.golang.org/protobuf/proto"
 	"google.golang.org/protobuf/types/known/anypb"
+	"google.golang.org/protobuf/types/known/durationpb"
 	"umpire.local/model"
 	modelv1 "umpire.local/model/umpire/model/v1"
 	realizationv1 "umpire.local/model/umpire/realization/v1"
@@ -20,11 +23,16 @@ import (
 )
 
 const describeMethod = "/temporal.api.workflowservice.v1.WorkflowService/DescribeActivityExecution"
+const startMethod = "/temporal.api.workflowservice.v1.WorkflowService/StartActivityExecution"
+const receiptRun = "22222222-2222-4222-8222-222222222222"
+const receiptNamespace = "model-slice"
+const receiptActivity = "activity"
+
 const cancelMethod = "/temporal.api.workflowservice.v1.WorkflowService/RequestCancelActivityExecution"
 
 func cancelObservation(t *testing.T, code int32) *anypb.Any {
 	t.Helper()
-	value := &realizationv1.Observation{Method: cancelMethod}
+	value := &realizationv1.Observation{Method: cancelMethod, Request: pack(t, &workflowservice.RequestCancelActivityExecutionRequest{Namespace: receiptNamespace, ActivityId: receiptActivity, RunId: receiptRun})}
 	if code == 0 {
 		value.Result = &realizationv1.Observation_Response{Response: pack(t, &workflowservice.RequestCancelActivityExecutionResponse{})}
 	} else {
@@ -127,40 +135,30 @@ func TestObservationResultWireCompatibility(t *testing.T) {
 	}
 }
 
-func TestActualRequestLeavesJudgmentsUnchanged(t *testing.T) {
-	carry := func(value *anypb.Any, request proto.Message) *anypb.Any {
-		observation := new(realizationv1.Observation)
-		if err := value.UnmarshalTo(observation); err != nil {
-			t.Fatal(err)
-		}
-		observation.Request = pack(t, request)
-		if typed, err := observation.GetRequest().UnmarshalNew(); err != nil || !proto.Equal(typed, request) {
-			t.Fatalf("typed request = %v, %v; want %v", typed, err, request)
-		}
-		return pack(t, observation)
+func TestActualRequestIsRequiredForLiveBinding(t *testing.T) {
+	h := guest(t)
+	value := scheduled(t)
+	observation := new(realizationv1.Observation)
+	if err := value.UnmarshalTo(observation); err != nil {
+		t.Fatal(err)
 	}
-	describe := &workflowservice.DescribeActivityExecutionRequest{Namespace: "model-slice", ActivityId: "activity", RunId: "run", IncludeOutcome: true}
-	cancel := &workflowservice.RequestCancelActivityExecutionRequest{Namespace: "model-slice", ActivityId: "activity", RunId: "run", RequestId: "request"}
-	absent, present := guest(t), guest(t)
-	for _, step := range []struct {
-		value   *anypb.Any
-		request proto.Message
-	}{
-		{scheduled(t), describe},
-		{cancelObservation(t, 0), cancel},
-		{observation(t, enumspb.ACTIVITY_EXECUTION_STATUS_CANCELED, 0), describe},
-		{cancelObservation(t, 5), cancel},
-		{observation(t, enumspb.ACTIVITY_EXECUTION_STATUS_COMPLETED, 0), describe},
-	} {
-		want := judge(t, absent, step.value)
-		if got := judge(t, present, carry(step.value, step.request)); !proto.Equal(got, want) {
-			t.Fatalf("judgment with request = %v; without = %v", got, want)
-		}
-	}
-	unexplained(t, judge(t, present, scheduled(t)), "Client::Cancel")
+	observation.Request = nil
+	_, err := h.Judge(context.Background(), &modelv1.JudgeRequest{Observation: pack(t, observation)})
+	refusal(t, err, modelv1.RefusalCode_REFUSAL_CODE_MALFORMED_REQUEST)
+	explained(t, judge(t, h, value))
 }
 
-func guest(t *testing.T) *model.Host {
+func startObservation(t *testing.T, attempts int32) *anypb.Any {
+	t.Helper()
+	return pack(t, &realizationv1.Observation{Method: startMethod,
+		Request: pack(t, &workflowservice.StartActivityExecutionRequest{
+			Namespace: receiptNamespace, ActivityId: receiptActivity, RequestId: "11111111-1111-4111-8111-111111111111",
+			ActivityType: &commonpb.ActivityType{Name: "ModelSlice"}, TaskQueue: &taskqueuepb.TaskQueue{Name: "queue"},
+			StartToCloseTimeout: durationpb.New(20 * time.Second), RetryPolicy: &commonpb.RetryPolicy{MaximumAttempts: attempts},
+		}), Result: &realizationv1.Observation_Response{Response: pack(t, &workflowservice.StartActivityExecutionResponse{RunId: receiptRun, Started: true})}})
+}
+
+func unboundGuest(t *testing.T) *model.Host {
 	t.Helper()
 	h, err := model.New(context.Background(), temporalmodel.Guest())
 	if err != nil {
@@ -171,6 +169,13 @@ func guest(t *testing.T) *model.Host {
 			t.Error(err)
 		}
 	})
+	return h
+}
+
+func guest(t *testing.T) *model.Host {
+	t.Helper()
+	h := unboundGuest(t)
+	explained(t, judge(t, h, startObservation(t, 3)))
 	return h
 }
 
@@ -186,9 +191,10 @@ func pack(t *testing.T, message proto.Message) *anypb.Any {
 func observation(t *testing.T, status enumspb.ActivityExecutionStatus, run enumspb.PendingActivityState) *anypb.Any {
 	t.Helper()
 	return pack(t, &realizationv1.Observation{
-		Method: describeMethod,
-		Result: &realizationv1.Observation_Response{Response: pack(t, &workflowservice.DescribeActivityExecutionResponse{Info: &activitypb.ActivityExecutionInfo{
-			Status: status, RunState: run,
+		Method:  describeMethod,
+		Request: pack(t, &workflowservice.DescribeActivityExecutionRequest{Namespace: receiptNamespace, ActivityId: receiptActivity, RunId: receiptRun}),
+		Result: &realizationv1.Observation_Response{Response: pack(t, &workflowservice.DescribeActivityExecutionResponse{RunId: receiptRun, Info: &activitypb.ActivityExecutionInfo{
+			ActivityId: receiptActivity, RunId: receiptRun, Attempt: 1, Status: status, RunState: run,
 		}})},
 	})
 }
@@ -206,7 +212,7 @@ func started(t *testing.T) *anypb.Any {
 func callback(t *testing.T, policy string) *anypb.Any {
 	t.Helper()
 	return pack(t, &realizationv1.Callback{Task: pack(t, &workflowservice.PollActivityTaskQueueResponse{
-		Attempt: 1,
+		Attempt: 1, WorkflowNamespace: receiptNamespace, ActivityId: receiptActivity, ActivityRunId: receiptRun,
 		Input: &commonpb.Payloads{Payloads: []*commonpb.Payload{{
 			Metadata: map[string][]byte{"encoding": []byte("binary/plain")}, Data: []byte(policy),
 		}}},
@@ -375,13 +381,13 @@ func TestCallbackRefusalPreservesScheduled(t *testing.T) {
 		}, modelv1.RefusalCode_REFUSAL_CODE_UNSUPPORTED},
 		{"malformed task", func(_ *testing.T, c *realizationv1.Callback) { c.Task.Value = []byte{255} }, modelv1.RefusalCode_REFUSAL_CODE_MALFORMED_REQUEST},
 		{"missing input", func(t *testing.T, c *realizationv1.Callback) {
-			c.Task = pack(t, &workflowservice.PollActivityTaskQueueResponse{})
+			c.Task = pack(t, &workflowservice.PollActivityTaskQueueResponse{WorkflowNamespace: receiptNamespace, ActivityId: receiptActivity, ActivityRunId: receiptRun, Attempt: 1})
 		}, modelv1.RefusalCode_REFUSAL_CODE_MALFORMED_REQUEST},
 		{"zero payloads", func(t *testing.T, c *realizationv1.Callback) {
-			c.Task = pack(t, &workflowservice.PollActivityTaskQueueResponse{Input: &commonpb.Payloads{}})
+			c.Task = pack(t, &workflowservice.PollActivityTaskQueueResponse{WorkflowNamespace: receiptNamespace, ActivityId: receiptActivity, ActivityRunId: receiptRun, Attempt: 1, Input: &commonpb.Payloads{}})
 		}, modelv1.RefusalCode_REFUSAL_CODE_MALFORMED_REQUEST},
 		{"two payloads", func(t *testing.T, c *realizationv1.Callback) {
-			c.Task = pack(t, &workflowservice.PollActivityTaskQueueResponse{Input: &commonpb.Payloads{Payloads: []*commonpb.Payload{{}, {}}}})
+			c.Task = pack(t, &workflowservice.PollActivityTaskQueueResponse{WorkflowNamespace: receiptNamespace, ActivityId: receiptActivity, ActivityRunId: receiptRun, Attempt: 1, Input: &commonpb.Payloads{Payloads: []*commonpb.Payload{{}, {}}}})
 		}, modelv1.RefusalCode_REFUSAL_CODE_MALFORMED_REQUEST},
 		{"unknown policy", func(t *testing.T, c *realizationv1.Callback) {
 			value := new(realizationv1.Callback)
@@ -391,7 +397,7 @@ func TestCallbackRefusalPreservesScheduled(t *testing.T) {
 			c.Task = value.Task
 		}, modelv1.RefusalCode_REFUSAL_CODE_UNSUPPORTED},
 		{"wrong encoding", func(t *testing.T, c *realizationv1.Callback) {
-			c.Task = pack(t, &workflowservice.PollActivityTaskQueueResponse{Input: &commonpb.Payloads{Payloads: []*commonpb.Payload{{Metadata: map[string][]byte{"encoding": []byte("json/plain")}, Data: []byte("Complete")}}}})
+			c.Task = pack(t, &workflowservice.PollActivityTaskQueueResponse{WorkflowNamespace: receiptNamespace, ActivityId: receiptActivity, ActivityRunId: receiptRun, Attempt: 1, Input: &commonpb.Payloads{Payloads: []*commonpb.Payload{{Metadata: map[string][]byte{"encoding": []byte("json/plain")}, Data: []byte("Complete")}}}})
 		}, modelv1.RefusalCode_REFUSAL_CODE_UNSUPPORTED},
 	} {
 		t.Run(tc.name, func(t *testing.T) {
@@ -532,4 +538,63 @@ func TestRepeatedDeliveryAndInstanceIsolation(t *testing.T) {
 	explained(t, judge(t, first, started(t)))
 	reset(t, first)
 	explained(t, judge(t, first, scheduled(t)))
+}
+
+func TestStartReceiptBindsExactCapturedBytesAndRunInWasm(t *testing.T) {
+	h := unboundGuest(t)
+	ctx := context.Background()
+	captured := startObservation(t, 2)
+	value := new(realizationv1.Observation)
+	if err := captured.UnmarshalTo(value); err != nil {
+		t.Fatal(err)
+	}
+	response := new(workflowservice.StartActivityExecutionResponse)
+	if err := value.GetResponse().UnmarshalTo(response); err != nil {
+		t.Fatal(err)
+	}
+	response.Started = false
+	value.Result = &realizationv1.Observation_Response{Response: pack(t, response)}
+	replay := pack(t, value)
+	_, err := h.Judge(ctx, &modelv1.JudgeRequest{Observation: replay})
+	refusal(t, err, modelv1.RefusalCode_REFUSAL_CODE_STATE)
+	explained(t, judge(t, h, captured))
+	answer(t, h, "Complete")
+	explained(t, judge(t, h, replay))
+	for _, kind := range []string{"unknown wire field", "private changed input", "different execution", "crossed run"} {
+		t.Run(kind, func(t *testing.T) {
+			value := new(realizationv1.Observation)
+			if err := captured.UnmarshalTo(value); err != nil {
+				t.Fatal(err)
+			}
+			request := new(workflowservice.StartActivityExecutionRequest)
+			if err := value.GetRequest().UnmarshalTo(request); err != nil {
+				t.Fatal(err)
+			}
+			switch kind {
+			case "unknown wire field":
+				value.Request.Value = append(value.Request.Value, 0xf8, 0x07, 0x01)
+			case "private changed input":
+				request.Input = &commonpb.Payloads{Payloads: []*commonpb.Payload{{Data: []byte("private-admission-payload")}}}
+				value.Request = pack(t, request)
+			case "different execution":
+				request.ActivityId = "another-activity"
+				value.Request = pack(t, request)
+			case "crossed run":
+				changed := proto.Clone(response).(*workflowservice.StartActivityExecutionResponse)
+				changed.RunId = "33333333-3333-4333-8333-333333333333"
+				value.Result = &realizationv1.Observation_Response{Response: pack(t, changed)}
+			default:
+				t.Fatalf("unknown mutation %s", kind)
+			}
+			_, err := h.Judge(ctx, &modelv1.JudgeRequest{Observation: pack(t, value)})
+			refusal(t, err, modelv1.RefusalCode_REFUSAL_CODE_STATE)
+			if err != nil && bytes.Contains([]byte(err.Error()), []byte("private-admission-payload")) {
+				t.Fatal("private bytes appeared in refusal")
+			}
+			explained(t, judge(t, h, started(t)))
+		})
+	}
+	reset(t, h)
+	explained(t, judge(t, h, replay))
+	explained(t, judge(t, h, scheduled(t)))
 }

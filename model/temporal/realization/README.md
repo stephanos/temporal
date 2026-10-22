@@ -2,7 +2,9 @@
 
 `umpire-temporal` binds the independent `feature/activity/model.rs` to the
 real generated Temporal API. `Realization` implements `Realize<activity::World>`;
-`runtime()` uses the macro-exported world directly. Each runtime owns one run.
+`runtime()` creates the explicit three-attempt checker fixture. The guest uses
+`annotation_runtime()`, whose Temporal-owned live dispatcher admits one actual execution
+inside the shared stateless annotation wrapper.
 Generated `prost::Name` implementations supply canonical Any URLs through the
 generic `Any::pack`/`unpack` helpers; no hand-maintained type URL registry is needed.
 
@@ -13,8 +15,9 @@ or `Result<Response, i32>` when it handles raw gRPC error codes. A `Projection` 
 directly; `Step<A> { action, expected }` proposes one action. A state-valued handler must
 declare `project(Self::mapping)`, where the Realization-owned function takes the current
 Model state and returned value and constructs a `Projection`. The activity mapping
-matches the current phase, proposes only Completed or Failed, and leaves other changes
-unexplained. It never infers Poll from Started.
+checks the observed attempt, matches the current phase/attempt, and proposes Completed,
+nonretryable Failed, or retryable Failed when actual Describe reports the next Scheduled
+attempt. It never infers Poll from Started.
 
 `#[answer(Task, reads(path), ignores(path = "reason"),
 produces(Request, fields(path), ignores(path = "reason")))]` declares incoming callback
@@ -53,12 +56,14 @@ unproved enum-like rest coverage refuses.
 `Realization::REALIZATION` retains the mapped/ignored/unsupported paths and ignore
 reasons for each observed response, incoming callback and outgoing request. Outgoing
 mapped paths mean produced fields. The expansion is pinned after formatting with
-prettyplease; runtime state, freezing and publication remain owned by the generic runtime.
+prettyplease. The generic runtime owns Model replay and first-Unexplained freezing;
+the Temporal facade owns the immutable Start receipt and admission refusal.
 
 Judge accepts `umpire.realization.v1.Observation` containing the exact Describe RPC
 method `/temporal.api.workflowservice.v1.WorkflowService/DescribeActivityExecution`
 and a `temporal.api.workflowservice.v1.DescribeActivityExecutionResponse` Any.
-Running status requires Scheduled or Started run state. Terminal statuses use
+Running status requires Scheduled or Started run state and the current attempt, or
+the next Scheduled attempt after a retryable failure. Terminal statuses use
 Unspecified run state, as emitted by the server. Judge never manufactures Poll;
 only a validated callback supplies delivery evidence.
 
@@ -70,8 +75,9 @@ the envelope as opaque Any; the Temporal binding owns numeric status interpretat
 Optional request Any at tag 4 carries the same invocation's actual completed request.
 Request-absent bytes and tags 1 to 3 are unchanged; Go emits the oneof after regular
 fields while prost keeps number order, and both decode identically. `Observed::request`
-decodes it on demand. Current Describe and cancel projections ignore it, so judgments
-match the request-absent envelope. Admission of the Start pair belongs to fn-227.5.
+decodes it on demand. The live facade additionally retains the original raw `Any.value`
+bytes, including unknown fields, and requires actual requests on Describe and cancel.
+The request-absent wire encoding remains unchanged; it cannot establish live evidence.
 The live transport owner is the after-fill SDK interceptor: a caller-owned context sink
 receives one capture per attempt, cloning the request immediately before invoke and the
 raw result immediately after it. An RPC error and a later local validation failure are
@@ -98,11 +104,14 @@ six-phase Model omits. Repeated request IDs, repeated cancel and late replies ar
 Answer accepts `umpire.realization.v1.Callback` with a partial
 `temporal.api.workflowservice.v1.PollActivityTaskQueueResponse`. The input must
 contain exactly one Payload with exactly one metadata entry,
-`encoding = binary/plain`, and bytes `Complete` or `Fail`.
+`encoding = binary/plain`, and bytes `Complete`, `Fail` or `RetryThenComplete`.
+Callbacks carry the actual SDK namespace, activity ID, activity run ID and attempt;
+the facade checks the execution tuple before the state-aware delivery guard.
 
 The returned `umpire.realization.v1.Reply` contains a partial completed request with
 one binary/plain `Complete` result, or a partial failed request with message
 `Fail`, application failure type `MiniActivityFailure`, and non_retryable true.
+`RetryThenComplete` returns a retryable failure on attempt one and completes later attempts.
 The SDK owns task tokens, identity, timestamps, namespace, worker metadata and
 request transport. The callback projection requires only input: the SDK callback
 does not expose a whole server poll response. Whole-request equality is not claimed.
@@ -136,3 +145,50 @@ check, allowing the host to reconstruct the actual RPC bytes without increasing
 the ABI buffer limit. FNV detects accidental corruption and is not authentication.
 Classify requires exactly one observation per contextual case and renders the
 value-free gap report; generation, prerequisite and coverage failures are refusals.
+
+## Live World admission
+
+Only a canonical Start request and successful Start response from one captured invocation
+can admit a World. The transport owner supplies that association; protobuf bytes cannot
+authenticate it. Admission validates the existing catalogs, nonempty namespace/activity/
+request/run identity and an optional activity Link before checking World domains. It never
+fills, redacts or repairs captured evidence. Diagnostics name fields without including values.
+
+| Captured Start field | Admission in fn-227.5 |
+| --- | --- |
+| `retry_policy.maximum_attempts` | Must be explicitly present in `1..=3`; selects the exact World before construction. |
+| `schedule_to_start_timeout` | Recorded exactly with the receipt; not admitted. fn-237.4 owns future admission. |
+| `start_to_close_timeout` | Recorded exactly with the receipt; not admitted. fn-237.4 owns future admission. |
+| `schedule_to_close_timeout` | Recorded exactly with the receipt; not admitted. fn-237.4 owns future admission. |
+| `heartbeat_timeout` | Recorded exactly with the receipt; not admitted. fn-237.4 owns future admission. |
+
+Present valid timeout values are neither refused nor quantized into Model parameters.
+A successful new-run result (`started=true`) prepares a whole replacement Runtime with
+that World's unique Scheduled/attempt-one start and no exploration. Before admission,
+Explore/Rows concern only the explicit fixture World; Judge/Answer cannot use it as a live
+binding. Each execution needs a fresh guest. Original exact request/run replay is zero-step
+after progress and Reset, including `started=false` only with retained original successful
+provenance. Same-ID changed bytes, changed response evidence or crossed executions refuse.
+
+Describe and cancel require the bound namespace/activity/run tuple in their actual request;
+an omitted run ID is insufficient. Describe's outer run ID and Info activity/run IDs must
+agree. Describe attempt must match the Model or evidence its next Scheduled retry. Callback
+identity and attempt are checked before delivery; a rejected stale Poll cannot authorize a reply.
+
+The first domain failure prepares field-named Unsupported plus an owned admission-freeze
+transaction. It retains the old Runtime and exploration. Malformed, failed and crossed evidence
+cannot overwrite it, and stateless Annotate/Probe remain available. Reset composes Model Reset
+with admission-freeze clearing, retaining World, receipt and execution identity. A rejected
+prebinding candidate remains unadmitted after Reset and cannot be replaced by changed options.
+
+All effects commit as owned moves after guest response publication. Native false/panicking
+publishers, oversized responses and actual Wasm exhaustion of all 16 MiB of live ABI buffers
+leave World/state/exploration/receipt/freeze unchanged; retry publishes once. Admission success
+invalidates exploration only when committed. This boundary is the guest-owned response buffer:
+a later host read failure cannot undo its commit. A remote successful Start is also irreversible;
+the live owner retains the same capture to retry publication idempotently.
+
+The live SDK proof admits Start before worker startup and holds callbacks while synchronously
+reading and judging actual Describe. `RetryThenComplete` observes Scheduled attempt two before
+answering its real second delivery, then observes completion. The six existing Complete, Fail,
+HostRefusal, context-Cancellation and before/after-start cancellation controls remain separate.

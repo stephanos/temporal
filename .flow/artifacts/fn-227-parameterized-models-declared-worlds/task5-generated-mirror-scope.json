@@ -1,0 +1,6 @@
+{
+  "task": "fn-227-parameterized-models-declared-worlds.5",
+  "additional_touch": "model/temporal/feature/activity/expected/realization.snap.txt",
+  "reason": "Existing mirror currently says info.attempt ignored; actual task5 Describe retry projection reads it. Necessary exact generated classification mirror, no new Model behavior or broad golden update.",
+  "authorization": "Owner milestone completion goal and actual live retry requirement; conductor resolves necessary bounded scope without asking routine input."
+}

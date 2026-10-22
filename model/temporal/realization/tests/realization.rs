@@ -53,7 +53,12 @@ fn observation(status: i32, run_state: i32) -> Any {
             result: Some(ObservationResult::Response(any(
                 "temporal.api.workflowservice.v1.DescribeActivityExecutionResponse",
                 &DescribeActivityExecutionResponse {
-                    info: Some(ActivityExecutionInfo { status, run_state, ..Default::default() }),
+                    info: Some(ActivityExecutionInfo {
+                        status,
+                        run_state,
+                        attempt: 1,
+                        ..Default::default()
+                    }),
                     ..Default::default()
                 },
             ))),

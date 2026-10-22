@@ -359,9 +359,12 @@ an explicit one-attempt lifecycle projection; both deadline edges and four rejec
 terminal Cancel loops remain. Failure payload assignments deduplicate only after projection.
 Changing an original deadline destination fails the same comparison. This is the
 one-attempt/direct-deadline/atomic-cancel checkpoint; fn-237.3 owns the final Tick-era World
-and projection. The current guest uses the default three-attempt World. Callback Poll
-carries the observed attempt, while the existing Fail policy maps to retryable=false;
-actual-request World admission and the live retry proof belong to fn-227.5.
+and projection. The guest retains an explicit three-attempt World only for checker exploration before live
+admission. A successful actual captured Start selects `maximum_attempts` in `1..=3` for one
+execution; request timeouts are retained exactly, without admission or quantization until
+fn-237.4. Callback Poll carries the observed attempt. Fail maps to retryable=false;
+RetryThenComplete fails retryably on attempt one and completes attempt two. The live proof
+admits Start before worker startup and judges the real retry Describe before second delivery.
 
 `terminal_remains` and `closed_rejects` are registered postconditions, delegating to the
 shared closure laws. Fn-221 adds a rejected cancel self-loop at each of the four terminal
@@ -404,14 +407,16 @@ No Testpilot schema is moved, imported or copied. Shared WKT ownership means che
 rebuilds can trigger generated-API compilation; a separate owner is a possible later
 build optimization, not a new dependency admitted here.
 
-Describe projects actual Info.Status and Info.RunState: Running/Scheduled or
+Describe projects actual Info.Status, Info.RunState and Info.Attempt: Running/Scheduled or
 Running/Started, and terminal status/Unspecified. There is no Started execution-status
 enum. Only a valid callback evidences Poll. Repeated current observations are zero-step
 Explained; premature terminal and stale Scheduled observations are Unexplained, freezing
 the run until Reset. The SDK callback supplies a partial poll projection containing
 exactly one binary/plain Complete or Fail payload. Answer selects a partial completed
 or non-retryable failed RPC request, leaving the Model Started until terminal observation.
-Task token, identity, timestamps and whole-request equality are outside this projection.
+The facade binds actual namespace/activity/run identity and immutable raw Start request bytes.
+Task tokens and timestamps stay outside the lifecycle projection. See the realization guide
+for the per-field admission table, publication rollback and retained-receipt Reset contract.
 
 The live owner judges Scheduled with its registered worker stopped, answers delivery
 through that run's one Model instance, then synchronously reads and judges Describe.

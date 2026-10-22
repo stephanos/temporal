@@ -25,7 +25,7 @@ message: temporal.api.workflowservice.v1.DescribeActivityExecutionResponse
   ignored info.heartbeat_details - Heartbeat payloads are outside the lifecycle projection
   ignored info.last_heartbeat_time - Observed timestamps are outside the lifecycle projection
   ignored info.last_started_time - Observed timestamps are outside the lifecycle projection
-  ignored info.attempt - Retry attempts are outside the six-phase Model
+  mapped info.attempt
   ignored info.execution_duration - Measured duration is outside the lifecycle projection
   ignored info.schedule_time - Observed timestamps are outside the lifecycle projection
   ignored info.expiration_time - Observed timestamps are outside the lifecycle projection

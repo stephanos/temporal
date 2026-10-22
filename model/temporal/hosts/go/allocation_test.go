@@ -54,7 +54,7 @@ func (g *rawGuest) invoke(t *testing.T, name string, args ...uint64) []uint64 {
 	return result
 }
 
-func (g *rawGuest) call(t *testing.T, method modelv1.Method, request proto.Message, exhausted bool) *modelv1.Response {
+func (g *rawGuest) call(t *testing.T, method modelv1.Method, request proto.Message, exhausted bool, expected ...modelv1.RefusalCode) *modelv1.Response {
 	t.Helper()
 	data, err := proto.Marshal(request)
 	if err != nil {
@@ -112,7 +112,11 @@ func (g *rawGuest) call(t *testing.T, method modelv1.Method, request proto.Messa
 	if err := proto.Unmarshal(encoded, response); err != nil {
 		t.Fatal(err)
 	}
-	if response.GetRefusal() != nil {
+	if len(expected) == 1 {
+		if response.GetRefusal() == nil || response.GetRefusal().GetCode() != expected[0] {
+			t.Fatalf("refusal = %v; want %s", response.GetRefusal(), expected[0])
+		}
+	} else if response.GetRefusal() != nil {
 		t.Fatalf("unexpected refusal: %v", response.GetRefusal())
 	}
 	return response
@@ -158,6 +162,7 @@ func TestTemporalResponseExhaustionRollsBackState(t *testing.T) {
 	} {
 		t.Run(tc.name, func(t *testing.T) {
 			g := newRawGuest(t)
+			g.judge(t, startObservation(t, 3))
 			matching := scheduled(t)
 			if tc.delivered {
 				g.deliver(t)
@@ -186,4 +191,90 @@ func annotationPoll(t *testing.T) proto.Message {
 	return &modelv1.AnnotateRequest{Input: pack(t, &annotationsv1.AnnotationRequest{
 		Method: "/temporal.api.workflowservice.v1.WorkflowService/PollActivityTaskQueue", Response: true,
 	})}
+}
+
+func TestTemporalWorldTransactionsSurviveActualResponseExhaustion(t *testing.T) {
+	for _, operation := range []string{"success", "freeze", "reset live", "reset freeze"} {
+		t.Run(operation, func(t *testing.T) {
+			g := newRawGuest(t)
+			attempts := int32(1)
+			if operation == "freeze" || operation == "reset freeze" {
+				attempts = 4
+			}
+			start := &modelv1.JudgeRequest{Observation: startObservation(t, attempts)}
+			if operation == "reset live" {
+				explained(t, g.judge(t, start.Observation))
+				g.deliver(t)
+			}
+			if operation == "reset freeze" {
+				g.call(t, modelv1.Method_METHOD_JUDGE, start, false, modelv1.RefusalCode_REFUSAL_CODE_UNSUPPORTED)
+			}
+			exploration := g.call(t, modelv1.Method_METHOD_EXPLORE, &modelv1.ExploreRequest{Budget: 64}, false)
+			wantStates := uint32(18)
+			if operation == "reset live" {
+				wantStates = 6
+			}
+			if exploration.GetExplore().GetReached() != wantStates {
+				t.Fatalf("explored %d states; want %d", exploration.GetExplore().GetReached(), wantStates)
+			}
+			rows := &modelv1.RowsRequest{StateId: 0}
+			before := make([]*modelv1.Response, exploration.GetExplore().GetReached())
+			for stateID := range before {
+				before[stateID] = g.call(t, modelv1.Method_METHOD_ROWS, &modelv1.RowsRequest{StateId: uint32(stateID)}, false)
+			}
+			assertRows := func() {
+				t.Helper()
+				for stateID, expected := range before {
+					current := g.call(t, modelv1.Method_METHOD_ROWS, &modelv1.RowsRequest{StateId: uint32(stateID)}, false)
+					if !proto.Equal(expected, current) {
+						t.Fatalf("publication changed existing exploration state %d", stateID)
+					}
+				}
+			}
+			method, request := modelv1.Method_METHOD_JUDGE, proto.Message(start)
+			if operation == "reset live" || operation == "reset freeze" {
+				method, request = modelv1.Method_METHOD_RESET, &modelv1.ResetRequest{}
+			}
+			g.call(t, method, request, true)
+			assertRows()
+			switch operation {
+			case "success":
+				g.call(t, modelv1.Method_METHOD_JUDGE, &modelv1.JudgeRequest{Observation: scheduled(t)}, false, modelv1.RefusalCode_REFUSAL_CODE_STATE)
+				explained(t, g.judge(t, start.Observation))
+				g.call(t, modelv1.Method_METHOD_ROWS, rows, false, modelv1.RefusalCode_REFUSAL_CODE_NOT_EXPLORED)
+				g.deliver(t)
+				explained(t, g.judge(t, start.Observation))
+				explained(t, g.judge(t, started(t)))
+				exploration = g.call(t, modelv1.Method_METHOD_EXPLORE, &modelv1.ExploreRequest{Budget: 64}, false)
+				if exploration.GetExplore().GetReached() != 6 {
+					t.Fatal("admission did not select the one-attempt World")
+				}
+			case "freeze":
+				g.call(t, modelv1.Method_METHOD_JUDGE, &modelv1.JudgeRequest{Observation: scheduled(t)}, false, modelv1.RefusalCode_REFUSAL_CODE_STATE)
+				first := g.call(t, method, request, false, modelv1.RefusalCode_REFUSAL_CODE_UNSUPPORTED)
+				repeated := g.call(t, method, request, false, modelv1.RefusalCode_REFUSAL_CODE_UNSUPPORTED)
+				if !proto.Equal(first, repeated) {
+					t.Fatal("retry changed first admission freeze")
+				}
+				g.call(t, modelv1.Method_METHOD_JUDGE, &modelv1.JudgeRequest{Observation: startObservation(t, 1)}, false, modelv1.RefusalCode_REFUSAL_CODE_STATE)
+			case "reset live":
+				explained(t, g.judge(t, started(t)))
+				g.call(t, method, request, false)
+				explained(t, g.judge(t, start.Observation))
+				explained(t, g.judge(t, scheduled(t)))
+				g.call(t, modelv1.Method_METHOD_JUDGE, &modelv1.JudgeRequest{Observation: startObservation(t, 2)}, false, modelv1.RefusalCode_REFUSAL_CODE_STATE)
+			case "reset freeze":
+				g.call(t, modelv1.Method_METHOD_JUDGE, start, false, modelv1.RefusalCode_REFUSAL_CODE_UNSUPPORTED)
+				g.call(t, method, request, false)
+				g.call(t, modelv1.Method_METHOD_JUDGE, start, false, modelv1.RefusalCode_REFUSAL_CODE_STATE)
+				g.call(t, modelv1.Method_METHOD_JUDGE, &modelv1.JudgeRequest{Observation: scheduled(t)}, false, modelv1.RefusalCode_REFUSAL_CODE_STATE)
+				g.call(t, modelv1.Method_METHOD_JUDGE, &modelv1.JudgeRequest{Observation: startObservation(t, 1)}, false, modelv1.RefusalCode_REFUSAL_CODE_STATE)
+			default:
+				t.Fatalf("unknown operation %s", operation)
+			}
+			if operation != "success" {
+				assertRows()
+			}
+		})
+	}
 }
