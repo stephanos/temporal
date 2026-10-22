@@ -99,6 +99,7 @@ struct State {
     next: Option<u64>,
     missing: Vec<OrdinalRange>,
     policy: String,
+    launcher: bool,
     budget: u64,
     pending: BTreeMap<u64, u64>,
     receipts: BTreeMap<u64, Execution>,
@@ -151,6 +152,11 @@ impl State {
         if !matches!(policy, "first" | "budget" | "all") || policy == "budget" && budget == 0 {
             return Err("invalid campaign failure policy".into());
         }
+        if plan["launcher"] == true
+            && (parallel != 1 || policy != "first" || plan["origin"]["origin"] != "intercepted-go")
+        {
+            return Err("invalid intercepted launcher campaign policy".into());
+        }
         let missing: Vec<OrdinalRange> = if plan["schema"] == "gomad.merged-seed-campaign-plan/v2" {
             if !plan["shard"].is_null()
                 || policy != "all"
@@ -188,6 +194,7 @@ impl State {
             parallel,
             shard_count: count,
             policy: policy.into(),
+            launcher: plan["launcher"].as_bool().unwrap_or(false),
             budget,
             pending: BTreeMap::new(),
             receipts: BTreeMap::new(),
@@ -218,6 +225,9 @@ impl State {
         let Some(execution) = self.receipts.get(&ordinal) else {
             return Ok(None);
         };
+        if self.launcher && execution.record.outcome.class != "success" {
+            return Ok(Some("first_failure".into()));
+        }
         if !is_failure(execution) {
             return Ok(None);
         }
@@ -271,6 +281,7 @@ impl State {
                     return Err("campaign receipt has no unique admission".into());
                 }
                 if execution.record.outcome.termination == "cancelled"
+                    && !self.launcher
                     && self.pending_stop()?.as_deref() != Some("first_failure")
                 {
                     return Err("campaign cancellation has no first-failure stop".into());
@@ -418,6 +429,14 @@ pub(crate) fn validate_execution(execution: &Execution) -> Result<(), String> {
                             .contains_key("simulation/record.json")) => {}
         "watchdog" if execution.artifact.is_some() && outcome.termination == "watchdog_timeout" => {
         }
+        "runner_failure"
+            if execution.artifact.is_some()
+                && execution.record.streams.contains_key(super::origin::FILE)
+                && outcome.exit_code.is_none()
+                && !matches!(
+                    outcome.termination.as_str(),
+                    "exit" | "trap" | "divergence" | "diverged"
+                ) => {}
         "runner_failure"
             if outcome.termination == "cancelled"
                 && outcome.reason == "runner_cancelled"
@@ -1025,6 +1044,9 @@ fn validate_plan_record_with_steps(
     record: &Record,
     steps: Option<&[gomad_wasmhost::linked_cluster::Step]>,
 ) -> Result<(), String> {
+    if let Some(origin) = plan.get("origin") {
+        super::origin::validate_record(origin, record)?;
+    }
     let scenario = !plan["scenario"].is_null() && record.outcome.class != "prepared";
     let configuration = if scenario {
         let raw: Vec<u8> =

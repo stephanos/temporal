@@ -14,6 +14,7 @@ use std::{
     time::Instant,
 };
 
+pub(crate) mod driver;
 pub(crate) mod inventory;
 pub(crate) mod process;
 
@@ -36,6 +37,8 @@ pub use crate::install::manifest::Installation;
 #[serde(deny_unknown_fields)]
 struct Provenance {
     schema: String,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    origin: Option<super::origin::Intercepted>,
     inputs: Value,
     build_key: String,
     module_sha256: String,
@@ -123,210 +126,24 @@ pub fn prepare(options: &ExploreOptions) -> Result<Prepared, String> {
 
 #[expect(
     clippy::too_many_lines,
-    reason = "Source admission keeps inventory and post-build verification in one ordered transaction"
+    reason = "The ordinary source build uses the same authenticated driver recipe as interception"
 )]
 fn prepare_before_deadline(
     options: &ExploreOptions,
     deadline: Instant,
 ) -> Result<Prepared, String> {
-    process::check_deadline(deadline)?;
-    let installed = installation(options)?;
     if options.target_kind == "exec" {
-        return prepared_exec(options, &installed);
+        return prepared_exec(options, &installation(options)?);
     }
-    if options.soft_assertion_report_only && options.target_kind != "go-test" {
-        return Err("unsupported_target: soft assertion report-only requires go-test".into());
-    }
-    if !matches!(options.target_kind.as_str(), "go-run" | "go-test")
-        || !options.provenance.is_empty()
-    {
-        return Err("unsupported_target: unsupported source preparation request".into());
-    }
-    let scenario = options
-        .scenario
-        .as_deref()
-        .map(super::scenario::normalize)
-        .transpose()?;
-    let cooperative = installed.profile == "gomad.wasi-cooperative/v1";
-    if cooperative && !options.choices && scenario.is_none()
-        || !cooperative && (options.choices || options.diagnostics || scenario.is_some())
-    {
-        return Err("unsupported_target: choices/scenario do not match installed profile".into());
-    }
-    let directory = fs::canonicalize(&options.working_dir).map_err(failure)?;
-    let temporary = process::Temporary::new(&installed.cache_root)?;
-    let mut environment = process::environment()?;
-    let version = process::command(
-        &installed.compiler_path,
-        &["version".into()],
-        &directory,
-        &environment,
-        &temporary.0,
-        64 << 10,
-        deadline,
-    )?;
-    if !String::from_utf8_lossy(&version).contains(&format!("{} ", installed.go_version)) {
-        return Err(failure("compiler version does not match installation"));
-    }
-    let (mut compiler, root) = inventory::compiler(
-        &installed.compiler_path,
-        &directory,
-        &environment,
-        &temporary.0,
-        deadline,
-    )?;
-    let mut replacements = BTreeMap::new();
-    let mut runtime = None;
-    let mut overlay = None;
-    if cooperative {
-        let cache = process::command(
-            &installed.compiler_path,
-            &["env".into(), "GOMODCACHE".into()],
-            &directory,
-            &environment,
-            &temporary.0,
-            64 << 10,
-            deadline,
-        )?;
-        let cache = PathBuf::from(String::from_utf8_lossy(&cache).trim());
-        if root.starts_with(fs::canonicalize(&cache).unwrap_or(cache)) {
-            return Err(failure("cooperative compiler must be outside module cache"));
-        }
-        environment.insert("GOROOT".into(), root.to_string_lossy().into_owned());
-        let module_root = installed
-            .overlay_module_root
-            .as_deref()
-            .or_else(|| {
-                installed
-                    .runtime_root
-                    .parent()
-                    .and_then(Path::parent)
-                    .and_then(Path::parent)
-            })
-            .ok_or_else(|| failure("overlay module owner is required"))?;
-        if !module_root.is_absolute() {
-            return Err(failure("absolute overlay module owner is required"));
-        }
-        let generated = crate::install::toolchain::overlay(
-            &installed,
-            &root,
-            &environment,
-            &temporary.0,
-            deadline,
-        )?;
-        let value: Value =
-            serde_json::from_slice(&read(&generated.path, 16 << 20)?).map_err(failure)?;
-        replacements = serde_json::from_value(
-            value
-                .get("Replace")
-                .cloned()
-                .ok_or_else(|| failure("overlay replacements missing"))?,
-        )
-        .map_err(failure)?;
-        for (original, replacement) in &replacements {
-            for path in [Path::new(original), Path::new(replacement)] {
-                if path.is_file() {
-                    compiler.insert(path.into(), canonical::digest(&read(path, MAXIMUM)?));
-                }
-            }
-        }
-        for name in [
-            "internal/model/choice/schema/choicewire.json",
-            "internal/model/choice/schema/choicewire.go.tmpl",
-            "internal/model/choice/schema/choicewire_runtime.go.tmpl",
-            "internal/model/choice/schema/choicewire_test.go.tmpl",
-            "internal/model/choice/trace.go",
-            "internal/model/choice/tape.go",
-            "internal/backends/wasm/toolchain/overlay.go",
-            "internal/backends/wasm/toolchain/runtime_wasm.go.txt",
-            "internal/backends/wasm/toolchain/runtime_inspect_wasm.go.txt",
-            "internal/backends/wasm/toolchain/net_stream_wasm.go.txt",
-            "internal/backends/wasm/toolchain/net_stream_status_generated.go.txt",
-            "internal/backends/wasm/toolchain/cmd/overlay/main.go",
-        ] {
-            let path = module_root.join(name);
-            compiler.insert(path.clone(), canonical::digest(&read(&path, MAXIMUM)?));
-        }
-        for path in [
-            &generated.path,
-            &installed.runtime_root.join("gomad_semantics.go.txt"),
-            &installed
-                .runtime_root
-                .join("gomad_choicewire_generated.go.txt"),
-        ] {
-            compiler.insert(path.clone(), canonical::digest(&read(path, MAXIMUM)?));
-        }
-        runtime = Some(generated.identity);
-        overlay = Some(generated.path);
-    }
-    let mut tags = options.build_tags.clone();
-    tags.extend(installed.build_tags.iter().cloned());
-    tags.sort();
-    tags.dedup();
-    let mut flags = vec!["-mod=readonly".into(), "-pgo=off".into()];
-    if let Some(path) = &overlay {
-        flags.extend(["-overlay".into(), path.to_string_lossy().into_owned()]);
-    }
-    if !tags.is_empty() {
-        flags.extend(["-tags".into(), tags.join(",")]);
-    }
-    let mut list = vec!["list".into()];
-    list.extend(flags.clone());
-    list.extend(["-deps".into(), "-json".into()]);
-    if options.target_kind == "go-test" {
-        list.push("-test".into());
-    }
-    list.push(options.source.clone());
-    let sources = inventory::sources(
-        &process::command(
-            &installed.compiler_path,
-            &list,
-            &directory,
-            &environment,
-            &temporary.0,
-            128 << 20,
-            deadline,
-        )?,
-        &root.join("pkg/include"),
-        &replacements,
-    )?;
-    let mut configuration = configuration(options, &installed)?;
-    let build_environment = environment
-        .iter()
-        .filter(|(name, _)| {
-            matches!(
-                name.as_str(),
-                "GOENV"
-                    | "GOPROXY"
-                    | "GOSUMDB"
-                    | "GOPRIVATE"
-                    | "GONOPROXY"
-                    | "GOVCS"
-                    | "GOFLAGS"
-                    | "GOTOOLCHAIN"
-                    | "GOWORK"
-                    | "GOOS"
-                    | "GOARCH"
-                    | "CGO_ENABLED"
-                    | "GOEXPERIMENT"
-                    | "GOCACHEPROG"
-                    | "GOWASM"
-                    | "GODEBUG"
-            )
-        })
-        .collect::<BTreeMap<_, _>>();
-    let mut inputs = json!({"schema":"gomad.rust-wasm-build-inputs/v1", "compiler":compiler,"compiler_path":installed.compiler_path,"compiler_sha256":installed.compiler_sha256,
-        "go_version":installed.go_version,"sources":sources,"runtime":runtime,"runtime_implementation":installed.runtime_implementation_sha256,
-        "helper":linked::IMPLEMENTATION_SHA256,"host":env!("GOMAD_HOST_IMPLEMENTATION_SHA256"),"kind":options.target_kind,"source":options.source,
-        "directory":directory,"arguments":options.target_args,"tags":tags,"configuration":configuration,"scenario":scenario,"network":installed.network,
-        "build_flags":["-mod=readonly","-trimpath","-buildvcs=false","-pgo=off"],"environment":build_environment,"soft_assertion_report_only":options.soft_assertion_report_only});
+    let recipe = driver::prepare(options, deadline)?;
+    let temporary = process::Temporary::new(&recipe.installed.cache_root)?;
     let output = temporary.0.join("module.wasm");
     let mut build = if options.target_kind == "go-test" {
         vec!["test".into(), "-c".into()]
     } else {
         vec!["build".into()]
     };
-    build.extend(flags);
+    build.extend(recipe.flags.clone());
     build.extend([
         "-trimpath".into(),
         "-buildvcs=false".into(),
@@ -334,95 +151,22 @@ fn prepare_before_deadline(
         output.to_string_lossy().into_owned(),
         options.source.clone(),
     ]);
-    let mut compilation_environment = environment.clone();
+    let mut compilation_environment = recipe.environment.clone();
     compilation_environment.insert(
         "GOCACHE".into(),
         temporary.0.join("objects").to_string_lossy().into_owned(),
     );
     process::command(
-        &installed.compiler_path,
+        &recipe.installed.compiler_path,
         &build,
-        &directory,
+        &recipe.directory,
         &compilation_environment,
         &temporary.0,
         4 << 20,
         deadline,
     )?;
     let module = read(&output, MAXIMUM)?;
-    let module_metadata = linked::module_metadata(&module).map_err(failure)?;
-    inputs["module_metadata"] = serde_json::to_value(&module_metadata).map_err(failure)?;
-    let toolchain = canonical::digest(&canonical::encode(&inputs)?);
-    let after = inventory::sources(
-        &process::command(
-            &installed.compiler_path,
-            &list,
-            &directory,
-            &environment,
-            &temporary.0,
-            128 << 20,
-            deadline,
-        )?,
-        &root.join("pkg/include"),
-        &replacements,
-    )?;
-    if sources != after {
-        return Err(failure(
-            "selected source inventory changed during compilation",
-        ));
-    }
-    inventory::verify(&compiler)?;
-    inventory::verify(&sources)?;
-    crate::install::manifest::executable(&installed.compiler_path, &installed.compiler_sha256)?;
-    let (after_compiler, after_root) = inventory::compiler(
-        &installed.compiler_path,
-        &directory,
-        &environment,
-        &temporary.0,
-        deadline,
-    )?;
-    if after_root != root
-        || after_compiler
-            .iter()
-            .any(|(path, digest)| compiler.get(path) != Some(digest))
-    {
-        return Err(failure("compiler inventory changed during compilation"));
-    }
-    let choice_identity = if cooperative {
-        let implementation = choice_implementation(&toolchain)?;
-        inventory::verify(&compiler)?;
-        configuration.runtime_sha256 = Some(format!("{implementation:x}"));
-        Some(linked::ChoiceIdentity {
-            target_sha256: Sha256::digest(&module).into(),
-            toolchain_build_key: toolchain.clone(),
-            goos: "wasip1".into(),
-            goarch: "wasm".into(),
-            implementation_sha256: implementation.into(),
-        })
-    } else {
-        None
-    };
-    let provenance = canonical::encode(&Provenance {
-        schema: "gomad.rust-wasm-provenance/v1".into(),
-        inputs,
-        build_key: toolchain.clone(),
-        module_sha256: canonical::digest(&module),
-        module_metadata: Some(module_metadata),
-        configuration,
-        choice_identity,
-        scenario,
-        network: installed.network,
-    })?;
-    let decoded: Provenance = serde_json::from_slice(&provenance).map_err(failure)?;
-    Ok(Prepared {
-        module,
-        configuration: decoded.configuration,
-        toolchain,
-        choice_identity: decoded.choice_identity,
-        scenario: decoded.scenario,
-        provenance,
-        network: decoded.network,
-        soft_assertion_report_only: options.soft_assertion_report_only,
-    })
+    recipe.admit(module, options.target_args.clone(), deadline)
 }
 
 pub(crate) fn choice_implementation(key: &str) -> Result<sha2::digest::Output<Sha256>, String> {

@@ -3,7 +3,9 @@ pub(crate) mod execution;
 pub(crate) mod exploration;
 mod failure_policy;
 pub(crate) mod inspect;
+pub(crate) mod launcher;
 pub(crate) mod ledger;
+pub(crate) mod origin;
 pub(crate) mod preparation;
 pub(crate) mod prepare;
 mod retention;
@@ -114,6 +116,14 @@ pub(crate) fn explore_prepared(
 }
 
 fn seed_journal(options: &ExploreOptions, prepared: &prepare::Prepared) -> Result<Journal, String> {
+    seed_journal_policy(options, prepared, false)
+}
+
+fn seed_journal_policy(
+    options: &ExploreOptions,
+    prepared: &prepare::Prepared,
+    launcher: bool,
+) -> Result<Journal, String> {
     let selection = seeds::SeedSelection::parse(&options.seeds)?;
     if selection.count() > 1_000_000 {
         return Err("capacity: campaign execution capacity exceeds 1000000".into());
@@ -125,6 +135,7 @@ fn seed_journal(options: &ExploreOptions, prepared: &prepare::Prepared) -> Resul
         .ok_or("capacity: campaign journal byte capacity overflows")?;
     let path = campaign_path(&options.artifacts)?;
     let mut plan = json!({
+        "origin": origin::from_preparation(prepared)?.map_or_else(|| json!("operator"), |origin| json!(origin)),
         "schema":"gomad.seed-campaign-plan/v2","selection":selection.to_string(),"selection_count":selection.count(),"parallel":options.parallel,
         "on_failure":options.on_failure,"failure_budget":options.failure_budget,"shard":null,"journal_bytes":journal_bytes,
         "overall_millis":u64::try_from(options.overall_timeout.as_millis()).map_err(|_|"overall timeout overflows")?,
@@ -136,6 +147,9 @@ fn seed_journal(options: &ExploreOptions, prepared: &prepare::Prepared) -> Resul
         "host_sha256":env!("GOMAD_HOST_IMPLEMENTATION_SHA256"),"helper_sha256":gomad_wasmhost::linked::IMPLEMENTATION_SHA256,
         "scenario":prepared.scenario,"network":prepared.network,"soft_assertion_report_only":prepared.soft_assertion_report_only,
     });
+    if launcher {
+        plan["launcher"] = json!(true);
+    }
     retain_prepared(&path, prepared, &mut plan)?;
     Journal::create(&path, &plan, journal_bytes)
 }
@@ -191,7 +205,11 @@ fn prepared_publication(prepared: &prepare::Prepared) -> Result<Publication, Str
         ("record.json".into(), record.bytes()?),
         ("target/provenance.json".into(), prepared.provenance.clone()),
     ]);
-    Ok(Publication { record, payloads })
+    let mut publication = Publication { record, payloads };
+    if let Some(origin) = origin::from_preparation(prepared)? {
+        origin.bind(&mut publication)?;
+    }
+    Ok(publication)
 }
 
 fn retain_prepared(

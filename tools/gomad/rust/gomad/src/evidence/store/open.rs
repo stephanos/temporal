@@ -435,12 +435,14 @@ impl Opened {
             return Err("artifact missing listed payload".into());
         }
         let stored_bytes = manifest.stored_bytes(bytes.len() as u64)?;
-        Ok(Self {
+        let opened = Self {
             root,
             pool,
             manifest,
             stored_bytes,
-        })
+        };
+        crate::campaign::origin::authenticate(&opened)?;
+        Ok(opened)
     }
 
     #[must_use]

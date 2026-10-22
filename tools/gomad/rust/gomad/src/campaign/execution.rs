@@ -114,6 +114,26 @@ pub(crate) fn run_with_replay(
     replay: Option<&linked::ReplayRequest>,
     raw_trace: Option<&[u8]>,
 ) -> std::result::Result<Result, String> {
+    run_with_output(
+        prepared,
+        job,
+        timeout,
+        cancellation,
+        replay,
+        raw_trace,
+        None,
+    )
+}
+
+pub(crate) fn run_with_output(
+    prepared: &Prepared,
+    job: &ledger::Job,
+    timeout: Duration,
+    cancellation: &linked::Cancellation,
+    replay: Option<&linked::ReplayRequest>,
+    raw_trace: Option<&[u8]>,
+    output: Option<std::sync::Arc<dyn linked::OutputConsumer>>,
+) -> std::result::Result<Result, String> {
     #[cfg(feature = "determinism-fixture")]
     crate::live_backend::before_execution(job.seed, cancellation)?;
     if prepared.scenario.is_some() {
@@ -203,6 +223,9 @@ pub(crate) fn run_with_replay(
             .map_err(|error| format!("runner_failure: admit standalone network: {error}"))?;
     }
     admitted.cancellation(cancellation.clone());
+    if let Some(output) = output {
+        admitted.output(output);
+    }
     let (observed, metrics) = measured(admitted, &configuration.limits)?;
     #[cfg(feature = "determinism-fixture")]
     crate::live_backend::after_execution(job.ordinal, cancellation)?;
@@ -284,9 +307,9 @@ pub(crate) fn publication(
     }
     let mut choice_features = Vec::new();
     if let Some(identity) = &prepared.choice_identity
-        && !matches!(
+        && matches!(
             observed.outcome.termination,
-            "watchdog_timeout" | "cancelled"
+            "exit" | "trap" | "divergence" | "diverged"
         )
     {
         if !payloads.contains_key("evidence/choice")
@@ -447,6 +470,11 @@ pub(crate) fn publication(
         streams,
     };
     payloads.insert("record.json".into(), record.bytes()?);
+    let mut publication = Publication { record, payloads };
+    if let Some(origin) = super::origin::from_preparation(prepared)? {
+        origin.bind(&mut publication)?;
+    }
+    let record = &publication.record;
     let execution = ledger::Execution {
         ordinal: job.ordinal,
         seed: job.seed,
@@ -465,7 +493,7 @@ pub(crate) fn publication(
     };
     Ok(Result {
         execution,
-        publication: Publication { record, payloads },
+        publication,
         metrics: Metrics::default(),
     })
 }
