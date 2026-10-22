@@ -49,10 +49,10 @@ Body lowering (about 1,380) and emission stay by design; embedding costs about 4
 `Source`/`Embedded`, hooks, probe) against `build.rs` (−241) and binding re-validation (−200).
 
 **Per-construct cost** halves only for declaration-level constructs (an attribute, claim kind,
-World or input feature), now read once: the design estimates 55–60% of fn-227's World and inputs
-costs, unmeasured so far. Body-level ones cost the same: fn-227.11's `Phased`/`reject!`/closure
-laws need `impl Phased` admission (20–40 lines), lowering (100–250) and emission (30–80), the
-same work `lift` held before fn-238; constructor printing is derived since .9. Quint parity is mostly
+World or input feature), now read once: the historical design estimated 55–60% of fn-227's
+World/input costs, without measurement. Body-level constructs still need admission, lowering
+and emission. fn-227.11 delivered `Phased`/`reject!`/closure laws through those layers;
+constructor printing is derived since .9. Quint parity is mostly
 body- and value-level; a new back end such as Apalache costs only its emitter.
 
 **Derived printing** (fn-238.9). The 277-line handwritten printer is replaced by a
@@ -134,15 +134,15 @@ Missing or changed tools, subprocess failures/limits, incomplete dumps and disag
 are refusals, never passing or silently skipped checks. Each Java process owns its temporary
 library extraction and state directory, avoiding concurrent JVM extraction races.
 
-The shared fixture corpus admits 12 fixtures: attribute Kettle at 283 projected states,
-`changed_state`, and ten attribute progress graphs covering weak fairness, four of them with
-accepted self-loops (fn-224); these are control variants, not 12 independent products. Five
-sources retain located refusals: `kettle_cut`, `kettle_progress` and `progress_dead_end` use
-delegating adapters outside the subset, `rejecting_steps` uses a helper and rejecting outcomes
-outside the subset, and `accepted_self_loops` uses rejecting outcomes beside `stay!()`.
-The system-owned fixture root additionally owns source-dependent artifacts. The newer
-`Phased`/`reject!`/generic `closable` shape is outside this subset: it requires a located
-refusal and has no system TLC agreement evidence. Older source evidence must not certify it.
+The shared fixture corpus now has 16 admitted TLC golden selections: attribute Kettle
+at 283 projected states, `changed_state`, ten attribute progress graphs (four with
+accepted self-loops), `parameterized_world`, `action_inputs`, `phased_rejection` and
+`shared_returns`. These are controls, not 16 independent products. Five sources retain
+located refusals: `kettle_cut`, `kettle_progress`, `progress_dead_end`, `rejecting_steps`
+and `accepted_self_loops`. The first three lack an admitted machine; the latter two
+still contain unsupported declarations or outcome expressions. `reject!` itself is
+admitted, including supported helpers, phase access and stock closure-law calls.
+The system-owned activity root also has actual TLC agreement for selected Worlds 1 and 3.
 
 Trait-form shared fixtures (fn-223). Each manual `Machine` fixture that shared the corpus was
 rewritten as a `#[machine]` Model or moved to `umpire/checker/tests/fixtures/` (no TLC
@@ -160,13 +160,13 @@ are attribute-surface facts for a later spec, not filled here:
 | `choices` | checker-only | One action yields three ordered choices with `bool` outcomes and string facts, two to the same target; handlers emit one edge with unit or `Outcome` outcomes and no facts. TLC loses choice/outcome/fact replay. |
 | `edge_checks` | checker-only | `bool` outcomes; its self-loop (`Idle` at 2) is stateable with `stay!()` since fn-224, but a rewrite would change every row's outcome spelling. `changed_state` keeps an `after`-filtered refuted postcondition with a replayed counterexample on TLC; the unfiltered refuted `never_decreases` and the `after`-filtered self-loop refutation are pinned nowhere on TLC. |
 | `vacuity` | checker-only | Same `bool` outcomes as `edge_checks` (its self-loop is stateable since fn-224). Never-triggered `after` claims stay on TLC through `changed_state`. |
-| `shared_starts` | checker-only | Duplicate starts `[0, 1, 0]` and `bool` outcomes (its self-loop is stateable since fn-224); `#[starts]` enumerates a duplicate-free field range. TLC loses the duplicate-start control (TLA+ `Init` is a set). |
+| `shared_starts` | checker-only | Duplicate starts `[0, 1, 0]` and `bool` outcomes (its self-loop is stateable since fn-224); The old field-start form enumerated a duplicate-free range. `parameterized_world` now tests computed correlated starts with a duplicate; TLC `Init` remains a set. |
 | `deep_chain` | checker-only | State carries a shared `Rc<Cell>` clone counter and the hook asserts linear clone work; a checker property, already refused by the lifter. |
 | `interleaved_claims` | checker-only | Claim order interleaves kinds (`claim_order`) and the hook adds a supplemental manual claim; attribute claims are contiguous per kind. Already refused by the lifter. |
 | `progress_graph` (cycle), `progress_continuous`, `progress_intermittent`, `progress_fulfilled`, `progress_trigger_stops` | attribute | |
 | `progress_two_lobes` | attribute | Catalog order is `Enter, Escape, Left, Right` (was `Enter, Left, Right, Escape`); `Enter`/`Escape` never fire, so every golden is unchanged. |
 | `progress_self_loop` | attribute (fn-224) | Authored self-loop, written with `stay!()`. |
-| `progress_multiple_starts` | checker-only | Starts `[9, 0]` outside a field range (its self-loop is stateable since fn-224). |
+| `progress_multiple_starts` | checker-only | Historical field-start limitation; computed starts now support non-range lists, but this manual fixture remains checker-only. |
 | `progress_target_barrier` | attribute (fn-224) | Self-loop after the target, written with `stay!()`. |
 | `progress_excluded_prefix` | attribute (fn-224) | Self-loop inside the scope, written with `stay!()`. |
 | `progress_scope_exit` | attribute (fn-224) | Self-loop beside an excluded fair escape, written with `stay!()`; `Escape` is the internal `Environment::Escape`. |
@@ -174,8 +174,9 @@ are attribute-surface facts for a later spec, not filled here:
 
 The eleven `progress_*` fixtures selected a mode of the trait `progress_graph` Model, so they
 were trait-form too. TLC no longer pins nondeterministic choice, non-`()` outcomes, facts,
-starts outside a field range or an unfiltered refuted postcondition (`never_decreases`) anywhere
-in the shared corpus. fn-224 moved the four fixtures whose only gap was a self-loop back with
+starts outside a field range or an unfiltered refuted postcondition (`never_decreases`) in those
+progress fixtures. Computed whole-state starts and rejecting outcomes now have separate controls
+in the parameterized fixtures below; nondeterministic choices and facts remain gaps. fn-224 moved the four fixtures whose only gap was a self-loop back with
 `stay!()`, so self-loops, refuted progress under a `without` scope (`progress_excluded_prefix`)
 and a fair action that the scope excludes (`progress_scope_exit`) are on TLC again; their
 report, rows, states and paths goldens kept fn-223's two spellings and TLC agrees on each.
@@ -550,38 +551,112 @@ the checker row and `xargs awk 'FNR == 1 {files++} {physical++} NF {nonblank++} 
 (DSL's macro crate has its own path). For the single-file authoring proxy use
 `awk 'NF {n++} NF && !/^[[:space:]]*\/\// {c++} END {print NR, n, c}' <file>`.
 
-## Parameterized Models: readiness
+## Parameterized worlds and inputs
 
-The engine is ready by construction under R9: a world is a value implementing `Machine`, and
-its parameters can be ordinary fields. `starts`, `actions` and `step` receive `&self`; state,
-edge and progress predicates receive `&M` (`dsl/src/machine.rs`, `claim.rs`, `progress.rs`).
-The associated `State: Clone + Eq + Hash + Display` admits generic state values satisfying those
-bounds, without a whole-state enumeration. Manual worlds can therefore compute starts and
-action catalogs from their parameters. The missing R17 engine-side convenience is `Finite`
-and its derive/domain support; persistent collections are admitted dependencies, not a ported
-Bank or Voting implementation.
+Declared Worlds and inputs are delivered through the shared fixtures and retry-era activity
+Model (fn-227.1/.2/.3/.7/.8/.11/.13/.14/.16), with actual Start admission and SDK retry proof
+in .5. The [compiling README example](README.md#fixed-parameters-and-computed-starts) binds
+its selected World explicitly and checks the exact documented source against a Rust fixture.
 
-This is a trait-contract conclusion, with an explicit inference caveat: Rust does not infer
-the world type backwards through every associated-state projection. Manual registrations may
-need `Claim::<Self>` / `StepClaim::<Self>` / `Progress::<Self>` or an explicitly typed closure parameter. That is
-type annotation at the call site, not evidence that the attribute surface supports parameters.
-Kettle itself proves only its unit-world, nongeneric, unit-action use case.
-
-| Attribute gap in the final code | Settled future shape, delivered with the first sample needing it |
+| Readiness | Delivered shape and boundary |
 | --- | --- |
-| No declared world struct: `#[machine]` emits `struct World;` and `world()` returns that unit value. | A module-local `#[derive(World)]` struct carries parameters; absence keeps the unit world and Kettle unchanged. |
-| Generated handler and claim calls discard the world argument. | An optional explicit extra `w: &World<..>` parameter on handlers and claims, detected by arity as `before` is today. |
-| `#[starts(range)]` supports static ranges, including `COLDEST_TEMPERATURE`, but not world-dependent/computed starts. | A `#[starts]` method in the main `impl Model` (any name, optional trailing `&World`) supplies computed starts; keep field `#[starts(range)]` for literal/static domains. |
-| `derive(Action)` requires unit variants; no input fields or domains. | Action variants carry inputs; domains come from `Finite` or the world. |
-| `#[machine]` rejects generic registered impls and its generated adapters name bare nongeneric types. | Retired (fn-227.13): `#[machine]` refuses generic `Model`, `World` and actor declarations with one located error, as the lifter does; standalone derives keep their generics. |
-| The lifter's World values came from a compiled copy of `model.rs` with a projection spliced into the machine module, so no native interface read private fields. | Settled (fn-227.14): values alone cross, through hidden derived `Values`/`ActionValues` exports in the type's own module, exposing what the derived `Debug` already prints; transitions and claims never cross. Since fn-238.4 the lifter emits from the embedded tree, and binding keeps only the `.cfg` range and value-type checks. `Value` mirrors the lifter's literals, so Model crates need no lifter dependency, and leaves room for set, map, tuple and record values. |
+| Declared World | One module-local named-field `#[derive(World)]` struct is the `Machine`. `World::new` takes fields in declaration order, with the struct's visibility and no Copy/Default requirement. Absence retains the unit World and `world()`. |
+| Typed callbacks | Handlers, claims, scopes and progress may take a trailing immutable `&World`. Its type is recognized before the old positional arity, preserving before-state/outcome forms regardless of parameter names. |
+| Computed starts | One `#[starts]` associated method, first among registered methods in the main `impl Model`, returns complete states from an optional `&World`. Field `#[starts(range)]` remains; mixing forms or duplicate methods refuses. Complete-state duplicates deduplicate and empty starts stay empty. |
+| Inputs | `derive(Action)` supports tuple/struct fields. `#[inputs(range)]`/`#[inputs([values])]` supplies explicit domains; otherwise `Finite` supplies bool, derived fieldless enums or a derived one-integer-field bounded newtype. Last field varies fastest. |
+| World domains | Field-level `#[domain(path)]` names `fn(&World) -> impl Iterator<Item = FieldType>`. The actor exposes `actions_in(&world)`; explicit contextual patterns use that same World rather than a fabricated static catalog. Variant placement, duplicate domains and domain/inputs combinations refuse. |
+| Generic declarations | `#[machine]` refuses generic Model, World and actor declarations with located errors (fn-227.13); standalone derives retain their generics. |
+| Value handoff and emission | Hidden derived `Values`/`ActionValues` expose private scalar/enum field values, complete starts and concrete payloads without changing field visibility. The macro embeds one admitted front-end tree; the lifter binds selected values and emits it, including World CONSTANTs in every configuration and correlated Init states. Transitions are not inferred from native rows. |
+| Suite ownership | `Space::new(world)`, `Space::with_world(world, starts)`, `Run::new` and `along_in` retain an explicitly owned World. Fixture `fixture!(World = World::new(..), budget)` supplies `bound()`/`bound_for(world)` for the same selected World, starts and checked catalog through native checks, emission and typed TLC replay. |
 
-Numeric `.within(n)` is available on `LeadsTo`; the manual trait's `.within(scope)` retains its
-environment-assumption meaning and uses `.within_steps(n)` for numeric bounds.
-Once world access lands, `w.resource_managers.len()` needs no
-additional authoring form to supply a runtime parameter-derived bound. This follows from the
-planned explicit Rust parameter and expression argument; no such bound is evaluated by today's
-Kettle or generated code.
+`Finite` is enumeration, not automatic validation. Its bounded scalar derive generates
+`try_new(raw) -> Option<Self>` and `contains(raw)` from the one range; raw construction
+remains possible. `World::new` assigns fields without generic admission or state validation.
+Consumers admit their own policy: activity's live binding accepts maximum_attempts 1..=3.
+Native states need Clone/Eq/Hash/Display, not a whole-state catalog. Persistent collections
+remain admitted dependencies, without a Bank or Voting port. Declared-World `imbl::Vector`
+value export is still absent (`Value::Sequence` alone does not implement `IntoValue`).
+
+Generated input-bearing machines count domain products before materialization through
+`checked_catalog(limit)`. The default ceiling is 4,096 concrete actions; exact excessive
+counts yield `CatalogLimit`, arithmetic overflow `CatalogOverflow`, and Wasm uses `Budget`.
+An empty factor empties its variant even beside an overflowing factor; its vacuity remains
+visible. `Machine::actions` is unchecked; manual Machines use its length for default admission.
+`Checker::explore_within` and `Space::catalog_limit` select another native ceiling. Binding
+uses the checked default catalog. This is separate from state, path-alternative and walk bounds.
+Supported source values/body forms remain a located subset; generic declarations, unsupported
+field types, outcome expressions and methods keep their refusals. No blanket Rust admission is
+claimed. Named local IR from .16 keeps conditional-return trees linear without a 10,000-node cap.
+Numeric `.within(n)` on `LeadsTo` and manual `.within_steps(n)` can use World-derived bounds;
+manual `.within(scope)` retains its assumption meaning. No time bound gains fairness implicitly.
+
+### Selected-World native and TLC evidence
+
+Counts below are complete reached sets for the actual selected fixture Worlds, not all possible
+World values. Required tests check agreement and replay actual counterexamples through compiled
+steps. [Retained source receipts](../.flow/tasks/fn-227-parameterized-models-declared-worlds.7.md),
+[input receipts](../.flow/tasks/fn-227-parameterized-models-declared-worlds.8.md) and
+[phase receipts](../.flow/tasks/fn-227-parameterized-models-declared-worlds.11.md) retain execution.
+
+| Fixture and selected World | Native states | TLC states | Scope |
+| --- | ---: | ---: | --- |
+| `parameterized_world`: initial=1, limit=3 | 5 | 5 | Two distinct correlated starts; false never_three replayed. |
+| `parameterized_world`: initial=0, limit=1 | 3 | 3 | Two starts; never_three Verified. |
+| `parameterized_world`: initial=2, limit=1 | 0 | — | Native empty-start and binding control; no claim of executed TLC for this selection. |
+| `action_inputs`: attempts=2, spares=0 | 6 | 6 | Four actions, empty Skip; current-payload fairness Verified, four counterexamples replayed. |
+| `action_inputs`: attempts=3, spares=2 | 18 | 18 | Seven actions; current-payload progress Refuted, five counterexamples replayed. |
+| `phased_rejection`: attempts=2 | 8 | 8 | Deliberate reopening/accepted-closed/wrong-status mutants refute laws; six counterexamples replayed. |
+| Activity: maximum_attempts=1 | 6 | 6 | Closure laws Verified; no retry in the negative control. |
+| Activity: maximum_attempts=3 | 18 | 18 | Closure laws Verified; retry-payload counterexample replayed. |
+
+### Retry-era activity World and state
+
+| Item | Current meaning |
+| --- | --- |
+| World | `maximum_attempts: u8`; supported live selections 1..=3, exploration fixture selects 3. |
+| State | `phase` in Scheduled, Started, Completed, Failed, Canceled, TimedOut; `attempt: u8` starts at 1. One Scheduled start. |
+| Delivery | `Worker::Poll(expected)` schedules Started only for the current attempt; a stale Poll on an open state rejects FailedPrecondition. |
+| Failure | `RespondFailed { retryable }` from Started returns to Scheduled at attempt+1 iff retryable and below cap; otherwise Failed. |
+| Closure | Completed/Failed/Canceled/TimedOut are terminal; `terminal_remains` preserves phase and `closed_rejects` requires unchanged state and NotFound on emitted terminal steps. Terminal Cancel supplies rejected self-loops. |
+| Retained deadlines/cancel | ScheduleToStart and StartToClose directly enter TimedOut from Scheduled/Started; open Cancel atomically enters Canceled. No clock or cooperative cancellation. |
+
+The default World reaches 18 states, emits 48 choices from 162 evaluations, refuses 114
+disabled actions and reaches depth 6 without a cut. Coverage is `Cases(3 * 7) = 21`: seven
+scheduled/started closing or retry alternatives per attempt, each with an exact witness.
+[Compatibility](temporal/feature/activity/compatibility/README.md) retains all 15 immutable
+artifacts pinned at `af0ebafc571d33651fdf2c008d4415ad72467a0d`. The explicit one-attempt
+state/action/fact projection equals the original six-state/eleven-edge graph, including both
+deadlines and four rejected terminal Cancel loops; a changed deadline fails that comparison.
+This is the retry checkpoint, not old-byte equality. fn-237.3 owns final Tick-era compatibility.
+
+### Live admission and retained verification
+
+The Temporal binding transports optional actual `Observation.request` at tag 4 with its
+same-invocation successful Start result. It binds namespace/activity/request/run identity and
+immutable raw request bytes before publishing the World. Failed, crossed or missing evidence
+cannot install it. An out-of-domain maximum_attempts yields field-named Unsupported and freezes
+admission; first refusal remains sticky. An actual idempotent started=false response for the
+retained Start request takes zero steps after progress or Reset. World replacement, first freeze and composed Reset publish
+transactionally, including failure/oversize/allocation rollback. Annotate/Probe remain stateless.
+Request timeout fields are recorded exactly, not admitted or quantized as World parameters;
+present timeouts are not refused merely for being present. fn-237 owns their semantics,
+Tick/heartbeat, deadline priority, cooperative cancellation and fair-worker assumptions.
+
+The [actual .5 verification](../.flow/artifacts/fn-227-parameterized-models-declared-worlds/task5-final-verification.json)
+and [retry race correction](../.flow/artifacts/fn-227-parameterized-models-declared-worlds/task5-review-correction.json)
+retain the seven-scenario SDK proof: successful Start before worker startup, retryable failure
+on attempt 1, actual failure-RPC acknowledgment, fresh Describe delayed beyond the retry
+interval still Scheduled at 2 under a serialized actual-Poll permit, then released Poll 2
+and Complete. This is request/server/SDK evidence, not a Testpilot Case or general conformance.
+The current guest SHA-256 is `f832a33c3024a8752976d146be839b62a95afde4790fa0db60f1dac9004b4e7e`.
+The .5 slice passed in 21.547 s; gaps/private-output controls passed at that guest in
+361.572 s Go time (367.085 s outer). Its required model-time passed all 17 stages: 581.229 s
+against the 60 s soft gate target (missed), inner 6.084 s against 10 s (met), outer 587.528 s.
+These are previous shared-host observations, not isolated performance measurements.
+[This task's final output and timings](../.flow/artifacts/fn-227-parameterized-models-declared-worlds/task6-final-verification.json)
+record its own required model-time run and unchanged-production/guest reuse proof. Historical
+fn-232 failure evidence and later fn-232/fn-239 certifications remain; the current guest is
+not claimed freshly cross-OS certified. fn-238.5/.6 stay deferred absent an interpreted-checker need.
 
 ## Historical authoring options
 
@@ -756,7 +831,8 @@ is, because a mark that silently depends on call depth is easier to misread than
 `preserve_self_loop`, which drops the changed-state conjunct and emits the existing authored
 self-loop observer step; weak fairness stays on authored fair actions only. A `stay!()` nested
 in a condition is refused with a located warning. `accepted_self_loops` pins the `Accepted`
-and precedence rows natively; its lift is refused at `reject!`, which stays outside the subset.
+and precedence rows natively; its lift still refuses an unsupported outcome-match expression.
+`reject!` and the stock closure laws are admitted by the separate parameterized controls.
 
 ## Rejecting outcomes and live cancellation (fn-221)
 

@@ -1,0 +1,103 @@
+{
+  "task5_verification_head": "fcbed683496e760acab514788f0e4be26dd55d2c",
+  "task6_base": "ae9e3157e5bbf431432d93023c3963c07c2ff375",
+  "changed_since_task5": [
+    ".flow/artifacts/fn-227-parameterized-models-declared-worlds/task5-completion-sync.json",
+    ".flow/artifacts/fn-227-parameterized-models-declared-worlds/task5-conductor-audits.md",
+    ".flow/artifacts/fn-227-parameterized-models-declared-worlds/task5-conductor-verification.json",
+    ".flow/artifacts/fn-227-parameterized-models-declared-worlds/task5-final-verification.json",
+    ".flow/artifacts/fn-227-parameterized-models-declared-worlds/task5-log-integrity.json",
+    ".flow/artifacts/fn-227-parameterized-models-declared-worlds/task5-logs/admission-green-1.log.gz",
+    ".flow/artifacts/fn-227-parameterized-models-declared-worlds/task5-logs/admission-green-2.log.gz",
+    ".flow/artifacts/fn-227-parameterized-models-declared-worlds/task5-logs/admission-green-3.log.gz",
+    ".flow/artifacts/fn-227-parameterized-models-declared-worlds/task5-logs/admission-red-2.log.gz",
+    ".flow/artifacts/fn-227-parameterized-models-declared-worlds/task5-logs/admission-red.log.gz",
+    ".flow/artifacts/fn-227-parameterized-models-declared-worlds/task5-logs/baseline-go-host.log.gz",
+    ".flow/artifacts/fn-227-parameterized-models-declared-worlds/task5-logs/baseline-realization.log.gz",
+    ".flow/artifacts/fn-227-parameterized-models-declared-worlds/task5-logs/baseline-slice.log.gz",
+    ".flow/artifacts/fn-227-parameterized-models-declared-worlds/task5-logs/baseline-wasm-temporal.log.gz",
+    ".flow/artifacts/fn-227-parameterized-models-declared-worlds/task5-logs/clippy-10.log.gz",
+    ".flow/artifacts/fn-227-parameterized-models-declared-worlds/task5-logs/clippy-2.log.gz",
+    ".flow/artifacts/fn-227-parameterized-models-declared-worlds/task5-logs/clippy-3.log.gz",
+    ".flow/artifacts/fn-227-parameterized-models-declared-worlds/task5-logs/clippy-4.log.gz",
+    ".flow/artifacts/fn-227-parameterized-models-declared-worlds/task5-logs/clippy-5.log.gz",
+    ".flow/artifacts/fn-227-parameterized-models-declared-worlds/task5-logs/clippy-6.log.gz",
+    ".flow/artifacts/fn-227-parameterized-models-declared-worlds/task5-logs/clippy-7.log.gz",
+    ".flow/artifacts/fn-227-parameterized-models-declared-worlds/task5-logs/clippy-8.log.gz",
+    ".flow/artifacts/fn-227-parameterized-models-declared-worlds/task5-logs/clippy-9.log.gz",
+    ".flow/artifacts/fn-227-parameterized-models-declared-worlds/task5-logs/clippy-first.log.gz",
+    ".flow/artifacts/fn-227-parameterized-models-declared-worlds/task5-logs/coverage-red.log.gz",
+    ".flow/artifacts/fn-227-parameterized-models-declared-worlds/task5-logs/final-classify.log.gz",
+    ".flow/artifacts/fn-227-parameterized-models-declared-worlds/task5-logs/final-gaps.log.gz",
+    ".flow/artifacts/fn-227-parameterized-models-declared-worlds/task5-logs/final-model-time.log.gz",
+    ".flow/artifacts/fn-227-parameterized-models-declared-worlds/task5-logs/fmt-first.log.gz",
+    ".flow/artifacts/fn-227-parameterized-models-declared-worlds/task5-logs/go-host-1.log.gz",
+    ".flow/artifacts/fn-227-parameterized-models-declared-worlds/task5-logs/go-host-2.log.gz",
+    ".flow/artifacts/fn-227-parameterized-models-declared-worlds/task5-logs/go-host-3.log.gz",
+    ".flow/artifacts/fn-227-parameterized-models-declared-worlds/task5-logs/go-host-lint-1.log.gz",
+    ".flow/artifacts/fn-227-parameterized-models-declared-worlds/task5-logs/go-host-lint-2.log.gz",
+    ".flow/artifacts/fn-227-parameterized-models-declared-worlds/task5-logs/go-lint-1.log.gz",
+    ".flow/artifacts/fn-227-parameterized-models-declared-worlds/task5-logs/go-lint-integration-1.log.gz",
+    ".flow/artifacts/fn-227-parameterized-models-declared-worlds/task5-logs/go-lint-integration-2.log.gz",
+    ".flow/artifacts/fn-227-parameterized-models-declared-worlds/task5-logs/go-lint-integration-3.log.gz",
+    ".flow/artifacts/fn-227-parameterized-models-declared-worlds/task5-logs/guest-build-1.log.gz",
+    ".flow/artifacts/fn-227-parameterized-models-declared-worlds/task5-logs/guest-build-2.log.gz",
+    ".flow/artifacts/fn-227-parameterized-models-declared-worlds/task5-logs/guest-build-3.log.gz",
+    ".flow/artifacts/fn-227-parameterized-models-declared-worlds/task5-logs/live-slice-1.log.gz",
+    ".flow/artifacts/fn-227-parameterized-models-declared-worlds/task5-logs/live-slice-2.log.gz",
+    ".flow/artifacts/fn-227-parameterized-models-declared-worlds/task5-logs/mirror-coverage-green.log.gz",
+    ".flow/artifacts/fn-227-parameterized-models-declared-worlds/task5-logs/mirror-red.log.gz",
+    ".flow/artifacts/fn-227-parameterized-models-declared-worlds/task5-logs/native-admission-3.log.gz",
+    ".flow/artifacts/fn-227-parameterized-models-declared-worlds/task5-logs/native-focused-1.log.gz",
+    ".flow/artifacts/fn-227-parameterized-models-declared-worlds/task5-logs/native-focused-2.log.gz",
+    ".flow/artifacts/fn-227-parameterized-models-declared-worlds/task5-logs/native-focused-6.log.gz",
+    ".flow/artifacts/fn-227-parameterized-models-declared-worlds/task5-logs/native-focused-7.log.gz",
+    ".flow/artifacts/fn-227-parameterized-models-declared-worlds/task5-logs/native-focused-8.log.gz",
+    ".flow/artifacts/fn-227-parameterized-models-declared-worlds/task5-logs/original-artifacts.log.gz",
+    ".flow/artifacts/fn-227-parameterized-models-declared-worlds/task5-logs/retry-race-green.log.gz",
+    ".flow/artifacts/fn-227-parameterized-models-declared-worlds/task5-logs/retry-race-red.log.gz",
+    ".flow/artifacts/fn-227-parameterized-models-declared-worlds/task5-logs/review-fanout.stderr.log.gz",
+    ".flow/artifacts/fn-227-parameterized-models-declared-worlds/task5-logs/review-finalize.stderr.log.gz",
+    ".flow/artifacts/fn-227-parameterized-models-declared-worlds/task5-logs/review-followup-1.stderr.log.gz",
+    ".flow/artifacts/fn-227-parameterized-models-declared-worlds/task5-logs/wasm-admission-red-2.log.gz",
+    ".flow/artifacts/fn-227-parameterized-models-declared-worlds/task5-logs/wasm-admission-red.log.gz",
+    ".flow/artifacts/fn-227-parameterized-models-declared-worlds/task6-admission.json",
+    ".flow/tasks/fn-227-parameterized-models-declared-worlds.5.md",
+    "MILESTONES.md",
+    "model/DESIGN.md",
+    "model/README.md"
+  ],
+  "production_surface_changed": false,
+  "selected_hashes": {
+    "model/temporal/hosts/go/umpire_temporal_guest.wasm": {
+      "sha256": "f832a33c3024a8752976d146be839b62a95afde4790fa0db60f1dac9004b4e7e",
+      "bytes": 3408639,
+      "matches_task5_verification": true
+    },
+    "model/temporal/feature/activity/model.rs": {
+      "sha256": "5d4a98571e52d587c5221b83fa02aa23a523be3627c65508533cd5a420696f8d",
+      "bytes": 4863,
+      "matches_task5_verification": true
+    },
+    "model/temporal/feature/activity/temporal.rs": {
+      "sha256": "1258e498a8a3d87c9b148ebd988b1bb4b2bb6f73262e7516b02d67c3c6deb316",
+      "bytes": 12557,
+      "matches_task5_verification": true
+    },
+    "model/temporal/realization/src/live.rs": {
+      "sha256": "2e6b74c0b0916ab1751ff527b313af8031f6cfacc3733776fffb4077854b7da5",
+      "bytes": 14429,
+      "matches_task5_verification": true
+    },
+    "tests/testpilot_model_slice_test.go": {
+      "sha256": "e3d9cce3a51487f8b42b993a2f097155fe6ee77c4d1bb0a0b6a0ced6cc13411a",
+      "bytes": 24413,
+      "matches_task5_verification": true
+    }
+  },
+  "live_evidence_reused": [
+    "task5-final-verification.json",
+    "task5-review-correction.json"
+  ],
+  "note": "No production, guest, protocol, dependency or Go slice change; .5 successful actual slice/gaps/privacy evidence retained. Final authoring gate still required."
+}

@@ -71,7 +71,8 @@ make umpire-check-live-tests
 
 Slice and gaps use `temporal.Guest()` from the committed
 `temporal/hosts/go/umpire_temporal_guest.wasm`; they build no Rust guest.
-The slice requires Complete, Fail, HostRefusal and Cancellation to pass. The umbrella invokes both before its existing
+The slice requires Complete, Fail, HostRefusal, Cancellation, CancelAfterCompletion,
+CancelBeforeWorkerStart and RetryThenComplete to pass. The umbrella invokes both before its existing
 legacy selector. Seven inherited legacy failures remain explicitly red; see DESIGN's
 Mini activity slice section. This bespoke proof does not execute a Testpilot Case.
 
@@ -201,26 +202,69 @@ mod counter {
     use umpire_dsl::{Action, State, World, check};
 
     #[derive(World)]
-    pub struct World { initial: u8, limit: u8 }
+    pub(super) struct World {
+        initial: u8,
+        limit: u8,
+    }
+
     #[derive(State)]
-    pub struct Model { pub value: u8 }
-    #[derive(Action)]
-    pub enum User { Advance }
+    pub(super) struct Model {
+        value: u8,
+    }
+
+    fn targets(world: &World) -> impl Iterator<Item = u8> {
+        world.initial..=world.limit
+    }
+
+    #[derive(Action, Copy)]
+    pub(super) enum User {
+        Set {
+            #[domain(targets)]
+            value: u8,
+            #[inputs([true])]
+            enabled: bool,
+        },
+    }
 
     impl Model {
         #[starts]
-        fn starts(w: &World) -> impl IntoIterator<Item = Self> {
-            [Self { value: w.initial }]
+        fn starts(world: &World) -> impl IntoIterator<Item = Self> {
+            [Self { value: world.initial }]
         }
+
         #[on(User)]
-        fn user(&mut self, _: User, w: &World) {
-            if self.value < w.limit { self.value += 1; }
+        fn user(&mut self, action: User, world: &World) {
+            match action {
+                User::Set { value, enabled: true } if value <= world.limit => self.value = value,
+                User::Set { .. } => {}
+            }
         }
+
         #[invariant]
-        fn bounded(&self, w: &World) { check!(self.value <= w.limit); }
+        fn bounded(&self, world: &World) {
+            check!(self.value <= world.limit);
+        }
     }
 }
+
+use counter::World;
+
+umpire_testing::fixture!(World = World::new(1, 3), 64);
+
+#[test]
+fn selected_world() -> umpire_testing::TestResult {
+    let files = bound().run()?;
+    assert_eq!(files["states.txt"].lines().count(), 3);
+    let smaller = bound_for(World::new(2, 3)).run()?;
+    assert_eq!(smaller["states.txt"].lines().count(), 2);
+    Ok(())
+}
 ```
+
+This exact block compiles as [the DSL README fixture](umpire/dsl/tests/readme/parameterized.rs),
+checked against the README by `mise exec -- cargo test -p umpire-dsl --test readme` from
+`model/`. The fixture binds one selected World explicitly; `bound_for` selects another without
+fabricating defaults. `World::new` assigns fields and does not validate their ranges or starts.
 
 Handlers, invariants, postconditions, assumptions and progress methods may take a trailing
 immutable `&World`. Postconditions retain their optional before-state and outcome arguments
@@ -244,7 +288,7 @@ sampled Runs retain the World after their Space leaves scope. Existing state-onl
 manual `Registered` implementations remain compatible through the additive `Associated` trait.
 Declared states implement only the association, so their constants must be supplied explicitly.
 
-Declared Worlds with admitted scalar/enum constants also support independent source lifting.
+Declared Worlds with admitted scalar/enum constants also support TLA+ emission from the embedded tree.
 Only values cross from native code to the lifter: inside a declared-World `#[machine]`,
 `derive(World)` and `derive(State)` add a hidden `Values` impl listing the named field values,
 private fields included, and `derive(Action)` a hidden `ActionValues` impl giving each action's
@@ -388,8 +432,8 @@ records the report contract and complete-file source counts. After committing a 
 checkpoint, run its real added-catalog-field control from `model/` with
 `mise exec -- cargo test -p umpire-temporal-tests --test fixtures added_catalog_field_fails_the_real_coverage_golden -- --ignored`.
 It rebuilds in a disposable worktree and preserves the existing coverage baseline.
-For public states, `#[machine]` exports `World` and `Action`, and `world()` returns
-`World`. Non-public states retain the opaque interface with generated types following
+For public states without declared constants, `#[machine]` exports `World` and `Action`,
+and `world()` returns `World`. Non-public states retain the opaque interface with generated types following
 the state's visibility. The declared activity World uses `World::new(maximum_attempts)` and removes
 the binding's duplicate action carrier, delegating machine and claim-index re-wrap.
 Generic Any helpers derive canonical type URLs from generated `prost::Name`; only the
@@ -412,8 +456,8 @@ Running/Started, and terminal status/Unspecified. There is no Started execution-
 enum. Only a valid callback evidences Poll. Repeated current observations are zero-step
 Explained; premature terminal and stale Scheduled observations are Unexplained, freezing
 the run until Reset. The SDK callback supplies a partial poll projection containing
-exactly one binary/plain Complete or Fail payload. Answer selects a partial completed
-or non-retryable failed RPC request, leaving the Model Started until terminal observation.
+exactly one binary/plain Complete, Fail or RetryThenComplete payload. Answer selects a partial
+completed or failed RPC request (retryable only for RetryThenComplete at attempt one), leaving the Model Started until terminal observation.
 The facade binds actual namespace/activity/run identity and immutable raw Start request bytes.
 Task tokens and timestamps stay outside the lifecycle projection. See the realization guide
 for the per-field admission table, publication rollback and retained-receipt Reset contract.
@@ -427,12 +471,14 @@ real server/SDK controls. The worker returns only decoded Model reply data and u
 SDK failure converter. This is a bespoke SDK/server/Model proof, not execution through
 Testpilot Prepare/PreparedCase.Run, Case, Program or Contract.
 
-Remaining DSL gaps include source lifting of `Finite` and World-bound inputs, facts and typed
-projection authoring.
-Fn-221 closes the [rejecting-outcome gap](DESIGN.md#rejecting-outcomes-and-live-cancellation-fn-221). No Model transition
-was changed to fit server evidence. Fn-213 must include the Temporal fixture root;
-fn-218 retains Cases(8), resolving impossible alternatives as a downstream grammar
-decision rather than inventing edges or silently shrinking coverage.
+Declared Worlds, computed starts, Finite input domains, exact-payload fairness and the
+activity's phase/rejection/closure laws now have native/TLC agreement. The shared fixture
+runner includes the Temporal root; activity coverage is `Cases(3 * 7)`, or 21 alternatives.
+Facts and broader typed projection authoring remain separate gaps. Request timeout admission,
+Tick, heartbeat and cooperative cancellation remain deferred to fn-237; direct deadlines
+and atomic cancellation describe only the retained retry checkpoint. No Model transition
+was changed to fit server evidence. [Current evidence and boundaries](DESIGN.md#parameterized-worlds-and-inputs)
+include selected-World counts and the retained actual live retry proof.
 
 For R33 this proves the Model protocol and opaque payload seam, preserving old wire
 bytes and refusal codes. Broader Case identity/versioning, Program replay and removal
@@ -479,7 +525,7 @@ errors. `shape.rs` takes the same declarations and admits the subset, delegating
 `body/` with a typed environment; these refusals are soft, since the Model still checks natively.
 Body lowering reads no module items; `tree.rs` holds the admitted tree and `expr.rs` its typed
 expressions. Its `Diagnostic` carries line, column and message; `umpire-lift` reads the source
-files, calls `umpire_front::read`, names the file in each refusal, gives the tree its TLA+ names
+files for hook claims and refusal locations, names the file in each refusal, gives the embedded tree its TLA+ names
 (`names.rs`), binds the selected World (`bind.rs`) and emits TLA+.
 
 End to end, by golden files (fn-210 R8, R23, R29). A test is a fixture, an input plus the output it
@@ -556,16 +602,16 @@ refuse with “use cover”.
 | Pattern | Meaning |
 | --- | --- |
 | `state`, `true`, `\|s: &Model\| s.closed()` | Exact state or state predicate |
-| `Worker::Poll` | One action |
+| `Worker::Poll(1)` | One concrete action payload |
 | `User::Send { amount: 0..=3, from: (king \| queen) }` | One alternative per finite input value/combination |
 | `User::Send { amount: 2, from: _, .. }` | Exact input; `_` and omitted fields use declared domains |
 | `Deadline::*` | Each action/input value of this actor |
 | `Client::Cancel => Outcome::Rejected(Rejection::NotFound)` | Action with a typed outcome filter |
 | `Client::Cancel => (Outcome::Accepted \| Outcome::Rejected(_))` | One alternative per outcome pattern |
-| `(Worker::RespondCompleted \| Worker::RespondFailed)` | Authored alternatives, in order |
-| `[Worker::Poll; n]`, `[Worker::Poll; 0..=1]` | Exact repetition or one alternative per inclusive count |
+| `(Worker::RespondCompleted \| Worker::RespondFailed { retryable: false })` | Authored alternatives, in order |
+| `[Worker::Poll(1); n]`, `[Worker::Poll(1); 0..=1]` | Exact repetition or one alternative per inclusive count |
 | `unordered![a, b, c]` | Every ordering of the listed patterns |
-| `..`, `..=n`, `..!(Client::Cancel, Worker::Poll)` | Any steps, at most n steps, or steps excluding the named actions |
+| `..`, `..=n`, `..!(Client::Cancel, Worker::RespondCompleted)` | Any steps, at most n steps, or steps excluding the named actions |
 
 Payload fields of an `Action` declare their complete finite input catalog with
 `#[inputs(0..=3)]` or `#[inputs([Account::King, Account::Queen])]`. A field without either uses
@@ -628,10 +674,12 @@ let covered = cover(&Space::from([room()]), Cases((80 + 1) * 2),
 
 The explicit gap supplies additional Heat actions before Failover for prefixes shorter than
 80. The 162 alternatives describe explicit prefixes, not total heat counts; expansions show
-every actual step. The literal adjacent form is retained as a refusal control. Activity uses
-`[Worker::Poll; 0..=1], ..` followed by Cancel, RespondCompleted, RespondFailed or StartToClose:
-eight choices. Zero explicit Poll can still need a gap-supplied Poll before completion, failure
-or StartToClose. ScheduleToStart is not a fifth closing choice. Run it with
+every actual step. The literal adjacent form is retained as a refusal control. Activity instead constructs
+21 explicit alternatives: for each attempt 1..=3, Cancel or ScheduleToStart from Scheduled,
+and Cancel, RespondCompleted, either RespondFailed payload or StartToClose from Started.
+The selected three-attempt World supplies the search graph; gaps reach each requested phase
+and attempt before the final action. `temporal/feature/activity/tests.rs` checks each exact
+witness, including retries returning to Scheduled. Run it with
 `cd model && mise exec -- cargo test -p umpire-temporal-tests`.
 
 `sample(&space, path, n, seed)` performs reproducible finite random walks, including possible
