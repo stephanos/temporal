@@ -368,7 +368,8 @@ fn validate(
     if canonical::encode(&provenance)? != prepared.provenance
         || provenance["schema"] != "gomad.rust-wasm-provenance/v1"
         || provenance["inputs"]["schema"] != "gomad.rust-wasm-build-inputs/v1"
-        || prepared.configuration.engine != gomad_wasmhost::linked::CONFIGURATION
+        || prepared.configuration.engine
+            != gomad_wasmhost::linked::Conditions::compiled().configuration()
         || !provenance["inputs"]["compiler_path"]
             .as_str()
             .is_some_and(|path| Path::new(path).is_absolute())

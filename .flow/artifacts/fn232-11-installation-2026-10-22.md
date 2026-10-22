@@ -158,7 +158,10 @@ record remain unchanged, so the unpatched merged reader would admit these
 lying top-level values. Original bytes are restored and reopened after each
 case. These source cases require the fresh merged producer's actual metadata;
 none is fabricated for a positive admission. Patch application check, Python
-syntax and diff checks pass (exit 0). Runtime RED/GREEN remains deferred during
+syntax and diff checks pass (exit 0). The merged-source inspection also found the receipt validator compared the
+engine to the bare release constant. It now compares the actual compiled
+`Conditions::configuration()`, matching the already-correct producer and
+preserving diagnostic/stress role suffixes. Runtime RED/GREEN remains deferred during
 the profile gate; no Cargo, Go, fixture build or guest was started for this
 integration patch.
 
