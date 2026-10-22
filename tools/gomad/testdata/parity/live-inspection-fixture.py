@@ -47,10 +47,7 @@ def main():
     originals = {'fixture': sha(fixture.read_bytes()), 'compiler': sha(args.compiler.read_bytes()),
                  'overlay': sha(args.overlay.read_bytes()), 'runtime': args.runtime_identity}
     # This is the exact second source file created by the original network root.
-    original_test = (args.source / 'tools/gomad/internal/backends/wasm/backend/inspection_integration_test.go').read_bytes()
-    marker = b'os.WriteFile(filepath.Join(source, "network.go"), []byte(`'
-    assert original_test.count(marker) == 1
-    network_source = original_test.split(marker, 1)[1].split(b'`), 0600)', 1)[0]
+    network_source = Path(__file__).with_name('targets').joinpath('live-inspection-network.go.txt').read_bytes()
     originals['network'] = sha(network_source)
     preparation = args.work / 'preparation'
     preparation.mkdir(mode=0o700)
