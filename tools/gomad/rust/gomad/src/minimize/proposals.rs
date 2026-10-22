@@ -6,7 +6,7 @@ use gomad_wasmhost::linked;
 use serde::{Deserialize, Serialize};
 use std::collections::BTreeSet;
 
-#[derive(Clone, Debug, Deserialize, Eq, PartialEq, Serialize)]
+#[derive(Clone, Debug, Deserialize, Eq, Ord, PartialEq, PartialOrd, Serialize)]
 #[serde(deny_unknown_fields)]
 pub(crate) struct Decision {
     pub dimension: Dimension,
@@ -22,6 +22,13 @@ impl From<&ForcedDecision> for Decision {
             identity: value.identity.clone(),
         }
     }
+}
+
+#[derive(Clone, Debug, Deserialize, Eq, PartialEq, Serialize)]
+#[serde(deny_unknown_fields)]
+pub(crate) struct Ordering {
+    pub key: serde_json::Value,
+    pub in_scope: BTreeSet<Decision>,
 }
 
 #[derive(Clone, Debug, Deserialize, Eq, PartialEq, Serialize)]
@@ -53,6 +60,7 @@ struct ChoiceSource {
 pub(crate) struct State {
     pub schema: String,
     pub config: Option<SimulationConfig>,
+    pub ordering: Option<Ordering>,
     pub original: SimulationCandidate,
     pub current: SimulationCandidate,
     pub attempt_budget: u64,
@@ -117,6 +125,7 @@ impl State {
             }
             .into(),
             config,
+            ordering: None,
             current: original.clone(),
             original,
             attempt_budget: budget,
@@ -131,16 +140,22 @@ impl State {
         Ok(state)
     }
 
+    pub fn with_ordering(mut self, ordering: Option<Ordering>) -> Result<Self, String> {
+        self.ordering = ordering;
+        self.seal()?;
+        Ok(self)
+    }
+
     pub fn implementation(&self) -> String {
         if self.choice_source.is_some() {
             simulation::domain_hash(
-                "gomad-minimizer-controller/choice-prefix/v1",
-                b"effective-prefix-suffixes;deterministic;bounded/v1",
+                "gomad-minimizer-controller/choice-prefix/v2",
+                b"effective-prefix-suffixes;site-scope-key;deterministic;bounded/v2",
             )
         } else {
             simulation::domain_hash(
-                "gomad-minimizer-controller/v1",
-                b"suffix/ranges/faults;deterministic;bounded/v1",
+                "gomad-minimizer-controller/v2",
+                b"suffix/ranges/faults;stable-site-scope-passes;deterministic;bounded/v2",
             )
         }
     }
@@ -149,6 +164,7 @@ impl State {
         Ok(self.schema == initial.schema
             && self.original == initial.original
             && self.config == initial.config
+            && self.ordering == initial.ordering
             && self.attempt_budget == initial.attempt_budget
             && canonical::encode(&self.choice_source)?
                 == canonical::encode(&initial.choice_source)?)
@@ -218,7 +234,8 @@ impl State {
             self.original.clone(),
             self.attempt_budget,
             self.choice_source.clone(),
-        )?;
+        )?
+        .with_ordering(self.ordering.clone())?;
         let mut accepted_index = 0;
         for evaluated in &self.evaluated {
             if !replay.stop_reason.is_empty() {
@@ -269,6 +286,26 @@ impl State {
             .config
             .as_ref()
             .ok_or("simulation minimizer configuration is missing")?;
+        if let Some(ordering) = &self.ordering {
+            for class in 0..3 {
+                if let Some(attempt) =
+                    self.simulation_proposal(config, &seen, Some((ordering, class)))?
+                {
+                    return Ok(Some(attempt));
+                }
+            }
+            Ok(None)
+        } else {
+            self.simulation_proposal(config, &seen, None)
+        }
+    }
+
+    fn simulation_proposal(
+        &self,
+        config: &SimulationConfig,
+        seen: &BTreeSet<&String>,
+        ordering: Option<(&Ordering, u8)>,
+    ) -> Result<Option<Attempt>, String> {
         for (kind, indexes, suffix_only) in [
             (
                 "schedule_suffix",
@@ -291,6 +328,26 @@ impl State {
                 let first_start = if suffix_only { last_start } else { 0 };
                 for start in first_start..=last_start {
                     let removed_indexes = &indexes[start..start + length];
+                    if let Some((ordering, class)) = ordering {
+                        let inside = removed_indexes
+                            .iter()
+                            .filter(|index| {
+                                ordering
+                                    .in_scope
+                                    .contains(&Decision::from(&self.current.overrides[**index]))
+                            })
+                            .count();
+                        let proposal_class = if inside == 0 {
+                            0
+                        } else if inside == removed_indexes.len() {
+                            2
+                        } else {
+                            1
+                        };
+                        if proposal_class != class {
+                            continue;
+                        }
+                    }
                     let overrides = self
                         .current
                         .overrides
@@ -461,6 +518,215 @@ mod tests {
         forged.evaluated[0] = simulation::domain_hash("forged", b"candidate");
         forged.sha256 = forged.hash().unwrap();
         assert!(forged.validate().is_err());
+    }
+
+    fn three_decisions() -> State {
+        let source = simulation();
+        let config = source.config.unwrap();
+        let overrides = source.original.overrides[..3]
+            .iter()
+            .cloned()
+            .map(|mut forced| {
+                forced.dimension = Dimension::Runtime;
+                forced.control = vec![1];
+                canonical_forced_decision(forced).unwrap()
+            })
+            .collect();
+        let original = simulation::canonical_candidate(&config, overrides, String::new()).unwrap();
+        State::simulation(config, original, 100).unwrap()
+    }
+
+    fn scoped(state: &State, ordinals: &[u64]) -> State {
+        let mut wire = serde_json::to_value(state).unwrap();
+        wire["ordering"] = serde_json::json!({
+            "key": {"algorithm": "site-scope/v1", "patterns": ["example.*"]},
+            "in_scope": state.original.overrides.iter()
+                .filter(|forced| ordinals.contains(&forced.ordinal))
+                .map(Decision::from).collect::<Vec<_>>(),
+        });
+        let mut state: State = serde_json::from_value(wire).unwrap();
+        state.seal().unwrap();
+        state
+    }
+
+    fn accepts_remaining(candidate: &SimulationCandidate) -> bool {
+        candidate
+            .overrides
+            .iter()
+            .any(|forced| [0, 2].contains(&forced.ordinal))
+    }
+
+    fn search(mut state: State) -> (State, Vec<Vec<u64>>) {
+        let mut removed = Vec::new();
+        while let Some(attempt) = state.next().unwrap() {
+            removed.push(
+                attempt
+                    .reduction
+                    .removed
+                    .iter()
+                    .map(|d| d.ordinal)
+                    .collect(),
+            );
+            state = state
+                .commit(&attempt, accepts_remaining(&attempt.candidate))
+                .unwrap();
+        }
+        state.validate().unwrap();
+        (state, removed)
+    }
+
+    #[test]
+    fn scoped_content_predicate_changes_attempt_count_and_preserves_acceptance() {
+        let source = three_decisions();
+        let (plain, plain_removed) = search(source.clone());
+        let (ordered, ordered_removed) = search(scoped(&source, &[0, 2]));
+        assert_eq!(plain_removed, vec![vec![0, 1, 2], vec![1, 2]]);
+        assert_eq!(ordered_removed, vec![vec![1], vec![0, 2], vec![2]]);
+        assert_eq!((plain.attempts, ordered.attempts), (2, 3));
+        assert!(accepts_remaining(&plain.current));
+        assert!(accepts_remaining(&ordered.current));
+        assert_eq!(plain.current.overrides, ordered.current.overrides);
+    }
+
+    #[test]
+    fn scoped_content_predicate_allows_distinct_valid_minima() {
+        let source = three_decisions();
+        let (plain, _) = search(source.clone());
+        let (ordered, removed) = search(scoped(&source, &[1, 2]));
+        assert_eq!(removed, vec![vec![0], vec![1, 2], vec![2], vec![1]]);
+        assert_eq!((plain.attempts, ordered.attempts), (2, 4));
+        assert!(accepts_remaining(&plain.current));
+        assert!(accepts_remaining(&ordered.current));
+        assert_eq!(plain.current.overrides[0].ordinal, 0);
+        assert_eq!(ordered.current.overrides[0].ordinal, 2);
+        assert_ne!(plain.current.sha256, ordered.current.sha256);
+    }
+
+    #[test]
+    fn scoped_categories_are_global_and_stable_with_rejected_proposals() {
+        let source = simulation();
+        let ordered = scoped(&source, &[0, 1, 2, 4, 6]);
+        let mut plain = source;
+        let mut legacy = Vec::new();
+        while let Some(attempt) = plain.next().unwrap() {
+            legacy.push(attempt.clone());
+            plain = plain.commit(&attempt, false).unwrap();
+        }
+        legacy.sort_by_key(|attempt| {
+            let inside = attempt
+                .reduction
+                .removed
+                .iter()
+                .filter(|d| [0, 1, 2, 4, 6].contains(&d.ordinal))
+                .count();
+            if inside == 0 {
+                0
+            } else if inside == attempt.reduction.removed.len() {
+                2
+            } else {
+                1
+            }
+        });
+        let mut ordered = ordered;
+        let mut actual = Vec::new();
+        while let Some(attempt) = ordered.next().unwrap() {
+            actual.push(attempt.clone());
+            ordered = ordered.commit(&attempt, false).unwrap();
+        }
+        for (index, attempt) in legacy.iter_mut().enumerate() {
+            attempt.index = index as u64;
+        }
+        assert_eq!(actual[0].reduction.kind, "schedule_range");
+        assert_eq!(
+            serde_json::to_vec(&actual).unwrap(),
+            serde_json::to_vec(&legacy).unwrap()
+        );
+    }
+
+    #[test]
+    fn scoped_choice_prefix_keeps_exact_proposal_bytes() {
+        for accept_at in [None, Some(1)] {
+            let source = choice(10);
+            let mut plain = source.clone();
+            let mut ordered = scoped(&source, &[0]);
+            let mut plain_attempts = Vec::new();
+            let mut ordered_attempts = Vec::new();
+            while let Some(attempt) = plain.next().unwrap() {
+                plain = plain
+                    .commit(&attempt, Some(attempt.index) == accept_at)
+                    .unwrap();
+                plain_attempts.push(attempt);
+            }
+            while let Some(attempt) = ordered.next().unwrap() {
+                ordered = ordered
+                    .commit(&attempt, Some(attempt.index) == accept_at)
+                    .unwrap();
+                ordered_attempts.push(attempt);
+            }
+            assert_eq!(
+                serde_json::to_vec(&ordered_attempts).unwrap(),
+                serde_json::to_vec(&plain_attempts).unwrap()
+            );
+            assert_eq!(ordered.current, plain.current);
+            assert_eq!(ordered.stop_reason, plain.stop_reason);
+        }
+    }
+
+    #[test]
+    fn scoped_state_authenticates_key_classification_and_history() {
+        let source = three_decisions();
+        let initial = scoped(&source, &[0, 2]);
+        assert!(!initial.source_matches(&source).unwrap());
+        assert!(!initial.source_matches(&scoped(&source, &[1, 2])).unwrap());
+        assert_ne!(initial.sha256, scoped(&source, &[1, 2]).sha256);
+        let mut changed_wire = serde_json::to_value(&initial).unwrap();
+        changed_wire["ordering"]["key"]["patterns"] = serde_json::json!(["other.*"]);
+        let mut changed: State = serde_json::from_value(changed_wire).unwrap();
+        changed.seal().unwrap();
+        assert!(!initial.source_matches(&changed).unwrap());
+        assert_ne!(initial.sha256, changed.sha256);
+        let attempt = initial.next().unwrap().unwrap();
+        let accepted = initial.commit(&attempt, true).unwrap();
+        let restored: State =
+            serde_json::from_slice(&serde_json::to_vec(&accepted).unwrap()).unwrap();
+        restored.validate().unwrap();
+        let mut forged_wire = serde_json::to_value(&restored).unwrap();
+        forged_wire["ordering"] =
+            serde_json::to_value(scoped(&source, &[1, 2])).unwrap()["ordering"].clone();
+        let mut forged: State = serde_json::from_value(forged_wire).unwrap();
+        forged.sha256 = forged.hash().unwrap();
+        assert!(forged.validate().is_err());
+    }
+
+    #[test]
+    fn unscoped_proposal_bytes_match_frozen_baseline() {
+        let cases = [simulation(), three_decisions(), choice(10), choice(10)];
+        let mut fingerprints = Vec::new();
+        for (index, mut state) in cases.into_iter().enumerate() {
+            let mut attempts = Vec::new();
+            while let Some(attempt) = state.next().unwrap() {
+                let accepted = match index {
+                    1 => accepts_remaining(&attempt.candidate),
+                    3 => attempt.index == 1,
+                    _ => false,
+                };
+                state = state.commit(&attempt, accepted).unwrap();
+                attempts.push(attempt);
+            }
+            fingerprints.push(simulation::domain_hash(
+                "frozen-unscoped-attempts/v1",
+                &serde_json::to_vec(&attempts).unwrap(),
+            ));
+        }
+        assert_eq!(
+            fingerprints,
+            [
+                "sha256:8143f2701bba0f6dd1b6d9b07868403a78b010812e73f108c4599540dc1581a5",
+                "sha256:4c8d36fb6b6da78f70b442a3dfc2485839f6cbbbbaffaa6d66935bcf828e3a41",
+                "sha256:6236adf4526ce4426f1a2118ccad5ed69cc2013ac04f44218ea7652f92bbb26d",
+                "sha256:6236adf4526ce4426f1a2118ccad5ed69cc2013ac04f44218ea7652f92bbb26d"
+            ]
+        );
     }
 
     fn choice(budget: u64) -> State {

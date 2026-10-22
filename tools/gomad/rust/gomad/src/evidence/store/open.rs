@@ -435,12 +435,15 @@ impl Opened {
             return Err("artifact missing listed payload".into());
         }
         let stored_bytes = manifest.stored_bytes(bytes.len() as u64)?;
-        Ok(Self {
+        let opened = Self {
             root,
             pool,
             manifest,
             stored_bytes,
-        })
+        };
+        crate::evidence::search_context::read(&opened)?;
+        crate::minimize::source::read(&opened)?;
+        Ok(opened)
     }
 
     #[must_use]

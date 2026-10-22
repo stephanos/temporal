@@ -8,6 +8,7 @@ struct Arguments<'a> {
     maximum_bytes: Option<u64>,
     json: bool,
     resume: bool,
+    site_scope: Option<Vec<String>>,
 }
 
 /// # Errors
@@ -16,6 +17,11 @@ pub fn run(arguments: &[String], output: &mut dyn Write) -> Result<i32, super::E
     let arguments = parse(arguments)?;
     let prepared = crate::replay::preflight::open(arguments.path)
         .map_err(|message| super::Error { status: 2, message })?;
+    let admission = crate::minimize::ordering::prepare(&prepared.opened, arguments.site_scope)
+        .map_err(|message| super::Error {
+            status: 2,
+            message: format!("minimize {}: {message}", arguments.path.display()),
+        })?;
     let directory = std::path::absolute(arguments.artifacts)
         .map_err(|error| format!("resolve artifact directory: {error}"))?
         .join("minimized");
@@ -26,6 +32,7 @@ pub fn run(arguments: &[String], output: &mut dyn Write) -> Result<i32, super::E
         arguments.attempt_budget,
         arguments.maximum_bytes,
         arguments.resume,
+        admission,
     )
     .map_err(|message| super::Error { status: 3, message })?;
     if arguments.json {
@@ -60,6 +67,7 @@ fn parse(arguments: &[String]) -> Result<Arguments<'_>, super::Error> {
         maximum_bytes: None,
         json: false,
         resume: false,
+        site_scope: None,
     };
     let mut index = 0;
     while let Some((name, supplied)) = option(arguments, &mut index) {
@@ -67,6 +75,11 @@ fn parse(arguments: &[String]) -> Result<Arguments<'_>, super::Error> {
         match name {
             "json" => result.json = boolean(supplied.unwrap_or("true"))?,
             "resume" => result.resume = boolean(supplied.unwrap_or("true"))?,
+            "site-scope" => {
+                result.site_scope = Some(crate::campaign::exploration::site_scope::parse_patterns(
+                    value(arguments, &mut index, name, supplied)?,
+                )?);
+            }
             "artifacts" => {
                 result.artifacts = Path::new(value(arguments, &mut index, name, supplied)?);
             }
@@ -110,5 +123,29 @@ fn write_error(error: &std::io::Error) -> super::Error {
     super::Error {
         status: 3,
         message: format!("write minimization report: {error}"),
+    }
+}
+
+#[cfg(test)]
+mod tests {
+    use super::parse;
+
+    #[test]
+    fn minimize_site_scope_uses_explore_pattern_grammar() {
+        let arguments = [
+            "--site-scope=main,example.org/server/...".into(),
+            "parent".into(),
+        ];
+        assert!(parse(&arguments).is_ok());
+        for pattern in ["", "main,", "main@v1", "main//child"] {
+            let arguments = [format!("--site-scope={pattern}"), "parent".into()];
+            let error = parse(&arguments).err().expect("invalid scope accepted");
+            assert!(
+                error.message.contains("invalid --site-scope"),
+                "{}",
+                error.message
+            );
+            assert_eq!(error.status, 2);
+        }
     }
 }

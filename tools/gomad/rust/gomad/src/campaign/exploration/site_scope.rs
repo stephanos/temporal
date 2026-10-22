@@ -99,29 +99,103 @@ impl Resolution {
         patterns: &[String],
     ) -> Result<(), String> {
         let trace = linked::inspect_choices(raw, identity)?;
-        let unseen = trace
-            .sites
-            .iter()
-            .filter(|site| !site.site_missing && !self.packages.contains_key(&site.site_offset))
-            .map(|site| Site {
-                value: site.site_offset,
-                missing: false,
-            })
-            .collect::<BTreeSet<_>>();
-        if !unseen.is_empty() {
-            let symbols = symbolize::resolve_bytes(module, unseen.iter().copied());
-            for site in unseen {
-                let package = match symbols.get(site) {
+        let symbols = symbolize::resolve_bytes(
+            module,
+            trace
+                .sites
+                .iter()
+                .filter(|site| !site.site_missing)
+                .map(|site| Site {
+                    value: site.site_offset,
+                    missing: false,
+                }),
+        );
+        self.observe_symbols(raw, identity, patterns, &symbols)
+    }
+
+    pub(crate) fn observe_symbols(
+        &mut self,
+        raw: &[u8],
+        identity: &linked::ChoiceIdentity,
+        patterns: &[String],
+        symbols: &symbolize::Symbols,
+    ) -> Result<(), String> {
+        let trace = linked::inspect_choices(raw, identity)?;
+        for site in &trace.sites {
+            if !site.site_missing && !self.packages.contains_key(&site.site_offset) {
+                let package = match symbols.get(Site {
+                    value: site.site_offset,
+                    missing: false,
+                }) {
                     Symbol::Resolved { frame, .. } => Some(frame.package.clone()),
                     Symbol::Unavailable { .. } => None,
                 };
-                self.packages.insert(site.value, package);
+                self.packages.insert(site.site_offset, package);
             }
         }
         for site in trace.sites {
             if !site.site_missing && self.matches(patterns, site.site_offset) {
                 self.fingerprints.insert(site.fingerprint);
             }
+        }
+        Ok(())
+    }
+
+    pub(crate) fn validate(&self, module: &[u8]) -> Result<(), String> {
+        let bytes = crate::evidence::canonical::encode(self)?;
+        if bytes.len() as u64 > crate::evidence::search_context::MAX_BYTES
+            || self.packages.len() > (crate::evidence::search_context::MAX_BYTES / 16) as usize
+            || self
+                .fingerprints
+                .iter()
+                .any(|value| !crate::evidence::canonical::valid_digest(value))
+        {
+            return Err("invalid search context resolution".into());
+        }
+        let symbols = symbolize::resolve_bytes(
+            module,
+            self.packages.keys().map(|offset| Site {
+                value: *offset,
+                missing: false,
+            }),
+        );
+        for (offset, observed) in &self.packages {
+            let expected = match symbols.get(Site {
+                value: *offset,
+                missing: false,
+            }) {
+                Symbol::Resolved { frame, .. } => Some(frame.package.clone()),
+                Symbol::Unavailable { .. } => None,
+            };
+            if *observed != expected {
+                return Err("search context package observation mismatch".into());
+            }
+        }
+        Ok(())
+    }
+
+    pub(crate) fn validate_fingerprints(
+        &self,
+        identity: &linked::ChoiceIdentity,
+        patterns: &[String],
+    ) -> Result<(), String> {
+        use sha2::Digest as _;
+        let mut expected = BTreeSet::new();
+        for offset in self
+            .packages
+            .keys()
+            .filter(|offset| self.matches(patterns, **offset))
+        {
+            for kind in 1_u8..=4 {
+                let mut hash = sha2::Sha256::new();
+                hash.update(identity.target_sha256);
+                hash.update([kind]);
+                hash.update(offset.to_be_bytes());
+                expected.insert(format!("{:x}", hash.finalize()));
+            }
+        }
+        if !self.fingerprints.is_subset(&expected) {
+            return Err("search context fingerprint has no matching package observation".into());
         }
         Ok(())
     }
@@ -261,6 +335,41 @@ mod tests {
             .observe(&module, &first, &identity, &patterns)
             .unwrap();
         assert_eq!(reversed.scope(&patterns), extended);
+    }
+
+    #[test]
+    fn site_scope_snapshot_rejects_noncanonical_fingerprints_and_false_packages() {
+        let module = fixture_module();
+        for value in [
+            serde_json::json!({"packages":{},"fingerprints":["invalid"]}),
+            serde_json::json!({"packages":{"5383":"wrong"},"fingerprints":[]}),
+        ] {
+            let resolution: Resolution = serde_json::from_value(value).unwrap();
+            assert!(resolution.validate(&module).is_err());
+        }
+    }
+
+    #[test]
+    fn site_scope_shared_symbols_match_convenience_observation() {
+        let module = fixture_module();
+        let patterns = vec!["main".into()];
+        let raw = runnable_trace([Some(5383), None]);
+        let symbols = symbolize::resolve_bytes(
+            &module,
+            [Site {
+                value: 5383,
+                missing: false,
+            }],
+        );
+        let mut shared = Resolution::default();
+        shared
+            .observe_symbols(&raw, &identity(), &patterns, &symbols)
+            .unwrap();
+        let mut convenience = Resolution::default();
+        convenience
+            .observe(&module, &raw, &identity(), &patterns)
+            .unwrap();
+        assert_eq!(shared, convenience);
     }
 
     #[test]

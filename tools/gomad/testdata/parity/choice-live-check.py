@@ -179,6 +179,67 @@ def main():
         run('scope-resume', [*prefix, 'resume', '--json', '--site-scope=main', interrupted], (0, 1))
         assert events(interrupted) == events(scoped_root)
 
+        # Retain scope on a real failure, then discard its campaign before minimizing.
+        failure_destination = args.work / 'scope-failure'
+        invocation = command(failure_destination, executions=8, depth=1024, scope='main')
+        invocation.insert(invocation.index('--choices'), '--failure-budget=10')
+        invocation[invocation.index('go-run') + 1] = './testdata/parity/live_backend/minimization'
+        run('scope-failure', invocation, (1,))
+        failure_root = locate(failure_destination)
+        failure_checked = rounds['authenticate'](failure_root)
+        snapshots = []
+        detached = args.work / 'scope-failure-detached'
+        for ordinal, event in enumerate(failure_checked['events']):
+            expected_resolution = failure_checked['plan']['strategy']['config']['site_scope'] if ordinal == 0 else previous_resolution
+            for execution in event['executions']:
+                if not execution.get('artifact'):
+                    continue
+                artifact = failure_root / execution['artifact']
+                manifest = json.loads((artifact / 'manifest.json').read_bytes())
+                context_raw = (artifact / 'provenance/search-context.json').read_bytes()
+                entry = manifest['files']['provenance/search-context.json']
+                assert (len(context_raw), digest(context_raw)) == (entry['bytes'], entry['sha256'])
+                context = json.loads(context_raw)
+                assert context['plan_sha256'] == digest(encode(failure_checked['plan']))
+                assert context['round'] == ordinal and context['scope'] == expected_resolution
+                assert 'provenance/search-context.json' not in manifest['record']['streams']
+                snapshots.append(dict(round=ordinal, payload_sha256=digest(context_raw), scope=context['scope']))
+                if not detached.exists() and manifest['record']['outcome']['class'] == 'target_failure':
+                    shutil.copytree(artifact, detached)
+            previous_resolution = dict(patterns=['main'], resolved_sha256=event['segment']['site_scope']['resolved_sha256'], resolved_count=event['segment']['site_scope']['resolved_count'])
+        assert detached.exists() and len(snapshots) >= 2, snapshots
+        shutil.rmtree(failure_destination)
+        minimized_root = args.work / 'scope-failure-minimized'
+        minimize_command = [args.binary, 'minimize', '--json', '--artifacts', minimized_root, detached]
+        minimized = json.loads(run('scope-failure-minimize', minimize_command))
+        assert minimized['site_scope']['patterns'] == ['main'] and minimized['changed'], minimized
+        assert all(row['removed_in_scope'] + row['removed_out_of_scope'] == len(row['removed']) for row in minimized['accepted'])
+        assert json.loads(run('scope-failure-minimize-resume', [*minimize_command[:3], '--resume', *minimize_command[3:]])) == minimized
+        run('scope-failure-minimize-changed-scope', [args.binary, 'minimize', '--resume', '--site-scope=runtime', '--artifacts', minimized_root, detached], (3,))
+        override = json.loads(run('scope-failure-minimize-override', [args.binary, 'minimize', '--json', '--site-scope=runtime', '--artifacts', args.work / 'scope-failure-override', detached]))
+        assert override['site_scope']['patterns'] == ['runtime']
+        raw_before = (Path(minimized['artifact_path']) / 'evidence/inspection.json').read_bytes()
+        inspected_minimum = json.loads(run('scope-failure-minimum-inspect', [args.binary, 'inspect', '--json', minimized['artifact_path']]))['artifact']['minimization']
+        assert sum(group['count'] for group in inspected_minimum['final_forced_by_symbol']) == inspected_minimum['final_forced_decisions']
+        assert all('symbol' in decision for reduction in inspected_minimum['accepted'] for decision in reduction['removed'])
+        assert (Path(minimized['artifact_path']) / 'evidence/inspection.json').read_bytes() == raw_before
+        replayed = run('scope-failure-minimum-replay', [args.binary, 'replay', minimized['artifact_path']], (1,))
+        assert b'reproduced=true' in replayed
+        malformed = args.work / 'scope-failure-invalid-context'
+        shutil.copytree(detached, malformed)
+        context_path = malformed / 'provenance/search-context.json'
+        context = json.loads(context_path.read_bytes())
+        context['round'] = -1
+        context_path.write_bytes(encode(context))
+        manifest_path = malformed / 'manifest.json'
+        manifest = json.loads(manifest_path.read_bytes())
+        manifest['files']['provenance/search-context.json'].update(bytes=context_path.stat().st_size, sha256=digest(context_path.read_bytes()))
+        manifest_path.write_bytes(encode(manifest))
+        invalid_output = args.work / 'scope-failure-invalid-output'
+        run('scope-failure-invalid-context-minimize', [args.binary, 'minimize', '--site-scope=main', '--artifacts', invalid_output, malformed], (2,))
+        assert not invalid_output.exists()
+        observations['minimize'] = dict(snapshots=snapshots, result=minimized, override=override, inspection=inspected_minimum)
+
         rounds['scope_digest_refusal'](run, prefix, scoped_root, args.work / 'scope-changed-digest')
         rounds['scope_block_refusals'](run, prefix, scoped_root, args.work)
 
