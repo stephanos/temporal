@@ -2052,6 +2052,19 @@
    ]
   },
   {
+   "id": "host-go.wasi.runtime.runtimesession.handle.unstable-sort.slices.sortfunc_creations",
+   "layer": "host-go",
+   "class": "entropy",
+   "site": "host-go:wasi/runtime.go|runtimeSession.handle|unstable-sort|slices.SortFunc creations|1",
+   "disposition": "controlled",
+   "owner": "wasm wasi package",
+   "rule": "compareIdentity compares all 32 bytes of each creation record's selected identity, and choice.CanonicalDecision has already refused duplicated alternative identities, so no two records tie.",
+   "evidence": [
+    "go:internal/backends/wasm:TestWASMHostEffectSitesAreInventoried",
+    "go:internal/archcheck:TestHostEffectSitesReportsClockGoroutineAndMapRange"
+   ]
+  },
+  {
    "id": "host-go.wasi.runtime.runtimesession.handle.unstable-sort.slices.sortfunc_ordered",
    "layer": "host-go",
    "class": "entropy",
