@@ -235,6 +235,13 @@ fn compiled_output_callback_failure_retains_partial_publication_and_origin() {
         fault: None,
     };
     let published = store.publish(observed.publication).unwrap();
+    let row = launcher::outcome_row(&observed.execution, &published).unwrap();
+    assert_eq!(row["type"], "outcome");
+    assert_eq!(row["status"], 3);
+    assert_eq!(row["class"], "runner_failure");
+    assert_eq!(row["termination"], "infrastructure");
+    assert_eq!(row["record_sha256"], published.record_sha256);
+    assert_eq!(row["seed"], 7);
     let opened = crate::evidence::store::Opened::open(&published.path).unwrap();
     opened.authenticate_all().unwrap();
     assert_eq!(opened.payload("output/stdout", 1024).unwrap(), b"prefix");
@@ -318,9 +325,100 @@ fn first_failure_leaves_a_later_would_pass_seed_unexecuted() {
         &mut diagnostics,
     )
     .unwrap();
-    let output: serde_json::Value = serde_json::from_slice(&output).unwrap();
-    assert_eq!(output["unexecuted"], 1);
-    assert_eq!(output["status"], 17);
+    let output = json_rows(&output);
+    assert_eq!(output.len(), 2, "one attempted outcome and one summary");
+    assert_eq!(output[0]["type"], "outcome");
+    assert_eq!(
+        (output[0]["ordinal"].as_u64(), output[0]["seed"].as_u64()),
+        (Some(0), Some(7))
+    );
+    assert_eq!(output[0]["status"], 17);
+    assert_eq!(output[0]["class"], "target_failure");
+    assert_eq!(output[0]["termination"], "exit");
+    assert_eq!(output[1]["type"], "result");
+    assert_eq!(output[1]["unexecuted"], 1);
+    assert_eq!(output[1]["status"], 17);
     assert!(diagnostics.ends_with(b"no replayable artifact was retained\n"));
+    fs::remove_dir_all(root).unwrap();
+}
+
+fn json_rows(bytes: &[u8]) -> Vec<serde_json::Value> {
+    bytes
+        .split(|byte| *byte == b'\n')
+        .filter(|line| !line.is_empty())
+        .map(|line| serde_json::from_slice(line).unwrap())
+        .collect()
+}
+
+#[test]
+fn structured_all_pass_reports_both_authenticated_outcomes_then_summary() {
+    use std::time::Duration;
+    let module = br#"(module
+        (import "wasi_snapshot_preview1" "proc_exit" (func $exit (param i32)))
+        (memory (export "memory") 1)
+        (func (export "_start") (call $exit (i32.const 0))))"#
+        .to_vec();
+    let prepared = prepared_module("all-pass", &invocation(), module);
+    let root = std::env::temp_dir().join(format!("gomad-all-pass-{}", origin::identity().unwrap()));
+    let mut ignored = false;
+    let mut options = super::super::explore::parse(
+        &["--seeds=7,8".into(), "go-run".into(), "fixture".into()],
+        &mut ignored,
+    )
+    .unwrap();
+    options.artifacts = root.clone();
+    options.parallel = 1;
+    options.on_failure = "first".into();
+    options.json = true;
+    let outcome =
+        launcher::run(&options, &prepared, Instant::now() + Duration::from_secs(5)).unwrap();
+    assert_eq!(
+        (outcome.status, outcome.attempted, outcome.unexecuted),
+        (0, 2, 0),
+        "{:?}",
+        outcome.failure
+    );
+    let mut output = Vec::new();
+    let mut diagnostics = Vec::new();
+    launcher::report(
+        &outcome,
+        true,
+        Path::new("installation"),
+        &mut output,
+        &mut diagnostics,
+    )
+    .unwrap();
+    let rows = json_rows(&output);
+    assert_eq!(rows.len(), 3, "two attempted outcomes and one summary");
+    for (index, seed) in [7_u64, 8].iter().enumerate() {
+        assert_eq!(rows[index]["type"], "outcome");
+        assert_eq!(rows[index]["ordinal"], index);
+        assert_eq!(rows[index]["seed"], *seed);
+        assert_eq!(rows[index]["status"], 0);
+        assert_eq!(rows[index]["class"], "success");
+        let path = Path::new(rows[index]["artifact_path"].as_str().unwrap());
+        let opened = crate::evidence::store::Opened::open(path).unwrap();
+        opened.authenticate_all().unwrap();
+        assert_eq!(
+            rows[index]["record_sha256"],
+            opened.manifest().record_sha256
+        );
+        assert_eq!(
+            rows[index]["module_sha256"],
+            opened.manifest().record.identity.target
+        );
+        assert_eq!(
+            rows[index]["execution_identity"],
+            opened.manifest().record.execution_identity
+        );
+        assert_eq!(
+            rows[index]["origin_sha256"],
+            opened.manifest().record.streams[origin::FILE].sha256
+        );
+    }
+    assert_eq!(rows[2]["type"], "result");
+    assert_eq!(rows[2]["attempted"], 2);
+    assert_eq!(rows[2]["unexecuted"], 0);
+    assert_eq!(diagnostics.as_slice(), b"");
     fs::remove_dir_all(root).unwrap();
 }

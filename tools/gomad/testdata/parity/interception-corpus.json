@@ -1,0 +1,1 @@
+{"schema":"gomad.interception-corpus/v1","required_cases":["success","first-failure","failure-with-replay","unprepared-module","infrastructure","standalone-json"],"golden":"goldens-interception/launcher.json"}
