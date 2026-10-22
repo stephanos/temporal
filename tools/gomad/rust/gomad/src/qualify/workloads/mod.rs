@@ -308,7 +308,7 @@ fn temporal_catalogue(
 ) -> Result<(), String> {
     opened.payload(
         "evidence/cluster/temporal/1/storage_precrash_image",
-        257 << 20,
+        513 << 20,
     )?;
     let state = opened.payload("evidence/cluster/temporal/1/storage_state", 256 << 20)?;
     let log = opened.payload("evidence/cluster/temporal/1/storage", 128 << 20)?;
