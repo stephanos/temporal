@@ -216,7 +216,7 @@ fn staging(root: &File) -> Result<(String, File), String> {
     }
 }
 
-fn artifact_name(name: &str) -> bool {
+pub(crate) fn artifact_name(name: &str) -> bool {
     if canonical::valid_digest(name) {
         return true;
     }
@@ -241,7 +241,7 @@ fn context_name(manifest: &Manifest) -> Option<String> {
         })
 }
 
-fn matches_name(name: &str, manifest: &Manifest) -> Result<bool, String> {
+pub(crate) fn matches_name(name: &str, manifest: &Manifest) -> Result<bool, String> {
     if let Some(qualified) = context_name(manifest) {
         return Ok(name == qualified);
     }

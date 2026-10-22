@@ -1,6 +1,6 @@
 use crate::evidence::{
     canonical,
-    inspection::Details,
+    inspection::{Details, Minimization},
     record::Record,
     store::{Opened, Publication},
 };
@@ -122,6 +122,7 @@ pub(crate) fn read(opened: &Opened) -> Result<Option<Source>, String> {
             )
         })
         .collect::<std::collections::BTreeMap<_, _>>();
+    validate_candidates(plan, metadata)?;
     for decision in metadata
         .accepted
         .iter()
@@ -134,6 +135,34 @@ pub(crate) fn read(opened: &Opened) -> Result<Option<Source>, String> {
         }
     }
     Ok(Some(source))
+}
+
+fn validate_candidates(
+    mut plan: linked::ChoicePlan,
+    metadata: &Minimization,
+) -> Result<(), String> {
+    for (cutoff, expected) in [
+        (
+            metadata.original_forced_decisions,
+            &metadata.original_candidate_sha256,
+        ),
+        (
+            metadata.final_forced_decisions,
+            &metadata.final_candidate_sha256,
+        ),
+    ] {
+        plan = plan.prefix(&linked::PrefixControl {
+            cutoff,
+            r#override: None,
+        })?;
+        if super::proposals::choice_prefix_sha256(cutoff, &plan.sha256)
+            .trim_start_matches("sha256:")
+            != expected
+        {
+            return Err("minimization source candidate commitment mismatch".into());
+        }
+    }
+    Ok(())
 }
 
 #[cfg(test)]

@@ -182,7 +182,6 @@ def main():
         # Retain scope on a real failure, then discard its campaign before minimizing.
         failure_destination = args.work / 'scope-failure'
         invocation = command(failure_destination, executions=8, depth=1024, scope='main')
-        invocation.insert(invocation.index('--choices'), '--failure-budget=10')
         invocation[invocation.index('go-run') + 1] = './testdata/parity/live_backend/minimization'
         run('scope-failure', invocation, (1,))
         failure_root = locate(failure_destination)

@@ -81,6 +81,26 @@ fn minimized_with_symbols(symbols: bool) -> Publication {
     let original = publication.record.bytes().unwrap();
     let parent_hash = publication.record.hash().unwrap();
     let signature = publication.record.failure_signature().unwrap();
+    let mut state = crate::minimize::proposals::State::choice(
+        raw.clone(),
+        details.choices.as_ref().unwrap().identity.clone(),
+        8,
+    )
+    .unwrap();
+    state = state
+        .commit(&state.next().unwrap().unwrap(), false)
+        .unwrap();
+    state = state.commit(&state.next().unwrap().unwrap(), true).unwrap();
+    let original_candidate = state
+        .original
+        .sha256
+        .trim_start_matches("sha256:")
+        .to_owned();
+    let final_candidate = state
+        .current
+        .sha256
+        .trim_start_matches("sha256:")
+        .to_owned();
     let raw_final = raw[..96].to_vec();
     choices(details.choices.as_mut().unwrap(), &raw_final);
     details.minimization = Some(inspection::Minimization {
@@ -88,16 +108,16 @@ fn minimized_with_symbols(symbols: bool) -> Publication {
         implementation_sha256: "1".repeat(64),
         parent_record_hash: parent_hash.clone(),
         parent_failure_signature: signature.clone(),
-        original_candidate_sha256: "2".repeat(64),
-        final_candidate_sha256: "3".repeat(64),
+        original_candidate_sha256: original_candidate.clone(),
+        final_candidate_sha256: final_candidate.clone(),
         attempt_budget: 8,
         attempts: 2,
         original_forced_decisions: 2,
         final_forced_decisions: 1,
         accepted: vec![inspection::Reduction {
             kind: "schedule_suffix".into(),
-            before_sha256: "2".repeat(64),
-            after_sha256: "3".repeat(64),
+            before_sha256: original_candidate,
+            after_sha256: final_candidate,
             removed: vec![inspection::Decision {
                 dimension: "runtime".into(),
                 ordinal: 1,
@@ -347,5 +367,118 @@ fn source_choice_resealed_retained_payloads_reach_shared_opener_admission() {
         )
         .unwrap();
     }
+    std::fs::remove_dir_all(store.root).unwrap();
+}
+
+#[test]
+fn source_choice_resealed_site_substitution_refuses_unchanged_record() {
+    let store = store();
+    let artifact = store.publish(minimized_with_symbols(true)).unwrap();
+    let detached = store.root.with_extension("substituted");
+    std::fs::rename(&artifact.path, &detached).unwrap();
+    let opened = Opened::open(&detached).unwrap();
+    let mut source = read(&opened).unwrap().unwrap();
+    let original_record = opened.manifest().record.bytes().unwrap();
+    let original_metadata = opened
+        .payload("evidence/inspection.json", 16 << 20)
+        .unwrap();
+    source.raw[120..128].copy_from_slice(&5384_u64.to_be_bytes());
+    let mut publication = crate::minimize::predicate::publication(&opened).unwrap();
+    source.attach(&mut publication).unwrap();
+    let mut manifest = opened.manifest().clone();
+    for name in [TRACE, DESCRIPTOR] {
+        let bytes = &publication.payloads[name];
+        std::fs::write(detached.join(name), bytes).unwrap();
+        manifest.files.get_mut(name).unwrap().bytes = bytes.len() as u64;
+        manifest.files.get_mut(name).unwrap().sha256 = canonical::digest(bytes);
+    }
+    std::fs::write(
+        detached.join("manifest.json"),
+        canonical::encode(&manifest).unwrap(),
+    )
+    .unwrap();
+    assert_eq!(manifest.record.bytes().unwrap(), original_record);
+    assert_eq!(
+        std::fs::read(detached.join("evidence/inspection.json")).unwrap(),
+        original_metadata
+    );
+    let error = Opened::open(&detached)
+        .err()
+        .expect("resealed site substitution accepted");
+    assert!(
+        error.contains("source candidate commitment mismatch"),
+        "{error}"
+    );
+    std::fs::remove_dir_all(detached).unwrap();
+    std::fs::remove_dir_all(store.root).unwrap();
+}
+
+#[test]
+fn minimize_malformed_present_context_names_parent_before_workspace_creation() {
+    let store = store();
+    let artifact = store.publish(publication(0)).unwrap();
+    let context_path = artifact.path.join(crate::evidence::search_context::FILE);
+    let mut context: Value =
+        serde_json::from_slice(&std::fs::read(&context_path).unwrap()).unwrap();
+    context["schema"] = json!("unknown");
+    let bytes = canonical::encode(&context).unwrap();
+    std::fs::write(&context_path, &bytes).unwrap();
+    let manifest_path = artifact.path.join("manifest.json");
+    let mut manifest: Value =
+        serde_json::from_slice(&std::fs::read(&manifest_path).unwrap()).unwrap();
+    manifest["files"][crate::evidence::search_context::FILE]["bytes"] = json!(bytes.len());
+    manifest["files"][crate::evidence::search_context::FILE]["sha256"] =
+        json!(canonical::digest(&bytes));
+    std::fs::write(manifest_path, canonical::encode(&manifest).unwrap()).unwrap();
+    let output_root = store.root.join("uncreated-minimizer");
+    let result = crate::cli::minimize::run(
+        &[
+            "--site-scope=main".into(),
+            "--artifacts".into(),
+            output_root.to_string_lossy().into(),
+            artifact.path.to_string_lossy().into(),
+        ],
+        &mut Vec::new(),
+    );
+    let error = result.err().expect("malformed present context accepted");
+    assert_eq!(error.status, 2);
+    assert!(
+        error
+            .message
+            .contains(&artifact.path.to_string_lossy().to_string()),
+        "{}",
+        error.message
+    );
+    assert!(
+        error.message.contains("search context"),
+        "{}",
+        error.message
+    );
+    assert!(!output_root.exists());
+    std::fs::remove_dir_all(store.root).unwrap();
+}
+
+#[test]
+fn source_choice_final_prefix_commitment_is_checked_with_original_intact() {
+    let store = store();
+    let mut publication = minimized();
+    let mut details: Details =
+        serde_json::from_slice(&publication.payloads["evidence/inspection.json"]).unwrap();
+    let metadata = details.minimization.as_mut().unwrap();
+    metadata.final_candidate_sha256 = "f".repeat(64);
+    metadata.accepted.last_mut().unwrap().after_sha256 = metadata.final_candidate_sha256.clone();
+    replace(
+        &mut publication,
+        "evidence/inspection.json",
+        canonical::encode(&details).unwrap(),
+    );
+    let error = store
+        .publish(publication)
+        .err()
+        .expect("changed final prefix commitment accepted");
+    assert!(
+        error.contains("source candidate commitment mismatch"),
+        "{error}"
+    );
     std::fs::remove_dir_all(store.root).unwrap();
 }

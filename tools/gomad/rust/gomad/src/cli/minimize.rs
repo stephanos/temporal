@@ -15,8 +15,11 @@ struct Arguments<'a> {
 /// Reports malformed commands, incompatible artifacts and minimization failures.
 pub fn run(arguments: &[String], output: &mut dyn Write) -> Result<i32, super::Error> {
     let arguments = parse(arguments)?;
-    let prepared = crate::replay::preflight::open(arguments.path)
-        .map_err(|message| super::Error { status: 2, message })?;
+    let prepared =
+        crate::replay::preflight::open(arguments.path).map_err(|message| super::Error {
+            status: 2,
+            message: format!("minimize {}: {message}", arguments.path.display()),
+        })?;
     let admission = crate::minimize::ordering::prepare(&prepared.opened, arguments.site_scope)
         .map_err(|message| super::Error {
             status: 2,

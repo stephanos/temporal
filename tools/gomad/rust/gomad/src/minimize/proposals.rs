@@ -402,6 +402,13 @@ impl State {
     }
 }
 
+pub(super) fn choice_prefix_sha256(length: u64, tape_sha256: &[u8; 32]) -> String {
+    let mut control = Vec::with_capacity(40);
+    control.extend_from_slice(&length.to_be_bytes());
+    control.extend_from_slice(tape_sha256);
+    simulation::domain_hash("gomad-minimization-choice-prefix/v1", &control)
+}
+
 fn choice_candidate(
     source: &ChoiceSource,
     length: u64,
@@ -412,10 +419,7 @@ fn choice_candidate(
             cutoff: length,
             r#override: None,
         })?;
-    let mut control = Vec::with_capacity(40);
-    control.extend_from_slice(&length.to_be_bytes());
-    control.extend_from_slice(&prefix.sha256);
-    let sha256 = simulation::domain_hash("gomad-minimization-choice-prefix/v1", &control);
+    let sha256 = choice_prefix_sha256(length, &prefix.sha256);
     let overrides = prefix
         .decisions
         .iter()

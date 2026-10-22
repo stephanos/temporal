@@ -932,3 +932,7 @@ fn verify_named(root: &File, name: &str, file: &File) -> Result<(), String> {
     }
     Ok(())
 }
+
+#[cfg(test)]
+#[path = "round_tests.rs"]
+mod tests;
