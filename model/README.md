@@ -116,6 +116,20 @@ Descriptor acquisition and API-specific roots stay with each consumer. The indep
 Kettle catalog fixture builds without an extension dependency; refusal fixtures retain
 missing-field and enum-variant checks alongside descriptor method/action controls.
 
+## Kettle service
+
+The framework-owned Kettle service runs a loopback Go server and a fresh wasm guest
+through Annotate, Judge and Answer. The healthy transcript pins the complete heating
+cycle; `reference/kettle/expected/mutants.snap.txt` pins four differential witnesses:
+overlong IDs and removed label validation produce Accepted, a wrong rejection code
+produces Mismatch, and boiling before RespondHeating produces current-only Judge
+Unexplained. Each witness uses identical prepared wire input against fresh healthy and
+single-mutant servers. Healthy-equivalent no-op responses, missing witness registrations,
+unknown mutants and transport failures cannot count as detection. Select a server-local
+mutation with `kettle.Options{Mutant: name}`; `kettle.Mutants()` lists the supported names.
+These controls run in `make model-check`. The focused differential run takes about 23 s;
+the preceding full gate took 438.622 s, exceeding R30's 60 s soft target.
+
 ## Writing a Model
 
 `State` derives `Display` and `Debug`, rendering named fields with standard `Debug`

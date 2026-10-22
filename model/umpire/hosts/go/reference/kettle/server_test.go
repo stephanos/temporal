@@ -18,11 +18,16 @@ import (
 
 func client(t *testing.T) (context.Context, pb.KettleServiceClient) {
 	t.Helper()
+	return clientWithOptions(t, Options{})
+}
+
+func clientWithOptions(t *testing.T, options Options) (context.Context, pb.KettleServiceClient) {
+	t.Helper()
 	listener, err := net.Listen("tcp", "127.0.0.1:0")
 	if err != nil {
 		t.Fatal(err)
 	}
-	stop := Serve(listener, Options{})
+	stop := Serve(listener, options)
 	t.Cleanup(stop)
 	conn, err := grpc.NewClient(listener.Addr().String(), grpc.WithTransportCredentials(insecure.NewCredentials()))
 	if err != nil {
@@ -178,4 +183,108 @@ func TestMutantOptions(t *testing.T) {
 	if err := (Options{Mutant: "unknown"}).Validate(); err == nil {
 		t.Fatal("unknown mutant accepted")
 	}
+}
+
+func TestMutantsAreServerLocal(t *testing.T) {
+	for _, name := range Mutants() {
+		t.Run(name, func(t *testing.T) {
+			t.Parallel()
+			for _, mutant := range []string{name, ""} {
+				t.Run("server="+mutant, func(t *testing.T) {
+					t.Parallel()
+					ctx, c := clientWithOptions(t, Options{Mutant: mutant})
+					switch name {
+					case "overlong-id":
+						id := strings.Repeat("x", MaxKettleIDBytes+1)
+						want := codes.InvalidArgument
+						if mutant != "" {
+							want = codes.OK
+						}
+						_, err := c.Fill(ctx, &pb.FillRequest{KettleId: id})
+						if status.Code(err) != want {
+							t.Fatalf("Fill: got %v, want %v", err, want)
+						}
+						described, err := c.Describe(ctx, &pb.DescribeRequest{KettleId: id})
+						if status.Code(err) != want || want == codes.OK && described.GetState().GetTemperature() != 20 {
+							t.Fatalf("Describe: got %v %v, want %v", described, err, want)
+						}
+						if _, err := c.Fill(ctx, &pb.FillRequest{}); status.Code(err) != codes.InvalidArgument {
+							t.Fatalf("empty id accepted: %v", err)
+						}
+					case "removed-validator":
+						o := &pb.FillRequest_FillOptions{WaterKind: pb.FillRequest_FillOptions_WATER_KIND_TAP, Source: &pb.FillRequest_FillOptions_Tap{Tap: "sink"}, Labels: map[string]string{"": "value"}}
+						_, err := c.Fill(ctx, &pb.FillRequest{KettleId: "k", Options: o})
+						want := codes.InvalidArgument
+						if mutant != "" {
+							want = codes.OK
+						}
+						if status.Code(err) != want {
+							t.Fatalf("labels: got %v, want %v", err, want)
+						}
+						o.WaterKind = 99
+						if _, err := c.Fill(ctx, &pb.FillRequest{KettleId: "k", Options: o}); status.Code(err) != codes.InvalidArgument || !strings.Contains(status.Convert(err).Message(), "water_kind") {
+							t.Fatalf("independent validator removed: %v", err)
+						}
+					case "wrong-status":
+						want := codes.InvalidArgument
+						if mutant != "" {
+							want = codes.FailedPrecondition
+						}
+						for _, id := range []string{"", strings.Repeat("x", MaxKettleIDBytes+1)} {
+							if _, err := c.Fill(ctx, &pb.FillRequest{KettleId: id}); status.Code(err) != want {
+								t.Fatalf("Fill: got %v, want %v", err, want)
+							}
+							if _, err := c.Describe(ctx, &pb.DescribeRequest{KettleId: id}); status.Code(err) != want {
+								t.Fatalf("Describe: got %v, want %v", err, want)
+							}
+						}
+					case "premature-boil":
+						if _, err := c.Fill(ctx, &pb.FillRequest{KettleId: "k"}); err != nil {
+							t.Fatal(err)
+						}
+						if _, err := c.Heat(ctx, &pb.HeatRequest{KettleId: "k", Enabled: true}); err != nil {
+							t.Fatal(err)
+						}
+						poll, err := c.PollHeating(ctx, &pb.PollHeatingRequest{KettleId: "k"})
+						if err != nil || poll.GetAction() != pb.HeatingAction_HEATING_ACTION_HEAT || poll.GetState().GetTemperature() != 20 {
+							t.Fatalf("PollHeating: %v %v", poll, err)
+						}
+						described, err := c.Describe(ctx, &pb.DescribeRequest{KettleId: "k"})
+						want := &pb.State{Temperature: 20, HeatingOn: true}
+						if mutant != "" {
+							want = &pb.State{Temperature: 100, Beeping: true}
+						}
+						if err != nil || !proto.Equal(described.GetState(), want) {
+							t.Fatalf("Describe: %v %v, want %v", described, err, want)
+						}
+						receipt, err := c.RespondHeating(ctx, &pb.RespondHeatingRequest{KettleId: "k", Action: poll.GetAction()})
+						if err != nil || receipt.GetState().GetTemperature() != 21 || !receipt.GetState().GetHeatingOn() || receipt.GetState().GetBeeping() {
+							t.Fatalf("Describe changed stored state: %v %v", receipt, err)
+						}
+					}
+				})
+			}
+		})
+	}
+}
+
+func TestServeRejectsUnknownMutant(t *testing.T) {
+	listener, err := net.Listen("tcp", "127.0.0.1:0")
+	if err != nil {
+		t.Fatal(err)
+	}
+	t.Cleanup(func() {
+		if err := listener.Close(); err != nil {
+			t.Error(err)
+		}
+	})
+	defer func() {
+		if recovered := recover(); recovered == nil {
+			t.Error("Serve accepted unknown mutant")
+		} else if err, ok := recovered.(error); !ok || !strings.Contains(err.Error(), "unknown kettle mutant") {
+			t.Errorf("unexpected panic: %v", recovered)
+		}
+	}()
+	stop := Serve(listener, Options{Mutant: "unknown"})
+	stop()
 }

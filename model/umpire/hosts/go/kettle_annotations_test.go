@@ -179,7 +179,7 @@ func TestKettleAnnotationCoverageAndActualWireGaps(t *testing.T) {
 func kettleAnnotationGolden(t *testing.T, name, actual string) {
 	t.Helper()
 	path := "../../reference/kettle/expected/" + name
-	if name == "gaps.txt" && os.Getenv("UMPIRE_UPDATE_KETTLE_GAPS") == "1" {
+	if name == "gaps.txt" && os.Getenv("UMPIRE_UPDATE_KETTLE_GAPS") == "1" || name == "mutants.snap.txt" && os.Getenv("UMPIRE_UPDATE_KETTLE_MUTANTS") == "1" {
 		if err := os.WriteFile(path, []byte(actual), 0o644); err != nil {
 			t.Fatal(err)
 		}

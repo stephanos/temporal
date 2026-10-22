@@ -62,14 +62,22 @@ func validateTimeout(o *pb.FillRequest_FillOptions) error {
 	return nil
 }
 
-func validateFill(id string, o *pb.FillRequest_FillOptions) error {
+func validateFill(id string, o *pb.FillRequest_FillOptions, options Options) error {
 	if o == nil {
 		return nil
 	}
-	for _, validate := range []func(*pb.FillRequest_FillOptions) error{validateWaterKind, validateWaterSource, validateLabels, validateTimeout} {
+	for _, validate := range []func(*pb.FillRequest_FillOptions) error{validateWaterKind, validateWaterSource} {
 		if err := validate(o); err != nil {
 			return err
 		}
+	}
+	if options.Mutant != "removed-validator" {
+		if err := validateLabels(o); err != nil {
+			return err
+		}
+	}
+	if err := validateTimeout(o); err != nil {
+		return err
 	}
 	return validateTags(id, o)
 }

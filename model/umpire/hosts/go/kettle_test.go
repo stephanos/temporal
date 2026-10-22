@@ -35,13 +35,18 @@ type kettleRun struct {
 
 func newKettleRun(t *testing.T) *kettleRun {
 	t.Helper()
+	return newKettleRunWithOptions(t, kettle.Options{})
+}
+
+func newKettleRunWithOptions(t *testing.T, options kettle.Options) *kettleRun {
+	t.Helper()
 	ctx, cancel := context.WithTimeout(t.Context(), 30*time.Second)
 	t.Cleanup(cancel)
 	listener, err := net.Listen("tcp", "127.0.0.1:0")
 	if err != nil {
 		t.Fatal(err)
 	}
-	stop := kettle.Serve(listener, kettle.Options{})
+	stop := kettle.Serve(listener, options)
 	t.Cleanup(stop)
 	r := &kettleRun{t: t, ctx: ctx, annotated: make(map[string][2]int)}
 	conn, err := grpc.NewClient(listener.Addr().String(), grpc.WithTransportCredentials(insecure.NewCredentials()), grpc.WithUnaryInterceptor(r.annotateRPC))
@@ -287,21 +292,5 @@ func TestKettleJudgeAnswerTranscript(t *testing.T) {
 	}
 	if r.transcript.String() != string(expected) {
 		t.Fatalf("Kettle transcript differs:\n%s", r.transcript.String())
-	}
-}
-
-func TestKettlePrematureBoilIsUnexplained(t *testing.T) {
-	r := newKettleRun(t)
-	r.fill()
-	r.heat(true)
-	r.poll(20, kettlev1.HeatingAction_HEATING_ACTION_HEAT)
-	r.describe(&kettlev1.State{Temperature: 20, HeatingOn: true})
-	observation := &realizationv1.Observation{
-		Method: "/umpire.reference.kettle.v1.KettleService/Describe",
-		Result: &realizationv1.Observation_Response{Response: kettlePack(t, &kettlev1.DescribeResponse{State: &kettlev1.State{Temperature: 100, Beeping: true}})},
-	}
-	judgment, err := r.host.Judge(r.ctx, &modelv1.JudgeRequest{Observation: kettlePack(t, observation)})
-	if err != nil || judgment.GetUnexplained() == nil {
-		t.Fatalf("premature boil: %v %v", judgment, err)
 	}
 }
