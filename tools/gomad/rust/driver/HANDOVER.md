@@ -112,3 +112,56 @@ or actual qualification scratch root. Temporary Python contract tests own and
 remove their private roots. No command started by this worker is left running.
 
 stage: impl-review - skipped(policy: conductor owns integrated review)
+
+
+## Independent-review follow-up after 9af80795ee
+
+Three confirmed findings were fixed together in receiver-owned files:
+
+- The retained RealExecutor intentionally blocks TERM/HUP/INT around Popen,
+  and a child inherits that mask. The receiver now installs handlers and
+  explicitly unblocks all three before stage work. Busy workers receive TERM;
+  their cleanup also has a bounded kill/reap fallback. The original scheduler,
+  96-stage DAG, target command argv and resource policy remain unchanged.
+- Detached command sessions now wait on a private admission pipe until their
+  process group is atomically registered. The receiver exec bootstrap unblocks
+  inherited signals and keeps the actual target argv/PID. EOF prevents an
+  unregistered command exec after parent death. Receiver scheduler cleanup kills
+  any registered command group left by a hard-killed stage. Normal interruption
+  kills and reaps the command and leaves an inconclusive observation.
+- Runtime terminal validation now rejects version-1 finish bytes with a zero
+  peak witness, matching the original Go validateQualificationPayloads assertion.
+  The earlier proposed nested runtime counter change was retracted by the
+  reviewer: the actual public serializer flattens those fields. No counter
+  schema change was made.
+- SQLite selected producers must use the primary installation. Both individual
+  selection and independent catalogue aggregation now compare compiler,
+  runtime/helper/engine/model/profile, host/config/module, original matching
+  fields and all raw provenance inputs except the authorized scenario input.
+  Selection-specific IDs and derived scenario/BuildKey identities still vary;
+  no retained field is rewritten or normalized.
+
+Actual lightweight subprocess regressions use the real retained RealExecutor
+and the receiver stage entry. RED observed `[1,2,15]` in the stage's blocked mask
+(exit 1) before busy work. GREEN runs the actual twelve-worker pool to return 0,
+interrupts an actual command with TERM and observes its numeric exit/inconclusive
+receipt, and forcibly KILLs a stage before the receiver independently kills its
+registered detached command group. These are Python framework fixtures only;
+no guest, Go/Cargo build or qualification gate ran.
+
+The focused runtime terminal test was RED (exit 1: valid version + zero peak
+wrongly accepted). The selected compiler/model/config regression was RED (exit 1)
+before the shared matching check existed. Both now pass.
+
+Latest command:
+`PYTHONDONTWRITEBYTECODE=1 python3 -m unittest discover -s tools/gomad/rust/driver/tests -v`
+returned **0**, **25 tests**, including all process, terminal and SQLite matching
+regressions. `git diff --check` returned 0. Independent integrated review and
+actual candidate qualification remain conductor-owned and pending.
+
+Root19 final-reader decision: require all applicable actual Rust simulation-model
+lazy-store/only-requested/one-result/zero-callback assertions, plus the separately
+executed identity-bound frozen Go BrokerReference hard-isolation observation.
+The latter is explicitly a legacy reference architecture observation; no Rust
+hard-isolation support, fake flag, callback port or skipped positive path is
+claimed. The final reader still must authenticate both applicable parts.

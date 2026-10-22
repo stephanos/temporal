@@ -73,7 +73,13 @@ frozen configuration selects actual adapter argv in either mode. Each command
 records its argv, cwd, PID, start/end, numeric exit, stdout and stderr; each stage
 records its actual subgate outcomes, source, identity and configuration digest.
 The final outcome retains the schedule, receipts and send-to-end wall clock.
-An interrupted/timed-out process is killed and reaped and recorded inconclusive.
+The stage entry installs interruption handlers and clears the signal mask inherited
+from the frozen launcher. Before a command executes, a private pipe gates its
+exec until the parent registers its process group; parent death closes the pipe.
+The receiver launcher clears the child's inherited mask and preserves the target
+argv and PID across exec. An interrupted/timed-out process is killed and reaped
+and recorded inconclusive. Receiver-owned scheduler cleanup also kills registered
+command groups left by a hard-killed stage; the retained scheduler is unchanged.
 
 Exit 0 means every actual stage, subgate and final reader passed within the
 window. Exit 1 means a stage failed (its receipt distinguishes UNEXECUTED exit 4).
@@ -86,12 +92,12 @@ interruption. A final reader with absent original evidence never yields exit 0.
 | --- | --- |
 | Source/build/lint/portable/Rust matrix and two corpus regenerations | `checked-command` runs the reviewed retained source/compiler/model or Cargo command, then its exact-root/count or independent semantic reader. No selector can pass with zero/duplicate/skipped roots. Paths that retirement changes remain explicitly pending until the integrated Make/CI/source owners supply the reviewed argv. |
 | Go wasmmeasure/helper build/publication | Pending linked release-build, admission and measured owner readers. The obsolete Go measurement/helper producers are forbidden. Existing labels and obligations remain. |
-| `runtime-0` … `runtime-31` | Public explore, exactly 25 fresh one-seed campaigns at `index*1000003`, diagnostics, original 60-second execution and ten-minute shard bound, then a fresh forced exact replay. Public inspect authenticates all payloads. Raw diagnostic counters, hook witnesses, stdout/stderr/WASI/choices, summary and actual 16-byte runtime terminal agree. Canary process status 1 remains application output. |
+| `runtime-0` … `runtime-31` | Public explore, exactly 25 fresh one-seed campaigns at `index*1000003`, diagnostics, original 60-second execution and ten-minute shard bound, then a fresh forced exact replay. Public inspect authenticates all payloads. Raw diagnostic counters, hook witnesses, stdout/stderr/WASI/choices, summary and actual 16-byte runtime terminal agree, including version 1 and a nonzero peak witness. Canary process status 1 remains application output. |
 | `runtime-aggregate` | Reopens all 32 shards/artifacts and independently checks current identities, payloads and map/runq/timer/canary variation, distinct choices/stdout and both exits 0/17. A missing terminal payload remains UNEXECUTED. |
 | Ten workload cells | Public qualify followed by installation-free report. Exactly fixture controlled/cooperative, actual durable SQLite, unchanged `./tests` workflow-type smoke, and actual independent Temporal replication, success/canary each. Seed 7, Repeat 2, distinct observed CLI PIDs, retained exact replays, native Rust Result/receipt lineage, full source and compiled identities, measured budgets and attributed publication tail are mandatory. |
 | Fixture/onebox configuration | `configure.py` generates actual original source selections and budgets. It refuses to synthesize SQLite/replication scenarios; those come from the actual producer owner. Onebox uses the original six test arguments and 15/30-minute, 4 GiB, 2^50-fuel limits, not FrontendSystemInfo. |
 | Workload corpus and post-relocation corpus | Reopen the exact ten mandatory pairs, enforce distinct producer PIDs and compare every primary Result/receipt hash before/after selected-state publication. New selected results use separate roots from creation; there is no mutable shared primary directory to relocate out of. |
-| Four SQLite selections | Decode the actual primary scenario, preserve every original bound, select the full native state and pending context, bind the actual primary Result hash, then invoke fresh qualify/report in each separate root. Primary identities/bytes and complete enumeration must remain equal. |
+| Four SQLite selections | Decode the actual primary scenario, preserve every original bound, select the full native state and pending context, bind the actual primary Result hash, then invoke fresh qualify/report in each separate root. The primary installation, compiler/runtime/helper/engine/model/profile/config/module and unchanged raw provenance inputs must remain equal; only the declared scenario/selection and derived identities vary. Primary bytes and complete enumeration remain equal. |
 | SQLite catalogue | Reopen all five actual Results, compare exact membership/context and distinct PIDs, and run an independent retained Go enumeration/context oracle against the actual authenticated GMSTORE state with 32-state/8-operation/8-depth/4 MiB/2^16 limits. Sum four selected execution costs and four publication tails once; never count primary cost again. Missing oracle is UNEXECUTED. |
 | Terminal module | Public plan and its content-addressed .11 preparation receipt, authenticated prepared artifact/module/provenance, plus the original unchanged-module/admission reader. Preparation receipt CPU fields are never invented. |
 | Artifact/operator/retained cluster | Public inspect and full replay with actual expected application exit, then the original domain/subgate reader. A small retained fixture alone cannot satisfy these labels. |

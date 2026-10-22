@@ -44,9 +44,25 @@ def selection_spec(template, primary_sha256, state, context, destination):
     return specification
 
 
+def matched_inputs(primary, selected):
+    for field in ('workload_source_sha256', 'integrated_source_sha256', 'host_os', 'host_arch', 'fuel',
+                  'memory_bytes', 'seed', 'repeat', 'compiler_sha256', 'helper_sha256', 'engine_sha256',
+                  'runtime_sha256', 'model_sha256', 'profile', 'host_sha256', 'host_config_sha256', 'module_sha256'):
+        require(field in primary['manifest'] and field in selected['manifest']
+                and selected['manifest'][field] == primary['manifest'][field], 'selected/primary input mismatch: ' + field)
+    original = primary['provenance']['inputs']
+    observed = selected['provenance']['inputs']
+    require(original.keys() == observed.keys(), 'selected/primary provenance input fields differ')
+    for field in original:
+        if field != 'scenario':
+            require(original[field] == observed[field], 'selected/primary provenance input mismatch: ' + field)
+
+
 def select(config, root, label, entry):
     from adapters import public, result_report, passed
     index = int(label.rsplit('-', 1)[1])
+    primary_entry = config['stages']['workload-sqlite-cooperative-success']
+    require(entry['installation'] == primary_entry['installation'], 'selection must use the primary installation')
     primary_stage = Path(config['root']) / 'stages/workload-sqlite-cooperative-success'
     reference = read(primary_stage / 'result.json')
     primary_path = reference['path']
@@ -68,8 +84,7 @@ def select(config, root, label, entry):
     require(catalogue(result) == native, 'selected execution does not reproduce complete primary catalogue')
     require(result['observations']['operator_process_id'] == read(root / 'qualify.command.json')['pid']
             and result['observations']['operator_process_id'] != reference['pid'], 'selection borrowed producer/preparation measurement')
-    for field in ('workload_source_sha256', 'integrated_source_sha256', 'host_os', 'host_arch', 'fuel', 'memory_bytes', 'seed', 'repeat'):
-        require(result['manifest'][field] == primary['manifest'][field], 'selected/primary input mismatch: ' + field)
+    matched_inputs(primary, result)
     require(sha(primary_path) == reference['sha256'], 'selection changed primary Result')
     write(root / 'selection.json', dict(index=index, path=selected_path, sha256=sha(selected_path),
           pid=result['observations']['operator_process_id'], primary_sha256=reference['sha256'], selection=expected))
@@ -105,6 +120,7 @@ def aggregate(config, root, label, entry):
         require(selected['index'] == index and selected['primary_sha256'] == reference['sha256']
                 and sha(selected['path']) == selected['sha256'], 'missing/stale native selected Result')
         result = result_report(config, root, f'selected-report-{index}', selected['path'])
+        matched_inputs(primary, result)
         expected = dict(primary_result_sha256=reference['sha256'], state=native['enumeration']['States'][index], context=native['context'])
         require(result['native_crash_selection'] == selected['selection'] == expected and catalogue(result) == native,
                 'selected state/context or complete enumeration differs')

@@ -84,12 +84,13 @@ class AdapterContract(unittest.TestCase):
             struct.pack_into(fmt, diagnostic, offset, 1)
         terminal = struct.pack('>IIQ', 1, 2, 3)
         self.assertEqual(self.adapters.runtime_witness(record, inspected, stdout, diagnostic, terminal)['exit'], 17)
-        for mutation in ('ordinal', 'count', 'draw', 'terminal'):
+        for mutation in ('ordinal', 'count', 'draw', 'terminal', 'terminal-peak'):
             raw, finish = bytearray(diagnostic), terminal
             if mutation == 'ordinal': raw[7] = 1
             if mutation == 'count': raw.extend(bytes(96))
             if mutation == 'draw': raw[47] = 0
             if mutation == 'terminal': finish = bytes(16)
+            if mutation == 'terminal-peak': finish = struct.pack('>IIQ', 1, 0, 3)
             with self.subTest(mutation=mutation), self.assertRaises(driver.Refusal):
                 self.adapters.runtime_witness(record, inspected, stdout, raw, finish)
 

@@ -338,7 +338,8 @@ def runtime_witness(record, inspection, stdout, diagnostic=None, terminal=None):
         previous = counters
     for offset, fmt in ((16, '>Q'), (24, '>I'), (40, '>Q'), (56, '>Q'), (64, '>Q'), (80, '>Q')):
         require(struct.unpack_from(fmt, diagnostic, len(diagnostic)-96+offset)[0] > 0, 'missing allocation/GC/seeded draw witness')
-    require(len(terminal) == 16 and struct.unpack_from('>I', terminal)[0] == 1, 'incomplete runtime terminal')
+    require(len(terminal) == 16 and struct.unpack_from('>I', terminal)[0] == 1
+            and struct.unpack_from('>I', terminal, 4)[0] > 0, 'incomplete runtime terminal/peak witness')
     return dict(exit=record['outcome']['exit_code'], choice=record['streams']['evidence/choice']['sha256'],
                 stdout=hashlib.sha256(stdout).hexdigest(), summary={key: choice[key] for key in
                 ('records', 'runnable', 'select_poll', 'select_result')})

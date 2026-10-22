@@ -12,6 +12,7 @@ from contextlib import contextmanager
 import signal
 import subprocess
 import sys
+import tempfile
 import time
 
 sys.dont_write_bytecode = True
@@ -132,29 +133,99 @@ def clean_env(config):
     return env
 
 
+def save_process(path, record):
+    descriptor, temporary = tempfile.mkstemp(prefix=path.name + '.', dir=path.parent)
+    try:
+        with os.fdopen(descriptor, 'w') as handle:
+            json.dump(record, handle, sort_keys=True, separators=(',', ':'), allow_nan=False)
+            handle.write('\n')
+        os.replace(temporary, path)
+    finally:
+        if os.path.exists(temporary):
+            os.unlink(temporary)
+
+
 def command(config, root, name, argv, accepted=(0,), timeout=None):
     require(argv and all(isinstance(arg, str) for arg in argv), 'invalid argv')
-    # All processes are fresh; every actual command, PID, numeric exit and raw stream survives.
     start = time.time_ns()
-    observation = 'completed'
+    observation, proc = 'completed', None
+    process_path = root / (name + '.process.json')
+    require(not process_path.exists(), 'command process registration already exists')
     with (root / (name + '.stdout')).open('xb') as stdout, (root / (name + '.stderr')).open('xb') as stderr:
-        proc = subprocess.Popen(argv, cwd=config['repo'], env=clean_env(config), stdout=stdout, stderr=stderr,
-                                start_new_session=True)
         try:
+            read_gate, write_gate = os.pipe()
+            blocked = signal.pthread_sigmask(signal.SIG_BLOCK, {signal.SIGTERM, signal.SIGHUP, signal.SIGINT})
+            try:
+                launch = [sys.executable, str(HERE / 'launch.py'), str(read_gate), *argv]
+                proc = subprocess.Popen(launch, cwd=config['repo'], env=clean_env(config), stdout=stdout, stderr=stderr,
+                                        start_new_session=True, pass_fds=(read_gate,))
+                process = dict(pid=proc.pid, stage_pid=os.getpid(), active=True, argv=argv, start_ns=start)
+                save_process(process_path, process)
+                os.write(write_gate, b'1')
+            finally:
+                os.close(read_gate)
+                os.close(write_gate)
+                signal.pthread_sigmask(signal.SIG_SETMASK, blocked)
             code = proc.wait(timeout=timeout)
         except BaseException:
             observation = 'inconclusive'
-            try:
-                os.killpg(proc.pid, signal.SIGKILL)
-            except ProcessLookupError:
-                pass
-            code = proc.wait()
+            if proc is not None:
+                try:
+                    os.killpg(proc.pid, signal.SIGKILL)
+                except ProcessLookupError:
+                    pass
+                proc.wait()
             raise
         finally:
-            write(root / (name + '.command.json'), dict(argv=argv, cwd=config['repo'], pid=proc.pid, exit=proc.returncode,
-                  observation=observation, start_ns=start, end_ns=time.time_ns()))
+            if proc is not None:
+                process.update(active=False, exit=proc.returncode, observation=observation, end_ns=time.time_ns())
+                save_process(process_path, process)
+                write(root / (name + '.command.json'), dict(argv=argv, cwd=config['repo'], pid=proc.pid, exit=proc.returncode,
+                      observation=observation, start_ns=start, end_ns=time.time_ns()))
     completed(code, accepted)
     return (root / (name + '.stdout')).read_bytes()
+
+
+class StageExecutor(scheduler.RealExecutor):
+    def __init__(self, runner, state_dir, env):
+        super().__init__(runner, state_dir, env)
+        self.stage_pids = {}
+        self.command_root = Path(state_dir).parent
+
+    def start(self, stage, lane):
+        super().start(stage, lane)
+        self.stage_pids[stage.label] = self.procs[stage.label][0].pid
+
+    def cleanup_commands(self, stage_pid):
+        found = False
+        for path in self.command_root.rglob('*.process.json'):
+            record = read(path)
+            if record.get('stage_pid') != stage_pid or not record.get('active'):
+                continue
+            try:
+                os.killpg(record['pid'], signal.SIGKILL)
+            except ProcessLookupError:
+                pass
+            record.update(active=False, observation='inconclusive', cleanup_signal=int(signal.SIGKILL))
+            save_process(path, record)
+            found = True
+        return found
+
+    def wait_any(self):
+        label, code, ended = super().wait_any()
+        if self.cleanup_commands(self.stage_pids[label]) and code == 0:
+            code = 1
+        return label, code, ended
+
+    def terminate(self):
+        pids = set(self.stage_pids.values()) | {proc.pid for proc, _, _ in self.procs.values()}
+        try:
+            super().terminate()
+        finally:
+            for proc, _, _ in self.procs.values():
+                proc.wait()
+            for pid in pids:
+                self.cleanup_commands(pid)
 
 
 @contextmanager
@@ -169,8 +240,13 @@ def busy_host(label):
     finally:
         for worker in workers:
             worker.terminate()
+        cleanup_deadline = time.monotonic() + 5
         for worker in workers:
-            worker.wait()
+            try:
+                worker.wait(timeout=max(0, cleanup_deadline-time.monotonic()))
+            except subprocess.TimeoutExpired:
+                worker.kill()
+                worker.wait()
 
 
 def guard(config):
@@ -183,7 +259,7 @@ def guard(config):
     wanted = {str(repo / path) for path in tracked if path and not path.startswith('.flow/')
               and (repo / path).is_file() and not (repo / path).is_symlink()}
     require(wanted <= set(config['files']), 'incomplete non-Flow source inventory')
-    required_driver = [HERE / 'driver.py', HERE / 'adapters.py', HERE / 'semantic-map.json', HERE / 'required-final.json', HERE / 'sqlite.py',
+    required_driver = [HERE / 'driver.py', HERE / 'adapters.py', HERE / 'semantic-map.json', HERE / 'required-final.json', HERE / 'sqlite.py', HERE / 'launch.py',
                        FROZEN / 'scheduler.py', DAG, FROZEN / 'lib.sh',
                        FROZEN.parent / 'q1-serial/run-qualification.sh', FROZEN / 'required-roots.py']
     require(all(str(path) in config['files'] for path in required_driver), 'unsealed driver/reference input')
@@ -310,7 +386,7 @@ def run(config, path, mode):
                                   live_mem=scheduler.mem_available_gib)
         runner = [sys.executable, str(HERE / 'driver.py'), 'stage', '--config', str(path),
                   '--config-sha256', config['_config_sha256']]
-        executor = scheduler.RealExecutor(runner, str(root / 'scheduler'), dict(os.environ))
+        executor = StageExecutor(runner, str(root / 'scheduler'), dict(os.environ))
         result = scheduler.run(stages, policy, executor)
         write(root / 'scheduler' / 'schedule.json', result)
         status = result['status']
@@ -339,8 +415,9 @@ def run(config, path, mode):
 def main():
     def interrupted(signum, frame):
         raise KeyboardInterrupt(signal.Signals(signum).name)
-    for signum in (signal.SIGTERM, signal.SIGHUP):
+    for signum in (signal.SIGTERM, signal.SIGHUP, signal.SIGINT):
         signal.signal(signum, interrupted)
+    signal.pthread_sigmask(signal.SIG_UNBLOCK, {signal.SIGTERM, signal.SIGHUP, signal.SIGINT})
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument('mode', choices=('serial', 'parallel', 'stage', 'plan'))
     parser.add_argument('--config', type=Path)

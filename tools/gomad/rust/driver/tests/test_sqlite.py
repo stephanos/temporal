@@ -27,6 +27,26 @@ class SQLiteReceiverContract(unittest.TestCase):
             if mutation == 'context': wrong['native_crash_catalogues'][0]['context']['PendingSHA256'] = 'changed'
             with self.subTest(mutation=mutation), self.assertRaises(driver.Refusal): sqlite.catalogue(wrong)
 
+    def test_selected_result_cannot_change_primary_execution_inputs(self):
+        import sqlite
+        import copy
+        fields = ('workload_source_sha256', 'integrated_source_sha256', 'host_os', 'host_arch', 'fuel',
+                  'memory_bytes', 'seed', 'repeat', 'compiler_sha256', 'helper_sha256', 'engine_sha256',
+                  'runtime_sha256', 'model_sha256', 'profile', 'host_sha256', 'host_config_sha256', 'module_sha256')
+        primary = dict(manifest={field: field for field in fields},
+                       provenance=dict(inputs=dict(configuration={'model':'original'}, compiler='original',
+                                                   scenario={'selection':None})))
+        selected = copy.deepcopy(primary)
+        selected['provenance']['inputs']['scenario'] = {'selection': {'state':'actual'}}
+        sqlite.matched_inputs(primary, selected)
+        for field in ('compiler_sha256','runtime_sha256','engine_sha256','model_sha256','profile','host_config_sha256'):
+            wrong = copy.deepcopy(selected)
+            wrong['manifest'][field] = 'different'
+            with self.subTest(field=field), self.assertRaises(driver.Refusal):
+                sqlite.matched_inputs(primary, wrong)
+        selected['provenance']['inputs']['configuration']['model'] = 'different'
+        with self.assertRaises(driver.Refusal): sqlite.matched_inputs(primary, selected)
+
     def test_selected_spec_carries_full_original_state_and_actual_primary_hash(self):
         import sqlite
         source = {'Manifest': {'ID': 'sqlite-durable-recovery', 'Seed': 7, 'Repeat': 2},
