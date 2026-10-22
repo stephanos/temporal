@@ -1,0 +1,9 @@
+{
+  "success": true,
+  "verdict": "REVIEW",
+  "mode": "triage_review",
+  "reason": "code change detected: model/umpire/front/src/body/effects.rs",
+  "source": "deterministic",
+  "base": "d70684bca2a7f0974abedee129db1ef480cecf56",
+  "changed_file_count": 68
+}

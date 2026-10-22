@@ -11,5 +11,25 @@
   "gate_overrun": true,
   "inner_overrun": false,
   "measurement_context": "Corrected-source closure validation. No concurrent gap gate; preceding source closure changed, so not an isolated steady-state performance claim. Earlier concurrent pre-correction run was cancelled and is inconclusive.",
-  "log": "task16-final-model-time.log"
+  "log": "task16-final-model-time.log",
+  "stage_count": 17,
+  "stages_seconds": {
+    "temporal-guest-freshness": 30.787,
+    "timing-controls": 0.018,
+    "guest-build-controls": 3.287,
+    "capability-controls": 0.081,
+    "source-boundary": 5.92,
+    "protobuf-freshness": 0.087,
+    "kettle-protobuf-freshness": 0.079,
+    "temporal-protobuf-freshness": 0.057,
+    "fmt": 0.474,
+    "clippy": 6.268,
+    "docs": 45.457,
+    "tests": 379.469,
+    "wasm32-wasip1": 2.235,
+    "core-wasm-clippy": 2.229,
+    "wasm-guest": 59.196,
+    "go-host": 40.059,
+    "temporal-go-host": 10.405
+  }
 }

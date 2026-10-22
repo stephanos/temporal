@@ -125,11 +125,15 @@ fn shared_boolean_guards_keep_vector_admission_linear() -> Result<(), Box<dyn st
             &format!("User::Push => {{ {bindings} if a40 && self.values.len() < 2 {{"),
         )
         .replace("self.values.push_back(7);", "self.values.push_back(7); }");
-    Lift::parse("shared_vector.rs", &source)?;
-    let unbounded = source.replace("self.values.len() < 2", "true");
-    let error = Lift::parse("unbounded_shared_vector.rs", &unbounded)
-        .err()
-        .ok_or("unbounded append admitted")?;
-    assert!(error.message.contains("bounded length guard"), "{error}");
+    for saved in [false, true] {
+        let source = if saved {
+            source.replace("if a40 && self.values.len() < 2", "let length = self.values.len(); if a40 && length < 2")
+        } else { source.clone() };
+        Lift::parse("shared_vector.rs", &source)?;
+        let unbounded = source.replace("self.values.len() < 2", "true").replace("length < 2", "true");
+        let error = Lift::parse("unbounded_shared_vector.rs", &unbounded)
+            .err().ok_or("unbounded append admitted")?;
+        assert!(error.message.contains("bounded length guard"), "{error}");
+    }
     Ok(())
 }

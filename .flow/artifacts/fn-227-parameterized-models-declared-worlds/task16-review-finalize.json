@@ -1,0 +1,44 @@
+{
+  "success": true,
+  "type": "impl_review",
+  "id": "fn-227-parameterized-models-declared-worlds.16",
+  "verdict": "NEEDS_WORK",
+  "session_id": "01a16563-f701-74f0-a6e4-d61149d27a80",
+  "mode": "codex",
+  "model": "gpt-6.1-sol",
+  "effort": "high",
+  "spec": "codex:gpt-6.1-sol:high",
+  "standalone": false,
+  "review": "## Issue 1\n- **Severity**: P2\n- **Title**: The new boolean-only summaries lose scalar length identities\n- **Confidence**: 100\n- **Classification**: introduced\n- **Problem**: The new boolean-only summaries lose scalar length identities. A previously admitted handler containing `let n = self.values.len(); if n < 2 { self.values.push_back(7); }` now refuses with \u201crequires an authored bounded length guard.\u201d The initializer becomes `Local`, but comparison recognition still requires a literal `Length(Var(field))` operand. Before this change, local substitution preserved that shape. This contradicts the task\u2019s representation-only compatibility contract, and the new boolean-sharing test misses it.\n- **Suggestion**: Preserve memoized length identities when resolving comparison operands, without expanding definition trees. Add a regression covering the cached-length handler and an equivalent unbounded negative control.\n- **File:Line**: model/umpire/front/src/body/vector.rs:293\n- **R-IDs**: R3\n\n```json\n{\"classification_counts\": {\"introduced\": 1, \"pre_existing\": 0}, \"unaddressed\": [\"R3\"], \"suppressed_count\": {}}\n```\n\n<verdict>NEEDS_WORK</verdict>\n",
+  "draws": [
+    {
+      "axis": "correctness",
+      "model": "gpt-6.1-sol",
+      "session_id": "01a16563-f701-74f0-a6e4-d61149d27a80",
+      "verdict": "NEEDS_WORK",
+      "failed": false
+    },
+    {
+      "axis": "contracts",
+      "model": "gpt-6.1-sol",
+      "session_id": "01a16563-f700-77a1-8fde-b0ef3e9177e0",
+      "verdict": "NEEDS_WORK",
+      "failed": false
+    },
+    {
+      "axis": "integration",
+      "model": "gpt-6.1-sol",
+      "session_id": "01a16563-f701-7573-b400-5cd627d0bc00",
+      "verdict": "NEEDS_WORK",
+      "failed": false
+    }
+  ],
+  "needs_work_survivors": 1,
+  "introduced_count": 1,
+  "pre_existing_count": 0,
+  "unaddressed": [
+    "R3"
+  ],
+  "review_rounds": 1,
+  "review_rounds_cap": 8
+}
