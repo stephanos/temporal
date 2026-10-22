@@ -254,16 +254,16 @@ Coverage and required review of each pair:
 
 | Requirement | Actual driver evidence and bounded supplements |
 | --- | --- |
-| R1 | Reference content controllers show stable out/mixed/in ordering and changed attempt counts; public prefix cases preserve suffix-only behavior. Direct minimizer invalid-pattern probes below supplement the exploration parser probes. Scoped stripped-parent refusal remains covered by the shared-opener/source units; the scope driver additionally proves actual stripped exploration refusal. |
+| R1 | Reference content controllers show stable out/mixed/in ordering and changed attempt counts; public prefix cases preserve suffix-only behavior. Direct minimizer invalid-pattern probes below supplement the exploration parser probes. The scope driver now also retains an authentic unscoped stripped failure and requires scoped minimize refusal before output/attempts. |
 | R2 | Scope driver authenticates every retained pre-round context, copies an actual `target_failure`, deletes its producing campaign, then minimizes the detached parent with inherited `main`; explicit `runtime` override and malformed-present context status 2 are actual CLI cases. Confirm diagnostic names detached parent. |
 | R3 | Controller scoped/unscoped predicate results and attempt counts; actual minimized failure replays reproduced. Do not require identical greedy content minima in general. |
-| R4 | Actual completed resume agrees and changed explicit scope refuses 3; reference lane exercises bound/implementation/parent/predicate checkpoint corruption. Add interrupted scoped resume and changed valid context probes below. |
+| R4 | Actual completed resume agrees and changed explicit scope refuses 3; reference lane exercises bound/implementation/parent/predicate checkpoint corruption. Automated interrupted scoped resume and changed valid context probes are described below. |
 | R5 | Actual minimized inspection contains removed-decision symbols and final grouping totals. Reference lane detached source reporting authenticates source payloads. Unit fixtures retain stripped and missing-site unavailable reasons and paired-payload tamper negatives. |
 | R6 | Actual JSON inherited/override scope and per-reduction inside+outside totals equal removed counts; controller reports independently cover classifications. |
 | R7 | Inspect leaves retained inspection bytes unchanged; actual replay and frozen failure metadata stay fixed. Journal publication/reopen and qualified wrong-context refusal, same-record/different-context collision and source candidate commitments are the already passing meaningful unit regressions, not invented public publisher commands. |
 | R8 | Frozen unscoped Go/Rust prefix and content controller comparisons, repeated records and reductions stay exact; compare existing golden fields before accepting scoped additions. |
 
-After each scope driver, its real detached parent is exactly
+The scope driver now automatically performs the following supplements. Its real detached parent is exactly
 `$FN231_OUTPUT/scope-$FN231_RUN/scope-failure-detached`. With fresh artifacts roots,
 run `"$FN231_FIXTURE" minimize --json --site-scope=PATTERN --artifacts OUT PARENT`
 for patterns `''`, `'main,'`, `'main/ child'`, `'main/*'`: require status 2 and no
@@ -287,13 +287,14 @@ completed inherited output with the changed copy: require changed-bound status 3
 Retain both raw contexts and manifests to show the source binding changed. No
 negative may be replaced by publisher early refusal.
 
-The direct probes and stripped-parent unit coverage are stated separately because
-the current two drivers do not themselves execute all these cases. A dedicated
-actual stripped failing parent/minimize probe, if required for final public
-coverage, needs the existing guest compiled with `-ldflags=-s -w` and ordinary
-prepared provenance before discovery; reusing the symbol-bearing retained parent
-with a substituted module would test identity corruption instead of R1. Do not
-claim that actual case from the current stripped exploration probe.
+The driver also compiles the unchanged existing failing guest with
+`-ldflags=-s -w`, using its original ordinary preparation provenance and the
+existing stripped-build route. It retains a target failure through normal
+unscoped choice exploration (eight executions, depth 1024), authenticates the
+journal and exact retained module bytes, and detaches that failure. Explicit
+scoped minimize must exit 2 naming the detached parent and `no_symbols`, create
+neither output nor attempt-control file, and preserve the parent snapshot. This
+case never replaces a module in an already retained artifact.
 
 Golden review: the existing checked
 `goldens-minimize/semantic.json` SHA-256 is
@@ -320,3 +321,19 @@ space before starting and keep compile/Cargo activity stopped during the guest
 wave. No new target or duplicated dependency build is needed. Record each actual
 session/log/terminal exit; these estimates and source inspection are not runtime
 acceptance. Integrated strict Clippy remains the conductor's gate.
+
+
+## Automated public acceptance supplements
+
+The scope driver now executes all supplements described above, rather than
+leaving manual follow-up cases. It records every command/status/output digest
+through its existing receipts, stores zero-match and interrupted-resume results
+in its existing observations, and reuses the original exploration budgets and
+existing fixture controls. The malformed-context opener now explicitly checks
+that the diagnostic names the parent. The stripped failing guest uses the same
+unchanged Go source as the scoped failure; only the existing stripped compiler
+flags differ. The normal unscoped producer/journal authenticates its retained
+module before the scoped minimizer negative. No new CLI, schema, Go guest, golden,
+build target or runtime control was introduced. Python AST and diff checks pass;
+these added actual cases await execution with the conductor's new integrated
+fixture. No compiler, Cargo or guest command ran for this source-only checkpoint.
