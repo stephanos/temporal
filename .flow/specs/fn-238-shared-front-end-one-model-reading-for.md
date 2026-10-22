@@ -36,6 +36,6 @@ With the Model about to expand dramatically and the goal of eventually meeting Q
 
 ## Decision Context
 
-2026-10-22, conductor under the owner's milestone goal (reversible): fn-238.4's review measured that Option A halves per-construct cost only for declaration-level constructs, while Option B (.5/.6) adds an interpreter case for every body-level construct on top of lowering and emission. .5 and .6 are deferred until a concrete need (checker speed, a construct rustc cannot run) appears; the owner may revive them.
+2026-10-22, owner confirmed ("Keep deferred"): fn-238.4's review measured that Option A halves per-construct cost only for declaration-level constructs, while Option B (.5/.6) adds an interpreter case for every body-level construct on top of lowering and emission. .5 and .6 are deferred until a concrete need (checker speed, a construct rustc cannot run) appears; the owner may revive them.
 
 2026-10-21, owner: share all code except the back end, accepting that a front-end misreading would affect both checkers. This supersedes fn-227's and fn-211's "independent source admission" / "no shared interpretation" wording for future work; counterexample replay remains the cross-check.
