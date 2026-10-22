@@ -2,6 +2,8 @@
 import importlib.util
 from pathlib import Path
 import struct
+import tempfile
+from types import SimpleNamespace
 import unittest
 
 
@@ -23,6 +25,17 @@ class BoundaryTests(unittest.TestCase):
         self.assertEqual(self.module.boundaries(raw), [expected, expected])
         with self.assertRaises((AssertionError, ValueError)):
             self.module.boundaries(raw + b'\0')
+
+    def test_failed_command_retains_numeric_exit_and_raw_logs(self):
+        with tempfile.TemporaryDirectory() as directory:
+            root = Path(directory)
+            lane = self.module.Lane(SimpleNamespace(binary=Path('/bin/false'), work=root))
+            with self.assertRaises(AssertionError):
+                lane.run('refused', root / 'artifact', [])
+            self.assertTrue((root / 'commands.json').exists(), 'failed command receipt missing')
+            self.assertEqual(lane.rows[0]['status'], 1)
+            self.assertTrue((root / 'refused.stdout').exists())
+            self.assertTrue((root / 'refused.stderr').exists())
 
     def test_network_cuts_require_zero_target_and_full_predecessor(self):
         cuts = [dict(instance='a', incarnation=1, network_bytes=12),

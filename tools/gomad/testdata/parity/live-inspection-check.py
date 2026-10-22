@@ -93,18 +93,17 @@ class Lane:
         started = time.monotonic()
         process = subprocess.Popen(command, stdout=subprocess.PIPE, stderr=subprocess.PIPE,
                                    env=self.environment, start_new_session=True)
+        early_cancel = False
         try:
             if cancel:
                 try:
                     stdout, stderr = process.communicate(timeout=1)
-                    raise AssertionError(('timeout dump returned before cancellation', process.returncode, stderr))
+                    early_cancel = True
                 except subprocess.TimeoutExpired:
                     process.send_signal(signal.SIGINT)
                     stdout, stderr = process.communicate(timeout=9)
-                assert process.returncode != 0, 'cancelled inspection succeeded'
             else:
                 stdout, stderr = process.communicate(timeout=180)
-                assert process.returncode in statuses, (name, process.returncode, stderr)
         finally:
             if process.poll() is None:
                 os.killpg(process.pid, signal.SIGKILL)
@@ -122,6 +121,11 @@ class Lane:
         (self.args.work / (name + '.stdout')).write_bytes(stdout)
         (self.args.work / (name + '.stderr')).write_bytes(stderr)
         (self.args.work / 'commands.json').write_text(json.dumps(self.rows, indent=2) + '\n')
+        if cancel:
+            assert not early_cancel, ('timeout dump returned before cancellation', process.returncode, stderr)
+            assert process.returncode != 0, 'cancelled inspection succeeded'
+        else:
+            assert process.returncode in statuses, (name, process.returncode, stderr)
         return json.loads(stdout) if stdout else None, elapsed
 
     def inspect(self, name, artifact, last, count, target=False):
