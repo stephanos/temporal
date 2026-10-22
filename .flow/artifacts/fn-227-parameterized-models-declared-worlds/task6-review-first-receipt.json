@@ -1,0 +1,75 @@
+{
+  "base": "ae9e3157e5bbf431432d93023c3963c07c2ff375",
+  "draws": [
+    {
+      "axis": "correctness",
+      "failed": false,
+      "model": "gpt-6.1-sol",
+      "session_id": "01a165f9-73dc-7880-8438-3da592a63e1f",
+      "verdict": "NEEDS_WORK"
+    },
+    {
+      "axis": "contracts",
+      "failed": false,
+      "model": "gpt-6.1-sol",
+      "session_id": "01a165f9-73dd-7b71-8065-c845e0a2e7c9",
+      "verdict": "SHIP"
+    },
+    {
+      "axis": "integration",
+      "failed": false,
+      "model": "gpt-6.1-sol",
+      "session_id": "01a165f9-73db-74c3-ac7d-f558cd9ccf09",
+      "verdict": "NEEDS_WORK"
+    }
+  ],
+  "effort": "high",
+  "findings": {
+    "backend": "codex",
+    "baseSha": "ae9e3157e5bbf431432d93023c3963c07c2ff375",
+    "headSha": "cb8b9a76d20410339fda4e2efa6d086ebd5012df",
+    "items": [
+      {
+        "anchor": {
+          "baseSha": "ae9e3157e5bbf431432d93023c3963c07c2ff375",
+          "headSha": "cb8b9a76d20410339fda4e2efa6d086ebd5012df",
+          "path": "model/DESIGN.md",
+          "side": "head",
+          "startLine": 656
+        },
+        "body": "The documentation says the linked artifact records this task\u2019s final model-time output and timings, but that artifact contains only `{\"status\":\"pending final required model-time; no pass claimed\"}`. The displayed timings belong to task .5. This makes the new documentation inaccurate and leaves R7\u2019s final-output deliverable incomplete.",
+        "classification": "introduced",
+        "confidence": 100,
+        "firstSeenReceiptId": "review-9985232a51392a08f56194f953bac18ce16360ef27d82a8f4f714761441f97e8",
+        "id": "finding-c83681b30fa20e48b4d1a288419f4b8e",
+        "lastSeenReceiptId": "review-9985232a51392a08f56194f953bac18ce16360ef27d82a8f4f714761441f97e8",
+        "ordinal": 1,
+        "rIds": [
+          "R7"
+        ],
+        "severity": "P2",
+        "status": "open",
+        "suggestion": "Retain the complete final timing output and measured results in the artifact, then update this statement to match the evidence.",
+        "title": "The documentation says the linked artifact records this task\u2019s final model-time output and timings, but that artifact contains only `{\"status\":\"pending final required model-time; no pass claimed\"}`"
+      }
+    ],
+    "reviewKind": "implementation",
+    "round": 1,
+    "schemaVersion": 1,
+    "sourceReceiptId": "review-9985232a51392a08f56194f953bac18ce16360ef27d82a8f4f714761441f97e8"
+  },
+  "id": "fn-227-parameterized-models-declared-worlds.6",
+  "introduced_count": 1,
+  "mode": "codex",
+  "model": "gpt-6.1-sol",
+  "pre_existing_count": 0,
+  "review": "## Issue 1\n- **Severity**: P2\n- **Title**: The documentation says the linked artifact records this task\u2019s final model-time output and timings, but that artifact contains only `{\"status\":\"pending final required model-time; no pass claimed\"}`\n- **Confidence**: 100\n- **Classification**: introduced\n- **Problem**: The documentation says the linked artifact records this task\u2019s final model-time output and timings, but that artifact contains only `{\"status\":\"pending final required model-time; no pass claimed\"}`. The displayed timings belong to task .5. This makes the new documentation inaccurate and leaves R7\u2019s final-output deliverable incomplete.\n- **Suggestion**: Retain the complete final timing output and measured results in the artifact, then update this statement to match the evidence.\n- **File:Line**: model/DESIGN.md:656\n- **R-IDs**: R7\n\n```json\n{\"classification_counts\": {\"introduced\": 1, \"pre_existing\": 0}, \"unaddressed\": [], \"suppressed_count\": {}}\n```\n\n<verdict>NEEDS_WORK</verdict>\n",
+  "review_reservation_id": "644e4605e1124f0e815a74cc4d3436cc",
+  "rid": "644e4605e1124f0e815a74cc4d3436cc",
+  "session_id": "01a165f9-73dc-7880-8438-3da592a63e1f",
+  "spec": "codex:gpt-6.1-sol:high",
+  "timestamp": "2026-10-22T23:39:35.949015Z",
+  "type": "impl_review",
+  "unaddressed": [],
+  "verdict": "NEEDS_WORK"
+}

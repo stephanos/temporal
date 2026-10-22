@@ -1,0 +1,34 @@
+{
+  "checked_head": "cb8b9a76d20410339fda4e2efa6d086ebd5012df",
+  "selected_hashes": {
+    "model/temporal/hosts/go/umpire_temporal_guest.wasm": {
+      "bytes": 3408639,
+      "sha256": "f832a33c3024a8752976d146be839b62a95afde4790fa0db60f1dac9004b4e7e"
+    },
+    "model/temporal/feature/activity/model.rs": {
+      "bytes": 4863,
+      "sha256": "5d4a98571e52d587c5221b83fa02aa23a523be3627c65508533cd5a420696f8d"
+    },
+    "model/temporal/feature/activity/temporal.rs": {
+      "bytes": 12557,
+      "sha256": "1258e498a8a3d87c9b148ebd988b1bb4b2bb6f73262e7516b02d67c3c6deb316"
+    },
+    "model/temporal/realization/src/live.rs": {
+      "bytes": 14429,
+      "sha256": "2e6b74c0b0916ab1751ff527b313af8031f6cfacc3733776fffb4077854b7da5"
+    },
+    "tests/testpilot_model_slice_test.go": {
+      "bytes": 24413,
+      "sha256": "e3d9cce3a51487f8b42b993a2f097155fe6ee77c4d1bb0a0b6a0ced6cc13411a"
+    }
+  },
+  "non_admin_changes_since_task5": [
+    "model/DESIGN.md",
+    "model/README.md",
+    "model/umpire/dsl/tests/readme.rs",
+    "model/umpire/dsl/tests/readme/parameterized.rs"
+  ],
+  "production_and_guest_unchanged": true,
+  "scoped_diff_check": "passed",
+  "design_lines": 969
+}

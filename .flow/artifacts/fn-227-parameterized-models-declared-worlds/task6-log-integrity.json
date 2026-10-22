@@ -1,0 +1,90 @@
+[
+  {
+    "raw_path": ".flow/tmp/fn-227.6/baseline-doc.log",
+    "raw_bytes": 320,
+    "raw_sha256": "ea3f094082175a1bb66deea14871944648e1dad7dac7b48fd4f46f6701ff7839",
+    "gzip_path": ".flow/artifacts/fn-227-parameterized-models-declared-worlds/task6-logs/baseline-doc.log.gz",
+    "gzip_bytes": 231,
+    "gzip_sha256": "cd09fe96bf3705fd4b71397596469dbeeab9e95bc434762cfdde94e89bb09aa4"
+  },
+  {
+    "raw_path": ".flow/tmp/fn-227.6/baseline-example.log",
+    "raw_bytes": 1239,
+    "raw_sha256": "4b6755d03e9f90bf5b4fb63f0fede0f90fbbf57c2e7e6c2fcf4b1077414f708d",
+    "gzip_path": ".flow/artifacts/fn-227-parameterized-models-declared-worlds/task6-logs/baseline-example.log.gz",
+    "gzip_bytes": 601,
+    "gzip_sha256": "aa53f6be4b81b91bd805c9e01dcf2f9b41cfdae39eab2094c155170d8639c202"
+  },
+  {
+    "raw_path": ".flow/tmp/fn-227.6/final-classify.log",
+    "raw_bytes": 33,
+    "raw_sha256": "6a260dc1c66ed3b687051e568018a99b275b49f9d029306913b2a7d91a3082ab",
+    "gzip_path": ".flow/artifacts/fn-227-parameterized-models-declared-worlds/task6-logs/final-classify.log.gz",
+    "gzip_bytes": 53,
+    "gzip_sha256": "94ca329482c5da021f44f6d016598f1c83cf59ac89dbd9c4864061cad0ae7bec"
+  },
+  {
+    "raw_path": ".flow/tmp/fn-227.6/final-model-time.log",
+    "raw_bytes": 1449,
+    "raw_sha256": "8c30832d81e012cedc8b48cd7cfbb155ed5f5fd78bff752afc294bfe8c40e545",
+    "gzip_path": ".flow/artifacts/fn-227-parameterized-models-declared-worlds/task6-logs/final-model-time.log.gz",
+    "gzip_bytes": 621,
+    "gzip_sha256": "fac015100f392213c2be0e618e0e0ba765655f7a70deaebf48883b87a6d1de96"
+  },
+  {
+    "raw_path": ".flow/tmp/fn-227.6/focused-2.log",
+    "raw_bytes": 672,
+    "raw_sha256": "c2720b49c7a874632e432e727eb52470a86446dacefda18c702a101a028c3b89",
+    "gzip_path": ".flow/artifacts/fn-227-parameterized-models-declared-worlds/task6-logs/focused-2.log.gz",
+    "gzip_bytes": 351,
+    "gzip_sha256": "3eb0a959b36d05af3a763ba0d142879e1db72a0bdc30a52f0b086755cdfab221"
+  },
+  {
+    "raw_path": ".flow/tmp/fn-227.6/focused.log",
+    "raw_bytes": 1016,
+    "raw_sha256": "9285b61a294256ec61d7696a69e6a1e5e644e630c5d7ea5a92e2a55bc26677da",
+    "gzip_path": ".flow/artifacts/fn-227-parameterized-models-declared-worlds/task6-logs/focused.log.gz",
+    "gzip_bytes": 496,
+    "gzip_sha256": "1e6e0dfdb17f2487efe99840c773a33b334f590be8a3ff9e39a9792eb33a7ab0"
+  },
+  {
+    "raw_path": ".flow/tmp/fn-227.6/readme-green.log",
+    "raw_bytes": 1534,
+    "raw_sha256": "65ba64c7dd9de5bf09b4a7a89fe57149431a838a99d8a827071f281c1d205d6c",
+    "gzip_path": ".flow/artifacts/fn-227-parameterized-models-declared-worlds/task6-logs/readme-green.log.gz",
+    "gzip_bytes": 624,
+    "gzip_sha256": "cf236c5ba3e1a5da73537d08ed9fc163fbddef812bc8ffe5842aa137c1eefddd"
+  },
+  {
+    "raw_path": ".flow/tmp/fn-227.6/readme-red-2.log",
+    "raw_bytes": 4403,
+    "raw_sha256": "4397d9a386fab922119d6fa392f2bee7972c2d259ace44089145191cbefdfb8b",
+    "gzip_path": ".flow/artifacts/fn-227-parameterized-models-declared-worlds/task6-logs/readme-red-2.log.gz",
+    "gzip_bytes": 1479,
+    "gzip_sha256": "d31800545bcc781fc34c34621d8f698253fea78a395904fad2d8a142c41d313d"
+  },
+  {
+    "raw_path": ".flow/tmp/fn-227.6/readme-red.log",
+    "raw_bytes": 652,
+    "raw_sha256": "38664e14d31be3e27bff3c276558d4ed5c53b67e15eda6c4fc37facc510310b4",
+    "gzip_path": ".flow/artifacts/fn-227-parameterized-models-declared-worlds/task6-logs/readme-red.log.gz",
+    "gzip_bytes": 348,
+    "gzip_sha256": "c62b4c7753a50530ee5632e4b10894bfad3cc51c3993def5f3a0270ad9f309fc"
+  },
+  {
+    "raw_path": ".flow/tmp/fn-227.6/review-fanout.stderr.log",
+    "raw_bytes": 109,
+    "raw_sha256": "f76a57af0ea675e7b48ec2af63494ee2e911f8532853e96df08324cb8586c660",
+    "gzip_path": ".flow/artifacts/fn-227-parameterized-models-declared-worlds/task6-logs/review-fanout.stderr.log.gz",
+    "gzip_bytes": 100,
+    "gzip_sha256": "536993a26f649af5f55572727f104f8bfc49356cd7359df168250a6dc6fad57d"
+  },
+  {
+    "raw_path": ".flow/tmp/fn-227.6/review-finalize.stderr.log",
+    "raw_bytes": 225,
+    "raw_sha256": "40992a4fd0deeda1598faa730af6594a0d28d3c75fc2e80427ba3f885e4f44ed",
+    "gzip_path": ".flow/artifacts/fn-227-parameterized-models-declared-worlds/task6-logs/review-finalize.stderr.log.gz",
+    "gzip_bytes": 92,
+    "gzip_sha256": "80dcedcb642d6be14994b57512b5e5b96911f0b63dabb0232a78654ddb0838a9"
+  }
+]

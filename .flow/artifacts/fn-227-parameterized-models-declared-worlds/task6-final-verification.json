@@ -1,1 +1,147 @@
-{"status":"pending final required model-time; no pass claimed"}
+{
+  "task": "fn-227-parameterized-models-declared-worlds.6",
+  "status": "final authoring gate passed; normal review follow-up pending",
+  "base_commit": "ae9e3157e5bbf431432d93023c3963c07c2ff375",
+  "source_checkpoint": "cb8b9a76d20410339fda4e2efa6d086ebd5012df",
+  "final_required_model_time": {
+    "command": "UMPIRE_BACKENDS=require make model-time",
+    "cwd": "/Users/stephan/Workspace/skunkworks/umpire/temporal",
+    "head": "cb8b9a76d20410339fda4e2efa6d086ebd5012df",
+    "outer_timeout_seconds": 2400,
+    "started_at": "2026-10-22T23:39:48.655851+00:00",
+    "log": ".flow/tmp/fn-227.6/final-model-time.log",
+    "exit": 0,
+    "seconds": 588.5370621559996,
+    "completed_at": "2026-10-22T23:49:37.193282+00:00"
+  },
+  "all_stages": [
+    {
+      "name": "temporal-guest-freshness",
+      "seconds": 33.258
+    },
+    {
+      "name": "timing-controls",
+      "seconds": 0.015
+    },
+    {
+      "name": "guest-build-controls",
+      "seconds": 3.173
+    },
+    {
+      "name": "capability-controls",
+      "seconds": 0.078
+    },
+    {
+      "name": "source-boundary",
+      "seconds": 4.496
+    },
+    {
+      "name": "protobuf-freshness",
+      "seconds": 0.077
+    },
+    {
+      "name": "kettle-protobuf-freshness",
+      "seconds": 0.07
+    },
+    {
+      "name": "temporal-protobuf-freshness",
+      "seconds": 0.05
+    },
+    {
+      "name": "fmt",
+      "seconds": 0.473
+    },
+    {
+      "name": "clippy",
+      "seconds": 5.17
+    },
+    {
+      "name": "docs",
+      "seconds": 49.017
+    },
+    {
+      "name": "tests",
+      "seconds": 379.241
+    },
+    {
+      "name": "wasm32-wasip1",
+      "seconds": 0.239
+    },
+    {
+      "name": "core-wasm-clippy",
+      "seconds": 0.235
+    },
+    {
+      "name": "wasm-guest",
+      "seconds": 55.397
+    },
+    {
+      "name": "go-host",
+      "seconds": 39.429
+    },
+    {
+      "name": "temporal-go-host",
+      "seconds": 11.634
+    }
+  ],
+  "full_stdout": "\u001b[1;36mTime the model feedback loop (fn-210 R30)...\u001b[0m\nstep (warm)                         time\ngate command: UMPIRE_TIME_STEPS=1 make -C .. model-check\nmake[1]: Entering directory '/Users/stephan/Workspace/skunkworks/umpire/temporal'\n\u001b[1;36mCheck model (fmt, clippy, docs, tests)...\u001b[0m\nTLC backend required: real source-lifted agreement and semantic controls\ntemporal-guest-freshness         33.258s\ntiming-controls                   0.015s\nguest-build-controls              3.173s\ncapability-controls               0.078s\nsource-boundary                   4.496s\nprotobuf-freshness                0.077s\nkettle-protobuf-freshness         0.070s\ntemporal-protobuf-freshness       0.050s\nfmt                               0.473s\nclippy                            5.170s\ndocs                             49.017s\ntests                            379.241s\nwasm32-wasip1                     0.239s\ncore-wasm-clippy                  0.235s\nwasm-guest                       55.397s\ngo-host                          39.429s\ntemporal-go-host                 11.634s\nmake[1]: Leaving directory '/Users/stephan/Workspace/skunkworks/umpire/temporal'\ninner source: umpire/checker/src/lib.rs\ninner command: mise exec -- cargo test -p umpire-checker --quiet\ninner loop (edit+test)            6.112s\ngate total                       582.209s  (soft target 60s)\ninner loop                        6.112s  (soft target 10s)\nnote: gate over soft target (fn-210 R30)\n",
+  "timing": {
+    "gate_seconds": 582.209,
+    "gate_soft_target_seconds": 60,
+    "gate_soft_target_met": false,
+    "inner_seconds": 6.112,
+    "inner_soft_target_seconds": 10,
+    "inner_soft_target_met": true,
+    "outer_wall_seconds": 588.5370621559996,
+    "scope": "Shared-host whole-gate observation; no isolated performance or speedup claim."
+  },
+  "baseline": {
+    "baseline": "green",
+    "commands": [
+      {
+        "command": "mise exec -- cargo test -p umpire-dsl --doc",
+        "exit": 0,
+        "tests": 0,
+        "note": "No DSL doctests defined; supplemented with existing compiled World/domain tests."
+      },
+      {
+        "command": "mise exec -- cargo test -p umpire-dsl --test declared_world --test finite_domains",
+        "exit": 0,
+        "tests": 9
+      }
+    ],
+    "inconclusive": [
+      "Initial nested Bash reset cwd: cd model failed before Cargo execution; corrected with absolute cwd."
+    ]
+  },
+  "focused_verification": {
+    "commands": [
+      "mise exec -- cargo fmt --all --check",
+      "mise exec -- cargo clippy -p umpire-dsl --all-targets --all-features -- -D warnings",
+      "mise exec -- cargo test -p umpire-dsl --test readme"
+    ],
+    "exit": 0,
+    "readme_tests": 2,
+    "readme_red": "readme-red-2.log: one compiled example passed, exact README synchronization failed against the old block, before documentation replacement.",
+    "design_lines": 969,
+    "local_links": "both edited documents checked; all local file targets exist",
+    "original_activity_artifacts": 15
+  },
+  "observations_not_green": [
+    "Initial nested Bash reset cwd and failed cd model before Cargo; corrected with absolute cwd.",
+    "readme-red.log: fixture placed under reserved discovery root; moved into tests/readme before intended assertion reproduction.",
+    "readme-red-2.log: intended README mismatch reproduction.",
+    "readme-green.log: tests passed with visibility warnings; narrowed visibility before strict checks.",
+    "focused.log: clippy rejected single-variant wildcard; replaced with explicit User::Set fallback before focused-2 green."
+  ],
+  "production_and_live_evidence_reuse": "task6-live-evidence-reuse.json",
+  "production_hash_manifest": "task6-production-hashes.json",
+  "retained_task5_log_verification": "task6-retained-live-log-verification.json",
+  "log_integrity": "task6-log-integrity.json",
+  "notes": [
+    "One required model-time run covers default model-check stages, required real TLC, docs/fmt/clippy, wasm/guest freshness, Go-host parity and timing.",
+    "No new live SDK, gap or privacy run: all 215 selected production-surface files and exact guest match the retained .5 verification.",
+    "Current guest is not claimed freshly cross-OS certified; prior failed fn-232 evidence and later fn-232/fn-239 successes remain at their source pins.",
+    "The single review finding was missing final task6 evidence; this artifact supplies it without changing documentation source during the gate."
+  ]
+}

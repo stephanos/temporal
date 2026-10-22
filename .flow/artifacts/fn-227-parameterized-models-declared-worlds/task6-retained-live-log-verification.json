@@ -1,0 +1,70 @@
+[
+  {
+    "log": "retry-race-red.log",
+    "integrity": {
+      "raw_path": ".flow/tmp/fn-227.5/retry-race-red.log",
+      "raw_bytes": 518251,
+      "raw_sha256": "d7038da42f5d2cb557749e9c08aac132e08fece8b81a0122feae6f1ccea082e1",
+      "gzip_path": ".flow/artifacts/fn-227-parameterized-models-declared-worlds/task5-logs/retry-race-red.log.gz",
+      "gzip_bytes": 21141,
+      "gzip_sha256": "10e381dd7cada395127dd5de0bb980ac36ac345f64123c698fbbeceba02094ce"
+    },
+    "selected_verbatim_lines": [
+      "    testpilot_model_slice_test.go:405: retry Describe attempt=2 status=Running run_state=Started",
+      "--- FAIL: TestTestpilotModelSlice (4.73s)"
+    ],
+    "outcome": "failed reproduction, not green evidence"
+  },
+  {
+    "log": "retry-race-green.log",
+    "integrity": {
+      "raw_path": ".flow/tmp/fn-227.5/retry-race-green.log",
+      "raw_bytes": 557058,
+      "raw_sha256": "c487a13bd8e1e880d9448fea288fb6163c65ee08ccb137ccf22293a510531ef5",
+      "gzip_path": ".flow/artifacts/fn-227-parameterized-models-declared-worlds/task5-logs/retry-race-green.log.gz",
+      "gzip_bytes": 21613,
+      "gzip_sha256": "89acaefd66a82e0efac76d412000b89db30570cf5632cb6089adff4f12ae29cb"
+    },
+    "selected_verbatim_lines": [
+      "    testpilot_model_slice_test.go:421: retry Describe attempt=2 status=Running run_state=Scheduled",
+      "--- PASS: TestTestpilotModelSlice (5.90s)",
+      "ok  \tgo.temporal.io/server/tests\t5.929s"
+    ],
+    "outcome": "previous .5 success, reused only for unchanged production/guest"
+  },
+  {
+    "log": "final-gaps.log",
+    "integrity": {
+      "raw_path": ".flow/tmp/fn-227.5/final-gaps.log",
+      "raw_bytes": 9320261,
+      "raw_sha256": "770b2019e7af3b64c429349194f8a889d873aed65e3886b92d4bc48029367bce",
+      "gzip_path": ".flow/artifacts/fn-227-parameterized-models-declared-worlds/task5-logs/final-gaps.log.gz",
+      "gzip_bytes": 78218,
+      "gzip_sha256": "6d917f25d832ae650c57595d6c1cfe3c25fb022f1a9bee28f4c8e5d9735ef4f8"
+    },
+    "selected_verbatim_lines": [
+      "--- PASS: TestTestpilotModelGapLoggerPreservesFailuresWithoutPrivateOutput (0.00s)",
+      "--- PASS: TestTestpilotModelGaps (361.53s)",
+      "ok  \tgo.temporal.io/server/tests\t361.572s"
+    ],
+    "outcome": "previous .5 success, reused only for unchanged production/guest"
+  },
+  {
+    "log": "final-model-time.log",
+    "integrity": {
+      "raw_path": ".flow/tmp/fn-227.5/final-model-time.log",
+      "raw_bytes": 1449,
+      "raw_sha256": "49e3b1b9b1328840522c255fe33ce0d047646391c33922891fd43bdd4056b0fd",
+      "gzip_path": ".flow/artifacts/fn-227-parameterized-models-declared-worlds/task5-logs/final-model-time.log.gz",
+      "gzip_bytes": 619,
+      "gzip_sha256": "fd270ce45125c878395fd619a10ed07b329879e190d0aa682fac1a5e8d7c298e"
+    },
+    "selected_verbatim_lines": [
+      "inner loop (edit+test)            6.084s",
+      "gate total                       581.229s  (soft target 60s)",
+      "inner loop                        6.084s  (soft target 10s)",
+      "note: gate over soft target (fn-210 R30)"
+    ],
+    "outcome": "previous .5 success, reused only for unchanged production/guest"
+  }
+]

@@ -99,5 +99,15 @@
     "task5-final-verification.json",
     "task5-review-correction.json"
   ],
-  "note": "No production, guest, protocol, dependency or Go slice change; .5 successful actual slice/gaps/privacy evidence retained. Final authoring gate still required."
+  "note": "No production, guest, protocol, dependency or Go slice change; .5 successful actual slice/gaps/privacy evidence retained. Final authoring gate still required.",
+  "all_history_nonflow_paths_since_task5": [
+    "MILESTONES.md",
+    "model/DESIGN.md",
+    "model/README.md",
+    "model/umpire/dsl/tests/readme.rs",
+    "model/umpire/dsl/tests/readme/parameterized.rs"
+  ],
+  "production_files_compared": 215,
+  "production_manifest_sha256": "36d8b85c01ba5ef7166e9eb5a6e55d4b7f6cd10c619b3aeec177b1f102d45890",
+  "production_manifest": "task6-production-hashes.json"
 }
