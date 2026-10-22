@@ -21,6 +21,7 @@ const _: () = {
 
 pub(super) struct Module<'a> {
     pub memory: Memory<'a>,
+    pub pinned_go_producer: bool,
     pub imported: u64,
     pub functions: Vec<FunctionBody<'a>>,
     pub names: BTreeMap<u32, &'a str>,
@@ -31,17 +32,31 @@ fn checked<T>(value: wasmparser::Result<T>) -> Result<T> {
 }
 
 impl<'a> Module<'a> {
-    pub fn read(bytes: &'a [u8], budget: &mut Budget) -> Result<Self> {
-        let mut module = Self {
+    fn empty() -> Self {
+        Self {
             memory: Memory {
                 segments: Vec::new(),
                 end: 0,
             },
+            pinned_go_producer: false,
             imported: 0,
             functions: Vec::new(),
             names: BTreeMap::new(),
-        };
+        }
+    }
+
+    pub fn read(bytes: &'a [u8], budget: &mut Budget) -> Result<Self> {
+        Self::read_parts(bytes, budget, true)
+    }
+
+    pub fn read_metadata(bytes: &'a [u8], budget: &mut Budget) -> Result<Self> {
+        Self::read_parts(bytes, budget, false)
+    }
+
+    fn read_parts(bytes: &'a [u8], budget: &mut Budget, symbols: bool) -> Result<Self> {
+        let mut module = Self::empty();
         let mut count = 0;
+        let mut bodies = 0;
         let mut memory_count = 0;
         let mut has_names = false;
         let mut has_producers = false;
@@ -70,8 +85,10 @@ impl<'a> Module<'a> {
                 Payload::FunctionSection(reader) => {
                     count = u64::from(reader.count());
                     budget.entries(count)?;
-                    budget.bytes(mul(count, 128)?)?;
-                    module.functions = Vec::with_capacity(size(count)?);
+                    if symbols {
+                        budget.bytes(mul(count, 128)?)?;
+                        module.functions = Vec::with_capacity(size(count)?);
+                    }
                     for entry in reader {
                         checked(entry)?;
                     }
@@ -93,7 +110,9 @@ impl<'a> Module<'a> {
                 Payload::DataSection(reader) => {
                     // Advancing the lazy Data reader would parse arbitrary expressions and
                     // allocate their control stacks before our budget/grammar checks.
-                    budget.steps(reader.range().len() as u64)?;
+                    if symbols {
+                        budget.steps(reader.range().len() as u64)?;
+                    }
                     budget.entries(u64::from(reader.count()))?;
                     let mut data = BinaryReader::new(
                         &bytes[reader.original_position()..reader.range().end],
@@ -110,11 +129,14 @@ impl<'a> Module<'a> {
                     count: declared, ..
                 } if u64::from(declared) != count => return Err(Reason::SymbolMismatch),
                 Payload::CodeSectionEntry(body) => {
-                    if module.functions.len() as u64 >= count {
+                    if bodies >= count {
                         return Err(Reason::SymbolMismatch);
                     }
-                    Budget::charge(&mut budget.code, body.range().len() as u64, BYTE_LIMIT)?;
-                    module.functions.push(body);
+                    bodies += 1;
+                    if symbols {
+                        Budget::charge(&mut budget.code, body.range().len() as u64, BYTE_LIMIT)?;
+                        module.functions.push(body);
+                    }
                 }
                 Payload::CustomSection(section) if section.name() == "name" => {
                     if has_names {
@@ -128,16 +150,16 @@ impl<'a> Module<'a> {
                         return Err(Reason::SymbolMismatch);
                     }
                     has_producers = true;
-                    producers(&section, budget)?;
+                    module.pinned_go_producer = producers(&section, budget)?;
                 }
                 _ => {}
             }
         }
-        module.finish(count, budget)
+        module.finish(count, bodies, budget)
     }
 
-    fn finish(mut self, count: u64, budget: &mut Budget) -> Result<Self> {
-        if self.functions.len() as u64 != count {
+    fn finish(mut self, count: u64, bodies: u64, budget: &mut Budget) -> Result<Self> {
+        if bodies != count {
             return Err(Reason::SymbolMismatch);
         }
         let total = add(self.imported, count)?;
@@ -264,13 +286,16 @@ impl<'a> Module<'a> {
     }
 }
 
-fn producers(section: &CustomSectionReader<'_>, budget: &mut Budget) -> Result<()> {
+fn producers(section: &CustomSectionReader<'_>, budget: &mut Budget) -> Result<bool> {
     budget.bytes(section.data().len() as u64)?;
     budget.steps(section.data().len() as u64)?;
     let mut reader = BinaryReader::new(section.data(), section.data_offset());
+    let mut language = false;
+    let mut compiler = false;
     for _ in 0..checked(reader.read_var_u32())? {
         budget.entries(1)?;
-        if !matches!(read_name(&mut reader)?, "language" | "sdk" | "processed-by") {
+        let field = read_name(&mut reader)?;
+        if !matches!(field, "language" | "sdk" | "processed-by") {
             return Err(Reason::SymbolMismatch);
         }
         for _ in 0..checked(reader.read_var_u32())? {
@@ -280,12 +305,14 @@ fn producers(section: &CustomSectionReader<'_>, budget: &mut Budget) -> Result<(
             if matches!(name, "Go" | "Go cmd/compile") && version != "go1.27.1" {
                 return Err(Reason::NoSymbols);
             }
+            language |= field == "language" && name == "Go";
+            compiler |= field == "processed-by" && name == "Go cmd/compile";
         }
     }
     if !reader.eof() {
         return Err(Reason::SymbolMismatch);
     }
-    Ok(())
+    Ok(language && compiler)
 }
 
 fn read_name<'a>(reader: &mut BinaryReader<'a>) -> Result<&'a str> {

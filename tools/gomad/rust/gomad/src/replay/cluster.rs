@@ -244,7 +244,7 @@ impl Projection {
             self.configuration.workload.as_ref(),
             &self.world_encoding,
         )?;
-        oracles::apply(&mut projected, oracle_report)?;
+        oracles::apply(&mut projected, &oracle_report)?;
         if let Some(primary) = primary {
             projected.evidence.insert("choice".into(), primary);
         }
@@ -526,6 +526,31 @@ fn incarnation(
     })
 }
 
+fn configure_recovery(
+    execution: &mut helper::Prepared,
+    workload: Option<&crate::qualify::workloads::Workload>,
+) -> Result<(), String> {
+    match workload {
+        Some(crate::qualify::workloads::Workload::SQLite { .. }) => {
+            execution.sqlite_crash_reference()
+        }
+        Some(crate::qualify::workloads::Workload::TemporalRecovery { .. }) => {
+            execution.temporal_crash_reference()
+        }
+        _ => Ok(()),
+    }
+    .map_err(|error| error.to_string())?;
+    if matches!(
+        workload,
+        Some(crate::qualify::workloads::Workload::TemporalRecovery { forcing: None })
+    ) {
+        execution
+            .committed_temporal_reopens()
+            .map_err(|error| error.to_string())?;
+    }
+    Ok(())
+}
+
 /// # Errors
 /// Authenticates every retained module and incarnation before preparing the helper lifecycle.
 pub fn prepare(opened: Opened, control: Option<&inspection::Request>) -> Result<Prepared, String> {
@@ -607,24 +632,7 @@ pub fn prepare(opened: Opened, control: Option<&inspection::Request>) -> Result<
         evidence_bytes: configuration.limits.evidence_bytes,
     })
     .map_err(|error| error.to_string())?;
-    match &configuration.workload {
-        Some(crate::qualify::workloads::Workload::SQLite { .. }) => {
-            execution.sqlite_crash_reference()
-        }
-        Some(crate::qualify::workloads::Workload::TemporalRecovery { .. }) => {
-            execution.temporal_crash_reference()
-        }
-        _ => Ok(()),
-    }
-    .map_err(|error| error.to_string())?;
-    if matches!(
-        configuration.workload,
-        Some(crate::qualify::workloads::Workload::TemporalRecovery { forcing: None })
-    ) {
-        execution
-            .committed_temporal_reopens()
-            .map_err(|error| error.to_string())?;
-    }
+    configure_recovery(&mut execution, configuration.workload.as_ref())?;
     Ok(Prepared {
         opened,
         execution: Execution {
@@ -685,6 +693,8 @@ pub fn project(observed: helper::Execution) -> Result<linked::Execution, String>
     project_encoded(observed, "")
 }
 
+/// # Errors
+/// Refuses invalid World encoding or observations that exceed the retained stream bounds.
 pub fn project_encoded(
     mut observed: helper::Execution,
     encoding: &str,
@@ -908,7 +918,7 @@ mod projection_tests {
                     "mandatory workload oracle failed"
                 );
             } else if !bad_live {
-                assert!(projected.outcome.message.is_empty());
+                assert_eq!(projected.outcome.message, "");
             }
             let world = &projected.evidence["world"];
             assert_ne!(world, &raw_world);

@@ -63,8 +63,10 @@ fn diagnostic_difference(expected: &[u8], actual: &[u8]) -> Result<Value, String
         (88, "clock_tick_draws"),
     ];
     for (ordinal, (left, right)) in expected
-        .chunks_exact(96)
-        .zip(actual.chunks_exact(96))
+        .as_chunks::<96>()
+        .0
+        .iter()
+        .zip(actual.as_chunks::<96>().0)
         .enumerate()
     {
         let differences: Vec<_> = fields

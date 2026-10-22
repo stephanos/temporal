@@ -127,6 +127,52 @@ impl Memory<'_> {
         Err(Reason::SymbolTableTooLarge)
     }
 
+    // A framing marker begins with a nonzero byte, so it cannot start in an
+    // elided gap. Scan borrowed data in fixed eight-byte chunks; only segment
+    // tails need sparse memory reads to cover adjacent segments and gaps.
+    pub fn framing_matches(&self, needle: &[u8; 16], budget: &mut Budget) -> Result<Vec<u64>> {
+        if needle[0] == 0 {
+            return Err(Reason::SymbolMismatch);
+        }
+        let mut found = Vec::new();
+        for segment in &self.segments {
+            let interior = segment.bytes.len().saturating_sub(needle.len() - 1);
+            for (chunk_index, chunk) in segment.bytes[..interior].chunks(8).enumerate() {
+                budget.steps(1)?;
+                if !chunk.contains(&needle[0]) {
+                    continue;
+                }
+                for (offset, byte) in chunk.iter().enumerate() {
+                    if *byte != needle[0] {
+                        continue;
+                    }
+                    budget.steps(1)?;
+                    let index = chunk_index * 8 + offset;
+                    if segment.bytes[index..index + needle.len()] == *needle {
+                        budget.entries(1)?;
+                        budget.bytes(32)?;
+                        found.push(add(segment.start, index as u64)?);
+                    }
+                }
+            }
+            for index in interior..segment.bytes.len() {
+                budget.steps(1)?;
+                if segment.bytes[index] != needle[0] {
+                    continue;
+                }
+                let address = add(segment.start, index as u64)?;
+                if add(address, needle.len() as u64)? <= self.end
+                    && self.uint::<16>(address, budget)? == *needle
+                {
+                    budget.entries(1)?;
+                    budget.bytes(32)?;
+                    found.push(address);
+                }
+            }
+        }
+        Ok(found)
+    }
+
     pub fn matches(&self, needle: &[u8], aligned: bool, budget: &mut Budget) -> Result<Vec<u64>> {
         let mut found = Vec::new();
         let mut previous_end = 0;

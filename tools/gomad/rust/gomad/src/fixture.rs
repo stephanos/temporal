@@ -208,6 +208,14 @@ pub fn dispatch(arguments: &[String]) -> Option<Result<(), Error>> {
             .map_err(Error::from)
         })());
     }
+    if command == "fixture-driver-run" {
+        return Some(
+            crate::cli::run_guest::fixture_driver_run(&arguments[1..]).map_err(Error::from),
+        );
+    }
+    if command == "fixture-driver-prepare" {
+        return Some(crate::cli::run_guest::fixture_prepare(&arguments[1..]).map_err(Error::from));
+    }
     if command == "fixture-choice-implementation" {
         return Some((|| {
             if arguments.len() != 3

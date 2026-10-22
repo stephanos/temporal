@@ -121,6 +121,19 @@ pub fn arm(wall: Duration) -> Guard {
     let deadline = Instant::now()
         .checked_add(wall.saturating_add(CLEANUP_GRACE))
         .unwrap_or_else(|| Instant::now() + Duration::from_secs(u64::from(u32::MAX)));
+    register(backstop, deadline)
+}
+
+/// Arms the same bounded cleanup window at an existing absolute deadline.
+#[must_use]
+pub fn arm_until(deadline: Instant) -> Guard {
+    let deadline = deadline
+        .checked_add(CLEANUP_GRACE)
+        .unwrap_or_else(|| Instant::now() + Duration::from_secs(u64::from(u32::MAX)));
+    register(backstop(), deadline)
+}
+
+fn register(backstop: &'static Backstop, deadline: Instant) -> Guard {
     let mut armed = backstop
         .armed
         .lock()

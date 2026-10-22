@@ -301,3 +301,25 @@ mismatch);64 roots remain unrun and diagnosis belongs to root. These reported
 outcomes do not qualify this prospective identity. Integrated minimizer runtime,
 strict lint, launcher proof and remaining source integration/final freeze remain
 required; worker unit results and source review are not actual runtime acceptance.
+
+## Prospective launcher/minimizer integration through 00a97c42
+
+Merged root main00a97c42 (reviewed source checkpoint432362fa5b) into the isolated
+prospective branch. There was one file-location conflict: incoming helper test
+`tests/linked_streaming.rs` was accepted at `rust/wasmhost/tests/linked_streaming.rs`.
+One additional new nested helper source path was not automatically relocated by
+Git: `src/linked/streaming_tests.rs`; it was mechanically moved from the obsolete
+helper directory into `rust/wasmhost/src/linked/streaming_tests.rs`. Every incoming
+changed Rust file is byte-identical to its exact00a97c42 counterpart after those
+path moves. There were no content conflicts or behavioral edits. Existing model/
+helper/workspace ownership, mandatory precrash source, broker corrections and
+minimizer context/publication semantics remain intact.
+
+Static checks exit0: direct pinned rustfmt --edition2024 --check on all incoming
+changed Rust files; exact incoming-byte comparisons; complete incoming helper
+path coverage in the relocated crate; all Rust include/path attributes; incoming
+Python AST parsing; exact127 original helper lock entries; diff checks. No build,
+Cargo, Go, guest, qualification, fixture pin rotation or identity freeze occurred.
+No newer interception/observer checkpoint was cherry-picked. Main's source freeze
+for fn231 actualscope97675 and unrelated user files were untouched. All prior
+pending runtime/lint/final-freeze/qualification gates remain required.

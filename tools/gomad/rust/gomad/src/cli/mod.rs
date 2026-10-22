@@ -30,3 +30,5 @@ pub mod install;
 pub mod plan;
 pub mod recover;
 pub mod stress;
+
+pub mod run_guest;

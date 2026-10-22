@@ -443,6 +443,7 @@ impl Opened {
         };
         crate::evidence::search_context::read(&opened)?;
         crate::minimize::source::read(&opened)?;
+        crate::campaign::origin::authenticate(&opened)?;
         Ok(opened)
     }
 

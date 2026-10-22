@@ -57,6 +57,25 @@ pub(crate) struct PreparationReceipt {
     pub preparation_end: Option<Snapshot>,
 }
 
+pub(crate) fn retain_admitted(
+    options: &ExploreOptions,
+    prepared: Prepared,
+) -> Result<PreparedPlan, String> {
+    let started = Instant::now();
+    let snapshot = usage::snapshot();
+    let journal = super::seed_journal(options, &prepared)?;
+    Ok(PreparedPlan {
+        prepared,
+        campaign: std::fs::canonicalize(journal.path()).map_err(|e| e.to_string())?,
+        plan: journal.plan().clone(),
+        guest_executions: 0,
+        envelope: None,
+        preparation_start: snapshot,
+        preparation_end: snapshot,
+        preparation_elapsed_nanos: elapsed(started)?,
+    })
+}
+
 pub(crate) fn seed(options: &ExploreOptions) -> Result<PreparedPlan, String> {
     let started = Instant::now();
     let preparation_start = usage::snapshot();

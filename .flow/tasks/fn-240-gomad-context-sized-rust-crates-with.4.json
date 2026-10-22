@@ -1,0 +1,17 @@
+{
+  "assignee": null,
+  "claim_note": "",
+  "claimed_at": null,
+  "created_at": "2026-10-22T21:07:07.636488Z",
+  "depends_on": [
+    "fn-240-gomad-context-sized-rust-crates-with.2",
+    "fn-240-gomad-context-sized-rust-crates-with.3"
+  ],
+  "id": "fn-240-gomad-context-sized-rust-crates-with.4",
+  "priority": null,
+  "spec": "fn-240-gomad-context-sized-rust-crates-with",
+  "spec_path": ".flow/tasks/fn-240-gomad-context-sized-rust-crates-with.4.md",
+  "status": "todo",
+  "title": "Measure and decide next cuts",
+  "updated_at": "2026-10-22T21:07:07.636488Z"
+}
