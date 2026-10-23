@@ -347,6 +347,7 @@ impl Recipe {
         configuration.arguments = std::iter::once(program)
             .chain(options.target_args.iter().cloned())
             .collect();
+        configuration.world_transition_bytes = Some(options.world_transition_limit);
         inputs["arguments"] = json!(options.target_args);
         inputs["configuration"] = serde_json::to_value(&configuration).map_err(failure)?;
         let cooperative = installed.profile == "gomad.wasi-cooperative/v1";

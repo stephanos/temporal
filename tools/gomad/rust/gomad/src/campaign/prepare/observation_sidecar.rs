@@ -393,6 +393,7 @@ mod tests {
                     evidence_bytes: 4096,
                 },
                 wall_nanos: None,
+                world_transition_bytes: None,
                 arguments: Vec::new(),
                 environment: BTreeMap::new(),
                 derive_seed_environment: false,
