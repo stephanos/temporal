@@ -1,7 +1,7 @@
 {
   "schema": "gomad.integration-development-evidence/v1",
-  "observed_at": "2026-10-23T13:17:13.996337+00:00",
-  "integration_head": "e055d3856dd69cfc41d53dad51615cb4e92b8930",
+  "observed_at": "2026-10-23T13:50:55.389291+00:00",
+  "integration_head": "e21a00b26848dea71bcb09b4ed46b16cea76171c",
   "final_qualification": false,
   "logs": [
     {
@@ -2838,6 +2838,115 @@
         "Narrow fn235 applicability and actual same-stage four-pair divergence producer integration",
         "Callback closed-consumer proof requires host-fixture installation; controlled streaming remains ordinary; scoped receiving fix under review"
       ]
+    },
+    {
+      "observed_at": "2026-10-23T13:50:55.389291+00:00",
+      "integration_head": "e21a00b26848dea71bcb09b4ed46b16cea76171c",
+      "final_qualification": false,
+      "scope": "Joined source and development verification; no executable full final configuration yet",
+      "joined_python": {
+        "source": "e21a00b26848dea71bcb09b4ed46b16cea76171c",
+        "passed": 512,
+        "exit": 0,
+        "proofs": [
+          {
+            "path": "/home/agent/evidence/fn232-root-joined-roles-provider-v4/tests.json",
+            "bytes": 622,
+            "sha256": "3808867129dfda194b5d9f81b15a91a36f900a7eb9985983bbdd6c1e3f4ff237"
+          },
+          {
+            "path": "/home/agent/evidence/fn232-root-joined-roles-provider-v4/tests.log",
+            "bytes": 87172,
+            "sha256": "97734178f64fff91eb931a3002fcb38ca5744078d479e505775633c5adad7ca5"
+          }
+        ]
+      },
+      "counter_parser": {
+        "source": "2c5b50f6be5f0fe307e15f7cf7eb6fa9749a0d08",
+        "passed": 5,
+        "ignored": 2,
+        "exit": 0,
+        "scope": "Native two-private-feature unit selector; original four-pair Go artifacts remain unexecuted",
+        "proofs": [
+          {
+            "path": "/home/agent/evidence/fn232-root-counter-recipe-green-v1/command.json",
+            "bytes": 670,
+            "sha256": "dcdef63caec564eed3e786c4a816883c63f6f05e673fab24eb8bc114123887c7"
+          },
+          {
+            "path": "/home/agent/evidence/fn232-root-counter-recipe-green-v1/process.json",
+            "bytes": 499,
+            "sha256": "6b77db1f17c84a057240aa9e61c5ac69118db06cb22566dacb331cd46c94a50e"
+          },
+          {
+            "path": "/home/agent/evidence/fn232-root-counter-recipe-green-v1/stdout",
+            "bytes": 1084,
+            "sha256": "75e228a441503f337fa4e334e809082f704e779bfeccc8b3114c3bb105a90e55"
+          },
+          {
+            "path": "/home/agent/evidence/fn232-root-counter-recipe-green-v1/stderr",
+            "bytes": 901,
+            "sha256": "6996aa070b2edca3975b4a442b0277ee499c819a225554b5f3e22dde9039ac5a"
+          },
+          {
+            "path": "/home/agent/evidence/fn232-root-counter-recipe-green-v1/binary-copy.json",
+            "bytes": 461,
+            "sha256": "e43f011bf556455f7446e9d0d8dee48c0c80c18be55934b1d25039319a751a58"
+          }
+        ]
+      },
+      "native_runtime_repair": {
+        "source": "eaf70ae46dad352b015dadb0964ce0409e09fd50",
+        "passed": 715,
+        "ignored": 9,
+        "focused": 27,
+        "independent_facts": 91,
+        "capacity_cases": 20,
+        "strict_exit": 0,
+        "handover": ".flow/artifacts/fn232-core-broad-runtime-repair-2026-10-23.json",
+        "independently_reopened_command_sets": 11,
+        "scope": "Optional oracle and exact original two-message capacity handling repaired; original actual Go 2-pass/3-fail evidence retained; final eleven cases still required"
+      },
+      "typed_roles": {
+        "commit": "1b84c89cc5",
+        "fixed_roles": 12,
+        "scope": "Ordinary host/helper featureless libtests, stress roles, conformance helper and separate original-wire transport have actual closed build routes; no actual final-role build credited"
+      },
+      "provider_reference": {
+        "commit": "5f364e4df0",
+        "scope": "Full typed reference-transport build custody mandatory; actual original Go ABI proof pending",
+        "historical_helper": "1697bc retained only as historical input without an inferred build receipt"
+      },
+      "historical_fixture": {
+        "commit": "e21a00b268",
+        "scope": "Loads exact SHA-verified original Git bytes instead of deleted current Go host file; original predicates unchanged",
+        "review_scope_exception": {
+          "path": "/home/agent/evidence/fn232-broker-historical-fixture-review/scope-error.json",
+          "bytes": 1500,
+          "sha256": "058a2f199bb0c7c85c4c2125693a51771b8faf6e9a9ece146650a4030526fe05"
+        },
+        "exception_scope": "Reviewer reported accidental extra Go unit probes with deleted temporary child receipts; no qualification credit"
+      },
+      "readiness": {
+        "path": "/home/agent/evidence/fn232-driver-readiness-v1/input-readiness-followup-ordinary-reference-v1.json",
+        "bytes": 22400,
+        "sha256": "b58fd6cf89fed8a00beab9efcb6b9c053b059144c33c42dab0c155b58e4cd2e0"
+      },
+      "remaining_source": [
+        "Ordinary/clusters exact original stage route production and receiving, including all duplicated selections and raw replay phases",
+        "Six original wire checks with explicit applicability and genuinely closed original Go dependencies",
+        "Independent fixed Go SQLite oracle build/runtime custody and final freezer wiring"
+      ],
+      "remaining_execution": [
+        "Fresh immutable source candidate and regenerated GNU/tool plans",
+        "Actual twelve typed roles, measurement roles, original Go root19 ABI/reference and independent Go oracle",
+        "Full terminal eight/operator/counterfactual pairs/runtime32x25+aggregate/stress/fouraxes",
+        "Unchanged96-stage/146-obligation3600-second full cycle; all remaining MILESTONES support/sweep/profiling gates"
+      ],
+      "resource_available_bytes": {
+        ".": 80189341696,
+        "/home/agent": 21882458112
+      }
     }
   ],
   "resource_snapshot": {
