@@ -15,8 +15,7 @@
   distinct implementation digests and require identical source/runtime
   preimages across the roles. Diagnostic identities are never relabeled as
   ordinary identities.
-- `stock_go`, `terminal_module`, `terminal_module_receipt`,
-  `terminal_helper_receipt`, `terminal_diagnostic_helper_receipt`: sealed static native producer inputs. Both helper receipts are independently validated native admissions, bound to the actual ordinary and diagnostic executables before terminal observations are accepted.
+- `stock_go`: sealed static compiler input. Terminal module and ordinary publication paths are derived from the authenticated same-cycle primary stages. They are not future-output placeholders in the frozen configuration. The static diagnostic admission remains sealed. Both actual terminal helper admissions are independently validated and bound to the executables before terminal observations are accepted.
 - `runtime_recipe`: sealed original bounds, seed 7, and a full native request
   template. Generated module path/hash and compile-cache path come from the
   bounded current producer output; all modeled request fields match the
@@ -38,8 +37,7 @@
   The preparation inventory authenticates actual compiler commands/source
   closure; package and cwd labels alone cannot admit a module. The reader compares the actual retained request to it.
 
-The receiver constructs named native `runtime-cost-profile` and `terminal-exit`
-argv itself. Both qualified roles use `gomad-measure --linked-run INPUT OUTPUT`. The
+The receiver constructs the named native `runtime-cost-profile` argv itself. It reopens the completed same-cycle primary `terminal-exit` producer through `primary_stages.read_terminal`, then independently verifies all six ordinary and two diagnostic attempts. It launches no duplicate terminal producer. Both qualified roles use `gomad-measure --linked-run INPUT OUTPUT`. The
 diagnostic binary is the admitted diagnostic-profile measurement role. It creates fresh output
 under `ROOT/final-profiles`; these outputs are never required in `config.files`.
 Process IDs, argv, timings and exit status come from `driver.command` journals.
@@ -88,6 +86,15 @@ The separate original wire control recipe is `terminal_controls.py produce --con
 
 The fixed invocation preserves `-v -tags test_dep -count=1 -timeout=15m -run '^TestTerminalExit' ./wasi` in the original wasm directory; `-json` retains machine-readable original test observations. It requires all five root tests and all twelve original subtests to run and pass exactly once. The original tests create and hash their shell helpers themselves; no external Rust helper is supplied. Their immutable source and complete raw test events retain the original frame-before-validation, authorization-after-Started, captured-input ordering and expired-context assertions. Those are retained wire applicability obligations; native terminal clocks and actual Temporal module execution remain separate gates. The recipe does not introduce a new production Go behavior.
 
-Final native runs must retain `canonical-streams.json` (`gomad.native-canonical-streams/v1`) in addition to the unchanged native `streams.json`. The reader authenticates all native files and all six canonical files against their catalogues. A canonical source must be an existing native stream, an explicit empty stdout/stderr/network file from the closed sink when that native key is absent, the byte-identical native binary `transcript` retained as `wasi`, or the exact 16-byte terminal decoded from the model Outcome. The receipt binds both original catalogue and Outcome hashes. Older runs without this explicit receipt remain refused; no output is upgraded after execution.
+Final native runs must retain `canonical-streams.json` (`gomad.native-canonical-streams/v1`) in addition to the unchanged native `streams.json`. The reader authenticates all native files and the six canonical descriptors against their catalogues. Available canonical files are checked byte for byte; WASI may instead explicitly retain an authenticated rolling digest without a raw file. A canonical source must be an existing native stream, an explicit empty stdout/stderr/network file from the closed sink when that native key is absent, the byte-identical native binary `transcript` retained as `wasi`, the actual model rolling WASI digest under an authenticated `digest_only=true` request with both raw keys/files absent, or the exact 16-byte terminal decoded from the model Outcome. The receipt binds both original catalogue and Outcome hashes. Older runs without this explicit receipt remain refused; no output is upgraded after execution.
 
 The qualified Temporal recipes independently require the original `choice.MaximumTraceBytes` capacity of 1 GiB, in both the static recipe and actual request. Runtime-cost remains 64 MiB. Native choice framing is read under the actual admitted capacity; the generic 64 MiB preparation default cannot satisfy a qualified Temporal recipe.
+
+
+`preflight(config)` is pure: it checks all static role chains, original runtime and qualified request bounds, qualified preparation custody, and frozen reference inputs before dispatch. It neither creates output nor executes a process. Dynamic runtime/module paths and output hashes are authenticated only after the actual producer observes them. Both `collect` and the configuration freezer use this function.
+
+`current_host_evidence(config, base)` binds the sealed 2026-10-17 MILESTONES owner decision to the actual native host record, kernel probe command/PID/raw streams, and procfs or sysctl witnesses. It returns policy `gomad.wasm-performance-any-host/2026-10-17`; the old Linux/arm64 predicate is retained only as an explicitly superseded observation when applicable. No platform selector determines a WASM qualification result. Scratch filesystem and 12 GiB admission remain separate.
+
+Terminal module custody is reopened through `terminal_module_receiving.read_module` at the same-cycle module stage. Requests remain bounded to the terminal producer's output root; module bytes and compiler/preparation evidence remain bounded to their authenticated earlier stage. The frozen workflow recipe supplies modeled semantics, not a predicted future module hash. The attempt ledger must retain exactly `prime`, five `terminal-*` release observations and the two diagnostic refusals, with no execution/verification failure or missing raw command paths.
+
+Original runtime argv is exactly `guest`, `literal $arg`. Qualified Temporal argv has the original `temporal.test`, `-test.v`, `-test.count=1`, `-test.timeout=72h` prefix before selection and persistence arguments. The reader also independently checks original model and namespace limits, diagnostics, digest policy, and compilation tags/empty target arguments. Original `sameEvidence` compares the WASI rolling digest; raw WASI is still authenticated when present and is never invented when absent.

@@ -41,7 +41,8 @@ class FinalProfiles(unittest.TestCase):
             return put(name, json.dumps(value).encode())
         native = {name: put(name, raw) for name, raw in dict(stdout=b'actual', transcript=b'binary-wasi', choice=b'choice').items()}
         jsonfile('streams.json', native)
-        outcome = dict(local_model=dict(terminal_base64=base64.b64encode(bytes(16)).decode()))
+        outcome = dict(local_model=dict(terminal_base64=base64.b64encode(bytes(16)).decode(),
+                       transcript_bytes=len(b'binary-wasi'), transcript_sha256=hashlib.sha256(b'binary-wasi').hexdigest()))
         jsonfile('outcome.json', outcome)
         streams = {}
         for name in gate.STREAMS:
@@ -74,9 +75,31 @@ class FinalProfiles(unittest.TestCase):
             with self.subTest(stream=name), self.assertRaises(Refusal):
                 gate.native_canonical_streams(self.root, outcome)
 
+    def test_original_wasi_predicate_accepts_bound_rolling_digest_without_inventing_raw_bytes(self):
+        outcome, receipt = self.canonical_native()
+        before = gate.evidence(self.root, dict(reaped=True, streams=gate.native_canonical_streams(self.root, outcome)))
+        native = json.loads((self.root / 'streams.json').read_text())
+        native.pop('transcript')
+        (self.root / 'streams.json').write_text(json.dumps(native))
+        receipt['native_streams_sha256'] = hashlib.sha256((self.root / 'streams.json').read_bytes()).hexdigest()
+        for name in ('transcript', 'wasi'): (self.root / name).unlink()
+        receipt['streams']['wasi'].update(file=None, source='outcome:local_model.transcript_sha256')
+        (self.root / 'canonical-streams.json').write_text(json.dumps(receipt))
+        request = dict(guest=dict(model=dict(configuration=dict(digest_only=True))))
+        streams = gate.native_canonical_streams(self.root, outcome, request)
+        self.assertTrue(streams['wasi']['digest_only'])
+        self.assertFalse((self.root / 'wasi').exists())
+        self.assertEqual(before, gate.evidence(self.root, dict(reaped=True, streams=streams)))
+        request['guest']['model']['configuration']['digest_only'] = False
+        with self.assertRaises(Refusal): gate.native_canonical_streams(self.root, outcome, request)
+        request['guest']['model']['configuration']['digest_only'] = True
+        receipt['streams']['wasi']['sha256'] = '0' * 64
+        (self.root / 'canonical-streams.json').write_text(json.dumps(receipt))
+        with self.assertRaises(Refusal): gate.native_canonical_streams(self.root, outcome, request)
+
     def runtime_spec(self):
         return dict(profile='gomad.wasi-cooperative/v1', clock_read_step_nanos=0, seed=7,
-                    package='./internal/model/wasi/testdata/runtime_cost',
+                    package='./internal/model/wasi/testdata/runtime_cost', arguments=['guest', 'literal $arg'],
                     fuel=1 << 40, memory_bytes=256 << 20, wall_nanos=180_000_000_000,
                     calls=1 << 20, transcript_bytes=64 << 20, choice_bytes=64 << 20,
                     runtime_diagnostics=False)
@@ -123,6 +146,92 @@ class FinalProfiles(unittest.TestCase):
         with self.assertRaises(Refusal):
             gate.runtime_pair(self.root, self.runtime_spec(), before, after)
 
+    def test_original_runtime_argv0_cannot_be_replaced_by_preparation_default(self):
+        spec = self.runtime_spec()
+        spec['arguments'] = ['gomad-target', 'literal $arg']
+        with self.assertRaises(Refusal): gate.exact_bounds(spec, runtime=True)
+
+    def original_runtime_request(self):
+        spec = self.runtime_spec()
+        request = dict(kind='standalone', guest=dict(module='/not-generated/runtime.wasm', module_sha256=None,
+            limits=dict(memory_bytes=256 << 20, fuel=1 << 40, wall_millis=180000),
+            model=dict(arguments=['guest', 'literal $arg'], environment=['PWD=/workspace', 'TZ=UTC', 'ONLY=captured'], configuration=dict(seed=7, diagnostics=False, digest_only=False,
+                limit=64 << 20, read_step_nanos=0, limits=dict(calls=1 << 20, pending_events=4096, transcript_bytes=64 << 20),
+                entropy_key=[1, 2, 3] + [0] * 29, epoch_nanos=946684800000000000,
+                working_directory_sha256=hashlib.sha256(b'/workspace').hexdigest())),
+            namespace=dict(working_directory=list(b'/workspace'), limits=dict(descriptors=64, files=1000,
+                           filesystem_bytes=8 << 20, output_bytes=1 << 20))))
+        return spec, request
+
+    def test_static_runtime_template_needs_no_future_module_or_output_hash(self):
+        spec, request = self.original_runtime_request()
+        gate.modeled_request(spec, request, runtime=True)
+        for mutation in ('argv0', 'environment', 'diagnostics', 'digest', 'transcript', 'output'):
+            changed = copy.deepcopy(request)
+            model = changed['guest']['model']
+            if mutation == 'argv0': model['arguments'][0] = 'gomad-target'
+            elif mutation == 'environment': model['environment'].append('GOMAD_IO_PROFILE=wasm')
+            elif mutation == 'diagnostics': model['configuration']['diagnostics'] = True
+            elif mutation == 'digest': model['configuration']['digest_only'] = True
+            elif mutation == 'transcript': model['configuration']['limits']['transcript_bytes'] = 8 << 20
+            else: changed['guest']['namespace']['limits']['output_bytes'] = 8 << 20
+            with self.subTest(mutation=mutation), self.assertRaises(Refusal):
+                gate.modeled_request(spec, changed, runtime=True)
+
+    def test_preflight_refuses_wrong_original_recipe_before_any_producer_or_future_output(self):
+        spec, request = self.original_runtime_request()
+        spec['native_input'] = request
+        spec['arguments'] = ['gomad-target', 'literal $arg']
+        path = self.root / 'runtime.json'
+        path.write_text(json.dumps(spec))
+        identity = dict(host_implementation_sha256='host', linked_implementation_sha256='helper',
+                        source_inputs={}, runtime_implementation_sha256='runtime')
+        config = dict(identity=dict(host='host', helper='helper'), final_profiles=dict(measure={}, ordinary={}, diagnostic={},
+                      stock_go='/static/stock/go', runtime_recipe=str(path)))
+        before = set(self.root.iterdir())
+        with patch.object(gate, 'role_build', return_value=dict(identity=identity)), patch('live.sealed_input'), patch.object(gate, 'invoke') as execute:
+            with self.assertRaisesRegex(Refusal, 'arguments'): gate.preflight(config)
+            execute.assert_not_called()
+        self.assertEqual(before, set(self.root.iterdir()))
+
+    def test_dynamic_module_custody_can_live_in_authenticated_earlier_stage(self):
+        spec, request = self.original_runtime_request()
+        primary = self.root / 'terminal-primary'
+        module_root = self.root / 'module-primary'
+        primary.mkdir(); module_root.mkdir()
+        module = module_root / 'guest.wasm'
+        module.write_bytes(b'unit module bytes')
+        request['guest'].update(module=str(module), module_sha256=hashlib.sha256(module.read_bytes()).hexdigest())
+        path = primary / 'request.json'
+        path.write_text(json.dumps(request))
+        spec['native_input'] = copy.deepcopy(request)
+        spec['native_input']['guest'].update(module='/not-generated', module_sha256=None)
+        with patch.object(gate, 'preparation_proof') as proof:
+            gate.bound_native_request({}, path, spec, runtime=True, dynamic_root=primary, module_root=module_root)
+            self.assertEqual(proof.call_args.kwargs['dynamic_root'], module_root)
+        with self.assertRaises(Refusal):
+            gate.bound_native_request({}, path, spec, runtime=True, dynamic_root=primary, module_root=primary)
+
+    def test_final_terminal_reopens_primary_without_executing_duplicate_producer(self):
+        work = self.root / 'stages/terminal-exit/primary'
+        work.mkdir(parents=True)
+        report = work / 'terminal-exit.json'
+        report.write_text('{}')
+        entry = dict(qualified=dict(workflow=dict(recipe='/sealed/workflow.json')))
+        primary = dict(work=str(work), terminal_path=str(report), entry=entry, ordinary='/dynamic/ordinary', diagnostic='/sealed/diagnostic',
+                       producer=dict(argv=['fixed-producer'], command='fixed-command', process='fixed-process'))
+        with patch('primary_stages.read_terminal', create=True, return_value=primary), patch.object(gate, 'native_terminal') as reader, patch.object(gate, 'invoke') as execute:
+            gate.reopen_primary_terminal({}, self.root, entry, '/sealed/diagnostic')
+            reader.assert_called_once()
+            execute.assert_not_called()
+        for field, value in [('work', str(self.root)), ('diagnostic', '/foreign/diagnostic')]:
+            foreign = dict(primary, **{field: value})
+            with self.subTest(field=field), patch('primary_stages.read_terminal', create=True, return_value=foreign), patch.object(gate, 'native_terminal') as reader:
+                with self.assertRaises(Refusal): gate.reopen_primary_terminal({}, self.root, entry, '/sealed/diagnostic')
+                reader.assert_not_called()
+        with patch('primary_stages.read_terminal', create=True, return_value=primary), patch.object(gate, 'native_terminal', side_effect=Refusal('actual raw failure')):
+            with self.assertRaisesRegex(Refusal, 'actual raw failure'): gate.reopen_primary_terminal({}, self.root, entry, '/sealed/diagnostic')
+
     def test_full_activity_selection_and_original_capacity(self):
         spec = dict(profile='gomad.wasi-cooperative/v1', clock_read_step_nanos=0,
                     fuel=1 << 50, memory_bytes=4 << 30, wall_nanos=1_800_000_000_000, choice_bytes=1 << 30,
@@ -150,15 +259,20 @@ class FinalProfiles(unittest.TestCase):
         module = self.root / 'tests.wasm'
         module.write_bytes(b'actual-module')
         spec = dict(fuel=1 << 50, memory_bytes=4 << 30, wall_nanos=1_800_000_000_000, choice_bytes=1 << 30,
-                    clock_read_step_nanos=0, seed=0, arguments=['-test.run=' + gate.ACTIVITY],
+                    profile='gomad.wasi-cooperative/v1', package='./tests', selection=gate.ACTIVITY,
+                    clock_read_step_nanos=0, seed=0, arguments=['-test.run=' + gate.ACTIVITY, '-persistenceType=sql', '-persistenceDriver=sqlite'],
                     working_directory='/workspace/tests', module=str(module),
                     module_sha256=hashlib.sha256(module.read_bytes()).hexdigest())
         request = dict(kind='standalone', guest=dict(module=str(module), module_sha256=spec['module_sha256'],
                        limits=dict(fuel=spec['fuel'], memory_bytes=spec['memory_bytes'], wall_millis=1800000),
-                       model=dict(configuration=dict(seed=0, read_step_nanos=0, limit=1 << 30,
+                       model=dict(environment=['PWD=/workspace/tests', 'TEMPORAL_ROOT=/workspace', 'TMPDIR=/tmp', 'TZ=UTC', 'TEMPORAL_TEST_LOG_LEVEL=warn'],
+                                  configuration=dict(seed=0, read_step_nanos=0, limit=1 << 30, diagnostics=False, digest_only=True,
+                                  entropy_key=list(hashlib.sha256(b'gomad-wasm-prototype/v1').digest()), epoch_nanos=946684800000000000,
+                                  limits=dict(calls=1 << 28, pending_events=4096, transcript_bytes=1 << 30),
                                   working_directory_sha256=hashlib.sha256(b'/workspace/tests').hexdigest()),
-                                  arguments=['guest', *spec['arguments']]),
-                       namespace=dict(working_directory=list(b'/workspace/tests'))))
+                                  arguments=gate.TEMPORAL_ARGUMENT_PREFIX + spec['arguments']),
+                       namespace=dict(working_directory=list(b'/workspace/tests'), limits=dict(descriptors=4096, files=100000,
+                                      filesystem_bytes=512 << 20, output_bytes=256 << 20))))
         input_path = self.root / 'input.json'
         def retain(value):
             input_path.write_text(json.dumps(value))
@@ -188,11 +302,11 @@ class FinalProfiles(unittest.TestCase):
     def test_reference_projection_recomputes_actual_original_result(self):
         run = self.run_evidence('original')
         run.update(schema='gomad.go-reference-run/v1', owner='go', original_commit='original',
-                   error='', cancelled=False, watchdog_timeout=False, transcript_sha256='00' * 32)
+                   error='', cancelled=False, watchdog_timeout=False, transcript_sha256=run['streams']['wasi']['sha256'])
         payloads = {name: base64.b64encode(Path(entry['path']).read_bytes()).decode()
                     for name, entry in run['streams'].items()}
         result = dict(Stdout=payloads['stdout'], Stderr=payloads['stderr'], Transcript=payloads['wasi'],
-                      TranscriptSHA256=[0] * 32, NetworkTranscript=payloads['network'],
+                      TranscriptSHA256=list(bytes.fromhex(run['transcript_sha256'])), NetworkTranscript=payloads['network'],
                       ChoiceTrace=dict(Bytes=payloads['choice'], Summary=dict(SelectPoll=run['select_poll'])),
                       Termination='exit', ExitCode=0, Reaped=True, Cancelled=False, WatchdogTimeout=False,
                       Calls=run['calls'], TimeAdvances=run['time_advances'], EnvironmentIdentity=run['environment_identity'],
@@ -225,7 +339,7 @@ class FinalProfiles(unittest.TestCase):
 
     def test_terminal_clock_includes_child_publication_and_refuses_missing_reap(self):
         report = dict(terminal_monotonic_nanos=100, terminal_clock='CLOCK_MONOTONIC', terminal_to_return_nanos=20)
-        journal = dict(reaped_monotonic_nanos=1_000_000_100)
+        journal = dict(started_monotonic_nanos=50, reaped_monotonic_nanos=1_000_000_100)
         self.assertEqual(gate.terminal_clock(report, journal), 1_000_000_000)
         for reaped in (None, 99, 100, 1_000_000_101):
             with self.subTest(reaped=reaped), self.assertRaises(Refusal):
@@ -299,6 +413,73 @@ class FinalProfiles(unittest.TestCase):
         changed['source_inputs']['helper'] = 'foreign-preimage'
         with patch('live.sealed_input'), patch.object(native_roles, 'validate_build', side_effect=lambda config, path, role: json.loads(Path(path).read_text())), patch.object(gate, 'invoke', return_value=(json.dumps(changed).encode(), {})), self.assertRaises(Refusal):
             gate.sealed_role(config, entries[1], ['diagnostic-profile'])
+
+    def test_all_terminal_children_must_belong_to_current_outer_process_and_clock_window(self):
+        native_root = self.root / 'evidence/terminal-0'
+        native_root.mkdir(parents=True)
+        path = native_root.parent / 'terminal-0-driver.json'
+        outer = dict(clock='CLOCK_MONOTONIC', pid=20, parent_pid=10, started_monotonic_nanos=100, reaped_monotonic_nanos=1000)
+        child = dict(clock='CLOCK_MONOTONIC', pid=30, parent_pid=20, started_monotonic_nanos=150, reaped_monotonic_nanos=900)
+        report = dict(terminal_monotonic_nanos=500, terminal_clock='CLOCK_MONOTONIC', terminal_to_return_nanos=10)
+        path.write_text(json.dumps(child))
+        self.assertEqual(gate.terminal_child_clock(report, child, native_root, outer, outer), 400)
+        for field, value in [('parent_pid', 999), ('started_monotonic_nanos', 50), ('reaped_monotonic_nanos', 1001),
+                             ('started_monotonic_nanos', 501)]:
+            changed = dict(child, **{field: value})
+            path.write_text(json.dumps(changed))
+            with self.subTest(field=field, value=value), self.assertRaises(Refusal):
+                gate.terminal_child_clock(report, changed, native_root, outer, outer)
+
+    def terminal_ledger(self):
+        labels = ['prime'] + ['terminal-' + str(index) for index in range(5)] + ['module-digest', 'loaded-module-descriptor']
+        terminal = dict(accepted=True, failure_reasons=None, attempts=[], observations=[dict(row=i) for i in range(6)],
+                        process_exit_observations=[dict(pid=i) for i in range(6)], admission_refusals=[dict(stage=i) for i in range(2)])
+        for index, label in enumerate(labels):
+            native_root = self.root / 'evidence' / label
+            native_root.mkdir(parents=True)
+            paths = [native_root / name for name in ('request.json', 'report.json')]
+            paths += [native_root.parent / (label + '-driver.' + suffix) for suffix in ('json', 'stdout', 'stderr')]
+            for path in paths: path.write_bytes(b'unit raw observation')
+            payload = (dict(kind='release', observation=terminal['observations'][index],
+                            process_exit=terminal['process_exit_observations'][index]) if index < 6
+                       else dict(kind='admission-refusal', observation=terminal['admission_refusals'][index - 6]))
+            terminal['attempts'].append(dict(attempt=dict(label=label, role='release' if index < 6 else 'diagnostic', native_root=str(native_root)),
+                observation=payload, execution_failure=None, verification_failure=None, retained_paths=[str(path) for path in paths]))
+        return terminal
+
+    def test_terminal_collection_must_retain_all_eight_successful_attempts(self):
+        terminal = self.terminal_ledger()
+        gate.terminal_attempts(terminal, self.root)
+        for index in range(8):
+            for field in ('missing', 'execution_failure', 'verification_failure', 'observation', 'retained_paths'):
+                changed = copy.deepcopy(terminal)
+                row = changed['attempts'][index]
+                if field == 'missing': changed['attempts'].pop(index)
+                elif field.endswith('failure'): row[field] = 'actual failed attempt'
+                elif field == 'observation': row[field] = dict(kind='claimed-success')
+                else: row[field].pop()
+                with self.subTest(index=index, field=field), self.assertRaises(Refusal):
+                    gate.terminal_attempts(changed, self.root)
+        terminal['accepted'] = False
+        with self.assertRaises(Refusal): gate.terminal_attempts(terminal, self.root)
+
+    def test_primary_dynamic_ordinary_role_is_bound_from_full_admission_without_new_execution(self):
+        static, dynamic, diagnostic = '/static/ordinary', '/primary/published-ordinary', '/static/diagnostic'
+        release = dict(host_implementation_sha256='host', linked_implementation_sha256='helper')
+        profile = dict(host_implementation_sha256='profile-host', linked_implementation_sha256='profile-helper')
+        config = dict(identity=dict(host='host', helper='helper'), _final_profile_role_identities={static: release})
+        entry = dict(terminal_helper_receipt='/primary/admission.json', terminal_diagnostic_helper_receipt='/static/diagnostic.json')
+        admissions = [dict(executable=dynamic, identity=release), dict(executable=diagnostic, identity=profile)]
+        with patch.object(native_roles, 'validate_admission', side_effect=admissions) as validate, patch.object(gate, 'invoke') as execute:
+            gate.terminal_roles(config, entry, dynamic, diagnostic)
+            self.assertEqual(validate.call_args_list[0].args[1:], ('/primary/admission.json', dict(kind='release')))
+            self.assertEqual(config['_final_profile_role_identities'][dynamic], release)
+            self.assertEqual(config['_final_profile_role_identities'][static], release)
+            self.assertEqual(config['_final_profile_role_identities'][diagnostic], profile)
+            execute.assert_not_called()
+        config['_final_profile_role_identities'][dynamic] = profile
+        with patch.object(native_roles, 'validate_admission', side_effect=admissions), self.assertRaises(Refusal):
+            gate.terminal_roles(config, entry, dynamic, diagnostic)
 
     def native_role_fixture(self):
         from test_native_roles import NativeRoles

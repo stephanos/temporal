@@ -3,7 +3,8 @@
   "original_revision": "81660e841106a59ed26f7cb227462d1a85a93a9f",
   "original_sources": {
     "tools/gomad/internal/backends/wasm/internal/measure/producers.go": "7209420f43185caae926c2f4ae3397e1107181eaac2bdce0e13cdfd54a8666d0",
-    "tools/gomad/internal/model/choice/session.go": "3d4a58acdcc704561ba3b96319bb818419f9cbb969133efcc3a1093a1a6f0a7c"
+    "tools/gomad/internal/model/choice/session.go": "3d4a58acdcc704561ba3b96319bb818419f9cbb969133efcc3a1093a1a6f0a7c",
+    "tools/gomad/internal/backends/wasm/internal/measure/support_environment.go": "4544e0ef9c317e30771ed9ebddce4119af9c0bfa487f49d42c5a65c14495f968"
   },
   "recipes": {
     "terminal": {
@@ -20,8 +21,9 @@
         "success",
         "post-load-authorization-mismatch"
       ],
-      "required_host": "linux/arm64",
-      "cpuinfo_bytes_maximum": 1048576
+      "cpuinfo_bytes_maximum": 1048576,
+      "historical_required_host": "linux/arm64",
+      "host_policy": "gomad.wasm-performance-any-host/2026-10-17"
     },
     "runtime": {
       "producer": "measureRuntimeCostProfile",
@@ -39,6 +41,10 @@
       "owners": [
         "remote-model",
         "helper-model"
+      ],
+      "arguments": [
+        "guest",
+        "literal $arg"
       ]
     },
     "qualified": {
@@ -65,7 +71,15 @@
         "environment_identity",
         "fuel_remaining"
       ],
-      "choice_bytes": 1073741824
+      "choice_bytes": 1073741824,
+      "argument_prefix": [
+        "temporal.test",
+        "-test.v",
+        "-test.count=1",
+        "-test.timeout=72h"
+      ],
+      "transcript_bytes": 1073741824,
+      "output_bytes": 268435456
     }
   },
   "pending_native_gaps": [
@@ -114,13 +128,20 @@
       "required_actual_files": [
         "stdout",
         "stderr",
-        "wasi",
         "choice",
         "network",
         "terminal"
       ],
       "transformation": "identity bytes; no content normalization",
-      "missing_old_receipt": "REFUSED; no post-execution upgrade"
+      "missing_old_receipt": "REFUSED; no post-execution upgrade",
+      "wasi_digest_only": {
+        "file": null,
+        "source": "outcome:local_model.transcript_sha256",
+        "request": "guest.model.configuration.digest_only=true",
+        "raw_native_keys_and_files": "absent",
+        "bytes_maximum": 1073741824
+      },
+      "wasi_predicate": "actual rolling SHA256; independently authenticated raw file when available"
     }
   },
   "original_wire_controls": {
