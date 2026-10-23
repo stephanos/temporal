@@ -485,7 +485,7 @@ pub(super) fn publish_stress_fixture(
     diagnostics: bool,
 ) -> Value {
     let configuration = json!({"engine":linked::Conditions::compiled().configuration(),"model":{"mode":mode,"diagnostics":diagnostics}});
-    publish_stress_configuration(root, name, target, log, metadata, configuration)
+    publish_stress_configuration(root, name, target, log, metadata, &configuration)
 }
 
 pub(super) fn publish_stress_configuration(
@@ -494,7 +494,7 @@ pub(super) fn publish_stress_configuration(
     target: &[u8],
     log: Vec<u8>,
     metadata: Option<Vec<u8>>,
-    configuration: Value,
+    configuration: &Value,
 ) -> Value {
     let replay = canonical::encode(&json!({"configuration":configuration})).unwrap();
     let mut payloads: BTreeMap<String, Vec<u8>> = BTreeMap::from([
@@ -585,7 +585,7 @@ fn retained_cluster_zero_choice_owner_keeps_complete_diagnostic_admission() {
                 json!({"type":"event","order":1,"kind":"clock","instance":"active","incarnation":1,"ordinal":1,"trace":1,"decision":1,"time_nanos":1,"value":1}),
             ]),
             None,
-            configuration.clone(),
+            &configuration,
         );
         let opened = Opened::open(Path::new(base["artifact"].as_str().unwrap())).unwrap();
         let mut record = opened.manifest().record.clone();

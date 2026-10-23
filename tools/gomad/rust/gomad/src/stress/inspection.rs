@@ -47,8 +47,8 @@ fn difference(
     handle: &Handle,
     coordinate: (u64, Option<u64>, Option<u64>),
     field: &str,
-    a: Value,
-    b: Value,
+    a: &Value,
+    b: &Value,
     relation: &str,
 ) -> Value {
     let (order, time, trace) = coordinate;
@@ -89,13 +89,13 @@ fn boundary_difference(
     boundaries_b: &BTreeMap<(Handle, u64), usize>,
     budget: &mut usize,
 ) -> Result<Option<Value>, String> {
-    let at = |handle: &Handle, trace, field, x, y| {
+    let at = |handle: &Handle, trace, field, x: Value, y: Value| {
         difference(
             handle,
             (boundary.order, Some(boundary.time_nanos), trace),
             field,
-            x,
-            y,
+            &x,
+            &y,
             "inspection-boundary-upper-bound",
         )
     };
@@ -306,8 +306,8 @@ pub(super) fn diagnostic(
                     &owner.handle,
                     (owner.started_order, None, None),
                     "incarnation-presence",
-                    x,
-                    y,
+                    &x,
+                    &y,
                     "retained-incarnation-start",
                 ));
             }
@@ -336,8 +336,8 @@ pub(super) fn diagnostic(
                     Some(boundary.trace),
                 ),
                 "boundary-presence",
-                json!("absent"),
-                json!("present"),
+                &json!("absent"),
+                &json!("present"),
                 "inspection-boundary-upper-bound",
             ));
         }
@@ -368,8 +368,8 @@ pub(super) fn diagnostic(
                     &owner.handle,
                     (owner.terminal_order.max(other.terminal_order), None, None),
                     field,
-                    value(x),
-                    value(y),
+                    &value(x),
+                    &value(y),
                     "retained-terminal-upper-bound",
                 ));
             }
@@ -379,8 +379,8 @@ pub(super) fn diagnostic(
                 &owner.handle,
                 (owner.started_order.min(other.started_order), None, None),
                 "incarnation-start",
-                json!(owner.started_order),
-                json!(other.started_order),
+                &json!(owner.started_order),
+                &json!(other.started_order),
                 "retained-incarnation-start",
             ));
         }
@@ -389,8 +389,8 @@ pub(super) fn diagnostic(
                 &owner.handle,
                 (owner.terminal_order.max(other.terminal_order), None, None),
                 "incarnation-terminal",
-                json!({"terminal":owner.terminal_order,"registry":owner.registry}),
-                json!({"terminal":other.terminal_order,"registry":other.registry}),
+                &json!({"terminal":owner.terminal_order,"registry":owner.registry}),
+                &json!({"terminal":other.terminal_order,"registry":other.registry}),
                 "retained-terminal-upper-bound",
             ));
         }
@@ -412,8 +412,8 @@ pub(super) fn diagnostic(
             } else {
                 "lifecycle-tail"
             },
-            value(if world_changed { world_a } else { &a.lifecycle }),
-            value(if world_changed { world_b } else { &b.lifecycle }),
+            &value(if world_changed { world_a } else { &a.lifecycle }),
+            &value(if world_changed { world_b } else { &b.lifecycle }),
             "retained-terminal-upper-bound",
         ));
     }

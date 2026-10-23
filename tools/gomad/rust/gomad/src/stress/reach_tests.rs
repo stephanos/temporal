@@ -1,5 +1,6 @@
 use super::*;
 use serde_json::{Value, json};
+use std::fmt::Write as _;
 
 fn event(order: u64, kind: &str) -> Value {
     json!({"type":"event","order":order,"kind":kind,"instance":"a","incarnation":1,"ordinal":order,"trace":17,"decision":8,"time_nanos":101,"value":"early"})
@@ -10,9 +11,10 @@ pub(super) fn framed(rows: &[Value]) -> Vec<u8> {
         json!({"type":"header","schema":"gomad.wasm-event-order/v1"})
     );
     for row in rows {
-        raw.push_str(&format!("gomad-wasm-event-order-v1 {row}\n"));
+        writeln!(raw, "gomad-wasm-event-order-v1 {row}").unwrap();
     }
-    raw.push_str(&format!("gomad-wasm-event-order-v1 {}\n",json!({"type":"complete","events":rows.iter().filter(|row|row["type"]=="event").count(),"bytes":raw.len()})));
+    let complete = json!({"type":"complete","events":rows.iter().filter(|row|row["type"]=="event").count(),"bytes":raw.len()});
+    writeln!(raw, "gomad-wasm-event-order-v1 {complete}").unwrap();
     raw.into_bytes()
 }
 
@@ -32,7 +34,7 @@ fn diagnostic_extraction_preserves_partial_status_and_strict_artifact_reader() {
     for cut in [0, full.len() - 1, end] {
         let partial = report::extract_diagnostic(&full[..cut]).unwrap();
         assert_eq!(partial["complete"], false);
-        assert!(!partial["reason"].as_str().unwrap().is_empty());
+        assert_ne!(partial["reason"].as_str().unwrap(), "");
         assert!(report::parse(&full[..cut]).is_err());
     }
     let source = String::from_utf8(full).unwrap();
@@ -129,7 +131,7 @@ fn failed_process_diagnostic_binds_raw_stderr_and_command_without_clobbering() {
     fs::write(root.join("request.json"), b"request source").unwrap();
     let stderr = framed(&[event(1, "output")]);
     fs::write(root.join("stderr.log"), &stderr).unwrap();
-    let path = process::failure_diagnostic(&root, &binary, 79, json!({"exit":1})).unwrap();
+    let path = process::failure_diagnostic(&root, &binary, 79, &json!({"exit":1})).unwrap();
     let report: Value = read(&path).unwrap();
     assert_eq!(report["diagnostic_only"], true);
     assert_eq!(report["process_id"], 79);
@@ -149,7 +151,7 @@ fn failed_process_diagnostic_binds_raw_stderr_and_command_without_clobbering() {
     );
     assert_eq!(report["command"][0], binary.to_string_lossy().as_ref());
     assert_eq!(report["event_order"]["complete"], true);
-    assert!(process::failure_diagnostic(&root, &binary, 79, json!({"exit":2})).is_err());
+    assert!(process::failure_diagnostic(&root, &binary, 79, &json!({"exit":2})).is_err());
     assert_eq!(fs::read(root.join("stderr.log")).unwrap(), stderr);
     assert_eq!(read::<Value>(&path).unwrap(), report);
     fs::remove_dir_all(root).unwrap();
@@ -468,7 +470,7 @@ fn multi_inspection(change: &str) -> Vec<u8> {
             evidence.boundary_frames[8..12].copy_from_slice(&1u32.to_le_bytes());
             evidence
                 .world
-                .truncate(evidence.boundaries[0].world_bytes as usize);
+                .truncate(usize::try_from(evidence.boundaries[0].world_bytes).unwrap());
             let mut lifecycle = evidence.lifecycle[..36].to_vec();
             lifecycle.extend(&evidence.lifecycle[64..78]);
             evidence.lifecycle = lifecycle;
@@ -644,7 +646,7 @@ fn literal_reproducer_selects_the_authenticated_compiled_engine_role() {
             b"target",
             framed(rows),
             Some(metadata.clone()),
-            configuration,
+            &configuration,
         )
     };
     let left = publish("left", &left_rows, configuration.clone());
@@ -671,7 +673,7 @@ fn literal_reproducer_selects_the_authenticated_compiled_engine_role() {
         ),
         linked::Conditions::StressReplay => assert!(command.contains(&json!("--stress-jitter"))),
         linked::Conditions::DeterminismFixtureReplay => {
-            assert!(command.contains(&json!("--determinism-fixture")))
+            assert!(command.contains(&json!("--determinism-fixture")));
         }
         linked::Conditions::DiagnosticProfile => panic!("no public diagnostic-profile replay flag"),
     }
