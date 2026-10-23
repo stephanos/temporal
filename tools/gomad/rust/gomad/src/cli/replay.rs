@@ -14,6 +14,16 @@ fn incompatible(message: &str) -> super::Error {
 /// # Errors
 /// Refuses malformed commands or incompatible artifacts; execution errors retain status 3.
 pub fn run(arguments: &[String], output: &mut dyn Write) -> Result<i32, super::Error> {
+    run_with_installation(arguments, output, None)
+}
+
+/// # Errors
+/// Refuses incompatible explicitly selected installations after retained input admission.
+pub fn run_with_installation(
+    arguments: &[String],
+    output: &mut dyn Write,
+    installation: Option<&Path>,
+) -> Result<i32, super::Error> {
     let arguments = parse(arguments)?;
     let inspection = arguments.inspection.request(arguments.path)?;
     if inspection.is_some() && (arguments.verify || arguments.observed_directory.is_some()) {
@@ -33,6 +43,12 @@ pub fn run(arguments: &[String], output: &mut dyn Write) -> Result<i32, super::E
             "retained WASM cluster replay does not support --verify-only, --observed, or --toolchain-root",
         ));
     }
+    if let Some(path) = installation {
+        let description = crate::install::manifest::resolve(Some(path))
+            .map_err(|message| super::Error { status: 3, message })?;
+        validate_installation(&description.manifest, &prepared.opened)
+            .map_err(|message| super::Error { status: 3, message })?;
+    }
     if let Some(mut request) = inspection {
         request.conditions = crate::replay::conditions::select(
             &prepared.opened.manifest().record.profile,
@@ -47,6 +63,50 @@ pub fn run(arguments: &[String], output: &mut dyn Write) -> Result<i32, super::E
         return Ok(0);
     }
     run_prepared(prepared, arguments.observed_directory, output)
+}
+
+pub(crate) fn validate_installation(
+    installed: &crate::install::manifest::Installation,
+    opened: &crate::evidence::store::Opened,
+) -> Result<(), String> {
+    let mismatch = || {
+        "runner_failure: selected installation differs from retained implementation context"
+            .to_owned()
+    };
+    let file = if opened
+        .manifest()
+        .files
+        .contains_key(crate::replay::cluster::FILE)
+    {
+        crate::replay::cluster::FILE
+    } else {
+        preflight::FILE
+    };
+    let bytes = opened.payload(file, 128 << 20)?;
+    let inputs: serde_json::Value = crate::qualify::spec::strict(&bytes)?;
+    if installed.profile != opened.manifest().record.profile
+        || inputs["host_sha256"] != installed.host_sha256
+        || inputs["helper_sha256"] != installed.helper_sha256
+        || inputs["runtime_implementation_sha256"]
+            != serde_json::json!(installed.runtime_implementation_sha256)
+    {
+        return Err(mismatch());
+    }
+    if opened
+        .manifest()
+        .files
+        .contains_key("target/provenance.json")
+    {
+        let bytes = opened.payload("target/provenance.json", 128 << 20)?;
+        let provenance: serde_json::Value = crate::qualify::spec::strict(&bytes)?;
+        if provenance["inputs"]["compiler_sha256"] != installed.compiler_sha256
+            || provenance["inputs"]["runtime_implementation"]
+                != serde_json::json!(installed.runtime_implementation_sha256)
+        {
+            return Err(mismatch());
+        }
+    }
+    Ok(())
 }
 
 struct Arguments<'a> {

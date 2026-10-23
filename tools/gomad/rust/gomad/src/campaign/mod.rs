@@ -877,6 +877,7 @@ fn report(
     let mut successes = Vec::new();
     let mut artifacts = BTreeSet::new();
     let mut retained_bytes = 0_u64;
+    let mut advertised = Vec::new();
     for execution in executions {
         match execution.record.outcome.class.as_str() {
             "success" => {
@@ -895,6 +896,19 @@ fn report(
         if let Some(reference) = &execution.artifact
             && artifacts.insert(reference)
         {
+            let opened = journal.open_artifact(reference)?;
+            opened.authenticate_all()?;
+            if opened.manifest().record != execution.record {
+                return Err("advertised artifact differs from committed record".into());
+            }
+            let path = std::path::absolute(journal.path().join(reference))
+                .map_err(|error| error.to_string())?;
+            let text = path
+                .to_str()
+                .ok_or("advertised artifact path is not UTF-8")?;
+            let quoted = format!("'{}'", text.replace('\'', "'\"'\"'"));
+            advertised.push(json!({"path":path,"record_hash":execution.record.hash()?,
+                "replay_argv":["gomad","replay",path],"replay_command":format!("gomad replay {quoted}")}));
             retained_bytes = retained_bytes
                 .checked_add(execution.stored_bytes)
                 .ok_or("retained bytes overflow")?;
@@ -909,7 +923,7 @@ fn report(
     } else {
         0
     };
-    let mut result = json!({"type":"result","classification":if failures==0{"success"}else if watchdogs==failures{"watchdog_observation"}else if watchdogs>0{"mixed_failure"}else{"target_failure"},"campaign_path":journal.path(),"selection_count":selection_count,"attempted":executions.len(),"succeeded":succeeded,"failures":failures,"watchdogs":watchdogs,"cancelled":cancelled,"distinct_failures":distinct.len(),"stop_reason":reason,"success_artifacts":successes,"retained_evidence":artifacts.len(),"retained_bytes":retained_bytes});
+    let mut result = json!({"type":"result","classification":if failures==0{"success"}else if watchdogs==failures{"watchdog_observation"}else if watchdogs>0{"mixed_failure"}else{"target_failure"},"campaign_path":journal.path(),"selection_count":selection_count,"attempted":executions.len(),"succeeded":succeeded,"failures":failures,"watchdogs":watchdogs,"cancelled":cancelled,"distinct_failures":distinct.len(),"stop_reason":reason,"success_artifacts":successes,"artifacts":advertised,"retained_evidence":artifacts.len(),"retained_bytes":retained_bytes});
     if journal.plan()["schema"] == "gomad.merged-seed-campaign-plan/v2" {
         result["partial"] = journal.plan()["merge_missing"]
             .as_array()
@@ -933,4 +947,84 @@ fn report(
         writeln!(output,"gomad explore: campaign={} selected={selection_count} attempted={} succeeded={succeeded} failures={failures} watchdogs={watchdogs} cancelled={cancelled} distinct={} stop={reason}",journal.path().display(),executions.len(),distinct.len()).map_err(|error|error.to_string())?;
     }
     Ok(i32::from(failures != 0))
+}
+
+#[cfg(test)]
+mod installed_report_tests {
+    use super::*;
+
+    #[test]
+    fn installed_lifecycle_report_advertises_only_authenticated_retained_artifacts() {
+        let fixture = crate::installed_lifecycle_tests::retained(false);
+        let plan = json!({"schema":"gomad.seed-campaign-plan/v2","selection":"7", "selection_count":1,
+            "parallel":1,"on_failure":"all","failure_budget":1,"journal_bytes":1_048_576});
+        let journal = Journal::create(&fixture.root.join("campaign"), &plan, 1 << 20).unwrap();
+        let store = Store {
+            root: journal.path().join("evidence"),
+            maximum_bytes: 64 << 20,
+            target_pool: None,
+            #[cfg(feature = "determinism-fixture")]
+            fault: None,
+        };
+        let opened = Opened::open(&fixture.published.path).unwrap();
+        let mut payloads = BTreeMap::new();
+        for (name, entry) in &opened.manifest().files {
+            payloads.insert(name.clone(), opened.payload(name, entry.bytes).unwrap());
+        }
+        let published = store
+            .publish(Publication {
+                record: fixture.record.clone(),
+                payloads,
+            })
+            .unwrap();
+        let reference = published
+            .path
+            .strip_prefix(journal.path())
+            .unwrap()
+            .to_str()
+            .unwrap()
+            .to_owned();
+        let execution = Execution {
+            ordinal: 0,
+            seed: 7,
+            record: fixture.record.clone(),
+            artifact: Some(reference),
+            stored_bytes: published.stored_bytes,
+            semantic_probes: vec![],
+            choice_features: vec![],
+            divergence: None,
+            scenario_steps: None,
+            soft_assertions: None,
+        };
+        let mut output = Vec::new();
+        report(
+            &journal,
+            std::slice::from_ref(&execution),
+            "complete",
+            true,
+            &mut output,
+        )
+        .unwrap();
+        let value: Value = serde_json::from_slice(&output).unwrap();
+        let artifacts = value["artifacts"]
+            .as_array()
+            .expect("retained replay invocation was not advertised");
+        assert_eq!(artifacts.len(), 1);
+        assert_eq!(artifacts[0]["path"], json!(published.path));
+        assert_eq!(
+            artifacts[0]["record_hash"],
+            execution.record.hash().unwrap()
+        );
+        assert_eq!(
+            artifacts[0]["replay_argv"],
+            json!(["gomad", "replay", published.path])
+        );
+        assert_ne!(artifacts[0]["replay_command"].as_str().unwrap(), "");
+        std::fs::write(
+            published.path.join("output/stdout"),
+            b"altered retained bytes",
+        )
+        .unwrap();
+        assert!(report(&journal, &[execution], "complete", true, &mut Vec::new()).is_err());
+    }
 }

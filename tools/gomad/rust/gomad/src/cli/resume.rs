@@ -4,6 +4,16 @@ use std::{io::Write, path::Path};
 /// # Errors
 /// Reports invalid resume requests and campaign recovery failures.
 pub fn run(arguments: &[String], output: &mut dyn Write) -> Result<i32, super::Error> {
+    run_with_installation(arguments, output, None)
+}
+
+/// # Errors
+/// Refuses explicit installation changes before opening the campaign writer.
+pub fn run_with_installation(
+    arguments: &[String],
+    output: &mut dyn Write,
+    installation: Option<&Path>,
+) -> Result<i32, super::Error> {
     let mut json = false;
     let result = (|| {
         let mut index = 0;
@@ -24,6 +34,27 @@ pub fn run(arguments: &[String], output: &mut dyn Write) -> Result<i32, super::E
             return Err("resume requires one interrupted campaign path".into());
         }
         let path = Path::new(&arguments[index]);
+        if let Some(selected) = installation {
+            let description = crate::install::manifest::resolve(Some(selected))?;
+            let opened = if crate::campaign::exploration::plan::is_round_campaign(path)? {
+                let journal = crate::campaign::exploration::round::RoundJournal::open(path, false)?;
+                journal.open_artifact(
+                    journal.plan().prepared["prepared_artifact"]
+                        .as_str()
+                        .ok_or("campaign prepared artifact missing")?,
+                )?
+            } else {
+                let journal = crate::campaign::ledger::Journal::open(path, false)?;
+                journal.open_artifact(
+                    journal.plan()["prepared_artifact"]
+                        .as_str()
+                        .ok_or("campaign prepared artifact missing")?,
+                )?
+            };
+            opened.authenticate_all()?;
+            super::replay::validate_installation(&description.manifest, &opened)?;
+        }
+
         if crate::campaign::exploration::plan::is_round_campaign(path)? {
             use crate::campaign::exploration::round::{RoundJournal, RoundStrategy};
             let strategy = {

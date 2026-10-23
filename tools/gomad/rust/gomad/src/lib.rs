@@ -29,3 +29,5 @@ pub(crate) mod qualify;
 pub mod replay;
 pub mod slots;
 pub(crate) mod stress;
+#[cfg(test)]
+pub(crate) mod installed_lifecycle_tests;

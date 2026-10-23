@@ -163,12 +163,14 @@ pub fn run(arguments: &[String], output: &mut dyn Write) -> Result<(), super::Er
     let bytes = if json {
         canonical::encode(&report)?
     } else {
-        format!(
+        let mut rendered = format!(
             "gomad inspect: kind=artifact path={}\nidentity: record={} execution={} seed={}\noutcome: class={} termination={} signature={}\nrecord: {}",
             path.display(), manifest.record_sha256, manifest.record.execution_identity,
             manifest.record.seed, manifest.record.outcome.class, manifest.record.outcome.termination,
             report.artifact.failure_signature, String::from_utf8(canonical::encode(&report.artifact)?).map_err(|error| error.to_string())?
-        ).into_bytes()
+        ).into_bytes();
+        append_cluster_text(&opened, &mut rendered)?;
+        rendered
     };
     output
         .write_all(&bytes)
@@ -177,4 +179,62 @@ pub fn run(arguments: &[String], output: &mut dyn Write) -> Result<(), super::Er
             status: 3,
             message: format!("write inspection report: {error}"),
         })
+}
+
+fn append_cluster_text(opened: &Opened, output: &mut Vec<u8>) -> Result<(), super::Error> {
+    if !opened
+        .manifest()
+        .files
+        .contains_key("evidence/cluster_summary")
+    {
+        return Ok(());
+    }
+    let raw = opened.payload("evidence/cluster_summary", 128 << 20)?;
+    let summary: serde_json::Value = crate::qualify::spec::strict(&raw)?;
+    if summary["schema"] != "gomad.cluster-observation/v1" {
+        return Err("unsupported cluster observation".into());
+    }
+    let elapsed = summary["virtual_elapsed_nanos"]
+        .as_u64()
+        .ok_or("missing cluster elapsed time")?;
+    writeln!(output, "cluster: virtual-elapsed-nanos={elapsed}")
+        .map_err(|error| error.to_string())?;
+    let record = &opened.manifest().record;
+    if record.outcome.termination == "capacity"
+        && let Some(bound) = record.outcome.reason.strip_prefix("WASI capacity: ")
+    {
+        writeln!(output, "exhausted={}", bound.escape_default())
+            .map_err(|error| error.to_string())?;
+    }
+    for row in summary["incarnations"]
+        .as_array()
+        .ok_or("missing cluster instances")?
+    {
+        let node = row["handle"]["node"]
+            .as_str()
+            .ok_or("missing cluster node")?;
+        let incarnation = row["handle"]["incarnation"]
+            .as_u64()
+            .ok_or("missing cluster incarnation")?;
+        let mut counts = Vec::new();
+        let mut tail = Vec::new();
+        for stream in ["stdout", "stderr"] {
+            let file = format!("evidence/cluster/{node}/{incarnation}/{stream}");
+            let raw = opened.payload(&file, record.limits.output_bytes)?;
+            if row["streams"][stream]["bytes"].as_u64() != Some(raw.len() as u64)
+                || row["streams"][stream]["sha256"] != canonical::digest(&raw)
+            {
+                return Err("cluster instance output identity mismatch".into());
+            }
+            counts.push(raw.len());
+            if stream == "stdout" {
+                tail.extend_from_slice(&raw[raw.len().saturating_sub(4096)..]);
+            }
+        }
+        let tail = serde_json::to_string(&String::from_utf8_lossy(&tail))
+            .map_err(|error| error.to_string())?;
+        writeln!(output, "cluster-instance: node={} incarnation={incarnation} stdout-bytes={} stderr-bytes={} stdout-tail={tail}",
+            node.escape_default(), counts[0], counts[1]).map_err(|error| error.to_string())?;
+    }
+    Ok(())
 }
