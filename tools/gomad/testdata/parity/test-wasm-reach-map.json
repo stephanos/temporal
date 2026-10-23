@@ -2443,12 +2443,12 @@
   },
   "tools/gomad/internal/backends/wasm/layout_test.go#TestWASMTestsDoNotImportNativeBuilder/original-make/architecture-builder-selection": {
    "evidence": [
-    "go/go.temporal.io/server/tools/gomad/internal/archcheck/TestRetainedWASMSourcesDoNotImportNativeBuilder@stage/PENDING@run/PENDING"
+    "go/go.temporal.io/server/tools/gomad/internal/archcheck/TestRetainedWASMSourcesDoNotImportNativeBuilder@stage/ordinary@run/ordinary-builder-run"
    ]
   },
   "tools/gomad/internal/backends/wasm/layout_test.go#TestWASMTestsDoNotImportNativeBuilder/original-make/recursive-test-wasm": {
    "evidence": [
-    "go/go.temporal.io/server/tools/gomad/internal/archcheck/TestRetainedWASMSourcesDoNotImportNativeBuilder@stage/PENDING@run/PENDING"
+    "go/go.temporal.io/server/tools/gomad/internal/archcheck/TestRetainedWASMSourcesDoNotImportNativeBuilder@stage/ordinary@run/ordinary-recursive-builder-run"
    ]
   },
   "tools/gomad/internal/backends/wasm/qualification/budget_test.go#TestBudgetClusterPeakCoversResidentsOnce": {

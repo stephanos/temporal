@@ -1111,4 +1111,42 @@ mod backend_evidence_tests {
         );
         std::fs::remove_dir_all(root).unwrap();
     }
+
+    /// Original `TestModelEvidencePreservesRawDefaultAndBindsEffects`: the
+    /// default WASI transcript publishes byte-for-byte, and committed storage
+    /// and network effects each change the published record. The per-stream
+    /// byte bound is the producer's (`volume::faults` corpus `transcript_limit`).
+    #[test]
+    fn model_evidence_preserves_raw_default_and_binds_effects() {
+        let prepared = prepared();
+        let job = ledger::Job {
+            ordinal: 0,
+            seed: 7,
+        };
+        let publish = |streams: &[(&str, &[u8])]| {
+            let mut observed = execution(10);
+            for (name, bytes) in streams {
+                observed.evidence.insert((*name).into(), bytes.to_vec());
+            }
+            publication(&prepared, &job, observed).unwrap().publication
+        };
+        let plain = publish(&[("transcript", b"wasi")]);
+        assert_eq!(plain.payloads["evidence/transcript"], b"wasi");
+        assert!(!plain.payloads.contains_key("evidence/storage"));
+        assert!(!plain.payloads.contains_key("evidence/network"));
+        let first = publish(&[("transcript", b"wasi"), ("storage", b"committed effects")]);
+        let second = publish(&[("transcript", b"wasi"), ("storage", b"lost effects")]);
+        let third = publish(&[
+            ("transcript", b"wasi"),
+            ("storage", b"lost effects"),
+            ("network", b"network effects"),
+        ]);
+        for modeled in [&first, &second, &third] {
+            assert_eq!(modeled.payloads["evidence/transcript"], b"wasi");
+        }
+        let hashes = [&plain, &first, &second, &third].map(|item| item.record.hash().unwrap());
+        assert_ne!(hashes[1], hashes[2], "storage effects absent from identity");
+        assert_ne!(hashes[2], hashes[3], "network effects absent from identity");
+        assert_ne!(hashes[0], hashes[1]);
+    }
 }

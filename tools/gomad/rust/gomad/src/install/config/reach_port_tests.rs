@@ -182,3 +182,21 @@ fn write_preserves_existing_installation() {
     assert_eq!(fs::read(&path).unwrap(), before);
     manifest::resolve(Some(&path)).unwrap();
 }
+
+/// Original `wasi.TestTemporalClockConfigurationIdentity`: the frozen default
+/// and the `read-step-1us-v1` clock selections are distinct installation
+/// model identities.
+#[test]
+fn temporal_clock_selection_binds_configuration_identity() {
+    let identities = [0_u64, 1000].map(|read_step| {
+        let mut original = default_value(COOPERATIVE);
+        original["Clock"]["ReadStepNanos"] = read_step.into();
+        let configured = convert(original, COOPERATIVE).unwrap();
+        assert_eq!(configured.model["read_step_nanos"], read_step);
+        canonical::digest(&canonical::encode(&configured.model).unwrap())
+    });
+    assert_ne!(
+        identities[0], identities[1],
+        "clock selection was omitted from the configuration identity"
+    );
+}
