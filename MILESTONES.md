@@ -80,6 +80,7 @@ The owner's goal says to follow the conductor's own recommendations when in doub
    - A Go-host-only unit test that checks an implementation detail of deleted Go code is retired with that code. Each retirement gets a one-line reason in the reach map. An example is the helper's `wait4` telemetry.
    - Every user-visible behavior of a retained feature keeps a mapped Rust test with its original assertions and bounds.
    - The 752 original callables are not ported one by one.
+   - The reach gate refuses any map entry recorded as `partial:` or `gap:`, so a known gap can never pass as complete reach. Each such entry is either ported or converted to a mapped entry with an explicit Go-implementation-only reason.
 2. **`TestDeterminismExecutedDivergenceArtifacts/handoff`.** Its "every incarnation exits" assertion also fails on the original Go baseline. It is superseded by the fn-235 fail-fast behavior the owner has already authorized. The original failure is kept as history.
 3. **One-hour limit.** First time the critical-path stages on the Rust binary. Raise the limit with the owner only if those stages measurably don't fit. Until then the limit stays unchanged.
 4. **Cache-path identity.** Compiled files located in the Go cache are recorded by content, not by absolute path. A guest's identity must not depend on the caller's cache location.
