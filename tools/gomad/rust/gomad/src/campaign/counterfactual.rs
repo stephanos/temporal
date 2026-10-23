@@ -348,8 +348,19 @@ fn verify_pair(input: &Inputs, case: &Case, root: &Path, pair: &[Value]) -> Valu
     assert!(report["reproducer"]["prefix_unavailable"].is_null());
     assert!(command.contains(&pair[0]["artifact"].as_str().unwrap().to_owned()));
     let mut provider_output = Vec::new();
+    let mut provider_arguments = command[2..].to_vec();
+    provider_arguments.splice(
+        0..0,
+        [
+            "--debug-output".into(),
+            root.join(&case.name)
+                .join("provider-output")
+                .to_string_lossy()
+                .into_owned(),
+        ],
+    );
     assert_eq!(
-        crate::cli::replay::run(&command[2..], &mut provider_output)
+        crate::cli::replay::run(&provider_arguments, &mut provider_output)
             .map_err(|error| error.message)
             .unwrap(),
         0
