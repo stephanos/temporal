@@ -2,6 +2,8 @@ mod lineage;
 pub(crate) mod open;
 mod pool;
 mod publish;
+#[cfg(test)]
+mod record_intake_tests;
 
 use super::{canonical, record::Record};
 pub use open::Opened;
