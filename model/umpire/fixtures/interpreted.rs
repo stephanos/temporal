@@ -41,9 +41,6 @@ mod apalache_empty_condition;
 #[path = "../backends/apalache/tests/fixtures/arithmetic_prefix.rs"]
 #[allow(unreachable_pub, missing_docs)]
 mod arithmetic_prefix;
-#[path = "lengths.rs"]
-#[allow(unreachable_pub, missing_docs)]
-mod usize_lengths;
 #[path = "../backends/apalache/tests/fixtures/replay.rs"]
 #[allow(unreachable_pub, missing_docs)]
 mod replay;
@@ -62,6 +59,9 @@ mod start_fault_first;
 #[path = "../backends/apalache/tests/fixtures/start_later_fault.rs"]
 #[allow(unreachable_pub, missing_docs)]
 mod start_later_fault;
+#[path = "lengths.rs"]
+#[allow(unreachable_pub, missing_docs)]
+mod usize_lengths;
 
 use sample_kettle::kettle;
 use umpire_checker::{Checker, Interpreted};
@@ -189,8 +189,9 @@ fn start_domains_evaluate_lazily() -> TestResult {
 #[test]
 fn lengths_compute_in_usize() -> TestResult {
     interpreted(usize_lengths::lengths::world, None, Checker::BUDGET, None)?;
-    let report =
-        Checker::explore(&usize_lengths::lengths::world(), Checker::BUDGET)?.verify_all()?.to_string();
+    let report = Checker::explore(&usize_lengths::lengths::world(), Checker::BUDGET)?
+        .verify_all()?
+        .to_string();
     assert!(report.contains("outcome: Verified"), "{report}");
     Ok(())
 }
