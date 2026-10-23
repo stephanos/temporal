@@ -23,7 +23,7 @@ fn sqlite_fixed_lines_reject_every_original_ambiguous_observation() {
         json!({
             "schema":"gomad.native-lifecycle-predicate/v1",
             "original_root":"TestSQLiteObservationsForwardToNativeOracleOwner",
-            "variant":"three-native-checks","observed":observation
+            "variant":"three-native-checks","inputs":{"ack_bytes":b"ACK 2\n","stdout_bytes":good.as_slice()},"observed":observation
         })
     );
     for (variant, output) in [
@@ -48,7 +48,7 @@ fn sqlite_fixed_lines_reject_every_original_ambiguous_observation() {
             json!({
                 "schema":"gomad.native-lifecycle-predicate/v1",
                 "original_root":"TestSQLiteObservationUsesFreshFixedLines",
-                "variant":variant,"observed":{"error":error}
+                "variant":variant,"inputs":{"ack_bytes":b"ACK 2\n","stdout_bytes":output.as_bytes()},"observed":{"error":error}
             })
         );
     }
@@ -59,7 +59,7 @@ fn sqlite_fixed_lines_reject_every_original_ambiguous_observation() {
         json!({
             "schema":"gomad.native-lifecycle-predicate/v1",
             "original_root":"TestSQLiteObservationUsesFreshFixedLines",
-            "variant":"duplicate-ack","observed":{"error":duplicate.unwrap_err()}
+            "variant":"duplicate-ack","inputs":{"ack_bytes":b"ACK 2\nACK 2\n","stdout_bytes":good.as_slice()},"observed":{"error":duplicate.unwrap_err()}
         })
     );
 }
@@ -102,7 +102,7 @@ fn every_selected_incarnation_receives_the_same_spec_bound_network_limits() {
         }))
         .unwrap();
         let result = bind(&raw, &base, module, &identity, Some(&network), 17);
-        if variant == "matching" {
+        let (configuration, request_incarnations, error) = if variant == "matching" {
             let bound = result.unwrap();
             assert_eq!(bound.configuration.incarnations.len(), 3);
             assert_eq!(bound.request.incarnations.len(), 3);
@@ -116,20 +116,31 @@ fn every_selected_incarnation_receives_the_same_spec_bound_network_limits() {
                 assert_eq!(limits.connection_bytes, 123);
                 assert_eq!(limits.stall_nanos, 456);
             }
+            (
+                Some(serde_json::to_value(&bound.configuration).unwrap()),
+                bound
+                    .request
+                    .incarnations
+                    .iter()
+                    .map(|item| json!({"handle":item.handle,"network":item.network}))
+                    .collect::<Vec<_>>(),
+                None,
+            )
         } else {
+            let error = result.err().unwrap();
             assert_eq!(
-                result.err().unwrap(),
+                error,
                 "WASM boot network limits differ from simulation specification"
             );
-        }
+            (None, Vec::new(), Some(error))
+        };
         println!(
             "{}",
             json!({
                 "schema":"gomad.native-lifecycle-predicate/v1",
                 "original_root":"TestProviderBindsEverySelectedBootNetworkLimit",
-                "variant":variant,"observed":{"connection_bytes":connection_bytes,
-                    "stall_nanos":stall_nanos,"selected":["a/1","b/1","a/2"],
-                    "accepted":variant=="matching"}
+                "variant":variant,"inputs":{"scenario_base64":crate::campaign::exploration::base64(&raw),"network":network},
+                "observed":{"configuration":configuration,"request_incarnations":request_incarnations,"error":error,"accepted":configuration.is_some()}
             })
         );
     }
