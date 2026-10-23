@@ -116,7 +116,8 @@ class Lane:
             pass
         else:
             raise AssertionError(('inspection process group survived', process.pid))
-        row = dict(name=name, argv=command, status=process.returncode, elapsed_seconds=elapsed)
+        row = dict(name=name, argv=command, status=process.returncode, elapsed_seconds=elapsed,
+                   expected_statuses=list(statuses), cancelled=cancel, early_cancel=early_cancel)
         self.rows.append(row)
         (self.args.work / (name + '.stdout')).write_bytes(stdout)
         (self.args.work / (name + '.stderr')).write_bytes(stderr)

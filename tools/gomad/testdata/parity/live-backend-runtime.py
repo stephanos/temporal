@@ -12,6 +12,31 @@ Lane, equal, encode, digest = (common[key] for key in ('Lane', 'equal', 'encode'
 MODULE = common['MODULE']
 
 
+
+def retire_preparation_aliases(work, stock_root):
+    """Retire only authenticated private preparation aliases after detached replay."""
+    aliases = []
+    compiler = work / 'compiler-link'
+    equal(compiler.is_symlink(), True, 'preparation.compiler_alias_present')
+    equal(os.readlink(compiler), str(work / 'go'), 'preparation.compiler_alias_target')
+    aliases.append(dict(path='compiler-link', target=os.readlink(compiler)))
+    private = work / 'go-unavailable'
+    equal(private.is_dir() and not private.is_symlink(), True, 'preparation.detached_distribution')
+    for path in sorted(private.rglob('*')):
+        if not path.is_symlink():
+            continue
+        original = stock_root / path.relative_to(private)
+        equal(original.is_symlink(), True, 'preparation.original_distribution_alias')
+        equal(os.readlink(path), os.readlink(original), 'preparation.original_alias_target')
+        aliases.append(dict(path=str(path.relative_to(work)), target=os.readlink(path)))
+    # Validate the complete set before changing any private alias.
+    receipt = dict(schema='gomad.retired-preparation-aliases/v1',
+                   after='runtime-detached-exact-replay', stock_root=str(stock_root), aliases=aliases)
+    (work / 'retired-preparation-aliases.json').write_bytes(encode(receipt))
+    for row in aliases:
+        (work / row['path']).unlink()
+
+
 def main():
     lane = Lane(__doc__)
     installation = lane.installation('runtime')
@@ -88,6 +113,7 @@ def main():
     equal(len(terminal), 16, 'runtime.terminal_bytes')
     equal(terminal[:4], (1).to_bytes(4, 'big'), 'runtime.terminal_version')
     lane.replay('runtime-detached-exact-replay', artifact)
+    retire_preparation_aliases(lane.args.work, stock_root)
     lane.roots.append(dict(root=7, original='TestIntegratedCooperativeFailureArtifactDetachedReplay',
                            selected_seeds=[index * 1000003 for index in range(32)],
                            build_key=original['build_key'], legacy_alias_build_key=digest(encode(legacy))))

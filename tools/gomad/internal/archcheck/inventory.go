@@ -134,7 +134,7 @@ func discover(root, goCommand string, platform Platform, legacy bool) (Inventory
 		}
 		relative = filepath.ToSlash(relative)
 		moduleRelative := filepath.ToSlash(filepath.Join(scope, relative))
-		if closure && (len(pkg.Match) == 0 || pkg.ForTest != "") || Within(moduleRelative, "internal/backends/wasm/wasmhost/target") || !Within(pkg.ImportPath, module) {
+		if closure && (len(pkg.Match) == 0 || pkg.ForTest != "") || Within(moduleRelative, "rust/target") || !Within(pkg.ImportPath, module) {
 			continue
 		}
 		inventory.Packages = append(inventory.Packages, pkg)
@@ -152,7 +152,7 @@ func discover(root, goCommand string, platform Platform, legacy bool) (Inventory
 		}
 		relative := filepath.ToSlash(strings.TrimPrefix(path, root+string(filepath.Separator)))
 		moduleRelative := filepath.ToSlash(filepath.Join(scope, relative))
-		if entry.IsDir() && (slices.Contains([]string{".toolchain", ".bin"}, relative) || moduleRelative == "internal/backends/wasm/wasmhost/target") {
+		if entry.IsDir() && (slices.Contains([]string{".toolchain", ".bin"}, relative) || moduleRelative == "rust/target") {
 			return filepath.SkipDir
 		}
 		if entry.IsDir() && slices.ContainsFunc(locals, func(local localModule) bool { return moduleRelative == local.Dir }) {
@@ -217,10 +217,13 @@ func discover(root, goCommand string, platform Platform, legacy bool) (Inventory
 	}
 	for _, pkg := range inventory.Packages {
 		relative := strings.TrimPrefix(pkg.ImportPath, module+"/")
-		if Within(relative, "internal/model") || Within(relative, "internal/backends/wasm/toolchain") || Within(relative, "internal/archcheck") {
+		if Within(relative, "internal/model") || Within(relative, "internal/backends/wasm/toolchain") || Within(relative, "internal/archcheck") || Within(relative, "internal/support") || Within(relative, "internal/model/wasi") || Within(relative, "internal/backends/wasm/cluster") || Within(relative, "internal/backends/wasm/determinism") || Within(relative, "internal/backends/wasm/internal/stockgo") {
 			inventory.RetainedGo = append(inventory.RetainedGo, pkg.ImportPath)
 		} else {
 			inventory.RetiringGo = append(inventory.RetiringGo, pkg.ImportPath)
+			if legacy {
+				add("retired-host-source", pkg.ImportPath, "default Go sources must belong to the retained model, conformance or toolchain set")
+			}
 		}
 	}
 	slices.Sort(inventory.RetainedGo)
@@ -237,15 +240,19 @@ func discover(root, goCommand string, platform Platform, legacy bool) (Inventory
 func Within(path, root string) bool { return within(path, root) }
 
 var sourceExclusions = []string{
-	"internal/model/cluster/testdata/simulation_exploration", "internal/model/cluster/testdata/simulation_replay",
+	"rust/wasmhost/src/world/deflate/testdata",
 	"cmd/gomad/testdata", "internal/evidence/qualification/corpus",
-	"testdata/parity/site_scope",
-	"internal/backends/wasm/testdata", "internal/backends/wasm/wasi/testdata", "internal/backends/wasm/toolchain/testdata", "internal/backends/wasm/cluster/testdata", "internal/backends/wasm/qualification/testdata", "internal/backends/wasm/command/testdata",
+	"internal/model/cluster/testdata/simulation_exploration", "internal/model/cluster/testdata/simulation_replay",
+	"testdata/parity/site_scope", "testdata/parity/live_backend",
+	"internal/backends/wasm/testdata", "internal/model/wasi/testdata", "internal/backends/wasm/toolchain/testdata", "internal/backends/wasm/cluster/testdata", "internal/backends/wasm/qualification/testdata", "internal/backends/wasm/command/testdata",
 }
 
 var expectedModules = map[string]bool{
-	"internal/evidence/qualification/corpus/go.mod": true, "internal/backends/wasm/qualification/testdata/fixture/go.mod": true,
-	"internal/backends/wasm/testdata/io_failure_module/go.mod": true, "internal/backends/wasm/testdata/ringpop/go.mod": true,
+	"testdata/parity/live_backend/exploration/go.mod":              true,
+	"testdata/parity/live_backend/minimization/go.mod":             true,
+	"internal/evidence/qualification/corpus/go.mod":                true,
+	"internal/backends/wasm/qualification/testdata/fixture/go.mod": true,
+	"internal/backends/wasm/testdata/io_failure_module/go.mod":     true, "internal/backends/wasm/testdata/ringpop/go.mod": true,
 }
 
 func SelectionTags() string {

@@ -1,0 +1,29 @@
+wasip1/wasm|net/net_fake.go|fakeConnect|patch|1|routes Gomad network streams to the net_stream import (network model); no draw or clock
+wasip1/wasm|net/net_fake.go|fakeListen|patch|1|routes Gomad listeners to the net_stream import (network model); no draw or clock
+wasip1/wasm|net/net_fake.go|method.Close|patch|1|network stream close goes through the net_stream import
+wasip1/wasm|net/net_fake.go|method.Read|patch|1|network stream reads go through the net_stream import
+wasip1/wasm|net/net_fake.go|method.SetDeadline|patch|1|stream deadlines are virtual-time arguments to the net_stream import
+wasip1/wasm|net/net_fake.go|method.SetReadDeadline|patch|1|stream deadlines are virtual-time arguments to the net_stream import
+wasip1/wasm|net/net_fake.go|method.SetWriteDeadline|patch|1|stream deadlines are virtual-time arguments to the net_stream import
+wasip1/wasm|net/net_fake.go|method.Write|patch|1|network stream writes go through the net_stream import
+wasip1/wasm|net/net_fake.go|method.accept|patch|1|accepted streams come from the net_stream import
+wasip1/wasm|net/net_fake.go|method.closeRead|patch|1|half-close goes through the net_stream import
+wasip1/wasm|net/net_fake.go|method.closeWrite|patch|1|half-close goes through the net_stream import
+wasip1/wasm|net/net_fake.go|package|patch|1|adds the stream handle and per-direction mutexes to fakeNetFD
+wasip1/wasm|runtime/lock_wasip1.go|noteclear|patch|1|throws on clearing a note with an active waiter; no draw or clock
+wasip1/wasm|runtime/lock_wasip1.go|notewakeup|patch|1|wakes a parked note waiter in program order; no draw or clock
+wasip1/wasm|runtime/netpoll_wasip1.go|netpoll|patch|1|inspection does not poll; outside inspection netpoll is the stock poll_oneoff on the virtual clock
+wasip1/wasm|runtime/note_other.go|package|patch|1|adds waiter, deadline and status fields to note for virtual-clock parking
+wasip1/wasm|runtime/os_wasip1.go|exit|patch|1|renames the stock exit so the glue's finalizer reports the terminal outcome first
+wasip1/wasm|runtime/proc.go|execute|patch|1|throws if inspection would dispatch application code
+wasip1/wasm|runtime/proc.go|findRunnable|patch|1|inspection runs only inspection goroutines
+wasip1/wasm|runtime/proc.go|main|patch|2|starts the debug registration and seeded user-code identity before main.main
+wasip1/wasm|runtime/proc.go|newproc1|patch|1|assigns each new goroutine a deterministic identity from its creator and call site
+wasip1/wasm|runtime/proc.go|schedinit|patch|1|forces GOMAXPROCS=1 under Gomad, so there is one P and the GC pacer's random P pick is unreachable at startup
+wasip1/wasm|runtime/proc.go|schedule|patch|1|locked-M handoff is skipped during inspection only
+wasip1/wasm|runtime/runtime2.go|package|patch|1|adds goroutine identity fields used by choice records
+wasip1/wasm|runtime/select.go|selectgo|patch|3|records select sites, readiness and results on the choice tape
+wasip1/wasm|runtime/time.go|method.maybeAdd|patch|1|forces timer re-randomization under Gomad so the gomadTimerRand draw rows apply to every timer
+wasip1/wasm|runtime/time.go|method.unlockAndRun|patch|2|records timer firings and their callbacks on the choice tape
+wasip1/wasm|runtime/time.go|newTimer|patch|1|records the creating call site of each timer
+wasip1/wasm|runtime/time.go|package|patch|1|adds creator identity and firing count fields to timers

@@ -1,6 +1,11 @@
 {
   "schema": "gomad.rust-qualification-driver/v1",
   "root": "/absolute/new-qualification-root",
+  "scratch": "/absolute/new-qualification-scratch",
+  "temporary_paths": {
+    "TMPDIR": "/absolute/new-qualification-scratch/tmp",
+    "GOTMPDIR": "/absolute/new-qualification-scratch/go-tmp"
+  },
   "sent_epoch": 0,
   "deadline_s": 3600,
   "cores": 12,
@@ -201,7 +206,9 @@
       "arguments": [
         "--working-dir",
         "/home/agent/wt/fn232-rust-driver/tools/gomad"
-      ]
+      ],
+      "harness": "/absolute/frozen/runtime-qualification-replay",
+      "harness_build_receipt": "/absolute/frozen/runtime-harness-build.json"
     },
     "runtime-1": {
       "adapter": "runtime",
@@ -210,7 +217,9 @@
       "arguments": [
         "--working-dir",
         "/home/agent/wt/fn232-rust-driver/tools/gomad"
-      ]
+      ],
+      "harness": "/absolute/frozen/runtime-qualification-replay",
+      "harness_build_receipt": "/absolute/frozen/runtime-harness-build.json"
     },
     "runtime-2": {
       "adapter": "runtime",
@@ -219,7 +228,9 @@
       "arguments": [
         "--working-dir",
         "/home/agent/wt/fn232-rust-driver/tools/gomad"
-      ]
+      ],
+      "harness": "/absolute/frozen/runtime-qualification-replay",
+      "harness_build_receipt": "/absolute/frozen/runtime-harness-build.json"
     },
     "runtime-3": {
       "adapter": "runtime",
@@ -228,7 +239,9 @@
       "arguments": [
         "--working-dir",
         "/home/agent/wt/fn232-rust-driver/tools/gomad"
-      ]
+      ],
+      "harness": "/absolute/frozen/runtime-qualification-replay",
+      "harness_build_receipt": "/absolute/frozen/runtime-harness-build.json"
     },
     "runtime-4": {
       "adapter": "runtime",
@@ -237,7 +250,9 @@
       "arguments": [
         "--working-dir",
         "/home/agent/wt/fn232-rust-driver/tools/gomad"
-      ]
+      ],
+      "harness": "/absolute/frozen/runtime-qualification-replay",
+      "harness_build_receipt": "/absolute/frozen/runtime-harness-build.json"
     },
     "runtime-5": {
       "adapter": "runtime",
@@ -246,7 +261,9 @@
       "arguments": [
         "--working-dir",
         "/home/agent/wt/fn232-rust-driver/tools/gomad"
-      ]
+      ],
+      "harness": "/absolute/frozen/runtime-qualification-replay",
+      "harness_build_receipt": "/absolute/frozen/runtime-harness-build.json"
     },
     "runtime-6": {
       "adapter": "runtime",
@@ -255,7 +272,9 @@
       "arguments": [
         "--working-dir",
         "/home/agent/wt/fn232-rust-driver/tools/gomad"
-      ]
+      ],
+      "harness": "/absolute/frozen/runtime-qualification-replay",
+      "harness_build_receipt": "/absolute/frozen/runtime-harness-build.json"
     },
     "runtime-7": {
       "adapter": "runtime",
@@ -264,7 +283,9 @@
       "arguments": [
         "--working-dir",
         "/home/agent/wt/fn232-rust-driver/tools/gomad"
-      ]
+      ],
+      "harness": "/absolute/frozen/runtime-qualification-replay",
+      "harness_build_receipt": "/absolute/frozen/runtime-harness-build.json"
     },
     "runtime-8": {
       "adapter": "runtime",
@@ -273,7 +294,9 @@
       "arguments": [
         "--working-dir",
         "/home/agent/wt/fn232-rust-driver/tools/gomad"
-      ]
+      ],
+      "harness": "/absolute/frozen/runtime-qualification-replay",
+      "harness_build_receipt": "/absolute/frozen/runtime-harness-build.json"
     },
     "runtime-9": {
       "adapter": "runtime",
@@ -282,7 +305,9 @@
       "arguments": [
         "--working-dir",
         "/home/agent/wt/fn232-rust-driver/tools/gomad"
-      ]
+      ],
+      "harness": "/absolute/frozen/runtime-qualification-replay",
+      "harness_build_receipt": "/absolute/frozen/runtime-harness-build.json"
     },
     "runtime-10": {
       "adapter": "runtime",
@@ -291,7 +316,9 @@
       "arguments": [
         "--working-dir",
         "/home/agent/wt/fn232-rust-driver/tools/gomad"
-      ]
+      ],
+      "harness": "/absolute/frozen/runtime-qualification-replay",
+      "harness_build_receipt": "/absolute/frozen/runtime-harness-build.json"
     },
     "runtime-11": {
       "adapter": "runtime",
@@ -300,7 +327,9 @@
       "arguments": [
         "--working-dir",
         "/home/agent/wt/fn232-rust-driver/tools/gomad"
-      ]
+      ],
+      "harness": "/absolute/frozen/runtime-qualification-replay",
+      "harness_build_receipt": "/absolute/frozen/runtime-harness-build.json"
     },
     "runtime-12": {
       "adapter": "runtime",
@@ -309,7 +338,9 @@
       "arguments": [
         "--working-dir",
         "/home/agent/wt/fn232-rust-driver/tools/gomad"
-      ]
+      ],
+      "harness": "/absolute/frozen/runtime-qualification-replay",
+      "harness_build_receipt": "/absolute/frozen/runtime-harness-build.json"
     },
     "runtime-13": {
       "adapter": "runtime",
@@ -318,7 +349,9 @@
       "arguments": [
         "--working-dir",
         "/home/agent/wt/fn232-rust-driver/tools/gomad"
-      ]
+      ],
+      "harness": "/absolute/frozen/runtime-qualification-replay",
+      "harness_build_receipt": "/absolute/frozen/runtime-harness-build.json"
     },
     "runtime-14": {
       "adapter": "runtime",
@@ -327,7 +360,9 @@
       "arguments": [
         "--working-dir",
         "/home/agent/wt/fn232-rust-driver/tools/gomad"
-      ]
+      ],
+      "harness": "/absolute/frozen/runtime-qualification-replay",
+      "harness_build_receipt": "/absolute/frozen/runtime-harness-build.json"
     },
     "runtime-15": {
       "adapter": "runtime",
@@ -336,7 +371,9 @@
       "arguments": [
         "--working-dir",
         "/home/agent/wt/fn232-rust-driver/tools/gomad"
-      ]
+      ],
+      "harness": "/absolute/frozen/runtime-qualification-replay",
+      "harness_build_receipt": "/absolute/frozen/runtime-harness-build.json"
     },
     "runtime-16": {
       "adapter": "runtime",
@@ -345,7 +382,9 @@
       "arguments": [
         "--working-dir",
         "/home/agent/wt/fn232-rust-driver/tools/gomad"
-      ]
+      ],
+      "harness": "/absolute/frozen/runtime-qualification-replay",
+      "harness_build_receipt": "/absolute/frozen/runtime-harness-build.json"
     },
     "runtime-17": {
       "adapter": "runtime",
@@ -354,7 +393,9 @@
       "arguments": [
         "--working-dir",
         "/home/agent/wt/fn232-rust-driver/tools/gomad"
-      ]
+      ],
+      "harness": "/absolute/frozen/runtime-qualification-replay",
+      "harness_build_receipt": "/absolute/frozen/runtime-harness-build.json"
     },
     "runtime-18": {
       "adapter": "runtime",
@@ -363,7 +404,9 @@
       "arguments": [
         "--working-dir",
         "/home/agent/wt/fn232-rust-driver/tools/gomad"
-      ]
+      ],
+      "harness": "/absolute/frozen/runtime-qualification-replay",
+      "harness_build_receipt": "/absolute/frozen/runtime-harness-build.json"
     },
     "runtime-19": {
       "adapter": "runtime",
@@ -372,7 +415,9 @@
       "arguments": [
         "--working-dir",
         "/home/agent/wt/fn232-rust-driver/tools/gomad"
-      ]
+      ],
+      "harness": "/absolute/frozen/runtime-qualification-replay",
+      "harness_build_receipt": "/absolute/frozen/runtime-harness-build.json"
     },
     "runtime-20": {
       "adapter": "runtime",
@@ -381,7 +426,9 @@
       "arguments": [
         "--working-dir",
         "/home/agent/wt/fn232-rust-driver/tools/gomad"
-      ]
+      ],
+      "harness": "/absolute/frozen/runtime-qualification-replay",
+      "harness_build_receipt": "/absolute/frozen/runtime-harness-build.json"
     },
     "runtime-21": {
       "adapter": "runtime",
@@ -390,7 +437,9 @@
       "arguments": [
         "--working-dir",
         "/home/agent/wt/fn232-rust-driver/tools/gomad"
-      ]
+      ],
+      "harness": "/absolute/frozen/runtime-qualification-replay",
+      "harness_build_receipt": "/absolute/frozen/runtime-harness-build.json"
     },
     "runtime-22": {
       "adapter": "runtime",
@@ -399,7 +448,9 @@
       "arguments": [
         "--working-dir",
         "/home/agent/wt/fn232-rust-driver/tools/gomad"
-      ]
+      ],
+      "harness": "/absolute/frozen/runtime-qualification-replay",
+      "harness_build_receipt": "/absolute/frozen/runtime-harness-build.json"
     },
     "runtime-23": {
       "adapter": "runtime",
@@ -408,7 +459,9 @@
       "arguments": [
         "--working-dir",
         "/home/agent/wt/fn232-rust-driver/tools/gomad"
-      ]
+      ],
+      "harness": "/absolute/frozen/runtime-qualification-replay",
+      "harness_build_receipt": "/absolute/frozen/runtime-harness-build.json"
     },
     "runtime-24": {
       "adapter": "runtime",
@@ -417,7 +470,9 @@
       "arguments": [
         "--working-dir",
         "/home/agent/wt/fn232-rust-driver/tools/gomad"
-      ]
+      ],
+      "harness": "/absolute/frozen/runtime-qualification-replay",
+      "harness_build_receipt": "/absolute/frozen/runtime-harness-build.json"
     },
     "runtime-25": {
       "adapter": "runtime",
@@ -426,7 +481,9 @@
       "arguments": [
         "--working-dir",
         "/home/agent/wt/fn232-rust-driver/tools/gomad"
-      ]
+      ],
+      "harness": "/absolute/frozen/runtime-qualification-replay",
+      "harness_build_receipt": "/absolute/frozen/runtime-harness-build.json"
     },
     "runtime-26": {
       "adapter": "runtime",
@@ -435,7 +492,9 @@
       "arguments": [
         "--working-dir",
         "/home/agent/wt/fn232-rust-driver/tools/gomad"
-      ]
+      ],
+      "harness": "/absolute/frozen/runtime-qualification-replay",
+      "harness_build_receipt": "/absolute/frozen/runtime-harness-build.json"
     },
     "runtime-27": {
       "adapter": "runtime",
@@ -444,7 +503,9 @@
       "arguments": [
         "--working-dir",
         "/home/agent/wt/fn232-rust-driver/tools/gomad"
-      ]
+      ],
+      "harness": "/absolute/frozen/runtime-qualification-replay",
+      "harness_build_receipt": "/absolute/frozen/runtime-harness-build.json"
     },
     "runtime-28": {
       "adapter": "runtime",
@@ -453,7 +514,9 @@
       "arguments": [
         "--working-dir",
         "/home/agent/wt/fn232-rust-driver/tools/gomad"
-      ]
+      ],
+      "harness": "/absolute/frozen/runtime-qualification-replay",
+      "harness_build_receipt": "/absolute/frozen/runtime-harness-build.json"
     },
     "runtime-29": {
       "adapter": "runtime",
@@ -462,7 +525,9 @@
       "arguments": [
         "--working-dir",
         "/home/agent/wt/fn232-rust-driver/tools/gomad"
-      ]
+      ],
+      "harness": "/absolute/frozen/runtime-qualification-replay",
+      "harness_build_receipt": "/absolute/frozen/runtime-harness-build.json"
     },
     "runtime-30": {
       "adapter": "runtime",
@@ -471,7 +536,9 @@
       "arguments": [
         "--working-dir",
         "/home/agent/wt/fn232-rust-driver/tools/gomad"
-      ]
+      ],
+      "harness": "/absolute/frozen/runtime-qualification-replay",
+      "harness_build_receipt": "/absolute/frozen/runtime-harness-build.json"
     },
     "runtime-31": {
       "adapter": "runtime",
@@ -480,7 +547,9 @@
       "arguments": [
         "--working-dir",
         "/home/agent/wt/fn232-rust-driver/tools/gomad"
-      ]
+      ],
+      "harness": "/absolute/frozen/runtime-qualification-replay",
+      "harness_build_receipt": "/absolute/frozen/runtime-harness-build.json"
     },
     "runtime-aggregate": {
       "adapter": "runtime-aggregate"
@@ -581,5 +650,31 @@
       "adapter": "sqlite-catalogue",
       "oracle": null
     }
+  },
+  "fn222": {
+    "argv": [
+      "/absolute/frozen/python3",
+      "/absolute/repo/tools/gomad/rust/workload_tools/temporal-support.py",
+      "--binary",
+      "/absolute/frozen/gomad-release",
+      "--repo",
+      "/absolute/repo",
+      "--root",
+      "/absolute/new-qualification-root/fn222",
+      "--compiler",
+      "/absolute/stock-go",
+      "--runtime-root",
+      "/absolute/frozen/runtime-source",
+      "--cache",
+      "/absolute/frozen/compiler-cache",
+      "--captured-config",
+      "/absolute/frozen/captured-config.json",
+      "--source-manifest",
+      "SOURCE_MANIFEST",
+      "--private-observation-config",
+      "FROZEN_CONFIG",
+      "--support",
+      "/absolute/frozen/fn222-support"
+    ]
   }
 }

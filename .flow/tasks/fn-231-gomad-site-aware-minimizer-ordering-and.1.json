@@ -8,7 +8,7 @@
   "priority": null,
   "spec": "fn-231-gomad-site-aware-minimizer-ordering-and",
   "spec_path": ".flow/tasks/fn-231-gomad-site-aware-minimizer-ordering-and.1.md",
-  "status": "todo",
+  "status": "done",
   "title": "Scoped proposal ordering with checkpoint key and parent-scope default",
   "updated_at": "2026-10-21T18:02:31.522778Z"
 }

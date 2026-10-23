@@ -1,0 +1,3 @@
+ok  	go.temporal.io/server/tools/gomad/internal/model/volume	0.003s
+ok  	go.temporal.io/server/tools/gomad/internal/model/wasi	0.003s
+ok  	go.temporal.io/server/tools/gomad/internal/model/cmd/sqlite-native	0.002s

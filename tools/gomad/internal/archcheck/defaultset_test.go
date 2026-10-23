@@ -54,7 +54,7 @@ func defaultSetReferences(t *testing.T, root string) []string {
 		}
 		relative = filepath.ToSlash(relative)
 		if entry.IsDir() {
-			if slices.Contains(needles, relative) || relative == ".toolchain" || relative == ".bin" || strings.HasPrefix(relative, "internal/backends/wasm/wasmhost/target") {
+			if slices.Contains(needles, relative) || relative == ".toolchain" || relative == ".bin" || strings.HasPrefix(relative, "rust/target") {
 				return filepath.SkipDir
 			}
 			return nil
@@ -141,7 +141,7 @@ func TestDefaultMakeTargetsKeepSharedValidation(t *testing.T) {
 			t.Errorf("default targets select %q:\n%s", forbidden, output)
 		}
 	}
-	for _, required := range []string{"--locked --lib", "TestNetworkCorpus", "TestClockConformance", "TestNamespace.*Conformance", "TestVolume|", "GOMAD_WASM_CONFORMANCE_REQUIRED=1"} {
+	for _, required := range []string{"--locked --lib", "./internal/model/...", "./internal/backends/wasm/cluster", "./internal/backends/wasm/toolchain/...", "GOMAD_WASM_CONFORMANCE_REQUIRED=1"} {
 		if !bytes.Contains(output, []byte(required)) {
 			t.Errorf("validate omits retained conformance gate %q", required)
 		}
@@ -171,7 +171,7 @@ func TestInventorySeparatesRetainedGoFromRetiringHost(t *testing.T) {
 			t.Fatal(err)
 		}
 	}
-	inventory, _, err := archcheck.Discover(root, sourceGoCommand(), archcheck.Platform{OS: runtime.GOOS, Arch: runtime.GOARCH})
+	inventory, findings, err := archcheck.Discover(root, sourceGoCommand(), archcheck.Platform{OS: runtime.GOOS, Arch: runtime.GOARCH})
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -185,6 +185,11 @@ func TestInventorySeparatesRetainedGoFromRetiringHost(t *testing.T) {
 	}
 	wantRetained := []string{"example.invalid/retention/internal/archcheck", "example.invalid/retention/internal/backends/wasm/toolchain", "example.invalid/retention/internal/model/world"}
 	wantRetiring := []string{"example.invalid/retention/cmd/gomad", "example.invalid/retention/internal/runner"}
+	for _, imported := range wantRetiring {
+		if !slices.ContainsFunc(findings, func(f archcheck.Finding) bool { return f.Category == "retired-host-source" && f.Path == imported }) {
+			t.Errorf("retired default source %s was admitted: %v", imported, findings)
+		}
+	}
 	if !slices.Equal(got.RetainedGo, wantRetained) || !slices.Equal(got.RetiringGo, wantRetiring) {
 		t.Fatalf("inventory retention = %+v, want retained %v, retiring %v", got, wantRetained, wantRetiring)
 	}

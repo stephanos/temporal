@@ -96,8 +96,13 @@ inspection receipts before the receiving support gate can pass.
 `temporal-support.py` runs the complete receiving sequence through public
 install/plan/qualify/report and detached inspection. It requires a frozen source
 manifest, retains authenticated plan receipts with `guest_executions=0`, and
-emits the four support gate rows only after both exact smoke and frontend pairs
-and the original onebox inspection have passed. The final full driver remains
+delegates to the bounded authenticated parity runner, preserving the original
+private source, cache, policy and PID observation context. It emits all eight
+ordered row gates only after both exact smoke and frontend pairs
+and the original onebox inspection have passed. `--support` selects the sealed
+`fn222-support` release example (default: `examples/fn222-support` beside the
+release executable); the final list has Rust schema
+`gomad.rust-wasm-support-list/v1`. The final full driver remains
 the owner of serial/parallel ordering and aggregate acceptance.
 
 The independent SQLite oracle builds from the retained Go reference only:

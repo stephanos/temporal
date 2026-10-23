@@ -1,5 +1,15 @@
 # Gomad architecture
 
+The host implementation now lives in the single [Rust workspace](rust/README.md).
+The Go CLI, runner and host qualification producers described in older sections
+are retired source; retained Go code owns models, protocol generation, conformance
+oracles and the guest runtime overlay. Current build and reference checks are
+`make -C tools/gomad build`, `validate` and `test-wasm`. Final qualification uses
+the [Rust driver](rust/driver/README.md) with frozen authenticated inputs and the unchanged
+3,600-second limit. This prospective source consolidation supplies no R12/R13
+acceptance; the conductor retains the frozen Go baseline until those gates pass.
+
+
 Gomad explores Go tests under deterministic models. The WASM backend compiles a
 test to WebAssembly and executes it with a Rust helper. The cooperative profile
 adds a pinned runtime overlay for guest scheduling; the helper models supported
@@ -275,7 +285,7 @@ The Go packages under `internal/model` hold reference implementations of the
 clock, World, volume, network and namespace models. They are not on the
 execution path for clusters; they are the oracles the Rust implementations are
 checked against by the conformance corpora under
-`internal/backends/wasm/wasmhost/tests/testdata` and `wasi/testdata`. A change
+`rust/wasmhost/tests/testdata` and `internal/model/wasi/testdata`. A change
 to a model is a change to a corpus, reviewed as an expectation diff.
 
 The volume and network models are gomad's own source, not derived from the

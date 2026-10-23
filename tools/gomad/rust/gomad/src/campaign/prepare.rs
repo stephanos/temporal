@@ -174,7 +174,16 @@ pub(crate) fn prepare_with_compiler_controls(
     let deadline = Instant::now()
         .checked_add(options.overall_timeout)
         .ok_or("overall_timeout: preparation deadline exceeds clock range")?;
-    let result = prepare_before_deadline(options, controls, deadline);
+    let result = prepare_before_deadline(options, controls, deadline, false);
+    process::check_deadline(deadline)?;
+    result
+}
+
+pub(crate) fn prepare_runtime_qualification(options: &ExploreOptions) -> Result<Prepared, String> {
+    let deadline = Instant::now()
+        .checked_add(options.overall_timeout)
+        .ok_or("runtime qualification preparation deadline exceeds clock range")?;
+    let result = prepare_before_deadline(options, &CompilerControls::default(), deadline, true);
     process::check_deadline(deadline)?;
     result
 }
@@ -183,12 +192,16 @@ fn prepare_before_deadline(
     options: &ExploreOptions,
     controls: &CompilerControls,
     deadline: Instant,
+    runtime_qualification: bool,
 ) -> Result<Prepared, String> {
     if options.target_kind == "exec" {
         return prepared_exec(options, &installation(options)?);
     }
     use std::os::unix::fs::PermissionsExt as _;
     let mut recipe = driver::prepare_with_compiler_controls(options, controls, deadline)?;
+    if runtime_qualification {
+        recipe.configuration = crate::runtime_qualification::configuration()?;
+    }
     let compile_inputs = recipe.compilation_inputs();
     let compile_key = compilation_cache::key(&compile_inputs)?;
     if let Some(cached) =

@@ -24,7 +24,7 @@ import (
 // duplicate in the cluster helper (fn-178.3). Inputs are concrete World calls;
 // outputs are what Go returned, so `cargo test` replays them without Go.
 const (
-	worldConformanceDirectory = "../wasmhost/tests/testdata/world_conformance"
+	worldConformanceDirectory = "../../../../rust/wasmhost/tests/testdata/world_conformance"
 	worldConformancePin       = worldConformanceDirectory + "/PINNED_GO_WORLD_SHA256"
 	worldConformanceSchema    = "gomad.world-conformance/v1"
 	// Steps at this interval, and the last step, also carry the full state digest

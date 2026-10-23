@@ -14,7 +14,7 @@ import (
 )
 
 func TestCrashRecoveryImageAdmissionCorpus(t *testing.T) {
-	data, err := os.ReadFile("../../backends/wasm/wasi/testdata/volume-conformance/vectors/image-admission.json")
+	data, err := os.ReadFile("../wasi/testdata/volume-conformance/vectors/image-admission.json")
 	require.NoError(t, err)
 	var corpus struct {
 		Cases []struct {
