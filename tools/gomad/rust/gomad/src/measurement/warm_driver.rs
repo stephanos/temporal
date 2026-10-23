@@ -50,7 +50,14 @@ fn crc32_update(mut crc: u32, bytes: &[u8]) -> u32 {
     }
     crc
 }
-fn cache_sizes(directory: &Path, module: &str, helper: &str) -> Result<(u64, u64, Value), String> {
+fn cache_sizes(
+    directory: &Path,
+    module: &str,
+    helper: &str,
+    configuration: &str,
+    host_os: &str,
+    host_arch: &str,
+) -> Result<(u64, u64, Value), String> {
     use std::os::unix::fs::{MetadataExt, OpenOptionsExt};
     let mut found = None;
     for entry in fs::read_dir(directory).map_err(|e| e.to_string())? {
@@ -126,7 +133,12 @@ fn cache_sizes(directory: &Path, module: &str, helper: &str) -> Result<(u64, u64
         if manifest["module_sha256"] != module || manifest["helper_sha256"] != helper {
             continue;
         }
-        if manifest["engine"] != "wasmtime-47.0.3" || manifest["version"] != 3 {
+        if manifest["engine"] != "wasmtime-47.0.3"
+            || manifest["version"] != 3
+            || manifest["configuration"] != configuration
+            || manifest["host_os"] != host_os
+            || manifest["host_arch"] != host_arch
+        {
             return Err("warm cache manifest mismatch".into());
         }
         if found.is_some() {
@@ -314,8 +326,19 @@ pub fn run(call: &Invocation, proof: &CheckoutProof, root: &Path) -> Result<Path
         )?;
         return Ok(path);
     }
-    let (artifact_bytes, envelope_bytes, artifact) =
-        cache_sizes(&cache, &module_sha, &executable.sha256)?;
+    // Warm admission authenticates DiagnosticProfile; the cache uses its separate engine revision.
+    let (artifact_bytes, envelope_bytes, artifact) = cache_sizes(
+        &cache,
+        &module_sha,
+        &executable.sha256,
+        gomad_wasmhost::linked::Conditions::DiagnosticProfile.cache_configuration(),
+        prime.report["host_os"]
+            .as_str()
+            .ok_or("warm helper host OS absent")?,
+        prime.report["host_arch"]
+            .as_str()
+            .ok_or("warm helper host architecture absent")?,
+    )?;
     write(&root.join("cache-artifact.json"), &artifact)?;
     if call.name == "warm-preparation-prime" {
         let path = root.join("warm-prime.json");
@@ -605,5 +628,133 @@ mod tests {
         let partial = crc32_update(u32::MAX, b"1234");
         assert_eq!(!crc32_update(partial, b"56789"), 0xcbf4_3926);
         assert_ne!(!crc32_update(u32::MAX, b"123456788"), 0xcbf4_3926);
+    }
+
+    struct CacheDirectory(PathBuf);
+    impl CacheDirectory {
+        fn new() -> Self {
+            let root = std::env::temp_dir().join(format!(
+                "gomad-warm-artifact-{}-{}",
+                std::process::id(),
+                std::time::SystemTime::now()
+                    .duration_since(std::time::UNIX_EPOCH)
+                    .unwrap()
+                    .as_nanos()
+            ));
+            fs::create_dir(&root).unwrap();
+            Self(root)
+        }
+        fn envelope(&self, manifest: &Value) -> (PathBuf, u64) {
+            use std::os::unix::fs::OpenOptionsExt;
+            let raw = canonical::encode(manifest).unwrap();
+            let artifact = [7_u8; 100];
+            let mut envelope = b"GOMADC03".to_vec();
+            envelope.extend(u32::try_from(raw.len()).unwrap().to_le_bytes());
+            envelope.extend(100_u64.to_le_bytes());
+            envelope.extend((!crc32_update(u32::MAX, &artifact)).to_le_bytes());
+            envelope.extend(raw);
+            envelope.extend(artifact);
+            let path = self.0.join(format!(
+                "{}.gomad-cache-v3",
+                canonical::digest(&canonical::encode(manifest).unwrap())
+            ));
+            let mut file = fs::OpenOptions::new()
+                .write(true)
+                .create_new(true)
+                .mode(0o600)
+                .open(&path)
+                .unwrap();
+            file.write_all(&envelope).unwrap();
+            file.sync_all().unwrap();
+            (path, u64::try_from(envelope.len()).unwrap())
+        }
+    }
+    impl Drop for CacheDirectory {
+        fn drop(&mut self) {
+            fs::remove_dir_all(&self.0).unwrap();
+        }
+    }
+    fn cache_manifest() -> Value {
+        json!({"version":3,"module_sha256":"a".repeat(64),"helper_sha256":"b".repeat(64),
+            "engine":"wasmtime-47.0.3","configuration":"cranelift-fuel-nan-canonical-nounwind-v2",
+            "host_os":"linux","host_arch":"aarch64","engine_compatibility_sha256":"c".repeat(64)})
+    }
+    #[test]
+    fn warm_artifact_rejects_matching_module_with_incompatible_engine_or_host() {
+        for (field, mutation) in [
+            ("version", json!(4)),
+            ("engine", json!("wasmtime-other")),
+            (
+                "configuration",
+                json!("cranelift-fuel-nan-canonical-nounwind-v2-fuel-off"),
+            ),
+            (
+                "configuration",
+                json!("cranelift-fuel-nan-canonical-nounwind-epoch-v1-diagnostic-profile"),
+            ),
+            ("host_os", json!("macos")),
+            ("host_arch", json!("x86_64")),
+            ("configuration", Value::Null),
+            ("host_os", Value::Null),
+            ("host_arch", Value::Null),
+        ] {
+            let directory = CacheDirectory::new();
+            let mut manifest = cache_manifest();
+            manifest[field] = mutation;
+            directory.envelope(&manifest);
+            let result = cache_sizes(
+                &directory.0,
+                &"a".repeat(64),
+                &"b".repeat(64),
+                "cranelift-fuel-nan-canonical-nounwind-v2",
+                "linux",
+                "aarch64",
+            );
+            assert_eq!(
+                result.unwrap_err(),
+                "warm cache manifest mismatch",
+                "{field}: {manifest}"
+            );
+        }
+    }
+    #[test]
+    fn warm_artifact_preserves_sizes_and_skips_other_modules_or_helpers() {
+        let directory = CacheDirectory::new();
+        let (expected, envelope_bytes) = directory.envelope(&cache_manifest());
+        for field in ["module_sha256", "helper_sha256"] {
+            let mut unrelated = cache_manifest();
+            unrelated[field] = json!("d".repeat(64));
+            unrelated["configuration"] = json!("unrelated engine configuration");
+            unrelated["host_os"] = json!("unrelated host");
+            directory.envelope(&unrelated);
+        }
+        let (artifact_bytes, observed_envelope, retained) = cache_sizes(
+            &directory.0,
+            &"a".repeat(64),
+            &"b".repeat(64),
+            "cranelift-fuel-nan-canonical-nounwind-v2",
+            "linux",
+            "aarch64",
+        )
+        .unwrap();
+        assert_eq!(artifact_bytes, 100);
+        assert_eq!(observed_envelope, envelope_bytes);
+        assert_eq!(
+            retained,
+            json!({"path":expected,"manifest":cache_manifest(),"envelope_bytes":envelope_bytes,"artifact_bytes":100})
+        );
+        let mut duplicate = cache_manifest();
+        duplicate["engine_compatibility_sha256"] = json!("e".repeat(64));
+        directory.envelope(&duplicate);
+        let error = cache_sizes(
+            &directory.0,
+            &"a".repeat(64),
+            &"b".repeat(64),
+            "cranelift-fuel-nan-canonical-nounwind-v2",
+            "linux",
+            "aarch64",
+        )
+        .unwrap_err();
+        assert_eq!(error, "ambiguous warm cache artifact identity");
     }
 }
