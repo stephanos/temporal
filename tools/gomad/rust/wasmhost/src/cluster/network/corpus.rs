@@ -283,7 +283,7 @@ fn go_network_cluster_corpus() {
                     let decoded = evidence::decode::decode(
                         &evidence,
                         1 << 20,
-                        &config.model.limits,
+                        &evidence::decode::owner_limits(&config.model.limits),
                         endpoint.world.config(),
                     )
                     .unwrap();

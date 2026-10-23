@@ -1632,12 +1632,17 @@ fn cancelled_execution() -> Execution {
 pub fn validate_network_evidence(
     bytes: &[u8],
     transcript_limit: u64,
-    model: &NetworkModel,
+    shared: &NetworkModel,
+    local: &NetworkModel,
 ) -> Result<(), String> {
-    if model.profile != crate::cluster::network::PROFILE || !model.faults.is_empty() {
+    if shared.profile != crate::cluster::network::PROFILE
+        || local.profile != crate::cluster::network::PROFILE
+        || !shared.faults.is_empty()
+        || !local.faults.is_empty()
+    {
         return Err("retained broker network profile".into());
     }
-    let transitions = model.limits.transitions;
+    let transitions = local.limits.transitions;
     let requests = transitions
         .checked_mul(2)
         .ok_or("network World request limit overflow")?;
@@ -1650,7 +1655,7 @@ pub fn validate_network_evidence(
             max_transitions: transitions
                 .checked_mul(8)
                 .ok_or("network World transition limit overflow")?,
-            max_payload_bytes: model
+            max_payload_bytes: local
                 .limits
                 .bytes
                 .checked_mul(8)
@@ -1661,7 +1666,7 @@ pub fn validate_network_evidence(
     crate::cluster::network::evidence::decode::decode(
         bytes,
         transcript_limit,
-        &model.limits,
+        &crate::cluster::network::evidence::decode::owner_limits(&shared.limits),
         &config,
     )
     .map(|_| ())

@@ -1,6 +1,17 @@
 use crate::network::{Address, Domain, Limits, OperationResult, Request, history};
 use crate::world;
 
+pub(crate) fn owner_limits(limits: &super::super::Limits) -> Limits {
+    Limits {
+        listeners: limits.listeners,
+        connections: limits.connections,
+        bytes: limits.bytes,
+        connection_bytes: limits.connection_bytes,
+        stall_nanos: limits.stall_nanos,
+        transitions: limits.transitions,
+    }
+}
+
 pub(crate) struct Decoded {
     pub log: Vec<u8>,
     pub record: history::Record,
@@ -285,6 +296,25 @@ pub(crate) fn decode(
     {
         return Err("network evidence record identity or bound".into());
     }
+    crate::network::Model::new(
+        1,
+        crate::network::Config {
+            nodes: record
+                .snapshot
+                .nodes
+                .as_deref()
+                .unwrap_or_default()
+                .iter()
+                .map(|node| crate::network::Node {
+                    node: node.node.clone(),
+                    address: node.address.clone(),
+                })
+                .collect(),
+            links: record.snapshot.links.clone().unwrap_or_default(),
+            limits: limits.clone(),
+            replay: Some(record.clone()),
+        },
+    )?;
     world::retained::validate_with_transition_limit(&world, world_config, None)?;
     Ok(Decoded { log, record, world })
 }
@@ -308,14 +338,163 @@ mod tests {
         }
     }
 
-    fn limits() -> Limits {
-        Limits {
+    fn limits() -> super::super::super::Limits {
+        super::super::super::Limits {
             listeners: 128,
             connections: 128,
             bytes: 8 << 20,
             connection_bytes: 4 << 20,
             stall_nanos: 10_000_000_000,
             transitions: 8192,
+        }
+    }
+
+    #[test]
+    fn cluster_network_admission_separates_shared_record_and_local_world_limits() {
+        let bytes = include_bytes!("../../../../tests/testdata/cluster_network/b.gmnetev1");
+        let local = crate::linked_cluster::NetworkModel {
+            profile: super::super::super::PROFILE.into(),
+            limits: limits(),
+            faults: Vec::new(),
+        };
+        let mut shared = local.clone();
+        shared.limits.transitions *= 2;
+        shared.limits.bytes *= 2;
+        shared.limits.listeners *= 2;
+        shared.limits.connections *= 2;
+        crate::linked_cluster::validate_network_evidence(bytes, 1 << 20, &shared, &local).unwrap();
+        let mut too_small_shared = shared.clone();
+        too_small_shared.limits.listeners = 0;
+        let shared_error = crate::linked_cluster::validate_network_evidence(
+            bytes,
+            1 << 20,
+            &too_small_shared,
+            &local,
+        )
+        .unwrap_err();
+        assert!(
+            shared_error.contains("record identity or bound"),
+            "{shared_error}"
+        );
+        let mut foreign_local = local.clone();
+        foreign_local.limits.transitions += 1;
+        let local_error = crate::linked_cluster::validate_network_evidence(
+            bytes,
+            1 << 20,
+            &shared,
+            &foreign_local,
+        )
+        .unwrap_err();
+        assert!(
+            local_error.contains("configuration mismatch"),
+            "{local_error}"
+        );
+        println!(
+            "GOMAD_CORE_OBSERVATION {}",
+            serde_json::json!({
+                "schema":"gomad.core-predicate-observation/v1",
+                "case":"network_shared_record_local_world_limits",
+                "inputs":{"evidence_sha256":format!("{:x}",Sha256::digest(bytes)),"shared":shared,"local":local,"small_shared":too_small_shared,"foreign_local":foreign_local},
+                "observed":{"shared_error":shared_error,"local_error":local_error,"admitted_world_sha256":format!("{:x}",Sha256::digest(decode(bytes,1 << 20,&owner_limits(&shared.limits),&world_config()).unwrap().world))}
+            })
+        );
+    }
+
+    #[test]
+    fn cluster_network_admission_rejects_resealed_semantically_invalid_records() {
+        let bytes = include_bytes!("../../../../tests/testdata/cluster_network/b.gmnetev1");
+        let local = crate::linked_cluster::NetworkModel {
+            profile: super::super::super::PROFILE.into(),
+            limits: limits(),
+            faults: Vec::new(),
+        };
+        let valid = decode(
+            bytes,
+            1 << 20,
+            &owner_limits(&local.limits),
+            &world_config(),
+        )
+        .unwrap();
+        let mut reader = Reader { bytes, at: 8 };
+        reader.number().unwrap();
+        reader.text().unwrap();
+        let declared_log_bytes = reader.number().unwrap();
+        let count = reader.count().unwrap();
+        let start = reader.at;
+        for _ in 0..count {
+            match reader.raw(1).unwrap()[0] {
+                1 => {
+                    reader.operation().unwrap();
+                }
+                3 => {
+                    reader.quiescence().unwrap();
+                }
+                _ => unreachable!(),
+            }
+        }
+        let entries = &bytes[start..reader.at];
+        for mutation in [
+            "unknown_transition_kind",
+            "ordinal_gap",
+            "listener_port_zero",
+            "reset_open_connection",
+            "connection_byte_bound",
+            "total_byte_bound",
+        ] {
+            let mut shared = local.clone();
+            let mut record = valid.record.clone();
+            match mutation {
+                "unknown_transition_kind" => {
+                    record.transitions.as_mut().unwrap()[0].kind = "unknown".into()
+                }
+                "ordinal_gap" => record.transitions.as_mut().unwrap()[0].ordinal += 1,
+                "listener_port_zero" => {
+                    record.snapshot.listeners.as_mut().unwrap()[0].endpoint.port = 0
+                }
+                "reset_open_connection" => {
+                    let connection = &mut record.snapshot.connections.as_mut().unwrap()[0];
+                    connection.reset = true;
+                    connection.closed = false;
+                }
+                "connection_byte_bound" => {
+                    record.snapshot.connections.as_mut().unwrap()[0].client_bytes =
+                        shared.limits.connection_bytes + 1
+                }
+                "total_byte_bound" => {
+                    shared.limits.bytes = 1;
+                    record.snapshot.connections.as_mut().unwrap()[0].client_bytes = 2;
+                }
+                _ => unreachable!(),
+            }
+            record.snapshot.transition_sha256 =
+                history::transitions_digest(record.transitions.as_deref().unwrap()).unwrap();
+            record.snapshot.identity = history::snapshot_digest(&record.snapshot).unwrap();
+            let changed = super::super::document(
+                declared_log_bytes,
+                count as u64,
+                entries,
+                &record,
+                &valid.world,
+            );
+            let error = crate::linked_cluster::validate_network_evidence(
+                &changed,
+                1 << 20,
+                &shared,
+                &local,
+            )
+            .unwrap_err();
+            assert!(
+                !error.contains("identity or bound"),
+                "reseal was not authenticated: {mutation}: {error}"
+            );
+            println!(
+                "GOMAD_CORE_OBSERVATION {}",
+                serde_json::json!({
+                    "schema":"gomad.core-predicate-observation/v1","case":"network_resealed_semantic_refusal",
+                    "inputs":{"mutation":mutation,"evidence_sha256":format!("{:x}",Sha256::digest(&changed)),"record":record,"shared":shared,"local":local},
+                    "observed":{"error":error}
+                })
+            );
         }
     }
 
@@ -329,16 +508,17 @@ mod tests {
             limits: limits.clone(),
             faults: Vec::new(),
         };
-        crate::linked_cluster::validate_network_evidence(bytes, 1 << 20, &model).unwrap();
-        let valid = decode(bytes, 1 << 20, &limits, &config).unwrap();
+        crate::linked_cluster::validate_network_evidence(bytes, 1 << 20, &model, &model).unwrap();
+        let valid = decode(bytes, 1 << 20, &owner_limits(&limits), &config).unwrap();
         println!(
             "GOMAD_CORE_OBSERVATION {}",
             serde_json::json!({"schema":"gomad.core-predicate-observation/v1","case":"cluster_network_decoder_valid_fixture","inputs":{"path":"tests/testdata/cluster_network/b.gmnetev1","sha256":format!("{:x}",Sha256::digest(bytes))},"observed":{"record":valid.record,"log_sha256":format!("{:x}",Sha256::digest(&valid.log)),"world_sha256":format!("{:x}",Sha256::digest(&valid.world))}})
         );
         let refused = |name: &str, changed: &[u8], bound| {
-            let error = crate::linked_cluster::validate_network_evidence(changed, bound, &model)
-                .err()
-                .expect(name);
+            let error =
+                crate::linked_cluster::validate_network_evidence(changed, bound, &model, &model)
+                    .err()
+                    .expect(name);
             println!(
                 "GOMAD_CORE_OBSERVATION {}",
                 serde_json::json!({"schema":"gomad.core-predicate-observation/v1","case":"cluster_network_decoder_refusal","inputs":{"mutation":name,"bytes":changed.len(),"sha256":format!("{:x}",Sha256::digest(changed)),"transcript_limit":bound},"observed":{"error":error}})
@@ -346,10 +526,14 @@ mod tests {
         };
         let mut prefix_errors = sha2::Sha256::new();
         for length in 0..bytes.len() {
-            let error =
-                crate::linked_cluster::validate_network_evidence(&bytes[..length], 1 << 20, &model)
-                    .err()
-                    .unwrap_or_else(|| panic!("prefix {length} admitted"));
+            let error = crate::linked_cluster::validate_network_evidence(
+                &bytes[..length],
+                1 << 20,
+                &model,
+                &model,
+            )
+            .err()
+            .unwrap_or_else(|| panic!("prefix {length} admitted"));
             prefix_errors.update((length as u64).to_be_bytes());
             prefix_errors.update(error.as_bytes());
             prefix_errors.update([0]);
