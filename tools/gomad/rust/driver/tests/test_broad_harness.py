@@ -44,6 +44,13 @@ class BroadHarness(unittest.TestCase):
                 else:
                     self.assertNotIn('--exact', argv)
             self.assertEqual([row.name for row in rows[:2]], ['helper-lib', 'host-inspection-scale'])
+            lifecycle = [row for row in rows if row.name == 'host-lifecycle-matrix']
+            self.assertEqual(len(lifecycle), 1)
+            self.assertIs(lifecycle[0].role, broad.Role.HOST)
+            self.assertFalse(lifecycle[0].ignored)
+            self.assertFalse(lifecycle[0].exact)
+            self.assertEqual(broad.test_argv(config, stage, lifecycle[0].name)[1:],
+                             ['replay::cluster::retained_lifecycle_matrix_tests', '--nocapture', '--test-threads=1'])
             guest = [row for row in rows if row.name == 'host-broad-guest']
             self.assertEqual(bool(guest), stage is not broad.Stage.FUNCTIONAL)
             if guest:
