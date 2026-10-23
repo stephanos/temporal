@@ -203,7 +203,8 @@ class RawBindingGuards(unittest.TestCase):
 
     def test_original_slim_requires_real_tagged_run_not_same_named_ordinary_test(self):
         import live
-        original=['/pinned/go','test','-json','-tags','gomad_wasm_slim,test_dep','-timeout=15m','./common/archiver/provider']
+        original=['/pinned/go','test','-json','-tags','gomad_wasm_slim,test_dep','-timeout=15m',
+                  '-run','|'.join('^'+name+'$' for name in live.SLIM_SOURCES.values()),'-count=1','./common/archiver/provider','./temporal','./tests/testcore']
         live.slim_command(original)
         for index,value in ((4,'test_dep'),(5,'-timeout=16m'),(1,'list')):
             argv=original[:];argv[index]=value
@@ -231,3 +232,18 @@ class RawBindingGuards(unittest.TestCase):
             with self.assertRaises(AssertionError):checker.provider_source()
             path.unlink()
             with self.assertRaises(OSError):checker.provider_source()
+
+    def test_slim_duplicate_and_overridden_go_flags_are_refused(self):
+        import live
+        pattern='|'.join('^'+name+'$' for name in live.SLIM_SOURCES.values())
+        original=['/pinned/go','test','-json','-tags','gomad_wasm_slim,test_dep','-timeout=15m',
+                  '-run',pattern,'-count=1','./common/archiver/provider','./temporal','./tests/testcore']
+        for extra in (['-timeout=60m'],['-timeout','60m'],['-timeout=15m'],
+                      ['-tags=test_dep'],['-tags','test_dep'],['-run','.*'],['-run='+pattern]):
+            with self.subTest(extra=extra),self.assertRaises(driver.Refusal):live.slim_command(original+extra)
+        for index,value in ((7,'.*'),(9,'./other')):
+            changed=original[:];changed[index]=value
+            with self.subTest(index=index),self.assertRaises(driver.Refusal):live.slim_command(changed)
+        equals=['/pinned/go','test','-json','-tags=gomad_wasm_slim,test_dep','-timeout=15m',
+                '-run='+pattern,'-count=1','./common/archiver/provider','./temporal','./tests/testcore']
+        live.slim_command(equals)

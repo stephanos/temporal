@@ -567,11 +567,32 @@ def original_callables(config, mapping):
 
 
 def slim_command(argv):
-    require(len(argv) > 2 and argv[1] == 'test' and '-json' in argv, 'slim proof is not an actual Go test run')
-    tags = option(argv, '-tags')
-    require(tags is not None and tags.split(',') == ['gomad_wasm_slim', 'test_dep']
-            and ('-timeout=15m' in argv or option(argv, '-timeout') == '15m'),
-            'original slim tags/15minute bound changed')
+    require(len(argv) > 2 and argv[1] == 'test', 'slim proof is not an actual Go test run')
+    flags, packages = {}, []
+    cursor = 2
+    while cursor < len(argv):
+        token = argv[cursor]
+        if not token.startswith('-'):
+            packages.append(token); cursor += 1; continue
+        require(not packages, 'Go flags after package selection are not the original slim command')
+        name, separator, value = token.partition('=')
+        require(name in ('-json', '-v', '-tags', '-timeout', '-run', '-count') and name not in flags,
+                'unknown/duplicate original slim flag: ' + name)
+        if name in ('-json', '-v'):
+            require(not separator, 'changed original slim boolean flag')
+            value = True
+        elif not separator:
+            cursor += 1
+            require(cursor < len(argv) and not argv[cursor].startswith('-'), 'missing original slim flag value')
+            value = argv[cursor]
+        flags[name] = value
+        cursor += 1
+    require(flags.get('-json') is True and flags.get('-tags') == 'gomad_wasm_slim,test_dep'
+            and flags.get('-timeout') == '15m' and flags.get('-count') == '1',
+            'original slim tags/15minute bound/fresh count changed')
+    pattern = '|'.join('^' + name + '$' for name in SLIM_SOURCES.values())
+    require(flags.get('-run') == pattern and packages == ['./common/archiver/provider', './temporal', './tests/testcore'],
+            'original three-root slim selector/package role changed')
 
 
 def receiving_report(config, endpoint):
