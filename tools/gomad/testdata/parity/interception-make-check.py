@@ -21,11 +21,15 @@ HERE = Path(__file__).resolve().parent
 CORPUS = json.loads((HERE / 'interception-make-corpus.json').read_text())
 
 
-def load_checker():
-    loader = SourceFileLoader('make_interception', str(HERE / 'interception-check.py'))
+def load_checker_module(name, path):
+    loader = SourceFileLoader(name, str(path))
     checker = module_from_spec(spec_from_loader(loader.name, loader))
     loader.exec_module(checker)
     return checker
+
+
+def load_checker():
+    return load_checker_module('make_interception', HERE / 'interception-check.py')
 
 
 def digest(path):
@@ -136,7 +140,10 @@ def authenticate_positive(artifacts, binary, compiler_sha256, installation_sha25
                 raise ValueError('make retained stdout lacks selected test PASS')
         driver = origin['invocation']
         checker.equal(driver['compiler_sha256'], compiler_sha256, 'make.compiler_binding')
-        checker.equal(driver['installation_sha256'], installation_sha256, 'make.installation_binding')
+        mapping_checker = load_checker_module('make_shim_mapping', HERE / 'interception-shim-check.py')
+        provenance = checker.campaign.canonical_file(prepared_path / 'target/provenance.json')
+        mapping_checker.authenticate_installations(provenance, origin,
+            [['go.temporal.io/server/tests/gomadfunctional', installation_sha256]])
         rewritten = [bytes.fromhex(value).decode('utf-8') for value in driver['driver_argv']]
         if not any('run-guest' in value and str(binary) in value for value in rewritten):
             raise ValueError('make driver argv lacks actual Gomad -exec chain')
