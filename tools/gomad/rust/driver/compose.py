@@ -12,6 +12,7 @@ from adapters import CELLS
 import final
 import live
 import static_stages
+import primary_stages
 
 SECTIONS = {
     '10-stress': ('stress-parity-lane.py', ['stress/41-cases-four-axes-original-repetitions']),
@@ -53,6 +54,9 @@ def validate_stages(config):
         if adapter == 'pending':
             gaps.append(label)
             continue
+        if label in primary_stages.OWNED:
+            require(adapter == 'primary' and set(entry) <= {'adapter', 'live_families'}, 'fixed primary adapter required: ' + label)
+            continue
         expected = ('runtime' if label.startswith('runtime-') and label != 'runtime-aggregate' else
                     'runtime-aggregate' if label == 'runtime-aggregate' else
                     'qualify' if label in CELLS else
@@ -64,7 +68,7 @@ def validate_stages(config):
         require(adapter == expected, 'wrong semantic adapter: ' + label)
         if adapter == 'checked-command':
             require(entry.get('checker') and not entry.get('reader'), 'actual semantic reader required: ' + label)
-            endpoint = HERE / ('static_stages.py' if label in static_stages.LABELS else 'stage_receiving.py')
+            endpoint = HERE / ('static_stages.py' if label in static_stages.LABELS else 'primary_stages.py')
             for key in ('argv', 'checker'):
                 argv = entry[key]
                 require(len(argv) >= 2 and argv[0] == config['python'] and Path(argv[1]).is_file(),
@@ -107,6 +111,8 @@ def compose(inputs, base, plan_path, bindings_path, config_path):
     with tempfile.TemporaryDirectory(prefix='gomad-composition-', dir=bindings_path.parent) as temporary:
         result = static_stages.assemble(inputs['static'], result, plan_path, Path(temporary) / 'static-bindings.json')
     result['stages'].update({label: entry for label, entry in original.items() if label not in static_stages.LABELS})
+    for label in primary_stages.OWNED:
+        result['stages'][label] = dict(adapter='primary')
     result['python'] = str(python)
     result['_future_config'] = str(config_path)
     result['final_reader'] = [str(python), str(HERE / 'final.py'), '--config', str(config_path)]
@@ -124,7 +130,7 @@ def compose(inputs, base, plan_path, bindings_path, config_path):
     for key in ('final_profiles', 'final_retained', 'stress', 'public_verbs', 'private_observations'):
         require(result.get(key), 'missing actual final input binding: ' + key)
     result['inputs'] = sorted(set(result['inputs']) | {str(python), str(HERE / 'compose.py'),
-        str(HERE / 'final_public_verbs.py')} | {entry['argv'][1] for entry in result['final_sections'].values()})
+        str(HERE / 'final_public_verbs.py'), str(HERE / 'primary_stages.py')} | {entry['argv'][1] for entry in result['final_sections'].values()})
     result.pop('_future_config')
     write(bindings_path, result)
     return result

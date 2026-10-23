@@ -24,7 +24,7 @@ source/custody and golden files. Retained readers use `--read-only`; their
 stage-owned producers must already have retained their raw proof.
 
 Composition currently refuses pending original stage producers. Nonstatic checked
-commands require the canonical `stage_receiving.py run|read --config CONFIG
+commands require the canonical `primary_stages.py run|read --config CONFIG
 --stage LABEL` endpoint; this module must implement actual original semantic
 assertions before these labels can be bound. A Python path in the repository or
 a caller-provided successful receipt cannot substitute for that implementation.

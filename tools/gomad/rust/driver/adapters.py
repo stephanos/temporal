@@ -365,6 +365,16 @@ def runtime_aggregate(config, root, label):
 def execute_primary(config, root, label):
     entry = config['stages'][label]
     adapter = entry['adapter']
+    if adapter == 'primary':
+        import primary_stages
+        require(label in primary_stages.OWNED, 'unowned primary stage')
+        require(set(entry) <= {'adapter', 'live_families'}, 'caller controls cannot override a fixed primary recipe')
+        observed = primary_stages.execute(config, root, label)
+        if label == 'temporal-inspection' and config.get('fn222'):
+            from onebox_receiving import binding
+            argv, _, _ = binding(config)
+            command(config, root, 'fn222', argv, timeout=3600)
+        return observed
     expected = ('qualify' if label in CELLS else 'runtime' if re.fullmatch(r'runtime-\d+', label) else
                 'runtime-aggregate' if label == 'runtime-aggregate' else
                 'sqlite-selection' if re.fullmatch(r'sqlite-selection-[0-3]', label) else

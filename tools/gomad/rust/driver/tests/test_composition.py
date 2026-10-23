@@ -41,7 +41,7 @@ class CompositionTests(unittest.TestCase):
 
     def test_live_exit_only_reader_refused(self):
         config = self.base()
-        config['stages']['storage'] = dict(adapter='checked-command', reader='static-exit')
+        config['stages']['ordinary'] = dict(adapter='checked-command', reader='static-exit')
         with self.assertRaisesRegex(Refusal, 'actual semantic reader'):
             compose.validate_stages(config)
 

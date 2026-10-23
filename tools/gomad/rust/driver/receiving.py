@@ -1076,6 +1076,15 @@ class Retained:
 
     def endpoint(self, label):
         entry = self.config.get('stages',{}).get(label,{})
+        if entry.get('adapter') == 'primary':
+            import primary_stages
+            outer, item, root = primary_stages.endpoint(self.config, label)
+            self.command(self.config, outer, item['name'], item['argv'], timeout=3600)
+            owner = self.owner(root, item['argv'])
+            observed = read(outer / (item['name'] + '.command.json'))
+            require(owner['pid'] == observed['pid'] and observed['start_ns'] <= owner['start_ns'] <= observed['end_ns'],
+                    'primary producer PID/time/root mismatch')
+            return root
         if entry.get('adapter') != 'checked-command' or not entry.get('argv'):
             raise Unexecuted(label+': actual receiving producer argv/root is not bound')
         argv = entry['argv']
@@ -1251,7 +1260,7 @@ class Retained:
 
     def temporal(self, label):
         root = self.endpoint(label)
-        if label == 'network-streams':
+        if label == 'network':
             result = self.producer(root,'retry')
             for execution in result['report']['executions']:
                 artifact = Path(execution['artifact_path'])
@@ -1259,7 +1268,11 @@ class Retained:
         elif label == 'storage':
             self.recovery(root)
         elif label == 'temporal-inspection':
-            outer_argv = self.config['stages'][label]['argv']
+            if self.config['stages'][label]['adapter'] == 'primary':
+                import primary_stages
+                outer_argv = primary_stages.endpoint(self.config, label)[1]['argv']
+            else:
+                outer_argv = self.config['stages'][label]['argv']
             require(argument(outer_argv,'--owner') == 'all','inspection aggregate requires exact three original owners')
             script = str(Path(__file__).resolve().parents[1]/'workload_tools/temporal-inspection.py')
             require(len(outer_argv) > 1 and outer_argv[1] == script and script in self.config['files'], 'inspection aggregate uses foreign producer script')
@@ -1578,7 +1591,7 @@ def read_receiving(config):
               *(lambda index=index: reader.selected(index) for index in range(4)), reader.catalogue,
               reader.smoke,
               reader.replication, lambda: reader.temporal('storage'),
-              lambda: reader.temporal('network-streams'), lambda: reader.temporal('temporal-inspection'),
+              lambda: reader.temporal('network'), lambda: reader.temporal('temporal-inspection'),
               lambda: onebox_receiving.support(reader)]
     rows = []
     for name, check in zip(OWNED,checks):

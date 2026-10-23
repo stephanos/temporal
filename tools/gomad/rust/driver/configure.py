@@ -44,6 +44,9 @@ def freeze(bindings, output, source_manifest):
     from host_admission import STAT, bindings as scratch_bindings
     scratch_bindings(config)
     require(set(config['stages']) == set(mapping()), 'all 96 stage mappings are required')
+    require(all(entry.get('adapter') != 'pending' for entry in config['stages'].values()),
+            'unbound original stage endpoints must be composed before freezing')
+    require(config.get('final_reader') and config.get('final_sections'), 'actual final readers must be composed before freezing')
     output = output.resolve()
     source_manifest = source_manifest.resolve()
     require(not output.exists() and not source_manifest.exists(), 'freeze outputs must be fresh')
@@ -85,6 +88,13 @@ def freeze(bindings, output, source_manifest):
         require('--support' in argv and '--captured-config' in argv, 'fn222 receiver and captured policy inputs must be explicit')
         inputs.update([argv[0], argv[1], argv[argv.index('--support') + 1], argv[argv.index('--captured-config') + 1]])
     config['files'] = {str(Path(path).resolve()): sha(path) for path in sorted(inputs)}
+    import primary_stages
+    observed = dict(config, _config_path=str(output))
+    for label, entry in config['stages'].items():
+        if entry.get('adapter') == 'primary':
+            primary_stages.recipes(observed, label, Path(config['root']) / 'stages' / label)
+    for entry in config['final_sections'].values():
+        require(all(path in config['files'] for path in entry['argv'][:2]), 'unsealed actual final endpoint')
     for path in inputs:
         require(Path(path).is_absolute() and not Path(path).is_symlink(), 'non-regular frozen input: ' + path)
     write(output, config)
