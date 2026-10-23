@@ -232,6 +232,11 @@ pub(super) fn publish_with_mode(
     )
 }
 
+#[expect(
+    clippy::too_many_arguments,
+    clippy::too_many_lines,
+    reason = "Publication keeps the ordered receipt-last fault boundaries in one transaction"
+)]
 fn publish_with(
     root: &Path,
     build_key: &str,
@@ -286,23 +291,25 @@ fn publish_with(
         let mut auxiliary_stages = BTreeMap::new();
         for bytes in auxiliary.values() {
             let destination = format!("aux-{}", canonical::digest(bytes));
-            if !auxiliary_stages.contains_key(&destination) {
-                let staged = stage(&directory, "aux", bytes, 0o600, &mut stages)?;
-                fault("aux-stage", &directory, &staged)?;
-                auxiliary_stages.insert(destination, staged);
+            if let std::collections::btree_map::Entry::Vacant(e) =
+                auxiliary_stages.entry(destination)
+            {
+                let raw_name = stage(&directory, "aux", bytes, 0o600, &mut stages)?;
+                fault("aux-stage", &directory, &raw_name)?;
+                e.insert(raw_name);
             }
         }
         if read_module(&directory, &module_stage)? != module {
             return Err("staged WASM module identity changed".into());
         }
-        let staged: Receipt = serde_json::from_slice(&open::read(
+        let validated_receipt: Receipt = serde_json::from_slice(&open::read(
             &directory,
             &receipt_stage,
             RECEIPT_LIMIT,
             false,
         )?)
         .map_err(|error| error.to_string())?;
-        if staged != receipt {
+        if validated_receipt != receipt {
             return Err("staged WASM receipt identity changed".into());
         }
         for (destination, staged) in &auxiliary_stages {
@@ -596,6 +603,75 @@ mod tests {
     }
 
     #[test]
+    #[expect(
+        clippy::needless_collect,
+        reason = "All publishers must spawn before joining because they synchronize on a barrier"
+    )]
+    fn concurrent_publishers_reuse_one_complete_original_proof_and_waiting_cancellation_is_bounded()
+    {
+        let root = Scratch::new();
+        let inputs = json!({"source":"concurrent"});
+        let barrier = std::sync::Arc::new(std::sync::Barrier::new(4));
+        let results = std::thread::scope(|scope| {
+            let workers: Vec<_> = (0..4)
+                .map(|owner| {
+                    let barrier = barrier.clone();
+                    let root = &root.0;
+                    let inputs = &inputs;
+                    scope.spawn(move || {
+                        barrier.wait();
+                        publish_with_mode(
+                            root,
+                            &key(inputs).unwrap(),
+                            inputs,
+                            &module(),
+                            0o755,
+                            BTreeMap::from([(
+                                "target/preparation-inputs/compile/metadata.json".into(),
+                                vec![owner],
+                            )]),
+                            || Ok(()),
+                        )
+                        .unwrap()
+                    })
+                })
+                .collect();
+            workers
+                .into_iter()
+                .map(|worker| worker.join().unwrap())
+                .collect::<Vec<_>>()
+        });
+        assert!(results.iter().all(|value| *value == results[0]));
+        let directory = directory(&root.0, &key(&inputs).unwrap(), false)
+            .unwrap()
+            .unwrap();
+        fs::flock(&directory, fs::FlockOperation::LockExclusive).unwrap();
+        let mut checks = 0;
+        let error = publish_with_mode(
+            &root.0,
+            &key(&inputs).unwrap(),
+            &inputs,
+            &module(),
+            0o755,
+            auxiliary(),
+            || {
+                checks += 1;
+                if checks == 2 {
+                    Err("canceled waiting publisher".into())
+                } else {
+                    Ok(())
+                }
+            },
+        )
+        .unwrap_err();
+        assert_eq!(error, "canceled waiting publisher");
+        assert_eq!(
+            load(&root.0, &key(&inputs).unwrap(), &inputs).unwrap(),
+            Some(results.into_iter().next().unwrap())
+        );
+    }
+
+    #[test]
     fn corruption_is_an_error_and_does_not_rebuild() {
         for corruption in [
             "module",
@@ -652,7 +728,7 @@ mod tests {
                         "size" => receipt["module"]["bytes"] = json!(999),
                         "imports" => {
                             receipt["metadata"]["imports"] =
-                                json!([{"module":"x","name":"y","params":[],"results":[]}])
+                                json!([{"module":"x","name":"y","params":[],"results":[]}]);
                         }
                         "memory" => receipt["metadata"]["initial_memory_pages"] = json!(2),
                         "unknown" => receipt["unknown"] = json!(true),

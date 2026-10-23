@@ -17,7 +17,7 @@ def require(condition, message):
 
 
 def original_configuration():
-    configuration = dict(arguments=['guest', 'literal $arg'],
+    configuration = dict(world_transition_bytes=64 << 20, arguments=['guest', 'literal $arg'],
         environment=dict(PWD='/workspace', TZ='UTC', ONLY='captured', EXTRA_ENTROPY='no_'),
         profile='gomad.wasi-cooperative/v1', engine='cranelift-fuel-nan-canonical-nounwind-epoch-v1',
         runtime_sha256='runtime', limits=dict(fuel=4_000_000_000, memory_bytes=256 << 20,
@@ -65,7 +65,7 @@ class RuntimeGateTests(unittest.TestCase):
         gate.exact_configuration(configuration, require)
         for field, changed in dict(arguments=['gomad-target', 'literal $arg'], environment={}, profile='stock',
                 engine='diagnostic', derive_seed_environment=True, storage={}, network={}, limits={}, wall_nanos=1,
-                model={}, namespace={}).items():
+                model={}, namespace={}, world_transition_bytes=1).items():
             with self.subTest(field=field), self.assertRaises(ValueError):
                 gate.exact_configuration(dict(configuration, **{field: changed}), require)
         for field, value in configuration['model'].items():
@@ -73,6 +73,14 @@ class RuntimeGateTests(unittest.TestCase):
             changed['model'][field] = None
             with self.subTest(model=field), self.assertRaises(ValueError):
                 gate.exact_configuration(changed, require)
+
+    def test_current_runtime_requires_the_explicit_original_world_capacity(self):
+        for value in (None,0,1,(64 << 20)+1):
+            configuration=original_configuration()
+            configuration['world_transition_bytes']=value
+            with self.subTest(value=value),self.assertRaises(ValueError): gate.exact_configuration(configuration,require)
+        configuration=original_configuration();del configuration['world_transition_bytes']
+        with self.assertRaises(ValueError): gate.exact_configuration(configuration,require)
 
     def test_harness_freeze_and_release_failure_matrix(self):
         entry = dict(harness='harness', harness_build_receipt='receipt', installation='runtime')

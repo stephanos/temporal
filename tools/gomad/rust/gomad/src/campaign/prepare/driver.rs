@@ -347,6 +347,7 @@ impl Recipe {
         configuration.arguments = std::iter::once(program)
             .chain(options.target_args.iter().cloned())
             .collect();
+        configuration.world_transition_bytes = Some(options.world_transition_limit);
         inputs["arguments"] = json!(options.target_args);
         inputs["configuration"] = serde_json::to_value(&configuration).map_err(failure)?;
         let cooperative = installed.profile == "gomad.wasi-cooperative/v1";
@@ -357,6 +358,7 @@ impl Recipe {
             .transpose()?;
         let temporary = process::Temporary::new(&installed.cache_root)?;
         let module_metadata = linked::module_metadata(&module).map_err(failure)?;
+        crate::replay::preflight::validate_profile_imports(&installed.profile, &module_metadata)?;
         inputs["module_metadata"] = serde_json::to_value(&module_metadata).map_err(failure)?;
         let toolchain = canonical::digest(&canonical::encode(&inputs)?);
         let mut admission = super::observations::Observations::default();

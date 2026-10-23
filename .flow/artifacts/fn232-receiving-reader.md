@@ -308,3 +308,84 @@ failed with ImportError and is retained separately in
 The unrelated support producer/tests remain a separate uncommitted work unit.
 The original 72-root map still has 41 gaps, all evidence remains UNEXECUTED, and
 actual runtime/mandatory/SQLite/Temporal qualification remains open.
+
+### Receiving preparation integration and focused compiler proof (2026-10-23)
+
+Source `e89dc0a247` integrates the original `4269ac8b61` preparation batch with
+root `9a1807bdce`, preserving the current runtime harness, onebox readers,
+selected Wasmtime cache lifecycle and support producer. The required native Go
+compilation cache remains separate from that optional engine cache. Explicit
+GOMAXPROCS=1 and absolute GOTMPDIR now enter the scoped compilation inputs as
+well as every compiler subprocess; GOWASM empty/satconv,signext and -p=1 remain
+bound. Ordinary controls retain the original default map. A valid competing cache
+publisher retains the original module and volatile proof; cancelable per-entry
+locking prevents receipt/module races and refuses a different module for an
+already completed key. An owned non-writable-by-others 0755 installed cache can
+contain the private 0700 compilation namespace.
+
+The current runtime producer retains one private preparation context beside its
+25 execution stores, including a canonical prepared artifact and plan. The actual
+frozen harness command seals that exact context and owner PID. Receiving retains
+all original runtime raw artifact/choice/configuration checks and independently
+projects the complete native inventories. Private observations remain outside
+canonical execution Record/Store payloads, provenance and plan identities. Missing
+historical sidecars remain replay compatible and cannot qualify. Root authorized
+one explicit configuration addition: new runtime preparation and its independent
+reader require the existing 64 MiB World transition byte limit. Original runtime
+argv, captured environment and other numeric bounds remain unchanged. Historical
+None configurations still serialize without the new field; fresh frozen runtime
+proof is required and no earlier seed-zero probe is relabeled.
+
+Retained source verification is under
+`/home/agent/wt/evidence/fn232-preparation-integration-20261023/files.json` with
+hashes for its logs. Pinned Rust 1.99.1, locked/offline, assigned target
+`/home/agent/.cache/codex-build/fn232-preparation-receiving-new`:
+
+- `cargo +1.99.1 test --manifest-path tools/gomad/rust/Cargo.toml -p gomad --lib --locked --offline`: 351 passed, two explicit opt-in probes ignored, exit 0 (`preparation-support-native-final.log`).
+- Matching `cargo +1.99.1 clippy ... -p gomad --lib --tests --locked --offline -- -D warnings` and workspace rustfmt check: exit 0 (`preparation-support-clippy-final.log`).
+- Driver unittest suite selected from Git-tracked test files: 172 passed, exit 0 (`preparation-driver-owned-final.log`). The eight unrelated old support-draft tests are excluded and their files remain untracked.
+- Workload unittest discovery at `tools/gomad/rust/workload_tools`: 20 passed, exit 0 (`preparation-workload-final.log`). The invalid discovery-directory attempt remains separately retained.
+- Existing completed-entry replacement was causally RED (`preparation-cache-race-red.log`), then GREEN in the full native suite, including concurrent first-writer and bounded waiting-cancellation coverage. Explicit runtime capacity omission/null/zero/smaller/oversize was RED in five cases and GREEN after the reader repair (`preparation-runtime-cap-{red,green}.log`).
+
+The opt-in `actual_scoped_compiler_and_cached_output_preserve_raw_proofs` test ran
+on this exact source using the pinned Go 1.27.1 compiler, exit 0, one passed in
+47.66 seconds. Its explicit compiler was
+`/Users/stephan/Workspace/skunkworks/gomad/.build-cache/fn232-stock-go1.27.1/bin/go`,
+with `GOMAD_TEST_PREPARATION_ROOT` set to
+`/home/agent/wt/evidence/fn232-preparation-focused-20261023-05`, and the same Cargo
+command above selecting that test with `-- --ignored --nocapture`. It exercised
+actual cold compilation, changed-argument warm reuse with byte-identical original
+compile observations and fresh admission, both GOWASM settings, scoped controls,
+and changed-source invalidation. Its first and second private sidecars were then
+independently projected from actual raw Go outputs: both recovered all nine
+compiler members and 430 source members, with actual owner PID 386525. Logs are
+`preparation-actual-current-source.log` and
+`preparation-actual-current-projection.log`. These are bounded stock-compiler
+source probes, not release-role or frozen qualification evidence. Earlier focused
+roots 01–04 retain causal failure/intermediate source evidence; root 05 is the
+current complete source-probe input and sidecar set.
+
+Fresh independent same-family review found no high-confidence blocker in the
+controls, inventories, cache concurrency/publication, private sidecars or receiving
+projection, and the focused 64 MiB runtime binding review also passed. The core
+World execution-cap implementation remains a separate integration unit, outside
+that review. The immutable original qualification map now reads the exact fixed
+Git reference after Go source retirement; all 72 roots and original assertion
+spans remain unchanged, UNEXECUTED and unqualified.
+
+Proposed host-effect sites for root's single global inventory append are retained
+in `preparation-proposed-effect-sites.txt`; this worker did not write the ledger.
+Production additions are the compiler command wall-clock/PID observation in
+`prepare/process.rs`, private raw blob publication in `prepare/observations.rs`,
+private sidecar commitment/publication in `prepare/observation_sidecar.rs`, and
+private compilation-cache filesystem/ownership/mode/locking/staging/rename/sync
+operations in `prepare/compilation_cache.rs`. Runtime's new private context uses
+the same existing prepared publication owner. Atomic sequence and process IDs
+name private staging or raw observations and never become canonical execution
+identity inputs. Existing tests prove two Store publications of the same record
+with distinct private observation IDs stay idempotent.
+
+No frozen runtime, mandatory workload, SQLite, Temporal, support publication or
+final retained-replay qualification is credited. Open fn-232 keeps this worktree,
+its unrelated untracked support drafts, the assigned build target and the exact
+focused evidence roots pending root integration and final qualification.

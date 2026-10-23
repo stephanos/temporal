@@ -39,3 +39,6 @@ pub mod runtime_qualification;
 pub mod slots;
 pub(crate) mod stress;
 pub mod sweep;
+
+#[doc(hidden)]
+pub use qualify::support::run as support_tool;

@@ -393,6 +393,7 @@ mod tests {
                     evidence_bytes: 4096,
                 },
                 wall_nanos: None,
+                world_transition_bytes: None,
                 arguments: Vec::new(),
                 environment: BTreeMap::new(),
                 derive_seed_environment: false,
@@ -507,7 +508,7 @@ mod tests {
                     hostfs::write(&path, duplicate).unwrap();
                 }
                 "extra" => {
-                    hostfs::write(campaign.0.join(DIRECTORY).join("unlisted"), b"extra").unwrap()
+                    hostfs::write(campaign.0.join(DIRECTORY).join("unlisted"), b"extra").unwrap();
                 }
                 "symlink" => {
                     hostfs::remove_file(&payload).unwrap();
@@ -521,7 +522,7 @@ mod tests {
                     prepared.provenance = canonical::encode(
                         &json!({"inputs":{"sources":{}},"build_key":prepared.toolchain}),
                     )
-                    .unwrap()
+                    .unwrap();
                 }
                 "binding" => {
                     receipt["module_sha256"] = json!("4".repeat(64));

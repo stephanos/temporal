@@ -21,7 +21,24 @@ impl Drop for Retained {
 }
 
 pub(crate) fn retained(cluster: bool) -> Retained {
-    retained_module(cluster, b"\0asm\x01\0\0\0".to_vec(), 1000)
+    retained_module(cluster, binary_module(0), 1000)
+}
+
+fn binary_module(tables: u8) -> Vec<u8> {
+    let mut module = b"\0asm\x01\0\0\0".to_vec();
+    module.extend([1, 4, 1, 0x60, 0, 0, 3, 2, 1, 0]);
+    if tables != 0 {
+        module.extend([4, 1 + tables * 3, tables]);
+        for _ in 0..tables {
+            module.extend([0x70, 0, 1]);
+        }
+    }
+    module.extend([5, 3, 1, 0, 1, 7, 19, 2, 6]);
+    module.extend(b"memory");
+    module.extend([2, 0, 6]);
+    module.extend(b"_start");
+    module.extend([0, 0, 10, 4, 1, 2, 0, 0x0b]);
+    module
 }
 
 fn retained_module(cluster: bool, module: Vec<u8>, wall_millis: u64) -> Retained {
@@ -42,6 +59,7 @@ fn retained_module(cluster: bool, module: Vec<u8>, wall_millis: u64) -> Retained
         profile: "gomad.wasi-stock-exploratory/v1".into(),
         limits: limits.clone(),
         wall_nanos: None,
+        world_transition_bytes: None,
         arguments: vec![],
         environment: BTreeMap::new(),
         derive_seed_environment: false,
@@ -350,11 +368,7 @@ fn installed_lifecycle_replay_selected_context_works_without_compiler_and_refuse
 
 #[test]
 fn installed_lifecycle_selected_cache_is_used_without_old_build_inputs() {
-    let fixture = retained_module(
-        false,
-        br#"(module (memory (export "memory") 1) (func (export "_start")))"#.to_vec(),
-        10_000,
-    );
+    let fixture = retained_module(false, binary_module(0), 10_000);
     let path = installation(&fixture, false);
     let mut installed: crate::install::manifest::Installation =
         serde_json::from_slice(&std::fs::read(&path).unwrap()).unwrap();
@@ -414,11 +428,7 @@ fn installed_lifecycle_selected_cache_is_used_without_old_build_inputs() {
 
 #[test]
 fn installed_lifecycle_noncache_capacity_remains_a_replay_mismatch() {
-    let module = format!(
-        "(module (memory (export \"memory\") 1) {} (func (export \"_start\")))",
-        "(table 1 funcref)".repeat(9)
-    )
-    .into_bytes();
+    let module = binary_module(9);
     let fixture = retained_module(false, module, 1000);
     let arguments = vec![fixture.published.path.to_str().unwrap().to_owned()];
     let mut output = Vec::new();

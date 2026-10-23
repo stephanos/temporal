@@ -5,7 +5,7 @@ use crate::{
     evidence::{canonical, store::Opened},
     replay::{divergence, preflight},
 };
-use std::path::Path;
+use std::{os::unix::fs::DirBuilderExt as _, path::Path};
 
 /// Linked component identities emitted by the harness before admitting evidence.
 #[must_use]
@@ -24,7 +24,7 @@ pub(crate) fn configuration() -> Result<preflight::Configuration, String> {
     serde_json::from_value(serde_json::json!({
         "engine":gomad_wasmhost::linked::Conditions::compiled().configuration(),
         "profile":"gomad.wasi-cooperative/v1", "runtime_sha256":null,
-        "arguments":["guest","literal $arg"],
+        "arguments":["guest","literal $arg"], "world_transition_bytes":64 << 20,
         "environment":{"PWD":"/workspace","TZ":"UTC","ONLY":"captured","EXTRA_ENTROPY":"no_"},
         "limits":{"fuel":4_000_000_000_u64,"memory_bytes":256<<20,"wall_millis":60000,"output_bytes":1<<20,"evidence_bytes":128<<20},
         "model":{"entropy_key":[1,2,3,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0],
@@ -60,7 +60,6 @@ pub fn produce(
     let options = options(installation, source)?;
     let prepared = crate::campaign::prepare::prepare_runtime_qualification(&options)?;
     let preparation = output.join("preparation");
-    use std::os::unix::fs::DirBuilderExt as _;
     std::fs::DirBuilder::new()
         .mode(0o700)
         .create(&preparation)

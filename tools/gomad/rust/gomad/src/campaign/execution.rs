@@ -609,7 +609,7 @@ mod compile_cache_tests {
             br#"(module (memory (export "memory") 1) (func (export "_start") unreachable))"#
                 .to_vec();
         let mut prepared = Prepared {
-            auxiliary: Default::default(),
+            auxiliary: std::collections::BTreeMap::new(),
             module,
             configuration: serde_json::from_value(json!({
                 "engine":linked::Conditions::compiled().configuration(), "profile":"gomad.wasi-stock-exploratory/v1",

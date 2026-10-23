@@ -418,7 +418,7 @@ class Onebox:
             row = require_zero(self.commands.run('inspection', [sys.executable, args.inspection,
                 '--binary', args.binary, '--repo', args.repo, '--root', self.root / 'inspection',
                 '--compiler', args.compiler, '--runtime-root', args.runtime_root,
-                '--cache', getattr(args, 'cache', None) or self.root / 'inspection-cache', '--captured-config', args.inspection_config,
+                '--cache', getattr(args, 'cache', None) or self.root / 'preparation-cache', '--captured-config', args.inspection_config,
                 *(['--private-observation-config', args.private_observation_config]
                   if self.private is not None else [])]))
             self.inspection = row
