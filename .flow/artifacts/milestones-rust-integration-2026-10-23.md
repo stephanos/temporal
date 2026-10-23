@@ -489,3 +489,19 @@ actual execution; no runtime or final qualification pass is claimed.
 The interception audit identified a missing fresh auto-derived Frontend execution
 route beyond existing compile-only auto cases. That receiving automation and the
 broad native preservation batch continue without changing frozen96 labels.
+
+## Retained Go namespace producer received
+
+At `530b6973f3`,20 evidence references now name the surviving Go model test.
+All510 inventory identities/sites and every other field remain unchanged.
+Independent review verifies original assertions,174scripts,192unchanged JSON
+fixtures,100fixed seeds,18legacy projections and25captured SQLite inputs.
+The actual pinned stockGo drift check passes174subcases without skips or
+regeneration. This proves reference corpus conformance only.
+
+The full evidence resolver remains red with14unique unresolved references,
+down from15. The native and retained-model reference check separately passes.
+The genuine ordinary release measurement binary built successfully in296seconds
+from exactcda source; root independently verified its executable hash. Module
+preparation is underway, while actual three-leg runtime execution, mainCLI
+finalbuild, full frozen qualification and milestone completion remain pending.

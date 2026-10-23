@@ -1578,6 +1578,92 @@
           "same_family": true
         }
       ]
+    },
+    {
+      "observed_at": "2026-10-23T11:06:49.225225+00:00",
+      "integration_head": "530b6973f34cf8914518df6d759adc5aee6906ab",
+      "final_qualification": false,
+      "logs": [
+        {
+          "path": "/home/agent/.cache/codex-build/fn232-root-namespace-reference-drift-tests.jsonl",
+          "bytes": 172472,
+          "sha256": "5610d8a42515a75bb34f2d0dabed5a8fdedb6e7a6489a73053b2560976dbb6ed",
+          "exit": 0,
+          "scope": "Pinned stockGo actual namespace producer:174subcases+root pass;zero skips/failures,192 checked-in fixture projections matched without regeneration"
+        },
+        {
+          "path": "/home/agent/.cache/codex-build/fn232-root-namespace-reference-drift-tests.stderr",
+          "bytes": 0,
+          "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+          "exit": 0,
+          "scope": "Empty producer stderr"
+        },
+        {
+          "path": "/home/agent/.cache/codex-build/fn232-root-namespace-reference-resolver.log",
+          "bytes": 3055,
+          "sha256": "637919eca7f54a3d5ef06660e2cc38c41d0428148b8398f980d10b01c2db348c",
+          "exit": 101,
+          "scope": "Actual complete resolver remains failing:14unique legacy references;one fail35filtered"
+        },
+        {
+          "path": "/home/agent/.cache/codex-build/fn232-root-namespace-reference-native-resolution.log",
+          "bytes": 395,
+          "sha256": "53759c89884c052b1ff3bf52f82bdac01aca9dba398bb8ff5d4e33485dc5e16c",
+          "exit": 0,
+          "scope": "Actual native and retained model reference resolver passes one test;35filtered"
+        }
+      ],
+      "artifacts": [
+        {
+          "path": "/home/agent/.cache/codex-build/fn232-root-namespace-reference-provenance.json",
+          "bytes": 33946,
+          "sha256": "c009447d944447e9a942a1f7a8122dbdd597ee7c3e56ece1a86a14373245f0c3"
+        },
+        {
+          "path": "/Users/stephan/Workspace/skunkworks/gomad/.build-cache/fn232-measurement-original-runtime-v2/release-role-paths.json",
+          "bytes": 592,
+          "sha256": "7c4089a035a2a81d63f82110b7771c01f95db2595dccd2c17a3fa78ba719bb43"
+        },
+        {
+          "path": "/Users/stephan/Workspace/skunkworks/gomad/.build-cache/fn232-measurement-original-runtime-v2/release-build-command.json",
+          "bytes": 951,
+          "sha256": "ff1c28fab46140380c04f3b4e9033ef4a59eb0b8a26cad84ca8033c082e0c4e0"
+        },
+        {
+          "path": "/Users/stephan/Workspace/skunkworks/gomad/.build-cache/fn232-measurement-original-runtime-v2/release-build.stdout",
+          "bytes": 367,
+          "sha256": "b9ba7c98f6c504bc6f6fc9155f3c25abd13288098d2e6216e8b431769c8c80ab"
+        },
+        {
+          "path": "/Users/stephan/Workspace/skunkworks/gomad/.build-cache/fn232-measurement-original-runtime-v2/release-build.stderr",
+          "bytes": 0,
+          "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+        },
+        {
+          "path": "/Users/stephan/Workspace/skunkworks/gomad/.build-cache/fn232-measurement-original-runtime-v2/release-role-v1/.gomad-measure/terminal-exit-helper-build/run-812720-1792753191465365647-0/release-native-812720-0/helper-build.json",
+          "bytes": 111630,
+          "sha256": "9664d5483c268342791426c238d47fcecb8c974cecc9e9a05022b21d52d6757a"
+        }
+      ],
+      "completed_scope": [
+        "530b6973f3 replaces exactly20namespace evidence path references with survivingGo model TestNamespaceConformanceCorpus; every510ID/site and allotherfields preserved. Original test and all producer assertion helpers retained; paths/imports relocated and TemporalCaptureSchema+TemporalConfig equivalent inline seam verified.",
+        "Actual stockGo1.27.1 namespace drift test passes174subcases withoutskip/regeneration; all192originalfixtures and recordedbinary/sample25SQLiteinputs unchanged. This is Go reference corpus source conformance, not Rust/helper/runtime/replay qualification.",
+        "Actual complete evidence resolver reduces15to14unresolved refs and remainsRED; native+retained-model reference resolver separately passes1test.",
+        "Preparatory genuine release gomad-measure build actualexit0 after296seconds, boundsourcecda65407c6, ordinaryrole/features[]. Root independently hashed actualexecutable8de73835920401d41471ff33bbb28f6b89d50b27f62c9a5a7228d5a00c226465 matchesretainedbuildreceipt. Distinct mainCLI finalbuild remainsunprovisioned."
+      ],
+      "reviews": [
+        {
+          "agent": "/root/namespace_reference_migration_review",
+          "scope": "Exact original Go namespace test, called producers,192fixtures,25SQLiteinputs and actualproducerJSONL",
+          "status": "No actionablefindings; all174scripts/100fixedseeds/18legacyprojections unchanged",
+          "same_family": true
+        }
+      ],
+      "pending": [
+        "Remaining14legacyrefs unresolved; no overallinventoryPASS. Fullfrozen96stage/146obligation and MILESTONES qualification remainpending.",
+        "Measurement modulepreparation underway underGo lease; exacttuplethinbinder repair/review and actualthree-leg runtime comparison pending.",
+        "Full mainCLI finalbuild/configuration readiness, broad native receiving and fresh fn233auto-derived actualFrontend receiving routes remain active."
+      ]
     }
   ],
   "resource_snapshot": {
