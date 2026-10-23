@@ -45,7 +45,7 @@ func TestConfiguredProposalNativeWasmParity(t *testing.T) {
 	if err := instruction.GetRequest().UnmarshalTo(read); err != nil {
 		t.Fatal(err)
 	}
-	if read.GetRunId() != receiptRun || instruction.GetPollIntervalMs() != 10 || instruction.GetReadTimeoutMs() != 30000 || instruction.GetBackoffMs() != 10 {
+	if read.GetRunId() != receiptRun || instruction.GetPollIntervalMs() != 10 || instruction.GetReadTimeoutMs() != 30000 || instruction.GetBackoffMs() != 10 || instruction.GetWorkerTasks() != 1 {
 		t.Fatalf("instruction: %v", instruction)
 	}
 	if result := judge(t, h, scheduled(t)); !result.GetContinuePolling() {
@@ -59,8 +59,12 @@ func TestConfiguredProposalNativeWasmParity(t *testing.T) {
 	if err != nil || response.GetAction() != "Worker::RespondCompleted" {
 		t.Fatalf("response: %v %v", response, err)
 	}
-	if err := response.GetRequest().UnmarshalTo(new(temporalv1.ObserveActivity)); err != nil {
+	observed := new(temporalv1.ObserveActivity)
+	if err := response.GetRequest().UnmarshalTo(observed); err != nil {
 		t.Fatal(err)
+	}
+	if observed.GetWorkerTasks() != 0 {
+		t.Fatalf("a response read admits no worker task: %v", observed)
 	}
 	if result := judge(t, h, started(t)); !result.GetContinuePolling() {
 		t.Fatalf("response read must continue: %v", result)

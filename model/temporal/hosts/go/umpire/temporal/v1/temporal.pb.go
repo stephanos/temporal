@@ -29,8 +29,11 @@ type ObserveActivity struct {
 	PollIntervalMs uint64                 `protobuf:"varint,2,opt,name=poll_interval_ms,json=pollIntervalMs,proto3" json:"poll_interval_ms,omitempty"`
 	ReadTimeoutMs  uint64                 `protobuf:"varint,3,opt,name=read_timeout_ms,json=readTimeoutMs,proto3" json:"read_timeout_ms,omitempty"`
 	BackoffMs      uint64                 `protobuf:"varint,4,opt,name=backoff_ms,json=backoffMs,proto3" json:"backoff_ms,omitempty"`
-	unknownFields  protoimpl.UnknownFields
-	sizeCache      protoimpl.SizeCache
+	// How many worker tasks the Driver's worker may take while this read is pending: 1 when the
+	// proposal is a worker poll, 0 when it only observes a response already sent.
+	WorkerTasks   uint32 `protobuf:"varint,5,opt,name=worker_tasks,json=workerTasks,proto3" json:"worker_tasks,omitempty"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
 }
 
 func (x *ObserveActivity) Reset() {
@@ -91,17 +94,25 @@ func (x *ObserveActivity) GetBackoffMs() uint64 {
 	return 0
 }
 
+func (x *ObserveActivity) GetWorkerTasks() uint32 {
+	if x != nil {
+		return x.WorkerTasks
+	}
+	return 0
+}
+
 var File_umpire_temporal_v1_temporal_proto protoreflect.FileDescriptor
 
 const file_umpire_temporal_v1_temporal_proto_rawDesc = "" +
 	"\n" +
-	"!umpire/temporal/v1/temporal.proto\x12\x12umpire.temporal.v1\x1a\x1eumpire/temporal/v1/probe.proto\x1a\x19google/protobuf/any.proto\"\xb2\x01\n" +
+	"!umpire/temporal/v1/temporal.proto\x12\x12umpire.temporal.v1\x1a\x1eumpire/temporal/v1/probe.proto\x1a\x19google/protobuf/any.proto\"\xd5\x01\n" +
 	"\x0fObserveActivity\x12.\n" +
 	"\arequest\x18\x01 \x01(\v2\x14.google.protobuf.AnyR\arequest\x12(\n" +
 	"\x10poll_interval_ms\x18\x02 \x01(\x04R\x0epollIntervalMs\x12&\n" +
 	"\x0fread_timeout_ms\x18\x03 \x01(\x04R\rreadTimeoutMs\x12\x1d\n" +
 	"\n" +
-	"backoff_ms\x18\x04 \x01(\x04R\tbackoffMsB*Z(umpire.local/temporal/umpire/temporal/v1P\x00b\x06proto3"
+	"backoff_ms\x18\x04 \x01(\x04R\tbackoffMs\x12!\n" +
+	"\fworker_tasks\x18\x05 \x01(\rR\vworkerTasksB*Z(umpire.local/temporal/umpire/temporal/v1P\x00b\x06proto3"
 
 var (
 	file_umpire_temporal_v1_temporal_proto_rawDescOnce sync.Once

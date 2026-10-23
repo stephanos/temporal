@@ -138,6 +138,7 @@ fn published_callback_context_survives_intermediate_reads_and_proposes_no_duplic
             && instruction.read_timeout_ms > 0
             && instruction.backoff_ms > 0
     );
+    assert_eq!(instruction.worker_tasks, 0, "a response read admits no worker task");
     let Some(Outcome::Judge(final_result)) = judge(&mut guest, &common::describe(1, 2, 0)).outcome
     else {
         panic!("final")
@@ -152,6 +153,12 @@ fn pending_read_accepts_callback_between_polls_and_finally_clears() {
     admit(&mut guest);
     let proposal = propose(&mut guest, 1);
     assert_eq!(proposal.action, "Worker::Poll(1)");
+    let instruction: ObserveActivity = proposal
+        .request
+        .unwrap_or_else(|| panic!("request missing"))
+        .unpack()
+        .unwrap_or_else(|error| panic!("{error:?}"));
+    assert_eq!(instruction.worker_tasks, 1, "a worker poll admits one worker task");
     let Some(Outcome::Judge(poll)) = judge(&mut guest, &common::describe(1, 1, 1)).outcome else {
         panic!("poll")
     };

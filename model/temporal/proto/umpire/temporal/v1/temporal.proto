@@ -14,4 +14,7 @@ message ObserveActivity {
   uint64 poll_interval_ms = 2;
   uint64 read_timeout_ms = 3;
   uint64 backoff_ms = 4;
+  // How many worker tasks the Driver's worker may take while this read is pending: 1 when the
+  // proposal is a worker poll, 0 when it only observes a response already sent.
+  uint32 worker_tasks = 5;
 }

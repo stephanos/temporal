@@ -887,7 +887,9 @@ requests, callback context and Model state change only after response publicatio
 
 Action proposals name the exact checked Model action. A cancellation request is sent normally.
 An `umpire.temporal.v1.ObserveActivity` instead requests a Describe read, with explicit poll interval,
-read timeout and backoff in milliseconds (10, 30000 and 10). It carries no worker response to resend.
+read timeout and backoff in milliseconds (10, 30000 and 10). Its `worker_tasks` says how many worker
+tasks the Driver's worker may take while the read is pending: 1 for a worker poll, 0 for a read that
+observes a response already sent. It carries no worker response to resend.
 The immediate Answer reply remains the only worker response instruction; a successfully published
 Answer retains validated callback context so a later proposal can observe that same response.
 Delivery proposals complete at Started or a validated later attempt; worker responses at their corresponding completion or

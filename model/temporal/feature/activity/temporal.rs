@@ -82,6 +82,7 @@ impl Realization {
                     poll_interval_ms: 10,
                     read_timeout_ms: 30_000,
                     backoff_ms: 10,
+                    worker_tasks: 1,
                 }),
             ));
         }
@@ -98,6 +99,7 @@ impl Realization {
                         poll_interval_ms: 10,
                         read_timeout_ms: 30_000,
                         backoff_ms: 10,
+                        worker_tasks: 0,
                     }),
                 ));
             }
