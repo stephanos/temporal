@@ -275,6 +275,36 @@ def artifact(run, destination, expected):
     return path, record
 
 
+def backend_metrics(path):
+    bounded(path, 8192)
+    return metric_values(read(path))
+
+
+def metric_values(value):
+    names = {'prepare_nanos', 'compile_nanos', 'cache_load_nanos', 'cache_write_nanos', 'cache_hit',
+             'instantiate_nanos', 'execute_nanos', 'process_user_nanos', 'process_system_nanos',
+             'peak_rss_bytes', 'resource_usage_available'}
+    require(isinstance(value, dict) and set(value) == names, 'missing original raw backend metric fields')
+    require(all(type(item) is bool if key in ('cache_hit', 'resource_usage_available') else type(item) is int and item >= 0
+                for key, item in value.items()), 'invalid original raw backend metric value')
+    return value
+
+
+def original_backend_metrics(artifact, root):
+    paths = list((artifact.parents[1] / 'execution-observations').glob('*.json'))
+    require(len(paths) == 1, 'missing/duplicate original backend metrics observation')
+    path = paths[0]
+    raw = bounded(path, 8192)
+    value = read(path)
+    require(path.name == '0-' + receiving.digest(raw) + '.json'
+            and value['schema'] == 'gomad.backend-metrics-observation/v1' and value['ordinal'] == 0
+            and value['record_sha256'] == read(artifact / 'manifest.json')['record_sha256']
+            and value['operator_process_id'] == read(root / 'explore.command.json')['pid'],
+            'original backend metrics borrowed another artifact/operator')
+    metric_values(value['metrics'])
+    return dict(path=str(path), sha256=sha(path))
+
+
 def retained(config, root, reader=None):
     run, selected, installation = install(config, root, 'retained', reader)
     arguments = ['explore', '--json', '--seeds=7', '--parallel=1', '--on-failure=first', '--failure-budget=1',
@@ -290,10 +320,14 @@ def retained(config, root, reader=None):
             'original retained failure fixture did not execute')
     before = live.inventory(path)
     detach(root, selected, reader)
+    original_metrics = original_backend_metrics(path, root)
+    stable = read(path / 'evidence/backend-outcome.json')
+    require(stable['schema'] == 'gomad.backend-outcome/v1' and stable['type'] == 'result' and 'metrics' not in stable,
+            'retained original backend evidence schema/metrics boundary changed')
     expected = {'stdout': bounded(path / 'output/stdout', 1 << 20),
                 'stderr': bounded(path / 'output/stderr', 1 << 20),
                 'backend-evidence.bin': bounded(path / 'evidence/backend-outcome.json', 1 << 20)}
-    pids = set()
+    pids, observations = set(), []
     for index in range(20):
         name = f'replay-{index + 1:02d}'
         observed = root / 'observed' / f'{index + 1:03d}'
@@ -302,11 +336,14 @@ def retained(config, root, reader=None):
                 'fresh observed replay did not reproduce')
         for filename, value in expected.items():
             require(bounded(observed / filename, 1 << 20) == value, 'fresh observed raw evidence differs')
+        backend_metrics(observed / 'backend-metrics.json')
+        observations.append(dict(path=str(observed / 'backend-metrics.json'), sha256=sha(observed / 'backend-metrics.json')))
         pid = read(root / (name + '.command.json'))['pid']
         require(pid not in pids, 'reused observed replay process')
         pids.add(pid)
     require(live.inventory(path) == before, '20 fresh replays changed immutable artifact')
-    return dict(artifact=str(path), artifact_files=before, replay_processes=sorted(pids))
+    return dict(artifact=str(path), artifact_files=before, replay_processes=sorted(pids),
+                original_metrics=original_metrics, replay_metrics=observations)
 
 
 def operator_capability(path, kind):

@@ -302,6 +302,13 @@ fn run(
                 &mut retention,
                 base_only,
             )?;
+            if completion.execution.artifact.is_some() {
+                execution::retain_backend_metrics(
+                    journal.path(),
+                    &completion.execution,
+                    &completion.metrics,
+                )?;
+            }
             executions.push(completion.execution);
             results.push(result);
         }
