@@ -239,7 +239,7 @@ fn metadata_publication() -> crate::evidence::store::Publication {
     let (mut configuration, _) = super::projection_tests::configuration();
     configuration.workload = None;
     configuration.oracle_plan = None;
-    configuration.engine = linked::Conditions::compiled().configuration().into();
+    configuration.engine = linked::Conditions::compiled().configuration();
     configuration.incarnations.truncate(1);
     let item = &mut configuration.incarnations[0];
     item.module = Payload {

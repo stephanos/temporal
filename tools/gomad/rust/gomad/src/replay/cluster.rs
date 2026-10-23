@@ -621,9 +621,14 @@ pub fn prepare(opened: Opened, control: Option<&inspection::Request>) -> Result<
             if let (Some(network), Some(model)) =
                 (retained.evidence.get("network"), item.network.as_ref())
             {
+                let shared = recipe
+                    .network
+                    .as_ref()
+                    .ok_or("retained cluster network evidence requires declared shared network")?;
                 helper::validate_network_evidence(
                     &network.read(&opened, item.limits.evidence_bytes)?,
                     item.limits.evidence_bytes,
+                    &shared.model,
                     model,
                 )?;
             }
