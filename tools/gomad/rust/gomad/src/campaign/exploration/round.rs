@@ -492,7 +492,10 @@ impl RoundJournal {
                 "storage.json" | "plan.json" | "journal.jsonl" | ".lock" => {
                     open::child(&root, &name, false, false)?;
                 }
-                "evidence" | "prepared" | crate::campaign::prepare::OBSERVATION_DIRECTORY => {
+                "evidence"
+                | "prepared"
+                | crate::campaign::prepare::OBSERVATION_DIRECTORY
+                | crate::campaign::execution::OBSERVATION_DIRECTORY => {
                     open::child(&root, &name, true, false)?;
                 }
                 _ => return Err(format!("unexpected campaign entry {name:?}")),

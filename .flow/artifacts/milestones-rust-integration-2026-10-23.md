@@ -164,3 +164,96 @@ Disk observed after this build wave: checkout 152 GiB free, `/home/agent` 61 GiB
 free. No root cache/evidence deletion. Existing open-spec worktrees listed in the
 prior continuation inventory remain retained for their active source/evidence
 owners; root's retirement integration target is retained for integrated checks.
+
+
+## Core, interception, journal and measurement integration checkpoint
+
+Root integrated core `4fcf9fa06b`, stress final/parity readers `e4acc1d0b8`,
+interception `8e74337901`, authenticated journal observations `2f52fbb724`,
+and measurement `e3fa292033`; journal evidence is retained by `23f5cb47af`.
+These are source-integration checkpoints, not accepted host retirement or final
+qualification. Existing earlier checkpoints retain their original meaning.
+
+The interception merge initially rejected raw non-UTF-8 native metadata environments.
+Its meaningful existing passthrough test exposed the regression. Shared raw command
+execution now preserves native environment bytes, while observed preparation retains
+its exact controlled UTF-8 map. Fresh same-family independent source review found no
+remaining integration blocker. The measurement merge preserves fixture state, World
+and storage bounds, profile capture and actual timing together. A missing cfg-gated
+synthetic Execution initializer was found by review and repaired. Small subsequent
+lint fixes preserve startup guard order, status conversion and emitted fixture bytes.
+
+Completed root checks (raw logs and numeric exits in the companion JSON):
+
+- Core checkpoint: 369 native and 212 helper tests passed, existing opt-in tests ignored.
+- Interception checkpoint: 462 native tests passed, two ignored; strict workspace
+  all-target Clippy passed. Stress reader 16, all-verb reader 13, interception shim
+  reader 20 and Make reader four tests passed.
+- Composed measurement: 575 native and 213 helper tests passed; respectively two
+  and twelve existing opt-in tests ignored. The first compile failed on a newly
+  required timing field and is retained alongside the corrected successful run.
+- Corrected Python driver discovery ran 172 tests, with five stale ignored-producer
+  inventory errors and an exact `qualify/spec.rs#decode_first` anchor failure.
+  The preliminary wrong discovery pattern ran zero tests and exited five; it earns
+  no verification credit.
+
+The expanded admitted lint matrix adds the three native measurement profiles to the
+existing thirteen configurations. Its final sixteen-configuration run is pending at
+this checkpoint. An accidentally included forbidden fixture-plus-diagnostic feature
+combination correctly triggered its compile-time refusal; it was removed from the
+admitted matrix, with the refusal log preserved. Other failed lint attempts remain
+retained; no warnings were suppressed.
+
+Actual counterfactual execution has proved the draw and clock pairs on its own
+immutable candidate. Handoff exposed missing ordered drain steps during early cluster
+failure; its owner is fixing the producer while retaining the existing strict prefix
+validator. No four-pair completion or broad provider/functional/retained coverage is
+claimed. Real missing original predicates remain under the core owner. Qualification
+primary recipes, standalone inspection admission, stable original backend evidence,
+terminal-to-reap observations, fresh original ringpop references and derived source
+custody remain active implementation work. None of the 96-stage/final-section gates,
+full runtime/workload/replay matrices or the complete milestones are marked done.
+
+Root's target remains `fn232-retirement-integration`; source/evidence worktrees under
+`/home/agent/wt` remain retained for their open owners. Latest resource observation:
+checkout 105 GiB free, `/home/agent` 16 GiB free. No root cache cleanup was performed.
+The two untracked user trees remain untouched.
+
+
+## Accepted supported-role source checkpoint
+
+`d21472e774` follows reference source merge `9dc62d4f6a`, retained readers
+`b0be4185de`, profile readers `be131fbbf0`, and external workload source custody
+`2db19d584e`. The entire expanded `make -C tools/gomad lint-rust` command now
+exits zero across all sixteen admitted configurations, superseding the earlier
+pending role check. Failed attempts remain authenticated in the companion JSON.
+The final repairs preserve native socket decoding and the old conformance
+Unsupported path, gate only unavailable retained-reader assertions, move two
+unchanged diagnostic vocabulary functions before tests, and remove a last-use
+clone. Fresh independent same-family review found no remaining source blocker.
+
+Actual role checks also passed: conformance library 68 tests (seven existing
+opt-in tests ignored), native measurement fixture 15 tests, reference reader nine,
+retained reader thirteen, profile reader twelve, and full source-custody/workload
+Python suite thirty-one. No ignored test is counted as runtime proof.
+
+The original runtime-cost development pair now genuinely exits zero under both
+Go-owned and helper-owned execution: 100,000 select polls, 200,037 calls, expected
+stdout and identical original sameEvidence. Its immutable helper is explicitly a
+development oracle; this does not replace the current native third leg or final
+frozen qualification. The actual source snapshot probe also retained and verified
+240,370,785 bytes across 8,419 files outside the frozen repository; it is source
+custody evidence, not a workload execution pass.
+
+Reviewed terminal/custody followup `51b566a2ba` and stable backend evidence
+`fc0e9dbe9d` remain ready for root integration. Core implicit-drain repair
+`132b1ceb15` has a causal actual-WAT regression and independent review, but the
+fresh original four-pair proof remains incomplete. Driver primary composition,
+standalone inspection admission and original wire-only terminal proofs remain in
+flight. Inventory resolution and the complete original behavioral gates remain
+open; no Flow task is completed by this checkpoint.
+
+All root build/test handles are terminal here. The companion JSON records every
+registered worktree with a retention reason and the open evidence/scratch roots.
+Root performed no cache cleanup. Last observed free space: checkout 109 GiB,
+`/home/agent` 21 GiB. Untracked user trees are unchanged.

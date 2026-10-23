@@ -29,7 +29,7 @@ mod conformance;
 #[cfg(feature = "determinism-fixture")]
 mod determinism_fixture;
 #[cfg(all(not(feature = "conformance"), feature = "diagnostic-profile"))]
-mod diagnostic;
+pub mod diagnostic;
 #[cfg(not(feature = "conformance"))]
 mod engine;
 #[cfg(any(feature = "determinism-fixture", feature = "stress-jitter"))]
@@ -112,5 +112,7 @@ mod model_preservation;
 #[cfg(all(test, not(feature = "conformance")))]
 mod storage_preservation;
 
+#[cfg(not(feature = "conformance"))]
+pub mod profile_inventory;
 #[cfg(not(feature = "conformance"))]
 mod storage_evidence_bounds;

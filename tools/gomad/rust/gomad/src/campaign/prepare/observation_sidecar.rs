@@ -157,7 +157,7 @@ pub(super) fn publish(
             write(&stage, name, bytes)?;
         }
         write(&stage, "receipt.json", &encoded)?;
-        let retained = read(&stage, prepared, prepared_record_sha256)?;
+        let retained = read(&stage, prepared, prepared_record_sha256, None)?;
         if retained != prepared.auxiliary {
             return Err("staged preparation observation set changed".into());
         }
@@ -211,6 +211,25 @@ pub(super) fn open_at(
         &store_open::child(campaign, DIRECTORY, true, false)?,
         prepared,
         prepared_record_sha256,
+        None,
+    )
+}
+
+pub(super) fn open_from_receipt(
+    campaign: &Path,
+    prepared: &Prepared,
+    record: &str,
+    receipt_sha256: &str,
+) -> Result<BTreeMap<String, Vec<u8>>, String> {
+    if !canonical::valid_digest(receipt_sha256) {
+        return Err("invalid pinned preparation observation receipt digest".into());
+    }
+    let campaign = store_open::pin(campaign)?;
+    read(
+        &store_open::child(&campaign, DIRECTORY, true, false)?,
+        prepared,
+        record,
+        Some(receipt_sha256),
     )
 }
 
@@ -218,8 +237,14 @@ fn read(
     directory: &File,
     prepared: &Prepared,
     record: &str,
+    receipt_sha256: Option<&str>,
 ) -> Result<BTreeMap<String, Vec<u8>>, String> {
     let bytes = store_open::read(directory, "receipt.json", RECEIPT_LIMIT, false)?;
+    if receipt_sha256.is_some_and(|expected| {
+        !canonical::valid_digest(expected) || canonical::digest(&bytes) != expected
+    }) {
+        return Err("pinned preparation observation receipt changed".into());
+    }
     let receipt: Receipt = serde_json::from_slice(&bytes).map_err(|error| error.to_string())?;
     if canonical::encode(&receipt)? != bytes
         || receipt.owner_pid == 0
@@ -229,6 +254,15 @@ fn read(
         return Err("noncanonical or empty preparation observation receipt".into());
     }
     let mut expected = commitment(prepared, record)?;
+    if receipt_sha256.is_some() {
+        if !canonical::valid_digest(&receipt.host_sha256)
+            || !canonical::valid_digest(&receipt.helper_sha256)
+        {
+            return Err("invalid preparation observation producer origin".into());
+        }
+        expected.host_sha256.clone_from(&receipt.host_sha256);
+        expected.helper_sha256.clone_from(&receipt.helper_sha256);
+    }
     expected.owner_pid = receipt.owner_pid;
     expected.files.clone_from(&receipt.files);
     if expected != receipt {
@@ -578,5 +612,53 @@ mod tests {
         assert_eq!(add_size(BLOB_LIMIT, BLOB_LIMIT).unwrap(), 2 * BLOB_LIMIT);
         assert!(add_size(0, BLOB_LIMIT + 1).is_err());
         assert!(add_size(u64::MAX, 1).is_err());
+    }
+    #[test]
+    fn pinned_receipt_origin_authenticates_cross_source_consumers_without_weakening_default() {
+        for mutation in 0..8 {
+            let root = Campaign::new();
+            let mut guest = prepared(101);
+            let record = canonical::digest(b"record");
+            publish(&root.0, &guest, &record).unwrap();
+            let path = root.0.join(DIRECTORY).join("receipt.json");
+            let mut receipt: Receipt =
+                serde_json::from_slice(&hostfs::read(&path).unwrap()).unwrap();
+            receipt.host_sha256 = "3".repeat(64);
+            receipt.helper_sha256 = "4".repeat(64);
+            let raw = canonical::encode(&receipt).unwrap();
+            hostfs::write(&path, &raw).unwrap();
+            let digest = canonical::digest(&raw);
+            assert!(open(&root.0, &guest, &record).is_err());
+            assert_eq!(
+                open_from_receipt(&root.0, &guest, &record, &digest).unwrap(),
+                guest.auxiliary
+            );
+            match mutation {
+                0 => hostfs::write(&path, b"{}").unwrap(),
+                1 => guest.module.push(0),
+                2 => guest.provenance.push(b' '),
+                3 => hostfs::write(
+                    root.0
+                        .join(DIRECTORY)
+                        .join(guest.auxiliary.keys().next().unwrap()),
+                    b"altered",
+                )
+                .unwrap(),
+                4 => hostfs::remove_dir_all(root.0.join(DIRECTORY)).unwrap(),
+                5 => hostfs::write(root.0.join(DIRECTORY).join("undeclared"), b"extra").unwrap(),
+                6 => {
+                    assert!(open_from_receipt(&root.0, &guest, &"0".repeat(64), &digest).is_err());
+                    continue;
+                }
+                _ => {
+                    assert!(open_from_receipt(&root.0, &guest, &record, "invalid").is_err());
+                    continue;
+                }
+            }
+            assert!(
+                open_from_receipt(&root.0, &guest, &record, &digest).is_err(),
+                "mutation {mutation}"
+            );
+        }
     }
 }

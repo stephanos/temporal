@@ -224,6 +224,65 @@ WASM `go-test` option `--soft-assertion-report-only` reports them without failin
 otherwise successful execution for tests that intentionally trigger them.
 It is part of target identity and replay/resume restore it.
 
+## Run existing commands through Gomad
+
+The Rust launcher can wrap an existing command without changing its Makefile or
+script. From the Temporal module root, with stock Go 1.27.1 on `PATH`:
+
+```sh
+gomad -- go test ./tests/gomadfunctional -run '^TestFrontendSystemInfo$' -v
+```
+
+The checked-in `gomad.toml` selects the cooperative runtime sources and Temporal
+installation derivation. No `guest` entries are configured, so `go run` and
+`go build` remain host tools. An explicit `--installation FILE` before `--`
+overrides auto-derivation. Nothing downloads or switches compilers.
+
+The mandatory `--` separates Gomad options from child arguments. Use
+`gomad -- make`, never `gomad make` or `gomad go`. The wrapper returns the child's
+actual status. It inserts a private `go` shim at the front of `PATH`; absolute
+compiler paths and programs that replace or shadow that `PATH` bypass it.
+Go retains package selection, test flags, output parsing and package parallelism.
+Guest stdout reaches Go unchanged; Gomad diagnostics use stderr.
+
+`go test` compiles for cooperative wasip1/wasm and uses `run-guest` through Go's
+`-exec`. A caller's `-exec` is preserved with the guest build environment; an
+external launcher supplies no Gomad execution-evidence claim. Other Go
+subcommands and unmatched `go run`/`go build` pass through to the pinned compiler
+with host settings. Guest builds refuse race detection, fuzzing, coverage,
+MSan/ASan, cgo, excluded tags and incompatible GOOS/GOARCH before compilation;
+see the [complete contract](internal/backends/wasm/CLI.md#wrap-existing-go-commands).
+
+For the unchanged Temporal Make target, restrict all three recipe package
+variables to the registered selection:
+
+```sh
+gomad -- make functional-test \
+  TEST_RACE_FLAG=off TEST_SHUFFLE_FLAG=off \
+  PERSISTENCE_TYPE=sql PERSISTENCE_DRIVER=sqlite \
+  FUNCTIONAL_TEST_ROOT=./tests/gomadfunctional \
+  FUNCTIONAL_TEST_NDC_ROOT=./tests/gomadfunctional \
+  FUNCTIONAL_TEST_XDC_ROOT=./tests/gomadfunctional \
+  TEST_ARGS='-run=^TestFrontendSystemInfo$$ -v -count=1' TEST_TIMEOUT=5m
+```
+
+The doubled `$$` survives Make variable expansion as the single regex anchor `$`.
+This runs the same supported test three times sequentially. It establishes no
+NDC/XDC package support or suite breadth. Default `TEST_RACE_FLAG=on` is refused.
+The Makefile pipes Go through `tee` and checks `test.log` afterward; Make's status
+can differ from Go's. Use a fresh log and inspect the actual refusal/output.
+The [Make acceptance harness](testdata/parity/interception-make-plan.md) retains
+these separate observations and checks host tools separately.
+
+Intercepted campaigns retain `origin: intercepted-go`, original argv and distinct
+wrapper, driver and launch identities. Explicit replay and inspection accept
+authenticated retained evidence; compatible failures can be minimized. Qualification
+refuses intercepted evidence, including derived minimized artifacts. This convenience
+path adds no guest capabilities or support beyond separately proven selections;
+[fn-221](../../.flow/specs/fn-221-gomad-functional-suite-triage-sweep-on.md) and
+[fn-222](../../.flow/specs/fn-222-gomad-qualify-the-one-box-cell-and.md) own per-test
+support and qualification.
+
 ## Seeds, campaigns and artifacts
 
 `--seeds=0-9` selects ten seeds, `--seeds=0,7,42` selects three, and `--count=100`

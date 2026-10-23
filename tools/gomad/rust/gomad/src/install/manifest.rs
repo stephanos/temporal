@@ -68,6 +68,8 @@ pub struct Installation {
     pub network: Option<gomad_wasmhost::linked_cluster::NetworkModel>,
     #[serde(default)]
     pub build_tags: Vec<String>,
+    #[serde(default, skip_serializing_if = "Vec::is_empty")]
+    pub excluded_build_tags: Vec<String>,
 }
 
 pub(crate) fn read(path: &Path, limit: u64) -> Result<Vec<u8>, String> {
@@ -160,6 +162,7 @@ pub fn resolve(explicit: Option<&Path>) -> Result<Description, String> {
 }
 
 pub(crate) fn validate(installed: &Installation) -> Result<(), String> {
+    super::tags::validate(&installed.build_tags, &installed.excluded_build_tags)?;
     if installed.schema != SCHEMA
         || installed.helper_sha256 != linked::IMPLEMENTATION_SHA256
         || installed.host_sha256 != env!("GOMAD_HOST_IMPLEMENTATION_SHA256")

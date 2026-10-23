@@ -1,3 +1,5 @@
+mod cache;
+
 use crate::evidence::{
     canonical,
     record::{Record, Stream},
@@ -338,6 +340,8 @@ pub(crate) struct DriverRegistration {
     pub compiler_sha256: String,
     pub driver_argv_sha256: String,
     pub module_root: std::path::PathBuf,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub module_cache_root: Option<std::path::PathBuf>,
 }
 
 pub(crate) fn authenticate_driver(
@@ -345,6 +349,7 @@ pub(crate) fn authenticate_driver(
     invocation_digest: &str,
     invocation: &Invocation,
     module: &Path,
+    module_bytes: &[u8],
 ) -> Result<(), String> {
     let root = open::pin(path.parent().ok_or("invocation owner missing")?)?;
     let bytes = open::read(&root, "driver-registration.json", 16384, false)?;
@@ -358,16 +363,23 @@ pub(crate) fn authenticate_driver(
         || registration.compiler_sha256 != invocation.compiler_sha256
         || registration.driver_argv_sha256
             != canonical::digest(&canonical::encode(&invocation.driver_argv)?)
-        || !std::fs::canonicalize(module)
-            .map_err(|e| e.to_string())?
-            .starts_with(
-                std::fs::canonicalize(&registration.module_root).map_err(|e| e.to_string())?,
-            )
     {
         return Err("module is not associated with the registered live pinned Go driver".into());
     }
     open::pin(&registration.module_root)?;
-    Ok(())
+    if std::fs::canonicalize(module)
+        .map_err(|error| error.to_string())?
+        .starts_with(
+            std::fs::canonicalize(&registration.module_root).map_err(|error| error.to_string())?,
+        )
+    {
+        return Ok(());
+    }
+    let cache = registration
+        .module_cache_root
+        .as_deref()
+        .ok_or("module is not associated with the registered live pinned Go driver")?;
+    cache::authenticate(cache, module, module_bytes, invocation)
 }
 
 #[cfg(test)]
@@ -380,3 +392,7 @@ mod tests {
         assert_ne!(identity().unwrap(), identity().unwrap());
     }
 }
+
+#[cfg(test)]
+#[path = "origin_cache_tests.rs"]
+mod cache_tests;

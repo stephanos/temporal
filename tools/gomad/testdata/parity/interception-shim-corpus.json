@@ -1,0 +1,705 @@
+{
+  "schema": "gomad.interception-shim-corpus/v1",
+  "cases": [
+    {
+      "name": "host-env",
+      "stage": "host",
+      "argv": [
+        "env",
+        "$RAW_ARGS"
+      ],
+      "status": 0
+    },
+    {
+      "name": "host-list",
+      "stage": "host",
+      "argv": [
+        "list",
+        "$RAW_ARGS"
+      ],
+      "status": 0
+    },
+    {
+      "name": "host-mod",
+      "stage": "host",
+      "argv": [
+        "mod",
+        "$RAW_ARGS"
+      ],
+      "status": 0
+    },
+    {
+      "name": "host-generate",
+      "stage": "host",
+      "argv": [
+        "generate",
+        "$RAW_ARGS"
+      ],
+      "status": 0
+    },
+    {
+      "name": "host-vet",
+      "stage": "host",
+      "argv": [
+        "vet",
+        "$RAW_ARGS"
+      ],
+      "status": 0
+    },
+    {
+      "name": "host-tool",
+      "stage": "host",
+      "argv": [
+        "tool",
+        "$RAW_ARGS"
+      ],
+      "status": 0
+    },
+    {
+      "name": "host-version",
+      "stage": "host",
+      "argv": [
+        "version",
+        "$RAW_ARGS"
+      ],
+      "status": 0
+    },
+    {
+      "name": "host-install",
+      "stage": "host",
+      "argv": [
+        "install",
+        "$RAW_ARGS"
+      ],
+      "status": 0
+    },
+    {
+      "name": "host-clean",
+      "stage": "host",
+      "argv": [
+        "clean",
+        "$RAW_ARGS"
+      ],
+      "status": 0
+    },
+    {
+      "name": "host-fmt",
+      "stage": "host",
+      "argv": [
+        "fmt",
+        "$RAW_ARGS"
+      ],
+      "status": 0
+    },
+    {
+      "name": "host-fix",
+      "stage": "host",
+      "argv": [
+        "fix",
+        "$RAW_ARGS"
+      ],
+      "status": 0
+    },
+    {
+      "name": "host-doc",
+      "stage": "host",
+      "argv": [
+        "doc",
+        "$RAW_ARGS"
+      ],
+      "status": 0
+    },
+    {
+      "name": "host-help",
+      "stage": "host",
+      "argv": [
+        "help",
+        "$RAW_ARGS"
+      ],
+      "status": 0
+    },
+    {
+      "name": "host-work",
+      "stage": "host",
+      "argv": [
+        "work",
+        "$RAW_ARGS"
+      ],
+      "status": 0
+    },
+    {
+      "name": "host-get",
+      "stage": "host",
+      "argv": [
+        "get",
+        "$RAW_ARGS"
+      ],
+      "status": 0
+    },
+    {
+      "name": "host-bug",
+      "stage": "host",
+      "argv": [
+        "bug",
+        "$RAW_ARGS"
+      ],
+      "status": 0
+    },
+    {
+      "name": "host-telemetry",
+      "stage": "host",
+      "argv": [
+        "telemetry",
+        "$RAW_ARGS"
+      ],
+      "status": 0
+    },
+    {
+      "name": "unmatched-run",
+      "stage": "host",
+      "argv": [
+        "run",
+        "./unmatched",
+        "$RAW_ARGS"
+      ],
+      "status": 0
+    },
+    {
+      "name": "unmatched-build",
+      "stage": "host",
+      "argv": [
+        "build",
+        "./unmatched",
+        "$RAW_ARGS"
+      ],
+      "status": 0
+    },
+    {
+      "name": "host-env-goos",
+      "stage": "host",
+      "argv": [
+        "env",
+        "GOOS"
+      ],
+      "status": 0
+    },
+    {
+      "name": "wrapper-true",
+      "stage": "wrapper",
+      "argv": [
+        "--",
+        "true"
+      ],
+      "status": 0
+    },
+    {
+      "name": "wrapper-false",
+      "stage": "wrapper",
+      "argv": [
+        "--",
+        "false"
+      ],
+      "status": 1
+    },
+    {
+      "name": "wrapper-named-replay",
+      "stage": "wrapper",
+      "argv": [
+        "--",
+        "replay",
+        "--installation=child",
+        "--seeds=child"
+      ],
+      "status": 0
+    },
+    {
+      "name": "wrapper-empty",
+      "stage": "wrapper",
+      "argv": [
+        "--"
+      ],
+      "status": 2
+    },
+    {
+      "name": "wrapper-unknown-command",
+      "stage": "wrapper",
+      "argv": [
+        "--",
+        "interception-no-such-child"
+      ],
+      "status": 2
+    },
+    {
+      "name": "wrapper-missing-separator",
+      "stage": "wrapper",
+      "argv": [
+        "make"
+      ],
+      "status": 2
+    },
+    {
+      "name": "wrapper-filesystem",
+      "stage": "wrapper",
+      "argv": [
+        "--",
+        "true"
+      ],
+      "status": 3
+    },
+    {
+      "name": "wrapper-direct-go",
+      "stage": "wrapper",
+      "argv": [
+        "--",
+        "go",
+        "version"
+      ],
+      "status": 0
+    },
+    {
+      "name": "config-unknown-key",
+      "stage": "config",
+      "argv": [],
+      "config": "runtime_root=\"runtime\"\nunknown=true\n",
+      "status": 2
+    },
+    {
+      "name": "config-duplicate-key",
+      "stage": "config",
+      "argv": [],
+      "config": "runtime_root=\"runtime\"\nruntime_root=\"runtime\"\n",
+      "status": 2
+    },
+    {
+      "name": "config-runtime-absolute",
+      "stage": "config",
+      "argv": [],
+      "config": "runtime_root=\"/etc\"\n",
+      "status": 2
+    },
+    {
+      "name": "config-runtime-escape",
+      "stage": "config",
+      "argv": [],
+      "config": "runtime_root=\"../outside\"\n",
+      "status": 2
+    },
+    {
+      "name": "config-runtime-symlink",
+      "stage": "config",
+      "argv": [],
+      "config": "runtime_root=\"escape\"\n",
+      "status": 2
+    },
+    {
+      "name": "config-runtime-type",
+      "stage": "config",
+      "argv": [],
+      "config": "runtime_root=[]\n",
+      "status": 2
+    },
+    {
+      "name": "config-runtime-missing",
+      "stage": "config",
+      "argv": [],
+      "config": "derive=\"default\"\n",
+      "status": 2
+    },
+    {
+      "name": "config-guest-absolute",
+      "stage": "config",
+      "argv": [],
+      "config": "runtime_root=\"runtime\"\nguest=[\"/etc\"]\n",
+      "status": 2
+    },
+    {
+      "name": "config-guest-escape",
+      "stage": "config",
+      "argv": [],
+      "config": "runtime_root=\"runtime\"\nguest=[\"../outside\"]\n",
+      "status": 2
+    },
+    {
+      "name": "config-guest-type",
+      "stage": "config",
+      "argv": [],
+      "config": "runtime_root=\"runtime\"\nguest=\"./main\"\n",
+      "status": 2
+    },
+    {
+      "name": "config-guest-element-type",
+      "stage": "config",
+      "argv": [],
+      "config": "runtime_root=\"runtime\"\nguest=[1]\n",
+      "status": 2
+    },
+    {
+      "name": "config-derive-value",
+      "stage": "config",
+      "argv": [],
+      "config": "runtime_root=\"runtime\"\nderive=\"other\"\n",
+      "status": 2
+    },
+    {
+      "name": "config-derive-type",
+      "stage": "config",
+      "argv": [],
+      "config": "runtime_root=\"runtime\"\nderive=[]\n",
+      "status": 2
+    },
+    {
+      "name": "config-malformed",
+      "stage": "config",
+      "argv": [],
+      "config": "runtime_root=\"runtime\n",
+      "status": 2
+    },
+    {
+      "name": "config-duplicate-derive",
+      "stage": "config",
+      "argv": [],
+      "config": "runtime_root=\"runtime\"\nderive=\"default\"\nderive=\"temporal\"\n",
+      "status": 2
+    },
+    {
+      "name": "refuse-race-argv",
+      "stage": "refusal",
+      "argv": [
+        "test",
+        "./supported",
+        "-race=true"
+      ],
+      "env": {},
+      "status": 2,
+      "diagnostic": "race"
+    },
+    {
+      "name": "refuse-race-goflags",
+      "stage": "refusal",
+      "argv": [
+        "test",
+        "./supported"
+      ],
+      "env": {
+        "GOFLAGS": "-race=true"
+      },
+      "status": 2,
+      "diagnostic": "race"
+    },
+    {
+      "name": "refuse-msan-argv",
+      "stage": "refusal",
+      "argv": [
+        "test",
+        "./supported",
+        "-msan=true"
+      ],
+      "env": {},
+      "status": 2,
+      "diagnostic": "msan"
+    },
+    {
+      "name": "refuse-msan-goflags",
+      "stage": "refusal",
+      "argv": [
+        "test",
+        "./supported"
+      ],
+      "env": {
+        "GOFLAGS": "-msan=true"
+      },
+      "status": 2,
+      "diagnostic": "msan"
+    },
+    {
+      "name": "refuse-asan-argv",
+      "stage": "refusal",
+      "argv": [
+        "test",
+        "./supported",
+        "-asan=true"
+      ],
+      "env": {},
+      "status": 2,
+      "diagnostic": "asan"
+    },
+    {
+      "name": "refuse-asan-goflags",
+      "stage": "refusal",
+      "argv": [
+        "test",
+        "./supported"
+      ],
+      "env": {
+        "GOFLAGS": "-asan=true"
+      },
+      "status": 2,
+      "diagnostic": "asan"
+    },
+    {
+      "name": "refuse-cover-argv",
+      "stage": "refusal",
+      "argv": [
+        "test",
+        "./supported",
+        "-cover=true"
+      ],
+      "env": {},
+      "status": 2,
+      "diagnostic": "cover"
+    },
+    {
+      "name": "refuse-cover-goflags",
+      "stage": "refusal",
+      "argv": [
+        "test",
+        "./supported"
+      ],
+      "env": {
+        "GOFLAGS": "-cover=true"
+      },
+      "status": 2,
+      "diagnostic": "cover"
+    },
+    {
+      "name": "refuse-fuzz-argv",
+      "stage": "refusal",
+      "argv": [
+        "test",
+        "./supported",
+        "-fuzz=FuzzExample"
+      ],
+      "env": {},
+      "status": 2,
+      "diagnostic": "fuzz"
+    },
+    {
+      "name": "refuse-fuzz-goflags",
+      "stage": "refusal",
+      "argv": [
+        "test",
+        "./supported"
+      ],
+      "env": {
+        "GOFLAGS": "-fuzz=FuzzExample"
+      },
+      "status": 2,
+      "diagnostic": "fuzz"
+    },
+    {
+      "name": "refuse-coverprofile-argv",
+      "stage": "refusal",
+      "argv": [
+        "test",
+        "./supported",
+        "-coverprofile=out"
+      ],
+      "env": {},
+      "status": 2,
+      "diagnostic": "cover"
+    },
+    {
+      "name": "refuse-coverprofile-goflags",
+      "stage": "refusal",
+      "argv": [
+        "test",
+        "./supported"
+      ],
+      "env": {
+        "GOFLAGS": "-coverprofile=out"
+      },
+      "status": 2,
+      "diagnostic": "cover"
+    },
+    {
+      "name": "refuse-coverpkg-argv",
+      "stage": "refusal",
+      "argv": [
+        "test",
+        "./supported",
+        "-coverpkg=./..."
+      ],
+      "env": {},
+      "status": 2,
+      "diagnostic": "cover"
+    },
+    {
+      "name": "refuse-coverpkg-goflags",
+      "stage": "refusal",
+      "argv": [
+        "test",
+        "./supported"
+      ],
+      "env": {
+        "GOFLAGS": "-coverpkg=./..."
+      },
+      "status": 2,
+      "diagnostic": "cover"
+    },
+    {
+      "name": "refuse-CGO_ENABLED",
+      "stage": "refusal",
+      "argv": [
+        "test",
+        "./supported"
+      ],
+      "env": {
+        "CGO_ENABLED": "1"
+      },
+      "status": 2,
+      "diagnostic": "CGO_ENABLED"
+    },
+    {
+      "name": "refuse-GOOS",
+      "stage": "refusal",
+      "argv": [
+        "test",
+        "./supported"
+      ],
+      "env": {
+        "GOOS": "linux"
+      },
+      "status": 2,
+      "diagnostic": "GOOS"
+    },
+    {
+      "name": "refuse-GOARCH",
+      "stage": "refusal",
+      "argv": [
+        "test",
+        "./supported"
+      ],
+      "env": {
+        "GOARCH": "amd64"
+      },
+      "status": 2,
+      "diagnostic": "GOARCH"
+    },
+    {
+      "name": "guest-test",
+      "stage": "real",
+      "argv": [],
+      "requires_real_inputs": true
+    },
+    {
+      "name": "caller-count",
+      "stage": "real",
+      "argv": [],
+      "requires_real_inputs": true
+    },
+    {
+      "name": "boundary-args",
+      "stage": "real",
+      "argv": [],
+      "requires_real_inputs": true
+    },
+    {
+      "name": "boundary-double-args",
+      "stage": "real",
+      "argv": [],
+      "requires_real_inputs": true
+    },
+    {
+      "name": "boundary-terminator",
+      "stage": "real",
+      "argv": [],
+      "requires_real_inputs": true
+    },
+    {
+      "name": "guest-lookalikes",
+      "stage": "real",
+      "argv": [],
+      "requires_real_inputs": true
+    },
+    {
+      "name": "goflags-quoted",
+      "stage": "real",
+      "argv": [],
+      "requires_real_inputs": true
+    },
+    {
+      "name": "repeated-effective-flags",
+      "stage": "real",
+      "argv": [],
+      "requires_real_inputs": true
+    },
+    {
+      "name": "empty-effective-exec",
+      "stage": "real",
+      "argv": [],
+      "requires_real_inputs": true
+    },
+    {
+      "name": "external-launcher",
+      "stage": "real",
+      "argv": [],
+      "requires_real_inputs": true
+    },
+    {
+      "name": "exec-true-count0",
+      "stage": "real",
+      "argv": [],
+      "requires_real_inputs": true
+    },
+    {
+      "name": "multi-package-json",
+      "stage": "real",
+      "argv": [],
+      "requires_real_inputs": true
+    },
+    {
+      "name": "guest-run",
+      "stage": "real",
+      "argv": [],
+      "requires_real_inputs": true
+    },
+    {
+      "name": "guest-build",
+      "stage": "real",
+      "argv": [],
+      "requires_real_inputs": true
+    },
+    {
+      "name": "explicit-excluded-tag",
+      "stage": "real",
+      "argv": [],
+      "requires_real_inputs": true
+    },
+    {
+      "name": "auto-prime",
+      "stage": "real",
+      "argv": [],
+      "requires_real_inputs": true
+    },
+    {
+      "name": "auto-reuse",
+      "stage": "real",
+      "argv": [],
+      "requires_real_inputs": true
+    },
+    {
+      "name": "auto-schema-mutation",
+      "stage": "real",
+      "argv": [],
+      "requires_real_inputs": true
+    },
+    {
+      "name": "auto-schema-missing",
+      "stage": "real",
+      "argv": [],
+      "requires_real_inputs": true
+    },
+    {
+      "name": "auto-changed-executable",
+      "stage": "real",
+      "argv": [],
+      "requires_real_inputs": true
+    },
+    {
+      "name": "concurrent-identities",
+      "stage": "real",
+      "argv": [],
+      "requires_real_inputs": true
+    }
+  ]
+}

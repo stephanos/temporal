@@ -720,6 +720,7 @@ fn run_instance(
     let mut store = Store::new(engine, state);
     activity.launched_stores.fetch_add(1, Ordering::Release);
     store.limiter(|state| &mut state.limits);
+    #[cfg(not(feature = "diagnostic-fuel-off"))]
     store.set_fuel(limits.fuel)?;
     store.set_epoch_deadline(1);
     let mut metrics = Metrics::default();
@@ -731,6 +732,8 @@ fn run_instance(
                 .fail(failure.termination(), failure.message())
         })
         .and_then(|()| {
+            #[cfg(feature = "diagnostic-profile")]
+            let _span = crate::diagnostic::PhaseSpan::new(crate::diagnostic::Phase::Instantiate);
             let started = std::time::Instant::now();
             let instance = pre.instantiate(&mut store);
             metrics.instantiate_nanos = crate::metrics::elapsed(started);
@@ -738,6 +741,8 @@ fn run_instance(
         })
         .and_then(|instance| {
             let start = instance.get_typed_func::<(), ()>(&mut store, "_start")?;
+            #[cfg(feature = "diagnostic-profile")]
+            let _span = crate::diagnostic::PhaseSpan::new(crate::diagnostic::Phase::Execute);
             let started = std::time::Instant::now();
             let result = start.call(&mut store, ());
             metrics.execute_nanos = crate::metrics::elapsed(started);
@@ -780,6 +785,13 @@ fn run_instance(
             handle,
             interrupted: interrupted(&outcome),
             execution: linked::Execution {
+                terminal_monotonic_nanos: None,
+                admission_terminal_to_return_nanos: None,
+                timing: None,
+                #[cfg(feature = "guest-profile")]
+                guest_profile_error: None,
+                #[cfg(feature = "diagnostic-profile")]
+                external_owner_attempts: 0,
                 authorization_to_terminal_nanos,
                 outcome,
                 evidence,
@@ -804,21 +816,37 @@ fn joined(running: Running) -> Result<Completed> {
 fn compile(
     engine: &Engine,
     prepared: &Prepared,
+    metrics: &mut Metrics,
 ) -> Result<BTreeMap<String, Arc<InstancePre<engine::State>>>> {
+    metrics.cache_hit = true;
     let mut modules = BTreeMap::new();
     for sealed in prepared.incarnations.values() {
         let request = &sealed.execution.request;
         if modules.contains_key(&request.module_sha256) {
             continue;
         }
+        let mut observed = Metrics::default();
         let module = linked::compile_module(
             engine,
             &sealed.execution.execute,
             &request.module,
-            &mut Metrics::default(),
+            &mut observed,
         )
         .map_err(|outcome| Error::msg(format!("{}: {}", outcome.termination, outcome.message)))?
         .0;
+        metrics.compile_nanos = metrics
+            .compile_nanos
+            .checked_add(observed.compile_nanos)
+            .ok_or_else(|| Error::msg("cluster compile timing overflow"))?;
+        metrics.cache_load_nanos = metrics
+            .cache_load_nanos
+            .checked_add(observed.cache_load_nanos)
+            .ok_or_else(|| Error::msg("cluster cache load timing overflow"))?;
+        metrics.cache_write_nanos = metrics
+            .cache_write_nanos
+            .checked_add(observed.cache_write_nanos)
+            .ok_or_else(|| Error::msg("cluster cache write timing overflow"))?;
+        metrics.cache_hit &= observed.cache_hit;
         let pre = engine::linker(engine, &module)?.instantiate_pre(&module)?;
         modules.insert(request.module_sha256.clone(), Arc::new(pre));
     }
@@ -838,7 +866,9 @@ fn execute_inner(
     session: &crate::linked_conditions::Session,
 ) -> Result<Execution> {
     let execution_started = std::time::Instant::now();
-    let modules = compile(engine, &prepared)?;
+    let mut metrics = Metrics::default();
+    let modules = compile(engine, &prepared, &mut metrics)?;
+    metrics.prepare_nanos = crate::metrics::elapsed(execution_started);
     let final_network_source = prepared
         .ids
         .iter()
@@ -1000,12 +1030,21 @@ fn execute_inner(
                     .stack_size(8 << 20)
                     .spawn(move || {
                         let _conditions = conditions.enter_shared(&session)?;
+                        #[cfg(feature = "diagnostic-profile")]
+                        let _profile = session.profile(slot, handle.incarnation)?;
                         if !broker.acquire(index) && !broker.terminal_failed() {
                             return Ok(Completed {
                                 result: IncarnationResult {
                                     handle,
                                     interrupted: false,
                                     execution: linked::Execution {
+                                        terminal_monotonic_nanos: None,
+                                        admission_terminal_to_return_nanos: None,
+                                        timing: None,
+                                        #[cfg(feature = "guest-profile")]
+                                        guest_profile_error: None,
+                                        #[cfg(feature = "diagnostic-profile")]
+                                        external_owner_attempts: 0,
                                         authorization_to_terminal_nanos: None,
                                         outcome: protocol::Outcome::new(
                                             "inspection_aborted",
@@ -1287,7 +1326,9 @@ fn execute_inner(
     {
         outcome = failure;
     }
-    let world = if matches!(outcome.termination, "exit" | "trap" | "capacity") {
+    let world = if matches!(outcome.termination, "exit" | "trap" | "capacity")
+        || (cfg!(feature = "diagnostic-profile") && outcome.termination == "watchdog_timeout")
+    {
         broker
             .world_wire()
             .map_err(|failure| Error::msg(failure.message()))?
@@ -1338,6 +1379,8 @@ fn execute_inner(
     if retained.is_none_or(|bytes| bytes > prepared.evidence_bytes) {
         return Err(Error::msg("linked cluster evidence capacity"));
     }
+    metrics.sample_process();
+    outcome.metrics = Some(Box::new(metrics));
     Ok(Execution {
         outcome,
         executed_steps,

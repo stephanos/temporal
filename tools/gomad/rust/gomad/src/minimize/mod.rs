@@ -208,6 +208,11 @@ pub(crate) fn run(
             if published.stored_bytes > parent.opened.stored_bytes().saturating_add(1 << 20) {
                 return Err("accepted minimizer artifact exceeds byte bound".into());
             }
+            crate::campaign::execution::retain_backend_metrics(
+                &workspace.observation_root(),
+                &trial.execution,
+                &trial.metrics,
+            )?;
             accepted = predicate::exact(&published.path)?;
             if accepted {
                 reference = Some(ArtifactReference {

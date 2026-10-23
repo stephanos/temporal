@@ -1625,6 +1625,7 @@ pub(crate) fn store_metrics(
     super::execution::Metrics {
         wall_nanos: super::execution::nanos(wall),
         store_peak_rss_bytes: None,
+        raw_backend: None,
         stores,
     }
 }

@@ -136,7 +136,20 @@ mod preflight;
 /// Strictly decodes bounded qualification JSON; duplicate keys, trailing data
 /// and excessive nesting are refused before typed decoding.
 pub(crate) fn strict<T: serde::de::DeserializeOwned>(bytes: &[u8]) -> Result<T, String> {
-    let end = preflight::first(bytes, MAXIMUM_NESTING)?;
+    strict_with_nesting(bytes, MAXIMUM_NESTING)
+}
+
+/// Strict decoding with a caller-selected tighter nesting bound.
+/// # Errors
+/// Refuses zero or a bound beyond the qualification maximum.
+pub(crate) fn strict_with_nesting<T: serde::de::DeserializeOwned>(
+    bytes: &[u8],
+    maximum: usize,
+) -> Result<T, String> {
+    if maximum == 0 || maximum > MAXIMUM_NESTING {
+        return Err("invalid JSON nesting bound".into());
+    }
+    let end = preflight::first(bytes, maximum)?;
     if has_trailing(&bytes[end..]) {
         return Err("qualification JSON has trailing data".into());
     }
@@ -291,3 +304,28 @@ pub(crate) fn declared_digest(value: &str) -> Result<Option<String>, String> {
 #[cfg(test)]
 #[path = "receiving_depth_tests.rs"]
 mod receiving_depth_tests;
+
+#[cfg(test)]
+mod tighter_nesting_tests {
+    use super::*;
+    fn nested(count: usize, value: &str) -> Vec<u8> {
+        format!("{}{}{}", "[".repeat(count), value, "]".repeat(count)).into_bytes()
+    }
+    #[test]
+    fn measurement_depth_preserves_original_scalar_and_empty_container_edges() {
+        assert!(strict_with_nesting::<Value>(&nested(32, "0"), 32).is_ok());
+        assert!(strict_with_nesting::<Value>(&nested(33, "0"), 32).is_err());
+        assert!(strict_with_nesting::<Value>(&nested(33, ""), 32).is_ok());
+        assert!(strict_with_nesting::<Value>(&nested(34, ""), 32).is_err());
+    }
+    #[test]
+    fn tighter_bound_preserves_unique_complete_values_and_default_limit() {
+        for raw in [br#"{"fd":1,"fd":2}"#.as_slice(), b"{} {}"] {
+            assert!(strict_with_nesting::<Value>(raw, 32).is_err());
+        }
+        assert!(strict::<Value>(&nested(128, "0")).is_ok());
+        assert!(strict::<Value>(&nested(129, "0")).is_err());
+        assert!(strict_with_nesting::<Value>(b"{}", 0).is_err());
+        assert!(strict_with_nesting::<Value>(b"{}", 129).is_err());
+    }
+}

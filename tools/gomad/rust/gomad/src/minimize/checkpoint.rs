@@ -99,7 +99,7 @@ impl Workspace {
                 ".lock" | "checkpoint.json" | "checkpoint.tmp" => {
                     open::child(&root, &entry, false, false)?;
                 }
-                "accepted" => {
+                "accepted" | crate::campaign::execution::OBSERVATION_DIRECTORY => {
                     open::child(&root, &entry, true, false)?;
                 }
                 _ => return Err(format!("unexpected minimizer workspace entry {entry:?}")),
@@ -164,6 +164,10 @@ impl Workspace {
 
     pub(crate) fn checkpoint(&self) -> &Checkpoint {
         &self.checkpoint
+    }
+
+    pub(crate) fn observation_root(&self) -> PathBuf {
+        self.path.clone()
     }
 
     pub(crate) fn accepted_root(&self) -> PathBuf {

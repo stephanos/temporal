@@ -21,7 +21,7 @@ assertions. The release binary also passes the fixture exclusion check.
 The bindings schema is `gomad.all-verb-bindings/v1`, with exactly `schema`,
 `files` and `trees`. `files` contains exactly `release`, `fixture`, `stress`, `stress-release`,
 `determinism`, `divergence`, `reference-helper`, `compiler`, `rust-compiler`, `replay-input` and
-`go-base` and `build-receipts`. Each is `{ "path": "...", "sha256": "..." }` with an actual SHA256.
+`go-base`, `build-receipts` and `stress-cycle`. Each is `{ "path": "...", "sha256": "..." }` with an actual SHA256.
 `reference-helper` is the current standalone conformance helper built explicitly
 with its `conformance` feature (which enables the guarded `reference-helper` binary), not the historical Go helper.
 
@@ -63,17 +63,68 @@ reported as positive Go support.
 
 Stress requires both compiled-role exclusion and a positive matrix endpoint at
 `testdata/parity/stress-parity-lane.py`. That fixed endpoint must consume the
-existing final-driver stress adapter/145-proof contract and the actual same
+final-driver's exact required stress obligation and the actual same
 frozen candidate/cycle matrix receipt, authenticate its source/role identities
 and original 41 cases/four axes/repetitions under `rust/STRESS.md`, preserve Go
 availability, and write `stress-parity-result.json` with schema
 `gomad.stress-semantic-parity/v1` plus raw `commands.json` streams. Its interface is
 `--binary STRESS --ordinary-binary RELEASE --go-binary GO --go-helper HELPER
 --go-source SOURCE --go-compiler COMPILER --input INPUT --work NEW_ROOT`.
-The producer/reader is still pending; its absence deliberately refuses the whole
-gate before execution. A role-refusal check alone cannot satisfy positive stress.
-The final-driver owner must integrate this adapter; this gate does not launch a
-second stress matrix or accept historical receipts.
+The required `stress-cycle` file is an immutable `gomad.stress-cycle/v1` plan;
+its binding SHA authenticates the exact candidate, root and send epoch. The
+orchestrator passes `--stress-cycle PLAN --stress-cycle-sha256 SHA256` in
+addition to the interface above. The reader authenticates the completed same-cycle
+producer/process journals, report, child requests, raw streams and canonical
+artifacts. It independently compares the canonical records and complete ordered
+event diagnostics. Only the `evidence/event-order` stream commitment is excluded
+from canonical-record equality, matching the Rust comparator; the ordered events
+are compared separately. The typed spec comparison treats an omitted optional
+workload `scenario` as JSON null, exactly as the Rust producer serializes it.
+No execution artifact fields receive that projection. Go stress remains an actual unsupported-command probe,
+and ordinary Rust stress remains an actual compiled-role refusal probe.
+
+The final composition provisions `config.stress` with exactly `spec`, `binary`,
+`build_receipt`, `producer_root` and `producer_name`. Spec, installations, optional
+scenario, binary and role build receipt are sealed before freezing. The build
+receipt uses the live reader fields: `role: "stress"`, `profile: "release"`,
+`features: ["helper-stress-jitter"]`, `helper_features: ["stress-jitter"]`, numeric
+`exit: 0`, `source_sha256`, `binary_sha256`, `host_sha256` and `helper_sha256`.
+The stress role is distinct from the ordinary qualification role.
+
+The acyclic plan contains `schema`, `repo`, `root`, `source_manifest`,
+`source_sha256`, `sent_epoch`, `deadline_s`, `identity`, `binary_sha256`, `stress`
+and `files`. The identity and binary digest are the ordinary driver candidate;
+`stress` binds the separate actual role receipt above. `files` pins source,
+spec, installations, optional scenario and role inputs. It excludes driver config
+and all-verb binding bytes. Both the driver's `files` and the all-verb bindings
+seal this same plan. The driver adds `stress_cycle: "/absolute/PLAN"`; the final
+reader requires every plan footprint field and input pin to match the actual
+driver config. No object transitively authenticates its own bytes.
+
+`commands.json` retains actual numeric producer/probe exits and raw streams.
+`matrix-streams.json` retains every child argv, PID, completed observation and
+hashed raw streams without inventing child numeric exits; the successful actual
+supervisor journal and authenticated observations establish matrix completion.
+
+Register the pinned final-section argv as Python plus this lane and
+`--final-section --produce --config CONFIG`; `final.py` appends `--root ROOT`.
+The endpoint uses the existing `driver.command` once and then reads the retained
+matrix. Its frozen environment explicitly includes `GOMAD_WASM_STRESS=1`.
+The declared producer directory must be new and inside the final attempt; a
+second production attempt refuses. Give this section a name sorted before the
+public-verbs section, for example `10-stress` and `90-public-verbs`. Calling the
+same endpoint without `--produce` only reads the existing cycle. The all-verb
+lane always reads, never produces a second matrix. Reports and command journals
+are future outputs inside that cycle; they are not prefreeze file pins.
+
+Source receiver tests (synthetic fixtures, no runtime qualification credit):
+
+```sh
+PYTHONDONTWRITEBYTECODE=1 python3 tools/gomad/testdata/parity/stress-parity-selftest.py
+```
+
+A complete current frozen cycle and actual successful matrix remain required.
+Missing or interrupted evidence refuses the entire parity/final gate.
 
 Every fixed endpoint must be source-pinned before launching anything. A failed
 lane, missing required semantic receipt, missing raw subprocess streams or

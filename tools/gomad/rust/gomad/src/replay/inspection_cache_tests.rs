@@ -188,6 +188,13 @@ fn exact_cache_capacity_is_host_error_and_ordinary_capacity_is_evaluation_result
         ("initial guest tables exceed limit", false),
     ] {
         let observed = linked::Execution {
+            terminal_monotonic_nanos: None,
+            admission_terminal_to_return_nanos: None,
+            timing: None,
+            #[cfg(feature = "helper-guest-profile")]
+            guest_profile_error: None,
+            #[cfg(feature = "helper-diagnostic-profile")]
+            external_owner_attempts: 0,
             authorization_to_terminal_nanos: None,
             outcome: linked::Outcome::new("capacity", message),
             evidence: BTreeMap::new(),

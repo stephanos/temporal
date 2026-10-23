@@ -755,6 +755,13 @@ pub fn project_encoded(
     evidence.insert("inspection".into(), observed.inspection);
     outcome.local_model = Some(Box::new(json!({"now":observed.virtual_elapsed_nanos})));
     Ok(linked::Execution {
+        terminal_monotonic_nanos: None,
+        admission_terminal_to_return_nanos: None,
+        timing: None,
+        #[cfg(feature = "helper-guest-profile")]
+        guest_profile_error: None,
+        #[cfg(feature = "helper-diagnostic-profile")]
+        external_owner_attempts: 0,
         authorization_to_terminal_nanos: None,
         outcome,
         evidence,
@@ -872,6 +879,13 @@ mod projection_tests {
                         },
                         interrupted: false,
                         execution: linked::Execution {
+                            terminal_monotonic_nanos: None,
+                            admission_terminal_to_return_nanos: None,
+                            timing: None,
+                            #[cfg(feature = "helper-guest-profile")]
+                            guest_profile_error: None,
+                            #[cfg(feature = "helper-diagnostic-profile")]
+                            external_owner_attempts: 0,
                             authorization_to_terminal_nanos: None,
                             outcome,
                             evidence: BTreeMap::from([("stdout".into(), stdout.into_bytes())]),

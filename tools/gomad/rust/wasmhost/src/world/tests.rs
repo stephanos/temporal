@@ -491,13 +491,21 @@ fn every_world_transition_byte_refusal_preserves_the_accepted_prefix() {
                 observed.unwrap();
                 assert_eq!(model.state_digest(), expected.state_digest(), "{stage}");
                 assert_eq!(model.transition_bytes, exact);
-                let mut retained = Vec::new();
-                wire_generated::write_snapshot(&model, &mut retained).unwrap();
-                retained::validate_with_transition_limit(&retained, &config, Some(exact)).unwrap();
-                assert!(
-                    retained::validate_with_transition_limit(&retained, &config, Some(exact - 1))
+                #[cfg(not(feature = "conformance"))]
+                {
+                    let mut retained = Vec::new();
+                    wire_generated::write_snapshot(&model, &mut retained).unwrap();
+                    retained::validate_with_transition_limit(&retained, &config, Some(exact))
+                        .unwrap();
+                    assert!(
+                        retained::validate_with_transition_limit(
+                            &retained,
+                            &config,
+                            Some(exact - 1)
+                        )
                         .is_err()
-                );
+                    );
+                }
             } else {
                 assert!(
                     matches!(observed, Err(Error::Capacity { dimension:"transition-bytes",used,limit,.. }) if used==prefix_bytes && limit==bound),

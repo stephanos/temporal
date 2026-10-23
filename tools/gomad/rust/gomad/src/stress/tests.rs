@@ -317,6 +317,13 @@ fn canonical_soft_assertion_failure_cannot_pass_any_stress_workload() {
         let mut stdout = b"--- PASS: TestWorkflowTypeEncodingSuite\nPASS\n".to_vec();
         stdout.extend_from_slice(assertion);
         let execution = linked::Execution {
+            terminal_monotonic_nanos: None,
+            admission_terminal_to_return_nanos: None,
+            timing: None,
+            #[cfg(feature = "helper-guest-profile")]
+            guest_profile_error: None,
+            #[cfg(feature = "helper-diagnostic-profile")]
+            external_owner_attempts: 0,
             authorization_to_terminal_nanos: None,
             outcome: terminal,
             evidence: BTreeMap::from([("stdout".into(), stdout)]),
@@ -422,6 +429,7 @@ while len(list(root.parent.glob('arrival-*'))) < request['supervision']['cohort_
     let options =
         crate::cli::explore::parse(&["go-run".into(), "./unused".into()], &mut json).unwrap();
     let mut request = Request {
+        requested_root: root.clone(),
         workload: "runtime".into(),
         seed: 7,
         axis: "concurrent".into(),

@@ -13,7 +13,7 @@ use std::{
     cell::RefCell,
     io::Write,
     sync::{
-        Mutex,
+        Arc, Mutex,
         atomic::{AtomicBool, Ordering},
     },
     time::{Duration, Instant},
@@ -119,26 +119,8 @@ pub enum Owner {
     HandoffWait,
 }
 const OWNERS: usize = 18;
-const OWNER_NAMES: [&str; OWNERS] = [
-    "clock",
-    "scheduler",
-    "scheduler_handoff",
-    "namespace",
-    "volume",
-    "network",
-    "world",
-    "storage_transport",
-    "cache",
-    "transcript",
-    "evidence",
-    "encoding",
-    "remote",
-    "inputs",
-    "inspection",
-    "lifecycle",
-    "instrumentation",
-    "handoff_wait",
-];
+use crate::profile_inventory::OWNER_NAMES;
+pub use crate::profile_inventory::{operation_names, owner_names};
 const OPS: usize = crate::abi::Operation::COUNT;
 /// Log-linear per-call histogram: 16 exact buckets below 16 ns, then 16
 /// sub-buckets per power of two up to 2^40 ns (the last bucket saturates).
@@ -631,6 +613,135 @@ static TEST_SESSION: Mutex<()> = Mutex::new(());
 fn with<T>(body: impl FnOnce(&mut Profile) -> T) -> Option<T> {
     PROFILE.with(|profile| profile.borrow_mut().as_mut().map(body))
 }
+/// Request-owned linked capture. Store threads receive an explicit clone of
+/// its sink; the transport process globals never participate in this session.
+pub struct LinkedProfile {
+    sink: LinkedSink,
+    start: Instant,
+    finished: bool,
+    _thread: std::marker::PhantomData<std::rc::Rc<()>>,
+}
+#[derive(Clone)]
+pub(crate) struct LinkedSink(Arc<Mutex<Option<Profile>>>);
+thread_local! {
+    static LINKED_SINK: RefCell<Option<LinkedSink>> = const { RefCell::new(None) };
+}
+impl LinkedProfile {
+    /// # Errors
+    /// Refuses overlapping captures on the calling execution thread.
+    pub fn start() -> Result<Self, String> {
+        if PROFILE.with(|profile| profile.borrow().is_some()) {
+            return Err("overlapping linked diagnostic session".into());
+        }
+        let sink = LinkedSink(Arc::new(Mutex::new(None)));
+        PROFILE.with(|profile| *profile.borrow_mut() = Some(Profile::default()));
+        LINKED_SINK.with(|current| *current.borrow_mut() = Some(sink.clone()));
+        Ok(Self {
+            sink,
+            start: Instant::now(),
+            finished: false,
+            _thread: std::marker::PhantomData,
+        })
+    }
+    /// # Errors
+    /// Finalizes bounded diagnostic data, including interrupted execution prefixes.
+    pub fn finish(mut self) -> Result<Value, String> {
+        let elapsed = nanos(self.start.elapsed());
+        let mut profile = PROFILE
+            .with(|profile| profile.borrow_mut().take())
+            .ok_or("missing linked diagnostic profile")?;
+        LINKED_SINK.with(|current| *current.borrow_mut() = None);
+        self.finished = true;
+        let finished = self
+            .sink
+            .0
+            .lock()
+            .map_err(|_| "linked diagnostic lock poisoned")?
+            .take();
+        if let Some(finished) = finished {
+            profile.merge(&finished);
+            profile.threads = finished.threads;
+            profile.threads_omitted = finished.threads_omitted;
+            profile.threads.sort_by_key(|(key, _)| *key);
+        }
+        let mut report = profile.report();
+        report["elapsed_wall_nanos"] = json!(elapsed);
+        report["wall_basis"] = json!(if profile.threads.is_empty() {
+            "single-store elapsed"
+        } else {
+            "aggregate store thread-time; overlapping spans are not elapsed shares"
+        });
+        report["report_rows_dropped"] = json!(0);
+        let mut dropped = 0u64;
+        while serde_json::to_vec(&report)
+            .map_err(|error| error.to_string())?
+            .len()
+            >= REPORT_LIMIT
+        {
+            if report["threads"]
+                .as_array_mut()
+                .is_some_and(|rows| rows.pop().is_some())
+            {
+                let omitted = report["threads_omitted"].as_u64().unwrap_or(0);
+                report["threads_omitted"] = json!(omitted.saturating_add(1));
+            } else if let Some(name) = report["abi_ops"]
+                .as_object()
+                .and_then(|ops| ops.keys().next_back().cloned())
+            {
+                report["abi_ops"]
+                    .as_object_mut()
+                    .ok_or("diagnostic operation rows absent")?
+                    .remove(&name);
+            } else {
+                return Err("diagnostic report capacity".into());
+            }
+            dropped = dropped.saturating_add(1);
+            report["report_rows_dropped"] = json!(dropped);
+        }
+        Ok(report)
+    }
+}
+impl Drop for LinkedProfile {
+    fn drop(&mut self) {
+        if !self.finished {
+            PROFILE.with(|profile| *profile.borrow_mut() = None);
+            LINKED_SINK.with(|current| *current.borrow_mut() = None);
+        }
+    }
+}
+impl LinkedSink {
+    pub(crate) fn current() -> Option<Self> {
+        LINKED_SINK.with(|current| current.borrow().clone())
+    }
+    pub(crate) fn enter(&self, slot: u64, incarnation: u64) -> Result<LinkedThread, String> {
+        if PROFILE.with(|profile| profile.borrow().is_some()) {
+            return Err("overlapping linked diagnostic thread".into());
+        }
+        PROFILE.with(|profile| *profile.borrow_mut() = Some(Profile::default()));
+        Ok(LinkedThread {
+            sink: self.clone(),
+            key: (slot, incarnation),
+            _thread: std::marker::PhantomData,
+        })
+    }
+}
+pub(crate) struct LinkedThread {
+    sink: LinkedSink,
+    key: (u64, u64),
+    _thread: std::marker::PhantomData<std::rc::Rc<()>>,
+}
+impl Drop for LinkedThread {
+    fn drop(&mut self) {
+        if let Some(profile) = PROFILE.with(|profile| profile.borrow_mut().take()) {
+            self.sink
+                .0
+                .lock()
+                .unwrap_or_else(std::sync::PoisonError::into_inner)
+                .get_or_insert_with(Profile::default)
+                .merge_thread(self.key, &profile);
+        }
+    }
+}
 pub struct Session {
     #[cfg(test)]
     _test_session: std::sync::MutexGuard<'static, ()>,
@@ -710,6 +821,7 @@ pub struct PhaseSpan {
     frame: Option<usize>,
 }
 impl PhaseSpan {
+    #[must_use]
     pub fn new(phase: Phase) -> Self {
         let mut previous = None;
         let active = with(|profile| previous = profile.active_phase.replace(phase)).is_some();
@@ -774,7 +886,13 @@ impl Drop for PhaseSpan {
 /// helper code: inside `Execute` it closes the guest gap since the previous
 /// import and times the whole host side of this one.
 pub struct ImportBoundary(Option<Instant>);
+impl Default for ImportBoundary {
+    fn default() -> Self {
+        Self::new()
+    }
+}
 impl ImportBoundary {
+    #[must_use]
     pub fn new() -> Self {
         Self(with(|profile| {
             let now = Instant::now();
@@ -826,6 +944,7 @@ impl Drop for ImportBoundary {
 /// `serve`, and the coarse v1 ABI kind.
 pub struct AbiSpan(Option<usize>);
 impl AbiSpan {
+    #[must_use]
     pub fn new(op: crate::abi::Operation, local: bool) -> Self {
         let (module, name) = (op.module(), op.name());
         let kind = if !local && name != "proc_exit" {
@@ -936,6 +1055,7 @@ pub fn remote_callback() {
 /// subtracted from the import's owner.
 pub struct OwnerSpan(Option<usize>);
 impl OwnerSpan {
+    #[must_use]
     pub fn new(owner: Owner) -> Self {
         Self(with(|profile| profile.push(Some(owner), None, Instant::now())).flatten())
     }
@@ -967,9 +1087,11 @@ impl WallSpan {
         .flatten();
         Self { kind, timer, frame }
     }
+    #[must_use]
     pub fn new(kind: Nested) -> Self {
         Self::open(kind, |_| true)
     }
+    #[must_use]
     pub fn remote_write() -> Self {
         Self::open(Nested::RemoteWrite, |profile| profile.remote_send)
     }
@@ -991,7 +1113,13 @@ impl Drop for WallSpan {
     }
 }
 pub struct RemoteSend;
+impl Default for RemoteSend {
+    fn default() -> Self {
+        Self::new()
+    }
+}
 impl RemoteSend {
+    #[must_use]
     pub fn new() -> Self {
         with(|profile| profile.remote_send = true);
         Self
@@ -1393,6 +1521,28 @@ mod tests {
         assert_eq!(profile.ops[Operation::RuntimeIdle as usize].count, 80);
         drop(finished);
         drop(session);
+    }
+
+    // CLI runs cannot reach saturated counter widths in every bounded series.
+    #[test]
+    fn linked_report_capacity_retains_drop_counters() {
+        let session = LinkedProfile::start().unwrap();
+        with(|profile| {
+            let mut series = Series::default();
+            series.record(Some(Phase::Execute), u64::MAX, u64::MAX, u64::MAX);
+            series.count = u64::MAX;
+            profile.ops.fill(series);
+            profile.owners.fill(series);
+            profile.served_by.fill([u64::MAX; OWNERS]);
+            profile.threads = (0..MAX_THREAD_ROWS)
+                .map(|slot| ((slot as u64, 1), [u64::MAX; 6]))
+                .collect();
+        });
+        let report = session.finish().unwrap();
+        assert!(serde_json::to_vec(&report).unwrap().len() < REPORT_LIMIT);
+        assert!(number(&report["report_rows_dropped"]) > 0);
+        assert!(number(&report["threads_omitted"]) > 0);
+        assert!(LinkedProfile::start().unwrap().finish().is_ok());
     }
 
     #[test]

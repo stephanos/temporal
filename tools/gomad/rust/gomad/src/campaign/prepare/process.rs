@@ -1,6 +1,7 @@
 use super::failure;
 use std::{
     collections::BTreeMap,
+    ffi::OsStr,
     fs::{self, OpenOptions},
     path::{Path, PathBuf},
     process::{Command, Stdio},
@@ -120,16 +121,16 @@ fn observed_time() -> Result<u64, String> {
     .map_err(failure)
 }
 
-pub(crate) fn command(
+pub(crate) fn command<K: AsRef<OsStr>, V: AsRef<OsStr>>(
     compiler: &Path,
     args: &[String],
     directory: &Path,
-    environment: &BTreeMap<String, String>,
+    environment: &BTreeMap<K, V>,
     scratch: &Path,
     limit: u64,
     deadline: Instant,
 ) -> Result<Vec<u8>, String> {
-    observed_command(
+    execute_command(
         compiler,
         args,
         directory,
@@ -150,6 +151,50 @@ pub(crate) fn observed_command(
     limit: u64,
     deadline: Instant,
 ) -> Result<ObservedCommand, String> {
+    let executed = execute_command(
+        compiler,
+        args,
+        directory,
+        environment,
+        scratch,
+        limit,
+        deadline,
+    )?;
+    Ok(ObservedCommand {
+        argv: std::iter::once(compiler.to_string_lossy().into_owned())
+            .chain(args.iter().cloned())
+            .collect(),
+        cwd: directory.into(),
+        environment: environment.clone(),
+        owner_pid: std::process::id(),
+        pid: executed.pid,
+        start_ns: executed.start_ns,
+        end_ns: executed.end_ns,
+        exit: executed.exit,
+        output_limit: limit,
+        stdout: executed.stdout,
+        stderr: executed.stderr,
+    })
+}
+
+struct ExecutedCommand {
+    pid: u32,
+    start_ns: u64,
+    end_ns: u64,
+    exit: i32,
+    stdout: Vec<u8>,
+    stderr: Vec<u8>,
+}
+
+fn execute_command<K: AsRef<OsStr>, V: AsRef<OsStr>>(
+    compiler: &Path,
+    args: &[String],
+    directory: &Path,
+    environment: &BTreeMap<K, V>,
+    scratch: &Path,
+    limit: u64,
+    deadline: Instant,
+) -> Result<ExecutedCommand, String> {
     use std::os::unix::process::CommandExt as _;
     check_deadline(deadline)?;
     let stdout = scratch.join("command.stdout");
@@ -190,20 +235,13 @@ pub(crate) fn observed_command(
             let errors = super::read(&stderr, limit)?;
             let end_ns = observed_time()?;
             check_deadline(deadline)?;
-            return Ok(ObservedCommand {
-                argv: std::iter::once(compiler.to_string_lossy().into_owned())
-                    .chain(args.iter().cloned())
-                    .collect(),
-                cwd: directory.into(),
-                environment: environment.clone(),
-                owner_pid: std::process::id(),
+            return Ok(ExecutedCommand {
                 pid: child.id(),
                 start_ns,
                 end_ns,
                 exit: status
                     .code()
                     .ok_or_else(|| failure("successful compiler command lacks exit code"))?,
-                output_limit: limit,
                 stdout: output,
                 stderr: errors,
             });
