@@ -236,3 +236,17 @@ fn variant_recommendations_fold_all_seeds_without_losing_per_seed_decisions() {
     assert_eq!(summary, expected_summary);
     fs::remove_dir_all(root).unwrap();
 }
+/// Original `TestMatchedSuiteSelectionCacheAndOrder` cache half: the matched
+/// baseline cache must be an explicit absolute directory distinct from the
+/// candidate cache, with a trailing separator not hiding equality.
+#[test]
+fn matched_baseline_cache_must_be_absolute_and_distinct_from_candidate() {
+    let candidate = Path::new("/scratch/candidate");
+    for baseline in ["", "relative", "/scratch/candidate", "/scratch/candidate/"] {
+        assert!(
+            matched_baseline_cache(baseline, candidate).is_err(),
+            "baseline cache {baseline:?} admitted"
+        );
+    }
+    matched_baseline_cache("/scratch/baseline", candidate).unwrap();
+}

@@ -1925,7 +1925,8 @@
   },
   "tools/gomad/internal/backends/wasm/internal/measure/regression_test.go#TestMatchedSuiteSelectionCacheAndOrder": {
    "evidence": [
-    "rust/gomad/measurement::workloads::tests::matched_order_alternates_and_preserves_original_helper_tape"
+    "rust/gomad/measurement::workloads::tests::matched_order_alternates_and_preserves_original_helper_tape",
+    "rust/gomad/measurement::workloads::tests::matched_baseline_cache_must_be_absolute_and_distinct_from_candidate"
    ]
   },
   "tools/gomad/internal/backends/wasm/internal/measure/regression_test.go#TestWarmPreparationDiagnosticCargoFeatureControls": {
@@ -3855,9 +3856,8 @@
    ]
   },
   "tools/gomad/internal/backends/wasm/wasi/integration_test.go#TestTemporalFixtureStagingRejectsLinks": {
-   "basis": "weak name correlation within the owning domain; confirm in review",
    "evidence": [
-    "rust/linked_compile_cache/linked_cache_publishes_once_reuses_and_refuses_poison_or_links"
+    "rust/gomad/measurement::cluster_driver::tests::broker_fixture_staging_refuses_links_without_touching_outside_bytes"
    ]
   },
   "tools/gomad/internal/backends/wasm/wasi/integration_test.go#TestTemporalGRPCDiagnosticFixtureStaging": {
@@ -3875,7 +3875,9 @@
    ]
   },
   "tools/gomad/internal/backends/wasm/wasi/integration_test.go#TestTemporalHostDiagnosticInputs": {
-   "retired": "Tests temporalPairBudget and temporalCompileCachePath, helpers defined in the deleted Go measure_integration_test.go; no retained surface parses those inputs."
+   "evidence": [
+    "rust/gomad/measurement::inputs::tests::cluster_producers_refuse_the_unused_recovery_budget_and_cache_inputs"
+   ]
   },
   "tools/gomad/internal/backends/wasm/wasi/integration_test.go#TestTemporalIndependentClustersPartitionHealWholeClusterCrash": {
    "evidence": [
