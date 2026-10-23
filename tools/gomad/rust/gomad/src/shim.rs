@@ -953,6 +953,7 @@ fi
         );
         let mut installed = manifest::resolve(Some(&installation)).unwrap().manifest;
         installed.build_tags = vec!["needed".into()];
+        let installation = root.0.join("tagged-wasi-installation.json");
         manifest::write(&installation, &installed).unwrap();
         contract.installation = Some(installation);
         let mut inherited = std::env::vars_os().collect::<std::collections::BTreeMap<_, _>>();
