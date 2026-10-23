@@ -10,6 +10,9 @@ Add the DESIGN.md section recording the vocabulary sentence, Propose, the Run sc
 
 Document the actual bootstrap and polling protocol, exact replay event schema, immutable publication key, progress contract and before/after counts including relocated Runner code. Update current names and milestone references; retain historical evidence. R33-R40 close only with the recorded real live/replay and deletion-coverage proof.
 
+### Dependency change (2026-10-23)
+
+With fn-228.5 deferred by the owner, this task depends on .6 only. The write-up records R40 (the Shim) as deferred rather than discharged, with a pointer to fn-228.5 and branch `work/fn2285-shim-deferred`.
 ## Acceptance
 - [ ] DESIGN.md section and R33 to R40 rows updated
 - [ ] README and MIGRATE updated

@@ -20,6 +20,10 @@ See `.flow/tmp/fn-228.3/retired-coverage.md`. In addition to the original scope:
 - Remove stale prose that still names the deleted commands, the inert `UMPIRE_REPEAT_RUN_DIR` hook, the pinned control record and the `UMPIRE_CONTROL_RECORD` hook.
 - Map the coverage of the retired Nexus control and the IR-bridge minimization, which have no Runner equivalent.
 - Four live failures pre-exist at 0c7822bc43 and must be retired or mapped together with the seven legacy failures: `TestTestpilotExplorationDiscoversUnpinnedExecution` and `TestTestpilotGeneratedCases` (both read the retired Scala-era tree), `TestTestpilotNexusControlForgedCompletionIsViolated` (malformed contract) and `TestTestpilotNexusPairCase` (`observe_failed` dereference).
+
+### Dependency change (2026-10-23)
+
+With fn-228.5 deferred by the owner, this task depends on .4 only. Its coverage map and size counts exclude the Shim, which arrives with .5.
 ## Acceptance
 - [ ] Listed packages gone; ir and execution shrunk; cel-go out of go.mod
 - [ ] Case trees and seven legacy failures removed; umbrella green
