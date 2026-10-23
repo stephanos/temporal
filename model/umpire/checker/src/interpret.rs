@@ -590,10 +590,10 @@ impl Resolver<'_> {
                 let resolver = Resolver { inputs: &inputs, ..*self };
                 Ok(Action {
                     internal: action.internal,
-                    branches: action
-                        .branches
-                        .iter()
-                        .map(|branch| resolver.arm(branch))
+                    branches: written_guards(&action.branches)
+                        .into_iter()
+                        .zip(&action.branches)
+                        .map(|(guard, branch)| resolver.arm(branch, guard))
                         .collect::<Result<_, String>>()?,
                 })
             })
@@ -617,7 +617,7 @@ impl Resolver<'_> {
         })
     }
 
-    fn arm(&self, branch: &Branch) -> Result<Arm, String> {
+    fn arm(&self, branch: &Branch, guard: &Expr) -> Result<Arm, String> {
         let names: Vec<String> = branch.definitions.iter().map(|(name, _)| name.clone()).collect();
         let resolver = Resolver { locals: &names, ..*self };
         let mut updates = Vec::new();
@@ -633,7 +633,7 @@ impl Resolver<'_> {
                 .iter()
                 .map(|(_, value)| resolver.node(value))
                 .collect::<Result<_, String>>()?,
-            guard: resolver.node(&branch.guard)?,
+            guard: resolver.node(guard)?,
             updates,
             checks: branch
                 .checks
@@ -731,6 +731,28 @@ impl Resolver<'_> {
             ),
         })
     }
+}
+
+/// Each branch's guard as written, where the front's effective guard is `!(earlier) && written`.
+/// Branches are tried in order and stop at the first that holds, so when a branch is tried every
+/// earlier written guard was false and evaluated without failing: its written guard decides
+/// alone, and the earlier ones need not run again. A branch whose effective guard does not have
+/// that shape keeps it, and so do all after it.
+fn written_guards(branches: &[Branch]) -> Vec<&Expr> {
+    let mut guards = Vec::with_capacity(branches.len());
+    let mut earlier = Some(Expr::bool(false));
+    for branch in branches {
+        let written = earlier.as_ref().and_then(|earlier| match &branch.guard.kind {
+            _ if earlier.kind == ExprKind::Bool(false) => Some(&branch.guard),
+            ExprKind::Binary(Op::And, left, right) if **left == earlier.clone().not() => {
+                Some(right.as_ref())
+            }
+            _ => None,
+        });
+        earlier = earlier.zip(written).map(|(earlier, written)| earlier.or(written.clone()));
+        guards.push(written.unwrap_or(&branch.guard));
+    }
+    guards
 }
 
 fn range(ty: &Type) -> Range {
