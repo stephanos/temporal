@@ -704,3 +704,34 @@ checks exactly one wait4, actual typed receipts and cleanup/exception behavior.
 Integrated driver portable suite103tests exit0; diffcheck exit0. No Cargo/Go/
 build/guest/qualification or leased cache access. Same prospective source only;
 Python f85/f935/d174 dependency chain remains a separate next source checkpoint.
+
+### Approved private-controls Python dependency-chain integration
+
+After parent relayed frozen reviewSHIP/fullhashes and confirmed parent WIP only
+untracked support.py/test_support.py, cherry-picked exact f85f17bae2fb48365f79e7972a7620f7faea2de4,
+f935db728955d9629da696b66997e461365b6a03,
+d174b3f3cd5856b36d55c4f22ac87abb1e9a9a97 as a separate source unit after
+resource checkpoint31c3c4c539. No parent WIP or unapproved commit included.
+
+Two mechanical dependency conflicts: approved f85 modifies qualification-map.json
+whose earlier1a5sourcecommit was intentionally not picked, and adds receiving
+handover text after that missing base. Resolved by taking full exact reviewedf85
+map/handover blobs, then applying f935/d174 normally. No1a5commit or unrelated
+1a5tests included. All7resulting changed Python/docs/map files byte-exact reviewed
+d174. Current map retains72original callables, all statusUNEXECUTED; no source
+review converted to actual proof. Root/resource hook/native/helper/workspace/lock
+bytes unchanged by this chain. Parent untrackedsupport WIP remains excluded.
+
+Reviewed private default/slim/full selection, frozen inspection controls and
+requested+canonical cache path bindings are preserved without path normalization
+of historical removed aliases. Integrated portable driver113tests exit0;
+workload-tools17tests exit0; AST/JSON/exactscope/source equality/unchangednative
+and diffchecks exit0. Resource6realprocess tests remain part of113. No Cargo/Go/
+build/guest/qualification or leased target/cache access occurred.
+
+Remaining8final bindings and all137source-wired actualreceiving obligations remain
+pending actual frozen-source raw execution. Independent whole-child aggregation
+and scoped inner-reader self observations are separately owned work; support
+WIP, other pending source batches, exact slim/test-wasm reach proofs, final static/
+runtime/strictlint/parity/resource gates, immutable identity/custody freeze,
+code-size comparison and main retirement acceptance remain root-owned pending.
