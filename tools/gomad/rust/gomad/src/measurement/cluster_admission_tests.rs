@@ -3,6 +3,59 @@ use std::cell::Cell;
 
 struct Temporary(PathBuf);
 impl Temporary {
+    fn source_checkout() -> Self {
+        use std::os::unix::fs::MetadataExt;
+        let compiled = Path::new(env!("CARGO_MANIFEST_DIR"));
+        let device = std::fs::metadata(compiled.join("src/measurement/inputs.rs"))
+            .unwrap()
+            .dev();
+        let temporary = Self::new();
+        if std::fs::metadata(&temporary.0).unwrap().dev() == device {
+            return temporary;
+        }
+        drop(temporary);
+        Self::git_metadata(compiled.ancestors().nth(4).unwrap(), device)
+    }
+    fn git_metadata(repo: &Path, device: u64) -> Self {
+        use std::os::unix::fs::MetadataExt;
+        let output = std::process::Command::new("git")
+            .args(["rev-parse", "--path-format=absolute", "--git-common-dir"])
+            .current_dir(repo)
+            .output()
+            .unwrap();
+        assert!(
+            output.status.success(),
+            "Git common-dir required for source fixture"
+        );
+        let common =
+            std::fs::canonicalize(String::from_utf8(output.stdout).unwrap().trim()).unwrap();
+        assert_eq!(
+            std::fs::metadata(&common).unwrap().dev(),
+            device,
+            "closed source fixture requires temp_dir or Git common-dir on the compiled source filesystem"
+        );
+        let namespace = common.join("gomad-admission-test-tmp");
+        match std::fs::DirBuilder::new().mode(0o700).create(&namespace) {
+            Ok(()) => {}
+            Err(error) if error.kind() == std::io::ErrorKind::AlreadyExists => {}
+            Err(error) => panic!("private source fixture namespace: {error}"),
+        }
+        let pin = crate::evidence::store::open::pin(&namespace).unwrap();
+        assert_eq!(pin.metadata().unwrap().dev(), device);
+        let root = namespace.join(format!(
+            "fixture-{}-{}",
+            std::process::id(),
+            std::time::SystemTime::now()
+                .duration_since(std::time::UNIX_EPOCH)
+                .unwrap()
+                .as_nanos()
+        ));
+        std::fs::DirBuilder::new()
+            .mode(0o700)
+            .create(&root)
+            .unwrap();
+        Self(root)
+    }
     fn new() -> Self {
         let root = std::env::temp_dir().join(format!(
             "gomad-cluster-admission-{}-{}",
@@ -22,6 +75,13 @@ impl Temporary {
 impl Drop for Temporary {
     fn drop(&mut self) {
         let _ = std::fs::remove_dir_all(&self.0);
+        if let Some(parent) = self.0.parent().filter(|parent| {
+            parent
+                .file_name()
+                .is_some_and(|name| name == "gomad-admission-test-tmp")
+        }) {
+            let _ = std::fs::remove_dir(parent);
+        }
     }
 }
 
@@ -159,11 +219,19 @@ fn separate_go_executable_pin_refuses_real_drift_before_every_phase_dispatch() {
 
 #[test]
 fn actual_host_drift_is_rejected_at_every_before_and_after_callback() {
+    use std::os::unix::fs::MetadataExt;
     let directory = Temporary::new();
-    let checkout = Temporary::new();
+    let checkout = Temporary::source_checkout();
     isolated_checkout(&checkout.0);
     let repo = checkout.0.as_path();
     let proof = inputs::authenticate_checkout(repo).unwrap();
+    let metadata_fixture = Temporary::git_metadata(repo, std::fs::metadata(repo).unwrap().dev());
+    std::fs::write(
+        metadata_fixture.0.join("metadata-is-not-source-status"),
+        b"retained fixture",
+    )
+    .unwrap();
+    let metadata_namespace = metadata_fixture.0.parent().unwrap().to_path_buf();
     let environment: Vec<_> = std::env::vars()
         .map(|(name, value)| format!("{name}={value}"))
         .collect();
@@ -175,6 +243,11 @@ fn actual_host_drift_is_rejected_at_every_before_and_after_callback() {
     let source =
         host::source_snapshot(&proof, &directory.0.join("baseline"), &environment).unwrap();
     let baseline = Baseline::admitted(&host, &source).unwrap();
+    drop(metadata_fixture);
+    assert!(
+        !metadata_namespace.exists(),
+        "owned empty metadata namespace was not cleaned"
+    );
     baseline
         .matches(&host, SourceIdentity::captured(&source).unwrap())
         .unwrap();
