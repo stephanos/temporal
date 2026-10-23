@@ -754,11 +754,17 @@ def real_case(case, binary, output, timeout, inputs):
         expected_drivers = 2 if case['name'] == 'concurrent-identities' else 1
         equal(len(drivers), expected_drivers, 'real.driver_isolation')
         equal(len(launches), len(observations), 'real.launch_isolation')
+    # A published build launcher's preparation binds its own build-driver registration, so
+    # its configuration identity is renewed per invocation and stays in the raw receipt only.
+    renewed = case['name'] == 'guest-build'
+    configurations = sorted(row['configuration_sha256'] for row in observations)
     return dict(case=case['name'], status=result['status'], real_compiler=True,
                 campaigns=len(observations), wrapper_identities=len(wrappers), driver_identities=len(drivers),
-                launch_identities=len(launches), configuration_sha256=sorted(row['configuration_sha256'] for row in observations),
+                launch_identities=len(launches),
+                configuration_sha256=['$RENEWED_BUILD_ORIGIN'] * len(configurations) if renewed else configurations,
                 outcome_classes=sorted(item['outcome']['class'] for row in observations for item in row['outcomes']),
-                argv=[value.replace(str(launcher), '$EXTERNAL_LAUNCHER') for value in argv],
+                argv=[value.replace(str(launcher), '$EXTERNAL_LAUNCHER').replace(str(output / 'published-main'), '$BUILD_OUTPUT')
+                      for value in argv],
                 cache_entries=len(cache_after), external_launches=len(external), go_events=go_events)
 
 
