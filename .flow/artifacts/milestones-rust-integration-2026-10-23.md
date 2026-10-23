@@ -385,3 +385,16 @@ profile readers remain a coupled source batch awaiting those dependencies.
 Complete final qualification and the full MILESTONES objective stay open. All
 root verification handles are terminal; isolated source work continues. The
 companion JSON records current worktrees, capacity and reviewed cleanup.
+
+## Terminal/profile source integration and cluster receiving
+
+At `82cb6755c80c194a7d17fb0c671a4b3586e82d45`, the coupled primary/profile Python reader batch is integrated.
+All 296 driver tests pass. Native terminal/warm/prime producer dependencies
+remain under repair; this supplies no runnable-stage or final qualification claim.
+The reviewed cluster host/source boundary and private Spec custody changes are
+also integrated. The first root filter selected zero tests and earns no test
+credit. The corrected filter ran nine tests: eight passed, while the actual-host
+fixture rejected the preserved user untracked paths as a dirty checkout. The
+worker is isolating its real checkout fixture without weakening production
+clean-source admission. Root Cargo handles are terminal. All milestone scope
+and original qualification obligations remain open.

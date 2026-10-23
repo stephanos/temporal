@@ -872,6 +872,51 @@
         "Source-primary02c51b0711/568a21b618 and expanded profile reader depend on unmerged native/source fixes; no91/96 runnable claim.",
         "All remaining full frozenqualification, runtime/stress/workload/replay/support/performance/sweep/milestone requirements remain open."
       ]
+    },
+    {
+      "observed_at": "2026-10-23T09:58:56.058105+00:00",
+      "integration_head": "82cb6755c80c194a7d17fb0c671a4b3586e82d45",
+      "final_qualification": false,
+      "logs": [
+        {
+          "path": "/home/agent/.cache/codex-build/fn232-root-terminal-profile-composition-tests.log",
+          "bytes": 49306,
+          "sha256": "5653b2457e8f49cfc97460ab83ba417ff9031bdc970498927e59d8e5a6e8783f",
+          "exit": 0,
+          "scope": "296 Python driver tests passed"
+        },
+        {
+          "path": "/home/agent/.cache/codex-build/fn232-root-final-cluster-boundary-tests.log",
+          "bytes": 412,
+          "sha256": "e85233c25a595c49e566e7cf83329118d5b476d7d42df8e68e639f59418bee7d",
+          "exit": 0,
+          "scope": "Compilation succeeded but filter selected zero tests; no behavioral test credit"
+        },
+        {
+          "path": "/home/agent/.cache/codex-build/fn232-root-final-cluster-driver-tests.log",
+          "bytes": 2202,
+          "sha256": "501bdd365ee57005fa24c18a707ef37db101ebd6c129d3530af1be7fd1eee59d",
+          "exit": 101,
+          "scope": "8 passed, 1 failed: host-drift test assumes clean root checkout; user untracked paths preserved"
+        }
+      ],
+      "completed_scope": [
+        "Integrated original primary terminal routes, exact child parent/lifetime validation, profile original tuple/digest-only/any-host readers, and original wire compiler host binding. Full integrated Python suite:296 PASS.",
+        "Integrated reviewed cluster boundary host/source/CPU custody and actual producer-owned private Spec reading. Owner exact final9PASS and Clippy0; root receiving found a fixture portability issue, not accepted as root green."
+      ],
+      "pending": [
+        "Cluster fixture repair assigned to original worker: preserve production clean-source refusal and user directories; use isolated real checkout for actual host-drift test.",
+        "Native terminal/warm/prime producer dependencies remain in measurement worker; Python source integration is provisional and does not make terminal stages runnable.",
+        "Full frozen qualification and all original milestone acceptance remain outstanding; inventory24 retired Go references require equivalent native semantic evidence."
+      ],
+      "reviews": [
+        {
+          "agent": "/root/terminal_cluster_join_review",
+          "scope": "integrated Python/cluster joins",
+          "status": "in_progress",
+          "same_family": true
+        }
+      ]
     }
   ],
   "resource_snapshot": {
