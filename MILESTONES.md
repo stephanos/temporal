@@ -81,7 +81,8 @@ The owner's goal says to follow the conductor's own recommendations when in doub
 8. **Pre-freeze source.** fn-227.1's inventory rows cite the Rust map-order tests before the freeze. The pre-freeze dry run also runs the Rust sweep against a real guest and runs fn-233's launcher, shim and Make lanes.
 9. **Post-freeze windows run one after another on a quiet host.** fn-233 formal rerun (~1 h), stress (2–3 h), fn-221 full sweep (5–8 h), then fn-185.2 profiles (7–9 h). fn-221 reruns the whole sweep on the frozen Rust binary instead of resuming the Go-candidate journal. The Go host's helper link-count infrastructure rows and its changed evidence bounds make that journal non-transferable.
 10. **fn-240 crate count.** The owner's 8–12 crate target stands, even though the main crate has grown to about 110k lines. The read-only survey (.1) may run now. Extractions wait until the post-freeze windows are done, because each one rotates the host and helper identities.
-11. **fn-222 inside the final cycle.** The one-box fn-222 group runs alongside the inspection stage's own onebox inspection, not after it, and the cycle stays at 96 stages. The cycle is launched with `driver.py parallel`. fn-222.1 then closes on the cycle's gate exits and support list.
+11. **No new Python driver code.** Until fn-242 runs, `tools/gomad/rust/driver/` gets only the Python the fn-232.13 freeze and its post-freeze windows strictly need. New checks go into Rust tests or `gomad` verbs.
+12. **fn-222 inside the final cycle.** The one-box fn-222 group runs alongside the inspection stage's own onebox inspection, not after it, and the cycle stays at 96 stages. The cycle is launched with `driver.py parallel`. fn-222.1 then closes on the cycle's gate exits and support list.
 
 ### Find bugs early (owner-approved, 2026-10-23)
 
@@ -367,3 +368,7 @@ Owner request 2026-10-20: a Go one-liner and `gomad -- make <target>` intercepti
 | --- | --- | --- |
 | [fn-221.2](.flow/tasks/fn-221-gomad-functional-suite-triage-sweep-on.2.md) | ⏸ Parked | Run the full sweep and retain the support matrix |
 | [fn-221.3](.flow/tasks/fn-221-gomad-functional-suite-triage-sweep-on.3.md) | ⬜ Todo | Rank reasons and recommend follow-on specs |
+
+### Qualification machinery cleanup — [fn-242](.flow/specs/fn-242-gomad-shrink-the-qualification.md)
+
+Owner request 2026-10-23. Starts after the fn-232.13 cycle and the post-freeze windows. Each check keeps a named failure it catches or is deleted, and the Python cycle driver becomes a Rust `gomad` verb. Tasks come from `/flow-next:plan`.
