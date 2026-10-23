@@ -194,6 +194,9 @@ class Gate:
                 timed_out = True
                 kill_tree(process.pid)
                 process.wait()
+        end_ns = time.time_ns()
+        ended = datetime.now(timezone.utc).isoformat()
+        elapsed = time.monotonic() - clock
         if self.private_observations is not None and name == 'explore' and not timed_out and process.returncode == expected:
             try:
                 private_seal = producer.observation_module().from_command(
@@ -201,9 +204,9 @@ class Gate:
             except (OSError, ValueError, KeyError, TypeError, AttributeError) as error:
                 capture_error = str(error)
         receipt = dict(name=name, command=command, argv=command, cwd=str(self.repo), pid=process.pid,
-                       start_ns=start_ns, end_ns=time.time_ns(), exit=process.returncode, timed_out=timed_out,
-                       started=started, ended=datetime.now(timezone.utc).isoformat(),
-                       elapsed_seconds=time.monotonic() - clock, timeout_seconds=timeout,
+                       start_ns=start_ns, end_ns=end_ns, exit=process.returncode, timed_out=timed_out,
+                       started=started, ended=ended,
+                       elapsed_seconds=elapsed, timeout_seconds=timeout,
                        environment_intent=dict(mandatory_workloads=False, detached=detached),
                        environment={key: environment.get(key) for key in (
                            'PATH', 'GOMAD_WASM_INSTALLATION', 'GOMAD_COMPILER', 'GOMAD_RUNTIME_ROOT',
