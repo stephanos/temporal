@@ -12,6 +12,7 @@ pub mod operations;
 pub mod retention;
 pub mod sqlitebusy;
 pub mod statistics;
+pub mod stress_driver;
 pub mod warm;
 pub mod warm_driver;
 pub mod workloads;
@@ -140,6 +141,7 @@ fn produce(
                 &build::Role::Release,
             )
         }
+        "stress" => stress_driver::run(call, proof, root),
         "compiled-identity-owners" => build::compiled_owners(root),
         "namespace-activity" | "namespace-sample" | "operation-retention" => {
             namespace_driver::run(call, proof, root)

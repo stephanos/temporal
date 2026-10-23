@@ -242,7 +242,24 @@ fn inputs(name: &str, prepared: &prepare::Prepared) -> Result<(), String> {
                 .ok_or("missing stress scenario")?,
         )?;
     }
-    let config = &prepared.configuration;
+    original_bounds(
+        name,
+        &prepared.configuration.profile,
+        &prepared.configuration.limits,
+        prepared.configuration.wall_nanos,
+        prepared.configuration.namespace.as_ref(),
+        prepared.configuration.model.as_ref(),
+    )
+}
+
+fn original_bounds(
+    name: &str,
+    profile: &str,
+    limits: &crate::evidence::record::Limits,
+    wall_nanos: Option<u64>,
+    namespace: Option<&linked::NamespaceImage>,
+    model: Option<&Value>,
+) -> Result<(), String> {
     let runtime = name == "runtime";
     let cluster = name == "two-cluster";
     let output = if runtime {
@@ -266,10 +283,10 @@ fn inputs(name: &str, prepared: &prepare::Prepared) -> Result<(), String> {
     } else {
         1 << 28
     };
-    if config.profile != "gomad.wasi-cooperative/v1"
-        || config.limits.memory_bytes != if runtime { 256 << 20 } else { 4 << 30 }
-        || config.limits.output_bytes != output
-        || config.namespace.as_ref().is_none_or(|namespace| {
+    if profile != "gomad.wasi-cooperative/v1"
+        || limits.memory_bytes != if runtime { 256 << 20 } else { 4 << 30 }
+        || limits.output_bytes != output
+        || namespace.is_none_or(|namespace| {
             namespace.limits.output_bytes != output
                 || namespace.limits.files
                     != if runtime {
@@ -282,14 +299,14 @@ fn inputs(name: &str, prepared: &prepare::Prepared) -> Result<(), String> {
                 || namespace.limits.descriptors != if runtime { 64 } else { 4096 }
                 || namespace.limits.filesystem_bytes != if runtime { 8 << 20 } else { 512 << 20 }
         })
-        || config.limits.fuel != if runtime { 4_000_000_000 } else { 1 << 50 }
-        || config.wall_nanos
+        || limits.fuel != if runtime { 4_000_000_000 } else { 1 << 50 }
+        || wall_nanos
             != Some(if runtime {
                 60_000_000_000
             } else {
                 900_000_000_000
             })
-        || config.model.as_ref().is_none_or(|model| {
+        || model.is_none_or(|model| {
             model["mode"] != 1
                 || model.get("seed").is_some()
                 || model.get("replay").is_some_and(|value| !value.is_null())
@@ -654,4 +671,66 @@ mod reach_tests;
 #[cfg(all(test, feature = "helper-determinism-fixture"))]
 pub(crate) fn compare_counterfactual(left: &Value, right: &Value) -> Result<Value, String> {
     report::compare_counterfactual(left, right)
+}
+
+/// Admit the exact original stress recipe without preparing or running its guest.
+pub(crate) fn admit_workload(value: Value) -> Result<ExploreOptions, String> {
+    let workload: Workload = crate::qualify::spec::strict(&canonical::encode(&value)?)?;
+    options(&workload)
+}
+
+/// Reopen both retained stress artifacts and recompute their first semantic difference.
+pub(crate) fn compare_retained(left: &Value, right: &Value) -> Result<Value, String> {
+    report::compare(left, right)
+}
+
+/// Authenticate original bounds on the actual retained configuration, without compiling or executing it.
+pub(crate) fn admit_retained_configuration(name: &str, value: Value) -> Result<(), String> {
+    if name == "two-cluster" {
+        let configuration: crate::replay::cluster::Configuration =
+            serde_json::from_value(value).map_err(|error| error.to_string())?;
+        cluster::validate_retained(&configuration)?;
+        for owner in &configuration.incarnations {
+            original_bounds(
+                name,
+                &configuration.profile,
+                &owner.limits,
+                owner.wall_nanos,
+                Some(&owner.namespace),
+                Some(&owner.model),
+            )?;
+        }
+        Ok(())
+    } else {
+        let configuration: crate::replay::preflight::Configuration =
+            serde_json::from_value(value).map_err(|error| error.to_string())?;
+        if name != "runtime" {
+            let selection = match name {
+                "workflow" => "^TestWorkflowTypeEncodingSuite$/^TestPlainASCII$/^Succeeds$",
+                "activity" => "^TestActivityTestSuite$",
+                _ => return Err("unknown retained stress workload".into()),
+            };
+            if configuration.arguments.get(1..).is_none_or(|arguments| {
+                arguments
+                    != [
+                        "-test.v",
+                        "-test.count=1",
+                        "-test.timeout=72h",
+                        &format!("-test.run={selection}"),
+                        "-persistenceType=sql",
+                        "-persistenceDriver=sqlite",
+                    ]
+            }) {
+                return Err("retained stress original guest selection changed".into());
+            }
+        }
+        original_bounds(
+            name,
+            &configuration.profile,
+            &configuration.limits,
+            configuration.wall_nanos,
+            configuration.namespace.as_ref(),
+            configuration.model.as_ref(),
+        )
+    }
 }

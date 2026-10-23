@@ -59,7 +59,7 @@ pub fn prepare(
     module::prepare_scenario(proof, call, root, &source, scenario_bytes()?)
 }
 
-fn stage_broker(repo: &Path) -> Result<String, String> {
+pub(super) fn stage_broker(repo: &Path) -> Result<String, String> {
     let sources = [
         (
             "recovery_test.go",
