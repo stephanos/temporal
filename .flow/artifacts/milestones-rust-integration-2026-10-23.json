@@ -2125,6 +2125,90 @@
         "Complete frozen 96 stages and 146 obligations",
         "Remaining MILESTONES.md requirements"
       ]
+    },
+    {
+      "observed_at": "2026-10-23T12:14:32.563074+00:00",
+      "integration_head": "04546a1f4477727ac89fc2cadc65a32419a31c3e",
+      "final_qualification": false,
+      "typed_runtime_policy": {
+        "manifest": {
+          "path": "/home/agent/evidence/fn232-runtime-original-policy-v1/manifest.json",
+          "bytes": 242164,
+          "sha256": "5821c0a8bf7d04969ff7e61b9e3518239d02f80cd9c32a0618cd13b08c8f067c"
+        },
+        "policy": {
+          "path": "/home/agent/evidence/fn232-runtime-original-policy-v1/policy.json",
+          "bytes": 780,
+          "sha256": "6adac6975d77d2912a97aa058a7be3dd6f2bc734bb5c5b142a51a764261d2444"
+        },
+        "actual_go_commands": 3,
+        "exits": [
+          0,
+          0,
+          0
+        ],
+        "independent_review": "CLEAR: 1183 hashes, command PID/clock custody and exact original typed policy",
+        "root_projection": "PASS with genuine zero CapturedInputs",
+        "guest_compiled": false,
+        "qualification_claim": false
+      },
+      "zero_capture_fix": {
+        "commit": "04546a1f44",
+        "receiving_tests": 23,
+        "source_map_tests": 5,
+        "terminal_module_receiving_tests": 9,
+        "worker_joined_tests": 339,
+        "worker_log": {
+          "path": "/home/agent/.cache/codex-build/fn232-runtime-zero-capture-full-driver-tests-final-fixed.log",
+          "bytes": 530,
+          "sha256": "e5b03f147f01c11473f3d66e4b9c0122ca74561c6e662a17ebba6aa1f968b450"
+        },
+        "source_map_change": "Coordinates only for 13 unchanged native spans; every hash/status/evidence identity preserved",
+        "review": "CLEAR"
+      },
+      "executed_divergence_campaign": {
+        "commit": "7a4e859c37",
+        "source_review": "CLEAR",
+        "artifact": ".flow/artifacts/fn232-executed-divergence-preservation-2026-10-23.json",
+        "actual_rust_tests": "NOT_RUN pending shared build window",
+        "actual_v2_pairs": "NOT_RUN pending genuine recipe/fixture roles",
+        "historical_handoff_predicate": "FAIL; no assertion waiver or full migration claim"
+      },
+      "broad_guest_causal_red": {
+        "command": {
+          "path": "/home/agent/evidence/fn232-core-counterfactual/broad-guests-v1/command.json",
+          "bytes": 1002,
+          "sha256": "3b24ca9efafcbad4d8e3e5f09eed8de28fbfee72f325f6917a6eaa10d295d053"
+        },
+        "process": {
+          "path": "/home/agent/evidence/fn232-core-counterfactual/broad-guests-v1/process.json",
+          "bytes": 438,
+          "sha256": "3eafc03d87c5716577ceb005e6f150cfb4457f0e7a186c57d95e738a8a221582"
+        },
+        "stdout": {
+          "path": "/home/agent/evidence/fn232-core-counterfactual/broad-guests-v1/test.stdout",
+          "bytes": 1318,
+          "sha256": "b98372747a944400794096363bbb00199e7ad324abbbe650ca1fea51b54f5953"
+        },
+        "stderr": {
+          "path": "/home/agent/evidence/fn232-core-counterfactual/broad-guests-v1/test.stderr",
+          "bytes": 1521,
+          "sha256": "285426ee144def3b851920b4971dbd6a667ff59727d29d1a33c1aaa09e514617"
+        },
+        "source": "2c73f139013bfc6f8e960089bbf9f243688d90ea",
+        "exit": 101,
+        "tests_passed": 0,
+        "tests_failed": 5,
+        "live_variants_executed": 0,
+        "reason": "Fixture envelope refused by production scenario normalization before guest execution; source repair remains pending"
+      },
+      "pending": [
+        "Broad source repairs and actual receiving rerun",
+        "Actual full terminal-control result",
+        "Fresh integrated candidate/main/runtime harness builds",
+        "Five unresolved original references",
+        "Frozen 96-stage/146-obligation qualification and remaining milestone work"
+      ]
     }
   ],
   "resource_snapshot": {
