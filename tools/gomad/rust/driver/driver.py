@@ -372,7 +372,7 @@ def guard(config):
     wanted = {str(repo / path) for path in tracked if path and not path.startswith('.flow/')
               and (repo / path).is_file() and not (repo / path).is_symlink()}
     require(wanted <= set(config['files']), 'incomplete non-Flow source inventory')
-    required_driver = [HERE / 'driver.py', HERE / 'adapters.py', HERE / 'semantic-map.json', HERE / 'required-final.json', HERE / 'sqlite.py', HERE / 'launch.py', HERE / 'host_admission.py', HERE / 'live.py', HERE / 'final.py', HERE / 'reach.py', HERE / 'receiving.py', HERE / 'receiving_cost.py', HERE / 'native_observations.py',
+    required_driver = [HERE / 'driver.py', HERE / 'adapters.py', HERE / 'semantic-map.json', HERE / 'required-final.json', HERE / 'sqlite.py', HERE / 'launch.py', HERE / 'host_admission.py', HERE / 'live.py', HERE / 'final.py', HERE / 'reach.py', HERE / 'receiving.py', HERE / 'runtime_gate.py', HERE / 'receiving_cost.py', HERE / 'native_observations.py',
                        HERE.parent / 'workload_tools/workloads.py',
                        FROZEN / 'scheduler.py', DAG, FROZEN / 'lib.sh',
                        FROZEN.parent / 'q1-serial/run-qualification.sh', FROZEN / 'required-roots.py']

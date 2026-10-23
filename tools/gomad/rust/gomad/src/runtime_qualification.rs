@@ -57,23 +57,7 @@ pub fn produce(
         return Err("runtime qualification index must be 0..31".into());
     }
     std::fs::create_dir(output).map_err(|error| error.to_string())?;
-    let arguments: Vec<String> = [
-        "--choices",
-        "--diagnostics",
-        "--parallel=1",
-        "--execution-timeout=60s",
-        "--overall-timeout=600s",
-        "--output-limit=1048576",
-        "--choice-bytes=1048576",
-        "go-run",
-        ".",
-        "literal $arg",
-    ]
-    .map(str::to_owned)
-    .into();
-    let mut options = crate::cli::explore::parse(&arguments, &mut false)?;
-    options.installation = Some(installation.into());
-    options.working_dir = source.into();
+    let options = options(installation, source)?;
     let prepared = crate::campaign::prepare::prepare_runtime_qualification(&options)?;
     let mut artifacts = Vec::new();
     let mut baseline = None;
@@ -97,14 +81,14 @@ pub fn produce(
         {
             return Err("runtime qualification guest did not complete".into());
         }
-        if let Some(first) = &baseline {
-            if first != &publication.payloads {
+        if let Some((first_record, first_payloads)) = &baseline {
+            if first_record != &publication.record || first_payloads != &publication.payloads {
                 return Err(format!(
                     "runtime qualification fresh instance {instance} diverged"
                 ));
             }
         } else {
-            baseline = Some(publication.payloads.clone());
+            baseline = Some((publication.record.clone(), publication.payloads.clone()));
         }
         let store = crate::evidence::store::Store {
             root: output.join(format!("instance-{instance:02}")),
@@ -121,6 +105,31 @@ pub fn produce(
         canonical::encode(&artifacts)?,
     )
     .map_err(|error| error.to_string())
+}
+
+fn options(
+    installation: &Path,
+    source: &Path,
+) -> Result<crate::cli::explore::ExploreOptions, String> {
+    let arguments: Vec<String> = [
+        "--choices",
+        "--diagnostics",
+        "--parallel=1",
+        "--execution-timeout=60s",
+        "--overall-timeout=600s",
+        "--output-limit=1048576",
+        "--choice-bytes=1048576",
+        "go-run",
+        ".",
+        "--",
+        "literal $arg",
+    ]
+    .map(str::to_owned)
+    .into();
+    let mut options = crate::cli::explore::parse(&arguments, &mut false)?;
+    options.installation = Some(installation.into());
+    options.working_dir = source.into();
+    Ok(options)
 }
 
 /// Runs the runtime gate's fresh full-tape replay with diagnostics disabled,
@@ -199,6 +208,24 @@ fn release_role() -> Result<(), String> {
 
 #[cfg(test)]
 mod tests {
+    #[test]
+    fn original_preparation_options_preserve_target_arguments_and_budgets() {
+        let options = super::options(
+            std::path::Path::new("/installation"),
+            std::path::Path::new("/source"),
+        )
+        .unwrap();
+        assert_eq!(options.target_args, ["literal $arg"]);
+        assert_eq!(options.source, ".");
+        assert_eq!(options.target_kind, "go-run");
+        assert_eq!(
+            options.execution_timeout,
+            std::time::Duration::from_secs(60)
+        );
+        assert_eq!(options.overall_timeout, std::time::Duration::from_secs(600));
+        assert!(options.choices && options.diagnostics);
+    }
+
     #[test]
     fn original_request_configuration_is_seed_independent_and_exact() {
         let value = serde_json::to_value(super::configuration().unwrap()).unwrap();

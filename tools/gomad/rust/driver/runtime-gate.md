@@ -21,6 +21,7 @@ The harness exposes three repository gate operations:
 
 ```text
 runtime-qualification-replay identity
+runtime-qualification-replay install ORIGINAL-PUBLIC-INSTALL-FLAGS
 runtime-qualification-replay produce INSTALLATION SOURCE-DIRECTORY INDEX NEW-OUTPUT
 runtime-qualification-replay ARTIFACT NEW-REPLAY-OUTPUT
 ```
@@ -33,6 +34,11 @@ roles. Its status is 0 only when production execution, all raw recording
 payload equalities and the forced replay succeed; application exits 0 and 17
 are recorded in the artifacts. The adapter additionally requires all original
 hook, collector and scheduling witnesses before publishing `runtime.json`.
+The adapter first invokes the production installer through the harness, using
+the admitted original guest policy and compiler/runtime inputs. This creates a
+fresh installation bound to the harness executable, whose host/helper library
+identities must equal the operator's. Existing sealed installations remain
+unchanged. The installation command and producer share the 600 s shard bound.
 
 Each runtime stage binding needs `harness` and `harness_build_receipt`, both
 sealed in the driver `files` inventory. The harness receipt uses the existing
@@ -59,7 +65,7 @@ def runtime_aggregate(config, root, label):
 Passing the adapter globals preserves the independent receiving reader's
 substitution of `command` and `write`: it authenticates retained raw commands
 and recomputes reports without executing guests. `receiving.Reader.runtime`
-must validate each stage's `producer.command.json` as a distinct producer PID,
+validates each stage's `producer.command.json` as a distinct producer PID,
 the 600 s bound, its 25 unique `recordings/instance-NN` artifacts, and each
 artifact through the raw manifest reader. This internal producer has no public
 campaign journal: its 25 separate stores reuse the production execution and

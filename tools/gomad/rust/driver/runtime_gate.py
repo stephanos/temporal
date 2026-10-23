@@ -2,6 +2,7 @@
 import hashlib
 import json
 from pathlib import Path
+import time
 
 
 def digest(raw):
@@ -63,6 +64,12 @@ def observation(config, root, name, artifact, index, linked, api):
         require(inputs[field] == linked[field], 'runtime retained component identity changed: ' + field)
     exact_configuration(inputs['configuration'], require)
     provenance = json.loads(payload(artifact, inspected, 'target/provenance.json'))
+    source = api['REPO'] / 'tools/gomad/internal/backends/wasm/testdata/runtime_probes'
+    require(provenance['inputs']['kind'] == 'go-run' and provenance['inputs']['source'] == '.'
+            and provenance['inputs']['directory'] == str(source)
+            and provenance['inputs']['sources'].get(str(source / 'main.go')) == api['sha'](source / 'main.go')
+            and provenance['module_sha256'] == record['identity']['target']
+            and provenance['build_key'] == record['identity']['toolchain'], 'runtime original guest preparation changed')
     installation = read(config['installations'][config['stages'][f'runtime-{index}']['installation']])
     require(provenance['inputs']['compiler_sha256'] == installation['compiler_sha256']
             and provenance['inputs']['go_version'] == 'go1.27.1'
@@ -103,6 +110,11 @@ def replay_observation(root, artifact, record, linked, api):
 
 def runtime(config, root, label, entry, api):
     require, read = api['require'], api['read']
+    started = time.monotonic()
+    def remaining():
+        duration = 600 - (time.monotonic() - started)
+        require(duration > 0, 'original runtime ten-minute shard exceeded')
+        return duration
     index = int(label.split('-')[1])
     require(0 <= index < 32, 'runtime index must be 0..31')
     require(entry['source'] == './internal/backends/wasm/testdata/runtime_probes', 'original runtime guest required')
@@ -110,9 +122,20 @@ def runtime(config, root, label, entry, api):
     installation = config['installations'][entry['installation']]
     api['runtime_installation'](read(installation))
     executable, linked = harness(config, root, entry, api)
-    api['command'](config, root, 'producer', [executable, 'produce', installation,
+    installed = read(installation)
+    require(installed['admission']['host_executable_sha256'] == config['binary_sha256'],
+            'runtime operator installation executable mismatch')
+    policy = root / 'guest-config.json'
+    api['write'](policy, installed['admission']['guest_configuration'])
+    runtime_installation = str(root / 'runtime-installation.json')
+    api['command'](config, root, 'install-harness', [executable, 'install',
+        '--compiler', installed['compiler_path'], '--runtime-root', installed['runtime_root'],
+        '--cache', installed['cache_root'], '--go-version', 'go1.27.1', '--profile', installed['profile'],
+        '--fuel', str(installed['fuel']), '--memory-bytes', str(installed['memory_bytes']),
+        '--config', str(policy), '--output', runtime_installation], timeout=remaining())
+    api['command'](config, root, 'producer', [executable, 'produce', runtime_installation,
         str(api['REPO'] / 'tools/gomad/internal/backends/wasm/testdata/runtime_probes'), str(index),
-        str(root / 'recordings')], timeout=600)
+        str(root / 'recordings')], timeout=remaining())
     paths = read(root / 'recordings/artifacts.json')
     require(len(paths) == len(set(paths)) == 25, 'runtime requires 25 distinct fresh retained stores')
     baseline = None

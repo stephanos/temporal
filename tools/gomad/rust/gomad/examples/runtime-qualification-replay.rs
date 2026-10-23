@@ -4,6 +4,20 @@ fn main() {
     let result = if arguments.len() == 1 && arguments[0] == "identity" {
         println!("{}", gomad::runtime_qualification::identity());
         Ok(())
+    } else if arguments.len() > 1 && arguments[0] == "install" {
+        let flags: Vec<_> = arguments[1..]
+            .iter()
+            .map(|value| value.to_string_lossy().into_owned())
+            .collect();
+        gomad::cli::install::run(&flags, &mut std::io::stdout())
+            .map_err(|error| error.message)
+            .and_then(|status| {
+                if status == 0 {
+                    Ok(())
+                } else {
+                    Err(format!("installation failed: {status}"))
+                }
+            })
     } else if arguments.len() == 5 && arguments[0] == "produce" {
         arguments[3]
             .to_string_lossy()

@@ -631,16 +631,16 @@ class Retained:
             report = read(root/'runtime.json')
             require(not paths.intersection(report['artifacts']), 'runtime shards borrowed artifacts')
             paths.update(report['artifacts'])
-            for artifact in report['artifacts']:
-                campaign = next((path for path in Path(artifact).parents if path.parent.name == 'campaigns'),None)
-                require(campaign is not None,'runtime campaign root missing')
-                self.journal(campaign,read(Path(artifact)/'manifest.json')['record_sha256'])
-            rows = [read(root/(f'record-{number:02}.command.json')) for number in range(25)]
-            require(len({row['pid'] for row in rows}) == 25 and not pids.intersection(row['pid'] for row in rows),
-                    'runtime repeated producer PID')
-            pids.update(row['pid'] for row in rows)
-            replay = read(root/'forced-replay.command.json')
-            require(replay['end_ns']-rows[0]['start_ns'] <= 600_000_000_000, 'runtime original ten-minute shard exceeded')
+            for number, artifact in enumerate(report['artifacts']):
+                require(Path(artifact).parent == root/'recordings'/f'instance-{number:02}',
+                        'runtime fresh store root mismatch')
+                self.artifact(Path(artifact))
+            producer = read(root/'producer.command.json')
+            require(producer['pid'] not in pids, 'runtime repeated producer PID')
+            pids.add(producer['pid'])
+            installed = read(root/'install-harness.command.json')
+            require(producer['end_ns']-installed['start_ns'] <= 600_000_000_000,
+                    'runtime original ten-minute shard exceeded')
         self.adapter.runtime_aggregate(self.config,self.root/'stages/runtime-aggregate','runtime-aggregate')
 
     def mandatory(self):

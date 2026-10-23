@@ -187,14 +187,18 @@ class RuntimeGateTests(unittest.TestCase):
         calls = []
         self.api.update(REPO=self.root, runtime_installation=lambda installation: None,
             command=lambda *args, **kwargs: calls.append((args, kwargs)))
-        self.reports[Path('installation')] = {}
+        self.config['binary_sha256'] = 'operator'
+        self.reports[Path('installation')] = dict(admission=dict(host_executable_sha256='operator', guest_configuration={}),
+            compiler_path='compiler', runtime_root='runtime', cache_root='cache', profile='gomad.wasi-cooperative/v1',
+            fuel=4_000_000_000, memory_bytes=256 << 20)
         self.reports[root / 'recordings/artifacts.json'] = report['artifacts']
         with patch.object(gate, 'harness', return_value=('harness', self.linked)), \
              patch.object(gate, 'observation', return_value=self.records[0]), patch.object(gate, 'replay_observation'):
             self.assertEqual(gate.runtime(self.config, root, 'runtime-0', entry, self.api), ['PASS'])
-            self.assertEqual(calls[0][0][3], ['harness', 'produce', 'installation',
+            self.assertEqual(calls[1][0][3], ['harness', 'produce', str(root / 'runtime-installation.json'),
                 str(self.root / 'tools/gomad/internal/backends/wasm/testdata/runtime_probes'), '0', str(root / 'recordings')])
-            self.assertEqual(calls[0][1], dict(timeout=600))
+            self.assertLessEqual(calls[1][1]['timeout'], 600)
+            self.assertGreater(calls[1][1]['timeout'], 0)
             for changed in (report['artifacts'][:24], report['artifacts'] + ['extra'], [report['artifacts'][0]]*25,
                             [str(self.root / f'foreign-{index}') for index in range(25)]):
                 self.reports[root / 'recordings/artifacts.json'] = changed

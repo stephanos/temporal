@@ -33,7 +33,7 @@ def cell_spec(label, evidence, manifest, source_digest):
         campaign.update(ChoiceTraceLimit=64 << 20, SuccessBytesLimit=2 << 30,
                         Environment=['TEMPORAL_ROOT=/workspace', 'TMPDIR=/tmp', 'TEMPORAL_TEST_LOG_LEVEL=warn'])
     return dict(Manifest=dict(Provisional=False, IntegratedSourceManifestPath=manifest,
-                             IntegratedSourceSHA256=source_digest, ID=wanted['id'], Workload=wanted['workload'],
+                             IntegratedSourceSHA256='sha256:' + source_digest.removeprefix('sha256:'), ID=wanted['id'], Workload=wanted['workload'],
                              Profile=wanted['profile'], Cell=wanted['cell'], Seed=7, Repeat=2),
                 Campaign=campaign, ArtifactRoot=evidence)
 
@@ -65,6 +65,10 @@ def freeze(bindings, output, source_manifest):
     inputs.update((str(FROZEN / 'dag.tsv'), str(FROZEN.parent / 'q1-serial/run-qualification.sh')))
     inputs.update(config['installations'].values())
     inputs.update((config['binary'], config['build_receipt']))
+    for index in range(32):
+        entry = config['stages'][f'runtime-{index}']
+        require(entry['adapter'] == 'runtime', 'runtime stage requires its exact release-library gate')
+        inputs.update((entry['harness'], entry['harness_build_receipt']))
     for label, wanted in CELLS.items():
         entry = config['stages'][label]
         if entry.get('spec') == 'GENERATE':

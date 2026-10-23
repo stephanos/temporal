@@ -352,94 +352,14 @@ def runtime_witness(record, inspection, stdout, diagnostic=None, terminal=None):
 
 
 def runtime(config, root, label, entry):
-    started = time.monotonic()
-    def remaining():
-        duration = 600 - (time.monotonic() - started)
-        require(duration > 0, 'original runtime shard ten-minute deadline exceeded')
-        return duration
-    index = int(label.split('-')[1])
-    installation = config['installations'][entry['installation']]
-    require(entry['source'] == './internal/backends/wasm/testdata/runtime_probes', 'original runtime guest required')
-    runtime_installation(read(installation))
-    require(entry['arguments'] == ['--working-dir', str(REPO / 'tools/gomad')], 'changed runtime target arguments')
-    baseline, baseline_path, witness = None, None, None
-    paths = []
-    for instance in range(25):
-        destination = root / f'instance-{instance:02}'
-        command(config, root, f'record-{instance:02}', public(config, installation) + ['explore', '--json', '--diagnostics',
-                '--choices', '--parallel=1', '--seeds=' + str(index * 1000003), '--on-failure=all',
-                '--keep-successes=all', '--success-limit=1', '--artifacts', str(destination),
-                '--env=EXTRA_ENTROPY=no_', '--env=ONLY=captured', '--choice-bytes=1MiB', '--output-limit=1MiB',
-                '--execution-timeout=60s', '--overall-timeout=600s', *entry['arguments'],
-                'go-run', entry['source'], '--', 'literal $arg'], accepted=(0, 1), timeout=remaining(), **private_capture(config, entry))
-        campaigns = list((destination / 'campaigns').glob('campaign-*'))
-        require(len(campaigns) == 1, 'runtime fresh campaign count')
-        manifests = [path.parent for path in campaigns[0].rglob('manifest.json')
-                     if read(path).get('record', {}).get('seed') == index*1000003
-                     and 'evidence/choice' in read(path).get('files', {})]
-        require(len(manifests) == 1, 'runtime fresh recording count')
-        artifact = manifests[0]
-        inspected = json.loads(command(config, root, f'inspect-{instance:02}', public(config) + ['inspect', '--json', '--choices', str(artifact)], timeout=remaining()))
-        record = inspected['artifact']['record']
-        require(read(root / f'record-{instance:02}.command.json')['exit'] ==
-                (0 if record['outcome']['exit_code'] == 0 else 1), 'runtime command/outcome exit mismatch')
-        require(record['identity']['implementation'] == hashlib.sha256(
-                json.dumps(config['identity'], sort_keys=True, separators=(',', ':')).encode()).hexdigest(),
-                'runtime implementation mismatch')
-        stdout = payload(artifact, inspected, 'output/stdout')
-        diagnostic = payload(artifact, inspected, 'evidence/diagnostic')
-        terminal = payload(artifact, inspected, 'evidence/runtime-terminal')
-        witness = runtime_witness(record, inspected, stdout, diagnostic, terminal)
-        observed = dict(outcome=record['outcome'], streams=record['streams'], summary=witness['summary'],
-                        terminal_sha256=hashlib.sha256(terminal).hexdigest(),
-                        diagnostic_sha256=hashlib.sha256(diagnostic).hexdigest())
-        if baseline is None:
-            baseline, baseline_path = observed, artifact
-        require(observed == baseline, 'runtime fresh instance diverged')
-        paths.append(str(artifact))
-    replay = command(config, root, 'forced-replay', public(config) + ['replay', str(baseline_path)],
-                     accepted=(0,) if baseline['outcome']['exit_code'] == 0 else (1,), timeout=remaining())
-    require(b'reproduced=true' in replay and b'diagnostic=false' in replay and b'choice-replay=exact' in replay,
-            'runtime forced full-tape replay mismatch')
-    write(root / 'runtime.json', dict(index=index, seed=index*1000003, instances=25, replays=1,
-                                    source=config['source_sha256'], identity=config['identity'], artifacts=paths,
-                                    witness=witness, baseline=baseline, stdout=stdout.decode()))
-    return passed(label)
+    import runtime_gate
+    return runtime_gate.runtime(config, root, label, entry, globals())
 
 
 def runtime_aggregate(config, root, label):
-    choices, outputs, exits, domains = set(), set(), set(), {name: set() for name in ('map ', 'runq ', 'timer callbacks ', 'canary ')}
-    first = None
-    for index in range(32):
-        report = read(Path(config['root']) / 'stages' / f'runtime-{index}' / 'runtime.json')
-        require(report['index'] == index and report['seed'] == index*1000003 and report['instances'] == 25
-                and report['replays'] == 1 and report['source'] == config['source_sha256']
-                and report['identity'] == config['identity'] and len(set(report['artifacts'])) == 25, 'stale runtime shard')
-        for number, artifact in enumerate(report['artifacts']):
-            inspected = json.loads(command(config, root, f'shard-{index}-{number}', public(config) + ['inspect', '--json', '--choices', artifact]))
-            record = inspected['artifact']['record']
-            raw_stdout = payload(artifact, inspected, 'output/stdout')
-            diagnostic = payload(artifact, inspected, 'evidence/diagnostic')
-            terminal = payload(artifact, inspected, 'evidence/runtime-terminal')
-            runtime_witness(record, inspected, raw_stdout, diagnostic, terminal)
-            require(hashlib.sha256(terminal).hexdigest() == report['baseline']['terminal_sha256']
-                    and hashlib.sha256(diagnostic).hexdigest() == report['baseline']['diagnostic_sha256']
-                    and raw_stdout.decode() == report['stdout'], 'runtime aggregate witness changed')
-            require(record['streams'] == report['baseline']['streams'] and record['outcome'] == report['baseline']['outcome'],
-                    'runtime aggregate payload changed')
-            if first is None: first = record['identity']
-            require(record['identity'] == first, 'runtime shards are not one frozen identity')
-        witness = report['witness']
-        choices.add(witness['choice']); outputs.add(witness['stdout']); exits.add(witness['exit'])
-        for prefix, values in domains.items():
-            found = [line for line in report['stdout'].splitlines() if line.startswith(prefix)]
-            require(found, 'missing aggregate runtime domain: ' + prefix)
-            values.update(found)
-    require(len(choices) >= 2 and len(outputs) >= 2 and exits == {0, 17} and all(len(v) >= 2 for v in domains.values()),
-            'runtime representative seeds lack choice/output/exit/domain variation')
-    write(root / 'aggregate.json', dict(choices=len(choices), outputs=len(outputs), exits=sorted(exits),
-                                      domains={key: len(value) for key, value in domains.items()}))
-    return passed(label)
+    import runtime_gate
+    return runtime_gate.runtime_aggregate(config, root, label, globals())
+
 
 
 def execute_primary(config, root, label):
