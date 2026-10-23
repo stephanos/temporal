@@ -353,6 +353,7 @@ def run(config, stage):
             Path(observed['repo']).mkdir(mode=0o700)
         if row.name == 'host-broad-guest':
             require(not (destination / 'guest-root').exists(), 'broad guest root must be fresh')
+            (destination / 'guest-root').mkdir(mode=0o700)
         command(dict(observed, files=files, environment=environment), destination, row.name,
                 test_argv(config, stage, row.name), timeout=3600, exact_environment=environment)
     guard(config)
