@@ -135,7 +135,17 @@ def authenticate_lanes(config, work, lane):
     nested = {'inspect': 'fresh-parity', 'replay': 'fresh-parity', 'explore': '', 'resume': '',
               'execute-shard': '', 'merge': '', 'minimize': '', 'qualify-report': '', 'installation': '', 'stress': ''}
     for name, relative in nested.items():
-        lane.authenticate_commands(work / name / relative, checked_in_lane=name == 'installation')
+        command_root = work / name / relative
+        lane.authenticate_commands(command_root, checked_in_lane=name == 'installation')
+        for row in read(command_root / 'commands.json'):
+            require(isinstance(row.get('argv'), list) and len(row['argv']) >= 2
+                    and all(isinstance(value, str) and value for value in row['argv']),
+                    'missing actual nested parity command argv')
+            executable = Path(row['argv'][0])
+            allowed = {str(item) for item in files.values()} | {str(trees['baseline'] / 'bin/gomad'),
+                       str(trees['baseline'] / 'bin/gomad-wasmhost'), config['python']}
+            require(str(executable) in allowed or executable.is_relative_to(work),
+                    'foreign nested parity executable')
     receipts = {
         'inspect': ('fresh-parity/inspect-result.json', 'gomad.inspect-parity/v1'),
         'replay': ('fresh-parity/replay-reference-result.json', 'gomad.replay-reference-parity/v1'),
@@ -147,7 +157,8 @@ def authenticate_lanes(config, work, lane):
         'stress': ('stress-parity-result.json', 'gomad.stress-semantic-parity/v1'),
     }
     for name, (relative, schema) in receipts.items():
-        lane.require_receipt(work / name, relative, schema)
+        receipt = lane.require_receipt(work / name, relative, schema)
+        require(len(receipt) > 1, 'schema-only parity receipt')
     expected_coverage = {verb: [verb] for verb in ('inspect', 'replay', 'explore', 'resume', 'execute-shard', 'merge', 'minimize', 'stress')}
     expected_coverage.update({verb: ['qualify-report'] for verb in ('qualify', 'report')})
     expected_coverage.update({verb: ['installation'] for verb in ('install', 'discover', 'doctor', 'plan', 'recover', 'analyze')})
