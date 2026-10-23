@@ -369,3 +369,104 @@ fn installed_lifecycle_noncache_capacity_remains_a_replay_mismatch() {
             .contains("reproduced=false")
     );
 }
+
+fn retained_cluster_streams(
+    declared: &[&str],
+    included: &[&str],
+    identity_matches: bool,
+) -> Retained {
+    let mut fixture = retained(true);
+    let opened = crate::evidence::store::Opened::open(&fixture.published.path).unwrap();
+    let mut payloads = BTreeMap::new();
+    for (name, entry) in &opened.manifest().files {
+        if name != "record.json"
+            && (!name.starts_with("evidence/cluster/a/1/")
+                || included.contains(&name.rsplit('/').next().unwrap()))
+        {
+            payloads.insert(name.clone(), opened.payload(name, entry.bytes).unwrap());
+        }
+    }
+    let mut summary: serde_json::Value =
+        serde_json::from_slice(&payloads["evidence/cluster_summary"]).unwrap();
+    let streams = summary["incarnations"][0]["streams"]
+        .as_object_mut()
+        .unwrap();
+    let stdout = streams["stdout"].clone();
+    streams.retain(|name, _| declared.contains(&name.as_str()));
+    for stream in declared {
+        let descriptor = streams.entry(*stream).or_insert_with(|| stdout.clone());
+        if !identity_matches {
+            descriptor["sha256"] = json!("0".repeat(64));
+        }
+    }
+    payloads.insert(
+        "evidence/cluster_summary".into(),
+        canonical::encode(&summary).unwrap(),
+    );
+    fixture.record.streams.clear();
+    for (name, raw) in &payloads {
+        if name != "target/module.wasm" {
+            fixture.record.streams.insert(
+                name.clone(),
+                Stream {
+                    bytes: raw.len() as u64,
+                    sha256: canonical::digest(raw),
+                    records: 1,
+                },
+            );
+        }
+    }
+    payloads.insert("record.json".into(), fixture.record.bytes().unwrap());
+    fixture.published = Store {
+        root: fixture.root.join("sparse-stream-store"),
+        maximum_bytes: 64 << 20,
+        target_pool: None,
+        #[cfg(feature = "determinism-fixture")]
+        fault: None,
+    }
+    .publish(Publication {
+        record: fixture.record.clone(),
+        payloads,
+    })
+    .unwrap();
+    fixture
+}
+
+#[test]
+fn installed_lifecycle_inspect_accepts_silent_and_single_stream_cluster_instances() {
+    for streams in [&[][..], &["stdout"][..], &["stderr"][..]] {
+        let fixture = retained_cluster_streams(streams, streams, true);
+        let mut output = Vec::new();
+        crate::cli::inspect::run(
+            &[fixture.published.path.to_str().unwrap().to_owned()],
+            &mut output,
+        )
+        .unwrap_or_else(|error| panic!("{}", error.message));
+        let text = String::from_utf8(output).unwrap();
+        let stdout = if streams.contains(&"stdout") { 13 } else { 0 };
+        let stderr = if streams.contains(&"stderr") { 22 } else { 0 };
+        assert!(
+            text.contains(&format!("stdout-bytes={stdout} stderr-bytes={stderr}")),
+            "{text}"
+        );
+    }
+}
+
+#[test]
+fn installed_lifecycle_inspect_refuses_inconsistent_or_unrecognized_cluster_streams() {
+    for (declared, included, matches) in [
+        (&["stdout"][..], &[][..], true),
+        (&[][..], &["stdout"][..], true),
+        (&["unknown"][..], &[][..], true),
+        (&["stdout"][..], &["stdout"][..], false),
+    ] {
+        let fixture = retained_cluster_streams(declared, included, matches);
+        assert!(
+            crate::cli::inspect::run(
+                &[fixture.published.path.to_str().unwrap().to_owned()],
+                &mut Vec::new()
+            )
+            .is_err()
+        );
+    }
+}

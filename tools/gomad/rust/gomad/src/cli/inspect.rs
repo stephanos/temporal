@@ -216,16 +216,33 @@ fn append_cluster_text(opened: &Opened, output: &mut Vec<u8>) -> Result<(), supe
         let incarnation = row["handle"]["incarnation"]
             .as_u64()
             .ok_or("missing cluster incarnation")?;
+        let streams = row["streams"]
+            .as_object()
+            .ok_or("missing cluster instance streams")?;
+        if streams
+            .keys()
+            .any(|stream| !matches!(stream.as_str(), "stdout" | "stderr"))
+        {
+            return Err("unsupported cluster instance output stream".into());
+        }
         let mut counts = Vec::new();
         let mut tail = Vec::new();
         for stream in ["stdout", "stderr"] {
             let file = format!("evidence/cluster/{node}/{incarnation}/{stream}");
-            let raw = opened.payload(&file, record.limits.output_bytes)?;
-            if row["streams"][stream]["bytes"].as_u64() != Some(raw.len() as u64)
-                || row["streams"][stream]["sha256"] != canonical::digest(&raw)
-            {
-                return Err("cluster instance output identity mismatch".into());
-            }
+            let descriptor = streams.get(stream);
+            let raw = match (descriptor, opened.manifest().files.contains_key(&file)) {
+                (None, false) => Vec::new(),
+                (Some(descriptor), true) => {
+                    let raw = opened.payload(&file, record.limits.output_bytes)?;
+                    if descriptor["bytes"].as_u64() != Some(raw.len() as u64)
+                        || descriptor["sha256"] != canonical::digest(&raw)
+                    {
+                        return Err("cluster instance output identity mismatch".into());
+                    }
+                    raw
+                }
+                _ => return Err("cluster instance output descriptor/payload mismatch".into()),
+            };
             counts.push(raw.len());
             if stream == "stdout" {
                 tail.extend_from_slice(&raw[raw.len().saturating_sub(4096)..]);
