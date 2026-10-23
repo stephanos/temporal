@@ -6,7 +6,7 @@ closed `host-fixture` role adds only `determinism-fixture`; its linked helper
 remains ordinary. The two roles have distinct host identities and cannot be
 substituted for one another. Neither role is a measurement-helper build.
 
-The third closed role, `runtime-harness`, builds only the ordinary release
+The closed role `runtime-harness` builds only the ordinary release
 `--example runtime-qualification-replay`, with empty host and helper features.
 Its Cargo artifact is `target/release/examples/runtime-qualification-replay`
 and its published copy is `admitted/runtime-qualification-replay`. The same
@@ -14,10 +14,22 @@ source, GNU toolchain, build-script, Cargo and process readers apply. Its
 receipt binds the ordinary candidate host/helper identities and all 32 runtime
 shard harness bindings; a main executable cannot substitute for this example.
 
+The original executed-divergence gate uses two additional closed roles:
+`counterfactual-fixture` builds the public `gomad` binary, and
+`counterfactual-harness` builds its release library test executable with
+`cargo test --lib --no-run`. Both require the host features
+`determinism-fixture,helper-determinism-fixture` and the linked helper feature
+`determinism-fixture`. The harness reader selects the actual `src/lib.rs`
+artifact with `profile.test=true` and an executable under
+`target/release/deps/gomad-HASH`; an optional ordinary host library row cannot
+substitute for it. Its published copy is `admitted/gomad-fixture-libtest`.
+Each fixture role has a separate frozen role binding. Their helper identities
+are derived from the fixture feature closure rather than the ordinary helper.
+
 The fixed Rust 1.99.1 command is `cargo build --release --locked --offline
 --no-default-features -p gomad --bin gomad --message-format=json --manifest-path
-REPO/tools/gomad/rust/Cargo.toml`. Only the fixture recipe adds its one fixed
-feature. The producer uses the existing GNU envelope, exact private environment,
+REPO/tools/gomad/rust/Cargo.toml`. Each role selects only its fixed target and
+features. The producer uses the existing GNU envelope, exact private environment,
 one build job, fresh owned target, and actual compiler/version journals. It
 never invokes a nonexistent main-CLI identity command.
 

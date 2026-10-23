@@ -1,5 +1,7 @@
 #[path = "counterfactual_assertions.rs"]
 mod assertions;
+#[path = "counterfactual_recipe.rs"]
+mod recipe;
 
 use super::{execution, ledger, prepare::Prepared};
 use crate::evidence::canonical;
@@ -644,8 +646,6 @@ fn verify_pair(input: &Inputs, case: &Case, root: &Path, pair: &[Value]) -> Valu
     json!({"report":report,"public_replay":receipt,"result":replay})
 }
 
-#[derive(Deserialize)]
-#[serde(deny_unknown_fields)]
 struct PreparationInputs {
     installation_arguments: Vec<String>,
     cli: PathBuf,
@@ -653,8 +653,6 @@ struct PreparationInputs {
     cases: Vec<PreparationCase>,
     output: PathBuf,
 }
-#[derive(Deserialize)]
-#[serde(deny_unknown_fields)]
 struct PreparationCase {
     name: String,
     options: crate::cli::explore::ExploreOptions,
@@ -665,7 +663,7 @@ struct PreparationCase {
 #[ignore = "requires the exact original fixture installation, compiler lease and private diagnostic request bounds"]
 fn prepare_the_four_original_counterfactual_requests() {
     let path = PathBuf::from(std::env::var_os("GOMAD_CORE_COUNTERFACTUAL_PREPARATION").unwrap());
-    let input: PreparationInputs = serde_json::from_slice(&std::fs::read(&path).unwrap()).unwrap();
+    let input = recipe::materialize(&path);
     authenticate_cli(&input.cli, &input.cli_sha256).unwrap();
     let mut installation_output = Vec::new();
     assert_eq!(
