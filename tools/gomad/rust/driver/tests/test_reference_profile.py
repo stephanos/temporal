@@ -238,13 +238,29 @@ class HelperCopyCustody(unittest.TestCase):
             root = Path(temporary)
             package = root / 'tools/gomad/rust/wasmhost'
             (package / 'src').mkdir(parents=True)
-            for name in ('src/lib.rs', 'src/conformance.rs', 'build.rs', 'Cargo.toml', '../Cargo.toml', '../Cargo.lock', '../rust-toolchain.toml'):
+            for name in ('src/lib.rs', 'src/conformance.rs', 'build.rs', 'build_identity.rs', 'Cargo.toml', '../Cargo.toml', '../Cargo.lock', '../rust-toolchain.toml'):
                 (package / name).write_text('bounded source fixture\n')
             subprocess.run(['git', 'init', '-q', str(root)], check=True)
             subprocess.run(['git', '-C', str(root), 'add', '.'], check=True)
             subprocess.run(['git', '-C', str(root), '-c', 'user.name=Fixture', '-c', 'user.email=fixture@example.invalid', 'commit', '-qm', 'fixture'], check=True)
             commit = subprocess.check_output(['git', '-C', str(root), 'rev-parse', 'HEAD']).decode().strip()
-            reference.helper_sources(root, commit)
+            measured = reference.helper_sources(root, commit)
+            identity_module = package / 'build_identity.rs'
+            self.assertIn(str(identity_module), measured)
+            original = identity_module.read_bytes()
+            identity_module.write_text('mutated implementation preimage algorithm\n')
+            with self.assertRaisesRegex(ValueError, 'immutable Git input'):
+                reference.helper_sources(root, commit)
+            identity_module.write_bytes(original)
+            identity_module.unlink()
+            with self.assertRaisesRegex(ValueError, 'membership'):
+                reference.helper_sources(root, commit)
+            identity_module.write_bytes(original)
+            extra_root = package / 'untracked_algorithm.rs'
+            extra_root.write_text('undeclared implementation algorithm\n')
+            with self.assertRaisesRegex(ValueError, 'membership'):
+                reference.helper_sources(root, commit)
+            extra_root.unlink()
             path = package / 'src/conformance.rs'
             raw = path.read_bytes()
             path.unlink()
@@ -254,6 +270,12 @@ class HelperCopyCustody(unittest.TestCase):
             (package / 'src/extra.rs').write_text('undeclared source\n')
             with self.assertRaisesRegex(ValueError, 'membership'):
                 reference.helper_sources(root, commit)
+            (package / 'src/extra.rs').unlink()
+            subprocess.run(['git', '-C', str(root), 'rm', '-q', str(identity_module)], check=True)
+            subprocess.run(['git', '-C', str(root), '-c', 'user.name=Fixture', '-c', 'user.email=fixture@example.invalid',
+                            'commit', '-qm', 'historical source without identity module'], check=True)
+            historical = subprocess.check_output(['git', '-C', str(root), 'rev-parse', 'HEAD']).decode().strip()
+            self.assertNotIn(str(identity_module), reference.helper_sources(root, historical))
 
     def test_exact_copy_raw_artifact_compiler_and_process_are_required(self):
         with tempfile.TemporaryDirectory(dir='/home/agent/wt', prefix='fn232-helper-receipt-fixture-') as temporary:

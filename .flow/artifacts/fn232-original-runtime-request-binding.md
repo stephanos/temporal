@@ -26,3 +26,15 @@ source. The separately admitted ordinary Rust Release build remains source
 `cda65407c6ab0d72d8c3061bca8b87b32def7b40`; this controller follow-up does not relabel
 that binary. These fixtures and its actual build do not establish original
 three-leg runtime acceptance or final frozen qualification.
+
+The reference-helper build custody now also seals tracked Rust modules at the
+package root, including `build_identity.rs`, alongside the existing `src` tree.
+Actual untracked root modules are refused rather than added to the receipt.
+The existing exact Git-byte comparison authenticates each included module.
+A causal fixture first failed because the identity module was omitted; the fixed
+fixture also refuses a changed or missing tracked root module and an extra
+untracked root module, and accepts a historical Git tree without that module.
+Focused helper-custody tests pass in
+`measurement-reference-helper-root-source-custody.log`; all eleven reference
+controller tests pass in `measurement-reference-helper-root-source-green.log`.
+No previous helper build receipt is modified.

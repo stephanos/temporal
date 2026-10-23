@@ -293,9 +293,11 @@ def helper_sources(repo, commit):
     fixed = {package / 'build.rs', package / 'Cargo.toml', package.parent / 'Cargo.toml',
              package.parent / 'Cargo.lock', package.parent / 'rust-toolchain.toml'}
     tracked = subprocess.check_output(['git', '-C', str(repo), 'ls-tree', '-rz', '--name-only', commit,
-                                      '--', 'tools/gomad/rust/wasmhost/src']).split(b'\0')
-    expected = {repo / path.decode() for path in tracked if path.endswith(b'.rs')} | fixed
-    actual = set(package.joinpath('src').rglob('*.rs')) | fixed
+                                      '--', 'tools/gomad/rust/wasmhost']).split(b'\0')
+    root = package.relative_to(repo)
+    members = [Path(path.decode()) for path in tracked if path.endswith(b'.rs')]
+    expected = {repo / path for path in members if path.is_relative_to(root / 'src') or path.parent == root} | fixed
+    actual = set(package.joinpath('src').rglob('*.rs')) | set(package.glob('*.rs')) | fixed
     custody.require(actual == expected, 'helper immutable source membership changed')
     paths = sorted(expected)
     files = {}
