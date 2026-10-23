@@ -277,7 +277,12 @@ impl Recipe {
             ..
         } = self;
         options.target_args = arguments;
-        configuration.arguments = std::iter::once("gomad-target".into())
+        let program = configuration
+            .arguments
+            .first()
+            .cloned()
+            .ok_or_else(|| failure("prepared configuration has no program argument"))?;
+        configuration.arguments = std::iter::once(program)
             .chain(options.target_args.iter().cloned())
             .collect();
         inputs["arguments"] = json!(options.target_args);
