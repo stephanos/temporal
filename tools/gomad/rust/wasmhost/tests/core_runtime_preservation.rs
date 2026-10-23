@@ -236,12 +236,12 @@ fn rejected_stock_import_inventory_has_an_actual_ordinary_refusal_for_every_site
         .as_array()
         .unwrap()
         .iter()
-        .filter(|entry| entry["layer"] == "import" && entry["disposition"] == "rejected")
+        .filter(|entry| entry["disposition"] == "rejected")
         .filter_map(|entry| {
             entry["site"]
                 .as_str()
                 .unwrap()
-                .strip_prefix("wasi_snapshot_preview1::")
+                .strip_prefix("import:wasi_snapshot_preview1::")
         })
         .collect();
     assert_eq!(rejected, cases.iter().map(|(name, _, _)| *name).collect());
