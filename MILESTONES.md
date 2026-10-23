@@ -77,9 +77,9 @@ The owner's goal says to follow the conductor's own recommendations when in doub
    - the initial-preparation compile-flag classification against the actual compiler commands.
 
    Per-phase helper timings may stay in the campaign metrics side files outside the authenticated Result cost. That loses a record, not a check, and QUALIFICATION.md documents it.
-7. **Stress outside the one-hour cycle.** The fn-188.5 41×4 stress matrix (an estimated 2–3 h, and needing a quiet host per fn-188) is not a cycle stage. It runs on the frozen candidate in its own quiet-host window, as evidence-only work under ruling 5.
+7. **Stress postponed (owner, 2026-10-23).** The fn-188.5 41×4 stress matrix is not a cycle stage. The owner postponed it because no quiet host will be available for a while. fn-188.5 stays parked and fn-188 stays open. Revival trigger: the owner declares a quiet-host window. It then runs on the candidate current at that time, using the existing stress producer and assembler. fn-242 does not wait for it.
 8. **Pre-freeze source.** fn-227.1's inventory rows cite the Rust map-order tests before the freeze. The pre-freeze dry run also runs the Rust sweep against a real guest and runs fn-233's launcher, shim and Make lanes.
-9. **Post-freeze windows run one after another on a quiet host.** fn-233 formal rerun (~1 h), stress (2–3 h), fn-221 full sweep (5–8 h), then fn-185.2 profiles (7–9 h). fn-221 reruns the whole sweep on the frozen Rust binary instead of resuming the Go-candidate journal. The Go host's helper link-count infrastructure rows and its changed evidence bounds make that journal non-transferable.
+9. **Post-freeze windows run one after another on a quiet host.** fn-233 formal rerun (~1 h), fn-221 full sweep (5–8 h), then fn-185.2 profiles (7–9 h). fn-221 reruns the whole sweep on the frozen Rust binary instead of resuming the Go-candidate journal. The Go host's helper link-count infrastructure rows and its changed evidence bounds make that journal non-transferable.
 10. **fn-240 crate count.** The owner's 8–12 crate target stands, even though the main crate has grown to about 110k lines. The read-only survey (.1) may run now. Extractions wait until the post-freeze windows are done, because each one rotates the host and helper identities.
 11. **No new Python driver code.** Until fn-242 runs, `tools/gomad/rust/driver/` gets only the Python the fn-232.13 freeze and its post-freeze windows strictly need. New checks go into Rust tests or `gomad` verbs.
 12. **fn-222 inside the final cycle.** The one-box fn-222 group runs alongside the inspection stage's own onebox inspection, not after it, and the cycle stays at 96 stages. The cycle is launched with `driver.py parallel`. fn-222.1 then closes on the cycle's gate exits and support list.
@@ -339,8 +339,8 @@ Owner request 2026-10-20: a Go one-liner and `gomad -- make <target>` intercepti
 
 | Name / ID | Status | Description |
 | --- | --- | --- |
-| [fn-188.5](.flow/tasks/fn-188-gomad-wasm-determinism-boundary-audit.5.md) | ⏸ Parked | Rust stress producer and linked jitter implemented; full matrix pending integrated candidate |
-| [fn-188.6](.flow/tasks/fn-188-gomad-wasm-determinism-boundary-audit.6.md) | 🚧 Running | Regression gates, version pinning, validate wiring and the documented contract |
+| [fn-188.5](.flow/tasks/fn-188-gomad-wasm-determinism-boundary-audit.5.md) | ⏸ Parked | Stress producer and assembler ready; full matrix postponed until the owner declares a quiet-host window |
+| [fn-188.6](.flow/tasks/fn-188-gomad-wasm-determinism-boundary-audit.6.md) | ⏸ Parked | Regression gates, version pinning, validate wiring and the documented contract |
 
 ### Map-order determinism repairs — [fn-227](.flow/specs/fn-227-gomad-close-wasm-map-order-determinism.md)
 

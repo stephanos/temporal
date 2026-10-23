@@ -4,7 +4,6 @@
   "depends_on_epics": [
     "fn-232-gomad-rewrite-the-host-side-in-rust",
     "fn-233-gomad-intercept-the-go-command-so-make",
-    "fn-188-gomad-wasm-determinism-boundary-audit",
     "fn-221-gomad-functional-suite-triage-sweep-on",
     "fn-185-gomad-wasm-host-side-execution-cost"
   ],
@@ -26,5 +25,5 @@
     "mergeBaseTracker": null,
     "url": null
   },
-  "updated_at": "2026-10-23T21:28:23.131093Z"
+  "updated_at": "2026-10-23T21:31:05.363414Z"
 }

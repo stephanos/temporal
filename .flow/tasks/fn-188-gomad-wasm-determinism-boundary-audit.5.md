@@ -26,3 +26,11 @@ TBD
 - Commits:
 - Tests:
 - PRs:
+
+### Postponed by owner (2026-10-23)
+
+The owner said: "can we postpone the Stress testing? we won't have a calm system for a while". The full stress matrix is not part of the fn-232.13 one-hour cycle and has no scheduled window.
+
+**Revival trigger:** the owner declares a quiet-host window. It then runs on the candidate current at that time, using worker B's stress producer and assembler: `gomad-measure --stress-inputs` and `groups_r4.py stress()` in /home/agent/evidence/fn232-composition-v1/.
+
+Nothing about this acceptance is waived.
