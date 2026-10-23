@@ -99,6 +99,54 @@
     "attribution": {
       "scope": "same-cycle mandatory ten-cell qualification Results, independently recomputed linked costs and publication tails",
       "native_terminal_scope": "separate native terminal/process timestamps; other Results do not substitute for the terminal process bound"
+    },
+    "canonical_streams": {
+      "schema": "gomad.native-canonical-streams/v1",
+      "native_catalogue": "streams.json unchanged",
+      "sources": [
+        "native:NAME",
+        "closed-sink-empty:NAME",
+        "binary-transcript-alias:transcript",
+        "outcome:local_model.terminal_base64"
+      ],
+      "required_actual_files": [
+        "stdout",
+        "stderr",
+        "wasi",
+        "choice",
+        "network",
+        "terminal"
+      ],
+      "transformation": "identity bytes; no content normalization",
+      "missing_old_receipt": "REFUSED; no post-execution upgrade"
     }
+  },
+  "original_wire_controls": {
+    "revision": "1d695061b6382009d0659238c652a5a765b1d5f5",
+    "source": "tools/gomad/internal/backends/wasm/wasi/process_test.go",
+    "source_sha256": "3f8a6bb4d5a5fbf435be1b6a41d83b601dca22ca0fa97d1ccbf688e53dce0514",
+    "argv": [
+      "test",
+      "-json",
+      "-v",
+      "-tags",
+      "test_dep",
+      "-count=1",
+      "-timeout=15m",
+      "-run",
+      "^TestTerminalExit",
+      "./wasi"
+    ],
+    "cwd": "tools/gomad/internal/backends/wasm",
+    "terminal_to_reap_nanos_maximum": 1000000000,
+    "captured_input_timeout_nanos": 500000000,
+    "post_terminal_watchdog_nanos": 200000000,
+    "slow_preparation_and_delayed_exit_nanos": 1100000000,
+    "observer_validation_delay_nanos": 20000000,
+    "required_root_tests": 5,
+    "required_subtests": 12,
+    "helper": "unchanged test-owned shell factories; helpers rehashed by original tests",
+    "scope": "original framed wire applicability; separate from native/full Temporal evidence",
+    "actual_execution": "UNEXECUTED"
   }
 }
