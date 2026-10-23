@@ -95,7 +95,7 @@ Task .3 is complete locally: strict typed ITF replay, selected property and arit
 
 | Name | Status | What |
 | --- | --- | --- |
-| fn-211.4 | ⬜ todo | After .3: Apalache consumer; Kettle's `apalache.txt` agreement golden (R4, R5) |
+| fn-211.4 | 🔄 in progress | After .3: Apalache consumer; Kettle's `apalache.txt` agreement golden (R4, R5) |
 | fn-211.5 | ⬜ todo | After .3: symbolic World constants via `ConstInit`, one run per property across the declared World domain, replayed under the decoded World (R6) |
 
 ### fn-228: Runner and Run: the one Go host loop over the Model, Propose on the protocol, and the Testpilot shrink (model, temporal)
