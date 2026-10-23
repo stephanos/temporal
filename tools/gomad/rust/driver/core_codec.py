@@ -340,6 +340,9 @@ def observations(config,stdout):
     facts.update(selected_observations(selected))
     evidence=[decoded(line[line.index(MARKER)+len(MARKER):]) for line in stdout.splitlines() if MARKER in line]
     facts.update(evidence_observations([row for row in evidence if row.get('case','').startswith('storage.native-')],selected))
+    engine=[row for row in evidence if row.get('case','').startswith('storage-engine-')]
+    facts['TestStorageCrashContextSelectedOwnersAndDivergence']['engine']=engine_observations(config,engine)
+    facts['TestStorageCrashContextSelectedOwnersAndDivergence'].pop('remaining_original_predicates')
     return facts
 
 
@@ -813,3 +816,107 @@ def evidence_observations(rows,selected):
     require(seen==required,'native state observation omitted an original context/refusal/presence or structural variant')
     return {'TestStorageCrashContextEvidenceRefusal':dict(cases=[list(key) for key in sorted(seen,key=str)],
         lineage='authenticated native GMSTORE sections; semantic refusals preserve original context/presence invariants')}
+
+
+def engine_module(config):
+    source=frozen(config,'rust/wasmhost/src/linked_cluster/lifecycle_predicate_tests.rs')
+    match=re.search(rb'fn storage_engine_request\([^\x00]*?let module = br#"(.*?)"#\.to_vec\(\);',source,re.S)
+    require(match is not None,'frozen storage engine module literal is absent')
+    raw=match.group(1)
+    require(b'i32.const 4 i32.const 0 i32.const 2 call $mkdir if unreachable end' in raw
+            and b'(data (i32.const 0) "db")' in raw,'storage engine module lost original mkdir workload')
+    return raw
+
+
+def engine_input(config,row):
+    inputs=row['inputs'];case=row['case'];module=engine_module(config)
+    fields={'descriptor','fresh_execution','module_sha256','module_bytes','wat_utf8','request'}
+    if case=='storage-engine-selected':fields|={'context','state','state_index'}
+    if case=='storage-engine-divergence':fields|={'context'}
+    require(set(inputs)==fields and type(inputs['fresh_execution']) is int and inputs['fresh_execution'] in (0,1),'engine storage case/fresh execution shape')
+    require(raw_bytes(inputs['module_bytes'])==module and inputs['wat_utf8']==module.decode() and inputs['module_sha256']==digest(module),
+            'storage engine module input differs from exact frozen executable WAT preimage')
+    descriptor=inputs['descriptor'];descriptor_model(descriptor,1000,10000)
+    require(set(descriptor)=={'model','model_identity','return_image','crash_limits'}|({'crash_selection'} if case!='storage-engine-baseline' else set())
+            and descriptor['return_image'] is True and descriptor['crash_limits']==dict(States=16,Operations=8,Depth=8,Bytes=1<<20,Work=256),
+            'storage engine declared crash selection/capacity changed')
+    request=inputs['request']
+    require(set(request)=={'limits','model_configuration','arguments','environment','replay_trace','namespace','storage'},'storage engine request fields changed')
+    limits=dict(memory_bytes=65536,fuel=1000000,output_bytes=1024,evidence_bytes=8<<20,wall_timeout_millis=5000)
+    namespace=dict(entries=[dict(path=list(b'/workspace'),directory=True,readonly=False,data=[])],
+        writable_directories=[list(b'/workspace')],preopens=[list(b'/'),list(b'/workspace')],working_directory=list(b'/workspace'),
+        stdin=[],epoch_nanos=946684800000000000,limits=dict(files=100,descriptors=16,filesystem_bytes=1<<20,output_bytes=1024))
+    require(canonical(request['limits'])==canonical(limits) and canonical(request['namespace'])==canonical(namespace)
+            and request['arguments']==[] and request['environment']==['PWD=/workspace'] and request['replay_trace'] is None,
+            'storage engine execution budget/namespace/argv/environment changed')
+    configuration=dict(entropy_key=[0]*32,working_directory_sha256=digest(b'/workspace'),arguments=dict(bytes=0,count=0,chunks=0),
+        environment=dict(bytes=0,count=0,chunks=0),seed=7,mode=1,limit=1048576,diagnostics=False,replay=None,
+        epoch_nanos=946684800000000000,read_step_nanos=0,now=1,limits=dict(calls=1048576,transcript_bytes=1048576,pending_events=1024),
+        digest_only=False,split=False,inspection=None)
+    require(canonical(request['model_configuration'])==canonical(configuration),'storage engine model configuration changed')
+    storage=request['storage'];require(set(storage)=={'descriptor','context','image'} and storage['image'] is None,'storage engine input recovery image substituted')
+    context=inputs.get('context');context_raw=canonical(context) if context is not None else None
+    expected_descriptor=dict(model=descriptor['model'],model_identity=descriptor['model_identity'],crash_limits=descriptor['crash_limits'],
+        crash_selection=descriptor.get('crash_selection'),crash_context=None if context_raw is None else dict(bytes=len(context_raw),chunks=(len(context_raw)+65535)//65536,sha256=digest(context_raw)),
+        return_image=True,image=None)
+    require(canonical(storage['descriptor'])==canonical(expected_descriptor) and storage['context']==(None if context_raw is None else list(context_raw)),
+            'storage engine raw prior context/descriptor authentication changed')
+    return inputs['fresh_execution']
+
+
+def engine_observations(config,rows):
+    baselines={};selected={};divergences={};baseline_raw={};requests=[]
+    common={'termination','message','exit_code','peak_memory_bytes','state_bytes','log_bytes','image_bytes'}
+    for row in rows:
+        require(set(row)=={'schema','case','inputs','observed'} and row['schema']==SCHEMA,'foreign engine storage observation')
+        case=row['case'];require(case in ('storage-engine-baseline','storage-engine-selected','storage-engine-divergence'),'unknown engine storage case')
+        fresh=engine_input(config,row);inputs,observed=row['inputs'],row['observed'];requests.append(inputs['request']['model_configuration'])
+        peak=unsigned(observed['peak_memory_bytes']);require(0<peak<=65536,'actual storage engine guest peak memory missing or outside admitted memory')
+        raw=raw_bytes(observed['state_bytes']);log=raw_bytes(observed['log_bytes'])
+        if case=='storage-engine-baseline':
+            require(set(observed)==common|{'context','enumerations'} and fresh not in baselines,'duplicate/foreign baseline engine fields')
+            require(observed['termination']=='exit' and type(observed['exit_code']) is int and observed['exit_code']==0 and observed['message']=='','storage engine baseline failed')
+            synthetic=dict(schema=SCHEMA,case='storage-selected-baseline',inputs=dict(context=observed['context'],descriptor=inputs['descriptor']),
+                observed=dict(states=observed['enumerations']['data']['States'],image_bytes=observed['image_bytes'],state_bytes=observed['state_bytes'],log_bytes=observed['log_bytes']))
+            baseline=selected_baseline(synthetic);sections=authenticated_state(raw,log)
+            require(canonical(sections[3])==canonical(observed['enumerations']),'storage engine enumeration projection differs from authenticated raw sections')
+            baselines[fresh]=baseline;baseline_raw[fresh]=(raw,log,raw_bytes(observed['image_bytes']))
+        elif case=='storage-engine-selected':
+            require(set(observed)==common|{'db_present'},'foreign selected engine fields')
+            index=unsigned(inputs['state_index']);key=(fresh,index);require(key not in selected,'duplicate selected engine state')
+            selected[key]=row
+        else:
+            require(set(observed)==common|{'enumerations','original_enumerations'} and fresh not in divergences,'duplicate/foreign divergence engine fields')
+            divergences[fresh]=row
+    require(set(baselines)==set(divergences)=={0,1} and baseline_raw[0]==baseline_raw[1],'storage engine fresh baseline/divergence pair incomplete or evidence differs')
+    require(all(canonical(request)==canonical(requests[0]) for request in requests),'storage engine model configuration changed between fresh cases')
+    expected=set()
+    for fresh,baseline in baselines.items():
+        states=list(baseline['states'].values());sections=authenticated_state(baseline['state_bytes'],baseline['log_bytes'])
+        for index,state in enumerate(states):
+            key=(fresh,index);expected.add(key);require(key in selected,'storage engine omitted an enumerated selected state')
+            row=selected[key];inputs,observed=row['inputs'],row['observed']
+            require(canonical(inputs['state'])==canonical(state) and canonical(inputs['context'])==canonical(baseline['context'])
+                    and inputs['descriptor']['crash_selection']=={'data':state['SelectedOperations']},'storage engine selected state/prior context changed')
+            require(observed['termination']=='exit' and type(observed['exit_code']) is int and observed['exit_code']==0 and observed['message']=='','selected storage engine did not succeed')
+            raw=raw_bytes(observed['state_bytes']);log=raw_bytes(observed['log_bytes']);image_raw=raw_bytes(observed['image_bytes']);image=recovery_image(image_raw)
+            actual=authenticated_state(raw,log)
+            require(log==baseline['log_bytes'] and all(actual[tag]==sections[tag] for tag in (1,2,3,6)) and actual[4]==digest(image_raw).encode(),
+                    'selected engine lost original observation/enumeration/context or substituted image')
+            require(image['model']==baseline['image']['model'] and image['volumes']['data']['history']==baseline['image']['volumes']['data']['history']
+                    and entries(image['volumes']['data'],True)==state['Entries'],'selected engine image differs from independent persistence state')
+            require(type(observed['db_present']) is bool and observed['db_present']==any(entry['Path']=='/db' for entry in state['Entries']),'selected engine recovery lost actual mkdir result')
+        row=divergences[fresh];inputs,observed=row['inputs'],row['observed']
+        import copy
+        context=copy.deepcopy(baseline['context']);context['data']['PendingSHA256']='sha256:'+'0'*64
+        require(canonical(inputs['context'])==canonical(context) and inputs['descriptor']['crash_selection']=={'data':states[-1]['SelectedOperations']},'engine divergence lost original forged pending-hash predicate')
+        require(observed['termination']=='invalid' and observed['message']=='storage crash context diverged from prior observation'
+                and observed['exit_code'] is None and observed['image_bytes'] is None,'engine divergence outcome/image changed')
+        actual=authenticated_state(raw_bytes(observed['state_bytes']),raw_bytes(observed['log_bytes']),True)
+        require(raw_bytes(observed['log_bytes'])==baseline['log_bytes'] and all(actual[tag]==sections[tag] for tag in (1,2,3))
+                and canonical(observed['enumerations'])==canonical(observed['original_enumerations'])==canonical(sections[3]),'engine divergence lost prior enumeration/observation')
+    require(set(selected)==expected,'engine storage includes unknown selected state index')
+    for index in range(len(baselines[0]['states'])):
+        left,right=(selected[(fresh,index)]['observed'] for fresh in (0,1))
+        require(all(raw_bytes(left[field])==raw_bytes(right[field]) for field in ('state_bytes','log_bytes','image_bytes')),'fresh selected engine evidence differs for exact state')
+    return dict(fresh_baselines=2,selected_cases=len(selected),fresh_divergences=2,positive_guest_peak_memory=True)

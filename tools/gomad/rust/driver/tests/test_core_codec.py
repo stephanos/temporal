@@ -415,4 +415,72 @@ class BootOrderCases(unittest.TestCase):
                 with self.assertRaises(Refusal):gate.storage_observation({},row,{key:None})
 
 
+
+
+def engine_rows(module):
+    baseline=selected_fixture();direct=selected_rows(baseline)[:-1];descriptor=copy.deepcopy(baseline['inputs']['descriptor'])
+    descriptor.update(return_image=True,crash_limits=dict(States=16,Operations=8,Depth=8,Bytes=1<<20,Work=256))
+    rows=[]
+    for fresh in (0,1):
+        for row in direct:
+            case=row['case'];observed=row['observed'];inputs=dict(descriptor=copy.deepcopy(descriptor),fresh_execution=fresh,
+                module_sha256=gate.digest(module),module_bytes=list(module),wat_utf8=module.decode())
+            result=dict(termination='exit',message='',exit_code=0,peak_memory_bytes=65536,
+                state_bytes=observed['state_bytes'] if case!='storage-selected-state-recovery' else baseline['observed']['state_bytes'],
+                log_bytes=observed['log_bytes'] if case!='storage-selected-state-recovery' else baseline['observed']['log_bytes'],image_bytes=observed.get('image_bytes'))
+            if case=='storage-selected-baseline':
+                target='storage-engine-baseline';context=None
+                result.update(context=baseline['inputs']['context'],enumerations=gate.state_sections(bytes(observed['state_bytes']))[3])
+            elif case=='storage-selected-state-recovery':
+                target='storage-engine-selected';context=baseline['inputs']['context'];state=row['inputs']['state']
+                inputs.update(context=context,state=state,state_index=baseline['observed']['states'].index(state))
+                inputs['descriptor']['crash_selection']={'data':state['SelectedOperations']}
+                _,parts=gate.state_raw_sections(bytes(result['state_bytes']));parts[3]=gate.digest(bytes(result['image_bytes'])).encode()
+                result['state_bytes']=list(gate.state_envelope(3,parts));result['db_present']=observed['db_present']
+            else:
+                if row['inputs']['variant']!='hash':continue
+                target='storage-engine-divergence';context=row['inputs']['context'];inputs['context']=context
+                inputs['descriptor']['crash_selection']={'data':baseline['observed']['states'][-1]['SelectedOperations']}
+                pages=gate.state_sections(bytes(baseline['observed']['state_bytes']))[3]
+                result.update(termination='invalid',message='storage crash context diverged from prior observation',exit_code=None,image_bytes=None,
+                    enumerations=pages,original_enumerations=pages)
+            serialized=dict(inputs['descriptor'],crash_selection=inputs['descriptor'].get('crash_selection'),crash_context=None,image=None)
+            context_raw=gate.canonical(context) if context is not None else None
+            if context_raw is not None:serialized['crash_context']=dict(bytes=len(context_raw),chunks=(len(context_raw)+65535)//65536,sha256=gate.digest(context_raw))
+            configuration=dict(entropy_key=[0]*32,working_directory_sha256=gate.digest(b'/workspace'),arguments=dict(bytes=0,count=0,chunks=0),
+                environment=dict(bytes=0,count=0,chunks=0),seed=7,mode=1,limit=1048576,diagnostics=False,replay=None,
+                epoch_nanos=946684800000000000,read_step_nanos=0,now=1,limits=dict(calls=1048576,transcript_bytes=1048576,pending_events=1024),digest_only=False,split=False,inspection=None)
+            namespace=dict(entries=[dict(path=list(b'/workspace'),directory=True,readonly=False,data=[])],writable_directories=[list(b'/workspace')],
+                preopens=[list(b'/'),list(b'/workspace')],working_directory=list(b'/workspace'),stdin=[],epoch_nanos=946684800000000000,
+                limits=dict(files=100,descriptors=16,filesystem_bytes=1<<20,output_bytes=1024))
+            inputs['request']=dict(limits=dict(memory_bytes=65536,fuel=1000000,output_bytes=1024,evidence_bytes=8<<20,wall_timeout_millis=5000),
+                model_configuration=configuration,arguments=[],environment=['PWD=/workspace'],replay_trace=None,namespace=namespace,
+                storage=dict(descriptor=serialized,context=list(context_raw) if context_raw is not None else None,image=None))
+            rows.append(dict(schema=gate.SCHEMA,case=target,inputs=inputs,observed=result))
+    return rows
+
+
+class ActualEngineFacts(unittest.TestCase):
+    def test_exact_fresh_engine_matrix_requires_guest_memory_and_raw_semantics(self):
+        import tempfile
+        from driver import sha
+        module=b'(module (data (i32.const 0) "db") i32.const 4 i32.const 0 i32.const 2 call $mkdir if unreachable end)'
+        with tempfile.TemporaryDirectory() as temporary:
+            repo=Path(temporary);source=repo/'tools/gomad/rust/wasmhost/src/linked_cluster/lifecycle_predicate_tests.rs';source.parent.mkdir(parents=True)
+            source.write_bytes(b'fn storage_engine_request() { let module = br#"'+module+b'"#.to_vec(); }')
+            config=dict(repo=str(repo),files={str(source):sha(source)});rows=engine_rows(module)
+            facts=gate.engine_observations(config,rows)
+            self.assertEqual(facts,dict(fresh_baselines=2,selected_cases=4,fresh_divergences=2,positive_guest_peak_memory=True))
+            for mutation in ('zero-peak','bool-peak','omit-state','forged-module','config','forged-divergence','lost-enumeration'):
+                changed=copy.deepcopy(rows)
+                if mutation=='zero-peak':changed[-1]['observed']['peak_memory_bytes']=0
+                if mutation=='bool-peak':changed[-1]['observed']['peak_memory_bytes']=True
+                if mutation=='omit-state':changed.pop(1)
+                if mutation=='forged-module':changed[0]['inputs']['module_bytes'].append(32)
+                if mutation=='config':changed[0]['inputs']['request']['namespace']['preopens'].pop()
+                if mutation=='forged-divergence':changed[-1]['observed']['termination']='exit'
+                if mutation=='lost-enumeration':changed[-1]['observed']['enumerations']=None
+                with self.subTest(mutation=mutation),self.assertRaises(Refusal):gate.engine_observations(config,changed)
+
+
 if __name__=='__main__':unittest.main()
