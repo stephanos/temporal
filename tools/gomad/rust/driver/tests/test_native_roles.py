@@ -102,6 +102,29 @@ class NativeRoles(unittest.TestCase):
                 with self.subTest(field=field), self.assertRaises(Refusal):
                     native.validate_build(config, path, role)
 
+    def test_native_command_lifecycle_requires_actual_clock_start_and_same_parent(self):
+        for field,bad in (('clock','CLOCK_REALTIME'),('started_monotonic_nanos',None),
+                          ('started_monotonic_nanos',2000),('parent_pid',0)):
+            with self.subTest(field=field,bad=bad),tempfile.TemporaryDirectory() as temporary:
+                config,path,receipt,role=self.fixture(Path(temporary))
+                raw=path.parent/'cargo-build.json';row=json.loads(raw.read_text());row[field]=bad
+                raw.write_text(json.dumps(row))
+                with self.assertRaises(Refusal):native.observation(raw,row['command'],row['directory'],row['environment'])
+        with tempfile.TemporaryDirectory() as temporary:
+            config,path,receipt,role=self.fixture(Path(temporary))
+            raw=path.parent/'cargo-build.json';row=json.loads(raw.read_text());row['parent_pid']=777
+            raw.write_text(json.dumps(row));receipt['inputs'][str(raw)]=sha(raw);path.write_text(json.dumps(receipt))
+            config['files'][str(raw)]=sha(raw);config['files'][str(path)]=sha(path)
+            with self.assertRaises(Refusal):native.validate_build(config,path,role)
+
+    def test_missing_native_lifecycle_fields_refuse_without_key_errors(self):
+        for field in ('clock','parent_pid','started_monotonic_nanos','reaped_monotonic_nanos'):
+            with self.subTest(field=field),tempfile.TemporaryDirectory() as temporary:
+                config,path,receipt,role=self.fixture(Path(temporary))
+                raw=path.parent/'cargo-build.json';row=json.loads(raw.read_text());row.pop(field)
+                raw.write_text(json.dumps(row))
+                with self.assertRaises(Refusal):native.observation(raw,row['command'],row['directory'],row['environment'])
+
     def test_admission_reopens_copy_identity_and_refuses_changed_publication(self):
         with tempfile.TemporaryDirectory() as temporary:
             config, path, receipt, role = self.fixture(Path(temporary))

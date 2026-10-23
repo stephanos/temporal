@@ -42,6 +42,7 @@ impl Outcome {
                 | "diverged"
                 | "debug_error"
                 | "instrumentation_divergence"
+                | "oracle_failed"
                 | "prepared"
         ) {
             return Err("invalid record outcome class or termination".into());
@@ -160,6 +161,7 @@ mod tests {
             ("target_failure", "exit", Some(u32::MAX)),
             ("prepared", "prepared", None),
             ("watchdog", "watchdog_timeout", None),
+            ("target_failure", "oracle_failed", None),
         ] {
             outcome(class, termination, exit_code).validate().unwrap();
         }
@@ -194,7 +196,6 @@ mod tests {
             "inspected_prefix",
             "inspection_aborted",
             "probe_fuel_limit",
-            "oracle_failed",
         ] {
             assert!(
                 outcome("runner_failure", termination, None)

@@ -19,7 +19,7 @@ class PerformanceHostPolicy(unittest.TestCase):
             'WASM performance measurements may run on any host; no host platform qualifies or disqualifies a WASM result.\n')
         def probe(label, argv, value):
             observed = dict(schema='gomad.native-process-observation/v1', command=argv, directory=str(directory), environment={},
-                pid=123, parent_pid=122, started_monotonic_nanos=1, exit_code=0, signal=None, termination='exit', error=None, cleanup_errors=[], duration_nanos=1, reaped_monotonic_nanos=2)
+                pid=123, clock='CLOCK_MONOTONIC', parent_pid=122, started_monotonic_nanos=1, exit_code=0, signal=None, termination='exit', error=None, cleanup_errors=[], duration_nanos=1, reaped_monotonic_nanos=2)
             for stream in ('stdout', 'stderr'):
                 path = directory / (label + '.' + stream)
                 path.write_text(value + '\n' if stream == 'stdout' else '')
@@ -48,7 +48,7 @@ class PerformanceHostPolicy(unittest.TestCase):
                 self.assertEqual(result['original_policy']['observed_predicate'], False if machine == 'aarch64' else None)
 
     def test_raw_host_changes_and_foreign_uname_command_are_refused(self):
-        for mutation in ('cpu', 'command', 'parent', 'interval', 'policy'):
+        for mutation in ('cpu', 'command', 'parent', 'interval', 'clock', 'missing-clock', 'policy'):
             with self.subTest(mutation=mutation), tempfile.TemporaryDirectory() as temporary:
                 root = Path(temporary)
                 config, host = self.fixture(root)
@@ -57,11 +57,13 @@ class PerformanceHostPolicy(unittest.TestCase):
                     path.write_text('coherently rehashed foreign CPU')
                     host['inputs'][str(path)] = sha(path)
                     (root / 'host.json').write_text(json.dumps(host))
-                elif mutation in ('command', 'parent', 'interval'):
+                elif mutation in ('command', 'parent', 'interval', 'clock', 'missing-clock'):
                     path = root / 'host/uname-os.json'
                     row = json.loads(path.read_text())
                     if mutation == 'command': row['command'] = ['caller-claimed-host']
                     elif mutation == 'parent': row['parent_pid'] = 999
+                    elif mutation == 'clock': row['clock'] = 'CLOCK_REALTIME'
+                    elif mutation == 'missing-clock': row.pop('clock')
                     else: row['started_monotonic_nanos'] = row['reaped_monotonic_nanos']
                     path.write_text(json.dumps(row))
                 else:

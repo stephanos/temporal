@@ -182,5 +182,21 @@
   "new_site": "host-rust:wasmhost/src/linked_cluster.rs|execute_prepared_observed|thread::scope|1",
   "reason": "Exact same-count relocation from execute_prepared to execute_prepared_observed; thread::scope remains one controlled host effect in wasmhost/src/linked_cluster.rs. Owned host workers or compiler subprocesses are joined or reaped under a declared bound; the broker serializes modeled commits and diagnostic receipts independently of host scheduling.",
   "kind": "relocation"
+ },
+ {
+  "old_id": "host.rust.gomad.src.measurement.build.rs.observe.command.linked.monotonic.nanos.2",
+  "old_site": "host-rust:gomad/src/measurement/build.rs|observe_command|linked::monotonic_nanos(|2",
+  "new_id": "host.rust.gomad.src.measurement.build.rs.observe.command.linked.monotonic.nanos.3",
+  "new_site": "host-rust:gomad/src/measurement/build.rs|observe_command|linked::monotonic_nanos(|3",
+  "reason": "Retired exact two-call source coordinate after adding the actual command-start CLOCK_MONOTONIC sample. The replacement inventories three source calls in observe_command: command start and alternate ordinary/cleanup reaping paths. This is an exact multiplicity migration, not a relocation; those host custody observations remain outside guest virtual time and canonical execution streams.",
+  "kind": "multiplicity"
+ },
+ {
+  "old_id": "host.rust.gomad.src.measurement.retention.rs.reclaim.instant.now.2",
+  "old_site": "host-rust:gomad/src/measurement/retention.rs|reclaim|Instant::now|2",
+  "new_id": "host.rust.gomad.src.measurement.retention.rs.reclaim.cancellable.instant.now.2",
+  "new_site": "host-rust:gomad/src/measurement/retention.rs|reclaim_cancellable|Instant::now|2",
+  "reason": "Retired exact production reclaim coordinate after its two Instant::now calls moved to reclaim_cancellable. The remaining reclaim wrapper is test-only and has no clock calls. This same-count relocation preserves bounded retention lock waiting while adding cancellation checks; private host custody never selects guest inputs or rewrites immutable artifact identities.",
+  "kind": "relocation"
  }
 ]

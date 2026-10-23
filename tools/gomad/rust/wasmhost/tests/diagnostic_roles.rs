@@ -158,17 +158,17 @@ fn single_native_role_matrix_refuses_before_guest_output_and_joins_every_executi
                 .unwrap()
         });
         if requested == Conditions::compiled() {
-            let observed = result.unwrap();
+            let execution_result = result.unwrap();
             assert_eq!(
-                observed.outcome.termination,
+                execution_result.outcome.termination,
                 "exit",
                 "{}",
                 requested.configuration()
             );
-            assert_eq!(observed.outcome.exit_code, Some(0));
-            assert_eq!(observed.evidence["stdout"], b"r");
+            assert_eq!(execution_result.outcome.exit_code, Some(0));
+            assert_eq!(execution_result.evidence["stdout"], b"r");
             assert_eq!(&*capture.0.lock().unwrap(), b"r");
-            let timing = observed.timing.unwrap();
+            let timing = execution_result.timing.unwrap();
             assert!(timing.returned >= timing.terminal_classified);
             assert!(timing.terminal_classified >= timing.authorization_started);
         } else {
@@ -207,20 +207,23 @@ fn cluster_native_role_matrix_refuses_before_any_store_and_joins_admitted_stores
         let activity = activity.snapshot();
         assert_eq!(activity.remote_callback_attempts, 0);
         if requested == Conditions::compiled() {
-            let observed = result.unwrap();
+            let execution_result = result.unwrap();
             assert_eq!(
-                observed.outcome.termination,
+                execution_result.outcome.termination,
                 "exit",
                 "{}",
                 requested.configuration()
             );
-            assert_eq!(observed.outcome.exit_code, Some(0));
+            assert_eq!(execution_result.outcome.exit_code, Some(0));
             assert_eq!(activity.launched_stores, 1);
             assert_eq!(observer.starts.load(Ordering::SeqCst), 1);
             assert_eq!(observer.joins.load(Ordering::SeqCst), 1);
-            assert_eq!(observed.incarnations.len(), 1);
-            assert_eq!(observed.incarnations[0].execution.evidence["stdout"], b"r");
-            assert!(!observed.incarnations[0].interrupted);
+            assert_eq!(execution_result.incarnations.len(), 1);
+            assert_eq!(
+                execution_result.incarnations[0].execution.evidence["stdout"],
+                b"r"
+            );
+            assert!(!execution_result.incarnations[0].interrupted);
         } else {
             let error = result.err().unwrap();
             assert_eq!(
@@ -289,10 +292,10 @@ fn every_fixture_fault_requires_explicit_native_role_before_single_or_cluster_st
                     .unwrap()
             });
             if opted_in {
-                let observed = result.unwrap();
-                assert_eq!(observed.outcome.termination, "exit");
-                assert_eq!(observed.evidence["stdout"], b"r");
-                assert!(observed.timing.is_some());
+                let execution_result = result.unwrap();
+                assert_eq!(execution_result.outcome.termination, "exit");
+                assert_eq!(execution_result.evidence["stdout"], b"r");
+                assert!(execution_result.timing.is_some());
                 assert_eq!(&*capture.0.lock().unwrap(), b"r");
             } else {
                 assert_eq!(
@@ -322,11 +325,14 @@ fn every_fixture_fault_requires_explicit_native_role_before_single_or_cluster_st
             assert_eq!(observer.starts.load(Ordering::SeqCst), u64::from(opted_in));
             assert_eq!(observer.joins.load(Ordering::SeqCst), u64::from(opted_in));
             if opted_in {
-                let observed = result.unwrap();
-                assert_eq!(observed.outcome.termination, "exit");
-                assert_eq!(observed.incarnations.len(), 1);
-                assert_eq!(observed.incarnations[0].execution.evidence["stdout"], b"r");
-                assert!(!observed.incarnations[0].interrupted);
+                let execution_result = result.unwrap();
+                assert_eq!(execution_result.outcome.termination, "exit");
+                assert_eq!(execution_result.incarnations.len(), 1);
+                assert_eq!(
+                    execution_result.incarnations[0].execution.evidence["stdout"],
+                    b"r"
+                );
+                assert!(!execution_result.incarnations[0].interrupted);
             } else {
                 assert_eq!(
                     result.err().unwrap().to_string(),

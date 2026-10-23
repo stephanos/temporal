@@ -1045,7 +1045,8 @@ fn source_scan(
             .rsplit_once('/')
             .map_or("", |(directory, _)| directory);
         let stem = relative.strip_suffix(".rs").unwrap();
-        let owns_directory = matches!(stem, "main" | "lib" | "mod") || stem.ends_with("/mod");
+        let owns_directory =
+            roots.contains(&relative.as_str()) || stem == "mod" || stem.ends_with("/mod");
         for (index, (number, line)) in lines.iter().enumerate() {
             let trimmed = masked_lines[number - 1].trim();
             let Some(name) =
@@ -1266,6 +1267,80 @@ fn production<'a>(value: &'a str) { thread::scope(|_| {}); }
     let (lines, _) = production_lines(source).unwrap();
     assert!(lines.iter().any(|(_, line)| line == "mod production;"));
     assert!(lines.iter().any(|(_, line)| line == "mod receiving;"));
+}
+
+#[test]
+fn source_scan_explicit_roots_own_their_sibling_module_directory() {
+    let root = std::env::temp_dir().join(format!("gomad-explicit-roots-{}", std::process::id()));
+    for directory in ["src/entry", "src/lib", "build_identity"] {
+        std::fs::create_dir_all(root.join(directory)).unwrap();
+    }
+    for (name, text) in [
+        ("src/main.rs", "mod entry;\nmod lib;\n"),
+        ("src/entry.rs", "mod leaf;\n"),
+        ("src/entry/leaf.rs", "fn clock() { Instant::now(); }\n"),
+        (
+            "src/leaf.rs",
+            "fn wrong_directory() { SystemTime::now(); }\n",
+        ),
+        ("src/lib.rs", "mod child;\n"),
+        ("src/lib/child.rs", "fn clock() { Instant::now(); }\n"),
+        (
+            "src/child.rs",
+            "fn wrong_directory() { SystemTime::now(); }\n",
+        ),
+        ("src/custom_root.rs", "mod neighbor;\n"),
+        ("src/neighbor.rs", "fn clock() { Instant::now(); }\n"),
+        ("build.rs", "mod build_identity;\n"),
+        ("build_identity.rs", "mod nested;\n"),
+        (
+            "build_identity/nested.rs",
+            "fn clock() { Instant::now(); }\n",
+        ),
+    ] {
+        std::fs::write(root.join(name), text).unwrap();
+    }
+    let roots = ["main.rs", "custom_root.rs", "../build.rs"];
+    let actual = source_scan(&root.join("src"), &roots);
+    std::fs::remove_file(root.join("src/entry/leaf.rs")).unwrap();
+    let missing = source_scan(&root.join("src"), &roots);
+    std::fs::remove_dir_all(root).unwrap();
+    let (sites, files) = actual.unwrap();
+    assert_eq!(
+        files,
+        BTreeSet::from(
+            [
+                "main.rs",
+                "entry.rs",
+                "entry/leaf.rs",
+                "lib.rs",
+                "lib/child.rs",
+                "custom_root.rs",
+                "neighbor.rs",
+                "../build.rs",
+                "../build_identity.rs",
+                "../build_identity/nested.rs",
+            ]
+            .map(str::to_owned)
+        )
+    );
+    assert_eq!(
+        sites,
+        BTreeSet::from(
+            [
+                "entry/leaf.rs|Instant::now|1",
+                "lib/child.rs|Instant::now|1",
+                "neighbor.rs|Instant::now|1",
+                "../build_identity/nested.rs|Instant::now|1",
+            ]
+            .map(str::to_owned)
+        )
+    );
+    assert!(
+        missing
+            .unwrap_err()
+            .contains("entry.rs: module leaf resolves to missing entry/leaf/mod.rs")
+    );
 }
 
 #[test]

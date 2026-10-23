@@ -2030,5 +2030,13 @@
  {
   "id": "host.rust.gomad.src.fixture.cluster.lifecycle.tests.rs.public.replay.systemtime.1",
   "site": "host-rust:gomad/src/fixture_cluster_lifecycle_tests.rs|public_replay|SystemTime|1"
+ },
+ {
+  "id": "host.rust.gomad.src.measurement.build.rs.observe.command.linked.monotonic.nanos.3",
+  "site": "host-rust:gomad/src/measurement/build.rs|observe_command|linked::monotonic_nanos(|3"
+ },
+ {
+  "id": "host.rust.gomad.src.measurement.retention.rs.reclaim.cancellable.instant.now.2",
+  "site": "host-rust:gomad/src/measurement/retention.rs|reclaim_cancellable|Instant::now|2"
  }
 ]
