@@ -27,12 +27,19 @@ never keys. A task the program does not cover takes one fixed fallback (fail non
 every attempt its World admits. Determinism holds: the same state and seed give the same request
 and the same program. Go stays dumb: the Driver hands the program to the worker and never reads it.
 
-**Evidence is collected after the fact.** The primary source is the server's own history of the
-activity (Describe and the activity's events), which needs no worker cooperation and works for
-remote workers. A worker-side log of each task received and action taken is an optional
-cross-check. The Runner feeds the evidence to the Model in order, as today's Observation and
-Callback events. For each callback, the Model's Answer in the state reached at that point must
-equal the programmed action; a mismatch is a Model/program inconsistency and refuses the Run.
+**The worker's actions are the evidence.** There are no worker logs. Every worker action reaches
+the server as an RPC (completion with its result, failure with its details, heartbeats) or as the
+timeout its silence causes, so the server's history of the activity (Describe and the activity's
+events) shows what the worker did. The Runner feeds that history to the Model in order, as
+Observation events. The Model judges it against the program it issued: a worker that completes
+where the program said fail, or heartbeats with other details, is an **Unexplained** observation.
+The worker and its SDK are part of the system under test, so a deviation is a finding about the
+system, never a refusal.
+
+**Refusals stay for Umpire's own faults.** The issued program must equal what the Model would
+answer in each state it admits; that is checked deterministically when the program is issued and
+on replay, not by observing the system, and a mismatch is a Realization defect. A task the program
+does not cover ends the Run Refused as unprogrammed. Driver faults are unchanged.
 
 **One path for all workers.** The in-process Go worker follows programs too, so the live Answer
 path and the Shim disappear. Callbacks remain in the Run as recorded events, so replay and
@@ -40,7 +47,7 @@ reduction are unchanged in kind.
 
 ## Recommendations on the open questions
 
-1. Evidence source: server history first, the worker log as an optional cross-check.
+1. Evidence source: the server's history only; worker actions are observed through it (owner, 2026-10-23).
 2. Program scope: one program per proposal; batch runs compose them by activity id.
 3. The in-process Go worker switches to programs (one path), retiring live Answer for workers.
 
