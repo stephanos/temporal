@@ -382,6 +382,11 @@ class ReceivingContract(unittest.TestCase):
         self.config['files'][compiler]='c'*64
         reader=receiving.Retained(self.config)
         reader.installed(installed,policy,50_000_000_000,1<<30)
+        tagged=copy.deepcopy(installed);tagged['build_tags']=['test_dep']
+        with self.assertRaises(driver.Refusal):reader.installed(tagged,policy,50_000_000_000,1<<30)
+        reader.installed(tagged,policy,50_000_000_000,1<<30,expected_build_tags=['test_dep'])
+        with self.assertRaises(driver.Refusal):
+            reader.installed(tagged,policy,50_000_000_000,1<<30,expected_build_tags=['foreign'])
         mutations=[lambda row:row.__setitem__('host_sha256','f'*64),
                    lambda row:row.__setitem__('helper_sha256','f'*64),
                    lambda row:row.__setitem__('runtime_implementation_sha256','f'*64),

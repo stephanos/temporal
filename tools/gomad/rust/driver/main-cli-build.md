@@ -26,6 +26,13 @@ substitute for it. Its published copy is `admitted/gomad-fixture-libtest`.
 Each fixture role has a separate frozen role binding. Their helper identities
 are derived from the fixture feature closure rather than the ordinary helper.
 
+The closed `interception-harness` role builds only the ordinary
+`--example interception-streaming-replay`, with empty host/helper features and
+the same full build custody. Its published name is
+`admitted/interception-streaming-replay`; its separately frozen binding is
+`interception_streaming: {binary, build_receipt}`. It cannot replace the main CLI
+or runtime qualification harness.
+
 The fixed Rust 1.99.1 command is `cargo build --release --locked --offline
 --no-default-features -p gomad --bin gomad --message-format=json --manifest-path
 REPO/tools/gomad/rust/Cargo.toml`. Each role selects only its fixed target and
