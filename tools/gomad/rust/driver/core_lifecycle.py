@@ -14,7 +14,11 @@ SOURCES = (TEST, 'tools/gomad/rust/wasmhost/src/linked_cluster.rs',
            'tools/gomad/rust/gomad/src/campaign/scenario_preservation_tests.rs',
            'tools/gomad/rust/gomad/src/campaign/scenario_sqlite_predicate_tests.rs',
            'tools/gomad/rust/gomad/src/qualify/workloads/mod.rs',
-           'tools/gomad/rust/gomad/src/qualify/workloads/oracles.rs')
+           'tools/gomad/rust/gomad/src/qualify/workloads/oracles.rs',
+           'tools/gomad/rust/gomad/src/campaign/scenario.rs',
+           'tools/gomad/rust/wasmhost/src/linked.rs',
+           'tools/gomad/rust/wasmhost/src/linked_storage.rs',
+           'tools/gomad/rust/wasmhost/src/cluster/handoff/broker.rs')
 
 OPERATOR = 'TestOperatorStopsActionsAfterFailedWait'
 LAZY = 'TestProviderClusterStartsOnlyRequestedIncarnations'
@@ -362,4 +366,8 @@ def observations(config, stdout, network_frame_cases=None):
     receiving = {root: dict(remaining_original_predicates=[
         'Original root assertions require their other native receiving owner; no lifecycle-v1 row is assigned to this root.'])
         for root in ORIGINAL_ROOTS if root not in complete and root not in partial}
-    return dict(roots=roots, receiving_dependencies=receiving, partial_roots={root: dict(cases=[fact for fact in facts if root in fact['original_roots']], remaining_original_predicates=missing) for root, missing in partial.items()}, facts=facts, sources=source_facts)
+    cost_projection_dependency = dict(original_root='TestCompletedSummariesDetachCountersWithoutEvidencePayloads',
+        schema='gomad.native-cluster-cost-projection/v1',
+        source='tools/gomad/rust/gomad/src/fixture_cluster_metrics_tests.rs',
+        remaining_original_predicates=['Parent-owned receiver must compare actual per-store counters and evidence payloads before and after summary projection.'])
+    return dict(roots=roots, receiving_dependencies=receiving, cost_projection_dependency=cost_projection_dependency, partial_roots={root: dict(cases=[fact for fact in facts if root in fact['original_roots']], remaining_original_predicates=missing) for root, missing in partial.items()}, facts=facts, sources=source_facts)
