@@ -1,0 +1,168 @@
+"""Invocation/custody controls; synthetic inputs are not runtime qualification."""
+import base64
+import copy
+import hashlib
+from pathlib import Path
+import sys
+import tempfile
+import unittest
+from unittest import mock
+
+HERE = Path(__file__).resolve().parents[1]
+sys.path.insert(0, str(HERE))
+import reference_profile as reference
+
+
+def native_input():
+    paths = ['/tmp', '/workspace']
+    limits = dict(files=1000, descriptors=64, filesystem_bytes=8 << 20, output_bytes=1 << 20)
+    return dict(kind='standalone', network=None, guest=dict(module='/module.wasm', module_sha256='a' * 64,
+        limits=dict(fuel=1 << 40, memory_bytes=256 << 20, output_bytes=1 << 20, evidence_bytes=256 << 20, wall_millis=180000),
+        storage=None, namespace=dict(entries=[dict(path=list(name.encode()), directory=True, readonly=False, data=[]) for name in paths],
+            writable_directories=[list(name.encode()) for name in ['/workspace', '/tmp']], preopens=[list(name.encode()) for name in paths],
+            working_directory=list(b'/workspace'), stdin=[], limits=limits, epoch_nanos=946684800000000000),
+        model=dict(arguments=['guest', 'literal $arg'], environment=['ONLY=captured', 'PWD=/workspace', 'TZ=UTC'], replay_trace=None,
+            configuration=dict(entropy_key=[1, 2, 3] + [0] * 29, working_directory_sha256=hashlib.sha256(b'/workspace').hexdigest(),
+                arguments=dict(bytes=0, count=0, chunks=0), environment=dict(bytes=0, count=0, chunks=0), seed=7, mode=1,
+                limit=64 << 20, diagnostics=False, epoch_nanos=946684800000000000, read_step_nanos=0, now=1,
+                limits=dict(calls=1 << 20, transcript_bytes=64 << 20, pending_events=4096)))))
+
+
+def mapped(native):
+    return reference.original_request(native, '/pinned/module.wasm', '/helper', 'b' * 64, 'c' * 64, dict(TargetSHA256=[170] * 32, ToolchainBuildKey='c' * 64, GOOS='wasip1', GOARCH='wasm', ImplementationSHA256=[19] * 32), ('linux', 'aarch64'))
+
+
+class RequestMapping(unittest.TestCase):
+    def test_build_cli_dispatches_to_builder_without_starting_go(self):
+        with tempfile.TemporaryDirectory(dir='/home/agent/wt', prefix='fn232-reference-cli-') as temporary:
+            files = Path(temporary) / 'files.json'
+            files.write_bytes(b'{}')
+            args = ['reference_profile.py', 'build', '--derived', '/derived', '--stock-go', '/stock-go', '--output', '/output', '--files', str(files)]
+            with mock.patch.object(sys, 'argv', args), mock.patch.object(reference, 'build') as builder:
+                reference.main()
+                builder.assert_called_once_with('/derived', '/stock-go', '/output', {})
+
+    def test_original_runtime_recipe_preserves_each_guest_control(self):
+        native = native_input()
+        value = mapped(native)
+        self.assertEqual(value['Fuel'], 1 << 40)
+        self.assertEqual(value['MemoryBytes'], 256 << 20)
+        self.assertEqual(value['Timeout'], 180000000000)
+        self.assertEqual(value['Config']['Args'], native['guest']['model']['arguments'])
+        self.assertEqual(value['Config']['Environment'], native['guest']['model']['environment'])
+        self.assertEqual(value['Config']['EntropyKey'], [1, 2, 3] + [0] * 29)
+        self.assertEqual(value['Config']['Limits'], dict(OutputBytes=1 << 20, TranscriptBytes=64 << 20, Calls=1 << 20,
+            PendingEvents=4096, Descriptors=64, Files=1000, FilesystemBytes=8 << 20))
+        self.assertEqual(value['Config']['Clock'], dict(EpochNanos=946684800000000000, ReadStepNanos=0))
+        self.assertEqual(value['Runtime']['Seed'], 7)
+        self.assertFalse(value['Runtime']['Diagnostics'])
+        self.assertEqual(value['Runtime']['Choice']['Limit'], 64 << 20)
+        self.assertEqual(value['Runtime']['Choice']['ExecutionIdentity']['ImplementationSHA256'], [19] * 32)
+        self.assertEqual(value['ModulePath'], '/pinned/module.wasm')
+        self.assertEqual(value['Engine']['configuration'], reference.ENGINE)
+
+    def test_guest_input_is_never_silently_ignored(self):
+        for mutation in range(11):
+            native = native_input()
+            guest = native['guest']
+            if mutation == 0:
+                native['network'] = {}
+            elif mutation == 1:
+                guest['storage'] = {}
+            elif mutation == 2:
+                guest['namespace']['entries'][0]['data'] = [1]
+            elif mutation == 3:
+                guest['model']['replay_trace'] = [1]
+            elif mutation == 4:
+                guest['model']['configuration']['split'] = True
+            elif mutation == 5:
+                guest['namespace']['limits']['output_bytes'] += 1
+            elif mutation == 6:
+                guest['model']['configuration']['working_directory_sha256'] = 'b' * 64
+            elif mutation == 7:
+                guest['model']['configuration']['inspection'] = {}
+            elif mutation == 8:
+                guest['limits']['unmapped_bound'] = 1
+            elif mutation == 9:
+                guest['model']['configuration']['read_step_nanos'] = 1000
+            else:
+                guest['limits']['evidence_bytes'] = 1
+            with self.subTest(mutation=mutation), self.assertRaises(ValueError):
+                mapped(native)
+
+    def test_actual_request_must_match_prepared_configuration_except_derived_seed(self):
+        native = native_input()
+        guest = native['guest']
+        model = copy.deepcopy(guest['model']['configuration'])
+        del model['seed']
+        configuration = dict(model=model, arguments=guest['model']['arguments'],
+            environment=dict(ONLY='captured', PWD='/workspace', TZ='UTC'), limits=guest['limits'],
+            namespace=guest['namespace'], storage=None, network=None)
+        proof = dict(configuration=configuration)
+        reference.bind_preparation(native, proof)
+        for field in ('entropy_key', 'limit', 'epoch_nanos'):
+            changed = copy.deepcopy(native)
+            changed['guest']['model']['configuration'][field] = [9] * 32 if field == 'entropy_key' else 9
+            with self.subTest(field=field), self.assertRaisesRegex(ValueError, 'prepared configuration'):
+                reference.bind_preparation(changed, proof)
+
+    def test_original_same_evidence_checks_digest_even_when_raw_wasi_is_empty(self):
+        before = dict(streams={name: dict(sha256='a' * 64) for name in ('stdout', 'stderr', 'choice', 'network', 'terminal')},
+                      transcript_sha256='b' * 64, termination='exit', exit_code=0)
+        reference.same_original_evidence(before, copy.deepcopy(before))
+        for field in (*before['streams'], 'transcript_sha256', 'termination', 'exit_code'):
+            after = copy.deepcopy(before)
+            if field in after['streams']:
+                after['streams'][field]['sha256'] = 'c' * 64
+            else:
+                after[field] = 1 if field == 'exit_code' else 'changed'
+            with self.subTest(field=field), self.assertRaises(ValueError):
+                reference.same_original_evidence(before, after)
+
+    def test_raw_result_projection_retains_unmodified_original_bytes_and_failure(self):
+        raw = dict(result=dict(Stdout=base64.b64encode(b'raw\x00stdout').decode(), Stderr=None, Transcript=None,
+            NetworkTranscript=None, ChoiceTrace=dict(Bytes=base64.b64encode(b'choice').decode(), Summary=dict(SelectPoll=100000)),
+            Termination='infrastructure', ExitCode=None, Reaped=True, Cancelled=False, WatchdogTimeout=True,
+            TranscriptSHA256=[3] * 32, Calls=42, TimeAdvances=2, EnvironmentIdentity='original', FuelRemaining=99,
+            AuthorizationToTerminalNanos=5), terminal=base64.b64encode(bytes(16)).decode(), error='actual failure')
+        with tempfile.TemporaryDirectory(dir='/home/agent/wt', prefix='fn232-reference-fixture-') as temporary:
+            directory = Path(temporary)
+            encoded = reference.custody.canonical(raw)
+            run = reference.raw_run(encoded, directory, 'go')
+            self.assertEqual((directory / 'stdout').read_bytes(), b'raw\x00stdout')
+            self.assertEqual((directory / 'wasi').read_bytes(), b'')
+            self.assertEqual(run['transcript_sha256'], '03' * 32)
+            self.assertEqual(run['raw_result']['sha256'], hashlib.sha256(encoded).hexdigest())
+            self.assertTrue(run['watchdog_timeout'])
+            self.assertEqual(run['error'], 'actual failure')
+
+
+class OriginalSourceCustody(unittest.TestCase):
+    def test_archive_and_single_addition_custody_refuse_source_and_glue_mutations(self):
+        with tempfile.TemporaryDirectory(dir='/home/agent/wt', prefix='fn232-reference-custody-') as temporary:
+            directory = Path(temporary) / 'derived'
+            manifest = reference.derive(HERE.parents[3], directory)
+            self.assertEqual(manifest['original_commit'], reference.ORIGINAL)
+            source = directory / 'source'
+            original = source / 'tools/gomad/internal/backends/wasm/wasi/process.go'
+            raw = original.read_bytes()
+            original.write_bytes(raw + b'\n')
+            with self.assertRaisesRegex(ValueError, 'outside declared'):
+                reference.verify(directory)
+            original.write_bytes(raw)
+            glue = source / reference.GLUE
+            raw = glue.read_bytes()
+            glue.write_bytes(raw + b'\n')
+            with self.assertRaisesRegex(ValueError, 'outside declared'):
+                reference.verify(directory)
+            glue.write_bytes(raw)
+            extra = source / 'undeclared.go'
+            extra.write_text('package unrelated\n')
+            with self.assertRaisesRegex(ValueError, 'outside declared'):
+                reference.verify(directory)
+            extra.unlink()
+            reference.verify(directory)
+
+
+if __name__ == '__main__':
+    unittest.main()
