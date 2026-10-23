@@ -13,6 +13,7 @@ import sys
 import adapters
 import sqlite
 import receiving_cost
+import onebox_receiving
 from driver import Refusal, Unexecuted, configured, guard, load_module, read, require, sha
 
 
@@ -29,6 +30,7 @@ OWNED = (
     'temporal/actual-committed-storage-all-states',
     'temporal/actual-named-reset-retry',
     'temporal/inspection-shard-workflow-onebox',
+    'fn222/two-cell-ordered-support-list',
 )
 
 
@@ -631,16 +633,16 @@ class Retained:
             report = read(root/'runtime.json')
             require(not paths.intersection(report['artifacts']), 'runtime shards borrowed artifacts')
             paths.update(report['artifacts'])
-            for artifact in report['artifacts']:
-                campaign = next((path for path in Path(artifact).parents if path.parent.name == 'campaigns'),None)
-                require(campaign is not None,'runtime campaign root missing')
-                self.journal(campaign,read(Path(artifact)/'manifest.json')['record_sha256'])
-            rows = [read(root/(f'record-{number:02}.command.json')) for number in range(25)]
-            require(len({row['pid'] for row in rows}) == 25 and not pids.intersection(row['pid'] for row in rows),
-                    'runtime repeated producer PID')
-            pids.update(row['pid'] for row in rows)
-            replay = read(root/'forced-replay.command.json')
-            require(replay['end_ns']-rows[0]['start_ns'] <= 600_000_000_000, 'runtime original ten-minute shard exceeded')
+            for number, artifact in enumerate(report['artifacts']):
+                require(Path(artifact).parent == root/'recordings'/f'instance-{number:02}',
+                        'runtime fresh store root mismatch')
+                self.artifact(Path(artifact))
+            producer = read(root/'producer.command.json')
+            require(producer['pid'] not in pids, 'runtime repeated producer PID')
+            pids.add(producer['pid'])
+            installed = read(root/'install-harness.command.json')
+            require(producer['end_ns']-installed['start_ns'] <= 600_000_000_000,
+                    'runtime original ten-minute shard exceeded')
         self.adapter.runtime_aggregate(self.config,self.root/'stages/runtime-aggregate','runtime-aggregate')
 
     def mandatory(self):
@@ -981,6 +983,8 @@ class Retained:
                 child_argv += ['--root',str(root/owner)]
                 if '--captured-config' in outer_argv:
                     child_argv += ['--captured-config',argument(outer_argv,'--captured-config')]
+                if '--private-observation-config' in outer_argv:
+                    child_argv += ['--private-observation-config',argument(outer_argv,'--private-observation-config')]
                 self.nested(root,owner,child_argv)
                 child = self.owner(root/owner,child_argv)
                 require(child['pid'] == read(root/(owner+'.command.json'))['pid'],'inspection child root/PID mismatch')
@@ -1122,6 +1126,8 @@ class Retained:
         require(runtime_pins == {installation['runtime_implementation_sha256']},'inspection actual runtime implementation differs')
 
     def inspection(self, root, owner):
+        if owner == 'onebox':
+            return onebox_receiving.inspection(self, root)
         observed_owner = self.owner(root)
         argv = observed_owner['argv']
         require(argument(argv,'--owner') == owner and argument(argv,'--binary') == self.config['binary']
@@ -1283,7 +1289,8 @@ def read_receiving(config):
               *(lambda index=index: reader.selected(index) for index in range(4)), reader.catalogue,
               reader.smoke,
               reader.replication, lambda: reader.temporal('storage'),
-              lambda: reader.temporal('network-streams'), lambda: reader.temporal('temporal-inspection')]
+              lambda: reader.temporal('network-streams'), lambda: reader.temporal('temporal-inspection'),
+              lambda: onebox_receiving.support(reader)]
     rows = []
     for name, check in zip(OWNED,checks):
         try:

@@ -93,6 +93,52 @@ def authenticate_payloads(artifact):
     return manifest
 
 
+def preparation_bindings(root, campaign, failure, compiler_origin, runtime_origin, cache_origin):
+    campaign = Path(campaign).resolve(strict=True)
+    require(campaign.is_relative_to(root / 'artifacts'), 'foreign inspection preparation campaign')
+    plan_path = campaign / 'plan.json'
+    plan_raw = read(plan_path, 32 << 20)
+    plan = json.loads(plan_raw)
+    reference = plan.get('prepared', plan)['prepared_artifact']
+    require(isinstance(reference, str) and reference and not Path(reference).is_absolute()
+            and all(part not in ('', '.', '..') for part in reference.split('/')), 'unclean prepared artifact reference')
+    artifact = (campaign / reference).resolve(strict=True)
+    require(artifact.is_relative_to(campaign), 'foreign prepared artifact')
+    manifest = json.loads(read(artifact / 'manifest.json', 32 << 20))
+    record_raw = read(artifact / 'record.json', 32 << 20)
+    record = json.loads(record_raw)
+    require(manifest['record'] == record and hashlib.sha256(record_raw).hexdigest() == manifest['record_sha256']
+            and record['outcome']['class'] == 'prepared', 'prepared record identity mismatch')
+    require(record['identity']['target'] == failure['record']['identity']['target']
+            and record['identity']['toolchain'] == failure['record']['identity']['toolchain'],
+            'prepared module/toolchain differs from retained failure')
+    provenance_path = artifact / 'target/provenance.json'
+    provenance_raw = read(provenance_path, 16 << 20)
+    provenance_hash = hashlib.sha256(provenance_raw).hexdigest()
+    entry = manifest['files']['target/provenance.json']
+    require(entry['bytes'] == len(provenance_raw) and entry['sha256'] == provenance_hash,
+            'prepared provenance payload mismatch')
+    module = artifact / 'target/module.wasm'
+    require(digest(module) == record['identity']['target'], 'prepared module payload mismatch')
+    provenance = json.loads(provenance_raw)
+    inputs = provenance['inputs']
+    require(provenance['module_sha256'] == record['identity']['target']
+            and provenance['build_key'] == record['identity']['toolchain'], 'prepared provenance binding mismatch')
+    compiler = inputs['compiler']
+    overlays = [Path(path) for path in compiler if Path(path).name == 'overlay.json']
+    require(len(overlays) == 1 and overlays[0].is_absolute(), 'unique retained compiler overlay descriptor required')
+    overlay = overlays[0]
+    raw = read(overlay, 16 << 20)
+    overlay_hash = hashlib.sha256(raw).hexdigest()
+    require(overlay_hash == compiler[str(overlay)], 'compiler overlay descriptor changed')
+    require(inputs['compiler_path'] == str(root / 'private-inputs/compiler/bin/go')
+            and inputs['compiler_sha256'] == digest(compiler_origin), 'private compiler alias differs from origin')
+    return dict(compiler_origin=str(compiler_origin), runtime_origin=str(runtime_origin), cache_origin=str(cache_origin),
+                compiler_overlay=dict(path=str(overlay), sha256=overlay_hash, bytes_base64=base64.b64encode(raw).decode()),
+                preparation=dict(campaign=str(campaign), plan=dict(path=str(plan_path), sha256=hashlib.sha256(plan_raw).hexdigest()),
+                                 artifact=str(artifact), record_sha256=manifest['record_sha256'], provenance_sha256=provenance_hash))
+
+
 def failure_artifact(root):
     failures = []
     for path in root.rglob('manifest.json'):
@@ -269,12 +315,12 @@ def copy_alias(source, destination):
     shutil.copytree(source, destination, copy_function=copy_file)
 
 
-def main():
+def main(arguments=None):
     parser = argparse.ArgumentParser(description=__doc__)
     for name in ('binary', 'repo', 'root', 'compiler', 'runtime-root', 'cache', 'captured-config'):
         parser.add_argument('--' + name, type=Path, required=True)
     parser.add_argument('--private-observation-config', type=Path)
-    args = parser.parse_args()
+    args = parser.parse_args(arguments)
     binary, repo, root = args.binary.resolve(strict=True), args.repo.resolve(strict=True), args.root.resolve()
     private_observations = producer.private_configuration(args.private_observation_config, binary, repo, root) if args.private_observation_config else None
     root.mkdir(parents=True, mode=0o700, exist_ok=False)
@@ -326,6 +372,8 @@ def main():
     artifact = failure_artifact(root / 'artifacts')
     before = inventory(artifact)
     manifest = authenticate_payloads(artifact)
+    preparation = preparation_bindings(root, response['campaign_path'], manifest, compiler,
+                                       args.runtime_root.resolve(strict=True), args.cache.resolve())
     detached = stage.with_name(stage.name + '-unavailable')
     stage.rename(detached)
     private.rename(root / 'private-inputs-unavailable')
@@ -347,7 +395,7 @@ def main():
         record_sha256=manifest['record_sha256'], report=report, artifact_sha256=before, diagnostic_sha256=diagnostics,
         commands={row['name']: dict(path=str(root / (row['name'] + '.command.json')),
                   sha256=digest(root / (row['name'] + '.command.json')), exit=row['exit']) for row in gate.commands},
-        subgates=[dict(id='TestTemporalInspectionRetainedFailure/onebox', status='PASS', executed=True, exit=0)]))
+        subgates=[dict(id='TestTemporalInspectionRetainedFailure/onebox', status='PASS', executed=True, exit=0)], **preparation))
     print(json.dumps(dict(receipt=str(receipt))))
 
 
