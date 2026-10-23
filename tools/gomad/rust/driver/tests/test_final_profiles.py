@@ -11,6 +11,7 @@ from unittest.mock import patch
 
 sys.path.insert(0, str(Path(__file__).parents[1]))
 import final_profiles as gate
+import native_roles
 from driver import Refusal
 
 
@@ -280,23 +281,76 @@ class FinalProfiles(unittest.TestCase):
             binary.write_bytes(role.encode())
             receipt = self.root / (role + '.json')
             digest = hashlib.sha256(binary.read_bytes()).hexdigest()
-            receipt.write_text(json.dumps(dict(profile='release', exit=0, source_sha256='source',
-                                              binary_sha256=digest, helper_features=features)))
+            receipt.write_text('{}')
             entries.append(dict(binary=str(binary), build_receipt=str(receipt)))
             identities.append(dict(schema='gomad.native-measurement-identity/v1', role=role, features=features,
                 executable_sha256=digest, host_implementation_sha256='host-release' if not features else 'host-diagnostic',
                 linked_implementation_sha256='helper-release' if not features else 'helper-diagnostic',
                 source_inputs=dict(host='actual-host-preimage', helper='actual-helper-preimage'),
                 runtime_implementation_sha256='runtime', configuration='engine' if not features else 'engine-diagnostic-profile'))
-        with patch('live.sealed_input'), patch.object(gate, 'invoke', side_effect=[(json.dumps(value).encode(), {}) for value in identities]):
+            receipt.write_text(json.dumps(dict(executable=str(binary), executable_sha256=digest, identity=identities[-1])))
+        with patch('live.sealed_input'), patch.object(native_roles, 'validate_build', side_effect=lambda config, path, role: json.loads(Path(path).read_text())), patch.object(gate, 'invoke', side_effect=[(json.dumps(value).encode(), {}) for value in identities]):
             gate.sealed_role(config, entries[0], [])
             gate.sealed_role(config, entries[1], ['diagnostic-profile'])
         self.assertEqual(config['_final_profile_role_identities'][entries[1]['binary']]['linked_implementation_sha256'], 'helper-diagnostic')
         config['_final_profile_role_identities'].pop(entries[1]['binary'])
         changed = copy.deepcopy(identities[1])
         changed['source_inputs']['helper'] = 'foreign-preimage'
-        with patch('live.sealed_input'), patch.object(gate, 'invoke', return_value=(json.dumps(changed).encode(), {})), self.assertRaises(Refusal):
+        with patch('live.sealed_input'), patch.object(native_roles, 'validate_build', side_effect=lambda config, path, role: json.loads(Path(path).read_text())), patch.object(gate, 'invoke', return_value=(json.dumps(changed).encode(), {})), self.assertRaises(Refusal):
             gate.sealed_role(config, entries[1], ['diagnostic-profile'])
+
+    def native_role_fixture(self):
+        from test_native_roles import NativeRoles
+        config, path, receipt, role = NativeRoles().fixture(self.root)
+        config['files'].update({str(file): hashlib.sha256(file.read_bytes()).hexdigest()
+                                for file in self.root.rglob('*') if file.is_file()})
+        config['identity'] = dict(host=receipt['identity']['host_implementation_sha256'],
+                                  helper=receipt['identity']['linked_implementation_sha256'])
+        config['source_sha256'] = 'unit-source'
+        return config, dict(binary=receipt['executable'], build_receipt=str(path)), receipt
+
+    def test_full_native_role_rejects_coherent_wrong_cargo_artifact_even_after_identity_cache(self):
+        config, entry, receipt = self.native_role_fixture()
+        with patch.object(gate, 'invoke', return_value=(json.dumps(receipt['identity']).encode(), {})) as execute:
+            gate.sealed_role(config, entry, [])
+            self.assertEqual(execute.call_count, 1)
+            path = Path(entry['build_receipt'])
+            cargo = path.parent / 'cargo-build.stdout'
+            frames = [json.loads(line) for line in cargo.read_text().splitlines()]
+            frames[0]['features'] = ['helper-diagnostic-profile']
+            cargo.write_text('\n'.join(json.dumps(frame) for frame in frames))
+            digest = hashlib.sha256(cargo.read_bytes()).hexdigest()
+            receipt['inputs'][str(cargo)] = digest
+            config['files'][str(cargo)] = digest
+            observation = path.parent / 'cargo-build.json'
+            observed = json.loads(observation.read_text())
+            observed['stdout'].update(bytes=cargo.stat().st_size, captured_bytes=cargo.stat().st_size, sha256=digest)
+            observed['stdout_sha256'] = digest
+            observation.write_text(json.dumps(observed))
+            receipt['inputs'][str(observation)] = hashlib.sha256(observation.read_bytes()).hexdigest()
+            config['files'][str(observation)] = receipt['inputs'][str(observation)]
+            path.write_text(json.dumps(receipt))
+            config['files'][str(path)] = hashlib.sha256(path.read_bytes()).hexdigest()
+            with self.assertRaisesRegex(Refusal, 'Cargo'):
+                gate.sealed_role(config, entry, [])
+            self.assertEqual(execute.call_count, 1)
+
+    def test_copied_native_role_requires_full_admission_before_execution(self):
+        config, entry, receipt = self.native_role_fixture()
+        binary = self.root / 'copy'
+        binary.write_bytes(Path(entry['binary']).read_bytes())
+        config['files'][str(binary)] = hashlib.sha256(binary.read_bytes()).hexdigest()
+        entry['binary'] = str(binary)
+        with patch.object(gate, 'invoke') as execute:
+            with self.assertRaisesRegex(Refusal, 'full admission'):
+                gate.sealed_role(config, entry, [])
+            admission = self.root / 'forged-admission.json'
+            admission.write_text('{}')
+            entry['admission'] = str(admission)
+            config['files'][str(admission)] = hashlib.sha256(admission.read_bytes()).hexdigest()
+            with self.assertRaisesRegex(Refusal, 'admission schema'):
+                gate.sealed_role(config, entry, [])
+            execute.assert_not_called()
 
     def test_changed_hash_and_foreign_output_are_refused(self):
         run = self.run_evidence('run')

@@ -4,15 +4,19 @@
 `OWNED`. A final-section entry pins Python, this reader and `--config CONFIG`;
 `final.py` adds `--root ROOT`. The `final_profiles` config object binds:
 
-- `measure`, `ordinary`, `diagnostic`: `{binary, build_receipt}` using the
-  native measurement build receipt, or the driver's sealed release build
-  receipt; ordinary features are empty and diagnostic is exactly
-  `diagnostic-profile`. Actual `--identity` observations retain each role's
+- `measure`, `ordinary`, `diagnostic`: `{binary, build_receipt, admission?}` using
+  the actual native measurement build protocol. The shared `native_roles` reader
+  reopens the complete source/compiler/Cargo artifact/command evidence. A binary
+  that is an admitted copy additionally requires `admission`, whose publication
+  chain and exact build/binary binding are independently checked. The original
+  Cargo executable may use its build receipt directly; wrapper receipt claims
+  are refused. Freeze the complete shared-reader closure for every role. Ordinary
+  features are empty and diagnostic is exactly `diagnostic-profile`. Actual `--identity` observations retain each role's
   distinct implementation digests and require identical source/runtime
   preimages across the roles. Diagnostic identities are never relabeled as
   ordinary identities.
 - `stock_go`, `terminal_module`, `terminal_module_receipt`,
-  `terminal_helper_receipt`, `terminal_diagnostic_helper_receipt`: sealed static native producer inputs.
+  `terminal_helper_receipt`, `terminal_diagnostic_helper_receipt`: sealed static native producer inputs. Both helper receipts are independently validated native admissions, bound to the actual ordinary and diagnostic executables before terminal observations are accepted.
 - `runtime_recipe`: sealed original bounds, seed 7, and a full native request
   template. Generated module path/hash and compile-cache path come from the
   bounded current producer output; all modeled request fields match the

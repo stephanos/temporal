@@ -284,22 +284,19 @@ def sealed_role(config, entry, expected):
     import json
     import live
     from driver import sha
+    import native_roles
     for field in ('binary', 'build_receipt'):
         live.sealed_input(config, entry[field])
-    build = read(entry['build_receipt'])
     binary = entry['binary']
-    if build.get('schema') == 'gomad.native-measurement-build/v1':
-        require(build['executable'] == binary and build['executable_sha256'] == sha(binary)
-                and build['role'] == (dict(kind='diagnostic', features=expected) if expected else dict(kind='release')),
-                'foreign native role build receipt')
-        for path, digest in build['inputs'].items():
-            live.sealed_input(config, path)
-            require(sha(path) == digest, 'native role build input changed')
-    else:
-        require(build['profile'] == 'release' and build['exit'] == 0
-                and build['source_sha256'] == config['source_sha256']
-                and build['binary_sha256'] == sha(binary) and build['helper_features'] == expected,
-                'foreign/nonmatching native producer build')
+    role = dict(kind='diagnostic', features=expected) if expected else dict(kind='release')
+    build = native_roles.validate_build(config, entry['build_receipt'], role)
+    if binary != build['executable']:
+        require('admission' in entry, 'native copied role requires its full admission receipt')
+        live.sealed_input(config, entry['admission'])
+        admission = native_roles.validate_admission(config, entry['admission'], role)
+        require(admission['build_receipt'] == entry['build_receipt'] and admission['executable'] == binary
+                and admission['identity'] == build['identity'], 'native admission borrowed a different build or binary')
+    require(build['executable_sha256'] == sha(binary), 'native role differs from authenticated Cargo artifact')
     identities = config.setdefault('_final_profile_role_identities', {})
     if binary not in identities:
         raw, _ = invoke(config, Path(config['root']), 'final-profile-role-' + str(len(identities)), [binary, '--identity'])
@@ -318,8 +315,7 @@ def sealed_role(config, entry, expected):
                     and identity['runtime_implementation_sha256'] == release['runtime_implementation_sha256']
                     and identity['configuration'] == release['configuration'] + '-diagnostic-profile',
                     'diagnostic role source/runtime differs from ordinary release')
-        if build.get('schema') == 'gomad.native-measurement-build/v1':
-            require(identity == build['identity'], 'native build identity differs from actual executable')
+        require(identity == build['identity'], 'native build identity differs from actual executable')
         identities[binary] = identity
     require(identities[binary]['features'] == expected, 'native executable borrowed a different role')
     return binary
@@ -417,8 +413,15 @@ def native_terminal(config, root, work, entry, terminal_path, ordinary, diagnost
     cpu = cpu_path.read_bytes()
     require(host_admission('linux', 'arm64', cpu) == host['inputs'][str(cpu_path)]
             and host['witness']['cpuinfo'].encode() == cpu, 'current raw CPU capture changed')
-    require(terminal['helper_admission'] == read(entry['terminal_helper_receipt'])
-            and terminal['diagnostic_control_admission'] == read(entry['terminal_diagnostic_helper_receipt']),
+    import native_roles
+    release_admission = native_roles.validate_admission(config, entry['terminal_helper_receipt'], dict(kind='release'))
+    diagnostic_admission = native_roles.validate_admission(config, entry['terminal_diagnostic_helper_receipt'],
+                                                         dict(kind='diagnostic', features=['diagnostic-profile']))
+    require(release_admission['executable'] == ordinary and diagnostic_admission['executable'] == diagnostic
+            and release_admission['identity']['host_implementation_sha256'] == config['identity']['host']
+            and release_admission['identity']['linked_implementation_sha256'] == config['identity']['helper']
+            and terminal['helper_admission'] == release_admission
+            and terminal['diagnostic_control_admission'] == diagnostic_admission,
             'foreign terminal release/diagnostic admission')
     require(len(terminal['observations']) == 6, 'missing exact terminal success observations')
     recipe = read(entry['qualified']['workflow']['recipe'])
