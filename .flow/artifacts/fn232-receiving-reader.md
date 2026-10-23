@@ -93,3 +93,56 @@ RED is `.flow/tmp/fn232-receiving-recovery-red.log`. Native writer tests in the
 separate checkpoint remain uncompiled/unrun. Production Rust qualification's
 allowlist mismatch with genuine .11 provenance remains a separate authorized
 source repair and must be integrated before any actual mandatory attempt.
+
+## Original qualification reach source review
+
+`tools/gomad/rust/driver/qualification-map.json` reviews all 72 qualification
+roots from original `1d695061b6382009d0659238c652a5a765b1d5f5`. It retains
+exact original/helper spans, 538 assertion sites, explicit dynamic table
+variants, 97 native/reader source anchors and per-root remaining gaps. All
+original rows remain `UNEXECUTED` with empty execution evidence. The five
+portable map checks establish source integrity and detect omitted roots or
+assertions, changed source bindings and fabricated execution claims; they do
+not execute the old predicates. Forty-seven roots retain specific gaps.
+
+Remaining contracts include private memory diagnostics and optional Linux
+MemAvailable admission; default/slim/full and reviewed cache controls;
+independent frontend/support-list gate/shape authentication and internal
+deterministic JSON/Markdown/no-clobber behavior; aggregate corpus/catalogue
+self-resource bounds and closed sibling inventory; retention of divergent
+catalogue failure observations; and exact legacy negative, classification,
+callback, accounting, role and preparation-input variants. Each is associated
+with its original root and assertions in the map. Existing adjacent native
+cases are source correlations, not equivalence waivers or execution credit.
+
+## Separate native decoder/publication checkpoint
+
+Native commits `db651a18f2`, `50f02a68de` and `b8487b09ae` add real-writer
+concurrency/conflict/abandoned-stage tests, authenticate genuine compiler path
+and typed module metadata against raw WASM, repair rejected-collision staging
+cleanup, preserve the original depth128 scalar/129-empty boundary and error
+precedence, restore config first-typed-value errors before trailing input, and
+bound publication diagnostics with explicit truncation. Only the existing
+pinned serde_json `unbounded_depth` feature is enabled; recursion is disabled
+solely after bounded lexical admission. No lock or dependency version changed.
+
+With the explicitly granted private target
+`/home/agent/.cache/codex-build/fn232-qualify-closure`, pinned `+1.99.1`, release,
+locked/offline and jobs1, the frozen source passed 19 focused `receiving_`
+native tests, affected `clippy -p gomad --lib --tests -- -D warnings` and
+`fmt --all --check`. Final logs are
+`.flow/tmp/fn232-receiving-native-frozen.log` and
+`.flow/tmp/fn232-receiving-native-clippy-frozen.log` (exit0). Original causal
+failures remain in `fn232-receiving-depth-red.log` (exit101, five failures) and
+`fn232-receiving-native-red.log` (exit101, four failures). Intermediate Clippy
+failures are retained. Frozen portable driver checks passed 56 tests (the
+reviewed51 plus five source-map integrity checks), and workload checks passed
+six. Logs: `fn232-receiving-frozen-python.log` and
+`fn232-receiving-final-workloads.log`. Disk ended at6.6GiB; the exclusive target
+lease was released after all commands completed. No guest, Go, golden, public
+qualification or actual receiving-runtime attempt ran.
+
+This native checkpoint is a separate review unit. It does not replace the
+source gaps above or complete the original72 execution mapping. Follow-on
+preservation work remains open, and every actual final receiving binding in
+this handover remains unexecuted.
