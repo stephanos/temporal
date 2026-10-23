@@ -574,3 +574,25 @@ inspection totals, replay assertions and the10-second bound remain required.
 
 Broad receiving, the five unresolved references, full96-stage cycle and the
 remaining milestone requirements stay open.
+
+
+## Dependency prerequisite and runtime harness received
+
+At `1e1bd58862`, the installed producer accepts an explicit private dependency
+cache. Genuine extracted x/sys bytes match the retained module archive and
+candidate go.sum. Root verifies all559 files and11,676,159 bytes; nine focused
+tests pass. There is no guest precompilation or Go object-cache warming. The
+actual installed retry requires a fresh candidate build and remains pending.
+
+The runtime qualification harness now has its own closed actual Cargo build
+role, typed receipt and complete freezer input closure. Independent source
+review is clear; six focused root tests and335 joined worker Python tests pass.
+The actual harness build and all32-by25 runtime executions remain pending.
+
+Three real typed Go captures and the unchanged ringpop config are ready as
+candidate-independent retained inputs. Independent review is clear. Root
+reopened all782 sealed files and their hashes. No candidate-dependent
+installation, execution, replay or qualification is inferred from those inputs.
+The preparatory main build also cleared independent scoped receipt review.
+
+The broad receiving batch and full milestone qualification remain open.

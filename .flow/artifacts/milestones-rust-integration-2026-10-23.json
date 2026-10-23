@@ -2062,6 +2062,69 @@
         "Full frozen 96-stage / 146-obligation cycle",
         "Remaining MILESTONES.md requirements"
       ]
+    },
+    {
+      "observed_at": "2026-10-23T12:03:14.098780+00:00",
+      "integration_head": "1e1bd58862d6bdd47312082a649a7a1c1a1ae164",
+      "final_qualification": false,
+      "main_build_independent_review": {
+        "verdict": "CLEAR",
+        "scope": "Immutable e4a source/symlinks, raw Cargo artifacts, generated IDs, ELF publication, process reaping and GNU probe bindings; full static envelope reopening not repeated"
+      },
+      "cache_prerequisite": {
+        "source_commit": "1e1bd58862",
+        "manifest": {
+          "path": "/home/agent/evidence/fn232-installed-module-cache-v1-manifest.json",
+          "bytes": 80707,
+          "sha256": "8e86e208b6ba51833ba9ebad7c303dbca0af43bb5e8b9c002ab42b12cea01d49"
+        },
+        "files": 559,
+        "bytes": 11676159,
+        "validation": "Root verifies extracted dependency against genuine archive, h1 and candidate go.sum",
+        "tests": "Nine focused Python tests pass; no Go object or guest precompilation",
+        "actual_installed_retry": "PENDING fresh immutable candidate/build"
+      },
+      "runtime_harness": {
+        "source_commit": "4a09e4b2de",
+        "review": "CLEAR independent source review",
+        "focused_root_tests": 6,
+        "joined_worker_tests": 335,
+        "joined_worker_log": {
+          "path": "/home/agent/.cache/codex-build/fn232-runtime-harness-full-driver-tests-final.log",
+          "bytes": 526,
+          "sha256": "3b22d0d7c3370ede4b6b9ee4be25d5fd720b380b8ceebba79402e1810030d31e"
+        },
+        "scope": "Closed runtime-harness Cargo role and typed receipt/freezer closure; actual build and 32x25 executions pending"
+      },
+      "retained_static_inputs": {
+        "seal": {
+          "path": "/Users/stephan/Workspace/skunkworks/gomad/.build-cache/fn232-retained-static-inputs-v1/static-seal.json",
+          "bytes": 119360,
+          "sha256": "ae347002c70b48a7036beaee2863ff9ae28528f582c8ac4a4d9cb58dabc20afe"
+        },
+        "reader": {
+          "path": "/Users/stephan/Workspace/skunkworks/gomad/.build-cache/fn232-retained-static-inputs-v1/reader-proof.json",
+          "bytes": 7343,
+          "sha256": "470d93d553ffc12ef351f96e69ec6c960fcbe29d8ae136f3f61ba49583f4f183"
+        },
+        "root_verified_files": 782,
+        "root_verified_bytes": 28592358,
+        "guest_configs": {
+          "cooperative": "/Users/stephan/Workspace/skunkworks/gomad/.build-cache/fn232-retained-static-inputs-v1/cooperative/guest-config.json",
+          "retained": "/Users/stephan/Workspace/skunkworks/gomad/.build-cache/fn232-retained-static-inputs-v1/retained/guest-config.json",
+          "ringpop": "/Users/stephan/Workspace/skunkworks/gomad/.build-cache/fn232-retained-static-inputs-v1/ringpop-config.json",
+          "stock": "/Users/stephan/Workspace/skunkworks/gomad/.build-cache/fn232-retained-static-inputs-v1/stock/guest-config.json"
+        },
+        "review": "CLEAR independent review of three real typed Go captures, raw process custody and all sealed files",
+        "scope": "Reusable static inputs only; no candidate-dependent execution, replay or qualification"
+      },
+      "pending": [
+        "Fresh combined candidate and installed two-scenario retry",
+        "Broad real Go receiving and production fixes",
+        "Five unresolved original evidence references",
+        "Complete frozen 96 stages and 146 obligations",
+        "Remaining MILESTONES.md requirements"
+      ]
     }
   ],
   "resource_snapshot": {
