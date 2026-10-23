@@ -76,13 +76,20 @@ The binding document has exactly these fields (all paths canonical and absolute)
   "installation": "/absolute/ordinary-installation.json",
   "streaming_root": "/absolute/fresh-streaming-proof",
   "closed_root": "/absolute/fresh-closed-consumer-proof",
-  "inputs": "/absolute/prepared-interception-inputs.json"
+  "inputs": "/absolute/prepared-interception-inputs.json",
+  "closed_build": "/absolute/host-fixture/main-build.json",
+  "closed_installation": "/absolute/host-fixture-installation.json"
 }
 ```
 
-Both proofs must use that same ordinary installation and frozen release candidate.
-The reader reopens the full authentic `release` and `interception-harness` build
-roles, the controlled marker/controller-action/exit/replay evidence, and the closed
+The controlled proof uses the ordinary `release`/`interception-harness` pair.
+The closed-consumer proof requires the authentic `host-fixture` build and its own
+matching installation: its existing preparation exporter uses fixture-only
+`fixture-driver-prepare`/`fixture-driver-run`. The fixture keeps a distinct host
+identity and executable. All three builds must share the same immutable source,
+HEAD, symlinks, ordinary linked helper and runtime implementation. Both
+installations bind the same stock compiler, profile and frozen Go fixture.
+The reader reopens all three authentic build roles, the controlled marker/controller-action/exit/replay evidence, and the closed
 consumer's actual process/FD-close/partial-evidence journals. Each producer keeps
 its original whole 600-second deadline. Cached `proof.json` and `observation.json`
 are not acceptance inputs. WAT or tiny Python controls earn no compiled-Go credit.
@@ -98,3 +105,10 @@ origin, the callback acceptance reader uses a copied provenance view with only
 that authenticated extension removed to reuse structural identity validation.
 It never changes retained bytes and never credits intercepted evidence as
 qualification; the shared qualification reader continues to reject that evidence.
+
+The closed proof's retained preparation receipt and sealed original Go driver
+argv must bind the selected compiler, fixture `-exec` launcher, actual preparation
+process ID, module and receipt digest. The preparation exporter has no dedicated
+process journal; this reader does not infer one. The conductor may separately
+journal its genuine exporter invocation when running the existing preparation
+plan. No new preparation or product verb is added.
