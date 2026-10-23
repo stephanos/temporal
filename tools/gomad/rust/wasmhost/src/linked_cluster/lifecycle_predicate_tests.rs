@@ -934,3 +934,206 @@ fn storage_volume_order_boot_admission_keeps_the_same_first_refusal() {
         }
     }
 }
+
+fn storage_engine_request(descriptor: &Value, context: Option<&Value>) -> linked::Request {
+    let mut input = request(&["a"], FINISH).incarnations.remove(0).request;
+    let module = br#"(module
+        (import "wasi_snapshot_preview1" "path_create_directory" (func $mkdir (param i32 i32 i32) (result i32)))
+        (import "gomad_wasm_v1" "config" (func $config (param i32 i32) (result i32)))
+        (import "gomad_wasm_v1" "finish" (func $finish (param i32 i32) (result i32)))
+        (memory (export "memory") 1)
+        (data (i32.const 0) "db")
+        (func (export "_start")
+            i32.const 512 i32.const 16 call $config drop
+            i32.const 4 i32.const 0 i32.const 2 call $mkdir if unreachable end
+            i32.const 995 i32.const 1 i32.store8
+            i32.const 992 i32.const 16 call $finish drop))"#.to_vec();
+    input.module_sha256 = format!("{:x}", Sha256::digest(&module));
+    input.module = module;
+    input.limits.evidence_bytes = 8 << 20;
+    let namespace = input.namespace.as_mut().unwrap();
+    namespace.preopens = vec![b"/".to_vec(), b"/workspace".to_vec()];
+    namespace.limits.filesystem_bytes = 1 << 20;
+    let mut descriptor = descriptor.clone();
+    let context = context.map(|context| {
+        let bytes = serde_json::to_vec(context).unwrap();
+        descriptor["crash_context"] = json!({"bytes":bytes.len(),
+            "chunks":(bytes.len() as u64).div_ceil(64*1024),
+            "sha256":format!("{:x}", Sha256::digest(&bytes))});
+        bytes
+    });
+    input.storage =
+        Some(serde_json::from_value(json!({"descriptor":descriptor,"context":context})).unwrap());
+    input
+}
+
+fn storage_engine_input_facts(input: &linked::Request) -> Value {
+    let model = input.model.as_ref().unwrap();
+    json!({
+        "module_bytes":input.module,"wat_utf8":std::str::from_utf8(&input.module).unwrap(),
+        "request":{"limits":{"memory_bytes":input.limits.memory_bytes,"fuel":input.limits.fuel,
+            "output_bytes":input.limits.output_bytes,"evidence_bytes":input.limits.evidence_bytes,
+            "wall_timeout_millis":input.limits.wall_timeout.as_millis()},
+            "model_configuration":model.configuration,"arguments":model.arguments,
+            "environment":model.environment,"replay_trace":model.replay_trace,
+            "namespace":input.namespace,"storage":input.storage}
+    })
+}
+
+fn storage_state_sections(bytes: &[u8]) -> BTreeMap<u32, Vec<u8>> {
+    assert_eq!(&bytes[..8], crate::storage_transport::STATE_MAGIC);
+    let count = u32::from_le_bytes(bytes[12..16].try_into().unwrap());
+    let mut cursor = 16;
+    let mut sections = BTreeMap::new();
+    for _ in 0..count {
+        let tag = u32::from_le_bytes(bytes[cursor..cursor + 4].try_into().unwrap());
+        let length = usize::try_from(u64::from_le_bytes(
+            bytes[cursor + 4..cursor + 12].try_into().unwrap(),
+        ))
+        .unwrap();
+        cursor += 12;
+        assert!(
+            sections
+                .insert(tag, bytes[cursor..cursor + length].to_vec())
+                .is_none()
+        );
+        cursor += length;
+    }
+    assert_eq!(cursor + 40, bytes.len());
+    assert_eq!(
+        u64::from_le_bytes(bytes[cursor..cursor + 8].try_into().unwrap()),
+        cursor as u64
+    );
+    assert_eq!(
+        Sha256::digest(&bytes[..cursor]).as_slice(),
+        &bytes[cursor + 8..]
+    );
+    sections
+}
+
+#[test]
+fn actual_storage_engine_selection_and_divergence_retain_peak_memory_and_enumeration() {
+    let model: crate::volume::StorageModel = serde_json::from_value(json!({
+        "volumes":[{"ID":"data","Path":"/workspace","CapacityBytes":1 << 20}],
+        "limits":{"PendingOperations":1000,"Transitions":10000}
+    }))
+    .unwrap();
+    let baseline = json!({"model":model,"model_identity":model.identity(),"return_image":true,
+        "crash_limits":{"States":16,"Operations":8,"Depth":8,"Bytes":1 << 20,"Work":256}});
+    let mut observations = Vec::new();
+    for fresh_execution in 0..2 {
+        let input = storage_engine_request(&baseline, None);
+        let module_sha256 = input.module_sha256.clone();
+        let input_facts = storage_engine_input_facts(&input);
+        let result = linked::execute_prepared(linked::prepare(input).unwrap()).unwrap();
+        assert_eq!(result.outcome.termination, "exit");
+        assert_eq!(result.outcome.exit_code, Some(0));
+        assert!(result.outcome.peak_memory_bytes > 0);
+        let sections = storage_state_sections(&result.evidence["storage_state"]);
+        let context: Value = serde_json::from_slice(&sections[&6]).unwrap();
+        assert!(!context["data"]["Operations"].as_array().unwrap().is_empty());
+        let enumerations: Value = serde_json::from_slice(&sections[&3]).unwrap();
+        assert_eq!(enumerations["data"]["Complete"], true);
+        assert!(enumerations["data"]["States"].as_array().unwrap().len() >= 2);
+        println!(
+            "GOMAD_CORE_OBSERVATION {}",
+            json!({
+                "schema":"gomad.core-predicate-observation/v1","case":"storage-engine-baseline",
+                "inputs":{"descriptor":baseline,"fresh_execution":fresh_execution,"module_sha256":module_sha256,"module_bytes":input_facts["module_bytes"],
+                "wat_utf8":input_facts["wat_utf8"],"request":input_facts["request"]},
+                "observed":{"termination":result.outcome.termination,"message":result.outcome.message,
+                    "exit_code":result.outcome.exit_code,"peak_memory_bytes":result.outcome.peak_memory_bytes,
+                    "state_bytes":result.evidence["storage_state"],"log_bytes":result.evidence["storage"],
+                    "image_bytes":result.evidence.get("storage_image"),"context":context,"enumerations":enumerations}
+            })
+        );
+        observations.push((context, enumerations, result));
+    }
+    for stream in ["storage_state", "storage", "storage_image"] {
+        assert_eq!(
+            observations[0].2.evidence[stream],
+            observations[1].2.evidence[stream]
+        );
+    }
+    let states = observations[0].1["data"]["States"].as_array().unwrap();
+    for (state_index, state) in states.iter().enumerate() {
+        for (fresh_execution, (context, _, _)) in observations.iter().enumerate() {
+            let mut descriptor = baseline.clone();
+            descriptor["crash_selection"] = json!({"data":state["SelectedOperations"]});
+            let input = storage_engine_request(&descriptor, Some(context));
+            let module_sha256 = input.module_sha256.clone();
+            let input_facts = storage_engine_input_facts(&input);
+            let result = linked::execute_prepared(linked::prepare(input).unwrap()).unwrap();
+            assert_eq!(result.outcome.termination, "exit");
+            assert_eq!(result.outcome.exit_code, Some(0));
+            assert!(result.outcome.peak_memory_bytes > 0);
+            let image = &result.evidence["storage_image"];
+            let recovered = crate::volume::Storage::recover(
+                model.clone(),
+                8 << 20,
+                image,
+                &format!("{:x}", Sha256::digest(image)),
+                2 << 20,
+            )
+            .unwrap();
+            let present = recovered.fs.lookup("/workspace/db").is_ok();
+            assert_eq!(
+                present,
+                state["Entries"]
+                    .as_array()
+                    .unwrap()
+                    .iter()
+                    .any(|entry| entry["Path"] == "/db")
+            );
+            println!(
+                "GOMAD_CORE_OBSERVATION {}",
+                json!({
+                    "schema":"gomad.core-predicate-observation/v1","case":"storage-engine-selected",
+                    "inputs":{"descriptor":descriptor,"context":context,"state":state,"state_index":state_index,
+                        "fresh_execution":fresh_execution,"module_sha256":module_sha256,"module_bytes":input_facts["module_bytes"],
+                "wat_utf8":input_facts["wat_utf8"],"request":input_facts["request"]},
+                    "observed":{"termination":result.outcome.termination,"message":result.outcome.message,
+                        "exit_code":result.outcome.exit_code,"peak_memory_bytes":result.outcome.peak_memory_bytes,
+                        "state_bytes":result.evidence["storage_state"],"log_bytes":result.evidence["storage"],
+                        "image_bytes":image,"db_present":present}
+                })
+            );
+        }
+    }
+    for (fresh_execution, (context, enumerations, _)) in observations.iter().enumerate() {
+        let mut context = context.clone();
+        context["data"]["PendingSHA256"] = json!(format!("sha256:{}", "0".repeat(64)));
+        let mut descriptor = baseline.clone();
+        descriptor["crash_selection"] =
+            json!({"data":states.last().unwrap()["SelectedOperations"]});
+        let input = storage_engine_request(&descriptor, Some(&context));
+        let module_sha256 = input.module_sha256.clone();
+        let input_facts = storage_engine_input_facts(&input);
+        let result = linked::execute_prepared(linked::prepare(input).unwrap()).unwrap();
+        assert_eq!(result.outcome.termination, "invalid");
+        assert_eq!(
+            result.outcome.message,
+            "storage crash context diverged from prior observation"
+        );
+        assert_eq!(result.outcome.exit_code, None);
+        assert!(result.outcome.peak_memory_bytes > 0);
+        assert!(!result.evidence.contains_key("storage_image"));
+        let sections = storage_state_sections(&result.evidence["storage_state"]);
+        let retained: Value = serde_json::from_slice(&sections[&3]).unwrap();
+        assert_eq!(&retained, enumerations);
+        println!(
+            "GOMAD_CORE_OBSERVATION {}",
+            json!({
+                "schema":"gomad.core-predicate-observation/v1","case":"storage-engine-divergence",
+                "inputs":{"descriptor":descriptor,"context":context,"fresh_execution":fresh_execution,
+                    "module_sha256":module_sha256,"module_bytes":input_facts["module_bytes"],
+                "wat_utf8":input_facts["wat_utf8"],"request":input_facts["request"]},
+                "observed":{"termination":result.outcome.termination,"message":result.outcome.message,
+                    "exit_code":result.outcome.exit_code,"peak_memory_bytes":result.outcome.peak_memory_bytes,
+                    "state_bytes":result.evidence["storage_state"],"log_bytes":result.evidence["storage"],
+                    "image_bytes":result.evidence.get("storage_image"),"enumerations":retained,
+                    "original_enumerations":enumerations}
+            })
+        );
+    }
+}
