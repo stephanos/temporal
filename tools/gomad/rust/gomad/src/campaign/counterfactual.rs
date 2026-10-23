@@ -1,3 +1,6 @@
+#[path = "counterfactual_assertions.rs"]
+mod assertions;
+
 use super::{execution, ledger, prepare::Prepared};
 use crate::evidence::canonical;
 use gomad_wasmhost::{linked, linked_cluster::Handle};
@@ -36,12 +39,12 @@ const WIRE_SHA256: &str = "bc11cf9093eac65c5a54e29494c35bb2ec23c8a93a1a88a33ec2a
 const MAIN_SHA256: &str = "b1f66edccd8a9f0b2dcb714e12edf043fa71ded378b932068937b92430771998";
 const FIXTURE_SHA256: &str = "1b3ad687b44742555d9b9b66e73ac1c30cc621c6d5cd2b95f4afbbe41a95ea18";
 
-const INSERTION: &str = r#"
+const INSERTION: &str = r"
 	gomadDeterminismFixturePending = gomadDeterminismFixturePending || gomadSeed&(1<<63) != 0
 	gomadDeterminismFixtureOutputPending = gomadDeterminismFixtureOutputPending || gomadSeed&(1<<62) != 0
 	gomadSeed &= ^uint64((1<<63)|(1<<62))
-"#;
-const APPENDIX: &str = r#"
+";
+const APPENDIX: &str = r"
 var gomadDeterminismFixturePending bool
 var gomadDeterminismFixtureOutputPending bool
 
@@ -55,7 +58,7 @@ func gomadDeterminismFixtureDraw() {
 		gomadChoiceRunqSeeded(2)
 	}
 }
-"#;
+";
 
 fn runtime_sources(semantics: &[u8], wire: &[u8]) -> Result<(Vec<u8>, Vec<u8>), String> {
     if canonical::digest(semantics) != SEMANTICS_SHA256 || canonical::digest(wire) != WIRE_SHA256 {
@@ -90,6 +93,7 @@ fn validate_preparation(prepared: &Prepared) -> Result<(), String> {
         || configuration.limits.fuel != 1 << 60
         || configuration.limits.wall_millis != 60_000
         || configuration.limits.output_bytes != 1 << 20
+        || configuration.world_transition_bytes != Some(4 << 20)
         || model["limit"] != 1 << 20
         || model["diagnostics"] != true
         || model["limits"]["calls"] != 1 << 20
@@ -257,7 +261,7 @@ fn produce_pair(
     let mut pair = Vec::new();
     for fault in [linked::FixtureFault::None, kind] {
         let result = run(
-            &prepared,
+            prepared,
             &ledger::Job {
                 ordinal: 0,
                 seed: 7,
@@ -300,6 +304,151 @@ fn produce_pair(
     pair
 }
 
+fn verify_pair(input: &Inputs, case: &Case, root: &Path, pair: &[Value]) -> Value {
+    let cell = |artifact: &Value, axis: &str| {
+        json!({
+            "fresh":true,"workload":"original-determinism-fixture","seed":7,
+            "identities":{"module":MAIN_SHA256,"runtime":FIXTURE_SHA256},
+            "artifact":artifact["artifact"],"binary":input.cli,"axis":axis,
+            "command":[std::env::current_exe().unwrap(),"--ignored","--exact",
+                "campaign::counterfactual::produce_the_four_original_counterfactual_artifact_pairs"]
+        })
+    };
+    let report = crate::stress::compare_counterfactual(
+        &cell(&pair[0], "baseline"),
+        &cell(&pair[1], &case.name),
+    )
+    .unwrap();
+    write(
+        &root.join(&case.name).join("first-divergence.json"),
+        &report,
+    );
+    assert_eq!(report["status"], "diverged", "{report}");
+    assert_eq!(report["ordering"], "helper-event");
+    assertions::original_predicates(&case.name, &report, pair);
+    let expected_kind = match case.name.as_str() {
+        "draw" => "draw-counter",
+        "clock" => "clock",
+        "handoff" => "world-order",
+        "output-clock" => "output",
+        _ => unreachable!(),
+    };
+    assert_eq!(report["first"]["kind"], expected_kind, "{report}");
+    assert!(report["first"]["coordinate"]["Shared"].as_u64().unwrap() > 0);
+    assert_ne!(report["first"]["instance"].as_str().unwrap(), "");
+    assert_eq!(report["first"]["incarnation"], 1);
+    assert_ne!(report["first"]["expected"], report["first"]["actual"]);
+    let command = report["reproducer"]["replay_command"]
+        .as_array()
+        .unwrap()
+        .iter()
+        .map(|value| value.as_str().unwrap().to_owned())
+        .collect::<Vec<_>>();
+    assert_eq!(command[0], input.cli.to_str().unwrap());
+    assert!(report["reproducer"]["prefix_unavailable"].is_null());
+    assert!(command.contains(&pair[0]["artifact"].as_str().unwrap().to_owned()));
+    let mut provider_output = Vec::new();
+    assert_eq!(
+        crate::cli::replay::run(&command[2..], &mut provider_output)
+            .map_err(|error| error.message)
+            .unwrap(),
+        0
+    );
+    let inspection: Value = serde_json::from_slice(&provider_output).unwrap();
+    assertions::inspected_prefix(&inspection, &report);
+    write(
+        &root.join(&case.name).join("provider-inspection.json"),
+        &inspection,
+    );
+    authenticate_cli(&input.cli, &input.cli_sha256).unwrap();
+    let output = std::process::Command::new(&command[0])
+        .args(&command[1..])
+        .output()
+        .unwrap();
+    let directory = root.join(&case.name);
+    std::fs::write(directory.join("public-replay.stdout"), &output.stdout).unwrap();
+    std::fs::write(directory.join("public-replay.stderr"), &output.stderr).unwrap();
+    let receipt = json!({"command":command,"exit_code":output.status.code(),
+        "stdout_sha256":canonical::digest(&output.stdout),"stderr_sha256":canonical::digest(&output.stderr),
+        "cli_sha256":input.cli_sha256});
+    write(&directory.join("public-replay.json"), &receipt);
+    assert!(
+        output.status.success(),
+        "{receipt}: {}",
+        String::from_utf8_lossy(&output.stderr)
+    );
+    let replay: Value = serde_json::from_slice(&output.stdout).unwrap();
+    assert_eq!(replay["status"], "inspected_prefix", "{replay}");
+    assert_eq!(replay["prefix_verified"], true, "{replay}");
+    assert_eq!(replay["witness_match"], true, "{replay}");
+    assert_eq!(
+        replay["resolved"]["choice"], report["reproducer"]["stop"]["stop"]["value"],
+        "{replay}"
+    );
+    json!({"report":report,"public_replay":receipt,"result":replay})
+}
+
+#[derive(Deserialize)]
+#[serde(deny_unknown_fields)]
+struct PreparationInputs {
+    installation_arguments: Vec<String>,
+    cli: PathBuf,
+    cli_sha256: String,
+    cases: Vec<PreparationCase>,
+    output: PathBuf,
+}
+#[derive(Deserialize)]
+#[serde(deny_unknown_fields)]
+struct PreparationCase {
+    name: String,
+    options: crate::cli::explore::ExploreOptions,
+    plan: PathBuf,
+}
+
+#[test]
+#[ignore = "requires the exact original fixture installation, compiler lease and private diagnostic request bounds"]
+fn prepare_the_four_original_counterfactual_requests() {
+    let path = PathBuf::from(std::env::var_os("GOMAD_CORE_COUNTERFACTUAL_PREPARATION").unwrap());
+    let input: PreparationInputs = serde_json::from_slice(&std::fs::read(&path).unwrap()).unwrap();
+    authenticate_cli(&input.cli, &input.cli_sha256).unwrap();
+    let mut installation_output = Vec::new();
+    assert_eq!(
+        crate::cli::install::run(&input.installation_arguments, &mut installation_output)
+            .map_err(|error| error.message)
+            .unwrap(),
+        0
+    );
+    let mut cases = Vec::new();
+    for case in input.cases {
+        let prepared = super::preparation::seed(&case.options).unwrap();
+        validate_preparation(&prepared.prepared).unwrap();
+        let (receipt, _, receipt_sha256) = prepared
+            .publish(
+                &case.plan,
+                vec![
+                    std::env::current_exe()
+                        .unwrap()
+                        .to_string_lossy()
+                        .into_owned(),
+                    "--ignored".into(),
+                    "--exact".into(),
+                    "campaign::counterfactual::prepare_the_four_original_counterfactual_requests"
+                        .into(),
+                ],
+            )
+            .unwrap();
+        cases.push(
+            json!({"name":case.name,"receipt":receipt,"receipt_sha256":receipt_sha256,
+            "original_requested_choice_bytes":if case.name == "handoff" {0} else {4 << 20}}),
+        );
+    }
+    write(
+        &input.output,
+        &json!({"schema":"gomad.core-counterfactual-producer/v1",
+        "cli":input.cli,"cli_sha256":input.cli_sha256,"cases":cases}),
+    );
+}
+
 #[test]
 #[ignore = "requires original authenticated fixture-runtime preparations and an explicitly granted genuine Go guest slot"]
 fn produce_the_four_original_counterfactual_artifact_pairs() {
@@ -330,7 +479,7 @@ fn produce_the_four_original_counterfactual_artifact_pairs() {
         .unwrap();
     let mut rows = Vec::new();
     let mut original_module = None;
-    for case in input.cases {
+    for case in &input.cases {
         assert_eq!(
             case.original_requested_choice_bytes,
             if case.name == "handoff" { 0 } else { 4 << 20 }
@@ -359,8 +508,9 @@ fn produce_the_four_original_counterfactual_artifact_pairs() {
             "output-clock" => linked::FixtureFault::OutputClock,
             _ => unreachable!(),
         };
-        let pair = produce_pair(&prepared, &case, &root, kind);
-        rows.push(json!({"name":case.name,"receipt":case.receipt,"receipt_sha256":case.receipt_sha256,"original_requested_choice_bytes":case.original_requested_choice_bytes,"effective_runtime_trace_bytes":1 << 20,"diagnostics":true,"baseline":pair[0],"fault":pair[1]}));
+        let pair = produce_pair(&prepared, case, &root, kind);
+        let verification = verify_pair(&input, case, &root, &pair);
+        rows.push(json!({"name":case.name,"receipt":case.receipt,"receipt_sha256":case.receipt_sha256,"original_requested_choice_bytes":case.original_requested_choice_bytes,"effective_runtime_trace_bytes":1 << 20,"diagnostics":true,"baseline":pair[0],"fault":pair[1],"verification":verification}));
     }
     write(
         &root.join("artifact-pairs.json"),

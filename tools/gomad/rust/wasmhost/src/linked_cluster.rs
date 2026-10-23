@@ -351,6 +351,8 @@ impl Prepared {
     }
 
     #[cfg(feature = "determinism-fixture")]
+    /// # Errors
+    /// Refuses faults without the fixture role or a matching incarnation owner.
     pub fn fixture_fault(
         &mut self,
         fault: linked::FixtureFault,
