@@ -1,0 +1,69 @@
+package main
+
+import (
+	"context"
+	"encoding/json"
+	"fmt"
+	"io"
+	"os"
+
+	"go.temporal.io/server/tools/gomad/internal/backends/wasm/backend"
+	"go.temporal.io/server/tools/gomad/internal/backends/wasm/wasi"
+)
+
+func run() error {
+	if len(os.Args) != 2 {
+		return fmt.Errorf("one request path required")
+	}
+	input, err := os.Open(os.Args[1])
+	if err != nil {
+		return err
+	}
+	defer input.Close()
+	var invocation struct {
+		Request     wasi.Request `json:"request"`
+		RemoteModel bool         `json:"remote_model"`
+	}
+	decoder := json.NewDecoder(io.LimitReader(input, 16<<20))
+	decoder.DisallowUnknownFields()
+	if err := decoder.Decode(&invocation); err != nil {
+		return err
+	}
+	var trailing any
+	if err := decoder.Decode(&trailing); err != io.EOF {
+		return fmt.Errorf("trailing request input: %v", err)
+	}
+	module, err := os.ReadFile(invocation.Request.ModulePath)
+	if err != nil {
+		return err
+	}
+	imports, pages, err := backend.InspectModule(module)
+	if err != nil {
+		return err
+	}
+	invocation.Request.Imports = imports
+	invocation.Request.InitialMemoryPages = pages
+	invocation.Request.SetRemoteModel(invocation.RemoteModel)
+	result, runErr := wasi.Run(context.Background(), invocation.Request)
+	terminal := result.RuntimeTerminal()
+	resultError := ""
+	if runErr != nil {
+		resultError = runErr.Error()
+	}
+	if err := json.NewEncoder(os.Stdout).Encode(struct {
+		Result       wasi.Result `json:"result"`
+		Terminal     []byte      `json:"terminal"`
+		Error        string      `json:"error"`
+		HelperStderr []byte      `json:"helper_stderr"`
+	}{result, terminal[:], resultError, result.HelperStderr()}); err != nil {
+		return err
+	}
+	return runErr
+}
+
+func main() {
+	if err := run(); err != nil {
+		fmt.Fprintln(os.Stderr, err)
+		os.Exit(3)
+	}
+}
