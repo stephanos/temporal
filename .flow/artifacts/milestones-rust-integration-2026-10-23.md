@@ -424,3 +424,25 @@ Fresh independent same-family review is clear. Earlier receiving failures
 remain recorded. All root test/build handles are terminal; active isolated
 workers retain their listed worktrees and targets. The full milestone goal
 and frozen qualification remain open.
+
+## Actual capture and native completion receiving
+
+At `dcdedf292baca7e270dcc10583ab83c88494656c`, the repaired production capture/configuration tests
+pass3/3 and linked runtime/lifecycle tests pass8/8. The first root attempt
+found two fixture prerequisite errors; both failures remain recorded.
+Actual host-source deletion and removal of caller buffers precede namespace
+read/noent/read-only checks. Native execution checks runtime finish, exact
+replay refusal classes and completed worker/watchdog boundaries. Strict release
+Clippy across both libraries/tests and workspace formatting pass.
+
+Fresh independent review compared every original assertion for five whole
+references. Their34 evidence occurrences now point to receiving tests, preserving
+all508 ID/site pairs and all other inventory fields. The evidence resolver
+still fails with15 unresolved references (down from20); no inventory pass or
+frozen qualification is claimed. Diagnostic/fixture source receiving continues.
+
+Read-only source/raw-trace investigation explains the original handoff failure:
+the guest intentionally exits1, so fail-fast stops its unfinished concurrent
+peer. Actual events551–556 show finish, exit, stop, cancellation and joined
+completion. This diagnoses the all-exit assertion contradiction; it grants no
+replacement predicate or acceptance waiver. Full milestone work remains active.

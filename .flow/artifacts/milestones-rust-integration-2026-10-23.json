@@ -1022,10 +1022,91 @@
           "same_family": true
         }
       ]
+    },
+    {
+      "observed_at": "2026-10-23T10:15:12.826805+00:00",
+      "integration_head": "dcdedf292baca7e270dcc10583ab83c88494656c",
+      "final_qualification": false,
+      "logs": [
+        {
+          "path": "/home/agent/.cache/codex-build/fn232-root-captured-input-preservation-tests.log",
+          "bytes": 2118,
+          "sha256": "bfac545313cf21f784dc40236962f9a3f40f1c1e1f0b011c0e5b94c58788fce7",
+          "exit": 101,
+          "scope": "1 passed2failed: missing required WASI environ sizes; duplicate writable package path"
+        },
+        {
+          "path": "/home/agent/.cache/codex-build/fn232-root-captured-input-preservation-tests-fixed.log",
+          "bytes": 803,
+          "sha256": "0f9d586d33d0d0b48541bb5ff5d28fdbb383cec2f333785bc75f6953a69a9069",
+          "exit": 0,
+          "scope": "3 actual capture/configuration receiving tests pass after fixture-only prerequisites repair"
+        },
+        {
+          "path": "/home/agent/.cache/codex-build/fn232-root-runtime-lifecycle-preservation-tests.log",
+          "bytes": 1148,
+          "sha256": "00fe1920b322d9a9f825df2ff3b22f2cb5d0836465df8d09dfe36411e92cea5a",
+          "exit": 0,
+          "scope": "8 actual linked runtime/lifecycle integration tests pass"
+        },
+        {
+          "path": "/home/agent/.cache/codex-build/fn232-root-capture-runtime-inventory-receiving.log",
+          "bytes": 3439,
+          "sha256": "16d814716da6c46f0238bd34485ff4e391f6a1e5b3bda0892b593106c68e5665",
+          "exit": 101,
+          "scope": "2 evidence tests pass; resolver remains red with15 unique unresolved retired references;32 others filtered"
+        },
+        {
+          "path": "/home/agent/.cache/codex-build/fn232-root-capture-runtime-clippy.log",
+          "bytes": 278,
+          "sha256": "d086fc7e598edb8cc457f55a964fd0a2d15fd58ce3ec394716b96a40627b71f6",
+          "exit": 0,
+          "scope": "Strict release both libraries and integration tests Clippy"
+        }
+      ],
+      "completed_scope": [
+        "Receivedd48ef5339e as49a3a8fc99 andb764431a18 as0a84ccc416. Genuine production captured namespace remains readable after actual host source deletion and both caller capture buffers removed; immutable full configuration plus ordered model input/entropy semantics verified.",
+        "Actual replay without runtime finish refuses collection; malformed duplicate/highkind decisions are invalid at linked engine boundary; four original guest outcome cases return after native worker join and production watchdog completion.",
+        "Five exact whole-reference mappings across34rows accepted by fresh independent original-assertion review. All508ID/site pairs, other fields and top-level metadata unchanged. Evidence resolver reduced20to15 unique unresolved refs, remains failing.",
+        "Workspace fmt/diff checks and strict release bothlibs/integrationtests Clippy pass."
+      ],
+      "pending": [
+        "Remaining15 retired references unresolved, including six malformed legacy JSON random calls, removed helper-wire shape predicates, diagnostic/fixture matrices, namespace generator parity, installed failure lifecycle, runtime32seed qualification, and original handoff allExit predicate.",
+        "New coherent diagnostic/fixture receiving source batch actively assigned; no whole-reference promotion before actual checks.",
+        "Measurement exact-recipe owner repairing actual normalized tags join before sourceREADY; broad native preservation cancellation gates remain owner-held. Full MILESTONES/frozen96stage qualification remains open."
+      ],
+      "reviews": [
+        {
+          "agent": "/root/capture_runtime_evidence_review",
+          "scope": "dcdedf292b five complete original predicate mappings and receiving source49a3/0a84",
+          "status": "no findings after all original assertion comparisons",
+          "same_family": true
+        },
+        {
+          "agent": "/root/remaining_model_predicates/review_remaining_model_predicates",
+          "scope": "receiving source repair prerequisites",
+          "status": "no findings; actual receiving executions subsequently pass",
+          "same_family": true
+        }
+      ],
+      "original_handoff_audit": {
+        "status": "SOURCE_AND_RETAINED_EVIDENCE_DIAGNOSIS_ONLY",
+        "original_predicate_pass": false,
+        "cause": "Original guest unconditionally exits1; failure owner finishes and exits1 while production failfast stops unfinished concurrent peer. Original all-incarnations-exit assertion contradicts this observed deliberate-failure ordering.",
+        "actual_events": [
+          "551 a runtime-finish",
+          "552 a exit1",
+          "553 a finish",
+          "554 b stop clusterfailed",
+          "555 pendingWorldcancel",
+          "556 b finish; complete"
+        ],
+        "scope": "No assertion replacement, waiver or final qualification acceptance granted; original red execution and raw artifacts retained."
+      }
     }
   ],
   "resource_snapshot": {
-    "observed_at": "2026-10-23T10:06:24.135683+00:00",
+    "observed_at": "2026-10-23T10:15:12.826841+00:00",
     "worktrees": [
       {
         "worktree": "/Users/stephan/Workspace/skunkworks/gomad/temporal",
@@ -1381,8 +1462,8 @@
         "retention_reason": "Existing open-spec source/evidence custody or active isolated worker; no ownership release inferred from inactivity."
       }
     ],
-    "free_space": "Filesystem      Size  Used Avail Use% Mounted on\nhost            927G  825G  102G  90% /Users/stephan/Workspace/skunkworks\noverlay         196G  173G   13G  94% /\n",
-    "cleanup": "No cache/evidence deletion. Root cluster fixture cleaned its owned Git metadata scratch namespace; all root test/build handles terminal.",
+    "free_space": "Filesystem      Size  Used Avail Use% Mounted on\nhost            927G  826G  101G  90% /Users/stephan/Workspace/skunkworks\noverlay         196G  174G   13G  94% /\n",
+    "cleanup": "No cache/evidence deletion this update. All root Cargo/test handles terminal; worker-owned compilation and preflight custody remain assigned.",
     "preserved_user_paths": [
       "tools/gomad/.turbo/",
       "tools/gomad/internal/backends/wasm/wasmhost/"
