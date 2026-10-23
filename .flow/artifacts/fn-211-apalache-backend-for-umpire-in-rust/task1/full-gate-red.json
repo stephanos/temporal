@@ -1,0 +1,9 @@
+{
+  "command": "timeout 3600 env UMPIRE_BACKENDS=require make model-time",
+  "head": "0e564495164728d3f97fed0a88eb4bd79f8459cc",
+  "session": 32240,
+  "exit_code": 2,
+  "completed_stages": 11,
+  "failure": "workspace tests exit101; shared_returns_tests typed LET expectation stale",
+  "receipt_minted": false
+}

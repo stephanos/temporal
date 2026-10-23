@@ -1,0 +1,32 @@
+{
+  "head": "26dd66814f951daccabad762372de6674f84acf3",
+  "runtime_closure_entries": 2181,
+  "changed_runtime_source": [
+    "model/umpire/front/src/body/effects.rs"
+  ],
+  "baseline_artifacts": 558,
+  "changed_artifacts": [
+    "model/temporal/feature/activity/expected/Activity@tla.snap.tla",
+    "model/umpire/tests/fixtures/action_inputs/expected/Inputs@tla.snap.tla",
+    "model/umpire/tests/fixtures/changed_state/expected/ChangedState@tla.snap.tla",
+    "model/umpire/tests/fixtures/parameterized_world/expected/Counter@tla.snap.tla",
+    "model/umpire/tests/fixtures/phased_rejection/expected/Job@tla.snap.tla",
+    "model/umpire/tests/fixtures/progress_continuous/expected/Graph@tla.snap.tla",
+    "model/umpire/tests/fixtures/progress_excluded_prefix/expected/Graph@tla.snap.tla",
+    "model/umpire/tests/fixtures/progress_fulfilled/expected/Graph@tla.snap.tla",
+    "model/umpire/tests/fixtures/progress_graph/expected/Graph@tla.snap.tla",
+    "model/umpire/tests/fixtures/progress_intermittent/expected/Graph@tla.snap.tla",
+    "model/umpire/tests/fixtures/progress_scope_exit/expected/Graph@tla.snap.tla",
+    "model/umpire/tests/fixtures/progress_self_loop/expected/Graph@tla.snap.tla",
+    "model/umpire/tests/fixtures/progress_target_barrier/expected/Graph@tla.snap.tla",
+    "model/umpire/tests/fixtures/progress_trigger_stops/expected/Graph@tla.snap.tla",
+    "model/umpire/tests/fixtures/progress_two_lobes/expected/Graph@tla.snap.tla",
+    "model/umpire/tests/fixtures/sample_kettle/expected/Kettle@tla.snap.tla",
+    "model/umpire/tests/fixtures/shared_returns/expected/Gate@tla.snap.tla"
+  ],
+  "non_tla_baseline_artifacts_exact": true,
+  "prior_unchanged_source_live_reuse_invalid": true,
+  "fresh_live_slice_observed": "7 scenarios passed, 5.917 seconds Go time",
+  "fresh_gaps": "pending original running handle; no success claimed",
+  "full_gate": "pending"
+}
