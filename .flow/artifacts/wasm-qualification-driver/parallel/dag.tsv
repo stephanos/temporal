@@ -79,7 +79,7 @@ runtime-aggregate	runtime-0,runtime-1,runtime-2,runtime-3,runtime-4,runtime-5,ru
 artifact	ordinary-helper-publication	normal	2	1	81	-	-	-	2
 operator	ordinary-helper-publication	normal	2	1	43	-	-	-	2
 storage	ordinary-helper-publication	normal	4	4	404	-	-	heavy	2
-temporal-inspection	helper-build	normal	3	4	1296	-	service/history/.gomad-inspection-*	bg,heavy	2
+temporal-inspection	helper-build	normal	6	9	1296	-	service/history/.gomad-inspection-*	bg,heavy	2
 network	ordinary-helper-publication	normal	4	5	208	-	-	heavy	2
 clusters	ordinary-helper-publication	normal	4	4	298	-	-	heavy	2
 workload-fixture-controlled-success	clusters	budgeted	2	1	8	-	-	-	2

@@ -376,6 +376,33 @@ def runtime_aggregate(config, root, label):
 
 
 
+def with_fn222(config, root, stage):
+    """Run the fn-222 ordered support producer beside the stage's own inspection, then join both.
+
+    Serially it added ~1,200-1,700 s to the critical path; the stage declares the combined peak in dag.tsv.
+    """
+    import threading
+    from onebox_receiving import binding
+    argv, _, _ = binding(config)
+    failure = []
+
+    def support():
+        try:
+            command(config, root, 'fn222', argv, timeout=3600)
+        except BaseException as error:  # joined and re-raised in the stage thread
+            failure.append(error)
+
+    worker = threading.Thread(target=support, name='fn222-support')
+    worker.start()
+    try:
+        observed = stage()
+    finally:
+        worker.join()
+    if failure:
+        raise failure[0]
+    return observed
+
+
 def execute_primary(config, root, label):
     entry = config['stages'][label]
     adapter = entry['adapter']
@@ -383,12 +410,9 @@ def execute_primary(config, root, label):
         import primary_stages
         require(label in primary_stages.OWNED, 'unowned primary stage')
         require(set(entry) <= {'adapter', 'live_families'}, 'caller controls cannot override a fixed primary recipe')
-        observed = primary_stages.execute(config, root, label)
         if label == 'temporal-inspection' and config.get('fn222'):
-            from onebox_receiving import binding
-            argv, _, _ = binding(config)
-            command(config, root, 'fn222', argv, timeout=3600)
-        return observed
+            return with_fn222(config, root, lambda: primary_stages.execute(config, root, label))
+        return primary_stages.execute(config, root, label)
     expected = ('qualify' if label in CELLS else 'runtime' if re.fullmatch(r'runtime-\d+', label) else
                 'runtime-aggregate' if label == 'runtime-aggregate' else
                 'sqlite-selection' if re.fullmatch(r'sqlite-selection-[0-3]', label) else
@@ -400,12 +424,9 @@ def execute_primary(config, root, label):
     if adapter == 'pending':
         raise Unexecuted(label + ': ' + entry.get('reason', 'actual Rust endpoint unavailable'))
     if adapter == 'checked-command':
-        result = checked_command(config, root, label, entry)
         if label == 'temporal-inspection' and config.get('fn222'):
-            from onebox_receiving import binding
-            argv, _, _ = binding(config)
-            command(config, root, 'fn222', argv, timeout=3600)
-        return result
+            return with_fn222(config, root, lambda: checked_command(config, root, label, entry))
+        return checked_command(config, root, label, entry)
     if adapter == 'sqlite-selection':
         import sqlite
         return sqlite.select(config, root, label, entry)

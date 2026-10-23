@@ -151,3 +151,33 @@ class AdapterContract(unittest.TestCase):
 
 if __name__ == '__main__':
     unittest.main()
+
+
+class Fn222Concurrency(unittest.TestCase):
+    def test_support_runs_beside_the_stage_and_failures_join(self):
+        import threading
+        from unittest.mock import patch
+        import adapters
+        import onebox_receiving
+        started, release = threading.Event(), threading.Event()
+        calls = []
+
+        def support(config, root, name, argv, timeout=None):
+            calls.append((name, argv, timeout))
+            started.set()
+            self.assertTrue(release.wait(5), 'stage did not run beside fn222')
+
+        def stage():
+            self.assertTrue(started.wait(5), 'fn222 did not start beside the stage')
+            release.set()
+            return 'observed'
+
+        with patch.object(adapters, 'command', support), \
+                patch.object(onebox_receiving, 'binding', lambda config: (['/fn222'], None, None)):
+            self.assertEqual(adapters.with_fn222({}, Path('/root'), stage), 'observed')
+            self.assertEqual(calls, [('fn222', ['/fn222'], 3600)])
+
+            def failing(*_args, **_kwargs):
+                raise driver.Refusal('fn222 failed')
+            with patch.object(adapters, 'command', failing), self.assertRaises(driver.Refusal):
+                adapters.with_fn222({}, Path('/root'), lambda: 'observed')
