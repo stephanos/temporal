@@ -245,9 +245,10 @@ fn launch(
     binary: &Path,
     directory: &Directory,
 ) -> Result<i32, super::Error> {
-    let mut search = OsString::from(directory.path.as_os_str());
-    search.push(":");
-    search.push(original_path);
+    let search = std::env::join_paths(
+        std::iter::once(directory.path.clone()).chain(std::env::split_paths(original_path)),
+    )
+    .map_err(filesystem)?;
     let child = resolve(&arguments.child[0], &search)?;
     let artifacts = std::path::absolute(&arguments.artifacts).map_err(filesystem)?;
     // Descendants retain the lease if this wrapper is interrupted before they exit.
