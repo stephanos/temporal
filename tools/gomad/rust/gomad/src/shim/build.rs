@@ -246,16 +246,40 @@ fn registration(
     Ok(registered)
 }
 
-struct Child(std::process::Child);
+struct Child {
+    process: std::process::Child,
+    deadline: Instant,
+}
+
 impl Drop for Child {
     fn drop(&mut self) {
-        if let Ok(raw) = i32::try_from(self.0.id())
-            && let Some(pid) = rustix::process::Pid::from_raw(raw)
-        {
+        if matches!(self.process.try_wait(), Ok(Some(_))) {
+            return;
+        }
+        let cleanup_start = Instant::now().min(self.deadline);
+        let _backstop = crate::backstop::arm_until(cleanup_start);
+        let cleanup_end = cleanup_start + crate::backstop::CLEANUP_GRACE;
+        let group = i32::try_from(self.process.id())
+            .ok()
+            .and_then(rustix::process::Pid::from_raw);
+        if let Some(pid) = group {
+            let _ = rustix::process::kill_process_group(pid, rustix::process::Signal::TERM);
+        }
+        loop {
+            if matches!(self.process.try_wait(), Ok(Some(_))) {
+                return;
+            }
+            let remaining = cleanup_end.saturating_duration_since(Instant::now());
+            if remaining.is_zero() {
+                break;
+            }
+            std::thread::sleep(Duration::from_millis(10).min(remaining));
+        }
+        if let Some(pid) = group {
             let _ = rustix::process::kill_process_group(pid, rustix::process::Signal::KILL);
         }
-        let _ = self.0.kill();
-        let _ = self.0.wait();
+        let _ = self.process.kill();
+        let _ = self.process.wait();
     }
 }
 
@@ -266,7 +290,7 @@ impl Drop for Child {
 pub(super) fn run(
     contract: &Contract,
     recipes: Vec<Recipe>,
-    argv: Vec<OsString>,
+    argv: &[OsString],
     deadline: Instant,
 ) -> Result<i32, String> {
     let invocation_id = origin::identity()?;
@@ -291,14 +315,14 @@ pub(super) fn run(
         .get("GOFLAGS")
         .map_or(OsStr::new(""), |value| OsStr::new(value));
     let dry_run = super::classify::inspect(
-        &argv[build_index(&argv)? + 1..],
+        &argv[build_index(argv)? + 1..],
         goflags,
         super::classify::Kind::Build,
     )?
     .effective
     .get("n")
     .is_some_and(|value| value != "false" && value != "0");
-    let (argv, output) = output_arguments(&argv, &root.join("outputs"), goflags)?;
+    let (argv, output) = output_arguments(argv, &root.join("outputs"), goflags)?;
     let output_base = first.directory.clone();
     let output = output.map(|path| {
         if path.is_absolute() {
@@ -340,8 +364,8 @@ pub(super) fn run(
     let digest = canonical::digest(&bytes);
     super::publish(&root, "invocation.json", &bytes)?;
     let mut command = Command::new(&contract.binary);
-    let mut child = Child(
-        command
+    let mut child = Child {
+        process: command
             .arg0("go")
             .args(&argv[1..])
             .env_clear()
@@ -354,10 +378,11 @@ pub(super) fn run(
             .process_group(0)
             .spawn()
             .map_err(|e| e.to_string())?,
-    );
-    let pid = child.0.id();
+        deadline,
+    };
+    let pid = child.process.id();
     let status = loop {
-        if let Some(status) = child.0.try_wait().map_err(|e| e.to_string())? {
+        if let Some(status) = child.process.try_wait().map_err(|e| e.to_string())? {
             break status;
         }
         if Instant::now() >= deadline {
@@ -573,7 +598,7 @@ mod tests {
         ]
         .map(OsString::from);
         let (actual, selected) =
-            output_arguments(&argv, Path::new("/private/outputs"), OsStr::new("")).unwrap();
+            output_arguments(argv, Path::new("/private/outputs"), OsStr::new("")).unwrap();
         assert_eq!(selected, Some(PathBuf::from("caller")));
         let global =
             ["/stock/go", "-C", "nested", "build", "-o=caller", "./cmd"].map(OsString::from);
@@ -670,5 +695,44 @@ mod tests {
         .flat_map(|value| value.as_bytes().iter().copied().chain(std::iter::once(0)))
         .collect::<Vec<_>>();
         assert_eq!(actual, expected);
+    }
+
+    #[test]
+    fn cleanup_delivers_term_and_reaps_a_running_plain_shell() {
+        use std::io::Read as _;
+        let mut process = Command::new("/bin/sh")
+            .args([
+                "-c",
+                "trap 'printf term; exit 0' TERM; printf ready; while :; do :; done",
+            ])
+            .process_group(0)
+            .stdout(Stdio::piped())
+            .spawn()
+            .unwrap();
+        let mut output = process.stdout.take().unwrap();
+        let mut ready = [0; 5];
+        output.read_exact(&mut ready).unwrap();
+        assert_eq!(&ready, b"ready");
+        drop(Child {
+            process,
+            deadline: Instant::now() + Duration::from_secs(600),
+        });
+        let mut terminal = Vec::new();
+        output.read_to_end(&mut terminal).unwrap();
+        assert_eq!(terminal, b"term");
+    }
+
+    #[test]
+    fn cleanup_accepts_an_already_reaped_plain_child() {
+        let mut process = Command::new("/bin/sh")
+            .args(["-c", "exit 0"])
+            .process_group(0)
+            .spawn()
+            .unwrap();
+        assert!(process.wait().unwrap().success());
+        drop(Child {
+            process,
+            deadline: Instant::now() - Duration::from_secs(10),
+        });
     }
 }

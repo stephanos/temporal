@@ -211,7 +211,7 @@ mod tests {
         let configuration: crate::replay::preflight::Configuration = serde_json::from_value(json!({
             "engine":gomad_wasmhost::linked::Conditions::compiled().configuration(),
             "profile": if cooperative {"gomad.wasi-cooperative/v1"} else {"gomad.wasi-stock-exploratory/v1"},
-            "limits":{"fuel":1000,"memory_bytes":1048576,"wall_millis":1000,"output_bytes":1048576,"evidence_bytes":1048576},
+            "limits":{"fuel":1000,"memory_bytes":1_048_576,"wall_millis":1000,"output_bytes":1_048_576,"evidence_bytes":1_048_576},
             "arguments":["gomad-target"],"environment":{},"runtime_sha256":null,"model":null,"namespace":null,"storage":null
         })).unwrap();
         let invocation = invocation();
