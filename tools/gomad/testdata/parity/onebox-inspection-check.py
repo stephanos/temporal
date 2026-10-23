@@ -131,6 +131,34 @@ def validate_debug(root, report):
     return inventory(output)
 
 
+def kill_tree(pid):
+    def send(target, signal_number):
+        try:
+            os.kill(target, signal_number)
+        except ProcessLookupError:
+            pass
+
+    send(pid, signal.SIGSTOP)
+    stopped = {pid}
+    for _ in range(32):
+        result = subprocess.run(['/bin/ps', '-eo', 'pid=,ppid='], capture_output=True, check=True, timeout=5)
+        parents = [tuple(map(int, line.split())) for line in result.stdout.splitlines() if line.strip()]
+        descendants = {pid}
+        while True:
+            expanded = descendants | {child for child, parent in parents if parent in descendants}
+            if expanded == descendants:
+                break
+            descendants = expanded
+        for target in descendants - stopped:
+            send(target, signal.SIGSTOP)
+        if descendants <= stopped:
+            break
+        stopped |= descendants
+    for target in stopped - {pid}:
+        send(target, signal.SIGKILL)
+    send(pid, signal.SIGKILL)
+
+
 class Gate:
     def __init__(self, root, binary, repo, private_observations=None):
         self.root, self.binary, self.repo = root, binary, repo
@@ -158,12 +186,12 @@ class Gate:
             os.fchmod(out.fileno(), 0o600)
             os.fchmod(err.fileno(), 0o600)
             process = subprocess.Popen(command, stdout=out, stderr=err, cwd=self.repo,
-                                       env=environment, start_new_session=True)
+                                       env=environment)
             try:
                 process.wait(timeout=timeout)
             except subprocess.TimeoutExpired:
                 timed_out = True
-                os.killpg(process.pid, signal.SIGKILL)
+                kill_tree(process.pid)
                 process.wait()
         if self.private_observations is not None and name == 'explore' and not timed_out and process.returncode == expected:
             try:

@@ -4,6 +4,8 @@ import copy
 import gzip
 import importlib.util
 import json
+import os
+import subprocess
 from pathlib import Path
 import sys
 import tempfile
@@ -234,6 +236,22 @@ class InspectionTests(unittest.TestCase):
             self.assertEqual((self.root / (name + '.stderr')).stat().st_mode & 0o777, 0o600)
             self.assertIn('started', receipt)
             self.assertIn('ended', receipt)
+
+    def test_native_command_stays_in_outer_session_and_timeout_kills_descendants(self):
+        command = [sys.executable, '-c', 'import subprocess,sys,time; child=subprocess.Popen([sys.executable,"-c","import time; time.sleep(60)"], start_new_session=True); print(child.pid, flush=True); time.sleep(60)']
+        process = subprocess.Popen(command, stdout=subprocess.PIPE)
+        try:
+            child_pid = int(process.stdout.readline())
+            self.assertEqual(os.getsid(process.pid), os.getsid(0))
+            gate.kill_tree(process.pid)
+            self.assertEqual(process.wait(timeout=5), -9)
+            status = subprocess.run(['/bin/ps', '-o', 'stat=', '-p', str(child_pid)], capture_output=True, check=False).stdout.strip()
+            self.assertTrue(not status or status.startswith(b'Z'), status)
+        finally:
+            if process.poll() is None:
+                gate.kill_tree(process.pid)
+                process.wait(timeout=5)
+            process.stdout.close()
 
     def test_alias_detachment_preserves_originals_and_retained_module(self):
         original = self.root / 'original'
