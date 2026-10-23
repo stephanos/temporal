@@ -363,11 +363,11 @@ mod tests {
         let root = Path::new(env!("CARGO_MANIFEST_DIR")).join("../../../..").canonicalize()?;
         let scratch = Scratch::new(&root)?;
         let mut command = java_command(Path::new("python3"));
-        command.args(["-c", "import os; print(os.getenv('UMPIRE_INTERNAL_JVM_PROCESS')); print(os.getenv('JAVA_TOOL_OPTIONS'))"]);
+        command.args(["-c", "import os; print(os.getenv('UMPIRE_INTERNAL_JVM_PROCESS')); print(os.getenv('JAVA_TOOL_OPTIONS')); print(os.getpgid(os.getppid()) == os.getppid())"]);
         let (status, output) =
             run_process(&mut command, &scratch.0, "policy", Limits::default(), None)?;
         assert!(status.success());
-        assert_eq!(output, "None\nNone\n");
+        assert_eq!(output, "None\nNone\nTrue\n");
         scratch.finish(Ok(()))
     }
 }

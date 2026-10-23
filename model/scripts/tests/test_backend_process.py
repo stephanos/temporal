@@ -1,10 +1,13 @@
 """The shared backend supervisor survives its owner long enough to reap descendants."""
+import ctypes
 import importlib.util
 import os
 from pathlib import Path
+import signal
 import subprocess
 import sys
 import tempfile
+import time
 import unittest
 from unittest.mock import patch
 
@@ -40,6 +43,63 @@ class DarwinPolicy(unittest.TestCase):
 
 @unittest.skipUnless(sys.platform.startswith("linux"), "Linux subreaper proof")
 class Supervisor(unittest.TestCase):
+    def test_owner_group_and_direct_supervisor_termination_reap_owned_tree(self):
+        libc = ctypes.CDLL(None, use_errno=True)
+        prior = ctypes.c_int()
+        self.assertEqual(libc.prctl(37, ctypes.byref(prior), 0, 0, 0), 0)
+        self.assertEqual(libc.prctl(36, 1, 0, 0, 0), 0)
+        child = """import os,subprocess,sys,time
+p = subprocess.Popen([sys.executable, '-c', 'import time; time.sleep(60)'], start_new_session=True)
+with open(sys.argv[1], 'w') as out:
+    out.write(str(os.getpid()) + ' ' + str(p.pid))
+time.sleep(60)
+"""
+        owner = """import os,subprocess,sys,time
+p = subprocess.Popen([sys.executable, sys.argv[1], "process", sys.executable, '-c', sys.argv[2], sys.argv[3]], stdin=subprocess.PIPE)
+with open(sys.argv[4], 'w') as out:
+    out.write(str(p.pid))
+time.sleep(60)
+"""
+        try:
+            for target in ["owner-group", "supervisor"]:
+                with self.subTest(target=target), tempfile.TemporaryDirectory() as tmp:
+                    pids = Path(tmp) / "pids"
+                    supervisor = Path(tmp) / "supervisor"
+                    process = subprocess.Popen([sys.executable, "-c", owner, str(SUPERVISOR), child, str(pids), str(supervisor)], start_new_session=True, stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL)
+                    owned = []
+                    try:
+                        deadline = time.monotonic() + 5
+                        while (not pids.exists() or len(pids.read_text().split()) != 2) and time.monotonic() < deadline:
+                            time.sleep(.005)
+                        owned = [int(pid) for pid in pids.read_text().split()]
+                        supervisor_pid = int(supervisor.read_text())
+                        if target == "owner-group":
+                            os.killpg(process.pid, signal.SIGTERM)
+                            self.assertEqual(process.wait(timeout=5), -signal.SIGTERM)
+                        else:
+                            os.kill(supervisor_pid, signal.SIGTERM)
+                        deadline = time.monotonic() + 2
+                        while any(Path(f"/proc/{pid}").exists() for pid in owned) and time.monotonic() < deadline:
+                            time.sleep(.005)
+                        self.assertFalse([pid for pid in owned if Path(f"/proc/{pid}").exists()], "owned backend PIDs survived or were not reaped before harness cleanup")
+                    finally:
+                        cleanup = owned + [process.pid]
+                        if supervisor.exists():
+                            cleanup.append(int(supervisor.read_text()))
+                        for pid in cleanup:
+                            try:
+                                os.kill(pid, signal.SIGKILL)
+                            except ProcessLookupError:
+                                pass
+                        process.wait(timeout=5)
+                        while True:
+                            try:
+                                os.waitpid(-1, 0)
+                            except ChildProcessError:
+                                break
+        finally:
+            self.assertEqual(libc.prctl(36, prior.value, 0, 0, 0), 0)
+
     def test_owner_death_terminates_and_reaps_separate_session_descendants(self):
         child = """import os,subprocess,sys,time
 p = subprocess.Popen([sys.executable, '-c', 'import time; time.sleep(60)'], start_new_session=True)
