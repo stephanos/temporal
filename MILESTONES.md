@@ -320,9 +320,3 @@ Owner request 2026-10-20: a Go one-liner and `gomad -- make <target>` intercepti
 | [fn-233-gomad-intercept-the-go-command-so-make.2](.flow/tasks/fn-233-gomad-intercept-the-go-command-so-make.2.md) | ⬜ Todo | go shim: argv[0] dispatch, classification, guest build environment, refusals, host passthrough |
 | [fn-233-gomad-intercept-the-go-command-so-make.3](.flow/tasks/fn-233-gomad-intercept-the-go-command-so-make.3.md) | ⬜ Todo | gomad -- wrapper, gomad.toml and auto-derived installation |
 | [fn-233-gomad-intercept-the-go-command-so-make.4](.flow/tasks/fn-233-gomad-intercept-the-go-command-so-make.4.md) | ⬜ Todo | Temporal Makefile through the wrapper and operator documentation |
-
-### Site-aware minimizer ordering — [fn-231](.flow/specs/fn-231-gomad-site-aware-minimizer-ordering-and.md)
-
-| Name / ID | Status | Description |
-| --- | --- | --- |
-Both tasks are complete. Final spec-compliance review is pending before closure.

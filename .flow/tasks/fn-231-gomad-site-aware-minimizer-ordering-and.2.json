@@ -10,7 +10,7 @@
   "priority": null,
   "spec": "fn-231-gomad-site-aware-minimizer-ordering-and",
   "spec_path": ".flow/tasks/fn-231-gomad-site-aware-minimizer-ordering-and.2.md",
-  "status": "todo",
+  "status": "done",
   "title": "Symbolized reporting in minimize --json and inspect",
   "updated_at": "2026-10-20T21:10:11.458005Z"
 }
