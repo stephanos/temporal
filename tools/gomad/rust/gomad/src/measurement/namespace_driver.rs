@@ -610,6 +610,8 @@ fn load_prepared(common: &CommonReceipt) -> Result<module::Prepared, String> {
         provenance_path: common.provenance.clone(),
         installation_path: common.installation.clone(),
         module_metadata: provenance["module_metadata"].clone(),
+        preparation_arguments: Vec::new(),
+        scenario_path: None,
     };
     module::authenticate_prepared(&prepared)?;
     if canonical::encode(

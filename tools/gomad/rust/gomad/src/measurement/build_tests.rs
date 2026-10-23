@@ -92,7 +92,7 @@ fn diagnostic_admission_cargo_features() {
         ] {
             let data = stream(cargo_frame(&actual, "3", false), Some(true));
             assert_eq!(cargo_artifact(&data, &role).is_ok(), accepted, "{actual:?}");
-            assert!(cargo_artifact(&data, &Role::Release).is_err());
+            assert_eq!(cargo_artifact(&data, &Role::Release).is_ok(), actual.is_empty());
         }
     }
 }

@@ -271,13 +271,12 @@ fn symlink_outputs_are_not_followed_and_special_outputs_refuse_publication() {
     run.finish(true, &|| false).unwrap();
     assert_eq!(std::fs::read(outside).unwrap(), b"untouched");
     let run = scratch.begin("prototype", false);
-    let socket = std::os::unix::net::UnixListener::bind(run.path().join("socket")).unwrap();
+    rustix::fs::mkfifoat(rustix::fs::CWD, run.path().join("fifo"), rustix::fs::Mode::RUSR | rustix::fs::Mode::WUSR).unwrap();
     assert!(
         run.finish(true, &|| false)
             .unwrap_err()
             .contains("nonregular")
     );
-    drop(socket);
 }
 
 #[test]

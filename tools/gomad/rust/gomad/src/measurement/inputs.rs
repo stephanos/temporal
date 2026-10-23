@@ -114,7 +114,7 @@ pub fn rerun_record(
         },
     }
 }
-#[derive(Debug, PartialEq, Eq)]
+#[derive(Clone, Debug, PartialEq, Eq)]
 pub struct Invocation {
     pub name: String,
     pub repo: PathBuf,

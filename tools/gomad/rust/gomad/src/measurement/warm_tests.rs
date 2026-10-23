@@ -38,9 +38,6 @@ fn observation(index: usize) -> Observation {
     Observation {
         execution: Execution {
             timing: None,
-            #[cfg(feature = "helper-diagnostic-profile")]
-            external_owner_attempts: 0,
-            timing: None,
             #[cfg(feature = "helper-guest-profile")]
             guest_profile_error: None,
             #[cfg(feature = "helper-diagnostic-profile")]

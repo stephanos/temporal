@@ -1,4 +1,5 @@
 pub mod build;
+pub mod cluster_driver;
 pub mod evidence;
 pub mod execution;
 pub mod guest;
@@ -6,6 +7,7 @@ pub mod host;
 pub mod inputs;
 pub mod module;
 pub mod namespace;
+pub mod namespace_driver;
 pub mod operations;
 pub mod retention;
 pub mod sqlitebusy;
@@ -115,15 +117,15 @@ fn produce(
             build::build_role(
                 proof,
                 root,
-                &build::Role::Diagnostic(features),
+                build::Role::Diagnostic(features),
                 &call.environ,
             )
         }
         "terminal-exit-helper-build" => {
-            build::build_role(proof, root, &build::Role::Release, &call.environ)
+            build::build_role(proof, root, build::Role::Release, &call.environ)
         }
         "warm-preparation-helper-build" => {
-            build::build_role(proof, root, &build::Role::Warm, &call.environ)
+            build::build_role(proof, root, build::Role::Warm, &call.environ)
         }
         "terminal-exit-helper-stage" => {
             let receipt = call
@@ -138,6 +140,12 @@ fn produce(
             )
         }
         "compiled-identity-owners" => build::compiled_owners(root),
+        "namespace-activity" | "namespace-sample" | "operation-retention" => {
+            namespace_driver::run(call, proof, root)
+        }
+        "cluster-owner-profile" | "matched-release-candidate" | "diagnostic-cluster-baseline" => {
+            cluster_driver::run(call, proof, root)
+        }
         "warm-preparation" | "warm-preparation-prime" | "terminal-exit" => {
             warm_driver::run(call, proof, root)
         }

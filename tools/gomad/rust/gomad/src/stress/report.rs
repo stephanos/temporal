@@ -561,7 +561,7 @@ fn replay_flag(role: gomad_wasmhost::linked::Conditions) -> Result<Option<&'stat
         Conditions::Ordinary => Ok(None),
         Conditions::StressReplay => Ok(Some("--stress-jitter")),
         Conditions::DeterminismFixtureReplay => Ok(Some("--determinism-fixture")),
-        Conditions::DiagnosticProfile => {
+        Conditions::DiagnosticProfile | Conditions::GuestProfile | Conditions::DiagnosticFuelOff | Conditions::GuestProfileFuelOff => {
             Err("diagnostic profile has no public replay role flag".into())
         }
     }

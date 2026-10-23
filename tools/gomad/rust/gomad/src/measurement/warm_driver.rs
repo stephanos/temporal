@@ -292,7 +292,7 @@ pub fn run(call: &Invocation, proof: &CheckoutProof, root: &Path) -> Result<Path
                 .join("tools/gomad/rust/gomad/src/measurement/warm_driver.rs"),
             1 << 20,
         )?),
-        host_sha256: executable.sha256,
+        host_sha256: executable.sha256.clone(),
         module_sha256: module_sha,
         config_sha256: warm::retained_configuration_sha256(&input)?,
         model_sha256: canonical::digest(&canonical::encode(

@@ -148,7 +148,8 @@ pub fn native_input(prepared: &module::Prepared, seed: u64) -> Result<Value, Str
     crate::stress::cluster::bind(&mut bound)?;
     let incarnations = bound.request.incarnations.into_iter().map(|incarnation| {
         let guest = incarnation.request;
-        let model = guest.model.map(|model| json!({"configuration":model.configuration,"arguments":model.arguments,"environment":model.environment,"replay_trace":model.replay_trace}));
+        let retained = bound.configuration.incarnations.iter().find(|entry| entry.handle == incarnation.handle).expect("bound incarnation configuration");
+        let model = guest.model.map(|model| json!({"configuration":retained.model,"arguments":model.arguments,"environment":model.environment,"replay_trace":model.replay_trace}));
         json!({"handle":incarnation.handle,"network":incarnation.network,"guest":{"module":prepared.module_path,
             "module_sha256":guest.module_sha256,"limits":{"memory_bytes":guest.limits.memory_bytes,"fuel":guest.limits.fuel,"output_bytes":guest.limits.output_bytes,
             "evidence_bytes":guest.limits.evidence_bytes,"wall_millis":guest.limits.wall_timeout.as_millis()},"model":model,"namespace":guest.namespace,"storage":guest.storage}})

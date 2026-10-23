@@ -1011,7 +1011,7 @@ fn run_inner(call: &Invocation, proof: &CheckoutProof, root: &Path) -> Result<Pa
             value(call, "GOMAD_WASM_MATCHED_COLD_MEMORY_GUARD"),
             &call.environ,
         )?;
-        let cache = cache(call, root, &row.role)?;
+        let execution_cache = cache(call, root, &row.role)?;
         if call.name == "matched-suite" {
             let baseline = cache(call, root, "baseline")?;
             let candidate = cache(call, root, "candidate")?;
@@ -1021,7 +1021,7 @@ fn run_inner(call: &Invocation, proof: &CheckoutProof, root: &Path) -> Result<Pa
                 return Err("matched baseline and candidate caches must be separate".into());
             }
         }
-        let mut input = apply(row, prepared.native_input(row.seed)?, &cache)?;
+        let mut input = apply(row, prepared.native_input(row.seed)?, &execution_cache)?;
         if let Some(reference) = &row.replay_from {
             let (before, _) = results
                 .get(reference)

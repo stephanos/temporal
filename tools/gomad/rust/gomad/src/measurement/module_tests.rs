@@ -271,6 +271,7 @@ fn prototype_temporal_configuration_preserves_capture_error() {
 #[test]
 fn runtime_selection_retains_actual_preparation_bounds() {
     let temp = Temporary::new();
+    fs::write(temp.0.join("go.mod"), b"module fixture\n").unwrap();
     let (options, arguments, scenario_path) = options(
         &temp.0,
         &temp.0,

@@ -315,6 +315,11 @@ fn canonical_soft_assertion_failure_cannot_pass_any_stress_workload() {
         let mut stdout = b"--- PASS: TestWorkflowTypeEncodingSuite\nPASS\n".to_vec();
         stdout.extend_from_slice(assertion);
         let execution = linked::Execution {
+            timing: None,
+            #[cfg(feature = "helper-guest-profile")]
+            guest_profile_error: None,
+            #[cfg(feature = "helper-diagnostic-profile")]
+            external_owner_attempts: 0,
             authorization_to_terminal_nanos: None,
             outcome: terminal,
             evidence: BTreeMap::from([("stdout".into(), stdout)]),

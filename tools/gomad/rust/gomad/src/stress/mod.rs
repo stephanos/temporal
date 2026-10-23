@@ -513,7 +513,7 @@ pub(crate) fn run(arguments: &[String], output: &mut dyn Write) -> Result<i32, S
             request.root = retained.path().join("cell");
             let result = directory(&request.root).and_then(|()| cell(&request, &binary, &command));
             let finish = retained.finish(result.is_ok(), &|| false);
-            crate::measurement::combine(result, finish)?;
+            crate::measurement::combine(result.map(|_| ()), finish)?;
             return Ok(0);
         }
         cell(&request, &binary, &command)?;
