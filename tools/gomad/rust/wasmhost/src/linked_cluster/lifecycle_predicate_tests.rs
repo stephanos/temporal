@@ -1210,3 +1210,171 @@ fn actual_storage_engine_selection_and_divergence_retain_peak_memory_and_enumera
         );
     }
 }
+
+#[test]
+#[expect(
+    clippy::too_many_lines,
+    reason = "The original held-peer drain case keeps actual store ownership, the 50ms release gate and native control observations together"
+)]
+fn observed_failure_drain_waits_for_held_native_peer_without_post_failure_controls() {
+    let mut input = request(&["a", "b"], FINISH);
+    input.incarnations[0] = request(&["a"], "unreachable").incarnations.remove(0);
+    let mut prepared = prepare(input).unwrap();
+    let activity = prepared.activity();
+    let conditions = prepared.conditions.enter().unwrap();
+    let session = conditions.session();
+    let engine = Engine::new(&engine::configuration(true)).unwrap();
+    let modules = compile(&engine, &prepared, &mut Metrics::default()).unwrap();
+    let broker = Arc::new(Broker::new(&prepared.broker, &prepared.ids, None, None).unwrap());
+    broker.defer_starts();
+    let peer_handle = Handle {
+        node: "b".into(),
+        incarnation: 1,
+    };
+    let peer = prepared.incarnations.remove(&peer_handle).unwrap();
+    let peer_module = peer.execution.request.module.clone();
+    let peer_module_sha256 = peer.execution.request.module_sha256.clone();
+    let peer_pre = modules[&peer_module_sha256].clone();
+    broker.activate(1).unwrap();
+    broker.run(1, 1).unwrap();
+    let (ready, peer_ready) = mpsc::sync_channel(0);
+    let (release, peer_release) = mpsc::sync_channel(0);
+    let peer_engine = engine.clone();
+    let peer_broker = broker.clone();
+    let peer_activity = activity.clone();
+    let peer_conditions = prepared.conditions;
+    let peer_thread = thread::spawn(move || -> Result<Completed> {
+        let _conditions = peer_conditions.enter_shared(&session)?;
+        if !peer_broker.acquire(1) {
+            return Err(Error::msg("held peer was not admitted"));
+        }
+        let completed = run_instance(
+            &peer_engine,
+            &peer_pre,
+            peer,
+            &peer_broker,
+            None,
+            peer_handle,
+            1,
+            2,
+            &peer_activity,
+        )?;
+        peer_broker.finish(1);
+        ready
+            .send(store_result_fact(&completed.result))
+            .map_err(|_| Error::msg("held peer observation abandoned"))?;
+        peer_release
+            .recv()
+            .map_err(|_| Error::msg("held peer release abandoned"))?;
+        Ok(completed)
+    });
+    let held_peer = peer_ready.recv_timeout(Duration::from_secs(5)).unwrap();
+    assert_eq!(held_peer["terminal"], "exit");
+    assert_eq!(held_peer["exit_code"], 0);
+    assert_eq!(held_peer["stdout"], json!(b"mark"));
+    assert!(
+        held_peer["authorization_to_terminal_nanos"]
+            .as_u64()
+            .unwrap()
+            > 0
+    );
+    assert!(!peer_thread.is_finished());
+
+    let failed_handle = Handle {
+        node: "a".into(),
+        incarnation: 1,
+    };
+    let failed = prepared.incarnations.remove(&failed_handle).unwrap();
+    let failed_module = failed.execution.request.module.clone();
+    let failed_module_sha256 = failed.execution.request.module_sha256.clone();
+    broker.activate(0).unwrap();
+    broker.run(0, 1).unwrap();
+    assert!(broker.acquire(0));
+    let failed = run_instance(
+        &engine,
+        &modules[&failed_module_sha256],
+        failed,
+        &broker,
+        None,
+        failed_handle.clone(),
+        0,
+        1,
+        &activity,
+    )
+    .unwrap();
+    assert_eq!(failed.result.execution.outcome.termination, "trap");
+    let failed_message = failed.result.execution.outcome.message.clone();
+    broker.abort_terminal(0, "trap", failed_message.clone());
+    broker.finish(0);
+    let before_controls = broker.native_control_attempts();
+    assert_eq!(before_controls, 4);
+    let before_lifecycle = broker.inspection.lock().unwrap().evidence.lifecycle.clone();
+    let running = BTreeMap::from([(
+        Handle {
+            node: "b".into(),
+            incarnation: 1,
+        },
+        Running {
+            thread: peer_thread,
+        },
+    )]);
+    let completed = BTreeMap::from([(failed_handle, failed.result)]);
+    let (entered, enter_drain) = mpsc::sync_channel(0);
+    let (returned, receive) = mpsc::sync_channel(0);
+    let drain_broker = broker.clone();
+    let drainer = thread::spawn(move || {
+        let mut completed = completed;
+        entered.send(()).unwrap();
+        let error = drain_running(running, &mut completed, &drain_broker, true);
+        returned
+            .send((error.map(|error| error.to_string()), completed))
+            .unwrap();
+    });
+    enter_drain.recv_timeout(Duration::from_secs(5)).unwrap();
+    let probe_started = std::time::Instant::now();
+    assert!(matches!(
+        receive.recv_timeout(Duration::from_millis(50)),
+        Err(mpsc::RecvTimeoutError::Timeout)
+    ));
+    let probe_elapsed = probe_started.elapsed();
+    let held_controls = broker.native_control_attempts();
+    let held_lifecycle = broker.inspection.lock().unwrap().evidence.lifecycle.clone();
+    assert_eq!(held_controls, before_controls);
+    assert_eq!(held_lifecycle, before_lifecycle);
+    let release_started = std::time::Instant::now();
+    release.send(()).unwrap();
+    let (join_error, completed) = receive.recv_timeout(Duration::from_secs(5)).unwrap();
+    let release_to_return = release_started.elapsed();
+    drainer.join().unwrap();
+    assert!(join_error.is_none());
+    assert_eq!(completed.len(), 2);
+    let execution = completed
+        .values()
+        .map(store_result_fact)
+        .collect::<Vec<_>>();
+    assert_eq!(execution[1], held_peer);
+    assert_eq!(execution[0]["terminal"], "trap");
+    assert_eq!(execution[0]["message"], failed_message);
+    let after_controls = broker.native_control_attempts();
+    let after_lifecycle = broker.inspection.lock().unwrap().evidence.lifecycle.clone();
+    assert_eq!(after_controls, before_controls);
+    assert_eq!(after_lifecycle, before_lifecycle);
+    assert_eq!(activity.snapshot().launched_stores, 2);
+    assert_eq!(activity.snapshot().remote_callback_attempts, 0);
+    raw(
+        "TestClusterShutdownWaitsForObservedFailureDrain",
+        "held-peer-release",
+        json!({
+            "terminal":"trap","exit_code":null,"message":failed_message,
+            "failed_module_bytes":failed_module,"failed_module_sha256":failed_module_sha256,
+            "peer_module_bytes":peer_module,"peer_module_sha256":peer_module_sha256,
+            "held_peer_result":held_peer,"store_results":execution,"activity":activity.snapshot(),
+            "probe_millis":50,"probe_outcome":"timeout","probe_elapsed_nanos":probe_elapsed.as_nanos(),
+            "release_to_return_nanos":release_to_return.as_nanos(),"join_error":join_error,
+            "native_control_entry_points":["activate","run","command"],
+            "before_control_attempts":before_controls,"held_control_attempts":held_controls,
+            "after_control_attempts":after_controls,"before_lifecycle_bytes":before_lifecycle,
+            "held_lifecycle_bytes":held_lifecycle,"after_lifecycle_bytes":after_lifecycle
+        }),
+    );
+}

@@ -18,7 +18,8 @@ SOURCES = (TEST, 'tools/gomad/rust/wasmhost/src/linked_cluster.rs',
            'tools/gomad/rust/gomad/src/campaign/scenario.rs',
            'tools/gomad/rust/wasmhost/src/linked.rs',
            'tools/gomad/rust/wasmhost/src/linked_storage.rs',
-           'tools/gomad/rust/wasmhost/src/cluster/handoff/broker.rs')
+           'tools/gomad/rust/wasmhost/src/cluster/handoff/broker.rs',
+           'tools/gomad/rust/wasmhost/src/linked_cluster/live_controller_tests.rs')
 
 OPERATOR = 'TestOperatorStopsActionsAfterFailedWait'
 LAZY = 'TestProviderClusterStartsOnlyRequestedIncarnations'
@@ -43,7 +44,7 @@ VARIANTS = {
     HOST: ('cancelled-before-start', 'watchdog', 'cancelled', 'parent deadline'),
     CLEANUP: ('shutdown', 'scenario-error', 'context-cancel', 'action-limit', 'context-cancel-after-actual-output'),
     MODEL: ('missing-model',), ATTRIBUTION: ('missing-namespace', 'unknown-step', 'zero-incarnation', 'duplicate-handle', 'model-seed'),
-    CALLBACK: ('call', 'sync'), DRAIN: ('trap', 'exit'), DEADLINE: ('native-sealed-deadline',),
+    CALLBACK: ('call', 'sync'), DRAIN: ('trap', 'exit', 'held-peer-release'), DEADLINE: ('native-sealed-deadline',),
     RESTART: ('missing-storage-image', 'stale-incarnation', 'live-incarnation'),
     RETRY: ('recovery-image-refusal-and-retry',), INTERNAL: ('internal deadline',),
     GRACE: ('live-noncooperative-actual-five-second-grace',),
@@ -53,6 +54,9 @@ VARIANTS = {
     STORAGE_ROOTS: ('crash-before', 'crash-after', 'io-error', 'no-storage'),
 }
 CATALOG = frozenset((root, variant) for root, variants in VARIANTS.items() for variant in variants)
+
+HELD_FAILED_MODULE = b'(module\n        (import "wasi_snapshot_preview1" "fd_write" (func $write (param i32 i32 i32 i32) (result i32)))\n        (import "wasi_snapshot_preview1" "clock_time_get" (func $clock (param i32 i64 i32) (result i32)))\n        (import "gomad_wasm_v1" "config" (func $config (param i32 i32) (result i32)))\n        (import "gomad_wasm_v1" "idle" (func $idle (param i32 i32) (result i32)))\n        (import "gomad_wasm_v1" "finish" (func $finish (param i32 i32) (result i32)))\n        (import "wasi_snapshot_preview1" "proc_exit" (func $exit (param i32)))\n        (memory (export "memory") 1)\n        (data (i32.const 128) "mark")\n        (func (export "_start")\n            i32.const 0 i32.const 128 i32.store\n            i32.const 4 i32.const 4 i32.store\n            i32.const 1 i32.const 0 i32.const 1 i32.const 16 call $write drop\n            unreachable))'
+HELD_PEER_MODULE = b'(module\n        (import "wasi_snapshot_preview1" "fd_write" (func $write (param i32 i32 i32 i32) (result i32)))\n        (import "wasi_snapshot_preview1" "clock_time_get" (func $clock (param i32 i64 i32) (result i32)))\n        (import "gomad_wasm_v1" "config" (func $config (param i32 i32) (result i32)))\n        (import "gomad_wasm_v1" "idle" (func $idle (param i32 i32) (result i32)))\n        (import "gomad_wasm_v1" "finish" (func $finish (param i32 i32) (result i32)))\n        (import "wasi_snapshot_preview1" "proc_exit" (func $exit (param i32)))\n        (memory (export "memory") 1)\n        (data (i32.const 128) "mark")\n        (func (export "_start")\n            i32.const 0 i32.const 128 i32.store\n            i32.const 4 i32.const 4 i32.store\n            i32.const 1 i32.const 0 i32.const 1 i32.const 16 call $write drop\n            i32.const 512 i32.const 16 call $config drop\n    i32.const 995 i32.const 1 i32.store8\n    i32.const 992 i32.const 16 call $finish drop))'
 
 BOOT_NETWORK_ORIGINAL_VARIANTS = (
     'matching', 'network free', 'first byte mismatch', 'later byte mismatch',
@@ -175,10 +179,55 @@ def sqlite_observation(ack, stdout):
     return {'acknowledged-durable-recovery.' + key: value for key, value in checks.items()}, None
 
 
+def held_drain(observed):
+    o = observed
+    fields(o, ('terminal', 'exit_code', 'message', 'failed_module_bytes', 'failed_module_sha256',
+        'peer_module_bytes', 'peer_module_sha256', 'held_peer_result', 'store_results', 'activity',
+        'probe_millis', 'probe_outcome', 'probe_elapsed_nanos', 'release_to_return_nanos', 'join_error',
+        'native_control_entry_points', 'before_control_attempts', 'held_control_attempts', 'after_control_attempts',
+        'before_lifecycle_bytes', 'held_lifecycle_bytes', 'after_lifecycle_bytes'))
+    for owner, expected in (('failed', HELD_FAILED_MODULE), ('peer', HELD_PEER_MODULE)):
+        module = raw_bytes(o[owner + '_module_bytes'])
+        require(module == expected and o[owner + '_module_sha256'] == hashlib.sha256(module).hexdigest(),
+                'held drain did not execute the closed native WAT owner')
+    require(o['terminal'] == 'trap' and o['exit_code'] is None and isinstance(o['message'], str) and o['message'],
+            'held drain lost already observed native failure')
+    actual = stores(o['store_results'], o['activity'], ['a/1', 'b/1'])
+    require(actual[0]['terminal'] == 'trap' and actual[0]['exit_code'] is None and actual[0]['message'] == o['message'],
+            'drain changed the original failed result')
+    require(actual[1] == o['held_peer_result'] and actual[1]['terminal'] == 'exit' and actual[1]['exit_code'] == 0
+            and actual[1]['stdout'] == list(b'mark'), 'held peer result was synthesized or replaced at release')
+    require(o['probe_millis'] == 50 and type(o['probe_millis']) is int and o['probe_outcome'] == 'timeout'
+            and integer(o['probe_elapsed_nanos']) >= 50_000_000, 'owned peer drain returned before original 50ms release gate')
+    require(integer(o['release_to_return_nanos']) < 5_000_000_000 and o['join_error'] is None,
+            'released native peer did not join successfully')
+    require(o['native_control_entry_points'] == ['activate', 'run', 'command'] and
+            [integer(o[key]) for key in ('before_control_attempts', 'held_control_attempts', 'after_control_attempts')] == [4, 4, 4],
+            'drain attempted a post-failure native lifecycle control')
+    raw = raw_bytes(o['before_lifecycle_bytes'])
+    require(raw == raw_bytes(o['held_lifecycle_bytes']) == raw_bytes(o['after_lifecycle_bytes'])
+            and raw.startswith(b'GMWIL\x01\0\0'), 'held native drain mutated lifecycle evidence')
+    at, events = 8, []
+    while at < len(raw):
+        require(at + 5 <= len(raw), 'held drain lifecycle frame truncated')
+        tag, size = raw[at], int.from_bytes(raw[at+1:at+5], 'little'); at += 5
+        require(1 <= tag <= 10 and 0 < size <= 1024 and at + size + 8 <= len(raw), 'held drain lifecycle frame bounds')
+        node = raw[at:at+size].decode('utf-8'); at += size
+        incarnation = int.from_bytes(raw[at:at+8], 'little'); at += 8
+        require((node in ('a', 'b') and incarnation == 1) or (tag == 7 and node == 'controller' and incarnation == 0),
+                'held drain lifecycle record has a foreign owner')
+        events.append((tag, node))
+    starts_and_terminals = [event for event in events if event[0] in (1, 3)]
+    require(starts_and_terminals == [(1, 'b'), (3, 'b'), (1, 'a'), (3, 'a')],
+            'held native peer or already failed guest did not reach actual terminal ownership')
+
+
 def validate_case(root, variant, observed, inputs=None):
     require((root, variant) in CATALOG, 'unknown or cross-labeled native lifecycle case')
     o = observed
-    if root in (OPERATOR, DRAIN):
+    if root == DRAIN and variant == 'held-peer-release':
+        held_drain(o)
+    elif root in (OPERATOR, DRAIN):
         names = {'activity', 'exit_code', 'steps', 'terminal', 'store_results'}
         names |= {'incarnations'} if root == OPERATOR else {'joined_incarnations', 'message'}
         fields(o, names)
@@ -353,6 +402,15 @@ def observations(config, stdout, network_frame_cases=None):
     require('fn store_result_fact' in test_source and '"authorization_to_terminal_nanos":item.execution.authorization_to_terminal_nanos' in test_source,
             'native store result collector no longer exposes actual drop timing')
     require('CLUSTER_STOP_GRACE: Duration = Duration::from_secs(5)' in production and 'watcher.join()' in production.replace('\n', '').replace(' ', ''), 'native cleanup bound/join source contract changed')
+    drain_source = production.split('fn drain_running(', 1)[1].split('\nfn ', 1)[0]
+    require('match joined(pending)' in drain_source and not any(call in drain_source for call in ('.command(', '.run(', '.activate(', 'stop_live('))
+            and 'let join_error = drain_running(running, &mut completed, broker, driven.is_ok());' in production,
+            'native final drain no longer uses the control-free owned join seam')
+    broker_source = (Path(config['repo']) / 'tools/gomad/rust/wasmhost/src/cluster/handoff/broker.rs').read_text()
+    for name in ('activate', 'run', 'command'):
+        body = broker_source.split('pub fn ' + name + '(', 1)[1].split('\n    pub ', 1)[0]
+        require('self.native_control_attempts' in body and '.fetch_add(1, std::sync::atomic::Ordering::Relaxed)' in body,
+                'native broker control attempt counter no longer measures actual entry')
     facts = parse_rows(stdout)
     complete = {OPERATOR, HOST, INTERNAL, CALLBACK, RESTART, RETRY, CLEANUP, ORACLE, STORAGE_ROOTS[0], STORAGE_ROOTS[1]}
     partial = {

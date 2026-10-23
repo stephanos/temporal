@@ -194,6 +194,8 @@ pub struct Broker {
     pub inspection: Arc<Mutex<crate::model::inspection::Recorder>>,
     #[cfg(test)]
     pub world_materializations: std::sync::atomic::AtomicU64,
+    #[cfg(test)]
+    native_control_attempts: std::sync::atomic::AtomicU64,
 }
 
 /// Go `invalid`: an instance-level `WASI invalid: <dimension>` failure.
@@ -317,6 +319,8 @@ impl Broker {
             inspection: Arc::new(Mutex::new(crate::model::inspection::Recorder::default())),
             #[cfg(test)]
             world_materializations: std::sync::atomic::AtomicU64::new(0),
+            #[cfg(test)]
+            native_control_attempts: std::sync::atomic::AtomicU64::new(0),
         })
     }
 
@@ -374,7 +378,16 @@ impl Broker {
         inner.metrics.clone()
     }
 
+    #[cfg(test)]
+    pub(crate) fn native_control_attempts(&self) -> u64 {
+        self.native_control_attempts
+            .load(std::sync::atomic::Ordering::Relaxed)
+    }
+
     pub fn command(&self, command: Command) -> Result<(), Failure> {
+        #[cfg(test)]
+        self.native_control_attempts
+            .fetch_add(1, std::sync::atomic::Ordering::Relaxed);
         let (send, receive) = mpsc::sync_channel(1);
         {
             let mut inner = lock(&self.inner);
@@ -758,6 +771,9 @@ impl Broker {
     }
 
     pub fn run(&self, me: usize, incarnation: u64) -> Result<(), Failure> {
+        #[cfg(test)]
+        self.native_control_attempts
+            .fetch_add(1, std::sync::atomic::Ordering::Relaxed);
         let mut inner = lock(&self.inner);
         if inner.manual
             && inner.sessions[me].incarnation == incarnation
@@ -783,6 +799,9 @@ impl Broker {
     }
 
     pub fn activate(&self, me: usize) -> Result<(), Failure> {
+        #[cfg(test)]
+        self.native_control_attempts
+            .fetch_add(1, std::sync::atomic::Ordering::Relaxed);
         let mut inner = lock(&self.inner);
         Self::observe(&mut inner);
         if inner.sessions[me].state != State::Dormant {

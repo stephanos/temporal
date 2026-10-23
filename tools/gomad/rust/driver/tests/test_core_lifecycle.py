@@ -26,6 +26,19 @@ def row(root, variant, observed, inputs=None):
     return json.dumps(value)
 
 
+def source_fixture(name):
+    if name == gate.TEST:
+        return 'fn store_result_fact() { "authorization_to_terminal_nanos":item.execution.authorization_to_terminal_nanos }'
+    if name == gate.SOURCES[1]:
+        return ('CLUSTER_STOP_GRACE: Duration = Duration::from_secs(5); watcher.join()\n'
+            'fn drain_running() { match joined(pending) {} }\nfn caller() { '
+            'let join_error = drain_running(running, &mut completed, broker, driven.is_ok()); }')
+    if name.endswith('cluster/handoff/broker.rs'):
+        return '\n    '.join('pub fn '+method+'() { self.native_control_attempts.fetch_add(1, std::sync::atomic::Ordering::Relaxed); }'
+                             for method in ('activate', 'run', 'command'))
+    return 'fixture source'
+
+
 class StoreOwnership(unittest.TestCase):
     def test_missing_duplicate_or_forged_drop_is_refused(self):
         good=dict(declared_nodes=['a','b'],incarnations=['a/1'],activity=activity(1),store_results=[store()])
@@ -52,6 +65,32 @@ class StoreOwnership(unittest.TestCase):
         with self.assertRaises(Refusal):gate.validate_case(gate.OPERATOR,'exit',bad)
         bad=copy.deepcopy(good);bad['exit_code']=0
         with self.assertRaises(Refusal):gate.validate_case(gate.OPERATOR,'exit',bad)
+
+    def test_held_peer_must_block_until_release_and_cannot_attempt_controls(self):
+        def event(tag, node):
+            encoded=node.encode()
+            return bytes([tag])+len(encoded).to_bytes(4,'little')+encoded+(1).to_bytes(8,'little')
+        lifecycle=b'GMWIL\x01\0\0'+b''.join(event(tag,node) for tag,node in ((1,'b'),(3,'b'),(1,'a'),(3,'a')))
+        peer=store('b');failed=store('a',terminal='trap',code=None);failed['message']='actual trap'
+        good=dict(terminal='trap',exit_code=None,message='actual trap',
+            failed_module_bytes=list(gate.HELD_FAILED_MODULE),failed_module_sha256=gate.hashlib.sha256(gate.HELD_FAILED_MODULE).hexdigest(),
+            peer_module_bytes=list(gate.HELD_PEER_MODULE),peer_module_sha256=gate.hashlib.sha256(gate.HELD_PEER_MODULE).hexdigest(),
+            held_peer_result=peer,store_results=[failed,peer],activity=activity(2),
+            probe_millis=50,probe_outcome='timeout',probe_elapsed_nanos=50_100_000,
+            release_to_return_nanos=1000,join_error=None,native_control_entry_points=['activate','run','command'],
+            before_control_attempts=4,held_control_attempts=4,after_control_attempts=4,
+            before_lifecycle_bytes=list(lifecycle),held_lifecycle_bytes=list(lifecycle),after_lifecycle_bytes=list(lifecycle))
+        gate.validate_case(gate.DRAIN,'held-peer-release',good)
+        for key,value in [('probe_outcome','returned'),('probe_elapsed_nanos',49_999_999),
+            ('held_control_attempts',5),('after_control_attempts',5),('join_error','store failed'),
+            ('held_lifecycle_bytes',list(lifecycle)+[0])]:
+            bad=copy.deepcopy(good);bad[key]=value
+            with self.subTest(key=key),self.assertRaises(Refusal):gate.validate_case(gate.DRAIN,'held-peer-release',bad)
+        bad=copy.deepcopy(good);bad['store_results'][1]['authorization_to_terminal_nanos']=None
+        with self.assertRaises(Refusal):gate.validate_case(gate.DRAIN,'held-peer-release',bad)
+        bad=copy.deepcopy(good);bad['peer_module_bytes']=list(gate.HELD_FAILED_MODULE)
+        bad['peer_module_sha256']=gate.hashlib.sha256(gate.HELD_FAILED_MODULE).hexdigest()
+        with self.assertRaises(Refusal):gate.validate_case(gate.DRAIN,'held-peer-release',bad)
 
     def test_cleanup_requires_real_peer_output_drop_and_no_dormant_start(self):
         actual=[store('a',terminal='stop',code=None),store('b',terminal='stop',code=None)]
@@ -118,9 +157,7 @@ class RestartOwnership(unittest.TestCase):
             config=dict(repo=str(repo),files={})
             for name in gate.SOURCES:
                 path=repo/name;path.parent.mkdir(parents=True,exist_ok=True)
-                source='fixture source'
-                if name==gate.TEST:source='fn store_result_fact() { "authorization_to_terminal_nanos":item.execution.authorization_to_terminal_nanos }'
-                elif name==gate.SOURCES[1]:source='CLUSTER_STOP_GRACE: Duration = Duration::from_secs(5); watcher.join()'
+                source=source_fixture(name)
                 path.write_text(source);config['files'][str(path.resolve())]=hashlib.sha256(path.read_bytes()).hexdigest()
             with self.assertRaisesRegex(Refusal,'omitted'):gate.observations(config,'')
             (repo/gate.TEST).write_text('substituted collector')
@@ -161,9 +198,7 @@ class ClosedCatalog(unittest.TestCase):
             repo=Path(temporary);config=dict(repo=str(repo),files={})
             for name in gate.SOURCES:
                 path=repo/name;path.parent.mkdir(parents=True,exist_ok=True)
-                text='fixture source'
-                if name==gate.TEST:text='fn store_result_fact() { "authorization_to_terminal_nanos":item.execution.authorization_to_terminal_nanos }'
-                elif name==gate.SOURCES[1]:text='CLUSTER_STOP_GRACE: Duration = Duration::from_secs(5); watcher.join()'
+                text=source_fixture(name)
                 path.write_text(text);config['files'][str(path.resolve())]=hashlib.sha256(path.read_bytes()).hexdigest()
             facts=[dict(original_roots=[gate.BOOT_NETWORK],variant=variant) for variant in ('matching','byte-mismatch','stall-mismatch')]
             with patch.object(gate,'parse_rows',return_value=facts):result=gate.observations(config,'')

@@ -823,6 +823,28 @@ fn joined(running: Running) -> Result<Completed> {
         .map_err(|_| Error::msg("cluster store panicked"))?
 }
 
+fn drain_running(
+    running: BTreeMap<Handle, Running>,
+    completed: &mut BTreeMap<Handle, IncarnationResult>,
+    broker: &Arc<Broker>,
+    driven_ok: bool,
+) -> Option<Error> {
+    let mut join_error = None;
+    for (handle, pending) in running {
+        match joined(pending) {
+            Ok(observed) => {
+                completed.insert(handle, observed.result);
+            }
+            Err(error) if driven_ok && !broker.inspection_stopped() => {
+                broker.abort("infrastructure", error.to_string());
+                join_error.get_or_insert(error);
+            }
+            Err(_) => {}
+        }
+    }
+    join_error
+}
+
 fn compile(
     engine: &Engine,
     prepared: &Prepared,
@@ -1380,19 +1402,7 @@ fn execute_inner(
     if timed_out.load(Ordering::Acquire) {
         broker.abort("watchdog_timeout", "execution watchdog timeout".into());
     }
-    let mut join_error = None;
-    for (handle, pending) in running {
-        match joined(pending) {
-            Ok(observed) => {
-                completed.insert(handle, observed.result);
-            }
-            Err(error) if driven.is_ok() && !broker.inspection_stopped() => {
-                broker.abort("infrastructure", error.to_string());
-                join_error.get_or_insert(error);
-            }
-            Err(_) => {}
-        }
-    }
+    let join_error = drain_running(running, &mut completed, broker, driven.is_ok());
     if let Err(error) = driven
         && !divergent
     {
