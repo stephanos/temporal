@@ -32,7 +32,12 @@ impl Drop for Root {
 }
 
 fn private(path: &std::path::Path, bytes: &[u8]) {
-    let mut file = OpenOptions::new().create_new(true).write(true).mode(0o600).open(path).unwrap();
+    let mut file = OpenOptions::new()
+        .create_new(true)
+        .write(true)
+        .mode(0o600)
+        .open(path)
+        .unwrap();
     file.write_all(bytes).unwrap();
 }
 
@@ -45,7 +50,8 @@ fn result_publication_is_complete_concurrent_private_and_no_clobber() {
     let barrier = Arc::new(Barrier::new(9));
     let mut workers = Vec::new();
     for _ in 0..8 {
-        let (pinned, data, barrier) = (Arc::clone(&pinned), Arc::clone(&data), Arc::clone(&barrier));
+        let (pinned, data, barrier) =
+            (Arc::clone(&pinned), Arc::clone(&data), Arc::clone(&barrier));
         workers.push(thread::spawn(move || {
             barrier.wait();
             publish_bytes(&pinned, "result.json", &data, data.len() as u64).unwrap();
@@ -53,11 +59,11 @@ fn result_publication_is_complete_concurrent_private_and_no_clobber() {
     }
     let done = Arc::new(AtomicBool::new(false));
     let observer_done = Arc::clone(&done);
-    let observed = path.join("result.json");
+    let destination = path.join("result.json");
     let expected = Arc::clone(&data);
     let observer = thread::spawn(move || {
         while !observer_done.load(Ordering::Acquire) {
-            match fs::read(&observed) {
+            match fs::read(&destination) {
                 Ok(actual) => assert_eq!(actual, *expected),
                 Err(error) => assert_eq!(error.kind(), std::io::ErrorKind::NotFound),
             }
@@ -71,7 +77,14 @@ fn result_publication_is_complete_concurrent_private_and_no_clobber() {
     done.store(true, Ordering::Release);
     observer.join().unwrap();
     assert_eq!(fs::read(path.join("result.json")).unwrap(), *data);
-    assert_eq!(fs::metadata(path.join("result.json")).unwrap().permissions().mode() & 0o777, 0o600);
+    assert_eq!(
+        fs::metadata(path.join("result.json"))
+            .unwrap()
+            .permissions()
+            .mode()
+            & 0o777,
+        0o600
+    );
     assert_eq!(fs::read_dir(path).unwrap().count(), 1);
 }
 
@@ -88,8 +101,21 @@ fn result_publication_preserves_partial_conflicts_and_symlinks() {
             private(&path.join("result.json"), b"par");
         }
         assert!(publish_bytes(&pinned, "result.json", b"complete", 8).is_err());
-        assert_eq!(fs::symlink_metadata(path.join("result.json")).unwrap().file_type().is_symlink(), redirected);
-        assert_eq!(fs::read(path.join("result.json")).unwrap(), if redirected { b"complete".as_slice() } else { b"par".as_slice() });
+        assert_eq!(
+            fs::symlink_metadata(path.join("result.json"))
+                .unwrap()
+                .file_type()
+                .is_symlink(),
+            redirected
+        );
+        assert_eq!(
+            fs::read(path.join("result.json")).unwrap(),
+            if redirected {
+                b"complete".as_slice()
+            } else {
+                b"par".as_slice()
+            }
+        );
     }
 }
 
@@ -110,7 +136,10 @@ fn result_publication_preserves_abandoned_foreign_staging() {
     let (path, pinned) = directory(&root.0).unwrap();
     private(&path.join(".foreign.partial"), b"interrupted");
     publish_bytes(&pinned, "result.json", b"complete", 8).unwrap();
-    assert_eq!(fs::read(path.join(".foreign.partial")).unwrap(), b"interrupted");
+    assert_eq!(
+        fs::read(path.join(".foreign.partial")).unwrap(),
+        b"interrupted"
+    );
     assert_eq!(fs::read(path.join("result.json")).unwrap(), b"complete");
     assert_eq!(fs::read_dir(path).unwrap().count(), 2);
 }
@@ -119,7 +148,11 @@ fn result_publication_preserves_abandoned_foreign_staging() {
 fn result_publication_rejects_redirected_namespace_before_writing() {
     let root = Root::new();
     let outside = Root::new();
-    symlink(&outside.0, root.0.join("rust-qualifications")).unwrap();
+    fs::DirBuilder::new()
+        .mode(0o700)
+        .create(root.0.join("rust-qualifications"))
+        .unwrap();
+    symlink(&outside.0, root.0.join("rust-qualifications/v1")).unwrap();
     assert!(directory(&root.0).is_err());
     assert_eq!(fs::read_dir(&outside.0).unwrap().count(), 0);
 }

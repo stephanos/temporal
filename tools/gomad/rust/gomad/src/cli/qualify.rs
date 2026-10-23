@@ -105,10 +105,7 @@ pub fn run(
         .write_all(&encoded)
         .map_err(|error| status(3, format!("qualification response output failed: {error}")))?;
     if let Some(error) = published.publication_error {
-        return Err(status(
-            3,
-            format!("qualification publication observation failed: {error}"),
-        ));
+        return Err(publication_error(&error));
     }
     let retained = &published.result;
     if !retained.manifest.provisional
@@ -161,4 +158,46 @@ pub fn report(arguments: &[String], output: &mut dyn Write) -> Result<i32, super
         .write_all(&encoded)
         .map_err(|error| status(3, format!("write qualification report: {error}")))?;
     Ok(0)
+}
+
+fn publication_error(error: &str) -> super::Error {
+    let mut end = error.len().min(1024);
+    while !error.is_char_boundary(end) {
+        end -= 1;
+    }
+    let suffix = if end < error.len() {
+        " [truncated]"
+    } else {
+        ""
+    };
+    status(
+        3,
+        format!(
+            "qualification publication observation failed: {}{suffix}",
+            &error[..end]
+        ),
+    )
+}
+
+#[cfg(test)]
+mod receiving_response_tests {
+    use super::publication_error;
+
+    #[test]
+    fn publication_error_output_is_bounded_and_marks_truncation() {
+        for detail in [
+            "publication path diagnostic ".repeat(1024),
+            "界".repeat(2048),
+        ] {
+            let error = publication_error(&detail);
+            assert_eq!(error.status, 3);
+            assert!(error.message.len() < 2 << 10);
+            assert!(error.message.contains("publication"));
+            assert!(error.message.contains("truncated"));
+        }
+        assert_eq!(
+            publication_error("short").message,
+            "qualification publication observation failed: short"
+        );
+    }
 }
