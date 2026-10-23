@@ -9,17 +9,15 @@ import sys
 import time
 
 
-def restrict_jvm_descendants():
+def restrict_descendants():
     resource.setrlimit(resource.RLIMIT_NPROC, (0, 0))
 
 
-def child_setup(policy):
-    if policy not in ("jvm", "process"):
-        raise RuntimeError("unknown backend process ownership policy")
-    if sys.platform == "darwin" and policy == "jvm":
+def child_setup():
+    if sys.platform == "darwin":
         if os.getuid() == 0 or os.geteuid() == 0:
-            raise RuntimeError("Darwin JVM descendant prevention requires a non-root user")
-        return restrict_jvm_descendants
+            raise RuntimeError("Darwin descendant prevention requires a non-root user")
+        return restrict_descendants
     return None
 
 
@@ -33,7 +31,7 @@ def main():
 
     for signum in [signal.SIGTERM, signal.SIGINT, signal.SIGHUP, signal.SIGQUIT]:
         signal.signal(signum, request_stop)
-    setup = child_setup(sys.argv[1])
+    setup = child_setup()
     if sys.platform.startswith("linux"):
         libc = ctypes.CDLL(None, use_errno=True)
         if libc.prctl(36, 1, 0, 0, 0) != 0:  # PR_SET_CHILD_SUBREAPER
@@ -42,7 +40,7 @@ def main():
         raise RuntimeError("backend process ownership supports Linux and macOS only")
     if stopping is not None:
         return 128 + stopping
-    child = subprocess.Popen(sys.argv[2:], stdin=subprocess.DEVNULL, start_new_session=True, preexec_fn=setup)
+    child = subprocess.Popen(sys.argv[1:], stdin=subprocess.DEVNULL, start_new_session=True, preexec_fn=setup)
     try:
         while stopping is None and child.poll() is None:
             readable, _, _ = select.select([sys.stdin.buffer], [], [], .005)

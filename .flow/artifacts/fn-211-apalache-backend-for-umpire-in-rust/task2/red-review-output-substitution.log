@@ -1,0 +1,31 @@
+   Compiling umpire-tlc v0.0.1 (/Users/stephan/Workspace/skunkworks/umpire/temporal/model/umpire/backends/tlc)
+    Finished `test` profile [unoptimized + debuginfo] target(s) in 0.83s
+     Running unittests src/lib.rs (/home/agent/.cache/codex-build/cargo-target/debug/deps/umpire_tlc-bc63fc652fe8d782)
+
+running 2 tests
+test process::tests::substituted_log_symlink_cannot_modify_an_external_file ... FAILED
+test process::tests::substituted_log_fifo_returns_without_waiting_for_a_reader ... FAILED
+
+failures:
+
+---- process::tests::substituted_log_symlink_cannot_modify_an_external_file stdout ----
+
+thread 'process::tests::substituted_log_symlink_cannot_modify_an_external_file' (3544058) panicked at umpire/backends/tlc/src/process.rs:383:9:
+assertion `left == right` failed
+  left: "captured\n"
+ right: "unchanged"
+note: run with `RUST_BACKTRACE=1` environment variable to display a backtrace
+
+---- process::tests::substituted_log_fifo_returns_without_waiting_for_a_reader stdout ----
+
+thread 'process::tests::substituted_log_fifo_returns_without_waiting_for_a_reader' (3544057) panicked at umpire/backends/tlc/src/process.rs:408:9:
+log publication waited for a FIFO reader
+
+
+failures:
+    process::tests::substituted_log_fifo_returns_without_waiting_for_a_reader
+    process::tests::substituted_log_symlink_cannot_modify_an_external_file
+
+test result: FAILED. 0 passed; 2 failed; 0 ignored; 0 measured; 13 filtered out; finished in 2.00s
+
+error: test failed, to rerun pass `-p umpire-tlc --lib`

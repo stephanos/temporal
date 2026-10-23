@@ -20,13 +20,12 @@ spec.loader.exec_module(backend_process)
 
 
 class DarwinPolicy(unittest.TestCase):
-    def test_only_explicit_jvm_policy_prevents_process_creation(self):
+    def test_all_darwin_helpers_prevent_process_creation(self):
         with patch.object(backend_process.sys, "platform", "darwin"), \
              patch.object(backend_process.os, "getuid", return_value=501), \
              patch.object(backend_process.os, "geteuid", return_value=501), \
              patch.object(backend_process.resource, "setrlimit") as limits:
-            self.assertIsNone(backend_process.child_setup("process"))
-            backend_process.child_setup("jvm")()
+            backend_process.child_setup()()
             limits.assert_called_once_with(backend_process.resource.RLIMIT_NPROC, (0, 0))
         for uid, euid in [(0, 501), (501, 0), (0, 0)]:
             with self.subTest(uid=uid, euid=euid), \
@@ -34,11 +33,9 @@ class DarwinPolicy(unittest.TestCase):
                  patch.object(backend_process.os, "getuid", return_value=uid), \
                  patch.object(backend_process.os, "geteuid", return_value=euid):
                 with self.assertRaisesRegex(RuntimeError, "non-root"):
-                    backend_process.child_setup("jvm")
-        with self.assertRaisesRegex(RuntimeError, "unknown"):
-            backend_process.child_setup("unknown")
+                    backend_process.child_setup()
         with patch.object(backend_process.sys, "platform", "linux"):
-            self.assertIsNone(backend_process.child_setup("jvm"))
+            self.assertIsNone(backend_process.child_setup())
 
 
 
@@ -61,7 +58,7 @@ print('escaped ' + str(p.pid))
         launch = "import sys; sys.platform='darwin'; exec(compile(sys.argv.pop(1), '<supervisor>', 'exec'))"
         owned = []
         try:
-            with subprocess.Popen([sys.executable, "-c", launch, SUPERVISOR.read_text(), "process", sys.executable, "-c", helper], stdin=subprocess.PIPE, stdout=subprocess.PIPE, stderr=subprocess.PIPE) as process:
+            with subprocess.Popen([sys.executable, "-c", launch, SUPERVISOR.read_text(), sys.executable, "-c", helper], stdin=subprocess.PIPE, stdout=subprocess.PIPE, stderr=subprocess.PIPE) as process:
                 process.wait(timeout=5)
                 output, errors = process.communicate()
             if output.startswith(b"escaped "):
@@ -93,7 +90,7 @@ print('escaped ' + str(p.pid))
             outside.mkdir()
             (root / "model/build").symlink_to(outside, target_is_directory=True)
             try:
-                result = subprocess.run(["bash", str(script)], preexec_fn=backend_process.restrict_jvm_descendants, capture_output=True, timeout=2, check=False)
+                result = subprocess.run(["bash", str(script)], preexec_fn=backend_process.restrict_descendants, capture_output=True, timeout=2, check=False)
                 output = result.stdout + result.stderr
                 self.assertNotEqual(result.returncode, 0)
             except subprocess.TimeoutExpired as error:
@@ -113,7 +110,7 @@ with open(sys.argv[1], 'w') as out:
 time.sleep(60)
 """
         owner = """import os,subprocess,sys,time
-p = subprocess.Popen([sys.executable, sys.argv[1], "process", sys.executable, '-c', sys.argv[2], sys.argv[3]], stdin=subprocess.PIPE, process_group=0)
+p = subprocess.Popen([sys.executable, sys.argv[1], sys.executable, '-c', sys.argv[2], sys.argv[3]], stdin=subprocess.PIPE, process_group=0)
 with open(sys.argv[4], 'w') as out:
     out.write(str(p.pid))
 time.sleep(60)
@@ -167,7 +164,7 @@ with open(sys.argv[1], 'w') as out:
 time.sleep(60)
 """
         owner = """import os,subprocess,sys,time
-p = subprocess.Popen([sys.executable, sys.argv[1], "process", sys.executable, '-c', sys.argv[2], sys.argv[3]], stdin=subprocess.PIPE)
+p = subprocess.Popen([sys.executable, sys.argv[1], sys.executable, '-c', sys.argv[2], sys.argv[3]], stdin=subprocess.PIPE)
 for _ in range(1000):
     if os.path.exists(sys.argv[3]):
         os._exit(0)

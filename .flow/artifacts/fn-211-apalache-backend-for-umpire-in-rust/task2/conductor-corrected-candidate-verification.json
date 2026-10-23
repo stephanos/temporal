@@ -1,0 +1,12 @@
+{
+  "candidate": "0eda2a2669b6649882d6e7978809226da56d6717",
+  "verification_phase": "corrected candidate; final gate/review pending",
+  "source_inventory_entries": 38,
+  "prior_fixture_artifacts_compared_to_task1_closure": 558,
+  "prior_artifacts_exact": true,
+  "task1_closure": "35e7a7a88911096c7dff2efe7c04c7bb5dddc1a7",
+  "runtime_live_closure_entries": 2181,
+  "runtime_live_closure_exact": true,
+  "guest_sha256": "f832a33c3024a8752976d146be839b62a95afde4790fa0db60f1dac9004b4e7e",
+  "live_proof_reference": "task1 actual fresh slice7scenarios5.917s + gaps/privacy358.318s; no new task2 execution claim"
+}

@@ -3,14 +3,14 @@
 use crate::{Limits, Refusal};
 use std::{
     fs::{self, File},
-    io::Read,
-    os::unix::{fs::DirBuilderExt, process::CommandExt},
+    io::{Read, Seek},
+    os::unix::{
+        fs::{DirBuilderExt, MetadataExt},
+        process::CommandExt,
+    },
     path::{Path, PathBuf},
     process::{Child, Command, ExitStatus, Stdio},
-    sync::{
-        Arc,
-        atomic::{AtomicBool, AtomicU64, Ordering},
-    },
+    sync::atomic::{AtomicBool, AtomicU64, Ordering},
     thread,
     time::{Duration, Instant},
 };
@@ -81,11 +81,8 @@ impl Drop for Scratch {
     }
 }
 
-const JVM_POLICY: &str = "UMPIRE_INTERNAL_JVM_PROCESS";
-
 pub fn java_command(java: &Path) -> Command {
     let mut command = Command::new(java);
-    command.env(JVM_POLICY, "1");
     for name in
         ["JAVA_TOOL_OPTIONS", "JDK_JAVA_OPTIONS", "_JAVA_OPTIONS", "CLASSPATH", "TLA_LIBRARY"]
     {
@@ -134,6 +131,21 @@ impl Drop for Running {
     }
 }
 
+pub struct ProcessFailure {
+    pub refusal: Refusal,
+    pub output: String,
+}
+impl From<Refusal> for ProcessFailure {
+    fn from(refusal: Refusal) -> Self {
+        Self { refusal, output: String::new() }
+    }
+}
+impl From<std::io::Error> for ProcessFailure {
+    fn from(error: std::io::Error) -> Self {
+        Refusal::from(error).into()
+    }
+}
+
 pub fn run_process(
     command: &mut Command,
     directory: &Path,
@@ -142,6 +154,7 @@ pub fn run_process(
     dump: Option<&Path>,
 ) -> Result<(ExitStatus, String), Refusal> {
     run_process_cancelled(command, directory, label, limits, dump, &AtomicBool::new(false))
+        .map_err(|error| error.refusal)
 }
 
 pub fn run_process_cancelled(
@@ -151,52 +164,46 @@ pub fn run_process_cancelled(
     limits: Limits,
     dump: Option<&Path>,
     cancelled: &AtomicBool,
-) -> Result<(ExitStatus, String), Refusal> {
+) -> Result<(ExitStatus, String), ProcessFailure> {
     let stdout = directory.join(format!("{label}.stdout"));
     let stderr = directory.join(format!("{label}.stderr"));
-    File::create(&stdout)?;
-    File::create(&stderr)?;
+    let open =
+        |path: &Path| fs::OpenOptions::new().create_new(true).read(true).write(true).open(path);
+    let mut out = open(&stdout)?;
+    let mut err = open(&stderr)?;
     if cancelled.load(Ordering::Relaxed) {
-        return Err(Refusal(format!("subprocess cancelled ({label})")));
+        return Err(Refusal(format!("subprocess cancelled ({label})")).into());
     }
     let mut supervised = Command::new("python3");
-    let jvm = command
-        .get_envs()
-        .any(|(name, value)| name == JVM_POLICY && value == Some(std::ffi::OsStr::new("1")));
-    supervised
-        .arg("-c")
-        .arg(include_str!("process.py"))
-        .arg(if jvm { "jvm" } else { "process" })
-        .arg(command.get_program());
+    supervised.arg("-c").arg(include_str!("process.py")).arg(command.get_program());
     supervised.args(command.get_args());
     supervised.current_dir(command.get_current_dir().unwrap_or(directory));
     for (key, value) in command.get_envs() {
-        if key == JVM_POLICY {
-            continue;
-        }
         if let Some(value) = value {
             supervised.env(key, value);
         } else {
             supervised.env_remove(key);
         }
     }
-    supervised.process_group(0).stdin(Stdio::piped()).stdout(Stdio::piped()).stderr(Stdio::piped());
-    let mut child = Running(
-        supervised.spawn().map_err(|error| Refusal(format!("cannot spawn {label}: {error}")))?,
-    );
-    let bytes = Arc::new(AtomicU64::new(0));
-    let out = drain(child.0.stdout.take(), bytes.clone(), limits.output_bytes);
-    let err = drain(child.0.stderr.take(), bytes.clone(), limits.output_bytes);
+    supervised
+        .process_group(0)
+        .stdin(Stdio::piped())
+        .stdout(Stdio::from(out.try_clone()?))
+        .stderr(Stdio::from(err.try_clone()?));
+    let mut child =
+        Running(supervised.spawn().map_err(|e| Refusal(format!("cannot spawn {label}: {e}")))?);
     let start = Instant::now();
     let result = (|| loop {
         if cancelled.load(Ordering::Relaxed) {
             return Err(Refusal(format!("subprocess cancelled ({label})")));
         }
         if start.elapsed() >= limits.timeout
-            || bytes.load(Ordering::Relaxed) > limits.output_bytes
+            || out.metadata()?.len().saturating_add(err.metadata()?.len()) > limits.output_bytes
+            || !same_file(&stdout, &out)?
+            || !same_file(&stderr, &err)?
             || dump.is_some_and(|path| !within_budget(path, limits.dump_bytes).unwrap_or(false))
         {
-            return Err(Refusal(format!("subprocess limit exceeded ({label})")));
+            return Err(Refusal(format!("subprocess limit or unsafe output ({label})")));
         }
         if let Some(status) = child.0.try_wait()? {
             return Ok(status);
@@ -204,42 +211,50 @@ pub fn run_process_cancelled(
         thread::sleep(Duration::from_millis(5));
     })();
     drop(child);
-    let output = out.join().map_err(|_| Refusal("stdout reader panicked".into()))??;
-    let errors = err.join().map_err(|_| Refusal("stderr reader panicked".into()))??;
-    fs::write(stdout, &output)?;
-    fs::write(stderr, &errors)?;
-    let status = result?;
-    if bytes.load(Ordering::Relaxed) > limits.output_bytes
-        || dump.is_some_and(|path| !within_budget(path, limits.dump_bytes).unwrap_or(false))
-    {
-        return Err(Refusal(format!("subprocess output/dump limit exceeded ({label})")));
+    out.rewind()?;
+    err.rewind()?;
+    let mut bytes = Vec::new();
+    out.by_ref().take(limits.output_bytes).read_to_end(&mut bytes)?;
+    let remaining = limits.output_bytes.saturating_sub(bytes.len() as u64);
+    err.by_ref().take(remaining).read_to_end(&mut bytes)?;
+    let output = match String::from_utf8(bytes) {
+        Ok(output) => output,
+        Err(error) => {
+            let mut output = String::from_utf8_lossy(error.as_bytes()).into_owned();
+            let limit = usize::try_from(limits.output_bytes).unwrap_or(usize::MAX);
+            output.truncate(output.floor_char_boundary(limit));
+            return Err(ProcessFailure {
+                refusal: Refusal(format!("non-UTF8 subprocess output: {error}")),
+                output,
+            });
+        }
+    };
+    let result = result.and_then(|status| {
+        if out.metadata()?.len().saturating_add(err.metadata()?.len()) > limits.output_bytes
+            || !same_file(&stdout, &out)?
+            || !same_file(&stderr, &err)?
+            || dump.is_some_and(|path| !within_budget(path, limits.dump_bytes).unwrap_or(false))
+        {
+            return Err(Refusal(format!(
+                "subprocess output/dump limit or unsafe output ({label})"
+            )));
+        }
+        Ok(status)
+    });
+    match result {
+        Ok(status) => Ok((status, output)),
+        Err(refusal) => Err(ProcessFailure { refusal, output }),
     }
-    let output = String::from_utf8([output, errors].concat())
-        .map_err(|error| Refusal(format!("non-UTF8 subprocess output: {error}")))?;
-    Ok((status, output))
 }
 
-fn drain<R: Read + Send + 'static>(
-    reader: Option<R>,
-    bytes: Arc<AtomicU64>,
-    limit: u64,
-) -> thread::JoinHandle<Result<Vec<u8>, Refusal>> {
-    thread::spawn(move || {
-        let mut reader = reader.ok_or_else(|| Refusal("missing subprocess pipe".into()))?;
-        let mut output = Vec::new();
-        let mut buffer = [0; 8192];
-        loop {
-            let count = reader.read(&mut buffer)?;
-            if count == 0 {
-                break;
-            }
-            let before = bytes.fetch_add(count as u64, Ordering::Relaxed);
-            let keep =
-                usize::try_from(limit.saturating_sub(before)).unwrap_or(usize::MAX).min(count);
-            output.extend_from_slice(&buffer[..keep]);
-        }
-        Ok(output)
-    })
+fn same_file(path: &Path, file: &File) -> Result<bool, Refusal> {
+    let current = match fs::symlink_metadata(path) {
+        Ok(meta) => meta,
+        Err(error) if error.kind() == std::io::ErrorKind::NotFound => return Ok(false),
+        Err(error) => return Err(error.into()),
+    };
+    let original = file.metadata()?;
+    Ok(current.is_file() && current.dev() == original.dev() && current.ino() == original.ino())
 }
 
 fn within_budget(path: &Path, limit: u64) -> Result<bool, Refusal> {
@@ -278,8 +293,15 @@ fn within_budget(path: &Path, limit: u64) -> Result<bool, Refusal> {
 }
 
 pub(crate) fn bounded_text(path: &Path, limit: u64) -> Result<String, Refusal> {
+    if !fs::symlink_metadata(path)?.is_file() {
+        return Err(Refusal("bounded read requires a regular file".into()));
+    }
+    let file = File::open(path)?;
+    if !same_file(path, &file)? {
+        return Err(Refusal("bounded read file changed".into()));
+    }
     let mut text = String::new();
-    File::open(path)?.take(limit.saturating_add(1)).read_to_string(&mut text)?;
+    file.take(limit.saturating_add(1)).read_to_string(&mut text)?;
     if u64::try_from(text.len()).unwrap_or(u64::MAX) > limit {
         return Err(Refusal(format!("file exceeds bounded read limit: {}", path.display())));
     }
@@ -289,6 +311,7 @@ pub(crate) fn bounded_text(path: &Path, limit: u64) -> Result<String, Refusal> {
 #[cfg(test)]
 mod tests {
     use super::*;
+    use std::sync::Arc;
 
     #[test]
     fn timeout_cleans_descendants_before_return() -> Result<(), Refusal> {
@@ -331,7 +354,7 @@ mod tests {
             &cancelled,
         );
         cancel.join().map_err(|_| Refusal("cancel thread panicked".into()))?;
-        assert!(result.is_err_and(|e| e.0.contains("cancelled")));
+        assert!(result.is_err_and(|e| e.refusal.0.contains("cancelled")));
         let pids = fs::read_to_string(pids)?;
         for pid in pids.split_whitespace() {
             assert!(!Path::new("/proc").join(pid).exists(), "owned pid {pid} was not reaped");
@@ -359,15 +382,15 @@ mod tests {
         );
     }
     #[test]
-    fn java_policy_is_internal_and_environment_injection_is_removed() -> Result<(), Refusal> {
+    fn java_environment_is_clean_and_supervisor_group_is_private() -> Result<(), Refusal> {
         let root = Path::new(env!("CARGO_MANIFEST_DIR")).join("../../../..").canonicalize()?;
         let scratch = Scratch::new(&root)?;
         let mut command = java_command(Path::new("python3"));
-        command.args(["-c", "import os; print(os.getenv('UMPIRE_INTERNAL_JVM_PROCESS')); print(os.getenv('JAVA_TOOL_OPTIONS')); print(os.getpgid(os.getppid()) == os.getppid())"]);
+        command.args(["-c", "import os; print(os.getenv('JAVA_TOOL_OPTIONS')); print(os.getpgid(os.getppid()) == os.getppid())"]);
         let (status, output) =
             run_process(&mut command, &scratch.0, "policy", Limits::default(), None)?;
         assert!(status.success());
-        assert_eq!(output, "None\nNone\nTrue\n");
+        assert_eq!(output, "None\nTrue\n");
         scratch.finish(Ok(()))
     }
     #[test]
@@ -400,8 +423,18 @@ mod tests {
         });
         let result = receive.recv_timeout(Duration::from_secs(2));
         let blocked = result.is_err();
-        let unblock = if blocked { Some(fs::OpenOptions::new().read(true).write(true).open(scratch.0.join("capture.stdout"))?) } else { None };
-        let result = result.or_else(|_| receive.recv_timeout(Duration::from_secs(2)))
+        let unblock = if blocked {
+            Some(
+                fs::OpenOptions::new()
+                    .read(true)
+                    .write(true)
+                    .open(scratch.0.join("capture.stdout"))?,
+            )
+        } else {
+            None
+        };
+        let result = result
+            .or_else(|_| receive.recv_timeout(Duration::from_secs(2)))
             .map_err(|e| Refusal(e.to_string()))?;
         worker.join().map_err(|_| Refusal("capture thread panicked".into()))?;
         drop(unblock);
@@ -410,4 +443,39 @@ mod tests {
         scratch.finish(Ok(()))
     }
 
+    #[test]
+    fn failed_captures_keep_one_combined_budget_and_refuse_invalid_utf8() -> Result<(), Refusal> {
+        let root = Path::new(env!("CARGO_MANIFEST_DIR")).join("../../../..").canonicalize()?;
+        let scratch = Scratch::new(&root)?;
+        for (label, script, limit, expected) in [
+            (
+                "combined",
+                "import sys; sys.stdout.write('abcd'); sys.stderr.write('efgh')",
+                6,
+                "abcdef",
+            ),
+            ("utf8", "import sys; sys.stdout.buffer.write(bytes([255]))", 1, ""),
+        ] {
+            let mut command = Command::new("python3");
+            command.args(["-c", script]);
+            let limits = Limits { output_bytes: limit, ..Limits::default() };
+            let failure = run_process_cancelled(
+                &mut command,
+                &scratch.0,
+                label,
+                limits,
+                None,
+                &AtomicBool::new(false),
+            )
+            .err()
+            .ok_or_else(|| Refusal("malformed or oversized output admitted".into()))?;
+            assert!(failure.output.len() as u64 <= limit);
+            assert_eq!(failure.output, expected);
+            if label == "utf8" {
+                assert!(failure.refusal.0.contains("non-UTF8"));
+                assert_eq!(fs::read(scratch.0.join("utf8.stdout"))?, [255]);
+            }
+        }
+        scratch.finish(Ok(()))
+    }
 }

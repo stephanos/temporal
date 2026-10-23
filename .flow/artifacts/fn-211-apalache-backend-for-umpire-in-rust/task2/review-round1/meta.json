@@ -1,0 +1,78 @@
+{
+  "type": "impl_review_fanout",
+  "focus": null,
+  "claim_token": null,
+  "id": "fn-211-apalache-backend-for-umpire-in-rust.2",
+  "standalone": false,
+  "base_branch": "0e88ae54ba46cb1c46f720ade230537c575a9f22",
+  "reviewed_base_sha": "0e88ae54ba46cb1c46f720ade230537c575a9f22",
+  "reviewed_head_sha": "0eda2a2669b6649882d6e7978809226da56d6717",
+  "artifact_sha256": "8a53d97841302e0fe782cc915f8410df71b3d1616bc4dd6cce13db7b9cee7ea4",
+  "reservation_id": "fcd2eb13cc264aabb96629cf2069e0a4",
+  "rid": "fcd2eb13cc264aabb96629cf2069e0a4",
+  "primary_axis": "correctness",
+  "draws": [
+    {
+      "axis": "correctness",
+      "parse_status": {
+        "status": "parsed",
+        "reason": null,
+        "block": null
+      },
+      "backend": "codex",
+      "model": "gpt-6.1-sol",
+      "effort": "high",
+      "session_id": "01a1666c-cfd3-7540-900f-dc0c81a7c442",
+      "verdict": "NEEDS_WORK",
+      "failed": false,
+      "failure_class": null,
+      "exit_code": 0,
+      "started_at": "2026-10-23T01:42:48.996792Z",
+      "finished_at": "2026-10-23T01:47:25.223651Z",
+      "review_path": "/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/review-fanout/fcd2eb13cc264aabb96629cf2069e0a4/correctness.review.md",
+      "output_path": "/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/review-fanout/fcd2eb13cc264aabb96629cf2069e0a4/correctness.out.txt"
+    },
+    {
+      "axis": "contracts",
+      "parse_status": {
+        "status": "parsed",
+        "reason": null,
+        "block": null
+      },
+      "backend": "codex",
+      "model": "gpt-6.1-sol",
+      "effort": "high",
+      "session_id": "01a1666c-cfd3-7fa2-9ec2-a8bbc13d7557",
+      "verdict": "NEEDS_WORK",
+      "failed": false,
+      "failure_class": null,
+      "exit_code": 0,
+      "started_at": "2026-10-23T01:42:48.996916Z",
+      "finished_at": "2026-10-23T01:45:58.808136Z",
+      "review_path": "/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/review-fanout/fcd2eb13cc264aabb96629cf2069e0a4/contracts.review.md",
+      "output_path": "/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/review-fanout/fcd2eb13cc264aabb96629cf2069e0a4/contracts.out.txt"
+    },
+    {
+      "axis": "integration",
+      "parse_status": {
+        "status": "parsed",
+        "reason": null,
+        "block": null
+      },
+      "backend": "codex",
+      "model": "gpt-6.1-sol",
+      "effort": "high",
+      "session_id": "01a1666c-cfd2-7341-9cef-566b4145f457",
+      "verdict": "NEEDS_WORK",
+      "failed": false,
+      "failure_class": null,
+      "exit_code": 0,
+      "started_at": "2026-10-23T01:42:48.997058Z",
+      "finished_at": "2026-10-23T01:47:08.764942Z",
+      "review_path": "/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/review-fanout/fcd2eb13cc264aabb96629cf2069e0a4/integration.review.md",
+      "output_path": "/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/review-fanout/fcd2eb13cc264aabb96629cf2069e0a4/integration.out.txt"
+    }
+  ],
+  "receipt_path": "/tmp/impl-review-receipt-8f37faba39e2-fn-211-apalache-backend-for-umpire-in-rust.2.json",
+  "created_at": "2026-10-23T01:47:25.230949Z"
+}

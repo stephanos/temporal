@@ -1,0 +1,54 @@
+   Compiling umpire-apalache v0.0.1 (/Users/stephan/Workspace/skunkworks/umpire/temporal/model/umpire/backends/apalache)
+    Finished `test` profile [unoptimized + debuginfo] target(s) in 1.21s
+     Running unittests src/lib.rs (/home/agent/.cache/codex-build/cargo-target/debug/deps/umpire_apalache-72236881ac6fd1a5)
+
+running 8 tests
+test tests::native_depth_is_checked_and_truncation_never_establishes_a_bound ... ok
+test tests::pinned_outcomes_require_consistent_property_bound_exit_and_completion ... ok
+test tests::version_admission_rejects_missing_wrong_and_failed_release_output ... ok
+test tests::unchanged_monitor_can_omit_redundant_per_state_checks ... ok
+test tests::traces_have_one_aggregate_budget_and_deterministic_order ... ok
+test tests::successful_substring_is_not_a_bounded_proof ... ok
+test tests::missing_changed_and_symlinked_installations_refuse_before_model_execution ... ok
+test tests::fake_execution_failures_never_pass_and_scratch_is_removed ... ok
+
+test result: ok. 8 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.23s
+
+     Running tests/controls.rs (/home/agent/.cache/codex-build/cargo-target/debug/deps/controls-2c4acfaea06e35c9)
+
+running 9 tests
+test real_evaluated_start_failure_cannot_disappear_into_an_empty_range ... ok
+test pinned_installer_and_runner_agree ... ok
+test real_payload_identity_and_outcome_history_are_typed ... ok
+test real_kettle_checks_source_safety_and_history ... ok
+test real_postcondition_filter_excludes_unrelated_actions ... ok
+test real_start_evaluation_respects_field_order_before_empty_domains ... ok
+test real_typed_vector_projection_keeps_eager_fallback_errors ... ok
+test real_discarded_condition_keeps_its_evaluation_guard ... ok
+test real_arithmetic_faults_are_reachable_and_guards_remain_total ... ok
+
+test result: ok. 9 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.00s
+
+   Doc-tests umpire_apalache
+
+running 0 tests
+
+test result: ok. 0 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.00s
+
+    Finished `test` profile [unoptimized + debuginfo] target(s) in 0.02s
+     Running tests/controls.rs (/home/agent/.cache/codex-build/cargo-target/debug/deps/controls-2c4acfaea06e35c9)
+
+running 1 test
+test real_evaluated_start_failure_cannot_disappear_into_an_empty_range ... ok
+
+test result: ok. 1 passed; 0 failed; 0 ignored; 0 measured; 8 filtered out; finished in 2.09s
+
+   Compiling umpire-tlc v0.0.1 (/Users/stephan/Workspace/skunkworks/umpire/temporal/model/umpire/backends/tlc)
+    Finished `test` profile [unoptimized + debuginfo] target(s) in 0.51s
+     Running tests/controls.rs (/home/agent/.cache/codex-build/cargo-target/debug/deps/controls-ee556c16e070e6e4)
+
+running 1 test
+test real_tlc_initial_invariant_has_a_typed_counterexample ... ok
+
+test result: ok. 1 passed; 0 failed; 0 ignored; 0 measured; 2 filtered out; finished in 1.33s
+

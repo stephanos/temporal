@@ -233,13 +233,11 @@ impl Apalache {
                             Err(error) => Ok(Bounded::NotRun { length, reason: error.0, output }),
                         }
                     }
-                    Err(error) => {
-                        let output = ["check.stdout", "check.stderr"]
-                            .iter()
-                            .filter_map(|name| fs::read_to_string(scratch.0.join(name)).ok())
-                            .collect::<String>();
-                        Ok(Bounded::NotRun { length, reason: error.0, output })
-                    }
+                    Err(error) => Ok(Bounded::NotRun {
+                        length,
+                        reason: error.refusal.0,
+                        output: error.output,
+                    }),
                 }
             })();
             scratch.finish(checked)

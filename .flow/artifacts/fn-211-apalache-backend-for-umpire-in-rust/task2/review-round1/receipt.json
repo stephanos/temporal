@@ -1,0 +1,100 @@
+{
+  "base": "0e88ae54ba46cb1c46f720ade230537c575a9f22",
+  "draws": [
+    {
+      "axis": "correctness",
+      "failed": false,
+      "model": "gpt-6.1-sol",
+      "session_id": "01a1666c-cfd3-7540-900f-dc0c81a7c442",
+      "verdict": "NEEDS_WORK"
+    },
+    {
+      "axis": "contracts",
+      "failed": false,
+      "model": "gpt-6.1-sol",
+      "session_id": "01a1666c-cfd3-7fa2-9ec2-a8bbc13d7557",
+      "verdict": "NEEDS_WORK"
+    },
+    {
+      "axis": "integration",
+      "failed": false,
+      "model": "gpt-6.1-sol",
+      "session_id": "01a1666c-cfd2-7341-9cef-566b4145f457",
+      "verdict": "NEEDS_WORK"
+    }
+  ],
+  "effort": "high",
+  "findings": {
+    "backend": "codex",
+    "baseSha": "0e88ae54ba46cb1c46f720ade230537c575a9f22",
+    "headSha": "0eda2a2669b6649882d6e7978809226da56d6717",
+    "items": [
+      {
+        "anchor": {
+          "baseSha": "0e88ae54ba46cb1c46f720ade230537c575a9f22",
+          "headSha": "0eda2a2669b6649882d6e7978809226da56d6717",
+          "path": "model/umpire/backends/tlc/src/process.rs",
+          "side": "head",
+          "startLine": 209
+        },
+        "body": "The runner closes its initial output-file handles, then reopens tool-accessible paths with `fs::write(stdout, &output)?`. A tool can replace `check.stdout` with a symlink, causing the runner to truncate/write a file outside scratch. This happens even when `within_budget` detects the symlink: output publication precedes `result?`. Replacing the file with a FIFO can instead block indefinitely.",
+        "classification": "introduced",
+        "confidence": 100,
+        "firstSeenReceiptId": "review-b50e4b9226bd8ddbf721d6339f8309e4b2b3fb3e941d1874ee285f1047807d55",
+        "id": "finding-ceac283fb49c07736455289130a18fcc",
+        "lastSeenReceiptId": "review-b50e4b9226bd8ddbf721d6339f8309e4b2b3fb3e941d1874ee285f1047807d55",
+        "ordinal": 1,
+        "rIds": [
+          "R2"
+        ],
+        "severity": "P1",
+        "status": "open",
+        "suggestion": "Retain securely opened file handles and publish through them. Reject substituted output paths before reopening them, including in Apalache\u2019s error-output reader. Add symlink/FIFO controls.",
+        "title": "The runner closes its initial output-file handles, then reopens tool-accessible paths with `fs::write(stdout, &output)?`"
+      },
+      {
+        "anchor": {
+          "baseSha": "0e88ae54ba46cb1c46f720ade230537c575a9f22",
+          "headSha": "0eda2a2669b6649882d6e7978809226da56d6717",
+          "path": "model/umpire/backends/tlc/src/process.rs",
+          "side": "head",
+          "startLine": 207
+        },
+        "body": "The new unconditional pipe-reader joins can defeat timeout/cancellation on Darwin. For non-JVM commands, the supervisor only kills the original process group; a descendant that starts another session survives and retains stdout/stderr. The supervisor exits, but `out.join()` waits indefinitely. Selecting the Darwin branch in memory on Linux reproduced both the surviving descendant and missing pipe EOF; all reproducer processes were cleaned up. The previous file-based output collection did not introduce this indefinite join.",
+        "classification": "introduced",
+        "confidence": 75,
+        "firstSeenReceiptId": "review-b50e4b9226bd8ddbf721d6339f8309e4b2b3fb3e941d1874ee285f1047807d55",
+        "id": "finding-a0cbad2910a12106c796f20d4b97a0c3",
+        "lastSeenReceiptId": "review-b50e4b9226bd8ddbf721d6339f8309e4b2b3fb3e941d1874ee285f1047807d55",
+        "ordinal": 2,
+        "rIds": [
+          "R2"
+        ],
+        "severity": "P1",
+        "status": "open",
+        "suggestion": "Complete descendant ownership for Darwin helper commands and bound cleanup/drain waits. Add a separate-session descendant control for that path.",
+        "title": "The new unconditional pipe-reader joins can defeat timeout/cancellation on Darwin"
+      }
+    ],
+    "reviewKind": "implementation",
+    "round": 1,
+    "schemaVersion": 1,
+    "sourceReceiptId": "review-b50e4b9226bd8ddbf721d6339f8309e4b2b3fb3e941d1874ee285f1047807d55"
+  },
+  "id": "fn-211-apalache-backend-for-umpire-in-rust.2",
+  "introduced_count": 2,
+  "mode": "codex",
+  "model": "gpt-6.1-sol",
+  "pre_existing_count": 0,
+  "review": "## Issue 1\n- **Severity**: P1\n- **Title**: The runner closes its initial output-file handles, then reopens tool-accessible paths with `fs::write(stdout, &output)?`\n- **Confidence**: 100\n- **Classification**: introduced\n- **Problem**: The runner closes its initial output-file handles, then reopens tool-accessible paths with `fs::write(stdout, &output)?`. A tool can replace `check.stdout` with a symlink, causing the runner to truncate/write a file outside scratch. This happens even when `within_budget` detects the symlink: output publication precedes `result?`. Replacing the file with a FIFO can instead block indefinitely.\n- **Suggestion**: Retain securely opened file handles and publish through them. Reject substituted output paths before reopening them, including in Apalache\u2019s error-output reader. Add symlink/FIFO controls.\n- **File:Line**: model/umpire/backends/tlc/src/process.rs:209\n- **R-IDs**: R2\n\n## Issue 2\n- **Severity**: P1\n- **Title**: The new unconditional pipe-reader joins can defeat timeout/cancellation on Darwin\n- **Confidence**: 75\n- **Classification**: introduced\n- **Problem**: The new unconditional pipe-reader joins can defeat timeout/cancellation on Darwin. For non-JVM commands, the supervisor only kills the original process group; a descendant that starts another session survives and retains stdout/stderr. The supervisor exits, but `out.join()` waits indefinitely. Selecting the Darwin branch in memory on Linux reproduced both the surviving descendant and missing pipe EOF; all reproducer processes were cleaned up. The previous file-based output collection did not introduce this indefinite join.\n- **Suggestion**: Complete descendant ownership for Darwin helper commands and bound cleanup/drain waits. Add a separate-session descendant control for that path.\n- **File:Line**: model/umpire/backends/tlc/src/process.rs:207\n- **R-IDs**: R2\n\n```json\n{\"classification_counts\": {\"introduced\": 2, \"pre_existing\": 0}, \"unaddressed\": [\"R2\"], \"suppressed_count\": {}}\n```\n\n<verdict>NEEDS_WORK</verdict>\n",
+  "review_reservation_id": "fcd2eb13cc264aabb96629cf2069e0a4",
+  "rid": "fcd2eb13cc264aabb96629cf2069e0a4",
+  "session_id": "01a1666c-cfd3-7540-900f-dc0c81a7c442",
+  "spec": "codex:gpt-6.1-sol:high",
+  "timestamp": "2026-10-23T01:49:52.858383Z",
+  "type": "impl_review",
+  "unaddressed": [
+    "R2"
+  ],
+  "verdict": "NEEDS_WORK"
+}

@@ -1,0 +1,14 @@
+...F
+======================================================================
+FAIL: test_simulated_darwin_helper_cannot_start_an_escaped_descendant (test_backend_process.Supervisor.test_simulated_darwin_helper_cannot_start_an_escaped_descendant)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/Users/stephan/Workspace/skunkworks/umpire/temporal/model/scripts/tests/test_backend_process.py", line 66, in test_simulated_darwin_helper_cannot_start_an_escaped_descendant
+    self.assertEqual(result.returncode, 75, result.stdout + result.stderr)
+    ~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+AssertionError: 125 != 75 : b''
+
+----------------------------------------------------------------------
+Ran 4 tests in 0.184s
+
+FAILED (failures=1)

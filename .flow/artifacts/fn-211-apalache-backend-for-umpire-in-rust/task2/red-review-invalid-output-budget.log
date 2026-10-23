@@ -1,0 +1,22 @@
+   Compiling umpire-tlc v0.0.1 (/Users/stephan/Workspace/skunkworks/umpire/temporal/model/umpire/backends/tlc)
+    Finished `test` profile [unoptimized + debuginfo] target(s) in 0.75s
+     Running unittests src/lib.rs (/home/agent/.cache/codex-build/cargo-target/debug/deps/umpire_tlc-bc63fc652fe8d782)
+
+running 1 test
+test process::tests::failed_captures_keep_one_combined_budget_and_refuse_invalid_utf8 ... FAILED
+
+failures:
+
+---- process::tests::failed_captures_keep_one_combined_budget_and_refuse_invalid_utf8 stdout ----
+
+thread 'process::tests::failed_captures_keep_one_combined_budget_and_refuse_invalid_utf8' (3549028) panicked at umpire/backends/tlc/src/process.rs:419:13:
+assertion failed: failure.output.len() as u64 <= limit
+note: run with `RUST_BACKTRACE=1` environment variable to display a backtrace
+
+
+failures:
+    process::tests::failed_captures_keep_one_combined_budget_and_refuse_invalid_utf8
+
+test result: FAILED. 0 passed; 1 failed; 0 ignored; 0 measured; 15 filtered out; finished in 0.05s
+
+error: test failed, to rerun pass `-p umpire-tlc --lib`

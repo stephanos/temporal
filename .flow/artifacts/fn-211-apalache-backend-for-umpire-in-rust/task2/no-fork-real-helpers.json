@@ -1,0 +1,25 @@
+[
+  {
+    "command": [
+      "mise",
+      "which",
+      "java"
+    ],
+    "exit_code": 134,
+    "stdout": "",
+    "stderr": "\nthread 'main' (3550396) panicked at /cargo/registry/src/index.crates.io-1949cf8c6b5b557f/tokio-1.53.2/src/runtime/scheduler/multi_thread/worker.rs:514:13:\nOS can't spawn worker thread: Resource temporarily unavailable (os error 11)\nnote: run with `RUST_BACKTRACE=1` environment variable to display a backtrace\n",
+    "scope": "simulated Darwin policy; real Linux NPROC0 under uid1000; no macOS execution claim"
+  },
+  {
+    "command": [
+      "shasum",
+      "-a",
+      "256",
+      "model/build/apalache/apalache-0.62.4/lib/apalache.jar"
+    ],
+    "exit_code": 0,
+    "stdout": "e5223915507b65cc5f1638bd037ede60f8a4fc1644aff46355779f9b05df9262  model/build/apalache/apalache-0.62.4/lib/apalache.jar\n",
+    "stderr": "",
+    "scope": "simulated Darwin policy; real Linux NPROC0 under uid1000; no macOS execution claim"
+  }
+]

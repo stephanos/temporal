@@ -1,16 +1,21 @@
 #!/usr/bin/env bash
 set -euo pipefail
 
-root=$(cd -- "$(dirname -- "${BASH_SOURCE[0]}")/../.." && pwd -P)
+script_dir=${BASH_SOURCE[0]%/*}
+[[ "$script_dir" != "${BASH_SOURCE[0]}" ]] || script_dir=.
+cd -P -- "$script_dir/../.."
+root=$PWD
 destination="$root/model/build/tlc/tla2tools-1.7.4.jar"
 expected=936a262061c914694dfd669a543be24573c45d5aa0ff20a8b96b23d01e050e88
 url=https://github.com/tlaplus/tlaplus/releases/download/v1.7.4/tla2tools.jar
 
-ancestor=$(dirname -- "$destination")
+ancestor=${destination%/*}
 while [[ ! -e "$ancestor" ]]; do
-  ancestor=$(dirname -- "$ancestor")
+  ancestor=${ancestor%/*}
 done
-physical=$(cd -- "$ancestor" && pwd -P)
+cd -P -- "$ancestor"
+physical=$PWD
+cd -P -- "$root"
 case "$physical/" in
   "$root/"*) ;;
   *) printf 'TLC cache escapes repository: %s\n' "$physical" >&2; exit 1 ;;
