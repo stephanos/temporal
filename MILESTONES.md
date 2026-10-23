@@ -75,29 +75,6 @@ is Rust. The guest now directly exports `umpire_buffer_alloc`, `umpire_buffer_re
 
 ## Specs
 
-### fn-211: Apalache backend for Umpire in Rust (model) — deferred
-
-Captured on 2026-10-18 as a follow-up, after fn-210, fn-212 and (since 2026-10-20) fn-227, and only if their verdicts are to continue in
-Rust. Adds Apalache as a second TLA+ backend over the same lifted tree and emitter: Snowcat type
-annotations in the emitter, a pinned Apalache release run on the mise JDK with one bounded check
-per invariant at the native depth plus one, ITF counterexamples decoded through typed source values and
-replayed through the Model, and an Apalache consumer selected by `expected/apalache.txt`. No
-liveness through Apalache; TLC owns progress claims. Since 2026-10-21 it also checks symbolic Worlds: every World in a
-declared finite domain in one run per property (owner request, toward full Quint parity).
-Task .1 is complete locally: typed safety emission, ordered checked arithmetic and one-step
-history passed implementation review, both audits, actual pinned-tool controls and fresh live
-slice/gap proof. The required full gate passed in 562.098s against its 60s soft target;
-inner loop 7.893s met 10s. Task .2 is complete locally: pinned bounded checking, native-derived
-Kettle bound 63, installer admission and shared process ownership passed review, both audits and
-all 17 required gate stages. Gate 903.818s exceeded its 60s soft target; inner loop 7.229s met 10s.
-Task .3 is complete locally: strict typed ITF replay, selected property and arithmetic refusal validation, legacy and native Vector projections passed review and both audits. Fresh guest/slice/gaps proof passed with guest `d96f123b6ec669e7385e9fff75f711f2d20e0f15a0d918928238f7e263221217`. All 17 required gate stages passed: gate 824.431s exceeded 60s; inner loop 7.632s met 10s. The first full run failed with its causal output discarded; its cause remains unknown. A reviewed timing-wrapper correction now preserves failed child diagnostics; the logged workspace diagnostic and final retry passed. Fixture integration and symbolic Worlds are deferred at the owner’s request on 2026-10-22. The unfinished .4 consumer is preserved on local branch `work/fn2114-deferred` at `fee5fc56ae`, including its tracked handoff; no completion review or final gate is claimed. Execution moves to fn-228.
-[Spec](.flow/specs/fn-211-apalache-backend-for-umpire-in-rust.md).
-
-| Name | Status | What |
-| --- | --- | --- |
-| fn-211.4 | ⏸️ deferred | After .3: Apalache consumer; Kettle's `apalache.txt` agreement golden (R4, R5) |
-| fn-211.5 | ⏸️ deferred | After .3: symbolic World constants via `ConstInit`, one run per property across the declared World domain, replayed under the decoded World (R6) |
-
 ### fn-228: Runner and Run: the one Go host loop over the Model, Propose on the protocol, and the Testpilot shrink (model, temporal)
 
 Captured on 2026-10-20, after fn-227. Files the post-verdict obligations R33 to R40 as one spec under
@@ -110,20 +87,35 @@ and Answer, and records a Run. Deletes verification, evaluation, CEL, contract, 
 and replay; one `umpire` command with five modes. The reviewed contract includes Start bootstrap,
 incremental correlated Driver events, Model-owned polling completion, ordered protocol replay
 including Answer, and immutable publication by model/seed/content hash.
-The rename checkpoint (.1) and Propose (.2) are complete locally. Propose is on the protocol,
-Runtime, `Realize` and Go `Host`; configured bootstrap admission and operation-correlated polling
-commit atomically with publication. .2 passed review, both audits, fresh live slice/gaps proof and
-default/required model gates; required gate 870.575s exceeds the 60s soft target, inner loop 6.109s
-meets 10s. The Go `runner` package (.3) is next.
+The rename checkpoint (.1), Propose (.2) and the Go `runner` package (.3) are complete locally.
+Propose is on the protocol, Runtime, `Realize` and Go `Host`. The Runner drives an incremental
+Driver exchange, serializes every Host call, records a `umpire.run.v1` Run, replays it offline and
+publishes it never-overwrite; one `umpire` command with five modes replaced run, fuzz, replay, assess
+and repeat. .3 passed three review rounds; required gate 872.085s exceeds the 60s soft target, inner
+loop 6.687s meets 10s. Four live Testpilot failures pre-date .3 and are carried into .6 with the
+canary and publish retirements. The Temporal Driver (.4) is next.
 [Spec](.flow/specs/fn-228-runner-and-run-the-one-go-host-loop.md).
 
 | Name | Status | What |
 | --- | --- | --- |
-| fn-228.3 | 🔄 in progress | After .2: Go `runner`: `Runner`, `Run`, `Driver`, five modes, one `umpire` command, publish (R3) |
-| fn-228.4 | ⬜ todo | After .3: Temporal Driver as act-and-observe; live slice through `umpire explore` (R4) |
+| fn-228.4 | 🔄 in progress | After .3: Temporal Driver as act-and-observe; live slice through `umpire explore` (R4) |
 | fn-228.5 | ⬜ todo | After .4: Shim endpoint for non-Go SDK workers (R5) |
 | fn-228.6 | ⬜ todo | After .4 and .5: delete and shrink Testpilot packages with replacement coverage; include relocated Runner code in counts (R6) |
 | fn-228.7 | ⬜ todo | After .5 and .6: DESIGN.md Runner and Run write-up; R33 to R40 discharged (R7) |
+
+### fn-241: One WorkflowService classification for all Temporal features (model, temporal)
+
+Filed on 2026-10-23 at the owner's request. `classify` in `model/temporal/feature/activity/api.rs`
+is an exhaustive match over every WorkflowService RPC, but only eight arms are activity-specific;
+the rest classify RPCs by resource family. Splits it into one service table outside `feature/`,
+which owns the exhaustiveness check, and per-feature claim lists, so a second Temporal feature
+does not copy the table. Goldens stay byte-identical except out-of-scope reason text. Runs after
+fn-228.4, which edits the same realization files, and before fn-228.5.
+[Spec](.flow/specs/fn-241-one-workflowservice-classification-for.md).
+
+| Name | Status | What |
+| --- | --- | --- |
+| fn-241.1 | ⬜ todo | After fn-228.4: one service table plus per-feature claims; duplicate-claim and unclassified-RPC controls (R1, R2) |
 
 ### fn-238: Shared front end: one Model reading for the native checker and the lifter (model)
 
@@ -176,3 +168,26 @@ on 2026-10-23, scheduled after fn-238.
 | fn-237.3 | ⬜ todo | After .1, .2 and fn-227.3: deadlines, Tick, Heartbeat, cooperative cancel, final compatibility refinement (R2, R3) |
 | fn-237.4 | ⬜ todo | After .3: live timeout admission and cooperative cancellation evidence (R4) |
 | fn-237.5 | ⬜ todo | After .4: DESIGN.md timeout and cancellation write-up (R5) |
+
+### fn-211: Apalache backend for Umpire in Rust (model) — deferred
+
+Captured on 2026-10-18 as a follow-up, after fn-210, fn-212 and (since 2026-10-20) fn-227, and only if their verdicts are to continue in
+Rust. Adds Apalache as a second TLA+ backend over the same lifted tree and emitter: Snowcat type
+annotations in the emitter, a pinned Apalache release run on the mise JDK with one bounded check
+per invariant at the native depth plus one, ITF counterexamples decoded through typed source values and
+replayed through the Model, and an Apalache consumer selected by `expected/apalache.txt`. No
+liveness through Apalache; TLC owns progress claims. Since 2026-10-21 it also checks symbolic Worlds: every World in a
+declared finite domain in one run per property (owner request, toward full Quint parity).
+Task .1 is complete locally: typed safety emission, ordered checked arithmetic and one-step
+history passed implementation review, both audits, actual pinned-tool controls and fresh live
+slice/gap proof. The required full gate passed in 562.098s against its 60s soft target;
+inner loop 7.893s met 10s. Task .2 is complete locally: pinned bounded checking, native-derived
+Kettle bound 63, installer admission and shared process ownership passed review, both audits and
+all 17 required gate stages. Gate 903.818s exceeded its 60s soft target; inner loop 7.229s met 10s.
+Task .3 is complete locally: strict typed ITF replay, selected property and arithmetic refusal validation, legacy and native Vector projections passed review and both audits. Fresh guest/slice/gaps proof passed with guest `d96f123b6ec669e7385e9fff75f711f2d20e0f15a0d918928238f7e263221217`. All 17 required gate stages passed: gate 824.431s exceeded 60s; inner loop 7.632s met 10s. The first full run failed with its causal output discarded; its cause remains unknown. A reviewed timing-wrapper correction now preserves failed child diagnostics; the logged workspace diagnostic and final retry passed. Fixture integration and symbolic Worlds are deferred at the owner’s request on 2026-10-22. The unfinished .4 consumer is preserved on local branch `work/fn2114-deferred` at `fee5fc56ae`, including its tracked handoff; no completion review or final gate is claimed. Execution moves to fn-228.
+[Spec](.flow/specs/fn-211-apalache-backend-for-umpire-in-rust.md).
+
+| Name | Status | What |
+| --- | --- | --- |
+| fn-211.4 | ⏸️ deferred | After .3: Apalache consumer; Kettle's `apalache.txt` agreement golden (R4, R5) |
+| fn-211.5 | ⏸️ deferred | After .3: symbolic World constants via `ConstInit`, one run per property across the declared World domain, replayed under the decoded World (R6) |

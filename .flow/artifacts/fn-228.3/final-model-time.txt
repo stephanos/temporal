@@ -1,0 +1,20 @@
+temporal-guest-freshness         33.056s
+retired-names                     0.456s
+timing-controls                   0.042s
+guest-build-controls              4.064s
+capability-controls               0.086s
+source-boundary                   3.841s
+protobuf-freshness                0.096s
+kettle-protobuf-freshness         0.076s
+temporal-protobuf-freshness       0.070s
+fmt                               0.548s
+clippy                            3.786s
+docs                              6.970s
+tests                            725.456s
+core-wasm-clippy                  0.107s
+wasm-guest                       35.365s
+go-host                          43.668s
+temporal-go-host                 13.867s
+gate total                       872.085s  (soft target 60s)
+inner loop                        6.687s  (soft target 10s)
+head 059dd53bc1 rc 0 elapsed 879s; start load 3.30 5.40 8.62
