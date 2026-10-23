@@ -1,0 +1,87 @@
+{
+  "base_commit": "4981a53cb15f598073c91927abf70309c8348a9e",
+  "causal_failure": "Actual authenticated handoff baseline/fault comparison returned missing retained replay role because the reader looked inside incarnations instead of the single shared Configuration.engine.",
+  "checks": [
+    {
+      "exit": 101,
+      "failed": 1,
+      "log": "cluster-role-red3.log",
+      "name": "captured_actual_configuration_RED",
+      "passed": 0,
+      "selected": 1
+    },
+    {
+      "exit": 0,
+      "failed": 0,
+      "log": "cluster-role-green.log",
+      "name": "captured_actual_configuration_GREEN",
+      "passed": 1,
+      "selected": 1
+    },
+    {
+      "exit": 0,
+      "failed": 0,
+      "log": "cluster-role-boundaries.log",
+      "name": "shared_owner_admission_boundaries",
+      "passed": 1,
+      "selected": 1
+    },
+    {
+      "exit": 0,
+      "failed": 0,
+      "log": "cluster-role-fixture-tests.log",
+      "name": "fixture_role_stress_reach",
+      "passed": 17,
+      "selected": 17
+    },
+    {
+      "exit": 0,
+      "log": "cluster-role-strict.log",
+      "name": "fixture_role_strict_clippy"
+    },
+    {
+      "exit": 0,
+      "log": "cluster-role-fmt.log",
+      "name": "format"
+    }
+  ],
+  "original_handoff_outcome_predicate": "Still failed in exact original and native; no waiver or root PASS. Diagnostic pair prefix collection remains pending.",
+  "qualification": false,
+  "raw": {
+    "/home/agent/evidence/fn232-core-counterfactual/cluster-role-boundaries.log": {
+      "bytes": 405,
+      "sha256": "a32bc006753c166411ab40591cb12eec1442f3b7d99d4b67e11d4a6a72171e9f"
+    },
+    "/home/agent/evidence/fn232-core-counterfactual/cluster-role-cli.log": {
+      "bytes": 156,
+      "sha256": "0b323dff978ee5378a7084f989570c835b07456be9426acc8047e0254db47e0f"
+    },
+    "/home/agent/evidence/fn232-core-counterfactual/cluster-role-fixture-tests.log": {
+      "bytes": 2242,
+      "sha256": "69663a8dba5c0df318aa163b0d7e2616eb3f3a2e5dfaf09ae8ea3276aa35d474"
+    },
+    "/home/agent/evidence/fn232-core-counterfactual/cluster-role-fmt.log": {
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    "/home/agent/evidence/fn232-core-counterfactual/cluster-role-green.log": {
+      "bytes": 486,
+      "sha256": "a5edbd095b85d6622c0f79b7601b039a471f59786ed0ac914ab30dead9c725ab"
+    },
+    "/home/agent/evidence/fn232-core-counterfactual/cluster-role-red3.log": {
+      "bytes": 1083,
+      "sha256": "48d7ffbfa1ee11d087237810090a59b97a87bc9fc92fdf7ffa7370fa171782eb"
+    },
+    "/home/agent/evidence/fn232-core-counterfactual/cluster-role-strict.log": {
+      "bytes": 334,
+      "sha256": "f17e4c1c2f625aac9c540ee22f781fdd968d394a6dd956078c4114c5d7f4fb27"
+    }
+  },
+  "review": {
+    "independently_authenticated_fixture": true,
+    "result": "No blocking finding",
+    "reviewer": "core_review read-only child; same model family, separate context",
+    "scope": "report.rs shared engine reader, boundary matrix and captured actual typed Configuration regression"
+  },
+  "schema": "gomad.core-cluster-shared-engine-check/v1"
+}
