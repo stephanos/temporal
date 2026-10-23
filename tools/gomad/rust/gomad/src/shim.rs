@@ -174,6 +174,19 @@ fn classify_request_with_environment<'a>(
     else {
         return Ok(None);
     };
+    if kind == classify::Kind::Run
+        && parsed.package_indices.first().is_some_and(|&index| {
+            let argument = &arguments[command_index + 1 + index];
+            let raw = argument.as_encoded_bytes();
+            raw.contains(&b'@')
+                && !raw.ends_with(b".go")
+                && !raw.starts_with(b"./")
+                && !raw.starts_with(b"../")
+                && !Path::new(argument).is_absolute()
+        })
+    {
+        return Ok(None);
+    }
     if command == "test" {
         classify::inspect(&arguments[command_index + 1..], goflags, kind)?;
         guest_env::validate()?;
@@ -838,6 +851,73 @@ mod tests {
                     "{profile}: {error}"
                 );
             }
+        }
+    }
+
+    #[test]
+    fn versioned_run_bypasses_local_guest_discovery() {
+        let root = process::Temporary::new(&std::env::temp_dir()).unwrap();
+        fs::create_dir(root.0.join("opted")).unwrap();
+        fs::write(root.0.join("go.mod"), "module example.test/fixture\n").unwrap();
+        fs::write(
+            root.0.join("gomad.toml"),
+            "runtime_root = \".\"\nderive = \"default\"\nguest = [\"./opted\"]\n",
+        )
+        .unwrap();
+        let compiler = root.0.join("go");
+        let counter = root.0.join("compiler-calls");
+        fs::write(
+            &compiler,
+            format!(
+                "#!/bin/sh\nprintf x >> '{}'\nprintf 'version suffix not allowed' >&2\nexit 2\n",
+                counter.display()
+            ),
+        )
+        .unwrap();
+        fs::set_permissions(&compiler, fs::Permissions::from_mode(0o700)).unwrap();
+        let contract = fixture_contract(&root.0, compiler);
+        let inherited = std::collections::BTreeMap::from([
+            (OsString::from("GOFLAGS"), OsString::from("-race")),
+            (OsString::from("GOOS"), OsString::from("linux")),
+        ]);
+        for operand in ["example.test/tool@v1.2.3", "example.test/tool@latest"] {
+            let arguments = vec![
+                "-C".into(),
+                root.0.as_os_str().to_owned(),
+                "run".into(),
+                operand.into(),
+                "--guest-looking".into(),
+            ];
+            assert!(
+                classify_request_with_environment(
+                    &contract,
+                    &arguments,
+                    OsStr::new("-race"),
+                    &inherited
+                )
+                .unwrap()
+                .is_none()
+            );
+            assert!(!counter.exists());
+        }
+        for operand in ["./opted@v1", "../opted@v1", "/opted@v1", "opted@v1.go"] {
+            let arguments = vec![
+                "-C".into(),
+                root.0.as_os_str().to_owned(),
+                "run".into(),
+                operand.into(),
+            ];
+            assert!(
+                classify_request_with_environment(
+                    &contract,
+                    &arguments,
+                    OsStr::new(""),
+                    &inherited
+                )
+                .is_err()
+            );
+            assert!(counter.exists(), "local operand was bypassed: {operand}");
+            fs::remove_file(&counter).unwrap();
         }
     }
 
