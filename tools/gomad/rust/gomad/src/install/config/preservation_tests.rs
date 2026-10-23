@@ -54,6 +54,7 @@ fn captured_arguments_environment_and_entropy_keep_complete_immutable_configurat
     let imports = r#"
         (import "wasi_snapshot_preview1" "args_get" (func $args (param i32 i32) (result i32)))
         (import "wasi_snapshot_preview1" "args_sizes_get" (func $sizes (param i32 i32) (result i32)))
+        (import "wasi_snapshot_preview1" "environ_sizes_get" (func $env_sizes (param i32 i32) (result i32)))
         (import "wasi_snapshot_preview1" "environ_get" (func $env (param i32 i32) (result i32)))
         (import "wasi_snapshot_preview1" "random_get" (func $random (param i32 i32) (result i32)))"#;
     let check_inputs = r"
@@ -61,6 +62,9 @@ fn captured_arguments_environment_and_entropy_keep_complete_immutable_configurat
         (if (i32.ne (i32.load (i32.const 0)) (i32.const 2)) (then unreachable))
         (if (i32.ne (i32.load (i32.const 4)) (i32.const 19)) (then unreachable))
         (if (call $args (i32.const 8) (i32.const 32)) (then unreachable))
+        (if (call $env_sizes (i32.const 16) (i32.const 20)) (then unreachable))
+        (if (i32.ne (i32.load (i32.const 16)) (i32.const 3)) (then unreachable))
+        (if (i32.ne (i32.load (i32.const 20)) (i32.const 36)) (then unreachable))
         (if (call $env (i32.const 64) (i32.const 96)) (then unreachable))
         (i32.store (i32.const 160) (i32.const 32))
         (i32.store (i32.const 164) (i32.const 19))
@@ -92,8 +96,16 @@ fn captured_arguments_environment_and_entropy_keep_complete_immutable_configurat
         (drop (call $random (i32.const 256) (i32.const 64))) {emit_random}"
         ),
     );
-    assert_eq!(observed.outcome.termination, "exit");
-    assert_eq!(whole.outcome.termination, "exit");
+    assert_eq!(
+        observed.outcome.termination, "exit",
+        "{}",
+        observed.outcome.message
+    );
+    assert_eq!(
+        whole.outcome.termination, "exit",
+        "{}",
+        whole.outcome.message
+    );
     let bytes = &observed.evidence["stdout"];
     assert_eq!(bytes, &whole.evidence["stdout"]);
     assert_eq!(&bytes[..19], b"guest\0literal $arg\0");
@@ -116,7 +128,7 @@ fn captured_namespace_reads_after_host_and_capture_buffers_are_removed_and_infer
     let source = root.0.join("schema/sqlite");
     std::fs::create_dir_all(&source).unwrap();
     std::fs::write(source.join("input"), b"frozen").unwrap();
-    let mut caller = temporal_policy(&root.0, ".", TemporalPolicy::Qualification).unwrap();
+    let mut caller = temporal_policy(&root.0, "./tests", TemporalPolicy::Qualification).unwrap();
     let mut captured = convert(caller.clone(), COOPERATIVE).unwrap();
     for value in [&mut caller, &mut captured.original] {
         value["CapturedInputs"]["Payloads"] = serde_json::json!({});
