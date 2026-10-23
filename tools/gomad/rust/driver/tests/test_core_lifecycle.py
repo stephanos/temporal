@@ -271,7 +271,7 @@ class ClosedCatalog(unittest.TestCase):
 
     def test_network_limits_are_checked_for_all_actual_owners(self):
         network=dict(profile='gomad.simulation-network-stream/v3',faults=[],limits=dict(listeners=8,connections=8,bytes=1024,connection_bytes=123,stall_nanos=456,transitions=128))
-        scenario=dict(spec=dict(nodes=[dict(id='a',boot='main',address='10.0.0.1'),dict(id='b',boot='main',address='10.0.0.2')],
+        scenario=dict(spec=dict(nodes=[dict(id='a',boot='main',address='10.0.0.1',config=None,volumes=[]),dict(id='b',boot='main',address='10.0.0.2',config=None,volumes=[])],
             limits=dict(network_connection_bytes=123,network_stall_nanos=456)),
             actions=[gate.step('start','a'),gate.step('start','b'),gate.step('wait','a'),gate.step('wait','b'),
                 dict(action='restart',handle=gate.handle('a',2)),dict(action='wait',handle=gate.handle('a',2))])

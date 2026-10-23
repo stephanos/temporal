@@ -34,6 +34,13 @@ pub use crate::namespace::{
 };
 pub use crate::protocol::Outcome;
 
+#[derive(serde::Deserialize, serde::Serialize)]
+#[serde(deny_unknown_fields)]
+pub struct NativeOutputAccounting {
+    pub schema: String,
+    pub offered_output_bytes: u64,
+}
+
 #[cfg(feature = "stress-jitter")]
 pub use crate::stress_jitter::statistics as stress_jitter_statistics;
 
@@ -607,6 +614,7 @@ pub fn execute_prepared(prepared: Prepared) -> wasmtime::Result<Execution> {
     let mut terminal_classified = None;
     let mut admission_terminal_classified = None;
     let mut terminal_monotonic_nanos = None;
+    let mut offered_output_bytes = 0;
     #[cfg(feature = "guest-profile")]
     let mut guest_profile_error = None;
     let mut outcome = thread::scope(|scope| -> wasmtime::Result<Outcome> {
@@ -680,6 +688,7 @@ pub fn execute_prepared(prepared: Prepared) -> wasmtime::Result<Execution> {
                 start_instance(&linker, &mut store, &module, &mut metrics)
             };
             let mut outcome = finish_outcome(&mut store, executed, &request, &timed_out)?;
+            offered_output_bytes = store.data().output_bytes;
             terminal_monotonic_nanos = monotonic_nanos().ok();
             terminal_classified = Some(std::time::Instant::now());
             #[cfg(feature = "determinism-fixture")]
@@ -708,7 +717,16 @@ pub fn execute_prepared(prepared: Prepared) -> wasmtime::Result<Execution> {
     } else {
         cancellation.apply(&mut outcome);
     }
-    let evidence = sink.into_streams()?;
+    let mut evidence = sink.into_streams()?;
+    // Fixed host accounting must survive exhaustion of the guest evidence budget.
+    let accounting = serde_json::to_value(NativeOutputAccounting {
+        schema: "gomad.native-output-accounting/v1".into(),
+        offered_output_bytes,
+    })?;
+    evidence.insert(
+        "native-output-accounting".into(),
+        serde_json::to_vec(&accounting)?,
+    );
     let event_order = conditions.finish();
     drop(registration);
     drop(engine);

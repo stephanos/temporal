@@ -463,7 +463,7 @@ pub(crate) fn publication(
         ("target/module.wasm".into(), prepared.module.clone()),
         (
             "evidence/backend-outcome.json".into(),
-            crate::execute::backend_observation(&observed.outcome)?.0,
+            crate::execute::backend_publication(&observed, &configuration.limits)?,
         ),
     ]);
     insert(

@@ -25,3 +25,42 @@ pub(crate) fn backend_observation(outcome: &Outcome) -> Result<(Vec<u8>, Vec<u8>
         crate::evidence::canonical::encode(&outcome.metrics)?,
     ))
 }
+
+pub(crate) fn backend_publication(
+    observed: &Execution,
+    limits: &crate::evidence::record::Limits,
+) -> Result<Vec<u8>, String> {
+    use crate::evidence::{backend_outcome, canonical};
+    if observed.outcome.fuel_remaining > limits.fuel {
+        return Err("backend outcome fuel exceeds admitted limit".into());
+    }
+    let Some(raw) = observed.evidence.get("native-output-accounting") else {
+        if observed.timing.is_some() {
+            return Err("backend outcome output accounting is missing".into());
+        }
+        return backend_observation(&observed.outcome).map(|value| value.0);
+    };
+    let retained = ["stdout", "stderr"]
+        .into_iter()
+        .try_fold(0_u64, |total, name| {
+            total
+                .checked_add(
+                    observed
+                        .evidence
+                        .get(name)
+                        .map_or(0, |bytes| bytes.len() as u64),
+                )
+                .ok_or("backend outcome output size overflow")
+        })?;
+    backend_outcome::output(
+        raw,
+        observed.outcome.output_bytes,
+        retained,
+        limits.output_bytes,
+    )?;
+    let mut backend = serde_json::to_value(observed.outcome.backend_evidence())
+        .map_err(|error| error.to_string())?;
+    backend["schema"] = "gomad.backend-outcome/v2".into();
+    backend["output_accounting_sha256"] = canonical::digest(raw).into();
+    canonical::encode(&backend)
+}

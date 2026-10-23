@@ -402,7 +402,7 @@ def validate_case(root, variant, observed, inputs=None):
     elif root == BOOT_NETWORK:
         fields(inputs, ('scenario_base64', 'network'))
         scenario = decode(base64.b64decode(inputs['scenario_base64'], validate=True))
-        require(scenario['spec']['nodes'] == [dict(id='a', boot='main', address='10.0.0.1'), dict(id='b', boot='main', address='10.0.0.2')]
+        require(scenario['spec']['nodes'] == [dict(id='a', boot='main', address='10.0.0.1', config=None, volumes=[]), dict(id='b', boot='main', address='10.0.0.2', config=None, volumes=[])]
                 and scenario['actions'] == [step('start', 'a'), step('start', 'b'), step('wait', 'a'), step('wait', 'b'), dict(action='restart', handle=handle('a', 2)), dict(action='wait', handle=handle('a', 2))], 'selected boot scenario owners/actions changed')
         limits = scenario['spec']['limits']
         require(limits['network_connection_bytes'] == 123 and limits['network_stall_nanos'] == 456, 'original scenario network specification changed')
