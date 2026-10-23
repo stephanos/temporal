@@ -635,3 +635,38 @@ raw outputs. Separate3slim selection, complete original test-wasm receiving map
 and actual raw coverage, static/runtime/strictlint/candidate gates, pending native
 source test/review, final immutable source/identity freeze/code-size comparison
 and main retirement remain root-owned pending obligations. No Flow state changed.
+
+### Reviewed native receiving publication/provenance/decoder source integration
+
+Cherry-picked ONLY approved native commitsdb651a18f2,50f02a68de,
+b8487b09aeb5c400cc0e7982fe0abb710dd134be,164443d3a0 into prospectivecfbe.
+No conflicts; Cargo manifest automatically preserved relocated ../wasmhost
+ownership.8changed Rust source/test files are byte-exact reviewed164443d3a0;
+only additional manifest delta is existing serde_json unbounded_depth FEATURE.
+All version/dependency/checksum/lock records unchanged:127original helper packages
+plus existinggomad, with helper sources/rootworkspace/Cargo.lock untouched.
+Approved Python receiving/cost/workload modules remain byte-exact5fd9; skipped
+Python follow-on map1a5efad7 and all unstaged source controls as instructed.
+Root ba8ffdocs-only main history was not merged or archived into custody.
+
+The incoming reviewed source includes actual publication adversarial tests,
+genuine typed preparation metadata/compiler binding, own-stage cleanup preserving
+foreign entries, bounded decoder/config/publication fixes, and primitive/deep-key
+error precedence. It retains recursion disabling only after original128-depth
+bounded preflight. Original privateResult/admission semantics remain reviewed
+source obligations. Parent reports actual22focused native tests/strictClippy/fmt0
+and originalRED/reviewSHIP in their independent handover; those observations are
+not rerun or upgraded to this integrated prospective candidate's qualification.
+
+Static checks exit0: byte equality of all8native Rust files against exact164,
+direct pinned1.99.1 rustfmt for those8files, current Python AST, literal Rust
+include/path resolution, exact127+gomad lock entries, unchanged helper/workspace/
+Python module inventory and git diffcheck. No Cargo/Go/build/guest/native test/
+qualification ran; no leased target/cache/worktree cleaned or touched.
+
+All previous137source-wired final obligations still require actual raw outputs;
+remaining8final endpoint IDs unchanged. Full integrated native gates are deferred
+until pending coherent batches/final source freeze and root resource grant.
+Pending Python mapping/source synchronization, explicit slim and test-wasm proof,
+complete static/runtime/strictlint/parity/final qualification, immutable candidate
+identity/custody, final code-size comparison and main retirement remain root-owned.
