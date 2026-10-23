@@ -17,7 +17,9 @@ pub mod warm_driver;
 pub mod workloads;
 
 use crate::evidence::canonical;
+use gomad_wasmhost::linked::Conditions;
 use serde_json::{Value, json};
+use std::{io::Write as _, os::unix::fs::OpenOptionsExt};
 
 #[must_use]
 pub fn features() -> Vec<&'static str> {
@@ -46,7 +48,6 @@ pub fn features() -> Vec<&'static str> {
 pub fn identity() -> Result<Value, String> {
     let executable = std::env::current_exe().map_err(|error| error.to_string())?;
     let executable = std::fs::read(executable).map_err(|error| error.to_string())?;
-    use gomad_wasmhost::linked::Conditions;
     let role = match Conditions::compiled() {
         Conditions::Ordinary => "ordinary",
         Conditions::DiagnosticProfile => "diagnostic-profile",
@@ -165,6 +166,10 @@ fn produce(
     }
 }
 
+#[expect(
+    clippy::needless_pass_by_value,
+    reason = "Dispatch consumes the admitted invocation through the CLI callback contract"
+)]
 pub fn dispatch(
     call: inputs::Invocation,
     proof: inputs::CheckoutProof,
@@ -178,7 +183,8 @@ pub fn dispatch(
             .get(variable)
             .ok_or_else(|| format!("missing --{}", inputs::flag(variable)))?;
         if call.name == "namespace-sample" {
-            let _lease = retention::ChildLease::for_path(std::path::Path::new(requested))?.ok_or("namespace sample requires its authenticated parent child lease")?;
+            let _lease = retention::ChildLease::for_path(std::path::Path::new(requested))?
+                .ok_or("namespace sample requires its authenticated parent child lease")?;
             let result =
                 namespace_driver::run_sample(&call, &proof, std::path::Path::new(requested))?;
             writeln!(
@@ -205,14 +211,12 @@ pub fn dispatch(
             false,
         );
         let result = (|| {
-            use std::os::unix::fs::OpenOptionsExt;
             let mut file = std::fs::OpenOptions::new()
                 .write(true)
                 .create_new(true)
                 .mode(0o600)
                 .open(retained.path().join("rerun.json"))
                 .map_err(|error| error.to_string())?;
-            use std::io::Write;
             file.write_all(&canonical::encode(&rerun)?)
                 .and_then(|()| file.sync_all())
                 .map_err(|error| error.to_string())?;

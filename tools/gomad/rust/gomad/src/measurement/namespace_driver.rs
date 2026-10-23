@@ -308,6 +308,10 @@ fn execute(
     workloads::success(&result, row)?;
     Ok(result)
 }
+#[expect(
+    clippy::too_many_arguments,
+    reason = "A namespace sample binds its admitted role, immutable common inputs and declared seed position"
+)]
 fn observe(
     call: &Invocation,
     proof: &CheckoutProof,
@@ -362,6 +366,10 @@ pub fn run(call: &Invocation, proof: &CheckoutProof, root: &Path) -> Result<Path
     }
     result
 }
+#[expect(
+    clippy::too_many_lines,
+    reason = "Paired namespace sampling preserves the original alternating twenty-sample order and all per-seed bounds"
+)]
 fn activity(call: &Invocation, proof: &CheckoutProof, root: &Path) -> Result<PathBuf, String> {
     let baseline_source = absolute(call, "GOMAD_WASM_NAMESPACE_BASELINE_SOURCE")?;
     if fs::canonicalize(&baseline_source).map_err(|error| error.to_string())?
@@ -473,12 +481,12 @@ fn activity(call: &Invocation, proof: &CheckoutProof, root: &Path) -> Result<Pat
                     cache,
                     label,
                     seed,
-                    repetition as i32,
+                    i32::try_from(repetition).map_err(|_| "namespace repetition exceeds i32")?,
                     None,
                     true,
                 )?;
                 evidence::compare(warm, &observed, ComparisonMask::Exact)?;
-                order.push(json!({"role":label,"seed":seed,"repetition":repetition,"raw":root.join("evidence").join(row(label,seed,repetition as i32,false,true).name)}));
+                order.push(json!({"role":label,"seed":seed,"repetition":repetition,"raw":root.join("evidence").join(row(label,seed,i32::try_from(repetition).map_err(|_| "namespace repetition exceeds i32")?,false,true).name)}));
                 if candidate_turn {
                     after.insert(
                         (seed, repetition),
@@ -588,6 +596,9 @@ fn load_prepared(common: &CommonReceipt) -> Result<module::Prepared, String> {
     let prepared = module::Prepared {
         guest: crate::campaign::prepare::Prepared {
             auxiliary: BTreeMap::new(),
+            compile_cache_root: crate::campaign::prepare::compile_cache_root(
+                &crate::install::manifest::resolve(Some(&common.installation))?.manifest,
+            )?,
             module,
             configuration: serde_json::from_value(provenance["configuration"].clone())
                 .map_err(|error| error.to_string())?,
@@ -650,11 +661,17 @@ fn parent_lease(root: &Path) -> Result<(), String> {
 /// Collects one source-admitted native sample under its active parent's retention lease.
 /// # Errors
 /// Refuses standalone roots, old Go receipts/tapes and changed immutable common inputs.
+#[expect(
+    clippy::too_many_lines,
+    reason = "A child sample keeps parent retention, source admission and replay validation in one lease scope"
+)]
 pub fn run_sample(
     call: &Invocation,
     proof: &CheckoutProof,
     root: &Path,
 ) -> Result<PathBuf, String> {
+    let _lease = super::retention::ChildLease::for_path(root)?
+        .ok_or("namespace sample requires its authenticated parent child lease")?;
     let common_path = absolute(call, "GOMAD_WASM_NAMESPACE_COMMON")?;
     let common: CommonReceipt = serde_json::from_slice(&read(&common_path, 32 << 20)?)
         .map_err(|error| error.to_string())?;
@@ -805,6 +822,10 @@ fn digest_retention(control: &NativeRun, retained: &NativeRun) -> Result<(), Str
     projected.request["guest"]["model"]["configuration"]["digest_only"] = true.into();
     evidence::compare(control, &projected, ComparisonMask::Exact)
 }
+#[expect(
+    clippy::too_many_lines,
+    reason = "Operation retention compares the original digest, full-transcript and replay variants before accepting output"
+)]
 fn operations(call: &Invocation, proof: &CheckoutProof, root: &Path) -> Result<PathBuf, String> {
     let controls = absolute(call, "GOMAD_WASM_OPERATION_CONTROL_ROOT")?;
     let cache = absolute(call, "GOMAD_WASM_MATCHED_CACHE")?;

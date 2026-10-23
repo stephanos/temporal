@@ -248,6 +248,10 @@ fn validate_profile(_: &Value) -> Result<(), String> {
 /// Terminal failures remain observable; acceptance is a separate caller decision.
 /// # Errors
 /// Refuses nonprivate paths, altered payloads, incomplete raw outcomes or mismatched request/module bindings.
+#[expect(
+    clippy::too_many_lines,
+    reason = "Retained run admission checks private files, request roles and every declared stream in order"
+)]
 pub fn read_profile_run(root: &Path, limits: ReadLimits) -> Result<NativeRun, String> {
     let mut reader = Reader {
         root: open::pin(root)?,
@@ -676,6 +680,10 @@ fn normalize_cache(run: &NativeRun, request: &mut Value) -> Result<(), String> {
 /// Compares native behavior under an explicitly selected observation contract.
 /// # Errors
 /// Refuses undeclared roles, malformed native transcripts or any semantic request/terminal change.
+#[expect(
+    clippy::too_many_lines,
+    reason = "Each declared observation mask is authenticated before exact native behavior comparison"
+)]
 pub fn compare(
     before: &NativeRun,
     after: &NativeRun,
@@ -825,6 +833,10 @@ pub(crate) fn compare_prefix_replay(
     compare_replay_mode(before, after, identity, true)
 }
 
+#[expect(
+    clippy::too_many_lines,
+    reason = "Full and prefix replay authenticate tape consumption before narrow bookkeeping normalization"
+)]
 fn compare_replay_mode(
     before: &NativeRun,
     after: &NativeRun,
@@ -858,11 +870,15 @@ fn compare_replay_mode(
     declaration
         .validate(64 << 20)
         .map_err(|error| error.to_string())?;
-    let expected_target: String = expected_identity
-        .target_sha256
-        .iter()
-        .map(|byte| format!("{byte:02x}"))
-        .collect();
+    let expected_target =
+        expected_identity
+            .target_sha256
+            .iter()
+            .fold(String::new(), |mut text, byte| {
+                use std::fmt::Write as _;
+                write!(&mut text, "{byte:02x}").expect("writing hex to String");
+                text
+            });
     if raw != *trace
         || if interrupted {
             replay_model["configuration"]["replay"]["prefix_control"]
@@ -885,11 +901,7 @@ fn compare_replay_mode(
         gomad_wasmhost::linked::inspect_choices(trace, expected_identity).map_err(str::to_owned)?;
     let plan =
         gomad_wasmhost::linked::project_choices(trace, expected_identity).map_err(str::to_owned)?;
-    let tape_sha256: String = plan
-        .sha256
-        .iter()
-        .map(|byte| format!("{byte:02x}"))
-        .collect();
+    let tape_sha256 = canonical::digest(&plan.bytes);
     if declaration.decisions != inspection.decisions
         || declaration.decisions != plan.decisions.len() as u64
         || declaration.tape_sha256 != inspection.tape_sha256

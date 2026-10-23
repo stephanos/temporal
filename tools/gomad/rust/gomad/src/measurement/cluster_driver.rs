@@ -9,6 +9,8 @@ use std::{
     path::{Path, PathBuf},
 };
 
+/// # Errors
+/// Refuses a malformed original cluster scenario or changed lifecycle declaration.
 pub fn scenario_bytes() -> Result<Vec<u8>, String> {
     let raw = include_str!(concat!(
         env!("CARGO_MANIFEST_DIR"),
@@ -46,6 +48,8 @@ pub fn scenario_bytes() -> Result<Vec<u8>, String> {
     crate::campaign::scenario::normalize(&canonical::encode(&scenario)?)
 }
 
+/// # Errors
+/// Refuses changed fixture inputs, compiler admission or guest preparation.
 pub fn prepare(
     call: &Invocation,
     proof: &CheckoutProof,
@@ -126,6 +130,8 @@ fn write(path: &Path, bytes: &[u8]) -> Result<(), String> {
     file.sync_all().map_err(|error| error.to_string())
 }
 
+/// # Errors
+/// Refuses changed module bytes or invalid retained per-incarnation configuration.
 pub fn native_input(prepared: &module::Prepared, seed: u64) -> Result<Value, String> {
     module::authenticate_prepared(prepared)?;
     let identity = prepared
@@ -146,14 +152,14 @@ pub fn native_input(prepared: &module::Prepared, seed: u64) -> Result<Value, Str
         seed,
     )?;
     crate::stress::cluster::bind(&mut bound)?;
-    let incarnations = bound.request.incarnations.into_iter().map(|incarnation| {
+    let incarnations = bound.request.incarnations.into_iter().map(|incarnation| -> Result<Value,String> {
         let guest = incarnation.request;
-        let retained = bound.configuration.incarnations.iter().find(|entry| entry.handle == incarnation.handle).expect("bound incarnation configuration");
+        let retained = bound.configuration.incarnations.iter().find(|entry| entry.handle == incarnation.handle).ok_or("bound incarnation configuration absent")?;
         let model = guest.model.map(|model| json!({"configuration":retained.model,"arguments":model.arguments,"environment":model.environment,"replay_trace":model.replay_trace}));
-        json!({"handle":incarnation.handle,"network":incarnation.network,"guest":{"module":prepared.module_path,
+        Ok(json!({"handle":incarnation.handle,"network":incarnation.network,"guest":{"module":prepared.module_path,
             "module_sha256":guest.module_sha256,"limits":{"memory_bytes":guest.limits.memory_bytes,"fuel":guest.limits.fuel,"output_bytes":guest.limits.output_bytes,
-            "evidence_bytes":guest.limits.evidence_bytes,"wall_millis":guest.limits.wall_timeout.as_millis()},"model":model,"namespace":guest.namespace,"storage":guest.storage}})
-    }).collect::<Vec<_>>();
+            "evidence_bytes":guest.limits.evidence_bytes,"wall_millis":guest.limits.wall_timeout.as_millis()},"model":model,"namespace":guest.namespace,"storage":guest.storage}}))
+    }).collect::<Result<Vec<_>,String>>()?;
     Ok(
         json!({"kind":"cluster","nodes":bound.request.nodes,"broker":bound.request.broker,"network":bound.request.network,
         "incarnations":incarnations,"steps":bound.request.steps,"boundaries":bound.request.boundaries,"crash_groups":bound.request.crash_groups,
@@ -279,6 +285,8 @@ fn success(run: &super::evidence::NativeRun) -> Result<(), String> {
     Ok(())
 }
 
+/// # Errors
+/// Refuses source or role admission, failed guest oracles and divergent retained replay.
 pub fn run(call: &Invocation, proof: &CheckoutProof, root: &Path) -> Result<PathBuf, String> {
     let result = run_inner(call, proof, root);
     if let Err(error) = &result {
@@ -287,6 +295,10 @@ pub fn run(call: &Invocation, proof: &CheckoutProof, root: &Path) -> Result<Path
     result
 }
 
+#[expect(
+    clippy::too_many_lines,
+    reason = "Original cluster producer ordering binds each role and repetition to its replay before publication"
+)]
 fn run_inner(call: &Invocation, proof: &CheckoutProof, root: &Path) -> Result<PathBuf, String> {
     use super::{
         evidence::{self, ComparisonMask, VariantRole},
@@ -351,15 +363,19 @@ fn run_inner(call: &Invocation, proof: &CheckoutProof, root: &Path) -> Result<Pa
                 seed,
                 "reference",
             );
-            let result = workloads::execute(
+            let result = execute_replayed(
                 call,
                 proof,
                 root,
                 &row,
                 reference,
                 native_input(&prepared, seed)?,
+                prepared
+                    .guest
+                    .choice_identity
+                    .as_ref()
+                    .ok_or("cluster replay choice identity absent")?,
             )?;
-            success(&result)?;
             Some(result)
         } else {
             None
@@ -383,21 +399,19 @@ fn run_inner(call: &Invocation, proof: &CheckoutProof, root: &Path) -> Result<Pa
             let cache = root.join(format!("seed{seed}-compile-cache"));
             workloads::cache_directory(&cache)?;
             request["compile_cache"] = json!(cache);
-            let result = workloads::execute(call, proof, root, &row, &candidate, request)?;
-            success(&result)?;
-            let mut replay_request = result.request.clone();
-            let identity = prepared
-                .guest
-                .choice_identity
-                .as_ref()
-                .ok_or("cluster replay choice identity absent")?;
-            replay_input(&mut replay_request, &result, identity)?;
-            let mut replay_row = row.clone();
-            replay_row.name.push_str("-replay");
-            let replay =
-                workloads::execute(call, proof, root, &replay_row, &candidate, replay_request)?;
-            success(&replay)?;
-            compare_replay(&result, &replay, identity)?;
+            let result = execute_replayed(
+                call,
+                proof,
+                root,
+                &row,
+                &candidate,
+                request,
+                prepared
+                    .guest
+                    .choice_identity
+                    .as_ref()
+                    .ok_or("cluster replay choice identity absent")?,
+            )?;
             if let Some(reference) = &reference_run {
                 evidence::compare(
                     reference,
@@ -440,6 +454,8 @@ fn run_inner(call: &Invocation, proof: &CheckoutProof, root: &Path) -> Result<Pa
     Ok(path)
 }
 
+/// # Errors
+/// Refuses missing incarnations, invalid traces or unprojectable helper-owned tapes.
 pub fn replay_input(
     input: &mut Value,
     recorded: &super::evidence::NativeRun,
@@ -474,6 +490,27 @@ pub fn replay_input(
         incarnation["guest"]["model"]["replay_trace"] = json!(trace);
     }
     Ok(())
+}
+
+fn execute_replayed(
+    call: &Invocation,
+    proof: &CheckoutProof,
+    root: &Path,
+    row: &super::workloads::RunSpec,
+    executable: &super::workloads::Executable,
+    request: Value,
+    identity: &gomad_wasmhost::linked::ChoiceIdentity,
+) -> Result<super::evidence::NativeRun, String> {
+    let result = super::workloads::execute(call, proof, root, row, executable, request)?;
+    success(&result)?;
+    let mut request = result.request.clone();
+    replay_input(&mut request, &result, identity)?;
+    let mut replay_row = row.clone();
+    replay_row.name.push_str("-replay");
+    let replay = super::workloads::execute(call, proof, root, &replay_row, executable, request)?;
+    success(&replay)?;
+    compare_replay(&result, &replay, identity)?;
+    Ok(result)
 }
 
 fn compare_replay(
