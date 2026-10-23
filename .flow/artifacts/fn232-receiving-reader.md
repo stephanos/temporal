@@ -15,7 +15,8 @@ It uses private copies of adapter function namespaces to reuse original runtime,
 cell/budget and corpus assertions with read-only command and write operations.
 It authenticates actual command argv/cwd/PID/process registration/time/exit,
 release discovery and fixture-control refusal, raw canonical Result/receipt,
-publication CPU/RSS tail, current source/helper/host/toolchain/choice source,
+publication CPU/RSS tail, private single-link Result/receipt publication,
+selected marker presence/kind/mode/time/size/content, current source/helper/host/toolchain/choice source,
 provenance, native module and every payload/stream, and complete journal links.
 It recomputes all 32x25 runtime shards and 32 forced replays, exact ten distinct
 mandatory producers and immutable before/after pairs, four SQLite states and
@@ -52,8 +53,8 @@ Remaining concrete actual bindings before a candidate can pass:
   source review extension; these 13 IDs do not automatically cover its 72 roots.
 
 Portable evidence: `.flow/tmp/fn232-receiving-red.log` records the initial missing
-reader failure; `.flow/tmp/fn232-receiving-all.log` retains all 41 passing driver
-framework tests, including 14 receiving tests. Tests execute only bounded Python
+reader failure; `.flow/tmp/fn232-receiving-all.log` retains all 43 passing driver
+framework tests, including 16 receiving tests. Tests execute only bounded Python
 fixtures, never Go, Cargo, guests, builds or actual qualification producers.
 `git diff --check` passes. Logs are local scratch evidence, not qualification.
 
