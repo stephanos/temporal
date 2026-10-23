@@ -133,66 +133,7 @@ fn comparisons_authenticate_retained_streams_and_reject_hidden_forcing() {
             raw.len()
         )
         .into_bytes();
-        let configuration = json!({"model":{"mode":mode,"diagnostics":true}});
-        let replay = canonical::encode(&json!({"configuration":configuration})).unwrap();
-        let payloads: BTreeMap<String, Vec<u8>> = BTreeMap::from([
-            ("evidence/event-order".into(), log),
-            ("evidence/replay.json".into(), replay),
-            ("evidence/choice".into(), vec![0; 96]),
-            ("evidence/diagnostic".into(), vec![0; 96]),
-        ]);
-        let identity = Identity {
-            target: canonical::digest(target),
-            toolchain: canonical::digest(b"toolchain"),
-            platform: canonical::digest(b"platform"),
-            implementation: canonical::digest(b"implementation"),
-            configuration: canonical::digest(&canonical::encode(&configuration).unwrap()),
-        };
-        let record = Record {
-            schema: "gomad.execution-record/v2".into(),
-            execution_identity: identity.digest().unwrap(),
-            identity: identity.clone(),
-            profile: "gomad.wasi-cooperative/v1".into(),
-            seed: 7,
-            arguments: Vec::new(),
-            environment: BTreeMap::new(),
-            limits: Limits {
-                fuel: 1,
-                memory_bytes: 65536,
-                wall_millis: 1000,
-                output_bytes: 1024,
-                evidence_bytes: 8192,
-            },
-            virtual_time_nanos: 1,
-            outcome: Outcome {
-                class: "success".into(),
-                termination: "exit".into(),
-                exit_code: Some(0),
-                reason: String::new(),
-            },
-            streams: payloads
-                .iter()
-                .map(|(name, raw)| {
-                    (
-                        name.clone(),
-                        Stream {
-                            bytes: raw.len() as u64,
-                            sha256: canonical::digest(raw),
-                            records: 1,
-                        },
-                    )
-                })
-                .collect(),
-        };
-        let store = Store {
-            root: root.join(name),
-            maximum_bytes: 1 << 20,
-            target_pool: None,
-            #[cfg(feature = "determinism-fixture")]
-            fault: None,
-        };
-        let published = store.publish(Publication { record, payloads }).unwrap();
-        json!({"fresh":true,"seed":7,"artifact":published.path,"identities":{"execution":identity}})
+        publish_stress_fixture(&root, name, mode, target, log, None, true)
     };
     let first = publish("first", 1, b"target");
     let second = publish("second", 1, b"target");
@@ -531,4 +472,78 @@ while len(list(root.parent.glob('arrival-*'))) < request['supervision']['cohort_
     );
     assert!(!command.iter().any(|argument| argument == "--cell"));
     std::fs::remove_dir_all(root).unwrap();
+}
+
+pub(super) fn publish_stress_fixture(
+    root: &Path,
+    name: &str,
+    mode: u64,
+    target: &[u8],
+    log: Vec<u8>,
+    metadata: Option<Vec<u8>>,
+    diagnostics: bool,
+) -> Value {
+    let configuration = json!({"model":{"mode":mode,"diagnostics":diagnostics}});
+    let replay = canonical::encode(&json!({"configuration":configuration})).unwrap();
+    let mut payloads: BTreeMap<String, Vec<u8>> = BTreeMap::from([
+        ("evidence/event-order".into(), log),
+        ("evidence/replay.json".into(), replay),
+        ("evidence/choice".into(), vec![0; 96]),
+        ("evidence/diagnostic".into(), vec![0; 96]),
+    ]);
+    if let Some(raw) = metadata {
+        payloads.insert("evidence/inspection".into(), raw);
+    }
+    let identity = Identity {
+        target: canonical::digest(target),
+        toolchain: canonical::digest(b"toolchain"),
+        platform: canonical::digest(b"platform"),
+        implementation: canonical::digest(b"implementation"),
+        configuration: canonical::digest(&canonical::encode(&configuration).unwrap()),
+    };
+    let record = Record {
+        schema: "gomad.execution-record/v2".into(),
+        execution_identity: identity.digest().unwrap(),
+        identity: identity.clone(),
+        profile: "gomad.wasi-cooperative/v1".into(),
+        seed: 7,
+        arguments: Vec::new(),
+        environment: BTreeMap::new(),
+        limits: Limits {
+            fuel: 1,
+            memory_bytes: 65536,
+            wall_millis: 1000,
+            output_bytes: 1024,
+            evidence_bytes: 8192,
+        },
+        virtual_time_nanos: 1,
+        outcome: Outcome {
+            class: "success".into(),
+            termination: "exit".into(),
+            exit_code: Some(0),
+            reason: String::new(),
+        },
+        streams: payloads
+            .iter()
+            .map(|(name, raw)| {
+                (
+                    name.clone(),
+                    Stream {
+                        bytes: raw.len() as u64,
+                        sha256: canonical::digest(raw),
+                        records: 1,
+                    },
+                )
+            })
+            .collect(),
+    };
+    let store = Store {
+        root: root.join(name),
+        maximum_bytes: 1 << 20,
+        target_pool: None,
+        #[cfg(feature = "determinism-fixture")]
+        fault: None,
+    };
+    let published = store.publish(Publication { record, payloads }).unwrap();
+    json!({"fresh":true,"workload":"fixture/native","seed":7,"artifact":published.path,"identities":{"execution":identity},"axis":"reference","binary":"/retained/gomad","command":["gomad","stress","--rerun","/retained/request.json"]})
 }

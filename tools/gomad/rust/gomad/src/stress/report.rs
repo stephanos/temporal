@@ -41,6 +41,10 @@ pub(super) struct Log {
 }
 
 pub(super) fn parse(raw: &[u8]) -> Result<Log, String> {
+    parse_frames(raw, false)
+}
+
+fn parse_frames(raw: &[u8], diagnostic_empty: bool) -> Result<Log, String> {
     if raw.is_empty() || raw.len() > 32 << 20 || !raw.ends_with(b"\n") {
         return Err("missing or bounded complete supplemental event-order diagnostic".into());
     }
@@ -126,7 +130,7 @@ pub(super) fn parse(raw: &[u8]) -> Result<Log, String> {
         }
         counted += line.len();
     }
-    if !complete || log.events.is_empty() {
+    if !complete || !diagnostic_empty && log.events.is_empty() {
         return Err("missing complete supplemental event-order diagnostic".into());
     }
     Ok(log)
@@ -138,9 +142,28 @@ pub(super) fn first(left: &Log, right: &Log) -> Option<Value> {
         let b = right.events.get(index);
         if a == b { return None; }
         let at = a.or(b).unwrap();
-        Some(json!({"kind":at["kind"],"instance":at["instance"],"incarnation":at["incarnation"],"ordinal":at["ordinal"],
-            "coordinate":{"Shared":at["order"],"ChoiceOrdinal":at["trace"],"VirtualTime":at["time_nanos"]},
-            "field":"ordered-event","expected":a.map_or_else(|| "absent".into(), Value::to_string),"actual":b.map_or_else(|| "absent".into(), Value::to_string)}))
+        let field = match (a,b) {
+            (Some(a),Some(b)) => match at["kind"].as_str().unwrap() {
+                "draw-counter" => ["runq_draws","scheduler_draws","select_draws","runtime_rand_draws","runtime_cheaprand_draws","timer_draws","clock_tick_draws"].into_iter().find(|field| a["value"][field] != b["value"][field]).unwrap_or("ordered-event"),
+                "clock" => "operation",
+                "world-order" => "step",
+                _=>"ordered-event",
+            },
+            _=>"presence",
+        };
+        let diagnostic_time = match (a,b) {
+            (Some(a),Some(b)) if a["kind"]=="model-transition" && b["kind"]=="model-transition"
+                && a["value"]["model"]=="runtime-witness" && b["value"]["model"]=="runtime-witness"
+                && a["value"]["virtual_time"].as_i64().is_some() && b["value"]["virtual_time"].as_i64().is_some()
+                && a["value"]["virtual_time"]!=b["value"]["virtual_time"] => Some(a["value"]["virtual_time"].clone()),
+            _=>None,
+        };
+        let kind=if diagnostic_time.is_some() {json!("clock")} else {at["kind"].clone()};
+        let field=if diagnostic_time.is_some() {"virtual_time"} else {field};
+        let virtual_time=diagnostic_time.unwrap_or_else(||at["time_nanos"].clone());
+        Some(json!({"kind":kind,"instance":at["instance"],"incarnation":at["incarnation"],"ordinal":at["ordinal"],
+            "coordinate":{"Shared":at["order"],"ChoiceOrdinal":at["trace"],"VirtualTime":virtual_time},
+            "field":field,"expected":a.map_or_else(|| "absent".into(), Value::to_string),"actual":b.map_or_else(|| "absent".into(), Value::to_string)}))
     })
 }
 
@@ -244,22 +267,12 @@ fn prefix(left: &Opened, right: &Opened, a: &Log, b: &Log, before: u64) -> Resul
     let observed_raw = metadata(right)?;
     let expected =
         linked_inspection::Evidence::decode(&expected_raw).map_err(|error| error.to_string())?;
-    if left
-        .manifest()
-        .files
-        .contains_key(crate::replay::cluster::FILE)
-    {
-        crate::replay::cluster::authenticate_inspection(left, &expected)?;
-    }
+    crate::replay::inspection::authenticate_streams(left, &expected)
+        .map_err(|error| error.message)?;
     let observed =
         linked_inspection::Evidence::decode(&observed_raw).map_err(|error| error.to_string())?;
-    if right
-        .manifest()
-        .files
-        .contains_key(crate::replay::cluster::FILE)
-    {
-        crate::replay::cluster::authenticate_inspection(right, &observed)?;
-    }
+    crate::replay::inspection::authenticate_streams(right, &observed)
+        .map_err(|error| error.message)?;
     if !expected.complete || !observed.complete {
         return Err("incomplete retained inspection evidence".into());
     }
@@ -315,12 +328,13 @@ pub(super) fn compare(left: &Value, right: &Value) -> Result<Value, String> {
         diagnostics(opened)?;
         parse(&opened.payload("evidence/event-order", 32 << 20)?)
     };
+    let (a_opened, b_opened) = (&a, &b);
     let (expected, actual) = match (read_log(&a), read_log(&b)) {
         (Ok(a), Ok(b)) => (a, b),
         (a, b) => {
-            return Ok(
-                json!({"schema":"gomad.wasm-first-divergence/v1","status":"undiagnosable","reason":format!("retain --diagnostics and complete event-order evidence: {:?} {:?}",a.err(), b.err())}),
-            );
+            let mut report = json!({"schema":"gomad.wasm-first-divergence/v1","status":"undiagnosable","reason":format!("retain --diagnostics and complete event-order evidence: {:?} {:?}",a.err(), b.err())});
+            supplement_inspection(&mut report, a_opened, b_opened);
+            return Ok(report);
         }
     };
     let mut a_record = a.manifest().record.clone();
@@ -328,11 +342,15 @@ pub(super) fn compare(left: &Value, right: &Value) -> Result<Value, String> {
     a_record.streams.remove("evidence/event-order");
     b_record.streams.remove("evidence/event-order");
     let Some(difference) = first(&expected, &actual) else {
-        return Ok(if a_record == b_record {
+        let mut report = if a_record == b_record {
             json!({"schema":"gomad.wasm-first-divergence/v1","status":"identical"})
         } else {
             json!({"schema":"gomad.wasm-first-divergence/v1","status":"undiagnosable","reason":"canonical evidence differs without matching event-order difference"})
-        });
+        };
+        if report["status"] == "undiagnosable" {
+            supplement_inspection(&mut report, &a, &b);
+        }
+        return Ok(report);
     };
     let mut result = json!({"schema":"gomad.wasm-first-divergence/v1","status":"diverged","ordering":"helper-event","virtual_time_available":true,"first":difference,
         "reproducer":{"workload":left["workload"],"perturbation":right["axis"],"seed":left["seed"],"identities":left["identities"],"expected_digest":a.manifest().record_sha256,"actual_digest":b.manifest().record_sha256,
@@ -367,4 +385,82 @@ pub(super) fn compare(left: &Value, right: &Value) -> Result<Value, String> {
     result["reproducer"]["evidence_digest"] =
         json!(canonical::digest(&canonical::encode(&a_record)?));
     Ok(result)
+}
+
+pub(super) fn extract_diagnostic(raw: &[u8]) -> Result<Value, String> {
+    const PREFIX: &str = "gomad-wasm-event-order-v1 ";
+    if raw.len() > 32 << 20 {
+        return Err("supplemental stderr diagnostic capacity".into());
+    }
+    let mut frames = String::new();
+    let mut events = 0u64;
+    let mut complete = false;
+    let mut terminal = false;
+    let mut reason = "missing complete supplemental event-order diagnostic".to_string();
+    for line in raw.split_inclusive(|byte| *byte == b'\n') {
+        let Some(payload) = line.strip_prefix(PREFIX.as_bytes()) else {
+            continue;
+        };
+        if terminal {
+            return Err("event-order frame follows terminal".into());
+        }
+        if !line.ends_with(b"\n") {
+            reason = "truncated supplemental event-order frame".into();
+            break;
+        }
+        let line = std::str::from_utf8(line).map_err(|error| error.to_string())?;
+        let payload = std::str::from_utf8(payload).map_err(|error| error.to_string())?;
+        let value: Value = crate::qualify::spec::strict(payload.trim_end_matches('\n').as_bytes())?;
+        if value["type"] == "incomplete" {
+            #[derive(Deserialize)]
+            #[serde(deny_unknown_fields)]
+            struct Incomplete {
+                #[serde(rename = "type")]
+                kind: String,
+                reason: String,
+            }
+            let marker: Incomplete =
+                crate::qualify::spec::strict(payload.trim_end_matches('\n').as_bytes())?;
+            if marker.kind != "incomplete" || marker.reason.is_empty() || marker.reason.len() > 4096
+            {
+                return Err("invalid incomplete event-order diagnostic".into());
+            }
+            reason = marker.reason;
+            terminal = true;
+            continue;
+        }
+        let frame: Frame = crate::qualify::spec::strict(payload.trim_end_matches('\n').as_bytes())?;
+        if matches!(frame, Frame::Event { .. }) {
+            events += 1;
+        }
+        complete = matches!(frame, Frame::Complete { .. });
+        terminal = complete;
+        frames.push_str(line);
+    }
+    let log = if complete {
+        parse_frames(frames.as_bytes(), true)?
+    } else if !frames.is_empty() {
+        // A synthetic commitment validates a diagnostic prefix with the same
+        // strict frame rules. It is never retained or reported as a completion.
+        let candidate = format!(
+            "{frames}{PREFIX}{}\n",
+            json!({"type":"complete","events":events,"bytes":frames.len()})
+        );
+        parse_frames(candidate.as_bytes(), true)?
+    } else {
+        Log {
+            events: Vec::new(),
+            boundaries: Vec::new(),
+        }
+    };
+    Ok(
+        json!({"schema":"gomad.stderr-event-order-diagnostic/v1","diagnostic_only":true,"complete":complete,"reason":if complete {""} else {&reason},"events":log.events,"boundaries":log.boundaries}),
+    )
+}
+
+fn supplement_inspection(report: &mut Value, left: &Opened, right: &Opened) {
+    match super::inspection::compare(left, right) {
+        Ok(diagnostic) => report["inspection_diagnostic"] = diagnostic,
+        Err(reason) => report["inspection_diagnostic_unavailable"] = json!(reason),
+    }
 }

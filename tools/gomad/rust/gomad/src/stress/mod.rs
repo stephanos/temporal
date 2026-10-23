@@ -1,5 +1,6 @@
 //! Fresh seeded host perturbations; never a qualification or replay producer.
 pub(crate) mod cluster;
+mod inspection;
 mod matrix;
 mod process;
 mod report;
@@ -530,3 +531,6 @@ pub(crate) fn run(arguments: &[String], output: &mut dyn Write) -> Result<i32, S
         .map_err(|error| error.to_string())?;
     Ok(i32::from(!passed))
 }
+
+#[cfg(test)]
+mod reach_tests;
