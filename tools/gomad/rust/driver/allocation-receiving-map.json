@@ -1,0 +1,166 @@
+{
+  "schema": "gomad.native-allocation-receiving-map/v1",
+  "original_commit": "1d695061b6382009d0659238c652a5a765b1d5f5",
+  "marker": "GOMAD_ALLOCATION_OBSERVATION ",
+  "observation_schema": "gomad.native-allocation-observation/v1",
+  "targets": {
+    "gomad": "cargo test --locked -p gomad --test allocation_receiving --no-run",
+    "wasmhost": "cargo test --locked -p gomad-wasmhost --test allocation_receiving --no-run"
+  },
+  "execution_contract": [
+    "Parent serial build lease owns every Cargo/compiler invocation; worker performed source-only checks.",
+    "Launch each generated executable directly with no arguments from a fresh harness-owned evidence working directory. Cargo test itself changes CWD to the package root; direct execution keeps large wire files outside source.",
+    "No harness accepts fixture switches, alternate cardinalities, paths, byte budgets, or fixture replacement inputs. World helper harness requires Linux /proc.",
+    "Both standalone executables emit a successful8192-byte/one-call allocator control. All scoped counters operate only in this explicit executable; ordinary library tests do not mutate shared allocator fixtures.",
+    "Each measured closure counts all successful System alloc/alloc_zeroed/realloc requested sizes and calls across the whole process. Every successful realloc counts its full requested new size, including in-place realloc; failed requests do not count. Deallocation decrements requested-live bytes.",
+    "These are native requested-byte/allocation-call metrics, not Go TotalAlloc/HeapAlloc, libc usable size, RSS, or GC metrics. RSS and process peak RSS are independently read from /proc/self/status.",
+    "Logging, workload preparation where prescribed by the original ceiling, artifact writes and digests run outside measured closures. World model construction is itself measured; cumulative totals sum the declared measured stages.",
+    "Closed create_new artifact filenames are {binary-world|compressed-world}-{20000|200000}.{expanded|restored|compressed}.wire relative to harness CWD. Never overwrite/delete existing outputs; retained rows carry paths and actual SHA256. RawWorld has no compressed artifact.",
+    "Read each raw log with driver/allocation_receiving.py --target gomad|wasmhost LOG. The reader enforces the complete target-specific row inventory, numeric types, self-control, workload sizes, exact original bounds, byte digests, cumulative arithmetic and terminal cardinalities.",
+    "driver/allocation_receiving.py imports core_world.decode_measured_world and expand after parent integration: authenticate bounded regular file handles before/after read, enforce closed artifact filenames, compare raw length/SHA256, parse every actual terminal request/event/transition and authenticate full state/transcript hashes, authenticate actual restored bytes, independently expand the actual compressed envelope. CLI --artifact-root overrides the default log directory only for retained artifact custody; it does not alter any measured workload.",
+    "Independent raw numeric derivation does not turn the source-only mapping, native format differences, or unreceived original subvariants into a broad PASS."
+  ],
+  "roots": [
+    {
+      "original_root": "tools/gomad/internal/backends/wasm/cluster/retained_canonical_test.go#TestRetainedCanonicalDecodeAvoidsWholeBundleEncodingAllocation",
+      "original_source_sha256": "026f6e3222642f77b8ca65a54016103bc17d49ee2b0987a40bcd4e314951dba7",
+      "broad_selected": true,
+      "native_cases": [
+        "retained-decode"
+      ],
+      "bounds": {
+        "unit": "allocated_bytes",
+        "maximum": 58720256,
+        "payload_bytes": 8388608
+      },
+      "ownership_mapping_and_residuals": [
+        "Original Go embeds record bytes as base64 in one retained JSON bundle; native Inputs references external authenticated evidence. The measured native scope executes the actual cluster::inputs decoder/canonical check and actual manifest-bound Payload::read for an 8MiB external record payload.",
+        "No Go whole-bundle encoder is executed. This measures the same byte-copy ceiling on the native retained receiving path; it does not certify original Go JSON spelling/field equivalence or the full retained root."
+      ],
+      "execution": "UNEXECUTED source-only implementation; final parent serial gates and independent review pending",
+      "claim": "No root PASS or qualification certification"
+    },
+    {
+      "original_root": "tools/gomad/internal/backends/wasm/cluster/world_codec_test.go#TestWorldOwnerCodecMeasuredCardinality",
+      "original_source_sha256": "ba5b863a611a5010c368c89907b06453bac96ea227f21e971f823b9e432c55b0",
+      "broad_selected": true,
+      "native_cases": [
+        "binary-world/*"
+      ],
+      "bounds": {
+        "unit": "diagnostic_only",
+        "requests": [
+          20000
+        ],
+        "allocation_ceiling": null,
+        "rss_ceiling": null
+      },
+      "ownership_mapping_and_residuals": [
+        "Native Model has no detached Snapshot API. Encoding reads the original Model; validation replays canonical bytes internally and discards the reconstructed Model. Reencoding therefore reads the original Model, matching the native receiving ownership rather than claiming reconstructed Snapshot output.",
+        "No invented byte/count or RSS ceiling substitutes for the original diagnostic-only stages. Go snapshot-copy/HeapAlloc/GC-accounting semantics remain distinct from native requested allocator live/total metrics."
+      ],
+      "execution": "UNEXECUTED source-only implementation; final parent serial gates and independent review pending",
+      "claim": "No root PASS or qualification certification"
+    },
+    {
+      "original_root": "tools/gomad/internal/backends/wasm/cluster/world_compressed_probe_test.go#TestCompressedWorldOwnerMeasuredCardinality",
+      "original_source_sha256": "299072518044796dfa9eee07804af9ea2b984c70c78644e3020da2be117e158d",
+      "broad_selected": true,
+      "native_cases": [
+        "compressed-world/*"
+      ],
+      "bounds": {
+        "unit": "process_peak_rss_bytes",
+        "maximum": 2147483648,
+        "requests": [
+          20000,
+          200000
+        ],
+        "allocation_ceiling": null
+      },
+      "ownership_mapping_and_residuals": [
+        "Native terminal transfer serializes the final Model into expanded owner bytes and drops the Model before compressed encoding. Native semantic validation materializes an internal replay Model; the original Go decoder streamed semantic state. Allocation metrics expose that difference instead of asserting streaming-memory equivalence.",
+        "Both original accepted cardinalities execute unconditionally in a closed explicit executable. Ordinary unit probes are ignored by default and fail when explicitly run without their activation variable."
+      ],
+      "execution": "UNEXECUTED source-only implementation; final parent serial gates and independent review pending",
+      "claim": "No root PASS or qualification certification"
+    },
+    {
+      "original_root": "tools/gomad/internal/model/volume/metadata_test.go#TestMetadataAllocationsDoNotCopyLargeFile",
+      "original_source_sha256": "1fdaac591258b96623c9cee7f1f4718acc3eb42d6f9b44fb28a2eb171f5262bc",
+      "broad_selected": false,
+      "native_cases": [
+        "volume-metadata"
+      ],
+      "bounds": {
+        "unit": "allocated_bytes",
+        "maximum": 1048576,
+        "file_bytes": 524288,
+        "reads": 100
+      },
+      "ownership_mapping_and_residuals": [
+        "Native handle_metadata returns time/size without an Entry payload. The same 512KiB file/100 reads/1MiB ceiling is measured; detached Entry fields are a separate semantic predicate."
+      ],
+      "execution": "UNEXECUTED source-only implementation; final parent serial gates and independent review pending",
+      "claim": "No root PASS or qualification certification"
+    },
+    {
+      "original_root": "tools/gomad/internal/evidence/artifact/opened_test.go#TestReadPayloadAvoidsGrowingBuffers",
+      "original_source_sha256": "6bd0ed04d4fa7f36e527c2a43a2beadad9d6bd18589eae7bc20de6679d00bc46",
+      "broad_selected": false,
+      "native_cases": [
+        "opened-payload"
+      ],
+      "bounds": {
+        "unit": "allocated_bytes",
+        "maximum": 9437184,
+        "payload_bytes": 8388608
+      },
+      "ownership_mapping_and_residuals": [
+        "Actual native Opened::payload reads the already opened authenticated publication, with fixed8MiB input and exact original9MiB ceiling."
+      ],
+      "execution": "UNEXECUTED source-only implementation; final parent serial gates and independent review pending",
+      "claim": "No root PASS or qualification certification"
+    },
+    {
+      "original_root": "tools/gomad/internal/host/fs/allocation_test.go#TestReadBoundedAllocatesProportionallyToOpenedFileSize",
+      "original_source_sha256": "8e73307858f604bbe2815f2c4e48b7d6673ad79c80cd8a33c0348a681c18d20d",
+      "broad_selected": false,
+      "native_cases": [
+        "bounded-file-read"
+      ],
+      "bounds": {
+        "unit": "allocated_bytes",
+        "maximum": 2162688,
+        "file_bytes": 1048576,
+        "caller_limit_bytes": 536870912
+      },
+      "ownership_mapping_and_residuals": [
+        "Actual native store::open::read opens a1MiB file through its pinned directory and512MiB caller bound; budget remains2*file_bytes+64KiB."
+      ],
+      "execution": "UNEXECUTED source-only implementation; final parent serial gates and independent review pending",
+      "claim": "No root PASS or qualification certification"
+    },
+    {
+      "original_root": "tools/gomad/internal/model/iowire/wire_generated_test.go#TestMountDecodersRejectOversizedLengthsBeforeAllocation",
+      "original_source_sha256": "68a2f0395dc024f8ff8820555d3aa771cb4772ebe0f4d7e7dad3afe25cff317c",
+      "broad_selected": false,
+      "native_cases": [
+        "namespace-file-length"
+      ],
+      "bounds": {
+        "unit": "allocation_calls_per_run",
+        "maximum": 4,
+        "runs": 100,
+        "warmup": 1
+      },
+      "ownership_mapping_and_residuals": [
+        "Retired Go mount lookup/response RPC decoders are replaced by the native captured namespace-image owner. Native image stdin blob length3>filesystem limit2 rejects before data allocation with at most4 successful allocator calls per run.",
+        "The original mount request path-byte caller limit2 and file response-specific wire grammar have no identical native decoder parameter. This supplemental typed-owner refusal is not original subvariant equivalence; request path-limit and exact retired wire count semantics remain unreceived."
+      ],
+      "execution": "UNEXECUTED source-only implementation; final parent serial gates and independent review pending",
+      "claim": "No root PASS or qualification certification"
+    }
+  ],
+  "independent_world_reader": "driver/core_world.py::decode_measured_world and expand (broad World receiving source; integration dependency69d4a40e87)"
+}

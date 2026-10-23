@@ -1057,3 +1057,5 @@ mod retained_tests;
 
 #[cfg(all(test, feature = "determinism-fixture"))]
 mod broad_guest_tests;
+#[cfg(test)]
+pub(crate) use retained_tests::allocation_probe::run as allocation_probe;

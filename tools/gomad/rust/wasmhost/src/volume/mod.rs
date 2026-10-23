@@ -25,3 +25,6 @@ pub(crate) use state::{Error, Handle, Kind, OpenFlags};
 
 #[cfg(not(feature = "conformance"))]
 pub(crate) use state::{VolumeSnapshot, volume_snapshot_identity};
+
+#[cfg(test)]
+pub(crate) mod allocation_probe;

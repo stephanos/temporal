@@ -1546,3 +1546,5 @@ fn retained_ordinary_json_spellings_keep_exact_raw_authentication() {
         );
     }
 }
+#[path = "allocation_probe.rs"]
+pub(crate) mod allocation_probe;

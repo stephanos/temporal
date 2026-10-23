@@ -42,3 +42,8 @@ dbg_macro = "warn"
 todo = "warn"
 unimplemented = "warn"
 undocumented_unsafe_blocks = "warn"
+
+[[test]]
+name = "allocation_receiving"
+path = "tests/allocation_receiving.rs"
+harness = false
