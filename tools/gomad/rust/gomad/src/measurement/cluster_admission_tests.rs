@@ -176,40 +176,7 @@ fn actual_host_drift_is_rejected_at_every_before_and_after_callback() {
     baseline
         .matches(&host, SourceIdentity::captured(&source).unwrap())
         .unwrap();
-    let identity_root = directory.0.join("baseline");
-    let mut receipts = BTreeMap::new();
-    for (name, value) in [
-        ("host.json", serde_json::to_value(&host).unwrap()),
-        ("source.json", serde_json::to_value(&source).unwrap()),
-    ] {
-        let bytes = canonical::encode(&value).unwrap();
-        super::super::write(&identity_root.join(name), &bytes).unwrap();
-        receipts.insert(name.to_owned(), canonical::digest(&bytes));
-    }
-    let receipt_value = json!(receipts);
-    check_identity(&baseline, &identity_root, &receipt_value).unwrap();
-    let witness = identity_root.join("host-witness.json");
-    let original_witness = std::fs::read(&witness).unwrap();
-    std::fs::write(&witness, b"{}").unwrap();
-    assert!(check_identity(&baseline, &identity_root, &receipt_value).is_err());
-    std::fs::write(&witness, original_witness).unwrap();
-    check_identity(&baseline, &identity_root, &receipt_value).unwrap();
-    for drift in ["os", "arch", "boot", "cpu", "head", "inventory", "status"] {
-        let mut changed = baseline.clone();
-        match drift {
-            "os" => changed.host.os.push_str("changed"),
-            "arch" => changed.host.arch.push_str("changed"),
-            "boot" => changed.host.boot_id.push_str("changed"),
-            "cpu" => changed.host.witness.cpuinfo.push_str("changed"),
-            "head" => changed.source.head = "0".repeat(40),
-            "inventory" => changed.source.inputs.clear(),
-            _ => changed.source.status = " M changed".into(),
-        }
-        assert!(
-            check_identity(&changed, &identity_root, &receipt_value).is_err(),
-            "{drift}"
-        );
-    }
+    retained_identity_controls(&baseline, &host, &source, &directory.0.join("baseline"));
     let helper = std::env::current_exe().unwrap();
     let helper_sha256 = canonical::digest(&std::fs::read(&helper).unwrap());
     for replay in [false, true] {
@@ -269,5 +236,46 @@ fn actual_host_drift_is_rejected_at_every_before_and_after_callback() {
                 );
             }
         }
+    }
+}
+
+fn retained_identity_controls(
+    baseline: &Baseline,
+    host: &host::HostEvidence,
+    source: &host::SourceSnapshot,
+    identity_root: &Path,
+) {
+    let mut receipts = BTreeMap::new();
+    for (name, value) in [
+        ("host.json", serde_json::to_value(host).unwrap()),
+        ("source.json", serde_json::to_value(source).unwrap()),
+    ] {
+        let bytes = canonical::encode(&value).unwrap();
+        super::super::write(&identity_root.join(name), &bytes).unwrap();
+        receipts.insert(name.to_owned(), canonical::digest(&bytes));
+    }
+    let receipt_value = json!(receipts);
+    check_identity(baseline, identity_root, &receipt_value).unwrap();
+    let witness = identity_root.join("host-witness.json");
+    let original_witness = std::fs::read(&witness).unwrap();
+    std::fs::write(&witness, b"{}").unwrap();
+    assert!(check_identity(baseline, identity_root, &receipt_value).is_err());
+    std::fs::write(&witness, original_witness).unwrap();
+    check_identity(baseline, identity_root, &receipt_value).unwrap();
+    for drift in ["os", "arch", "boot", "cpu", "head", "inventory", "status"] {
+        let mut changed = baseline.clone();
+        match drift {
+            "os" => changed.host.os.push_str("changed"),
+            "arch" => changed.host.arch.push_str("changed"),
+            "boot" => changed.host.boot_id.push_str("changed"),
+            "cpu" => changed.host.witness.cpuinfo.push_str("changed"),
+            "head" => changed.source.head = "0".repeat(40),
+            "inventory" => changed.source.inputs.clear(),
+            _ => changed.source.status = " M changed".into(),
+        }
+        assert!(
+            check_identity(&changed, identity_root, &receipt_value).is_err(),
+            "{drift}"
+        );
     }
 }

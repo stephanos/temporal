@@ -330,6 +330,7 @@ pub(super) fn check_observations(root: &Path, replay: bool) -> Result<(), String
         return Err("cluster admission replay identity differs".into());
     }
     module::verify_inputs(&spec.files)?;
+    module::verify_inputs(&spec.baseline.source.inputs)?;
     let mut last = 0;
     for (index, phase) in phases.into_iter().enumerate() {
         for before in [true, false] {
@@ -429,10 +430,12 @@ fn check_identity(baseline: &Baseline, root: &Path, receipts: &Value) -> Result<
 }
 
 fn read_identity_file(path: &Path, limit: u64) -> Result<Vec<u8>, String> {
-    use std::os::unix::fs::MetadataExt;
-    let metadata = std::fs::symlink_metadata(path).map_err(|error| error.to_string())?;
-    if !metadata.is_file() || metadata.nlink() != 1 || metadata.mode() & 0o777 != 0o600 {
-        return Err("private regular cluster identity file required".into());
-    }
-    super::read(path, limit)
+    use crate::evidence::store::open;
+    let parent = path.parent().ok_or("cluster identity file parent absent")?;
+    let root = open::pin(parent)?;
+    let name = path
+        .file_name()
+        .and_then(|name| name.to_str())
+        .ok_or("cluster identity file name absent")?;
+    open::read(&root, name, limit, false)
 }
