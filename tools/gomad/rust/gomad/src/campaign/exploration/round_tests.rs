@@ -328,6 +328,75 @@ fn round_journal_accepts_and_reopens_authentic_owned_preparation_observations() 
     std::fs::remove_dir_all(temporary.root).unwrap();
 }
 
+#[test]
+fn seed_and_round_reopen_with_execution_metrics_and_refuse_unsafe_directory() {
+    use std::os::unix::fs::PermissionsExt as _;
+    for round in [false, true] {
+        let temporary = search_context::tests::store();
+        let prepared = observed_preparation(&temporary.root);
+        let path = if round {
+            let path = temporary.root.join("round");
+            drop(journal(&path, &prepared));
+            path
+        } else {
+            let mut options = crate::cli::explore::parse(
+                &["--choices".into(), "go-run".into(), ".".into()],
+                &mut false,
+            )
+            .unwrap();
+            options.artifacts = temporary.root.join("seed");
+            let journal = crate::campaign::seed_journal(&options, &prepared).unwrap();
+            journal.path().to_path_buf()
+        };
+        let execution = Execution {
+            ordinal: 0,
+            seed: 7,
+            record: self::prepared().1.record,
+            artifact: None,
+            stored_bytes: 0,
+            semantic_probes: vec![],
+            choice_features: vec![],
+            divergence: None,
+            soft_assertions: None,
+            scenario_steps: None,
+        };
+        crate::campaign::execution::retain_backend_metrics(
+            &path,
+            &execution,
+            &crate::campaign::execution::Metrics {
+                raw_backend: Some(canonical::encode(&json!({"execute_nanos":10})).unwrap()),
+                ..Default::default()
+            },
+        )
+        .unwrap();
+        let reopen = |writable| {
+            if round {
+                RoundJournal::open(&path, writable)
+                    .and_then(|journal| crate::campaign::exploration::plan::restore(&journal))
+            } else {
+                crate::campaign::ledger::Journal::open(&path, writable)
+                    .and_then(|journal| crate::campaign::restore(&journal))
+            }
+        };
+        for writable in [false, true] {
+            assert_eq!(reopen(writable).unwrap().auxiliary, prepared.auxiliary);
+        }
+        let observations = path.join("execution-observations");
+        assert_eq!(std::fs::read_dir(&observations).unwrap().count(), 1);
+        std::fs::set_permissions(&observations, std::fs::Permissions::from_mode(0o755)).unwrap();
+        let bytes = std::fs::read(path.join("journal.jsonl")).unwrap();
+        assert!(reopen(true).is_err());
+        assert_eq!(std::fs::read(path.join("journal.jsonl")).unwrap(), bytes);
+        std::fs::set_permissions(&observations, std::fs::Permissions::from_mode(0o700)).unwrap();
+        let moved = temporary.root.join("moved-observations");
+        std::fs::rename(&observations, &moved).unwrap();
+        std::os::unix::fs::symlink(moved, &observations).unwrap();
+        assert!(reopen(true).is_err());
+        assert_eq!(std::fs::read(path.join("journal.jsonl")).unwrap(), bytes);
+        std::fs::remove_dir_all(temporary.root).unwrap();
+    }
+}
+
 fn layout_create(path: &Path, metadata: &Value, round: Option<&RoundPlan>) -> Result<(), String> {
     let maximum = metadata["journal_bytes"].as_u64().unwrap();
     if let Some(round) = round {

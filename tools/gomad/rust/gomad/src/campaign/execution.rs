@@ -89,6 +89,8 @@ impl Failure {
     }
 }
 
+pub(crate) const OBSERVATION_DIRECTORY: &str = "execution-observations";
+
 /// In-process observations of one execution. They never enter records.
 #[derive(Clone, Debug, Default)]
 pub(crate) struct Metrics {
@@ -722,10 +724,10 @@ pub(crate) fn retain_backend_metrics(
     let bytes = canonical::encode(&json!({"schema":"gomad.backend-metrics-observation/v1",
         "ordinal":execution.ordinal,"record_sha256":execution.record.hash()?,
         "operator_process_id":std::process::id(),"metrics":observed}))?;
-    let root = crate::evidence::store::durable_directory(
-        &campaign.join("execution-observations"),
-        |_| Ok(()),
-    )?;
+    let root =
+        crate::evidence::store::durable_directory(&campaign.join(OBSERVATION_DIRECTORY), |_| {
+            Ok(())
+        })?;
     let name = format!("{}-{}.json", execution.ordinal, canonical::digest(&bytes));
     let descriptor = match fs::openat(
         &root,
@@ -990,6 +992,13 @@ mod backend_evidence_tests {
         metrics.process_user_nanos = measured;
         metrics.peak_rss_bytes = measured;
         linked::Execution {
+            terminal_monotonic_nanos: None,
+            admission_terminal_to_return_nanos: None,
+            timing: None,
+            #[cfg(feature = "helper-guest-profile")]
+            guest_profile_error: None,
+            #[cfg(feature = "helper-diagnostic-profile")]
+            external_owner_attempts: 0,
             authorization_to_terminal_nanos: None,
             outcome,
             evidence: BTreeMap::from([

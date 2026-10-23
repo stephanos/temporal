@@ -99,7 +99,7 @@ impl Workspace {
                 ".lock" | "checkpoint.json" | "checkpoint.tmp" => {
                     open::child(&root, &entry, false, false)?;
                 }
-                "accepted" | "execution-observations" => {
+                "accepted" | crate::campaign::execution::OBSERVATION_DIRECTORY => {
                     open::child(&root, &entry, true, false)?;
                 }
                 _ => return Err(format!("unexpected minimizer workspace entry {entry:?}")),
