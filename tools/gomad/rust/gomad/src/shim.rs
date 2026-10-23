@@ -684,6 +684,7 @@ mod tests {
     #[test]
     fn shim_options_match_stock_and_cooperative_driver_profile_admission() {
         let root = process::Temporary::new(&std::env::temp_dir()).unwrap();
+        fs::write(root.0.join("go.mod"), "module example.test/fixture\n").unwrap();
         let compiler = root.0.join("go");
         fs::write(
             &compiler,
@@ -703,7 +704,7 @@ mod tests {
         ] {
             let mut options = guest_options(&contract, &root.0, "test", &package, profile).unwrap();
             options.installation = Some(fixture_installation(&root.0, &compiler, profile));
-            let error = driver::prepare(&options, &[], Instant::now() + Duration::from_secs(10))
+            let error = driver::prepare(&options, Instant::now() + Duration::from_secs(10))
                 .err()
                 .unwrap();
             assert!(
@@ -711,7 +712,7 @@ mod tests {
                 "{profile}: {error}"
             );
             options.choices = !options.choices;
-            let error = driver::prepare(&options, &[], Instant::now() + Duration::from_secs(10))
+            let error = driver::prepare(&options, Instant::now() + Duration::from_secs(10))
                 .err()
                 .unwrap();
             assert!(
