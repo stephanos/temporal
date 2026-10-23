@@ -345,6 +345,26 @@ class ReceivingContract(unittest.TestCase):
             changed=copy.deepcopy(value);mutate(changed)
             with self.assertRaises(driver.Refusal): receiving.runtime_selection(changed,'temporal',1,state,context)
 
+    def test_original_typed_zero_capture_has_the_empty_namespace_projection(self):
+        import copy
+        policy=receiving.workloads.inspection_policy('shard')
+        policy.pop('CapturedInputs',None)
+        expected=receiving.inspection_policy_projection(policy)
+        policy['CapturedInputs']=dict(Manifest=dict(Bytes=0,Entries=0,File='',Limits=dict(
+            DirectoryEntries=0,Files=0,PathBytes=0,Requests=0,SingleFileBytes=0,TotalBytes=0),
+            Mappings=None,NotExist=0,Schema='',SHA256='',TotalBytes=0),Descriptor=None,Payloads=None)
+        self.assertEqual(receiving.inspection_policy_projection(policy),expected)
+        empty=copy.deepcopy(policy)
+        empty['CapturedInputs'].update(Descriptor='',Payloads={})
+        self.assertEqual(receiving.inspection_policy_projection(empty),expected)
+        partial=copy.deepcopy(policy);partial['CapturedInputs']=dict(Manifest={})
+        self.assertEqual(receiving.inspection_policy_projection(partial),expected)
+        for descriptor,payloads in [('eA==',None),('!',None),(None,{'blob':'eA=='}),(False,None),(None,[])]:
+            changed=copy.deepcopy(policy)
+            changed['CapturedInputs'].update(Descriptor=descriptor,Payloads=payloads)
+            with self.subTest(descriptor=descriptor,payloads=payloads),self.assertRaises(driver.Refusal):
+                receiving.inspection_policy_projection(changed)
+
     def test_inspection_admission_rejects_foreign_release_source_toolchain_and_policy(self):
         import copy
         policy=receiving.workloads.inspection_policy('shard')
