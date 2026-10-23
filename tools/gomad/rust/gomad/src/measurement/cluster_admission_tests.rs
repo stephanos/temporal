@@ -363,12 +363,30 @@ fn full_reader_controls(
             .unwrap();
         }
     }
-    check_observations(&output, false).unwrap();
+    check_observations(&output, false, &spec_path).unwrap();
+    for path in [
+        &spec_path,
+        &evidence.join("sample-driver.json"),
+        &phases.join("cluster-crash-before.json"),
+    ] {
+        public_receipt_mode_refused(&output, &spec_path, path);
+    }
     let decoy = evidence.join("sample-phase-inputs.json");
     super::super::write(&decoy, &spec_bytes).unwrap();
+    assert!(check_observations(&output, false, &decoy).is_err());
     std::fs::remove_file(&spec_path).unwrap();
     assert!(
-        check_observations(&output, false).is_err(),
+        check_observations(&output, false, &spec_path).is_err(),
         "decoy substituted missing producer spec"
     );
+    std::os::unix::fs::symlink(&decoy, &spec_path).unwrap();
+    assert!(check_observations(&output, false, &spec_path).is_err());
+}
+
+fn public_receipt_mode_refused(output: &Path, spec: &Path, path: &Path) {
+    use std::os::unix::fs::PermissionsExt;
+    std::fs::set_permissions(path, std::fs::Permissions::from_mode(0o644)).unwrap();
+    assert!(check_observations(output, false, spec).is_err());
+    std::fs::set_permissions(path, std::fs::Permissions::from_mode(0o600)).unwrap();
+    check_observations(output, false, spec).unwrap();
 }

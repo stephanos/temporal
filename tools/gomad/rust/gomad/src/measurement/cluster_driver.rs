@@ -548,7 +548,7 @@ fn execute_replayed(
                 });
             }
         };
-        admission::check_observations(&root.join("evidence").join(&row.name), replay)?;
+        admission::check_observations(&root.join("evidence").join(&row.name), replay, &path)?;
         module::authenticate_prepared(prepared)?;
         executable.verify(proof)?;
         Ok::<_, String>(result)

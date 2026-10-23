@@ -136,7 +136,7 @@ impl Spec {
         })
     }
     pub(crate) fn read(path: &Path) -> Result<Self, String> {
-        let raw = super::read(path, 16 << 20)?;
+        let raw = read_identity_file(path, 16 << 20)?;
         let value = crate::qualify::spec::strict(&raw)?;
         let spec: Self = serde_json::from_value(value).map_err(|error| error.to_string())?;
         if spec.schema != "gomad.cluster-phase-admission/v1" || spec.files.is_empty() {
@@ -300,7 +300,11 @@ impl LifecycleObserver for Observer {
 #[path = "cluster_admission_tests.rs"]
 mod tests;
 
-pub(super) fn check_observations(root: &Path, replay: bool) -> Result<(), String> {
+pub(super) fn check_observations(
+    root: &Path,
+    replay: bool,
+    spec_path: &Path,
+) -> Result<(), String> {
     let phases = if replay {
         ["cluster-prefix-replay", "cluster-full-replay"]
     } else {
@@ -310,7 +314,7 @@ pub(super) fn check_observations(root: &Path, replay: bool) -> Result<(), String
         .file_name()
         .and_then(|name| name.to_str())
         .ok_or("cluster evidence name absent")?;
-    let command: serde_json::Value = crate::qualify::spec::strict(&super::read(
+    let command: serde_json::Value = crate::qualify::spec::strict(&read_identity_file(
         &root
             .parent()
             .ok_or("cluster evidence parent absent")?
@@ -320,12 +324,15 @@ pub(super) fn check_observations(root: &Path, replay: bool) -> Result<(), String
     let expected_pid = command["pid"]
         .as_u64()
         .ok_or("cluster command process absent")?;
-    let spec = Spec::read(
-        &root
-            .parent()
-            .ok_or("cluster evidence parent absent")?
-            .join(format!("{name}-phase-inputs.json")),
-    )?;
+    let expected_spec = root
+        .parent()
+        .and_then(Path::parent)
+        .ok_or("cluster producer root absent")?
+        .join(format!("{name}-phase-inputs.json"));
+    if spec_path != expected_spec {
+        return Err("cluster admission specification path differs from producer".into());
+    }
+    let spec = Spec::read(spec_path)?;
     if spec.replay != replay {
         return Err("cluster admission replay identity differs".into());
     }
@@ -339,7 +346,7 @@ pub(super) fn check_observations(root: &Path, replay: bool) -> Result<(), String
                 if before { "before" } else { "after" }
             ));
             let value: serde_json::Value =
-                crate::qualify::spec::strict(&super::read(&path, 1 << 20)?)?;
+                crate::qualify::spec::strict(&read_identity_file(&path, 1 << 20)?)?;
             let observed_pid = value["process_id"]
                 .as_u64()
                 .filter(|value| *value > 0)
