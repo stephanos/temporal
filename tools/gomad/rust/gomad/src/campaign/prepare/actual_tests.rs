@@ -86,6 +86,11 @@ fn actual_scoped_compiler_and_cached_output_preserve_raw_proofs() {
     let changed = prepare_with_compiler_controls(&options, &controls).unwrap();
     assert_ne!(features.module, changed.module);
     assert_ne!(features.toolchain, changed.toolchain);
+    fs::write(
+        source.join("main.go"),
+        "package main\nfunc main() { println(\"preparation\") }\n",
+    )
+    .unwrap();
     for (name, prepared) in [("first", &first), ("second", &second)] {
         let campaign = root.join(name);
         fs::DirBuilder::new().mode(0o700).create(&campaign).unwrap();

@@ -24,7 +24,7 @@ pub(crate) fn configuration() -> Result<preflight::Configuration, String> {
     serde_json::from_value(serde_json::json!({
         "engine":gomad_wasmhost::linked::Conditions::compiled().configuration(),
         "profile":"gomad.wasi-cooperative/v1", "runtime_sha256":null,
-        "arguments":["guest","literal $arg"],
+        "arguments":["guest","literal $arg"], "world_transition_bytes":64 << 20,
         "environment":{"PWD":"/workspace","TZ":"UTC","ONLY":"captured","EXTRA_ENTROPY":"no_"},
         "limits":{"fuel":4_000_000_000_u64,"memory_bytes":256<<20,"wall_millis":60000,"output_bytes":1<<20,"evidence_bytes":128<<20},
         "model":{"entropy_key":[1,2,3,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0],

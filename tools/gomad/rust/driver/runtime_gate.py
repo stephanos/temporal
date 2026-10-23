@@ -60,6 +60,7 @@ def choice_summary(raw, terminal, require):
 
 
 def exact_configuration(configuration, require):
+    require(configuration.get('world_transition_bytes') == 64 << 20, 'changed runtime World transition byte bound')
     require(configuration['arguments'] == ['guest', 'literal $arg'], 'changed runtime argv')
     require(configuration['environment'] == dict(PWD='/workspace', TZ='UTC', ONLY='captured', EXTRA_ENTROPY='no_'),
             'changed runtime environment')
