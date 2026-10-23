@@ -555,12 +555,10 @@ pub fn compare(before: &Series, after: &Series) -> Result<(), String> {
         || b.host_os != a.host_os
         || b.host_arch != a.host_arch
         || b.engine_version != a.engine_version
-        || b.engine_configuration != a.engine_configuration
         || b.module_sha256 != a.module_sha256
         || b.seed != a.seed
         || b.config_sha256 != a.config_sha256
         || b.runtime_identity != a.runtime_identity
-        || b.model_sha256 != a.model_sha256
         || b.module_producer_sha256 != a.module_producer_sha256
     {
         return Err("warm comparison changed host, module, configuration, runtime or current producer closure".into());

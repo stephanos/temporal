@@ -1,6 +1,5 @@
 use super::*;
 use gomad_wasmhost::linked::Cancellation;
-use std::io::Write as _;
 use std::{
     collections::BTreeMap,
     path::{Path, PathBuf},

@@ -1351,7 +1351,7 @@ fn migration_baseline_cost(root: &Path, seed: u64) -> Result<Value, String> {
     let request_raw = open::read(&files, "request.json", 8 << 20, false)?;
     let report_raw = open::read(&files, "report.json", 8 << 20, false)?;
     let command_raw = open::read(&siblings, &format!("{label}-driver.json"), 8 << 20, false)?;
-    let command_value = crate::qualify::spec::strict(&command_raw)?;
+    let command_value: Value = crate::qualify::spec::strict(&command_raw)?;
     let wall_nanos = command_value["duration_nanos"]
         .as_i64()
         .filter(|wall| *wall > 0)
@@ -1363,8 +1363,8 @@ fn migration_baseline_cost(root: &Path, seed: u64) -> Result<Value, String> {
         })?;
     let command: build::CommandObservation = serde_json::from_value(command_value.clone())
         .map_err(|error| format!("native migration baseline cost provenance: {error}"))?;
-    let report = crate::qualify::spec::strict(&report_raw)?;
-    let request = crate::qualify::spec::strict(&request_raw)?;
+    let report: Value = crate::qualify::spec::strict(&report_raw)?;
+    let request: Value = crate::qualify::spec::strict(&request_raw)?;
     let input = parent.join(format!("{label}.input.json"));
     if command.schema != "gomad.native-process-observation/v1"
         || command.command.len() != 4

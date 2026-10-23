@@ -240,6 +240,14 @@ fn sample(
     {
         return Err("namespace sample native terminal failed".into());
     }
+    let mut selected = super::workloads::RunSpec::new(
+        "namespace-observation",
+        "^TestActivityTestSuite$",
+        seed,
+        role.name(),
+    );
+    selected.warm = true;
+    super::workloads::success(&observation.run, &selected)?;
     operation_retention(&observation.run)?;
     evidence::compare(
         &observation.run,

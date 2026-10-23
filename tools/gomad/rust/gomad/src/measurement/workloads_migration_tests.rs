@@ -158,7 +158,7 @@ fn migration_costs_precede_module_and_role_access_for_every_selected_baseline() 
         baseline.0.join("roles").is_dir(),
         "positive 1ns baseline did not reach role admission: {error}"
     );
-    let costs =
+    let costs: Value =
         crate::qualify::spec::strict(&fs::read(baseline.0.join("baseline-costs.json")).unwrap())
             .unwrap();
     assert_eq!(costs.as_array().unwrap().len(), 6);
