@@ -235,20 +235,21 @@ fn standalone_inputs(
 }
 
 /// A cluster execution ran the retained configuration's limits, except that
-/// its evidence bound is exactly the smaller of the configuration's and the
-/// retained scenario's `scenario_evidence_bytes`.
+/// its evidence bound is the configuration's bound for each incarnation the
+/// retained scenario starts or restarts.
 fn cluster_limits(
     limits: &crate::evidence::record::Limits,
     provenance: &serde_json::Value,
 ) -> bool {
     let retained = &provenance["configuration"]["limits"];
-    let scenario = serde_json::from_value::<Vec<u8>>(provenance["scenario"].clone())
-        .ok()
-        .and_then(|bytes| crate::campaign::scenario::evidence_limit(&bytes).ok());
+    let scenario = serde_json::from_value::<Vec<u8>>(provenance["scenario"].clone()).ok();
     let mut expected = retained.clone();
     match (retained["evidence_bytes"].as_u64(), scenario) {
         (Some(bound), Some(scenario)) => {
-            expected["evidence_bytes"] = bound.min(scenario).into();
+            match crate::campaign::scenario::evidence_limit(&scenario, bound) {
+                Ok(limit) => expected["evidence_bytes"] = limit.into(),
+                Err(_) => return false,
+            }
         }
         _ => return false,
     }

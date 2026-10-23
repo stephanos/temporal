@@ -613,8 +613,9 @@ profile (`cooperative` is `gomad.wasi-cooperative/v1`, `controlled` is
 `gomad.wasi-stock-exploratory/v1`; any other is refused). A standalone record
 must also carry exactly the retained configuration's limits, arguments and
 environment, as replay preflight requires; a cluster record carries the
-retained limits except for an evidence bound of exactly the smaller of the
-configuration's and the retained scenario's `scenario_evidence_bytes`. Each
+retained limits except for an evidence bound of exactly the configuration's
+bound times the number of incarnations the retained scenario starts or
+restarts; the scenario's `scenario_evidence_bytes` bounds oracle evidence. Each
 execution's samples, and each matched replay's, must measure exactly the trace
 bytes its record's trace streams retain. A success outcome is a normal exit with status zero,
 and any other zero exit is a target failure with soft-assertion evidence, as
