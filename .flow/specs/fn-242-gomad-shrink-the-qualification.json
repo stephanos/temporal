@@ -5,7 +5,6 @@
     "fn-232-gomad-rewrite-the-host-side-in-rust",
     "fn-233-gomad-intercept-the-go-command-so-make",
     "fn-221-gomad-functional-suite-triage-sweep-on",
-    "fn-185-gomad-wasm-host-side-execution-cost",
     "fn-188-gomad-wasm-determinism-boundary-audit"
   ],
   "id": "fn-242-gomad-shrink-the-qualification",
@@ -26,5 +25,5 @@
     "mergeBaseTracker": null,
     "url": null
   },
-  "updated_at": "2026-10-23T21:33:41.318330Z"
+  "updated_at": "2026-10-23T21:33:51.527499Z"
 }
