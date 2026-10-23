@@ -1,0 +1,12 @@
+{
+  "command": "timeout 3600 env UMPIRE_BACKENDS=require make model-time",
+  "exit_code": 0,
+  "start": "2026-10-23T05:05:32.416150+00:00",
+  "end": "2026-10-23T05:19:24.717378+00:00",
+  "elapsed_seconds": 832.3013109380117,
+  "source_head": "e17871d6356162ddcd1d761e073e032245bea6ad",
+  "reviewed_runtime_source": "3d0acb886866abfd04a2d2c34e8e87368cef2d5c",
+  "reviewed_diagnostic_fix": "aec6ec70a769e3b79607106eff8e300fd8e14e3f",
+  "original_full_failure": "required-model-time-first-failure-command.json",
+  "log": "final-model-time-retry.log"
+}

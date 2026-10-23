@@ -1,0 +1,115 @@
+{
+  "exit_code": 0,
+  "command": "timeout 3600 env UMPIRE_BACKENDS=require make model-time",
+  "verified_head": "e17871d6356162ddcd1d761e073e032245bea6ad",
+  "original_session": 10569,
+  "reviewed_runtime_source": "3d0acb886866abfd04a2d2c34e8e87368cef2d5c",
+  "reviewed_diagnostic_fix": "aec6ec70a769e3b79607106eff8e300fd8e14e3f",
+  "stages": [
+    {
+      "stage": "temporal-guest-freshness",
+      "seconds": 29.643
+    },
+    {
+      "stage": "timing-controls",
+      "seconds": 0.031
+    },
+    {
+      "stage": "guest-build-controls",
+      "seconds": 3.615
+    },
+    {
+      "stage": "capability-controls",
+      "seconds": 0.079
+    },
+    {
+      "stage": "source-boundary",
+      "seconds": 3.267
+    },
+    {
+      "stage": "protobuf-freshness",
+      "seconds": 0.082
+    },
+    {
+      "stage": "kettle-protobuf-freshness",
+      "seconds": 0.071
+    },
+    {
+      "stage": "temporal-protobuf-freshness",
+      "seconds": 0.048
+    },
+    {
+      "stage": "fmt",
+      "seconds": 0.524
+    },
+    {
+      "stage": "clippy",
+      "seconds": 3.451
+    },
+    {
+      "stage": "docs",
+      "seconds": 13.532
+    },
+    {
+      "stage": "tests",
+      "seconds": 657.246
+    },
+    {
+      "stage": "wasm32-wasip1",
+      "seconds": 1.471
+    },
+    {
+      "stage": "core-wasm-clippy",
+      "seconds": 2.088
+    },
+    {
+      "stage": "wasm-guest",
+      "seconds": 57.796
+    },
+    {
+      "stage": "go-host",
+      "seconds": 39.455
+    },
+    {
+      "stage": "temporal-go-host",
+      "seconds": 11.62
+    }
+  ],
+  "total_seconds": 824.431,
+  "gate_soft_seconds": 60.0,
+  "gate_soft_met": false,
+  "inner_seconds": 7.632,
+  "inner_soft_seconds": 10.0,
+  "inner_soft_met": true,
+  "native_bound": {
+    "reached": 283,
+    "depth": 62,
+    "cut": false,
+    "transition_bound": 63
+  },
+  "kettle_negative": {
+    "property": "Negative_never_beeps",
+    "bound": 63,
+    "replayed_edges": 62,
+    "replay_sha256": "056c2a8e2760e936d375e6ed5647fb330f0fb473abda587593870a9393b52a84"
+  },
+  "kettle_safety_properties": "All five declared safety properties checked at completed native-derived bound63; no liveness claim.",
+  "raw_archive": "final-backend-controls.tar.gz",
+  "raw_archive_sha256": "9fdf5177f5a7f8fc7ea8c62bd66afd6dfcebb96dcc32768c9a5061927d3a9edc",
+  "raw_inventory_entries": 208,
+  "fresh_raw_entries": 208,
+  "raw_provenance": "Inventory explicitly distinguishes entries rewritten during the final gate from retained earlier control history.",
+  "source_inventory_entries": 37,
+  "runtime_live_closure_entries": 2184,
+  "prior_artifacts": 558,
+  "changed_artifacts": {
+    "model/umpire/dsl/macros/tests/fixtures/machine/expected/expansion@rs.snap.rs": "4dfbd08143756bfc7d5b6b04db11a1f89465ae1e01d15a06566ca97baf2987a7",
+    "model/umpire/dsl/macros/tests/fixtures/rejecting_machine/expected/expansion@rs.snap.rs": "f5f5cc5d48aae94686a91065765d02ef2a48d0bf183fb62cb35ed78ab08eab0f",
+    "model/umpire/dsl/macros/tests/fixtures/staying_machine/expected/expansion@rs.snap.rs": "8af7fc6be50696aff5654351929f9f2d30c21d16f18dea765193b256f21b34a1"
+  },
+  "first_full_gate": {
+    "exit_code": 2,
+    "cause": "UNKNOWN; original wrapper discarded child output. Logged workspace diagnostic subsequently passed. Authorized tested diagnostic-retention fix precedes this justified retry."
+  },
+  "platform_limit": "Native macOS JVM execution remains unverified."
+}
