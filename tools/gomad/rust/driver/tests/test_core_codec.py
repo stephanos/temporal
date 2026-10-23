@@ -333,4 +333,67 @@ class StateEvidenceVariants(unittest.TestCase):
             with self.subTest(variant=variant),self.assertRaises(Refusal):gate.evidence_observations(changed,[baseline])
 
 
+
+
+def selected_rows(baseline):
+    raw=bytes(baseline['observed']['image_bytes']);image=gate.recovery_image(raw);volume=image['volumes']['data']
+    context=baseline['inputs']['context'];rows=[baseline]
+    for state in baseline['observed']['states']:
+        recovered=copy.deepcopy(image)
+        for op in volume['history']:
+            if op['id'] in state['SelectedOperations']:gate.apply_effect(recovered['volumes']['data'],op['effect'])
+        recovered['volumes']['data']['owned']=sorted(recovered['volumes']['data']['objects'])
+        raw=encoded_image(recovered)
+        rows.append(dict(schema=gate.SCHEMA,case='storage-selected-state-recovery',inputs=dict(context=context,state=state),
+            observed=dict(image_bytes=list(raw),recovery_image_sha256=gate.digest(raw),db_present=any(entry['Path']=='/db' for entry in state['Entries']),snapshots=gate.recovered_snapshots(recovered))))
+    state_raw=bytes(baseline['observed']['state_bytes']);log=bytes(baseline['observed']['log_bytes']);_,parts=gate.state_raw_sections(state_raw)
+    partial=gate.state_envelope(2,parts[:3]+[b'',parts[4],b'\x02'])
+    for variant in ('hash','history','missing'):
+        forged=copy.deepcopy(context)
+        if variant=='hash':forged['data']['PendingSHA256']='sha256:'+'0'*64
+        elif variant=='history':forged['data']['Operations'][0]['Kind']='forged'
+        else:forged['data']['Operations']=[]
+        rows.append(dict(schema=gate.SCHEMA,case='storage-context-divergence',inputs=dict(variant=variant,context=forged),
+            observed=dict(failure=['invalid','storage crash context diverged from prior observation'],image=None,state_bytes=list(partial),log_bytes=list(log),
+                original_state_bytes=list(state_raw),original_log_bytes=list(log),state_sha256=gate.digest(partial))))
+    large=copy.deepcopy(image);large_volume=large['volumes']['data'];history=[]
+    for index in range(50):
+        allocation=copy.deepcopy(volume['history'][0]);namespace=copy.deepcopy(volume['history'][1]);inode=4+index
+        allocation.update(id=2*index+1,deps=[],stores=[f'alloc:{inode}'])
+        allocation['effect'].update(inode=inode)
+        allocation['effect']['object'].update(inode=inode,kind=1,mode=0o600)
+        namespace.update(id=2*index+2,deps=[allocation['id']],stores=[f'namespace:{index}'])
+        namespace['effect']['namespace']=[dict(path='/'+'\x01'*3998+f'{index:02d}',inode=inode)]
+        history.extend([allocation,namespace]);gate.apply_effect(large_volume,allocation['effect']);gate.apply_effect(large_volume,namespace['effect'])
+    large_volume.update(history=history,next_operation=101,owned=sorted(large_volume['objects']))
+    large['next_inode']=55
+    raw=encoded_image(large);snapshots=gate.recovered_snapshots(large)
+    large_context={'data':dict(PendingSHA256=gate.pending_identity('data',history),Operations=[gate.observed_operation(op) for op in history])}
+    rows.append(dict(schema=gate.SCHEMA,case='storage-large-observed-selection',
+        inputs=dict(files=50,path_bytes=4000,context=large_context,context_sha256=gate.digest(gate.canonical(large_context)),selection={'data':list(range(1,101))}),
+        observed=dict(image_bytes=list(raw),snapshots=snapshots,image_sha256=gate.digest(raw),snapshots_sha256=gate.digest(gate.struct_json(snapshots)))))
+    return rows
+
+
+class CompleteSelectedRecovery(unittest.TestCase):
+    def test_all_states_divergences_and_large_names_replay_from_raw_images(self):
+        rows=selected_rows(selected_fixture());facts=gate.selected_observations(rows)
+        self.assertEqual(facts['TestStorageCrashContextLargeObservedSelection']['files'],50)
+        self.assertEqual(len(facts['TestStorageCrashContextSelectedOwnersAndDivergence']['states']),2)
+        for mutation in ('omit-state','omit-divergence','retain-image-on-divergence','hide-enumeration','wrong-file-name'):
+            changed=copy.deepcopy(rows)
+            if mutation=='omit-state':changed.pop(1)
+            if mutation=='omit-divergence':changed.pop(3)
+            if mutation=='retain-image-on-divergence':changed[3]['observed']['image']=[]
+            if mutation=='hide-enumeration':
+                row=changed[3];_,parts=gate.state_raw_sections(bytes(row['observed']['state_bytes']));parts[2]=b'null'
+                raw=gate.state_envelope(2,parts);row['observed']['state_bytes']=list(raw);row['observed']['state_sha256']=gate.digest(raw)
+            if mutation=='wrong-file-name':
+                row=changed[-1];image=gate.recovery_image(bytes(row['observed']['image_bytes']));volume=image['volumes']['data']
+                path=next(path for path in volume['paths'] if path!='/');volume['paths']['/wrong']=volume['paths'].pop(path)
+                raw=encoded_image(image);snapshots=gate.recovered_snapshots(image)
+                row['observed'].update(image_bytes=list(raw),image_sha256=gate.digest(raw),snapshots=snapshots,snapshots_sha256=gate.digest(gate.struct_json(snapshots)))
+            with self.subTest(mutation=mutation),self.assertRaises(Refusal):gate.selected_observations(changed)
+
+
 if __name__=='__main__':unittest.main()

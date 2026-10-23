@@ -34,12 +34,12 @@ def unsigned(value):
 def typed_context(context):
     require(context is None or isinstance(context, dict), 'foreign storage context map')
     for name, prior in (context or {}).items():
-        require(isinstance(name, str) and set(prior) == {'PendingSHA256', 'Operations'}
+        require(isinstance(name, str) and isinstance(prior,dict) and set(prior) == {'PendingSHA256', 'Operations'}
                 and isinstance(prior['PendingSHA256'], str), 'foreign storage context fields')
         operations = prior['Operations']
         require(operations is None or isinstance(operations, list), 'foreign storage operations shape')
         for operation in operations or []:
-            require(set(operation) == OP_FIELDS, 'foreign storage operation fields')
+            require(isinstance(operation,dict) and set(operation) == OP_FIELDS, 'foreign storage operation fields')
             for field in ('ID', 'Inode', 'Offset', 'Bytes'):
                 unsigned(operation[field])
             for field in ('Kind', 'PayloadSHA256', 'EffectSHA256', 'Path', 'Destination'):
@@ -384,6 +384,7 @@ class ImageReader:
             obj=self.object() if presence else None
             namespace=[dict(path=self.text(),inode=self.number()) for _ in range(self.count())]
             require(identity>0 and dependencies==sorted(set(dependencies)) and all(0<dep<identity for dep in dependencies),'invalid recovery dependencies')
+            require(size<=256<<20 and offset+len(data)<=256<<20,'recovery persistence byte bound')
             require(effect_kind in ('alloc','write','resize','metadata','namespace'),'unknown recovery persistence effect')
             require(kind==effect_kind and (effect_kind=='alloc')==(obj is not None),'recovery allocation object mismatch')
             operations.append(dict(id=identity,kind=kind,deps=dependencies,stores=stores,effect=dict(kind=effect_kind,inode=inode,parent=parent,
@@ -681,6 +682,17 @@ def selected_observations(rows):
     expected_paths={'/'}|{'/'+'\x01'*3998+f'{index:02d}' for index in range(50)}
     require(set(volume['paths'])==expected_paths and all(volume['objects'][inode]['kind']==(2 if path=='/' else 1)
             and not volume['objects'][inode]['data'] for path,inode in volume['paths'].items()),'large selection did not recover all exact 4000-byte file names')
+    initial=copy.deepcopy(baseline['image']['volumes']['data'])
+    for index in range(50):
+        allocation,namespace=history[2*index:2*index+2]
+        path='/'+'\x01'*3998+f'{index:02d}'
+        require(allocation['kind']=='alloc' and namespace['kind']=='namespace'
+                and allocation['effect']['object']['kind']==1 and allocation['effect']['object']['mode']==0o600
+                and allocation['effect']['object']['data']==b''
+                and namespace['effect']['namespace']==[dict(path=path,inode=allocation['effect']['inode'])],
+                'large observed selection did not execute exact 50-file allocation/namespace workload')
+        apply_effect(initial,allocation['effect']);apply_effect(initial,namespace['effect'])
+    require(entries(initial,True)==entries(volume,True),'large selected image differs from independently replayed creation effects')
     snapshots=recovered_snapshots(image)
     require(canonical(observed['snapshots'])==canonical(snapshots) and observed['image_sha256']==digest(raw)
             and observed['snapshots_sha256']==digest(struct_json(snapshots)),'large selected recovered snapshots differ from raw image')
