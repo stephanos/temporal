@@ -134,12 +134,81 @@ pub(crate) fn run_with_output(
     raw_trace: Option<&[u8]>,
     output: Option<std::sync::Arc<dyn linked::OutputConsumer>>,
 ) -> std::result::Result<Result, String> {
+    run_with_controls(
+        prepared,
+        job,
+        timeout,
+        cancellation,
+        Controls {
+            replay,
+            raw_trace,
+            output,
+            #[cfg(all(test, feature = "helper-determinism-fixture"))]
+            fault: None,
+        },
+    )
+}
+
+struct Controls<'a> {
+    replay: Option<&'a linked::ReplayRequest>,
+    raw_trace: Option<&'a [u8]>,
+    output: Option<std::sync::Arc<dyn linked::OutputConsumer>>,
+    #[cfg(all(test, feature = "helper-determinism-fixture"))]
+    fault: Option<super::counterfactual::Fault>,
+}
+
+#[cfg(all(test, feature = "helper-determinism-fixture"))]
+pub(super) fn run_counterfactual(
+    prepared: &Prepared,
+    job: &ledger::Job,
+    timeout: Duration,
+    cancellation: &linked::Cancellation,
+    fault: super::counterfactual::Fault,
+) -> std::result::Result<Result, String> {
+    run_with_controls(
+        prepared,
+        job,
+        timeout,
+        cancellation,
+        Controls {
+            replay: None,
+            raw_trace: None,
+            output: None,
+            fault: Some(fault),
+        },
+    )
+}
+
+fn run_with_controls(
+    prepared: &Prepared,
+    job: &ledger::Job,
+    timeout: Duration,
+    cancellation: &linked::Cancellation,
+    controls: Controls<'_>,
+) -> std::result::Result<Result, String> {
+    let Controls {
+        replay,
+        raw_trace,
+        output,
+        #[cfg(all(test, feature = "helper-determinism-fixture"))]
+        fault,
+    } = controls;
     #[cfg(feature = "determinism-fixture")]
     crate::live_backend::before_execution(job.seed, cancellation)?;
     if prepared.scenario.is_some() {
         if replay.is_some() || raw_trace.is_some() {
             return Err(
                 "unsupported_target: scenario runtime prefix forcing is unsupported".into(),
+            );
+        }
+        #[cfg(all(test, feature = "helper-determinism-fixture"))]
+        if let Some(fault) = fault {
+            return super::scenario::execute_counterfactual(
+                prepared,
+                job,
+                timeout,
+                cancellation,
+                fault,
             );
         }
         return super::scenario::execute(prepared, job, timeout, cancellation);
@@ -217,6 +286,13 @@ pub(crate) fn run_with_output(
     let mut admitted = linked::prepare(request)
         .map_err(|error| format!("runner_failure: admit campaign target: {error}"))?;
     admitted.conditions(linked::Conditions::compiled());
+    #[cfg(all(test, feature = "helper-determinism-fixture"))]
+    if let Some(fault) = fault {
+        if fault.owner.is_some() {
+            return Err("standalone fixture fault cannot select a cluster owner".into());
+        }
+        admitted.fixture_fault(fault.kind);
+    }
     if let Some(network) = &configuration.network {
         admitted
             .network(network.clone())

@@ -1,4 +1,6 @@
 pub(crate) mod choice;
+#[cfg(all(test, feature = "helper-determinism-fixture"))]
+mod counterfactual;
 pub(crate) mod execution;
 pub(crate) mod exploration;
 mod failure_policy;

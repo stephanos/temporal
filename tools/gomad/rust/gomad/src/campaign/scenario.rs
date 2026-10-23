@@ -1365,6 +1365,36 @@ pub(super) fn execute(
     timeout: Duration,
     cancellation: &linked::Cancellation,
 ) -> Result<super::execution::Result, String> {
+    execute_controlled(
+        prepared,
+        job,
+        timeout,
+        cancellation,
+        #[cfg(all(test, feature = "helper-determinism-fixture"))]
+        None,
+    )
+}
+
+#[cfg(all(test, feature = "helper-determinism-fixture"))]
+pub(super) fn execute_counterfactual(
+    prepared: &super::prepare::Prepared,
+    job: &super::ledger::Job,
+    timeout: Duration,
+    cancellation: &linked::Cancellation,
+    fault: super::counterfactual::Fault,
+) -> Result<super::execution::Result, String> {
+    execute_controlled(prepared, job, timeout, cancellation, Some(fault))
+}
+
+fn execute_controlled(
+    prepared: &super::prepare::Prepared,
+    job: &super::ledger::Job,
+    timeout: Duration,
+    cancellation: &linked::Cancellation,
+    #[cfg(all(test, feature = "helper-determinism-fixture"))] fault: Option<
+        super::counterfactual::Fault,
+    >,
+) -> Result<super::execution::Result, String> {
     let mut bound = bind(
         prepared
             .scenario
@@ -1380,6 +1410,10 @@ pub(super) fn execute(
         job.seed,
     )?;
     crate::qualify::workloads::recovery::bind(prepared, &mut bound)?;
+    #[cfg(all(test, feature = "helper-determinism-fixture"))]
+    if fault.is_some() {
+        super::counterfactual::validate_bound(&bound)?;
+    }
     let scenario = parse(
         prepared
             .scenario
@@ -1414,6 +1448,12 @@ pub(super) fn execute(
             .map_err(|error| error.to_string())?;
     }
     execution.conditions(linked::Conditions::compiled());
+    #[cfg(all(test, feature = "helper-determinism-fixture"))]
+    if let Some(fault) = fault {
+        execution
+            .fixture_fault(fault.kind, fault.owner)
+            .map_err(|error| error.to_string())?;
+    }
     execution.cancellation(cancellation.clone());
     #[cfg(feature = "determinism-fixture")]
     crate::fixture::execution_started().map_err(|error| error.message)?;
