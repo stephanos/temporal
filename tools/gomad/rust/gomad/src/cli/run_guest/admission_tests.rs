@@ -514,6 +514,8 @@ fn same_driver_launches_have_distinct_campaigns_and_record_commitments() {
         .unwrap();
         options.artifacts = root.clone();
         options.json = true;
+        options.parallel = 1;
+        options.on_failure = "first".into();
         let prepared = retain_admission(&options, prepared).unwrap();
         let outcome =
             launcher::run(&options, &prepared, Instant::now() + Duration::from_secs(5)).unwrap();
@@ -542,7 +544,7 @@ fn same_driver_launches_have_distinct_campaigns_and_record_commitments() {
             OsStr::new(&format!("campaign-{launch_id}"))
         );
         (
-            outcome.campaign.clone(),
+            outcome.campaign,
             launch_id,
             opened.manifest().record_sha256.clone(),
         )
@@ -550,8 +552,8 @@ fn same_driver_launches_have_distinct_campaigns_and_record_commitments() {
     let first = run();
     let second = run();
     let concurrent = std::thread::scope(|scope| {
-        let a = scope.spawn(&run);
-        let b = scope.spawn(&run);
+        let a = scope.spawn(run);
+        let b = scope.spawn(run);
         [a.join().unwrap(), b.join().unwrap()]
     });
     let [third, fourth] = concurrent;
@@ -564,14 +566,11 @@ fn same_driver_launches_have_distinct_campaigns_and_record_commitments() {
             .len(),
         4
     );
-    assert_eq!(
-        observations
-            .iter()
-            .map(|value| &value.1)
-            .collect::<BTreeSet<_>>()
-            .len(),
-        4
-    );
+    let launch_ids = observations
+        .iter()
+        .map(|value| value.1.clone())
+        .collect::<BTreeSet<_>>();
+    assert_eq!(launch_ids.len(), 4);
     assert_eq!(
         observations
             .iter()
@@ -580,13 +579,47 @@ fn same_driver_launches_have_distinct_campaigns_and_record_commitments() {
             .len(),
         4
     );
-    assert_eq!(
-        fs::read_dir(root.join("admissions").join(&invocation.id))
-            .unwrap()
-            .count(),
-        4
-    );
+    authenticate_launch_namespaces(&root, &invocation, &launch_ids);
     fs::remove_dir_all(root).unwrap();
+}
+
+fn authenticate_launch_namespaces(
+    root: &Path,
+    invocation: &origin::Invocation,
+    expected: &std::collections::BTreeSet<String>,
+) {
+    use crate::campaign::ledger::Journal;
+    use std::collections::BTreeSet;
+    let attempts = fs::read_dir(root.join("admissions").join(&invocation.id)).unwrap();
+    let mut admitted = BTreeSet::new();
+    let mut campaigns = BTreeSet::new();
+    for attempt in attempts {
+        let path = attempt.unwrap().path().join("plan.json.preparation.json");
+        let digest = canonical::digest(&fs::read(&path).unwrap());
+        let (receipt, prepared) = preparation::open_receipt(&path, &digest).unwrap();
+        let bound = origin::from_preparation(&prepared).unwrap().unwrap();
+        assert_eq!(&bound.invocation, invocation);
+        let launch_id = &bound.launch.as_ref().unwrap().invocation_id;
+        assert!(admitted.insert(launch_id.clone()));
+        assert!(expected.contains(launch_id));
+        let preparation = root
+            .join("campaigns")
+            .join(format!("campaign-{launch_id}-prepared"));
+        let execution = root.join("campaigns").join(format!("campaign-{launch_id}"));
+        assert_eq!(receipt.campaign, preparation);
+        assert_eq!(receipt.guest_executions, 0);
+        for (path, is_prepared) in [(preparation, true), (execution, false)] {
+            let journal = Journal::open(&path, false).unwrap();
+            assert_eq!(
+                journal.plan()["origin"],
+                serde_json::to_value(&bound).unwrap()
+            );
+            assert_eq!(journal.events().is_empty(), is_prepared);
+            assert!(campaigns.insert(path));
+        }
+    }
+    assert_eq!(&admitted, expected);
+    assert_eq!(campaigns.len(), 8);
 }
 
 #[test]
@@ -643,5 +676,76 @@ fn legacy_intercepted_artifact_remains_readable_without_launch_extension() {
             .launch
             .is_none()
     );
+    fs::remove_dir_all(root).unwrap();
+}
+
+#[test]
+fn detached_pooled_artifact_authenticates_after_original_store_is_removed() {
+    use crate::campaign::{execution, ledger::Job};
+    use gomad_wasmhost::linked;
+    use std::{os::unix::fs::MetadataExt as _, time::Duration};
+    let module = br#"(module (memory (export "memory") 1) (func (export "_start")))"#.to_vec();
+    let prepared = prepared_module("detached", &invocation(), module);
+    let observed = execution::run_with_replay(
+        &prepared,
+        &Job {
+            ordinal: 0,
+            seed: 7,
+        },
+        Duration::from_secs(1),
+        &linked::Cancellation::default(),
+        None,
+        None,
+    )
+    .unwrap();
+    let root = std::env::temp_dir().join(format!(
+        "gomad-detached-pool-{}",
+        origin::identity().unwrap()
+    ));
+    let store = crate::evidence::store::Store {
+        root: root.join("original"),
+        maximum_bytes: 64 << 20,
+        target_pool: Some(root.join("shared")),
+        #[cfg(feature = "determinism-fixture")]
+        fault: None,
+    };
+    let published = store.publish(observed.publication).unwrap();
+    assert!(
+        fs::metadata(published.path.join("target/module.wasm"))
+            .unwrap()
+            .nlink()
+            > 1
+    );
+    let opened = crate::evidence::store::Opened::open(&published.path).unwrap();
+    opened.authenticate_all().unwrap();
+    let detached = root.join("detached");
+    for name in opened
+        .manifest()
+        .files
+        .keys()
+        .map(String::as_str)
+        .chain(["manifest.json", "storage.json"])
+    {
+        let destination = detached.join(name);
+        crate::evidence::store::durable_directory(destination.parent().unwrap(), |_| Ok(()))
+            .unwrap();
+        fs::copy(published.path.join(name), &destination).unwrap();
+        fs::set_permissions(&destination, fs::Permissions::from_mode(0o600)).unwrap();
+    }
+    let original_record = opened.manifest().record_sha256.clone();
+    let original_origin = origin::authenticate(&opened).unwrap();
+    drop(opened);
+    fs::remove_dir_all(&store.root).unwrap();
+    fs::remove_dir_all(root.join("shared")).unwrap();
+    assert_eq!(
+        fs::metadata(detached.join("target/module.wasm"))
+            .unwrap()
+            .nlink(),
+        1
+    );
+    let copied = crate::evidence::store::Opened::open(&detached).unwrap();
+    copied.authenticate_all().unwrap();
+    assert_eq!(copied.manifest().record_sha256, original_record);
+    assert_eq!(origin::authenticate(&copied).unwrap(), original_origin);
     fs::remove_dir_all(root).unwrap();
 }

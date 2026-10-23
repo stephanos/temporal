@@ -154,6 +154,19 @@ def bind_module_input(record, manifest, module_sha256, module_bytes):
     equal((entry['sha256'], entry['bytes']), (module_sha256, module_bytes), 'supplied_module.bytes')
 
 
+def campaign_roles(plans):
+    executed, prepared = [], []
+    for path, plan in plans:
+        if 'launcher' in plan:
+            if type(plan['launcher']) is not bool or not plan['launcher']:
+                raise ValueError('invalid launcher campaign role')
+            executed.append(path)
+        else:
+            prepared.append(path)
+    equal((len(executed), len(prepared)), (1, 1), 'one_preparation_and_one_execution_campaign')
+    return executed[0], prepared[0]
+
+
 class Runner:
     def __init__(self, args):
         self.args = args
@@ -249,8 +262,18 @@ def execute_case(runner, case, root, label):
         equal((metadata['accepted'], metadata['replayable_artifact']), (False, False), name + '.unaccepted_label')
         equal(metadata['sha256'], parity.digest(Path(case['module']).read_bytes()), name + '.actual_input')
         return dict(status=case['status'], no_campaign=True, unaccepted_input=True, module_sha256=metadata['sha256'])
-    equal(len(roots), 1, name + '.one_launcher_campaign')
+    execution_root, preparation_root = campaign_roles([
+        (path, campaign.canonical_file(path / 'plan.json')) for path in roots])
+    roots = [execution_root]
     validated = campaign.authenticate_campaign(roots[0])
+    preparation = campaign.authenticate_campaign(preparation_root, complete=False)
+    equal(preparation['executions'], [], name + '.zero_guest_preparation')
+    equal(preparation['journal'], [], name + '.empty_preparation_journal')
+    equal(preparation['plan']['origin'], validated['plan']['origin'], name + '.same_launch_association')
+    prepared_artifact = preparation_root / preparation['plan']['prepared_artifact']
+    prepared_record = campaign.authenticate_artifact(prepared_artifact)
+    bind_module_input(prepared_record, campaign.canonical_file(prepared_artifact / 'manifest.json'),
+                      module_sha256, len(module_bytes))
     equal(validated['plan']['origin']['origin'], 'intercepted-go', name + '.campaign_origin')
     equal(campaign.seeds(validated['plan']['selection']), selected_seeds(case['seeds']), name + '.actual_selection')
     executions = sorted(validated['executions'], key=lambda row: row['ordinal'])

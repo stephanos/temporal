@@ -11,7 +11,10 @@ pub(super) fn place(
 ) -> Result<(), String> {
     let digest = canonical::digest(bytes);
     store.immutable_file(pool, &digest, bytes, true)?;
-    match fs::linkat(pool, digest.as_str(), destination, name, AtFlags::empty()) {
+    let source = open::exclusive(pool, &digest, true)?;
+    let linked = fs::linkat(pool, digest.as_str(), destination, name, AtFlags::empty());
+    drop(source);
+    match linked {
         Ok(()) => {}
         Err(error) if error == rustix::io::Errno::EXIST => {
             if open::read(destination, name, bytes.len() as u64, true)? != bytes {

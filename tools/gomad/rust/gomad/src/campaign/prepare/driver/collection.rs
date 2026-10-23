@@ -116,10 +116,9 @@ impl Recipes {
         let Self::Collection(mut collection) = self else {
             unreachable!()
         };
-        collection
-            .packages
-            .remove(selected)
-            .admit_external_bound(module, arguments, invocation, &expected, metadata, deadline)
+        collection.packages.remove(selected).admit_external_bound(
+            module, arguments, invocation, &expected, &metadata, deadline,
+        )
     }
 }
 
@@ -136,6 +135,25 @@ fn select(packages: &[Recipe], path: &str) -> Result<usize, String> {
     }
     selected
         .ok_or_else(|| failure("actual module does not select exactly one private package recipe"))
+}
+
+fn common_identity(recipe: &Recipe) -> Result<Vec<u8>, String> {
+    let mut options = recipe.options.clone();
+    options.source.clear();
+    let mut inputs = recipe.inputs.clone();
+    for field in ["source", "sources"] {
+        inputs
+            .as_object_mut()
+            .ok_or_else(|| failure("invalid recipe inputs"))?
+            .remove(field);
+    }
+    canonical::encode(&json!({
+        "options": options, "installed": recipe.installed, "directory": recipe.directory,
+        "environment": recipe.environment, "root": recipe.root, "compiler": recipe.compiler,
+        "replacements": recipe.replacements, "flags": recipe.flags,
+        "list": &recipe.list[..recipe.list.len().saturating_sub(1)],
+        "configuration": recipe.configuration, "inputs": inputs,
+    }))
 }
 
 #[cfg(test)]
@@ -317,23 +335,4 @@ mod tests {
             }
         }
     }
-}
-
-fn common_identity(recipe: &Recipe) -> Result<Vec<u8>, String> {
-    let mut options = recipe.options.clone();
-    options.source.clear();
-    let mut inputs = recipe.inputs.clone();
-    for field in ["source", "sources"] {
-        inputs
-            .as_object_mut()
-            .ok_or_else(|| failure("invalid recipe inputs"))?
-            .remove(field);
-    }
-    canonical::encode(&json!({
-        "options": options, "installed": recipe.installed, "directory": recipe.directory,
-        "environment": recipe.environment, "root": recipe.root, "compiler": recipe.compiler,
-        "replacements": recipe.replacements, "flags": recipe.flags,
-        "list": &recipe.list[..recipe.list.len().saturating_sub(1)],
-        "configuration": recipe.configuration, "inputs": inputs,
-    }))
 }

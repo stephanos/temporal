@@ -417,7 +417,9 @@ impl Recipe {
     ) -> Result<Prepared, String> {
         let expected = self.driver_arguments(&std::env::current_exe().map_err(failure)?)?;
         let metadata = crate::evidence::symbolize::build_info::read(&module)?;
-        self.admit_external_bound(module, arguments, invocation, &expected, metadata, deadline)
+        self.admit_external_bound(
+            module, arguments, invocation, &expected, &metadata, deadline,
+        )
     }
 
     fn admit_external_bound(
@@ -426,7 +428,7 @@ impl Recipe {
         arguments: Vec<String>,
         invocation: &super::super::origin::Invocation,
         expected_argv: &[String],
-        metadata: crate::evidence::symbolize::build_info::BuildInfo,
+        metadata: &crate::evidence::symbolize::build_info::BuildInfo,
         deadline: Instant,
     ) -> Result<Prepared, String> {
         invocation.validate()?;
@@ -459,8 +461,8 @@ impl Recipe {
         }
         inventory::verify(&self.compiler)?;
         inventory::verify(&self.sources)?;
-        self.authenticate_build_info(&metadata)?;
-        self.inputs["go_build_info"] = serde_json::to_value(&metadata).map_err(failure)?;
+        self.authenticate_build_info(metadata)?;
+        self.inputs["go_build_info"] = serde_json::to_value(metadata).map_err(failure)?;
         self.admit(module, arguments, deadline)
     }
 

@@ -79,6 +79,16 @@ class CoverageAndBinding(unittest.TestCase):
             with self.subTest(value=value), self.assertRaises(ValueError):
                 check.selected_seeds(value)
 
+    def test_preparation_and_execution_are_distinct_authenticated_roles(self):
+        prepared, executed = Path('/prepared'), Path('/execution')
+        self.assertEqual(check.campaign_roles([(prepared, {}), (executed, dict(launcher=True))]),
+                         (executed, prepared))
+        for plans in [[(executed, dict(launcher=True))], [(prepared, {}), (executed, {})],
+                      [(prepared, {}), (executed, dict(launcher=True)), (Path('/other'), {})],
+                      [(prepared, {}), (executed, dict(launcher=1))]]:
+            with self.subTest(plans=plans), self.assertRaises(ValueError):
+                check.campaign_roles(plans)
+
 
 if __name__ == '__main__':
     unittest.main()

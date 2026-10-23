@@ -1,5 +1,5 @@
 use super::{FileEntry, Manifest, canonical, lineage};
-use rustix::fs::{self, AtFlags, FileType, Mode, OFlags, Stat};
+use rustix::fs::{self, AtFlags, FileType, FlockOperation, Mode, OFlags, Stat};
 use sha2::{Digest, Sha256};
 #[cfg(feature = "determinism-fixture")]
 use std::os::unix::fs::OpenOptionsExt as _;
@@ -77,10 +77,52 @@ pub(crate) fn child(
     directory: bool,
     module: bool,
 ) -> Result<File, String> {
+    if module {
+        return locked_child(root, name, true, FlockOperation::LockShared);
+    }
     let before =
         fs::statat(root, name, AtFlags::SYMLINK_NOFOLLOW).map_err(|error| error.to_string())?;
     validate(&before, directory, module)?;
     child_checked(root, name, directory, &before)
+}
+
+pub(super) fn exclusive(root: &File, name: &str, module: bool) -> Result<File, String> {
+    locked_child(root, name, module, FlockOperation::LockExclusive)
+}
+
+fn locked_child(
+    root: &File,
+    name: &str,
+    module: bool,
+    operation: FlockOperation,
+) -> Result<File, String> {
+    let candidate = File::from(
+        fs::openat(
+            root,
+            name,
+            OFlags::RDONLY | OFlags::CLOEXEC | OFlags::NOFOLLOW | OFlags::NONBLOCK,
+            Mode::empty(),
+        )
+        .map_err(|error| error.to_string())?,
+    );
+    validate(
+        &fs::fstat(&candidate).map_err(|error| error.to_string())?,
+        false,
+        module,
+    )?;
+    // The bootstrap synchronizes only; fresh checks below establish authority.
+    fs::flock(&candidate, operation).map_err(|error| error.to_string())?;
+    let before =
+        fs::statat(root, name, AtFlags::SYMLINK_NOFOLLOW).map_err(|error| error.to_string())?;
+    validate(&before, false, module)?;
+    let checked = child_checked(root, name, false, &before)?;
+    if !same(
+        &fs::fstat(&candidate).map_err(|error| error.to_string())?,
+        &fs::fstat(&checked).map_err(|error| error.to_string())?,
+    ) {
+        return Err("artifact lock candidate substituted while waiting".into());
+    }
+    Ok(candidate)
 }
 
 fn child_checked(root: &File, name: &str, directory: bool, before: &Stat) -> Result<File, String> {
@@ -218,7 +260,12 @@ fn module_link(module: &Stat, pool: Option<&File>, entry: &FileEntry) -> Result<
         true,
         false,
     )?;
-    let file = child(pool, &entry.sha256, false, true)?;
+    // The caller holds this inode's guard. A second open-description lock can
+    // wait behind a writer that is itself waiting for the caller to finish.
+    let named = fs::statat(pool, entry.sha256.as_str(), AtFlags::SYMLINK_NOFOLLOW)
+        .map_err(|error| error.to_string())?;
+    validate(&named, false, true)?;
+    let file = child_checked(pool, &entry.sha256, false, &named)?;
     let before = fs::fstat(&file).map_err(|error| error.to_string())?;
     if before.st_dev != module.st_dev || before.st_ino != module.st_ino {
         return Err("module target pool inode mismatch".into());
@@ -521,5 +568,107 @@ impl Opened {
             }
         }
         Ok(())
+    }
+}
+
+#[cfg(test)]
+mod concurrency_tests {
+    use super::*;
+    use crate::evidence::store::{Store, durable_directory, pool};
+
+    #[test]
+    fn unsynchronized_pool_links_and_unlinks_preserve_bytes_but_refuse_read() {
+        let root = std::env::temp_dir().join(format!(
+            "gomad-pool-transition-{}",
+            crate::campaign::origin::identity().unwrap(),
+        ));
+        let shared = durable_directory(&root.join("shared"), |_| Ok(())).unwrap();
+        let first = durable_directory(&root.join("first"), |_| Ok(())).unwrap();
+        let second = durable_directory(&root.join("second"), |_| Ok(())).unwrap();
+        let store = Store {
+            root: root.clone(),
+            maximum_bytes: 64 << 20,
+            target_pool: Some(root.join("shared")),
+            #[cfg(feature = "determinism-fixture")]
+            fault: None,
+        };
+        let bytes = b"\0asm\x01\0\0\0";
+        pool::place(&store, &shared, &first, "module.wasm", bytes).unwrap();
+        let digest = canonical::digest(bytes);
+        let source = child(&shared, &digest, false, true).unwrap();
+        let content_identity = |stat: &Stat| {
+            (
+                stat.st_dev,
+                stat.st_ino,
+                stat.st_mode,
+                stat.st_uid,
+                stat.st_size,
+                stat.st_mtime,
+                stat.st_mtime_nsec,
+            )
+        };
+        for link in [true, false] {
+            let mut file = child(&first, "module.wasm", false, true).unwrap();
+            let observer = file.try_clone().unwrap();
+            let before = fs::fstat(&observer).unwrap();
+            assert_eq!(
+                content_identity(&before),
+                content_identity(&fs::fstat(&source).unwrap())
+            );
+            let mut after = None;
+            let result = read_handle(&mut file, bytes.len() as u64, || {
+                std::thread::scope(|scope| {
+                    scope
+                        .spawn(|| {
+                            if link {
+                                fs::linkat(
+                                    &shared,
+                                    digest.as_str(),
+                                    &second,
+                                    "module.wasm",
+                                    AtFlags::empty(),
+                                )
+                                .map_err(|error| error.to_string())
+                            } else {
+                                fs::unlinkat(&second, "module.wasm", AtFlags::empty())
+                                    .map_err(|error| error.to_string())
+                            }
+                        })
+                        .join()
+                        .unwrap()
+                })?;
+                after = Some(fs::fstat(&observer).map_err(|error| error.to_string())?);
+                Ok(())
+            });
+            let after = after.unwrap();
+            assert_eq!(content_identity(&before), content_identity(&after));
+            assert_eq!(
+                after.st_nlink,
+                if link {
+                    before.st_nlink + 1
+                } else {
+                    before.st_nlink - 1
+                }
+            );
+            assert!(!same(&before, &after));
+            assert_eq!(
+                std::fs::read(root.join("first/module.wasm")).unwrap(),
+                bytes
+            );
+            assert_eq!(result.unwrap_err(), "artifact file changed while reading");
+            println!(
+                "pool transition link={link} dev={} ino={} bytes={} nlink={}->{} ctime={}.{}->{}.{} sha256={digest}",
+                before.st_dev,
+                before.st_ino,
+                before.st_size,
+                before.st_nlink,
+                after.st_nlink,
+                before.st_ctime,
+                before.st_ctime_nsec,
+                after.st_ctime,
+                after.st_ctime_nsec,
+            );
+        }
+        std::fs::remove_dir_all(root).unwrap();
     }
 }

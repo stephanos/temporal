@@ -133,18 +133,15 @@ fn seed_journal_policy(
         .max(1)
         .checked_mul(1 << 20)
         .ok_or("capacity: campaign journal byte capacity overflows")?;
-    let path = if launcher {
-        let intercepted = origin::from_preparation(prepared)?
-            .ok_or("launcher campaign requires intercepted origin")?;
-        let launch = intercepted
-            .launch
-            .ok_or("launcher campaign requires launch association")?;
-        options
-            .artifacts
-            .join("campaigns")
-            .join(format!("campaign-{}", launch.invocation_id))
-    } else {
-        campaign_path(&options.artifacts)?
+    let launch = origin::from_preparation(prepared)?.and_then(|origin| origin.launch);
+    let path = match launch {
+        Some(launch) => options.artifacts.join("campaigns").join(format!(
+            "campaign-{}{}",
+            launch.invocation_id,
+            if launcher { "" } else { "-prepared" },
+        )),
+        None if launcher => return Err("launcher campaign requires launch association".into()),
+        None => campaign_path(&options.artifacts)?,
     };
     let mut plan = json!({
         "schema":"gomad.seed-campaign-plan/v2","selection":selection.to_string(),"selection_count":selection.count(),"parallel":options.parallel,

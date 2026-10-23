@@ -174,8 +174,8 @@ fn remove_stage(root: &File, name: &str) -> Result<(), String> {
         if fs::FileType::from_raw_mode(stat.st_mode) == fs::FileType::Directory {
             remove_stage(&directory, &child)?;
         } else {
-            fs::unlinkat(&directory, child.as_str(), AtFlags::empty())
-                .map_err(|error| error.to_string())?;
+            let file = open::exclusive(&directory, &child, true)?;
+            unlink_checked(&directory, &child, &file, false)?;
         }
     }
     fs::unlinkat(root, name, AtFlags::REMOVEDIR).map_err(|error| error.to_string())
@@ -243,7 +243,7 @@ fn unlink_checked(root: &File, name: &str, file: &File, directory: bool) -> Resu
 }
 
 fn retire_file(root: &File, name: &str, entry: &FileEntry) -> Result<(), String> {
-    let mut file = open::child(root, name, false, entry.module)?;
+    let mut file = open::exclusive(root, name, entry.module)?;
     let before = fs::fstat(&file).map_err(|error| error.to_string())?;
     if u64::try_from(before.st_size) != Ok(entry.bytes) {
         return Err("retiring artifact payload size mismatch".into());
@@ -404,6 +404,9 @@ impl Store {
             )
             .map_err(|error| error.to_string())?,
         );
+        if module {
+            fs::flock(&file, FlockOperation::LockExclusive).map_err(|error| error.to_string())?;
+        }
         self.immutable_checkpoint(module, "file_created")?;
         let (first, rest) = bytes.split_at(bytes.len() / 2);
         file.write_all(first).map_err(|error| error.to_string())?;
@@ -415,8 +418,12 @@ impl Store {
         self.immutable_checkpoint(module, "file_durable")?;
         stage.sync_all().map_err(|error| error.to_string())?;
         match rename_exclusive(&stage, "payload", root, name) {
-            Ok(()) => self.immutable_checkpoint(module, "file_published")?,
+            Ok(()) => {
+                self.immutable_checkpoint(module, "file_published")?;
+                drop(file);
+            }
             Err(error) if error == rustix::io::Errno::EXIST => {
+                drop(file);
                 let mut existing = open::child(root, name, false, module)?;
                 self.reuse_immutable(&mut existing, bytes, module)?;
             }
@@ -780,6 +787,218 @@ impl Store {
 
 #[cfg(test)]
 mod tests {
+    use super::*;
+    use std::{sync::mpsc, thread, time::Duration};
+
+    struct PoolFixture {
+        root: PathBuf,
+        store: Store,
+        shared: File,
+        first: File,
+        second: File,
+    }
+
+    impl PoolFixture {
+        fn new() -> Self {
+            let root = std::env::temp_dir().join(format!(
+                "gomad-pool-guard-{}",
+                crate::campaign::origin::identity().unwrap(),
+            ));
+            let shared = durable_directory(&root.join("shared"), |_| Ok(())).unwrap();
+            let first = durable_directory(&root.join("first"), |_| Ok(())).unwrap();
+            let second = durable_directory(&root.join("second"), |_| Ok(())).unwrap();
+            let store = Store {
+                root: root.clone(),
+                maximum_bytes: 64 << 20,
+                target_pool: Some(root.join("shared")),
+                #[cfg(feature = "determinism-fixture")]
+                fault: None,
+            };
+            pool::place(&store, &shared, &first, "module.wasm", b"\0asm\x01\0\0\0").unwrap();
+            Self {
+                root,
+                store,
+                shared,
+                first,
+                second,
+            }
+        }
+    }
+
+    #[test]
+    fn module_read_guard_is_shared_across_aliases_and_retained_by_clone() {
+        let fixture = PoolFixture::new();
+        let bytes = b"\0asm\x01\0\0\0";
+        let digest = canonical::digest(bytes);
+        let reader = open::child(&fixture.first, "module.wasm", false, true).unwrap();
+        let cloned = reader.try_clone().unwrap();
+        let contender = File::from(
+            fs::openat(
+                &fixture.shared,
+                digest.as_str(),
+                OFlags::RDONLY | OFlags::CLOEXEC | OFlags::NOFOLLOW | OFlags::NONBLOCK,
+                Mode::empty(),
+            )
+            .unwrap(),
+        );
+        assert_eq!(
+            fs::flock(&contender, FlockOperation::NonBlockingLockExclusive),
+            Err(rustix::io::Errno::WOULDBLOCK)
+        );
+        drop(reader);
+        assert_eq!(
+            fs::flock(&contender, FlockOperation::NonBlockingLockExclusive),
+            Err(rustix::io::Errno::WOULDBLOCK)
+        );
+        drop(cloned);
+        fs::flock(&contender, FlockOperation::NonBlockingLockExclusive).unwrap();
+        drop(contender);
+        std::fs::remove_dir_all(fixture.root).unwrap();
+    }
+
+    fn writer_waits_for_reader(operation: &'static str) {
+        let fixture = PoolFixture::new();
+        let bytes = b"\0asm\x01\0\0\0";
+        if operation == "retire" {
+            pool::place(
+                &fixture.store,
+                &fixture.shared,
+                &fixture.second,
+                "module.wasm",
+                bytes,
+            )
+            .unwrap();
+        } else if operation == "cleanup" {
+            let stage = durable_directory(&fixture.root.join("second/stage"), |_| Ok(())).unwrap();
+            pool::place(
+                &fixture.store,
+                &fixture.shared,
+                &stage,
+                "module.wasm",
+                bytes,
+            )
+            .unwrap();
+        }
+        let mut reader = open::child(&fixture.first, "module.wasm", false, true).unwrap();
+        let before = fs::fstat(&reader).unwrap();
+        let shared = fixture.shared.try_clone().unwrap();
+        let second = fixture.second.try_clone().unwrap();
+        let writer_root = fixture.root.clone();
+        let (ready, waiting) = mpsc::channel();
+        let (done, completion) = mpsc::channel();
+        let writer = thread::spawn(move || {
+            let result = (|| {
+                let _locks = ordered_roots(&second, &[&shared])?
+                    .into_iter()
+                    .map(lock)
+                    .collect::<Result<Vec<_>, _>>()?;
+                let digest = canonical::digest(bytes);
+                let probe = File::from(
+                    fs::openat(
+                        &shared,
+                        digest.as_str(),
+                        OFlags::RDONLY | OFlags::CLOEXEC | OFlags::NOFOLLOW | OFlags::NONBLOCK,
+                        Mode::empty(),
+                    )
+                    .map_err(|error| error.to_string())?,
+                );
+                if fs::flock(&probe, FlockOperation::NonBlockingLockExclusive)
+                    != Err(rustix::io::Errno::WOULDBLOCK)
+                {
+                    return Err("reader did not retain the shared module guard".into());
+                }
+                drop(probe);
+                ready.send(()).unwrap();
+                if operation == "retire" {
+                    retire_file(
+                        &second,
+                        "module.wasm",
+                        &FileEntry {
+                            bytes: bytes.len() as u64,
+                            sha256: digest,
+                            module: true,
+                        },
+                    )
+                } else if operation == "cleanup" {
+                    remove_stage(&second, "stage")
+                } else {
+                    let store = Store {
+                        root: writer_root,
+                        maximum_bytes: 64 << 20,
+                        target_pool: None,
+                        #[cfg(feature = "determinism-fixture")]
+                        fault: None,
+                    };
+                    pool::place(&store, &shared, &second, "module.wasm", bytes)
+                }
+            })();
+            done.send(result).unwrap();
+        });
+        let observed = open::read_handle(&mut reader, bytes.len() as u64, || {
+            waiting
+                .recv_timeout(Duration::from_secs(2))
+                .map_err(|error| error.to_string())?;
+            if completion.recv_timeout(Duration::from_millis(50))
+                != Err(mpsc::RecvTimeoutError::Timeout)
+            {
+                return Err("publisher modified the inode while the read guard was held".into());
+            }
+            Ok(())
+        })
+        .unwrap();
+        assert_eq!(observed, bytes);
+        assert!(open::same(&before, &fs::fstat(&reader).unwrap()));
+        drop(reader);
+        completion
+            .recv_timeout(Duration::from_secs(2))
+            .unwrap()
+            .unwrap();
+        writer.join().unwrap();
+        std::fs::remove_dir_all(fixture.root).unwrap();
+    }
+
+    #[test]
+    fn module_reader_serializes_cross_store_link_retirement_and_staging_cleanup() {
+        for operation in ["link", "retire", "cleanup"] {
+            writer_waits_for_reader(operation);
+        }
+    }
+
+    #[test]
+    fn target_link_collision_releases_exclusive_guard_before_reuse_read() {
+        let (done, completion) = mpsc::channel();
+        let worker = thread::spawn(move || {
+            let fixture = PoolFixture::new();
+            let bytes = b"\0asm\x01\0\0\0";
+            pool::place(
+                &fixture.store,
+                &fixture.shared,
+                &fixture.second,
+                "module.wasm",
+                bytes,
+            )
+            .unwrap();
+            pool::place(
+                &fixture.store,
+                &fixture.shared,
+                &fixture.second,
+                "module.wasm",
+                bytes,
+            )
+            .unwrap();
+            assert_eq!(
+                open::read(&fixture.second, "module.wasm", bytes.len() as u64, true).unwrap(),
+                bytes
+            );
+            std::fs::remove_dir_all(fixture.root).unwrap();
+            done.send(()).unwrap();
+        });
+        completion
+            .recv_timeout(Duration::from_secs(2))
+            .expect("same-inode collision self-deadlocked");
+        worker.join().unwrap();
+    }
+
     // Global descriptor-identity lock order prevents cross-assigned store/pool deadlock; CLI runs cannot force the acquisition interleaving.
     #[test]
     fn lock_order_is_independent_of_store_and_pool_roles() {
