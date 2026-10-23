@@ -3,6 +3,7 @@ import ctypes
 import importlib.util
 import os
 from pathlib import Path
+import shutil
 import signal
 import subprocess
 import sys
@@ -79,6 +80,26 @@ print('escaped ' + str(p.pid))
                 except ChildProcessError:
                     break
             self.assertEqual(libc.prctl(36, prior.value, 0, 0, 0), 0)
+
+    @unittest.skipIf(os.getuid() == 0 or os.geteuid() == 0, "NPROC requires a non-root user")
+    def test_installer_containment_preflight_requires_no_descendants(self):
+        with tempfile.TemporaryDirectory() as tmp:
+            root = Path(tmp) / "workspace"
+            scripts = root / "model/scripts"
+            scripts.mkdir(parents=True)
+            script = scripts / "fetch-tlc.sh"
+            shutil.copy2(SUPERVISOR.parents[4] / "scripts/fetch-tlc.sh", script)
+            outside = Path(tmp) / "outside"
+            outside.mkdir()
+            (root / "model/build").symlink_to(outside, target_is_directory=True)
+            try:
+                result = subprocess.run(["bash", str(script)], preexec_fn=backend_process.restrict_jvm_descendants, capture_output=True, timeout=2, check=False)
+                output = result.stdout + result.stderr
+                self.assertNotEqual(result.returncode, 0)
+            except subprocess.TimeoutExpired as error:
+                output = (error.stdout or b"") + (error.stderr or b"")
+            self.assertIn(b"TLC cache escapes repository", output)
+            self.assertFalse((outside / "tlc").exists())
 
     def test_owner_group_and_direct_supervisor_termination_reap_owned_tree(self):
         libc = ctypes.CDLL(None, use_errno=True)
