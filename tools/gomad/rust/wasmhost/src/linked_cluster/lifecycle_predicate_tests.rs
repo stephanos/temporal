@@ -108,7 +108,12 @@ fn mandatory_cleanup_keeps_only_authored_start_actions() {
             } else {
                 &["b", "a"]
             },
-            "i32.const 512 i32.const 16 call $config drop (loop i32.const 1 i64.const 1 i32.const 64 call $clock drop br 0)",
+            "i32.const 512 i32.const 16 call $config drop
+            (loop
+                i32.const 768 i64.const 0 i64.store
+                i32.const 776 i64.const 0 i64.store
+                i32.const 771 i32.const 1 i32.store8
+                i32.const 768 i32.const 16 call $idle drop br 0)",
         );
         input.steps.retain(|step| step.action == Action::Start);
         input.nodes.push("dormant".into());
