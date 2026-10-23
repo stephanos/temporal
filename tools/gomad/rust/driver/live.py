@@ -336,7 +336,8 @@ def admissions(work, commands):
 
 def auxiliary(work, family, stdout):
     expected = AUXILIARY[family]
-    rows = re.findall(r'^test (\S+) \.\.\. (ok|ignored|FAILED)', stdout, re.M)
+    # --nocapture prints a test's own output between its name and its status line.
+    rows = re.findall(r'^test (\S+) \.\.\. (?:(?!test )[^\n]*\n)*?(ok|ignored|FAILED)$', stdout, re.M)
     require(len(rows) == len(expected) and {name for name, _ in rows} == set(expected)
             and all(status == 'ok' for _, status in rows), 'missing/duplicate/skipped actual ignored receiving test')
     summary = f'test result: ok. {len(expected)} passed; 0 failed; 0 ignored;'

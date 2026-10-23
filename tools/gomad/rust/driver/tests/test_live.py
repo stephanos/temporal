@@ -164,6 +164,17 @@ class RawBindingGuards(unittest.TestCase):
             for family in live.AUXILIARY:
                 with self.subTest(family=family),self.assertRaises(driver.Refusal):live.auxiliary(Path(directory),family,'PASS')
 
+    def test_nocapture_output_between_ignored_test_name_and_status_is_read(self):
+        import live
+        name=live.AUXILIARY['prepared-metadata'][0]
+        actual=('running 1 test\ntest '+name+' ... unaccepted input metadata only: module_bytes=205879495 elapsed_ms=7615 '
+                'bytes=12934240 code=0 entries=338181 steps=14450701\nok\n\n'
+                'test result: ok. 1 passed; 0 failed; 0 ignored; 0 measured; 731 filtered out; finished in 18.08s\n')
+        with tempfile.TemporaryDirectory() as directory:
+            self.assertEqual(live.auxiliary(Path(directory),'prepared-metadata',actual),{'rust-test/'+name})
+            unfinished=actual.replace('\nok\n','\n').replace('running 1 test\n','running 1 test\ntest other ... ok\n')
+            with self.assertRaises(driver.Refusal):live.auxiliary(Path(directory),'prepared-metadata',unfinished)
+
     def test_final_live_proof_reopens_actual_raw_bytes_and_owning_stage(self):
         import live
         with tempfile.TemporaryDirectory() as directory:
