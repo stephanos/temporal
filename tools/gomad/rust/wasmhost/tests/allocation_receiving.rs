@@ -233,6 +233,19 @@ fn restore_world(
 fn retain_bytes(case: &str, requests: u64, suffix: &str, bytes: &[u8]) -> String {
     use std::io::Write as _;
     use std::os::unix::fs::OpenOptionsExt as _;
+    // The broad harness runs this probe in its private stage directory and
+    // reads the retained wires relative to it; never retain into the source tree.
+    let cwd = std::env::current_dir().unwrap();
+    assert!(
+        !cwd.starts_with(
+            std::path::Path::new(env!("CARGO_MANIFEST_DIR"))
+                .join("../../../..")
+                .canonicalize()
+                .unwrap()
+        ),
+        "allocation probe must run in a stage directory outside the checkout, not {}",
+        cwd.display()
+    );
     let path = format!("{case}-{requests}.{suffix}.wire");
     let mut output = std::fs::OpenOptions::new()
         .write(true)
