@@ -41,6 +41,9 @@ mod apalache_empty_condition;
 #[path = "../backends/apalache/tests/fixtures/arithmetic_prefix.rs"]
 #[allow(unreachable_pub, missing_docs)]
 mod arithmetic_prefix;
+#[path = "crowded.rs"]
+#[allow(unreachable_pub, missing_docs)]
+mod many_claims;
 #[path = "../backends/apalache/tests/fixtures/replay.rs"]
 #[allow(unreachable_pub, missing_docs)]
 mod replay;
@@ -347,20 +350,19 @@ fn seeded_mutant_trees_disagree() -> TestResult {
     Ok(())
 }
 
-/// Claim callbacks are plain functions, one per position, so a Model with more claims of one
-/// kind than the interpreter has positions is refused when it is interpreted.
+/// `#[machine]` registers exactly one claim callback per claim, so a Model with more claims
+/// than a fixed table would hold still interprets and agrees; a tree whose claims the compiled
+/// Model does not register is refused.
 #[test]
-fn claims_beyond_the_cap_are_refused() -> TestResult {
+fn every_claim_has_its_own_callback() -> TestResult {
+    let agreement = interpreted(many_claims::crowded::world, None, Checker::BUDGET, None)?;
+    assert_eq!(agreement.states, 3);
     let mut crowded = kettle_tree()?;
-    let claim = crowded.invariants[0].clone();
-    crowded.invariants = vec![claim; 65];
+    crowded.invariants = vec![crowded.invariants[0].clone(); 2];
     let Err(refusal) = Interpreted::from_tree(kettle::world(), &crowded) else {
-        return Err("65 invariants were interpreted".into());
+        return Err("a tree with an unregistered invariant was interpreted".into());
     };
-    assert_eq!(refusal, "65 invariants exceed the interpreter's 64");
-    let mut full = kettle_tree()?;
-    full.invariants = vec![full.invariants[0].clone(); 64];
-    Interpreted::from_tree(kettle::world(), &full)?;
+    assert_eq!(refusal, "the tree has 2 invariants; the compiled Model registers 1");
     Ok(())
 }
 

@@ -11,7 +11,7 @@ use std::{
 use rustc_hash::FxHashMap;
 use umpire_dsl::{
     __lifted::{
-        Interprets, Type,
+        Callbacks, Evaluates, Interprets, Type,
         expr::{Expr, ExprKind, Op, Unary},
         tree::{ActionRef, AssumptionDef, Branch, Lifted, Start},
         value::Value,
@@ -19,9 +19,6 @@ use umpire_dsl::{
     ActionCatalog, ActionValues, Assumption, CatalogError, Claim, Machine, OutcomeClass, Progress,
     ProgressEvaluation, StepClaim, StepError, Steps, Value as Exported, Values, Verdict, claim,
 };
-
-/// The most claims of one kind an interpreted Model registers; each needs its own callback.
-const CLAIM_LIMIT: usize = 64;
 
 /// A Model whose steps, claims, assumptions and declared starts are evaluated from the admitted
 /// tree its `#[machine]` embeds.
@@ -33,6 +30,8 @@ pub struct Interpreted<M: Machine> {
     progress: Vec<Evaluated<M::Action>>,
     assumptions: Vec<(&'static str, Assumption<M::Action>)>,
     after: Vec<Option<M::Action>>,
+    /// The compiled Model's one callback per claim, which judge through this World.
+    callbacks: Callbacks<Self, M>,
     negative: Option<Claim<M>>,
 }
 
@@ -125,6 +124,10 @@ where
     /// # Errors
     /// Refuses a tree this interpreter cannot resolve against the World's values and catalog.
     #[doc(hidden)]
+    #[expect(
+        clippy::too_many_lines,
+        reason = "resolves the catalog, claims and assumptions in turn"
+    )]
     pub fn from_tree(world: M, model: &Lifted) -> Result<Self, String> {
         let checks = M::__umpire_checks();
         let world_values = world_values(model, &world.values())?;
@@ -222,7 +225,17 @@ where
                     .transpose()
             })
             .collect::<Result<Vec<_>, String>>()?;
-        Ok(Self { world, program, bindings, progress, assumptions, after, negative: None })
+        let callbacks = registered::<M, Self>(model)?;
+        Ok(Self {
+            world,
+            program,
+            bindings,
+            progress,
+            assumptions,
+            after,
+            callbacks,
+            negative: None,
+        })
     }
 
     /// Adds a fixture's negative claim, which the compiled World judges on interpreted states.
@@ -368,32 +381,33 @@ where
     }
 
     fn invariants(&self) -> Vec<Claim<Self>> {
-        (0..self.program.invariants.len())
-            .map(|index| {
-                let (checks, verdict) = invariant_callbacks::<M>(index);
-                Claim::with_checks(self.program.invariants[index].0, checks, verdict)
-            })
+        self.program
+            .invariants
+            .iter()
+            .zip(&self.callbacks.invariants)
+            .map(|((name, _), (checks, verdict))| Claim::with_checks(name, *checks, *verdict))
             .collect()
     }
 
     fn postconditions(&self) -> Vec<StepClaim<Self>> {
-        (0..self.program.postconditions.len())
-            .map(|index| {
-                let name = self.program.postconditions[index].0;
-                let checks = postcondition_callback::<M>(index);
-                match &self.after[index] {
-                    Some(action) => StepClaim::after_checks(name, action.clone(), checks),
-                    None => StepClaim::with_checks(name, checks),
-                }
+        self.program
+            .postconditions
+            .iter()
+            .zip(&self.callbacks.postconditions)
+            .zip(&self.after)
+            .map(|(((name, _), checks), after)| match after {
+                Some(action) => StepClaim::after_checks(name, action.clone(), *checks),
+                None => StepClaim::with_checks(name, *checks),
             })
             .collect()
     }
 
     fn progress(&self) -> Vec<Progress<Self>> {
-        (0..self.program.progress.len())
-            .map(|index| {
-                Progress::evaluated(self.program.progress[index], progress_callback::<M>(index))
-            })
+        self.program
+            .progress
+            .iter()
+            .zip(&self.callbacks.progress)
+            .map(|(name, evaluator)| Progress::evaluated(name, *evaluator))
             .collect()
     }
 
@@ -406,104 +420,52 @@ where
     }
 }
 
-/// One callback per claim position, since a claim callback is a plain function of the World.
-macro_rules! indexed {
-    ($callback:ident::<$model:ident>, $index:expr) => {
-        indexed!(@ $callback, $model, $index; 0 1 2 3 4 5 6 7 8 9 10 11 12 13 14 15 16 17 18 19 20
-            21 22 23 24 25 26 27 28 29 30 31 32 33 34 35 36 37 38 39 40 41 42 43 44 45 46 47 48 49
-            50 51 52 53 54 55 56 57 58 59 60 61 62 63)
-    };
-    (@ $callback:ident, $model:ident, $index:expr; $($position:literal)*) => {
-        match $index {
-            $($position => $callback::<$model, $position> as _,)*
-            _ => unreachable!("claims beyond CLAIM_LIMIT are refused when interpreting"),
-        }
-    };
-}
-
-type Checks<M> = fn(&Interpreted<M>, &<M as Machine>::State);
-type Judged<M> = fn(&Interpreted<M>, &<M as Machine>::State) -> Verdict;
-type EdgeChecks<M> = fn(
-    &Interpreted<M>,
-    &<M as Machine>::State,
-    &<M as Machine>::State,
-    &<M as Machine>::Action,
-    &<M as Machine>::Outcome,
-    &[<M as Machine>::Fact],
-);
-type Evaluator<M> =
-    fn(&Interpreted<M>, &<M as Machine>::State) -> ProgressEvaluation<<M as Machine>::Action>;
-
-fn invariant_callbacks<M>(index: usize) -> (Checks<M>, Judged<M>)
+impl<M> Evaluates<M> for Interpreted<M>
 where
     M: Interprets + Values,
     M::Action: ActionValues<M>,
 {
-    (indexed!(invariant::<M>, index), indexed!(invariant_verdict::<M>, index))
-}
-
-fn postcondition_callback<M>(index: usize) -> EdgeChecks<M>
-where
-    M: Interprets + Values,
-    M::Action: ActionValues<M>,
-{
-    indexed!(postcondition::<M>, index)
-}
-
-fn progress_callback<M>(index: usize) -> Evaluator<M>
-where
-    M: Interprets + Values,
-    M::Action: ActionValues<M>,
-{
-    indexed!(progress::<M>, index)
-}
-
-fn invariant<M, const I: usize>(world: &Interpreted<M>, state: &M::State)
-where
-    M: Interprets + Values,
-    M::Action: ActionValues<M>,
-{
-    world.judge(&world.program.invariants[I].1, state, None, None);
-}
-
-fn invariant_verdict<M, const I: usize>(world: &Interpreted<M>, state: &M::State) -> Verdict
-where
-    M: Interprets + Values,
-    M::Action: ActionValues<M>,
-{
-    claim::evaluate(|| invariant::<M, I>(world, state)).verdict
-}
-
-fn postcondition<M, const I: usize>(
-    world: &Interpreted<M>,
-    before: &M::State,
-    after: &M::State,
-    _: &M::Action,
-    outcome: &M::Outcome,
-    _: &[M::Fact],
-) where
-    M: Interprets + Values,
-    M::Action: ActionValues<M>,
-{
-    let outcome = M::__umpire_outcome_value(outcome);
-    world.judge(&world.program.postconditions[I].1, before, Some(after), Some(&outcome));
-}
-
-fn progress<M, const I: usize>(
-    world: &Interpreted<M>,
-    state: &M::State,
-) -> ProgressEvaluation<M::Action>
-where
-    M: Interprets + Values,
-    M::Action: ActionValues<M>,
-{
-    let claim = &world.progress[I];
-    ProgressEvaluation {
-        trigger: world.judge(&claim.trigger, state, None, None).into(),
-        target: world.judge(&claim.target, state, None, None).into(),
-        assumption: claim.assumption.clone(),
-        bound: claim.bound,
+    fn __umpire_invariant(&self, index: usize, state: &M::State) {
+        self.judge(&self.program.invariants[index].1, state, None, None);
     }
+
+    fn __umpire_postcondition(
+        &self,
+        index: usize,
+        before: &M::State,
+        after: &M::State,
+        outcome: &M::Outcome,
+    ) {
+        let outcome = M::__umpire_outcome_value(outcome);
+        self.judge(&self.program.postconditions[index].1, before, Some(after), Some(&outcome));
+    }
+
+    fn __umpire_progress(&self, index: usize, state: &M::State) -> ProgressEvaluation<M::Action> {
+        let claim = &self.progress[index];
+        ProgressEvaluation {
+            trigger: self.judge(&claim.trigger, state, None, None).into(),
+            target: self.judge(&claim.target, state, None, None).into(),
+            assumption: claim.assumption.clone(),
+            bound: claim.bound,
+        }
+    }
+}
+
+/// The compiled Model's claim callbacks, which must be exactly one per claim of the tree.
+fn registered<M: Interprets, W: Evaluates<M>>(model: &Lifted) -> Result<Callbacks<W, M>, String> {
+    let callbacks = M::__umpire_callbacks::<W>();
+    for (kind, tree, compiled) in [
+        ("invariants", model.invariants.len(), callbacks.invariants.len()),
+        ("postconditions", model.postconditions.len(), callbacks.postconditions.len()),
+        ("progress claims", model.progress.len(), callbacks.progress.len()),
+    ] {
+        if tree != compiled {
+            return Err(format!(
+                "the tree has {tree} {kind}; the compiled Model registers {compiled}"
+            ));
+        }
+    }
+    Ok(callbacks)
 }
 
 /// Field-order starts, each field's domain evaluated only once an earlier field has a value,
@@ -607,15 +569,6 @@ struct Resolver<'a> {
 impl Resolver<'_> {
     fn program(&self) -> Result<Program, String> {
         let model = self.model;
-        for (kind, count) in [
-            ("invariants", model.invariants.len()),
-            ("postconditions", model.postconditions.len()),
-            ("progress claims", model.progress.len()),
-        ] {
-            if count > CLAIM_LIMIT {
-                return Err(format!("{count} {kind} exceed the interpreter's {CLAIM_LIMIT}"));
-            }
-        }
         let starts = if model.declared_world
             || model.fields.iter().any(|field| matches!(field.start, Start::Computed))
         {
