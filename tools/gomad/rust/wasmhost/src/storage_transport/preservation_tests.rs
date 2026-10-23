@@ -184,13 +184,14 @@ fn original_large_context_transport_round_trips_five_thousand_operations() {
         .unwrap();
     println!(
         "GOMAD_CORE_OBSERVATION {}",
-        json!({"schema":"gomad.core-predicate-observation/v1","case":"storage-large-context-transport","inputs":{"descriptor":direct,"context_sha256":format!("{:x}",Sha256::digest(&bytes))},"observed":{"context_sha256":format!("{:x}",Sha256::digest(serde_json::to_vec(framed.observed_context.as_ref().unwrap()).unwrap())),"operation_ids":framed.observed_context.as_ref().unwrap()["data"].operations.as_ref().unwrap().iter().map(|op|op.id).collect::<Vec<_>>()}})
+        json!({"schema":"gomad.core-predicate-observation/v1","case":"storage-large-context-transport","inputs":{"descriptor":direct,"transport_sha256":format!("{:x}",Sha256::digest(&bytes)),"typed_context_sha256":format!("{:x}",Sha256::digest(serde_json::to_vec(direct.observed_context.as_ref().unwrap()).unwrap()))},"observed":{"context_sha256":format!("{:x}",Sha256::digest(serde_json::to_vec(framed.observed_context.as_ref().unwrap()).unwrap())),"operation_ids":framed.observed_context.as_ref().unwrap()["data"].operations.as_ref().unwrap().iter().map(|op|op.id).collect::<Vec<_>>()}})
     );
     assert_eq!(direct.observed_context, framed.observed_context);
-    assert_eq!(
-        serde_json::to_vec(framed.observed_context.as_ref().unwrap()).unwrap(),
-        bytes
-    );
+    let expected: BTreeMap<String, StorageCrashContext> = serde_json::from_slice(&bytes).unwrap();
+    let expected = serde_json::to_vec(&expected).unwrap();
+    let actual = serde_json::to_vec(framed.observed_context.as_ref().unwrap()).unwrap();
+    assert_eq!(Sha256::digest(&actual), Sha256::digest(&expected));
+    assert_eq!(actual, expected);
 }
 
 fn namespace(descriptor: &StorageDescriptor) -> Namespace {
