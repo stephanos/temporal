@@ -1,3 +1,19 @@
+# Core native integration checkpoint for fn232.13
+
+The source batch is composed with root e944295e58 and its ace728 documentation; the tested source is b50a13115d62b3ecb44bc84c625feb882276d545. Exact commands, numeric exits, nonzero test counts and raw log hashes are in [fn232-core-native-checks.json](fn232-core-native-checks.json). Every check is developmental and qualification=false. The original250-root map retains its per-root gaps; these suites grant no blanket original-root equivalence.
+
+The final composed default native suites passed369 Gomad tests (2 ignored) and211 helper tests (12 ignored), exit0. The ordinary linked runtime integration passed6/6, explicit typed-fault bootstrap1/1, source-bound counterfactual recipe/authentication2/2 (the genuine producer remains ignored), and actual retained World/public replay1/1; all commands exited0. Strict workspace/all-target Clippy exited0. Independent read-only same-family review found no remaining source blocker after the capacity cancellation, slot-error, World and socket transcript fixes.
+
+Observed regressions precede the corrections: capacity finalization and missing actual World failed in the compiled baseline; unfinished configured runtime returned exit instead of invalid; disabling the independent storage guard selected7 tests and failed2, while restoring it passed7/7. The native World byte-limit test failed before enforcement and passed after it. The same actual4096-idle guest exhausts1MiB and exits0 with32MiB; all four transition producers preserve accepted state/history/accounting on refusal. Standalone endpoint refusal is typed capacity. Public artifact replay retains1MiB/32MiB caps, validates World and reproduces. Earlier Rust artifacts omitting the new optional field preserve canonical identity and actual replay. The original Go recorder counted JSON lines; this new lineage counts its canonical native retained transition bytes and claims no byte equivalence. The accounting contract is in the helper protocol document.
+
+The four original controlled counterfactual artifact pairs remain a separate actual receiving obligation. Their fixture module, patched runtime, bounds, event/prefix comparisons and literal emitted public replay must execute with authenticated fresh preparations; the passing bootstrap and recipe tests do not satisfy them. Interception has released the compiler lease, so that developmental work follows this coherent source checkpoint. No final frozen qualification or Flow lifecycle action is claimed.
+
+Worktree /home/agent/wt/fn232-core-reach and assigned target /home/agent/.cache/codex-build/fn232-core-new remain in use for those receipts. Raw logs are retained at /home/agent/evidence/fn232-core-integration. No worktree was removed and no shared cache was deleted.
+
+## Earlier source-only handover
+
+The following historical handover records the preceding uncompiled source stage. Its execution status is superseded by the checkpoint above; its explicit original-root obligations remain until their receiving evidence exists.
+
 # Core preservation batch for fn232.13
 
 The core source batch covers the original backend60, cluster61, and WASI129 root contracts. The machine map is [fn232-core-reach.json](fn232-core-reach.json). It binds all250 original roots and28 priority inventory references to the authenticated original source and records receiving assertions, owner interfaces, and remaining predicates. Neither source mappings nor unexecuted tests constitute qualification evidence. fn232.13 remains in progress; the parent owns review, integration, and lifecycle.

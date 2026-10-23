@@ -1632,7 +1632,7 @@
       "status": "UNEXECUTED"
     }
   },
-  "execution": "UNEXECUTED",
+  "execution": "FOCUSED_NATIVE_EXECUTED_NOT_ALL_ORIGINAL_ROOTS",
   "focused_algorithm_receipts": [
     {
       "core_branch_compiled": false,
@@ -1660,15 +1660,16 @@
       "tested_worktree": "/home/agent/wt/fn232-linked-cache"
     }
   ],
+  "native_integration_checks": ".flow/artifacts/fn232-core-native-checks.json",
   "original_master": {
     "path": "tools/gomad/testdata/parity/original-test-wasm-reach.json",
     "sha256": "d4143ae50117cad95d78a0c55e10b7d44238fe1be56610ce142c8e1530f4ad0e"
   },
-  "pending_behavior_fixes": [
-    "Configured unfinished runtime exit refusal: actual RED pending.",
-    "World missing/malformed refusal with actual broker limits: actual RED pending.",
-    "Unverified invariant search predicate refusal: actual Cache-source RED101 then GREEN0 observed; Core source correction integrated, final Core compile pending.",
-    "Output capacity versus assertion/choice finalization: exact four-mode reproduction integrated; typed recordless Completion correction frozen in child35dd31e97d and held until actual RED."
+  "pending_behavior_fixes": [],
+  "pending_runtime_evidence": [
+    "Four authenticated original counterfactual artifact pairs, comparison and literal emitted public replay commands remain pending; bootstrap WAT is not equivalent evidence.",
+    "The original250-root map retains per-root unmapped predicates and unexecuted states; the focused native suites do not grant blanket root equivalence.",
+    "Final frozen Rust runtime, mandatory workload, retained replay and ignored live-service receiving gates remain parent-owned and pending."
   ],
   "priority_inventory": {
     "path": "/home/agent/evidence/fn232-test-wasm-reach/unresolved-inventory-evidence.json",
@@ -45308,5 +45309,17 @@
   "source_fragments": {
     "host": "e2708ad8f1f5588c5651059dab28cea7e096d95b",
     "model": "eb31d29eb8ca7aeaf482ea338b84e82ea6fde5c1"
+  },
+  "world_transition_cap": {
+    "lineage": "native retained canonical binary transition bytes; original Go JSON-lines byte equivalence deliberately unclaimed",
+    "observed_native_numeric_bounds": [
+      1048576,
+      33554432
+    ],
+    "proof_log": "/home/agent/evidence/fn232-core-integration/world-transitions-green.log",
+    "proof_sha256": "eebdddba19f7e4a1a173d7a6e69f6c052aa377fdc5d77b55a03ca1f5e9c8b2e0",
+    "qualification": false,
+    "retained_configuration": "optional Configuration.world_transition_bytes and BrokerConfig.transition_bytes; None omitted preserves earlier Rust identity",
+    "semantics": "per World, all four transition producers pre-mutation; rejected state/history/accounting unchanged"
   }
 }
