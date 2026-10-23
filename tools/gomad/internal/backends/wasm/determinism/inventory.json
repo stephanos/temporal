@@ -4367,6 +4367,1079 @@
    "evidence": [
     "rust:tests/inventory/host.rs:receiving_host_effect_sites_are_inventoried"
    ]
+  },
+  {
+   "id": "host.rust.gomad.src.backstop.rs.arm_until.instant.now.1",
+   "layer": "host-process",
+   "class": "clock",
+   "site": "host-rust:gomad/src/backstop.rs|arm_until|Instant::now|1",
+   "disposition": "controlled",
+   "owner": "gomad/src/backstop.rs arm_until",
+   "rule": "The process backstop registers absolute host deadlines and bounds delivery of its infrastructure diagnostic before exit. Its monitor and diagnostic writer never supply modeled guest time or commit guest choices.",
+   "evidence": [
+    "rust:tests/inventory/host.rs:receiving_host_effect_sites_are_inventoried"
+   ]
+  },
+  {
+   "id": "host.rust.gomad.src.backstop.rs.arm.instant.now.2",
+   "layer": "host-process",
+   "class": "clock",
+   "site": "host-rust:gomad/src/backstop.rs|arm|Instant::now|2",
+   "disposition": "controlled",
+   "owner": "gomad/src/backstop.rs arm",
+   "rule": "The process backstop registers absolute host deadlines and bounds delivery of its infrastructure diagnostic before exit. Its monitor and diagnostic writer never supply modeled guest time or commit guest choices.",
+   "evidence": [
+    "rust:tests/inventory/host.rs:receiving_host_effect_sites_are_inventoried"
+   ]
+  },
+  {
+   "id": "host.rust.gomad.src.backstop.rs.backstop.spawn.1",
+   "layer": "host-process",
+   "class": "thread-order",
+   "site": "host-rust:gomad/src/backstop.rs|backstop|.spawn(|1",
+   "disposition": "controlled",
+   "owner": "gomad/src/backstop.rs backstop",
+   "rule": "The process backstop registers absolute host deadlines and bounds delivery of its infrastructure diagnostic before exit. Its monitor and diagnostic writer never supply modeled guest time or commit guest choices.",
+   "evidence": [
+    "rust:tests/inventory/host.rs:receiving_host_effect_sites_are_inventoried"
+   ]
+  },
+  {
+   "id": "host.rust.gomad.src.backstop.rs.backstop.thread.builder.1",
+   "layer": "host-process",
+   "class": "thread-order",
+   "site": "host-rust:gomad/src/backstop.rs|backstop|thread::Builder|1",
+   "disposition": "controlled",
+   "owner": "gomad/src/backstop.rs backstop",
+   "rule": "The process backstop registers absolute host deadlines and bounds delivery of its infrastructure diagnostic before exit. Its monitor and diagnostic writer never supply modeled guest time or commit guest choices.",
+   "evidence": [
+    "rust:tests/inventory/host.rs:receiving_host_effect_sites_are_inventoried"
+   ]
+  },
+  {
+   "id": "host.rust.gomad.src.backstop.rs.fail.spawn.1",
+   "layer": "host-process",
+   "class": "thread-order",
+   "site": "host-rust:gomad/src/backstop.rs|fail|.spawn(|1",
+   "disposition": "controlled",
+   "owner": "gomad/src/backstop.rs fail",
+   "rule": "The process backstop registers absolute host deadlines and bounds delivery of its infrastructure diagnostic before exit. Its monitor and diagnostic writer never supply modeled guest time or commit guest choices.",
+   "evidence": [
+    "rust:tests/inventory/host.rs:receiving_host_effect_sites_are_inventoried"
+   ]
+  },
+  {
+   "id": "host.rust.gomad.src.backstop.rs.fail.recv_timeout.1",
+   "layer": "host-process",
+   "class": "clock",
+   "site": "host-rust:gomad/src/backstop.rs|fail|recv_timeout|1",
+   "disposition": "controlled",
+   "owner": "gomad/src/backstop.rs fail",
+   "rule": "The process backstop registers absolute host deadlines and bounds delivery of its infrastructure diagnostic before exit. Its monitor and diagnostic writer never supply modeled guest time or commit guest choices.",
+   "evidence": [
+    "rust:tests/inventory/host.rs:receiving_host_effect_sites_are_inventoried"
+   ]
+  },
+  {
+   "id": "host.rust.gomad.src.backstop.rs.fail.thread.builder.1",
+   "layer": "host-process",
+   "class": "thread-order",
+   "site": "host-rust:gomad/src/backstop.rs|fail|thread::Builder|1",
+   "disposition": "controlled",
+   "owner": "gomad/src/backstop.rs fail",
+   "rule": "The process backstop registers absolute host deadlines and bounds delivery of its infrastructure diagnostic before exit. Its monitor and diagnostic writer never supply modeled guest time or commit guest choices.",
+   "evidence": [
+    "rust:tests/inventory/host.rs:receiving_host_effect_sites_are_inventoried"
+   ]
+  },
+  {
+   "id": "host.rust.gomad.src.backstop.rs.monitor.instant.now.1",
+   "layer": "host-process",
+   "class": "clock",
+   "site": "host-rust:gomad/src/backstop.rs|monitor|Instant::now|1",
+   "disposition": "controlled",
+   "owner": "gomad/src/backstop.rs monitor",
+   "rule": "The process backstop registers absolute host deadlines and bounds delivery of its infrastructure diagnostic before exit. Its monitor and diagnostic writer never supply modeled guest time or commit guest choices.",
+   "evidence": [
+    "rust:tests/inventory/host.rs:receiving_host_effect_sites_are_inventoried"
+   ]
+  },
+  {
+   "id": "host.rust.gomad.src.campaign.choice.rs.explore.elapsed.1",
+   "layer": "host-process",
+   "class": "clock",
+   "site": "host-rust:gomad/src/campaign/choice.rs|explore|.elapsed()|1",
+   "disposition": "controlled",
+   "owner": "gomad/src/campaign/choice.rs explore",
+   "rule": "These campaign wall samples enforce the declared remaining overall/execution budget and report preparation or execution cost. Scoped workers commit through the journal in seed order; host completion order and elapsed values do not supply guest clocks or entropy.",
+   "evidence": [
+    "rust:tests/inventory/host.rs:receiving_host_effect_sites_are_inventoried"
+   ]
+  },
+  {
+   "id": "host.rust.gomad.src.campaign.choice.rs.explore.instant.now.1",
+   "layer": "host-process",
+   "class": "clock",
+   "site": "host-rust:gomad/src/campaign/choice.rs|explore|Instant::now|1",
+   "disposition": "controlled",
+   "owner": "gomad/src/campaign/choice.rs explore",
+   "rule": "These campaign wall samples enforce the declared remaining overall/execution budget and report preparation or execution cost. Scoped workers commit through the journal in seed order; host completion order and elapsed values do not supply guest clocks or entropy.",
+   "evidence": [
+    "rust:tests/inventory/host.rs:receiving_host_effect_sites_are_inventoried"
+   ]
+  },
+  {
+   "id": "host.rust.gomad.src.campaign.choice.rs.prepare_journal.elapsed.1",
+   "layer": "host-process",
+   "class": "clock",
+   "site": "host-rust:gomad/src/campaign/choice.rs|prepare_journal|.elapsed()|1",
+   "disposition": "controlled",
+   "owner": "gomad/src/campaign/choice.rs prepare_journal",
+   "rule": "These campaign wall samples enforce the declared remaining overall/execution budget and report preparation or execution cost. Scoped workers commit through the journal in seed order; host completion order and elapsed values do not supply guest clocks or entropy.",
+   "evidence": [
+    "rust:tests/inventory/host.rs:receiving_host_effect_sites_are_inventoried"
+   ]
+  },
+  {
+   "id": "host.rust.gomad.src.campaign.choice.rs.run.instant.now.2",
+   "layer": "host-process",
+   "class": "clock",
+   "site": "host-rust:gomad/src/campaign/choice.rs|run|Instant::now|2",
+   "disposition": "controlled",
+   "owner": "gomad/src/campaign/choice.rs run",
+   "rule": "These campaign wall samples enforce the declared remaining overall/execution budget and report preparation or execution cost. Scoped workers commit through the journal in seed order; host completion order and elapsed values do not supply guest clocks or entropy.",
+   "evidence": [
+    "rust:tests/inventory/host.rs:receiving_host_effect_sites_are_inventoried"
+   ]
+  },
+  {
+   "id": "host.rust.gomad.src.campaign.launcher.rs.deliver.spawn.1",
+   "layer": "host-process",
+   "class": "thread-order",
+   "site": "host-rust:gomad/src/campaign/launcher.rs|deliver|.spawn(|1",
+   "disposition": "controlled",
+   "owner": "gomad/src/campaign/launcher.rs deliver",
+   "rule": "The linked launch output worker and final-report delivery are bounded by the declared execution deadline and joined or fail infrastructure classification. Host polling may end execution at its watchdog but cannot advance modeled guest time.",
+   "evidence": [
+    "rust:tests/inventory/host.rs:receiving_host_effect_sites_are_inventoried",
+    "rust:gomad/src/campaign/launcher.rs:undrained_stderr_and_final_report_finish_within_the_bound"
+   ]
+  },
+  {
+   "id": "host.rust.gomad.src.campaign.launcher.rs.deliver.instant.now.1",
+   "layer": "host-process",
+   "class": "clock",
+   "site": "host-rust:gomad/src/campaign/launcher.rs|deliver|Instant::now|1",
+   "disposition": "controlled",
+   "owner": "gomad/src/campaign/launcher.rs deliver",
+   "rule": "The linked launch output worker and final-report delivery are bounded by the declared execution deadline and joined or fail infrastructure classification. Host polling may end execution at its watchdog but cannot advance modeled guest time.",
+   "evidence": [
+    "rust:tests/inventory/host.rs:receiving_host_effect_sites_are_inventoried",
+    "rust:gomad/src/campaign/launcher.rs:undrained_stderr_and_final_report_finish_within_the_bound"
+   ]
+  },
+  {
+   "id": "host.rust.gomad.src.campaign.launcher.rs.deliver.recv_timeout.1",
+   "layer": "host-process",
+   "class": "clock",
+   "site": "host-rust:gomad/src/campaign/launcher.rs|deliver|recv_timeout|1",
+   "disposition": "controlled",
+   "owner": "gomad/src/campaign/launcher.rs deliver",
+   "rule": "The linked launch output worker and final-report delivery are bounded by the declared execution deadline and joined or fail infrastructure classification. Host polling may end execution at its watchdog but cannot advance modeled guest time.",
+   "evidence": [
+    "rust:tests/inventory/host.rs:receiving_host_effect_sites_are_inventoried",
+    "rust:gomad/src/campaign/launcher.rs:undrained_stderr_and_final_report_finish_within_the_bound"
+   ]
+  },
+  {
+   "id": "host.rust.gomad.src.campaign.launcher.rs.deliver.thread.builder.1",
+   "layer": "host-process",
+   "class": "thread-order",
+   "site": "host-rust:gomad/src/campaign/launcher.rs|deliver|thread::Builder|1",
+   "disposition": "controlled",
+   "owner": "gomad/src/campaign/launcher.rs deliver",
+   "rule": "The linked launch output worker and final-report delivery are bounded by the declared execution deadline and joined or fail infrastructure classification. Host polling may end execution at its watchdog but cannot advance modeled guest time.",
+   "evidence": [
+    "rust:tests/inventory/host.rs:receiving_host_effect_sites_are_inventoried",
+    "rust:gomad/src/campaign/launcher.rs:undrained_stderr_and_final_report_finish_within_the_bound"
+   ]
+  },
+  {
+   "id": "host.rust.gomad.src.campaign.launcher.rs.new.spawn.1",
+   "layer": "host-process",
+   "class": "thread-order",
+   "site": "host-rust:gomad/src/campaign/launcher.rs|new|.spawn(|1",
+   "disposition": "controlled",
+   "owner": "gomad/src/campaign/launcher.rs new",
+   "rule": "The linked launch output worker and final-report delivery are bounded by the declared execution deadline and joined or fail infrastructure classification. Host polling may end execution at its watchdog but cannot advance modeled guest time.",
+   "evidence": [
+    "rust:tests/inventory/host.rs:receiving_host_effect_sites_are_inventoried",
+    "rust:gomad/src/campaign/launcher.rs:undrained_stderr_and_final_report_finish_within_the_bound"
+   ]
+  },
+  {
+   "id": "host.rust.gomad.src.campaign.launcher.rs.new.thread.builder.1",
+   "layer": "host-process",
+   "class": "thread-order",
+   "site": "host-rust:gomad/src/campaign/launcher.rs|new|thread::Builder|1",
+   "disposition": "controlled",
+   "owner": "gomad/src/campaign/launcher.rs new",
+   "rule": "The linked launch output worker and final-report delivery are bounded by the declared execution deadline and joined or fail infrastructure classification. Host polling may end execution at its watchdog but cannot advance modeled guest time.",
+   "evidence": [
+    "rust:tests/inventory/host.rs:receiving_host_effect_sites_are_inventoried",
+    "rust:gomad/src/campaign/launcher.rs:undrained_stderr_and_final_report_finish_within_the_bound"
+   ]
+  },
+  {
+   "id": "host.rust.gomad.src.campaign.launcher.rs.remaining.instant.now.1",
+   "layer": "host-process",
+   "class": "clock",
+   "site": "host-rust:gomad/src/campaign/launcher.rs|remaining|Instant::now|1",
+   "disposition": "controlled",
+   "owner": "gomad/src/campaign/launcher.rs remaining",
+   "rule": "The linked launch output worker and final-report delivery are bounded by the declared execution deadline and joined or fail infrastructure classification. Host polling may end execution at its watchdog but cannot advance modeled guest time.",
+   "evidence": [
+    "rust:tests/inventory/host.rs:receiving_host_effect_sites_are_inventoried",
+    "rust:gomad/src/campaign/launcher.rs:undrained_stderr_and_final_report_finish_within_the_bound"
+   ]
+  },
+  {
+   "id": "host.rust.gomad.src.campaign.launcher.rs.run.instant.now.2",
+   "layer": "host-process",
+   "class": "clock",
+   "site": "host-rust:gomad/src/campaign/launcher.rs|run|Instant::now|2",
+   "disposition": "controlled",
+   "owner": "gomad/src/campaign/launcher.rs run",
+   "rule": "The linked launch output worker and final-report delivery are bounded by the declared execution deadline and joined or fail infrastructure classification. Host polling may end execution at its watchdog but cannot advance modeled guest time.",
+   "evidence": [
+    "rust:tests/inventory/host.rs:receiving_host_effect_sites_are_inventoried",
+    "rust:gomad/src/campaign/launcher.rs:undrained_stderr_and_final_report_finish_within_the_bound"
+   ]
+  },
+  {
+   "id": "host.rust.gomad.src.campaign.launcher.rs.write.recv_timeout.1",
+   "layer": "host-process",
+   "class": "clock",
+   "site": "host-rust:gomad/src/campaign/launcher.rs|write|recv_timeout|1",
+   "disposition": "controlled",
+   "owner": "gomad/src/campaign/launcher.rs write",
+   "rule": "The linked launch output worker and final-report delivery are bounded by the declared execution deadline and joined or fail infrastructure classification. Host polling may end execution at its watchdog but cannot advance modeled guest time.",
+   "evidence": [
+    "rust:tests/inventory/host.rs:receiving_host_effect_sites_are_inventoried",
+    "rust:gomad/src/campaign/launcher.rs:undrained_stderr_and_final_report_finish_within_the_bound"
+   ]
+  },
+  {
+   "id": "host.rust.gomad.src.campaign.mod.rs.campaign_path.systemtime.1",
+   "layer": "host-process",
+   "class": "entropy",
+   "site": "host-rust:gomad/src/campaign/mod.rs|campaign_path|SystemTime|1",
+   "disposition": "controlled",
+   "owner": "gomad/src/campaign/mod.rs campaign_path",
+   "rule": "SystemTime names a private campaign directory with the PID; the path is storage metadata outside canonical records and replay inputs. Seed order and guest entropy are explicit campaign inputs.",
+   "evidence": [
+    "rust:tests/inventory/host.rs:receiving_host_effect_sites_are_inventoried"
+   ]
+  },
+  {
+   "id": "host.rust.gomad.src.campaign.mod.rs.explore_prepared.elapsed.1",
+   "layer": "host-process",
+   "class": "clock",
+   "site": "host-rust:gomad/src/campaign/mod.rs|explore_prepared|.elapsed()|1",
+   "disposition": "controlled",
+   "owner": "gomad/src/campaign/mod.rs explore_prepared",
+   "rule": "These campaign wall samples enforce the declared remaining overall/execution budget and report preparation or execution cost. Scoped workers commit through the journal in seed order; host completion order and elapsed values do not supply guest clocks or entropy.",
+   "evidence": [
+    "rust:tests/inventory/host.rs:receiving_host_effect_sites_are_inventoried"
+   ]
+  },
+  {
+   "id": "host.rust.gomad.src.campaign.mod.rs.explore.instant.now.1",
+   "layer": "host-process",
+   "class": "clock",
+   "site": "host-rust:gomad/src/campaign/mod.rs|explore|Instant::now|1",
+   "disposition": "controlled",
+   "owner": "gomad/src/campaign/mod.rs explore",
+   "rule": "These campaign wall samples enforce the declared remaining overall/execution budget and report preparation or execution cost. Scoped workers commit through the journal in seed order; host completion order and elapsed values do not supply guest clocks or entropy.",
+   "evidence": [
+    "rust:tests/inventory/host.rs:receiving_host_effect_sites_are_inventoried"
+   ]
+  },
+  {
+   "id": "host.rust.gomad.src.campaign.mod.rs.package.systemtime.1",
+   "layer": "host-process",
+   "class": "entropy",
+   "site": "host-rust:gomad/src/campaign/mod.rs|package|SystemTime|1",
+   "disposition": "controlled",
+   "owner": "gomad/src/campaign/mod.rs package",
+   "rule": "SystemTime names a private campaign directory with the PID; the path is storage metadata outside canonical records and replay inputs. Seed order and guest entropy are explicit campaign inputs.",
+   "evidence": [
+    "rust:tests/inventory/host.rs:receiving_host_effect_sites_are_inventoried"
+   ]
+  },
+  {
+   "id": "host.rust.gomad.src.campaign.mod.rs.run_observed.spawn.1",
+   "layer": "host-process",
+   "class": "thread-order",
+   "site": "host-rust:gomad/src/campaign/mod.rs|run_observed|.spawn(|1",
+   "disposition": "controlled",
+   "owner": "gomad/src/campaign/mod.rs run_observed",
+   "rule": "These campaign wall samples enforce the declared remaining overall/execution budget and report preparation or execution cost. Scoped workers commit through the journal in seed order; host completion order and elapsed values do not supply guest clocks or entropy.",
+   "evidence": [
+    "rust:tests/inventory/host.rs:receiving_host_effect_sites_are_inventoried"
+   ]
+  },
+  {
+   "id": "host.rust.gomad.src.campaign.mod.rs.run_observed.instant.now.3",
+   "layer": "host-process",
+   "class": "clock",
+   "site": "host-rust:gomad/src/campaign/mod.rs|run_observed|Instant::now|3",
+   "disposition": "controlled",
+   "owner": "gomad/src/campaign/mod.rs run_observed",
+   "rule": "These campaign wall samples enforce the declared remaining overall/execution budget and report preparation or execution cost. Scoped workers commit through the journal in seed order; host completion order and elapsed values do not supply guest clocks or entropy.",
+   "evidence": [
+    "rust:tests/inventory/host.rs:receiving_host_effect_sites_are_inventoried"
+   ]
+  },
+  {
+   "id": "host.rust.gomad.src.campaign.mod.rs.run_observed.recv_timeout.1",
+   "layer": "host-process",
+   "class": "clock",
+   "site": "host-rust:gomad/src/campaign/mod.rs|run_observed|recv_timeout|1",
+   "disposition": "controlled",
+   "owner": "gomad/src/campaign/mod.rs run_observed",
+   "rule": "These campaign wall samples enforce the declared remaining overall/execution budget and report preparation or execution cost. Scoped workers commit through the journal in seed order; host completion order and elapsed values do not supply guest clocks or entropy.",
+   "evidence": [
+    "rust:tests/inventory/host.rs:receiving_host_effect_sites_are_inventoried"
+   ]
+  },
+  {
+   "id": "host.rust.gomad.src.campaign.mod.rs.run_observed.thread.scope.1",
+   "layer": "host-process",
+   "class": "thread-order",
+   "site": "host-rust:gomad/src/campaign/mod.rs|run_observed|thread::scope|1",
+   "disposition": "controlled",
+   "owner": "gomad/src/campaign/mod.rs run_observed",
+   "rule": "These campaign wall samples enforce the declared remaining overall/execution budget and report preparation or execution cost. Scoped workers commit through the journal in seed order; host completion order and elapsed values do not supply guest clocks or entropy.",
+   "evidence": [
+    "rust:tests/inventory/host.rs:receiving_host_effect_sites_are_inventoried"
+   ]
+  },
+  {
+   "id": "host.rust.gomad.src.campaign.origin.rs.identity.systemtime.1",
+   "layer": "host-process",
+   "class": "entropy",
+   "site": "host-rust:gomad/src/campaign/origin.rs|identity|SystemTime|1",
+   "disposition": "controlled",
+   "owner": "gomad/src/campaign/origin.rs identity",
+   "rule": "SystemTime supplies only the distinct intercepted invocation association, combined with PID and an atomic counter. This host association is authenticated provenance outside canonical guest execution records and never selects seeds or modeled entropy.",
+   "evidence": [
+    "rust:tests/inventory/host.rs:receiving_host_effect_sites_are_inventoried",
+    "rust:gomad/src/campaign/origin.rs:exact_argument_bytes_and_distinct_identities"
+   ]
+  },
+  {
+   "id": "host.rust.gomad.src.campaign.origin.rs.package.systemtime.1",
+   "layer": "host-process",
+   "class": "entropy",
+   "site": "host-rust:gomad/src/campaign/origin.rs|package|SystemTime|1",
+   "disposition": "controlled",
+   "owner": "gomad/src/campaign/origin.rs package",
+   "rule": "SystemTime supplies only the distinct intercepted invocation association, combined with PID and an atomic counter. This host association is authenticated provenance outside canonical guest execution records and never selects seeds or modeled entropy.",
+   "evidence": [
+    "rust:tests/inventory/host.rs:receiving_host_effect_sites_are_inventoried",
+    "rust:gomad/src/campaign/origin.rs:exact_argument_bytes_and_distinct_identities"
+   ]
+  },
+  {
+   "id": "host.rust.gomad.src.campaign.preparation.rs.choice.elapsed.1",
+   "layer": "host-process",
+   "class": "clock",
+   "site": "host-rust:gomad/src/campaign/preparation.rs|choice|.elapsed()|1",
+   "disposition": "controlled",
+   "owner": "gomad/src/campaign/preparation.rs choice",
+   "rule": "These campaign wall samples enforce the declared remaining overall/execution budget and report preparation or execution cost. Scoped workers commit through the journal in seed order; host completion order and elapsed values do not supply guest clocks or entropy.",
+   "evidence": [
+    "rust:tests/inventory/host.rs:receiving_host_effect_sites_are_inventoried"
+   ]
+  },
+  {
+   "id": "host.rust.gomad.src.campaign.preparation.rs.choice.instant.now.1",
+   "layer": "host-process",
+   "class": "clock",
+   "site": "host-rust:gomad/src/campaign/preparation.rs|choice|Instant::now|1",
+   "disposition": "controlled",
+   "owner": "gomad/src/campaign/preparation.rs choice",
+   "rule": "These campaign wall samples enforce the declared remaining overall/execution budget and report preparation or execution cost. Scoped workers commit through the journal in seed order; host completion order and elapsed values do not supply guest clocks or entropy.",
+   "evidence": [
+    "rust:tests/inventory/host.rs:receiving_host_effect_sites_are_inventoried"
+   ]
+  },
+  {
+   "id": "host.rust.gomad.src.campaign.preparation.rs.elapsed.elapsed.1",
+   "layer": "host-process",
+   "class": "clock",
+   "site": "host-rust:gomad/src/campaign/preparation.rs|elapsed|.elapsed()|1",
+   "disposition": "controlled",
+   "owner": "gomad/src/campaign/preparation.rs elapsed",
+   "rule": "These campaign wall samples enforce the declared remaining overall/execution budget and report preparation or execution cost. Scoped workers commit through the journal in seed order; host completion order and elapsed values do not supply guest clocks or entropy.",
+   "evidence": [
+    "rust:tests/inventory/host.rs:receiving_host_effect_sites_are_inventoried"
+   ]
+  },
+  {
+   "id": "host.rust.gomad.src.campaign.preparation.rs.retain_admitted.instant.now.1",
+   "layer": "host-process",
+   "class": "clock",
+   "site": "host-rust:gomad/src/campaign/preparation.rs|retain_admitted|Instant::now|1",
+   "disposition": "controlled",
+   "owner": "gomad/src/campaign/preparation.rs retain_admitted",
+   "rule": "These campaign wall samples enforce the declared remaining overall/execution budget and report preparation or execution cost. Scoped workers commit through the journal in seed order; host completion order and elapsed values do not supply guest clocks or entropy.",
+   "evidence": [
+    "rust:tests/inventory/host.rs:receiving_host_effect_sites_are_inventoried"
+   ]
+  },
+  {
+   "id": "host.rust.gomad.src.campaign.preparation.rs.seed.instant.now.1",
+   "layer": "host-process",
+   "class": "clock",
+   "site": "host-rust:gomad/src/campaign/preparation.rs|seed|Instant::now|1",
+   "disposition": "controlled",
+   "owner": "gomad/src/campaign/preparation.rs seed",
+   "rule": "These campaign wall samples enforce the declared remaining overall/execution budget and report preparation or execution cost. Scoped workers commit through the journal in seed order; host completion order and elapsed values do not supply guest clocks or entropy.",
+   "evidence": [
+    "rust:tests/inventory/host.rs:receiving_host_effect_sites_are_inventoried"
+   ]
+  },
+  {
+   "id": "host.rust.gomad.src.campaign.seeds.rs.parse.sort_unstable.1",
+   "layer": "host-process",
+   "class": "scheduling",
+   "site": "host-rust:gomad/src/campaign/seeds.rs|parse|.sort_unstable|1",
+   "disposition": "controlled",
+   "owner": "gomad/src/campaign/seeds.rs parse",
+   "rule": "Seed ranges are sorted by the total (start,end) key before overlap validation and deterministic expansion; unstable ordering cannot distinguish equal ranges.",
+   "evidence": [
+    "rust:tests/inventory/host.rs:receiving_host_effect_sites_are_inventoried"
+   ]
+  },
+  {
+   "id": "host.rust.gomad.src.campaign.shards.rs.merge.sort_unstable.1",
+   "layer": "host-process",
+   "class": "scheduling",
+   "site": "host-rust:gomad/src/campaign/shards.rs|merge|.sort_unstable|1",
+   "disposition": "controlled",
+   "owner": "gomad/src/campaign/shards.rs merge",
+   "rule": "Shard reports are sorted by unique validated shard index before merge; equal or overlapping shard ownership is refused.",
+   "evidence": [
+    "rust:tests/inventory/host.rs:receiving_host_effect_sites_are_inventoried"
+   ]
+  },
+  {
+   "id": "host.rust.gomad.src.campaign.simulation.rs.explore.elapsed.1",
+   "layer": "host-process",
+   "class": "clock",
+   "site": "host-rust:gomad/src/campaign/simulation.rs|explore|.elapsed()|1",
+   "disposition": "controlled",
+   "owner": "gomad/src/campaign/simulation.rs explore",
+   "rule": "These campaign wall samples enforce the declared remaining overall/execution budget and report preparation or execution cost. Scoped workers commit through the journal in seed order; host completion order and elapsed values do not supply guest clocks or entropy.",
+   "evidence": [
+    "rust:tests/inventory/host.rs:receiving_host_effect_sites_are_inventoried"
+   ]
+  },
+  {
+   "id": "host.rust.gomad.src.campaign.simulation.rs.explore.instant.now.1",
+   "layer": "host-process",
+   "class": "clock",
+   "site": "host-rust:gomad/src/campaign/simulation.rs|explore|Instant::now|1",
+   "disposition": "controlled",
+   "owner": "gomad/src/campaign/simulation.rs explore",
+   "rule": "These campaign wall samples enforce the declared remaining overall/execution budget and report preparation or execution cost. Scoped workers commit through the journal in seed order; host completion order and elapsed values do not supply guest clocks or entropy.",
+   "evidence": [
+    "rust:tests/inventory/host.rs:receiving_host_effect_sites_are_inventoried"
+   ]
+  },
+  {
+   "id": "host.rust.gomad.src.campaign.simulation.rs.run.elapsed.1",
+   "layer": "host-process",
+   "class": "clock",
+   "site": "host-rust:gomad/src/campaign/simulation.rs|run|.elapsed()|1",
+   "disposition": "controlled",
+   "owner": "gomad/src/campaign/simulation.rs run",
+   "rule": "These campaign wall samples enforce the declared remaining overall/execution budget and report preparation or execution cost. Scoped workers commit through the journal in seed order; host completion order and elapsed values do not supply guest clocks or entropy.",
+   "evidence": [
+    "rust:tests/inventory/host.rs:receiving_host_effect_sites_are_inventoried"
+   ]
+  },
+  {
+   "id": "host.rust.gomad.src.campaign.simulation.rs.run.instant.now.1",
+   "layer": "host-process",
+   "class": "clock",
+   "site": "host-rust:gomad/src/campaign/simulation.rs|run|Instant::now|1",
+   "disposition": "controlled",
+   "owner": "gomad/src/campaign/simulation.rs run",
+   "rule": "These campaign wall samples enforce the declared remaining overall/execution budget and report preparation or execution cost. Scoped workers commit through the journal in seed order; host completion order and elapsed values do not supply guest clocks or entropy.",
+   "evidence": [
+    "rust:tests/inventory/host.rs:receiving_host_effect_sites_are_inventoried"
+   ]
+  },
+  {
+   "id": "host.rust.gomad.src.cli.run_guest.rs.fixture_driver_run.command.new.1",
+   "layer": "host-process",
+   "class": "clock",
+   "site": "host-rust:gomad/src/cli/run_guest.rs|fixture_driver_run|Command::new|1",
+   "disposition": "controlled",
+   "owner": "gomad/src/cli/run_guest.rs fixture_driver_run",
+   "rule": "Run-guest uses an absolute overall host deadline across preparation/launch. The determinism-fixture driver subprocess preserves an authenticated invocation and bounded registration; no host sample selects guest entropy or modeled clock values.",
+   "evidence": [
+    "rust:tests/inventory/host.rs:receiving_host_effect_sites_are_inventoried"
+   ]
+  },
+  {
+   "id": "host.rust.gomad.src.cli.run_guest.rs.fixture_prepare.instant.now.1",
+   "layer": "host-process",
+   "class": "clock",
+   "site": "host-rust:gomad/src/cli/run_guest.rs|fixture_prepare|Instant::now|1",
+   "disposition": "controlled",
+   "owner": "gomad/src/cli/run_guest.rs fixture_prepare",
+   "rule": "Run-guest uses an absolute overall host deadline across preparation/launch. The determinism-fixture driver subprocess preserves an authenticated invocation and bounded registration; no host sample selects guest entropy or modeled clock values.",
+   "evidence": [
+    "rust:tests/inventory/host.rs:receiving_host_effect_sites_are_inventoried"
+   ]
+  },
+  {
+   "id": "host.rust.gomad.src.cli.run_guest.rs.limit.instant.now.1",
+   "layer": "host-process",
+   "class": "clock",
+   "site": "host-rust:gomad/src/cli/run_guest.rs|limit|Instant::now|1",
+   "disposition": "controlled",
+   "owner": "gomad/src/cli/run_guest.rs limit",
+   "rule": "Run-guest uses an absolute overall host deadline across preparation/launch. The determinism-fixture driver subprocess preserves an authenticated invocation and bounded registration; no host sample selects guest entropy or modeled clock values.",
+   "evidence": [
+    "rust:tests/inventory/host.rs:receiving_host_effect_sites_are_inventoried"
+   ]
+  },
+  {
+   "id": "host.rust.gomad.src.cli.run_guest.rs.new.instant.now.1",
+   "layer": "host-process",
+   "class": "clock",
+   "site": "host-rust:gomad/src/cli/run_guest.rs|new|Instant::now|1",
+   "disposition": "controlled",
+   "owner": "gomad/src/cli/run_guest.rs new",
+   "rule": "Run-guest uses an absolute overall host deadline across preparation/launch. The determinism-fixture driver subprocess preserves an authenticated invocation and bounded registration; no host sample selects guest entropy or modeled clock values.",
+   "evidence": [
+    "rust:tests/inventory/host.rs:receiving_host_effect_sites_are_inventoried"
+   ]
+  },
+  {
+   "id": "host.rust.gomad.src.evidence.store.publish.rs.checkpoint.instant.now.2",
+   "layer": "host-process",
+   "class": "clock",
+   "site": "host-rust:gomad/src/evidence/store/publish.rs|checkpoint|Instant::now|2",
+   "disposition": "controlled",
+   "owner": "gomad/src/evidence/store/publish.rs checkpoint",
+   "rule": "Only the determinism-fixture publication pause samples wall time and sleeps while awaiting an explicit release file; ten seconds bounds this fault seam. Ordinary publication has no pause and canonical payloads never include these samples.",
+   "evidence": [
+    "rust:tests/inventory/host.rs:receiving_host_effect_sites_are_inventoried"
+   ]
+  },
+  {
+   "id": "host.rust.gomad.src.evidence.store.publish.rs.checkpoint.thread.sleep.1",
+   "layer": "host-process",
+   "class": "clock",
+   "site": "host-rust:gomad/src/evidence/store/publish.rs|checkpoint|thread::sleep|1",
+   "disposition": "controlled",
+   "owner": "gomad/src/evidence/store/publish.rs checkpoint",
+   "rule": "Only the determinism-fixture publication pause samples wall time and sleeps while awaiting an explicit release file; ten seconds bounds this fault seam. Ordinary publication has no pause and canonical payloads never include these samples.",
+   "evidence": [
+    "rust:tests/inventory/host.rs:receiving_host_effect_sites_are_inventoried"
+   ]
+  },
+  {
+   "id": "host.rust.gomad.src.evidence.store.publish.rs.ordered_roots.sort_unstable.1",
+   "layer": "host-process",
+   "class": "scheduling",
+   "site": "host-rust:gomad/src/evidence/store/publish.rs|ordered_roots|.sort_unstable|1",
+   "disposition": "controlled",
+   "owner": "gomad/src/evidence/store/publish.rs ordered_roots",
+   "rule": "Target pool roots are sorted by their authenticated digest before retention/publication. Equal digests name the same immutable target identity; source enumeration order cannot select a different module.",
+   "evidence": [
+    "rust:tests/inventory/host.rs:receiving_host_effect_sites_are_inventoried"
+   ]
+  },
+  {
+   "id": "host.rust.gomad.src.evidence.symbolize.wasm.rs.finish.sort_unstable.1",
+   "layer": "host-process",
+   "class": "scheduling",
+   "site": "host-rust:gomad/src/evidence/symbolize/wasm.rs|finish|.sort_unstable|1",
+   "disposition": "controlled",
+   "owner": "gomad/src/evidence/symbolize/wasm.rs finish",
+   "rule": "Symbol segments are sorted by start before overlap and span validation. Ambiguous overlaps are refused; retained canonical execution streams are not rewritten by symbolization.",
+   "evidence": [
+    "rust:tests/inventory/host.rs:receiving_host_effect_sites_are_inventoried"
+   ]
+  },
+  {
+   "id": "host.rust.gomad.src.fixture.rs.dispatch.systemtime.1",
+   "layer": "host-process",
+   "class": "clock",
+   "site": "host-rust:gomad/src/fixture.rs|dispatch|SystemTime|1",
+   "disposition": "controlled",
+   "owner": "gomad/src/fixture.rs dispatch",
+   "rule": "The compiled determinism-fixture timestamp fault deliberately injects a host-derived refusal candidate into a synthetic record so canonical-record validation can reject it; the ordinary operator has no fixture dispatch.",
+   "evidence": [
+    "rust:tests/inventory/host.rs:receiving_host_effect_sites_are_inventoried"
+   ]
+  },
+  {
+   "id": "host.rust.gomad.src.fixture_role.rs.run.spawn.2",
+   "layer": "host-process",
+   "class": "thread-order",
+   "site": "host-rust:gomad/src/fixture_role.rs|run|.spawn(|2",
+   "disposition": "controlled",
+   "owner": "gomad/src/fixture_role.rs run",
+   "rule": "This module is compiled only for determinism-fixture. Wall samples report receiving-driver phase metrics and bounded progress waits; scoped workers exercise role admission. They never replace helper virtual clock or choice streams.",
+   "evidence": [
+    "rust:tests/inventory/host.rs:receiving_host_effect_sites_are_inventoried"
+   ]
+  },
+  {
+   "id": "host.rust.gomad.src.fixture_role.rs.run.thread.scope.1",
+   "layer": "host-process",
+   "class": "thread-order",
+   "site": "host-rust:gomad/src/fixture_role.rs|run|thread::scope|1",
+   "disposition": "controlled",
+   "owner": "gomad/src/fixture_role.rs run",
+   "rule": "This module is compiled only for determinism-fixture. Wall samples report receiving-driver phase metrics and bounded progress waits; scoped workers exercise role admission. They never replace helper virtual clock or choice streams.",
+   "evidence": [
+    "rust:tests/inventory/host.rs:receiving_host_effect_sites_are_inventoried"
+   ]
+  },
+  {
+   "id": "host.rust.gomad.src.install.toolchain.rs.pin.instant.now.1",
+   "layer": "host-process",
+   "class": "clock",
+   "site": "host-rust:gomad/src/install/toolchain.rs|pin|Instant::now|1",
+   "disposition": "controlled",
+   "owner": "gomad/src/install/toolchain.rs pin",
+   "rule": "The stock compiler version/identity subprocess is bounded by a 600-second host deadline before installation is admitted; compiler identity is authenticated and wall samples do not enter guest records.",
+   "evidence": [
+    "rust:tests/inventory/host.rs:receiving_host_effect_sites_are_inventoried"
+   ]
+  },
+  {
+   "id": "host.rust.gomad.src.live_backend.rs.progress_acknowledged.instant.now.2",
+   "layer": "host-process",
+   "class": "clock",
+   "site": "host-rust:gomad/src/live_backend.rs|progress_acknowledged|Instant::now|2",
+   "disposition": "controlled",
+   "owner": "gomad/src/live_backend.rs progress_acknowledged",
+   "rule": "This module is compiled only for determinism-fixture. Wall samples report receiving-driver phase metrics and bounded progress waits; scoped workers exercise role admission. They never replace helper virtual clock or choice streams.",
+   "evidence": [
+    "rust:tests/inventory/host.rs:receiving_host_effect_sites_are_inventoried"
+   ]
+  },
+  {
+   "id": "host.rust.gomad.src.live_backend.rs.progress_acknowledged.thread.sleep.1",
+   "layer": "host-process",
+   "class": "clock",
+   "site": "host-rust:gomad/src/live_backend.rs|progress_acknowledged|thread::sleep|1",
+   "disposition": "controlled",
+   "owner": "gomad/src/live_backend.rs progress_acknowledged",
+   "rule": "This module is compiled only for determinism-fixture. Wall samples report receiving-driver phase metrics and bounded progress waits; scoped workers exercise role admission. They never replace helper virtual clock or choice streams.",
+   "evidence": [
+    "rust:tests/inventory/host.rs:receiving_host_effect_sites_are_inventoried"
+   ]
+  },
+  {
+   "id": "host.rust.gomad.src.live_broker.rs.input.elapsed.2",
+   "layer": "host-process",
+   "class": "clock",
+   "site": "host-rust:gomad/src/live_broker.rs|input|.elapsed()|2",
+   "disposition": "controlled",
+   "owner": "gomad/src/live_broker.rs input",
+   "rule": "This module is compiled only for determinism-fixture. Wall samples report receiving-driver phase metrics and bounded progress waits; scoped workers exercise role admission. They never replace helper virtual clock or choice streams.",
+   "evidence": [
+    "rust:tests/inventory/host.rs:receiving_host_effect_sites_are_inventoried"
+   ]
+  },
+  {
+   "id": "host.rust.gomad.src.live_broker.rs.input.instant.now.1",
+   "layer": "host-process",
+   "class": "clock",
+   "site": "host-rust:gomad/src/live_broker.rs|input|Instant::now|1",
+   "disposition": "controlled",
+   "owner": "gomad/src/live_broker.rs input",
+   "rule": "This module is compiled only for determinism-fixture. Wall samples report receiving-driver phase metrics and bounded progress waits; scoped workers exercise role admission. They never replace helper virtual clock or choice streams.",
+   "evidence": [
+    "rust:tests/inventory/host.rs:receiving_host_effect_sites_are_inventoried"
+   ]
+  },
+  {
+   "id": "host.rust.gomad.src.live_cluster.rs.input.elapsed.1",
+   "layer": "host-process",
+   "class": "clock",
+   "site": "host-rust:gomad/src/live_cluster.rs|input|.elapsed()|1",
+   "disposition": "controlled",
+   "owner": "gomad/src/live_cluster.rs input",
+   "rule": "This module is compiled only for determinism-fixture. Wall samples report receiving-driver phase metrics and bounded progress waits; scoped workers exercise role admission. They never replace helper virtual clock or choice streams.",
+   "evidence": [
+    "rust:tests/inventory/host.rs:receiving_host_effect_sites_are_inventoried"
+   ]
+  },
+  {
+   "id": "host.rust.gomad.src.live_cluster.rs.input.instant.now.1",
+   "layer": "host-process",
+   "class": "clock",
+   "site": "host-rust:gomad/src/live_cluster.rs|input|Instant::now|1",
+   "disposition": "controlled",
+   "owner": "gomad/src/live_cluster.rs input",
+   "rule": "This module is compiled only for determinism-fixture. Wall samples report receiving-driver phase metrics and bounded progress waits; scoped workers exercise role admission. They never replace helper virtual clock or choice streams.",
+   "evidence": [
+    "rust:tests/inventory/host.rs:receiving_host_effect_sites_are_inventoried"
+   ]
+  },
+  {
+   "id": "host.rust.gomad.src.live_cluster.rs.observation.elapsed.1",
+   "layer": "host-process",
+   "class": "clock",
+   "site": "host-rust:gomad/src/live_cluster.rs|observation|.elapsed()|1",
+   "disposition": "controlled",
+   "owner": "gomad/src/live_cluster.rs observation",
+   "rule": "This module is compiled only for determinism-fixture. Wall samples report receiving-driver phase metrics and bounded progress waits; scoped workers exercise role admission. They never replace helper virtual clock or choice streams.",
+   "evidence": [
+    "rust:tests/inventory/host.rs:receiving_host_effect_sites_are_inventoried"
+   ]
+  },
+  {
+   "id": "host.rust.gomad.src.live_cluster.rs.observation.instant.now.1",
+   "layer": "host-process",
+   "class": "clock",
+   "site": "host-rust:gomad/src/live_cluster.rs|observation|Instant::now|1",
+   "disposition": "controlled",
+   "owner": "gomad/src/live_cluster.rs observation",
+   "rule": "This module is compiled only for determinism-fixture. Wall samples report receiving-driver phase metrics and bounded progress waits; scoped workers exercise role admission. They never replace helper virtual clock or choice streams.",
+   "evidence": [
+    "rust:tests/inventory/host.rs:receiving_host_effect_sites_are_inventoried"
+   ]
+  },
+  {
+   "id": "host.rust.gomad.src.qualify.cells.rs.execute.instant.now.1",
+   "layer": "host-process",
+   "class": "clock",
+   "site": "host-rust:gomad/src/qualify/cells.rs|execute|Instant::now|1",
+   "disposition": "controlled",
+   "owner": "gomad/src/qualify/cells.rs execute",
+   "rule": "Qualification wall samples bound preparation, recording and retained replay and report host phase cost. The frozen prepared target and explicit seeds supply modeled inputs; these samples cannot alter canonical helper evidence.",
+   "evidence": [
+    "rust:tests/inventory/host.rs:receiving_host_effect_sites_are_inventoried"
+   ]
+  },
+  {
+   "id": "host.rust.gomad.src.qualify.cells.rs.freeze.elapsed.1",
+   "layer": "host-process",
+   "class": "clock",
+   "site": "host-rust:gomad/src/qualify/cells.rs|freeze|.elapsed()|1",
+   "disposition": "controlled",
+   "owner": "gomad/src/qualify/cells.rs freeze",
+   "rule": "Qualification wall samples bound preparation, recording and retained replay and report host phase cost. The frozen prepared target and explicit seeds supply modeled inputs; these samples cannot alter canonical helper evidence.",
+   "evidence": [
+    "rust:tests/inventory/host.rs:receiving_host_effect_sites_are_inventoried"
+   ]
+  },
+  {
+   "id": "host.rust.gomad.src.qualify.cells.rs.freeze.instant.now.1",
+   "layer": "host-process",
+   "class": "clock",
+   "site": "host-rust:gomad/src/qualify/cells.rs|freeze|Instant::now|1",
+   "disposition": "controlled",
+   "owner": "gomad/src/qualify/cells.rs freeze",
+   "rule": "Qualification wall samples bound preparation, recording and retained replay and report host phase cost. The frozen prepared target and explicit seeds supply modeled inputs; these samples cannot alter canonical helper evidence.",
+   "evidence": [
+    "rust:tests/inventory/host.rs:receiving_host_effect_sites_are_inventoried"
+   ]
+  },
+  {
+   "id": "host.rust.gomad.src.qualify.cells.rs.replay.elapsed.2",
+   "layer": "host-process",
+   "class": "clock",
+   "site": "host-rust:gomad/src/qualify/cells.rs|replay|.elapsed()|2",
+   "disposition": "controlled",
+   "owner": "gomad/src/qualify/cells.rs replay",
+   "rule": "Qualification wall samples bound preparation, recording and retained replay and report host phase cost. The frozen prepared target and explicit seeds supply modeled inputs; these samples cannot alter canonical helper evidence.",
+   "evidence": [
+    "rust:tests/inventory/host.rs:receiving_host_effect_sites_are_inventoried"
+   ]
+  },
+  {
+   "id": "host.rust.gomad.src.qualify.cells.rs.replay.instant.now.1",
+   "layer": "host-process",
+   "class": "clock",
+   "site": "host-rust:gomad/src/qualify/cells.rs|replay|Instant::now|1",
+   "disposition": "controlled",
+   "owner": "gomad/src/qualify/cells.rs replay",
+   "rule": "Qualification wall samples bound preparation, recording and retained replay and report host phase cost. The frozen prepared target and explicit seeds supply modeled inputs; these samples cannot alter canonical helper evidence.",
+   "evidence": [
+    "rust:tests/inventory/host.rs:receiving_host_effect_sites_are_inventoried"
+   ]
+  },
+  {
+   "id": "host.rust.gomad.src.qualify.workloads.oracles.rs.replication.sort_unstable.1",
+   "layer": "host-process",
+   "class": "scheduling",
+   "site": "host-rust:gomad/src/qualify/workloads/oracles.rs|replication|.sort_unstable|1",
+   "disposition": "controlled",
+   "owner": "gomad/src/qualify/workloads/oracles.rs replication",
+   "rule": "Oracle IDs are sorted numerically before comparing complete expected SQLite/replication row membership; equal IDs have identical comparison meaning and host iteration order does not enter guest evidence.",
+   "evidence": [
+    "rust:tests/inventory/host.rs:receiving_host_effect_sites_are_inventoried"
+   ]
+  },
+  {
+   "id": "host.rust.gomad.src.qualify.workloads.oracles.rs.sqlite.sort_unstable.1",
+   "layer": "host-process",
+   "class": "scheduling",
+   "site": "host-rust:gomad/src/qualify/workloads/oracles.rs|sqlite|.sort_unstable|1",
+   "disposition": "controlled",
+   "owner": "gomad/src/qualify/workloads/oracles.rs sqlite",
+   "rule": "Oracle IDs are sorted numerically before comparing complete expected SQLite/replication row membership; equal IDs have identical comparison meaning and host iteration order does not enter guest evidence.",
+   "evidence": [
+    "rust:tests/inventory/host.rs:receiving_host_effect_sites_are_inventoried"
+   ]
+  },
+  {
+   "id": "host.rust.gomad.src.slots.rs.run.sort_unstable.1",
+   "layer": "host-process",
+   "class": "thread-order",
+   "site": "host-rust:gomad/src/slots.rs|run|.sort_unstable|1",
+   "disposition": "controlled",
+   "owner": "gomad/src/slots.rs run",
+   "rule": "Scoped workers allocate input ordinals under one mutex, join all workers, and sort complete results by unique ordinal before returning; host completion order cannot reorder the input seed results.",
+   "evidence": [
+    "rust:tests/inventory/host.rs:receiving_host_effect_sites_are_inventoried",
+    "rust:gomad/src/slots.rs:panic_aborts_campaign"
+   ]
+  },
+  {
+   "id": "host.rust.gomad.src.slots.rs.run.spawn.1",
+   "layer": "host-process",
+   "class": "thread-order",
+   "site": "host-rust:gomad/src/slots.rs|run|.spawn(|1",
+   "disposition": "controlled",
+   "owner": "gomad/src/slots.rs run",
+   "rule": "Scoped workers allocate input ordinals under one mutex, join all workers, and sort complete results by unique ordinal before returning; host completion order cannot reorder the input seed results.",
+   "evidence": [
+    "rust:tests/inventory/host.rs:receiving_host_effect_sites_are_inventoried",
+    "rust:gomad/src/slots.rs:panic_aborts_campaign"
+   ]
+  },
+  {
+   "id": "host.rust.gomad.src.slots.rs.run.thread.scope.1",
+   "layer": "host-process",
+   "class": "thread-order",
+   "site": "host-rust:gomad/src/slots.rs|run|thread::scope|1",
+   "disposition": "controlled",
+   "owner": "gomad/src/slots.rs run",
+   "rule": "Scoped workers allocate input ordinals under one mutex, join all workers, and sort complete results by unique ordinal before returning; host completion order cannot reorder the input seed results.",
+   "evidence": [
+    "rust:tests/inventory/host.rs:receiving_host_effect_sites_are_inventoried",
+    "rust:gomad/src/slots.rs:panic_aborts_campaign"
+   ]
+  },
+  {
+   "id": "host.rust.gomad.src.stress.process.rs.cohort.spawn.1",
+   "layer": "host-process",
+   "class": "thread-order",
+   "site": "host-rust:gomad/src/stress/process.rs|cohort|.spawn(|1",
+   "disposition": "controlled",
+   "owner": "gomad/src/stress/process.rs cohort",
+   "rule": "The stress supervisor owns and reaps each perturbation process and joins its CPU/cohort workers. Wall samples and polling sleeps bound supervision only; perturbations are outside declared guest inputs and source-authenticated canonical streams are compared independently.",
+   "evidence": [
+    "rust:tests/inventory/host.rs:receiving_host_effect_sites_are_inventoried",
+    "rust:gomad/src/stress/tests.rs:comparisons_authenticate_retained_streams_and_reject_hidden_forcing"
+   ]
+  },
+  {
+   "id": "host.rust.gomad.src.stress.process.rs.cohort.thread.scope.1",
+   "layer": "host-process",
+   "class": "thread-order",
+   "site": "host-rust:gomad/src/stress/process.rs|cohort|thread::scope|1",
+   "disposition": "controlled",
+   "owner": "gomad/src/stress/process.rs cohort",
+   "rule": "The stress supervisor owns and reaps each perturbation process and joins its CPU/cohort workers. Wall samples and polling sleeps bound supervision only; perturbations are outside declared guest inputs and source-authenticated canonical streams are compared independently.",
+   "evidence": [
+    "rust:tests/inventory/host.rs:receiving_host_effect_sites_are_inventoried",
+    "rust:gomad/src/stress/tests.rs:comparisons_authenticate_retained_streams_and_reject_hidden_forcing"
+   ]
+  },
+  {
+   "id": "host.rust.gomad.src.stress.process.rs.execute.elapsed.1",
+   "layer": "host-process",
+   "class": "clock",
+   "site": "host-rust:gomad/src/stress/process.rs|execute|.elapsed()|1",
+   "disposition": "controlled",
+   "owner": "gomad/src/stress/process.rs execute",
+   "rule": "The stress supervisor owns and reaps each perturbation process and joins its CPU/cohort workers. Wall samples and polling sleeps bound supervision only; perturbations are outside declared guest inputs and source-authenticated canonical streams are compared independently.",
+   "evidence": [
+    "rust:tests/inventory/host.rs:receiving_host_effect_sites_are_inventoried",
+    "rust:gomad/src/stress/tests.rs:comparisons_authenticate_retained_streams_and_reject_hidden_forcing"
+   ]
+  },
+  {
+   "id": "host.rust.gomad.src.stress.process.rs.execute.spawn.1",
+   "layer": "host-process",
+   "class": "thread-order",
+   "site": "host-rust:gomad/src/stress/process.rs|execute|.spawn(|1",
+   "disposition": "controlled",
+   "owner": "gomad/src/stress/process.rs execute",
+   "rule": "The stress supervisor owns and reaps each perturbation process and joins its CPU/cohort workers. Wall samples and polling sleeps bound supervision only; perturbations are outside declared guest inputs and source-authenticated canonical streams are compared independently.",
+   "evidence": [
+    "rust:tests/inventory/host.rs:receiving_host_effect_sites_are_inventoried",
+    "rust:gomad/src/stress/tests.rs:comparisons_authenticate_retained_streams_and_reject_hidden_forcing"
+   ]
+  },
+  {
+   "id": "host.rust.gomad.src.stress.process.rs.execute.command.new.1",
+   "layer": "host-process",
+   "class": "clock",
+   "site": "host-rust:gomad/src/stress/process.rs|execute|Command::new|1",
+   "disposition": "controlled",
+   "owner": "gomad/src/stress/process.rs execute",
+   "rule": "The stress supervisor owns and reaps each perturbation process and joins its CPU/cohort workers. Wall samples and polling sleeps bound supervision only; perturbations are outside declared guest inputs and source-authenticated canonical streams are compared independently.",
+   "evidence": [
+    "rust:tests/inventory/host.rs:receiving_host_effect_sites_are_inventoried",
+    "rust:gomad/src/stress/tests.rs:comparisons_authenticate_retained_streams_and_reject_hidden_forcing"
+   ]
+  },
+  {
+   "id": "host.rust.gomad.src.stress.process.rs.execute.instant.now.1",
+   "layer": "host-process",
+   "class": "clock",
+   "site": "host-rust:gomad/src/stress/process.rs|execute|Instant::now|1",
+   "disposition": "controlled",
+   "owner": "gomad/src/stress/process.rs execute",
+   "rule": "The stress supervisor owns and reaps each perturbation process and joins its CPU/cohort workers. Wall samples and polling sleeps bound supervision only; perturbations are outside declared guest inputs and source-authenticated canonical streams are compared independently.",
+   "evidence": [
+    "rust:tests/inventory/host.rs:receiving_host_effect_sites_are_inventoried",
+    "rust:gomad/src/stress/tests.rs:comparisons_authenticate_retained_streams_and_reject_hidden_forcing"
+   ]
+  },
+  {
+   "id": "host.rust.gomad.src.stress.process.rs.execute.thread.sleep.1",
+   "layer": "host-process",
+   "class": "clock",
+   "site": "host-rust:gomad/src/stress/process.rs|execute|thread::sleep|1",
+   "disposition": "controlled",
+   "owner": "gomad/src/stress/process.rs execute",
+   "rule": "The stress supervisor owns and reaps each perturbation process and joins its CPU/cohort workers. Wall samples and polling sleeps bound supervision only; perturbations are outside declared guest inputs and source-authenticated canonical streams are compared independently.",
+   "evidence": [
+    "rust:tests/inventory/host.rs:receiving_host_effect_sites_are_inventoried",
+    "rust:gomad/src/stress/tests.rs:comparisons_authenticate_retained_streams_and_reject_hidden_forcing"
+   ]
+  },
+  {
+   "id": "host.rust.gomad.src.stress.process.rs.host.command.new.1",
+   "layer": "host-process",
+   "class": "clock",
+   "site": "host-rust:gomad/src/stress/process.rs|host|Command::new|1",
+   "disposition": "controlled",
+   "owner": "gomad/src/stress/process.rs host",
+   "rule": "The stress supervisor owns and reaps each perturbation process and joins its CPU/cohort workers. Wall samples and polling sleeps bound supervision only; perturbations are outside declared guest inputs and source-authenticated canonical streams are compared independently.",
+   "evidence": [
+    "rust:tests/inventory/host.rs:receiving_host_effect_sites_are_inventoried",
+    "rust:gomad/src/stress/tests.rs:comparisons_authenticate_retained_streams_and_reject_hidden_forcing"
+   ]
+  },
+  {
+   "id": "host.rust.gomad.src.stress.process.rs.new.thread.spawn.1",
+   "layer": "host-process",
+   "class": "thread-order",
+   "site": "host-rust:gomad/src/stress/process.rs|new|thread::spawn|1",
+   "disposition": "controlled",
+   "owner": "gomad/src/stress/process.rs new",
+   "rule": "The stress supervisor owns and reaps each perturbation process and joins its CPU/cohort workers. Wall samples and polling sleeps bound supervision only; perturbations are outside declared guest inputs and source-authenticated canonical streams are compared independently.",
+   "evidence": [
+    "rust:tests/inventory/host.rs:receiving_host_effect_sites_are_inventoried",
+    "rust:gomad/src/stress/tests.rs:comparisons_authenticate_retained_streams_and_reject_hidden_forcing"
+   ]
+  },
+  {
+   "id": "host.rust.gomad.src.sweep.process.rs.exec.2.elapsed.1",
+   "layer": "host-process",
+   "class": "clock",
+   "site": "host-rust:gomad/src/sweep/process.rs|exec[2]|.elapsed()|1",
+   "disposition": "controlled",
+   "owner": "gomad/src/sweep/process.rs exec[2]",
+   "rule": "The sweep Context supplies one absolute overall deadline across enumeration, installation, warmup and test children. HostCommand children are bounded/reaped and elapsed values report host cost; no sample supplies guest virtual time or seeds.",
+   "evidence": [
+    "rust:tests/inventory/host.rs:receiving_host_effect_sites_are_inventoried",
+    "rust:gomad/src/sweep/lifecycle_tests.rs:one_absolute_deadline_covers_enumeration_installation_warmup_and_test"
+   ]
+  },
+  {
+   "id": "host.rust.gomad.src.sweep.process.rs.exec.2.spawn.1",
+   "layer": "host-process",
+   "class": "thread-order",
+   "site": "host-rust:gomad/src/sweep/process.rs|exec[2]|.spawn(|1",
+   "disposition": "controlled",
+   "owner": "gomad/src/sweep/process.rs exec[2]",
+   "rule": "The sweep Context supplies one absolute overall deadline across enumeration, installation, warmup and test children. HostCommand children are bounded/reaped and elapsed values report host cost; no sample supplies guest virtual time or seeds.",
+   "evidence": [
+    "rust:tests/inventory/host.rs:receiving_host_effect_sites_are_inventoried",
+    "rust:gomad/src/sweep/lifecycle_tests.rs:one_absolute_deadline_covers_enumeration_installation_warmup_and_test"
+   ]
+  },
+  {
+   "id": "host.rust.gomad.src.sweep.process.rs.exec.2.command.new.1",
+   "layer": "host-process",
+   "class": "clock",
+   "site": "host-rust:gomad/src/sweep/process.rs|exec[2]|Command::new|1",
+   "disposition": "controlled",
+   "owner": "gomad/src/sweep/process.rs exec[2]",
+   "rule": "The sweep Context supplies one absolute overall deadline across enumeration, installation, warmup and test children. HostCommand children are bounded/reaped and elapsed values report host cost; no sample supplies guest virtual time or seeds.",
+   "evidence": [
+    "rust:tests/inventory/host.rs:receiving_host_effect_sites_are_inventoried",
+    "rust:gomad/src/sweep/lifecycle_tests.rs:one_absolute_deadline_covers_enumeration_installation_warmup_and_test"
+   ]
+  },
+  {
+   "id": "host.rust.gomad.src.sweep.process.rs.exec.2.instant.now.3",
+   "layer": "host-process",
+   "class": "clock",
+   "site": "host-rust:gomad/src/sweep/process.rs|exec[2]|Instant::now|3",
+   "disposition": "controlled",
+   "owner": "gomad/src/sweep/process.rs exec[2]",
+   "rule": "The sweep Context supplies one absolute overall deadline across enumeration, installation, warmup and test children. HostCommand children are bounded/reaped and elapsed values report host cost; no sample supplies guest virtual time or seeds.",
+   "evidence": [
+    "rust:tests/inventory/host.rs:receiving_host_effect_sites_are_inventoried",
+    "rust:gomad/src/sweep/lifecycle_tests.rs:one_absolute_deadline_covers_enumeration_installation_warmup_and_test"
+   ]
+  },
+  {
+   "id": "host.rust.gomad.src.sweep.process.rs.new.instant.now.1",
+   "layer": "host-process",
+   "class": "clock",
+   "site": "host-rust:gomad/src/sweep/process.rs|new|Instant::now|1",
+   "disposition": "controlled",
+   "owner": "gomad/src/sweep/process.rs new",
+   "rule": "The sweep Context supplies one absolute overall deadline across enumeration, installation, warmup and test children. HostCommand children are bounded/reaped and elapsed values report host cost; no sample supplies guest virtual time or seeds.",
+   "evidence": [
+    "rust:tests/inventory/host.rs:receiving_host_effect_sites_are_inventoried",
+    "rust:gomad/src/sweep/lifecycle_tests.rs:one_absolute_deadline_covers_enumeration_installation_warmup_and_test"
+   ]
+  },
+  {
+   "id": "host.rust.gomad.src.sweep.run.rs.run.instant.now.1",
+   "layer": "host-process",
+   "class": "clock",
+   "site": "host-rust:gomad/src/sweep/run.rs|run|Instant::now|1",
+   "disposition": "controlled",
+   "owner": "gomad/src/sweep/run.rs run",
+   "rule": "The sweep Context supplies one absolute overall deadline across enumeration, installation, warmup and test children. HostCommand children are bounded/reaped and elapsed values report host cost; no sample supplies guest virtual time or seeds.",
+   "evidence": [
+    "rust:tests/inventory/host.rs:receiving_host_effect_sites_are_inventoried",
+    "rust:gomad/src/sweep/lifecycle_tests.rs:one_absolute_deadline_covers_enumeration_installation_warmup_and_test"
+   ]
   }
  ]
 }

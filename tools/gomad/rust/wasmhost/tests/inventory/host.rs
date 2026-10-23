@@ -23,31 +23,22 @@ fn host_sites() -> Result<BTreeSet<String>, String> {
     let helper = Path::new(env!("CARGO_MANIFEST_DIR")).join("src");
     let operator = helper.join("../../gomad/src");
     let mut sites = BTreeSet::new();
-    // wasi/process and wasi/cluster now execute through the linked helper;
-    // backend preparation and the cluster operator live in these receiving modules.
     for (owner, root, roots) in [
         ("wasmhost", helper, vec!["lib.rs"]),
-        (
-            "gomad",
-            operator,
-            vec![
-                "campaign/prepare.rs",
-                "campaign/execution.rs",
-                "campaign/scenario.rs",
-                "replay/mod.rs",
-            ],
-        ),
+        ("gomad", operator, vec!["lib.rs", "main.rs"]),
     ] {
         let (_, files) = source_scan(&root, &roots)?;
         for file in files {
             let source = fs::read_to_string(root.join(&file)).map_err(|e| e.to_string())?;
             let (lines, _) = production_lines(&source)?;
+            let masked = mask_multiline_literals(&source);
+            let masked_lines: Vec<&str> = masked.lines().collect();
             let mut function = "package".to_string();
             let mut counts = BTreeMap::new();
             let mut functions = BTreeMap::new();
             let mut indent = None;
-            for (_, line) in lines {
-                let blank = strip_literals(&line);
+            for (number, line) in lines {
+                let blank = strip_literals(masked_lines[number - 1]);
                 if indent.is_some_and(|start| {
                     line.trim() == "}" && line.len() - line.trim_start().len() == start
                 }) {
@@ -56,6 +47,7 @@ fn host_sites() -> Result<BTreeSet<String>, String> {
                 }
                 if let Some((_, rest)) = blank.split_once("fn ") {
                     function = rest
+                        .trim_start_matches('$')
                         .chars()
                         .take_while(|c| c.is_alphanumeric() || *c == '_')
                         .collect();
@@ -100,9 +92,9 @@ fn gaps(entries: &[Entry], derived: &BTreeSet<String>) -> Vec<String> {
         .collect();
     let mut gaps = Vec::new();
     for site in derived {
-        if !rows
+        if rows
             .get(site.as_str())
-            .is_some_and(|row| row.disposition != "rejected")
+            .is_none_or(|row| row.disposition == "rejected")
         {
             gaps.push(format!("host effect {site:?} has no inventory row"));
         }
@@ -124,6 +116,13 @@ fn receiving_host_effect_sites_are_inventoried() {
         "wasmhost/src/linked.rs|",
         "wasmhost/src/linked_cluster.rs|",
         "gomad/src/campaign/prepare/process.rs|",
+        "gomad/src/campaign/mod.rs|",
+        "gomad/src/cli/run_guest.rs|",
+        "gomad/src/evidence/store/publish.rs|",
+        "gomad/src/slots.rs|",
+        "gomad/src/qualify/cells.rs|",
+        "gomad/src/sweep/process.rs|",
+        "gomad/src/backstop.rs|",
     ] {
         assert!(
             sites.iter().any(|site| site.starts_with(required)),

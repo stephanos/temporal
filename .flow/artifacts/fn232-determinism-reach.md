@@ -236,3 +236,51 @@ Current unresolved references:
 ## Final source-only follow-ups before the parent build window
 
 `61d9058ce4` adds only `wasmhost/src/guest_profile/preservation.rs::profile_configuration_rejects_original_malformed_bounds_before_sampling`: actual existing Config validation accepts the absolute valid configuration and rejects the three original relative-path/zero-interval/100001-samples cases before sampling. Measurement owns its module registration and native profile receiving wiring, and agreed to receive this identical file in its checkpoint. It is unregistered in this isolated worktree and UNRUN; no evidence alias or profile-feature build claim is made. The private diagnostic revision/fuel-off lineage remains explicit. `371701f546` closes wildcard/extern-crate import escapes in the source architecture negative matrix. Both are source-only, with all new compilation still held by the parent. The source snapshot records the exact28 files at371701f546; the subsequent documentation commit changes only this handover.
+
+## Integrated operator source checkpoint — 2026-10-23
+
+Integrated root `1cc7daa82c` with merge `fe1bd698cc`; no history rewrite. The
+operator scan now follows its actual `lib.rs` and `main.rs` module closure,
+conservatively including production feature branches. The existing exact helper
+rows already cover linked phase clocks (4), cluster phase clocks (4) and bounded
+receives (3); the old one-receive cluster identity remains rejected. Added 87
+exact operator per-function/multiplicity identities and rules, covering the
+Runner, CLI, slots, publication/symbolization, installation, qualification,
+stress and sweep owners. Existing ledger records and the candidate 276-record
+trust anchor remain unchanged. This is source-readiness work, not an independent
+acceptance of that trust advancement.
+
+Broad reach exposed multiline raw literals in test-only modules and macro
+function declarations. The scanner masks strings and nested comments while
+matching test-item brackets, skips `all(test, ...)` modules, and recognizes
+macro-generated function identifiers. A named regression retains unmatched
+brackets inside raw strings, character quotes, lifetimes and nested comments;
+unterminated test items still refuse. Host effect matching uses the same lexical
+mask. No entire-file allowance or collector patch change was added.
+
+The validate target now names inventory, inspection-boundary and compiled-role
+refusal suites and retained Go architecture checks. The WASM engine test target
+already executes these Rust test binaries. Actual focused checks under
+`/home/agent/evidence/fn232-test-wasm-reach/`:
+
+- `inventory-final-expanded.log`: exit101,29/30 pass; only the original26
+  unresolved deleted-Go evidence references fail the unmodified global gate.
+- `inventory-source-checkpoint.log`: exit0,29/29 focused source tests; the global
+  reference gate is explicitly excluded for this source-only check, not waived.
+- `boundary-roles-final.log`: exit0,2 inspection-boundary and2 role-refusal tests.
+- `archcheck-final.log`: exit0, complete retained architecture package with
+  pinned stock Go1.27.1, `-tags test_dep -mod=readonly -p=1 -count=1`.
+- `validate-wiring-checkpoint.log`: make dry-run only, no full validation credit.
+- `inventory-clippy-final.log`: exit101,13 warnings; two introduced regression
+  style warnings and the inherited host boolean were fixed afterward. The
+  remaining pre-existing parser/runtime inventory lint debt is not a pass.
+
+Rust tests use `cargo +1.99.1 test --release --locked --offline -j1`, package
+`gomad-wasmhost`, own target `/home/agent/.cache/codex-build/fn232-determinism-new`;
+runtime analysis uses explicit `GOMAD_STOCK_GO` and removes ambient `GOROOT`.
+Formatting and whitespace checks pass. The runtime qualification worker's
+`runtime_qualification.rs` is not yet merged here; its three deadline clock sites
+must acquire exact rows when that source becomes reachable. Counterpart/live
+regressions and final frozen runtime/workload/replay qualification remain pending.
+Worktree and own Cargo target remain for parent integration/review; no scratch
+checkout or evidence owner was deleted. Free space after build:89GiB.

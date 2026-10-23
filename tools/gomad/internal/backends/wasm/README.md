@@ -102,7 +102,12 @@ anchored; routine changes preserve that prefix. The append-only
 sites retain their original identities and explicit refusal disposition; their
 history grants no wildcard coverage to current source hits.
 
-`make -C tools/gomad validate-wasm-determinism` runs the Rust inventory tests.
+`make -C tools/gomad validate-wasm-determinism` runs the Rust inventory,
+inspection-boundary and compiled-role refusal tests plus retained Go architecture
+checks. The operator source scan follows every production module reachable from
+its library and CLI roots, including feature branches; test-only modules are
+excluded. Every detected effect requires an exact per-function row, including
+its source multiplicity.
 Final acceptance also requires the named live regressions, complete host-site
 coverage, authenticated candidate identities and retained runtime/workload/replay
 receipts. Quote a determinism bound only for the exact candidate, host, profile

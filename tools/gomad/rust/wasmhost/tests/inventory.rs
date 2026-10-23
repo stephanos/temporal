@@ -828,12 +828,108 @@ fn module_declaration(trimmed: &str) -> Result<Option<String>, String> {
 /// Numbered production lines and the test-only child modules of a file.
 type ProductionLines = (Vec<(usize, String)>, Vec<String>);
 
+fn mask_multiline_literals(text: &str) -> String {
+    let bytes = text.as_bytes();
+    let mut masked = bytes.to_vec();
+    let mut index = 0;
+    while index < bytes.len() {
+        if bytes[index..].starts_with(b"//") {
+            while index < bytes.len() && bytes[index] != b'\n' {
+                masked[index] = b' ';
+                index += 1;
+            }
+        } else if bytes[index..].starts_with(b"/*") {
+            let mut depth = 1;
+            masked[index..index + 2].fill(b' ');
+            index += 2;
+            while index < bytes.len() && depth > 0 {
+                if bytes[index..].starts_with(b"/*") {
+                    depth += 1;
+                    masked[index..index + 2].fill(b' ');
+                    index += 2;
+                } else if bytes[index..].starts_with(b"*/") {
+                    depth -= 1;
+                    masked[index..index + 2].fill(b' ');
+                    index += 2;
+                } else {
+                    if bytes[index] != b'\n' {
+                        masked[index] = b' ';
+                    }
+                    index += 1;
+                }
+            }
+        } else if bytes[index] == b'\'' && {
+            let end = if bytes.get(index + 1) == Some(&b'\\') {
+                index + 3
+            } else {
+                index + 1 + text[index + 1..].chars().next().map_or(0, char::len_utf8)
+            };
+            bytes.get(end) == Some(&b'\'')
+        } {
+            let end = if bytes.get(index + 1) == Some(&b'\\') {
+                index + 4
+            } else {
+                index + 2 + text[index + 1..].chars().next().map_or(0, char::len_utf8)
+            };
+            masked[index..end].fill(b' ');
+            index = end;
+        } else {
+            let mut quote = index;
+            if bytes[index] == b'r' {
+                quote += 1;
+                while bytes.get(quote) == Some(&b'#') {
+                    quote += 1;
+                }
+            }
+            if bytes.get(quote) == Some(&b'"') {
+                let raw = quote != index;
+                let hashes = quote.saturating_sub(index + 1);
+                masked[index..=quote].fill(b' ');
+                index = quote + 1;
+                while index < bytes.len() {
+                    let closes = bytes[index] == b'"'
+                        && (!raw
+                            || bytes
+                                .get(index + 1..index + 1 + hashes)
+                                .is_some_and(|tail| tail.iter().all(|byte| *byte == b'#')));
+                    if closes {
+                        let end = index + 1 + if raw { hashes } else { 0 };
+                        masked[index..end].fill(b' ');
+                        index = end;
+                        break;
+                    }
+                    if !raw && bytes[index] == b'\\' {
+                        masked[index] = b' ';
+                        index += 1;
+                    }
+                    if index < bytes.len() {
+                        if bytes[index] != b'\n' {
+                            masked[index] = b' ';
+                        }
+                        index += 1;
+                    }
+                }
+            } else {
+                index += 1;
+            }
+        }
+    }
+    String::from_utf8(masked).expect("masking preserves UTF-8 outside literals")
+}
+
 fn production_lines(text: &str) -> Result<ProductionLines, String> {
     let lines: Vec<&str> = text.lines().collect();
+    let masked = mask_multiline_literals(text);
+    let masked_lines: Vec<&str> = masked.lines().collect();
     let (mut kept, mut test_modules) = (Vec::new(), Vec::new());
     let mut index = 0;
     while index < lines.len() {
-        if lines[index].trim() != "#[cfg(test)]" {
+        if lines[index].trim() != "#[cfg(test)]"
+            && !lines[index]
+                .split_whitespace()
+                .collect::<String>()
+                .starts_with("#[cfg(all(test,")
+        {
             kept.push((index + 1, strip_literals_mode(lines[index], false)));
             index += 1;
             continue;
@@ -862,7 +958,7 @@ fn production_lines(text: &str) -> Result<ProductionLines, String> {
         let mut depth = 0i64;
         loop {
             let line = strip_literals(
-                lines
+                masked_lines
                     .get(index)
                     .ok_or_else(|| format!("cfg(test) item at line {} never closes", start + 1))?,
             );
@@ -1112,6 +1208,26 @@ fn helper_source_scan_skips_only_test_items() {
         Some("inner".to_string())
     );
     assert!(module_declaration("pub mod a::b;").is_err());
+}
+
+#[test]
+fn source_scan_skips_multiline_raw_and_combined_test_items() {
+    let source = r###"#[cfg(all(test, feature = "determinism-fixture"))]
+mod tests {
+    const SOURCE: &str = r##" unmatched { ( [
+        fn fake() { Instant::now(); }
+    "##;
+    const QUOTE: char = '\'';
+    const DOUBLE: char = '"';
+    /* outer { /* nested ( */ } */
+}
+fn production<'a>(value: &'a str) { thread::scope(|_| {}); }
+"###;
+    let (lines, modules) = production_lines(source).unwrap();
+    assert_eq!(modules, Vec::<String>::new());
+    assert_eq!(lines.len(), 1);
+    assert!(lines[0].1.starts_with("fn production"));
+    assert!(production_lines("#[cfg(test)]\nmod tests {\n").is_err());
 }
 
 const ENGINE: &str = include_str!("../src/engine.rs");

@@ -489,6 +489,7 @@ fn wasip1_seed_finding_and_seeded_draw_decision_premises() {
     let go = std::env::var_os("GOMAD_STOCK_GO").unwrap_or_else(|| "go".into());
     let output = Command::new(go)
         .args(["env", "GOROOT"])
+        .env_remove("GOROOT")
         .env("GOTOOLCHAIN", "local")
         .env("GOENV", "off")
         .env("GOWORK", "off")
