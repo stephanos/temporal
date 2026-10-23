@@ -499,3 +499,117 @@ fn only_crash_before_storage_fault_declares_a_lifecycle_crash() {
         }
     }
 }
+
+#[test]
+fn output_capacity_precedes_assertion_budget_and_choice_finalization_errors() {
+    for mode in [
+        "default-budget",
+        "report-only-budget",
+        "capacity-first",
+        "capacity-later",
+    ] {
+        let report_only = mode == "report-only-budget";
+        let capacity_node = if mode == "capacity-later" { "b" } else { "a" };
+        let nodes = if mode.starts_with("capacity-") {
+            vec!["a", "b"]
+        } else {
+            vec!["a"]
+        };
+        let mut scenario = operator_fixture();
+        scenario["spec"]["nodes"]
+            .as_array_mut()
+            .unwrap()
+            .retain(|node| nodes.contains(&node["id"].as_str().unwrap()));
+        scenario["actions"]
+            .as_array_mut()
+            .unwrap()
+            .retain(|step| nodes.contains(&step["handle"]["node"].as_str().unwrap()));
+        if mode.ends_with("budget") {
+            scenario["spec"]["limits"]["scenario_evidence_bytes"] = 1.into();
+        }
+        let raw = canonical::encode(&scenario).unwrap();
+        let scenario = parse(&raw).unwrap();
+        let mut configuration = configuration();
+        configuration
+            .incarnations
+            .retain(|owner| nodes.contains(&owner.handle.node.as_str()));
+        configuration.steps.clone_from(&scenario.actions);
+        let mut observed = execution(&nodes);
+        observed.executed_steps.clone_from(&scenario.actions);
+        observed.outcome = linked::Outcome::new("capacity", "WASI capacity: offered-output-bytes");
+        for owner in &mut observed.incarnations {
+            owner.execution.evidence = BTreeMap::from([("stdout".into(), b"PASS".to_vec())]);
+            owner.execution.outcome.output_bytes = 4;
+            if owner.handle.node == capacity_node {
+                owner.execution.outcome =
+                    linked::Outcome::new("capacity", "WASI capacity: offered-output-bytes");
+                owner.execution.outcome.output_bytes = 4;
+            }
+        }
+        let base: preflight::Configuration = serde_json::from_value(json!({
+            "engine":linked::CONFIGURATION,"profile":"gomad.wasi-cooperative/v1",
+            "limits":configuration.limits,"arguments":["guest"],"environment":{},
+            "runtime_sha256":"b".repeat(64),"namespace":null,"model":null
+        }))
+        .unwrap();
+        let prepared = super::super::prepare::Prepared {
+            module: b"\0asm\x01\0\0\0".to_vec(),
+            configuration: base,
+            toolchain: "1".repeat(64),
+            choice_identity: None,
+            scenario: Some(raw),
+            provenance: canonical::encode(&json!({"inputs":{"kind":"go-test"}})).unwrap(),
+            network: None,
+            soft_assertion_report_only: report_only,
+        };
+        let job = super::super::ledger::Job {
+            ordinal: 0,
+            seed: 7,
+        };
+        let result = publication(&prepared, &job, configuration, observed, false)
+            .unwrap_or_else(|error| panic!("{mode} lost capacity and assertion report: {error}"));
+        let outcome = &result.execution.record.outcome;
+        assert_eq!(
+            (&*outcome.class, &*outcome.termination),
+            ("runner_failure", "capacity"),
+            "{mode}"
+        );
+        assert!(
+            outcome
+                .reason
+                .contains("WASI capacity: offered-output-bytes"),
+            "{mode}: {}",
+            outcome.reason
+        );
+        assert!(
+            outcome.reason.contains(if mode.ends_with("budget") {
+                "scenario soft assertion evidence bytes"
+            } else {
+                "choice"
+            }),
+            "{mode}: {}",
+            outcome.reason
+        );
+        let report: Report =
+            serde_json::from_value(result.execution.soft_assertions.unwrap()).unwrap();
+        assert_eq!(
+            report,
+            Report {
+                messages: vec![],
+                report_only,
+                inconclusive: true
+            },
+            "{mode}"
+        );
+        assert!(result.execution.artifact.is_none());
+        assert_eq!(result.execution.stored_bytes, 0);
+        assert!(!result.publication.payloads.contains_key(cluster::FILE));
+        assert!(
+            !result
+                .publication
+                .payloads
+                .keys()
+                .any(|key| key.ends_with("/choice"))
+        );
+    }
+}
