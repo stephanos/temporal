@@ -487,17 +487,22 @@ fn admit_outputs(
             None
         };
         admitted.push((
-            retained.prepared.module,
+            path,
+            canonical::digest(&retained.prepared.module),
             receipt,
             digest,
             selected.path,
             destination,
         ));
     }
-    for (module, receipt, digest, installation, destination) in admitted {
+    for (path, module_sha256, receipt, digest, installation, destination) in admitted {
         let Some(destination) = destination else {
             continue;
         };
+        let module = manifest::read(&path, 512 << 20)?;
+        if canonical::digest(&module) != module_sha256 {
+            return Err("admitted private build module changed before launcher publication".into());
+        }
         let destination = std::path::absolute(destination).map_err(|e| e.to_string())?;
         if directory_output {
             fs::create_dir_all(destination.parent().ok_or("launcher parent missing")?)
