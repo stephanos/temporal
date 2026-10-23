@@ -358,10 +358,7 @@ fn authenticate_provenance_module(provenance: &Value, module: &[u8]) -> Result<(
         || source.source.is_empty()
         || source.source.contains('\0')
         || !source.directory.is_absolute()
-        || source
-            .tags
-            .iter()
-            .any(|tag| tag.is_empty() || tag.contains([',', '\0']))
+        || source.tags.iter().any(|tag| tag.contains('\0'))
         || source.tags.windows(2).any(|pair| pair[0] >= pair[1])
         || provenance["configuration"]["arguments"] != serde_json::json!(arguments)
         || provenance["scenario"] != serde_json::json!(source.scenario)
@@ -570,6 +567,15 @@ mod tests {
             super::super::restore_from_plan(&plan, &Opened::open(&executed.path).unwrap()).is_err()
         );
         std::fs::remove_dir_all(&store.root).unwrap();
+    }
+
+    #[test]
+    fn retained_build_tag_tokens_preserve_go_compiler_grammar() {
+        for tags in [json!(["gomad_fixture,test_dep"]), json!([""])] {
+            let mut retained = provenance();
+            retained["inputs"]["tags"] = tags;
+            authenticate_provenance_module(&retained, b"module").unwrap();
+        }
     }
 
     #[test]
