@@ -423,13 +423,17 @@ impl RoundJournal {
         }
         let root = open::child(&parent, name, true, false)?;
         for entry in open::entries(&root)? {
-            if entry != "prepared" {
+            if !matches!(
+                entry.as_str(),
+                "prepared" | crate::campaign::prepare::OBSERVATION_DIRECTORY
+            ) {
                 return Err(
-                    "campaign creation requires an empty or prepared-only directory".into(),
+                    "campaign creation requires an empty or authenticated preparation-only directory".into(),
                 );
             }
             open::child(&root, &entry, true, false)?;
         }
+        crate::campaign::authenticate_preparation_observations(&root, &plan.prepared)?;
         let lock = create_file(&root, ".lock", &[])?;
         fs::flock(&lock, FlockOperation::NonBlockingLockExclusive)
             .map_err(|error| error.to_string())?;
@@ -488,7 +492,7 @@ impl RoundJournal {
                 "storage.json" | "plan.json" | "journal.jsonl" | ".lock" => {
                     open::child(&root, &name, false, false)?;
                 }
-                "evidence" | "prepared" => {
+                "evidence" | "prepared" | crate::campaign::prepare::OBSERVATION_DIRECTORY => {
                     open::child(&root, &name, true, false)?;
                 }
                 _ => return Err(format!("unexpected campaign entry {name:?}")),
@@ -513,6 +517,7 @@ impl RoundJournal {
             return Err("campaign journal bound differs from its plan".into());
         }
         let state = RoundState::new(&plan)?;
+        crate::campaign::authenticate_preparation_observations(&root, &plan.prepared)?;
         let writer = if writable {
             Some(writable_file(&root, "journal.jsonl")?)
         } else {
