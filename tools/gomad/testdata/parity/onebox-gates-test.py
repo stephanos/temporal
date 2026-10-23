@@ -8,6 +8,7 @@ import argparse
 import json
 import subprocess
 import sys
+from unittest.mock import patch
 import unittest
 
 loader = SourceFileLoader('onebox_gates', str(Path(__file__).with_name('onebox-gates.py')))
@@ -74,6 +75,21 @@ class OrderedGatesTest(unittest.TestCase):
             self.assertEqual(smoke['Campaign']['SuccessBytesLimit'], 2 << 30)
             self.assertNotEqual(smoke['ArtifactRoot'], canary['ArtifactRoot'])
 
+    def test_specs_match_independent_original_owner_for_both_rows_and_modes(self):
+        path = Path(__file__).resolve().parents[2] / 'rust/workload_tools/workloads.py'
+        original_spec = importlib.util.spec_from_file_location('onebox_original_workloads', path)
+        original = importlib.util.module_from_spec(original_spec)
+        original_spec.loader.exec_module(original)
+        with tempfile.TemporaryDirectory() as directory:
+            root = Path(directory)
+            source = root / 'source.sha256'
+            source.write_bytes(b'actual retained source preimage\n')
+            for cell in ['smoke', 'frontend']:
+                for mode in ['success', 'canary']:
+                    actual = gates.qualification_spec(cell, mode, root / mode, root, source)
+                    expected = original.support_spec(root, root / mode, cell, mode == 'canary', source_manifest=source)
+                    self.assertEqual(actual, expected)
+
     def test_command_receipt_keeps_real_exit_and_logs(self):
         with tempfile.TemporaryDirectory() as root:
             root = Path(root)
@@ -82,7 +98,14 @@ class OrderedGatesTest(unittest.TestCase):
             row = runner.run('canary', [sys.executable, '-c', 'import sys; print("witness"); sys.exit(1)'])
             self.assertEqual(row['exit'], 1)
             self.assertGreater(row['operator_process_id'], 0)
+            self.assertLessEqual(row['started_nanos'], row['ended_nanos'])
+            self.assertIsNone(row['environment']['GOMAD_WASM_QUALIFY_WORKLOADS'])
             self.assertEqual(Path(row['stdout']['path']).read_bytes(), b'witness\n')
+
+    def test_full_guest_profile_refused_before_any_guest_or_root_read(self):
+        with patch.dict('os.environ', {'GOMAD_WASM_QUALIFICATION_GUEST_PROFILE': 'full'}):
+            with self.assertRaisesRegex(ValueError, 'profile to slim'):
+                gates.Onebox(argparse.Namespace())
 
     def test_closed_output_pipes_do_not_escape_outer_timeout(self):
         with tempfile.TemporaryDirectory() as directory:
@@ -92,6 +115,25 @@ class OrderedGatesTest(unittest.TestCase):
                     'import os,time; os.close(1); os.close(2); time.sleep(5)'])
             receipt = json.loads((Path(directory) / 'closed.command.json').read_bytes())
             self.assertEqual(receipt['exit'], -9)
+
+    def test_timeout_kills_nested_compiler_process_group_in_same_session(self):
+        with tempfile.TemporaryDirectory() as directory:
+            root = Path(directory)
+            child = root / 'child.pid'
+            runner = gates.Commands(root, 0.5)
+            script = ('import subprocess,sys,time,pathlib; '
+                      'p=subprocess.Popen([sys.executable,"-c","import time; time.sleep(20)"],process_group=0); '
+                      f'pathlib.Path({str(child)!r}).write_text(str(p.pid)); time.sleep(20)')
+            with self.assertRaisesRegex(ValueError, 'timeout'):
+                runner.run('nested', [sys.executable, '-c', script])
+            import os
+            pid = int(child.read_text())
+            try:
+                os.kill(pid, 0)
+            except ProcessLookupError:
+                return
+            # A reparented zombie is dead and awaits the container init reaper.
+            self.assertEqual(Path(f'/proc/{pid}/stat').read_text().split()[2], 'Z')
 
     def test_fresh_process_driver_retains_raw_canary_and_stops_on_bad_report(self):
         with tempfile.TemporaryDirectory() as temporary:
@@ -115,6 +157,7 @@ elif 'plan' in args:
         preparation_receipt=str(path),preparation_receipt_sha256='b'*64)))
 elif 'qualify' in args:
     spec = json.loads(pathlib.Path(value('--spec')).read_bytes())
+    assert spec['Manifest']['IntegratedSourceSHA256'].startswith('sha256:')
     root = pathlib.Path(spec['ArtifactRoot'])
     root.mkdir(parents=True)
     path = root / 'result.json'

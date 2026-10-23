@@ -13,6 +13,7 @@ import sys
 import adapters
 import sqlite
 import receiving_cost
+import onebox_receiving
 from driver import Refusal, Unexecuted, configured, guard, load_module, read, require, sha
 
 
@@ -29,6 +30,7 @@ OWNED = (
     'temporal/actual-committed-storage-all-states',
     'temporal/actual-named-reset-retry',
     'temporal/inspection-shard-workflow-onebox',
+    'fn222/two-cell-ordered-support-list',
 )
 
 
@@ -981,6 +983,8 @@ class Retained:
                 child_argv += ['--root',str(root/owner)]
                 if '--captured-config' in outer_argv:
                     child_argv += ['--captured-config',argument(outer_argv,'--captured-config')]
+                if '--private-observation-config' in outer_argv:
+                    child_argv += ['--private-observation-config',argument(outer_argv,'--private-observation-config')]
                 self.nested(root,owner,child_argv)
                 child = self.owner(root/owner,child_argv)
                 require(child['pid'] == read(root/(owner+'.command.json'))['pid'],'inspection child root/PID mismatch')
@@ -1122,6 +1126,8 @@ class Retained:
         require(runtime_pins == {installation['runtime_implementation_sha256']},'inspection actual runtime implementation differs')
 
     def inspection(self, root, owner):
+        if owner == 'onebox':
+            return onebox_receiving.inspection(self, root)
         observed_owner = self.owner(root)
         argv = observed_owner['argv']
         require(argument(argv,'--owner') == owner and argument(argv,'--binary') == self.config['binary']
@@ -1283,7 +1289,8 @@ def read_receiving(config):
               *(lambda index=index: reader.selected(index) for index in range(4)), reader.catalogue,
               reader.smoke,
               reader.replication, lambda: reader.temporal('storage'),
-              lambda: reader.temporal('network-streams'), lambda: reader.temporal('temporal-inspection')]
+              lambda: reader.temporal('network-streams'), lambda: reader.temporal('temporal-inspection'),
+              lambda: onebox_receiving.support(reader)]
     rows = []
     for name, check in zip(OWNED,checks):
         try:

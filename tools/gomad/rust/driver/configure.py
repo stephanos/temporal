@@ -77,6 +77,12 @@ def freeze(bindings, output, source_manifest):
             write(path, specification)
             entry['spec'] = str(path)
             inputs.add(str(path))
+    if config.get('fn222'):
+        argv = config['fn222']['argv']
+        config['fn222']['argv'] = argv = [str(output) if item == 'FROZEN_CONFIG' else
+            str(source_manifest) if item == 'SOURCE_MANIFEST' else item for item in argv]
+        require('--support' in argv and '--captured-config' in argv, 'fn222 receiver and captured policy inputs must be explicit')
+        inputs.update([argv[0], argv[1], argv[argv.index('--support') + 1], argv[argv.index('--captured-config') + 1]])
     config['files'] = {str(Path(path).resolve()): sha(path) for path in sorted(inputs)}
     for path in inputs:
         require(Path(path).is_absolute() and not Path(path).is_symlink(), 'non-regular frozen input: ' + path)

@@ -650,5 +650,31 @@
       "adapter": "sqlite-catalogue",
       "oracle": null
     }
+  },
+  "fn222": {
+    "argv": [
+      "/absolute/frozen/python3",
+      "/absolute/repo/tools/gomad/rust/workload_tools/temporal-support.py",
+      "--binary",
+      "/absolute/frozen/gomad-release",
+      "--repo",
+      "/absolute/repo",
+      "--root",
+      "/absolute/new-qualification-root/fn222",
+      "--compiler",
+      "/absolute/stock-go",
+      "--runtime-root",
+      "/absolute/frozen/runtime-source",
+      "--cache",
+      "/absolute/frozen/compiler-cache",
+      "--captured-config",
+      "/absolute/frozen/captured-config.json",
+      "--source-manifest",
+      "SOURCE_MANIFEST",
+      "--private-observation-config",
+      "FROZEN_CONFIG",
+      "--support",
+      "/absolute/frozen/fn222-support"
+    ]
   }
 }

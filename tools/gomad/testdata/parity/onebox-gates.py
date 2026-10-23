@@ -72,6 +72,11 @@ def complete(rows):
         raise ValueError('support publication requires all eight ordered zero-exit gates')
 
 
+def target_environment(cell):
+    cwd = '/workspace/tests' if cell == 'smoke' else '/workspace/tests/gomadfunctional'
+    return ['PWD=' + cwd, *ENVIRONMENT[:2], 'TZ=UTC', ENVIRONMENT[2]]
+
+
 def target_args(cell, mode):
     return ['-test.v', '-test.count=1', '-test.timeout=72h',
             '-test.run=' + ('[' if mode == 'canary' else CELLS[cell][2]),
@@ -79,16 +84,38 @@ def target_args(cell, mode):
 
 
 def qualification_spec(cell, mode, root, repo, source):
-    return dict(Manifest=dict(ID=CELLS[cell][0].split('/')[-1], Workload='onebox', Cell=mode,
-                IntegratedSourceSHA256=digest(read(source)) if source.exists() else '',
-                IntegratedSourceManifestPath=str(source), Seed=7, Repeat=2,
-                Unsupported=['weak-memory and data races', 'cross-host exact portability']),
+    return dict(Manifest=dict(Provisional=False, ID=CELLS[cell][0].split('/')[-1], Workload='onebox', Cell=mode,
+                IntegratedSourceSHA256='sha256:' + digest(read(source)) if source.exists() else '',
+                IntegratedSourceManifestPath=str(source), Seed=7, Repeat=2),
         ArtifactRoot=str(root), Campaign=dict(Target=dict(Backend='wasm', Kind='go-test',
             Source=CELLS[cell][1], WorkingDir=str(repo), Args=target_args(cell, mode), BuildTags=TAGS),
             ExecutionTimeout=900_000_000_000, OverallTimeout=1_800_000_000_000,
             TerminateGrace=1_000_000_000, OnFailure='all', FailureBudget=1,
             OutputLimit=256 << 20, WorldTransitionLimit=32 << 20, ChoiceTraceLimit=64 << 20,
-            SuccessBytesLimit=2 << 30, Environment=ENVIRONMENT, Artifacts=str(root / 'artifacts')))
+            SuccessBytesLimit=2 << 30, Environment=target_environment(cell), Artifacts=str(root / 'artifacts')))
+
+
+def kill_session(session):
+    stopped = set()
+    while True:
+        members = set()
+        for token in subprocess.check_output(['/bin/ps', '-axo', 'pid='], timeout=5).split():
+            pid = int(token)
+            try:
+                if os.getsid(pid) == session:
+                    members.add(pid)
+                    os.kill(pid, signal.SIGSTOP)
+            except ProcessLookupError:
+                pass
+        if members <= stopped:
+            break
+        stopped.update(members)
+    for pid in sorted(stopped, key=lambda value: value == session):
+        try:
+            if os.getsid(pid) == session:
+                os.kill(pid, signal.SIGKILL)
+        except ProcessLookupError:
+            pass
 
 
 class Commands:
@@ -115,11 +142,26 @@ class Commands:
             environment['GOMAD_WASM_QUALIFY_WORKLOADS'] = '1'
         paths = {stream: self.root / (name + '.' + stream) for stream in ['stdout', 'stderr']}
         started = time.monotonic_ns()
+        started_nanos = time.time_ns()
         with paths['stdout'].open('xb') as stdout, paths['stderr'].open('xb') as stderr:
             for path in paths.values():
                 path.chmod(0o600)
-            process = subprocess.Popen(command, stdout=subprocess.PIPE, stderr=subprocess.PIPE,
-                                       env=environment, start_new_session=True)
+            launch = CORPUS.parents[1] / 'rust/driver/launch.py'
+            read_gate, write_gate = os.pipe()
+            blocked = signal.pthread_sigmask(signal.SIG_BLOCK, {signal.SIGTERM, signal.SIGHUP, signal.SIGINT})
+            try:
+                process = subprocess.Popen([sys.executable, str(launch), str(read_gate), *command],
+                    stdout=subprocess.PIPE, stderr=subprocess.PIPE, env=environment,
+                    start_new_session=True, pass_fds=(read_gate,))
+                registration = dict(pid=process.pid, stage_pid=os.getpid(), active=True,
+                                    argv=command, start_ns=started_nanos)
+                process_path = self.root / (name + '.process.json')
+                write(process_path, registration)
+                os.write(write_gate, b'1')
+            finally:
+                os.close(read_gate)
+                os.close(write_gate)
+                signal.pthread_sigmask(signal.SIG_SETMASK, blocked)
             streams = selectors.DefaultSelector()
             streams.register(process.stdout, selectors.EVENT_READ, (stdout, 'stdout'))
             streams.register(process.stderr, selectors.EVENT_READ, (stderr, 'stderr'))
@@ -147,19 +189,29 @@ class Commands:
             finally:
                 streams.close()
                 if failure:
-                    os.killpg(process.pid, signal.SIGKILL)
+                    kill_session(process.pid)
                 try:
                     process.wait(timeout=max(0.001, deadline - time.monotonic()))
                 except subprocess.TimeoutExpired:
                     failure = 'bounded command timeout'
-                    os.killpg(process.pid, signal.SIGKILL)
+                    kill_session(process.pid)
                     process.wait()
                 process.stdout.close()
                 process.stderr.close()
+        registration.update(active=False, exit=process.returncode, observation='completed', end_ns=time.time_ns())
+        replacement = process_path.with_suffix('.complete')
+        write(replacement, registration)
+        os.replace(replacement, process_path)
         row = dict(schema='gomad.rust-onebox-command/v1', command=command,
                    executable=dict(path=str(executable), sha256=executable_hash),
-                   operator_process_id=process.pid, exit=process.returncode,
-                   elapsed_nanos=time.monotonic_ns() - started, mandatory_workloads=mandatory)
+                   operator_process_id=process.pid, exit=process.returncode, cwd=os.getcwd(),
+                   started_nanos=started_nanos, ended_nanos=time.time_ns(),
+                   elapsed_nanos=time.monotonic_ns() - started, mandatory_workloads=mandatory,
+                   environment={key: environment.get(key) for key in ['PATH', 'GOMAD_WASM_INSTALLATION',
+                     'GOMAD_STOCK_GO', 'GOMAD_WASM_RUNTIME_ROOT', 'GOMAD_WASM_QUALIFICATION_GUEST_PROFILE',
+                     'GOMAD_WASM_TEMPORAL_BUILD_CACHE', 'GOMAD_WASM_TEMPORAL_MIN_AVAILABLE_BYTES',
+                     'GOMAD_WASM_QUALIFY_WORKLOADS']},
+                   environment_sha256=digest(encode(environment).removesuffix(b'\n')))
         for stream, path in paths.items():
             raw = read(path, 64 << 20)
             row[stream] = dict(path=str(path), sha256=digest(raw), bytes=len(raw))
@@ -187,9 +239,16 @@ def require_zero(row):
 class Onebox:
     def __init__(self, args):
         self.args = args
+        if os.environ.get('GOMAD_WASM_QUALIFICATION_GUEST_PROFILE', '') not in ('', 'slim'):
+            raise ValueError('fn222 fixes the qualification guest profile to slim')
         self.root = args.root
         self.commands = Commands(self.root)
         self.private = None
+        directory = args.repo / 'tools/gomad/rust/workload_tools'
+        if (directory / 'producer.py').is_file():
+            sys.path.insert(0, str(directory))
+            import producer
+            producer.owned_root(self.root)
         if getattr(args, 'private_observation_config', None) is not None:
             directory = args.repo / 'tools/gomad/rust/workload_tools'
             sys.path.insert(0, str(directory))
@@ -226,7 +285,7 @@ class Onebox:
         if args.inspection_config is None:
             path = self.root / 'inspection-policy.json'
             require_zero(self.commands.run('inspection-policy', [args.support, 'temporal-policy',
-                         args.repo, './tests', 'inspection', path]))
+                         args.repo, '.', 'inspection', path]))
             args.inspection_config = path
         self.gates = {cell: [] for cell in CELLS}
         self.results = []
@@ -238,7 +297,7 @@ class Onebox:
         self.inputs = {str(args.repo / os.fsdecode(name)): digest(read(args.repo / os.fsdecode(name), 512 << 20))
                        for name in sorted(files) if name}
         self.inputs.update({str(path): digest(read(path, 512 << 20)) for path in
-                           [args.binary, args.support, args.smoke_config, args.frontend_config,
+                           [args.binary, args.support, args.compiler, Path(sys.executable).resolve(), args.smoke_config, args.frontend_config,
                             args.inspection_config, Path(__file__).resolve(), args.inspection]})
         if getattr(args, 'source_manifest', None) is None:
             with self.source.open('xb') as stream:
@@ -250,6 +309,8 @@ class Onebox:
         write(self.root / 'frozen-inputs.json', self.inputs)
 
     def frozen(self):
+        if time.monotonic() >= self.commands.deadline:
+            raise ValueError('onebox 3600-second outer bound exhausted')
         for path, expected in self.inputs.items():
             if digest(read(path, 512 << 20)) != expected:
                 raise ValueError(f'frozen source/candidate changed: {path}')
@@ -267,8 +328,8 @@ class Onebox:
         installation = preparation / 'installation.json'
         installed = require_zero(self.commands.run(cell + '-install', [args.binary, 'install',
             '--compiler', args.compiler, '--runtime-root', args.runtime_root,
-            '--cache', getattr(args, 'cache', None) or preparation / 'cache',
-            '--compile-cache', preparation / 'compile-cache',
+            '--cache', getattr(args, 'cache', None) or self.root / 'preparation-cache',
+            '--compile-cache', self.root / 'compile-cache',
             '--profile', 'gomad.wasi-cooperative/v1', '--config', getattr(args, cell + '_config'),
             '--memory-bytes', str(4 << 30), '--fuel', str(1 << 50), '--output', installation]))
         self.installations[cell] = installation
@@ -280,7 +341,7 @@ class Onebox:
                    '--success-bytes=2147483648', '--artifacts', preparation / 'artifacts', '--working-dir', args.repo]
         for tag in TAGS:
             command.extend(['--build-tag', tag])
-        for entry in ENVIRONMENT:
+        for entry in target_environment(cell):
             command.extend(['--env', entry])
         command.extend(['go-test', CELLS[cell][1], '--', *target_args(cell, 'success')])
         planned = require_zero(self.commands.run(cell + '-plan', command, seconds=600, private=self.private))
@@ -325,7 +386,7 @@ class Onebox:
             row = require_zero(self.commands.run('inspection', [sys.executable, args.inspection,
                 '--binary', args.binary, '--repo', args.repo, '--root', self.root / 'inspection',
                 '--compiler', args.compiler, '--runtime-root', args.runtime_root,
-                '--cache', self.root / 'inspection-cache', '--captured-config', args.inspection_config,
+                '--cache', getattr(args, 'cache', None) or self.root / 'inspection-cache', '--captured-config', args.inspection_config,
                 *(['--private-observation-config', args.private_observation_config]
                   if self.private is not None else [])]))
             self.inspection = row
@@ -356,7 +417,7 @@ class Onebox:
         self.frozen()
 
 
-def main():
+def main(arguments=None):
     parser = argparse.ArgumentParser(description=__doc__)
     for name in ['binary', 'support', 'repo', 'root', 'compiler', 'runtime-root']:
         parser.add_argument('--' + name, type=Path, required=True)
@@ -367,13 +428,16 @@ def main():
     parser.add_argument('--cache', type=Path)
     parser.add_argument('--prepare-only', action='store_true')
     parser.add_argument('--inspection', type=Path, default=CORPUS / 'onebox-inspection-check.py')
-    args = parser.parse_args()
+    args = parser.parse_args(arguments)
     for key, value in vars(args).items():
         if isinstance(value, Path):
             setattr(args, key, value.resolve())
     args.root.mkdir(mode=0o700, parents=True, exist_ok=False)
-    run = Onebox(args)
+    run = Onebox.__new__(Onebox)
+    run.gates = {cell: [] for cell in CELLS}
+    run.commands = Commands(args.root)
     try:
+        run.__init__(args)
         if args.prepare_only:
             run.perform('smoke-preparation')
             print(json.dumps(dict(row='smoke', preparation=run.preparations['smoke'])))

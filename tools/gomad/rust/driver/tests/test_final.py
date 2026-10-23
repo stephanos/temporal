@@ -15,7 +15,7 @@ class FinalReader(unittest.TestCase):
             return dict(schema='gomad.rust-driver-final-section/v1', source_sha256=config['source_sha256'],
                         identity=config['identity'], subgates=[dict(id=name, status='PASS', executed=True, exit=0) for name in ids])
         rows = [report(wanted[:124]), report(wanted[124:])]
-        self.assertEqual(len(final.merge_reports(config, rows)), 145)
+        self.assertEqual(len(final.merge_reports(config, rows)), 146)
         for mutation in ('missing', 'duplicate', 'unexecuted', 'foreign', 'synthetic', 'skipped'):
             changed = [report(wanted[:124]), report(wanted[124:])]
             if mutation == 'missing': changed.pop()
@@ -28,10 +28,10 @@ class FinalReader(unittest.TestCase):
 
 
 class ReceivingPartition(unittest.TestCase):
-    def test_exact_124_live_13_receiving_and_eight_unbound(self):
+    def test_exact_124_live_14_receiving_and_eight_unbound(self):
         import final
         self.assertEqual(len(final.live.required()), 124)
-        self.assertEqual(len(final.receiving.OWNED), 13)
+        self.assertEqual(len(final.receiving.OWNED), 14)
         self.assertEqual(final.remaining_ids(), {
             'fn185-R4/qualified-workload-choice-wasi-network-stdout-stderr-preservation',
             'fn185-R4/runtime-cost-equivalent-release-behavior',
@@ -43,13 +43,13 @@ class ReceivingPartition(unittest.TestCase):
             'terminal/current-host-admission-and-linked-attribution',
         })
 
-    def test_receiving_source_presence_cannot_replace_actual_thirteen_results(self):
+    def test_receiving_source_presence_cannot_replace_actual_fourteen_results(self):
         import final
         from unittest.mock import patch
         config = dict(source_sha256='a'*64, identity=dict(host='b'*64, helper='c'*64))
         rows = [dict(id=name, status='PASS', executed=True, exit=0) for name in final.receiving.OWNED]
         with patch.object(final.receiving, 'read_receiving', return_value=rows) as reader:
-            self.assertEqual(len(final.receiving_report(config)['subgates']), 13)
+            self.assertEqual(len(final.receiving_report(config)['subgates']), 14)
             reader.assert_called_once_with(config)
         for mutation in ('missing', 'duplicate', 'unexecuted', 'failed'):
             changed = [dict(row) for row in rows]

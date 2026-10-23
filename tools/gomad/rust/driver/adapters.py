@@ -375,7 +375,13 @@ def execute_primary(config, root, label):
     require(adapter in ('pending', expected), 'adapter does not preserve stage semantics: ' + label)
     if adapter == 'pending':
         raise Unexecuted(label + ': ' + entry.get('reason', 'actual Rust endpoint unavailable'))
-    if adapter == 'checked-command': return checked_command(config, root, label, entry)
+    if adapter == 'checked-command':
+        result = checked_command(config, root, label, entry)
+        if label == 'temporal-inspection' and config.get('fn222'):
+            from onebox_receiving import binding
+            argv, _, _ = binding(config)
+            command(config, root, 'fn222', argv, timeout=3600)
+        return result
     if adapter == 'sqlite-selection':
         import sqlite
         return sqlite.select(config, root, label, entry)

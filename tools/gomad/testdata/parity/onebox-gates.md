@@ -39,8 +39,8 @@ its validated wrapper gate has exit 0 only after an independent public `report`
 and linked `check-result` both succeed. A CLI exit alone cannot earn a gate.
 
 Every process retains canonical private `gomad.rust-onebox-command/v1` JSON
-binding exact argv, executable path/hash, actual PID, numeric exit, elapsed
-nanoseconds, mandatory intent, and complete stdout/stderr sizes, hashes and
+binding exact argv, executable path/hash, actual PID, numeric exit, wall-clock start/end, elapsed
+nanoseconds, selected environment facts/hash, mandatory intent, and complete stdout/stderr sizes, hashes and
 paths. Optional private observations preserve the original native seal. Stage
 logs retain these nested command facts. The support request binds each Result
 to its original command receipt and records all eight ordered row gates,
@@ -58,10 +58,13 @@ or another candidate change requires a new run. The final R12 validator still
 owns independent admission of private observation seals; merely preserving an
 optional seal field does not establish final qualification.
 
-The default parity inspection tool currently refuses
-`--private-observation-config`. Such a run stops at inspection until the
-integrated inspection adapter supports that exact private context. It cannot
-silently omit those controls. No measured qualification has been run by the
+The existing inspection entry point delegates its onebox owner to the parity
+gate, retaining the private observation context and original source/cache
+controls. Shard and workflow owners retain their original reader contracts.
+Each native command is registered before a gated launcher can execute it, so
+the global driver can clean the transitive wrapper/native process tree.
+Native compiler groups remain in the registered session; timeout cleanup stops
+and kills all session members. No measured qualification has been run by these
 bounded fixtures:
 
 ```sh
