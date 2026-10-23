@@ -201,7 +201,7 @@ fn classify_request_with_environment<'a>(
         &arguments[command_index + 1..],
         &required_tags,
         deadline,
-        PackageQuery {
+        &PackageQuery {
             environment: &packages_environment(inherited, command == "test")?,
             identity_only: false,
         },
@@ -263,7 +263,7 @@ fn guest_packages(
         arguments,
         required_tags,
         deadline,
-        PackageQuery {
+        &PackageQuery {
             environment: &packages_environment(&std::collections::BTreeMap::new(), true)?,
             identity_only: true,
         },
@@ -440,7 +440,7 @@ fn packages(
     arguments: &[OsString],
     required_tags: &[String],
     deadline: Instant,
-    query: PackageQuery<'_>,
+    query: &PackageQuery<'_>,
 ) -> Result<Vec<Package>, String> {
     let scratch = process::Temporary::new(&cache_root()?)?;
     let mut list = vec!["list".into(), "-e".into(), "-json".into(), "-find".into()];
