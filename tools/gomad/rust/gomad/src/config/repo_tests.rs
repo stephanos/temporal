@@ -38,7 +38,7 @@ guest = [
     fs::write(root.0.join("gomad.toml"), "runtime_root='runtime'\n").unwrap();
     let config = Repo::discover(&root.0).unwrap();
     assert_eq!(config.derive, Derivation::Default);
-    assert!(config.guest.is_empty());
+    assert_eq!(config.guest, Vec::<String>::new());
 }
 
 #[test]

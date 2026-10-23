@@ -33,15 +33,7 @@ pub(crate) fn build(
     };
     let mut configured = convert(original, profile)?;
     if temporal.is_some() {
-        configured.build_tags = [
-            "disable_grpc_modules",
-            "gomad_wasm_slim",
-            "sqlite3_dotlk",
-            "test_dep",
-        ]
-        .into_iter()
-        .map(str::to_owned)
-        .collect();
+        configured.build_tags = temporal_build_tags();
     }
     Ok(configured)
 }
@@ -165,6 +157,18 @@ struct Child {
 const STOCK: &str = "gomad.wasi-stock-exploratory/v1";
 const COOPERATIVE: &str = "gomad.wasi-cooperative/v1";
 const EPOCH: u64 = 946_684_800_000_000_000;
+pub(crate) fn temporal_build_tags() -> Vec<String> {
+    [
+        "disable_grpc_modules",
+        "gomad_wasm_slim",
+        "sqlite3_dotlk",
+        "test_dep",
+    ]
+    .into_iter()
+    .map(str::to_owned)
+    .collect()
+}
+
 fn decode(text: Option<&str>) -> Result<Vec<u8>, String> {
     crate::qualify::cells::base64(text.unwrap_or(""))
         .ok_or_else(|| "invalid configuration base64".into())

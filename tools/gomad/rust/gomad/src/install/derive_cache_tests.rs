@@ -104,6 +104,7 @@ fn derive_cache_refuses_changed_implementation_executable_and_unpinned_inputs() 
         "helper_sha256",
         "host_executable_sha256",
         "compiler_inputs",
+        "excluded_build_tags",
     ] {
         let (root, repo) = repository();
         let cache = root.0.join("cache");
@@ -112,6 +113,8 @@ fn derive_cache_refuses_changed_implementation_executable_and_unpinned_inputs() 
         let mut value: serde_json::Value = serde_json::from_slice(&raw).unwrap();
         if matches!(field, "host_sha256" | "helper_sha256") {
             value[field] = serde_json::json!("0".repeat(64));
+        } else if field == "excluded_build_tags" {
+            value[field] = serde_json::json!(["disallowed"]);
         } else if field == "host_executable_sha256" {
             value["admission"][field] = serde_json::json!("0".repeat(64));
         } else {
@@ -154,4 +157,23 @@ fn derive_cache_serializes_concurrent_hits_and_refuses_unsafe_owners() {
     fs::remove_file(changed).unwrap();
     fs::set_permissions(path.parent().unwrap(), fs::Permissions::from_mode(0o755)).unwrap();
     assert!(derive(&compiler, &repo, "pkg", &cache).is_err());
+}
+
+#[test]
+fn excluded_tag_policy_preserves_historical_empty_canonical_bytes() {
+    let (root, repo) = repository();
+    let (_, path) = publish_candidate(&root.0.join("cache"), &repo);
+    let raw = manifest::read(&path, 16 << 20).unwrap();
+    let mut value: serde_json::Value = serde_json::from_slice(&raw).unwrap();
+    assert!(value.get("excluded_build_tags").is_none());
+    value["excluded_build_tags"] = serde_json::json!([]);
+    let decoded: Installation = serde_json::from_value(value.clone()).unwrap();
+    assert_eq!(canonical::encode(&decoded).unwrap(), raw);
+    value["excluded_build_tags"] = serde_json::json!(["disallowed"]);
+    let decoded: Installation = serde_json::from_value(value.clone()).unwrap();
+    manifest::validate(&decoded).unwrap();
+    assert_ne!(canonical::encode(&decoded).unwrap(), raw);
+    value["excluded_build_tags"] = serde_json::json!(["test_dep"]);
+    let decoded: Installation = serde_json::from_value(value).unwrap();
+    assert!(manifest::validate(&decoded).is_err());
 }

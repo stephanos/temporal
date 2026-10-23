@@ -55,13 +55,17 @@ impl Invocation {
         injected
             .iter()
             .cloned()
-            .chain(original.iter().enumerate().filter_map(|(index, value)| {
-                (self.remove_arguments.binary_search(&index).is_err()).then(|| value.clone())
-            }))
+            .chain(
+                original
+                    .iter()
+                    .enumerate()
+                    .filter(|(index, _)| self.remove_arguments.binary_search(index).is_err())
+                    .map(|(_, value)| value.clone()),
+            )
             .collect()
     }
 
-    pub fn rewritten_goflags(&self) -> Result<OsString, String> {
+    pub fn rewritten_goflags(&self) -> OsString {
         let raw = self.goflags_raw.as_bytes();
         let mut result = Vec::new();
         let mut cursor = 0;
@@ -71,54 +75,13 @@ impl Invocation {
             cursor = range.end;
         }
         result.extend_from_slice(&raw[cursor..]);
-        Ok(OsString::from_vec(result))
+        OsString::from_vec(result)
     }
 
     pub fn merged_tags(&self, required: &[String]) -> OsString {
-        let mut tags = self.tags.clone();
-        for tag in required {
-            let tag = OsString::from(tag);
-            if !tags.contains(&tag) {
-                tags.push(tag);
-            }
-        }
-        tags.sort();
-        tags.dedup();
-        let legacy = tags.iter().any(|tag| {
-            tag.is_empty()
-                || tag
-                    .as_bytes()
-                    .iter()
-                    .any(|byte| matches!(byte, b',' | b' ' | b'\''))
-        });
-        let mut bytes = Vec::new();
-        for tag in tags {
-            let tag = tag.as_bytes();
-            if legacy {
-                if tag.is_empty()
-                    || matches!(tag.first(), Some(b'\'' | b'"'))
-                    || tag.iter().any(|byte| space(*byte))
-                {
-                    let quote = if tag.contains(&b'\'') { b'"' } else { b'\'' };
-                    bytes.push(quote);
-                    bytes.extend(tag);
-                    bytes.push(quote);
-                } else {
-                    bytes.extend(tag);
-                }
-                bytes.push(b' ');
-            } else {
-                if !bytes.is_empty() {
-                    bytes.push(b',');
-                }
-                bytes.extend(tag);
-            }
-        }
-        OsString::from_vec(bytes)
+        crate::install::tags::merged(&self.tags, required)
     }
 
-    /// Tags and overlay come from the authenticated recipe. Repeated package-specific
-    /// compiler flags retain their GOFLAGS-then-argv order rather than collapsing to a map.
     pub fn build_arguments(&self, _original: &[OsString]) -> Result<Vec<String>, String> {
         self.build_flags
             .iter()
@@ -638,7 +601,7 @@ mod tests {
         assert_eq!(invocation.driver_ranges, [0..2, 4..5, 5..6]);
         assert_eq!(invocation.package_indices, [2, 3]);
         assert_eq!(invocation.count, Some("3".into()));
-        assert!(invocation.guest_ranges.is_empty());
+        assert_eq!(invocation.guest_ranges, Vec::<Range<usize>>::new());
         assert!(invocation.boundary.is_none());
     }
 
@@ -659,11 +622,14 @@ mod tests {
             ]);
             let invocation = inspect(&original, OsStr::new(""), Kind::Test).unwrap();
             assert_eq!(invocation.package_indices, [0]);
-            assert_eq!(invocation.guest_ranges, [start..6]);
+            assert_eq!(
+                invocation.guest_ranges,
+                Vec::from_iter(std::iter::once(start..6))
+            );
             assert_eq!(invocation.boundary, Some(Boundary { index: 1, kind }));
             assert!(!invocation.caller_exec);
             assert_eq!(invocation.count, None);
-            assert!(invocation.tags.is_empty());
+            assert_eq!(invocation.tags, Vec::<OsString>::new());
             let rewritten = invocation.rewritten_arguments(&original, &args(&["-count=1"]));
             assert_eq!(rewritten[1..], original);
         }
@@ -699,7 +665,7 @@ mod tests {
     #[test]
     fn unknown_equals_flag_completes_package_list_even_before_any_package() {
         let invocation = test(&["-custom=value", "./looks-like-package", "-race"], "").unwrap();
-        assert!(invocation.package_indices.is_empty());
+        assert_eq!(invocation.package_indices, Vec::<usize>::new());
         assert_eq!(invocation.guest_ranges, [0..1, 1..3]);
         assert!(invocation.effective.is_empty());
     }
@@ -707,7 +673,7 @@ mod tests {
     #[test]
     fn unknown_without_value_consumes_one_nonflag_and_keeps_looking_for_driver_flags() {
         let invocation = test(&["-custom", "./not-a-package", "-count=4"], "").unwrap();
-        assert!(invocation.package_indices.is_empty());
+        assert_eq!(invocation.package_indices, Vec::<usize>::new());
         assert_eq!(invocation.guest_ranges, [0..1, 1..2]);
         assert_eq!(invocation.count, Some("4".into()));
     }
@@ -776,7 +742,7 @@ mod tests {
             invocation.rewritten_arguments(&original, &args(&["-exec=gomad run-guest"])),
             args(&["-exec=gomad run-guest", "./pkg"])
         );
-        assert_eq!(invocation.rewritten_goflags().unwrap(), "");
+        assert_eq!(invocation.rewritten_goflags(), "");
     }
 
     #[test]
@@ -807,7 +773,7 @@ mod tests {
                 "-tags=guest"
             ])
         );
-        assert_eq!(invocation.rewritten_goflags().unwrap(), " -count=0");
+        assert_eq!(invocation.rewritten_goflags(), " -count=0");
     }
 
     #[test]
@@ -857,7 +823,7 @@ mod tests {
         let raw = OsStr::new("\t'-tags=foo bar'  -ldflags=x'y\"z\r\n-count=0");
         let invocation = inspect(&[], raw, Kind::Test).unwrap();
         assert_eq!(
-            invocation.rewritten_goflags().unwrap(),
+            invocation.rewritten_goflags(),
             "\t  -ldflags=x'y\"z\r\n-count=0"
         );
     }
@@ -919,7 +885,7 @@ mod tests {
             invocation.rewritten_arguments(&original, &args(&["-overlay=prepared.json"])),
             args(&["-overlay=prepared.json", "./pkg"])
         );
-        assert_eq!(invocation.rewritten_goflags().unwrap(), "");
+        assert_eq!(invocation.rewritten_goflags(), "");
     }
 
     #[test]
@@ -963,14 +929,18 @@ mod tests {
             (
                 vec!["-tags=x", "./cmd", "-race", "-exec=true"],
                 vec![1],
-                vec![2..4],
+                Vec::from_iter(std::iter::once(2..4)),
             ),
             (
                 vec!["main.go", "helper.go", "-race"],
                 vec![0, 1],
-                vec![2..3],
+                Vec::from_iter(std::iter::once(2..3)),
             ),
-            (vec!["--", "./cmd", "-race"], vec![1], vec![2..3]),
+            (
+                vec!["--", "./cmd", "-race"],
+                vec![1],
+                Vec::from_iter(std::iter::once(2..3)),
+            ),
         ] {
             let invocation = inspect(&args(&values), OsStr::new(""), Kind::Run).unwrap();
             assert_eq!(invocation.package_indices, packages);
@@ -987,9 +957,12 @@ mod tests {
             Kind::Build,
         )
         .unwrap();
-        assert_eq!(invocation.driver_ranges, [0..2]);
+        assert_eq!(
+            invocation.driver_ranges,
+            Vec::from_iter(std::iter::once(0..2))
+        );
         assert_eq!(invocation.package_indices, [2, 3]);
-        assert!(invocation.guest_ranges.is_empty());
+        assert_eq!(invocation.guest_ranges, Vec::<Range<usize>>::new());
         assert!(inspect(&args(&["-exec=true", "./cmd"]), OsStr::new(""), Kind::Build).is_err());
     }
 
@@ -1013,7 +986,10 @@ mod tests {
         )
         .unwrap();
         assert_eq!(invocation.count, None);
-        assert!(invocation.build_arguments(&[]).unwrap().is_empty());
+        assert_eq!(
+            invocation.build_arguments(&[]).unwrap(),
+            Vec::<String>::new()
+        );
     }
 
     #[test]

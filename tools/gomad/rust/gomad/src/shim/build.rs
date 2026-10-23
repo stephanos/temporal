@@ -598,7 +598,7 @@ mod tests {
         ]
         .map(OsString::from);
         let (actual, selected) =
-            output_arguments(argv, Path::new("/private/outputs"), OsStr::new("")).unwrap();
+            output_arguments(&argv, Path::new("/private/outputs"), OsStr::new("")).unwrap();
         assert_eq!(selected, Some(PathBuf::from("caller")));
         let global =
             ["/stock/go", "-C", "nested", "build", "-o=caller", "./cmd"].map(OsString::from);
@@ -732,7 +732,7 @@ mod tests {
         assert!(process.wait().unwrap().success());
         drop(Child {
             process,
-            deadline: Instant::now() - Duration::from_secs(10),
+            deadline: Instant::now().checked_sub(Duration::from_secs(10)).unwrap(),
         });
     }
 }

@@ -54,7 +54,7 @@ impl Marker {
             })
             || canonical::digest(&canonical::encode(&bindings)?) != invocation.installation_sha256
             || !bindings.iter().any(|(name, digest)| {
-                provenance["inputs"]["source"] == *name && digest == installation
+                provenance["inputs"]["go_build_info"]["path"] == *name && digest == installation
             })
         {
             return Err(
@@ -216,7 +216,7 @@ mod tests {
         })).unwrap();
         let invocation = invocation();
         let inputs = json!({"kind":"go-run","source":"fixture-main","arguments":[],"configuration":configuration,
-            "shared_driver_installations":[["fixture-main","6".repeat(64)]],
+            "shared_driver_installations":[["fixture-main","6".repeat(64)]],"go_build_info":{"path":"fixture-main"},
             "build_driver_registration":{"schema":"gomad.driver-registration/v1","process_id":7,
                 "invocation_sha256":canonical::digest(&canonical::encode(&invocation).unwrap()),
                 "compiler_sha256":invocation.compiler_sha256,"driver_argv_sha256":canonical::digest(&canonical::encode(&invocation.driver_argv).unwrap()),"module_root":"/private/outputs"}});

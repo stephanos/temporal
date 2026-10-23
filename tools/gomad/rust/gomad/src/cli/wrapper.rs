@@ -71,7 +71,10 @@ fn parse(arguments: &[OsString], installation: Option<&Path>) -> Result<Argument
             b"--installation" => parsed.installation = Some(value.into()),
             b"--artifacts" => parsed.artifacts = value.into(),
             _ => {
-                parsed.seeds = value.to_str().ok_or("seeds must be UTF-8")?.to_owned();
+                value
+                    .to_str()
+                    .ok_or("seeds must be UTF-8")?
+                    .clone_into(&mut parsed.seeds);
                 SeedSelection::parse(&parsed.seeds)?;
             }
         }
@@ -266,6 +269,8 @@ fn launch(
         .env("GOMAD_SHIM_RUN_DIR", &directory.path)
         .env_remove("GOMAD_SHIM_INVOCATION")
         .env_remove("GOMAD_SHIM_INVOCATION_SHA256")
+        .env_remove("GOMAD_SHIM_BUILD_CHILD")
+        .env_remove("GOMAD_SHIM_BUILD_CHILD_SHA256")
         .stdin(Stdio::inherit())
         .stdout(Stdio::inherit())
         .stderr(Stdio::inherit())

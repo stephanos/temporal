@@ -1,12 +1,15 @@
 use super::*;
 
 pub(crate) mod collection;
+pub(crate) mod shared;
 
 #[derive(Deserialize, Serialize)]
 #[serde(deny_unknown_fields)]
 pub(crate) struct Recipe {
     pub schema: String,
     pub import_path: String,
+    #[serde(default, skip_serializing_if = "Vec::is_empty")]
+    pub source_arguments: Vec<String>,
     pub options: ExploreOptions,
     pub installed: Installation,
     pub directory: PathBuf,
@@ -21,11 +24,43 @@ pub(crate) struct Recipe {
     pub inputs: Value,
 }
 
+pub(crate) fn prepare(options: &ExploreOptions, deadline: Instant) -> Result<Recipe, String> {
+    prepare_with_flags(options, &[], deadline)
+}
+
+pub(crate) fn prepare_with_flags(
+    options: &ExploreOptions,
+    build_flags: &[String],
+    deadline: Instant,
+) -> Result<Recipe, String> {
+    prepare_sources(options, build_flags, &[], deadline)
+}
+
 #[expect(
     clippy::too_many_lines,
-    reason = "Recipe generation inventories the compiler, overlay and sources in the existing ordered admission"
+    reason = "Shared source preparation preserves complete compiler, overlay and file-list admission"
 )]
-pub(crate) fn prepare(options: &ExploreOptions, deadline: Instant) -> Result<Recipe, String> {
+pub(crate) fn prepare_sources(
+    options: &ExploreOptions,
+    build_flags: &[String],
+    source_arguments: &[String],
+    deadline: Instant,
+) -> Result<Recipe, String> {
+    if !source_arguments.is_empty()
+        && (options.target_kind != "go-run"
+            || source_arguments.first() != Some(&options.source)
+            || source_arguments.iter().any(|source| {
+                source.starts_with('-')
+                    || std::path::Path::new(source).extension() != Some(std::ffi::OsStr::new("go"))
+            }))
+    {
+        return Err(failure("invalid concrete Go source file list"));
+    }
+    let operands = if source_arguments.is_empty() {
+        vec![options.source.clone()]
+    } else {
+        source_arguments.to_vec()
+    };
     process::check_deadline(deadline)?;
     let installed = installation(options)?;
     if options.soft_assertion_report_only && options.target_kind != "go-test" {
@@ -162,18 +197,24 @@ pub(crate) fn prepare(options: &ExploreOptions, deadline: Instant) -> Result<Rec
         flags.extend(["-overlay".into(), path.to_string_lossy().into_owned()]);
     }
     if !tags.is_empty() {
-        flags.extend(["-tags".into(), tags.join(",")]);
+        flags.extend([
+            "-tags".into(),
+            crate::install::tags::merged(&[], &tags)
+                .into_string()
+                .map_err(|_| failure("build tags are not UTF-8"))?,
+        ]);
     }
+    flags.extend(build_flags.iter().cloned());
     let mut list = vec!["list".into()];
     list.extend(flags.clone());
     list.extend(["-deps".into(), "-json".into()]);
     if options.target_kind == "go-test" {
         list.push("-test".into());
     }
-    list.push(options.source.clone());
+    list.extend(operands.iter().cloned());
     let mut package_arguments = vec!["list".into()];
     package_arguments.extend(flags.iter().cloned());
-    package_arguments.push(options.source.clone());
+    package_arguments.extend(operands.iter().cloned());
     let package = process::command(
         &installed.compiler_path,
         &package_arguments,
@@ -228,14 +269,28 @@ pub(crate) fn prepare(options: &ExploreOptions, deadline: Instant) -> Result<Rec
             )
         })
         .collect::<BTreeMap<_, _>>();
-    let inputs = json!({"schema":"gomad.rust-wasm-build-inputs/v1", "compiler":compiler,"compiler_path":installed.compiler_path,"compiler_sha256":installed.compiler_sha256,
+    let mut inputs = json!({"schema":"gomad.rust-wasm-build-inputs/v1", "compiler":compiler,"compiler_path":installed.compiler_path,"compiler_sha256":installed.compiler_sha256,
         "go_version":installed.go_version,"sources":sources,"runtime":runtime,"runtime_implementation":installed.runtime_implementation_sha256,
         "helper":linked::IMPLEMENTATION_SHA256,"host":env!("GOMAD_HOST_IMPLEMENTATION_SHA256"),"kind":options.target_kind,"source":options.source,
         "directory":directory,"arguments":options.target_args,"tags":tags,"configuration":configuration,"scenario":scenario,"network":installed.network,
         "build_flags":["-mod=readonly","-trimpath","-buildvcs=false","-pgo=off"],"environment":build_environment,"soft_assertion_report_only":options.soft_assertion_report_only});
+    if !source_arguments.is_empty() {
+        inputs["source_arguments"] = json!(source_arguments);
+    }
+    if !build_flags.is_empty() {
+        let mut committed = vec![
+            "-mod=readonly".to_owned(),
+            "-trimpath".into(),
+            "-buildvcs=false".into(),
+            "-pgo=off".into(),
+        ];
+        committed.extend(build_flags.iter().cloned());
+        inputs["build_flags"] = json!(committed);
+    }
     Ok(Recipe {
         schema: "gomad.driver-recipe/v1".into(),
         import_path,
+        source_arguments: source_arguments.to_vec(),
         options: options.clone(),
         installed,
         directory,
@@ -292,12 +347,14 @@ impl Recipe {
         let module_metadata = linked::module_metadata(&module).map_err(failure)?;
         inputs["module_metadata"] = serde_json::to_value(&module_metadata).map_err(failure)?;
         let toolchain = canonical::digest(&canonical::encode(&inputs)?);
+        let mut inventory_environment = environment.clone();
+        inventory_environment.insert("GOFLAGS".into(), String::new());
         let after = inventory::sources(
             &process::command(
                 &installed.compiler_path,
                 &list,
                 &directory,
-                &environment,
+                &inventory_environment,
                 &temporary.0,
                 128 << 20,
                 deadline,
@@ -400,11 +457,12 @@ impl Recipe {
                     .into(),
             );
         };
-        arguments.extend([
-            "-exec".into(),
-            format!("{launcher} run-guest"),
-            self.options.source.clone(),
-        ]);
+        arguments.extend(["-exec".into(), format!("{launcher} run-guest")]);
+        if self.source_arguments.is_empty() {
+            arguments.push(self.options.source.clone());
+        } else {
+            arguments.extend(self.source_arguments.iter().cloned());
+        }
         arguments.extend(self.options.target_args.iter().cloned());
         Ok(arguments)
     }
@@ -424,11 +482,41 @@ impl Recipe {
     }
 
     fn admit_external_bound(
-        mut self,
+        self,
         module: Vec<u8>,
         arguments: Vec<String>,
         invocation: &super::super::origin::Invocation,
         expected_argv: &[String],
+        metadata: &crate::evidence::symbolize::build_info::BuildInfo,
+        deadline: Instant,
+    ) -> Result<Prepared, String> {
+        let expected = expected_argv
+            .iter()
+            .map(|arg| super::super::origin::argument(std::ffi::OsStr::new(arg)))
+            .collect::<Vec<_>>();
+        let installation_sha256 = invocation.installation_sha256.clone();
+        self.admit_registered(
+            module,
+            arguments,
+            invocation,
+            &expected,
+            &installation_sha256,
+            metadata,
+            deadline,
+        )
+    }
+
+    #[expect(
+        clippy::too_many_arguments,
+        reason = "Actual module admission binds the existing recipe, exact driver and selected installation together"
+    )]
+    pub(crate) fn admit_registered(
+        mut self,
+        module: Vec<u8>,
+        arguments: Vec<String>,
+        invocation: &super::super::origin::Invocation,
+        expected: &[String],
+        installation_sha256: &str,
         metadata: &crate::evidence::symbolize::build_info::BuildInfo,
         deadline: Instant,
     ) -> Result<Prepared, String> {
@@ -437,7 +525,7 @@ impl Recipe {
         crate::install::manifest::admit_build(&selected.manifest)?;
         if self.schema != "gomad.driver-recipe/v1"
             || canonical::encode(&selected.manifest)? != canonical::encode(&self.installed)?
-            || selected.sha256 != invocation.installation_sha256
+            || selected.sha256 != installation_sha256
             || self.installed.compiler_sha256 != invocation.compiler_sha256
             || self.inputs["host"] != env!("GOMAD_HOST_IMPLEMENTATION_SHA256")
             || self.inputs["helper"] != linked::IMPLEMENTATION_SHA256
@@ -447,14 +535,12 @@ impl Recipe {
                 != serde_json::to_value(&self.configuration).map_err(failure)?
             || self.inputs["source"] != self.options.source
             || self.inputs["kind"] != self.options.target_kind
+            || (!self.source_arguments.is_empty()
+                && self.inputs["source_arguments"] != json!(self.source_arguments))
             || self.inputs["directory"] != json!(self.directory)
         {
             return Err(failure("intercepted driver recipe identity mismatch"));
         }
-        let expected = expected_argv
-            .iter()
-            .map(|arg| super::super::origin::argument(std::ffi::OsStr::new(arg)))
-            .collect::<Vec<_>>();
         if invocation.driver_argv != expected {
             return Err(failure(
                 "intercepted driver invocation does not match its recipe",
@@ -494,6 +580,34 @@ impl Recipe {
                     "intercepted module setting {name} mismatch"
                 )));
             }
+        }
+        for name in ["-asmflags", "-gcflags"] {
+            let prefix = format!("{name}=");
+            let expected = self
+                .flags
+                .iter()
+                .filter_map(|flag| flag.strip_prefix(&prefix))
+                .next_back();
+            let expected = if name == "-gcflags" {
+                expected.filter(|value| !value.is_empty())
+            } else {
+                expected
+            };
+            if values.get(name).map(String::as_str) != expected {
+                return Err(failure(format!(
+                    "intercepted module setting {name} mismatch"
+                )));
+            }
+        }
+        // Pinned Go omits linker flags and VCS settings when trimpath/buildvcs=false are set.
+        if values.contains_key("-ldflags")
+            || values
+                .keys()
+                .any(|key| key == "vcs" || key.starts_with("vcs."))
+        {
+            return Err(failure(
+                "intercepted module contains settings excluded by its recipe",
+            ));
         }
         for name in ["-race", "-msan", "-asan", "-cover"] {
             if values.get(name).is_some_and(|value| value != "false") {

@@ -788,6 +788,56 @@ const GO_LETTERS_AND_DIGITS: &[(u32, u32)] = &[
     (0x31350, 0x33479),
 ];
 
+pub(crate) fn merged(caller: &[std::ffi::OsString], required: &[String]) -> std::ffi::OsString {
+    use std::ffi::OsString;
+    use std::os::unix::ffi::{OsStrExt as _, OsStringExt as _};
+
+    let mut tags = caller.to_vec();
+    for tag in required {
+        let tag = OsString::from(tag);
+        if !tags.contains(&tag) {
+            tags.push(tag);
+        }
+    }
+    tags.sort();
+    tags.dedup();
+    let legacy = tags.iter().any(|tag| {
+        tag.is_empty()
+            || tag
+                .as_bytes()
+                .iter()
+                .any(|byte| matches!(byte, b',' | b' ' | b'\''))
+    });
+    let mut bytes = Vec::new();
+    for tag in tags {
+        let tag = tag.as_bytes();
+        if legacy {
+            if tag.is_empty()
+                || matches!(tag.first(), Some(b'\'' | b'"'))
+                || tag.iter().any(|byte| tag_space(*byte))
+            {
+                let quote = if tag.contains(&b'\'') { b'"' } else { b'\'' };
+                bytes.push(quote);
+                bytes.extend(tag);
+                bytes.push(quote);
+            } else {
+                bytes.extend(tag);
+            }
+            bytes.push(b' ');
+        } else {
+            if !bytes.is_empty() {
+                bytes.push(b',');
+            }
+            bytes.extend(tag);
+        }
+    }
+    OsString::from_vec(bytes)
+}
+
+fn tag_space(byte: u8) -> bool {
+    matches!(byte, b' ' | b'\t' | b'\n' | b'\r')
+}
+
 #[cfg(test)]
 mod tests {
     use super::*;
@@ -848,7 +898,7 @@ mod tests {
 
         let mut digest = Sha256::new();
         let mut encoded = [0; 4];
-        for code in 0..=0x10ffff_u32 {
+        for code in 0..=0x0010_ffff_u32 {
             if let Some(character) = char::from_u32(code)
                 && valid_tag(character.encode_utf8(&mut encoded))
             {

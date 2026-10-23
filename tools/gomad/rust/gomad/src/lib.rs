@@ -1,6 +1,7 @@
 pub mod backstop;
 pub mod campaign;
 pub mod cli;
+pub(crate) mod config;
 pub mod evidence;
 pub mod execute;
 #[cfg(feature = "determinism-fixture")]
@@ -27,5 +28,6 @@ mod live_runtime;
 pub(crate) mod minimize;
 pub(crate) mod qualify;
 pub mod replay;
+pub mod shim;
 pub mod slots;
 pub(crate) mod stress;

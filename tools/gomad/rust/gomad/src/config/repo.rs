@@ -56,9 +56,8 @@ impl Repo {
         let raw = manifest::read(&module_root.join("gomad.toml"), 64 << 10)?;
         let values = Parser::new(std::str::from_utf8(&raw).map_err(|_| "gomad.toml is not UTF-8")?)
             .document()?;
-        let runtime = match values.get("runtime_root") {
-            Some(Value::String(value)) => value,
-            _ => return Err("gomad.toml requires a runtime_root string".into()),
+        let Some(Value::String(runtime)) = values.get("runtime_root") else {
+            return Err("gomad.toml requires a runtime_root string".into());
         };
         let derive = match values.get("derive") {
             None => Derivation::Default,

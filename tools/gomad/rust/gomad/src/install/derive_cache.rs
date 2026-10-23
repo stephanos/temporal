@@ -120,6 +120,7 @@ fn candidate(
         storage: config.storage,
         network: config.network,
         build_tags: config.build_tags,
+        excluded_build_tags: Vec::new(),
     };
     let admission = Admission {
         compiler_inputs: BTreeMap::new(),
