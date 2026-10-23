@@ -33,7 +33,8 @@ def baseline_identity(value):
     require(value['schema']=='gomad.cluster-replay-inputs/v1' and value['toolchain_sha256']==digest(b'gomad.fixture-wat-source/v1'),'presence substituted recorded native fixture identity')
     config=value['configuration']
     handles=[dict(node=node,incarnation=incarnation) for node,incarnation in [('a',1),('b',1),('a',2)]]
-    require([item['handle'] for item in config['incarnations']]==[item['handle'] for item in value['retained']]==handles
+    require([item['handle'] for item in config['incarnations']]==handles
+            and [item['handle'] for item in value['retained']]==[handles[index] for index in (0,2,1)]
             and config.get('oracle_plan') is None and not config.get('nodes') and config['crash_groups']==[],'presence native baseline owner/presence differs')
     for item in config['incarnations']:
         require(item['module']['file']=='target/module.wasm' and item['module']['sha256']==MODULE_SHA256

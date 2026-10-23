@@ -16,7 +16,7 @@ def b64(raw):return base64.b64encode(raw).decode()
 def baseline():
     handles=[dict(node=node,incarnation=incarnation) for node,incarnation in [('a',1),('b',1),('a',2)]]
     return dict(schema='gomad.cluster-replay-inputs/v1',helper_sha256='a'*64,host_sha256='b'*64,runtime_implementation_sha256='c'*64,toolchain_sha256=gate.digest(b'gomad.fixture-wat-source/v1'),
-                configuration=dict(incarnations=[dict(handle=handle,module=dict(file='target/module.wasm',sha256=gate.MODULE_SHA256),runtime_sha256=gate.digest(b'inspect-runtime-implementation/v1')) for handle in handles],crash_groups=[]),retained=[dict(handle=handle) for handle in handles])
+                configuration=dict(incarnations=[dict(handle=handle,module=dict(file='target/module.wasm',sha256=gate.MODULE_SHA256),runtime_sha256=gate.digest(b'inspect-runtime-implementation/v1')) for handle in handles],crash_groups=[]),retained=[dict(handle=handles[index]) for index in (0,2,1)])
 
 
 def row(variant,spelling):
