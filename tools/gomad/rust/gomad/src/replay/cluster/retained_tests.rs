@@ -1613,3 +1613,7 @@ fn retained_ordinary_json_spellings_keep_exact_raw_authentication() {
 }
 #[path = "allocation_probe.rs"]
 pub(crate) mod allocation_probe;
+
+#[cfg(feature = "determinism-fixture")]
+#[path = "retained_output_capacity_tests.rs"]
+mod output_capacity_execution_tests;
