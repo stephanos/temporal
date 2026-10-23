@@ -41,7 +41,13 @@ and linked `check-result` both succeed. A CLI exit alone cannot earn a gate.
 Every process retains canonical private `gomad.rust-onebox-command/v1` JSON
 binding exact argv, executable path/hash, actual PID, numeric exit, wall-clock start/end, elapsed
 nanoseconds, selected environment facts/hash, mandatory intent, and complete stdout/stderr sizes, hashes and
-paths. Optional private observations preserve the original native seal. Stage
+paths. Each measured command also retains a `qualification_spec` witness with
+its clean absolute path, exact raw bytes in base64 and SHA-256 (at most 16 MiB).
+The runner snapshots it before launch and refuses a changed or missing spec
+after process exit while retaining the original witness and actual exit. The
+independent receivers decode those exact bytes and compare the complete
+registered envelope, including the 32 MiB World bound, rather than inferring
+omitted limits from a Result or seed plan. Optional private observations preserve the original native seal. Stage
 logs retain these nested command facts. The support request binds each Result
 to its original command receipt and records all eight ordered row gates,
 preparation receipt/hash/module, and the shared inspection receipt/hash. The
