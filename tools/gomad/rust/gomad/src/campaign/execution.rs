@@ -222,9 +222,17 @@ pub(crate) fn run_with_output(
     let (observed, metrics) = measured(admitted, &configuration.limits)?;
     #[cfg(feature = "determinism-fixture")]
     crate::live_backend::after_execution(job.ordinal, cancellation)?;
+    refuse_cache_failure(&observed.outcome)?;
     let mut result = publication(prepared, job, observed)?;
     result.metrics = metrics;
     Ok(result)
+}
+
+fn refuse_cache_failure(outcome: &linked::Outcome) -> std::result::Result<(), String> {
+    if crate::execute::cache_failure(outcome) {
+        return Err(format!("runner_failure: {}", outcome.message));
+    }
+    Ok(())
 }
 
 fn admit(
@@ -274,6 +282,7 @@ pub(crate) fn publication(
     job: &ledger::Job,
     observed: linked::Execution,
 ) -> std::result::Result<Result, String> {
+    refuse_cache_failure(&observed.outcome)?;
     let mut observed = observed;
     if let Some(raw) = observed.event_order.take() {
         observed.evidence.insert("event-order".into(), raw);

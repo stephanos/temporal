@@ -11,13 +11,22 @@ fn prepared(label: &str, invocation: &origin::Invocation) -> Prepared {
 }
 
 fn prepared_module(label: &str, invocation: &origin::Invocation, module: Vec<u8>) -> Prepared {
+    prepared_module_with_wall(label, invocation, module, 1000)
+}
+
+fn prepared_module_with_wall(
+    label: &str,
+    invocation: &origin::Invocation,
+    module: Vec<u8>,
+    wall_millis: u64,
+) -> Prepared {
     let configuration = Configuration {
         engine: gomad_wasmhost::linked::Conditions::compiled().configuration(),
         profile: "gomad.wasi-stock-exploratory/v1".into(),
         limits: crate::evidence::record::Limits {
             fuel: 1000,
             memory_bytes: 1 << 20,
-            wall_millis: 1000,
+            wall_millis,
             output_bytes: 1 << 20,
             evidence_bytes: 16 << 20,
         },
@@ -748,5 +757,93 @@ fn detached_pooled_artifact_authenticates_after_original_store_is_removed() {
     copied.authenticate_all().unwrap();
     assert_eq!(copied.manifest().record_sha256, original_record);
     assert_eq!(origin::authenticate(&copied).unwrap(), original_origin);
+    fs::remove_dir_all(root).unwrap();
+}
+
+#[test]
+fn poisoned_selected_cache_never_publishes_launcher_records_in_either_root() {
+    use crate::campaign::{
+        execution, launcher,
+        ledger::{Event, Job, Journal},
+    };
+    use gomad_wasmhost::linked;
+    use std::time::Duration;
+    let root = std::env::temp_dir().join(format!(
+        "gomad-cache-launcher-{}",
+        origin::identity().unwrap()
+    ));
+    fs::create_dir(&root).unwrap();
+    fs::set_permissions(&root, fs::Permissions::from_mode(0o700)).unwrap();
+    for name in ["first", "second"] {
+        let module = br#"(module (memory (export "memory") 1) (func (export "_start")))"#.to_vec();
+        let mut prepared = prepared_module_with_wall(name, &invocation(), module, 10_000);
+        let cache = root.join(name);
+        prepared.compile_cache_root = Some(cache.to_str().unwrap().into());
+        execution::run(
+            &prepared,
+            &Job {
+                ordinal: 0,
+                seed: 1,
+            },
+            Duration::from_secs(10),
+            &linked::Cancellation::default(),
+        )
+        .unwrap();
+        let entries: Vec<_> = fs::read_dir(&cache)
+            .unwrap()
+            .map(|entry| entry.unwrap().path())
+            .filter(|entry| {
+                entry
+                    .extension()
+                    .is_some_and(|extension| extension == "gomad-cache-v3")
+            })
+            .collect();
+        assert_eq!(entries.len(), 1);
+        let mut bytes = fs::read(&entries[0]).unwrap();
+        *bytes.last_mut().unwrap() ^= 1;
+        fs::write(&entries[0], bytes).unwrap();
+        let mut ignored = false;
+        let mut options =
+            super::super::explore::parse(&["go-run".into(), "fixture".into()], &mut ignored)
+                .unwrap();
+        options.artifacts = root.join(format!("artifacts-{name}"));
+        options.seeds = "1".into();
+        options.execution_timeout = Duration::from_secs(10);
+        options.json = true;
+        let error = launcher::run(
+            &options,
+            &prepared,
+            Instant::now() + Duration::from_secs(30),
+        )
+        .err()
+        .expect("cache failure produced a launcher publication");
+        assert!(error.contains("compile cache: corrupt entry"), "{error}");
+        assert!(error.contains(cache.to_str().unwrap()));
+        let launch = origin::from_preparation(&prepared)
+            .unwrap()
+            .unwrap()
+            .launch
+            .unwrap();
+        let campaign = options
+            .artifacts
+            .join("campaigns")
+            .join(format!("campaign-{}", launch.invocation_id));
+        let journal = Journal::open(&campaign, false).unwrap();
+        assert!(
+            journal
+                .events()
+                .iter()
+                .all(|event| matches!(event, Event::Admit { .. }))
+        );
+        let artifact = journal
+            .open_artifact(journal.plan()["prepared_artifact"].as_str().unwrap())
+            .unwrap();
+        let record = artifact.manifest().record.bytes().unwrap();
+        assert!(
+            !String::from_utf8(record)
+                .unwrap()
+                .contains(cache.to_str().unwrap())
+        );
+    }
     fs::remove_dir_all(root).unwrap();
 }

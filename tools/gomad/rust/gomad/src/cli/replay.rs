@@ -214,8 +214,7 @@ pub(crate) fn run_prepared(
         message: format!("execute replay target: {error}"),
     })?;
     if observed.outcome.termination == "infrastructure"
-        || observed.outcome.termination == "capacity"
-            && observed.outcome.message == "compile cache artifact capacity"
+        || crate::execute::cache_failure(&observed.outcome)
     {
         return Err(super::Error {
             status: 3,
