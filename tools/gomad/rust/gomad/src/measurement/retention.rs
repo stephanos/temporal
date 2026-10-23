@@ -651,3 +651,7 @@ fn collect(store: &File, path: &Path) -> Result<(Vec<String>, Vec<PathBuf>), Str
 #[cfg(test)]
 #[path = "retention_tests.rs"]
 mod tests;
+
+#[cfg(test)]
+#[path = "retention_process_tests.rs"]
+mod process_tests;
