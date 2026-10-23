@@ -316,3 +316,14 @@ named multiline regression. `lexical-extracted-test.log` is exit0 for a direct
 regression extracted from the source; the complete inventory rerun is recorded
 separately as `inventory-lexical-candidate.log`. This extraction is a focused
 parser check, not a replacement for the unfiltered reference gate.
+
+Final integrated source checks completed: `runtime-clock-contract-tests.log`
+exit0 (2/2 ordinary release runtime contract unit tests); the complete
+`inventory-lexical-candidate.log` exit101 (29/30 pass, solely the same26 deleted-Go
+reference failures). New lexical hardening, exact runtime clock rows, source
+architecture and append-only ledger all pass at `f992993a56`. This remains a
+source candidate, with independent trust review and counterpart integration
+pending; no live runtime matrix/stress/full qualification was run here. Own target
+is retained for parent integration and no assigned process still uses it. The
+extracted scanner evidence and binary are retained with their raw focused log;
+no unregistered scratch checkout remains. Latest free disk:84GiB.
