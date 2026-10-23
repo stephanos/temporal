@@ -1,5 +1,78 @@
 # Rust integration development checkpoint
 
+Current source: `e89dc0a247`, retained by `gomad` head `e944295e58`.
+Observed 2026-10-23T07:09:20.810374+00:00. **Development verification only.** fn-232.13/R12-R14,
+fn-222.1/R1-R2 and final retirement acceptance remain open. No final frozen
+qualification or per-test support claim is recorded.
+
+The combined root includes the single Rust workspace/default host, authenticated
+runtime receiving reader, transitive process cleanup, explicit Temporal policies,
+original tag-token compatibility, onebox orchestration and exact raw Spec/scenario
+witnesses, private alias inspection caches, support publication/validation,
+installed-engine cache propagation, cluster aggregate facts, determinism guards,
+and full compiler/preparation inventory/cache receiving controls.
+
+Root verification of the current source:
+
+- Release library: **351 passed, 2 opt-in probes ignored**, exit 0.
+- Tracked Python driver: **172 passed**; workload tools: **20 passed**, both exit 0.
+- Release all-target strict Clippy with `-D warnings`: exit 0.
+- All commands used the isolated retirement integration target and two build jobs;
+  the release library tests ran serially. Exact raw logs and hashes are in the
+  companion JSON under checkpoint `e944295e58`.
+
+Preparation's exact-source real Go 1.27.1 probe separately passed cold/warm
+compilation, scoped GOMAXPROCS/GOTMPDIR/GOWASM/-p controls, changed-argument warm
+admission and source invalidation. Both independently read private sidecars
+preserved complete 9-compiler/430-source inventories. This is compiler/preparation
+proof, not guest qualification. Evidence:
+`/home/agent/wt/evidence/fn232-preparation-integration-20261023/files.json`.
+Old Rust optional World fields remain omitted rather than reserializing historical
+configurations; new runtime preparation and the independent reader require the
+explicit default 64 MiB World capacity. Actual execution enforcement is still
+being completed in the core branch and earns no pass here.
+
+Earlier integrated checkpoints retain these exact scopes:
+
+- `8c75c49970`: required `make -C tools/gomad lint-rust` passed all 13 supported
+  host/helper feature configurations. Three preceding attempts failed with
+  concrete test conversions, a conformance-only unused method and linked tests
+  referencing APIs absent from conformance builds. Checked conversions and
+  matching existing feature guards fixed them without suppressions. The four
+  affected boundary tests passed; retained Go archcheck/protocol tests passed.
+  Independent same-family review found no behavior or applicable coverage loss.
+- `9a1807bdce`: 332 library tests passed, one ignored; default strict Clippy and
+  release support example build passed. Onebox orchestration 14, inspection 22
+  and driver 154 tests passed. Source review closed both the compiler-alias
+  cache collision and exact inspection recording-envelope findings. These
+  checks precede the latest preparation changes and are not relabeled.
+
+## Remaining acceptance
+
+Core World transition-byte enforcement and public artifact/replay coverage,
+measurement/native producer preservation and its strict feature checks, actual
+terminal/cleanup controls, interception acceptance, and the coherent source-effect
+inventory append remain under their existing isolated owners. All 26 historical
+Go inventory obligations still require exact receiving reconciliation; the
+relocated Namespace conformance root remains an actual retained Go oracle.
+Removed subprocess transport predicates need explicit native applicability
+mapping, not blanket skips or aliases to generic success tests.
+
+The final frozen 32-by-25 runtime matrix, required workload and retained-replay
+cells, complete `test-wasm` behavioral reach, raw/golden lanes and second
+regeneration, 3,600-second qualification cycle, support publication, suite sweep,
+profiling and final size comparison remain pending. Earlier scoped executions
+retain their original source/binary identities. They do not qualify this source.
+
+Open-spec worktrees and their evidence remain retained for active source and
+acceptance owners. User `tools/gomad/.turbo` files and the old generated helper
+binary remain untouched. Root's isolated target is inactive after the checks,
+retained for further integration. Latest disk observation: checkout 139 GiB
+free; `/home/agent` 50 GiB free. No root cache/evidence deletion.
+
+## Historical checkpoint observations
+
+
 Snapshot: 2026-10-23 06:23:55 UTC. Integrated source: `gomad` `292b8f8848e91ec0dade547044bb7ef668b5fba6`, from starting integration `0fee7dcb2b`. This is a development checkpoint. fn-232.13/R12-R14 and fn-222.1/R1-R2 remain open; no frozen qualification or retirement acceptance is recorded.
 
 ## Integrated source
