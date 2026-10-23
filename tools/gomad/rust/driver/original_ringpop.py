@@ -66,6 +66,28 @@ def archive_inventory(path):
     return dict(files=files, symlinks=links)
 
 
+def extract_archive(path, root):
+    expected = archive_inventory(path)
+    for target in expected['symlinks'].values():
+        require(target and not Path(target).is_absolute() and '..' not in Path(target).parts,
+                'unsafe original source symlink target')
+    with tarfile.open(path) as handle:
+        handle.extractall(root, filter='data')
+    for name, target in expected['symlinks'].items():
+        link = root / name
+        require(link.is_symlink() and link.resolve().is_relative_to(root.resolve()),
+                'original source symlink escaped extraction root')
+        observed = os.readlink(link)
+        if observed != target:
+            require(target.startswith('./') and observed == target[2:],
+                    'unexpected original source symlink normalization')
+            link.unlink()
+            link.symlink_to(target)
+    actual = inventory(root)
+    require(actual == expected, 'original archive extraction inventory mismatch')
+    return actual
+
+
 def build_argv(plan, root):
     module = root / 'source/tools/gomad'
     return {
@@ -91,10 +113,7 @@ def prepare(plan, root):
     command(plan, root, 'archive', argv['archive'])
     source = root / 'source'
     source.mkdir(mode=0o700)
-    with tarfile.open(archive) as handle:
-        handle.extractall(source, filter='data')
-    before = inventory(source)
-    require(before == archive_inventory(archive), 'original archive extraction inventory mismatch')
+    before = extract_archive(archive, source)
     captured = source / CAPTURE_SOURCE
     original = captured.read_bytes()
     patched = capture_patch(original)

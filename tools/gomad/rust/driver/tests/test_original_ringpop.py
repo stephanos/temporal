@@ -1,6 +1,7 @@
 """Synthetic raw fixtures exercise custody refusals; never qualification evidence."""
 import base64
 import io
+import os
 from pathlib import Path
 import subprocess
 import sys
@@ -55,6 +56,38 @@ class OriginalRingpop(unittest.TestCase):
             with tarfile.open(archive, 'w') as handle:
                 handle.addfile(tarfile.TarInfo('../escape'))
             with self.assertRaises(driver.Refusal): original.archive_inventory(archive)
+
+    def test_real_original_archive_preserves_every_file_and_literal_symlink(self):
+        with tempfile.TemporaryDirectory() as directory:
+            root = Path(directory)
+            archive, source = root / 'source.tar', root / 'source'
+            subprocess.run(['git', 'archive', '--format=tar', '--output=' + str(archive), original.REFERENCE],
+                           cwd=driver.HERE.parents[3], check=True)
+            source.mkdir()
+            actual = original.extract_archive(archive, source)
+            expected = original.archive_inventory(archive)
+            self.assertEqual(actual, expected)
+            self.assertEqual(len(actual['files']), 9603)
+            self.assertEqual(os.readlink(source / 'schema/elasticsearch/visibility/index_template_v7.json'),
+                             './versioned/v15/index_template_v7.json')
+            self.assertEqual({name: os.readlink(source / name) for name in expected['symlinks']}, expected['symlinks'])
+
+    def test_source_extraction_refuses_escaping_absolute_and_parent_link_targets(self):
+        for target in ('../outside', '/outside', 'inside/../data', './inside/../../outside'):
+            with self.subTest(target=target), tempfile.TemporaryDirectory() as directory:
+                root = Path(directory)
+                archive, source = root / 'source.tar', root / 'source'
+                source.mkdir()
+                with tarfile.open(archive, 'w') as handle:
+                    body = tarfile.TarInfo('data')
+                    body.size = 4
+                    handle.addfile(body, io.BytesIO(b'data'))
+                    link = tarfile.TarInfo('link')
+                    link.type, link.linkname = tarfile.SYMTYPE, target
+                    handle.addfile(link)
+                with self.assertRaises(driver.Refusal):
+                    original.extract_archive(archive, source)
+                self.assertFalse((root / 'outside').exists())
 
     def fixture(self, root, mutation=None):
         artifact = root / 'artifacts/success'
