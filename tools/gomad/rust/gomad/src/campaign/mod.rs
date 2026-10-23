@@ -261,6 +261,16 @@ fn restore(journal: &Journal) -> Result<prepare::Prepared, String> {
 }
 
 fn restore_from_plan(plan: &Value, opened: &Opened) -> Result<prepare::Prepared, String> {
+    let record = &opened.manifest().record;
+    if record.outcome.class != "prepared"
+        || record.outcome.termination != "prepared"
+        || record.outcome.exit_code.is_some()
+        || !record.outcome.reason.is_empty()
+        || record.seed != 0
+        || record.virtual_time_nanos != 0
+    {
+        return Err("campaign preparation record is not an unexecuted target".into());
+    }
     if plan["host_sha256"] != env!("GOMAD_HOST_IMPLEMENTATION_SHA256")
         || plan["helper_sha256"] != gomad_wasmhost::linked::IMPLEMENTATION_SHA256
     {
