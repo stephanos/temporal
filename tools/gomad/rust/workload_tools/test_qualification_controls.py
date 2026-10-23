@@ -114,3 +114,31 @@ class QualificationControls(unittest.TestCase):
             with patch.object(sys, 'argv', arguments), patch.dict(os.environ, {'GOMAD_WASM_TEMPORAL_BUILD_CACHE': '/other/cache'}), patch.object(producer, 'run', side_effect=AssertionError('must not dispatch')):
                 with self.assertRaisesRegex(ValueError, 'differs from frozen'):
                     producer.main()
+
+    def test_accepted_cache_alias_records_the_same_canonical_install_path(self):
+        class DispatchStopped(Exception):
+            pass
+        with tempfile.TemporaryDirectory() as temporary:
+            base = Path(temporary)
+            real = base/'real-cache'
+            real.mkdir()
+            alias = base/'accepted-cache-alias'
+            alias.symlink_to(real, target_is_directory=True)
+            root = base/'fresh'
+            arguments = ['producer.py', '--binary', '/abs/binary', '--repo', '/candidate', '--root', str(root),
+                         '--compiler', '/abs/compiler', '--runtime-root', '/abs/runtime', '--cache', str(alias),
+                         '--captured-config', str(base/'fixture-config'), '--workload', 'smoke', '--mode', 'success']
+            commands = []
+            def stop(path, name, argv, *args, **kwargs):
+                commands.append(argv)
+                raise DispatchStopped()
+            env = {name: '' for name in ['GOMAD_WASM_TEMPORAL_BUILD_CACHE', 'GOMAD_WASM_TEMPORAL_MIN_AVAILABLE_BYTES', 'GOMAD_WASM_QUALIFICATION_GUEST_PROFILE']}
+            env['GOMAD_WASM_TEMPORAL_BUILD_CACHE'] = str(alias)
+            with patch.object(sys, 'argv', arguments), patch.dict(os.environ, env), patch.object(producer, 'captured', return_value={'schema': 'bounded-fixture'}), patch.object(producer, 'run', side_effect=stop):
+                with self.assertRaises(DispatchStopped):
+                    producer.main()
+            controls = producer.json.loads((root/'qualification-controls.json').read_bytes())
+            installed = commands[0][commands[0].index('--cache')+1]
+            self.assertEqual(controls['build_cache'], installed)
+            self.assertEqual(installed, str(real))
+            self.assertEqual(controls['requested_build_cache'], str(alias))
