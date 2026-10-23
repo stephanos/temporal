@@ -327,3 +327,81 @@ fn resealed_backend_fuel_above_admitted_limit_refuses_public_intake() {
     );
     assert_eq!(output, Vec::<u8>::new());
 }
+
+#[test]
+fn native_terminal_snapshots_offered_output_before_public_outcome_is_mutable() {
+    let module = b"(module (memory (export \"memory\") 1) (func (export \"_start\")))".to_vec();
+    let mut prepared = linked::prepare(linked::Request {
+        module_sha256: canonical::digest(&module),
+        module,
+        limits: linked::Limits {
+            fuel: 10000,
+            memory_bytes: 65536,
+            wall_timeout: Duration::from_secs(5),
+            output_bytes: 1024,
+            evidence_bytes: 1 << 20,
+        },
+        model: None,
+        namespace: None,
+        storage: None,
+    })
+    .unwrap();
+    prepared.conditions(linked::Conditions::compiled());
+    let mut observed = std::thread::scope(|scope| {
+        scope
+            .spawn(move || linked::execute_prepared(prepared))
+            .join()
+            .unwrap()
+            .unwrap()
+    });
+    assert_eq!(observed.outcome.termination, "exit");
+    assert_eq!(observed.outcome.output_bytes, 0);
+    let raw = observed
+        .evidence
+        .get("native-output-accounting")
+        .expect("native terminal omitted its independent offered-output snapshot")
+        .clone();
+    let accounting: serde_json::Value = serde_json::from_slice(&raw).unwrap();
+    assert_eq!(accounting["schema"], "gomad.native-output-accounting/v1");
+    assert_eq!(accounting["offered_output_bytes"], 0);
+    observed.outcome.output_bytes = 1;
+    assert_eq!(observed.evidence["native-output-accounting"], raw);
+    assert!(observed.evidence.get("stdout").is_none_or(Vec::is_empty));
+    assert!(observed.evidence.get("stderr").is_none_or(Vec::is_empty));
+    let timing = observed.timing.unwrap();
+    assert!(timing.authorization_started <= timing.terminal_classified);
+    assert!(timing.terminal_classified <= timing.returned);
+}
+
+#[test]
+fn resealed_backend_invented_output_refuses_public_intake() {
+    let root =
+        Temporary::new(&Path::new(env!("CARGO_MANIFEST_DIR")).join("target/record-intake-tests"))
+            .unwrap();
+    let published = publish(&root.0.join("store"), "");
+    let record = assert_genuine(&published.path);
+    assert!(!record.streams.contains_key("output/stdout"));
+    assert!(!record.streams.contains_key("output/stderr"));
+    let backend: serde_json::Value = serde_json::from_slice(
+        &std::fs::read(published.path.join("evidence/backend-outcome.json")).unwrap(),
+    )
+    .unwrap();
+    assert_eq!(backend["output_bytes"], 0);
+    reseal_backend_counter(&published.path, "output_bytes", 1);
+    let authentication = Opened::open(&published.path).and_then(|opened| opened.authenticate_all());
+    let mut output = Vec::new();
+    let inspection = inspect(&published.path, &mut output);
+    assert!(
+        authentication
+            .unwrap_err()
+            .contains("backend outcome output")
+    );
+    assert!(
+        inspection
+            .err()
+            .unwrap()
+            .message
+            .contains("backend outcome output")
+    );
+    assert_eq!(output, Vec::<u8>::new());
+}
