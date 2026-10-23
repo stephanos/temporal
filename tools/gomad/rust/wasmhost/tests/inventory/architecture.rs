@@ -20,21 +20,40 @@ fn pure_imports(source: &str) -> Result<(), String> {
         .map(|(_, line)| strip_literals(line))
         .collect::<Vec<_>>()
         .join("\n");
-    let words: Vec<&str> = source
-        .split(|c: char| !c.is_alphanumeric() && c != '_')
-        .filter(|word| !word.is_empty())
-        .collect();
-    if let Some(host) = words
-        .iter()
-        .find(|word| matches!(**word, "rustix" | "libc"))
-    {
-        return Err(format!("modeled state imports host {host}"));
+    let mut tokens = Vec::new();
+    let bytes = source.as_bytes();
+    let mut index = 0;
+    while index < bytes.len() {
+        let start = index;
+        if bytes[index].is_ascii_alphanumeric() || bytes[index] == b'_' {
+            while index < bytes.len()
+                && (bytes[index].is_ascii_alphanumeric() || bytes[index] == b'_')
+            {
+                index += 1;
+            }
+        } else if bytes[index..].starts_with(b"::") {
+            index += 2;
+        } else {
+            index += source[index..].chars().next().unwrap().len_utf8();
+        }
+        let token = &source[start..index];
+        if !token.chars().all(char::is_whitespace) {
+            tokens.push(token);
+        }
     }
-    for pair in words.windows(2) {
-        if pair[0] == "std"
-            && !matches!(
-                pair[1],
-                "cell"
+    for (index, token) in tokens.iter().enumerate() {
+        if matches!(*token, "rustix" | "libc") {
+            return Err(format!("modeled state imports host {token}"));
+        }
+        if *token != "std" {
+            continue;
+        }
+        if tokens.get(index + 1) == Some(&"::") {
+            let module = *tokens.get(index + 2).ok_or("incomplete std module path")?;
+            if !matches!(
+                module,
+                "array"
+                    | "cell"
                     | "cmp"
                     | "collections"
                     | "convert"
@@ -55,19 +74,12 @@ fn pure_imports(source: &str) -> Result<(), String> {
                     | "string"
                     | "sync"
                     | "vec"
-            )
-        {
-            return Err(format!("modeled state imports host std::{}", pair[1]));
+            ) {
+                return Err(format!("modeled state imports host std::{module}"));
+            }
+        } else if index > 0 && matches!(tokens[index - 1], "use" | "crate") {
+            return Err("modeled state requires explicit std module paths".into());
         }
-    }
-    // A grouped std root can hide a second host module after the first allowed
-    // entry. Require explicit module-qualified paths instead of guessing imports.
-    let compact: String = source.chars().filter(|c| !c.is_whitespace()).collect();
-    if compact.contains("std::{")
-        || compact.contains("std::*")
-        || compact.contains("externcratestd")
-    {
-        return Err("modeled state requires explicit std module paths".into());
     }
     Ok(())
 }
@@ -112,7 +124,7 @@ fn native_modeled_state_rejects_host_imports_on_both_source_platforms() {
                 assert!(pure_imports(source).is_err(), "{platform} {name}: {source}");
             }
         }
-        pure_imports("use std::collections::BTreeMap; // std::env is documentation\n#[cfg(test)]\nmod tests {\n    use std::fs;\n}\n").unwrap();
+        pure_imports("struct Descriptor { std: u32 } let values = std::array::from_fn::<_, 2, _>(|i| i); use std::collections::BTreeMap; // std::env is documentation\n#[cfg(test)]\nmod tests {\n    use std::fs;\n}\n").unwrap();
     }
     assert!(!pure_model_file("namespace/transport.rs"));
 }

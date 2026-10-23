@@ -93,16 +93,18 @@ fn derived() -> Result<(SourceInventory, Scratch), String> {
     fs::create_dir(&scratch.0).map_err(|e| e.to_string())?;
     let output = scratch.0.join("sites.json");
     let stderr = scratch.0.join("stderr.log");
+    let argv: Vec<std::ffi::OsString> = vec![
+        go.clone(),
+        "run".into(),
+        "-mod=readonly".into(),
+        "-p=1".into(),
+        "./internal/backends/wasm/toolchain/cmd/runtimeinventory".into(),
+        root.as_os_str().to_owned(),
+        module.join("internal/model/runtimesource").into_os_string(),
+        scratch.0.join("overlay").into_os_string(),
+    ];
     let mut child = command()
-        .args([
-            "run",
-            "-mod=readonly",
-            "-p=1",
-            "./internal/backends/wasm/toolchain/cmd/runtimeinventory",
-        ])
-        .arg(&root)
-        .arg(module.join("internal/model/runtimesource"))
-        .arg(scratch.0.join("overlay"))
+        .args(&argv[1..])
         .stdout(Stdio::from(
             fs::File::create(&output).map_err(|e| e.to_string())?,
         ))
@@ -114,7 +116,7 @@ fn derived() -> Result<(SourceInventory, Scratch), String> {
     let deadline = Instant::now() + Duration::from_secs(120);
     loop {
         if let Some(status) = child.try_wait().map_err(|e| e.to_string())? {
-            fs::write(scratch.0.join("exit.json"), serde_json::to_vec(&serde_json::json!({"exit": status.code(), "go": go, "stock":root,"compiler":compiler,"compiler_version":compiler_version,"compiler_sha256":compiler_sha256,"argv":[go.clone(),"run".into(),"-mod=readonly".into(),"-p=1".into(),"./internal/backends/wasm/toolchain/cmd/runtimeinventory".into(),root.as_os_str().to_owned(),module.join("internal/model/runtimesource").into_os_string(),scratch.0.join("overlay").into_os_string()],"source_sha256":format!("{:x}",Sha256::digest(include_bytes!("runtime.rs")))})).map_err(|e|e.to_string())?).map_err(|e|e.to_string())?;
+            fs::write(scratch.0.join("exit.json"), serde_json::to_vec(&serde_json::json!({"exit": status.code(), "go": go, "stock":root,"compiler":compiler,"compiler_version":compiler_version,"compiler_sha256":compiler_sha256,"argv":argv,"source_sha256":format!("{:x}",Sha256::digest(include_bytes!("runtime.rs")))})).map_err(|e|e.to_string())?).map_err(|e|e.to_string())?;
             if !status.success() {
                 return Err(format!(
                     "runtime source derivation failed: {}",
