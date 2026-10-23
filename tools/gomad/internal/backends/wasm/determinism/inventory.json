@@ -320,7 +320,7 @@
     "rust:tests/inventory.rs:inventory_covers_every_operation",
     "rust:gomad/src/install/config/preservation_tests.rs:captured_arguments_environment_and_entropy_keep_complete_immutable_configuration_identity",
     "rust:src/model_preservation.rs:captured_arguments_environment_and_entropy_preserve_original_values_and_chunking",
-    "go:internal/backends/wasm/wasi:TestEnvironmentRejectsAmbiguousInputsAndMalformedCalls"
+    "go:internal/model/wasi:TestEnvironmentRejectsAmbiguousInputsAndMalformedCalls"
    ]
   },
   {
@@ -335,7 +335,7 @@
     "rust:tests/inventory.rs:inventory_covers_every_operation",
     "rust:gomad/src/install/config/preservation_tests.rs:captured_arguments_environment_and_entropy_keep_complete_immutable_configuration_identity",
     "rust:src/model_preservation.rs:captured_arguments_environment_and_entropy_preserve_original_values_and_chunking",
-    "go:internal/backends/wasm/wasi:TestEnvironmentRejectsAmbiguousInputsAndMalformedCalls"
+    "go:internal/model/wasi:TestEnvironmentRejectsAmbiguousInputsAndMalformedCalls"
    ]
   },
   {
@@ -350,7 +350,7 @@
     "rust:tests/inventory.rs:inventory_covers_every_operation",
     "rust:gomad/src/install/config/preservation_tests.rs:captured_arguments_environment_and_entropy_keep_complete_immutable_configuration_identity",
     "rust:src/model_preservation.rs:captured_arguments_environment_and_entropy_preserve_original_values_and_chunking",
-    "go:internal/backends/wasm/wasi:TestEnvironmentRejectsAmbiguousInputsAndMalformedCalls"
+    "go:internal/model/wasi:TestEnvironmentRejectsAmbiguousInputsAndMalformedCalls"
    ]
   },
   {
@@ -365,7 +365,7 @@
     "rust:tests/inventory.rs:inventory_covers_every_operation",
     "rust:gomad/src/install/config/preservation_tests.rs:captured_arguments_environment_and_entropy_keep_complete_immutable_configuration_identity",
     "rust:src/model_preservation.rs:captured_arguments_environment_and_entropy_preserve_original_values_and_chunking",
-    "go:internal/backends/wasm/wasi:TestEnvironmentRejectsAmbiguousInputsAndMalformedCalls"
+    "go:internal/model/wasi:TestEnvironmentRejectsAmbiguousInputsAndMalformedCalls"
    ]
   },
   {
