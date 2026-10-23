@@ -384,3 +384,80 @@ fn actual_measure_retained_command_preserves_requested_root_and_failed_diagnosti
     );
     private_tree(&failed);
 }
+
+#[test]
+fn actual_cluster_cache_comparison_requires_actual_preparation_metrics() {
+    let scratch = Scratch::new();
+    let standalone = scratch.request("cluster-cache", SUCCESS, false);
+    let mut guest = read(&standalone)["guest"].clone();
+    guest["model"] = json!({"configuration":{"entropy_key":vec![0u8;32],"working_directory_sha256":canonical::digest(b"/"),
+        "arguments":{"bytes":0,"count":0,"chunks":0},"environment":{"bytes":0,"count":0,"chunks":0},
+        "seed":0,"mode":1,"limit":4096,"diagnostics":false,"epoch_nanos":0,"read_step_nanos":0,"now":1,
+        "limits":{"calls":100,"transcript_bytes":4096,"pending_events":16}},"arguments":[],"environment":["PWD=/"],"replay_trace":null});
+    guest["namespace"] = json!({"entries":[],"writable_directories":[],"preopens":[[47]],"working_directory":[47],"stdin":[],"limits":{"files":16,"descriptors":16,"filesystem_bytes":4096,"output_bytes":1024},"epoch_nanos":0});
+    let handles = ["a", "b"].map(|node| json!({"node":node,"incarnation":1}));
+    let mut request = json!({"kind":"cluster","nodes":[],
+        "broker":{"seed":0,"pause_on_settle":false,"limits":{"max_requests":100,"max_events":100,"max_queued_events":100,"max_transitions":1000,"max_payload_bytes":4096,"max_string_bytes":1024}},
+        "network":null,"incarnations":handles.iter().map(|handle|json!({"handle":handle,"guest":guest,"network":null})).collect::<Vec<_>>(),
+        "steps":(["start","wait"].into_iter().flat_map(|action|handles.iter().map(move|handle|json!({"action":action,"handle":handle}))).collect::<Vec<_>>()),
+        "boundaries":[],"crash_groups":[],"wall_millis":5000,"evidence_bytes":1<<20});
+    let mut runs = Vec::new();
+    for cached in [false, true] {
+        if cached {
+            let cache = scratch.0.join("cache");
+            std::fs::DirBuilder::new()
+                .mode(0o700)
+                .create(&cache)
+                .unwrap();
+            request["compile_cache"] = json!(cache);
+        }
+        let input = scratch.write(
+            &format!("cluster-{cached}.json"),
+            &serde_json::to_vec(&request).unwrap(),
+        );
+        let output = scratch.0.join(format!("cluster-{cached}"));
+        let result = scratch.invoke(
+            env!("CARGO_BIN_EXE_gomad-measure"),
+            &[
+                "--linked-run".as_ref(),
+                input.as_os_str(),
+                output.as_os_str(),
+            ],
+        );
+        assert!(
+            result.status.success(),
+            "{}",
+            String::from_utf8_lossy(&result.stderr)
+        );
+        runs.push(evidence::read_profile_run(&output, ReadLimits::default()).unwrap());
+    }
+    assert_eq!(runs[1].incarnations.len(), 2, "{}", runs[1].root.outcome);
+    assert!(
+        runs[1].root.outcome["metrics"]["prepare_nanos"]
+            .as_u64()
+            .is_some_and(|value| value > 0)
+    );
+    let role = if cfg!(feature = "helper-diagnostic-fuel-off") {
+        evidence::VariantRole::DiagnosticFuelOff
+    } else if cfg!(feature = "helper-guest-profile") {
+        evidence::VariantRole::GuestProfile
+    } else if cfg!(feature = "helper-diagnostic-profile") {
+        evidence::VariantRole::DiagnosticProfile
+    } else {
+        evidence::VariantRole::Ordinary
+    };
+    let mask = || ComparisonMask::Variant {
+        baseline: role,
+        candidate: role,
+        gc: None,
+    };
+    evidence::compare(&runs[0], &runs[1], mask()).unwrap();
+    let mut missing = runs[1].clone();
+    missing
+        .root
+        .outcome
+        .as_object_mut()
+        .unwrap()
+        .remove("metrics");
+    assert!(evidence::compare(&runs[0], &missing, mask()).is_err());
+}

@@ -814,12 +814,29 @@ pub fn compare_replay(
     after: &NativeRun,
     expected_identity: &gomad_wasmhost::linked::ChoiceIdentity,
 ) -> Result<(), String> {
+    compare_replay_mode(before, after, expected_identity, false)
+}
+
+pub(crate) fn compare_prefix_replay(
+    before: &NativeRun,
+    after: &NativeRun,
+    identity: &gomad_wasmhost::linked::ChoiceIdentity,
+) -> Result<(), String> {
+    compare_replay_mode(before, after, identity, true)
+}
+
+fn compare_replay_mode(
+    before: &NativeRun,
+    after: &NativeRun,
+    expected_identity: &gomad_wasmhost::linked::ChoiceIdentity,
+    interrupted: bool,
+) -> Result<(), String> {
     let original_model = &before.request["guest"]["model"];
     let replay_model = &after.request["guest"]["model"];
     if before.request["kind"] != "standalone"
         || after.request["kind"] != "standalone"
         || original_model["configuration"]["mode"] != 1
-        || replay_model["configuration"]["mode"] != 2
+        || replay_model["configuration"]["mode"] != if interrupted { 3 } else { 2 }
         || !original_model["configuration"]["replay"].is_null()
         || !original_model["replay_trace"].is_null()
     {
@@ -847,7 +864,12 @@ pub fn compare_replay(
         .map(|byte| format!("{byte:02x}"))
         .collect();
     if raw != *trace
-        || declaration.prefix_control.is_some()
+        || if interrupted {
+            replay_model["configuration"]["replay"]["prefix_control"]
+                != json!({"cutoff":declaration.decisions,"override":null})
+        } else {
+            declaration.prefix_control.is_some()
+        }
         || canonical::encode(&declaration.execution_identity)?
             != canonical::encode(expected_identity)?
         || before.request["guest"]["module_sha256"] != expected_target

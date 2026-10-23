@@ -782,21 +782,37 @@ fn joined(running: Running) -> Result<Completed> {
 fn compile(
     engine: &Engine,
     prepared: &Prepared,
+    metrics: &mut Metrics,
 ) -> Result<BTreeMap<String, Arc<InstancePre<engine::State>>>> {
+    metrics.cache_hit = true;
     let mut modules = BTreeMap::new();
     for sealed in prepared.incarnations.values() {
         let request = &sealed.execution.request;
         if modules.contains_key(&request.module_sha256) {
             continue;
         }
+        let mut observed = Metrics::default();
         let module = linked::compile_module(
             engine,
             &sealed.execution.execute,
             &request.module,
-            &mut Metrics::default(),
+            &mut observed,
         )
         .map_err(|outcome| Error::msg(format!("{}: {}", outcome.termination, outcome.message)))?
         .0;
+        metrics.compile_nanos = metrics
+            .compile_nanos
+            .checked_add(observed.compile_nanos)
+            .ok_or_else(|| Error::msg("cluster compile timing overflow"))?;
+        metrics.cache_load_nanos = metrics
+            .cache_load_nanos
+            .checked_add(observed.cache_load_nanos)
+            .ok_or_else(|| Error::msg("cluster cache load timing overflow"))?;
+        metrics.cache_write_nanos = metrics
+            .cache_write_nanos
+            .checked_add(observed.cache_write_nanos)
+            .ok_or_else(|| Error::msg("cluster cache write timing overflow"))?;
+        metrics.cache_hit &= observed.cache_hit;
         let pre = engine::linker(engine, &module)?.instantiate_pre(&module)?;
         modules.insert(request.module_sha256.clone(), Arc::new(pre));
     }
@@ -816,7 +832,9 @@ fn execute_inner(
     session: &crate::linked_conditions::Session,
 ) -> Result<Execution> {
     let execution_started = std::time::Instant::now();
-    let modules = compile(engine, &prepared)?;
+    let mut metrics = Metrics::default();
+    let modules = compile(engine, &prepared, &mut metrics)?;
+    metrics.prepare_nanos = crate::metrics::elapsed(execution_started);
     let final_network_source = prepared
         .ids
         .iter()
@@ -1325,6 +1343,8 @@ fn execute_inner(
     if retained.is_none_or(|bytes| bytes > prepared.evidence_bytes) {
         return Err(Error::msg("linked cluster evidence capacity"));
     }
+    metrics.sample_process();
+    outcome.metrics = Some(Box::new(metrics));
     Ok(Execution {
         outcome,
         executed_steps,

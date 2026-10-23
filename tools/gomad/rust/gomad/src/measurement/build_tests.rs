@@ -787,7 +787,11 @@ fn historical_native_admission_binds_explicit_source_without_current_identity() 
         .parent()
         .unwrap();
     let raw_identity = build.join("artifact-identity.stdout");
-    write_json(&raw_identity, &receipt.identity).unwrap();
+    fs::write(
+        &raw_identity,
+        canonical::encode(&serde_json::to_value(&receipt.identity).unwrap()).unwrap(),
+    )
+    .unwrap();
     receipt
         .inputs
         .insert(raw_identity.clone(), hash(&raw_identity).unwrap());

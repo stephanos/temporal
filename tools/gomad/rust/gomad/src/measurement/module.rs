@@ -177,7 +177,9 @@ pub fn diagnostic_module_commands(
     build.push(target.into());
     Ok((list, build))
 }
-pub fn compiler_controls(call: &Invocation) -> Result<preparation::CompilerControls, String> {
+pub(crate) fn compiler_controls(
+    call: &Invocation,
+) -> Result<preparation::CompilerControls, String> {
     let mut environment = BTreeMap::new();
     environment.insert("GOMAXPROCS".into(), "1".into());
     for entry in &call.environ {

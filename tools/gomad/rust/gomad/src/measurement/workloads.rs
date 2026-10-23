@@ -614,6 +614,15 @@ fn apply(row: &RunSpec, mut input: Value, cache: &Path) -> Result<Value, String>
     }
     Ok(input)
 }
+pub(super) fn cache_directory(path: &Path) -> Result<(), String> {
+    use std::os::unix::fs::DirBuilderExt;
+    fs::DirBuilder::new()
+        .recursive(true)
+        .mode(0o700)
+        .create(path)
+        .map_err(|error| error.to_string())?;
+    crate::evidence::store::open::pin(path).map(|_| ())
+}
 fn cache(call: &Invocation, root: &Path, role: &str) -> Result<PathBuf, String> {
     let key = match role {
         "baseline" => "GOMAD_WASM_MATCHED_BASELINE_CACHE",
@@ -629,7 +638,7 @@ fn cache(call: &Invocation, root: &Path, role: &str) -> Result<PathBuf, String> 
     if !path.is_absolute() {
         return Err("compiled cache must be absolute".into());
     }
-    fs::create_dir_all(&path).map_err(|error| error.to_string())?;
+    cache_directory(&path)?;
     Ok(path)
 }
 pub(super) fn execute(
@@ -1295,7 +1304,7 @@ fn migration(call: &Invocation, proof: &CheckoutProof, root: &Path) -> Result<Pa
     if !cache.is_absolute() {
         return Err("migration compiled cache must be absolute".into());
     }
-    fs::create_dir_all(&cache).map_err(|error| error.to_string())?;
+    cache_directory(&cache)?;
     for name in ["choices", "runtime_probes", "time_probes"] {
         let guest = baseline
             .guests

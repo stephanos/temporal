@@ -587,6 +587,7 @@ fn load_prepared(common: &CommonReceipt) -> Result<module::Prepared, String> {
     }
     let prepared = module::Prepared {
         guest: crate::campaign::prepare::Prepared {
+            auxiliary: BTreeMap::new(),
             module,
             configuration: serde_json::from_value(provenance["configuration"].clone())
                 .map_err(|error| error.to_string())?,

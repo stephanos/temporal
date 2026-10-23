@@ -233,7 +233,7 @@ pub(super) fn execute(
     Ok(result)
 }
 
-fn observation(stdout: &[u8]) -> Result<Value, String> {
+pub(crate) fn observation(stdout: &[u8]) -> Result<Value, String> {
     let text = std::str::from_utf8(stdout).map_err(|error| error.to_string())?;
     let rows = text
         .lines()

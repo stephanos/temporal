@@ -177,6 +177,18 @@ pub fn dispatch(
             .inputs
             .get(variable)
             .ok_or_else(|| format!("missing --{}", inputs::flag(variable)))?;
+        if call.name == "namespace-sample" {
+            let _lease = retention::ChildLease::for_path(std::path::Path::new(requested))?.ok_or("namespace sample requires its authenticated parent child lease")?;
+            let result =
+                namespace_driver::run_sample(&call, &proof, std::path::Path::new(requested))?;
+            writeln!(
+                stdout,
+                "{}",
+                json!({"result":result,"requested_root":requested})
+            )
+            .map_err(|error| error.to_string())?;
+            return Ok(());
+        }
         let retained = retention::RetainedRun::begin(
             std::path::Path::new(requested),
             &call.name,

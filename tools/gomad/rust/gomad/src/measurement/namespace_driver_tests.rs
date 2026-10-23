@@ -47,3 +47,50 @@ fn native_digest_projection_requires_exact_canonical_payload_witness() {
     control.root.outcome["local_model"]["transcript_sha256"] = "a".repeat(64).into();
     assert!(digest_retention(&control, &retained).is_err());
 }
+
+#[test]
+fn dispatched_child_sample_reaches_parent_admission_without_a_nested_retention_store() {
+    let path = std::env::temp_dir().join(format!("gomad-child-dispatch-{}", std::process::id()));
+    fs::create_dir(&path).unwrap();
+    let parent = super::super::retention::RetainedRun::begin(
+        &path,
+        "parent",
+        &BTreeMap::new(),
+        false,
+        &|| false,
+    )
+    .unwrap();
+    let sample = parent.path().join("sample");
+    let call = Invocation {
+        name: "namespace-sample".into(),
+        repo: path.clone(),
+        go_command: "go".into(),
+        inputs: BTreeMap::from([
+            (
+                "GOMAD_WASM_NAMESPACE_SAMPLE_ROOT".into(),
+                sample.to_string_lossy().into_owned(),
+            ),
+            (
+                "GOMAD_WASM_NAMESPACE_COMMON".into(),
+                parent
+                    .path()
+                    .join("missing-common.json")
+                    .to_string_lossy()
+                    .into_owned(),
+            ),
+        ]),
+        environ: Vec::new(),
+        keep: false,
+    };
+    let proof = super::super::inputs::fixture_checkout(path.clone());
+    let expected = run_sample(&call, &proof, &sample).unwrap_err();
+    let mut stderr = Vec::new();
+    assert_eq!(
+        super::super::dispatch(call, proof, &mut Vec::new(), &mut stderr),
+        1
+    );
+    assert!(String::from_utf8(stderr).unwrap().contains(&expected));
+    assert!(!sample.exists());
+    drop(parent);
+    fs::remove_dir_all(path).unwrap();
+}

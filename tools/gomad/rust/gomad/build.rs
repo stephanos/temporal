@@ -1,4 +1,5 @@
 use sha2::{Digest, Sha256};
+use std::fmt::Write as _;
 use std::{collections::BTreeMap, env, fs, path::Path};
 
 fn sources(root: &Path, directory: &Path, files: &mut BTreeMap<String, Vec<u8>>) {
@@ -77,10 +78,11 @@ fn main() {
         "cargo:rustc-env=GOMAD_RUNTIME_IMPLEMENTATION_SHA256={:x}",
         runtime.finalize()
     );
-    let source_inputs: String = files
-        .iter()
-        .map(|(name, bytes)| format!("{:x}\t{name}\n", Sha256::digest(bytes)))
-        .collect();
+    let mut source_inputs = String::new();
+    for (name, bytes) in &files {
+        writeln!(&mut source_inputs, "{:x}\t{name}", Sha256::digest(bytes))
+            .expect("source input manifest string");
+    }
     fs::write(
         Path::new(&env::var_os("OUT_DIR").expect("build output directory"))
             .join("measurement-source-inputs.tsv"),

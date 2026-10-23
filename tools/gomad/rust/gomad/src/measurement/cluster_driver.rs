@@ -201,12 +201,18 @@ fn role(
 }
 
 fn success(run: &super::evidence::NativeRun) -> Result<(), String> {
-    if run.root.outcome["termination"] != "exit" || run.incarnations.len() != 4 {
+    if run.root.outcome["termination"] != "exit"
+        || run.root.outcome["exit_code"] != 0
+        || run.incarnations.len() != 4
+    {
         return Err(
             "two-cluster scenario failed or did not retain all four actual incarnations".into(),
         );
     }
     let mut seen = std::collections::BTreeSet::new();
+    let mut initial = std::collections::BTreeMap::new();
+    let mut observations = std::collections::BTreeMap::new();
+    let mut history = None;
     for incarnation in &run.incarnations {
         let handle = incarnation
             .handle
@@ -222,21 +228,52 @@ fn success(run: &super::evidence::NativeRun) -> Result<(), String> {
         {
             return Err("cluster actual incarnation membership differs".into());
         }
-        if generation == 2
-            && (incarnation.outcome["termination"] != "exit"
-                || incarnation.outcome["exit_code"] != 0)
+        let value = crate::stress::cluster::observation(
+            incarnation
+                .streams
+                .get("stdout")
+                .ok_or("cluster stdout absent")?,
+        )?;
+        if generation == 1 {
+            if incarnation.outcome["termination"] != "crash"
+                || !incarnation.streams.contains_key("storage_image")
+            {
+                return Err(
+                    "committed cluster incarnation did not retain crashed durable state".into(),
+                );
+            }
+            if history
+                .as_ref()
+                .is_some_and(|expected| expected != &value["history"])
+                || initial
+                    .values()
+                    .any(|previous: &Value| previous["cluster_id"] == value["cluster_id"])
+            {
+                return Err(
+                    "independent histories did not converge or cluster identities coincide".into(),
+                );
+            }
+            history = Some(value["history"].clone());
+            initial.insert(node, value.clone());
+        } else if incarnation.outcome["termination"] != "exit"
+            || incarnation.outcome["exit_code"] != 0
         {
             return Err("cluster reopened guest did not complete".into());
         }
-        let stdout = incarnation
-            .streams
-            .get("stdout")
-            .ok_or("cluster stdout absent")?;
-        if !stdout
-            .windows(b"GOMAD_TEMPORAL_OBSERVATION ".len())
-            .any(|window| window == b"GOMAD_TEMPORAL_OBSERVATION ")
-        {
-            return Err("cluster incarnation lacks actual Temporal observation".into());
+        observations.insert((node, generation), value);
+    }
+    if initial.len() != 2 {
+        return Err("missing independent original cluster commits".into());
+    }
+    for (node, original) in initial {
+        let value = observations
+            .get(&(node, 2))
+            .ok_or("missing reopened cluster observation")?;
+        crate::stress::cluster::history_oracle(&original, value)?;
+        for field in ["history", "cluster_id", "event_ids", "types"] {
+            if value[field] != original[field] {
+                return Err("committed cluster history or identity changed after crash".into());
+            }
         }
     }
     Ok(())
@@ -344,10 +381,23 @@ fn run_inner(call: &Invocation, proof: &CheckoutProof, root: &Path) -> Result<Pa
             row.warm = repetition > 0;
             let mut request = native_input(&prepared, seed)?;
             let cache = root.join(format!("seed{seed}-compile-cache"));
-            fs::create_dir_all(&cache).map_err(|error| error.to_string())?;
+            workloads::cache_directory(&cache)?;
             request["compile_cache"] = json!(cache);
             let result = workloads::execute(call, proof, root, &row, &candidate, request)?;
             success(&result)?;
+            let mut replay_request = result.request.clone();
+            let identity = prepared
+                .guest
+                .choice_identity
+                .as_ref()
+                .ok_or("cluster replay choice identity absent")?;
+            replay_input(&mut replay_request, &result, identity)?;
+            let mut replay_row = row.clone();
+            replay_row.name.push_str("-replay");
+            let replay =
+                workloads::execute(call, proof, root, &replay_row, &candidate, replay_request)?;
+            success(&replay)?;
+            compare_replay(&result, &replay, identity)?;
             if let Some(reference) = &reference_run {
                 evidence::compare(
                     reference,
@@ -413,10 +463,84 @@ pub fn replay_input(
             .get("choice")
             .ok_or("cluster replay actual choice bytes absent")?;
         let plan = linked::project_choices(trace, identity).map_err(str::to_owned)?;
-        let replay = json!({"schema":"gomad.replay-trace/v1","execution_identity":identity,"trace_sha256":canonical::digest(trace),"tape_sha256":canonical::digest(&plan.bytes),"decisions":plan.decisions.len(),"trace_bytes":trace.len(),"trace_frames":trace.len().div_ceil(65536),"prefix_control":null});
-        incarnation["guest"]["model"]["configuration"]["mode"] = json!(2);
+        let interrupted = matches!(
+            retained.outcome["termination"].as_str(),
+            Some("crash" | "storage_crash" | "stop")
+        );
+        let replay = json!({"schema":"gomad.replay-trace/v1","execution_identity":identity,"trace_sha256":canonical::digest(trace),"tape_sha256":canonical::digest(&plan.bytes),"decisions":plan.decisions.len(),"trace_bytes":trace.len(),"trace_frames":trace.len().div_ceil(65536),"prefix_control":if interrupted {Some(json!({"cutoff":plan.decisions.len(),"override":null}))} else {None}});
+        incarnation["guest"]["model"]["configuration"]["mode"] =
+            json!(if interrupted { 3 } else { 2 });
         incarnation["guest"]["model"]["configuration"]["replay"] = replay;
         incarnation["guest"]["model"]["replay_trace"] = json!(trace);
     }
     Ok(())
 }
+
+fn compare_replay(
+    before: &super::evidence::NativeRun,
+    after: &super::evidence::NativeRun,
+    identity: &gomad_wasmhost::linked::ChoiceIdentity,
+) -> Result<(), String> {
+    if before.incarnations.len() != after.incarnations.len()
+        || before.request["incarnations"].as_array().map(Vec::len)
+            != Some(before.incarnations.len())
+    {
+        return Err("cluster replay changed actual incarnation membership".into());
+    }
+    let mut normalized = after.clone();
+    let declarations = normalized.request["incarnations"]
+        .as_array_mut()
+        .ok_or("cluster replay declarations absent")?;
+    for (index, original) in before.incarnations.iter().enumerate() {
+        let handle = original
+            .handle
+            .as_ref()
+            .ok_or("cluster replay handle absent")?;
+        let actual_index = after
+            .incarnations
+            .iter()
+            .position(|value| value.handle.as_ref() == Some(handle))
+            .ok_or("cluster replay handle changed")?;
+        let original_request = before.request["incarnations"]
+            .as_array()
+            .unwrap()
+            .iter()
+            .find(|value| &value["handle"] == handle)
+            .ok_or("cluster original declaration absent")?;
+        let declaration = declarations
+            .iter_mut()
+            .find(|value| &value["handle"] == handle)
+            .ok_or("cluster replay declaration changed")?;
+        let mut left = before.clone();
+        let mut right = after.clone();
+        left.request = json!({"kind":"standalone","guest":original_request["guest"]});
+        right.request = json!({"kind":"standalone","guest":declaration["guest"]});
+        left.root = original.clone();
+        right.root = after.incarnations[actual_index].clone();
+        left.incarnations.clear();
+        right.incarnations.clear();
+        left.executed_steps = None;
+        right.executed_steps = None;
+        if matches!(
+            original.outcome["termination"].as_str(),
+            Some("crash" | "storage_crash" | "stop")
+        ) {
+            super::evidence::compare_prefix_replay(&left, &right, identity)?;
+        } else {
+            super::evidence::compare_replay(&left, &right, identity)?;
+        }
+        declaration["guest"] = original_request["guest"].clone();
+        for field in ["cursor", "tape_records", "tape_sha256"] {
+            normalized.incarnations[actual_index].outcome["local_model"][field] =
+                original.outcome["local_model"][field].clone();
+        }
+        if actual_index != index {
+            return Err("cluster replay changed retained incarnation order".into());
+        }
+    }
+    super::evidence::compare(before, &normalized, super::evidence::ComparisonMask::Exact)
+}
+
+#[cfg(test)]
+#[path = "cluster_driver_tests.rs"]
+mod tests;

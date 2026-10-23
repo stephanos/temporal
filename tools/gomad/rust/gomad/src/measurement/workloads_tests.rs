@@ -150,3 +150,18 @@ fn request_transformations_preserve_unrelated_arguments_and_bound_gc_off() {
     );
     assert!(apply(&row, transformed, Path::new("/cache")).is_err());
 }
+
+#[test]
+fn created_native_cache_is_private_and_existing_unsafe_cache_is_refused() {
+    use std::os::unix::fs::PermissionsExt;
+    let path =
+        std::env::temp_dir().join(format!("gomad-private-native-cache-{}", std::process::id()));
+    cache_directory(&path).unwrap();
+    assert_eq!(
+        fs::metadata(&path).unwrap().permissions().mode() & 0o777,
+        0o700
+    );
+    fs::set_permissions(&path, fs::Permissions::from_mode(0o755)).unwrap();
+    assert!(cache_directory(&path).is_err());
+    fs::remove_dir(&path).unwrap();
+}

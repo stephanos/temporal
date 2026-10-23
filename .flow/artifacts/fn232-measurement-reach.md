@@ -37,3 +37,61 @@ No Cargo, Go, guest build, native cache or compiler lease was used by this task.
 Qualification owns actual compiler preparation controls and raw auxiliary observations. Measurement uses the agreed scoped `CompilerControls` seam (GOMAXPROCS=1, absolute GOTMPDIR, GOWASM empty/satconv,signext, parallelismSome1). Those source changes must be integrated before compiling this batch. The Wasmtime compiled-module cache is distinct from the qualification-owned Go compilation cache.
 
 Host measurement implementation and named driver source are still being completed. Final checkpoint, exact root-to-native predicate mapping, receiving source hashes and remaining frozen candidate gates will be appended before handover. This document does not certify the subsystem as complete.
+
+## Receiving integration checkpoint (2026-10-23)
+
+The original dirty worktree was preserved in `fc5a12ccee`, after native source
+HEAD `0b537f1f9c`. Merge `f109db10c0` receives root `d71c795a8a`;
+`9e4f9b40da` connects the existing namespace/operation and cluster producers and
+repairs stale typed callers; `0cc497e67f` retains native fixture and documentation
+repairs. Merge `0523f4a475` receives preparation owner checkpoint `af826b8051`,
+including the complete compiler controls/inventory/cache source, instead of a
+second partial compiler seam. That dependency has its own pending review.
+
+Validation now uses the assigned isolated Cargo target
+`/home/agent/.cache/codex-build/fn232-measurement-new` from the workspace directory,
+which selects pinned Rust 1.99.1. An initial command from the repository root
+selected default Rust 1.98 and exited 101; it was not counted as a code result.
+Original WIP compilation found stale native Role arguments, missing Execution
+fields, an unimplemented promised compiler interface and orphaned producer
+modules. Those errors were repaired; no failed command supplies acceptance.
+
+Fresh native checks on the integrated source:
+
+- `cargo test -p gomad measurement --lib --no-default-features`: **104 passed,
+  exit 0**, `/home/agent/measurement-unit-integrated.log`. The suite covers actual
+  filesystem retention/leases, bounded command subprocess capture, native input
+  and evidence readers, original statistics/namespace bounds and source admission.
+  It does not execute the full original 119-root producer workloads.
+- `cargo test -p gomad --test measurement_profile_corpus --no-default-features`:
+  **3 passed, exit 0**, `/home/agent/measurement-public-ordinary.log`. Actual public
+  native subprocesses execute successful/trapping WASM and retained success then
+  invalid-request failure; raw modules, terminal streams, private modes, rerun
+  records and unchanged latest-success publication are read back and authenticated.
+- `cargo test -p gomad-wasmhost --lib linked::`: **5 passed, exit 0**,
+  `/home/agent/measurement-linked-unit.log`. The corresponding diagnostic-profile
+  build also passed 5, `/home/agent/measurement-linked-diagnostic.log`. One earlier
+  incorrectly narrow `linked::tests` selector executed zero tests and supplies no
+  proof. The helper suite includes actual terminal/cleanup timing and streaming
+  dispatch. The deprecated counter update call was subsequently renamed to the
+  pinned compiler's equivalent `try_update`; affected checks will be repeated.
+
+The terminal timing test does **not** replace the old seven external process
+control cases or their GroupGone guarantee. Their typed-native preservation is
+assigned separately to the cache/lifecycle owner. Generic WASI clock-folding and
+poll/clock equivalence are core preservation obligations, not satisfied by the
+measurement digest-comparison fixture.
+
+The catalogue-style `stress` adapter remains pending. Existing `stress --spec`,
+`--cell` and `--rerun` retain their separately documented native interface. The
+original stress recipe uses runtime_probes (256MiB, 4e9 fuel, 60s) and Temporal
+15m bounds; substituting the generic measurement runtime_cost/30m recipe is
+invalid. The original flags/source inventory remain required. All other 24
+catalogue names now reach their existing native producer implementations; this
+source wiring is not proof that all actual producer workloads have run.
+
+Full original callable/subvariant-to-native behavior coverage, complete actual
+producer runs, fn-232.13 frozen runtime/workload/replay qualification and fn-185.2/.3
+profiles remain pending. No inventory reference may be marked covered solely by
+these root names, parser fixtures or this handover. Independent source review is
+in progress in a fresh gpt-6.1-sol/high context (same GPT family as writer).

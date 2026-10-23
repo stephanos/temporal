@@ -463,6 +463,10 @@ pub fn execute(request: Request) -> wasmtime::Result<Execution> {
 
 /// # Errors
 /// Executes previously authenticated inputs with a fresh engine and store.
+#[expect(
+    clippy::too_many_lines,
+    reason = "Authorization, terminal classification and cleanup share the native timing scope"
+)]
 pub fn execute_prepared(prepared: Prepared) -> wasmtime::Result<Execution> {
     let Prepared {
         request,
