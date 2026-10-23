@@ -45,6 +45,25 @@ class AdapterContract(unittest.TestCase):
         wrong['Campaign']['Target']['Source'] = './tests/gomadfunctional'
         with self.assertRaises(driver.Refusal): self.adapters.validate_cell_spec(wrong, wanted)
 
+    def test_generated_source_declaration_matches_native_sha256_contract(self):
+        import configure
+        from unittest.mock import patch
+        class BudgetReached(Exception):
+            pass
+        label = 'workload-fixture-cooperative-success'
+        specification = configure.cell_spec(label, '/root', '/manifest', '1' * 64)
+        config = dict(files={'/spec': 'a' * 64}, source_sha256='1' * 64, installations={'fixture': '/installation'})
+        entry = dict(spec='/spec', installation='fixture')
+        with patch.object(self.adapters, 'read', side_effect=[specification, {}]), \
+             patch.object(self.adapters, 'validate_budget', side_effect=BudgetReached):
+            with self.assertRaises(BudgetReached):
+                self.adapters.qualify_cell(config, HERE, label, entry)
+        for changed in ('1' * 64, 'sha256:' + '2' * 64):
+            specification['Manifest']['IntegratedSourceSHA256'] = changed
+            with patch.object(self.adapters, 'read', return_value=specification):
+                with self.subTest(changed=changed), self.assertRaisesRegex(driver.Refusal, 'wrong spec source'):
+                    self.adapters.qualify_cell(config, HERE, label, entry)
+
     def test_original_fixture_namespace_and_model_limits_cannot_widen(self):
         import configure
         import copy

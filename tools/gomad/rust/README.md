@@ -120,7 +120,8 @@ These native fixtures and source ports preserve behavior for fn-232.13. They do
 not establish the complete original test-wasm predicate coverage or final frozen
 runtime/workload/replay acceptance. Actual fn-185.2/.3 profiles follow fn-232 in
 the milestone order. The separate stress spec interface is documented in
-[STRESS.md](STRESS.md); catalogue-style stress preparation remains pending.
+[STRESS.md](STRESS.md), including the original catalogue controls and native
+read-only receiver. Actual complete frozen-matrix acceptance remains pending.
 
 ## Linked host attribution (fn-185.1)
 

@@ -1,0 +1,9 @@
+{
+  "artifact": "/home/agent/evidence/fn232-core-counterfactual/pairs-v10/handoff/artifacts/92af3828866b4c208b7461b7c810c6aae456c82bf504ca4867bf1756e68422b4",
+  "fixture_sha256": "ead03f9ed5b0cb83bf8d0e639e198de079adf5f5a1f87d9fd5ca8c8b3f35b41b",
+  "manifest_sha256": "0ea0968afba7da97398996fb56c880670ec1d6cd72eec04e88cf0f07213d8cc6",
+  "payload_sha256": "e5a5286a9fe598db9eabac531b15a9b5119e4af81b34ed3735b7310b23840058",
+  "projection": "Exact configuration JSON value from authenticated actual original Go fixture cluster baseline, followed by one newline. The original all-exit predicate remains failed; this fixture tests only the shared engine owner.",
+  "schema": "gomad.captured-native-cluster-configuration/v1",
+  "source_commit": "26768c9eb2b0711e7e9e94dbca76fc38bf57cf18"
+}

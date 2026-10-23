@@ -494,25 +494,21 @@ pub(super) fn configuration_role(
     clustered: bool,
 ) -> Result<gomad_wasmhost::linked::Conditions, String> {
     use gomad_wasmhost::linked::Conditions;
-    let models = if clustered {
-        configuration["incarnations"]
+    if clustered {
+        let incarnations = configuration["incarnations"]
             .as_array()
             .filter(|items| !items.is_empty() && items.len() <= 65_536)
-            .ok_or("missing bounded cluster replay role")?
+            .ok_or("missing bounded cluster replay role")?;
+        if incarnations
             .iter()
-            .collect::<Vec<_>>()
-    } else {
-        vec![configuration]
-    };
-    let engine = models[0]["engine"]
+            .any(|item| !item.is_object() || item.get("engine").is_some())
+        {
+            return Err("cluster replay role must use the shared configuration engine".into());
+        }
+    }
+    let engine = configuration["engine"]
         .as_str()
         .ok_or("missing retained replay role")?;
-    if models
-        .iter()
-        .any(|model| model["engine"].as_str() != Some(engine))
-    {
-        return Err("cluster incarnations disagree on retained replay role".into());
-    }
     let role = [
         Conditions::Ordinary,
         Conditions::StressReplay,

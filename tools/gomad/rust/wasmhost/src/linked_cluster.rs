@@ -351,6 +351,8 @@ impl Prepared {
     }
 
     #[cfg(feature = "determinism-fixture")]
+    /// # Errors
+    /// Refuses faults without the fixture role or a matching incarnation owner.
     pub fn fixture_fault(
         &mut self,
         fault: linked::FixtureFault,
@@ -851,6 +853,79 @@ fn compile(
     Ok(modules)
 }
 
+#[derive(Clone, Debug)]
+pub struct LifecyclePhase {
+    pub incarnation: u64,
+    pub handles: Vec<Handle>,
+}
+
+pub trait LifecycleObserver: Sync {
+    /// # Errors
+    /// Refuses admission before the first store of this phase starts.
+    fn before(&self, phase: &LifecyclePhase) -> std::result::Result<(), String>;
+    /// # Errors
+    /// Refuses publication after all stores of this phase have joined.
+    fn after(&self, phase: &LifecyclePhase) -> std::result::Result<(), String>;
+}
+
+struct PhaseObservations<'a> {
+    observer: Option<&'a dyn LifecycleObserver>,
+    phases: BTreeMap<u64, LifecyclePhase>,
+    started: BTreeSet<u64>,
+    finished: BTreeSet<u64>,
+}
+impl<'a> PhaseObservations<'a> {
+    fn new(prepared: &Prepared, observer: Option<&'a dyn LifecycleObserver>) -> Self {
+        let mut phases = BTreeMap::<u64, LifecyclePhase>::new();
+        if observer.is_some() {
+            for handle in prepared.incarnations.keys() {
+                phases
+                    .entry(handle.incarnation)
+                    .or_insert_with(|| LifecyclePhase {
+                        incarnation: handle.incarnation,
+                        handles: Vec::new(),
+                    })
+                    .handles
+                    .push(handle.clone());
+            }
+        }
+        Self {
+            observer,
+            phases,
+            started: BTreeSet::new(),
+            finished: BTreeSet::new(),
+        }
+    }
+    fn before(&mut self, handle: &Handle) -> Result<()> {
+        if let Some(observer) = self.observer
+            && self.started.insert(handle.incarnation)
+        {
+            observer
+                .before(&self.phases[&handle.incarnation])
+                .map_err(Error::msg)?;
+        }
+        Ok(())
+    }
+    fn after(
+        &mut self,
+        handle: &Handle,
+        completed: &BTreeMap<Handle, IncarnationResult>,
+    ) -> Result<()> {
+        if let Some(observer) = self.observer {
+            let phase = &self.phases[&handle.incarnation];
+            if phase
+                .handles
+                .iter()
+                .all(|handle| completed.contains_key(handle))
+                && self.finished.insert(handle.incarnation)
+            {
+                observer.after(phase).map_err(Error::msg)?;
+            }
+        }
+        Ok(())
+    }
+}
+
 #[expect(
     clippy::too_many_lines,
     reason = "Lifecycle ordering shares the existing broker activation, run, restart and terminal transitions"
@@ -862,7 +937,9 @@ fn execute_inner(
     network: Option<&Arc<Mutex<Shared>>>,
     timed_out: &AtomicBool,
     session: &crate::linked_conditions::Session,
+    phase_listener: Option<&dyn LifecycleObserver>,
 ) -> Result<Execution> {
+    let mut phase_observations = PhaseObservations::new(&prepared, phase_listener);
     let execution_started = std::time::Instant::now();
     let mut metrics = Metrics::default();
     let modules = compile(engine, &prepared, &mut metrics)?;
@@ -935,6 +1012,9 @@ fn execute_inner(
                 prepared.simulation.as_ref(),
                 broker.current(),
             )?;
+            if matches!(step.action, Action::Start | Action::Restart) {
+                phase_observations.before(&step.handle)?;
+            }
             executed_steps.push(step.clone());
             let index = prepared
                 .ids
@@ -1177,7 +1257,9 @@ fn execute_inner(
                     );
                     outcome.exit_code = observed.result.execution.outcome.exit_code;
                 }
-                completed.insert(step.handle, observed.result);
+                let handle = step.handle;
+                completed.insert(handle.clone(), observed.result);
+                phase_observations.after(&handle, &completed)?;
             }
         }
         if action_capacity && prepared.cleanup.is_none() {
@@ -1447,6 +1529,15 @@ fn stop_live(
 /// # Errors
 /// Executes a fully authenticated lifecycle with fresh stores and one shared broker and engine.
 pub fn execute_prepared(prepared: Prepared) -> Result<Execution> {
+    execute_prepared_observed(prepared, None)
+}
+
+/// # Errors
+/// Refuses observer admission at real store start and joined phase boundaries.
+pub fn execute_prepared_observed(
+    prepared: Prepared,
+    observer: Option<&dyn LifecycleObserver>,
+) -> Result<Execution> {
     let cancellation = prepared.cancellation.clone();
     if cancellation.cancelled() {
         return Ok(cancelled_execution());
@@ -1498,6 +1589,7 @@ pub fn execute_prepared(prepared: Prepared) -> Result<Execution> {
             network.as_ref(),
             timed_out,
             &session,
+            observer,
         );
         drop(done);
         watcher

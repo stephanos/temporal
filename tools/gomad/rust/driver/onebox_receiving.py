@@ -168,12 +168,17 @@ def support(reader):
     inspection(reader, root / 'inspection')
 
 
-def inspection(reader, root):
+def inspection(reader, root, standalone=False):
     reader.owner(root)
     from receiving import canonical, digest
-    primary = read(reader.root / 'stages/workload-onebox-cooperative-success/result.json')['path']
-    validate(reader, ['validate-inspection', root / 'inspection-receipt.json', sha(root / 'inspection-receipt.json'),
-                      primary, reader.config['binary'], reader.config['binary_sha256']])
+    if standalone:
+        validate(reader, ['validate-inspection-driver', root / 'inspection-receipt.json', sha(root / 'inspection-receipt.json'),
+                          reader.config['_config_path'], reader.config['_config_sha256'],
+                          reader.config['binary'], reader.config['binary_sha256']])
+    else:
+        primary = read(reader.root / 'stages/workload-onebox-cooperative-success/result.json')['path']
+        validate(reader, ['validate-inspection', root / 'inspection-receipt.json', sha(root / 'inspection-receipt.json'),
+                          primary, reader.config['binary'], reader.config['binary_sha256']])
     receipt = read(root / 'inspection-receipt.json')
     require(receipt['schema'] == 'gomad.rust-temporal-inspection/v1' and receipt['owner'] == 'onebox'
             and receipt['binary_sha256'] == reader.config['binary_sha256'], 'foreign onebox inspection receipt')

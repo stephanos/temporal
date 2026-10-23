@@ -1,0 +1,138 @@
+[
+ {
+  "old_id": "helper.linked.phase-clocks",
+  "old_site": "helper-source:linked.rs|Instant::now|4",
+  "new_id": "helper.source.linked.rs.instant.now.7",
+  "new_site": "helper-source:linked.rs|Instant::now|7",
+  "reason": "Retired exact effect coordinate after reviewed phase instrumentation change to helper-source:linked.rs|Instant::now|7. The replacement explicitly inventories the new sample/receive count; this is not a same-count relocation. Typed linked admission/execution monotonic samples and bounded worker receives enforce host deadlines and measure phases. Terminal scheduling/fixture delay observations remain outside modeled clocks and canonical execution evidence; compiled role controls are explicit.",
+  "kind": "multiplicity"
+ },
+ {
+  "old_id": "helper.linked.watchdog-timeout",
+  "old_site": "helper-source:linked.rs|recv_timeout|1",
+  "new_id": "helper.source.linked.rs.recv.timeout.2",
+  "new_site": "helper-source:linked.rs|recv_timeout|2",
+  "reason": "Retired exact effect coordinate after reviewed phase instrumentation change to helper-source:linked.rs|recv_timeout|2. The replacement explicitly inventories the new sample/receive count; this is not a same-count relocation. Typed linked admission/execution monotonic samples and bounded worker receives enforce host deadlines and measure phases. Terminal scheduling/fixture delay observations remain outside modeled clocks and canonical execution evidence; compiled role controls are explicit.",
+  "kind": "multiplicity"
+ },
+ {
+  "old_id": "host.rust.gomad.src.campaign.prepare.rs.prepare.instant.now.1",
+  "old_site": "host-rust:gomad/src/campaign/prepare.rs|prepare|Instant::now|1",
+  "new_id": "host.rust.gomad.src.campaign.prepare.rs.prepare.with.compiler.controls.instant.now.1",
+  "new_site": "host-rust:gomad/src/campaign/prepare.rs|prepare_with_compiler_controls|Instant::now|1",
+  "reason": "Retired exact effect coordinate after source relocation to host-rust:gomad/src/campaign/prepare.rs|prepare_with_compiler_controls|Instant::now|1. The replacement retains the same effect token and count. Preparation uses scoped immutable compiler controls and owned subprocess deadlines. Volatile observations are retained only in authenticated private sidecars outside canonical Record and Store payloads; source/module/compiler commitments remain stable.",
+  "kind": "relocation"
+ },
+ {
+  "old_id": "host.rust.gomad.src.campaign.prepare.process.rs.command.spawn.1",
+  "old_site": "host-rust:gomad/src/campaign/prepare/process.rs|command|.spawn(|1",
+  "new_id": "host.rust.gomad.src.campaign.prepare.process.rs.execute.command.spawn.1",
+  "new_site": "host-rust:gomad/src/campaign/prepare/process.rs|execute_command|.spawn(|1",
+  "reason": "Retired exact effect coordinate after source relocation to host-rust:gomad/src/campaign/prepare/process.rs|execute_command|.spawn(|1. The replacement retains the same effect token and count. Preparation uses scoped immutable compiler controls and owned subprocess deadlines. Volatile observations are retained only in authenticated private sidecars outside canonical Record and Store payloads; source/module/compiler commitments remain stable.",
+  "kind": "relocation"
+ },
+ {
+  "old_id": "host.rust.gomad.src.campaign.prepare.process.rs.command.command.new.1",
+  "old_site": "host-rust:gomad/src/campaign/prepare/process.rs|command|Command::new|1",
+  "new_id": "host.rust.gomad.src.campaign.prepare.process.rs.execute.command.command.new.1",
+  "new_site": "host-rust:gomad/src/campaign/prepare/process.rs|execute_command|Command::new|1",
+  "reason": "Retired exact effect coordinate after source relocation to host-rust:gomad/src/campaign/prepare/process.rs|execute_command|Command::new|1. The replacement retains the same effect token and count. Preparation uses scoped immutable compiler controls and owned subprocess deadlines. Volatile observations are retained only in authenticated private sidecars outside canonical Record and Store payloads; source/module/compiler commitments remain stable.",
+  "kind": "relocation"
+ },
+ {
+  "old_id": "host.rust.gomad.src.campaign.prepare.process.rs.command.instant.now.3",
+  "old_site": "host-rust:gomad/src/campaign/prepare/process.rs|command|Instant::now|3",
+  "new_id": "host.rust.gomad.src.campaign.prepare.process.rs.execute.command.instant.now.3",
+  "new_site": "host-rust:gomad/src/campaign/prepare/process.rs|execute_command|Instant::now|3",
+  "reason": "Retired exact effect coordinate after source relocation to host-rust:gomad/src/campaign/prepare/process.rs|execute_command|Instant::now|3. The replacement retains the same effect token and count. Preparation uses scoped immutable compiler controls and owned subprocess deadlines. Volatile observations are retained only in authenticated private sidecars outside canonical Record and Store payloads; source/module/compiler commitments remain stable.",
+  "kind": "relocation"
+ },
+ {
+  "old_id": "host.rust.gomad.src.campaign.prepare.process.rs.command.thread.sleep.1",
+  "old_site": "host-rust:gomad/src/campaign/prepare/process.rs|command|thread::sleep|1",
+  "new_id": "host.rust.gomad.src.campaign.prepare.process.rs.execute.command.thread.sleep.1",
+  "new_site": "host-rust:gomad/src/campaign/prepare/process.rs|execute_command|thread::sleep|1",
+  "reason": "Retired exact effect coordinate after source relocation to host-rust:gomad/src/campaign/prepare/process.rs|execute_command|thread::sleep|1. The replacement retains the same effect token and count. Preparation uses scoped immutable compiler controls and owned subprocess deadlines. Volatile observations are retained only in authenticated private sidecars outside canonical Record and Store payloads; source/module/compiler commitments remain stable.",
+  "kind": "relocation"
+ },
+ {
+  "old_id": "host.rust.gomad.src.campaign.scenario.rs.execute.elapsed.1",
+  "old_site": "host-rust:gomad/src/campaign/scenario.rs|execute|.elapsed()|1",
+  "new_id": "host.rust.gomad.src.campaign.scenario.rs.execute.controlled.elapsed.1",
+  "new_site": "host-rust:gomad/src/campaign/scenario.rs|execute_controlled|.elapsed()|1",
+  "reason": "Retired exact effect coordinate after source relocation to host-rust:gomad/src/campaign/scenario.rs|execute_controlled|.elapsed()|1. The replacement retains the same effect token and count. Scenario host deadlines and elapsed diagnostics bound owned execution only. Logical World clocks and canonical transition order remain determined by declared model inputs.",
+  "kind": "relocation"
+ },
+ {
+  "old_id": "host.rust.gomad.src.campaign.scenario.rs.execute.instant.now.1",
+  "old_site": "host-rust:gomad/src/campaign/scenario.rs|execute|Instant::now|1",
+  "new_id": "host.rust.gomad.src.campaign.scenario.rs.execute.controlled.instant.now.1",
+  "new_site": "host-rust:gomad/src/campaign/scenario.rs|execute_controlled|Instant::now|1",
+  "reason": "Retired exact effect coordinate after source relocation to host-rust:gomad/src/campaign/scenario.rs|execute_controlled|Instant::now|1. The replacement retains the same effect token and count. Scenario host deadlines and elapsed diagnostics bound owned execution only. Logical World clocks and canonical transition order remain determined by declared model inputs.",
+  "kind": "relocation"
+ },
+ {
+  "old_id": "host.rust.gomad.src.replay.inspection.rs.search.run.elapsed.2",
+  "old_site": "host-rust:gomad/src/replay/inspection.rs|search_run|.elapsed()|2",
+  "new_id": "host.rust.gomad.src.replay.inspection.rs.search.run.elapsed.1",
+  "new_site": "host-rust:gomad/src/replay/inspection.rs|search_run|.elapsed()|1",
+  "reason": "Retired exact effect coordinate after reviewed phase instrumentation change to host-rust:gomad/src/replay/inspection.rs|search_run|.elapsed()|1. The replacement explicitly inventories the new sample/receive count; this is not a same-count relocation. Monotonic samples bound inspection prefix search and report host metrics; timeout never rewrites retained canonical evidence or guest virtual time.",
+  "kind": "multiplicity"
+ },
+ {
+  "old_id": "host.rust.wasmhost.src.diagnostic.rs.drop.3.instant.now.1",
+  "old_site": "host-rust:wasmhost/src/diagnostic.rs|drop[3]|Instant::now|1",
+  "new_id": "host.rust.wasmhost.src.diagnostic.rs.drop.8.instant.now.1",
+  "new_site": "host-rust:wasmhost/src/diagnostic.rs|drop[8]|Instant::now|1",
+  "reason": "Retired exact effect coordinate after source relocation to host-rust:wasmhost/src/diagnostic.rs|drop[8]|Instant::now|1. The replacement retains the same effect token and count. Diagnostic workers are owned and joined under cancellation and cleanup bounds. Monotonic samples measure diagnostic phases; diagnostic observations do not advance guest model clocks or enter ordinary canonical streams.",
+  "kind": "relocation"
+ },
+ {
+  "old_id": "host.rust.wasmhost.src.diagnostic.rs.drop.4.instant.now.1",
+  "old_site": "host-rust:wasmhost/src/diagnostic.rs|drop[4]|Instant::now|1",
+  "new_id": "host.rust.wasmhost.src.diagnostic.rs.drop.9.instant.now.1",
+  "new_site": "host-rust:wasmhost/src/diagnostic.rs|drop[9]|Instant::now|1",
+  "reason": "Retired exact effect coordinate after source relocation to host-rust:wasmhost/src/diagnostic.rs|drop[9]|Instant::now|1. The replacement retains the same effect token and count. Diagnostic workers are owned and joined under cancellation and cleanup bounds. Monotonic samples measure diagnostic phases; diagnostic observations do not advance guest model clocks or enter ordinary canonical streams.",
+  "kind": "relocation"
+ },
+ {
+  "old_id": "host.rust.wasmhost.src.guest.profile.rs.start.spawn.1",
+  "old_site": "host-rust:wasmhost/src/guest_profile.rs|start|.spawn(|1",
+  "new_id": "host.rust.wasmhost.src.guest.profile.rs.start.interruptible.spawn.1",
+  "new_site": "host-rust:wasmhost/src/guest_profile.rs|start_interruptible|.spawn(|1",
+  "reason": "Retired exact effect coordinate after source relocation to host-rust:wasmhost/src/guest_profile.rs|start_interruptible|.spawn(|1. The replacement retains the same effect token and count. Diagnostic workers are owned and joined under cancellation and cleanup bounds. Monotonic samples measure diagnostic phases; diagnostic observations do not advance guest model clocks or enter ordinary canonical streams.",
+  "kind": "relocation"
+ },
+ {
+  "old_id": "host.rust.wasmhost.src.guest.profile.rs.start.instant.now.3",
+  "old_site": "host-rust:wasmhost/src/guest_profile.rs|start|Instant::now|3",
+  "new_id": "host.rust.wasmhost.src.guest.profile.rs.start.interruptible.instant.now.3",
+  "new_site": "host-rust:wasmhost/src/guest_profile.rs|start_interruptible|Instant::now|3",
+  "reason": "Retired exact effect coordinate after source relocation to host-rust:wasmhost/src/guest_profile.rs|start_interruptible|Instant::now|3. The replacement retains the same effect token and count. Diagnostic workers are owned and joined under cancellation and cleanup bounds. Monotonic samples measure diagnostic phases; diagnostic observations do not advance guest model clocks or enter ordinary canonical streams.",
+  "kind": "relocation"
+ },
+ {
+  "old_id": "host.rust.wasmhost.src.guest.profile.rs.start.recv.timeout.1",
+  "old_site": "host-rust:wasmhost/src/guest_profile.rs|start|recv_timeout|1",
+  "new_id": "host.rust.wasmhost.src.guest.profile.rs.start.interruptible.recv.timeout.1",
+  "new_site": "host-rust:wasmhost/src/guest_profile.rs|start_interruptible|recv_timeout|1",
+  "reason": "Retired exact effect coordinate after source relocation to host-rust:wasmhost/src/guest_profile.rs|start_interruptible|recv_timeout|1. The replacement retains the same effect token and count. Diagnostic workers are owned and joined under cancellation and cleanup bounds. Monotonic samples measure diagnostic phases; diagnostic observations do not advance guest model clocks or enter ordinary canonical streams.",
+  "kind": "relocation"
+ },
+ {
+  "old_id": "host.rust.wasmhost.src.guest.profile.rs.start.thread.builder.1",
+  "old_site": "host-rust:wasmhost/src/guest_profile.rs|start|thread::Builder|1",
+  "new_id": "host.rust.wasmhost.src.guest.profile.rs.start.interruptible.thread.builder.1",
+  "new_site": "host-rust:wasmhost/src/guest_profile.rs|start_interruptible|thread::Builder|1",
+  "reason": "Retired exact effect coordinate after source relocation to host-rust:wasmhost/src/guest_profile.rs|start_interruptible|thread::Builder|1. The replacement retains the same effect token and count. Diagnostic workers are owned and joined under cancellation and cleanup bounds. Monotonic samples measure diagnostic phases; diagnostic observations do not advance guest model clocks or enter ordinary canonical streams.",
+  "kind": "relocation"
+ },
+ {
+  "old_id": "host.rust.wasmhost.src.linked.rs.execute.prepared.instant.now.2",
+  "old_site": "host-rust:wasmhost/src/linked.rs|execute_prepared|Instant::now|2",
+  "new_id": "host.rust.wasmhost.src.linked.rs.execute.prepared.instant.now.5",
+  "new_site": "host-rust:wasmhost/src/linked.rs|execute_prepared|Instant::now|5",
+  "reason": "Retired exact effect coordinate after reviewed phase instrumentation change to host-rust:wasmhost/src/linked.rs|execute_prepared|Instant::now|5. The replacement explicitly inventories the new sample/receive count; this is not a same-count relocation. Typed linked admission/execution monotonic samples and bounded worker receives enforce host deadlines and measure phases. Terminal scheduling/fixture delay observations remain outside modeled clocks and canonical execution evidence; compiled role controls are explicit.",
+  "kind": "multiplicity"
+ }
+]

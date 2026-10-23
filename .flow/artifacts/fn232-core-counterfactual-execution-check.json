@@ -1,0 +1,434 @@
+{
+  "candidate": {
+    "cli": "/home/agent/evidence/fn232-core-counterfactual/gomad-fixture-v11",
+    "cli_sha256": "d5fea51a7a3cbc62504836542811e7a39f321e49259084cd69892bdb2191f3b7",
+    "producer": "/home/agent/evidence/fn232-core-counterfactual/counterfactual-producer-v11",
+    "producer_sha256": "e3788da7dea895212ee3a6f161dbf92e4c0663cd592449938e8ff4a12ded2c0f",
+    "source_commit": "0bf1ff7faf34c54375d2531e996bac3f39664193"
+  },
+  "original_causal_evidence": ".flow/artifacts/fn232-core-original-handoff-causal-check.json",
+  "original_predicate_failures": [
+    {
+      "actual": "stop",
+      "artifact": "/home/agent/evidence/fn232-core-counterfactual/pairs-v11/handoff/artifacts/a9fa8b94519aa1b5af2b795d9098ee0b98775de242077a2e058a854031a6807d",
+      "expected": "exit",
+      "handle": {
+        "incarnation": 1,
+        "node": "b"
+      },
+      "observation": {
+        "exit_code": null,
+        "handle": {
+          "incarnation": 1,
+          "node": "b"
+        },
+        "interrupted": true,
+        "local_model": {
+          "configured": true,
+          "finished": false
+        },
+        "offered_output_bytes": 25,
+        "reason": "WASI stop: cluster failed",
+        "streams": {
+          "choice": {
+            "bytes": 4992,
+            "sha256": "83f3fe0a7af66b207cd12f4233ad89ea4dfed01f10ddd7e66e768b089423de74"
+          },
+          "diagnostic": {
+            "bytes": 4992,
+            "sha256": "1beffc4d0f7c604a6a62c7789884811b1fe553a002485726dcd116c5688e3c88"
+          },
+          "stdout": {
+            "bytes": 25,
+            "sha256": "dac09831ca5b40aa39bc18a973ac6c82f9098b95de0b4c18ddb8cce87b3820d6"
+          },
+          "transcript": {
+            "bytes": 2059,
+            "sha256": "238621af71b244b66a566a41c3f5514e2eda44978cb0ef1a84aaad932f0dc56d"
+          }
+        },
+        "termination": "stop"
+      },
+      "original_root": "TestDeterminismExecutedDivergenceArtifacts/handoff",
+      "predicate": "every reported incarnation termination equals exit"
+    },
+    {
+      "actual": "stop",
+      "artifact": "/home/agent/evidence/fn232-core-counterfactual/pairs-v11/handoff/artifacts/15c914c96b9339340d23dc6f4e81e0ee154e2effb677b2670e83088551eb91fd",
+      "expected": "exit",
+      "handle": {
+        "incarnation": 1,
+        "node": "b"
+      },
+      "observation": {
+        "exit_code": null,
+        "handle": {
+          "incarnation": 1,
+          "node": "b"
+        },
+        "interrupted": true,
+        "local_model": {
+          "configured": true,
+          "finished": false
+        },
+        "offered_output_bytes": 25,
+        "reason": "WASI stop: cluster failed",
+        "streams": {
+          "choice": {
+            "bytes": 4992,
+            "sha256": "83f3fe0a7af66b207cd12f4233ad89ea4dfed01f10ddd7e66e768b089423de74"
+          },
+          "diagnostic": {
+            "bytes": 4992,
+            "sha256": "1beffc4d0f7c604a6a62c7789884811b1fe553a002485726dcd116c5688e3c88"
+          },
+          "stdout": {
+            "bytes": 25,
+            "sha256": "dac09831ca5b40aa39bc18a973ac6c82f9098b95de0b4c18ddb8cce87b3820d6"
+          },
+          "transcript": {
+            "bytes": 2059,
+            "sha256": "238621af71b244b66a566a41c3f5514e2eda44978cb0ef1a84aaad932f0dc56d"
+          }
+        },
+        "termination": "stop"
+      },
+      "original_root": "TestDeterminismExecutedDivergenceArtifacts/handoff",
+      "predicate": "every reported incarnation termination equals exit"
+    }
+  ],
+  "pairs": [
+    {
+      "artifacts": [
+        {
+          "artifact": "/home/agent/evidence/fn232-core-counterfactual/pairs-v11/handoff/artifacts/a9fa8b94519aa1b5af2b795d9098ee0b98775de242077a2e058a854031a6807d",
+          "payloads_digest_verified": 16,
+          "record_sha256": "80d57d84fc43ac457eb777c1c5faad17320605f72f74cea063312b6fc63b6774",
+          "role": "baseline"
+        },
+        {
+          "artifact": "/home/agent/evidence/fn232-core-counterfactual/pairs-v11/handoff/artifacts/15c914c96b9339340d23dc6f4e81e0ee154e2effb677b2670e83088551eb91fd",
+          "payloads_digest_verified": 16,
+          "record_sha256": "1d226a2f04fcd350075fb7901fa4390afeed169b2fb129ad00bffd9e740bafe6",
+          "role": "fault"
+        }
+      ],
+      "comparison": "diverged",
+      "first_kind": "world-order",
+      "first_shared_event": 449,
+      "name": "handoff",
+      "original_outcome_failures": 2,
+      "original_outcome_status": "FAIL",
+      "provider_prefix_verified": true,
+      "provider_status": "inspected_prefix",
+      "provider_witness_match": true,
+      "public_cli_exit": 0,
+      "public_prefix_verified": true,
+      "public_witness_match": true,
+      "resolved_choice": 23,
+      "resolved_incarnation": 1,
+      "resolved_instance": "b"
+    },
+    {
+      "artifacts": [
+        {
+          "artifact": "/home/agent/evidence/fn232-core-counterfactual/pairs-v11/output-clock/artifacts/b306b79ae4f2930349ce2b0889fc194844d1fbb1dbba94286c459d35131f38aa",
+          "payloads_digest_verified": 13,
+          "record_sha256": "bbb5b14a765aaab9d2a7ef9bc21979df26aee4453c396ebc880dcef8fc0d0d0c",
+          "role": "baseline"
+        },
+        {
+          "artifact": "/home/agent/evidence/fn232-core-counterfactual/pairs-v11/output-clock/artifacts/c1750779095b1af8e6b8a793056abf3cc2138b8b7f92edc9959f851b7f3c9d61",
+          "payloads_digest_verified": 13,
+          "record_sha256": "23479149bec57821f5f9080a60886f28a4b8add3ab610e04c0ffddf5d7290a18",
+          "role": "fault"
+        }
+      ],
+      "comparison": "diverged",
+      "first_kind": "output",
+      "first_shared_event": 84,
+      "name": "output-clock",
+      "original_outcome_failures": 0,
+      "original_outcome_status": "PASS",
+      "provider_prefix_verified": true,
+      "provider_status": "inspected_prefix",
+      "provider_witness_match": true,
+      "public_cli_exit": 0,
+      "public_prefix_verified": true,
+      "public_witness_match": true,
+      "resolved_choice": 7,
+      "resolved_incarnation": 1,
+      "resolved_instance": "guest"
+    },
+    {
+      "artifacts": [
+        {
+          "artifact": "/home/agent/evidence/fn232-core-counterfactual/pairs-v11/draw/artifacts/b306b79ae4f2930349ce2b0889fc194844d1fbb1dbba94286c459d35131f38aa",
+          "payloads_digest_verified": 13,
+          "record_sha256": "bbb5b14a765aaab9d2a7ef9bc21979df26aee4453c396ebc880dcef8fc0d0d0c",
+          "role": "baseline"
+        },
+        {
+          "artifact": "/home/agent/evidence/fn232-core-counterfactual/pairs-v11/draw/artifacts/4b56e8426031e0d17852cab961ec95f7fe4a6394f07b254b1b6b15f653a95cff",
+          "payloads_digest_verified": 13,
+          "record_sha256": "24f52140c470e16a8eea85871e42ad5d4d59b3a6df1b498d31d4b0e14b8ef514",
+          "role": "fault"
+        }
+      ],
+      "comparison": "diverged",
+      "first_kind": "draw-counter",
+      "first_shared_event": 102,
+      "name": "draw",
+      "original_outcome_failures": 0,
+      "original_outcome_status": "PASS",
+      "provider_prefix_verified": true,
+      "provider_status": "inspected_prefix",
+      "provider_witness_match": true,
+      "public_cli_exit": 0,
+      "public_prefix_verified": true,
+      "public_witness_match": true,
+      "resolved_choice": 7,
+      "resolved_incarnation": 1,
+      "resolved_instance": "guest"
+    },
+    {
+      "artifacts": [
+        {
+          "artifact": "/home/agent/evidence/fn232-core-counterfactual/pairs-v11/clock/artifacts/b306b79ae4f2930349ce2b0889fc194844d1fbb1dbba94286c459d35131f38aa",
+          "payloads_digest_verified": 13,
+          "record_sha256": "bbb5b14a765aaab9d2a7ef9bc21979df26aee4453c396ebc880dcef8fc0d0d0c",
+          "role": "baseline"
+        },
+        {
+          "artifact": "/home/agent/evidence/fn232-core-counterfactual/pairs-v11/clock/artifacts/1174f85eadafca69498bc0893f4d305dac08e1349536d362cb910059365a4000",
+          "payloads_digest_verified": 13,
+          "record_sha256": "116d1d98d90c0ff3a06453fbdf8d70a839f7adcc680cb4b2a34550e200c579f0",
+          "role": "fault"
+        }
+      ],
+      "comparison": "diverged",
+      "first_kind": "clock",
+      "first_shared_event": 87,
+      "name": "clock",
+      "original_outcome_failures": 0,
+      "original_outcome_status": "PASS",
+      "provider_prefix_verified": true,
+      "provider_status": "inspected_prefix",
+      "provider_witness_match": true,
+      "public_cli_exit": 0,
+      "public_prefix_verified": true,
+      "public_witness_match": true,
+      "resolved_choice": 7,
+      "resolved_incarnation": 1,
+      "resolved_instance": "guest"
+    }
+  ],
+  "preparation": {
+    "exit": 0,
+    "passed": 1,
+    "seconds": 51.98,
+    "selected": 1
+  },
+  "producer": {
+    "exit": 101,
+    "expected_failure": "Both handoff runs reproduce exact original all-exit assertion defect; no original-root PASS or qualification waiver.",
+    "failed": 1,
+    "passed": 0,
+    "seconds": 421.89,
+    "selected": 1
+  },
+  "qualification": false,
+  "raw": {
+    "/home/agent/evidence/fn232-core-counterfactual/candidate11.json": {
+      "bytes": 408,
+      "sha256": "b6520ac66ff63424a461104a2e8c73231714eef575165855b06fc973df4e9dda"
+    },
+    "/home/agent/evidence/fn232-core-counterfactual/pairs-v11/artifact-pairs.json": {
+      "bytes": 21955,
+      "sha256": "73dd4543687ddec83ff854e897f1dc831edb8e7ff46054b58e871b0a6a61cfed"
+    },
+    "/home/agent/evidence/fn232-core-counterfactual/pairs-v11/clock/artifacts/1174f85eadafca69498bc0893f4d305dac08e1349536d362cb910059365a4000/manifest.json": {
+      "bytes": 3993,
+      "sha256": "cb6fa88f431b11cf83dad0d0e846c80d06d63c15e638a48c17fb70eaf9a0d25f"
+    },
+    "/home/agent/evidence/fn232-core-counterfactual/pairs-v11/clock/artifacts/1174f85eadafca69498bc0893f4d305dac08e1349536d362cb910059365a4000/record.json": {
+      "bytes": 2180,
+      "sha256": "116d1d98d90c0ff3a06453fbdf8d70a839f7adcc680cb4b2a34550e200c579f0"
+    },
+    "/home/agent/evidence/fn232-core-counterfactual/pairs-v11/clock/artifacts/b306b79ae4f2930349ce2b0889fc194844d1fbb1dbba94286c459d35131f38aa/manifest.json": {
+      "bytes": 3993,
+      "sha256": "2f494a72c82a7b137b47afd00824789d17270bb56c80dfd7cd3f3ad14b23f629"
+    },
+    "/home/agent/evidence/fn232-core-counterfactual/pairs-v11/clock/artifacts/b306b79ae4f2930349ce2b0889fc194844d1fbb1dbba94286c459d35131f38aa/record.json": {
+      "bytes": 2180,
+      "sha256": "bbb5b14a765aaab9d2a7ef9bc21979df26aee4453c396ebc880dcef8fc0d0d0c"
+    },
+    "/home/agent/evidence/fn232-core-counterfactual/pairs-v11/clock/first-divergence.json": {
+      "bytes": 2299,
+      "sha256": "4282fccffcc571c2a866a98620a6a456180cf3ef6528be44e6f44383db7f0a28"
+    },
+    "/home/agent/evidence/fn232-core-counterfactual/pairs-v11/clock/original-outcome-predicates.json": {
+      "bytes": 31,
+      "sha256": "0e1140508db79a9754394af0f8afcf25bc0e4fc80a0a7d8312e0a87bd9bf8c68"
+    },
+    "/home/agent/evidence/fn232-core-counterfactual/pairs-v11/clock/provider-inspection.json": {
+      "bytes": 825,
+      "sha256": "6f98fc8324b979b23bace034d8220ebb0a305eefc9e62c0097cfab7fab702496"
+    },
+    "/home/agent/evidence/fn232-core-counterfactual/pairs-v11/clock/public-replay.json": {
+      "bytes": 574,
+      "sha256": "8a338af6575396b75320d79bc1c6e96ed73658623291f576785a905b79018e20"
+    },
+    "/home/agent/evidence/fn232-core-counterfactual/pairs-v11/clock/public-replay.stderr": {
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    "/home/agent/evidence/fn232-core-counterfactual/pairs-v11/clock/public-replay.stdout": {
+      "bytes": 966,
+      "sha256": "951e34a306f4c0758fd7b77e181908b4d0dffb6880c4137f132dc190ccc988eb"
+    },
+    "/home/agent/evidence/fn232-core-counterfactual/pairs-v11/draw/artifacts/4b56e8426031e0d17852cab961ec95f7fe4a6394f07b254b1b6b15f653a95cff/manifest.json": {
+      "bytes": 3993,
+      "sha256": "1e29cbb897127d9ded6f7a5f926b6d4102e5ec3db864f268ba6294a84db9fa1d"
+    },
+    "/home/agent/evidence/fn232-core-counterfactual/pairs-v11/draw/artifacts/4b56e8426031e0d17852cab961ec95f7fe4a6394f07b254b1b6b15f653a95cff/record.json": {
+      "bytes": 2180,
+      "sha256": "24f52140c470e16a8eea85871e42ad5d4d59b3a6df1b498d31d4b0e14b8ef514"
+    },
+    "/home/agent/evidence/fn232-core-counterfactual/pairs-v11/draw/artifacts/b306b79ae4f2930349ce2b0889fc194844d1fbb1dbba94286c459d35131f38aa/manifest.json": {
+      "bytes": 3993,
+      "sha256": "2f494a72c82a7b137b47afd00824789d17270bb56c80dfd7cd3f3ad14b23f629"
+    },
+    "/home/agent/evidence/fn232-core-counterfactual/pairs-v11/draw/artifacts/b306b79ae4f2930349ce2b0889fc194844d1fbb1dbba94286c459d35131f38aa/record.json": {
+      "bytes": 2180,
+      "sha256": "bbb5b14a765aaab9d2a7ef9bc21979df26aee4453c396ebc880dcef8fc0d0d0c"
+    },
+    "/home/agent/evidence/fn232-core-counterfactual/pairs-v11/draw/first-divergence.json": {
+      "bytes": 2505,
+      "sha256": "31755558696abaf550d2d19fdf49ab27ad417a814b97cdae7d0075bdc35ba92a"
+    },
+    "/home/agent/evidence/fn232-core-counterfactual/pairs-v11/draw/original-outcome-predicates.json": {
+      "bytes": 31,
+      "sha256": "0e1140508db79a9754394af0f8afcf25bc0e4fc80a0a7d8312e0a87bd9bf8c68"
+    },
+    "/home/agent/evidence/fn232-core-counterfactual/pairs-v11/draw/provider-inspection.json": {
+      "bytes": 823,
+      "sha256": "ca9537bbd425c286d41c441d0cd2cf06f82eb0a15c42a333502cdf4b9128f86f"
+    },
+    "/home/agent/evidence/fn232-core-counterfactual/pairs-v11/draw/public-replay.json": {
+      "bytes": 573,
+      "sha256": "3690bef9e64965764682b908c04dacb55d59bc8db607941f4178939ae525c6b6"
+    },
+    "/home/agent/evidence/fn232-core-counterfactual/pairs-v11/draw/public-replay.stderr": {
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    "/home/agent/evidence/fn232-core-counterfactual/pairs-v11/draw/public-replay.stdout": {
+      "bytes": 964,
+      "sha256": "d221633a35f305ef19e608b71460c4091c48fab6dc43208891d82a45b6fae748"
+    },
+    "/home/agent/evidence/fn232-core-counterfactual/pairs-v11/handoff/artifacts/15c914c96b9339340d23dc6f4e81e0ee154e2effb677b2670e83088551eb91fd/manifest.json": {
+      "bytes": 4976,
+      "sha256": "286118a645f09e1cf7c8c5e2fa0b40b02d132e8bc045c0a9a9919f1596ba7c13"
+    },
+    "/home/agent/evidence/fn232-core-counterfactual/pairs-v11/handoff/artifacts/15c914c96b9339340d23dc6f4e81e0ee154e2effb677b2670e83088551eb91fd/record.json": {
+      "bytes": 2709,
+      "sha256": "1d226a2f04fcd350075fb7901fa4390afeed169b2fb129ad00bffd9e740bafe6"
+    },
+    "/home/agent/evidence/fn232-core-counterfactual/pairs-v11/handoff/artifacts/a9fa8b94519aa1b5af2b795d9098ee0b98775de242077a2e058a854031a6807d/manifest.json": {
+      "bytes": 4976,
+      "sha256": "800c04b74125ef68e187035eb6b1e71532286b131f78adcc79f583de8b87d8ea"
+    },
+    "/home/agent/evidence/fn232-core-counterfactual/pairs-v11/handoff/artifacts/a9fa8b94519aa1b5af2b795d9098ee0b98775de242077a2e058a854031a6807d/record.json": {
+      "bytes": 2709,
+      "sha256": "80d57d84fc43ac457eb777c1c5faad17320605f72f74cea063312b6fc63b6774"
+    },
+    "/home/agent/evidence/fn232-core-counterfactual/pairs-v11/handoff/first-divergence.json": {
+      "bytes": 2234,
+      "sha256": "b27840319f740ab4e9371a9438bc8b787cdba6e56626f4186ea59620dc906be2"
+    },
+    "/home/agent/evidence/fn232-core-counterfactual/pairs-v11/handoff/original-outcome-predicates.json": {
+      "bytes": 2038,
+      "sha256": "99efeba23a3553e5be182288f3acb6e3c85d25e54aeb5531577c3d58478cfbdf"
+    },
+    "/home/agent/evidence/fn232-core-counterfactual/pairs-v11/handoff/provider-inspection.json": {
+      "bytes": 984,
+      "sha256": "8864a101b1c6f936cf58d0ff693825d8fbc8a5fdee064d5ad406fe8904866880"
+    },
+    "/home/agent/evidence/fn232-core-counterfactual/pairs-v11/handoff/public-replay.json": {
+      "bytes": 573,
+      "sha256": "70135a3c730baca28cee5cb967c4bd1e82e4702d3314b09d9cd4894521735606"
+    },
+    "/home/agent/evidence/fn232-core-counterfactual/pairs-v11/handoff/public-replay.stderr": {
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    "/home/agent/evidence/fn232-core-counterfactual/pairs-v11/handoff/public-replay.stdout": {
+      "bytes": 1125,
+      "sha256": "a5739b801a0d85bc1c50a18a7e7715cfbcc3f0dc915da25bb2cdabc7e21628e9"
+    },
+    "/home/agent/evidence/fn232-core-counterfactual/pairs-v11/output-clock/artifacts/b306b79ae4f2930349ce2b0889fc194844d1fbb1dbba94286c459d35131f38aa/manifest.json": {
+      "bytes": 3993,
+      "sha256": "2f494a72c82a7b137b47afd00824789d17270bb56c80dfd7cd3f3ad14b23f629"
+    },
+    "/home/agent/evidence/fn232-core-counterfactual/pairs-v11/output-clock/artifacts/b306b79ae4f2930349ce2b0889fc194844d1fbb1dbba94286c459d35131f38aa/record.json": {
+      "bytes": 2180,
+      "sha256": "bbb5b14a765aaab9d2a7ef9bc21979df26aee4453c396ebc880dcef8fc0d0d0c"
+    },
+    "/home/agent/evidence/fn232-core-counterfactual/pairs-v11/output-clock/artifacts/c1750779095b1af8e6b8a793056abf3cc2138b8b7f92edc9959f851b7f3c9d61/manifest.json": {
+      "bytes": 3993,
+      "sha256": "f1e00d35f63ced50b75e2f7dee79e7c3216a768c39aee669cf04cceae1ec3167"
+    },
+    "/home/agent/evidence/fn232-core-counterfactual/pairs-v11/output-clock/artifacts/c1750779095b1af8e6b8a793056abf3cc2138b8b7f92edc9959f851b7f3c9d61/record.json": {
+      "bytes": 2180,
+      "sha256": "23479149bec57821f5f9080a60886f28a4b8add3ab610e04c0ffddf5d7290a18"
+    },
+    "/home/agent/evidence/fn232-core-counterfactual/pairs-v11/output-clock/first-divergence.json": {
+      "bytes": 2451,
+      "sha256": "eec312c1e02d92aa88003cb1689ef3b5dea9074ff22fac61e53c6997d1940e8b"
+    },
+    "/home/agent/evidence/fn232-core-counterfactual/pairs-v11/output-clock/original-outcome-predicates.json": {
+      "bytes": 31,
+      "sha256": "0e1140508db79a9754394af0f8afcf25bc0e4fc80a0a7d8312e0a87bd9bf8c68"
+    },
+    "/home/agent/evidence/fn232-core-counterfactual/pairs-v11/output-clock/provider-inspection.json": {
+      "bytes": 839,
+      "sha256": "afce7b2f8f1d7f38279bcd0c8b85ece9bfdd5135714f4d71f8c459943c952e32"
+    },
+    "/home/agent/evidence/fn232-core-counterfactual/pairs-v11/output-clock/public-replay.json": {
+      "bytes": 581,
+      "sha256": "0b5010b3e1ae2f4b3c58f3c5e8d4a71ff4b46f18e2e350c97475e339c737eaa7"
+    },
+    "/home/agent/evidence/fn232-core-counterfactual/pairs-v11/output-clock/public-replay.stderr": {
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    "/home/agent/evidence/fn232-core-counterfactual/pairs-v11/output-clock/public-replay.stdout": {
+      "bytes": 980,
+      "sha256": "69b594d479a76d3b71c4f8b1bd2eeae3df037dfdd7894645985e9bf9cb3d9b58"
+    },
+    "/home/agent/evidence/fn232-core-counterfactual/pairs11.log": {
+      "bytes": 3429,
+      "sha256": "baa9c3fc076b0fac518a0a9e099b9b867a1ac94c53eb6ae078fdea5672320689"
+    },
+    "/home/agent/evidence/fn232-core-counterfactual/preparation-input11.json": {
+      "bytes": 10483,
+      "sha256": "2cd3be3a3047f0ec1a9ca907d61dc6f4cf74b77d07c814b5f266f68e120af522"
+    },
+    "/home/agent/evidence/fn232-core-counterfactual/preparation11.log": {
+      "bytes": 203,
+      "sha256": "11db70a230e582f50f4cf7d0a59c1cce5cd1f5f51d28a57239c5c38fff3d44d0"
+    },
+    "/home/agent/evidence/fn232-core-counterfactual/producer-input11-execution.json": {
+      "bytes": 1218,
+      "sha256": "1632635d73a0eaac585aae17c14d7d7359950f1e08f26d1cda01d08f8c0721f4"
+    },
+    "/home/agent/evidence/fn232-core-counterfactual/producer-input11.json": {
+      "bytes": 1179,
+      "sha256": "292963a014c0518b0f27920926308cbab910e8c46f9d62ae51ea8228aee983dc"
+    }
+  },
+  "schema": "gomad.core-counterfactual-execution-check/v1",
+  "source_commit": "0bf1ff7faf34c54375d2531e996bac3f39664193",
+  "status": "FOUR_DIAGNOSTIC_PAIRS_COMPLETE_ORIGINAL_HANDOFF_PREDICATE_RED"
+}
