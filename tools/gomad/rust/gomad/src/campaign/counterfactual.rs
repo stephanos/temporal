@@ -183,8 +183,6 @@ struct Inputs {
 #[serde(deny_unknown_fields)]
 struct Case {
     name: String,
-    receipt: PathBuf,
-    receipt_sha256: String,
     original_requested_choice_bytes: u64,
     campaign: crate::cli::explore::ExploreOptions,
 }
@@ -218,6 +216,14 @@ fn validate_campaign(
         || !options.target_args.is_empty()
     {
         return Err("original Explore campaign options changed".into());
+    }
+    if let Some(scenario) = &options.scenario {
+        let original = include_bytes!(
+            "../../../../testdata/parity/executed-divergence-original-scenario.json"
+        );
+        if super::scenario::normalize(scenario)? != super::scenario::normalize(original)? {
+            return Err("original handoff scenario changed".into());
+        }
     }
     Ok(())
 }
@@ -266,12 +272,19 @@ fn original_campaign_options_refuse_deadline_policy_and_recording_relaxations() 
         );
     }
     let mut clustered = options;
-    clustered.scenario = Some(vec![]);
+    clustered.scenario = Some(
+        include_bytes!("../../../../testdata/parity/executed-divergence-original-scenario.json")
+            .to_vec(),
+    );
     clustered.choices = false;
     clustered.diagnostics = false;
     clustered.choice_bytes = 0;
     validate_campaign(&clustered, true).unwrap();
     assert!(validate_campaign(&clustered, false).is_err());
+    let mut changed: Value = serde_json::from_slice(clustered.scenario.as_ref().unwrap()).unwrap();
+    changed["boots"][0]["args"] = json!(["changed"]);
+    clustered.scenario = Some(canonical::encode(&changed).unwrap());
+    assert!(validate_campaign(&clustered, true).is_err());
 }
 
 fn authenticate_cli(path: &Path, expected: &str) -> Result<(), String> {
@@ -385,8 +398,47 @@ fn repreparation_binds_scenario_without_reusing_admission_observations() {
     );
 }
 
+fn campaign_outcome(campaign: &Path, artifact: &Path) -> (crate::evidence::store::Opened, u64) {
+    let journal = ledger::Journal::open(campaign, false).unwrap();
+    assert_eq!(journal.plan()["overall_nanos"], 300_000_000_000_u64);
+    let outcomes = journal
+        .events()
+        .iter()
+        .filter_map(|event| match event {
+            ledger::Event::Outcome { executions, .. } => Some(executions),
+            _ => None,
+        })
+        .flatten()
+        .collect::<Vec<_>>();
+    assert_eq!(outcomes.len(), 1);
+    assert_eq!(outcomes[0].seed, 7);
+    assert_eq!(outcomes[0].record.outcome.class, "target_failure");
+    let opened = crate::evidence::store::Opened::open(artifact).unwrap();
+    opened.authenticate_all().unwrap();
+    assert_eq!(opened.manifest().record, outcomes[0].record);
+    assert!(opened.manifest().files.contains_key("evidence/event-order"));
+    (opened, outcomes[0].stored_bytes)
+}
+
+fn explore_result(output: &[u8]) -> Value {
+    let report: Value = serde_json::from_slice(
+        output
+            .split(|byte| *byte == b'\n')
+            .filter(|line| !line.is_empty())
+            .last()
+            .unwrap(),
+    )
+    .unwrap();
+    assert_eq!(report["type"], "result");
+    assert_eq!(report["failures"], 1);
+    assert_eq!(report["attempted"], 1);
+    let artifacts = report["artifacts"].as_array().unwrap();
+    assert_eq!(artifacts.len(), 1);
+    report
+}
+
 fn run_campaign(
-    prepared: &Prepared,
+    expected: Option<&Prepared>,
     case: &Case,
     root: &Path,
     fault: linked::FixtureFault,
@@ -401,15 +453,46 @@ fn run_campaign(
     validate_campaign(&options, case.name == "handoff").unwrap();
     options.artifacts = cell;
     let started = Instant::now();
+    recipe::validate_installation(&options);
     // The original StressExecution override requested diagnostics even for
     // the cluster and capped its runtime trace independently of campaign retention.
     let mut effective = options.clone();
     effective.choice_bytes = 1 << 20;
     effective.diagnostics = true;
-    let actual_prepared = super::prepare::prepare(&effective).unwrap();
-    validate_preparation(&actual_prepared).unwrap();
-    assert_preparation_matches(prepared, &actual_prepared);
-    let mut journal = super::seed_journal(&options, &actual_prepared).unwrap();
+    effective.artifacts = options.artifacts.join("preparation");
+    let preparation = super::preparation::seed(&effective).unwrap();
+    validate_preparation(&preparation.prepared).unwrap();
+    assert_eq!(
+        preparation.prepared.scenario.is_some(),
+        case.name == "handoff"
+    );
+    assert_eq!(
+        preparation
+            .prepared
+            .configuration
+            .environment
+            .contains_key("GOMAD_CHOICE_PROFILE"),
+        case.name != "handoff"
+    );
+    if let Some(expected) = expected {
+        assert_preparation_matches(expected, &preparation.prepared);
+    }
+    let (preparation_receipt, _, preparation_sha256) = preparation
+        .publish(
+            &options.artifacts.join("plan.json"),
+            vec![
+                std::env::current_exe()
+                    .unwrap()
+                    .to_string_lossy()
+                    .into_owned(),
+                "--ignored".into(),
+                "--exact".into(),
+                "campaign::counterfactual::produce_the_four_original_counterfactual_artifact_pairs"
+                    .into(),
+            ],
+        )
+        .unwrap();
+    let mut journal = super::seed_journal(&options, &preparation.prepared).unwrap();
     let remaining = options
         .overall_timeout
         .checked_sub(started.elapsed())
@@ -417,7 +500,7 @@ fn run_campaign(
     let mut output = Vec::new();
     let exit = super::run_observed_using(
         &mut journal,
-        &actual_prepared,
+        &preparation.prepared,
         remaining,
         true,
         &mut output,
@@ -437,61 +520,40 @@ fn run_campaign(
     )
     .unwrap();
     assert_eq!(exit, 1);
-    assert!(started.elapsed() <= options.overall_timeout);
-    let report: Value = serde_json::from_slice(
-        output
-            .split(|byte| *byte == b'\n')
-            .filter(|line| !line.is_empty())
-            .last()
-            .unwrap(),
-    )
-    .unwrap();
-    assert_eq!(report["type"], "result");
-    assert_eq!(report["failures"], 1);
-    assert_eq!(report["attempted"], 1);
+    let wall = started.elapsed();
+    assert!(wall <= options.overall_timeout);
+    let report = explore_result(&output);
     let artifacts = report["artifacts"].as_array().unwrap();
-    assert_eq!(artifacts.len(), 1);
     let artifact = PathBuf::from(artifacts[0]["path"].as_str().unwrap());
     let campaign = journal.path().to_path_buf();
     drop(journal);
-    let journal = ledger::Journal::open(&campaign, false).unwrap();
-    assert_eq!(journal.plan()["overall_nanos"], 300_000_000_000_u64);
-    let outcomes = journal
-        .events()
-        .iter()
-        .filter_map(|event| match event {
-            ledger::Event::Outcome { executions, .. } => Some(executions),
-            _ => None,
-        })
-        .flatten()
-        .collect::<Vec<_>>();
-    assert_eq!(outcomes.len(), 1);
-    assert_eq!(outcomes[0].seed, 7);
-    assert_eq!(outcomes[0].record.outcome.class, "target_failure");
-    let opened = crate::evidence::store::Opened::open(&artifact).unwrap();
-    opened.authenticate_all().unwrap();
-    assert_eq!(opened.manifest().record, outcomes[0].record);
-    assert!(opened.manifest().files.contains_key("evidence/event-order"));
+    let (opened, stored_bytes) = campaign_outcome(&campaign, &artifact);
     write(&campaign.join("original-explore-result.json"), &report);
     json!({"artifact":artifact,"record_sha256":opened.manifest().record_sha256,
-        "bytes":outcomes[0].stored_bytes,"campaign":campaign,"campaign_result":report,
-        "wall_nanos":started.elapsed().as_nanos()})
+        "bytes":stored_bytes,"campaign":campaign,"campaign_result":report,
+        "preparation_receipt":preparation_receipt,"preparation_sha256":preparation_sha256,
+        "module_sha256":canonical::digest(&preparation.prepared.module),
+        "wall_nanos":wall.as_nanos()})
 }
 
-fn produce_pair(
-    prepared: &Prepared,
-    case: &Case,
-    root: &Path,
-    kind: linked::FixtureFault,
-) -> (Vec<Value>, Vec<Value>) {
+fn produce_pair(case: &Case, root: &Path, kind: linked::FixtureFault) -> (Vec<Value>, Vec<Value>) {
     let mut pair = Vec::new();
     let mut failures = Vec::new();
+    let mut prepared = None;
     for fault in [linked::FixtureFault::None, kind] {
-        let row = run_campaign(prepared, case, root, fault, pair.is_empty());
+        let row = run_campaign(prepared.as_ref(), case, root, fault, pair.is_empty());
+        if prepared.is_none() {
+            let (_, baseline) = super::preparation::open_receipt(
+                Path::new(row["preparation_receipt"].as_str().unwrap()),
+                row["preparation_sha256"].as_str().unwrap(),
+            )
+            .unwrap();
+            prepared = Some(baseline);
+        }
         let artifact = PathBuf::from(row["artifact"].as_str().unwrap());
         let opened = crate::evidence::store::Opened::open(&artifact).unwrap();
         opened.authenticate_all().unwrap();
-        if prepared.scenario.is_some() {
+        if case.name == "handoff" {
             let summary: Value = serde_json::from_slice(
                 &opened
                     .payload("evidence/cluster_summary", 16 << 20)
@@ -647,7 +709,7 @@ fn verify_pair(input: &Inputs, case: &Case, root: &Path, pair: &[Value]) -> Valu
 }
 
 struct PreparationInputs {
-    installation_arguments: Vec<String>,
+    installation_arguments: Vec<Vec<String>>,
     cli: PathBuf,
     cli_sha256: String,
     cases: Vec<PreparationCase>,
@@ -656,7 +718,6 @@ struct PreparationInputs {
 struct PreparationCase {
     name: String,
     options: crate::cli::explore::ExploreOptions,
-    plan: PathBuf,
 }
 
 #[test]
@@ -665,42 +726,21 @@ fn prepare_the_four_original_counterfactual_requests() {
     let path = PathBuf::from(std::env::var_os("GOMAD_CORE_COUNTERFACTUAL_PREPARATION").unwrap());
     let input = recipe::materialize(&path);
     authenticate_cli(&input.cli, &input.cli_sha256).unwrap();
-    let mut installation_output = Vec::new();
-    assert_eq!(
-        crate::cli::install::run(&input.installation_arguments, &mut installation_output)
-            .map_err(|error| error.message)
-            .unwrap(),
-        0
-    );
+    for arguments in input.installation_arguments {
+        assert_eq!(
+            crate::cli::install::run(&arguments, &mut Vec::new())
+                .map_err(|error| error.message)
+                .unwrap(),
+            0
+        );
+    }
     let mut cases = Vec::new();
     for case in input.cases {
-        let prepared = super::preparation::seed(&case.options).unwrap();
-        validate_preparation(&prepared.prepared).unwrap();
-        let (receipt, _, receipt_sha256) = prepared
-            .publish(
-                &case.plan,
-                vec![
-                    std::env::current_exe()
-                        .unwrap()
-                        .to_string_lossy()
-                        .into_owned(),
-                    "--ignored".into(),
-                    "--exact".into(),
-                    "campaign::counterfactual::prepare_the_four_original_counterfactual_requests"
-                        .into(),
-                ],
-            )
-            .unwrap();
-        let mut campaign = case.options;
-        campaign.choice_bytes = if case.name == "handoff" { 0 } else { 4 << 20 };
-        campaign.choices = case.name != "handoff";
-        campaign.diagnostics = case.name != "handoff";
+        let campaign = case.options;
         validate_campaign(&campaign, case.name == "handoff").unwrap();
-        cases.push(
-            json!({"name":case.name,"receipt":receipt,"receipt_sha256":receipt_sha256,
+        cases.push(json!({"name":case.name,
             "original_requested_choice_bytes":if case.name == "handoff" {0} else {4 << 20},
-            "campaign": campaign}),
-        );
+            "campaign": campaign}));
     }
     write(
         &input.output,
@@ -745,23 +785,6 @@ fn produce_the_four_original_counterfactual_artifact_pairs() {
             case.original_requested_choice_bytes,
             if case.name == "handoff" { 0 } else { 4 << 20 }
         );
-        let (_, prepared) =
-            super::preparation::open_receipt(&case.receipt, &case.receipt_sha256).unwrap();
-        validate_preparation(&prepared).unwrap();
-        let digest = canonical::digest(&prepared.module);
-        if let Some(expected) = &original_module {
-            assert_eq!(&digest, expected);
-        } else {
-            original_module = Some(digest);
-        }
-        assert_eq!(prepared.scenario.is_some(), case.name == "handoff");
-        assert_eq!(
-            prepared
-                .configuration
-                .environment
-                .contains_key("GOMAD_CHOICE_PROFILE"),
-            case.name != "handoff"
-        );
         let kind = match case.name.as_str() {
             "draw" => linked::FixtureFault::Draw,
             "clock" => linked::FixtureFault::Clock,
@@ -769,10 +792,16 @@ fn produce_the_four_original_counterfactual_artifact_pairs() {
             "output-clock" => linked::FixtureFault::OutputClock,
             _ => unreachable!(),
         };
-        let (pair, failures) = produce_pair(&prepared, case, &root, kind);
+        let (pair, failures) = produce_pair(case, &root, kind);
+        let digest = pair[0]["module_sha256"].as_str().unwrap().to_owned();
+        if let Some(expected) = &original_module {
+            assert_eq!(&digest, expected);
+        } else {
+            original_module = Some(digest);
+        }
         original_failures.extend(failures);
         let verification = verify_pair(&input, case, &root, &pair);
-        rows.push(json!({"name":case.name,"receipt":case.receipt,"receipt_sha256":case.receipt_sha256,"original_requested_choice_bytes":case.original_requested_choice_bytes,"effective_runtime_trace_bytes":1 << 20,"diagnostics":true,"baseline":pair[0],"fault":pair[1],"verification":verification}));
+        rows.push(json!({"name":case.name,"original_requested_choice_bytes":case.original_requested_choice_bytes,"effective_runtime_trace_bytes":1 << 20,"diagnostics":true,"baseline":pair[0],"fault":pair[1],"verification":verification}));
     }
     write(
         &root.join("artifact-pairs.json"),
