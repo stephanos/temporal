@@ -15,6 +15,7 @@ import static_stages as static
 ROLES = {'host': ('ordinary-host-test', 'gomad'), 'helper': ('ordinary-helper-test', 'gomad_wasmhost')}
 NAMESPACE = 'go/go.temporal.io/server/tools/gomad/internal/model/wasi/TestNamespaceConformanceCorpus'
 WORKLOAD_TOOLS = 'ordinary-workload-tools-run'
+INSTALLED_PUBLICATION = 'ordinary-installed-publication-run'
 
 
 def plan(config):
@@ -76,6 +77,11 @@ def recipes(config):
     rows.append(dict(name=WORKLOAD_TOOLS, argv=[config['python'], '-m', 'unittest', 'discover', '-v', '-s',
                      str(Path(config['repo']) / 'tools/gomad/rust/workload_tools'), '-p', 'test_*.py'],
                      environment=dict(environment, PYTHONDONTWRITEBYTECODE='1'), timeout_s=300))
+    # The original helper-build publication roots: real make recipes with the
+    # controlled Cargo publisher, no compiler or guest execution.
+    rows.append(dict(name=INSTALLED_PUBLICATION, argv=[config['python'],
+                     str(Path(config['repo']) / 'tools/gomad/testdata/parity/installed-publication-test.py'), '-v'],
+                     environment=dict(environment, PYTHONDONTWRITEBYTECODE='1'), timeout_s=300))
     return rows
 
 
@@ -105,6 +111,10 @@ def collect(config, root):
     for case in python_cases((root / (WORKLOAD_TOOLS + '.stderr')).read_bytes()):
         identity = 'py/workload_tools/' + case
         actual.update((identity, identity + '@stage/ordinary@run/' + WORKLOAD_TOOLS))
+    for case in python_cases((root / (INSTALLED_PUBLICATION + '.stderr')).read_bytes()):
+        require(case.startswith('__main__.'), 'installed publication tests ran outside their script')
+        identity = 'py/installed_publication/' + case.removeprefix('__main__.')
+        actual.update((identity, identity + '@stage/ordinary@run/' + INSTALLED_PUBLICATION))
     selections = {}
     for name in ('namespace', 'builder', 'recursive', 'recursive-builder', 'slim'):
         prefix = 'ordinary-' + name

@@ -1329,13 +1329,13 @@
    ]
   },
   "tools/gomad/internal/backends/wasm/command/scenario_test.go#TestInstalledOperatorAsymmetricGuestFailureEndsPromptly": {
-   "evidence": [],
-   "gap": "port: retained behaviour has no receiving Rust test"
+   "evidence": [
+    "stage/operator/TestInstalledOperatorAsymmetricGuestFailureEndsPromptly"
+   ]
   },
   "tools/gomad/internal/backends/wasm/command/scenario_test.go#TestInstalledOperatorClusterFailureEndsPromptly": {
-   "basis": "weak name correlation within the owning domain; confirm in review",
    "evidence": [
-    "rust/gomad/campaign::installed_report_tests::shared_scheduler_retains_one_failure_and_artifact_then_stops_admission"
+    "stage/operator/TestInstalledOperatorClusterFailureEndsPromptly"
    ]
   },
   "tools/gomad/internal/backends/wasm/command/scenario_test.go#TestInstalledOperatorTypedScenarioDetachedReplay": {
@@ -1525,7 +1525,8 @@
   },
   "tools/gomad/internal/backends/wasm/helper_build_test.go#TestHelperBuildPublishesIndependentExecutable": {
    "evidence": [
-    "rust/gomad/measurement::build::tests::identity_role_features_source_and_executable_are_bound"
+    "py/installed_publication/PublicationTests.test_public_build_recipes_publish_independent_executable_in_all_original_cases",
+    "py/installed_publication/PublicationTests.test_invalid_publication_source_preserves_existing_output"
    ]
   },
   "tools/gomad/internal/backends/wasm/installation/installation_test.go#TestInstallationAdmitsCooperativeStorageAndNetwork": {
@@ -3691,9 +3692,8 @@
    "retired": "Separates the subprocess helper stderr stream from guest evidence; the linked helper has no child stderr stream."
   },
   "tools/gomad/internal/backends/wasm/wasi/integration_test.go#TestHelperBuildPublishesConfiguredTarget": {
-   "basis": "weak name correlation within the owning domain; confirm in review",
    "evidence": [
-    "rust/gomad/measurement::build::tests::terminal_exit_stages_hardlinked_cargo_helper"
+    "py/installed_publication/PublicationTests.test_public_build_recipes_publish_independent_executable_in_all_original_cases"
    ]
   },
   "tools/gomad/internal/backends/wasm/wasi/integration_test.go#TestHelperModelPreservesGoOwnerEvidence": {
@@ -4491,12 +4491,12 @@
   },
   "tools/gomad/internal/backends/wasm/wasi/volume_conformance_cases_test.go#TestVolumeConformanceMigrationContracts/original-make/namespace-volume-conformance": {
    "evidence": [
-    "rust/gomad_wasmhost/conformance::tests::volume_conformance_corpus@stage/PENDING@run/PENDING"
+    "go/go.temporal.io/server/tools/gomad/internal/model/wasi/TestVolumeConformanceMigrationContracts@stage/ordinary@run/ordinary-namespace-run"
    ]
   },
   "tools/gomad/internal/backends/wasm/wasi/volume_conformance_cases_test.go#TestVolumeConformanceMigrationContracts/original-make/recursive-test-wasm": {
    "evidence": [
-    "rust/gomad_wasmhost/conformance::tests::volume_conformance_corpus@stage/PENDING@run/PENDING"
+    "go/go.temporal.io/server/tools/gomad/internal/model/wasi/TestVolumeConformanceMigrationContracts@stage/ordinary@run/ordinary-recursive-run"
    ]
   },
   "tools/gomad/internal/backends/wasm/wasi/volume_conformance_core_test.go#TestVolumeCoreAPIContracts": {
@@ -4559,12 +4559,12 @@
   },
   "tools/gomad/internal/backends/wasm/wasi/volume_test.go#TestVolumeConformanceCorpus/original-make/namespace-volume-conformance": {
    "evidence": [
-    "rust/gomad_wasmhost/conformance::tests::volume_conformance_corpus@stage/PENDING@run/PENDING"
+    "go/go.temporal.io/server/tools/gomad/internal/model/wasi/TestVolumeConformanceCorpus@stage/ordinary@run/ordinary-namespace-run"
    ]
   },
   "tools/gomad/internal/backends/wasm/wasi/volume_test.go#TestVolumeConformanceCorpus/original-make/recursive-test-wasm": {
    "evidence": [
-    "rust/gomad_wasmhost/conformance::tests::volume_conformance_corpus@stage/PENDING@run/PENDING"
+    "go/go.temporal.io/server/tools/gomad/internal/model/wasi/TestVolumeConformanceCorpus@stage/ordinary@run/ordinary-recursive-run"
    ]
   },
   "tools/gomad/internal/backends/wasm/wasi/volume_test.go#TestVolumeConformanceInvalidRecoveryImages": {
@@ -4575,12 +4575,12 @@
   },
   "tools/gomad/internal/backends/wasm/wasi/volume_test.go#TestVolumeConformanceInvalidRecoveryImages/original-make/namespace-volume-conformance": {
    "evidence": [
-    "rust/gomad_wasmhost/volume::image::tests::rehashed_images_refuse_persisted_inode_aliases_across_volumes_and_reserved_nodes@stage/PENDING@run/PENDING"
+    "go/go.temporal.io/server/tools/gomad/internal/model/wasi/TestVolumeConformanceInvalidRecoveryImages@stage/ordinary@run/ordinary-namespace-run"
    ]
   },
   "tools/gomad/internal/backends/wasm/wasi/volume_test.go#TestVolumeConformanceInvalidRecoveryImages/original-make/recursive-test-wasm": {
    "evidence": [
-    "rust/gomad_wasmhost/volume::image::tests::rehashed_images_refuse_persisted_inode_aliases_across_volumes_and_reserved_nodes@stage/PENDING@run/PENDING"
+    "go/go.temporal.io/server/tools/gomad/internal/model/wasi/TestVolumeConformanceInvalidRecoveryImages@stage/ordinary@run/ordinary-recursive-run"
    ]
   },
   "tools/gomad/internal/backends/wasm/wasi/volume_test.go#TestVolumeCoreVectors": {
