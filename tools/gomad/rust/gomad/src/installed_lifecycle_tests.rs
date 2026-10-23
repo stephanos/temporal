@@ -619,8 +619,7 @@ fn installed_lifecycle_inspect_authenticates_actual_project_encoded_catalogue_an
             &[fixture.published.path.to_str().unwrap().to_owned()],
             &mut Vec::new(),
         )
-        .err()
-        .expect("inconsistent producer evidence was accepted");
+        .expect_err("inconsistent producer evidence was accepted");
         if damage.ends_with("budget") {
             assert!(error.message.contains("budget"), "{}", error.message);
         }
