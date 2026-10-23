@@ -303,7 +303,8 @@
    "rule": "Bytes are SHA-256 counter output keyed by the declared entropy key, never host entropy; the offset is transcribed.",
    "evidence": [
     "rust:tests/inventory.rs:inventory_covers_every_operation",
-    "go:internal/backends/wasm/wasi:TestCapturedArgumentsEnvironmentAndEntropy",
+    "rust:gomad/src/install/config/preservation_tests.rs:captured_arguments_environment_and_entropy_keep_complete_immutable_configuration_identity",
+    "rust:src/model_preservation.rs:captured_arguments_environment_and_entropy_preserve_original_values_and_chunking",
     "corpus:wasmhost/tests/testdata/helper_transcript/local_random_and_strings_stay_local.json",
     "corpus:wasmhost/tests/testdata/helper_transcript/host_entropy_written_to_guest.json"
    ]
@@ -318,7 +319,8 @@
    "rule": "Answered from the declared arguments and environment, which are part of the environment identity.",
    "evidence": [
     "rust:tests/inventory.rs:inventory_covers_every_operation",
-    "go:internal/backends/wasm/wasi:TestCapturedArgumentsEnvironmentAndEntropy",
+    "rust:gomad/src/install/config/preservation_tests.rs:captured_arguments_environment_and_entropy_keep_complete_immutable_configuration_identity",
+    "rust:src/model_preservation.rs:captured_arguments_environment_and_entropy_preserve_original_values_and_chunking",
     "go:internal/backends/wasm/wasi:TestEnvironmentRejectsAmbiguousInputsAndMalformedCalls"
    ]
   },
@@ -332,7 +334,8 @@
    "rule": "Answered from the declared arguments and environment, which are part of the environment identity.",
    "evidence": [
     "rust:tests/inventory.rs:inventory_covers_every_operation",
-    "go:internal/backends/wasm/wasi:TestCapturedArgumentsEnvironmentAndEntropy",
+    "rust:gomad/src/install/config/preservation_tests.rs:captured_arguments_environment_and_entropy_keep_complete_immutable_configuration_identity",
+    "rust:src/model_preservation.rs:captured_arguments_environment_and_entropy_preserve_original_values_and_chunking",
     "go:internal/backends/wasm/wasi:TestEnvironmentRejectsAmbiguousInputsAndMalformedCalls"
    ]
   },
@@ -346,7 +349,8 @@
    "rule": "Answered from the declared arguments and environment, which are part of the environment identity.",
    "evidence": [
     "rust:tests/inventory.rs:inventory_covers_every_operation",
-    "go:internal/backends/wasm/wasi:TestCapturedArgumentsEnvironmentAndEntropy",
+    "rust:gomad/src/install/config/preservation_tests.rs:captured_arguments_environment_and_entropy_keep_complete_immutable_configuration_identity",
+    "rust:src/model_preservation.rs:captured_arguments_environment_and_entropy_preserve_original_values_and_chunking",
     "go:internal/backends/wasm/wasi:TestEnvironmentRejectsAmbiguousInputsAndMalformedCalls"
    ]
   },
@@ -360,7 +364,8 @@
    "rule": "Answered from the declared arguments and environment, which are part of the environment identity.",
    "evidence": [
     "rust:tests/inventory.rs:inventory_covers_every_operation",
-    "go:internal/backends/wasm/wasi:TestCapturedArgumentsEnvironmentAndEntropy",
+    "rust:gomad/src/install/config/preservation_tests.rs:captured_arguments_environment_and_entropy_keep_complete_immutable_configuration_identity",
+    "rust:src/model_preservation.rs:captured_arguments_environment_and_entropy_preserve_original_values_and_chunking",
     "go:internal/backends/wasm/wasi:TestEnvironmentRejectsAmbiguousInputsAndMalformedCalls"
    ]
   },
@@ -389,7 +394,7 @@
    "evidence": [
     "rust:tests/inventory.rs:inventory_covers_every_operation",
     "go:internal/backends/wasm/wasi:TestNamespaceConformanceCorpus",
-    "go:internal/backends/wasm/wasi:TestCapturedNamespaceNeverReopensHostAndInfersAbsence",
+    "rust:gomad/src/install/config/preservation_tests.rs:captured_namespace_reads_after_host_and_capture_buffers_are_removed_and_infers_readonly_absence",
     "rust:tests/helper_corpus.rs:helper_transcript_corpus_reproduces_expected_outcomes"
    ]
   },
@@ -404,7 +409,7 @@
    "evidence": [
     "rust:tests/inventory.rs:inventory_covers_every_operation",
     "go:internal/backends/wasm/wasi:TestNamespaceConformanceCorpus",
-    "go:internal/backends/wasm/wasi:TestCapturedNamespaceNeverReopensHostAndInfersAbsence",
+    "rust:gomad/src/install/config/preservation_tests.rs:captured_namespace_reads_after_host_and_capture_buffers_are_removed_and_infers_readonly_absence",
     "rust:tests/helper_corpus.rs:helper_transcript_corpus_reproduces_expected_outcomes"
    ]
   },
@@ -419,7 +424,7 @@
    "evidence": [
     "rust:tests/inventory.rs:inventory_covers_every_operation",
     "go:internal/backends/wasm/wasi:TestNamespaceConformanceCorpus",
-    "go:internal/backends/wasm/wasi:TestCapturedNamespaceNeverReopensHostAndInfersAbsence",
+    "rust:gomad/src/install/config/preservation_tests.rs:captured_namespace_reads_after_host_and_capture_buffers_are_removed_and_infers_readonly_absence",
     "rust:tests/helper_corpus.rs:helper_transcript_corpus_reproduces_expected_outcomes"
    ]
   },
@@ -434,7 +439,7 @@
    "evidence": [
     "rust:tests/inventory.rs:inventory_covers_every_operation",
     "go:internal/backends/wasm/wasi:TestNamespaceConformanceCorpus",
-    "go:internal/backends/wasm/wasi:TestCapturedNamespaceNeverReopensHostAndInfersAbsence",
+    "rust:gomad/src/install/config/preservation_tests.rs:captured_namespace_reads_after_host_and_capture_buffers_are_removed_and_infers_readonly_absence",
     "rust:tests/helper_corpus.rs:helper_transcript_corpus_reproduces_expected_outcomes"
    ]
   },
@@ -449,7 +454,7 @@
    "evidence": [
     "rust:tests/inventory.rs:inventory_covers_every_operation",
     "go:internal/backends/wasm/wasi:TestNamespaceConformanceCorpus",
-    "go:internal/backends/wasm/wasi:TestCapturedNamespaceNeverReopensHostAndInfersAbsence",
+    "rust:gomad/src/install/config/preservation_tests.rs:captured_namespace_reads_after_host_and_capture_buffers_are_removed_and_infers_readonly_absence",
     "rust:tests/helper_corpus.rs:helper_transcript_corpus_reproduces_expected_outcomes"
    ]
   },
@@ -464,7 +469,7 @@
    "evidence": [
     "rust:tests/inventory.rs:inventory_covers_every_operation",
     "go:internal/backends/wasm/wasi:TestNamespaceConformanceCorpus",
-    "go:internal/backends/wasm/wasi:TestCapturedNamespaceNeverReopensHostAndInfersAbsence",
+    "rust:gomad/src/install/config/preservation_tests.rs:captured_namespace_reads_after_host_and_capture_buffers_are_removed_and_infers_readonly_absence",
     "rust:tests/helper_corpus.rs:helper_transcript_corpus_reproduces_expected_outcomes"
    ]
   },
@@ -479,7 +484,7 @@
    "evidence": [
     "rust:tests/inventory.rs:inventory_covers_every_operation",
     "go:internal/backends/wasm/wasi:TestNamespaceConformanceCorpus",
-    "go:internal/backends/wasm/wasi:TestCapturedNamespaceNeverReopensHostAndInfersAbsence",
+    "rust:gomad/src/install/config/preservation_tests.rs:captured_namespace_reads_after_host_and_capture_buffers_are_removed_and_infers_readonly_absence",
     "rust:tests/helper_corpus.rs:helper_transcript_corpus_reproduces_expected_outcomes"
    ]
   },
@@ -494,7 +499,7 @@
    "evidence": [
     "rust:tests/inventory.rs:inventory_covers_every_operation",
     "go:internal/backends/wasm/wasi:TestNamespaceConformanceCorpus",
-    "go:internal/backends/wasm/wasi:TestCapturedNamespaceNeverReopensHostAndInfersAbsence",
+    "rust:gomad/src/install/config/preservation_tests.rs:captured_namespace_reads_after_host_and_capture_buffers_are_removed_and_infers_readonly_absence",
     "rust:tests/helper_corpus.rs:helper_transcript_corpus_reproduces_expected_outcomes"
    ]
   },
@@ -509,7 +514,7 @@
    "evidence": [
     "rust:tests/inventory.rs:inventory_covers_every_operation",
     "go:internal/backends/wasm/wasi:TestNamespaceConformanceCorpus",
-    "go:internal/backends/wasm/wasi:TestCapturedNamespaceNeverReopensHostAndInfersAbsence",
+    "rust:gomad/src/install/config/preservation_tests.rs:captured_namespace_reads_after_host_and_capture_buffers_are_removed_and_infers_readonly_absence",
     "rust:tests/helper_corpus.rs:helper_transcript_corpus_reproduces_expected_outcomes",
     "rust:tests/inventory/architecture.rs:modeled_state_io_admits_named_types_and_refuses_host_streams"
    ]
@@ -525,7 +530,7 @@
    "evidence": [
     "rust:tests/inventory.rs:inventory_covers_every_operation",
     "go:internal/backends/wasm/wasi:TestNamespaceConformanceCorpus",
-    "go:internal/backends/wasm/wasi:TestCapturedNamespaceNeverReopensHostAndInfersAbsence",
+    "rust:gomad/src/install/config/preservation_tests.rs:captured_namespace_reads_after_host_and_capture_buffers_are_removed_and_infers_readonly_absence",
     "rust:tests/helper_corpus.rs:helper_transcript_corpus_reproduces_expected_outcomes"
    ]
   },
@@ -540,7 +545,7 @@
    "evidence": [
     "rust:tests/inventory.rs:inventory_covers_every_operation",
     "go:internal/backends/wasm/wasi:TestNamespaceConformanceCorpus",
-    "go:internal/backends/wasm/wasi:TestCapturedNamespaceNeverReopensHostAndInfersAbsence",
+    "rust:gomad/src/install/config/preservation_tests.rs:captured_namespace_reads_after_host_and_capture_buffers_are_removed_and_infers_readonly_absence",
     "rust:tests/helper_corpus.rs:helper_transcript_corpus_reproduces_expected_outcomes"
    ]
   },
@@ -555,7 +560,7 @@
    "evidence": [
     "rust:tests/inventory.rs:inventory_covers_every_operation",
     "go:internal/backends/wasm/wasi:TestNamespaceConformanceCorpus",
-    "go:internal/backends/wasm/wasi:TestCapturedNamespaceNeverReopensHostAndInfersAbsence",
+    "rust:gomad/src/install/config/preservation_tests.rs:captured_namespace_reads_after_host_and_capture_buffers_are_removed_and_infers_readonly_absence",
     "rust:tests/helper_corpus.rs:helper_transcript_corpus_reproduces_expected_outcomes"
    ]
   },
@@ -570,7 +575,7 @@
    "evidence": [
     "rust:tests/inventory.rs:inventory_covers_every_operation",
     "go:internal/backends/wasm/wasi:TestNamespaceConformanceCorpus",
-    "go:internal/backends/wasm/wasi:TestCapturedNamespaceNeverReopensHostAndInfersAbsence",
+    "rust:gomad/src/install/config/preservation_tests.rs:captured_namespace_reads_after_host_and_capture_buffers_are_removed_and_infers_readonly_absence",
     "rust:tests/helper_corpus.rs:helper_transcript_corpus_reproduces_expected_outcomes"
    ]
   },
@@ -585,7 +590,7 @@
    "evidence": [
     "rust:tests/inventory.rs:inventory_covers_every_operation",
     "go:internal/backends/wasm/wasi:TestNamespaceConformanceCorpus",
-    "go:internal/backends/wasm/wasi:TestCapturedNamespaceNeverReopensHostAndInfersAbsence",
+    "rust:gomad/src/install/config/preservation_tests.rs:captured_namespace_reads_after_host_and_capture_buffers_are_removed_and_infers_readonly_absence",
     "rust:tests/helper_corpus.rs:helper_transcript_corpus_reproduces_expected_outcomes"
    ]
   },
@@ -600,7 +605,7 @@
    "evidence": [
     "rust:tests/inventory.rs:inventory_covers_every_operation",
     "go:internal/backends/wasm/wasi:TestNamespaceConformanceCorpus",
-    "go:internal/backends/wasm/wasi:TestCapturedNamespaceNeverReopensHostAndInfersAbsence",
+    "rust:gomad/src/install/config/preservation_tests.rs:captured_namespace_reads_after_host_and_capture_buffers_are_removed_and_infers_readonly_absence",
     "rust:tests/helper_corpus.rs:helper_transcript_corpus_reproduces_expected_outcomes"
    ]
   },
@@ -615,7 +620,7 @@
    "evidence": [
     "rust:tests/inventory.rs:inventory_covers_every_operation",
     "go:internal/backends/wasm/wasi:TestNamespaceConformanceCorpus",
-    "go:internal/backends/wasm/wasi:TestCapturedNamespaceNeverReopensHostAndInfersAbsence",
+    "rust:gomad/src/install/config/preservation_tests.rs:captured_namespace_reads_after_host_and_capture_buffers_are_removed_and_infers_readonly_absence",
     "rust:tests/helper_corpus.rs:helper_transcript_corpus_reproduces_expected_outcomes"
    ]
   },
@@ -630,7 +635,7 @@
    "evidence": [
     "rust:tests/inventory.rs:inventory_covers_every_operation",
     "go:internal/backends/wasm/wasi:TestNamespaceConformanceCorpus",
-    "go:internal/backends/wasm/wasi:TestCapturedNamespaceNeverReopensHostAndInfersAbsence",
+    "rust:gomad/src/install/config/preservation_tests.rs:captured_namespace_reads_after_host_and_capture_buffers_are_removed_and_infers_readonly_absence",
     "rust:tests/helper_corpus.rs:helper_transcript_corpus_reproduces_expected_outcomes"
    ]
   },
@@ -645,7 +650,7 @@
    "evidence": [
     "rust:tests/inventory.rs:inventory_covers_every_operation",
     "go:internal/backends/wasm/wasi:TestNamespaceConformanceCorpus",
-    "go:internal/backends/wasm/wasi:TestCapturedNamespaceNeverReopensHostAndInfersAbsence",
+    "rust:gomad/src/install/config/preservation_tests.rs:captured_namespace_reads_after_host_and_capture_buffers_are_removed_and_infers_readonly_absence",
     "rust:tests/helper_corpus.rs:helper_transcript_corpus_reproduces_expected_outcomes"
    ]
   },
@@ -660,7 +665,7 @@
    "evidence": [
     "rust:tests/inventory.rs:inventory_covers_every_operation",
     "go:internal/backends/wasm/wasi:TestNamespaceConformanceCorpus",
-    "go:internal/backends/wasm/wasi:TestCapturedNamespaceNeverReopensHostAndInfersAbsence",
+    "rust:gomad/src/install/config/preservation_tests.rs:captured_namespace_reads_after_host_and_capture_buffers_are_removed_and_infers_readonly_absence",
     "rust:tests/helper_corpus.rs:helper_transcript_corpus_reproduces_expected_outcomes"
    ]
   },
@@ -675,7 +680,7 @@
    "evidence": [
     "rust:tests/inventory.rs:inventory_covers_every_operation",
     "go:internal/backends/wasm/wasi:TestNamespaceConformanceCorpus",
-    "go:internal/backends/wasm/wasi:TestCapturedNamespaceNeverReopensHostAndInfersAbsence",
+    "rust:gomad/src/install/config/preservation_tests.rs:captured_namespace_reads_after_host_and_capture_buffers_are_removed_and_infers_readonly_absence",
     "rust:tests/helper_corpus.rs:helper_transcript_corpus_reproduces_expected_outcomes"
    ]
   },
@@ -691,7 +696,7 @@
     "rust:tests/inventory.rs:inventory_covers_every_operation",
     "rust:tests/core_runtime_preservation.rs:rejected_stock_import_inventory_has_an_actual_ordinary_refusal_for_every_site",
     "rust:src/model_preservation.rs:namespace_rights_offsets_cookies_containment_and_closure_preserve_original_sequence",
-    "go:internal/backends/wasm/wasi:TestGuestTransportClassifiesCapacityMalformedAndUnsupported"
+    "rust:tests/core_runtime_preservation.rs:guest_transport_classifications_return_after_native_execution_is_completed_and_joined"
    ]
   },
   {
@@ -706,7 +711,7 @@
     "rust:tests/inventory.rs:inventory_covers_every_operation",
     "rust:tests/core_runtime_preservation.rs:rejected_stock_import_inventory_has_an_actual_ordinary_refusal_for_every_site",
     "rust:src/model_preservation.rs:namespace_rights_offsets_cookies_containment_and_closure_preserve_original_sequence",
-    "go:internal/backends/wasm/wasi:TestGuestTransportClassifiesCapacityMalformedAndUnsupported"
+    "rust:tests/core_runtime_preservation.rs:guest_transport_classifications_return_after_native_execution_is_completed_and_joined"
    ]
   },
   {
@@ -721,7 +726,7 @@
     "rust:tests/inventory.rs:inventory_covers_every_operation",
     "rust:tests/core_runtime_preservation.rs:rejected_stock_import_inventory_has_an_actual_ordinary_refusal_for_every_site",
     "rust:src/model_preservation.rs:namespace_rights_offsets_cookies_containment_and_closure_preserve_original_sequence",
-    "go:internal/backends/wasm/wasi:TestGuestTransportClassifiesCapacityMalformedAndUnsupported"
+    "rust:tests/core_runtime_preservation.rs:guest_transport_classifications_return_after_native_execution_is_completed_and_joined"
    ]
   },
   {
@@ -736,7 +741,7 @@
     "rust:tests/inventory.rs:inventory_covers_every_operation",
     "rust:tests/core_runtime_preservation.rs:rejected_stock_import_inventory_has_an_actual_ordinary_refusal_for_every_site",
     "rust:src/model_preservation.rs:namespace_rights_offsets_cookies_containment_and_closure_preserve_original_sequence",
-    "go:internal/backends/wasm/wasi:TestGuestTransportClassifiesCapacityMalformedAndUnsupported"
+    "rust:tests/core_runtime_preservation.rs:guest_transport_classifications_return_after_native_execution_is_completed_and_joined"
    ]
   },
   {
@@ -767,7 +772,8 @@
     "go:internal/backends/wasm/wasi:TestCooperativeRuntimeQualification",
     "rust:gomad/src/replay/preflight.rs:cooperative_profile_preserves_the_original_complete_import_boundary",
     "corpus:wasmhost/tests/testdata/helper_features/diagnostic-profile/runtime_import_refused_v1_other.json",
-    "go:internal/backends/wasm/wasi:TestRuntimeTransportForcesLogicalAlternativesAndConsumesWholeTape"
+    "rust:src/model/runtime_preservation.rs:runtime_replay_forces_logical_identity_and_refuses_each_original_boundary_mismatch",
+    "rust:tests/core_runtime_preservation.rs:runtime_replay_refuses_collection_without_finish_and_classifies_malformed_decisions_invalid"
    ]
   },
   {
@@ -783,7 +789,8 @@
     "go:internal/backends/wasm/wasi:TestCooperativeRuntimeQualification",
     "rust:gomad/src/replay/preflight.rs:cooperative_profile_preserves_the_original_complete_import_boundary",
     "corpus:wasmhost/tests/testdata/helper_features/diagnostic-profile/runtime_import_refused_v1_other.json",
-    "go:internal/backends/wasm/wasi:TestRuntimeTransportForcesLogicalAlternativesAndConsumesWholeTape"
+    "rust:src/model/runtime_preservation.rs:runtime_replay_forces_logical_identity_and_refuses_each_original_boundary_mismatch",
+    "rust:tests/core_runtime_preservation.rs:runtime_replay_refuses_collection_without_finish_and_classifies_malformed_decisions_invalid"
    ]
   },
   {
@@ -799,7 +806,8 @@
     "go:internal/backends/wasm/wasi:TestCooperativeRuntimeQualification",
     "rust:gomad/src/replay/preflight.rs:cooperative_profile_preserves_the_original_complete_import_boundary",
     "corpus:wasmhost/tests/testdata/helper_features/diagnostic-profile/runtime_import_refused_v1_other.json",
-    "go:internal/backends/wasm/wasi:TestRuntimeTransportForcesLogicalAlternativesAndConsumesWholeTape"
+    "rust:src/model/runtime_preservation.rs:runtime_replay_forces_logical_identity_and_refuses_each_original_boundary_mismatch",
+    "rust:tests/core_runtime_preservation.rs:runtime_replay_refuses_collection_without_finish_and_classifies_malformed_decisions_invalid"
    ]
   },
   {
@@ -815,7 +823,8 @@
     "go:internal/backends/wasm/wasi:TestCooperativeRuntimeQualification",
     "rust:gomad/src/replay/preflight.rs:cooperative_profile_preserves_the_original_complete_import_boundary",
     "corpus:wasmhost/tests/testdata/helper_features/diagnostic-profile/runtime_import_refused_v1_other.json",
-    "go:internal/backends/wasm/wasi:TestRuntimeTransportForcesLogicalAlternativesAndConsumesWholeTape"
+    "rust:src/model/runtime_preservation.rs:runtime_replay_forces_logical_identity_and_refuses_each_original_boundary_mismatch",
+    "rust:tests/core_runtime_preservation.rs:runtime_replay_refuses_collection_without_finish_and_classifies_malformed_decisions_invalid"
    ]
   },
   {
@@ -828,7 +837,7 @@
    "rule": "Stream operations are answered by the deterministic network model; no host socket is opened.",
    "evidence": [
     "rust:tests/inventory.rs:inventory_covers_every_operation",
-    "go:internal/backends/wasm/wasi:TestNetworkV2StateRejectsInvalidProfile",
+    "rust:src/model_preservation.rs:network_v2_rejects_original_retired_profile_before_state_construction",
     "rust:src/network_corpus.rs:network_full_corpus_requires_all_scripts_every_step_and_final_record",
     "rust:gomad/src/replay/preflight.rs:cooperative_profile_preserves_the_original_complete_import_boundary"
    ]
