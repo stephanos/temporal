@@ -885,4 +885,149 @@ esac
             assert_eq!(error, "gomad: unsupported guest option -race");
         }
     }
+
+    #[test]
+    #[expect(
+        clippy::too_many_lines,
+        reason = "One metadata-only fake compiler exercises omitted-name main, library and association boundaries"
+    )]
+    fn omitted_host_package_name_resolves_declared_wasi_main_without_race_builds() {
+        let root = process::Temporary::new(&std::env::temp_dir()).unwrap();
+        for directory in ["declared", "library", "native-library", "host", "drift"] {
+            fs::create_dir(root.0.join(directory)).unwrap();
+        }
+        fs::write(root.0.join("go.mod"), "module example.test/discovery\n").unwrap();
+        fs::write(root.0.join("gomad.toml"), "runtime_root = \".\"\nderive = \"default\"\nguest = [\"./declared\", \"./library\", \"./native-library\", \"./drift\"]\n").unwrap();
+        let metadata = |directory: &str, name: Option<&str>| {
+            let mut value = serde_json::json!({"ImportPath":format!("example.test/discovery/{directory}"),"Dir":root.0.join(directory)});
+            if let Some(name) = name {
+                value["Name"] = name.into();
+            } else {
+                value["Error"] =
+                    serde_json::json!({"Err":"build constraints exclude all Go files"});
+            }
+            value
+        };
+        let declared_host = metadata("declared", None);
+        let library_host = metadata("library", None);
+        let native_library = metadata("native-library", Some("library"));
+        let unmatched_host = metadata("host", None);
+        let drift_host = metadata("drift", None);
+        let declared_guest = metadata("declared", Some("main"));
+        let library_guest = metadata("library", Some("library"));
+        let compiler = root.0.join("go");
+        let queries = root.0.join("queries");
+        fs::write(&compiler, format!(r#"#!/bin/sh
+[ "$1" = list ] || exit 90
+race=0
+needed=0
+for arg do
+    case "$arg" in -race=true) race=1;; needed) needed=1;; esac
+    last="$arg"
+done
+printf '%s:%s:%s\n' "$GOOS" "$race" "$last" >> '{queries}'
+[ -z "$GOFLAGS" ] || exit 91
+if [ "$GOOS" = wasip1 ]; then
+    [ "$GOARCH/$CGO_ENABLED" = wasm/0 ] || exit 92
+    [ "$race" = 0 ] || {{ printf 'go: -race is not supported on wasip1/wasm' >&2; exit 2; }}
+    [ "$needed" = 1 ] || exit 93
+    case "$last" in ./declared|./drift) printf '%s' '{declared_guest}';; ./library) printf '%s' '{library_guest}';; *) exit 94;; esac
+else
+    [ "$GOOS/$GOARCH/$CGO_ENABLED" = linux/arm64/1 ] || exit 95
+    case "$last" in
+        ./declared) printf '%s' '{declared_host}';;
+        ./library) printf '%s' '{library_host}';;
+        ./native-library) printf '%s' '{native_library}';;
+        ./drift) printf '%s' '{drift_host}';;
+        ./host) printf '%s' '{unmatched_host}';;
+        *) exit 96;;
+    esac
+fi
+"#, queries=queries.display())).unwrap();
+        fs::set_permissions(&compiler, fs::Permissions::from_mode(0o700)).unwrap();
+        let mut contract = fixture_contract(&root.0, compiler);
+        let installation = fixture_installation(
+            &root.0,
+            &contract.compiler,
+            "gomad.wasi-stock-exploratory/v1",
+        );
+        let mut installed = manifest::resolve(Some(&installation)).unwrap().manifest;
+        installed.build_tags = vec!["needed".into()];
+        manifest::write(&installation, &installed).unwrap();
+        contract.installation = Some(installation);
+        let mut inherited = std::env::vars_os().collect::<std::collections::BTreeMap<_, _>>();
+        for (name, value) in [("GOOS", "linux"), ("GOARCH", "arm64"), ("CGO_ENABLED", "1")] {
+            inherited.insert(name.into(), value.into());
+        }
+        for command in ["run", "build"] {
+            let arguments = |package: &str| {
+                vec![
+                    "-C".into(),
+                    root.0.as_os_str().to_owned(),
+                    command.into(),
+                    package.into(),
+                ]
+            };
+            let host = arguments("./host");
+            let original = host.clone();
+            assert!(
+                classify_request_with_environment(
+                    &contract,
+                    &host,
+                    OsStr::new("-race"),
+                    &inherited
+                )
+                .unwrap()
+                .is_none()
+            );
+            assert_eq!(host, original);
+            let main = arguments("./declared");
+            let selected =
+                classify_request_with_environment(&contract, &main, OsStr::new(""), &inherited)
+                    .unwrap()
+                    .unwrap();
+            assert_eq!(selected.packages.len(), 1);
+            assert_eq!(selected.packages[0].name, "main");
+            assert_eq!(selected.packages[0].directory, root.0.join("declared"));
+            let error = classify_request_with_environment(
+                &contract,
+                &main,
+                OsStr::new("-race"),
+                &inherited,
+            )
+            .err()
+            .unwrap();
+            assert_eq!(error, "gomad: unsupported guest option -race");
+            for package in ["./library", "./native-library"] {
+                let library = arguments(package);
+                for goflags in ["", "-race"] {
+                    assert!(
+                        classify_request_with_environment(
+                            &contract,
+                            &library,
+                            OsStr::new(goflags),
+                            &inherited
+                        )
+                        .unwrap()
+                        .is_none()
+                    );
+                }
+            }
+            let drift = arguments("./drift");
+            let error =
+                classify_request_with_environment(&contract, &drift, OsStr::new(""), &inherited)
+                    .err()
+                    .unwrap();
+            assert!(error.contains("association"), "{error}");
+        }
+        let queries = fs::read_to_string(queries).unwrap();
+        assert!(queries.lines().any(|line| line == "wasip1:0:./declared"));
+        assert!(queries.lines().any(|line| line == "wasip1:0:./library"));
+        assert!(!queries.lines().any(|line| line.starts_with("wasip1:1:")));
+        assert!(
+            !queries
+                .lines()
+                .any(|line| line == "wasip1:0:./native-library")
+        );
+    }
 }
