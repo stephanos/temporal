@@ -194,7 +194,7 @@ required inputs; this source implementation creates neither.
 For the remaining eight nonowned obligations, `final_sections.NAME` specifies exact `required` IDs
 and pinned reader `argv`. `final.py` appends `--root ROOT`. A section returns
 `gomad.rust-driver-final-section/v1` with exact frozen `source_sha256`, `identity`
-and authenticated `subgates`; their disjoint union with the live section must
+and authenticated `subgates`; their disjoint union with the live and receiving sections must
 match all 145 required IDs. Missing owners remain UNEXECUTED.
 
 The original source inventory is
