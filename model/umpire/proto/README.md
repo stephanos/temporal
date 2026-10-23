@@ -76,7 +76,7 @@ messages together with the core contract using `bash model/scripts/proto-go.sh`.
 Propose (6) returns a deterministic fully filled request and its typed kind at Response
 tag 9: ACTION (1) names an enabled external Model action; BOOTSTRAP (2) has an empty
 action and admits a fresh run outside the transition graph. Consumers refuse unspecified
-or unknown kinds. QUIESCENT (9) means the realization has no eligible external request;
+or unknown kinds. QUIESCENT (9) means the Model has no enabled external action;
 rejected self-loops are still enabled actions. Propose never steps the Model. A second
 proposal while pending refuses STATE. Internal actions cannot be proposed.
 

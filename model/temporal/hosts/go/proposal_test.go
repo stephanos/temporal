@@ -90,3 +90,61 @@ func TestConfiguredProposalNativeWasmParity(t *testing.T) {
 		t.Fatal("malformed bootstrap admitted")
 	}
 }
+
+func TestProposalReviewedRaces(t *testing.T) {
+	for _, scenario := range []string{"retry before first Started read", "Describe cannot finish Cancel"} {
+		t.Run(scenario, func(t *testing.T) {
+			ctx := context.Background()
+			h := unboundGuest(t)
+			start := new(realizationv1.Observation)
+			if err := startObservation(t, 3).UnmarshalTo(start); err != nil {
+				t.Fatal(err)
+			}
+			if _, err := h.Reset(ctx, &modelv1.ResetRequest{Configuration: start.GetRequest()}); err != nil {
+				t.Fatal(err)
+			}
+			if _, err := h.Propose(ctx, &modelv1.ProposeRequest{Seed: 1}); err != nil {
+				t.Fatal(err)
+			}
+			judge(t, h, startObservation(t, 3))
+			if scenario == "retry before first Started read" {
+				if _, err := h.Propose(ctx, &modelv1.ProposeRequest{Seed: 1}); err != nil {
+					t.Fatal(err)
+				}
+				answer(t, h, "RetryThenComplete")
+				observed := new(realizationv1.Observation)
+				if err := scheduled(t).UnmarshalTo(observed); err != nil {
+					t.Fatal(err)
+				}
+				response := new(workflowservice.DescribeActivityExecutionResponse)
+				if err := observed.GetResponse().UnmarshalTo(response); err != nil {
+					t.Fatal(err)
+				}
+				response.Info.Attempt = 2
+				observed.Result = &realizationv1.Observation_Response{Response: pack(t, response)}
+				if result := judge(t, h, pack(t, observed)); result.GetContinuePolling() {
+					t.Fatalf("validated retry must finish prior delivery: %v", result)
+				}
+				next, err := h.Propose(ctx, &modelv1.ProposeRequest{Seed: 1})
+				if err != nil || next.GetAction() != "Worker::Poll(2)" {
+					t.Fatalf("next attempt: %v %v", next, err)
+				}
+			} else {
+				answer(t, h, "Complete")
+				cancel, err := h.Propose(ctx, &modelv1.ProposeRequest{})
+				if err != nil || cancel.GetAction() != "Client::Cancel" {
+					t.Fatalf("cancel: %v %v", cancel, err)
+				}
+				_, err = h.Judge(ctx, &modelv1.JudgeRequest{Observation: observation(t, enumspb.ACTIVITY_EXECUTION_STATUS_COMPLETED, 0)})
+				refusal(t, err, modelv1.RefusalCode_REFUSAL_CODE_STATE)
+				_, err = h.Propose(ctx, &modelv1.ProposeRequest{})
+				refusal(t, err, modelv1.RefusalCode_REFUSAL_CODE_STATE)
+				result := judge(t, h, cancelObservation(t, 0))
+				if result.GetContinuePolling() {
+					t.Fatalf("cancellation result must finish proposal: %v", result)
+				}
+				explained(t, result, "Client::Cancel")
+			}
+		})
+	}
+}

@@ -154,10 +154,32 @@ mod tests {
             source,
             location,
         )?;
-        insta::assert_snapshot!(
-            "activity-realization",
-            prettyplease::unparse(&syn::parse2(expanded)?)
-        );
+        let file: syn::File = syn::parse2(expanded)?;
+        let [syn::Item::Impl(authored), syn::Item::Impl(metadata), syn::Item::Impl(dispatch)] =
+            file.items.as_slice()
+        else {
+            return Err("unexpected realization expansion items".into());
+        };
+        let [syn::ImplItem::Const(contexts)] = metadata.items.as_slice() else {
+            return Err("unexpected realization metadata items".into());
+        };
+        if !file.attrs.is_empty()
+            || file.shebang.is_some()
+            || authored.trait_.is_some()
+            || metadata.trait_.is_some()
+            || dispatch.trait_.is_none()
+            || contexts.ident != "REALIZATION"
+        {
+            return Err("unexpected realization expansion structure".into());
+        }
+        let render = |item: &syn::ItemImpl| {
+            let mut section = file.clone();
+            section.items = vec![syn::Item::Impl(item.clone())];
+            prettyplease::unparse(&section)
+        };
+        insta::assert_snapshot!("activity-realization-authored", render(authored));
+        insta::assert_snapshot!("activity-realization-metadata", render(metadata));
+        insta::assert_snapshot!("activity-realization-dispatch", render(dispatch));
         Ok(())
     }
 }

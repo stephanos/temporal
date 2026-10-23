@@ -219,7 +219,9 @@ fn unpublished_bootstrap_and_unexplained_pending_effects_roll_back() {
     }
 }
 
-struct InternalWorld;
+struct InternalWorld {
+    external: bool,
+}
 impl umpire_dsl::Machine for InternalWorld {
     type State = support::State;
     type Action = support::Action;
@@ -229,16 +231,25 @@ impl umpire_dsl::Machine for InternalWorld {
         vec![support::State(0)]
     }
     fn actions(&self) -> Vec<Self::Action> {
-        vec![support::Action::Deliver]
+        if self.external {
+            vec![support::Action::Deliver, support::Action::Finish]
+        } else {
+            vec![support::Action::Deliver]
+        }
     }
-    fn internal(&self, _: &Self::Action) -> bool {
-        true
+    fn internal(&self, action: &Self::Action) -> bool {
+        *action == support::Action::Deliver
     }
     fn step(
         &self,
         state: &Self::State,
         action: Self::Action,
     ) -> umpire_dsl::Steps<Self::State, Self::Outcome, Self::Fact> {
+        if self.external && action == support::Action::Finish {
+            let mut steps = umpire_dsl::Steps::new();
+            steps.push((support::Outcome(3), vec![support::Fact], support::State(3)));
+            return steps;
+        }
         umpire_dsl::Machine::step(&support::World { starts: 1 }, state, action)
     }
 }
@@ -272,9 +283,44 @@ impl umpire_runtime::Realize<InternalWorld> for InternalRealization {
 }
 #[test]
 fn enabled_internal_action_is_never_a_proposal() {
-    let mut runtime = umpire_runtime::Runtime::new(InternalWorld, InternalRealization);
+    for (external, code) in
+        [(false, protocol::RefusalCode::Quiescent), (true, protocol::RefusalCode::State)]
+    {
+        let mut runtime =
+            umpire_runtime::Runtime::new(InternalWorld { external }, InternalRealization);
+        refused(runtime.dispatch(6, &protocol::ProposeRequest { seed: 1 }.encode_to_vec()), code);
+    }
+}
+
+struct DefaultProposal;
+impl umpire_runtime::Realize<support::World> for DefaultProposal {
+    fn observe(
+        &self,
+        value: &umpire_runtime::google::protobuf::Any,
+        state: &support::State,
+    ) -> Result<umpire_runtime::Projection<support::Action, support::Outcome>, protocol::Refusal>
+    {
+        umpire_runtime::Realize::observe(&support::Realization, value, state)
+    }
+    fn answer(
+        &self,
+        value: &umpire_runtime::google::protobuf::Any,
+        state: &support::State,
+    ) -> Result<umpire_runtime::AnswerPlan<support::Action>, protocol::Refusal> {
+        umpire_runtime::Realize::answer(&support::Realization, value, state)
+    }
+}
+#[test]
+fn runtime_owns_quiescence_before_default_proposal_policy() {
+    let mut runtime = umpire_runtime::Runtime::new(support::World { starts: 1 }, DefaultProposal);
+    for value in [10, 3] {
+        runtime.dispatch(
+            4,
+            &protocol::JudgeRequest { observation: Some(support::any(value)) }.encode_to_vec(),
+        );
+    }
     refused(
         runtime.dispatch(6, &protocol::ProposeRequest { seed: 1 }.encode_to_vec()),
-        protocol::RefusalCode::State,
+        protocol::RefusalCode::Quiescent,
     );
 }

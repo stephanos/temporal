@@ -890,8 +890,8 @@ An `umpire.temporal.v1.ObserveActivity` instead requests a Describe read, with e
 read timeout and backoff in milliseconds (10, 30000 and 10). It carries no worker response to resend.
 The immediate Answer reply remains the only worker response instruction; a successfully published
 Answer retains validated callback context so a later proposal can observe that same response.
-Delivery proposals complete at Started, worker responses at their corresponding completion or
-retry state, and cancellation at its explained result. Intermediate reads retain pending; Answer
+Delivery proposals complete at Started or a validated later attempt; worker responses at their corresponding completion or
+retry state, and cancellation only at its matching RPC result. Intermediate reads retain pending; Answer
 may commit delivery between those reads. Final evidence invalidates the corresponding callback
 context. Rejected Cancel self-loops remain eligible after closure; a bounded Run may stop by budget.
 

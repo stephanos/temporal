@@ -130,12 +130,18 @@ impl Realization {
         let observation: umpire_runtime::realization::Observation = observation.unpack()?;
         let actual =
             observation.request.ok_or_else(|| Refusal::malformed("actual request is missing"))?;
-        if request.type_url == <RequestCancelActivityExecutionRequest as prost::Name>::type_url()
-            && observation.method
+        if request.type_url == <RequestCancelActivityExecutionRequest as prost::Name>::type_url() {
+            return if observation.method
                 == "/temporal.api.workflowservice.v1.WorkflowService/RequestCancelActivityExecution"
-            && actual == *request
-        {
-            return Ok(());
+                && actual == *request
+            {
+                Ok(())
+            } else {
+                Err(Refusal::new(
+                    umpire_runtime::protocol::RefusalCode::State,
+                    "observation does not match cancellation invocation",
+                ))
+            };
         }
         if observation.method
             != "/temporal.api.workflowservice.v1.WorkflowService/DescribeActivityExecution"
@@ -169,9 +175,7 @@ impl Realization {
                     "Describe differs from proposal",
                 ));
             }
-        } else if request.type_url
-            != <RequestCancelActivityExecutionRequest as prost::Name>::type_url()
-        {
+        } else {
             return Err(Refusal::unsupported("unknown proposal request"));
         }
         Ok(())
@@ -195,7 +199,8 @@ impl Realization {
         }
         for attempt in 1..=3 {
             if action == Some(&Worker::Poll(attempt).into()) {
-                return Ok(state.phase != Phase::Started || state.attempt != attempt);
+                return Ok(state.attempt <= attempt
+                    && (state.phase != Phase::Started || state.attempt != attempt));
             }
         }
         if action == Some(&Worker::RespondFailed { retryable: true }.into()) {

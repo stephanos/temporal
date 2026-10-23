@@ -438,6 +438,23 @@ impl<M: Machine, R: Realize<M>> Runtime<M, R> {
             ));
         }
         let current = self.current()?;
+        if self.admitted {
+            let mut external = false;
+            for action in self.catalog()? {
+                if !self.machine.internal(&action)
+                    && !self.checked_step(current, action)?.is_empty()
+                {
+                    external = true;
+                    break;
+                }
+            }
+            if !external {
+                return Err(protocol::Refusal::new(
+                    protocol::RefusalCode::Quiescent,
+                    "no enabled external action",
+                ));
+            }
+        }
         let proposal = if self.admitted {
             self.realization.propose(current, seed)?
         } else {

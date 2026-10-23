@@ -57,7 +57,7 @@ fn admit(guest: &mut Guest<impl Dispatch>) {
     let response = judge(guest, &start);
     assert!(matches!(response.outcome, Some(Outcome::Judge(_))), "{response:?}");
 }
-fn callback() -> protocol::AnswerRequest {
+fn callback_policy(policy: &str) -> protocol::AnswerRequest {
     protocol::AnswerRequest {
         callback: Some(Any::pack(&Callback {
             task: Some(Any::pack(&PollActivityTaskQueueResponse {
@@ -72,7 +72,7 @@ fn callback() -> protocol::AnswerRequest {
                             "encoding".into(),
                             b"binary/plain".to_vec(),
                         )]),
-                        data: b"Complete".to_vec(),
+                        data: policy.as_bytes().to_vec(),
                         ..Default::default()
                     }],
                 }),
@@ -81,6 +81,10 @@ fn callback() -> protocol::AnswerRequest {
         })),
     }
 }
+fn callback() -> protocol::AnswerRequest {
+    callback_policy("Complete")
+}
+
 #[test]
 fn configured_bootstrap_and_reset_retain_configuration_but_clear_admission() {
     let mut guest = Guest::new(annotation_runtime());
@@ -239,23 +243,7 @@ fn retry_response_completes_at_next_scheduled_attempt() {
     let mut guest = Guest::new(annotation_runtime());
     configure(&mut guest);
     admit(&mut guest);
-    let mut request = callback();
-    let mut envelope: Callback = request
-        .callback
-        .take()
-        .unwrap_or_else(|| panic!("callback"))
-        .unpack()
-        .unwrap_or_else(|error| panic!("{error:?}"));
-    let mut task: PollActivityTaskQueueResponse = envelope
-        .task
-        .take()
-        .unwrap_or_else(|| panic!("task"))
-        .unpack()
-        .unwrap_or_else(|error| panic!("{error:?}"));
-    task.input.as_mut().unwrap_or_else(|| panic!("input")).payloads[0].data =
-        b"RetryThenComplete".to_vec();
-    envelope.task = Some(Any::pack(&task));
-    request.callback = Some(Any::pack(&envelope));
+    let request = callback_policy("RetryThenComplete");
     call(&mut guest, 5, &request);
     assert_eq!(propose(&mut guest, 1).action, "Worker::RespondFailed { retryable: true }");
     let Some(Outcome::Judge(result)) = judge(&mut guest, &common::describe(2, 1, 1)).outcome else {
@@ -358,4 +346,50 @@ fn filled_bootstrap_is_seeded_from_explicit_configuration_and_failed_configurati
         call(&mut guest, 3, &protocol::ResetRequest::default());
         assert_eq!(propose(&mut guest, 42).request, Some(Any::pack(&filled)));
     }
+}
+
+#[test]
+fn delivery_completes_when_retry_precedes_the_first_started_read() {
+    let mut guest = Guest::new(annotation_runtime());
+    configure(&mut guest);
+    admit(&mut guest);
+    assert_eq!(propose(&mut guest, 1).action, "Worker::Poll(1)");
+    call(&mut guest, 5, &callback_policy("RetryThenComplete"));
+    let Some(Outcome::Judge(result)) = judge(&mut guest, &common::describe(2, 1, 1)).outcome else {
+        panic!("retry")
+    };
+    assert!(!result.continue_polling, "validated retry proves prior delivery completed");
+    assert_eq!(propose(&mut guest, 1).action, "Worker::Poll(2)");
+}
+
+#[test]
+fn pending_cancel_rejects_describe_until_its_matching_invocation_finishes() {
+    let mut guest = Guest::new(annotation_runtime());
+    configure(&mut guest);
+    admit(&mut guest);
+    call(&mut guest, 5, &callback());
+    let cancel = propose(&mut guest, 0);
+    assert_eq!(cancel.action, "Client::Cancel");
+    refused(judge(&mut guest, &common::describe(1, 2, 0)), protocol::RefusalCode::State);
+    refused(
+        call(&mut guest, 6, &protocol::ProposeRequest { seed: 0 }),
+        protocol::RefusalCode::State,
+    );
+    let observed = Observation { method: "/temporal.api.workflowservice.v1.WorkflowService/RequestCancelActivityExecution".into(), request: cancel.request,
+        result: Some(umpire_runtime::realization::observation::Result::Response(Any::pack(&umpire_temporal_api::temporal::api::workflowservice::v1::RequestCancelActivityExecutionResponse::default()))) };
+    let bytes = protocol::JudgeRequest { observation: Some(Any::pack(&observed)) }.encode_to_vec();
+    assert!(!guest.dispatch_to(4, &bytes, |_| false));
+    refused(
+        call(&mut guest, 6, &protocol::ProposeRequest { seed: 0 }),
+        protocol::RefusalCode::State,
+    );
+    let Some(Outcome::Judge(result)) = judge(&mut guest, &observed).outcome else {
+        panic!("cancel")
+    };
+    assert!(!result.continue_polling);
+    let Some(protocol::judge_response::Judgment::Explained(explanation)) = result.judgment else {
+        panic!("explained")
+    };
+    assert_eq!(explanation.steps, ["Client::Cancel"]);
+    assert_eq!(propose(&mut guest, 0).action, "Client::Cancel");
 }
