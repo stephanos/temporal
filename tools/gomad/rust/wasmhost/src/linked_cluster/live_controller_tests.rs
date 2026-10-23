@@ -789,6 +789,8 @@ fn one_and_thirty_two_mib_world_transition_bounds_change_the_same_actual_guest()
     }
 }
 
+#[path = "lifecycle_predicate_tests.rs"]
+mod lifecycle_predicate_tests;
 fn phase_schedule_request(slow_first: bool) -> Request {
     let mut request = output_wait_request(1, "", &["a", "b"], Action::Stop);
     request.boundaries.clear();
