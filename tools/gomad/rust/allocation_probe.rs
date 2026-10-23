@@ -89,17 +89,6 @@ pub(crate) struct Facts {
 }
 
 pub(crate) fn capture<T>(operation: impl FnOnce() -> T) -> (T, Facts) {
-    assert!(!ACTIVE.load(Ordering::Relaxed), "nested allocation capture");
-    SCOPE.with(|cell| {
-        assert!(!cell.get().active, "nested thread allocation capture");
-        cell.set(Scope {
-            active: true,
-            allocated_bytes: 0,
-            allocation_calls: 0,
-        });
-    });
-    let before = LIVE.load(Ordering::Relaxed);
-    PEAK.store(before, Ordering::Relaxed);
     struct Guard;
     impl Drop for Guard {
         fn drop(&mut self) {
@@ -111,6 +100,17 @@ pub(crate) fn capture<T>(operation: impl FnOnce() -> T) -> (T, Facts) {
             });
         }
     }
+    assert!(!ACTIVE.load(Ordering::Relaxed), "nested allocation capture");
+    SCOPE.with(|cell| {
+        assert!(!cell.get().active, "nested thread allocation capture");
+        cell.set(Scope {
+            active: true,
+            allocated_bytes: 0,
+            allocation_calls: 0,
+        });
+    });
+    let before = LIVE.load(Ordering::Relaxed);
+    PEAK.store(before, Ordering::Relaxed);
     ACTIVE.store(true, Ordering::Relaxed);
     let guard = Guard;
     let result = std::hint::black_box(operation());
@@ -132,12 +132,22 @@ pub(crate) fn row(
     facts: Facts,
     observed: serde_json::Value,
 ) {
-    println!(
-        "GOMAD_ALLOCATION_OBSERVATION {}",
-        serde_json::json!({"schema":"gomad.native-allocation-observation/v1", "case":case,
-            "allocation_scope":"selected-test-thread","live_scope":"whole-process",
-            "inputs":inputs,"allocator":facts,"observed":observed})
-    );
+    let value = serde_json::Value::Object(serde_json::Map::from_iter([
+        (
+            "schema".into(),
+            serde_json::json!("gomad.native-allocation-observation/v1"),
+        ),
+        ("case".into(), serde_json::json!(case)),
+        (
+            "allocation_scope".into(),
+            serde_json::json!("selected-test-thread"),
+        ),
+        ("live_scope".into(), serde_json::json!("whole-process")),
+        ("inputs".into(), inputs),
+        ("allocator".into(), serde_json::to_value(facts).unwrap()),
+        ("observed".into(), observed),
+    ]));
+    println!("GOMAD_ALLOCATION_OBSERVATION {value}");
 }
 
 pub(crate) fn self_check() {

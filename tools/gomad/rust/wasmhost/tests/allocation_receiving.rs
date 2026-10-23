@@ -58,7 +58,6 @@ fn namespace_allocation() {
 }
 
 fn world_allocation(compressed: bool, requests: u64) {
-    use world::{Config, Limits, Model, Readiness, Request, ResourceId};
     let case = if compressed {
         "compressed-world"
     } else {
@@ -66,45 +65,7 @@ fn world_allocation(compressed: bool, requests: u64) {
     };
     let inputs = serde_json::json!({"requests":requests,"seed":7,"payload_bytes_per_request":32});
     let mut cumulative = 0;
-    let (model, facts) = allocation_measure::capture(|| {
-        let mut model = Model::new(Config {
-            seed: 7,
-            limits: Limits {
-                max_requests: requests + 1,
-                max_events: requests + 1,
-                max_queued_events: 1,
-                max_transitions: (requests * 3 + 1).max(100_000),
-                max_payload_bytes: 32 << 20,
-                max_string_bytes: 1024,
-            },
-        })
-        .unwrap();
-        for ordinal in 0..requests {
-            let id = model
-                .register(Request {
-                    kind: "runtime_net_stream".into(),
-                    resource: ResourceId {
-                        adapter: "wasm-broker".into(),
-                        kind: "incarnation".into(),
-                        key: "active/1".into(),
-                    },
-                    priority: 0,
-                    payload: vec![0; 32],
-                })
-                .unwrap();
-            model
-                .ready(Readiness {
-                    request_id: id,
-                    at: world::INITIAL_TIME + i64::try_from(ordinal + 1).unwrap(),
-                    kind: "runtime_net_stream".into(),
-                    payload: Vec::new(),
-                    equivalence_class: String::new(),
-                })
-                .unwrap();
-            model.quiesce().unwrap();
-        }
-        model
-    });
+    let (model, facts) = allocation_measure::capture(|| populate_world(requests));
     stage(case, "model", &inputs, facts, &mut cumulative, compressed);
     let cardinality = model.cardinality();
     let state_digest = model.state_digest();
@@ -130,59 +91,15 @@ fn world_allocation(compressed: bool, requests: u64) {
         &mut cumulative,
         compressed,
     );
-    let mut envelope = None;
-    let restored = if compressed {
-        let (encoded, facts) =
-            allocation_measure::capture(|| world::retained::compress(&expanded).unwrap());
-        stage(
-            case,
-            "compressed_encode",
-            &inputs,
-            facts,
-            &mut cumulative,
-            true,
-        );
-        let (restored, facts) = allocation_measure::capture(|| {
-            let restored = world::retained::expand(&encoded).unwrap();
-            world::retained::validate(&restored, &config).unwrap();
-            restored
-        });
-        stage(
-            case,
-            "compressed_streaming_semantic_decode",
-            &inputs,
-            facts,
-            &mut cumulative,
-            true,
-        );
-        envelope = Some(encoded);
-        restored
-    } else {
-        let ((), facts) =
-            allocation_measure::capture(|| world::retained::validate(&expanded, &config).unwrap());
-        stage(
-            case,
-            "decode_restore_canonical",
-            &inputs,
-            facts,
-            &mut cumulative,
-            false,
-        );
-        let (again, facts) = allocation_measure::capture(|| {
-            let mut wire = Vec::new();
-            world::wire_generated::write_snapshot(model.as_ref().unwrap(), &mut wire).unwrap();
-            wire
-        });
-        stage(
-            case,
-            "reencode_restore_canonical",
-            &inputs,
-            facts,
-            &mut cumulative,
-            false,
-        );
-        again
-    };
+    let (restored, envelope) = restore_world(
+        compressed,
+        &expanded,
+        model.as_ref(),
+        &config,
+        &inputs,
+        &mut cumulative,
+        case,
+    );
     assert_eq!(restored, expanded);
     assert_eq!(cardinality.requests, requests);
     assert_eq!(cardinality.events, requests);
@@ -195,7 +112,7 @@ fn world_allocation(compressed: bool, requests: u64) {
     let envelope_sha256 = envelope
         .as_ref()
         .map(|bytes| format!("{:x}", sha2::Sha256::digest(bytes)));
-    let (_, facts) = allocation_measure::capture(|| ());
+    let ((), facts) = allocation_measure::capture(|| ());
     allocation_measure::row(
         &format!("{case}/round-trip"),
         inputs,
@@ -209,6 +126,105 @@ fn world_allocation(compressed: bool, requests: u64) {
             "transcript_digest":world::digest::hex(&cardinality.transcript_digest),"state_digest":world::digest::hex(&state_digest)
         }),
     );
+}
+
+fn populate_world(requests: u64) -> world::Model {
+    use world::{Config, Limits, Model, Readiness, Request, ResourceId};
+    let mut model = Model::new(Config {
+        seed: 7,
+        limits: Limits {
+            max_requests: requests + 1,
+            max_events: requests + 1,
+            max_queued_events: 1,
+            max_transitions: (requests * 3 + 1).max(100_000),
+            max_payload_bytes: 32 << 20,
+            max_string_bytes: 1024,
+        },
+    })
+    .unwrap();
+    for ordinal in 0..requests {
+        let id = model
+            .register(Request {
+                kind: "runtime_net_stream".into(),
+                resource: ResourceId {
+                    adapter: "wasm-broker".into(),
+                    kind: "incarnation".into(),
+                    key: "active/1".into(),
+                },
+                priority: 0,
+                payload: vec![0; 32],
+            })
+            .unwrap();
+        model
+            .ready(Readiness {
+                request_id: id,
+                at: world::INITIAL_TIME + i64::try_from(ordinal + 1).unwrap(),
+                kind: "runtime_net_stream".into(),
+                payload: Vec::new(),
+                equivalence_class: String::new(),
+            })
+            .unwrap();
+        model.quiesce().unwrap();
+    }
+    model
+}
+
+fn restore_world(
+    compressed: bool,
+    expanded: &[u8],
+    model: Option<&world::Model>,
+    config: &world::Config,
+    inputs: &serde_json::Value,
+    cumulative: &mut u64,
+    case: &str,
+) -> (Vec<u8>, Option<Vec<u8>>) {
+    let mut envelope = None;
+    let restored = if compressed {
+        let (encoded, facts) =
+            allocation_measure::capture(|| world::retained::compress(expanded).unwrap());
+        stage(case, "compressed_encode", inputs, facts, cumulative, true);
+        let (restored, facts) = allocation_measure::capture(|| {
+            let restored = world::retained::expand(&encoded).unwrap();
+            world::retained::validate(&restored, config).unwrap();
+            restored
+        });
+        stage(
+            case,
+            "compressed_streaming_semantic_decode",
+            inputs,
+            facts,
+            cumulative,
+            true,
+        );
+        envelope = Some(encoded);
+        restored
+    } else {
+        let ((), facts) =
+            allocation_measure::capture(|| world::retained::validate(expanded, config).unwrap());
+        stage(
+            case,
+            "decode_restore_canonical",
+            inputs,
+            facts,
+            cumulative,
+            false,
+        );
+        let (again, facts) = allocation_measure::capture(|| {
+            let mut wire = Vec::new();
+            world::wire_generated::write_snapshot(model.unwrap(), &mut wire).unwrap();
+            wire
+        });
+        stage(
+            case,
+            "reencode_restore_canonical",
+            inputs,
+            facts,
+            cumulative,
+            false,
+        );
+        again
+    };
+    (restored, envelope)
 }
 
 fn retain_bytes(case: &str, requests: u64, suffix: &str, bytes: &[u8]) -> String {
