@@ -139,7 +139,7 @@ impl Parent {
     }
 
     pub fn choice(&self, length: u64, ordinal: u64) -> Result<execution::Result, String> {
-        execution::run_with_replay(
+        let mut trial = execution::run_with_replay(
             &self.prepared,
             &Job {
                 ordinal,
@@ -152,7 +152,9 @@ impl Parent {
             &linked::Cancellation::default(),
             Some(&self.choice_request(length)?),
             Some(&self.trace),
-        )
+        )?;
+        retain_provenance_presence(&self.opened, &mut trial)?;
+        Ok(trial)
     }
 
     pub fn matches(&self, candidate: &Record) -> Result<bool, String> {
@@ -160,6 +162,41 @@ impl Parent {
             && candidate.outcome.class == "target_failure"
             && candidate.failure_signature()? == self.original.failure_signature()?)
     }
+}
+
+fn retain_provenance_presence(
+    parent: &Opened,
+    trial: &mut execution::Result,
+) -> Result<(), String> {
+    const PROVENANCE: &str = "target/provenance.json";
+    if parent.manifest().files.contains_key(PROVENANCE) {
+        return Ok(());
+    }
+    let expected = crate::evidence::record::Stream {
+        bytes: 2,
+        sha256: canonical::digest(b"{}"),
+        records: 1,
+    };
+    if trial
+        .publication
+        .payloads
+        .get(PROVENANCE)
+        .map(Vec::as_slice)
+        != Some(b"{}")
+        || trial.publication.record.streams.get(PROVENANCE) != Some(&expected)
+        || trial.execution.record != trial.publication.record
+        || trial.publication.payloads.get("record.json") != Some(&trial.publication.record.bytes()?)
+    {
+        return Err("minimizer generated provenance differs from absent parent fallback".into());
+    }
+    trial.publication.payloads.remove(PROVENANCE);
+    trial.publication.record.streams.remove(PROVENANCE);
+    trial
+        .publication
+        .payloads
+        .insert("record.json".into(), trial.publication.record.bytes()?);
+    trial.execution.record.clone_from(&trial.publication.record);
+    Ok(())
 }
 
 pub(crate) fn behavioral_record(opened: &Opened) -> Result<Record, String> {
@@ -197,3 +234,7 @@ pub(crate) fn exact(path: &Path) -> Result<bool, String> {
     let observed = preflight::execute(prepared.execution)?;
     Ok(divergence::first(&expected, &observed).is_none())
 }
+
+#[cfg(test)]
+#[path = "predicate_tests.rs"]
+mod tests;

@@ -1,3 +1,24 @@
+## Current public acceptance: a07 candidate
+
+Task .1 is verified DONE in Flow; task .2 is in progress for the explicit positive display golden and final spec review. Earlier pending runtime notes below are historical.
+
+Immutable candidate `/home/agent/wt/evidence/fn232-integrated-provenancefix-01/gomad-a07dd6e2c404ce9120c448e8568c18906fa2f9aebd87d11ce8d53a7bac8a861b` is built from `8536a84a8595b0f5e27295b93885908bd65f07bb`. All 4,570 tools inputs match before/after build. Default 156 and fixture 158 tests pass, with one existing ignored test each; both strict all-target Clippy checks and formatting exit 0. The narrow authenticated-absence correction has fresh independent SHIP review (same GPT family), meaningful genuine-parent RED/GREEN and actual one-attempt minimization with exact final replay. The full predicate remains unchanged.
+
+Public acceptance roots are `/home/agent/wt/evidence/fn231-public-provenancefix-01` and `.../fn231-public-provenancefix-02`. Scope01 and scope02 each pass 55 command receipts; semantic01 and semantic02 each pass 119 receipts against frozen Go, all terminal 0 with unchanged source/input/binary bindings and original limits. Both newly generated semantic goldens are byte-identical: SHA256 `3095bc851f9fa9f821dac792e585f16228975a0ebd0d8dd0a0cafeaedf05f61e`, 38,237 bytes. The checked semantic golden remains unchanged pending task .2. The second driver is `9808f8807c44024d31042630c8136b2f26321069`, differing only by the unrelated `.plans/GOMAD_RACES.md` commit; all compiled tools inputs were independently rehashed identical. An earlier scope02 HEAD-guard refusal launched no child and remains preserved. The two-run comparison receipt is `fn231-public-provenancefix-02/two-run-comparison.json`.
+
+| R-ID | Accepted evidence |
+| --- | --- |
+| R1 | Both scope runs refuse four invalid patterns and genuine stripped-symbol parents before output/attempts. Semantic scoped controllers preserve global out/mixed/in stability and the suffix-only prefix exception. |
+| R2 | Both scope runs authenticate eight producing-round snapshots, remove the campaign, inherit scope from a detached failure, accept explicit override and refuse malformed present context naming its parent. Legacy semantic parents remain unscoped. |
+| R3 | Content controllers show 2 unscoped, 3 same-minimum scoped and 4 distinct-valid-minimum scoped attempts under the same predicate. Actual minimized artifacts reproduce exact retained failures. |
+| R4 | Unchanged complete and interrupted resumes agree; changed scope/context, implementation, parent, predicate and bounds refuse. |
+| R5 | Actual minimum inspection resolves both removed decisions to main.choose/main.go:6 with inline main.main; the final group contains one main.choose decision. Detached semantic inspection agrees, including unavailable reasons. The task .2 positive golden additionally snapshots these exact new symbol objects. |
+| R6 | Actual inherited main scope resolves two sites and reports two removals in scope, zero out. Zero-match reductions remain nonvacuous. Six semantic scoped reports snapshot scope and counts. |
+| R7 | Removing report-only symbol/group fields reconstructs the authenticated minimization block byte-for-byte. Schema, execution/failure identities and full predicate remain unchanged; context-qualified collisions and journal reopening are tested. |
+| R8 | Frozen unscoped proposal fingerprints, choice-prefix proposal bytes and existing semantic behavior fields remain unchanged; both fresh differential lanes agree with Go. |
+
+Task .2's narrow Python-only display checker/golden checkpoint `6e299e88ba` is awaiting fresh independent review. Both already-authenticated positive scope runs yield the same 938-byte projection, SHA256 `4d50ea6bf4def5cee39e09755672f23d99dc52e2f62642b0e2090fc8a365549d`; raw evidence is unchanged. No final Rust qualification, Go retirement, or whole-milestone completion is claimed.
+
 # fn231 Rust minimizer batch handover — 2026-10-22
 
 Source checkpoint: `2ac50dcabf`, branch `fn231-rust-minimizer`, base
@@ -483,3 +504,155 @@ completed with numeric exit 0; no owned target process remains. No Go, public
 guest, runtime controller or new fixture ran. Independent source review and
 integrated checks remain with the conductor, including its separate pending
 broker aggregate fix.
+
+
+## Genuine legacy-parent provenance presence correction
+
+The fresh semantic01 generation under immutable host 8336643f failed its first
+shared-output reduction assertion: the CLI returned 0, unchanged, two rejected
+attempts and `minimal`, at the original 6406161-byte bound. The bound was not
+reached: publication-cap checks happen after a reduction passes the predicate.
+Original raw generation remains in
+`/home/agent/wt/evidence/fn231-public-storagewait-01/{semantic01,minimize-01}`.
+Its successful 55-command scope01 remains separate evidence, not acceptance of
+the failed semantic generation. No checked golden changed.
+
+Focused frozen Go minimization of the exact original seed7 parent exited 0,
+changed true in one attempt, accepting cutoff0. Existing host833 executions of
+the same module/configuration/seed under cutoff0 and cutoff1 reproduced the
+original Rust parent record byte-for-byte (28c00513...) and the identical raw
+choice trace. Evidence is `/home/agent/wt/evidence/fn231-minimize-focused-01`;
+Go session10956 and prefix capture53363 both exited 0. The module SHA-256 is
+`1f89ca1f54fbcc46ff01f4793c83e979d84e1af3bc486233e235e99676382e7c`.
+
+Controlled detached copies investigated only `{}` preparation-payload presence.
+Two early construction errors (missing typed file `module` flag and private file
+mode) were preserved rather than treated as causal evidence. The final correctly
+typed/private copy, under `fn231-provenance-controlled-01`, passed actual833
+`fixture-open` with full payload authentication, then minimize refused the
+present `{}` payload with status2/missing schema before any attempt. That strict
+admission refusal remains intact; no schema was forged to reach execution.
+
+The decisive test produced a fresh genuine parent using the existing fixture
+publisher, the unchanged original module/config values and the same freshly
+compiled host as its candidate. RED38038 exited101 at strict `Parent::matches`.
+Full canonical field comparison found exactly one difference: candidate streams
+included `target/provenance.json` with bytes2, records1 and SHA-256
+`44136fa355b3678a1146ad16f7e8649e94fb4fc21fe77e8310c060f61caaff8a`.
+Parent and candidate had identical outcomes, identities, environment, arguments,
+all other streams and raw choice bytes. The Parent fallback `{}` was being
+accidentally promoted into a new retained stream by ordinary publication.
+Raw full records/diff are in `fn231-provenance-host-red-02`. Its predecessor test
+run picked a target-pool entry rather than the manifest-bearing artifact; that
+lookup failure was corrected before the meaningful RED and remains recorded.
+
+The narrow Parent-local correction preserves authenticated absence when building
+a trial. It removes only a generated payload exactly equal to canonical `{}`,
+only when the authenticated original manifest has no preparation payload, and
+only after checking the complete corresponding stream descriptor plus consistency
+of publication record, ledger record and record.json. Unexpected payloads or
+descriptors refuse. All three record representations are updated together.
+Authenticated present provenance stays byte-identical, and strict full-record
+`Parent::matches` has no exemptions. No minimization evidence schema, acceptance
+predicate, byte cap, replay requirement, guest source or dependency changed.
+
+Genuine same-build GREEN53027 exited0. Parent and cutoff0 candidate both hashed
+to 458c254d... with strict match true and no extra streams. The same test ran the
+actual full minimizer at attempts64/bytes6406161: changed true in one attempt,
+then exact replay of its final artifact passed. Raw records, traces and result
+are in `fn231-provenance-host-green-01`. The absolute-path forensic test was
+removed from shipped source and saved externally as
+`/home/agent/evidence/fn231-provenance-genuine-green-test.rs`.
+
+Five portable regressions cover authenticated absent/present provenance, valid
+typed ordinary provenance, preserved invalid-schema refusal, unexpected generated
+payload/descriptor/coherence failures, unchanged strict binding of other metadata
+and retained payload tampering. Final affected minimize tests exited0 (23 passed);
+replay tests exited0 (7 passed). Strict fixture all-target Clippy with warnings
+denied, workspace format and diff checks exited0. One test-only useless String
+conversion was fixed before the passing Clippy run, without allowances. Logs:
+`/home/agent/evidence/fn231-provenance-host-red-2.log`,
+`fn231-provenance-host-green.log`, `fn231-provenance-minimize-tests-final.log`,
+`fn231-provenance-replay-tests.log`, `fn231-provenance-clippy-final.log`.
+Commands used +1.99.1 release/locked/offline/jobs2, exclusive fn232-live-corpus;
+its removed library intermediates were regenerated under the explicit lease.
+No Go compilation, full generation retry or golden overwrite ran. Independent
+review, integrated gates and two fresh complete public generations remain with
+the conductor.
+
+
+## Positive display golden from the two completed scope runs
+
+The literal task2 golden coverage now includes inspect's complete per-removed
+`symbol` objects, alongside package/function final groups and minimize scope and
+removal counts. `site-minimizer-display.py` reuses the existing campaign artifact
+authenticator/canonical encoding, authenticates the actual record and all bound
+payloads, checks the complete inspect minimization block against retained raw
+metadata, and verifies CLI candidate/removed identities exactly before selecting
+only explicitly declared presentation fields. No record, evidence, choice or
+identity value is rewritten to make two runs match.
+
+The two inputs were the already completed and authenticated
+`/home/agent/wt/evidence/fn231-public-provenancefix-01/scope-01` and
+`/home/agent/wt/evidence/fn231-public-provenancefix-02/scope-02`. Their projections
+were checked byte-identical before the new checked write. Both are 938 bytes,
+SHA-256 `4d50ea6bf4def5cee39e09755672f23d99dc52e2f62642b0e2090fc8a365549d`.
+The new checked path is `goldens-minimize/scoped-display.json`. The checker also
+enforces repeated equality before regeneration under the existing
+`GOMAD_GOLDEN_REGENERATE=1` convention, requiring distinct authenticated scope
+outputs. The live scope path strictly compares the golden after existing report
+and raw-byte checks; it writes its observed display view to the work directory.
+No new host CLI or runtime control is involved.
+
+The portable copied input fixture retains actual full candidate identities and
+raw minimization metadata; it omits only the external artifact path. Fourteen
+offline tests cover positive main.choose/main.go:6/inline main.main symbols,
+missing and changed symbols/groups, counts (including a balanced but wrong
+classification), ordinals, exact identities, raw predicate metadata, scope and
+the two-run regeneration gate. These compare copied actual output to the frozen
+reviewed golden, rather than deriving expected symbols from checker logic.
+
+Verification commands (all exit0):
+`python3 tools/gomad/testdata/parity/site-minimizer-display-tests.py`;
+`python3 tools/gomad/testdata/parity/site-minimizer-display.py --scope-output
+/home/agent/wt/evidence/fn231-public-provenancefix-01/scope-01 --scope-output
+/home/agent/wt/evidence/fn231-public-provenancefix-02/scope-02`; three Python AST
+checks and `git diff --check`. Logs are
+`/home/agent/evidence/fn231-scoped-display-portable-tests.log` and
+`fn231-scoped-display-actual-check.log`. Independent before/after hashes of each
+actual record, manifest, inspection block, choice and retained source tape are
+unchanged, recorded in `fn231-scoped-display-proof.json`. Checker SHA-256 is
+`d744cee766cdf1fa77215414e6bb12a83057c2d8aad6e2ef677e5ca509df1efb`;
+portable tests SHA-256 is
+`624f5ff9d7efe3cefa24ed6430f4bef29e271f5906b019591e57fc813f8be49b`.
+The original `semantic.json` remains byte-identical in this isolated checkout
+(SHA-256 d8f7795d...). No Rust, Cargo, Go, guest, complete generation, lifecycle
+transition or push ran for this Python-only coverage addition.
+
+### Display review followup: JSON type-sensitive raw-block authentication
+
+The complete retained minimization block comparison now compares canonical JSON
+bytes before selecting display fields. This closes Python equality accepting
+`true == 1` and `64 == 64.0` in omitted predicate/budget fields. Two portable
+regressions mutate the actual copied inspect predicate `replay_match` to integer
+1 and `attempt_budget` to float 64.0 while leaving retained metadata unchanged.
+Both failed with “ValueError not raised” before the fix (16 tests, 2 failures,
+exit1), then all 16 passed after the one-line canonical comparison (exit0).
+Logs: `/home/agent/evidence/fn231-display-types-red.log` and
+`fn231-display-types-green.log`.
+
+The offline authenticated two-scope checker passed (exit0), as did Python AST
+parsing for checker/tests/live hook and `git diff --check`. The explicit
+canonical-type proof and projection hashes are in
+`/home/agent/evidence/fn231-display-types-proof.json`; actual checker log is
+`fn231-display-types-actual.log`. Both actual projections remain 938 bytes with
+SHA-256 `4d50ea6bf4def5cee39e09755672f23d99dc52e2f62642b0e2090fc8a365549d`.
+Checked scoped golden and semantic golden are unchanged. Checker SHA-256:
+`fd78be2e9e73eaf6fd5a77b4262e8f409a9fe691436bf869600ee5bf49e5eea2`;
+tests SHA-256:
+`f884829d0e6ad448d0cade2bf83176bb86cbb48cdcfa1c3a1cc472bfa89f84bc`.
+This followup ran no Go, Cargo, Rust, guest or runtime generation commands.
+
+### Integrated reporting closeout
+
+Integrated display checkpoints a4cfdf5ab7/c63cfc2999 passed all16 portable tests, authenticated both retained actual scope outputs, AST3 and diff checks (all exit0). Independent same-family reviewer returned SHIP for6506164bda after inspecting actual RED/GREEN logs and unchanged938B projections. Flow task2 was completed and its done status independently read back before this closeout commit. The checked semantic golden is the actual repeated3095bc851f9fa9f821dac792e585f16228975a0ebd0d8dd0a0cafeaedf05f61e output (38237B); previous fields and refusal entries remain unchanged, with only scoped cases/report blocks added. No Rust/Go inputs changed after the four acceptance phases. Formal full-spec completion review remains pending.

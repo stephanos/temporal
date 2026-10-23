@@ -325,5 +325,4 @@ Owner request 2026-10-20: a Go one-liner and `gomad -- make <target>` intercepti
 
 | Name / ID | Status | Description |
 | --- | --- | --- |
-| [fn-231-gomad-site-aware-minimizer-ordering-and.1](.flow/tasks/fn-231-gomad-site-aware-minimizer-ordering-and.1.md) | 🚧 Running | Scoped proposal ordering with checkpoint key and parent-scope default |
-| [fn-231-gomad-site-aware-minimizer-ordering-and.2](.flow/tasks/fn-231-gomad-site-aware-minimizer-ordering-and.2.md) | ⬜ Todo | Symbolized reporting in minimize --json and inspect |
+Both tasks are complete. Final spec-compliance review is pending before closure.
