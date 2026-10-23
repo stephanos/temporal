@@ -60,7 +60,11 @@ pub fn produce(
     let options = options(installation, source)?;
     let prepared = crate::campaign::prepare::prepare_runtime_qualification(&options)?;
     let preparation = output.join("preparation");
-    std::fs::create_dir(&preparation).map_err(|error| error.to_string())?;
+    use std::os::unix::fs::DirBuilderExt as _;
+    std::fs::DirBuilder::new()
+        .mode(0o700)
+        .create(&preparation)
+        .map_err(|error| error.to_string())?;
     let mut plan = serde_json::json!({});
     crate::campaign::retain_prepared(&preparation, &prepared, &mut plan)?;
     std::fs::write(preparation.join("plan.json"), canonical::encode(&plan)?)

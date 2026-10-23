@@ -376,6 +376,7 @@ mod tests {
         // These observation values are fixtures, not claims about a compiler execution.
         let raw = canonical::encode(&json!({"owner_pid":std::process::id(),"observation_id":observation,"timestamp_fixture":observation})).unwrap();
         Prepared {
+            compile_cache_root: None,
             auxiliary: BTreeMap::from([(
                 "target/preparation-inputs/admission/metadata.json".into(),
                 raw,

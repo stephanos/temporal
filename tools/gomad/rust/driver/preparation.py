@@ -219,7 +219,15 @@ class Inventory:
                 'native compiler version or target kind changed')
         forced = dict(GOENV='off',GOPROXY='off',GOSUMDB='off',GOPRIVATE='',GONOPROXY='none',GOVCS='*:off',GOFLAGS='',GOTOOLCHAIN='local',GOWORK='off',
                       GOOS='wasip1',GOARCH='wasm',CGO_ENABLED='0',GOEXPERIMENT='nogreenteagc',GOCACHEPROG='',GOWASM='',GODEBUG='')
-        require(inputs['environment'] == forced,'native original forced compiler controls changed')
+        selected = inputs['environment']
+        require(type(selected) is dict and set(selected) <= set(forced)|{'GOMAXPROCS','GOTMPDIR'}
+                and selected.get('GOWASM') in ('','satconv,signext')
+                and ('GOMAXPROCS' not in selected or selected['GOMAXPROCS'] == '1')
+                and ('GOTMPDIR' not in selected or isinstance(selected['GOTMPDIR'],str)
+                     and Path(selected['GOTMPDIR']).is_absolute() and '\0' not in selected['GOTMPDIR']),
+                'native scoped compiler controls changed')
+        forced.update({key:selected[key] for key in ('GOMAXPROCS','GOTMPDIR','GOWASM') if key in selected})
+        require(selected == forced,'native original forced compiler controls changed')
         flags = ['-mod=readonly','-pgo=off']
         actual_flags = inputs['build_flags']
         require(actual_flags in (['-mod=readonly','-trimpath','-buildvcs=false','-pgo=off'],

@@ -112,6 +112,14 @@
       "reason": "requires pinned Go oracle; see deflate/README.md",
       "disposition": "separate-actual-proof-required",
       "final_id": "test-wasm/complete-behavioral-reach"
+    },
+    {
+      "source": "gomad/src/campaign/prepare/actual_tests.rs",
+      "name": "actual_scoped_compiler_and_cached_output_preserve_raw_proofs",
+      "reason": "requires an explicitly selected pinned Go compiler and an empty retained probe root",
+      "final_id": null,
+      "disposition": "original-opt-in-nonqualification",
+      "crate": "gomad"
     }
   ]
 }

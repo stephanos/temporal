@@ -121,6 +121,19 @@ class NativeObservationSeal(unittest.TestCase):
             self.assertEqual(native['owner_pid'],receipt['pid'])
             observations.verify_snapshot(self.config,receipt['pid'],seal)
 
+    def test_runtime_selector_uses_exact_frozen_harness_output_and_actual_owner(self):
+        harness=self.root/'runtime-harness';harness.write_bytes(b'bounded harness fixture')
+        self.config['files'][str(harness)]=driver.sha(harness)
+        self.config['stages']={'runtime-0':dict(harness=str(harness))}
+        campaign=self.root/'recordings/preparation'
+        write_campaign(campaign,self.config,1234)
+        argv=[str(harness),'produce',str(self.root/'installation'),str(self.root/'source'),'0',str(campaign.parent)]
+        seal=observations.from_command(self.config,1234,argv,b'')
+        self.assertEqual([entry['path'] for entry in seal['campaigns']],[str(campaign)])
+        with self.assertRaises(ValueError): observations.from_command(self.config,4321,argv,b'')
+        harness.write_bytes(b'changed harness')
+        with self.assertRaises(ValueError): observations.from_command(self.config,1234,argv,b'')
+
     def test_default_none_does_not_change_unobserved_receipt(self):
         _,receipt,_=self.run_native('default',callback=False)
         self.assertNotIn('private_observations',receipt)

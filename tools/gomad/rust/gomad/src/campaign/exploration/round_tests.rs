@@ -61,6 +61,7 @@ fn prepared() -> (Prepared, Publication) {
     publication.payloads.remove(search_context::FILE);
     let prepared = Prepared {
         auxiliary: Default::default(),
+        compile_cache_root: None,
         module,
         configuration,
         toolchain: identity.toolchain_build_key.clone(),

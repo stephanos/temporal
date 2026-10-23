@@ -300,6 +300,7 @@ fn cluster_role_inputs_are_preserved_in_the_retained_configuration() {
 fn canonical_soft_assertion_failure_cannot_pass_any_stress_workload() {
     let prepared = prepare::Prepared {
         auxiliary: Default::default(),
+        compile_cache_root: None,
         module: b"(module)".to_vec(),
         configuration: cluster_test_configuration(),
         toolchain: canonical::digest(b"toolchain"),

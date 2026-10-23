@@ -5,6 +5,7 @@ from importlib.machinery import SourceFileLoader
 from pathlib import Path
 import tempfile
 import argparse
+import base64
 import json
 import subprocess
 import sys
@@ -101,6 +102,61 @@ class OrderedGatesTest(unittest.TestCase):
             self.assertLessEqual(row['started_nanos'], row['ended_nanos'])
             self.assertIsNone(row['environment']['GOMAD_WASM_QUALIFY_WORKLOADS'])
             self.assertEqual(Path(row['stdout']['path']).read_bytes(), b'witness\n')
+
+    def test_measured_spec_retains_exact_raw_bytes_and_full_original_envelope(self):
+        with tempfile.TemporaryDirectory() as directory:
+            root = Path(directory)
+            spec = root / 'qualification.json'
+            raw = b'{ "Campaign": {"WorldTransitionLimit": 33554432}, "Manifest": {} }\n'
+            spec.write_bytes(raw)
+            binary = root / 'operator'
+            binary.write_text('#!' + sys.executable + '\nprint("actual child output")\n')
+            binary.chmod(0o700)
+            row = gates.Commands(root, 10).run('qualify', [binary, 'qualify', '--spec', spec])
+            self.assertEqual(row['qualification_spec'], dict(path=str(spec), sha256=gates.digest(raw),
+                bytes_base64=base64.b64encode(raw).decode('ascii')))
+            self.assertEqual(json.loads(base64.b64decode(row['qualification_spec']['bytes_base64']))['Campaign']['WorldTransitionLimit'], 32 << 20)
+            discovery = gates.Commands(root, 10).run('discovery', [binary, 'discover'])
+            self.assertNotIn('qualification_spec', discovery)
+
+    def test_mutated_world_bound_refuses_gate_and_retains_original_spec_and_real_exit(self):
+        with tempfile.TemporaryDirectory() as directory:
+            root = Path(directory)
+            spec = root / 'qualification.json'
+            raw = gates.encode(dict(Campaign=dict(WorldTransitionLimit=32 << 20)))
+            spec.write_bytes(raw)
+            binary = root / 'operator'
+            binary.write_text('#!' + sys.executable + '\n' +
+                'import json,pathlib,sys\np=pathlib.Path(sys.argv[3]); value=json.loads(p.read_bytes()); '
+                'value["Campaign"]["WorldTransitionLimit"]=67108864; p.write_text(json.dumps(value)); sys.exit(1)\n')
+            binary.chmod(0o700)
+            runner = gates.Commands(root, 10)
+            with self.assertRaisesRegex(ValueError, 'spec bytes changed'):
+                runner.run('mutated', [binary, 'qualify', '--spec', spec])
+            row = json.loads((root / 'mutated.command.json').read_bytes())
+            self.assertEqual(row['exit'], 1)
+            self.assertEqual(base64.b64decode(row['qualification_spec']['bytes_base64']), raw)
+            self.assertNotEqual(gates.digest(spec.read_bytes()), row['qualification_spec']['sha256'])
+
+    def test_invalid_spec_inputs_refuse_before_any_child_process(self):
+        with tempfile.TemporaryDirectory() as directory:
+            root = Path(directory)
+            specification = root / 'input.json'
+            specification.write_bytes(b'{}')
+            alias = root / 'alias.json'
+            alias.symlink_to(specification)
+            for name, command in [('relative', [sys.executable, 'qualify', '--spec', 'relative.json']),
+                    ('symlink', [sys.executable, 'qualify', '--spec', str(alias)]),
+                    ('directory', [sys.executable, 'qualify', '--spec', str(root)]),
+                    ('duplicate', [sys.executable, 'qualify', '--spec', str(specification), '--spec', str(specification)])]:
+                with self.subTest(name=name), self.assertRaises((ValueError, OSError)):
+                    gates.Commands(root, 10).run(name, command)
+                self.assertFalse((root / (name + '.process.json')).exists())
+            with specification.open('wb') as stream:
+                stream.truncate((16 << 20) + 1)
+            with self.assertRaisesRegex(ValueError, '16MiB'):
+                gates.Commands(root, 10).run('oversized', [sys.executable, 'qualify', '--spec', specification])
+            self.assertFalse((root / 'oversized.process.json').exists())
 
     def test_full_guest_profile_refused_before_any_guest_or_root_read(self):
         with patch.dict('os.environ', {'GOMAD_WASM_QUALIFICATION_GUEST_PROFILE': 'full'}):
