@@ -91,11 +91,12 @@ event ends the Run. Propose seeds derive from the Run's seed and the request num
 The Runner serves one exchange's events from one goroutine in receive order, so every Host
 call is serialized, and answers a callback while the request is still active.
 
-A `Driver` starts one proposed request and returns an `Exchange`. Its events carry strictly
+A `Driver` starts one proposed request and returns an `Exchange` as soon as the request is
+sent, never waiting for the RPC, which may need a callback only the exchange can answer. Its events carry strictly
 increasing IDs and the request number: Observation, Callback, Annotate, then Done or Fault.
 The Driver waits for each event's `Decision` (the JudgeResponse with its continue flag, the
 Answer reply, the Annotate output or a Refusal) before its next dependent read or worker
-response. A start error, Fault event, read or run timeout, crossed or repeated event, unknown
+response. A start error or a Start that does not return within the read timeout, a Fault event, read or run timeout, crossed or repeated event, unknown
 kind, stream closed without Done, Done before a final Explained observation, failed
 `Respond`, or `Close` that fails or does not return within the read timeout is a DriverFault
 event, and the Run is Refused.
@@ -105,18 +106,23 @@ the model hash (SHA-256 of the guest bytes), protocol version, world, seed, ever
 Propose, Judge, Answer and Annotate request and response or Refusal in publication order with
 its request and Driver correlation, every DriverFault, and the verdict. The first terminal
 event decides it: an Unexplained judgment (Unexplained at that event), a Refusal other than
-Propose's `QUIESCENT` or a DriverFault (Refused at that event). Otherwise the Run is
-Explained with its termination: quiescent, proposal budget, event budget or question. An
-Explained Run says only that every recorded event was explained.
+Propose's `QUIESCENT` or a DriverFault (Refused at that event). Only faults while closing
+follow it. Otherwise the Run is Explained with its termination: quiescent, proposal budget,
+event budget or question; a budget termination records the budget as its limit. The event
+budget is exact. An Explained Run says only that every recorded event was explained.
 
 The modes are arguments to the loop. `question` replays a recorded prefix, or only Resets
 without one, then asks one Propose or Judge. `explore` runs seeds 1..n. `repeat` runs that
 seed set `count` times, each an independent Run. `reduce` reruns a recorded Unexplained Run
 with proposal budgets 1..n, n being its proposal count, and returns the first that is
-Unexplained again: the shortest reproduction found, not a minimum. `replay` replays every
-recorded call against a fresh Host, without a Driver, and requires each output and the
-verdict to match; an altered model, protocol, world or seed, a missing, reordered,
-duplicated, crossed, redacted or tampered event is a Refused Run.
+Unexplained again: the shortest reproduction found, not a minimum. The recorded Run must
+replay first. When no candidate reproduces, reduce reports the last candidate Refused ("not
+reproduced") and publishes nothing. `replay` replays every recorded call against a fresh Host,
+without a Driver, and requires each output and the verdict to match; an altered model,
+protocol, world or seed, a missing, reordered, duplicated, crossed, redacted or tampered event,
+a call after the event that ended the Run, or a termination that does not fit the events
+(proposal count, event count, or a question's single last Propose or Judge) is a Refused Run.
+A Run whose Reset was refused replays that refusal.
 
 `Publish` stores a Run under `<model hash>/<seed>/<SHA-256 of its canonical bytes>.binpb`
 by hard-linking a synced temporary file. The same Run published again is already published;

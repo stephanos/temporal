@@ -855,8 +855,10 @@ func (*Verdict_Refused) isVerdict_Outcome() {}
 
 // Every recorded event was explained; it says nothing about behavior beyond the termination.
 type Explained struct {
-	state         protoimpl.MessageState `protogen:"open.v1"`
-	Termination   Termination            `protobuf:"varint,1,opt,name=termination,proto3,enum=umpire.run.v1.Termination" json:"termination,omitempty"`
+	state       protoimpl.MessageState `protogen:"open.v1"`
+	Termination Termination            `protobuf:"varint,1,opt,name=termination,proto3,enum=umpire.run.v1.Termination" json:"termination,omitempty"`
+	// The proposal or event budget that ended the Run; 0 for other terminations.
+	Limit         uint64 `protobuf:"varint,2,opt,name=limit,proto3" json:"limit,omitempty"`
 	unknownFields protoimpl.UnknownFields
 	sizeCache     protoimpl.SizeCache
 }
@@ -896,6 +898,13 @@ func (x *Explained) GetTermination() Termination {
 		return x.Termination
 	}
 	return Termination_TERMINATION_UNSPECIFIED
+}
+
+func (x *Explained) GetLimit() uint64 {
+	if x != nil {
+		return x.Limit
+	}
+	return 0
 }
 
 type Unexplained struct {
@@ -1051,9 +1060,10 @@ const file_umpire_run_v1_run_proto_rawDesc = "" +
 	"\texplained\x18\x01 \x01(\v2\x18.umpire.run.v1.ExplainedH\x00R\texplained\x12>\n" +
 	"\vunexplained\x18\x02 \x01(\v2\x1a.umpire.run.v1.UnexplainedH\x00R\vunexplained\x122\n" +
 	"\arefused\x18\x03 \x01(\v2\x16.umpire.run.v1.RefusedH\x00R\arefusedB\t\n" +
-	"\aoutcome\"I\n" +
+	"\aoutcome\"_\n" +
 	"\tExplained\x12<\n" +
-	"\vtermination\x18\x01 \x01(\x0e2\x1a.umpire.run.v1.TerminationR\vtermination\"#\n" +
+	"\vtermination\x18\x01 \x01(\x0e2\x1a.umpire.run.v1.TerminationR\vtermination\x12\x14\n" +
+	"\x05limit\x18\x02 \x01(\x04R\x05limit\"#\n" +
 	"\vUnexplained\x12\x14\n" +
 	"\x05event\x18\x01 \x01(\x04R\x05event\"7\n" +
 	"\aRefused\x12\x14\n" +

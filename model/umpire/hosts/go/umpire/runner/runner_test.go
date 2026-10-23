@@ -178,12 +178,56 @@ func TestBudgetsEndExplainedRuns(t *testing.T) {
 	requireExplained(t, run, runv1.Termination_TERMINATION_PROPOSAL_BUDGET)
 	requireReplays(t, wasm, run)
 
-	opts = configured(1)
-	opts.EventBudget = 5
-	run = h.run(ModeExplore, opts)
-	requireShape(t, run, "reset", "propose:", "judge:0", "propose:Deliver", "judge:20:poll")
-	requireExplained(t, run, runv1.Termination_TERMINATION_EVENT_BUDGET)
+	if run.GetVerdict().GetExplained().GetLimit() != 1 {
+		t.Fatalf("proposal budget limit: %v", run.GetVerdict())
+	}
+
+	for budget, shape := range map[int][]string{
+		1: {"reset"},
+		2: {"reset", "propose:"},
+		4: {"reset", "propose:", "judge:0", "propose:Deliver"},
+		5: {"reset", "propose:", "judge:0", "propose:Deliver", "judge:20:poll"},
+	} {
+		opts = configured(1)
+		opts.EventBudget = budget
+		run = h.run(ModeExplore, opts)
+		requireShape(t, run, shape...)
+		requireExplained(t, run, runv1.Termination_TERMINATION_EVENT_BUDGET)
+		if run.GetVerdict().GetExplained().GetLimit() != uint64(budget) {
+			t.Fatalf("event budget %d limit: %v", budget, run.GetVerdict())
+		}
+		requireReplays(t, wasm, run)
+	}
+}
+
+func TestStartMustReturnOnceSent(t *testing.T) {
+	wasm := statefulGuest(t)
+	release := make(chan struct{})
+	h := newHarness(t, wasm, func(int) *fakeDriver {
+		return &fakeDriver{script: good, onStart: func() { <-release }}
+	})
+	opts := configured(1)
+	opts.EventTimeout = 50 * time.Millisecond
+	run := h.run(ModeExplore, opts)
+	close(release)
+	requireShape(t, run, "reset", "propose:", "fault")
+	requireRefused(t, run, 2, "start did not return within the read timeout")
 	requireReplays(t, wasm, run)
+}
+
+func TestRefusedResetReplays(t *testing.T) {
+	wasm := statefulGuest(t)
+	run := newHarness(t, wasm, driverFor(good)).run(ModeExplore, Options{World: control(9), Seed: 1})
+	requireShape(t, run, "refusal:UNSUPPORTED")
+	requireRefused(t, run, 0, "METHOD_RESET")
+	requireReplays(t, wasm, run)
+	altered := proto.CloneOf(run)
+	altered.World = control(8)
+	replayed, err := New(wasm, nil).Run(context.Background(), ModeReplay, Options{Recorded: altered})
+	if err != nil {
+		t.Fatal(err)
+	}
+	requireRefused(t, replayed, 0, "recorded world")
 }
 
 func TestDriverFaultsRefuseTheRun(t *testing.T) {

@@ -106,6 +106,8 @@ message Verdict {
 // Every recorded event was explained; it says nothing about behavior beyond the termination.
 message Explained {
   Termination termination = 1;
+  // The proposal or event budget that ended the Run; 0 for other terminations.
+  uint64 limit = 2;
 }
 
 message Unexplained {

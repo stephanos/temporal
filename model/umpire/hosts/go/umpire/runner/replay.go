@@ -6,6 +6,7 @@ import (
 	"fmt"
 
 	"google.golang.org/protobuf/proto"
+	"google.golang.org/protobuf/types/known/anypb"
 	modelv1 "umpire.local/model/umpire/model/v1"
 	runv1 "umpire.local/model/umpire/run/v1"
 )
@@ -37,10 +38,14 @@ func (r *Runner) replayRun(ctx context.Context, opts Options) (_ *Run, err error
 	} else if ok, err := s.replay(ctx, recorded.GetEvents()); err != nil {
 		return nil, err
 	} else if ok {
-		derived := verdictOf(s.run.Events, recorded.GetVerdict().GetExplained().GetTermination())
+		derived := verdictOf(s.run.Events, recorded.GetVerdict().GetExplained())
 		s.run.Verdict = derived
 		if !proto.Equal(derived, recorded.GetVerdict()) {
-			s.run.Verdict = refused(uint64(len(s.run.Events)), "replay: the recorded verdict differs from the replayed events")
+			reason := "replay: the recorded verdict differs from the replayed events"
+			if derived.GetRefused() != nil {
+				reason += ": " + derived.GetRefused().GetReason()
+			}
+			s.run.Verdict = refused(uint64(len(s.run.Events)), reason)
 		}
 	}
 	s.progress.finished(s.run)
@@ -107,6 +112,10 @@ func (s *session) replay(ctx context.Context, events []*runv1.Event) (bool, erro
 	var lastDriver uint64
 	for i, recorded := range events {
 		reason := s.check(i, recorded, &lastDriver)
+		// Only faults while closing follow the event that ended a live Run.
+		if reason == "" && s.run.Verdict != nil && recorded.GetDriverFault() == nil {
+			reason = fmt.Sprintf("event %d follows the event that ended the Run", i)
+		}
 		var reproduced *runv1.Event
 		if reason == "" {
 			var err error
@@ -138,15 +147,15 @@ func (s *session) check(i int, event *runv1.Event, lastDriver *uint64) string {
 		return fmt.Sprintf("event %d is redacted", i)
 	case event.GetKind() == nil:
 		return fmt.Sprintf("event %d has no kind", i)
-	case (i == 0) != (event.GetReset_() != nil):
+	case (i == 0) != resets(event):
 		return fmt.Sprintf("event %d: a Run begins with its one Reset", i)
-	case i == 0 && !proto.Equal(event.GetReset_().GetRequest().GetConfiguration(), s.run.GetWorld()):
+	case i == 0 && !resetsTo(event, s.run.GetWorld()):
 		return "event 0 does not reset to the recorded world"
 	default:
 	}
 	proposes := event.GetProposal() != nil || event.GetRefusal().GetMethod() == modelv1.Method_METHOD_PROPOSE
 	switch {
-	case event.GetReset_() != nil:
+	case resets(event):
 		if event.GetRequest() != 0 || event.GetDriverEvent() != 0 {
 			return "event 0 is correlated"
 		}
@@ -167,6 +176,17 @@ func (s *session) check(i int, event *runv1.Event, lastDriver *uint64) string {
 		*lastDriver = driver
 	}
 	return ""
+}
+
+// resets reports whether an event is a Reset, made or refused.
+func resets(event *runv1.Event) bool {
+	return event.GetReset_() != nil || event.GetRefusal().GetMethod() == modelv1.Method_METHOD_RESET
+}
+
+func resetsTo(event *runv1.Event, world *anypb.Any) bool {
+	request, _, err := requestOf(event)
+	reset, ok := request.(*modelv1.ResetRequest)
+	return err == nil && ok && proto.Equal(reset.GetConfiguration(), world)
 }
 
 // reproduce makes the recorded event's call again, or copies a Driver fault, and returns the

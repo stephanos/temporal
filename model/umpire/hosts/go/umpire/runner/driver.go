@@ -10,8 +10,11 @@ import (
 // Driver acts on one system. It sends what the Model proposed and reports what happened as
 // correlated events; it never decides what an event means.
 type Driver interface {
-	// Start sends one proposed request. The request number correlates every event the
-	// exchange reports. An error is a Driver fault.
+	// Start sends one proposed request and returns as soon as it is sent, never waiting for
+	// the RPC to complete: the RPC may need a worker callback the Runner answers only through
+	// the exchange. ctx bounds Start alone; Close bounds the exchange's work. The request number
+	// correlates every event the exchange reports. An error, or a Start that does not return
+	// within the read timeout, is a Driver fault.
 	Start(ctx context.Context, request uint64, payload *anypb.Any) (Exchange, error)
 }
 

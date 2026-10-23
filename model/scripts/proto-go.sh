@@ -29,6 +29,14 @@ mise exec -- protoc --plugin="protoc-gen-go=$plugin" --proto_path=umpire/proto \
   umpire/proto/umpire/annotations/v1/annotations.proto \
   umpire/proto/umpire/run/v1/run.proto
 if [ "${1:-}" = --check ]; then
-  # The hand-written runner package shares the generated tree's import prefix.
-  diff -ru --exclude=runner umpire/hosts/go/umpire "$output/umpire"
+  for generated in "$output"/umpire/*/; do
+    diff -ru "umpire/hosts/go/umpire/$(basename "$generated")" "$generated"
+  done
+  # The tree holds only generated packages and the hand-written runner package beside them.
+  for present in umpire/hosts/go/umpire/*/; do
+    if [ "$present" != umpire/hosts/go/umpire/runner/ ] && [ ! -d "$output/umpire/$(basename "$present")" ]; then
+      printf 'not generated: %s\n' "$present" >&2
+      exit 1
+    fi
+  done
 fi

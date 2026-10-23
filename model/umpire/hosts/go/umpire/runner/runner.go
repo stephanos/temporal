@@ -12,6 +12,7 @@ import (
 	"io"
 	"time"
 
+	"google.golang.org/protobuf/proto"
 	"google.golang.org/protobuf/types/known/anypb"
 	"umpire.local/model"
 	runv1 "umpire.local/model/umpire/run/v1"
@@ -95,7 +96,7 @@ type Options struct {
 	// Redact may mark an event's evidence as removed once the Run is judged; a redacted Run
 	// cannot be replayed.
 	Redact func(*runv1.Event) bool
-	// Record receives every Run in execution order, except that reduce records only its result.
+	// Record receives every Run in execution order, except that reduce records only a reproduction.
 	Record func(context.Context, *Run) error
 	// Progress receives one redacted line per proposal and per finished Run.
 	Progress io.Writer
@@ -210,30 +211,33 @@ func (r *Runner) reduce(ctx context.Context, opts Options) (*Run, error) {
 	if recorded == nil || recorded.GetVerdict().GetUnexplained() == nil {
 		return nil, errors.New("reduce needs a recorded Unexplained Run")
 	}
-	if recorded.GetModelHash() != r.hash {
-		return nil, errors.New("reduce: the recorded Run is of another model")
+	// The recorded Run must replay here, which checks its model, protocol, world and seeds.
+	check, err := r.replayRun(ctx, Options{Recorded: recorded}.withDefaults())
+	if err != nil {
+		return nil, err
 	}
-	proposals := 0
-	for _, event := range recorded.GetEvents() {
-		if event.GetProposal() != nil {
-			proposals++
-		}
+	if check.GetVerdict().GetUnexplained() == nil {
+		return nil, fmt.Errorf("reduce: the recorded Run does not replay: %s", check.GetVerdict().GetRefused().GetReason())
 	}
+	proposals := int(proposals(recorded.GetEvents()))
 	var last *Run
 	for budget := 1; budget <= proposals; budget++ {
 		run, err := r.execute(ctx, ModeReduce, budget, opts, recorded.GetWorld(), recorded.GetSeed(), budget)
 		if err != nil {
 			return nil, err
 		}
-		last = run
 		if run.GetVerdict().GetUnexplained() != nil {
-			break
+			return run, record(ctx, opts, run)
 		}
+		last = run
 	}
 	if last == nil {
 		return nil, errors.New("reduce: the recorded Run has no proposal")
 	}
-	return last, record(ctx, opts, last)
+	// Nothing reproduced: report the last candidate Refused and publish nothing.
+	report := proto.CloneOf(last)
+	report.Verdict = refused(uint64(len(report.GetEvents())), fmt.Sprintf("reduce: not reproduced within %d candidates", proposals))
+	return report, nil
 }
 
 func record(ctx context.Context, opts Options, run *Run) error {

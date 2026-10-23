@@ -5,6 +5,7 @@ import (
 	"errors"
 	"fmt"
 	"io"
+	"slices"
 	"time"
 
 	"google.golang.org/protobuf/proto"
@@ -22,6 +23,7 @@ type session struct {
 	opts        Options
 	request     uint64
 	termination runv1.Termination
+	limit       uint64
 	stopped     bool
 	progress    progress
 }
@@ -48,7 +50,7 @@ func (s *session) close(ctx context.Context, err error) error {
 // finish sets the Explained verdict when no event ended the Run, applies redaction and reports.
 func (s *session) finish() *Run {
 	if s.run.Verdict == nil {
-		s.run.Verdict = &runv1.Verdict{Outcome: &runv1.Verdict_Explained{Explained: &runv1.Explained{Termination: s.termination}}}
+		s.run.Verdict = &runv1.Verdict{Outcome: &runv1.Verdict_Explained{Explained: &runv1.Explained{Termination: s.termination, Limit: s.limit}}}
 	}
 	if s.opts.Redact != nil {
 		for _, event := range s.run.Events {
@@ -78,6 +80,11 @@ func (s *session) fault(driverEvent uint64, reason string) {
 
 func (s *session) eventsSpent() bool { return len(s.run.Events) >= s.opts.EventBudget }
 
+// spend ends the Run on its event budget.
+func (s *session) spend() {
+	s.termination, s.limit, s.stopped = runv1.Termination_TERMINATION_EVENT_BUDGET, uint64(s.opts.EventBudget), true
+}
+
 // terminal is the verdict an event decides, or nil when the Run goes on.
 func terminal(event *runv1.Event) *runv1.Verdict {
 	switch {
@@ -99,20 +106,57 @@ func refused(event uint64, reason string) *runv1.Verdict {
 	return &runv1.Verdict{Outcome: &runv1.Verdict_Refused{Refused: &runv1.Refused{Event: event, Reason: reason}}}
 }
 
-// verdictOf is the verdict a sequence of events decides, given the termination recorded for a
-// Run no event ended.
-func verdictOf(events []*runv1.Event, termination runv1.Termination) *runv1.Verdict {
+// verdictOf is the verdict a sequence of events decides. When no event ends the Run, the
+// recorded termination must fit the events: a proposal budget is the number of proposals, the
+// last of them accepted; an event budget is the number of events; a question ends with the one
+// Propose or Judge it asked.
+func verdictOf(events []*runv1.Event, recorded *runv1.Explained) *runv1.Verdict {
 	for _, event := range events {
 		if verdict := terminal(event); verdict != nil {
 			return verdict
 		}
 	}
-	switch termination {
-	case runv1.Termination_TERMINATION_PROPOSAL_BUDGET, runv1.Termination_TERMINATION_EVENT_BUDGET, runv1.Termination_TERMINATION_QUESTION:
-		return &runv1.Verdict{Outcome: &runv1.Verdict_Explained{Explained: &runv1.Explained{Termination: termination}}}
+	fits := false
+	switch recorded.GetTermination() {
+	case runv1.Termination_TERMINATION_PROPOSAL_BUDGET:
+		fits = proposals(events) == recorded.GetLimit() && accepted(events)
+	case runv1.Termination_TERMINATION_EVENT_BUDGET:
+		fits = uint64(len(events)) == recorded.GetLimit()
+	case runv1.Termination_TERMINATION_QUESTION:
+		last := events[len(events)-1]
+		fits = recorded.GetLimit() == 0 && last.GetDriverEvent() == 0 && (last.GetProposal() != nil || last.GetJudgment() != nil)
 	default:
-		return refused(uint64(len(events)), "no event ends the Run and no budget or question does")
 	}
+	if !fits {
+		return refused(uint64(len(events)), "the recorded termination does not fit the events")
+	}
+	return &runv1.Verdict{Outcome: &runv1.Verdict_Explained{Explained: &runv1.Explained{Termination: recorded.GetTermination(), Limit: recorded.GetLimit()}}}
+}
+
+func proposals(events []*runv1.Event) uint64 {
+	var count uint64
+	for _, event := range events {
+		if event.GetProposal() != nil {
+			count++
+		}
+	}
+	return count
+}
+
+// accepted reports whether the last proposal has a final Explained observation.
+func accepted(events []*runv1.Event) bool {
+	last := proposals(events)
+	for _, event := range slices.Backward(events) {
+		judgment := event.GetJudgment().GetResponse()
+		switch {
+		case event.GetRequest() != last:
+			return false
+		case judgment.GetExplained() != nil && !judgment.GetContinuePolling():
+			return true
+		default:
+		}
+	}
+	return false
 }
 
 // call makes one protocol call and records it, as its event or as a Refusal. The error is a
@@ -219,11 +263,11 @@ func (r *Runner) execute(ctx context.Context, mode Mode, iteration int, opts Opt
 func (s *session) drive(parent, ctx context.Context, driver Driver, seed uint64, budget int) error {
 	for proposals := 0; ; proposals++ {
 		if proposals == budget {
-			s.termination = runv1.Termination_TERMINATION_PROPOSAL_BUDGET
+			s.termination, s.limit = runv1.Termination_TERMINATION_PROPOSAL_BUDGET, uint64(budget)
 			return nil
 		}
 		if s.eventsSpent() {
-			s.termination = runv1.Termination_TERMINATION_EVENT_BUDGET
+			s.spend()
 			return nil
 		}
 		s.request++
@@ -233,6 +277,10 @@ func (s *session) drive(parent, ctx context.Context, driver Driver, seed uint64,
 			return err
 		}
 		if event.GetProposal() == nil {
+			return nil
+		}
+		if s.eventsSpent() {
+			s.spend()
 			return nil
 		}
 		if err := s.exchange(parent, ctx, driver, event.GetProposal().GetResponse()); err != nil {
@@ -247,7 +295,14 @@ func (s *session) drive(parent, ctx context.Context, driver Driver, seed uint64,
 // exchange has the Driver act on one proposal and serves its events in receive order until it
 // completes, faults or an event ends the Run.
 func (s *session) exchange(parent, ctx context.Context, driver Driver, proposal *modelv1.ProposeResponse) error {
-	exchange, err := driver.Start(ctx, s.request, proposal.GetRequest())
+	exchange, late, err := s.start(ctx, driver, proposal.GetRequest())
+	if parent.Err() != nil {
+		return parent.Err()
+	}
+	if late {
+		s.fault(0, "start did not return within the read timeout")
+		return nil
+	}
 	if err != nil {
 		s.fault(0, "start: "+err.Error())
 		return nil
@@ -296,9 +351,42 @@ func (s *session) exchange(parent, ctx context.Context, driver Driver, proposal 
 			return nil
 		}
 		if s.eventsSpent() {
-			s.termination, s.stopped = runv1.Termination_TERMINATION_EVENT_BUDGET, true
+			s.spend()
 			return nil
 		}
+	}
+}
+
+// start sends the proposed request, waiting at most the read timeout. A Driver that returns
+// later has its exchange closed once it does.
+func (s *session) start(ctx context.Context, driver Driver, payload *anypb.Any) (Exchange, bool, error) {
+	type started struct {
+		exchange Exchange
+		err      error
+	}
+	startCtx, cancel := context.WithTimeout(ctx, s.opts.EventTimeout)
+	defer cancel()
+	done := make(chan started, 1)
+	request := s.request
+	go func() {
+		exchange, err := driver.Start(startCtx, request, payload)
+		done <- started{exchange, err}
+	}()
+	select {
+	case got := <-done:
+		return got.exchange, false, got.err
+	case <-startCtx.Done():
+		select {
+		case got := <-done:
+			return got.exchange, false, got.err
+		default:
+		}
+		go func() {
+			if got := <-done; got.exchange != nil {
+				_ = got.exchange.Close()
+			}
+		}()
+		return nil, true, nil
 	}
 }
 

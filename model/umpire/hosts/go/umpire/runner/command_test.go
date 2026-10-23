@@ -75,6 +75,11 @@ func TestUmpireCommandExitCodes(t *testing.T) {
 		t.Fatalf("reduce: %+v", reduced)
 	}
 
+	notReproduced := command(t, scripted(good), "reduce", "--model", model, "--run", buggyRun, "--store", store)
+	if notReproduced.code != ExitRefused || !strings.Contains(notReproduced.stdout, "not reproduced") || strings.Contains(notReproduced.stdout, "published") {
+		t.Fatalf("reduce without reproduction: %+v", notReproduced)
+	}
+
 	if replayed := command(t, nil, "replay", "--model", model, "--run", recorded); replayed.code != ExitExplained {
 		t.Fatalf("replay: %+v", replayed)
 	}

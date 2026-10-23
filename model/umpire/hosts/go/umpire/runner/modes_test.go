@@ -45,7 +45,8 @@ func TestWaitsEndInDriverFaults(t *testing.T) {
 	t.Run("interrupted", func(t *testing.T) {
 		ctx, cancel := context.WithCancel(context.Background())
 		defer cancel()
-		h := newHarness(t, wasm, func(int) *fakeDriver { return &fakeDriver{script: good, delay: time.Second, onStart: cancel} })
+		interrupt := func() { time.AfterFunc(10*time.Millisecond, cancel) }
+		h := newHarness(t, wasm, func(int) *fakeDriver { return &fakeDriver{script: good, delay: time.Second, onStart: interrupt} })
 		_, err := h.runner().Run(ctx, ModeExplore, configured(1))
 		if !errors.Is(err, context.Canceled) {
 			t.Fatalf("interrupted Run: %v", err)
@@ -167,6 +168,22 @@ func TestReplayRejectsAlteredRuns(t *testing.T) {
 		{"other verdict", func(run *Run) {
 			run.Verdict = &runv1.Verdict{Outcome: &runv1.Verdict_Unexplained{Unexplained: &runv1.Unexplained{Event: 6}}}
 		}, 10, "recorded verdict differs"},
+		{"truncated before a final observation, relabeled proposal budget", func(run *Run) {
+			run.Events = run.Events[:5]
+			run.Verdict = &runv1.Verdict{Outcome: &runv1.Verdict_Explained{Explained: &runv1.Explained{
+				Termination: runv1.Termination_TERMINATION_PROPOSAL_BUDGET, Limit: 2,
+			}}}
+		}, 5, "termination does not fit"},
+		{"truncated, relabeled with another event budget", func(run *Run) {
+			run.Events = run.Events[:5]
+			run.Verdict = &runv1.Verdict{Outcome: &runv1.Verdict_Explained{Explained: &runv1.Explained{
+				Termination: runv1.Termination_TERMINATION_EVENT_BUDGET, Limit: 4,
+			}}}
+		}, 5, "termination does not fit"},
+		{"truncated, relabeled question", func(run *Run) {
+			run.Events = run.Events[:9]
+			run.Verdict = &runv1.Verdict{Outcome: &runv1.Verdict_Explained{Explained: &runv1.Explained{Termination: runv1.Termination_TERMINATION_QUESTION}}}
+		}, 9, "termination does not fit"},
 		{"budget claimed for a quiescent Run", func(run *Run) {
 			run.Events = run.Events[:9]
 			run.Verdict = &runv1.Verdict{Outcome: &runv1.Verdict_Explained{Explained: &runv1.Explained{Termination: runv1.Termination_TERMINATION_QUIESCENT}}}
@@ -185,6 +202,27 @@ func TestReplayRejectsAlteredRuns(t *testing.T) {
 			}
 		})
 	}
+}
+
+func TestReplayRejectsCallsAfterTheEndingEvent(t *testing.T) {
+	wasm := statefulGuest(t)
+	unexplained := newHarness(t, wasm, driverFor(buggy)).run(ModeExplore, configured(1))
+	if unexplained.GetVerdict().GetUnexplained().GetEvent() != 5 {
+		t.Fatalf("buggy: %v", unexplained.GetVerdict())
+	}
+	// A fault inserted before the Unexplained judgment would relabel the Run as Refused.
+	altered := proto.CloneOf(unexplained)
+	fault := &runv1.Event{Request: 2, Kind: &runv1.Event_DriverFault{DriverFault: &runv1.DriverFault{Reason: "inserted"}}}
+	altered.Events = append(altered.Events[:5:5], append([]*runv1.Event{fault}, altered.Events[5:]...)...)
+	for i, event := range altered.Events {
+		event.Sequence = uint64(i)
+	}
+	altered.Verdict = refused(5, "driver fault: inserted")
+	replayed, err := New(wasm, nil).Run(context.Background(), ModeReplay, Options{Recorded: altered})
+	if err != nil {
+		t.Fatal(err)
+	}
+	requireRefused(t, replayed, 6, "event 6 follows the event that ended the Run")
 }
 
 func TestRedactedRunsAreRefusedForReplay(t *testing.T) {
@@ -272,7 +310,7 @@ func TestReduceReportsTheShortestReproductionFound(t *testing.T) {
 		recorded = append(recorded, run)
 		return nil
 	}})
-	if reduced.GetVerdict().GetUnexplained().GetEvent() != 5 || len(recorded) != 1 || recorded[0] != reduced || len(h.drivers) != 2 || h.hosts.Load() != 2 {
+	if reduced.GetVerdict().GetUnexplained().GetEvent() != 5 || len(recorded) != 1 || recorded[0] != reduced || len(h.drivers) != 2 || h.hosts.Load() != 3 {
 		t.Fatalf("reduced %v; recorded %d; candidates %d", reduced.GetVerdict(), len(recorded), len(h.drivers))
 	}
 	if !strings.Contains(progress.String(), "mode=reduce iteration=1 seed=1 events=3 verdict=explained termination=proposal_budget") {
@@ -281,9 +319,24 @@ func TestReduceReportsTheShortestReproductionFound(t *testing.T) {
 	requireReplays(t, wasm, reduced)
 
 	gone := newHarness(t, wasm, flaky(func(int) bool { return false }))
-	notReproduced := gone.run(ModeReduce, Options{Recorded: original})
-	if notReproduced.GetVerdict().GetUnexplained() != nil || len(gone.drivers) != 2 {
-		t.Fatalf("not reproduced: %v after %d candidates", notReproduced.GetVerdict(), len(gone.drivers))
+	recorded = nil
+	notReproduced := gone.run(ModeReduce, Options{Recorded: original, Record: func(_ context.Context, run *Run) error {
+		recorded = append(recorded, run)
+		return nil
+	}})
+	requireRefused(t, notReproduced, uint64(len(notReproduced.GetEvents())), "reduce: not reproduced within 2 candidates")
+	if len(gone.drivers) != 2 || len(recorded) != 0 {
+		t.Fatalf("not reproduced after %d candidates published %d Runs", len(gone.drivers), len(recorded))
+	}
+	for name, alter := range map[string]func(*Run){
+		"protocol": func(run *Run) { run.ProtocolVersion = 2 },
+		"seed":     func(run *Run) { run.Events[3].GetProposal().GetRequest().Seed++ },
+	} {
+		altered := proto.CloneOf(original)
+		alter(altered)
+		if _, err := gone.runner().Run(context.Background(), ModeReduce, Options{Recorded: altered}); err == nil || !strings.Contains(err.Error(), "does not replay") {
+			t.Fatalf("reduced a Run with another %s: %v", name, err)
+		}
 	}
 	if _, err := gone.runner().Run(context.Background(), ModeReduce, Options{Recorded: recordGood(t, wasm)}); err == nil {
 		t.Fatal("reduced an Explained Run")
