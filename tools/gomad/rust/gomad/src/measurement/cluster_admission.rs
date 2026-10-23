@@ -372,14 +372,19 @@ pub(super) fn check_observations(root: &Path, replay: bool) -> Result<(), String
 }
 
 fn check_identity(baseline: &Baseline, root: &Path, receipts: &Value) -> Result<(), String> {
+    use std::os::unix::fs::MetadataExt;
+    let metadata = std::fs::symlink_metadata(root).map_err(|error| error.to_string())?;
+    if !metadata.is_dir() || metadata.mode() & 0o777 != 0o700 {
+        return Err("private cluster identity directory required".into());
+    }
     let receipts: BTreeMap<String, String> =
         serde_json::from_value(receipts.clone()).map_err(|error| error.to_string())?;
     if receipts.len() != 2 {
         return Err("cluster phase host/source receipts absent".into());
     }
-    let mut documents = BTreeMap::new();
+    let mut documents: BTreeMap<&str, Value> = BTreeMap::new();
     for name in ["host.json", "source.json"] {
-        let bytes = super::read(&root.join(name), 16 << 20)?;
+        let bytes = read_identity_file(&root.join(name), 16 << 20)?;
         if receipts.get(name) != Some(&canonical::digest(&bytes)) {
             return Err("cluster phase host/source receipt changed".into());
         }
@@ -393,17 +398,24 @@ fn check_identity(baseline: &Baseline, root: &Path, receipts: &Value) -> Result<
     if host.inputs.keys().any(|path| path.parent() != Some(root)) {
         return Err("cluster phase raw host witness path differs".into());
     }
-    module::verify_inputs(&host.inputs)?;
+    if !host.inputs.contains_key(&root.join("host-witness.json")) {
+        return Err("cluster phase host witness pin absent".into());
+    }
+    for (path, digest) in &host.inputs {
+        if canonical::digest(&read_identity_file(path, 2 << 20)?) != *digest {
+            return Err("cluster phase raw host witness changed".into());
+        }
+    }
     let witness: host::HostWitness = serde_json::from_value(crate::qualify::spec::strict(
-        &super::read(&root.join("host-witness.json"), 2 << 20)?,
+        &read_identity_file(&root.join("host-witness.json"), 2 << 20)?,
     )?)
     .map_err(|error| error.to_string())?;
     if witness != host.witness {
         return Err("cluster phase raw host witness differs".into());
     }
     if host.host_os == "linux" {
-        let cpu = super::read(&root.join("host-cpuinfo.txt"), host::CPUINFO_LIMIT)?;
-        let boot = super::read(&root.join("host-boot-id.txt"), 128)?;
+        let cpu = read_identity_file(&root.join("host-cpuinfo.txt"), host::CPUINFO_LIMIT)?;
+        let boot = read_identity_file(&root.join("host-boot-id.txt"), 128)?;
         if cpu != host.witness.cpuinfo.as_bytes()
             || std::str::from_utf8(&boot)
                 .map_err(|error| error.to_string())?
@@ -414,4 +426,13 @@ fn check_identity(baseline: &Baseline, root: &Path, receipts: &Value) -> Result<
         }
     }
     Ok(())
+}
+
+fn read_identity_file(path: &Path, limit: u64) -> Result<Vec<u8>, String> {
+    use std::os::unix::fs::MetadataExt;
+    let metadata = std::fs::symlink_metadata(path).map_err(|error| error.to_string())?;
+    if !metadata.is_file() || metadata.nlink() != 1 || metadata.mode() & 0o777 != 0o600 {
+        return Err("private regular cluster identity file required".into());
+    }
+    super::read(path, limit)
 }
