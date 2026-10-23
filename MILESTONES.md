@@ -58,6 +58,20 @@ The owner asked, "why aren't we focused on fn-232 to get merged?" and approved t
 
 No other milestone work starts before fn-232.13 closes. This changes ordering only: no stage, bound or acceptance item is waived.
 
+### Performance deferred to the quiet-host window (owner decision, 2026-10-23)
+
+The owner asked, "can we merge the blocked work and address any perf issues later when we have the stress test?"
+
+Until the owner declares a quiet-host window, only timing and performance results stop being blocking. They are still measured and recorded:
+- the cycle's 3,600-second wall-clock limit, and the stage and cost wall-time budgets;
+- fn-185.2/.3 profiles and the optimization verdict;
+- the fn-188.5 stress matrix;
+- fn-221 sweep results that fail only from load (timeouts, deadline-sensitive inspection fixtures). These are classified as contention and rechecked in that window.
+
+Correctness stays binding: outcomes, replay and determinism, assertions, refusals, memory and capacity bounds, and identities.
+
+Completed work merges as soon as its gate passes. A task closes on its correctness acceptance. Its deferred performance items stay open, recorded in the task with the quiet-host window as revival trigger. The quiet-host window reruns the cycle timing, stress and profiles together, and any performance regression found then becomes a new task.
+
 ### fn-232.13 scope rulings (conductor, under the owner's 2026-10-23 delegation)
 
 The owner's goal says to follow the conductor's own recommendations when in doubt. These rulings apply until the owner says otherwise:
