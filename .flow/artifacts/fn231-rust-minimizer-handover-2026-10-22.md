@@ -1,3 +1,24 @@
+## Current public acceptance: a07 candidate
+
+Task .1 is verified DONE in Flow; task .2 is in progress for the explicit positive display golden and final spec review. Earlier pending runtime notes below are historical.
+
+Immutable candidate `/home/agent/wt/evidence/fn232-integrated-provenancefix-01/gomad-a07dd6e2c404ce9120c448e8568c18906fa2f9aebd87d11ce8d53a7bac8a861b` is built from `8536a84a8595b0f5e27295b93885908bd65f07bb`. All 4,570 tools inputs match before/after build. Default 156 and fixture 158 tests pass, with one existing ignored test each; both strict all-target Clippy checks and formatting exit 0. The narrow authenticated-absence correction has fresh independent SHIP review (same GPT family), meaningful genuine-parent RED/GREEN and actual one-attempt minimization with exact final replay. The full predicate remains unchanged.
+
+Public acceptance roots are `/home/agent/wt/evidence/fn231-public-provenancefix-01` and `.../fn231-public-provenancefix-02`. Scope01 and scope02 each pass 55 command receipts; semantic01 and semantic02 each pass 119 receipts against frozen Go, all terminal 0 with unchanged source/input/binary bindings and original limits. Both newly generated semantic goldens are byte-identical: SHA256 `3095bc851f9fa9f821dac792e585f16228975a0ebd0d8dd0a0cafeaedf05f61e`, 38,237 bytes. The checked semantic golden remains unchanged pending task .2. The second driver is `9808f8807c44024d31042630c8136b2f26321069`, differing only by the unrelated `.plans/GOMAD_RACES.md` commit; all compiled tools inputs were independently rehashed identical. An earlier scope02 HEAD-guard refusal launched no child and remains preserved. The two-run comparison receipt is `fn231-public-provenancefix-02/two-run-comparison.json`.
+
+| R-ID | Accepted evidence |
+| --- | --- |
+| R1 | Both scope runs refuse four invalid patterns and genuine stripped-symbol parents before output/attempts. Semantic scoped controllers preserve global out/mixed/in stability and the suffix-only prefix exception. |
+| R2 | Both scope runs authenticate eight producing-round snapshots, remove the campaign, inherit scope from a detached failure, accept explicit override and refuse malformed present context naming its parent. Legacy semantic parents remain unscoped. |
+| R3 | Content controllers show 2 unscoped, 3 same-minimum scoped and 4 distinct-valid-minimum scoped attempts under the same predicate. Actual minimized artifacts reproduce exact retained failures. |
+| R4 | Unchanged complete and interrupted resumes agree; changed scope/context, implementation, parent, predicate and bounds refuse. |
+| R5 | Actual minimum inspection resolves both removed decisions to main.choose/main.go:6 with inline main.main; the final group contains one main.choose decision. Detached semantic inspection agrees, including unavailable reasons. The task .2 positive golden additionally snapshots these exact new symbol objects. |
+| R6 | Actual inherited main scope resolves two sites and reports two removals in scope, zero out. Zero-match reductions remain nonvacuous. Six semantic scoped reports snapshot scope and counts. |
+| R7 | Removing report-only symbol/group fields reconstructs the authenticated minimization block byte-for-byte. Schema, execution/failure identities and full predicate remain unchanged; context-qualified collisions and journal reopening are tested. |
+| R8 | Frozen unscoped proposal fingerprints, choice-prefix proposal bytes and existing semantic behavior fields remain unchanged; both fresh differential lanes agree with Go. |
+
+Task .2's narrow Python-only display checker/golden checkpoint `6e299e88ba` is awaiting fresh independent review. Both already-authenticated positive scope runs yield the same 938-byte projection, SHA256 `4d50ea6bf4def5cee39e09755672f23d99dc52e2f62642b0e2090fc8a365549d`; raw evidence is unchanged. No final Rust qualification, Go retirement, or whole-milestone completion is claimed.
+
 # fn231 Rust minimizer batch handover — 2026-10-22
 
 Source checkpoint: `2ac50dcabf`, branch `fn231-rust-minimizer`, base
