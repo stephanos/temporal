@@ -103,3 +103,6 @@ mod clock_conformance;
 mod network_corpus;
 #[cfg(all(test, not(feature = "conformance")))]
 mod world_conformance;
+
+#[cfg(all(test, not(feature = "conformance")))]
+mod model_preservation;
