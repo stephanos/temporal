@@ -90,12 +90,11 @@ slice/gap proof. The required full gate passed in 562.098s against its 60s soft 
 inner loop 7.893s met 10s. Task .2 is complete locally: pinned bounded checking, native-derived
 Kettle bound 63, installer admission and shared process ownership passed review, both audits and
 all 17 required gate stages. Gate 903.818s exceeded its 60s soft target; inner loop 7.229s met 10s.
-Typed replay, fixture integration and symbolic Worlds remain below.
+Task .3 is complete locally: strict typed ITF replay, selected property and arithmetic refusal validation, legacy and native Vector projections passed review and both audits. Fresh guest/slice/gaps proof passed with guest `d96f123b6ec669e7385e9fff75f711f2d20e0f15a0d918928238f7e263221217`. All 17 required gate stages passed: gate 824.431s exceeded 60s; inner loop 7.632s met 10s. The first full run failed with its causal output discarded; its cause remains unknown. A reviewed timing-wrapper correction now preserves failed child diagnostics; the logged workspace diagnostic and final retry passed. Fixture integration and symbolic Worlds remain below.
 [Spec](.flow/specs/fn-211-apalache-backend-for-umpire-in-rust.md).
 
 | Name | Status | What |
 | --- | --- | --- |
-| fn-211.3 | 🔄 in progress | After .2: ITF counterexamples decoded through typed source values and replayed through the Model (R3) |
 | fn-211.4 | ⬜ todo | After .3: Apalache consumer; Kettle's `apalache.txt` agreement golden (R4, R5) |
 | fn-211.5 | ⬜ todo | After .3: symbolic World constants via `ConstInit`, one run per property across the declared World domain, replayed under the decoded World (R6) |
 

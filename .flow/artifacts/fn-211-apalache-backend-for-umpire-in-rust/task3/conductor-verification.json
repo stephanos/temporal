@@ -1,0 +1,40 @@
+{
+  "task": "fn-211-apalache-backend-for-umpire-in-rust.3",
+  "closure": "023c6c7bc13e2cc65fc880a30c7db8a99fadade2",
+  "flow_status_verified": "done",
+  "reviewed_runtime_source": "3d0acb886866abfd04a2d2c34e8e87368cef2d5c",
+  "reviewed_diagnostic_fix": "aec6ec70a769e3b79607106eff8e300fd8e14e3f",
+  "normal_review": "SHIP",
+  "audits_unresolved": {
+    "correctness": 0,
+    "standards": 0
+  },
+  "gate_receipt_honored_before_milestone_admin": {
+    "head": "023c6c7bc13e2cc65fc880a30c7db8a99fadade2",
+    "receipt": "e17871d6",
+    "command": "timeout 3600 env UMPIRE_BACKENDS=require make model-time",
+    "gate_id": "unittest",
+    "honored": true
+  },
+  "gate_stages": 17,
+  "gate_seconds": 824.431,
+  "gate_soft_target_met": false,
+  "inner_seconds": 7.632,
+  "inner_soft_target_met": true,
+  "source_hashes_verified": 37,
+  "runtime_live_hashes_verified": 2184,
+  "raw_files_verified": 208,
+  "raw_mtimes_within_final_gate_window": 208,
+  "prior_artifacts_verified": 558,
+  "prior_artifacts_changed_only_authorized_projection_mirrors": 3,
+  "guest_sha256": "d96f123b6ec669e7385e9fff75f711f2d20e0f15a0d918928238f7e263221217",
+  "fresh_slice_go_seconds": 5.899,
+  "fresh_gaps_go_seconds": 358.284,
+  "first_full_failure_cause": "UNKNOWN; preserved red evidence and subsequent diagnostic pass separately",
+  "tracker_sync": "n/a (bridge inactive); checked firstClaim,done from actual claimed_at",
+  "worktrees": [
+    "umpire single checkout; pruned"
+  ],
+  "free_gib_approx": 91,
+  "native_macos_execution": "unverified"
+}
