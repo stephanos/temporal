@@ -1,0 +1,9 @@
+{
+  "archive": "diagnostic-backend-controls.tar.gz",
+  "sha256": "9cf9fc10627cf49012d2c215c73f4c4e5b6a5c4bab52e54fb4399ff29c6d2aeb",
+  "files": 208,
+  "scope": "Shared retained control tree after diagnostic79575. Preserves history; not every retained entry is asserted fresh for that invocation.",
+  "workspace_diagnostic_exit": 0,
+  "original_full_gate_exit": 2,
+  "original_full_gate_cause": "UNKNOWN"
+}
