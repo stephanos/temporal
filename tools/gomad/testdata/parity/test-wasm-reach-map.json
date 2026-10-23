@@ -4367,12 +4367,12 @@
   },
   "tools/gomad/internal/backends/wasm/wasi/volume_conformance_cases_test.go#TestVolumeConformanceMigrationContracts/original-make/namespace-volume-conformance": {
    "evidence": [
-    "rust/gomad_wasmhost/conformance::tests::volume_conformance_corpus@stage/PENDING@run/PENDING"
+    "rust/gomad_wasmhost/conformance::tests::volume_conformance_corpus@stage/ordinary@run/ordinary-helper-run"
    ]
   },
   "tools/gomad/internal/backends/wasm/wasi/volume_conformance_cases_test.go#TestVolumeConformanceMigrationContracts/original-make/recursive-test-wasm": {
    "evidence": [
-    "rust/gomad_wasmhost/conformance::tests::volume_conformance_corpus@stage/PENDING@run/PENDING"
+    "rust/gomad_wasmhost/conformance::tests::volume_conformance_corpus@stage/ordinary@run/ordinary-helper-volume-run"
    ]
   },
   "tools/gomad/internal/backends/wasm/wasi/volume_conformance_core_test.go#TestVolumeCoreAPIContracts": {
@@ -4430,12 +4430,12 @@
   },
   "tools/gomad/internal/backends/wasm/wasi/volume_test.go#TestVolumeConformanceCorpus/original-make/namespace-volume-conformance": {
    "evidence": [
-    "rust/gomad_wasmhost/conformance::tests::volume_conformance_corpus@stage/PENDING@run/PENDING"
+    "rust/gomad_wasmhost/conformance::tests::volume_conformance_corpus@stage/ordinary@run/ordinary-helper-run"
    ]
   },
   "tools/gomad/internal/backends/wasm/wasi/volume_test.go#TestVolumeConformanceCorpus/original-make/recursive-test-wasm": {
    "evidence": [
-    "rust/gomad_wasmhost/conformance::tests::volume_conformance_corpus@stage/PENDING@run/PENDING"
+    "rust/gomad_wasmhost/conformance::tests::volume_conformance_corpus@stage/ordinary@run/ordinary-helper-volume-run"
    ]
   },
   "tools/gomad/internal/backends/wasm/wasi/volume_test.go#TestVolumeConformanceInvalidRecoveryImages": {
@@ -4445,12 +4445,12 @@
   },
   "tools/gomad/internal/backends/wasm/wasi/volume_test.go#TestVolumeConformanceInvalidRecoveryImages/original-make/namespace-volume-conformance": {
    "evidence": [
-    "rust/gomad_wasmhost/volume::image::tests::rehashed_images_refuse_persisted_inode_aliases_across_volumes_and_reserved_nodes@stage/PENDING@run/PENDING"
+    "rust/gomad_wasmhost/volume::image::tests::rehashed_images_refuse_persisted_inode_aliases_across_volumes_and_reserved_nodes@stage/ordinary@run/ordinary-helper-run"
    ]
   },
   "tools/gomad/internal/backends/wasm/wasi/volume_test.go#TestVolumeConformanceInvalidRecoveryImages/original-make/recursive-test-wasm": {
    "evidence": [
-    "rust/gomad_wasmhost/volume::image::tests::rehashed_images_refuse_persisted_inode_aliases_across_volumes_and_reserved_nodes@stage/PENDING@run/PENDING"
+    "rust/gomad_wasmhost/volume::image::tests::rehashed_images_refuse_persisted_inode_aliases_across_volumes_and_reserved_nodes@stage/ordinary@run/ordinary-helper-volume-run"
    ]
   },
   "tools/gomad/internal/backends/wasm/wasi/volume_test.go#TestVolumeCoreVectors": {

@@ -1,3 +1,6 @@
+// The conformance build compiles the retained world codec out; these probes need it.
+#![cfg(not(feature = "conformance"))]
+
 include!("../src/lib.rs");
 #[path = "../../allocation_probe.rs"]
 mod allocation_measure;
