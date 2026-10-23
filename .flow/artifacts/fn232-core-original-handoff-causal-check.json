@@ -1,0 +1,104 @@
+{
+  "disposition": "Preserve original fail-fast. Failed original predicate earns no original-root PASS; diagnostic pair/prefix collection is separate and must remain red when this predicate fails.",
+  "identical_actual_module_sha256": "ecb00a4b87775a6a268aad1b6ca2b12aed0a8f30c6aca2589a8963c73ffd0fa7",
+  "native": {
+    "artifact": "/home/agent/evidence/fn232-core-counterfactual/pairs-v9/handoff/artifacts/2c34234d3692e7668915b156cf748bf38e62b7705de299278f4f3ac305b54639",
+    "incarnations": [
+      {
+        "exit_code": 1,
+        "handle": {
+          "incarnation": 1,
+          "node": "a"
+        },
+        "reason": "",
+        "termination": "exit"
+      },
+      {
+        "exit_code": null,
+        "handle": {
+          "incarnation": 1,
+          "node": "b"
+        },
+        "reason": "WASI stop: cluster failed",
+        "termination": "stop"
+      }
+    ],
+    "preparation_exit": 0,
+    "preparation_seconds": 44.94,
+    "preparation_selected": 1,
+    "producer_exit": 101,
+    "producer_seconds": 47.17,
+    "source_commit": "8ce95d508ae406e25ff8d0a55952e925610a86ff"
+  },
+  "original": {
+    "assertion": "determinism_integration_test.go:170 expected exit, actual stop",
+    "commit": "1d695061b6382009d0659238c652a5a765b1d5f5",
+    "compiler_files_unchanged": 12080,
+    "root": "TestDeterminismExecutedDivergenceArtifacts/handoff",
+    "source_git_blobs_unchanged": 9690,
+    "subtest_seconds": 44.23,
+    "test_exit": 1,
+    "whole_command_seconds": 68.553446949
+  },
+  "qualification": false,
+  "raw": {
+    "/home/agent/evidence/fn232-core-counterfactual/candidate9.json": {
+      "bytes": 406,
+      "sha256": "7cd0e128c29f0020e2d64565ec9ba99bd8d1ac617447fbb0cf91984159834116"
+    },
+    "/home/agent/evidence/fn232-core-counterfactual/pairs-v9/handoff/artifacts/2c34234d3692e7668915b156cf748bf38e62b7705de299278f4f3ac305b54639/evidence/cluster_summary": {
+      "bytes": 1486,
+      "sha256": "5ef46baa94ecdb837e56da70a92972817fa447ccd0f5b9b58cede9efaca1262c"
+    },
+    "/home/agent/evidence/fn232-core-counterfactual/pairs-v9/handoff/artifacts/2c34234d3692e7668915b156cf748bf38e62b7705de299278f4f3ac305b54639/manifest.json": {
+      "bytes": 4976,
+      "sha256": "5d984e1f4bc573a1b53319fa29873de36f47379ccbfffc5429035376f3487e3d"
+    },
+    "/home/agent/evidence/fn232-core-counterfactual/pairs-v9/handoff/artifacts/2c34234d3692e7668915b156cf748bf38e62b7705de299278f4f3ac305b54639/record.json": {
+      "bytes": 2709,
+      "sha256": "fad49dde04c879a0160f152e57a738c81636d2cfbc67101f0fc3daa6b1e65579"
+    },
+    "/home/agent/evidence/fn232-core-counterfactual/pairs9.log": {
+      "bytes": 2206,
+      "sha256": "71eab3da2350a5b915bd30bd587036c5c357f0b05aedbde3521480d353f2d041"
+    },
+    "/home/agent/evidence/fn232-core-counterfactual/preparation9.log": {
+      "bytes": 203,
+      "sha256": "d04d6166e2e66869f6a9546839bc4ef788a5c4dbb213de255b9775fd068c11a9"
+    },
+    "/home/agent/evidence/fn232-core-original-handoff/command.json": {
+      "bytes": 1778,
+      "sha256": "275cee814d1f66278b1f789061267d2df9200e3f650b6ea9603bee799558a794"
+    },
+    "/home/agent/evidence/fn232-core-original-handoff/helper-build.json": {
+      "bytes": 729,
+      "sha256": "7908af9e007c4c5b51cdab50304c20900243d5f0358680b76cbfe10320f2dd53"
+    },
+    "/home/agent/evidence/fn232-core-original-handoff/helper-build.log": {
+      "bytes": 249,
+      "sha256": "db4a6d6dcdc4060b5af1de2d8b8be4878878894cc2ec0e0f9b9ea30a7c2d2dc8"
+    },
+    "/home/agent/evidence/fn232-core-original-handoff/payload-check.json": {
+      "bytes": 6187,
+      "sha256": "778b8bbf00f148d8d05c95b65e09d9ebcade38dc9a6d12750ac62e78bd94a09e"
+    },
+    "/home/agent/evidence/fn232-core-original-handoff/source-after.json": {
+      "bytes": 346,
+      "sha256": "791a025debdbf39e40270a770017f32680fd86c042994ee395f381aaf1cf7b86"
+    },
+    "/home/agent/evidence/fn232-core-original-handoff/source-before.json": {
+      "bytes": 354,
+      "sha256": "e3f4fdf6163372e238efc06206604c37324a887d088ea3e24555ad7407b2d578"
+    },
+    "/home/agent/evidence/fn232-core-original-handoff/test.stderr": {
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    "/home/agent/evidence/fn232-core-original-handoff/test.stdout": {
+      "bytes": 6403,
+      "sha256": "14d90d6497c81bf4d3eea130ddb23dade7cc7a2bafa8706df09ea42b8e535a5f"
+    }
+  },
+  "schema": "gomad.core-original-handoff-causal-check/v1",
+  "status": "ORIGINAL_AND_NATIVE_PREDICATE_FAILED"
+}

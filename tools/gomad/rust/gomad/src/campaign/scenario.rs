@@ -803,7 +803,9 @@ pub(super) fn retain_prefix(
             action: helper::Action::Wait,
         })
         .collect();
-    if steps[prefix..] != drain {
+    let implicit_drain =
+        prefix == steps.len() && !drain.is_empty() && configuration.steps[prefix..] == drain;
+    if !implicit_drain && steps[prefix..] != drain {
         return Err(
             "scenario executed lifecycle is not its declared prefix and ordered drain".into(),
         );
@@ -813,6 +815,11 @@ pub(super) fn retain_prefix(
         .retain(|item| started.contains(&item.handle));
     if configuration.incarnations.len() != started.len() {
         return Err("scenario executed lifecycle has an unknown incarnation".into());
+    }
+    // A failed wait joins the remaining stores without adding scenario actions.
+    // Keep their exact declared ordered waits as the replay recipe.
+    if implicit_drain {
+        return Ok(());
     }
     configuration.boundaries.retain(|boundary| {
         steps

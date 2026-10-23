@@ -570,3 +570,13 @@ mod world_limit_tests {
         std::fs::remove_dir_all(root).unwrap();
     }
 }
+
+#[cfg(all(
+    test,
+    not(any(
+        feature = "helper-determinism-fixture",
+        feature = "helper-stress-jitter"
+    ))
+))]
+#[path = "fixture_cluster_lifecycle_tests.rs"]
+mod lifecycle_preservation_tests;
