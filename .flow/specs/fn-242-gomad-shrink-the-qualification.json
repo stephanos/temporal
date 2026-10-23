@@ -1,0 +1,30 @@
+{
+  "branch_name": "fn-242-gomad-shrink-the-qualification",
+  "created_at": "2026-10-23T21:28:16.764726Z",
+  "depends_on_epics": [
+    "fn-232-gomad-rewrite-the-host-side-in-rust",
+    "fn-233-gomad-intercept-the-go-command-so-make",
+    "fn-188-gomad-wasm-determinism-boundary-audit",
+    "fn-221-gomad-functional-suite-triage-sweep-on",
+    "fn-185-gomad-wasm-host-side-execution-cost"
+  ],
+  "id": "fn-242-gomad-shrink-the-qualification",
+  "next_task": 1,
+  "plan_review_status": "unknown",
+  "plan_reviewed_at": null,
+  "spec_path": ".flow/specs/fn-242-gomad-shrink-the-qualification.md",
+  "status": "open",
+  "title": "Gomad: shrink the qualification machinery and move the cycle driver into Rust",
+  "tracker": {
+    "baseHashFlow": null,
+    "baseHashTracker": null,
+    "depRelations": [],
+    "id": null,
+    "identifier": null,
+    "lastSyncedAt": null,
+    "mergeBaseFlow": null,
+    "mergeBaseTracker": null,
+    "url": null
+  },
+  "updated_at": "2026-10-23T21:28:23.131093Z"
+}
