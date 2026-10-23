@@ -1,0 +1,35 @@
+review-parse: suppressed_count via json
+review-parse: classification_counts via json
+review-parse: unaddressed via json
+Prior findings: all fixed
+
+- **#1:** Output capture retains exclusively created file handles, detects path substitution, and reads diagnostics through those handles. Apalache receives bounded diagnostics directly through `ProcessFailure`. Symlink/FIFO regression controls are present.
+- **#2:** Pipe-reader joins are removed. Every Darwin invocation now applies descendant prevention, including helpers. Both the policy test and simulated Darwin escaped-descendant test passed in this review.
+
+No new blocking findings. Cargo regression execution was blocked by the read-only build lock; retained logs report the focused regressions passing. Native macOS execution remains unverified.
+
+## Requirements coverage
+
+Coverage is scoped to task .2.
+
+| R-ID | Status | Evidence |
+|---|---|---|
+| R1 | deferred | Owned by task .1. |
+| R2 | met | Both prior defects resolved; pinned admission, native-derived bound and bounded results preserved. |
+| R3 | deferred | Owned by task .3. |
+| R4 | deferred | Owned by task .4. |
+| R5 | deferred | Owned by task .4. |
+| R6 | deferred | Owned by task .5. |
+
+Unaddressed R-IDs: []
+
+Classification counts: 0 introduced, 0 pre_existing.
+
+```json
+{"classification_counts":{"introduced":0,"pre_existing":0},"unaddressed":[]}
+```
+
+<verdict>SHIP</verdict>
+
+
+VERDICT=SHIP

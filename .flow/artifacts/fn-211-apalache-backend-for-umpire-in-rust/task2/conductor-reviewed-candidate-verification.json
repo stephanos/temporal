@@ -1,0 +1,13 @@
+{
+  "candidate": "88803cad1c09ecb6ca831bf8e18aa2ae604ead22",
+  "phase": "normal-review followup candidate; final required gate pending",
+  "source_inventory_entries": 38,
+  "prior_fixture_artifacts_exact": 558,
+  "task1_closure": "35e7a7a88911096c7dff2efe7c04c7bb5dddc1a7",
+  "runtime_live_closure_exact": 2181,
+  "guest_sha256": "f832a33c3024a8752976d146be839b62a95afde4790fa0db60f1dac9004b4e7e",
+  "guest_bytes": 3408639,
+  "live_proof_reference": "task1 actual fresh slice7scenarios5.917s and gaps/privacy358.318s; no new task2 live execution claim",
+  "actual_native_macos_execution": "unverified",
+  "final_receipt": "pending; no green claim"
+}
