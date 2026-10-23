@@ -13,7 +13,7 @@ import sys
 from driver import HERE, REPO, check_files, command, mapping, read, require, sha, subgates, write
 
 LABELS = tuple(mapping())[:24]
-TOOLS = {'python', 'go', 'cargo', 'rustc', 'rustfmt', 'make', 'golangci', 'errortype', 'true', 'rustdoc', 'cargo_clippy', 'clippy_driver'}
+TOOLS = {'python', 'go', 'cargo', 'rustc', 'rustfmt', 'make', 'golangci', 'errortype', 'true', 'rustdoc', 'cargo_clippy', 'clippy_driver', 'cargo_fmt'}
 CACHES = {'cargo_target', 'cargo_home', 'go_cache', 'go_mod_cache'}
 RETAINED = ['./internal/model/...', './internal/backends/wasm/cluster',
             './internal/backends/wasm/toolchain/...', './internal/support/...']
@@ -65,9 +65,10 @@ def assemble(inputs, base, plan_path, config_path):
         files[str(path)] = binding['sha256']
         tools[name] = str(path)
     rust_parent = Path(tools['cargo']).parent
-    require(all(Path(tools[key]).parent == rust_parent for key in ('rustc', 'rustdoc', 'cargo_clippy', 'clippy_driver')),
+    require(all(Path(tools[key]).parent == rust_parent for key in ('rustc', 'rustdoc', 'rustfmt', 'cargo_clippy', 'clippy_driver', 'cargo_fmt')),
             'Rust toolchain tools must share their pinned tool directory')
-    require(Path(tools['cargo_clippy']).name == 'cargo-clippy' and Path(tools['clippy_driver']).name == 'clippy-driver',
+    require(Path(tools['cargo_clippy']).name == 'cargo-clippy' and Path(tools['clippy_driver']).name == 'clippy-driver'
+            and Path(tools['cargo_fmt']).name == 'cargo-fmt',
             'Clippy sibling discovery requires original tool names')
     for path in inputs['caches'].values():
         require(Path(path).is_absolute() and Path(path).resolve() == Path(path) and Path(path).is_dir()
@@ -153,15 +154,15 @@ def recipe(plan, label):
     if label == 'world-race':
         return [step('go-tests', [go, 'test', '-race', '-tags=test_dep', '-p=1', '-parallel=1', '-count=1', './internal/model/world/...'])]
     if label == 'rust-lint':
-        rows = [step('exit', [plan['tools']['rustfmt'], '--edition', '2024', '--check',
-            module + '/rust/gomad/src/main.rs', module + '/rust/wasmhost/src/lib.rs', module + '/rust/wasmhost/src/main.rs'])]
+        rows = [step('exit', [cargo, 'fmt', '--manifest-path', workspace, '--all', '--', '--check'])]
         for package, modes in [('gomad', HOST_FEATURES), ('gomad-wasmhost', HELPER_FEATURES)]:
             for features in modes:
                 rows.append(step('exit', [plan['tools']['cargo_clippy'], 'clippy', '--manifest-path', workspace, '--release', '--locked', '--offline',
                     '--no-default-features', '-p', package, '--all-targets', '--no-deps', '--features', features, '--', '-D', 'warnings']))
         return rows
     if label in MODES:
-        rows = [step('cargo-tests', common + ['-p', 'gomad-wasmhost', '--features', MODES[label]])]
+        rows = [step('cargo-tests', common + ['-p', 'gomad-wasmhost', '--features', MODES[label]]
+                     + (['--lib'] if label == 'rust-conformance-unit' else []))]
         if label == 'rust-default-test':
             rows.append(step('cargo-tests', common + ['-p', 'gomad']))
         return rows
@@ -200,24 +201,55 @@ def parse_go_inventory(raw):
     return names
 
 
-def verify_go(raw, expected, repeats):
-    passes, runs, packages = dict(expected), dict(expected), set()
+GO_SCOPE_SOURCES = {
+    'tools/gomad/internal/archcheck/defaultset_test.go': '245b52ae2b3d33d8f734c7a6c83a3ceda053abeee66ad23876584ee2fb3d9425',
+    'tools/gomad/internal/archcheck/architecture_test.go': 'ad46ab118e62dbf1bbe3777e67449760f435d54d9e5aa6ff9f76b67478399f12',
+    'tools/gomad/go.mod': '7951085bb6063ae8925c395345ee8997644cb83c9c9c55963e62cbad6bbf4511',
+}
+GO_SCOPE_ROOT = ('go.temporal.io/server/tools/gomad/internal/archcheck', 'TestNoDefaultSourceNamesNestedTree')
+GO_SCOPE_REASON = 'no nested in-tree module is checked out; nothing to keep out of the default set'
+
+
+def go_scope_exclusions(inventory):
+    if GO_SCOPE_ROOT not in inventory:
+        return []
+    require(all(sha(REPO / path) == digest for path, digest in GO_SCOPE_SOURCES.items()),
+            'original Go scope exclusion source changed')
+    module = REPO / 'tools/gomad'
+    require(not list((module / 'internal/backends').glob('*/go.mod')), 'nested backend module changes original exclusion scope')
+    return [dict(package=GO_SCOPE_ROOT[0], name=GO_SCOPE_ROOT[1], reason=GO_SCOPE_REASON,
+                 source_files=GO_SCOPE_SOURCES, working_directory=str(module),
+                 replacement='go.temporal.io/server => ../..', nested_backend_modules=[], status='UNEXECUTED')]
+
+
+def verify_go(raw, expected, repeats, exclusions=()):
+    passes, runs, skips, packages, output = dict(expected), dict(expected), dict(expected), set(), {}
+    allowed = {(row['package'], row['name']): row for row in exclusions}
+    require(set(allowed) <= set(expected), 'unlisted Go scope exclusion')
     for line in raw.decode().splitlines():
         row = json.loads(line)
         action, test = row.get('Action'), row.get('Test')
-        require(action not in ('fail', 'skip'), 'failed/skipped Go package or subtest')
+        key = (row.get('Package'), test)
+        require(action != 'fail', 'failed Go package or subtest')
+        if action == 'output' and test:
+            output[key] = output.get(key, '') + row.get('Output', '')
+        if action == 'skip':
+            require(key in allowed and allowed[key]['reason'] in output.get(key, ''),
+                    'unknown skipped Go package/subtest or changed exclusion reason')
+            skips[key] += 1
         if not test:
             if action == 'pass':
                 packages.add(row['Package'])
             continue
-        key = (row['Package'], test)
         if '/' not in test and action in ('run', 'pass'):
             require(key in expected, 'unlisted Go root ran')
             target = passes if action == 'pass' else runs
             target[key] += 1
-    require(all(value == repeats for value in passes.values()) and all(value == repeats for value in runs.values()), 'missing/duplicate Go root execution')
+    require(all(runs[key] == repeats and passes[key] == (0 if key in allowed else repeats)
+                and skips[key] == (repeats if key in allowed else 0) for key in expected),
+            'missing/duplicate Go root execution or scope exclusion')
     require({pkg for pkg, _ in expected} <= packages, 'Go package did not terminate successfully')
-    return [dict(package=pkg, name=name, repetitions=repeats) for pkg, name in sorted(expected)]
+    return [dict(package=pkg, name=name, repetitions=repeats) for pkg, name in sorted(expected) if (pkg, name) not in allowed]
 
 
 def test_names(raw):
@@ -242,6 +274,38 @@ def tree_hashes(directory):
     return {str(path.relative_to(directory)): sha(path) for path in sorted(directory.rglob('*')) if path.is_file()}
 
 
+def command_environment(plan, config, extra=None):
+    environment = {key: value for key, value in config.get('environment', {}).items()
+                   if not key.startswith(('GOMAD', 'QUALDRV'))}
+    environment.update(PATH=os.pathsep.join([str(Path(plan['tools'][key]).parent) for key in ('go', 'cargo', 'make')])
+                       + os.pathsep + os.environ.get('PATH', ''),
+        GOCACHE=plan['caches']['go_cache'], GOMODCACHE=plan['caches']['go_mod_cache'],
+        CARGO_TARGET_DIR=plan['caches']['cargo_target'], CARGO_HOME=plan['caches']['cargo_home'],
+        RUSTC=plan['tools']['rustc'], RUSTDOC=plan['tools']['rustdoc'],
+        RUSTFMT=plan['tools']['rustfmt'], CARGO=plan['tools']['cargo'],
+        CARGO_BUILD_JOBS='1', RUST_TEST_THREADS='1', GOFLAGS='-p=1')
+    environment.update(extra or {})
+    return environment
+
+
+def reference_environment(plan, config):
+    result = {}
+    for role, variable in [('ordinary-reference', 'GOMAD_WASM_TEST_HELPER'), ('conformance-reference', 'GOMAD_WASM_CONFORMANCE_HELPER')]:
+        receipt = read(Path(config['root']) / 'static-roles' / role / 'build.json')
+        require(sha(receipt['binary']) == receipt['binary_sha256'] and receipt['source_sha256'] == config['source_sha256'], 'reference role changed')
+        result[variable] = receipt['binary']
+    result.update(GOMAD_WASM_CONFORMANCE_REQUIRED='1', GOMAD_STOCK_GO=plan['tools']['go'],
+                  GOMAD_WASM_STOCK_GO=plan['tools']['go'])
+    return result
+
+
+def action_environment(plan, config, action):
+    extra = reference_environment(plan, config) if action.get('reference') else {}
+    if action.get('all_platforms'):
+        extra['GOMAD_ARCH_ALL_PLATFORMS'] = '1'
+    return extra
+
+
 class Execution:
     def __init__(self, plan, config, label):
         self.plan, self.config, self.label = plan, config, label
@@ -252,27 +316,13 @@ class Execution:
     def call(self, argv, cwd, env=None):
         name = f'command-{self.ordinal:04d}'
         self.ordinal += 1
-        environment = dict(self.config.get('environment', {}), PATH=os.pathsep.join([str(Path(self.plan['tools'][key]).parent) for key in ('go', 'cargo', 'make')]) + os.pathsep + os.environ.get('PATH', ''),
-            GOCACHE=self.plan['caches']['go_cache'], GOMODCACHE=self.plan['caches']['go_mod_cache'],
-            CARGO_TARGET_DIR=self.plan['caches']['cargo_target'], CARGO_HOME=self.plan['caches']['cargo_home'],
-            RUSTC=self.plan['tools']['rustc'], RUSTDOC=self.plan['tools']['rustdoc'], CARGO_BUILD_JOBS='1', RUST_TEST_THREADS='1', GOFLAGS='-p=1')
-        environment.update(env or {})
+        environment = command_environment(self.plan, self.config, env)
         configuration = dict(self.config, repo=str(cwd), environment=environment)
         raw = command(configuration, self.root, name, list(map(str, argv)), timeout=3600)
         self.rows.append(dict(name=name, argv=list(map(str, argv)), cwd=str(cwd), environment=environment,
                              stdout_sha256=sha(self.root / (name + '.stdout')), command_sha256=sha(self.root / (name + '.command.json')),
                              process_sha256=sha(self.root / (name + '.process.json'))))
         return raw
-
-    def reference_environment(self):
-        result = {}
-        for role, variable in [('ordinary-reference', 'GOMAD_WASM_TEST_HELPER'), ('conformance-reference', 'GOMAD_WASM_CONFORMANCE_HELPER')]:
-            receipt = read(Path(self.config['root']) / 'static-roles' / role / 'build.json')
-            require(sha(receipt['binary']) == receipt['binary_sha256'] and receipt['source_sha256'] == self.config['source_sha256'], 'reference role changed')
-            result[variable] = receipt['binary']
-        result.update(GOMAD_WASM_CONFORMANCE_REQUIRED='1', GOMAD_STOCK_GO=self.plan['tools']['go'],
-                      GOMAD_WASM_STOCK_GO=self.plan['tools']['go'])
-        return result
 
     def go(self, action, env=None):
         argv = action['argv']
@@ -281,9 +331,10 @@ class Execution:
         listing_name = self.rows[-1]['name']
         inventory = parse_go_inventory(listing)
         raw = self.call([*argv[:2], '-json', *argv[2:]], action['cwd'], env)
-        roots = verify_go(raw, inventory, action.get('repeats', 1))
+        exclusions = go_scope_exclusions(inventory)
+        roots = verify_go(raw, inventory, action.get('repeats', 1), exclusions)
         return dict(kind='go-tests', roots=roots, listing=listing_name, run=self.rows[-1]['name'],
-                    repetitions=action.get('repeats', 1), inventory_sha256=hashlib.sha256(listing).hexdigest())
+                    repetitions=action.get('repeats', 1), scope_exclusions=exclusions, inventory_sha256=hashlib.sha256(listing).hexdigest())
 
     def rust(self, action):
         argv, cwd = action['argv'], action['cwd']
@@ -366,11 +417,7 @@ class Execution:
         for action in self.plan['stages'][self.label]:
             results = []
             first_command = len(self.rows)
-            kind, env = action['kind'], {}
-            if action.get('reference'):
-                env.update(self.reference_environment())
-            if action.get('all_platforms'):
-                env['GOMAD_ARCH_ALL_PLATFORMS'] = '1'
+            kind, env = action['kind'], action_environment(self.plan, self.config, action)
             if kind == 'go-tests':
                 results.append(self.go(action, env))
             elif kind == 'cargo-tests':
@@ -447,13 +494,22 @@ def authenticate_result(plan_path, label):
         recorded, process = read(paths['.command.json']), read(paths['.process.json'])
         require(recorded['argv'] == row['argv'] and recorded['cwd'] == row['cwd'] and recorded['exit'] == 0
                 and recorded['observation'] == 'completed' and recorded['pid'] > 0
+                and recorded['environment'] == row['environment']
+                and recorded['temporary_paths'] == config.get('temporary_paths', {})
                 and process['pid'] == recorded['pid'] and process.get('active') is False
                 and recorded['end_ns'] >= recorded['start_ns'], 'static command did not complete')
         commands[row['name']] = row
     require([name for action in report['actions'] for name in action['commands']] == list(commands),
             'omitted/reused static commands')
-    testcases, deferred = [], []
+    testcases, deferred, scope_exclusions = [], [], []
     known = ignored_inventory(REPO)
+    consumed = set()
+    def consume(name, owned, argv, cwd, extra):
+        require(name in owned and name not in consumed, 'reused execution or command outside owned recipe')
+        row = commands[name]
+        require(row['argv'] == argv and row['cwd'] == cwd
+                and row['environment'] == command_environment(plan, config, extra), 'changed command argv/cwd/recipe environment')
+        consumed.add(name)
     def raw(name, owned):
         require(name in owned, 'raw command belongs to another recipe')
         return (root / (name + '.stdout')).read_bytes()
@@ -463,11 +519,14 @@ def authenticate_result(plan_path, label):
                 'missing/duplicate recipe result')
         first = commands[owned[0]]
         kind = recipe_row['kind']
+        extra = action_environment(plan, config, recipe_row)
         if kind in ('cargo-tests', 'build-role'):
             expected = recipe_row['argv'] + (['--no-run', '--message-format=json'] if kind == 'cargo-tests' else ['--message-format=json'])
-            require(first['argv'] == expected and first['cwd'] == recipe_row['cwd'], 'changed Cargo recipe invocation')
+            consume(owned[0], owned, expected, recipe_row['cwd'], extra)
         elif kind not in ('go-tests', 'replay-regeneration', 'workflow-lint', 'actionlint-version'):
-            require(first['argv'] == recipe_row['argv'] and first['cwd'] == recipe_row['cwd'], 'changed command recipe invocation')
+            if kind == 'actionlint-build':
+                extra['GOBIN'] = str(Path(config['root']) / 'static-tools')
+            consume(owned[0], owned, recipe_row['argv'], recipe_row['cwd'], extra)
         if kind in ('workflow-lint', 'actionlint-version'):
             receipt = read(Path(config['root']) / 'static-tools/actionlint.json')
             require(sha(receipt['binary']) == receipt['sha256'], 'built actionlint changed before reader')
@@ -478,15 +537,22 @@ def authenticate_result(plan_path, label):
                 pairs = [pair for pair in pairs if all(path.is_file() and 'tools/gomad/' in path.read_text() for path in pair)]
                 require(len(pairs) == 1, 'ambiguous/missing original workflow pair')
                 expected = [receipt['binary'], *map(str, pairs[0])]
-            require(first['argv'] == expected and first['cwd'] == recipe_row['cwd'], 'changed workflow/version invocation')
-        for row in results:
+            consume(owned[0], owned, expected, recipe_row['cwd'], extra)
+        for result_index, row in enumerate(results):
             if kind in ('go-tests', 'replay-regeneration'):
                 argv = recipe_row['argv']
                 require(row['kind'] == 'go-tests' and row['repetitions'] == recipe_row.get('repeats', 1), 'changed Go repetition contract')
-                require(commands[row['listing']]['argv'] == [*argv[:2], '-json', '-list', '.', *argv[2:]]
-                        and commands[row['run']]['argv'] == [*argv[:2], '-json', *argv[2:]], 'changed Go list/run selectors')
+                go_extra = dict(extra)
+                if kind == 'replay-regeneration':
+                    go_extra.update(GOMAD_REPLAY_PLAN_CORPUS_REGENERATE='1',
+                                    GOMAD_REPLAY_PLAN_CORPUS_DIR=str(root / ('replay-generation-' + str(result_index))))
+                consume(row['listing'], owned, [*argv[:2], '-json', '-list', '.', *argv[2:]], recipe_row['cwd'], go_extra)
+                consume(row['run'], owned, [*argv[:2], '-json', *argv[2:]], recipe_row['cwd'], go_extra)
                 inventory = parse_go_inventory(raw(row['listing'], owned))
-                observed = verify_go(raw(row['run'], owned), inventory, row['repetitions'])
+                exclusions = go_scope_exclusions(inventory)
+                require(row['scope_exclusions'] == exclusions, 'changed Go exclusion witness')
+                observed = verify_go(raw(row['run'], owned), inventory, row['repetitions'], exclusions)
+                scope_exclusions.extend(exclusions)
                 require(observed == row['roots'], 'Go roots differ from raw execution')
                 for line in raw(row['run'], owned).decode().splitlines():
                     event = json.loads(line)
@@ -499,14 +565,26 @@ def authenticate_result(plan_path, label):
                 expected_binaries = {artifact['executable'] for artifact in artifacts if artifact.get('reason') == 'compiler-artifact'
                                      and artifact.get('executable') and artifact['profile']['test']}
                 require({entry['binary'] for entry in row['executables']} == expected_binaries, 'missing Rust executable')
+                require([(entry['binary'], entry['repeat']) for entry in row['executables']]
+                        == [(binary, repeat) for binary in sorted(expected_binaries) for repeat in range(recipe_row.get('repeats', 1))],
+                        'missing/reordered/duplicate Rust repetitions')
+                inventory_refs = {}
                 total = 0
                 for executable in row['executables']:
                     require(sha(executable['binary']) == executable['binary_sha256'], 'test binary changed before reader')
                     binary = executable['binary']
                     suffix = [recipe_row['test_filter']] if recipe_row.get('test_filter') else []
-                    require(commands[executable['listing']]['argv'] == [binary, '--list', *suffix]
-                            and commands[executable['ignored_listing']]['argv'] == [binary, '--ignored', '--list', *suffix]
-                            and commands[executable['run']]['argv'] == [binary, '--test-threads=1', *suffix], 'changed Rust test selectors')
+                    references = (executable['listing'], executable['ignored_listing'])
+                    if executable['repeat'] == 0:
+                        inventory_refs[binary] = references
+                        consume(executable['listing'], owned, [binary, '--list', *suffix], executable['cwd'], extra)
+                        consume(executable['ignored_listing'], owned, [binary, '--ignored', '--list', *suffix], executable['cwd'], extra)
+                    else:
+                        require(inventory_refs[binary] == references, 'changed shared Rust listing references')
+                    run_extra = dict(extra)
+                    if recipe_row.get('regenerate'):
+                        run_extra['GOMAD_HELPER_CORPUS_REGENERATE'] = '1'
+                    consume(executable['run'], owned, [binary, '--test-threads=1', *suffix], executable['cwd'], run_extra)
                     expected = test_names(raw(executable['listing'], owned))
                     ignored = test_names(raw(executable['ignored_listing'], owned))
                     passed = verify_rust(raw(executable['run'], owned), expected, ignored)
@@ -529,6 +607,8 @@ def authenticate_result(plan_path, label):
                 expects_doc = '--test' not in recipe_row['argv'] and '--bin' not in recipe_row['argv'] and recipe_row['argv'][recipe_row['argv'].index('-p') + 1] == 'gomad-wasmhost'
                 require((row['doctest'] is not None) == expects_doc, 'missing/unexpected doctest execution')
                 if row['doctest'] is not None:
+                    doc_argv = [arg for arg in recipe_row['argv'] if arg != '--lib'] + ['--doc']
+                    consume(row['doctest'], owned, doc_argv, recipe_row['cwd'], extra)
                     summaries = re.findall(r'test result: ok\. (\d+) passed; (\d+) failed; (\d+) ignored;', raw(row['doctest'], owned).decode())
                     require(summaries and all(int(failed) == int(ignored) == 0 for _, failed, ignored in summaries), 'missing/ignored/failed doctest')
             elif kind == 'build-role':
@@ -558,13 +638,14 @@ def authenticate_result(plan_path, label):
             if label.endswith('-2'):
                 first = read(Path(config['root']) / 'stages/helper-corpus-regen-1/static/result.json')
                 require(first['corpus'] == expected, 'second helper corpus differs from first')
+    require(consumed == set(commands), 'unconsumed raw command cannot count as proof')
     require(deferred == report['deferred_ignored'], 'ignored obligations differ from actual ignored test reports')
     return dict(schema='gomad.rust-driver-check/v1', stage=label, source_sha256=config['source_sha256'],
         config_sha256=sha(plan['driver_config']), identity=config['identity'],
         subgates=[dict(id=name, status='PASS', executed=True, exit=0) for name in subgates(label)],
         testcases=testcases, raw_reports=raw_reports,
         static_execution=dict(path=str(root / 'result.json'), sha256=sha(root / 'result.json')),
-        deferred_ignored=deferred)
+        deferred_ignored=deferred, unexecuted_scope_exclusions=scope_exclusions)
 
 
 def main():

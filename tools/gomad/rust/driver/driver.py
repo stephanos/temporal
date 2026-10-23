@@ -189,6 +189,7 @@ def command(config, root, name, argv, accepted=(0,), timeout=None):
                 process.update(active=False, exit=proc.returncode, observation=observation, end_ns=time.time_ns())
                 save_process(process_path, process)
                 write(root / (name + '.command.json'), dict(argv=argv, cwd=config['repo'], pid=proc.pid, exit=proc.returncode,
+                      environment=config.get('environment', {}), temporary_paths=config.get('temporary_paths', {}),
                       observation=observation, start_ns=start, end_ns=time.time_ns()))
     completed(code, accepted)
     return (root / (name + '.stdout')).read_bytes()

@@ -493,3 +493,40 @@ oracle/metadata/private35/broker receiving proofs, final driver composition,
 integrated actual static/runtime/strictlint gates, source freeze/identity custody,
 code-size final comparison and main retirement acceptance remain pending. No
 current source-only check discharges those actual qualification requirements.
+
+### Static source review repair (dfc231251d followup)
+
+Addressed four concrete review findings coherently, preserving the separately
+approved f8f469dd77 filesystem admission unchanged:
+
+1. Original TestNoDefaultSourceNamesNestedTree scope skip now has exact source
+hashes for defaultset_test.go, architecture_test.go/TestMain and module go.mod,
+original ../.. replacement witness, empty original backend-module glob and exact
+original emitted reason. Only that package/root can skip; each repetition must
+actually run+skip. It emits statusUNEXECUTED scope witness and no PASS root or
+native testcase. Unknown skips/reasons/source/scope mutations still refuse.
+2. Conformance mode explicitly selects --lib (the original assertions moved there),
+so ordinary engine/cluster transport integration does not execute in conformance
+mode. Original ordinary modes still execute those actual integration targets.
+3. Reader consumes each command once; all commands must be consumed. Repeated
+native Rust runs and both replay generations require distinct actual run refs;
+shared listing refs are permitted only for their own repeated binary inventory.
+Doctest argv/cwd must exactly match the original recipe plus --doc. The command
+receipt now binds configured environment and temporary paths; reader reconstructs
+exact recipe environment, including helper roles, regeneration flags and each
+independent destination, instead of trusting producer-reported environment.
+4. Formatting restored Cargo fmt --all --check for full singleworkspace coverage,
+including both build scripts and integration entrypoints. cargo-fmt is now an
+explicit frozen sibling tool input, alongside pinned rustfmt/RUSTFMT.
+
+Meaningful read-only RED reproduction compiled dfc231251d's old module in memory
+and ran new recipe/reader regression fixtures. Four assertions failed exactly:
+missing --lib, incomplete fmt invocation, reused Rust run accepted, reused replay
+run accepted. Only new environment-construction helper supplied unit fixture data;
+old reader/recipe remained unchanged. Old verify_go separately rejected the exact
+original known-scope skip. Current GREEN portable suite48tests exit0, including
+12static tests covering those repairs, doctest argv, exact regeneration env,
+source-bound scope skip and actual bounded Python child receipt environment.
+AST/JSON parsing and diffchecks exit0. No Cargo/Go/build/guest/golden/qualification
+or main sync occurred. All72 runtime endpoints, receiving proofs/reach map,
+sourcefreeze and main retirement remain pending with their original owners.

@@ -46,7 +46,7 @@ class StaticStageContract(unittest.TestCase):
             root = Path(directory)
             tools = {}
             for name in static.TOOLS:
-                filename = {'cargo_clippy': 'cargo-clippy', 'clippy_driver': 'clippy-driver'}.get(name, name)
+                filename = {'cargo_clippy': 'cargo-clippy', 'clippy_driver': 'clippy-driver', 'cargo_fmt': 'cargo-fmt'}.get(name, name)
                 path = root / filename
                 path.write_text('pinned tool fixture ' + name)
                 tools[name] = dict(path=str(path), sha256=driver.sha(path))
@@ -65,6 +65,144 @@ class StaticStageContract(unittest.TestCase):
             Path(tools['go']['path']).write_text('changed')
             with self.assertRaisesRegex(driver.Refusal, 'changed tool'):
                 static.assemble(inputs, base, root/'plan2.json', root/'bindings2.json')
+
+    def test_original_scope_skip_is_source_bound_and_never_pass(self):
+        package, name = static.GO_SCOPE_ROOT
+        inventory = static.parse_go_inventory(listing((name,), package))
+        witnesses = static.go_scope_exclusions(inventory)
+        raw = events([dict(Action='run', Package=package, Test=name),
+                      dict(Action='output', Package=package, Test=name, Output=static.GO_SCOPE_REASON),
+                      dict(Action='skip', Package=package, Test=name), dict(Action='pass', Package=package)])
+        self.assertEqual(static.verify_go(raw, inventory, 1, witnesses), [])
+        self.assertEqual(witnesses[0]['status'], 'UNEXECUTED')
+        with self.assertRaises(driver.Refusal):
+            static.verify_go(raw, inventory, 1)
+        with self.assertRaises(driver.Refusal):
+            static.verify_go(raw.replace(static.GO_SCOPE_REASON.encode(), b'new reason'), inventory, 1, witnesses)
+        with patch.object(static, 'sha', return_value='changed'), self.assertRaises(driver.Refusal):
+            static.go_scope_exclusions(inventory)
+
+    def test_conformance_only_runs_compatible_library_and_fmt_covers_workspace(self):
+        plan = dict(repo=str(driver.REPO), lint_base='a'*40, tools={key: '/pinned/'+key for key in static.TOOLS})
+        conformance = static.recipe(plan, 'rust-conformance-unit')
+        self.assertEqual(len(conformance), 1)
+        self.assertIn('--lib', conformance[0]['argv'])
+        self.assertNotIn('--test', conformance[0]['argv'])
+
+    def test_format_inventory_includes_full_workspace(self):
+        plan = dict(repo=str(driver.REPO), lint_base='a'*40, tools={key: '/pinned/'+key for key in static.TOOLS})
+        fmt = static.recipe(plan, 'rust-lint')[0]['argv']
+        self.assertEqual(fmt, ['/pinned/cargo', 'fmt', '--manifest-path', str(driver.REPO / 'tools/gomad/rust/Cargo.toml'),
+                               '--all', '--', '--check'])
+
+    def reader_fixture(self, label, action):
+        temporary = tempfile.TemporaryDirectory()
+        self.addCleanup(temporary.cleanup)
+        root = Path(temporary.name)
+        config_path, plan_path = root/'config.json', root/'plan.json'
+        config_path.write_text('{}')
+        plan_path.write_text('{}')
+        config = dict(root=str(root), source_sha256='1'*64, identity=dict(host='2'*64, helper='3'*64))
+        plan = dict(driver_config=str(config_path), stages={label:[action]},
+                    tools={key:'/pinned/'+key for key in static.TOOLS}, caches={key:'/cache/'+key for key in static.CACHES})
+        evidence = root/'stages'/label/'static'
+        evidence.mkdir(parents=True)
+        commands = []
+        def command(argv, raw, extra=None, cwd='/source'):
+            name = f'command-{len(commands):04d}'
+            environment = static.command_environment(plan, config, extra)
+            receipt = dict(argv=argv, cwd=cwd, exit=0, observation='completed', pid=123, start_ns=1, end_ns=2,
+                           environment=environment, temporary_paths={})
+            driver.write(evidence/(name+'.command.json'), receipt)
+            driver.write(evidence/(name+'.process.json'), dict(pid=123, active=False))
+            (evidence/(name+'.stdout')).write_bytes(raw)
+            commands.append(dict(name=name, argv=argv, cwd=cwd, environment=environment,
+                                 command_sha256=driver.sha(evidence/(name+'.command.json')),
+                                 process_sha256=driver.sha(evidence/(name+'.process.json')), stdout_sha256=driver.sha(evidence/(name+'.stdout'))))
+            return name
+        report = dict(schema='gomad.driver-static-execution/v1', stage=label, source_sha256=config['source_sha256'],
+                      identity=config['identity'], plan_sha256=driver.sha(plan_path), config_sha256=driver.sha(config_path),
+                      actions=[dict(recipe=action, results=[], commands=[])], commands=commands, deferred_ignored=[])
+        def check():
+            report['actions'][0]['commands'] = [row['name'] for row in commands]
+            (evidence/'result.json').write_text(json.dumps(report))
+            with patch.object(static, 'plan_config', return_value=(plan,config)):
+                return static.authenticate_result(plan_path, label)
+        return root, evidence, command, report, check
+
+    def test_rust_repeats_are_distinct_and_doctest_argv_is_real(self):
+        action = dict(kind='cargo-tests', argv=['/pinned/cargo','test','-p','gomad-wasmhost','--lib'], cwd='/source', repeats=2)
+        root, evidence, command, report, check = self.reader_fixture('validate', action)
+        binary = root/'native-test'
+        binary.write_bytes(b'synthetic unit fixture, never executed')
+        artifact = dict(reason='compiler-artifact', executable=str(binary), profile=dict(test=True), target=dict(name='test-target'))
+        command(action['argv']+['--no-run','--message-format=json'], events([artifact]))
+        listed = command([str(binary),'--list'], b'a: test\n')
+        ignored = command([str(binary),'--ignored','--list'], b'0 tests\n')
+        executions = []
+        for repeat in range(2):
+            run = command([str(binary),'--test-threads=1'], b'test a ... ok\ntest result: ok. 1 passed; 0 failed; 0 ignored;\n')
+            executions.append(dict(binary=str(binary), binary_sha256=driver.sha(binary), target='test-target', cwd='/source',
+                                   listing=listed, ignored_listing=ignored, run=run, tests=['a'], ignored=[], repeat=repeat))
+        doc = command(['/pinned/cargo','test','-p','gomad-wasmhost','--doc'], b'test result: ok. 0 passed; 0 failed; 0 ignored;\n')
+        result = dict(kind='cargo-tests', executables=executions, passed=2, doctest=doc)
+        report['actions'][0]['results'] = [result]
+        self.assertEqual(len(check()['testcases']), 2)
+        original_run = executions[1]['run']
+        executions[1]['run'] = executions[0]['run']
+        with self.assertRaisesRegex(driver.Refusal, 'reused execution'):
+            check()
+        executions[1]['run'] = original_run
+        row = report['commands'][-1]
+        row['argv'] = [str(binary),'--test-threads=1']
+        path = evidence/(doc+'.command.json')
+        receipt = driver.read(path)
+        receipt['argv'] = row['argv']
+        path.write_text(json.dumps(receipt))
+        row['command_sha256'] = driver.sha(path)
+        with self.assertRaisesRegex(driver.Refusal, 'recipe environment'):
+            check()
+
+    def test_replay_regenerations_need_independent_commands_and_environment(self):
+        action = dict(kind='replay-regeneration', argv=['/pinned/go','test','./model'], cwd='/source')
+        root, evidence, command, report, check = self.reader_fixture('validate', action)
+        results = []
+        for index in range(2):
+            extra = dict(GOMAD_REPLAY_PLAN_CORPUS_REGENERATE='1',
+                         GOMAD_REPLAY_PLAN_CORPUS_DIR=str(evidence/('replay-generation-'+str(index))))
+            listed = command(['/pinned/go','test','-json','-list','.','./model'], listing(), extra)
+            run = command(['/pinned/go','test','-json','./model'], execution(), extra)
+            results.append(dict(kind='go-tests', listing=listed, run=run, repetitions=1, scope_exclusions=[],
+                                roots=[dict(package='model', name='TestA', repetitions=1)]))
+        report['actions'][0]['results'] = results
+        with patch.object(static, 'tree_hashes', return_value={'original':'bytes'}):
+            self.assertEqual(len(check()['testcases']), 2)
+            original = results[1]['run']
+            results[1]['run'] = results[0]['run']
+            with self.assertRaisesRegex(driver.Refusal, 'reused execution'):
+                check()
+            results[1]['run'] = original
+            row = report['commands'][-1]
+            row['environment'].pop('GOMAD_REPLAY_PLAN_CORPUS_REGENERATE')
+            path = evidence/(original+'.command.json')
+            receipt = driver.read(path)
+            receipt['environment'] = row['environment']
+            path.write_text(json.dumps(receipt))
+            row['command_sha256'] = driver.sha(path)
+            with self.assertRaisesRegex(driver.Refusal, 'recipe environment'):
+                check()
+
+    def test_actual_bounded_command_receipt_binds_regeneration_environment(self):
+        with tempfile.TemporaryDirectory() as directory:
+            root = Path(directory)
+            config = dict(repo=str(root), environment={'GOMAD_HELPER_CORPUS_REGENERATE':'1'},
+                          temporary_paths={'TMPDIR':str(root)})
+            raw = driver.command(config, root, 'probe', [sys.executable, '-c',
+                                 'import os; print(os.environ["GOMAD_HELPER_CORPUS_REGENERATE"])'], timeout=5)
+            self.assertEqual(raw, b'1\n')
+            receipt = driver.read(root/'probe.command.json')
+            self.assertEqual(receipt['environment'], config['environment'])
+            self.assertEqual(receipt['temporary_paths'], config['temporary_paths'])
 
     def test_exact_known_ignored_inventory(self):
         rows = static.ignored_inventory(driver.REPO)
@@ -111,19 +249,23 @@ class StaticStageContract(unittest.TestCase):
             plan_path.write_text('{}')
             config = dict(root=str(root), source_sha256='1'*64, identity=dict(host='2'*64, helper='3'*64))
             action = dict(kind='go-tests', argv=['/pinned/go', 'test', './model'], cwd='/source')
-            plan = dict(driver_config=str(config_path), stages={'portable': [action]})
+            plan = dict(driver_config=str(config_path), stages={'portable': [action]},
+                        tools={key: '/pinned/'+key for key in static.TOOLS},
+                        caches={key: '/cache/'+key for key in static.CACHES})
             evidence = root / 'stages/portable/static'
             evidence.mkdir(parents=True)
             commands = []
+            environment = static.command_environment(plan, config)
             def command(name, argv, raw):
-                driver.write(evidence / (name+'.command.json'), dict(argv=argv, cwd='/source', exit=0, observation='completed', pid=123, start_ns=1, end_ns=2))
+                driver.write(evidence / (name+'.command.json'), dict(argv=argv, cwd='/source', exit=0, observation='completed', pid=123, start_ns=1, end_ns=2,
+                             environment=environment, temporary_paths={}))
                 driver.write(evidence / (name+'.process.json'), dict(pid=123, active=False))
                 (evidence / (name+'.stdout')).write_bytes(raw)
-                commands.append(dict(name=name, argv=argv, cwd='/source', command_sha256=driver.sha(evidence/(name+'.command.json')),
+                commands.append(dict(name=name, argv=argv, cwd='/source', environment=environment, command_sha256=driver.sha(evidence/(name+'.command.json')),
                                      process_sha256=driver.sha(evidence/(name+'.process.json')), stdout_sha256=driver.sha(evidence/(name+'.stdout'))))
             command('command-0000', ['/pinned/go', 'test', '-json', '-list', '.', './model'], listing())
             command('command-0001', ['/pinned/go', 'test', '-json', './model'], execution())
-            result = dict(kind='go-tests', listing='command-0000', run='command-0001', repetitions=1,
+            result = dict(kind='go-tests', scope_exclusions=[], listing='command-0000', run='command-0001', repetitions=1,
                           roots=[dict(package='model', name='TestA', repetitions=1)])
             report = dict(schema='gomad.driver-static-execution/v1', stage='portable', source_sha256=config['source_sha256'],
                           identity=config['identity'], plan_sha256=driver.sha(plan_path), config_sha256=driver.sha(config_path),
