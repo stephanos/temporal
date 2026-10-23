@@ -13,7 +13,7 @@
   ],
   "id": "fn-211-apalache-backend-for-umpire-in-rust",
   "impl_review_rounds": {
-    "fn-211-apalache-backend-for-umpire-in-rust.1": 1
+    "fn-211-apalache-backend-for-umpire-in-rust.1": 0
   },
   "next_task": 1,
   "plan_review_rounds": 0,
@@ -232,9 +232,54 @@
       "task": "fn-211-apalache-backend-for-umpire-in-rust.1",
       "timestamp": "2026-10-23T00:30:53.537007Z",
       "verdict": "NEEDS_WORK"
+    },
+    {
+      "artifact_sha256": "5d0cb6a4854a543f38860c8e668ba701838199f97860e01ca81a835efce52182",
+      "backend": "codex",
+      "base_sha": "3101551995ac6877ccdc6d8739dd4025373f70dd",
+      "counter_kind": "impl",
+      "effort": "high",
+      "failure_class": null,
+      "finalized": {
+        "digest": "complete",
+        "receipt": "complete",
+        "status": "not_applicable"
+      },
+      "findings_digest": {
+        "backend": "codex",
+        "digest_truncated": false,
+        "items": [
+          {
+            "chainRoot": "finding-2ba56e75469c03f8f3bf2668e860b636",
+            "classification": "introduced",
+            "findingId": "finding-2ba56e75469c03f8f3bf2668e860b636",
+            "firstSeenThisRound": false,
+            "severity": "P2",
+            "status": "fixed"
+          }
+        ],
+        "reviewKind": "implementation"
+      },
+      "forced": false,
+      "hash_epoch": 0,
+      "head_sha": "26dd66814f951daccabad762372de6674f84acf3",
+      "head_sha_observed": true,
+      "kind": "impl",
+      "model": "gpt-6.1-sol",
+      "outcome": "verdict",
+      "output_bytes": 1183,
+      "output_sha256": "05d79e4f79775372c421beb2fa3ae2cface7bc84c77352f08b77b9fb99f8796c",
+      "reservation_id": "673466d22f40417dbe38b499dba16166",
+      "round_consumed": true,
+      "scope": "impl:fn-211-apalache-backend-for-umpire-in-rust.1",
+      "superseded_by": null,
+      "task": "fn-211-apalache-backend-for-umpire-in-rust.1",
+      "timestamp": "2026-10-23T00:44:21.528741Z",
+      "verdict": "SHIP"
     }
   ],
   "review_hash_epoch": {
+    "impl:fn-211-apalache-backend-for-umpire-in-rust.1": 1,
     "plan": 1,
     "plan#completion": 0
   },
@@ -258,5 +303,5 @@
     "mergeBaseTracker": null,
     "url": null
   },
-  "updated_at": "2026-10-23T00:30:53.540364Z"
+  "updated_at": "2026-10-23T00:44:21.534045Z"
 }

@@ -1,0 +1,2 @@
+Moderate overlap with bug/integration/match-complete-macro-invocations-when-2026-10-19, bug/integration/preserve-rust-expression-and-inference-2026-10-20, bug/integration/preserve-scalar-bound-identities-when-2026-10-22, bug/integration/prove-result-shape-before-propagating-2026-10-21. Creating new entry with related_to reference.
+Created bug/integration/preserve-arithmetic-evaluation-roots-2026-10-23 at /Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/memory/bug/integration/preserve-arithmetic-evaluation-roots-2026-10-23.md

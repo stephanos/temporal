@@ -1,0 +1,45 @@
+{
+  "base": "3101551995ac6877ccdc6d8739dd4025373f70dd",
+  "effort": "high",
+  "findings": {
+    "backend": "codex",
+    "baseSha": "3101551995ac6877ccdc6d8739dd4025373f70dd",
+    "headSha": "26dd66814f951daccabad762372de6674f84acf3",
+    "items": [
+      {
+        "body": "A later empty start domain can erase an earlier evaluated arithmetic fault. Extend the existing start-overflow control with a second field, `#[starts(1..0)] spare: i8`. The invalid first range receives a fallback value, but the second range makes the conjoined Init unsatisfiable. Consequently, ArithmeticSafe has no reachable failure, although native `starts()` evaluates\u2014and fails on\u2014the first endpoint before entering the second loop.",
+        "classification": "introduced",
+        "confidence": 100,
+        "firstSeenReceiptId": "review-eaee68d90f4da9bc4ddcadf6f172b108ffa03538ba4fecdfe58e7bb7eb472b07",
+        "id": "finding-2ba56e75469c03f8f3bf2668e860b636",
+        "lastSeenReceiptId": "review-d2b41fd0d0b5c743c920afbe075b6b27f619780714b333bdda5d6ed2dfcf089e",
+        "ordinal": 1,
+        "rIds": [
+          "R1"
+        ],
+        "severity": "P2",
+        "status": "fixed",
+        "suggestion": "Emit an initialization-error branch that remains reachable independently of subsequent start domains. Preserve field-order evaluation so an earlier empty domain still skips later expressions. Add controls for both orders.",
+        "title": "A later empty start domain can erase an earlier evaluated arithmetic fault"
+      }
+    ],
+    "reviewKind": "implementation",
+    "round": 2,
+    "schemaVersion": 1,
+    "sourceReceiptId": "review-d2b41fd0d0b5c743c920afbe075b6b27f619780714b333bdda5d6ed2dfcf089e",
+    "supersedesReceiptId": "review-eaee68d90f4da9bc4ddcadf6f172b108ffa03538ba4fecdfe58e7bb7eb472b07"
+  },
+  "id": "fn-211-apalache-backend-for-umpire-in-rust.1",
+  "introduced_count": 0,
+  "mode": "codex",
+  "model": "gpt-6.1-sol",
+  "pre_existing_count": 0,
+  "review": "Prior finding #1: fixed\n\nInitialization now carries cumulative validity through fields in declaration order, assigning defaults to later fields after a fault. This preserves the error despite a later empty domain.\n\nThe retained pinned-tool controls confirm both orders: fault-first produces an initial arithmetic-error witness; empty-first produces no violation. The prebuilt native regression passed. Fresh Cargo execution remains blocked by the read-only build lock.\n\nNo surviving findings or new blocking regressions.\n\n## Requirements coverage\n\n| R-ID | Status | Evidence |\n|---|---|---|\n| R1 | met | Typed emission and arithmetic/history controls, including both start-field orders. |\n| R2 | deferred | Runner completion belongs to task .2. |\n| R3 | deferred | Typed replay belongs to task .3. |\n| R4 | deferred | Fixture agreement goldens belong to task .4. |\n| R5 | deferred | Fixture selection and ownership belong to task .4. |\n| R6 | deferred | Symbolic Worlds belong to task .5. |\n\nUnaddressed R-IDs: []\n\nClassification counts: 0 introduced, 0 pre_existing.\n\n```json\n{\"classification_counts\":{\"introduced\":0,\"pre_existing\":0},\"unaddressed\":[]}\n```\n\n<verdict>SHIP</verdict>\n",
+  "review_reservation_id": "673466d22f40417dbe38b499dba16166",
+  "session_id": "01a16625-e918-7d70-b660-c939bc01f169",
+  "spec": "codex:gpt-6.1-sol:high",
+  "timestamp": "2026-10-23T00:44:21.524137Z",
+  "type": "impl_review",
+  "unaddressed": [],
+  "verdict": "SHIP"
+}
