@@ -205,3 +205,12 @@ command selections. The four double-selected roots require distinct actual
 cannot substitute for two original Make invocations. Dynamic subtest domains
 remain required and unresolved until an exact source-reviewed expansion or
 actual bounded receiving derivation is bound.
+
+For the single original all-decision inspection site, a final map may use
+`{"derive":"runtime-inspection-boundaries"}`. This closed derivation accepts only
+that original source expression. It derives each kind/decision from actual raw
+choice records and complete inspection metadata, then requires the exact stopped
+request, verified prefix, real stack/heap and one command for every decision.
+Missing cases and fixed-count declarations refuse. Expanded obligation IDs retain
+the original site byte coordinate, preventing equal labels at different source
+sites from collapsing into one obligation.

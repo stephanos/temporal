@@ -135,7 +135,7 @@ class RawBindingGuards(unittest.TestCase):
             mapping['makefiles'][path]=dict(blob=blob,sha256=hashlib.sha256(raw).hexdigest())
         with patch.object(live.reach, 'inventory', wraps=live.reach.inventory),patch.object(live.subprocess,'check_output',side_effect=[tree,source,*external,fixture,*makes]):
             actual=live.original_callables(config,mapping)
-        self.assertEqual(actual,{key+'#TestOriginal',*[key+'#TestOriginal/'+case for case in ('literal','dynamic-7','dynamic-19')],
+        self.assertEqual(actual,{key+'#TestOriginal',*[site+'/'+case for site,cases in sites.items() for case in cases],
             *[path+'#'+name for path,name in live.SLIM_SOURCES.items()]})
         changed=json.loads(json.dumps(mapping));changed['subtests'][next(iter(sites))]=['renamed']
         with patch.object(live.subprocess,'check_output',side_effect=[tree,source,*external,fixture,*makes]),self.assertRaises(driver.Refusal):
@@ -247,3 +247,48 @@ class RawBindingGuards(unittest.TestCase):
         equals=['/pinned/go','test','-json','-tags=gomad_wasm_slim,test_dep','-timeout=15m',
                 '-run='+pattern,'-count=1','./common/archiver/provider','./temporal','./tests/testcore']
         live.slim_command(equals)
+
+    def test_inspection_expands_every_actual_decision_from_raw_choice_bytes(self):
+        import live
+        import copy
+        with tempfile.TemporaryDirectory() as directory:
+            work=Path(directory);base=work/'inspection-record';(base/'streams').mkdir(parents=True)
+            raw=bytearray(5*96)
+            for index,kind,flag in ((0,1,1),(1,4,0),(2,2,1),(3,3,0),(4,1,1)):
+                raw[index*96+8]=kind;raw[index*96+9]=flag
+            (base/'streams/choice').write_bytes(raw)
+            boundaries=[dict(trace=trace,decision=ordinal) for ordinal,trace in enumerate((0,1,4))]
+            driver.write(base/'result.json',dict(inspection=dict(complete=True,incarnations=[dict(registry=dict(closed=True))],boundaries=boundaries)))
+            source=dict(fuel=4000000000,memory_bytes=256<<20,wall_millis=60000,output_bytes=1<<20,evidence_bytes=128<<20,model=dict(mode=1,diagnostics=False))
+            driver.write(work/'inspection-record.input.json',source)
+            commands=[]
+            for ordinal,kind in enumerate((1,2,1)):
+                name=f'inspection-kind{kind}-{ordinal}';output=work/name;output.mkdir()
+                request=copy.deepcopy(source);request['model']['mode']=2;request['replay_trace_path']=str(base/'streams/choice')
+                request['inspection']=dict(metadata_path=str(base/'streams/inspection'),decision=ordinal,dumps=['stacks','heap'],probes=[])
+                driver.write(work/(name+'.input.json'),request)
+                driver.write(output/'result.json',dict(prefix_verified=True,debug=dict(stacks='actual stopped stack')))
+                (output/'heap.pprof').write_bytes(b'actual raw receiver fixture')
+                commands.append(dict(name=name))
+            cases=live.runtime_boundaries(work,commands)
+            self.assertEqual(len(cases),3)
+            self.assertIn('live-case/TestCooperativeInspectionEveryDecision/kind2-1',cases)
+            with self.assertRaises(driver.Refusal):live.runtime_boundaries(work,commands[:-1])
+            path=work/'inspection-kind2-1.input.json';changed=driver.read(path);changed['inspection']['decision']=0;path.write_text(json.dumps(changed))
+            with self.assertRaises(driver.Refusal):live.runtime_boundaries(work,commands)
+
+    def test_runtime_subvariant_derivation_is_closed_and_requires_actual_cases(self):
+        import live
+        root='tools/gomad/internal/backends/wasm/wasi/inspection_integration_test.go#TestCooperativeInspectionEveryDecision'
+        site=root+'@6043'
+        inventory=dict(sources={},makefiles={},callables={root:dict(original_runs=['recursive'])},
+            subtest_sites={site:dict(expression='fmt.Sprintf("kind%d-%d", record.Kind, boundary.Decision)',expansions=[])})
+        inventory['callables'].update({path+'#'+name:dict(original_runs=['slim']) for path,name in live.SLIM_SOURCES.items()})
+        mapping=dict(reference_commit='a'*40,sources={},makefiles={},subtests={site:dict(derive='runtime-inspection-boundaries')})
+        config=dict(repo='/receiver-fixture',live_corpus=dict(original_reference_commit='a'*40))
+        with patch.object(live.reach,'inventory',return_value=inventory):
+            with self.assertRaises(driver.Refusal):live.original_callables(config,mapping)
+            actual=live.original_callables(config,mapping,{'live-case/TestCooperativeInspectionEveryDecision/kind2-1'})
+            self.assertIn(site+'/kind2-1',actual)
+            mapping['subtests'][site]['derive']='declared-count'
+            with self.assertRaises(driver.Refusal):live.original_callables(config,mapping,actual)

@@ -340,6 +340,47 @@ def auxiliary(work, family, stdout):
     return {'rust-test/' + name for name in expected}
 
 
+def runtime_boundaries(work, commands):
+    """Expand the original all-decision obligation from actual retained wire bytes."""
+    import copy
+    base = work / 'inspection-record'
+    metadata = read(base / 'result.json')['inspection']
+    require(metadata['complete'] is True and len(metadata['incarnations']) == 1
+            and metadata['incarnations'][0]['registry']['closed'] is True, 'incomplete original inspection registry')
+    raw = (base / 'streams/choice').read_bytes()
+    require(raw and len(raw) % 96 == 0, 'incomplete original choice records')
+    wire = [raw[index:index + 96] for index in range(0, len(raw), 96)]
+    decisions = [index for index, record in enumerate(wire) if record[9] & 1 and record[8] != 4]
+    boundaries = metadata['boundaries']
+    require(boundaries and len(boundaries) == len(decisions)
+            and any(item['trace'] > item['decision'] for item in boundaries), 'inspection omitted actual decision boundaries')
+    source = read(work / 'inspection-record.input.json')
+    require(all(source[field] == limit for field, limit in dict(memory_bytes=256 << 20, fuel=4000000000,
+            wall_millis=60000, output_bytes=1 << 20, evidence_bytes=128 << 20).items()), 'changed original inspection execution bounds')
+    expected, cases, kinds = [], set(), set()
+    for ordinal, boundary in enumerate(boundaries):
+        index = boundary['trace']
+        require(type(index) is int and 0 <= index < len(wire) and type(boundary['decision']) is int and boundary['decision'] == ordinal,
+                'invalid original inspection decision coordinate')
+        while index < len(wire) and wire[index][8] == 4: index += 1
+        require(index == decisions[ordinal], 'inspection decision/trace mapping differs from actual choices')
+        kind = wire[index][8]; kinds.add(kind)
+        name = f'inspection-kind{kind}-{ordinal}'; expected.append(name)
+        request = copy.deepcopy(source)
+        request['model']['mode'] = 2
+        request['replay_trace_path'] = str(base / 'streams/choice')
+        request['inspection'] = dict(metadata_path=str(base / 'streams/inspection'), decision=ordinal,
+                                     dumps=['stacks', 'heap'], probes=[])
+        require(read(work / (name + '.input.json')) == request, 'stopped request changed the original exact decision/dumps/bounds')
+        result = read(work / name / 'result.json')
+        require(result['prefix_verified'] is True and result['debug']['stacks']
+                and (work / name / 'heap.pprof').stat().st_size > 0, 'actual stopped stack/heap/prefix proof absent')
+        cases.add('live-case/TestCooperativeInspectionEveryDecision/' + f'kind{kind}-{ordinal}')
+    actual = [item['name'] for item in commands if item['name'].startswith('inspection-kind')]
+    require(actual == expected and {1, 2} <= kinds, 'missing/duplicate/extra all-decision stopped executions')
+    return cases
+
+
 def read_family(config, family, work, stdout):
     if family == 'private35':
         private35(work, stdout); return {'private35/16-live-reinsertions'}
@@ -386,6 +427,7 @@ def read_family(config, family, work, stdout):
             report = read(output / 'result.json')
             require(report['execution_returned'] is True and report['outcome']['termination']
                     and report['outcome']['fuel_remaining'] <= read(work / (item['name'] + '.input.json'))['fuel'], 'missing actual runtime terminal')
+        return runtime_boundaries(work, commands)
     elif family == 'cluster':
         report = read(work / 'observations.json')
         require(report['schema'] == 'gomad.live-cluster-service-cells/v1' and [item['cell'] for item in report['cells']] == list(CELLS), 'missing/duplicate lifecycle/cleanup variant')
@@ -540,7 +582,7 @@ def reach_coverage(original, entries, actual):
             previous.update(identities)
 
 
-def original_callables(config, mapping):
+def original_callables(config, mapping, actual=()):
     commit = mapping['reference_commit']
     require(commit == config['live_corpus']['original_reference_commit'] and re.fullmatch('[0-9a-f]{40}', commit),
             'wrong original test-wasm source commitment')
@@ -555,12 +597,19 @@ def original_callables(config, mapping):
     require(set(mapping['subtests']) == set(sites), 'unknown/omitted original helper or root subtest site')
     for site, detail in sites.items():
         expansion = mapping['subtests'][site]
+        if isinstance(expansion, dict):
+            require(expansion == dict(derive='runtime-inspection-boundaries')
+                    and site.split('@', 1)[0].endswith('#TestCooperativeInspectionEveryDecision')
+                    and detail['expression'] == 'fmt.Sprintf("kind%d-%d", record.Kind, boundary.Decision)',
+                    'unsupported original subvariant derivation')
+            prefix = 'live-case/TestCooperativeInspectionEveryDecision/'
+            expansion = sorted(case.removeprefix(prefix) for case in actual if case.startswith(prefix + 'kind'))
         require(isinstance(expansion, list) and expansion and len(expansion) == len(set(expansion))
                 and all(isinstance(case, str) and case for case in expansion),
                 'unmapped original literal/dynamic test-wasm subtest site: ' + site)
         if detail['expansions']:
             require(expansion == detail['expansions'], 'original literal subtest was renamed')
-        original.update(site.split('@', 1)[0] + '/' + case for case in expansion)
+        original.update(site + '/' + case for case in expansion)
     require({path + '#' + test for path, test in SLIM_SOURCES.items()} <= original,
             'original Make slim-refusal callable set omitted')
     return original
@@ -643,7 +692,7 @@ def test_wasm_reach(config, actual):
     sealed_input(config, entry['map'])
     mapping = read(entry['map'])
     require(mapping['schema'] == 'gomad.original-test-wasm-reach/v1', 'wrong original full test-wasm map')
-    original = original_callables(config, mapping)
+    original = original_callables(config, mapping, actual)
     reports = set(actual)
     for endpoint in entry.get('reports', []): reports.update(receiving_report(config, endpoint))
     require(SLIM_IDS <= reports, 'three original slim-refusal executions are missing')

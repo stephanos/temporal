@@ -54326,12 +54326,15 @@
       "status": "UNEXECUTED"
     },
     "tools/gomad/internal/backends/wasm/wasi/inspection_integration_test.go#TestCooperativeInspectionEveryDecision@6043": {
+      "expansion_derivation": {
+        "derive": "runtime-inspection-boundaries"
+      },
       "expansions": [],
       "expression": "fmt.Sprintf(\"kind%d-%d\", record.Kind, boundary.Decision)",
       "line": 140,
       "owner": "tools/gomad/internal/backends/wasm/wasi/inspection_integration_test.go#TestCooperativeInspectionEveryDecision",
       "parent_start_byte": null,
-      "remaining_gap": "Requires actual complete decision-boundary expansion from authenticated original inspection metadata; no fixed boundary-count substitution.",
+      "remaining_gap": "Actual execution UNEXECUTED: receiver now derives every original kind/decision subvariant from authenticated choice bytes,complete registry and matching stopped requests/raw stack+heap; no fixed count.",
       "source": "tools/gomad/internal/backends/wasm/wasi/inspection_integration_test.go",
       "status": "UNEXECUTED"
     },
