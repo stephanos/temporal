@@ -42,9 +42,14 @@ impl Bounds {
         }
         let call_files = calls.saturating_mul(files);
         let call_files_squared = call_files.saturating_mul(files);
+        let path_bytes = crate::volume::MAXIMUM_PATH_BYTES as u64;
         let mut partial = budget_add(complete, calls, 2 * (361 + 3 * 21));
-        partial = budget_add(partial, call_files, 2 * 2 * 6 * 4096 + 2 * 2 * 21 + 4 * 195);
-        partial = budget_add(partial, call_files_squared, 4 * 6 * 4096);
+        partial = budget_add(
+            partial,
+            call_files,
+            2 * 2 * 6 * path_bytes + 2 * 2 * 21 + 4 * 195,
+        );
+        partial = budget_add(partial, call_files_squared, 4 * 6 * path_bytes);
         for volume in descriptor.model.volumes() {
             partial = budget_add(partial, volume.id.len() as u64, 3 * 6);
             partial = budget_add(partial, volume.mount.len() as u64, 6);

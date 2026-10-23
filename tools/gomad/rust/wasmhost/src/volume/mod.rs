@@ -5,6 +5,8 @@ mod hash;
 mod image;
 mod state;
 
+#[cfg(not(feature = "conformance"))]
+pub(crate) use config::MAXIMUM_PATH_BYTES;
 pub(crate) use config::StorageModel;
 #[cfg(any(test, feature = "conformance"))]
 pub(crate) use crash::CrashExploration;

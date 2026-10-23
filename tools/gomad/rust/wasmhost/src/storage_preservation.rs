@@ -151,3 +151,52 @@ fn refused_large_history_retains_original_hundred_thousand_write_prefix() {
         encoded
     );
 }
+
+#[test]
+fn maximum_enumeration_limits_preserve_actual_native_empty_volume_evidence() {
+    use crate::namespace::{Image, Limits, Namespace};
+    use crate::storage_transport::{StorageDescriptor, evidence};
+    let model: StorageModel = serde_json::from_value(json!({
+        "volumes":[{"ID":"data","Path":"/workspace","CapacityBytes":256 << 10}],
+        "limits":{"PendingOperations":1000,"Transitions":1000}
+    }))
+    .unwrap();
+    let mut descriptor: StorageDescriptor = serde_json::from_value(json!({
+        "model":model,"model_identity":model.identity(),"return_image":true,
+        "crash_limits":{"States":512,"Operations":32,"Depth":32,"Bytes":64 << 20,"Work":1 << 20}
+    }))
+    .unwrap();
+    let image = Image {
+        entries: Vec::new(),
+        writable_directories: vec![b"/workspace".to_vec()],
+        preopens: vec![b"/workspace".to_vec()],
+        working_directory: b"/workspace".to_vec(),
+        stdin: Vec::new(),
+        epoch_nanos: 946_684_800_000_000_000,
+        limits: Limits {
+            files: 1000,
+            descriptors: 64,
+            filesystem_bytes: 256 << 10,
+            output_bytes: 1 << 20,
+        },
+    };
+    let mut ordinary = Namespace::new(image.clone()).unwrap();
+    descriptor.attach(&mut ordinary, None, 1 << 20).unwrap();
+    let ordinary = evidence(&mut ordinary, &descriptor);
+    assert!(ordinary.failure.is_none());
+    descriptor.crash_limits = Some(crate::volume::CrashEnumerationLimits {
+        states: u64::MAX,
+        operations: u64::MAX,
+        depth: u64::MAX,
+        bytes: u64::MAX,
+        work: u64::MAX,
+    });
+    let mut maximum = Namespace::new(image).unwrap();
+    descriptor.attach(&mut maximum, None, 1 << 20).unwrap();
+    let maximum = evidence(&mut maximum, &descriptor);
+    assert!(maximum.failure.is_none());
+    assert_eq!(maximum.log, ordinary.log);
+    assert_eq!(maximum.state, ordinary.state);
+    assert_eq!(maximum.image, ordinary.image);
+    assert!(maximum.image.is_some());
+}

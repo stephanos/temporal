@@ -52,7 +52,9 @@ fn partial_header_recognizes_every_original_split_and_rejects_short_or_wrong_hea
 #[test]
 fn storage_budget_counts_every_volume_and_saturates_original_overflow_cases() {
     let mut descriptor = storage_descriptor();
-    let base = Bounds::new(1 << 20, 10000, 1000, &descriptor).complete;
+    descriptor.model.volumes.as_mut().unwrap()[0].capacity_bytes = 1 << 20;
+    descriptor.model_identity = descriptor.model.identity();
+    let base = Bounds::new(8 << 20, 10000, 1000, &descriptor).complete;
     descriptor.crash_limits = Some(crate::volume::CrashEnumerationLimits {
         states: 1,
         operations: 1,
@@ -60,14 +62,14 @@ fn storage_budget_counts_every_volume_and_saturates_original_overflow_cases() {
         bytes: 1,
         work: 1,
     });
-    let one = Bounds::new(1 << 20, 10000, 1000, &descriptor).complete;
+    let one = Bounds::new(8 << 20, 10000, 1000, &descriptor).complete;
     assert!(one > base);
-    let context = 18 * ((1 << 20) + (1 << 20)) + 12;
+    let context = 18 * ((8 << 20) + (1 << 20)) + 12;
     descriptor.model.volumes.as_mut().unwrap().push(
         serde_json::from_value(json!({"ID":"more","Path":"/other","CapacityBytes":1})).unwrap(),
     );
     assert_eq!(
-        Bounds::new(1 << 20, 10000, 1000, &descriptor).complete,
+        Bounds::new(8 << 20, 10000, 1000, &descriptor).complete,
         base + context + 2 * (one - base - context)
     );
     let limits = descriptor.crash_limits.as_mut().unwrap();
@@ -75,7 +77,7 @@ fn storage_budget_counts_every_volume_and_saturates_original_overflow_cases() {
     limits.states = u64::MAX;
     limits.work = u64::MAX;
     assert_eq!(
-        Bounds::new(1 << 20, 10000, 1000, &descriptor).complete,
+        Bounds::new(8 << 20, 10000, 1000, &descriptor).complete,
         u64::MAX
     );
     assert_eq!(
