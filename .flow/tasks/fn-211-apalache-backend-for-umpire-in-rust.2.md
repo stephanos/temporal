@@ -35,9 +35,51 @@ The all-Darwin no-descendant policy exposed an existing required helper: the TLC
 - [ ] Property/bound progress includes start and every terminal finish/failure on stderr; deterministic result rendering excludes paths, timings and raw diagnostics. Default tests neither launch nor download Apalache; required failures remain failures.
 - [ ] Focused fake-tool/installer and actual pinned-tool controls, strict lint, review/audits and one final required model-time pass; exact artifact/source/guest evidence supports every output change and any explicit live-proof reuse.
 ## Done summary
-TBD
+Finalized bounded Apalache checking with explicit NoViolation/Violation/NotRun outcomes, pinned installation admission, and the completed native Kettle exploration bound (depth62 + 1 = 63). Shared TLC process supervision retains bounded diagnostic handles and cleans up owned processes; focused controls cover installer containment, concurrent publication, parser admission, output limits, cancellation and signal/owner death.
 
+Tier: session (jev-unavailable(no_key)); AGENTS implementer override gpt-6.1-sol medium
+stage: impl-review - ran (original fanout NEEDS_WORK; single resume SHIP, explicit codex:gpt-6.1-sol:high; same model family as requested implementer)
+
+Baseline: green focused native/default and actual pinned backend controls. Initial wrong-directory attempt was inconclusive and corrected; no inherited failing baseline was accepted. Meaningful red/green controls and all unchanged audit reports are retained in `.flow/artifacts/fn-211-apalache-backend-for-umpire-in-rust/task2/`.
+
+Verification: `timeout 3600 env UMPIRE_BACKENDS=require make model-time` exited0, all17 stages green, gate903.818s/60s soft target missed, inner7.229s/10s soft target met. Current raw output confirms all five Kettle safety properties NoViolation63. Final gate exercised Python installer/supervisor controls through maintained guest-build-controls discovery.
+
+GATE_SKIPPED:unittest:green-receipt 64d47616 — final Verify after Flow-only evidence commits honored the completed exact-command run; no second full gate was executed.
+
+Runtime/live reuse: conductor verified all2181 runtime/live entries, all558 prior fixture artifacts and guest SHA f832a33c3024a8752976d146be839b62a95afde4790fa0db60f1dac9004b4e7e unchanged at source88803cad1c. Reuse task1 retained fresh live slice/gaps evidence explicitly; no new live execution is claimed.
+
+Platform limit: actual native macOS Temurin27 execution remains unverified. Darwin ownership prevents descendants using child-only hard/soft NPROC0 and refuses privileged execution. Linux simulated-Darwin policy controls passed; Linux mise NPROC0 thread abort is inconclusive for native Darwin. No cross-OS runtime pass is claimed.
+
+Task .3 still owns general typed ITF conversion/replay; .4 owns selected consumer/goldens; .5 owns symbolic Worlds. No feature-entry route changed. No native graph edge emission was added.
+
+Source scope: finalized existing Apalache backend, shared TLC process support, backend tests, and fetch-apalache containment. The only extra authorized path was fetch-tlc.sh for builtin-only preflight before descendant restriction; its post-admission download behavior remains unchanged.
+
+Exact green receipt: `.flow/tmp/green-receipts/64d47616-unittest.json` (durable copy `.flow/artifacts/fn-211-apalache-backend-for-umpire-in-rust/task2/final-green-receipt.json`). Honor command: `python3 /home/agent/.codex/scripts/flowctl.py gate check --gate unittest --command 'timeout 3600 env UMPIRE_BACKENDS=require make model-time'`; exit0 HONORED64d47616 after evidence commitb4853923a2.
+
+| Stage | Seconds |
+|---|---:|
+| temporal-guest-freshness | 32.245 |
+| timing-controls | 0.017 |
+| guest-build-controls | 3.572 |
+| capability-controls | 0.076 |
+| source-boundary | 4.681 |
+| protobuf-freshness | 0.079 |
+| kettle-protobuf-freshness | 0.076 |
+| temporal-protobuf-freshness | 0.055 |
+| fmt | 0.496 |
+| clippy | 5.363 |
+| docs | 64.125 |
+| tests | 688.492 |
+| wasm32-wasip1 | 0.215 |
+| core-wasm-clippy | 0.152 |
+| wasm-guest | 53.539 |
+| go-host | 38.846 |
+| temporal-go-host | 11.411 |
+
+Durable proof directory: `.flow/artifacts/fn-211-apalache-backend-for-umpire-in-rust/task2/`. `final-model-time.log` is the raw gate timing log; `final-gate-report.json` links it to source88803cad1c, verified gateHEAD64d476165b, native bound and all five property outputs/source hashes. `final-backend-controls.tar.gz` retains178 raw Apalache/TLC files; `final-backend-controls-inventory.jsonl` pins every archived byte stream. `source-inventory.jsonl` pins38 source files, all verified exact after the gate. `review-ship-receipt.json` and `review-resume.log` retain same-session SHIP; all prior reports and separate correction addenda remain unchanged. The green receipt is valid across subsequent Flow-only closure commits.
+
+stage: plan-sync - skipped(config: planSync.enabled != true)
 ## Evidence
-- Commits:
-- Tests:
+- Commits: 1a3dfc05492dbe0f978b46217c7b51c9bbd027f5, 5f4d62e9d4df25041655bae5ef9eb96c1f2d56b3, 8e7e015f6406151d1d6a66932f635e1fb0ec097d, 0eda2a2669b6649882d6e7978809226da56d6717, 2e1c2680de3b49b8bb7965e784650b863713bb40, c6a4b839c7a9e64b66dbb1d1af6dfd069f50395d, c9d72c6ef6ee26274adab9aff0992ab95c4b656e, 48bfe5c95dc4c1758f90bbb85b1484d821fe78d3, 88803cad1c09ecb6ca831bf8e18aa2ae604ead22, 94f093f756dc9eadd310ec3484d09c9d39950f3c, 64d476165b41f0f673b381449a20c3fca8666820, b4853923a266fd762ac203eb5391ce8bda2cd75f
+- Tests: timeout 3600 env UMPIRE_BACKENDS=require make model-time, GATE_SKIPPED:unittest:green-receipt 64d47616
 - PRs:
