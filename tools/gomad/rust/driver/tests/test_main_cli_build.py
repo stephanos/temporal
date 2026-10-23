@@ -27,7 +27,8 @@ def fixture(base,role='release'):
     config['files'][str(plan)]=sha(plan)
     version='rustc 1.99.1 (synthetic)\n';context=dict(compiler_utf8=version,bindings=dict(PROFILE='release',TARGET='aarch64-unknown-linux-gnu'))
     target='runtime-qualification-replay' if role=='runtime-harness' else 'gomad'
-    executable=work/('target/release/examples/'+target if role=='runtime-harness' else 'target/release/gomad');executable.parent.mkdir(parents=True);executable.write_bytes(b'synthetic compiled CLI');executable.chmod(0o755)
+    test=role=='counterfactual-harness'
+    executable=work/('target/release/deps/gomad-abcd' if test else 'target/release/examples/'+target if role=='runtime-harness' else 'target/release/gomad');executable.parent.mkdir(parents=True);executable.write_bytes(b'synthetic compiled CLI');executable.chmod(0o755)
     identity,runtime,inventories=gate.identities(config,context);frames=[]
     for kind,name,package in (('host','gomad','gomad'),('helper','wasmhost','gomad-wasmhost')):
         crate=repo/'tools/gomad/rust'/name;pkg='path+'+crate.as_uri()+('#0.1.0' if kind=='host' else '#'+package+'@0.1.0')
@@ -38,11 +39,12 @@ def fixture(base,role='release'):
             (generated/'identity-bindings.tsv').write_text('PROFILE\trelease\nTARGET\taarch64-unknown-linux-gnu\n')
         env=[['GOMAD_RUNTIME_IMPLEMENTATION_SHA256',runtime],['GOMAD_HOST_IMPLEMENTATION_SHA256',identity['host']]] if kind=='host' else [['GOMAD_LINKED_IMPLEMENTATION_SHA256',identity['helper']]]
         frames.append(dict(reason='build-script-executed',package_id=pkg,out_dir=str(generated),env=env))
-        frames.append(dict(reason='compiler-artifact',package_id=pkg,target=dict(kind=['lib'],src_path=str(crate/'src/lib.rs')),features=gate.ROLES[role] if kind=='host' else []))
+        if not (kind=='host' and test):
+            frames.append(dict(reason='compiler-artifact',package_id=pkg,target=dict(kind=['lib'],src_path=str(crate/'src/lib.rs')),features=gate.ROLES[role] if kind=='host' else gate.helper_features(role)))
         if kind=='host':frames.append(dict(reason='compiler-artifact',package_id=pkg,manifest_path=str(crate/'Cargo.toml'),
-            target=dict(name=target,kind=['example'] if role=='runtime-harness' else ['bin'],crate_types=['bin'],
-                src_path=str(crate/('examples/runtime-qualification-replay.rs' if role=='runtime-harness' else 'src/main.rs'))),features=gate.ROLES[role],fresh=False,
-            profile=dict(opt_level='3',debug_assertions=False,test=False),executable=str(executable)))
+            target=dict(name=target,kind=['example'] if role=='runtime-harness' else ['lib'] if test else ['bin'],crate_types=['lib'] if test else ['bin'],
+                src_path=str(crate/('examples/runtime-qualification-replay.rs' if role=='runtime-harness' else 'src/lib.rs' if test else 'src/main.rs'))),features=gate.ROLES[role],fresh=False,
+            profile=dict(opt_level='3',debug_assertions=False,test=test),executable=str(executable)))
     frames.append(dict(reason='build-finished',success=True))
     def observed(name,argv,output,pid):
         env=environment(config,work,context['bindings']['TARGET'] if name=='cargo-build' else None)
@@ -58,7 +60,7 @@ def fixture(base,role='release'):
         ('cargo-version',[tools['cargo'],'--version'],'cargo 1.99.1 (synthetic)\n'),
         ('cargo-build',gate.build_command(config),'\n'.join(json.dumps(row) for row in frames)))):observed(name,argv,output,201+index)
     (work/'producer.json').write_text(json.dumps(dict(pid=300,start_monotonic_nanos=10,end_monotonic_nanos=100,started_epoch_ns=1_000_000_000)))
-    (work/'admitted').mkdir();binary=work/'admitted'/target;binary.write_bytes(executable.read_bytes());binary.chmod(0o755)
+    (work/'admitted').mkdir();binary=work/'admitted'/gate.binary_name(role);binary.write_bytes(executable.read_bytes());binary.chmod(0o755)
     receipt=gate.evidence(config,work);path=work/'main-build.json';path.write_text(json.dumps(receipt))
     return config,path
 
@@ -70,6 +72,38 @@ def environment(config,root,target=None):
 class MainCliBuild(unittest.TestCase):
     def setUp(self):
         selected=patch.object(gate.harness,'environment',side_effect=environment);selected.start();self.addCleanup(selected.stop)
+
+    def test_counterfactual_role_keeps_both_private_cli_and_linked_fixture_features(self):
+        self.assertEqual(gate.ROLES['counterfactual-fixture'], ['determinism-fixture','helper-determinism-fixture'])
+        self.assertEqual(gate.helper_features('counterfactual-fixture'), ['determinism-fixture'])
+        self.assertEqual(gate.helper_features('host-fixture'), [])
+        with tempfile.TemporaryDirectory() as temporary:
+            config,path=fixture(Path(temporary),'counterfactual-fixture')
+            with patch.object(gate,'provision_config',return_value=config):
+                receipt=gate.read_build(path,expected_role='counterfactual-fixture')
+            self.assertEqual(receipt['helper_features'], ['determinism-fixture'])
+            raw=path.parent/'cargo-build.stdout'
+            frames=[json.loads(line) for line in raw.read_text().splitlines()]
+            helper=next(row for row in frames if row.get('target',{}).get('kind')==['lib'] and 'gomad-wasmhost' in row.get('package_id',''))
+            helper['features']=[]
+            raw.write_text('\n'.join(json.dumps(row) for row in frames))
+            with patch.object(gate,'provision_config',return_value=config),self.assertRaises(Refusal):
+                gate.read_build(path,expected_role='counterfactual-fixture')
+
+    def test_counterfactual_harness_selects_test_artifact_with_optional_normal_host_library(self):
+        with tempfile.TemporaryDirectory() as temporary:
+            config,path=fixture(Path(temporary),'counterfactual-harness')
+            receipt=json.loads(path.read_text());raw=path.parent/'cargo-build.stdout'
+            frames=[json.loads(line) for line in raw.read_text().splitlines()]
+            normal=copy.deepcopy(next(row for row in frames if row.get('executable')))
+            normal['executable']=None;normal['profile']['test']=False
+            frames.insert(0,normal)
+            raw.write_text('\n'.join(json.dumps(row) for row in frames))
+            executable,*_=gate.artifact(config,path.parent,receipt['context'])
+            self.assertTrue(str(executable).endswith('/target/release/deps/gomad-abcd'))
+            frames=[row for row in frames if not row.get('profile',{}).get('test')]
+            raw.write_text('\n'.join(json.dumps(row) for row in frames))
+            with self.assertRaises(Refusal):gate.artifact(config,path.parent,receipt['context'])
 
     def test_tracked_symlink_literal_is_git_authenticated_separately_from_regular_digest(self):
         import os
@@ -104,7 +138,7 @@ class MainCliBuild(unittest.TestCase):
                     receipt=gate.read_build(path,expected_role=role)
                 self.assertEqual(receipt['role'],role);self.assertEqual(receipt['features'],gate.ROLES[role])
                 self.assertNotIn('--identity',receipt['command'])
-                self.assertEqual(receipt['helper_features'],[])
+                self.assertEqual(receipt['helper_features'],gate.helper_features(role))
                 frozen=dict(config,binary=receipt['binary'],binary_sha256=receipt['binary_sha256'],identity=dict(host=receipt['host_sha256'],helper=receipt['helper_sha256']),
                     files=dict(receipt['inputs'],**{str(path):sha(path)}))
                 with patch.object(gate,'provision_config',return_value=config):
@@ -116,7 +150,7 @@ class MainCliBuild(unittest.TestCase):
                         with self.assertRaises(Refusal):gate.read_build(path,frozen,expected_role='release')
                     else:
                         with self.assertRaises(Refusal):gate.read_build(path,frozen)
-                        frozen['live_corpus']=dict(roles={'host-fixture':dict(binary=receipt['binary'],build_receipt=str(path))})
+                        frozen['live_corpus']=dict(roles={role:dict(binary=receipt['binary'],build_receipt=str(path))})
                         gate.read_build(path,frozen)
                         with self.assertRaises(Refusal):gate.read_build(path,frozen,expected_role='release')
 
@@ -159,11 +193,11 @@ class MainCliBuild(unittest.TestCase):
                 config,path=fixture(Path(temporary),role);root=path.parent;raw=root/'cargo-build.stdout';frames=[json.loads(line) for line in raw.read_text().splitlines()]
                 artifact=next(row for row in frames if row.get('executable'))
                 if mutation=='features':artifact['features']=['foreign-feature']
-                if mutation=='helper-features':frames[-2]['features']=['diagnostic-profile']
+                if mutation=='helper-features':next(row for row in frames if row.get('target',{}).get('kind')==['lib'] and 'gomad-wasmhost' in row.get('package_id',''))['features']=['diagnostic-profile']
                 if mutation=='name':artifact['target']['name']='foreign'
                 if mutation=='fresh':artifact['fresh']=True
                 if mutation=='source':artifact['target']['src_path']='/caller/main.rs'
-                if mutation=='profile':artifact['profile']['test']=True
+                if mutation=='profile':artifact['profile']['test']=not artifact['profile']['test']
                 if mutation=='package':artifact['package_id']='foreign#gomad@0.1.0'
                 if mutation=='executable':artifact['executable']='/caller/gomad'
                 if mutation=='duplicate':frames.insert(0,copy.deepcopy(artifact))

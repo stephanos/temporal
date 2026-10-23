@@ -44,7 +44,7 @@
   },
   "remaining": [
     "The unchanged original Go handoff test fails because failure of a/1 stops b/1. Retained Rust artifacts independently reproduce this original failed predicate. No assertion waiver or production fail-fast change is made.",
-    "New campaign receiving source is implemented but not yet executed. It requires fresh version2 preparation inputs and current fixture libtest/public CLI roles after the shared Cargo and Go lease is released. Historical direct-run pairs-v11 do not prove this new campaign path.",
+    "Runnable v2 recipe and two-role build orchestration are implemented and source-reviewed. Actual coherent builds and receiving execution await the explicitly assigned resource lease; no historical direct-run evidence credits this new path.",
     "Updated producer source requires execution after the current shared build/guest lease is released. Rustfmt and diff checks pass; no updated Cargo execution is claimed.",
     "Final frozen96stages/146obligations and complete current-candidate qualification remain required."
   ],
@@ -52,7 +52,13 @@
     "rustfmt": "rustfmt --edition 2024 --check tools/gomad/rust/gomad/src/campaign/counterfactual.rs: exit0",
     "diff": "git diff --check: exit0",
     "raw_audit": "8 existing artifacts, 10 nonempty diagnostic payloads; all 110 manifest payloads reopened and hash/length checked",
-    "updated_rust_execution": "NOT_RUN: core owns frozen2c73 Release Cargo and Go guest lease. New receiving tests and actual four campaign pairs remain to run."
+    "updated_rust_execution": "NOT_RUN: shared Cargo/Go guest lease has not been released. Fresh two-role builds, source regressions, v2 preparation, four campaign pairs and replays remain required.",
+    "recipe_and_role_python": {
+      "tests": 12,
+      "exit": 0,
+      "path": "/home/agent/evidence/fn232-executed-divergence-audit-v1/recipe-role-driver-tests-v2.log",
+      "sha256": "d2444a2015372dc7b9cc05d2740f103472ee1927632353d9f23b2bd5b151c936"
+    }
   },
   "receiving_inputs": "gomad.core-counterfactual-producer/v2: retains original ExploreOptions separately from the original StressExecution effective diagnostic override; original v1 evidence remains immutable.",
   "source_regressions": [
@@ -71,5 +77,39 @@
       "Allow fresh admission observation bytes; do not compare PID/timestamp-bearing auxiliary observations."
     ],
     "execution_credit": false
+  },
+  "runnable_pipeline": {
+    "controller": "tools/gomad/rust/driver/executed_divergence.py",
+    "recipe": "gomad.original-counterfactual-recipe/v1",
+    "public_role": "counterfactual-fixture",
+    "libtest_role": "counterfactual-harness",
+    "host_features": [
+      "determinism-fixture",
+      "helper-determinism-fixture"
+    ],
+    "helper_features": [
+      "determinism-fixture"
+    ],
+    "input_fields": [
+      "root",
+      "compiler",
+      "compiler_sha256",
+      "cli",
+      "cli_sha256"
+    ],
+    "campaign_options": "Rust production CLI parser constructs all four original option tuples; serialized manual campaign inputs are not supplied.",
+    "original_provider_transcript_bytes": 8388608,
+    "effective_campaign_transcript_bytes": 67108864,
+    "expected_original_status": "FAIL_ORIGINAL_PREDICATE is retained with actual libtest101, not normalized to success.",
+    "preparation_in_original_overall_deadline": true
+  },
+  "recipe_role_review": {
+    "verdict": "SOURCE_READY",
+    "reviewer": "/root/executed_divergence_preservation/recipe_role_review",
+    "model": "gpt-6.1-sol",
+    "effort": "high",
+    "same_family": true,
+    "finding_addressed": "Preserve completed libtest101 through accepted-status process validation; add regression refusing active-process substitution.",
+    "post_review": "Independent reader derives original outcome failures from authenticated per-incarnation summaries; per-case and aggregate dispositions checked."
   }
 }
