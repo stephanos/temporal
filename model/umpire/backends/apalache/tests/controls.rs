@@ -10,8 +10,9 @@ use umpire_dsl::Machine;
 mod selected_kettle;
 use umpire_lift::{Lift, Tla};
 const KETTLE: &str = include_str!("../../../fixtures/fixtures/sample_kettle/model.rs");
+// Apalache stays out of `UMPIRE_BACKENDS=require` until fn-211 resumes; opt in separately.
 fn required() -> bool {
-    std::env::var("UMPIRE_BACKENDS").as_deref() == Ok("require")
+    std::env::var("UMPIRE_APALACHE").as_deref() == Ok("require")
 }
 fn evidence_root() -> PathBuf {
     Path::new(env!("CARGO_MANIFEST_DIR")).join("../../../..").join(".flow/tmp/apalache-controls")

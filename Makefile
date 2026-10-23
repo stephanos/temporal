@@ -1319,7 +1319,8 @@ RUST_MODEL_STEP = $(if $(filter 1,$(UMPIRE_TIME_STEPS)),/bin/bash $(CURDIR)/mode
 .PHONY: model-check model-fmt model-update model-time
 model-check: $(PROTOC_GEN_GO) $(PROTOC_GEN_GO_GRPC) $(API_BINPB)
 	@printf $(COLOR) "Check model (fmt, clippy, docs, tests)..."
-	@if [ "$${UMPIRE_BACKENDS:-}" = require ]; then printf '%s\n' 'TLC and Apalache backends required: real source-lifted agreement and semantic controls'; python3 model/scripts/fetch-apalache.py; else printf '%s\n' 'TLC backend skipped: no execution/agreement evidence; use UMPIRE_BACKENDS=require'; fi
+	@if [ "$${UMPIRE_BACKENDS:-}" = require ]; then printf '%s\n' 'TLC backend required: real source-lifted agreement and semantic controls'; else printf '%s\n' 'TLC backend skipped: no execution/agreement evidence; use UMPIRE_BACKENDS=require'; fi
+	@if [ "$${UMPIRE_APALACHE:-}" = require ]; then printf '%s\n' 'Apalache backend required: real bounded checks and replay controls'; python3 model/scripts/fetch-apalache.py; else printf '%s\n' 'Apalache backend skipped until fn-211 resumes; use UMPIRE_APALACHE=require'; fi
 	@$(call RUST_MODEL_STEP,temporal-guest-freshness) python3 $(CURDIR)/model/scripts/guest-freshness.py umpire-temporal-guest $(CURDIR)/model/temporal/hosts/go/umpire_temporal_guest.wasm
 	@$(call RUST_MODEL_STEP,retired-names) /bin/bash $(CURDIR)/model/scripts/retired-names.sh
 	@$(call RUST_MODEL_STEP,timing-controls) /bin/bash $(CURDIR)/model/scripts/test-time-gate.sh

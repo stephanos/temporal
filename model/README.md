@@ -765,6 +765,8 @@ The backend admits the official `tla2tools` 1.7.4 artifact by SHA-256 and its TL
 version, using the repository's mise-pinned Temurin 27. Required runs fail for a missing
 or changed tool, unselected admitted fixtures, incomplete exploration, a state-set or
 property difference, or a counterexample that does not replay through the Model.
+The Apalache backend's real-tool controls are not part of the required gate while fn-211 is
+deferred; `UMPIRE_APALACHE=require make model-check` fetches the pinned release and runs them.
 The `#[machine]` macro admits each Model through `umpire-front` and embeds the admitted tree
 in the compiled Model (off the wasm guest); the lifter emits from it, and Model bodies outside
 the subset carry a located warning that refuses emission. Each admitted shared
