@@ -446,3 +446,27 @@ the guest intentionally exits1, so fail-fast stops its unfinished concurrent
 peer. Actual events551–556 show finish, exit, stop, cancellation and joined
 completion. This diagnoses the all-exit assertion contradiction; it grants no
 replacement predicate or acceptance waiver. Full milestone work remains active.
+
+## Joined preservation and causal artifact intake receiving
+
+At `23a037002846415b6785d5c2378be6552008ec8a`, the integrated ordinary library suites pass681host and250helper
+tests. The correct host determinism-fixture suite passes691tests, including the
+actual native cluster producer. Three coherently resealed malformed Outcome
+records exposed a real public-intake validation gap; the production repair
+rejects them while preserving the actual oracle_failed publisher. Earlier RED
+and wrong-feature/zero-selected attempts remain recorded without test credit.
+
+All seven actual helper role configurations pass. The joined Python readers
+pass317tests; strict default libraries/tests Clippy and repaired inventory
+Clippy pass. The reviewed scanner and two exact migrations preserve all508
+historical identities and append two active rows. Source/runtime inventory
+passes35tests with only the known15legacyreference resolver excluded. This
+is not a full inventory pass.
+
+Original ringpop CLI/helper preparation and sealed input verification succeed;
+the120second scenario remains unrun. The GNU compiler envelope is independently
+verified, but its harness has not compiled. The corrected original-tuple runtime
+experiment and all frozen-cycle qualification remain outstanding. Native scratch
+is below the12GiB admission floor; source preparation uses checkout storage and
+an owner-controlled verified cache offload is underway. Full milestone work stays
+active, including broad original receiving and remaining legacy contracts.
