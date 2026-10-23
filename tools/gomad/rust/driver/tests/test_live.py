@@ -1,5 +1,8 @@
 """Receiver-only fixtures: never runtime/live qualification evidence."""
 import sys
+import hashlib
+import json
+from unittest.mock import patch
 import tempfile
 import unittest
 from pathlib import Path
@@ -62,7 +65,7 @@ class LiveReader(unittest.TestCase):
             root = Path(directory)
             driver.write(root / 'result.json', dict(schema='gomad.live-cluster-shutdown-reinsertion/v1', conditions='ordinary', unchanged_guest=True,
                 iterations=[dict(iteration=n, live_verified=True, completed=2, reverse_insertion=bool(n % 2), world_bytes=1, network_bytes=1) for n in range(16)]))
-            with self.assertRaises((driver.Refusal, OSError)): live.private35(root, 'test result: ok. 1 passed; 0 failed; 0 ignored;')
+            with self.assertRaises((driver.Refusal, OSError)): live.private35(root, live.PRIVATE35 + ' ... ok\ntest result: ok. 1 passed; 0 failed; 0 ignored;')
 
     def test_reach_rejects_unmapped_original_subtests_and_unknown_ignored_tests(self):
         import live
@@ -73,3 +76,83 @@ class LiveReader(unittest.TestCase):
                 live.reach_coverage(original, entries, {'transferred-live/TestOriginal'})
         live.reach_coverage(original, {key: {'evidence': ['transferred-live/TestOriginal']} for key in original},
                             {'transferred-live/TestOriginal'})
+
+
+class RawBindingGuards(unittest.TestCase):
+    def test_live_role_rejects_source_binary_feature_and_helper_mismatch(self):
+        import live
+        with tempfile.TemporaryDirectory() as directory:
+            root = Path(directory); binary = root / 'binary'; binary.write_bytes(b'unit fixture')
+            receipt = root / 'build.json'
+            config = dict(source_sha256='a' * 64, identity=dict(host='b' * 64, helper='c' * 64),
+                live_corpus=dict(roles={'host-fixture':dict(binary=str(binary),build_receipt=str(receipt))}))
+            original = dict(exit=0, profile='release', source_sha256='a' * 64, binary_sha256=driver.sha(binary),
+                helper_sha256='c' * 64, helper_features=[], role='host-fixture', features=['determinism-fixture'])
+            for field, value in [('source_sha256','wrong'),('binary_sha256','wrong'),('helper_sha256','wrong'),
+                                 ('helper_features',['diagnostic-profile']),('features',[]),('profile','debug'),('exit',1),('role','release')]:
+                current = dict(original, **{field:value}); receipt.write_text(json.dumps(current))
+                config['files'] = {str(binary):driver.sha(binary),str(receipt):driver.sha(receipt)}
+                with self.subTest(field=field), self.assertRaises(driver.Refusal): live.role(config,'host-fixture')
+            receipt.write_text(json.dumps(original)); config['files'][str(receipt)] = driver.sha(receipt)
+            self.assertEqual(live.role(config,'host-fixture')['binary'],str(binary))
+
+    def test_private35_original_bounds_cannot_be_relaxed(self):
+        import live
+        with tempfile.TemporaryDirectory() as directory:
+            path=Path(directory)/'input.json'
+            limits=dict(memory_bytes=256<<20,fuel=4000000000,wall_millis=60000,output_bytes=1<<20,evidence_bytes=64<<20)
+            value=dict(configuration=dict(limits=limits,incarnations=[dict(limits=dict(limits)),dict(limits=dict(limits))],
+                steps=[dict(action='start',handle=dict(node=n,incarnation=1)) for n in ('a','b')]))
+            path.write_text(json.dumps(value));live.private35_input(path)
+            for field in limits:
+                changed=json.loads(json.dumps(value));changed['configuration']['limits'][field]+=1
+                path.write_text(json.dumps(changed))
+                with self.subTest(field=field), self.assertRaises(driver.Refusal):live.private35_input(path)
+
+    def test_whole_reach_inventory_uses_original_git_objects_and_literal_sites(self):
+        import live
+        source=b'package p\nfunc TestOriginal(t *testing.T) {\n t.Run("literal", func(t *testing.T) {})\n t.Run(fmt.Sprintf("dynamic-%d",n), fn)\n}\n'
+        key='tools/gomad/internal/backends/wasm/wasi/original_test.go'
+        blob='b'*40;commit='a'*40
+        sites={key+'#TestOriginal@'+str(source.index(b't.Run')):['literal'],
+               key+'#TestOriginal@'+str(source.index(b't.Run',source.index(b't.Run')+1)):['dynamic-7','dynamic-19']}
+        mapping=dict(reference_commit=commit,sources={key:dict(blob=blob,sha256=hashlib.sha256(source).hexdigest())},subtests=sites)
+        config=dict(repo='/unit-fixture',live_corpus=dict(original_reference_commit=commit))
+        tree=('100644 blob '+blob+'\t'+key+'\0').encode()
+        with patch.object(live.subprocess,'check_output',side_effect=[tree,source]):
+            actual=live.original_callables(config,mapping)
+        self.assertEqual(actual,{key+'#TestOriginal',*[key+'#TestOriginal/'+case for case in ('literal','dynamic-7','dynamic-19')]})
+        changed=json.loads(json.dumps(mapping));changed['subtests'][next(iter(sites))]=['renamed']
+        with patch.object(live.subprocess,'check_output',side_effect=[tree,source]),self.assertRaises(driver.Refusal):
+            live.original_callables(config,changed)
+
+    def test_actual_ignored_oracle_tests_cannot_be_replaced_with_declared_pass(self):
+        import live
+        with tempfile.TemporaryDirectory() as directory:
+            for family in live.AUXILIARY:
+                with self.subTest(family=family),self.assertRaises(driver.Refusal):live.auxiliary(Path(directory),family,'PASS')
+
+    def test_final_live_proof_reopens_actual_raw_bytes_and_owning_stage(self):
+        import live
+        with tempfile.TemporaryDirectory() as directory:
+            base=Path(directory);work=base/'live-private35';work.mkdir();payload=work/'raw';payload.write_bytes(b'actual receiver fixture')
+            config=dict(root=directory,repo='/repo',source_sha256='a'*64,identity=dict(host='b'*64,helper='c'*64),_config_sha256='d'*64)
+            entry=dict(stage='artifact',argv=['/ordinary-test','--exact'])
+            stage=dict(stage='artifact',exit=0,status='PASS',source=config['source_sha256'],identity=config['identity'],config_sha256=config['_config_sha256'],subgates=[dict(id='selected',status='PASS',executed=True,exit=0)])
+            driver.write(base/'receipt.json',stage)
+            receipt=dict(argv=entry['argv'],cwd='/repo',pid=42,exit=0,observation='completed',start_ns=1,end_ns=2)
+            process=dict(receipt,active=False)
+            for name,value in [('command.json',receipt),('process.json',process)]:driver.write(base/('live-private35.'+name),value)
+            for name in ('stdout','stderr'):(base/('live-private35.'+name)).write_bytes(b'raw command output')
+            proof=dict(schema='gomad.rust-live-proof/v1',family='private35',source_sha256=config['source_sha256'],identity=config['identity'],config_sha256=config['_config_sha256'],files=live.inventory(work))
+            for suffix in ('command.json','process.json','stdout','stderr'):proof[suffix.split('.')[0]+'_sha256']=driver.sha(base/('live-private35.'+suffix))
+            proof_path=base/'live-private35.proof.json';driver.write(proof_path,proof)
+            with patch.object(live,'planned',return_value=(entry,base,work)),patch.object(live,'subgates',return_value=['selected']),patch.object(live,'read_family',return_value=set()):
+                live.read_proof(config,'private35')
+                for field,value in [('source_sha256','foreign'),('config_sha256','foreign'),('family','other')]:
+                    changed=dict(proof,**{field:value});proof_path.write_text(json.dumps(changed))
+                    with self.subTest(field=field),self.assertRaises(driver.Refusal):live.read_proof(config,'private35')
+                proof_path.write_text(json.dumps(proof));payload.write_bytes(b'changed')
+                with self.assertRaises(driver.Refusal):live.read_proof(config,'private35')
+                payload.write_bytes(b'actual receiver fixture');stage['status']='SKIP';(base/'receipt.json').write_text(json.dumps(stage))
+                with self.assertRaises(driver.Refusal):live.read_proof(config,'private35')

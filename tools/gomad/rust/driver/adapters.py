@@ -436,7 +436,7 @@ def runtime_aggregate(config, root, label):
     return passed(label)
 
 
-def execute(config, root, label):
+def execute_primary(config, root, label):
     entry = config['stages'][label]
     adapter = entry['adapter']
     expected = ('qualify' if label in CELLS else 'runtime' if re.fullmatch(r'runtime-\d+', label) else
@@ -463,3 +463,11 @@ def execute(config, root, label):
     if adapter == 'runtime': return runtime(config, root, label, entry)
     if adapter == 'runtime-aggregate': return runtime_aggregate(config, root, label)
     raise Unexecuted(label + ': unknown actual Rust adapter ' + adapter)
+
+
+def execute(config, root, label):
+    observed = execute_primary(config, root, label)
+    if config['stages'][label].get('live_families'):
+        import live
+        live.execute_families(config, root, label)
+    return observed

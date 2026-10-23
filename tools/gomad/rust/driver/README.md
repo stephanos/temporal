@@ -142,3 +142,49 @@ PYTHONDONTWRITEBYTECODE=1 python3 -m unittest discover -s tools/gomad/rust/drive
 
 These synthetic negative fixtures establish receiver behavior only. They earn
 no actual runtime, workload, stress, terminal or qualification gate.
+
+The owned live receiver is `live.py`; `final.py --config CONFIG --root ROOT`
+composes it with separately pinned `final_sections` readers. The live receiver
+owns 39 transferred roots, 84 admission cells and the distinct complete
+`test-wasm` reach obligation. These are 124 of the 145 final obligations.
+Missing separately owned readers, missing reach mapping or missing actual runs
+refuse completion. Existing historical receipts are not upgraded into a fresh
+candidate proof.
+
+A frozen `live_corpus` configuration names `roles`, all 15 `families` from
+`live.FAMILIES`, `original_reference_commit`, `root19_rust_admission` and
+`test_wasm_reach`. Each family binds an existing stage through `stage`, exact
+`argv` and `role`; that stage lists it in `live_families`. Its fresh output is
+`stages/STAGE/live-FAMILY`. Ordinary release/helper test roles require no helper
+features; the host fixture role permits only the existing host fixture feature.
+Each role seals the executable and successful release build receipt, including
+actual source, host/helper hashes and feature lists. Inputs and complete input
+directories must be in the frozen file inventory. No role is inferred from a
+binary's filename.
+
+The adapter runs each configured family and retains actual command/process
+journals before writing its raw-file proof. The reader reopens those journals,
+all raw files and the original pure comparators. Deliberate application failures
+use their original explicit expected dispositions; absent exits, zero selections,
+skips, duplicate cases and changed resource bounds cannot become PASS. Root19
+requires both the authenticated frozen Go isolated-reference observation and
+the actual Rust single-helper hard-isolation refusal. Root35 additionally needs
+the ordinary helper's exact private ignored test and all 16 real post-Start
+reinsertion comparisons; CLI shutdown rows alone cannot satisfy it.
+
+`test_wasm_reach.map` is an independently reviewed original-source map, not a
+39-root alias. Every original callable and expanded subtest must name actual
+receiving testcase/raw proof IDs. `reports` binds those IDs to owning static
+stages; the live reader re-executes the static reader's pure authentication.
+Known ignored source tests retain their receiving obligations: the two aggregate
+regressions map to root34 open-streams/seed7 and storage-crash/seed7, private
+reinsertion maps to root35, and codec/module-recipe tests require their separate
+actual test executions. Original opt-in nonqualification tests are not reported
+as executions. A complete reviewed map and fresh receiving reports remain
+required inputs; this source implementation creates neither.
+
+For each nonowned endpoint, `final_sections.NAME` specifies exact `required` IDs
+and pinned reader `argv`. `final.py` appends `--root ROOT`. A section returns
+`gomad.rust-driver-final-section/v1` with exact frozen `source_sha256`, `identity`
+and authenticated `subgates`; their disjoint union with the live section must
+match all 145 required IDs. Missing owners remain UNEXECUTED.
