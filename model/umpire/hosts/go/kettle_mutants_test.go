@@ -7,6 +7,7 @@ import (
 	"slices"
 	"strings"
 	"testing"
+	"time"
 
 	"google.golang.org/grpc/codes"
 	"google.golang.org/protobuf/proto"
@@ -53,6 +54,7 @@ func kettleMutantCorpus(t *testing.T, r *kettleRun) []*annotationsv1.ProbeObserv
 	}
 	var observations []*annotationsv1.ProbeObservation
 	for _, testCase := range inventory.Cases {
+		r.renew(t)
 		witness := r
 		if testCase.Applicability == annotationsv1.ProbeApplicability_APPLICABLE {
 			witness = newKettleRun(t)
@@ -80,6 +82,15 @@ func kettleMutantCorpus(t *testing.T, r *kettleRun) []*annotationsv1.ProbeObserv
 	return observations
 }
 
+// renew bounds the shared corpus run's next probe or classification on its own, so the whole
+// mutant sweep is not held to one run's deadline.
+func (r *kettleRun) renew(t *testing.T) {
+	t.Helper()
+	ctx, cancel := context.WithTimeout(t.Context(), 30*time.Second)
+	t.Cleanup(cancel)
+	r.ctx = ctx
+}
+
 func kettleClassifyWitness(t *testing.T, r *kettleRun, corpus []*annotationsv1.ProbeObservation, actual *annotationsv1.ProbeObservation) *annotationsv1.ProbeResponse {
 	t.Helper()
 	observations := slices.Clone(corpus)
@@ -92,6 +103,7 @@ func kettleClassifyWitness(t *testing.T, r *kettleRun, corpus []*annotationsv1.P
 	if !found {
 		t.Fatalf("witness absent from corpus: %s", actual.CaseId)
 	}
+	r.renew(t)
 	report, err := Probe(r.ctx, r.host, &kettlev1.ProbeRequest{Operation: kettlev1.ProbeRequest_CLASSIFY, Observations: observations})
 	if err != nil {
 		t.Fatal(err)
