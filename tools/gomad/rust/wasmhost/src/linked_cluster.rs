@@ -1349,6 +1349,7 @@ fn execute_inner(
     })();
     let driven = driven.and_then(|()| {
         if running.is_empty()
+            || prepared.cancellation.cancelled()
             || broker.failure().is_some()
             || broker.inspection_stopped()
             || first_failure
@@ -1391,6 +1392,7 @@ fn execute_inner(
     }
     if let Err(error) = driven
         && !divergent
+        && !prepared.cancellation.cancelled()
     {
         return Err(error);
     }
@@ -1406,6 +1408,7 @@ fn execute_inner(
     {
         outcome = failure;
     }
+    prepared.cancellation.apply(&mut outcome);
     let world = if matches!(outcome.termination, "exit" | "trap" | "capacity")
         || (cfg!(feature = "diagnostic-profile") && outcome.termination == "watchdog_timeout")
     {
@@ -1595,9 +1598,6 @@ pub fn execute_prepared_observed(
         watcher
             .join()
             .map_err(|_| Error::msg("cluster watchdog panicked"))??;
-        if cancellation.cancelled() && result.is_err() {
-            result = Ok(cancelled_execution());
-        }
         if timed_out.load(Ordering::Acquire)
             && let Ok(execution) = &mut result
         {

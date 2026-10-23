@@ -147,7 +147,11 @@ fn mandatory_cleanup_keeps_only_authored_start_actions() {
         assert_eq!(activity.snapshot().remote_callback_attempts, 0);
         if mode == "context-cancel" {
             assert_eq!(execution.outcome.termination, "cancelled");
+            assert_eq!(execution.outcome.exit_code, None);
+            assert_eq!(execution.incarnations[0].handle.node, "a");
+            assert_eq!(execution.incarnations[1].handle.node, "b");
             assert!(execution.world.is_empty());
+            assert!(execution.network.is_empty());
         } else {
             let terminal = match mode {
                 "scenario-error" => "scenario_failure",
@@ -314,6 +318,57 @@ fn sealed_deadline_is_bounded_before_mutation_and_cannot_be_extended() {
         json!({
             "sealed_millis":11*60*1000,"bounded_millis":7*60*1000,
             "zero_refused":true,"activity":activity.snapshot()
+        }),
+    );
+}
+
+#[test]
+fn cancellation_after_actual_output_keeps_joined_incarnations_and_start_prefix() {
+    let mut input = request(&["b", "a"], "(loop br 0)");
+    input.steps.retain(|step| step.action == Action::Start);
+    let declared = input.steps.clone();
+    for incarnation in &mut input.incarnations {
+        incarnation.request.limits.fuel = 4_000_000_000;
+    }
+    let mut prepared = prepare(input).unwrap();
+    let activity = prepared.activity();
+    prepared
+        .cleanup_after_output(
+            Handle {
+                node: "b".into(),
+                incarnation: 1,
+            },
+            b"mark".to_vec(),
+            CleanupMode::ContextCancellation,
+        )
+        .unwrap();
+    let execution = execute_prepared(prepared).unwrap();
+    assert_eq!(execution.outcome.termination, "cancelled");
+    assert_eq!(execution.outcome.exit_code, None);
+    assert_eq!(execution.executed_steps, declared);
+    assert_eq!(execution.incarnations.len(), 2);
+    assert_eq!(execution.incarnations[0].handle.node, "a");
+    let acknowledged = &execution.incarnations[1];
+    assert_eq!(acknowledged.handle.node, "b");
+    assert_eq!(acknowledged.execution.evidence["stdout"], b"mark");
+    assert!(
+        acknowledged
+            .execution
+            .authorization_to_terminal_nanos
+            .is_some()
+    );
+    assert!(activity.snapshot().launched_stores >= 1);
+    assert_eq!(activity.snapshot().remote_callback_attempts, 0);
+    assert!(execution.world.is_empty());
+    assert!(execution.network.is_empty());
+    raw(
+        "TestProviderMandatoryCleanupReapsWithoutLifecycleActions",
+        "context-cancel-after-actual-output",
+        json!({
+            "terminal":execution.outcome.termination,"steps":execution.executed_steps,
+            "joined_incarnations":["a/1","b/1"],"acknowledged_stdout":"mark",
+            "store_dropped_before_return":acknowledged.execution.authorization_to_terminal_nanos.is_some(),
+            "activity":activity.snapshot()
         }),
     );
 }
