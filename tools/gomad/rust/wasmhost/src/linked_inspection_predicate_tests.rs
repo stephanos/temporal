@@ -88,6 +88,10 @@ fn fixture(records: &[Vec<u8>], coordinates: &[u64]) -> (Evidence, Vec<u8>) {
     (Evidence::decode(&raw).unwrap(), raw)
 }
 
+fn material(evidence: &Evidence) -> Value {
+    json!({"evidence":evidence,"boundaries":evidence.boundaries})
+}
+
 fn raw(root: &str, variant: &str, value: Value) {
     let mut row = json!({"schema":"gomad.native-inspection-predicate/v1","original_root":root,"variant":variant});
     row.as_object_mut()
@@ -110,13 +114,15 @@ fn decision_mapping_skips_observations_and_refuses_missing_or_relabelled_boundar
     let mut missing = retained.clone();
     missing.boundaries.truncate(1);
     assert!(validate_choice_mapping(&missing).is_err());
-    let mut wrong_bytes = retained;
+    let mut wrong_bytes = retained.clone();
     wrong_bytes.boundaries[1].cuts[0].choice_bytes -= 1;
     assert!(validate_choice_mapping(&wrong_bytes).is_err());
     raw(
         "TestInspectionChoiceMappingUsesDecisionsRatherThanObservations",
         "observation-and-inventory",
         json!({
+            "raw":material(&retained),"invalid":[material(&wrong),material(&missing),material(&wrong_bytes)],
+            "errors":[validate_choice_mapping(&wrong).unwrap_err().to_string(),validate_choice_mapping(&missing).unwrap_err().to_string(),validate_choice_mapping(&wrong_bytes).unwrap_err().to_string()],
             "accepted_coordinates":[0,2,3,4,5],"observation_coordinate_refused":true,
             "missing_boundaries_refused":true,"wrong_prefix_bytes_refused":true
         }),
@@ -131,7 +137,7 @@ fn interrupted_select_poll_keeps_its_presented_decision_coordinate() {
         "TestInspectionInterruptedSelectPrefixKeepsDecisionMapping",
         "unmatched-select-poll",
         json!({
-            "coordinates":[0],"choice_records":1,"boundaries":retained.boundaries.len()
+            "raw":material(&retained),"coordinates":[0],"choice_records":1,"boundaries":retained.boundaries.len()
         }),
     );
 }
@@ -149,7 +155,7 @@ fn creation_records_use_the_first_creation_coordinate_not_the_decision_record() 
         .collect::<Vec<_>>();
     let (retained, _) = fixture(&records, &[0, 3, 6, 9, 12]);
     validate_choice_mapping(&retained).unwrap();
-    let mut wrong = retained;
+    let mut wrong = retained.clone();
     wrong.boundaries[1].trace = 5;
     wrong.boundaries[1].cuts[0].choice_records = 5;
     wrong.boundaries[1].cuts[0].choice_bytes = 5 * 96;
@@ -158,7 +164,7 @@ fn creation_records_use_the_first_creation_coordinate_not_the_decision_record() 
         "TestInspectionChoiceMappingUsesPredecisionCoordinateForCreationSites",
         "five-creation-groups",
         json!({
-            "coordinates":[0,3,6,9,12],"decision_record_coordinate5_refused":true
+            "raw":material(&retained),"invalid":material(&wrong),"error":validate_choice_mapping(&wrong).unwrap_err().to_string(),"coordinates":[0,3,6,9,12],"decision_record_coordinate5_refused":true
         }),
     );
 }
@@ -207,6 +213,7 @@ fn inspection_control_binds_raw_prefix_registry_and_exact_boundary() {
         "TestInspectionControlAuthenticatesRawCutAndRegistry",
         "choice2",
         json!({
+            "raw":material(&retained),"expected":control.expected,"changed_boundary":changed,"error":verify_prefix(&retained,&bytes,&changed).unwrap_err().to_string(),
             "world_sha256":control.world_sha256,"stream_sha256":control.stream_sha256,
             "registries":control.registries,"commands":[{"kind":control.commands[0].kind,"id":control.commands[0].id}],
             "changed_order_refused":true
@@ -229,7 +236,7 @@ fn inspection_control_binds_raw_prefix_registry_and_exact_boundary() {
         .to_string()
         .contains("unknown or unavailable")
     );
-    let mut incomplete = retained;
+    let mut incomplete = retained.clone();
     incomplete.complete = false;
     assert!(
         resolve(
@@ -248,7 +255,9 @@ fn inspection_control_binds_raw_prefix_registry_and_exact_boundary() {
     raw(
         "TestInspectionControlRefusesUnregisteredAndIncompleteBeforeReplay",
         "missing-check-and-incomplete",
-        json!({"missing_check_refused":true,"incomplete_refused":true}),
+        json!({"raw":material(&retained),"incomplete":material(&incomplete),
+            "errors":[resolve(&retained,Handle::default(),&Stop{kind:"choice".into(),value:0},&[],&[],"missing").err().unwrap().to_string(),resolve(&incomplete,Handle::default(),&Stop{kind:"choice".into(),value:0},&[],&[],"healthy").err().unwrap().to_string()],
+            "missing_check_refused":true,"incomplete_refused":true}),
     );
 }
 
@@ -319,6 +328,7 @@ fn terminal_network_raw_stream_cannot_be_replaced_by_an_unrelated_state_commitme
     let bytes = recorder.bytes(true).unwrap();
     let mut retained = Evidence::decode(&bytes).unwrap();
     validate_choice_mapping(&retained).unwrap();
+    let valid_material = material(&retained);
     let owner = &retained.incarnations[0];
     assert_eq!(owner.streams.network, network);
     let terminal = retained.boundaries[1]
@@ -339,6 +349,7 @@ fn terminal_network_raw_stream_cannot_be_replaced_by_an_unrelated_state_commitme
         "TestInspectionNetworkRawStreamBindsCanonicalIdentity",
         "native-terminal-raw-state",
         json!({
+            "raw":valid_material,"invalid":material(&retained),"error":validate(&retained).unwrap_err().to_string(),"network_base64":STANDARD.encode(network),"trailing_error":crate::linked_cluster::validate_network_evidence(&trailing,1<<20,&model,&model).unwrap_err().to_string(),
             "raw_sha256":inspection::digest(network),"raw_bytes":network.len(),
             "trailing_raw_byte_refused":true,"changed_terminal_commitment_refused":true
         }),

@@ -8,14 +8,24 @@ pub(super) struct Evaluation {
     pub prefix_verified: bool,
 }
 
+#[cfg(test)]
+pub(super) fn run<E>(
+    search: &Search,
+    elapsed_time: impl FnMut() -> Duration,
+    evaluate: impl FnMut(u64, Duration) -> Result<Evaluation, E>,
+) -> Result<Value, E> {
+    run_with_cancellation(search, elapsed_time, evaluate, || false)
+}
+
 #[expect(
     clippy::too_many_lines,
     reason = "Scan and monotonic bisect share one bounded evaluation cache and result state"
 )]
-pub(super) fn run<E>(
+pub(super) fn run_with_cancellation<E>(
     search: &Search,
     mut elapsed_time: impl FnMut() -> Duration,
     mut evaluate: impl FnMut(u64, Duration) -> Result<Evaluation, E>,
+    mut cancelled: impl FnMut() -> bool,
 ) -> Result<Value, E> {
     let mut result = json!({"status":"", "evaluations":null,"remaining":{"first":search.first,"last":search.last},"conditional_on_monotonicity":search.mode == "bisect"});
     let mut evaluations = Vec::new();
@@ -26,7 +36,7 @@ pub(super) fn run<E>(
         }
         let elapsed = elapsed_time();
         let wall = Duration::from_nanos(search.wall_time);
-        if evaluations.len() as u64 >= search.attempt_budget || elapsed >= wall {
+        if evaluations.len() as u64 >= search.attempt_budget || elapsed >= wall || cancelled() {
             result["status"] = "incomplete".into();
             return Ok(None);
         }
@@ -35,7 +45,7 @@ pub(super) fn run<E>(
             detail,
             prefix_verified: verified,
         } = evaluate(choice, wall.saturating_sub(elapsed))?;
-        let timeout = elapsed_time() >= wall;
+        let timeout = elapsed_time() >= wall || cancelled();
         evaluations.push(json!({"choice":choice,"outcome":if timeout { "timeout" } else { outcome },"prefix_verified":verified,"detail":if timeout { "context deadline exceeded" } else { &detail }}));
         result["evaluations"] = evaluations.clone().into();
         if timeout {
@@ -136,13 +146,23 @@ mod tests {
 
     fn run(
         search: &Search,
-        elapsed: impl FnMut() -> Duration,
+        mut elapsed: impl FnMut() -> Duration,
         mut evaluate: impl FnMut(u64, Duration) -> Evaluation,
     ) -> Value {
-        super::run(search, elapsed, |choice, remaining| {
-            Ok::<_, std::convert::Infallible>(evaluate(choice, remaining))
-        })
-        .unwrap()
+        let clocks = std::cell::RefCell::new(Vec::new());
+        let calls = std::cell::RefCell::new(Vec::new());
+        let mut result = super::run(search, || {
+            let value = elapsed();
+            clocks.borrow_mut().push(value.as_nanos().to_string());
+            value
+        }, |choice, remaining| {
+            let value = evaluate(choice, remaining);
+            calls.borrow_mut().push(json!({"choice":choice,"remaining_nanos":remaining.as_nanos().to_string(),"outcome":value.outcome,"detail":value.detail,"prefix_verified":value.prefix_verified}));
+            Ok::<_, std::convert::Infallible>(value)
+        }).unwrap();
+        result["raw_input"] =
+            json!({"search":search,"clock_nanos":clocks.into_inner(),"calls":calls.into_inner()});
+        result
     }
 
     fn request(mode: &str) -> Search {
@@ -186,6 +206,21 @@ mod tests {
             );
             assert_eq!(result.err(), Some("host cache failure"));
         }
+    }
+
+    #[test]
+    fn host_error_survives_external_cancellation_after_evaluator_cleanup() {
+        let cancelled = Cell::new(false);
+        let result = super::run_with_cancellation(
+            &request("scan"),
+            || Duration::ZERO,
+            |_, _| {
+                cancelled.set(true);
+                Err::<Evaluation, _>("host cache failure")
+            },
+            || cancelled.get(),
+        );
+        assert_eq!(result.err(), Some("host cache failure"));
     }
 
     #[test]
@@ -330,6 +365,11 @@ mod tests {
             |_, _| panic!("deadline expired before replay"),
         );
         assert_eq!(result["status"], "incomplete");
+        raw(
+            "TestInspectionSearchWallBoundIncludesEvaluatorCleanup",
+            "already-expired",
+            &result,
+        );
         assert!(result["evaluations"].is_null());
         assert!(result.get("first_failure").is_none());
     }

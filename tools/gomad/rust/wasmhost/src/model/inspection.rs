@@ -1595,18 +1595,34 @@ mod tests {
             assert_eq!(actual.lifecycle_bytes, expected.lifecycle_bytes);
             assert!(actual.cuts == expected.cuts);
         }
-        println!(
-            "{}",
-            serde_json::json!({
-                "schema":"gomad.native-inspection-predicate/v1",
-                "original_root":"TestInspectionCapacityRetainsTemporalScaleBoundariesAndEffects",
-                "variant":"51000-decisions-376000-effects",
-                "observed":{"metadata_bytes":encoded.len(),"boundaries":decoded.boundaries.len(),
-                    "effects":calls,"lifecycle_bytes":decoded.lifecycle.len(),
-                    "choice_bytes":decoded.incarnations[0].streams.choice.len(),
-                    "wasi_bytes":decoded.incarnations[0].streams.wasi.len(),"all_cuts_equal":true}
-            })
-        );
+        if let Some(directory) = std::env::var_os("GOMAD_INSPECTION_RAW_DIR") {
+            let directory = std::path::PathBuf::from(directory);
+            assert!(directory.is_absolute());
+            let metadata = std::fs::symlink_metadata(&directory).unwrap();
+            assert!(metadata.is_dir() && !metadata.file_type().is_symlink());
+            assert!(std::fs::read_dir(&directory).unwrap().next().is_none());
+            let path = directory.join("inspection-scale-native.json");
+            let mut output = std::fs::OpenOptions::new()
+                .write(true)
+                .create_new(true)
+                .open(&path)
+                .unwrap();
+            std::io::Write::write_all(&mut output, &encoded).unwrap();
+            std::io::Write::flush(&mut output).unwrap();
+            drop(output);
+            println!(
+                "{}",
+                serde_json::json!({
+                    "schema":"gomad.native-inspection-predicate/v1",
+                    "original_root":"TestInspectionCapacityRetainsTemporalScaleBoundariesAndEffects",
+                    "variant":"51000-decisions-376000-effects",
+                    "observed":{"raw_file":path,"raw_sha256":digest(&encoded),"metadata_bytes":encoded.len(),"boundaries":decoded.boundaries.len(),
+                        "effects":calls,"lifecycle_bytes":decoded.lifecycle.len(),
+                        "choice_bytes":decoded.incarnations[0].streams.choice.len(),
+                        "wasi_bytes":decoded.incarnations[0].streams.wasi.len(),"all_cuts_equal":true}
+                })
+            );
+        }
     }
 
     /// Supplied commitments and deferred network writes record exactly what
