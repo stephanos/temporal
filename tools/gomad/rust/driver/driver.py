@@ -128,6 +128,7 @@ def clean_env(config):
            if not key.startswith(('GOMAD', 'QUALDRV')) and key not in
            ('RUSTFLAGS', 'CARGO_ENCODED_RUSTFLAGS', 'GOROOT', 'GOEXPERIMENT', 'GOOS', 'GOARCH')}
     env.update(config.get('environment', {}))
+    env.update(config.get('temporary_paths', {}))
     env.update(LC_ALL='C', GOENV='off', GOTOOLCHAIN='local', GOWORK='off', CARGO_INCREMENTAL='0',
                RUSTC_WRAPPER='', RUSTC_WORKSPACE_WRAPPER='')
     return env
@@ -266,7 +267,7 @@ def guard(config):
     wanted = {str(repo / path) for path in tracked if path and not path.startswith('.flow/')
               and (repo / path).is_file() and not (repo / path).is_symlink()}
     require(wanted <= set(config['files']), 'incomplete non-Flow source inventory')
-    required_driver = [HERE / 'driver.py', HERE / 'adapters.py', HERE / 'semantic-map.json', HERE / 'required-final.json', HERE / 'sqlite.py', HERE / 'launch.py',
+    required_driver = [HERE / 'driver.py', HERE / 'adapters.py', HERE / 'semantic-map.json', HERE / 'required-final.json', HERE / 'sqlite.py', HERE / 'launch.py', HERE / 'host_admission.py',
                        FROZEN / 'scheduler.py', DAG, FROZEN / 'lib.sh',
                        FROZEN.parent / 'q1-serial/run-qualification.sh', FROZEN / 'required-roots.py']
     require(all(str(path) in config['files'] for path in required_driver), 'unsealed driver/reference input')
@@ -306,6 +307,8 @@ def configured(path):
     require(isinstance(config['sent_epoch'], (int, float)) and math.isfinite(config['sent_epoch'])
             and config['sent_epoch'] > 0 and config['sent_epoch'] <= time.time(), 'invalid send epoch')
     deadline(config['deadline_s'])
+    from host_admission import bindings
+    bindings(config)
     check_files(config['files'])
     return config
 
@@ -323,6 +326,8 @@ def stage(config, label):
     started = time.time_ns()
     status, reason, observed = 1, '', []
     try:
+        from host_admission import admit
+        admit(config, root / 'host-admission.json', initial=False)
         guard(config)
         observed = execute(config, root, label)
         coverage(subgates(label), observed)
@@ -373,6 +378,8 @@ def run(config, path, mode):
     status, reason, receipts = 2, '', {}
     executor = None
     try:
+        from host_admission import admit
+        admit(config, root / 'host-admission.json', initial=True)
         guard(config)
         # Host evidence is retained even on admission refusal; no platform is substituted.
         write(root / 'host.json', dict(uname=list(os.uname()), cpu_count=os.cpu_count(),

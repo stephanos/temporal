@@ -1,6 +1,11 @@
 {
   "schema": "gomad.rust-qualification-driver/v1",
   "root": "/absolute/new-qualification-root",
+  "scratch": "/absolute/new-qualification-scratch",
+  "temporary_paths": {
+    "TMPDIR": "/absolute/new-qualification-scratch/tmp",
+    "GOTMPDIR": "/absolute/new-qualification-scratch/go-tmp"
+  },
   "sent_epoch": 0,
   "deadline_s": 3600,
   "cores": 12,

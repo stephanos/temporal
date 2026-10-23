@@ -86,7 +86,8 @@ class DriverContract(unittest.TestCase):
         with tempfile.TemporaryDirectory() as directory:
             config = dict(root=directory, source_sha256='1'*64, identity={'host':'2'*64,'helper':'3'*64},
                           _config_sha256='4'*64, stages={'storage': {'adapter':'pending', 'reason':'actual producer absent'}})
-            with patch.object(driver, 'guard', lambda config: None):
+            with patch.object(driver, 'guard', lambda config: None), \
+                 patch('host_admission.admit'):
                 self.assertEqual(driver.stage(config, 'storage'), 4)
             receipt = driver.read(Path(directory) / 'stages/storage/receipt.json')
             self.assertEqual((receipt['status'], receipt['exit'], receipt['subgates']), ('UNEXECUTED', 4, []))

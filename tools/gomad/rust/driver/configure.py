@@ -41,6 +41,8 @@ def cell_spec(label, evidence, manifest, source_digest):
 def freeze(bindings, output, source_manifest):
     config = dict(bindings)
     deadline(config['deadline_s'])
+    from host_admission import bindings as scratch_bindings
+    scratch_bindings(config)
     require(set(config['stages']) == set(mapping()), 'all 96 stage mappings are required')
     output = output.resolve()
     source_manifest = source_manifest.resolve()

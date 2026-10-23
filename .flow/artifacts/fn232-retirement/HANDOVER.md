@@ -408,3 +408,26 @@ The live-corpus owner is separately checking final39root/21×4 reader endpoint
 wiring; any later parity-script patch is also pending a future synchronization.
 Final runtime/lint/parity gates, identity freeze, source-size closeout and main
 retirement remain root-owned and unaccepted by this source-only checkpoint.
+
+### Driver host/scratch admission source checkpoint
+
+Restored the original parallel/run-validation.sh88–94 resource admission before
+any source guard/product CLI/build/guest dispatch. New frozen host_admission.py
+reads kernel mountinfo/statvfs and retains actual filesystem/available-space facts
+on both PASS and refusal. Original scratch fuseblk/*fuse*/virtiofs refusal and
+>=12GiB on BOTH evidence root and scratch parent are fixed, nonconfigurable.
+Bindings now require fresh canonical external scratch plus explicit TMPDIR and
+GOTMPDIR children; all commands use those paths. Direct stages require matching
+initial admission and recheck actual facts. The original sent_epoch/deadline are
+unchanged. Minimal configure/driver hooks are disjoint from incoming live owner's
+required-module-list additions. See driver/host-admission.md.
+
+Portable driver tests: `PYTHONDONTWRITEBYTECODE=1 python3 -m unittest discover
+-s tools/gomad/rust/driver/tests -q` exit0,35tests (including8new admissiontests);
+`git diff --check` exit0. Initial run exposed existing pending-adapter unit test's
+new missing preflight fixture; its isolated adapter test now explicitly mocks
+admission alongside source guard, while new tests prove real dispatch ordering.
+No Cargo/Go/build/guest/golden/qualification or main retirement occurred. Current
+low host free space remains a real future qualification refusal. Untracked
+static-stage assembler/ignored inventory are separate unfinished source work;
+no generated runtime result or final source freeze is claimed by this checkpoint.
