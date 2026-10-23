@@ -850,18 +850,25 @@
     {
       "assertions": [
         {
-          "disposition": "pending",
+          "disposition": "native",
           "id": "invented-output",
           "original_assertion": "A terminal output_bytes claim exceeding actual offered output is invalid.",
-          "reason": "Optional retained backend-outcome output_bytes is authenticated opaque telemetry; actual native output bounds do not prove adversarial claim validation. A separate receiving telemetry contract is required.",
-          "receiving_tests": []
+          "reason": "Native publication and public intake bind the backend-outcome output_bytes claim to the Store's independent attempted-output snapshot. A genuine artifact coherently resealed with an invented output claim is refused by public authentication and inspect, and publication refuses a mutated native claim before writing.",
+          "receiving_tests": [
+            "rust:gomad/src/evidence/store/record_intake_tests.rs:resealed_backend_invented_output_refuses_public_intake",
+            "rust:gomad/src/evidence/store/record_intake_tests.rs:publication_rejects_mutated_native_output_claim_before_writing_an_artifact",
+            "rust:gomad/src/evidence/store/record_intake_tests.rs:store_publication_rejects_contradictory_native_backend_counters"
+          ]
         },
         {
-          "disposition": "pending",
+          "disposition": "native",
           "id": "excess-fuel",
           "original_assertion": "A terminal fuel_remaining claim above the admitted fuel budget is invalid.",
-          "reason": "Optional retained backend-outcome fuel_remaining is authenticated opaque telemetry; actual engine accounting does not prove adversarial claim validation. A separate receiving telemetry contract is required.",
-          "receiving_tests": []
+          "reason": "Public intake and store publication bound backend-outcome fuel_remaining by the admitted fuel limit. A genuine artifact coherently resealed with fuel_remaining above the admitted budget is refused by public authentication and inspect.",
+          "receiving_tests": [
+            "rust:gomad/src/evidence/store/record_intake_tests.rs:resealed_backend_fuel_above_admitted_limit_refuses_public_intake",
+            "rust:gomad/src/evidence/store/record_intake_tests.rs:store_publication_rejects_contradictory_native_backend_counters"
+          ]
         },
         {
           "disposition": "native",

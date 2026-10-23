@@ -1,0 +1,77 @@
+{
+  "expected": {
+    "evidence": {
+      "world": {"bytes":208,"sha256":"24dbf1a620bfe49ace2dd36140529bc00977be1812e6e1b6f774b71fab864acd"}
+    },
+    "exit_code": 0,
+    "frames": [
+      {"boot":"a","engine":{"configuration":"cranelift-fuel-nan-canonical-nounwind-v2","host_arch":"$host_arch","host_os":"$host_os","name":"wasmtime","version":"47.0.3"},"exports":[{"kind":"memory","name":"memory"},{"kind":"func","name":"_start"}],"imports":[{"module":"gomad_wasm_v1","name":"config","params":["i32","i32"],"results":["i32"]}],"initial_memory_pages":1,"module_sha256":"740f542b3ca9b9cbc571a8a8c334ed31309a453eaddd1c3174530bcb1eaf07f4","schema":"gomad.wasm-host/v1","type":"boot_started"},
+      {"boot":"b","engine":{"configuration":"cranelift-fuel-nan-canonical-nounwind-v2","host_arch":"$host_arch","host_os":"$host_os","name":"wasmtime","version":"47.0.3"},"exports":[{"kind":"memory","name":"memory"},{"kind":"func","name":"_start"}],"imports":[{"module":"gomad_wasm_v1","name":"config","params":["i32","i32"],"results":["i32"]}],"initial_memory_pages":1,"module_sha256":"740f542b3ca9b9cbc571a8a8c334ed31309a453eaddd1c3174530bcb1eaf07f4","schema":"gomad.wasm-host/v1","type":"boot_started"},
+      {"engine":{"configuration":"cranelift-fuel-nan-canonical-nounwind-v2","host_arch":"$host_arch","host_os":"$host_os","name":"wasmtime","version":"47.0.3"},"exports":[{"kind":"memory","name":"memory"},{"kind":"func","name":"_start"}],"imports":[{"module":"gomad_wasm_v1","name":"config","params":["i32","i32"],"results":["i32"]}],"initial_memory_pages":1,"module_sha256":"740f542b3ca9b9cbc571a8a8c334ed31309a453eaddd1c3174530bcb1eaf07f4","schema":"gomad.wasm-host/v1","type":"started"},
+      {"id":1,"message":"","termination":"","type":"control_result"},
+      {"id":2,"message":"","termination":"","type":"control_result"},
+      {"fuel_remaining":9995,"instance":"a","local_model":{"advances":0,"branching_records":0,"calls":1,"configured":true,"cursor":0,"elapsed":0,"finished":false,"inspection_sealed":false,"next_expected":null,"now":1,"peak":0,"records":0,"tape_records":0,"tape_sha256":"","terminal_base64":"","trace_sha256":"e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855","transcript_bytes":0,"transcript_sha256":"e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"},"message":"error while executing at wasm backtrace:\n    0:     0x5c - <unknown>!<wasm function 1>: wasm trap: wasm `unreachable` instruction executed","metrics":{"cache_hit":false,"cache_load_nanos":0,"cache_write_nanos":0,"compile_nanos":0,"execute_nanos":"nonzero","instantiate_nanos":"nonzero","peak_rss_bytes":"measured","prepare_nanos":0,"process_system_nanos":"measured","process_user_nanos":"measured","resource_usage_available":false},"output_bytes":0,"peak_memory_bytes":65536,"termination":"trap","type":"result"},
+      {"data_base64":"R01XU05BUDEAAAABAAAAAAAAAAcAAAAAAAAnEAAAAAAAACcQAAAAAAAAA+gAAAAAAACcQAAAAAACAAAAAAAEAA0jTM9SQwAAAAAAAAAAAAEAAAAAAAAAAQAAAAAAAAABAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA47DEQpj8HBSa+/TImW+5JCeuQeRkm5NMpJWZG3hSuFUQ5hDYy5KL3YulHGs1jhI1BEUKy0D2LWaPotq100OW5QAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA==","stream":"world","type":"evidence"},
+      {"instances":[{"id":"a","termination":"trap"}],"message":"error while executing at wasm backtrace:\n    0:     0x5c - <unknown>!<wasm function 1>: wasm trap: wasm `unreachable` instruction executed","metrics":{"cache_hit":false,"cache_load_nanos":0,"cache_write_nanos":0,"compile_nanos":"nonzero","execute_nanos":"nonzero","instantiate_nanos":"nonzero","peak_rss_bytes":"measured","prepare_nanos":"nonzero","process_system_nanos":"measured","process_user_nanos":"measured","resource_usage_available":true},"scheduler":{"active_nanos":"nonzero","guest_nanos":"nonzero","handoff_nanos":0,"handoff_samples":0,"handoffs":0,"host_nanos":"nonzero","operation_samples":2,"overlap_nanos":0,"runnable_samples":0},"termination":"trap","type":"cluster_result","virtual_elapsed_nanos":1}
+    ],
+    "stderr": "",
+    "termination": "trap"
+  },
+  "guest": {
+    "wat": "(module\n  (import \"gomad_wasm_v1\" \"config\" (func $config (param i32 i32) (result i32)))\n  (memory (export \"memory\") 1)\n  (func (export \"_start\")\n    (if (call $config (i32.const 1024) (i32.const 16)) (then unreachable))\n    unreachable))"
+  },
+  "inputs": [
+    {
+      "data_base64": "UFdEPS8A",
+      "instance": "a",
+      "sequence": 0,
+      "stream": "environment",
+      "type": "model_input"
+    },
+    {
+      "instance": "a",
+      "type": "model_inputs_end"
+    },
+    {
+      "data_base64": "UFdEPS8A",
+      "instance": "b",
+      "sequence": 0,
+      "stream": "environment",
+      "type": "model_input"
+    },
+    {
+      "instance": "b",
+      "type": "model_inputs_end"
+    }
+  ],
+  "intent": "fn-188.6 regression for fn-235: Go starts and runs incarnation a, which traps; Go then sends no further control frame and keeps input open. The control reader must let that incarnation failure end the run with its failure; a helper that blocks on the next control frame hangs until the corpus watchdog kills it.",
+  "replaces": [
+    "go:internal/backends/wasm/command:TestInstalledOperatorClusterFailureEndsPromptly (reference-helper manual control reader)"
+  ],
+  "replies": [
+    {
+      "after": {"type":"started"},
+      "send": [{"configuration":"$trigger.engine.configuration","module_sha256":"$trigger.module_sha256","type":"authorize"},{"boot":"a","id":1,"incarnation":1,"node":"a","type":"start"}]
+    },
+    {
+      "after": {"id":1,"type":"control_result"},
+      "send": [{"id":2,"incarnation":1,"node":"a","type":"run"}]
+    }
+  ],
+  "request": {
+    "broker": {
+      "limits": {"max_events":10000,"max_payload_bytes":33554432,"max_queued_events":1000,"max_requests":10000,"max_string_bytes":1024,"max_transitions":40000},
+      "seed": 7
+    },
+    "instances": [
+      {"fuel":10000,"id":"a","local_model":{"arguments":{"bytes":0,"chunks":0,"count":0},"diagnostics":false,"entropy_key":[0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0],"environment":{"bytes":6,"chunks":1,"count":1},"epoch_nanos":1000,"limit":4096,"limits":{"calls":100,"pending_events":16,"transcript_bytes":65536},"mode":1,"now":1,"read_step_nanos":3,"seed":7,"working_directory_sha256":"8a5edab282632443219e051e4ade2d1d5bbc671c781051bf1437897cbdfea0f1"},"memory_bytes":65536,"output_bytes":1024},
+      {"fuel":10000,"id":"b","local_model":{"arguments":{"bytes":0,"chunks":0,"count":0},"diagnostics":false,"entropy_key":[0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0],"environment":{"bytes":6,"chunks":1,"count":1},"epoch_nanos":1000,"limit":4096,"limits":{"calls":100,"pending_events":16,"transcript_bytes":65536},"mode":1,"now":1,"read_step_nanos":3,"seed":7,"working_directory_sha256":"8a5edab282632443219e051e4ade2d1d5bbc671c781051bf1437897cbdfea0f1"},"memory_bytes":65536,"output_bytes":1024}
+    ],
+    "manual_start": true,
+    "module_path": "$guest_path",
+    "module_sha256": "$guest_sha256",
+    "schema": "gomad.wasm-host/v1",
+    "type": "cluster_execute"
+  },
+  "schema": "gomad.helper-transcript-corpus/v1"
+}

@@ -198,5 +198,45 @@
   "new_site": "host-rust:gomad/src/measurement/retention.rs|reclaim_cancellable|Instant::now|2",
   "reason": "Retired exact production reclaim coordinate after its two Instant::now calls moved to reclaim_cancellable. The remaining reclaim wrapper is test-only and has no clock calls. This same-count relocation preserves bounded retention lock waiting while adding cancellation checks; private host custody never selects guest inputs or rewrites immutable artifact identities.",
   "kind": "relocation"
+ },
+ {
+  "old_id": "host.rust.gomad.src.campaign.mod.rs.run_observed.spawn.1",
+  "old_site": "host-rust:gomad/src/campaign/mod.rs|run_observed|.spawn(|1",
+  "new_id": "host.rust.gomad.src.campaign.mod.rs.run_observed_using.spawn.1",
+  "new_site": "host-rust:gomad/src/campaign/mod.rs|run_observed_using|.spawn(|1",
+  "reason": "Exact same-count relocation from run_observed to run_observed_using; .spawn( remains one controlled host effect in gomad/src/campaign/mod.rs. run_observed is now a wrapper that passes the production execution::run; only tests inject another executor. These campaign wall samples enforce the declared remaining overall/execution budget and report preparation or execution cost. Scoped workers commit through the journal in seed order; host completion order and elapsed values do not supply guest clocks or entropy.",
+  "kind": "relocation"
+ },
+ {
+  "old_id": "host.rust.gomad.src.campaign.mod.rs.run_observed.instant.now.3",
+  "old_site": "host-rust:gomad/src/campaign/mod.rs|run_observed|Instant::now|3",
+  "new_id": "host.rust.gomad.src.campaign.mod.rs.run_observed_using.instant.now.3",
+  "new_site": "host-rust:gomad/src/campaign/mod.rs|run_observed_using|Instant::now|3",
+  "reason": "Exact same-count relocation from run_observed to run_observed_using; Instant::now remains three controlled host effects in gomad/src/campaign/mod.rs. run_observed is now a wrapper that passes the production execution::run; only tests inject another executor. These campaign wall samples enforce the declared remaining overall/execution budget and report preparation or execution cost. Scoped workers commit through the journal in seed order; host completion order and elapsed values do not supply guest clocks or entropy.",
+  "kind": "relocation"
+ },
+ {
+  "old_id": "host.rust.gomad.src.campaign.mod.rs.run_observed.recv_timeout.1",
+  "old_site": "host-rust:gomad/src/campaign/mod.rs|run_observed|recv_timeout|1",
+  "new_id": "host.rust.gomad.src.campaign.mod.rs.run_observed_using.recv_timeout.1",
+  "new_site": "host-rust:gomad/src/campaign/mod.rs|run_observed_using|recv_timeout|1",
+  "reason": "Exact same-count relocation from run_observed to run_observed_using; recv_timeout remains one controlled host effect in gomad/src/campaign/mod.rs. run_observed is now a wrapper that passes the production execution::run; only tests inject another executor. These campaign wall samples enforce the declared remaining overall/execution budget and report preparation or execution cost. Scoped workers commit through the journal in seed order; host completion order and elapsed values do not supply guest clocks or entropy.",
+  "kind": "relocation"
+ },
+ {
+  "old_id": "host.rust.gomad.src.campaign.mod.rs.run_observed.thread.scope.1",
+  "old_site": "host-rust:gomad/src/campaign/mod.rs|run_observed|thread::scope|1",
+  "new_id": "host.rust.gomad.src.campaign.mod.rs.run_observed_using.thread.scope.1",
+  "new_site": "host-rust:gomad/src/campaign/mod.rs|run_observed_using|thread::scope|1",
+  "reason": "Exact same-count relocation from run_observed to run_observed_using; thread::scope remains one controlled host effect in gomad/src/campaign/mod.rs. run_observed is now a wrapper that passes the production execution::run; only tests inject another executor. These campaign wall samples enforce the declared remaining overall/execution budget and report preparation or execution cost. Scoped workers commit through the journal in seed order; host completion order and elapsed values do not supply guest clocks or entropy.",
+  "kind": "relocation"
+ },
+ {
+  "old_id": "helper.linked-cluster.bounded-receives",
+  "old_site": "helper-source:linked_cluster.rs|recv_timeout|3",
+  "new_id": "helper.linked-cluster.bounded-receives-4",
+  "new_site": "helper-source:linked_cluster.rs|recv_timeout|4",
+  "reason": "Retired exact three-receive helper coordinate after stop_live added its bounded cleanup-grace receive. The replacement inventories four host-time receives in linked_cluster.rs; this is an exact multiplicity migration and none of them advances modeled time.",
+  "kind": "multiplicity"
  }
 ]

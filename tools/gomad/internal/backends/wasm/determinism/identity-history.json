@@ -2038,5 +2038,41 @@
  {
   "id": "host.rust.gomad.src.measurement.retention.rs.reclaim.cancellable.instant.now.2",
   "site": "host-rust:gomad/src/measurement/retention.rs|reclaim_cancellable|Instant::now|2"
+ },
+ {
+  "id": "host.rust.gomad.src.campaign.mod.rs.run_observed_using.spawn.1",
+  "site": "host-rust:gomad/src/campaign/mod.rs|run_observed_using|.spawn(|1"
+ },
+ {
+  "id": "host.rust.gomad.src.campaign.mod.rs.run_observed_using.instant.now.3",
+  "site": "host-rust:gomad/src/campaign/mod.rs|run_observed_using|Instant::now|3"
+ },
+ {
+  "id": "host.rust.gomad.src.campaign.mod.rs.run_observed_using.recv_timeout.1",
+  "site": "host-rust:gomad/src/campaign/mod.rs|run_observed_using|recv_timeout|1"
+ },
+ {
+  "id": "host.rust.gomad.src.campaign.mod.rs.run_observed_using.thread.scope.1",
+  "site": "host-rust:gomad/src/campaign/mod.rs|run_observed_using|thread::scope|1"
+ },
+ {
+  "id": "host.rust.wasmhost.src.linked.cluster.rs.stop.live.spawn.1",
+  "site": "host-rust:wasmhost/src/linked_cluster.rs|stop_live|.spawn(|1"
+ },
+ {
+  "id": "host.rust.wasmhost.src.linked.cluster.rs.stop.live.recv.timeout.1",
+  "site": "host-rust:wasmhost/src/linked_cluster.rs|stop_live|recv_timeout|1"
+ },
+ {
+  "id": "host.rust.wasmhost.src.linked.cluster.rs.stop.live.thread.scope.1",
+  "site": "host-rust:wasmhost/src/linked_cluster.rs|stop_live|thread::scope|1"
+ },
+ {
+  "id": "helper.linked-cluster.scoped-executions",
+  "site": "helper-source:linked_cluster.rs|thread::scope|2"
+ },
+ {
+  "id": "helper.linked-cluster.bounded-receives-4",
+  "site": "helper-source:linked_cluster.rs|recv_timeout|4"
  }
 ]
