@@ -12,6 +12,20 @@ from driver import Refusal
 
 
 class OriginalExecutedDivergence(unittest.TestCase):
+    def test_dependency_cache_is_explicit_private_and_required_before_execution(self):
+        env = gate.environment(Path('/private'), Path('/compiler/bin/go'))
+        self.assertEqual(env['GOMODCACHE'], '/private/module-cache')
+        self.assertEqual(env['HOME'], '/private/home')
+        self.assertEqual(env['GOPROXY'], 'off')
+        self.assertNotIn('GOCACHE', env)
+        inventory = {'dependency.go': dict(bytes=1, sha256='pinned')}
+        recipe = dict(module_cache_inventory=inventory)
+        with patch.object(gate.installed_cluster_cache,'verify',return_value=inventory) as verifier, patch.object(gate.live,'inventory',return_value=inventory):
+            gate.dependency_cache(Path('/private'),recipe,Path('/repo'))
+            verifier.assert_called_once_with(Path('/private/module-cache'),Path('/repo/tools/gomad/go.sum'))
+        with patch.object(gate.installed_cluster_cache,'verify',return_value=inventory), patch.object(gate.live,'inventory',return_value={}):
+            with self.assertRaises(Refusal):gate.dependency_cache(Path('/private'),recipe,Path('/repo'))
+
     def test_completed_original_failure_is_retained_and_live_process_substitution_refused(self):
         with tempfile.TemporaryDirectory() as temporary:
             root = Path(temporary)

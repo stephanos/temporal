@@ -7,7 +7,8 @@ Build the `counterfactual-fixture` and `counterfactual-harness` roles with
 python3 executed_divergence.py produce \
   --cli-build CLI_BUILD/main-build.json \
   --harness-build HARNESS_BUILD/main-build.json \
-  --compiler-root STOCK_GO_ROOT --root FRESH_EVIDENCE_ROOT
+  --compiler-root STOCK_GO_ROOT --module-cache SEALED_MODULE_CACHE \
+  --root FRESH_EVIDENCE_ROOT
 python3 executed_divergence.py verify --receipt FRESH_EVIDENCE_ROOT/result.json
 ```
 
@@ -20,6 +21,12 @@ applies the original runtime patch and retains the original two-owner scenario.
 The original provider's 8 MiB transcript policy and the campaign's effective
 64 MiB override remain separate evidence. No serialized campaign receipt is
 supplied by the launcher.
+
+`--module-cache` supplies the genuine `golang.org/x/sys v0.48.0` source and Go
+download metadata needed by the compiler overlay helper. The archive is checked
+against the candidate's `go.sum`, copied into the private run root and checked
+again before the campaign producer and by the final reader. Both child commands
+receive the private `GOMODCACHE` explicitly. Go build caches are not prewarmed.
 
 Each baseline/fault run prepares and executes through the production scheduler,
 journal and retention code under its original five-minute overall deadline.

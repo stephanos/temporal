@@ -9,6 +9,7 @@ import time
 from driver import HERE, check_files, command, read, require, sha, write
 import live
 import main_cli_build
+import installed_cluster_cache
 from installed_cluster_failure import command_identity
 
 CHECK = live.load('campaign-check')
@@ -31,7 +32,8 @@ def roles(cli_path, harness_path):
 def environment(root, compiler):
     return dict(PATH=str(compiler.parent) + ':/usr/bin:/bin', HOME=str(root / 'home'), TMPDIR=str(root / 'tmp'),
                 LC_ALL='C', TZ='UTC', GOENV='off', GOTOOLCHAIN='local', GOWORK='off',
-                GOPROXY='off', GOSUMDB='off', CGO_ENABLED='0', RUST_TEST_THREADS='1')
+                GOPROXY='off', GOSUMDB='off', CGO_ENABLED='0', RUST_TEST_THREADS='1',
+                GOMODCACHE=str(root / 'module-cache'))
 
 
 def invocation(binary, name):
@@ -71,6 +73,12 @@ def inspection(result, report):
             and result['witness_match'] is True
             and result['resolved']['choice'] == report['reproducer']['stop']['stop']['value'],
             'original public/provider prefix replay failed')
+
+
+def dependency_cache(root, recipe, repo):
+    require(installed_cluster_cache.verify(root / 'module-cache', repo / 'tools/gomad/go.sum') == recipe['module_cache_inventory']
+            and live.inventory(root / 'module-cache') == recipe['module_cache_inventory'],
+            'original private dependency cache changed')
 
 
 def pairs(root, cli):
@@ -169,6 +177,7 @@ def verify(path):
     check_files(recipe['inputs'])
     compiler = Path(recipe['compiler'])
     require(live.inventory(compiler.parent.parent) == recipe['compiler_inventory'], 'original stock compiler tree changed')
+    dependency_cache(root, recipe, Path(read(cli['tools_plan'])['repo']))
     owner = read(root / 'producer.json')
     env = environment(root, compiler)
     first = dict(env, GOMAD_CORE_COUNTERFACTUAL_PREPARATION=str(root / 'preparation-recipe.json'))
@@ -183,7 +192,7 @@ def verify(path):
     return result
 
 
-def produce(cli_build, harness_build, compiler_root, root):
+def produce(cli_build, harness_build, compiler_root, module_cache, root):
     cli, harness = roles(cli_build, harness_build)
     require(root.is_absolute() and root.resolve() == root and not root.exists(), 'original divergence root must be fresh/canonical')
     repo = Path(read(cli['tools_plan'])['repo'])
@@ -197,15 +206,19 @@ def produce(cli_build, harness_build, compiler_root, root):
             inputs[name] = digest
     root.mkdir(mode=0o700)
     for name in ('home', 'tmp'):(root / name).mkdir(mode=0o700)
+    dependency_inventory = installed_cluster_cache.snapshot(module_cache, root / 'module-cache', repo / 'tools/gomad/go.sum')
     write(root / 'producer.json', dict(pid=os.getpid(), repo=str(repo), start_ns=time.time_ns(), started_monotonic_nanos=time.monotonic_ns()))
     write(root / 'recipe.json', dict(cli_build=str(cli_build), harness_build=str(harness_build), compiler=str(compiler),
-                                  compiler_inventory=live.inventory(compiler_root), inputs=inputs))
+                                  compiler_inventory=live.inventory(compiler_root), inputs=inputs,
+                                  module_cache_source=str(module_cache), module_cache_inventory=dependency_inventory))
     write(root / 'preparation-recipe.json', dict(schema='gomad.original-counterfactual-recipe/v1', root=str(root / 'prepared'),
           compiler=str(compiler), compiler_sha256=sha(compiler), cli=cli['binary'], cli_sha256=cli['binary_sha256']))
     config = dict(repo=str(repo))
     env = environment(root, compiler)
     command(config, root, 'prepare', invocation(harness['binary'], PREPARE), timeout=1200,
             exact_environment=dict(env, GOMAD_CORE_COUNTERFACTUAL_PREPARATION=str(root / 'preparation-recipe.json')))
+    check_files(inputs)
+    dependency_cache(root, read(root / 'recipe.json'), repo)
     command(config, root, 'produce', invocation(harness['binary'], PRODUCE), accepted=(0, 101), timeout=3000,
             exact_environment=dict(env, GOMAD_CORE_COUNTERFACTUAL_INPUT=str(root / 'prepared/producer-input.json'),
                                    GOMAD_CORE_COUNTERFACTUAL_ROOT=str(root / 'pairs')))
@@ -221,12 +234,12 @@ def main():
     parser = argparse.ArgumentParser(description=__doc__)
     sub = parser.add_subparsers(dest='mode', required=True)
     producer = sub.add_parser('produce')
-    for name in ('cli-build', 'harness-build', 'compiler-root', 'root'):
+    for name in ('cli-build', 'harness-build', 'compiler-root', 'module-cache', 'root'):
         producer.add_argument('--' + name, type=Path, required=True)
     reader = sub.add_parser('verify')
     reader.add_argument('--receipt', type=Path, required=True)
     args = parser.parse_args()
-    print(produce(args.cli_build, args.harness_build, args.compiler_root, args.root) if args.mode == 'produce' else verify(args.receipt)['original_status'])
+    print(produce(args.cli_build, args.harness_build, args.compiler_root, args.module_cache, args.root) if args.mode == 'produce' else verify(args.receipt)['original_status'])
 
 
 if __name__ == '__main__':

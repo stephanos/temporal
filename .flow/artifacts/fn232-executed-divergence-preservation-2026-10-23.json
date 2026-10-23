@@ -58,6 +58,14 @@
       "exit": 0,
       "path": "/home/agent/evidence/fn232-executed-divergence-audit-v1/recipe-role-driver-tests-v2.log",
       "sha256": "d2444a2015372dc7b9cc05d2740f103472ee1927632353d9f23b2bd5b151c936"
+    },
+    "dependency_cache_tests": {
+      "path": "/home/agent/evidence/fn232-executed-divergence-audit-v1/dependency-cache-tests-v1.log",
+      "sha256": "4190e6532da5d52050bd5ea71ff40310f4ffe0846610b4b159650675a5a9c2b2"
+    },
+    "genuine_dependency_cache": {
+      "path": "/home/agent/evidence/fn232-executed-divergence-audit-v1/genuine-module-cache-verification.json",
+      "sha256": "5ef30576c6d0c74aed2358177acc2b3f0664053bae78f7b20b89ef5288ac3caa"
     }
   },
   "receiving_inputs": "gomad.core-counterfactual-producer/v2: retains original ExploreOptions separately from the original StressExecution effective diagnostic override; original v1 evidence remains immutable.",
@@ -101,7 +109,8 @@
     "original_provider_transcript_bytes": 8388608,
     "effective_campaign_transcript_bytes": 67108864,
     "expected_original_status": "FAIL_ORIGINAL_PREDICATE is retained with actual libtest101, not normalized to success.",
-    "preparation_in_original_overall_deadline": true
+    "preparation_in_original_overall_deadline": true,
+    "module_cache": "Explicit --module-cache authenticates the genuine golang.org/x/sys v0.48.0 archive against candidate go.sum and seals a private copy before either producer. GOMODCACHE is explicit in both commands; private inventory is rechecked between phases and by final reader. Go build caches are not prewarmed."
   },
   "recipe_role_review": {
     "verdict": "SOURCE_READY",
@@ -111,5 +120,11 @@
     "same_family": true,
     "finding_addressed": "Preserve completed libtest101 through accepted-status process validation; add regression refusing active-process substitution.",
     "post_review": "Independent reader derives original outcome failures from authenticated per-incarnation summaries; per-case and aggregate dispositions checked."
+  },
+  "dependency_cache_review": {
+    "verdict": "SOURCE_READY",
+    "reviewer": "/root/executed_divergence_preservation/recipe_role_review",
+    "same_family": true,
+    "tests": "7 focused Python tests pass; no Go/Cargo/guest execution."
   }
 }
