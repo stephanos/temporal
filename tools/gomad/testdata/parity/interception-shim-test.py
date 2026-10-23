@@ -193,9 +193,17 @@ class PublishedPlans(unittest.TestCase):
 
 class ExternalCapture(unittest.TestCase):
     def candidate(self, root):
-        compiler, source, installation = [root / name for name in ('compiler','source.go','install.json')]
+        compiler, source, installation = root / 'bin/go', root / 'source.go', root / 'install.json'
+        compiler.parent.mkdir()
         compiler.write_bytes(b'offline compiler fixture, never Go')
         source.write_bytes(b'offline source inventory fixture')
+        distribution = {}
+        for relative in ('VERSION','pkg/tool/linux_arm64/asm','pkg/tool/linux_arm64/compile',
+                         'pkg/tool/linux_arm64/link','pkg/include/asm.h'):
+            path = root / relative
+            path.parent.mkdir(parents=True,exist_ok=True)
+            path.write_bytes(('offline distribution fixture: ' + relative).encode())
+            distribution[str(path)] = check.file_sha(path)
         installed = dict(compiler_path=str(compiler), compiler_sha256=check.file_sha(compiler))
         installation.write_bytes(check.encode(installed))
         original = ['test','./supported','-run=^TestA$','-v','-count=1','-exec=/actual/external']
@@ -204,9 +212,10 @@ class ExternalCapture(unittest.TestCase):
         package = dict(schema='gomad.driver-recipe/v1', import_path='example/supported', installed=installed,
                        directory=str(root), configuration={},
                        options=dict(installation=str(installation), target_kind='go-test', source='example/supported'),
-                       compiler={str(compiler):check.file_sha(compiler)}, sources={str(source):check.file_sha(source)},
+                       compiler=distribution, sources={str(source):check.file_sha(source)},
                        environment=dict(GOOS='wasip1', GOARCH='wasm', CGO_ENABLED='0', GOTOOLCHAIN='local'))
-        package['inputs'] = dict(compiler=package['compiler'], sources=package['sources'],
+        package['inputs'] = dict(compiler_path=str(compiler), compiler_sha256=check.file_sha(compiler),
+                                 compiler=package['compiler'], sources=package['sources'],
                                  source='example/supported', kind='go-test', directory=str(root), configuration={})
         shared = dict(schema='gomad.shim-driver/v1', packages=[package],
                       installations=[bindings[0]['sha256']], driver_argv=[value.encode().hex() for value in driver])
@@ -235,7 +244,10 @@ class ExternalCapture(unittest.TestCase):
 
     def test_exact_external_capture_is_accepted_without_a_guest_claim(self):
         with tempfile.TemporaryDirectory() as directory:
-            compiler, captured, _, expected = self.candidate(Path(directory))
+            compiler, captured, shared, expected = self.candidate(Path(directory))
+            self.assertNotIn(str(compiler), shared['packages'][0]['compiler'])
+            self.assertTrue({'VERSION','asm','compile','link','asm.h'} <=
+                            {Path(path).name for path in shared['packages'][0]['compiler']})
             self.assertEqual(check.authenticate_external([captured], expected, compiler), captured)
 
     def test_external_fixture_captures_inventory_before_private_inputs_disappear(self):
@@ -260,6 +272,15 @@ class ExternalCapture(unittest.TestCase):
             invocation.unlink()
             (root / 'source.go').unlink()
             check.authenticate_external(observed, expected, compiler)
+
+    def test_separate_recipe_compiler_path_and_digest_cannot_be_rebound(self):
+        for key, wrong in (('compiler_path','/other/bin/go'),('compiler_sha256','f'*64)):
+            with self.subTest(key=key), tempfile.TemporaryDirectory() as directory:
+                compiler, captured, shared, expected = self.candidate(Path(directory))
+                shared['packages'][0]['inputs'][key] = wrong
+                self.seal(captured, shared)
+                with self.assertRaisesRegex(ValueError, 'external.recipe_input.' + key):
+                    check.authenticate_external([captured], expected, compiler)
 
     def test_self_consistent_wrong_original_order_compiler_installation_or_received_arguments_are_refused(self):
         for mode in ('original-order','compiler','installation','received-order','invocation','inventory'):
