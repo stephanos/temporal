@@ -278,4 +278,26 @@ mod tests {
         assert!(result["evaluations"].is_null());
         assert!(result.get("first_failure").is_none());
     }
+
+    #[test]
+    fn search_request_refuses_invalid_ranges_and_zero_bounds_before_artifact_admission() {
+        use super::super::Options;
+        use std::path::Path;
+
+        for (name, value) in [
+            ("choice-range", "5:4"),
+            ("search-attempts", "0"),
+            ("search-timeout", "0s"),
+        ] {
+            let mut options = Options::default();
+            options.set("check", "healthy").unwrap();
+            options.set("choice-range", "0:4").unwrap();
+            options.set(name, value).unwrap();
+            let failure = options
+                .request(Path::new("/absent-preservation-artifact"))
+                .err()
+                .unwrap();
+            assert!(failure.contains("positive bounds"), "{name}: {failure}");
+        }
+    }
 }
