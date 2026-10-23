@@ -33,11 +33,13 @@ class BroadHarness(unittest.TestCase):
                 self.assertTrue(argv[0].startswith('/owned/cycle/broad-harness/admitted/'))
                 self.assertNotIn('caller-selector', argv)
                 self.assertNotIn('caller-command', argv)
-                if not broad.target(row.role).harness:
-                    self.assertEqual(len(argv), 1)
+                self.assertTrue(broad.target(row.role).harness)
+                self.assertEqual(argv[-2:], ['--nocapture', '--test-threads=1'])
+                if row.role in broad.ALLOCATION_ROLES:
+                    self.assertEqual(argv[1:], ['--ignored', '--exact', 'allocation_receiving', '--nocapture', '--test-threads=1'])
                 else:
-                    self.assertEqual(argv[-2:], ['--nocapture', '--test-threads=1'])
-            guest = [row for row in rows if row.ignored]
+                    self.assertNotIn('--exact', argv)
+            guest = [row for row in rows if row.name == 'host-broad-guest']
             self.assertEqual(bool(guest), stage is not broad.Stage.FUNCTIONAL)
             if guest:
                 self.assertEqual(guest[0].selector, 'replay::cluster::broad_guest_tests')
@@ -71,7 +73,7 @@ class BroadHarness(unittest.TestCase):
             roots = set()
             for stage in broad.Stage:
                 for row in broad.catalog(stage):
-                    if row.ignored:
+                    if row.name == 'host-broad-guest':
                         continue
                     observed, environment = broad.invocation_context(config, stage, row, evidence)
                     if row.role is broad.Role.HELPER:
@@ -81,6 +83,10 @@ class BroadHarness(unittest.TestCase):
                         roots.add(path)
                     else:
                         self.assertNotIn('GOMAD_INSPECTION_RAW_DIR', environment)
+                    if row.role in broad.ALLOCATION_ROLES:
+                        self.assertEqual(observed['repo'], '/owned/cycle/broad-harness/' + stage.value + '/' + row.name)
+                    else:
+                        self.assertEqual(observed['repo'], config['repo'])
             self.assertEqual(len(roots), 3)
 
     def artifact_fixture(self, directory, role):

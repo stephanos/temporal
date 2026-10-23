@@ -1,4 +1,7 @@
-"""Closed native target catalog and process-bound evidence for broad receiving stages."""
+"""Closed native target catalog and process-bound evidence for broad receiving stages.
+
+Allocation targets use one exact libtest selection in a private stage working directory.
+"""
 from dataclasses import dataclass
 from enum import Enum
 from pathlib import Path
@@ -40,10 +43,11 @@ class Target:
 TARGETS = {
     Role.HELPER: Target('gomad-wasmhost', 'wasmhost', 'gomad_wasmhost', 'src/lib.rs', 'lib', (), True),
     Role.HOST: Target('gomad', 'gomad', 'gomad', 'src/lib.rs', 'lib', ('determinism-fixture',), True),
-    Role.HELPER_ALLOCATION: Target('gomad-wasmhost', 'wasmhost', 'allocation_receiving', 'tests/allocation_receiving.rs', 'test', (), False),
-    Role.HOST_ALLOCATION: Target('gomad', 'gomad', 'allocation_receiving', 'tests/allocation_receiving.rs', 'test', ('determinism-fixture',), False),
+    Role.HELPER_ALLOCATION: Target('gomad-wasmhost', 'wasmhost', 'allocation_receiving', 'tests/allocation_receiving.rs', 'test', (), True),
+    Role.HOST_ALLOCATION: Target('gomad', 'gomad', 'allocation_receiving', 'tests/allocation_receiving.rs', 'test', ('determinism-fixture',), True),
     Role.IDENTITY: Target('gomad-wasmhost', 'wasmhost', 'implementation_identity', 'tests/implementation_identity.rs', 'test', (), True),
 }
+ALLOCATION_ROLES = (Role.HELPER_ALLOCATION, Role.HOST_ALLOCATION)
 SCHEMA = 'gomad.broad-harness-build/v1'
 ADMISSION = 'gomad.broad-harness-admission/v1'
 
@@ -105,8 +109,8 @@ def catalog(stage):
     require(type(stage) is Stage, 'unknown broad stage')
     rows = [Invocation('helper-lib', Role.HELPER)]
     rows.extend(Invocation(name, Role.HOST, selector) for name, selector in HOST_SELECTORS)
-    rows.extend((Invocation('helper-allocation', Role.HELPER_ALLOCATION),
-                 Invocation('host-allocation', Role.HOST_ALLOCATION), Invocation('identity', Role.IDENTITY)))
+    rows.extend((Invocation('helper-allocation', Role.HELPER_ALLOCATION, 'allocation_receiving', True),
+                 Invocation('host-allocation', Role.HOST_ALLOCATION, 'allocation_receiving', True), Invocation('identity', Role.IDENTITY)))
     if stage in (Stage.PROVIDER, Stage.RETAINED):
         rows.append(Invocation('host-broad-guest', Role.HOST, 'replay::cluster::broad_guest_tests', True))
     return tuple(rows)
@@ -118,8 +122,9 @@ def test_argv(config, stage, name):
     row = rows[0]
     argv = [str(owned_root(config) / 'admitted' / row.role.value)]
     if target(row.role).harness:
+        argv += (['--ignored', '--exact'] if row.role in ALLOCATION_ROLES else [])
         argv += ([row.selector] if row.selector else [])
-        argv += (['--ignored'] if row.ignored else []) + ['--nocapture', '--test-threads=1']
+        argv += (['--ignored'] if row.ignored and row.role not in ALLOCATION_ROLES else []) + ['--nocapture', '--test-threads=1']
     return argv
 
 
@@ -130,9 +135,9 @@ def invocation_context(config, stage, row, evidence):
     cwd = Path(config['repo'])
     if row.role is Role.HELPER:
         environment['GOMAD_INSPECTION_RAW_DIR'] = str(destination / 'helper-lib-raw')
-    if not target(row.role).harness:
+    if row.role in ALLOCATION_ROLES:
         cwd = destination / row.name
-    if row.ignored:
+    if row.name == 'host-broad-guest':
         import terminal_inputs
         terminal_inputs.compiler_inputs(config)
         compiler = config['final_profiles']['stock_go']
@@ -339,9 +344,9 @@ def run(config, stage):
         observed, environment = invocation_context(config, stage, row, evidence)
         if row.role is Role.HELPER:
             Path(environment['GOMAD_INSPECTION_RAW_DIR']).mkdir(mode=0o700)
-        if not target(row.role).harness:
+        if row.role in ALLOCATION_ROLES:
             Path(observed['repo']).mkdir(mode=0o700)
-        if row.ignored:
+        if row.name == 'host-broad-guest':
             require(not (destination / 'guest-root').exists(), 'broad guest root must be fresh')
         command(dict(observed, files=files, environment=environment), destination, row.name,
                 test_argv(config, stage, row.name), timeout=3600, exact_environment=environment)
@@ -373,7 +378,7 @@ def read(config, stage):
                 rows[row.name] = dict(role=row.role.value, cwd=observed['repo'], stdout=str(destination / (row.name + '.stdout')),
                                       stderr=str(destination / (row.name + '.stderr')), pid=receipt['pid'],
                                       argv=test_argv(config, candidate, row.name), source=target(row.role).source,
-                                      features=list(target(row.role).features), command=command_hashes(destination, row.name),
+                                      features=list(target(row.role).features), ignored=row.ignored, harness=target(row.role).harness, command=command_hashes(destination, row.name),
                                       build=evidence['roles'][row.role.value])
                 if row.role is Role.HELPER:
                     artifact_root = Path(environment['GOMAD_INSPECTION_RAW_DIR'])
