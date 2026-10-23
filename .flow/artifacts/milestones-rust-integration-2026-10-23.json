@@ -1,7 +1,7 @@
 {
   "schema": "gomad.integration-development-evidence/v1",
-  "observed_at": "2026-10-23T14:06:01.509211+00:00",
-  "integration_head": "6d610a3fcfabf5119f4b915582743e49a8d64e4f",
+  "observed_at": "2026-10-23T14:23:24.217049+00:00",
+  "integration_head": "13ecf9f40526eec15497a951b6e8167c1a43bdb9",
   "final_qualification": false,
   "logs": [
     {
@@ -3046,6 +3046,122 @@
         "Thirteenth fixed fn222-support build role and typed receiving/freezer closure"
       ],
       "acceptance": "All actual final candidate builds, original tests, runtime/workload/retained replay and 3600-second qualification remain pending; no milestone is completed by these checks"
+    },
+    {
+      "observed_at": "2026-10-23T14:23:24.217049+00:00",
+      "integration_head": "13ecf9f40526eec15497a951b6e8167c1a43bdb9",
+      "final_qualification": false,
+      "scope": "Reviewed prerequisite source closure, immutable candidate, actual compiler envelope and genuine independent Go oracle build",
+      "logs": [
+        {
+          "path": "/home/agent/evidence/fn232-root-joined-frozen-candidate-v7/tests.json",
+          "bytes": 620,
+          "sha256": "98d9e9c73a25cf225509fd8e37080da670505068e28d16877218b3524572dc45"
+        },
+        {
+          "path": "/home/agent/evidence/fn232-root-joined-frozen-candidate-v7/tests.log",
+          "bytes": 94133,
+          "sha256": "e0414ddde6d47f583bf029005b3aa5d07f0fde526bb6d58414b8308d2f0fb503"
+        },
+        {
+          "path": "/home/agent/evidence/fn232-root-wire-runtime-integrated-v1/tests.json",
+          "bytes": 746,
+          "sha256": "bab07391d7b8dd0319d8b1e8120c704897dd4941c12abe250be708c8373ec58e"
+        },
+        {
+          "path": "/home/agent/evidence/fn232-final-candidate-source-v1.json",
+          "bytes": 1604515,
+          "sha256": "4f563e2945b2474c3f9acca360ac03152da3765b956dbde18df0f408591e6bfe"
+        },
+        {
+          "path": "/home/agent/evidence/fn232-final-candidate-gnu-launch-v1/command.json",
+          "bytes": 939,
+          "sha256": "3c5922250a0a2f935f64a311cb0537eca9eb0e17f3fcafc74bab26cc221c9b91"
+        },
+        {
+          "path": "/home/agent/evidence/fn232-final-candidate-preflight-v1/result.json",
+          "bytes": 1094,
+          "sha256": "4366fecb146fa40c6f2a65992a413e494195ea8f6fa8b9781d3ccba85cea53e6"
+        },
+        {
+          "path": "/home/agent/evidence/fn232-final-sqlite-go-build-v1/independent-inspection.json",
+          "bytes": 3355,
+          "sha256": "563e997271085120b8b8408f045eaab22b3214a49b2d9f5b08c69923b5a6474c"
+        },
+        {
+          "path": "/Users/stephan/Workspace/skunkworks/gomad/.build-cache/fn232-final-sqlite-go-build-v1/build.json",
+          "bytes": 2620712,
+          "sha256": "451f37824e8af9045916f579eda5065d21bb79eac9b5e36ade9f71cfd7492509"
+        }
+      ],
+      "joined_python": {
+        "tests": 551,
+        "exit": 0,
+        "source_unchanged": true,
+        "elapsed_s": 56.515
+      },
+      "focused_join": {
+        "wire_runtime_profiles": 55,
+        "fn222_roles": 21,
+        "sqlite_receiving_composition": 48,
+        "qualification_map": 5,
+        "all_exit": 0
+      },
+      "source_review": {
+        "status": "SOURCE_READY",
+        "reviewer": "final_prerequisite_join_review gpt-6.1-sol/high same family",
+        "cross_join_blocker": "Legacy compose.validate_stages oracle argv requirement; repaired with shared typed binding and regression that invokes both binding and validation",
+        "accepted_fix": "4f15362d44f7a7dd0fd3a255fd2b03e0887e918d",
+        "root_fix": "13ecf9f40526eec15497a951b6e8167c1a43bdb9",
+        "all_96_stage_contracts_preserved": true,
+        "final_obligations": 146
+      },
+      "immutable_candidate": {
+        "repo": "/home/agent/wt/fn232-final-candidate-v1",
+        "head": "13ecf9f40526eec15497a951b6e8167c1a43bdb9",
+        "source_sha256": "37a83bc6ca7b25b4a4802b9477c121d7ee556be72f0d0dce5373d0aeca1483dd",
+        "regular_source_files": 8602,
+        "symlinks": 2,
+        "never_edit_or_rebase": true
+      },
+      "gnu_preparation": {
+        "actual_probes": 21,
+        "exit": 0,
+        "scope": "Six controller-file-bound compiler envelope, independently rederived by subsequent candidate role builds"
+      },
+      "pure_preflight": {
+        "head": "39bfc9c129fe1f5f8903c21acaabe2aa577a1ee0",
+        "inputs": 112654,
+        "exit": 0,
+        "scope": "Before final two-file composer repair; source-only prerequisite, not frozen runtime qualification"
+      },
+      "sqlite_oracle_build": {
+        "build_exit": 0,
+        "independent_inspect_exit": 0,
+        "actual_commands": 6,
+        "all_commands_reaped": true,
+        "closure_paths": 13931,
+        "source_paths": 1153,
+        "sdk_paths": 12080,
+        "dependency_paths": 669,
+        "binary_sha256": "08309ac5aa670bfadc042d42b687f1f0adc9e5923223dcc0ce917100ac08864a",
+        "actual_projection": "NOT_EXECUTED; requires actual SQLite primary/selected state and final same-cycle raw oracle invocation"
+      },
+      "role_catalogue": {
+        "fixed_main_roles": 13,
+        "new_role": "fn222-support",
+        "actual_release_build": "RUNNING; root session4590, builderPID960205/CargoPID960585 last observed live",
+        "actual_host_fixture_build": "RUNNING; owner executed_divergence_preservation session32695, builderPID961785 last observed live",
+        "other_main_role_builds": "PENDING"
+      },
+      "static_prepared_inputs": {
+        "public_stress_ready": "/home/agent/evidence/fn232-static-public-stress-v1/ready.json",
+        "public_static_files": 31748,
+        "runtime_seal": "/home/agent/evidence/fn232-runtime-final-static-inputs-v1/static-seal.json",
+        "runtime_static_files": 22591,
+        "scope": "Authentic static prerequisites only; no future output hash or executable final configuration invented"
+      },
+      "remaining_acceptance": "Complete genuine candidate roles/installations/input bindings; actual original Go/wire/root19 ABI, full runtime, ten workload cells, stress, counterfactuals, full terminal8, retained/operator/inspection/public verbs and 3600-second cycle; later support/sweep/profiling milestones remain open"
     }
   ],
   "resource_snapshot": {
