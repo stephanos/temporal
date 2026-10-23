@@ -745,6 +745,7 @@ fn completeness_rejects_unaccepted_retirement() {
 /// hash-iteration sites.
 const SOURCE_PATTERNS: &[&str] = &[
     "Instant::now",
+    "clock_gettime(",
     "SystemTime",
     "/dev/urandom",
     "thread::spawn",
@@ -1108,6 +1109,18 @@ fn source_scan(
 }
 
 fn source_gaps(entries: &[Entry], sites: &BTreeSet<String>) -> Vec<String> {
+    let migrations =
+        serde_json::from_str::<Vec<host_inventory::Migration>>(host_inventory::MIGRATIONS).unwrap();
+    let (retired, migration_error) = match host_inventory::migrated_identities(
+        entries,
+        sites,
+        IDENTITY_HISTORY,
+        &migrations,
+        "helper-source:",
+    ) {
+        Ok(retired) => (retired, None),
+        Err(error) => (BTreeSet::new(), Some(error)),
+    };
     let rows: BTreeSet<&str> = entries
         .iter()
         .filter_map(|entry| entry.site.strip_prefix("helper-source:"))
@@ -1126,7 +1139,7 @@ fn source_gaps(entries: &[Entry], sites: &BTreeSet<String>) -> Vec<String> {
         .iter()
         .filter_map(|entry| entry.site.strip_prefix("helper-allow:"))
         .collect();
-    let mut gaps = Vec::new();
+    let mut gaps: Vec<String> = migration_error.into_iter().collect();
     for site in sites {
         let file = site.split('|').next().unwrap();
         if !allowed.contains(file) && !active_rows.contains(site.as_str()) {
@@ -1137,7 +1150,7 @@ fn source_gaps(entries: &[Entry], sites: &BTreeSet<String>) -> Vec<String> {
         if !sites.contains(*row)
             && !entries.iter().any(|entry| {
                 entry.site == format!("helper-source:{row}")
-                    && retired_identity(entry, IDENTITY_HISTORY)
+                    && (retired_identity(entry, IDENTITY_HISTORY) || retired.contains(&entry.id))
             })
         {
             gaps.push(format!(

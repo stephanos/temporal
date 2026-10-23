@@ -85,6 +85,7 @@ def exact_bounds(spec, *, runtime=False):
                 and spec['choice_bytes'] == 64 << 20 and spec['runtime_diagnostics'] is False,
                 'changed original runtime-cost bounds')
     else:
+        require(spec['choice_bytes'] == 1 << 30, 'changed original Temporal 1GiB choice bound')
         require(spec['package'] == './tests' and spec['working_directory'] == '/workspace/tests'
                 and spec['selection'] in (WORKFLOW, ACTIVITY), 'substituted original Temporal selection')
         require(spec['arguments'] == ['-test.run=' + spec['selection'], '-persistenceType=sql',
@@ -131,6 +132,8 @@ def bound_native_request(config, path, spec, *, runtime=False, dynamic_root=None
                 and model['configuration']['diagnostics'] == spec['runtime_diagnostics'], 'native original runtime bounds changed')
         preparation_proof(config, spec, guest, runtime=True, dynamic_root=dynamic_root)
     else:
+        require(spec['choice_bytes'] == 1 << 30 and model['configuration']['limit'] == spec['choice_bytes'],
+                'native original Temporal choice bound changed')
         require(model['arguments'][1:] == spec['arguments'], 'native original Temporal arguments changed')
         cwd = spec['working_directory'].encode()
         require(model['configuration']['working_directory_sha256'] == hashlib.sha256(cwd).hexdigest()
@@ -176,8 +179,9 @@ def runtime_pair(root, spec, release, diagnostic):
                 'missing original runtime-cost timing/select witness')
 
 
-def select_polls(raw):
-    require(raw and len(raw) % 96 == 0 and len(raw) <= 64 << 20,
+def select_polls(raw, maximum=64 << 20):
+    require(type(maximum) is int and maximum in (64 << 20, 1 << 30), 'foreign original choice capacity')
+    require(raw and len(raw) % 96 == 0 and len(raw) <= maximum,
             'malformed original runtime-cost choice framing')
     polls = 0
     for ordinal in range(len(raw) // 96):
@@ -223,22 +227,56 @@ def attribution(profile):
         require(tuple(sum(values) for values in zip(*rows)) == totals, 'linked store thread totals differ')
 
 
+def native_canonical_streams(root, outcome):
+    from driver import sha
+    native = read(root / 'streams.json')
+    receipt = read(root / 'canonical-streams.json')
+    require(receipt['schema'] == 'gomad.native-canonical-streams/v1'
+            and receipt['source'] == 'finalized linked Execution.evidence from closed Sink::into_streams'
+            and receipt['transformation'] == 'identity bytes; no content normalization'
+            and receipt['native_streams_sha256'] == sha(root / 'streams.json')
+            and receipt['outcome_sha256'] == sha(root / 'outcome.json')
+            and set(receipt['streams']) == set(STREAMS), 'missing/foreign native canonical stream receipt')
+    raw_native = {}
+    for name, entry in native.items():
+        require(Path(name).name == name and name not in ('.', '..'), 'foreign native stream name')
+        raw = bounded_path(root, str(root / name)).read_bytes()
+        require(len(raw) == entry['bytes'] and hashlib.sha256(raw).hexdigest() == entry['sha256'],
+                'changed native evidence stream')
+        raw_native[name] = raw
+    streams = {}
+    for name, entry in receipt['streams'].items():
+        require(entry['file'] == name, 'foreign native canonical file')
+        path = bounded_path(root, str(root / name))
+        raw = path.read_bytes()
+        require(len(raw) == entry['bytes'] and sha(path) == entry['sha256'], 'changed native canonical stream')
+        if name in ('stdout', 'stderr', 'network', 'choice'):
+            if name in raw_native:
+                require(entry['source'] == 'native:' + name and raw == raw_native[name], 'changed canonical native source')
+            else:
+                require(name in ('stdout', 'stderr', 'network') and not raw
+                        and entry['source'] == 'closed-sink-empty:' + name, 'unobserved native canonical stream')
+        elif name == 'wasi':
+            require(entry['source'] == 'binary-transcript-alias:transcript' and 'transcript' in raw_native
+                    and raw == raw_native['transcript']
+                    and ('wasi' not in raw_native or raw == raw_native['wasi']), 'changed binary WASI alias')
+        else:
+            require(entry['source'] == 'outcome:local_model.terminal_base64' and 'terminal' not in raw_native
+                    and raw == base64.b64decode(outcome['local_model']['terminal_base64'], validate=True)
+                    and len(raw) == 16, 'changed actual native model terminal')
+        streams[name] = dict(path=str(path), sha256=entry['sha256'])
+    return streams
+
+
 def native_run(root):
     report = read(root / 'report.json')
     require(report['schema'] == 'gomad.linked-profile-run/v1' and report['execution'].get('Ok'),
             'missing/failed native linked execution')
     outcome = read(root / 'outcome.json')
     request = read(root / 'request.json')
-    catalog = read(root / 'streams.json')
-    streams = {}
-    for name in STREAMS[:-1]:
-        require(name in catalog, 'native producer has not retained original canonical ' + name)
-        streams[name] = dict(path=str(root / name), sha256=catalog[name]['sha256'])
+    streams = native_canonical_streams(root, outcome)
     model = outcome['local_model']
-    terminal = base64.b64decode(model['terminal_base64'], validate=True)
-    streams['terminal'] = dict(native_bytes=terminal, sha256=hashlib.sha256(terminal).hexdigest())
-    choice = (root / 'choice').read_bytes()
-    polls = select_polls(choice)
+    polls = select_polls((root / 'choice').read_bytes(), request['guest']['model']['configuration']['limit'])
     result = dict(streams=streams, select_poll=polls, reaped=True, termination=outcome['termination'],
                   exit_code=outcome.get('exit_code'), calls=model['calls'], time_advances=model['advances'],
                   environment_identity=request['guest']['model'], fuel_remaining=outcome['fuel_remaining'],
@@ -250,22 +288,19 @@ def sealed_role(config, entry, expected):
     import json
     import live
     from driver import sha
+    import native_roles
     for field in ('binary', 'build_receipt'):
         live.sealed_input(config, entry[field])
-    build = read(entry['build_receipt'])
     binary = entry['binary']
-    if build.get('schema') == 'gomad.native-measurement-build/v1':
-        require(build['executable'] == binary and build['executable_sha256'] == sha(binary)
-                and build['role'] == (dict(kind='diagnostic', features=expected) if expected else dict(kind='release')),
-                'foreign native role build receipt')
-        for path, digest in build['inputs'].items():
-            live.sealed_input(config, path)
-            require(sha(path) == digest, 'native role build input changed')
-    else:
-        require(build['profile'] == 'release' and build['exit'] == 0
-                and build['source_sha256'] == config['source_sha256']
-                and build['binary_sha256'] == sha(binary) and build['helper_features'] == expected,
-                'foreign/nonmatching native producer build')
+    role = dict(kind='diagnostic', features=expected) if expected else dict(kind='release')
+    build = native_roles.validate_build(config, entry['build_receipt'], role)
+    if binary != build['executable']:
+        require('admission' in entry, 'native copied role requires its full admission receipt')
+        live.sealed_input(config, entry['admission'])
+        admission = native_roles.validate_admission(config, entry['admission'], role)
+        require(admission['build_receipt'] == entry['build_receipt'] and admission['executable'] == binary
+                and admission['identity'] == build['identity'], 'native admission borrowed a different build or binary')
+    require(build['executable_sha256'] == sha(binary), 'native role differs from authenticated Cargo artifact')
     identities = config.setdefault('_final_profile_role_identities', {})
     if binary not in identities:
         raw, _ = invoke(config, Path(config['root']), 'final-profile-role-' + str(len(identities)), [binary, '--identity'])
@@ -284,8 +319,7 @@ def sealed_role(config, entry, expected):
                     and identity['runtime_implementation_sha256'] == release['runtime_implementation_sha256']
                     and identity['configuration'] == release['configuration'] + '-diagnostic-profile',
                     'diagnostic role source/runtime differs from ordinary release')
-        if build.get('schema') == 'gomad.native-measurement-build/v1':
-            require(identity == build['identity'], 'native build identity differs from actual executable')
+        require(identity == build['identity'], 'native build identity differs from actual executable')
         identities[binary] = identity
     require(identities[binary]['features'] == expected, 'native executable borrowed a different role')
     return binary
@@ -383,8 +417,15 @@ def native_terminal(config, root, work, entry, terminal_path, ordinary, diagnost
     cpu = cpu_path.read_bytes()
     require(host_admission('linux', 'arm64', cpu) == host['inputs'][str(cpu_path)]
             and host['witness']['cpuinfo'].encode() == cpu, 'current raw CPU capture changed')
-    require(terminal['helper_admission'] == read(entry['terminal_helper_receipt'])
-            and terminal['diagnostic_control_admission'] == read(entry['terminal_diagnostic_helper_receipt']),
+    import native_roles
+    release_admission = native_roles.validate_admission(config, entry['terminal_helper_receipt'], dict(kind='release'))
+    diagnostic_admission = native_roles.validate_admission(config, entry['terminal_diagnostic_helper_receipt'],
+                                                         dict(kind='diagnostic', features=['diagnostic-profile']))
+    require(release_admission['executable'] == ordinary and diagnostic_admission['executable'] == diagnostic
+            and release_admission['identity']['host_implementation_sha256'] == config['identity']['host']
+            and release_admission['identity']['linked_implementation_sha256'] == config['identity']['helper']
+            and terminal['helper_admission'] == release_admission
+            and terminal['diagnostic_control_admission'] == diagnostic_admission,
             'foreign terminal release/diagnostic admission')
     require(len(terminal['observations']) == 6, 'missing exact terminal success observations')
     recipe = read(entry['qualified']['workflow']['recipe'])
@@ -590,13 +631,10 @@ def reference_helper_custody(config, entry):
             'reference helper has foreign Cargo feature/target output')
 
 
-def reference_runtime(config, root, work, native_root, runtime_spec):
-    import json
+def original_source(config, root, entry, label, execute=invoke):
     import live
     from driver import sha
-    entry = config['final_profiles']['runtime_reference']
-    for field in ('python', 'script', 'git', 'files', 'build_receipt', 'binary', 'helper', 'helper_receipt'):
-        live.sealed_input(config, entry[field])
+    live.sealed_input(config, entry['git'])
     derived = Path(entry['derived'])
     source_path = derived / 'source.json'
     live.sealed_input(config, str(source_path))
@@ -605,7 +643,7 @@ def reference_runtime(config, root, work, native_root, runtime_spec):
     require(source['schema'] == 'gomad.derived-go-reference/v1' and source['original_commit'] == original,
             'foreign original reference source')
     import tarfile
-    raw_tree, _ = invoke(config, root, 'final-profile-original-tree',
+    raw_tree, _ = execute(config, root, label,
                          [entry['git'], '-C', config['repo'], 'ls-tree', '-r', '-z', original])
     tree = {}
     for member in raw_tree.split(b'\0'):
@@ -613,6 +651,9 @@ def reference_runtime(config, root, work, native_root, runtime_spec):
             continue
         header, name = member.split(b'\t', 1)
         mode, kind, identity = header.decode().split(' ')
+        if kind == 'commit' and mode == '160000':
+            # Git archives retain an empty submodule directory, without its external tree.
+            continue
         require(kind == 'blob' and mode in ('100644', '100755', '120000'), 'unsupported immutable original tree entry')
         tree[name.decode()] = (mode, identity)
     archive_path = derived / 'original.tar'
@@ -645,10 +686,33 @@ def reference_runtime(config, root, work, native_root, runtime_spec):
     actual_names = {str(path.relative_to(derived / 'source')) for path in (derived / 'source').rglob('*')
                     if path.is_file() or path.is_symlink()}
     require(actual_names == set(original_files) | set(source['glue']), 'undeclared original reference source addition')
-    template = str(Path(entry['script']).parent / 'reference/main.go.txt')
+    template = str(Path(__file__).parent / 'reference/main.go.txt')
     live.sealed_input(config, template)
     for name, digest in source['glue'].items():
         require(sha(derived / 'source' / name) == digest == sha(template), 'changed invocation-only reference glue')
+    for name, item in source['original_files'].items():
+        path = derived / 'source' / name
+        require(path.is_relative_to(derived / 'source') and '..' not in Path(name).parts,
+                'foreign original source member')
+        if item['kind'] == 'symlink':
+            import os
+            require(path.is_symlink() and os.readlink(path) == item['target'], 'changed original source symlink')
+        else:
+            require(path.is_file() and not path.is_symlink() and path.stat().st_size == item['bytes']
+                    and sha(path) == item['sha256'], 'changed immutable original source')
+    return derived, source
+
+
+def reference_runtime(config, root, work, native_root, runtime_spec):
+    import json
+    import live
+    from driver import sha
+    entry = config['final_profiles']['runtime_reference']
+    for field in ('python', 'script', 'git', 'files', 'build_receipt', 'binary', 'helper', 'helper_receipt'):
+        live.sealed_input(config, entry[field])
+    derived, source = original_source(config, root, entry, 'final-profile-original-tree')
+    source_path = derived / 'source.json'
+    original = source['original_commit']
     build = read(entry['build_receipt'])
     require(build['schema'] == 'gomad.reference-build/v1' and build['original_commit'] == original
             and build['source_manifest']['sha256'] == sha(source_path) and build['glue'] == source['glue']
@@ -664,16 +728,6 @@ def reference_runtime(config, root, work, native_root, runtime_spec):
             'reference build did not execute original invocation glue')
     live.sealed_input(config, build['stock_go']['path'])
     require(sha(build['stock_go']['path']) == build['stock_go']['sha256'], 'changed original reference compiler')
-    for name, item in source['original_files'].items():
-        path = derived / 'source' / name
-        require(path.is_relative_to(derived / 'source') and '..' not in Path(name).parts,
-                'foreign original source member')
-        if item['kind'] == 'symlink':
-            import os
-            require(path.is_symlink() and os.readlink(path) == item['target'], 'changed original source symlink')
-        else:
-            require(path.is_file() and not path.is_symlink() and path.stat().st_size == item['bytes']
-                    and sha(path) == item['sha256'], 'changed immutable original source')
     reference_helper_custody(config, entry)
     request_path = native_root / 'request.json'
     native = read(request_path)

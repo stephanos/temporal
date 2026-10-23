@@ -206,16 +206,50 @@ class StaticStageContract(unittest.TestCase):
 
     def test_exact_known_ignored_inventory(self):
         rows = static.ignored_inventory(driver.REPO)
-        self.assertEqual(len(rows), 15)
+        self.assertEqual(len(rows), 19)
         root34 = [row for row in rows if row['name'].startswith(('final_network_', 'joined_storage_'))]
         self.assertEqual(len(root34), 2)
         self.assertTrue(all(row['final_id'] == 'transferred-live/TestClusterBrokerDurableRestartParity' for row in root34))
         self.assertEqual(sum(row['final_id'] is None for row in rows), 4)
+        counterfactual = [row for row in rows if row['source'] == 'gomad/src/campaign/counterfactual.rs']
+        self.assertEqual({row['name'] for row in counterfactual}, {
+            'prepare_the_four_original_counterfactual_requests',
+            'produce_the_four_original_counterfactual_artifact_pairs'})
+        self.assertTrue(all(row['final_id'] == 'test-wasm/complete-behavioral-reach'
+                            and row['disposition'] == 'separate-actual-proof-required'
+                            for row in counterfactual))
+        publication = next(row for row in rows if row['name'] == 'terminal_controls_publication_child')
+        self.assertEqual(publication['required_parent_test'],
+                         'measurement::warm::terminal_controls::terminal_controls_actual_child_publication_uses_original_terminal_to_reap_bound')
         with tempfile.TemporaryDirectory() as directory:
             repo = Path(directory)
             (repo / 'tools/gomad/rust/gomad/src').mkdir(parents=True)
             with self.assertRaises(driver.Refusal):
                 static.ignored_inventory(repo)
+
+    def test_changed_missing_duplicate_and_unknown_ignored_routes_refuse(self):
+        original = static.read(static.HERE / 'static-ignored.json')
+        read = static.read
+        mutations = []
+        missing = copy.deepcopy(original)
+        missing['tests'].pop()
+        mutations.append(missing)
+        changed = copy.deepcopy(original)
+        changed['tests'][-1]['reason'] += ' changed'
+        mutations.append(changed)
+        duplicate = copy.deepcopy(original)
+        duplicate['tests'].append(copy.deepcopy(duplicate['tests'][-1]))
+        mutations.append(duplicate)
+        unknown = copy.deepcopy(original)
+        unknown['tests'][-1]['name'] = 'unlisted_ignored_test'
+        mutations.append(unknown)
+        for declared in mutations:
+            with self.subTest(declared=declared['tests'][-1]['name']):
+                def inputs(path):
+                    return declared if path == static.HERE / 'static-ignored.json' else read(path)
+                with patch.object(static, 'read', side_effect=inputs), self.assertRaisesRegex(
+                        driver.Refusal, 'unknown/changed/missing ignored'):
+                    static.ignored_inventory(driver.REPO)
 
     def test_go_dynamic_roots_counts_subtest_skip_and_empty_refuse(self):
         inventory = static.parse_go_inventory(listing(('TestA', 'TestB')))

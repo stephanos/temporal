@@ -40,7 +40,7 @@ def derive(repo, output):
     source = output / 'source'
     source.mkdir(mode=0o700)
     with tarfile.open(archive) as bundle:
-        bundle.extractall(source, filter='data')
+        extract_original(bundle, source)
     files = tree(source)
     glue = source / GLUE
     custody.require(not glue.exists(), 'reference glue overwrites original source')
@@ -52,6 +52,19 @@ def derive(repo, output):
     save(output / 'source.json', manifest)
     verify(output)
     return manifest
+
+
+def extract_original(bundle, source):
+    # The data filter validates destinations but normalizes relative link spelling.
+    bundle.extractall(source, filter='data')
+    for member in bundle.getmembers():
+        if member.issym():
+            path = source / member.name
+            custody.require(path.is_symlink()
+                            and (path.parent / member.linkname).resolve().is_relative_to(source.resolve()),
+                            'original symlink escapes source')
+            path.unlink()
+            path.symlink_to(member.linkname)
 
 
 def tree(root):

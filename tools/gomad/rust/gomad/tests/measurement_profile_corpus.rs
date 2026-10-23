@@ -94,6 +94,54 @@ impl Drop for Scratch {
 fn read(path: &Path) -> Value {
     serde_json::from_slice(&std::fs::read(path).unwrap()).unwrap()
 }
+fn assert_variant_artifacts(root: &Path) -> Value {
+    let catalog = read(&root.join("variant-artifacts.json"));
+    assert_eq!(catalog["schema"], "gomad.native-variant-artifacts/v1");
+    assert_eq!(catalog["availability_only"], true);
+    assert_eq!(catalog["catalog_errors"], json!([]));
+    let entries = catalog["artifacts"].as_object().unwrap();
+    assert_eq!(
+        entries.keys().map(String::as_str).collect::<Vec<_>>(),
+        vec![
+            "canonical-wasi",
+            "choice",
+            "guest-stderr",
+            "guest-stdout",
+            "helper-stderr",
+            "network"
+        ]
+    );
+    for (name, suffix) in [
+        ("canonical-wasi", "-canonical.bin"),
+        ("choice", "-choice.bin"),
+        ("network", "-network.jsonl"),
+        ("helper-stderr", "-helper-stderr.txt"),
+        ("guest-stdout", "-guest-stdout.txt"),
+        ("guest-stderr", "-guest-stderr.txt"),
+    ] {
+        let entry = &entries[name];
+        assert_eq!(entry["original_suffix"], suffix);
+        if entry["status"] == "available" {
+            let raw = std::fs::read(root.join(entry["file"].as_str().unwrap())).unwrap();
+            assert_eq!(entry["bytes"], raw.len());
+            assert_eq!(entry["sha256"], canonical::digest(&raw));
+            assert!(entry["source"].as_str().is_some());
+        } else {
+            assert_eq!(entry["status"], "unavailable");
+            assert_ne!(entry["cause"].as_str().unwrap(), "");
+            assert!(entry.get("file").is_none());
+            assert!(entry.get("bytes").is_none());
+            assert!(entry.get("sha256").is_none());
+        }
+    }
+    for (file, binding) in catalog["files"].as_object().unwrap() {
+        let raw = std::fs::read(root.join(file)).unwrap();
+        assert_eq!(binding["bytes"], raw.len());
+        assert_eq!(binding["sha256"], canonical::digest(&raw));
+    }
+    catalog
+}
+
 fn private_tree(path: &Path) {
     assert_eq!(
         std::fs::metadata(path).unwrap().permissions().mode() & 0o777,
@@ -139,6 +187,19 @@ fn actual_public_native_run_retains_authenticated_raw_observation() {
     assert_eq!(observed.root.outcome["termination"], "exit");
     assert_eq!(observed.modules.len(), 1);
     compare_self(&observed);
+    let catalog = assert_variant_artifacts(&output);
+    for name in ["guest-stdout", "guest-stderr", "network"] {
+        assert_eq!(catalog["artifacts"][name]["status"], "available");
+        assert!(
+            catalog["artifacts"][name]["source"]
+                .as_str()
+                .unwrap()
+                .starts_with("closed-sink-empty:")
+        );
+    }
+    for name in ["canonical-wasi", "choice", "helper-stderr"] {
+        assert_eq!(catalog["artifacts"][name]["status"], "unavailable");
+    }
     let report = read(&output.join("report.json"));
     assert_eq!(
         report["diagnostic_only"],
@@ -382,6 +443,18 @@ fn actual_measure_retained_command_preserves_requested_root_and_failed_diagnosti
             .as_str()
             .is_some_and(|error| !error.is_empty())
     );
+    let catalog = assert_variant_artifacts(&failed);
+    assert_eq!(catalog["failure"], report["execution"]["Err"]);
+    assert_eq!(catalog["transport"], "in-process-linked-run");
+    for entry in catalog["artifacts"].as_object().unwrap().values() {
+        assert_eq!(entry["status"], "unavailable");
+    }
+    for name in ["wasi", "choice", "network", "stdout", "stderr"] {
+        assert!(
+            !failed.join(name).exists(),
+            "invented absent stream: {name}"
+        );
+    }
     private_tree(&failed);
 }
 
@@ -518,5 +591,94 @@ fn actual_native_admission_refusals_retain_error_phase_counts_and_cleanup() {
             assert_eq!(profile["phases"]["compile"]["count"], 1);
             assert_eq!(read(&output.join("request.json")), original);
         }
+    }
+}
+
+#[test]
+fn actual_closed_native_run_publishes_explicit_canonical_stream_sources() {
+    for modeled in [false, true] {
+        let scratch = Scratch::new();
+        let module = if modeled {
+            r#"(module
+                (import "gomad_wasm_v1" "config" (func $config (param i32 i32) (result i32)))
+                (import "gomad_wasm_v1" "finish" (func $finish (param i32 i32) (result i32)))
+                (import "wasi_snapshot_preview1" "clock_time_get" (func $clock (param i32 i64 i32) (result i32)))
+                (memory (export "memory") 1)
+                (func (export "_start")
+                    i32.const 0 i32.const 16 call $config drop
+                    i32.const 0 i64.const 0 i32.const 32 call $clock drop
+                    i32.const 0 i32.const 16 call $finish drop))"#
+        } else {
+            SUCCESS
+        };
+        let input = scratch.request("canonical", module, false);
+        if modeled {
+            let mut request = read(&input);
+            request["guest"]["model"] = json!({"configuration":{"entropy_key":vec![0u8;32],"working_directory_sha256":canonical::digest(b"/"),
+                "arguments":{"bytes":0,"count":0,"chunks":0},"environment":{"bytes":0,"count":0,"chunks":0},
+                "seed":0,"mode":1,"limit":4096,"diagnostics":false,"epoch_nanos":0,"read_step_nanos":0,"now":1,
+                "limits":{"calls":100,"transcript_bytes":4096,"pending_events":16}},"arguments":[],"environment":["PWD=/"],"replay_trace":null});
+            request["guest"]["namespace"] = json!({"entries":[],"writable_directories":[],"preopens":[[47]],"working_directory":[47],"stdin":[],"limits":{"files":16,"descriptors":16,"filesystem_bytes":4096,"output_bytes":1024},"epoch_nanos":0});
+            std::fs::write(&input, serde_json::to_vec(&request).unwrap()).unwrap();
+        }
+        let output = scratch.0.join("observed");
+        let result = scratch.invoke(
+            env!("CARGO_BIN_EXE_gomad-measure"),
+            &[
+                "--linked-run".as_ref(),
+                input.as_os_str(),
+                output.as_os_str(),
+            ],
+        );
+        assert!(
+            result.status.success(),
+            "{}",
+            String::from_utf8_lossy(&result.stderr)
+        );
+        let native = read(&output.join("streams.json"));
+        let receipt = read(&output.join("canonical-streams.json"));
+        assert_eq!(receipt["schema"], "gomad.native-canonical-streams/v1");
+        assert_eq!(
+            receipt["native_streams_sha256"],
+            canonical::digest(&std::fs::read(output.join("streams.json")).unwrap())
+        );
+        assert_eq!(
+            receipt["outcome_sha256"],
+            canonical::digest(&std::fs::read(output.join("outcome.json")).unwrap())
+        );
+        for name in ["stdout", "stderr", "network"] {
+            assert!(native.get(name).is_none());
+            assert_eq!(std::fs::read(output.join(name)).unwrap(), b"");
+            assert_eq!(
+                receipt["streams"][name]["source"],
+                format!("closed-sink-empty:{name}")
+            );
+            assert_eq!(receipt["streams"][name]["sha256"], canonical::digest(b""));
+        }
+        if modeled {
+            assert_eq!(
+                std::fs::read(output.join("wasi")).unwrap(),
+                std::fs::read(output.join("transcript")).unwrap()
+            );
+            assert_eq!(
+                receipt["streams"]["wasi"]["source"],
+                "binary-transcript-alias:transcript"
+            );
+            let terminal = read(&output.join("outcome.json"))["local_model"]["terminal_base64"]
+                .as_str()
+                .unwrap()
+                .to_owned();
+            assert_ne!(terminal, "");
+            assert_eq!(std::fs::read(output.join("terminal")).unwrap().len(), 16);
+            assert_eq!(
+                receipt["streams"]["terminal"]["source"],
+                "outcome:local_model.terminal_base64"
+            );
+        } else {
+            assert!(receipt["streams"].get("wasi").is_none());
+            assert!(receipt["streams"].get("terminal").is_none());
+            assert!(!output.join("wasi").exists());
+        }
+        evidence::read_profile_run(&output, ReadLimits::default()).unwrap();
     }
 }

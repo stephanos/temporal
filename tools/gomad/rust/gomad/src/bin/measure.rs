@@ -25,6 +25,12 @@ fn main() {
                 1
             }
         }
+    } else if arguments.len() == 4 && arguments[0] == "--linked-run-admitted" {
+        finish(measurement::execution::run_admitted(
+            Path::new(&arguments[1]),
+            Path::new(&arguments[2]),
+            Path::new(&arguments[3]),
+        ))
     } else if arguments.len() == 3 && arguments[0] == "--linked-run" {
         finish(measurement::execution::run(
             Path::new(&arguments[1]),

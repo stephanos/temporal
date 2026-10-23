@@ -2,6 +2,9 @@
 import base64
 import copy
 import hashlib
+import io
+import os
+import tarfile
 from pathlib import Path
 import sys
 import subprocess
@@ -34,6 +37,25 @@ def mapped(native):
 
 
 class RequestMapping(unittest.TestCase):
+    def test_original_archive_keeps_exact_relative_symlink_bytes(self):
+        with tempfile.TemporaryDirectory() as temporary:
+            root = Path(temporary)
+            archive = root / 'original.tar'
+            with tarfile.open(archive, 'w') as bundle:
+                data = tarfile.TarInfo('versioned/value')
+                data.size = 1
+                bundle.addfile(data, io.BytesIO(b'x'))
+                link = tarfile.TarInfo('value')
+                link.type = tarfile.SYMTYPE
+                link.linkname = './versioned/value'
+                bundle.addfile(link)
+            source = root / 'source'
+            source.mkdir()
+            with tarfile.open(archive) as bundle:
+                reference.extract_original(bundle, source)
+            self.assertEqual(os.readlink(source / 'value'), './versioned/value')
+            self.assertEqual((source / 'value').read_bytes(), b'x')
+
     def test_build_cli_dispatches_to_builder_without_starting_go(self):
         with tempfile.TemporaryDirectory(dir='/home/agent/wt', prefix='fn232-reference-cli-') as temporary:
             files = Path(temporary) / 'files.json'

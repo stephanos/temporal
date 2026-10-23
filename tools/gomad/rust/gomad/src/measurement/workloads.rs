@@ -14,6 +14,7 @@ use std::{
     collections::BTreeMap,
     fs,
     io::{Read, Write},
+    os::unix::fs::DirBuilderExt,
     path::{Path, PathBuf},
     time::Duration,
 };
@@ -657,9 +658,25 @@ pub(super) fn execute(
     role: &Executable,
     input: &Value,
 ) -> Result<NativeRun, String> {
+    execute_admitted(call, proof, root, row, role, input, None)
+}
+
+pub(super) fn execute_admitted(
+    call: &Invocation,
+    proof: &CheckoutProof,
+    root: &Path,
+    row: &RunSpec,
+    role: &Executable,
+    input: &Value,
+    admission: Option<&Path>,
+) -> Result<NativeRun, String> {
     role.verify(proof)?;
     let evidence_root = root.join("evidence");
-    fs::create_dir_all(&evidence_root).map_err(|error| error.to_string())?;
+    fs::DirBuilder::new()
+        .recursive(true)
+        .mode(0o700)
+        .create(&evidence_root)
+        .map_err(|error| error.to_string())?;
     let input_path = evidence_root.join(format!("{}.input.json", row.name));
     write(&input_path, input)?;
     let output = evidence_root.join(&row.name);
@@ -670,17 +687,25 @@ pub(super) fn execute(
         .filter(|(key, _)| !key.starts_with("GOMAD_"))
         .map(|(key, value)| (key.into(), value.into()))
         .collect();
+    let mut argv = vec![
+        role.path.to_string_lossy().into_owned(),
+        if admission.is_some() {
+            "--linked-run-admitted".into()
+        } else {
+            "--linked-run".into()
+        },
+        input_path.to_string_lossy().into_owned(),
+        output.to_string_lossy().into_owned(),
+    ];
+    if let Some(admission) = admission {
+        argv.push(admission.to_string_lossy().into_owned());
+    }
     let command = build::command_bounded(
         &evidence_root,
         &format!("{}-driver", row.name),
         proof.repo(),
         &environment,
-        &[
-            role.path.to_string_lossy().into_owned(),
-            "--linked-run".into(),
-            input_path.to_string_lossy().into_owned(),
-            output.to_string_lossy().into_owned(),
-        ],
+        &argv,
         Duration::from_secs(if row.selection == "runtime" {
             190
         } else {
@@ -688,17 +713,39 @@ pub(super) fn execute(
         }),
         64 << 20,
     );
-    role.verify(proof)?;
+    let after = role.verify(proof);
     let result = evidence::read_profile_run(&output, evidence::ReadLimits::default());
-    match (command, result) {
-        (Ok(_), Ok(result)) => Ok(result),
-        (Err(error), _) | (_, Err(error)) => Err(format!(
-            "{}: {error}; actual failed tail retained in {}",
+    let mut failures = Vec::new();
+    for failure in [
+        command.as_ref().err(),
+        after.as_ref().err(),
+        result.as_ref().err(),
+    ]
+    .into_iter()
+    .flatten()
+    {
+        if !failures.contains(failure) {
+            failures.push(failure.clone());
+        }
+    }
+    let primary = (!failures.is_empty()).then(|| {
+        format!(
+            "{}: {}; actual failed tail retained in {}",
             row.name,
+            failures.join("; "),
             output.display()
-        )),
+        )
+    });
+    let catalog =
+        super::artifacts::retain_supervised(&evidence_root, &row.name, primary.as_deref());
+    match (primary, catalog) {
+        (Some(primary), Err(catalog)) => Err(format!("{primary}; {catalog}")),
+        (Some(primary), Ok(())) => Err(primary),
+        (None, Err(catalog)) => Err(catalog),
+        (None, Ok(())) => result,
     }
 }
+
 pub(super) fn success(run: &NativeRun, row: &RunSpec) -> Result<(), String> {
     if run.root.outcome["termination"] != "exit" || run.root.outcome["exit_code"] != 0 {
         return Err(format!(

@@ -257,3 +257,94 @@ All root build/test handles are terminal here. The companion JSON records every
 registered worktree with a retention reason and the open evidence/scratch roots.
 Root performed no cache cleanup. Last observed free space: checkout 109 GiB,
 `/home/agent` 21 GiB. Untracked user trees are unchanged.
+
+
+## Terminal, original-reference and stress receiving integration
+
+Root checkpoint `44693266c1f8d9636bb97360d135511aa10dbb4f` integrates the terminal custody, original stable
+Outcome, exact source/reference, inspection, inventory, composition, profile
+and fresh original ringpop source batches. It also receives the original stress
+catalogue and full native build/admission reader. This is development integration;
+no Flow task or final qualification is completed. Earlier checkpoints retain
+their original scope. Numeric exits and log hashes are in the companion JSON.
+
+The journal regression genuinely failed on the authenticated execution-observations
+directory, then passed after both journal allowlists and minimization retained it.
+Unsafe directories still fail before journal mutation. The first stress integration
+compiled but failed two tests using nonexistent `/candidate` directories; real
+checkout fixtures repaired those tests. Combined release libraries now pass
+591 native and 214 helper tests, with 3 and 12 existing opt-in tests ignored.
+The full Python driver passes 260 tests; workload tools 31 and stress parity 16 pass.
+A separate resource regression failed with a 96 MiB parent because Linux retained
+the forked parent's RSS peak. Child allocations now exceed that peak, preserving
+strict RSS/CPU and exact PID/wait4 assertions; all 6 resource tests pass under the
+same primed parent. Independent same-family review found no actionable finding.
+
+The sixteen-configuration lint command currently fails its first configuration
+on 18 stress source/test diagnostics. The owner is repairing those without
+suppressions or changing bounds. The earlier matrix pass does not qualify these
+new source bytes. An attempted nonexistent stress-reader selftest path exited 2
+and earns no test credit; its failed log is retained.
+
+The unchanged original Go handoff test genuinely fails its all-exit assertion:
+one incarnation exits1 and its peer stops on cluster failure. Native execution
+of the identical module has the same result. The causal-check artifact preserves
+this as ORIGINAL_AND_NATIVE_PREDICATE_FAILED, never a passed original root.
+The actual retained cluster engine lives at Configuration.engine; a reviewed
+causal repair reads that shared owner and rejects obsolete per-incarnation shapes.
+Diagnostic pair/prefix collection continues without waiving the original failure.
+
+The full shared native role reader independently accepted the genuine source51
+Release admission and reopened its actual compiler, source, Cargo and publication
+evidence. An initial check with unnormalized config keys correctly refused; both
+observations remain retained. This development proof does not accept the old
+missing canonical stream files or substitute for a fresh current-source third leg.
+Original terminal wire controls have an actual Go pass in retained evidence;
+the fresh original ringpop recipe still has no actual ringpop execution proof.
+
+Exact source anchors and all 19 ignored declarations now resolve in driver tests;
+25 retired-Go behavioral inventory references remain unresolved. Composition has
+88/96 source recipes with eight explicit refusals. Complete provider 78, functional 46,
+retained 24, measurement119-root/25-producer reach, the full frozen qualification
+cycle and the remaining delivery ladder are still open.
+
+Preparation reclaimed only its released incremental cache (3,628,036,096 bytes),
+with signatures of all 1,873 retained files unchanged. Core reclaimed only its own
+terminal Go cache (272,420,864 allocated bytes). Root deleted no caches/evidence.
+All root handles are terminal at this checkpoint; the JSON inventories remaining
+worktrees and current filesystem capacity. User untracked trees remain untouched.
+
+
+## Supported-role, reader and actual counterfactual followup
+
+Checkpoint `312087e126e5016272a6bdc7db6f5456d3e15ab5` contains reviewed stress lint refactor `070fc51511`.
+The complete sixteen-configuration lint invocation exits zero; all 35 affected
+stress tests pass after the refactor. Final profile admission passes 16 tests,
+the complete native-role freezer six, and exact source-map validation five.
+The final reader now enforces the original qualified Temporal 1 GiB choice
+capacity; runtime-cost remains at its original 64 MiB. Actual module/request
+recipe restoration and digest-only original Temporal evidence handling remain
+in flight, so the reader repair supplies no actual qualified-run pass.
+
+The v11 diagnostic command actually reaped with exit 101 after 421.89 seconds.
+All four genuine pairs produced and verified provider and literal CLI prefixes:
+draw shared/choice 102/7, clock 87/7, handoff 449/b23, output-clock 84/7. Every
+literal CLI exits zero and all eight artifact payloads authenticate. The two
+handoff stop-versus-exit violations remain FAIL_ORIGINAL_PREDICATE. This is
+complete diagnostic collection, never a passing original four-pair assertion.
+Root also reopened the existing original terminal control command (exit zero,
+PID 610705), raw stdout and byte-identical producer/reader results: all five
+original root labels pass. These remain development/reference observations.
+
+The integration-join reviewer found no blocker at `070fc51511`, using an earlier
+read-only review context. A separate fresh-context same-family integration
+review also found no new crosscomponent blocker. It independently confirmed
+the known 64 MiB producer versus correct 1 GiB final-reader gap; that source
+repair remains assigned and final qualification is not accepted. No Flow
+completion is claimed.
+
+With all root tool handles terminal and no live cache references, root removed
+only its own regenerable debug incremental files (679,829,504 bytes) and debug
+compiler libraries/metadata (220,581,888 bytes). Binaries, test executables,
+source and required evidence remain intact. Exact ownership/process audits are
+hashed in the companion JSON. No new target or original evidence was removed.

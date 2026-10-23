@@ -146,7 +146,7 @@ class StressTests(unittest.TestCase):
 
     def test_typed_spec_only_defaults_optional_scenario(self):
         value = dict(workloads=[dict(name='runtime'), dict(name='two-cluster', scenario='/exact')])
-        self.assertEqual(self.lane.typed_stress_spec(value), dict(workloads=[dict(name='runtime', scenario=None), dict(name='two-cluster', scenario='/exact')]))
+        self.assertEqual(self.lane.typed_stress_spec(value), dict(workloads=[dict(name='runtime', scenario=None), dict(name='two-cluster', scenario='/exact')], only='', seed='', axis='', requested_output_root=None))
         self.assertNotIn('scenario', value['workloads'][0])
 
     def test_first_difference_names_semantic_path_and_values(self):

@@ -116,3 +116,48 @@ Focused role checks (no matrix or workload execution):
 ```sh
 python3 tools/gomad/testdata/parity/stress-role-check.py --ordinary /absolute/ordinary-gomad --stress /absolute/stress-gomad
 ```
+
+## Measurement catalogue adapter
+
+The existing `gomad-measure stress` catalogue route prepares the same four
+original workloads and calls this producer once. Build `gomad-measure` with
+`helper-stress-jitter`; `--test-helper` must name that executable or a byte-identical
+copy with the same admitted linked identity. The ordinary measurement binary
+refuses this role before installation. The adapter sets the stress opt-in only
+in the child process environment.
+
+```sh
+/absolute/stress/gomad-measure stress \
+  --repo /absolute/candidate \
+  --stress-root /absolute/retained-stress \
+  --test-helper /absolute/stress/gomad-measure \
+  --stock-go /absolute/go1.27.1/bin/go \
+  --stress-host-description 'actual host; quiet admission' \
+  --stress-repetitions 3 --stress-parallel 2 --stress-cpu-workers 7
+```
+
+The requested root owns one normal measurement stage. Its retained `rerun.json`
+keeps that requested root; installation/configuration inputs and raw producer
+argv, numeric exit, PID, stdout and stderr stay beneath the stage. The matrix is
+at `matrix/report.json` under the same stage and holds the parent's child lease.
+The adapter uses `runtime_probes`, the original recovery/replication staging and
+the unchanged full `./tests` selections above. Runtime cost profiling recipes are
+separate and cannot stand in for this stress preparation.
+
+The original `--stress-only`, `--stress-seed` and `--stress-axis` controls remain
+selection controls. Excluded cells stay explicitly skipped in the full matrix;
+a partial selection never earns complete-matrix acceptance. A selection matching
+no original case returns `gomad.native-stress-selection/v1` with `executed:false`
+and `complete:false`, retaining all 164 skipped cells without opening a helper or
+compiler. A successfully retained measurement stage is a publication fact, not
+a completed matrix claim.
+
+The read-only `measurement::stress_driver::read` receiver reopens the native
+result, actual process observations, source manifest, original installations,
+child requests and raw Rust artifacts. It rechecks original bounds on actual
+retained configurations, cohort/CPU/layout conditions, runtime witnesses and
+four-incarnation histories, and recomputes every comparison through the strict
+stress artifact comparator. It never prepares a module or runs another matrix.
+The final qualification/parity cycle continues to require its separately frozen
+full matrix and source/role receipts; catalogue source and synthetic tests earn
+no runtime or qualification acceptance.
