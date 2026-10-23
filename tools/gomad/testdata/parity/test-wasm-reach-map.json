@@ -2953,21 +2953,25 @@
   },
   "tools/gomad/internal/backends/wasm/wasi/broker_lifecycle_corpus_test.go#TestBrokerLifecycleCorpus": {
    "evidence": [
+    "go/go.temporal.io/server/tools/gomad/internal/model/wasi/TestBrokerLifecycleCorpus",
     "rust/gomad_wasmhost/cluster::handoff::broker::tests::corpus::broker_lifecycle_scripts"
    ]
   },
   "tools/gomad/internal/backends/wasm/wasi/broker_lifecycle_corpus_test.go#TestBrokerLifecycleCorpusIsCurrent": {
    "evidence": [
+    "go/go.temporal.io/server/tools/gomad/internal/model/wasi/TestBrokerLifecycleCorpusIsCurrent",
     "rust/gomad_wasmhost/cluster::handoff::broker::tests::corpus::broker_lifecycle_scripts"
    ]
   },
   "tools/gomad/internal/backends/wasm/wasi/broker_test.go#TestBrokerOrdersAreCurrent": {
    "evidence": [
+    "go/go.temporal.io/server/tools/gomad/internal/model/wasi/TestBrokerOrdersAreCurrent",
     "stage/cluster-functional/TestBrokerOrdersAreCurrent"
    ]
   },
   "tools/gomad/internal/backends/wasm/wasi/broker_test.go#TestBrokerOrdersRustNetworkEvidenceRebuildsGoDocuments": {
    "evidence": [
+    "go/go.temporal.io/server/tools/gomad/internal/model/wasi/TestBrokerOrdersRustNetworkEvidenceRebuildsGoDocuments",
     "stage/cluster-functional/TestBrokerOrdersRustNetworkEvidenceRebuildsGoDocuments"
    ]
   },
@@ -2999,16 +3003,19 @@
   },
   "tools/gomad/internal/backends/wasm/wasi/cluster_network_test.go#TestClusterNetworkDecoderRefusesMalformedEvidence": {
    "evidence": [
+    "go/go.temporal.io/server/tools/gomad/internal/model/wasi/TestClusterNetworkDecoderRefusesMalformedEvidence",
     "stage/cluster-functional/TestClusterNetworkDecoderRefusesMalformedEvidence"
    ]
   },
   "tools/gomad/internal/backends/wasm/wasi/cluster_network_test.go#TestClusterNetworkFrameRefusesWhatTheGoBrokerRefuses": {
    "evidence": [
+    "go/go.temporal.io/server/tools/gomad/internal/model/wasi/TestClusterNetworkFrameRefusesWhatTheGoBrokerRefuses",
     "stage/cluster-functional/TestClusterNetworkFrameRefusesWhatTheGoBrokerRefuses"
    ]
   },
   "tools/gomad/internal/backends/wasm/wasi/cluster_network_test.go#TestClusterNetworkRustEvidenceRebuildsTheGoBrokerDocument": {
    "evidence": [
+    "go/go.temporal.io/server/tools/gomad/internal/model/wasi/TestClusterNetworkRustEvidenceRebuildsTheGoBrokerDocument",
     "stage/cluster-functional/TestClusterNetworkRustEvidenceRebuildsTheGoBrokerDocument"
    ]
   },
@@ -3111,31 +3118,40 @@
    ]
   },
   "tools/gomad/internal/backends/wasm/wasi/corpus_assertion_preservation_test.go#TestBrokerLifecycleCorpusDistinguishesSameTextCapacityErrors": {
-   "basis": "weak name correlation within the owning domain; confirm in review",
    "evidence": [
-    "rust/gomad_wasmhost/linked_cluster::live_controller_tests::lifecycle_predicate_tests::refused_restart_preserves_owner_and_allows_retry_on_same_broker"
+    "go/go.temporal.io/server/tools/gomad/internal/model/wasi/TestBrokerLifecycleCorpusDistinguishesSameTextCapacityErrors",
+    "rust/gomad_wasmhost/cluster::handoff::broker::tests::finish_preserves_world_transition_capacity"
    ]
   },
   "tools/gomad/internal/backends/wasm/wasi/corpus_assertion_preservation_test.go#TestBrokerLifecycleCorpusPreservesCreationCapacityIdentity": {
    "evidence": [
+    "go/go.temporal.io/server/tools/gomad/internal/model/wasi/TestBrokerLifecycleCorpusPreservesCreationCapacityIdentity",
     "rust/gomad_wasmhost/cluster::handoff::broker::tests::corpus::broker_lifecycle_scripts"
    ]
   },
   "tools/gomad/internal/backends/wasm/wasi/corpus_assertion_preservation_test.go#TestBrokerLifecycleCorpusPreservesIdleReturn": {
    "evidence": [
+    "go/go.temporal.io/server/tools/gomad/internal/model/wasi/TestBrokerLifecycleCorpusPreservesIdleReturn",
     "rust/gomad_wasmhost/cluster::handoff::broker::tests::corpus::broker_lifecycle_scripts"
    ]
   },
   "tools/gomad/internal/backends/wasm/wasi/corpus_assertion_preservation_test.go#TestNetworkClusterCorpusPreservesExactResourceExhaustion": {
    "evidence": [
+    "go/go.temporal.io/server/tools/gomad/internal/model/wasi/TestNetworkClusterCorpusPreservesExactResourceExhaustion",
     "rust/gomad_wasmhost/cluster::network::standalone::corpus::standalone_network_world_byte_bound_is_typed_and_preserves_the_rejected_world"
    ]
   },
   "tools/gomad/internal/backends/wasm/wasi/debug_output_test.go#TestDebugHeapProfileOpensInPprof": {
-   "retired": "Go-side formatting of helper debug records deleted with the Go host."
+   "evidence": [
+    "go/go.temporal.io/server/tools/gomad/internal/model/wasi/TestDebugHeapProfileOpensInPprof",
+    "rust/gomad_wasmhost/linked_inspection::predicate_tests::debug_heap_profile_keeps_rate_stack_and_inuse_sample"
+   ]
   },
   "tools/gomad/internal/backends/wasm/wasi/debug_output_test.go#TestDebugLibraryRecordsPreserveFailuresAndRawStrings": {
-   "retired": "Go-side formatting of helper debug records deleted with the Go host."
+   "evidence": [
+    "go/go.temporal.io/server/tools/gomad/internal/model/wasi/TestDebugLibraryRecordsPreserveFailuresAndRawStrings",
+    "rust/gomad_wasmhost/linked_inspection::predicate_tests::debug_library_records_preserve_failures_raw_strings_and_coordinates"
+   ]
   },
   "tools/gomad/internal/backends/wasm/wasi/determinism_boundary_test.go#TestDeterminismRefuseExecuteRequest": {
    "evidence": [
@@ -3183,55 +3199,84 @@
    ]
   },
   "tools/gomad/internal/backends/wasm/wasi/environment_test.go#TestCapacityIncludesCapturedStdinInFilesystemBudget": {
-   "retired": "Go WASI environment model deleted; the Rust model owner keeps the behaviour under model_preservation tests."
+   "evidence": [
+    "go/go.temporal.io/server/tools/gomad/internal/model/wasi/TestCapacityIncludesCapturedStdinInFilesystemBudget"
+   ]
   },
   "tools/gomad/internal/backends/wasm/wasi/environment_test.go#TestCapacityRejectsMutationAndBoundsAllGrowingState": {
-   "retired": "Go WASI environment model deleted; the Rust model owner keeps the behaviour under model_preservation tests."
+   "evidence": [
+    "go/go.temporal.io/server/tools/gomad/internal/model/wasi/TestCapacityRejectsMutationAndBoundsAllGrowingState"
+   ]
   },
   "tools/gomad/internal/backends/wasm/wasi/environment_test.go#TestCapturedArgumentsEnvironmentAndEntropy": {
    "evidence": [
+    "go/go.temporal.io/server/tools/gomad/internal/model/wasi/TestCapturedArgumentsEnvironmentAndEntropy",
     "rust/gomad_wasmhost/model_preservation::captured_arguments_environment_and_entropy_preserve_original_values_and_chunking"
    ]
   },
   "tools/gomad/internal/backends/wasm/wasi/environment_test.go#TestCapturedNamespaceAllowsStockReadOnlyOpenWithoutMutation": {
-   "retired": "Go WASI environment model deleted; the Rust model owner keeps the behaviour under model_preservation tests."
+   "evidence": [
+    "go/go.temporal.io/server/tools/gomad/internal/model/wasi/TestCapturedNamespaceAllowsStockReadOnlyOpenWithoutMutation"
+   ]
   },
   "tools/gomad/internal/backends/wasm/wasi/environment_test.go#TestCapturedNamespaceNeverReopensHostAndInfersAbsence": {
    "evidence": [
+    "go/go.temporal.io/server/tools/gomad/internal/model/wasi/TestCapturedNamespaceNeverReopensHostAndInfersAbsence",
     "rust/gomad_wasmhost/model_preservation::captured_namespace_owns_payload_and_infers_absence_without_host_access"
    ]
   },
   "tools/gomad/internal/backends/wasm/wasi/environment_test.go#TestCapturedNamespaceRejectsWritableDescendantAndAllowsAncestor": {
-   "retired": "Go WASI environment model deleted; the Rust model owner keeps the behaviour under model_preservation tests."
+   "evidence": [
+    "go/go.temporal.io/server/tools/gomad/internal/model/wasi/TestCapturedNamespaceRejectsWritableDescendantAndAllowsAncestor",
+    "rust/gomad/install::config::preservation_tests::writable_root_and_captured_overlap_are_refused_while_an_ancestor_is_allowed"
+   ]
   },
   "tools/gomad/internal/backends/wasm/wasi/environment_test.go#TestEnvironmentPreservesMultibyteConfigAndRawRuntimeFilenames": {
-   "retired": "Go WASI environment model deleted; the Rust model owner keeps the behaviour under model_preservation tests."
+   "evidence": [
+    "go/go.temporal.io/server/tools/gomad/internal/model/wasi/TestEnvironmentPreservesMultibyteConfigAndRawRuntimeFilenames"
+   ]
   },
   "tools/gomad/internal/backends/wasm/wasi/environment_test.go#TestEnvironmentRejectsAmbiguousInputsAndMalformedCalls": {
-   "retired": "Go WASI environment model deleted; the Rust model owner keeps the behaviour under model_preservation tests."
+   "evidence": [
+    "go/go.temporal.io/server/tools/gomad/internal/model/wasi/TestEnvironmentRejectsAmbiguousInputsAndMalformedCalls"
+   ]
   },
   "tools/gomad/internal/backends/wasm/wasi/environment_test.go#TestEnvironmentRejectsInvalidUTF8IdentityInputs": {
-   "retired": "Go WASI environment model deleted; the Rust model owner keeps the behaviour under model_preservation tests."
+   "evidence": [
+    "go/go.temporal.io/server/tools/gomad/internal/model/wasi/TestEnvironmentRejectsInvalidUTF8IdentityInputs"
+   ]
   },
   "tools/gomad/internal/backends/wasm/wasi/environment_test.go#TestEnvironmentRejectsWireFrameCapacityBeforeRecording": {
-   "retired": "Go WASI environment model deleted; the Rust model owner keeps the behaviour under model_preservation tests."
+   "evidence": [
+    "go/go.temporal.io/server/tools/gomad/internal/model/wasi/TestEnvironmentRejectsWireFrameCapacityBeforeRecording"
+   ]
   },
   "tools/gomad/internal/backends/wasm/wasi/environment_test.go#TestExploratoryClockAndPollDoNotUseWallTimeOrYieldTicks": {
-   "retired": "Go WASI environment model deleted; the Rust model owner keeps the behaviour under model_preservation tests."
+   "evidence": [
+    "go/go.temporal.io/server/tools/gomad/internal/model/wasi/TestExploratoryClockAndPollDoNotUseWallTimeOrYieldTicks",
+    "rust/gomad_wasmhost/model_preservation::exploratory_clock_and_mixed_poll_preserve_original_virtual_time_and_event_order"
+   ]
   },
   "tools/gomad/internal/backends/wasm/wasi/environment_test.go#TestNamespaceRenameRejectsMissingDirectoryDestinationWithoutMutation": {
-   "retired": "Go WASI environment model deleted; the Rust model owner keeps the behaviour under model_preservation tests."
+   "evidence": [
+    "go/go.temporal.io/server/tools/gomad/internal/model/wasi/TestNamespaceRenameRejectsMissingDirectoryDestinationWithoutMutation"
+   ]
   },
   "tools/gomad/internal/backends/wasm/wasi/environment_test.go#TestNamespaceRightsOffsetsDirectoryCookiesAndClosure": {
    "evidence": [
+    "go/go.temporal.io/server/tools/gomad/internal/model/wasi/TestNamespaceRightsOffsetsDirectoryCookiesAndClosure",
     "rust/gomad_wasmhost/model_preservation::namespace_rights_offsets_cookies_containment_and_closure_preserve_original_sequence"
    ]
   },
   "tools/gomad/internal/backends/wasm/wasi/environment_test.go#TestOfferedOutputChargesRejectedWritesAndEntropyBufferReservation": {
-   "retired": "Go WASI environment model deleted; the Rust model owner keeps the behaviour under model_preservation tests."
+   "evidence": [
+    "go/go.temporal.io/server/tools/gomad/internal/model/wasi/TestOfferedOutputChargesRejectedWritesAndEntropyBufferReservation"
+   ]
   },
   "tools/gomad/internal/backends/wasm/wasi/environment_test.go#TestPathOpenRequiresCreateRightAndPreservesDirectoryRequirement": {
-   "retired": "Go WASI environment model deleted; the Rust model owner keeps the behaviour under model_preservation tests."
+   "evidence": [
+    "go/go.temporal.io/server/tools/gomad/internal/model/wasi/TestPathOpenRequiresCreateRightAndPreservesDirectoryRequirement"
+   ]
   },
   "tools/gomad/internal/backends/wasm/wasi/event_order_test.go#TestClusterEventOrderAccessorIsDetached": {
    "evidence": [
@@ -3242,86 +3287,130 @@
    "retired": "Go accessor privacy of a Go result struct; Rust diagnostic roles are covered by diagnostic_roles tests."
   },
   "tools/gomad/internal/backends/wasm/wasi/helper_corpus_closed_refusal_test.go#TestHelperCorpusClosedClusterRefusalsSelectAffectedInstance": {
-   "retired": "Go bridge half of the helper transcript corpus; the Rust helper_corpus suite keeps the transcripts against the reference transport."
+   "evidence": [
+    "go/go.temporal.io/server/tools/gomad/internal/model/wasi/TestHelperCorpusClosedClusterRefusalsSelectAffectedInstance"
+   ]
   },
   "tools/gomad/internal/backends/wasm/wasi/helper_corpus_closed_refusal_test.go#TestHelperCorpusClosedNonnegativeCasesDoNotAcquireRefusalGuards": {
-   "retired": "Go bridge half of the helper transcript corpus; the Rust helper_corpus suite keeps the transcripts against the reference transport."
+   "evidence": [
+    "go/go.temporal.io/server/tools/gomad/internal/model/wasi/TestHelperCorpusClosedNonnegativeCasesDoNotAcquireRefusalGuards"
+   ]
   },
   "tools/gomad/internal/backends/wasm/wasi/helper_corpus_closed_refusal_test.go#TestHelperCorpusClosedRefusalBoundaries": {
-   "retired": "Go bridge half of the helper transcript corpus; the Rust helper_corpus suite keeps the transcripts against the reference transport."
+   "evidence": [
+    "go/go.temporal.io/server/tools/gomad/internal/model/wasi/TestHelperCorpusClosedRefusalBoundaries"
+   ]
   },
   "tools/gomad/internal/backends/wasm/wasi/helper_corpus_closed_refusal_test.go#TestHelperCorpusClosedRefusalsRejectWrongStage": {
-   "retired": "Go bridge half of the helper transcript corpus; the Rust helper_corpus suite keeps the transcripts against the reference transport."
+   "evidence": [
+    "go/go.temporal.io/server/tools/gomad/internal/model/wasi/TestHelperCorpusClosedRefusalsRejectWrongStage"
+   ]
   },
   "tools/gomad/internal/backends/wasm/wasi/helper_corpus_refusal_test.go#TestHelperCorpusAdmissionRefusalsRejectWrongStageMessages": {
-   "retired": "Go bridge half of the helper transcript corpus; the Rust helper_corpus suite keeps the transcripts against the reference transport."
+   "evidence": [
+    "go/go.temporal.io/server/tools/gomad/internal/model/wasi/TestHelperCorpusAdmissionRefusalsRejectWrongStageMessages"
+   ]
   },
   "tools/gomad/internal/backends/wasm/wasi/helper_corpus_refusal_test.go#TestHelperCorpusRefusalLiteralsRejectWrongStageMessages": {
    "evidence": [
+    "go/go.temporal.io/server/tools/gomad/internal/model/wasi/TestHelperCorpusRefusalLiteralsRejectWrongStageMessages",
     "rust/helper_corpus/model_refusal_literals_reject_wrong_stage_messages"
    ]
   },
   "tools/gomad/internal/backends/wasm/wasi/helper_corpus_refusal_test.go#TestHelperCorpusStorageUnknownFieldTermination": {
-   "retired": "Go bridge half of the helper transcript corpus; the Rust helper_corpus suite keeps the transcripts against the reference transport."
+   "evidence": [
+    "go/go.temporal.io/server/tools/gomad/internal/model/wasi/TestHelperCorpusStorageUnknownFieldTermination"
+   ]
   },
   "tools/gomad/internal/backends/wasm/wasi/helper_corpus_residual_test.go#TestHelperCorpusResidualLiteralGuards": {
-   "retired": "Go bridge half of the helper transcript corpus; the Rust helper_corpus suite keeps the transcripts against the reference transport."
+   "evidence": [
+    "go/go.temporal.io/server/tools/gomad/internal/model/wasi/TestHelperCorpusResidualLiteralGuards"
+   ]
   },
   "tools/gomad/internal/backends/wasm/wasi/helper_corpus_test.go#TestHelperCorpus": {
    "evidence": [
+    "go/go.temporal.io/server/tools/gomad/internal/model/wasi/TestHelperCorpus",
     "rust/helper_corpus/helper_transcript_corpus_reproduces_expected_outcomes"
    ]
   },
   "tools/gomad/internal/backends/wasm/wasi/helper_corpus_test.go#TestHelperCorpusInputFrames": {
-   "retired": "Go bridge half of the helper transcript corpus; the Rust helper_corpus suite keeps the transcripts against the reference transport."
+   "evidence": [
+    "go/go.temporal.io/server/tools/gomad/internal/model/wasi/TestHelperCorpusInputFrames"
+   ]
   },
   "tools/gomad/internal/backends/wasm/wasi/helper_corpus_test.go#TestHelperCorpusWriteRawLinesPreserveLiteralKeyOrderAndBytes": {
    "evidence": [
+    "go/go.temporal.io/server/tools/gomad/internal/model/wasi/TestHelperCorpusWriteRawLinesPreserveLiteralKeyOrderAndBytes",
     "rust/helper_corpus/write_callback_raw_lines_preserve_literal_key_order_and_bytes"
    ]
   },
   "tools/gomad/internal/backends/wasm/wasi/helper_corpus_wire_test.go#TestHelperCorpusRawWirePreservesDuplicateKeys": {
    "evidence": [
+    "go/go.temporal.io/server/tools/gomad/internal/model/wasi/TestHelperCorpusRawWirePreservesDuplicateKeys",
     "rust/helper_corpus/raw_wire_frames_preserve_duplicate_keys_without_accepting_extra_frames"
    ]
   },
   "tools/gomad/internal/backends/wasm/wasi/helper_corpus_wire_test.go#TestHelperCorpusRawWireRefusesExtraFrames": {
    "evidence": [
+    "go/go.temporal.io/server/tools/gomad/internal/model/wasi/TestHelperCorpusRawWireRefusesExtraFrames",
     "rust/helper_corpus/raw_wire_frames_preserve_duplicate_keys_without_accepting_extra_frames"
    ]
   },
   "tools/gomad/internal/backends/wasm/wasi/helper_model_divergence_test.go#TestHelperOrdinaryDivergenceDoesNotRequireInspection": {
-   "retired": "Go bridge to the helper model deleted; the Rust model owner is exercised directly."
+   "evidence": [
+    "go/go.temporal.io/server/tools/gomad/internal/model/wasi/TestHelperOrdinaryDivergenceDoesNotRequireInspection"
+   ]
   },
   "tools/gomad/internal/backends/wasm/wasi/helper_model_divergence_test.go#TestHelperRejectsUnsealedSuccessfulInspection": {
-   "retired": "Go bridge to the helper model deleted; the Rust model owner is exercised directly."
+   "evidence": [
+    "go/go.temporal.io/server/tools/gomad/internal/model/wasi/TestHelperRejectsUnsealedSuccessfulInspection"
+   ]
   },
   "tools/gomad/internal/backends/wasm/wasi/helper_model_test.go#TestCapturedEntropySharedGoldenVectors": {
-   "retired": "Go bridge to the helper model deleted; the Rust model owner is exercised directly."
+   "evidence": [
+    "go/go.temporal.io/server/tools/gomad/internal/model/wasi/TestCapturedEntropySharedGoldenVectors",
+    "rust/gomad_wasmhost/model::tests::captured_entropy_matches_shared_golden_vectors"
+   ]
   },
   "tools/gomad/internal/backends/wasm/wasi/helper_model_test.go#TestHelperBridgeModelLiteralPayloadAndState": {
-   "retired": "Go bridge to the helper model deleted; the Rust model owner is exercised directly."
+   "evidence": [
+    "go/go.temporal.io/server/tools/gomad/internal/model/wasi/TestHelperBridgeModelLiteralPayloadAndState"
+   ]
   },
   "tools/gomad/internal/backends/wasm/wasi/helper_model_test.go#TestHelperBridgeModelPreservesConcreteStorageCrashAndTransportInterrupt": {
-   "retired": "Go bridge to the helper model deleted; the Rust model owner is exercised directly."
+   "evidence": [
+    "go/go.temporal.io/server/tools/gomad/internal/model/wasi/TestHelperBridgeModelPreservesConcreteStorageCrashAndTransportInterrupt"
+   ]
   },
   "tools/gomad/internal/backends/wasm/wasi/helper_model_test.go#TestHelperBridgeModelRejectsStateBeforeMutationAndKeepsOperationError": {
-   "retired": "Go bridge to the helper model deleted; the Rust model owner is exercised directly."
+   "evidence": [
+    "go/go.temporal.io/server/tools/gomad/internal/model/wasi/TestHelperBridgeModelRejectsStateBeforeMutationAndKeepsOperationError"
+   ]
   },
   "tools/gomad/internal/backends/wasm/wasi/helper_model_test.go#TestHelperBridgeModelRejectsStateBeforeMutationAndKeepsOperationError@17666/operation-error-after-state-adoption": {
-   "retired": "Go bridge to the helper model deleted; the Rust model owner is exercised directly."
+   "evidence": [
+    "go/go.temporal.io/server/tools/gomad/internal/model/wasi/TestHelperBridgeModelRejectsStateBeforeMutationAndKeepsOperationError/operation-error-after-state-adoption"
+   ]
   },
   "tools/gomad/internal/backends/wasm/wasi/helper_model_test.go#TestHelperBridgeReplayTraceFrameBoundary": {
-   "retired": "Go bridge to the helper model deleted; the Rust model owner is exercised directly."
+   "evidence": [
+    "go/go.temporal.io/server/tools/gomad/internal/model/wasi/TestHelperBridgeReplayTraceFrameBoundary"
+   ]
   },
   "tools/gomad/internal/backends/wasm/wasi/helper_model_test.go#TestHelperBridgeSplitOutputStateAdmission": {
-   "retired": "Go bridge to the helper model deleted; the Rust model owner is exercised directly."
+   "evidence": [
+    "go/go.temporal.io/server/tools/gomad/internal/model/wasi/TestHelperBridgeSplitOutputStateAdmission"
+   ]
   },
   "tools/gomad/internal/backends/wasm/wasi/helper_model_test.go#TestHelperBridgeTransportChunkOrderAndWriteErrorPrecedence": {
-   "retired": "Go bridge to the helper model deleted; the Rust model owner is exercised directly."
+   "evidence": [
+    "go/go.temporal.io/server/tools/gomad/internal/model/wasi/TestHelperBridgeTransportChunkOrderAndWriteErrorPrecedence"
+   ]
   },
   "tools/gomad/internal/backends/wasm/wasi/helper_model_test.go#TestHelperInputCarriageLiteralAndMaximumFragmentation": {
-   "retired": "Go bridge to the helper model deleted; the Rust model owner is exercised directly."
+   "evidence": [
+    "go/go.temporal.io/server/tools/gomad/internal/model/wasi/TestHelperInputCarriageLiteralAndMaximumFragmentation"
+   ]
   },
   "tools/gomad/internal/backends/wasm/wasi/helper_model_test.go#TestHelperModelCapturedInputBoundaryParity": {
    "retired": "Go bridge to the helper model deleted; the Rust model owner is exercised directly."
@@ -3331,32 +3420,42 @@
   },
   "tools/gomad/internal/backends/wasm/wasi/helper_model_test.go#TestHelperModelRejectsRetiredNetworkEvidence": {
    "evidence": [
+    "go/go.temporal.io/server/tools/gomad/internal/model/wasi/TestHelperModelRejectsRetiredNetworkEvidence",
     "rust/gomad_wasmhost/model_preservation::network_v2_rejects_original_retired_profile_before_state_construction"
    ]
   },
   "tools/gomad/internal/backends/wasm/wasi/helper_model_test.go#TestHostileHelperCallbackReplyLeavesEnvironmentByteIdentical": {
-   "retired": "Go bridge to the helper model deleted; the Rust model owner is exercised directly."
+   "evidence": [
+    "go/go.temporal.io/server/tools/gomad/internal/model/wasi/TestHostileHelperCallbackReplyLeavesEnvironmentByteIdentical"
+   ]
   },
   "tools/gomad/internal/backends/wasm/wasi/helper_profile_stderr_capture_test.go#TestHelperCorpusRejectsLLVMProfileStderrOnSuccessfulExit": {
-   "retired": "Go capture of a separate helper process stderr; the linked helper has no child stderr stream."
+   "evidence": [
+    "go/go.temporal.io/server/tools/gomad/internal/model/wasi/TestHelperCorpusRejectsLLVMProfileStderrOnSuccessfulExit",
+    "rust/engine/profile_stderr::llvm_profile_diagnostics_are_rejected"
+   ]
   },
   "tools/gomad/internal/backends/wasm/wasi/identity_test.go#TestImplementationIdentityBindsCompiledModelDigest": {
    "evidence": [
+    "go/go.temporal.io/server/tools/gomad/internal/model/wasi/TestImplementationIdentityBindsCompiledModelDigest",
     "stage/cluster-functional/TestImplementationIdentityBindsCompiledModelDigest"
    ]
   },
   "tools/gomad/internal/backends/wasm/wasi/identity_test.go#TestImplementationIdentityBindsStorageEvidenceSources": {
    "evidence": [
+    "go/go.temporal.io/server/tools/gomad/internal/model/wasi/TestImplementationIdentityBindsStorageEvidenceSources",
     "stage/cluster-functional/TestImplementationIdentityBindsStorageEvidenceSources"
    ]
   },
   "tools/gomad/internal/backends/wasm/wasi/identity_test.go#TestImplementationIdentityBindsStrictJSONOwner": {
    "evidence": [
+    "go/go.temporal.io/server/tools/gomad/internal/model/wasi/TestImplementationIdentityBindsStrictJSONOwner",
     "stage/cluster-functional/TestImplementationIdentityBindsStrictJSONOwner"
    ]
   },
   "tools/gomad/internal/backends/wasm/wasi/identity_test.go#TestImplementationIdentityFailsClosedOnMissingSource": {
    "evidence": [
+    "go/go.temporal.io/server/tools/gomad/internal/model/wasi/TestImplementationIdentityFailsClosedOnMissingSource",
     "stage/cluster-functional/TestImplementationIdentityFailsClosedOnMissingSource"
    ]
   },
@@ -3869,140 +3968,150 @@
   },
   "tools/gomad/internal/backends/wasm/wasi/namespace_host_adapter_conformance_test.go#TestNamespaceHostAdapterConformanceCorpus": {
    "evidence": [
+    "go/go.temporal.io/server/tools/gomad/internal/model/wasi/TestNamespaceHostAdapterConformanceCorpus",
     "rust/gomad_wasmhost/conformance::tests::namespace_wire_conformance_corpus"
    ]
   },
   "tools/gomad/internal/backends/wasm/wasi/namespace_host_adapter_conformance_test.go#TestNamespacePublicCorpusRejectsChangedExpectedBytes": {
    "evidence": [
+    "go/go.temporal.io/server/tools/gomad/internal/model/wasi/TestNamespacePublicCorpusRejectsChangedExpectedBytes",
     "rust/helper_corpus/helper_transcript_corpus_reproduces_expected_outcomes"
    ]
   },
   "tools/gomad/internal/backends/wasm/wasi/namespace_image_conformance_test.go#TestNamespaceImageConformanceCorpus": {
    "evidence": [
+    "go/go.temporal.io/server/tools/gomad/internal/model/wasi/TestNamespaceImageConformanceCorpus",
     "rust/gomad_wasmhost/conformance::tests::namespace_image_conformance_corpus"
    ]
   },
   "tools/gomad/internal/backends/wasm/wasi/namespace_image_test.go#TestNamespaceImageCanonicalCreationOrderAndFragmentation": {
-   "basis": "weak name correlation within the owning domain; confirm in review",
    "evidence": [
-    "rust/gomad_wasmhost/network::tests::inspection_lane_chains_preserve_canonical_order_and_bind_every_transition"
+    "go/go.temporal.io/server/tools/gomad/internal/model/wasi/TestNamespaceImageCanonicalCreationOrderAndFragmentation"
    ]
   },
   "tools/gomad/internal/backends/wasm/wasi/namespace_image_test.go#TestNamespaceImageCapturedOwnershipAndPreflightPriority": {
-   "basis": "weak name correlation within the owning domain; confirm in review",
    "evidence": [
-    "rust/helper_corpus/namespace_ownership_literal_rejects_wrong_admission_stage"
+    "go/go.temporal.io/server/tools/gomad/internal/model/wasi/TestNamespaceImageCapturedOwnershipAndPreflightPriority"
    ]
   },
   "tools/gomad/internal/backends/wasm/wasi/namespace_image_test.go#TestNamespaceImageCarriageFollowsAuthorizationAndReplay": {
-   "basis": "weak name correlation within the owning domain; confirm in review",
    "evidence": [
-    "rust/gomad_wasmhost/volume::image::tests::decoding_keeps_durable_payloads_without_constructing_discarded_namespace_nodes"
+    "go/go.temporal.io/server/tools/gomad/internal/model/wasi/TestNamespaceImageCarriageFollowsAuthorizationAndReplay"
    ]
   },
   "tools/gomad/internal/backends/wasm/wasi/namespace_image_test.go#TestNamespaceImageLiteralAndWritableRootRefusal": {
-   "basis": "weak name correlation within the owning domain; confirm in review",
    "evidence": [
-    "rust/gomad_wasmhost/volume::image::tests::decoding_keeps_durable_payloads_without_constructing_discarded_namespace_nodes"
+    "go/go.temporal.io/server/tools/gomad/internal/model/wasi/TestNamespaceImageLiteralAndWritableRootRefusal",
+    "rust/gomad/install::config::preservation_tests::writable_root_and_captured_overlap_are_refused_while_an_ancestor_is_allowed"
    ]
   },
   "tools/gomad/internal/backends/wasm/wasi/namespace_image_test.go#TestNamespaceImagePreInstantiationInvalidReceipt": {
    "evidence": [
+    "go/go.temporal.io/server/tools/gomad/internal/model/wasi/TestNamespaceImagePreInstantiationInvalidReceipt",
     "rust/core_runtime_preservation/native_preparation_refuses_invalid_inputs_before_guest_instantiation"
    ]
   },
   "tools/gomad/internal/backends/wasm/wasi/namespace_image_test.go#TestNamespaceImagePreservesMetadataAndWriterRefusals": {
-   "basis": "weak name correlation within the owning domain; confirm in review",
    "evidence": [
-    "rust/gomad_wasmhost/linked_cluster::live_controller_tests::lifecycle_predicate_tests::synchronous_observer_cancellation_preserves_before_and_after_refusals"
+    "go/go.temporal.io/server/tools/gomad/internal/model/wasi/TestNamespaceImagePreservesMetadataAndWriterRefusals"
    ]
   },
   "tools/gomad/internal/backends/wasm/wasi/namespace_test.go#TestNamespaceConformanceCorpus": {
    "evidence": [
+    "go/go.temporal.io/server/tools/gomad/internal/model/wasi/TestNamespaceConformanceCorpus",
     "stage/ordinary/TestNamespaceConformanceCorpus"
    ]
   },
   "tools/gomad/internal/backends/wasm/wasi/namespace_test.go#TestNamespaceFilesystemCounterResultDoesNotAliasModel": {
-   "basis": "weak name correlation within the owning domain; confirm in review",
    "evidence": [
-    "rust/gomad/measurement::namespace::tests::missing_actual_counter_blocks_instead_of_inventing_empty_external_calls"
+    "go/go.temporal.io/server/tools/gomad/internal/model/wasi/TestNamespaceFilesystemCounterResultDoesNotAliasModel"
    ]
   },
   "tools/gomad/internal/backends/wasm/wasi/namespace_test.go#TestNamespaceHelperOutputRefusesInconsistentOwnership": {
    "evidence": [
+    "go/go.temporal.io/server/tools/gomad/internal/model/wasi/TestNamespaceHelperOutputRefusesInconsistentOwnership",
     "rust/helper_corpus/namespace_ownership_literal_rejects_wrong_admission_stage"
    ]
   },
   "tools/gomad/internal/backends/wasm/wasi/namespace_test.go#TestNamespaceOwnedCallbackRefusedBeforeAdoptingRemoteState": {
-   "basis": "weak name correlation within the owning domain; confirm in review",
    "evidence": [
-    "rust/helper_corpus/max_buffer_literals_reject_wrong_callback_identity_and_local_state"
+    "go/go.temporal.io/server/tools/gomad/internal/model/wasi/TestNamespaceOwnedCallbackRefusedBeforeAdoptingRemoteState"
    ]
   },
   "tools/gomad/internal/backends/wasm/wasi/namespace_test.go#TestNamespacePartialEvidenceResultDoesNotAliasTransport": {
    "evidence": [
+    "go/go.temporal.io/server/tools/gomad/internal/model/wasi/TestNamespacePartialEvidenceResultDoesNotAliasTransport",
     "rust/gomad_wasmhost/namespace::transport::tests::descriptor_validation_does_not_allocate_declared_bytes"
    ]
   },
   "tools/gomad/internal/backends/wasm/wasi/namespace_test.go#TestNamespaceUnsupportedTranscriptAdmissionCounters": {
    "evidence": [
+    "go/go.temporal.io/server/tools/gomad/internal/model/wasi/TestNamespaceUnsupportedTranscriptAdmissionCounters",
     "rust/gomad_wasmhost/model::tests::namespace_unsupported_exact_bounds_preserve_message_bytes_and_ids"
    ]
   },
   "tools/gomad/internal/backends/wasm/wasi/namespace_test.go#TestNamespaceUnsupportedTranscriptExactAdmissionCounters": {
    "evidence": [
+    "go/go.temporal.io/server/tools/gomad/internal/model/wasi/TestNamespaceUnsupportedTranscriptExactAdmissionCounters",
     "rust/gomad_wasmhost/model::tests::namespace_unsupported_exact_bounds_preserve_message_bytes_and_ids"
    ]
   },
   "tools/gomad/internal/backends/wasm/wasi/namespace_transcript_conformance_test.go#TestNamespaceTranscriptConformanceCorpus": {
    "evidence": [
+    "go/go.temporal.io/server/tools/gomad/internal/model/wasi/TestNamespaceTranscriptConformanceCorpus",
     "rust/gomad_wasmhost/conformance::tests::namespace_wire_conformance_corpus"
    ]
   },
   "tools/gomad/internal/backends/wasm/wasi/namespace_transcript_public_conformance_test.go#TestNamespacePublicTranscriptRejectsChangedExpectedBytes": {
    "evidence": [
+    "go/go.temporal.io/server/tools/gomad/internal/model/wasi/TestNamespacePublicTranscriptRejectsChangedExpectedBytes",
     "rust/helper_corpus/helper_transcript_corpus_reproduces_expected_outcomes"
    ]
   },
   "tools/gomad/internal/backends/wasm/wasi/namespace_transcript_reservation_test.go#TestNamespaceTranscriptReservationRejectsChangedNormalBytes": {
-   "basis": "weak name correlation within the owning domain; confirm in review",
    "evidence": [
-    "rust/gomad/qualify::workloads::tests::storage_state_authenticates_sections_and_rejects_trailing_or_changed_bytes"
+    "go/go.temporal.io/server/tools/gomad/internal/model/wasi/TestNamespaceTranscriptReservationRejectsChangedNormalBytes"
    ]
   },
   "tools/gomad/internal/backends/wasm/wasi/namespace_wire_conformance_test.go#TestNamespaceWireConformanceCorpus": {
    "evidence": [
+    "go/go.temporal.io/server/tools/gomad/internal/model/wasi/TestNamespaceWireConformanceCorpus",
     "rust/gomad_wasmhost/conformance::tests::namespace_wire_conformance_corpus"
    ]
   },
   "tools/gomad/internal/backends/wasm/wasi/network_adapter_corpus_test.go#TestNetworkAdapterCorpus": {
    "evidence": [
+    "go/go.temporal.io/server/tools/gomad/internal/model/wasi/TestNetworkAdapterCorpus",
     "rust/gomad_wasmhost/cluster::network::standalone::corpus::go_standalone_network_adapter_corpus"
    ]
   },
   "tools/gomad/internal/backends/wasm/wasi/network_adapter_corpus_test.go#TestNetworkAdapterCorpusIsCurrent": {
    "evidence": [
+    "go/go.temporal.io/server/tools/gomad/internal/model/wasi/TestNetworkAdapterCorpusIsCurrent",
     "rust/gomad_wasmhost/cluster::network::standalone::corpus::go_standalone_network_adapter_corpus"
    ]
   },
   "tools/gomad/internal/backends/wasm/wasi/network_adapter_corpus_test.go#TestNetworkAdapterRuntimeIdleCallbackVersionAndDeadline": {
-   "basis": "weak name correlation within the owning domain; confirm in review",
    "evidence": [
+    "go/go.temporal.io/server/tools/gomad/internal/model/wasi/TestNetworkAdapterRuntimeIdleCallbackVersionAndDeadline",
     "rust/gomad_wasmhost/cluster::network::standalone::corpus::go_standalone_network_adapter_corpus"
    ]
   },
   "tools/gomad/internal/backends/wasm/wasi/network_cluster_corpus_test.go#TestNetworkClusterCorpus": {
    "evidence": [
+    "go/go.temporal.io/server/tools/gomad/internal/model/wasi/TestNetworkClusterCorpus",
     "rust/gomad_wasmhost/cluster::network::standalone::corpus::standalone_network_world_byte_bound_is_typed_and_preserves_the_rejected_world"
    ]
   },
   "tools/gomad/internal/backends/wasm/wasi/network_cluster_corpus_test.go#TestNetworkClusterCorpusIsCurrent": {
    "evidence": [
+    "go/go.temporal.io/server/tools/gomad/internal/model/wasi/TestNetworkClusterCorpusIsCurrent",
     "rust/gomad_wasmhost/cluster::network::standalone::corpus::standalone_network_world_byte_bound_is_typed_and_preserves_the_rejected_world"
    ]
   },
   "tools/gomad/internal/backends/wasm/wasi/network_v2_test.go#TestNetworkV2StateRejectsInvalidProfile": {
    "evidence": [
+    "go/go.temporal.io/server/tools/gomad/internal/model/wasi/TestNetworkV2StateRejectsInvalidProfile",
     "rust/gomad_wasmhost/model_preservation::network_v2_rejects_original_retired_profile_before_state_construction"
    ]
   },
@@ -4112,19 +4221,29 @@
    "retired": "Go-to-helper subprocess transport and frame pumping were deleted with the Go host; the Rust host links the helper in-process."
   },
   "tools/gomad/internal/backends/wasm/wasi/protocol_test.go#TestPublicCallRevalidatesChangedInput": {
-   "retired": "Go-side validation of helper protocol frames was deleted with the Go host; the linked helper has no subprocess wire."
+   "evidence": [
+    "go/go.temporal.io/server/tools/gomad/internal/model/wasi/TestPublicCallRevalidatesChangedInput"
+   ]
   },
   "tools/gomad/internal/backends/wasm/wasi/protocol_test.go#TestTransportInputValidationPrecedenceAndMutation": {
-   "retired": "Go-side validation of helper protocol frames was deleted with the Go host; the linked helper has no subprocess wire."
+   "evidence": [
+    "go/go.temporal.io/server/tools/gomad/internal/model/wasi/TestTransportInputValidationPrecedenceAndMutation"
+   ]
   },
   "tools/gomad/internal/backends/wasm/wasi/protocol_test.go#TestValidatedFrameOwnsBytesAndOperationIsLazy": {
-   "retired": "Go-side validation of helper protocol frames was deleted with the Go host; the linked helper has no subprocess wire."
+   "evidence": [
+    "go/go.temporal.io/server/tools/gomad/internal/model/wasi/TestValidatedFrameOwnsBytesAndOperationIsLazy"
+   ]
   },
   "tools/gomad/internal/backends/wasm/wasi/protocol_test.go#TestValidatedFrameRejectsInvalidUTF8": {
-   "retired": "Go-side validation of helper protocol frames was deleted with the Go host; the linked helper has no subprocess wire."
+   "evidence": [
+    "go/go.temporal.io/server/tools/gomad/internal/model/wasi/TestValidatedFrameRejectsInvalidUTF8"
+   ]
   },
   "tools/gomad/internal/backends/wasm/wasi/protocol_test.go#TestValidatedNamespaceMatchesPublicReference": {
-   "retired": "Go-side validation of helper protocol frames was deleted with the Go host; the linked helper has no subprocess wire."
+   "evidence": [
+    "go/go.temporal.io/server/tools/gomad/internal/model/wasi/TestValidatedNamespaceMatchesPublicReference"
+   ]
   },
   "tools/gomad/internal/backends/wasm/wasi/replay_preflight_test.go#TestHelperInputTapeAttestsNextExpected": {
    "basis": "weak name correlation within the owning domain; confirm in review",
@@ -4133,31 +4252,56 @@
    ]
   },
   "tools/gomad/internal/backends/wasm/wasi/runtime_test.go#TestCooperativeEnvironmentSeparatesRuntimeControlFromWASIObservations": {
-   "retired": "Go runtime transport header parsing deleted; runtime replay is covered by model runtime_preservation tests."
+   "evidence": [
+    "go/go.temporal.io/server/tools/gomad/internal/model/wasi/TestCooperativeEnvironmentSeparatesRuntimeControlFromWASIObservations"
+   ]
   },
   "tools/gomad/internal/backends/wasm/wasi/runtime_test.go#TestCooperativeFrozenClockPreservesStartupAndStockPolicy": {
-   "retired": "Go runtime transport header parsing deleted; runtime replay is covered by model runtime_preservation tests."
+   "evidence": [
+    "go/go.temporal.io/server/tools/gomad/internal/model/wasi/TestCooperativeFrozenClockPreservesStartupAndStockPolicy"
+   ]
   },
   "tools/gomad/internal/backends/wasm/wasi/runtime_test.go#TestRuntimeDecisionRefusesMalformedHeaderV2Layouts": {
-   "retired": "Go runtime transport header parsing deleted; runtime replay is covered by model runtime_preservation tests."
+   "evidence": [
+    "go/go.temporal.io/server/tools/gomad/internal/model/wasi/TestRuntimeDecisionRefusesMalformedHeaderV2Layouts",
+    "rust/gomad_wasmhost/model::tests::runtime_decision_refuses_malformed_header_v2_layouts_without_recording"
+   ]
   },
   "tools/gomad/internal/backends/wasm/wasi/runtime_test.go#TestRuntimeDecisionRefusesMalformedHeaderV2Layouts@15376/valid": {
-   "retired": "Go runtime transport header parsing deleted; runtime replay is covered by model runtime_preservation tests."
+   "evidence": [
+    "go/go.temporal.io/server/tools/gomad/internal/model/wasi/TestRuntimeDecisionRefusesMalformedHeaderV2Layouts/valid",
+    "rust/gomad_wasmhost/model::tests::runtime_decision_refuses_malformed_header_v2_layouts_without_recording"
+   ]
   },
   "tools/gomad/internal/backends/wasm/wasi/runtime_test.go#TestRuntimeDecisionRefusesMalformedHeaderV2Layouts@16074/capacity-counts-creation-records": {
-   "retired": "Go runtime transport header parsing deleted; runtime replay is covered by model runtime_preservation tests."
+   "evidence": [
+    "go/go.temporal.io/server/tools/gomad/internal/model/wasi/TestRuntimeDecisionRefusesMalformedHeaderV2Layouts/capacity-counts-creation-records",
+    "rust/gomad_wasmhost/model::tests::runtime_decision_refuses_malformed_header_v2_layouts_without_recording"
+   ]
   },
   "tools/gomad/internal/backends/wasm/wasi/runtime_test.go#TestRuntimeHeaderV2CreationSitesMatchHelperGoldenAndReplayExactly": {
-   "retired": "Go runtime transport header parsing deleted; runtime replay is covered by model runtime_preservation tests."
+   "evidence": [
+    "go/go.temporal.io/server/tools/gomad/internal/model/wasi/TestRuntimeHeaderV2CreationSitesMatchHelperGoldenAndReplayExactly",
+    "rust/gomad_wasmhost/model::tests::runtime_creation_sites_preserve_alternative_identities_and_exact_replay"
+   ]
   },
   "tools/gomad/internal/backends/wasm/wasi/runtime_test.go#TestRuntimeHeaderV2CreationSitesMatchHelperGoldenAndReplayExactly@11598/exact-replay": {
-   "retired": "Go runtime transport header parsing deleted; runtime replay is covered by model runtime_preservation tests."
+   "evidence": [
+    "go/go.temporal.io/server/tools/gomad/internal/model/wasi/TestRuntimeHeaderV2CreationSitesMatchHelperGoldenAndReplayExactly/exact-replay",
+    "rust/gomad_wasmhost/model::tests::runtime_creation_sites_preserve_alternative_identities_and_exact_replay"
+   ]
   },
   "tools/gomad/internal/backends/wasm/wasi/runtime_test.go#TestRuntimeHeaderV2CreationSitesMatchHelperGoldenAndReplayExactly@12046/diagnostics-follow-trace-ordinals": {
-   "retired": "Go runtime transport header parsing deleted; runtime replay is covered by model runtime_preservation tests."
+   "evidence": [
+    "go/go.temporal.io/server/tools/gomad/internal/model/wasi/TestRuntimeHeaderV2CreationSitesMatchHelperGoldenAndReplayExactly/diagnostics-follow-trace-ordinals",
+    "rust/gomad_wasmhost/model::tests::runtime_creation_diagnostics_keep_trace_ordinals"
+   ]
   },
   "tools/gomad/internal/backends/wasm/wasi/runtime_test.go#TestRuntimeTransportForcesLogicalAlternativesAndConsumesWholeTape": {
-   "retired": "Go runtime transport header parsing deleted; runtime replay is covered by model runtime_preservation tests."
+   "evidence": [
+    "go/go.temporal.io/server/tools/gomad/internal/model/wasi/TestRuntimeTransportForcesLogicalAlternativesAndConsumesWholeTape",
+    "rust/gomad_wasmhost/model::runtime_preservation::runtime_replay_forces_logical_identity_and_refuses_each_original_boundary_mismatch"
+   ]
   },
   "tools/gomad/internal/backends/wasm/wasi/storage_evidence_test.go#TestStorageEvidenceEscapedMetadataOwnerParity": {
    "evidence": [
@@ -4222,6 +4366,7 @@
   },
   "tools/gomad/internal/backends/wasm/wasi/storage_selection_order_corpus_test.go#TestStorageCrashValidationOrderCorpus": {
    "evidence": [
+    "go/go.temporal.io/server/tools/gomad/internal/model/wasi/TestStorageCrashValidationOrderCorpus",
     "stage/cluster-functional/TestStorageCrashValidationOrderCorpus"
    ]
   },
@@ -4232,21 +4377,25 @@
   },
   "tools/gomad/internal/backends/wasm/wasi/storage_selection_test.go#TestStorageCrashContextAdmission": {
    "evidence": [
+    "go/go.temporal.io/server/tools/gomad/internal/model/wasi/TestStorageCrashContextAdmission",
     "stage/cluster-functional/TestStorageCrashContextAdmission"
    ]
   },
   "tools/gomad/internal/backends/wasm/wasi/storage_selection_test.go#TestStorageCrashContextEqualIsExact": {
    "evidence": [
+    "go/go.temporal.io/server/tools/gomad/internal/model/wasi/TestStorageCrashContextEqualIsExact",
     "stage/cluster-functional/TestStorageCrashContextEqualIsExact"
    ]
   },
   "tools/gomad/internal/backends/wasm/wasi/storage_selection_test.go#TestStorageCrashContextEvidenceRefusal": {
    "evidence": [
+    "go/go.temporal.io/server/tools/gomad/internal/model/wasi/TestStorageCrashContextEvidenceRefusal",
     "stage/cluster-functional/TestStorageCrashContextEvidenceRefusal"
    ]
   },
   "tools/gomad/internal/backends/wasm/wasi/storage_selection_test.go#TestStorageCrashContextLargeChunkTransport": {
    "evidence": [
+    "go/go.temporal.io/server/tools/gomad/internal/model/wasi/TestStorageCrashContextLargeChunkTransport",
     "stage/cluster-functional/TestStorageCrashContextLargeChunkTransport"
    ]
   },
@@ -4262,6 +4411,7 @@
   },
   "tools/gomad/internal/backends/wasm/wasi/storage_selection_test.go#TestStorageCrashValidationVolumeOrder": {
    "evidence": [
+    "go/go.temporal.io/server/tools/gomad/internal/model/wasi/TestStorageCrashValidationVolumeOrder",
     "stage/cluster-functional/TestStorageCrashValidationVolumeOrder"
    ]
   },
@@ -4289,79 +4439,92 @@
    ]
   },
   "tools/gomad/internal/backends/wasm/wasi/temporal_test.go#TestTemporalConfigPoliciesPreserveCompleteBytes": {
-   "retired": "Go Temporal config byte preservation of deleted Go config types; Rust install::config temporal_policy tests own the policy bytes."
+   "evidence": [
+    "go/go.temporal.io/server/tools/gomad/internal/model/wasi/TestTemporalConfigPoliciesPreserveCompleteBytes"
+   ]
   },
   "tools/gomad/internal/backends/wasm/wasi/temporal_test.go#TestTemporalConfigPreservesPrototypeBytes": {
    "evidence": [
+    "go/go.temporal.io/server/tools/gomad/internal/model/wasi/TestTemporalConfigPreservesPrototypeBytes",
     "rust/gomad/measurement::module::tests::prototype_temporal_configuration_preserves_complete_capture"
    ]
   },
   "tools/gomad/internal/backends/wasm/wasi/transcript_test.go#TestTranscriptClockRunChargesCapacityOnce": {
    "evidence": [
+    "go/go.temporal.io/server/tools/gomad/internal/model/wasi/TestTranscriptClockRunChargesCapacityOnce",
     "rust/gomad_wasmhost/model_preservation::transcript_clock_run_retains_original_51_52_byte_capacity_boundary"
    ]
   },
   "tools/gomad/internal/backends/wasm/wasi/transcript_test.go#TestTranscriptClockRunDecoderBoundsCountsAndPositions": {
-   "basis": "weak name correlation within the owning domain; confirm in review",
    "evidence": [
+    "go/go.temporal.io/server/tools/gomad/internal/model/wasi/TestTranscriptClockRunDecoderBoundsCountsAndPositions",
+    "rust/gomad/measurement::operations::tests::clock_fold_prevents_reuse_and_oversize_count",
     "rust/gomad_wasmhost/transcript::tests::clock_run_rejects_folding_count_and_id_overflow"
    ]
   },
   "tools/gomad/internal/backends/wasm/wasi/transcript_test.go#TestTranscriptClockRunDigestBindsFrozenCountsKeysAndPositions": {
-   "basis": "weak name correlation within the owning domain; confirm in review",
    "evidence": [
+    "go/go.temporal.io/server/tools/gomad/internal/model/wasi/TestTranscriptClockRunDigestBindsFrozenCountsKeysAndPositions",
+    "rust/gomad_wasmhost/model::tests::pending_clock_inspection_preserves_run_and_digest",
     "rust/gomad_wasmhost/model_preservation::transcript_clock_run_preserves_original_literal_digest_modes_and_pending_inspection"
    ]
   },
   "tools/gomad/internal/backends/wasm/wasi/transcript_test.go#TestTranscriptClockRunFoldsAndPreservesDigestModes": {
    "evidence": [
+    "go/go.temporal.io/server/tools/gomad/internal/model/wasi/TestTranscriptClockRunFoldsAndPreservesDigestModes",
     "rust/gomad_wasmhost/model_preservation::transcript_clock_run_preserves_original_literal_digest_modes_and_pending_inspection"
    ]
   },
   "tools/gomad/internal/backends/wasm/wasi/transcript_test.go#TestTranscriptDecoderRejectsMalformedRecords": {
    "evidence": [
+    "go/go.temporal.io/server/tools/gomad/internal/model/wasi/TestTranscriptDecoderRejectsMalformedRecords",
     "rust/gomad_wasmhost/cluster::network::evidence::decode::tests::cluster_network_decoder_refuses_malformed_evidence"
    ]
   },
   "tools/gomad/internal/backends/wasm/wasi/transcript_test.go#TestTranscriptEmptyOperationPreservesUnsupportedRecord": {
-   "basis": "weak name correlation within the owning domain; confirm in review",
    "evidence": [
-    "rust/gomad_wasmhost/storage_transport::preservation_tests::original_crash_context_equality_preserves_every_operation_field_and_null_shape"
+    "go/go.temporal.io/server/tools/gomad/internal/model/wasi/TestTranscriptEmptyOperationPreservesUnsupportedRecord"
    ]
   },
   "tools/gomad/internal/backends/wasm/wasi/transcript_test.go#TestTranscriptRejectedOperationKeepsExactValidatedInput": {
-   "basis": "manual mapping by worker A; confirm in review",
    "evidence": [
+    "go/go.temporal.io/server/tools/gomad/internal/model/wasi/TestTranscriptRejectedOperationKeepsExactValidatedInput",
     "rust/gomad/measurement::evidence::tests::unsupported_native_operations_preserve_typed_input_and_reason"
    ]
   },
   "tools/gomad/internal/backends/wasm/wasi/transcript_test.go#TestTranscriptUsesVersionedBinaryRecords": {
    "evidence": [
+    "go/go.temporal.io/server/tools/gomad/internal/model/wasi/TestTranscriptUsesVersionedBinaryRecords",
     "rust/gomad_wasmhost/model_preservation::namespace_sync_emits_original_versioned_binary_transcript"
    ]
   },
   "tools/gomad/internal/backends/wasm/wasi/volume_conformance_boundary_test.go#TestVolumeRecoveredConstructorCorpus": {
    "evidence": [
+    "go/go.temporal.io/server/tools/gomad/internal/model/wasi/TestVolumeRecoveredConstructorCorpus",
     "rust/gomad_wasmhost/namespace::tests::constructor_checks_preopen_capacity_below_public_minimum"
    ]
   },
   "tools/gomad/internal/backends/wasm/wasi/volume_conformance_boundary_test.go#TestVolumeStorageCollectionCorpus": {
    "evidence": [
+    "go/go.temporal.io/server/tools/gomad/internal/model/wasi/TestVolumeStorageCollectionCorpus",
     "rust/gomad_wasmhost/volume::image::tests::go_generated_image_identity_corpus"
    ]
   },
   "tools/gomad/internal/backends/wasm/wasi/volume_conformance_boundary_test.go#TestVolumeStorageEnvelopeCorpus": {
    "evidence": [
+    "go/go.temporal.io/server/tools/gomad/internal/model/wasi/TestVolumeStorageEnvelopeCorpus",
     "rust/gomad_wasmhost/volume::image::tests::go_generated_image_identity_corpus"
    ]
   },
   "tools/gomad/internal/backends/wasm/wasi/volume_conformance_boundary_test.go#TestVolumeStorageRunAdmissionCorpus": {
    "evidence": [
+    "go/go.temporal.io/server/tools/gomad/internal/model/wasi/TestVolumeStorageRunAdmissionCorpus",
     "rust/gomad_wasmhost/volume::image::tests::go_generated_image_admission_corpus"
    ]
   },
   "tools/gomad/internal/backends/wasm/wasi/volume_conformance_cases_test.go#TestVolumeConformanceMigrationContracts": {
    "evidence": [
+    "go/go.temporal.io/server/tools/gomad/internal/model/wasi/TestVolumeConformanceMigrationContracts",
     "rust/gomad_wasmhost/conformance::tests::volume_conformance_corpus"
    ]
   },
@@ -4377,54 +4540,59 @@
   },
   "tools/gomad/internal/backends/wasm/wasi/volume_conformance_core_test.go#TestVolumeCoreAPIContracts": {
    "evidence": [
+    "go/go.temporal.io/server/tools/gomad/internal/model/wasi/TestVolumeCoreAPIContracts",
     "rust/gomad_wasmhost/volume::state::tests::pure_core_matches_every_go_metadata_namespace_and_lifecycle_step"
    ]
   },
   "tools/gomad/internal/backends/wasm/wasi/volume_conformance_core_test.go#TestVolumeErrorMappingCorpus": {
    "evidence": [
+    "go/go.temporal.io/server/tools/gomad/internal/model/wasi/TestVolumeErrorMappingCorpus",
     "rust/gomad_wasmhost/volume::faults::tests::go_generated_errno_mapping_corpus"
    ]
   },
   "tools/gomad/internal/backends/wasm/wasi/volume_conformance_faults_test.go#TestVolumeFaultDecisionCorpus": {
    "evidence": [
+    "go/go.temporal.io/server/tools/gomad/internal/model/wasi/TestVolumeFaultDecisionCorpus",
     "rust/gomad_wasmhost/volume::faults::tests::go_generated_fault_decision_corpus"
    ]
   },
   "tools/gomad/internal/backends/wasm/wasi/volume_conformance_image_test.go#TestVolumeImageAdmissionCorpus": {
    "evidence": [
+    "go/go.temporal.io/server/tools/gomad/internal/model/wasi/TestVolumeImageAdmissionCorpus",
     "rust/gomad_wasmhost/volume::image::tests::go_generated_image_admission_corpus"
    ]
   },
   "tools/gomad/internal/backends/wasm/wasi/volume_conformance_image_test.go#TestVolumeImageIdentityCorpus": {
    "evidence": [
+    "go/go.temporal.io/server/tools/gomad/internal/model/wasi/TestVolumeImageIdentityCorpus",
     "rust/gomad_wasmhost/volume::image::tests::go_generated_image_identity_corpus"
    ]
   },
   "tools/gomad/internal/backends/wasm/wasi/volume_conformance_recovery_test.go#TestVolumeRecoveryAdmissionCorpus": {
    "evidence": [
+    "go/go.temporal.io/server/tools/gomad/internal/model/wasi/TestVolumeRecoveryAdmissionCorpus",
     "rust/gomad_wasmhost/volume::image::tests::go_generated_image_admission_corpus"
    ]
   },
   "tools/gomad/internal/backends/wasm/wasi/volume_pending_absence_test.go#TestVolumePendingOpenNamespaceAbsenceCorpus": {
-   "basis": "weak name correlation within the owning domain; confirm in review",
    "evidence": [
-    "rust/gomad_wasmhost/volume::state::tests::replacing_open_target_retains_its_inode_until_last_close"
+    "go/go.temporal.io/server/tools/gomad/internal/model/wasi/TestVolumePendingOpenNamespaceAbsenceCorpus"
    ]
   },
   "tools/gomad/internal/backends/wasm/wasi/volume_pending_absence_test.go#TestVolumePendingOpenNamespaceAbsenceLiteralGuards": {
-   "basis": "weak name correlation within the owning domain; confirm in review",
    "evidence": [
-    "rust/gomad_wasmhost/cluster::execution::transport::corpus::codec_literal_stage_guards_reject_target_kind_and_nonrouting_errors"
+    "go/go.temporal.io/server/tools/gomad/internal/model/wasi/TestVolumePendingOpenNamespaceAbsenceLiteralGuards"
    ]
   },
   "tools/gomad/internal/backends/wasm/wasi/volume_test.go#TestStorageErrorMappingIsClosed": {
-   "basis": "weak name correlation within the owning domain; confirm in review",
    "evidence": [
+    "go/go.temporal.io/server/tools/gomad/internal/model/wasi/TestStorageErrorMappingIsClosed",
     "rust/gomad_wasmhost/volume::faults::tests::go_generated_errno_mapping_corpus"
    ]
   },
   "tools/gomad/internal/backends/wasm/wasi/volume_test.go#TestVolumeConformanceCorpus": {
    "evidence": [
+    "go/go.temporal.io/server/tools/gomad/internal/model/wasi/TestVolumeConformanceCorpus",
     "rust/gomad_wasmhost/conformance::tests::volume_conformance_corpus"
    ]
   },
@@ -4440,6 +4608,7 @@
   },
   "tools/gomad/internal/backends/wasm/wasi/volume_test.go#TestVolumeConformanceInvalidRecoveryImages": {
    "evidence": [
+    "go/go.temporal.io/server/tools/gomad/internal/model/wasi/TestVolumeConformanceInvalidRecoveryImages",
     "rust/gomad_wasmhost/volume::image::tests::rehashed_images_refuse_persisted_inode_aliases_across_volumes_and_reserved_nodes"
    ]
   },
@@ -4455,16 +4624,19 @@
   },
   "tools/gomad/internal/backends/wasm/wasi/volume_test.go#TestVolumeCoreVectors": {
    "evidence": [
+    "go/go.temporal.io/server/tools/gomad/internal/model/wasi/TestVolumeCoreVectors",
     "rust/gomad_wasmhost/volume::state::tests::pure_core_matches_every_go_metadata_namespace_and_lifecycle_step"
    ]
   },
   "tools/gomad/internal/backends/wasm/wasi/volume_transport_corpus_test.go#TestVolumeTransportComparisonGuards": {
    "evidence": [
+    "go/go.temporal.io/server/tools/gomad/internal/model/wasi/TestVolumeTransportComparisonGuards",
     "rust/gomad_wasmhost/storage_transport::vector_corpus::storage_vector_guards_reject_changed_original_contracts"
    ]
   },
   "tools/gomad/internal/backends/wasm/wasi/volume_transport_corpus_test.go#TestVolumeTransportCorpus": {
    "evidence": [
+    "go/go.temporal.io/server/tools/gomad/internal/model/wasi/TestVolumeTransportCorpus",
     "rust/gomad_wasmhost/storage_transport::preservation_tests::original_volume_validation_first_refusal_is_stable_for_sixty_four_orders"
    ]
   }

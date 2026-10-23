@@ -412,6 +412,34 @@ mod tests {
         assert_eq!(m.entropy_offset, u64::MAX);
         assert_eq!(m.random(2, 0).unwrap(), [] as [u8; 0]);
     }
+    /// Original `TestCapturedEntropySharedGoldenVectors`: the zero-key entropy
+    /// stream is pinned at block-aligned, block-straddling and empty reads,
+    /// and each read advances the offset by exactly its length.
+    #[test]
+    fn captured_entropy_matches_shared_golden_vectors() {
+        for (offset, length, expected) in [
+            (
+                0,
+                32,
+                "dd7734737675d01bb34069543218175bc6631c6e1e3a35c89ffa0ed113d266c0",
+            ),
+            (30, 6, "66c0fb3513f4"),
+            (
+                32,
+                32,
+                "fb3513f4792214027f4d8f57a2f26bb438c986eede20a8866595dfed5ebf0c9a",
+            ),
+            (64, 0, ""),
+        ] {
+            let mut m = model();
+            assert_eq!(m.config.entropy_key, [0; 32]);
+            m.entropy_offset = offset;
+            let bytes = m.random(1, length).unwrap();
+            let hex: String = bytes.iter().map(|byte| format!("{byte:02x}")).collect();
+            assert_eq!(hex, expected, "entropy at {offset}");
+            assert_eq!(m.entropy_offset, offset + length as u64);
+        }
+    }
     /// Pins the streaming transcript digest to a value computed by an
     /// independent SHA-256 (`sha256sum`, `openssl dgst`), so the runtime-selected
     /// sha2 backend (aarch64 SHA-2 instructions or soft) cannot change transcript
@@ -609,6 +637,76 @@ mod tests {
         for ordinal in 0..3 {
             assert_eq!(get64(diagnostics, ordinal * 96), ordinal as u64);
         }
+    }
+    /// Original `TestRuntimeDecisionRefusesMalformedHeaderV2Layouts`: header
+    /// v2 widens only runnable decisions; every other layout, and any creation
+    /// site the helper refuses, is an invalid boundary that records nothing,
+    /// and creation records count against the trace capacity.
+    #[test]
+    fn runtime_decision_refuses_malformed_header_v2_layouts_without_recording() {
+        let (a, b): ([u8; 32], [u8; 32]) =
+            (Sha256::digest(b"a").into(), Sha256::digest(b"b").into());
+        let v1 = |kind: u32| {
+            let mut data = vec![0; 96];
+            set32(&mut data, 0, 1);
+            set32(&mut data, 4, kind);
+            set64(&mut data, 8, 10);
+            set32(&mut data, 20, 2);
+            data[32..64].copy_from_slice(&a);
+            data[64..96].copy_from_slice(&b);
+            data
+        };
+        let valid = || {
+            let mut data = v1(1);
+            set32(&mut data, 0, 2);
+            let mut first = [0; 16];
+            set64(&mut first, 0, 5);
+            let mut second = [0; 16];
+            second[8] = 4;
+            data.extend_from_slice(&first);
+            data.extend_from_slice(&second);
+            data
+        };
+        let header = "WASI invalid: runtime decision header";
+        let layout = "WASI invalid: runtime decision alternatives or layout";
+        let site = "WASI invalid: runtime creation site";
+        let cases: [(&str, Vec<u8>, &str); 8] = [
+            ("header-3", { let mut d = valid(); set32(&mut d, 0, 3); d }, header),
+            ("v2-runnable-without-sites", { let mut d = v1(1); set32(&mut d, 0, 2); d }, layout),
+            ("v1-runnable-with-sites", { let mut d = valid(); set32(&mut d, 0, 1); d }, layout),
+            ("v2-select-poll-with-sites", { let mut d = valid(); set32(&mut d, 4, 2); d }, layout),
+            ("truncated-site", { let mut d = valid(); d.pop(); d }, layout),
+            ("site-flag", { let mut d = valid(); d[96 + 8] = 1; d }, site),
+            ("site-padding", { let mut d = valid(); d[96 + 15] = 1; d }, site),
+            ("missing-site-offset", { let mut d = valid(); d[96 + 16 + 7] = 1; d }, site),
+        ];
+        for (name, input, dimension) in cases {
+            let mut m = model();
+            m.config.limit = 8192;
+            bootstrap(&mut m);
+            let error = m.runtime("runtime_decision", input).unwrap_err();
+            assert_eq!(error.to_string(), dimension, "{name}");
+            assert_eq!(m.records, 0, "{name} recorded a refused decision");
+            assert!(m.pending.get("choice").is_none_or(Vec::is_empty), "{name}");
+        }
+        let mut accepted = model();
+        accepted.config.limit = 8192;
+        bootstrap(&mut accepted);
+        accepted.runtime("runtime_decision", valid()).unwrap();
+        let trace = &accepted.pending["choice"];
+        assert_eq!(accepted.records, 3);
+        assert_eq!(trace.len(), 3 * 96);
+        assert_eq!((get64(trace, 192), trace[192 + 8]), (2, 1));
+        // Room for two records, but the decision needs three.
+        let mut capacity = model();
+        capacity.config.limit = 64 + 2 * 96;
+        bootstrap(&mut capacity);
+        let error = capacity
+            .runtime("runtime_decision", valid())
+            .unwrap_err();
+        assert_eq!(error.to_string(), "WASI capacity: runtime-choice-bytes");
+        assert_eq!(capacity.records, 0);
+        assert!(capacity.pending.get("choice").is_none_or(Vec::is_empty));
     }
     #[test]
     fn debug_exchange_preserves_open_clock_run_and_canonical_state() {

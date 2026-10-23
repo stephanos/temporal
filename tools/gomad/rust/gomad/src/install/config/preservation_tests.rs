@@ -195,3 +195,56 @@ fn environment_rejects_each_original_ambiguous_configuration() {
         assert!(convert(value, STOCK).is_err(), "{case}");
     }
 }
+
+/// Originals `TestCapturedNamespaceRejectsWritableDescendantAndAllowsAncestor`
+/// and the writable-root half of `TestNamespaceImageLiteralAndWritableRootRefusal`:
+/// a writable ancestor leaves the captured mount read-only, while `/`, the
+/// captured root itself and any writable descendant of it are refused for
+/// every working directory, without changing the earlier capture.
+#[test]
+fn writable_root_and_captured_overlap_are_refused_while_an_ancestor_is_allowed() {
+    let root =
+        Temporary::new(&Path::new(env!("CARGO_MANIFEST_DIR")).join("target/preservation-tests"))
+            .unwrap();
+    std::fs::create_dir_all(root.0.join("schema/sqlite")).unwrap();
+    let caller = temporal_policy(&root.0, "./tests", TemporalPolicy::Qualification).unwrap();
+    let accepted = convert(caller.clone(), COOPERATIVE).unwrap();
+    let entry = |path: &[u8]| {
+        accepted
+            .namespace
+            .entries
+            .iter()
+            .find(|entry| entry.path == path)
+            .unwrap()
+            .clone()
+    };
+    assert!(entry(b"/workspace/schema/sqlite").readonly);
+    assert!(!entry(b"/workspace").readonly);
+    assert!(
+        accepted
+            .namespace
+            .writable_directories
+            .contains(&b"/workspace".to_vec())
+    );
+    for cwd in ["/workspace", "/workspace/schema/sqlite/new"] {
+        for writable in [
+            "/",
+            "/workspace/schema/sqlite",
+            "/workspace/schema/sqlite/new",
+        ] {
+            let mut value = caller.clone();
+            value["WorkingDirectory"] = cwd.into();
+            value["Environment"][0] = format!("PWD={cwd}").into();
+            value["WritableDirectories"] = serde_json::json!(["/tmp", "/workspace", writable]);
+            assert_eq!(
+                convert(value, COOPERATIVE).err().as_deref(),
+                Some("invalid writable directory or captured overlap"),
+                "cwd={cwd} writable={writable}"
+            );
+        }
+    }
+    assert_eq!(
+        serde_json::to_value(convert(caller, COOPERATIVE).unwrap().namespace).unwrap(),
+        serde_json::to_value(&accepted.namespace).unwrap()
+    );
+}
