@@ -144,6 +144,23 @@ fn classify_request<'a>(
     classify_request_with_environment(contract, arguments, goflags, &std::env::vars_os().collect())
 }
 
+fn outside_module_run(
+    kind: classify::Kind,
+    parsed: &classify::Invocation,
+    arguments: &[OsString],
+) -> bool {
+    kind == classify::Kind::Run
+        && parsed.package_indices.first().is_some_and(|&index| {
+            let argument = &arguments[index];
+            let raw = argument.as_encoded_bytes();
+            raw.contains(&b'@')
+                && !raw.ends_with(b".go")
+                && !raw.starts_with(b"./")
+                && !raw.starts_with(b"../")
+                && !Path::new(argument).is_absolute()
+        })
+}
+
 fn classify_request_with_environment<'a>(
     contract: &Contract,
     arguments: &'a [OsString],
@@ -174,17 +191,7 @@ fn classify_request_with_environment<'a>(
     else {
         return Ok(None);
     };
-    if kind == classify::Kind::Run
-        && parsed.package_indices.first().is_some_and(|&index| {
-            let argument = &arguments[command_index + 1 + index];
-            let raw = argument.as_encoded_bytes();
-            raw.contains(&b'@')
-                && !raw.ends_with(b".go")
-                && !raw.starts_with(b"./")
-                && !raw.starts_with(b"../")
-                && !Path::new(argument).is_absolute()
-        })
-    {
+    if outside_module_run(kind, &parsed, &arguments[command_index + 1..]) {
         return Ok(None);
     }
     if command == "test" {
