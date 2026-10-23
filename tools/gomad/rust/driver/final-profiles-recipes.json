@@ -1,0 +1,74 @@
+{
+  "schema": "gomad.final-profile-original-recipes/v1",
+  "original_revision": "81660e841106a59ed26f7cb227462d1a85a93a9f",
+  "original_sources": {
+    "tools/gomad/internal/backends/wasm/internal/measure/producers.go": "7209420f43185caae926c2f4ae3397e1107181eaac2bdce0e13cdfd54a8666d0"
+  },
+  "recipes": {
+    "terminal": {
+      "producer": "measureTerminalToProcessExit",
+      "assertions": "terminalExitCollect",
+      "package": "./tests",
+      "selection": "^TestWorkflowTypeEncodingSuite$/^TestPlainASCII$/^Succeeds$",
+      "seed": 0,
+      "fuel": 1125899906842624,
+      "memory_bytes": 4294967296,
+      "wall_nanos": 1800000000000,
+      "terminal_to_reap_nanos_maximum": 1000000000,
+      "required_variants": [
+        "success",
+        "post-load-authorization-mismatch"
+      ],
+      "required_host": "linux/arm64",
+      "cpuinfo_bytes_maximum": 1048576
+    },
+    "runtime": {
+      "producer": "measureRuntimeCostProfile",
+      "assertions": "sameEvidence",
+      "package": "./testdata/runtime_cost",
+      "seed": 7,
+      "fuel": 1099511627776,
+      "memory_bytes": 268435456,
+      "wall_nanos": 180000000000,
+      "calls": 1048576,
+      "transcript_bytes": 67108864,
+      "choice_bytes": 67108864,
+      "select_poll_minimum": 100000,
+      "stdout_witness": "runtime-cost 100000",
+      "owners": [
+        "remote-model",
+        "helper-model"
+      ]
+    },
+    "qualified": {
+      "assertions": "requireDiagnosticEvidence",
+      "package": "./tests",
+      "selections": [
+        "^TestWorkflowTypeEncodingSuite$/^TestPlainASCII$/^Succeeds$",
+        "^TestActivityTestSuite$"
+      ],
+      "fuel": 1125899906842624,
+      "memory_bytes": 4294967296,
+      "wall_nanos": 1800000000000,
+      "exact_fields": [
+        "stdout",
+        "stderr",
+        "wasi",
+        "choices",
+        "network",
+        "terminal",
+        "termination",
+        "exit_code",
+        "calls",
+        "time_advances",
+        "environment_identity",
+        "fuel_remaining"
+      ]
+    }
+  },
+  "pending_native_gaps": [
+    "runtime-cost-profile repeats ordinary linked owner instead of original remote-model/helper-model comparison",
+    "terminal-exit lacks original post-load authorization mismatch execution"
+  ],
+  "qualification": "UNEXECUTED: recipe and source checks supply no actual final gate pass"
+}
