@@ -117,7 +117,7 @@ fn write(path: &Path, value: &impl serde::Serialize) -> Result<(), String> {
         &serde_json::to_vec(value).map_err(|error| error.to_string())?,
     )
 }
-fn retain(root: &Path, execution: &linked::Execution) -> Result<(), String> {
+fn retain(root: &Path, execution: &linked::Execution, digest_only: bool) -> Result<(), String> {
     write(&root.join("outcome.json"), &execution.outcome)?;
     let streams: std::collections::BTreeMap<_, _> = execution
         .evidence
@@ -136,10 +136,14 @@ fn retain(root: &Path, execution: &linked::Execution) -> Result<(), String> {
         }
         write_raw(&root.join(name), bytes)?;
     }
-    canonical_streams(root, execution)?;
+    canonical_streams(root, execution, digest_only)?;
     Ok(())
 }
-fn canonical_streams(root: &Path, execution: &linked::Execution) -> Result<(), String> {
+fn canonical_streams(
+    root: &Path,
+    execution: &linked::Execution,
+    digest_only: bool,
+) -> Result<(), String> {
     let mut streams = std::collections::BTreeMap::new();
     for name in ["stdout", "stderr", "network", "choice"] {
         let (bytes, source) = if let Some(bytes) = execution.evidence.get(name) {
@@ -164,6 +168,23 @@ fn canonical_streams(root: &Path, execution: &linked::Execution) -> Result<(), S
             write_raw(&root.join("wasi"), bytes)?;
         }
         streams.insert("wasi", json!({"file":"wasi","bytes":bytes.len(),"sha256":canonical::digest(bytes),"source":"binary-transcript-alias:transcript"}));
+    } else if digest_only && !execution.evidence.contains_key("wasi") {
+        let model = execution
+            .outcome
+            .local_model
+            .as_ref()
+            .ok_or("digest-only WASI outcome metadata absent")?;
+        let bytes = model
+            .get("transcript_bytes")
+            .and_then(Value::as_u64)
+            .filter(|bytes| *bytes <= 1 << 30)
+            .ok_or("digest-only WASI byte count absent or exceeds bound")?;
+        let sha256 = model
+            .get("transcript_sha256")
+            .and_then(Value::as_str)
+            .filter(|digest| canonical::valid_digest(digest))
+            .ok_or("digest-only WASI digest absent or malformed")?;
+        streams.insert("wasi", json!({"file":null,"bytes":bytes,"sha256":sha256,"source":"outcome:local_model.transcript_sha256"}));
     }
     if let Some(value) = execution
         .outcome
@@ -194,7 +215,11 @@ fn canonical_streams(root: &Path, execution: &linked::Execution) -> Result<(), S
         }),
     )
 }
-fn retain_cluster(root: &Path, execution: &linked_cluster::Execution) -> Result<(), String> {
+fn retain_cluster(
+    root: &Path,
+    execution: &linked_cluster::Execution,
+    digest_only: &std::collections::BTreeMap<linked_cluster::Handle, bool>,
+) -> Result<(), String> {
     write(&root.join("outcome.json"), &execution.outcome)?;
     write(&root.join("executed-steps.json"), &execution.executed_steps)?;
     let streams = [
@@ -225,7 +250,10 @@ fn retain_cluster(root: &Path, execution: &linked_cluster::Execution) -> Result<
             .mode(0o700)
             .create(&directory)
             .map_err(|error| error.to_string())?;
-        retain(&directory, &incarnation.execution)?;
+        let digest_only = *digest_only
+            .get(&incarnation.handle)
+            .ok_or("retained cluster incarnation has no admitted transcript mode")?;
+        retain(&directory, &incarnation.execution, digest_only)?;
         write(&directory.join("handle.json"), &incarnation.handle)?;
     }
     Ok(())
@@ -362,6 +390,10 @@ fn execute_inner(
             if sampling.is_some() {
                 return Err("guest sampling requires the actual helper-guest-profile role".into());
             }
+            let digest_only = guest
+                .model
+                .as_ref()
+                .is_some_and(|model| model.configuration.digest_only);
             let request = guest.request(root, 0, &Value::Null, &mut modules)?;
             write(&root.join("rootmodules.json"), &modules)?;
             let timeout = request.limits.wall_timeout;
@@ -438,7 +470,7 @@ fn execute_inner(
                 {
                     native_external_owner_attempts = Some(execution.external_owner_attempts);
                 }
-                retain(root, execution)?;
+                retain(root, execution, digest_only)?;
             }
             #[cfg(feature = "helper-guest-profile")]
             let result = result.and_then(|execution| {
@@ -466,6 +498,19 @@ fn execute_inner(
             evidence_bytes,
             compile_cache,
         } => {
+            let digest_only: std::collections::BTreeMap<_, _> = incarnations
+                .iter()
+                .map(|incarnation| {
+                    (
+                        incarnation.handle.clone(),
+                        incarnation
+                            .guest
+                            .model
+                            .as_ref()
+                            .is_some_and(|model| model.configuration.digest_only),
+                    )
+                })
+                .collect();
             let request = linked_cluster::Request {
                 nodes,
                 broker,
@@ -514,7 +559,7 @@ fn execute_inner(
             let result = result.map_err(|error| error.to_string());
             if let Ok(execution) = &result {
                 retained_incarnations = execution.incarnations.len();
-                retain_cluster(root, execution)?;
+                retain_cluster(root, execution, &digest_only)?;
             }
             (
                 result.and_then(|execution| {
