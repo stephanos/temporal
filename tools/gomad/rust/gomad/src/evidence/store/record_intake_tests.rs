@@ -631,9 +631,9 @@ fn offered_output_fixture(evidence_bytes: u64) -> (Prepared, linked::Prepared) {
         json!({
             "Profile":profile,"Args":["guest"],"Environment":["PWD=/workspace"],
             "WorkingDirectory":"/workspace","WritableDirectories":["/workspace","/tmp"],
-            "Clock":{"EpochNanos":946684800000000000_u64,"ReadStepNanos":1000},
+            "Clock":{"EpochNanos":946_684_800_000_000_000_u64,"ReadStepNanos":1000},
             "Limits":{"OutputBytes":1024,"TranscriptBytes":65536,"Calls":10000,"Descriptors":64,
-                "Files":1000,"FilesystemBytes":1048576,"PendingEvents":4096}
+                "Files":1000,"FilesystemBytes":1_048_576,"PendingEvents":4096}
         }),
         profile,
     )

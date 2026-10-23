@@ -47,6 +47,12 @@ fn allocation_receiving() {
 fn bounded_opened_file() {
     use std::io::Write as _;
     use std::os::unix::fs::{DirBuilderExt as _, OpenOptionsExt as _};
+    struct Cleanup(std::path::PathBuf);
+    impl Drop for Cleanup {
+        fn drop(&mut self) {
+            std::fs::remove_dir_all(&self.0).unwrap();
+        }
+    }
     let root = std::env::temp_dir().join(format!(
         "gomad-bounded-allocation-{}",
         campaign::origin::identity().unwrap()
@@ -55,12 +61,6 @@ fn bounded_opened_file() {
         .mode(0o700)
         .create(&root)
         .unwrap();
-    struct Cleanup(std::path::PathBuf);
-    impl Drop for Cleanup {
-        fn drop(&mut self) {
-            std::fs::remove_dir_all(&self.0).unwrap();
-        }
-    }
     let _cleanup = Cleanup(root.clone());
     let bytes = vec![b'x'; 1 << 20];
     let mut file = std::fs::OpenOptions::new()
