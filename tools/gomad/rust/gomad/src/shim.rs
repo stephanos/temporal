@@ -695,7 +695,11 @@ mod tests {
             build_tags: config.build_tags,
             excluded_build_tags: Vec::new(),
         };
-        let path = root.join("installation.json");
+        let path = root.join(if cooperative {
+            "cooperative-installation.json"
+        } else {
+            "stock-installation.json"
+        });
         manifest::write(&path, &installed).unwrap();
         path
     }
@@ -721,23 +725,27 @@ mod tests {
             "gomad.wasi-stock-exploratory/v1",
             "gomad.wasi-cooperative/v1",
         ] {
-            let mut options = guest_options(&contract, &root.0, "test", &package, profile).unwrap();
-            options.installation = Some(fixture_installation(&root.0, &compiler, profile));
-            let error = driver::prepare(&options, Instant::now() + Duration::from_secs(10))
-                .err()
-                .unwrap();
-            assert!(
-                error.contains("reached-version-after-profile-admission"),
-                "{profile}: {error}"
-            );
-            options.choices = !options.choices;
-            let error = driver::prepare(&options, Instant::now() + Duration::from_secs(10))
-                .err()
-                .unwrap();
-            assert!(
-                error.contains("choices/scenario do not match installed profile"),
-                "{profile}: {error}"
-            );
+            let installation = fixture_installation(&root.0, &compiler, profile);
+            for command in ["test", "run", "build"] {
+                let mut options =
+                    guest_options(&contract, &root.0, command, &package, profile).unwrap();
+                options.installation = Some(installation.clone());
+                let error = driver::prepare(&options, Instant::now() + Duration::from_secs(10))
+                    .err()
+                    .unwrap();
+                assert!(
+                    error.contains("reached-version-after-profile-admission"),
+                    "{profile}: {error}"
+                );
+                options.choices = !options.choices;
+                let error = driver::prepare(&options, Instant::now() + Duration::from_secs(10))
+                    .err()
+                    .unwrap();
+                assert!(
+                    error.contains("choices/scenario do not match installed profile"),
+                    "{profile}: {error}"
+                );
+            }
         }
     }
 
