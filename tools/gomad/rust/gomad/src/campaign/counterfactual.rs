@@ -273,31 +273,35 @@ fn produce_pair(
             },
         )
         .unwrap();
+        let has_event_order = result
+            .publication
+            .payloads
+            .contains_key("evidence/event-order");
+        let published = store.publish(result.publication).unwrap();
+        let opened = crate::evidence::store::Opened::open(&published.path).unwrap();
+        opened.authenticate_all().unwrap();
         if prepared.scenario.is_some() {
-            let summary: Value =
-                serde_json::from_slice(&result.publication.payloads["evidence/cluster_summary"])
-                    .unwrap();
+            let summary: Value = serde_json::from_slice(
+                &opened
+                    .payload("evidence/cluster_summary", 16 << 20)
+                    .unwrap(),
+            )
+            .unwrap();
             let incarnations = summary["incarnations"].as_array().unwrap();
             assert_eq!(incarnations.len(), 2);
             assert!(
                 incarnations
                     .iter()
-                    .all(|incarnation| incarnation["termination"] == "exit")
+                    .all(|incarnation| incarnation["termination"] == "exit"),
+                "retained artifact {}: {summary}",
+                published.path.display()
             );
         } else {
             assert_eq!(result.execution.record.outcome.termination, "exit");
             assert_eq!(result.execution.record.outcome.exit_code, Some(1));
         }
         assert_eq!(result.execution.record.outcome.class, "target_failure");
-        assert!(
-            result
-                .publication
-                .payloads
-                .contains_key("evidence/event-order")
-        );
-        let published = store.publish(result.publication).unwrap();
-        let opened = crate::evidence::store::Opened::open(&published.path).unwrap();
-        opened.authenticate_all().unwrap();
+        assert!(has_event_order);
         pair.push(json!({"artifact":published.path,"record_sha256":published.record_sha256,"bytes":published.stored_bytes}));
     }
     assert_ne!(pair[0]["record_sha256"], pair[1]["record_sha256"]);
