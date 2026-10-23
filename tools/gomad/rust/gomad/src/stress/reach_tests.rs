@@ -709,23 +709,21 @@ fn literal_reproducer_selects_the_authenticated_compiled_engine_role() {
 }
 
 #[test]
-fn retained_replay_roles_require_exact_engines_and_cluster_agreement() {
+fn retained_replay_roles_require_exact_shared_engine_and_cluster_layout() {
     let engine = linked::Conditions::compiled().configuration();
     assert!(
         report::configuration_role(&json!({"engine":engine}), false).unwrap()
             == linked::Conditions::compiled()
     );
     assert!(
-        report::configuration_role(
-            &json!({"incarnations":[{"engine":engine},{"engine":engine}]}),
-            true
-        )
-        .unwrap()
+        report::configuration_role(&json!({"engine":engine,"incarnations":[{},{}]}), true).unwrap()
             == linked::Conditions::compiled()
     );
     for config in [
-        json!({"incarnations":[]}),
-        json!({"incarnations":[{"engine":engine},{"engine":"unknown"}]}),
+        json!({"engine":engine,"incarnations":[]}),
+        json!({"engine":engine,"incarnations":[{"engine":engine}]}),
+        json!({"engine":engine,"incarnations":[{"engine":"unknown"}]}),
+        json!({"engine":engine,"incarnations":[null]}),
         json!({"incarnations":[{}]}),
     ] {
         assert!(report::configuration_role(&config, true).is_err());
@@ -750,4 +748,29 @@ fn retained_replay_roles_require_exact_engines_and_cluster_agreement() {
             .unwrap()
             .contains("unknown retained replay role")
     );
+}
+
+#[test]
+fn actual_retained_cluster_role_uses_the_shared_configuration_engine() {
+    let raw = include_bytes!("testdata/native-cluster-shared-engine.json");
+    let configuration: crate::replay::cluster::Configuration = serde_json::from_slice(raw).unwrap();
+    assert_eq!(configuration.incarnations.len(), 2);
+    let captured: Value = serde_json::from_slice(raw).unwrap();
+    assert!(
+        captured["incarnations"]
+            .as_array()
+            .unwrap()
+            .iter()
+            .all(|item| item.get("engine").is_none())
+    );
+    let role = report::configuration_role(&captured, true);
+    if linked::Conditions::compiled() == linked::Conditions::DeterminismFixtureReplay {
+        assert!(role.unwrap() == linked::Conditions::DeterminismFixtureReplay);
+    } else {
+        assert!(
+            role.err()
+                .unwrap()
+                .contains("incompatible compiled replay role")
+        );
+    }
 }
