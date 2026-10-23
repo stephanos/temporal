@@ -95,7 +95,10 @@ fn explored<M: Machine>(
     budget: usize,
     negative: Option<Claim<M>>,
 ) -> (Explored, Duration) {
-    let starts = starts.unwrap_or_else(|| world.starts());
+    let starts = match starts.map_or_else(|| enumerated(world), Ok) {
+        Ok(starts) => starts,
+        Err(refusal) => return (Err(refusal), Duration::ZERO),
+    };
     let started = Instant::now();
     let graph = Checker::explore_within(world, starts.clone(), budget, Checker::CATALOG_LIMIT);
     let elapsed = started.elapsed();
@@ -117,18 +120,34 @@ fn explored<M: Machine>(
     (files, elapsed)
 }
 
-/// The first file that differs, with its first differing line on each side.
+/// A World's starts, or the panic that enumerating them raised, so two sides can be compared
+/// even where a start domain fails.
+fn enumerated<M: Machine>(world: &M) -> Result<Vec<M::State>, String> {
+    std::panic::catch_unwind(std::panic::AssertUnwindSafe(|| world.starts())).map_err(|panic| {
+        let message = panic
+            .downcast_ref::<&str>()
+            .copied()
+            .or_else(|| panic.downcast_ref::<String>().map(String::as_str))
+            .unwrap_or("non-string panic payload");
+        format!("starts panicked: {message}")
+    })
+}
+
+/// Every file that differs, with its first differing line on each side.
 fn difference(expected: &crate::Files, actual: &crate::Files) -> Option<String> {
-    for name in expected.keys().chain(actual.keys()) {
+    let mut differences = Vec::new();
+    let names: std::collections::BTreeSet<_> = expected.keys().chain(actual.keys()).collect();
+    for name in names {
         let (Some(expected), Some(actual)) = (expected.get(name), actual.get(name)) else {
             let side = if expected.contains_key(name) { "compiled" } else { "interpreted" };
-            return Some(format!("only the {side} exploration writes {name}"));
+            differences.push(format!("only the {side} exploration writes {name}"));
+            continue;
         };
         if expected == actual {
             continue;
         }
         let mut lines = expected.lines().zip(actual.lines()).enumerate();
-        return Some(match lines.find(|(_, (expected, actual))| expected != actual) {
+        differences.push(match lines.find(|(_, (expected, actual))| expected != actual) {
             Some((line, (expected, actual))) => format!(
                 "{name} line {}:\n  compiled:    {expected}\n  interpreted: {actual}",
                 line + 1
@@ -140,7 +159,7 @@ fn difference(expected: &crate::Files, actual: &crate::Files) -> Option<String> 
             ),
         });
     }
-    None
+    (!differences.is_empty()).then(|| differences.join("\n"))
 }
 
 /// Runs the differential check when a concrete World's `#[machine]` module was admitted.

@@ -21,14 +21,13 @@ use umpire_dsl::{
 };
 
 /// The most claims of one kind an interpreted Model registers; each needs its own callback.
-pub const CLAIM_LIMIT: usize = 64;
+const CLAIM_LIMIT: usize = 64;
 
 /// A Model whose steps, claims, assumptions and declared starts are evaluated from the admitted
 /// tree its `#[machine]` embeds.
 pub struct Interpreted<M: Machine> {
     world: M,
     program: Program,
-    checks: &'static [&'static str],
     /// Each catalog action's tree action and input values.
     bindings: FxHashMap<M::Action, (usize, Vec<Value>)>,
     progress: Vec<Evaluated<M::Action>>,
@@ -223,7 +222,7 @@ where
                     .transpose()
             })
             .collect::<Result<Vec<_>, String>>()?;
-        Ok(Self { world, program, checks, bindings, progress, assumptions, after, negative: None })
+        Ok(Self { world, program, bindings, progress, assumptions, after, negative: None })
     }
 
     /// Adds a fixture's negative claim, which the compiled World judges on interpreted states.
@@ -243,16 +242,6 @@ where
                     .map_or(Verdict::Holds, |claim| claim.evaluate(&world.world, state).verdict)
             })
         })
-    }
-
-    /// The compiled World.
-    pub fn compiled(&self) -> &M {
-        &self.world
-    }
-
-    /// The `check!` texts the claims report, in the tree's order.
-    pub fn check_texts(&self) -> &'static [&'static str] {
-        self.checks
     }
 
     fn binding(&self, action: &M::Action) -> &(usize, Vec<Value>) {
@@ -293,23 +282,12 @@ where
 
     fn starts(&self) -> Vec<Self::State> {
         let Some(domains) = &self.program.starts else { return self.world.starts() };
-        let domains: Vec<Vec<Value>> = domains
-            .iter()
-            .map(|domain| {
-                let mut frame = Frame::new(M::__umpire_get, None, None, &[], None, &[], 0);
-                match domain {
-                    Domain::Value(value) => vec![frame.eval(value)],
-                    Domain::Range(low, high, inclusive) => {
-                        let (low, high) = (frame.eval(low).integer(), frame.eval(high).integer());
-                        let high = if *inclusive { high } else { high - 1 };
-                        (low..=high).map(Value::Int).collect()
-                    }
-                }
-            })
-            .collect();
         let mut starts = Vec::new();
+        let mut evaluated = vec![None; domains.len()];
         let mut selected = Vec::with_capacity(domains.len());
-        product(&domains, &mut selected, &mut |values| starts.push(M::__umpire_state(values)));
+        product(domains, &mut evaluated, &mut selected, &mut |values| {
+            starts.push(M::__umpire_state(values));
+        });
         starts
     }
 
@@ -528,15 +506,46 @@ where
     }
 }
 
-fn product(domains: &[Vec<Value>], selected: &mut Vec<Value>, visit: &mut dyn FnMut(&[Value])) {
-    let Some((first, rest)) = domains.split_first() else {
+/// Field-order starts, each field's domain evaluated only once an earlier field has a value,
+/// as the compiled nested loops do, so an empty earlier domain never evaluates a later one.
+fn product(
+    domains: &[Domain],
+    evaluated: &mut [Option<Vec<Value>>],
+    selected: &mut Vec<Value>,
+    visit: &mut dyn FnMut(&[Value]),
+) {
+    let depth = selected.len();
+    let Some(domain) = domains.get(depth) else {
         visit(selected);
         return;
     };
-    for value in first {
-        selected.push(value.clone());
-        product(rest, selected, visit);
+    let values = evaluated[depth].get_or_insert_with(|| domain.values()).clone();
+    for value in values {
+        selected.push(value);
+        product(domains, evaluated, selected, visit);
         selected.pop();
+    }
+}
+
+impl Domain {
+    fn values(&self) -> Vec<Value> {
+        let mut frame = Frame::<()>::new(
+            |(), _| unreachable!("a start domain reads no state"),
+            None,
+            None,
+            &[],
+            None,
+            &[],
+            0,
+        );
+        match self {
+            Self::Value(value) => vec![frame.eval(value)],
+            Self::Range(low, high, inclusive) => {
+                let (low, high) = (frame.eval(low).integer(), frame.eval(high).integer());
+                let high = if *inclusive { high } else { high - 1 };
+                (low..=high).map(Value::Int).collect()
+            }
+        }
     }
 }
 
@@ -787,6 +796,11 @@ impl Resolver<'_> {
 
 fn range(ty: &Type) -> Range {
     match ty {
+        // The front spells `usize` (lengths, indices) as this range, which no admitted integer
+        // type has; Rust computes it in `usize`.
+        Type::Int { min: 0, max } if *max == i128::from(i32::MAX) => {
+            (0, i128::try_from(usize::MAX).unwrap_or(i128::MAX))
+        }
         Type::Int { min, max } => (*min, *max),
         _ => (i128::MIN, i128::MAX),
     }

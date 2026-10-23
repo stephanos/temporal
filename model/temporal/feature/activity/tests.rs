@@ -14,6 +14,7 @@ pub(crate) fn check(folder: &std::path::Path, _source: &std::path::Path, _run: f
 }
 
 pub(crate) fn run() -> umpire_testing::RunResult {
+    umpire_testing::interpreted(world, None, 64, None)?;
     let result = umpire_testing::Checker::explore(&world(), 64)?;
     let mut files = umpire_testing::render(&result)?;
     files.insert("rows.txt".into(), umpire_testing::render_rows(&result)?);

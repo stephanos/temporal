@@ -61,7 +61,7 @@ mod model {
 }
 
 pub(crate) fn run() -> umpire_testing::RunResult {
-    umpire_testing::interpreted(model::world, None, 8, None)?;
+        umpire_testing::interpreted(model::world, None, 8, None)?;
         let result = umpire_checker::Checker::explore(&model::world(), 8)?;
     let text = (result.verify_all()?).to_string();
     Ok(std::collections::BTreeMap::from([("report.txt".into(), text)]))

@@ -35,7 +35,8 @@ pub enum ExprKind {
     GetOr(Box<Expr>, Box<Expr>, Box<Expr>),
     Checks(Vec<Expr>),
     /// One `check!` in a claim body, by its position in the Model's check table, which holds
-    /// the text a failure reports; back ends that do not report it read through.
+    /// the text a failure reports; back ends that do not report it read through. The position
+    /// is meaningful only in the tree `#[machine]` embeds, which carries that table.
     Check(usize, Box<Expr>),
 }
 #[derive(Clone, Copy, Debug, PartialEq, Eq, Hash, umpire_ir_derive::Print)]

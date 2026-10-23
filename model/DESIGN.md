@@ -81,9 +81,11 @@ and `reject!`/`stay!` outcomes, then claims, progress evaluations and assumption
 the compiled `M::State`; `#[machine]` generates `Interprets` accessors beside `Lifts`, off the
 wasm guest, and a table of each `check!`'s text that the tree's new `ExprKind::Check` indexes
 (emission reads through it, so TLA+ is unchanged). The catalog, claim order and computed or
-World-bound starts stay compiled. Every fixture whose World embeds an admitted Model (18 shared
-fixtures, two checker controls, the lifter's seven Models and a checked-arithmetic control)
-explores identically both ways, and two seeded mutant trees are caught. First rough release
+World-bound starts stay compiled. Every admitted Model in the repository explores identically
+both ways: 18 shared fixtures, the Temporal activity, two checker controls, the lifter's seven
+Models, the Apalache and TLC backends' nine (Apalache arithmetic across 220 Worlds), and
+controls for checked arithmetic, lazy start domains and `usize` lengths. Six seeded mutant
+trees (update, postcondition, start, progress target, outcome, `check!` text) are caught. First rough release
 timing of `Checker::explore_within` (shared, loaded 12-core host, medians): Kettle 88 µs
 compiled against 228 µs interpreted (2.6×), the 2,001-start wide shape 1.48 ms against 3.84 ms
 (2.6×). That is above .6's 2× gate; see `.flow/tmp/fn-238.5/handoff.md`.
