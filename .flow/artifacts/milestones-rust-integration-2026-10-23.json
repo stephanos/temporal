@@ -1,6 +1,6 @@
 {
   "schema": "gomad.integration-development-evidence/v1",
-  "observed_at": "2026-10-23T14:39:46.025715+00:00",
+  "observed_at": "2026-10-23T14:51:18.298993+00:00",
   "integration_head": "13ecf9f40526eec15497a951b6e8167c1a43bdb9",
   "final_qualification": false,
   "logs": [
@@ -3285,6 +3285,171 @@
         "scope": "Generated Go module version output preserved; no source/receipt rewrite or qualification credit"
       },
       "remaining_acceptance": "Finish all13 main roles, native measurement/broad/identity roles and genuine installation/input provisioning; all actual guests/original Go ABI/wire/runtime/workloads/stress/terminal/counterpairs/replay/public and3600s final cycle plus later milestones remain open"
+    },
+    {
+      "observed_at": "2026-10-23T14:51:18.298993+00:00",
+      "integration_head": "13ecf9f40526eec15497a951b6e8167c1a43bdb9",
+      "status": "STOPPED_BY_USER",
+      "final_qualification": false,
+      "scope": "Final wrap-up; no automatic resumption",
+      "roles": {
+        "release": {
+          "head": "13ecf9f40526eec15497a951b6e8167c1a43bdb9",
+          "source_sha256": "37a83bc6ca7b25b4a4802b9477c121d7ee556be72f0d0dce5373d0aeca1483dd",
+          "binary": "/Users/stephan/Workspace/skunkworks/gomad/.build-cache/fn232-final-role-release-v1/admitted/gomad",
+          "binary_sha256": "b5cb66d39995281e608b3a1452e6d926391b345f377efc298829cd1bbb3d8bae",
+          "host_sha256": "974c09c3ab0f94dc44ed74ecf74698606f0cf375bdda3f8d43a4b738efeb0de6",
+          "helper_sha256": "3dfd81b7f777aa5a5900f1f4209a3bd125fcd46e9d944a066fc495ddd1c2b2a8",
+          "build_receipt": "/Users/stephan/Workspace/skunkworks/gomad/.build-cache/fn232-final-role-release-v1/main-build.json",
+          "build_receipt_sha256": "795e9ff683a89bcb8a94347483c68c932dbef25ab15992102d50ca474b4a4e06",
+          "build_exit": 0,
+          "separate_typed_read_exit": 0
+        },
+        "host-fixture": {
+          "head": "13ecf9f40526eec15497a951b6e8167c1a43bdb9",
+          "source_sha256": "37a83bc6ca7b25b4a4802b9477c121d7ee556be72f0d0dce5373d0aeca1483dd",
+          "binary": "/Users/stephan/Workspace/skunkworks/gomad/.build-cache/fn232-final-role-host-fixture-v1/admitted/gomad",
+          "binary_sha256": "4532d82e31b623f91cdd19abd29d65ea96289e7eb651bbd18e58a494eb14e496",
+          "host_sha256": "69ec01c1231193833908210478886aa801b60007a9bb907af9236c4af92acce8",
+          "helper_sha256": "3dfd81b7f777aa5a5900f1f4209a3bd125fcd46e9d944a066fc495ddd1c2b2a8",
+          "build_receipt": "/Users/stephan/Workspace/skunkworks/gomad/.build-cache/fn232-final-role-host-fixture-v1/main-build.json",
+          "build_receipt_sha256": "3389d44b7c58b95a1a4d2a9c1a9beb82acd9faabf8cda5d8de7179888c51a835",
+          "build_exit": 0,
+          "separate_typed_read_exit": 0
+        },
+        "reference-transport": {
+          "head": "13ecf9f40526eec15497a951b6e8167c1a43bdb9",
+          "source_sha256": "37a83bc6ca7b25b4a4802b9477c121d7ee556be72f0d0dce5373d0aeca1483dd",
+          "binary": "/Users/stephan/Workspace/skunkworks/gomad/.build-cache/fn232-final-role-reference-transport-v1/admitted/gomad-wasmhost",
+          "binary_sha256": "38672ad274cc77765fdc60314f5d8e7061c80553638838300e8f9a374da14764",
+          "host_sha256": null,
+          "helper_sha256": "a7f6103ac8ca7d537bd96893dbaca56bec86b2282b4885934f78f4dd0f7fa8aa",
+          "build_receipt": "/Users/stephan/Workspace/skunkworks/gomad/.build-cache/fn232-final-role-reference-transport-v1/main-build.json",
+          "build_receipt_sha256": "0f60276549a861c2bf320e3490a603980b3fbf831bf3792ea213609666a7ee28",
+          "build_exit": 0,
+          "separate_typed_read_exit": 0
+        },
+        "runtime-harness": {
+          "head": "13ecf9f40526eec15497a951b6e8167c1a43bdb9",
+          "source_sha256": "37a83bc6ca7b25b4a4802b9477c121d7ee556be72f0d0dce5373d0aeca1483dd",
+          "binary": "/Users/stephan/Workspace/skunkworks/gomad/.build-cache/fn232-final-role-runtime-harness-v1/admitted/runtime-qualification-replay",
+          "binary_sha256": "9f9e19d418ea4a187f5fb2b744887b0b2e0d181d22c3d88c8604a42f7c5cd46b",
+          "host_sha256": "974c09c3ab0f94dc44ed74ecf74698606f0cf375bdda3f8d43a4b738efeb0de6",
+          "helper_sha256": "3dfd81b7f777aa5a5900f1f4209a3bd125fcd46e9d944a066fc495ddd1c2b2a8",
+          "build_receipt": "/Users/stephan/Workspace/skunkworks/gomad/.build-cache/fn232-final-role-runtime-harness-v1/main-build.json",
+          "build_receipt_sha256": "4c77001550bae3299f8eef5e280ca727e24e24f46f33ab602427d66540b0beff",
+          "build_exit": 0,
+          "separate_typed_read_exit": 0
+        },
+        "conformance-reference": {
+          "head": "13ecf9f40526eec15497a951b6e8167c1a43bdb9",
+          "source_sha256": "37a83bc6ca7b25b4a4802b9477c121d7ee556be72f0d0dce5373d0aeca1483dd",
+          "binary": "/Users/stephan/Workspace/skunkworks/gomad/.build-cache/fn232-final-role-conformance-reference-v1/admitted/gomad-wasmhost",
+          "binary_sha256": "5315389130307f899e4079c33802c813d6f661564c35f6bd350cadfcc986f42a",
+          "host_sha256": null,
+          "helper_sha256": "eb1f57e91f3de48ea369861ecc7264361539ddf4d5b5791d5dd055b28aafdd46",
+          "build_receipt": "/Users/stephan/Workspace/skunkworks/gomad/.build-cache/fn232-final-role-conformance-reference-v1/main-build.json",
+          "build_receipt_sha256": "bcd2dbd03cbb745636fcc0b3e8360a236f86e9400197dd3a3606064c3ea749a9",
+          "build_exit": 0,
+          "separate_typed_read_exit": 0
+        },
+        "counterfactual-fixture": {
+          "head": "13ecf9f40526eec15497a951b6e8167c1a43bdb9",
+          "source_sha256": "37a83bc6ca7b25b4a4802b9477c121d7ee556be72f0d0dce5373d0aeca1483dd",
+          "binary": "/Users/stephan/Workspace/skunkworks/gomad/.build-cache/fn232-final-role-counterfactual-fixture-v1/admitted/gomad",
+          "binary_sha256": "0764fe14a73876a3b115fcf909e92f995a98d541124b70a257adcefa7caad841",
+          "host_sha256": "57dc751005f87bdd4f9a90c5fc9d018cdc6d720202c63138927f98ea6d4dec0f",
+          "helper_sha256": "ec5e9625dd854327a949e4970357b0d92f04cbaa31deb251cebfa79f4dc34766",
+          "build_receipt": "/Users/stephan/Workspace/skunkworks/gomad/.build-cache/fn232-final-role-counterfactual-fixture-v1/main-build.json",
+          "build_receipt_sha256": "411c2fba49faa153cf28627f0e3a2df5f0c4596c97e614dde05bc5e4f26b7b5f",
+          "build_exit": 0,
+          "separate_typed_read_exit": 0
+        },
+        "ordinary-helper-test": {
+          "head": "13ecf9f40526eec15497a951b6e8167c1a43bdb9",
+          "source_sha256": "37a83bc6ca7b25b4a4802b9477c121d7ee556be72f0d0dce5373d0aeca1483dd",
+          "binary": "/Users/stephan/Workspace/skunkworks/gomad/.build-cache/fn232-final-role-ordinary-helper-test-v1/admitted/gomad-wasmhost-libtest",
+          "binary_sha256": "f5a39f878ce4526ffd35622f1c86e759fe58738bd7b3b85b80906189275cad92",
+          "host_sha256": null,
+          "helper_sha256": "3dfd81b7f777aa5a5900f1f4209a3bd125fcd46e9d944a066fc495ddd1c2b2a8",
+          "build_receipt": "/Users/stephan/Workspace/skunkworks/gomad/.build-cache/fn232-final-role-ordinary-helper-test-v1/main-build.json",
+          "build_receipt_sha256": "de29e4373da8ec7853b987c21198866cf746db4694544c74a49e66d51c0df818",
+          "build_exit": 0,
+          "separate_typed_read_exit": 0
+        }
+      },
+      "logs": [
+        {
+          "path": "/home/agent/evidence/fn232-final-role-ordinary-helper-test-launch-v1/ready.json",
+          "bytes": 2169,
+          "sha256": "6981bf0a4d16aee70e76691881d8019b6a5d8b8113d9c6d07130bc8374a01893"
+        },
+        {
+          "path": "/home/agent/evidence/fn232-final-ordinary-test-roles-controller-v1/stop-handoff.json",
+          "bytes": 1121,
+          "sha256": "7ed78301161f7e6817f20d465e8079facd4a85f137c43ae542cba257e0c2d9e3"
+        },
+        {
+          "path": "/home/agent/evidence/fn232-final-role-counterfactual-fixture-launch-v1/wrap-up.json",
+          "bytes": 1636,
+          "sha256": "01effaa5061d8a5a9abb5fe4a919fddfe3026a6f6c528747ccdd187a62cc0da8"
+        },
+        {
+          "path": "/home/agent/evidence/fn232-final-role-conformance-reference-launch-v1/independent-verification.json",
+          "bytes": 1304,
+          "sha256": "8350de8b816750aba567d1d8a3df695576ea5ea5010078ffc3e779cb3c34e469"
+        },
+        {
+          "path": "/home/agent/evidence/fn232-stop-worktrees-2026-10-23.txt",
+          "bytes": 14592,
+          "sha256": "120a8d4d6c039bb6f6d0aa5c678feb412fd0bd1de40715676cc4f00e2ec3b3a5"
+        },
+        {
+          "path": "/home/agent/evidence/fn232-stop-flow-state-2026-10-23.json",
+          "bytes": 90,
+          "sha256": "1f858f775d6e00478fc8993781d818464cf0601f5e6c13c5dfbaf0d02751d4ec"
+        }
+      ],
+      "in_flight": {},
+      "all_owned_processes_reaped": true,
+      "checked_absent_pids": [
+        973936,
+        973963,
+        974730,
+        978930,
+        969522,
+        969549,
+        969603,
+        974708,
+        969683,
+        969686,
+        970832,
+        974659
+      ],
+      "cancelled_roles": [
+        "ordinary-host-test",
+        "counterfactual-harness",
+        "interception-harness",
+        "stress",
+        "stress-release",
+        "fn222-support"
+      ],
+      "cancellation": "Two sequential controllers exited 1 at intentional next-role launch guards. Completed current builds and independent readers exited 0. No queued role started.",
+      "installations": {
+        "final_ordinary_succeeded": 1,
+        "final_ordinary_required": 6,
+        "auxiliary_schema_capture_succeeded": true,
+        "qualification": false,
+        "blocker": "External preparation recipe failed its captured descriptor mode equality assertion after auxiliary discovery. Investigate production capture mode normalization before resuming; do not blindly retry existing v2 outputs.",
+        "evidence_root": "/Users/stephan/Workspace/skunkworks/gomad/.build-cache/fn232-final-installations-v1"
+      },
+      "remaining_acceptance": [
+        "Six remaining main roles and other measurement/broad/identity builds; five final ordinary installations and input provisioning",
+        "Fresh original Go ABI/wire tests, original receiving, runtime/workloads/stress/terminal/counterpairs/replay and public gates",
+        "Full 96-stage, 3600-second final qualification and remaining 146 obligations",
+        "fn222 one-box/support publication, suite sweep, profiling and later milestones"
+      ],
+      "retention": "Immutable candidate 13ecf9f405 and all open proof worktrees, raw logs, receipts and targets retained. Root changes after source freeze are tracking/evidence only. Flow tasks remain incomplete and activity is parked. User cleared the goal; resume only on explicit request."
     }
   ],
   "resource_snapshot": {
@@ -4318,5 +4483,7 @@
     "/home/agent": {
       "available_bytes": 27149373440
     }
-  }
+  },
+  "status": "STOPPED_BY_USER",
+  "in_flight": {}
 }

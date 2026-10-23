@@ -279,7 +279,7 @@ CI, PR, or push authority.
 
 | Name / ID | Status | Description |
 | --- | --- | --- |
-| [fn-222.1](.flow/tasks/fn-222-gomad-qualify-the-one-box-cell-and.1.md) | 🚧 Running | Wire prepare-only, workload-intent and support-list validation, then run both one-box cells and every inspection/replay gate on the frozen Rust candidate |
+| [fn-222.1](.flow/tasks/fn-222-gomad-qualify-the-one-box-cell-and.1.md) | ⏸ Parked | Wire prepare-only, workload-intent and support-list validation, then run both one-box cells and every inspection/replay gate on the frozen Rust candidate |
 
 ### WASM determinism boundary audit — [fn-188](.flow/specs/fn-188-gomad-wasm-determinism-boundary-audit.md)
 
@@ -308,7 +308,7 @@ First in the delivery order (owner decision 2026-10-20). New evidence lineage; b
 
 | Name / ID | Status | Description |
 | --- | --- | --- |
-| [fn-232-gomad-rewrite-the-host-side-in-rust.13](.flow/tasks/fn-232-gomad-rewrite-the-host-side-in-rust.13.md) | 🚧 Running | Rust workspace/default host integrated; final qualification, behavioral reach and retirement acceptance pending ([development checkpoint](.flow/artifacts/milestones-rust-integration-2026-10-23.md)) |
+| [fn-232-gomad-rewrite-the-host-side-in-rust.13](.flow/tasks/fn-232-gomad-rewrite-the-host-side-in-rust.13.md) | ⏸ Parked | Rust workspace/default host integrated; final qualification, behavioral reach and retirement acceptance pending ([development checkpoint](.flow/artifacts/milestones-rust-integration-2026-10-23.md)) |
 
 ### Go-command interception — [fn-233](.flow/specs/fn-233-gomad-intercept-the-go-command-so-make.md)
 
@@ -316,7 +316,7 @@ Owner request 2026-10-20: a Go one-liner and `gomad -- make <target>` intercepti
 
 | Name / ID | Status | Description |
 | --- | --- | --- |
-| [fn-233-gomad-intercept-the-go-command-so-make.1](.flow/tasks/fn-233-gomad-intercept-the-go-command-so-make.1.md) | 🚧 Running | run-guest launcher verb behind go -exec with intercepted-origin evidence |
+| [fn-233-gomad-intercept-the-go-command-so-make.1](.flow/tasks/fn-233-gomad-intercept-the-go-command-so-make.1.md) | ⏸ Parked | run-guest launcher verb behind go -exec with intercepted-origin evidence |
 | [fn-233-gomad-intercept-the-go-command-so-make.2](.flow/tasks/fn-233-gomad-intercept-the-go-command-so-make.2.md) | ⬜ Todo | go shim: argv[0] dispatch, classification, guest build environment, refusals, host passthrough |
 | [fn-233-gomad-intercept-the-go-command-so-make.3](.flow/tasks/fn-233-gomad-intercept-the-go-command-so-make.3.md) | ⬜ Todo | gomad -- wrapper, gomad.toml and auto-derived installation |
 | [fn-233-gomad-intercept-the-go-command-so-make.4](.flow/tasks/fn-233-gomad-intercept-the-go-command-so-make.4.md) | ⬜ Todo | Temporal Makefile through the wrapper and operator documentation |
