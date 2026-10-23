@@ -579,24 +579,32 @@ mod profile_import_tests {
     use super::*;
 
     fn listed() -> linked::ModuleMetadata {
-        linked::ModuleMetadata {
-            imports: [
-                ("gomad_wasm_v1", "config"),
-                ("gomad_wasm_v1", "decision"),
-                ("gomad_wasm_v1", "observation"),
-                ("gomad_wasm_v1", "finish"),
-                ("gomad_wasm_v1", "idle"),
-                ("gomad_wasm_v2", "net_stream"),
-                ("gomad_debug_v1", "exchange"),
-            ]
-            .into_iter()
-            .map(|(module, name)| linked::ModuleImport {
-                module: module.into(),
-                name: name.into(),
-                params: vec!["i32".into(), "i32".into()],
-                results: vec!["i32".into()],
+        let inventory: Value = serde_json::from_str(include_str!(
+            "../../../../internal/backends/wasm/determinism/inventory.json"
+        ))
+        .unwrap();
+        let mut imports: Vec<_> = inventory["entries"]
+            .as_array()
+            .unwrap()
+            .iter()
+            .filter_map(|entry| {
+                let site = entry["site"].as_str().unwrap().strip_prefix("import:")?;
+                if !site.starts_with("gomad_") {
+                    return None;
+                }
+                let (module, name) = site.split_once("::").unwrap();
+                Some(linked::ModuleImport {
+                    module: module.into(),
+                    name: name.into(),
+                    params: vec!["i32".into(), "i32".into()],
+                    results: vec!["i32".into()],
+                })
             })
-            .collect(),
+            .collect();
+        imports.sort_by(|a, b| (&a.module, &a.name).cmp(&(&b.module, &b.name)));
+        assert!(!imports.is_empty());
+        linked::ModuleMetadata {
+            imports,
             initial_memory_pages: 1,
         }
     }
@@ -624,7 +632,15 @@ mod profile_import_tests {
             );
         }
         let mut metadata = listed();
-        metadata.imports[1].params = vec!["i64".into()];
+        metadata.imports.insert(
+            0,
+            linked::ModuleImport {
+                module: "gomad_wasm_v1".into(),
+                name: "decision".into(),
+                params: vec!["i64".into()],
+                results: vec!["i32".into()],
+            },
+        );
         assert!(validate_profile_imports(PROFILE, &metadata).is_err());
         let mut metadata = listed();
         metadata.imports.retain(|import| import.name != "idle");

@@ -2,7 +2,7 @@ use super::super::{build, host, inputs, module, workloads};
 use crate::evidence::canonical;
 use gomad_wasmhost::linked_cluster::{Handle, LifecycleObserver, LifecyclePhase};
 use serde::{Deserialize, Serialize};
-use serde_json::json;
+use serde_json::{Value, json};
 use std::{
     collections::BTreeMap,
     os::unix::fs::DirBuilderExt,
@@ -31,15 +31,7 @@ impl Spec {
         replay: bool,
     ) -> Result<Self, String> {
         let provenance = module::authenticate_prepared(prepared)?;
-        let mut files = BTreeMap::new();
-        for name in ["compiler", "sources"] {
-            files.extend(
-                serde_json::from_value::<BTreeMap<PathBuf, String>>(
-                    provenance["inputs"][name].clone(),
-                )
-                .map_err(|error| error.to_string())?,
-            );
-        }
+        let mut files = prepared_inputs(&provenance)?;
         for path in [
             &prepared.module_path,
             &prepared.provenance_path,
@@ -85,6 +77,34 @@ impl Spec {
         }
         .verify(&proof)
     }
+}
+
+fn prepared_inputs(provenance: &Value) -> Result<BTreeMap<PathBuf, String>, String> {
+    let mut files = BTreeMap::new();
+    for name in ["compiler", "sources"] {
+        files.extend(
+            serde_json::from_value::<BTreeMap<PathBuf, String>>(provenance["inputs"][name].clone())
+                .map_err(|error| error.to_string())?,
+        );
+    }
+    let compiler = PathBuf::from(
+        provenance["inputs"]["compiler_path"]
+            .as_str()
+            .ok_or("cluster phase compiler path absent")?,
+    );
+    let digest = provenance["inputs"]["compiler_sha256"]
+        .as_str()
+        .ok_or("cluster phase compiler digest absent")?;
+    if !compiler.is_absolute() || !canonical::valid_digest(digest) {
+        return Err("cluster phase absolute compiler path and digest required".into());
+    }
+    if files
+        .insert(compiler, digest.into())
+        .is_some_and(|previous| previous != digest)
+    {
+        return Err("cluster phase compiler pin conflicts with preparation inventory".into());
+    }
+    Ok(files)
 }
 
 pub(crate) struct Observer {

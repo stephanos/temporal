@@ -216,11 +216,9 @@ fn rejected_stock_import_inventory_has_an_actual_ordinary_refusal_for_every_site
             observed.outcome.message
         );
         assert_eq!(observed.outcome.exit_code, None);
-        assert!(
-            observed
-                .outcome
-                .message
-                .contains(&format!("operation outside stock WASI profile: {name}"))
+        assert_eq!(
+            observed.outcome.message,
+            format!("{name}: operation outside stock WASI profile: {name}")
         );
         assert!(observed.evidence.get("stdout").is_none_or(Vec::is_empty));
         assert!(observed.evidence.get("stderr").is_none_or(Vec::is_empty));
