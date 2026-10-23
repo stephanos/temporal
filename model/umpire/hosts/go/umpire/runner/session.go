@@ -35,7 +35,7 @@ func (r *Runner) newSession(ctx context.Context, mode Mode, iteration int, opts 
 	}
 	return &session{
 		host:     host,
-		run:      &Run{ModelHash: r.hash, ProtocolVersion: ProtocolVersion, World: world, Seed: seed},
+		run:      &Run{ModelHash: r.hash, ProtocolVersion: ProtocolVersion, World: proto.CloneOf(world), Seed: seed},
 		opts:     opts,
 		deadline: r.deadline,
 		progress: progress{
@@ -55,13 +55,64 @@ func (s *session) finish() *Run {
 	}
 	if s.opts.Redact != nil {
 		for _, event := range s.run.Events {
-			if s.opts.Redact(event) {
+			if redactEvent(event, s.opts.Redact) {
 				event.Redacted = true
 			}
+		}
+		if s.run.World != nil {
+			s.opts.Redact(&runv1.Event{Kind: &runv1.Event_Reset_{Reset_: &runv1.Reset{Request: &modelv1.ResetRequest{Configuration: s.run.World}}}})
 		}
 	}
 	s.progress.finished(s.run)
 	return s.run
+}
+
+// redactEvent applies redact to an event, and to a refused call's request, which a Refusal holds
+// as bytes: it is decoded by its method, redacted as that call's event would be, and re-encoded.
+// A request that cannot be decoded or re-encoded is removed.
+func redactEvent(event *runv1.Event, redact func(*runv1.Event) bool) bool {
+	removed := redact(event)
+	refusal := event.GetRefusal()
+	if refusal == nil {
+		return removed
+	}
+	request, probe := refusedCall(refusal.GetMethod())
+	if request == nil || proto.Unmarshal(refusal.GetRequest(), request) != nil {
+		refusal.Request = nil
+		return true
+	}
+	if !redact(probe) {
+		return removed
+	}
+	data, err := proto.MarshalOptions{Deterministic: true}.Marshal(request)
+	if err != nil {
+		data = nil
+	}
+	refusal.Request = data
+	return true
+}
+
+// refusedCall is an empty request of a method and an event holding it, for redaction.
+func refusedCall(method modelv1.Method) (proto.Message, *runv1.Event) {
+	switch method {
+	case modelv1.Method_METHOD_RESET:
+		request := new(modelv1.ResetRequest)
+		return request, &runv1.Event{Kind: &runv1.Event_Reset_{Reset_: &runv1.Reset{Request: request}}}
+	case modelv1.Method_METHOD_PROPOSE:
+		request := new(modelv1.ProposeRequest)
+		return request, &runv1.Event{Kind: &runv1.Event_Proposal{Proposal: &runv1.Proposal{Request: request}}}
+	case modelv1.Method_METHOD_JUDGE:
+		request := new(modelv1.JudgeRequest)
+		return request, &runv1.Event{Kind: &runv1.Event_Judgment{Judgment: &runv1.Judgment{Request: request}}}
+	case modelv1.Method_METHOD_ANSWER:
+		request := new(modelv1.AnswerRequest)
+		return request, &runv1.Event{Kind: &runv1.Event_Answer{Answer: &runv1.Answer{Request: request}}}
+	case modelv1.Method_METHOD_ANNOTATE:
+		request := new(modelv1.AnnotateRequest)
+		return request, &runv1.Event{Kind: &runv1.Event_Annotation{Annotation: &runv1.Annotation{Request: request}}}
+	default:
+		return nil, nil
+	}
 }
 
 // append records an event at the next position under the current request. The first terminal
@@ -241,7 +292,7 @@ func (r *Runner) execute(ctx context.Context, mode Mode, iteration int, opts Opt
 	defer func() { err = s.close(ctx, err) }()
 	runCtx, cancel := s.deadline(ctx, runDeadline, opts.RunTimeout)
 	defer cancel()
-	if _, err := s.call(ctx, 0, 0, &modelv1.ResetRequest{Configuration: world}); err != nil {
+	if _, err := s.call(ctx, 0, 0, &modelv1.ResetRequest{Configuration: proto.CloneOf(world)}); err != nil {
 		return nil, err
 	}
 	if s.run.Verdict != nil {

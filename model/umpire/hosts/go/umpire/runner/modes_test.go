@@ -282,6 +282,39 @@ func TestTheDriverRedactsWhenTheOptionsDoNot(t *testing.T) {
 	}
 }
 
+func TestRedactionReachesRefusedCallsAndTheWorld(t *testing.T) {
+	wasm := statefulGuest(t)
+	script := map[byte][]step{0: {{kind: EventCallback, value: 4, call: 1}}}
+	strip := func(event *runv1.Event) bool {
+		if callback := event.GetAnswer().GetRequest().GetCallback(); len(callback.GetValue()) > 0 {
+			callback.Value = nil
+			return true
+		}
+		if world := event.GetReset_().GetRequest().GetConfiguration(); len(world.GetValue()) > 0 {
+			world.Value = nil
+			return true
+		}
+		return false
+	}
+	opts := configured(1)
+	run := newHarness(t, wasm, func(int) *fakeDriver { return &fakeDriver{script: script, redact: strip} }).run(ModeExplore, opts)
+	requireRefused(t, run, 2, "model refused METHOD_ANSWER")
+	refused := run.GetEvents()[2]
+	request := new(modelv1.AnswerRequest)
+	if err := proto.Unmarshal(refused.GetRefusal().GetRequest(), request); err != nil {
+		t.Fatal(err)
+	}
+	if !refused.GetRedacted() || len(request.GetCallback().GetValue()) != 0 || request.GetCallback().GetTypeUrl() != controlType {
+		t.Fatalf("the refused Answer keeps its evidence: %v", refused)
+	}
+	if len(run.GetWorld().GetValue()) != 0 || !run.GetEvents()[0].GetRedacted() {
+		t.Fatalf("the world keeps its evidence: %v", run.GetWorld())
+	}
+	if len(opts.World.GetValue()) == 0 {
+		t.Fatal("redaction reached the caller's world")
+	}
+}
+
 func TestQuestionAsksOneProposeOrJudge(t *testing.T) {
 	wasm := statefulGuest(t)
 	r := New(wasm, nil)

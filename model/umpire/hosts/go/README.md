@@ -101,7 +101,9 @@ kind, stream closed without Done, Done before a final Explained observation, fai
 `Respond`, or `Close` that fails or does not return within the read timeout is a DriverFault
 event, and the Run is Refused.
 A Driver that implements `Redactor` removes the evidence its configuration names from a judged
-Run's events and marks them redacted, unless `Options.Redact` is set.
+Run's events and marks them redacted, unless `Options.Redact` is set. Redaction also reaches a
+refused call's request, which a Refusal holds as bytes (decoded by its method, redacted and
+re-encoded, or removed when it cannot be), and the Run's world, which is its own copy.
 
 `umpire.run.v1.Run` (`../../proto/umpire/run/v1/run.proto`) is the only artifact. It records
 the model hash (SHA-256 of the guest bytes), protocol version, world, seed, every Reset,
@@ -144,5 +146,4 @@ umpire <question|explore|reduce|replay|repeat> --model <guest.wasm> [--seed n] [
 It exits 0 when the deciding Run is Explained, 1 when Unexplained, 2 when Refused, and 3 when
 the loop could not run. Explore, reduce and repeat need a Driver and `--store`. The tests drive
 the stateful control guest through a fake Driver; stock Kettle refuses Propose. The command
-registers the Temporal Driver, `common/testing/testpilot/temporal/act`, configured by the
-`UMPIRE_TEMPORAL_*` environment (`tools/umpire/README.md`).
+registers the Drivers its build links (`tools/umpire/README.md`).
