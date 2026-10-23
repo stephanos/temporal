@@ -13,6 +13,45 @@ fn observation(case: &str, inputs: Value, value: Value) {
     println!("GOMAD_RETAINED_OBSERVATION {}", Value::Object(row));
 }
 
+fn directory_snapshot(root: &std::path::Path) -> Value {
+    fn visit(
+        root: &std::path::Path,
+        path: &std::path::Path,
+        entries: &mut BTreeMap<String, Value>,
+    ) {
+        let metadata = std::fs::symlink_metadata(path).unwrap();
+        let relative = path
+            .strip_prefix(root)
+            .unwrap()
+            .to_str()
+            .unwrap()
+            .to_owned();
+        if metadata.is_dir() {
+            if !relative.is_empty() {
+                entries.insert(relative, json!({"kind":"directory"}));
+            }
+            for entry in std::fs::read_dir(path).unwrap() {
+                visit(root, &entry.unwrap().path(), entries);
+            }
+        } else if metadata.file_type().is_symlink() {
+            entries.insert(
+                relative,
+                json!({"kind":"symlink","target":std::fs::read_link(path).unwrap()}),
+            );
+        } else {
+            assert!(metadata.is_file());
+            let bytes = std::fs::read(path).unwrap();
+            entries.insert(
+                relative,
+                json!({"kind":"file","bytes":bytes.len(),"sha256":canonical::digest(&bytes)}),
+            );
+        }
+    }
+    let mut entries = BTreeMap::new();
+    visit(root, root, &mut entries);
+    json!(entries)
+}
+
 fn soft_configuration(report_only: bool) -> Configuration {
     let (mut configuration, _) = super::projection_tests::configuration();
     configuration.workload = None;
@@ -536,6 +575,7 @@ fn retained_native_decoder_is_closed_and_preserves_the_existing_lineage() {
             .err()
             .expect(case);
         assert_eq!(prepare_error, error);
+        let before_snapshot = directory_snapshot(&fixture.path);
         let before = std::fs::read_dir(&fixture.path).unwrap().count();
         let mut cli_output = Vec::new();
         let cli_error =
@@ -576,7 +616,7 @@ fn retained_native_decoder_is_closed_and_preserves_the_existing_lineage() {
         observation(
             &format!("decode/{case}"),
             json!({"payload_base64":crate::campaign::exploration::base64(&changed)}),
-            json!({"error":error,"prepare_error":prepare_error,"public_status":cli_error.status,"public_error":cli_error.message,"entries_before":before,"entries_after":std::fs::read_dir(&fixture.path).unwrap().count()}),
+            json!({"error":error,"prepare_error":prepare_error,"public_status":cli_error.status,"public_error":cli_error.message,"directory_before":before_snapshot,"directory_after":directory_snapshot(&fixture.path),"entries_before":before,"entries_after":std::fs::read_dir(&fixture.path).unwrap().count()}),
         );
     }
     observation(
@@ -637,6 +677,7 @@ fn retained_implementation_and_primary_binding_reject_before_preparing_helpers()
             .insert(FILE.into(), canonical::encode(&inputs).unwrap());
         let fixture = ReaderFixture::new(publication);
         let opened = fixture.open();
+        let before_snapshot = directory_snapshot(&fixture.path);
         let before = std::fs::read_dir(&fixture.path).unwrap().count();
         let error = super::bind(&opened, &inputs).unwrap_err();
         assert_eq!(
@@ -660,7 +701,7 @@ fn retained_implementation_and_primary_binding_reject_before_preparing_helpers()
         observation(
             &format!("binding/{case}"),
             json!({"retained_inputs":inputs,"record":opened.manifest().record}),
-            json!({"error":error,"prepare_error":prepare_error,"entries_before":before,"entries_after":std::fs::read_dir(&fixture.path).unwrap().count(),"compiled_cache_exists":fixture.path.join("compiled-cache").exists()}),
+            json!({"error":error,"prepare_error":prepare_error,"directory_before":before_snapshot,"directory_after":directory_snapshot(&fixture.path),"entries_before":before,"entries_after":std::fs::read_dir(&fixture.path).unwrap().count(),"compiled_cache_exists":fixture.path.join("compiled-cache").exists()}),
         );
     }
 }
@@ -695,6 +736,7 @@ fn actual_retained_admission_uses_private_bound_inputs_and_replays_without_sourc
     let opened = fixture.open();
     opened.authenticate_all().unwrap();
     let original = opened.payload(FILE, 16 << 20).unwrap();
+    let before_snapshot = directory_snapshot(&fixture.path);
     let before = std::fs::read_dir(&fixture.path).unwrap().count();
     let prepared = super::prepare(opened.try_clone().unwrap(), None).unwrap();
     assert!(prepared.exact && prepared.available);
@@ -706,8 +748,8 @@ fn actual_retained_admission_uses_private_bound_inputs_and_replays_without_sourc
     assert!(!fixture.path.join("compiled-cache").exists());
     observation(
         "admission/actual-replay",
-        json!({"retained_inputs_base64":crate::campaign::exploration::base64(&original),"record":opened.manifest().record}),
-        json!({"divergence":divergence,"termination":actual.outcome.termination,"exit_code":actual.outcome.exit_code,"entries_before":before,"entries_after":std::fs::read_dir(&fixture.path).unwrap().count(),"reopened_inputs_base64":crate::campaign::exploration::base64(&opened.payload(FILE,16<<20).unwrap()),"compiled_cache_exists":fixture.path.join("compiled-cache").exists()}),
+        json!({"retained_inputs_base64":crate::campaign::exploration::base64(&original),"record":opened.manifest().record,"actual_execution":{"outcome":actual.outcome,"evidence":actual.evidence}}),
+        json!({"divergence":divergence,"termination":actual.outcome.termination,"exit_code":actual.outcome.exit_code,"directory_before":before_snapshot,"directory_after":directory_snapshot(&fixture.path),"entries_before":before,"entries_after":std::fs::read_dir(&fixture.path).unwrap().count(),"reopened_inputs_base64":crate::campaign::exploration::base64(&opened.payload(FILE,16<<20).unwrap()),"compiled_cache_exists":fixture.path.join("compiled-cache").exists()}),
     );
 }
 
@@ -735,11 +777,24 @@ fn retained_target_reader_refuses_missing_tampered_and_symbolic_sources() {
             }
             _ => unreachable!(),
         }
+        let source_metadata = std::fs::symlink_metadata(&module).ok();
+        let source_kind = source_metadata.as_ref().map(|metadata| {
+            if metadata.file_type().is_symlink() {
+                "symlink"
+            } else if metadata.is_file() {
+                "file"
+            } else {
+                "other"
+            }
+        });
+        let actual_bytes = (source_kind == Some("file")).then(|| std::fs::read(&module).unwrap());
+        let link_target =
+            (source_kind == Some("symlink")).then(|| std::fs::read_link(&module).unwrap());
         let error = opened.payload("target/module.wasm", 512 << 20).unwrap_err();
         assert!(!fixture.path.join("compiled-cache").exists());
         observation(
             &format!("module/{case}"),
-            json!({"original_base64":crate::campaign::exploration::base64(&original),"file":"target/module.wasm","descriptor":opened.manifest().files["target/module.wasm"]}),
+            json!({"original_base64":crate::campaign::exploration::base64(&original),"file":"target/module.wasm","descriptor":opened.manifest().files["target/module.wasm"],"source_kind":source_kind,"source_bytes_base64":actual_bytes.as_deref().map(crate::campaign::exploration::base64),"link_target":link_target}),
             json!({"error":error,"compiled_cache_exists":fixture.path.join("compiled-cache").exists()}),
         );
     }
@@ -754,20 +809,18 @@ fn native_storage_selection_requires_declared_volumes_and_preserves_defaults() {
         ("empty".to_owned(), vec![]),
     ]);
     item.storage_crash_selection = Some(selection.clone());
-    assert!(
-        super::storage_input(item)
-            .err()
-            .unwrap()
-            .contains("declared storage volumes")
-    );
+    let requested = canonical::encode(item).unwrap();
+    let selection_error = super::storage_input(item).err().unwrap();
+    assert!(selection_error.contains("declared storage volumes"));
     item.storage_crash_selection = None;
-    assert!(super::storage_input(item).unwrap().is_none());
+    let durable_none = super::storage_input(item).unwrap().is_none();
+    assert!(durable_none);
     item.storage_crash_selection = Some(BTreeMap::new());
     assert!(super::storage_input(item).unwrap().is_none());
     observation(
         "storage-selection/native-ownership",
-        json!({"selection":selection}),
-        json!({"original":item.storage_crash_selection,"durable_default":super::storage_input(item).unwrap().is_none()}),
+        json!({"selection":selection,"requested_incarnation_base64":crate::campaign::exploration::base64(&requested)}),
+        json!({"selection_error":selection_error,"durable_none":durable_none,"original":item.storage_crash_selection,"durable_default":super::storage_input(item).unwrap().is_none()}),
     );
 }
 
@@ -856,13 +909,19 @@ fn native_storage_projection_detaches_selection_context_and_limits() {
         .remove("empty");
     detached["descriptor"]["crash_limits"]["States"] = json!(1);
     detached["context"][0] = json!(99);
+    let mut dependency_detached = projected.clone();
+    let context_bytes: Vec<u8> =
+        serde_json::from_value(dependency_detached["context"].clone()).unwrap();
+    let mut context: Value = serde_json::from_slice(&context_bytes).unwrap();
+    context["volume"]["Operations"][0]["Dependencies"][0] = json!(99);
+    dependency_detached["context"] = json!(canonical::encode(&context).unwrap());
     assert_eq!(canonical::encode(&item).unwrap(), before);
     let again = serde_json::to_value(super::storage_input(item).unwrap()).unwrap();
     assert_eq!(again, projected);
     observation(
         "storage-selection/native-deep-detachment",
         json!({"original_incarnation_base64":crate::campaign::exploration::base64(&before)}),
-        json!({"projected":projected,"detached":detached,"reprojected":again,"original_after_base64":crate::campaign::exploration::base64(&canonical::encode(&item).unwrap())}),
+        json!({"projected":projected,"detached":detached,"dependency_detached":dependency_detached,"reprojected":again,"original_after_base64":crate::campaign::exploration::base64(&canonical::encode(&item).unwrap())}),
     );
 }
 
