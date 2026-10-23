@@ -23,6 +23,6 @@ The helper is a test executable and never an installed runtime.
 The driver wire protocol always receives ordinary WASI input fields.
 
 The digest format and session protocol are defined in
-`../../../wasmhost/protocol.md` under “Conformance driver”. These vectors supply
+[`rust/wasmhost/protocol.md`](../../../../../rust/wasmhost/protocol.md) under “Conformance driver”. These vectors supply
 source conformance controls; they do not qualify a guest, runtime integration,
 replay, platform or performance threshold.

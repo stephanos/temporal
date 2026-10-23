@@ -145,6 +145,7 @@
     "fn185-R4/runtime-cost-equivalent-release-behavior",
     "fn185-R4/qualified-workload-choice-wasi-network-stdout-stderr-preservation",
     "public-verbs/fresh-differential-and-raw-golden-integrity",
-    "test-wasm/complete-behavioral-reach"
+    "test-wasm/complete-behavioral-reach",
+    "fn222/two-cell-ordered-support-list"
   ]
 }

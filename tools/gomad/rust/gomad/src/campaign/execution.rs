@@ -97,7 +97,7 @@ pub(crate) fn nanos(wall: Duration) -> u64 {
     u64::try_from(wall.as_nanos()).unwrap_or(u64::MAX)
 }
 
-pub(super) fn run(
+pub(crate) fn run(
     prepared: &Prepared,
     job: &ledger::Job,
     timeout: Duration,

@@ -123,7 +123,7 @@ func TestConfiguredEdgesAndOwners(t *testing.T) {
 
 func TestSubtreeAndBuildTags(t *testing.T) {
 	root := fixture(t, map[string]string{"internal/model/wasi/pure.go": "package wasi", "internal/model/wasi/ignored.go": "//go:build windows\n\npackage wasi\nimport _ \"os\"", "internal/model/wasi/tagged.go": "//go:build test_dep\n\npackage wasi\nimport _ \"os\""})
-	findings, err := Check(filepath.Join(root, "internal/backends/wasm"), "go", Platform{"linux", "amd64"}, Config{Module: "example.invalid/check", PureFiles: func(path string) bool { return strings.HasPrefix(path, "wasi/") }})
+	findings, err := Check(filepath.Join(root, "internal/model"), "go", Platform{"linux", "amd64"}, Config{Module: "example.invalid/check", PureFiles: func(path string) bool { return strings.HasPrefix(path, "wasi/") }})
 	if err != nil {
 		t.Fatal(err)
 	}

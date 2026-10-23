@@ -353,6 +353,19 @@ waited-child high water, with both snapshots retained. Unavailable observations
 remain null. These observations do not reset qualification phase counters.
 The synthetic `prepared` record is not an executed success or replay, and the
 receipt makes no measured qualification or cost claim.
+Retained admission also checks that provenance source kind, package, absolute
+working directory and sorted unique build tags are well formed, and that final
+arguments, scenario, network and assertion policy agree with their retained
+configuration and plan bindings.
+
+Linked qualification tooling derives complete policies through
+`install::config::temporal_policy` with explicit `TemporalPolicy::Qualification`
+or `TemporalPolicy::Inspection`. Qualification retains the captured SQLite schema,
+frozen clock, entropy key and bounds with null policy arguments and no network.
+Inspection supplies its separate network, debug environment, zero entropy and
+output/transcript limits. Public Temporal installation uses
+`TemporalPolicy::Installation`; the tooling can pass a derived configuration to
+public `install --config FILE`.
 
 The mandatory exploration lane runs through the behavioral harness, separately
 from the seed campaign lane:

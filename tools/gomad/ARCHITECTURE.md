@@ -285,7 +285,7 @@ The Go packages under `internal/model` hold reference implementations of the
 clock, World, volume, network and namespace models. They are not on the
 execution path for clusters; they are the oracles the Rust implementations are
 checked against by the conformance corpora under
-`rust/wasmhost/tests/testdata` and `wasi/testdata`. A change
+`rust/wasmhost/tests/testdata` and `internal/model/wasi/testdata`. A change
 to a model is a change to a corpus, reviewed as an expectation diff.
 
 The volume and network models are gomad's own source, not derived from the

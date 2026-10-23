@@ -261,6 +261,16 @@ fn restore(journal: &Journal) -> Result<prepare::Prepared, String> {
 }
 
 fn restore_from_plan(plan: &Value, opened: &Opened) -> Result<prepare::Prepared, String> {
+    let record = &opened.manifest().record;
+    if record.outcome.class != "prepared"
+        || record.outcome.termination != "prepared"
+        || record.outcome.exit_code.is_some()
+        || !record.outcome.reason.is_empty()
+        || record.seed != 0
+        || record.virtual_time_nanos != 0
+    {
+        return Err("campaign preparation record is not an unexecuted target".into());
+    }
     if plan["host_sha256"] != env!("GOMAD_HOST_IMPLEMENTATION_SHA256")
         || plan["helper_sha256"] != gomad_wasmhost::linked::IMPLEMENTATION_SHA256
     {
@@ -671,9 +681,7 @@ fn run_observed(
                         if execution.record.outcome.termination == "capacity" {
                             failed_assertions.clone_from(&execution.soft_assertions);
                         }
-                        failure.get_or_insert_with(|| {
-                            format!("runner_failure: {}", execution.record.outcome.reason)
-                        });
+                        failure.get_or_insert_with(|| backend_failure(&execution.record.outcome));
                         cancel();
                         continue;
                     }
@@ -1036,5 +1044,37 @@ mod installed_report_tests {
         )
         .unwrap();
         assert!(report(&journal, &[execution], "complete", true, &mut Vec::new()).is_err());
+    }
+}
+
+fn backend_failure(outcome: &crate::evidence::record::Outcome) -> String {
+    let reason = outcome.reason.chars().take(4096).collect::<String>();
+    format!(
+        "runner_failure: backend {}: {}{}",
+        outcome.termination,
+        reason,
+        if outcome.reason.chars().count() > 4096 {
+            "…"
+        } else {
+            ""
+        }
+    )
+}
+#[cfg(test)]
+mod sweep_backend_failure_tests {
+    #[test]
+    fn native_failure_retains_typed_termination_without_reason_inference() {
+        for termination in ["unsupported", "capacity", "infrastructure"] {
+            let outcome = crate::evidence::record::Outcome {
+                class: "runner_failure".into(),
+                termination: termination.into(),
+                exit_code: None,
+                reason: "opaque diagnostic".into(),
+            };
+            assert_eq!(
+                super::backend_failure(&outcome),
+                format!("runner_failure: backend {termination}: opaque diagnostic")
+            );
+        }
     }
 }

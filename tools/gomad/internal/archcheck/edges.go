@@ -61,6 +61,9 @@ func OwnerMayImport(modulePath, owner, importedOwner, importing, imported string
 	if owner == "runner" && imported == modulePath+"/internal/model/clock" {
 		return true
 	}
+	if importing == modulePath+"/internal/model/cmd/sqlite-native" && imported == modulePath+"/internal/model/strictjson" {
+		return true
+	}
 	if owner == "captured" && importedOwner == "hostfs" {
 		return imported == modulePath+"/internal/support/fs"
 	}

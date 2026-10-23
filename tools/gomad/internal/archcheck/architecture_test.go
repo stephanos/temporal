@@ -262,6 +262,7 @@ func TestStrictJSONOwnerEdges(t *testing.T) {
 		name, owner, importing string
 	}{
 		{"wasi-reference", "wasireference", modulePath + "/internal/model/wasi"},
+		{"sqlite-native", "developer", modulePath + "/internal/model/cmd/sqlite-native"},
 		{"wasm-qualification", "wasm", modulePath + "/internal/backends/wasm/qualification"},
 		{"wasm-installation", "wasm", modulePath + "/internal/backends/wasm/installation"},
 		{"wasm-simulation", "wasm", modulePath + "/internal/backends/wasm/cluster"},

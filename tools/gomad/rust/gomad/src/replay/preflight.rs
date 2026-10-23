@@ -145,7 +145,11 @@ pub fn open(path: &Path) -> Result<Prepared, String> {
 /// # Errors
 /// Uses only authenticated pinned-root payloads and validates all streams before execution.
 pub fn prepare(opened: Opened) -> Result<Prepared, String> {
-    prepare_internal(opened, None)
+    prepare_internal(opened, None, false)
+}
+
+pub(crate) fn prepare_runtime_qualification(opened: Opened) -> Result<Prepared, String> {
+    prepare_internal(opened, None, true)
 }
 
 /// # Errors
@@ -154,7 +158,7 @@ pub fn prepare_with_inspection(
     opened: Opened,
     control: gomad_wasmhost::linked_inspection::Request,
 ) -> Result<Prepared, String> {
-    prepare_internal(opened, Some(control))
+    prepare_internal(opened, Some(control), false)
 }
 
 #[expect(
@@ -164,6 +168,7 @@ pub fn prepare_with_inspection(
 fn prepare_internal(
     opened: Opened,
     control: Option<gomad_wasmhost::linked_inspection::Request>,
+    qualification_diagnostics_off: bool,
 ) -> Result<Prepared, String> {
     opened.authenticate_all()?;
     let manifest = opened.manifest();
@@ -174,6 +179,9 @@ fn prepare_internal(
         return Err("record payload mismatch".into());
     }
     if manifest.files.contains_key(super::cluster::FILE) {
+        if qualification_diagnostics_off {
+            return Err("runtime qualification requires a standalone guest".into());
+        }
         let prepared = super::cluster::prepare(opened, control.as_ref())?;
         return Ok(Prepared {
             opened: prepared.opened,
@@ -278,6 +286,15 @@ fn prepare_internal(
             return Err("WASM artifact exact choice implementation identity mismatch".into());
         }
         available = choices.terminal_state == "complete";
+        if qualification_diagnostics_off {
+            let configuration = model
+                .as_mut()
+                .ok_or("runtime qualification requires a model")?;
+            if !available || !configuration.diagnostics {
+                return Err("runtime qualification requires complete diagnostic recording".into());
+            }
+            configuration.diagnostics = false;
+        }
         if available {
             let configuration = model
                 .as_mut()
@@ -307,6 +324,8 @@ fn prepare_internal(
             );
             trace = Some(raw);
         }
+    } else if qualification_diagnostics_off {
+        return Err("runtime qualification requires exact replay".into());
     } else if details
         .as_ref()
         .is_some_and(|details| details.choices.is_some())

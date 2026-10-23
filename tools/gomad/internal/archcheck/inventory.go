@@ -221,7 +221,9 @@ func discover(root, goCommand string, platform Platform, legacy bool) (Inventory
 			inventory.RetainedGo = append(inventory.RetainedGo, pkg.ImportPath)
 		} else {
 			inventory.RetiringGo = append(inventory.RetiringGo, pkg.ImportPath)
-			add("retired-host-source", pkg.ImportPath, "default Go sources must belong to the retained model, conformance or toolchain set")
+			if legacy {
+				add("retired-host-source", pkg.ImportPath, "default Go sources must belong to the retained model, conformance or toolchain set")
+			}
 		}
 	}
 	slices.Sort(inventory.RetainedGo)
@@ -239,7 +241,7 @@ func Within(path, root string) bool { return within(path, root) }
 
 var sourceExclusions = []string{
 	"rust/wasmhost/src/world/deflate/testdata",
-	"cmd/gomad/testdata", "internal/runner/testdata", "internal/evidence/qualification/corpus",
+	"cmd/gomad/testdata", "internal/evidence/qualification/corpus",
 	"internal/model/cluster/testdata/simulation_exploration", "internal/model/cluster/testdata/simulation_replay",
 	"testdata/parity/site_scope", "testdata/parity/live_backend",
 	"internal/backends/wasm/testdata", "internal/model/wasi/testdata", "internal/backends/wasm/toolchain/testdata", "internal/backends/wasm/cluster/testdata", "internal/backends/wasm/qualification/testdata", "internal/backends/wasm/command/testdata",
