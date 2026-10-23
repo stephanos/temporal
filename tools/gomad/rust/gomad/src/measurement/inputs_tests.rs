@@ -123,7 +123,7 @@ fn output_failure_is_infrastructure_failure() {
 }
 #[test]
 fn every_subcommand_refuses_without_explicit_inputs() {
-    assert_eq!(names().len(), 25);
+    assert_eq!(names().len(), 26);
     for name in names() {
         let prefix = vec![name.to_string(), "--repo".into(), repo()];
         let mut extra = prefix.clone();
