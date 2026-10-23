@@ -156,7 +156,7 @@ def compose(inputs, base, plan_path, bindings_path, config_path):
     for key in ('final_profiles', 'final_retained', 'stress', 'public_verbs', 'private_observations'):
         require(result.get(key), 'missing actual final input binding: ' + key)
     result['inputs'] = sorted(set(result['inputs']) | {str(python), str(HERE / 'compose.py'),
-        str(HERE / 'final_public_verbs.py'), str(HERE / 'primary_stages.py'), str(HERE / 'cell_reader.py')} | {entry['argv'][1] for entry in result['final_sections'].values()})
+        str(HERE / 'final_public_verbs.py'), str(HERE / 'primary_stages.py'), str(HERE / 'cell_reader.py'), str(HERE / 'native_roles.py')} | {entry['argv'][1] for entry in result['final_sections'].values()})
     result.pop('_future_config')
     write(bindings_path, result)
     return result
