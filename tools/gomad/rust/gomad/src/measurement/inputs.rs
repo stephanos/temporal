@@ -1294,6 +1294,14 @@ const PRODUCERS: &[(&str, &[Input])] = &[
                 required: false,
             },
             Input {
+                variable: "GOMAD_WASM_TERMINAL_EXIT_DIAGNOSTIC_HELPER",
+                required: false,
+            },
+            Input {
+                variable: "GOMAD_WASM_TERMINAL_EXIT_DIAGNOSTIC_HELPER_RECEIPT",
+                required: false,
+            },
+            Input {
                 variable: "GOMAD_WASM_TERMINAL_EXIT_MODULE",
                 required: false,
             },

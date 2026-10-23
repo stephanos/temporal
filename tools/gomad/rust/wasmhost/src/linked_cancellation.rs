@@ -65,6 +65,8 @@ impl Cancellation {
 
     pub(crate) fn execution() -> Execution {
         Execution {
+            terminal_monotonic_nanos: None,
+            admission_terminal_to_return_nanos: None,
             timing: None,
             #[cfg(feature = "guest-profile")]
             guest_profile_error: None,

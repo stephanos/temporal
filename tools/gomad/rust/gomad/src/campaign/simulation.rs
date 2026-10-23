@@ -304,6 +304,11 @@ fn run(
                         .into_owned(),
                 );
                 execution.stored_bytes = published.stored_bytes;
+                super::execution::retain_backend_metrics(
+                    journal.path(),
+                    execution,
+                    &observed.metrics,
+                )?;
             }
             retention.retained(execution)?;
             executions.push(observed.execution);

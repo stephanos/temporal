@@ -755,6 +755,8 @@ pub fn project_encoded(
     evidence.insert("inspection".into(), observed.inspection);
     outcome.local_model = Some(Box::new(json!({"now":observed.virtual_elapsed_nanos})));
     Ok(linked::Execution {
+        terminal_monotonic_nanos: None,
+        admission_terminal_to_return_nanos: None,
         timing: None,
         #[cfg(feature = "helper-guest-profile")]
         guest_profile_error: None,
@@ -877,6 +879,8 @@ mod projection_tests {
                         },
                         interrupted: false,
                         execution: linked::Execution {
+                            terminal_monotonic_nanos: None,
+                            admission_terminal_to_return_nanos: None,
                             timing: None,
                             #[cfg(feature = "helper-guest-profile")]
                             guest_profile_error: None,

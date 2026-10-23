@@ -1,6 +1,7 @@
 use super::inputs::{CheckoutProof, Invocation};
 use crate::{campaign::prepare as preparation, cli::explore::ExploreOptions, evidence::canonical};
 use serde_json::{Value, json};
+use std::os::unix::fs::DirBuilderExt;
 use std::{
     collections::BTreeMap,
     fs,
@@ -49,6 +50,7 @@ pub fn resource_bounds(selection: &Selection) -> Bounds {
 }
 
 pub struct Prepared {
+    pub observation_receipt_sha256: Option<String>,
     pub guest: preparation::Prepared,
     pub module_path: PathBuf,
     pub provenance_path: PathBuf,
@@ -347,7 +349,12 @@ fn prepare_selection_controlled(
         .get("GOMAD_STOCK_GO")
         .filter(|value| Path::new(value).is_absolute())
         .ok_or("native measurement requires explicit absolute --stock-go")?;
-    fs::create_dir_all(root).map_err(|error| error.to_string())?;
+    fs::DirBuilder::new()
+        .recursive(true)
+        .mode(0o700)
+        .create(root)
+        .map_err(|error| error.to_string())?;
+    crate::evidence::store::open::pin(root)?;
     let runtime = matches!(selection, Selection::Runtime);
     let mut bounds = resource_bounds(selection);
     if call.name == "legacy-workflow-profile" {
@@ -487,12 +494,14 @@ fn prepare_selection_controlled(
     let provenance_path = root.join("module-provenance.json");
     write(&module_path, &guest.module)?;
     write(&provenance_path, &guest.provenance)?;
+    retain_preparation_observations(root, &guest)?;
     let module_metadata = serde_json::to_value(
         gomad_wasmhost::linked::module_metadata(&guest.module)
             .map_err(|error| error.to_string())?,
     )
     .map_err(|error| error.to_string())?;
     Ok(Prepared {
+        observation_receipt_sha256: None,
         guest,
         module_path,
         provenance_path,
@@ -586,6 +595,30 @@ impl VariantProof {
             && after["guest"]["module_sha256"] == self.after_sha256
     }
 }
+pub(crate) fn retain_preparation_observations(
+    root: &Path,
+    guest: &preparation::Prepared,
+) -> Result<(), String> {
+    if guest.auxiliary.is_empty() {
+        return Err("native measurement preparation observations absent".into());
+    }
+    let record = canonical::digest(&guest.provenance);
+    preparation::retain_observations(root, guest, &record)?;
+    if preparation::open_observations(root, guest, &record)? != guest.auxiliary {
+        return Err("native measurement preparation observation set changed".into());
+    }
+    write(
+        &root.join("preparation-observations.json"),
+        &canonical::encode(&json!({
+            "schema":"gomad.native-measurement-preparation-observations/v1",
+            "artifact_root":root.join("preparation-observations"),
+            "record":"module-provenance.json",
+            "record_sha256":record,
+            "receipt":"preparation-observations/receipt.json"
+        }))?,
+    )
+}
+
 /// # Errors
 /// Refuses retained module, provenance or installation bindings that no longer match preparation.
 pub fn authenticate_prepared(prepared: &Prepared) -> Result<Value, String> {
@@ -593,6 +626,25 @@ pub fn authenticate_prepared(prepared: &Prepared) -> Result<Value, String> {
         || read(&prepared.provenance_path, 16 << 20)? != prepared.guest.provenance
     {
         return Err("module variant retained module/provenance changed".into());
+    }
+    if !prepared.guest.auxiliary.is_empty() {
+        let root = prepared
+            .provenance_path
+            .parent()
+            .ok_or("module root absent")?;
+        let record = canonical::digest(&prepared.guest.provenance);
+        let observed = match &prepared.observation_receipt_sha256 {
+            Some(receipt) => preparation::open_observations_from_receipt(
+                root,
+                &prepared.guest,
+                &record,
+                receipt,
+            )?,
+            None => preparation::open_observations(root, &prepared.guest, &record)?,
+        };
+        if observed != prepared.guest.auxiliary {
+            return Err("module preparation observations changed".into());
+        }
     }
     let provenance = crate::qualify::spec::strict(&prepared.guest.provenance)?;
     preparation::typed_provenance(&provenance)?;

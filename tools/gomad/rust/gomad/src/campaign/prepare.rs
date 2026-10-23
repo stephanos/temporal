@@ -74,6 +74,15 @@ pub(crate) fn retain_observations(
     observation_sidecar::publish(campaign, prepared, record)
 }
 
+pub(crate) fn open_observations_from_receipt(
+    campaign: &Path,
+    prepared: &Prepared,
+    record: &str,
+    receipt_sha256: &str,
+) -> Result<BTreeMap<String, Vec<u8>>, String> {
+    observation_sidecar::open_from_receipt(campaign, prepared, record, receipt_sha256)
+}
+
 pub(crate) fn open_observations(
     campaign: &Path,
     prepared: &Prepared,

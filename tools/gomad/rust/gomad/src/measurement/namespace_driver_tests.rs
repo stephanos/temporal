@@ -94,3 +94,60 @@ fn dispatched_child_sample_reaches_parent_admission_without_a_nested_retention_s
     drop(parent);
     fs::remove_dir_all(path).unwrap();
 }
+
+#[test]
+#[ignore = "requires an explicit pinned Go compiler and a fresh retained runtime custody root"]
+fn actual_runtime_preparation_reconstructs_and_refuses_mutated_observations() {
+    let root = PathBuf::from(std::env::var_os("GOMAD_TEST_MEASUREMENT_ROOT").unwrap());
+    let compiler = std::env::var("GOMAD_TEST_PREPARATION_COMPILER").unwrap();
+    fs::DirBuilder::new().mode(0o700).create(&root).unwrap();
+    let repo = Path::new(env!("CARGO_MANIFEST_DIR"))
+        .ancestors()
+        .nth(4)
+        .unwrap()
+        .to_owned();
+    let proof = crate::measurement::inputs::authenticate_checkout(&repo).unwrap();
+    let call = Invocation {
+        name: "runtime-cost-profile".into(),
+        repo,
+        go_command: compiler.clone(),
+        inputs: BTreeMap::from([
+            ("GOMAD_STOCK_GO".into(), compiler),
+            (
+                "GOMAD_WASM_TOOLCHAIN_CACHE".into(),
+                root.join("cache").to_string_lossy().into_owned(),
+            ),
+        ]),
+        environ: std::env::vars()
+            .map(|(key, value)| format!("{key}={value}"))
+            .collect(),
+        keep: true,
+    };
+    let prepared =
+        module::prepare(&proof, &call, &root.join("module"), &Selection::Runtime).unwrap();
+    module::authenticate_prepared(&prepared).unwrap();
+    assert_eq!(
+        prepared.native_input(0).unwrap()["guest"]["model"]["configuration"]["limit"],
+        64_u64 << 20
+    );
+    let common = common(&prepared, prepared.module_path.clone(), &root).unwrap();
+    let reconstructed = load_prepared(&common).unwrap();
+    assert_eq!(reconstructed.guest.auxiliary, prepared.guest.auxiliary);
+    let directory = root.join("module/preparation-observations");
+    let key = prepared.guest.auxiliary.keys().next().unwrap();
+    let path = directory.join(key);
+    let original = fs::read(&path).unwrap();
+    fs::write(&path, b"altered").unwrap();
+    assert!(load_prepared(&common).is_err());
+    fs::write(&path, original).unwrap();
+    load_prepared(&common).unwrap();
+    let saved = root.join("saved-observations");
+    fs::rename(&directory, &saved).unwrap();
+    assert!(load_prepared(&common).is_err());
+    fs::rename(&saved, &directory).unwrap();
+    load_prepared(&common).unwrap();
+    println!(
+        "retained runtime namespace custody probe: {}",
+        root.display()
+    );
+}

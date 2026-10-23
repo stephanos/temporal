@@ -112,5 +112,6 @@ mod model_preservation;
 #[cfg(all(test, not(feature = "conformance")))]
 mod storage_preservation;
 
+pub mod profile_inventory;
 #[cfg(not(feature = "conformance"))]
 mod storage_evidence_bounds;
