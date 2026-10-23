@@ -37,6 +37,36 @@ def mapped(native):
 
 
 class RequestMapping(unittest.TestCase):
+    def test_uncached_projection_changes_only_host_compile_cache_and_keeps_original_strict(self):
+        native = native_input()
+        native['compile_cache'] = '/actual/native/compile-cache'
+        original = copy.deepcopy(native)
+        projected = reference.uncached_projection(native)
+        self.assertEqual(native,original)
+        self.assertIsNone(projected['compile_cache'])
+        self.assertEqual({key:value for key,value in projected.items() if key != 'compile_cache'},
+                         {key:value for key,value in native.items() if key != 'compile_cache'})
+        with self.assertRaises(ValueError):mapped(native)
+        mapped(projected)
+        for field in ('module','module_sha256','limits','model','namespace','storage'):
+            altered = copy.deepcopy(projected)
+            altered['guest'][field] = 'foreign'
+            with self.subTest(field=field),self.assertRaises(ValueError):
+                reference.bind_cache_projection(native,altered)
+        reference.bind_cache_projection(native,projected)
+        with self.assertRaises(ValueError):reference.uncached_projection(dict(native,compile_cache='relative'))
+
+    def test_projection_file_is_private_canonical_input_for_the_real_reader(self):
+        with tempfile.TemporaryDirectory() as temporary:
+            path = Path(temporary)/'reference-request.json'
+            candidate = dict(native_input(),compile_cache='/actual/native/cache')
+            projected = reference.write_uncached_projection(path,candidate)
+            actual,_ = reference.custody.document(path)
+            self.assertEqual(actual,projected)
+            self.assertIsNone(actual['compile_cache'])
+            self.assertEqual(path.stat().st_mode & 0o777,0o600)
+            self.assertEqual(path.read_bytes(),reference.custody.canonical(projected))
+
     def test_original_archive_keeps_exact_relative_symlink_bytes(self):
         with tempfile.TemporaryDirectory() as temporary:
             root = Path(temporary)

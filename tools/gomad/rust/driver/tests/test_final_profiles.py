@@ -104,6 +104,30 @@ class FinalProfiles(unittest.TestCase):
                     calls=1 << 20, transcript_bytes=64 << 20, choice_bytes=64 << 20,
                     runtime_diagnostics=False)
 
+    def test_dynamic_runtime_request_preserves_explicit_uncached_null(self):
+        from test_reference_profile import native_input
+        request = native_input()
+        module = self.root/'module.wasm'
+        module.write_bytes(b'actual fixture module')
+        request['guest']['module'] = str(module)
+        request['guest']['module_sha256'] = gate.hashlib.sha256(module.read_bytes()).hexdigest()
+        request['compile_cache'] = None
+        path = self.root/'request.json'
+        path.write_text(json.dumps(request))
+        spec = dict(native_input=copy.deepcopy(request))
+        with patch.object(gate,'modeled_request'), patch.object(gate,'preparation_proof'):
+            self.assertEqual(gate.bound_native_request({},path,spec,runtime=True,dynamic_root=self.root),request)
+
+    def test_reference_raw_copy_rejects_semantically_equal_reserialization(self):
+        path = self.root/'candidate-request.json'
+        raw = b'{"compile_cache":"/actual/cache"}'
+        path.write_bytes(raw)
+        identity = dict(bytes=len(raw),sha256=hashlib.sha256(raw).hexdigest())
+        self.assertEqual(gate.reference_input_copy(self.root,path.name,identity),json.loads(raw))
+        path.write_bytes(b'{ "compile_cache": "/actual/cache" }\n')
+        self.assertEqual(json.loads(path.read_bytes()),json.loads(raw))
+        with self.assertRaises(Refusal):gate.reference_input_copy(self.root,path.name,identity)
+
     def test_original_cpu_bound_and_features(self):
         raw = b'Features: fp asimd\nCPU architecture: 8\n'
         at_bound = raw + b'\n' * ((1 << 20) - len(raw))

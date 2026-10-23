@@ -143,6 +143,28 @@ def byte_text(value):
     return bytes(value).decode('utf-8')
 
 
+def uncached_projection(candidate):
+    cache = candidate.get('compile_cache')
+    custody.require(cache is None or (isinstance(cache,str) and Path(cache).is_absolute()
+        and str(Path(cache).resolve()) == cache), 'candidate compile cache is not canonical')
+    projected = copy.deepcopy(candidate)
+    # Host compilation caching has no counterpart in the original Go reference.
+    # Every guest/module/model/provenance input remains exact and independently bound.
+    projected['compile_cache'] = None
+    return projected
+
+
+def write_uncached_projection(path, candidate):
+    projected = uncached_projection(candidate)
+    save(path,projected)
+    return projected
+
+
+def bind_cache_projection(candidate, projected):
+    custody.require(projected == uncached_projection(candidate),
+                    'uncached reference projection changed more than host compile cache')
+
+
 def original_request(native, module, helper, helper_sha256, toolchain, identity, platform):
     custody.require(set(native) <= {'kind', 'guest', 'network', 'compile_cache'}
                     and native['kind'] == 'standalone' and native.get('network') is None
@@ -444,7 +466,7 @@ def admit_helper(receipt, helper, files):
         'helper build exact Cargo/compiler invocation changed')
 
 
-def run(derived, native_request, request_sha256, provenance, provenance_sha256, files, build_receipt, binary, helper, helper_receipt, output):
+def run(derived, native_request, request_sha256, provenance, provenance_sha256, files, build_receipt, binary, helper, helper_receipt, output, *, candidate_request=None, candidate_request_sha256=None):
     import driver
     import platform
     derived, binary, helper = map(custody.absolute, (derived, binary, helper))
@@ -464,6 +486,13 @@ def run(derived, native_request, request_sha256, provenance, provenance_sha256, 
     provenance_value, provenance_identity = custody.document(provenance)
     custody.require(native_identity['sha256'] == request_sha256 and provenance_identity['sha256'] == provenance_sha256,
                     'changed actual native request/provenance')
+    candidate_identity = None
+    custody.require((candidate_request is None) == (candidate_request_sha256 is None),
+                    'candidate request projection binding is incomplete')
+    if candidate_request is not None:
+        candidate, candidate_identity = custody.document(candidate_request)
+        custody.require(candidate_identity['sha256'] == candidate_request_sha256, 'changed actual cached candidate request')
+        bind_cache_projection(candidate,native)
     bind_preparation(native, provenance_value, original_runtime=True)
     module = custody.absolute(native['guest']['module'])
     module_identity = custody.snapshot(module, 512 << 20)
@@ -475,6 +504,8 @@ def run(derived, native_request, request_sha256, provenance, provenance_sha256, 
     custody.require(output.is_absolute() and not output.exists(), 'fresh absolute reference result root required')
     output.mkdir(mode=0o700)
     put(output / 'native-request.json', Path(native_request).read_bytes())
+    if candidate_request is not None:
+        put(output / 'candidate-request.json',Path(candidate_request).read_bytes())
     put(output / 'provenance.json', Path(provenance).read_bytes())
     # Pin the exact module in the private attempt; paths never change guest bytes.
     pinned_module = output / 'module.wasm'
@@ -514,12 +545,19 @@ def run(derived, native_request, request_sha256, provenance, provenance_sha256, 
     custody.require(custody.snapshot(native_request, 16 << 20) == native_identity
                     and custody.snapshot(provenance, 16 << 20) == provenance_identity
                     and custody.snapshot(module, 512 << 20) == module_identity, 'native inputs changed during reference run')
+    if candidate_request is not None:
+        custody.require(custody.snapshot(candidate_request,16 << 20) == candidate_identity,
+                        'actual candidate request changed during uncached reference run')
     for path, identity in static.items():
         custody.require(custody.snapshot(path, 512 << 20) == identity, 'reference static input changed during run')
     manifest = dict(schema='gomad.runtime-reference-pair/v1', original_commit=ORIGINAL,
         native_request=dict(path=str(native_request), **native_identity), provenance=dict(path=str(provenance), **provenance_identity),
         module=dict(path=str(module), pinned_path=str(pinned_module), **module_identity),
         static_inputs=static, source_manifest=str(derived / 'source.json'), build_receipt=str(build_receipt), helper_receipt=str(helper_receipt), runs=results)
+    if candidate_request is not None:
+        manifest['cache_projection'] = dict(kind='compile_cache_to_null/v1',
+            candidate_request=dict(path=str(candidate_request),**candidate_identity),
+            reference_request=manifest['native_request'])
     save(output / 'manifest.json', manifest)
     return manifest
 
@@ -541,6 +579,8 @@ def main():
     execute = commands.add_parser('run')
     for name in ('derived', 'native-request', 'request-sha256', 'provenance', 'provenance-sha256', 'files', 'build-receipt', 'reference-binary', 'helper', 'helper-receipt', 'output'):
         execute.add_argument('--' + name, required=True)
+    execute.add_argument('--candidate-request')
+    execute.add_argument('--candidate-request-sha256')
     args = parser.parse_args()
     if args.command == 'derive':
         derive(args.repo, args.output)
@@ -555,7 +595,8 @@ def main():
     else:
         files, _ = custody.document(args.files)
         run(args.derived, args.native_request, args.request_sha256, args.provenance, args.provenance_sha256,
-            files, args.build_receipt, args.reference_binary, args.helper, args.helper_receipt, args.output)
+            files, args.build_receipt, args.reference_binary, args.helper, args.helper_receipt, args.output,
+            candidate_request=args.candidate_request,candidate_request_sha256=args.candidate_request_sha256)
 
 
 if __name__ == '__main__':

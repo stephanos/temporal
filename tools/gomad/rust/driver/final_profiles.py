@@ -155,11 +155,13 @@ def bound_native_request(config, path, spec, *, runtime=False, dynamic_root=None
         expected = copy.deepcopy(spec['native_input'])
         expected['guest']['module'] = guest['module']
         expected['guest']['module_sha256'] = guest['module_sha256']
-        if 'compile_cache' in request:
+        if request.get('compile_cache') is not None:
             cache = Path(request['compile_cache'])
             require(cache.is_absolute() and cache.resolve() == cache and cache.is_relative_to(dynamic_root),
                     'foreign dynamic runtime compile cache')
             expected['compile_cache'] = str(cache)
+        elif 'compile_cache' in request:
+            expected['compile_cache'] = None
         require(request == expected, 'dynamic runtime request changed original modeled semantics')
     if dynamic_root is None:
         live.sealed_input(config, guest['module'])
@@ -918,6 +920,14 @@ def original_source(config, root, entry, label, execute=invoke):
     return derived, source
 
 
+def reference_input_copy(root, name, identity):
+    from driver import sha
+    path = bounded_path(root,str(root/name))
+    require(path.stat().st_size == identity['bytes'] and sha(path) == identity['sha256'],
+            'original reference retained raw input copy changed: ' + name)
+    return read(path)
+
+
 def reference_runtime(config, root, work, native_root, runtime_spec):
     import json
     import live
@@ -947,9 +957,13 @@ def reference_runtime(config, root, work, native_root, runtime_spec):
     request_path = native_root / 'request.json'
     native = read(request_path)
     provenance = Path(native['guest']['module']).parent / 'module-provenance.json'
+    import reference_profile
+    projected_path = work / 'runtime-reference-request.json'
+    projected = reference_profile.write_uncached_projection(projected_path,native)
     output = work / 'runtime-reference'
     argv = [entry['python'], entry['script'], 'run', '--derived', str(derived),
-            '--native-request', str(request_path), '--request-sha256', sha(request_path),
+            '--native-request', str(projected_path), '--request-sha256', sha(projected_path),
+            '--candidate-request', str(request_path), '--candidate-request-sha256', sha(request_path),
             '--provenance', str(provenance), '--provenance-sha256', sha(provenance),
             '--files', entry['files'], '--build-receipt', entry['build_receipt'],
             '--reference-binary', entry['binary'], '--helper', entry['helper'],
@@ -957,10 +971,17 @@ def reference_runtime(config, root, work, native_root, runtime_spec):
     invoke(config, root, 'final-profile-runtime-reference', argv)
     manifest = read(output / 'manifest.json')
     require(manifest['schema'] == 'gomad.runtime-reference-pair/v1' and manifest['original_commit'] == original
-            and manifest['native_request']['path'] == str(request_path)
-            and manifest['native_request']['sha256'] == sha(request_path)
+            and manifest['native_request']['path'] == str(projected_path)
+            and manifest['native_request']['sha256'] == sha(projected_path)
+            and manifest['cache_projection'] == dict(kind='compile_cache_to_null/v1',
+                candidate_request=dict(path=str(request_path),bytes=request_path.stat().st_size,sha256=sha(request_path)),
+                reference_request=manifest['native_request'])
+            and reference_input_copy(output,'candidate-request.json',manifest['cache_projection']['candidate_request']) == native
+            and reference_input_copy(output,'native-request.json',manifest['native_request']) == projected
+            and reference_input_copy(output,'provenance.json',manifest['provenance']) == read(provenance)
             and manifest['provenance']['sha256'] == sha(provenance)
             and manifest['module']['sha256'] == native['guest']['module_sha256'], 'foreign original reference custody')
+    reference_profile.bind_cache_projection(read(request_path),read(projected_path))
     actual = []
     for owner in ('go', 'helper'):
         directory = output / owner
