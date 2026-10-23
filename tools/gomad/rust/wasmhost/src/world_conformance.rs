@@ -120,9 +120,16 @@ fn replay(name: &str, corpus: &Value) -> Result<Option<world::Model>, String> {
     let mut model = match world::Model::new(config(&corpus["config"])) {
         Ok(model) if corpus["creation_error"].is_null() => model,
         Ok(_) => return Err(format!("{name}: accepted an invalid config")),
-        Err(failure) if error(&failure) == corpus["creation_error"] => return Ok(None),
+        Err(failure) if error(&failure) == corpus["creation_error"] => {
+            println!(
+                "GOMAD_CORE_OBSERVATION {}",
+                json!({"schema":"gomad.core-predicate-observation/v1","case":"world.corpus-replay","inputs":{"corpus":name,"document":corpus},"observed":{"steps":[],"creation_error":error(&failure)}})
+            );
+            return Ok(None);
+        }
         Err(failure) => return Err(format!("{name}: creation: {failure}")),
     };
+    let mut observed = Vec::new();
     for (index, step) in corpus["steps"].as_array().unwrap().iter().enumerate() {
         let mut actual = json!({"error": Value::Null});
         let result = match step["op"].as_str().unwrap() {
@@ -177,6 +184,7 @@ fn replay(name: &str, corpus: &Value) -> Result<Option<world::Model>, String> {
             Ok(_) => {}
             Err(failure) => actual["error"] = error(&failure),
         }
+        observed.push(actual.clone());
         if actual != step["expected"] {
             return Err(format!(
                 "{name} (origin {}) diverges at step {index} {}:\n  want {}\n  got  {}",
@@ -184,6 +192,10 @@ fn replay(name: &str, corpus: &Value) -> Result<Option<world::Model>, String> {
             ));
         }
     }
+    println!(
+        "GOMAD_CORE_OBSERVATION {}",
+        json!({"schema":"gomad.core-predicate-observation/v1","case":"world.corpus-replay","inputs":{"corpus":name,"document":corpus},"observed":{"steps":observed,"creation_error":Value::Null}})
+    );
     Ok(Some(model))
 }
 
@@ -265,7 +277,7 @@ fn final_world_wires_round_trip_through_the_binary_owner() {
         );
         println!(
             "GOMAD_CORE_OBSERVATION {}",
-            json!({"schema":"gomad.core-predicate-observation/v1","case":"final_world_wire_owner_round_trip","inputs":{"corpus":name,"expanded_sha256":format!("{:x}",sha2::Sha256::digest(&expanded))},"observed":{"envelope_sha256":hex(&digest),"restored_sha256":format!("{:x}",sha2::Sha256::digest(&restored)),"state_digest":hex(&model.state_digest()),"next_ids":model.next_ids()}})
+            json!({"schema":"gomad.core-predicate-observation/v1","case":"final_world_wire_owner_round_trip","inputs":{"corpus":name,"expanded_sha256":format!("{:x}",sha2::Sha256::digest(&expanded))},"observed":{"expanded_base64":STANDARD.encode(&expanded),"envelope_base64":STANDARD.encode(&envelope),"restored_base64":STANDARD.encode(&restored),"envelope_sha256":hex(&digest),"restored_sha256":format!("{:x}",sha2::Sha256::digest(&restored)),"state_digest":hex(&model.state_digest()),"next_ids":model.next_ids()}})
         );
         checked += 1;
     }

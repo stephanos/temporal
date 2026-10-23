@@ -1,4 +1,5 @@
 use super::{Config, Limits, Model, Readiness, Request, ResourceId, retained, wire_generated};
+use base64::{Engine, engine::general_purpose::STANDARD};
 use sha2::{Digest, Sha256};
 
 fn config(requests: u64) -> Config {
@@ -101,7 +102,7 @@ fn binary_world_owner_rejects_foreign_seed_capacities_and_trailing_bytes() {
     retained::validate(&restored, model.config()).unwrap();
     println!(
         "GOMAD_CORE_OBSERVATION {}",
-        serde_json::json!({"schema":"gomad.core-predicate-observation/v1","case":"binary_world_owner_profile_round_trip","inputs":{"seed":model.config().seed,"requests":3,"wire_sha256":format!("{:x}",Sha256::digest(&bytes))},"observed":{"envelope_sha256":format!("{:x}",Sha256::digest(&envelope)),"restored_sha256":format!("{:x}",Sha256::digest(&restored)),"trailing_error":retained::validate(&trailing,model.config()).unwrap_err(),"wrong_raw_profile_error":retained::validate(&envelope,model.config()).unwrap_err(),"wrong_compressed_profile_error":retained::expand(&bytes).unwrap_err()}})
+        serde_json::json!({"schema":"gomad.core-predicate-observation/v1","case":"binary_world_owner_profile_round_trip","inputs":{"seed":model.config().seed,"requests":3,"wire_sha256":format!("{:x}",Sha256::digest(&bytes))},"observed":{"expanded_base64":STANDARD.encode(&bytes),"envelope_base64":STANDARD.encode(&envelope),"restored_base64":STANDARD.encode(&restored),"envelope_sha256":format!("{:x}",Sha256::digest(&envelope)),"restored_sha256":format!("{:x}",Sha256::digest(&restored)),"trailing_error":retained::validate(&trailing,model.config()).unwrap_err(),"wrong_raw_profile_error":retained::validate(&envelope,model.config()).unwrap_err(),"wrong_compressed_profile_error":retained::expand(&bytes).unwrap_err()}})
     );
 }
 
