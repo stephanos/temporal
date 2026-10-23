@@ -132,7 +132,7 @@ fn publication_checks_partial_zero_and_error_writes_through_the_final_manifest_b
     let published = published.unwrap();
     authenticate(&published, &publication);
     let total = usize::try_from(published.stored_bytes).unwrap() + open::LAYOUT.len();
-    let budgets = [0, 1, 2, total / 3, total / 2, total - 2, total - 1];
+    let budgets = [0, 1, 19, 100, 1024, total - 2, total - 1];
     assert_eq!(budgets.into_iter().collect::<BTreeSet<_>>().len(), 7);
     let mut variants = 0;
     let mut observations = Vec::new();
