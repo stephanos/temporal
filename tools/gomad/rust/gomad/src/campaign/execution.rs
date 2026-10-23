@@ -401,6 +401,9 @@ fn admit(
         .compile_cache(prepared.compile_cache_root.as_deref())
         .map_err(|error| format!("runner_failure: admit compile cache: {error}"))?;
     admitted.conditions(linked::Conditions::compiled());
+    admitted
+        .world_transition_bytes(prepared.configuration.world_transition_bytes)
+        .map_err(|error| format!("runner_failure: admit World recording limit: {error}"))?;
     if let Some(network) = &prepared.configuration.network {
         admitted
             .network(network.clone())
@@ -854,7 +857,10 @@ mod compile_cache_tests {
             seed: 7,
         };
         let cancellation = linked::Cancellation::default();
-        let baseline = run(&prepared, &job, Duration::from_secs(5), &cancellation).unwrap();
+        let baseline = run(&prepared, &job, Duration::from_secs(5), &cancellation)
+            .unwrap()
+            .finalized()
+            .unwrap();
         let root =
             std::env::temp_dir().join(format!("gomad-host-compile-cache-{}", std::process::id()));
         std::fs::create_dir(&root).unwrap();
@@ -862,7 +868,10 @@ mod compile_cache_tests {
         for name in ["first", "second", "first"] {
             let path = root.join(name);
             prepared.compile_cache_root = Some(path.to_str().unwrap().into());
-            let result = run(&prepared, &job, Duration::from_secs(5), &cancellation).unwrap();
+            let result = run(&prepared, &job, Duration::from_secs(5), &cancellation)
+                .unwrap()
+                .finalized()
+                .unwrap();
             assert_eq!(
                 result.execution.record.bytes().unwrap(),
                 baseline.execution.record.bytes().unwrap()

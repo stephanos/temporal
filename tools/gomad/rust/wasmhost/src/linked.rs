@@ -95,6 +95,7 @@ pub struct Prepared {
     cancellation: Cancellation,
     output: Option<Arc<dyn OutputConsumer>>,
     network: Option<crate::cluster::network::Endpoint>,
+    world_transition_bytes: Option<u64>,
 }
 
 impl Prepared {
@@ -129,9 +130,28 @@ impl Prepared {
         if self.network.is_some() {
             return Err(Error::msg("linked network already configured"));
         }
-        self.network = Some(crate::linked_network::prepare(configuration, model)?);
+        let mut network = crate::linked_network::prepare(configuration, model)?;
+        network
+            .limit_transition_bytes(self.world_transition_bytes)
+            .map_err(crate::linked_network::error)?;
+        self.network = Some(network);
         Ok(())
     }
+    /// # Errors
+    /// Refuses zero capacity and bounds each local World's retained native transition bytes.
+    pub fn world_transition_bytes(&mut self, limit: Option<u64>) -> wasmtime::Result<()> {
+        if limit == Some(0) {
+            return Err(Error::msg("World transition byte limit must be positive"));
+        }
+        if let Some(network) = &mut self.network {
+            network
+                .limit_transition_bytes(limit)
+                .map_err(crate::linked_network::error)?;
+        }
+        self.world_transition_bytes = limit;
+        Ok(())
+    }
+
     pub fn cancellation(&mut self, cancellation: Cancellation) {
         self.cancellation = cancellation;
     }
@@ -422,6 +442,7 @@ pub fn prepare(mut request: Request) -> wasmtime::Result<Prepared> {
         cancellation: Cancellation::default(),
         output: None,
         network: None,
+        world_transition_bytes: None,
     })
 }
 
@@ -446,6 +467,7 @@ pub fn execute_prepared(prepared: Prepared) -> wasmtime::Result<Execution> {
         cancellation,
         output,
         network,
+        world_transition_bytes: _,
     } = prepared;
     if cancellation.cancelled() {
         return Ok(Cancellation::execution());

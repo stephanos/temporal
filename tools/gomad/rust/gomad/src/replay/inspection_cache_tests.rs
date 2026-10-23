@@ -95,6 +95,7 @@ fn execution(root: &Path, clustered: bool) -> Result<linked::Execution, String> 
         broker: cluster::BrokerConfig {
             seed: 0,
             pause_on_settle: false,
+            transition_bytes: None,
             limits: cluster::WorldLimits {
                 max_requests: 100,
                 max_events: 100,

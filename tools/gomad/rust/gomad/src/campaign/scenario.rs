@@ -1314,6 +1314,7 @@ pub fn bind(
     let broker = helper::BrokerConfig {
         seed,
         pause_on_settle: false,
+        transition_bytes: base.world_transition_bytes,
         limits: helper::WorldLimits {
             max_requests: limits.network_transitions * 2,
             max_events: limits.network_transitions * 2,

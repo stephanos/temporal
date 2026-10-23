@@ -62,6 +62,7 @@ fn prepared_cluster_fueled(
         broker: cluster::BrokerConfig {
             seed: 89,
             pause_on_settle: false,
+            transition_bytes: None,
             limits: cluster::WorldLimits {
                 max_requests: 100,
                 max_events: 100,
@@ -319,6 +320,7 @@ fn live_peer_cluster() -> cluster::Prepared {
         broker: cluster::BrokerConfig {
             seed: 89,
             pause_on_settle: false,
+            transition_bytes: None,
             limits: cluster::WorldLimits {
                 max_requests: 100,
                 max_events: 100,

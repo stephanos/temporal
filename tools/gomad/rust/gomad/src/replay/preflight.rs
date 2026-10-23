@@ -436,6 +436,9 @@ fn prepare_authenticated_internal(
         storage: inputs.configuration.storage,
     };
     let mut execution = linked::prepare(request).map_err(|error| error.to_string())?;
+    execution
+        .world_transition_bytes(inputs.configuration.world_transition_bytes)
+        .map_err(|error| error.to_string())?;
     if let Some(network) = inputs.configuration.network {
         execution
             .network(network)

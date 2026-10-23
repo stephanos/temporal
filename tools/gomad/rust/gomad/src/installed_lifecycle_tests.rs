@@ -554,6 +554,15 @@ fn installed_lifecycle_inspect_refuses_inconsistent_cluster_streams() {
 fn retained_projected_cluster(damage: &str) -> Retained {
     use gomad_wasmhost::linked_cluster as helper;
     let mut fixture = retained(true);
+    let corpus: serde_json::Value = serde_json::from_str(include_str!(
+        "../../wasmhost/tests/testdata/world_conformance/transition-capacity-terminal.json"
+    ))
+    .unwrap();
+    let mut limits = corpus["config"].clone();
+    limits.as_object_mut().unwrap().remove("seed");
+    let broker: helper::BrokerConfig =
+        serde_json::from_value(json!({"seed":corpus["config"]["seed"], "limits":limits})).unwrap();
+
     let output_limit = usize::try_from(fixture.record.limits.output_bytes).unwrap();
     let evidence_limit = usize::try_from(fixture.record.limits.evidence_bytes).unwrap();
     let mut evidence: BTreeMap<String, Vec<u8>> = BTreeMap::from([
@@ -603,13 +612,17 @@ fn retained_projected_cluster(damage: &str) -> Retained {
                 },
                 interrupted: false,
             }],
-            world: vec![],
+            world: crate::qualify::cells::base64(
+                corpus["final"]["expanded_base64"].as_str().unwrap(),
+            )
+            .unwrap(),
             network: vec![],
             inspection: vec![],
             virtual_elapsed_nanos: 42,
             event_order: None,
         },
         "",
+        &broker,
     )
     .unwrap();
     let opened = crate::evidence::store::Opened::open(&fixture.published.path).unwrap();
@@ -761,4 +774,94 @@ fn installed_lifecycle_inspect_authenticates_actual_project_encoded_catalogue_an
             }
         }
     }
+}
+
+#[test]
+fn retained_rust_without_world_byte_field_keeps_canonical_identity_and_actual_replay() {
+    let fixture = retained_module(false, binary_module(0), 10_000);
+    let opened = crate::evidence::store::Opened::open(&fixture.published.path).unwrap();
+    let raw = opened
+        .payload(crate::replay::preflight::FILE, 1 << 20)
+        .unwrap();
+    let inputs: crate::replay::preflight::Inputs = serde_json::from_slice(&raw).unwrap();
+    assert!(inputs.configuration.world_transition_bytes.is_none());
+    let original_configuration = canonical::encode(&inputs.configuration).unwrap();
+    assert!(
+        !serde_json::from_slice::<serde_json::Value>(&original_configuration)
+            .unwrap()
+            .as_object()
+            .unwrap()
+            .contains_key("world_transition_bytes")
+    );
+    let module = opened.payload("target/module.wasm", 1 << 20).unwrap();
+    let observed = linked::execute(linked::Request {
+        module_sha256: canonical::digest(&module),
+        module: module.clone(),
+        limits: linked::Limits {
+            memory_bytes: inputs.configuration.limits.memory_bytes,
+            fuel: inputs.configuration.limits.fuel,
+            output_bytes: inputs.configuration.limits.output_bytes,
+            evidence_bytes: inputs.configuration.limits.evidence_bytes,
+            wall_timeout: std::time::Duration::from_millis(inputs.configuration.limits.wall_millis),
+        },
+        model: None,
+        namespace: None,
+        storage: None,
+    })
+    .unwrap();
+    let prepared = crate::campaign::prepare::Prepared {
+        module,
+        configuration: inputs.configuration,
+        toolchain: fixture.record.identity.toolchain.clone(),
+        choice_identity: None,
+        scenario: None,
+        provenance: b"{}".to_vec(),
+        network: None,
+        soft_assertion_report_only: false,
+        compile_cache_root: None,
+    };
+    let mut publication = crate::campaign::execution::publication(
+        &prepared,
+        &crate::campaign::ledger::Job {
+            ordinal: 0,
+            seed: 7,
+        },
+        observed,
+    )
+    .unwrap()
+    .publication;
+    publication.payloads.remove("target/provenance.json");
+    publication.record.streams.remove("target/provenance.json");
+    publication
+        .payloads
+        .insert("record.json".into(), publication.record.bytes().unwrap());
+    assert_eq!(
+        publication.record.identity.configuration,
+        canonical::digest(&original_configuration)
+    );
+    let published = Store {
+        root: fixture.root.join("old-shape-executed"),
+        maximum_bytes: 32 << 20,
+        target_pool: None,
+        #[cfg(feature = "determinism-fixture")]
+        fault: None,
+    }
+    .publish(publication)
+    .unwrap();
+    let before = std::fs::read(published.path.join("evidence/replay.json")).unwrap();
+    let mut output = Vec::new();
+    assert_eq!(
+        crate::cli::replay::run(&[published.path.to_str().unwrap().into()], &mut output)
+            .unwrap_or_else(|error| panic!("{}", error.message)),
+        0
+    );
+    assert!(
+        String::from_utf8(output)
+            .unwrap()
+            .contains("reproduced=true")
+    );
+    assert_eq!(
+        std::fs::read(published.path.join("evidence/replay.json")).unwrap(),
+        before
+    );
 }

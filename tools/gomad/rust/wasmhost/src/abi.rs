@@ -136,7 +136,7 @@ impl Operation {
                 | Self::EnvironSizesGet
         ) || self.is_runtime() && self != Self::RuntimeNetStream
     }
-    /// Filesystem imports answered by the helper-owned Rust namespace.
+    /// Imports answered by the helper-owned namespace, including refused stock sockets.
     pub fn is_namespace(self) -> bool {
         matches!(
             self,

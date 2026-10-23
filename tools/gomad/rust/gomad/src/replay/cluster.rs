@@ -449,10 +449,12 @@ fn incarnation(
     control: Option<&inspection::Request>,
 ) -> Result<helper::Incarnation, String> {
     let module = item.module.read(opened, 512 << 20)?;
-    if let Some(imports) = &item.imports
-        && module_imports(&module)? != *imports
-    {
-        return Err("retained cluster import binding mismatch".into());
+    if let Some(imports) = &item.imports {
+        let metadata = linked::module_metadata(&module).map_err(|error| error.to_string())?;
+        if metadata.imports != *imports {
+            return Err("retained cluster import binding mismatch".into());
+        }
+        super::preflight::validate_profile_imports(&inputs.configuration.profile, &metadata)?;
     }
     let identity = &item.choice_identity;
     if identity.toolchain_build_key != inputs.toolchain_sha256

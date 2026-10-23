@@ -658,7 +658,7 @@ fn instance_state(
     {
         model.event_owner = Some(handle.clone());
     }
-    let endpoint = match (network, &sealed.network) {
+    let mut endpoint = match (network, &sealed.network) {
         (Some(shared), Some(profile)) => Some(
             Endpoint::new(
                 shared.clone(),
@@ -673,6 +673,11 @@ fn instance_state(
         ),
         _ => None,
     };
+    if let Some(endpoint) = &mut endpoint {
+        endpoint
+            .limit_transition_bytes(broker.transition_bytes())
+            .map_err(|failure| Error::msg(failure.message()))?;
+    }
     let mut state = engine::new_state(
         Box::new(Cursor::new(Vec::<u8>::new())),
         Box::new(NoRemote(activity.clone())),
@@ -1490,7 +1495,7 @@ fn cancelled_execution() -> Execution {
 /// # Errors
 /// Rejects malformed, noncanonical or foreign model state before guest admission.
 pub fn validate_world(bytes: &[u8], broker: &BrokerConfig) -> Result<(), String> {
-    crate::world::retained::validate(
+    crate::world::retained::validate_with_transition_limit(
         bytes,
         &crate::world::Config {
             seed: broker.seed,
@@ -1503,6 +1508,7 @@ pub fn validate_world(bytes: &[u8], broker: &BrokerConfig) -> Result<(), String>
                 max_string_bytes: broker.limits.max_string_bytes,
             },
         },
+        broker.transition_bytes,
     )
 }
 

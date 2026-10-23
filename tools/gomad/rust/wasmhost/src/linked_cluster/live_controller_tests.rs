@@ -9,6 +9,7 @@ fn output_wait_request(fd: u32, after: &str, nodes: &[&str], action: Action) -> 
         (import "wasi_snapshot_preview1" "clock_time_get" (func $clock (param i32 i64 i32) (result i32)))
         (import "gomad_wasm_v1" "config" (func $config (param i32 i32) (result i32)))
         (import "gomad_wasm_v1" "idle" (func $idle (param i32 i32) (result i32)))
+        (import "gomad_wasm_v1" "finish" (func $finish (param i32 i32) (result i32)))
         (import "wasi_snapshot_preview1" "proc_exit" (func $exit (param i32)))
         (memory (export "memory") 1)
         (data (i32.const 128) "mark")
@@ -53,6 +54,7 @@ fn output_wait_request(fd: u32, after: &str, nodes: &[&str], action: Action) -> 
         broker: BrokerConfig {
             seed: 7,
             pause_on_settle: false,
+            transition_bytes: None,
             limits: WorldLimits {
                 max_requests: 65536,
                 max_events: 65536,
@@ -255,6 +257,7 @@ fn conditional_output_boundary_preserves_wait_lifecycle() {
                 max_string_bytes: 1024,
             },
             pause_on_settle: false,
+            transition_bytes: None,
         },
         network: None,
         incarnations: vec![],
@@ -678,4 +681,109 @@ fn shutdown_reinsertion_preserves_actual_live_guest_world() {
     )
     .unwrap();
     println!("root35: 16 actual post-Start live-map reconstruction and shutdown comparisons");
+}
+
+#[test]
+fn actual_linked_world_transition_byte_bound_changes_capacity_and_replays_the_retained_prefix() {
+    for limit in [1, 1 << 20, 32 << 20] {
+        let make = || {
+            let mut request = output_wait_request(
+                1,
+                "i32.const 512 i32.const 16 call $config drop
+                i32.const 771 i32.const 1 i32.store8
+                i32.const 783 i32.const 10 i32.store8
+                i32.const 768 i32.const 16 call $idle drop
+                i32.const 995 i32.const 1 i32.store8
+                i32.const 992 i32.const 16 call $finish drop",
+                &["a"],
+                Action::Crash,
+            );
+            request.boundaries.clear();
+            request.broker.transition_bytes = Some(limit);
+            request
+        };
+        let broker = make().broker;
+        let observed = execute_prepared(prepare(make()).unwrap()).unwrap();
+        if limit == 1 {
+            assert_eq!(
+                observed.outcome.termination, "capacity",
+                "{}",
+                observed.outcome.message
+            );
+            assert!(observed.outcome.message.contains("transition-bytes"));
+        } else {
+            assert_eq!(
+                observed.outcome.termination, "exit",
+                "{}",
+                observed.outcome.message
+            );
+            assert_eq!(observed.outcome.exit_code, Some(0));
+            assert_eq!(
+                observed.incarnations[0].execution.evidence["stdout"],
+                b"mark"
+            );
+        }
+        validate_world(&observed.world, &broker).unwrap();
+        let replayed = execute_prepared(prepare(make()).unwrap()).unwrap();
+        assert_eq!(replayed.world, observed.world);
+        assert_eq!(replayed.outcome.termination, observed.outcome.termination);
+        assert_eq!(replayed.outcome.message, observed.outcome.message);
+        if limit != 1 {
+            let mut foreign = broker.clone();
+            foreign.transition_bytes = Some(1);
+            assert!(validate_world(&observed.world, &foreign).is_err());
+        }
+    }
+}
+
+#[test]
+fn one_and_thirty_two_mib_world_transition_bounds_change_the_same_actual_guest() {
+    let body = "i32.const 512 i32.const 16 call $config drop
+        i32.const 2048 i32.const 4096 i32.store
+        (loop $again
+            i32.const 768 i64.const 0 i64.store
+            i32.const 776 i64.const 0 i64.store
+            i32.const 771 i32.const 1 i32.store8
+            i32.const 2052 i32.const 2052 i32.load i32.const 10 i32.add i32.store
+            i32.const 782 i32.const 2052 i32.load i32.const 8 i32.shr_u i32.store8
+            i32.const 783 i32.const 2052 i32.load i32.store8
+            i32.const 768 i32.const 16 call $idle drop
+            i32.const 2048 i32.const 2048 i32.load i32.const 1 i32.sub i32.store
+            i32.const 2048 i32.load br_if $again)
+        i32.const 995 i32.const 1 i32.store8
+        i32.const 992 i32.const 16 call $finish drop";
+    let mut module_digest = None;
+    for limit in [1 << 20, 32 << 20] {
+        let mut request = output_wait_request(1, body, &["a"], Action::Crash);
+        request.boundaries.clear();
+        request.broker.transition_bytes = Some(limit);
+        request.wall_timeout = Duration::from_secs(30);
+        request.evidence_bytes = 32 << 20;
+        request.incarnations[0].request.limits.wall_timeout = Duration::from_secs(30);
+        request.incarnations[0].request.limits.fuel = 10_000_000;
+        let digest = request.incarnations[0].request.module_sha256.clone();
+        if let Some(expected) = &module_digest {
+            assert_eq!(&digest, expected);
+        } else {
+            module_digest = Some(digest);
+        }
+        let broker = request.broker.clone();
+        let observed = execute_prepared(prepare(request).unwrap()).unwrap();
+        assert_eq!(
+            observed.outcome.termination,
+            if limit == 1 << 20 { "capacity" } else { "exit" },
+            "{}",
+            observed.outcome.message
+        );
+        if limit == 1 << 20 {
+            assert!(
+                observed
+                    .outcome
+                    .message
+                    .contains("transition-bytes limit=1048576")
+            );
+        }
+        validate_world(&observed.world, &broker).unwrap();
+        assert!(!observed.world.is_empty());
+    }
 }

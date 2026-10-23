@@ -561,6 +561,7 @@ fn capacity_finalization_case(
         provenance: canonical::encode(&json!({"inputs":{"kind":"go-test"}})).unwrap(),
         network: None,
         soft_assertion_report_only: report_only,
+        compile_cache_root: None,
     };
     if reverse {
         observed.incarnations.reverse();
