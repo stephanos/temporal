@@ -635,3 +635,281 @@ raw outputs. Separate3slim selection, complete original test-wasm receiving map
 and actual raw coverage, static/runtime/strictlint/candidate gates, pending native
 source test/review, final immutable source/identity freeze/code-size comparison
 and main retirement remain root-owned pending obligations. No Flow state changed.
+
+### Reviewed native receiving publication/provenance/decoder source integration
+
+Cherry-picked ONLY approved native commitsdb651a18f2,50f02a68de,
+b8487b09aeb5c400cc0e7982fe0abb710dd134be,164443d3a0 into prospectivecfbe.
+No conflicts; Cargo manifest automatically preserved relocated ../wasmhost
+ownership.8changed Rust source/test files are byte-exact reviewed164443d3a0;
+only additional manifest delta is existing serde_json unbounded_depth FEATURE.
+All version/dependency/checksum/lock records unchanged:127original helper packages
+plus existinggomad, with helper sources/rootworkspace/Cargo.lock untouched.
+Approved Python receiving/cost/workload modules remain byte-exact5fd9; skipped
+Python follow-on map1a5efad7 and all unstaged source controls as instructed.
+Root ba8ffdocs-only main history was not merged or archived into custody.
+
+The incoming reviewed source includes actual publication adversarial tests,
+genuine typed preparation metadata/compiler binding, own-stage cleanup preserving
+foreign entries, bounded decoder/config/publication fixes, and primitive/deep-key
+error precedence. It retains recursion disabling only after original128-depth
+bounded preflight. Original privateResult/admission semantics remain reviewed
+source obligations. Parent reports actual22focused native tests/strictClippy/fmt0
+and originalRED/reviewSHIP in their independent handover; those observations are
+not rerun or upgraded to this integrated prospective candidate's qualification.
+
+Static checks exit0: byte equality of all8native Rust files against exact164,
+direct pinned1.99.1 rustfmt for those8files, current Python AST, literal Rust
+include/path resolution, exact127+gomad lock entries, unchanged helper/workspace/
+Python module inventory and git diffcheck. No Cargo/Go/build/guest/native test/
+qualification ran; no leased target/cache/worktree cleaned or touched.
+
+All previous137source-wired final obligations still require actual raw outputs;
+remaining8final endpoint IDs unchanged. Full integrated native gates are deferred
+until pending coherent batches/final source freeze and root resource grant.
+Pending Python mapping/source synchronization, explicit slim and test-wasm proof,
+complete static/runtime/strictlint/parity/final qualification, immutable candidate
+identity/custody, final code-size comparison and main retirement remain root-owned.
+
+### Exact per-command child resource measurement source checkpoint
+
+Sole-writer driver.command now uses MeasuredPopen while preserving gated launch,
+actual registered PID, Popen wait lock/status handling and stdout/stderr/status/
+timeout/process-group cleanup. Linux waitid(WNOWAIT) readiness probes do not reap;
+exactly one wait4 obtains the ready command PID's user/system CPU and peakRSS.
+Brief signal masking caches the reaped status and sample before pending handler
+delivery, so cleanup after an immediate interrupt does not double-reap/lose usage.
+No-timeout polling sleeps between probes. No RUSAGE_CHILDREN delta, aggregate
+child sampling or elapsed CPU approximation. Original error precedence retained.
+
+Additive resources schema gomad.driver-child-resources/v1 in command/process
+receipts binds pid/waited_pid/rawwaitstatus/exitcode, rawCPU seconds +roundednanos,
+Linux ru_maxrss rawKiB +normalizedbytes, explicit wait4/whole-command-child scope
+and conversion strings. Existing raw command SHA seals these bytes; historical
+receipts unchanged. Typed shape coordinated before implementation with receiving
+owner, who confirmed units/fields and will independently validate checkeduint64/
+finite/actualPID/status conversions. command-resources.md documents exact shape.
+
+Inspected original qualification/corpus_test.go124–133 and
+sqlite_catalogue_test.go84–92: reader self CPU observations monotone/available,
+positive lifetimeRSS<=2GiB and checkeduint64 sums; mandatorycounts all10execution+
+publication once, catalogue only4selected cells excluding primary. Whole command
+wait4 remains explicitly distinct from those scoped inner-reader self samples;
+no broad2GiB command limit or remaining8final endpoint substitution introduced.
+
+6meaningful realprocess tests exit0: PID/stdout/stderr/CPU success, accepted and
+refused nonzero, signal exit, timeout kill/reap, concurrent heavy/light plus
+unrelated child isolation, immediate post-reap interrupt cached status. Each
+checks exactly one wait4, actual typed receipts and cleanup/exception behavior.
+Integrated driver portable suite103tests exit0; diffcheck exit0. No Cargo/Go/
+build/guest/qualification or leased cache access. Same prospective source only;
+Python f85/f935/d174 dependency chain remains a separate next source checkpoint.
+
+### Approved private-controls Python dependency-chain integration
+
+After parent relayed frozen reviewSHIP/fullhashes and confirmed parent WIP only
+untracked support.py/test_support.py, cherry-picked exact f85f17bae2fb48365f79e7972a7620f7faea2de4,
+f935db728955d9629da696b66997e461365b6a03,
+d174b3f3cd5856b36d55c4f22ac87abb1e9a9a97 as a separate source unit after
+resource checkpoint31c3c4c539. No parent WIP or unapproved commit included.
+
+Two mechanical dependency conflicts: approved f85 modifies qualification-map.json
+whose earlier1a5sourcecommit was intentionally not picked, and adds receiving
+handover text after that missing base. Resolved by taking full exact reviewedf85
+map/handover blobs, then applying f935/d174 normally. No1a5commit or unrelated
+1a5tests included. All7resulting changed Python/docs/map files byte-exact reviewed
+d174. Current map retains72original callables, all statusUNEXECUTED; no source
+review converted to actual proof. Root/resource hook/native/helper/workspace/lock
+bytes unchanged by this chain. Parent untrackedsupport WIP remains excluded.
+
+Reviewed private default/slim/full selection, frozen inspection controls and
+requested+canonical cache path bindings are preserved without path normalization
+of historical removed aliases. Integrated portable driver113tests exit0;
+workload-tools17tests exit0; AST/JSON/exactscope/source equality/unchangednative
+and diffchecks exit0. Resource6realprocess tests remain part of113. No Cargo/Go/
+build/guest/qualification or leased target/cache access occurred.
+
+Remaining8final bindings and all137source-wired actualreceiving obligations remain
+pending actual frozen-source raw execution. Independent whole-child aggregation
+and scoped inner-reader self observations are separately owned work; support
+WIP, other pending source batches, exact slim/test-wasm reach proofs, final static/
+runtime/strictlint/parity/resource gates, immutable identity/custody freeze,
+code-size comparison and main retirement acceptance remain root-owned pending.
+
+### Reviewed native Sweep receiver source integration
+
+Cherry-picked exact approved coherent chain2a261424cd2565a5f2a9653fef9f2963e42ffad7,
+e3e7487ae722ed68946664e66050c7018846ce68,
+27811042002a27f8d73c04f2f60890d8c6d9f88a into64304d4da8. No conflicts;
+all14changed Rust source/test/entrypoint files byte-exact reviewed278. No literal
+old-helper path required translation in incoming code. Automatic manifest merge
+adds only default-run=gomad while preserving ../wasmhost consolidated dependency
+and previously reviewed serde_json unbounded_depth feature. Cargo's automatic
+src/bin/gomad-wasm-sweep.rs entry is retained alongside existing main.rs, with
+ordinary cargo run default remaining gomad. No explicit bin/dependency/version/
+lock/lint-policy waiver introduced. Source retains v2 with explicit v1 refusal,
+reviewed actual producer/AST inventory repairs and original1d695 reference binding.
+
+Incoming changes preserve typed backend failure diagnostics (bounded4096chars),
+standalone native Sweep enumeration/classification/inventory/process/record/run
+contracts and tests. Parent reports all79Sweep tests and strictlib/bins checks0
+and independent same-family reviewSHIP278; these remain their own-source proof,
+not this relocated integrated candidate's runtime acceptance.
+
+Source checks exit0: byte equality14files vs exact278; direct pinned1.99.1
+rustfmt14files; literal Rust include/path resolution; Cargo default-run/autobin/
+relocated helper/current serde_json feature assertions; exact127original helper
+lock packages+gomad; unchanged helper/rootworkspace/lock/Python inventory; current
+PythonAST and exact14ignored/originalGo scope witnesses. Driver portable113tests
+exit0; diffchecks0. No Cargo/Go/nativeSweep/guest/fullqualification or lease/cache
+access. No new worktree/bulkcopies/evidence removal. Compiled binaries and evidence
+preserved. Cachefa1bformalNEEDS4 and latest lifecycle874unchecked source remain
+excluded, as do parent untracked/source WIP and all unapproved batches.
+
+Same remaining8final endpoint obligations,137source-wired-but-unexecuted checks,
+independent aggregate/scoped self measurements, all original test-wasm/slim
+raw receiving proofs, pending source batches, coherent immutable final freeze,
+integrated actual static/runtime/strictlint/parity/final qualification and final
+code-size/main retirement acceptance remain root-owned pending. No Flow closeout
+or proof identity migration occurred at this source-only checkpoint.
+
+## Private native preparation outer capture (source checkpoint)
+
+On top of7adcb48536, the existing generic command and workload producer have an
+optional defaultNone private observation context. A requested capture runs after
+the actual child exit and before command witness publication. New
+`driver/native_observations.py` selects explicit actual plan/explore/qualification
+campaigns from stdout+argv/spec/Result, verifies current candidate/PID/prepared
+commitments, and seals native receipt plus every raw file hash into optional
+`private_observations`. No free discovery glob or canonical Record/Store/plan
+change is introduced. Same Record/manifest can have distinct private observations;
+self-resealed native receipts cannot replace an authenticated old outer seal.
+See driver/private-observations.md for exact fields/bounds/selectors.
+
+Private wrapper option --private-observation-config loads the existing frozen
+configured+guard context and checks binary/repo/source/root. The explicit context
+reuses original host_admission(initial=False) before each wrapper's candidate
+commands; actual initial admission and unchanged12GiB/native scratch/temp/epoch
+contracts remain predecessors. Runtime recordNN, qualification and plan driver
+entries opt in with boolean private_observations:true. Install/replay/report and
+wrapper subprocesses do not become native observation owners. Existing default
+callers retain omitted fields/kwargs. Temporal inspection parser/config/explore
+hunk was coordinated with the receiving owner; no receiving/fullprojection/map/
+support WIP was copied. The native sidecar writer and independent complete typed
+compiler/source projection remain separately owned and unintegrated here.
+
+Verification:124driver portable tests exit0,23workload portable tests exit0;
+11new capture tests include actual bounded subprocess capture/failure, exact owner
+PID, preserved actual exit/wait4 resources on refusal, defaultNone, exact complete
+qualification campaigns, explore/plan scope, candidate/source mutation, raw
+mutation/self-reseal, missing/extra files/directories, symlinks, admission owner,
+and same canonical Record/manifest with different private observations. These
+synthetic Python fixtures are not native publication or qualification evidence.
+Affected Python AST and git diff --check exit0. No Cargo/Go/guest/build/golden
+command ran; no Rust/dependency/lock bytes changed.
+
+fn222 captured schema was revalidated by actual producer.captured against this
+checkout exit0 (40entries25files, exact578f819b... data/9b736777... descriptor).
+The existing fn222 handover records exact paths/hashes, private-config commands,
+remaining release/source/admission/reader/support predecessors, and current
+2445276KiB native free observation below12GiB. No fn221 frozen4/344 lineage or
+qualification acceptance changes. Root still owns candidate freeze, build and
+actual run grants, main cut, Flow and final acceptance. All remaining eight final
+IDs and all actual145 receiving proof obligations remain pending as recorded.
+
+
+## Root synchronization and focused integration verification (2026-10-22)
+
+Merged current root `0fee7dcb2b` into the clean existing retirement candidate as
+`baed0b5308` without conflicts. This carries current milestone/custody records;
+no Flow lifecycle was changed by this worker. Cargo audit commit `38f82464bf`
+reuses the existing workspace relocation, binds the centralized toolchain file
+into the host implementation identity, and updates current source ownership docs.
+The union lock remains exactly the 128 existing package name/version/source/
+checksum tuples; no dependency resolution changed.
+
+Fresh retained-Go tests exposed real retirement integration errors. Generic
+structural `Check` was incorrectly applying the module-default retirement guard
+to arbitrary fixture trees; the refusal now remains on exported default-set
+`Discover`, whose existing negative retired-host tests are preserved. The subtree
+fixture now selects its actual relocated model directory. Removed the exclusion
+for deleted `internal/runner/testdata` rather than retaining an empty placeholder.
+The native SQLite reference observer gets only its exact strict-JSON import edge,
+with a positive owner test; no developer-wide strict-JSON permission was added.
+The unchanged original-scope exclusion reason/status remains source authenticated;
+its architecture-test digest is rebound for that exact added owner-test row.
+
+The driver process test exposed a real scheduler cleanup race: SIGKILL delivery
+preceded process death, while cleanup immediately wrote `active=false`. Two
+controlled regressions failed before repair (RED2), proving a still-live group
+was ignored and timeout did not refuse. Cleanup now observes every Linux procfs
+member of the registered group, accepts only absent/zombie/dead members, and
+waits at most five seconds before refusal. Only actual quiescence permits the
+inactive registration; timeout keeps the registration active. Focused process
+suite GREEN6 includes actual stage-kill execution. Full portable driver GREEN126
+includes these regressions and the exact authenticated source-pin refresh.
+
+All logs for this focused wave are under
+`/home/agent/.cache/codex-build/fn232-retirement-*`. These checks compile/check the
+prospective source; they are not final runtime/workload/parity qualification or
+retirement acceptance. The candidate remains unfrozen and receives other owners'
+source deltas before root's integrated wave. No guest command, final measured
+qualification, source-size closeout, push, PR or history rewrite ran here.
+
+Owned worktree `/home/agent/wt/fn232-retirement` remains necessary for root
+integration; assigned Cargo target
+`/home/agent/.cache/codex-build/fn232-retirement-integration` remains reusable.
+Other workers' worktrees/caches/evidence were untouched; no cleanup/deletion ran.
+
+
+Final focused commands, all exit 0 (explicit checkout cwd for every invocation):
+
+- `CARGO_TARGET_DIR=/home/agent/.cache/codex-build/fn232-retirement-integration cargo +1.99.1 check --manifest-path tools/gomad/rust/Cargo.toml --workspace --all-targets --locked --offline -j 4`: dev check 79s, log `fn232-retirement-integration-check.log`.
+- Same target, `cargo +1.99.1 clippy --manifest-path tools/gomad/rust/Cargo.toml --workspace --all-targets --locked --offline --no-deps -j 4 -- -D warnings`: 43s, log `fn232-retirement-integration-clippy.log`. This recompiled the host after the toolchain-binding edit. Nondefault feature-role matrix remains root's integrated check wave.
+- In `tools/gomad`, `GOTOOLCHAIN=go1.27.1 GOMAXPROCS=4 go test -tags test_dep -count=1 ./internal/archcheck ./internal/support/...`: archcheck 168.030s including complete host vets for Darwin/arm64, Linux/amd64 and Linux/arm64; support/fs passed, temporalinput has no tests; log `fn232-retirement-integration-go-final.log`.
+- Same Go selection, `go test -tags test_dep -run '^$' ./...`: all retained default packages compile, log `fn232-retirement-integration-go-compile.log`; no test execution claim from this command.
+- `PYTHONDONTWRITEBYTECODE=1 python3 -m unittest discover -s tools/gomad/rust/driver/tests -q`: 126 passed in 8.135s, log `fn232-retirement-integration-driver-final.log`. Initial whole run exposed the process race; controlled RED2 and GREEN6 logs `fn232-retirement-process-{red,green}.log` remain retained. An intermediate run correctly refused the stale architecture-test source hash before its exact refresh.
+- Workload-tools portable suite: 23 passed, log `fn232-retirement-integration-workloads.log`.
+- Workspace rustfmt check, all-verb negative selftest 13, source-size utility tests 3, Make build/validation/harness/parity/lint dry expansion, historical/current reference model hash script and `git diff --check` all exit 0. Current retained logical reference hash `sha256:bd45d4831ca0f417b6411a29b70cf1070a779e5f04591a679c180d925b586d15`; historical hash reproduced unchanged. No final source-size measurement ran.
+
+Every invoked process from this focused wave is terminal. Disk after builds:
+112GiB available on the shared overlay. No acceptance blocker was waived: pending
+nondefault feature-role integrated checks, every-verb actual parity, full source/
+subvariant receiving reach, mandatory runtime/workload/replay/inspection/stress
+proofs, private resource admission, final immutable freeze and measured final
+qualification remain with root and their assigned owners.
+
+
+## Cleanup refusal follow-through repair (2026-10-22)
+
+Independent review of `8849a27d15` found the new bounded refusal could abort the
+remaining same-stage command cleanup, later-stage cleanup and final outcome
+publication. The last scheduler stage was also absent from `executor.procs`
+after `wait_any`, so the driver's conditional cleanup could miss its still-active
+command registrations. Controlled regressions reproduce these paths, plus the
+older `command()` leader-only wait publishing inactive before group quiescence:
+focused RED5+ERROR1 (`fn232-retirement-cleanup-aggregate-red.log`).
+
+`cleanup_commands` now takes the complete selected stage-id set, signals every
+registered group before waiting on any group, attempts every group's observation,
+and aggregates errors while leaving unconfirmed registrations active. Termination
+selects all recorded stage ids together, including stages already reaped by the
+scheduler. Driver finalization always attempts termination, independently reaps/
+closes remaining stage handles and retains cleanup errors in an INCOMPLETE
+outcome rather than bypassing `outcome.json`. Log-close errors are also retained.
+`command()` uses the same group barrier before inactive publication; refusal
+retains an active process registration and actual inconclusive command receipt.
+
+Only Python source/tests and this handover changed; no Cargo target, Go command,
+guest, actual qualification or final measurement ran in this follow-up. The
+assigned Cargo target was released explicitly to root for the integrated wave.
+Root already integrated `8849a27d15` as a development candidate; retirement and
+all final qualification acceptance remain pending. This worktree remains for
+review/integration; other workers' worktrees/caches/evidence are untouched.
+
+
+Final follow-up verification: `PYTHONDONTWRITEBYTECODE=1 python3 -m unittest
+discover -s tools/gomad/rust/driver/tests -q` exit0, 131 tests in 2.870s;
+log `/home/agent/.cache/codex-build/fn232-retirement-cleanup-aggregate-full.log`.
+`git diff --check` exit0. All follow-up processes terminal; shared-overlay disk
+109GiB available after source checks. No additional build/qualification claim.

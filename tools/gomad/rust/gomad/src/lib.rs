@@ -29,3 +29,4 @@ pub(crate) mod qualify;
 pub mod replay;
 pub mod slots;
 pub(crate) mod stress;
+pub mod sweep;

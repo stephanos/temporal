@@ -4,6 +4,8 @@ version = "0.1.0"
 edition = "2024"
 rust-version = "1.99"
 
+default-run = "gomad"
+
 [features]
 determinism-fixture = []
 helper-stress-jitter = ["gomad-wasmhost/stress-jitter"]
@@ -12,7 +14,7 @@ helper-determinism-fixture = ["gomad-wasmhost/determinism-fixture"]
 [dependencies]
 gomad-wasmhost = { path = "../wasmhost" }
 serde.workspace = true
-serde_json.workspace = true
+serde_json = { workspace = true, features = ["unbounded_depth"] }
 sha2.workspace = true
 rustix.workspace = true
 
