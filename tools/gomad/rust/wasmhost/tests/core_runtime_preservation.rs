@@ -135,3 +135,62 @@ fn native_outcomes_keep_real_exit_trap_fuel_and_output_claims_within_admitted_li
         }
     }
 }
+
+#[test]
+fn native_preparation_refuses_invalid_inputs_before_guest_instantiation() {
+    for case in [
+        "module-pin",
+        "zero-fuel",
+        "zero-memory",
+        "zero-evidence",
+        "zero-wall",
+    ] {
+        let mut input = request("unreachable");
+        match case {
+            "module-pin" => input.module_sha256 = "0".repeat(64),
+            "zero-fuel" => input.limits.fuel = 0,
+            "zero-memory" => input.limits.memory_bytes = 0,
+            "zero-evidence" => input.limits.evidence_bytes = 0,
+            "zero-wall" => input.limits.wall_timeout = Duration::ZERO,
+            _ => unreachable!(),
+        }
+        assert!(linked::prepare(input).is_err(), "{case}");
+    }
+    let prepared = linked::prepare(request("unreachable")).unwrap();
+    let observed = linked::execute_prepared(prepared).unwrap();
+    assert_eq!(observed.outcome.termination, "trap");
+    assert_eq!(observed.outcome.exit_code, None);
+    assert_eq!(
+        linked::CONFIGURATION,
+        "cranelift-fuel-nan-canonical-nounwind-epoch-v1"
+    );
+}
+
+#[test]
+fn native_model_admission_rejects_unknown_fields_at_each_typed_level() {
+    let valid = json!({
+        "seed":7,"mode":1,"limit":8192,"diagnostics":false,
+        "entropy_key":vec![0_u8;32],
+        "working_directory_sha256":format!("{:x}",Sha256::digest(b"/")),
+        "arguments":{"bytes":0,"count":0,"chunks":0},
+        "environment":{"bytes":0,"count":0,"chunks":0},
+        "epoch_nanos":0,"read_step_nanos":0,"now":1,
+        "limits":{"calls":100,"transcript_bytes":65536,"pending_events":16}
+    });
+    assert!(serde_json::from_value::<linked::ModelConfig>(valid.clone()).is_ok());
+    for level in [None, Some("arguments"), Some("environment"), Some("limits")] {
+        let mut malformed = valid.clone();
+        let object = match level {
+            Some(level) => malformed[level].as_object_mut().unwrap(),
+            None => malformed.as_object_mut().unwrap(),
+        };
+        object.insert("future".into(), true.into());
+        let error = serde_json::from_value::<linked::ModelConfig>(malformed)
+            .err()
+            .unwrap();
+        assert!(
+            error.to_string().contains("unknown field"),
+            "{level:?}: {error}"
+        );
+    }
+}
