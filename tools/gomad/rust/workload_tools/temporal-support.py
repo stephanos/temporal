@@ -26,6 +26,7 @@ def main():
     args=parser.parse_args()
     root=args.root.resolve()
     root.mkdir(mode=0o700,parents=True,exist_ok=False)
+    producer.owned_root(root)
     repo=args.repo.resolve()
     binary=args.binary.resolve()
     capture=producer.captured(repo,args.captured_config)

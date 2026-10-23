@@ -22,6 +22,7 @@ def main():
     args=parser.parse_args()
     root=args.root.resolve()
     root.mkdir(mode=0o700,parents=True,exist_ok=False)
+    producer.owned_root(root)
     primary=args.primary.resolve()
     producer_receipt=json.loads((primary/"producer.json").read_bytes())
     if producer_receipt["workload"]!="recovery" or producer_receipt["mode"]!="success":

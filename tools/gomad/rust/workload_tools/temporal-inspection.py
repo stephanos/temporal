@@ -23,11 +23,24 @@ def main():
     parser = argparse.ArgumentParser(description=__doc__)
     for name in ["binary", "repo", "root", "compiler", "runtime-root", "cache"]:
         parser.add_argument("--"+name, type=Path, required=True)
-    parser.add_argument("--owner", choices=list(workloads.INSPECTION), required=True)
+    parser.add_argument("--owner", choices=[*workloads.INSPECTION, "all"], required=True)
     parser.add_argument("--captured-config", type=Path)
     args = parser.parse_args()
     binary, repo, root = args.binary.resolve(), args.repo.resolve(), args.root.resolve()
     root.mkdir(parents=True, mode=0o700, exist_ok=False)
+    producer.owned_root(root)
+    if args.owner == "all":
+        receipts = {}
+        for owner in workloads.INSPECTION:
+            command = [sys.executable, str(Path(__file__).resolve()), "--owner", owner]
+            for name in ["binary", "repo", "compiler", "runtime-root", "cache"]:
+                command += ["--"+name, str(getattr(args, name.replace("-", "_")).resolve())]
+            command += ["--root", str(root/owner)]
+            if args.captured_config:
+                command += ["--captured-config", str(args.captured_config.resolve())]
+            receipts[owner] = producer.run(root, owner, command, 0)
+        print(json.dumps(dict(receipts=receipts)))
+        return
     selection, dump, probe, snapshot = workloads.INSPECTION[args.owner]
     captured = producer.captured(repo, args.captured_config) if args.owner == "onebox" and args.captured_config else None
     policy = root/"policy.json"
