@@ -88,7 +88,7 @@ fn every_selected_incarnation_receives_the_same_spec_bound_network_limits() {
         json!({"action":"restart","handle":{"node":"a","incarnation":2}}),
         json!({"action":"wait","handle":{"node":"a","incarnation":2}}),
     ]);
-    let module = b"\0asm\x01\0\0\0";
+    let module = b"\0asm\x01\0\0\0\x05\x03\x01\x00\x01";
     let raw = normalize(&canonical::encode(&scenario).unwrap()).unwrap();
     for (variant, connection_bytes, stall_nanos) in [
         ("matching", 123, 456),
