@@ -529,7 +529,7 @@ mod tests {
             assert_eq!(fs::read_dir(cache)?.count(), 0);
             assert!(tool.check(&module, "undeclared", 1).is_err());
             assert!(tool.check(&module, "ArithmeticSafe", usize::MAX).is_err());
-            scratch.finish(Ok(()))?;
+            scratch.finish::<_, Refusal>(Ok(()))?;
         }
         let (scratch, tool) = fake("exit 0")?;
         fs::remove_file(&tool.java)?;

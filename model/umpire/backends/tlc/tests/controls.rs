@@ -2,7 +2,7 @@
 
 use std::{collections::BTreeMap, fs, path::Path};
 
-use umpire_tlc::{Refusal, Schema, Tlc, Type, Value, Verdict};
+use umpire_tlc::{Error, Refusal, Schema, Tlc, Type, Value, Verdict};
 
 fn schema() -> Schema {
     Schema {
@@ -159,7 +159,7 @@ fn controls() -> [Control; 14] {
 
 #[test]
 #[allow(clippy::print_stderr)]
-fn real_tlc_maximality_fairness_bounds_and_action_properties() -> Result<(), Refusal> {
+fn real_tlc_maximality_fairness_bounds_and_action_properties() -> Result<(), Error> {
     if std::env::var("UMPIRE_BACKENDS").as_deref() != Ok("require") {
         eprintln!("TLC controls skipped: no TLC evidence (set UMPIRE_BACKENDS=require)");
         return Ok(());
@@ -211,7 +211,7 @@ fn real_tlc_maximality_fairness_bounds_and_action_properties() -> Result<(), Ref
 }
 
 #[test]
-fn real_tlc_initial_invariant_has_a_typed_counterexample() -> Result<(), Refusal> {
+fn real_tlc_initial_invariant_has_a_typed_counterexample() -> Result<(), Error> {
     if std::env::var("UMPIRE_BACKENDS").as_deref() != Ok("require") {
         return Ok(());
     }
@@ -232,7 +232,7 @@ fn real_tlc_initial_invariant_has_a_typed_counterexample() -> Result<(), Refusal
 }
 
 #[test]
-fn real_tlc_keeps_deadlock_checks_and_refuses_tool_errors() -> Result<(), Refusal> {
+fn real_tlc_keeps_deadlock_checks_and_refuses_tool_errors() -> Result<(), Error> {
     if std::env::var("UMPIRE_BACKENDS").as_deref() != Ok("require") {
         return Ok(());
     }
@@ -245,7 +245,7 @@ fn real_tlc_keeps_deadlock_checks_and_refuses_tool_errors() -> Result<(), Refusa
         .check("Control", &deadlock, "SPECIFICATION Spec\n", &schema())
         .err()
         .ok_or_else(|| Refusal("TLC admitted a deadlocked completion relation".into()))?;
-    assert!(error.0.contains("Deadlock reached"), "{error}");
+    assert!(error.to_string().contains("Deadlock reached"), "{error}");
     let error = tlc
         .check(
             "Control",
@@ -255,6 +255,55 @@ fn real_tlc_keeps_deadlock_checks_and_refuses_tool_errors() -> Result<(), Refusa
         )
         .err()
         .ok_or_else(|| Refusal("TLC admitted invalid syntax".into()))?;
-    assert!(error.0.contains("error") || error.0.contains("failed"), "{error}");
+    let error = error.to_string();
+    assert!(error.contains("error") || error.contains("failed"), "{error}");
+    Ok(())
+}
+
+/// TLC's own evaluation failures, an integer overflow past its 32-bit integers and a failed
+/// `Assert`, surface as typed errors naming the property and the state.
+#[test]
+fn real_tlc_evaluation_errors_are_typed_and_located() -> Result<(), Error> {
+    if std::env::var("UMPIRE_BACKENDS").as_deref() != Ok("require") {
+        return Ok(());
+    }
+    let root = Path::new(env!("CARGO_MANIFEST_DIR")).join("../../../..");
+    let tlc = Tlc::discover(&root)?;
+    let schema = Schema {
+        fields: BTreeMap::from([("x".into(), Type::Int { min: 0, max: 3 })]),
+        observers: BTreeMap::new(),
+    };
+    let module = |init: &str, next: &str| {
+        format!(
+            "---- MODULE Evaluation ----\nEXTENDS Integers, TLC\nVARIABLE x\nInit == {init}\nNext == {next}\nSpec == Init /\\ [][Next]_x\nComplete == UNCHANGED x\nWide == x * 1000000000 # 7\n====\n"
+        )
+    };
+    let counting = module("x = 0", "(x < 3 /\\ x' = x + 1) \\/ (x = 3 /\\ UNCHANGED x)");
+    let evaluation = |tla: &str, cfg: &str| match tlc.check("Evaluation", tla, cfg, &schema) {
+        Err(Error::Evaluation(evaluation)) => Ok(evaluation),
+        other => Err(Refusal(format!("not an evaluation error: {other:?}"))),
+    };
+    let wide = evaluation(&counting, "SPECIFICATION Spec\nINVARIANT Wide\n")?;
+    assert_eq!(wide.property.as_deref(), Some("Wide"), "{wide}");
+    assert_eq!(wide.message, "Overflow when computing 3*1000000000", "{wide}");
+    assert_eq!(wide.state.as_deref(), Some("x = 3"), "{wide}");
+    assert_eq!(
+        wide.trace.as_ref().and_then(|trace| trace.states.last()).map(|state| &state.state["x"]),
+        Some(&Value::Int(3))
+    );
+    let asserted = module(
+        "x = 0",
+        "x < 3 /\\ x' = (IF Assert(x < 1, \"checked Rust integer overflow\") THEN x + 1 ELSE x)",
+    );
+    let next = evaluation(&asserted, "SPECIFICATION Spec\n")?;
+    assert_eq!(next.property, None, "{next}");
+    assert!(next.message.contains("checked Rust integer overflow"), "{next}");
+    assert_eq!(next.state.as_deref(), Some("x = 1"), "{next}");
+    let initial = evaluation(&module("x = 3 * 1000000000", "x' = x"), "SPECIFICATION Spec\n")?;
+    assert!(initial.trace.is_none(), "{initial}");
+    assert!(initial.to_string().starts_with("TLC evaluation error in the initial predicate"));
+    let evidence = root.join(".flow/tmp/tlc-controls");
+    fs::create_dir_all(&evidence)?;
+    fs::write(evidence.join("evaluation_errors.txt"), format!("{wide}\n\n{next}\n\n{initial}\n"))?;
     Ok(())
 }

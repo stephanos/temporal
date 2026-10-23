@@ -796,11 +796,6 @@ impl Resolver<'_> {
 
 fn range(ty: &Type) -> Range {
     match ty {
-        // The front spells `usize` (lengths, indices) as this range, which no admitted integer
-        // type has; Rust computes it in `usize`.
-        Type::Int { min: 0, max } if *max == i128::from(i32::MAX) => {
-            (0, i128::try_from(usize::MAX).unwrap_or(i128::MAX))
-        }
         Type::Int { min, max } => (*min, *max),
         _ => (i128::MIN, i128::MAX),
     }

@@ -84,7 +84,7 @@ wasm guest, and a table of each `check!`'s text that the tree's new `ExprKind::C
 World-bound starts stay compiled. Every admitted Model the gate reaches explores identically
 both ways: 18 shared fixtures, the Temporal activity, two checker controls, the lifter's seven
 Models, the Apalache and TLC backends' nine (Apalache arithmetic across 220 Worlds), and
-controls for checked arithmetic, lazy start domains and `usize` lengths. Six seeded mutant
+controls for checked arithmetic, lazy start domains and length arithmetic. Six seeded mutant
 trees (update, postcondition, start, progress target, outcome, `check!` text) are caught. First rough release
 timing of `Checker::explore_within` (shared, loaded 12-core host, medians): Kettle 88 µs
 compiled against 228 µs interpreted (2.6×), the 2,001-start wide shape 1.48 ms against 3.84 ms
@@ -142,7 +142,11 @@ overflow, signed division/remainder including minimum integers, and empty starts
 The fixed `imbl::Vector` table covers scalar/enum elements, empty construction, length,
 emptiness, bounded guarded appends and explicitly safe lookup. A separately authored
 collection control compares the complete native/TLC sets and verified/refuted properties;
-unsupported methods and unguarded growth retain located refusals.
+unsupported methods and unguarded growth retain located refusals. A sum or product of a
+length refuses at its span, since Rust's `usize` holds it where TLC's 32-bit integers overflow
+(fn-242); every other length operation means the same in both. TLC's own evaluation
+failures, such as an integer overflow or a failed `Assert`, surface as a typed
+`umpire_tlc::Evaluation` naming the property and the behavior up to the failing state.
 
 The pinned official artifact is `tla2tools` 1.7.4 (TLC 2.19), SHA-256
 `936a262061c914694dfd669a543be24573c45d5aa0ff20a8b96b23d01e050e88`, on mise Temurin 27.
