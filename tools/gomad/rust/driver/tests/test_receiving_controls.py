@@ -100,3 +100,18 @@ class ReceivingControls(unittest.TestCase):
         self.save()
         with self.assertRaises(driver.Refusal):
             self.verify()
+
+    def test_actual_command_observation_matches_closed_detached_environment(self):
+        directory = Path(receiving.__file__).resolve().parents[1]/'workload_tools'
+        sys.path.insert(0, str(directory))
+        self.addCleanup(lambda: sys.path.remove(str(directory)))
+        producer = driver.load_module('receiving_controls_fixture_producer', directory/'producer.py')
+        environment = dict(PATH='', GOMAD_WASM_INSTALLATION=str(self.root/'installation-unavailable.json'),
+                           GOMAD_STOCK_GO=str(self.root/'compiler-unavailable'), GOMAD_WASM_RUNTIME_ROOT=str(self.root/'runtime-unavailable'),
+                           GOMAD_WASM_TEMPORAL_MIN_AVAILABLE_BYTES='8192')
+        producer.run(self.root, 'inspection-fixture', [sys.executable, '-c', 'print("{}")'], 0, environment=environment)
+        actual = driver.read(self.root/'inspection-fixture.command.json')['environment']
+        receiving.inspection_environment(self.config, self.root, actual)
+        for changed in [dict(actual, PATH='/borrowed'), dict(actual, unknown='forged'), {key:value for key,value in actual.items() if key not in FLAGS}]:
+            with self.assertRaises(driver.Refusal):
+                receiving.inspection_environment(self.config, self.root, changed)

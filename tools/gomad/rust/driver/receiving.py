@@ -346,6 +346,15 @@ def retry_witness(stdout, network):
     require(fault and reset and reconnected and retried,'named reset lacks established stream error, new connection or in-flight retry')
 
 
+def inspection_environment(config, root, actual):
+    expected = dict(PATH='',GOMAD_WASM_INSTALLATION=str(root/'installation-unavailable.json'),
+                    GOMAD_STOCK_GO=str(root/'compiler-unavailable'),GOMAD_WASM_RUNTIME_ROOT=str(root/'runtime-unavailable'))
+    for flag in ('GOMAD_WASM_QUALIFICATION_GUEST_PROFILE','GOMAD_WASM_TEMPORAL_BUILD_CACHE',
+                 'GOMAD_WASM_TEMPORAL_MIN_AVAILABLE_BYTES'):
+        expected[flag] = config.get('environment',{}).get(flag)
+    require(actual == expected,'inspection compiler/runtime/installation unavailable or frozen private controls mismatch')
+
+
 def memory_observation(raw, minimum, platform):
     def decimal(value):
         require(isinstance(value,str) and 1 <= len(value) <= 20
@@ -1234,9 +1243,7 @@ class Retained:
                 'inspection prefix/witness/output binding mismatch')
         for name in ('detached-replay','stopped-inspection'):
             environment = read(root/(name+'.command.json'))['environment']
-            require(environment == dict(PATH='',GOMAD_WASM_INSTALLATION=str(root/'installation-unavailable.json'),
-                GOMAD_STOCK_GO=str(root/'compiler-unavailable'),GOMAD_WASM_RUNTIME_ROOT=str(root/'runtime-unavailable')),
-                'inspection compiler/runtime/installation not unavailable')
+            inspection_environment(self.config,root,environment)
         hashes = {str(path.relative_to(root/'inspection')):sha(regular(path)) for path in (root/'inspection').rglob('*') if path.is_file()}
         require(receipt['inspection_sha256'] == hashes,'inspection raw debug/heap bytes changed after observation')
         debug = read(regular(self.contained(report['output_path'])))
