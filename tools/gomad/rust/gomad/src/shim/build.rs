@@ -391,7 +391,7 @@ pub(super) fn run(
         std::thread::sleep(Duration::from_millis(10));
     };
     drop(child);
-    let status = super::passthrough::status(status)?;
+    let status = super::passthrough::status(status);
     if status != 0 {
         return Ok(status);
     }
