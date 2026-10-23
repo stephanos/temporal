@@ -4,6 +4,8 @@ import copy
 import json
 from pathlib import Path
 import sys
+import shutil
+import tempfile
 import unittest
 from unittest import mock
 
@@ -66,12 +68,58 @@ class NetworkReader(unittest.TestCase):
         corpus = json.loads((DATA / 'network_cluster_cases/cross-node-ready-poll-and-stale-cancel-binary-fixture.json').read_bytes())
         row = dict(schema='gomad.core-predicate-observation/v1', case='network.corpus.initial',
                    inputs=dict(name=corpus['name']), observed=copy.deepcopy(corpus['initial']))
-        with mock.patch.object(gate.native_roles, 'pinned'):
+        with mock.patch.object(gate.native_roles, 'pinned', side_effect=lambda config, path: path):
             with self.assertRaises(Refusal):
                 gate.observations(config, '')
             row['observed']['record']['snapshot']['next_connection'] = 100
             with self.assertRaises(Refusal):
                 gate.observations(config, gate.MARKER + json.dumps(row))
+
+    def test_original_closure_rejects_joint_candidate_and_expectation_edits(self):
+        repo = DATA.parents[5]
+        for mutation in ('delete', 'add', 'expected', 'input', 'broker_world', 'wire', 'network_source', 'network_pin', 'wasi_pin'):
+            with self.subTest(mutation=mutation), tempfile.TemporaryDirectory() as temporary:
+                copied = Path(temporary)
+                for directory in gate.ORIGINAL_CORPUS:
+                    destination = copied / 'tools/gomad/rust/wasmhost/tests/testdata' / directory
+                    shutil.copytree(DATA / directory, destination)
+                for name in gate.ORIGINAL_NETWORK_SOURCES:
+                    source = repo / 'tools/gomad/internal/model/network' / name
+                    destination = copied / source.relative_to(repo)
+                    destination.parent.mkdir(parents=True, exist_ok=True)
+                    shutil.copyfile(source, destination)
+                for name in ('src/network/PINNED_GO_NETWORK_SHA256', 'src/cluster/network/PINNED_GO_WASI_SHA256'):
+                    source = DATA.parents[1] / name
+                    destination = copied / source.relative_to(repo)
+                    destination.parent.mkdir(parents=True, exist_ok=True)
+                    shutil.copyfile(source, destination)
+                def config():
+                    return dict(repo=str(copied), files={str(path):gate.sha(path.read_bytes()) for path in copied.rglob('*') if path.is_file()})
+                documents, facts = gate.corpus_inputs(config())
+                self.assertEqual(facts['corpora']['broker_orders']['files'], 19)
+                self.assertEqual(len(documents['network_cluster_cases']), 51)
+                data = copied / 'tools/gomad/rust/wasmhost/tests/testdata'
+                path = data / 'network_cluster_cases/cross-node-ready-poll-and-stale-cancel-binary-fixture.json'
+                if mutation == 'delete': path.unlink()
+                elif mutation == 'add': (path.parent / 'additional.json').write_bytes(path.read_bytes())
+                elif mutation in ('expected', 'input'):
+                    raw = path.read_bytes()
+                    if mutation == 'expected': raw = raw.replace(b'"next_connection":1', b'"next_connection":2')
+                    else: raw = raw.replace(b'"nanos":1', b'"nanos":2')
+                    path.write_bytes(raw)
+                elif mutation == 'broker_world':
+                    path = data / 'broker_orders/idle-three-equal-time.json'
+                    raw = path.read_bytes(); path.write_bytes(raw.replace(b'"world_base64":', b'"changed_world_base64":'))
+                elif mutation == 'wire':
+                    path = data / 'cluster_network/b.gmnetev1'; path.write_bytes(path.read_bytes() + b'\0')
+                elif mutation == 'network_source':
+                    path = copied / 'tools/gomad/internal/model/network/simulation.go'; path.write_bytes(path.read_bytes() + b'\n')
+                elif mutation in ('network_pin', 'wasi_pin'):
+                    path = copied / 'tools/gomad/rust/wasmhost' / ('src/network/PINNED_GO_NETWORK_SHA256' if mutation == 'network_pin' else 'src/cluster/network/PINNED_GO_WASI_SHA256')
+                    path.write_text('sha256:' + '0' * 64 + '\n')
+                # Re-pinning changed candidate bytes must not move the original assertion set.
+                with self.assertRaises(Refusal):
+                    gate.corpus_inputs(config())
 
     def test_go_json_html_unicode_and_control_escapes(self):
         self.assertEqual(gate.canonical({'text':'<&>\u2028\u2029\n\0é'}), b'{"text":"\\u003c\\u0026\\u003e\\u2028\\u2029\\n\\u0000\xc3\xa9"}')

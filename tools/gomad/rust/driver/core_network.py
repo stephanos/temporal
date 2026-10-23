@@ -15,6 +15,31 @@ LIMITS = dict(listeners=128, connections=128, bytes=8 << 20, connection_bytes=4 
 ROOTS = ('TestBrokerOrdersAreCurrent', 'TestBrokerOrdersRustNetworkEvidenceRebuildsGoDocuments',
          'TestClusterNetworkDecoderRefusesMalformedEvidence', 'TestClusterNetworkRustEvidenceRebuildsTheGoBrokerDocument')
 
+ORIGINAL_COMMIT = '1d695061b6382009d0659238c652a5a765b1d5f5'
+ORIGINAL_WASI_PIN = 'sha256:5fddc30fd325f3168d32a0084a3e76e3a10b341da7aee86ddcd9f3b2a8b91bc3'
+RELOCATED_WASI_PIN = 'sha256:bd45d4831ca0f417b6411a29b70cf1070a779e5f04591a679c180d925b586d15'
+ORIGINAL_CORPUS = {
+    'network_cluster_cases': (51, '7cb0497950335edffa3bdaf48de63694bab3174d2ef0302b1f6db96f1c414beb'),
+    'broker_orders': (19, '8802ba410039c540f093dce503aa9d63b252bcac038b9ba21ff46595c7ebdada'),
+    'cluster_network': (2, 'ffe1f22d278c0f2f8ffa061a8c7d32799fc6a01c085a87d430c4a8b06afeab79'),
+}
+ORIGINAL_NETWORK_SOURCES = {
+    'adapter.go': 'c9ae9add73d213daa877e39d4edbec6959793ac4fc3a002978edadd9c5c67969',
+    'identity.go': 'd1c2f50a5fcb6c5070163edd82d373c05bbe194643ed7a420ce1230ee78acd73',
+    'simulation.go': '7f92e71b97013fb1b2d1554cab404ad4cfc79d7d7e80f335ef039dadc131d581',
+    'stream_status_generated.go': '072fbcdf6533f2ec4e93ab8ff28bf28773449dee6391f7bc6ab6d55a6d225c0e',
+    'record_identity.go': 'd95e0923d6013c570ef3e1f7c2b0ab2fe9a7cdd0a2c5d0b67656ea05ad06927d',
+}
+ORIGINAL_WASI_SOURCE_ANCHORS = {
+    'wasi/broker_test.go': '1714a2dd24158696a02b7d882f8f8b7318ac09421e006661722a145422e2728a',
+    'wasi/network_cluster_corpus_test.go': '8f1c3a965f8ec6c0b5d6d0a672a941fc16759056385d89af5308c15199193c34',
+    'wasi/cluster_network_test.go': 'ab7c1a0403bcd13b6aaf1cb3fd1f489534f688b9a36352f190ec9a8809d534e9',
+    'wasi/cluster_network.go': '91b39b0b1b8f6a6b9aa4e23ffaae3812d5b5785a4e2e9f015fcd50b76fa17fed',
+    'wasi/broker_network.go': 'ec9a33c783284ca83abe32f41393d38f7f53ef000b23e6fe53eb811905ce1069',
+    'wasi/network_v2.go': 'ca5e71708b67c85b80e9235b0ccb4b3304e3e093bca4bf35e877f22f924b3244',
+    'wasi/identity.go': 'cc23a2c2fc2e14d3623351d776c89493e8930d59ed78ee3d9a0632608a6b7436',
+}
+
 
 def canonical(value):
     text = json.dumps(value, ensure_ascii=False, separators=(',', ':'))
@@ -285,16 +310,59 @@ def refused(raw, limit=1 << 20, limits=LIMITS):
     return False
 
 
+def corpus_inputs(config):
+    root = Path(config['repo']) / 'tools/gomad'
+    crate = root / 'rust/wasmhost'
+    documents, closures = {}, {}
+    for directory, expected in ORIGINAL_CORPUS.items():
+        base = crate / 'tests/testdata' / directory
+        paths = sorted(base.iterdir())
+        require(all(path.is_file() and not path.is_symlink() for path in paths), 'network original inventory contains aliases or directories')
+        digest = hashlib.sha256()
+        documents[directory] = {}
+        for path in paths:
+            native_roles.pinned(config, path)
+            raw = path.read_bytes()
+            if directory == 'network_cluster_cases':
+                doc = native_roles.decode(raw)
+                require(path.suffix == '.json' and doc['schema'] == 'gomad.network-cluster-corpus/v1' and doc['name'] == path.stem
+                        and doc['implementation_sha256'] == RELOCATED_WASI_PIN,
+                        'network corpus original header or fixed relocated implementation pin changed')
+                old = ('"implementation_sha256":"' + RELOCATED_WASI_PIN + '"').encode()
+                replacement = ('"implementation_sha256":"' + ORIGINAL_WASI_PIN + '"').encode()
+                require(raw.count(old) == 1, 'network corpus original pin substitution is ambiguous')
+                raw = raw.replace(old, replacement)
+            digest.update(path.name.encode() + b'\0' + len(raw).to_bytes(8, 'big') + raw)
+            if path.suffix == '.json':
+                documents[directory][path.stem] = native_roles.decode(raw)
+        require((len(paths), digest.hexdigest()) == expected, 'network corpus differs from immutable original inventory or content: ' + directory)
+        closures[directory] = dict(files=len(paths), sha256=digest.hexdigest())
+    sources = {}
+    for name, expected in ORIGINAL_NETWORK_SOURCES.items():
+        path = native_roles.pinned(config, root / 'internal/model/network' / name)
+        sources[name] = sha(path.read_bytes())
+        require(sources[name] == expected, 'network retained Go source differs from immutable original: ' + name)
+    inventory = ''.join(name + ':' + sources[name] + '\n' for name in sorted(sources) if name != 'record_identity.go').encode()
+    network_pin = 'sha256:' + sha(inventory)
+    path = native_roles.pinned(config, crate / 'src/network/PINNED_GO_NETWORK_SHA256')
+    require(path.read_text() == network_pin + '\n', 'network drift pin differs from recomputed immutable Go source')
+    path = native_roles.pinned(config, crate / 'src/cluster/network/PINNED_GO_WASI_SHA256')
+    require(path.read_text() == RELOCATED_WASI_PIN + '\n', 'network relocated WASI drift pin changed')
+    require(all(doc['network_implementation_sha256'] == network_pin for doc in documents['network_cluster_cases'].values()), 'network corpus Go implementation drift')
+    return documents, dict(original_commit=ORIGINAL_COMMIT, corpora=closures, network_source_inputs=sources,
+                           network_implementation_sha256=network_pin, original_wasi_source_anchors=ORIGINAL_WASI_SOURCE_ANCHORS,
+                           original_wasi_pin=ORIGINAL_WASI_PIN, relocated_wasi_pin=RELOCATED_WASI_PIN,
+                           retired_drift_check='Removed Go WASI API implementation is anchored to original source hashes; no claim of regenerating it')
+
+
 def observations(config, stdout):
     root = Path(config['repo']) / 'tools/gomad/rust/wasmhost'
     def read(name):
         path = root / 'tests/testdata' / name
         native_roles.pinned(config, path.resolve())
         return path.read_bytes()
-    corpora = {p.stem: json.loads(read('network_cluster_cases/' + p.name))
-               for p in sorted((root / 'tests/testdata/network_cluster_cases').glob('*.json'))}
-    brokers = {p.stem: json.loads(read('broker_orders/' + p.name))
-               for p in sorted((root / 'tests/testdata/broker_orders').glob('*.json'))}
+    documents, original_inputs = corpus_inputs(config)
+    corpora, brokers = documents['network_cluster_cases'], documents['broker_orders']
     required = set()
     for name, corpus in corpora.items():
         required.add(('network.corpus.creation' if corpus['creation_error'] else 'network.corpus.initial', name, None))
@@ -421,5 +489,5 @@ def observations(config, stdout):
         facts.append(dict(case=case, name=key[1], index=key[2]))
     require(seen == required, 'network harness omitted original raw cases: ' + repr(sorted(required - seen, key=str)))
     frame_cases = {'per-node fault schedule': 'reject-local-fault', 'bad address': 'reject-ipv4-range', 'unknown link endpoint': 'reject-unknown-from', 'self link': 'reject-self-link', 'duplicate link': 'reject-duplicate-link', 'unordered fault': 'reject-unordered-faults', 'unknown action': 'reject-unknown-action'}
-    return dict(frame_cases={name: dict(corpus=corpus, actual_error=corpora[corpus]['creation_error']) for name, corpus in frame_cases.items()}, roots={root: dict(cases=facts, predicates=['exact corpus literals', 'GMNETEV1 framing and Go JSON log reconstruction', 'native record hash preimages and semantic admission', 'exact broker outputs, World and per-node evidence']) for root in ROOTS}, facts=facts,
+    return dict(original_inputs=original_inputs, frame_cases={name: dict(corpus=corpus, actual_error=corpora[corpus]['creation_error']) for name, corpus in frame_cases.items()}, roots={root: dict(cases=facts, predicates=['exact corpus literals', 'GMNETEV1 framing and Go JSON log reconstruction', 'native record hash preimages and semantic admission', 'exact broker outputs, World and per-node evidence']) for root in ROOTS}, facts=facts,
                 gaps=[dict(root='TestClusterNetworkFrameRefusesWhatTheGoBrokerRefuses', reason='Shared validates central network configuration; node profile, stock-node and incarnation checks require linked prepare owner observations')])
