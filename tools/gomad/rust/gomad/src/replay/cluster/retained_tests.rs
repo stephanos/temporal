@@ -1159,11 +1159,12 @@ fn actual_native_producers_admit_distinct_output_and_evidence_bounds() {
                     && item.limit > configuration.limits.output_bytes)
         );
         oracles::authenticate_retained(&opened, &inputs).unwrap();
-        super::prepare(opened.try_clone().unwrap(), None).unwrap();
+        let prepare_error = super::prepare(opened.try_clone().unwrap(), None).err();
+        assert!(prepare_error.is_none(), "{prepare_error:?}");
         observation(
             &format!("producer/cluster-oracles/report-only={report_only}"),
             json!({"retained_inputs":inputs,"manifest":opened.manifest()}),
-            json!({"admitted":true,"output_descriptor_count":descriptors.len()}),
+            json!({"prepare_error":prepare_error,"output_descriptor_count":descriptors.len()}),
         );
 
         configuration.oracle_plan = None;
@@ -1244,12 +1245,13 @@ fn actual_native_producers_admit_distinct_output_and_evidence_bounds() {
             report_only
         );
         let before = opened.payload(FILE, 16 << 20).unwrap();
-        super::prepare(opened.try_clone().unwrap(), None).unwrap();
+        let prepare_error = super::prepare(opened.try_clone().unwrap(), None).err();
+        assert!(prepare_error.is_none(), "{prepare_error:?}");
         assert_eq!(opened.payload(FILE, 16 << 20).unwrap(), before);
         observation(
             &format!("producer/scenario/report-only={report_only}"),
             json!({"retained_inputs":inputs,"manifest":opened.manifest()}),
-            json!({"admitted":true,"cluster_oracles_present":false,"scenario_report_present":report_only}),
+            json!({"prepare_error":prepare_error,"cluster_oracles_present":opened.manifest().record.streams.contains_key("evidence/cluster_oracles"),"scenario_report_present":opened.manifest().record.streams.contains_key("evidence/soft-assertions.json")}),
         );
     }
 }
