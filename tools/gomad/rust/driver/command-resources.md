@@ -44,3 +44,9 @@ sized/CPU-active children plus an unrelated child, and an interrupt injected
 immediately after the single reap. They check exactly one wait4 per command,
 resource/status/unit conversions, both raw receipts and original cleanup/error
 behavior. They run no Go, Cargo, guest, or qualification producer.
+
+Command and process journals also retain `clock: CLOCK_MONOTONIC`, the actual
+parent PID, the timestamp immediately before `Popen`, and the timestamp immediately
+after that same `wait4`. These lifecycle boundaries authenticate nested native
+host captures without converting wall time or inferring a start from elapsed time.
+The accounting and lifecycle observations share the single existing reap.

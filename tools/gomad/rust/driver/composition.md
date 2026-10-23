@@ -74,3 +74,21 @@ The freezer also expands each `final_profiles.measure`, `ordinary`, and
 Role bindings use canonical absolute paths. A published copy requires its actual
 admission; only the original Cargo executable may omit admission. All three role
 chains receive pure independent validation before the configuration is published.
+
+Terminal preparation uses a generated, sealed `terminal_module_spec` containing
+only the original checkout, explicit stock Go distribution and the admitted
+`primary.cache`. Both cooperative-runtime and onebox-cooperative installations
+must already seal the same compiler/runtime-overlay closure in that cache.
+`terminal_inputs.compiler_inputs` independently reopens these static members;
+no module or later preparation digest is requested before execution.
+
+The three terminal primary routes use fixed native module preparation, host
+capture and terminal measurement endpoints. The module is prepared with the
+original three tags and no test arguments; its descriptor and private compiler
+observations are independently reopened. Terminal execution consumes that actual
+module plus the fresh ordinary publication and distinct immutable diagnostic
+admission. The final profile endpoint calls `primary_stages.read_terminal` to
+reauthenticate the completed primary stage and independently read its six ordinary
+and two diagnostic observations. It does not create another terminal producer.
+Native endpoints, module receiving and profile readers must be present together;
+these source bindings alone do not certify an executed qualification cycle.

@@ -20,6 +20,55 @@ class PrimaryRecipes(unittest.TestCase):
                 'cluster': dict(role='host-fixture', argv=['/sealed/python', 'cluster', '--input', str(template)]),
                 'broker': dict(role='host-fixture', argv=['/sealed/python', 'broker', '--observation', '/sealed/observation'])}))
 
+    def test_terminal_preflight_never_reads_future_module_or_publication(self):
+        with tempfile.TemporaryDirectory() as temporary:
+            root = Path(temporary)
+            config = self.config(root, root/'unused')
+            config.update(terminal_module_spec='/sealed/terminal-spec', stages={name:dict(adapter='primary') for name in
+                          ('terminal-module', 'terminal-host-admission', 'ordinary-helper-publication')})
+            with patch.object(primary, 'native_bootstrap'), patch.object(primary, 'terminal_diagnostic'), \
+                 patch.object(primary.live, 'sealed_input'), patch.object(primary, 'read', return_value={'static':'inputs'}), \
+                 patch('terminal_inputs.preparation_spec', return_value={'static':'inputs'}), \
+                 patch.object(primary, 'read_terminal_module', side_effect=AssertionError('future module read')):
+                primary.preflight(config, 'terminal-exit', root/'stages/terminal-exit')
+            self.assertFalse((root/'stages').exists())
+
+    def test_terminal_fixed_recipes_bind_actual_prerequisite_outputs(self):
+        with tempfile.TemporaryDirectory() as temporary:
+            root = Path(temporary)
+            config = self.config(root, root/'unused')
+            config['final_profiles'] = dict(stock_go='/sealed/go', diagnostic=dict(admission='/sealed/diag-admission'))
+            publication = root/'stages/ordinary-helper-publication'
+            publication.mkdir(parents=True)
+            (publication/'primary-final.stdout').write_text(json.dumps(dict(result='/fresh/ordinary-admission')))
+            with patch.object(primary.live, 'sealed_input'), patch.object(primary, 'native_bootstrap', return_value='/sealed/bootstrap'), \
+                 patch.object(primary, 'read_terminal_module', return_value=dict(path='/fresh/descriptor',descriptor=dict(module='/fresh/module'))), \
+                 patch.object(primary, 'completed_stage', return_value=publication), \
+                 patch.object(primary, 'terminal_diagnostic', return_value=dict(executable='/sealed/diag')), \
+                 patch('native_roles.validate_admission', return_value=dict(executable='/fresh/ordinary')):
+                argv = primary.recipes(config, 'terminal-exit', root/'stages/terminal-exit')[0]['argv']
+            self.assertEqual(argv[:2], ['/sealed/bootstrap','terminal-exit'])
+            for flag, value in (('--test-helper','/fresh/ordinary'),('--terminal-exit-module','/fresh/module'),
+                                ('--terminal-exit-module-receipt','/fresh/descriptor'),
+                                ('--terminal-exit-helper-receipt','/fresh/ordinary-admission'),
+                                ('--terminal-exit-diagnostic-helper-receipt','/sealed/diag-admission')):
+                self.assertEqual(argv[argv.index(flag)+1],value)
+            self.assertEqual(primary.TIMEOUTS['terminal-exit'],3600)
+            self.assertEqual(primary.TIMEOUTS['terminal-module'],3600)
+
+    def test_final_terminal_reuse_refuses_missing_stale_or_foreign_stage(self):
+        with tempfile.TemporaryDirectory() as temporary:
+            root=Path(temporary)
+            config=self.config(root,root/'unused')
+            config.update(source_sha256='source',identity={'host':'host','helper':'helper'},_config_sha256='config')
+            stage=root/'stages/terminal-exit';stage.mkdir(parents=True)
+            row=dict(schema='gomad.rust-driver-stage/v1',stage='terminal-exit',status='PASS',exit=0,
+                     source='source',identity=config['identity'],config_sha256='config',subgates=[],start_ns=100,end_ns=200)
+            for field,value in (('source','old-source'),('config_sha256','old-config'),('stage','terminal-controls'),('status','UNEXECUTED')):
+                altered=dict(row,**{field:value});(stage/'receipt.json').write_text(json.dumps(altered))
+                with self.subTest(field=field),self.assertRaises(primary.Refusal):primary.read_terminal(config,root)
+            with self.assertRaises(primary.Refusal):primary.read_terminal(config,root/'foreign')
+
     def test_grouped_has_ten_distinct_actual_invocations(self):
         with tempfile.TemporaryDirectory() as temporary:
             root = Path(temporary)
@@ -127,6 +176,21 @@ class PrimaryRecipes(unittest.TestCase):
                 (run/'.pin').write_text(str(run))
                 (run/'.complete').write_text('')
                 (run.parent/'latest.json').write_text(json.dumps(run.name))
+
+    def test_terminal_managed_result_binds_direct_run_path_and_pid(self):
+        with tempfile.TemporaryDirectory() as temporary:
+            root=Path(temporary)
+            run=root/'primary/.gomad-measure/terminal-exit/run-123-150-0'
+            run.mkdir(parents=True,mode=0o700)
+            for name,value in (('.pin',str(run)),('.complete',''),('.lease','')):
+                (run/name).write_text(value)
+            (run.parent/'latest.json').write_text(json.dumps(run.name))
+            (root/'primary-final.command.json').write_text(json.dumps(dict(pid=123,start_ns=100,end_ns=200)))
+            response=dict(requested_root=str(root/'primary'),result=str(run/'terminal-exit.json'))
+            path,actual,pid=primary.managed_native_run(root,response,'terminal-exit','terminal-exit.json',direct=True)
+            self.assertEqual((path,actual,pid),(run/'terminal-exit.json',run,123))
+            for output in (str(run/'nested/terminal-exit.json'),str(run).replace('run-123','run-456')+'/terminal-exit.json'):
+                with self.assertRaises(Refusal):primary.managed_native_run(root,dict(response,result=output),'terminal-exit','terminal-exit.json',direct=True)
 
     def test_native_publication_physically_copies_distinct_roles(self):
         with tempfile.TemporaryDirectory() as temporary:

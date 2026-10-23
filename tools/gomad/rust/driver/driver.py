@@ -152,6 +152,9 @@ class MeasuredPopen(subprocess.Popen):
         require(sys.platform.startswith('linux') and hasattr(os, 'wait4') and hasattr(os, 'WNOWAIT'),
                 'Linux per-child wait4 resource measurement unavailable')
         self.child_resources = None
+        self.started_monotonic_nanos = time.clock_gettime_ns(time.CLOCK_MONOTONIC)
+        self.reaped_monotonic_nanos = None
+        self.parent_pid = os.getpid()
         self._measured_status = None
         super().__init__(*args, **kwargs)
 
@@ -167,8 +170,10 @@ class MeasuredPopen(subprocess.Popen):
             if ready is not None:
                 require(ready.si_pid == self.pid, 'resource probe returned another child')
                 waited, status, usage = os.wait4(self.pid, os.WNOHANG)
+                reaped_monotonic_nanos = time.clock_gettime_ns(time.CLOCK_MONOTONIC)
                 require(waited == self.pid, 'resource measurement lost its exact child')
                 self._measured_status = (waited, status)
+                self.reaped_monotonic_nanos = reaped_monotonic_nanos
                 require(all(math.isfinite(value) and value >= 0 for value in (usage.ru_utime, usage.ru_stime))
                         and isinstance(usage.ru_maxrss, int) and usage.ru_maxrss >= 0,
                         'invalid per-child resource measurement')
@@ -206,7 +211,8 @@ def command(config, root, name, argv, accepted=(0,), timeout=None, private_obser
                 launch = [sys.executable, str(HERE / 'launch.py'), str(read_gate), *argv]
                 proc = MeasuredPopen(launch, cwd=config['repo'], env=clean_env(config), stdout=stdout, stderr=stderr,
                                         start_new_session=True, pass_fds=(read_gate,))
-                process = dict(pid=proc.pid, stage_pid=os.getpid(), active=True, argv=argv, start_ns=start)
+                process = dict(pid=proc.pid, stage_pid=os.getpid(), parent_pid=proc.parent_pid, active=True, argv=argv, start_ns=start,
+                               clock='CLOCK_MONOTONIC', started_monotonic_nanos=proc.started_monotonic_nanos)
                 save_process(process_path, process)
                 os.write(write_gate, b'1')
             finally:
@@ -244,10 +250,12 @@ def command(config, root, name, argv, accepted=(0,), timeout=None, private_obser
                     cleanup_error = error
                     observation = 'inconclusive'
                 process.update(active=cleanup_error is not None, exit=proc.returncode, observation=observation, end_ns=time.time_ns(),
-                               resources=proc.child_resources)
+                               resources=proc.child_resources, reaped_monotonic_nanos=proc.reaped_monotonic_nanos)
                 save_process(process_path, process)
                 receipt = dict(argv=argv, cwd=config['repo'], pid=proc.pid, exit=proc.returncode,
                       environment=config.get('environment', {}), temporary_paths=config.get('temporary_paths', {}),
+                      parent_pid=proc.parent_pid, clock='CLOCK_MONOTONIC',
+                      started_monotonic_nanos=proc.started_monotonic_nanos, reaped_monotonic_nanos=proc.reaped_monotonic_nanos,
                       resources=proc.child_resources, observation=observation, start_ns=start, end_ns=time.time_ns())
                 if private_seal is not None:
                     receipt['private_observations'] = private_seal
