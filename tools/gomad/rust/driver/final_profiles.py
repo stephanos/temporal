@@ -223,22 +223,56 @@ def attribution(profile):
         require(tuple(sum(values) for values in zip(*rows)) == totals, 'linked store thread totals differ')
 
 
+def native_canonical_streams(root, outcome):
+    from driver import sha
+    native = read(root / 'streams.json')
+    receipt = read(root / 'canonical-streams.json')
+    require(receipt['schema'] == 'gomad.native-canonical-streams/v1'
+            and receipt['source'] == 'finalized linked Execution.evidence from closed Sink::into_streams'
+            and receipt['transformation'] == 'identity bytes; no content normalization'
+            and receipt['native_streams_sha256'] == sha(root / 'streams.json')
+            and receipt['outcome_sha256'] == sha(root / 'outcome.json')
+            and set(receipt['streams']) == set(STREAMS), 'missing/foreign native canonical stream receipt')
+    raw_native = {}
+    for name, entry in native.items():
+        require(Path(name).name == name and name not in ('.', '..'), 'foreign native stream name')
+        raw = bounded_path(root, str(root / name)).read_bytes()
+        require(len(raw) == entry['bytes'] and hashlib.sha256(raw).hexdigest() == entry['sha256'],
+                'changed native evidence stream')
+        raw_native[name] = raw
+    streams = {}
+    for name, entry in receipt['streams'].items():
+        require(entry['file'] == name, 'foreign native canonical file')
+        path = bounded_path(root, str(root / name))
+        raw = path.read_bytes()
+        require(len(raw) == entry['bytes'] and sha(path) == entry['sha256'], 'changed native canonical stream')
+        if name in ('stdout', 'stderr', 'network', 'choice'):
+            if name in raw_native:
+                require(entry['source'] == 'native:' + name and raw == raw_native[name], 'changed canonical native source')
+            else:
+                require(name in ('stdout', 'stderr', 'network') and not raw
+                        and entry['source'] == 'closed-sink-empty:' + name, 'unobserved native canonical stream')
+        elif name == 'wasi':
+            require(entry['source'] == 'binary-transcript-alias:transcript' and 'transcript' in raw_native
+                    and raw == raw_native['transcript']
+                    and ('wasi' not in raw_native or raw == raw_native['wasi']), 'changed binary WASI alias')
+        else:
+            require(entry['source'] == 'outcome:local_model.terminal_base64' and 'terminal' not in raw_native
+                    and raw == base64.b64decode(outcome['local_model']['terminal_base64'], validate=True)
+                    and len(raw) == 16, 'changed actual native model terminal')
+        streams[name] = dict(path=str(path), sha256=entry['sha256'])
+    return streams
+
+
 def native_run(root):
     report = read(root / 'report.json')
     require(report['schema'] == 'gomad.linked-profile-run/v1' and report['execution'].get('Ok'),
             'missing/failed native linked execution')
     outcome = read(root / 'outcome.json')
     request = read(root / 'request.json')
-    catalog = read(root / 'streams.json')
-    streams = {}
-    for name in STREAMS[:-1]:
-        require(name in catalog, 'native producer has not retained original canonical ' + name)
-        streams[name] = dict(path=str(root / name), sha256=catalog[name]['sha256'])
+    streams = native_canonical_streams(root, outcome)
     model = outcome['local_model']
-    terminal = base64.b64decode(model['terminal_base64'], validate=True)
-    streams['terminal'] = dict(native_bytes=terminal, sha256=hashlib.sha256(terminal).hexdigest())
-    choice = (root / 'choice').read_bytes()
-    polls = select_polls(choice)
+    polls = select_polls((root / 'choice').read_bytes())
     result = dict(streams=streams, select_poll=polls, reaped=True, termination=outcome['termination'],
                   exit_code=outcome.get('exit_code'), calls=model['calls'], time_advances=model['advances'],
                   environment_identity=request['guest']['model'], fuel_remaining=outcome['fuel_remaining'],

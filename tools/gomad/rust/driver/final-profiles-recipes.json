@@ -99,6 +99,26 @@
     "attribution": {
       "scope": "same-cycle mandatory ten-cell qualification Results, independently recomputed linked costs and publication tails",
       "native_terminal_scope": "separate native terminal/process timestamps; other Results do not substitute for the terminal process bound"
+    },
+    "canonical_streams": {
+      "schema": "gomad.native-canonical-streams/v1",
+      "native_catalogue": "streams.json unchanged",
+      "sources": [
+        "native:NAME",
+        "closed-sink-empty:NAME",
+        "binary-transcript-alias:transcript",
+        "outcome:local_model.terminal_base64"
+      ],
+      "required_actual_files": [
+        "stdout",
+        "stderr",
+        "wasi",
+        "choice",
+        "network",
+        "terminal"
+      ],
+      "transformation": "identity bytes; no content normalization",
+      "missing_old_receipt": "REFUSED; no post-execution upgrade"
     }
   },
   "original_wire_controls": {

@@ -31,6 +31,48 @@ class FinalProfiles(unittest.TestCase):
             run['streams'][name] = dict(path=str(path), sha256=hashlib.sha256(raw).hexdigest())
         return run
 
+    def canonical_native(self):
+        def put(name, raw):
+            path = self.root / name
+            path.write_bytes(raw)
+            return dict(bytes=len(raw), sha256=hashlib.sha256(raw).hexdigest())
+        def jsonfile(name, value):
+            return put(name, json.dumps(value).encode())
+        native = {name: put(name, raw) for name, raw in dict(stdout=b'actual', transcript=b'binary-wasi', choice=b'choice').items()}
+        jsonfile('streams.json', native)
+        outcome = dict(local_model=dict(terminal_base64=base64.b64encode(bytes(16)).decode()))
+        jsonfile('outcome.json', outcome)
+        streams = {}
+        for name in gate.STREAMS:
+            raw = (self.root / name).read_bytes() if name in native else b'binary-wasi' if name == 'wasi' else bytes(16) if name == 'terminal' else b''
+            source = ('native:' + name if name in native else 'binary-transcript-alias:transcript' if name == 'wasi'
+                      else 'outcome:local_model.terminal_base64' if name == 'terminal' else 'closed-sink-empty:' + name)
+            streams[name] = dict(file=name, source=source, **put(name, raw))
+        receipt = dict(schema='gomad.native-canonical-streams/v1',
+                       source='finalized linked Execution.evidence from closed Sink::into_streams',
+                       transformation='identity bytes; no content normalization',
+                       native_streams_sha256=hashlib.sha256((self.root / 'streams.json').read_bytes()).hexdigest(),
+                       outcome_sha256=hashlib.sha256((self.root / 'outcome.json').read_bytes()).hexdigest(), streams=streams)
+        jsonfile('canonical-streams.json', receipt)
+        return outcome, receipt
+
+    def test_explicit_native_canonical_sources_and_empty_files(self):
+        outcome, _ = self.canonical_native()
+        self.assertEqual(set(gate.native_canonical_streams(self.root, outcome)), set(gate.STREAMS))
+        (self.root / 'stderr').unlink()
+        with self.assertRaises(Refusal):
+            gate.native_canonical_streams(self.root, outcome)
+
+    def test_coherent_native_canonical_forgery_cannot_replace_source(self):
+        for name in gate.STREAMS:
+            outcome, receipt = self.canonical_native()
+            raw = b'forged' if name != 'terminal' else b'x' * 16
+            (self.root / name).write_bytes(raw)
+            receipt['streams'][name].update(bytes=len(raw), sha256=hashlib.sha256(raw).hexdigest())
+            (self.root / 'canonical-streams.json').write_text(json.dumps(receipt))
+            with self.subTest(stream=name), self.assertRaises(Refusal):
+                gate.native_canonical_streams(self.root, outcome)
+
     def runtime_spec(self):
         return dict(profile='gomad.wasi-cooperative/v1', clock_read_step_nanos=0, seed=7,
                     package='./internal/model/wasi/testdata/runtime_cost',
