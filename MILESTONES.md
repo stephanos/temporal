@@ -58,6 +58,20 @@ The owner asked, "why aren't we focused on fn-232 to get merged?" and approved t
 
 No other milestone work starts before fn-232.13 closes. This changes ordering only: no stage, bound or acceptance item is waived.
 
+### Performance deferred to the quiet-host window (owner decision, 2026-10-23)
+
+The owner asked, "can we merge the blocked work and address any perf issues later when we have the stress test?"
+
+Until the owner declares a quiet-host window, only timing and performance results stop being blocking. They are still measured and recorded:
+- the cycle's 3,600-second wall-clock limit, and the stage and cost wall-time budgets;
+- fn-185.2/.3 profiles and the optimization verdict;
+- stress timing results (stress divergence findings are correctness and stay binding);
+- fn-221 sweep results that fail only from load (timeouts, deadline-sensitive inspection fixtures). These are classified as contention and rechecked in that window.
+
+Correctness stays binding: outcomes, replay and determinism, assertions, refusals, memory and capacity bounds, and identities.
+
+Completed work merges as soon as its gate passes. A task closes on its correctness acceptance. Its deferred performance items stay open, recorded in the task with the quiet-host window as revival trigger. The quiet-host window reruns the cycle timing, stress and profiles together, and any performance regression found then becomes a new task.
+
 ### fn-232.13 scope rulings (conductor, under the owner's 2026-10-23 delegation)
 
 The owner's goal says to follow the conductor's own recommendations when in doubt. These rulings apply until the owner says otherwise:
@@ -77,7 +91,12 @@ The owner's goal says to follow the conductor's own recommendations when in doub
    - the initial-preparation compile-flag classification against the actual compiler commands.
 
    Per-phase helper timings may stay in the campaign metrics side files outside the authenticated Result cost. That loses a record, not a check, and QUALIFICATION.md documents it.
-7. **fn-222 inside the final cycle.** The one-box fn-222 group runs alongside the inspection stage's own onebox inspection, not after it, and the cycle stays at 96 stages. The cycle is launched with `driver.py parallel`. fn-222.1 then closes on the cycle's gate exits and support list.
+7. **Stress as a correctness check (owner, 2026-10-23).** The fn-188.5 41×4 stress matrix is not a one-hour cycle stage. It runs right after the freeze on the frozen candidate as a determinism check: every same-seed divergence is a finding, whatever the host load. Its wall time and other timing results are recorded but not judged until the quiet-host window. fn-242 does not wait for it.
+8. **Pre-freeze source.** fn-227.1's inventory rows cite the Rust map-order tests before the freeze. The pre-freeze dry run also runs the Rust sweep against a real guest and runs fn-233's launcher, shim and Make lanes.
+9. **Post-freeze runs.** On the frozen candidate, as correctness work under the current load: the fn-233 formal rerun (~1 h), stress (2–3 h) and the fn-221 full sweep (5–8 h). Load-only timeouts are classified as contention and rechecked later. fn-221 reruns the whole sweep on the frozen Rust binary instead of resuming the Go-candidate journal, because the Go host's helper link-count infrastructure rows and changed evidence bounds make that journal non-transferable. Only the fn-185.2/.3 profiles wait for a quiet-host window.
+10. **fn-240 crate count.** The owner's 8–12 crate target stands, even though the main crate has grown to about 110k lines. The read-only survey (.1) may run now. Extractions wait until the post-freeze windows are done, because each one rotates the host and helper identities.
+11. **No new Python driver code.** Until fn-242 runs, `tools/gomad/rust/driver/` gets only the Python the fn-232.13 freeze and its post-freeze windows strictly need. New checks go into Rust tests or `gomad` verbs.
+12. **fn-222 inside the final cycle.** The one-box fn-222 group runs alongside the inspection stage's own onebox inspection, not after it, and the cycle stays at 96 stages. The cycle is launched with `driver.py parallel`. fn-222.1 then closes on the cycle's gate exits and support list.
 
 ### Find bugs early (owner-approved, 2026-10-23)
 
@@ -334,8 +353,8 @@ Owner request 2026-10-20: a Go one-liner and `gomad -- make <target>` intercepti
 
 | Name / ID | Status | Description |
 | --- | --- | --- |
-| [fn-188.5](.flow/tasks/fn-188-gomad-wasm-determinism-boundary-audit.5.md) | ⏸ Parked | Rust stress producer and linked jitter implemented; full matrix pending integrated candidate |
-| [fn-188.6](.flow/tasks/fn-188-gomad-wasm-determinism-boundary-audit.6.md) | 🚧 Running | Regression gates, version pinning, validate wiring and the documented contract |
+| [fn-188.5](.flow/tasks/fn-188-gomad-wasm-determinism-boundary-audit.5.md) | ⏸ Parked | Stress producer and assembler ready; full matrix runs right after the freeze as a correctness check |
+| [fn-188.6](.flow/tasks/fn-188-gomad-wasm-determinism-boundary-audit.6.md) | ⏸ Parked | Regression gates, version pinning, validate wiring and the documented contract |
 
 ### Map-order determinism repairs — [fn-227](.flow/specs/fn-227-gomad-close-wasm-map-order-determinism.md)
 
@@ -363,3 +382,7 @@ Owner request 2026-10-20: a Go one-liner and `gomad -- make <target>` intercepti
 | --- | --- | --- |
 | [fn-221.2](.flow/tasks/fn-221-gomad-functional-suite-triage-sweep-on.2.md) | ⏸ Parked | Run the full sweep and retain the support matrix |
 | [fn-221.3](.flow/tasks/fn-221-gomad-functional-suite-triage-sweep-on.3.md) | ⬜ Todo | Rank reasons and recommend follow-on specs |
+
+### Qualification machinery cleanup — [fn-242](.flow/specs/fn-242-gomad-shrink-the-qualification.md)
+
+Owner request 2026-10-23. Starts after the fn-232.13 cycle and the post-freeze windows. Each check keeps a named failure it catches or is deleted, and the Python cycle driver becomes a Rust `gomad` verb. Tasks come from `/flow-next:plan`.
