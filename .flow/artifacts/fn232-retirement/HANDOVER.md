@@ -878,3 +878,38 @@ nondefault feature-role integrated checks, every-verb actual parity, full source
 subvariant receiving reach, mandatory runtime/workload/replay/inspection/stress
 proofs, private resource admission, final immutable freeze and measured final
 qualification remain with root and their assigned owners.
+
+
+## Cleanup refusal follow-through repair (2026-10-22)
+
+Independent review of `8849a27d15` found the new bounded refusal could abort the
+remaining same-stage command cleanup, later-stage cleanup and final outcome
+publication. The last scheduler stage was also absent from `executor.procs`
+after `wait_any`, so the driver's conditional cleanup could miss its still-active
+command registrations. Controlled regressions reproduce these paths, plus the
+older `command()` leader-only wait publishing inactive before group quiescence:
+focused RED5+ERROR1 (`fn232-retirement-cleanup-aggregate-red.log`).
+
+`cleanup_commands` now takes the complete selected stage-id set, signals every
+registered group before waiting on any group, attempts every group's observation,
+and aggregates errors while leaving unconfirmed registrations active. Termination
+selects all recorded stage ids together, including stages already reaped by the
+scheduler. Driver finalization always attempts termination, independently reaps/
+closes remaining stage handles and retains cleanup errors in an INCOMPLETE
+outcome rather than bypassing `outcome.json`. Log-close errors are also retained.
+`command()` uses the same group barrier before inactive publication; refusal
+retains an active process registration and actual inconclusive command receipt.
+
+Only Python source/tests and this handover changed; no Cargo target, Go command,
+guest, actual qualification or final measurement ran in this follow-up. The
+assigned Cargo target was released explicitly to root for the integrated wave.
+Root already integrated `8849a27d15` as a development candidate; retirement and
+all final qualification acceptance remain pending. This worktree remains for
+review/integration; other workers' worktrees/caches/evidence are untouched.
+
+
+Final follow-up verification: `PYTHONDONTWRITEBYTECODE=1 python3 -m unittest
+discover -s tools/gomad/rust/driver/tests -q` exit0, 131 tests in 2.870s;
+log `/home/agent/.cache/codex-build/fn232-retirement-cleanup-aggregate-full.log`.
+`git diff --check` exit0. All follow-up processes terminal; shared-overlay disk
+109GiB available after source checks. No additional build/qualification claim.
