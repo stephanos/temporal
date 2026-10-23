@@ -11,6 +11,7 @@ use serde_json::{Value, json};
 use sha2::Digest as _;
 use std::{
     collections::BTreeMap,
+    fmt::Write as _,
     fs,
     io::{Read, Write},
     os::unix::fs::{DirBuilderExt, OpenOptionsExt},
@@ -213,7 +214,7 @@ fn configuration(repo: &Path, name: &str) -> Result<Value, String> {
             json!(sha2::Sha256::digest(b"gomad-wasm-temporal-recovery/v1").to_vec());
         config["Clock"]["EpochNanos"] = json!(1_700_000_000_000_000_000_u64);
         config["Limits"] = json!({"OutputBytes":8<<20,"TranscriptBytes":128<<20,"Calls":4_000_000,"Descriptors":4096,"Files":10000,"FilesystemBytes":512<<20,"PendingEvents":4096});
-        config["storage"] = json!({"volumes":[{"ID":"temporal","Path":"/volume","CapacityBytes":256<<20}],"limits":{"PendingOperations":100000,"Transitions":10000000},"sqlite_lock_databases":["/volume/temporal.db"]});
+        config["storage"] = json!({"volumes":[{"ID":"temporal","Path":"/volume","CapacityBytes":256<<20}],"limits":{"PendingOperations":100_000,"Transitions":10_000_000},"sqlite_lock_databases":["/volume/temporal.db"]});
     }
     config["Clock"]["ReadStepNanos"] = json!(0);
     Ok(config)
@@ -411,7 +412,7 @@ fn sources(
     }
     let mut encoded = String::new();
     for (path, hash) in paths {
-        encoded.push_str(&format!("{hash}  {}\n", path.display()));
+        writeln!(encoded, "{hash}  {}", path.display()).map_err(|error| error.to_string())?;
     }
     crate::qualify::result::validate_source_manifest(encoded.as_bytes(), true)?;
     let path = root.join("source.sha256");
@@ -450,6 +451,58 @@ fn excluded_selection(
     )?;
     read(&path, proof)?;
     Ok(path)
+}
+
+fn prepare_workloads(
+    call: &Invocation,
+    proof: &CheckoutProof,
+    root: &Path,
+    controls: &Controls,
+) -> Result<Vec<Value>, String> {
+    let mut workloads = Vec::new();
+    for name in NAMES {
+        let preparation = root.join("inputs").join(name);
+        let selected = controls.only.is_empty() || controls.only == name;
+        let install = if selected {
+            installation(call, proof, &preparation, name)?
+        } else {
+            preparation.join("installation.json")
+        };
+        let source = if name == "runtime" {
+            "./internal/backends/wasm/testdata/runtime_probes".into()
+        } else if name == "two-cluster" && selected {
+            cluster_driver::stage_broker(proof.repo())?
+        } else if name == "two-cluster" {
+            "./.tmp/wasm-backend-temporal/unselected".into()
+        } else {
+            "./tests".into()
+        };
+        let scenario = if name == "two-cluster" && selected {
+            let path = preparation.join("scenario.json");
+            write(&path, &cluster_driver::scenario_bytes()?)?;
+            Some(path)
+        } else {
+            None
+        };
+        let workload = json!({"name":name,"installation":install,"arguments":arguments(proof.repo(),&preparation,name,&source),"scenario":scenario});
+        if selected {
+            crate::stress::admit_workload(&workload)?;
+        }
+        workloads.push(workload);
+    }
+    Ok(workloads)
+}
+
+fn producer_environment(call: &Invocation) -> BTreeMap<String, String> {
+    let mut environment: BTreeMap<String, String> = call
+        .environ
+        .iter()
+        .filter_map(|item| item.split_once('='))
+        .filter(|(key, _)| !key.starts_with("GOMAD_"))
+        .map(|(key, value)| (key.into(), value.into()))
+        .collect();
+    environment.insert("GOMAD_WASM_STRESS".into(), "1".into());
+    environment
 }
 
 /// # Errors
@@ -496,37 +549,7 @@ pub fn run(call: &Invocation, proof: &CheckoutProof, root: &Path) -> Result<Path
     let host = host::current(&host_root, &call.environ)?;
     write(&root.join("host.json"), &canonical::encode(&host)?)?;
     let (source_manifest, source_sha256) = sources(call, proof, root)?;
-    let mut workloads = Vec::new();
-    for name in NAMES {
-        let preparation = root.join("inputs").join(name);
-        let selected = controls.only.is_empty() || controls.only == name;
-        let install = if selected {
-            installation(call, proof, &preparation, name)?
-        } else {
-            preparation.join("installation.json")
-        };
-        let source = if name == "runtime" {
-            "./internal/backends/wasm/testdata/runtime_probes".into()
-        } else if name == "two-cluster" && selected {
-            cluster_driver::stage_broker(proof.repo())?
-        } else if name == "two-cluster" {
-            "./.tmp/wasm-backend-temporal/unselected".into()
-        } else {
-            "./tests".into()
-        };
-        let scenario = if name == "two-cluster" && selected {
-            let path = preparation.join("scenario.json");
-            write(&path, &cluster_driver::scenario_bytes()?)?;
-            Some(path)
-        } else {
-            None
-        };
-        let workload = json!({"name":name,"installation":install,"arguments":arguments(proof.repo(),&preparation,name,&source),"scenario":scenario});
-        if selected {
-            crate::stress::admit_workload(workload.clone())?;
-        }
-        workloads.push(workload);
-    }
+    let workloads = prepare_workloads(call, proof, root, &controls)?;
     let spec = root.join("stress-spec.json");
     write(
         &spec,
@@ -536,14 +559,6 @@ pub fn run(call: &Invocation, proof: &CheckoutProof, root: &Path) -> Result<Path
         "cpu_workers":controls.cpu_workers,"only":controls.only,"seed":controls.seed,"axis":controls.axis,"workloads":workloads}),
         )?,
     )?;
-    let mut environment: BTreeMap<String, String> = call
-        .environ
-        .iter()
-        .filter_map(|item| item.split_once('='))
-        .filter(|(key, _)| !key.starts_with("GOMAD_"))
-        .map(|(key, value)| (key.into(), value.into()))
-        .collect();
-    environment.insert("GOMAD_WASM_STRESS".into(), "1".into());
     let argv = vec![
         executable.path.to_string_lossy().into_owned(),
         "stress".into(),
@@ -554,7 +569,7 @@ pub fn run(call: &Invocation, proof: &CheckoutProof, root: &Path) -> Result<Path
         root,
         "stress-producer",
         proof.repo(),
-        &environment,
+        &producer_environment(call),
         &argv,
         controls.timeout(),
         64 << 20,
@@ -567,7 +582,7 @@ pub fn run(call: &Invocation, proof: &CheckoutProof, root: &Path) -> Result<Path
         root: root.into(),
         requested_root,
         executable: executable.path.clone(),
-        executable_sha256: executable.sha256.clone(),
+        executable_sha256: executable.sha256,
         identity: serde_json::from_value(super::identity()?).map_err(|error| error.to_string())?,
         controls,
         source_manifest,

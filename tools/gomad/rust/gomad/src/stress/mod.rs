@@ -674,8 +674,8 @@ pub(crate) fn compare_counterfactual(left: &Value, right: &Value) -> Result<Valu
 }
 
 /// Admit the exact original stress recipe without preparing or running its guest.
-pub(crate) fn admit_workload(value: Value) -> Result<ExploreOptions, String> {
-    let workload: Workload = crate::qualify::spec::strict(&canonical::encode(&value)?)?;
+pub(crate) fn admit_workload(value: &Value) -> Result<ExploreOptions, String> {
+    let workload: Workload = crate::qualify::spec::strict(&canonical::encode(value)?)?;
     options(&workload)
 }
 

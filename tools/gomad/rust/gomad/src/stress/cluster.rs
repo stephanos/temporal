@@ -564,7 +564,7 @@ pub(super) fn validate_retained(
         .map_err(|error| error.to_string())?;
         let model = &storage["descriptor"]["model"];
         if model["volumes"] != json!([{"ID":node,"Path":"/volume","CapacityBytes":256<<20}])
-            || model["limits"] != json!({"PendingOperations":100000,"Transitions":10000000})
+            || model["limits"] != json!({"PendingOperations":100_000,"Transitions":10_000_000})
             || model["sqlite_lock_databases"] != json!(["/volume/temporal.db"])
             || model["faults"]
                 .as_array()

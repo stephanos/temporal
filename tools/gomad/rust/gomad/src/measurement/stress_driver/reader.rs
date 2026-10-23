@@ -43,37 +43,14 @@ fn array<'a>(row: &'a Value, key: &str) -> Result<&'a Vec<Value>, String> {
         .as_array()
         .ok_or_else(|| format!("stress {key} must be an array"))
 }
-fn observations(
+fn child_request(
     receipt: &Receipt,
     run: &Value,
     name: &str,
     seed: u64,
     axis: &str,
     index: usize,
-    pids: &mut BTreeSet<u64>,
 ) -> Result<(), String> {
-    require(
-        run["fresh"] == true
-            && run["workload"] == name
-            && run["seed"] == seed
-            && run["axis"] == axis
-            && run["oracle_error"].is_null()
-            && run["perturbation_error"].is_null()
-            && run["event_order_error"].is_null(),
-        "forced/failed/foreign native stress observation",
-    )?;
-    let pid = run["process_id"]
-        .as_u64()
-        .filter(|value| *value > 0)
-        .ok_or("missing stress process identity")?;
-    require(pids.insert(pid), "stress process identity reused")?;
-    require(
-        run["identities"]["source"] == receipt.source_sha256
-            && run["identities"]["helper"] == receipt.identity.linked_implementation_sha256
-            && run["identities"]["host"] == receipt.identity.host_implementation_sha256
-            && run["identities"]["engine"] == receipt.identity.configuration,
-        "stress source/helper/host/role identity changed",
-    )?;
     let command = array(run, "executed_command")?;
     require(
         command.len() == 4 && command[1] == "stress" && command[2] == "--cell",
@@ -112,7 +89,7 @@ fn observations(
         .iter()
         .find(|item| item["name"] == name)
         .ok_or("stress child workload recipe absent")?;
-    let mut expected_options = crate::stress::admit_workload(workload.clone())?;
+    let mut expected_options = crate::stress::admit_workload(workload)?;
     expected_options.target_kind = "exec".into();
     expected_options.source = prepared_root
         .join("module.wasm")
@@ -133,6 +110,20 @@ fn observations(
                     .as_ref(),
         "stress child options/preparation changed",
     )?;
+    for stream in ["stdout.log", "stderr.log"] {
+        bytes(&child.join(stream), 64 << 20)?;
+    }
+    host_conditions(receipt, run, executable, &request, axis, index)
+}
+
+fn host_conditions(
+    receipt: &Receipt,
+    run: &Value,
+    executable: &Path,
+    request: &Value,
+    axis: &str,
+    index: usize,
+) -> Result<(), String> {
     let fanout = if axis == "concurrent" {
         receipt.controls.parallel
     } else {
@@ -164,9 +155,6 @@ fn observations(
                 == if layout { 1 + (index % 16) * 4096 } else { 0 },
         "stress actual layout perturbation changed",
     )?;
-    for stream in ["stdout.log", "stderr.log"] {
-        bytes(&child.join(stream), 64 << 20)?;
-    }
     let handoff = axis == "handoff";
     require(
         run["host_conditions"]["jitter"] == handoff
@@ -176,6 +164,41 @@ fn observations(
                     .is_some_and(|value| value > 0)),
         "stress handoff lacks actual jitter delays",
     )?;
+    Ok(())
+}
+
+fn observations(
+    receipt: &Receipt,
+    run: &Value,
+    name: &str,
+    seed: u64,
+    axis: &str,
+    index: usize,
+    pids: &mut BTreeSet<u64>,
+) -> Result<(), String> {
+    require(
+        run["fresh"] == true
+            && run["workload"] == name
+            && run["seed"] == seed
+            && run["axis"] == axis
+            && run["oracle_error"].is_null()
+            && run["perturbation_error"].is_null()
+            && run["event_order_error"].is_null(),
+        "forced/failed/foreign native stress observation",
+    )?;
+    let pid = run["process_id"]
+        .as_u64()
+        .filter(|value| *value > 0)
+        .ok_or("missing stress process identity")?;
+    require(pids.insert(pid), "stress process identity reused")?;
+    require(
+        run["identities"]["source"] == receipt.source_sha256
+            && run["identities"]["helper"] == receipt.identity.linked_implementation_sha256
+            && run["identities"]["host"] == receipt.identity.host_implementation_sha256
+            && run["identities"]["engine"] == receipt.identity.configuration,
+        "stress source/helper/host/role identity changed",
+    )?;
+    child_request(receipt, run, name, seed, axis, index)?;
     let path = Path::new(text(run, "artifact")?);
     contained(&receipt.root, path)?;
     let opened = Opened::open(path)?;
@@ -381,50 +404,8 @@ fn cluster_oracles(opened: &Opened) -> Result<(), String> {
     )
 }
 
-pub(super) fn check(
-    receipt: &Receipt,
-    process: &build::CommandObservation,
-) -> Result<bool, String> {
-    receipt.controls.validate()?;
-    require(
-        receipt.schema == RESULT_SCHEMA,
-        "unknown native stress result",
-    )?;
-    for path in [
-        &receipt.spec,
-        &receipt.report,
-        &receipt.source_manifest,
-        &receipt.producer,
-    ] {
-        contained(&receipt.root, path)?;
-    }
-    require(
-        digest(&receipt.spec)? == receipt.spec_sha256
-            && digest(&receipt.report)? == receipt.report_sha256
-            && digest(&receipt.source_manifest)? == receipt.source_sha256
-            && digest(&receipt.executable)? == receipt.executable_sha256,
-        "native stress receipt input changed",
-    )?;
-    crate::qualify::result::validate_source_manifest(
-        &bytes(&receipt.source_manifest, 16 << 20)?,
-        true,
-    )?;
-    let spec = value(&receipt.spec)?;
-    let report = value(&receipt.report)?;
-    require(
-        spec["root"] == receipt.root.join("matrix").to_string_lossy().as_ref()
-            && spec["requested_output_root"] == receipt.requested_root.to_string_lossy().as_ref()
-            && spec["source_sha256"] == receipt.source_sha256
-            && spec["source_manifest"] == receipt.source_manifest.to_string_lossy().as_ref()
-            && spec["repetitions"] == receipt.controls.repetitions
-            && spec["parallel"] == receipt.controls.parallel
-            && spec["cpu_workers"] == receipt.controls.cpu_workers
-            && spec["only"] == receipt.controls.only
-            && spec["seed"] == receipt.controls.seed
-            && spec["axis"] == receipt.controls.axis,
-        "stress spec differs from original catalogue controls",
-    )?;
-    let workloads = array(&spec, "workloads")?;
+fn workload_recipes(receipt: &Receipt, spec: &Value) -> Result<(), String> {
+    let workloads = array(spec, "workloads")?;
     require(workloads.len() == 4, "stress workload catalogue incomplete")?;
     let mut names = BTreeSet::new();
     for workload in workloads {
@@ -436,7 +417,7 @@ pub(super) fn check(
         if !receipt.controls.only.is_empty() && receipt.controls.only != name {
             continue;
         }
-        let options = crate::stress::admit_workload(workload.clone())?;
+        let options = crate::stress::admit_workload(workload)?;
         let installation_path = Path::new(text(workload, "installation")?);
         contained(&receipt.root, installation_path)?;
         let installed = crate::install::manifest::resolve(Some(installation_path))?.manifest;
@@ -484,6 +465,130 @@ pub(super) fn check(
             )?;
         }
     }
+    Ok(())
+}
+
+fn cell_runs(
+    receipt: &Receipt,
+    cell: &Value,
+    name: &str,
+    seed: u64,
+    axis: &str,
+    references: &BTreeMap<(String, u64), &Value>,
+    pids: &mut BTreeSet<u64>,
+) -> Result<bool, String> {
+    let runs = array(cell, "runs")?;
+    let comparisons = array(cell, "comparisons")?;
+    let count = receipt.controls.repetitions
+        * if axis == "concurrent" {
+            receipt.controls.parallel
+        } else {
+            1
+        };
+    require(
+        cell["requested"] == count,
+        "stress repetition/cohort count changed",
+    )?;
+    let excluded = !receipt.controls.selected(name, seed)
+        || !receipt.controls.axis.is_empty() && receipt.controls.axis != axis;
+    if excluded {
+        require(
+            cell["status"] == "skipped"
+                && cell["completed"] == 0
+                && runs.is_empty()
+                && comparisons.is_empty()
+                && (cell["reason"] == "excluded by --stress-only"
+                    || cell["reason"] == "excluded by --stress-axis"),
+            "excluded stress cell claims execution",
+        )?;
+        return Ok(false);
+    }
+    if axis == "handoff" && name != "two-cluster" {
+        require(
+            cell["status"] == "skipped"
+                && cell["completed"] == 0
+                && runs.is_empty()
+                && comparisons.is_empty()
+                && cell["reasons"]
+                    == json!([
+                        "inapplicable: no cluster baton or remote peer replies in a standalone guest"
+                    ]),
+            "standalone handoff applicability changed",
+        )?;
+        return Ok(true);
+    }
+    let reference = references
+        .get(&(name.into(), seed))
+        .ok_or("selected stress reference absent")?;
+    require(
+        cell["rounds"] == receipt.controls.repetitions
+            && cell["fanout"]
+                == if axis == "concurrent" {
+                    receipt.controls.parallel
+                } else {
+                    1
+                }
+            && cell["completed"] == count
+            && cell["status"] == "pass"
+            && runs.len() == count
+            && comparisons.len() == count
+            && cell["reasons"] == json!([]),
+        "short/divergent stress cell",
+    )?;
+    for (index, run) in runs.iter().enumerate() {
+        observations(receipt, run, name, seed, axis, index, pids)?;
+        let recomputed = crate::stress::compare_retained(reference, run)?;
+        require(
+            recomputed == comparisons[index]
+                && recomputed
+                    == json!({"schema":"gomad.wasm-first-divergence/v1","status":"identical"}),
+            "native stress raw comparison differs",
+        )?;
+    }
+    Ok(true)
+}
+
+fn matrix(receipt: &Receipt, report: &Value) -> Result<bool, String> {
+    let mut references = BTreeMap::new();
+    let mut pids = BTreeSet::new();
+    for row in array(report, "references")? {
+        let name = text(row, "workload")?;
+        let seed = row["seed"].as_u64().ok_or("stress seed absent")?;
+        require(
+            receipt.controls.selected(name, seed)
+                && cases().contains(&(name, seed))
+                && references.insert((name.to_owned(), seed), row).is_none(),
+            "extra/duplicate stress reference",
+        )?;
+        observations(receipt, row, name, seed, "reference", 0, &mut pids)?;
+    }
+    let cells = array(report, "cells")?;
+    require(
+        cells.len() == 164,
+        "native stress lost original 41-by-four matrix",
+    )?;
+    let mut coordinates = BTreeSet::new();
+    let mut complete = true;
+    for cell in cells {
+        let name = text(cell, "workload")?;
+        let seed = cell["seed"].as_u64().ok_or("cell seed absent")?;
+        let axis = text(cell, "axis")?;
+        require(
+            cases().contains(&(name, seed))
+                && ["cpu", "concurrent", "layout", "handoff"].contains(&axis)
+                && coordinates.insert((name, seed, axis)),
+            "duplicate/foreign stress cell",
+        )?;
+        complete &= cell_runs(receipt, cell, name, seed, axis, &references, &mut pids)?;
+    }
+    Ok(complete)
+}
+
+fn producer_observation(
+    receipt: &Receipt,
+    process: &build::CommandObservation,
+    report: &Value,
+) -> Result<(), String> {
     let expected = vec![
         receipt.executable.to_string_lossy().into_owned(),
         "stress".into(),
@@ -520,109 +625,58 @@ pub(super) fn check(
             && report["source_sha256"] == receipt.source_sha256
             && report["binary_sha256"] == receipt.executable_sha256
             && report["command"] == json!(expected)
-            && array(&report, "rejected")?.is_empty(),
+            && array(report, "rejected")?.is_empty(),
         "stress report/producer/candidate mismatch",
     )?;
-    let mut references = BTreeMap::new();
-    let mut pids = BTreeSet::new();
-    for row in array(&report, "references")? {
-        let name = text(row, "workload")?;
-        let seed = row["seed"].as_u64().ok_or("stress seed absent")?;
-        require(
-            receipt.controls.selected(name, seed)
-                && cases().contains(&(name, seed))
-                && references.insert((name.to_owned(), seed), row).is_none(),
-            "extra/duplicate stress reference",
-        )?;
-        observations(receipt, row, name, seed, "reference", 0, &mut pids)?;
-    }
-    let cells = array(&report, "cells")?;
+    Ok(())
+}
+
+pub(super) fn check(
+    receipt: &Receipt,
+    process: &build::CommandObservation,
+) -> Result<bool, String> {
+    receipt.controls.validate()?;
     require(
-        cells.len() == 164,
-        "native stress lost original 41-by-four matrix",
+        receipt.schema == RESULT_SCHEMA,
+        "unknown native stress result",
     )?;
-    let mut seen = BTreeSet::new();
-    let mut complete = true;
-    for cell in cells {
-        let name = text(cell, "workload")?;
-        let seed = cell["seed"].as_u64().ok_or("cell seed absent")?;
-        let axis = text(cell, "axis")?;
-        require(
-            cases().contains(&(name, seed))
-                && ["cpu", "concurrent", "layout", "handoff"].contains(&axis)
-                && seen.insert((name, seed, axis)),
-            "duplicate/foreign stress cell",
-        )?;
-        let runs = array(cell, "runs")?;
-        let comparisons = array(cell, "comparisons")?;
-        let count = receipt.controls.repetitions
-            * if axis == "concurrent" {
-                receipt.controls.parallel
-            } else {
-                1
-            };
-        require(
-            cell["requested"] == count,
-            "stress repetition/cohort count changed",
-        )?;
-        let excluded = !receipt.controls.selected(name, seed)
-            || !receipt.controls.axis.is_empty() && receipt.controls.axis != axis;
-        if excluded {
-            complete = false;
-            require(
-                cell["status"] == "skipped"
-                    && cell["completed"] == 0
-                    && runs.is_empty()
-                    && comparisons.is_empty()
-                    && (cell["reason"] == "excluded by --stress-only"
-                        || cell["reason"] == "excluded by --stress-axis"),
-                "excluded stress cell claims execution",
-            )?;
-            continue;
-        }
-        if axis == "handoff" && name != "two-cluster" {
-            require(
-                cell["status"] == "skipped"
-                    && cell["completed"] == 0
-                    && runs.is_empty()
-                    && comparisons.is_empty()
-                    && cell["reasons"]
-                        == json!([
-                            "inapplicable: no cluster baton or remote peer replies in a standalone guest"
-                        ]),
-                "standalone handoff applicability changed",
-            )?;
-            continue;
-        }
-        let reference = references
-            .get(&(name.into(), seed))
-            .ok_or("selected stress reference absent")?;
-        require(
-            cell["rounds"] == receipt.controls.repetitions
-                && cell["fanout"]
-                    == if axis == "concurrent" {
-                        receipt.controls.parallel
-                    } else {
-                        1
-                    }
-                && cell["completed"] == count
-                && cell["status"] == "pass"
-                && runs.len() == count
-                && comparisons.len() == count
-                && cell["reasons"] == json!([]),
-            "short/divergent stress cell",
-        )?;
-        for (index, run) in runs.iter().enumerate() {
-            observations(receipt, run, name, seed, axis, index, &mut pids)?;
-            let recomputed = crate::stress::compare_retained(reference, run)?;
-            require(
-                recomputed == comparisons[index]
-                    && recomputed
-                        == json!({"schema":"gomad.wasm-first-divergence/v1","status":"identical"}),
-                "native stress raw comparison differs",
-            )?;
-        }
+    for path in [
+        &receipt.spec,
+        &receipt.report,
+        &receipt.source_manifest,
+        &receipt.producer,
+    ] {
+        contained(&receipt.root, path)?;
     }
+    require(
+        digest(&receipt.spec)? == receipt.spec_sha256
+            && digest(&receipt.report)? == receipt.report_sha256
+            && digest(&receipt.source_manifest)? == receipt.source_sha256
+            && digest(&receipt.executable)? == receipt.executable_sha256,
+        "native stress receipt input changed",
+    )?;
+    crate::qualify::result::validate_source_manifest(
+        &bytes(&receipt.source_manifest, 16 << 20)?,
+        true,
+    )?;
+    let spec = value(&receipt.spec)?;
+    let report = value(&receipt.report)?;
+    require(
+        spec["root"] == receipt.root.join("matrix").to_string_lossy().as_ref()
+            && spec["requested_output_root"] == receipt.requested_root.to_string_lossy().as_ref()
+            && spec["source_sha256"] == receipt.source_sha256
+            && spec["source_manifest"] == receipt.source_manifest.to_string_lossy().as_ref()
+            && spec["repetitions"] == receipt.controls.repetitions
+            && spec["parallel"] == receipt.controls.parallel
+            && spec["cpu_workers"] == receipt.controls.cpu_workers
+            && spec["only"] == receipt.controls.only
+            && spec["seed"] == receipt.controls.seed
+            && spec["axis"] == receipt.controls.axis,
+        "stress spec differs from original catalogue controls",
+    )?;
+    workload_recipes(receipt, &spec)?;
+    producer_observation(receipt, process, &report)?;
+    let complete = matrix(receipt, &report)?;
     require(
         report["passed"] == complete
             && process.exit_code == Some(i32::from(!complete))

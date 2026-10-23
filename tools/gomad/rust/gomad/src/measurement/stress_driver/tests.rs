@@ -50,9 +50,9 @@ fn catalogue_defaults_and_original_controls_are_admitted_before_dispatch() {
     call.inputs
         .insert("GOMAD_WASM_STRESS_AXIS".into(), "reference".into());
     let controls = Controls::parse(&call, 8).unwrap();
-    assert!(controls.selected("runtime", 1000003));
+    assert!(controls.selected("runtime", 1_000_003));
     assert!(!controls.selected("runtime", 0));
-    assert!(!controls.selected("workflow", 1000003));
+    assert!(!controls.selected("workflow", 1_000_003));
 }
 
 #[test]
@@ -85,7 +85,7 @@ fn stress_runtime_recipe_is_the_original_probe_and_bounds_not_runtime_cost() {
     assert_eq!(options.target_kind, "go-run");
     assert_eq!(options.target_args, Vec::<String>::new());
     assert_eq!(options.execution_timeout, Duration::from_secs(60));
-    assert_eq!(options.overall_timeout, Duration::from_secs(3660));
+    assert_eq!(options.overall_timeout, Duration::from_mins(61));
     assert_eq!(options.choice_bytes, 1 << 20);
     assert_eq!(options.output_limit, 1 << 20);
     assert!(options.choices && options.diagnostics);
@@ -145,8 +145,8 @@ fn all_temporal_recipes_retain_original_selection_tags_and_fifteen_minute_bounds
                 "test_dep"
             ]
         );
-        assert_eq!(options.execution_timeout, Duration::from_secs(900));
-        assert_eq!(options.overall_timeout, Duration::from_secs(4500));
+        assert_eq!(options.execution_timeout, Duration::from_mins(15));
+        assert_eq!(options.overall_timeout, Duration::from_mins(75));
         assert_eq!(options.choice_bytes, 32 << 20);
         assert_eq!(options.output_limit, output);
     }
@@ -298,7 +298,7 @@ fn actual_retained_bounds_and_cluster_topology_are_checked_apart_from_installati
                 } else {
                     4 << 30
                 },
-                wall_millis: if name == "runtime" { 60000 } else { 900000 },
+                wall_millis: if name == "runtime" { 60_000 } else { 900_000 },
                 output_bytes: if name == "runtime" { 1 << 20 } else { 8 << 20 },
                 evidence_bytes: 128 << 20,
             },
@@ -387,7 +387,7 @@ fn retained_workflow_and_activity_cannot_broaden_the_original_test_selection() {
         model["diagnostics"] = json!(true);
         model.as_object_mut().unwrap().remove("seed");
         let original = json!({"engine":linked::Conditions::compiled().configuration(),"profile":PROFILE,
-            "limits":{"fuel":1_u64<<50,"memory_bytes":4_u64<<30,"wall_millis":900000,"output_bytes":256<<20,"evidence_bytes":1<<30},
+            "limits":{"fuel":1_u64<<50,"memory_bytes":4_u64<<30,"wall_millis":900_000,"output_bytes":256<<20,"evidence_bytes":1<<30},
             "wall_nanos":900_000_000_000_u64,"arguments":["gomad-target","-test.v","-test.count=1","-test.timeout=72h",format!("-test.run={selection}"),"-persistenceType=sql","-persistenceDriver=sqlite"],
             "environment":configured.environment,"runtime_sha256":"a".repeat(64),"model":model,"namespace":configured.namespace,"storage":configured.storage,"network":configured.network});
         crate::stress::admit_retained_configuration(name, original.clone()).unwrap();
