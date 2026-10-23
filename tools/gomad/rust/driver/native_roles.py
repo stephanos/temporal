@@ -87,6 +87,9 @@ def source_inventory(config, kind):
     names = {str(path.relative_to(root)) for path in (root / 'src').rglob('*.rs')}
     require(names and all(not path.is_symlink() for path in (root / 'src').rglob('*')), 'native source closure is empty or contains symlinks')
     names.update(COMMON)
+    if kind == 'helper':
+        import core_identity
+        return root, core_identity.source_inputs(config)
     if kind == 'host':
         names.update(HOST_EXTRA)
         names.update('../../internal/model/' + name for name in CHOICE)

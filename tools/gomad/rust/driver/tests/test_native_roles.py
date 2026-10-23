@@ -8,6 +8,7 @@ import unittest
 
 sys.path.insert(0, str(Path(__file__).resolve().parents[1]))
 import native_roles as native
+import core_identity
 from driver import Refusal, sha
 
 
@@ -17,6 +18,9 @@ class NativeRoles(unittest.TestCase):
         for kind, package in (('host', 'gomad'), ('helper', 'wasmhost')):
             base = repo / 'tools/gomad/rust' / package
             names = set(native.COMMON) | {'src/bin/measure.rs'}
+            if kind == 'helper':
+                names.update(core_identity.EXTRA)
+                names.update(core_identity.REQUIRED)
             if kind == 'host':
                 names.update(native.HOST_EXTRA)
                 names.update('../../internal/model/' + name for name in native.CHOICE)
@@ -64,7 +68,7 @@ class NativeRoles(unittest.TestCase):
         for index, (name, argv) in enumerate(commands.items()):
             actual_env = environment if name in ('cargo-build','artifact-identity') else {key:value for key,value in environment.items() if not key.startswith('RUSTC')}
             value = dict(schema='gomad.native-process-observation/v1', command=argv, directory=str(logs) if name=='artifact-identity' else crate,
-                         environment=actual_env, pid=100+index, reaped_monotonic_nanos=1000+index, exit_code=0, signal=None,
+                         environment=actual_env, pid=100+index, parent_pid=99, clock='CLOCK_MONOTONIC', started_monotonic_nanos=900, reaped_monotonic_nanos=1000+index, exit_code=0, signal=None,
                          duration_nanos=1, termination='exit', cleanup_errors=[], error=None, resource_usage=None)
             for stream in ('stdout','stderr'):
                 path = logs/(name+'.'+stream)
