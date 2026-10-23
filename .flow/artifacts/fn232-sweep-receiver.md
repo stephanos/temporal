@@ -93,7 +93,7 @@ Only the owned sweep source/tests, standalone bin and minimal Cargo/lib wiring, 
 
 Keep `/home/agent/wt/fn232-sweep-receiver` and branch `fn232-sweep-receiver` for the conductor's integration/review. Its creator owns eventual `git worktree remove` cleanup after root releases it. Keep `/home/agent/evidence/fn232-sweep-receiver` while fn-232.13 needs these source manifests/raw logs; it contains the sole raw verification history and no new historical qualification claim. The Cargo target is conductor-owned; no existing cache, binary or evidence was deleted.
 
-## Independent review repair — pending integrated verification
+## Independent review repair — focused verification complete; re-review pending
 
 The source and 71-test results above belong to initial checkpoint `2a261424cd2565a5f2a9653fef9f2963e42ffad7`. The conductor's independent review returned NEEDS_WORK for two medium findings; those results do not certify the following repair.
 
@@ -103,3 +103,9 @@ The source and 71-test results above belong to initial checkpoint `2a261424cd256
 The conductor approved `gomad.rust-wasm-sweep/v2` for the additional required metadata. Provisional native v1 and frozen Go formats are refused before append; no migration or historical journal change occurs. New explicit v1 refusal assertions preserve existing bytes.
 
 Review-stage standalone source-parser evidence: pinned std-only `rustc --test` compiled with exit 0; 12 tests passed with exit 0. New logs and exact source hash are retained at `/home/agent/evidence/fn232-sweep-receiver/review-inventory-{compile,tests}.log` and `review-inventory-receipt.json`; prior evidence remains untouched. Integrated Cargo verification and re-review are pending an exclusive target lease. No Go, guest or qualification run was performed.
+
+Integrated repair verification used the conductor's explicitly reassigned exclusive `fn232-mandatory-workloads` target with pinned `+1.99.1`, DEBUG profile, default features, `--locked --offline -j1`. The first focused run passed all 79 tests. A deliberate negative control temporarily restored progress refusal and omitted independent declaration coverage: exit 101, 73 passed and 6 failed, including the real extra retry and consistently mutated bulk-wrapper acceptance. Both source files were restored before final checks. Strict Clippy first reported one test assertion style violation; the assertion was corrected without changing its expected behavior. Final strict `--lib --bins --tests -- -D warnings` exited 0; final focused sweep run exited 0 with **79 passed, 0 failed**; affected-source rustfmt and `git diff --check` exited 0.
+
+New review logs are `review-sweep-first.log`, `review-regressions-RED.log`, `review-clippy.log`, `review-clippy-final.log` and `review-sweep-GREEN.log`. `review-source-manifest.json` binds the 15 current source files (digest `3006d1df8af5f325ca5e997a0892f662653aee65597c93fdc56ddf4bb5fbc8c9`); `review-verification-receipt.json` records numeric exits, profile, exact log hashes and disk custody. Initial logs/manifests remain unchanged. Target size was 7,556,164,635 bytes before and 7,643,567,704 bytes after; available space was 5,510,799,360 and 3,532,308,480 bytes respectively. No new compile began below the 2 GiB floor. All handles are terminal and the lease was explicitly released to the conductor.
+
+The additional eight tests preserve the prior 71 tests and all 45 original root/variant mappings above. Native v2 re-review remains the conductor's next gate. No Go execution, guest execution, release build, full runtime/golden run or qualification was performed.

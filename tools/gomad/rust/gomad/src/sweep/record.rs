@@ -313,7 +313,7 @@ mod tests {
             .unwrap()
             .clear();
         rekey(&mut changed);
-        assert!(!verify(&changed).is_empty());
+        assert_ne!(verify(&changed), Vec::<String>::new());
         drop(journal);
         fs::remove_file(path).unwrap();
     }
