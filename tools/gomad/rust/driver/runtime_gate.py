@@ -3,10 +3,60 @@ import hashlib
 import json
 from pathlib import Path
 import time
+import struct
 
 
 def digest(raw):
     return hashlib.sha256(raw).hexdigest()
+
+
+def choice_summary(raw, terminal, require):
+    require(raw and len(raw) % 96 == 0 and len(raw) <= 1 << 20, 'malformed runtime choice record framing')
+    counts = [0, 0, 0]
+    branching, pending, parsed = 0, [], []
+    for ordinal in range(len(raw)//96):
+        record = raw[ordinal*96:(ordinal+1)*96]
+        position, kind, flags, ready, alternatives, selected, data, site = struct.unpack_from('>QBBHIIIQ', record)
+        observed, missing = bool(flags & 2), bool(flags & 4)
+        require(position == ordinal and 1 <= kind <= 4 and not flags & ~7 and alternatives > selected
+                and (not missing or site == 0) and observed == (kind == 3)
+                and flags & 3 == (0 if kind == 4 else 2 if observed else 1), 'malformed runtime choice record')
+        origin = int.from_bytes(record[32:40], 'big') if observed else 0
+        if kind == 4:
+            require(2 <= alternatives <= 256 and ready == data == 0 and any(record[32:64])
+                    and not any(record[64:]) and selected == len(pending), 'malformed runtime creation metadata')
+            pending.append((alternatives, record[32:64]))
+        elif observed:
+            require(not any(record[40:]) and origin <= ordinal and ready & 1
+                    and ready >> 6 <= alternatives - bool(ready & 2), 'malformed runtime select observation')
+        else:
+            require(ready == 0 and any(record[32:64]) and any(record[64:]), 'malformed runtime decision')
+        if kind != 4 and pending:
+            require(kind == 1 and len(pending) == alternatives and all(count == alternatives for count, _ in pending)
+                    and all(left[1] < right[1] for left, right in zip(pending, pending[1:])),
+                    'malformed runtime creation group')
+            enabled = b'gomad-choice-alternative-set/v1\0' + alternatives.to_bytes(8, 'big') + b''.join(value for _, value in pending)
+            require(hashlib.sha256(enabled).digest() == record[64:], 'runtime creation enabled-set digest mismatch')
+            pending.clear()
+        if kind <= 3:
+            counts[kind-1] += 1
+        if kind in (1, 2) and alternatives >= 2:
+            branching += 1
+        parsed.append((kind, site, missing, alternatives, data, origin, ready))
+    require(not pending, 'unterminated runtime creation metadata')
+    origins = set()
+    for ordinal, (kind, site, missing, alternatives, data, origin, ready) in enumerate(parsed):
+        if kind == 3 and data >= 2:
+            require(data-1 <= ordinal-origin, 'runtime select origin exceeds trace')
+            for step in range(data-1):
+                poll = origin+step
+                require(parsed[poll][:4] == (2, site, missing, step+2) and poll not in origins,
+                        'runtime select poll/result binding mismatch')
+                origins.add(poll)
+    require(len(terminal) == 16 and int.from_bytes(terminal[:4], 'big') == 1
+            and int.from_bytes(terminal[4:8], 'big') > 0, 'malformed runtime finish terminal')
+    return dict(records=len(parsed), branching_records=branching, runnable=counts[0], select_poll=counts[1],
+        select_result=counts[2], terminal_state='complete', peak_goroutines=int.from_bytes(terminal[4:8], 'big'))
 
 
 def exact_configuration(configuration, require):
@@ -51,10 +101,12 @@ def harness(config, root, entry, api, name='harness-identity'):
     return executable, identity
 
 
-def observation(config, root, name, artifact, index, linked, api):
+def observation(config, root, name, artifact, index, linked, api, timeout=None):
     require, read, payload = api['require'], api['read'], api['payload']
     inspected = json.loads(api['command'](config, root, name,
-        api['public'](config) + ['inspect', '--json', '--choices', str(artifact)]))
+        api['public'](config) + ['inspect', '--json', '--choices', str(artifact)], timeout=timeout))
+    if 'runtime_artifact' in api:
+        api['runtime_artifact'](Path(artifact), inspected, index)
     record = inspected['artifact']['record']
     require(record['seed'] == index*1000003, 'runtime artifact seed changed')
     require(record['identity']['implementation'] == digest(json.dumps(config['identity'], sort_keys=True,
@@ -78,11 +130,11 @@ def observation(config, root, name, artifact, index, linked, api):
     stdout = payload(artifact, inspected, 'output/stdout')
     diagnostic = payload(artifact, inspected, 'evidence/diagnostic')
     terminal = payload(artifact, inspected, 'evidence/runtime-terminal')
-    witness = api['runtime_witness'](record, inspected, stdout, diagnostic, terminal)
     choice = inspected['artifact']['choices']
-    summary = {key: choice[key] for key in ('records', 'branching_records', 'runnable', 'select_poll',
-                                          'select_result', 'terminal_state')}
-    summary['peak_goroutines'] = int.from_bytes(terminal[4:8], 'big')
+    summary = choice_summary(payload(artifact, inspected, 'evidence/choice'), terminal, require)
+    require(all(choice[key] == value for key, value in summary.items() if key != 'peak_goroutines'),
+            'runtime retained inspection choice summary changed')
+    witness = api['runtime_witness'](record, inspected, stdout, diagnostic, terminal)
     witness['summary'] = summary
     baseline = dict(outcome=record['outcome'], streams=record['streams'], summary=summary,
         terminal_sha256=digest(terminal), diagnostic_sha256=digest(diagnostic))
@@ -142,11 +194,13 @@ def runtime(config, root, label, entry, api):
     for number, artifact in enumerate(paths):
         require(Path(artifact).parent == root / 'recordings' / f'instance-{number:02}',
                 'runtime artifact borrowed from another instance')
-        record, observed, witness, stdout = observation(config, root, f'inspect-{number:02}', artifact, index, linked, api)
+        record, observed, witness, stdout = observation(config, root, f'inspect-{number:02}', artifact, index, linked, api,
+                                                       timeout=remaining())
         if baseline is None:
             baseline, first_record = observed, record
         require(observed == baseline, 'runtime fresh instance diverged')
     replay_observation(root, paths[0], first_record, linked, api)
+    remaining()
     api['write'](root / 'runtime.json', dict(index=index, seed=index*1000003, instances=25, replays=1,
         source=config['source_sha256'], identity=config['identity'], artifacts=paths, linked=linked,
         harness_sha256=api['sha'](executable), witness=witness, baseline=baseline, stdout=stdout.decode()))
