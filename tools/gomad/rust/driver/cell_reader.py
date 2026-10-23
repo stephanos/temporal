@@ -121,7 +121,8 @@ def replay_scenario(result, scenario):
                 and [item['handle'] for item in actual['incarnations']] == expected_handles,
                 'actual durable replay changed original lifecycle/owners')
         expected_limits = dict(base['limits'])
-        expected_limits['evidence_bytes'] = min(base['limits']['evidence_bytes'], scenario['spec']['limits']['scenario_evidence_bytes'])
+        incarnations = sum(1 for step in scenario['actions'] if step['action'] in ('start', 'restart'))
+        expected_limits['evidence_bytes'] = base['limits']['evidence_bytes'] * max(incarnations, 1)
         require(actual['engine'] == base['engine'] and actual['profile'] == base['profile']
                 and actual['limits'] == expected_limits and actual.get('wall_nanos') == base.get('wall_nanos')
                 and not any(key in actual for key in ('original_limits', 'oracle_plan', 'simulation_original', 'world_encoding', 'world_profile')),

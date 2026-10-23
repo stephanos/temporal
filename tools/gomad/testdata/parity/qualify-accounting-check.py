@@ -148,7 +148,11 @@ def oracle(case):
             single = max([window[0]['store_peak_rss_bytes'] for window in groups if window[0].get('incarnation') is None] or [0])
             clusters = [window[0]['store_peak_rss_bytes'] for window in groups if window[0].get('incarnation') is not None]
             statuses['operator lifetime peak RSS'] = 'within' if operator <= 2 * GIB else 'exceeded'
-            statuses['individual warm helper peak RSS'] = 'within' if single <= 4 * GIB else 'unattributed'
+            # A window that loaded a cached compiled module is a warm window.
+            warm = [window[0]['store_peak_rss_bytes'] for window in groups
+                    if window[0].get('incarnation') is None and window[0].get('cache_hit') is True]
+            statuses['individual warm helper peak RSS'] = (('within' if max(warm) <= 4 * GIB else 'exceeded') if warm
+                                                          else 'within' if single <= 4 * GIB else 'unattributed')
             statuses['individual cold helper peak RSS'] = 'within' if single <= 6 * GIB else 'exceeded'
             if clusters:
                 statuses['conservative resident helper peak upper bound'] = 'within' if max(clusters) <= 8 * GIB else 'exceeded'

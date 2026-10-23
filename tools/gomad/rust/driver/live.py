@@ -577,10 +577,26 @@ def read_proof(config, family):
     return dict(proof, actual_cases=sorted(actual or ()))
 
 
+def reach_reason(value):
+    return isinstance(value, str) and 0 < len(value) <= 300 and '\n' not in value and value == value.strip()
+
+
 def reach_coverage(original, entries, actual):
     require(original and set(entries) == set(original), 'missing/unexpected original test-wasm callable/subvariant mapping')
     commands = {}
     for name, entry in entries.items():
+        kinds = {'evidence', 'retired', 'collapsed_into'} & set(entry)
+        require(len(kinds) == 1 and set(entry) <= kinds | {'reason', 'assertion_applicability', 'basis'}, 'test-wasm entry needs exactly one disposition: ' + name)
+        if 'retired' in entry:
+            # Ruling 1: a Go-host-only implementation test retires with its deleted code.
+            require(reach_reason(entry['retired']) and '/original-make/' not in name,
+                    'retired test-wasm entry needs a one-line reason: ' + name)
+            continue
+        if 'collapsed_into' in entry:
+            target = entries.get(entry['collapsed_into'])
+            require(isinstance(target, dict) and 'evidence' in target and reach_reason(entry.get('reason')),
+                    'collapsed test-wasm entry must name an evidenced entry and its reason: ' + name)
+            continue
         evidence = entry['evidence']
         require(evidence and len(evidence) == len(set(evidence)) and set(evidence) <= actual,
                 'unexecuted/duplicate test-wasm receiving obligation: ' + name)
@@ -609,6 +625,11 @@ def original_callables(config, mapping, actual=()):
     require(set(mapping['subtests']) == set(sites), 'unknown/omitted original helper or root subtest site')
     for site, detail in sites.items():
         expansion = mapping['subtests'][site]
+        if isinstance(expansion, dict) and set(expansion) == {'root'}:
+            # Ruling 1: a dynamic subtest domain is covered by its root's mapping.
+            require(not detail['expansions'] and reach_reason(expansion['root']),
+                    'only a dynamic subtest site resolves at its root: ' + site)
+            continue
         if isinstance(expansion, dict):
             require(expansion == dict(derive='runtime-inspection-boundaries')
                     and site.split('@', 1)[0].endswith('#TestCooperativeInspectionEveryDecision')
@@ -722,7 +743,26 @@ def test_wasm_reach(config, actual):
     import counterfactual_lineage
     counterfactual_lineage.mapping(mapping['entries'], proof['assertion_applicability'])
     reports.update(proof['actual_cases'])
+    reports.update(stage_subgate_evidence(config))
     reach_coverage(original, mapping['entries'], reports)
+
+
+def stage_subgate_evidence(config):
+    """Original roots executed as subgates of a passing same-cycle stage."""
+    evidence = set()
+    for label in config['stages']:
+        path = Path(config['root']) / 'stages' / label / 'receipt.json'
+        if not path.is_file():
+            continue
+        receipt = read(path)
+        if (receipt.get('stage') != label or receipt.get('status') != 'PASS' or receipt.get('exit') != 0
+                or receipt.get('source') != config['source_sha256'] or receipt.get('identity') != config['identity']
+                or receipt.get('config_sha256') != config['_config_sha256']):
+            continue
+        for row in receipt['subgates']:
+            if row.get('status') == 'PASS' and row.get('executed') is True:
+                evidence.add('stage/' + label + '/' + row['id'])
+    return evidence
 
 
 def read_corpus(config, root):

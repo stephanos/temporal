@@ -756,7 +756,8 @@ class Retained:
             cluster = manifest['scenario_sha256'] is not None
             if cluster:
                 scenario = decoded(bytes(result['provenance']['scenario']))
-                configured_limits['evidence_bytes'] = min(configured_limits['evidence_bytes'],scenario['spec']['limits']['scenario_evidence_bytes'])
+                incarnations = sum(1 for step in scenario['actions'] if step['action'] in ('start','restart'))
+                configured_limits['evidence_bytes'] = configured_limits['evidence_bytes'] * max(incarnations,1)
             else:
                 require(record.get('arguments') == result['provenance']['configuration'].get('arguments')
                         and record.get('environment') == result['provenance']['configuration'].get('environment')

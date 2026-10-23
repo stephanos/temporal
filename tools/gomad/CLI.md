@@ -613,8 +613,9 @@ profile (`cooperative` is `gomad.wasi-cooperative/v1`, `controlled` is
 `gomad.wasi-stock-exploratory/v1`; any other is refused). A standalone record
 must also carry exactly the retained configuration's limits, arguments and
 environment, as replay preflight requires; a cluster record carries the
-retained limits except for an evidence bound of exactly the smaller of the
-configuration's and the retained scenario's `scenario_evidence_bytes`. Each
+retained limits except for an evidence bound of exactly the configuration's
+bound times the number of incarnations the retained scenario starts or
+restarts; the scenario's `scenario_evidence_bytes` bounds oracle evidence. Each
 execution's samples, and each matched replay's, must measure exactly the trace
 bytes its record's trace streams retain. A success outcome is a normal exit with status zero,
 and any other zero exit is a target failure with soft-assertion evidence, as
@@ -668,16 +669,17 @@ counters at the store's boundaries.
   | --- | --- | --- |
   | Operator phases | fresh operator lifetime peak, 2 GiB | exact |
   | Single-guest store window | cold-cache-miss helper peak, 6 GiB | exact |
-  | Single-guest store window | warm-cache-hit helper peak, 4 GiB | upper bound |
+  | Single-guest cache-hit store window | warm-cache-hit helper peak, 4 GiB | exact |
   | Cluster store window | resident helper peak, 8 GiB | exact |
 
-  A store window in the linked host always compiles, because each store gets a
-  fresh engine and there is no compile cache, so the cold ceiling governs it. The
-  warm ceiling bounded execution without compilation, and no linked window
-  executes without compiling. The window peak is therefore only an upper bound of
-  that phase: within when the window fits under 4 GiB, unattributed otherwise.
-  Splitting compilation from execution would need a helper-owned boundary. As in
-  the Go host, cluster windows are not subject to the single-guest limits. The
+  The cold ceiling governs every single-guest window. Each sample retains the
+  helper's `cache_hit`: a window that loaded its compiled module from the
+  installation's compile cache is a warm window, and the warm ceiling is checked
+  exactly against the largest warm window. Executions after the first and the
+  replays, which open the installation's compile cache as the `replay` verb does,
+  are warm. When no window reports a cache hit, the largest window peak is only
+  an upper bound of the warm phase: within under 4 GiB, unattributed otherwise.
+  As in the Go host, cluster windows are not subject to the single-guest limits. The
   receipt's terminal operator check uses the operator phases through
   publication.
 - **Attributed phases account for the lifetime peak.** Every window lies within

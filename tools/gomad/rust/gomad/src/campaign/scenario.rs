@@ -602,8 +602,19 @@ impl Scenario {
 /// # Errors
 /// Refuses malformed, unknown, unbounded and inconsistent scenario declarations.
 /// The scenario's evidence bound for one cluster execution.
-pub(crate) fn evidence_limit(normalized: &[u8]) -> Result<u64, String> {
-    Ok(parse(normalized)?.spec.limits.scenario_evidence_bytes)
+/// The retained evidence bound of one cluster execution: each started or
+/// restarted incarnation keeps its own configured evidence bound, as the Go
+/// broker bounded each incarnation separately. The scenario's own
+/// `scenario_evidence_bytes` bounds oracle and soft-assertion evidence only.
+pub(crate) fn evidence_limit(normalized: &[u8], configured: u64) -> Result<u64, String> {
+    let incarnations = parse(normalized)?
+        .actions
+        .iter()
+        .filter(|step| matches!(step.action, helper::Action::Start | helper::Action::Restart))
+        .count();
+    configured
+        .checked_mul(u64::try_from(incarnations.max(1)).map_err(|error| error.to_string())?)
+        .ok_or_else(|| "capacity: cluster evidence bound overflow".into())
 }
 
 pub(super) fn original_choice_bytes(raw: Option<&[u8]>, requested: u64) -> Result<u64, String> {
@@ -1423,6 +1434,11 @@ pub fn bind(
         .iter()
         .map(|node| node.id.clone())
         .collect();
+    let evidence_bytes = base
+        .limits
+        .evidence_bytes
+        .checked_mul(u64::try_from(incarnations.len().max(1)).map_err(|error| error.to_string())?)
+        .ok_or("capacity: cluster evidence bound overflow")?;
     let request = helper::Request {
         nodes: nodes.clone(),
         broker: broker.clone(),
@@ -1432,10 +1448,7 @@ pub fn bind(
         boundaries: boundaries.clone(),
         crash_groups: Vec::new(),
         wall_timeout: preflight::wall_timeout(&base.limits, base.wall_nanos)?,
-        evidence_bytes: base
-            .limits
-            .evidence_bytes
-            .min(limits.scenario_evidence_bytes),
+        evidence_bytes,
     };
     let mut execution_limits = base.limits.clone();
     execution_limits.evidence_bytes = request.evidence_bytes;
@@ -1625,6 +1638,11 @@ pub(crate) fn store_metrics(
     Ok(super::execution::Metrics {
         wall_nanos: super::execution::nanos(wall),
         store_peak_rss_bytes: None,
+        cache_hit: execution
+            .outcome
+            .metrics
+            .as_ref()
+            .map(|metrics| metrics.cache_hit),
         raw_backend: execution
             .outcome
             .metrics
@@ -1885,7 +1903,9 @@ pub(crate) fn publication(
                 artifact: None,
                 stored_bytes: 0,
                 semantic_probes: Vec::new(),
-                choice_features: features,
+                // Only simulation exploration consumes cluster choice features;
+                // seed scenarios run without coverage, as Go recorded none for them.
+                choice_features: if simulation { features } else { Vec::new() },
                 divergence: None,
                 scenario_steps: Some(executed_steps),
                 soft_assertions: None,

@@ -137,3 +137,23 @@ Development and provisioning only. No final qualification pass is claimed.
   - `6a901adddc` and `28fa92eecb`: harness changes and goldens.
 - **fn-233 evidence on fixed binary 12ae1f83…** All 81 shim cases pass in two generations, and the comparison writes the golden (`/home/agent/evidence/fn233-final-shim-v3`). All six Make stages pass in two byte-identical generations, and the three positive artifacts replay exactly (`/home/agent/evidence/fn233-final-make-v2`). For R5, a run with no explicit installation passes, and the derived configuration equals the `install` configuration (`/home/agent/evidence/fn233-final-r5-v1`).
 - **Open finding: identity depends on cache location.** Go test source inventories record `-compiled` files under the caller's GOCACHE path, so the runtime/configuration identity differs between GOCACHE locations. The second generation reused the first generation's cache path, with a fresh empty cache. The first cache is retained as `shim-cache-first.gen1`.
+
+### Worker A cycle-closure batch, 2026-10-23 (branch fn232-cycle-closure)
+
+Development evidence only; no frozen cycle.
+
+- **Ruling 4:** `8cdaa8db61` records cache-resident compiled sources under a content-addressed `/$GOCACHE/<shard>/<digest>-d` key, so a guest identity no longer depends on the caller's cache path. Regression: `campaign::prepare::inventory::tests`.
+- **Timing blockers found and fixed:**
+  - `e154f663d3`: generated durable-cell campaigns no longer set the reserved TZ.
+  - `63c8f3d5a3`: qualification replays use the installation compile cache; samples carry `cache_hit`, so the 4 GiB warm ceiling is exact on cache-hit windows. The accounting corpus gains two cases, and the golden was regenerated twice.
+  - `ce0a868119`: cluster evidence is bounded per incarnation, not by the 64 MiB oracle evidence bound.
+  - `ed04d3625d`: seed scenarios no longer journal cluster choice features. Go recorded them only for choice coverage.
+- **Timing (item e)**, on the branch release binary under host load 8–10. Evidence: `.build-cache/fn232-timing-v{1..4}`.
+  - Onebox success cell: 300 s, exit 0. It was 562 s and failed its budget before the fixes; the Go estimate was 247 s.
+  - Multi-instance success cell: 290 s, exit 0. It failed twice before the fixes; the Go estimate was 729 s.
+  - Not yet measured in Rust: temporal-inspection (Go estimate 1,296 s), ordinary (1,151 s) and storage (404 s). They need the composed primary-stage inputs.
+- **Reach map (items b and c):** `tools/gomad/testdata/parity/test-wasm-reach-map.json`. Of its 901 entries, 504 are mapped (stage subgate, live root, retained Go test, final obligation or Rust test with correlation of at least 0.35), 54 manual, 79 weak (correlation below 0.35, marked in `basis`), 131 collapsed named subtests and 104 retired with reasons. 29 are explicit port gaps, which refuse completion. The 253 dynamic sites resolve at their root. The 41 qualification-map roots with gaps are dispositioned in this map, and 9 of them remain port gaps. `qualification-map.json` stays source correlation only.
+- **Still open:**
+  - Item d: compose bindings for live_corpus families, final_profiles, final_retained, stress, public_verbs, private_observations, terminal_controls_reference, primary and fn222.
+  - Port the 29 gaps.
+  - Run the dry run after the corpus fix lands.

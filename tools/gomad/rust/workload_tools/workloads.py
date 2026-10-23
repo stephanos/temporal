@@ -176,7 +176,8 @@ def qualification_spec(repo, root, workload, canary=False, source=None, source_m
     campaign = dict(Target=target, ExecutionTimeout=(900 if temporal else 60)*10**9, OverallTimeout=(3600 if temporal else 180)*10**9,
                     TerminateGrace=100_000_000, OutputLimit=8 << 20 if temporal else 1 << 20, WorldTransitionLimit=32 << 20,
                     ChoiceTraceLimit=1<<30 if workload=="recovery" else 64 << 20 if temporal else 8 << 20, SuccessBytesLimit=2 << 30 if temporal else 256 << 20,
-                    Environment=TEMPORAL_ENVIRONMENT.copy() if temporal else ["PWD=/workspace","TZ=UTC"],
+                    # The host reserves TZ and always supplies TZ=UTC; the installation policy keeps it.
+                    Environment=[value for value in (TEMPORAL_ENVIRONMENT if temporal else ["PWD=/workspace"]) if not value.startswith("TZ=")],
                     OnFailure="all", FailureBudget=1, Artifacts=str(root/"artifacts"))
     return dict(Manifest=manifest, Campaign=campaign, ArtifactRoot=str(root))
 

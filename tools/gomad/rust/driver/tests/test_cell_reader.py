@@ -59,7 +59,8 @@ class CellOracles(unittest.TestCase):
         network = dict(profile='synthetic-network')
         actual = dict(steps=scenario['actions'], workload=scenario['workload'], nodes=['active', 'standby'], boundaries=[],
                       crash_groups=[dict(nodes=['active', 'standby'], marker=list(b'GOMAD_TEMPORAL_OBSERVATION '))],
-                      engine='engine', profile='profile', limits=dict(evidence_bytes=100),
+                      engine='engine', profile='profile',
+                      limits=dict(evidence_bytes=100*sum(step['action'] in ('start', 'restart') for step in scenario['actions'])),
                       broker=dict(seed=7, pause_on_settle=False, limits=dict(max_requests=2<<20, max_events=2<<20,
                           max_queued_events=250000, max_transitions=8<<20, max_payload_bytes=64<<20, max_string_bytes=(1<<32)-1)),
                       network=dict(model=network, strict_topology=True, addresses={n['id']:n['address'] for n in scenario['spec']['nodes']},
