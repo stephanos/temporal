@@ -708,16 +708,16 @@ pub(super) fn selected_workload_witness(stdout: &[u8], selection: &str) -> Resul
         .next()
         .unwrap_or("")
         .trim_matches(['^', '$']);
-    let text = String::from_utf8_lossy(stdout);
+    let output = String::from_utf8_lossy(stdout);
     for witness in [format!("=== RUN   {test}"), format!("--- PASS: {test}")] {
-        if !text.contains(&witness) {
+        if !output.contains(&witness) {
             return Err(format!(
                 "actual selected suite success witness absent: {witness}"
             ));
         }
     }
     if selection == "^TestWorkflowTypeEncodingSuite$/^TestPlainASCII$/^Succeeds$"
-        && !text.contains("TestPlainASCII/Succeeds")
+        && !output.contains("TestPlainASCII/Succeeds")
     {
         return Err(
             "actual selected workflow success witness absent: TestPlainASCII/Succeeds".into(),

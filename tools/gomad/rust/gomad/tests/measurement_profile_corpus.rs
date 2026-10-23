@@ -58,7 +58,16 @@ impl Scratch {
                 .open(path)
                 .unwrap()
         };
-        let mut child = Command::new(binary)
+        let mut command = Command::new(binary);
+        for (name, _) in std::env::vars_os() {
+            if name
+                .to_str()
+                .is_some_and(|name| name.starts_with("GOMAD_") || name.starts_with("QUALDRV"))
+            {
+                command.env_remove(name);
+            }
+        }
+        let mut child = command
             .args(args)
             .stdin(Stdio::null())
             .stdout(capture(&stdout_path))
@@ -607,5 +616,46 @@ fn actual_closed_native_run_publishes_explicit_canonical_stream_sources() {
             assert!(!output.join("wasi").exists());
         }
         evidence::read_profile_run(&output, ReadLimits::default()).unwrap();
+    }
+}
+
+#[test]
+fn actual_compiled_identity_producer_replaces_one_success_across_three_runs() {
+    let scratch = Scratch::new();
+    let requested = scratch.0.join("identity output root");
+    let repo = Path::new(env!("CARGO_MANIFEST_DIR"))
+        .ancestors()
+        .nth(4)
+        .unwrap();
+    for _ in 0..3 {
+        let result = scratch.invoke(
+            env!("CARGO_BIN_EXE_gomad-measure"),
+            &[
+                "compiled-identity-owners".as_ref(),
+                "--repo".as_ref(),
+                repo.as_os_str(),
+                "--diagnostic-identity-root".as_ref(),
+                requested.as_os_str(),
+            ],
+        );
+        assert!(
+            result.status.success(),
+            "{}",
+            String::from_utf8_lossy(&result.stderr)
+        );
+        let store = requested.join(".gomad-measure/compiled-identity-owners");
+        let latest = read(&store.join("latest.json"))
+            .as_str()
+            .unwrap()
+            .to_owned();
+        assert!(read(&store.join(latest).join("compiled-owner-identities.json")).is_object());
+        assert_eq!(
+            std::fs::read_dir(&store)
+                .unwrap()
+                .map(Result::unwrap)
+                .filter(|entry| entry.file_name().to_string_lossy().starts_with("run-"))
+                .count(),
+            1
+        );
     }
 }

@@ -301,3 +301,7 @@ pub fn stress_run(arguments: &[String], output: &mut dyn std::io::Write) -> Resu
 #[cfg(test)]
 #[path = "cancellation_tests.rs"]
 mod cancellation_tests;
+
+#[cfg(test)]
+#[path = "rerun_tests.rs"]
+mod rerun_tests;
