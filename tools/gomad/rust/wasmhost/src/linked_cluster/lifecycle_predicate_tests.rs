@@ -108,10 +108,13 @@ fn mandatory_cleanup_keeps_only_authored_start_actions() {
             } else {
                 &["b", "a"]
             },
-            FINISH,
+            "i32.const 512 i32.const 16 call $config drop (loop i32.const 1 i64.const 1 i32.const 64 call $clock drop br 0)",
         );
         input.steps.retain(|step| step.action == Action::Start);
         input.nodes.push("dormant".into());
+        for item in &mut input.incarnations {
+            item.request.limits.fuel = u64::MAX;
+        }
         let declared = input.steps.clone();
         let broker = input.broker.clone();
         let mut prepared = prepare(input).unwrap();
@@ -129,7 +132,7 @@ fn mandatory_cleanup_keeps_only_authored_start_actions() {
         prepared
             .cleanup_after_output(
                 Handle {
-                    node: "a".into(),
+                    node: "b".into(),
                     incarnation: 1,
                 },
                 b"mark".to_vec(),
@@ -154,7 +157,7 @@ fn mandatory_cleanup_keeps_only_authored_start_actions() {
         let acknowledged = execution
             .incarnations
             .iter()
-            .find(|item| item.handle.node == "a")
+            .find(|item| item.handle.node == "b")
             .unwrap();
         assert_eq!(acknowledged.execution.evidence["stdout"], b"mark");
         assert!(
@@ -552,7 +555,11 @@ fn refused_restart_preserves_owner_and_allows_retry_on_same_broker() {
             .unwrap()
             .reference_image(1 << 20)
             .unwrap();
-        assert_eq!(recovered, images["a"]);
+        assert!(!recovered.is_empty());
+        assert_eq!(
+            serde_json::to_value(&sealed.execution.request.storage).unwrap()["image"],
+            serde_json::to_value(&images["a"]).unwrap()
+        );
         assert_eq!(activity.snapshot().launched_stores, 0);
         raw(
             "TestRejectedRestartLeavesNoUnownedBrokerSession",
@@ -561,7 +568,7 @@ fn refused_restart_preserves_owner_and_allows_retry_on_same_broker() {
                 "refusal":error.to_string(),"before_incarnation":1,"before_slot":1,
                 "after_refusal_incarnation":1,"after_refusal_slot":1,
                 "refused_storage_unchanged":true,"retry_incarnation":2,"retry_slot":slot,
-                "peer_incarnation":1,"peer_slot":2,"recovery_image_unchanged":true,
+                "peer_incarnation":1,"peer_slot":2,"recovery_input_unchanged":true,
                 "activity":activity.snapshot()
             }),
         );
@@ -572,7 +579,7 @@ fn refused_restart_preserves_owner_and_allows_retry_on_same_broker() {
                 json!({
                     "refusal":error.to_string(),"refused_incarnation_owned":false,
                     "current_after_refusal":1,"retry_incarnation":2,"retry_slot":slot,
-                    "recovery_image_unchanged":true,"activity":activity.snapshot()
+                    "recovery_input_unchanged":true,"activity":activity.snapshot()
                 }),
             );
         }
@@ -660,4 +667,111 @@ fn native_host_termination_preserves_watchdog_and_parent_cancellation_status() {
             }),
         );
     }
+}
+
+#[test]
+fn live_cleanup_reaps_a_noncooperative_store_at_the_original_five_second_grace() {
+    assert_eq!(CLUSTER_STOP_GRACE, Duration::from_secs(5));
+    let mut input = request(
+        &["a"],
+        "i32.const 512 i32.const 16 call $config drop (loop $busy br $busy)",
+    );
+    input.steps.retain(|step| step.action == Action::Start);
+    input.wall_timeout = Duration::from_mins(15);
+    input.incarnations[0].request.limits.fuel = u64::MAX;
+    let mut prepared = prepare(input).unwrap();
+    let activity = prepared.activity();
+    let conditions = prepared.conditions.enter().unwrap();
+    let session = conditions.session();
+    let engine = Engine::new(&engine::configuration(true)).unwrap();
+    let modules = compile(&engine, &prepared, &mut Metrics::default()).unwrap();
+    let broker = Arc::new(Broker::new(&prepared.broker, &prepared.ids, None, None).unwrap());
+    broker.defer_starts();
+    broker.activate(0).unwrap();
+    broker.run(0, 1).unwrap();
+    let handle = Handle {
+        node: "a".into(),
+        incarnation: 1,
+    };
+    let sealed = prepared.incarnations.remove(&handle).unwrap();
+    let pre = modules[&sealed.execution.request.module_sha256].clone();
+    let worker_engine = engine.clone();
+    let worker_broker = broker.clone();
+    let worker_activity = activity.clone();
+    let worker_handle = handle.clone();
+    let worker_conditions = prepared.conditions;
+    let thread = thread::spawn(move || {
+        let _conditions = worker_conditions.enter_shared(&session)?;
+        let result = run_instance(
+            &worker_engine,
+            &pre,
+            sealed,
+            &worker_broker,
+            None,
+            worker_handle,
+            0,
+            1,
+            &worker_activity,
+        );
+        worker_broker.finish(0);
+        result
+    });
+    let mut running = BTreeMap::from([(handle.clone(), Running { thread })]);
+    let mut completed = BTreeMap::new();
+    let started = std::time::Instant::now();
+    loop {
+        let observed = broker
+            .inspection
+            .lock()
+            .unwrap()
+            .evidence
+            .incarnations
+            .iter()
+            .any(|item| item.handle == handle && item.streams.stdout == b"mark");
+        if observed {
+            break;
+        }
+        assert!(
+            started.elapsed() < Duration::from_secs(5),
+            "guest did not produce actual mark"
+        );
+        thread::yield_now();
+    }
+    assert_eq!(activity.snapshot().launched_stores, 1);
+    assert!(!running[&handle].thread.is_finished());
+    let cleanup_started = std::time::Instant::now();
+    let error = stop_live(
+        &engine,
+        &prepared.ids,
+        &broker,
+        &mut running,
+        &mut completed,
+        &Error::msg("actual scenario failure"),
+    )
+    .unwrap_err();
+    let elapsed = cleanup_started.elapsed();
+    assert!(elapsed >= CLUSTER_STOP_GRACE);
+    assert!(elapsed < Duration::from_secs(10));
+    assert_eq!(
+        error.to_string(),
+        "actual scenario failure; cluster cleanup deadline exceeded"
+    );
+    assert!(running.is_empty());
+    assert_eq!(completed.len(), 1);
+    let result = &completed[&handle];
+    assert_eq!(result.execution.evidence["stdout"], b"mark");
+    assert!(result.execution.authorization_to_terminal_nanos.is_some());
+    assert!(broker.finished(0));
+    assert_eq!(activity.snapshot().remote_callback_attempts, 0);
+    raw(
+        "TestClusterShutdownBoundsFinishedClusterByExecutionDeadline",
+        "live-noncooperative-actual-five-second-grace",
+        json!({
+            "execution_deadline_millis":15*60*1000,"cleanup_grace_millis":5000,
+            "elapsed_nanos":elapsed.as_nanos(),"cleanup_error":error.to_string(),
+            "acknowledged_stdout":result.execution.evidence["stdout"],
+            "authored_steps":prepared.steps,"joined_incarnations":1,
+            "all_stores_dropped_before_return":true,"activity":activity.snapshot()
+        }),
+    );
 }

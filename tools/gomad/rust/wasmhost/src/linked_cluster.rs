@@ -1301,12 +1301,13 @@ fn execute_inner(
                         }
                     };
                     stop_live(
+                        engine,
                         &prepared.ids,
                         broker,
                         &mut running,
                         &mut completed,
                         &Error::msg(reason.clone().unwrap_or_else(|| "cluster shutdown".into())),
-                    );
+                    )?;
                     if action_capacity {
                         outcome = protocol::Outcome::new(
                             "capacity",
@@ -1346,9 +1347,24 @@ fn execute_inner(
     });
     if let Err(error) = &driven {
         if divergent && !timed_out.load(Ordering::Acquire) && broker.failure().is_none() {
-            stop_live(&prepared.ids, broker, &mut running, &mut completed, error);
+            stop_live(
+                engine,
+                &prepared.ids,
+                broker,
+                &mut running,
+                &mut completed,
+                error,
+            )?;
         } else {
             broker.abort("infrastructure", error.to_string());
+            let _ = stop_live(
+                engine,
+                &prepared.ids,
+                broker,
+                &mut running,
+                &mut completed,
+                error,
+            );
         }
     }
     if timed_out.load(Ordering::Acquire) {
@@ -1458,51 +1474,87 @@ fn execute_inner(
 /// stop terminals and the retained World evidence never depend on start or
 /// thread order. An incarnation that already finished is only joined; any
 /// other refusal falls back to the abort.
+const CLUSTER_STOP_GRACE: Duration = Duration::from_secs(5);
+
 fn stop_live(
+    engine: &Engine,
     ids: &[String],
     broker: &Arc<Broker>,
     running: &mut BTreeMap<Handle, Running>,
     completed: &mut BTreeMap<Handle, IncarnationResult>,
     error: &Error,
-) {
-    let index = |handle: &Handle| ids.iter().position(|id| id == &handle.node);
-    for handle in running.keys() {
-        let revoked = index(handle).is_some_and(|index| {
-            broker
-                .command(Command::Revoke {
-                    index,
-                    incarnation: handle.incarnation,
-                    kind: "stop",
-                })
-                .is_ok()
-                || broker.finished(index)
+) -> Result<()> {
+    if running.is_empty() {
+        return Ok(());
+    }
+    thread::scope(|scope| {
+        let (done, receive) = mpsc::sync_channel::<()>(0);
+        let expired = AtomicBool::new(false);
+        let timed_out = &expired;
+        let watcher = scope.spawn(move || {
+            if receive.recv_timeout(CLUSTER_STOP_GRACE) == Err(mpsc::RecvTimeoutError::Timeout) {
+                timed_out.store(true, Ordering::Release);
+                engine.increment_epoch();
+                broker.abort(
+                    "infrastructure",
+                    format!("{error}; cluster cleanup deadline exceeded"),
+                );
+            }
         });
-        if !revoked {
-            broker.abort("infrastructure", error.to_string());
-            return;
-        }
-    }
-    let handles: Vec<Handle> = running.keys().cloned().collect();
-    for handle in handles {
-        let driven =
-            index(&handle).is_some_and(|index| broker.run(index, handle.incarnation).is_ok());
-        if !driven {
-            broker.abort("infrastructure", error.to_string());
-            return;
-        }
-        let Some(pending) = running.remove(&handle) else {
-            continue;
-        };
-        match joined(pending) {
-            Ok(observed) => {
-                completed.insert(handle, observed.result);
-            }
-            Err(failure) => {
-                broker.abort("infrastructure", failure.to_string());
-                return;
+        let index = |handle: &Handle| ids.iter().position(|id| id == &handle.node);
+        let mut failure = None;
+        for handle in running.keys() {
+            let revoked = index(handle).is_some_and(|index| {
+                broker
+                    .command(Command::Revoke {
+                        index,
+                        incarnation: handle.incarnation,
+                        kind: "stop",
+                    })
+                    .is_ok()
+                    || broker.finished(index)
+            });
+            if !revoked {
+                broker.abort("infrastructure", error.to_string());
+                failure.get_or_insert_with(|| "cluster cleanup revocation refused".to_owned());
+                break;
             }
         }
-    }
+        let handles: Vec<Handle> = running.keys().cloned().collect();
+        for handle in handles {
+            let driven =
+                index(&handle).is_some_and(|index| broker.run(index, handle.incarnation).is_ok());
+            if !driven {
+                broker.abort("infrastructure", error.to_string());
+                failure.get_or_insert_with(|| "cluster cleanup drive refused".to_owned());
+            }
+            let Some(pending) = running.remove(&handle) else {
+                continue;
+            };
+            match joined(pending) {
+                Ok(observed) => {
+                    completed.insert(handle, observed.result);
+                }
+                Err(join_failure) => {
+                    broker.abort("infrastructure", join_failure.to_string());
+                    failure.get_or_insert_with(|| join_failure.to_string());
+                }
+            }
+        }
+        drop(done);
+        watcher
+            .join()
+            .map_err(|_| Error::msg(format!("{error}; cluster cleanup watchdog panicked")))?;
+        if expired.load(Ordering::Acquire) {
+            return Err(Error::msg(format!(
+                "{error}; cluster cleanup deadline exceeded"
+            )));
+        }
+        if let Some(failure) = failure {
+            return Err(Error::msg(format!("{error}; {failure}")));
+        }
+        Ok(())
+    })
 }
 
 /// # Errors
