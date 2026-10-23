@@ -4,7 +4,7 @@ use crate::{Limits, Refusal};
 use std::{
     fs::{self, File},
     io::Read,
-    os::unix::fs::DirBuilderExt,
+    os::unix::{fs::DirBuilderExt, process::CommandExt},
     path::{Path, PathBuf},
     process::{Child, Command, ExitStatus, Stdio},
     sync::{
@@ -180,7 +180,7 @@ pub fn run_process_cancelled(
             supervised.env_remove(key);
         }
     }
-    supervised.stdin(Stdio::piped()).stdout(Stdio::piped()).stderr(Stdio::piped());
+    supervised.process_group(0).stdin(Stdio::piped()).stdout(Stdio::piped()).stderr(Stdio::piped());
     let mut child = Running(
         supervised.spawn().map_err(|error| Refusal(format!("cannot spawn {label}: {error}")))?,
     );

@@ -1,0 +1,16 @@
+{
+  "red_test_commit": "8e7e015f64",
+  "regression_log": ".flow/tmp/fn-211.2/red-audit-signal.log",
+  "meaningful_failures": [
+    "owner-group termination leaked backend/escaped child",
+    "direct supervisor termination leaked backend/escaped child"
+  ],
+  "reproduced_owned_pids": [
+    3532161,
+    3532162,
+    3532184,
+    3532185
+  ],
+  "pids_remaining_after_harness_cleanup": [],
+  "production_correction": "pending"
+}

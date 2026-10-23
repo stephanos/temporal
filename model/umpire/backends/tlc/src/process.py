@@ -24,6 +24,15 @@ def child_setup(policy):
 
 
 def main():
+    stopping = None
+
+    def request_stop(signum, _frame):
+        nonlocal stopping
+        if stopping is None:
+            stopping = signum
+
+    for signum in [signal.SIGTERM, signal.SIGINT, signal.SIGHUP, signal.SIGQUIT]:
+        signal.signal(signum, request_stop)
     setup = child_setup(sys.argv[1])
     if sys.platform.startswith("linux"):
         libc = ctypes.CDLL(None, use_errno=True)
@@ -31,9 +40,11 @@ def main():
             raise OSError(ctypes.get_errno(), "cannot establish backend subreaper")
     elif sys.platform != "darwin":
         raise RuntimeError("backend process ownership supports Linux and macOS only")
+    if stopping is not None:
+        return 128 + stopping
     child = subprocess.Popen(sys.argv[2:], stdin=subprocess.DEVNULL, start_new_session=True, preexec_fn=setup)
     try:
-        while child.poll() is None:
+        while stopping is None and child.poll() is None:
             readable, _, _ = select.select([sys.stdin.buffer], [], [], .005)
             if readable and not os.read(sys.stdin.fileno(), 1):
                 break
@@ -61,6 +72,8 @@ def main():
                         except ProcessLookupError:
                             pass
                     time.sleep(.005)
+    if stopping is not None:
+        return 128 + stopping
     return 125 if status is None else status if status >= 0 else 128 - status
 
 

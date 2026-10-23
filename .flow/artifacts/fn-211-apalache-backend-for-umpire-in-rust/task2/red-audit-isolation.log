@@ -1,0 +1,24 @@
+   Compiling umpire-tlc v0.0.1 (/Users/stephan/Workspace/skunkworks/umpire/temporal/model/umpire/backends/tlc)
+    Finished `test` profile [unoptimized + debuginfo] target(s) in 0.66s
+     Running unittests src/lib.rs (/home/agent/.cache/codex-build/cargo-target/debug/deps/umpire_tlc-bc63fc652fe8d782)
+
+running 1 test
+test process::tests::java_policy_is_internal_and_environment_injection_is_removed ... FAILED
+
+failures:
+
+---- process::tests::java_policy_is_internal_and_environment_injection_is_removed stdout ----
+
+thread 'process::tests::java_policy_is_internal_and_environment_injection_is_removed' (3532402) panicked at umpire/backends/tlc/src/process.rs:370:9:
+assertion `left == right` failed
+  left: "None\nNone\n"
+ right: "None\nNone\nTrue\n"
+note: run with `RUST_BACKTRACE=1` environment variable to display a backtrace
+
+
+failures:
+    process::tests::java_policy_is_internal_and_environment_injection_is_removed
+
+test result: FAILED. 0 passed; 1 failed; 0 ignored; 0 measured; 12 filtered out; finished in 0.03s
+
+error: test failed, to rerun pass `-p umpire-tlc --lib`

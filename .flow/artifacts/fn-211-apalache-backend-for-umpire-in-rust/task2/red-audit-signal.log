@@ -1,0 +1,23 @@
+..FF
+======================================================================
+FAIL: test_owner_group_and_direct_supervisor_termination_reap_owned_tree (test_backend_process.Supervisor.test_owner_group_and_direct_supervisor_termination_reap_owned_tree) (target='owner-group')
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/Users/stephan/Workspace/skunkworks/umpire/temporal/model/scripts/tests/test_backend_process.py", line 84, in test_owner_group_and_direct_supervisor_termination_reap_owned_tree
+    self.assertFalse([pid for pid in owned if Path(f"/proc/{pid}").exists()], "owned backend PIDs survived or were not reaped before harness cleanup")
+    ~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+AssertionError: [3532161, 3532162] is not false : owned backend PIDs survived or were not reaped before harness cleanup
+
+======================================================================
+FAIL: test_owner_group_and_direct_supervisor_termination_reap_owned_tree (test_backend_process.Supervisor.test_owner_group_and_direct_supervisor_termination_reap_owned_tree) (target='supervisor')
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/Users/stephan/Workspace/skunkworks/umpire/temporal/model/scripts/tests/test_backend_process.py", line 84, in test_owner_group_and_direct_supervisor_termination_reap_owned_tree
+    self.assertFalse([pid for pid in owned if Path(f"/proc/{pid}").exists()], "owned backend PIDs survived or were not reaped before harness cleanup")
+    ~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+AssertionError: [3532184, 3532185] is not false : owned backend PIDs survived or were not reaped before harness cleanup
+
+----------------------------------------------------------------------
+Ran 3 tests in 4.114s
+
+FAILED (failures=2)

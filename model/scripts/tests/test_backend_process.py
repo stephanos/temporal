@@ -55,13 +55,13 @@ with open(sys.argv[1], 'w') as out:
 time.sleep(60)
 """
         owner = """import os,subprocess,sys,time
-p = subprocess.Popen([sys.executable, sys.argv[1], "process", sys.executable, '-c', sys.argv[2], sys.argv[3]], stdin=subprocess.PIPE)
+p = subprocess.Popen([sys.executable, sys.argv[1], "process", sys.executable, '-c', sys.argv[2], sys.argv[3]], stdin=subprocess.PIPE, process_group=0)
 with open(sys.argv[4], 'w') as out:
     out.write(str(p.pid))
 time.sleep(60)
 """
         try:
-            for target in ["owner-group", "supervisor"]:
+            for target in ["owner-group", "owner-group-kill", "supervisor"]:
                 with self.subTest(target=target), tempfile.TemporaryDirectory() as tmp:
                     pids = Path(tmp) / "pids"
                     supervisor = Path(tmp) / "supervisor"
@@ -73,9 +73,10 @@ time.sleep(60)
                             time.sleep(.005)
                         owned = [int(pid) for pid in pids.read_text().split()]
                         supervisor_pid = int(supervisor.read_text())
-                        if target == "owner-group":
-                            os.killpg(process.pid, signal.SIGTERM)
-                            self.assertEqual(process.wait(timeout=5), -signal.SIGTERM)
+                        if target.startswith("owner-group"):
+                            signum = signal.SIGKILL if target == "owner-group-kill" else signal.SIGTERM
+                            os.killpg(process.pid, signum)
+                            self.assertEqual(process.wait(timeout=5), -signum)
                         else:
                             os.kill(supervisor_pid, signal.SIGTERM)
                         deadline = time.monotonic() + 2

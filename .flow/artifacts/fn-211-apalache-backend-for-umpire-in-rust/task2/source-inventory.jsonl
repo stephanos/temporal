@@ -13,7 +13,7 @@
 {"path":"model/scripts/tests/build-guests.sh","sha256":"5f6ed7c43da856e6df830ac52550c736762924d5fd74717eee8b9ec055d009a6"}
 {"path":"model/scripts/tests/guest-parity.sh","sha256":"83ac98c053630a8cd48ce98d4ca6a0e24f60340a2bf68f0c2164fa09828087d9"}
 {"path":"model/scripts/tests/test_apalache.py","sha256":"f30832a9e197cfd8457c059b4f783e91ea5f78307ed26fa33124bd2fe54e708f"}
-{"path":"model/scripts/tests/test_backend_process.py","sha256":"64d5c2d5f1ed681f92816dc17d9bf05cd107444ac1a2aa91603402dc44ec5b9b"}
+{"path":"model/scripts/tests/test_backend_process.py","sha256":"e6161b4adbff79dea627628570b39433ccc3020b08a57e0f2031dfef21f3681b"}
 {"path":"model/scripts/tests/test_guest.py","sha256":"22322dfd0a06cf30853b8507580cc61567b2bca65ed55b510eb0e8de9a6fbe21"}
 {"path":"model/scripts/tests/test_guest_freshness.py","sha256":"2de3fac3a1ccc0b0ad96e77da9656eb1c5ad95cdae03e03aaf9610a15f6eb5c2"}
 {"path":"model/scripts/tests/test_guest_lock.py","sha256":"b9fc07674fcc1dd5cd40f53e885d58e56d0167158d2d90ccd8494d9c9d206934"}
@@ -30,8 +30,8 @@
 {"path":"model/umpire/backends/tlc/src/decode.rs","sha256":"63451ac2e73906bafe22b26309b7d3fd122138f282224cd64b8c2b3ad229076f"}
 {"path":"model/umpire/backends/tlc/src/lib.rs","sha256":"03a6c5fbc3072555ba803c9e019f9d8879309fd75dbfeeee028818d348d9982d"}
 {"path":"model/umpire/backends/tlc/src/module.rs","sha256":"7467d29dde2e0674ac6337ac79a941a0e5492d95ff4248d997bbd4b2b782124a"}
-{"path":"model/umpire/backends/tlc/src/process.py","sha256":"9f40a61e587f339925b6850b2a568f6d8f7146702ffaf4e243553bc31f4608cb"}
-{"path":"model/umpire/backends/tlc/src/process.rs","sha256":"2a10f2f84d58ab713f2f18744c15a0b54a468a02e9a3c09e0d289802fb8d853c"}
+{"path":"model/umpire/backends/tlc/src/process.py","sha256":"931fd7dab295b21fadc4eef6b7111b7d98a722a2698a029cac988fa415366083"}
+{"path":"model/umpire/backends/tlc/src/process.rs","sha256":"2b522c4f00de2afd867858da74fc3f544b5b275038760dc02edf15fce9a8c865"}
 {"path":"model/umpire/backends/tlc/src/runner.rs","sha256":"12ae818b37439c6e571fb8c0da46901b6d256605d74bd527a0ce67ed4b51bc32"}
 {"path":"model/umpire/backends/tlc/tests/controls.rs","sha256":"56081c0823e959f1146a3ee766d8a0cb679fa38d67521965df504c158dcb0a71"}
 {"path":"model/umpire/backends/tlc/tests/fixtures/scaling_model.rs","sha256":"4e2b5f5a79330e461e6613505c874f846e2141228e1279f83bc38c1ca1858939"}
