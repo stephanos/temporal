@@ -1404,7 +1404,7 @@ class Retained:
         for name in ('choice','storage_state','storage','stdout','recovery_image_primary'):
             require(regular(capsule/name).read_bytes() == regular(prefix/name).read_bytes(),'Temporal primary capsule payload changed: '+name)
 
-    def installed(self, installation, policy, fuel, memory):
+    def installed(self, installation, policy, fuel, memory, *, expected_build_tags=()):
         require(installation['schema'] == 'gomad.rust-wasm-installation/v1'
                 and installation['profile'] == 'gomad.wasi-cooperative/v1'
                 and installation['fuel'] == fuel and installation['memory_bytes'] == memory,
@@ -1414,7 +1414,7 @@ class Retained:
         model,namespace,environment,network = inspection_policy_projection(policy)
         require(installation['model'] == model and installation['namespace'] == namespace
                 and installation.get('network') == network and installation.get('storage') is None
-                and installation.get('build_tags',[]) == [], 'inspection installed original policy projection changed')
+                and installation.get('build_tags',[]) == list(expected_build_tags), 'inspection installed original policy projection changed')
         admission = installation['admission']
         require(admission['environment'] == environment and admission['arguments'] == (policy.get('Args') or []),
                 'inspection installed argument/environment policy changed')
