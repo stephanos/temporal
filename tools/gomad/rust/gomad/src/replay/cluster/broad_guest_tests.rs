@@ -679,6 +679,37 @@ fn actual_go_history_oracle_canary_preserves_detached_retained_replay() {
     }
 }
 
+fn grouped_latest_storage(execution: &helper::Execution) -> Value {
+    let mut latest = BTreeMap::new();
+    for item in &execution.incarnations {
+        let owner = latest.entry(item.handle.node.clone()).or_insert(item);
+        if item.handle.incarnation > owner.handle.incarnation {
+            *owner = item;
+        }
+    }
+    let handles = latest
+        .values()
+        .map(|item| item.handle.clone())
+        .collect::<Vec<_>>();
+    assert_eq!(
+        serde_json::to_value(handles).unwrap(),
+        json!([
+            {"node":"a","incarnation":2},{"node":"b","incarnation":2}
+        ])
+    );
+    let rows = latest
+        .values()
+        .map(|item| {
+            let state = &item.execution.evidence["storage_state"];
+            let log = &item.execution.evidence["storage"];
+            json!({"handle":item.handle,"state_bytes":state.len(),"log_bytes":log.len(),
+            "storage_state_base64":crate::campaign::exploration::base64(state),
+            "storage_log_base64":crate::campaign::exploration::base64(log)})
+        })
+        .collect::<Vec<_>>();
+    json!({"schema":"gomad.grouped-latest-storage/v1","incarnations":rows})
+}
+
 #[test]
 #[ignore = "actual pinned Go compilation and live guests require the parent execution lease"]
 fn actual_go_grouped_acknowledgment_crash_preserves_independent_durable_recovery() {
@@ -722,6 +753,7 @@ fn actual_go_grouped_acknowledgment_crash_preserves_independent_durable_recovery
             );
         }
     }
+    let latest_storage = grouped_latest_storage(&execution);
     let (report, replay) = publish_replay(&producer, "grouped/replay", &configuration, true);
     assert_eq!(report["outcome"], "completed");
     observation(
@@ -729,7 +761,7 @@ fn actual_go_grouped_acknowledgment_crash_preserves_independent_durable_recovery
         "TestProviderGroupedAcknowledgmentCrashSourceLessReplay",
         "grouped/replay",
         &configuration,
-        json!({"producer":proof,"report":report,"replay":replay}),
+        json!({"producer":proof,"report":report,"replay":replay,"latest_storage":latest_storage}),
     );
 }
 

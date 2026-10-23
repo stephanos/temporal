@@ -304,6 +304,104 @@ def artifact_outputs(artifact):
     return actual
 
 
+def grouped_snapshots(value, artifact, configuration):
+    """Merge only the latest actual per-owner snapshot streams, never configured models."""
+    import re
+    from core_codec import pending_identity, snapshot_identity, state_raw_sections
+    fields(value, ('schema', 'incarnations'))
+    require(value['schema'] == 'gomad.grouped-latest-storage/v1' and isinstance(value['incarnations'], list),
+            'missing actual grouped storage snapshot schema')
+    latest = {}
+    for item in configuration['incarnations']:
+        owner = item['handle']
+        latest[owner['node']] = max(latest.get(owner['node'], 0), uint(owner['incarnation']))
+    expected = [handle(node, incarnation) for node, incarnation in sorted(latest.items())]
+    require(expected == [handle('a', 2), handle('b', 2)]
+            and [item.get('handle') for item in value['incarnations']] == expected,
+            'grouped snapshots omitted, duplicated or selected a stale actual owner')
+    snapshots = []
+    for item in value['incarnations']:
+        fields(item, ('handle', 'state_bytes', 'log_bytes', 'storage_state_base64', 'storage_log_base64'))
+        node = item['handle']['node']
+        owner = node + '/' + str(item['handle']['incarnation'])
+        state, log = b64(item['storage_state_base64']), b64(item['storage_log_base64'])
+        require(uint(item['state_bytes']) == len(state) and uint(item['log_bytes']) == len(log),
+                'grouped actual storage byte counts differ from preimages')
+        require(state == artifact['payloads'][f'evidence/cluster/{owner}/storage_state']
+                and log == artifact['payloads'][f'evidence/cluster/{owner}/storage'],
+                'grouped producer snapshots differ from their actual retained owner streams')
+        version, sections = state_raw_sections(state)
+        require(version == 1 and len(sections) == 5 and decode(sections[2]) is None
+                and re.fullmatch(b'[0-9a-f]{64}', sections[3])
+                and sections[4] == len(log).to_bytes(8, 'little') + bytes.fromhex(digest(log)),
+                'grouped storage snapshot lost complete original framing, image or log binding')
+        volumes, history = decode(sections[0]), decode(sections[1])
+        require(isinstance(volumes, list) and len(volumes) == 1 and isinstance(history, dict)
+                and set(history) == {node}, 'grouped actual storage snapshot/history inventory differs')
+        snapshot = volumes[0]
+        fields(snapshot, ('ID', 'Mount', 'CapacityBytes', 'Persisted', 'Volatile', 'PendingOperations',
+                          'PendingSHA256', 'NextOperation', 'Identity'))
+        require(snapshot['ID'] == node and snapshot['Mount'] == '/workspace'
+                and uint(snapshot['CapacityBytes']) == 8 << 20 and uint(snapshot['NextOperation']) > 0
+                and uint(snapshot['PendingOperations']) <= 1024
+                and isinstance(snapshot['PendingSHA256'], str)
+                and re.fullmatch(r'sha256:[0-9a-f]{64}', snapshot['PendingSHA256']),
+                'grouped actual snapshot has a foreign volume owner or original bound')
+        operations = history[node]
+        require(isinstance(operations, list) and len(operations) <= 10000,
+                'grouped actual snapshot operation history is missing or exceeds original bound')
+        ids = []
+        for operation in operations:
+            fields(operation, ('ID', 'Kind', 'Dependencies', 'Inode', 'Offset', 'Bytes',
+                               'PayloadSHA256', 'EffectSHA256', 'Path', 'Destination'))
+            identity = uint(operation['ID'])
+            require(0 < identity < snapshot['NextOperation'] and operation['Kind'] in ('alloc', 'write', 'resize', 'metadata', 'namespace'),
+                    'grouped actual snapshot history operation identity differs')
+            for key in ('Inode', 'Offset', 'Bytes'): uint(operation[key])
+            require(isinstance(operation['Path'], str) and isinstance(operation['Destination'], str)
+                    and isinstance(operation['EffectSHA256'], str) and re.fullmatch(r'sha256:[0-9a-f]{64}', operation['EffectSHA256'])
+                    and isinstance(operation['PayloadSHA256'], str)
+                    and (operation['PayloadSHA256'] == '' or re.fullmatch(r'sha256:[0-9a-f]{64}', operation['PayloadSHA256'])),
+                    'grouped actual snapshot history payload/effect schema differs')
+            dependencies = operation['Dependencies']
+            require(dependencies is None or isinstance(dependencies, list)
+                    and all(0 < uint(dependency) < identity for dependency in dependencies)
+                    and dependencies == sorted(set(dependencies)), 'grouped actual snapshot history dependencies differ')
+            ids.append(identity)
+        require(ids == sorted(set(ids)) and snapshot['PendingOperations'] <= len(operations),
+                'grouped actual snapshot history order/pending count differs')
+        if snapshot['PendingOperations'] == 0:
+            require(snapshot['PendingSHA256'] == pending_identity(node, []),
+                    'grouped actual snapshot empty pending commitment differs')
+        for key in ('Persisted', 'Volatile'):
+            entries = snapshot[key]
+            require(isinstance(entries, list) and entries, 'grouped actual snapshot lacks persisted/volatile entries')
+            paths = []
+            for entry in entries:
+                fields(entry, ('Path', 'Mode', 'Kind', 'ModTime', 'Size', 'DataSHA256'))
+                require(isinstance(entry['Path'], str) and entry['Path'].startswith('/')
+                        and uint(entry['Mode']) < 1 << 32 and entry['Kind'] in ('file', 'directory')
+                        and type(entry['ModTime']) is int and -(1 << 63) <= entry['ModTime'] < 1 << 63,
+                        'grouped actual snapshot entry schema differs')
+                uint(entry['Size'])
+                require(isinstance(entry['DataSHA256'], str) and
+                        (bool(re.fullmatch(r'sha256:[0-9a-f]{64}', entry['DataSHA256'])) if entry['Kind'] == 'file'
+                         else entry['Size'] == 0 and entry['DataSHA256'] == ''), 'grouped actual snapshot entry data identity differs')
+                paths.append(entry['Path'])
+            require(paths == sorted(set(paths)) and sum(entry['Size'] for entry in entries) <= snapshot['CapacityBytes'],
+                    'grouped actual snapshot entry order/capacity differs')
+            durable = [entry for entry in entries if entry['Path'] == '/value']
+            require(len(durable) == 1 and durable[0]['Kind'] == 'file' and durable[0]['Size'] == len(b'durable-a')
+                    and durable[0]['DataSHA256'] == 'sha256:' + digest(b'durable-a'),
+                    'grouped actual snapshot does not preserve acknowledged durable bytes')
+        require(snapshot['Identity'] == snapshot_identity(snapshot), 'grouped actual snapshot identity differs from its raw entries/history counters')
+        snapshots.append(dict(handle=item['handle'], snapshot=snapshot, state_bytes=len(state), log_bytes=len(log),
+                              storage_state_sha256=digest(state), storage_log_sha256=digest(log)))
+    require([item['snapshot']['ID'] for item in snapshots] == ['a', 'b'],
+            'grouped latest actual snapshots do not contain the original two distinct volumes')
+    return snapshots
+
+
 def validate_case(row, artifact=None):
     fields(row,('schema','original_root','case','inputs','observed'))
     require(row['schema']=='gomad.retained-reader-observation/v1' and row['case'] in CASES, 'foreign actual guest observation')
@@ -332,7 +430,7 @@ def validate_case(row, artifact=None):
         else:require(same(assessment['oracles'],expected['oracles']) and assessment['oracle_error']=='' and detail=='choice trace is not complete', 'capacity evidence incorrectly proves completeness')
         require(o['publication_error']=='capacity: output capacity; '+detail, 'capacity retained publication refusal changed')
         return dict(original_root=root,case=case,offered_bytes=4,retained_replay_refused=True)
-    fields(o, ('report','replay') if root==SOFT else ('producer','report','replay'))
+    fields(o, ('report','replay') if root==SOFT else ('producer','report','replay','latest_storage') if root==GROUPED else ('producer','report','replay'))
     require(artifact is not None, 'actual guest omitted retained raw artifact')
     replay=o['replay'];record=artifact['record'];retained=artifact['inputs']
     require(canonical(replay['manifest'])==canonical(artifact['manifest']) and replay['record_sha256']==digest(artifact['payloads']['record.json'])
@@ -375,7 +473,11 @@ def validate_case(row, artifact=None):
     require(same(o['report'],expected) and same(decode(artifact['payloads']['evidence/cluster_oracles']),expected), 'oracle report does not rederive from actual retained stdout/stderr')
     wanted='success' if expected['outcome']=='completed' else 'target_failure'
     require(record['outcome']['class']==wanted, 'stored outcome class differs from actual oracle truth')
-    return dict(original_root=root,case=case,record_sha256=digest(artifact['payloads']['record.json']),failure_identity=expected['failure_identity'],public_replay=requested)
+    facts = dict(original_root=root,case=case,record_sha256=digest(artifact['payloads']['record.json']),failure_identity=expected['failure_identity'],public_replay=requested)
+    if root == GROUPED:
+        facts['latest_volume_snapshots'] = grouped_snapshots(o['latest_storage'], artifact, c)
+        facts['volume_snapshot_count'] = len(facts['latest_volume_snapshots'])
+    return facts
 
 
 def preparation(files, family_root, row, config, owner_pid):
@@ -468,10 +570,9 @@ def observations(config, raw_harness):
     signatures=[fact['failure_identity'] for fact in facts if fact['case'] in ('soft/seed=7/report-only=false','soft/seed=19/report-only=false')]
     require(len(signatures)==2 and signatures[0]==signatures[1] and signatures[0], 'original seed7/19 static soft assertion failure signature differs')
     custody=files.finish()
-    complete={SOFT,CAPACITY,CANARY}
+    complete={SOFT,CAPACITY,CANARY,GROUPED}
     remaining={PLAIN:['Original retained mutation/refusal readers and module independence/nonembedding bound require the separate core_retained receiver.'],
-               COMPRESSED:['Original retained mutation/refusal readers and module independence/nonembedding bound require the separate core_retained receiver.'],
-               GROUPED:['Original aggregate volume snapshot two-entry predicate has no raw aggregate volume snapshot in these native rows; independent per-owner 8MiB declarations and durable outputs are verified.']}
+               COMPRESSED:['Original retained mutation/refusal readers and module independence/nonembedding bound require the separate core_retained receiver.']}
     return dict(roots={key:dict(cases=[fact for fact in facts if fact['original_root']==key],sources=source_facts) for key in sorted(complete)},
                 partial_roots={key:dict(cases=[fact for fact in facts if fact['original_root']==key],remaining_original_predicates=value) for key,value in remaining.items()},
                 facts=facts,sources=source_facts,raw_custody=custody,process=role)
