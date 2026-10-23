@@ -79,7 +79,6 @@ class PublicVerbReaderTests(unittest.TestCase):
                     def pure_walk(*args):
                         if mutation:owner.compiler.write_bytes(b'changed inside pure walk')
                     with patch.object(reader.live,'completed_command'), patch.object(reader,'authenticate_lanes',side_effect=pure_walk), \
-                         patch.object(reader,'stress_cycle',return_value={}), patch.object(reader,'load_module',return_value=SimpleNamespace(read_cycle=lambda *_:None)), \
                          patch.object(reader.public_roles,'static_reference'):
                         if mutation:
                             with self.assertRaisesRegex(Refusal,'frozen input changed'):reader.authenticate(config,root,[],{},lane)
@@ -89,32 +88,6 @@ class PublicVerbReaderTests(unittest.TestCase):
                             self.assertEqual(load.call_count,2)
                             self.assertTrue(all(call.args[-1] is config for call in load.call_args_list))
                 finally:owner.doCleanups()
-
-    def test_old_stress_cycle_refused_even_when_its_file_is_sealed(self):
-        with tempfile.TemporaryDirectory() as temporary:
-            path = Path(temporary) / 'cycle.json'
-            config = dict(repo='/repo', root='/new-attempt', source_manifest='/manifest', source_sha256='1'*64,
-                sent_epoch=2, deadline_s=3600, identity=dict(host='2'*64, helper='3'*64), binary_sha256='4'*64,
-                stress={}, stress_cycle=str(path), files={'/static': '5'*64}, public_verbs=dict(bindings='/bindings'))
-            fields = ('repo', 'root', 'source_manifest', 'source_sha256', 'sent_epoch', 'deadline_s', 'identity', 'binary_sha256', 'stress')
-            plan = {key: config[key] for key in fields}
-            plan.update(schema='gomad.stress-cycle/v1', files={'/static': '5'*64})
-            path.write_text(json.dumps(plan))
-            config['files'][str(path)] = sha(path)
-            reader.stress_cycle(config, {'stress-cycle': path})
-            with self.assertRaisesRegex(Refusal, 'another stress cycle'):
-                reader.stress_cycle(config, {'stress-cycle': path.with_name('borrowed.json')})
-            plan['files'] = {}
-            path.write_text(json.dumps(plan))
-            config['files'][str(path)] = sha(path)
-            with self.assertRaisesRegex(Refusal, 'inputs differ'):
-                reader.stress_cycle(config, {'stress-cycle': path})
-            plan['files'] = {'/static': '5'*64}
-            plan['root'] = '/old-attempt'
-            path.write_text(json.dumps(plan))
-            config['files'][str(path)] = sha(path)
-            with self.assertRaisesRegex(Refusal, 'old/foreign'):
-                reader.stress_cycle(config, {'stress-cycle': path})
 
     def test_arbitrary_public_binding_fields_refused(self):
         with self.assertRaisesRegex(Refusal, 'only the sealed binding'):

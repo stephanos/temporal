@@ -21,7 +21,7 @@ assertions. The release binary also passes the fixture exclusion check.
 The bindings schema is `gomad.all-verb-bindings/v1`, with exactly `schema`,
 `files` and `trees`. `files` contains exactly `release`, `fixture`, `stress`, `stress-release`,
 `determinism`, `divergence`, `reference-helper`, `compiler`, `rust-compiler`, `replay-input` and
-`go-base`, `build-receipts` and `stress-cycle`. Each is `{ "path": "...", "sha256": "..." }` with an actual SHA256.
+`go-base` and `build-receipts`. Each is `{ "path": "...", "sha256": "..." }` with an actual SHA256.
 `reference-helper` is the current standalone conformance helper built explicitly
 with its `conformance` feature (which enables the guarded `reference-helper` binary), not the historical Go helper.
 
@@ -76,7 +76,9 @@ and their positive Rust goldens; its .11 endpoints and goldens must be integrate
 before execution. A missing lane is UNEXECUTED. No unsupported Go command is
 reported as positive Go support.
 
-Stress requires both compiled-role exclusion and a positive matrix endpoint at
+This gate keeps the compiled stress-role exclusion (`stress-role-check.py`). Ruling 7
+(revised) moves the positive stress matrix out of the one-hour cycle: it runs right
+after the freeze on the frozen candidate, and its parity endpoint is
 `testdata/parity/stress-parity-lane.py`. That fixed endpoint must consume the
 final-driver's exact required stress obligation and the actual same
 frozen candidate/cycle matrix receipt, authenticate its source/role identities

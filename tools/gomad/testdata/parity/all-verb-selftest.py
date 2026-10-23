@@ -120,7 +120,7 @@ class GateTests(unittest.TestCase):
     def test_fixed_coverage_includes_new_and_refused_verbs(self):
         required = {'inspect', 'replay', 'explore', 'resume', 'execute-shard', 'merge', 'minimize',
                     'qualify', 'report', 'qualify-set', 'merge-set', 'compare-support', 'install',
-                    'doctor', 'discover', 'plan', 'recover', 'analyze', 'stress'}
+                    'doctor', 'discover', 'plan', 'recover', 'analyze'}  # stress: post-freeze window (ruling 7)
         self.assertEqual(set(self.gate.PUBLIC_VERBS), required)
         with self.assertRaises(ValueError):
             self.gate.require_fields(dict(commands=[]), {'schema', 'files', 'trees'}, 'bindings')

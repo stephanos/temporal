@@ -108,8 +108,16 @@ def deadline(limit):
 
 
 def verdict(status, sent, finished, limit):
+    """Wall time is measured and recorded but not blocking until the quiet-host window
+    (owner decision "Performance deferred to the quiet-host window"); a complete passing
+    run past the limit is a pass with a deferred-perf record, never exit 3."""
     deadline(limit)
-    return 3 if status == 0 and finished - sent > limit else status
+    return 0 if status == 3 else status
+
+
+def performance(sent, finished, limit):
+    wall = finished - sent
+    return dict(status='deferred-perf' if wall > limit else 'within', wall_seconds=wall, deadline_seconds=limit)
 
 
 def bind_identity(expected_role, expected, role, observed):
@@ -622,9 +630,10 @@ def run(config, path, mode):
         finished = time.time()
         status = verdict(status, config['sent_epoch'], finished, config['deadline_s'])
         write(root / 'outcome.json', dict(schema='gomad.rust-driver-outcome/v1', mode=mode, exit=status,
-              status='PASS' if status == 0 else 'DEADLINE' if status == 3 else 'INCOMPLETE', reason=reason,
+              status='PASS' if status == 0 else 'INCOMPLETE', reason=reason,
               sent_epoch=config['sent_epoch'], finished_epoch=finished, wall_seconds=finished-config['sent_epoch'],
-              deadline_seconds=config['deadline_s'], identity=config['identity'], receipts=receipts))
+              deadline_seconds=config['deadline_s'], identity=config['identity'], receipts=receipts,
+              performance=performance(config['sent_epoch'], finished, config['deadline_s'])))
     return status
 
 

@@ -17,15 +17,16 @@ sys.path.insert(0, str(MODULE / 'rust/driver'))
 import public_roles
 PUBLIC_VERBS = ('inspect', 'replay', 'explore', 'resume', 'execute-shard', 'merge', 'minimize',
                 'qualify', 'report', 'qualify-set', 'merge-set', 'compare-support', 'install',
-                'doctor', 'discover', 'plan', 'recover', 'analyze', 'stress')
+                'doctor', 'discover', 'plan', 'recover', 'analyze')
+# Ruling 7: the `stress` verb's matrix parity (stress-parity-lane.py) runs in the post-freeze stress window.
 FILES = {'release', 'fixture', 'stress', 'stress-release', 'determinism', 'divergence', 'reference-helper',
-         'compiler', 'rust-compiler', 'replay-input', 'go-base', 'build-receipts', 'stress-cycle'}
+         'compiler', 'rust-compiler', 'replay-input', 'go-base', 'build-receipts'}
 TREES = {'baseline', 'source', 'cluster-baseline', 'cluster-source', 'candidate-source', 'compiler-root'}
 ENDPOINTS = ('foundation-check.py', 'foundation-release-check.py', 'inspect-lane.py', 'replay-lane.py',
              'exploration-lane.py', 'campaign-lane.py', 'minimize-reference-lane.py',
              'qualify-accounting-check.py', 'qualify-lane.py', 'installation-lane.py',
              'plan-check.py', 'recover-check.py', 'installation-numeric-check.py',
-             'stress-role-check.py', 'stress-parity-lane.py')
+             'stress-role-check.py')
 
 
 def encode(value):
@@ -307,10 +308,6 @@ def run_all(bindings, binding_sha256, work):
         coverage[verb] = observed
     lane('stress-roles', 'stress-role-check.py', flags(dict(ordinary=files['release'], stress=files['stress-release'],
          diagnostic=files['determinism'])))
-    lane('stress', 'stress-parity-lane.py', flags(dict(go, binary=files['stress-release'], input=files['replay-input'],
-         **{'ordinary-binary': files['release'], 'stress-cycle': files['stress-cycle'],
-            'stress-cycle-sha256': digest(files['stress-cycle'].read_bytes()), 'work': work / 'stress'})), ('stress',),
-         ('stress-parity-result.json', 'gomad.stress-semantic-parity/v1'), '')
     require(set(coverage) == set(PUBLIC_VERBS), 'incomplete public verb coverage')
     load_bindings(bindings, binding_sha256)
     authenticate_commands(work)

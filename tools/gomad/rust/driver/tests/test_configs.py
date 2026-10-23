@@ -58,7 +58,7 @@ class ConfigurationContract(unittest.TestCase):
                     self.assertEqual(spec['Manifest']['IntegratedSourceSHA256'], 'sha256:' + digest)
             self.assertFalse(attempt.exists())
 
-    def test_stress_freeze_pins_static_inputs_before_plan_and_allverb_binding(self):
+    def test_public_binding_freeze_relocates_static_inputs_without_a_stress_cycle(self):
         import configure
         import json
         import tempfile
@@ -70,20 +70,14 @@ class ConfigurationContract(unittest.TestCase):
             template = root / 'template.json'
             template.write_text(json.dumps(dict(schema='gomad.all-verb-bindings/v1',
                 files=dict(release=dict(path='input', sha256=sha(static))), trees={})))
-            config = dict(repo='/repo', root='/attempt', source_manifest=str(static), source_sha256=sha(static),
-                sent_epoch=1, deadline_s=3600, identity=dict(host='1'*64, helper='2'*64), binary_sha256='3'*64,
-                stress=dict(spec=str(static), binary=str(static), build_receipt=str(static), producer_root='/attempt/stress', producer_name='stress'),
-                files={str(static): sha(static), str(template): sha(template)}, public_verbs=dict(bindings=str(template)))
-            configure.freeze_final_cycle(config, root / 'config.json')
-            plan = read(config['stress_cycle'])
-            self.assertNotIn(config['stress_cycle'], plan['files'])
-            self.assertNotIn(config['public_verbs']['bindings'], plan['files'])
+            config = dict(files={str(static): sha(static), str(template): sha(template)}, public_verbs=dict(bindings=str(template)))
+            configure.freeze_public_binding(config, root / 'config.json')
             binding = read(config['public_verbs']['bindings'])
-            self.assertEqual(binding['files']['stress-cycle'], dict(path=config['stress_cycle'], sha256=sha(config['stress_cycle'])))
+            self.assertNotIn('stress-cycle', binding['files'])  # ruling 7: post-freeze stress window
             self.assertEqual(binding['files']['release']['path'], str(static))
-            self.assertEqual(config['files'][config['stress_cycle']], sha(config['stress_cycle']))
-            with self.assertRaisesRegex(Refusal, 'generated for this freeze'):
-                configure.freeze_final_cycle(config, root / 'again.json')
+            self.assertEqual(config['files'][config['public_verbs']['bindings']], sha(config['public_verbs']['bindings']))
+            with self.assertRaisesRegex(Refusal, 'must be fresh'):
+                configure.freeze_public_binding(config, root / 'again.json')
 
     def test_all_native_profile_roles_expand_their_actual_admission_closure(self):
         import configure

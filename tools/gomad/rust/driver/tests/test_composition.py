@@ -149,8 +149,9 @@ class CompositionTests(unittest.TestCase):
 
     def test_fixed_final_partition_and_order(self):
         sections = compose.final_sections('/sealed/python', Path('/sealed/driver.json'))
-        self.assertEqual(len([item for row in sections.values() for item in row['required']]), 8)
-        self.assertLess(sorted(sections).index('10-stress'), sorted(sections).index('90-public-verbs'))
+        self.assertEqual(len([item for row in sections.values() for item in row['required']]), 7)
+        self.assertNotIn('10-stress', sections)  # ruling 7: post-freeze stress window
+        self.assertEqual(sorted(sections)[-1], '90-public-verbs')
         self.assertIn('--read-only', sections['40-retained']['argv'])
         self.assertNotIn('--read-only', sections['60-inspection']['argv'])
 

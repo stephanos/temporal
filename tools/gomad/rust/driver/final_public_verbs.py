@@ -48,24 +48,7 @@ def binding(config):
     require(goldens, 'missing raw golden corpus')
     for item in goldens:
         live.sealed_input(config, item)
-    stress_cycle(config, files)
     return path, lane, goldens
-
-
-def stress_cycle(config, files):
-    path = Path(config['stress_cycle'])
-    require(files.get('stress-cycle') == path, 'public verbs borrowed another stress cycle plan')
-    live.sealed_input(config, str(path))
-    plan = read(path)
-    fields = ('repo', 'root', 'source_manifest', 'source_sha256', 'sent_epoch', 'deadline_s', 'identity', 'binary_sha256', 'stress')
-    dry = {'dry_run'} if config.get('dry_run') is True else set()
-    require(set(plan) == {'schema', 'files', *fields} | dry and plan['schema'] == 'gomad.stress-cycle/v1'
-            and all(plan[key] == config[key] for key in fields), 'old/foreign public stress cycle footprint')
-    expected_files = {name: digest for name, digest in config['files'].items()
-                      if name not in (str(path), config['public_verbs']['bindings'])}
-    require(bool(expected_files) and plan['files'] == expected_files,
-            'public stress plan inputs differ from frozen cycle')
-    return plan
 
 
 def authenticate_lanes(config, work, lane, bindings=None):
@@ -78,9 +61,10 @@ def authenticate_lanes(config, work, lane, bindings=None):
                  ('qualify-report', 'qualify-lane.py'), ('installation', 'installation-lane.py')]
     names = [name for name, _ in endpoints]
     names += [verb + '-' + lineage for verb in ('qualify-set', 'merge-set', 'compare-support') for lineage in ('go', 'rust')]
-    names += ['stress-roles', 'stress']
+    # Ruling 7: the stress verb's matrix parity runs in the post-freeze stress window; role exclusion stays here.
+    names += ['stress-roles']
     require([row['name'] for row in commands] == names, 'missing/duplicate/reordered fixed parity commands')
-    endpoints += [('stress-roles', 'stress-role-check.py'), ('stress', 'stress-parity-lane.py')]
+    endpoints += [('stress-roles', 'stress-role-check.py')]
     by_name = {row['name']: row for row in commands}
     files, trees = bindings if bindings is not None else lane.load_bindings(
         Path(config['public_verbs']['bindings']), sha(config['public_verbs']['bindings']), config)
@@ -109,12 +93,8 @@ def authenticate_lanes(config, work, lane, bindings=None):
             'qualify-report': 'go-binary go-helper go-source go-compiler binary input work cells preparation-root',
             'installation': 'go-binary go-helper go-source go-compiler binary work preparation-root role-binary',
             'stress-roles': 'ordinary stress diagnostic',
-            'stress': 'go-binary go-helper go-source go-compiler binary input ordinary-binary stress-cycle stress-cycle-sha256 work',
         }
         require(set(values) == {'--' + item for item in expected_flags[name].split()}, 'missing/unknown fixed parity flags')
-        if name == 'stress':
-            require(values['--stress-cycle'] == config['stress_cycle']
-                    and values['--stress-cycle-sha256'] == sha(config['stress_cycle']), 'foreign stress lane cycle pin')
         for flag, value in values.items():
             if flag in ('--source', '--go-source', '--cluster-source'):
                 tree_name = 'cluster-source' if flag == '--cluster-source' else 'source'
@@ -133,7 +113,7 @@ def authenticate_lanes(config, work, lane, bindings=None):
             require(values.get('--work', values.get('--output')) == str(work / name), 'foreign parity output root')
         if name in ('explore', 'resume', 'execute-shard', 'merge'):
             require(values.get('--verb') == name, 'wrong distinct parity verb')
-        for flag, role in (('--binary', 'release' if name == 'installation' else 'stress-release' if name == 'stress' else 'fixture'),
+        for flag, role in (('--binary', 'release' if name == 'installation' else 'fixture'),
                            ('--rust-binary', 'fixture'), ('--ordinary', 'release'), ('--stress', 'stress-release'),
                            ('--diagnostic', 'determinism'), ('--ordinary-binary', 'release'),
                            ('--stress-binary', 'stress'), ('--determinism-binary', 'determinism'),
@@ -155,7 +135,7 @@ def authenticate_lanes(config, work, lane, bindings=None):
                             (b'unknown command', b'unknown gomad command', b'unsupported command')),
                     'missing/changed original unsupported verb comparison')
     nested = {'inspect': 'fresh-parity', 'replay': 'fresh-parity', 'explore': '', 'resume': '',
-              'execute-shard': '', 'merge': '', 'minimize': '', 'qualify-report': '', 'installation': '', 'stress': ''}
+              'execute-shard': '', 'merge': '', 'minimize': '', 'qualify-report': '', 'installation': ''}
     for name, relative in nested.items():
         command_root = work / name / relative
         lane.authenticate_commands(command_root, checked_in_lane=name == 'installation')
@@ -176,12 +156,11 @@ def authenticate_lanes(config, work, lane, bindings=None):
         'execute-shard': ('campaign-semantic-parity.json', 'gomad.campaign-semantic-parity/v1'),
         'merge': ('campaign-semantic-parity.json', 'gomad.campaign-semantic-parity/v1'),
         'minimize': ('minimize-reference-result.json', 'gomad.minimize-reference-parity/v1'),
-        'stress': ('stress-parity-result.json', 'gomad.stress-semantic-parity/v1'),
     }
     for name, (relative, schema) in receipts.items():
         receipt = lane.require_receipt(work / name, relative, schema)
         require(len(receipt) > 1, 'schema-only parity receipt')
-    expected_coverage = {verb: [verb] for verb in ('inspect', 'replay', 'explore', 'resume', 'execute-shard', 'merge', 'minimize', 'stress')}
+    expected_coverage = {verb: [verb] for verb in ('inspect', 'replay', 'explore', 'resume', 'execute-shard', 'merge', 'minimize')}
     expected_coverage.update({verb: ['qualify-report'] for verb in ('qualify', 'report')})
     expected_coverage.update({verb: ['installation'] for verb in ('install', 'discover', 'doctor', 'plan', 'recover', 'analyze')})
     expected_coverage.update({verb: [dict(lineage=lineage, status=2, availability='unsupported') for lineage in ('go', 'rust')]
@@ -213,9 +192,6 @@ def authenticate(config, root, argv, goldens, lane):
     files, _ = bindings
     lane.authenticate_commands(work)
     authenticate_lanes(config, work, lane, bindings)
-    plan = stress_cycle(config, files)
-    stress = load_module('public_same_cycle_stress', lane.CORPUS / 'stress-parity-lane.py')
-    stress.read_cycle(plan, root)
     for path, digest in goldens.items():
         require(Path(path).is_file() and sha(path) == digest, 'raw golden corpus changed')
     # Reopen all pinned original custody/source inputs after the fresh differential.

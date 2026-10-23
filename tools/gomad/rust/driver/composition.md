@@ -12,12 +12,15 @@ canonical interpreter path), and `static` (the existing
 `gomad.driver-static-inputs/v1` object). `static.driver_config` and
 `FUTURE_CONFIG` must be equal. The base supplies the actual binary, build receipts,
 installations, runtime harness, scenarios, independent SQLite oracle, live corpus,
-private observations, `final_profiles`, `final_retained`, `stress`, and
+private observations, `final_profiles`, `final_retained` and
 `public_verbs: {bindings: ABSOLUTE_ALL_VERB_BINDINGS}`. Generated bindings are
 published only after preflight succeeds. The existing `configure.py` then freezes
 the resulting bindings. No future producer output digest belongs in these inputs.
 
-The final sections run stress first and public verbs last. The public reader
+Ruling 7 (revised): the fn-188.5 stress matrix runs right after the freeze on the
+frozen candidate, outside this one-hour cycle; a configuration binding `stress` is
+refused and the public verbs gate keeps only the compiled stress-role exclusion.
+The final sections run public verbs last. The public reader
 executes the fixed `scripts/all-verb-parity` once, authenticates its fresh process
 journals, aggregate, complete raw inventory, fixed lane commands and all original
 source/custody and golden files. Retained and operator final readers use `--read-only`; their stage-owned
@@ -48,13 +51,8 @@ oracles, histories, process journals, measured results and actual private
 preparation captures. `sqlite_oracle` is the reviewed independent actual native
 state/context oracle command; missing executable inputs refuse freezing.
 
-Freezing creates `stress-cycle.json` from the exact static input table, then a
-new `public-verbs-bindings.json` whose `stress-cycle` file entry pins that plan.
-The final configuration seals both documents. The plan excludes these generated
-documents and never contains a future output digest. Caller supplied cycle plans
-are refused; `stress_cycle` may be omitted or set to `GENERATE`. Public verbs
-requires this cycle's exact static footprint and independently calls the stress
-raw reader after authenticating the lane commands.
+Freezing relocates the static all-verb binding to a new
+`public-verbs-bindings.json` beside the configuration and seals it.
 
 `native_measurement: {admission: ABSOLUTE_NATIVE_RELEASE_ADMISSION}` supplies the
 sealed ordinary bootstrap. Freezing expands its actual build receipt, compiler and

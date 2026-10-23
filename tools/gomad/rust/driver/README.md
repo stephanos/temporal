@@ -72,8 +72,11 @@ identity change may inherit the resulting candidate binding.
 Record `sent_epoch` **before** configuration/freezing and preamble work. It is
 never reset by a stage, preparation, scheduler or final reader. Elapsed wall time
 includes preamble, source hashing, host admission, suspension and final checks.
-A limit above 3600 seconds is refused. Successful stages finish after an overrun
-so complete evidence survives, but the whole attempt exits 3. Fresh evidence
+A limit above 3600 seconds is refused. Wall time is measured and recorded but not
+blocking until the quiet-host window (owner decision "Performance deferred to the
+quiet-host window"): an overrun run that otherwise passes exits 0 and its
+`outcome.json` records `performance.status: deferred-perf` with the measured
+wall seconds. Memory and capacity bounds stay strict. Fresh evidence
 roots are exclusive; repeating an attempt never replaces an earlier one.
 
 From the repository root, after all endpoint bindings are integrated and reviewed:
@@ -102,9 +105,9 @@ argv and PID across exec. An interrupted/timed-out process is killed and reaped
 and recorded inconclusive. Receiver-owned scheduler cleanup also kills registered
 command groups left by a hard-killed stage; the retained scheduler is unchanged.
 
-Exit 0 means every actual stage, subgate and final reader passed within the
-window. Exit 1 means a stage failed (its receipt distinguishes UNEXECUTED exit 4).
-Exit 2 is setup/final-admission refusal, exit 3 is complete overrun, and 130 is
+Exit 0 means every actual stage, subgate and final reader passed (any wall-time
+overrun is recorded as deferred-perf). Exit 1 means a stage failed (its receipt
+distinguishes UNEXECUTED exit 4). Exit 2 is setup/final-admission refusal, and 130 is
 interruption. A final reader with absent original evidence never yields exit 0.
 
 ## Executable semantic mappings

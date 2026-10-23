@@ -15,7 +15,7 @@ class FinalReader(unittest.TestCase):
             return dict(schema='gomad.rust-driver-final-section/v1', source_sha256=config['source_sha256'],
                         identity=config['identity'], subgates=[dict(id=name, status='PASS', executed=True, exit=0) for name in ids])
         rows = [report(wanted[:124]), report(wanted[124:])]
-        self.assertEqual(len(final.merge_reports(config, rows)), 146)
+        self.assertEqual(len(final.merge_reports(config, rows)), 145)
         for mutation in ('missing', 'duplicate', 'unexecuted', 'foreign', 'synthetic', 'skipped'):
             changed = [report(wanted[:124]), report(wanted[124:])]
             if mutation == 'missing': changed.pop()
@@ -28,7 +28,8 @@ class FinalReader(unittest.TestCase):
 
 
 class ReceivingPartition(unittest.TestCase):
-    def test_exact_124_live_14_receiving_and_eight_unbound(self):
+    def test_exact_124_live_14_receiving_and_seven_unbound(self):
+        # Ruling 7 moved the stress matrix obligation to the post-freeze stress window.
         import final
         self.assertEqual(len(final.live.required()), 124)
         self.assertEqual(len(final.receiving.OWNED), 14)
@@ -39,7 +40,6 @@ class ReceivingPartition(unittest.TestCase):
             'operator/detached-installed-discover-inspect-replay',
             'public-verbs/fresh-differential-and-raw-golden-integrity',
             'retained/20-fresh-observed-replays',
-            'stress/41-cases-four-axes-original-repetitions',
             'terminal/current-host-admission-and-linked-attribution',
         })
 

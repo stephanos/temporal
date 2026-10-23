@@ -140,7 +140,6 @@
     "terminal/current-host-admission-and-linked-attribution",
     "retained/20-fresh-observed-replays",
     "operator/detached-installed-discover-inspect-replay",
-    "stress/41-cases-four-axes-original-repetitions",
     "inspection/rotated-three-node-ringpop-120s-fresh-exact-replay",
     "fn185-R4/runtime-cost-equivalent-release-behavior",
     "fn185-R4/qualified-workload-choice-wasi-network-stdout-stderr-preservation",

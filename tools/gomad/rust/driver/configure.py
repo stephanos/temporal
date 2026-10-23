@@ -144,26 +144,8 @@ def runtime_harness_inputs(config):
     return {path} | set(receipt['inputs'])
 
 
-def resolve_stress_spec(config, output):
-    """Bind an assembled stress spec template to this freeze's actual source manifest."""
-    template = read(config['stress']['spec'])
-    require(template.get('schema') == 'gomad.rust-stress-spec/v1', 'foreign stress spec template')
-    if template['source_manifest'] == 'SOURCE_MANIFEST':
-        require(template['source_sha256'] == 'SOURCE_SHA256', 'partially resolved stress spec template')
-        spec = output.parent / 'stress-spec.json'
-        require(not spec.exists(), 'resolved stress spec must be fresh')
-        write(spec, dict(template, source_manifest=config['source_manifest'], source_sha256=config['source_sha256']))
-        config['stress']['spec'] = str(spec)
-
-
-def freeze_final_cycle(config, output):
-    """Pin static inputs, then PLAN, then its all-verb binding; outputs have no hash cycle."""
-    require(config.get('stress_cycle', 'GENERATE') == 'GENERATE', 'stress cycle must be generated for this freeze')
-    require(set(config['stress']) == {'spec', 'binary', 'build_receipt', 'producer_root', 'producer_name'},
-            'missing/unknown actual stress producer inputs')
-    for key in ('spec', 'binary', 'build_receipt'):
-        path = config['stress'][key]
-        require(config['files'].get(path) == sha(path), 'unsealed actual stress input: ' + key)
+def freeze_public_binding(config, output):
+    """Relocate the static all-verb binding beside the frozen configuration and pin it."""
     template = Path(config['public_verbs']['bindings'])
     require(config['files'].get(str(template)) == sha(template), 'unsealed public verb binding template')
     declared = read(template)
@@ -175,18 +157,8 @@ def freeze_final_cycle(config, output):
     for binding in declared['trees'].values():
         for key in ('path', 'inventory'):
             binding[key] = str((template.parent / binding[key]).resolve())
-    fields = ('repo', 'root', 'source_manifest', 'source_sha256', 'sent_epoch', 'deadline_s', 'identity', 'binary_sha256', 'stress')
-    plan = {key: config[key] for key in fields}
-    if config.get('dry_run') is True:
-        plan['dry_run'] = True
-    plan.update(schema='gomad.stress-cycle/v1', files=dict(config['files']))
-    plan_path = output.parent / 'stress-cycle.json'
     binding_path = output.parent / 'public-verbs-bindings.json'
-    require(not plan_path.exists() and not binding_path.exists(), 'final cycle outputs must be fresh')
-    write(plan_path, plan)
-    config['stress_cycle'] = str(plan_path)
-    config['files'][str(plan_path)] = sha(plan_path)
-    declared['files']['stress-cycle'] = dict(path=str(plan_path), sha256=sha(plan_path))
+    require(not binding_path.exists(), 'final cycle outputs must be fresh')
     write(binding_path, declared)
     config['public_verbs']['bindings'] = str(binding_path)
     config['files'][str(binding_path)] = sha(binding_path)
@@ -220,8 +192,8 @@ def freeze(bindings, output, source_manifest):
                   head=subprocess.check_output(['git', '-C', str(REPO), 'rev-parse', 'HEAD'], text=True).strip(),
                   source_manifest=str(source_manifest), source_sha256=sha(source_manifest),
                   symlinks={str(REPO / path): os.readlink(REPO / path) for path in paths if path and (REPO / path).is_symlink()})
-    if bound('stress'):
-        resolve_stress_spec(config, output)
+    # Ruling 7: the fn-188.5 stress matrix runs in its own post-freeze window, not in this cycle.
+    require('stress' not in config and 'stress_cycle' not in config, 'stress matrix belongs to the post-freeze stress window')
     inputs = {str(STAT)} | set(config.pop('inputs')) | set(source_files) | {str(source_manifest)}
     inputs.update(str(path) for path in FROZEN.glob('*.py'))
     inputs.update(str(path) for path in FROZEN.glob('*.sh'))
@@ -279,8 +251,6 @@ def freeze(bindings, output, source_manifest):
     if divergence is not None:
         import counterfactual_receiving
         inputs.update(counterfactual_receiving.input_paths(divergence, Path(config['repo'])))
-    if bound('stress'):
-        inputs.update(config['stress'][key] for key in ('spec', 'binary', 'build_receipt'))
     config['files'] = {str(Path(path).resolve()): sha(path) for path in sorted(inputs)}
     import sqlite_oracle
     sqlite_oracle.validate_build(config)
@@ -291,8 +261,8 @@ def freeze(bindings, output, source_manifest):
     config['terminal_module_spec'] = str(terminal_spec)
     config['files'][str(terminal_spec)] = sha(terminal_spec)
     inputs.add(str(terminal_spec))
-    if bound('stress') and bound('public_verbs'):
-        freeze_final_cycle(config, output)
+    if bound('public_verbs'):
+        freeze_public_binding(config, output)
         import final_public_verbs
         final_public_verbs.binding(config)
     import native_roles

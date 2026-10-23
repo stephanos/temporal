@@ -25,9 +25,13 @@ class DriverContract(unittest.TestCase):
                 driver.coverage(['a'], rows)
 
     def test_deadline_includes_send_preamble_final_and_suspension(self):
+        # Performance deferred to the quiet-host window: the overrun is recorded, not blocking.
         self.assertEqual(driver.verdict(0, 100, 3700, 3600), 0)
-        self.assertEqual(driver.verdict(0, 100, 3700.01, 3600), 3)
+        self.assertEqual(driver.verdict(0, 100, 3700.01, 3600), 0)
+        self.assertEqual(driver.verdict(3, 100, 3700.01, 3600), 0)
         self.assertEqual(driver.verdict(1, 100, 3800, 3600), 1)
+        self.assertEqual(driver.performance(100, 3700, 3600)['status'], 'within')
+        self.assertEqual(driver.performance(100, 3700.5, 3600), dict(status='deferred-perf', wall_seconds=3600.5, deadline_seconds=3600))
         for limit in (0, -1, 3601, float('nan'), float('inf')):
             with self.subTest(limit=limit), self.assertRaises(driver.Refusal):
                 driver.deadline(limit)

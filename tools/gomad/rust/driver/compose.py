@@ -15,7 +15,6 @@ import static_stages
 import primary_stages
 
 SECTIONS = {
-    '10-stress': ('stress-parity-lane.py', ['stress/41-cases-four-axes-original-repetitions']),
     '20-profiles': ('final_profiles.py', [
         'terminal/current-host-admission-and-linked-attribution',
         'fn185-R4/runtime-cost-equivalent-release-behavior',
@@ -27,7 +26,7 @@ SECTIONS = {
 }
 
 
-DRY_RUN_GROUPS = ('final_profiles', 'final_retained', 'stress', 'public_verbs', 'private_observations',
+DRY_RUN_GROUPS = ('final_profiles', 'final_retained', 'public_verbs', 'private_observations',
                   'live_corpus', 'fn222', 'terminal_controls_reference')
 
 
@@ -187,7 +186,9 @@ def compose(inputs, base, plan_path, bindings_path, config_path):
         # Stages still bind the native profile roles; the fn-185 R4 producers remain unbound.
         unbound.append('final_profiles')
     # The pre-freeze dry run executes every bound stage; its unbound groups stay UNEXECUTED and fail the final reader.
-    for key in ('final_profiles', 'final_retained', 'stress', 'public_verbs', 'private_observations'):
+    # Ruling 7: the fn-188.5 stress matrix runs in its own post-freeze window, not in this cycle.
+    require('stress' not in result, 'stress matrix belongs to the post-freeze stress window, not the cycle')
+    for key in ('final_profiles', 'final_retained', 'public_verbs', 'private_observations'):
         require(dry or result.get(key), 'missing actual final input binding: ' + key)
     if dry:
         result['dry_run_unexecuted'] = unbound + ['live_corpus/' + name for name in sorted(set(live.FAMILIES) - set(bound_families))]
