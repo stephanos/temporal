@@ -118,6 +118,20 @@ def bind_primitives(config, config_path):
     config['stages']['sqlite-catalogue'] = dict(adapter='sqlite-catalogue', oracle=oracle)
 
 
+def assemble_static(inputs, base, plan_path, temporary):
+    """Recompute a provisioned plan without overwriting its immutable GNU binding."""
+    actual = plan_path if not plan_path.exists() else temporary / 'reviewed-static-plan.json'
+    result = static_stages.assemble(inputs, base, actual, temporary / 'static-bindings.json')
+    if actual != plan_path:
+        require(read(plan_path) == read(actual), 'provisioned static plan differs from the current fixed recipes or actual tool inputs')
+        for entry in result['stages'].values():
+            for key in ('argv', 'checker'):
+                if key in entry:
+                    entry[key] = [str(plan_path) if token == str(actual) else token for token in entry[key]]
+        result['inputs'] = sorted({str(plan_path) if token == str(actual) else token for token in result['inputs']})
+    return result
+
+
 def compose(inputs, base, plan_path, bindings_path, config_path):
     require(set(inputs) == {'schema', 'static', 'python'}, 'unknown/missing composition input fields')
     require(inputs['schema'] == 'gomad.driver-composition-inputs/v1', 'unknown composition schema')
@@ -131,7 +145,7 @@ def compose(inputs, base, plan_path, bindings_path, config_path):
     # Static assembly owns only its 24 labels; restore the independently typed runtime bindings.
     require(not bindings_path.exists(), 'composed bindings output must be fresh')
     with tempfile.TemporaryDirectory(prefix='gomad-composition-', dir=bindings_path.parent) as temporary:
-        result = static_stages.assemble(inputs['static'], result, plan_path, Path(temporary) / 'static-bindings.json')
+        result = assemble_static(inputs['static'], result, plan_path, Path(temporary))
     result['stages'].update({label: entry for label, entry in original.items() if label not in static_stages.LABELS})
     for label in primary_stages.OWNED:
         result['stages'][label] = dict(adapter='primary')
