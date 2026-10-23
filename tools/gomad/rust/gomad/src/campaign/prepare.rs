@@ -201,17 +201,25 @@ pub(crate) fn installation_profile(options: &ExploreOptions) -> Result<String, S
 /// # Errors
 /// Refuses incompatible installations, unsupported targets and changed build inputs.
 pub fn prepare(options: &ExploreOptions) -> Result<Prepared, String> {
+    prepare_observed(options).map(|(prepared, _)| prepared)
+}
+
+/// Prepares like [`prepare`] and also returns the compiler arguments of every
+/// command this preparation actually ran; a compile-cache hit runs no build.
+pub(crate) fn prepare_observed(
+    options: &ExploreOptions,
+) -> Result<(Prepared, Vec<Vec<String>>), String> {
     prepare_with_compiler_controls(options, &CompilerControls::default())
 }
 
 pub(crate) fn prepare_with_compiler_controls(
     options: &ExploreOptions,
     controls: &CompilerControls,
-) -> Result<Prepared, String> {
+) -> Result<(Prepared, Vec<Vec<String>>), String> {
     let deadline = Instant::now()
         .checked_add(options.overall_timeout)
         .ok_or("overall_timeout: preparation deadline exceeds clock range")?;
-    let result = prepare_before_deadline(options, controls, deadline, false);
+    let result = prepare_observed_before_deadline(options, controls, deadline, false);
     process::check_deadline(deadline)?;
     result
 }
@@ -221,20 +229,6 @@ pub(crate) fn prepare_runtime_qualification(options: &ExploreOptions) -> Result<
         .checked_add(options.overall_timeout)
         .ok_or("runtime qualification preparation deadline exceeds clock range")?;
     let result = prepare_before_deadline(options, &CompilerControls::default(), deadline, true);
-    process::check_deadline(deadline)?;
-    result
-}
-
-/// Prepares like [`prepare`] and also returns the compiler arguments of every
-/// command this preparation actually ran; a compile-cache hit runs no build.
-pub(crate) fn prepare_observed(
-    options: &ExploreOptions,
-) -> Result<(Prepared, Vec<Vec<String>>), String> {
-    let deadline = Instant::now()
-        .checked_add(options.overall_timeout)
-        .ok_or("overall_timeout: preparation deadline exceeds clock range")?;
-    let result =
-        prepare_observed_before_deadline(options, &CompilerControls::default(), deadline, false);
     process::check_deadline(deadline)?;
     result
 }
