@@ -608,3 +608,31 @@ fn invalid_result_publication_fabricates_nothing() {
     );
     std::fs::remove_dir(&root).unwrap();
 }
+
+/// The success/canary pair check of a support row: the two cells may differ
+/// only in their arguments and configuration; a changed policy, build input,
+/// module identity, module size or workload source is refused.
+#[test]
+fn support_success_and_canary_must_match_except_arguments_and_configuration() {
+    let success = policy_fixture(SELECTIONS[0]);
+    let policy = json!({"fixture":"policy"});
+    let pair = |canary: &QualificationResult, canary_policy: &Value, bytes: u64| {
+        matched_pair((&success, &policy, 7), (canary, canary_policy, bytes))
+    };
+    let mut canary = success.clone();
+    canary.provenance["inputs"]["arguments"] = json!(["canary"]);
+    canary.provenance["configuration"]["arguments"] = json!(["canary"]);
+    pair(&canary, &policy, 7).unwrap();
+    assert!(pair(&canary, &json!({"fixture":"changed"}), 7).is_err());
+    assert!(pair(&canary, &policy, 8).is_err());
+    for field in ["tags", "source", "module", "workload"] {
+        let mut changed = canary.clone();
+        match field {
+            "tags" => changed.provenance["inputs"]["tags"] = json!(["changed"]),
+            "source" => changed.provenance["inputs"]["source"] = json!("./changed"),
+            "module" => changed.manifest.module_sha256 = "changed".into(),
+            _ => changed.manifest.workload_source_sha256 = "changed".into(),
+        }
+        assert!(pair(&changed, &policy, 7).is_err(), "{field}");
+    }
+}

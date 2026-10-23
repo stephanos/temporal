@@ -106,10 +106,14 @@ fn sqlite_selection_refuses_unbound_native_state_identities() {
 }
 
 fn bound(raw: &[u8], sqlite: bool) -> Bound {
+    bound_with_choice_limit(raw, sqlite, if sqlite { 8 << 20 } else { 64 << 20 })
+}
+
+fn bound_with_choice_limit(raw: &[u8], sqlite: bool, limit: u64) -> Bound {
     let module = b"\0asm\x01\0\0\0\x05\x03\x01\x00\x01";
     let mut model = json!({"entropy_key":vec![0u8;32],"working_directory_sha256":canonical::digest(b"/workspace"),
         "arguments":{"bytes":0,"count":0,"chunks":0},"environment":{"bytes":0,"count":0,"chunks":0},
-        "mode":1,"limit":if sqlite {8<<20} else {64<<20},"diagnostics":false,"epoch_nanos":0,"read_step_nanos":0,"now":0,
+        "mode":1,"limit":limit,"diagnostics":false,"epoch_nanos":0,"read_step_nanos":0,"now":0,
         "limits":{"calls":100_000,"transcript_bytes":32<<20,"pending_events":4096}});
     if !sqlite {
         model["limits"] =
@@ -348,5 +352,36 @@ fn recovery_keeps_original_three_incarnations_and_complete_crash_bound() {
             )
             .is_err()
         );
+    }
+}
+
+/// The scenario choice bound: an ordinary scenario defaults to 8MiB and keeps
+/// an explicit 4096-byte bound, a registered Temporal workload requires its
+/// original 1GiB bound, and the selected bound reaches every boot of a bound
+/// ordinary scenario (registered workloads pin their own bound at binding).
+#[test]
+fn scenario_choice_bound_reaches_every_boot() {
+    let sqlite = include_bytes!("testdata/sqlite.json");
+    let recovery = include_bytes!("testdata/recovery.json");
+    let mut ordinary: Value = serde_json::from_slice(sqlite).unwrap();
+    ordinary.as_object_mut().unwrap().remove("workload");
+    let ordinary = serde_json::to_vec(&ordinary).unwrap();
+    let choice = crate::campaign::scenario::original_choice_bytes;
+    for raw in [&sqlite[..], &ordinary[..]] {
+        assert_eq!(choice(Some(raw), 0).unwrap(), 8 << 20);
+        assert_eq!(choice(Some(raw), 4096).unwrap(), 4096);
+    }
+    assert_eq!(choice(None, 0).unwrap(), 160);
+    assert_eq!(choice(Some(recovery), 0).unwrap(), 1 << 30);
+    assert_eq!(choice(Some(recovery), 1 << 30).unwrap(), 1 << 30);
+    assert!(choice(Some(recovery), 4096).is_err());
+    for requested in [0, 4096] {
+        let limit = choice(Some(&ordinary), requested).unwrap();
+        let actual = bound_with_choice_limit(&ordinary, true, limit);
+        assert_eq!(actual.request.incarnations.len(), 3);
+        for incarnation in &actual.request.incarnations {
+            let model = incarnation.request.model.as_ref().unwrap();
+            assert_eq!(model.configuration.limit, limit, "{:?}", incarnation.handle);
+        }
     }
 }

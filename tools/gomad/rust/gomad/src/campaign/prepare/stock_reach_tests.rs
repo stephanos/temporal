@@ -533,3 +533,103 @@ fn build_selection_changes_invalidate_compilation_cache() {
     assert_eq!(source_inputs(&tag_only), source_inputs(&full));
     assert_eq!(prepare_with(&["test_dep"]).toolchain, full.toolchain);
 }
+
+/// Schedule half of original `wasi.TestPrototypeSchedulingDeterminism`: the
+/// unchanged `runtime_probes` guest under the cooperative runtime records the
+/// same choice trace and output for each seed in fresh instances, and the
+/// four original seeds produce at least two distinct schedules.
+#[test]
+fn cooperative_runtime_probes_repeat_per_seed_and_diverge_across_seeds() {
+    let root = process::Temporary::new(&std::env::temp_dir()).unwrap();
+    // The cooperative profile refuses a compiler inside the module cache,
+    // where the gate's stock toolchain lives; link the unchanged GOROOT out.
+    let goroot = stock_go().parent().unwrap().parent().unwrap().to_path_buf();
+    let linked = root.0.join("go");
+    let copied = ["-al", "-a"].into_iter().any(|mode| {
+        Command::new("cp")
+            .arg(mode)
+            .arg(&goroot)
+            .arg(&linked)
+            .status()
+            .is_ok_and(|status| status.success())
+            || {
+                let _ = fs::remove_dir_all(&linked);
+                false
+            }
+    });
+    assert!(copied, "stock GOROOT copy failed");
+    let compiler = linked.join("bin/go");
+    let installation = root.0.join("installation.json");
+    install_with(
+        &compiler,
+        &root.0.join("cache"),
+        None,
+        &[
+            "--runtime-root".into(),
+            checkout()
+                .join("tools/gomad/internal/model/runtimesource")
+                .to_string_lossy()
+                .into_owned(),
+            "--profile=gomad.wasi-cooperative/v1".into(),
+            "--compile-cache".into(),
+            root.0.join("compile-cache").to_string_lossy().into_owned(),
+        ],
+        &installation,
+    );
+    let mut options = go_run(
+        &installation,
+        &checkout().join("tools/gomad"),
+        "./internal/backends/wasm/testdata/runtime_probes",
+    );
+    options.choices = true;
+    // The original prototype provider's 1GiB choice bound.
+    options.choice_bytes = 1 << 30;
+    options.execution_timeout = Duration::from_secs(120);
+    let prepared = prepare(&options).unwrap();
+    let mut schedules = BTreeSet::new();
+    for (index, seed) in [0, 1_000_003, 2_000_006, 3_000_009].into_iter().enumerate() {
+        let mut first: Option<(Vec<u8>, Vec<u8>)> = None;
+        for instance in 0..2 {
+            let completion = super::super::execution::run(
+                &prepared,
+                &crate::campaign::ledger::Job {
+                    ordinal: (index * 2 + instance) as u64,
+                    seed,
+                },
+                Duration::from_secs(120),
+                &linked::Cancellation::default(),
+            )
+            .unwrap();
+            let super::super::execution::Completion::Finalized(result) = completion else {
+                panic!("seed {seed} instance {instance} did not finalize");
+            };
+            let record = &result.publication.record;
+            assert!(
+                record.outcome.termination == "exit" && record.outcome.exit_code == Some(0),
+                "seed {seed}: {} {:?}: {}",
+                record.outcome.termination,
+                record.outcome.exit_code,
+                record.outcome.reason
+            );
+            let payloads = &result.publication.payloads;
+            let observed = (
+                payloads["evidence/choice"].clone(),
+                payloads["output/stdout"].clone(),
+            );
+            assert!(!observed.0.is_empty(), "seed {seed}: no choice trace");
+            match &first {
+                None => first = Some(observed),
+                Some(expected) => assert!(
+                    *expected == observed,
+                    "seed {seed}: fresh instance changed its schedule or output"
+                ),
+            }
+        }
+        schedules.insert(first.unwrap().0);
+    }
+    assert!(
+        schedules.len() >= 2,
+        "{} distinct schedules across 4 seeds",
+        schedules.len()
+    );
+}

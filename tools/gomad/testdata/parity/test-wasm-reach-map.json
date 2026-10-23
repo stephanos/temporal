@@ -337,11 +337,11 @@
    "retired": "Go provider lifecycle adapter deleted; the Rust campaign runner has no provider object."
   },
   "tools/gomad/internal/backends/wasm/backend/model_evidence_test.go#TestModelEvidencePreservesRawDefaultAndBindsEffects": {
-   "assertion_applicability": "Rust publishes transcript, storage and network as separate bounded streams; the oversize refusal is the producer transcript_limit (fault-decision corpus case limit 10).",
    "evidence": [
     "rust/gomad/campaign::execution::backend_evidence_tests::model_evidence_preserves_raw_default_and_binds_effects",
     "rust/gomad_wasmhost/volume::faults::tests::go_generated_fault_decision_corpus"
-   ]
+   ],
+   "reason": "Rust publishes transcript, storage and network as separate bounded streams; the oversize refusal is the producer transcript_limit (fault-decision corpus case limit 10)."
   },
   "tools/gomad/internal/backends/wasm/backend/operator_marker_test.go#TestScenarioMarkerClassificationsPreserveReplayPrecedence": {
    "evidence": [
@@ -386,10 +386,12 @@
    ]
   },
   "tools/gomad/internal/backends/wasm/backend/operator_test.go#TestScenarioPreparationSealsInputsAndRejectsBeforeCompiler": {
-   "assertion_applicability": "Execute subtests drove the deleted subprocess helper frame protocol; Rust executes in process.",
    "evidence": [
-    "rust/gomad/shim::tests::scenario_preparation_normalizes_and_rejects_before_compiler"
-   ]
+    "rust/gomad/shim::tests::scenario_preparation_normalizes_and_rejects_before_compiler",
+    "rust/gomad/qualify::workloads::tests::scenario_choice_bound_reaches_every_boot",
+    "rust/gomad_wasmhost/linked_cluster::live_controller_tests::lifecycle_predicate_tests::native_host_termination_preserves_watchdog_and_parent_cancellation_status"
+   ],
+   "reason": "Execute subtests drove the deleted subprocess helper frame protocol; Rust executes in process."
   },
   "tools/gomad/internal/backends/wasm/backend/operator_test.go#TestScenarioPreparationSealsInputsAndRejectsBeforeCompiler@7327/protocol failure precedes cleanup watchdog": {
    "retired": "Asserts the deleted Go-host subprocess helper frame protocol (malformed JSON frame before cleanup watchdog); the Rust helper is linked in process and has no frame protocol."
@@ -526,7 +528,8 @@
   },
   "tools/gomad/internal/backends/wasm/backend/stress_test.go#TestStressScenarioIdentityBindsEveryBootAndExcludesHostLayout": {
    "evidence": [
-    "rust/gomad/stress::reach_tests::stress_host_perturbations_do_not_change_declared_guest_inputs"
+    "rust/gomad/stress::reach_tests::stress_host_perturbations_do_not_change_declared_guest_inputs",
+    "rust/gomad/campaign::scenario::fidelity_tests::scenario_identity_binds_every_boot_and_ignores_declaration_layout"
    ]
   },
   "tools/gomad/internal/backends/wasm/backend/temporal_inspection_integration_test.go#TestTemporalInspectionConfigPreservesFixtureBytes": {
@@ -2553,16 +2556,16 @@
    "retired": "Tests temporalHostMemoryObserver, a helper defined in the Go test file itself for the deleted Go stage-observer diagnostic; Rust qualify has no stage observer."
   },
   "tools/gomad/internal/backends/wasm/qualification/host_memory_test.go#TestHostMemoryPublicationErrorRetainsValidationStagePair": {
-   "assertion_applicability": "No-fabrication half ported; the Go-only stage-observer pair (result.validate.before/after) has no Rust counterpart.",
    "evidence": [
     "rust/gomad/qualify::support::tests::invalid_result_publication_fabricates_nothing"
-   ]
+   ],
+   "reason": "No-fabrication half ported; the Go-only stage-observer pair (result.validate.before/after) has no Rust counterpart."
   },
   "tools/gomad/internal/backends/wasm/qualification/host_memory_test.go#TestHostMemoryReplayErrorRetainsStagePairWithoutDispatch": {
-   "assertion_applicability": "Open-failure-without-dispatch half ported; the Go-only stage-observer pair (replay.open.before/after) has no Rust counterpart.",
    "evidence": [
     "rust/gomad/qualify::cells::replay_reach_tests::missing_retained_artifact_fails_at_open_without_dispatch"
-   ]
+   ],
+   "reason": "Open-failure-without-dispatch half ported; the Go-only stage-observer pair (replay.open.before/after) has no Rust counterpart."
   },
   "tools/gomad/internal/backends/wasm/qualification/integration_test.go#TestActualMatchedFixtureQualification": {
    "evidence": [
@@ -2612,10 +2615,11 @@
    ]
   },
   "tools/gomad/internal/backends/wasm/qualification/qualification_test.go#TestComparisonRejectsUnmatchedLimits": {
-   "assertion_applicability": "Go Matched compared two cell manifests; Rust support binds each cell to one fixed policy (fuel 1<<50, memory 4 GiB), so a mismatched fuel cell is refused per cell. Profile-may-differ has no Rust case: support cells are cooperative only.",
    "evidence": [
-    "rust/gomad/qualify::support::tests::support_policy_refuses_changed_complete_policy_fields"
-   ]
+    "rust/gomad/qualify::support::tests::support_policy_refuses_changed_complete_policy_fields",
+    "rust/gomad/qualify::support::tests::support_success_and_canary_must_match_except_arguments_and_configuration"
+   ],
+   "reason": "Go Matched compared two cell manifests; Rust support binds each cell to one fixed policy (fuel 1<<50, memory 4 GiB), so a mismatched fuel cell is refused per cell. Profile-may-differ has no Rust case: support cells are cooperative only."
   },
   "tools/gomad/internal/backends/wasm/qualification/qualification_test.go#TestCostRequiresRealExecutionMeasurementsAndSeparatesReplay": {
    "basis": "manual mapping by worker A; confirm in review",
@@ -2629,10 +2633,10 @@
    ]
   },
   "tools/gomad/internal/backends/wasm/qualification/qualification_test.go#TestOperatorBaselineIsDetachedAndHostOnly": {
-   "assertion_applicability": "Caller-JSON refusal ported; detachment is by ownership: Rust freeze takes the operator Snapshot by value.",
    "evidence": [
     "rust/gomad/qualify::spec::operator_reach_tests::operator_observation_is_refused_from_caller_json"
-   ]
+   ],
+   "reason": "Caller-JSON refusal ported; detachment is by ownership: Rust freeze takes the operator Snapshot by value."
   },
   "tools/gomad/internal/backends/wasm/qualification/qualification_test.go#TestOperatorCostIncludesSetupGapAndSeparatesLogicalVirtualTime": {
    "basis": "manual mapping by worker A; confirm in review",
@@ -2656,10 +2660,10 @@
    ]
   },
   "tools/gomad/internal/backends/wasm/qualification/qualification_test.go#TestRetainedClusterFreezeRejectsUnobservedPreparation": {
-   "assertion_applicability": "Rust freeze always performs its own preparation, so no caller-supplied unobserved preparation or empty frozen target can be passed; the unobserved operator baseline refusal is ported.",
    "evidence": [
     "rust/gomad/qualify::cells::replay_reach_tests::final_freeze_refuses_unobserved_operator_baseline"
-   ]
+   ],
+   "reason": "Rust freeze always performs its own preparation, so no caller-supplied unobserved preparation or empty frozen target can be passed; the unobserved operator baseline refusal is ported."
   },
   "tools/gomad/internal/backends/wasm/qualification/qualification_test.go#TestRunRejectsOptionsOutsideFrozenManifest": {
    "evidence": [
@@ -3742,9 +3746,9 @@
    "reason": "Named subtest variant runs inside the root receiver mapped for its owner."
   },
   "tools/gomad/internal/backends/wasm/wasi/integration_test.go#TestPrototypeSchedulingDeterminism": {
-   "basis": "weak name correlation within the owning domain; confirm in review",
    "evidence": [
-    "rust/engine/determinism_refuses_unknown_split_remote_reply_fields_and_kinds"
+    "rust/gomad/campaign::prepare::stock_reach_tests::cooperative_runtime_probes_repeat_per_seed_and_diverge_across_seeds",
+    "rust/gomad_wasmhost/model::runtime_preservation::tampered_runtime_tapes_end_in_their_typed_divergence_reasons"
    ]
   },
   "tools/gomad/internal/backends/wasm/wasi/integration_test.go#TestPrototypeTemporal": {
@@ -3903,9 +3907,8 @@
    ]
   },
   "tools/gomad/internal/backends/wasm/wasi/integration_test.go#TestTemporalStorageBrokerPayloadAccounting": {
-   "basis": "weak name correlation within the owning domain; confirm in review",
    "evidence": [
-    "rust/gomad_wasmhost/cluster::handoff::broker::tests::inspection_differential::incremental_recording_matches_eager_oracle_with_storage"
+    "rust/gomad_wasmhost/cluster::handoff::broker::tests::registration_checks_requests_before_payload_and_refusal_keeps_world"
    ]
   },
   "tools/gomad/internal/backends/wasm/wasi/namespace_host_adapter_conformance_test.go#TestNamespaceHostAdapterConformanceCorpus": {
@@ -5384,9 +5387,12 @@
   "tools/gomad/internal/backends/wasm/backend/compilation_cache_test.go#TestCompilationKeyIncludesRuntimeOverlayAndBuildEffects@6240": {
    "root": "Dynamic subtest domain covered by its root mapping (conductor ruling 1)."
   },
-  "tools/gomad/internal/backends/wasm/backend/determinism_integration_test.go#TestDeterminismExecutedDivergenceArtifacts@9714": {
-   "root": "Dynamic subtest domain covered by its root mapping (conductor ruling 1)."
-  },
+  "tools/gomad/internal/backends/wasm/backend/determinism_integration_test.go#TestDeterminismExecutedDivergenceArtifacts@9714": [
+   "draw",
+   "clock",
+   "handoff",
+   "output-clock"
+  ],
   "tools/gomad/internal/backends/wasm/backend/integration_test.go#TestAssemblyHeaderChangesInvalidateCompilationCache@20844": {
    "root": "Dynamic subtest domain covered by its root mapping (conductor ruling 1)."
   },

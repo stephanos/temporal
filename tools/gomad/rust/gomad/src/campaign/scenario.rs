@@ -617,7 +617,7 @@ pub(crate) fn evidence_limit(normalized: &[u8], configured: u64) -> Result<u64, 
         .ok_or_else(|| "capacity: cluster evidence bound overflow".into())
 }
 
-pub(super) fn original_choice_bytes(raw: Option<&[u8]>, requested: u64) -> Result<u64, String> {
+pub(crate) fn original_choice_bytes(raw: Option<&[u8]>, requested: u64) -> Result<u64, String> {
     if let Some(raw) = raw {
         let scenario = parse(raw)?;
         if matches!(
@@ -654,6 +654,37 @@ pub fn normalize(raw: &[u8]) -> Result<Vec<u8>, String> {
 #[cfg(test)]
 mod fidelity_tests {
     use super::*;
+
+    /// Per-boot half of original `TestStressScenarioIdentityBindsEveryBootAndExcludesHostLayout`:
+    /// the normalized scenario identity a stress cell compares binds every
+    /// boot's declared input, including a restart-only boot, while the JSON
+    /// layout of the same declaration does not change it.
+    #[test]
+    fn scenario_identity_binds_every_boot_and_ignores_declaration_layout() {
+        let raw: &[u8] = include_bytes!("../qualify/workloads/testdata/replication.json");
+        let identity = |raw: &[u8]| canonical::digest(&normalize(raw).unwrap());
+        let first = identity(raw);
+        let declared: Value = serde_json::from_slice(raw).unwrap();
+        assert_eq!(
+            identity(&serde_json::to_vec_pretty(&declared).unwrap()),
+            first
+        );
+        let boots = declared["boots"].as_array().unwrap().len();
+        assert_eq!(boots, 4);
+        for index in 0..boots {
+            let mut changed = declared.clone();
+            changed["boots"][index]["args"]
+                .as_array_mut()
+                .unwrap()
+                .push("-test.different-restart-input".into());
+            assert_ne!(
+                identity(&serde_json::to_vec(&changed).unwrap()),
+                first,
+                "boot {} input not bound",
+                declared["boots"][index]["id"]
+            );
+        }
+    }
 
     #[test]
     fn single_linked_helper_refuses_hard_isolation() {

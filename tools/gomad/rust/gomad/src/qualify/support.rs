@@ -307,6 +307,26 @@ fn row_inputs(result: &QualificationResult) -> Result<Value, String> {
     Ok(inputs)
 }
 
+/// A support row's success and canary cells differ only in their
+/// arguments and configuration: policy, build inputs, module and workload
+/// source must match exactly.
+fn matched_pair(
+    success: (&QualificationResult, &Value, u64),
+    canary: (&QualificationResult, &Value, u64),
+) -> Result<(), String> {
+    let ((success, success_policy, success_bytes), (canary, canary_policy, canary_bytes)) =
+        (success, canary);
+    if success_policy != canary_policy
+        || row_inputs(success)? != row_inputs(canary)?
+        || success.manifest.module_sha256 != canary.manifest.module_sha256
+        || success_bytes != canary_bytes
+        || success.manifest.workload_source_sha256 != canary.manifest.workload_source_sha256
+    {
+        return Err("support success/canary policy, source or module differ".into());
+    }
+    Ok(())
+}
+
 fn policy(
     result: &QualificationResult,
     selected: Selection,
@@ -1189,14 +1209,10 @@ fn build(request: &Request) -> Result<SupportList, String> {
             .remove(&(selected.cell.into(), "canary".into()))
             .ok_or("support canary missing")?;
         let m = &success.result.manifest;
-        if success.policy != canary.policy
-            || row_inputs(&success.result)? != row_inputs(&canary.result)?
-            || m.module_sha256 != canary.result.manifest.module_sha256
-            || success.module_bytes != canary.module_bytes
-            || m.workload_source_sha256 != canary.result.manifest.workload_source_sha256
-        {
-            return Err("support success/canary policy, source or module differ".into());
-        }
+        matched_pair(
+            (&success.result, &success.policy, success.module_bytes),
+            (&canary.result, &canary.policy, canary.module_bytes),
+        )?;
         let gates: Vec<_> = request
             .gates
             .iter()
