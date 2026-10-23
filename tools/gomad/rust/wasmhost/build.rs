@@ -49,12 +49,13 @@ fn main() {
         &compiler.stdout,
     )
     .expect("compiler identity capture");
+    let mut binding_inputs = String::new();
+    for (name, value) in &bindings {
+        writeln!(&mut binding_inputs, "{name}\t{value}").expect("feature identity string");
+    }
     fs::write(
         Path::new(&output).join("identity-bindings.tsv"),
-        bindings
-            .iter()
-            .map(|(name, value)| format!("{name}\t{value}\n"))
-            .collect::<String>(),
+        binding_inputs,
     )
     .expect("feature identity capture");
     for name in files.keys() {

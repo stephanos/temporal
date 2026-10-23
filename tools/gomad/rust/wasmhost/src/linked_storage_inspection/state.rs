@@ -76,7 +76,7 @@ pub(super) fn validate(
     let descriptor = input.descriptor();
     descriptor.validate().map_err(|error| error.to_string())?;
     if version == 2 {
-        if !matches!(sections[5], [1] | [2]) || !sections[3].is_empty() {
+        if !matches!(sections[5], [1 | 2]) || !sections[3].is_empty() {
             return Err("retained storage failed stage".into());
         }
     } else if (version == 3) != descriptor.crash_limits.is_some() {
@@ -84,12 +84,25 @@ pub(super) fn validate(
     }
     let snapshots: Vec<crate::volume::VolumeSnapshot> = strict::decode(sections[0])?;
     let history: BTreeMap<String, Vec<Operation>> = strict::decode(sections[1])?;
-    let configured = descriptor.model.volumes();
+    validate_snapshots(&descriptor.model, &snapshots, &history)?;
+    let enumerations = read_enumerations(version, &sections, descriptor, &snapshots)?;
+    if version == 3 {
+        validate_contexts(sections[5], &snapshots, &history, enumerations.as_ref())?;
+    }
+    Ok(())
+}
+
+fn validate_snapshots(
+    model: &crate::volume::StorageModel,
+    snapshots: &[crate::volume::VolumeSnapshot],
+    history: &BTreeMap<String, Vec<Operation>>,
+) -> Result<(), String> {
+    let configured = model.volumes();
     if snapshots.len() != configured.len() || history.len() != configured.len() {
         return Err("retained storage volume inventory".into());
     }
     let mut prior = None;
-    for snapshot in &snapshots {
+    for snapshot in snapshots {
         let config = configured
             .iter()
             .find(|config| config.id == snapshot.id)
@@ -99,7 +112,7 @@ pub(super) fn validate(
             || snapshot.capacity_bytes != config.capacity_bytes
             || snapshot.next_operation == 0
             || snapshot.identity != crate::volume::volume_snapshot_identity(snapshot)
-            || snapshot.pending_operations > descriptor.model.limits.pending_operations
+            || snapshot.pending_operations > model.limits.pending_operations
             || !history.contains_key(&snapshot.id)
         {
             return Err("retained storage snapshot inventory".into());
@@ -123,6 +136,15 @@ pub(super) fn validate(
         }
         prior = Some(snapshot.id.as_str());
     }
+    Ok(())
+}
+
+fn read_enumerations(
+    version: u32,
+    sections: &[&[u8]],
+    descriptor: &crate::storage_transport::StorageDescriptor,
+    snapshots: &[crate::volume::VolumeSnapshot],
+) -> Result<Option<BTreeMap<String, crate::volume::CrashEnumeration>>, String> {
     let enumerations: Option<BTreeMap<String, crate::volume::CrashEnumeration>> =
         strict::decode(sections[2])?;
     if version != 2 {
@@ -139,7 +161,7 @@ pub(super) fn validate(
         }
     }
     if let Some(pages) = &enumerations {
-        if version != 2 && pages.len() != configured.len() {
+        if version != 2 && pages.len() != snapshots.len() {
             return Err("retained storage enumeration inventory".into());
         }
         for (id, page) in pages {
@@ -175,12 +197,17 @@ pub(super) fn validate(
             }
         }
     }
-    if version != 3 {
-        return Ok(());
-    }
+    Ok(enumerations)
+}
 
-    let contexts: BTreeMap<String, StorageCrashContext> = strict::decode(sections[5])?;
-    if contexts.len() != configured.len() {
+fn validate_contexts(
+    raw: &[u8],
+    snapshots: &[crate::volume::VolumeSnapshot],
+    history: &BTreeMap<String, Vec<Operation>>,
+    enumerations: Option<&BTreeMap<String, crate::volume::CrashEnumeration>>,
+) -> Result<(), String> {
+    let contexts: BTreeMap<String, StorageCrashContext> = strict::decode(raw)?;
+    if contexts.len() != snapshots.len() {
         return Err("retained storage evidence: crash context".into());
     }
     for snapshot in snapshots {
@@ -205,10 +232,7 @@ pub(super) fn validate(
             }
             previous = operation.id;
         }
-        if let Some(page) = enumerations
-            .as_ref()
-            .and_then(|pages| pages.get(&snapshot.id))
-        {
+        if let Some(page) = enumerations.and_then(|pages| pages.get(&snapshot.id)) {
             for state in page.states.as_deref().unwrap_or_default() {
                 let selected: std::collections::BTreeSet<_> =
                     state.selected_operations.iter().copied().collect();

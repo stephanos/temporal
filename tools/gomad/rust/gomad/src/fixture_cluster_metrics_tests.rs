@@ -7,7 +7,7 @@ fn actual_cluster_cost_projection_detaches_counters_and_retains_global_backend_o
     let corpus = Path::new(env!("CARGO_MANIFEST_DIR")).join("../../testdata/parity");
     let publication = publication(&corpus, 7).unwrap();
     let input: Inputs = serde_json::from_slice(&publication.payloads[cluster::FILE]).unwrap();
-    let modules = publication.payloads.clone();
+    let modules = publication.payloads;
     let prepared = prepare_configuration(&input.configuration, &modules).unwrap();
     let execution = helper::execute_prepared(prepared).unwrap();
     assert_eq!(execution.incarnations.len(), 3);

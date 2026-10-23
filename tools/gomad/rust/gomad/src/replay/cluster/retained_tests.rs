@@ -830,7 +830,10 @@ fn unstarted_unrequested_test_incarnation_does_not_gain_an_oracle() {
     execution.incarnations.clear();
     let report =
         serde_json::to_value(oracles::assess(&execution, &configuration).unwrap()).unwrap();
-    assert_eq!(report["oracles"].as_array().unwrap().as_slice(), []);
+    assert_eq!(
+        report["oracles"].as_array().unwrap().as_slice(),
+        &[] as &[Value]
+    );
     assert_eq!(report["outcome"], "completed");
     assert_eq!(report["failure_identity"], "");
     observation(

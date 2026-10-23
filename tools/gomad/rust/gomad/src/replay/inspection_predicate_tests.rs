@@ -45,8 +45,7 @@ fn search_admission_refuses_all_original_requests_before_evaluation() {
             _ => unreachable!(),
         }
         let error = search_admission(&evidence, &request, request.search.as_ref().unwrap())
-            .err()
-            .expect(variant);
+            .expect_err(variant);
         println!(
             "{}",
             json!({"schema":"gomad.native-inspection-predicate/v1",

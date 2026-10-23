@@ -181,7 +181,10 @@ fn inspection_control_binds_raw_prefix_registry_and_exact_boundary() {
         "healthy",
     )
     .unwrap();
-    assert!(control.expected == retained.boundaries[2]);
+    assert_eq!(
+        serde_json::to_value(&control.expected).unwrap(),
+        serde_json::to_value(&retained.boundaries[2]).unwrap()
+    );
     let boundary = &control.expected;
     assert_eq!(
         control.world_sha256,
