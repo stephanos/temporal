@@ -311,9 +311,33 @@ pub(crate) fn bounded_text(path: &Path, limit: u64) -> Result<String, Refusal> {
 #[cfg(test)]
 mod tests {
     use super::*;
-    use std::sync::Arc;
 
     #[test]
+    fn direct_helper_timeout_retains_output_and_cleans_scratch() -> Result<(), Refusal> {
+        let root = Path::new(env!("CARGO_MANIFEST_DIR")).join("../../../..").canonicalize()?;
+        let scratch = Scratch::new(&root)?;
+        let mut command = Command::new("python3");
+        command.args(["-c", "import sys,time; print('started', flush=True); time.sleep(10)"]);
+        let failure = run_process_cancelled(
+            &mut command,
+            &scratch.0,
+            "direct",
+            Limits { timeout: Duration::from_secs(1), ..Limits::default() },
+            None,
+            &AtomicBool::new(false),
+        )
+        .err()
+        .ok_or_else(|| Refusal("direct helper exceeded timeout".into()))?;
+        assert!(failure.refusal.0.contains("limit"));
+        assert_eq!(failure.output, "started\n");
+        let path = scratch.0.clone();
+        scratch.finish(Ok(()))?;
+        assert!(!path.exists());
+        Ok(())
+    }
+
+    #[test]
+    #[cfg(target_os = "linux")]
     fn timeout_cleans_descendants_before_return() -> Result<(), Refusal> {
         let root = Path::new(env!("CARGO_MANIFEST_DIR")).join("../../../..").canonicalize()?;
         let scratch = Scratch::new(&root)?;
@@ -330,6 +354,7 @@ mod tests {
     #[cfg(target_os = "linux")]
     fn cancellation_reaps_descendants_in_separate_sessions_and_closes_stdin() -> Result<(), Refusal>
     {
+        use std::sync::Arc;
         let root = Path::new(env!("CARGO_MANIFEST_DIR")).join("../../../..").canonicalize()?;
         let scratch = Scratch::new(&root)?;
         let pids = scratch.0.join("pids");

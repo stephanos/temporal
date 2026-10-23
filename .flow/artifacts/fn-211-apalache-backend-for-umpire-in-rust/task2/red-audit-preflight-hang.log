@@ -1,0 +1,14 @@
+.F....
+======================================================================
+FAIL: test_diagnostic_text_cannot_make_a_hung_preflight_pass (test_backend_process.Supervisor.test_diagnostic_text_cannot_make_a_hung_preflight_pass)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/Users/stephan/Workspace/skunkworks/umpire/temporal/model/scripts/tests/test_backend_process.py", line 109, in test_diagnostic_text_cannot_make_a_hung_preflight_pass
+    with self.assertRaises(subprocess.TimeoutExpired):
+         ~~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^
+AssertionError: TimeoutExpired not raised
+
+----------------------------------------------------------------------
+Ran 6 tests in 0.314s
+
+FAILED (failures=1)

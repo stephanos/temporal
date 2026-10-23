@@ -13,7 +13,7 @@
 {"path":"model/scripts/tests/build-guests.sh","sha256":"5f6ed7c43da856e6df830ac52550c736762924d5fd74717eee8b9ec055d009a6"}
 {"path":"model/scripts/tests/guest-parity.sh","sha256":"83ac98c053630a8cd48ce98d4ca6a0e24f60340a2bf68f0c2164fa09828087d9"}
 {"path":"model/scripts/tests/test_apalache.py","sha256":"f30832a9e197cfd8457c059b4f783e91ea5f78307ed26fa33124bd2fe54e708f"}
-{"path":"model/scripts/tests/test_backend_process.py","sha256":"8d72f69e1b90fd6b66cfb9d6b05224ce85a95dbd3c00a59ee3d61b5535e12d59"}
+{"path":"model/scripts/tests/test_backend_process.py","sha256":"770523533210ccca03ed436ef7458a906db496ea39d8cd8c269a8f8b404d26ee"}
 {"path":"model/scripts/tests/test_guest.py","sha256":"22322dfd0a06cf30853b8507580cc61567b2bca65ed55b510eb0e8de9a6fbe21"}
 {"path":"model/scripts/tests/test_guest_freshness.py","sha256":"2de3fac3a1ccc0b0ad96e77da9656eb1c5ad95cdae03e03aaf9610a15f6eb5c2"}
 {"path":"model/scripts/tests/test_guest_lock.py","sha256":"b9fc07674fcc1dd5cd40f53e885d58e56d0167158d2d90ccd8494d9c9d206934"}
@@ -31,7 +31,7 @@
 {"path":"model/umpire/backends/tlc/src/lib.rs","sha256":"03a6c5fbc3072555ba803c9e019f9d8879309fd75dbfeeee028818d348d9982d"}
 {"path":"model/umpire/backends/tlc/src/module.rs","sha256":"7467d29dde2e0674ac6337ac79a941a0e5492d95ff4248d997bbd4b2b782124a"}
 {"path":"model/umpire/backends/tlc/src/process.py","sha256":"612bc470007baa9c5cb655d7087bd2623f7974ec547af4b3ac2fea08c88896ef"}
-{"path":"model/umpire/backends/tlc/src/process.rs","sha256":"b3b24144806db8137666bc14d070a0bdeb197821216f3ecc4a8e13ac165242a9"}
+{"path":"model/umpire/backends/tlc/src/process.rs","sha256":"2c73440da040e60c55e41365b5586fbcbbe957ca9cf85a000ca1f30954ad33e8"}
 {"path":"model/umpire/backends/tlc/src/runner.rs","sha256":"12ae818b37439c6e571fb8c0da46901b6d256605d74bd527a0ce67ed4b51bc32"}
 {"path":"model/umpire/backends/tlc/tests/controls.rs","sha256":"56081c0823e959f1146a3ee766d8a0cb679fa38d67521965df504c158dcb0a71"}
 {"path":"model/umpire/backends/tlc/tests/fixtures/scaling_model.rs","sha256":"4e2b5f5a79330e461e6613505c874f846e2141228e1279f83bc38c1ca1858939"}
