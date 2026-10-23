@@ -374,7 +374,11 @@ def observations(config, stdout):
             for _ in range(r.count()):
                 tag = r.take(1)[0]
                 r.operation() if tag == 1 else r.quiescence()
+            record_start = r.at
             record = r.record()
+            require(raw[:record_start] == fixture[:record_start] and r.flag(), "network semantic mutant changed original header/operations")
+            retained_world = r.blob()
+            require(r.at == len(raw) and retained_world == decode_network(fixture)["world"], "network semantic mutant changed original World/tail")
             expected = copy.deepcopy(decode_network(fixture)['record'])
             expected_limits = dict(LIMITS)
             mutation = inputs['mutation']
@@ -416,5 +420,6 @@ def observations(config, stdout):
         seen.add(key)
         facts.append(dict(case=case, name=key[1], index=key[2]))
     require(seen == required, 'network harness omitted original raw cases: ' + repr(sorted(required - seen, key=str)))
-    return dict(roots={root: dict(cases=facts, predicates=['exact corpus literals', 'GMNETEV1 framing and Go JSON log reconstruction', 'native record hash preimages and semantic admission', 'exact broker outputs, World and per-node evidence']) for root in ROOTS}, facts=facts,
+    frame_cases = {'per-node fault schedule': 'reject-local-fault', 'bad address': 'reject-ipv4-range', 'unknown link endpoint': 'reject-unknown-from', 'self link': 'reject-self-link', 'duplicate link': 'reject-duplicate-link', 'unordered fault': 'reject-unordered-faults', 'unknown action': 'reject-unknown-action'}
+    return dict(frame_cases={name: dict(corpus=corpus, actual_error=corpora[corpus]['creation_error']) for name, corpus in frame_cases.items()}, roots={root: dict(cases=facts, predicates=['exact corpus literals', 'GMNETEV1 framing and Go JSON log reconstruction', 'native record hash preimages and semantic admission', 'exact broker outputs, World and per-node evidence']) for root in ROOTS}, facts=facts,
                 gaps=[dict(root='TestClusterNetworkFrameRefusesWhatTheGoBrokerRefuses', reason='Shared validates central network configuration; node profile, stock-node and incarnation checks require linked prepare owner observations')])
