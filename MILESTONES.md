@@ -70,6 +70,18 @@ The owner's goal says to follow the conductor's own recommendations when in doub
 3. **One-hour limit.** First time the critical-path stages on the Rust binary. Raise the limit with the owner only if those stages measurably don't fit. Until then the limit stays unchanged.
 4. **Cache-path identity.** Compiled files located in the Go cache are recorded by content, not by absolute path. A guest's identity must not depend on the caller's cache location.
 
+### Find bugs early (owner-approved, 2026-10-23)
+
+1. **Merge gate.** Before anything merges into `gomad`, the merged tree must pass the gate command, with stock Go 1.27.1 first on `PATH`:
+
+   ```
+   make -C tools/gomad test-harness test-rust-engine validate-wasm-determinism
+   ```
+
+   This covers the Go archcheck and support checks, the `gomad` crate tests, the helper engine and transcript corpus in every feature configuration, the determinism inventory, and the driver suite. A change to the interception shim also passes the offline shim harness. Workers run the gate before they report; the conductor reruns it before merging. A red gate blocks the merge.
+2. **Dry-run before freezing.** Every final-cycle stage first runs on the current head without the freeze ceremony, and failed stages are rerun one at a time. That surfaces failures and real stage timings early. The formal frozen one-hour cycle runs only after the dry run is green.
+3. **A red head stops the line.** The first worker that observes the gate red on `gomad` bisects and fixes it with a regression test before any other merge. Goldens are never regenerated to get a green result.
+
 ### Native backend hibernation (owner decision, 2026-10-14)
 
 The owner asked, "why is there a native gate anyway; we can declare the native backend as deferred/hibernating for now". Native backend execution acceptance was deferred while the WASM section was completed. This waiver superseded the earlier exception for newly introduced fn-153/fn-154/fn-179 native gates and inherited native gates. It waived those gates as conditions of WASM/source completion without recording an execution pass or completing native qualification. The ledger below is historical; retirement and removal superseded its revival conditions.
