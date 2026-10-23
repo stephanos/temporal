@@ -350,8 +350,12 @@ fn full_reader_controls(
                 super::super::write(&identity.join(name), &bytes).unwrap();
                 receipts.insert(name, canonical::digest(&bytes));
             }
+            let handles = ["active", "standby"].map(|node| Handle {
+                node: node.into(),
+                incarnation: index as u64 + 1,
+            });
             let observation = json!({"schema":"gomad.cluster-phase-observation/v1", "phase":phase,"before":before,"passed":true,"process_id":pid,
-                "unix_nanos":index*2+if before {1}else{2},"handles":["active","standby"].map(|node|Handle{node:node.into(),incarnation:index as u64+1}),"identity_receipts":receipts});
+                "unix_nanos":index*2+if before {1}else{2},"handles":handles,"identity_receipts":receipts});
             super::super::write(
                 &phases.join(format!("{phase}-{suffix}.json")),
                 &canonical::encode(&observation).unwrap(),
