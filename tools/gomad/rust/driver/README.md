@@ -144,9 +144,17 @@ These synthetic negative fixtures establish receiver behavior only. They earn
 no actual runtime, workload, stress, terminal or qualification gate.
 
 The owned live receiver is `live.py`; `final.py --config CONFIG --root ROOT`
-composes it with separately pinned `final_sections` readers. The live receiver
+composes it with the independent `receiving.py` raw-evidence reader and
+separately pinned `final_sections` readers. The live receiver
 owns 39 transferred roots, 84 admission cells and the distinct complete
-`test-wasm` reach obligation. These are 124 of the 145 final obligations.
+`test-wasm` reach obligation. These are 124 of the 145 final obligations. The integrated receiving reader owns
+13 more: runtime, the mandatory ten result/receipt pairs, SQLite primary/four
+selections/catalogue, and the five Temporal obligations. It must return all 13
+actual passing rows; missing, duplicate, failed or unexecuted evidence refuses.
+Its source and imported cost/workload modules are frozen inputs, never proof of
+execution. Eight obligations remain explicitly unbound: the two fn185-R4 checks,
+rotated ringpop inspection, detached operator, all-public-verb differential,
+20 retained replays, full stress matrix, and current terminal host admission.
 Missing separately owned readers, missing reach mapping or missing actual runs
 refuse completion. Existing historical receipts are not upgraded into a fresh
 candidate proof.
@@ -183,7 +191,7 @@ actual test executions. Original opt-in nonqualification tests are not reported
 as executions. A complete reviewed map and fresh receiving reports remain
 required inputs; this source implementation creates neither.
 
-For each nonowned endpoint, `final_sections.NAME` specifies exact `required` IDs
+For the remaining eight nonowned obligations, `final_sections.NAME` specifies exact `required` IDs
 and pinned reader `argv`. `final.py` appends `--root ROOT`. A section returns
 `gomad.rust-driver-final-section/v1` with exact frozen `source_sha256`, `identity`
 and authenticated `subgates`; their disjoint union with the live section must

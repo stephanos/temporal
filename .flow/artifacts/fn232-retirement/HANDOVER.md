@@ -594,3 +594,44 @@ executions, immutable final source/role freeze, final code-size comparison and
 main retirement acceptance remain root-owned and pending. Prior proofs remain
 bound to their original source and cannot qualify this prospective consolidated
 source by this source-only integration checkpoint.
+
+### Reviewed receiving-reader Python integration + exact final partition
+
+Cherry-picked ONLY reviewed Python/docs commits889296e807,00e7c0607d,
+5fd9d161f0 into this prospective branch. receiving.py/receiving_cost.py and
+producer/Temporal workload-tool metadata are byte-exact reviewed5fd. Skipped
+separate db651 native publisher tests and50f02 native auth repair as instructed;
+NO Rust/helper/workspace/lock bytes changed. Exact127helper lock entries retained.
+Root main1bf4docs-only history was not merged or archived into source custody.
+
+Minimal wiring in final.py invokes receiving.read_receiving(config) directly,
+requires exact13actual PASS/executed/exit0 rows via ordinary coverage, and composes
+them with124live-owned rows. driver.guard's frozen-module inventory now explicitly
+includes receiving.py, receiving_cost.py and imported workload_tools/workloads.py.
+No adapter assertion routine changed: receiving continues cloning the reviewed
+original adapters for read-only authentic retained command/result checking.
+FinalSections must cover exactly8remaining IDs; omitted/duplicated/nonpassing
+outputs refuse, source status never supplies proof. Added portable partition,
+missingactualrows/duplicate/failure/UNEXECUTED and missing8dispatch guards.
+
+Integrated driver portable suite97tests exit0; workload-tools6tests exit0;
+PythonAST/current source equality/unchangedRust+127lock/diff guards exit0. Same
+receiving source-review status remains SHIP for byte-identical modules; minimal
+wiring is submitted for receiving review, not deemed qualification. No Go/Cargo/
+build/guest/runtime/corpus/golden or actualqualification executed.
+
+The precise8UNBOUND final obligations are:
+fn185-R4/qualified-workload-choice-wasi-network-stdout-stderr-preservation;
+fn185-R4/runtime-cost-equivalent-release-behavior;
+inspection/rotated-three-node-ringpop-120s-fresh-exact-replay;
+operator/detached-installed-discover-inspect-replay;
+public-verbs/fresh-differential-and-raw-golden-integrity;
+retained/20-fresh-observed-replays;
+stress/41-cases-four-axes-original-repetitions;
+terminal/current-host-admission-and-linked-attribution.
+
+124live+13receiving=137of145 are source-wired and ALLUNEXECUTED without their real
+raw outputs. Separate3slim selection, complete original test-wasm receiving map
+and actual raw coverage, static/runtime/strictlint/candidate gates, pending native
+source test/review, final immutable source/identity freeze/code-size comparison
+and main retirement remain root-owned pending obligations. No Flow state changed.

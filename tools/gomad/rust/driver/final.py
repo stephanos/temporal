@@ -7,6 +7,7 @@ import sys
 
 from driver import HERE, Refusal, Unexecuted, command, configured, coverage, guard, read, require, sha
 import live
+import receiving
 
 
 def merge_reports(config, reports):
@@ -20,17 +21,32 @@ def merge_reports(config, reports):
     return rows
 
 
+def remaining_ids():
+    required = set(read(HERE / 'required-final.json')['subgates'])
+    live_ids, receiving_ids = set(live.required()), set(receiving.OWNED)
+    require(not live_ids & receiving_ids and live_ids | receiving_ids <= required,
+            'overlapping/unknown owned final endpoints')
+    return required - live_ids - receiving_ids
+
+
+def receiving_report(config):
+    # Invoke the independent raw-evidence reader; source presence earns no row.
+    rows = receiving.read_receiving(config)
+    coverage(receiving.OWNED, rows)
+    return dict(schema='gomad.rust-driver-final-section/v1', source_sha256=config['source_sha256'],
+                identity=config['identity'], subgates=rows)
+
+
 def collect(config, root):
     guard(config)
     require(root == Path(config['root']), 'wrong final attempt root')
-    required = read(HERE / 'required-final.json')['subgates']
-    remaining = set(required) - set(live.required())
+    remaining = remaining_ids()
     endpoints = config.get('final_sections', {})
     observed = [item for entry in endpoints.values() for item in entry['required']]
     if set(observed) != remaining or len(observed) != len(set(observed)):
         raise Unexecuted('missing/duplicate nonowned final endpoints: ' + repr(sorted(remaining ^ set(observed))))
     reports = [dict(schema='gomad.rust-driver-final-section/v1', source_sha256=config['source_sha256'],
-                    identity=config['identity'], subgates=live.read_corpus(config, root))]
+                    identity=config['identity'], subgates=live.read_corpus(config, root)), receiving_report(config)]
     for name, entry in sorted(endpoints.items()):
         require(re_full_name(name), 'invalid final endpoint name')
         argv = entry['argv']
