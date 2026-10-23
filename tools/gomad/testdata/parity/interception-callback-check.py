@@ -8,7 +8,6 @@ import argparse
 import os
 from pathlib import Path
 import selectors
-import shlex
 import signal
 import subprocess
 import time
@@ -115,16 +114,20 @@ def main():
         check.equal(check.authenticate_origin(payload, prepared_record, plan['origin']), sealed, 'callback.same_origin')
     retained = (artifact / 'output/stdout').read_bytes()
     validate_partial(record, delivered, retained)
-    expected = [str(item) for item in [args.binary, '--installation', args.installation, 'replay', artifact]]
-    check.equal(shlex.split(stderr.decode().splitlines()[-1]), expected, 'callback.final_replay_command')
     runner.run('inspect-partial', [args.binary, 'inspect', '--json', artifact], 0)
-    runner.run('verify-partial', [args.binary, 'replay', '--verify-only', artifact], 0)
+    _, unavailable = runner.run('inspect-partial-choices', [args.binary, 'inspect', '--json', '--choices', artifact], 2)
+    check.equal(b'artifact has no choice trace' in unavailable, True, 'callback.no_complete_choice_trace')
+    check.equal(stderr.splitlines()[-1], b'gomad run-guest: no replayable artifact was retained',
+                'callback.no_invented_replay')
+    _, refused = runner.run('verify-partial', [args.binary, 'replay', '--verify-only', artifact], 2)
+    check.equal(b'incompatible replay artifact: WASM artifact exact choice identity mismatch' in refused,
+                True, 'callback.partial_replay_preflight_refusal')
     (args.work / 'observation.json').write_bytes(check.parity.canonical(dict(
         schema='gomad.interception-callback-observation/v1', status=3, artifact=str(artifact),
         delivered_bytes=len(delivered), delivered_sha256=check.parity.digest(delivered),
         retained_bytes=len(retained), retained_sha256=check.parity.digest(retained),
         module_sha256=record['identity']['target'], record_sha256=check.parity.digest(check.parity.canonical(record)),
-        origin=sealed, attempted=1, unexecuted=1, exact_replay_claimed=False)) + b'\n')
+        origin=sealed, attempted=1, unexecuted=1, replayable=False, exact_replay_claimed=False)) + b'\n')
     print('compiled Go closed-consumer partial evidence authenticated')
 
 

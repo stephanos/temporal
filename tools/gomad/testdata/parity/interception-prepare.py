@@ -119,7 +119,7 @@ def corpus_inputs(prepared):
         case('failure-with-replay', 'failure', '2', failure),
         dict(name='unprepared-module', module=prepared['success']['module'], args=[], seeds='1',
              status=2, json=False, replayable=False, outcomes=[]),
-        case('infrastructure', 'infrastructure', '1,3', [outcome(1, 'runner_failure', 'capacity', 3)]),
+        case('infrastructure', 'infrastructure', '1,3', [outcome(1, 'runner_failure', 'capacity', 3)], replayable=False),
         case('standalone-json', 'success', '1,3', success, json=True)], callback=prepared['callback'])
     check.validate_cases(inputs, check.document(check.HERE / 'interception-corpus.json'))
     return inputs
