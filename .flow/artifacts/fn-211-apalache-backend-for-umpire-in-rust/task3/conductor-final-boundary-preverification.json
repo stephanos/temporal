@@ -1,0 +1,11 @@
+{
+  "raw_archive_entries_verified": 208,
+  "prior_artifacts_verified": 558,
+  "changed_artifacts_exactly_authorized_projection_mirrors": 3,
+  "gate_exit": 0,
+  "stage_count": 17,
+  "total_seconds": 824.431,
+  "inner_seconds": 7.632,
+  "receipt_honor": "pending worker receipt and root honor",
+  "closure": "pending worker Flow done and committed handoff"
+}

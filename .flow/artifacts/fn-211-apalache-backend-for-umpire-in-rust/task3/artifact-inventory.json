@@ -67,6 +67,10 @@
     "bytes": 419,
     "sha256": "66137e3ac755a2735236f36ca5e2d9a54d710be47671b7c82c8bee9b36fff60b"
   },
+  "conductor-final-boundary-preverification.json": {
+    "bytes": 357,
+    "sha256": "5bb7db5f18b867f26c786172c414ad27d2bde526dd266b393404b7d361713e18"
+  },
   "conductor-fresh-live-verification.json": {
     "bytes": 445,
     "sha256": "fb8ae3a08c940bc354eadc579b34d8c13c50730b4c81966c181a8432b42c3af0"
