@@ -141,6 +141,15 @@ fn classify_request<'a>(
     arguments: &'a [OsString],
     goflags: &OsStr,
 ) -> Result<Option<GuestRequest<'a>>, String> {
+    classify_request_with_environment(contract, arguments, goflags, &std::env::vars_os().collect())
+}
+
+fn classify_request_with_environment<'a>(
+    contract: &Contract,
+    arguments: &'a [OsString],
+    goflags: &OsStr,
+    inherited: &std::collections::BTreeMap<OsString, OsString>,
+) -> Result<Option<GuestRequest<'a>>, String> {
     let original_cwd = std::env::current_dir().map_err(|e| e.to_string())?;
     let Some((command_index, cwd)) = command_location(arguments, &original_cwd) else {
         return Ok(None);
@@ -193,6 +202,8 @@ fn classify_request<'a>(
         &build_flags,
         &required_tags,
         deadline,
+        inherited,
+        command == "test",
     )?;
     if command != "test" {
         let repo = repo.as_ref().ok_or("guest run/build requires gomad.toml")?;
@@ -262,33 +273,8 @@ fn prepare_guest(
         if selected.manifest.compiler_path != contract.compiler {
             return Err("shim compiler differs from installation".into());
         }
-        let mut ignored = false;
-        let mut options = crate::cli::explore::parse(
-            &[
-                "--choices".into(),
-                "--seeds".into(),
-                contract.seeds.clone(),
-                "--execution-timeout".into(),
-                "5m".into(),
-                "--overall-timeout".into(),
-                "10m".into(),
-                "--artifacts".into(),
-                contract
-                    .artifacts
-                    .to_str()
-                    .ok_or("artifact path is not UTF-8")?
-                    .into(),
-                "--working-dir".into(),
-                cwd.to_str().ok_or("working directory is not UTF-8")?.into(),
-                if command == "test" {
-                    "go-test".into()
-                } else {
-                    "go-run".into()
-                },
-                package.import_path.clone(),
-            ],
-            &mut ignored,
-        )?;
+        let mut options =
+            guest_options(contract, cwd, command, package, &selected.manifest.profile)?;
         options.installation = Some(installation);
         let source_arguments = if package.import_path == "command-line-arguments" {
             request
@@ -324,6 +310,43 @@ fn prepare_guest(
     Ok(recipes)
 }
 
+fn guest_options(
+    contract: &Contract,
+    cwd: &Path,
+    command: &str,
+    package: &Package,
+    _profile: &str,
+) -> Result<crate::cli::explore::ExploreOptions, String> {
+    let mut ignored = false;
+    let options = crate::cli::explore::parse(
+        &[
+            "--choices".into(),
+            "--seeds".into(),
+            contract.seeds.clone(),
+            "--execution-timeout".into(),
+            "5m".into(),
+            "--overall-timeout".into(),
+            "10m".into(),
+            "--artifacts".into(),
+            contract
+                .artifacts
+                .to_str()
+                .ok_or("artifact path is not UTF-8")?
+                .into(),
+            "--working-dir".into(),
+            cwd.to_str().ok_or("working directory is not UTF-8")?.into(),
+            if command == "test" {
+                "go-test".into()
+            } else {
+                "go-run".into()
+            },
+            package.import_path.clone(),
+        ],
+        &mut ignored,
+    )?;
+    Ok(options)
+}
+
 fn command_location(arguments: &[OsString], cwd: &Path) -> Option<(usize, PathBuf)> {
     use std::os::unix::ffi::{OsStrExt as _, OsStringExt as _};
     let first = arguments.first()?;
@@ -357,6 +380,8 @@ fn packages(
     flags: &[String],
     required_tags: &[String],
     deadline: Instant,
+    inherited: &std::collections::BTreeMap<OsString, OsString>,
+    guest: bool,
 ) -> Result<Vec<Package>, String> {
     let scratch = process::Temporary::new(&cache_root()?)?;
     let mut list = vec!["list".into(), "-e".into(), "-json".into(), "-find".into()];
@@ -387,7 +412,7 @@ fn packages(
         &contract.compiler,
         &list,
         cwd,
-        &process::environment()?,
+        &packages_environment(inherited, guest)?,
         &scratch.0,
         128 << 20,
         deadline,
@@ -405,6 +430,16 @@ fn packages(
         }
     }
     Ok(values)
+}
+
+fn packages_environment(
+    _inherited: &std::collections::BTreeMap<OsString, OsString>,
+    _guest: bool,
+) -> Result<std::collections::BTreeMap<OsString, OsString>, String> {
+    Ok(process::environment()?
+        .into_iter()
+        .map(|(name, value)| (name.into(), value.into()))
+        .collect())
 }
 
 fn cache_root() -> Result<PathBuf, String> {
@@ -597,5 +632,185 @@ mod tests {
             .unwrap();
         assert_eq!(request.parsed.tags, [OsString::from("admitted")]);
         assert_eq!(fs::read(&counter).unwrap(), b"x");
+    }
+
+    fn fixture_contract(root: &Path, compiler: PathBuf) -> Contract {
+        Contract {
+            binary: std::env::current_exe().unwrap(),
+            compiler,
+            installation: None,
+            artifacts: root.join("artifacts"),
+            seeds: "1".into(),
+            run: "1".repeat(64),
+            directory: root.to_path_buf(),
+        }
+    }
+
+    fn fixture_installation(root: &Path, compiler: &Path, profile: &str) -> PathBuf {
+        let config = crate::install::config::build(profile, None, None).unwrap();
+        let cooperative = profile == "gomad.wasi-cooperative/v1";
+        let installed = manifest::Installation {
+            schema: manifest::SCHEMA.into(),
+            admission: None,
+            compiler_path: compiler.to_path_buf(),
+            compiler_sha256: canonical::digest(&fs::read(compiler).unwrap()),
+            go_version: "go1.27.1".into(),
+            runtime_root: if cooperative {
+                root.to_path_buf()
+            } else {
+                PathBuf::new()
+            },
+            overlay_module_root: None,
+            cache_root: root.to_path_buf(),
+            profile: profile.into(),
+            fuel: 1 << 50,
+            memory_bytes: 1 << 32,
+            helper_sha256: gomad_wasmhost::linked::IMPLEMENTATION_SHA256.into(),
+            host_sha256: env!("GOMAD_HOST_IMPLEMENTATION_SHA256").into(),
+            runtime_implementation_sha256: cooperative
+                .then(|| env!("GOMAD_RUNTIME_IMPLEMENTATION_SHA256").into()),
+            model: config.model,
+            namespace: config.namespace,
+            storage: config.storage,
+            network: config.network,
+            build_tags: config.build_tags,
+            excluded_build_tags: Vec::new(),
+        };
+        let path = root.join("installation.json");
+        manifest::write(&path, &installed).unwrap();
+        path
+    }
+
+    #[test]
+    fn shim_options_match_stock_and_cooperative_driver_profile_admission() {
+        let root = process::Temporary::new(&std::env::temp_dir()).unwrap();
+        let compiler = root.0.join("go");
+        fs::write(
+            &compiler,
+            "#!/bin/sh\nprintf 'reached-version-after-profile-admission' >&2\nexit 1\n",
+        )
+        .unwrap();
+        fs::set_permissions(&compiler, fs::Permissions::from_mode(0o700)).unwrap();
+        let contract = fixture_contract(&root.0, compiler.clone());
+        let package = Package {
+            import_path: "example.test/fixture".into(),
+            directory: root.0.clone(),
+            name: "main".into(),
+        };
+        for profile in [
+            "gomad.wasi-stock-exploratory/v1",
+            "gomad.wasi-cooperative/v1",
+        ] {
+            let mut options = guest_options(&contract, &root.0, "test", &package, profile).unwrap();
+            options.installation = Some(fixture_installation(&root.0, &compiler, profile));
+            let error = driver::prepare(&options, &[], Instant::now() + Duration::from_secs(10))
+                .err()
+                .unwrap();
+            assert!(
+                error.contains("reached-version-after-profile-admission"),
+                "{profile}: {error}"
+            );
+            options.choices = !options.choices;
+            let error = driver::prepare(&options, &[], Instant::now() + Duration::from_secs(10))
+                .err()
+                .unwrap();
+            assert!(
+                error.contains("choices/scenario do not match installed profile"),
+                "{profile}: {error}"
+            );
+        }
+    }
+
+    #[test]
+    fn unmatched_race_run_and_build_use_host_metadata_then_preserve_passthrough() {
+        use std::os::unix::ffi::OsStringExt as _;
+        let root = process::Temporary::new(&std::env::temp_dir()).unwrap();
+        for directory in ["host", "opted"] {
+            fs::create_dir(root.0.join(directory)).unwrap();
+        }
+        fs::write(root.0.join("go.mod"), "module example.test/fixture\n").unwrap();
+        fs::write(
+            root.0.join("gomad.toml"),
+            "runtime_root = \".\"\nderive = \"default\"\nguest = [\"./opted\"]\n",
+        )
+        .unwrap();
+        let host = serde_json::json!({"ImportPath":"example.test/fixture/host","Dir":root.0.join("host"),"Name":"main"});
+        let opted = serde_json::json!({"ImportPath":"example.test/fixture/opted","Dir":root.0.join("opted"),"Name":"main"});
+        let compiler = root.0.join("go");
+        fs::write(
+            &compiler,
+            format!(
+                r#"#!/bin/sh
+[ "$1" = list ] || exit 90
+race=0
+for arg do
+    case "$arg" in -race=true) race=$((race + 1));; esac
+    last="$arg"
+done
+[ "$race" = 1 ] || {{ printf 'race must be expanded exactly once' >&2; exit 91; }}
+[ -z "$GOFLAGS" ] || {{ printf 'GOFLAGS would expand twice' >&2; exit 92; }}
+if [ "$GOOS" = wasip1 ]; then printf 'go: -race is not supported on wasip1/wasm' >&2; exit 2; fi
+[ "$GOOS/$GOARCH/$CGO_ENABLED" = linux/arm64/1 ] || exit 93
+[ "$GOTOOLCHAIN/$GOPROXY/$GOSUMDB/$GOVCS" = 'local/off/off/*:off' ] || exit 94
+case "$last" in ./opted) printf '%s' '{opted}';; *) printf '%s' '{host}';; esac
+"#
+            ),
+        )
+        .unwrap();
+        fs::set_permissions(&compiler, fs::Permissions::from_mode(0o700)).unwrap();
+        let contract = fixture_contract(&root.0, compiler);
+        let mut inherited = std::env::vars_os().collect::<std::collections::BTreeMap<_, _>>();
+        for (name, value) in [
+            ("GOOS", "linux"),
+            ("GOARCH", "arm64"),
+            ("CGO_ENABLED", "1"),
+            ("GOFLAGS", "-race"),
+        ] {
+            inherited.insert(name.into(), value.into());
+        }
+        let opaque = OsString::from_vec(vec![b'x', 0xff]);
+        inherited.insert("OPAQUE_HOST_VALUE".into(), opaque.clone());
+        for command in ["run", "build"] {
+            let arguments = vec![
+                "-C".into(),
+                root.0.as_os_str().to_owned(),
+                command.into(),
+                "./host".into(),
+            ];
+            let original = arguments.clone();
+            assert!(
+                classify_request_with_environment(
+                    &contract,
+                    &arguments,
+                    OsStr::new("-race"),
+                    &inherited
+                )
+                .unwrap()
+                .is_none()
+            );
+            assert_eq!(arguments, original);
+            assert_eq!(inherited[OsStr::new("GOFLAGS")], "-race");
+            let opted = vec![
+                "-C".into(),
+                root.0.as_os_str().to_owned(),
+                command.into(),
+                "./opted".into(),
+            ];
+            let error = classify_request_with_environment(
+                &contract,
+                &opted,
+                OsStr::new("-race"),
+                &inherited,
+            )
+            .err()
+            .unwrap();
+            assert_eq!(error, "gomad: unsupported guest option -race");
+        }
+        let environment = packages_environment(&inherited, false).unwrap();
+        assert_eq!(environment[OsStr::new("OPAQUE_HOST_VALUE")], opaque);
+        let guest = packages_environment(&inherited, true).unwrap();
+        assert_eq!(guest[OsStr::new("GOOS")], "wasip1");
+        assert_eq!(guest[OsStr::new("GOARCH")], "wasm");
+        assert_eq!(guest[OsStr::new("CGO_ENABLED")], "0");
     }
 }

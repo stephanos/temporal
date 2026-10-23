@@ -1,6 +1,7 @@
 use super::failure;
 use std::{
     collections::BTreeMap,
+    ffi::OsStr,
     fs::{self, OpenOptions},
     path::{Path, PathBuf},
     process::{Command, Stdio},
@@ -102,11 +103,11 @@ pub(crate) fn check_deadline(deadline: Instant) -> Result<(), String> {
     Ok(())
 }
 
-pub(crate) fn command(
+pub(crate) fn command<K: AsRef<OsStr>, V: AsRef<OsStr>>(
     compiler: &Path,
     args: &[String],
     directory: &Path,
-    environment: &BTreeMap<String, String>,
+    environment: &BTreeMap<K, V>,
     scratch: &Path,
     limit: u64,
     deadline: Instant,
