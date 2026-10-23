@@ -408,7 +408,6 @@
    ]
   },
   "tools/gomad/internal/backends/wasm/backend/provider_test.go#TestCachePublicationCancellationLeavesNoCommitMarker": {
-   "basis": "manual mapping by worker A; confirm in review",
    "evidence": [
     "rust/gomad/campaign::prepare::compilation_cache::tests::canceled_new_publication_has_no_receipt_and_auxiliary_stages_are_validated"
    ]
@@ -457,9 +456,10 @@
    ]
   },
   "tools/gomad/internal/backends/wasm/backend/provider_test.go#TestSelectedRuntimeOverlayInputsInvalidateBuildIdentity": {
-   "basis": "weak name correlation within the owning domain; confirm in review",
    "evidence": [
-    "rust/gomad/campaign::prepare::receiving_compilation_contract::receiving_compilation_key_binds_source_tags_compiler_tools_headers_runtime_overlay_environment_kind_and_source"
+    "rust/gomad/campaign::prepare::receiving_compilation_contract::receiving_compilation_key_binds_source_tags_compiler_tools_headers_runtime_overlay_environment_kind_and_source",
+    "rust/gomad/measurement::module::tests::diagnostic_module_source_bindings",
+    "rust/gomad/campaign::prepare::inventory::tests::selected_runtime_overlay_inputs_invalidate_build_identity"
    ]
   },
   "tools/gomad/internal/backends/wasm/backend/provider_test.go#TestStockPreparationRejectsChoiceProfilesBeforeExecution": {
@@ -522,9 +522,10 @@
    ]
   },
   "tools/gomad/internal/backends/wasm/backend/stress_test.go#TestStressScenarioBindingsAllowOnlyAuthenticatedBootInputs": {
-   "basis": "manual mapping by worker A; confirm in review",
+   "basis": "partial: missing topology change, missing node config and crash-group marker refusals",
    "evidence": [
-    "rust/gomad/stress::tests::cluster_role_inputs_are_preserved_in_the_retained_configuration"
+    "rust/gomad/stress::tests::cluster_role_inputs_are_preserved_in_the_retained_configuration",
+    "rust/gomad/measurement::stress_driver::tests::actual_retained_bounds_and_cluster_topology_are_checked_apart_from_installation"
    ]
   },
   "tools/gomad/internal/backends/wasm/backend/stress_test.go#TestStressScenarioIdentityBindsEveryBootAndExcludesHostLayout": {
@@ -1376,15 +1377,18 @@
    ]
   },
   "tools/gomad/internal/backends/wasm/determinism/diverge_test.go#TestCompareOrdersCausesBeforeEffects": {
-   "basis": "weak name correlation within the owning domain; confirm in review",
+   "basis": "partial: missing cause/effect order from a real shifted-clock run; ChoiceOrdinal 0",
    "evidence": [
-    "rust/gomad/stress::reach_tests::native_first_difference_preserves_causes_coordinates_and_presence"
+    "rust/gomad/stress::reach_tests::native_first_difference_preserves_causes_coordinates_and_presence",
+    "rust/gomad/stress::reach_tests::diagnostic_only_virtual_time_difference_is_a_clock_before_later_effects",
+    "rust/gomad/stress::reach_tests::five_native_perturbation_fixtures_report_the_first_semantic_field"
    ]
   },
   "tools/gomad/internal/backends/wasm/determinism/diverge_test.go#TestCompareRefusesIncomparableRunsAndReportsUndiagnosable": {
-   "basis": "weak name correlation within the owning domain; confirm in review",
    "evidence": [
-    "rust/gomad/stress::reach_tests::retained_runs_without_declared_diagnostics_are_undiagnosable"
+    "rust/gomad/stress::reach_tests::retained_runs_without_declared_diagnostics_are_undiagnosable",
+    "rust/gomad/stress::reach_tests::native_first_difference_preserves_causes_coordinates_and_presence",
+    "rust/gomad/stress::tests::comparison_refuses_forcing_and_identity_drift"
    ]
   },
   "tools/gomad/internal/backends/wasm/determinism/diverge_test.go#TestCompareTrailingDiagnosticRecordKeepsItsClusterCoordinate": {
@@ -1398,19 +1402,19 @@
    ]
   },
   "tools/gomad/internal/backends/wasm/determinism/event_order_test.go#TestEventOrderFindsEarlierOutputWithinOneInspectionInterval": {
-   "basis": "manual mapping by worker A; confirm in review",
+   "basis": "partial: missing output first difference at Shared 1/VT 101; partial log as undiagnosable",
    "evidence": [
-    "rust/gomad/stress::tests::first_event_precedes_later_changes_and_missing_log_cannot_pass"
+    "rust/gomad/stress::tests::first_event_precedes_later_changes_and_missing_log_cannot_pass",
+    "rust/gomad/stress::reach_tests::foreign_singleton_inspection_cannot_authorize_a_retained_reproducer",
+    "rust/gomad/stress::reach_tests::retained_runs_without_declared_diagnostics_are_undiagnosable"
    ]
   },
   "tools/gomad/internal/backends/wasm/determinism/event_order_test.go#TestEventOrderFramingRejectsPartialAndUncommittedDiagnostics": {
-   "basis": "manual mapping by worker A; confirm in review",
    "evidence": [
     "rust/gomad/stress::reach_tests::diagnostic_extraction_preserves_partial_status_and_strict_artifact_reader"
    ]
   },
   "tools/gomad/internal/backends/wasm/determinism/event_order_test.go#TestEventOrderRejectsUnreservedZeroIncarnations": {
-   "basis": "manual mapping by worker A; confirm in review",
    "evidence": [
     "rust/gomad/stress::reach_tests::controller_zero_incarnation_is_reserved_and_never_a_guest_boundary"
    ]
@@ -1552,7 +1556,7 @@
    ]
   },
   "tools/gomad/internal/backends/wasm/installation/installation_test.go#TestReadConfigPreservesOpenMapKeysAndRejectsInvalidText": {
-   "basis": "manual mapping by worker A; confirm in review",
+   "basis": "gap: case-distinct payload map keys kept and invalid UTF-8 config refused have no Rust test",
    "evidence": [
     "rust/gomad/install::config::receiving_config_tests::first_typed_value_errors_precede_trailing_data"
    ]
@@ -1593,9 +1597,11 @@
    ]
   },
   "tools/gomad/internal/backends/wasm/internal/measure/cluster_owner_test.go#TestClusterOwnerRequestsBindEachRoleToItsAdmittedHelper": {
-   "basis": "weak name correlation within the owning domain; confirm in review",
+   "basis": "partial: missing unadmitted helper and short digest refusals",
    "evidence": [
-    "rust/diagnostic_roles/cluster_native_role_matrix_refuses_before_any_store_and_joins_admitted_stores"
+    "rust/diagnostic_roles/cluster_native_role_matrix_refuses_before_any_store_and_joins_admitted_stores",
+    "rust/gomad/measurement::build::tests::identity_role_features_source_and_executable_are_bound",
+    "rust/gomad/measurement::build::tests::diagnostic_build_rejects_unadmitted_features"
    ]
   },
   "tools/gomad/internal/backends/wasm/internal/measure/cluster_owner_test.go#TestClusterOwnerSplitReportsWaitingApartFromHostWork": {
@@ -1609,13 +1615,12 @@
    ]
   },
   "tools/gomad/internal/backends/wasm/internal/measure/extraction_regression_test.go#TestWarmPairNotificationsLaunchAndJoinBothGuests": {
-   "basis": "weak name correlation within the owning domain; confirm in review",
+   "basis": "partial: missing rendezvous, per-guest stdout files, pair host-budget evidence",
    "evidence": [
     "rust/gomad_wasmhost/linked_cluster::live_controller_tests::measurement_phase_callbacks_guard_actual_store_dispatch_and_join_for_both_schedules"
    ]
   },
   "tools/gomad/internal/backends/wasm/internal/measure/regression_more_test.go#TestCanonicalRemoteOperationCountsRejectsInvalid": {
-   "basis": "manual mapping by worker A; confirm in review",
    "evidence": [
     "rust/gomad/measurement::operations::tests::full_payload_bounds_sequence_and_unknown_tags_refuse"
    ]
@@ -1771,9 +1776,10 @@
    ]
   },
   "tools/gomad/internal/backends/wasm/internal/measure/regression_more_test.go#TestOperationDiagnosticPersistsPrivateTerminalAndRawEvidence": {
-   "basis": "weak name correlation within the owning domain; confirm in review",
+   "basis": "partial: missing raw finish, canonical and choice bytes persisted byte-exact",
    "evidence": [
-    "rust/gomad/measurement::evidence::tests::native_json_projection_retains_all_original_public_fields_and_private_terminal"
+    "rust/gomad/measurement::evidence::tests::native_json_projection_retains_all_original_public_fields_and_private_terminal",
+    "rust/measurement_profile_corpus/actual_public_native_run_retains_authenticated_raw_observation"
    ]
   },
   "tools/gomad/internal/backends/wasm/internal/measure/regression_more_test.go#TestTerminalExitCargoArtifactControls": {
@@ -1851,13 +1857,13 @@
    "retired": "Converts Go-lineage JSONL warm-preparation transcripts; Rust measurement reads no historical Go transcripts."
   },
   "tools/gomad/internal/backends/wasm/internal/measure/regression_test.go#TestCanonicalRemoteOperationClassification": {
-   "basis": "manual mapping by worker A; confirm in review",
+   "basis": "partial: missing tags 3-7 local and tag 13 remote",
    "evidence": [
-    "rust/gomad/measurement::evidence::tests::unsupported_native_operations_preserve_typed_input_and_reason"
+    "rust/gomad/measurement::evidence::tests::unsupported_native_operations_preserve_typed_input_and_reason",
+    "rust/gomad/measurement::operations::tests::original_operation_count_golden_keeps_folded_ordinals_and_input_immutable"
    ]
   },
   "tools/gomad/internal/backends/wasm/internal/measure/regression_test.go#TestCanonicalRemoteOperationCounts": {
-   "basis": "manual mapping by worker A; confirm in review",
    "evidence": [
     "rust/gomad/measurement::operations::tests::original_operation_count_golden_keeps_folded_ordinals_and_input_immutable"
    ]
@@ -1898,9 +1904,10 @@
    ]
   },
   "tools/gomad/internal/backends/wasm/internal/measure/regression_test.go#TestDiagnosticRunRootPreservesEarlierInvocation": {
-   "basis": "manual mapping by worker A; confirm in review",
+   "basis": "partial: missing earlier invocation surviving a later completed run (Rust collects superseded runs)",
    "evidence": [
-    "rust/gomad/measurement::rerun_tests::four_original_published_reruns_execute_without_nesting_requested_roots"
+    "rust/gomad/measurement::rerun_tests::four_original_published_reruns_execute_without_nesting_requested_roots",
+    "rust/gomad/measurement::retention::tests::overlapping_active_and_explicit_keep_runs_survive_collection"
    ]
   },
   "tools/gomad/internal/backends/wasm/internal/measure/regression_test.go#TestDiagnosticVariantEvidencePreservesOutputs": {
@@ -1958,7 +1965,7 @@
    ]
   },
   "tools/gomad/internal/backends/wasm/internal/measure/retention_test.go#TestHarnessRetentionAllowsCanonicalAncestorAliases": {
-   "basis": "manual mapping by worker A; confirm in review",
+   "basis": "partial: missing three successive runs reading result complete from latest",
    "evidence": [
     "rust/gomad/measurement::retention::tests::nested_store_roots_symlinks_and_unclean_roots_are_refused"
    ]
@@ -2048,7 +2055,6 @@
    ]
   },
   "tools/gomad/internal/backends/wasm/internal/measure/run_test.go#TestCollectionRetainsReportsAndCleanupFailures": {
-   "basis": "manual mapping by worker A; confirm in review",
    "evidence": [
     "rust/gomad/measurement::collection::tests::failed_collection_step_allows_next_and_final_report_keeps_both_errors"
    ]
@@ -2070,9 +2076,11 @@
    ]
   },
   "tools/gomad/internal/backends/wasm/internal/measure/stress_admission_test.go#TestStressRuntimeRequestPassesRunnerAdmissionWithoutExecuting": {
-   "basis": "manual mapping by worker A; confirm in review",
+   "basis": "partial: missing ReadStepNanos 1000, diagnostic-limit fit, runner admission before preparation",
    "evidence": [
-    "rust/gomad/measurement::stress_driver::tests::catalogue_defaults_and_original_controls_are_admitted_before_dispatch"
+    "rust/gomad/measurement::stress_driver::tests::catalogue_defaults_and_original_controls_are_admitted_before_dispatch",
+    "rust/gomad/measurement::stress_driver::tests::stress_runtime_recipe_is_the_original_probe_and_bounds_not_runtime_cost",
+    "rust/gomad/measurement::stress_driver::tests::actual_retained_bounds_and_cluster_topology_are_checked_apart_from_installation"
    ]
   },
   "tools/gomad/internal/backends/wasm/internal/measure/stress_retention_test.go#TestStressExecutionRerunPreservesRequestedRoot": {
@@ -2096,9 +2104,10 @@
    ]
   },
   "tools/gomad/internal/backends/wasm/internal/measure/stress_scenario_test.go#TestStressClusterScenarioPreservesFourIncarnationsAndGroupCrash": {
-   "basis": "manual mapping by worker A; confirm in review",
+   "basis": "partial: missing production scenario counts, per-cluster volume isolation, template immutability",
    "evidence": [
-    "rust/gomad/measurement::stress_driver::tests::actual_retained_bounds_and_cluster_topology_are_checked_apart_from_installation"
+    "rust/gomad/measurement::stress_driver::tests::actual_retained_bounds_and_cluster_topology_are_checked_apart_from_installation",
+    "rust/gomad/stress::tests::cluster_role_inputs_are_preserved_in_the_retained_configuration"
    ]
   },
   "tools/gomad/internal/backends/wasm/internal/measure/stress_test.go#TestStressCanaryRetainsNormalFailureArtifact": {
@@ -2112,13 +2121,13 @@
    ]
   },
   "tools/gomad/internal/backends/wasm/internal/measure/stress_test.go#TestStressCohortBarrierReleasesAllMembersAndCancelledPreparation": {
-   "basis": "weak name correlation within the owning domain; confirm in review",
+   "basis": "partial: missing cancelled preparation releasing waiting members",
    "evidence": [
     "rust/gomad/stress::tests::rerun_supervision_restores_axis_bounds_and_launches_the_full_cohort"
    ]
   },
   "tools/gomad/internal/backends/wasm/internal/measure/stress_test.go#TestStressConcurrentRepetitionsAreFullCohorts": {
-   "basis": "weak name correlation within the owning domain; confirm in review",
+   "basis": "partial: missing requested = repetitions x parallel arithmetic",
    "evidence": [
     "rust/gomad/stress::tests::rerun_supervision_restores_axis_bounds_and_launches_the_full_cohort"
    ]
@@ -2129,7 +2138,6 @@
    ]
   },
   "tools/gomad/internal/backends/wasm/internal/measure/stress_test.go#TestStressRefusesReplayAndChangedIdentities": {
-   "basis": "manual mapping by worker A; confirm in review",
    "evidence": [
     "rust/gomad/stress::tests::comparison_refuses_forcing_and_identity_drift"
    ]
@@ -2208,21 +2216,27 @@
    ]
   },
   "tools/gomad/internal/backends/wasm/internal/sweep/classify_test.go#TestClassifyFixtureObservations": {
-   "basis": "manual mapping by worker A; confirm in review",
+   "basis": "partial: missing unreadable target_failure artifact, soft_assertion reason, listen-tcp normalisation, not-json, runner-failure-other",
    "evidence": [
-    "rust/gomad/sweep::classify::tests::failure_classes_and_reason_precedence"
+    "rust/gomad/sweep::classify::tests::failure_classes_and_reason_precedence",
+    "rust/gomad/sweep::classify::tests::retained_artifact_facts_control_verdict",
+    "rust/gomad/sweep::classify::tests::selected_method_verdict_is_required",
+    "rust/gomad/sweep::classify::tests::subtests_require_indentation_and_selected_parent_and_cap_failed_names",
+    "rust/gomad/sweep::classify::tests::first_error_last_result_and_first_failure_artifact_win",
+    "rust/gomad/sweep::classify::tests::native_soft_assertion_reports_are_strict_and_preserved",
+    "rust/gomad/sweep::classify::tests::class_order_is_the_nine_observation_dispositions"
    ]
   },
   "tools/gomad/internal/backends/wasm/internal/sweep/classify_test.go#TestNormalizeGroupsEquivalentDiagnostics": {
-   "basis": "weak name correlation within the owning domain; confirm in review",
+   "basis": "partial: missing second member of each equivalence pair",
    "evidence": [
     "rust/gomad/sweep::classify::tests::normalize_preserves_go_grouping_and_boundaries"
    ]
   },
   "tools/gomad/internal/backends/wasm/internal/sweep/deadline_test.go#TestSweepBoundsEveryOperationByOverallDeadline": {
-   "basis": "manual mapping by worker A; confirm in review",
    "evidence": [
-    "rust/gomad/sweep::process::tests::deadline_admission_includes_preparation_and_retry"
+    "rust/gomad/sweep::process::tests::deadline_admission_includes_preparation_and_retry",
+    "rust/gomad/sweep::run::lifecycle_tests::one_absolute_deadline_covers_enumeration_installation_warmup_and_test"
    ]
   },
   "tools/gomad/internal/backends/wasm/internal/sweep/deadline_test.go#TestSweepOverallDeadlineCutoff": {
@@ -2328,9 +2342,10 @@
    ]
   },
   "tools/gomad/internal/backends/wasm/internal/sweep/record_test.go#TestVerifyFindsEveryR2Violation": {
-   "basis": "manual mapping by worker A; confirm in review",
+   "basis": "partial: missing finding substrings; missing harness",
    "evidence": [
-    "rust/gomad/sweep::tests::verify_mode_reports_native_sidecar_findings"
+    "rust/gomad/sweep::tests::verify_mode_reports_native_sidecar_findings",
+    "rust/gomad/sweep::record::tests::verifier_rejects_bad_rows_inventory_counts_and_unknown_fields"
    ]
   },
   "tools/gomad/internal/backends/wasm/internal/sweep/record_test.go#TestVerifyMethodInventoryCoverage": {
@@ -2339,7 +2354,7 @@
    ]
   },
   "tools/gomad/internal/backends/wasm/internal/sweep/source_identity_test.go#TestSweepAllowsOnlyLiteralOutputDirectoryChanges": {
-   "basis": "manual mapping by worker A; confirm in review",
+   "basis": "partial: missing two full runs; glob-matching neighbour case",
    "evidence": [
     "rust/gomad/sweep::run::source_identity_tests::real_git_literal_outputs_do_not_hide_source_or_similarly_named_directories"
    ]
@@ -2365,9 +2380,11 @@
    ]
   },
   "tools/gomad/internal/backends/wasm/internal/sweep/sweep_test.go#TestEnumerationParsesTopLevelTestsAndReconciles": {
-   "basis": "manual mapping by worker A; confirm in review",
+   "basis": "partial: missing benchmark exclusion, two-package order, file-excluded top-level test",
    "evidence": [
-    "rust/gomad/sweep::enumerate::tests::test_list_filters_summaries_without_losing_unicode_identifiers"
+    "rust/gomad/sweep::enumerate::tests::test_list_filters_summaries_without_losing_unicode_identifiers",
+    "rust/gomad/sweep::enumerate::receiver_tests::native_enumeration_excludes_comment_and_raw_literal_phantom_tests",
+    "rust/gomad/sweep::enumerate::receiver_tests::native_enumeration_checks_wrapper_method_and_non_test_go_file_guest_membership"
    ]
   },
   "tools/gomad/internal/backends/wasm/internal/sweep/sweep_test.go#TestInterruptedSweepRecordsNoRowForTheRunningTest": {
@@ -2407,7 +2424,7 @@
    ]
   },
   "tools/gomad/internal/backends/wasm/internal/sweep/sweep_test.go#TestTemporalInstallHookUsesFn220Flags": {
-   "basis": "manual mapping by worker A; confirm in review",
+   "basis": "partial: missing temporal-install --temporal-checkout/--temporal-package arguments",
    "evidence": [
     "rust/gomad/sweep::run::lifecycle_tests::throwaway_installation_uses_valid_cooperative_config_and_explicit_public_flags"
    ]
@@ -2421,7 +2438,6 @@
    "retired": "Go host package layout check deleted with the Go host packages."
   },
   "tools/gomad/internal/backends/wasm/layout_test.go#TestWASMTestsDoNotImportNativeBuilder": {
-   "basis": "manual mapping by worker A; confirm in review",
    "evidence": [
     "go/go.temporal.io/server/tools/gomad/internal/archcheck/TestRetainedWASMSourcesDoNotImportNativeBuilder"
    ]
@@ -2437,43 +2453,41 @@
    ]
   },
   "tools/gomad/internal/backends/wasm/qualification/budget_test.go#TestBudgetClusterPeakCoversResidentsOnce": {
-   "basis": "manual mapping by worker A; confirm in review",
    "evidence": [
-    "public-verbs/fresh-differential-and-raw-golden-integrity"
+    "public-verbs/fresh-differential-and-raw-golden-integrity",
+    "rust/gomad/qualify::cost::warm_window_tests::cache_hit_windows_attribute_the_warm_helper_peak_exactly",
+    "rust/gomad/qualify::cost::warm_window_tests::a_cold_warm_window_still_exceeds_and_unreported_hits_stay_unattributed"
    ]
   },
   "tools/gomad/internal/backends/wasm/qualification/budget_test.go#TestBudgetOperatorOverrunCannotPass": {
-   "basis": "manual mapping by worker A; confirm in review",
+   "basis": "partial: covered by the qualify-accounting cases of the public-verbs cell; the separate helper-process sample is retired (one linked process)",
    "evidence": [
     "public-verbs/fresh-differential-and-raw-golden-integrity"
    ]
   },
   "tools/gomad/internal/backends/wasm/qualification/budget_test.go#TestBudgetRejectsMeasuredOverrunAndMissingResources": {
-   "basis": "manual mapping by worker A; confirm in review",
+   "basis": "partial: missing simultaneous three-violation count",
    "evidence": [
     "public-verbs/fresh-differential-and-raw-golden-integrity"
    ]
   },
   "tools/gomad/internal/backends/wasm/qualification/budget_test.go#TestClusterMeasurementsRejectDuplicateProcessSample": {
-   "basis": "manual mapping by worker A; confirm in review",
+   "basis": "partial: covered by the qualify-accounting cases of the public-verbs cell; the separate helper-process sample is retired (one linked process)",
    "evidence": [
     "public-verbs/fresh-differential-and-raw-golden-integrity"
    ]
   },
   "tools/gomad/internal/backends/wasm/qualification/budget_test.go#TestCostClusterHelperDoesNotDoubleCountStoreExecution": {
-   "basis": "manual mapping by worker A; confirm in review",
+   "basis": "partial: covered by the qualify-accounting cases of the public-verbs cell; the separate helper-process sample is retired (one linked process)",
    "evidence": [
     "public-verbs/fresh-differential-and-raw-golden-integrity"
    ]
   },
   "tools/gomad/internal/backends/wasm/qualification/budget_test.go#TestHelperPeakRSSPrefersHelperImageHighWater": {
-   "basis": "manual mapping by worker A; confirm in review",
-   "evidence": [
-    "public-verbs/fresh-differential-and-raw-golden-integrity"
-   ]
+   "retired": "Chooses between the deleted helper process VmHWM and wait4; the linked host has no helper process (image-above-lifetime refusal kept in qualify accounting)."
   },
   "tools/gomad/internal/backends/wasm/qualification/budget_test.go#TestHelperUpperBoundsStayOutOfImagePeaks": {
-   "basis": "manual mapping by worker A; confirm in review",
+   "basis": "partial: covered by the qualify-accounting cases of the public-verbs cell; the separate helper-process sample is retired (one linked process)",
    "evidence": [
     "public-verbs/fresh-differential-and-raw-golden-integrity"
    ]
@@ -2484,7 +2498,7 @@
    ]
   },
   "tools/gomad/internal/backends/wasm/qualification/cluster_test.go#TestClusterOutcomeNeverTurnsCapacityIntoApplicationFailure": {
-   "basis": "manual mapping by worker A; confirm in review",
+   "basis": "gap: termination-to-domain mapping and its refusals have no Rust test",
    "evidence": [
     "rust/gomad/campaign::scenario::preservation_tests::output_capacity_reporting_does_not_reclassify_other_global_failures"
    ]
@@ -2500,16 +2514,13 @@
    ]
   },
   "tools/gomad/internal/backends/wasm/qualification/cluster_test.go#TestClusterSamplesSeparateSharedProcessFromEveryIncarnation": {
-   "basis": "manual mapping by worker A; confirm in review",
+   "basis": "partial: covered by the qualify-accounting cases of the public-verbs cell; the separate helper-process sample is retired (one linked process)",
    "evidence": [
     "public-verbs/fresh-differential-and-raw-golden-integrity"
    ]
   },
   "tools/gomad/internal/backends/wasm/qualification/cluster_test.go#TestIncarnationSamplesUseDetachedCountersAndActualOSFallback": {
-   "basis": "manual mapping by worker A; confirm in review",
-   "evidence": [
-    "public-verbs/fresh-differential-and-raw-golden-integrity"
-   ]
+   "retired": "Helper telemetry and wait4 fallback of the deleted helper process; missing store measurement stays refused in qualify accounting."
   },
   "tools/gomad/internal/backends/wasm/qualification/cluster_test.go#TestRetainedTargetModuleIsBoundedBeforeCopy": {
    "evidence": [
@@ -2591,7 +2602,6 @@
    ]
   },
   "tools/gomad/internal/backends/wasm/qualification/onebox_test.go#TestActualOneboxFrontendSystemInfoQualification": {
-   "basis": "manual mapping by worker A; confirm in review",
    "evidence": [
     "fn222/two-cell-ordered-support-list"
    ]
@@ -2626,7 +2636,7 @@
    "reason": "Go Matched compared two cell manifests; Rust support binds each cell to one fixed policy (fuel 1<<50, memory 4 GiB), so a mismatched fuel cell is refused per cell. Profile-may-differ has no Rust case: support cells are cooperative only."
   },
   "tools/gomad/internal/backends/wasm/qualification/qualification_test.go#TestCostRequiresRealExecutionMeasurementsAndSeparatesReplay": {
-   "basis": "manual mapping by worker A; confirm in review",
+   "basis": "partial: missing independent virtual_to_wall and distinct_outcomes assertions",
    "evidence": [
     "public-verbs/fresh-differential-and-raw-golden-integrity"
    ]
@@ -2643,7 +2653,7 @@
    "reason": "Caller-JSON refusal ported; detachment is by ownership: Rust freeze takes the operator Snapshot by value."
   },
   "tools/gomad/internal/backends/wasm/qualification/qualification_test.go#TestOperatorCostIncludesSetupGapAndSeparatesLogicalVirtualTime": {
-   "basis": "manual mapping by worker A; confirm in review",
+   "basis": "partial: missing matched-owner evidence reuse; cold build relabelled warm",
    "evidence": [
     "public-verbs/fresh-differential-and-raw-golden-integrity"
    ]
@@ -2653,9 +2663,11 @@
    "reason": "Named subtest variant runs inside the root receiver mapped for its owner."
   },
   "tools/gomad/internal/backends/wasm/qualification/qualification_test.go#TestReadSpecRejectsAmbiguousAndCompetingInputs": {
-   "basis": "manual mapping by worker A; confirm in review",
+   "basis": "partial: missing case-folded duplicate Manifest, invalid UTF-8, Options-before-unknown precedence",
    "evidence": [
-    "rust/gomad/qualify::spec::receiving_depth_tests::first_duplicate_precedes_later_depth_overflow"
+    "rust/gomad/qualify::spec::receiving_depth_tests::first_duplicate_precedes_later_depth_overflow",
+    "rust/gomad/qualify::spec::operator_reach_tests::operator_observation_is_refused_from_caller_json",
+    "rust/gomad/qualify::spec::tighter_nesting_tests::tighter_bound_preserves_unique_complete_values_and_default_limit"
    ]
   },
   "tools/gomad/internal/backends/wasm/qualification/qualification_test.go#TestResultRetainsCanonicalOwnerBytesSourceLess": {
@@ -2675,22 +2687,21 @@
    ]
   },
   "tools/gomad/internal/backends/wasm/qualification/qualification_test.go#TestSourceManifestBindsActualFilesAndKeepsSpacePaths": {
-   "basis": "manual mapping by worker A; confirm in review",
+   "basis": "partial: missing changed file, source-less validation, duplicate path, space paths",
    "evidence": [
     "public-verbs/fresh-differential-and-raw-golden-integrity"
    ]
   },
   "tools/gomad/internal/backends/wasm/qualification/qualification_test.go#TestStrictDecodeRetainsQualificationDepthLimit": {
-   "basis": "manual mapping by worker A; confirm in review",
    "evidence": [
     "rust/gomad/qualify::spec::receiving_depth_tests::original_depth_128_scalar_edge_is_accepted",
     "rust/gomad/qualify::spec::receiving_depth_tests::original_depth_129_scalar_overflow_keeps_nesting_error",
     "rust/gomad/qualify::spec::receiving_depth_tests::original_depth_129_malformed_overflow_precedes_child_syntax",
-    "rust/gomad/qualify::spec::receiving_depth_tests::original_depth_129_empty_container_edge_is_accepted"
+    "rust/gomad/qualify::spec::receiving_depth_tests::original_depth_129_empty_container_edge_is_accepted",
+    "rust/gomad/qualify::spec::receiving_depth_tests::original_depth_130_empty_container_overflow_is_refused"
    ]
   },
   "tools/gomad/internal/backends/wasm/qualification/result_publication_test.go#TestResultPublicationIgnoresAbandonedStagingWithoutPublishingIt": {
-   "basis": "manual mapping by worker A; confirm in review",
    "evidence": [
     "rust/gomad/qualify::result::receiving_publication_tests::result_publication_preserves_abandoned_foreign_staging"
    ]
@@ -2789,19 +2800,26 @@
    ]
   },
   "tools/gomad/internal/backends/wasm/qualification/support_list_test.go#TestSupportListRefusesUnqualifiedEvidence": {
-   "basis": "manual mapping by worker A; confirm in review",
+   "basis": "partial: missing provisional, reused pid, edited stdout, tampered result, gate and identity mismatches",
    "evidence": [
-    "rust/gomad/qualify::support::tests::support_policy_refuses_selection_order_list_flags_and_extra_flags"
+    "rust/gomad/qualify::support::tests::support_policy_refuses_selection_order_list_flags_and_extra_flags",
+    "rust/gomad/qualify::support::tests::selected_test_requires_one_named_pass",
+    "rust/gomad/qualify::support::tests::empty_and_single_row_requests_cannot_publish_support",
+    "rust/gomad/qualify::support::tests::support_success_and_canary_must_match_except_arguments_and_configuration",
+    "rust/gomad/qualify::support::tests::preparation_gate_authenticates_receipt_instead_of_only_hash",
+    "rust/gomad/qualify::support::tests::each_registry_row_preserves_its_configured_model_directory",
+    "rust/gomad/qualify::support::tests::candidate_refuses_a_stale_linked_reader"
    ]
   },
   "tools/gomad/internal/backends/wasm/qualification/support_list_test.go#TestSupportListRendersDeterministicPerTestRows": {
-   "basis": "manual mapping by worker A; confirm in review",
+   "basis": "partial: missing reversed-input byte identity, Markdown content, per-row counts",
    "evidence": [
-    "fn222/two-cell-ordered-support-list"
+    "fn222/two-cell-ordered-support-list",
+    "rust/gomad/qualify::support::tests::support_output_is_exclusive_and_round_trips_private_bytes"
    ]
   },
   "tools/gomad/internal/backends/wasm/qualification/support_list_test.go#TestSupportListShapeRejectsEditedClaims": {
-   "basis": "manual mapping by worker A; confirm in review",
+   "basis": "gap: support::validate is never given an edited list",
    "evidence": [
     "rust/gomad/qualify::support::tests::support_policy_refuses_changed_complete_policy_fields"
    ]
@@ -2834,9 +2852,10 @@
    ]
   },
   "tools/gomad/internal/backends/wasm/qualification/temporal_memory_test.go#TestTemporalMemoryAdmissionChecksBoundaryBeforeDispatch": {
-   "basis": "manual mapping by worker A; confirm in review",
    "evidence": [
-    "rust/gomad/measurement::host::tests::matched_memory_admission_preserves_explicit_mode_platform_and_dispatch_result"
+    "rust/gomad/measurement::host::tests::matched_memory_admission_preserves_explicit_mode_platform_and_dispatch_result",
+    "py/workload_tools/test_qualification_controls.QualificationControls.test_original_linux_available_boundary",
+    "py/workload_tools/test_qualification_controls.QualificationControls.test_explicit_bad_admission_stops_real_producer_before_any_dispatch"
    ]
   },
   "tools/gomad/internal/backends/wasm/qualification/temporal_memory_test.go#TestTemporalMemoryAdmissionIsExplicitAndPlatformBounded": {
@@ -2845,15 +2864,15 @@
    ]
   },
   "tools/gomad/internal/backends/wasm/qualification/temporal_memory_test.go#TestTemporalMemoryAdmissionReadsActualBoundedLinuxObservation": {
-   "basis": "manual mapping by worker A; confirm in review",
+   "basis": "gap: no test reads the real /proc/meminfo",
    "evidence": [
     "rust/gomad/measurement::host::tests::cold_preparation_memory_witnesses_are_unique_bounded_and_overflow_checked"
    ]
   },
   "tools/gomad/internal/backends/wasm/qualification/temporal_memory_test.go#TestTemporalMemoryAdmissionRejectsMalformedAndOversizedReadings": {
-   "basis": "manual mapping by worker A; confirm in review",
    "evidence": [
-    "rust/gomad/measurement::host::tests::matched_memory_admission_rejects_malformed_witnesses_before_both_owners"
+    "rust/gomad/measurement::host::tests::matched_memory_admission_rejects_malformed_witnesses_before_both_owners",
+    "py/workload_tools/test_qualification_controls.QualificationControls.test_original_malformed_and_oversized_linux_observations"
    ]
   },
   "tools/gomad/internal/backends/wasm/qualification/workload_test.go#TestRunWorkloadRepeatsOneCampaignAndPublishesTheClaim": {
@@ -2862,7 +2881,7 @@
    ]
   },
   "tools/gomad/internal/backends/wasm/qualification/workload_test.go#TestRunWorkloadRetainsClusterHostTerminationClassification": {
-   "basis": "manual mapping by worker A; confirm in review",
+   "basis": "gap: qualify::report::classify_error has no test",
    "evidence": [
     "rust/gomad/campaign::sweep_backend_failure_tests::native_failure_retains_typed_termination_without_reason_inference"
    ]
@@ -3783,9 +3802,10 @@
    ]
   },
   "tools/gomad/internal/backends/wasm/wasi/integration_test.go#TestSQLiteStorageGuestRecovery": {
-   "basis": "manual mapping by worker A; confirm in review",
+   "basis": "partial: missing raw lock BUSY/LOCKED, WAL sync/persistence, WAL/DELETE fault matrix",
    "evidence": [
-    "sqlite/actual-durable-four-state-primary"
+    "sqlite/actual-durable-four-state-primary",
+    "rust/gomad/qualify::workloads::tests::sqlite_oracle_preserves_acknowledgment_integrity_and_exact_history"
    ]
   },
   "tools/gomad/internal/backends/wasm/wasi/integration_test.go#TestSQLiteStorageGuestRecovery@107083/raw-durable-lock": {
@@ -3801,9 +3821,9 @@
    "reason": "Named subtest variant runs inside the root receiver mapped for its owner."
   },
   "tools/gomad/internal/backends/wasm/wasi/integration_test.go#TestSQLiteStorageGuestUnsyncedAcknowledgementCanary": {
-   "basis": "manual mapping by worker A; confirm in review",
    "evidence": [
-    "mandatory/exact-ten-final-result-receipt-pairs"
+    "mandatory/exact-ten-final-result-receipt-pairs",
+    "rust/gomad/qualify::workloads::tests::sqlite_oracle_preserves_acknowledgment_integrity_and_exact_history"
    ]
   },
   "tools/gomad/internal/backends/wasm/wasi/integration_test.go#TestStockGoGuestRepeatsIn100FreshInstances": {
@@ -3865,9 +3885,10 @@
    "retired": "Stages fixtures for the deleted gRPC prototype diagnostic; no retained diagnostic uses them."
   },
   "tools/gomad/internal/backends/wasm/wasi/integration_test.go#TestTemporalGuestAdmission": {
-   "basis": "manual mapping by worker A; confirm in review",
+   "basis": "partial: missing sqlite-plugin, persistence, contention targets; activity/child/update/timers suites; deliberate-failure replay",
    "evidence": [
-    "temporal/unchanged-workflow-type-smoke"
+    "temporal/unchanged-workflow-type-smoke",
+    "fn222/two-cell-ordered-support-list"
    ]
   },
   "tools/gomad/internal/backends/wasm/wasi/integration_test.go#TestTemporalGuestOutput": {
@@ -3886,7 +3907,7 @@
    ]
   },
   "tools/gomad/internal/backends/wasm/wasi/integration_test.go#TestTemporalModuleGraph": {
-   "basis": "manual mapping by worker A; confirm in review",
+   "basis": "gap: no Rust comparison of the effective module graph against the original",
    "evidence": [
     "temporal/unchanged-workflow-type-smoke"
    ]
@@ -4388,13 +4409,12 @@
    ]
   },
   "tools/gomad/internal/backends/wasm/wasi/stress_test.go#TestDeterminismFixtureConditionsStayOutsideDeclaredInputs": {
-   "basis": "manual mapping by worker A; confirm in review",
    "evidence": [
-    "rust/gomad/stress::reach_tests::stress_host_perturbations_do_not_change_declared_guest_inputs"
+    "rust/gomad/stress::reach_tests::stress_host_perturbations_do_not_change_declared_guest_inputs",
+    "rust/gomad/stress::tests::qualification_refuses_every_compiled_stress_role"
    ]
   },
   "tools/gomad/internal/backends/wasm/wasi/stress_test.go#TestStressHostConditionsStayOutsideGuestInputs": {
-   "basis": "manual mapping by worker A; confirm in review",
    "evidence": [
     "rust/gomad/stress::reach_tests::stress_host_perturbations_do_not_change_declared_guest_inputs"
    ]
