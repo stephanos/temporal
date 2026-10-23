@@ -468,6 +468,9 @@ def configured(path):
     require(config['schema'] == 'gomad.rust-qualification-driver/v1', 'unknown driver config')
     require(Path(config['repo']).resolve() == REPO, 'wrong candidate checkout')
     require(set(config['stages']) == set(mapping()), 'missing/unexpected configured stages')
+    require(all(entry.get('adapter') != 'pending' for entry in config['stages'].values()),
+            'unbound original stage endpoints cannot start qualification')
+    require(config.get('final_reader') and config.get('final_sections'), 'missing actual final readers')
     require(config.get('synthetic') is not True, 'synthetic fixture cannot qualify')
     require(set(config['identity']) == {'host', 'helper'}, 'frozen host/helper identities required')
     require(all(isinstance(config[key], (int, float)) and math.isfinite(config[key]) and config[key] > 0
