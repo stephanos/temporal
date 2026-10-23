@@ -393,7 +393,7 @@
    "rule": "Served by the in-memory namespace model from the declared image; the host filesystem is never reopened, and every call is transcribed.",
    "evidence": [
     "rust:tests/inventory.rs:inventory_covers_every_operation",
-    "go:internal/backends/wasm/wasi:TestNamespaceConformanceCorpus",
+    "go:internal/model/wasi:TestNamespaceConformanceCorpus",
     "rust:gomad/src/install/config/preservation_tests.rs:captured_namespace_reads_after_host_and_capture_buffers_are_removed_and_infers_readonly_absence",
     "rust:tests/helper_corpus.rs:helper_transcript_corpus_reproduces_expected_outcomes"
    ]
@@ -408,7 +408,7 @@
    "rule": "Served by the in-memory namespace model from the declared image; the host filesystem is never reopened, and every call is transcribed.",
    "evidence": [
     "rust:tests/inventory.rs:inventory_covers_every_operation",
-    "go:internal/backends/wasm/wasi:TestNamespaceConformanceCorpus",
+    "go:internal/model/wasi:TestNamespaceConformanceCorpus",
     "rust:gomad/src/install/config/preservation_tests.rs:captured_namespace_reads_after_host_and_capture_buffers_are_removed_and_infers_readonly_absence",
     "rust:tests/helper_corpus.rs:helper_transcript_corpus_reproduces_expected_outcomes"
    ]
@@ -423,7 +423,7 @@
    "rule": "Served by the in-memory namespace model from the declared image; the host filesystem is never reopened, and every call is transcribed.",
    "evidence": [
     "rust:tests/inventory.rs:inventory_covers_every_operation",
-    "go:internal/backends/wasm/wasi:TestNamespaceConformanceCorpus",
+    "go:internal/model/wasi:TestNamespaceConformanceCorpus",
     "rust:gomad/src/install/config/preservation_tests.rs:captured_namespace_reads_after_host_and_capture_buffers_are_removed_and_infers_readonly_absence",
     "rust:tests/helper_corpus.rs:helper_transcript_corpus_reproduces_expected_outcomes"
    ]
@@ -438,7 +438,7 @@
    "rule": "Served by the in-memory namespace model from the declared image; the host filesystem is never reopened, and every call is transcribed.",
    "evidence": [
     "rust:tests/inventory.rs:inventory_covers_every_operation",
-    "go:internal/backends/wasm/wasi:TestNamespaceConformanceCorpus",
+    "go:internal/model/wasi:TestNamespaceConformanceCorpus",
     "rust:gomad/src/install/config/preservation_tests.rs:captured_namespace_reads_after_host_and_capture_buffers_are_removed_and_infers_readonly_absence",
     "rust:tests/helper_corpus.rs:helper_transcript_corpus_reproduces_expected_outcomes"
    ]
@@ -453,7 +453,7 @@
    "rule": "Served by the in-memory namespace model from the declared image; the host filesystem is never reopened, and every call is transcribed.",
    "evidence": [
     "rust:tests/inventory.rs:inventory_covers_every_operation",
-    "go:internal/backends/wasm/wasi:TestNamespaceConformanceCorpus",
+    "go:internal/model/wasi:TestNamespaceConformanceCorpus",
     "rust:gomad/src/install/config/preservation_tests.rs:captured_namespace_reads_after_host_and_capture_buffers_are_removed_and_infers_readonly_absence",
     "rust:tests/helper_corpus.rs:helper_transcript_corpus_reproduces_expected_outcomes"
    ]
@@ -468,7 +468,7 @@
    "rule": "Served by the in-memory namespace model from the declared image; the host filesystem is never reopened, and every call is transcribed.",
    "evidence": [
     "rust:tests/inventory.rs:inventory_covers_every_operation",
-    "go:internal/backends/wasm/wasi:TestNamespaceConformanceCorpus",
+    "go:internal/model/wasi:TestNamespaceConformanceCorpus",
     "rust:gomad/src/install/config/preservation_tests.rs:captured_namespace_reads_after_host_and_capture_buffers_are_removed_and_infers_readonly_absence",
     "rust:tests/helper_corpus.rs:helper_transcript_corpus_reproduces_expected_outcomes"
    ]
@@ -483,7 +483,7 @@
    "rule": "Served by the in-memory namespace model from the declared image; the host filesystem is never reopened, and every call is transcribed.",
    "evidence": [
     "rust:tests/inventory.rs:inventory_covers_every_operation",
-    "go:internal/backends/wasm/wasi:TestNamespaceConformanceCorpus",
+    "go:internal/model/wasi:TestNamespaceConformanceCorpus",
     "rust:gomad/src/install/config/preservation_tests.rs:captured_namespace_reads_after_host_and_capture_buffers_are_removed_and_infers_readonly_absence",
     "rust:tests/helper_corpus.rs:helper_transcript_corpus_reproduces_expected_outcomes"
    ]
@@ -498,7 +498,7 @@
    "rule": "Served by the in-memory namespace model from the declared image; the host filesystem is never reopened, and every call is transcribed.",
    "evidence": [
     "rust:tests/inventory.rs:inventory_covers_every_operation",
-    "go:internal/backends/wasm/wasi:TestNamespaceConformanceCorpus",
+    "go:internal/model/wasi:TestNamespaceConformanceCorpus",
     "rust:gomad/src/install/config/preservation_tests.rs:captured_namespace_reads_after_host_and_capture_buffers_are_removed_and_infers_readonly_absence",
     "rust:tests/helper_corpus.rs:helper_transcript_corpus_reproduces_expected_outcomes"
    ]
@@ -513,7 +513,7 @@
    "rule": "Served by the in-memory namespace model from the declared image; the host filesystem is never reopened, and every call is transcribed.",
    "evidence": [
     "rust:tests/inventory.rs:inventory_covers_every_operation",
-    "go:internal/backends/wasm/wasi:TestNamespaceConformanceCorpus",
+    "go:internal/model/wasi:TestNamespaceConformanceCorpus",
     "rust:gomad/src/install/config/preservation_tests.rs:captured_namespace_reads_after_host_and_capture_buffers_are_removed_and_infers_readonly_absence",
     "rust:tests/helper_corpus.rs:helper_transcript_corpus_reproduces_expected_outcomes",
     "rust:tests/inventory/architecture.rs:modeled_state_io_admits_named_types_and_refuses_host_streams"
@@ -529,7 +529,7 @@
    "rule": "Served by the in-memory namespace model from the declared image; the host filesystem is never reopened, and every call is transcribed.",
    "evidence": [
     "rust:tests/inventory.rs:inventory_covers_every_operation",
-    "go:internal/backends/wasm/wasi:TestNamespaceConformanceCorpus",
+    "go:internal/model/wasi:TestNamespaceConformanceCorpus",
     "rust:gomad/src/install/config/preservation_tests.rs:captured_namespace_reads_after_host_and_capture_buffers_are_removed_and_infers_readonly_absence",
     "rust:tests/helper_corpus.rs:helper_transcript_corpus_reproduces_expected_outcomes"
    ]
@@ -544,7 +544,7 @@
    "rule": "Served by the in-memory namespace model from the declared image; the host filesystem is never reopened, and every call is transcribed.",
    "evidence": [
     "rust:tests/inventory.rs:inventory_covers_every_operation",
-    "go:internal/backends/wasm/wasi:TestNamespaceConformanceCorpus",
+    "go:internal/model/wasi:TestNamespaceConformanceCorpus",
     "rust:gomad/src/install/config/preservation_tests.rs:captured_namespace_reads_after_host_and_capture_buffers_are_removed_and_infers_readonly_absence",
     "rust:tests/helper_corpus.rs:helper_transcript_corpus_reproduces_expected_outcomes"
    ]
@@ -559,7 +559,7 @@
    "rule": "Served by the in-memory namespace model from the declared image; the host filesystem is never reopened, and every call is transcribed.",
    "evidence": [
     "rust:tests/inventory.rs:inventory_covers_every_operation",
-    "go:internal/backends/wasm/wasi:TestNamespaceConformanceCorpus",
+    "go:internal/model/wasi:TestNamespaceConformanceCorpus",
     "rust:gomad/src/install/config/preservation_tests.rs:captured_namespace_reads_after_host_and_capture_buffers_are_removed_and_infers_readonly_absence",
     "rust:tests/helper_corpus.rs:helper_transcript_corpus_reproduces_expected_outcomes"
    ]
@@ -574,7 +574,7 @@
    "rule": "Served by the in-memory namespace model from the declared image; the host filesystem is never reopened, and every call is transcribed.",
    "evidence": [
     "rust:tests/inventory.rs:inventory_covers_every_operation",
-    "go:internal/backends/wasm/wasi:TestNamespaceConformanceCorpus",
+    "go:internal/model/wasi:TestNamespaceConformanceCorpus",
     "rust:gomad/src/install/config/preservation_tests.rs:captured_namespace_reads_after_host_and_capture_buffers_are_removed_and_infers_readonly_absence",
     "rust:tests/helper_corpus.rs:helper_transcript_corpus_reproduces_expected_outcomes"
    ]
@@ -589,7 +589,7 @@
    "rule": "Served by the in-memory namespace model from the declared image; the host filesystem is never reopened, and every call is transcribed.",
    "evidence": [
     "rust:tests/inventory.rs:inventory_covers_every_operation",
-    "go:internal/backends/wasm/wasi:TestNamespaceConformanceCorpus",
+    "go:internal/model/wasi:TestNamespaceConformanceCorpus",
     "rust:gomad/src/install/config/preservation_tests.rs:captured_namespace_reads_after_host_and_capture_buffers_are_removed_and_infers_readonly_absence",
     "rust:tests/helper_corpus.rs:helper_transcript_corpus_reproduces_expected_outcomes"
    ]
@@ -604,7 +604,7 @@
    "rule": "Served by the in-memory namespace model from the declared image; the host filesystem is never reopened, and every call is transcribed.",
    "evidence": [
     "rust:tests/inventory.rs:inventory_covers_every_operation",
-    "go:internal/backends/wasm/wasi:TestNamespaceConformanceCorpus",
+    "go:internal/model/wasi:TestNamespaceConformanceCorpus",
     "rust:gomad/src/install/config/preservation_tests.rs:captured_namespace_reads_after_host_and_capture_buffers_are_removed_and_infers_readonly_absence",
     "rust:tests/helper_corpus.rs:helper_transcript_corpus_reproduces_expected_outcomes"
    ]
@@ -619,7 +619,7 @@
    "rule": "Served by the in-memory namespace model from the declared image; the host filesystem is never reopened, and every call is transcribed.",
    "evidence": [
     "rust:tests/inventory.rs:inventory_covers_every_operation",
-    "go:internal/backends/wasm/wasi:TestNamespaceConformanceCorpus",
+    "go:internal/model/wasi:TestNamespaceConformanceCorpus",
     "rust:gomad/src/install/config/preservation_tests.rs:captured_namespace_reads_after_host_and_capture_buffers_are_removed_and_infers_readonly_absence",
     "rust:tests/helper_corpus.rs:helper_transcript_corpus_reproduces_expected_outcomes"
    ]
@@ -634,7 +634,7 @@
    "rule": "Served by the in-memory namespace model from the declared image; the host filesystem is never reopened, and every call is transcribed.",
    "evidence": [
     "rust:tests/inventory.rs:inventory_covers_every_operation",
-    "go:internal/backends/wasm/wasi:TestNamespaceConformanceCorpus",
+    "go:internal/model/wasi:TestNamespaceConformanceCorpus",
     "rust:gomad/src/install/config/preservation_tests.rs:captured_namespace_reads_after_host_and_capture_buffers_are_removed_and_infers_readonly_absence",
     "rust:tests/helper_corpus.rs:helper_transcript_corpus_reproduces_expected_outcomes"
    ]
@@ -649,7 +649,7 @@
    "rule": "Served by the in-memory namespace model from the declared image; the host filesystem is never reopened, and every call is transcribed.",
    "evidence": [
     "rust:tests/inventory.rs:inventory_covers_every_operation",
-    "go:internal/backends/wasm/wasi:TestNamespaceConformanceCorpus",
+    "go:internal/model/wasi:TestNamespaceConformanceCorpus",
     "rust:gomad/src/install/config/preservation_tests.rs:captured_namespace_reads_after_host_and_capture_buffers_are_removed_and_infers_readonly_absence",
     "rust:tests/helper_corpus.rs:helper_transcript_corpus_reproduces_expected_outcomes"
    ]
@@ -664,7 +664,7 @@
    "rule": "Served by the in-memory namespace model from the declared image; the host filesystem is never reopened, and every call is transcribed.",
    "evidence": [
     "rust:tests/inventory.rs:inventory_covers_every_operation",
-    "go:internal/backends/wasm/wasi:TestNamespaceConformanceCorpus",
+    "go:internal/model/wasi:TestNamespaceConformanceCorpus",
     "rust:gomad/src/install/config/preservation_tests.rs:captured_namespace_reads_after_host_and_capture_buffers_are_removed_and_infers_readonly_absence",
     "rust:tests/helper_corpus.rs:helper_transcript_corpus_reproduces_expected_outcomes"
    ]
@@ -679,7 +679,7 @@
    "rule": "Served by the in-memory namespace model from the declared image; the host filesystem is never reopened, and every call is transcribed.",
    "evidence": [
     "rust:tests/inventory.rs:inventory_covers_every_operation",
-    "go:internal/backends/wasm/wasi:TestNamespaceConformanceCorpus",
+    "go:internal/model/wasi:TestNamespaceConformanceCorpus",
     "rust:gomad/src/install/config/preservation_tests.rs:captured_namespace_reads_after_host_and_capture_buffers_are_removed_and_infers_readonly_absence",
     "rust:tests/helper_corpus.rs:helper_transcript_corpus_reproduces_expected_outcomes"
    ]
