@@ -76,6 +76,7 @@ fn prepared_module_with_wall(
     }))
     .unwrap();
     let mut prepared = Prepared {
+        auxiliary: std::collections::BTreeMap::new(),
         compile_cache_root: None,
         module,
         configuration,

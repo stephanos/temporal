@@ -144,6 +144,59 @@ func TestOverlayReusesOnlyVerifiedImmutableOutput(t *testing.T) {
 	}
 }
 
+func TestOverlayCompilerAliasesRequireSeparatePreparationCaches(t *testing.T) {
+	original := stockRoot(t)
+	alias := t.TempDir()
+	files := []string{"VERSION"}
+	for name := range stockRewrites() {
+		files = append(files, sourcePath(name))
+	}
+	for _, name := range files {
+		body, err := os.ReadFile(filepath.Join(original, name))
+		if err != nil {
+			t.Fatal(err)
+		}
+		path := filepath.Join(alias, name)
+		if err := os.MkdirAll(filepath.Dir(path), 0700); err != nil {
+			t.Fatal(err)
+		}
+		if err := os.WriteFile(path, body, 0600); err != nil {
+			t.Fatal(err)
+		}
+	}
+	shared := t.TempDir()
+	first, identity, err := BuildOverlay(original, nativeRoot(t), shared)
+	if err != nil {
+		t.Fatal(err)
+	}
+	before, err := os.ReadFile(first)
+	if err != nil {
+		t.Fatal(err)
+	}
+	if _, _, err := BuildOverlay(alias, nativeRoot(t), shared); err == nil || !strings.Contains(err.Error(), "overlay.json") {
+		t.Fatalf("same-content compiler alias reused a descriptor with foreign paths: %v", err)
+	}
+	second, aliasIdentity, err := BuildOverlay(alias, nativeRoot(t), t.TempDir())
+	if err != nil || identity != aliasIdentity {
+		t.Fatalf("private alias cache changed runtime identity: %q %q %v", identity, aliasIdentity, err)
+	}
+	after, err := os.ReadFile(first)
+	if err != nil || !bytes.Equal(before, after) {
+		t.Fatalf("alias preparation modified original descriptor: %v", err)
+	}
+	body, err := os.ReadFile(second)
+	if err != nil || bytes.Equal(before, body) {
+		t.Fatalf("alias descriptor did not preserve its distinct raw paths: %v", err)
+	}
+	var descriptor struct{ Replace map[string]string }
+	if err := json.Unmarshal(body, &descriptor); err != nil {
+		t.Fatal(err)
+	}
+	if descriptor.Replace[filepath.Join(alias, "src/runtime/proc.go")] == "" || descriptor.Replace[filepath.Join(original, "src/runtime/proc.go")] != "" {
+		t.Fatal("private descriptor did not bind the actual compiler alias")
+	}
+}
+
 func stockRoot(t *testing.T) string {
 	t.Helper()
 	command := os.Getenv("GOMAD_STOCK_GO")

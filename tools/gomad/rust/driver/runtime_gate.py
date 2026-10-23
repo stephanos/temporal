@@ -60,6 +60,7 @@ def choice_summary(raw, terminal, require):
 
 
 def exact_configuration(configuration, require):
+    require(configuration.get('world_transition_bytes') == 64 << 20, 'changed runtime World transition byte bound')
     require(configuration['arguments'] == ['guest', 'literal $arg'], 'changed runtime argv')
     require(configuration['environment'] == dict(PWD='/workspace', TZ='UTC', ONLY='captured', EXTRA_ENTROPY='no_'),
             'changed runtime environment')
@@ -187,7 +188,7 @@ def runtime(config, root, label, entry, api):
         '--config', str(policy), '--output', runtime_installation], timeout=remaining())
     api['command'](config, root, 'producer', [executable, 'produce', runtime_installation,
         str(api['REPO'] / 'tools/gomad/internal/backends/wasm/testdata/runtime_probes'), str(index),
-        str(root / 'recordings')], timeout=remaining())
+        str(root / 'recordings')], timeout=remaining(), private_observations=config)
     paths = read(root / 'recordings/artifacts.json')
     require(len(paths) == len(set(paths)) == 25, 'runtime requires 25 distinct fresh retained stores')
     baseline = None

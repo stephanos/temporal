@@ -10,17 +10,50 @@ use sha2::{Digest as _, Sha256};
 use std::{
     collections::BTreeMap,
     fs,
+    os::unix::fs::PermissionsExt as _,
     path::{Path, PathBuf},
     time::Instant,
 };
 
+#[cfg(test)]
+mod actual_tests;
+pub(crate) mod compilation_cache;
 pub(crate) mod driver;
 pub(crate) mod inventory;
+mod observation_sidecar;
+pub(crate) mod observations;
 pub(crate) mod process;
 
 const MAXIMUM: u64 = 512 << 20;
 
+#[derive(Default)]
+pub(crate) struct CompilerControls {
+    pub environment: BTreeMap<String, String>,
+    pub parallelism: Option<u32>,
+}
+
+impl CompilerControls {
+    fn apply(&self, environment: &mut BTreeMap<String, String>) -> Result<(), String> {
+        if self.parallelism.is_some_and(|value| value != 1) {
+            return Err(
+                "unsupported_target: original measured compiler parallelism must be one".into(),
+            );
+        }
+        for (name, value) in &self.environment {
+            if !(name == "GOMAXPROCS" && value == "1"
+                || name == "GOTMPDIR" && Path::new(value).is_absolute() && !value.contains('\0')
+                || name == "GOWASM" && matches!(value.as_str(), "" | "satconv,signext"))
+            {
+                return Err("unsupported_target: unsupported scoped compiler control".into());
+            }
+            environment.insert(name.clone(), value.clone());
+        }
+        Ok(())
+    }
+}
+
 pub struct Prepared {
+    pub auxiliary: BTreeMap<String, Vec<u8>>,
     pub compile_cache_root: Option<String>,
     pub module: Vec<u8>,
     pub configuration: Configuration,
@@ -30,6 +63,22 @@ pub struct Prepared {
     pub provenance: Vec<u8>,
     pub network: Option<gomad_wasmhost::linked_cluster::NetworkModel>,
     pub soft_assertion_report_only: bool,
+}
+
+pub(crate) fn retain_observations(
+    campaign: &Path,
+    prepared: &Prepared,
+    record: &str,
+) -> Result<(), String> {
+    observation_sidecar::publish(campaign, prepared, record)
+}
+
+pub(crate) fn open_observations(
+    campaign: &Path,
+    prepared: &Prepared,
+    record: &str,
+) -> Result<BTreeMap<String, Vec<u8>>, String> {
+    observation_sidecar::open(campaign, prepared, record)
 }
 
 pub use crate::install::manifest::Installation;
@@ -132,10 +181,17 @@ pub(crate) fn installation_profile(options: &ExploreOptions) -> Result<String, S
 /// # Errors
 /// Refuses incompatible installations, unsupported targets and changed build inputs.
 pub fn prepare(options: &ExploreOptions) -> Result<Prepared, String> {
+    prepare_with_compiler_controls(options, &CompilerControls::default())
+}
+
+pub(crate) fn prepare_with_compiler_controls(
+    options: &ExploreOptions,
+    controls: &CompilerControls,
+) -> Result<Prepared, String> {
     let deadline = Instant::now()
         .checked_add(options.overall_timeout)
         .ok_or("overall_timeout: preparation deadline exceeds clock range")?;
-    let result = prepare_before_deadline(options, deadline, false);
+    let result = prepare_before_deadline(options, controls, deadline, false);
     process::check_deadline(deadline)?;
     result
 }
@@ -144,23 +200,43 @@ pub(crate) fn prepare_runtime_qualification(options: &ExploreOptions) -> Result<
     let deadline = Instant::now()
         .checked_add(options.overall_timeout)
         .ok_or("runtime qualification preparation deadline exceeds clock range")?;
-    let result = prepare_before_deadline(options, deadline, true);
+    let result = prepare_before_deadline(options, &CompilerControls::default(), deadline, true);
     process::check_deadline(deadline)?;
     result
 }
 
 fn prepare_before_deadline(
     options: &ExploreOptions,
+    controls: &CompilerControls,
     deadline: Instant,
     runtime_qualification: bool,
 ) -> Result<Prepared, String> {
     if options.target_kind == "exec" {
         return prepared_exec(options, &installation(options)?);
     }
-    let mut recipe = driver::prepare(options, deadline)?;
+    let mut recipe = if controls.environment.is_empty() && controls.parallelism.is_none() {
+        driver::prepare(options, deadline)?
+    } else {
+        driver::prepare_with_compiler_controls(options, controls, deadline)?
+    };
     if runtime_qualification {
         recipe.configuration = crate::runtime_qualification::configuration()?;
     }
+    let compile_inputs = recipe.compilation_inputs();
+    let compile_key = compilation_cache::key(&compile_inputs)?;
+    if let Some(cached) =
+        compilation_cache::load(&recipe.installed.cache_root, &compile_key, &compile_inputs)?
+    {
+        let mut prepared = recipe.admit(cached.module, options.target_args.clone(), deadline)?;
+        // Cached compilation observations stay original; current admission stays fresh.
+        prepared
+            .auxiliary
+            .retain(|path, _| !path.starts_with("target/preparation-inputs/compile/"));
+        prepared.auxiliary.extend(cached.auxiliary);
+        return Ok(prepared);
+    }
+    let cache_directory =
+        compilation_cache::build_directory(&recipe.installed.cache_root, &compile_key)?;
     let temporary = process::Temporary::new(&recipe.installed.cache_root)?;
     let output = temporary.0.join("module.wasm");
     let mut build = if options.target_kind == "go-test" {
@@ -179,9 +255,12 @@ fn prepare_before_deadline(
     let mut compilation_environment = recipe.environment.clone();
     compilation_environment.insert(
         "GOCACHE".into(),
-        temporary.0.join("objects").to_string_lossy().into_owned(),
+        cache_directory
+            .join("objects")
+            .to_string_lossy()
+            .into_owned(),
     );
-    process::command(
+    let command = process::observed_command(
         &recipe.installed.compiler_path,
         &build,
         &recipe.directory,
@@ -190,8 +269,35 @@ fn prepare_before_deadline(
         4 << 20,
         deadline,
     )?;
+    recipe
+        .observations
+        .as_mut()
+        .ok_or("native compilation observations missing")?
+        .record("compile-module", command, &recipe.installed.cache_root)?;
     let module = read(&output, MAXIMUM)?;
-    recipe.admit(module, options.target_args.clone(), deadline)
+    let module_mode = fs::metadata(&output).map_err(failure)?.permissions().mode() & 0o777;
+    let cache_root = recipe.installed.cache_root.clone();
+    let mut prepared = recipe.admit(module, options.target_args.clone(), deadline)?;
+    let auxiliary = prepared
+        .auxiliary
+        .iter()
+        .filter(|(path, _)| path.starts_with("target/preparation-inputs/compile/"))
+        .map(|(path, raw)| (path.clone(), raw.clone()))
+        .collect();
+    let cached = compilation_cache::publish_with_mode(
+        &cache_root,
+        &compile_key,
+        &compile_inputs,
+        &prepared.module,
+        module_mode,
+        auxiliary,
+        || process::check_deadline(deadline),
+    )?;
+    prepared
+        .auxiliary
+        .retain(|path, _| !path.starts_with("target/preparation-inputs/compile/"));
+    prepared.auxiliary.extend(cached.auxiliary);
+    Ok(prepared)
 }
 
 pub(crate) fn choice_implementation(key: &str) -> Result<sha2::digest::Output<Sha256>, String> {
@@ -390,6 +496,7 @@ fn prepared_exec(options: &ExploreOptions, installed: &Installation) -> Result<P
         .as_bool()
         .ok_or_else(|| failure("prepared assertion policy missing"))?;
     Ok(Prepared {
+        auxiliary: BTreeMap::new(),
         compile_cache_root: compile_cache_root(installed)?,
         module,
         configuration: provenance.configuration,
@@ -400,4 +507,145 @@ fn prepared_exec(options: &ExploreOptions, installed: &Installation) -> Result<P
         network: provenance.network,
         soft_assertion_report_only,
     })
+}
+
+#[cfg(test)]
+mod receiving_compilation_contract {
+    use super::*;
+    fn recipe() -> driver::Recipe {
+        let mut recipe = driver::collection::tests::recipe("probe");
+        recipe.inputs = json!({"compiler":recipe.compiler,"compiler_path":recipe.installed.compiler_path,
+            "compiler_sha256":recipe.installed.compiler_sha256,"go_version":recipe.installed.go_version,
+            "sources":recipe.sources,"runtime":"a".repeat(64),"runtime_implementation":"b".repeat(64),
+            "kind":"go-test","source":"./probe","directory":recipe.directory,"tags":[],
+            "build_flags":["-mod=readonly","-trimpath","-buildvcs=false","-pgo=off"],"environment":{"GOOS":"wasip1","GOARCH":"wasm","GOWASM":""},
+            "configuration":recipe.configuration,"arguments":["-test.run=^Original$"],"helper":"c".repeat(64),"host":"d".repeat(64),"soft_assertion_report_only":false});
+        recipe
+    }
+    #[test]
+    fn receiving_compilation_key_excludes_exact_five_execution_only_changes_but_full_provenance_changes()
+     {
+        for changed in [
+            "selector",
+            "wasi-config",
+            "helper",
+            "fuel",
+            "soft-assertion",
+        ] {
+            let mut recipe = recipe();
+            let original = recipe.compilation_inputs();
+            let full = canonical::digest(&canonical::encode(&recipe.inputs).unwrap());
+            match changed {
+                "selector" => recipe.inputs["arguments"] = json!(["-test.run=^Other$"]),
+                "wasi-config" => {
+                    recipe.inputs["configuration"]["environment"]["ONLY"] = json!("new");
+                }
+                "helper" => recipe.inputs["helper"] = json!("f".repeat(64)),
+                "fuel" => recipe.inputs["configuration"]["limits"]["fuel"] = json!(999),
+                "soft-assertion" => recipe.inputs["soft_assertion_report_only"] = json!(true),
+                _ => unreachable!(),
+            }
+            assert_eq!(recipe.compilation_inputs(), original, "{changed}");
+            assert_ne!(
+                canonical::digest(&canonical::encode(&recipe.inputs).unwrap()),
+                full,
+                "{changed}"
+            );
+        }
+    }
+    #[test]
+    fn receiving_compilation_key_binds_source_tags_compiler_tools_headers_runtime_overlay_environment_kind_and_source()
+     {
+        for changed in [
+            "source-bytes",
+            "tags",
+            "compiler",
+            "tool",
+            "header",
+            "runtime",
+            "runtime-implementation",
+            "overlay",
+            "environment",
+            "kind",
+            "source",
+        ] {
+            let mut recipe = recipe();
+            let original = compilation_cache::key(&recipe.compilation_inputs()).unwrap();
+            match changed {
+                "source-bytes" => {
+                    recipe.inputs["sources"]["/source/probe/test.go"] = json!("f".repeat(64));
+                }
+                "tags" => recipe.inputs["tags"] = json!(["changed"]),
+                "compiler" => recipe.inputs["compiler_sha256"] = json!("f".repeat(64)),
+                "tool" => {
+                    recipe.inputs["compiler"]["/pinned/pkg/tool/compile"] = json!("f".repeat(64));
+                }
+                "header" => {
+                    recipe.inputs["compiler"]["/pinned/pkg/include/textflag.h"] =
+                        json!("f".repeat(64));
+                }
+                "runtime" => recipe.inputs["runtime"] = json!("f".repeat(64)),
+                "runtime-implementation" => {
+                    recipe.inputs["runtime_implementation"] = json!("f".repeat(64));
+                }
+                "overlay" => {
+                    recipe.inputs["compiler"]["/cache/runtime-overlay/overlay.json"] =
+                        json!("f".repeat(64));
+                }
+                "environment" => recipe.inputs["environment"]["GOWASM"] = json!("satconv,signext"),
+                "kind" => recipe.inputs["kind"] = json!("go-run"),
+                "source" => recipe.inputs["source"] = json!("./different"),
+                _ => unreachable!(),
+            }
+            assert_ne!(
+                compilation_cache::key(&recipe.compilation_inputs()).unwrap(),
+                original,
+                "{changed}"
+            );
+        }
+    }
+    #[test]
+    fn receiving_measurement_compiler_controls_are_scoped_and_default_environment_is_unchanged() {
+        let mut baseline = BTreeMap::from([
+            ("GOFLAGS".into(), String::new()),
+            ("GOOS".into(), "wasip1".into()),
+        ]);
+        let mut environment = baseline.clone();
+        CompilerControls::default().apply(&mut environment).unwrap();
+        assert_eq!(environment, baseline);
+        let controls = CompilerControls {
+            environment: BTreeMap::from([
+                ("GOMAXPROCS".into(), "1".into()),
+                ("GOTMPDIR".into(), "/private/compiler-temp".into()),
+                ("GOWASM".into(), "satconv,signext".into()),
+            ]),
+            parallelism: Some(1),
+        };
+        controls.apply(&mut environment).unwrap();
+        assert_eq!(environment["GOMAXPROCS"], "1");
+        assert_eq!(environment["GOTMPDIR"], "/private/compiler-temp");
+        assert_eq!(environment["GOWASM"], "satconv,signext");
+        assert_eq!(baseline.len(), 2);
+        for (name, value) in [
+            ("GOFLAGS", "-race"),
+            ("GOMAXPROCS", "2"),
+            ("GOTMPDIR", "relative"),
+            ("GOWASM", "other"),
+            ("SECRET_TOKEN", "secret"),
+        ] {
+            let controls = CompilerControls {
+                environment: BTreeMap::from([(name.into(), value.into())]),
+                parallelism: Some(1),
+            };
+            assert!(controls.apply(&mut baseline.clone()).is_err(), "{name}");
+        }
+        assert!(
+            CompilerControls {
+                environment: BTreeMap::new(),
+                parallelism: Some(2)
+            }
+            .apply(&mut baseline)
+            .is_err()
+        );
+    }
 }

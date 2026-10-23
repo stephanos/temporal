@@ -220,7 +220,7 @@ pub(super) fn execute(
         Ok(status) => status,
         Err(reason) => {
             let retained =
-                failure_diagnostic(&request.root, &executable, pid, json!({"failure":reason}));
+                failure_diagnostic(&request.root, &executable, pid, &json!({"failure":reason}));
             return Err(format!("{reason}; supplemental diagnostic={retained:?}"));
         }
     };
@@ -229,7 +229,7 @@ pub(super) fn execute(
             &request.root,
             &executable,
             pid,
-            json!({"exit":status.code(),"status":status.to_string()}),
+            &json!({"exit":status.code(),"status":status.to_string()}),
         );
         return Err(format!(
             "stress child {pid} exited {status}; retain {}; supplemental diagnostic={retained:?}",
@@ -247,7 +247,7 @@ pub(super) fn failure_diagnostic(
     root: &Path,
     executable: &Path,
     pid: u32,
-    outcome: Value,
+    outcome: &Value,
 ) -> Result<std::path::PathBuf, String> {
     let stderr = crate::qualify::spec::read_bounded(&root.join("stderr.log"), 32 << 20)?;
     let request = crate::qualify::spec::read_bounded(&root.join("request.json"), 16 << 20)?;

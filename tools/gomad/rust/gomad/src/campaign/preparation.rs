@@ -533,6 +533,7 @@ mod tests {
     fn preparation_restoration_refuses_authenticated_execution_records() {
         let provenance = provenance();
         let prepared = Prepared {
+            auxiliary: std::collections::BTreeMap::new(),
             module: b"module".to_vec(),
             configuration: serde_json::from_value(provenance["configuration"].clone()).unwrap(),
             toolchain: "a".repeat(64),

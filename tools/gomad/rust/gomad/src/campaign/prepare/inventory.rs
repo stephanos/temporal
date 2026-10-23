@@ -16,6 +16,12 @@ pub(crate) fn verify(inputs: &BTreeMap<PathBuf, String>) -> Result<(), String> {
     Ok(())
 }
 
+pub(crate) struct CompilerInventory {
+    pub inputs: BTreeMap<PathBuf, String>,
+    pub root: PathBuf,
+    pub command: process::ObservedCommand,
+}
+
 pub(crate) fn compiler(
     compiler: &Path,
     directory: &Path,
@@ -23,13 +29,24 @@ pub(crate) fn compiler(
     scratch: &Path,
     deadline: Instant,
 ) -> Result<(BTreeMap<PathBuf, String>, PathBuf), String> {
+    let observed = observed_compiler(compiler, directory, environment, scratch, deadline)?;
+    Ok((observed.inputs, observed.root))
+}
+
+pub(crate) fn observed_compiler(
+    compiler: &Path,
+    directory: &Path,
+    environment: &BTreeMap<String, String>,
+    scratch: &Path,
+    deadline: Instant,
+) -> Result<CompilerInventory, String> {
     #[derive(Deserialize)]
     #[serde(rename_all = "UPPERCASE")]
     struct Identity {
         gotooldir: PathBuf,
         goroot: PathBuf,
     }
-    let bytes = process::command(
+    let command = process::observed_command(
         compiler,
         &[
             "env".into(),
@@ -43,7 +60,7 @@ pub(crate) fn compiler(
         64 << 10,
         deadline,
     )?;
-    let identity: Identity = serde_json::from_slice(&bytes).map_err(failure)?;
+    let identity: Identity = serde_json::from_slice(&command.stdout).map_err(failure)?;
     if !identity.gotooldir.is_absolute() || !identity.goroot.is_absolute() {
         return Err(failure("absolute compiler distribution is required"));
     }
@@ -64,7 +81,11 @@ pub(crate) fn compiler(
     if headers == 0 {
         return Err(failure("compiler assembler headers are missing"));
     }
-    hash(paths).map(|sources| (sources, root))
+    hash(paths).map(|inputs| CompilerInventory {
+        inputs,
+        root,
+        command,
+    })
 }
 
 fn hash(paths: BTreeSet<PathBuf>) -> Result<BTreeMap<PathBuf, String>, String> {

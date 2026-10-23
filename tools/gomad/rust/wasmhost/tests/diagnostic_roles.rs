@@ -1,3 +1,5 @@
+#![cfg(not(feature = "conformance"))]
+
 use gomad_wasmhost::linked::Conditions;
 
 #[test]

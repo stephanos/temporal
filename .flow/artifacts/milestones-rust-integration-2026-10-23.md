@@ -41,3 +41,53 @@ Root's isolated build target is `/home/agent/.cache/codex-build/fn232-retirement
 New driver/inspection/support/runtime worktrees are retained for receiving integration and review; preparation's clean worktree was removed/pruned after its commits were integrated. The superseded duplicate workspace experiment is preserved only in branch `fn232-workspace` and must not be integrated. Older registered worktrees remain open fn185/fn188/fn221/fn232 reference or source owners, as indexed in the existing continuation handover. Untracked user `tools/gomad/.turbo` files remain untouched. The former helper target binary at `tools/gomad/internal/backends/wasm/wasmhost/target/release/gomad-wasmhost` is retained unchanged; it is not used to prove the new candidate.
 
 Latest disk observation: checkout 172 GiB free; `/home/agent` 83 GiB free. No shared cache/evidence removal was performed by root during this batch.
+
+
+## Reviewed cache and determinism integration update
+
+Observed 2026-10-23T06:48:53.137146+00:00. Source checkpoint `e325783f6c`, following clean merge
+`81a66b54b3` and onebox Spec-witness commit `ea31ff1702`. Earlier sections
+retain their original checkpoint meaning; this update supersedes their pending
+source-integration descriptions only.
+
+Reviewed runtime provenance/choice-summary/deadline fixes (`0fd7ae7b6e`),
+determinism source guards and zero-choice diagnostics (`d71c795a8a`), and cache/
+lifecycle source (`187c1774fe`, handover `0df8180f8c`) are integrated. Cache
+propagation, authenticated replay error classification, cluster aggregate facts
+and complete configured/retained/summary ownership passed same-family independent
+source review. The determinism ledger and its original 276-record prefix remain
+unchanged by the final stress lint delta. Earlier source-review SHA rows describe
+their historical bytes; `e325783f6c` binds the subsequent four-file lint changes.
+
+Actual root verification, authenticated in the companion JSON:
+
+- Full release library tests at `81a66b54b3`: 310 passed, one existing ignored,
+  exit 0, run serially in the isolated retirement integration target.
+- Integrated driver: 154 passed; workload tools: 20 passed; both exit 0.
+- Onebox orchestration: 14 passed; inspection: 19 passed, observed terminal
+  exit 0. A subsequent attempted workload-test path was absent; the corrected
+  unittest-discovery command above passed and is retained separately.
+- Strict release all-target Clippy initially failed with nine stress diagnostics,
+  exit 101. Fix `e325783f6c` borrows unconsumed values, preserves exact framed
+  test bytes, and checks a test-only integer conversion; no lint suppression.
+  Strict Clippy then exited 0; all 26 stress tests passed, exit 0. Independent
+  read-only review accepted the source delta as behavior-preserving.
+
+Support publication commit `137c932a01` remains outside root pending review
+repairs. Review found an alias-overlay cache collision and incomplete inspection
+recording argv/scenario admission; the onebox and support owners are repairing
+those together. Review also found the parsed World-transition byte cap was not
+consumed by execution. Core preservation owns actual enforcement, retention and
+replay tests; authenticating a requested flag cannot prove its enforcement.
+These findings block acceptance and are not waived by the passing source tests.
+
+Core, measurement, preparation receiving and interception work continues in its
+existing isolated worktrees. The 26 retired-Go inventory references still need
+exact behavioral reconciliation, including actual runtime/fixture proof. Full
+frozen runtime/workload/replay qualification, source-generation checks, final
+raw/golden lanes and support claims remain pending under the original milestones.
+
+Disk observed after this build wave: checkout 152 GiB free, `/home/agent` 61 GiB
+free. No root cache/evidence deletion. Existing open-spec worktrees listed in the
+prior continuation inventory remain retained for their active source/evidence
+owners; root's retirement integration target is retained for integrated checks.

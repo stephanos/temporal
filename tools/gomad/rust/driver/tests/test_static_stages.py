@@ -206,11 +206,11 @@ class StaticStageContract(unittest.TestCase):
 
     def test_exact_known_ignored_inventory(self):
         rows = static.ignored_inventory(driver.REPO)
-        self.assertEqual(len(rows), 14)
+        self.assertEqual(len(rows), 15)
         root34 = [row for row in rows if row['name'].startswith(('final_network_', 'joined_storage_'))]
         self.assertEqual(len(root34), 2)
         self.assertTrue(all(row['final_id'] == 'transferred-live/TestClusterBrokerDurableRestartParity' for row in root34))
-        self.assertEqual(sum(row['final_id'] is None for row in rows), 3)
+        self.assertEqual(sum(row['final_id'] is None for row in rows), 4)
         with tempfile.TemporaryDirectory() as directory:
             repo = Path(directory)
             (repo / 'tools/gomad/rust/gomad/src').mkdir(parents=True)

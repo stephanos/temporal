@@ -203,6 +203,15 @@ def kill_tree(pid):
     for target in stopped - {pid}:
         send(target, signal.SIGKILL)
     send(pid, signal.SIGKILL)
+    deadline = time.monotonic() + 1
+    while True:
+        result = subprocess.run(['/bin/ps', '-o', 'pid=,stat=', '-p', ','.join(map(str, stopped))],
+                                capture_output=True, check=False, timeout=1)
+        live = [row for row in result.stdout.splitlines() if row.split()[1][:1] not in (b'Z', b'X')]
+        if not live:
+            return
+        require(time.monotonic() < deadline, 'inspection descendants did not quiesce after termination')
+        time.sleep(0.01)
 
 
 class Gate:
@@ -218,6 +227,7 @@ class Gate:
 
     def run(self, name, command, expected, timeout, json_output=False, detached=False):
         command = list(map(str, command))
+        scenario = scenario_witness(self.root, command) if '--scenario' in command else None
         environment = dict(self.environment)
         if detached:
             environment.update(PATH='', GOMAD_WASM_INSTALLATION=str(self.root / 'installation-unavailable.json'),
@@ -228,7 +238,7 @@ class Gate:
         started = datetime.now(timezone.utc).isoformat()
         clock = time.monotonic()
         timed_out = False
-        private_seal, capture_error = None, None
+        private_seal, capture_error, scenario_error = None, None, None
         with stdout.open('xb') as out, stderr.open('xb') as err:
             os.fchmod(out.fileno(), 0o600)
             os.fchmod(err.fileno(), 0o600)
@@ -261,6 +271,13 @@ class Gate:
                            'GOMAD_WASM_QUALIFY_WORKLOADS')},
                        environment_sha256=hashlib.sha256(workloads.canonical(environment)).hexdigest(),
                        stdout=str(stdout), stderr=str(stderr), stdout_sha256=digest(stdout), stderr_sha256=digest(stderr))
+        if scenario is not None:
+            receipt['recording_scenario'] = scenario
+            try:
+                require(scenario_witness(self.root, command) == scenario, 'recording scenario changed during native process')
+            except (OSError, ValueError) as error:
+                scenario_error = str(error)
+                receipt['recording_scenario_error'] = scenario_error
         if private_seal is not None:
             receipt['private_observations'] = private_seal
         if capture_error is not None:
@@ -270,6 +287,7 @@ class Gate:
         require(not timed_out and process.returncode == expected,
                 f'{name} exit {process.returncode}, expected {expected}; logs: {stdout}, {stderr}')
         require(capture_error is None, 'private preparation capture refused: ' + str(capture_error))
+        require(scenario_error is None, 'recording scenario witness refused: ' + str(scenario_error))
         if json_output:
             raw = read(stdout, 32 << 20)
             try:
@@ -315,6 +333,26 @@ def copy_alias(source, destination):
     shutil.copytree(source, destination, copy_function=copy_file)
 
 
+def alias_preparation_cache(root, requested):
+    cache = root / 'preparation-cache'
+    require(cache != requested.resolve(), 'inspection compiler alias requires a separate preparation cache')
+    cache.mkdir(mode=0o700, exist_ok=False)
+    return cache
+
+
+def scenario_witness(root, command):
+    require(command.count('--scenario') == 1, 'inspection requires its exact original scenario argument')
+    path = Path(command[command.index('--scenario') + 1])
+    require(path == root / 'scenario.json', 'inspection scenario must remain in its original retained root')
+    require(not any(parent.is_symlink() for parent in path.parents), 'symlinked scenario parent')
+    descriptor = os.open(path, os.O_RDONLY | os.O_NOFOLLOW | os.O_NONBLOCK)
+    with os.fdopen(descriptor, 'rb') as source:
+        require(stat.S_ISREG(os.fstat(source.fileno()).st_mode), 'nonregular inspection scenario')
+        raw = source.read((256 << 10) + 1)
+    require(0 < len(raw) <= 256 << 10, 'inspection scenario exceeds its nonempty 256KiB bound')
+    return dict(path=str(path), sha256=hashlib.sha256(raw).hexdigest(), bytes_base64=base64.b64encode(raw).decode())
+
+
 def main(arguments=None):
     parser = argparse.ArgumentParser(description=__doc__)
     for name in ('binary', 'repo', 'root', 'compiler', 'runtime-root', 'cache', 'captured-config'):
@@ -332,6 +370,7 @@ def main(arguments=None):
     if private_observations is not None:
         producer.private_admission(private_observations, root)
     gate = Gate(root, binary, repo, private_observations)
+    cache = alias_preparation_cache(root, args.cache.resolve())
     guest_profile = gate.environment.get('GOMAD_WASM_QUALIFICATION_GUEST_PROFILE', '')
     cache_override = gate.environment.get('GOMAD_WASM_TEMPORAL_BUILD_CACHE', '')
     minimum = gate.environment.get('GOMAD_WASM_TEMPORAL_MIN_AVAILABLE_BYTES', '')
@@ -340,7 +379,7 @@ def main(arguments=None):
         requested_cache = producer.qualification_build_cache(root, cache_override or str(args.cache))
         require(requested_cache == args.cache, 'private compiler-cache override differs from frozen --cache')
         controls = dict(guest_profile=guest_profile, requested_build_cache=str(requested_cache),
-                        build_cache=str(args.cache.resolve()), memory_minimum=minimum)
+                        build_cache=str(cache), memory_minimum=minimum)
         try:
             controls['memory'] = producer.memory_admission(sys.platform, Path('/proc/meminfo'), minimum,
                                                            retained_raw=root / 'host-memory.raw')
@@ -364,7 +403,7 @@ def main(arguments=None):
     producer.write(policy, workloads.inspection_policy('onebox', captured))
     producer.write(scenario, workloads.inspection_scenario(['-test.run=^TestReplayInspectionWorkflowFailure$', '-test.v']))
     gate.run('install', [binary, 'install', '--compiler', private / 'compiler/bin/go', '--runtime-root', private / 'runtime',
-                        '--cache', args.cache.resolve(), '--output', installation, '--profile', 'gomad.wasi-cooperative/v1',
+                        '--cache', cache, '--output', installation, '--profile', 'gomad.wasi-cooperative/v1',
                         '--config', policy, '--fuel', str(1 << 50), '--memory-bytes', str(4 << 30)], 0, 600)
     response = gate.run('explore', explore_command(binary, installation, root, repo, stage, scenario, guest_profile), 1, 2700, True)
     require((response['attempted'], response['failures'], response['retained_evidence']) == (1, 1, 1),
@@ -373,7 +412,7 @@ def main(arguments=None):
     before = inventory(artifact)
     manifest = authenticate_payloads(artifact)
     preparation = preparation_bindings(root, response['campaign_path'], manifest, compiler,
-                                       args.runtime_root.resolve(strict=True), args.cache.resolve())
+                                       args.runtime_root.resolve(strict=True), cache)
     detached = stage.with_name(stage.name + '-unavailable')
     stage.rename(detached)
     private.rename(root / 'private-inputs-unavailable')
@@ -390,7 +429,9 @@ def main(arguments=None):
     gate.verify_private()
     receipt = root / 'inspection-receipt.json'
     producer.write(receipt, dict(schema='gomad.rust-temporal-inspection/v1', owner='onebox', artifact=str(artifact),
-        binary_sha256=binary_digest, private_observation_config=(dict(path=private_observations['_config_path'],
+        binary_sha256=binary_digest, cache_request_origin=str(args.cache.resolve()),
+        recording_scenario=next(row['recording_scenario'] for row in gate.commands if row['name'] == 'explore'),
+        private_observation_config=(dict(path=private_observations['_config_path'],
             sha256=private_observations['_config_sha256']) if private_observations is not None else None), source_detached=str(detached), private_inputs_detached=str(root / 'private-inputs-unavailable'),
         record_sha256=manifest['record_sha256'], report=report, artifact_sha256=before, diagnostic_sha256=diagnostics,
         commands={row['name']: dict(path=str(root / (row['name'] + '.command.json')),
