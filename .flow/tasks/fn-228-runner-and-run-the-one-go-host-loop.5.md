@@ -22,7 +22,7 @@ The owner deferred the Shim on 2026-10-23 ("skip the Shim for now"). Superseded 
 
 ## Done summary
 Blocked:
-Deferred by the owner on 2026-10-23 pending a design rethink: workers should be pre-programmed before they run (no live worker-to-Umpire connection, e.g. in a cloud setup). Partial start on work/fn2285-shim-deferred.
+Deferred by the owner on 2026-10-23 pending a design rethink: workers should be pre-programmed before they run (no live worker-to-Umpire connection, e.g. in a cloud setup). The partial start was later deleted at the owner's request; superseded by fn-243.
 ## Evidence
 - Commits:
 - Tests:
