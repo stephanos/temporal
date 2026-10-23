@@ -32,17 +32,22 @@ def main():
     for name in ["binary","repo","root","compiler","runtime-root","cache","captured-config"]:
         parser.add_argument("--"+name,required=True,type=Path)
     parser.add_argument("--source-manifest",required=True,type=Path)
+    parser.add_argument("--private-observation-config",type=Path)
     parser.add_argument("--prepare-only",action="store_true",help="retain only the first smoke preparation; run no measured cell or inspection")
     args=parser.parse_args()
     root=args.root.resolve()
+    private=producer.private_configuration(args.private_observation_config,args.binary,args.repo,root,args.source_manifest)
     root.mkdir(mode=0o700,parents=True,exist_ok=False)
     producer.owned_root(root)
+    producer.private_admission(private,root)
     repo=args.repo.resolve()
     binary=args.binary.resolve()
     capture=producer.captured(repo,args.captured_config)
     common=[]
     for name in ["binary","repo","compiler","runtime-root","cache","captured-config"]:
         common += ["--"+name,str(getattr(args,name.replace("-","_")).resolve())]
+    if args.private_observation_config:
+        common += ["--private-observation-config",str(args.private_observation_config.resolve())]
     rows=[]
     for row in ["smoke","frontend"]:
         cell=root/row
@@ -61,7 +66,7 @@ def main():
         for tag in target["BuildTags"]:
             command += ["--build-tag",tag]
         command += ["go-test",target["Source"],"--",*target["Args"]]
-        prepared=producer.run(cell,"prepare",command,0,environment=gate_environment(row))
+        prepared=producer.run(cell,"prepare",command,0,environment=gate_environment(row),**({'private_observations': private} if private is not None else {}))
         receipt=Path(prepared["preparation_receipt"])
         if prepared["guest_executions"]!=0 or hashlib.sha256(receipt.read_bytes()).hexdigest()!=prepared["preparation_receipt_sha256"]:
             raise ValueError("original unchanged-source preparation receipt failed authentication")

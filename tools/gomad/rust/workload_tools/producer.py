@@ -27,7 +27,7 @@ def owned_root(root):
           argv=sys.argv, cwd=os.getcwd(), pid=os.getpid(), start_ns=time.time_ns()))
 
 
-def run(root, name, command, expected, json_output=True, environment=None):
+def run(root, name, command, expected, json_output=True, environment=None, private_observations=None):
     output = root/(name+".stdout")
     error = root/(name+".stderr")
     command = [str(item) for item in command]
@@ -36,6 +36,7 @@ def run(root, name, command, expected, json_output=True, environment=None):
         "PATH", "GOMAD_WASM_INSTALLATION", "GOMAD_STOCK_GO", "GOMAD_WASM_RUNTIME_ROOT",
         "GOMAD_WASM_QUALIFICATION_GUEST_PROFILE", "GOMAD_WASM_TEMPORAL_BUILD_CACHE",
         "GOMAD_WASM_TEMPORAL_MIN_AVAILABLE_BYTES", "GOMAD_WASM_QUALIFY_WORKLOADS")}
+    private_seal, capture_error = None, None
     started = time.time_ns()
     with output.open("xb") as stdout, error.open("xb") as stderr:
         process = subprocess.Popen(command, stdout=stdout, stderr=stderr, env=actual_env)
@@ -43,6 +44,12 @@ def run(root, name, command, expected, json_output=True, environment=None):
                           start_ns=started)
         code = process.wait()
         ended = time.time_ns()
+        if private_observations is not None and code == expected:
+            try:
+                module = observation_module()
+                private_seal = module.from_command(private_observations, process.pid, command, output.read_bytes())
+            except (OSError, ValueError, KeyError, TypeError) as failure:
+                capture_error = failure
         registered.update(exit=code, observation="completed", end_ns=ended)
     write(root/(name+".process.json"), registered)
     receipt = dict(argv=command, command=command, argv_sha256=hashlib.sha256(workloads.canonical(command)).hexdigest(),
@@ -52,15 +59,58 @@ def run(root, name, command, expected, json_output=True, environment=None):
                    stdout=str(output), stderr=str(error),
                    stdout_sha256=hashlib.sha256(output.read_bytes()).hexdigest(),
                    stderr_sha256=hashlib.sha256(error.read_bytes()).hexdigest())
+    if private_seal is not None:
+        receipt['private_observations'] = private_seal
+    if capture_error is not None:
+        receipt['private_observations_error'] = str(capture_error)
     write(root/(name+".command.json"), receipt)
     if code != expected:
         raise ValueError(f"{name} exit {code}, expected {expected}; raw logs: {output}, {error}")
+    if capture_error is not None:
+        raise ValueError('private preparation capture refused: ' + str(capture_error)) from capture_error
     if not json_output or not output.stat().st_size:
         return None
     try:
         return json.loads(output.read_bytes())
     except json.JSONDecodeError:
         return [json.loads(line) for line in output.read_bytes().splitlines() if line][-1]
+
+
+def observation_module():
+    import importlib.util
+    path = Path(__file__).resolve().parents[1] / 'driver/native_observations.py'
+    spec = importlib.util.spec_from_file_location('producer_native_observations', path)
+    module = importlib.util.module_from_spec(spec)
+    spec.loader.exec_module(module)
+    return module
+
+
+def private_configuration(path, binary, repo, root, source_manifest=None):
+    """Load the existing frozen private driver context; never invent a candidate."""
+    if path is None:
+        return None
+    directory = Path(__file__).resolve().parents[1] / 'driver'
+    if str(directory) not in sys.path:
+        sys.path.insert(0, str(directory))
+    import driver
+    path = path.resolve(strict=True)
+    config = driver.configured(path)
+    config['_config_path'] = str(path)
+    config['_config_sha256'] = driver.sha(path)
+    driver.guard(config)
+    if (str(binary.resolve()) != config['binary'] or str(repo.resolve()) != config['repo']
+            or not root.resolve().is_relative_to(Path(config['root']))
+            or (source_manifest is not None and str(source_manifest.resolve()) != config['source_manifest'])):
+        raise ValueError('private observation context differs from actual producer inputs')
+    return config
+
+
+def private_admission(config, root):
+    if config is not None:
+        # Reuse the original fresh native evidence/scratch admission and retain
+        # a new fact/refusal before this producer starts any candidate command.
+        from host_admission import admit
+        admit(config, root / 'host-admission.json', initial=False)
 
 
 def captured(repo, path):
@@ -165,10 +215,13 @@ def main():
     parser.add_argument("--mode", required=True, choices=["success", "canary"])
     parser.add_argument("--source-manifest", type=Path)
     parser.add_argument("--captured-config", type=Path)
+    parser.add_argument("--private-observation-config", type=Path)
     args = parser.parse_args()
     repo, root, binary = args.repo.resolve(), args.root.resolve(), args.binary.resolve()
+    private = private_configuration(args.private_observation_config, binary, repo, root, args.source_manifest)
     root.mkdir(parents=True, mode=0o700, exist_ok=False)
     owned_root(root)
+    private_admission(private, root)
     guest_profile = os.environ.get("GOMAD_WASM_QUALIFICATION_GUEST_PROFILE", "")
     if args.workload != "sqlite":
         workloads.guest_build_tags(guest_profile)
@@ -211,7 +264,7 @@ def main():
         "--fuel", str(1 << 50 if args.workload != "sqlite" else 4_000_000_000), "--memory-bytes", str(4 << 30 if args.workload != "sqlite" else 256 << 20)], 0, json_output=False)
     spec = root/"qualification-spec.json"
     write(spec, (workloads.support_spec if args.workload in workloads.SUPPORT_ROWS else workloads.qualification_spec)(repo, root/"cell", args.workload, args.mode == "canary", source, args.source_manifest, guest_profile=guest_profile))
-    response = run(root, "qualify", [str(binary), "--installation", str(installation), "qualify", "--spec", str(spec)], 1 if args.mode == "canary" else 0)
+    response = run(root, "qualify", [str(binary), "--installation", str(installation), "qualify", "--spec", str(spec)], 1 if args.mode == "canary" else 0, **({'private_observations': private} if private is not None else {}))
     result_path = Path(response["result_path"])
     report = run(root, "report", [str(binary), "report", "--result", str(result_path)], 0)
     retained = json.loads(result_path.read_bytes())

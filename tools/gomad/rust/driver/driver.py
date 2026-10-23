@@ -190,10 +190,12 @@ class MeasuredPopen(subprocess.Popen):
         return 0, 0
 
 
-def command(config, root, name, argv, accepted=(0,), timeout=None):
+def command(config, root, name, argv, accepted=(0,), timeout=None, private_observations=None):
     require(argv and all(isinstance(arg, str) for arg in argv), 'invalid argv')
+    require(private_observations is None or private_observations == config, 'foreign private observation context')
     start = time.time_ns()
     observation, proc = 'completed', None
+    private_seal = None
     process_path = root / (name + '.process.json')
     require(not process_path.exists(), 'command process registration already exists')
     with (root / (name + '.stdout')).open('xb') as stdout, (root / (name + '.stderr')).open('xb') as stderr:
@@ -219,6 +221,10 @@ def command(config, root, name, argv, accepted=(0,), timeout=None):
             else:
                 process['cleanup_signal'] = int(signal.SIGKILL)
                 raise Refusal('producer exited with remaining process-group members')
+            if private_observations is not None and code in accepted:
+                import native_observations
+                private_seal = native_observations.from_command(private_observations, proc.pid, argv,
+                                                                (root / (name + '.stdout')).read_bytes())
         except BaseException:
             observation = 'inconclusive'
             if proc is not None:
@@ -233,9 +239,12 @@ def command(config, root, name, argv, accepted=(0,), timeout=None):
                 process.update(active=False, exit=proc.returncode, observation=observation, end_ns=time.time_ns(),
                                resources=proc.child_resources)
                 save_process(process_path, process)
-                write(root / (name + '.command.json'), dict(argv=argv, cwd=config['repo'], pid=proc.pid, exit=proc.returncode,
+                receipt = dict(argv=argv, cwd=config['repo'], pid=proc.pid, exit=proc.returncode,
                       environment=config.get('environment', {}), temporary_paths=config.get('temporary_paths', {}),
-                      resources=proc.child_resources, observation=observation, start_ns=start, end_ns=time.time_ns()))
+                      resources=proc.child_resources, observation=observation, start_ns=start, end_ns=time.time_ns())
+                if private_seal is not None:
+                    receipt['private_observations'] = private_seal
+                write(root / (name + '.command.json'), receipt)
     completed(code, accepted)
     return (root / (name + '.stdout')).read_bytes()
 
@@ -313,7 +322,7 @@ def guard(config):
     wanted = {str(repo / path) for path in tracked if path and not path.startswith('.flow/')
               and (repo / path).is_file() and not (repo / path).is_symlink()}
     require(wanted <= set(config['files']), 'incomplete non-Flow source inventory')
-    required_driver = [HERE / 'driver.py', HERE / 'adapters.py', HERE / 'semantic-map.json', HERE / 'required-final.json', HERE / 'sqlite.py', HERE / 'launch.py', HERE / 'host_admission.py', HERE / 'live.py', HERE / 'final.py', HERE / 'reach.py', HERE / 'receiving.py', HERE / 'receiving_cost.py',
+    required_driver = [HERE / 'driver.py', HERE / 'adapters.py', HERE / 'semantic-map.json', HERE / 'required-final.json', HERE / 'sqlite.py', HERE / 'launch.py', HERE / 'host_admission.py', HERE / 'live.py', HERE / 'final.py', HERE / 'reach.py', HERE / 'receiving.py', HERE / 'receiving_cost.py', HERE / 'native_observations.py',
                        HERE.parent / 'workload_tools/workloads.py',
                        FROZEN / 'scheduler.py', DAG, FROZEN / 'lib.sh',
                        FROZEN.parent / 'q1-serial/run-qualification.sh', FROZEN / 'required-roots.py']

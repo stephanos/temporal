@@ -20,7 +20,7 @@ spec.loader.exec_module(support)
 
 
 class OneboxRunner(unittest.TestCase):
-    def exercise(self, prepare_only=False, fail_prepare=False):
+    def exercise(self, prepare_only=False, fail_prepare=False, private=False):
         temporary = tempfile.TemporaryDirectory()
         self.addCleanup(temporary.cleanup)
         parent = Path(temporary.name)
@@ -32,8 +32,13 @@ class OneboxRunner(unittest.TestCase):
         argv += ['--root', str(root)]
         if prepare_only:
             argv.append('--prepare-only')
+        if private:
+            argv += ['--private-observation-config', str(parent/'frozen-driver-config')]
         calls = []
-        def run(cell, name, command, expected, json_output=True, environment=None):
+        self.captures = []
+        context = {'explicit': 'bounded mocked context, never candidate evidence'} if private else None
+        def run(cell, name, command, expected, json_output=True, environment=None, **kwargs):
+            self.captures.append((name, kwargs))
             row = cell.name
             calls.append((row,name,(environment or os.environ).get('GOMAD_WASM_QUALIFY_WORKLOADS'),list(command)))
             if name == 'install':
@@ -64,7 +69,9 @@ class OneboxRunner(unittest.TestCase):
             raise AssertionError(name)
         output = io.StringIO()
         with patch.object(sys,'argv',argv), patch.object(support.producer,'captured',return_value={'fixture':'not qualification input'}), \
-             patch.object(support.producer,'run',side_effect=run), patch.dict(os.environ,{'GOMAD_WASM_QUALIFY_WORKLOADS':'inherited'}), \
+             patch.object(support.producer,'run',side_effect=run), \
+             patch.object(support.producer,'private_configuration',return_value=context), \
+             patch.object(support.producer,'private_admission'), patch.dict(os.environ,{'GOMAD_WASM_QUALIFY_WORKLOADS':'inherited'}), \
              contextlib.redirect_stdout(output):
             if fail_prepare:
                 with self.assertRaisesRegex(ValueError,'preparation refusal'):
@@ -97,6 +104,15 @@ class OneboxRunner(unittest.TestCase):
                 self.assertEqual(intent,'1' if row=='smoke' and name in ('success','canary') else None)
         self.assertEqual(sum(name=='prepare' for _,name,_,_ in calls),2)
         self.assertEqual(sum(name=='inspection' for _,name,_,_ in calls),1)
+
+    def test_private_context_reaches_only_native_preparations_and_nested_producers(self):
+        _, calls, _ = self.exercise(private=True)
+        for name, kwargs in self.captures:
+            self.assertEqual(bool(kwargs), name == 'prepare')
+            if kwargs:
+                self.assertEqual(set(kwargs), {'private_observations'})
+        for _, name, _, command in calls:
+            self.assertEqual('--private-observation-config' in command, name in ('success', 'canary', 'inspection'))
 
     def test_named_pass_requires_one_exact_verbose_leaf(self):
         raw=b'    --- PASS: TestFrontendSystemInfo (0.01s)\n'

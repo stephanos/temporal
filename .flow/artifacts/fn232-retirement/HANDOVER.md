@@ -772,3 +772,47 @@ raw receiving proofs, pending source batches, coherent immutable final freeze,
 integrated actual static/runtime/strictlint/parity/final qualification and final
 code-size/main retirement acceptance remain root-owned pending. No Flow closeout
 or proof identity migration occurred at this source-only checkpoint.
+
+## Private native preparation outer capture (source checkpoint)
+
+On top of7adcb48536, the existing generic command and workload producer have an
+optional defaultNone private observation context. A requested capture runs after
+the actual child exit and before command witness publication. New
+`driver/native_observations.py` selects explicit actual plan/explore/qualification
+campaigns from stdout+argv/spec/Result, verifies current candidate/PID/prepared
+commitments, and seals native receipt plus every raw file hash into optional
+`private_observations`. No free discovery glob or canonical Record/Store/plan
+change is introduced. Same Record/manifest can have distinct private observations;
+self-resealed native receipts cannot replace an authenticated old outer seal.
+See driver/private-observations.md for exact fields/bounds/selectors.
+
+Private wrapper option --private-observation-config loads the existing frozen
+configured+guard context and checks binary/repo/source/root. The explicit context
+reuses original host_admission(initial=False) before each wrapper's candidate
+commands; actual initial admission and unchanged12GiB/native scratch/temp/epoch
+contracts remain predecessors. Runtime recordNN, qualification and plan driver
+entries opt in with boolean private_observations:true. Install/replay/report and
+wrapper subprocesses do not become native observation owners. Existing default
+callers retain omitted fields/kwargs. Temporal inspection parser/config/explore
+hunk was coordinated with the receiving owner; no receiving/fullprojection/map/
+support WIP was copied. The native sidecar writer and independent complete typed
+compiler/source projection remain separately owned and unintegrated here.
+
+Verification:124driver portable tests exit0,23workload portable tests exit0;
+11new capture tests include actual bounded subprocess capture/failure, exact owner
+PID, preserved actual exit/wait4 resources on refusal, defaultNone, exact complete
+qualification campaigns, explore/plan scope, candidate/source mutation, raw
+mutation/self-reseal, missing/extra files/directories, symlinks, admission owner,
+and same canonical Record/manifest with different private observations. These
+synthetic Python fixtures are not native publication or qualification evidence.
+Affected Python AST and git diff --check exit0. No Cargo/Go/guest/build/golden
+command ran; no Rust/dependency/lock bytes changed.
+
+fn222 captured schema was revalidated by actual producer.captured against this
+checkout exit0 (40entries25files, exact578f819b... data/9b736777... descriptor).
+The existing fn222 handover records exact paths/hashes, private-config commands,
+remaining release/source/admission/reader/support predecessors, and current
+2445276KiB native free observation below12GiB. No fn221 frozen4/344 lineage or
+qualification acceptance changes. Root still owns candidate freeze, build and
+actual run grants, main cut, Flow and final acceptance. All remaining eight final
+IDs and all actual145 receiving proof obligations remain pending as recorded.

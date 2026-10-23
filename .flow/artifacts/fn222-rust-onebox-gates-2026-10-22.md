@@ -120,8 +120,9 @@ FN222_RUNTIME is its source-bound runtime overlay. FN222_CAPTURE is an existing
 complete CapturedInputs schema/sqlite descriptor+payload configuration whose
 bytes producer.captured revalidates against the selected checkout. It may reuse
 schema data after full revalidation, never an old installation/Result identity.
-The release/source-manifest/capture bindings are currently UNBOUND; no SHA or
-candidate identity is invented here. Preparation and full roots must be fresh,
+The release/source-manifest/private driver configuration bindings are currently
+UNBOUND; no candidate identity is invented here. Captured schema data is bound
+below and must be revalidated again against the final source freeze. Preparation and full roots must be fresh,
 distinct private directories, and all original evidence/scratch >=12GiB native
 admission and native filesystem checks must pass before either command.
 
@@ -133,6 +134,7 @@ env -u GOMAD_WASM_QUALIFY_WORKLOADS "$FN222_PYTHON" \
   --compiler "$FN222_COMPILER" --runtime-root "$FN222_RUNTIME" \
   --cache "$FN222_CACHE" --captured-config "$FN222_CAPTURE" \
   --source-manifest "$FN222_SOURCE_MANIFEST" --root "$FN222_PREP_ROOT" \
+  --private-observation-config "$FN222_DRIVER_CONFIG" \
   --prepare-only
 ```
 
@@ -147,7 +149,8 @@ env -u GOMAD_WASM_QUALIFY_WORKLOADS "$FN222_PYTHON" \
   --binary "$FN222_RELEASE" --repo "$FN222_CHECKOUT" \
   --compiler "$FN222_COMPILER" --runtime-root "$FN222_RUNTIME" \
   --cache "$FN222_CACHE" --captured-config "$FN222_CAPTURE" \
-  --source-manifest "$FN222_SOURCE_MANIFEST" --root "$FN222_FULL_ROOT"
+  --source-manifest "$FN222_SOURCE_MANIFEST" --root "$FN222_FULL_ROOT" \
+  --private-observation-config "$FN222_DRIVER_CONFIG"
 ```
 
 The full run performs its own fresh preparation and measured operators. Initial
@@ -181,3 +184,43 @@ coordinated receiving intent dependency c6e2ac48ff was integrated without its
 unrelated parent WIP. Support-list raw integration and native auxiliary capture
 remain separately owned/in progress, and this task continues toward actual runs
 when the conductor supplies the frozen candidate and resource grant.
+
+### Private capture source checkpoint (provisional)
+
+The existing command/producer boundary now optionally seals native preparation
+observations immediately after the actual child exits. The private wrapper
+option above loads the existing frozen driver configuration, authenticates its
+source/tool inventory, and forwards it only to actual native plan/qualify/explore
+operators. Runtime recordNN, qualification and plan driver entries use explicit
+boolean private_observations opt-in. Each wrapper rechecks original host admission
+before dispatch and retains actual facts/refusal; an authenticated initial
+admission under the same configuration is a required predecessor. FN222_DRIVER_CONFIG
+must bind the complete current candidate, source manifest, actual release binary,
+evidence/scratch, temporary paths and permitted derived source scratch paths.
+This configuration is not fabricated from the historical binary/schema source.
+
+The exact command field and selector/raw-file contract are documented in
+`tools/gomad/rust/driver/private-observations.md`. Native sidecar publisher and
+independent full raw compiler/source/typed preparation projection remain owned by
+the qualification receiver and are not credited by these portable tests. Actual
+same-Record/different-observations native publication remains pending there.
+No canonical Record/Store/plan field changes are made by this capture seam.
+
+Captured input data supplied by the conductor was revalidated using current
+producer.captured against this checkout (exit0):
+`/home/agent/evidence/fn222-original-captured-schemas.json`,87662bytes,
+SHA256578f819b14c969aee7a7f9a4367419f9ccb76966bd107a2cdf8f05289b1afc33;
+descriptor9b73677795351c3b876b5c97b125ef41f7e714adb31085207795a161e554006e,
+40entries25files. Its genuine original CapturedInputs source proof is
+`/home/agent/evidence/fn222-original-captured-schemas-source.json`; original config
+source SHA3ebb06eff4eeedf597e52aca978398f14448124cca16c588b54abd5cd1595449.
+Only unchanged schema payloads are reused, never installation/helper/Result
+identity. FN222_CAPTURE may use this exact data after final-freeze revalidation.
+
+Latest read-only df observation shows2445276KiB native available, still below
+12GiB. No actual preparation/guest/build/qualification command ran. Root must
+select a coherent frozen candidate after incoming cache/lifecycle/native review,
+grant build/execution resources, establish actual initial admission, then run
+prepare-only followed by the full exact unchanged smoke/frontend/inspection cycle
+and independent reader/support publication. fn221 original4/344 journal remains
+unchanged. Portable subprocess tests are boundary regressions only.
