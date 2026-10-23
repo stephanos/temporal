@@ -586,7 +586,7 @@ def reach_coverage(original, entries, actual):
     commands = {}
     for name, entry in entries.items():
         kinds = {'evidence', 'retired', 'collapsed_into'} & set(entry)
-        require(len(kinds) == 1 and set(entry) <= kinds | {'reason', 'assertion_applicability'}, 'test-wasm entry needs exactly one disposition: ' + name)
+        require(len(kinds) == 1 and set(entry) <= kinds | {'reason', 'assertion_applicability', 'basis'}, 'test-wasm entry needs exactly one disposition: ' + name)
         if 'retired' in entry:
             # Ruling 1: a Go-host-only implementation test retires with its deleted code.
             require(reach_reason(entry['retired']) and '/original-make/' not in name,
