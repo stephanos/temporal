@@ -520,3 +520,92 @@ fn actual_native_admission_refusals_retain_error_phase_counts_and_cleanup() {
         }
     }
 }
+
+#[test]
+fn actual_closed_native_run_publishes_explicit_canonical_stream_sources() {
+    for modeled in [false, true] {
+        let scratch = Scratch::new();
+        let module = if modeled {
+            r#"(module
+                (import "gomad_wasm_v1" "config" (func $config (param i32 i32) (result i32)))
+                (import "gomad_wasm_v1" "finish" (func $finish (param i32 i32) (result i32)))
+                (import "wasi_snapshot_preview1" "clock_time_get" (func $clock (param i32 i64 i32) (result i32)))
+                (memory (export "memory") 1)
+                (func (export "_start")
+                    i32.const 0 i32.const 16 call $config drop
+                    i32.const 0 i64.const 0 i32.const 32 call $clock drop
+                    i32.const 0 i32.const 16 call $finish drop))"#
+        } else {
+            SUCCESS
+        };
+        let input = scratch.request("canonical", module, false);
+        if modeled {
+            let mut request = read(&input);
+            request["guest"]["model"] = json!({"configuration":{"entropy_key":vec![0u8;32],"working_directory_sha256":canonical::digest(b"/"),
+                "arguments":{"bytes":0,"count":0,"chunks":0},"environment":{"bytes":0,"count":0,"chunks":0},
+                "seed":0,"mode":1,"limit":4096,"diagnostics":false,"epoch_nanos":0,"read_step_nanos":0,"now":1,
+                "limits":{"calls":100,"transcript_bytes":4096,"pending_events":16}},"arguments":[],"environment":["PWD=/"],"replay_trace":null});
+            request["guest"]["namespace"] = json!({"entries":[],"writable_directories":[],"preopens":[[47]],"working_directory":[47],"stdin":[],"limits":{"files":16,"descriptors":16,"filesystem_bytes":4096,"output_bytes":1024},"epoch_nanos":0});
+            std::fs::write(&input, serde_json::to_vec(&request).unwrap()).unwrap();
+        }
+        let output = scratch.0.join("observed");
+        let result = scratch.invoke(
+            env!("CARGO_BIN_EXE_gomad-measure"),
+            &[
+                "--linked-run".as_ref(),
+                input.as_os_str(),
+                output.as_os_str(),
+            ],
+        );
+        assert!(
+            result.status.success(),
+            "{}",
+            String::from_utf8_lossy(&result.stderr)
+        );
+        let native = read(&output.join("streams.json"));
+        let receipt = read(&output.join("canonical-streams.json"));
+        assert_eq!(receipt["schema"], "gomad.native-canonical-streams/v1");
+        assert_eq!(
+            receipt["native_streams_sha256"],
+            canonical::digest(&std::fs::read(output.join("streams.json")).unwrap())
+        );
+        assert_eq!(
+            receipt["outcome_sha256"],
+            canonical::digest(&std::fs::read(output.join("outcome.json")).unwrap())
+        );
+        for name in ["stdout", "stderr", "network"] {
+            assert!(native.get(name).is_none());
+            assert_eq!(std::fs::read(output.join(name)).unwrap(), b"");
+            assert_eq!(
+                receipt["streams"][name]["source"],
+                format!("closed-sink-empty:{name}")
+            );
+            assert_eq!(receipt["streams"][name]["sha256"], canonical::digest(b""));
+        }
+        if modeled {
+            assert_eq!(
+                std::fs::read(output.join("wasi")).unwrap(),
+                std::fs::read(output.join("transcript")).unwrap()
+            );
+            assert_eq!(
+                receipt["streams"]["wasi"]["source"],
+                "binary-transcript-alias:transcript"
+            );
+            let terminal = read(&output.join("outcome.json"))["local_model"]["terminal_base64"]
+                .as_str()
+                .unwrap()
+                .to_owned();
+            assert!(!terminal.is_empty());
+            assert_eq!(std::fs::read(output.join("terminal")).unwrap().len(), 16);
+            assert_eq!(
+                receipt["streams"]["terminal"]["source"],
+                "outcome:local_model.terminal_base64"
+            );
+        } else {
+            assert!(receipt["streams"].get("wasi").is_none());
+            assert!(receipt["streams"].get("terminal").is_none());
+            assert!(!output.join("wasi").exists());
+        }
+        evidence::read_profile_run(&output, ReadLimits::default()).unwrap();
+    }
+}

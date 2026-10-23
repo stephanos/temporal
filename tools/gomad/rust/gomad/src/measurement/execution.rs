@@ -136,7 +136,63 @@ fn retain(root: &Path, execution: &linked::Execution) -> Result<(), String> {
         }
         write_raw(&root.join(name), bytes)?;
     }
+    canonical_streams(root, execution)?;
     Ok(())
+}
+fn canonical_streams(root: &Path, execution: &linked::Execution) -> Result<(), String> {
+    let mut streams = std::collections::BTreeMap::new();
+    for name in ["stdout", "stderr", "network", "choice"] {
+        let (bytes, source) = if let Some(bytes) = execution.evidence.get(name) {
+            (bytes.as_slice(), format!("native:{name}"))
+        } else if name == "choice" {
+            continue;
+        } else {
+            write_raw(&root.join(name), &[])?;
+            (&[][..], format!("closed-sink-empty:{name}"))
+        };
+        streams.insert(name, json!({"file":name,"bytes":bytes.len(),"sha256":canonical::digest(bytes),"source":source}));
+    }
+    if let Some(bytes) = execution.evidence.get("transcript") {
+        if execution
+            .evidence
+            .get("wasi")
+            .is_some_and(|wasi| wasi != bytes)
+        {
+            return Err("native WASI alias differs from retained binary transcript".into());
+        }
+        if !execution.evidence.contains_key("wasi") {
+            write_raw(&root.join("wasi"), bytes)?;
+        }
+        streams.insert("wasi", json!({"file":"wasi","bytes":bytes.len(),"sha256":canonical::digest(bytes),"source":"binary-transcript-alias:transcript"}));
+    }
+    if let Some(value) = execution
+        .outcome
+        .local_model
+        .as_ref()
+        .and_then(|model| model.get("terminal_base64"))
+        .and_then(Value::as_str)
+        .filter(|value| !value.is_empty())
+    {
+        let bytes = crate::campaign::scenario::canonical_base64(value)?;
+        if execution.evidence.contains_key("terminal") {
+            return Err(
+                "native terminal evidence conflicts with authoritative model outcome".into(),
+            );
+        }
+        write_raw(&root.join("terminal"), &bytes)?;
+        streams.insert("terminal", json!({"file":"terminal","bytes":bytes.len(),"sha256":canonical::digest(&bytes),"source":"outcome:local_model.terminal_base64"}));
+    }
+    write(
+        &root.join("canonical-streams.json"),
+        &json!({
+            "schema":"gomad.native-canonical-streams/v1",
+            "source":"finalized linked Execution.evidence from closed Sink::into_streams",
+            "native_streams_sha256":canonical::digest(&std::fs::read(root.join("streams.json")).map_err(|error|error.to_string())?),
+            "outcome_sha256":canonical::digest(&std::fs::read(root.join("outcome.json")).map_err(|error|error.to_string())?),
+            "transformation":"identity bytes; no content normalization",
+            "streams":streams,
+        }),
+    )
 }
 fn retain_cluster(root: &Path, execution: &linked_cluster::Execution) -> Result<(), String> {
     write(&root.join("outcome.json"), &execution.outcome)?;
