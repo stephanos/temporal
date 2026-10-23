@@ -57,3 +57,77 @@ The same-family independent three-axis Codex review at `fa1b541d11` returned NEE
 - `8c93175ea0` integrates lifecycle owner `2048a06928`: jointly absent output descriptor/payload is empty; one-sided presence, unknown streams and declared identity mismatch refuse. Both lifecycle sparse-stream tests and this branch's cache tests are retained.
 
 All repairs were written source-first under root's explicit instruction. Rustfmt/diff checks pass; no Cargo command has run on this repair checkpoint. Root owns the next native target lease, meaningful causal RED probes and final GREEN/strict checks. Core owner coordinates its provisional `Completion::{Finalized,Failed}` interface separately and must retain these non-publishable cache guards while adapting direct success-test call sites. The root must resume the same Codex review session only after committed GREEN fixes. No review finding is marked accepted/resolved by this worker's own narration.
+
+### Review repair execution and frozen GREEN (2026-10-23)
+
+The source-first repair checkpoint above is superseded by clean tested code source
+`80aeaa17dca6bf1f1751d8550d3ebc18090e603a`. All code changes are committed;
+this final handover append changes no code. Root must obtain the formal same-session
+re-review before reporting the four findings resolved.
+
+Root granted the existing DEBUG development target
+`/Users/stephan/Workspace/skunkworks/gomad/.build-cache/fn232-native-checks`
+and its `tmp` child for **all compiler/linker outputs**, with pinned Rust 1.99.1,
+`--offline --locked -j1`, `CARGO_INCREMENTAL=0`, and no new features/profile.
+Each variant used:
+
+```sh
+CARGO_TARGET_DIR=/Users/stephan/Workspace/skunkworks/gomad/.build-cache/fn232-native-checks \
+TMPDIR=/Users/stephan/Workspace/skunkworks/gomad/.build-cache/fn232-native-checks/tmp \
+CARGO_INCREMENTAL=0 cargo +1.99.1 test --manifest-path tools/gomad/rust/Cargo.toml \
+  --offline --locked -j1 -p gomad --lib --no-run --message-format=json
+```
+
+Cargo JSON selected the exact test executable. The existing `driver.command`
+process owner then executed only the named native functions with `--test-threads=1`,
+preserving their own in-test concurrency. Every process/PID/argv/raw exit,
+executable SHA-256, source HEAD plus temporary patch SHA-256, compiler JSON/stderr,
+fixture-space preflight and sampled peak is retained under
+`/home/agent/evidence/fn232-linked-cache-review-gates/`.
+
+| Variant / gate | Actual result |
+| --- | --- |
+| `red1-causal`: only the two prepublication cache-refusal calls omitted | Exit 101, exact `cache failure produced a launcher publication`; a real canonical record containing the cache path was independently captured in `red1-canonical-leak.json` |
+| `red3-causal`: only selected receipt cache assignment omitted | Exit 101, exact left `None` versus right selected cache root |
+| `red4-causal`: only typed Host error folded into the old invariant result | Exit 101, exact `cache failure became an invariant search report`, with actual poisoned-entry checksum diagnostics |
+| `core-search-red`: unchanged extracted predicate semantics | Six tests: five pass; only unverified-prefix predicate case fails its expected `replay_divergence` assertion |
+| `green-launcher` | 1 passes; both cache roots refuse without a Receipt or canonical cache path |
+| `green-receipt` | 1 passes; selected installation restored after guards, detached receipt remains uncached, changed argv refused |
+| `green-inspection-cache` | 2 pass; real standalone/cluster cache poison through scan and bisect, exact cache capacity classification |
+| `green-core-search` | All 6 pass; supplied single predicate clause applied after cleanup deadline guard, typed Host errors still propagate |
+| `green-lifecycle` | All 8 pass; includes lifecycle owner's silent/stdout-only/stderr-only and malformed-stream regressions |
+| `green-identity` | 1 passes; canonical record/failure/payload identity and store-fuel accounting |
+| `green-callback` | 1 passes; unrelated output-callback infrastructure still preserves its original partial publication |
+| `final-clippy` | Exit 0, both `gomad` and `gomad-wasmhost`, `--lib --tests -- -D warnings`, same host target/profile |
+| `final-format` and diff check | Exit 0, all 28 changed Rust files |
+
+The first build caught a test using campaign-private `execution::run`; its warm-up
+now uses existing crate-visible `run_with_replay`. The first launcher probe caught
+a fixture using ordinary campaign policy; it now matches actual launcher
+`parallel=1` and `on_failure=first`. These setup failures were retained separately
+and never counted as causal REDs. All final source files were restored exactly
+before GREEN. The core owner supplied only the verified-prefix predicate clause
+from `96aec9dd3fb47a40ef2f4a01b023d5548f5587bd`; its exact before/after source
+hashes are in `core-prefix-source.json`. No unrelated Completion interface was
+imported; root coordinates that consumer migration separately and preserves the
+non-publishable cache-error guards.
+
+Native fixture `TMPDIR` was exclusively
+`/home/agent/evidence/fn232-linked-cache-tests-tmp`. No helper/compiler/executable
+copy was made there. The conservative per-test fixture reserve was 16 MiB;
+actual 10-ms-sampled allocated peak across the causal probes was 659,456 bytes
+and across GREEN was 602,112 bytes. An unrelated external workspace consumed
+native space, and the original 256-MiB preflight correctly refused before a test.
+Root then explicitly revised **only these development units'** minimum to
+64 MiB on the measured bounded footprint. Every subsequent preflight required
+64 MiB plus the 16-MiB reserve; minimum sampled native free space during GREEN
+was 179,748,864 bytes. Own fixtures were cleaned between commands; the final
+fixture directory is empty. No ENOSPC observation counts as a causal failure.
+Production bounds and the final 12-GiB native qualification gate are unchanged.
+
+`final-summary.json` binds the actual 20 GREEN tests, raw receipts, source and
+filesystems. Final free space at capture: native 3,375,575,040 bytes, host
+97,096,622,080 bytes. Every process/session is terminal and the exclusive host
+compile window is **released**. This worktree remains for root integration and
+formal same-session re-review. No Go, production workload, external public CLI,
+qualification pass, push, rebase, amend or Flow completion is claimed.
