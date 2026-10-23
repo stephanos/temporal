@@ -120,6 +120,39 @@
       "final_id": null,
       "disposition": "original-opt-in-nonqualification",
       "crate": "gomad"
+    },
+    {
+      "crate": "gomad",
+      "name": "prepare_the_four_original_counterfactual_requests",
+      "source": "gomad/src/campaign/counterfactual.rs",
+      "reason": "requires the exact original fixture installation, compiler lease and private diagnostic request bounds",
+      "disposition": "separate-actual-proof-required",
+      "final_id": "test-wasm/complete-behavioral-reach"
+    },
+    {
+      "crate": "gomad",
+      "name": "produce_the_four_original_counterfactual_artifact_pairs",
+      "source": "gomad/src/campaign/counterfactual.rs",
+      "reason": "requires original authenticated fixture-runtime preparations and an explicitly granted genuine Go guest slot",
+      "disposition": "separate-actual-proof-required",
+      "final_id": "test-wasm/complete-behavioral-reach"
+    },
+    {
+      "crate": "gomad",
+      "name": "actual_runtime_preparation_reconstructs_and_refuses_mutated_observations",
+      "source": "gomad/src/measurement/namespace_driver_tests.rs",
+      "reason": "requires an explicit pinned Go compiler and a fresh retained runtime custody root",
+      "disposition": "separate-actual-proof-required",
+      "final_id": "test-wasm/complete-behavioral-reach"
+    },
+    {
+      "crate": "gomad",
+      "name": "terminal_controls_publication_child",
+      "source": "gomad/src/measurement/terminal_controls.rs",
+      "reason": "invoked only by the real terminal-publication child supervisor fixture",
+      "disposition": "separate-actual-proof-required",
+      "final_id": "test-wasm/complete-behavioral-reach",
+      "required_parent_test": "measurement::warm::terminal_controls::terminal_controls_actual_child_publication_uses_original_terminal_to_reap_bound"
     }
   ]
 }
