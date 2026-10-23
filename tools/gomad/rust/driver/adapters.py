@@ -42,7 +42,7 @@ def admission(config, root):
     require(config['build_receipt'] in config['files'], 'missing frozen release feature build receipt')
     build = read(config['build_receipt'])
     require(build['binary_sha256'] == config['binary_sha256'] and build['features'] == []
-            and build['exit'] == 0 and build['profile'] == 'release', 'unadmitted release build')
+            and type(build['exit']) is int and build['exit'] == 0 and build['profile'] == 'release', 'unadmitted release build')
     # Build receipt is reviewed input, not a substitute for release CLI admission in qualify.
     for name, installation in config['installations'].items():
         require(installation in config['files'], 'unsealed installation: ' + name)
@@ -55,7 +55,7 @@ def admission(config, root):
     for index, control in enumerate(('fixture-execution-bundle', 'fixture-replay-input', 'fixture-qualify-accounting')):
         name = 'release-refusal-' + str(index)
         output = command(config, root, name, public(config) + [control], accepted=(2,))
-        require(output == b'' and (root / (name + '.stderr')).read_bytes() == b'gomad: unsupported command\n',
+        require(output == b'' and (root / (name + '.stderr')).read_bytes() == b'gomad: unsupported command; use gomad -- COMMAND [ARG ...] to run a child\n',
                 'fixture grammar is present in qualification binary')
 
 

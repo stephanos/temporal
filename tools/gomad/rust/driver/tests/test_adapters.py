@@ -19,6 +19,34 @@ class AdapterContract(unittest.TestCase):
         with self.assertRaises(driver.Unexecuted):
             self.adapters.execute({'stages': {'storage': {'adapter': 'pending'}}}, HERE, 'storage')
 
+    def test_release_fixture_controls_use_actual_public_unsupported_grammar(self):
+        import tempfile
+        from unittest.mock import patch
+        expected=b'gomad: unsupported command; use gomad -- COMMAND [ARG ...] to run a child\n'
+        with tempfile.TemporaryDirectory() as temporary:
+            root=Path(temporary);binary=root/'gomad';binary.write_bytes(b'synthetic unit executable bytes')
+            config=dict(binary=str(binary),binary_sha256=driver.sha(binary),features=[],build_receipt='/build',files={'/build':'sealed'},installations={})
+            build=dict(binary_sha256=config['binary_sha256'],features=[],exit=0,profile='release')
+            calls=[]
+            def command(config,root,name,argv,accepted=(0,)):
+                calls.append((argv,accepted));(root/(name+'.stderr')).write_bytes(expected);return b''
+            with patch.object(self.adapters,'read',return_value=build),patch.object(self.adapters,'command',side_effect=command):
+                self.adapters.admission(config,root)
+            self.assertEqual([row[0][-1] for row in calls],['fixture-execution-bundle','fixture-replay-input','fixture-qualify-accounting'])
+            self.assertTrue(all(accepted==(2,) for _,accepted in calls))
+            main=(HERE.parent/'gomad/src/main.rs').read_text()
+            self.assertIn('eprintln!("'+expected.decode().rstrip()+'");',main)
+            for mutation in ('old-message','stdout','features','boolean-exit'):
+                with self.subTest(mutation=mutation):
+                    changed=dict(build)
+                    if mutation=='features':changed['features']=['determinism-fixture']
+                    if mutation=='boolean-exit':changed['exit']=False
+                    def bad_command(config,root,name,argv,accepted=(0,)):
+                        (root/(name+'.stderr')).write_bytes(b'gomad: unsupported command\n' if mutation=='old-message' else expected)
+                        return b'caller output' if mutation=='stdout' else b''
+                    with patch.object(self.adapters,'read',return_value=changed),patch.object(self.adapters,'command',side_effect=bad_command):
+                        with self.assertRaises(driver.Refusal):self.adapters.admission(config,root)
+
     def test_actual_workload_set_is_exact(self):
         cells = self.adapters.CELLS
         self.assertEqual(len(cells), 10)
