@@ -129,7 +129,7 @@ def ignored_inventory(repo):
     return declared
 
 
-def assemble(inputs, base, plan_path, config_path):
+def static_plan(inputs):
     require(set(inputs) == {'schema', 'repo', 'driver_config', 'tools', 'caches', 'lint_base'}, 'static input fields differ')
     require(inputs['schema'] == 'gomad.driver-static-inputs/v1', 'wrong static input schema')
     require(Path(inputs['repo']).resolve() == REPO, 'static assembler must bind this consolidated checkout')
@@ -153,14 +153,26 @@ def assemble(inputs, base, plan_path, config_path):
                 and not Path(path).is_relative_to(REPO), 'cache must name an assigned canonical external directory')
     require(not Path(inputs['caches']['cargo_target']).is_relative_to(REPO), 'Cargo outputs must stay outside frozen source')
     require(Path(inputs['driver_config']).is_absolute(), 'future frozen driver config must be absolute')
-    require(set(base['stages']) == set(mapping()), 'base must preserve all original 96 labels')
     ignored_inventory(REPO)
     plan = dict(schema='gomad.driver-static-plan/v1', repo=str(REPO), driver_config=inputs['driver_config'],
                 tools=tools, caches=inputs['caches'], lint_base=inputs['lint_base'], files=files,
                 ignored_sha256=sha(HERE / 'static-ignored.json'))
     # The fixed recipe is data in the reviewed plan; run/read recompute it, never execute caller argv.
     plan['stages'] = {label: recipe(plan, label) for label in LABELS}
+    return plan
+
+
+def prepare_plan(inputs, plan_path):
+    plan = static_plan(inputs)
     write(plan_path, plan)
+    return plan
+
+
+def assemble(inputs, base, plan_path, config_path):
+    plan = static_plan(inputs)
+    require(set(base['stages']) == set(mapping()), 'base must preserve all original 96 labels')
+    write(plan_path, plan)
+    files, tools = plan['files'], plan['tools']
     result = copy.deepcopy(base)
     result['stages'] = {label: dict(adapter='pending', reason='UNEXECUTED: runtime owner has not composed this endpoint')
                         for label in mapping()}
@@ -750,6 +762,9 @@ def authenticate_result(plan_path, label):
 def main():
     parser = argparse.ArgumentParser(description=__doc__)
     sub = parser.add_subparsers(dest='mode', required=True)
+    prepare_parser = sub.add_parser('prepare-plan')
+    for key in ('inputs', 'plan'):
+        prepare_parser.add_argument('--' + key, type=Path, required=True)
     assemble_parser = sub.add_parser('assemble')
     for key in ('inputs', 'base', 'plan', 'output'):
         assemble_parser.add_argument('--' + key, type=Path, required=True)
@@ -758,7 +773,9 @@ def main():
         child.add_argument('--plan', type=Path, required=True)
         child.add_argument('--stage', choices=LABELS, required=True)
     args = parser.parse_args()
-    if args.mode == 'assemble':
+    if args.mode == 'prepare-plan':
+        prepare_plan(read(args.inputs), args.plan.resolve())
+    elif args.mode == 'assemble':
         assemble(read(args.inputs), read(args.base), args.plan.resolve(), args.output)
     elif args.mode == 'read':
         print(json.dumps(authenticate_result(args.plan, args.stage), sort_keys=True))

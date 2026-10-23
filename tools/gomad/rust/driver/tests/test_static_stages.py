@@ -58,13 +58,31 @@ class StaticStageContract(unittest.TestCase):
             inputs = dict(schema='gomad.driver-static-inputs/v1', repo=str(driver.REPO), driver_config=str(root/'frozen.json'),
                           tools=tools, caches=caches, lint_base='a'*40)
             base = dict(stages={label: {'adapter': 'pending'} for label in driver.mapping()}, inputs=[])
+            with patch.object(sys, 'argv', ['static_stages.py', 'prepare-plan', '--inputs', str(root/'inputs.json'),
+                                          '--plan', str(root/'prepared-plan.json')]):
+                driver.write(root/'inputs.json', inputs)
+                static.main()
+            prepared = driver.read(root/'prepared-plan.json')
+            self.assertFalse((root/'frozen.json').exists())
+            self.assertFalse((root/'bindings.json').exists())
+            self.assertEqual(set(prepared['stages']), set(static.LABELS))
+            self.assertEqual(set(prepared['files']), {value['path'] for value in tools.values()})
             result = static.assemble(inputs, base, root/'plan.json', root/'bindings.json')
+            self.assertEqual(prepared, driver.read(root/'plan.json'))
             self.assertEqual(sum(row['adapter'] == 'checked-command' for row in result['stages'].values()), 24)
             self.assertEqual(sum(row['adapter'] == 'pending' for row in result['stages'].values()), 72)
             self.assertTrue(all('UNEXECUTED' in row['reason'] for row in result['stages'].values() if row['adapter'] == 'pending'))
             Path(tools['go']['path']).write_text('changed')
             with self.assertRaisesRegex(driver.Refusal, 'changed tool'):
                 static.assemble(inputs, base, root/'plan2.json', root/'bindings2.json')
+            with self.assertRaisesRegex(driver.Refusal, 'changed tool'):
+                static.prepare_plan(inputs, root/'changed-tool-plan.json')
+            self.assertFalse((root/'changed-tool-plan.json').exists())
+            for key in ('stages', 'argv', 'features'):
+                altered = dict(inputs, **{key: []})
+                with self.subTest(key=key), self.assertRaisesRegex(driver.Refusal, 'static input fields'):
+                    static.prepare_plan(altered, root/'foreign-plan.json')
+            self.assertFalse((root/'foreign-plan.json').exists())
 
     def test_original_scope_skip_is_source_bound_and_never_pass(self):
         package, name = static.GO_SCOPE_ROOT

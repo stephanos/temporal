@@ -28,6 +28,15 @@ printing this manifest does not satisfy a gate.
 
 ## Candidate configuration
 
+Prepare a compiler-only static plan with `static_stages.py prepare-plan --inputs
+"$STATIC_INPUTS" --plan "$STATIC_PLAN"`. The input must contain the actual pinned
+tools, assigned existing caches, candidate checkout and intended driver-config
+path. This uses the same validation and 24 fixed recipes as `assemble`, without
+creating a driver configuration or requiring behavioral stage bindings. Prepare
+the GNU envelope against that plan; final composition recomputes and compares
+it before reusing the immutable envelope. Neither preparation executes a stage
+or supplies qualification evidence.
+
 Start from `bindings.example.json`. It deliberately contains unbound paths,
 zero identities, zero send time and unavailable endpoints. Replace these with
 reviewed candidate bindings; it cannot supply a pass as shipped. All paths are
