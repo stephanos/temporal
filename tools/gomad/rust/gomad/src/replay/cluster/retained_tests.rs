@@ -1102,7 +1102,7 @@ fn retained_oracle_report_is_rederived_from_authenticated_actual_outputs() {
         }
         observation(
             &format!("retained-oracle/{case}"),
-            json!({"retained_inputs":inputs,"summary":summary,"report":report,"stdout_base64":crate::campaign::exploration::base64(b"PASS\n"),"stderr_base64":crate::campaign::exploration::base64(stderr)}),
+            json!({"retained_inputs":inputs,"summary":summary,"report":report,"stdout_base64":crate::campaign::exploration::base64(b"PASS\n"),"stderr_base64":crate::campaign::exploration::base64(stderr),"summary_base64":crate::campaign::exploration::base64(&opened.payload("evidence/cluster_summary",1<<20).unwrap()),"report_base64":crate::campaign::exploration::base64(&opened.payload("evidence/cluster_oracles",1<<20).unwrap())}),
             json!({"error":error}),
         );
     }
@@ -1542,7 +1542,7 @@ fn retained_ordinary_json_spellings_keep_exact_raw_authentication() {
         observation(
             &format!("ordinary/{case}"),
             json!({"payload_base64":crate::campaign::exploration::base64(&bytes),"appended_base64":crate::campaign::exploration::base64(&appended),"manifest":opened.manifest(),"canonical_inputs":expected}),
-            json!({"canonical_inputs":admitted,"raw_sha256":canonical::digest(&bytes),"appended_error":error}),
+            json!({"canonical_inputs":admitted,"raw_sha256":canonical::digest(&bytes),"appended_error":error,"public_status":public_status,"public_output_base64":crate::campaign::exploration::base64(&public_output)}),
         );
     }
 }
