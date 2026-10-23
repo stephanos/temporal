@@ -49,10 +49,10 @@ pub trait Values {
     /// Field names and values in declaration order.
     fn values(&self) -> Vec<(&'static str, Value)>;
 
-    /// Captures failed native start-domain evaluations with only their already bound fields.
-    /// Generated implicit Worlds provide this host-side projection for witness replay.
-    fn start_failures(&self) -> Vec<StartFailure> {
-        Vec::new()
+    /// Checks one selected integer prefix through native start domains in declaration order.
+    /// Returns only the first failed domain, without enumerating other domain combinations.
+    fn start_failure(&self, _selected: &[(&str, i128)]) -> Option<StartFailure> {
+        None
     }
 }
 

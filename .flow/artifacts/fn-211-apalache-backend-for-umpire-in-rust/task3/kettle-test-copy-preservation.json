@@ -1,0 +1,11 @@
+{
+  "raw_sha256": "054fea42cce21b30d3485746b7919d0817bf65156c4621368b362b75b42f9275",
+  "raw_bytes": 44002,
+  "raw_lines": 1807,
+  "archive": "kettle-0.62.4.raw.itf.json.gz",
+  "archive_sha256": "be743981146ca3ad49a7f927a93c19eaabfc6f5a4edfbd7aacf49990e5128d03",
+  "roundtrip_exact": true,
+  "test_copy_sha256": "0e114471e0ed44fecbe9f3e18ea019ff7eec77d74801ea68a4d079988c48aaf1",
+  "test_copy_lines": 1,
+  "parsed_json_equal": true
+}

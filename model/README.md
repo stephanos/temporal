@@ -294,8 +294,9 @@ Only values cross from native code to the lifter: inside a declared-World `#[mac
 private fields included, and `derive(Action)` a hidden `ActionValues` impl giving each action's
 variant and payload and each `#[domain]` field's values for a World. Field visibility is
 unchanged; the export shows what the derived `Debug` already prints. `#[machine]` exports each
-local fieldless enum's variant, as does `derive(Finite)`. Sequence (`imbl::Vector`) state is not
-exported yet, so it cannot be bound; `Value::Sequence` is its slot. A field type without a value
+local fieldless enum's variant, as does `derive(Finite)`. On native targets, `imbl::Vector<T>`
+exports ordered `Value::Sequence` elements when `T: IntoValue + Clone`, supporting binding
+and typed replay of admitted sequence state. A field type without a value
 leaves the Model compiling and is refused only where a binding is requested. The `#[machine]` macro admits the Model once and
 embeds the admitted tree; the lifter emits from it. In a shared fixture,
 `fixture!(World = World::new(1, 3), 64, negative)` defines `bound()`, and `bound_for(world)` for

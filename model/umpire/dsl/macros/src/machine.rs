@@ -289,8 +289,8 @@ fn value_exports(machine: &Machine, items: &mut [Item]) -> TokenStream {
     let failures = machine.starts().is_none().then(|| {
         quote! {
             #[cfg(not(target_arch = "wasm32"))]
-            fn start_failures(&self) -> ::std::vec::Vec<::umpire_dsl::StartFailure> {
-                #state::__umpire_start_failures()
+            fn start_failure(&self, selected: &[(&str, i128)]) -> ::core::option::Option<::umpire_dsl::StartFailure> {
+                #state::__umpire_start_failure(selected)
             }
         }
     });

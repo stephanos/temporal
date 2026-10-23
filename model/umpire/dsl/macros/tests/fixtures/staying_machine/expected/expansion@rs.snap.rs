@@ -186,8 +186,11 @@ pub mod counter {
             ::std::vec![]
         }
         #[cfg(not(target_arch = "wasm32"))]
-        fn start_failures(&self) -> ::std::vec::Vec<::umpire_dsl::StartFailure> {
-            Model::__umpire_start_failures()
+        fn start_failure(
+            &self,
+            selected: &[(&str, i128)],
+        ) -> ::core::option::Option<::umpire_dsl::StartFailure> {
+            Model::__umpire_start_failure(selected)
         }
     }
     #[doc(hidden)]

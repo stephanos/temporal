@@ -1,0 +1,44 @@
+{
+  "success": true,
+  "type": "impl_review",
+  "id": "fn-211-apalache-backend-for-umpire-in-rust.3",
+  "verdict": "NEEDS_WORK",
+  "session_id": "01a166f8-fe42-74f0-8599-81932f00d5c6",
+  "mode": "codex",
+  "model": "gpt-6.1-sol",
+  "effort": "high",
+  "spec": "codex:gpt-6.1-sol:high",
+  "standalone": false,
+  "review": "## Issue 1\n- **Severity**: P1\n- **Title**: Final confirmation uses `\n- **Confidence**: 100\n- **Classification**: introduced\n- **Problem**: Final confirmation uses `.chain(self.negative).find(|c| c.name == selected.name)`, losing the selected property\u2019s category. An invariant and negative claim may legally share a name because their emitted operators have different prefixes. Selecting the negative claim then evaluates the invariant instead, potentially accepting a witness whose selected claim holds. Likewise, an authored invariant named `arithmetic` can make `ArithmeticSafe` return `Confirmation::Violation` without any arithmetic refusal.\n- **Suggestion**: Dispatch by the selected property\u2019s category and search only its corresponding native registrations. Require native arithmetic confirmation for `ArithmeticSafe`. Add regression tests for these name collisions.\n- **File:Line**: model/umpire/backends/apalache/src/replay.rs:179\n- **R-IDs**: R3\n\n## Issue 2\n- **Severity**: P2\n- **Title**: Start-failure projection eagerly enumerates every preceding domain combination and stores every panic before replay can inspect the first result\n- **Confidence**: 75\n- **Classification**: introduced\n- **Problem**: Start-failure projection eagerly enumerates every preceding domain combination and stores every panic before replay can inspect the first result. For an outer `#[starts(0..=1000000000)]` followed by an overflowing start range, ordinary starts refuse immediately, but replay of a single initial arithmetic witness attempts to allocate a billion `StartFailure` entries. The decoder\u2019s input limits do not bound this work.\n- **Suggestion**: Validate the witness\u2019s selected prefix directly, or make failure traversal lazy and bounded so replay can stop at the matching refusal.\n- **File:Line**: model/umpire/dsl/macros/src/state.rs:142\n- **R-IDs**: R3\n\n## Issue 3\n- **Severity**: P2\n- **Title**: The failure projection loses the state field\u2019s integer type\n- **Confidence**: 100\n- **Classification**: introduced\n- **Problem**: The failure projection loses the state field\u2019s integer type. `failure_projection` supplies an empty `visit`, so `for #binding in #domain { #visit }` no longer constrains the range through state construction. Unsuffixed literals default to `i32`. Consequently, a previously valid `#[starts(2147483648..=2147483648)] value: u64` fails compilation in the generated method, even without using Apalache. Narrow integer arithmetic can also evaluate at the wrong width and miss the native start refusal.\n- **Suggestion**: Constrain each range binding to `#ty`, preserving the original expression inference. Add regression coverage for wide unsuffixed starts and width-sensitive arithmetic in start bounds.\n- **File:Line**: model/umpire/dsl/macros/src/state.rs:131\n- **R-IDs**: R3\n\n```json\n{\"classification_counts\": {\"introduced\": 3, \"pre_existing\": 0}, \"unaddressed\": [\"R3\"], \"suppressed_count\": {}}\n```\n\n<verdict>NEEDS_WORK</verdict>\n",
+  "draws": [
+    {
+      "axis": "correctness",
+      "model": "gpt-6.1-sol",
+      "session_id": "01a166f8-fe42-74f0-8599-81932f00d5c6",
+      "verdict": "NEEDS_WORK",
+      "failed": false
+    },
+    {
+      "axis": "contracts",
+      "model": "gpt-6.1-sol",
+      "session_id": "01a166f8-fe42-7202-b0bc-ecc840927ee9",
+      "verdict": "NEEDS_WORK",
+      "failed": false
+    },
+    {
+      "axis": "integration",
+      "model": "gpt-6.1-sol",
+      "session_id": "01a166f8-fe42-7163-a40a-fde359814337",
+      "verdict": "NEEDS_WORK",
+      "failed": false
+    }
+  ],
+  "needs_work_survivors": 3,
+  "introduced_count": 3,
+  "pre_existing_count": 0,
+  "unaddressed": [
+    "R3"
+  ],
+  "review_rounds": 1,
+  "review_rounds_cap": 8
+}

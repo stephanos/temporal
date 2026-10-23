@@ -126,28 +126,45 @@ fn start_domains(
         let evaluate = range
             .as_ref()
             .map_or_else(|| quote!(::core::default::Default::default()), |range| quote!(#range));
-        let domain = if capture { quote!(__umpire_domain) } else { evaluate.clone() };
-        let success = if range.is_some() {
-            quote!(for #binding in #domain { #visit })
-        } else {
-            quote!(let #binding: #ty = #domain; #visit)
-        };
         visit = if capture {
-            let prefix_names = names[..index].iter().map(ToString::to_string);
-            let prefix_bindings = &bindings[..index];
+            let label = names[index].to_string();
+            let (evaluate, select) = if let Some(range) = range {
+                let domain = match range.limits {
+                    syn::RangeLimits::Closed(_) => quote!(::core::ops::RangeInclusive<#ty>),
+                    syn::RangeLimits::HalfOpen(_) => quote!(::core::ops::Range<#ty>),
+                };
+                (
+                    quote!({ let __umpire_domain: #domain = #evaluate; __umpire_domain }),
+                    quote! {
+                        let __umpire_raw = selected.iter().find(|(name, _)| *name == #label)?.1;
+                        let #binding: #ty = ::core::convert::TryFrom::try_from(__umpire_raw).ok()?;
+                        if !__umpire_domain.contains(&#binding) { return None; }
+                    },
+                )
+            } else {
+                (
+                    quote!({ let __umpire_value: #ty = #evaluate; __umpire_value }),
+                    quote! {
+                        let #binding: #ty = __umpire_domain;
+                    },
+                )
+            };
             quote! {
-                match ::std::panic::catch_unwind(::std::panic::AssertUnwindSafe(|| #evaluate)) {
-                    Ok(__umpire_domain) => { #success }
-                    Err(__umpire_panic) => {
-                        __umpire_failures.push(::umpire_dsl::StartFailure {
-                            prefix: ::std::vec![#((#prefix_names, ::umpire_dsl::IntoValue::value(&#prefix_bindings))),*],
-                            panic: __umpire_panic,
-                        });
-                    }
-                }
+                let __umpire_domain = match ::std::panic::catch_unwind(::std::panic::AssertUnwindSafe(|| #evaluate)) {
+                    Ok(__umpire_domain) => __umpire_domain,
+                    Err(__umpire_panic) => return Some(::umpire_dsl::StartFailure {
+                        prefix: __umpire_prefix,
+                        panic: __umpire_panic,
+                    }),
+                };
+                #select
+                __umpire_prefix.push((#label, ::umpire_dsl::IntoValue::value(&#binding)));
+                #visit
             }
+        } else if range.is_some() {
+            quote!(for #binding in #evaluate { #visit })
         } else {
-            success
+            quote!(let #binding: #ty = #evaluate; #visit)
         };
     }
     visit
@@ -161,7 +178,7 @@ fn failure_projection(
     bindings: &[syn::Ident],
     start_bounds: &Generics,
 ) -> TokenStream {
-    let visit = start_domains(fields, ranges, names, bindings, quote! {}, true);
+    let visit = start_domains(fields, ranges, names, bindings, quote!(None), true);
     let bounds = deferred(start_bounds, fields.iter().map(|f| &f.ty));
     let (implementation, arguments, constraints) = bounds.split_for_impl();
     let name = &input.ident;
@@ -169,10 +186,9 @@ fn failure_projection(
         #[cfg(not(target_arch = "wasm32"))]
         impl #implementation #name #arguments #constraints {
             #[doc(hidden)]
-            pub fn __umpire_start_failures() -> ::std::vec::Vec<::umpire_dsl::StartFailure> {
-                let mut __umpire_failures = ::std::vec::Vec::new();
+            pub fn __umpire_start_failure(selected: &[(&str,i128)]) -> ::core::option::Option<::umpire_dsl::StartFailure> {
+                let mut __umpire_prefix: ::std::vec::Vec<(&'static str, ::umpire_dsl::Value)> = ::std::vec::Vec::new();
                 #visit
-                __umpire_failures
             }
         }
     }

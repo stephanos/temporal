@@ -70,3 +70,65 @@ mod native_only {
 fn unsupported_projection_keeps_native_model_usable() {
     assert_eq!(native_only::World.starts().len(), 1);
 }
+
+#[allow(arithmetic_overflow)]
+#[umpire_dsl::machine]
+mod large_prefix {
+    use umpire_dsl::{Action, State};
+    #[derive(State)]
+    pub(super) struct Model {
+        #[starts(0..=1_000_000_000)]
+        earlier: u64,
+        #[starts(1..=(127+1))]
+        later: i8,
+    }
+    #[derive(Action, Copy)]
+    pub(super) enum User {
+        Reset,
+    }
+    impl Model {
+        #[on(User)]
+        fn step(&mut self, a: User) {
+            match a {
+                User::Reset => self.earlier = 0,
+            }
+        }
+    }
+}
+#[test]
+fn start_failure_checks_only_the_selected_prefix() -> Result<(), Box<dyn std::error::Error>> {
+    assert!(std::panic::catch_unwind(|| large_prefix::World.starts()).is_err());
+    let failure = large_prefix::World
+        .start_failure(&[("earlier", 1_000_000_000)])
+        .ok_or("native arithmetic refusal missing")?;
+    assert_eq!(failure.prefix, [("earlier", Value::Int(1_000_000_000))]);
+    assert!(large_prefix::World.start_failure(&[("earlier", 1_000_000_001)]).is_none());
+    Ok(())
+}
+
+#[umpire_dsl::machine]
+mod wide_start {
+    use umpire_dsl::{Action, State};
+    #[derive(State)]
+    pub(super) struct Model {
+        #[starts(2_147_483_648..=2_147_483_648)]
+        value: u64,
+    }
+    #[derive(Action, Copy)]
+    pub(super) enum User {
+        Reset,
+    }
+    impl Model {
+        #[on(User)]
+        fn step(&mut self, a: User) {
+            match a {
+                User::Reset => self.value = 0,
+            }
+        }
+    }
+}
+#[test]
+fn start_projection_preserves_the_field_integer_width() {
+    assert_eq!(wide_start::World.starts()[0].values(), [("value", Value::Int(2_147_483_648))]);
+    assert!(wide_start::World.start_failure(&[("value", 2_147_483_648)]).is_none());
+}

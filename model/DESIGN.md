@@ -574,8 +574,9 @@ its selected World explicitly and checks the exact documented source against a R
 remains possible. `World::new` assigns fields without generic admission or state validation.
 Consumers admit their own policy: activity's live binding accepts maximum_attempts 1..=3.
 Native states need Clone/Eq/Hash/Display, not a whole-state catalog. Persistent collections
-remain admitted dependencies, without a Bank or Voting port. Declared-World `imbl::Vector`
-value export is still absent (`Value::Sequence` alone does not implement `IntoValue`).
+remain admitted dependencies, without a Bank or Voting port. Native `imbl::Vector<T>` value
+export preserves element order through `IntoValue` when `T: IntoValue + Clone`. This supports
+binding and typed replay of admitted sequence state; the projection is absent on Wasm targets.
 
 Generated input-bearing machines count domain products before materialization through
 `checked_catalog(limit)`. The default ceiling is 4,096 concrete actions; exact excessive

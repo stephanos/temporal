@@ -398,3 +398,39 @@ fn arithmetic_refusal_is_distinct_and_requires_the_exact_native_boundary()
     }
     Ok(())
 }
+
+#[path = "fixtures/categories.rs"]
+mod category_fixture;
+#[test]
+fn selected_property_category_cannot_alias_authored_names() -> Result<(), Box<dyn std::error::Error>>
+{
+    use category_fixture::categories;
+    let world = categories::World;
+    let starts = world.starts();
+    let actions = world.actions();
+    let source = format!(
+        "{}\numpire_testing::fixture!(categories::world(),10,Claim::new(\"shared\",|_,s:&categories::Model|(s.value!=0).into()));",
+        include_str!("fixtures/categories.rs")
+    );
+    let module = umpire_lift::Tla::safety(&umpire_lift::Lift::parse("categories.rs", &source)?)?;
+    let negative = [Claim::new("shared", |_, s: &categories::Model| (s.value != 0).into())];
+    let replay = Replay { world: &world, starts: &starts, actions: &actions, negative: &negative };
+    for (property, value, accepted) in [
+        ("ArithmeticSafe", 0, false),
+        ("ValidStep", 0, false),
+        ("Invariant_arithmetic", 0, true),
+        ("Invariant_valid_step", 0, true),
+        ("Invariant_shared", 0, false),
+        ("Negative_shared", 0, true),
+        ("Invariant_shared", 1, true),
+        ("Negative_shared", 1, false),
+    ] {
+        let raw = witness(&module, vec![initial(&module, value)]).to_string();
+        assert_eq!(
+            replay.violation(&module, property, 0, &raw).is_ok(),
+            accepted,
+            "{property} value={value}"
+        );
+    }
+    Ok(())
+}

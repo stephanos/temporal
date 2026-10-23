@@ -105,7 +105,7 @@ where
         raw: &str,
     ) -> Result<Replayed, Refusal> {
         let meta = &module.metadata;
-        let selected = selected_property(module, property)?;
+        let (category, selected) = selected_property(module, property)?;
         let schema = schema(module)?;
         let parameters: BTreeMap<_, _> =
             meta.parameters.iter().map(|p| (p.symbol.clone(), kind(&p.ty))).collect();
@@ -140,11 +140,7 @@ where
             }
             let native_before =
                 current.as_ref().ok_or_else(|| reject("missing native prefix state"))?;
-            let post = meta
-                .postconditions
-                .iter()
-                .any(|p| p.operator == property)
-                .then_some(selected.name.as_str());
+            let post = (category == Category::Postcondition).then_some(selected.name.as_str());
             let evaluated = self.transition(module, (before, after), index, native_before, post)?;
             let ordinal = integer(after, INPUT)?;
             let choice = integer(after, CHOICE)?;
@@ -165,20 +161,24 @@ where
         let final_state = trace.states.last().ok_or_else(|| reject("empty trace"))?;
         let confirmation = match confirmation {
             Some(c @ Confirmation::Arithmetic { .. })
-                if property == "ArithmeticSafe" && boolean(final_state, ERROR)? =>
+                if category == Category::Arithmetic && boolean(final_state, ERROR)? =>
             {
                 c
             }
             Some(_) => return Err(reject("native refusal does not refute selected claim")),
             None => {
                 let state = current.as_ref().ok_or_else(|| reject("missing final native state"))?;
-                let verdict = if meta.postconditions.iter().any(|p| p.operator == property) {
+                if matches!(category, Category::Arithmetic | Category::ValidStep) {
+                    return Err(reject("selected safety monitor has no native refusal"));
+                }
+                let verdict = if category == Category::Postcondition {
                     last_post.ok_or_else(|| reject("postcondition has no authored transition"))?
                 } else {
                     let claims = self.world.invariants();
-                    let claim = claims
+                    let registrations =
+                        if category == Category::Invariant { &claims[..] } else { self.negative };
+                    let claim = registrations
                         .iter()
-                        .chain(self.negative)
                         .find(|c| c.name == selected.name)
                         .ok_or_else(|| reject("selected property has no native claim"))?;
                     native(|| claim.evaluate(self.world, state).verdict).map_err(reject)?
@@ -210,8 +210,16 @@ where
             let arithmetic = if let Some(state) = &current {
                 self.state_claims(state).err()
             } else {
+                let selected = initial
+                    .state
+                    .iter()
+                    .filter_map(|(name, value)| match value {
+                        Value::Int(value) => Some((name.as_str(), *value)),
+                        _ => None,
+                    })
+                    .collect::<Vec<_>>();
                 let mut matched = None;
-                for failure in self.world.start_failures() {
+                if let Some(failure) = self.world.start_failure(&selected) {
                     let mut expected = defaults(&schema.fields);
                     for (name, value) in fields(failure.prefix)? {
                         if !schema.fields.contains_key(&name) {
@@ -221,7 +229,6 @@ where
                     }
                     if initial.state == expected {
                         matched = Some(native_panic(failure.panic.as_ref()));
-                        break;
                     }
                 }
                 matched
@@ -478,18 +485,37 @@ struct NativeStep<M: Machine> {
     event: Option<ReplayedStep>,
 }
 
+#[derive(Clone, Copy, PartialEq, Eq)]
+enum Category {
+    Invariant,
+    Postcondition,
+    Negative,
+    Arithmetic,
+    ValidStep,
+}
 fn selected_property<'a>(
     module: &'a Module,
     operator: &str,
-) -> Result<&'a umpire_lift::Property, Refusal> {
+) -> Result<(Category, &'a umpire_lift::Property), Refusal> {
     let meta = &module.metadata;
-    let mut matching = meta
-        .invariants
-        .iter()
-        .chain(&meta.postconditions)
-        .chain(&meta.negative)
-        .chain(&meta.arithmetic)
-        .filter(|p| p.operator == operator);
+    let mut matching = [
+        (Category::Invariant, &meta.invariants),
+        (Category::Postcondition, &meta.postconditions),
+        (Category::Negative, &meta.negative),
+        (Category::Arithmetic, &meta.arithmetic),
+    ]
+    .into_iter()
+    .flat_map(|(category, properties)| {
+        properties.iter().map(move |p| {
+            let category = if category == Category::Invariant && p.operator == "ValidStep" {
+                Category::ValidStep
+            } else {
+                category
+            };
+            (category, p)
+        })
+    })
+    .filter(|(_, p)| p.operator == operator);
     let selected = matching.next().ok_or_else(|| reject("unknown property"))?;
     if matching.next().is_some() {
         return Err(reject("ambiguous property"));

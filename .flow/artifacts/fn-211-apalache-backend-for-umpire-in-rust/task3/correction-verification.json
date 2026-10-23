@@ -1,0 +1,20 @@
+{
+  "session": 30102,
+  "suite_rc": 0,
+  "successful_harness_cases": 212,
+  "all_target_clippy": "-D warnings, six changed crates, exit0",
+  "actual_controls": [
+    "ordered-start",
+    "later-start fault with alternate and tampered prefixes",
+    "vector typed replay with successor tamper"
+  ],
+  "prior_artifacts": 558,
+  "changed_artifacts": {
+    "model/umpire/dsl/macros/tests/fixtures/machine/expected/expansion@rs.snap.rs": "4dfbd08143756bfc7d5b6b04db11a1f89465ae1e01d15a06566ca97baf2987a7",
+    "model/umpire/dsl/macros/tests/fixtures/rejecting_machine/expected/expansion@rs.snap.rs": "f5f5cc5d48aae94686a91065765d02ef2a48d0bf183fb62cb35ed78ab08eab0f",
+    "model/umpire/dsl/macros/tests/fixtures/staying_machine/expected/expansion@rs.snap.rs": "8af7fc6be50696aff5654351929f9f2d30c21d16f18dea765193b256f21b34a1"
+  },
+  "review_round": 1,
+  "review_status": "NEEDS_WORK fixed, same-session re-review pending",
+  "live_scope": "Fresh current-source canonical guest and actual slice/gaps pending after reviews settle."
+}
