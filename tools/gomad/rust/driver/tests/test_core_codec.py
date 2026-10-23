@@ -64,7 +64,6 @@ class ContextAdmission(unittest.TestCase):
         with self.assertRaises(Refusal):gate.context_transport(frames,declared)
 
 
-if __name__=='__main__':unittest.main()
 
 
 class FrozenOrderCatalog(unittest.TestCase):
@@ -193,3 +192,145 @@ class ExactContextCases(unittest.TestCase):
                 self.assertEqual(gate.recovered_snapshots(image),snapshots,(scenario['name'],step['op']))
                 checked+=1
         self.assertGreater(checked,100)
+
+
+def encoded_image(image):
+    import struct
+    def number(value):return struct.pack('<Q',value)
+    def blob(raw):return number(len(raw))+raw
+    def text(value):return blob(value.encode())
+    def numbers(values):return number(len(values))+b''.join(number(value) for value in values)
+    def obj(value):return b''.join(number(value[field]) for field in ('inode','mode','kind','mod_time'))+blob(value['data'])
+    def operations(values):
+        raw=number(len(values))
+        for value in values:
+            effect=value['effect']
+            raw+=number(value['id'])+text(value['kind'])+numbers(value['deps'])+number(len(value['stores']))+b''.join(text(store) for store in value['stores'])
+            raw+=text(effect['kind'])+number(effect['inode'])+number(effect['parent'])+numbers(effect['parents'])
+            raw+=b''.join(number(effect[field]) for field in ('offset','size','mode','mod_time'))+blob(effect['data'])
+            raw+=number(effect['object'] is not None)+(obj(effect['object']) if effect['object'] is not None else b'')
+            raw+=number(len(effect['namespace']))+b''.join(text(part['path'])+number(part['inode']) for part in effect['namespace'])
+        return raw
+    sections=[text(image['model']),number(len(image['occurrences']))+b''.join(text(key)+number(value) for key,value in sorted(image['occurrences'].items()))]
+    raw=number(image['next_inode'])+number(image['generation'])+number(len(image['volumes']))
+    for name,volume in sorted(image['volumes'].items()):
+        raw+=text(name)+text(volume['mount'])+number(volume['capacity'])+number(len(volume['objects']))+b''.join(obj(value) for _,value in sorted(volume['objects'].items()))
+        raw+=number(len(volume['paths']))+b''.join(text(path)+number(inode) for path,inode in sorted(volume['paths'].items()))+numbers(volume['owned'])
+        raw+=operations(volume['pending'])+operations(volume['history'])+number(volume['next_operation'])
+        raw+=number(len(volume['last']))+b''.join(text(key)+number(value) for key,value in sorted(volume['last'].items()))
+    sections.append(raw)
+    return b'GMVOLIMG'+struct.pack('<II',1,3)+b''.join(struct.pack('<I',index)+blob(value) for index,value in enumerate(sections,1))
+
+
+def selected_fixture():
+    import json
+    import base64
+    import struct
+    root=Path(__file__).resolve().parents[5]
+    corpus=json.loads((root/'tools/gomad/internal/model/wasi/testdata/volume-conformance/vectors/core.json').read_bytes())
+    scenario=next(value for value in corpus['scenarios'] if value['name']=='captured-readonly-descendant-refuses-directory-rename')
+    step=next(value for value in scenario['steps'] if value['op']=='api-mkdir')
+    image=gate.recovery_image(base64.b64decode(step['image_base64']))
+    model=descriptor_model(1000,10000);image['model']=model['model_identity'];volume=image['volumes']['data']
+    volume.update(mount='/workspace',capacity=1<<20,pending=[],last={})
+    volume['history'][1]['effect']['namespace'][0]['path']='/db'
+    for op in volume['history']:
+        op['stores']=[store.replace('/mutable','/db') for store in op['stores']]
+    raw=encoded_image(image)
+    context={'data':dict(PendingSHA256=gate.pending_identity('data',volume['history']),Operations=[gate.observed_operation(op) for op in volume['history']])}
+    states=[]
+    for chosen in ([],[1,2]):
+        changed=copy.deepcopy(volume)
+        for op in volume['history']:
+            if op['id'] in chosen:gate.apply_effect(changed,op['effect'])
+        projected=gate.entries(changed,True)
+        states.append(dict(Volume='data',PendingSHA256=context['data']['PendingSHA256'],SelectedOperations=chosen,Entries=projected,Identity=gate.crash_identity('data',projected)))
+    snapshot=gate.recovered_snapshots(image)[0];volatile=copy.deepcopy(volume)
+    for op in volume['history']:gate.apply_effect(volatile,op['effect'])
+    snapshot.update(Volatile=gate.entries(volatile),PendingOperations=2,PendingSHA256=context['data']['PendingSHA256'])
+    snapshot['Identity']=gate.snapshot_identity(snapshot)
+    pages={'data':dict(States=states,ChoiceExploration=None,Complete=True,Capacity='')}
+    log=b'actual retained log'
+    parts=[gate.struct_json([snapshot]),gate.struct_json({'data':context['data']['Operations']}),gate.struct_json(pages),
+        gate.digest(raw).encode(),struct.pack('<Q',len(log))+bytes.fromhex(gate.digest(log)),gate.struct_json(context)]
+    state=gate.state_envelope(3,parts)
+    row=dict(schema=gate.SCHEMA,case='storage-selected-baseline',inputs=dict(context=context,descriptor=model),
+        observed=dict(states=states,image_bytes=list(raw),state_bytes=list(state),log_bytes=list(log)))
+    return row
+
+
+class SelectedPersistence(unittest.TestCase):
+    def test_selected_baseline_replays_distinct_states_and_snapshot_identities(self):
+        row=selected_fixture();facts=gate.selected_baseline(row)
+        self.assertEqual(len(facts['states']),2)
+        for mutation in ('missing-state','forged-state','forged-context','forged-snapshot'):
+            bad=copy.deepcopy(row)
+            if mutation=='missing-state':bad['observed']['states'].pop()
+            if mutation=='forged-state':bad['observed']['states'][0]['Identity']='sha256:'+'0'*64
+            if mutation=='forged-context':bad['inputs']['context']['data']['Operations'][0]['Kind']='forged'
+            if mutation=='forged-snapshot':
+                raw=bytes(bad['observed']['state_bytes']);version,parts=gate.state_raw_sections(raw)
+                snapshot=gate.decoded(parts[0]);snapshot[0]['Identity']='sha256:'+'0'*64;parts[0]=gate.canonical(snapshot)
+                bad['observed']['state_bytes']=list(gate.state_envelope(version,parts))
+            with self.subTest(mutation=mutation),self.assertRaises(Refusal):gate.selected_baseline(bad)
+
+
+def evidence_fixture(baseline):
+    import base64
+    _,parts=gate.state_raw_sections(bytes(baseline['observed']['state_bytes']))
+    descriptor=copy.deepcopy(baseline['inputs']['descriptor']);descriptor['crash_limits']=dict(States=16,Operations=8,Depth=8,Bytes=1<<20,Work=256)
+    storage=dict(descriptor=descriptor)
+    rows=[dict(schema=gate.SCHEMA,case='storage.native-original-state',inputs=dict(storage=storage),
+        observed={name:baseline['observed'][name] for name in ('state_bytes','log_bytes','image_bytes')})]
+    log=bytes(baseline['observed']['log_bytes'])
+    def append(case,selector,variant,sections,error,version=3,request=None,observed_log=None):
+        rows.append(dict(schema=gate.SCHEMA,case=case,inputs={selector:variant,
+            'state_base64':base64.b64encode(gate.state_envelope(version,sections)).decode(),
+            'log_base64':base64.b64encode(log if observed_log is None else observed_log).decode(),'storage':storage if request is None else request},observed=dict(error=error)))
+    for edit in ('valid','snapshot-hash','operation-history','missing-inventory'):
+        changed=parts.copy();context=gate.decoded(parts[5])
+        if edit=='snapshot-hash':context['data']['PendingSHA256']='sha256:'+'b'*64
+        if edit=='operation-history':context['data']['Operations'][0]['Kind']='forged'
+        if edit=='missing-inventory':context['data']['Operations']=None
+        changed[5]=gate.canonical(context)
+        append('storage.native-state-context','edit',edit,changed,None if edit=='valid' else 'retained storage evidence: crash context')
+    append('storage.native-state-context-presence','edit','v1-with-limits',parts[:5],'retained storage evidence: crash context',version=1)
+    request=copy.deepcopy(storage);request['descriptor']['crash_limits']=None
+    append('storage.native-state-context-presence','edit','v3-without-limits',parts,'retained storage evidence: crash context',request=request)
+    append('storage.native-state-context-presence','edit','forged-log',parts,'retained storage log binding',observed_log=b'forged')
+    for stage in (1,2,3):
+        changed=parts.copy();changed[3]=b'';changed[5]=bytes([stage])
+        append('storage.native-partial-state','stage',stage,changed,'retained storage failed stage' if stage==3 else None,version=2)
+    variants={}
+    value=gate.decoded(parts[0]);value[0]['Persisted']=[None];variants['snapshot-null-entry']=(0,gate.canonical(value),'invalid type: null')
+    value=gate.decoded(parts[0]);value[0]['Identity']='x';variants['snapshot-identity']=(0,gate.canonical(value),'retained storage snapshot inventory')
+    value=gate.decoded(parts[0]);value[0]['unexpected']=1;variants['snapshot-unknown-field']=(0,gate.canonical(value),'unknown field')
+    variants['snapshot-duplicate-field']=(0,parts[0].replace(b'"ID":"data"',b'"ID":"data","ID":"data"',1),'duplicate JSON key')
+    value=gate.decoded(parts[1]);value['data'][0]['unexpected']=1;variants['history-unknown-field']=(1,gate.canonical(value),'unknown field')
+    variants['enumeration-json']=(2,b'{','EOF while parsing an object')
+    value=gate.decoded(parts[2]);value['data']['States'][0]['Identity']='x';variants['enumeration-identity']=(2,gate.canonical(value),'retained storage crash state identity')
+    value=gate.decoded(parts[2]);value['data']['unexpected']=1;variants['enumeration-unknown-field']=(2,gate.canonical(value),'unknown field')
+    for name,section in (('history-duplicate-key',1),('enumeration-duplicate-key',2),('context-duplicate-key',5)):
+        value=gate.canonical(gate.decoded(parts[section])['data']);variants[name]=(section,b'{"data":'+value+b',"data":'+value+b'}','duplicate JSON key')
+    variants['image-identity']=(3,b'garbage','retained storage image identity');variants['image-uppercase']=(3,b'A'*64,'retained storage image identity')
+    for variant,(section,raw,error) in variants.items():
+        changed=parts.copy();changed[section]=raw;append('storage.native-resealed-section','mutation',variant,changed,error)
+    return rows
+
+
+class StateEvidenceVariants(unittest.TestCase):
+    def test_all_context_presence_partial_and_resealed_variants_require_raw_preimages(self):
+        baseline=selected_fixture();rows=evidence_fixture(baseline)
+        facts=gate.evidence_observations(rows,[baseline])
+        self.assertEqual(len(facts['TestStorageCrashContextEvidenceRefusal']['cases']),24)
+        for variant in ('omit','duplicate','alias-pass','substitute-state','substitute-log'):
+            changed=copy.deepcopy(rows)
+            if variant=='omit':changed.pop()
+            if variant=='duplicate':changed.append(copy.deepcopy(changed[-1]))
+            if variant=='alias-pass':changed[2]['observed']['error']=None
+            if variant=='substitute-state':changed[2]['inputs']['state_base64']=changed[1]['inputs']['state_base64']
+            if variant=='substitute-log':changed[1]['inputs']['log_base64']='Zm9yZ2Vk'
+            with self.subTest(variant=variant),self.assertRaises(Refusal):gate.evidence_observations(changed,[baseline])
+
+
+if __name__=='__main__':unittest.main()

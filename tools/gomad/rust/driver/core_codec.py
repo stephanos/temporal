@@ -267,7 +267,7 @@ def storage_observation(config,row,catalog):
             require(set(inputs)=={'base','changed'},'foreign hash/map input')
             changed['PendingSHA256']='sha256:'+'b'*64
             want=dict(hash_equal=False,map_equal=False,null_empty_equal=False)
-        require(inputs['changed']==changed and changed!=base and canonical(observed)==canonical(want),'exact context equality lost a field or null shape')
+        require(canonical(inputs['changed'])==canonical(changed) and changed!=base and canonical(observed)==canonical(want),'exact context equality lost a field or null shape')
     elif case=='storage-large-context-transport':
         require(set(inputs)=={'descriptor','transport_bytes','wire_bytes','typed_context_bytes','transport_sha256','typed_context_sha256'},'missing raw context transport preimage')
         descriptor=inputs['descriptor'];descriptor_model(descriptor,5000,10000)
@@ -279,19 +279,18 @@ def storage_observation(config,row,catalog):
         require(decoded(typed)==expected_context and typed==struct_json(expected_context) and inputs['transport_sha256']==digest(raw)
                 and inputs['typed_context_sha256']==digest(typed),'context typed/transport identities changed')
         require(len(canonical(descriptor))<=8192 and descriptor['crash_context']['chunks']>=17,'execute descriptor embeds unbounded context')
-        require(observed==dict(context_sha256=digest(typed),operation_ids=list(range(1,5001))), 'large context roundtrip differs')
+        require(canonical(observed)==canonical(dict(context_sha256=digest(typed),operation_ids=list(range(1,5001)))), 'large context roundtrip differs')
     elif case=='storage-validation-order-corpus':
         selection,context,error,selection_wire,context_wire=expected
         require(set(inputs)=={'name','reversed','descriptor','context'},'foreign order corpus input')
         descriptor=decoded(inputs['descriptor'])
-        # The order corpus's source model is reconstructed independently.
         order=decoded(frozen(config,'testdata/parity/storage-crash-validation-order.json'))
         descriptor_model(descriptor,order['pending_operations'],100,[dict(ID=name,Path='/'+name,CapacityBytes=512) for name in order['volumes']])
         actual=None if inputs['context'] is None else decoded(inputs['context'])
         require((None if inputs['context'] is None else inputs['context'].encode())==context_wire,'order corpus insertion context changed')
         raw_selection=b'null' if selection_wire is None else selection_wire
         require(b'"crash_selection":'+raw_selection+b',"crash_context":' in inputs['descriptor'].encode(),'order corpus insertion selection changed')
-        require(descriptor['crash_selection']==selection and actual==context,'order corpus raw inputs changed')
+        require(canonical(descriptor['crash_selection'])==canonical(selection) and canonical(actual)==canonical(context),'order corpus raw inputs changed')
         require(observed==dict(refusal=error),'order corpus first refusal differs')
         for field,want in (('selection',selection),('context',context)):
             raw=descriptor['crash_selection'] if field=='selection' else actual
@@ -488,20 +487,24 @@ def entries(volume,crash=False):
     return result
 
 
+def snapshot_identity(snapshot):
+    hasher=VolumeHash();hasher.text('gomad-volume-snapshot/v1');hasher.text(snapshot['ID']);hasher.text(snapshot['Mount']);hasher.number(snapshot['CapacityBytes'])
+    for items in (snapshot['Persisted'],snapshot['Volatile']):
+        hasher.number(len(items))
+        for entry in items:
+            hasher.text(entry['Path']);hasher.number(entry['Mode']);hasher.text(entry['Kind']);hasher.number(entry['ModTime'])
+            hasher.number(entry['Size']);hasher.text(entry['DataSHA256'])
+    hasher.number(snapshot['PendingOperations']);hasher.text(snapshot['PendingSHA256']);hasher.number(snapshot['NextOperation'])
+    return hasher.finish()
+
+
 def recovered_snapshots(image):
     result=[]
     for name,volume in sorted(image['volumes'].items()):
         projected=entries(volume)
         snapshot=dict(ID=name,Mount=volume['mount'],CapacityBytes=volume['capacity'],Persisted=projected,Volatile=projected,
             PendingOperations=0,PendingSHA256=pending_identity(name,[]),NextOperation=volume['next_operation'])
-        hasher=VolumeHash();hasher.text('gomad-volume-snapshot/v1');hasher.text(name);hasher.text(volume['mount']);hasher.number(volume['capacity'])
-        for items in (projected,projected):
-            hasher.number(len(items))
-            for entry in items:
-                hasher.text(entry['Path']);hasher.number(entry['Mode']);hasher.text(entry['Kind']);hasher.number(entry['ModTime'])
-                hasher.number(entry['Size']);hasher.text(entry['DataSHA256'])
-        hasher.number(0);hasher.text(snapshot['PendingSHA256']);hasher.number(snapshot['NextOperation'])
-        snapshot['Identity']=hasher.finish();result.append(snapshot)
+        snapshot['Identity']=snapshot_identity(snapshot);result.append(snapshot)
     return result
 
 
@@ -597,6 +600,13 @@ def selected_baseline(row):
     require(seen==set(possible),'selected enumeration omitted reachable state')
     sections=state_sections(raw_bytes(observed['state_bytes']))
     require(sections[6]==context,'baseline storage evidence context differs')
+    original=copy.deepcopy(volume)
+    for op in volume['history']:apply_effect(original,op['effect'])
+    snapshot=recovered_snapshots(image)[0]
+    snapshot.update(Volatile=entries(original),PendingOperations=2,PendingSHA256=context['data']['PendingSHA256'])
+    snapshot['Identity']=snapshot_identity(snapshot)
+    require(canonical(sections[1])==canonical([snapshot]) and canonical(sections[2])==canonical({'data':context['data']['Operations']}),
+            'baseline raw snapshot/history differs from independently replayed mkdir effects')
     return dict(image=image,context=context,states={state['Identity']:state for state in states},state_bytes=raw_bytes(observed['state_bytes']),log_bytes=raw_bytes(observed['log_bytes']))
 
 
@@ -723,7 +733,10 @@ def evidence_observations(rows,selected):
     baseline=selected_baseline(next(row for row in selected if row['case']=='storage-selected-baseline'))
     require(raw==baseline['state_bytes'] and log==baseline['log_bytes'],'storage evidence baseline differs from independently replayed actual mkdir owner')
     require(recovery_image(image_raw)==baseline['image'],'storage original image differs from actual selected owner baseline')
-    _,parts=state_raw_sections(raw);storage=inputs['storage'];seen={('storage.native-original-state',None)}
+    _,parts=state_raw_sections(raw);storage=inputs['storage']
+    descriptor_model(storage['descriptor'],1000,10000)
+    require(storage['descriptor']['crash_limits']==dict(States=16,Operations=8,Depth=8,Bytes=1<<20,Work=256),'native evidence storage crash bounds changed')
+    seen={('storage.native-original-state',None)}
     for row in rows:
         case=row['case']
         if case=='storage.native-original-state':continue
