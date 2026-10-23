@@ -62,7 +62,8 @@ def bytes_environment():
 def fixture():
     """Internal fixture modes are explicitly outside installed/compiler admission."""
     mode, *args = sys.argv[2:]
-    root = Path(os.environ['INTERCEPTION_CAPTURE_ROOT'])
+    # Go runs a caller -exec launcher with the exact guest build environment.
+    root = Path(os.environ.get('INTERCEPTION_CAPTURE_ROOT') or globals()['FIXTURE_CAPTURE_ROOT'])
     if mode == 'compiler':
         save(root / ('compiler-' + str(os.getpid()) + '.json'),
              dict(argv=[os.fsencode(arg).hex() for arg in args], environment=bytes_environment(),
@@ -127,7 +128,8 @@ def fixture():
 
 def program(path, mode):
     path.write_text('#!' + sys.executable + '\nimport runpy,sys\nsys.argv[1:1]=["--fixture",' +
-                    repr(mode) + ']\nrunpy.run_path(' + repr(str(SELF)) + ',init_globals={"FIXTURE_EXECUTABLE":sys.argv[0]},run_name="__main__")\n')
+                    repr(mode) + ']\nrunpy.run_path(' + repr(str(SELF)) + ',init_globals={"FIXTURE_EXECUTABLE":sys.argv[0],"FIXTURE_CAPTURE_ROOT":' +
+                    repr(str(path.parent)) + '},run_name="__main__")\n')
     path.chmod(0o700)
 
 
