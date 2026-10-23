@@ -85,6 +85,34 @@ class ConfigurationContract(unittest.TestCase):
             with self.assertRaisesRegex(Refusal, 'generated for this freeze'):
                 configure.freeze_final_cycle(config, root / 'again.json')
 
+    def test_all_native_profile_roles_expand_their_actual_admission_closure(self):
+        import configure
+        import json
+        import tempfile
+        from driver import Refusal
+        with tempfile.TemporaryDirectory() as temporary:
+            root = Path(temporary)
+            source, artifact, copied = (root/name for name in ('source','artifact','published'))
+            for path in (source,artifact,copied): path.write_text(path.name)
+            receipt = root/'helper-build.json'
+            receipt.write_text(json.dumps(dict(schema='gomad.native-measurement-build/v1',executable=str(artifact),inputs={str(source):'hash'})))
+            admission = root/'helper-admission.json'
+            admission.write_text(json.dumps(dict(schema='gomad.native-measurement-admission/v1',build_receipt=str(receipt),executable=str(copied))))
+            logs = {str(root/(name+'.'+suffix)) for name in ('artifact-identity','staged-identity') for suffix in ('stdout','stderr','json')}
+            for path in logs: Path(path).write_text('raw identity command')
+            entry = dict(binary=str(copied),build_receipt=str(receipt),admission=str(admission))
+            expected = {str(source),str(artifact),str(copied),str(receipt),str(admission)} | logs
+            self.assertEqual(configure.native_role_inputs(entry), expected)
+            profiles = {name:dict(entry) for name in ('measure','ordinary','diagnostic')}
+            self.assertEqual(configure.native_profile_inputs(dict(final_profiles=profiles)),expected)
+            without = dict(entry)
+            without.pop('admission')
+            with self.assertRaisesRegex(Refusal,'actual admission'):
+                configure.native_role_inputs(without)
+            Path(next(iter(logs))).unlink()
+            with self.assertRaisesRegex(Refusal,'missing/nonregular'):
+                configure.native_role_inputs(entry)
+
     def test_generated_manifest_uses_qualification_digest_grammar(self):
         import configure
         for digest in ('1'*64, 'sha256:'+'1'*64):

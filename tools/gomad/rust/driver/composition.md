@@ -68,3 +68,9 @@ Role dictionaries use the native tagged schema: `{"kind":"release"}`, `warm`,
 `stress`, or `{"kind":"diagnostic","features":[...]}` with the three reviewed
 diagnostic feature combinations. Future build paths come from that same cycle's
 actual producer stdout; they are never inserted into prefreeze input hashes.
+
+The freezer also expands each `final_profiles.measure`, `ordinary`, and
+`diagnostic` role's complete native build inputs and optional admission journals.
+Role bindings use canonical absolute paths. A published copy requires its actual
+admission; only the original Cargo executable may omit admission. All three role
+chains receive pure independent validation before the configuration is published.

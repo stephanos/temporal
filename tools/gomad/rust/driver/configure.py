@@ -57,18 +57,47 @@ def cell_spec(label, evidence, manifest, source_digest, bindings=None):
                 Campaign=campaign, ArtifactRoot=evidence)
 
 
+def native_role_inputs(entry):
+    require(isinstance(entry, dict) and set(entry) <= {'binary', 'build_receipt', 'admission'}
+            and {'binary', 'build_receipt'} <= set(entry), 'native role requires binary/build_receipt and optional admission')
+    require(all(Path(path).is_absolute() and str(Path(path).resolve()) == path for path in entry.values()),
+            'native role binding paths must be canonical absolute files')
+    receipt_path = Path(entry['build_receipt'])
+    receipt = read(receipt_path)
+    require(receipt['schema'] == 'gomad.native-measurement-build/v1', 'native role requires the full typed build receipt')
+    paths = {str(receipt_path), entry['binary'], receipt['executable']} | set(receipt['inputs'])
+    if entry['binary'] != receipt['executable']:
+        require(entry.get('admission'), 'published native role requires its actual admission')
+    if entry.get('admission'):
+        admission_path = Path(entry['admission'])
+        admission = read(admission_path)
+        require(admission['schema'] == 'gomad.native-measurement-admission/v1'
+                and admission['build_receipt'] == str(receipt_path) and admission['executable'] == entry['binary'],
+                'native role admission does not publish this exact build/binary')
+        paths.add(str(admission_path))
+        for name in ('artifact-identity', 'staged-identity'):
+            paths.update(str(admission_path.parent / (name + '.' + suffix)) for suffix in ('stdout', 'stderr', 'json'))
+    require(all(Path(path).is_absolute() and Path(path).is_file() and not Path(path).is_symlink() for path in paths),
+            'missing/nonregular static native role input')
+    return paths
+
+
 def native_bootstrap_inputs(config):
     binding = config.get('native_measurement', {})
     require(set(binding) == {'admission'}, 'native measurement bootstrap admission required')
-    admission_path = Path(binding['admission'])
-    admission = read(admission_path)
-    receipt_path = Path(admission['build_receipt'])
-    receipt = read(receipt_path)
-    paths = {str(admission_path), str(receipt_path), admission['executable'], admission['cargo_artifact']} | set(receipt['inputs'])
-    for name in ('artifact-identity', 'staged-identity'):
-        paths.update(str(admission_path.parent / (name + '.' + suffix)) for suffix in ('stdout', 'stderr', 'json'))
-    require(all(Path(path).is_absolute() and Path(path).is_file() and not Path(path).is_symlink() for path in paths),
-            'missing/nonregular static native measurement role input')
+    admission = read(binding['admission'])
+    return native_role_inputs(dict(binary=admission['executable'], build_receipt=admission['build_receipt'], admission=binding['admission']))
+
+
+def native_profile_inputs(config):
+    profiles = config['final_profiles']
+    paths = set()
+    for name in ('measure', 'ordinary', 'diagnostic'):
+        paths.update(native_role_inputs(profiles[name]))
+    for field in ('terminal_helper_receipt', 'terminal_diagnostic_helper_receipt'):
+        if field in profiles:
+            admission = read(profiles[field])
+            paths.update(native_role_inputs(dict(binary=admission['executable'], build_receipt=admission['build_receipt'], admission=profiles[field])))
     return paths
 
 
@@ -145,6 +174,7 @@ def freeze(bindings, output, source_manifest):
             inputs.add(path)
     inputs.update((config['binary'], config['build_receipt']))
     inputs.update(native_bootstrap_inputs(config))
+    inputs.update(native_profile_inputs(config))
     for token in config['stages']['sqlite-catalogue'].get('oracle') or []:
         if Path(token).is_absolute():
             require(Path(token).is_file() and not Path(token).is_symlink(), 'nonregular independent oracle input')
@@ -173,6 +203,13 @@ def freeze(bindings, output, source_manifest):
     freeze_final_cycle(config, output)
     import final_public_verbs
     final_public_verbs.binding(config)
+    import native_roles
+    for name, role in (('measure', {'kind': 'release'}), ('ordinary', {'kind': 'release'}),
+                       ('diagnostic', {'kind': 'diagnostic', 'features': ['diagnostic-profile']})):
+        entry = config['final_profiles'][name]
+        native_roles.validate_build(config, entry['build_receipt'], role)
+        if entry.get('admission'):
+            native_roles.validate_admission(config, entry['admission'], role)
     import primary_stages
     observed = dict(config, _config_path=str(output))
     for label, entry in config['stages'].items():
