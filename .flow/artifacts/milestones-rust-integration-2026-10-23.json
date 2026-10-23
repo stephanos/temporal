@@ -1664,6 +1664,71 @@
         "Measurement modulepreparation underway underGo lease; exacttuplethinbinder repair/review and actualthree-leg runtime comparison pending.",
         "Full mainCLI finalbuild/configuration readiness, broad native receiving and fresh fn233auto-derived actualFrontend receiving routes remain active."
       ]
+    },
+    {
+      "observed_at": "2026-10-23T11:08:33.375010+00:00",
+      "integration_head": "edf48a7a877686ca8e763aac24b32a6ce0146b53",
+      "final_qualification": false,
+      "logs": [
+        {
+          "path": "/home/agent/.cache/codex-build/fn232-root-release-admission-grammar-tests.log",
+          "bytes": 109,
+          "sha256": "d9853af017010fbcf76d87c8fe46b87ae058237da982d900a1181a4a916ad331",
+          "exit": 0,
+          "scope": "10 focused admission adapter tests pass; absentcontrol probes retainnumeric2/stdoutempty/ordinaryfeatures requirements"
+        },
+        {
+          "path": "/home/agent/.cache/codex-build/fn232-root-exact-runtime-admission-driver-tests.log",
+          "bytes": 510,
+          "sha256": "60097c15c10975e79628a942139da7672fb227fb90a361b5dea37f4d3111a334",
+          "exit": 0,
+          "scope": "All319 joined Python driver tests pass in14.252s"
+        },
+        {
+          "path": "/home/agent/measurement-original-runtime-binding-historical-red.log",
+          "bytes": 1470,
+          "sha256": "f538d96bbfeb260add02e53311adf1da7877a600c906066294e07e18f30347fc",
+          "exit": 1,
+          "scope": "Historical controller refuses corrected exactoriginalruntime request; causalRED"
+        },
+        {
+          "path": "/home/agent/measurement-original-runtime-binding-green.log",
+          "bytes": 110,
+          "sha256": "7da8738354a1c3122f90a2f002ea079b282fa1b556909e38f3fb884f46752a9a",
+          "exit": 0,
+          "scope": "Owner11focused binder tests pass"
+        },
+        {
+          "path": "/home/agent/measurement-original-runtime-binding-driver.log",
+          "bytes": 509,
+          "sha256": "9542fce8d67a420d6d8dfd5da4d833ff104e146c3328c292c8b40f2b2808e7df",
+          "exit": 0,
+          "scope": "Owner318driver tests pass before joined admission repair"
+        }
+      ],
+      "completed_scope": [
+        "811933e7b2 fixes release admission reader to actual unchangedmain.rs unsupportedgrammar and requires numericinteger buildexit0 (False refused); three absentfixturecontrol probes remain exit2/emptystdout and exactstderr. Unitreaderproof only, actual mainCLIReleaseadmission stillpending.",
+        "edf48a7a87 adds separate closed originalruntime request preparation projection while genericbinder staysunchanged. Pins368byteoriginalsource, emptycompileargs/tags, exactrawargv/orderedenv,seed7/entropy/clock/model/namespace/originalbounds; currentmodule/provenance custody retained. HistoricalRED,11mutations andjoined319tests retained.",
+        "Source review on both controllerrepairs clear; no productionRust/helper executable changed or historicalcdaReleasebinary relabeled."
+      ],
+      "reviews": [
+        {
+          "agent": "/root/qualification_composition/review_cells",
+          "scope": "ff1a7274fc releaseadmission grammar andnumericexit proof",
+          "status": "No findings; independent10focusedtests pass; actualcompiledRelease acceptance unrun",
+          "same_family": true
+        },
+        {
+          "agent": "/root/measurement_exact_recipes_review",
+          "scope": "4537fa4b originalruntime exactrequest mapper/preparation binder/caller custody/negativefixtures",
+          "status": "No actionableblockers; historicalRED and11/318GREENlogs reviewed; no actualruntime execution",
+          "same_family": true
+        }
+      ],
+      "pending": [
+        "Reference helper source receipt root-module closure followup discovered: current helper build_identity.rs mustbe includedwhenpresent, absent historicalmodulemustnotinventclosure. Ownercausalrepair/reviewactive before newhelperbuild.",
+        "ActualGo modulepreparation liveunderownerlease; no guest or threeleg runtime yet. Remaining14legacyrefs, actualmainCLIReleaseadmission, fullfrozen96stagequalification andMILESTONES completion remainpending."
+      ]
     }
   ],
   "resource_snapshot": {

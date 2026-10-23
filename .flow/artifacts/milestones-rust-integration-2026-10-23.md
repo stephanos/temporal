@@ -505,3 +505,18 @@ The genuine ordinary release measurement binary built successfully in296seconds
 from exactcda source; root independently verified its executable hash. Module
 preparation is underway, while actual three-leg runtime execution, mainCLI
 finalbuild, full frozen qualification and milestone completion remain pending.
+
+## Exact runtime request and release admission readers
+
+At `edf48a7a87`, the two reviewed controller repairs pass all319 joined Python
+tests. Release admission now expects the unchanged current public CLI refusal
+message and refuses boolean build exits. The runtime-cost binding preserves
+the exact original ordered request separately from compiler-normalized campaign
+configuration; generic bindings remain unchanged. Historical causal RED, focused
+mutation tests and the joined result are retained. These are reader/source tests,
+not actual mainCLI admission or runtime qualification.
+
+Module preparation continues under the measurement owner's Go lease. A newly
+found reference-helper source-receipt gap must include the actual build-identity
+root module before its next build. Full original runtime comparisons,14remaining
+legacy references and the complete milestone qualification remain open.
