@@ -418,12 +418,16 @@
         "retained-oracle/forged-digest",
         "retained-oracle/generic",
         "retained-oracle/mixed",
-        "retained-oracle/truncated-pass"
+        "retained-oracle/truncated-pass",
+        "producer/scenario/report-only=*",
+        "producer/cluster-oracles/report-only=*"
       ],
       "native_assertions": [
         "record-bound actual stdout/stderr+summary rederive complete report before helper preparation; independently resealed message/instance/digest/generic/mixed/truncation forgeries rejected by precise semantic guard"
       ],
-      "remaining_or_retired_semantics": [],
+      "remaining_or_retired_semantics": [
+        "Standalone scenario-native soft-assertions.json policy authentication remains owned by existing authenticated campaign-plan consumer; generic cluster validator does not infer report-only policy from report bytes."
+      ],
       "claim": "source-backed native predicates; no root PASS certification"
     },
     {

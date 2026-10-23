@@ -630,6 +630,10 @@ pub(crate) fn authenticate_retained(
     const REPORT: &str = "evidence/cluster_oracles";
     const SUMMARY: &str = "evidence/cluster_summary";
     let configuration = &inputs.configuration;
+    if configuration.oracle_plan.is_none() && !opened.manifest().record.streams.contains_key(REPORT)
+    {
+        return Ok(());
+    }
     let has_intent = configuration.oracle_plan.is_some()
         || configuration
             .incarnations
@@ -699,9 +703,14 @@ pub(crate) fn authenticate_retained(
                     {
                         return Err("retained cluster oracle output is not record bound".into());
                     }
+                    if descriptor.bytes > item.limits.output_bytes {
+                        return Err(
+                            "retained cluster oracle output exceeds captured output bound".into(),
+                        );
+                    }
                     evidence.insert(
                         name.into(),
-                        descriptor.read(opened, item.limits.output_bytes)?,
+                        descriptor.read(opened, item.limits.evidence_bytes)?,
                     );
                 }
                 _ => return Err("retained cluster oracle output summary binding mismatch".into()),
