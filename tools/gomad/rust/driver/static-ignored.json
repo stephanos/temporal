@@ -1,0 +1,117 @@
+{
+  "schema": "gomad.driver-static-ignored/v1",
+  "tests": [
+    {
+      "crate": "gomad",
+      "name": "retained_actual_wasm_metadata_matches_only_its_original_recipe",
+      "source": "gomad/src/campaign/prepare/driver.rs",
+      "reason": "requires explicitly retained unaccepted input and its original private recipe",
+      "disposition": "separate-actual-proof-required",
+      "final_id": "test-wasm/complete-behavioral-reach"
+    },
+    {
+      "crate": "wasmhost",
+      "name": "crc_throughput",
+      "source": "wasmhost/src/cache.rs",
+      "reason": "manual host throughput measurement",
+      "disposition": "original-opt-in-nonqualification",
+      "final_id": null
+    },
+    {
+      "crate": "wasmhost",
+      "name": "diagnostic_calibration_preserves_model_bytes_without_timing_feedback",
+      "source": "wasmhost/src/model.rs",
+      "reason": "instrumentation overhead calibration only; not a guest or performance gate",
+      "disposition": "original-opt-in-nonqualification",
+      "final_id": null
+    },
+    {
+      "crate": "wasmhost",
+      "name": "profile_local_import_stages_against_json_reference",
+      "source": "wasmhost/src/model.rs",
+      "reason": "diagnostic profiling only; not a qualification or performance gate",
+      "disposition": "original-opt-in-nonqualification",
+      "final_id": null
+    },
+    {
+      "crate": "wasmhost",
+      "name": "final_network_uses_finished_shared_owner_instead_of_cached_incarnation",
+      "source": "wasmhost/src/linked_cluster/live_controller_tests.rs",
+      "reason": "requires authenticated original open-streams service input and Go final network wire",
+      "disposition": "separate-actual-proof-required",
+      "final_id": "transferred-live/TestClusterBrokerDurableRestartParity"
+    },
+    {
+      "crate": "wasmhost",
+      "name": "joined_storage_crash_preserves_successful_session_world_and_network",
+      "source": "wasmhost/src/linked_cluster/live_controller_tests.rs",
+      "reason": "requires authenticated original storage-crash service input and Go World/network",
+      "disposition": "separate-actual-proof-required",
+      "final_id": "transferred-live/TestClusterBrokerDurableRestartParity"
+    },
+    {
+      "crate": "wasmhost",
+      "name": "shutdown_reinsertion_preserves_actual_live_guest_world",
+      "source": "wasmhost/src/linked_cluster/live_controller_tests.rs",
+      "reason": "requires original root35 compiled service input; mandatory live corpus invokes explicitly",
+      "disposition": "separate-actual-proof-required",
+      "final_id": "transferred-live/TestClusterShutdownLiveNodesEvidenceOrder"
+    },
+    {
+      "crate": "wasmhost",
+      "name": "default_compression_matches_pinned_go",
+      "source": "wasmhost/src/world/deflate/tests.rs",
+      "reason": "requires pinned Go oracle; see deflate/README.md",
+      "disposition": "separate-actual-proof-required",
+      "final_id": "test-wasm/complete-behavioral-reach"
+    },
+    {
+      "crate": "wasmhost",
+      "name": "decode_all_go_block_types_with_bounded_output",
+      "source": "wasmhost/src/world/deflate/tests.rs",
+      "reason": "requires pinned Go oracle; see deflate/README.md",
+      "disposition": "separate-actual-proof-required",
+      "final_id": "test-wasm/complete-behavioral-reach"
+    },
+    {
+      "crate": "wasmhost",
+      "name": "accepts_independent_go_compression_levels",
+      "source": "wasmhost/src/world/deflate/tests.rs",
+      "reason": "requires pinned Go oracle; see deflate/README.md",
+      "disposition": "separate-actual-proof-required",
+      "final_id": "test-wasm/complete-behavioral-reach"
+    },
+    {
+      "crate": "wasmhost",
+      "name": "actual_world_snapshots_match_raw_gzip",
+      "source": "wasmhost/src/world/deflate/tests.rs",
+      "reason": "requires pinned Go oracle; see deflate/README.md",
+      "disposition": "separate-actual-proof-required",
+      "final_id": "test-wasm/complete-behavioral-reach"
+    },
+    {
+      "crate": "wasmhost",
+      "name": "mutated_stream_admission_matches_go",
+      "source": "wasmhost/src/world/deflate/tests.rs",
+      "reason": "requires pinned Go oracle; see deflate/README.md",
+      "disposition": "separate-actual-proof-required",
+      "final_id": "test-wasm/complete-behavioral-reach"
+    },
+    {
+      "crate": "wasmhost",
+      "name": "original_full_profile_bounds",
+      "source": "wasmhost/src/world/deflate/tests.rs",
+      "reason": "384MiB resource window plus pinned Go oracle; see deflate/README.md",
+      "disposition": "separate-actual-proof-required",
+      "final_id": "test-wasm/complete-behavioral-reach"
+    },
+    {
+      "crate": "wasmhost",
+      "name": "changing_distributions_and_lazy_matches_agree_with_go",
+      "source": "wasmhost/src/world/deflate/tests.rs",
+      "reason": "requires pinned Go oracle; see deflate/README.md",
+      "disposition": "separate-actual-proof-required",
+      "final_id": "test-wasm/complete-behavioral-reach"
+    }
+  ]
+}

@@ -443,3 +443,53 @@ Meaningful controlled-probe regression observes virtiofs and refuses, plus real
 bounded stat facts and all probe error paths. Admission9tests exit0; complete
 portable driver suite41tests exit0 (includes5separate static draft tests), diff
 check exit0. No main sync/build/Go/Cargo/guest/golden/qualification occurred.
+
+### First24 concrete driver static/source/build bindings
+
+New static_stages.py assembles only the first24 original labels into reviewed
+checked-command argv+independent raw readers, keeping all remaining72 explicitly
+pending/UNEXECUTED until runtime owners compose them. Fixed recipes preserve
+retained Go protocol/model/conformance roots/repeats,2replay regenerations,
+compile-only/default-build/vet/lint/architecture/harness/worldrace and original
+6helper test modes/2helper transcript regenerations. Consolidated strict lint
+covers6host+7helper feature modes. Actual source-bound conformance/reference
+build copies and frozen ordinary release rebuild equality are enforced; no old
+Go host producer. No generated runtime result is supplied by assembly. All tools
+(including rustdoc/Clippy siblings/compile-only true), caches, lintbase and future
+frozen config paths are explicit caller bindings. Unknown/changed inputs refuse.
+
+Exact native Go roots come from the same-selector actual JSON list/run; reader
+reparses actual root/subtest events and repetitions, refuses skip/failure/empty or
+invented roots. Actual Cargo test executables/list/ignored-list/run+doctests retain
+raw command/process/stdout hashes; reader reparses all native names/summaries,
+checks each built executable and exact repetitions. Standard reader output adds
+actual testcase inventory/raw_reports/static_execution path+hash for the live
+owner's final reach reader. Schema documented in driver/static-stages.md and
+shared directly with live owner. Each fixed action owns exact ordered raw
+commands, not merely arbitrary exit0 output.
+
+static-ignored.json declares14 exact source/name/reason dispositions.7gzip
+oracle+1retained actual-WASM metadata tests require independent actual receiving
+proofs under unchanged test-wasm/complete-behavioral-reach; both originalroot34
+broker aggregate tests map to transferred-live/TestClusterBrokerDurableRestartParity,
+private35 to transferred-live/TestClusterShutdownLiveNodesEvidenceOrder. These
+require exact later actual subvariants/raw evidence, never broad rootID alone.
+3original manual throughput/calibration/profile exclusions remain unexecuted
+exclusions. All deferred rows statusUNEXECUTED/source+binary hashes/reason/obligation;
+unknown ignores refuse. Root has been sent the exact table for assessment;
+no final obligation removed or actual excluded test claimed PASS.
+
+Portable suite42tests exit0 (6new static tests), AST/static diffchecks exit0.
+Tests exercise all96/24owned mapping,13lint modes, pinned-tool mutation,
+ignored inventory, exact raw Go/Rust inventory refusals and independent raw Go
+reader reparse. No Go/Cargo/build/guest/recipe/golden/qualification executed.
+No new main sync; branch remains based on efaf38 source with prospective moves.
+
+Remaining source bindings: ALL72 labels after first24 (exact inventory printed
+by semantic-map.json order) remain unexecuted in assembler output; live owner
+owns live/admission/final composition. Whole original test-wasm callable/subtest
+reach map, positive stress same-cycle actual fullmatrix adapter, exact later
+oracle/metadata/private35/broker receiving proofs, final driver composition,
+integrated actual static/runtime/strictlint gates, source freeze/identity custody,
+code-size final comparison and main retirement acceptance remain pending. No
+current source-only check discharges those actual qualification requirements.
