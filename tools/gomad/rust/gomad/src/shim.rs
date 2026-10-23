@@ -764,6 +764,7 @@ mod tests {
         .unwrap();
         let host = serde_json::json!({"ImportPath":"example.test/fixture/host","Dir":root.0.join("host"),"Name":"main"});
         let opted = serde_json::json!({"ImportPath":"example.test/fixture/opted","Dir":root.0.join("opted"),"Name":"main"});
+        let without_required_tag = serde_json::json!({"ImportPath":"example.test/fixture/opted","Dir":root.0.join("opted"),"Name":""});
         let compiler = root.0.join("go");
         fs::write(
             &compiler,
@@ -771,8 +772,9 @@ mod tests {
                 r#"#!/bin/sh
 [ "$1" = list ] || exit 90
 race=0
+required_tag=0
 for arg do
-    case "$arg" in -race=true) race=$((race + 1));; esac
+    case "$arg" in -race=true) race=$((race + 1));; needed) required_tag=1;; esac
     last="$arg"
 done
 [ "$race" = 1 ] || {{ printf 'race must be expanded exactly once' >&2; exit 91; }}
@@ -780,13 +782,21 @@ done
 if [ "$GOOS" = wasip1 ]; then printf 'go: -race is not supported on wasip1/wasm' >&2; exit 2; fi
 [ "$GOOS/$GOARCH/$CGO_ENABLED" = linux/arm64/1 ] || exit 93
 [ "$GOTOOLCHAIN/$GOPROXY/$GOSUMDB/$GOVCS" = 'local/off/off/*:off' ] || exit 94
-case "$last" in ./opted) printf '%s' '{opted}';; *) printf '%s' '{host}';; esac
+case "$last" in
+    ./opted)
+        if [ "$GOMAD_TEST_REQUIRE_TAG" = 1 ] && [ "$required_tag" != 1 ]; then
+            printf '%s' '{without_required_tag}'
+        else
+            printf '%s' '{opted}'
+        fi;;
+    *) printf '%s' '{host}';;
+esac
 "#
             ),
         )
         .unwrap();
         fs::set_permissions(&compiler, fs::Permissions::from_mode(0o700)).unwrap();
-        let contract = fixture_contract(&root.0, compiler);
+        let mut contract = fixture_contract(&root.0, compiler);
         let mut inherited = std::env::vars_os().collect::<std::collections::BTreeMap<_, _>>();
         for (name, value) in [
             ("GOOS", "linux"),
@@ -832,6 +842,33 @@ case "$last" in ./opted) printf '%s' '{opted}';; *) printf '%s' '{host}';; esac
             )
             .err()
             .unwrap();
+            assert_eq!(error, "gomad: unsupported guest option -race");
+        }
+        let installation = fixture_installation(
+            &root.0,
+            &contract.compiler,
+            "gomad.wasi-stock-exploratory/v1",
+        );
+        let mut installed = manifest::resolve(Some(&installation)).unwrap().manifest;
+        installed.build_tags = vec!["needed".into()];
+        manifest::write(&installation, &installed).unwrap();
+        contract.installation = Some(installation);
+        inherited.insert("GOMAD_TEST_REQUIRE_TAG".into(), "1".into());
+        for command in ["run", "build"] {
+            let arguments = vec![
+                "-C".into(),
+                root.0.as_os_str().to_owned(),
+                command.into(),
+                "./opted".into(),
+            ];
+            let error = classify_request_with_environment(
+                &contract,
+                &arguments,
+                OsStr::new("-race"),
+                &inherited,
+            )
+            .err()
+            .expect("required-tagged declared guest must reach strict guest admission");
             assert_eq!(error, "gomad: unsupported guest option -race");
         }
         let environment = packages_environment(&inherited, false).unwrap();
