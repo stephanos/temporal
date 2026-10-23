@@ -104,3 +104,22 @@ final qualification must rebuild/rebind after source freeze. New evidence uses
 are terminal, Go lease was explicitly released back to core, and no full
 Activity/profile qualification ran. At handover shared free disk is 18 GiB;
 other workers' targets/evidence were not cleaned.
+
+## Additive helper build/copy custody
+
+`build-helper --repo ROOT --cargo ABS_CARGO --rustc ABS_RUSTC --target ASSIGNED
+--files FROZEN_FILES --output FRESH` executes the exact framed-helper Cargo
+command with an absolute Cargo executable and explicit RUSTC. All helper
+implementation/build inputs must match their immutable Git blobs and caller's
+frozen file hashes before and after the command. It retains actual Cargo JSON,
+command/PID/process receipts, compiler hashes, original artifact executable hash
+and an observed byte-identical copy binding. The actual artifact executable must
+remain available/frozen, alongside the independent copy.
+
+Reference `run` now independently admits those raw receipts and immutable source
+files: artifact metadata must equal the sealed Cargo JSON, process/command PID,
+argv, interval and completion must match, exact reference-helper-only Cargo argv
+and compiler must be present, and both artifact and copied executable must match
+the same hash. Synthetic receipt-mutation tests exercise this admission; they
+supply no additional runtime evidence. Earlier development receipts are retained
+historically, and are not silently upgraded to this stronger contract.

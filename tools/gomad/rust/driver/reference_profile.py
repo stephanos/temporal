@@ -3,6 +3,8 @@
 import argparse
 import base64
 import copy
+import hashlib
+import shutil
 import os
 from pathlib import Path
 import subprocess
@@ -229,6 +231,110 @@ def build(derived, stock_go, output, files):
     return receipt
 
 
+def helper_sources(repo, commit):
+    package = repo / 'tools/gomad/rust/wasmhost'
+    paths = sorted({*package.joinpath('src').rglob('*.rs'), package / 'build.rs', package / 'Cargo.toml',
+                    package.parent / 'Cargo.toml', package.parent / 'Cargo.lock', package.parent / 'rust-toolchain.toml'})
+    files = {}
+    for path in paths:
+        relative = str(path.relative_to(repo))
+        identity = custody.snapshot(path, 512 << 20)
+        raw = path.read_bytes()
+        custody.require(custody.digest(raw) == identity['sha256'], 'helper source changed during capture')
+        blob = subprocess.check_output(['git', '-C', str(repo), 'rev-parse', commit + ':' + relative]).decode().strip()
+        measured = hashlib.sha1(b'blob ' + str(len(raw)).encode() + b'\0' + raw, usedforsecurity=False).hexdigest()
+        custody.require(measured == blob, 'helper source differs from immutable Git input: ' + relative)
+        files[str(path)] = dict(relative=relative, git_blob=blob, **identity)
+    return files
+
+
+def build_helper(repo, cargo, rustc, target, output, files):
+    import driver
+    repo, cargo, rustc = map(custody.absolute, (repo, cargo, rustc))
+    commit = subprocess.check_output(['git', '-C', str(repo), 'rev-parse', 'HEAD']).decode().strip()
+    source_files = helper_sources(repo, commit)
+    for path in (*source_files, str(cargo), str(rustc)):
+        sealed(Path(path), files)
+    output = Path(output)
+    custody.require(output.is_absolute() and not output.exists(), 'fresh absolute helper build root required')
+    output.mkdir(mode=0o700)
+    target = Path(target)
+    custody.require(target.is_absolute(), 'absolute assigned Cargo target required')
+    config = dict(repo=str(repo), environment=dict(CARGO_TARGET_DIR=str(target), CARGO_BUILD_JOBS='2',
+        CARGO_INCREMENTAL='0', RUSTC=str(rustc)))
+    argv = [str(cargo), 'build', '--offline', '--locked', '--manifest-path', str(repo / 'tools/gomad/rust/Cargo.toml'),
+        '-p', 'gomad-wasmhost', '--features', 'reference-helper', '--bin', 'gomad-wasmhost', '--message-format=json-render-diagnostics']
+    raw = driver.command(config, output, 'cargo', argv, timeout=180)
+    artifacts = [value for line in raw.splitlines() if (value := custody.decoded(line)).get('reason') == 'compiler-artifact'
+                 and value.get('target', {}).get('name') == 'gomad-wasmhost' and value.get('executable')]
+    custody.require(len(artifacts) == 1 and artifacts[0]['features'] == ['reference-helper'], 'helper build lacks exact framed feature artifact')
+    artifact = artifacts[0]
+    executable = custody.absolute(artifact['executable'])
+    custody.require(executable.is_relative_to(target) and 'bin' in artifact['target']['kind'], 'foreign helper Cargo executable')
+    before = custody.snapshot(executable, 512 << 20)
+    binary = output / 'gomad-wasmhost-reference'
+    shutil.copyfile(executable, binary)
+    binary.chmod(0o700)
+    custody.require(custody.snapshot(binary, 512 << 20) == before == custody.snapshot(executable, 512 << 20), 'helper copy differs from exact Cargo artifact')
+    custody.require(helper_sources(repo, commit) == source_files, 'helper source changed across build')
+    for path in (*source_files, str(cargo), str(rustc)):
+        sealed(Path(path), files)
+    command = custody.document(output / 'cargo.command.json', canonical_required=False)[0]
+    receipt = dict(schema='gomad.reference-helper-build/v1', source=dict(source_commit=commit, source_root=str(repo),
+        files=source_files, source_table_sha256=custody.digest(custody.canonical(source_files))),
+        toolchain={str(path): custody.snapshot(path, 512 << 20) for path in (cargo, rustc)},
+        cargo_artifact=artifact, command=command,
+        cargo_stdout=dict(path=str(output / 'cargo.stdout'), **custody.snapshot(output / 'cargo.stdout', 128 << 20)),
+        command_file=dict(path=str(output / 'cargo.command.json'), **custody.snapshot(output / 'cargo.command.json', 16 << 20)),
+        process_file=dict(path=str(output / 'cargo.process.json'), **custody.snapshot(output / 'cargo.process.json', 16 << 20)),
+        artifact_executable=dict(path=str(executable), **before),
+        copy=dict(method='copyfile', source=dict(path=str(executable), **before), destination=dict(path=str(binary), **before)),
+        binary=dict(path=str(binary), **before))
+    save(output / 'helper-build.json', receipt)
+    return receipt
+
+
+def admit_helper(receipt, helper, files):
+    binary = dict(path=str(helper), **sealed(helper, files))
+    custody.require(receipt['schema'] == 'gomad.reference-helper-build/v1'
+        and receipt['cargo_artifact']['features'] == ['reference-helper']
+        and receipt['binary'] == binary and receipt['copy']['destination'] == binary
+        and receipt['copy']['method'] == 'copyfile'
+        and receipt['copy']['source'] == receipt['artifact_executable']
+        and receipt['artifact_executable']['path'] == receipt['cargo_artifact']['executable']
+        and {key: value for key, value in receipt['artifact_executable'].items() if key != 'path'}
+            == {key: value for key, value in binary.items() if key != 'path'}, 'helper Cargo artifact/copy binding changed')
+    for binding in (receipt['artifact_executable'], receipt['cargo_stdout'], receipt['command_file'], receipt['process_file']):
+        path = Path(binding['path'])
+        custody.require(dict(path=str(path), **sealed(path, files)) == binding, 'unsealed helper build evidence')
+    command, _ = custody.document(receipt['command_file']['path'], canonical_required=False)
+    custody.require(command == receipt['command'] and command['exit'] == 0 and command['observation'] == 'completed'
+        and command['cwd'] == receipt['source']['source_root'], 'helper build command/source binding changed')
+    process, _ = custody.document(receipt['process_file']['path'], canonical_required=False)
+    custody.require(process['active'] is False and process['observation'] == 'completed' and process['exit'] == 0
+        and process['pid'] == command['pid'] and process['argv'] == command['argv']
+        and process['start_ns'] == command['start_ns'] and process['end_ns'] == command['end_ns'],
+        'helper build process differs from command receipt')
+    rows = [custody.decoded(line) for line in Path(receipt['cargo_stdout']['path']).read_bytes().splitlines()]
+    artifacts = [value for value in rows if value.get('reason') == 'compiler-artifact'
+                 and value.get('target', {}).get('name') == 'gomad-wasmhost' and value.get('executable')]
+    custody.require(artifacts == [receipt['cargo_artifact']], 'helper artifact differs from raw Cargo output')
+    repo = custody.absolute(receipt['source']['source_root'])
+    custody.require(helper_sources(repo, receipt['source']['source_commit']) == receipt['source']['files']
+        and custody.digest(custody.canonical(receipt['source']['files'])) == receipt['source']['source_table_sha256'],
+        'helper build immutable source binding changed')
+    for path, identity in receipt['source']['files'].items():
+        custody.require(sealed(Path(path), files)['sha256'] == identity['sha256'], 'helper source is not frozen')
+    for path, identity in receipt['toolchain'].items():
+        custody.require(sealed(Path(path), files) == identity, 'helper compiler is not frozen')
+    cargo = command['argv'][0]
+    rustc = command['environment'].get('RUSTC')
+    custody.require(cargo in receipt['toolchain'] and rustc in receipt['toolchain']
+        and command['argv'] == [cargo, 'build', '--offline', '--locked', '--manifest-path', str(repo / 'tools/gomad/rust/Cargo.toml'),
+            '-p', 'gomad-wasmhost', '--features', 'reference-helper', '--bin', 'gomad-wasmhost', '--message-format=json-render-diagnostics'],
+        'helper build exact Cargo/compiler invocation changed')
+
+
 def run(derived, native_request, request_sha256, provenance, provenance_sha256, files, build_receipt, binary, helper, helper_receipt, output):
     import driver
     import platform
@@ -236,11 +342,7 @@ def run(derived, native_request, request_sha256, provenance, provenance_sha256, 
     source_manifest = verify(derived)
     static = {str(path): sealed(path, files) for path in (derived / 'source.json', Path(build_receipt), binary, helper, Path(helper_receipt))}
     helper_build, _ = custody.document(helper_receipt)
-    custody.require(helper_build['schema'] == 'gomad.reference-helper-build/v1'
-                    and helper_build['cargo_artifact']['features'] == ['reference-helper']
-                    and helper_build['command']['exit'] == 0 and helper_build['command']['observation'] == 'completed'
-                    and helper_build['binary'] == dict(path=str(helper), **static[str(helper)]),
-                    'reference helper lacks exact framed transport feature/build custody')
+    admit_helper(helper_build, helper, files)
     receipt, _ = custody.document(build_receipt)
     custody.require(receipt['schema'] == 'gomad.reference-build/v1' and receipt['original_commit'] == ORIGINAL
                     and receipt['source_manifest'] == static[str(derived / 'source.json')]
@@ -324,6 +426,9 @@ def main():
     compile_command = commands.add_parser('build')
     for name in ('derived', 'stock-go', 'output', 'files'):
         compile_command.add_argument('--' + name, required=True)
+    helper_command = commands.add_parser('build-helper')
+    for name in ('repo', 'cargo', 'rustc', 'target', 'output', 'files'):
+        helper_command.add_argument('--' + name, required=True)
     execute = commands.add_parser('run')
     for name in ('derived', 'native-request', 'request-sha256', 'provenance', 'provenance-sha256', 'files', 'build-receipt', 'reference-binary', 'helper', 'helper-receipt', 'output'):
         execute.add_argument('--' + name, required=True)
@@ -335,6 +440,9 @@ def main():
     elif args.command == 'build':
         files, _ = custody.document(args.files)
         build(args.derived, args.stock_go, args.output, files)
+    elif args.command == 'build-helper':
+        files, _ = custody.document(args.files)
+        build_helper(args.repo, args.cargo, args.rustc, args.target, args.output, files)
     else:
         files, _ = custody.document(args.files)
         run(args.derived, args.native_request, args.request_sha256, args.provenance, args.provenance_sha256,

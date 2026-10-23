@@ -163,6 +163,50 @@ class OriginalSourceCustody(unittest.TestCase):
             extra.unlink()
             reference.verify(directory)
 
+class HelperCopyCustody(unittest.TestCase):
+    def test_exact_copy_raw_artifact_compiler_and_process_are_required(self):
+        with tempfile.TemporaryDirectory(dir='/home/agent/wt', prefix='fn232-helper-receipt-fixture-') as temporary:
+            root = Path(temporary)
+            def put(name, raw):
+                path = root / name
+                path.write_bytes(raw)
+                return dict(path=str(path), **reference.custody.snapshot(path, 1 << 20))
+            artifact = put('artifact', b'synthetic helper fixture')
+            binary = put('copy', b'synthetic helper fixture')
+            cargo, rustc = put('cargo', b'synthetic cargo'), put('rustc', b'synthetic rustc')
+            source = put('source.rs', b'synthetic source')
+            source_table = {source['path']: dict(relative='source.rs', git_blob='a' * 40, bytes=source['bytes'], sha256=source['sha256'])}
+            argv = [cargo['path'], 'build', '--offline', '--locked', '--manifest-path', str(root / 'tools/gomad/rust/Cargo.toml'), '-p', 'gomad-wasmhost', '--features', 'reference-helper', '--bin', 'gomad-wasmhost', '--message-format=json-render-diagnostics']
+            command = dict(argv=argv, environment=dict(RUSTC=rustc['path']), cwd=str(root), exit=0, observation='completed', pid=1234, start_ns=1, end_ns=2)
+            process = dict(argv=argv, active=False, exit=0, observation='completed', pid=1234, start_ns=1, end_ns=2)
+            cargo_artifact = dict(reason='compiler-artifact', target=dict(name='gomad-wasmhost', kind=['bin']), features=['reference-helper'], executable=artifact['path'])
+            stdout = put('cargo.stdout', reference.custody.canonical(cargo_artifact) + b'\n')
+            command_file = put('command.json', reference.custody.canonical(command))
+            process_file = put('process.json', reference.custody.canonical(process))
+            receipt = dict(schema='gomad.reference-helper-build/v1', binary=binary, artifact_executable=artifact,
+                copy=dict(method='copyfile', source=artifact, destination=binary), cargo_artifact=cargo_artifact,
+                cargo_stdout=stdout, command_file=command_file, process_file=process_file, command=command,
+                source=dict(source_root=str(root), source_commit='b' * 40, files=source_table,
+                    source_table_sha256=reference.custody.digest(reference.custody.canonical(source_table))),
+                toolchain={row['path']: {key: value for key, value in row.items() if key != 'path'} for row in (cargo, rustc)})
+            files = {str(path): reference.custody.digest(path.read_bytes()) for path in root.iterdir()}
+            with mock.patch.object(reference, 'helper_sources', return_value=source_table):
+                reference.admit_helper(receipt, Path(binary['path']), files)
+                for mutation in range(5):
+                    changed = copy.deepcopy(receipt)
+                    if mutation == 0:
+                        changed['artifact_executable']['sha256'] = 'f' * 64
+                    elif mutation == 1:
+                        changed['cargo_artifact']['features'] = ['reference-helper', 'stress-jitter']
+                    elif mutation == 2:
+                        changed['command']['argv'][0] = '/unrelated/cargo'
+                    elif mutation == 3:
+                        changed['copy']['method'] = 'unobserved'
+                    else:
+                        changed['source']['source_table_sha256'] = 'f' * 64
+                    with self.subTest(mutation=mutation), self.assertRaises(ValueError):
+                        reference.admit_helper(changed, Path(binary['path']), files)
+
 
 if __name__ == '__main__':
     unittest.main()
