@@ -1,10 +1,16 @@
 use super::*;
 
 fn observation(case: &str, inputs: Value, value: Value) {
-    println!(
-        "GOMAD_RETAINED_OBSERVATION {}",
-        json!({"schema":"gomad.retained-reader-observation/v1", "case":case,"inputs":inputs,"observed":value})
-    );
+    let mut row = serde_json::Map::from_iter([
+        (
+            "schema".into(),
+            json!("gomad.retained-reader-observation/v1"),
+        ),
+        ("case".into(), json!(case)),
+    ]);
+    row.insert("inputs".into(), inputs);
+    row.insert("observed".into(), value);
+    println!("GOMAD_RETAINED_OBSERVATION {}", Value::Object(row));
 }
 
 fn soft_configuration(report_only: bool) -> Configuration {
@@ -392,6 +398,78 @@ fn retained_raw_authentication_binds_bytes_length_digest_and_path() {
     );
 }
 
+fn native_decoder_mutation(case: &str, raw: &[u8]) -> Vec<u8> {
+    let mut value: Value = serde_json::from_slice(raw).unwrap();
+    match case {
+        "ordinary-spelling" => serde_json::to_vec_pretty(&value).unwrap(),
+        "duplicate-top" => {
+            let text = String::from_utf8(raw.to_vec()).unwrap();
+            format!("{{\"schema\":\"duplicate\",{}", &text[1..]).into_bytes()
+        }
+        "duplicate-nested" => {
+            let text = String::from_utf8(raw.to_vec()).unwrap();
+            text.replacen(
+                "\"configuration\":{",
+                "\"configuration\":{\"engine\":\"duplicate\",",
+                1,
+            )
+            .into_bytes()
+        }
+        "unknown-top" => {
+            value["unknown"] = json!(true);
+            canonical::encode(&value).unwrap()
+        }
+        "unknown-nested" => {
+            value["configuration"]["unknown"] = json!(true);
+            canonical::encode(&value).unwrap()
+        }
+        "missing-module" => {
+            value["configuration"]["incarnations"][0]
+                .as_object_mut()
+                .unwrap()
+                .remove("module");
+            canonical::encode(&value).unwrap()
+        }
+        "wrong-module-type" => {
+            value["configuration"]["incarnations"][0]["module"] = json!(1);
+            canonical::encode(&value).unwrap()
+        }
+        "foreign-schema" => {
+            value["schema"] = json!("gomad.other/v1");
+            canonical::encode(&value).unwrap()
+        }
+        "legacy-schema" => {
+            value["schema"] = json!("gomad.wasm-simulation-retained/v1");
+            canonical::encode(&value).unwrap()
+        }
+        "trailing-value" => {
+            let mut bytes = raw.to_vec();
+            bytes.extend_from_slice(b"{}");
+            bytes
+        }
+        "truncated" => raw[..raw.len() - 1].to_vec(),
+        "invalid-utf8" => {
+            let mut bytes = raw.to_vec();
+            bytes[2] = 0xff;
+            bytes
+        }
+        field => {
+            let name = match field {
+                "host-faults" => "faults",
+                "host-scenarios" => "scenarios",
+                "host-history" => "history",
+                "host-observations" => "observations",
+                "host-oracles" => "oracles",
+                "go-served-calls" => "go_filesystem_calls",
+                "guest-callbacks" => "guest_callbacks",
+                _ => unreachable!(),
+            };
+            value["configuration"][name] = json!([{}]);
+            canonical::encode(&value).unwrap()
+        }
+    }
+}
+
 #[test]
 fn retained_native_decoder_is_closed_and_preserves_the_existing_lineage() {
     let baseline = metadata_publication();
@@ -420,75 +498,7 @@ fn retained_native_decoder_is_closed_and_preserves_the_existing_lineage() {
         "guest-callbacks",
     ] {
         let mut publication = metadata_publication();
-        let mut value: Value = serde_json::from_slice(&raw).unwrap();
-        let changed = match case {
-            "ordinary-spelling" => serde_json::to_vec_pretty(&value).unwrap(),
-            "duplicate-top" => {
-                let text = String::from_utf8(raw.clone()).unwrap();
-                format!("{{\"schema\":\"duplicate\",{}", &text[1..]).into_bytes()
-            }
-            "duplicate-nested" => {
-                let text = String::from_utf8(raw.clone()).unwrap();
-                text.replacen(
-                    "\"configuration\":{",
-                    "\"configuration\":{\"engine\":\"duplicate\",",
-                    1,
-                )
-                .into_bytes()
-            }
-            "unknown-top" => {
-                value["unknown"] = json!(true);
-                canonical::encode(&value).unwrap()
-            }
-            "unknown-nested" => {
-                value["configuration"]["unknown"] = json!(true);
-                canonical::encode(&value).unwrap()
-            }
-            "missing-module" => {
-                value["configuration"]["incarnations"][0]
-                    .as_object_mut()
-                    .unwrap()
-                    .remove("module");
-                canonical::encode(&value).unwrap()
-            }
-            "wrong-module-type" => {
-                value["configuration"]["incarnations"][0]["module"] = json!(1);
-                canonical::encode(&value).unwrap()
-            }
-            "foreign-schema" => {
-                value["schema"] = json!("gomad.other/v1");
-                canonical::encode(&value).unwrap()
-            }
-            "legacy-schema" => {
-                value["schema"] = json!("gomad.wasm-simulation-retained/v1");
-                canonical::encode(&value).unwrap()
-            }
-            "trailing-value" => {
-                let mut bytes = raw.clone();
-                bytes.extend_from_slice(b"{}");
-                bytes
-            }
-            "truncated" => raw[..raw.len() - 1].to_vec(),
-            "invalid-utf8" => {
-                let mut bytes = raw.clone();
-                bytes[2] = 0xff;
-                bytes
-            }
-            field => {
-                let name = match field {
-                    "host-faults" => "faults",
-                    "host-scenarios" => "scenarios",
-                    "host-history" => "history",
-                    "host-observations" => "observations",
-                    "host-oracles" => "oracles",
-                    "go-served-calls" => "go_filesystem_calls",
-                    "guest-callbacks" => "guest_callbacks",
-                    _ => unreachable!(),
-                };
-                value["configuration"][name] = json!([{}]);
-                canonical::encode(&value).unwrap()
-            }
-        };
+        let changed = native_decoder_mutation(case, &raw);
         publication.payloads.insert(FILE.into(), changed.clone());
         let fixture = ReaderFixture::new(publication);
         let opened = fixture.open();
@@ -554,17 +564,17 @@ fn retained_implementation_and_primary_binding_reject_before_preparing_helpers()
             "helper" => inputs.helper_sha256 = canonical::digest(b"resealed helper"),
             "host" => inputs.host_sha256 = canonical::digest(b"foreign host"),
             "runtime" => {
-                inputs.runtime_implementation_sha256 = canonical::digest(b"foreign runtime")
+                inputs.runtime_implementation_sha256 = canonical::digest(b"foreign runtime");
             }
             "toolchain" => inputs.toolchain_sha256 = canonical::digest(b"foreign toolchain"),
             "engine" => inputs.configuration.engine.push_str("-changed"),
             "profile" => inputs.configuration.profile = "foreign".into(),
             "primary-path" => {
-                inputs.configuration.incarnations[0].module.file = "target/foreign.wasm".into()
+                inputs.configuration.incarnations[0].module.file = "target/foreign.wasm".into();
             }
             "primary-digest" => {
                 inputs.configuration.incarnations[0].module.sha256 =
-                    canonical::digest(b"foreign module")
+                    canonical::digest(b"foreign module");
             }
             "missing-incarnations" => inputs.configuration.incarnations.clear(),
             "missing-retained" => inputs.retained.clear(),
@@ -820,7 +830,7 @@ fn unstarted_unrequested_test_incarnation_does_not_gain_an_oracle() {
     execution.incarnations.clear();
     let report =
         serde_json::to_value(oracles::assess(&execution, &configuration).unwrap()).unwrap();
-    assert!(report["oracles"].as_array().unwrap().is_empty());
+    assert_eq!(report["oracles"].as_array().unwrap().as_slice(), []);
     assert_eq!(report["outcome"], "completed");
     assert_eq!(report["failure_identity"], "");
     observation(
@@ -926,6 +936,55 @@ fn reseal_oracle_report(report: &mut Value) {
     });
 }
 
+fn forge_retained_oracle(case: &str, inputs: &mut Inputs, summary: &mut Value, report: &mut Value) {
+    match case {
+        "valid" | "noncanonical-summary" => (),
+        "invalid-stream-summary" => {
+            summary["incarnations"][0]["streams"] = json!([]);
+        }
+        "forged-message" => {
+            let raw = canonical::encode(&json!(["forged invariant"])).unwrap();
+            report["oracles"][0]["evidence"][1]["value"] =
+                json!(crate::campaign::exploration::base64(&raw));
+            report["oracles"][0]["evidence"][1]["full_sha256"] = json!(canonical::digest(&raw));
+        }
+        "forged-instance" => {
+            report["oracles"][0]["name"] = json!(format!(
+                "soft-assertion.instance-{}",
+                canonical::digest(b"foreign/1")
+            ));
+            report["oracles"][0]["evidence"][0]["value"] =
+                json!(crate::campaign::exploration::base64(b"foreign/1"));
+            report["oracles"][0]["evidence"][0]["full_sha256"] =
+                json!(canonical::digest(b"foreign/1"));
+        }
+        "missing-output" => {
+            inputs.retained[0].evidence.clear();
+        }
+        "forged-digest" => {
+            inputs.retained[0]
+                .evidence
+                .get_mut("stderr")
+                .unwrap()
+                .sha256 = canonical::digest(b"forged output");
+            summary["incarnations"][0]["streams"]["stderr"]["sha256"] =
+                json!(canonical::digest(b"forged output"));
+        }
+        "generic" | "mixed" => {
+            let generic = json!({"name":"generic","passed":false,"inconclusive":false,"soft_assertion":false,"report_only":false,"evidence":[],"failure_identity":"","identity":""});
+            if case == "generic" {
+                report["oracles"] = json!([generic]);
+            } else {
+                report["oracles"].as_array_mut().unwrap().push(generic);
+            }
+        }
+        "truncated-pass" => {
+            summary["incarnations"][0]["offered_output_bytes"] = json!(100);
+        }
+        _ => unreachable!(),
+    }
+}
+
 #[test]
 fn retained_oracle_report_is_rederived_from_authenticated_actual_outputs() {
     for case in [
@@ -957,52 +1016,7 @@ fn retained_oracle_report_is_rederived_from_authenticated_actual_outputs() {
             serde_json::from_slice(&publication.payloads["evidence/cluster_summary"]).unwrap();
         let mut report: Value =
             serde_json::from_slice(&publication.payloads["evidence/cluster_oracles"]).unwrap();
-        match case {
-            "valid" | "noncanonical-summary" => (),
-            "invalid-stream-summary" => {
-                summary["incarnations"][0]["streams"] = json!([]);
-            }
-            "forged-message" => {
-                let raw = canonical::encode(&json!(["forged invariant"])).unwrap();
-                report["oracles"][0]["evidence"][1]["value"] =
-                    json!(crate::campaign::exploration::base64(&raw));
-                report["oracles"][0]["evidence"][1]["full_sha256"] = json!(canonical::digest(&raw));
-            }
-            "forged-instance" => {
-                report["oracles"][0]["name"] = json!(format!(
-                    "soft-assertion.instance-{}",
-                    canonical::digest(b"foreign/1")
-                ));
-                report["oracles"][0]["evidence"][0]["value"] =
-                    json!(crate::campaign::exploration::base64(b"foreign/1"));
-                report["oracles"][0]["evidence"][0]["full_sha256"] =
-                    json!(canonical::digest(b"foreign/1"));
-            }
-            "missing-output" => {
-                inputs.retained[0].evidence.clear();
-            }
-            "forged-digest" => {
-                inputs.retained[0]
-                    .evidence
-                    .get_mut("stderr")
-                    .unwrap()
-                    .sha256 = canonical::digest(b"forged output");
-                summary["incarnations"][0]["streams"]["stderr"]["sha256"] =
-                    json!(canonical::digest(b"forged output"));
-            }
-            "generic" | "mixed" => {
-                let generic = json!({"name":"generic","passed":false,"inconclusive":false,"soft_assertion":false,"report_only":false,"evidence":[],"failure_identity":"","identity":""});
-                if case == "generic" {
-                    report["oracles"] = json!([generic]);
-                } else {
-                    report["oracles"].as_array_mut().unwrap().push(generic);
-                }
-            }
-            "truncated-pass" => {
-                summary["incarnations"][0]["offered_output_bytes"] = json!(100);
-            }
-            _ => unreachable!(),
-        }
+        forge_retained_oracle(case, &mut inputs, &mut summary, &mut report);
         reseal_oracle_report(&mut report);
         publication
             .payloads
@@ -1116,18 +1130,247 @@ fn retained_inconclusive_and_literal_braces_are_rederived_without_shortening() {
 }
 
 #[cfg(feature = "determinism-fixture")]
-#[test]
-fn actual_native_producers_admit_distinct_output_and_evidence_bounds() {
-    let corpus = std::path::Path::new(env!("CARGO_MANIFEST_DIR")).join("../../testdata/parity");
-    const OUTPUT: &[u8] = b"PASS\nfailed assertion: invalid {state}\n";
+const PRODUCER_OUTPUT: &[u8] = b"PASS\nfailed assertion: invalid {state}\n";
+
+#[cfg(feature = "determinism-fixture")]
+fn producer_module(corpus: &std::path::Path) -> Vec<u8> {
     let original = std::fs::read_to_string(corpus.join("targets/inspect-choice.wat")).unwrap();
     let module=original.replacen("(module", r#"(module
   (import "wasi_snapshot_preview1" "fd_write" (func $fd_write (param i32 i32 i32 i32) (result i32)))"#,1)
         .replacen(r#"  (func (export "_start")"#,r#"  (data (i32.const 256) "PASS\0afailed assertion: invalid {state}\0a")
   (func (export "_start")"#,1)
         .replacen("    i32.const 16 i32.const 16 call $finish",&format!(
-            "    i32.const 240 i32.const 256 i32.store\n    i32.const 244 i32.const {} i32.store\n    i32.const 1 i32.const 240 i32.const 1 i32.const 248 call $fd_write if unreachable end\n    i32.const 248 i32.load i32.const {} i32.ne if unreachable end\n    i32.const 16 i32.const 16 call $finish",OUTPUT.len(),OUTPUT.len()),1).into_bytes();
+            "    i32.const 240 i32.const 256 i32.store\n    i32.const 244 i32.const {} i32.store\n    i32.const 1 i32.const 240 i32.const 1 i32.const 248 call $fd_write if unreachable end\n    i32.const 248 i32.load i32.const {} i32.ne if unreachable end\n    i32.const 16 i32.const 16 call $finish",PRODUCER_OUTPUT.len(),PRODUCER_OUTPUT.len()),1).into_bytes();
     assert_ne!(module, original.as_bytes());
+    module
+}
+
+#[cfg(feature = "determinism-fixture")]
+fn assert_cluster_producer(
+    configuration: &Configuration,
+    toolchain: &str,
+    modules: &BTreeMap<String, Vec<u8>>,
+    report_only: bool,
+) {
+    let publication = crate::fixture_cluster::execute_configuration(
+        (*configuration).clone(),
+        toolchain.to_owned(),
+        (*modules).clone(),
+    )
+    .unwrap();
+    let fixture = ReaderFixture::new(publication);
+    let opened = fixture.open();
+    let inputs = super::inputs(&opened).unwrap();
+    let descriptors: Vec<_> = inputs
+        .retained
+        .iter()
+        .flat_map(|item| item.evidence.iter())
+        .filter(|(name, _)| matches!(name.as_str(), "stdout" | "stderr"))
+        .map(|(_, value)| value)
+        .collect();
+    assert!(!descriptors.is_empty());
+    assert!(
+        descriptors
+            .iter()
+            .all(|item| item.limit == configuration.limits.evidence_bytes
+                && item.limit > configuration.limits.output_bytes)
+    );
+    let mut actual_outputs = BTreeMap::new();
+    for retained in &inputs.retained {
+        let descriptor = retained.evidence.get("stdout").unwrap();
+        let bytes = opened
+            .payload(&descriptor.file, configuration.limits.evidence_bytes)
+            .unwrap();
+        assert_eq!(bytes, PRODUCER_OUTPUT);
+        actual_outputs.insert(
+            descriptor.file.clone(),
+            crate::campaign::exploration::base64(&bytes),
+        );
+    }
+    let report: Value = serde_json::from_slice(
+        &opened
+            .payload(
+                "evidence/cluster_oracles",
+                configuration.limits.evidence_bytes,
+            )
+            .unwrap(),
+    )
+    .unwrap();
+    assert_eq!(
+        report["oracles"].as_array().unwrap().len(),
+        configuration.incarnations.len()
+    );
+    for oracle in report["oracles"].as_array().unwrap() {
+        assert_eq!(oracle["passed"], report_only);
+        assert_eq!(oracle["report_only"], report_only);
+        assert_eq!(oracle["inconclusive"], false);
+        let messages = crate::campaign::scenario::canonical_base64(
+            oracle["evidence"][1]["value"].as_str().unwrap(),
+        )
+        .unwrap();
+        assert_eq!(
+            serde_json::from_slice::<Value>(&messages).unwrap(),
+            json!(["invalid {state}"])
+        );
+    }
+    oracles::authenticate_retained(&opened, &inputs).unwrap();
+    let prepare_error = super::prepare(opened.try_clone().unwrap(), None).err();
+    assert!(prepare_error.is_none(), "{prepare_error:?}");
+    observation(
+        &format!("producer/cluster-oracles/report-only={report_only}"),
+        json!({"retained_inputs":inputs,"manifest":opened.manifest()}),
+        json!({"prepare_error":prepare_error,"output_descriptor_count":descriptors.len(),"actual_outputs_base64":actual_outputs,"actual_report":report}),
+    );
+}
+
+#[cfg(feature = "determinism-fixture")]
+fn scenario_prepared(
+    configuration: &Configuration,
+    toolchain: String,
+    module: Vec<u8>,
+    report_only: bool,
+) -> crate::campaign::prepare::Prepared {
+    let scenario_path = std::path::Path::new(env!("CARGO_MANIFEST_DIR"))
+        .join("../../internal/backends/wasm/command/testdata/scenario/network.json");
+    let mut scenario: Value =
+        serde_json::from_slice(&std::fs::read(scenario_path).unwrap()).unwrap();
+    scenario["actions"] = serde_json::to_value(&configuration.steps).unwrap();
+    scenario["spec"]["links"] = json!([]);
+    for node in scenario["spec"]["nodes"].as_array_mut().unwrap() {
+        node["boot"] = json!("fixture");
+    }
+    scenario["boots"] = json!([{"id":"fixture","args":[]}]);
+    scenario["network_faults"] = json!([]);
+    scenario["incarnation_boots"] = json!([]);
+    let scenario =
+        crate::campaign::scenario::normalize(&canonical::encode(&scenario).unwrap()).unwrap();
+    let item = &configuration.incarnations[0];
+    crate::campaign::prepare::Prepared {
+        auxiliary: BTreeMap::new(),
+        compile_cache_root: None,
+        module,
+        configuration: super::super::preflight::Configuration {
+            engine: configuration.engine.clone(),
+            profile: configuration.profile.clone(),
+            limits: configuration.limits.clone(),
+            world_transition_bytes: None,
+            wall_nanos: None,
+            arguments: item.arguments.clone(),
+            environment: item.environment.clone(),
+            derive_seed_environment: false,
+            network: None,
+            runtime_sha256: Some(item.runtime_sha256.clone()),
+            model: Some(item.model.clone()),
+            namespace: Some(item.namespace.clone()),
+            storage: None,
+        },
+        toolchain,
+        choice_identity: None,
+        scenario: Some(scenario),
+        provenance: b"{}".to_vec(),
+        network: None,
+        soft_assertion_report_only: report_only,
+    }
+}
+
+#[cfg(feature = "determinism-fixture")]
+fn assert_scenario_producer(
+    configuration: &Configuration,
+    toolchain: String,
+    modules: &BTreeMap<String, Vec<u8>>,
+    report_only: bool,
+) {
+    let prepared = scenario_prepared(
+        configuration,
+        toolchain,
+        modules["target/module.wasm"].clone(),
+        report_only,
+    );
+    let execution = helper::execute_prepared(
+        crate::fixture_cluster::prepare_configuration(configuration, modules).unwrap(),
+    )
+    .unwrap();
+    let completion = crate::campaign::scenario::publication(
+        &prepared,
+        &crate::campaign::ledger::Job {
+            ordinal: 0,
+            seed: 7,
+        },
+        (*configuration).clone(),
+        execution,
+        false,
+    )
+    .unwrap()
+    .finalized()
+    .unwrap();
+    let fixture = ReaderFixture::new(completion.publication);
+    let opened = fixture.open();
+    let inputs = super::inputs(&opened).unwrap();
+    assert!(
+        !opened
+            .manifest()
+            .record
+            .streams
+            .contains_key("evidence/cluster_oracles")
+    );
+    assert!(
+        opened
+            .manifest()
+            .record
+            .streams
+            .contains_key("evidence/soft-assertions.json")
+    );
+    let scenario_report: Value = serde_json::from_slice(
+        &opened
+            .payload(
+                "evidence/soft-assertions.json",
+                configuration.limits.evidence_bytes,
+            )
+            .unwrap(),
+    )
+    .unwrap();
+    assert_eq!(
+        scenario_report["incarnations"].as_array().unwrap().len(),
+        configuration.incarnations.len()
+    );
+    let mut actual_outputs = BTreeMap::new();
+    for retained in &inputs.retained {
+        let descriptor = retained.evidence.get("stdout").unwrap();
+        assert_eq!(descriptor.limit, configuration.limits.evidence_bytes);
+        assert!(descriptor.limit > configuration.limits.output_bytes);
+        let bytes = opened
+            .payload(&descriptor.file, configuration.limits.evidence_bytes)
+            .unwrap();
+        assert_eq!(bytes, PRODUCER_OUTPUT);
+        actual_outputs.insert(
+            descriptor.file.clone(),
+            crate::campaign::exploration::base64(&bytes),
+        );
+    }
+    for incarnation in scenario_report["incarnations"].as_array().unwrap() {
+        assert_eq!(
+            incarnation["report"]["messages"],
+            json!(["invalid {state}"])
+        );
+        assert_eq!(incarnation["report"]["report_only"], report_only);
+        assert_eq!(incarnation["report"]["inconclusive"], false);
+    }
+    let before = opened.payload(FILE, 16 << 20).unwrap();
+    let prepare_error = super::prepare(opened.try_clone().unwrap(), None).err();
+    assert!(prepare_error.is_none(), "{prepare_error:?}");
+    assert_eq!(opened.payload(FILE, 16 << 20).unwrap(), before);
+    observation(
+        &format!("producer/scenario/report-only={report_only}"),
+        json!({"retained_inputs":inputs,"manifest":opened.manifest()}),
+        json!({"prepare_error":prepare_error,"cluster_oracles_present":opened.manifest().record.streams.contains_key("evidence/cluster_oracles"),"scenario_report_present":opened.manifest().record.streams.contains_key("evidence/soft-assertions.json"),"actual_outputs_base64":actual_outputs,"actual_report":scenario_report}),
+    );
+}
+
+#[cfg(feature = "determinism-fixture")]
+#[test]
+fn actual_native_producers_admit_distinct_output_and_evidence_bounds() {
+    let corpus = std::path::Path::new(env!("CARGO_MANIFEST_DIR")).join("../../testdata/parity");
+    let module = producer_module(&corpus);
     for report_only in [false, true] {
         let initial = crate::fixture_cluster::publication(&corpus, 7).unwrap();
         let source: Inputs = serde_json::from_slice(&initial.payloads[FILE]).unwrap();
@@ -1149,196 +1392,18 @@ fn actual_native_producers_admit_distinct_output_and_evidence_bounds() {
             "soft_assertions":configuration.incarnations.iter().map(|item|json!({"handle":item.handle,"report_only":report_only})).collect::<Vec<_>>()
         })).unwrap());
         let modules = BTreeMap::from([("target/module.wasm".into(), module.clone())]);
-        let publication = crate::fixture_cluster::execute_configuration(
-            configuration.clone(),
-            source.toolchain_sha256.clone(),
-            modules.clone(),
-        )
-        .unwrap();
-        let fixture = ReaderFixture::new(publication);
-        let opened = fixture.open();
-        let inputs = super::inputs(&opened).unwrap();
-        let descriptors: Vec<_> = inputs
-            .retained
-            .iter()
-            .flat_map(|item| item.evidence.iter())
-            .filter(|(name, _)| matches!(name.as_str(), "stdout" | "stderr"))
-            .map(|(_, value)| value)
-            .collect();
-        assert!(!descriptors.is_empty());
-        assert!(
-            descriptors
-                .iter()
-                .all(|item| item.limit == configuration.limits.evidence_bytes
-                    && item.limit > configuration.limits.output_bytes)
+        assert_cluster_producer(
+            &configuration,
+            &source.toolchain_sha256,
+            &modules,
+            report_only,
         );
-        let mut actual_outputs = BTreeMap::new();
-        for retained in &inputs.retained {
-            let descriptor = retained.evidence.get("stdout").unwrap();
-            let bytes = opened
-                .payload(&descriptor.file, configuration.limits.evidence_bytes)
-                .unwrap();
-            assert_eq!(bytes, OUTPUT);
-            actual_outputs.insert(
-                descriptor.file.clone(),
-                crate::campaign::exploration::base64(&bytes),
-            );
-        }
-        let report: Value = serde_json::from_slice(
-            &opened
-                .payload(
-                    "evidence/cluster_oracles",
-                    configuration.limits.evidence_bytes,
-                )
-                .unwrap(),
-        )
-        .unwrap();
-        assert_eq!(
-            report["oracles"].as_array().unwrap().len(),
-            configuration.incarnations.len()
-        );
-        for oracle in report["oracles"].as_array().unwrap() {
-            assert_eq!(oracle["passed"], report_only);
-            assert_eq!(oracle["report_only"], report_only);
-            assert_eq!(oracle["inconclusive"], false);
-            let messages = crate::campaign::scenario::canonical_base64(
-                oracle["evidence"][1]["value"].as_str().unwrap(),
-            )
-            .unwrap();
-            assert_eq!(
-                serde_json::from_slice::<Value>(&messages).unwrap(),
-                json!(["invalid {state}"])
-            );
-        }
-        oracles::authenticate_retained(&opened, &inputs).unwrap();
-        let prepare_error = super::prepare(opened.try_clone().unwrap(), None).err();
-        assert!(prepare_error.is_none(), "{prepare_error:?}");
-        observation(
-            &format!("producer/cluster-oracles/report-only={report_only}"),
-            json!({"retained_inputs":inputs,"manifest":opened.manifest()}),
-            json!({"prepare_error":prepare_error,"output_descriptor_count":descriptors.len(),"actual_outputs_base64":actual_outputs,"actual_report":report}),
-        );
-
         configuration.oracle_plan = None;
-        let scenario_path = std::path::Path::new(env!("CARGO_MANIFEST_DIR"))
-            .join("../../internal/backends/wasm/command/testdata/scenario/network.json");
-        let mut scenario: Value =
-            serde_json::from_slice(&std::fs::read(scenario_path).unwrap()).unwrap();
-        scenario["actions"] = serde_json::to_value(&configuration.steps).unwrap();
-        scenario["spec"]["links"] = json!([]);
-        for node in scenario["spec"]["nodes"].as_array_mut().unwrap() {
-            node["boot"] = json!("fixture");
-        }
-        scenario["boots"] = json!([{"id":"fixture","args":[]}]);
-        scenario["network_faults"] = json!([]);
-        scenario["incarnation_boots"] = json!([]);
-        let scenario =
-            crate::campaign::scenario::normalize(&canonical::encode(&scenario).unwrap()).unwrap();
-        let item = &configuration.incarnations[0];
-        let prepared = crate::campaign::prepare::Prepared {
-            auxiliary: BTreeMap::new(),
-            compile_cache_root: None,
-            module: modules["target/module.wasm"].clone(),
-            configuration: super::super::preflight::Configuration {
-                engine: configuration.engine.clone(),
-                profile: configuration.profile.clone(),
-                limits: configuration.limits.clone(),
-                world_transition_bytes: None,
-                wall_nanos: None,
-                arguments: item.arguments.clone(),
-                environment: item.environment.clone(),
-                derive_seed_environment: false,
-                network: None,
-                runtime_sha256: Some(item.runtime_sha256.clone()),
-                model: Some(item.model.clone()),
-                namespace: Some(item.namespace.clone()),
-                storage: None,
-            },
-            toolchain: source.toolchain_sha256,
-            choice_identity: None,
-            scenario: Some(scenario),
-            provenance: b"{}".to_vec(),
-            network: None,
-            soft_assertion_report_only: report_only,
-        };
-        let execution = helper::execute_prepared(
-            crate::fixture_cluster::prepare_configuration(&configuration, &modules).unwrap(),
-        )
-        .unwrap();
-        let completion = crate::campaign::scenario::publication(
-            &prepared,
-            &crate::campaign::ledger::Job {
-                ordinal: 0,
-                seed: 7,
-            },
-            configuration.clone(),
-            execution,
-            false,
-        )
-        .unwrap()
-        .finalized()
-        .unwrap();
-        let fixture = ReaderFixture::new(completion.publication);
-        let opened = fixture.open();
-        let inputs = super::inputs(&opened).unwrap();
-        assert!(
-            !opened
-                .manifest()
-                .record
-                .streams
-                .contains_key("evidence/cluster_oracles")
-        );
-        assert_eq!(
-            opened
-                .manifest()
-                .record
-                .streams
-                .contains_key("evidence/soft-assertions.json"),
-            true
-        );
-        let scenario_report: Value = serde_json::from_slice(
-            &opened
-                .payload(
-                    "evidence/soft-assertions.json",
-                    configuration.limits.evidence_bytes,
-                )
-                .unwrap(),
-        )
-        .unwrap();
-        assert_eq!(
-            scenario_report["incarnations"].as_array().unwrap().len(),
-            configuration.incarnations.len()
-        );
-        let mut actual_outputs = BTreeMap::new();
-        for retained in &inputs.retained {
-            let descriptor = retained.evidence.get("stdout").unwrap();
-            assert_eq!(descriptor.limit, configuration.limits.evidence_bytes);
-            assert!(descriptor.limit > configuration.limits.output_bytes);
-            let bytes = opened
-                .payload(&descriptor.file, configuration.limits.evidence_bytes)
-                .unwrap();
-            assert_eq!(bytes, OUTPUT);
-            actual_outputs.insert(
-                descriptor.file.clone(),
-                crate::campaign::exploration::base64(&bytes),
-            );
-        }
-        for incarnation in scenario_report["incarnations"].as_array().unwrap() {
-            assert_eq!(
-                incarnation["report"]["messages"],
-                json!(["invalid {state}"])
-            );
-            assert_eq!(incarnation["report"]["report_only"], report_only);
-            assert_eq!(incarnation["report"]["inconclusive"], false);
-        }
-        let before = opened.payload(FILE, 16 << 20).unwrap();
-        let prepare_error = super::prepare(opened.try_clone().unwrap(), None).err();
-        assert!(prepare_error.is_none(), "{prepare_error:?}");
-        assert_eq!(opened.payload(FILE, 16 << 20).unwrap(), before);
-        observation(
-            &format!("producer/scenario/report-only={report_only}"),
-            json!({"retained_inputs":inputs,"manifest":opened.manifest()}),
-            json!({"prepare_error":prepare_error,"cluster_oracles_present":opened.manifest().record.streams.contains_key("evidence/cluster_oracles"),"scenario_report_present":opened.manifest().record.streams.contains_key("evidence/soft-assertions.json"),"actual_outputs_base64":actual_outputs,"actual_report":scenario_report}),
+        assert_scenario_producer(
+            &configuration,
+            source.toolchain_sha256,
+            &modules,
+            report_only,
         );
     }
 }
