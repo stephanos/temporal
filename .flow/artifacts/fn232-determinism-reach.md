@@ -17,14 +17,14 @@ Original full test-wasm source: `1d695061b6382009d0659238c652a5a765b1d5f5`. Sour
 
 ## Source-bound evidence
 
-- `/home/agent/evidence/fn232-test-wasm-reach/native-determinism-preservation-map.json` — SHA256 `8c21f43b9b58d0f7133d99730633320dcebec5f0b7ed6a6c770ba0db4348077d`.
-- `/home/agent/evidence/fn232-test-wasm-reach/determinism-owned-source-final-candidate.json` — SHA256 `afdfef5d803edb289c73ccfe7d0f4b03962ef4e3dbc908e3bebedda8f082c471`.
+- `/home/agent/evidence/fn232-test-wasm-reach/native-determinism-preservation-map.json` — SHA256 `a70ac645be741f5eb9dc1f71fc8d78fd66b972088f57be125020efc2dd0aaaa7`.
+- `/home/agent/evidence/fn232-test-wasm-reach/determinism-owned-source-final-candidate.json` — SHA256 `c0d8f1121398c7a3b0e1ae25592554759e6cbe4e05b1952c8e1322b69696e8c7`.
 - `/home/agent/evidence/fn232-test-wasm-reach/native-inventory-trust-proposal.json` — SHA256 `73430932aea06ff6f7678aa60351d48928f8fb0e602e84a67543b039d0b63c67`.
 - `/home/agent/evidence/fn232-test-wasm-reach/unresolved-inventory-evidence.json` — SHA256 `abd34f999d473b673780172614fabca00105beebe0a0391369e13dfce9921dc8`.
 - `/home/agent/evidence/fn232-test-wasm-reach/unresolved-inventory-evidence-current.json` — SHA256 `d0307d3a642a7df53562dc20b06019ca79f1b142d471dc3b4e11f9a55d62a7a4`.
 - `/home/agent/evidence/fn232-test-wasm-reach/native-stress-evidence-replacements.json` — SHA256 `cba1886592bb40c032cace05e027b5bad66077f3a410540d3dca6785ae289293`.
 
-The preservation map contains the full original predicate source, source/helper hashes and tables, exact receiving test names/current file hashes, remaining requirements and explicit pending/zero runtime credit. The owned-source snapshot binds all 27 changed source/test/data files before final checks.
+The preservation map contains the full original predicate source, source/helper hashes and tables, exact receiving test names/current file hashes, remaining requirements and explicit pending/zero runtime credit. The owned-source snapshot binds all 28 changed source/test/data files before final checks.
 
 ## Thirty determinism roots and six architecture roots
 
@@ -232,3 +232,7 @@ Current unresolved references:
 - `go:internal/backends/wasm/command:TestInstalledOperatorClusterFailureEndsPromptly`.
 - `go:internal/backends/wasm/wasi:TestDiagnosticTransportRequiresPrivateRevisionOptIn`.
 - `go:internal/backends/wasm/wasi:TestDiagnosticTransportRejectsReleaseHelperForDiagnosticIdentity`.
+
+## Final source-only follow-ups before the parent build window
+
+`61d9058ce4` adds only `wasmhost/src/guest_profile/preservation.rs::profile_configuration_rejects_original_malformed_bounds_before_sampling`: actual existing Config validation accepts the absolute valid configuration and rejects the three original relative-path/zero-interval/100001-samples cases before sampling. Measurement owns its module registration and native profile receiving wiring, and agreed to receive this identical file in its checkpoint. It is unregistered in this isolated worktree and UNRUN; no evidence alias or profile-feature build claim is made. The private diagnostic revision/fuel-off lineage remains explicit. `371701f546` closes wildcard/extern-crate import escapes in the source architecture negative matrix. Both are source-only, with all new compilation still held by the parent. The source snapshot records the exact28 files at371701f546; the subsequent documentation commit changes only this handover.
