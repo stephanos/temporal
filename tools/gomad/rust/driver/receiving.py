@@ -417,7 +417,8 @@ class Retained:
         self.preparations = {}
         self.pending_preparations = []
         self.source_pins = {}
-        self.adapter = cloned(adapters, dict(command=self.command, write=self.write, runtime_artifact=self.runtime_artifact))
+        self.adapter = cloned(adapters, dict(command=self.command, write=self.write, runtime_artifact=self.runtime_artifact,
+                                            prepare_cell_source=self.prepare_cell_source))
 
     def contained(self, path):
         path = Path(path)
@@ -1106,6 +1107,12 @@ class Retained:
         pins = custody.verify(root, Path(self.config['repo']), self.config['files'], workload, staged_source, working_dir,
                               frozen_source_manifest=self.config['source_manifest'])
         self.source_pins.update(pins)
+
+    def prepare_cell_source(self, config, root, label, specification):
+        require(config == self.config, 'foreign mandatory source configuration')
+        if adapters.CELLS[label]['workload'] == 'multi-instance':
+            target = specification['Campaign']['Target']
+            self.sources(root, 'replication', target['Source'], target['WorkingDir'])
 
     def private_controls(self, root, owner):
         flags = ('GOMAD_WASM_QUALIFICATION_GUEST_PROFILE','GOMAD_WASM_TEMPORAL_BUILD_CACHE',

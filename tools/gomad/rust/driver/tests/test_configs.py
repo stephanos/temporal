@@ -31,6 +31,60 @@ class ConfigurationContract(unittest.TestCase):
             with self.assertRaises(driver.Unexecuted):
                 configure.cell_spec(label, '/evidence', '/manifest', 'sha256:'+'1'*64)
 
+    def test_typed_durable_requests_use_owned_scenarios_and_future_paths_only(self):
+        import base64
+        import hashlib
+        import json
+        import tempfile
+        import configure
+        from adapters import validate_cell_spec, CELLS
+        with tempfile.TemporaryDirectory() as temporary:
+            root = Path(temporary)
+            manifest = root / 'source.sha256'
+            manifest.write_text('sealed source fixture\n')
+            digest = hashlib.sha256(manifest.read_bytes()).hexdigest()
+            attempt = root / 'future-attempt'
+            for workload in ('sqlite', 'multi-instance'):
+                for mode in ('success', 'canary'):
+                    label = 'workload-' + workload + '-cooperative-' + mode
+                    spec = configure.cell_spec(label, str(attempt / 'cells' / label), str(manifest), digest,
+                                               bindings=dict(root=str(attempt)))
+                    validate_cell_spec(spec, CELLS[label])
+                    scenario = json.loads(base64.b64decode(spec['Campaign']['Target']['Scenario']))
+                    self.assertEqual(scenario['workload']['kind'], 'sqlite-durable-recovery' if workload == 'sqlite'
+                                     else 'independent-temporal-replication-durable-restart')
+                    if workload == 'multi-instance':
+                        self.assertEqual(spec['Campaign']['Target']['WorkingDir'], str(attempt / 'stages' / label / 'source-module'))
+                    self.assertEqual(spec['Manifest']['IntegratedSourceSHA256'], 'sha256:' + digest)
+            self.assertFalse(attempt.exists())
+
+    def test_stress_freeze_pins_static_inputs_before_plan_and_allverb_binding(self):
+        import configure
+        import json
+        import tempfile
+        from driver import read, sha, Refusal
+        with tempfile.TemporaryDirectory() as temporary:
+            root = Path(temporary)
+            static = root / 'input'
+            static.write_text('actual static bytes')
+            template = root / 'template.json'
+            template.write_text(json.dumps(dict(schema='gomad.all-verb-bindings/v1',
+                files=dict(release=dict(path='input', sha256=sha(static))), trees={})))
+            config = dict(repo='/repo', root='/attempt', source_manifest=str(static), source_sha256=sha(static),
+                sent_epoch=1, deadline_s=3600, identity=dict(host='1'*64, helper='2'*64), binary_sha256='3'*64,
+                stress=dict(spec=str(static), binary=str(static), build_receipt=str(static), producer_root='/attempt/stress', producer_name='stress'),
+                files={str(static): sha(static), str(template): sha(template)}, public_verbs=dict(bindings=str(template)))
+            configure.freeze_final_cycle(config, root / 'config.json')
+            plan = read(config['stress_cycle'])
+            self.assertNotIn(config['stress_cycle'], plan['files'])
+            self.assertNotIn(config['public_verbs']['bindings'], plan['files'])
+            binding = read(config['public_verbs']['bindings'])
+            self.assertEqual(binding['files']['stress-cycle'], dict(path=config['stress_cycle'], sha256=sha(config['stress_cycle'])))
+            self.assertEqual(binding['files']['release']['path'], str(static))
+            self.assertEqual(config['files'][config['stress_cycle']], sha(config['stress_cycle']))
+            with self.assertRaisesRegex(Refusal, 'generated for this freeze'):
+                configure.freeze_final_cycle(config, root / 'again.json')
+
     def test_generated_manifest_uses_qualification_digest_grammar(self):
         import configure
         for digest in ('1'*64, 'sha256:'+'1'*64):

@@ -57,6 +57,32 @@ class PublicVerbReaderTests(unittest.TestCase):
                 with self.assertRaisesRegex(Refusal, 'missing/duplicate/reordered'):
                     reader.authenticate_lanes({}, work, SimpleNamespace())
 
+    def test_old_stress_cycle_refused_even_when_its_file_is_sealed(self):
+        with tempfile.TemporaryDirectory() as temporary:
+            path = Path(temporary) / 'cycle.json'
+            config = dict(repo='/repo', root='/new-attempt', source_manifest='/manifest', source_sha256='1'*64,
+                sent_epoch=2, deadline_s=3600, identity=dict(host='2'*64, helper='3'*64), binary_sha256='4'*64,
+                stress={}, stress_cycle=str(path), files={'/static': '5'*64}, public_verbs=dict(bindings='/bindings'))
+            fields = ('repo', 'root', 'source_manifest', 'source_sha256', 'sent_epoch', 'deadline_s', 'identity', 'binary_sha256', 'stress')
+            plan = {key: config[key] for key in fields}
+            plan.update(schema='gomad.stress-cycle/v1', files={'/static': '5'*64})
+            path.write_text(json.dumps(plan))
+            config['files'][str(path)] = sha(path)
+            reader.stress_cycle(config, {'stress-cycle': path})
+            with self.assertRaisesRegex(Refusal, 'another stress cycle'):
+                reader.stress_cycle(config, {'stress-cycle': path.with_name('borrowed.json')})
+            plan['files'] = {}
+            path.write_text(json.dumps(plan))
+            config['files'][str(path)] = sha(path)
+            with self.assertRaisesRegex(Refusal, 'inputs differ'):
+                reader.stress_cycle(config, {'stress-cycle': path})
+            plan['files'] = {'/static': '5'*64}
+            plan['root'] = '/old-attempt'
+            path.write_text(json.dumps(plan))
+            config['files'][str(path)] = sha(path)
+            with self.assertRaisesRegex(Refusal, 'old/foreign'):
+                reader.stress_cycle(config, {'stress-cycle': path})
+
     def test_arbitrary_public_binding_fields_refused(self):
         with self.assertRaisesRegex(Refusal, 'only the sealed binding'):
             reader.binding(dict(public_verbs=dict(bindings='/any', argv=['true'])))

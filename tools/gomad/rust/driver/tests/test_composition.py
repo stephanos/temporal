@@ -45,6 +45,34 @@ class CompositionTests(unittest.TestCase):
         with self.assertRaisesRegex(Refusal, 'actual semantic reader'):
             compose.validate_stages(config)
 
+    def test_typed_runtime_and_cells_replace_stale_manual_bindings(self):
+        config = self.base()
+        config.update(runtime=dict(harness='/sealed/runtime', harness_build_receipt='/sealed/runtime-build.json'),
+                      installations={value['workload'] + '-' + value['profile']: '/sealed/installation'
+                                     for value in compose.CELLS.values()}, sqlite_oracle=['/sealed/sqlite-oracle'])
+        config['stages']['runtime-0'] = dict(adapter='pending', arguments=['/stale/checkout'])
+        compose.bind_primitives(config, Path('/sealed/config.json'))
+        self.assertEqual(set(config['stages']), set(mapping()))
+        runtimes = [name for name, entry in config['stages'].items() if entry['adapter'] == 'runtime']
+        self.assertEqual(set(runtimes), {f'runtime-{index}' for index in range(32)})
+        self.assertEqual(config['stages']['runtime-aggregate'], dict(adapter='runtime-aggregate'))
+        for name in runtimes:
+            self.assertEqual(config['stages'][name]['arguments'], ['--working-dir', str(compose.REPO / 'tools/gomad')])
+        for name in compose.CELLS:
+            self.assertEqual(config['stages'][name]['spec'], 'GENERATE')
+            self.assertIs(config['stages'][name]['private_observations'], True)
+        self.assertEqual(config['stages']['sqlite-catalogue']['oracle'], ['/sealed/sqlite-oracle'])
+
+    def test_unknown_runtime_role_and_missing_installation_refused(self):
+        config = self.base()
+        config['runtime'] = dict(harness='/unadmitted')
+        with self.assertRaisesRegex(Refusal, 'sealed ordinary runtime'):
+            compose.bind_primitives(config, Path('/sealed/config'))
+        config['runtime']['harness_build_receipt'] = '/unadmitted-receipt'
+        config['installations'] = {}
+        with self.assertRaisesRegex(Refusal, 'missing actual mandatory installation'):
+            compose.bind_primitives(config, Path('/sealed/config'))
+
     def test_fixed_final_partition_and_order(self):
         sections = compose.final_sections('/sealed/python', Path('/sealed/driver.json'))
         self.assertEqual(len([item for row in sections.values() for item in row['required']]), 8)

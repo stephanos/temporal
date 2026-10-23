@@ -495,7 +495,7 @@ def subgates(label):
 def stage(config, label):
     from adapters import execute
     root = Path(config['root']) / 'stages' / label
-    root.mkdir(parents=True, exist_ok=False)
+    root.mkdir(mode=0o700, parents=True, exist_ok=False)
     started = time.time_ns()
     status, reason, observed = 1, '', []
     try:

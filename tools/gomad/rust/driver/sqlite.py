@@ -77,7 +77,8 @@ def select(config, root, label, entry):
     spec_path = root / 'selection-spec.json'
     write(spec_path, specification)
     installation = config['installations'][entry['installation']]
-    response = json.loads(command(config, root, 'qualify', public(config, installation) + ['qualify', '--spec', str(spec_path)]))
+    response = json.loads(command(config, root, 'qualify', public(config, installation) + ['qualify', '--spec', str(spec_path)],
+                                  private_observations=config))
     selected_path = response['result_path']
     result = result_report(config, root, 'selected-report', selected_path)
     require(result['manifest']['id'] == specification['Manifest']['ID'], 'wrong selected state ID')

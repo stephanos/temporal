@@ -12,11 +12,11 @@ from driver import (HERE, Refusal, busy_host, command, configured, coverage,
 import live
 
 OWNED = {'retained-durable-restart', 'busy-grouped', 'busy-boundaries', 'network-streams',
-         'storage', 'network', 'temporal-inspection', 'artifact', 'operator', 'conformance-helper-build'}
+         'storage', 'network', 'temporal-inspection', 'artifact', 'operator', 'conformance-helper-build', 'terminal-controls'}
 WORKLOAD_TOOLS = HERE.parent / 'workload_tools'
 TIMEOUTS = {'retained-durable-restart': 900, 'busy-grouped': 1800, 'busy-boundaries': 1800,
             'network-streams': 1800, 'storage': 3600, 'network': 3600, 'temporal-inspection': 3600,
-            'artifact': 900, 'operator': 1800, 'conformance-helper-build': 3600}
+            'artifact': 900, 'operator': 1800, 'conformance-helper-build': 3600, 'terminal-controls': 900}
 MISSING = {
     'ordinary': 'complete original make test-wasm callable/subtest map, including duplicate selections',
     'cluster-provider': 'complete original 78 selected roots; decoder/writer/preflight/search/cleanup/model predicates beyond transferred roots18..28',
@@ -40,6 +40,9 @@ def recipes(config, label, root):
     def recipe(name, script, flags):
         live.sealed_input(config, str(script))
         return dict(name=name, argv=[python, str(script), *flags])
+    if label == 'terminal-controls':
+        return [recipe('primary-final', HERE / 'terminal_controls.py',
+                       ['produce', '--config', config['_config_path'], '--root', str(work)])]
     if label == 'conformance-helper-build':
         plan_path = live.option(config['stages']['validate']['argv'], '--plan')
         require(plan_path, 'reviewed static tool plan required for conformance build')
@@ -321,7 +324,14 @@ def conformance(config, root):
 def read_stage(config, label, root):
     guard(config)
     reader = actual_commands(config, label, root)
-    if label == 'conformance-helper-build':
+    if label == 'terminal-controls':
+        import terminal_controls
+        report = terminal_controls.collect(config, root / 'primary', produce=False)
+        require(report['schema'] == 'gomad.rust-driver-check/v1' and report['stage'] == label
+                and report['source_sha256'] == config['source_sha256'] and report['identity'] == config['identity'],
+                'foreign original terminal control reader')
+        coverage(subgates(label), report['subgates'])
+    elif label == 'conformance-helper-build':
         conformance(config, root)
     elif label in ('artifact', 'operator'):
         import final_retained
