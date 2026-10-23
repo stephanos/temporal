@@ -874,6 +874,45 @@ mod tests {
         path
     }
 
+    /// Original `TestStockPreparationRejectsChoiceProfilesBeforeExecution`:
+    /// a stock installation refuses runtime choice and diagnostic requests
+    /// before the compiler or any prepared module is reached.
+    #[test]
+    fn stock_preparation_refuses_choice_and_diagnostic_profiles_before_compiler() {
+        let root = process::Temporary::new(&std::env::temp_dir()).unwrap();
+        fs::write(root.0.join("go.mod"), "module example.test/fixture\n").unwrap();
+        let compiler = root.0.join("go");
+        let calls = root.0.join("compiler-calls");
+        fs::write(
+            &compiler,
+            format!("#!/bin/sh\nprintf x >> '{}'\nexit 1\n", calls.display()),
+        )
+        .unwrap();
+        fs::set_permissions(&compiler, fs::Permissions::from_mode(0o700)).unwrap();
+        let contract = fixture_contract(&root.0, compiler.clone());
+        let package = Package {
+            import_path: "example.test/fixture".into(),
+            directory: root.0.clone(),
+            name: "main".into(),
+        };
+        let profile = "gomad.wasi-stock-exploratory/v1";
+        let installation = fixture_installation(&root.0, &compiler, profile);
+        for (choices, diagnostics) in [(true, false), (false, true)] {
+            let mut options = guest_options(&contract, &root.0, "test", &package, profile).unwrap();
+            options.installation = Some(installation.clone());
+            options.choices = choices;
+            options.diagnostics = diagnostics;
+            let error = driver::prepare(&options, Instant::now() + Duration::from_secs(10))
+                .err()
+                .unwrap();
+            assert!(
+                error.contains("choices/scenario do not match installed profile"),
+                "{error}"
+            );
+        }
+        assert!(!calls.exists(), "stock profile reached the compiler");
+    }
+
     #[test]
     fn shim_options_match_stock_and_cooperative_driver_profile_admission() {
         let root = process::Temporary::new(&std::env::temp_dir()).unwrap();
