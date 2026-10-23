@@ -1,0 +1,25 @@
+{
+  "reviewed_production_source": "3d0acb886866abfd04a2d2c34e8e87368cef2d5c",
+  "review": "SHIP, same original primary reviewer session; both audit addenda have zero unresolved/new findings",
+  "guest": {
+    "source": "canonical make umpire-guest from reviewed production source",
+    "sha256": "d96f123b6ec669e7385e9fff75f711f2d20e0f15a0d918928238f7e263221217",
+    "bytes": 3408653,
+    "original_session": 78839,
+    "exit_code": 0
+  },
+  "actual_slice": {
+    "original_session": 41381,
+    "exit_code": 0,
+    "go_seconds": 5.899
+  },
+  "actual_gaps_and_privacy": {
+    "original_session": 64517,
+    "exit_code": 0,
+    "go_seconds": 358.284
+  },
+  "source_closure_entries": 2184,
+  "dependency_boundary": "imbl is already locked7.0.2. New DSL edge/IntoValue impl are native-only. Whole guest build graph includes host procedural/build dependencies with host DSL, while the direct wasm DSL dependency tree excludes imbl. No package/version upgrade.",
+  "platform_limit": "Native macOS JVM execution remains unverified; no cross-OS execution claim.",
+  "full_required_gate": "pending on generated guest/evidence checkpoint"
+}

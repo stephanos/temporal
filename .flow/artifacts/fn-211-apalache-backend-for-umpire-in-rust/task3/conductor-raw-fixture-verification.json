@@ -1,0 +1,12 @@
+{
+  "source_candidate": "8f1b4e7201b6c840d8062063634275d94c9aa359",
+  "raw_sha256": "054fea42cce21b30d3485746b7919d0817bf65156c4621368b362b75b42f9275",
+  "raw_gzip_roundtrip_exact": true,
+  "compact_structural_json_equal": true,
+  "raw_lines": 1807,
+  "test_fixture_lines": 1,
+  "documentation_lines": {
+    "model/README.md": 870,
+    "model/DESIGN.md": 970
+  }
+}

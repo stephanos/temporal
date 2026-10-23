@@ -1,0 +1,9 @@
+{
+  "command": "timeout 600 make umpire-check-model-slice",
+  "exit_code": 0,
+  "start": "2026-10-23T04:31:45.122093+00:00",
+  "end": "2026-10-23T04:32:05.253016+00:00",
+  "elapsed_seconds": 20.13093238401052,
+  "source_head": "3d0acb886866abfd04a2d2c34e8e87368cef2d5c",
+  "log": "fresh-slice.log"
+}

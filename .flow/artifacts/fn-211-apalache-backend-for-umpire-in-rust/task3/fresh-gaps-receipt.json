@@ -1,0 +1,9 @@
+{
+  "command": "timeout 1800 make umpire-check-model-gaps",
+  "exit_code": 0,
+  "start": "2026-10-23T04:32:29.079884+00:00",
+  "end": "2026-10-23T04:38:30.485073+00:00",
+  "elapsed_seconds": 361.40521304700815,
+  "source_head": "3d0acb886866abfd04a2d2c34e8e87368cef2d5c",
+  "log": "fresh-gaps.log"
+}

@@ -1,0 +1,13 @@
+{
+  "reviewed_source": "3d0acb886866abfd04a2d2c34e8e87368cef2d5c",
+  "guest_sha256": "d96f123b6ec669e7385e9fff75f711f2d20e0f15a0d918928238f7e263221217",
+  "guest_bytes": 3408653,
+  "live_closure_hashes_verified": 2184,
+  "guest_build_exit": 0,
+  "slice_exit": 0,
+  "slice_go_seconds": 5.899,
+  "gaps_exit": 0,
+  "gaps_go_seconds": 358.284,
+  "final_full_gate": "not yet run; no green receipt claimed",
+  "native_macos_execution": "unverified"
+}

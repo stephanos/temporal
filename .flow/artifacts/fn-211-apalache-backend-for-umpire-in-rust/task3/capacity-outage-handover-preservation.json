@@ -1,0 +1,7 @@
+{
+  "purpose": "Historical capacity-outage handover retained byte-exact; superseded only by the completed task handover.",
+  "sha256": {
+    "capacity-outage-handover-summary.md": "27d954fea1ce88493271fb1178dc691707326a4bdb415ceaa96abc47491156ab",
+    "capacity-outage-handover-evidence.json": "92c6c8b01ac306add3736baa2765b042cd30cf023954226882a2a31170e9bc69"
+  }
+}

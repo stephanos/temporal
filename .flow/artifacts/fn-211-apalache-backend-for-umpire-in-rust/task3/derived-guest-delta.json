@@ -1,0 +1,59 @@
+{
+  "reviewed_source": "3d0acb886866abfd04a2d2c34e8e87368cef2d5c",
+  "old_sha256": "f832a33c3024a8752976d146be839b62a95afde4790fa0db60f1dac9004b4e7e",
+  "new_sha256": "d96f123b6ec669e7385e9fff75f711f2d20e0f15a0d918928238f7e263221217",
+  "old_bytes": 3408639,
+  "new_bytes": 3408653,
+  "canonical_build_session": 78839,
+  "changed_sections": [
+    {
+      "old": {
+        "section": 3,
+        "bytes": 2992,
+        "sha256": "cc8d80c541373cbb99a60895ddd9371eaa0d3bc49c61efc131a7ba98b03e1b4c"
+      },
+      "new": {
+        "section": 3,
+        "bytes": 2992,
+        "sha256": "c83494976d8f90c8ff980d7cc0b0b4c034b87c3c435b1ec09d6a605f68d00919"
+      }
+    },
+    {
+      "old": {
+        "section": 9,
+        "bytes": 2746,
+        "sha256": "66dab6e74ed1345fe31b24e2818b42606752907346f46a8ca7117d9b52ad5db5"
+      },
+      "new": {
+        "section": 9,
+        "bytes": 2744,
+        "sha256": "964775a87ce815b13b43de8834c119aa1a26cc4e57fd32490933c962e71139d4"
+      }
+    },
+    {
+      "old": {
+        "section": 10,
+        "bytes": 3240667,
+        "sha256": "cfa0f6a3e9037ee57e8484830020d3c2f160b37e5e2744219cc1e74dcd404b43"
+      },
+      "new": {
+        "section": 10,
+        "bytes": 3240667,
+        "sha256": "4e22c4255bfe3da4e4f414c2c029bad09cc9ce44fc73bf8a47e2a9b5d2b64973"
+      }
+    },
+    {
+      "old": {
+        "section": 11,
+        "bytes": 161529,
+        "sha256": "d84e9c35bb3b85aa1c4cba8a08db08997201adf5d55d3efb57f1f1f1dc028be1"
+      },
+      "new": {
+        "section": 11,
+        "bytes": 161545,
+        "sha256": "1a1d40d5099ad7bdcdeb16618e549df9806d1f69c70719cecb225eb32447ad03"
+      }
+    }
+  ],
+  "interpretation": "Canonical generated binary differs; no claim of instruction equivalence from hashes. Fresh native/wasm parity and actual live proof validate the derived output."
+}

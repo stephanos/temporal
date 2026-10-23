@@ -1,0 +1,45 @@
+umpire-dsl v0.0.1 (/Users/stephan/Workspace/skunkworks/umpire/temporal/model/umpire/dsl)
+├── enum-iterator v2.3.0
+│   └── enum-iterator-derive v1.5.0 (proc-macro)
+│       ├── proc-macro2 v1.0.107
+│       │   └── unicode-ident v1.0.27
+│       ├── quote v1.0.47
+│       │   └── proc-macro2 v1.0.107 (*)
+│       └── syn v2.0.119
+│           ├── proc-macro2 v1.0.107 (*)
+│           ├── quote v1.0.47 (*)
+│           └── unicode-ident v1.0.27
+├── smallvec v1.16.3
+└── umpire-dsl-macros v0.0.1 (proc-macro) (/Users/stephan/Workspace/skunkworks/umpire/temporal/model/umpire/dsl/macros)
+    ├── manyhow v0.14.1
+    │   ├── manyhow-macros v0.14.1 (proc-macro)
+    │   │   ├── proc-macro-utils v0.10.0
+    │   │   │   ├── proc-macro2 v1.0.107 (*)
+    │   │   │   ├── quote v1.0.47 (*)
+    │   │   │   └── smallvec v1.16.3
+    │   │   ├── proc-macro2 v1.0.107 (*)
+    │   │   └── quote v1.0.47 (*)
+    │   ├── proc-macro2 v1.0.107 (*)
+    │   ├── quote v1.0.47 (*)
+    │   └── syn v3.0.9
+    │       ├── proc-macro2 v1.0.107 (*)
+    │       ├── quote v1.0.47 (*)
+    │       └── unicode-ident v1.0.27
+    ├── proc-macro2 v1.0.107 (*)
+    ├── quote v1.0.47 (*)
+    ├── syn v3.0.9 (*)
+    ├── umpire-front v0.0.1 (/Users/stephan/Workspace/skunkworks/umpire/temporal/model/umpire/front)
+    │   ├── prettyplease v0.3.0
+    │   │   ├── proc-macro2 v1.0.107 (*)
+    │   │   └── syn v3.0.9 (*)
+    │   ├── proc-macro2 v1.0.107 (*)
+    │   ├── quote v1.0.47 (*)
+    │   ├── syn v3.0.9 (*)
+    │   └── umpire-ir v0.0.1 (/Users/stephan/Workspace/skunkworks/umpire/temporal/model/umpire/ir)
+    │       ├── proc-macro2 v1.0.107 (*)
+    │       ├── quote v1.0.47 (*)
+    │       └── umpire-ir-derive v0.0.1 (proc-macro) (/Users/stephan/Workspace/skunkworks/umpire/temporal/model/umpire/ir-derive)
+    │           ├── proc-macro2 v1.0.107 (*)
+    │           ├── quote v1.0.47 (*)
+    │           └── syn v3.0.9 (*)
+    └── umpire-ir v0.0.1 (/Users/stephan/Workspace/skunkworks/umpire/temporal/model/umpire/ir) (*)
