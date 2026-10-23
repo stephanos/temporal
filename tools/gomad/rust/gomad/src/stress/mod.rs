@@ -1,5 +1,6 @@
 //! Fresh seeded host perturbations; never a qualification or replay producer.
 pub(crate) mod cluster;
+mod inspection;
 mod matrix;
 mod process;
 mod report;
@@ -639,4 +640,12 @@ fn run_spec(
     writeln!(output, "{}", json!({"report":path,"passed":passed}))
         .map_err(|error| error.to_string())?;
     Ok(i32::from(!passed))
+}
+
+#[cfg(test)]
+mod reach_tests;
+
+#[cfg(all(test, feature = "helper-determinism-fixture"))]
+pub(crate) fn compare_counterfactual(left: &Value, right: &Value) -> Result<Value, String> {
+    report::compare_counterfactual(left, right)
 }

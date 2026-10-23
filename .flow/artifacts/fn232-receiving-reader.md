@@ -93,3 +93,135 @@ RED is `.flow/tmp/fn232-receiving-recovery-red.log`. Native writer tests in the
 separate checkpoint remain uncompiled/unrun. Production Rust qualification's
 allowlist mismatch with genuine .11 provenance remains a separate authorized
 source repair and must be integrated before any actual mandatory attempt.
+
+## Original qualification reach source review
+
+`tools/gomad/rust/driver/qualification-map.json` reviews all 72 qualification
+roots from original `1d695061b6382009d0659238c652a5a765b1d5f5`. It retains
+exact original/helper spans, 538 assertion sites, explicit dynamic table
+variants, 97 native/reader source anchors and per-root remaining gaps. All
+original rows remain `UNEXECUTED` with empty execution evidence. The five
+portable map checks establish source integrity and detect omitted roots or
+assertions, changed source bindings and fabricated execution claims; they do
+not execute the old predicates. Forty-seven roots retain specific gaps.
+
+Remaining contracts include private memory diagnostics and optional Linux
+MemAvailable admission; default/slim/full and reviewed cache controls;
+independent frontend/support-list gate/shape authentication and internal
+deterministic JSON/Markdown/no-clobber behavior; aggregate corpus/catalogue
+self-resource bounds and closed sibling inventory; retention of divergent
+catalogue failure observations; and exact legacy negative, classification,
+callback, accounting, role and preparation-input variants. Each is associated
+with its original root and assertions in the map. Existing adjacent native
+cases are source correlations, not equivalence waivers or execution credit.
+
+## Separate native decoder/publication checkpoint
+
+Native commits `db651a18f2`, `50f02a68de` and `b8487b09ae` add real-writer
+concurrency/conflict/abandoned-stage tests, authenticate genuine compiler path
+and typed module metadata against raw WASM, repair rejected-collision staging
+cleanup, preserve the original depth128 scalar/129-empty boundary and error
+precedence, restore config first-typed-value errors before trailing input, and
+bound publication diagnostics with explicit truncation. Only the existing
+pinned serde_json `unbounded_depth` feature is enabled; recursion is disabled
+solely after bounded lexical admission. No lock or dependency version changed.
+
+With the explicitly granted private target
+`/home/agent/.cache/codex-build/fn232-qualify-closure`, pinned `+1.99.1`, release,
+locked/offline and jobs1, the frozen source passed 19 focused `receiving_`
+native tests, affected `clippy -p gomad --lib --tests -- -D warnings` and
+`fmt --all --check`. Final logs are
+`.flow/tmp/fn232-receiving-native-frozen.log` and
+`.flow/tmp/fn232-receiving-native-clippy-frozen.log` (exit0). Original causal
+failures remain in `fn232-receiving-depth-red.log` (exit101, five failures) and
+`fn232-receiving-native-red.log` (exit101, four failures). Intermediate Clippy
+failures are retained. Frozen portable driver checks passed 56 tests (the
+reviewed51 plus five source-map integrity checks), and workload checks passed
+six. Logs: `fn232-receiving-frozen-python.log` and
+`fn232-receiving-final-workloads.log`. Disk ended at6.6GiB; the exclusive target
+lease was released after all commands completed. No guest, Go, golden, public
+qualification or actual receiving-runtime attempt ran.
+
+This native checkpoint is a separate review unit. It does not replace the
+source gaps above or complete the original72 execution mapping. Follow-on
+preservation work remains open, and every actual final receiving binding in
+this handover remains unexecuted.
+
+## Follow-on decoder review and private controls
+
+Native review found two additional token/precedence cases. Commit `164443d3a0`
+consumes one primitive token before reporting trailing input and checks child
+depth immediately after an object key, before a missing colon. The retained
+causal run `fn232-receiving-native-review-red.log` exits101 (nine depth tests
+pass, both findings fail). The repaired focused suite exits0 with22 tests,
+including all prior19, both findings and malformed-number/container safeguards.
+Strict Clippy and fmt checks pass. Logs: `fn232-receiving-native-review-green.log`
+and `fn232-receiving-native-review-clippy-final.log`. The target lease was
+released again; disk ended at5.5GiB. Actual qualification remains unrun.
+
+The separate portable control unit implements original default/slim/full tags,
+clean private/default/explicit shared compiler-cache paths and the optional
+Linux MemAvailable guard. It preserves original8KiB/uint64/exact kB/unique
+field bounds, decimal thresholds and8193/8192/8191 decisions. Rejection occurs
+before producer dispatch. Absent opt-in performs no memory read. The producer
+retains the bounded raw reading before either success or refusal; command
+metadata includes the original private environment controls. An explicit cache
+override must match the already frozen `--cache` argument. CLI grammar,
+qualification budgets, public Results and publication receipts are unchanged.
+
+The independent receiving reader reopens raw memory bytes and recomputes those
+bounds, ties profile/cache/threshold/platform/path to frozen config and owner
+argv, binds actual installation cache and every install/qualify/report command
+environment, and rejects omitted controls, forged summaries and boolean
+measurements. Private selectors use the existing frozen `environment` map;
+they cannot be inferred from a producer PASS assertion. The ten producer/control
+and eight independent-reader tests use bounded portable fixtures only. The
+source map now has115 anchors and41 roots with explicit gaps, while all72
+original roots remain `UNEXECUTED`/empty execution evidence. Original actual
+current-host admission and variant qualification runs remain unrun.
+
+Portable validation:64 driver tests and16 workload/control tests pass. Logs:
+`fn232-qualification-controls-driver-green.log` and
+`fn232-qualification-controls-workloads-green.log`. Initial missing-control and
+missing-independent-reader failures are retained in
+`fn232-qualification-controls-red.log` and `fn232-receiving-controls-red.log`.
+Remaining support-list, aggregate corpus/catalogue resources/inventory,
+divergent failure preservation, private host-memory diagnostics and exact
+negative/callback variants stay open; this control unit does not close them.
+
+The control metadata extension also applies to detached inspection command
+receipts. The reader retains its exact closed environment check, now including
+the three frozen private controls. A real bounded Python command fixture
+produces that metadata; missing fields, changed PATH and unknown fields refuse.
+This is producer/reader receipt conformance, not a guest inspection run. The
+updated portable driver suite passes65 tests; its RED/GREEN logs are
+`fn232-inspection-controls-red.log` and `fn232-inspection-controls-green.log`.
+
+Review also found an accepted compiler-cache alias inconsistency: metadata used
+the requested path while install used its resolved path. The producer now
+resolves once, retains `requested_build_cache` for the raw argv/frozen private
+environment, and uses one canonical `build_cache` value for metadata and install.
+The independent reader binds both names to their actual observations and sealed
+installation without resolving historical aliases or requiring caches to exist.
+A bounded filesystem-alias fixture reproduces the previous mismatch before the
+fix; another removes both alias and cache before independent reading. These
+fixtures invoke no compiler or cache operations. Both review findings are now
+covered by66 driver and17 workload/control passing portable tests. Retained
+RED/GREEN logs: `fn232-cache-alias-{producer,reader}-{red,green}.log`.
+
+### Exact inspection workload-intent observation
+
+The existing producer command witness now always observes the eighth field
+`GOMAD_WASM_QUALIFY_WORKLOADS`. Detached inspection requires that field to be
+null (absent in the actual child environment), alongside its seven existing
+controlled fields. The bounded actual Python command fixture proves the genuine
+current producer observation is accepted and omitted/enabled intent is refused.
+The producer's single observation-field hunk was explicitly coordinated with
+the retirement owner; other producer behavior is unchanged.
+
+RED: `fn232-inspection-intent-red.log`, exit 1. GREEN:
+`fn232-inspection-intent-green.log`, exit 0. The committed scope's 70 portable
+driver and 17 workload tests pass (`fn232-inspection-intent-suite.log` and
+`fn232-inspection-intent-workloads.log`, both exit 0). Separate support and native
+auxiliary/cache drafts are excluded. All actual guest/runtime/qualification
+lanes remain UNRUN, and the full inventory-membership review finding stays OPEN.

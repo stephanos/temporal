@@ -1,0 +1,44 @@
+{
+  "schema": "gomad.integration-development-evidence/v1",
+  "observed_at": "2026-10-23T06:23:55Z",
+  "integration_head": "292b8f8848e91ec0dade547044bb7ef668b5fba6",
+  "final_qualification": false,
+  "logs": [
+    {
+      "path": "/home/agent/.cache/codex-build/fn222-root-preparation-tests.log",
+      "bytes": 30083,
+      "sha256": "4e40010527b110f545a356e27ab684f7743bc65eb40b5b847e8dc755eaf96c6b",
+      "exit": 0
+    },
+    {
+      "path": "/home/agent/.cache/codex-build/fn222-root-preparation-compat.log",
+      "bytes": 1326,
+      "sha256": "247412bf0789b18cd8d46467a830672251b869e57995c9aa96b4db1c2317e7cc",
+      "exit": 0
+    },
+    {
+      "path": "/home/agent/.cache/codex-build/fn222-root-preparation-clippy.log",
+      "bytes": 2685,
+      "sha256": "78d0fddfc0f54f182e3885b3dfe738b9f689f650e17ebde2597f9a2399d97dfa",
+      "exit": 0
+    },
+    {
+      "path": "/home/agent/.cache/codex-build/fn222-root-driver-cleanup-integrated.log",
+      "bytes": 250,
+      "sha256": "1f786640aa9883eb2a9a6998fb6b45f8b3d00d88c86c2d6aff1285d11e3898d3",
+      "exit": 0
+    },
+    {
+      "path": "/home/agent/.cache/codex-build/fn222-root-onebox-integrated.log",
+      "bytes": 110,
+      "sha256": "3be67c6cbba20cd2e50d1720dd66415ca3ab47f46f679816b29c1eeb3b9faf4e",
+      "exit": 0
+    },
+    {
+      "path": "/home/agent/.cache/codex-build/fn222-root-workloads-integrated.log",
+      "bytes": 119,
+      "sha256": "ba524a15bb40d1ddce6d9b36078e7d0bd46741a27def15ab633207f6f232510d",
+      "exit": 0
+    }
+  ]
+}

@@ -89,7 +89,8 @@ world-test:
 
 .PHONY: validate-wasm-determinism
 validate-wasm-determinism:
-	cargo +1.99.1 test --manifest-path rust/Cargo.toml --release --locked -p gomad-wasmhost --test inventory
+	cargo +1.99.1 test --manifest-path rust/Cargo.toml --release --locked -p gomad-wasmhost --test inventory --test determinism_observed --test diagnostic_roles
+	go test -tags $(GOMAD_TEST_TAGS) -count=1 ./internal/archcheck
 
 test-harness:
 	env -u GOMADSEED -u GOMAD_CHILD_SEED GOWORK=off go test -tags $(GOMAD_TEST_TAGS) ./internal/archcheck ./internal/support/...

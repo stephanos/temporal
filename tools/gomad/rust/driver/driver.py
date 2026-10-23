@@ -146,10 +146,56 @@ def save_process(path, record):
             os.unlink(temporary)
 
 
-def command(config, root, name, argv, accepted=(0,), timeout=None):
+class MeasuredPopen(subprocess.Popen):
+    """Popen owns lifecycle; its single reap also retains this exact child's usage."""
+    def __init__(self, *args, **kwargs):
+        require(sys.platform.startswith('linux') and hasattr(os, 'wait4') and hasattr(os, 'WNOWAIT'),
+                'Linux per-child wait4 resource measurement unavailable')
+        self.child_resources = None
+        self._measured_status = None
+        super().__init__(*args, **kwargs)
+
+    def _try_wait(self, wait_flags):
+        # Popen holds _waitpid_lock. Probe without reaping, then retain status
+        # and rusage before delivering a pending termination/interrupt handler.
+        # Cached status lets interrupted Popen.wait finish without a second reap.
+        blocked = signal.pthread_sigmask(signal.SIG_BLOCK, {signal.SIGTERM, signal.SIGHUP, signal.SIGINT})
+        try:
+            if self._measured_status is not None:
+                return self._measured_status
+            ready = os.waitid(os.P_PID, self.pid, os.WEXITED | os.WNOHANG | os.WNOWAIT)
+            if ready is not None:
+                require(ready.si_pid == self.pid, 'resource probe returned another child')
+                waited, status, usage = os.wait4(self.pid, os.WNOHANG)
+                require(waited == self.pid, 'resource measurement lost its exact child')
+                self._measured_status = (waited, status)
+                require(all(math.isfinite(value) and value >= 0 for value in (usage.ru_utime, usage.ru_stime))
+                        and isinstance(usage.ru_maxrss, int) and usage.ru_maxrss >= 0,
+                        'invalid per-child resource measurement')
+                self.child_resources = dict(schema='gomad.driver-child-resources/v1', measurement='wait4',
+                    scope='whole-command-child',
+                    pid=self.pid, waited_pid=waited, wait_status=status, exit_code=os.waitstatus_to_exitcode(status),
+                    user_nanos=round(usage.ru_utime * 1_000_000_000),
+                    system_nanos=round(usage.ru_stime * 1_000_000_000), peak_rss_bytes=usage.ru_maxrss * 1024,
+                    user_seconds=usage.ru_utime, system_seconds=usage.ru_stime,
+                    ru_maxrss=usage.ru_maxrss, ru_maxrss_unit='KiB',
+                    cpu_conversion='round(seconds*1e9)', rss_conversion='ru_maxrss*1024')
+                return self._measured_status
+        finally:
+            signal.pthread_sigmask(signal.SIG_SETMASK, blocked)
+        # Popen's no-timeout path otherwise loops immediately after a WNOHANG
+        # probe. Sleep only affects readiness polling, never resource accounting.
+        if not wait_flags & os.WNOHANG:
+            time.sleep(0.01)
+        return 0, 0
+
+
+def command(config, root, name, argv, accepted=(0,), timeout=None, private_observations=None):
     require(argv and all(isinstance(arg, str) for arg in argv), 'invalid argv')
+    require(private_observations is None or private_observations == config, 'foreign private observation context')
     start = time.time_ns()
     observation, proc = 'completed', None
+    private_seal = None
     process_path = root / (name + '.process.json')
     require(not process_path.exists(), 'command process registration already exists')
     with (root / (name + '.stdout')).open('xb') as stdout, (root / (name + '.stderr')).open('xb') as stderr:
@@ -158,7 +204,7 @@ def command(config, root, name, argv, accepted=(0,), timeout=None):
             blocked = signal.pthread_sigmask(signal.SIG_BLOCK, {signal.SIGTERM, signal.SIGHUP, signal.SIGINT})
             try:
                 launch = [sys.executable, str(HERE / 'launch.py'), str(read_gate), *argv]
-                proc = subprocess.Popen(launch, cwd=config['repo'], env=clean_env(config), stdout=stdout, stderr=stderr,
+                proc = MeasuredPopen(launch, cwd=config['repo'], env=clean_env(config), stdout=stdout, stderr=stderr,
                                         start_new_session=True, pass_fds=(read_gate,))
                 process = dict(pid=proc.pid, stage_pid=os.getpid(), active=True, argv=argv, start_ns=start)
                 save_process(process_path, process)
@@ -175,6 +221,10 @@ def command(config, root, name, argv, accepted=(0,), timeout=None):
             else:
                 process['cleanup_signal'] = int(signal.SIGKILL)
                 raise Refusal('producer exited with remaining process-group members')
+            if private_observations is not None and code in accepted:
+                import native_observations
+                private_seal = native_observations.from_command(private_observations, proc.pid, argv,
+                                                                (root / (name + '.stdout')).read_bytes())
         except BaseException:
             observation = 'inconclusive'
             if proc is not None:
@@ -186,13 +236,91 @@ def command(config, root, name, argv, accepted=(0,), timeout=None):
             raise
         finally:
             if proc is not None:
-                process.update(active=False, exit=proc.returncode, observation=observation, end_ns=time.time_ns())
+                cleanup_error = None
+                try:
+                    if wait_command_processes(proc.pid) and observation == 'completed':
+                        raise Refusal('producer exited with remaining process-session members')
+                except (Refusal, OSError, ValueError) as error:
+                    cleanup_error = error
+                    observation = 'inconclusive'
+                process.update(active=cleanup_error is not None, exit=proc.returncode, observation=observation, end_ns=time.time_ns(),
+                               resources=proc.child_resources)
                 save_process(process_path, process)
-                write(root / (name + '.command.json'), dict(argv=argv, cwd=config['repo'], pid=proc.pid, exit=proc.returncode,
+                receipt = dict(argv=argv, cwd=config['repo'], pid=proc.pid, exit=proc.returncode,
                       environment=config.get('environment', {}), temporary_paths=config.get('temporary_paths', {}),
-                      observation=observation, start_ns=start, end_ns=time.time_ns()))
+                      resources=proc.child_resources, observation=observation, start_ns=start, end_ns=time.time_ns())
+                if private_seal is not None:
+                    receipt['private_observations'] = private_seal
+                write(root / (name + '.command.json'), receipt)
+                if cleanup_error is not None:
+                    raise cleanup_error
     completed(code, accepted)
     return (root / (name + '.stdout')).read_bytes()
+
+
+def process_states():
+    require(sys.platform.startswith('linux') and Path('/proc').is_dir(),
+            'process group quiescence requires Linux procfs')
+    for process in Path('/proc').iterdir():
+        if not process.name.isdecimal():
+            continue
+        try:
+            fields = (process/'stat').read_text().rsplit(') ', 1)[1].split()
+        except (FileNotFoundError, ProcessLookupError):
+            continue
+        except (OSError, IndexError) as error:
+            raise Refusal('cannot observe process group quiescence') from error
+        require(len(fields) >= 4, 'invalid process group observation')
+        yield fields[0], int(fields[2]), int(fields[3])
+
+
+def process_group_live(group):
+    return any(observed == group and state not in ('Z', 'X')
+               for state, observed, _ in process_states())
+
+
+def process_session_groups(sessions):
+    groups = {}
+    for state, group, session in process_states():
+        if session in sessions and state not in ('Z', 'X'):
+            groups.setdefault(session, set()).add(group)
+    return groups
+
+
+def wait_process_group(group):
+    deadline = time.monotonic()+5
+    while process_group_live(group):
+        require(time.monotonic() < deadline, 'process group did not quiesce after SIGKILL')
+        time.sleep(0.01)
+
+
+def wait_process_session(session):
+    deadline = time.monotonic()+5
+    observed = False
+    while groups := process_session_groups({session}).get(session, set()):
+        observed = True
+        for group in groups:
+            try:
+                os.killpg(group, signal.SIGKILL)
+            except ProcessLookupError:
+                pass
+        require(time.monotonic() < deadline, 'process session did not quiesce after SIGKILL')
+        time.sleep(0.01)
+    return observed
+
+
+def wait_command_processes(pid):
+    errors, remaining_session = [], False
+    try:
+        wait_process_group(pid)
+    except (Refusal, OSError, ValueError) as error:
+        errors.append(str(error))
+    try:
+        remaining_session = wait_process_session(pid)
+    except (Refusal, OSError, ValueError) as error:
+        errors.append(str(error))
+    require(not errors, 'command process cleanup incomplete: '+'; '.join(errors))
+    return remaining_session
 
 
 class StageExecutor(scheduler.RealExecutor):
@@ -205,36 +333,75 @@ class StageExecutor(scheduler.RealExecutor):
         super().start(stage, lane)
         self.stage_pids[stage.label] = self.procs[stage.label][0].pid
 
-    def cleanup_commands(self, stage_pid):
-        found = False
-        for path in self.command_root.rglob('*.process.json'):
-            record = read(path)
-            if record.get('stage_pid') != stage_pid or not record.get('active'):
-                continue
+    def cleanup_commands(self, stage_pids):
+        attempted, errors, owners = set(), [], set(stage_pids)
+        for _ in range(32):
+            records = []
+            for path in self.command_root.rglob('*.process.json'):
+                try:
+                    records.append((path, read(path)))
+                except (Refusal, OSError, ValueError, KeyError) as error:
+                    errors.append(str(path)+': '+str(error))
+            while True:
+                children = {record['pid'] for _, record in records if record.get('stage_pid') in owners}
+                if children <= owners:
+                    break
+                owners.update(children)
+            registrations = [(path, record) for path, record in records
+                             if record.get('stage_pid') in owners and record.get('active')
+                             and (path, record['pid']) not in attempted]
+            if not registrations:
+                break
+            sessions = {record['pid'] for _, record in registrations}
+            groups = set(sessions)
             try:
-                os.killpg(record['pid'], signal.SIGKILL)
-            except ProcessLookupError:
-                pass
-            record.update(active=False, observation='inconclusive', cleanup_signal=int(signal.SIGKILL))
-            save_process(path, record)
-            found = True
-        return found
+                for owned_groups in process_session_groups(sessions).values():
+                    groups.update(owned_groups)
+            except (Refusal, OSError, ValueError) as error:
+                errors.append(str(error))
+            for group in groups:
+                try:
+                    os.killpg(group, signal.SIGKILL)
+                except ProcessLookupError:
+                    pass
+                except (OSError, ValueError) as error:
+                    errors.append(str(group)+': '+str(error))
+            for path, record in registrations:
+                attempted.add((path, record['pid']))
+                try:
+                    wait_command_processes(record['pid'])
+                    record.update(active=False, observation='inconclusive', cleanup_signal=int(signal.SIGKILL))
+                    save_process(path, record)
+                except (Refusal, OSError, ValueError, KeyError) as error:
+                    errors.append(str(path)+': '+str(error))
+        else:
+            errors.append('command registrations did not quiesce during cleanup')
+        require(not errors, 'command cleanup incomplete: '+'; '.join(errors))
+        return bool(attempted)
 
     def wait_any(self):
         label, code, ended = super().wait_any()
-        if self.cleanup_commands(self.stage_pids[label]) and code == 0:
+        if self.cleanup_commands({self.stage_pids[label]}) and code == 0:
             code = 1
         return label, code, ended
 
     def terminate(self):
         pids = set(self.stage_pids.values()) | {proc.pid for proc, _, _ in self.procs.values()}
+        errors = []
         try:
             super().terminate()
-        finally:
-            for proc, _, _ in self.procs.values():
+        except (Refusal, OSError, ValueError, subprocess.SubprocessError) as error:
+            errors.append(str(error))
+        for proc, _, _ in self.procs.values():
+            try:
                 proc.wait()
-            for pid in pids:
-                self.cleanup_commands(pid)
+            except (OSError, subprocess.SubprocessError) as error:
+                errors.append(str(error))
+        try:
+            self.cleanup_commands(pids)
+        except (Refusal, OSError, ValueError, KeyError) as error:
+            errors.append(str(error))
+        require(not errors, 'stage cleanup incomplete: '+'; '.join(errors))
 
 
 @contextmanager
@@ -268,7 +435,7 @@ def guard(config):
     wanted = {str(repo / path) for path in tracked if path and not path.startswith('.flow/')
               and (repo / path).is_file() and not (repo / path).is_symlink()}
     require(wanted <= set(config['files']), 'incomplete non-Flow source inventory')
-    required_driver = [HERE / 'driver.py', HERE / 'adapters.py', HERE / 'semantic-map.json', HERE / 'required-final.json', HERE / 'sqlite.py', HERE / 'launch.py', HERE / 'host_admission.py', HERE / 'live.py', HERE / 'final.py', HERE / 'reach.py', HERE / 'receiving.py', HERE / 'receiving_cost.py',
+    required_driver = [HERE / 'driver.py', HERE / 'adapters.py', HERE / 'semantic-map.json', HERE / 'required-final.json', HERE / 'sqlite.py', HERE / 'launch.py', HERE / 'host_admission.py', HERE / 'live.py', HERE / 'final.py', HERE / 'reach.py', HERE / 'receiving.py', HERE / 'runtime_gate.py', HERE / 'receiving_cost.py', HERE / 'native_observations.py',
                        HERE.parent / 'workload_tools/workloads.py',
                        FROZEN / 'scheduler.py', DAG, FROZEN / 'lib.sh',
                        FROZEN.parent / 'q1-serial/run-qualification.sh', FROZEN / 'required-roots.py']
@@ -414,12 +581,25 @@ def run(config, path, mode):
     except (Refusal, OSError, ValueError, KeyError, subprocess.SubprocessError) as error:
         status, reason = 2, str(error)
     finally:
-        if executor and executor.procs:
-            executor.terminate()
-            # Frozen scheduler termination sends KILL on timeout; reap the killed children too.
+        cleanup_errors = []
+        if executor is not None:
+            try:
+                executor.terminate()
+            except (Refusal, OSError, ValueError, KeyError, subprocess.SubprocessError) as error:
+                cleanup_errors.append(str(error))
             for proc, log, _ in executor.procs.values():
-                proc.wait()
-                log.close()
+                try:
+                    proc.wait()
+                except (OSError, subprocess.SubprocessError) as error:
+                    cleanup_errors.append(str(error))
+                finally:
+                    try:
+                        log.close()
+                    except OSError as error:
+                        cleanup_errors.append(str(error))
+        if cleanup_errors:
+            status = 2
+            reason = '; '.join(filter(None, [reason, *cleanup_errors]))
         finished = time.time()
         status = verdict(status, config['sent_epoch'], finished, config['deadline_s'])
         write(root / 'outcome.json', dict(schema='gomad.rust-driver-outcome/v1', mode=mode, exit=status,

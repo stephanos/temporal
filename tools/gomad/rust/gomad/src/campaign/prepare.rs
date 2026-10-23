@@ -121,7 +121,16 @@ pub fn prepare(options: &ExploreOptions) -> Result<Prepared, String> {
     let deadline = Instant::now()
         .checked_add(options.overall_timeout)
         .ok_or("overall_timeout: preparation deadline exceeds clock range")?;
-    let result = prepare_before_deadline(options, deadline);
+    let result = prepare_before_deadline(options, deadline, false);
+    process::check_deadline(deadline)?;
+    result
+}
+
+pub(crate) fn prepare_runtime_qualification(options: &ExploreOptions) -> Result<Prepared, String> {
+    let deadline = Instant::now()
+        .checked_add(options.overall_timeout)
+        .ok_or("runtime qualification preparation deadline exceeds clock range")?;
+    let result = prepare_before_deadline(options, deadline, true);
     process::check_deadline(deadline)?;
     result
 }
@@ -129,11 +138,15 @@ pub fn prepare(options: &ExploreOptions) -> Result<Prepared, String> {
 fn prepare_before_deadline(
     options: &ExploreOptions,
     deadline: Instant,
+    runtime_qualification: bool,
 ) -> Result<Prepared, String> {
     if options.target_kind == "exec" {
         return prepared_exec(options, &installation(options)?);
     }
-    let recipe = driver::prepare(options, deadline)?;
+    let mut recipe = driver::prepare(options, deadline)?;
+    if runtime_qualification {
+        recipe.configuration = crate::runtime_qualification::configuration()?;
+    }
     let temporary = process::Temporary::new(&recipe.installed.cache_root)?;
     let output = temporary.0.join("module.wasm");
     let mut build = if options.target_kind == "go-test" {

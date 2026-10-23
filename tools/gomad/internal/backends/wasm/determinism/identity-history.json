@@ -1102,5 +1102,661 @@
  {
   "id": "host-go.wasi.runtime.runtimesession.handle.unstable-sort.slices.sortfunc_creations",
   "site": "host-go:wasi/runtime.go|runtimeSession.handle|unstable-sort|slices.SortFunc creations|1"
+ },
+ {
+  "id": "helper.linked.phase-clocks",
+  "site": "helper-source:linked.rs|Instant::now|4"
+ },
+ {
+  "id": "helper.linked-cluster.phase-clocks",
+  "site": "helper-source:linked_cluster.rs|Instant::now|4"
+ },
+ {
+  "id": "helper.linked-cluster.bounded-receives",
+  "site": "helper-source:linked_cluster.rs|recv_timeout|3"
+ },
+ {
+  "id": "host.rust.gomad.src.campaign.execution.rs.measured.elapsed.1",
+  "site": "host-rust:gomad/src/campaign/execution.rs|measured|.elapsed()|1"
+ },
+ {
+  "id": "host.rust.gomad.src.campaign.execution.rs.measured.instant.now.1",
+  "site": "host-rust:gomad/src/campaign/execution.rs|measured|Instant::now|1"
+ },
+ {
+  "id": "host.rust.gomad.src.campaign.prepare.rs.prepare.instant.now.1",
+  "site": "host-rust:gomad/src/campaign/prepare.rs|prepare|Instant::now|1"
+ },
+ {
+  "id": "host.rust.gomad.src.campaign.prepare.process.rs.check.deadline.instant.now.1",
+  "site": "host-rust:gomad/src/campaign/prepare/process.rs|check_deadline|Instant::now|1"
+ },
+ {
+  "id": "host.rust.gomad.src.campaign.prepare.process.rs.command.spawn.1",
+  "site": "host-rust:gomad/src/campaign/prepare/process.rs|command|.spawn(|1"
+ },
+ {
+  "id": "host.rust.gomad.src.campaign.prepare.process.rs.command.command.new.1",
+  "site": "host-rust:gomad/src/campaign/prepare/process.rs|command|Command::new|1"
+ },
+ {
+  "id": "host.rust.gomad.src.campaign.prepare.process.rs.command.instant.now.3",
+  "site": "host-rust:gomad/src/campaign/prepare/process.rs|command|Instant::now|3"
+ },
+ {
+  "id": "host.rust.gomad.src.campaign.prepare.process.rs.command.thread.sleep.1",
+  "site": "host-rust:gomad/src/campaign/prepare/process.rs|command|thread::sleep|1"
+ },
+ {
+  "id": "host.rust.gomad.src.campaign.scenario.rs.execute.elapsed.1",
+  "site": "host-rust:gomad/src/campaign/scenario.rs|execute|.elapsed()|1"
+ },
+ {
+  "id": "host.rust.gomad.src.campaign.scenario.rs.execute.instant.now.1",
+  "site": "host-rust:gomad/src/campaign/scenario.rs|execute|Instant::now|1"
+ },
+ {
+  "id": "host.rust.wasmhost.src.cache.rs.module.instant.now.2",
+  "site": "host-rust:wasmhost/src/cache.rs|module|Instant::now|2"
+ },
+ {
+  "id": "host.rust.wasmhost.src.cache.rs.staging.name.dev.urandom.1",
+  "site": "host-rust:wasmhost/src/cache.rs|staging_name|/dev/urandom|1"
+ },
+ {
+  "id": "host.rust.wasmhost.src.cache.rs.staging.name.systemtime.1",
+  "site": "host-rust:wasmhost/src/cache.rs|staging_name|SystemTime|1"
+ },
+ {
+  "id": "host.rust.wasmhost.src.cluster.execution.manual.rs.control.reader.spawn.1",
+  "site": "host-rust:wasmhost/src/cluster/execution/manual.rs|control_reader|.spawn(|1"
+ },
+ {
+  "id": "host.rust.wasmhost.src.cluster.execution.manual.rs.control.reader.thread.builder.1",
+  "site": "host-rust:wasmhost/src/cluster/execution/manual.rs|control_reader|thread::Builder|1"
+ },
+ {
+  "id": "host.rust.wasmhost.src.cluster.execution.manual.rs.execute.spawn.1",
+  "site": "host-rust:wasmhost/src/cluster/execution/manual.rs|execute|.spawn(|1"
+ },
+ {
+  "id": "host.rust.wasmhost.src.cluster.execution.manual.rs.execute.instant.now.1",
+  "site": "host-rust:wasmhost/src/cluster/execution/manual.rs|execute|Instant::now|1"
+ },
+ {
+  "id": "host.rust.wasmhost.src.cluster.execution.manual.rs.execute.thread.builder.1",
+  "site": "host-rust:wasmhost/src/cluster/execution/manual.rs|execute|thread::Builder|1"
+ },
+ {
+  "id": "host.rust.wasmhost.src.cluster.execution.mod.rs.execute.spawn.1",
+  "site": "host-rust:wasmhost/src/cluster/execution/mod.rs|execute|.spawn(|1"
+ },
+ {
+  "id": "host.rust.wasmhost.src.cluster.execution.mod.rs.execute.instant.now.1",
+  "site": "host-rust:wasmhost/src/cluster/execution/mod.rs|execute|Instant::now|1"
+ },
+ {
+  "id": "host.rust.wasmhost.src.cluster.execution.mod.rs.execute.thread.builder.1",
+  "site": "host-rust:wasmhost/src/cluster/execution/mod.rs|execute|thread::Builder|1"
+ },
+ {
+  "id": "host.rust.wasmhost.src.cluster.execution.mod.rs.run.instance.instant.now.2",
+  "site": "host-rust:wasmhost/src/cluster/execution/mod.rs|run_instance|Instant::now|2"
+ },
+ {
+  "id": "host.rust.wasmhost.src.cluster.handoff.broker.rs.new.instant.now.1",
+  "site": "host-rust:wasmhost/src/cluster/handoff/broker.rs|new|Instant::now|1"
+ },
+ {
+  "id": "host.rust.wasmhost.src.cluster.handoff.broker.rs.observe.instant.now.1",
+  "site": "host-rust:wasmhost/src/cluster/handoff/broker.rs|observe|Instant::now|1"
+ },
+ {
+  "id": "host.rust.wasmhost.src.cluster.handoff.broker.rs.schedule.instant.now.1",
+  "site": "host-rust:wasmhost/src/cluster/handoff/broker.rs|schedule|Instant::now|1"
+ },
+ {
+  "id": "host.rust.wasmhost.src.diagnostic.rs.drop.3.instant.now.1",
+  "site": "host-rust:wasmhost/src/diagnostic.rs|drop[3]|Instant::now|1"
+ },
+ {
+  "id": "host.rust.wasmhost.src.diagnostic.rs.drop.4.instant.now.1",
+  "site": "host-rust:wasmhost/src/diagnostic.rs|drop[4]|Instant::now|1"
+ },
+ {
+  "id": "host.rust.wasmhost.src.diagnostic.rs.drop.5.instant.now.1",
+  "site": "host-rust:wasmhost/src/diagnostic.rs|drop[5]|Instant::now|1"
+ },
+ {
+  "id": "host.rust.wasmhost.src.diagnostic.rs.drop.6.instant.now.1",
+  "site": "host-rust:wasmhost/src/diagnostic.rs|drop[6]|Instant::now|1"
+ },
+ {
+  "id": "host.rust.wasmhost.src.diagnostic.rs.drop.7.instant.now.1",
+  "site": "host-rust:wasmhost/src/diagnostic.rs|drop[7]|Instant::now|1"
+ },
+ {
+  "id": "host.rust.wasmhost.src.diagnostic.rs.new.2.instant.now.1",
+  "site": "host-rust:wasmhost/src/diagnostic.rs|new[2]|Instant::now|1"
+ },
+ {
+  "id": "host.rust.wasmhost.src.diagnostic.rs.new.3.instant.now.1",
+  "site": "host-rust:wasmhost/src/diagnostic.rs|new[3]|Instant::now|1"
+ },
+ {
+  "id": "host.rust.wasmhost.src.diagnostic.rs.new.4.instant.now.1",
+  "site": "host-rust:wasmhost/src/diagnostic.rs|new[4]|Instant::now|1"
+ },
+ {
+  "id": "host.rust.wasmhost.src.diagnostic.rs.new.instant.now.1",
+  "site": "host-rust:wasmhost/src/diagnostic.rs|new|Instant::now|1"
+ },
+ {
+  "id": "host.rust.wasmhost.src.diagnostic.rs.open.instant.now.1",
+  "site": "host-rust:wasmhost/src/diagnostic.rs|open|Instant::now|1"
+ },
+ {
+  "id": "host.rust.wasmhost.src.engine.rs.compile.instant.now.1",
+  "site": "host-rust:wasmhost/src/engine.rs|compile|Instant::now|1"
+ },
+ {
+  "id": "host.rust.wasmhost.src.engine.rs.execute.instant.now.3",
+  "site": "host-rust:wasmhost/src/engine.rs|execute|Instant::now|3"
+ },
+ {
+  "id": "host.rust.wasmhost.src.engine.rs.linker.hashset.1",
+  "site": "host-rust:wasmhost/src/engine.rs|linker|HashSet|1"
+ },
+ {
+  "id": "host.rust.wasmhost.src.engine.rs.model.operation.instant.now.1",
+  "site": "host-rust:wasmhost/src/engine.rs|model_operation|Instant::now|1"
+ },
+ {
+  "id": "host.rust.wasmhost.src.engine.rs.package.hashset.1",
+  "site": "host-rust:wasmhost/src/engine.rs|package|HashSet|1"
+ },
+ {
+  "id": "host.rust.wasmhost.src.guest.profile.rs.start.spawn.1",
+  "site": "host-rust:wasmhost/src/guest_profile.rs|start|.spawn(|1"
+ },
+ {
+  "id": "host.rust.wasmhost.src.guest.profile.rs.start.instant.now.3",
+  "site": "host-rust:wasmhost/src/guest_profile.rs|start|Instant::now|3"
+ },
+ {
+  "id": "host.rust.wasmhost.src.guest.profile.rs.start.recv.timeout.1",
+  "site": "host-rust:wasmhost/src/guest_profile.rs|start|recv_timeout|1"
+ },
+ {
+  "id": "host.rust.wasmhost.src.guest.profile.rs.start.thread.builder.1",
+  "site": "host-rust:wasmhost/src/guest_profile.rs|start|thread::Builder|1"
+ },
+ {
+  "id": "host.rust.wasmhost.src.linked.rs.execute.prepared.spawn.1",
+  "site": "host-rust:wasmhost/src/linked.rs|execute_prepared|.spawn(|1"
+ },
+ {
+  "id": "host.rust.wasmhost.src.linked.rs.execute.prepared.instant.now.2",
+  "site": "host-rust:wasmhost/src/linked.rs|execute_prepared|Instant::now|2"
+ },
+ {
+  "id": "host.rust.wasmhost.src.linked.rs.execute.prepared.thread.scope.1",
+  "site": "host-rust:wasmhost/src/linked.rs|execute_prepared|thread::scope|1"
+ },
+ {
+  "id": "host.rust.wasmhost.src.linked.rs.start.instance.instant.now.2",
+  "site": "host-rust:wasmhost/src/linked.rs|start_instance|Instant::now|2"
+ },
+ {
+  "id": "host.rust.wasmhost.src.linked.rs.watch.recv.timeout.1",
+  "site": "host-rust:wasmhost/src/linked.rs|watch|recv_timeout|1"
+ },
+ {
+  "id": "host.rust.wasmhost.src.linked.cluster.rs.execute.inner.elapsed.2",
+  "site": "host-rust:wasmhost/src/linked_cluster.rs|execute_inner|.elapsed()|2"
+ },
+ {
+  "id": "host.rust.wasmhost.src.linked.cluster.rs.execute.inner.spawn.1",
+  "site": "host-rust:wasmhost/src/linked_cluster.rs|execute_inner|.spawn(|1"
+ },
+ {
+  "id": "host.rust.wasmhost.src.linked.cluster.rs.execute.inner.instant.now.1",
+  "site": "host-rust:wasmhost/src/linked_cluster.rs|execute_inner|Instant::now|1"
+ },
+ {
+  "id": "host.rust.wasmhost.src.linked.cluster.rs.execute.inner.recv.timeout.2",
+  "site": "host-rust:wasmhost/src/linked_cluster.rs|execute_inner|recv_timeout|2"
+ },
+ {
+  "id": "host.rust.wasmhost.src.linked.cluster.rs.execute.inner.thread.builder.1",
+  "site": "host-rust:wasmhost/src/linked_cluster.rs|execute_inner|thread::Builder|1"
+ },
+ {
+  "id": "host.rust.wasmhost.src.linked.cluster.rs.execute.prepared.spawn.1",
+  "site": "host-rust:wasmhost/src/linked_cluster.rs|execute_prepared|.spawn(|1"
+ },
+ {
+  "id": "host.rust.wasmhost.src.linked.cluster.rs.execute.prepared.recv.timeout.1",
+  "site": "host-rust:wasmhost/src/linked_cluster.rs|execute_prepared|recv_timeout|1"
+ },
+ {
+  "id": "host.rust.wasmhost.src.linked.cluster.rs.execute.prepared.thread.scope.1",
+  "site": "host-rust:wasmhost/src/linked_cluster.rs|execute_prepared|thread::scope|1"
+ },
+ {
+  "id": "host.rust.wasmhost.src.linked.cluster.rs.run.instance.instant.now.3",
+  "site": "host-rust:wasmhost/src/linked_cluster.rs|run_instance|Instant::now|3"
+ },
+ {
+  "id": "host.rust.wasmhost.src.metrics.rs.elapsed.elapsed.1",
+  "site": "host-rust:wasmhost/src/metrics.rs|elapsed|.elapsed()|1"
+ },
+ {
+  "id": "host.rust.wasmhost.src.model.rs.package.hashmap.2",
+  "site": "host-rust:wasmhost/src/model.rs|package|HashMap|2"
+ },
+ {
+  "id": "host.rust.wasmhost.src.model.guest.state.rs.construct.hashmap.1",
+  "site": "host-rust:wasmhost/src/model/guest_state.rs|construct|HashMap|1"
+ },
+ {
+  "id": "host.rust.wasmhost.src.model.guest.state.rs.package.hashmap.1",
+  "site": "host-rust:wasmhost/src/model/guest_state.rs|package|HashMap|1"
+ },
+ {
+  "id": "host.rust.wasmhost.src.model.guest.state.rs.validate.environment.hashset.1",
+  "site": "host-rust:wasmhost/src/model/guest_state.rs|validate_environment|HashSet|1"
+ },
+ {
+  "id": "host.rust.wasmhost.src.model.imports.rs.runtime.typed.sort.unstable.2",
+  "site": "host-rust:wasmhost/src/model/imports.rs|runtime_typed|.sort_unstable|2"
+ },
+ {
+  "id": "host.rust.wasmhost.src.model.inspection.rs.validate.pending.sort.unstable.1",
+  "site": "host-rust:wasmhost/src/model/inspection.rs|validate_pending|.sort_unstable|1"
+ },
+ {
+  "id": "host.rust.wasmhost.src.network.mod.rs.expire.dials.sort.unstable.1",
+  "site": "host-rust:wasmhost/src/network/mod.rs|expire_dials|.sort_unstable|1"
+ },
+ {
+  "id": "host.rust.wasmhost.src.stress.jitter.rs.delay.dev.urandom.1",
+  "site": "host-rust:wasmhost/src/stress_jitter.rs|delay|/dev/urandom|1"
+ },
+ {
+  "id": "host.rust.wasmhost.src.stress.jitter.rs.delay.thread.sleep.1",
+  "site": "host-rust:wasmhost/src/stress_jitter.rs|delay|thread::sleep|1"
+ },
+ {
+  "id": "host.rust.wasmhost.src.world.deflate.huffman.rs.generate.sort.unstable.2",
+  "site": "host-rust:wasmhost/src/world/deflate/huffman.rs|generate|.sort_unstable|2"
+ },
+ {
+  "id": "host.rust.gomad.src.replay.inspection.rs.search.run.instant.now.1",
+  "site": "host-rust:gomad/src/replay/inspection.rs|search_run|Instant::now|1"
+ },
+ {
+  "id": "host.rust.gomad.src.replay.inspection.rs.search.run.elapsed.2",
+  "site": "host-rust:gomad/src/replay/inspection.rs|search_run|.elapsed()|2"
+ },
+ {
+  "id": "host.rust.gomad.src.backstop.rs.arm_until.instant.now.1",
+  "site": "host-rust:gomad/src/backstop.rs|arm_until|Instant::now|1"
+ },
+ {
+  "id": "host.rust.gomad.src.backstop.rs.arm.instant.now.2",
+  "site": "host-rust:gomad/src/backstop.rs|arm|Instant::now|2"
+ },
+ {
+  "id": "host.rust.gomad.src.backstop.rs.backstop.spawn.1",
+  "site": "host-rust:gomad/src/backstop.rs|backstop|.spawn(|1"
+ },
+ {
+  "id": "host.rust.gomad.src.backstop.rs.backstop.thread.builder.1",
+  "site": "host-rust:gomad/src/backstop.rs|backstop|thread::Builder|1"
+ },
+ {
+  "id": "host.rust.gomad.src.backstop.rs.fail.spawn.1",
+  "site": "host-rust:gomad/src/backstop.rs|fail|.spawn(|1"
+ },
+ {
+  "id": "host.rust.gomad.src.backstop.rs.fail.recv_timeout.1",
+  "site": "host-rust:gomad/src/backstop.rs|fail|recv_timeout|1"
+ },
+ {
+  "id": "host.rust.gomad.src.backstop.rs.fail.thread.builder.1",
+  "site": "host-rust:gomad/src/backstop.rs|fail|thread::Builder|1"
+ },
+ {
+  "id": "host.rust.gomad.src.backstop.rs.monitor.instant.now.1",
+  "site": "host-rust:gomad/src/backstop.rs|monitor|Instant::now|1"
+ },
+ {
+  "id": "host.rust.gomad.src.campaign.choice.rs.explore.elapsed.1",
+  "site": "host-rust:gomad/src/campaign/choice.rs|explore|.elapsed()|1"
+ },
+ {
+  "id": "host.rust.gomad.src.campaign.choice.rs.explore.instant.now.1",
+  "site": "host-rust:gomad/src/campaign/choice.rs|explore|Instant::now|1"
+ },
+ {
+  "id": "host.rust.gomad.src.campaign.choice.rs.prepare_journal.elapsed.1",
+  "site": "host-rust:gomad/src/campaign/choice.rs|prepare_journal|.elapsed()|1"
+ },
+ {
+  "id": "host.rust.gomad.src.campaign.choice.rs.run.instant.now.2",
+  "site": "host-rust:gomad/src/campaign/choice.rs|run|Instant::now|2"
+ },
+ {
+  "id": "host.rust.gomad.src.campaign.launcher.rs.deliver.spawn.1",
+  "site": "host-rust:gomad/src/campaign/launcher.rs|deliver|.spawn(|1"
+ },
+ {
+  "id": "host.rust.gomad.src.campaign.launcher.rs.deliver.instant.now.1",
+  "site": "host-rust:gomad/src/campaign/launcher.rs|deliver|Instant::now|1"
+ },
+ {
+  "id": "host.rust.gomad.src.campaign.launcher.rs.deliver.recv_timeout.1",
+  "site": "host-rust:gomad/src/campaign/launcher.rs|deliver|recv_timeout|1"
+ },
+ {
+  "id": "host.rust.gomad.src.campaign.launcher.rs.deliver.thread.builder.1",
+  "site": "host-rust:gomad/src/campaign/launcher.rs|deliver|thread::Builder|1"
+ },
+ {
+  "id": "host.rust.gomad.src.campaign.launcher.rs.new.spawn.1",
+  "site": "host-rust:gomad/src/campaign/launcher.rs|new|.spawn(|1"
+ },
+ {
+  "id": "host.rust.gomad.src.campaign.launcher.rs.new.thread.builder.1",
+  "site": "host-rust:gomad/src/campaign/launcher.rs|new|thread::Builder|1"
+ },
+ {
+  "id": "host.rust.gomad.src.campaign.launcher.rs.remaining.instant.now.1",
+  "site": "host-rust:gomad/src/campaign/launcher.rs|remaining|Instant::now|1"
+ },
+ {
+  "id": "host.rust.gomad.src.campaign.launcher.rs.run.instant.now.2",
+  "site": "host-rust:gomad/src/campaign/launcher.rs|run|Instant::now|2"
+ },
+ {
+  "id": "host.rust.gomad.src.campaign.launcher.rs.write.recv_timeout.1",
+  "site": "host-rust:gomad/src/campaign/launcher.rs|write|recv_timeout|1"
+ },
+ {
+  "id": "host.rust.gomad.src.campaign.mod.rs.campaign_path.systemtime.1",
+  "site": "host-rust:gomad/src/campaign/mod.rs|campaign_path|SystemTime|1"
+ },
+ {
+  "id": "host.rust.gomad.src.campaign.mod.rs.explore_prepared.elapsed.1",
+  "site": "host-rust:gomad/src/campaign/mod.rs|explore_prepared|.elapsed()|1"
+ },
+ {
+  "id": "host.rust.gomad.src.campaign.mod.rs.explore.instant.now.1",
+  "site": "host-rust:gomad/src/campaign/mod.rs|explore|Instant::now|1"
+ },
+ {
+  "id": "host.rust.gomad.src.campaign.mod.rs.package.systemtime.1",
+  "site": "host-rust:gomad/src/campaign/mod.rs|package|SystemTime|1"
+ },
+ {
+  "id": "host.rust.gomad.src.campaign.mod.rs.run_observed.spawn.1",
+  "site": "host-rust:gomad/src/campaign/mod.rs|run_observed|.spawn(|1"
+ },
+ {
+  "id": "host.rust.gomad.src.campaign.mod.rs.run_observed.instant.now.3",
+  "site": "host-rust:gomad/src/campaign/mod.rs|run_observed|Instant::now|3"
+ },
+ {
+  "id": "host.rust.gomad.src.campaign.mod.rs.run_observed.recv_timeout.1",
+  "site": "host-rust:gomad/src/campaign/mod.rs|run_observed|recv_timeout|1"
+ },
+ {
+  "id": "host.rust.gomad.src.campaign.mod.rs.run_observed.thread.scope.1",
+  "site": "host-rust:gomad/src/campaign/mod.rs|run_observed|thread::scope|1"
+ },
+ {
+  "id": "host.rust.gomad.src.campaign.origin.rs.identity.systemtime.1",
+  "site": "host-rust:gomad/src/campaign/origin.rs|identity|SystemTime|1"
+ },
+ {
+  "id": "host.rust.gomad.src.campaign.origin.rs.package.systemtime.1",
+  "site": "host-rust:gomad/src/campaign/origin.rs|package|SystemTime|1"
+ },
+ {
+  "id": "host.rust.gomad.src.campaign.preparation.rs.choice.elapsed.1",
+  "site": "host-rust:gomad/src/campaign/preparation.rs|choice|.elapsed()|1"
+ },
+ {
+  "id": "host.rust.gomad.src.campaign.preparation.rs.choice.instant.now.1",
+  "site": "host-rust:gomad/src/campaign/preparation.rs|choice|Instant::now|1"
+ },
+ {
+  "id": "host.rust.gomad.src.campaign.preparation.rs.elapsed.elapsed.1",
+  "site": "host-rust:gomad/src/campaign/preparation.rs|elapsed|.elapsed()|1"
+ },
+ {
+  "id": "host.rust.gomad.src.campaign.preparation.rs.retain_admitted.instant.now.1",
+  "site": "host-rust:gomad/src/campaign/preparation.rs|retain_admitted|Instant::now|1"
+ },
+ {
+  "id": "host.rust.gomad.src.campaign.preparation.rs.seed.instant.now.1",
+  "site": "host-rust:gomad/src/campaign/preparation.rs|seed|Instant::now|1"
+ },
+ {
+  "id": "host.rust.gomad.src.campaign.seeds.rs.parse.sort_unstable.1",
+  "site": "host-rust:gomad/src/campaign/seeds.rs|parse|.sort_unstable|1"
+ },
+ {
+  "id": "host.rust.gomad.src.campaign.shards.rs.merge.sort_unstable.1",
+  "site": "host-rust:gomad/src/campaign/shards.rs|merge|.sort_unstable|1"
+ },
+ {
+  "id": "host.rust.gomad.src.campaign.simulation.rs.explore.elapsed.1",
+  "site": "host-rust:gomad/src/campaign/simulation.rs|explore|.elapsed()|1"
+ },
+ {
+  "id": "host.rust.gomad.src.campaign.simulation.rs.explore.instant.now.1",
+  "site": "host-rust:gomad/src/campaign/simulation.rs|explore|Instant::now|1"
+ },
+ {
+  "id": "host.rust.gomad.src.campaign.simulation.rs.run.elapsed.1",
+  "site": "host-rust:gomad/src/campaign/simulation.rs|run|.elapsed()|1"
+ },
+ {
+  "id": "host.rust.gomad.src.campaign.simulation.rs.run.instant.now.1",
+  "site": "host-rust:gomad/src/campaign/simulation.rs|run|Instant::now|1"
+ },
+ {
+  "id": "host.rust.gomad.src.cli.run_guest.rs.fixture_driver_run.command.new.1",
+  "site": "host-rust:gomad/src/cli/run_guest.rs|fixture_driver_run|Command::new|1"
+ },
+ {
+  "id": "host.rust.gomad.src.cli.run_guest.rs.fixture_prepare.instant.now.1",
+  "site": "host-rust:gomad/src/cli/run_guest.rs|fixture_prepare|Instant::now|1"
+ },
+ {
+  "id": "host.rust.gomad.src.cli.run_guest.rs.limit.instant.now.1",
+  "site": "host-rust:gomad/src/cli/run_guest.rs|limit|Instant::now|1"
+ },
+ {
+  "id": "host.rust.gomad.src.cli.run_guest.rs.new.instant.now.1",
+  "site": "host-rust:gomad/src/cli/run_guest.rs|new|Instant::now|1"
+ },
+ {
+  "id": "host.rust.gomad.src.evidence.store.publish.rs.checkpoint.instant.now.2",
+  "site": "host-rust:gomad/src/evidence/store/publish.rs|checkpoint|Instant::now|2"
+ },
+ {
+  "id": "host.rust.gomad.src.evidence.store.publish.rs.checkpoint.thread.sleep.1",
+  "site": "host-rust:gomad/src/evidence/store/publish.rs|checkpoint|thread::sleep|1"
+ },
+ {
+  "id": "host.rust.gomad.src.evidence.store.publish.rs.ordered_roots.sort_unstable.1",
+  "site": "host-rust:gomad/src/evidence/store/publish.rs|ordered_roots|.sort_unstable|1"
+ },
+ {
+  "id": "host.rust.gomad.src.evidence.symbolize.wasm.rs.finish.sort_unstable.1",
+  "site": "host-rust:gomad/src/evidence/symbolize/wasm.rs|finish|.sort_unstable|1"
+ },
+ {
+  "id": "host.rust.gomad.src.fixture.rs.dispatch.systemtime.1",
+  "site": "host-rust:gomad/src/fixture.rs|dispatch|SystemTime|1"
+ },
+ {
+  "id": "host.rust.gomad.src.fixture_role.rs.run.spawn.2",
+  "site": "host-rust:gomad/src/fixture_role.rs|run|.spawn(|2"
+ },
+ {
+  "id": "host.rust.gomad.src.fixture_role.rs.run.thread.scope.1",
+  "site": "host-rust:gomad/src/fixture_role.rs|run|thread::scope|1"
+ },
+ {
+  "id": "host.rust.gomad.src.install.toolchain.rs.pin.instant.now.1",
+  "site": "host-rust:gomad/src/install/toolchain.rs|pin|Instant::now|1"
+ },
+ {
+  "id": "host.rust.gomad.src.live_backend.rs.progress_acknowledged.instant.now.2",
+  "site": "host-rust:gomad/src/live_backend.rs|progress_acknowledged|Instant::now|2"
+ },
+ {
+  "id": "host.rust.gomad.src.live_backend.rs.progress_acknowledged.thread.sleep.1",
+  "site": "host-rust:gomad/src/live_backend.rs|progress_acknowledged|thread::sleep|1"
+ },
+ {
+  "id": "host.rust.gomad.src.live_broker.rs.input.elapsed.2",
+  "site": "host-rust:gomad/src/live_broker.rs|input|.elapsed()|2"
+ },
+ {
+  "id": "host.rust.gomad.src.live_broker.rs.input.instant.now.1",
+  "site": "host-rust:gomad/src/live_broker.rs|input|Instant::now|1"
+ },
+ {
+  "id": "host.rust.gomad.src.live_cluster.rs.input.elapsed.1",
+  "site": "host-rust:gomad/src/live_cluster.rs|input|.elapsed()|1"
+ },
+ {
+  "id": "host.rust.gomad.src.live_cluster.rs.input.instant.now.1",
+  "site": "host-rust:gomad/src/live_cluster.rs|input|Instant::now|1"
+ },
+ {
+  "id": "host.rust.gomad.src.live_cluster.rs.observation.elapsed.1",
+  "site": "host-rust:gomad/src/live_cluster.rs|observation|.elapsed()|1"
+ },
+ {
+  "id": "host.rust.gomad.src.live_cluster.rs.observation.instant.now.1",
+  "site": "host-rust:gomad/src/live_cluster.rs|observation|Instant::now|1"
+ },
+ {
+  "id": "host.rust.gomad.src.qualify.cells.rs.execute.instant.now.1",
+  "site": "host-rust:gomad/src/qualify/cells.rs|execute|Instant::now|1"
+ },
+ {
+  "id": "host.rust.gomad.src.qualify.cells.rs.freeze.elapsed.1",
+  "site": "host-rust:gomad/src/qualify/cells.rs|freeze|.elapsed()|1"
+ },
+ {
+  "id": "host.rust.gomad.src.qualify.cells.rs.freeze.instant.now.1",
+  "site": "host-rust:gomad/src/qualify/cells.rs|freeze|Instant::now|1"
+ },
+ {
+  "id": "host.rust.gomad.src.qualify.cells.rs.replay.elapsed.2",
+  "site": "host-rust:gomad/src/qualify/cells.rs|replay|.elapsed()|2"
+ },
+ {
+  "id": "host.rust.gomad.src.qualify.cells.rs.replay.instant.now.1",
+  "site": "host-rust:gomad/src/qualify/cells.rs|replay|Instant::now|1"
+ },
+ {
+  "id": "host.rust.gomad.src.qualify.workloads.oracles.rs.replication.sort_unstable.1",
+  "site": "host-rust:gomad/src/qualify/workloads/oracles.rs|replication|.sort_unstable|1"
+ },
+ {
+  "id": "host.rust.gomad.src.qualify.workloads.oracles.rs.sqlite.sort_unstable.1",
+  "site": "host-rust:gomad/src/qualify/workloads/oracles.rs|sqlite|.sort_unstable|1"
+ },
+ {
+  "id": "host.rust.gomad.src.slots.rs.run.sort_unstable.1",
+  "site": "host-rust:gomad/src/slots.rs|run|.sort_unstable|1"
+ },
+ {
+  "id": "host.rust.gomad.src.slots.rs.run.spawn.1",
+  "site": "host-rust:gomad/src/slots.rs|run|.spawn(|1"
+ },
+ {
+  "id": "host.rust.gomad.src.slots.rs.run.thread.scope.1",
+  "site": "host-rust:gomad/src/slots.rs|run|thread::scope|1"
+ },
+ {
+  "id": "host.rust.gomad.src.stress.process.rs.cohort.spawn.1",
+  "site": "host-rust:gomad/src/stress/process.rs|cohort|.spawn(|1"
+ },
+ {
+  "id": "host.rust.gomad.src.stress.process.rs.cohort.thread.scope.1",
+  "site": "host-rust:gomad/src/stress/process.rs|cohort|thread::scope|1"
+ },
+ {
+  "id": "host.rust.gomad.src.stress.process.rs.execute.elapsed.1",
+  "site": "host-rust:gomad/src/stress/process.rs|execute|.elapsed()|1"
+ },
+ {
+  "id": "host.rust.gomad.src.stress.process.rs.execute.spawn.1",
+  "site": "host-rust:gomad/src/stress/process.rs|execute|.spawn(|1"
+ },
+ {
+  "id": "host.rust.gomad.src.stress.process.rs.execute.command.new.1",
+  "site": "host-rust:gomad/src/stress/process.rs|execute|Command::new|1"
+ },
+ {
+  "id": "host.rust.gomad.src.stress.process.rs.execute.instant.now.1",
+  "site": "host-rust:gomad/src/stress/process.rs|execute|Instant::now|1"
+ },
+ {
+  "id": "host.rust.gomad.src.stress.process.rs.execute.thread.sleep.1",
+  "site": "host-rust:gomad/src/stress/process.rs|execute|thread::sleep|1"
+ },
+ {
+  "id": "host.rust.gomad.src.stress.process.rs.host.command.new.1",
+  "site": "host-rust:gomad/src/stress/process.rs|host|Command::new|1"
+ },
+ {
+  "id": "host.rust.gomad.src.stress.process.rs.new.thread.spawn.1",
+  "site": "host-rust:gomad/src/stress/process.rs|new|thread::spawn|1"
+ },
+ {
+  "id": "host.rust.gomad.src.sweep.process.rs.exec.2.elapsed.1",
+  "site": "host-rust:gomad/src/sweep/process.rs|exec[2]|.elapsed()|1"
+ },
+ {
+  "id": "host.rust.gomad.src.sweep.process.rs.exec.2.spawn.1",
+  "site": "host-rust:gomad/src/sweep/process.rs|exec[2]|.spawn(|1"
+ },
+ {
+  "id": "host.rust.gomad.src.sweep.process.rs.exec.2.command.new.1",
+  "site": "host-rust:gomad/src/sweep/process.rs|exec[2]|Command::new|1"
+ },
+ {
+  "id": "host.rust.gomad.src.sweep.process.rs.exec.2.instant.now.3",
+  "site": "host-rust:gomad/src/sweep/process.rs|exec[2]|Instant::now|3"
+ },
+ {
+  "id": "host.rust.gomad.src.sweep.process.rs.new.instant.now.1",
+  "site": "host-rust:gomad/src/sweep/process.rs|new|Instant::now|1"
+ },
+ {
+  "id": "host.rust.gomad.src.sweep.run.rs.run.instant.now.1",
+  "site": "host-rust:gomad/src/sweep/run.rs|run|Instant::now|1"
+ },
+ {
+  "id": "host.rust.gomad.src.runtime_qualification.rs.produce.instant.now.2",
+  "site": "host-rust:gomad/src/runtime_qualification.rs|produce|Instant::now|2"
+ },
+ {
+  "id": "host.rust.gomad.src.runtime_qualification.rs.replay_before_deadline.instant.now.1",
+  "site": "host-rust:gomad/src/runtime_qualification.rs|replay_before_deadline|Instant::now|1"
+ },
+ {
+  "id": "host.rust.gomad.src.campaign.prepare.rs.prepare_runtime_qualification.instant.now.1",
+  "site": "host-rust:gomad/src/campaign/prepare.rs|prepare_runtime_qualification|Instant::now|1"
  }
 ]

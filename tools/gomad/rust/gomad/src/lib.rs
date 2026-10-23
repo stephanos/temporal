@@ -31,8 +31,9 @@ pub mod measurement;
 pub(crate) mod minimize;
 pub(crate) mod qualify;
 pub mod replay;
+pub mod runtime_qualification;
 pub mod slots;
 pub(crate) mod stress;
-
 #[cfg(feature = "helper-diagnostic-profile")]
 pub mod profile;
+pub mod sweep;

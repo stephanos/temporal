@@ -31,6 +31,13 @@ class ConfigurationContract(unittest.TestCase):
             with self.assertRaises(driver.Unexecuted):
                 configure.cell_spec(label, '/evidence', '/manifest', 'sha256:'+'1'*64)
 
+    def test_generated_manifest_uses_qualification_digest_grammar(self):
+        import configure
+        for digest in ('1'*64, 'sha256:'+'1'*64):
+            with self.subTest(digest=digest):
+                spec = configure.cell_spec('workload-fixture-cooperative-success', '/evidence', '/manifest', digest)
+                self.assertEqual(spec['Manifest']['IntegratedSourceSHA256'], 'sha256:'+'1'*64)
+
 
 if __name__ == '__main__':
     unittest.main()

@@ -1,0 +1,17 @@
+wasip1/wasm|runtime/lock_wasip1.go|beforeIdle|beforeIdle|patch|1|reference|none|active|idle hook hands the next virtual timer deadline to the helper's idle import instead of sleeping on the host
+wasip1/wasm|runtime/lock_wasip1.go|notetsleepg|notetsleepg|patch|1|reference|none|active|note sleeps park on the virtual clock through gomadWasmNoteSleep; no host sleep
+wasip1/wasm|runtime/os_wasip1.go|nanotime1|gomadWasmLastTime|patch|2|reference|none|active|records the last transcribed clock_time_get answer, and inspection returns it instead of issuing a clock import
+wasip1/wasm|runtime/os_wasip1.go|usleep|usleep|patch|1|reference|none|active|inspection does not sleep; outside inspection usleep is the stock poll_oneoff on the virtual clock
+wasip1/wasm|runtime/os_wasip1.go|walltime1|gomadWasmLastTime|patch|1|reference|none|active|inspection returns the last virtual time instead of issuing a clock import
+wasip1/wasm|runtime/proc.go|runqget|gomadChoiceRunqIndex|patch|1|target-ordered|process-purpose|active|run queue pick is a seeded choice recorded on the choice tape
+wasip1/wasm|runtime/proc.go|runqputslow|gomadChoiceRunnextSeeded|patch|2|target-ordered|process-purpose|active|batch shuffle draws come from the seeded scheduler stream
+wasip1/wasm|runtime/proc.go|runqputslow|randomizeScheduler|patch|2|target-ordered|process-purpose|active|batch shuffling is forced on under Gomad so every batch order is a seeded draw
+wasip1/wasm|runtime/proc.go|schedinit|gomadWasmInit|patch|1|target-ordered|process-purpose|active|seed and diagnostic flag come from the config import before randinit
+wasip1/wasm|runtime/rand.go|cheaprand|gomadRuntimeCheapRand|patch|1|target-ordered|process-purpose|active|cheaprand on a P draws from the seeded runtime cheaprand stream
+wasip1/wasm|runtime/rand.go|mrandinit|gomadSeed|patch|1|target-ordered|M-local|active|the single M's per-M streams are seeded from the declared seed
+wasip1/wasm|runtime/rand.go|rand|gomadRuntimeRand|patch|1|target-ordered|process-purpose|active|rand on a P draws from the seeded runtime rand stream
+wasip1/wasm|runtime/rand.go|randinit|gomadSeed|patch|1|target-ordered|process-purpose|active|the global seed is the declared seed instead of startup entropy
+wasip1/wasm|runtime/select.go|selectgo|gomadChoiceSelectSeeded|patch|1|target-ordered|process-purpose|active|select poll order is a seeded draw recorded on the choice tape
+wasip1/wasm|runtime/time.go|method.adjust|gomadTimerRand|patch|1|target-ordered|process-purpose|active|modified timers redraw their heap tie-break from the seeded timer stream
+wasip1/wasm|runtime/time.go|method.maybeAdd|gomadTimerRand|patch|1|target-ordered|process-purpose|active|timer heap tie-break draws from the seeded timer stream
+wasip1/wasm|runtime/time.go|method.updateHeap|gomadTimerRand|patch|1|target-ordered|process-purpose|active|re-queued timers redraw their heap tie-break from the seeded timer stream

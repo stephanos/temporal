@@ -19,16 +19,38 @@ def file_hashes(root):
             for path in root.rglob("*") if path.is_file()}
 
 
+def onebox_runner():
+    import importlib.util
+    path = Path(__file__).resolve().parents[2] / 'testdata/parity/onebox-inspection-check.py'
+    spec = importlib.util.spec_from_file_location('fn222_onebox_inspection', path)
+    module = importlib.util.module_from_spec(spec)
+    spec.loader.exec_module(module)
+    return module
+
+
 def main():
     parser = argparse.ArgumentParser(description=__doc__)
     for name in ["binary", "repo", "root", "compiler", "runtime-root", "cache"]:
         parser.add_argument("--"+name, type=Path, required=True)
-    parser.add_argument("--owner", choices=[*workloads.INSPECTION, "all"], required=True)
+    parser.add_argument("--owner", choices=[*workloads.INSPECTION, "all"], default="onebox")
     parser.add_argument("--captured-config", type=Path)
+    parser.add_argument("--private-observation-config", type=Path)
     args = parser.parse_args()
+    if args.owner == 'onebox':
+        if args.captured_config is None:
+            parser.error('onebox inspection requires --captured-config')
+        command = ['onebox-inspection-check.py']
+        for name in ['binary', 'repo', 'root', 'compiler', 'runtime-root', 'cache', 'captured-config']:
+            command += ['--' + name, str(getattr(args, name.replace('-', '_')).resolve())]
+        if args.private_observation_config:
+            command += ['--private-observation-config', str(args.private_observation_config.resolve())]
+        onebox_runner().main(command[1:])
+        return
     binary, repo, root = args.binary.resolve(), args.repo.resolve(), args.root.resolve()
+    private = producer.private_configuration(args.private_observation_config, binary, repo, root)
     root.mkdir(parents=True, mode=0o700, exist_ok=False)
     producer.owned_root(root)
+    producer.private_admission(private, root)
     if args.owner == "all":
         receipts = {}
         for owner in workloads.INSPECTION:
@@ -38,6 +60,8 @@ def main():
             command += ["--root", str(root/owner)]
             if args.captured_config:
                 command += ["--captured-config", str(args.captured_config.resolve())]
+            if args.private_observation_config:
+                command += ["--private-observation-config", str(args.private_observation_config.resolve())]
             receipts[owner] = producer.run(root, owner, command, 0)
         print(json.dumps(dict(receipts=receipts)))
         return
@@ -67,7 +91,7 @@ def main():
     for tag in workloads.TAGS+["gomad"]:
         command += ["--build-tag",tag]
     command += ["--working-dir",str(repo),"go-test","./"+str(stage.relative_to(repo)),"--",*arguments]
-    response=producer.run(root,"explore",command,1)
+    response=producer.run(root,"explore",command,1,**({'private_observations': private} if private is not None else {}))
     if response["attempted"]!=1 or response["failures"]!=1 or response["retained_evidence"]!=1:
         raise ValueError("original inspection canary did not retain exactly one actual failure")
     artifacts=[]

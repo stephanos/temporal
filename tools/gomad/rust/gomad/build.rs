@@ -36,6 +36,7 @@ fn main() {
         "src/measurement/testdata/LICENSE",
         "src/measurement/testdata/guest-profile.json",
         "../../internal/backends/wasm/command/testdata/scenario/network.json",
+        "../rust-toolchain.toml",
     ] {
         files.insert(
             name.into(),
