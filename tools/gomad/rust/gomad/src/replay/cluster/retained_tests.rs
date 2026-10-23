@@ -1119,6 +1119,15 @@ fn retained_inconclusive_and_literal_braces_are_rederived_without_shortening() {
 #[test]
 fn actual_native_producers_admit_distinct_output_and_evidence_bounds() {
     let corpus = std::path::Path::new(env!("CARGO_MANIFEST_DIR")).join("../../testdata/parity");
+    const OUTPUT: &[u8] = b"PASS\nfailed assertion: invalid {state}\n";
+    let original = std::fs::read_to_string(corpus.join("targets/inspect-choice.wat")).unwrap();
+    let module=original.replacen("(module", r#"(module
+  (import "wasi_snapshot_preview1" "fd_write" (func $fd_write (param i32 i32 i32 i32) (result i32)))"#,1)
+        .replacen(r#"  (func (export "_start")"#,r#"  (data (i32.const 256) "PASS\0afailed assertion: invalid {state}\0a")
+  (func (export "_start")"#,1)
+        .replacen("    i32.const 16 i32.const 16 call $finish",&format!(
+            "    i32.const 240 i32.const 256 i32.store\n    i32.const 244 i32.const {} i32.store\n    i32.const 1 i32.const 240 i32.const 1 i32.const 248 call $fd_write if unreachable end\n    i32.const 248 i32.load i32.const {} i32.ne if unreachable end\n    i32.const 16 i32.const 16 call $finish",OUTPUT.len(),OUTPUT.len()),1).into_bytes();
+    assert_ne!(module, original.as_bytes());
     for report_only in [false, true] {
         let initial = crate::fixture_cluster::publication(&corpus, 7).unwrap();
         let source: Inputs = serde_json::from_slice(&initial.payloads[FILE]).unwrap();
@@ -1126,15 +1135,20 @@ fn actual_native_producers_admit_distinct_output_and_evidence_bounds() {
         assert!(configuration.limits.evidence_bytes > configuration.limits.output_bytes);
         for item in &mut configuration.incarnations {
             item.workload_kind = "go-test".into();
+            item.module = Payload {
+                file: "target/module.wasm".into(),
+                bytes: module.len() as u64,
+                sha256: canonical::digest(&module),
+                limit: 512 << 20,
+            };
+            item.choice_identity.target_sha256 = sha2::Sha256::digest(&module).into();
+            item.imports = None;
         }
         configuration.oracle_plan=Some(serde_json::from_value(json!({
             "schema":"gomad.wasm.soft-assertion-observation/v1","maximum_bytes":4096,
-            "soft_assertions":[{"handle":configuration.incarnations[0].handle,"report_only":report_only}]
+            "soft_assertions":configuration.incarnations.iter().map(|item|json!({"handle":item.handle,"report_only":report_only})).collect::<Vec<_>>()
         })).unwrap());
-        let modules = BTreeMap::from([(
-            "target/module.wasm".into(),
-            initial.payloads["target/module.wasm"].clone(),
-        )]);
+        let modules = BTreeMap::from([("target/module.wasm".into(), module.clone())]);
         let publication = crate::fixture_cluster::execute_configuration(
             configuration.clone(),
             source.toolchain_sha256.clone(),
@@ -1158,13 +1172,51 @@ fn actual_native_producers_admit_distinct_output_and_evidence_bounds() {
                 .all(|item| item.limit == configuration.limits.evidence_bytes
                     && item.limit > configuration.limits.output_bytes)
         );
+        let mut actual_outputs = BTreeMap::new();
+        for retained in &inputs.retained {
+            let descriptor = retained.evidence.get("stdout").unwrap();
+            let bytes = opened
+                .payload(&descriptor.file, configuration.limits.evidence_bytes)
+                .unwrap();
+            assert_eq!(bytes, OUTPUT);
+            actual_outputs.insert(
+                descriptor.file.clone(),
+                crate::campaign::exploration::base64(&bytes),
+            );
+        }
+        let report: Value = serde_json::from_slice(
+            &opened
+                .payload(
+                    "evidence/cluster_oracles",
+                    configuration.limits.evidence_bytes,
+                )
+                .unwrap(),
+        )
+        .unwrap();
+        assert_eq!(
+            report["oracles"].as_array().unwrap().len(),
+            configuration.incarnations.len()
+        );
+        for oracle in report["oracles"].as_array().unwrap() {
+            assert_eq!(oracle["passed"], report_only);
+            assert_eq!(oracle["report_only"], report_only);
+            assert_eq!(oracle["inconclusive"], false);
+            let messages = crate::campaign::scenario::canonical_base64(
+                oracle["evidence"][1]["value"].as_str().unwrap(),
+            )
+            .unwrap();
+            assert_eq!(
+                serde_json::from_slice::<Value>(&messages).unwrap(),
+                json!(["invalid {state}"])
+            );
+        }
         oracles::authenticate_retained(&opened, &inputs).unwrap();
         let prepare_error = super::prepare(opened.try_clone().unwrap(), None).err();
         assert!(prepare_error.is_none(), "{prepare_error:?}");
         observation(
             &format!("producer/cluster-oracles/report-only={report_only}"),
             json!({"retained_inputs":inputs,"manifest":opened.manifest()}),
-            json!({"prepare_error":prepare_error,"output_descriptor_count":descriptors.len()}),
+            json!({"prepare_error":prepare_error,"output_descriptor_count":descriptors.len(),"actual_outputs_base64":actual_outputs,"actual_report":report}),
         );
 
         configuration.oracle_plan = None;
@@ -1242,8 +1294,43 @@ fn actual_native_producers_admit_distinct_output_and_evidence_bounds() {
                 .record
                 .streams
                 .contains_key("evidence/soft-assertions.json"),
-            report_only
+            true
         );
+        let scenario_report: Value = serde_json::from_slice(
+            &opened
+                .payload(
+                    "evidence/soft-assertions.json",
+                    configuration.limits.evidence_bytes,
+                )
+                .unwrap(),
+        )
+        .unwrap();
+        assert_eq!(
+            scenario_report["incarnations"].as_array().unwrap().len(),
+            configuration.incarnations.len()
+        );
+        let mut actual_outputs = BTreeMap::new();
+        for retained in &inputs.retained {
+            let descriptor = retained.evidence.get("stdout").unwrap();
+            assert_eq!(descriptor.limit, configuration.limits.evidence_bytes);
+            assert!(descriptor.limit > configuration.limits.output_bytes);
+            let bytes = opened
+                .payload(&descriptor.file, configuration.limits.evidence_bytes)
+                .unwrap();
+            assert_eq!(bytes, OUTPUT);
+            actual_outputs.insert(
+                descriptor.file.clone(),
+                crate::campaign::exploration::base64(&bytes),
+            );
+        }
+        for incarnation in scenario_report["incarnations"].as_array().unwrap() {
+            assert_eq!(
+                incarnation["report"]["messages"],
+                json!(["invalid {state}"])
+            );
+            assert_eq!(incarnation["report"]["report_only"], report_only);
+            assert_eq!(incarnation["report"]["inconclusive"], false);
+        }
         let before = opened.payload(FILE, 16 << 20).unwrap();
         let prepare_error = super::prepare(opened.try_clone().unwrap(), None).err();
         assert!(prepare_error.is_none(), "{prepare_error:?}");
@@ -1251,7 +1338,7 @@ fn actual_native_producers_admit_distinct_output_and_evidence_bounds() {
         observation(
             &format!("producer/scenario/report-only={report_only}"),
             json!({"retained_inputs":inputs,"manifest":opened.manifest()}),
-            json!({"prepare_error":prepare_error,"cluster_oracles_present":opened.manifest().record.streams.contains_key("evidence/cluster_oracles"),"scenario_report_present":opened.manifest().record.streams.contains_key("evidence/soft-assertions.json")}),
+            json!({"prepare_error":prepare_error,"cluster_oracles_present":opened.manifest().record.streams.contains_key("evidence/cluster_oracles"),"scenario_report_present":opened.manifest().record.streams.contains_key("evidence/soft-assertions.json"),"actual_outputs_base64":actual_outputs,"actual_report":scenario_report}),
         );
     }
 }
