@@ -5,7 +5,7 @@ fn repository() -> (Temporary, Repo) {
     let root =
         Temporary::new(&Path::new(env!("CARGO_MANIFEST_DIR")).join("target/derive-tests")).unwrap();
     fs::write(root.0.join("go.mod"), "module example.test/repo\n").unwrap();
-    for directory in ["runtime", "schema/sqlite", "pkg"] {
+    for directory in ["runtime", "schema/sqlite", "pkg", "pkg2"] {
         fs::create_dir_all(root.0.join(directory)).unwrap();
     }
     fs::write(root.0.join("runtime/runtime.go"), "package runtime\n").unwrap();
@@ -62,8 +62,9 @@ fn derive_cache_reuses_authenticated_unchanged_configuration_and_isolates_packag
     let owner = path.parent().unwrap();
     assert_ne!(
         candidate(&compiler, &repo, "pkg", owner).unwrap().key,
-        candidate(&compiler, &repo, ".", owner).unwrap().key
+        candidate(&compiler, &repo, "pkg2", owner).unwrap().key
     );
+    assert!(candidate(&compiler, &repo, ".", owner).is_err());
 }
 
 #[test]
