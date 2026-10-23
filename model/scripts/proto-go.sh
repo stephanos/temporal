@@ -33,8 +33,9 @@ if [ "${1:-}" = --check ]; then
     diff -ru "umpire/hosts/go/umpire/$(basename "$generated")" "$generated"
   done
   # The tree holds only generated packages and the hand-written runner package beside them.
-  for present in umpire/hosts/go/umpire/*/; do
-    if [ "$present" != umpire/hosts/go/umpire/runner/ ] && [ ! -d "$output/umpire/$(basename "$present")" ]; then
+  for present in umpire/hosts/go/umpire/* umpire/hosts/go/umpire/.[!.]*; do
+    [ -e "$present" ] || [ -L "$present" ] || continue
+    if [ "$present" != umpire/hosts/go/umpire/runner ] && { [ -L "$present" ] || [ ! -d "$present" ] || [ ! -d "$output/umpire/$(basename "$present")" ]; }; then
       printf 'not generated: %s\n' "$present" >&2
       exit 1
     fi

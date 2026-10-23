@@ -49,11 +49,10 @@ type testpilotLiveCase struct {
 // newTestpilotLiveCase performs the binding every live Case needs: provision the namespace and the
 // Nexus endpoint when one is named, freeze the Profile, prepare the unchanged Case bytes, and open
 // one Driver over the frozen Profile. Provisioning is the shared package, over the public workflow
-// and operator services only, so a live test and the umpire-run CLI create the same resources the
-// same way. Every resource it creates is released by a registered cleanup, all under the one
-// cleanupTimeout the caller chose. After the Driver exists it mutates
-// the frozen bindings, so a Driver that read its environment lazily rather than from its own
-// snapshot fails in each caller's binding assertion.
+// and operator services only, so every live test creates its resources the same way. Every
+// resource it creates is released by a registered cleanup, all under the one cleanupTimeout the
+// caller chose. After the Driver exists it mutates the frozen bindings, so a Driver that read its
+// environment lazily rather than from its own snapshot fails in each caller's binding assertion.
 func newTestpilotLiveCase(
 	t *testing.T,
 	env *testcore.TestEnv,

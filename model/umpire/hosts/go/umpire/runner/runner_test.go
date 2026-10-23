@@ -210,9 +210,23 @@ func TestStartMustReturnOnceSent(t *testing.T) {
 	opts.EventTimeout = 50 * time.Millisecond
 	run := h.run(ModeExplore, opts)
 	close(release)
+	requireShape(t, run, "reset", "propose:", "fault", "fault")
+	requireRefused(t, run, 2, "start did not return within the read timeout")
+	if reason := run.GetEvents()[3].GetDriverFault().GetReason(); reason != "start did not return after its context ended" {
+		t.Fatalf("second fault: %q", reason)
+	}
+	requireReplays(t, wasm, run)
+
+	// A Start that returns once its context ends has its exchange closed and joined.
+	late := newHarness(t, wasm, func(int) *fakeDriver {
+		return &fakeDriver{script: good, onStart: func() { <-time.After(80 * time.Millisecond) }}
+	})
+	run = late.run(ModeExplore, opts)
 	requireShape(t, run, "reset", "propose:", "fault")
 	requireRefused(t, run, 2, "start did not return within the read timeout")
-	requireReplays(t, wasm, run)
+	if exchanges := late.drivers[0].all(); len(exchanges) != 1 || !exchanges[0].joined() {
+		t.Fatal("the late exchange was not closed and joined")
+	}
 }
 
 func TestRefusedResetReplays(t *testing.T) {

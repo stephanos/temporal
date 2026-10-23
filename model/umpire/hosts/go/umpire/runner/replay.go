@@ -20,6 +20,8 @@ func (r *Runner) admit(recorded *Run) string {
 		return fmt.Sprintf("protocol version %d is not %d", recorded.GetProtocolVersion(), ProtocolVersion)
 	case recorded.GetVerdict().GetOutcome() == nil:
 		return "the recorded Run has no verdict"
+	case len(recorded.GetEvents()) == 0:
+		return "a Run begins with its Reset"
 	}
 	return ""
 }

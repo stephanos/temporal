@@ -116,6 +116,9 @@ func verdictOf(events []*runv1.Event, recorded *runv1.Explained) *runv1.Verdict 
 			return verdict
 		}
 	}
+	if len(events) == 0 {
+		return refused(0, "a Run begins with its Reset")
+	}
 	fits := false
 	switch recorded.GetTermination() {
 	case runv1.Termination_TERMINATION_PROPOSAL_BUDGET:
@@ -295,12 +298,14 @@ func (s *session) drive(parent, ctx context.Context, driver Driver, seed uint64,
 // exchange has the Driver act on one proposal and serves its events in receive order until it
 // completes, faults or an event ends the Run.
 func (s *session) exchange(parent, ctx context.Context, driver Driver, proposal *modelv1.ProposeResponse) error {
-	exchange, late, err := s.start(ctx, driver, proposal.GetRequest())
+	exchange, late, err := s.start(parent, ctx, driver, proposal.GetRequest())
 	if parent.Err() != nil {
+		if exchange != nil {
+			s.closeExchange(exchange)
+		}
 		return parent.Err()
 	}
 	if late {
-		s.fault(0, "start did not return within the read timeout")
 		return nil
 	}
 	if err != nil {
@@ -357,9 +362,10 @@ func (s *session) exchange(parent, ctx context.Context, driver Driver, proposal 
 	}
 }
 
-// start sends the proposed request, waiting at most the read timeout. A Driver that returns
-// later has its exchange closed once it does.
-func (s *session) start(ctx context.Context, driver Driver, payload *anypb.Any) (Exchange, bool, error) {
+// start sends the proposed request, waiting at most the read timeout. A Start that is late
+// or interrupted ends the exchange: its canceled ctx must make it return, and what it started
+// is closed and joined before the Run goes on. late reports that the exchange already ended.
+func (s *session) start(parent, ctx context.Context, driver Driver, payload *anypb.Any) (_ Exchange, late bool, _ error) {
 	type started struct {
 		exchange Exchange
 		err      error
@@ -376,18 +382,27 @@ func (s *session) start(ctx context.Context, driver Driver, payload *anypb.Any) 
 	case got := <-done:
 		return got.exchange, false, got.err
 	case <-startCtx.Done():
-		select {
-		case got := <-done:
-			return got.exchange, false, got.err
-		default:
+	}
+	if parent.Err() == nil {
+		s.fault(0, "start did not return within the read timeout")
+	}
+	grace := time.NewTimer(s.opts.EventTimeout)
+	defer grace.Stop()
+	select {
+	case got := <-done:
+		if got.exchange != nil {
+			s.closeExchange(got.exchange)
 		}
+	case <-grace.C:
+		// Nothing more can be joined; close whatever it starts once it returns.
+		s.fault(0, "start did not return after its context ended")
 		go func() {
 			if got := <-done; got.exchange != nil {
 				_ = got.exchange.Close()
 			}
 		}()
-		return nil, true, nil
 	}
+	return nil, true, nil
 }
 
 // admitEvent is why a received event ends the exchange as a Driver fault, or "".

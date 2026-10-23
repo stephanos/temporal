@@ -35,8 +35,7 @@ func TestTestpilotNexusControlForgedCompletionIsViolated(t *testing.T) {
 	require.Empty(t, live.profile.Configuration, "the control is recorded without dynamic configuration")
 
 	// The replay prepares under the recorded Profile name with the deployment's names through
-	// binding.Prepare, the path umpire-replay takes, and must arrive at the identity the live
-	// binding recorded.
+	// binding.Prepare and must arrive at the identity the live binding recorded.
 	deployment := umpirebinding.Deployment{Namespace: binding.Namespace, TaskQueue: binding.TaskQueue, NexusEndpoint: binding.NexusEndpoint}
 	prepare := func(identity string, source *testpilotpb.Case) (*testpilot.PreparedCase, error) {
 		prepared, err := umpirebinding.Prepare(deployment, umpirebinding.HandlerQueue(deployment), identity, source)

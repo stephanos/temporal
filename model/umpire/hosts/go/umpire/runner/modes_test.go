@@ -42,7 +42,22 @@ func TestWaitsEndInDriverFaults(t *testing.T) {
 		requireRefused(t, run, 1, "driver: no deployment")
 		requireReplays(t, wasm, run)
 	})
-	t.Run("interrupted", func(t *testing.T) {
+	t.Run("interrupted while starting", func(t *testing.T) {
+		for range 50 {
+			ctx, cancel := context.WithCancel(context.Background())
+			h := newHarness(t, wasm, func(int) *fakeDriver { return &fakeDriver{script: good, delay: time.Second, onStart: cancel} })
+			_, err := h.runner().Run(ctx, ModeExplore, configured(1))
+			cancel()
+			if !errors.Is(err, context.Canceled) {
+				t.Fatalf("interrupted Run: %v", err)
+			}
+			exchanges := h.drivers[0].all()
+			if len(exchanges) != 1 || !exchanges[0].joined() {
+				t.Fatalf("the interrupted exchange was not closed and joined when Run returned (%d exchanges)", len(exchanges))
+			}
+		}
+	})
+	t.Run("interrupted while waiting", func(t *testing.T) {
 		ctx, cancel := context.WithCancel(context.Background())
 		defer cancel()
 		interrupt := func() { time.AfterFunc(10*time.Millisecond, cancel) }
@@ -184,6 +199,14 @@ func TestReplayRejectsAlteredRuns(t *testing.T) {
 			run.Events = run.Events[:9]
 			run.Verdict = &runv1.Verdict{Outcome: &runv1.Verdict_Explained{Explained: &runv1.Explained{Termination: runv1.Termination_TERMINATION_QUESTION}}}
 		}, 9, "termination does not fit"},
+		{"no events, labeled question", func(run *Run) {
+			run.Events = nil
+			run.Verdict = &runv1.Verdict{Outcome: &runv1.Verdict_Explained{Explained: &runv1.Explained{Termination: runv1.Termination_TERMINATION_QUESTION}}}
+		}, 0, "begins with its Reset"},
+		{"no events, labeled an empty event budget", func(run *Run) {
+			run.Events = nil
+			run.Verdict = &runv1.Verdict{Outcome: &runv1.Verdict_Explained{Explained: &runv1.Explained{Termination: runv1.Termination_TERMINATION_EVENT_BUDGET}}}
+		}, 0, "begins with its Reset"},
 		{"budget claimed for a quiescent Run", func(run *Run) {
 			run.Events = run.Events[:9]
 			run.Verdict = &runv1.Verdict{Outcome: &runv1.Verdict_Explained{Explained: &runv1.Explained{Termination: runv1.Termination_TERMINATION_QUIESCENT}}}

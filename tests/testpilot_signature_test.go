@@ -18,15 +18,15 @@ import (
 	"google.golang.org/protobuf/proto"
 )
 
-// umpireRepeatRunDirVariable names the directory umpire-repeat collects every closed Run of the
-// affected live tests in; unset, nothing is written.
+// umpireRepeatRunDirVariable names a directory that collects every closed Run of the affected
+// live tests; unset, nothing is written.
 const umpireRepeatRunDirVariable = "UMPIRE_REPEAT_RUN_DIR"
 
 var capturedRunCount atomic.Int64
 
 // requireSigned runs check and, when check fails the test, logs the signature sign builds for
 // assertion, so one failing run tells its cause without a rerun. A test that had already failed is
-// not signed again: the first signature line is the one umpire-repeat counts.
+// not signed again: the first signature line is the one that counts.
 func requireSigned(t testing.TB, assertion string, sign func(assertion string) recordedrun.Signature, check func()) {
 	t.Helper()
 	failedBefore := t.Failed()
