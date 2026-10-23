@@ -258,7 +258,7 @@
         "storage-selection/native-deep-detachment"
       ],
       "native_assertions": [
-        "durable default, empty selection and declared-volume refusal; real StorageInput projection detaches selection map, context byte buffer and limits"
+        "durable default, empty selection and declared-volume refusal; actual storage_input-owned StorageInput projection detaches selection map, context byte buffer and limits; repeated projection/source bytes unchanged"
       ],
       "remaining_or_retired_semantics": [
         "Go per-selection nil map entries are retired: native selection type Vec cannot represent nil distinct from empty."
@@ -381,10 +381,11 @@
       "native_cases": [
         "soft/invalid-utf8/report-only=*",
         "soft/offered-mismatch/report-only=*",
-        "soft/missing-execution/report-only=*"
+        "soft/missing-execution/report-only=*",
+        "soft/unstarted-unrequested"
       ],
       "native_assertions": [
-        "invalidUTF8 and offered/captured mismatch never pass either policy; missing execution causal fix"
+        "invalidUTF8 and offered/captured mismatch never pass either policy; absent explicit policy is inconclusive, while unstarted unrequested incarnation has no synthetic oracle/failure identity"
       ],
       "remaining_or_retired_semantics": [],
       "claim": "source-backed native predicates; no root PASS certification"
@@ -410,15 +411,19 @@
         "retained-cluster"
       ],
       "native_cases": [
-        "soft/*",
-        "decode/host-oracles"
+        "retained-oracle/valid",
+        "retained-oracle/forged-message",
+        "retained-oracle/forged-instance",
+        "retained-oracle/missing-output",
+        "retained-oracle/forged-digest",
+        "retained-oracle/generic",
+        "retained-oracle/mixed",
+        "retained-oracle/truncated-pass"
       ],
       "native_assertions": [
-        "assessment derives messages/instance/status from actual execution output; closed native configuration refuses caller generic oracles"
+        "record-bound actual stdout/stderr+summary rederive complete report before helper preparation; independently resealed message/instance/digest/generic/mixed/truncation forgeries rejected by precise semantic guard"
       ],
-      "remaining_or_retired_semantics": [
-        "Explicit forged retained cluster_oracles stream reseal matrix (message/instance/output/digest/generic/mixed/truncated) remains to be added; existing oracle replay divergence test alone is not credited."
-      ],
+      "remaining_or_retired_semantics": [],
       "claim": "source-backed native predicates; no root PASS certification"
     },
     {
@@ -429,14 +434,14 @@
       ],
       "native_cases": [
         "soft/literal-json/report-only=*",
-        "soft/literal-tagged/report-only=*"
+        "soft/literal-tagged/report-only=*",
+        "retained-oracle/literal-json/shortened=*",
+        "retained-oracle/literal-tagged/shortened=*"
       ],
       "native_assertions": [
         "complete literal braces and tagged log messages rederived under both policies, evidence preimages/raw hashes available"
       ],
-      "remaining_or_retired_semantics": [
-        "Explicit retained forged shortened-message rejection belongs to remaining forged-report matrix."
-      ],
+      "remaining_or_retired_semantics": [],
       "claim": "source-backed native predicates; no root PASS certification"
     },
     {
@@ -447,14 +452,14 @@
       ],
       "native_cases": [
         "soft/offered-mismatch/report-only=*",
-        "soft/capacity-equal-counters/report-only=*"
+        "soft/capacity-equal-counters/report-only=*",
+        "retained-oracle/truncated-inconclusive/report-only=*",
+        "retained-oracle/truncated-pass"
       ],
       "native_assertions": [
         "truncated/offered mismatch and capacity observations produce inconclusive failed oracle under both policies"
       ],
-      "remaining_or_retired_semantics": [
-        "Retained forged passing oracle admission is part of remaining forged-report matrix."
-      ],
+      "remaining_or_retired_semantics": [],
       "claim": "source-backed native predicates; no root PASS certification"
     },
     {

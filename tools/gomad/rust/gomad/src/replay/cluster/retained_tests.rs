@@ -307,14 +307,22 @@ struct ReaderFixture {
 impl ReaderFixture {
     fn new(mut publication: crate::evidence::store::Publication) -> Self {
         if let Some(raw) = publication.payloads.get(FILE) {
-            publication.record.streams.insert(
-                FILE.into(),
-                crate::evidence::record::Stream {
+            let stream = publication
+                .record
+                .streams
+                .entry(FILE.into())
+                .or_insert_with(|| crate::evidence::record::Stream {
                     bytes: raw.len() as u64,
                     sha256: canonical::digest(raw),
                     records: 0,
-                },
-            );
+                });
+            stream.bytes = raw.len() as u64;
+            stream.sha256 = canonical::digest(raw);
+        }
+        if publication.payloads.contains_key("record.json") {
+            publication
+                .payloads
+                .insert("record.json".into(), publication.record.bytes().unwrap());
         }
         let root = std::env::temp_dir().join(format!(
             "gomad-retained-reader-{}",
@@ -684,7 +692,7 @@ fn retained_target_reader_refuses_missing_tampered_and_symbolic_sources() {
 }
 
 #[test]
-fn native_storage_selection_projection_is_detached() {
+fn native_storage_selection_requires_declared_volumes_and_preserves_defaults() {
     let (mut configuration, _) = super::projection_tests::configuration();
     let item = &mut configuration.incarnations[0];
     let selection = BTreeMap::from([
@@ -702,19 +710,10 @@ fn native_storage_selection_projection_is_detached() {
     assert!(super::storage_input(item).unwrap().is_none());
     item.storage_crash_selection = Some(BTreeMap::new());
     assert!(super::storage_input(item).unwrap().is_none());
-    let mut detached = item.clone();
-    detached.storage_crash_selection = Some(selection.clone());
-    detached
-        .storage_crash_selection
-        .as_mut()
-        .unwrap()
-        .get_mut("volume")
-        .unwrap()[0] = 99;
-    assert!(item.storage_crash_selection.as_ref().unwrap().is_empty());
     observation(
         "storage-selection/native-ownership",
         json!({"selection":selection}),
-        json!({"original":item.storage_crash_selection,"detached":detached.storage_crash_selection,"durable_default":super::storage_input(item).unwrap().is_none()}),
+        json!({"original":item.storage_crash_selection,"durable_default":super::storage_input(item).unwrap().is_none()}),
     );
 }
 
@@ -811,4 +810,296 @@ fn native_storage_projection_detaches_selection_context_and_limits() {
         json!({"original_incarnation_base64":crate::campaign::exploration::base64(&before)}),
         json!({"projected":projected,"detached":detached,"reprojected":again,"original_after_base64":crate::campaign::exploration::base64(&canonical::encode(&item).unwrap())}),
     );
+}
+
+#[test]
+fn unstarted_unrequested_test_incarnation_does_not_gain_an_oracle() {
+    let mut configuration = soft_configuration(false);
+    configuration.oracle_plan = None;
+    let mut execution = soft_execution(&configuration, b"PASS", b"");
+    execution.incarnations.clear();
+    let report =
+        serde_json::to_value(oracles::assess(&execution, &configuration).unwrap()).unwrap();
+    assert!(report["oracles"].as_array().unwrap().is_empty());
+    assert_eq!(report["outcome"], "completed");
+    assert_eq!(report["failure_identity"], "");
+    observation(
+        "soft/unstarted-unrequested",
+        json!({"configured_handle":configuration.incarnations[0].handle,"incarnations":[],"oracle_plan":null}),
+        report,
+    );
+}
+
+fn soft_publication(
+    stdout: &[u8],
+    stderr: &[u8],
+    offered: u64,
+    report_only: bool,
+) -> crate::evidence::store::Publication {
+    let mut publication = metadata_publication();
+    let mut inputs: Inputs = serde_json::from_slice(&publication.payloads[FILE]).unwrap();
+    inputs.configuration.incarnations[0].workload_kind = "go-test".into();
+    inputs.configuration.oracle_plan = soft_configuration(report_only).oracle_plan;
+    let handle = inputs.configuration.incarnations[0].handle.clone();
+    let mut execution = soft_execution(&inputs.configuration, stdout, stderr);
+    execution.incarnations[0].execution.outcome.output_bytes = offered;
+    let mut streams = serde_json::Map::new();
+    for (name, raw) in [("stdout", stdout), ("stderr", stderr)] {
+        let file = format!(
+            "evidence/cluster/{}/{}/{name}",
+            handle.node, handle.incarnation
+        );
+        let descriptor = Payload {
+            file: file.clone(),
+            bytes: raw.len() as u64,
+            sha256: canonical::digest(raw),
+            limit: inputs.configuration.limits.output_bytes,
+        };
+        streams.insert(
+            name.into(),
+            json!({"bytes":raw.len(),"sha256":descriptor.sha256}),
+        );
+        inputs.retained[0].evidence.insert(name.into(), descriptor);
+        publication.payloads.insert(file, raw.to_vec());
+    }
+    let summary = json!({"schema":"gomad.cluster-observation/v1","incarnations":[{
+        "handle":handle,"termination":"exit","exit_code":0,"reason":"","streams":streams,
+        "offered_output_bytes":offered,"interrupted":false,"local_model":null}],
+        "world_sha256":canonical::digest(&[]),"network_sha256":canonical::digest(&[]),"virtual_elapsed_nanos":0});
+    publication.payloads.insert(
+        "evidence/cluster_summary".into(),
+        canonical::encode(&summary).unwrap(),
+    );
+    let report = oracles::assess(&execution, &inputs.configuration).unwrap();
+    publication.payloads.insert(
+        "evidence/cluster_oracles".into(),
+        canonical::encode(&report).unwrap(),
+    );
+    publication
+        .payloads
+        .insert(FILE.into(), canonical::encode(&inputs).unwrap());
+    publication.record.identity.configuration =
+        canonical::digest(&canonical::encode(&inputs.configuration).unwrap());
+    publication.record.execution_identity = publication.record.identity.digest().unwrap();
+    reseal_evidence(&mut publication);
+    publication
+}
+
+fn reseal_evidence(publication: &mut crate::evidence::store::Publication) {
+    for (file, raw) in &publication.payloads {
+        if file.starts_with("evidence/") {
+            publication.record.streams.insert(
+                file.clone(),
+                crate::evidence::record::Stream {
+                    bytes: raw.len() as u64,
+                    sha256: canonical::digest(raw),
+                    records: 0,
+                },
+            );
+        }
+    }
+}
+
+fn reseal_oracle_report(report: &mut Value) {
+    for oracle in report["oracles"].as_array_mut().unwrap() {
+        oracle["identity"] = json!("");
+        oracle["failure_identity"] = json!("");
+        if oracle["passed"] != true {
+            oracle["failure_identity"] = json!(canonical::digest(
+                &canonical::encode(&json!({"name":oracle["name"],"evidence":oracle["evidence"]}))
+                    .unwrap()
+            ));
+        }
+        oracle["identity"] = json!(canonical::digest(&canonical::encode(oracle).unwrap()));
+    }
+    let failed: Vec<_> = report["oracles"]
+        .as_array()
+        .unwrap()
+        .iter()
+        .filter(|item| item["passed"] != true)
+        .cloned()
+        .collect();
+    report["failure_identity"] = json!(if failed.is_empty() {
+        String::new()
+    } else {
+        canonical::digest(&canonical::encode(&failed).unwrap())
+    });
+}
+
+#[test]
+fn retained_oracle_report_is_rederived_from_authenticated_actual_outputs() {
+    for case in [
+        "valid",
+        "forged-message",
+        "forged-instance",
+        "missing-output",
+        "forged-digest",
+        "generic",
+        "mixed",
+        "truncated-pass",
+    ] {
+        let stderr = b"failed assertion: invalid state\n";
+        let mut publication = soft_publication(b"PASS\n", stderr, (5 + stderr.len()) as u64, false);
+        let control = ReaderFixture::new(soft_publication(
+            b"PASS\n",
+            stderr,
+            (5 + stderr.len()) as u64,
+            false,
+        ));
+        let opened = control.open();
+        let inputs = super::inputs(&opened).unwrap();
+        super::bind(&opened, &inputs).unwrap();
+        oracles::authenticate_retained(&opened, &inputs).unwrap();
+        let mut inputs: Inputs = serde_json::from_slice(&publication.payloads[FILE]).unwrap();
+        let mut summary: Value =
+            serde_json::from_slice(&publication.payloads["evidence/cluster_summary"]).unwrap();
+        let mut report: Value =
+            serde_json::from_slice(&publication.payloads["evidence/cluster_oracles"]).unwrap();
+        match case {
+            "valid" => (),
+            "forged-message" => {
+                let raw = canonical::encode(&json!(["forged invariant"])).unwrap();
+                report["oracles"][0]["evidence"][1]["value"] =
+                    json!(crate::campaign::exploration::base64(&raw));
+                report["oracles"][0]["evidence"][1]["full_sha256"] = json!(canonical::digest(&raw));
+            }
+            "forged-instance" => {
+                report["oracles"][0]["name"] = json!(format!(
+                    "soft-assertion.instance-{}",
+                    canonical::digest(b"foreign/1")
+                ));
+                report["oracles"][0]["evidence"][0]["value"] =
+                    json!(crate::campaign::exploration::base64(b"foreign/1"));
+                report["oracles"][0]["evidence"][0]["full_sha256"] =
+                    json!(canonical::digest(b"foreign/1"));
+            }
+            "missing-output" => {
+                inputs.retained[0].evidence.clear();
+            }
+            "forged-digest" => {
+                inputs.retained[0]
+                    .evidence
+                    .get_mut("stderr")
+                    .unwrap()
+                    .sha256 = canonical::digest(b"forged output");
+                summary["incarnations"][0]["streams"]["stderr"]["sha256"] =
+                    json!(canonical::digest(b"forged output"));
+            }
+            "generic" | "mixed" => {
+                let generic = json!({"name":"generic","passed":false,"inconclusive":false,"soft_assertion":false,"report_only":false,"evidence":[],"failure_identity":"","identity":""});
+                if case == "generic" {
+                    report["oracles"] = json!([generic]);
+                } else {
+                    report["oracles"].as_array_mut().unwrap().push(generic);
+                }
+            }
+            "truncated-pass" => {
+                summary["incarnations"][0]["offered_output_bytes"] = json!(100);
+            }
+            _ => unreachable!(),
+        }
+        reseal_oracle_report(&mut report);
+        publication
+            .payloads
+            .insert(FILE.into(), canonical::encode(&inputs).unwrap());
+        publication.payloads.insert(
+            "evidence/cluster_summary".into(),
+            canonical::encode(&summary).unwrap(),
+        );
+        publication.payloads.insert(
+            "evidence/cluster_oracles".into(),
+            canonical::encode(&report).unwrap(),
+        );
+        reseal_evidence(&mut publication);
+        let fixture = ReaderFixture::new(publication);
+        let opened = fixture.open();
+        opened.authenticate_all().unwrap();
+        let inputs = super::inputs(&opened).unwrap();
+        super::bind(&opened, &inputs).unwrap();
+        let error = oracles::authenticate_retained(&opened, &inputs).err();
+        assert_eq!(error.is_none(), case == "valid", "{case}: {error:?}");
+        if let Some(error) = &error {
+            assert_eq!(
+                error,
+                match case {
+                    "missing-output" => "retained cluster oracle output summary binding mismatch",
+                    "forged-digest" => "retained cluster payload identity mismatch",
+                    _ => "retained cluster oracle report differs from actual output",
+                }
+            );
+        }
+        observation(
+            &format!("retained-oracle/{case}"),
+            json!({"retained_inputs":inputs,"summary":summary,"report":report,"stdout_base64":crate::campaign::exploration::base64(b"PASS\n"),"stderr_base64":crate::campaign::exploration::base64(stderr)}),
+            json!({"error":error}),
+        );
+    }
+}
+
+#[test]
+fn retained_inconclusive_and_literal_braces_are_rederived_without_shortening() {
+    for (case, output, message) in [
+        (
+            "literal-json",
+            r#"failed assertion: invalid {"left":1}"#,
+            r#"invalid {"left":1}"#,
+        ),
+        (
+            "literal-tagged",
+            "2000-01-01\terror\tfailed assertion: invalid {state}\t{\"failed-assertion\":true}",
+            "invalid {state}",
+        ),
+    ] {
+        for shortened in [false, true] {
+            let mut publication =
+                soft_publication(b"", output.as_bytes(), output.len() as u64, false);
+            if shortened {
+                let mut report: Value =
+                    serde_json::from_slice(&publication.payloads["evidence/cluster_oracles"])
+                        .unwrap();
+                let raw = canonical::encode(&json!(["invalid"])).unwrap();
+                report["oracles"][0]["evidence"][1]["value"] =
+                    json!(crate::campaign::exploration::base64(&raw));
+                report["oracles"][0]["evidence"][1]["full_sha256"] = json!(canonical::digest(&raw));
+                reseal_oracle_report(&mut report);
+                publication.payloads.insert(
+                    "evidence/cluster_oracles".into(),
+                    canonical::encode(&report).unwrap(),
+                );
+                reseal_evidence(&mut publication);
+            }
+            let fixture = ReaderFixture::new(publication);
+            let opened = fixture.open();
+            let inputs = super::inputs(&opened).unwrap();
+            let error = oracles::authenticate_retained(&opened, &inputs).err();
+            assert_eq!(error.is_some(), shortened);
+            if shortened {
+                assert_eq!(
+                    error.as_deref(),
+                    Some("retained cluster oracle report differs from actual output")
+                );
+            }
+            observation(
+                &format!("retained-oracle/{case}/shortened={shortened}"),
+                json!({"stderr_base64":crate::campaign::exploration::base64(output.as_bytes()),"expected_message":message,"retained_report_base64":crate::campaign::exploration::base64(&opened.payload("evidence/cluster_oracles",1<<20).unwrap())}),
+                json!({"error":error}),
+            );
+        }
+    }
+    for report_only in [false, true] {
+        let fixture = ReaderFixture::new(soft_publication(b"", b"", 100, report_only));
+        let opened = fixture.open();
+        let inputs = super::inputs(&opened).unwrap();
+        oracles::authenticate_retained(&opened, &inputs).unwrap();
+        let report: Value =
+            serde_json::from_slice(&opened.payload("evidence/cluster_oracles", 1 << 20).unwrap())
+                .unwrap();
+        assert_eq!(report["oracles"][0]["passed"], false);
+        assert_eq!(report["oracles"][0]["inconclusive"], true);
+        observation(
+            &format!("retained-oracle/truncated-inconclusive/report-only={report_only}"),
+            json!({"stdout_base64":"","stderr_base64":"","offered_bytes":100}),
+            report,
+        );
+    }
 }

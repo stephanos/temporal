@@ -630,6 +630,7 @@ pub fn prepare(opened: Opened, control: Option<&inspection::Request>) -> Result<
         }
         incarnations.push(incarnation(&opened, &inputs, item, retained, control)?);
     }
+    oracles::authenticate_retained(&opened, &inputs)?;
     if let Some(control) = &control {
         let raw = opened.payload("evidence/inspection", inspection::MAX_METADATA as u64)?;
         let evidence = inspection::Evidence::decode(&raw).map_err(|error| error.to_string())?;

@@ -364,6 +364,15 @@ pub(crate) fn assess(
             .incarnations
             .iter()
             .find(|item| item.handle == incarnation.handle);
+        if item.is_none()
+            && !configuration.oracle_plan.as_ref().is_some_and(|plan| {
+                plan.soft_assertions
+                    .iter()
+                    .any(|policy| policy.handle == incarnation.handle)
+            })
+        {
+            continue;
+        }
         if let Some(report) = soft_assertions::observe(
             item.and_then(|item| item.execution.evidence.get("stdout"))
                 .map_or(&[], Vec::as_slice),
@@ -612,4 +621,152 @@ mod replay_tests {
             Some("backend.evidence.sha256")
         );
     }
+}
+
+pub(crate) fn authenticate_retained(
+    opened: &crate::evidence::store::Opened,
+    inputs: &super::Inputs,
+) -> Result<(), String> {
+    const REPORT: &str = "evidence/cluster_oracles";
+    const SUMMARY: &str = "evidence/cluster_summary";
+    let configuration = &inputs.configuration;
+    let has_intent = configuration.oracle_plan.is_some()
+        || configuration
+            .incarnations
+            .iter()
+            .any(|item| item.workload_kind == "go-test");
+    if !has_intent {
+        return if opened.manifest().record.streams.contains_key(REPORT) {
+            Err("retained cluster oracle report lacks recorded workload intent".into())
+        } else {
+            Ok(())
+        };
+    }
+    if !opened.manifest().record.streams.contains_key(SUMMARY) {
+        return Err(
+            "retained cluster oracle assessment requires record-bound actual summary".into(),
+        );
+    }
+    let summary: serde_json::Value =
+        serde_json::from_slice(&opened.payload(SUMMARY, configuration.limits.evidence_bytes)?)
+            .map_err(|error| format!("retained cluster oracle summary: {error}"))?;
+    if summary["schema"] != "gomad.cluster-observation/v1" {
+        return Err("unsupported retained cluster oracle summary".into());
+    }
+    let rows = summary["incarnations"]
+        .as_array()
+        .ok_or("invalid retained cluster oracle incarnations")?;
+    let mut handles = BTreeSet::new();
+    let mut incarnations = Vec::new();
+    for row in rows {
+        let handle: helper::Handle = serde_json::from_value(row["handle"].clone())
+            .map_err(|error| format!("retained cluster oracle handle: {error}"))?;
+        if !handles.insert(handle.clone()) {
+            return Err("duplicate retained cluster oracle incarnation".into());
+        }
+        let retained = inputs
+            .retained
+            .iter()
+            .find(|item| item.handle == handle)
+            .ok_or("retained cluster oracle summary has unknown incarnation")?;
+        let item = configuration
+            .incarnations
+            .iter()
+            .find(|item| item.handle == handle)
+            .ok_or("retained cluster oracle summary lacks configured incarnation")?;
+        if row["interrupted"].as_bool() != Some(retained.interrupted) {
+            return Err("retained cluster oracle interruption mismatch".into());
+        }
+        let mut evidence = BTreeMap::new();
+        for name in ["stdout", "stderr"] {
+            match (retained.evidence.get(name), row["streams"].get(name)) {
+                (None, None) => (),
+                (Some(descriptor), Some(observed))
+                    if observed["bytes"].as_u64() == Some(descriptor.bytes)
+                        && observed["sha256"].as_str() == Some(descriptor.sha256.as_str()) =>
+                {
+                    if !opened
+                        .manifest()
+                        .record
+                        .streams
+                        .contains_key(&descriptor.file)
+                    {
+                        return Err("retained cluster oracle output is not record bound".into());
+                    }
+                    evidence.insert(
+                        name.into(),
+                        descriptor.read(opened, item.limits.output_bytes)?,
+                    );
+                }
+                _ => return Err("retained cluster oracle output summary binding mismatch".into()),
+            }
+        }
+        let termination = row["termination"]
+            .as_str()
+            .ok_or("missing retained cluster oracle termination")?;
+        // Completeness distinguishes these interruptions; all other terminal classes use the same captured-byte rule.
+        let completeness = match termination {
+            "capacity" => "capacity",
+            "cancelled" => "cancelled",
+            "watchdog_timeout" => "watchdog_timeout",
+            _ => "exit",
+        };
+        let mut outcome = linked::Outcome::new(
+            completeness,
+            row["reason"]
+                .as_str()
+                .ok_or("missing retained cluster oracle reason")?,
+        );
+        outcome.output_bytes = row["offered_output_bytes"]
+            .as_u64()
+            .ok_or("missing retained cluster oracle offered output count")?;
+        outcome.local_model =
+            (!row["local_model"].is_null()).then(|| Box::new(row["local_model"].clone()));
+        incarnations.push(helper::IncarnationResult {
+            handle,
+            interrupted: retained.interrupted,
+            execution: linked::Execution {
+                terminal_monotonic_nanos: None,
+                admission_terminal_to_return_nanos: None,
+                timing: None,
+                #[cfg(feature = "helper-guest-profile")]
+                guest_profile_error: None,
+                #[cfg(feature = "helper-diagnostic-profile")]
+                external_owner_attempts: 0,
+                authorization_to_terminal_nanos: None,
+                outcome,
+                evidence,
+                event_order: None,
+            },
+        });
+    }
+    if handles.len() != inputs.retained.len() {
+        return Err("retained cluster oracle summary omits incarnation".into());
+    }
+    let execution = helper::Execution {
+        outcome: linked::Outcome::new("exit", ""),
+        incarnations,
+        executed_steps: vec![],
+        world: vec![],
+        network: vec![],
+        inspection: vec![],
+        virtual_elapsed_nanos: 0,
+        event_order: None,
+    };
+    let report = assess(&execution, configuration)?;
+    if report.oracles.is_empty() {
+        return if opened.manifest().record.streams.contains_key(REPORT) {
+            Err("retained cluster oracle report differs from actual output".into())
+        } else {
+            Ok(())
+        };
+    }
+    if !opened.manifest().record.streams.contains_key(REPORT) {
+        return Err("missing retained cluster oracle report".into());
+    }
+    let actual = opened.payload(REPORT, configuration.limits.evidence_bytes)?;
+    if actual != canonical::encode(&report)? {
+        return Err("retained cluster oracle report differs from actual output".into());
+    }
+    Ok(())
 }
