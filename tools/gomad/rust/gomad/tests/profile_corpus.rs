@@ -291,7 +291,11 @@ fn standalone_cutoffs(root: &Path) {
     );
     assert_eq!(
         read(&output.join("outcome.json"))["termination"],
-        "capacity"
+        if cfg!(feature = "helper-diagnostic-fuel-off") {
+            "watchdog_timeout"
+        } else {
+            "capacity"
+        }
     );
     gomad::profile::validate(&read(&output.join("profile.json"))).unwrap();
     let mut timeout = guest(&module, 1_000_000_000_000);

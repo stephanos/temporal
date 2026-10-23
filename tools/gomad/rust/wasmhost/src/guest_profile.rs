@@ -15,6 +15,8 @@ pub struct Config {
     pub max_samples: u64,
 }
 impl Config {
+    /// # Errors
+    /// Refuses relative output paths and sampling bounds outside the supported range.
     pub fn validate(&self) -> Result<()> {
         if !std::path::Path::new(&self.path).is_absolute()
             || !(1..=1_000_000).contains(&self.interval_micros)

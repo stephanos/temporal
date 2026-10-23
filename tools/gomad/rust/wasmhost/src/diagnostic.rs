@@ -706,7 +706,10 @@ impl LinkedProfile {
                 .as_object()
                 .and_then(|ops| ops.keys().next_back().cloned())
             {
-                report["abi_ops"].as_object_mut().unwrap().remove(&name);
+                report["abi_ops"]
+                    .as_object_mut()
+                    .ok_or("diagnostic operation rows absent")?
+                    .remove(&name);
             } else {
                 return Err("diagnostic report capacity".into());
             }
@@ -836,6 +839,7 @@ pub struct PhaseSpan {
     frame: Option<usize>,
 }
 impl PhaseSpan {
+    #[must_use]
     pub fn new(phase: Phase) -> Self {
         let mut previous = None;
         let active = with(|profile| previous = profile.active_phase.replace(phase)).is_some();
@@ -900,7 +904,13 @@ impl Drop for PhaseSpan {
 /// helper code: inside `Execute` it closes the guest gap since the previous
 /// import and times the whole host side of this one.
 pub struct ImportBoundary(Option<Instant>);
+impl Default for ImportBoundary {
+    fn default() -> Self {
+        Self::new()
+    }
+}
 impl ImportBoundary {
+    #[must_use]
     pub fn new() -> Self {
         Self(with(|profile| {
             let now = Instant::now();
@@ -952,6 +962,7 @@ impl Drop for ImportBoundary {
 /// `serve`, and the coarse v1 ABI kind.
 pub struct AbiSpan(Option<usize>);
 impl AbiSpan {
+    #[must_use]
     pub fn new(op: crate::abi::Operation, local: bool) -> Self {
         let (module, name) = (op.module(), op.name());
         let kind = if !local && name != "proc_exit" {
@@ -1062,6 +1073,7 @@ pub fn remote_callback() {
 /// subtracted from the import's owner.
 pub struct OwnerSpan(Option<usize>);
 impl OwnerSpan {
+    #[must_use]
     pub fn new(owner: Owner) -> Self {
         Self(with(|profile| profile.push(Some(owner), None, Instant::now())).flatten())
     }
@@ -1093,9 +1105,11 @@ impl WallSpan {
         .flatten();
         Self { kind, timer, frame }
     }
+    #[must_use]
     pub fn new(kind: Nested) -> Self {
         Self::open(kind, |_| true)
     }
+    #[must_use]
     pub fn remote_write() -> Self {
         Self::open(Nested::RemoteWrite, |profile| profile.remote_send)
     }
@@ -1117,7 +1131,13 @@ impl Drop for WallSpan {
     }
 }
 pub struct RemoteSend;
+impl Default for RemoteSend {
+    fn default() -> Self {
+        Self::new()
+    }
+}
 impl RemoteSend {
+    #[must_use]
     pub fn new() -> Self {
         with(|profile| profile.remote_send = true);
         Self

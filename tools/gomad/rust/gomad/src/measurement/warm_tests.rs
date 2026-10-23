@@ -38,7 +38,7 @@ fn observation(index: usize) -> Observation {
     Observation {
         execution: Execution {
             timing: Some(gomad_wasmhost::linked::ExecutionTiming {
-                authorization_started: terminal - Duration::from_nanos(10),
+                authorization_started: terminal.checked_sub(Duration::from_nanos(10)).unwrap(),
                 terminal_classified: terminal,
                 returned: terminal + Duration::from_nanos(100),
             }),
@@ -404,7 +404,7 @@ fn retained_collector_refuses_missing_timing_source_and_altered_cache_or_closure
 fn direct_native_timing_cannot_understate_the_one_second_boundary() {
     let mut observed = observation(1);
     let terminal = observed.teardown.terminal;
-    let returned = terminal + Duration::from_nanos(1_000_500_000);
+    let returned = terminal + Duration::from_micros(1_000_500);
     observed.execution.timing.as_mut().unwrap().returned = returned;
     observed.teardown.returned = returned;
     observed.teardown.recorded_nanos = 1_000_000_000;
@@ -413,4 +413,19 @@ fn direct_native_timing_cannot_understate_the_one_second_boundary() {
     run.observed_teardown_nanos = 1_000_500_000;
     run.teardown_nanos = 1_000_000_000;
     assert!(run.validate(true, false).is_err());
+}
+
+#[test]
+fn direct_native_timing_requires_positive_signed_interval() {
+    let mut observed = observation(1);
+    observed.teardown.returned = observed.teardown.terminal;
+    observed.teardown.recorded_nanos = 0;
+    observed.execution.timing.as_mut().unwrap().returned = observed.teardown.terminal;
+    assert!(Run::observed(observed).is_err());
+    for interval in [0, u64::try_from(i64::MAX).unwrap() + 1] {
+        let mut run = Run::observed(observation(1)).unwrap();
+        run.observed_teardown_nanos = interval;
+        run.teardown_nanos = interval;
+        assert!(run.validate(false, false).is_err());
+    }
 }

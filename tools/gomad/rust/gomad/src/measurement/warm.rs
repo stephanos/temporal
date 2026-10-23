@@ -301,7 +301,12 @@ impl Run {
             .ok_or("native teardown clocks are reversed")?;
         let observed_teardown_nanos =
             u64::try_from(elapsed.as_nanos()).map_err(|_| "native teardown interval overflow")?;
-        if observed_teardown_nanos != observation.teardown.recorded_nanos {
+        if observed_teardown_nanos != observation.teardown.recorded_nanos
+            || !super::statistics::reap_consistent(
+                observed_teardown_nanos,
+                observation.teardown.recorded_nanos,
+            )
+        {
             return Err("native terminal-to-teardown interval is inconsistent".into());
         }
         Ok(Self {
@@ -338,6 +343,10 @@ impl Run {
                 && teardown <= self.wall_nanos
         } else {
             self.observed_teardown_nanos == self.teardown_nanos
+                && super::statistics::reap_consistent(
+                    self.observed_teardown_nanos,
+                    self.teardown_nanos,
+                )
         };
         let metrics = &self.raw_outcome["metrics"];
         if self.raw_outcome["termination"] != "exit"

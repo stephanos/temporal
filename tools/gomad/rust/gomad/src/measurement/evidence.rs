@@ -417,7 +417,11 @@ pub fn campaign_payloads(path: &Path, bound: u64) -> Result<BTreeMap<String, Vec
     Ok(payloads)
 }
 
-fn outcome_projection(outcome: &Value, observational: bool) -> Result<Value, String> {
+fn outcome_projection(
+    outcome: &Value,
+    observational: bool,
+    mask_fuel: bool,
+) -> Result<Value, String> {
     validate_outcome(outcome)?;
     let mut projected = outcome.clone();
     projected
@@ -428,7 +432,9 @@ fn outcome_projection(outcome: &Value, observational: bool) -> Result<Value, Str
         let object = projected
             .as_object_mut()
             .ok_or("native outcome must be an object")?;
-        object.remove("fuel_remaining");
+        if mask_fuel {
+            object.remove("fuel_remaining");
+        }
         object.remove("peak_memory_bytes");
     }
     Ok(projected)
@@ -726,6 +732,19 @@ pub fn compare(
             ..
         } => (None, Some((baseline, candidate)), true),
     };
+    let mask_fuel = match mask {
+        ComparisonMask::FuelOff | ComparisonMask::Gowasm { .. } => true,
+        ComparisonMask::Variant {
+            baseline,
+            candidate,
+            gc,
+        } => {
+            gc.is_some()
+                || baseline == VariantRole::DiagnosticFuelOff
+                || candidate == VariantRole::DiagnosticFuelOff
+        }
+        _ => false,
+    };
     if let Some((baseline, candidate)) = roles {
         guard_role(before, baseline)?;
         guard_role(after, candidate)?;
@@ -805,8 +824,8 @@ pub fn compare(
         validate_binary_streams(a)?;
         if b.handle != a.handle
             || b.streams != a.streams
-            || outcome_projection(&b.outcome, observational)?
-                != outcome_projection(&a.outcome, observational)?
+            || outcome_projection(&b.outcome, observational, mask_fuel)?
+                != outcome_projection(&a.outcome, observational, mask_fuel)?
         {
             return Err("native terminal or retained behavior stream changed".into());
         }

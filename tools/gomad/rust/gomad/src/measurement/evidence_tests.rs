@@ -711,3 +711,36 @@ fn gc_variant_preserves_native_zero_bootstrap_string_declarations() {
         .is_err()
     );
 }
+
+#[test]
+fn diagnostic_and_sampling_comparisons_retain_original_exact_fuel_predicate() {
+    let root = fixture();
+    let mut before = root.read().unwrap();
+    let mut after = before.clone();
+    declare_variant_role(&mut before, VariantRole::Ordinary);
+    declare_variant_role(&mut after, VariantRole::DiagnosticProfile);
+    after.root.outcome["fuel_remaining"] =
+        json!(before.root.outcome["fuel_remaining"].as_u64().unwrap() + 1);
+    assert!(
+        compare(
+            &before,
+            &after,
+            ComparisonMask::Variant {
+                baseline: VariantRole::Ordinary,
+                candidate: VariantRole::DiagnosticProfile,
+                gc: None,
+            }
+        )
+        .is_err()
+    );
+    declare_variant_role(&mut before, VariantRole::GuestProfile);
+    declare_variant_role(&mut after, VariantRole::GuestProfile);
+    after.request["guest"]["guest_profile"] = json!({"interval_micros":1000,"max_samples":10000});
+    let sampling = || ComparisonMask::Sampling {
+        interval_micros: 1000,
+        max_samples: 10000,
+    };
+    assert!(compare(&before, &after, sampling()).is_err());
+    after.root.outcome["fuel_remaining"] = before.root.outcome["fuel_remaining"].clone();
+    compare(&before, &after, sampling()).unwrap();
+}

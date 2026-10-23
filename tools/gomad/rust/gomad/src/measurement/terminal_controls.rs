@@ -99,13 +99,15 @@ fn terminal_controls_typed_missing_and_invalid_native_timing_are_refused() {
         let mut observation = native_observation(Duration::ZERO, Duration::ZERO, false);
         if invalid {
             let timing = observation.execution.timing.as_mut().unwrap();
-            timing.returned = timing.terminal_classified - Duration::from_nanos(1);
+            timing.returned = timing
+                .terminal_classified
+                .checked_sub(Duration::from_nanos(1))
+                .unwrap();
         } else {
             observation.execution.timing = None;
         }
-        let error = match Run::observed(observation) {
-            Err(error) => error,
-            Ok(_) => panic!("invalid native terminal timing admitted"),
+        let Err(error) = Run::observed(observation) else {
+            panic!("invalid native terminal timing admitted");
         };
         assert!(error.contains("actual native terminal timing"), "{error}");
     }

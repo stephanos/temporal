@@ -412,14 +412,14 @@ fn execute(raw: &[u8], request: Input, root: &Path) -> Result<(), String> {
     #[cfg(not(feature = "helper-diagnostic-profile"))]
     let validation: Result<(), String> = Ok(());
     #[cfg(feature = "helper-diagnostic-profile")]
-    let namespace_counter=native_external_owner_attempts.map(|attempts| {
+    let namespace_counter=native_external_owner_attempts.and_then(|attempts| {
         let namespace_calls=profile.as_ref().and_then(|profile|profile["owners"]["namespace"]["count"].as_u64());
         namespace_calls.map(|calls|json!({"schema":"gomad.native-namespace-counter/v1",
             "implementation_sha256":linked::IMPLEMENTATION_SHA256,"fresh_store_id":std::process::id(),
             "counter_domain":"NoRemote::write callback-frame write attempts; not completed filesystem calls",
             "namespace_boundary":"helper-owned ABI namespace dispatch; fallback callbacks write through NoRemote",
             "namespace_calls":calls,"external_owner_calls":if attempts == 0 {std::collections::BTreeMap::new()} else {std::collections::BTreeMap::from([("linked-external-callback",attempts)])}}))
-    }).flatten();
+    });
     #[cfg(not(feature = "helper-diagnostic-profile"))]
     let namespace_counter: Option<Value> = None;
     let report: Value = json!({
