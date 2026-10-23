@@ -1,0 +1,32 @@
+{
+  "regression_test_commit": "95a373ac05",
+  "current_head": "95a373ac053a9de54eee020cfce4c4a0d96facc7",
+  "source_fix_uncommitted": true,
+  "scope": "Independent observation of focused actual-tool red/green results only; no full gate or live success claim.",
+  "entries": [
+    {
+      "path": ".flow/tmp/fn-211.1/review-start-assertion-red.log",
+      "bytes": 7778,
+      "sha256": "ec97ef26140458eae70c1c644ecb26dff62d244870a3afc25bad83be41fcd425",
+      "terminal_test_result": "test result: FAILED. 0 passed; 1 failed; 0 ignored; 0 measured; 8 filtered out; finished in 1.93s"
+    },
+    {
+      "path": ".flow/tmp/fn-211.1/review-condition-red.log",
+      "bytes": 7852,
+      "sha256": "513e0215d630f9c5928ec5ba5f9f8ca93a259ffe8b2c3842478b19e62c332063",
+      "terminal_test_result": "test result: FAILED. 0 passed; 1 failed; 0 ignored; 0 measured; 8 filtered out; finished in 1.97s"
+    },
+    {
+      "path": ".flow/tmp/fn-211.1/review-start-green.log",
+      "bytes": 1681,
+      "sha256": "fe61f5aef4bf5b448df17c6c189d107c1d3ec5b8a49852278a1ae546c868ffae",
+      "terminal_test_result": "test result: ok. 1 passed; 0 failed; 0 ignored; 0 measured; 8 filtered out; finished in 3.30s"
+    },
+    {
+      "path": ".flow/tmp/fn-211.1/review-condition-green.log",
+      "bytes": 896,
+      "sha256": "075a7ba402ebe2bc9429b945527423a07dfb0c22cfc2f6bc6217cffed769f461",
+      "terminal_test_result": "test result: ok. 1 passed; 0 failed; 0 ignored; 0 measured; 8 filtered out; finished in 3.03s"
+    }
+  ]
+}

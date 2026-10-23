@@ -1,0 +1,11 @@
+{
+  "checked_head": "141df3cc41d6e3cc732fc3884ccab4ab03205878",
+  "runtime_live_entries": 2181,
+  "runtime_live_equal_prior_git_bytes": true,
+  "prior_live_source": "fcbed683496e760acab514788f0e4be26dd55d2c",
+  "tla_artifacts_checked": 17,
+  "tla_proof": "Independent lexer preserves quoted strings and skips TLA line/nested block comments outside strings; only VARIABLE(S)/CONSTANT(S) grouping is normalized. Lexer adversarial controls passed.",
+  "tla_executable_tokens_and_declared_symbols_exact": true,
+  "initial_inconclusive": "Line-only normalizer did not support inline type comments, so it was replaced with TLA-aware lexical handling rather than treating that mismatch as semantic drift.",
+  "scope": "Pre-audit checkpoint only. Accepted upcoming front correction will invalidate unchanged-runtime/source reuse; new guest/live proof required."
+}

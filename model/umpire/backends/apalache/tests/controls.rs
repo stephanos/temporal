@@ -260,35 +260,63 @@ fn real_payload_identity_and_outcome_history_are_typed() -> Result<(), Box<dyn s
     Ok(())
 }
 
-#[path="fixtures/start_fault_first.rs"]mod start_fault_first;
-#[path="fixtures/start_empty_first.rs"]mod start_empty_first;
-#[path="fixtures/empty_condition.rs"]mod empty_condition;
+#[path = "fixtures/empty_condition.rs"]
+mod empty_body_fixture;
+#[path = "fixtures/start_empty_first.rs"]
+mod start_empty_first;
+#[path = "fixtures/start_fault_first.rs"]
+mod start_fault_first;
 
 #[test]
-fn real_start_evaluation_respects_field_order_before_empty_domains()->Result<(),Box<dyn std::error::Error>>{
+fn real_start_evaluation_respects_field_order_before_empty_domains()
+-> Result<(), Box<dyn std::error::Error>> {
     use umpire_dsl::Machine;
-    assert!(std::panic::catch_unwind(||start_fault_first::faulty_first::world().starts()).is_err());
-    assert!(start_empty_first::empty_first::world().starts().is_empty());
-    if !required(){return Ok(());}
-    let root=Path::new(env!("CARGO_MANIFEST_DIR")).join("../../../..");let tool=Apalache::discover(&root)?;
-    for (label,source,fails) in [("start-fault-first",include_str!("fixtures/start_fault_first.rs"),true),("start-empty-first",include_str!("fixtures/start_empty_first.rs"),false)]{
-        let module=Tla::safety(&Lift::parse(label,source)?)?;
-        let result=tool.check(&module,"ArithmeticSafe",0)?;retain(label,&module,&result)?;
-        assert_eq!(result.violated,fails,"{label}: {}",result.output);
-    }Ok(())
+    assert!(
+        std::panic::catch_unwind(|| start_fault_first::faulty_first::world().starts()).is_err()
+    );
+    assert_eq!(start_empty_first::empty_first::world().starts(), vec![]);
+    if !required() {
+        return Ok(());
+    }
+    let root = Path::new(env!("CARGO_MANIFEST_DIR")).join("../../../..");
+    let tool = Apalache::discover(&root)?;
+    for (label, source, fails) in [
+        ("start-fault-first", include_str!("fixtures/start_fault_first.rs"), true),
+        ("start-empty-first", include_str!("fixtures/start_empty_first.rs"), false),
+    ] {
+        let module = Tla::safety(&Lift::parse(label, source)?)?;
+        let result = tool.check(&module, "ArithmeticSafe", 0)?;
+        retain(label, &module, &result)?;
+        assert_eq!(result.violated, fails, "{label}: {}", result.output);
+    }
+    Ok(())
 }
 
 #[test]
-fn real_discarded_condition_keeps_its_evaluation_guard()->Result<(),Box<dyn std::error::Error>>{
-    use umpire_lift::{Binding,Concrete,Literal};
-    let root=Path::new(env!("CARGO_MANIFEST_DIR")).join("../../../..");
-    let tool=if required(){Some(Apalache::discover(&root)?)}else{None};
-    for enabled in [true,false]{
-        let world=empty_condition::empty_condition::World::new(0,enabled);
-        let native=umpire_checker::Checker::explore(&world,10)?.verify_all()?.to_string();
-        assert_eq!(native.contains("divide by zero"),enabled,"{native}");
-        let Some(tool)=&tool else{continue};
-        let module=Tla::safety(&Lift::parse("empty_condition.rs",include_str!("fixtures/empty_condition.rs"))?.bind(&Binding{world:vec![("divisor".into(),Literal::Int(0)),("enabled".into(),Literal::Bool(enabled))],starts:vec![vec![]],actions:vec![Concrete{action:"User::Check".into(),fields:vec![]}]})?)?;
-        let result=tool.check(&module,"ArithmeticSafe",1)?;retain(&format!("discarded-condition-{enabled}"),&module,&result)?;assert_eq!(result.violated,enabled,"{}",result.output);
-    }Ok(())
+fn real_discarded_condition_keeps_its_evaluation_guard() -> Result<(), Box<dyn std::error::Error>> {
+    use umpire_lift::{Binding, Concrete, Literal};
+    let root = Path::new(env!("CARGO_MANIFEST_DIR")).join("../../../..");
+    let tool = if required() { Some(Apalache::discover(&root)?) } else { None };
+    for enabled in [true, false] {
+        let world = empty_body_fixture::empty_condition::World::new(0, enabled);
+        let native = umpire_checker::Checker::explore(&world, 10)?.verify_all()?.to_string();
+        assert_eq!(native.contains("divide by zero"), enabled, "{native}");
+        let Some(tool) = &tool else { continue };
+        let module = Tla::safety(
+            &Lift::parse("empty_condition.rs", include_str!("fixtures/empty_condition.rs"))?.bind(
+                &Binding {
+                    world: vec![
+                        ("divisor".into(), Literal::Int(0)),
+                        ("enabled".into(), Literal::Bool(enabled)),
+                    ],
+                    starts: vec![vec![]],
+                    actions: vec![Concrete { action: "User::Check".into(), fields: vec![] }],
+                },
+            )?,
+        )?;
+        let result = tool.check(&module, "ArithmeticSafe", 1)?;
+        retain(&format!("discarded-condition-{enabled}"), &module, &result)?;
+        assert_eq!(result.violated, enabled, "{}", result.output);
+    }
+    Ok(())
 }

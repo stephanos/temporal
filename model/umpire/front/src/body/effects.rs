@@ -191,6 +191,7 @@ impl Environment {
                 // After a conditional return, the condition is evaluated only where the step
                 // still runs, as natively; `/\` stops at a returned path.
                 let cond = if flow.diverged() { flow.running.clone().and(cond) } else { cond };
+                checks.push(cond.clone());
                 let cond = define(cond, definitions);
                 let mut yes = state.clone();
                 let mut no = state.clone();

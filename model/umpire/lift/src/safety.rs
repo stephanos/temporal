@@ -87,55 +87,9 @@ pub(super) fn emit(model: &Lifted) -> Result<Module, Diagnostic> {
         &crate::snowcat::tuple(variables.iter().map(|(_, t)| ty(t))),
         format!("<<{}>>", variables.iter().map(|(n, _)| n.as_str()).collect::<Vec<_>>().join(", ")),
     );
-    let mut initial = Vec::new();
-    let mut valid = Vec::new();
     let mut values = Values::new(&model.names.shared);
-    if let Some(starts) = &model.complete_starts {
-        initial.push(disjoin(
-            starts
-                .iter()
-                .map(|state| {
-                    conjoin(model.fields.iter().zip(state).map(|(f, e)| {
-                        let v = values.emit(e);
-                        valid.push(v.valid);
-                        format!("{} = {}", f.name, v.value)
-                    }))
-                })
-                .collect(),
-        ));
-    } else {
-        for field in &model.fields {
-            initial.push(match &field.start {
-                Start::Computed => {
-                    return Err(Diagnostic::of(
-                        &model.file,
-                        &field.location,
-                        "computed starts require a complete-start binding",
-                    ));
-                }
-                Start::Value(e) => {
-                    let v = values.emit(e);
-                    valid.push(v.valid);
-                    format!("{} = {}", field.name, v.value)
-                }
-                Start::Range(lo, hi) | Start::ExclusiveRange(lo, hi) => {
-                    let lo = values.emit(lo);
-                    let hi = values.emit(hi);
-                    let range_valid = conjoin([lo.valid.clone(), hi.valid.clone()]);
-                    valid.extend([lo.valid, hi.valid]);
-                    format!(
-                        "IF {range_valid} THEN {} \\in ({}..({}{})) ELSE {} = {}",
-                        field.name,
-                        lo.value,
-                        hi.value,
-                        if matches!(field.start, Start::ExclusiveRange(..)) { " - 1" } else { "" },
-                        field.name,
-                        default(&field.ty)
-                    )
-                }
-            });
-        }
-    }
+    let (starts, starts_valid) = initial_states(model, &mut values)?;
+    let mut initial = Vec::new();
     for field in &model.fields {
         initial.push(format!("__umpire_before_{} = {}", field.name, default(&field.ty)));
     }
@@ -153,7 +107,7 @@ pub(super) fn emit(model: &Lifted) -> Result<Module, Diagnostic> {
         module.cfg.lines().filter(|l| l.starts_with("CONSTANT ")).collect::<Vec<_>>().join("\n");
     let cfg = format!("INIT Init\nNEXT Next\n{cfg}\n");
     let initial_claims = claim_valid(model, false, false);
-    initial.push(format!("{ERROR} = ~({} /\\ {initial_claims})", conjoin(valid)));
+    initial.extend([starts, format!("{ERROR} = ~({starts_valid} /\\ ({initial_claims}))")]);
     definition(&mut out, "Init", "Bool", values.scope(conjoin(initial)));
     let successor_claims = claim_valid(model, true, true);
     for (index, action) in model.actions.iter().enumerate() {
@@ -336,7 +290,7 @@ fn step(model: &Lifted, action: &str, branch: &Branch, ordinal: &str, claims: &s
     valid.extend(updates.iter().flatten().map(|v| v.valid.clone()));
     let outcome = values.emit(&branch.outcome);
     valid.push(outcome.valid.clone());
-    let ok = conjoin(valid);
+    let ok = values.condition(conjoin(valid));
     let changed = disjoin(
         model
             .fields
@@ -428,4 +382,72 @@ fn validate(model: &Lifted) -> Result<(), Diagnostic> {
         }
     }
     Ok(())
+}
+
+fn initial_states<'a>(
+    model: &'a Lifted,
+    values: &mut Values<'a>,
+) -> Result<(String, String), Diagnostic> {
+    if let Some(starts) = &model.complete_starts {
+        let states = if starts.is_empty() {
+            conjoin(
+                std::iter::once("FALSE".into())
+                    .chain(model.fields.iter().map(|f| format!("{} = {}", f.name, default(&f.ty)))),
+            )
+        } else {
+            disjoin(
+                starts
+                    .iter()
+                    .map(|state| {
+                        conjoin(
+                            model
+                                .fields
+                                .iter()
+                                .zip(state)
+                                .map(|(f, e)| format!("{} = {}", f.name, values.emit(e).value)),
+                        )
+                    })
+                    .collect(),
+            )
+        };
+        return Ok((states, "TRUE".into()));
+    }
+    let mut terms = Vec::new();
+    let mut valid = "TRUE".to_owned();
+    for field in &model.fields {
+        let (current_valid, domain) = match &field.start {
+            Start::Computed => {
+                return Err(Diagnostic::of(
+                    &model.file,
+                    &field.location,
+                    "computed starts require a complete-start binding",
+                ));
+            }
+            Start::Value(e) => {
+                let v = values.emit(e);
+                (v.valid, format!("{} = {}", field.name, v.value))
+            }
+            Start::Range(lo, hi) | Start::ExclusiveRange(lo, hi) => {
+                let lo = values.emit(lo);
+                let hi = values.emit(hi);
+                (
+                    conjoin([lo.valid, hi.valid]),
+                    format!(
+                        "{} \\in ({}..({}{}))",
+                        field.name,
+                        lo.value,
+                        hi.value,
+                        if matches!(field.start, Start::ExclusiveRange(..)) { " - 1" } else { "" }
+                    ),
+                )
+            }
+        };
+        valid = values.condition(conjoin([valid, current_valid]));
+        terms.push(format!(
+            "IF {valid} THEN ({domain}) ELSE {} = {}",
+            field.name,
+            default(&field.ty)
+        ));
+    }
+    Ok((conjoin(terms), valid))
 }

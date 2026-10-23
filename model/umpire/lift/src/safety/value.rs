@@ -33,6 +33,12 @@ impl<'a> Values<'a> {
             next: 0,
         }
     }
+    pub(super) fn condition(&mut self, body: impl AsRef<str>) -> String {
+        self.next += 1;
+        let name = format!("{}{}", self.prefix, 2 * self.next);
+        let _ = write!(self.definitions, "LET \\* @type: Bool;\n{name} == {} IN ", body.as_ref());
+        name
+    }
     pub(super) fn scope(&self, body: impl AsRef<str>) -> String {
         format!("{}{}", self.definitions, body.as_ref())
     }

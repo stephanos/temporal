@@ -69,3 +69,21 @@ fn safety_history_names_refuse_collisions_and_temporaries_are_hygienic()
     assert!(!module.tla.contains("__umpire_s2 =="));
     Ok(())
 }
+
+#[test]
+fn initialization_growth_stays_linear_in_declared_fields() -> Result<(), Box<dyn std::error::Error>>
+{
+    fn source(count: usize) -> String {
+        let fields = (0..count)
+            .map(|i| format!("#[starts(0..=(LIMIT+0))] field{i}:i8,"))
+            .collect::<Vec<_>>()
+            .join(" ");
+        format!(
+            "use umpire_dsl::machine; #[machine] mod initial {{ use umpire_dsl::{{State,Action}}; const LIMIT:i8=1; #[derive(State)] struct Model {{{fields}}} #[derive(Action)] enum User{{Idle}} impl Model {{#[on(User)] fn step(&mut self,a:User){{match a{{User::Idle=>{{}}}}}}}} }}"
+        )
+    }
+    let a = Tla::safety(&Lift::parse("initial.rs", &source(64))?)?;
+    let b = Tla::safety(&Lift::parse("initial.rs", &source(128))?)?;
+    assert!(b.tla.len() < a.tla.len() * 3, "{} -> {}", a.tla.len(), b.tla.len());
+    Ok(())
+}

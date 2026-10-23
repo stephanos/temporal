@@ -122,6 +122,7 @@ impl Apalache {
                 .arg(format!("--out-dir={}", scratch.0.join("out").display()))
                 .arg(format!("--run-dir={}", scratch.0.join("results").display()))
                 .arg("check")
+                .arg("--no-deadlock")
                 .arg(format!("--config={}", cfg.display()))
                 .arg(format!("--inv={invariant}"))
                 .arg(format!("--length={length}"))
@@ -131,7 +132,11 @@ impl Apalache {
             let violated = status.code() == Some(12)
                 && output.contains("state invariant 0 violated.")
                 && output.contains("violated");
-            if !violated && (!status.success() || !output.contains("The outcome is: NoError")) {
+            if !violated
+                && (!status.success()
+                    || !(output.contains("The outcome is: NoError")
+                        || output.contains("The outcome is: ExecutionsTooShort")))
+            {
                 return Err(Refusal(format!("Apalache NotRun: {output}")));
             }
             let mut traces = Vec::new();

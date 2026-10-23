@@ -37,11 +37,12 @@ pub(crate) fn emit(model: &Lifted) -> Result<Module, Diagnostic> {
     if inputs {
         observers.push(INPUT);
     }
+    let observer_types = observer_types(model);
     let mut out = String::new();
     line(&mut out, format!("---- MODULE {} ----", model.name));
     line(&mut out, "EXTENDS Integers, TLC, Sequences");
-    if !model.world_fields.is_empty() {
-        line(&mut out, format!("CONSTANTS {}", model.names.world.join(", ")));
+    for (name, field) in model.names.world.iter().zip(&model.world_fields) {
+        line(&mut out, format!("CONSTANT \\* @type: {};\n{name}", crate::snowcat::ty(&field.ty)));
     }
     let mut constants_cfg = String::new();
     if let Some(values) = &model.world_values {
@@ -49,8 +50,9 @@ pub(crate) fn emit(model: &Lifted) -> Result<Module, Diagnostic> {
             line(&mut constants_cfg, format!("CONSTANT {symbol} = {}", expr(value)));
         }
     }
-    line(
+    typed(
         &mut out,
+        "(Int, Int) => Int",
         r#"__umpire_Div(__umpire_a, __umpire_b) ==
     IF Assert(__umpire_b # 0, "Rust integer division by zero") /\ Assert(~(__umpire_a = (-2147483647 - 1) /\ __umpire_b = -1), "Rust integer division overflow")
     THEN IF __umpire_b = (-2147483647 - 1)
@@ -68,14 +70,38 @@ pub(crate) fn emit(model: &Lifted) -> Result<Module, Diagnostic> {
     line(&mut out, "");
     for (name, value) in &model.constants {
         let name = model.names.constants.get(name).unwrap_or(name);
-        line(&mut out, format!("{name} == {}", expr(value)));
+        typed(&mut out, &crate::snowcat::ty(&value.ty), format!("{name} == {}", expr(value)));
     }
     let fields: Vec<_> = model.fields.iter().map(|f| f.name.as_str()).collect();
     let mut variables = fields.clone();
     variables.extend(&observers);
-    line(&mut out, format!("VARIABLES {}", variables.join(", ")));
-    line(&mut out, format!("vars == <<{}>>", variables.join(", ")));
-    line(&mut out, format!("ModelVars == <<{}>>", fields.join(", ")));
+    for field in &model.fields {
+        line(
+            &mut out,
+            format!("VARIABLE \\* @type: {};\n{}", crate::snowcat::ty(&field.ty), field.name),
+        );
+    }
+    for name in &observers {
+        line(
+            &mut out,
+            format!("VARIABLE \\* @type: {};\n{name}", crate::snowcat::ty(&observer_types[*name])),
+        );
+    }
+    let field_types: Vec<_> = model.fields.iter().map(|f| crate::snowcat::ty(&f.ty)).collect();
+    let variable_types = field_types
+        .iter()
+        .cloned()
+        .chain(observers.iter().map(|name| crate::snowcat::ty(&observer_types[*name])));
+    typed(
+        &mut out,
+        &crate::snowcat::tuple(variable_types),
+        format!("vars == <<{}>>", variables.join(", ")),
+    );
+    typed(
+        &mut out,
+        &crate::snowcat::tuple(field_types),
+        format!("ModelVars == <<{}>>", fields.join(", ")),
+    );
     line(&mut out, "");
     let mut initial = Vec::new();
     if let Some(starts) = &model.complete_starts {
@@ -129,7 +155,7 @@ pub(crate) fn emit(model: &Lifted) -> Result<Module, Diagnostic> {
     if inputs {
         initial.push(format!("{INPUT} = 0"));
     }
-    line(&mut out, format!("Init == {}", conjoin(initial)));
+    predicate(&mut out, format!("Init == {}", conjoin(initial)));
     line(&mut out, "");
     let catalog = model.catalog.as_deref().unwrap_or_default();
     for (index, action) in model.actions.iter().enumerate() {
@@ -166,26 +192,26 @@ pub(crate) fn emit(model: &Lifted) -> Result<Module, Diagnostic> {
             .collect();
         let branches = disjoin(branches);
         if action.fields.is_empty() {
-            line(&mut out, format!("{} == {branches}", operator(&action.name)));
+            predicate(&mut out, format!("{} == {branches}", operator(&action.name)));
         } else {
             input_relation(&mut out, model, index, &entries, branches);
         }
     }
-    line(
+    predicate(
         &mut out,
         format!(
             "ModelNext == {}",
             disjoin(model.actions.iter().map(|a| operator(&a.name)).collect())
         ),
     );
-    line(&mut out, "ModelEdge == __umpire_edge_tick' # __umpire_edge_tick");
-    line(
+    predicate(&mut out, "ModelEdge == __umpire_edge_tick' # __umpire_edge_tick");
+    predicate(
         &mut out,
         "Edge == ModelNext /\\ (__umpire_edge_tick' = ~__umpire_edge_tick) /\\ UNCHANGED <<__umpire_pending, __umpire_steps>>",
     );
-    line(&mut out, "Complete == ~ENABLED ModelNext /\\ UNCHANGED vars");
-    line(&mut out, "Next == Edge \\/ Complete");
-    line(&mut out, "Spec == Init /\\ [][Next]_vars");
+    predicate(&mut out, "Complete == ~ENABLED ModelNext /\\ UNCHANGED vars");
+    predicate(&mut out, "Next == Edge \\/ Complete");
+    predicate(&mut out, "Spec == Init /\\ [][Next]_vars");
     line(&mut out, "");
     let mut cfg = format!("SPECIFICATION Spec\n{constants_cfg}");
     let invariants = model
@@ -193,7 +219,7 @@ pub(crate) fn emit(model: &Lifted) -> Result<Module, Diagnostic> {
         .iter()
         .map(|claim| {
             let operator = format!("Invariant_{}", claim.name);
-            line(&mut out, format!("{operator} == {}", expr(&claim.expr)));
+            predicate(&mut out, format!("{operator} == {}", expr(&claim.expr)));
             line(&mut cfg, format!("INVARIANT {operator}"));
             Property {
                 name: claim.name.clone(),
@@ -211,7 +237,7 @@ pub(crate) fn emit(model: &Lifted) -> Result<Module, Diagnostic> {
                 || "ModelEdge".into(),
                 |action| format!("ModelEdge /\\ (__umpire_action' = {})", text(action)),
             );
-            line(
+            predicate(
                 &mut out,
                 format!("{operator} == [][~({applies}) \\/ ({})]_vars", expr(&claim.expr)),
             );
@@ -228,7 +254,7 @@ pub(crate) fn emit(model: &Lifted) -> Result<Module, Diagnostic> {
         .iter()
         .map(|claim| {
             let operator = format!("Negative_{}", claim.name);
-            line(&mut out, format!("{operator} == {}", expr(&claim.expr)));
+            predicate(&mut out, format!("{operator} == {}", expr(&claim.expr)));
             Property {
                 name: claim.name.clone(),
                 cfg: format!("SPECIFICATION Spec\n{constants_cfg}INVARIANT {operator}\n"),
@@ -238,7 +264,7 @@ pub(crate) fn emit(model: &Lifted) -> Result<Module, Diagnostic> {
         .collect();
     for assumption in &model.assumptions {
         if model.progress.iter().any(|claim| claim.assumption.same_scope(assumption)) {
-            line(
+            predicate(
                 &mut out,
                 format!(
                     "Assumption_{} == {}",
@@ -271,8 +297,8 @@ pub(crate) fn emit(model: &Lifted) -> Result<Module, Diagnostic> {
                 || disjoin(scoped_relations(model, &claim.assumption)),
                 |assumption| format!("Assumption_{}", assumption.name),
             );
-        line(&mut out, format!("{scoped} == {scope}"));
-        line(
+        predicate(&mut out, format!("{scoped} == {scope}"));
+        predicate(
             &mut out,
             format!(
                 "Activate_{name} == (__umpire_pending = 0) /\\ ({}) /\\ ~({}) /\\ (__umpire_pending' = 1) /\\ (__umpire_steps' = 0) /\\ UNCHANGED <<ModelVars, __umpire_edge_tick, __umpire_action, __umpire_choice, __umpire_outcome, __umpire_facts{}>>",
@@ -291,25 +317,25 @@ pub(crate) fn emit(model: &Lifted) -> Result<Module, Diagnostic> {
             },
         );
         let target = prime(&claim.target);
-        line(
+        predicate(
             &mut out,
             format!(
                 "Monitor_{name} == (__umpire_edge_tick' = ~__umpire_edge_tick) /\\ (__umpire_pending' = (IF {} THEN 2 ELSE 1)) /\\ (__umpire_steps' = {count})",
                 expr(&target)
             ),
         );
-        line(
+        predicate(
             &mut out,
             format!("ActiveEdge_{name} == (__umpire_pending = 1) /\\ {scoped} /\\ Monitor_{name}"),
         );
-        line(&mut out, format!("PrefixEdge_{name} == (__umpire_pending = 0) /\\ Edge"));
-        line(
+        predicate(&mut out, format!("PrefixEdge_{name} == (__umpire_pending = 0) /\\ Edge"));
+        predicate(
             &mut out,
             format!(
                 "Complete_{name} == ((__umpire_pending = 2) \\/ ((__umpire_pending = 1) /\\ ~ENABLED {scoped}) \\/ ((__umpire_pending = 0) /\\ ~ENABLED ModelNext)) /\\ UNCHANGED vars"
             ),
         );
-        line(
+        predicate(
             &mut out,
             format!(
                 "ProgressNext_{name} == PrefixEdge_{name} \\/ Activate_{name} \\/ ActiveEdge_{name} \\/ Complete_{name}"
@@ -318,15 +344,15 @@ pub(crate) fn emit(model: &Lifted) -> Result<Module, Diagnostic> {
         let mut spec = format!("Init /\\ [][ProgressNext_{name}]_vars");
         if claim.bound.is_none() {
             for (fair, relation) in fair_relations(model, name, &claim.assumption) {
-                line(
+                predicate(
                     &mut out,
                     format!("{fair} == (__umpire_pending = 1) /\\ {relation} /\\ Monitor_{name}"),
                 );
                 write!(spec, " /\\ WF_vars({fair})").ok();
             }
         }
-        line(&mut out, format!("ProgressSpec_{name} == {spec}"));
-        line(
+        predicate(&mut out, format!("ProgressSpec_{name} == {spec}"));
+        predicate(
             &mut out,
             format!(
                 "Maximal_{name} == (([]<>__umpire_edge_tick) /\\ ([]<>(~__umpire_edge_tick))) \\/ (<>[]((__umpire_pending = 1) /\\ ~ENABLED {scoped}))"
@@ -338,7 +364,7 @@ pub(crate) fn emit(model: &Lifted) -> Result<Module, Diagnostic> {
         if let Some(bound) = claim.bound {
             write!(property, " /\\ [](__umpire_steps <= {bound})").ok();
         }
-        line(&mut out, format!("{operator} == {property}"));
+        predicate(&mut out, format!("{operator} == {property}"));
         progress.push(Progress {
             name: name.clone(),
             cfg: format!("SPECIFICATION ProgressSpec_{name}\n{constants_cfg}PROPERTY {operator}\n"),
@@ -358,28 +384,9 @@ pub(crate) fn emit(model: &Lifted) -> Result<Module, Diagnostic> {
         });
     }
     line(&mut out, "====");
-    let max_steps = model
-        .progress
-        .iter()
-        .filter_map(|p| p.bound)
-        .max()
-        .map_or(0, |bound| i128::from(bound) + 1);
-    let mut observer_types = BTreeMap::from([
-        ("__umpire_edge_tick".into(), Type::Bool),
-        ("__umpire_pending".into(), Type::Int { min: 0, max: 2 }),
-        ("__umpire_steps".into(), Type::Int { min: 0, max: max_steps }),
-        ("__umpire_action".into(), Type::Text),
-        ("__umpire_choice".into(), Type::Int { min: 0, max: 0 }),
-        ("__umpire_outcome".into(), outcome_type.clone()),
-        ("__umpire_facts".into(), Type::Seq(Box::new(Type::Unit))),
-    ]);
-    if inputs {
-        let max = i128::try_from(catalog.len().saturating_sub(1)).unwrap_or(i128::MAX);
-        observer_types.insert(INPUT.into(), Type::Int { min: 0, max });
-    }
     Ok(Module {
         name: model.name.clone(),
-        tla: crate::snowcat::annotate(model, &out),
+        tla: out,
         cfg,
         metadata: Metadata {
             state_name: model.state_name.clone(),
@@ -508,7 +515,15 @@ fn input_relation(
             format!("<<{}>>", row.join(", "))
         })
         .collect::<Vec<_>>();
-    line(out, format!("{operator}_Inputs == <<{}>>", rows.join(", ")));
+    let row_type = crate::snowcat::tuple(
+        std::iter::once("Int".into())
+            .chain(model.actions[action].fields.iter().map(|f| crate::snowcat::ty(&f.ty))),
+    );
+    typed(
+        out,
+        &format!("Seq({row_type})"),
+        format!("{operator}_Inputs == <<{}>>", rows.join(", ")),
+    );
     let mut body = branches;
     for (position, symbol) in symbols.iter().enumerate().rev() {
         body = format!(
@@ -517,8 +532,8 @@ fn input_relation(
             position + 2
         );
     }
-    line(out, format!("{operator}_At({index}) == {body}"));
-    line(
+    typed(out, "Int => Bool", format!("{operator}_At({index}) == {body}"));
+    predicate(
         out,
         format!("{operator} == \\E {index} \\in DOMAIN {operator}_Inputs : {operator}_At({index})"),
     );
@@ -846,4 +861,36 @@ impl<'a> Shared<'a> {
 
 pub(super) fn integer(value: i128) -> String {
     if value == i128::from(i32::MIN) { "(-2147483647 - 1)".into() } else { value.to_string() }
+}
+
+fn observer_types(model: &Lifted) -> BTreeMap<String, Type> {
+    let max_steps = model
+        .progress
+        .iter()
+        .filter_map(|p| p.bound)
+        .max()
+        .map_or(0, |bound| i128::from(bound) + 1);
+    let mut observer_types = BTreeMap::from([
+        ("__umpire_edge_tick".into(), Type::Bool),
+        ("__umpire_pending".into(), Type::Int { min: 0, max: 2 }),
+        ("__umpire_steps".into(), Type::Int { min: 0, max: max_steps }),
+        ("__umpire_action".into(), Type::Text),
+        ("__umpire_choice".into(), Type::Int { min: 0, max: 0 }),
+        ("__umpire_outcome".into(), model.outcome_type.clone()),
+        ("__umpire_facts".into(), Type::Seq(Box::new(Type::Unit))),
+    ]);
+    if model.has_inputs() {
+        let max = i128::try_from(model.catalog.as_ref().map_or(0, Vec::len).saturating_sub(1))
+            .unwrap_or(i128::MAX);
+        observer_types.insert(INPUT.into(), Type::Int { min: 0, max });
+    }
+    observer_types
+}
+
+fn typed(out: &mut String, kind: &str, value: impl AsRef<str>) {
+    line(out, format!("\\* @type: {kind};"));
+    line(out, value);
+}
+fn predicate(out: &mut String, value: impl AsRef<str>) {
+    typed(out, "Bool", value);
 }

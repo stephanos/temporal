@@ -12,5 +12,7 @@
     "mod-tool/src/main/scala/at/forsyte/apalache/tla/tooling/opt/CheckCmd.scala"
   ],
   "length_convention": "--length is the maximum number of Next steps; actual controls pin length0 initial claims and length1 outgoing arithmetic faults.",
-  "scope": "Task1 admission and source controls; reusable lifecycle is task2 and general typed ITF replay is task3. Writer and required reviewer use the same model family."
+  "scope": "Task1 admission and source controls; reusable lifecycle is task2 and general typed ITF replay is task3. Writer and required reviewer use the same model family.",
+  "safety_deadlock_option": "--no-deadlock; explicit state-safety scope. Nonzero Deadlock/NotRun remains an error.",
+  "successful_short_execution_outcome": "The selected release reports ExecutionsTooShort with EXITCODE: OK when all executions are shorter than the bound. Accepted as bounded NoViolation only on successful process exit."
 }
