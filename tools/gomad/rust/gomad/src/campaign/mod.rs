@@ -250,6 +250,30 @@ pub(crate) fn retain_prepared(
     Ok(())
 }
 
+pub(crate) fn authenticate_preparation_observations(
+    root: &std::fs::File,
+    plan: &Value,
+) -> Result<(), String> {
+    use rustix::fs::{self, AtFlags};
+    match fs::statat(
+        root,
+        prepare::OBSERVATION_DIRECTORY,
+        AtFlags::SYMLINK_NOFOLLOW,
+    ) {
+        Err(rustix::io::Errno::NOENT) => return Ok(()),
+        Err(error) => return Err(error.to_string()),
+        Ok(_) => (),
+    }
+    let reference = plan["prepared_artifact"]
+        .as_str()
+        .filter(|reference| reference.starts_with("prepared/"))
+        .ok_or("preparation observations require the plan's prepared artifact")?;
+    let opened = ledger::open_artifact(root, reference)?;
+    let prepared = restore_from_plan(plan, &opened)?;
+    prepare::open_observations_at(root, &prepared, &opened.manifest().record_sha256)?;
+    Ok(())
+}
+
 fn restore(journal: &Journal) -> Result<prepare::Prepared, String> {
     let plan = journal.plan();
     if plan["schema"] != "gomad.seed-campaign-plan/v2" {

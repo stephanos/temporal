@@ -25,6 +25,7 @@ pub(crate) mod observations;
 pub(crate) mod process;
 
 const MAXIMUM: u64 = 512 << 20;
+pub(crate) const OBSERVATION_DIRECTORY: &str = "preparation-observations";
 
 #[derive(Default)]
 pub(crate) struct CompilerControls {
@@ -79,6 +80,14 @@ pub(crate) fn open_observations(
     record: &str,
 ) -> Result<BTreeMap<String, Vec<u8>>, String> {
     observation_sidecar::open(campaign, prepared, record)
+}
+
+pub(crate) fn open_observations_at(
+    root: &fs::File,
+    prepared: &Prepared,
+    record: &str,
+) -> Result<BTreeMap<String, Vec<u8>>, String> {
+    observation_sidecar::open_at(root, prepared, record)
 }
 
 pub use crate::install::manifest::Installation;
