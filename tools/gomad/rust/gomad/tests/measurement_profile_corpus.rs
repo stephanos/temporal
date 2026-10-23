@@ -135,6 +135,18 @@ fn assert_variant_artifacts(root: &Path) -> Value {
             assert_eq!(entry["bytes"], raw.len());
             assert_eq!(entry["sha256"], canonical::digest(&raw));
             assert!(entry["source"].as_str().is_some());
+        } else if entry["status"] == "digest-only" {
+            assert_eq!(name, "canonical-wasi");
+            assert!(entry["file"].is_null());
+            assert!(entry["bytes"].as_u64().is_some());
+            assert!(
+                entry["sha256"]
+                    .as_str()
+                    .is_some_and(canonical::valid_digest)
+            );
+            assert_eq!(entry["source"], "outcome:local_model.transcript_sha256");
+            assert!(!root.join("wasi").exists());
+            assert!(!root.join("transcript").exists());
         } else {
             assert_eq!(entry["status"], "unavailable");
             assert_ne!(entry["cause"].as_str().unwrap(), "");
@@ -771,5 +783,84 @@ fn assert_native_argument_shapes_refused(scratch: &Scratch, input: &Path) {
             !refused.exists(),
             "malformed request reached native execution"
         );
+    }
+}
+
+#[test]
+fn actual_digest_only_wasi_preserves_rolling_evidence_without_invented_raw_payload() {
+    let scratch = Scratch::new();
+    let module = r#"(module
+        (import "gomad_wasm_v1" "config" (func $config (param i32 i32) (result i32)))
+        (import "gomad_wasm_v1" "finish" (func $finish (param i32 i32) (result i32)))
+        (import "wasi_snapshot_preview1" "clock_time_get" (func $clock (param i32 i64 i32) (result i32)))
+        (memory (export "memory") 1)
+        (func (export "_start")
+            i32.const 0 i32.const 16 call $config drop
+            i32.const 0 i64.const 0 i32.const 32 call $clock drop
+            i32.const 0 i32.const 16 call $finish drop))"#;
+    let mut reference = None;
+    for digest_only in [false, true] {
+        let name = if digest_only { "digest" } else { "raw" };
+        let input = scratch.request(name, module, false);
+        let mut request = read(&input);
+        request["guest"]["model"] = json!({"configuration":{"entropy_key":vec![0u8;32],"working_directory_sha256":canonical::digest(b"/"),
+            "arguments":{"bytes":0,"count":0,"chunks":0},"environment":{"bytes":0,"count":0,"chunks":0},
+            "seed":0,"mode":1,"limit":4096,"diagnostics":false,"epoch_nanos":0,"read_step_nanos":0,"now":1,"digest_only":digest_only,
+            "limits":{"calls":100,"transcript_bytes":4096,"pending_events":16}},"arguments":[],"environment":["PWD=/"],"replay_trace":null});
+        request["guest"]["namespace"] = json!({"entries":[],"writable_directories":[],"preopens":[[47]],"working_directory":[47],"stdin":[],"limits":{"files":16,"descriptors":16,"filesystem_bytes":4096,"output_bytes":1024},"epoch_nanos":0});
+        std::fs::write(&input, serde_json::to_vec(&request).unwrap()).unwrap();
+        let output = scratch.0.join(format!("observed-{name}"));
+        let result = scratch.invoke(
+            env!("CARGO_BIN_EXE_gomad-measure"),
+            &[
+                "--linked-run".as_ref(),
+                input.as_os_str(),
+                output.as_os_str(),
+            ],
+        );
+        assert!(
+            result.status.success(),
+            "{}",
+            String::from_utf8_lossy(&result.stderr)
+        );
+        let outcome = read(&output.join("outcome.json"));
+        assert_eq!(outcome["termination"], "exit");
+        assert_eq!(outcome["exit_code"], 0);
+        let model = &outcome["local_model"];
+        let behavior = json!({"calls":model["calls"],"transcript_bytes":model["transcript_bytes"],"transcript_sha256":model["transcript_sha256"],"terminal_base64":model["terminal_base64"],"virtual_time_nanos":model["virtual_time_nanos"]});
+        if let Some(reference) = &reference {
+            assert_eq!(&behavior, reference);
+        } else {
+            reference = Some(behavior);
+        }
+        let native = read(&output.join("streams.json"));
+        let canonical_streams = read(&output.join("canonical-streams.json"));
+        let wasi = &canonical_streams["streams"]["wasi"];
+        assert_eq!(wasi["bytes"], model["transcript_bytes"]);
+        assert_eq!(wasi["sha256"], model["transcript_sha256"]);
+        let artifacts = assert_variant_artifacts(&output);
+        let entry = &artifacts["artifacts"]["canonical-wasi"];
+        assert_eq!(entry["bytes"], wasi["bytes"]);
+        assert_eq!(entry["sha256"], wasi["sha256"]);
+        if digest_only {
+            assert!(native.get("transcript").is_none() && native.get("wasi").is_none());
+            assert_eq!(
+                wasi,
+                &json!({"file":null,"bytes":model["transcript_bytes"],"sha256":model["transcript_sha256"],"source":"outcome:local_model.transcript_sha256"})
+            );
+            assert_eq!(entry["status"], "digest-only");
+            assert!(
+                artifacts["files"].get("wasi").is_none()
+                    && artifacts["files"].get("transcript").is_none()
+            );
+        } else {
+            let raw = std::fs::read(output.join("transcript")).unwrap();
+            assert_eq!(std::fs::read(output.join("wasi")).unwrap(), raw);
+            assert_eq!(canonical::digest(&raw), wasi["sha256"]);
+            assert_eq!(wasi["file"], "wasi");
+            assert_eq!(wasi["source"], "binary-transcript-alias:transcript");
+            assert_eq!(entry["status"], "available");
+        }
+        evidence::read_profile_run(&output, ReadLimits::default()).unwrap();
     }
 }
