@@ -101,6 +101,20 @@ def native_profile_inputs(config):
     return paths
 
 
+def runtime_harness_inputs(config):
+    import main_cli_build
+    bindings = set()
+    for index in range(32):
+        entry = config['stages'][f'runtime-{index}']
+        require(entry['adapter'] == 'runtime', 'runtime stage requires its exact release-library gate')
+        bindings.add((entry['harness'], entry['harness_build_receipt']))
+    require(len(bindings) == 1, 'all 32 original shards require one frozen runtime harness')
+    binary, path = bindings.pop()
+    receipt = main_cli_build.read_build(path, expected_role='runtime-harness')
+    require(receipt['binary'] == binary, 'runtime harness differs from its actual build publication')
+    return {path} | set(receipt['inputs'])
+
+
 def freeze_final_cycle(config, output):
     """Pin static inputs, then PLAN, then its all-verb binding; outputs have no hash cycle."""
     require(config.get('stress_cycle', 'GENERATE') == 'GENERATE', 'stress cycle must be generated for this freeze')
@@ -187,10 +201,7 @@ def freeze(bindings, output, source_manifest):
         if Path(token).is_absolute():
             require(Path(token).is_file() and not Path(token).is_symlink(), 'nonregular independent oracle input')
             inputs.add(token)
-    for index in range(32):
-        entry = config['stages'][f'runtime-{index}']
-        require(entry['adapter'] == 'runtime', 'runtime stage requires its exact release-library gate')
-        inputs.update((entry['harness'], entry['harness_build_receipt']))
+    inputs.update(runtime_harness_inputs(config))
     for label, wanted in CELLS.items():
         entry = config['stages'][label]
         if entry.get('spec') == 'GENERATE':
@@ -228,6 +239,7 @@ def freeze(bindings, output, source_manifest):
     main_cli_build.read_build(config['build_receipt'], config, expected_role='release')
     if fixture_role:
         main_cli_build.read_build(fixture_role['build_receipt'], config, expected_role='host-fixture')
+    main_cli_build.read_build(config['stages']['runtime-0']['harness_build_receipt'], config, expected_role='runtime-harness')
     import final_profiles
     final_profiles.preflight(config)
     if config.get('identity_harness') is not None:

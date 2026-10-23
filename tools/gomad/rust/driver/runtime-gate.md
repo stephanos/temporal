@@ -10,11 +10,12 @@ key. Recordings keep diagnostics. The replay disables diagnostics through the
 same authenticated replay preflight and compares exit, stdout, stderr, WASI
 and choices. Public operator replay behavior is unchanged.
 
-Build the repository harness alongside the release operator, with no features:
+Build the repository harness with the fixed prefreeze build producer:
 
 ```sh
-cargo +1.99.1 build --release --locked --manifest-path tools/gomad/rust/Cargo.toml \
-  -p gomad --example runtime-qualification-replay
+python3 tools/gomad/rust/driver/main_cli_build.py build \
+  --tools-plan /absolute/static-plan.json --gnu-plan /absolute/gnu-toolchain.json \
+  --root /absolute/fresh-runtime-build --role runtime-harness
 ```
 
 The harness exposes three repository gate operations:
@@ -43,10 +44,13 @@ The 25 authenticated inspections and final report publication also share that
 same bound; a late inspection prevents the shard report from being published.
 
 Each runtime stage binding needs `harness` and `harness_build_receipt`, both
-sealed in the driver `files` inventory. The harness receipt uses the existing
-release-build shape: `profile: release`, `features: []`, `exit: 0`, the
-executable's `binary_sha256`, and `role` containing the same host/helper
-identities as the operator. The existing `installation`, original `source`
+sealed in the driver `files` inventory. The harness receipt uses
+`gomad.driver-main-build/v1`, role `runtime-harness`, and the actual fixed Cargo
+example recipe. Its independent reader authenticates the complete source,
+GNU/compiler, build-script, Cargo, process and publication evidence, with empty
+host/helper features and ordinary candidate identities. The freezer retains
+every raw receipt input. A release label or executable identity response alone
+cannot supply build evidence. The existing `installation`, original `source`
 and `arguments` stage bindings remain required. The driver command timeout
 limits the complete shard preparation, 25 recordings and replay to 600 s;
 every guest execution retains the original 60 s ceiling.
@@ -82,7 +86,8 @@ campaign journal: its 25 separate stores reuse the production execution and
 publication owners directly. The original gate required fresh stores within
 one process, rather than 25 distinct producer processes.
 
-The aggregate reopens all 800 artifacts through authenticated public inspection,
+The aggregate authenticates the common harness once and requires identical
+harness bindings in all 32 shards. It reopens all 800 artifacts through authenticated public inspection,
 rechecks diagnostics and the full terminal peak frame, compares every retained
 stream and summary, authenticates all 32 diagnostics-off replay reports and
 raw replay streams, and requires both canary exits and variation in choices,
