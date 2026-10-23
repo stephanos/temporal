@@ -1,6 +1,7 @@
 """Read retained receiving evidence without executing producers or modifying reports."""
 import argparse
 import base64
+import copy
 import gzip
 import hashlib
 import json
@@ -11,6 +12,7 @@ import sys
 
 import adapters
 import sqlite
+import receiving_cost
 from driver import Refusal, Unexecuted, configured, guard, load_module, read, require, sha
 
 
@@ -104,6 +106,69 @@ def storage_sections(raw):
     return result
 
 
+def module_metadata(raw):
+    require(raw[:8] == b'\0asm\1\0\0\0','actual core WASM header required')
+    def number(data,offset):
+        value = 0
+        for index in range(5):
+            require(offset < len(data),'truncated WASM integer')
+            byte = data[offset]; offset += 1
+            value |= (byte & 127) << (7*index)
+            if byte < 128:
+                require(value <= (1<<32)-1,'overflowing WASM integer')
+                return value,offset
+        raise Refusal('oversized WASM integer')
+    def text(data,offset):
+        size,offset = number(data,offset)
+        require(offset+size <= len(data),'truncated WASM import text')
+        return data[offset:offset+size].decode(),offset+size
+    types,imports,pages,seen = [],[],None,set()
+    offset = 8
+    while offset < len(raw):
+        tag = raw[offset]; offset += 1
+        size,offset = number(raw,offset)
+        require(offset+size <= len(raw),'truncated WASM section')
+        section = raw[offset:offset+size]; offset += size
+        if tag not in (1,2,5):
+            continue
+        require(tag not in seen,'duplicate WASM metadata section')
+        seen.add(tag)
+        count,cursor = number(section,0)
+        if tag == 1:
+            for _ in range(count):
+                require(cursor < len(section) and section[cursor] == 0x60,'unsupported WASM type')
+                cursor += 1
+                signature = []
+                for _ in range(2):
+                    length,cursor = number(section,cursor)
+                    values = []
+                    for _ in range(length):
+                        require(cursor < len(section) and section[cursor] in (0x7f,0x7e,0x7d,0x7c),'unsupported WASM value type')
+                        values.append({0x7f:'i32',0x7e:'i64',0x7d:'f32',0x7c:'f64'}[section[cursor]])
+                        cursor += 1
+                    signature.append(values)
+                types.append(signature)
+        elif tag == 2:
+            for _ in range(count):
+                module,cursor = text(section,cursor)
+                name,cursor = text(section,cursor)
+                require(cursor < len(section) and section[cursor] == 0,'nonfunction WASM import unsupported')
+                index,cursor = number(section,cursor+1)
+                require(index < len(types),'invalid WASM import type')
+                imports.append(dict(module=module,name=name,params=types[index][0],results=types[index][1]))
+        else:
+            require(count == 1 and pages is None and cursor < len(section),'exactly one WASM memory required')
+            flags = section[cursor]; cursor += 1
+            require(flags in (0,1),'shared/memory64/custom-page WASM memory unsupported')
+            pages,cursor = number(section,cursor)
+            if flags:
+                maximum,cursor = number(section,cursor)
+                require(maximum >= pages,'WASM memory maximum below initial')
+        require(cursor == len(section),'trailing WASM metadata bytes')
+    require(pages is not None and 1 <= pages <= 65536,'invalid initial WASM memory')
+    return dict(imports=imports,initial_memory_pages=pages)
+
+
 def state_identity(state):
     hasher = hashlib.sha256()
     def sized(raw):
@@ -162,6 +227,91 @@ def selected_marker(snapshots, state):
         wanted = dict(Kind='file' if entry['Kind'] == 1 else 'directory',Mode=entry['Mode'],ModTime=entry['ModTime'],
                       Size=len(raw),DataSHA256='sha256:'+digest(raw) if entry['Kind'] == 1 else '')
         require(all(actual[0][key] == value for key,value in wanted.items()), 'selected marker metadata/content mismatch')
+
+
+def inspection_policy_projection(policy):
+    limits,clock,cwd = policy['Limits'],policy['Clock'],policy['WorkingDirectory']
+    model = dict(entropy_key=policy['EntropyKey'],working_directory_sha256=digest(cwd.encode()),
+        arguments=dict(bytes=0,count=0,chunks=0),environment=dict(bytes=0,count=0,chunks=0),seed=0,mode=1,
+        limit=8<<20,diagnostics=False,epoch_nanos=clock['EpochNanos'],read_step_nanos=clock['ReadStepNanos'],
+        now=int(clock['ReadStepNanos']==0),limits=dict(calls=limits['Calls'],transcript_bytes=limits['TranscriptBytes'],pending_events=limits['PendingEvents']))
+    entries,roots = {},[]
+    def ensure(path,readonly):
+        prefix = ''
+        for part in path.split('/'):
+            if not part: continue
+            prefix += '/'+part
+            entries.setdefault(prefix,dict(path=list(prefix.encode()),directory=True,readonly=readonly,data=[]))
+            require(entries[prefix]['directory'],'captured namespace parent is a file')
+    capture = policy.get('CapturedInputs')
+    if capture:
+        descriptor_raw = base64.b64decode(capture['Descriptor'],validate=True)
+        require(digest(descriptor_raw) == capture['Manifest']['SHA256'].removeprefix('sha256:'), 'inspection capture descriptor identity')
+        descriptor = decoded(descriptor_raw)
+        roots = descriptor['mappings']
+        for entry in descriptor['entries']:
+            path = entry['path']
+            ensure(str(Path(path).parent),True)
+            raw = base64.b64decode(capture['Payloads'][entry['payload']],validate=True) if entry['kind']=='file' else b''
+            require(entry['kind'] in ('file','directory') and (path not in entries or entry['kind']=='directory' and entries[path]['directory']), 'invalid captured namespace entry')
+            if entry['kind']=='file':
+                require(len(raw) == int(entry['size']) and 'sha256:'+digest(raw) == entry['sha256'], 'inspection capture raw payload identity')
+            entries[path] = dict(path=list(path.encode()),directory=entry['kind']=='directory',readonly=True,data=list(raw))
+    writable = policy['WritableDirectories']
+    for path in writable:
+        ensure(path,False)
+        entries[path]['readonly'] = False
+    namespace = dict(entries=[entries[path] for path in sorted(entries)],writable_directories=[list(path.encode()) for path in writable],
+        preopens=[list(path.encode()) for path in sorted(set(writable+roots))],working_directory=list(cwd.encode()),stdin=[],
+        limits=dict(files=limits['Files'],descriptors=limits['Descriptors'],filesystem_bytes=limits['FilesystemBytes'],output_bytes=limits['OutputBytes']),
+        epoch_nanos=clock['EpochNanos'])
+    environment = dict(value.split('=',1) for value in policy['Environment'])
+    network = dict(policy['network_v2'],faults=policy['network_v2'].get('faults',[])) if policy.get('network_v2') else None
+    return model,namespace,environment,network
+
+
+def inspection_configuration(installation, arguments, owner, runtime_sha256):
+    environment = dict(installation['admission']['environment'])
+    environment.update(PWD=bytes(installation['namespace']['working_directory']).decode(),TZ='UTC',GOMAD_IO_PROFILE='wasm',GOMAD_DEBUG_CANARY='1')
+    if owner == 'onebox':
+        environment.update(TEMPORAL_ROOT='/workspace',TMPDIR='/tmp',TEMPORAL_TEST_LOG_LEVEL='warn')
+    else:
+        environment['GOMAD_CHOICE_PROFILE'] = 'gomad-choice-trace/v4'
+    model = copy.deepcopy(installation['model'])
+    model.pop('seed',None)
+    choice = 1<<30 if owner=='onebox' else 8<<20
+    model.update(mode=1,limit=choice,diagnostics=False,working_directory_sha256=digest(bytes(installation['namespace']['working_directory'])))
+    namespace = copy.deepcopy(installation['namespace'])
+    namespace['limits']['output_bytes'] = 1<<20
+    nanos = (1800 if owner=='onebox' else 300)*1_000_000_000
+    configured = dict(engine='cranelift-fuel-nan-canonical-nounwind-epoch-v1',profile='gomad.wasi-cooperative/v1',
+        limits=dict(fuel=installation['fuel'],memory_bytes=installation['memory_bytes'],wall_millis=nanos//1_000_000,
+                    output_bytes=1<<20,evidence_bytes=choice+(2<<20)+(128<<20)),arguments=['gomad-target',*arguments],
+        wall_nanos=nanos,environment=environment,derive_seed_environment=True,runtime_sha256=runtime_sha256,
+        model=model,namespace=namespace,storage=None,network=installation.get('network'))
+    if configured['network'] is None:
+        del configured['network']
+    return configured
+
+
+def argument(argv, flag):
+    require(argv.count(flag) == 1 and argv.index(flag)+1 < len(argv),'missing/duplicate producer argument '+flag)
+    return argv[argv.index(flag)+1]
+
+
+def runtime_selection(configuration, volume, incarnation, state, context):
+    owners = [row for row in configuration['incarnations'] if row['handle'] == dict(node=volume,incarnation=incarnation)]
+    require(len(owners) == 1,'selected runtime owner missing/duplicate')
+    storage = owners[0]['storage']
+    raw = canonical({volume:context})
+    require(storage['descriptor'].get('crash_selection') == {volume:state['SelectedOperations']}
+            and storage['descriptor'].get('crash_context') == dict(bytes=len(raw),chunks=(len(raw)+65535)//65536,sha256=digest(raw))
+            and storage['context'] == list(raw),'actual selected runtime state/context is unbound')
+    for row in configuration['incarnations']:
+        if row is owners[0] or row.get('storage') is None:
+            continue
+        require(row['storage']['descriptor'].get('crash_selection') is None and row['storage'].get('context') is None,
+                'selected context leaked outside original crash owner')
 
 
 def retry_witness(stdout, network):
@@ -265,6 +415,8 @@ class Retained:
         for name, entry in manifest['files'].items():
             require(name and not Path(name).is_absolute() and '..' not in Path(name).parts
                     and name not in ('manifest.json','storage.json'), 'unsafe retained payload name')
+            if name == 'target/module.wasm':
+                require(regular(artifact/name).stat().st_size <= 512<<20,'retained target module exceeds original bound before read')
             raw = regular(artifact/name).read_bytes()
             require(len(raw) == entry['bytes'] and digest(raw) == entry['sha256'], 'raw artifact payload mismatch: '+name)
             require(entry['module'] == (name == 'target/module.wasm'), 'artifact module kind mismatch')
@@ -279,19 +431,23 @@ class Retained:
 
     def provenance(self, result):
         provenance = result['provenance']
-        inputs, configuration, manifest = provenance['inputs'], provenance['configuration'], result['manifest']
+        inputs, configuration, manifest = provenance['inputs'], provenance['configuration'], result.get('manifest')
         require(provenance['schema'] == 'gomad.rust-wasm-provenance/v1'
                 and inputs['schema'] == 'gomad.rust-wasm-build-inputs/v1'
                 and digest(canonical(inputs)) == provenance['build_key'], 'qualification build-key preimage mismatch')
         built = dict(configuration,runtime_sha256=None)
         require(inputs['configuration'] == built and inputs['network'] == provenance['network']
                 and inputs['scenario'] == provenance['scenario'], 'qualification duplicated input preimages changed')
+        compiler = inputs['compiler_path']
+        require(isinstance(compiler,str) and Path(compiler).is_absolute()
+                and self.config['files'].get(compiler) == inputs['compiler_sha256'], 'qualification compiler path/hash is not frozen')
+        require(inputs['module_metadata'] == provenance['module_metadata'], 'qualification metadata preimages disagree')
         choice = provenance['choice_identity']
         profile = {'gomad.wasi-cooperative/v1':'cooperative','gomad.wasi-stock-exploratory/v1':'controlled'}
         require(configuration['profile'] in profile,'qualification profile not admitted')
-        require(set(inputs) == set(('arguments','build_flags','compiler','compiler_sha256','configuration','directory','environment','go_version','helper','host','kind','network','runtime','runtime_implementation','scenario','schema','soft_assertion_report_only','source','sources','tags')),
+        require(set(inputs) == set(('arguments','build_flags','compiler','compiler_path','compiler_sha256','configuration','directory','environment','go_version','helper','host','kind','module_metadata','network','runtime','runtime_implementation','scenario','schema','soft_assertion_report_only','source','sources','tags')),
                 'qualification build input field inventory changed')
-        require(set(provenance)-{'runtime_workload'} == set(('build_key','choice_identity','configuration','inputs','module_sha256','network','scenario','schema')),
+        require(set(provenance)-{'runtime_workload'} == set(('build_key','choice_identity','configuration','inputs','module_metadata','module_sha256','network','scenario','schema')),
                 'qualification provenance field inventory changed')
         if configuration['profile'] == 'gomad.wasi-cooperative/v1':
             source = hashlib.sha256(b'gomad-choice-implementation-source-v3')
@@ -315,7 +471,11 @@ class Retained:
             host_config_sha256=digest(canonical(configuration)),module_sha256=provenance['module_sha256'],
             toolchain_sha256=provenance['build_key'],scenario_sha256=digest(bytes(provenance['scenario'])) if provenance['scenario'] is not None else None,
             profile=profile[configuration['profile']],fuel=configuration['limits']['fuel'],memory_bytes=configuration['limits']['memory_bytes'])
-        require(all(manifest[key] == value for key,value in expected.items()),'qualification manifest differs from raw provenance')
+        if manifest is not None:
+            require(all(manifest[key] == value for key,value in expected.items()),'qualification manifest differs from raw provenance')
+        require(inputs['host'] == self.config['identity']['host'] and inputs['helper'] == self.config['identity']['helper'],
+                'prepared provenance belongs to foreign release/helper')
+        return expected
 
     def result(self, path, reported):
         path = self.contained(path)
@@ -343,11 +503,16 @@ class Retained:
         require(receipt['linked_after'] is not None and receipt['operator_peak_rss_bytes'] is not None,
                 'publication measurement absent')
         manifest = result['manifest']
+        source_manifest = regular(self.config['source_manifest']).read_bytes()
+        require(result.get('integrated_source_manifest') == source_manifest.decode()
+                and digest(source_manifest) == self.config['source_sha256'], 'Result integrated source preimage differs from frozen candidate')
+        require(manifest['provisional'] is False and manifest['seed'] == 7 and manifest['repeat'] == 2, 'Result is not original final seed/repeat')
         require(result['schema'] == 'gomad.rust-qualification-result/v1'
                 and manifest['integrated_source_sha256'] == self.config['source_sha256'], 'foreign Result source/schema')
         for key, value in self.config['identity'].items():
             require(manifest[key+'_sha256'] == value, 'foreign Result identity: '+key)
         self.provenance(result)
+        receiving_cost.validate(result)
         observations, after = result['observations'], receipt['linked_after']
         executed = observations['executed']['linked']
         require(all(type(after[key]) is int and after[key] >= executed[key] for key in ('user_nanos','system_nanos','peak_rss_bytes')),
@@ -358,22 +523,66 @@ class Retained:
         require(reported['publication'] == dict(cpu_nanos=after['user_nanos']+after['system_nanos']-executed['user_nanos']-executed['system_nanos'],
                 peak_rss_bytes=peak,status='within'), 'publication tail recomputation mismatch')
         executions = result['report']['executions']
-        require(len(executions) == 2 and [row['iteration'] for row in executions] == [0,1], 'exact two Result iterations required')
+        require(len(executions) == 2 and [row['iteration'] for row in executions] == [1,2], 'exact two Result iterations required')
+        report = result['report']
+        require(report['schema'] == 'gomad.rust-qualification/v1' and report['seed'] == 7 and report['repeat'] == 2
+                and report['command'] and report['failure'] is None, 'incomplete actual qualification report')
+        deterministic = len({row['record_sha256'] for row in executions}) == 1
+        success = all(row['record']['outcome']['class'] == 'success' for row in executions)
+        require(report['deterministic'] == deterministic and deterministic and report['target_success'] == success
+                and report['qualified'] == success and report['record_sha256'] == executions[0]['record_sha256']
+                and report['first_divergence'] is None, 'Result public verdict differs from raw canonical outcomes')
         paths = set()
         for execution in executions:
             artifact = execution['artifact_path']
             require(artifact not in paths, 'duplicate qualification artifact')
             paths.add(artifact)
             actual = self.artifact(Path(artifact))
+            require(module_metadata(regular(Path(artifact)/'target/module.wasm').read_bytes()) == result['provenance']['module_metadata'],
+                    'qualification metadata differs from raw module')
             self.journal(Path(execution['campaign_path']), execution['record_sha256'])
             require(actual['record'] == execution['record'] and actual['record_sha256'] == execution['record_sha256'],
                     'Result execution differs from authenticated raw artifact')
+            record = actual['record']
+            implementation = digest(canonical(self.config['identity']))
+            require(record['identity']['implementation'] == implementation
+                    and record['identity']['platform'] == digest((manifest['host_os']+'/'+manifest['host_arch']).encode())
+                    and record['profile'] == result['provenance']['configuration']['profile'], 'Result current role/platform/profile differs from actual record')
             require(actual['record']['identity']['target'] == manifest['module_sha256']
                     and actual['record']['identity']['toolchain'] == manifest['toolchain_sha256']
                     and actual['record']['seed'] == manifest['seed'], 'qualification module/toolchain/seed differs from execution')
+            configured_limits = dict(result['provenance']['configuration']['limits'])
+            cluster = manifest['scenario_sha256'] is not None
+            if cluster:
+                scenario = decoded(bytes(result['provenance']['scenario']))
+                configured_limits['evidence_bytes'] = min(configured_limits['evidence_bytes'],scenario['spec']['limits']['scenario_evidence_bytes'])
+            else:
+                require(record.get('arguments') == result['provenance']['configuration'].get('arguments')
+                        and record.get('environment') == result['provenance']['configuration'].get('environment')
+                        and record['identity']['configuration'] == manifest['host_config_sha256'], 'Result standalone input binding changed')
+            require(record['limits'] == configured_limits,'Result record limits differ from actual prepared request')
+            trace_names = ('transcript','choice','diagnostic','storage','network')
+            trace = []
+            expected_handles = set()
+            for name,stream in record['streams'].items():
+                if name.startswith('evidence/cluster/'):
+                    parts = name.removeprefix('evidence/cluster/').split('/',2)
+                    require(len(parts) == 3,'malformed cluster stream owner')
+                    expected_handles.add(parts[0]+'/'+parts[1])
+                    if parts[2] != 'network' and parts[2] in trace_names:
+                        trace.append(stream['bytes'])
+                elif name.startswith('evidence/') and name.removeprefix('evidence/') in trace_names:
+                    trace.append(stream['bytes'])
+            for phase in ('execute','replay'):
+                samples = [sample for sample in observations['samples'] if sample['phase'] == phase and sample['iteration'] == execution['iteration']]
+                require(samples and receiving_cost.total(sample['trace_bytes'] for sample in samples) == receiving_cost.total(trace)
+                        and all(sample['guest_memory_limit_bytes'] == manifest['memory_bytes'] and (sample.get('incarnation') is not None) == cluster for sample in samples),
+                        'Result raw trace/memory/store samples differ from actual execution')
+                if cluster:
+                    require(expected_handles and {sample['incarnation'] for sample in samples} == expected_handles, 'Result raw store samples omit/borrow cluster incarnation')
             replay = execution['replay']
             require(replay and replay['attempted'] is True and replay['matched'] is True
-                    and replay['divergence'] is None and replay['choice_replay'] == 'exact', 'incomplete full-tape Result replay')
+                    and replay['divergence'] is None and replay['choice_replay'] == ('exact' if manifest['profile'] == 'cooperative' else 'none'), 'incomplete full-tape Result replay')
         return result
 
     def runtime(self):
@@ -524,11 +733,11 @@ class Retained:
         require(found == 1 and row['event']['kind'] in ('complete','choice','simulation'),
                 'campaign missing unique execution receipt or complete round')
 
-    def nested(self, root, name, accepted=(0,)):
+    def nested(self, root, name, argv, accepted=(0,)):
         row = read(regular(self.contained(root)/(name+'.command.json')))
         require('stdout_sha256' in row and 'environment' in row and 'environment_sha256' in row,
                 'historical producer lacks authenticated raw observations')
-        return self.command(self.config, root, name, row['argv'], accepted=accepted)
+        return self.command(self.config, root, name, argv, accepted=accepted)
 
     def owner(self, root, expected_argv=None):
         root = self.contained(root)
@@ -617,12 +826,12 @@ class Retained:
                     'producer install argv mismatch '+flag)
         require(len(installed_command) == 18 and installation['compiler_path'] in self.config['files']
                 and self.config['files'][installation['compiler_path']] == installation['compiler_sha256'], 'compiler not frozen or extra install controls')
-        self.nested(root,'install')
+        self.nested(root,'install',installed_command)
         qualify_argv = [self.config['binary'],'--installation',str(root/'installation.json'),'qualify','--spec',str(root/'qualification-spec.json')]
         response = decoded(self.command(self.config,root,'qualify',qualify_argv,accepted=(1,) if mode=='canary' else (0,)))
         path = Path(receipt['result_path'])
         require(response['result_path'] == str(path) and sha(regular(path)) == receipt['result_sha256'], 'actual Result path/hash mismatch')
-        reported = decoded(self.nested(root,'report'))
+        reported = decoded(self.nested(root,'report',[self.config['binary'],'report','--result',str(path)]))
         require(receipt['report'] == reported,'producer report changed')
         result = self.adapter.result_report(self.config,root,'report',str(path))
         require(result['observations']['operator_process_id'] == read(root/'qualify.command.json')['pid']
@@ -679,9 +888,19 @@ class Retained:
         elif label == 'storage':
             self.recovery(root)
         elif label == 'temporal-inspection':
+            outer_argv = self.config['stages'][label]['argv']
+            require(argument(outer_argv,'--owner') == 'all','inspection aggregate requires exact three original owners')
+            script = str(Path(__file__).resolve().parents[1]/'workload_tools/temporal-inspection.py')
+            require(len(outer_argv) > 1 and outer_argv[1] == script and script in self.config['files'], 'inspection aggregate uses foreign producer script')
             for owner in workloads.INSPECTION:
-                self.nested(root,owner)
-                child = self.owner(root/owner,read(root/(owner+'.command.json'))['argv'])
+                child_argv = [outer_argv[0],script,'--owner',owner]
+                for flag in ('--binary','--repo','--compiler','--runtime-root','--cache'):
+                    child_argv += [flag,argument(outer_argv,flag)]
+                child_argv += ['--root',str(root/owner)]
+                if '--captured-config' in outer_argv:
+                    child_argv += ['--captured-config',argument(outer_argv,'--captured-config')]
+                self.nested(root,owner,child_argv)
+                child = self.owner(root/owner,child_argv)
                 require(child['pid'] == read(root/(owner+'.command.json'))['pid'],'inspection child root/PID mismatch')
                 self.inspection(root/owner,owner)
         else:
@@ -694,7 +913,10 @@ class Retained:
         primary_root = self.contained(Path(argv[argv.index('--primary')+1]))
         primary = self.producer(primary_root,'recovery')
         receipt = read(regular(root/'recovery-receipt.json'))
-        self.nested(root,'primary-report'); self.nested(root,'primary-final-report')
+        primary_path = read(primary_root/'producer.json')['result_path']
+        primary_report_argv = [self.config['binary'],'report','--result',primary_path]
+        self.nested(root,'primary-report',primary_report_argv)
+        self.nested(root,'primary-final-report',primary_report_argv)
         catalogues = primary['native_crash_catalogues']
         require(len(catalogues) == 1 and catalogues[0]['volume'] == 'temporal'
                 and catalogues[0]['handle'] == dict(node='temporal',incarnation=1), 'actual primary Temporal catalogue owner')
@@ -727,8 +949,12 @@ class Retained:
                 artifact_path=str(primary_artifact),record_sha256=digest(canonical(primary_record)),
                 prefix_sha256=digest(expected_prefix),storage_state_sha256=digest(primary_state),state=state,context=context))
             require(spec == expected,'Temporal selected request changed base scenario or primary context')
-            self.nested(cell,'qualify')
+            qualify_argv = [self.config['binary'],'--installation',str(primary_root/'installation.json'),
+                            'qualify','--spec',str(cell/'spec.json')]
+            response = decoded(self.command(self.config,cell,'qualify',qualify_argv))
+            require(response['result_path'] == row['result_path'],'Temporal selected qualify response borrowed Result')
             result = self.adapter.result_report(self.config,cell,'report',row['result_path'])
+            sqlite.matched_inputs(primary,result,spec['RuntimeWorkload'])
             pid = result['observations']['operator_process_id']
             require(pid not in pids and pid == read(cell/'qualify.command.json')['pid']
                     and sha(regular(row['result_path'])) == row['result_sha256'], 'Temporal selected Result/PID binding')
@@ -738,6 +964,7 @@ class Retained:
                 for stream in ('choice','stdout','storage'):
                     require((artifact/('evidence/cluster/temporal/1/'+stream)).read_bytes() ==
                             (primary_artifact/('evidence/cluster/temporal/1/'+stream)).read_bytes(), 'Temporal primary interrupted prefix changed')
+                self.recovery_configuration(primary_artifact,artifact,spec['RuntimeWorkload'],expected_history)
                 recovered = history((artifact/'evidence/cluster/temporal/2/stdout').read_bytes(),sequential=True)
                 require(recovered == expected_history,'Temporal selected history did not recover exactly')
         for execution in primary['report']['executions']:
@@ -753,39 +980,200 @@ class Retained:
                         dict(source_handle=dict(node='temporal',incarnation=1),image_sha256=digest(image),image_bytes=len(image)),
                         'Temporal primary did not use identical image twice')
 
+    def recovery_configuration(self, primary_artifact, artifact, request, expected_history):
+        primary_record = read(regular(primary_artifact/'manifest.json'))['record']
+        configuration = read(regular(artifact/'evidence/cluster-replay.json'))['configuration']
+        primary_configuration = read(regular(primary_artifact/'evidence/cluster-replay.json'))['configuration']
+        require(digest(canonical(configuration)) == read(artifact/'manifest.json')['record']['identity']['configuration'],
+                'Temporal selected actual configuration identity mismatch')
+        forcing = dict(primary_record_sha256=request['primary']['record_sha256'],prefix_sha256=request['primary']['prefix_sha256'],
+                       storage_state_sha256=request['primary']['storage_state_sha256'],state=request['primary']['state'],
+                       context=request['primary']['context'],expected=expected_history)
+        prefix = primary_artifact/'evidence/cluster/temporal/1'
+        for name,field in [('storage','storage_sha256'),('stdout','stdout_sha256'),('recovery_image_primary','primary_image_sha256')]:
+            forcing[field] = digest(regular(prefix/name).read_bytes())
+        require(configuration['workload'] == dict(kind='temporal-committed-workflow-crash-reopen',forcing=forcing),
+                'Temporal selected actual workload does not bind original primary/state/context')
+        runtime_selection(configuration,'temporal',1,request['primary']['state'],request['primary']['context'])
+        expected = copy.deepcopy(primary_configuration)
+        expected['incarnations'] = [row for row in expected['incarnations'] if row['handle']['incarnation'] != 3]
+        expected['steps'] = [row for row in expected['steps'] if row['handle']['incarnation'] != 3]
+        expected['workload'] = configuration['workload']
+        owner = next(row for row in expected['incarnations'] if row['handle'] == dict(node='temporal',incarnation=1))
+        raw = canonical(dict(temporal=request['primary']['context']))
+        owner['storage']['descriptor']['crash_selection'] = dict(temporal=request['primary']['state']['SelectedOperations'])
+        owner['storage']['descriptor']['crash_context'] = dict(bytes=len(raw),chunks=(len(raw)+65535)//65536,sha256=digest(raw))
+        owner['storage']['context'] = list(raw)
+        require(configuration == expected,'Temporal selected configuration changed unapproved prepared inputs')
+        capsule = artifact/'evidence/primary-crash'
+        require(regular(capsule/'record.json').read_bytes() == canonical(primary_record), 'Temporal primary record capsule changed')
+        require(regular(capsule/'cluster-replay.json').read_bytes() == regular(primary_artifact/'evidence/cluster-replay.json').read_bytes(),
+                'Temporal primary configuration capsule changed')
+        for name in ('choice','storage_state','storage','stdout','recovery_image_primary'):
+            require(regular(capsule/name).read_bytes() == regular(prefix/name).read_bytes(),'Temporal primary capsule payload changed: '+name)
+
+    def installed(self, installation, policy, fuel, memory):
+        require(installation['schema'] == 'gomad.rust-wasm-installation/v1'
+                and installation['profile'] == 'gomad.wasi-cooperative/v1'
+                and installation['fuel'] == fuel and installation['memory_bytes'] == memory,
+                'inspection actual installation profile/bounds mismatch')
+        require(all(installation[key+'_sha256'] == value for key,value in self.config['identity'].items()),
+                'inspection actual installation host/helper mismatch')
+        model,namespace,environment,network = inspection_policy_projection(policy)
+        require(installation['model'] == model and installation['namespace'] == namespace
+                and installation.get('network') == network and installation.get('storage') is None
+                and installation.get('build_tags',[]) == [], 'inspection installed original policy projection changed')
+        admission = installation['admission']
+        require(admission['environment'] == environment and admission['arguments'] == (policy.get('Args') or []),
+                'inspection installed argument/environment policy changed')
+        require(admission['host_executable_sha256'] == self.config['binary_sha256']
+                and admission['guest_configuration'] == policy
+                and admission['configuration_sha256'] == digest(canonical(policy))
+                and admission['inputs_sha256'] == digest(canonical(admission['compiler_inputs'])),
+                'inspection installation release/configuration/toolchain admission mismatch')
+        require(admission['compiler_inputs'] and all(self.config['files'].get(path) == value
+                for path,value in admission['compiler_inputs'].items()),'inspection compiler inventory not frozen')
+        require(self.config['files'].get(installation['compiler_path']) == installation['compiler_sha256'],
+                'inspection compiler executable not frozen')
+        runtime_pins = {read(path)['runtime_implementation_sha256'] for path in self.config['installations'].values()
+                        if read(path)['profile'] == 'gomad.wasi-cooperative/v1'}
+        require(runtime_pins == {installation['runtime_implementation_sha256']},'inspection actual runtime implementation differs')
+
     def inspection(self, root, owner):
-        self.owner(root)
+        observed_owner = self.owner(root)
+        argv = observed_owner['argv']
+        require(argument(argv,'--owner') == owner and argument(argv,'--binary') == self.config['binary']
+                and argument(argv,'--repo') == self.config['repo'] and argument(argv,'--root') == str(root),
+                'inspection owner argv differs from frozen release/root/source')
+        repo = Path(self.config['repo'])
+        capture = None
+        if owner == 'onebox':
+            captured_path = argument(argv,'--captured-config')
+            require(captured_path in self.config['files'],'inspection captured schema input not frozen')
+            value = read(captured_path)
+            capture = value.get('Config',value)['CapturedInputs']
+        policy = workloads.inspection_policy(owner,capture)
+        require(read(regular(root/'policy.json')) == policy,'inspection original policy changed')
+        fuel,memory = (1<<50,4<<30) if owner=='onebox' else (50_000_000_000,1<<30)
+        installation = read(regular(root/'installation.json'))
+        self.installed(installation,policy,fuel,memory)
+        installed_command = [self.config['binary'],'install','--compiler',argument(argv,'--compiler'),
+            '--runtime-root',argument(argv,'--runtime-root'),'--cache',argument(argv,'--cache'),
+            '--output',str(root/'installation.json'),'--profile','gomad.wasi-cooperative/v1','--config',str(root/'policy.json'),
+            '--fuel',str(fuel),'--memory-bytes',str(memory)]
+        require(installation['compiler_path'] == argument(argv,'--compiler') and installation['runtime_root'] == argument(argv,'--runtime-root')
+                and installation['cache_root'] == argument(argv,'--cache'),'inspection installed actual lookup paths changed')
+        self.nested(root,'install',installed_command)
         receipt = read(regular(root/'inspection-receipt.json'))
         require(receipt['schema'] == 'gomad.rust-temporal-inspection/v1' and receipt['owner'] == owner,'wrong inspection owner')
-        artifact = Path(receipt['artifact'])
+        artifact = self.contained(Path(receipt['artifact']))
+        require(artifact.is_relative_to(root/'artifacts'),'inspection borrowed foreign producer artifact')
         actual = self.artifact(artifact)
         expected_hashes = {str(path.relative_to(artifact)):sha(regular(path)) for path in artifact.rglob('*') if path.is_file()}
         require(receipt['artifact_sha256'] == expected_hashes,'inspection changed raw artifact')
-        detached = Path(receipt['source_detached'])
-        require(detached.is_dir() and not detached.is_symlink() and not detached.with_name(detached.name.removesuffix('-unavailable')).exists(),
-                'inspection source was not detached')
+        stage = repo/'service/history'/('.gomad-inspection-'+owner+'-'+digest(str(root).encode())[:16])
+        detached = stage.with_name(stage.name+'-unavailable')
+        require(receipt['source_detached'] == str(detached) and detached.is_dir() and not detached.is_symlink() and not stage.exists(),
+                'inspection original source was not actually detached')
+        original = repo/(workloads.WASM/'testdata/prototype_temporal' if owner=='onebox' else Path('service/history')/owner)
+        sources = {path.name:path for path in original.iterdir() if path.is_file() and path.name.endswith('.go')
+                   and (owner=='onebox' or not path.name.endswith('_test.go') or path.name=='gomad_debug_test.go')}
+        require(sources and read(regular(root/'unchanged-source-inputs.json')) == {str(path):sha(regular(path)) for path in sources.values()}
+                and {path.name for path in detached.iterdir()} == set(sources),'inspection original/staged source inventory mismatch')
+        for name,path in sources.items():
+            require(self.config['files'].get(str(path)) == sha(regular(path)) and regular(detached/name).read_bytes() == path.read_bytes(),
+                    'inspection staged source differs from frozen original bytes')
         selection,dump,probe,snapshot = workloads.INSPECTION[owner]
-        installation = read(regular(root/'installation.json'))
-        require(installation['fuel'] == (1<<50 if owner=='onebox' else 50_000_000_000)
-                and installation['memory_bytes'] == (4<<30 if owner=='onebox' else 1<<30), 'inspection original resource bounds')
-        self.nested(root,'install')
-        explored = decoded(self.nested(root,'explore',accepted=(1,)))
+        arguments = ['-test.run=^'+selection+'$','-test.v']
+        explore = [self.config['binary'],'--installation',str(root/'installation.json'),'explore','--json','--seeds','7','--parallel','1',
+            '--execution-timeout','30m' if owner=='onebox' else '5m','--overall-timeout','45m' if owner=='onebox' else '15m',
+            '--terminate-grace','1s','--on-failure','first','--failure-budget','1','--output-limit',str(1<<20),'--world-transition-limit',str(1<<20),
+            '--artifacts',str(root/'artifacts'),'--env','GOMAD_DEBUG_CANARY=1']
+        if owner=='onebox':
+            require(read(regular(root/'scenario.json')) == workloads.inspection_scenario(arguments),'inspection original onebox scenario changed')
+            explore += ['--scenario',str(root/'scenario.json')]
+            for value in ('TEMPORAL_ROOT=/workspace','TMPDIR=/tmp','TEMPORAL_TEST_LOG_LEVEL=warn'):
+                explore += ['--env',value]
+        else:
+            explore += ['--choices','--choice-bytes',str(8<<20)]
+        for tag in workloads.TAGS+['gomad']:
+            explore += ['--build-tag',tag]
+        explore += ['--working-dir',str(repo),'go-test','./'+str(stage.relative_to(repo)),'--',*arguments]
+        explored = decoded(self.nested(root,'explore',explore,accepted=(1,)))
         require(all(explored[key] == 1 for key in ('attempted','failures','retained_evidence')), 'inspection exact retained canary count')
-        command = read(root/'explore.command.json')['argv']
-        for flag,value in (('--execution-timeout','30m' if owner=='onebox' else '5m'),
-                           ('--overall-timeout','45m' if owner=='onebox' else '15m'),('--seeds','7'),('--parallel','1')):
-            require(command.count(flag) == 1 and command[command.index(flag)+1] == value,'inspection changed original bound '+flag)
-        require(command[-2:] == ['-test.run=^'+selection+'$','-test.v'],'inspection changed original selection')
-        replay = self.nested(root,'detached-replay',accepted=(1,))
+        candidates = [path.parent for path in (root/'artifacts').rglob('manifest.json')
+                      if read(regular(path)).get('record',{}).get('outcome',{}).get('class') == 'target_failure']
+        require(candidates == [artifact],'inspection actual failure artifact coverage differs')
+        provenance = read(regular(artifact/'target/provenance.json'))
+        derived = self.provenance(dict(provenance=provenance))
+        inputs = provenance['inputs']
+        require(inputs['kind'] == 'go-test' and inputs['source'] == './'+str(stage.relative_to(repo))
+                and inputs['arguments'] == arguments and inputs['directory'] == str(repo)
+                and inputs['tags'] == sorted(set(workloads.TAGS+['gomad']+installation.get('build_tags',[])))
+                and derived['fuel'] == fuel and derived['memory_bytes'] == memory
+                and inputs['compiler_path'] == installation['compiler_path']
+                and inputs['runtime_implementation'] == installation['runtime_implementation_sha256'],
+                'inspection raw provenance target/toolchain/profile/limits changed')
+        for path,value in inputs['sources'].items():
+            source = Path(path)
+            require((source.is_relative_to(stage) and sha(regular(detached/source.relative_to(stage))) == value)
+                    or self.config['files'].get(path) == value,'inspection transitive source input not frozen')
+        prepared = inspection_configuration(installation,arguments,owner,provenance['configuration']['runtime_sha256'])
+        require(provenance['configuration'] == prepared,'inspection actual prepared model/namespace/clock/limits differs from original policy')
+        if owner=='onebox':
+            normalized = workloads.inspection_scenario(arguments)
+            normalized['spec'].update(faults=None,exploration=None,scenario_choice_plan=None,replay=None)
+            normalized['spec']['nodes'][0].update(config=None,volumes=[])
+            normalized['boots'][0]['storage'] = None
+            require(decoded(bytes(provenance['scenario'])) == normalized,'inspection prepared original scenario differs')
+        else:
+            require(provenance['scenario'] is None,'inspection standalone source gained scenario')
+        require(module_metadata(regular(artifact/'target/module.wasm').read_bytes()) == provenance['module_metadata'],
+                'inspection raw module metadata differs')
+        record = actual['record']
+        require(record['identity']['target'] == derived['module_sha256'] and record['identity']['toolchain'] == derived['toolchain_sha256']
+                and record['identity']['implementation'] == digest(canonical(self.config['identity']))
+                and record['profile'] == 'gomad.wasi-cooperative/v1' and record['seed'] == 7
+                and record['limits']['fuel'] == fuel and record['limits']['memory_bytes'] == memory
+                and record['outcome']['class'] == 'target_failure','inspection actual artifact belongs to foreign executable/target')
+        replay_inputs = read(regular(artifact/('evidence/cluster-replay.json' if owner=='onebox' else 'evidence/replay.json')))
+        require(replay_inputs['host_sha256'] == self.config['identity']['host'] and replay_inputs['helper_sha256'] == self.config['identity']['helper']
+                and replay_inputs['toolchain_sha256'] == derived['toolchain_sha256']
+                and replay_inputs['runtime_implementation_sha256'] == installation['runtime_implementation_sha256']
+                and digest(canonical(replay_inputs['configuration'])) == record['identity']['configuration'],
+                'inspection actual replay configuration/implementation binding changed')
+        if owner=='onebox':
+            configuration = replay_inputs['configuration']
+            require(configuration['steps'] == workloads.inspection_scenario(arguments)['actions']
+                    and configuration['workload'] == dict(kind='temporal-onebox-stopped-inspection')
+                    and len(configuration['incarnations']) == 1,'inspection onebox actual lifecycle/owner coverage differs')
+            incarnation = configuration['incarnations'][0]
+            require(incarnation['handle'] == dict(node='history',incarnation=1)
+                    and incarnation['model'] == prepared['model'] and incarnation['namespace'] == prepared['namespace']
+                    and incarnation['limits'] == prepared['limits'] and incarnation['arguments'] == prepared['arguments']
+                    and incarnation['environment'] == dict(prepared['environment'],GOMADSEED='7'), 'inspection onebox actual guest model/policy differs')
+        else:
+            require(replay_inputs['configuration'] == prepared,'inspection actual standalone replay policy differs')
+        campaign = next((path for path in artifact.parents if path.parent.name == 'campaigns'),None)
+        require(campaign is not None,'inspection actual campaign root absent')
+        self.journal(campaign,actual['record_sha256'])
+        replay = self.nested(root,'detached-replay',[self.config['binary'],'replay',str(artifact)],accepted=(1,))
         require(b'reproduced=true' in replay and b'choice-replay=exact' in replay,'inspection full replay mismatch')
-        report = decoded(self.nested(root,'stopped-inspection'))
-        require(report == receipt['report'] and report['status'] == 'inspected_prefix'
-                and report['prefix_verified'] is True and report['witness_match'] is True,'inspection prefix/witness mismatch')
+        stopped = [self.config['binary'],'replay','--stop=failure','--dump=stacks','--dump=heap','--dump='+dump,'--probe='+probe,
+                   '--debug-bytes',str(8<<20),'--dump-bytes',str(4<<20),'--debug-output',str(root/'inspection')]
+        if owner=='onebox':
+            stopped += ['--instance=history','--incarnation=1','--dump=temporal.shards']
+        report = decoded(self.nested(root,'stopped-inspection',stopped+[str(artifact)]))
+        require(report == receipt['report'] and report['status'] == 'inspected_prefix' and report['prefix_verified'] is True
+                and report['witness_match'] is True and report['output_path'] == str(root/'inspection/debug.json'),
+                'inspection prefix/witness/output binding mismatch')
         for name in ('detached-replay','stopped-inspection'):
             environment = read(root/(name+'.command.json'))['environment']
             require(environment == dict(PATH='',GOMAD_WASM_INSTALLATION=str(root/'installation-unavailable.json'),
                 GOMAD_STOCK_GO=str(root/'compiler-unavailable'),GOMAD_WASM_RUNTIME_ROOT=str(root/'runtime-unavailable')),
                 'inspection compiler/runtime/installation not unavailable')
+        hashes = {str(path.relative_to(root/'inspection')):sha(regular(path)) for path in (root/'inspection').rglob('*') if path.is_file()}
+        require(receipt['inspection_sha256'] == hashes,'inspection raw debug/heap bytes changed after observation')
         debug = read(regular(self.contained(report['output_path'])))
         require(debug['stacks'] and debug['probes'] and gzip.decompress(regular(root/'inspection/heap.pprof').read_bytes()),
                 'inspection lacks useful stacks, heap or probes')

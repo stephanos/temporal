@@ -117,7 +117,7 @@ def main():
     if before!=file_hashes(artifact):
         raise ValueError("stopped inspection modified original retained artifact")
     producer.write(root/"inspection-receipt.json",dict(schema="gomad.rust-temporal-inspection/v1",owner=args.owner,artifact=str(artifact),source_detached=str(detached),
-        report=report,artifact_sha256=before,subgates=[dict(id="TestTemporalInspectionRetainedFailure/"+args.owner,status="PASS",executed=True,exit=0)]))
+        report=report,artifact_sha256=before,inspection_sha256=file_hashes(root/"inspection"),subgates=[dict(id="TestTemporalInspectionRetainedFailure/"+args.owner,status="PASS",executed=True,exit=0)]))
     print(json.dumps(dict(receipt=str(root/"inspection-receipt.json"))))
 
 
