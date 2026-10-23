@@ -12,7 +12,7 @@ import (
 // The retained Runner vector checks both owners against the same bytes. The
 // seeded runtime replaces the host filesystem, so only the stock build reads it.
 func TestExplorationIdentitiesMatchRunnerIssuedPlanVector(t *testing.T) {
-	encoded, err := os.ReadFile(filepath.Join("..", "..", "runner", "testdata", "simulation_exploration_plan_vector.json"))
+	encoded, err := os.ReadFile(filepath.Join("testdata", "simulation_exploration_plan_vector.json"))
 	require.NoError(t, err)
 	var vector struct {
 		ExecutionSHA256  string              `json:"execution_sha256"`

@@ -11,7 +11,7 @@ import (
 	netmodel "go.temporal.io/server/tools/gomad/internal/model/network"
 )
 
-const clusterNetworkFixtures = "../../../rust/wasmhost/tests/testdata/cluster_network"
+const clusterNetworkFixtures = "../../../rust/wasmhost/tests/testdata/cluster_network/"
 
 func clusterNetworkLimits() ClusterNetworkLimits {
 	return ClusterNetworkLimits{Network: streamConfig().Limits, Instance: *streamConfig(), TranscriptBytes: 1 << 20}
