@@ -118,15 +118,15 @@ fn produce(
             build::build_role(
                 proof,
                 root,
-                build::Role::Diagnostic(features),
+                &build::Role::Diagnostic(features),
                 &call.environ,
             )
         }
         "terminal-exit-helper-build" => {
-            build::build_role(proof, root, build::Role::Release, &call.environ)
+            build::build_role(proof, root, &build::Role::Release, &call.environ)
         }
         "warm-preparation-helper-build" => {
-            build::build_role(proof, root, build::Role::Warm, &call.environ)
+            build::build_role(proof, root, &build::Role::Warm, &call.environ)
         }
         "terminal-exit-helper-stage" => {
             let receipt = call

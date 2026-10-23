@@ -870,15 +870,7 @@ fn compare_replay_mode(
     declaration
         .validate(64 << 20)
         .map_err(|error| error.to_string())?;
-    let expected_target =
-        expected_identity
-            .target_sha256
-            .iter()
-            .fold(String::new(), |mut text, byte| {
-                use std::fmt::Write as _;
-                write!(&mut text, "{byte:02x}").expect("writing hex to String");
-                text
-            });
+    let expected_target = super::workloads::hex(&expected_identity.target_sha256);
     if raw != *trace
         || if interrupted {
             replay_model["configuration"]["replay"]["prefix_control"]

@@ -198,7 +198,7 @@ fn prepared(
     call: &Invocation,
     proof: &CheckoutProof,
     root: &Path,
-    selection: Selection,
+    selection: &Selection,
 ) -> Result<module::Prepared, String> {
     let mut selected = call.clone();
     let stock = value(call, "GOMAD_WASM_NAMESPACE_STOCK_GO");
@@ -291,7 +291,7 @@ fn execute(
     root: &Path,
     role: &NativeRole,
     row: &RunSpec,
-    input: Value,
+    input: &Value,
 ) -> Result<NativeRun, String> {
     role.verify(proof)?;
     let result = workloads::execute(call, proof, root, row, &role.executable, input);
@@ -340,13 +340,15 @@ fn observe(
         root,
         role,
         &row(label, seed, repetition, replay_from.is_some(), warm),
-        input,
+        &input,
     )
 }
 fn sample_summary(series: &namespace::Series) -> Value {
     json!(series.samples.iter().map(|sample|json!({"role":sample.role,"seed":sample.seed,"repetition":sample.repetition,"authorized_nanos":sample.authorized_nanos,"evidence_sha256":sample.evidence_sha256,"environment_identity":sample.environment_identity,"calls":sample.calls,"time_advances":sample.time_advances,"counter_present":sample.counter_present,"external_owner_attempts":sample.external_filesystem_calls,"counter_domain":namespace::COUNTER_DOMAIN})).collect::<Vec<_>>())
 }
 
+/// # Errors
+/// Refuses changed source or role admission and unsuccessful native namespace comparisons.
 pub fn run(call: &Invocation, proof: &CheckoutProof, root: &Path) -> Result<PathBuf, String> {
     if proof.repo() != call.repo {
         return Err("namespace driver selected-checkout proof mismatch".into());
@@ -415,7 +417,7 @@ fn activity(call: &Invocation, proof: &CheckoutProof, root: &Path) -> Result<Pat
         proof.repo().into(),
         false,
     )?;
-    let prepared = prepared(call, proof, &root.join("module"), Selection::Activity)?;
+    let prepared = prepared(call, proof, &root.join("module"), &Selection::Activity)?;
     let module = supplied(
         call,
         &prepared,
@@ -848,7 +850,7 @@ fn operations(call: &Invocation, proof: &CheckoutProof, root: &Path) -> Result<P
             call,
             proof,
             &root.join(format!("module-{label}")),
-            Selection::Selected(selection.into()),
+            &Selection::Selected(selection.into()),
         )?;
         let module = supplied(call, &prepared, "GOMAD_WASM_MATCHED_MODULE", None)?;
         if prepared
@@ -877,8 +879,7 @@ fn operations(call: &Invocation, proof: &CheckoutProof, root: &Path) -> Result<P
             );
             prime.prepare = true;
             prime.warm = false;
-            let observed =
-                workloads::execute(call, proof, root, &prime, &executable, input.clone())?;
+            let observed = workloads::execute(call, proof, root, &prime, &executable, &input)?;
             workloads::success(&observed, &prime)?;
             let mut recorded = Vec::new();
             for (owner, digest_only) in [("control", true), ("retained", false)] {
@@ -890,7 +891,7 @@ fn operations(call: &Invocation, proof: &CheckoutProof, root: &Path) -> Result<P
                 );
                 let mut input = input.clone();
                 input["guest"]["model"]["configuration"]["digest_only"] = digest_only.into();
-                let observed = workloads::execute(call, proof, root, &row, &executable, input)?;
+                let observed = workloads::execute(call, proof, root, &row, &executable, &input)?;
                 workloads::success(&observed, &row)?;
                 recorded.push(observed);
             }

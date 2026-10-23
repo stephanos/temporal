@@ -192,7 +192,7 @@ fn gc_mask_preserves_derived_environment_arguments_entropy_and_clock() {
             4 => changed.request["guest"]["model"]["configuration"]["entropy_key"] = json!([2, 3]),
             5 => {
                 changed.request["guest"]["model"]["configuration"]["environment"]["bytes"] =
-                    0.into()
+                    0.into();
             }
             _ => changed.request["guest"]["model"]["environment"][1] = "GOGC=300".into(),
         }
@@ -355,7 +355,7 @@ fn explicit_variants_require_declared_actual_roles_features_and_configuration() 
             5 => changed.report["host_os"] = "other-os".into(),
             _ => {
                 changed.report["features"] =
-                    json!(["diagnostic-profile", "guest-profile", "invented"])
+                    json!(["diagnostic-profile", "guest-profile", "invented"]);
             }
         }
         assert!(
@@ -370,7 +370,7 @@ fn native_record(tag: u8, flags: u8, errno: u16, id: u64, body: &[u8]) -> Vec<u8
     bytes.extend([tag, flags]);
     bytes.extend(errno.to_le_bytes());
     bytes.extend(id.to_le_bytes());
-    bytes.extend((body.len() as u32).to_le_bytes());
+    bytes.extend(u32::try_from(body.len()).unwrap().to_le_bytes());
     bytes.extend(body);
     bytes
 }
@@ -421,7 +421,7 @@ fn unsupported_native_operations_preserve_typed_input_and_reason() {
             raw.as_slice(),
             reason.as_bytes(),
         ] {
-            body.extend((bytes.len() as u32).to_le_bytes());
+            body.extend(u32::try_from(bytes.len()).unwrap().to_le_bytes());
             body.extend(bytes);
         }
         native_record(34, 1, 0, 1, &body)
@@ -480,7 +480,7 @@ fn only_explicit_gc_off_masks_memory_limit_and_preserves_packed_environment_bind
         )
     };
     compare_gc(&before, &after).unwrap();
-    let mut changed = after.clone();
+    let mut changed = after;
     changed.request["guest"]["model"]["configuration"]["environment"]["bytes"] = 0.into();
     assert!(compare_gc(&before, &changed).is_err());
     let mut numeric = with_environment(&raw, "200");
@@ -512,11 +512,7 @@ fn replay_pair() -> (NativeRun, NativeRun, gomad_wasmhost::linked::ChoiceIdentit
     .unwrap();
     let identity: gomad_wasmhost::linked::ChoiceIdentity =
         serde_json::from_value(fixture["identity"].clone()).unwrap();
-    let target: String = identity
-        .target_sha256
-        .iter()
-        .map(|byte| format!("{byte:02x}"))
-        .collect();
+    let target = super::super::workloads::hex(&identity.target_sha256);
     before.request["guest"]["module_sha256"] = target.into();
     before.request["guest"]["model"] = json!({"configuration":{"mode":1},"replay_trace":null});
     before.root.streams.insert("choice".into(), Vec::new());
@@ -547,22 +543,23 @@ fn native_full_replay_authenticates_projection_before_narrow_bookkeeping_transla
             1 => changed.request["guest"]["model"]["replay_trace"] = json!([0]),
             2 => {
                 changed.request["guest"]["model"]["configuration"]["replay"]["trace_sha256"] =
-                    "a".repeat(64).into()
+                    "a".repeat(64).into();
             }
             3 => {
-                changed.request["guest"]["model"]["configuration"]["replay"]["decisions"] = 1.into()
+                changed.request["guest"]["model"]["configuration"]["replay"]["decisions"] =
+                    1.into();
             }
             4 => {
                 changed.request["guest"]["model"]["configuration"]["replay"]["tape_sha256"] =
-                    "a".repeat(64).into()
+                    "a".repeat(64).into();
             }
             5 => {
                 changed.request["guest"]["model"]["configuration"]["replay"]["trace_frames"] =
-                    1.into()
+                    1.into();
             }
             6 => {
                 changed.request["guest"]["model"]["configuration"]["replay"]["execution_identity"]
-                    ["ToolchainBuildKey"] = "changed".into()
+                    ["ToolchainBuildKey"] = "changed".into();
             }
             7 => changed.root.outcome["local_model"]["cursor"] = 1.into(),
             8 => changed.root.outcome["local_model"]["tape_records"] = 1.into(),
@@ -584,7 +581,7 @@ fn native_full_replay_authenticates_projection_before_narrow_bookkeeping_transla
             "mutation {mutation}"
         );
     }
-    let mut changed_identity = identity.clone();
+    let mut changed_identity = identity;
     changed_identity.target_sha256[0] ^= 1;
     assert!(compare_replay(&before, &after, &changed_identity).is_err());
 }

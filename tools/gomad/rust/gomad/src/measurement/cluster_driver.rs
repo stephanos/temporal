@@ -369,7 +369,7 @@ fn run_inner(call: &Invocation, proof: &CheckoutProof, root: &Path) -> Result<Pa
                 root,
                 &row,
                 reference,
-                native_input(&prepared, seed)?,
+                &native_input(&prepared, seed)?,
                 prepared
                     .guest
                     .choice_identity
@@ -498,7 +498,7 @@ fn execute_replayed(
     root: &Path,
     row: &super::workloads::RunSpec,
     executable: &super::workloads::Executable,
-    request: Value,
+    request: &Value,
     identity: &gomad_wasmhost::linked::ChoiceIdentity,
 ) -> Result<super::evidence::NativeRun, String> {
     let result = super::workloads::execute(call, proof, root, row, executable, request)?;
@@ -507,7 +507,7 @@ fn execute_replayed(
     replay_input(&mut request, &result, identity)?;
     let mut replay_row = row.clone();
     replay_row.name.push_str("-replay");
-    let replay = super::workloads::execute(call, proof, root, &replay_row, executable, request)?;
+    let replay = super::workloads::execute(call, proof, root, &replay_row, executable, &request)?;
     success(&replay)?;
     compare_replay(&result, &replay, identity)?;
     Ok(result)
