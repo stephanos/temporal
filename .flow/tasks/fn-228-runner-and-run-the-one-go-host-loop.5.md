@@ -21,8 +21,8 @@ The owner deferred the Shim on 2026-10-23 ("skip the Shim for now"). An unfinish
 - [ ] One non-Go worker control passes
 
 ## Done summary
-TBD
-
+Blocked:
+Deferred by the owner on 2026-10-23 pending a design rethink: workers should be pre-programmed before they run (no live worker-to-Umpire connection, e.g. in a cloud setup). Partial start on work/fn2285-shim-deferred.
 ## Evidence
 - Commits:
 - Tests:
