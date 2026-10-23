@@ -396,4 +396,23 @@ class CompleteSelectedRecovery(unittest.TestCase):
             with self.subTest(mutation=mutation),self.assertRaises(Refusal):gate.selected_observations(changed)
 
 
+
+
+class BootOrderCases(unittest.TestCase):
+    def test_every_boot_insertion_case_recomputes_original_first_refusal(self):
+        for kind in ('selection','context'):
+            for iteration in range(64):
+                ids=['a','b'] if iteration%2==0 else ['b','a']
+                descriptor=descriptor_model(1000,1000,[dict(ID=name,Path='/'+name,CapacityBytes=512) for name in ('a','b')])
+                context={}
+                if kind=='selection':descriptor['crash_selection']={'a':[0],'b':[1,1]}
+                else:context={name:dict(PendingSHA256='invalid' if name=='a' else 'sha256:'+'a'*64,Operations=[operation(0)]) for name in ids}
+                key=('storage-validation-volume-boot-order',kind,iteration)
+                error=gate.context_refusal(['a','b'],1000,descriptor.get('crash_selection'),context or None)
+                row=dict(schema=gate.SCHEMA,case=key[0],inputs=dict(kind=kind,iteration=iteration,insertion_ids=ids,descriptor=descriptor,context=context),observed=dict(refusal=error))
+                self.assertEqual(gate.storage_observation({},row,{key:None}),key)
+                row['observed']['refusal']='passed native tests'
+                with self.assertRaises(Refusal):gate.storage_observation({},row,{key:None})
+
+
 if __name__=='__main__':unittest.main()

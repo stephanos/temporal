@@ -191,6 +191,7 @@ def storage_catalog(config):
     for kind in ('selection','context'):
         for iteration in range(64):
             catalog[('storage-validation-volume-order',kind,iteration)]=None
+            catalog[('storage-validation-volume-boot-order',kind,iteration)]=None
     return catalog
 
 
@@ -203,7 +204,7 @@ def observation_key(row):
     if case=='storage-validation-order-corpus':
         require(type(inputs['reversed']) is bool,'order reversal must be boolean')
         return (case,inputs['name'],inputs['reversed'])
-    if case=='storage-validation-volume-order':
+    if case in ('storage-validation-volume-order','storage-validation-volume-boot-order'):
         unsigned(inputs['iteration'])
         return (case,inputs['kind'],inputs['iteration'])
     return (case,)
@@ -295,7 +296,7 @@ def storage_observation(config,row,catalog):
         for field,want in (('selection',selection),('context',context)):
             raw=descriptor['crash_selection'] if field=='selection' else actual
             require(raw==want,'order corpus map mismatch')
-    elif case=='storage-validation-volume-order':
+    elif case in ('storage-validation-volume-order','storage-validation-volume-boot-order'):
         require(set(inputs)=={'kind','iteration','insertion_ids','descriptor','context'},'missing volume order context')
         kind,iteration=key[1:];ids=['a','b'] if iteration%2==0 else ['b','a']
         require(inputs['insertion_ids']==ids,'volume insertion sequence changed')
@@ -306,8 +307,8 @@ def storage_observation(config,row,catalog):
             context=None
         else:
             expected_context={name:dict(PendingSHA256='invalid' if name=='a' else 'sha256:'+'a'*64,Operations=[operation(0)]) for name in ids}
-            require(context==expected_context and descriptor['crash_selection'] is None,'volume context fixture changed')
-        error=context_refusal(['a','b'],1000,descriptor['crash_selection'],context)
+            require(context==expected_context and descriptor.get('crash_selection') is None,'volume context fixture changed')
+        error=context_refusal(['a','b'],1000,descriptor.get('crash_selection'),context)
         require(observed==dict(refusal=error),'volume order first refusal differs')
     return key
 
@@ -317,7 +318,7 @@ ROOTS = {
     'TestStorageCrashContextEqualIsExact': {'storage-context-equality','storage-context-equality-shape','storage-context-equality-hash-map','storage-context-equality-original-dependency','storage-context-equality-positive'},
     'TestStorageCrashContextLargeChunkTransport': {'storage-large-context-transport'},
     'TestStorageCrashValidationOrderCorpus': {'storage-validation-order-corpus'},
-    'TestStorageCrashValidationVolumeOrder': {'storage-validation-volume-order'},
+    'TestStorageCrashValidationVolumeOrder': {'storage-validation-volume-order','storage-validation-volume-boot-order'},
 }
 
 
@@ -336,7 +337,6 @@ def observations(config,stdout):
             for root,cases in ROOTS.items()}
     selected=[decoded(line[line.index(MARKER)+len(MARKER):]) for line in stdout.splitlines() if MARKER in line]
     selected=[row for row in selected if row.get('case') in {'storage-selected-baseline','storage-selected-state-recovery','storage-context-divergence','storage-large-observed-selection'}]
-    facts['TestStorageCrashValidationVolumeOrder']['remaining_original_predicates']=['real native cluster boot admission route for every insertion order']
     facts.update(selected_observations(selected))
     evidence=[decoded(line[line.index(MARKER)+len(MARKER):]) for line in stdout.splitlines() if MARKER in line]
     facts.update(evidence_observations([row for row in evidence if row.get('case','').startswith('storage.native-')],selected))
