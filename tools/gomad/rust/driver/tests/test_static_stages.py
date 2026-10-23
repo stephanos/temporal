@@ -227,11 +227,16 @@ class StaticStageContract(unittest.TestCase):
 
     def test_exact_known_ignored_inventory(self):
         rows = static.ignored_inventory(driver.REPO)
-        self.assertEqual(len(rows), 29)
+        self.assertEqual(len(rows), 30)
         root34 = [row for row in rows if row['name'].startswith(('final_network_', 'joined_storage_'))]
         self.assertEqual(len(root34), 2)
         self.assertTrue(all(row['final_id'] == 'transferred-live/TestClusterBrokerDurableRestartParity' for row in root34))
-        self.assertEqual(sum(row['final_id'] is None for row in rows), 4)
+        self.assertEqual(sum(row['final_id'] is None for row in rows), 5)
+        publication = [row for row in rows if row['name'] == 'terminal_publication_retained_replay']
+        self.assertEqual(len(publication), 1)
+        self.assertEqual(publication[0]['disposition'], 'supporting-only-nonqualification')
+        self.assertIsNone(publication[0]['final_id'])
+        self.assertNotIn('broad_routes', publication[0])
         counterfactual = [row for row in rows if row['source'] == 'gomad/src/campaign/counterfactual.rs']
         self.assertEqual({row['name'] for row in counterfactual}, {
             'prepare_the_four_original_counterfactual_requests',

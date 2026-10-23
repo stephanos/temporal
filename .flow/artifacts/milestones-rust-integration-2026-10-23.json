@@ -1,7 +1,7 @@
 {
   "schema": "gomad.integration-development-evidence/v1",
-  "observed_at": "2026-10-23T12:57:38.799355+00:00",
-  "integration_head": "50dc1929efd2da3dfbd3212756efa0cf10182a99",
+  "observed_at": "2026-10-23T13:10:24.102466+00:00",
+  "integration_head": "e055d3856dd69cfc41d53dad51615cb4e92b8930",
   "final_qualification": false,
   "logs": [
     {
@@ -2573,6 +2573,203 @@
         "Actual 32-by-25 runtime plus aggregate/stress/four-axis and original reference closures",
         "Unchanged frozen 96-stage/146-obligation qualification within 3600 seconds",
         "Remaining MILESTONES suite sweep, one-box support, profiling and delivery requirements"
+      ]
+    },
+    {
+      "observed_at": "2026-10-23T13:10:24.102466+00:00",
+      "integration_head": "e055d3856dd69cfc41d53dad51615cb4e92b8930",
+      "final_qualification": false,
+      "scope": "Joined source and scoped development verification; final candidate not frozen",
+      "joined_python": {
+        "source": "7716d44a54e9920dfdcb8d5789f8272f7c1c17ce",
+        "passed": 494,
+        "exit": 0,
+        "proofs": [
+          {
+            "path": "/home/agent/evidence/fn232-root-joined-terminal-callback-v3/tests.json",
+            "bytes": 621,
+            "sha256": "aac6e64e149e6b99319e45b6af0a131413e8b995bc8b22db85ef68e37f2742ce"
+          },
+          {
+            "path": "/home/agent/evidence/fn232-root-joined-terminal-callback-v3/tests.log",
+            "bytes": 83892,
+            "sha256": "052f27c3d8db2264016d12ce78e1c72ea553b11f7a8ece7375ee9ee3b3b9c12c"
+          }
+        ]
+      },
+      "terminal_source": {
+        "commit": "2d49fb4740",
+        "review": "Fresh independent same-family SOURCE_READY, no actionable findings",
+        "handover": ".flow/artifacts/fn232-terminal-publication-development-handover.json",
+        "source_hashes_verified": 9,
+        "proof_hashes_verified": 13,
+        "source_and_executable_custody": {
+          "path": "/home/agent/evidence/fn232-terminal-controls-development-v1/repair-tests-executable-source-custody.json",
+          "bytes": 1492,
+          "sha256": "03c8745d67b39c99ef419d6e85f030e83ceba2bf7a1d311a62ff5f6b67ccd268"
+        },
+        "old_bootstrap_custody": "FAIL_ORIGINAL_BOOTSTRAP_REFERENCE_UNVERIFIABLE; no original receipt relabelled; admitted Release/diagnostic executables and receipts unchanged",
+        "full_eight": "NONPASS historical collector -9; fresh candidate full eight required"
+      },
+      "callback_acceptance": {
+        "commit": "3f1b0408a2",
+        "scope": "Separate required fn233 reader consumes both actual compiled-Go proofs; unchanged 96/146; intercepted artifacts remain refused for qualification",
+        "actual_go": "NOT_RUN pending fresh typed roles"
+      },
+      "static_plan": {
+        "commit": "a67f31a24d",
+        "scope": "Genuine static tools plan can be provisioned before final driver bindings without dummy config",
+        "ignored_registration": "7716d44a54: supporting publication-only operator, final_id null, exact known ignored inventory 30"
+      },
+      "native_development": {
+        "host_strict": {
+          "exit": 0,
+          "proofs": [
+            {
+              "path": "/home/agent/evidence/fn232-core-counterfactual/broad-host-clippy-v7/command.json",
+              "bytes": 55016,
+              "sha256": "bceb5c4663cc6f16adf0f7aca2a0842b5f33443461926594de804a7eee9692c5"
+            },
+            {
+              "path": "/home/agent/evidence/fn232-core-counterfactual/broad-host-clippy-v7/process.json",
+              "bytes": 425,
+              "sha256": "1537637aa56a4f04f74a7b3686c109c23fb04c96e62dff78adc6298a2154d64a"
+            },
+            {
+              "path": "/home/agent/evidence/fn232-core-counterfactual/broad-host-clippy-v7/stdout",
+              "bytes": 130096,
+              "sha256": "29c31abe391c77c364df49b03fab59e1101f3c7688516b4f2764bf864dfb6c9d"
+            },
+            {
+              "path": "/home/agent/evidence/fn232-core-counterfactual/broad-host-clippy-v7/stderr",
+              "bytes": 146,
+              "sha256": "6a094c28e3b389fecac918c7e019c1b11dfb6d9e711d5f02682a660a280e8081"
+            }
+          ]
+        },
+        "helper_strict": {
+          "exit": 0,
+          "proofs": [
+            {
+              "path": "/home/agent/evidence/fn232-core-counterfactual/broad-helper-clippy-v8/command.json",
+              "bytes": 54980,
+              "sha256": "d918b4882d660cb9b28ff6cf9d058ef9b33a8e603f1856ca6cac16b9081b5dac"
+            },
+            {
+              "path": "/home/agent/evidence/fn232-core-counterfactual/broad-helper-clippy-v8/process.json",
+              "bytes": 425,
+              "sha256": "89836ef324fc5356e98cb32fe7f0dc6ccc00a938a8c3f9f5788e56488025615f"
+            },
+            {
+              "path": "/home/agent/evidence/fn232-core-counterfactual/broad-helper-clippy-v8/stdout",
+              "bytes": 127558,
+              "sha256": "3044f5c9d8171200b8fc1d87a16b5f632833c812cd662ba34d0678ec90b3e126"
+            },
+            {
+              "path": "/home/agent/evidence/fn232-core-counterfactual/broad-helper-clippy-v8/stderr",
+              "bytes": 157,
+              "sha256": "3be92fb86e704450ed7542f1773fd2f9a2147d531e7f2676b141778cbf4eab0e"
+            }
+          ]
+        },
+        "default_lib_compile": {
+          "exit": 0,
+          "proofs": [
+            {
+              "path": "/home/agent/evidence/fn232-core-counterfactual/broad-default-lib-build-v8/command.json",
+              "bytes": 54941,
+              "sha256": "ee397e13ea7701919351046ff729ccae9c4453e3214df36fbf9361990a618225"
+            },
+            {
+              "path": "/home/agent/evidence/fn232-core-counterfactual/broad-default-lib-build-v8/process.json",
+              "bytes": 425,
+              "sha256": "8ae641d10022998c730d1bd1e8e3fcfb8949313be57db6b2aa92c708c6ffd9e5"
+            },
+            {
+              "path": "/home/agent/evidence/fn232-core-counterfactual/broad-default-lib-build-v8/stdout",
+              "bytes": 128925,
+              "sha256": "e4652fc34addcf89df27408658076d2ac723e8ce8a4ca08ddf776ba174f2dcd3"
+            },
+            {
+              "path": "/home/agent/evidence/fn232-core-counterfactual/broad-default-lib-build-v8/stderr",
+              "bytes": 241,
+              "sha256": "bb528318d8a6439d619c70cb66b5e5dc3dd217cfbd9fd79019e500bce75b9347"
+            }
+          ]
+        },
+        "ordinary_callback_example_strict": {
+          "exit": 0,
+          "proofs": [
+            {
+              "path": "/home/agent/evidence/fn232-core-counterfactual/broad-ordinary-example-clippy-v8/command.json",
+              "bytes": 55004,
+              "sha256": "93c4b5c4c9fc393f8a2fdc2b82543d843431b4787dea3645d3ade4fabd364cfb"
+            },
+            {
+              "path": "/home/agent/evidence/fn232-core-counterfactual/broad-ordinary-example-clippy-v8/process.json",
+              "bytes": 425,
+              "sha256": "faf3cbf9aa2926b5543c16337bb3596e9db802987972e9162d6329ebbee17cf7"
+            },
+            {
+              "path": "/home/agent/evidence/fn232-core-counterfactual/broad-ordinary-example-clippy-v8/stdout",
+              "bytes": 121318,
+              "sha256": "cf6d9f713b3291248166a5248f1e08707fef999d0aa138a081c4ebd4b0ecf18b"
+            },
+            {
+              "path": "/home/agent/evidence/fn232-core-counterfactual/broad-ordinary-example-clippy-v8/stderr",
+              "bytes": 240,
+              "sha256": "0d2a277d119f6c495a0324f31cccd32ab5ef3473f42299d17a8a2e090768d7e7"
+            }
+          ]
+        },
+        "counter_private": {
+          "exit": 101,
+          "proofs": [
+            {
+              "path": "/home/agent/evidence/fn232-core-counterfactual/broad-counter-tests-v8/command.json",
+              "bytes": 54830,
+              "sha256": "129815c285b5b1aaed6706187e811a4eb491f88622cc15cdaaea3196d0db4912"
+            },
+            {
+              "path": "/home/agent/evidence/fn232-core-counterfactual/broad-counter-tests-v8/process.json",
+              "bytes": 427,
+              "sha256": "6f142ef75eeae774c8d35f87ac727d3c55a617c213174296781003ec1f187a83"
+            },
+            {
+              "path": "/home/agent/evidence/fn232-core-counterfactual/broad-counter-tests-v8/stdout",
+              "bytes": 1233,
+              "sha256": "4348f288dc97249eebed66628fb12783e33f99973b45d03bcb4c9156933251db"
+            },
+            {
+              "path": "/home/agent/evidence/fn232-core-counterfactual/broad-counter-tests-v8/stderr",
+              "bytes": 907,
+              "sha256": "2a74e885b33c1f651d69842fbbfe744b9c6754b7d976b22efbc0e40f50da2f42"
+            }
+          ]
+        },
+        "counter_results": {
+          "passed": 4,
+          "failed": 1,
+          "ignored": 2,
+          "reason": "Test supplied nonexistent /original-source to genuine CLI parser",
+          "fixture_fix": "e055d3856d real private Temporary directory; actual counter rerun pending"
+        }
+      },
+      "worktrees": {
+        "snapshot": {
+          "path": "/home/agent/evidence/fn232-root-worktrees-2d49fb4740.txt",
+          "bytes": 12194,
+          "sha256": "6b7b189fb4ff218bba339a341c64269daecb00801d0010c64596ca544262268b"
+        },
+        "retention": "Open specification integration, immutable source/runtime proof, or transitive acceptance input; no worktrees removed"
+      },
+      "pending": [
+        "Actual five Go guests / eleven native variants and corrected counter selector rerun",
+        "Mandatory missing stress/stress-release typed role provisioning discovered by prerequisite audit",
+        "Narrow original handoff assertion applicability reconciliation against already authorized fn235 fail-fast behavior; original failure retained",
+        "Fresh immutable candidate, GNU envelope, authentic role builds and original root19 observation",
+        "Full terminal eight / installed operator / four divergence pairs / runtime 32-by-25 and aggregate/stress/four-axis",
+        "Frozen 96-stage/146-obligation cycle within3600seconds, support/sweep/profiling and remaining MILESTONES requirements"
       ]
     }
   ],

@@ -353,6 +353,14 @@
       ]
     },
     {
+      "crate": "gomad",
+      "name": "terminal_publication_retained_replay",
+      "source": "gomad/tests/allocation_receiving.rs",
+      "reason": "explicit retained terminal publication replay; no guest execution",
+      "disposition": "supporting-only-nonqualification",
+      "final_id": null
+    },
+    {
       "crate": "wasmhost",
       "name": "world_owner_codec_measured_cardinality",
       "source": "wasmhost/src/world/owner_preservation_tests.rs",

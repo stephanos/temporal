@@ -1,16 +1,15 @@
 # Current joined development checkpoint
 
-Source `50dc1929ef`. **Development evidence only; milestone completion remains open.**
-The companion JSON pins exact command, process and raw log files for this checkpoint.
+Source `e055d3856d`. **Development evidence only; milestone completion remains open.**
+The companion JSON pins actual commands, processes, raw logs and source identities.
 
-- Joined Python driver: **491 passed**, exit 0. Closed-consumer offline checker: 17 passed.
-- Native source `e46867dffc`: **711 host tests passed** (9 ignored), **257 ordinary-helper tests passed** (14 ignored). All three terminal-accounting regressions failed on the prior source and pass after the repair. The retained reader now authenticates v2 accounting and compares the actual v1 replay observation while preserving legacy v1 bytes.
-- The actual eight-run terminal collector remains **NONPASS**: kernel OOM during publication, plus a separate loaded-descriptor refusal handling error. Six individual release executions passed. A publication-only replay of those authentic reports writes 673,995,959 bytes while allocating 108,021 bytes, preserves `accepted=false`, and earns no fresh guest qualification. The source repair remains under review.
-- Original immutable Go terminal wire tests passed five roots and twelve subcases; that proves only the original reference scope.
-- Actual metadata admission comparison: 175.776 s to 138.284 s, a 37.492 s saving. This is not a whole-cycle performance result.
-- The retired core debug target was fully verified and moved to checkout storage: 3,423 entries / 15,270,936,701 bytes preserved through its original-path symlink. The active retirement target remains exclusively assigned to the core worker.
+- Joined Python driver: **494 passed**, exit 0 on unchanged source `7716d44a54`. The subsequent one-line Rust test fixture repair supplies a real private source directory; its native rerun remains pending.
+- Reviewed terminal publication/admission repairs are integrated. All nine owned source hashes and thirteen retained proof hashes match the handover. Exact canonical v2 ledger bytes are preserved while publication borrows stream bytes. The real retained six-report publication allocated 108,021 bytes for a 673,995,959-byte ledger and kept `accepted=false`. The original full eight-attempt run remains **NONPASS**; a fresh full run is required.
+- A preparatory bootstrap executable was rebuilt by a Cargo integration test, losing its old exact binary reference. This custody failure is explicit and invalidates reuse of that bootstrap receipt. The genuine copied Release/diagnostic executables, admissions and original raw execution outputs remain authenticated.
+- Ordinary default-feature release library compilation, host-fixture and ordinary-helper strict Clippy, and the ordinary callback example's strict Clippy all exited 0 on their recorded sources. Prior native baselines remain scoped to `e46867dffc`: 711 host and 257 helper tests passed. The separate private counter selector produced four passes, one real fixture failure and two ignored cases; the fixture-only repair awaits an actual rerun.
+- Separate fn233 callback acceptance now requires both authentic compiled-Go proofs while preserving intercepted-origin qualification refusal and the existing 96/146 ladder. Actual callback executions remain pending. The static-plan producer no longer needs placeholder driver bindings; the new supporting-only publication replay is explicitly registered without qualification credit.
 
-Next: integrate reviewed terminal and interception receiving repairs, finish native/Go receiving checks, then freeze a new candidate and regenerate source-bound GNU/build envelopes. Actual installed-operator retry, counterfactual campaigns, runtime 32-by-25 matrix, aggregate/stress/four-axis gates and the complete 96-stage/146-obligation cycle remain required. No original reference, support claim or milestone is closed by this checkpoint.
+Next: finish mandatory stress-role provisioning and the narrow fn235 historical-assertion reconciliation, complete actual Go receiving checks, then freeze a new candidate and regenerate all source-bound build/GNU envelopes. All actual terminal/operator/counterfactual/runtime gates, the complete 3,600-second frozen cycle and later support/sweep/profiling milestones remain required. Original failures are retained; no milestone or support claim is closed here.
 
 ## Earlier development checkpoints
 
