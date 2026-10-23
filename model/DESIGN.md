@@ -81,7 +81,7 @@ and `reject!`/`stay!` outcomes, then claims, progress evaluations and assumption
 the compiled `M::State`; `#[machine]` generates `Interprets` accessors beside `Lifts`, off the
 wasm guest, and a table of each `check!`'s text that the tree's new `ExprKind::Check` indexes
 (emission reads through it, so TLA+ is unchanged). The catalog, claim order and computed or
-World-bound starts stay compiled. Every admitted Model in the repository explores identically
+World-bound starts stay compiled. Every admitted Model the gate reaches explores identically
 both ways: 18 shared fixtures, the Temporal activity, two checker controls, the lifter's seven
 Models, the Apalache and TLC backends' nine (Apalache arithmetic across 220 Worlds), and
 controls for checked arithmetic, lazy start domains and `usize` lengths. Six seeded mutant
