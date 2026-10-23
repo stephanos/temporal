@@ -14,6 +14,8 @@ use std::{
     time::Instant,
 };
 
+#[cfg(test)]
+mod actual_tests;
 pub(crate) mod compilation_cache;
 pub(crate) mod driver;
 pub(crate) mod inventory;
@@ -51,6 +53,7 @@ impl CompilerControls {
 
 pub struct Prepared {
     pub auxiliary: BTreeMap<String, Vec<u8>>,
+    pub compile_cache_root: Option<String>,
     pub module: Vec<u8>,
     pub configuration: Configuration,
     pub toolchain: String,
@@ -78,6 +81,19 @@ pub(crate) fn open_observations(
 }
 
 pub use crate::install::manifest::Installation;
+
+pub(crate) fn compile_cache_root(installed: &Installation) -> Result<Option<String>, String> {
+    installed
+        .admission
+        .as_ref()
+        .and_then(|admission| admission.compile_cache_root.as_ref())
+        .map(|path| {
+            path.to_str()
+                .map(str::to_owned)
+                .ok_or_else(|| failure("compile cache root is not UTF-8"))
+        })
+        .transpose()
+}
 
 #[derive(Deserialize, Serialize)]
 #[serde(deny_unknown_fields)]
@@ -198,7 +214,11 @@ fn prepare_before_deadline(
         return prepared_exec(options, &installation(options)?);
     }
     use std::os::unix::fs::PermissionsExt as _;
-    let mut recipe = driver::prepare_with_compiler_controls(options, controls, deadline)?;
+    let mut recipe = if controls.environment.is_empty() && controls.parallelism.is_none() {
+        driver::prepare(options, deadline)?
+    } else {
+        driver::prepare_with_compiler_controls(options, controls, deadline)?
+    };
     if runtime_qualification {
         recipe.configuration = crate::runtime_qualification::configuration()?;
     }
@@ -257,14 +277,14 @@ fn prepare_before_deadline(
     let module = read(&output, MAXIMUM)?;
     let module_mode = fs::metadata(&output).map_err(failure)?.permissions().mode() & 0o777;
     let cache_root = recipe.installed.cache_root.clone();
-    let prepared = recipe.admit(module, options.target_args.clone(), deadline)?;
+    let mut prepared = recipe.admit(module, options.target_args.clone(), deadline)?;
     let auxiliary = prepared
         .auxiliary
         .iter()
         .filter(|(path, _)| path.starts_with("target/preparation-inputs/compile/"))
         .map(|(path, raw)| (path.clone(), raw.clone()))
         .collect();
-    compilation_cache::publish_with_mode(
+    let cached = compilation_cache::publish_with_mode(
         &cache_root,
         &compile_key,
         &compile_inputs,
@@ -273,6 +293,10 @@ fn prepare_before_deadline(
         auxiliary,
         || process::check_deadline(deadline),
     )?;
+    prepared
+        .auxiliary
+        .retain(|path, _| !path.starts_with("target/preparation-inputs/compile/"));
+    prepared.auxiliary.extend(cached.auxiliary);
     Ok(prepared)
 }
 
@@ -472,6 +496,7 @@ fn prepared_exec(options: &ExploreOptions, installed: &Installation) -> Result<P
         .ok_or_else(|| failure("prepared assertion policy missing"))?;
     Ok(Prepared {
         auxiliary: BTreeMap::new(),
+        compile_cache_root: compile_cache_root(installed)?,
         module,
         configuration: provenance.configuration,
         toolchain: provenance.build_key,

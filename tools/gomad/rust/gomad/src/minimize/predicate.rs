@@ -79,6 +79,7 @@ impl Parent {
             .unwrap_or_else(|| configuration.network.clone());
         let prepared = Prepared {
             auxiliary: Default::default(),
+            compile_cache_root: None,
             module: opened.payload("target/module.wasm", 512 << 20)?,
             network,
             configuration,

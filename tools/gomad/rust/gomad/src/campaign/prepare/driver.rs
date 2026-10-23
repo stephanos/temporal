@@ -254,7 +254,7 @@ pub(crate) fn prepare_with_compiler_controls(
                     | "GOCACHEPROG"
                     | "GOWASM"
                     | "GODEBUG"
-            )
+            ) || controls.environment.contains_key(*name)
         })
         .collect::<BTreeMap<_, _>>();
     let mut inputs = json!({"schema":"gomad.rust-wasm-build-inputs/v1", "compiler":compiler,"compiler_path":installed.compiler_path,"compiler_sha256":installed.compiler_sha256,
@@ -418,6 +418,7 @@ impl Recipe {
         } else {
             None
         };
+        let compile_cache_root = compile_cache_root(&installed)?;
         let provenance = canonical::encode(&Provenance {
             schema: "gomad.rust-wasm-provenance/v1".into(),
             origin: None,
@@ -438,6 +439,7 @@ impl Recipe {
         }
         Ok(Prepared {
             auxiliary,
+            compile_cache_root,
             module,
             configuration: decoded.configuration,
             toolchain,

@@ -1413,6 +1413,9 @@ pub(super) fn execute(
             .committed_temporal_reopens()
             .map_err(|error| error.to_string())?;
     }
+    execution
+        .compile_cache(prepared.compile_cache_root.as_deref())
+        .map_err(|error| format!("runner_failure: admit compile cache: {error}"))?;
     execution.conditions(linked::Conditions::compiled());
     execution.cancellation(cancellation.clone());
     #[cfg(feature = "determinism-fixture")]

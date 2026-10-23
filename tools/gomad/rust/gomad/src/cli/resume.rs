@@ -4,6 +4,16 @@ use std::{io::Write, path::Path};
 /// # Errors
 /// Reports invalid resume requests and campaign recovery failures.
 pub fn run(arguments: &[String], output: &mut dyn Write) -> Result<i32, super::Error> {
+    run_with_installation(arguments, output, None)
+}
+
+/// # Errors
+/// Refuses explicit installation changes before opening the campaign writer.
+pub fn run_with_installation(
+    arguments: &[String],
+    output: &mut dyn Write,
+    installation: Option<&Path>,
+) -> Result<i32, super::Error> {
     let mut json = false;
     let result = (|| {
         let mut index = 0;
@@ -24,6 +34,8 @@ pub fn run(arguments: &[String], output: &mut dyn Write) -> Result<i32, super::E
             return Err("resume requires one interrupted campaign path".into());
         }
         let path = Path::new(&arguments[index]);
+        let compile_cache_root = installation_cache(path, installation)?;
+
         if crate::campaign::exploration::plan::is_round_campaign(path)? {
             use crate::campaign::exploration::round::{RoundJournal, RoundStrategy};
             let strategy = {
@@ -39,25 +51,72 @@ pub fn run(arguments: &[String], output: &mut dyn Write) -> Result<i32, super::E
                             .as_ref()
                             .map(|scope| scope.patterns.as_slice()),
                     )?;
-                    crate::campaign::choice::resume(path, json, output)
+                    if compile_cache_root.is_some() {
+                        crate::campaign::choice::resume_with_cache(
+                            path,
+                            json,
+                            output,
+                            compile_cache_root,
+                        )
+                    } else {
+                        crate::campaign::choice::resume(path, json, output)
+                    }
                 }
                 RoundStrategy::Simulation(_) => {
                     if site_scope.is_some() {
                         return Err("--site-scope requires a choice-exploration campaign".into());
                     }
-                    crate::campaign::simulation::resume(path, json, output)
+                    if compile_cache_root.is_some() {
+                        crate::campaign::simulation::resume_with_cache(
+                            path,
+                            json,
+                            output,
+                            compile_cache_root,
+                        )
+                    } else {
+                        crate::campaign::simulation::resume(path, json, output)
+                    }
                 }
             };
         }
         if site_scope.is_some() {
             return Err("--site-scope requires a choice-exploration campaign".into());
         }
-        crate::campaign::resume(path, json, output)
+        if compile_cache_root.is_some() {
+            crate::campaign::resume_with_cache(path, json, output, compile_cache_root)
+        } else {
+            crate::campaign::resume(path, json, output)
+        }
     })();
     match result {
         Ok(status) => Ok(status),
         Err(error) => report_error(&error, json, output),
     }
+}
+
+fn installation_cache(path: &Path, installation: Option<&Path>) -> Result<Option<String>, String> {
+    let Some(selected) = installation else {
+        return Ok(None);
+    };
+    let description = crate::install::manifest::resolve(Some(selected))?;
+    let opened = if crate::campaign::exploration::plan::is_round_campaign(path)? {
+        let journal = crate::campaign::exploration::round::RoundJournal::open(path, false)?;
+        journal.open_artifact(
+            journal.plan().prepared["prepared_artifact"]
+                .as_str()
+                .ok_or("campaign prepared artifact missing")?,
+        )?
+    } else {
+        let journal = crate::campaign::ledger::Journal::open(path, false)?;
+        journal.open_artifact(
+            journal.plan()["prepared_artifact"]
+                .as_str()
+                .ok_or("campaign prepared artifact missing")?,
+        )?
+    };
+    opened.authenticate_all()?;
+    super::replay::validate_installation(&description.manifest, &opened)?;
+    crate::campaign::prepare::compile_cache_root(&description.manifest)
 }
 
 fn validate_site_scope(

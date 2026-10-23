@@ -6,12 +6,14 @@ The linked fn222-support receiver authenticates retained evidence independently.
 A pending/failed stage stops the sequence and never invents later process exits.
 """
 import argparse
+import base64
 import hashlib
 import json
 import os
 from pathlib import Path
 import selectors
 import signal
+import stat
 import subprocess
 import sys
 import time
@@ -41,6 +43,28 @@ def read(path, maximum=32 << 20):
     if len(raw) > maximum:
         raise ValueError(f'input exceeds {maximum} bytes: {path}')
     return raw
+
+
+def qualification_spec_witness(command):
+    index = 3 if len(command) > 1 and command[1] == '--installation' else 1
+    if len(command) <= index or command[index] != 'qualify':
+        return None
+    if len(command) != index + 3 or command[index + 1] != '--spec':
+        raise ValueError('onebox measured command requires the exact qualify --spec FILE vector')
+    text = command[index + 2]
+    path = Path(text)
+    if not path.is_absolute() or any(part in ('', '.', '..') for part in text.split('/')[1:]):
+        raise ValueError('qualification spec requires a clean absolute path')
+    if any(parent.is_symlink() for parent in path.parents):
+        raise ValueError('qualification spec has a symlinked parent')
+    descriptor = os.open(path, os.O_RDONLY | os.O_NOFOLLOW | os.O_NONBLOCK)
+    with os.fdopen(descriptor, 'rb') as stream:
+        if not stat.S_ISREG(os.fstat(stream.fileno()).st_mode):
+            raise ValueError('qualification spec requires a regular file')
+        raw = stream.read((16 << 20) + 1)
+    if not raw or len(raw) > 16 << 20:
+        raise ValueError('qualification spec exceeds its nonempty 16MiB bound')
+    return dict(path=text, sha256=digest(raw), bytes_base64=base64.b64encode(raw).decode('ascii'))
 
 
 def write(path, value):
@@ -132,6 +156,7 @@ class Commands:
 
     def run(self, name, command, mandatory=False, seconds=3600, private=None):
         command = list(map(str, command))
+        specification = qualification_spec_witness(command)
         executable = Path(command[0]).resolve()
         executable_hash = digest(read(executable, 512 << 20))
         remaining = min(seconds, self.deadline - time.monotonic())
@@ -212,6 +237,13 @@ class Commands:
                      'GOMAD_WASM_TEMPORAL_BUILD_CACHE', 'GOMAD_WASM_TEMPORAL_MIN_AVAILABLE_BYTES',
                      'GOMAD_WASM_QUALIFY_WORKLOADS']},
                    environment_sha256=digest(encode(environment).removesuffix(b'\n')))
+        if specification is not None:
+            row['qualification_spec'] = specification
+            try:
+                if qualification_spec_witness(command) != specification:
+                    raise ValueError('qualification spec bytes changed during measured process')
+            except (ValueError, OSError) as error:
+                failure = 'qualification spec witness refused: ' + str(error)
         for stream, path in paths.items():
             raw = read(path, 64 << 20)
             row[stream] = dict(path=str(path), sha256=digest(raw), bytes=len(raw))

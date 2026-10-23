@@ -45,7 +45,7 @@ mise install rust
 mise exec -- rustc --version
 mise exec -- make build
 mkdir -p "$GOMAD_OPERATOR/bin"
-cp "${CARGO_TARGET_DIR:-$GOMAD_CHECKOUT/tools/gomad/rust/target}/release/gomad" "$GOMAD_OPERATOR/bin/gomad"
+cp "$GOMAD_CHECKOUT/tools/gomad/rust/target/release/gomad" "$GOMAD_OPERATOR/bin/gomad"
 "$GOMAD_OPERATOR/bin/gomad" install \
   --compiler "$GOMAD_STOCK_GO" \
   --runtime-root "$GOMAD_CHECKOUT/tools/gomad/internal/model/runtimesource" \
@@ -60,6 +60,10 @@ export GOMAD_WASM_INSTALLATION="$GOMAD_OPERATOR/bin/gomad-wasm.json"
 Without mise, install the crate's pinned Rust toolchain through rustup and run
 `make -C tools/gomad build` from the repository root. The target invokes
 `cargo +1.99.1 build --release --locked` from the single workspace in `tools/gomad/rust`.
+It publishes an independent mode-0755 executable at `tools/gomad/rust/target/release/gomad`,
+including when `CARGO_TARGET_DIR` selects another build cache. The standalone
+reference transport is built and published only by the explicit
+`make -C tools/gomad wasm-test-helper` target with `reference-helper` enabled.
 
 `install` pins existing tools and writes a new mode-0600 manifest. It refuses to
 overwrite one and does not download a compiler. Changed helper/runtime/model

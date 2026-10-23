@@ -1,22 +1,34 @@
 """Source-map integrity only: none of these checks execute original predicates."""
 import copy
+from functools import cache
 import hashlib
 import json
 from pathlib import Path
 import re
+import subprocess
 import unittest
 
 REPO = Path(__file__).resolve().parents[5]
 MAP = REPO/'tools/gomad/rust/driver/qualification-map.json'
+REFERENCE = '1d695061b6382009d0659238c652a5a765b1d5f5'
+
+
+@cache
+def original_source(path):
+    return subprocess.check_output(['git', 'show', REFERENCE+':'+path], cwd=REPO)
+
 
 
 def validate(mapping):
     assert mapping['qualification'] is False
     assert mapping['reference_commit'] == '1d695061b6382009d0659238c652a5a765b1d5f5'
     roots = set()
-    for path in (REPO/'tools/gomad/internal/backends/wasm/qualification').glob('*_test.go'):
-        for name in re.findall(rb'^func (Test\w+)\(t \*testing.T\)', path.read_bytes(), re.M):
-            roots.add(f'{path.relative_to(REPO)}#{name.decode()}')
+    paths = subprocess.check_output(['git', 'ls-tree', '-r', '--name-only', REFERENCE,
+        'tools/gomad/internal/backends/wasm/qualification'], cwd=REPO).decode().splitlines()
+    for path in paths:
+        if path.endswith('_test.go'):
+            for name in re.findall(rb'^func (Test\w+)\(t \*testing.T\)', original_source(path), re.M):
+                roots.add(f'{path}#{name.decode()}')
     assert len(roots) == 72
     assert set(mapping['callables']) == roots
     anchors = mapping['native_anchors']
@@ -34,7 +46,7 @@ def validate(mapping):
         expected_assertions = []
         spans = [(name, dict(original['source_span'], source=name.split('#')[0])), *original['helper_source_spans'].items()]
         for owner, span in spans:
-            raw = (REPO/span['source']).read_bytes()
+            raw = original_source(span['source'])
             assert hashlib.sha256(raw[span['start_byte']:span['end_byte']]).hexdigest() == span['sha256']
             prefix = raw[:span['start_byte']].count(b'\n')
             for offset, line in enumerate(raw[span['start_byte']:span['end_byte']].decode().splitlines(), 1):
@@ -43,7 +55,7 @@ def validate(mapping):
         assert [review['assertion'] for review in row['assertion_reviews']] == expected_assertions
         for review in row['assertion_reviews']:
             assertion = review['assertion']
-            line = (REPO/assertion['path']).read_text().splitlines()[assertion['line']-1]
+            line = original_source(assertion['path']).decode().splitlines()[assertion['line']-1]
             assert line.strip() == assertion['source']
             assert review['limitation'] and review['status'] != 'PASS'
     assert mapping['counts']['roots'] == len(roots)

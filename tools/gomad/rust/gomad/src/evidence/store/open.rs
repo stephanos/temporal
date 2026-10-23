@@ -531,45 +531,79 @@ impl Opened {
     /// Returns the first payload authentication failure.
     pub fn authenticate_all(&self) -> Result<(), String> {
         for (name, entry) in &self.manifest.files {
-            let (mut file, before) = authorized(
-                &self.root,
-                name,
-                entry.module,
-                Some((entry, self.pool.as_ref())),
-            )?;
-            if u64::try_from(before.st_size) != Ok(entry.bytes) {
-                return Err("artifact payload size mismatch".into());
-            }
-            let mut reader = (&mut file).take(
-                entry
-                    .bytes
-                    .checked_add(1)
-                    .ok_or("artifact read bound overflow")?,
-            );
-            let mut digest = Sha256::new();
-            let mut bytes = 0_u64;
-            let mut buffer = [0_u8; 16_384];
-            loop {
-                let count = reader
-                    .read(&mut buffer)
-                    .map_err(|error| error.to_string())?;
-                if count == 0 {
-                    break;
-                }
-                bytes += count as u64;
-                digest.update(&buffer[..count]);
-            }
-            if !same(
-                &before,
-                &fs::fstat(&file).map_err(|error| error.to_string())?,
-            ) {
-                return Err("artifact file changed while reading".into());
-            }
-            if bytes != entry.bytes || format!("{:x}", digest.finalize()) != entry.sha256 {
-                return Err("artifact payload identity mismatch".into());
-            }
+            self.authenticate_payload(name, entry, 0)?;
         }
         Ok(())
+    }
+
+    pub(crate) fn payload_tail(
+        &self,
+        name: &str,
+        bound: u64,
+        tail_bytes: usize,
+    ) -> Result<Vec<u8>, String> {
+        let entry = self
+            .manifest
+            .files
+            .get(name)
+            .ok_or("unlisted artifact payload")?;
+        if entry.bytes > bound {
+            return Err("artifact payload exceeds caller bound".into());
+        }
+        self.authenticate_payload(name, entry, tail_bytes)
+    }
+
+    fn authenticate_payload(
+        &self,
+        name: &str,
+        entry: &FileEntry,
+        tail_bytes: usize,
+    ) -> Result<Vec<u8>, String> {
+        let (mut file, before) = authorized(
+            &self.root,
+            name,
+            entry.module,
+            Some((entry, self.pool.as_ref())),
+        )?;
+        if u64::try_from(before.st_size) != Ok(entry.bytes) {
+            return Err("artifact payload size mismatch".into());
+        }
+        let mut reader = (&mut file).take(
+            entry
+                .bytes
+                .checked_add(1)
+                .ok_or("artifact read bound overflow")?,
+        );
+        let mut digest = Sha256::new();
+        let mut bytes = 0_u64;
+        let mut tail = Vec::new();
+        let mut buffer = [0_u8; 16_384];
+        loop {
+            let count = reader
+                .read(&mut buffer)
+                .map_err(|error| error.to_string())?;
+            if count == 0 {
+                break;
+            }
+            bytes += count as u64;
+            digest.update(&buffer[..count]);
+            if tail_bytes != 0 {
+                let kept = count.min(tail_bytes);
+                let previous = tail_bytes.saturating_sub(kept).min(tail.len());
+                tail.drain(..tail.len() - previous);
+                tail.extend_from_slice(&buffer[count - kept..count]);
+            }
+        }
+        if !same(
+            &before,
+            &fs::fstat(&file).map_err(|error| error.to_string())?,
+        ) {
+            return Err("artifact file changed while reading".into());
+        }
+        if bytes != entry.bytes || format!("{:x}", digest.finalize()) != entry.sha256 {
+            return Err("artifact payload identity mismatch".into());
+        }
+        Ok(tail)
     }
 }
 

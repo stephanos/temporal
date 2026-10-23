@@ -1,5 +1,6 @@
 """Independent retained fn222 and revised onebox-inspection process admission."""
 import os
+import base64
 import subprocess
 from pathlib import Path
 import sys
@@ -77,6 +78,16 @@ def command(reader, path, expected=None, accepted=(0,), native=False):
     if native:
         require(executable['path'] == reader.config['binary'] and 'private_observations' in row,
                 'fn222 native preparation lacks its own private observation seal')
+        index = 3 if len(argv) > 1 and argv[1] == '--installation' else 1
+        if argv[index] == 'qualify':
+            require(len(argv) == index + 3 and argv[index + 1] == '--spec', 'fn222 measured spec argv changed')
+            specification = row.get('qualification_spec')
+            require(isinstance(specification, dict) and specification['path'] == argv[index + 2],
+                    'fn222 measured command omitted its exact spec witness')
+            raw = base64.b64decode(specification['bytes_base64'], validate=True)
+            from receiving import digest
+            require(0 < len(raw) <= 16 << 20 and digest(raw) == specification['sha256'],
+                    'fn222 retained spec bytes/digest changed')
         observations = load_module('fn222_native_observations', Path(__file__).with_name('native_observations.py'))
         observations.verify_snapshot(reader.config, row['operator_process_id'], row['private_observations'])
     return row, streams['stdout']
@@ -124,11 +135,10 @@ def support(reader):
         for mode in ['success', 'canary']:
             receipt, stdout = command(reader, root / f'{short}-{mode}.command.json', accepted=(1,) if mode == 'canary' else (0,), native=True)
             response = decoded(stdout)
-            spec_path = receipt['command'][receipt['command'].index('--spec') + 1]
             expected_spec = __import__('receiving').workloads.support_spec(Path(reader.config['repo']),
                 root / (short + '-results') / mode, short, mode == 'canary',
                 source_manifest=Path(reader.config['source_manifest']))
-            require(read(spec_path) == expected_spec, 'fn222 changed original selection, argv, policy or bounds')
+            require(decoded(base64.b64decode(receipt['qualification_spec']['bytes_base64'], validate=True)) == expected_spec, 'fn222 changed original selection, argv, policy or bounds')
             require(receipt['mandatory_workloads'] == (short == 'smoke'), 'fn222 changed measured workload intent')
             path = Path(response['result_path'])
             require(path.is_relative_to(root / (short + '-results') / mode), 'fn222 Result borrowed from another row')

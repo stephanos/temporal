@@ -1,4 +1,7 @@
 use super::preflight;
+
+#[path = "inspection_search.rs"]
+mod search;
 use crate::{cli, evidence::store::Opened};
 use gomad_wasmhost::{linked, linked_inspection as helper};
 use serde::Serialize;
@@ -438,13 +441,48 @@ fn resolve(
     .map_err(preflight_error)
 }
 
+enum EvaluationError {
+    Host(cli::Error),
+    Evaluation(cli::Error),
+}
+
+impl From<cli::Error> for EvaluationError {
+    fn from(error: cli::Error) -> Self {
+        Self::Evaluation(error)
+    }
+}
+
+impl From<EvaluationError> for cli::Error {
+    fn from(error: EvaluationError) -> Self {
+        match error {
+            EvaluationError::Host(error) | EvaluationError::Evaluation(error) => error,
+        }
+    }
+}
+
+fn inspection_execution(
+    execution: Result<linked::Execution, String>,
+) -> Result<linked::Execution, EvaluationError> {
+    match execution {
+        Ok(execution) if crate::execute::cache_failure(&execution.outcome) => Err(
+            EvaluationError::Host(execution_error(execution.outcome.message)),
+        ),
+        Err(message) if crate::execute::cache_error(&message) => {
+            Err(EvaluationError::Host(execution_error(message)))
+        }
+        Err(message) => Err(EvaluationError::Evaluation(execution_error(message))),
+        Ok(execution) => Ok(execution),
+    }
+}
+
 fn evaluate(
     opened: &Opened,
     evidence: &helper::Evidence,
     control: helper::Request,
     request: &InspectionRequest,
     timeout: Option<Duration>,
-) -> Result<helper::Diagnostics, cli::Error> {
+    compile_cache: Option<&str>,
+) -> Result<helper::Diagnostics, EvaluationError> {
     let target = control.target.clone();
     let expected = control.expected.clone();
     let registry = evidence
@@ -454,13 +492,20 @@ fn evaluate(
         .ok_or_else(|| preflight_error("unknown inspection target"))?
         .registry
         .clone();
-    let prepared =
+    let mut prepared =
         preflight::prepare_with_inspection(opened.try_clone().map_err(preflight_error)?, control)
             .map_err(preflight_error)?;
+    prepared
+        .compile_cache(compile_cache)
+        .map_err(preflight_error)?;
     #[cfg(feature = "determinism-fixture")]
     crate::fixture::execution_started()?;
-    let observed = preflight::execute_inspection(prepared, &target, request.conditions, timeout)
-        .map_err(execution_error)?;
+    let observed = inspection_execution(preflight::execute_inspection(
+        prepared,
+        &target,
+        request.conditions,
+        timeout,
+    ))?;
     if observed.outcome.termination != "inspected_prefix" {
         let kind = observed.outcome.termination;
         if matches!(
@@ -470,12 +515,14 @@ fn evaluate(
             return Err(execution_error(format!(
                 "inspection evaluation {kind}: {}",
                 observed.outcome.message
-            )));
+            ))
+            .into());
         }
         return Err(execution_error(format!(
             "instrumentation divergence: inspection terminal {kind:?}: {}",
             observed.outcome.message
-        )));
+        ))
+        .into());
     }
     helper::verify_prefix(
         evidence,
@@ -493,6 +540,7 @@ fn evaluate(
         request.per_dump_bytes,
     )
     .map_err(execution_error)
+    .map_err(EvaluationError::from)
 }
 
 /// # Errors
@@ -562,8 +610,9 @@ pub fn run(
     let mut report = json!({"status":"", "artifact_id":prepared.opened.manifest().record_sha256,"requested":request,
         "resolved":{"instance":control.target.node,"incarnation":control.target.incarnation,"choice":at.decision,"trace":at.trace,"order":at.order,"time_nanos":at.time_nanos},
         "prefix_verified":false,"witness_match":false,"prefix_cuts":null,"output_path":"","truncated":false});
+    let cache = prepared.compile_cache_directory();
     if let Some(search) = &request.search {
-        let result = search_run(&prepared.opened, &evidence, request, search)?;
+        let result = search_run(&prepared.opened, &evidence, request, search, cache)?;
         let status = i32::from(result["status"] != "no_failure");
         report["status"] = "invariant_search".into();
         report["search"] = result;
@@ -574,7 +623,7 @@ pub fn run(
     let cuts: Vec<_> = at.cuts.iter().map(|cut| json!({"instance":cut.handle.node,"incarnation":cut.handle.incarnation,
         "choice_records":cut.choice_records,"choice_bytes":cut.choice_bytes,"wasi_bytes":cut.wasi_bytes,
         "network_bytes":cut.network_bytes,"storage_bytes":cut.storage_bytes,"stdout_bytes":cut.stdout_bytes,"stderr_bytes":cut.stderr_bytes})).collect();
-    let diagnostics = evaluate(&prepared.opened, &evidence, control, request, None)?;
+    let diagnostics = evaluate(&prepared.opened, &evidence, control, request, None, cache)?;
     let (debug, heap, truncated) = diagnostics
         .bound(request.maximum_bytes)
         .map_err(execution_error)?;
@@ -649,15 +698,12 @@ fn write_private(path: &Path, bytes: &[u8]) -> Result<(), cli::Error> {
         .map_err(execution_error)
 }
 
-#[expect(
-    clippy::too_many_lines,
-    reason = "The bounded scan and monotonic bisect retain one shared evaluation and result state"
-)]
 fn search_run(
     opened: &Opened,
     evidence: &helper::Evidence,
     request: &InspectionRequest,
     search: &Search,
+    compile_cache: Option<&str>,
 ) -> Result<Value, cli::Error> {
     let started = Instant::now();
     let first = resolve(evidence, request, Some(search.first))?;
@@ -687,152 +733,73 @@ fn search_run(
             "bisect requires a retained monotonic failure declaration",
         ));
     }
-    let mut result = json!({"status":"", "evaluations":null,"remaining":{"first":search.first,"last":search.last},"conditional_on_monotonicity":search.mode == "bisect"});
-    let mut evaluations = Vec::new();
-    let mut cache = BTreeMap::new();
-    let mut evaluate_choice = |choice: u64, result: &mut Value| -> Option<bool> {
-        if let Some(value) = cache.get(&choice) {
-            return Some(*value);
-        }
-        let elapsed = started.elapsed();
-        let wall = Duration::from_nanos(search.wall_time);
-        if evaluations.len() as u64 >= search.attempt_budget || elapsed >= wall {
-            result["status"] = "incomplete".into();
-            return None;
-        }
-        let evaluation = resolve(evidence, request, Some(choice)).and_then(|control| {
-            evaluate(
-                opened,
-                evidence,
-                control,
-                request,
-                Some(wall.saturating_sub(elapsed)),
-            )
-        });
-        let (outcome, detail, verified) = match evaluation {
-            Ok(output) => {
-                let checks = output.output["checks"].as_array();
-                if let Some(checks) = checks
-                    && checks.len() == 1
-                    && checks[0]["name"] == search.check
-                {
-                    let status = checks[0]["status"].as_str().unwrap_or("");
-                    (
-                        match status {
-                            "true" => "pass",
-                            "false" => "fail",
-                            _ => "error",
-                        },
-                        status.to_owned(),
-                        true,
+    search::run(
+        search,
+        || started.elapsed(),
+        |choice, remaining| {
+            let evaluation = resolve(evidence, request, Some(choice))
+                .map_err(EvaluationError::from)
+                .and_then(|control| {
+                    evaluate(
+                        opened,
+                        evidence,
+                        control,
+                        request,
+                        Some(remaining),
+                        compile_cache,
                     )
-                } else {
-                    (
-                        "error",
-                        "inspection did not return exactly one invariant result".into(),
-                        false,
-                    )
-                }
-            }
-            Err(error) => {
-                let divergence = error.message.contains("instrumentation divergence");
+                });
+            predicate_evaluation(evaluation, &search.check)
+        },
+    )
+}
+
+fn predicate_evaluation(
+    evaluation: Result<helper::Diagnostics, EvaluationError>,
+    check: &str,
+) -> Result<search::Evaluation, cli::Error> {
+    let (outcome, detail, verified) = match evaluation {
+        Ok(output) => {
+            let checks = output.output["checks"].as_array();
+            if let Some(checks) = checks
+                && checks.len() == 1
+                && checks[0]["name"] == check
+            {
+                let status = checks[0]["status"].as_str().unwrap_or("");
                 (
-                    if divergence { "divergence" } else { "error" },
-                    error.message,
+                    match status {
+                        "true" => "pass",
+                        "false" => "fail",
+                        _ => "error",
+                    },
+                    status.to_owned(),
+                    true,
+                )
+            } else {
+                (
+                    "error",
+                    "inspection did not return exactly one invariant result".into(),
                     false,
                 )
             }
-        };
-        let timeout = started.elapsed() >= wall;
-        evaluations.push(json!({"choice":choice,"outcome":if timeout { "timeout" } else { outcome },"prefix_verified":verified,"detail":if timeout { "context deadline exceeded" } else { &detail }}));
-        result["evaluations"] = evaluations.clone().into();
-        if timeout {
-            result["status"] = "incomplete".into();
-            return None;
         }
-        if outcome == "divergence" {
-            result["status"] = "replay_divergence".into();
-            return None;
-        }
-        if !matches!(outcome, "pass" | "fail") {
-            result["status"] = "invariant_evaluation_failure".into();
-            return None;
-        }
-        let passed = outcome == "pass";
-        cache.insert(choice, passed);
-        if search.mode == "bisect"
-            && cache.iter().any(|(position, value)| {
-                !*value && passed && *position < choice || *value && !passed && *position > choice
-            })
-        {
-            result["status"] = "monotonicity_violation".into();
-            return None;
-        }
-        Some(passed)
-    };
-    let finish = |result: &mut Value, failure: Option<u64>| {
-        result.as_object_mut().unwrap().remove("remaining");
-        if let Some(failure) = failure {
-            result["first_failure"] = failure.into();
-            result["status"] = if failure == search.first {
-                "already_failing_at_first"
-            } else {
-                "first_failure"
-            }
-            .into();
-        } else {
-            result["status"] = "no_failure".into();
+        Err(EvaluationError::Host(error)) => return Err(error),
+        Err(EvaluationError::Evaluation(error)) => {
+            let divergence = error.message.contains("instrumentation divergence");
+            (
+                if divergence { "divergence" } else { "error" },
+                error.message,
+                false,
+            )
         }
     };
-    if search.mode == "scan" {
-        let mut choice = search.first;
-        loop {
-            result["remaining"] = json!({"first":choice,"last":search.last});
-            let Some(passed) = evaluate_choice(choice, &mut result) else {
-                return Ok(result);
-            };
-            if !passed {
-                finish(&mut result, Some(choice));
-                return Ok(result);
-            }
-            if choice == search.last {
-                finish(&mut result, None);
-                return Ok(result);
-            }
-            choice += 1;
-        }
-    }
-    let (mut lower, mut upper) = (search.first, search.last);
-    let Some(low_pass) = evaluate_choice(lower, &mut result) else {
-        return Ok(result);
-    };
-    if lower == upper {
-        finish(&mut result, if low_pass { None } else { Some(lower) });
-        return Ok(result);
-    }
-    let Some(high_pass) = evaluate_choice(upper, &mut result) else {
-        return Ok(result);
-    };
-    if !low_pass {
-        finish(&mut result, Some(lower));
-        return Ok(result);
-    }
-    if high_pass {
-        finish(&mut result, None);
-        return Ok(result);
-    }
-    while upper - lower > 1 {
-        result["remaining"] = json!({"first":lower + 1,"last":upper});
-        let middle = lower + (upper - lower) / 2;
-        let Some(passed) = evaluate_choice(middle, &mut result) else {
-            return Ok(result);
-        };
-        if passed {
-            lower = middle;
-        } else {
-            upper = middle;
-        }
-    }
-    finish(&mut result, Some(upper));
-    Ok(result)
+    Ok(search::Evaluation {
+        outcome,
+        detail,
+        prefix_verified: verified,
+    })
 }
+
+#[cfg(test)]
+#[path = "inspection_cache_tests.rs"]
+mod cache_tests;

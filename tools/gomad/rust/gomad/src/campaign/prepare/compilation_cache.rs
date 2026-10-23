@@ -69,13 +69,38 @@ fn directory(root: &Path, build_key: &str, create: bool) -> Result<Option<File>,
     if !root.is_absolute() {
         return Err("absolute WASM compilation cache root is required".into());
     }
-    let mut directory = if create {
+    let mut directory = if create && !root.exists() {
         durable_directory(root, |_| Ok(()))?
     } else {
         match fs::statat(fs::CWD, root, AtFlags::SYMLINK_NOFOLLOW) {
             Err(rustix::io::Errno::NOENT) => return Ok(None),
             Err(error) => return Err(error.to_string()),
-            Ok(_) => open::pin(root)?,
+            Ok(before) => {
+                if rustix::fs::FileType::from_raw_mode(before.st_mode)
+                    != rustix::fs::FileType::Directory
+                    || before.st_uid != rustix::process::geteuid().as_raw()
+                    || before.st_mode & 0o022 != 0
+                {
+                    return Err("compilation cache parent type, ownership or mode violation".into());
+                }
+                let opened = File::from(
+                    fs::open(
+                        root,
+                        OFlags::RDONLY | OFlags::DIRECTORY | OFlags::CLOEXEC | OFlags::NOFOLLOW,
+                        Mode::empty(),
+                    )
+                    .map_err(|error| error.to_string())?,
+                );
+                let after = fs::fstat(&opened).map_err(|error| error.to_string())?;
+                if before.st_dev != after.st_dev
+                    || before.st_ino != after.st_ino
+                    || before.st_mode != after.st_mode
+                    || before.st_uid != after.st_uid
+                {
+                    return Err("compilation cache parent changed while opening".into());
+                }
+                opened
+            }
         }
     };
     for part in ["compilation-v1", build_key] {
@@ -178,6 +203,23 @@ pub(super) fn publish_with_mode(
     auxiliary: BTreeMap<String, Vec<u8>>,
     mut checkpoint: impl FnMut() -> Result<(), String>,
 ) -> Result<Cached, String> {
+    check_key(build_key, inputs)?;
+    let directory =
+        directory(root, build_key, true)?.ok_or("compilation cache directory missing")?;
+    loop {
+        checkpoint()?;
+        match fs::flock(&directory, fs::FlockOperation::NonBlockingLockExclusive) {
+            Ok(()) => break,
+            Err(rustix::io::Errno::WOULDBLOCK) => std::thread::yield_now(),
+            Err(error) => return Err(error.to_string()),
+        }
+    }
+    if let Some(cached) = load(root, build_key, inputs)? {
+        if cached.module != module {
+            return Err("compiled WASM module differs from existing compilation identity".into());
+        }
+        return Ok(cached);
+    }
     publish_with(
         root,
         build_key,
@@ -511,6 +553,46 @@ mod tests {
         );
         hostfs::remove_file(entry.join("receipt.json")).unwrap();
         assert_eq!(load(&root.0, &build_key, &inputs).unwrap(), None);
+    }
+
+    #[test]
+    fn existing_complete_entry_keeps_original_observations_and_refuses_different_module() {
+        let root = Scratch::new();
+        let inputs = json!({"source":"fixture"});
+        let original = fill(&root.0, &inputs);
+        let changed = BTreeMap::from([(
+            "target/preparation-inputs/compile/metadata.json".into(),
+            b"different owner".to_vec(),
+        )]);
+        let retained = publish_with_mode(
+            &root.0,
+            &key(&inputs).unwrap(),
+            &inputs,
+            &module(),
+            0o755,
+            changed.clone(),
+            || Ok(()),
+        )
+        .unwrap();
+        assert_eq!(retained, original);
+        let mut different = module();
+        different.extend([0, 2, 1, b'x']);
+        assert!(
+            publish_with_mode(
+                &root.0,
+                &key(&inputs).unwrap(),
+                &inputs,
+                &different,
+                0o755,
+                changed,
+                || Ok(())
+            )
+            .is_err()
+        );
+        assert_eq!(
+            load(&root.0, &key(&inputs).unwrap(), &inputs).unwrap(),
+            Some(original)
+        );
     }
 
     #[test]
