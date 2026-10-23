@@ -5,6 +5,7 @@ import copy
 import gzip
 import hashlib
 import json
+import platform
 from pathlib import Path
 import types
 import struct
@@ -292,6 +293,28 @@ def inspection_configuration(installation, arguments, owner, runtime_sha256):
     if configured['network'] is None:
         del configured['network']
     return configured
+
+
+def runtime_platform():
+    # Match std::env::consts::{OS,ARCH}, used by replay::preflight::platform.
+    host_os = {'darwin':'macos'}.get(sys.platform,sys.platform)
+    architecture = {'arm64':'aarch64','AMD64':'x86_64'}.get(platform.machine(),platform.machine())
+    return digest((host_os+'/'+architecture).encode())
+
+
+def runtime_configuration(installation, runtime_sha256):
+    environment = dict(installation['admission']['environment'])
+    environment.update(EXTRA_ENTROPY='no_',ONLY='captured',PWD='/workspace',TZ='UTC',GOMAD_IO_PROFILE='wasm',
+        GOMAD_CHOICE_PROFILE='gomad-choice-trace/v4',GOMAD_DIAGNOSTIC_PROFILE='gomad-diagnostic-trace/v1')
+    model = copy.deepcopy(installation['model'])
+    model.pop('seed',None)
+    model.update(mode=1,limit=1<<20,diagnostics=True,working_directory_sha256=digest(b'/workspace'))
+    namespace = copy.deepcopy(installation['namespace'])
+    namespace['limits']['output_bytes'] = 1<<20
+    return dict(engine='cranelift-fuel-nan-canonical-nounwind-epoch-v1',profile='gomad.wasi-cooperative/v1',
+        limits=dict(fuel=4_000_000_000,memory_bytes=256<<20,wall_millis=60000,output_bytes=1<<20,evidence_bytes=131<<20),
+        arguments=['gomad-target','literal $arg'],wall_nanos=60_000_000_000,environment=environment,
+        derive_seed_environment=True,runtime_sha256=runtime_sha256,model=model,namespace=namespace,storage=None)
 
 
 def argument(argv, flag):
@@ -622,6 +645,46 @@ class Retained:
                     and replay['divergence'] is None and replay['choice_replay'] == ('exact' if manifest['profile'] == 'cooperative' else 'none'), 'incomplete full-tape Result replay')
         return result
 
+    def runtime_preparation(self, installation, provenance, record, module, index):
+        require(type(index) is int and 0 <= index < 32,'runtime original seed index outside exact coverage')
+        self.installed(installation,installation['admission']['guest_configuration'],4_000_000_000,256<<20)
+        adapters.runtime_installation(installation)
+        require(installation['admission']['environment'] == dict(PWD='/workspace',TZ='UTC',ONLY='captured')
+                and installation['namespace']['writable_directories'] == [list(b'/workspace'),list(b'/tmp')]
+                and installation['namespace']['stdin'] == []
+                and all(entry['directory'] and not entry['readonly'] and entry['data'] == [] for entry in installation['namespace']['entries']),
+                'runtime original captured environment/empty namespace changed')
+        expected = self.provenance(dict(provenance=provenance))
+        inputs,configuration = provenance['inputs'],provenance['configuration']
+        require(configuration == runtime_configuration(installation,configuration['runtime_sha256']),
+                'runtime original execution configuration changed')
+        require(inputs['kind'] == 'go-run' and inputs['source'] == './internal/backends/wasm/testdata/runtime_probes'
+                and inputs['directory'] == str(Path(self.config['repo'])/'tools/gomad') and inputs['arguments'] == ['literal $arg']
+                and inputs['tags'] == [] and inputs['scenario'] is None and inputs['network'] is None
+                and inputs['soft_assertion_report_only'] is False
+                and inputs['build_flags'] == ['-mod=readonly','-trimpath','-buildvcs=false','-pgo=off'],
+                'runtime original source/arguments/build flags changed')
+        require(inputs['go_version'] == installation['go_version'] == 'go1.27.1'
+                and inputs['compiler_path'] == installation['compiler_path'] and inputs['compiler_sha256'] == installation['compiler_sha256']
+                and inputs['runtime_implementation'] == installation['runtime_implementation_sha256'],
+                'runtime frozen compiler/collector/runtime implementation changed')
+        require(all(inputs['environment'].get(key) == value for key,value in dict(GOOS='wasip1',GOARCH='wasm',CGO_ENABLED='0',
+                GOEXPERIMENT='nogreenteagc',GOENV='off',GOTOOLCHAIN='local',GOWORK='off').items()),
+                'runtime original compiler target/collector environment changed')
+        source = str(Path(self.config['repo'])/'tools/gomad/internal/backends/wasm/testdata/runtime_probes/main.go')
+        require(inputs['sources'] and source in inputs['sources'] and inputs['compiler']
+                and all(self.config['files'].get(path) == value for path,value in inputs['sources'].items())
+                and all(installation['admission']['compiler_inputs'].get(path) == value for path,value in inputs['compiler'].items()),
+                'runtime raw source/compiler inventory is not frozen')
+        require(digest(module) == provenance['module_sha256'] and module_metadata(module) == provenance['module_metadata'],
+                'runtime raw module differs from preparation')
+        identity = dict(target=expected['module_sha256'],toolchain=expected['toolchain_sha256'],
+            configuration=expected['host_config_sha256'],implementation=digest(canonical(self.config['identity'])),platform=runtime_platform())
+        require(record['identity'] == identity and record['seed'] == index*1000003
+                and record['profile'] == configuration['profile'] and record['arguments'] == configuration['arguments']
+                and record['environment'] == configuration['environment'] and record['limits'] == configuration['limits'],
+                'runtime record role/platform/seed/configuration differs from raw preparation')
+
     def runtime(self):
         paths, pids = set(), set()
         for index in range(32):
@@ -634,7 +697,11 @@ class Retained:
             for artifact in report['artifacts']:
                 campaign = next((path for path in Path(artifact).parents if path.parent.name == 'campaigns'),None)
                 require(campaign is not None,'runtime campaign root missing')
-                self.journal(campaign,read(Path(artifact)/'manifest.json')['record_sha256'])
+                manifest = self.artifact(Path(artifact))
+                self.runtime_preparation(read(self.config['installations'][self.config['stages'][label]['installation']]),
+                    read(regular(Path(artifact)/'target/provenance.json')),manifest['record'],
+                    regular(Path(artifact)/'target/module.wasm').read_bytes(),index)
+                self.journal(campaign,manifest['record_sha256'])
             rows = [read(root/(f'record-{number:02}.command.json')) for number in range(25)]
             require(len({row['pid'] for row in rows}) == 25 and not pids.intersection(row['pid'] for row in rows),
                     'runtime repeated producer PID')

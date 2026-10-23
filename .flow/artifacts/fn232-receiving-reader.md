@@ -208,3 +208,26 @@ fix; another removes both alias and cache before independent reading. These
 fixtures invoke no compiler or cache operations. Both review findings are now
 covered by66 driver and17 workload/control passing portable tests. Retained
 RED/GREEN logs: `fn232-cache-alias-{producer,reader}-{red,green}.log`.
+
+### Runtime preparation binding follow-up
+
+The receiving runtime loop now independently reopens every raw artifact and its
+`target/provenance.json` before authenticating its campaign journal. It checks the
+frozen installation's release/helper/compiler admission and original model and
+namespace bounds, then recomputes the native preparation configuration for the
+original runtime probe, literal argument, target environment, choice/diagnostic
+profiles, sixty-second execution limit and original output/evidence limits.
+Raw Go version, collector setting, source/compiler inventories, module metadata,
+choice implementation/build key, role/platform identity and each seed are bound
+to the record. All source inventory entries must be present in frozen config
+pins, and compiler entries must match the admitted inventory; absent pins refuse.
+
+Three portable test functions exercise a valid bounded fixture, self-consistently
+resealed foreign inputs/configuration, and raw record/module/seed tampering.
+Focused RED: `.flow/tmp/fn232-runtime-binding-red.log`, exit 1; focused GREEN:
+`.flow/tmp/fn232-runtime-binding-green.log`, exit 0. The committed scope's 69
+portable driver tests pass (`fn232-runtime-binding-checkpoint-green.log`, exit 0).
+The separate uncommitted support-list unit is excluded from that count. Source
+map spans were refreshed without changing its 72 UNEXECUTED roots or 41 gaps.
+No actual runtime/guest/Go/qualification run occurred. Actual final runtime proof
+and complete frozen transitive source/compiler pins remain required.
