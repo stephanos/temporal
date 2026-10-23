@@ -1,0 +1,125 @@
+{
+  "exit_code": 0,
+  "command": "timeout 3600 env UMPIRE_BACKENDS=require make model-time",
+  "verified_head": "64d476165b",
+  "source_checkpoint": "88803cad1c",
+  "stages": [
+    {
+      "stage": "temporal-guest-freshness",
+      "seconds": 32.245
+    },
+    {
+      "stage": "timing-controls",
+      "seconds": 0.017
+    },
+    {
+      "stage": "guest-build-controls",
+      "seconds": 3.572
+    },
+    {
+      "stage": "capability-controls",
+      "seconds": 0.076
+    },
+    {
+      "stage": "source-boundary",
+      "seconds": 4.681
+    },
+    {
+      "stage": "protobuf-freshness",
+      "seconds": 0.079
+    },
+    {
+      "stage": "kettle-protobuf-freshness",
+      "seconds": 0.076
+    },
+    {
+      "stage": "temporal-protobuf-freshness",
+      "seconds": 0.055
+    },
+    {
+      "stage": "fmt",
+      "seconds": 0.496
+    },
+    {
+      "stage": "clippy",
+      "seconds": 5.363
+    },
+    {
+      "stage": "docs",
+      "seconds": 64.125
+    },
+    {
+      "stage": "tests",
+      "seconds": 688.492
+    },
+    {
+      "stage": "wasm32-wasip1",
+      "seconds": 0.215
+    },
+    {
+      "stage": "core-wasm-clippy",
+      "seconds": 0.152
+    },
+    {
+      "stage": "wasm-guest",
+      "seconds": 53.539
+    },
+    {
+      "stage": "go-host",
+      "seconds": 38.846
+    },
+    {
+      "stage": "temporal-go-host",
+      "seconds": 11.411
+    }
+  ],
+  "total_seconds": 903.818,
+  "gate_soft_seconds": 60,
+  "gate_soft_met": false,
+  "inner_seconds": 7.229,
+  "inner_soft_seconds": 10,
+  "inner_soft_met": true,
+  "native_bound": {
+    "reached": 283,
+    "depth": 62,
+    "cut": false,
+    "transition_bound": 63
+  },
+  "kettle_properties": {
+    "kettle-ArithmeticSafe": {
+      "verdict": "NoViolation",
+      "length": 63,
+      "output_sha256": "916cea1645ac0e9e17f7271c4a563fcc2cdffc0f3cf3839460e4be6a5df26e47",
+      "source_sha256": "cbb01aef6be6aa2b03e3a2c6dd91fffa5c7d934a02313ce2550f1f921e05a066"
+    },
+    "kettle-Invariant_beeps_only_when_off": {
+      "verdict": "NoViolation",
+      "length": 63,
+      "output_sha256": "2ca206f9ce097a220986b427bc497a506fd9f30a6336ace692bf17fb88d328fc",
+      "source_sha256": "cbb01aef6be6aa2b03e3a2c6dd91fffa5c7d934a02313ce2550f1f921e05a066"
+    },
+    "kettle-Post_fails_over_at_boiling": {
+      "verdict": "NoViolation",
+      "length": 63,
+      "output_sha256": "c5a34b9ba32bda04c501f228633895d178aad3bc4ea41704803c67b18cfc58ba",
+      "source_sha256": "cbb01aef6be6aa2b03e3a2c6dd91fffa5c7d934a02313ce2550f1f921e05a066"
+    },
+    "kettle-Post_warms_only_when_on": {
+      "verdict": "NoViolation",
+      "length": 63,
+      "output_sha256": "120886dd0ede837d07965580ea8e1f4025687ead1df5dfae54ed5220dce2de9d",
+      "source_sha256": "cbb01aef6be6aa2b03e3a2c6dd91fffa5c7d934a02313ce2550f1f921e05a066"
+    },
+    "kettle-ValidStep": {
+      "verdict": "NoViolation",
+      "length": 63,
+      "output_sha256": "2b0721c9c4285ca0184f34e1940882a690b6b1ce54431be0a63464da237198e4",
+      "source_sha256": "cbb01aef6be6aa2b03e3a2c6dd91fffa5c7d934a02313ce2550f1f921e05a066"
+    }
+  },
+  "source_inventory_entries": 38,
+  "raw_inventory_entries": 178,
+  "raw_archive": "final-backend-controls.tar.gz",
+  "raw_inventory": "final-backend-controls-inventory.jsonl",
+  "receipt": ".flow/tmp/green-receipts/64d47616-unittest.json"
+}
