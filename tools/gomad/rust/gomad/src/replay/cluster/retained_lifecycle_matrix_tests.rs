@@ -142,10 +142,6 @@ fn increment(value: &mut Value) {
     *value = json!(value.as_u64().unwrap() + 1);
 }
 
-#[expect(
-    clippy::too_many_lines,
-    reason = "The original mutation table remains contiguous for source-to-native review."
-)]
 fn mutate(publication: &mut Publication, case: &str) -> &'static str {
     let mut inputs: Value = serde_json::from_slice(&publication.payloads[FILE]).unwrap();
     let zeros = "0".repeat(64);

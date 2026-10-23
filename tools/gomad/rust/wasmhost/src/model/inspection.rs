@@ -1513,6 +1513,10 @@ mod tests {
         }
     }
     #[test]
+    #[expect(
+        clippy::too_many_lines,
+        reason = "The measured inspection scale fixture keeps every boundary, effect and retained owner assertion together."
+    )]
     fn workflow_scale_inventory_fits_without_omitting_boundaries() {
         let mut recorder = Recorder::default();
         let handle = Handle {

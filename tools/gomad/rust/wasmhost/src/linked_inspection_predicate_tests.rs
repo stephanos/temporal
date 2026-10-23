@@ -349,7 +349,7 @@ fn terminal_network_raw_stream_cannot_be_replaced_by_an_unrelated_state_commitme
         "TestInspectionNetworkRawStreamBindsCanonicalIdentity",
         "native-terminal-raw-state",
         json!({
-            "raw":valid_material,"invalid":material(&retained),"error":validate(&retained).unwrap_err().to_string(),"network_base64":STANDARD.encode(network),"trailing_error":crate::linked_cluster::validate_network_evidence(&trailing,1<<20,&model,&model).unwrap_err().to_string(),
+            "raw":valid_material,"invalid":material(&retained),"error":validate(&retained).unwrap_err().to_string(),"network_base64":STANDARD.encode(network),"trailing_error":crate::linked_cluster::validate_network_evidence(&trailing,1<<20,&model,&model).unwrap_err(),
             "raw_sha256":inspection::digest(network),"raw_bytes":network.len(),
             "trailing_raw_byte_refused":true,"changed_terminal_commitment_refused":true
         }),

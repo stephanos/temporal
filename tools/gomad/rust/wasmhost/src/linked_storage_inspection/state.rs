@@ -399,6 +399,10 @@ mod tests {
     }
 
     #[test]
+    #[expect(
+        clippy::too_many_lines,
+        reason = "The bounded resealed storage-context matrix keeps its complete semantic admission and presence assertions together."
+    )]
     fn actual_native_storage_state_refuses_forged_context_and_unrequested_context_presence() {
         let (input, evidence) = actual();
         validate(&input, &evidence.state, &evidence.log, 8 << 20).unwrap();

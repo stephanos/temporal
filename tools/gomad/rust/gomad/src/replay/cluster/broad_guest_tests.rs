@@ -64,9 +64,14 @@ fn original_config() -> Value {
 }
 
 fn producer(name: &str, soft: bool, test_binary: bool) -> Producer {
-    if cfg!(debug_assertions) {
-        panic!("actual Go receiving roots require a release fixture build");
-    }
+    #[expect(
+        clippy::assertions_on_constants,
+        reason = "The opt-in guest producer enforces its compiled release role at runtime while ordinary debug test builds remain valid."
+    )]
+    assert!(
+        !cfg!(debug_assertions),
+        "actual Go receiving roots require a release fixture build"
+    );
     let root = PathBuf::from(
         std::env::var_os("GOMAD_TEST_BROAD_GUEST_ROOT").expect("explicit retained root"),
     )

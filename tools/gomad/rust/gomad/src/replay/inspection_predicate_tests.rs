@@ -88,6 +88,10 @@ fn retained_resolve_refuses_observation_coordinate_before_creating_control() {
 }
 
 #[test]
+#[expect(
+    clippy::too_many_lines,
+    reason = "This retained scale admission fixture keeps its complete original evidence and owner assertions together."
+)]
 #[ignore = "requires the retained complete helper scale artifact from GOMAD_INSPECTION_RAW_DIR"]
 fn native_retained_scale_admission_preserves_complete_inspection_and_owner_payloads() {
     use crate::evidence::{

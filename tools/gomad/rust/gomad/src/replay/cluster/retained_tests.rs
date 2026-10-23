@@ -588,10 +588,10 @@ fn retained_native_decoder_is_closed_and_preserves_the_existing_lineage() {
             "foreign-schema" | "legacy-schema" => {
                 "unsupported retained cluster replay input schema"
             }
-            "duplicate-top" => "duplicate object key",
-            "duplicate-nested" | "duplicate-model-value" | "duplicate-environment-map" => {
-                "duplicate object key"
-            }
+            "duplicate-top"
+            | "duplicate-nested"
+            | "duplicate-model-value"
+            | "duplicate-environment-map" => "duplicate object key",
             "excessive-nesting" => "nesting",
             "oversized" => "artifact payload exceeds caller bound",
             "unknown-top" | "unknown-nested" => "unknown field `unknown`",

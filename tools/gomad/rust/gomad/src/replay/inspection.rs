@@ -608,24 +608,7 @@ pub fn run_with_cancellation(
         request,
         request.search.as_ref().map(|search| search.first),
     )?;
-    let parent = request
-        .output_directory
-        .parent()
-        .ok_or_else(|| preflight_error("invalid inspection output directory"))?
-        .canonicalize()
-        .map_err(preflight_error)?;
-    let destination = parent.join(
-        request
-            .output_directory
-            .file_name()
-            .ok_or_else(|| preflight_error("invalid inspection output directory"))?,
-    );
-    let artifact = request.artifact.canonicalize().map_err(preflight_error)?;
-    if destination.starts_with(&artifact) {
-        return Err(preflight_error(
-            "inspection output must be outside artifact",
-        ));
-    }
+    let destination = output_destination(request)?;
     let at = &control.expected;
     let mut report = json!({"status":"", "artifact_id":prepared.opened.manifest().record_sha256,"requested":request,
         "resolved":{"instance":control.target.node,"incarnation":control.target.incarnation,"choice":at.decision,"trace":at.trace,"order":at.order,"time_nanos":at.time_nanos},
@@ -680,6 +663,28 @@ pub fn run_with_cancellation(
     serde_json::to_writer(&mut *output, &report).map_err(execution_error)?;
     writeln!(output).map_err(execution_error)?;
     Ok(0)
+}
+
+fn output_destination(request: &InspectionRequest) -> Result<std::path::PathBuf, cli::Error> {
+    let parent = request
+        .output_directory
+        .parent()
+        .ok_or_else(|| preflight_error("invalid inspection output directory"))?
+        .canonicalize()
+        .map_err(preflight_error)?;
+    let destination = parent.join(
+        request
+            .output_directory
+            .file_name()
+            .ok_or_else(|| preflight_error("invalid inspection output directory"))?,
+    );
+    let artifact = request.artifact.canonicalize().map_err(preflight_error)?;
+    if destination.starts_with(&artifact) {
+        return Err(preflight_error(
+            "inspection output must be outside artifact",
+        ));
+    }
+    Ok(destination)
 }
 
 pub(crate) fn authenticate_streams(
