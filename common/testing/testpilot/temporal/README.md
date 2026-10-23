@@ -102,3 +102,22 @@ server-side workflow that takes tens of seconds and buys nothing there. That wor
 system worker service, so a namespace deletion, such as the one `umpire-run --create` issues on
 exit, finishes only on a cluster that runs it; elsewhere the delete blocks until its teardown
 budget ends and is reported as a leak.
+
+## The Runner's Driver: `act`
+
+`act` is the Temporal Driver of the Runner (`umpire.local/model/umpire/runner`). It sends each
+proposed request over the generated WorkflowService API, choosing the method by the request's
+message, with the proposal's bytes unchanged, and records the response's exact bytes. A call the
+server answered is an Observation, its response or its status; a call the server never ended
+(no trailer), or a response that does not decode as the method's output, is a Fault and never
+reaches Judge. An `umpire.temporal.v1.ObserveActivity` is a read: the Driver repeats it until the
+Model accepts a final observation, spacing continued reads by its poll interval, retrying an
+unanswered read after its backoff, and faulting when its read timeout passes first.
+
+One in-process SDK worker per Run polls the configured task queue through a gate. The gate admits
+a poll only after a read the Model asked to continue, and only as many times as the instruction's
+`worker_tasks`; reads pause while that poll or its task is outstanding. The callback carries the
+actual task the poll returned, and the Model's reply goes back through the SDK: a completion's one
+payload, or a failure. Close stops the worker and terminates any activity the Driver started that
+is still open, because a later Run's Start reuses the World's activity ID. The Driver never reads
+a Temporal message for its meaning; it reads a Start's identity only to clean up after it.

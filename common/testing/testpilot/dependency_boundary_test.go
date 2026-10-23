@@ -100,6 +100,18 @@ func TestTestpilotDependencyBoundaryRejectsForbiddenEdges(t *testing.T) {
 			want:     "common/testing/testpilot/driver.go: imports forbidden dependency go.temporal.io/server/tools/canary",
 		},
 		{
+			name:     "generic Testpilot imports the Runner",
+			relative: "common/testing/testpilot/driver.go",
+			source:   "package testpilot\nimport _ \"umpire.local/model/umpire/runner\"\n",
+			want:     "common/testing/testpilot/driver.go: imports the Model host outside the Runner's Driver umpire.local/model/umpire/runner",
+		},
+		{
+			name:     "Case Driver imports the Temporal Model",
+			relative: "common/testing/testpilot/temporal/driver.go",
+			source:   "package temporal\nimport _ \"umpire.local/temporal\"\n",
+			want:     "common/testing/testpilot/temporal/driver.go: imports the Model host outside the Runner's Driver umpire.local/temporal",
+		},
+		{
 			name:     "server imports SDK worker",
 			relative: "common/testing/testpilot/temporal/server/driver.go",
 			source:   "package server\nimport _ \"go.temporal.io/server/common/testing/testpilot/temporal/worker\"\n",
@@ -216,6 +228,8 @@ func checkTestpilotDependencyBoundary(repositoryRoot string, dependencies []test
 		genericRoot = "common/testing/testpilot"
 		driverRoot  = "common/testing/testpilot/temporal"
 		moduleRoot  = "go.temporal.io/server/"
+		// runnerDriverRoot is the Temporal Driver the Runner drives (common/testing/testpilot/temporal/act).
+		runnerDriverRoot = driverRoot + "/act"
 	)
 	var violations []string
 	for _, relativeRoot := range []string{genericRoot, driverRoot} {
@@ -256,6 +270,10 @@ func checkTestpilotDependencyBoundary(repositoryRoot string, dependencies []test
 				}
 				if relativeRoot == genericRoot && forbiddenTestpilotDependency(importPath) {
 					violations = append(violations, relative+": imports forbidden dependency "+importPath)
+				}
+				// Only the Runner's Temporal Driver acts for the Model's host loop.
+				if hasImportPrefix(importPath, "umpire.local") && !strings.HasPrefix(relative, runnerDriverRoot+"/") {
+					violations = append(violations, relative+": imports the Model host outside the Runner's Driver "+importPath)
 				}
 				if relativeRoot == driverRoot {
 					if forbiddenTestpilotDependency(importPath) {
@@ -325,6 +343,16 @@ func forbiddenTestpilotDependency(importPath string) bool {
 func hasImportPrefix(importPath string, prefix string) bool {
 	return importPath == prefix || strings.HasPrefix(importPath, prefix+"/")
 }
+func TestTheRunnersDriverMayImportTheModelHost(t *testing.T) {
+	repositoryRoot := t.TempDir()
+	relative := "common/testing/testpilot/temporal/act/act.go"
+	require.NoError(t, os.MkdirAll(filepath.Join(repositoryRoot, "common/testing/testpilot/temporal/act"), 0o755))
+	require.NoError(t, os.WriteFile(filepath.Join(repositoryRoot, relative), []byte("package act\nimport _ \"umpire.local/model/umpire/runner\"\n"), 0o600))
+	violations, err := checkTestpilotDependencyBoundary(repositoryRoot, nil)
+	require.NoError(t, err)
+	require.Empty(t, violations)
+}
+
 func TestTestpilotHelperDriverBoundary(t *testing.T) {
 	const root = "common/testing/testpilot/"
 	const driver = "go.temporal.io/server/common/testing/testpilot/temporal"
