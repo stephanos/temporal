@@ -18,13 +18,11 @@ FEATURES = {name: (['conformance'] if name == 'reference-helper' else main_cli_b
 def source_inventory(receipt):
     import dry_run
     if receipt.get('schema') == dry_run.SCHEMA:
-        # A dry-run build carries no source custody; inventory the checkout it was built from.
-        files, _, _, links = main_cli_build.source_state(HERE.parents[3], '/usr/bin/git')
-        receipt = dict(receipt, tools_plan=None, gnu_plan=None, symlinks=links)
+        # A dry-run build carries no source custody; inventory the whole checkout tree it was built from,
+        # including staged untracked inputs (stress stages its broker source under .tmp).
         repo = HERE.parents[3]
-        inventory = {str(Path(name).relative_to(repo)): value for name, value in files.items()}
-        for name in links:
-            inventory[str(Path(name).relative_to(repo))] = sha(name)
+        inventory = {str(path.relative_to(repo)): sha(path) for path in repo.rglob('*') if path.is_file()
+                     and not {'.git', '.flow', '__pycache__'} & set(path.relative_to(repo).parts)}
         return ''.join(value + '  ' + name + '\n' for name, value in sorted(inventory.items()))
     plan = read(receipt['tools_plan'])
     repo = Path(plan['repo'])

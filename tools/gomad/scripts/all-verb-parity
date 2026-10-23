@@ -167,8 +167,9 @@ def load_bindings(path, expected, frozen=None):
                 and public_roles.FEATURES[role] == (['conformance'] if role == 'reference-helper' else receipt['features'])
                 and receipt['profile'] == 'release' and type(receipt['exit']) is int and receipt['exit'] == 0,
                 'unadmitted closed public role build: ' + role)
-        tools = public_roles.read(receipt['tools_plan'])
-        require(tools['tools']['rustc'] == str(files['rust-compiler']), 'public role compiled with another Rust compiler')
+        if receipt['tools_plan'] is not None:  # dry-run records carry no compiler plan
+            tools = public_roles.read(receipt['tools_plan'])
+            require(tools['tools']['rustc'] == str(files['rust-compiler']), 'public role compiled with another Rust compiler')
     for role in ('fixture', 'stress', 'stress-release', 'determinism'):
         require(value['files'][role]['sha256'] != value['files']['release']['sha256'],
                 'release binary substituted for compiled fixture role')

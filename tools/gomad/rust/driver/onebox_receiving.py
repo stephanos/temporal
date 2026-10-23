@@ -33,7 +33,9 @@ def support_binding(config, frozen=True):
             'fn222 requires an absolute actual support build receipt')
     receipt = main_cli_build.read_build(value['support_build_receipt'], config if frozen else None, expected_role='fn222-support')
     require(receipt['binary'] == support, 'fn222 support differs from its admitted build')
-    require(all(config[key] == receipt[key] for key in ('source_sha256', 'head', 'symlinks'))
+    import dry_run
+    require(dry_run.is_record(value['support_build_receipt'])
+            or all(config[key] == receipt[key] for key in ('source_sha256', 'head', 'symlinks'))
             and read(receipt['tools_plan'])['repo'] == config['repo'], 'fn222 support differs from selected candidate source')
     return receipt
 

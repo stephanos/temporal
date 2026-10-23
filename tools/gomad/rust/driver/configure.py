@@ -317,7 +317,7 @@ def freeze(bindings, output, source_manifest):
     if config.get('identity_harness') is not None:
         identity_harness.preflight(config)
     import primary_stages
-    observed = dict(config, _config_path=str(output))
+    observed = dict(config, _config_path=str(output), _freezing=True)
     for label, entry in config['stages'].items():
         if entry.get('adapter') == 'primary':
             primary_stages.preflight(observed, label, Path(config['root']) / 'stages' / label)

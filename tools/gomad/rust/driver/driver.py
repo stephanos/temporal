@@ -439,7 +439,8 @@ def busy_host(label):
 
 
 def guard(config):
-    require(sha(config['_config_path']) == config['_config_sha256'], 'driver config changed')
+    # The freezer runs stage preflights before it publishes the configuration file they will guard.
+    require(config.get('_freezing') is True or sha(config['_config_path']) == config['_config_sha256'], 'driver config changed')
     check_files(config['files'])
     repo = Path(config['repo'])
     head = subprocess.check_output(['git', '-C', str(repo), 'rev-parse', 'HEAD'], text=True).strip()

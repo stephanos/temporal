@@ -58,7 +58,8 @@ def stress_cycle(config, files):
     live.sealed_input(config, str(path))
     plan = read(path)
     fields = ('repo', 'root', 'source_manifest', 'source_sha256', 'sent_epoch', 'deadline_s', 'identity', 'binary_sha256', 'stress')
-    require(set(plan) == {'schema', 'files', *fields} and plan['schema'] == 'gomad.stress-cycle/v1'
+    dry = {'dry_run'} if config.get('dry_run') is True else set()
+    require(set(plan) == {'schema', 'files', *fields} | dry and plan['schema'] == 'gomad.stress-cycle/v1'
             and all(plan[key] == config[key] for key in fields), 'old/foreign public stress cycle footprint')
     expected_files = {name: digest for name, digest in config['files'].items()
                       if name not in (str(path), config['public_verbs']['bindings'])}

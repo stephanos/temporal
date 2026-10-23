@@ -211,7 +211,7 @@ def verify(path):
     check_files(recipe['inputs'])
     compiler = Path(recipe['compiler'])
     require(live.inventory(compiler.parent.parent) == recipe['compiler_inventory'], 'original stock compiler tree changed')
-    dependency_cache(root, recipe, Path(read(cli['tools_plan'])['repo']))
+    dependency_cache(root, recipe, (Path(read(cli['tools_plan'])['repo']) if cli['tools_plan'] else HERE.parents[3]))
     owner = read(root / 'producer.json')
     require(read(root / 'before-produce.json') == setup(root, cli, False), 'original cold setup disposition changed')
     env = environment(root, compiler)
@@ -230,7 +230,7 @@ def verify(path):
 def produce(cli_build, harness_build, compiler_root, module_cache, root):
     cli, harness = roles(cli_build, harness_build)
     require(root.is_absolute() and root.resolve() == root and not root.exists(), 'original divergence root must be fresh/canonical')
-    repo = Path(read(cli['tools_plan'])['repo'])
+    repo = (Path(read(cli['tools_plan'])['repo']) if cli['tools_plan'] else HERE.parents[3])
     require(not root.is_relative_to(repo), 'original divergence evidence must remain outside source')
     compiler = compiler_root / 'bin/go'
     require(compiler_root.is_absolute() and compiler.is_file() and not compiler.is_symlink(), 'explicit stock compiler required')
