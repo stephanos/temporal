@@ -27,6 +27,10 @@ SECTIONS = {
 }
 
 
+DRY_RUN_GROUPS = ('final_profiles', 'final_retained', 'stress', 'public_verbs', 'private_observations',
+                  'live_corpus', 'fn222', 'terminal_controls_reference')
+
+
 def final_sections(python, config_path):
     result = {}
     for name, (endpoint, required) in SECTIONS.items():
@@ -166,8 +170,11 @@ def compose(inputs, base, plan_path, bindings_path, config_path):
     result['final_reader'] = [str(python), str(HERE / 'final.py'), '--config', str(config_path)]
     result['final_sections'] = final_sections(str(python), config_path)
     validate_stages(result)
-    require(set(result.get('live_corpus', {}).get('families', {})) == set(live.FAMILIES), 'missing actual live receiver families')
-    for name, entry in result['live_corpus']['families'].items():
+    dry = result.get('dry_run') is True
+    bound_families = result.get('live_corpus', {}).get('families', {})
+    require(set(bound_families) == set(live.FAMILIES) or (dry and set(bound_families) <= set(live.FAMILIES)),
+            'missing actual live receiver families')
+    for name, entry in bound_families.items():
         label = entry['stage']
         require(label in result['stages'], 'foreign live receiver stage')
         families = result['stages'][label].setdefault('live_families', [])
@@ -175,10 +182,17 @@ def compose(inputs, base, plan_path, bindings_path, config_path):
             families.append(name)
     for entry in result['final_sections'].values():
         require(Path(entry['argv'][1]).is_file(), 'missing actual final reader: ' + entry['argv'][1])
+    unbound = [key for key in DRY_RUN_GROUPS if not result.get(key)]
+    if result.get('final_profiles') and not all(result['final_profiles'].get(key) for key in ('runtime_recipe', 'qualified', 'runtime_reference')):
+        # Stages still bind the native profile roles; the fn-185 R4 producers remain unbound.
+        unbound.append('final_profiles')
+    # The pre-freeze dry run executes every bound stage; its unbound groups stay UNEXECUTED and fail the final reader.
     for key in ('final_profiles', 'final_retained', 'stress', 'public_verbs', 'private_observations'):
-        require(result.get(key), 'missing actual final input binding: ' + key)
+        require(dry or result.get(key), 'missing actual final input binding: ' + key)
+    if dry:
+        result['dry_run_unexecuted'] = unbound + ['live_corpus/' + name for name in sorted(set(live.FAMILIES) - set(bound_families))]
     result['inputs'] = sorted(set(result['inputs']) | {str(python), str(HERE / 'compose.py'),
-        str(HERE / 'final_public_verbs.py'), str(HERE / 'primary_stages.py'), str(HERE / 'cell_reader.py'), str(HERE / 'native_roles.py')} | {entry['argv'][1] for entry in result['final_sections'].values()})
+        str(HERE / 'final_public_verbs.py'), str(HERE / 'primary_stages.py'), str(HERE / 'cell_reader.py'), str(HERE / 'native_roles.py'), str(HERE / 'dry_run.py')} | {entry['argv'][1] for entry in result['final_sections'].values()})
     result.pop('_future_config')
     write(bindings_path, result)
     return result

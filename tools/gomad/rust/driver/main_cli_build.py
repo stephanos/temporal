@@ -229,6 +229,9 @@ def evidence(config, root):
 
 def read_build(path, frozen=None, expected_role=None):
     path = Path(path)
+    import dry_run
+    if dry_run.is_record(path):
+        return dry_run.read_record(path, frozen, expected_role)
     receipt = read(native_roles.regular(path))
     require(isinstance(receipt, dict) and {'schema', 'exit', 'root', 'tools_plan', 'gnu_plan', 'role'} <= set(receipt)
             and receipt.get('schema') == SCHEMA and type(receipt.get('exit')) is int and receipt['exit'] == 0 and path == Path(receipt['root']) / 'main-build.json', 'foreign main CLI build receipt')

@@ -90,7 +90,7 @@ def main():
                       arguments=['main'], environment={'PWD': '/workspace'}, runtime_sha256=runtime,
                       model=copy.deepcopy(model), namespace=copy.deepcopy(namespace), storage=None)
         if name == 'standalone':
-            config['model']['seed'] = 7
+            # The fixture case seed is the execution seed; the model must not repeat it.
             request = dict(schema='gomad.replay-fixture-input/v1', cases=[dict(
                 name='retained-inspection', module_path=str(module), module_sha256=digest,
                 toolchain_build_key=build, seed=7, configuration=config, choice_identity=identity)])

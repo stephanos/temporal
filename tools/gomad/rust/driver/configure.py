@@ -109,9 +109,14 @@ def live_role_inputs(config):
     require(isinstance(roles, dict) and required <= set(roles) <= required | optional,
             'complete closed live binary roles are required')
     paths = set()
+    import dry_run
     for name, entry in roles.items():
         require(isinstance(entry, dict) and set(entry) == {'binary', 'build_receipt'}, 'unknown live role binding fields')
         receipt = main_cli_build.read_build(entry['build_receipt'], expected_role=name)
+        if dry_run.is_record(entry['build_receipt']):
+            require(receipt['binary'] == entry['binary'], 'dry-run live role binary differs from its record')
+            paths.add(entry['build_receipt'])
+            continue
         require(receipt['binary'] == entry['binary'] and receipt['source_sha256'] == config['source_sha256']
                 and receipt['head'] == config['head'] and receipt['symlinks'] == config['symlinks']
                 and read(receipt['tools_plan'])['repo'] == config['repo'], 'live build differs from selected candidate source/publication')
@@ -176,6 +181,10 @@ def freeze_final_cycle(config, output):
 def freeze(bindings, output, source_manifest):
     config = dict(bindings)
     deadline(config['deadline_s'])
+    import dry_run
+    # A dry-run configuration may leave final groups unbound; it never qualifies and refuses at its final reader.
+    dry = dry_run.enable(config)
+    bound = lambda key: not dry or bool(config.get(key))
     from host_admission import STAT, bindings as scratch_bindings
     scratch_bindings(config)
     require(set(config['stages']) == set(mapping()), 'all 96 stage mappings are required')
@@ -213,11 +222,14 @@ def freeze(bindings, output, source_manifest):
     inputs.update((config['binary'], config['build_receipt']))
     import main_cli_build
     inputs.update(main_cli_build.input_paths(config['build_receipt']))
-    inputs.update(live_role_inputs(config))
+    if bound('live_corpus'):
+        inputs.update(live_role_inputs(config))
     inputs.update(native_bootstrap_inputs(config))
-    inputs.update(native_profile_inputs(config))
+    if bound('final_profiles'):
+        inputs.update(native_profile_inputs(config))
     import cluster_wire_reference
-    inputs.update(cluster_wire_reference.input_paths(config['terminal_controls_reference']))
+    if bound('terminal_controls_reference'):
+        inputs.update(cluster_wire_reference.input_paths(config['terminal_controls_reference']))
     if config.get('identity_harness') is not None:
         import identity_harness
         inputs.update(identity_harness.static_inputs(config))
@@ -239,18 +251,20 @@ def freeze(bindings, output, source_manifest):
         inputs.update([argv[0], argv[1], argv[argv.index('--support') + 1], argv[argv.index('--captured-config') + 1]])
         import onebox_receiving
         inputs.update(onebox_receiving.support_inputs(config))
-    inputs.add(config['public_verbs']['bindings'])
-    import public_roles
-    public_binding = Path(config['public_verbs']['bindings'])
-    build_binding = read(public_binding)['files']['build-receipts']['path']
-    build_inventory = (public_binding.parent / build_binding).resolve()
-    _, public_inputs = public_roles.read_builds(build_inventory)
-    inputs.update(public_inputs)
+    if bound('public_verbs'):
+        inputs.add(config['public_verbs']['bindings'])
+        import public_roles
+        public_binding = Path(config['public_verbs']['bindings'])
+        build_binding = read(public_binding)['files']['build-receipts']['path']
+        build_inventory = (public_binding.parent / build_binding).resolve()
+        _, public_inputs = public_roles.read_builds(build_inventory)
+        inputs.update(public_inputs)
     divergence = config.get('live_corpus', {}).get('test_wasm_reach', {}).get('executed_divergence')
     if divergence is not None:
         import counterfactual_receiving
         inputs.update(counterfactual_receiving.input_paths(divergence, Path(config['repo'])))
-    inputs.update(config['stress'][key] for key in ('spec', 'binary', 'build_receipt'))
+    if bound('stress'):
+        inputs.update(config['stress'][key] for key in ('spec', 'binary', 'build_receipt'))
     config['files'] = {str(Path(path).resolve()): sha(path) for path in sorted(inputs)}
     import sqlite_oracle
     sqlite_oracle.validate_build(config)
@@ -261,12 +275,15 @@ def freeze(bindings, output, source_manifest):
     config['terminal_module_spec'] = str(terminal_spec)
     config['files'][str(terminal_spec)] = sha(terminal_spec)
     inputs.add(str(terminal_spec))
-    freeze_final_cycle(config, output)
-    import final_public_verbs
-    final_public_verbs.binding(config)
+    if bound('stress') and bound('public_verbs'):
+        freeze_final_cycle(config, output)
+        import final_public_verbs
+        final_public_verbs.binding(config)
     import native_roles
     for name, role in (('measure', {'kind': 'release'}), ('ordinary', {'kind': 'release'}),
                        ('diagnostic', {'kind': 'diagnostic', 'features': ['diagnostic-profile']})):
+        if not bound('final_profiles') or name not in config['final_profiles']:
+            continue
         entry = config['final_profiles'][name]
         native_roles.validate_build(config, entry['build_receipt'], role)
         if entry.get('admission'):
@@ -275,11 +292,12 @@ def freeze(bindings, output, source_manifest):
     if config.get('fn222'):
         import onebox_receiving
         onebox_receiving.support_binding(config)
-    for name, entry in config['live_corpus']['roles'].items():
+    for name, entry in config.get('live_corpus', {}).get('roles', {}).items():
         main_cli_build.read_build(entry['build_receipt'], config, expected_role=name)
     main_cli_build.read_build(config['stages']['runtime-0']['harness_build_receipt'], config, expected_role='runtime-harness')
     import final_profiles
-    final_profiles.preflight(config)
+    if not dry or all(config.get('final_profiles', {}).get(key) for key in ('runtime_recipe', 'qualified', 'runtime_reference')):
+        final_profiles.preflight(config)
     if config.get('identity_harness') is not None:
         identity_harness.preflight(config)
     import primary_stages

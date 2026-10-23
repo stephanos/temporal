@@ -496,6 +496,8 @@ def configured(path):
     bindings(config)
     require(str(STAT) in config['files'], 'unsealed native filesystem probe')
     check_files(config['files'])
+    import dry_run
+    dry_run.enable(config)
     return config
 
 
