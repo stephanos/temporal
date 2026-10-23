@@ -345,9 +345,9 @@
    ]
   },
   "tools/gomad/internal/backends/wasm/backend/operator_marker_test.go#TestScenarioMarkerClassificationsPreserveReplayPrecedence": {
-   "basis": "weak name correlation within the owning domain; confirm in review",
    "evidence": [
-    "rust/gomad/campaign::scenario::preservation_tests::operator_arguments_preserve_null_empty_and_override_through_normalization_and_binding"
+    "rust/gomad/campaign::sweep_backend_failure_tests::native_failure_retains_typed_termination_without_reason_inference",
+    "rust/helper_corpus/helper_transcript_corpus_reproduces_expected_outcomes"
    ]
   },
   "tools/gomad/internal/backends/wasm/backend/operator_marker_test.go#TestScenarioPreservesChoiceCapacityBeforeDeclaredMarker": {
@@ -413,7 +413,8 @@
   },
   "tools/gomad/internal/backends/wasm/backend/provider_test.go#TestCachePublicationStagesAndValidatesBeforeReplacing": {
    "evidence": [
-    "rust/gomad/install::derive_cache::tests::derive_cache_publication_syncs_stage_and_cleans_failure_without_replacing_winner"
+    "rust/gomad/campaign::prepare::compilation_cache::tests::publication_fault_matrix_preserves_destinations_and_reports_cleanup_and_partial_commit",
+    "rust/gomad/campaign::prepare::compilation_cache::tests::canceled_new_publication_has_no_receipt_and_auxiliary_stages_are_validated"
    ]
   },
   "tools/gomad/internal/backends/wasm/backend/provider_test.go#TestCooperativePreparationRequiresChoiceProfileBeforeExecution": {
@@ -430,9 +431,8 @@
    "retired": "Go encoding/json spellings and nil/empty round trips of deleted Go provenance types."
   },
   "tools/gomad/internal/backends/wasm/backend/provider_test.go#TestPreparedCooperativeTargetRequiresExactReplay": {
-   "basis": "weak name correlation within the owning domain; confirm in review",
    "evidence": [
-    "rust/gomad/replay::preflight::profile_import_tests::cooperative_profile_preserves_the_original_complete_import_boundary"
+    "rust/gomad/replay::cluster::retained_tests::actual_retained_admission_uses_private_bound_inputs_and_replays_without_source"
    ]
   },
   "tools/gomad/internal/backends/wasm/backend/provider_test.go#TestProvenanceAcceptsOrdinaryJSONSpellings": {
@@ -450,9 +450,9 @@
    ]
   },
   "tools/gomad/internal/backends/wasm/backend/provider_test.go#TestProviderRequiresAbsoluteCompiledModuleCache": {
-   "basis": "weak name correlation within the owning domain; confirm in review",
    "evidence": [
-    "rust/gomad/campaign::origin::cache_tests::cached_module_requires_registered_run_and_preserves_global_directory_flags"
+    "rust/gomad/install::config::reach_port_tests::resolve_rejects_changed_identity_and_unsafe_manifest",
+    "rust/linked_compile_cache/linked_cache_defaults_disabled_and_rejects_relative_configuration"
    ]
   },
   "tools/gomad/internal/backends/wasm/backend/provider_test.go#TestSelectedRuntimeOverlayInputsInvalidateBuildIdentity": {
@@ -473,9 +473,8 @@
    "retired": "Go encoding/json spellings and nil/empty round trips of deleted Go provenance types."
   },
   "tools/gomad/internal/backends/wasm/backend/qualification_identity_test.go#TestQualificationIdentityRejectsStalePreparedSource": {
-   "basis": "weak name correlation within the owning domain; confirm in review",
    "evidence": [
-    "rust/gomad/cli::run_guest::admission_tests::qualification_source_probe_reaches_target_refusal_after_valid_digest"
+    "rust/gomad/campaign::prepare::receiving_compilation_contract::receiving_compilation_key_binds_source_tags_compiler_tools_headers_runtime_overlay_environment_kind_and_source"
    ]
   },
   "tools/gomad/internal/backends/wasm/backend/soft_assertion_test.go#TestSoftAssertionActualPassingGuestArtifactReplay": {
@@ -528,9 +527,8 @@
    ]
   },
   "tools/gomad/internal/backends/wasm/backend/stress_test.go#TestStressScenarioIdentityBindsEveryBootAndExcludesHostLayout": {
-   "basis": "weak name correlation within the owning domain; confirm in review",
    "evidence": [
-    "rust/gomad/stress::reach_tests::retained_replay_roles_require_exact_shared_engine_and_cluster_layout"
+    "rust/gomad/stress::reach_tests::stress_host_perturbations_do_not_change_declared_guest_inputs"
    ]
   },
   "tools/gomad/internal/backends/wasm/backend/temporal_inspection_integration_test.go#TestTemporalInspectionConfigPreservesFixtureBytes": {
@@ -1275,9 +1273,10 @@
    ]
   },
   "tools/gomad/internal/backends/wasm/command/command_test.go#TestOperatorReportsRetainedQualificationWithoutInstallation": {
-   "basis": "weak name correlation within the owning domain; confirm in review",
    "evidence": [
-    "rust/gomad/measurement::stress_driver::tests::actual_retained_bounds_and_cluster_topology_are_checked_apart_from_installation"
+    "rust/gomad/cli::qualify::receiving_response_tests::report_rejects_invalid_results_without_an_installation",
+    "stage/workload-fixture-controlled-success/TestActualMatchedFixtureQualification",
+    "stage/workload-fixture-cooperative-success/TestActualMatchedFixtureQualification"
    ]
   },
   "tools/gomad/internal/backends/wasm/command/command_test.go#TestQualificationResponseBoundsAbsolutePathAndEncodedBytes": {
@@ -1291,9 +1290,8 @@
    ]
   },
   "tools/gomad/internal/backends/wasm/command/command_test.go#TestQualificationResponseDoesNotSerializeTheRetainedResult": {
-   "basis": "weak name correlation within the owning domain; confirm in review",
    "evidence": [
-    "rust/gomad/qualify::result::receiving_provenance_tests::qualification_provenance_rejects_unknown_nested_or_unbound_fields"
+    "rust/gomad/cli::qualify::receiving_response_tests::response_bounds_absolute_path_and_encoded_bytes"
    ]
   },
   "tools/gomad/internal/backends/wasm/command/command_test.go#TestQualificationResponseRetainsReceiptBeforePublicationFailure": {
@@ -1390,9 +1388,8 @@
    ]
   },
   "tools/gomad/internal/backends/wasm/determinism/diverge_test.go#TestCompareTrailingDiagnosticRecordKeepsItsClusterCoordinate": {
-   "basis": "weak name correlation within the owning domain; confirm in review",
    "evidence": [
-    "rust/gomad/stress::tests::retained_cluster_zero_choice_owner_keeps_complete_diagnostic_admission"
+    "rust/gomad/stress::reach_tests::native_first_difference_preserves_causes_coordinates_and_presence"
    ]
   },
   "tools/gomad/internal/backends/wasm/determinism/event_order_test.go#TestEventOrderAcceptsActualControllerCommandFrames": {
@@ -1509,9 +1506,8 @@
    ]
   },
   "tools/gomad/internal/backends/wasm/determinism/runtime_inventory_test.go#TestRuntimeInventoryRequiresPerSiteRows": {
-   "basis": "weak name correlation within the owning domain; confirm in review",
    "evidence": [
-    "rust/gomad/sweep::record::tests::verifier_rejects_bad_rows_inventory_counts_and_unknown_fields"
+    "rust/inventory/runtime_inventory::wasip1_runtime_draw_and_clock_references_are_reviewed"
    ]
   },
   "tools/gomad/internal/backends/wasm/determinism/runtime_inventory_test.go#TestWasip1RuntimeDrawAndClockReferencesAreReviewed": {
@@ -1582,15 +1578,13 @@
    ]
   },
   "tools/gomad/internal/backends/wasm/internal/measure/attribution_test.go#TestDiagnosticAttributionRequiresEveryImportAndReconciliation": {
-   "basis": "weak name correlation within the owning domain; confirm in review",
    "evidence": [
-    "rust/gomad/measurement::namespace::tests::actual_counter_envelope_requires_implementation_store_and_positive_native_attribution"
+    "rust/profile_corpus/linked_profile_cli_corpus"
    ]
   },
   "tools/gomad/internal/backends/wasm/internal/measure/attribution_test.go#TestDiagnosticThreadRowsBindAggregateAndFullIdentities": {
-   "basis": "weak name correlation within the owning domain; confirm in review",
    "evidence": [
-    "rust/gomad/measurement::guest::tests::weighted_thread_tables_preserve_rows_empty_and_guest_weight"
+    "rust/profile_corpus/linked_profile_cli_corpus"
    ]
   },
   "tools/gomad/internal/backends/wasm/internal/measure/cluster_owner_test.go#TestClusterOwnerEvidenceRejectsNonChoiceDivergence": {
@@ -1605,9 +1599,8 @@
    ]
   },
   "tools/gomad/internal/backends/wasm/internal/measure/cluster_owner_test.go#TestClusterOwnerSplitReportsWaitingApartFromHostWork": {
-   "basis": "weak name correlation within the owning domain; confirm in review",
    "evidence": [
-    "rust/gomad/measurement::stress_driver::tests::actual_retained_bounds_and_cluster_topology_are_checked_apart_from_installation"
+    "rust/gomad/measurement::cluster_driver::profile_pair::tests::original_owner_work_and_wait_remain_distinct_and_checked"
    ]
   },
   "tools/gomad/internal/backends/wasm/internal/measure/extraction_regression_test.go#TestTerminalExitFailureRetainsObservationStderrAndAggregate": {
@@ -1666,9 +1659,8 @@
    "retired": "Checks that deleted Go diagnostic driver source files exist for their env-gated self-hashing; no Rust driver hashes Go sources."
   },
   "tools/gomad/internal/backends/wasm/internal/measure/regression_more_test.go#TestDiagnosticGuestAttributionRejectsMalformedTables": {
-   "basis": "weak name correlation within the owning domain; confirm in review",
    "evidence": [
-    "rust/gomad/measurement::guest::tests::weighted_thread_tables_preserve_rows_empty_and_guest_weight"
+    "rust/gomad/measurement::guest::tests::original_malformed_weight_and_table_mutations_refuse"
    ]
   },
   "tools/gomad/internal/backends/wasm/internal/measure/regression_more_test.go#TestDiagnosticGuestFrameBuckets": {
@@ -1732,9 +1724,10 @@
    ]
   },
   "tools/gomad/internal/backends/wasm/internal/measure/regression_more_test.go#TestDiagnosticVariantEvidenceSeparatesIdentities": {
-   "basis": "weak name correlation within the owning domain; confirm in review",
    "evidence": [
-    "rust/gomad/measurement::evidence::tests::gc_variant_preserves_native_zero_bootstrap_string_declarations"
+    "rust/gomad/measurement::evidence::tests::explicit_variants_exclude_observational_fuel_and_memory_but_exact_retains_them",
+    "rust/gomad/measurement::evidence::tests::explicit_variants_require_declared_actual_roles_features_and_configuration",
+    "rust/gomad/measurement::evidence::tests::all_native_terminal_fields_and_streams_remain_comparable_except_metrics"
    ]
   },
   "tools/gomad/internal/backends/wasm/internal/measure/regression_more_test.go#TestDiagnosticVariantRecommendationRequiresReliableGain": {
@@ -2043,15 +2036,14 @@
    "retired": "Go source lint over deleted Go measure sources (rerun record paths); no Rust source is linted by it."
   },
   "tools/gomad/internal/backends/wasm/internal/measure/retention_test.go#TestHarnessRetentionRetainedConsumerPinsInputsUntilCollected": {
-   "basis": "weak name correlation within the owning domain; confirm in review",
    "evidence": [
-    "rust/gomad/measurement::retention::tests::success_publishes_and_superseded_success_is_collected"
+    "rust/gomad/measurement::retention::tests::pins_hold_input_identity_and_release_dependencies_transitively"
    ]
   },
   "tools/gomad/internal/backends/wasm/internal/measure/retention_test.go#TestHarnessRetentionTransitiveInputsAndUnrelatedRuns": {
-   "basis": "weak name correlation within the owning domain; confirm in review",
    "evidence": [
-    "rust/gomad/measurement::retention::tests::overlapping_active_and_explicit_keep_runs_survive_collection"
+    "rust/gomad/measurement::retention::tests::pins_hold_input_identity_and_release_dependencies_transitively",
+    "rust/gomad/measurement::retention::tests::abandoned_stages_trash_and_atomic_write_stages_are_recovered"
    ]
   },
   "tools/gomad/internal/backends/wasm/internal/measure/run_test.go#TestCollectionRetainsReportsAndCleanupFailures": {
@@ -2162,9 +2154,8 @@
    ]
   },
   "tools/gomad/internal/backends/wasm/internal/measure/stress_test.go#TestStressShortOrUncomparedCellNeverPasses": {
-   "basis": "weak name correlation within the owning domain; confirm in review",
    "evidence": [
-    "rust/gomad/stress::reach_tests::retained_metadata_diagnostic_is_authenticated_and_never_replaces_strict_artifact_status"
+    "rust/gomad/stress::tests::matrix_preserves_workloads_seeds_and_axes"
    ]
   },
   "tools/gomad/internal/backends/wasm/internal/measure/stress_test.go#TestStressSummariesExcludeHelperEventOrder": {
@@ -2211,9 +2202,8 @@
    ]
   },
   "tools/gomad/internal/backends/wasm/internal/sweep/classify_test.go#TestClassesAreTheSpecClassesPlusNotRun": {
-   "basis": "weak name correlation within the owning domain; confirm in review",
    "evidence": [
-    "rust/gomad/sweep::tests::sweep_errors_and_verification_findings_keep_exit_classes"
+    "rust/gomad/sweep::classify::tests::class_order_is_the_nine_observation_dispositions"
    ]
   },
   "tools/gomad/internal/backends/wasm/internal/sweep/classify_test.go#TestClassifyFixtureObservations": {
@@ -2251,7 +2241,8 @@
   },
   "tools/gomad/internal/backends/wasm/internal/sweep/journal_resume_test.go#TestSweepResumesAfterInterruptedJournalAppend": {
    "evidence": [
-    "rust/gomad/sweep::run::lifecycle_tests::virtual_budget_stops_after_warmup_and_resumes_not_run_rows"
+    "rust/gomad/sweep::record::tests::resumes_only_matching_headers_and_repairs_torn_tail",
+    "rust/gomad/sweep::record::tests::preserves_complete_tail_without_newline_and_rejects_invalid_append"
    ]
   },
   "tools/gomad/internal/backends/wasm/internal/sweep/method_verdict_test.go#TestClassifyMethodRequiresSelectedMethodVerdict": {
@@ -2325,9 +2316,9 @@
    ]
   },
   "tools/gomad/internal/backends/wasm/internal/sweep/record_test.go#TestJournalIgnoresOnlyATornFinalLine": {
-   "basis": "weak name correlation within the owning domain; confirm in review",
    "evidence": [
-    "rust/gomad/sweep::record::tests::resumes_only_matching_headers_and_repairs_torn_tail"
+    "rust/gomad/sweep::record::tests::resumes_only_matching_headers_and_repairs_torn_tail",
+    "rust/gomad/sweep::record::tests::rejects_old_schema_and_malformed_interior_without_mutation"
    ]
   },
   "tools/gomad/internal/backends/wasm/internal/sweep/record_test.go#TestVerifyFileRejectsUnknownFields": {
@@ -2379,9 +2370,8 @@
    ]
   },
   "tools/gomad/internal/backends/wasm/internal/sweep/sweep_test.go#TestInterruptedSweepRecordsNoRowForTheRunningTest": {
-   "basis": "weak name correlation within the owning domain; confirm in review",
    "evidence": [
-    "rust/gomad/sweep::tests::verify_mode_has_no_runner_and_missing_sidecar_is_failure"
+    "rust/gomad/sweep::run::lifecycle_tests::cancellation_during_execution_leaves_no_verdict_and_resume_runs_only_remaining_unit"
    ]
   },
   "tools/gomad/internal/backends/wasm/internal/sweep/sweep_test.go#TestMaxTestsCapsEachPackageInSortedOrder": {
@@ -2395,15 +2385,18 @@
    ]
   },
   "tools/gomad/internal/backends/wasm/internal/sweep/sweep_test.go#TestParseTestListDropsSummary": {
-   "basis": "weak name correlation within the owning domain; confirm in review",
    "evidence": [
-    "rust/gomad/sweep::classify::tests::parse_events_accepts_only_current_native_reports"
+    "rust/gomad/sweep::enumerate::tests::test_list_filters_summaries_without_losing_unicode_identifiers"
    ]
   },
   "tools/gomad/internal/backends/wasm/internal/sweep/sweep_test.go#TestSweepClassifiesRetainsResumesAndVerifies": {
-   "basis": "weak name correlation within the owning domain; confirm in review",
    "evidence": [
-    "rust/gomad/sweep::run::lifecycle_tests::virtual_budget_stops_after_warmup_and_resumes_not_run_rows"
+    "rust/gomad/sweep::run::lifecycle_tests::native_success_failure_retention_cache_and_resume_use_the_real_lifecycle",
+    "rust/gomad/sweep::run::lifecycle_tests::infrastructure_retries_once_and_guest_failure_does_not_retry",
+    "rust/gomad/sweep::run::lifecycle_tests::throwaway_installation_uses_valid_cooperative_config_and_explicit_public_flags",
+    "rust/gomad/sweep::run::lifecycle_tests::changed_source_and_candidate_refuse_before_additional_test_execution",
+    "rust/gomad/sweep::run::lifecycle_tests::guest_excluded_and_dirty_sources_do_not_execute_tests",
+    "rust/gomad/sweep::run::lifecycle_tests::warmup_admission_observes_the_exact_preparation_threshold"
    ]
   },
   "tools/gomad/internal/backends/wasm/internal/sweep/sweep_test.go#TestSweepRecordsBudgetCutoffAsNotRunAndResumesIt": {
@@ -3147,9 +3140,8 @@
    "retired": "Go host refusal of unknown helper wire frames; the in-process helper exchanges typed values, not frames."
   },
   "tools/gomad/internal/backends/wasm/wasi/determinism_inventory_test.go#TestDeterminismInventoryCooperativeImportsRefuseUnlisted": {
-   "basis": "weak name correlation within the owning domain; confirm in review",
    "evidence": [
-    "rust/inventory/host_inventory::unlisted_appended_host_retirement_is_not_a_source_migration"
+    "rust/gomad/replay::preflight::profile_import_tests::cooperative_profile_preserves_the_original_complete_import_boundary"
    ]
   },
   "tools/gomad/internal/backends/wasm/wasi/determinism_inventory_test.go#TestDeterminismInventoryCoversGoImportTables": {
@@ -3626,9 +3618,8 @@
    "reason": "Named subtest variant runs inside the root receiver mapped for its owner."
   },
   "tools/gomad/internal/backends/wasm/wasi/integration_test.go#TestCooperativePreflightRejectsIncompleteRuntimeABI": {
-   "basis": "weak name correlation within the owning domain; confirm in review",
    "evidence": [
-    "rust/gomad/stress::reach_tests::native_inspection_diagnostics_refuse_incomplete_or_excessive_comparison_work"
+    "rust/gomad/replay::preflight::profile_import_tests::cooperative_profile_preserves_the_original_complete_import_boundary"
    ]
   },
   "tools/gomad/internal/backends/wasm/wasi/integration_test.go#TestCooperativeRuntimeProbes": {
@@ -3733,9 +3724,8 @@
    ]
   },
   "tools/gomad/internal/backends/wasm/wasi/integration_test.go#TestNamespaceOwnerSQLiteParity": {
-   "basis": "weak name correlation within the owning domain; confirm in review",
    "evidence": [
-    "rust/gomad_wasmhost/linked_cluster::live_controller_tests::lifecycle_predicate_tests::typed_owner_admission_refuses_missing_model_namespace_and_unattributable_handles"
+    "stage/workload-sqlite-cooperative-success/TestActualSQLiteDurableQualification"
    ]
   },
   "tools/gomad/internal/backends/wasm/wasi/integration_test.go#TestNetworkStreamsGuestRecordsAndReplays": {
@@ -3744,9 +3734,8 @@
    ]
   },
   "tools/gomad/internal/backends/wasm/wasi/integration_test.go#TestPrototypeNetworkResetWitnessRequiresAffectedConnection": {
-   "basis": "weak name correlation within the owning domain; confirm in review",
    "evidence": [
-    "rust/gomad/measurement::namespace_driver::tests::native_digest_projection_requires_exact_canonical_payload_witness"
+    "rust/gomad/qualify::workloads::tests::named_reset_requires_actual_established_connection_and_inflight_retry"
    ]
   },
   "tools/gomad/internal/backends/wasm/wasi/integration_test.go#TestPrototypeNetworkResetWitnessRequiresAffectedConnection@11982/no connections": {
@@ -3821,9 +3810,8 @@
    ]
   },
   "tools/gomad/internal/backends/wasm/wasi/integration_test.go#TestStorageHelperRefusesInvalidRecoveryBeforeStart": {
-   "basis": "weak name correlation within the owning domain; confirm in review",
    "evidence": [
-    "rust/gomad/campaign::scenario::fidelity_tests::single_linked_helper_refuses_hard_isolation"
+    "rust/gomad_wasmhost/volume::image::tests::go_generated_image_admission_corpus"
    ]
   },
   "tools/gomad/internal/backends/wasm/wasi/integration_test.go#TestStorageOwnerParity": {
@@ -4074,10 +4062,17 @@
    ]
   },
   "tools/gomad/internal/backends/wasm/wasi/process_test.go#TestDiagnosticTransportRejectsReleaseHelperForDiagnosticIdentity": {
-   "retired": "Go-to-helper subprocess transport and frame pumping were deleted with the Go host; the Rust host links the helper in-process."
+   "evidence": [
+    "rust/diagnostic_roles/release_binary_cannot_authorize_a_diagnostic_or_stress_identity",
+    "rust/diagnostic_roles/single_native_role_matrix_refuses_before_guest_output_and_joins_every_execution"
+   ]
   },
   "tools/gomad/internal/backends/wasm/wasi/process_test.go#TestDiagnosticTransportRequiresPrivateRevisionOptIn": {
-   "retired": "Go-to-helper subprocess transport and frame pumping were deleted with the Go host; the Rust host links the helper in-process."
+   "evidence": [
+    "rust/diagnostic_roles/typed_native_role_admission_requires_the_exact_compiled_identity",
+    "rust/diagnostic_roles/private_guest_profile_configuration_refuses_original_invalid_bounds_before_execution",
+    "rust/gomad_wasmhost/guest_profile::preservation::profile_configuration_rejects_original_malformed_bounds_before_sampling"
+   ]
   },
   "tools/gomad/internal/backends/wasm/wasi/process_test.go#TestGoOwnedInspectionRefusedBeforeExecution": {
    "retired": "Go-to-helper subprocess transport and frame pumping were deleted with the Go host; the Rust host links the helper in-process."
@@ -4086,7 +4081,9 @@
    "retired": "Go-to-helper subprocess transport and frame pumping were deleted with the Go host; the Rust host links the helper in-process."
   },
   "tools/gomad/internal/backends/wasm/wasi/process_test.go#TestGuestTransportClassifiesCapacityMalformedAndUnsupported": {
-   "retired": "Go-to-helper subprocess transport and frame pumping were deleted with the Go host; the Rust host links the helper in-process."
+   "evidence": [
+    "rust/core_runtime_preservation/guest_transport_classifications_return_after_native_execution_is_completed_and_joined"
+   ]
   },
   "tools/gomad/internal/backends/wasm/wasi/process_test.go#TestHelperInputBrokenPeerIsNotModeledCancellation": {
    "retired": "Go-to-helper subprocess transport and frame pumping were deleted with the Go host; the Rust host links the helper in-process."
@@ -4144,7 +4141,9 @@
    ]
   },
   "tools/gomad/internal/backends/wasm/wasi/process_test.go#TestTransportClassifiesHelperDeathWatchdogCancellationAndMalformedFrames": {
-   "retired": "Go-to-helper subprocess transport and frame pumping were deleted with the Go host; the Rust host links the helper in-process."
+   "evidence": [
+    "rust/gomad_wasmhost/linked_cluster::live_controller_tests::lifecycle_predicate_tests::native_host_termination_preserves_watchdog_and_parent_cancellation_status"
+   ]
   },
   "tools/gomad/internal/backends/wasm/wasi/process_test.go#TestTransportDirectInputHandlesLargeBootstrapBeforeFirstRead": {
    "retired": "Go-to-helper subprocess transport and frame pumping were deleted with the Go host; the Rust host links the helper in-process."
@@ -4156,10 +4155,14 @@
    "retired": "Go-to-helper subprocess transport and frame pumping were deleted with the Go host; the Rust host links the helper in-process."
   },
   "tools/gomad/internal/backends/wasm/wasi/process_test.go#TestTransportPreservesCancellationMetadataWhileReplyIsBlocked": {
-   "retired": "Go-to-helper subprocess transport and frame pumping were deleted with the Go host; the Rust host links the helper in-process."
+   "evidence": [
+    "rust/gomad_wasmhost/linked_cluster::live_controller_tests::lifecycle_predicate_tests::native_host_termination_preserves_watchdog_and_parent_cancellation_status"
+   ]
   },
   "tools/gomad/internal/backends/wasm/wasi/process_test.go#TestTransportRejectsChangedFilesOnCacheMiss": {
-   "retired": "Go-to-helper subprocess transport and frame pumping were deleted with the Go host; the Rust host links the helper in-process."
+   "evidence": [
+    "rust/engine/cache_miss_verifies_module_before_compilation_or_publication"
+   ]
   },
   "tools/gomad/internal/backends/wasm/wasi/process_test.go#TestTransportRejectsInvalidTerminalClaims": {
    "retired": "Go-to-helper subprocess transport and frame pumping were deleted with the Go host; the Rust host links the helper in-process."
@@ -4176,7 +4179,10 @@
    "retired": "Go-to-helper subprocess transport and frame pumping were deleted with the Go host; the Rust host links the helper in-process."
   },
   "tools/gomad/internal/backends/wasm/wasi/process_test.go#TestTransportUsesPreparedModuleIdentityOnCacheHit": {
-   "retired": "Go-to-helper subprocess transport and frame pumping were deleted with the Go host; the Rust host links the helper in-process."
+   "evidence": [
+    "rust/engine/cache_hit_ignores_missing_or_replaced_module_bytes",
+    "rust/engine/cache_miss_verifies_module_before_compilation_or_publication"
+   ]
   },
   "tools/gomad/internal/backends/wasm/wasi/protocol_test.go#TestPublicCallRevalidatesChangedInput": {
    "evidence": [
@@ -4298,15 +4304,14 @@
    ]
   },
   "tools/gomad/internal/backends/wasm/wasi/storage_evidence_test.go#TestStorageEvidenceRefusedRunOwnerParity": {
-   "basis": "weak name correlation within the owning domain; confirm in review",
    "evidence": [
-    "rust/gomad_wasmhost/linked_cluster::live_controller_tests::lifecycle_predicate_tests::retired_framed_guest_callbacks_are_refused_by_native_owner_sink"
+    "rust/gomad_wasmhost/storage_transport::crash_failure_corpus::rust_storage_crash_failure_corpus",
+    "rust/gomad_wasmhost/conformance::tests::volume_conformance_corpus"
    ]
   },
   "tools/gomad/internal/backends/wasm/wasi/storage_evidence_test.go#TestStorageEvidenceRunRefusesDamagedHelperStreams": {
-   "basis": "weak name correlation within the owning domain; confirm in review",
    "evidence": [
-    "rust/inventory/architecture_inventory::modeled_state_io_admits_named_types_and_refuses_host_streams"
+    "rust/gomad/qualify::workloads::tests::storage_state_authenticates_sections_and_rejects_trailing_or_changed_bytes"
    ]
   },
   "tools/gomad/internal/backends/wasm/wasi/storage_evidence_test.go#TestStorageEvidenceStateBudgetSaturatesAndCountsVolumes": {
@@ -4388,9 +4393,10 @@
    ]
   },
   "tools/gomad/internal/backends/wasm/wasi/stress_test.go#TestStressJitterHelperRefusedForQualification": {
-   "basis": "weak name correlation within the owning domain; confirm in review",
    "evidence": [
-    "rust/gomad_wasmhost/cluster::handoff::broker::tests::failed_cluster_drains_source_then_sorted_peers_under_thread_jitter"
+    "rust/diagnostic_roles/release_binary_cannot_authorize_a_diagnostic_or_stress_identity",
+    "rust/diagnostic_roles/single_native_role_matrix_refuses_before_guest_output_and_joins_every_execution",
+    "rust/diagnostic_roles/cluster_native_role_matrix_refuses_before_any_store_and_joins_admitted_stores"
    ]
   },
   "tools/gomad/internal/backends/wasm/wasi/temporal_test.go#TestTemporalConfigPoliciesPreserveCompleteBytes": {
