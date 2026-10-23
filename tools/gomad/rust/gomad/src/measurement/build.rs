@@ -399,6 +399,10 @@ pub(super) fn observe_command(
     let mut reaped_monotonic_nanos = None;
     let mut termination = "infrastructure_failure".to_string();
     let attempted = (|| -> Result<(), String> {
+        if super::cancellation::cancelled() {
+            termination = "cancelled".into();
+            return super::cancellation::check();
+        }
         let open = |path: &Path| {
             OpenOptions::new()
                 .write(true)
@@ -426,6 +430,10 @@ pub(super) fn observe_command(
             .checked_add(timeout)
             .ok_or("native process deadline exceeds clock range")?;
         loop {
+            if super::cancellation::cancelled() {
+                termination = "cancelled".into();
+                return super::cancellation::check();
+            }
             if let Some(exit) = child
                 .as_mut()
                 .ok_or("native process owner absent")?
