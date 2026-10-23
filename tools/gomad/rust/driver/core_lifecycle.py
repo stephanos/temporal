@@ -6,6 +6,7 @@ import hashlib
 from driver import require
 from native_roles import decode, pinned
 from core_predicates import raw_bytes
+from native_observations import canonical
 
 SCHEMA = 'gomad.native-lifecycle-predicate/v1'
 TEST = 'tools/gomad/rust/wasmhost/src/linked_cluster/lifecycle_predicate_tests.rs'
@@ -19,7 +20,10 @@ SOURCES = (TEST, 'tools/gomad/rust/wasmhost/src/linked_cluster.rs',
            'tools/gomad/rust/wasmhost/src/linked.rs',
            'tools/gomad/rust/wasmhost/src/linked_storage.rs',
            'tools/gomad/rust/wasmhost/src/cluster/handoff/broker.rs',
-           'tools/gomad/rust/wasmhost/src/linked_cluster/live_controller_tests.rs')
+           'tools/gomad/rust/wasmhost/src/linked_cluster/live_controller_tests.rs',
+           'tools/gomad/rust/wasmhost/src/engine.rs',
+           'tools/gomad/rust/wasmhost/src/model/reply.rs',
+           'tools/gomad/rust/wasmhost/src/namespace/call.rs')
 
 OPERATOR = 'TestOperatorStopsActionsAfterFailedWait'
 LAZY = 'TestProviderClusterStartsOnlyRequestedIncarnations'
@@ -43,7 +47,7 @@ VARIANTS = {
     OPERATOR: ('trap', 'exit'), LAZY: ('native-lazy-store',),
     HOST: ('cancelled-before-start', 'watchdog', 'cancelled', 'parent deadline'),
     CLEANUP: ('shutdown', 'scenario-error', 'context-cancel', 'action-limit', 'context-cancel-after-actual-output'),
-    MODEL: ('missing-model',), ATTRIBUTION: ('missing-namespace', 'unknown-step', 'zero-incarnation', 'duplicate-handle', 'model-seed'),
+    MODEL: ('missing-model', 'memory-capacity-before-bootstrap', 'memory-capacity-after-bootstrap'), ATTRIBUTION: ('missing-namespace', 'unknown-step', 'zero-incarnation', 'duplicate-handle', 'model-seed'),
     CALLBACK: ('call', 'sync'), DRAIN: ('trap', 'exit', 'held-peer-release'), DEADLINE: ('native-sealed-deadline',),
     RESTART: ('missing-storage-image', 'stale-incarnation', 'live-incarnation'),
     RETRY: ('recovery-image-refusal-and-retry',), INTERNAL: ('internal deadline',),
@@ -57,6 +61,16 @@ CATALOG = frozenset((root, variant) for root, variants in VARIANTS.items() for v
 
 HELD_FAILED_MODULE = b'(module\n        (import "wasi_snapshot_preview1" "fd_write" (func $write (param i32 i32 i32 i32) (result i32)))\n        (import "wasi_snapshot_preview1" "clock_time_get" (func $clock (param i32 i64 i32) (result i32)))\n        (import "gomad_wasm_v1" "config" (func $config (param i32 i32) (result i32)))\n        (import "gomad_wasm_v1" "idle" (func $idle (param i32 i32) (result i32)))\n        (import "gomad_wasm_v1" "finish" (func $finish (param i32 i32) (result i32)))\n        (import "wasi_snapshot_preview1" "proc_exit" (func $exit (param i32)))\n        (memory (export "memory") 1)\n        (data (i32.const 128) "mark")\n        (func (export "_start")\n            i32.const 0 i32.const 128 i32.store\n            i32.const 4 i32.const 4 i32.store\n            i32.const 1 i32.const 0 i32.const 1 i32.const 16 call $write drop\n            unreachable))'
 HELD_PEER_MODULE = b'(module\n        (import "wasi_snapshot_preview1" "fd_write" (func $write (param i32 i32 i32 i32) (result i32)))\n        (import "wasi_snapshot_preview1" "clock_time_get" (func $clock (param i32 i64 i32) (result i32)))\n        (import "gomad_wasm_v1" "config" (func $config (param i32 i32) (result i32)))\n        (import "gomad_wasm_v1" "idle" (func $idle (param i32 i32) (result i32)))\n        (import "gomad_wasm_v1" "finish" (func $finish (param i32 i32) (result i32)))\n        (import "wasi_snapshot_preview1" "proc_exit" (func $exit (param i32)))\n        (memory (export "memory") 1)\n        (data (i32.const 128) "mark")\n        (func (export "_start")\n            i32.const 0 i32.const 128 i32.store\n            i32.const 4 i32.const 4 i32.store\n            i32.const 1 i32.const 0 i32.const 1 i32.const 16 call $write drop\n            i32.const 512 i32.const 16 call $config drop\n    i32.const 995 i32.const 1 i32.store8\n    i32.const 992 i32.const 16 call $finish drop))'
+
+MODEL_CAPACITY_MODULES = {
+    'memory-capacity-before-bootstrap': HELD_FAILED_MODULE.removesuffix(b'unreachable))') + b'i32.const 1 memory.grow drop))',
+    'memory-capacity-after-bootstrap': HELD_FAILED_MODULE.removesuffix(b'unreachable))') + b'i32.const 512 i32.const 16 call $config drop i32.const 1 memory.grow drop))',
+}
+MODEL_METADATA_FIELDS = frozenset(('now', 'advances', 'calls', 'records', 'trace_sha256', 'branching_records',
+    'tape_records', 'tape_sha256', 'next_expected', 'cursor', 'configured', 'finished', 'inspection_sealed',
+    'peak', 'elapsed', 'terminal_base64', 'transcript_bytes', 'transcript_sha256'))
+FD_WRITE_MARK_TRANSCRIPT = (b'GMWT\x01\0\0\0' + bytes((8, 0, 0, 0)) + (1).to_bytes(8, 'little')
+    + (16).to_bytes(4, 'little') + (1).to_bytes(4, 'little') + (4).to_bytes(4, 'little') + b'mark' + (4).to_bytes(4, 'little'))
 
 BOOT_NETWORK_ORIGINAL_VARIANTS = (
     'matching', 'network free', 'first byte mismatch', 'later byte mismatch',
@@ -222,10 +236,56 @@ def held_drain(observed):
             'held native peer or already failed guest did not reach actual terminal ownership')
 
 
+def capacity_model(variant, o):
+    fields(o, ('module_bytes', 'module_sha256', 'request', 'terminal', 'exit_code', 'message', 'fuel_remaining',
+        'offered_fuel', 'memory_bytes', 'peak_memory_bytes', 'output_bytes', 'local_model', 'choice_bytes',
+        'transcript_bytes', 'executed_steps', 'store_results', 'activity'))
+    module = raw_bytes(o['module_bytes'])
+    require(module == MODEL_CAPACITY_MODULES[variant] and o['module_sha256'] == hashlib.sha256(module).hexdigest(),
+            'capacity model case changed its actual interrupted WAT input')
+    request = o['request']; fields(request, ('limits', 'model_configuration', 'arguments', 'environment', 'replay_trace', 'namespace', 'storage'))
+    require(request['limits'] == dict(memory_bytes=65536, fuel=1000000, output_bytes=1024, evidence_bytes=1 << 20, wall_timeout_millis=5000)
+            and request['arguments'] == [] and request['environment'] == ['PWD=/workspace'] and request['replay_trace'] is None and request['storage'] is None,
+            'capacity model request budget or owned inputs changed')
+    expected_model = dict(entropy_key=[0]*32, working_directory_sha256=hashlib.sha256(b'/workspace').hexdigest(),
+        arguments=dict(bytes=0,count=0,chunks=0), environment=dict(bytes=0,count=0,chunks=0),
+        seed=7,mode=1,limit=1048576,diagnostics=False,replay=None,epoch_nanos=946684800000000000,
+        read_step_nanos=0,now=1,limits=dict(calls=1048576,transcript_bytes=1048576,pending_events=1024),
+        digest_only=False,split=False,inspection=None)
+    expected_namespace = dict(entries=[dict(path=list(b'/workspace'),directory=True,readonly=False,data=[])],
+        writable_directories=[list(b'/workspace')],preopens=[list(b'/workspace')],working_directory=list(b'/workspace'),stdin=[],
+        epoch_nanos=946684800000000000,limits=dict(files=100,descriptors=16,filesystem_bytes=4096,output_bytes=1024))
+    require(canonical(request['model_configuration']) == canonical(expected_model) and canonical(request['namespace']) == canonical(expected_namespace),
+            'capacity model request namespace/configuration ownership changed')
+    require(o['terminal'] == 'capacity' and o['exit_code'] is None and isinstance(o['message'], str)
+            and 'guest linear memory capacity' in o['message'], 'interrupted capacity changed terminal classification')
+    require(o['offered_fuel'] == 1000000 and o['memory_bytes'] == o['peak_memory_bytes'] == 65536
+            and o['output_bytes'] == 4 and 0 < integer(o['fuel_remaining']) <= o['offered_fuel'], 'actual interrupted store resources differ')
+    require(authored_steps(o['executed_steps'], [step('start', 'a'), step('wait', 'a')]), 'capacity model fabricated lifecycle actions')
+    actual = stores(o['store_results'], o['activity'], ['a/1'])
+    require(actual[0]['terminal'] == o['terminal'] and actual[0]['exit_code'] is None and actual[0]['message'] == o['message']
+            and actual[0]['stdout'] == list(b'mark'), 'interrupted model metadata lost its native terminal owner')
+    model = o['local_model']; fields(model, MODEL_METADATA_FIELDS)
+    configured = variant == 'memory-capacity-after-bootstrap'
+    require(model['configured'] is configured and model['finished'] is False and model['inspection_sealed'] is False,
+            'interrupted owned model lifetime is absent or marked complete')
+    require(integer(model['calls']) == 1 + int(configured), 'interrupted model lost completed import calls')
+    integer(model['now'])
+    for key in ('advances', 'records', 'branching_records', 'tape_records', 'cursor', 'peak', 'elapsed'):
+        require(integer(model[key]) == 0, 'interrupted model invented runtime choices or advances')
+    require(model['next_expected'] is None and model['tape_sha256'] == model['terminal_base64'] == '', 'interrupted model invented replay/finish state')
+    choice, transcript = raw_bytes(o['choice_bytes']), raw_bytes(o['transcript_bytes'])
+    require(choice == b'' and transcript == FD_WRITE_MARK_TRANSCRIPT, 'interrupted model lost the exact completed fd_write prefix')
+    require(integer(model['transcript_bytes']) == len(transcript) and model['transcript_sha256'] == hashlib.sha256(transcript).hexdigest()
+            and model['trace_sha256'] == hashlib.sha256(choice).hexdigest(), 'interrupted model commitments do not bind actual complete evidence bytes')
+
+
 def validate_case(root, variant, observed, inputs=None):
     require((root, variant) in CATALOG, 'unknown or cross-labeled native lifecycle case')
     o = observed
-    if root == DRAIN and variant == 'held-peer-release':
+    if root == MODEL and variant in MODEL_CAPACITY_MODULES:
+        capacity_model(variant, o)
+    elif root == DRAIN and variant == 'held-peer-release':
         held_drain(o)
     elif root in (OPERATOR, DRAIN):
         names = {'activity', 'exit_code', 'steps', 'terminal', 'store_results'}
@@ -415,7 +475,7 @@ def observations(config, stdout, network_frame_cases=None):
     complete = {OPERATOR, HOST, INTERNAL, CALLBACK, RESTART, RETRY, CLEANUP, DRAIN, ORACLE, STORAGE_ROOTS[0], STORAGE_ROOTS[1]}
     partial = {
         LAZY: ['Original hard-isolation refusal and explicit isolated reference admission require separate receiving evidence.'],
-        MODEL: ['Interrupted terminal model completeness requires the retained result/model receiving owner.'],
+        MODEL: ['The former untrusted capacity result frame without model fields belonged to the retired Go helper transport; no current public native result-frame decoder accepts that representation.'],
         ATTRIBUTION: ['Duplicate JSON keys and corrupt evidence base64 require the retained codec receiving owner.'],
         DEADLINE: ['Original maximum selection over instance 3m/7m and boot 11m/1m declarations is not present in the native sealed-deadline row.'],
         GRACE: ['Original finished/near-deadline/past-deadline/never-opened and failed-finish race table remains distinct from the actual five-second busy-store cleanup case.'],
@@ -447,6 +507,13 @@ def observations(config, stdout, network_frame_cases=None):
         remaining_original_predicates=['Parent-owned receiver must compare actual per-store counters and evidence payloads before and after summary projection.'])
     partial_roots = {root: dict(cases=[fact for fact in facts if root in fact['original_roots']],
         remaining_original_predicates=missing) for root, missing in partial.items()}
+    partial_roots[MODEL]['surviving_native_predicates'] = ['Missing model ownership refused before engine creation.',
+        'Actual memory-capacity terminals before/after runtime bootstrap retain complete typed model metadata and exact fd_write evidence commitments.']
+    partial_roots[LAZY]['retired_representation_facts'] = ['The alternate goBrokerReference isolation provider was removed; current linked execution has no isolated-reference switch.']
+    partial_roots[LAZY]['surviving_native_source'] = dict(source='tools/gomad/rust/gomad/src/campaign/scenario.rs',
+        selector='campaign::scenario::fidelity_tests::single_linked_helper_refuses_hard_isolation')
+    partial_roots[DEADLINE]['retired_representation_facts'] = ['Typed Request carries one explicit cluster wall_timeout; it has no named instance/boot timeout catalogue from which to select the old maximum.']
+    partial_roots[SQLITE]['retired_representation_facts'] = ['Workload::observe has no caller maximum_bytes parameter; current line/oracle limits are fixed at 1MiB.']
     partial_roots[BOOT_NETWORK].update(original_variant_catalog=list(BOOT_NETWORK_ORIGINAL_VARIANTS),
         covered_original_variants=['matching'], native_variant_catalog=list(VARIANTS[BOOT_NETWORK]),
         sources=source_facts)

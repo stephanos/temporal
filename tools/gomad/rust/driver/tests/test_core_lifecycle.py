@@ -182,6 +182,44 @@ class RestartOwnership(unittest.TestCase):
             with self.assertRaisesRegex(Refusal,'not frozen'):gate.observations(config,'')
 
 
+class InterruptedModel(unittest.TestCase):
+    def test_actual_capacity_prefix_cannot_lose_or_forge_model_evidence(self):
+        request=dict(limits=dict(memory_bytes=65536,fuel=1000000,output_bytes=1024,evidence_bytes=1<<20,wall_timeout_millis=5000),
+            arguments=[],environment=['PWD=/workspace'],replay_trace=None,storage=None,
+            namespace=dict(entries=[dict(path=list(b'/workspace'),directory=True,readonly=False,data=[])],
+                writable_directories=[list(b'/workspace')],preopens=[list(b'/workspace')],working_directory=list(b'/workspace'),
+                stdin=[],epoch_nanos=946684800000000000,limits=dict(files=100,descriptors=16,filesystem_bytes=4096,output_bytes=1024)),
+            model_configuration=dict(entropy_key=[0]*32,working_directory_sha256=gate.hashlib.sha256(b'/workspace').hexdigest(),
+                arguments=dict(bytes=0,count=0,chunks=0),environment=dict(bytes=0,count=0,chunks=0),seed=7,mode=1,
+                limit=1048576,diagnostics=False,replay=None,epoch_nanos=946684800000000000,read_step_nanos=0,now=1,
+                limits=dict(calls=1048576,transcript_bytes=1048576,pending_events=1024),digest_only=False,split=False,inspection=None))
+        for variant,module in gate.MODEL_CAPACITY_MODULES.items():
+            configured=variant=='memory-capacity-after-bootstrap'
+            model=dict(now=1,advances=0,calls=1+int(configured),records=0,trace_sha256=gate.hashlib.sha256(b'').hexdigest(),
+                branching_records=0,tape_records=0,tape_sha256='',next_expected=None,cursor=0,configured=configured,
+                finished=False,inspection_sealed=False,peak=0,elapsed=0,terminal_base64='',
+                transcript_bytes=len(gate.FD_WRITE_MARK_TRANSCRIPT),transcript_sha256=gate.hashlib.sha256(gate.FD_WRITE_MARK_TRANSCRIPT).hexdigest())
+            actual=store(terminal='capacity',code=None);actual['message']='guest linear memory capacity'
+            good=dict(module_bytes=list(module),module_sha256=gate.hashlib.sha256(module).hexdigest(),request=request,
+                terminal='capacity',exit_code=None,message='guest linear memory capacity',fuel_remaining=999900,
+                offered_fuel=1000000,memory_bytes=65536,peak_memory_bytes=65536,output_bytes=4,local_model=model,
+                choice_bytes=[],transcript_bytes=list(gate.FD_WRITE_MARK_TRANSCRIPT),
+                executed_steps=[gate.step('start','a'),gate.step('wait','a')],store_results=[actual],activity=activity(1))
+            gate.validate_case(gate.MODEL,variant,good)
+            for edit in ('missing','partial','finished','configuration','calls','transcript','prefix'):
+                bad=copy.deepcopy(good)
+                if edit=='missing':bad['local_model']=None
+                elif edit=='partial':del bad['local_model']['transcript_sha256']
+                elif edit=='finished':bad['local_model']['finished']=True
+                elif edit=='configuration':bad['local_model']['configured']=not configured
+                elif edit=='calls':bad['local_model']['calls']=True
+                elif edit=='transcript':bad['local_model']['transcript_bytes']-=1
+                else:
+                    bad['transcript_bytes'].pop();bad['local_model']['transcript_bytes']-=1
+                    bad['local_model']['transcript_sha256']=gate.hashlib.sha256(bytes(bad['transcript_bytes'])).hexdigest()
+                with self.subTest(variant=variant,edit=edit),self.assertRaises(Refusal):gate.validate_case(gate.MODEL,variant,bad)
+
+
 class ClosedCatalog(unittest.TestCase):
     def test_omitted_duplicate_crosslabel_and_unknown_rows_refuse(self):
         a=dict(error_kind='unsupported',message='linked cluster forbids transport callbacks',activity=dict(launched_stores=0,remote_callback_attempts=1))
