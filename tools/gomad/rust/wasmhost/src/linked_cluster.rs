@@ -683,6 +683,8 @@ fn run_instance(
                 .fail(failure.termination(), failure.message())
         })
         .and_then(|()| {
+            #[cfg(feature = "diagnostic-profile")]
+            let _span = crate::diagnostic::PhaseSpan::new(crate::diagnostic::Phase::Instantiate);
             let started = std::time::Instant::now();
             let instance = pre.instantiate(&mut store);
             metrics.instantiate_nanos = crate::metrics::elapsed(started);
@@ -690,6 +692,8 @@ fn run_instance(
         })
         .and_then(|instance| {
             let start = instance.get_typed_func::<(), ()>(&mut store, "_start")?;
+            #[cfg(feature = "diagnostic-profile")]
+            let _span = crate::diagnostic::PhaseSpan::new(crate::diagnostic::Phase::Execute);
             let started = std::time::Instant::now();
             let result = start.call(&mut store, ());
             metrics.execute_nanos = crate::metrics::elapsed(started);
@@ -948,6 +952,8 @@ fn execute_inner(
                     .stack_size(8 << 20)
                     .spawn(move || {
                         let _conditions = conditions.enter_shared(&session)?;
+                        #[cfg(feature = "diagnostic-profile")]
+                        let _profile = session.profile(slot, handle.incarnation)?;
                         if !broker.acquire(index) && !broker.terminal_failed() {
                             return Ok(Completed {
                                 result: IncarnationResult {
@@ -1235,7 +1241,9 @@ fn execute_inner(
     {
         outcome = failure;
     }
-    let world = if matches!(outcome.termination, "exit" | "trap" | "capacity") {
+    let world = if matches!(outcome.termination, "exit" | "trap" | "capacity")
+        || (cfg!(feature = "diagnostic-profile") && outcome.termination == "watchdog_timeout")
+    {
         broker
             .world_wire()
             .map_err(|failure| Error::msg(failure.message()))?

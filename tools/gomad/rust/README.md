@@ -100,3 +100,66 @@ attestation that the frozen launcher does not require. Its retained status-3
 receipts describe that newer-producer regression, not frozen-baseline parity.
 
 Fresh same-seed host perturbations use the explicitly admitted [stress producer](STRESS.md). Its full frozen-candidate matrix remains a separate acceptance gate.
+## Linked host attribution (fn-185.1)
+
+`gomad-profile` is a separate diagnostic producer, built with
+`--features helper-diagnostic-profile --bin gomad-profile`. The ordinary `gomad`
+entry point refuses commands in that feature build, including qualification.
+Empty-feature builds omit the producer and its capture/collector code.
+
+```sh
+CARGO_TARGET_DIR=/absolute/private/profile-target cargo +1.99.1 build \
+  --manifest-path tools/gomad/rust/Cargo.toml --locked --release \
+  -p gomad --features helper-diagnostic-profile --bin gomad-profile
+/absolute/private/profile-target/release/gomad-profile request.json /absolute/new-run
+/absolute/private/profile-target/release/gomad-profile check /absolute/new-run/profile.json
+```
+
+Input is explicit JSON with `kind: "standalone"`, `guest` and optional `network`,
+or `kind: "cluster"`
+with nodes, broker, network, incarnations, steps, boundaries, crash groups,
+`wall_millis` and `evidence_bytes`. Each guest supplies an absolute module path,
+its actual SHA-256, the ordinary execution limits, and optional model, namespace
+and storage inputs. A model supplies configuration, arguments, environment and
+optional replay bytes. Cluster incarnations bind a handle, guest and optional
+network model. The executable corpus in `gomad/tests/profile_corpus.rs` constructs
+both input forms; production selections use their actual guest, model and original
+bounds, without fixture controls or environment switches.
+
+The output directory must be new. It retains the request, terminal outcomes,
+actual prefix streams and hashes, raw bounded profile, host/linked implementation
+identities and validation result. Cluster runs additionally retain actual steps,
+World/network/inspection streams, virtual cutoff and per-incarnation outcomes and
+streams. Diagnostic cluster watchdogs also retain the actual bounded World history;
+the existing World and aggregate evidence limits still apply. A missing World
+cutoff or exhausted bound is a refusal, leaving prefix proof incomplete.
+Fuel, capacity, traps and watchdog terminal outcomes finalize the same
+capture; status 0 means the capture and collector completed, with guest termination
+recorded separately. A failed collector returns status 3 after retaining the profile
+and report.
+An abrupt process kill or deadline-backstop exit cannot finalize a capture and
+leaves incomplete evidence, which does not qualify a run.
+
+Each capture owns its sink. Cluster store threads explicitly join that capture;
+concurrent requests share no capture counters. `abi_ops` and `owners` retain exact
+operations, distributions and exclusive wall, and the Rust collector independently
+checks per-store and aggregate reconciliation, exact field inventories, CPU sample
+bounds and checked legacy ABI totals. Raw check input rejects duplicate JSON keys
+and reports at or above 48 KiB. Legacy residuals still subtract only the named ABI
+buckets; `abi_excluded` participates in op-total equality while remaining excluded
+from the original residual equation. Reconciliation uses separately timed guest
+gaps. A bounded thread-row overflow is
+retained as `threads_omitted` and fails validation. Report-byte overflow drops
+thread rows, then operation rows, retaining `report_rows_dropped`; any drop fails
+validation. `elapsed_wall_nanos` is one raw
+linked capture interval through admission, compilation, execution and teardown;
+request/module file reads and output publication are outside it. Cluster execute/owner spans are
+aggregate store thread-time and can overlap; they do not supply elapsed shares or
+an Amdahl bound. `instrumentation` and `handoff_wait` remain separate from reducible
+host work. The retained request and invocation supply the exact run inputs; use a
+fresh output directory for each repetition.
+
+These diagnostics do not establish release preservation. The single-guest activity
+release-witness proof and fn-185 R4 remain pending actual identity-bound receiving
+evidence from fn-232.13. CPU sampling, sweep measurements and the optimization
+verdict belong to fn-185.2/.3.

@@ -1,4 +1,10 @@
 fn main() {
+    if cfg!(feature = "helper-diagnostic-profile") {
+        eprintln!(
+            "gomad: diagnostic builds only support the gomad-profile producer; qualification is refused"
+        );
+        std::process::exit(2);
+    }
     #[cfg(not(feature = "determinism-fixture"))]
     if std::env::vars_os().any(|(name, _)| name.to_string_lossy().starts_with("GOMAD_FIXTURE_")) {
         eprintln!("gomad: unsupported fixture control");

@@ -69,6 +69,8 @@ impl Conditions {
             &Session {
                 conditions: self,
                 closed: Arc::new(AtomicBool::new(false)),
+                #[cfg(feature = "diagnostic-profile")]
+                profile: crate::diagnostic::LinkedSink::current(),
                 #[cfg(any(feature = "determinism-fixture", feature = "stress-jitter"))]
                 events: crate::event_order::LinkedSession::new(),
             },
@@ -104,10 +106,26 @@ impl Conditions {
 
 #[derive(Clone)]
 pub(crate) struct Session {
+    #[cfg(feature = "diagnostic-profile")]
+    profile: Option<crate::diagnostic::LinkedSink>,
     conditions: Conditions,
     closed: Arc<AtomicBool>,
     #[cfg(any(feature = "determinism-fixture", feature = "stress-jitter"))]
     events: crate::event_order::LinkedSession,
+}
+
+#[cfg(feature = "diagnostic-profile")]
+impl Session {
+    pub(crate) fn profile(
+        &self,
+        slot: u64,
+        incarnation: u64,
+    ) -> Result<Option<crate::diagnostic::LinkedThread>> {
+        self.profile
+            .as_ref()
+            .map(|sink| sink.enter(slot, incarnation).map_err(Error::msg))
+            .transpose()
+    }
 }
 
 pub(crate) struct Scope {

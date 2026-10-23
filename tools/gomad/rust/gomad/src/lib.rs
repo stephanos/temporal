@@ -1,3 +1,6 @@
+#[cfg(all(feature = "helper-diagnostic-profile", feature = "determinism-fixture"))]
+compile_error!("diagnostic profiling cannot be combined with host fixture controls");
+
 pub mod backstop;
 pub mod campaign;
 pub mod cli;
@@ -29,3 +32,6 @@ pub(crate) mod qualify;
 pub mod replay;
 pub mod slots;
 pub(crate) mod stress;
+
+#[cfg(feature = "helper-diagnostic-profile")]
+pub mod profile;

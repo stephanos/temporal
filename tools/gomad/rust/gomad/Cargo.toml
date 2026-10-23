@@ -3,9 +3,16 @@ name = "gomad"
 version = "0.1.0"
 edition = "2024"
 rust-version = "1.99"
+default-run = "gomad"
+
+[[bin]]
+name = "gomad-profile"
+path = "src/bin/profile.rs"
+required-features = ["helper-diagnostic-profile"]
 
 [features]
 determinism-fixture = []
+helper-diagnostic-profile = ["gomad-wasmhost/diagnostic-profile"]
 helper-stress-jitter = ["gomad-wasmhost/stress-jitter"]
 helper-determinism-fixture = ["gomad-wasmhost/determinism-fixture"]
 

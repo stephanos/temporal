@@ -492,12 +492,20 @@ fn start_instance(
     metrics: &mut Metrics,
 ) -> wasmtime::Result<()> {
     let phase = std::time::Instant::now();
-    let instance = linker.instantiate(&mut *store, module);
+    let instance = {
+        #[cfg(feature = "diagnostic-profile")]
+        let _span = crate::diagnostic::PhaseSpan::new(crate::diagnostic::Phase::Instantiate);
+        linker.instantiate(&mut *store, module)
+    };
     metrics.instantiate_nanos = crate::metrics::elapsed(phase);
     let instance = instance?;
     let start = instance.get_typed_func::<(), ()>(&mut *store, "_start")?;
     let phase = std::time::Instant::now();
-    let executed = start.call(store, ());
+    let executed = {
+        #[cfg(feature = "diagnostic-profile")]
+        let _span = crate::diagnostic::PhaseSpan::new(crate::diagnostic::Phase::Execute);
+        start.call(store, ())
+    };
     metrics.execute_nanos = crate::metrics::elapsed(phase);
     executed
 }
