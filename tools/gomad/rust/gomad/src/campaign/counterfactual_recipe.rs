@@ -111,6 +111,11 @@ fn options(root: &Path, source: &Path, name: &str) -> ExploreOptions {
 fn original_recipe_uses_parser_and_preserves_raw_options_beside_effective_overrides() {
     let root = crate::campaign::prepare::process::Temporary::new(&std::env::temp_dir()).unwrap();
     bytes(
+        &root.0.join("go.mod"),
+        b"module example.org/gomad-counterfactual-recipe\n\ngo 1.26\n",
+    );
+    bytes(&root.0.join("main.go"), b"package main\n\nfunc main() {}\n");
+    bytes(
         &root.0.join("scenario.json"),
         include_bytes!("../../../../testdata/parity/executed-divergence-original-scenario.json"),
     );
