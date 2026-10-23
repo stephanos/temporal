@@ -1,0 +1,18 @@
+{
+  "task": "fn-211-apalache-backend-for-umpire-in-rust.2",
+  "closure_commit": "071c5631cc100d0974f66235090fa5846e1805ee",
+  "verified_status": "done",
+  "review_verdict": "SHIP",
+  "gate_receipt_honored": true,
+  "gate_receipt": "64d47616",
+  "source": "88803cad1c09ecb6ca831bf8e18aa2ae604ead22",
+  "source_hashes_verified": 38,
+  "archived_raw_files_verified": 178,
+  "raw_gate_log_exact": true,
+  "gate_seconds": 903.818,
+  "inner_seconds": 7.229,
+  "all_17_stages_verified": true,
+  "subsequent_commits_flow_only": true,
+  "actual_native_macos_execution": "unverified",
+  "live_proof": "task1 reuse; unchanged 2181-entry closure previously verified"
+}

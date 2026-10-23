@@ -54,6 +54,8 @@ The content moved from fn-227 on 2026-10-21 with its owner-approved contracts un
 
 ## Decision Context
 
+2026-10-23, owner: "let's enable the deferred ones and add them to the end". Reactivate all five tasks after fn-211, fn-228 and the remaining fn-238 tasks. Preserve the existing timeout, cancellation, refinement and live-evidence requirements; queue order does not add dependency edges. Reanchor task paths and support contracts against the integrated Runner and interpreted-checker changes before admission.
+
 2026-10-21, owner: move the activity timeout semantics out of fn-227 into this spec. fn-227 keeps R3 in full, including source `impl Phased`/`reject!` admission (fn-227.11), because "we need TLC on the real, activity Model still". fn-227 also keeps retries with the refinement checkpoint (fn-227.3), request transport (fn-227.12), transactional live admission with the SDK retry proof (fn-227.5) and its own write-up (fn-227.6). This spec depends on fn-227.
 
 Approved amendments carried over unchanged. fn-227's 2026-10-21 owner approval ("yes Approve all three") approved three named amendments; two of them bind this spec:

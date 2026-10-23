@@ -55,7 +55,7 @@ with retries; unsupported source is explicitly refused.
 fn-227 is complete locally: all 13 tasks and the parent completion review passed. Declared
 Worlds, finite inputs, activity retries, retained-lifecycle refinement and actual SDK retry
 proof are delivered. Final required gate passed in 582.209s against its 60s soft target;
-inner loop 6.112s met 10s. Timeout and cooperative-cancellation work remains deferred in fn-237.
+inner loop 6.112s met 10s. Timeout and cooperative-cancellation work is scheduled in fn-237 after fn-238.
 
 Umpire in Rust lives in `temporal/model`, a Cargo workspace pinned through `mise.toml`
 (`rust = "1.99.1"`), with crates under `model/umpire/`: `dsl` (with `dsl/macros`), `checker`,
@@ -71,60 +71,9 @@ is Rust. The guest now directly exports `umpire_buffer_alloc`, `umpire_buffer_re
 
 | Phase | Specs and tasks | Scope |
 | --- | --- | --- |
-| After the Rust verdict | fn-217 → fn-230 → fn-231 → fn-227 → fn-211 → fn-228 | Owner priority order (fn-231 after fn-217 and fn-229, before fn-228.2 if possible; fn-229 is complete; fn-230 has no dependency and must land before fn-228.4; fn-227 placed before fn-211 on 2026-10-20 so Apalache arrives to a parameterized Model; fn-228 depends on fn-227 only, its place relative to fn-211 is the owner's). fn-233 (Kettle service, filed 2026-10-21) depends on fn-217 alone: on 2026-10-22 the owner dropped its fn-227 dependency, since its task .1 needs only fn-227.12's request evidence, which is complete. fn-233 is complete. Owner-approved successor order remains fn-211, then fn-228, after their fn-227 prerequisites. fn-210, fn-212, fn-213, fn-214, fn-215, fn-216, fn-218, fn-221, fn-223, fn-224, fn-225, fn-226 and fn-229 are complete locally with their scoped reviews and gates passed; fn-225 and fn-226's single-task reviews cover their full specs. fn-216's broad umbrella retains seven documented pre-existing failures. The recommendation is Rust under stock WASM/Go parity alone. Preserve each spec's prerequisites; priority does not add dependency edges or mark deferred work ready. fn-212 supplies lifting and TLC for its admitted source subset; fn-211 adds Apalache over its emitter. The former "Case slice" is filed as fn-228 (Runner and Run): the Model as umpire, one Model per Run, Propose on the protocol, one Go host loop, Driver and Shim, observations plus judgment and the never-overwrite publish store. Targets are at most 5,000 generic-runtime and 11,000 total non-test Testpilot Go lines. Standalone extraction remains a plan in `MIGRATE.md`. |
+| After the Rust verdict | fn-217 → fn-230 → fn-231 → fn-227 → fn-211 → fn-228 → fn-238 → fn-237 | Owner priority order (fn-231 after fn-217 and fn-229, before fn-228.2 if possible; fn-229 is complete; fn-230 has no dependency and must land before fn-228.4; fn-227 placed before fn-211 on 2026-10-20 so Apalache arrives to a parameterized Model; fn-228 depends on fn-227 only, its place relative to fn-211 is the owner's). fn-233 (Kettle service, filed 2026-10-21) depends on fn-217 alone: on 2026-10-22 the owner dropped its fn-227 dependency, since its task .1 needs only fn-227.12's request evidence, which is complete. fn-233 is complete. Owner-approved remaining order is fn-211 → fn-228 → fn-238 → fn-237. On 2026-10-23 the owner reactivated fn-238.5/.6 and all five fn-237 tasks at the end of that queue; their existing acceptance and measurement gates remain in force. fn-210, fn-212, fn-213, fn-214, fn-215, fn-216, fn-218, fn-221, fn-223, fn-224, fn-225, fn-226 and fn-229 are complete locally with their scoped reviews and gates passed; fn-225 and fn-226's single-task reviews cover their full specs. fn-216's broad umbrella retains seven documented pre-existing failures. The recommendation is Rust under stock WASM/Go parity alone. Preserve each spec's prerequisites; priority does not add dependency edges or mark deferred work ready. fn-212 supplies lifting and TLC for its admitted source subset; fn-211 adds Apalache over its emitter. The former "Case slice" is filed as fn-228 (Runner and Run): the Model as umpire, one Model per Run, Propose on the protocol, one Go host loop, Driver and Shim, observations plus judgment and the never-overwrite publish store. Targets are at most 5,000 generic-runtime and 11,000 total non-test Testpilot Go lines. Standalone extraction remains a plan in `MIGRATE.md`. |
 
 ## Specs
-
-### fn-238: Shared front end: one Model reading for the native checker and the lifter (model)
-
-Filed on 2026-10-21 at the owner's direction: both checkers share all code except the back end. The
-native checker executes the Model and the lifter emits TLA+ (and later Apalache); the owner accepts
-the risk of a shared misreading. Typed counterexample replay stays as the cross-check. Runs after
-fn-227.14 and .8, before fn-227.11, so later constructs are built once.
-The design ([shared-front-end.md](model/design/shared-front-end.md)) measured about 1,000 duplicated
-lines per side and recommends one shared admission crate first (Option A, .2-.4), then the
-interpreted checker behind a measured gate (Option B, .5-.6); the guest and replay stay compiled.
-.2 is complete locally: `umpire-front` owns admission, goldens and IR unchanged; timing was
-measured under concurrent load (119.6s); idle re-measurements since are 50-54s.
-.8 is complete locally: guest identities hash only each crate's lockfile closure, so unrelated
-workspace crates no longer stale the guest; timing 50.199s gate, 6.128s inner loop.
-.3 is complete locally: the macros read Models only through `umpire-front` (dsl/macros
-3,306 -> 2,153 lines). Net size was flat because most measured lifter "duplication" was lowering
-rustc does natively; .4's deletion of the source re-read and re-validation is where lines drop.
-.4's review found Option A met its structure (one reading, one diagnostic, cheap new back ends)
-but not its size (about +336 lines against -850 to -1,600 promised), and that it halves cost only
-for declaration-level constructs. Option B would make body-level constructs cost more, so .5 and
-.6 are deferred until a concrete need appears (owner confirmed 2026-10-22).
-.4 is complete locally: the macro embeds the admitted Model and the lifter emits from it, with
-no `model.rs` re-read; core crates 8,297 lines against 8,190 before .2; timing 47.6s gate, 7.3s inner loop.
-.7 recorded the boundary and measurements in [DESIGN.md](model/DESIGN.md#front-end-and-back-ends-fn-238).
-The approved IR token-printer cleanup (.9) is complete locally before fn-227.16 adds IR
-constructs. All 782 golden/snapshot/refusal files and the 26-Model IR/token comparisons
-are exact; slice, gaps and required-TLC gates passed, and all three review draws returned
-SHIP. Production Rust shrank 60 lines against the roughly 190-line estimate. Required gate
-532.677s exceeded its 60s soft target; inner loop 9.272s met 10s. Only deferred .5 and .6 remain open.
-[Spec](.flow/specs/fn-238-shared-front-end-one-model-reading-for.md).
-
-| Name | Status | What |
-| --- | --- | --- |
-| fn-238.5 | ⏸️ deferred | Deferred 2026-10-22 (owner confirmed): interpreted checker as a differential check; revive on a concrete need such as checker speed (R2, R3) |
-| fn-238.6 | ⏸️ deferred | Deferred with .5: interpreted checker by default behind the 2x / 25% gate (R2, R3) |
-
-### fn-237: Activity timeouts, heartbeat and cooperative cancellation (model, temporal)
-
-Split from fn-227 on 2026-10-21 by owner decision; depends on fn-227. Carries the four optional
-timeouts, Heartbeat, Tick and cooperative cancellation with their native and source support
-(optional handler facts, bounded optional values), the final one-tick compatibility refinement,
-live timeout admission and cancellation evidence, and their write-up. Not scheduled.
-[Spec](.flow/specs/fn-237-activity-timeouts-heartbeat-and.md).
-
-| Name | Status | What |
-| --- | --- | --- |
-| fn-237.1 | ⏸️ deferred | Optional handler facts through native adapters and independent TLC replay (R1) |
-| fn-237.2 | ⏸️ deferred | Bounded nominal optional values through source binding, emission and decode (R1) |
-| fn-237.3 | ⏸️ deferred | After .1, .2 and fn-227.3: deadlines, Tick, Heartbeat, cooperative cancel, final compatibility refinement (R2, R3) |
-| fn-237.4 | ⏸️ deferred | After .3: live timeout admission and cooperative cancellation evidence (R4) |
-| fn-237.5 | ⏸️ deferred | After .4: DESIGN.md timeout and cancellation write-up (R5) |
 
 ### fn-211: Apalache backend for Umpire in Rust (model)
 
@@ -138,13 +87,14 @@ declared finite domain in one run per property (owner request, toward full Quint
 Task .1 is complete locally: typed safety emission, ordered checked arithmetic and one-step
 history passed implementation review, both audits, actual pinned-tool controls and fresh live
 slice/gap proof. The required full gate passed in 562.098s against its 60s soft target;
-inner loop 7.893s met 10s. Runner lifecycle, typed replay, fixture integration and symbolic
-Worlds remain below.
+inner loop 7.893s met 10s. Task .2 is complete locally: pinned bounded checking, native-derived
+Kettle bound 63, installer admission and shared process ownership passed review, both audits and
+all 17 required gate stages. Gate 903.818s exceeded its 60s soft target; inner loop 7.229s met 10s.
+Typed replay, fixture integration and symbolic Worlds remain below.
 [Spec](.flow/specs/fn-211-apalache-backend-for-umpire-in-rust.md).
 
 | Name | Status | What |
 | --- | --- | --- |
-| fn-211.2 | 🔄 in progress | After .1: `umpire-apalache` in `umpire/backends/apalache/`, pinned release, bounded check per invariant, deterministic lifecycle (R2) |
 | fn-211.3 | ⬜ todo | After .2: ITF counterexamples decoded through typed source values and replayed through the Model (R3) |
 | fn-211.4 | ⬜ todo | After .3: Apalache consumer; Kettle's `apalache.txt` agreement golden (R4, R5) |
 | fn-211.5 | ⬜ todo | After .3: symbolic World constants via `ConstInit`, one run per property across the declared World domain, replayed under the decoded World (R6) |
@@ -172,3 +122,55 @@ including Answer, and immutable publication by model/seed/content hash.
 | fn-228.5 | ⬜ todo | After .4: Shim endpoint for non-Go SDK workers (R5) |
 | fn-228.6 | ⬜ todo | After .4 and .5: delete and shrink Testpilot packages with replacement coverage; include relocated Runner code in counts (R6) |
 | fn-228.7 | ⬜ todo | After .5 and .6: DESIGN.md Runner and Run write-up; R33 to R40 discharged (R7) |
+
+### fn-238: Shared front end: one Model reading for the native checker and the lifter (model)
+
+Filed on 2026-10-21 at the owner's direction: both checkers share all code except the back end. The
+native checker executes the Model and the lifter emits TLA+ (and later Apalache); the owner accepts
+the risk of a shared misreading. Typed counterexample replay stays as the cross-check. Runs after
+fn-227.14 and .8, before fn-227.11, so later constructs are built once.
+The design ([shared-front-end.md](model/design/shared-front-end.md)) measured about 1,000 duplicated
+lines per side and recommends one shared admission crate first (Option A, .2-.4), then the
+interpreted checker behind a measured gate (Option B, .5-.6); the guest and replay stay compiled.
+.2 is complete locally: `umpire-front` owns admission, goldens and IR unchanged; timing was
+measured under concurrent load (119.6s); idle re-measurements since are 50-54s.
+.8 is complete locally: guest identities hash only each crate's lockfile closure, so unrelated
+workspace crates no longer stale the guest; timing 50.199s gate, 6.128s inner loop.
+.3 is complete locally: the macros read Models only through `umpire-front` (dsl/macros
+3,306 -> 2,153 lines). Net size was flat because most measured lifter "duplication" was lowering
+rustc does natively; .4's deletion of the source re-read and re-validation is where lines drop.
+.4's review found Option A met its structure (one reading, one diagnostic, cheap new back ends)
+but not its size (about +336 lines against -850 to -1,600 promised), and that it halves cost only
+for declaration-level constructs. Option B adds work for body-level constructs; the owner
+reactivated .5 and .6 on 2026-10-23, scheduled after fn-228 with their measured gates intact.
+.4 is complete locally: the macro embeds the admitted Model and the lifter emits from it, with
+no `model.rs` re-read; core crates 8,297 lines against 8,190 before .2; timing 47.6s gate, 7.3s inner loop.
+.7 recorded the boundary and measurements in [DESIGN.md](model/DESIGN.md#front-end-and-back-ends-fn-238).
+The approved IR token-printer cleanup (.9) is complete locally before fn-227.16 adds IR
+constructs. All 782 golden/snapshot/refusal files and the 26-Model IR/token comparisons
+are exact; slice, gaps and required-TLC gates passed, and all three review draws returned
+SHIP. Production Rust shrank 60 lines against the roughly 190-line estimate. Required gate
+532.677s exceeded its 60s soft target; inner loop 9.272s met 10s. Only .5 and .6 remain open, queued after fn-228.
+[Spec](.flow/specs/fn-238-shared-front-end-one-model-reading-for.md).
+
+| Name | Status | What |
+| --- | --- | --- |
+| fn-238.5 | ⬜ todo | After fn-228: interpreted checker as a differential check (R2, R3) |
+| fn-238.6 | ⬜ todo | After .5: interpreted checker by default behind the 2x / 25% gate (R2, R3) |
+
+### fn-237: Activity timeouts, heartbeat and cooperative cancellation (model, temporal)
+
+Split from fn-227 on 2026-10-21 by owner decision; depends on fn-227. Carries the four optional
+timeouts, Heartbeat, Tick and cooperative cancellation with their native and source support
+(optional handler facts, bounded optional values), the final one-tick compatibility refinement,
+live timeout admission and cancellation evidence, and their write-up. Reactivated by the owner
+on 2026-10-23, scheduled after fn-238.
+[Spec](.flow/specs/fn-237-activity-timeouts-heartbeat-and.md).
+
+| Name | Status | What |
+| --- | --- | --- |
+| fn-237.1 | ⬜ todo | Optional handler facts through native adapters and independent TLC replay (R1) |
+| fn-237.2 | ⬜ todo | Bounded nominal optional values through source binding, emission and decode (R1) |
+| fn-237.3 | ⬜ todo | After .1, .2 and fn-227.3: deadlines, Tick, Heartbeat, cooperative cancel, final compatibility refinement (R2, R3) |
+| fn-237.4 | ⬜ todo | After .3: live timeout admission and cooperative cancellation evidence (R4) |
+| fn-237.5 | ⬜ todo | After .4: DESIGN.md timeout and cancellation write-up (R5) |

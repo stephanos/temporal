@@ -1,13 +1,21 @@
 {
   "branch_name": "fn-237-activity-timeouts-heartbeat-and",
+  "completion_review_status": "unknown",
+  "completion_reviewed_at": null,
   "created_at": "2026-10-21T21:34:42.906942Z",
+  "default_impl": null,
+  "default_review": null,
+  "default_sync": null,
   "depends_on_epics": [
     "fn-227-parameterized-models-declared-worlds"
   ],
   "id": "fn-237-activity-timeouts-heartbeat-and",
+  "impl_review_rounds": {},
   "next_task": 1,
+  "plan_review_rounds": 0,
   "plan_review_status": "unknown",
   "plan_reviewed_at": null,
+  "ready": true,
   "spec_path": ".flow/specs/fn-237-activity-timeouts-heartbeat-and.md",
   "status": "open",
   "title": "Activity timeouts, heartbeat and cooperative cancellation (model, temporal)",
@@ -22,5 +30,5 @@
     "mergeBaseTracker": null,
     "url": null
   },
-  "updated_at": "2026-10-21T21:36:58.505208Z"
+  "updated_at": "2026-10-23T02:34:40.719818Z"
 }
