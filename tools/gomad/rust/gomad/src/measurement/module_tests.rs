@@ -449,7 +449,7 @@ fn terminal_descriptor_cannot_relabel_another_compilation_or_preparation_configu
     fs::write(temp.0.join("go.mod"), b"module fixture\n").unwrap();
     let (installed, provenance) = terminal_binding_fixture(&temp.0);
     validate_terminal_binding(&temp.0, &temp.0, &installed, &provenance).unwrap();
-    for mutation in 0..12 {
+    for mutation in 0..14 {
         let mut actual = provenance.clone();
         let mut installation = serde_json::to_value(&installed).unwrap();
         match mutation {
@@ -469,7 +469,14 @@ fn terminal_descriptor_cannot_relabel_another_compilation_or_preparation_configu
                 installation["admission"]["guest_configuration"]["Args"] = json!(["temporal.test"]);
             }
             10 => installation["fuel"] = json!(1_u64 << 40),
-            _ => installation["memory_bytes"] = json!(256 << 20),
+            11 => installation["memory_bytes"] = json!(256 << 20),
+            12 => {
+                installation["build_tags"] = json!(["gomad_wasm_slim"]);
+                let tags = actual["inputs"]["tags"].as_array_mut().unwrap();
+                tags.push(json!("gomad_wasm_slim"));
+                tags.sort_by(|left, right| left.as_str().cmp(&right.as_str()));
+            }
+            _ => installation["excluded_build_tags"] = json!(["test_dep"]),
         }
         let installation = serde_json::from_value(installation).unwrap();
         assert!(

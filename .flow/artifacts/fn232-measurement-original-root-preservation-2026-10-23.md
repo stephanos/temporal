@@ -124,3 +124,17 @@ fixture uses that same production normalization; all twelve mutations still fail
 all-target Clippy exit 0. Four additional all-target feature gates on `30b92d3b43`
 (diagnostic profile, guest profile, fuel-off, determinism fixture) each exited 0;
 logs are `measurement-final-helper-*-clippy.log`.
+
+The follow-up review reproduced a coordinated installation-policy bypass: adding
+`gomad_wasm_slim` to both installation tags and actual canonical provenance passed
+before the original installation policy was checked. The installation must now
+retain empty `build_tags` and `excluded_build_tags`, as the original `--config`
+installation does. The mutation matrix has fourteen cases, including coordinated
+slim injection and an excluded original tag. The exact causal run failed at
+mutation 12 (exit 101) in `measurement-terminal-installed-tags-red.log`; the fixed
+module/recipe scope passed all 18 tests (exit 0) in
+`measurement-terminal-installed-tags-green.log`. This is source admission evidence;
+it does not qualify the original runtime-cost tuple or a frozen final cycle.
+Strict all-target Clippy with warnings denied also exited 0 after this guard
+(`measurement-terminal-installed-tags-clippy.log`); formatting and diff checks
+exited 0.

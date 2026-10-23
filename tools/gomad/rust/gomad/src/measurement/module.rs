@@ -145,6 +145,8 @@ pub(crate) fn validate_terminal_binding(
 ) -> Result<(), String> {
     let original = super::module_recipes::terminal_exit(repo)?;
     if installed.profile != COOPERATIVE
+        || !installed.build_tags.is_empty()
+        || !installed.excluded_build_tags.is_empty()
         || installed.memory_bytes != original.memory_bytes
         || installed.fuel != original.fuel
         || installed
