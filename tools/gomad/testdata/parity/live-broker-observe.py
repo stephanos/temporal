@@ -1,8 +1,13 @@
 #!/usr/bin/env python3
-"""Observe the unchanged Go-owner assertions in an explicitly derived test checkout."""
+"""Observe unchanged Go-owner assertions in an explicitly derived test checkout.
+
+Actual provider root19 requires a genuine reference-transport typed helper build
+receipt. Historical derive-only source proofs remain preparatory and unchanged.
+"""
 import argparse
 import base64
 import hashlib
+import importlib.util
 from datetime import datetime, timezone
 import json
 import os
@@ -491,6 +496,19 @@ def index_observations(root):
     (root / 'observation-index.json').write_text(json.dumps(index, indent=2) + '\n')
 
 
+def provider_helper_receipt(path, helper):
+    path, helper = path.resolve(strict=True), helper.resolve(strict=True)
+    binding = dict(path=str(path),sha256=sha(path.read_bytes()))
+    checker_path = Path(__file__).with_name('live-cluster-check.py')
+    spec = importlib.util.spec_from_file_location('provider_helper_admission',checker_path)
+    checker = importlib.util.module_from_spec(spec)
+    spec.loader.exec_module(checker)
+    build = checker.reference_helper(binding,sha(helper.read_bytes()))
+    if build['binary'] != str(helper):
+        raise ValueError('provider helper differs from its actual typed build publication')
+    return binding
+
+
 def main():
     parser = argparse.ArgumentParser(description=__doc__)
     for name in ('source', 'derived', 'work', 'compiler', 'helper'):
@@ -498,10 +516,17 @@ def main():
     parser.add_argument('--roots')
     parser.add_argument('--provider-roots', choices=('19',))
     parser.add_argument('--derive-only', action='store_true')
+    parser.add_argument('--helper-build-receipt',type=Path)
     args = parser.parse_args()
     if args.roots is not None and args.provider_roots:
         parser.error('provider and broker observations require separate command receipts')
     provider = args.provider_roots is not None
+    if args.helper_build_receipt is not None and not provider:
+        parser.error('typed provider helper admission is scoped to root19')
+    if provider and not args.derive_only and args.helper_build_receipt is None:
+        parser.error('actual provider root19 requires --helper-build-receipt from reference-transport')
+    helper_binding = (provider_helper_receipt(args.helper_build_receipt,args.helper)
+        if args.helper_build_receipt is not None else None)
     roots = [19] if provider else [int(value) for value in (args.roots or '32,33,34,35,36,37,38,39').split(',')]
     if not roots or len(set(roots)) != len(roots) or (not provider and (set(roots) - (ROOTS.keys() - {19}))):
         parser.error('roots must be distinct root numbers 32 through 39')
@@ -543,6 +568,8 @@ def main():
                     helper_sha256=sha(helper.read_bytes()), diff_sha256=sha(diff), roots=roots,
                     original_source_path=str(relative),
                     oracle_role='original-private-go-broker-reference-and-original-one-helper-provider' if provider else 'original-go-owner')
+    if helper_binding is not None:
+        identity['helper_build_receipt'] = helper_binding
     if cluster_source is not None:
         identity['cluster_source'] = cluster_source
         identity['derived_go_identity_role'] = 'actual derived embedded source identity; not frozen baseline identity'
@@ -566,6 +593,8 @@ def main():
         raise RuntimeError(f'original Go assertions failed: exit {result.returncode}; see {work}')
     statuses = validate_events(result.stdout, roots)
     (work / 'original-assertions.json').write_text(json.dumps(statuses, indent=2) + '\n')
+    if helper_binding is not None and provider_helper_receipt(args.helper_build_receipt,args.helper) != helper_binding:
+        raise ValueError('provider helper build custody changed during actual Go test')
     index_observations(work)
     print(json.dumps(dict(observations=str(output), derivation=str(work / 'derivation.json'))))
 

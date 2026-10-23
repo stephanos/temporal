@@ -38,7 +38,24 @@ def provider_source():
     return raw
 
 
-def provider_reference(root):
+def reference_helper(binding, helper_sha256, frozen=None):
+    assert isinstance(binding, dict) and set(binding) == {'path','sha256'}, 'full typed provider helper build receipt required'
+    path = Path(binding['path'])
+    assert path.is_absolute() and path.resolve() == path and path.is_file() and not path.is_symlink()
+    assert digest(path.read_bytes()) == binding['sha256'], 'provider helper receipt changed'
+    driver = CORPUS.parents[1] / 'rust/driver'
+    sys.path.insert(0, str(driver))
+    import main_cli_build
+    build = main_cli_build.read_build(path, frozen, expected_role='reference-transport')
+    assert build['role'] == 'reference-transport' and build['features'] == build['helper_features'] == ['reference-helper']
+    assert build['host_sha256'] is None and build['runtime_implementation_sha256'] is None
+    binary = Path(build['binary'])
+    assert binary.is_absolute() and binary.resolve() == binary and binary.is_file() and not binary.is_symlink()
+    assert digest(binary.read_bytes()) == build['binary_sha256'] == helper_sha256
+    return build
+
+
+def provider_reference(root, frozen=None):
     root = root.resolve()
     index_raw = (root / 'observation-index.json').read_bytes()
     index = json.loads(index_raw)
@@ -47,6 +64,7 @@ def provider_reference(root):
     assert index['derivation_sha256'] == digest(derivation_raw)
     derivation = json.loads(derivation_raw)
     assert derivation['roots'] == [19]
+    helper = reference_helper(derivation['helper_build_receipt'], derivation['oracle_helper_sha256'], frozen)
     assert derivation['oracle_role'] == 'original-private-go-broker-reference-and-original-one-helper-provider'
     assert digest(provider_source()) == derivation['original_test_sha256']
     for filename, key in (('test-only-helper.go', 'helper_sha256'), ('test-only.diff', 'diff_sha256')):
@@ -83,7 +101,9 @@ def provider_reference(root):
     assert ordinary[0]['lazy_cluster_request_at_open']
     assert [node['id'] for node in ordinary[0]['spec']['nodes']] == ['a', 'b' * 128]
     for row in opens:
+        assert set(row['boots']) == {'guest'}, 'provider original boot request is missing or substituted'
         for request in row['boots'].values():
+            assert request['HelperPath'] == helper['binary'] and request['HelperSHA256'] == helper['binary_sha256'], 'provider actual request used another helper'
             raw = Path(request['ModulePath']).read_bytes()
             assert digest(raw) == request['ModuleSHA256'] and len(raw) <= 8 << 20
     finished = [row for row in rows if row['kind'] == 'finish']
@@ -93,6 +113,8 @@ def provider_reference(root):
     assert finished[0]['frames']['Results'] == 1 and finished[0]['frames']['GuestCallbacks'] == 0
     return dict(role=derivation['oracle_role'], index_sha256=digest(index_raw),
                 derivation_sha256=index['derivation_sha256'], command=str(root / 'command.json'),
+                helper_build_receipt=derivation['helper_build_receipt'], helper_role=helper['role'],
+                helper_binary_sha256=helper['binary_sha256'],
                 assertions=dict(private_reference_hard_isolation_admitted=True,
                     single_helper_hard_isolation_refused=True, ordinary_open_lazy=True,
                     only_requested_incarnation=True, results=1, go_guest_callbacks=0))
