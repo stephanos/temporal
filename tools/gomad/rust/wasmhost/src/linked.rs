@@ -922,7 +922,7 @@ mod timing_tests {
                     receiver.recv_timeout(Duration::from_millis(20)),
                     Err(std::sync::mpsc::RecvTimeoutError::Timeout)
                 );
-            }))
+            }));
         });
         let module = b"(module (memory (export \"memory\") 1) (func (export \"_start\")))".to_vec();
         let mut prepared = prepare(Request {

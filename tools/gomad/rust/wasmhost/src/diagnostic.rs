@@ -1153,6 +1153,18 @@ pub(crate) fn snapshot() -> Value {
     PROFILE.with(|profile| profile.borrow().as_ref().unwrap().report())
 }
 
+#[must_use]
+pub fn operation_names() -> Vec<String> {
+    crate::abi::Operation::ALL
+        .iter()
+        .map(|op| format!("{}.{}", op.module(), op.name()))
+        .collect()
+}
+#[must_use]
+pub fn owner_names() -> &'static [&'static str] {
+    &OWNER_NAMES
+}
+
 #[cfg(test)]
 mod tests {
     use super::*;
@@ -1596,16 +1608,4 @@ mod tests {
         assert_eq!(decoded, report);
         assert_eq!(decoded["schema"], "gomad.wasm-profile/v2");
     }
-}
-
-#[must_use]
-pub fn operation_names() -> Vec<String> {
-    crate::abi::Operation::ALL
-        .iter()
-        .map(|op| format!("{}.{}", op.module(), op.name()))
-        .collect()
-}
-#[must_use]
-pub fn owner_names() -> &'static [&'static str] {
-    &OWNER_NAMES
 }

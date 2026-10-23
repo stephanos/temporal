@@ -27,7 +27,7 @@ fn profile_configuration_rejects_original_malformed_bounds_before_sampling() {
             "sample count 100001",
             Config {
                 max_samples: 100_001,
-                ..valid.clone()
+                ..valid
             },
         ),
     ] {

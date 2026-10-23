@@ -167,10 +167,12 @@ pub enum Operation {
         fd: u32,
         path: Vec<u8>,
     },
+    #[cfg(not(feature = "conformance"))]
     SockAccept {
         fd: u32,
         flags: u16,
     },
+    #[cfg(not(feature = "conformance"))]
     SockShutdown {
         fd: u32,
         how: u8,
@@ -884,9 +886,9 @@ impl Namespace {
             | Operation::Readdir { .. }
             | Operation::PathStat { .. }
             | Operation::Readlink { .. }
-            | Operation::Symlink { .. }
-            | Operation::SockAccept { .. }
-            | Operation::SockShutdown { .. } => false,
+            | Operation::Symlink { .. } => false,
+            #[cfg(not(feature = "conformance"))]
+            Operation::SockAccept { .. } | Operation::SockShutdown { .. } => false,
             Operation::Read { fd, offset, .. } => offset.is_none() || self.handles.contains_key(fd),
             #[cfg(test)]
             Operation::Unsupported(_) => false,
@@ -932,9 +934,11 @@ impl Namespace {
     )]
     fn execute_inner(&mut self, op: Operation, now: u64) -> Result<Output> {
         match op {
+            #[cfg(not(feature = "conformance"))]
             Operation::SockAccept { .. } => Err(Failure::Unsupported(
                 "operation outside stock WASI profile: sock_accept".into(),
             )),
+            #[cfg(not(feature = "conformance"))]
             Operation::SockShutdown { .. } => Err(Failure::Unsupported(
                 "operation outside stock WASI profile: sock_shutdown".into(),
             )),
