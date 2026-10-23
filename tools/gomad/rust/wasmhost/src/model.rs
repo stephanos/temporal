@@ -1133,6 +1133,7 @@ mod tests {
                     write_scratch: protocol::WriteBuffers::default(),
                     broker: None,
                     network: None,
+                    helper_owned: false,
                 };
                 let invoke = |state: &mut State, op: &str, bytes: Vec<u8>| {
                     let name = format!("runtime_{op}");

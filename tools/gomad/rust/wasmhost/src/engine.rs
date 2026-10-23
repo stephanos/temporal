@@ -79,6 +79,10 @@ pub struct State {
     /// endpoint on the shared Rust network owner (fn-178.12).
     pub broker: Option<crate::cluster::handoff::Member>,
     pub(crate) network: Option<crate::cluster::network::Endpoint>,
+    /// Linked execution has no remote callback owner: the helper refuses
+    /// stock socket imports and finalizes an unfinished runtime trace that the
+    /// protocol transport leaves to its remote host.
+    pub(crate) helper_owned: bool,
 }
 /// Where an inspection snapshot is taken: it decides which commitments must
 /// be current when the call returns.
@@ -1053,6 +1057,7 @@ pub(crate) fn new_state(
         write_scratch: protocol::WriteBuffers::default(),
         broker: None,
         network: None,
+        helper_owned: false,
     }
 }
 
@@ -1189,7 +1194,7 @@ pub(crate) fn finish_model(state: &mut State, outcome: &mut Outcome) -> Result<(
     state.inspection_snapshot(Snapshot::Terminal);
     let standalone = state.broker.is_none();
     if let Some(model) = &mut state.model {
-        if outcome.termination == "exit" && model.runtime_active() {
+        if state.helper_owned && outcome.termination == "exit" && model.runtime_active() {
             outcome.termination = "invalid";
             outcome.message = "runtime trace unfinished".into();
             outcome.exit_code = None;
@@ -2367,6 +2372,7 @@ mod tests {
             write_scratch: protocol::WriteBuffers::default(),
             broker: None,
             network: None,
+            helper_owned: false,
         }
     }
     fn inspection_state() -> State {
@@ -2606,6 +2612,7 @@ mod tests {
             write_scratch: protocol::WriteBuffers::default(),
             broker: None,
             network: None,
+            helper_owned: false,
         };
         assert!(state.callback("sched_yield", json!({})).is_err());
         assert_eq!(state.terminal.unwrap().termination, "infrastructure");

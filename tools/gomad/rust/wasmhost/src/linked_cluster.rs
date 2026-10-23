@@ -698,6 +698,7 @@ fn instance_state(
         Some(model),
         sealed.execution.namespace.take(),
     );
+    state.helper_owned = true;
     state.broker = Some(Member {
         broker: broker.clone(),
         index,

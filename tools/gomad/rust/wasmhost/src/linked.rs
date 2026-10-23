@@ -654,6 +654,7 @@ pub fn execute_prepared(prepared: Prepared) -> wasmtime::Result<Execution> {
             );
             store.limiter(|state| &mut state.limits);
             store.data_mut().network = network;
+            store.data_mut().helper_owned = true;
             #[cfg(not(feature = "diagnostic-fuel-off"))]
             store.set_fuel(request.limits.fuel)?;
             store.set_epoch_deadline(1);
