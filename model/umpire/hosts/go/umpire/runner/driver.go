@@ -5,6 +5,7 @@ import (
 
 	"google.golang.org/protobuf/types/known/anypb"
 	modelv1 "umpire.local/model/umpire/model/v1"
+	runv1 "umpire.local/model/umpire/run/v1"
 )
 
 // Driver acts on one system. It sends what the Model proposed and reports what happened as
@@ -16,6 +17,13 @@ type Driver interface {
 	// correlates every event the exchange reports. An error, or a Start that does not return
 	// within the read timeout, is a Driver fault.
 	Start(ctx context.Context, request uint64, payload *anypb.Any) (Exchange, error)
+}
+
+// Redactor is a Driver that removes evidence from a Run's events once the Run is judged, such as
+// fields its configuration names. The Runner uses it when Options.Redact is nil; Redact reports
+// whether it removed anything, and a redacted event cannot be replayed.
+type Redactor interface {
+	Redact(event *runv1.Event) bool
 }
 
 // NewDriver makes a fresh Driver for one Run.

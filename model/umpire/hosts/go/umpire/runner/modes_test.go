@@ -260,6 +260,28 @@ func TestRedactedRunsAreRefusedForReplay(t *testing.T) {
 	requireRefused(t, replayed, 5, "replay: event 5 is redacted")
 }
 
+func TestTheDriverRedactsWhenTheOptionsDoNot(t *testing.T) {
+	wasm := statefulGuest(t)
+	answers := func(int) *fakeDriver {
+		return &fakeDriver{script: good, redact: func(event *runv1.Event) bool { return event.GetAnswer() != nil }}
+	}
+	run := newHarness(t, wasm, answers).run(ModeExplore, configured(1))
+	requireExplained(t, run, runv1.Termination_TERMINATION_QUIESCENT)
+	for _, event := range run.GetEvents() {
+		if event.GetRedacted() != (event.GetAnswer() != nil) {
+			t.Fatalf("event %d: redacted %t", event.GetSequence(), event.GetRedacted())
+		}
+	}
+	opts := configured(1)
+	opts.Redact = func(*runv1.Event) bool { return false }
+	run = newHarness(t, wasm, answers).run(ModeExplore, opts)
+	for _, event := range run.GetEvents() {
+		if event.GetRedacted() {
+			t.Fatalf("event %d: the Options' redaction takes precedence", event.GetSequence())
+		}
+	}
+}
+
 func TestQuestionAsksOneProposeOrJudge(t *testing.T) {
 	wasm := statefulGuest(t)
 	r := New(wasm, nil)

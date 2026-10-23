@@ -252,6 +252,9 @@ func (r *Runner) execute(ctx context.Context, mode Mode, iteration int, opts Opt
 		s.fault(0, "driver: "+err.Error())
 		return s.finish(), nil
 	}
+	if redactor, ok := driver.(Redactor); ok && s.opts.Redact == nil {
+		s.opts.Redact = redactor.Redact
+	}
 	err = s.drive(ctx, runCtx, driver, seed, budget)
 	if closer, ok := driver.(io.Closer); ok {
 		if closeErr := closer.Close(); closeErr != nil && err == nil {

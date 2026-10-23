@@ -13,6 +13,7 @@ import (
 
 	"google.golang.org/protobuf/types/known/anypb"
 	"umpire.local/model"
+	runv1 "umpire.local/model/umpire/run/v1"
 )
 
 const controlType = "type.googleapis.com/umpire.control.Value"
@@ -87,6 +88,7 @@ type fakeDriver struct {
 	respondErr   error
 	hangClose    chan struct{}
 	delay        time.Duration
+	redact       func(*runv1.Event) bool
 	// onStart runs inside Start with Start's ctx, before the exchange exists.
 	onStart func(ctx context.Context, clock *testClock, made int)
 	// whenWaiting runs once the Runner waits for the exchange's first event; the exchange then
@@ -130,6 +132,10 @@ func (d *fakeDriver) Start(ctx context.Context, request uint64, payload *anypb.A
 		go x.run(steps)
 	}
 	return x, nil
+}
+
+func (d *fakeDriver) Redact(event *runv1.Event) bool {
+	return d.redact != nil && d.redact(event)
 }
 
 func (d *fakeDriver) all() []*fakeExchange {
