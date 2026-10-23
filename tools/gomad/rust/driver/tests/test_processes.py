@@ -144,7 +144,8 @@ class ProcessContract(unittest.TestCase):
             executor = driver.StageExecutor([], str(root/'scheduler'), {})
             with mock.patch.object(driver.os, 'killpg'), \
                  mock.patch.object(driver, 'process_group_live', return_value=True, create=True), \
-                 mock.patch.object(driver.time, 'monotonic', side_effect=[0, 6]):
+                 mock.patch.object(driver.time, 'monotonic', side_effect=[0, 6]), \
+                 mock.patch.object(driver, 'wait_process_session', return_value=False):
                 with self.assertRaisesRegex(driver.Refusal, 'process group.*quiesce'):
                     executor.cleanup_commands({123})
             self.assertTrue(driver.read(path)['active'])
@@ -238,6 +239,33 @@ class ProcessContract(unittest.TestCase):
                     self.assertIn('log close failed', outcome['reason'])
                 if live_stage:
                     log.close.assert_called_once()
+
+    def test_stage_group_refusal_still_attempts_owned_session_cleanup(self):
+        with tempfile.TemporaryDirectory() as directory:
+            root = Path(directory)
+            path = root/'held.process.json'
+            driver.write(path, dict(stage_pid=123, pid=456, active=True))
+            executor = driver.StageExecutor([], str(root/'scheduler'), {})
+            with mock.patch.object(driver.os, 'killpg'), \
+                 mock.patch.object(driver, 'process_session_groups', return_value={}), \
+                 mock.patch.object(driver, 'wait_process_group', side_effect=driver.Refusal('primary group stuck')), \
+                 mock.patch.object(driver, 'wait_process_session', side_effect=driver.Refusal('late compiler stuck')) as session:
+                with self.assertRaisesRegex(driver.Refusal, 'primary group stuck.*late compiler stuck'):
+                    executor.cleanup_commands({123})
+            session.assert_called_once_with(456)
+            self.assertTrue(driver.read(path)['active'])
+
+    def test_command_group_refusal_still_attempts_owned_session_cleanup(self):
+        with tempfile.TemporaryDirectory() as directory:
+            root = Path(directory)
+            with mock.patch.object(driver, 'wait_process_group', side_effect=driver.Refusal('primary group stuck')), \
+                 mock.patch.object(driver, 'wait_process_session', return_value=False) as session:
+                with self.assertRaisesRegex(driver.Refusal, 'primary group stuck'):
+                    driver.command({'repo': str(root)}, root, 'held', [sys.executable, '-c', 'pass'])
+            record = driver.read(root/'held.process.json')
+            session.assert_called_once_with(record['pid'])
+            self.assertTrue(record['active'])
+            self.assertEqual(driver.read(root/'held.command.json')['observation'], 'inconclusive')
 
     def test_cleanup_follows_registered_tree_and_owned_sessions_only(self):
         with tempfile.TemporaryDirectory() as directory:

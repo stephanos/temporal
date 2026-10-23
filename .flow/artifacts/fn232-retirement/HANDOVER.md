@@ -957,3 +957,31 @@ Python-only follow-up, no Cargo/Go/guest/qualification commands or leased build
 target access. Root owns integration and final measured qualification; no final
 acceptance or Flow lifecycle change. Same retirement worktree remains for root
 integration/review, no other worktree/cache/evidence was changed or removed.
+
+
+## Independent group/session barrier refusal repair (2026-10-22)
+
+Re-review of `6b52f6807a` found a primary-group quiescence refusal skipped the
+following session rescan in both command publication and global cleanup. A late
+compiler group in the already owned session could therefore miss cleanup after
+the first snapshot. Two causal tests force the primary barrier to refuse and
+require the session barrier still run; the stage test also makes the session
+barrier refuse and requires both reasons remain reported. Both tests failed on
+original source (RED2, `fn232-retirement-independent-barriers-red.log`).
+
+A shared `wait_command_processes` independently attempts both barriers and
+aggregates errors before either caller can mark its registration inactive.
+Either refusal preserves active registration and command publication retains
+its inconclusive actual receipt. Existing signal-all-before-wait, registered
+ancestry, owned-session scope, late-registration rescan and complete driver
+outcome semantics remain unchanged. The mocked timeout test now supplies the
+independently attempted session result rather than exhausting its group-clock
+fixture; no timeout or source assertion was weakened.
+
+`PYTHONDONTWRITEBYTECODE=1 python3 -m unittest discover -s
+tools/gomad/rust/driver/tests -q` exit0,136tests in2.254s;
+`git diff --check` exit0. Log
+`/home/agent/.cache/codex-build/fn232-retirement-independent-barriers-full.log`.
+Python-only follow-up: no Cargo/Go/guest/runtime qualification or leased build
+target access. All invoked commands terminal. Root owns integration, re-review
+and final measured qualification; no acceptance/Flow lifecycle action occurred.

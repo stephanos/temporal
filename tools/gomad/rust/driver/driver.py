@@ -238,8 +238,7 @@ def command(config, root, name, argv, accepted=(0,), timeout=None, private_obser
             if proc is not None:
                 cleanup_error = None
                 try:
-                    wait_process_group(proc.pid)
-                    if wait_process_session(proc.pid) and observation == 'completed':
+                    if wait_command_processes(proc.pid) and observation == 'completed':
                         raise Refusal('producer exited with remaining process-session members')
                 except (Refusal, OSError, ValueError) as error:
                     cleanup_error = error
@@ -310,6 +309,20 @@ def wait_process_session(session):
     return observed
 
 
+def wait_command_processes(pid):
+    errors, remaining_session = [], False
+    try:
+        wait_process_group(pid)
+    except (Refusal, OSError, ValueError) as error:
+        errors.append(str(error))
+    try:
+        remaining_session = wait_process_session(pid)
+    except (Refusal, OSError, ValueError) as error:
+        errors.append(str(error))
+    require(not errors, 'command process cleanup incomplete: '+'; '.join(errors))
+    return remaining_session
+
+
 class StageExecutor(scheduler.RealExecutor):
     def __init__(self, runner, state_dir, env):
         super().__init__(runner, state_dir, env)
@@ -356,8 +369,7 @@ class StageExecutor(scheduler.RealExecutor):
             for path, record in registrations:
                 attempted.add((path, record['pid']))
                 try:
-                    wait_process_group(record['pid'])
-                    wait_process_session(record['pid'])
+                    wait_command_processes(record['pid'])
                     record.update(active=False, observation='inconclusive', cleanup_signal=int(signal.SIGKILL))
                     save_process(path, record)
                 except (Refusal, OSError, ValueError, KeyError) as error:
