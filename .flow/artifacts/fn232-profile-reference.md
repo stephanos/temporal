@@ -82,3 +82,25 @@ without changing that refusal or claiming the original positive runtime gate.
 The original runtime-cost module, successful zero exit, 100000-loop witness,
 three-way Go/helper/native ordinary comparison and final frozen gates remain
 root-owned pending actual execution.
+
+Development helper-owner comparison completed, exit 0:
+`development-pair-v2/development-comparison.json`. Both runs intentionally exit
+1 and reap successfully; all six raw stream hashes and the original WASI digest,
+outcome and exit fields match. Go owner PID 521076 serves 146 calls with Go
+filesystem counts (including fd_write); helper owner PID 533861 serves the same
+146 calls with an empty Go filesystem count map. Both report 27 select polls;
+actual authorization-to-terminal intervals are 12,174,417 and 8,078,334 ns.
+Actual Started reports Wasmtime 47.0.3 and pinned original configuration;
+ChoiceTrace.Version is 4 and terminal length 16. These establish the development
+invocation/ownership bridge, not a zero-exit runtime-cost pass or a native
+ordinary comparison. The earlier wrapper refusal and both raw results remain.
+
+Source checkpoint `dd66afa117` and exact hashes/receipts/exits are recorded in
+`final-summary.json`. Correct framed helper SHA-256 is
+`4dc2eea66907d81654dd45ba1eeee3b0c661826aa48ab4cdb557f46ed9264e4d`, built from
+helper source `4fcf9fa06b` in dev profile with only reference-helper; ordinary
+final qualification must rebuild/rebind after source freeze. New evidence uses
+1.4 GiB; retained assigned target uses 3.3 GiB. All worker compiler/guest commands
+are terminal, Go lease was explicitly released back to core, and no full
+Activity/profile qualification ran. At handover shared free disk is 18 GiB;
+other workers' targets/evidence were not cleaned.
