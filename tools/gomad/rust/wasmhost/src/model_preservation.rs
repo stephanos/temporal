@@ -419,7 +419,7 @@ fn namespace_rights_offsets_cookies_containment_and_closure_preserve_original_se
         namespace::BADF
     );
     for operation in [
-        N::Unsupported("sock_accept".into()),
+        N::SockAccept { fd: 3, flags: 0 },
         N::Symlink {
             old_path: b"x".to_vec(),
             fd: 3,
