@@ -248,3 +248,46 @@ Latestprofilingfreshpreparation0 in62.89s: PID2391905/session34442 terminal; ful
 Stress focusedtests5/5passed; linkedjitterRED101→GREEN3/3passed; strictClippyactiveagent-local51284atreporttime. .11alllib74green/grammar40twice0, finalrecoverylockrefusal/pubicreceiptcorpusstillpending. Alladditionalheavyguestwavesremainhelduntilrootrelease; releasefixturecompileronlyallowed.
 
 Livebackendroot9exposescontradiction: originalcompletedchoice-resumerefuses, newerRustsite-scope regressionexpectsreportoncompletedresume. Rootsearchedfn230spec/tasksand232.8 andfoundnoexplicitidempotentcompletionexception; initialrulingoriginalrefusalwinsunlessexplicitnewerowner/specauthorization, notmerelytestexpectation. Requestedexacttestline; holdbehaviorchangependingconfirmation. Originalrootassertionsmustnotweaken. BackendalsofixesactualPrepared.provenance missingfrompublicartifacts and record/module/config consistency; notifyinstallowner/don'tfabricateprovenance. No fullrootpassclaimed.
+
+## Continuation after scoped minimizer closure (2026-10-23 UTC)
+Fn231 is CLOSED with both tasks done, independent formal completion review SHIP R1–R8 at5fc1290c3d, closurecommit4e1a90755e. Full original acceptance retained: four terminal0 actual phases55/119/55/119 commands; two identical38237B semantic goldens3095bc85 and938B display golden4d50ea6b; integrated display16PASS and two-output authentication0. Same-family review of canonical JSON type fixSHIP. Formal reviewer ran portable tests/authentication; its Cargo attempt was denied read-only lock, so Rust evidence remains the earlier actual integrated156/158 suites, not a claimed rerun.
+Prospective retirement source3ea21a8ed9 clean: main5fc plus all reviewed live/final source throughaafbcad938;70 driver+16display tests and static guards0. No final qualification or main Go deletion accepted. Reader partitions remain incomplete;45 standalone sweep command/internal contracts now have a source implementation owner,69 command/install/determinism/architecture/accounting contracts have a separate source audit owner. All source maps are UNEXECUTED; coverage is not a pass.
+Interception owner has actively resumed seven confirmed review repairs; current meaningful nested-wrapper RED session18408 under exclusive fn232-retained-validation target/jobs2. No other Cargo grant. Receiving reader coherent5fd9d161f0 reports51driver+6workload Python tests0 and all51 raw accounting corpus comparisons exact; same independent re-review attempt was refused by harness thread capacity, to retry after slots free. Its publisher tests and Rust provenance/depth production repairs remain separate/uncompiled. Do not claim those green.
+Root safe cleanup reclaimed605 rlib/rmeta files2107627875B from root-owned inactive fn232-live-corpus target after /proc cwd/exe/maps/env/fd checks. Also removed23 exact Go GOCACHE objects directories7457563203B under fn232-qualify/d cache entries, after validating backend/provider.go cache-hit contract and every retained receipt/module pair; receipt/module hashes unchanged afterward. Raw Results/artifacts/commands/guests preserved. Receipts /home/agent/evidence/fn232-root-cache-cleanup-20261023.json and fn232-qualification-go-cache-cleanup-{candidates,complete}.json. Last native free8.3GiB, host99GiB; final12GiB host admission still not met. External shared cargo-target/incremental and tmp remain untouched.
+Closed fn231 cleanup delegated to same owner: preserve dirty incorporated source snapshots and original detached review-range commits on explicit open fn232-minimizer-source-custody branch before removing five worktrees. Transfer accepted two-run roots and exact causal inputs to fn232 custody at existing path identities, no duplicate evidence copies; obsolete evidence removal waits conclusive dependency audit. No source worktree was deleted by root in this continuation.
+Current registered worktrees (retain until the owning open gate or explicit closed-owner cleanup resolves):
+- /Users/stephan/Workspace/skunkworks/gomad/temporal — active root integration checkout; unrelated tools/gomad/.turbo remains untouched
+- /home/agent/wt/fn185-attribution-fix — open fn185 attribution/profile source and evidence obligations
+- /home/agent/wt/fn185-rust-attribution — open fn185 attribution/profile source and evidence obligations
+- /home/agent/wt/fn188-rust-stress — open fn188 full stress and enforcement obligations
+- /home/agent/wt/fn221 — open fn221 original frozen journal/source/candidate custody; never reseed or replace
+- /home/agent/wt/fn221-matrix — open fn221 original frozen journal/source/candidate custody; never reseed or replace
+- /home/agent/wt/fn221-rerun-src — open fn221 original frozen journal/source/candidate custody; never reseed or replace
+- /home/agent/wt/fn230-sites — closed source currently referenced by open fn232; explicit custody/reference transfer required before removal
+- /home/agent/wt/fn232-broker-observe — open fn232 rewrite source, reference, reviewed integration or final qualification custody
+- /home/agent/wt/fn232-broker-observe-v3 — open fn232 rewrite source, reference, reviewed integration or final qualification custody
+- /home/agent/wt/fn232-broker-observe-v4 — open fn232 rewrite source, reference, reviewed integration or final qualification custody
+- /home/agent/wt/fn232-broker-observe-v5 — open fn232 rewrite source, reference, reviewed integration or final qualification custody
+- /home/agent/wt/fn232-broker-observe-v6 — open fn232 rewrite source, reference, reviewed integration or final qualification custody
+- /home/agent/wt/fn232-foundation — open fn232 rewrite source, reference, reviewed integration or final qualification custody
+- /home/agent/wt/fn232-install — open fn232 rewrite source, reference, reviewed integration or final qualification custody
+- /home/agent/wt/fn232-live-corpus — open fn232 rewrite source, reference, reviewed integration or final qualification custody
+- /home/agent/wt/fn232-mandatory-workloads — open fn232 rewrite source, reference, reviewed integration or final qualification custody
+- /home/agent/wt/fn232-minimize — open fn232 rewrite source, reference, reviewed integration or final qualification custody
+- /home/agent/wt/fn232-native-import — open fn232 rewrite source, reference, reviewed integration or final qualification custody
+- /home/agent/wt/fn232-receiving-reader — open fn232 rewrite source, reference, reviewed integration or final qualification custody
+- /home/agent/wt/fn232-retirement — open fn232 rewrite source, reference, reviewed integration or final qualification custody
+- /home/agent/wt/fn232-rust-driver — open fn232 rewrite source, reference, reviewed integration or final qualification custody
+- /home/agent/wt/fn232-simulation — open fn232 rewrite source, reference, reviewed integration or final qualification custody
+- /home/agent/wt/fn232-sweep-receiver — open fn232 rewrite source, reference, reviewed integration or final qualification custody
+- /home/agent/wt/fn232-world-codec — open fn232 rewrite source, reference, reviewed integration or final qualification custody
+- /home/agent/wt/fn233-corpus — active fn233 coherent repair worker/delegate ownership; do not remove
+- /home/agent/wt/fn233-derive-config — active fn233 coherent repair worker/delegate ownership; do not remove
+- /home/agent/wt/fn233-docs-make — active fn233 coherent repair worker/delegate ownership; do not remove
+- /home/agent/wt/fn233-execution-fixes — active fn233 coherent repair worker/delegate ownership; do not remove
+- /home/agent/wt/fn233-interception — active fn233 coherent repair worker/delegate ownership; do not remove
+- /home/agent/wt/fn233-shim-classify — active fn233 coherent repair worker/delegate ownership; do not remove
+- /home/agent/wt/fn233-tag-policy — active fn233 coherent repair worker/delegate ownership; do not remove
+- /home/agent/wt/fn233-wrapper — active fn233 coherent repair worker/delegate ownership; do not remove
+
+Scratch/evidence roots retained: /home/agent/wt/evidence (open fn185/188/221/222/232/233 proofs and pending fn231 custody cleanup); /home/agent/evidence (raw regressions/review/source maps and cleanup receipts); /home/agent/.cache/codex-build (leases and pinned binaries, regenerate only explicitly inactive intermediates); repository .flow/tmp (root receipts/review sessions) and tools/gomad/.turbo (unrelated user state, untouched). No blanket cleanup authorized.
