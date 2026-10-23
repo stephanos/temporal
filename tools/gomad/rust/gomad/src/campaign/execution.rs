@@ -19,6 +19,67 @@ pub(crate) struct Result {
     pub metrics: Metrics,
 }
 
+#[expect(
+    clippy::large_enum_variant,
+    reason = "A finalized execution owns its complete publication; a nonpublishable failure owns only presentation evidence"
+)]
+pub(crate) enum Completion {
+    Finalized(Result),
+    Failed(Failure),
+}
+
+#[derive(Debug)]
+pub(crate) struct Failure {
+    pub termination: &'static str,
+    pub reason: String,
+    pub soft_assertions: Option<serde_json::Value>,
+    pub diagnostics: Vec<String>,
+}
+
+impl Completion {
+    pub(crate) fn finalized(self) -> std::result::Result<Result, Failure> {
+        match self {
+            Self::Finalized(result) => Ok(result),
+            Self::Failed(failure) => Err(failure),
+        }
+    }
+}
+
+impl Failure {
+    pub(crate) fn message(&self) -> String {
+        let mut message = format!("runner_failure: {}", self.reason);
+        for diagnostic in &self.diagnostics {
+            message.push_str("; ");
+            message.push_str(diagnostic);
+        }
+        message
+    }
+
+    pub(crate) fn report(
+        &self,
+        json_output: bool,
+        output: &mut dyn std::io::Write,
+    ) -> std::result::Result<i32, String> {
+        let classification = if self.termination == "capacity" {
+            "capacity"
+        } else {
+            "runner_failure"
+        };
+        if json_output {
+            let mut event = json!({"schema":"gomad.explore-event/v3","type":"error",
+                "classification":classification,"message":self.message()});
+            if let Some(report) = &self.soft_assertions {
+                event["soft_assertions"] = report.clone();
+            }
+            writeln!(output, "{event}").map_err(|error| error.to_string())?;
+        } else {
+            writeln!(output, "gomad: {classification}: {}", self.message())
+                .map_err(|error| error.to_string())?;
+        }
+        Ok(3)
+    }
+}
+
 /// In-process observations of one execution. They never enter records.
 #[derive(Clone, Debug, Default)]
 pub(crate) struct Metrics {
@@ -102,7 +163,7 @@ pub(crate) fn run(
     job: &ledger::Job,
     timeout: Duration,
     cancellation: &linked::Cancellation,
-) -> std::result::Result<Result, String> {
+) -> std::result::Result<Completion, String> {
     run_with_replay(prepared, job, timeout, cancellation, None, None)
 }
 
@@ -113,7 +174,7 @@ pub(crate) fn run_with_replay(
     cancellation: &linked::Cancellation,
     replay: Option<&linked::ReplayRequest>,
     raw_trace: Option<&[u8]>,
-) -> std::result::Result<Result, String> {
+) -> std::result::Result<Completion, String> {
     run_with_output(
         prepared,
         job,
@@ -133,7 +194,7 @@ pub(crate) fn run_with_output(
     replay: Option<&linked::ReplayRequest>,
     raw_trace: Option<&[u8]>,
     output: Option<std::sync::Arc<dyn linked::OutputConsumer>>,
-) -> std::result::Result<Result, String> {
+) -> std::result::Result<Completion, String> {
     run_with_controls(
         prepared,
         job,
@@ -164,7 +225,7 @@ pub(super) fn run_counterfactual(
     timeout: Duration,
     cancellation: &linked::Cancellation,
     fault: super::counterfactual::Fault,
-) -> std::result::Result<Result, String> {
+) -> std::result::Result<Completion, String> {
     run_with_controls(
         prepared,
         job,
@@ -244,7 +305,7 @@ fn run_with_controls(
     timeout: Duration,
     cancellation: &linked::Cancellation,
     controls: Controls<'_>,
-) -> std::result::Result<Result, String> {
+) -> std::result::Result<Completion, String> {
     let Controls {
         replay,
         raw_trace,
@@ -317,7 +378,7 @@ fn run_with_controls(
     crate::live_backend::after_execution(job.ordinal, cancellation)?;
     let mut result = publication(prepared, job, observed)?;
     result.metrics = metrics;
-    Ok(result)
+    Ok(Completion::Finalized(result))
 }
 
 /// Runs one admitted store inside the whole-process backstop and its

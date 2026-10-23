@@ -152,7 +152,9 @@ impl Parent {
             &linked::Cancellation::default(),
             Some(&self.choice_request(length)?),
             Some(&self.trace),
-        )?;
+        )?
+        .finalized()
+        .map_err(|failure| failure.message())?;
         retain_provenance_presence(&self.opened, &mut trial)?;
         Ok(trial)
     }

@@ -146,7 +146,11 @@ fn run(
                     &control.simulation_plan,
                 )
             })();
-            if result.is_err() {
+            if result.is_err()
+                || result.as_ref().is_ok_and(|completed| {
+                    matches!(completed, super::execution::Completion::Failed(_))
+                })
+            {
                 for cancellation in &cancellations {
                     cancellation.cancel();
                 }
@@ -156,7 +160,13 @@ fn run(
         let mut executions = Vec::with_capacity(observed.len());
         let mut results = Vec::with_capacity(observed.len());
         let mut evidence = Vec::with_capacity(observed.len());
-        for (index, mut observed) in observed.into_iter().enumerate() {
+        for (index, observed) in observed.into_iter().enumerate() {
+            let mut observed = match observed {
+                super::execution::Completion::Finalized(observed) => observed,
+                super::execution::Completion::Failed(failure) => {
+                    return failure.report(json, output);
+                }
+            };
             if observed.execution.record.outcome.class == "runner_failure" {
                 return Err(format!(
                     "runner_failure: {}",

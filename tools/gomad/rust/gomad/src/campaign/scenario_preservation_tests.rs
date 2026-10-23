@@ -588,30 +588,25 @@ fn output_capacity_precedes_assertion_budget_and_choice_finalization_errors() {
                 .unwrap_or_else(|error| {
                     panic!("{mode} lost capacity and assertion report: {error}")
                 });
-            let outcome = &result.execution.record.outcome;
+            let super::super::execution::Completion::Failed(failure) = result else {
+                panic!("{mode} acquired a canonical record and publication");
+            };
+            assert_eq!(failure.termination, "capacity", "{mode}");
             assert_eq!(
-                (&*outcome.class, &*outcome.termination),
-                ("runner_failure", "capacity"),
+                failure.reason, "WASI capacity: offered-output-bytes",
                 "{mode}"
             );
             assert!(
-                outcome
-                    .reason
-                    .contains("WASI capacity: offered-output-bytes"),
-                "{mode}: {}",
-                outcome.reason
-            );
-            assert!(
-                outcome.reason.contains(if mode.ends_with("budget") {
+                failure.message().contains(if mode.ends_with("budget") {
                     "scenario soft assertion evidence bytes"
                 } else {
                     "choice"
                 }),
                 "{mode}: {}",
-                outcome.reason
+                failure.message()
             );
             let report: Report =
-                serde_json::from_value(result.execution.soft_assertions.unwrap()).unwrap();
+                serde_json::from_value(failure.soft_assertions.clone().unwrap()).unwrap();
             assert_eq!(
                 report,
                 Report {
@@ -621,17 +616,23 @@ fn output_capacity_precedes_assertion_budget_and_choice_finalization_errors() {
                 },
                 "{mode}"
             );
-            assert!(result.execution.artifact.is_none());
-            assert_eq!(result.execution.stored_bytes, 0);
-            assert!(!result.publication.payloads.contains_key(cluster::FILE));
-            assert!(
-                !result
-                    .publication
-                    .payloads
-                    .keys()
-                    .any(|key| key.ends_with("/choice"))
+            let mut output = Vec::new();
+            assert_eq!(failure.report(true, &mut output).unwrap(), 3);
+            let event: Value = serde_json::from_slice(&output).unwrap();
+            assert_eq!(event["classification"], "capacity");
+            assert_eq!(
+                event["soft_assertions"],
+                serde_json::to_value(&report).unwrap()
             );
-            let signature = result.execution.record.failure_signature().unwrap();
+            assert!(event.get("record").is_none());
+            assert!(event.get("artifact").is_none());
+            let signature = canonical::digest(
+                &canonical::encode(&json!({
+                    "termination":failure.termination,"reason":failure.reason,
+                    "soft_assertions":failure.soft_assertions
+                }))
+                .unwrap(),
+            );
             if let Some(expected) = &expected_identity {
                 assert_eq!(
                     &signature, expected,
@@ -641,5 +642,22 @@ fn output_capacity_precedes_assertion_budget_and_choice_finalization_errors() {
                 expected_identity = Some(signature);
             }
         }
+    }
+}
+
+#[test]
+fn output_capacity_reporting_does_not_reclassify_other_global_failures() {
+    for (termination, message) in [
+        ("infrastructure", "output capacity"),
+        ("capacity", "transcript capacity"),
+        ("exit", ""),
+    ] {
+        let (_, configuration, mut observed) = capacity_finalization_case("capacity-first", false);
+        observed.outcome = linked::Outcome::new(termination, message);
+        assert!(
+            output_capacity_failure(&observed, &configuration, true, 16, 4096)
+                .unwrap()
+                .is_none()
+        );
     }
 }

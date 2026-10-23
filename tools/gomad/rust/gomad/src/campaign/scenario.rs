@@ -1083,6 +1083,108 @@ fn assertions(
     Ok(Some(reports))
 }
 
+fn output_capacity_failure(
+    execution: &helper::Execution,
+    configuration: &cluster::Configuration,
+    report_only: bool,
+    maximum_results: u64,
+    maximum_bytes: u64,
+) -> Result<Option<super::execution::Failure>, String> {
+    if execution.outcome.termination != "capacity"
+        || !matches!(
+            execution.outcome.message.as_str(),
+            "output capacity" | "WASI capacity: offered-output-bytes"
+        )
+    {
+        return Ok(None);
+    }
+    let Some(selected) = execution
+        .incarnations
+        .iter()
+        .filter(|item| {
+            item.execution.outcome.termination == "capacity"
+                && matches!(
+                    item.execution.outcome.message.as_str(),
+                    "output capacity" | "WASI capacity: offered-output-bytes"
+                )
+        })
+        .min_by(|left, right| left.handle.cmp(&right.handle))
+    else {
+        return Ok(None);
+    };
+    let report = super::soft_assertions::observe(
+        selected
+            .execution
+            .evidence
+            .get("stdout")
+            .map_or(&[][..], Vec::as_slice),
+        selected
+            .execution
+            .evidence
+            .get("stderr")
+            .map_or(&[][..], Vec::as_slice),
+        false,
+        report_only,
+    );
+    let finalization = assertions(
+        execution,
+        configuration,
+        report_only,
+        maximum_results,
+        maximum_bytes,
+    )
+    .map(|_| ());
+    let diagnostic = if let Err(error) = finalization {
+        Some(error)
+    } else {
+        let mut owners = execution.incarnations.iter().collect::<Vec<_>>();
+        owners.sort_by(|left, right| left.handle.cmp(&right.handle));
+        owners.into_iter().find_map(|owner| {
+            let declared = configuration
+                .incarnations
+                .iter()
+                .find(|declared| declared.handle == owner.handle)?;
+            let trace = owner.execution.evidence.get("choice");
+            let result = if trace.is_none()
+                && !owner
+                    .execution
+                    .outcome
+                    .local_model
+                    .as_deref()
+                    .is_some_and(|model| {
+                        model["configured"] == true
+                            && model["finished"] == true
+                            && model["records"] == 0
+                    }) {
+                Err("choice trace is not complete".into())
+            } else {
+                incarnation_choice_features(
+                    trace.map_or(&[][..], Vec::as_slice),
+                    &declared.choice_identity,
+                    owner.execution.outcome.termination,
+                )
+                .map(|_| ())
+            };
+            result.err().map(|error| {
+                format!(
+                    "retain WASM {}/{} choice control: {error}",
+                    owner.handle.node, owner.handle.incarnation
+                )
+            })
+        })
+    };
+    Ok(Some(super::execution::Failure {
+        termination: "capacity",
+        reason: selected.execution.outcome.message.clone(),
+        soft_assertions: report
+            .as_ref()
+            .map(serde_json::to_value)
+            .transpose()
+            .map_err(|error| error.to_string())?,
+        diagnostics: diagnostic.into_iter().collect(),
+    }))
+}
+
 fn storage_input(storage: &Storage) -> Result<linked::StorageInput, String> {
     let encoded = serde_json::to_string(storage)
         .map_err(|error| error.to_string())?
@@ -1364,7 +1466,7 @@ pub(super) fn execute(
     job: &super::ledger::Job,
     timeout: Duration,
     cancellation: &linked::Cancellation,
-) -> Result<super::execution::Result, String> {
+) -> Result<super::execution::Completion, String> {
     execute_controlled(
         prepared,
         job,
@@ -1382,7 +1484,7 @@ pub(super) fn execute_counterfactual(
     timeout: Duration,
     cancellation: &linked::Cancellation,
     fault: super::counterfactual::Fault,
-) -> Result<super::execution::Result, String> {
+) -> Result<super::execution::Completion, String> {
     execute_controlled(prepared, job, timeout, cancellation, Some(fault))
 }
 
@@ -1394,7 +1496,7 @@ fn execute_controlled(
     #[cfg(all(test, feature = "helper-determinism-fixture"))] fault: Option<
         super::counterfactual::Fault,
     >,
-) -> Result<super::execution::Result, String> {
+) -> Result<super::execution::Completion, String> {
     let mut bound = bind(
         prepared
             .scenario
@@ -1468,7 +1570,9 @@ fn execute_controlled(
     let mut metrics = store_metrics(&execution, &limits, wall);
     metrics.store_peak_rss_bytes = store_peak;
     let mut result = publication(prepared, job, bound.configuration, execution, false)?;
-    result.metrics = metrics;
+    if let super::execution::Completion::Finalized(result) = &mut result {
+        result.metrics = metrics;
+    }
     Ok(result)
 }
 
@@ -1524,7 +1628,7 @@ pub(crate) fn publication(
     mut configuration: cluster::Configuration,
     execution: helper::Execution,
     simulation: bool,
-) -> Result<super::execution::Result, String> {
+) -> Result<super::execution::Completion, String> {
     use crate::evidence::{
         identity::Identity,
         record::{Outcome, Record, Stream},
@@ -1536,6 +1640,15 @@ pub(crate) fn publication(
             .as_deref()
             .ok_or("missing campaign scenario")?,
     )?;
+    if let Some(failure) = output_capacity_failure(
+        &execution,
+        &configuration,
+        prepared.soft_assertion_report_only,
+        scenario.spec.limits.oracle_results,
+        scenario.spec.limits.scenario_evidence_bytes,
+    )? {
+        return Ok(super::execution::Completion::Failed(failure));
+    }
     let reports = assertions(
         &execution,
         &configuration,
@@ -1746,22 +1859,24 @@ pub(crate) fn publication(
         streams,
     };
     payloads.insert("record.json".into(), record.bytes()?);
-    Ok(super::execution::Result {
-        execution: super::ledger::Execution {
-            ordinal: job.ordinal,
-            seed: job.seed,
-            record: record.clone(),
-            artifact: None,
-            stored_bytes: 0,
-            semantic_probes: Vec::new(),
-            choice_features: features,
-            divergence: None,
-            scenario_steps: Some(executed_steps),
-            soft_assertions: None,
+    Ok(super::execution::Completion::Finalized(
+        super::execution::Result {
+            execution: super::ledger::Execution {
+                ordinal: job.ordinal,
+                seed: job.seed,
+                record: record.clone(),
+                artifact: None,
+                stored_bytes: 0,
+                semantic_probes: Vec::new(),
+                choice_features: features,
+                divergence: None,
+                scenario_steps: Some(executed_steps),
+                soft_assertions: None,
+            },
+            publication: Publication { record, payloads },
+            metrics: super::execution::Metrics::default(),
         },
-        publication: Publication { record, payloads },
-        metrics: super::execution::Metrics::default(),
-    })
+    ))
 }
 
 fn incarnation_choice_features(

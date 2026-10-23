@@ -90,7 +90,9 @@ pub(super) fn prepare_journal(
             },
             remaining,
             &linked::Cancellation::default(),
-        )?;
+        )?
+        .finalized()
+        .map_err(|failure| failure.message())?;
         let mut resolution = exploration::site_scope::Resolution::default();
         if let Some(raw) = completion.publication.payloads.get("evidence/choice") {
             resolution.observe(&prepared.module, raw, &config.execution, patterns)?;
@@ -175,7 +177,7 @@ fn run(
             if state.logical_executions != 0 || round.candidates.len() != 1 {
                 return Err("scoped base execution differs from its root round".into());
             }
-            vec![completion]
+            vec![execution::Completion::Finalized(completion)]
         } else {
             crate::slots::run(&indices, state.config.parallel, |index| {
                 let result = (|| {
@@ -198,12 +200,24 @@ fn run(
                         replay.as_ref().map(|_| candidate.source_trace.as_slice()),
                     )
                 })();
-                if result.is_err() {
+                if result.is_err()
+                    || result.as_ref().is_ok_and(|completed| {
+                        matches!(completed, execution::Completion::Failed(_))
+                    })
+                {
                     cancellation.cancel();
                 }
                 result
             })?
         };
+        let mut finalized = Vec::with_capacity(completions.len());
+        for completion in completions {
+            match completion {
+                execution::Completion::Finalized(result) => finalized.push(result),
+                execution::Completion::Failed(failure) => return failure.report(json, output),
+            }
+        }
+        let completions = finalized;
         let context = journal
             .search_context(completions.first().and_then(|completion| {
                 completion

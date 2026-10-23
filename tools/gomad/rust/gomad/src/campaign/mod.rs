@@ -504,6 +504,7 @@ fn run_observed(
         .ok_or("campaign overall timeout overflows")?;
     let mut failure = None;
     let mut failed_assertions = None;
+    let mut failed_completion = None;
     let mut pending_publications = BTreeMap::new();
     let cancellations = (0..parallel)
         .map(|_| gomad_wasmhost::linked::Cancellation::default())
@@ -662,7 +663,14 @@ fn run_observed(
             free.insert(slot);
             running.remove(&job.ordinal);
             match result {
-                Ok(result) => {
+                Ok(execution::Completion::Failed(observed)) => {
+                    if failure.is_none() {
+                        failure = Some(observed.message());
+                        failed_completion = Some(observed);
+                    }
+                    cancel();
+                }
+                Ok(execution::Completion::Finalized(result)) => {
                     metrics.insert(job.ordinal, result.metrics);
                     let mut execution = result.execution;
                     if execution.record.outcome.class == "runner_failure"
@@ -748,6 +756,9 @@ fn run_observed(
         drop(slots);
         Ok(())
     })?;
+    if let Some(observed) = failed_completion {
+        return observed.report(json, output);
+    }
     if let Some(error) = failure {
         if let Some(report) = failed_assertions {
             if json {

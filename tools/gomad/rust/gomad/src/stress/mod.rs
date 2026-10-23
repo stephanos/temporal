@@ -386,7 +386,9 @@ fn cell(request: &Request, binary: &Path, command: &[String]) -> Result<Value, S
             None,
             None,
         )?
-    };
+    }
+    .finalized()
+    .map_err(|failure| failure.message())?;
     let outcome_error = cluster::outcome(&request.workload, &prepared, &result.publication).err();
     let tape_error = retain_tapes(&prepared, &mut result.publication).err();
     let oracle_error = outcome_error.or(tape_error);

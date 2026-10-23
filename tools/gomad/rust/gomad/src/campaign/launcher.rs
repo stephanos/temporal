@@ -212,8 +212,25 @@ pub(crate) fn run(
                     .map_err(|e| e.to_string())?,
             ) as Arc<dyn linked::OutputConsumer>)
         };
-        let mut observed =
-            execution::run_with_output(prepared, &job, timeout, &cancellation, None, None, output)?;
+        let mut observed = match execution::run_with_output(
+            prepared,
+            &job,
+            timeout,
+            &cancellation,
+            None,
+            None,
+            output,
+        )? {
+            execution::Completion::Finalized(observed) => observed,
+            execution::Completion::Failed(failure) => {
+                cancellation.cancel();
+                result.status = 3;
+                result.attempted += 1;
+                result.unexecuted -= 1;
+                result.failure = Some((failure.message(), None));
+                break;
+            }
+        };
         let published = super::store(journal.path().join("evidence"), capacity)
             .publish(observed.publication)?;
         observed.execution.artifact = Some(

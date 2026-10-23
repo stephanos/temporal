@@ -33,7 +33,7 @@ pub(super) fn run(
     replay: Option<&linked::ReplayRequest>,
     raw_trace: Option<&[u8]>,
     simulation_plan: &[u8],
-) -> Result<execution::Result, String> {
+) -> Result<execution::Completion, String> {
     let plan = linked_simulation::Plan::decode(simulation_plan)?;
     if plan.base_seed != job.seed {
         return Err("simulation plan seed differs from execution".into());
@@ -98,8 +98,18 @@ pub(super) fn run(
                 "termination":item.execution.outcome.termination,"exit_code":item.execution.outcome.exit_code
             })).collect::<Vec<_>>()
         });
-        let mut result =
-            scenario::publication(prepared, job, bound.configuration, observed.cluster, true)?;
+        let mut result = match scenario::publication(
+            prepared,
+            job,
+            bound.configuration,
+            observed.cluster,
+            true,
+        )? {
+            execution::Completion::Finalized(result) => result,
+            execution::Completion::Failed(failure) => {
+                return Ok(execution::Completion::Failed(failure));
+            }
+        };
         result.execution.divergence = runtime_divergence;
         payload(&mut result, "evidence/choice", trace);
         (
@@ -117,8 +127,19 @@ pub(super) fn run(
         {
             return Err("non-runtime simulation override requires an executed scenario".into());
         }
-        let result =
-            execution::run_with_replay(prepared, job, remaining, cancellation, replay, raw_trace)?;
+        let result = match execution::run_with_replay(
+            prepared,
+            job,
+            remaining,
+            cancellation,
+            replay,
+            raw_trace,
+        )? {
+            execution::Completion::Finalized(result) => result,
+            execution::Completion::Failed(failure) => {
+                return Ok(execution::Completion::Failed(failure));
+            }
+        };
         let observations = json!({"execution_record_sha256":result.execution.record.hash()?});
         (result, Vec::new(), None, observations)
     };
@@ -185,7 +206,7 @@ pub(super) fn run(
     );
     let record = result.publication.record.bytes()?;
     payload(&mut result, "record.json", record);
-    Ok(result)
+    Ok(execution::Completion::Finalized(result))
 }
 
 fn payload(result: &mut execution::Result, name: &str, bytes: Vec<u8>) {

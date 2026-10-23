@@ -213,6 +213,8 @@ fn compiled_output_callback_failure_retains_partial_publication_and_origin() {
         None,
         Some(consumer.clone()),
     )
+    .unwrap()
+    .finalized()
     .unwrap();
     assert_eq!(
         consumer.calls.load(Ordering::Relaxed),
@@ -286,6 +288,8 @@ fn first_failure_leaves_a_later_would_pass_seed_unexecuted() {
         None,
         None,
     )
+    .unwrap()
+    .finalized()
     .unwrap();
     assert_eq!(later.execution.record.outcome.exit_code, Some(0));
     let root = std::env::temp_dir().join(format!(
@@ -656,6 +660,8 @@ fn legacy_intercepted_artifact_remains_readable_without_launch_extension() {
         None,
         None,
     )
+    .unwrap()
+    .finalized()
     .unwrap();
     let root = std::env::temp_dir().join(format!(
         "gomad-legacy-origin-{}",
@@ -699,6 +705,8 @@ fn detached_pooled_artifact_authenticates_after_original_store_is_removed() {
         None,
         None,
     )
+    .unwrap()
+    .finalized()
     .unwrap();
     let root = std::env::temp_dir().join(format!(
         "gomad-detached-pool-{}",
