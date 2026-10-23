@@ -1,6 +1,6 @@
 {
   "schema": "gomad.integration-development-evidence/v1",
-  "observed_at": "2026-10-23T13:59:18.857710+00:00",
+  "observed_at": "2026-10-23T14:06:01.509211+00:00",
   "integration_head": "6d610a3fcfabf5119f4b915582743e49a8d64e4f",
   "final_qualification": false,
   "logs": [
@@ -3001,6 +3001,51 @@
         "Runtime-cost cached native request versus uncached original reference request coupling"
       ],
       "remaining_acceptance": "New immutable candidate and genuine roles/installations/inputs; all original runtime, workload, replay, receiving, counterfactual and 3600-second gates; later support/sweep/profiling milestones remain open"
+    },
+    {
+      "observed_at": "2026-10-23T14:06:01.509211+00:00",
+      "integration_head": "4c811a4e972ff9465e6ca12726bd4a63d94af24f",
+      "final_qualification": false,
+      "scope": "Joined workload-tool regression and independently reopened original Go dependency prerequisites",
+      "logs": [
+        {
+          "path": "/home/agent/evidence/fn232-root-original-workload-tools-v1/tests.json",
+          "bytes": 615,
+          "sha256": "c41670625e8e735360c8b0c5f65ff2eeb852f5fb7e94ab6b4cec69048b24e840"
+        },
+        {
+          "path": "/home/agent/evidence/fn232-root-original-workload-tools-v1/tests.log",
+          "bytes": 5288,
+          "sha256": "9e1654b8aebfc93a7a4b187837d0b5c04328752584e3210eccec3f5687fed6e8"
+        },
+        {
+          "path": "/home/agent/evidence/fn232-root-wire-dependency-audit-v1.json",
+          "bytes": 1852,
+          "sha256": "c1e2a81258ffaf3d20eb29d357408eaad2bec7011cf984ef375918d4af88470e"
+        }
+      ],
+      "workload_tools": {
+        "tests": 31,
+        "elapsed_s": 0.117,
+        "exit": 0,
+        "source_unchanged": true
+      },
+      "original_dependencies": {
+        "actual_metadata_only_go_exit": 0,
+        "actual_metadata_pid": 952564,
+        "actual_packages": 273,
+        "genuine_private_modules": 6,
+        "files_reopened_by_root": 806,
+        "bytes_reopened_by_root": 16324063,
+        "scope": "Offline go list metadata; no original test/build/guest PASS"
+      },
+      "source_remaining": [
+        "Six-wire applicability plus shared explicit archived Go module-cache input/env/freezer hooks",
+        "SQLite fixed Go oracle plus independent Reader.catalogue join found by fresh review",
+        "Runtime-cost cached candidate/uncached original reference coupling",
+        "Thirteenth fixed fn222-support build role and typed receiving/freezer closure"
+      ],
+      "acceptance": "All actual final candidate builds, original tests, runtime/workload/retained replay and 3600-second qualification remain pending; no milestone is completed by these checks"
     }
   ],
   "resource_snapshot": {
