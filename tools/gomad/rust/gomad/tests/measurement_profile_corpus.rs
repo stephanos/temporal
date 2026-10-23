@@ -461,3 +461,62 @@ fn actual_cluster_cache_comparison_requires_actual_preparation_metrics() {
         .remove("metrics");
     assert!(evidence::compare(&runs[0], &missing, mask()).is_err());
 }
+
+#[cfg(feature = "helper-diagnostic-profile")]
+#[test]
+fn actual_native_admission_refusals_retain_error_phase_counts_and_cleanup() {
+    let root = Scratch::new();
+    let input = root.request(
+        "admission",
+        "(module (memory (export \"memory\") 2) (func (export \"_start\") unreachable))",
+        false,
+    );
+    let original = read(&input);
+    for stage in ["module-digest", "loaded-module-descriptor"] {
+        let mut request = original.clone();
+        if stage == "module-digest" {
+            request["guest"]["module_sha256"] = json!("0".repeat(64));
+        }
+        let request_path = root.write(
+            &format!("{stage}.json"),
+            &serde_json::to_vec(&request).unwrap(),
+        );
+        let output = root.0.join(stage);
+        let result = root.invoke(
+            env!("CARGO_BIN_EXE_gomad-measure"),
+            &[
+                std::ffi::OsStr::new("--linked-run"),
+                request_path.as_os_str(),
+                output.as_os_str(),
+            ],
+        );
+        assert_eq!(result.status.success(), stage != "module-digest");
+        let report = read(&output.join("report.json"));
+        let refusal = &report["admission_refusal"];
+        assert_eq!(refusal["schema"], "gomad.native-admission-refusal/v1");
+        assert!(refusal["terminal_to_return_nanos"].as_u64().unwrap() <= 1_000_000_000);
+        let profile = read(&output.join("profile.json"));
+        for phase in ["instantiate", "execute"] {
+            assert_eq!(profile["phases"][phase]["count"], 0);
+        }
+        if stage == "module-digest" {
+            assert_eq!(refusal["stage"], "request-admission");
+            assert_eq!(refusal["error"], "module SHA-256 mismatch");
+            for phase in ["engine_init", "compile", "deserialize"] {
+                assert_eq!(profile["phases"][phase]["count"], 0);
+            }
+            assert!(!output.join("outcome.json").exists());
+        } else {
+            assert_eq!(refusal["stage"], "loaded-module-descriptor");
+            let outcome = read(&output.join("outcome.json"));
+            assert_eq!(outcome["termination"], "capacity");
+            assert_eq!(outcome["message"], "initial guest memory exceeds limit");
+            assert!(outcome["metrics"]["prepare_nanos"].as_u64().unwrap() > 0);
+            assert!(outcome["metrics"]["compile_nanos"].as_u64().unwrap() > 0);
+            assert_eq!(outcome["metrics"]["instantiate_nanos"], 0);
+            assert_eq!(outcome["metrics"]["execute_nanos"], 0);
+            assert_eq!(profile["phases"]["compile"]["count"], 1);
+            assert_eq!(read(&output.join("request.json")), original);
+        }
+    }
+}

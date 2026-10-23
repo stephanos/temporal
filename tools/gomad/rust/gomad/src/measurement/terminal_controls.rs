@@ -1,6 +1,7 @@
 use super::*;
 use crate::measurement::build;
 use gomad_wasmhost::linked;
+use serde_json::Value;
 use std::{fs, os::unix::fs::DirBuilderExt as _, path::PathBuf, time::Duration};
 
 const CONTROL_DELAY: Duration = Duration::from_millis(1100);
@@ -202,5 +203,85 @@ fn terminal_controls_actual_supervisor_rejects_death_and_postreceipt_watchdog_an
             result.is_ok(),
             observation.termination
         );
+    }
+}
+
+#[test]
+#[ignore = "invoked only by the real terminal-publication child supervisor fixture"]
+fn terminal_controls_publication_child() {
+    let root = PathBuf::from(std::env::var_os("GOMAD_TERMINAL_PUBLICATION_ROOT").unwrap());
+    let preparation = std::env::var("GOMAD_TERMINAL_PREPARATION_MILLIS")
+        .unwrap()
+        .parse()
+        .unwrap();
+    let publication = std::env::var("GOMAD_TERMINAL_PUBLICATION_MILLIS")
+        .unwrap()
+        .parse()
+        .unwrap();
+    let observation = native_observation(Duration::from_millis(preparation), Duration::ZERO, false);
+    let report = serde_json::json!({"terminal_clock":"CLOCK_MONOTONIC",
+        "terminal_monotonic_nanos":observation.execution.terminal_monotonic_nanos,
+        "fresh_store_id":std::process::id()});
+    std::thread::sleep(Duration::from_millis(publication));
+    fs::write(
+        root.join("child-report.json"),
+        serde_json::to_vec(&report).unwrap(),
+    )
+    .unwrap();
+}
+
+#[test]
+fn terminal_controls_actual_child_publication_uses_original_terminal_to_reap_bound() {
+    for (preparation, publication, accepted) in [(0, 0, true), (1100, 0, true), (0, 1100, false)] {
+        let root = Directory::new();
+        fs::DirBuilder::new()
+            .mode(0o700)
+            .create(root.0.join("evidence"))
+            .unwrap();
+        let environment = BTreeMap::from([
+            (
+                "GOMAD_TERMINAL_PUBLICATION_ROOT".into(),
+                root.0.to_string_lossy().into_owned(),
+            ),
+            (
+                "GOMAD_TERMINAL_PREPARATION_MILLIS".into(),
+                preparation.to_string(),
+            ),
+            (
+                "GOMAD_TERMINAL_PUBLICATION_MILLIS".into(),
+                publication.to_string(),
+            ),
+        ]);
+        build::command_bounded(
+            &root.0.join("evidence"),
+            "publication-driver",
+            &root.0,
+            &environment,
+            &[
+                std::env::current_exe()
+                    .unwrap()
+                    .to_string_lossy()
+                    .into_owned(),
+                "--exact".into(),
+                "measurement::warm::terminal_controls::terminal_controls_publication_child".into(),
+                "--ignored".into(),
+                "--nocapture".into(),
+            ],
+            Duration::from_secs(10),
+            64 << 10,
+        )
+        .unwrap();
+        let report: Value =
+            serde_json::from_slice(&fs::read(root.0.join("child-report.json")).unwrap()).unwrap();
+        let admitted =
+            crate::measurement::warm_driver::process_exit_interval(&root.0, "publication", &report);
+        assert_eq!(
+            admitted.is_ok(),
+            accepted,
+            "preparation={preparation} publication={publication}: {admitted:?}"
+        );
+        if !accepted {
+            assert!(admitted.unwrap_err().contains("original one-second bound"));
+        }
     }
 }

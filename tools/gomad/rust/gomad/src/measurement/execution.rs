@@ -249,6 +249,8 @@ fn execute(raw: &[u8], request: Input, root: &Path) -> Result<(), String> {
     let mut retained_incarnations = 0usize;
     let mut authorization_to_terminal_nanos = None;
     let mut terminal_to_return_nanos = None;
+    let mut admission_refusal = None;
+    let mut terminal_monotonic_nanos = None;
     #[cfg(feature = "helper-diagnostic-profile")]
     let mut native_external_owner_attempts = None;
     let (result, profile) = match request {
@@ -271,9 +273,17 @@ fn execute(raw: &[u8], request: Input, root: &Path) -> Result<(), String> {
             let request = guest.request(root, 0, &Value::Null, &mut modules)?;
             write(&root.join("rootmodules.json"), &modules)?;
             let timeout = request.limits.wall_timeout;
+            let mut admission_terminal = None;
             let (result, profile) = capture(|| {
                 crate::backstop::within(timeout, || {
-                    let mut prepared = linked::prepare(request)?;
+                    let mut prepared = match linked::prepare(request) {
+                        Ok(prepared) => prepared,
+                        Err(error) => {
+                            terminal_monotonic_nanos = linked::monotonic_nanos().ok();
+                            admission_terminal = Some(std::time::Instant::now());
+                            return Err(error);
+                        }
+                    };
                     prepared.conditions(linked::Conditions::compiled());
                     prepared.compile_cache(
                         compile_cache
@@ -303,7 +313,30 @@ fn execute(raw: &[u8], request: Input, root: &Path) -> Result<(), String> {
                 })
             })?;
             let result = result.map_err(|error| error.to_string());
+            if let Some(classified) = admission_terminal {
+                let elapsed = u64::try_from(classified.elapsed().as_nanos())
+                    .map_err(|_| "admission cleanup interval overflow")?;
+                admission_refusal = Some(json!({
+                    "schema":"gomad.native-admission-refusal/v1",
+                    "stage":"request-admission",
+                    "error":result.as_ref().err(),
+                    "terminal_to_return_nanos":elapsed,
+                    "clock":"monotonic",
+                    "boundary":"actual linked prepare refusal through diagnostic capture cleanup; no engine created"
+                }));
+            }
             if let Ok(execution) = &result {
+                terminal_monotonic_nanos = execution.terminal_monotonic_nanos;
+                if let Some(elapsed) = execution.admission_terminal_to_return_nanos {
+                    admission_refusal = Some(json!({
+                        "schema":"gomad.native-admission-refusal/v1",
+                        "stage":"loaded-module-descriptor",
+                        "outcome":execution.outcome,
+                        "terminal_to_return_nanos":elapsed,
+                        "clock":"monotonic",
+                        "boundary":"actual compiled-module descriptor refusal through completed engine/watchdog cleanup; no store instantiated"
+                    }));
+                }
                 authorization_to_terminal_nanos = execution.authorization_to_terminal_nanos;
                 terminal_to_return_nanos = execution
                     .timing
@@ -408,7 +441,13 @@ fn execute(raw: &[u8], request: Input, root: &Path) -> Result<(), String> {
     let binary = std::fs::read(std::env::current_exe().map_err(|error| error.to_string())?)
         .map_err(|error| error.to_string())?;
     #[cfg(feature = "helper-diagnostic-profile")]
-    let validation = profile.as_ref().map_or(Ok(()), crate::profile::validate);
+    let validation = profile.as_ref().map_or(Ok(()), |profile| {
+        if admission_refusal.is_some() {
+            crate::profile::validate_admission_refusal(profile)
+        } else {
+            crate::profile::validate(profile)
+        }
+    });
     #[cfg(not(feature = "helper-diagnostic-profile"))]
     let validation: Result<(), String> = Ok(());
     #[cfg(feature = "helper-diagnostic-profile")]
@@ -425,6 +464,9 @@ fn execute(raw: &[u8], request: Input, root: &Path) -> Result<(), String> {
     let report: Value = json!({
         "schema":"gomad.linked-profile-run/v1", "diagnostic_only":cfg!(feature="helper-diagnostic-profile"),
         "retained_incarnations":retained_incarnations,
+        "admission_refusal":admission_refusal,
+        "terminal_monotonic_nanos":terminal_monotonic_nanos,
+        "terminal_clock":"CLOCK_MONOTONIC",
         "authorization_to_terminal_nanos":authorization_to_terminal_nanos,
         "fresh_store_id":std::process::id(),
         "terminal_to_return_nanos":terminal_to_return_nanos,

@@ -289,6 +289,8 @@ pub struct CommandObservation {
     pub directory: PathBuf,
     pub environment: BTreeMap<String, String>,
     pub pid: Option<u32>,
+    #[serde(default)]
+    pub reaped_monotonic_nanos: Option<u64>,
     pub exit_code: Option<i32>,
     pub signal: Option<i32>,
     pub duration_nanos: u64,
@@ -394,6 +396,7 @@ pub(super) fn observe_command(
     let mut child = None;
     let mut pid = None;
     let mut status = None;
+    let mut reaped_monotonic_nanos = None;
     let mut termination = "infrastructure_failure".to_string();
     let attempted = (|| -> Result<(), String> {
         let open = |path: &Path| {
@@ -429,6 +432,7 @@ pub(super) fn observe_command(
                 .try_wait()
                 .map_err(error)?
             {
+                reaped_monotonic_nanos = gomad_wasmhost::linked::monotonic_nanos().ok();
                 status = Some(exit);
                 termination = if exit.success() {
                     "exit"
@@ -477,6 +481,7 @@ pub(super) fn observe_command(
         }
         match process.wait() {
             Ok(exit) => {
+                reaped_monotonic_nanos = gomad_wasmhost::linked::monotonic_nanos().ok();
                 status = Some(exit);
             }
             Err(error) => cleanup_errors.push(format!("wait native child: {error}")),
@@ -531,6 +536,7 @@ pub(super) fn observe_command(
         directory: cwd.into(),
         environment: environment.clone(),
         pid,
+        reaped_monotonic_nanos,
         exit_code: status.and_then(|status| status.code()),
         signal: status.and_then(|status| status.signal()),
         duration_nanos: u64::try_from(started.elapsed().as_nanos()).unwrap_or(u64::MAX),
