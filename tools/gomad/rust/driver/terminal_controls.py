@@ -7,6 +7,7 @@ import sys
 
 import final_profiles
 import live
+import original_wire_cache
 from driver import Refusal, command, configured, read, require, sha, write
 
 PACKAGE = 'go.temporal.io/server/tools/gomad/internal/backends/wasm/wasi'
@@ -82,6 +83,7 @@ def collect(config, root, produce):
     entry = config['terminal_controls_reference']
     execute = run if produce else retained
     derived, source = final_profiles.original_source(config, root, entry, 'original-tree', execute)
+    module_cache = original_wire_cache.binding(config, entry)
     go, goroot = entry['go'], Path(entry['go_root'])
     live.sealed_input(config, str(goroot))
     require(Path(go) == goroot / 'bin/go', 'original controls require admitted stock Go installation')
@@ -91,9 +93,7 @@ def collect(config, root, produce):
         scratch.mkdir()
         (scratch / 'go-cache').mkdir()
     require(scratch.is_dir() and not scratch.is_symlink(), 'missing original control scratch')
-    environment = dict(PATH=str(goroot / 'bin') + ':/usr/bin:/bin', GOFLAGS='-p=1',
-                       GOCACHE=str(scratch / 'go-cache'), TMPDIR=str(scratch),
-                       GOPROXY='off', GOSUMDB='off', GOCACHEPROG='')
+    environment = original_wire_cache.environment(goroot, scratch, module_cache['root'])
     child = dict(config, repo=cwd, environment=environment, temporary_paths={})
     version, _ = execute(child, root, 'go-version', [go, 'version'])
     require(version.startswith(b'go version go1.27.1 '), 'changed original Go version')
@@ -103,9 +103,10 @@ def collect(config, root, produce):
             '-run', '^TestTerminalExit', './wasi']
     raw, process = execute(child, root, 'original-terminal-controls', argv)
     names = events(raw)
+    require(original_wire_cache.binding(config, entry) == module_cache, 'original terminal dependency cache changed')
     proof = dict(schema='gomad.original-terminal-controls/v1', original_commit=source['original_commit'],
                  original_source=str(derived / 'source.json'), original_source_sha256=sha(derived / 'source.json'),
-                 compiler=compiler, compiler_sha256=sha(go), testcases=names,
+                 compiler=compiler, compiler_sha256=sha(go), testcases=names, module_cache=module_cache,
                  pid=process['pid'], scope='original framed-helper wire applicability; test-owned hashed shell helpers',
                  source_sha256=config['source_sha256'], identity=config['identity'],
                  helper_factory_sha256=sha(Path(cwd) / 'wasi/process_test.go'),

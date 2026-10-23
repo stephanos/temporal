@@ -98,14 +98,16 @@ class ClusterWire(unittest.TestCase):
             root = Path(directory)
             derived, goroot = root / 'derived', root / 'go'
             files = [derived / name for name in ('source.json', 'original.tar', 'source/original.go', 'source/glue.go')]
-            files += [root / 'git', goroot / 'bin/go', goroot / 'pkg/tool/compiler']
+            files += [root / 'git', goroot / 'bin/go', goroot / 'pkg/tool/compiler', root / 'module-cache/dependency.go']
             for path in files:
                 path.parent.mkdir(parents=True, exist_ok=True)
                 path.write_bytes(b'synthetic input closure control')
             source = dict(original_files={'original.go': dict(kind='file'), 'original-link': dict(kind='symlink')},
                           glue={'glue.go': 'synthetic'})
-            entry = dict(derived=str(derived), go_root=str(goroot), go=str(goroot / 'bin/go'), git=str(root / 'git'))
-            with patch('reference_profile.verify', return_value=source) as verify:
+            entry = dict(derived=str(derived), go_root=str(goroot), go=str(goroot / 'bin/go'), git=str(root / 'git'),
+                         module_cache=str(root / 'module-cache'))
+            with patch('reference_profile.verify', return_value=source) as verify, \
+                    patch.object(reference.original_wire_cache, 'input_paths', return_value={str(files[-1])}):
                 paths = reference.input_paths(entry)
                 verify.assert_called_once_with(derived)
                 self.assertEqual(paths, {str(path) for path in files} | {str(reference.Path(reference.__file__).parent / 'reference/main.go.txt')})

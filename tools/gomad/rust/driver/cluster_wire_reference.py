@@ -7,6 +7,7 @@ import sys
 import final_profiles
 import live
 import native_roles
+import original_wire_cache
 import terminal_controls
 from driver import Refusal, configured, read, require, sha, write
 
@@ -70,6 +71,7 @@ def input_paths(entry):
                  if item['kind'] == 'file')
     paths.update(str(derived / 'source' / name) for name in source['glue'])
     paths.update(str(goroot / name) for name in live.inventory(goroot))
+    paths.update(original_wire_cache.input_paths(entry))
     require(all(Path(path).is_absolute() and Path(path).is_file() and not Path(path).is_symlink() for path in paths),
             'missing/nonregular original cluster reference input')
     return paths
@@ -84,6 +86,7 @@ def collect(config, produce=False):
     execute = terminal_controls.run if produce else terminal_controls.retained
     derived, source = final_profiles.original_source(config, root, entry, 'original-tree', execute)
     before = {name: sha(derived / 'source' / name) for name in FILES}
+    module_cache = original_wire_cache.binding(config, entry)
     go, goroot = entry['go'], Path(entry['go_root'])
     live.sealed_input(config, str(goroot))
     require(Path(go) == goroot / 'bin/go', 'cluster wire reference requires admitted stock Go')
@@ -92,10 +95,10 @@ def collect(config, produce=False):
         scratch.mkdir(mode=0o700)
         (scratch / 'go-cache').mkdir(mode=0o700)
     require(scratch.is_dir() and not scratch.is_symlink(), 'missing original cluster wire scratch')
+    environment = original_wire_cache.environment(goroot, scratch, module_cache['root'])
+    environment.update(GOMAD_CLUSTER_TRANSPORT_CODEC_REGENERATE='', GOMAD_CLUSTER_TRANSPORT_STAGE_REGENERATE='')
     child = dict(config, repo=str(derived / 'source/tools/gomad/internal/backends/wasm'), temporary_paths={},
-        environment=dict(PATH=str(goroot / 'bin') + ':/usr/bin:/bin', GOFLAGS='-p=1',
-            GOCACHE=str(scratch / 'go-cache'), TMPDIR=str(scratch), GOPROXY='off', GOSUMDB='off', GOCACHEPROG='',
-            GOMAD_CLUSTER_TRANSPORT_CODEC_REGENERATE='', GOMAD_CLUSTER_TRANSPORT_STAGE_REGENERATE=''))
+                 environment=environment)
     version, _ = execute(child, root, 'go-version', [go, 'version'])
     environment, _ = execute(child, root, 'go-environment', [go, 'env', '-json', 'GOROOT', 'GOVERSION', 'GOTOOLDIR'])
     compiler = terminal_controls.compiler_identity(goroot, version, environment)
@@ -108,9 +111,10 @@ def collect(config, produce=False):
     import reference_profile
     require(reference_profile.verify(derived) == source, 'original cluster wire source closure changed')
     live.sealed_input(config, str(goroot))
+    require(original_wire_cache.binding(config, entry) == module_cache, 'original cluster wire dependency cache changed')
     proof = dict(schema=SCHEMA, original_commit=source['original_commit'], testcases=names,
         original_source=str(derived / 'source.json'), original_source_sha256=sha(derived / 'source.json'),
-        original_files=before, compiler=compiler, compiler_sha256=sha(go), pid=process['pid'],
+        original_files=before, compiler=compiler, compiler_sha256=sha(go), pid=process['pid'], module_cache=module_cache,
         source_sha256=config['source_sha256'], config_sha256=config['_config_sha256'], identity=config['identity'],
         scope='Historical original Go wire tests only; no current native execution or terminal-claim credit.',
         commands={name: {kind: sha(root / (name + '.' + kind)) for kind in

@@ -29,6 +29,25 @@ reopened afterward. Exact command, process, compiler, raw event and fixture hash
 are retained under `broad-harness/cluster-wire-reference`. The five original
 terminal Go controls are a different reference and provide no credit here.
 
+`terminal_controls_reference.module_cache` must name a genuine sealed dependency
+cache. `original_wire_cache.py` defines the six modules actually needed by the
+original WASI test package, reference command and cluster tests: JSON experiment,
+testify, go-spew, go-difflib, x/sys and yaml.v3, at the original `go.mod` versions.
+Their exact versions remain in `MODULES`. An offline `go list -deps -test -json
+-tags=test_dep` over all three selections succeeded using only that six-module
+cache and fresh metadata scratch; it did not compile or execute tests or guests.
+
+Each extracted module must exactly match its genuine cached zip. Both the archive
+and `go.mod` h1 checksums must match original `go.sum`; the latter also authenticates
+generated module metadata for older go-spew/go-difflib archives without `go.mod`.
+Only those module sources and download metadata are admitted. The freezer seals
+every cache file, and both six-cluster-wire and five-terminal-wire producers check
+the complete cache before and after their commands. Their child environments set
+`GOMODCACHE` explicitly, use fresh private `GOCACHE`, disable proxy/checksum/VCS
+network fallback and require readonly module resolution. No compiled cache is
+included. The earlier development-only seventeen-event proof is unchanged and
+does not establish this new input closure or current qualification.
+
 `core_cluster_wire.py` separately reopens that proof and validates actual current
 native lifecycle rows from the same authenticated helper plus host-scenario broad
 processes. It requires all typed handle/namespace/seed admission refusals, both
