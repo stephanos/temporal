@@ -71,8 +71,12 @@ fn stress_runtime_recipe_is_the_original_probe_and_bounds_not_runtime_cost() {
             "EXTRA_ENTROPY=no_"
         ])
     );
+    let repo = Path::new(env!("CARGO_MANIFEST_DIR"))
+        .ancestors()
+        .nth(4)
+        .unwrap();
     let arguments = arguments(
-        Path::new("/candidate"),
+        repo,
         Path::new("/retained"),
         "runtime",
         "./internal/backends/wasm/testdata/runtime_probes",
@@ -91,6 +95,10 @@ fn stress_runtime_recipe_is_the_original_probe_and_bounds_not_runtime_cost() {
 
 #[test]
 fn all_temporal_recipes_retain_original_selection_tags_and_fifteen_minute_bounds() {
+    let repo = Path::new(env!("CARGO_MANIFEST_DIR"))
+        .ancestors()
+        .nth(4)
+        .unwrap();
     for (name, source, selection, output) in [
         (
             "workflow",
@@ -107,12 +115,7 @@ fn all_temporal_recipes_retain_original_selection_tags_and_fifteen_minute_bounds
         ),
     ] {
         let options = crate::cli::explore::parse(
-            &arguments(
-                Path::new("/candidate"),
-                Path::new("/retained"),
-                name,
-                source,
-            ),
+            &arguments(repo, Path::new("/retained"), name, source),
             &mut false,
         )
         .unwrap();
