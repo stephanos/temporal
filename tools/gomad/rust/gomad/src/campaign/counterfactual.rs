@@ -256,9 +256,10 @@ fn produce_pair(
     case: &Case,
     root: &Path,
     kind: linked::FixtureFault,
-) -> Vec<Value> {
+) -> (Vec<Value>, Vec<Value>) {
     let store = super::store(root.join(&case.name).join("artifacts"), u64::MAX);
     let mut pair = Vec::new();
+    let mut failures = Vec::new();
     for fault in [linked::FixtureFault::None, kind] {
         let result = run(
             prepared,
@@ -289,13 +290,19 @@ fn produce_pair(
             .unwrap();
             let incarnations = summary["incarnations"].as_array().unwrap();
             assert_eq!(incarnations.len(), 2);
-            assert!(
-                incarnations
-                    .iter()
-                    .all(|incarnation| incarnation["termination"] == "exit"),
-                "retained artifact {}: {summary}",
-                published.path.display()
-            );
+            for incarnation in incarnations {
+                if incarnation["termination"] != "exit" {
+                    failures.push(json!({
+                        "original_root":"TestDeterminismExecutedDivergenceArtifacts/handoff",
+                        "predicate":"every reported incarnation termination equals exit",
+                        "artifact":published.path,
+                        "handle":incarnation["handle"],
+                        "expected":"exit",
+                        "actual":incarnation["termination"],
+                        "observation":incarnation
+                    }));
+                }
+            }
         } else {
             assert_eq!(result.execution.record.outcome.termination, "exit");
             assert_eq!(result.execution.record.outcome.exit_code, Some(1));
@@ -305,7 +312,13 @@ fn produce_pair(
         pair.push(json!({"artifact":published.path,"record_sha256":published.record_sha256,"bytes":published.stored_bytes}));
     }
     assert_ne!(pair[0]["record_sha256"], pair[1]["record_sha256"]);
-    pair
+    write(
+        &root
+            .join(&case.name)
+            .join("original-outcome-predicates.json"),
+        &json!({"status":if failures.is_empty() {"PASS"} else {"FAIL"},"failures":failures}),
+    );
+    (pair, failures)
 }
 
 fn verify_pair(input: &Inputs, case: &Case, root: &Path, pair: &[Value]) -> Value {
@@ -493,6 +506,7 @@ fn produce_the_four_original_counterfactual_artifact_pairs() {
         .create(&root)
         .unwrap();
     let mut rows = Vec::new();
+    let mut original_failures = Vec::new();
     let mut original_module = None;
     for case in &input.cases {
         assert_eq!(
@@ -523,12 +537,18 @@ fn produce_the_four_original_counterfactual_artifact_pairs() {
             "output-clock" => linked::FixtureFault::OutputClock,
             _ => unreachable!(),
         };
-        let pair = produce_pair(&prepared, case, &root, kind);
+        let (pair, failures) = produce_pair(&prepared, case, &root, kind);
+        original_failures.extend(failures);
         let verification = verify_pair(&input, case, &root, &pair);
         rows.push(json!({"name":case.name,"receipt":case.receipt,"receipt_sha256":case.receipt_sha256,"original_requested_choice_bytes":case.original_requested_choice_bytes,"effective_runtime_trace_bytes":1 << 20,"diagnostics":true,"baseline":pair[0],"fault":pair[1],"verification":verification}));
     }
     write(
         &root.join("artifact-pairs.json"),
-        &json!({"schema":"gomad.core-counterfactual-artifact-pairs/v1","qualification":false,"source_role":"determinism-fixture","helper":linked::IMPLEMENTATION_SHA256,"cli":input.cli,"cli_sha256":input.cli_sha256,"producer":std::env::current_exe().unwrap(),"fixture_runtime_sha256":FIXTURE_SHA256,"pairs":rows}),
+        &json!({"schema":"gomad.core-counterfactual-artifact-pairs/v1","status":if original_failures.is_empty() {"PASS"} else {"FAIL_ORIGINAL_PREDICATE"},"original_predicate_failures":original_failures,"qualification":false,"source_role":"determinism-fixture","helper":linked::IMPLEMENTATION_SHA256,"cli":input.cli,"cli_sha256":input.cli_sha256,"producer":std::env::current_exe().unwrap(),"fixture_runtime_sha256":FIXTURE_SHA256,"pairs":rows}),
+    );
+    assert!(
+        original_failures.is_empty(),
+        "original outcome predicates failed; diagnostic evidence remains at {}: {original_failures:?}",
+        root.display()
     );
 }
