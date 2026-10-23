@@ -153,6 +153,31 @@ class ClosedCatalog(unittest.TestCase):
         inputs['stdout_bytes']=list(b'INTEGRITY ok\nHISTORY 1:committed,2:committed\n')
         with self.assertRaises(Refusal):gate.validate_case(gate.SQLITE,'nonnumeric-event',dict(error='invalid SQLite history'),inputs)
 
+    def test_three_global_network_cases_cannot_close_the_original_twelve_variants(self):
+        import tempfile
+        import hashlib
+        from unittest.mock import patch
+        with tempfile.TemporaryDirectory() as temporary:
+            repo=Path(temporary);config=dict(repo=str(repo),files={})
+            for name in gate.SOURCES:
+                path=repo/name;path.parent.mkdir(parents=True,exist_ok=True)
+                text='fixture source'
+                if name==gate.TEST:text='fn store_result_fact() { "authorization_to_terminal_nanos":item.execution.authorization_to_terminal_nanos }'
+                elif name==gate.SOURCES[1]:text='CLUSTER_STOP_GRACE: Duration = Duration::from_secs(5); watcher.join()'
+                path.write_text(text);config['files'][str(path.resolve())]=hashlib.sha256(path.read_bytes()).hexdigest()
+            facts=[dict(original_roots=[gate.BOOT_NETWORK],variant=variant) for variant in ('matching','byte-mismatch','stall-mismatch')]
+            with patch.object(gate,'parse_rows',return_value=facts):result=gate.observations(config,'')
+            self.assertNotIn(gate.BOOT_NETWORK,result['roots'])
+            partial=result['partial_roots'][gate.BOOT_NETWORK]
+            self.assertEqual(partial['covered_original_variants'],['matching'])
+            missing={'network free','first byte mismatch','later byte mismatch','first stall mismatch',
+                'later stall mismatch','restart byte mismatch','restart stall mismatch','unused mismatch',
+                'matching explicit broker','broker byte mismatch','broker stall mismatch'}
+            self.assertEqual(set(partial['original_variant_catalog'])-set(partial['covered_original_variants']),missing)
+            for variant in missing:
+                self.assertTrue(any('/'+variant+' ' in reason for reason in partial['remaining_original_predicates']))
+            self.assertTrue(any('unchanged' in reason for reason in partial['remaining_original_predicates']))
+
     def test_network_limits_are_checked_for_all_actual_owners(self):
         network=dict(profile='gomad.simulation-network-stream/v3',faults=[],limits=dict(listeners=8,connections=8,bytes=1024,connection_bytes=123,stall_nanos=456,transitions=128))
         scenario=dict(spec=dict(nodes=[dict(id='a',boot='main',address='10.0.0.1'),dict(id='b',boot='main',address='10.0.0.2')],

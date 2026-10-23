@@ -54,6 +54,14 @@ VARIANTS = {
 }
 CATALOG = frozenset((root, variant) for root, variants in VARIANTS.items() for variant in variants)
 
+BOOT_NETWORK_ORIGINAL_VARIANTS = (
+    'matching', 'network free', 'first byte mismatch', 'later byte mismatch',
+    'first stall mismatch', 'later stall mismatch', 'restart byte mismatch',
+    'restart stall mismatch', 'unused mismatch', 'matching explicit broker',
+    'broker byte mismatch', 'broker stall mismatch',
+)
+BOOT_NETWORK_MISSING_VARIANTS = BOOT_NETWORK_ORIGINAL_VARIANTS[1:]
+
 ORIGINAL_ROOTS = ('TestClusterBootAdmitsStorageCrashSelectionBeforeSealing', 'TestClusterBrokerDurableRestartParity', 'TestClusterEventOrderAccessorIsDetached', 'TestClusterFinishPreservesSessionWithLiveIncarnations', 'TestClusterFinishWaitsForInspectionCleanup', 'TestClusterHostTerminationStatus', 'TestClusterInspectedPrefixRequiresRequestedSealedInstance', 'TestClusterInspectionAbortsNeighborsWithoutCompletingTheirTapes', 'TestClusterInspectionMetadataDoesNotReplaceWorldEvidence', 'TestClusterInternalDeadlineIsWatchdog', 'TestClusterOutputBoundaryParity', 'TestClusterPreservesWholeRunInfrastructureFailure', 'TestClusterProtocolFailureIsNotCancellation', 'TestClusterRefusedRestartLeavesIncarnationRetryable', 'TestClusterRejectsGuestCallbacks', 'TestClusterRejectsResultWithoutModelEvidence', 'TestClusterRejectsUnattributableFrames', 'TestClusterShutdownBoundsFinishedClusterByExecutionDeadline', 'TestClusterShutdownControlOrder', 'TestClusterShutdownLiveNodesEvidenceOrder', 'TestClusterShutdownWaitsForObservedFailureDrain', 'TestClusterStartAndObserveLeaveControllerPaused', 'TestClusterTransportCodecCorpus', 'TestClusterTransportCodecCorpusIsCurrent', 'TestClusterTransportCodecLiteralStageGuards', 'TestClusterTransportStageCorpus', 'TestClusterTransportStageCorpusIsCurrent', 'TestClusterTransportStageLiteralGuards', 'TestClusterWaitSerializesTurnsWithoutBlockingLiveControls', 'TestMarkerBoundaryPreservesSelectedCapacityAndPriorErrors', 'TestOpenClusterRecordsHelperExecutionDeadline', 'TestOperatorAcceptsDeclaredStorageCrash', 'TestOperatorArgumentsSurviveNormalization', 'TestOperatorStopsActionsAfterFailedWait', 'TestOperatorStrictPreflight', 'TestProviderActualCrashDurableRestart', 'TestProviderBindsEverySelectedBootNetworkLimit', 'TestProviderCanceledSplitRevocationCancelsAndReaps', 'TestProviderClusterStartsOnlyRequestedIncarnations', 'TestProviderCompressedIndependentGuestsLifecycleReplay', 'TestProviderDetachedOracleCanarySourceLessReplay', 'TestProviderGroupedAcknowledgmentCrashSourceLessReplay', 'TestProviderIndependentGuestsLifecycleReplay', 'TestProviderMandatoryCleanupReapsWithoutLifecycleActions', 'TestProviderOutputCrashKeepsItsExistingBoundary', 'TestProviderStopReapsGuestAndPeerContinues', 'TestProviderStorageCrashRequiresActualDurableBoundary', 'TestProviderUnboundRevocationOfSplitStorageNodeRestarts', 'TestRejectedRestartLeavesNoUnownedBrokerSession', 'TestSQLiteObservationUsesFreshFixedLines', 'TestSQLiteObservationsForwardToNativeOracleOwner')
 
 
@@ -346,7 +354,7 @@ def observations(config, stdout, network_frame_cases=None):
             'native store result collector no longer exposes actual drop timing')
     require('CLUSTER_STOP_GRACE: Duration = Duration::from_secs(5)' in production and 'watcher.join()' in production.replace('\n', '').replace(' ', ''), 'native cleanup bound/join source contract changed')
     facts = parse_rows(stdout)
-    complete = {OPERATOR, HOST, INTERNAL, CALLBACK, DRAIN, RESTART, RETRY, CLEANUP, ORACLE, BOOT_NETWORK, STORAGE_ROOTS[0], STORAGE_ROOTS[1]}
+    complete = {OPERATOR, HOST, INTERNAL, CALLBACK, DRAIN, RESTART, RETRY, CLEANUP, ORACLE, STORAGE_ROOTS[0], STORAGE_ROOTS[1]}
     partial = {
         LAZY: ['Original hard-isolation refusal and explicit isolated reference admission require separate receiving evidence.'],
         MODEL: ['Interrupted terminal model completeness requires the retained result/model receiving owner.'],
@@ -354,6 +362,11 @@ def observations(config, stdout, network_frame_cases=None):
         DEADLINE: ['Original maximum selection over instance 3m/7m and boot 11m/1m declarations is not present in the native sealed-deadline row.'],
         GRACE: ['Original finished/near-deadline/past-deadline/never-opened and failed-finish race table remains distinct from the actual five-second busy-store cleanup case.'],
         SQLITE: ['Original configurable maximum_bytes=1 refusal has no corresponding native observation parameter.'],
+        BOOT_NETWORK: [
+            'Original provider_test.go TestProviderBindsEverySelectedBootNetworkLimit/' + variant
+            + ' has no native per-boot/shared-broker observation; the global native byte/stall mutations do not prove this variant.'
+            for variant in BOOT_NETWORK_MISSING_VARIANTS
+        ] + ['Original explicit broker mismatches must also leave the caller-owned mismatched broker input unchanged.'],
     }
     frame_names = {'per-node fault schedule', 'bad address', 'unknown link endpoint', 'self link', 'duplicate link', 'unordered fault', 'unknown action'}
     if network_frame_cases is not None:
@@ -370,4 +383,10 @@ def observations(config, stdout, network_frame_cases=None):
         schema='gomad.native-cluster-cost-projection/v1',
         source='tools/gomad/rust/gomad/src/fixture_cluster_metrics_tests.rs',
         remaining_original_predicates=['Parent-owned receiver must compare actual per-store counters and evidence payloads before and after summary projection.'])
-    return dict(roots=roots, receiving_dependencies=receiving, cost_projection_dependency=cost_projection_dependency, partial_roots={root: dict(cases=[fact for fact in facts if root in fact['original_roots']], remaining_original_predicates=missing) for root, missing in partial.items()}, facts=facts, sources=source_facts)
+    partial_roots = {root: dict(cases=[fact for fact in facts if root in fact['original_roots']],
+        remaining_original_predicates=missing) for root, missing in partial.items()}
+    partial_roots[BOOT_NETWORK].update(original_variant_catalog=list(BOOT_NETWORK_ORIGINAL_VARIANTS),
+        covered_original_variants=['matching'], native_variant_catalog=list(VARIANTS[BOOT_NETWORK]),
+        sources=source_facts)
+    return dict(roots=roots, receiving_dependencies=receiving, cost_projection_dependency=cost_projection_dependency,
+                partial_roots=partial_roots, facts=facts, sources=source_facts)
