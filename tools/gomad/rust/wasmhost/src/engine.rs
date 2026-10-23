@@ -1189,6 +1189,11 @@ pub(crate) fn finish_model(state: &mut State, outcome: &mut Outcome) -> Result<(
     state.inspection_snapshot(Snapshot::Terminal);
     let standalone = state.broker.is_none();
     if let Some(model) = &mut state.model {
+        if outcome.termination == "exit" && model.runtime_active() {
+            outcome.termination = "invalid";
+            outcome.message = "runtime trace unfinished".into();
+            outcome.exit_code = None;
+        }
         let metadata = {
             let mut recorder = model.inspection.lock();
             let admitted_owner = !standalone

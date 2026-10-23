@@ -389,3 +389,42 @@ No frozen runtime, mandatory workload, SQLite, Temporal, support publication or
 final retained-replay qualification is credited. Open fn-232 keeps this worktree,
 its unrelated untracked support drafts, the assigned build target and the exact
 focused evidence roots pending root integration and final qualification.
+
+### Authenticated preparation sidecars at journal creation (2026-10-23)
+
+Source `8a0ffe13fb` fixes the causal failure found by core's actual original Go
+preparation: `retain_prepared` published `preparation-observations`, but both seed
+and round journals admitted only `prepared` at creation and rejected the sidecar
+on reopen. Both journals now allow exactly the two preparation directory names
+before creation, with normal closed root entries on reopen. Descriptor-relative
+validation binds any present sidecar to the authenticated prepared artifact,
+canonical plan, receipt and complete private payload table before creating journal
+files or repairing a torn tail. Round restoration also preserves the original
+auxiliary observations. Missing historical sidecars remain readable; unknown
+entries, links, public permissions, corrupt commitments and duplicate journal
+creation remain refused. Journal formats and canonical hash preimages are unchanged.
+
+Evidence is retained under
+`/home/agent/wt/evidence/fn232-preparation-journal-layout-20261023/files.json`.
+Actual owned observation-layout tests use the normal observation and prepared
+publication owners with bounded real `/usr/bin/true` process observations; they
+make no compiler or guest qualification claim. Seed and round creation were both
+causally RED with the exact original allowlist error, then GREEN through create,
+open and restored raw bytes. Forty unsafe-layout create/open variants pass,
+including preservation of torn bytes on refusal and absence of journal files on
+failed creation; duplicate creation also refuses. Full native library tests pass
+372 with two explicit probes ignored. The 42 affected receiving/preparation driver
+tests, strict Clippy, formatting and diff checks pass. Full tracked driver discovery
+has 167 passing tests and five existing root-4fc static-stage ignored-inventory
+errors because the new core counterfactual ignored test is not yet registered;
+root owns that separate global reconciliation.
+
+Fresh independent same-family read-only review found no remaining blocker and
+confirmed existing prepared-plan validation, pinned descriptor traversal, legacy
+absence and journal identities remain intact. Core owns the subsequent fresh
+actual original four-pair receipts. No actual guest or qualification ran for this
+repair. Root's later single host-effects inventory update must include the new
+private sidecar-presence stat in `campaign::authenticate_preparation_observations`;
+this worker changed no inventory ledger or Flow state. The receiving worktree and
+assigned build target remain under open fn-232; unrelated old support drafts stay
+untracked and preserved.

@@ -328,6 +328,8 @@ pub struct Model {
     history: Vec<Transition>,
     transcript: [u8; 32],
     snapshot_bytes: u64,
+    transition_limit: Option<u64>,
+    transition_bytes: u64,
     /// [`digest::state_digest`]'s framed transition encodings for a prefix
     /// of the append-only history, so a digest re-encodes only transitions
     /// past that prefix.
@@ -472,6 +474,8 @@ impl Model {
             history: Vec::new(),
             transcript: digest::empty_digest(),
             snapshot_bytes: 0,
+            transition_limit: None,
+            transition_bytes: 0,
             transition_frames: std::cell::RefCell::default(),
         };
         let mut size = WireSize::default();
@@ -611,6 +615,20 @@ impl Model {
         )
     }
 
+    pub(crate) fn limit_transition_bytes(&mut self, limit: Option<u64>) -> Result<()> {
+        if limit == Some(0) {
+            return Err(Error::classified(
+                ErrorClass::InvalidConfig,
+                "transition byte limit must be positive",
+            ));
+        }
+        if let Some(limit) = limit {
+            check_capacity("transition-bytes", limit, self.transition_bytes, 0)?;
+        }
+        self.transition_limit = limit;
+        Ok(())
+    }
+
     fn check_transition(&self) -> Result<()> {
         if self.next_transition == 0 || self.next_transition == u64::MAX {
             return Err(capacity("transition-sequences", u64::MAX, u64::MAX, 1));
@@ -623,7 +641,7 @@ impl Model {
         )
     }
 
-    fn next_transition(&self, body: TransitionBody) -> Transition {
+    fn next_transition(&self, body: TransitionBody) -> Result<Transition> {
         let mut transition = Transition {
             sequence: self.next_transition,
             previous_digest: self.transcript,
@@ -631,13 +649,20 @@ impl Model {
             body,
         };
         transition.digest = digest::transition_digest(&transition);
-        transition
+        if let Some(limit) = self.transition_limit {
+            let mut size = WireSize::default();
+            wire_generated::write_transitions(std::slice::from_ref(&transition), &mut size)
+                .expect("World transition wire size");
+            check_capacity("transition-bytes", limit, self.transition_bytes, size.0)?;
+        }
+        Ok(transition)
     }
 
     fn commit(&mut self, transition: Transition) {
         let mut size = WireSize::default();
         wire_generated::write_transitions(std::slice::from_ref(&transition), &mut size)
             .expect("World transition wire size");
+        self.transition_bytes += size.0;
         self.snapshot_bytes += size.0;
         match &transition.body {
             TransitionBody::Register { request, .. } => {
@@ -709,7 +734,7 @@ impl Model {
         let transition = self.next_transition(TransitionBody::Register {
             request: request.clone(),
             request_id: id,
-        });
+        })?;
         self.requests.insert(
             id,
             RequestEntry {
@@ -790,7 +815,7 @@ impl Model {
         let transition = self.next_transition(TransitionBody::Ready {
             readiness: readiness.clone(),
             event_id: id,
-        });
+        })?;
         let entry = self.requests.get_mut(&readiness.request_id).unwrap();
         entry.state = RequestState::Queued;
         entry.event_id = id;
@@ -830,7 +855,7 @@ impl Model {
         let transition = self.next_transition(TransitionBody::Cancel {
             request_id,
             cancellation: result,
-        });
+        })?;
         if status == CancelStatus::Won {
             self.requests.get_mut(&request_id).unwrap().state = RequestState::Canceled;
             if event_id != 0 {
@@ -889,7 +914,7 @@ impl Model {
         }
         let transition = self.next_transition(TransitionBody::Quiesce {
             result: result.clone(),
-        });
+        })?;
         if result.kind == QuiescenceKind::Delivered {
             for (key, delivery) in batch.iter().zip(&result.deliveries) {
                 self.queue.remove(key);

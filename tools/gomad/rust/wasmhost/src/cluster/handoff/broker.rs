@@ -16,7 +16,7 @@
 //! is simply not idle; settling needs every live participant idle, as the
 //! credits enforce in Go, and idles carry no arrivals.
 use crate::clock::{self, Clock, Quiesced, TimeRequest, TimeResponse};
-use crate::cluster::network::{Endpoint, Failure, Shared};
+use crate::cluster::network::{Endpoint, Failure, Shared, world_failure};
 use crate::cluster::transport::{SharedInput, SharedOutput, lock};
 use crate::world;
 use serde::{Deserialize, Serialize};
@@ -71,6 +71,8 @@ pub struct Config {
     /// Stop at every clock advance for live control frames (link changes).
     #[serde(default)]
     pub pause_on_settle: bool,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub transition_bytes: Option<u64>,
 }
 
 #[derive(Clone, Debug, Deserialize, Serialize)]
@@ -121,7 +123,7 @@ impl Config {
             }
         }
         world::Model::new(self.world())
-            .map(|_| ())
+            .and_then(|mut world| world.limit_transition_bytes(self.transition_bytes))
             .map_err(|error| error.to_string())
     }
 }
@@ -185,6 +187,7 @@ struct Inner {
 }
 
 pub struct Broker {
+    transition_bytes: Option<u64>,
     inner: Mutex<Inner>,
     wake: Vec<Condvar>,
     idle: Condvar,
@@ -250,7 +253,10 @@ impl Broker {
         network: Option<Arc<Mutex<Shared>>>,
         transport: Option<(SharedInput, SharedOutput)>,
     ) -> Result<Self, String> {
-        let world = world::Model::new(config.world()).map_err(|error| error.to_string())?;
+        let mut world = world::Model::new(config.world()).map_err(|error| error.to_string())?;
+        world
+            .limit_transition_bytes(config.transition_bytes)
+            .map_err(|error| error.to_string())?;
         let mut clock = Clock::broker();
         let mut sessions = Vec::new();
         for id in ids {
@@ -276,9 +282,10 @@ impl Broker {
             });
         }
         Ok(Self {
+            transition_bytes: config.transition_bytes,
             inner: Mutex::new(Inner {
                 #[cfg(feature = "determinism-fixture")]
-                fixture_fault: crate::determinism_fixture::Fault::from_environment(),
+                fixture_fault: crate::determinism_fixture::Fault::for_broker(),
                 commands: VecDeque::new(),
                 metrics: Metrics::default(),
                 observed_at: Instant::now(),
@@ -319,6 +326,10 @@ impl Broker {
     }
 
     /// Go `Broker.Current`: relative virtual time.
+    pub(crate) fn transition_bytes(&self) -> Option<u64> {
+        self.transition_bytes
+    }
+
     pub fn current(&self) -> u64 {
         (lock(&self.inner).clock.current() - INITIAL_TIME).cast_unsigned()
     }
@@ -1422,30 +1433,6 @@ impl Broker {
         };
         world::wire_generated::write_snapshot(world, &mut wire).map_err(world_wire_failure)?;
         Ok(wire.bytes)
-    }
-}
-
-/// A broker World refusal: exhausting a World limit is the run's capacity
-/// outcome naming that dimension and its accounting, as instance-level World
-/// limits are (fn-235).
-#[expect(
-    clippy::needless_pass_by_value,
-    reason = "Error classification is passed directly to Result::map_err"
-)]
-fn world_failure(error: world::Error) -> Failure {
-    match error {
-        world::Error::Capacity {
-            dimension,
-            limit,
-            used,
-            delta,
-        } => Failure::Exhausted {
-            dimension,
-            limit,
-            used,
-            delta,
-        },
-        world::Error::Classified { .. } => Failure::Infrastructure(error.to_string()),
     }
 }
 

@@ -18,3 +18,10 @@ pub(crate) fn cache_error(message: &str) -> bool {
     message.starts_with("infrastructure: compile cache:")
         || message == "capacity: compile cache artifact capacity"
 }
+
+pub(crate) fn backend_observation(outcome: &Outcome) -> Result<(Vec<u8>, Vec<u8>), String> {
+    Ok((
+        crate::evidence::canonical::encode(&outcome.backend_evidence())?,
+        crate::evidence::canonical::encode(&outcome.metrics)?,
+    ))
+}

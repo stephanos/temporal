@@ -19,6 +19,78 @@ pub(crate) struct Result {
     pub metrics: Metrics,
 }
 
+#[expect(
+    clippy::large_enum_variant,
+    reason = "A finalized execution owns its complete publication; a nonpublishable failure owns only presentation evidence"
+)]
+pub(crate) enum Completion {
+    Finalized(Result),
+    Failed(Failure),
+}
+
+#[derive(Debug)]
+pub(crate) struct Failure {
+    pub termination: &'static str,
+    pub reason: String,
+    pub soft_assertions: Option<serde_json::Value>,
+    pub diagnostics: Vec<String>,
+}
+
+pub(crate) fn batch_failure(
+    completions: &[std::result::Result<Completion, String>],
+) -> Option<&Failure> {
+    completions.iter().find_map(|completion| match completion {
+        Ok(Completion::Failed(failure)) => Some(failure),
+        _ => None,
+    })
+}
+
+impl Completion {
+    pub(crate) fn finalized(self) -> std::result::Result<Result, Failure> {
+        match self {
+            Self::Finalized(result) => Ok(result),
+            Self::Failed(failure) => Err(failure),
+        }
+    }
+}
+
+impl Failure {
+    pub(crate) fn message(&self) -> String {
+        let mut message = format!("runner_failure: {}", self.reason);
+        for diagnostic in &self.diagnostics {
+            message.push_str("; ");
+            message.push_str(diagnostic);
+        }
+        message
+    }
+
+    pub(crate) fn report(
+        &self,
+        json_output: bool,
+        output: &mut dyn std::io::Write,
+    ) -> std::result::Result<i32, String> {
+        let classification = if self.termination == "capacity" {
+            "capacity"
+        } else {
+            "runner_failure"
+        };
+        if json_output {
+            let mut event = json!({"schema":"gomad.explore-event/v3","type":"error",
+                "classification":classification,"message":self.message()});
+            if let Some(report) = &self.soft_assertions {
+                event["soft_assertions"] = report.clone();
+            }
+            writeln!(output, "{event}").map_err(|error| error.to_string())?;
+        } else {
+            writeln!(output, "gomad: {classification}: {}", self.message())
+                .map_err(|error| error.to_string())?;
+        }
+        Ok(3)
+    }
+}
+
+pub(crate) const OBSERVATION_DIRECTORY: &str = "execution-observations";
+
 /// In-process observations of one execution. They never enter records.
 #[derive(Clone, Debug, Default)]
 pub(crate) struct Metrics {
@@ -28,6 +100,7 @@ pub(crate) struct Metrics {
     pub store_peak_rss_bytes: Option<u64>,
     /// One entry per fresh guest store; a cluster has one per incarnation.
     pub stores: Vec<StoreMetrics>,
+    pub raw_backend: Option<Vec<u8>>,
 }
 
 #[derive(Clone, Debug)]
@@ -83,6 +156,7 @@ impl Metrics {
         Self {
             wall_nanos: nanos(wall),
             store_peak_rss_bytes: None,
+            raw_backend: None,
             stores: vec![StoreMetrics::observed(
                 None,
                 execution,
@@ -102,7 +176,7 @@ pub(crate) fn run(
     job: &ledger::Job,
     timeout: Duration,
     cancellation: &linked::Cancellation,
-) -> std::result::Result<Result, String> {
+) -> std::result::Result<Completion, String> {
     run_with_replay(prepared, job, timeout, cancellation, None, None)
 }
 
@@ -113,7 +187,7 @@ pub(crate) fn run_with_replay(
     cancellation: &linked::Cancellation,
     replay: Option<&linked::ReplayRequest>,
     raw_trace: Option<&[u8]>,
-) -> std::result::Result<Result, String> {
+) -> std::result::Result<Completion, String> {
     run_with_output(
         prepared,
         job,
@@ -133,19 +207,60 @@ pub(crate) fn run_with_output(
     replay: Option<&linked::ReplayRequest>,
     raw_trace: Option<&[u8]>,
     output: Option<std::sync::Arc<dyn linked::OutputConsumer>>,
-) -> std::result::Result<Result, String> {
-    #[cfg(feature = "determinism-fixture")]
-    crate::live_backend::before_execution(job.seed, cancellation)?;
-    if prepared.scenario.is_some() {
-        if replay.is_some() || raw_trace.is_some() {
-            return Err(
-                "unsupported_target: scenario runtime prefix forcing is unsupported".into(),
-            );
-        }
-        return super::scenario::execute(prepared, job, timeout, cancellation);
-    }
+) -> std::result::Result<Completion, String> {
+    run_with_controls(
+        prepared,
+        job,
+        timeout,
+        cancellation,
+        Controls {
+            replay,
+            raw_trace,
+            output,
+            #[cfg(all(test, feature = "helper-determinism-fixture"))]
+            fault: None,
+        },
+    )
+}
+
+struct Controls<'a> {
+    replay: Option<&'a linked::ReplayRequest>,
+    raw_trace: Option<&'a [u8]>,
+    output: Option<std::sync::Arc<dyn linked::OutputConsumer>>,
+    #[cfg(all(test, feature = "helper-determinism-fixture"))]
+    fault: Option<super::counterfactual::Fault>,
+}
+
+#[cfg(all(test, feature = "helper-determinism-fixture"))]
+pub(super) fn run_counterfactual(
+    prepared: &Prepared,
+    job: &ledger::Job,
+    timeout: Duration,
+    cancellation: &linked::Cancellation,
+    fault: super::counterfactual::Fault,
+) -> std::result::Result<Completion, String> {
+    run_with_controls(
+        prepared,
+        job,
+        timeout,
+        cancellation,
+        Controls {
+            replay: None,
+            raw_trace: None,
+            output: None,
+            fault: Some(fault),
+        },
+    )
+}
+
+fn model_input(
+    prepared: &Prepared,
+    job: &ledger::Job,
+    replay: Option<&linked::ReplayRequest>,
+    raw_trace: Option<&[u8]>,
+) -> std::result::Result<Option<linked::ModelInput>, String> {
     let configuration = &prepared.configuration;
-    let model = configuration
+    configuration
         .model
         .as_ref()
         .map(|value| {
@@ -194,7 +309,45 @@ pub(crate) fn run_with_output(
                 replay_trace: raw_trace.map(<[u8]>::to_vec),
             })
         })
-        .transpose()?;
+        .transpose()
+}
+
+fn run_with_controls(
+    prepared: &Prepared,
+    job: &ledger::Job,
+    timeout: Duration,
+    cancellation: &linked::Cancellation,
+    controls: Controls<'_>,
+) -> std::result::Result<Completion, String> {
+    let Controls {
+        replay,
+        raw_trace,
+        output,
+        #[cfg(all(test, feature = "helper-determinism-fixture"))]
+        fault,
+    } = controls;
+    #[cfg(feature = "determinism-fixture")]
+    crate::live_backend::before_execution(job.seed, cancellation)?;
+    if prepared.scenario.is_some() {
+        if replay.is_some() || raw_trace.is_some() {
+            return Err(
+                "unsupported_target: scenario runtime prefix forcing is unsupported".into(),
+            );
+        }
+        #[cfg(all(test, feature = "helper-determinism-fixture"))]
+        if let Some(fault) = fault {
+            return super::scenario::execute_counterfactual(
+                prepared,
+                job,
+                timeout,
+                cancellation,
+                fault,
+            );
+        }
+        return super::scenario::execute(prepared, job, timeout, cancellation);
+    }
+    let configuration = &prepared.configuration;
+    let model = model_input(prepared, job, replay, raw_trace)?;
     let request = linked::Request {
         module: prepared.module.clone(),
         module_sha256: canonical::digest(&prepared.module),
@@ -215,6 +368,13 @@ pub(crate) fn run_with_output(
     #[cfg(feature = "determinism-fixture")]
     crate::fixture::execution_started().map_err(|error| error.message)?;
     let mut admitted = admit(prepared, request)?;
+    #[cfg(all(test, feature = "helper-determinism-fixture"))]
+    if let Some(fault) = fault {
+        if fault.owner.is_some() {
+            return Err("standalone fixture fault cannot select a cluster owner".into());
+        }
+        admitted.fixture_fault(fault.kind);
+    }
     admitted.cancellation(cancellation.clone());
     if let Some(output) = output {
         admitted.output(output);
@@ -225,7 +385,7 @@ pub(crate) fn run_with_output(
     refuse_cache_failure(&observed.outcome)?;
     let mut result = publication(prepared, job, observed)?;
     result.metrics = metrics;
-    Ok(result)
+    Ok(Completion::Finalized(result))
 }
 
 fn refuse_cache_failure(outcome: &linked::Outcome) -> std::result::Result<(), String> {
@@ -245,6 +405,9 @@ fn admit(
         .compile_cache(prepared.compile_cache_root.as_deref())
         .map_err(|error| format!("runner_failure: admit compile cache: {error}"))?;
     admitted.conditions(linked::Conditions::compiled());
+    admitted
+        .world_transition_bytes(prepared.configuration.world_transition_bytes)
+        .map_err(|error| format!("runner_failure: admit World recording limit: {error}"))?;
     if let Some(network) = &prepared.configuration.network {
         admitted
             .network(network.clone())
@@ -269,6 +432,12 @@ fn measured(
     let observed =
         observed.map_err(|error| format!("runner_failure: execute campaign target: {error}"))?;
     let mut metrics = Metrics::observed(&observed, limits, wall);
+    metrics.raw_backend = observed
+        .outcome
+        .metrics
+        .as_deref()
+        .map(canonical::encode)
+        .transpose()?;
     metrics.store_peak_rss_bytes = store_peak;
     Ok((observed, metrics))
 }
@@ -290,7 +459,13 @@ pub(crate) fn publication(
     let configuration = &prepared.configuration;
     let assertions = super::soft_assertions::assessed(prepared, &observed)?;
     let mut streams = BTreeMap::new();
-    let mut payloads = BTreeMap::from([("target/module.wasm".into(), prepared.module.clone())]);
+    let mut payloads = BTreeMap::from([
+        ("target/module.wasm".into(), prepared.module.clone()),
+        (
+            "evidence/backend-outcome.json".into(),
+            crate::execute::backend_observation(&observed.outcome)?.0,
+        ),
+    ]);
     insert(
         &mut payloads,
         &mut streams,
@@ -534,6 +709,48 @@ fn insert(
     payloads.insert(name.into(), bytes);
 }
 
+pub(crate) fn retain_backend_metrics(
+    campaign: &std::path::Path,
+    execution: &ledger::Execution,
+    metrics: &Metrics,
+) -> std::result::Result<(), String> {
+    use rustix::fs::{self, Mode, OFlags};
+    use std::{fs::File, io::Write as _};
+    let Some(raw) = metrics.raw_backend.as_deref() else {
+        return Ok(());
+    };
+    let observed: serde_json::Value =
+        serde_json::from_slice(raw).map_err(|error| error.to_string())?;
+    let bytes = canonical::encode(&json!({"schema":"gomad.backend-metrics-observation/v1",
+        "ordinal":execution.ordinal,"record_sha256":execution.record.hash()?,
+        "operator_process_id":std::process::id(),"metrics":observed}))?;
+    let root =
+        crate::evidence::store::durable_directory(&campaign.join(OBSERVATION_DIRECTORY), |_| {
+            Ok(())
+        })?;
+    let name = format!("{}-{}.json", execution.ordinal, canonical::digest(&bytes));
+    let descriptor = match fs::openat(
+        &root,
+        name.as_str(),
+        OFlags::WRONLY | OFlags::CREATE | OFlags::EXCL | OFlags::NOFOLLOW | OFlags::CLOEXEC,
+        Mode::from_raw_mode(0o600),
+    ) {
+        Ok(descriptor) => descriptor,
+        Err(rustix::io::Errno::EXIST) => {
+            let retained = crate::evidence::store::open::read(&root, &name, 8192, false)?;
+            if retained != bytes {
+                return Err("changed backend metrics observation".into());
+            }
+            return Ok(());
+        }
+        Err(error) => return Err(error.to_string()),
+    };
+    let mut file = File::from(descriptor);
+    file.write_all(&bytes).map_err(|error| error.to_string())?;
+    file.sync_all().map_err(|error| error.to_string())?;
+    root.sync_all().map_err(|error| error.to_string())
+}
+
 fn runtime_terminal(
     model: Option<&serde_json::Value>,
 ) -> std::result::Result<Option<Vec<u8>>, String> {
@@ -599,6 +816,81 @@ mod runtime_terminal_tests {
 }
 
 #[cfg(test)]
+mod completion_batch_tests {
+    use super::*;
+
+    fn completed() -> Completion {
+        let publication = crate::evidence::search_context::tests::publication(0);
+        Completion::Finalized(Result {
+            execution: ledger::Execution {
+                ordinal: 0,
+                seed: 0,
+                record: publication.record.clone(),
+                artifact: None,
+                stored_bytes: 0,
+                semantic_probes: vec![],
+                choice_features: vec![],
+                divergence: None,
+                soft_assertions: None,
+                scenario_steps: None,
+            },
+            publication,
+            metrics: Metrics::default(),
+        })
+    }
+
+    #[test]
+    fn typed_capacity_report_survives_cancelled_and_finalized_slot_peers_in_both_orders() {
+        for reversed in [false, true] {
+            let observed = crate::slots::run(&[0, 1, 2], 3, |index| {
+                let index = if reversed { 2 - index } else { index };
+                Ok(match index {
+                    0 => Err("cancelled peer finalization".into()),
+                    1 => Ok(completed()),
+                    _ => Ok(Completion::Failed(Failure {
+                        termination: "capacity",
+                        reason: "output capacity".into(),
+                        soft_assertions: Some(json!({"messages":["invalid {state}"],"inconclusive":true,"report_only":true})),
+                        diagnostics: vec!["choice trace is not complete".into()],
+                    })),
+                })
+            }).unwrap();
+            let failure = batch_failure(&observed).unwrap();
+            let mut output = Vec::new();
+            assert_eq!(failure.report(true, &mut output).unwrap(), 3);
+            let event: serde_json::Value = serde_json::from_slice(&output).unwrap();
+            assert_eq!(event["classification"], "capacity");
+            assert_eq!(event["soft_assertions"]["messages"][0], "invalid {state}");
+            assert!(
+                event["message"]
+                    .as_str()
+                    .unwrap()
+                    .contains("choice trace is not complete")
+            );
+        }
+    }
+
+    #[test]
+    fn host_panic_still_discards_capacity_completions() {
+        let barrier = std::sync::Barrier::new(2);
+        let observed = crate::slots::run(&[0, 1], 2, |index| {
+            barrier.wait();
+            assert_ne!(index, 0, "host panic");
+            Ok(Ok::<_, String>(Completion::Failed(Failure {
+                termination: "capacity",
+                reason: "output capacity".into(),
+                soft_assertions: None,
+                diagnostics: vec![],
+            })))
+        });
+        assert_eq!(
+            observed.err().unwrap(),
+            "host panic in execution slot; campaign aborted"
+        );
+    }
+}
+
+#[cfg(test)]
 mod compile_cache_tests {
     use super::*;
     use std::os::unix::fs::PermissionsExt as _;
@@ -624,7 +916,10 @@ mod compile_cache_tests {
             seed: 7,
         };
         let cancellation = linked::Cancellation::default();
-        let baseline = run(&prepared, &job, Duration::from_secs(5), &cancellation).unwrap();
+        let baseline = run(&prepared, &job, Duration::from_secs(5), &cancellation)
+            .unwrap()
+            .finalized()
+            .unwrap();
         let root =
             std::env::temp_dir().join(format!("gomad-host-compile-cache-{}", std::process::id()));
         std::fs::create_dir(&root).unwrap();
@@ -632,7 +927,10 @@ mod compile_cache_tests {
         for name in ["first", "second", "first"] {
             let path = root.join(name);
             prepared.compile_cache_root = Some(path.to_str().unwrap().into());
-            let result = run(&prepared, &job, Duration::from_secs(5), &cancellation).unwrap();
+            let result = run(&prepared, &job, Duration::from_secs(5), &cancellation)
+                .unwrap()
+                .finalized()
+                .unwrap();
             assert_eq!(
                 result.execution.record.bytes().unwrap(),
                 baseline.execution.record.bytes().unwrap()
@@ -660,6 +958,149 @@ mod compile_cache_tests {
                 .count();
             assert_eq!(entries, 1);
         }
+        std::fs::remove_dir_all(root).unwrap();
+    }
+}
+
+#[cfg(test)]
+mod backend_evidence_tests {
+    use super::*;
+
+    fn prepared() -> Prepared {
+        Prepared {
+            auxiliary: BTreeMap::new(),
+            module: b"module identity".to_vec(),
+            configuration: serde_json::from_value(json!({
+                "engine":linked::Conditions::compiled().configuration(), "profile":"gomad.wasi-stock-exploratory/v1",
+                "limits":{"fuel":1000,"memory_bytes":65536,"output_bytes":1024,"evidence_bytes":4096,"wall_millis":5000},
+                "arguments":[],"environment":{},"runtime_sha256":null,"model":null,"namespace":null
+            })).unwrap(),
+            toolchain: "a".repeat(64), choice_identity: None, scenario: None, provenance: b"{}".to_vec(), network: None,
+            soft_assertion_report_only: false, compile_cache_root: None,
+        }
+    }
+
+    fn execution(measured: u64) -> linked::Execution {
+        let mut outcome = linked::Outcome::new("exit", "application failed");
+        outcome.exit_code = Some(1);
+        outcome.fuel_remaining = 777;
+        outcome.peak_memory_bytes = 65536;
+        outcome.output_bytes = 6;
+        outcome.local_model = Some(Box::new(json!({"now":9,"calls":2})));
+        let metrics = outcome.metrics.get_or_insert_with(Default::default);
+        metrics.execute_nanos = measured;
+        metrics.process_user_nanos = measured;
+        metrics.peak_rss_bytes = measured;
+        linked::Execution {
+            terminal_monotonic_nanos: None,
+            admission_terminal_to_return_nanos: None,
+            timing: None,
+            #[cfg(feature = "helper-guest-profile")]
+            guest_profile_error: None,
+            #[cfg(feature = "helper-diagnostic-profile")]
+            external_owner_attempts: 0,
+            authorization_to_terminal_nanos: None,
+            outcome,
+            evidence: BTreeMap::from([
+                ("stdout".into(), b"failed".to_vec()),
+                ("stderr".into(), vec![]),
+            ]),
+            event_order: None,
+        }
+    }
+
+    #[test]
+    fn original_publication_and_fresh_observed_backend_bytes_match_with_separate_metrics() {
+        let prepared = prepared();
+        let original = execution(10);
+        let observed = execution(20);
+        let original_metrics = canonical::encode(&original.outcome.metrics).unwrap();
+        let observed_metrics = canonical::encode(&observed.outcome.metrics).unwrap();
+        assert_ne!(original_metrics, observed_metrics);
+        let recorded = publication(
+            &prepared,
+            &ledger::Job {
+                ordinal: 0,
+                seed: 7,
+            },
+            original,
+        )
+        .unwrap();
+        let (stable, metrics) = crate::execute::backend_observation(&observed.outcome).unwrap();
+        assert_eq!(
+            recorded.publication.payloads["evidence/backend-outcome.json"],
+            stable
+        );
+        assert_eq!(metrics, observed_metrics);
+        let root =
+            std::env::temp_dir().join(format!("gomad-backend-evidence-{}", std::process::id()));
+        crate::cli::replay::retain_observed(&root, &observed)
+            .map_err(|error| error.message)
+            .unwrap();
+        assert_eq!(
+            std::fs::read(root.join("backend-evidence.bin")).unwrap(),
+            stable
+        );
+        assert_eq!(
+            std::fs::read(root.join("backend-metrics.json")).unwrap(),
+            observed_metrics
+        );
+        retain_backend_metrics(
+            &root.join("campaign"),
+            &recorded.execution,
+            &Metrics {
+                raw_backend: Some(original_metrics.clone()),
+                ..Metrics::default()
+            },
+        )
+        .unwrap();
+        let retained: Vec<_> = std::fs::read_dir(root.join("campaign/execution-observations"))
+            .unwrap()
+            .collect();
+        assert_eq!(retained.len(), 1);
+        let raw = std::fs::read(retained[0].as_ref().unwrap().path()).unwrap();
+        let receipt: serde_json::Value = serde_json::from_slice(&raw).unwrap();
+        assert_eq!(
+            canonical::encode(&receipt["metrics"]).unwrap(),
+            original_metrics
+        );
+        assert_eq!(receipt["ordinal"], 0);
+        assert_eq!(
+            receipt["record_sha256"],
+            recorded.execution.record.hash().unwrap()
+        );
+        assert!(
+            !recorded
+                .publication
+                .record
+                .streams
+                .contains_key("evidence/backend-outcome.json")
+        );
+        assert!(
+            !recorded
+                .publication
+                .payloads
+                .contains_key("evidence/backend-metrics.json")
+        );
+        let repeated = publication(
+            &prepared,
+            &ledger::Job {
+                ordinal: 0,
+                seed: 7,
+            },
+            execution(20),
+        )
+        .unwrap();
+        assert_eq!(recorded.publication.payloads, repeated.publication.payloads);
+        assert_eq!(recorded.publication.record, repeated.publication.record);
+        let mut changed = execution(20);
+        changed.outcome.local_model = Some(Box::new(json!({"now":10,"calls":2})));
+        assert_ne!(
+            crate::execute::backend_observation(&changed.outcome)
+                .unwrap()
+                .0,
+            stable
+        );
         std::fs::remove_dir_all(root).unwrap();
     }
 }

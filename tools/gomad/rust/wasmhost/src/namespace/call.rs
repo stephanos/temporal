@@ -161,6 +161,28 @@ impl Call {
                     4 + "operation outside stock WASI profile: path_symlink".len() as u64,
                 )
             }
+            #[cfg(not(feature = "conformance"))]
+            Operation::SockAccept { fd, flags } => {
+                fields.number("fd", u64::from(*fd), 4);
+                fields.number("flags", u64::from(*flags), 2);
+                (
+                    30,
+                    "sock_accept",
+                    0,
+                    4 + "operation outside stock WASI profile: sock_accept".len() as u64,
+                )
+            }
+            #[cfg(not(feature = "conformance"))]
+            Operation::SockShutdown { fd, how } => {
+                fields.number("fd", u64::from(*fd), 4);
+                fields.number("how", u64::from(*how), 1);
+                (
+                    31,
+                    "sock_shutdown",
+                    0,
+                    4 + "operation outside stock WASI profile: sock_shutdown".len() as u64,
+                )
+            }
             #[cfg(any(test, feature = "conformance"))]
             Operation::Unsupported(_) => unreachable!("typed namespace operation required"),
         };

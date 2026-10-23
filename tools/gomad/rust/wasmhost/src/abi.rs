@@ -133,7 +133,7 @@ impl Operation {
                 | Self::EnvironSizesGet
         ) || self.is_runtime() && self != Self::RuntimeNetStream
     }
-    /// Filesystem imports answered by the helper-owned Rust namespace.
+    /// Imports answered by the helper-owned namespace, including refused stock sockets.
     pub fn is_namespace(self) -> bool {
         matches!(
             self,
@@ -159,6 +159,8 @@ impl Operation {
                 | Self::PathReadlink
                 | Self::PathRename
                 | Self::PathOpen
+                | Self::SockAccept
+                | Self::SockShutdown
         )
     }
     pub fn is_runtime(self) -> bool {
@@ -1146,6 +1148,25 @@ fn invoke_namespace(
                 fd: get(2),
                 path: guest.bytes(get(3), get(4) as usize)?,
             },
+            Operation::SockAccept => {
+                guest.range(get(2), 4)?;
+                if get(1) > u32::from(u16::MAX) {
+                    return Err(Error::msg("invalid socket flags"));
+                }
+                NsOperation::SockAccept {
+                    fd: get(0),
+                    flags: get(1) as u16,
+                }
+            }
+            Operation::SockShutdown => {
+                if get(1) > 3 {
+                    return Err(Error::msg("invalid shutdown mode"));
+                }
+                NsOperation::SockShutdown {
+                    fd: get(0),
+                    how: get(1) as u8,
+                }
+            }
             _ => return Err(Error::msg("unsupported namespace import")),
         })
     })();
@@ -1445,7 +1466,7 @@ mod tests {
             let name = op.callback();
             assert_eq!(
                 op.is_namespace(),
-                name.starts_with("fd_") || name.starts_with("path_"),
+                name.starts_with("fd_") || name.starts_with("path_") || name.starts_with("sock_"),
                 "{name}"
             );
             assert!(!(op.is_namespace() && op.is_model_local()), "{name}");

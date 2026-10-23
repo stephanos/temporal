@@ -76,6 +76,27 @@ impl Failure {
     }
 }
 
+#[expect(
+    clippy::needless_pass_by_value,
+    reason = "Error classification is passed directly to Result::map_err"
+)]
+pub(crate) fn world_failure(error: world::Error) -> Failure {
+    match error {
+        world::Error::Capacity {
+            dimension,
+            limit,
+            used,
+            delta,
+        } => Failure::Exhausted {
+            dimension,
+            limit,
+            used,
+            delta,
+        },
+        world::Error::Classified { .. } => Failure::Infrastructure(error.to_string()),
+    }
+}
+
 fn infrastructure(error: impl Into<String>) -> Failure {
     Failure::Infrastructure(error.into())
 }
@@ -635,6 +656,12 @@ fn lock(shared: &Mutex<Shared>) -> std::sync::MutexGuard<'_, Shared> {
 }
 
 impl Endpoint {
+    pub(crate) fn limit_transition_bytes(&mut self, limit: Option<u64>) -> Result<(), Failure> {
+        self.world
+            .limit_transition_bytes(limit)
+            .map_err(world_failure)
+    }
+
     /// `slot` is the broker slot (instance order, from 1); `local` is the
     /// instance's own network profile, whose limits size its network World.
     pub fn new(
@@ -770,7 +797,7 @@ impl Endpoint {
                     payload: Vec::new(),
                     equivalence_class: String::new(),
                 })
-                .map_err(|error| infrastructure(error.to_string()))?;
+                .map_err(world_failure)?;
             self.world_ready.insert(id);
             ready = true;
             if shared.simulation.is_some() {
@@ -785,10 +812,7 @@ impl Endpoint {
     }
 
     fn deliver_ready(&mut self, now: u64) -> Result<(), Failure> {
-        let quiescence = self
-            .world
-            .quiesce()
-            .map_err(|error| infrastructure(error.to_string()))?;
+        let quiescence = self.world.quiesce().map_err(world_failure)?;
         if quiescence.after != world::INITIAL_TIME + now.cast_signed() {
             return Err(Failure::Invalid("network readiness advanced outside idle"));
         }
@@ -940,9 +964,7 @@ impl Endpoint {
                 });
             }
             if let Some(&world_request) = self.world_requests.get(&call.id) {
-                self.world
-                    .cancel(world_request)
-                    .map_err(|error| infrastructure(error.to_string()))?;
+                self.world.cancel(world_request).map_err(world_failure)?;
             }
             result
         } else {
@@ -971,7 +993,7 @@ impl Endpoint {
                         priority: 0,
                         payload: Vec::new(),
                     })
-                    .map_err(|error| infrastructure(error.to_string()))?;
+                    .map_err(world_failure)?;
                 self.world_requests.insert(call.id, world_request);
             }
             stream_abi::set_u32(data, 40, 1);

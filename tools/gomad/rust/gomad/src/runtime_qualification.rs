@@ -84,7 +84,10 @@ pub fn produce(
             std::time::Duration::from_secs(60).min(remaining),
             &gomad_wasmhost::linked::Cancellation::default(),
         )?;
-        let publication = result.publication;
+        let publication = result
+            .finalized()
+            .map_err(|failure| failure.message())?
+            .publication;
         if publication.record.outcome.termination != "exit"
             || !matches!(publication.record.outcome.exit_code, Some(0 | 17))
         {

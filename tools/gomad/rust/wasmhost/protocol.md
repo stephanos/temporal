@@ -1011,3 +1011,26 @@ concatenated evidence and metadata while retaining actual loop wall/CPU samples.
 It excludes Wasmtime guest execution, import trampolines, IPC, final flush and
 byte comparison. Calibration and any actual workload diagnostic require an
 exclusive owner-approved measurement window and are never qualification gates.
+
+### World transition byte bounds
+
+New host preparations retain `configuration.world_transition_bytes`, derived from
+`--world-transition-limit`. Cluster declarations retain the same value as
+`broker.transition_bytes`; standalone network owners receive it during admission.
+Each World independently budgets the sum of its accepted canonical native
+transition encodings. The bound excludes snapshot headers, request/event tables,
+compression, inspection metadata and the number of transitions. The original Go
+recorder counted its JSON lines; this Rust lineage uses its retained binary
+transition encoding and does not claim byte equivalence with that lineage.
+
+Register, readiness, cancellation and quiescence all check the prospective
+transition before changing state or history. Rejection reports `capacity` with
+`transition-bytes` and its limit, used bytes and attempted delta, retaining the
+accepted prefix. Retained World validation replays that prefix under the same
+bound. Re-execution uses the retained bound, including the qualification values
+of 1 MiB and 32 MiB.
+
+Both new configuration fields are optional and omitted when absent. Earlier Rust
+artifacts retain their original configuration bytes and hashes and their previous
+World count/size bounds; replay does not insert a new default into them. New
+production preparations record the explicitly selected byte bound.

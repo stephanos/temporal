@@ -84,6 +84,620 @@
           "exit": 0
         }
       ]
+    },
+    {
+      "observed_at": "2026-10-23T07:09:20.810374+00:00",
+      "integration_head": "8c75c49970",
+      "final_qualification": false,
+      "logs": [
+        {
+          "path": "/home/agent/.cache/codex-build/fn232-root-integrated-feature-lint.log",
+          "bytes": 5128,
+          "sha256": "1d38d26137ac421bb2ee8e7d8d5140a7a82fa13d82195c8f89c7021fdb653cbb",
+          "exit": 2
+        },
+        {
+          "path": "/home/agent/.cache/codex-build/fn232-root-integrated-feature-lint-fixed.log",
+          "bytes": 1610,
+          "sha256": "54341d4756c4c42ac048f7187e01cec0ef0563f5329341dedd3927020ea0d852",
+          "exit": 2
+        },
+        {
+          "path": "/home/agent/.cache/codex-build/fn232-root-integrated-feature-lint-final.log",
+          "bytes": 2671,
+          "sha256": "fd9f9a69aa9f41a1fdbed9c02b3b214bf2b9e87fa9ab27a89aa841cb5174f097",
+          "exit": 2
+        },
+        {
+          "path": "/home/agent/.cache/codex-build/fn232-root-integrated-feature-lint-confirmed.log",
+          "bytes": 2361,
+          "sha256": "6e75648cd53de0680cc29a247f3a72cc48676932202f5ebe10196231a267f3dd",
+          "exit": 0
+        },
+        {
+          "path": "/home/agent/.cache/codex-build/fn232-root-helper-boundary-lint-tests.log",
+          "bytes": 1062,
+          "sha256": "7f7684f8bf3e780979070289fbbea79d5adbbf807b627b5af1c2acfebf76ee6f",
+          "exit": 0
+        },
+        {
+          "path": "/home/agent/.cache/codex-build/fn232-root-retained-go-boundaries.log",
+          "bytes": 147,
+          "sha256": "a40042c923db60b6bb310857362f30a92ca072fcf035cfb2189125d8f3255ca3",
+          "exit": 0
+        }
+      ]
+    },
+    {
+      "observed_at": "2026-10-23T07:09:20.810374+00:00",
+      "integration_head": "9a1807bdce",
+      "final_qualification": false,
+      "logs": [
+        {
+          "path": "/home/agent/.cache/codex-build/fn222-root-support-integrated-tests.log",
+          "bytes": 34551,
+          "sha256": "2341d084cb0243313aa2fe32ee3910b59364a946f8810ee0516d6270ca6237e0",
+          "exit": 0
+        },
+        {
+          "path": "/home/agent/.cache/codex-build/fn222-root-support-integrated-clippy.log",
+          "bytes": 278,
+          "sha256": "224925c398cd96a2ed9d093b02021cae735b7e83d4bf5d4665dbcaac6ab74e1b",
+          "exit": 0
+        },
+        {
+          "path": "/home/agent/.cache/codex-build/fn222-root-support-integrated-example.log",
+          "bytes": 165,
+          "sha256": "448aefeda09f0edec685d33957b3af418c7fc5bd7e70e979b660399bccebf2ca",
+          "exit": 0
+        },
+        {
+          "path": "/home/agent/.cache/codex-build/fn222-root-witness-onebox-tests.log",
+          "bytes": 113,
+          "sha256": "a2229c9ddf686e308741d481c4a67e1368ba90e54a37620c6a6290dfef8c5722",
+          "exit": 0
+        },
+        {
+          "path": "/home/agent/.cache/codex-build/fn222-root-witness-inspection-tests.log",
+          "bytes": 121,
+          "sha256": "63d434b2beafc13be09734b2ab5e3a939fa87894a40ceeea0dfa4310691317de",
+          "exit": 0
+        },
+        {
+          "path": "/home/agent/.cache/codex-build/fn222-root-witness-driver-tests.log",
+          "bytes": 254,
+          "sha256": "52151caabbdbbce59595ba2efa56262788ab9f74b8ce3fe3edc21e691a4b4d1b",
+          "exit": 0
+        }
+      ]
+    },
+    {
+      "observed_at": "2026-10-23T07:09:20.810374+00:00",
+      "integration_head": "e944295e58",
+      "final_qualification": false,
+      "logs": [
+        {
+          "path": "/home/agent/.cache/codex-build/fn232-root-preparation-receiving-integrated-tests.log",
+          "bytes": 37187,
+          "sha256": "57bbbc93c48f1b8619cfb9cbd4a08642b5a6be9a5825eda751419f5954f49767",
+          "exit": 0
+        },
+        {
+          "path": "/home/agent/.cache/codex-build/fn232-root-preparation-receiving-driver.log",
+          "bytes": 272,
+          "sha256": "7363caea901e3a96ef2ed4f73c4d5d739dea4d719017f48aa27d5612fbfc192a",
+          "exit": 0
+        },
+        {
+          "path": "/home/agent/.cache/codex-build/fn232-root-preparation-receiving-workloads.log",
+          "bytes": 119,
+          "sha256": "93a2f135ece9fb410e80da036e9155fd095a090dcde213e64868a6550efa79cc",
+          "exit": 0
+        },
+        {
+          "path": "/home/agent/.cache/codex-build/fn232-root-preparation-receiving-clippy.log",
+          "bytes": 165,
+          "sha256": "ebc5d9ef4077dceacffc0e03a8d6cf1357fbba9aa1835a41bb57181038ea20dd",
+          "exit": 0
+        }
+      ]
+    },
+    {
+      "observed_at": "2026-10-23T08:00:30.693556+00:00",
+      "integration_head": "23f5cb47af",
+      "final_qualification": false,
+      "logs": [
+        {
+          "path": "/home/agent/.cache/codex-build/fn232-root-core-preservation-integrated-tests.log",
+          "bytes": 61598,
+          "sha256": "a734728197119463c8615e3e99c0304b43abadddb85f7e97b840a6657ce515ee",
+          "exit": 0
+        },
+        {
+          "path": "/home/agent/.cache/codex-build/fn232-root-interception-integrated-tests.log",
+          "bytes": 48406,
+          "sha256": "da88b9d445abc69898a3c98d4e73920dfe583339c39b856a351f3d37fd06d67f",
+          "exit": 0
+        },
+        {
+          "path": "/home/agent/.cache/codex-build/fn232-root-interception-integrated-clippy.log",
+          "bytes": 279,
+          "sha256": "bff2892eecf98bfa5e9508cc028dc3de2b39c0a45f3f5da19156401a974d902c",
+          "exit": 0
+        },
+        {
+          "path": "/home/agent/.cache/codex-build/fn232-root-stress-final-reader-tests.log",
+          "bytes": 115,
+          "sha256": "3694226b25bdf82ae011604d87c9fc34088534f0cdc8f5a29c8951688ea73cf8",
+          "exit": 0
+        },
+        {
+          "path": "/home/agent/.cache/codex-build/fn232-root-all-verb-stress-reader-tests.log",
+          "bytes": 112,
+          "sha256": "0d5f8346517fbbc9f8c76001a173ca4ace78dc0d43bc08446621d0299d7dcd04",
+          "exit": 0
+        },
+        {
+          "path": "/home/agent/.cache/codex-build/fn233-root-shim-reader-tests.log",
+          "bytes": 119,
+          "sha256": "a99391ff5482cf3b2f9ee6ffe0a2c86a30d007acb95d9d07e2e33866fe958982",
+          "exit": 0
+        },
+        {
+          "path": "/home/agent/.cache/codex-build/fn233-root-make-reader-tests.log",
+          "bytes": 102,
+          "sha256": "ea17f54eefb6e640b1725061659d4a7c05aa7b23693e12e40cfa00b4e95bdc0e",
+          "exit": 0
+        },
+        {
+          "path": "/home/agent/.cache/codex-build/fn232-root-measurement-integrated-tests.log",
+          "bytes": 643,
+          "sha256": "90c5c4cfc0dd89beaec0c2ae90a70180a71255473b3fa18e039483309e472b90",
+          "exit": 101
+        },
+        {
+          "path": "/home/agent/.cache/codex-build/fn232-root-measurement-integrated-tests-fixed.log",
+          "bytes": 82245,
+          "sha256": "b7fb16d7ab6b9c7aca5b3ae941f313b56f3c2d3d12d2440a0f47982b694573e0",
+          "exit": 0
+        },
+        {
+          "path": "/home/agent/.cache/codex-build/fn232-root-measurement-driver-tests.log",
+          "bytes": 108,
+          "sha256": "e70fec2825d9bf206d27463a792768195039599cb39bcca66339f47283f84cce",
+          "exit": 5
+        },
+        {
+          "path": "/home/agent/.cache/codex-build/fn232-root-measurement-driver-tests-corrected.log",
+          "bytes": 8886,
+          "sha256": "bb59aa6c13c6693eccf2ab19b03a1d987247eebae21424335183bf5761b77803",
+          "exit": 1
+        },
+        {
+          "path": "/home/agent/.cache/codex-build/fn232-root-measurement-feature-lint.log",
+          "bytes": 1086,
+          "sha256": "a9161b3ab078ef1f467ccc2b3ca6e783bf2d364835e8a0aafc14fc5e542d5e5c",
+          "exit": 2
+        },
+        {
+          "path": "/home/agent/.cache/codex-build/fn232-root-measurement-feature-lint-fixed.log",
+          "bytes": 1485,
+          "sha256": "c2bdc6493d8f9f5766a6fd864690853f1d2c5218d69959b87be9fcc1c9f93337",
+          "exit": 2
+        },
+        {
+          "path": "/home/agent/.cache/codex-build/fn232-root-measurement-feature-lint-final.log",
+          "bytes": 3413,
+          "sha256": "e5cdb4968b73122ade3907cf853a5e1ff958f0da1a5afa520d8edeb877b7974e",
+          "exit": 2
+        },
+        {
+          "path": "/home/agent/.cache/codex-build/fn232-root-measurement-feature-lint-confirmed.log",
+          "bytes": 2769,
+          "sha256": "ff15f3a9ab9b9c1d2f04aee3fb126e099371f702d84914f4ca4a20ef5a6a9782",
+          "exit": 2
+        },
+        {
+          "path": "/home/agent/.cache/codex-build/fn232-root-measurement-feature-lint-admitted.log",
+          "bytes": 2102,
+          "sha256": "3276ae4b73f3e0b76fa326f99563cf9d0a7a85dd8b99be853ac962c0ce7d2ee9",
+          "exit": 2
+        }
+      ],
+      "remaining": [
+        "Current expanded sixteen valid feature matrix is still running; fixture-plus-diagnostic combination correctly refused and excluded from admitted matrix.",
+        "Driver inventory: five stale static-ignored errors and exact qualify/spec.rs#decode_first source anchor failure remain owned by inventory reconciliation.",
+        "Real handoff counterfactual exposed missing ordered drain steps; four-pair proof incomplete.",
+        "Original cluster predicates, fresh current-candidate qualification, runtime and mandatory workload matrices, final sections and full milestone delivery remain incomplete."
+      ]
+    },
+    {
+      "observed_at": "2026-10-23T08:17:25.513207+00:00",
+      "integration_head": "d21472e7742fde52108f6e2a1bd31d793916a223",
+      "final_qualification": false,
+      "logs": [
+        {
+          "path": "/home/agent/.cache/codex-build/fn232-root-measurement-feature-lint-complete.log",
+          "bytes": 4601,
+          "sha256": "9e227865e427913b5f595d9997afed771075d741d2ab5d106368692047e8af4c",
+          "exit": 2
+        },
+        {
+          "path": "/home/agent/.cache/codex-build/fn232-root-measurement-feature-lint-reconciled.log",
+          "bytes": 3861,
+          "sha256": "50d3c8f67aa1a9fb0bb697d285c855955766381666e8b4e7e393b72a67e79f3a",
+          "exit": 2
+        },
+        {
+          "path": "/home/agent/.cache/codex-build/fn232-root-measurement-feature-lint-reviewed.log",
+          "bytes": 3702,
+          "sha256": "789d2de377f79b4233c4ad9d90738f3eaf01a47bcb380356f0b47d046dc9b36a",
+          "exit": 2
+        },
+        {
+          "path": "/home/agent/.cache/codex-build/fn232-root-measurement-feature-lint-order-fixed.log",
+          "bytes": 3973,
+          "sha256": "9217a68f47ad87a3391a20dc9891aadee8d7cb6642a0faf1f64d44cbda903f52",
+          "exit": 2
+        },
+        {
+          "path": "/home/agent/.cache/codex-build/fn232-root-helper-last-profile-lint.log",
+          "bytes": 176,
+          "sha256": "29a8674dddd4f56ecb697ca1979b005f807bda7264066837afd9ff698edfc483",
+          "exit": 0
+        },
+        {
+          "path": "/home/agent/.cache/codex-build/fn232-root-helper-last-stress-lint.log",
+          "bytes": 176,
+          "sha256": "8b7fae72827465c531ebd950b7ff413ab8c64e67e6db4719139aa7e321ecb238",
+          "exit": 0
+        },
+        {
+          "path": "/home/agent/.cache/codex-build/fn232-root-helper-guest-lint-final.log",
+          "bytes": 176,
+          "sha256": "12984eb18cdbcbeff8d9e8ae77a66f442d2313a5ec5d326e258cb805a2eb8acb",
+          "exit": 0
+        },
+        {
+          "path": "/home/agent/.cache/codex-build/fn232-root-measurement-feature-lint-accepted.log",
+          "bytes": 3303,
+          "sha256": "309da4dfb9ed1f616439e4face2fb5a6d795867f83072ba5ede7796ddcf091d6",
+          "exit": 0
+        },
+        {
+          "path": "/home/agent/.cache/codex-build/fn232-root-conformance-role-tests.log",
+          "bytes": 7189,
+          "sha256": "db68f4f98f940f33327cccd20749199001caac60b4cf0bf511154238690ce0c9",
+          "exit": 0
+        },
+        {
+          "path": "/home/agent/.cache/codex-build/fn232-root-measurement-terminal-fixture-tests.log",
+          "bytes": 2167,
+          "sha256": "fc4e6c5877fbc23e0ac5e52cd87ae9041d4d54d949b00d325f9a8014d746ccbe",
+          "exit": 0
+        },
+        {
+          "path": "/home/agent/.cache/codex-build/fn232-root-reference-profile-tests.log",
+          "bytes": 107,
+          "sha256": "22a166ea71a61bab879220217161d1658b3d79958b0746f0081861a450a89d6a",
+          "exit": 0
+        },
+        {
+          "path": "/home/agent/.cache/codex-build/fn232-root-final-retained-tests.log",
+          "bytes": 112,
+          "sha256": "cfb3954a5cd76fdf1976bc45a636e7b872b25b55888370e312f0dbc5c3066975",
+          "exit": 0
+        },
+        {
+          "path": "/home/agent/.cache/codex-build/fn232-root-final-profiles-tests.log",
+          "bytes": 111,
+          "sha256": "21643035be3f627eb1a2fd825c4e4aa72a73bddc5120e9021ae09db01d81db5a",
+          "exit": 0
+        },
+        {
+          "path": "/home/agent/.cache/codex-build/fn232-root-source-custody-workload-tests.log",
+          "bytes": 130,
+          "sha256": "ff2ded421da1a822d4eb1dc7ff4ef6a444606e871821c4cf5c31538b103fd422",
+          "exit": 0
+        }
+      ],
+      "completed_scope": [
+        "All sixteen admitted feature configurations pass in one make lint-rust invocation.",
+        "Conformance-role library68 passed7 ignored; native terminal fixture15 passed.",
+        "Reference9, retained13, profile12, source-custody/workload31 focused Python tests passed."
+      ],
+      "remaining": [
+        "Measurement51b566 and stable backend evidence fc0e9db are reviewed source batches awaiting root integration.",
+        "Composition8538 primary recipes and original terminal wire reference integration remain pending.",
+        "Core132b1 implicit drain fix reviewed; fresh original four-pair proof still running.",
+        "Inventory exact source anchors, ignored producers and unresolved original predicates remain open.",
+        "No final frozen qualification, support publication, complete test-wasm reach or complete milestone claim."
+      ]
     }
-  ]
+  ],
+  "resource_snapshot": {
+    "observed_at": "2026-10-23T08:17:25.544391+00:00",
+    "root_target": "/home/agent/.cache/codex-build/fn232-retirement-integration",
+    "root_processes": "All root Cargo and Python handles terminal at checkpoint.",
+    "worktrees": [
+      {
+        "worktree": "/Users/stephan/Workspace/skunkworks/gomad/temporal",
+        "HEAD": "d21472e7742fde52108f6e2a1bd31d793916a223",
+        "branch": "refs/heads/gomad",
+        "retention_reason": "Active root integration checkout."
+      },
+      {
+        "worktree": "/home/agent/wt/fn185-attribution-fix",
+        "HEAD": "0ee0ebd6ef7b55d4ae12e3e63b3db4075b277da9",
+        "branch": "refs/heads/fn185-attribution-fix",
+        "retention_reason": "Preserved pending owner and open-spec evidence-custody audit; this batch did not remove this worktree."
+      },
+      {
+        "worktree": "/home/agent/wt/fn185-rust-attribution",
+        "HEAD": "cac5b294eb6de2985d0d529a793c73927feb171a",
+        "branch": "refs/heads/fn185-rust-attribution",
+        "retention_reason": "Preserved pending owner and open-spec evidence-custody audit; this batch did not remove this worktree."
+      },
+      {
+        "worktree": "/home/agent/wt/fn188-parity-receiving",
+        "HEAD": "47be0f6885386a26595fccf5b6c0dec6c6d3c1a6",
+        "branch": "refs/heads/fn188-parity-receiving",
+        "retention_reason": "Preserved pending owner and open-spec evidence-custody audit; this batch did not remove this worktree."
+      },
+      {
+        "worktree": "/home/agent/wt/fn188-rust-stress",
+        "HEAD": "175d69612f685c19881648011f18e230e6d99c73",
+        "branch": "refs/heads/fn188-rust-stress",
+        "retention_reason": "Preserved pending owner and open-spec evidence-custody audit; this batch did not remove this worktree."
+      },
+      {
+        "worktree": "/home/agent/wt/fn221",
+        "HEAD": "fff7a9575e10bd391b1c44e506d1bf57a8986d34",
+        "branch": "refs/heads/fn221-sweep",
+        "retention_reason": "Preserved pending owner and open-spec evidence-custody audit; this batch did not remove this worktree."
+      },
+      {
+        "worktree": "/home/agent/wt/fn221-matrix",
+        "HEAD": "d414f0fda7dd429ed5dd6afbe9842ade8bdb5c97",
+        "branch": "refs/heads/fn221-matrix",
+        "retention_reason": "Preserved pending owner and open-spec evidence-custody audit; this batch did not remove this worktree."
+      },
+      {
+        "worktree": "/home/agent/wt/fn221-rerun-src",
+        "HEAD": "1d7b37f00a74a85399993f1edcad6fe742e778e3",
+        "retention_reason": "Preserved pending owner and open-spec evidence-custody audit; this batch did not remove this worktree."
+      },
+      {
+        "worktree": "/home/agent/wt/fn222-driver",
+        "HEAD": "b573067ee32c6bdac9c9772acc6a0505be4c4e49",
+        "branch": "refs/heads/fn222-driver",
+        "retention_reason": "Preserved pending owner and open-spec evidence-custody audit; this batch did not remove this worktree."
+      },
+      {
+        "worktree": "/home/agent/wt/fn222-inspection",
+        "HEAD": "c030316863ef3b18a96a28ea58cb988a66a589a0",
+        "branch": "refs/heads/fn222-inspection",
+        "retention_reason": "Preserved pending owner and open-spec evidence-custody audit; this batch did not remove this worktree."
+      },
+      {
+        "worktree": "/home/agent/wt/fn222-support",
+        "HEAD": "64f987af5b7b42d56f4ec9f3bb2ecd127531bf9f",
+        "branch": "refs/heads/fn222-support-v2",
+        "retention_reason": "Preserved pending owner and open-spec evidence-custody audit; this batch did not remove this worktree."
+      },
+      {
+        "worktree": "/home/agent/wt/fn230-sites",
+        "HEAD": "aa0e2af51459e541e8dddaa6c53b762b239f879c",
+        "branch": "refs/heads/fn230-sites",
+        "retention_reason": "Preserved pending owner and open-spec evidence-custody audit; this batch did not remove this worktree."
+      },
+      {
+        "worktree": "/home/agent/wt/fn232-broker-observe",
+        "HEAD": "1d695061b6382009d0659238c652a5a765b1d5f5",
+        "retention_reason": "Preserved pending owner and open-spec evidence-custody audit; this batch did not remove this worktree."
+      },
+      {
+        "worktree": "/home/agent/wt/fn232-broker-observe-v3",
+        "HEAD": "412dc2488c4c63b8951f1abcf011fd7b96d2ee33",
+        "retention_reason": "Preserved pending owner and open-spec evidence-custody audit; this batch did not remove this worktree."
+      },
+      {
+        "worktree": "/home/agent/wt/fn232-broker-observe-v4",
+        "HEAD": "a1e0bdf513e074c8b9b19062fef4dfd5356393a2",
+        "retention_reason": "Preserved pending owner and open-spec evidence-custody audit; this batch did not remove this worktree."
+      },
+      {
+        "worktree": "/home/agent/wt/fn232-broker-observe-v5",
+        "HEAD": "5fb6056cf351416bacd541ec59fdb04006d944c1",
+        "retention_reason": "Preserved pending owner and open-spec evidence-custody audit; this batch did not remove this worktree."
+      },
+      {
+        "worktree": "/home/agent/wt/fn232-broker-observe-v6",
+        "HEAD": "d392dec327c5573da9076e9cd50054c3b15125e6",
+        "retention_reason": "Preserved pending owner and open-spec evidence-custody audit; this batch did not remove this worktree."
+      },
+      {
+        "worktree": "/home/agent/wt/fn232-core-host-reach",
+        "HEAD": "e2708ad8f1f5588c5651059dab28cea7e096d95b",
+        "branch": "refs/heads/fn232-core-host-reach",
+        "retention_reason": "Preserved pending owner and open-spec evidence-custody audit; this batch did not remove this worktree."
+      },
+      {
+        "worktree": "/home/agent/wt/fn232-core-model-reach",
+        "HEAD": "eb31d29eb8ca7aeaf482ea338b84e82ea6fde5c1",
+        "branch": "refs/heads/fn232-core-model-reach",
+        "retention_reason": "Preserved pending owner and open-spec evidence-custody audit; this batch did not remove this worktree."
+      },
+      {
+        "worktree": "/home/agent/wt/fn232-core-reach",
+        "HEAD": "132b1ceb15c180ad266ba7b0a9f7970457e8c035",
+        "branch": "refs/heads/fn232-core-reach",
+        "retention_reason": "Preserved pending owner and open-spec evidence-custody audit; this batch did not remove this worktree."
+      },
+      {
+        "worktree": "/home/agent/wt/fn232-determinism-reach",
+        "HEAD": "f776ad0e015fa46683c3311fb0750fc73fccecf9",
+        "branch": "refs/heads/fn232-determinism-reach",
+        "retention_reason": "Preserved pending owner and open-spec evidence-custody audit; this batch did not remove this worktree."
+      },
+      {
+        "worktree": "/home/agent/wt/fn232-final-composition",
+        "HEAD": "8538b24293cb5a7627eeb68c5d72d8e2b3563918",
+        "branch": "refs/heads/fn232-final-composition",
+        "retention_reason": "Preserved pending owner and open-spec evidence-custody audit; this batch did not remove this worktree."
+      },
+      {
+        "worktree": "/home/agent/wt/fn232-final-profiles",
+        "HEAD": "c60f0d84e988a268ee07c5435488ed9eaf0fcebf",
+        "branch": "refs/heads/fn232-final-profiles",
+        "retention_reason": "Preserved pending owner and open-spec evidence-custody audit; this batch did not remove this worktree."
+      },
+      {
+        "worktree": "/home/agent/wt/fn232-final-retained",
+        "HEAD": "fc0e9dbe9d38a002954c94d996851fd419565162",
+        "branch": "refs/heads/fn232-final-retained",
+        "retention_reason": "Preserved pending owner and open-spec evidence-custody audit; this batch did not remove this worktree."
+      },
+      {
+        "worktree": "/home/agent/wt/fn232-foundation",
+        "HEAD": "8f47d368fcc3e6a5a82058f02d8ae8f650c1d740",
+        "branch": "refs/heads/fn-232-gomad-rewrite-the-host-side-in-rust",
+        "retention_reason": "Preserved pending owner and open-spec evidence-custody audit; this batch did not remove this worktree."
+      },
+      {
+        "worktree": "/home/agent/wt/fn232-inspection-admission",
+        "HEAD": "2f52fbb72492c016dd3fc29ac923f39c20d11054",
+        "branch": "refs/heads/fn232-inspection-admission",
+        "retention_reason": "Preserved pending owner and open-spec evidence-custody audit; this batch did not remove this worktree."
+      },
+      {
+        "worktree": "/home/agent/wt/fn232-install",
+        "HEAD": "fbb99949b82ccb5ea4d5dafa08732f829ef20467",
+        "branch": "refs/heads/fn232-install",
+        "retention_reason": "Preserved pending owner and open-spec evidence-custody audit; this batch did not remove this worktree."
+      },
+      {
+        "worktree": "/home/agent/wt/fn232-installed-lifecycle",
+        "HEAD": "63c5510aadf934012e1484782355889205dfae4a",
+        "branch": "refs/heads/fn232-installed-lifecycle",
+        "retention_reason": "Preserved pending owner and open-spec evidence-custody audit; this batch did not remove this worktree."
+      },
+      {
+        "worktree": "/home/agent/wt/fn232-linked-cache",
+        "HEAD": "c07df2cc6872e1735f8b8d871df027017271ae3b",
+        "branch": "refs/heads/fn232-linked-cache",
+        "retention_reason": "Preserved pending owner and open-spec evidence-custody audit; this batch did not remove this worktree."
+      },
+      {
+        "worktree": "/home/agent/wt/fn232-live-corpus",
+        "HEAD": "aafbcad9381bcb57c1e7d33852dc5c5709aa5e2a",
+        "branch": "refs/heads/fn232-live-corpus",
+        "retention_reason": "Preserved pending owner and open-spec evidence-custody audit; this batch did not remove this worktree."
+      },
+      {
+        "worktree": "/home/agent/wt/fn232-mandatory-workloads",
+        "HEAD": "cc907477eb7b8fbfa29dcb0a0abf8835687018e4",
+        "branch": "refs/heads/fn232-mandatory-workloads",
+        "retention_reason": "Preserved pending owner and open-spec evidence-custody audit; this batch did not remove this worktree."
+      },
+      {
+        "worktree": "/home/agent/wt/fn232-measurement-lint",
+        "HEAD": "ca8fce5aad35fbc7abe8c9681401f2b96c5b8ad6",
+        "branch": "refs/heads/fn232-measurement-lint",
+        "retention_reason": "Preserved pending owner and open-spec evidence-custody audit; this batch did not remove this worktree."
+      },
+      {
+        "worktree": "/home/agent/wt/fn232-measurement-reach",
+        "HEAD": "51b566a2ba19d3d012af5e0b38489e5ee64840e7",
+        "branch": "refs/heads/fn232-measurement-reach",
+        "retention_reason": "Preserved pending owner and open-spec evidence-custody audit; this batch did not remove this worktree."
+      },
+      {
+        "worktree": "/home/agent/wt/fn232-minimize",
+        "HEAD": "92ef3e3403e3e66e9192b7d07bb950f1d56716c8",
+        "branch": "refs/heads/fn232-minimize",
+        "retention_reason": "Preserved pending owner and open-spec evidence-custody audit; this batch did not remove this worktree."
+      },
+      {
+        "worktree": "/home/agent/wt/fn232-native-import",
+        "HEAD": "dc7fa146194e715fb5fc94a1b6218fc68453b6bc",
+        "branch": "refs/heads/fn232-native-import",
+        "retention_reason": "Preserved pending owner and open-spec evidence-custody audit; this batch did not remove this worktree."
+      },
+      {
+        "worktree": "/home/agent/wt/fn232-profile-reference",
+        "HEAD": "1807d0d0060609d7bd9179b656f7412321007f61",
+        "branch": "refs/heads/fn232-profile-reference",
+        "retention_reason": "Preserved pending owner and open-spec evidence-custody audit; this batch did not remove this worktree."
+      },
+      {
+        "worktree": "/home/agent/wt/fn232-receiving-reader",
+        "HEAD": "97fe68070a0946edf0ec7e1df3749431106010c0",
+        "branch": "refs/heads/fn232-receiving-reader",
+        "retention_reason": "Preserved pending owner and open-spec evidence-custody audit; this batch did not remove this worktree."
+      },
+      {
+        "worktree": "/home/agent/wt/fn232-retirement",
+        "HEAD": "f0e8b834f49f27cb452c43c7bbaaca27c4a1fbcd",
+        "branch": "refs/heads/fn232-retirement",
+        "retention_reason": "Preserved pending owner and open-spec evidence-custody audit; this batch did not remove this worktree."
+      },
+      {
+        "worktree": "/home/agent/wt/fn232-runtime-qualification",
+        "HEAD": "50a22fb6d9e0339f266f0f2d6611ebf581ac0091",
+        "branch": "refs/heads/fn232-runtime-qualification",
+        "retention_reason": "Preserved pending owner and open-spec evidence-custody audit; this batch did not remove this worktree."
+      },
+      {
+        "worktree": "/home/agent/wt/fn232-rust-driver",
+        "HEAD": "dd2c39b5b464d0a120c089ea59fb1d06b8671067",
+        "branch": "refs/heads/fn232-rust-driver",
+        "retention_reason": "Preserved pending owner and open-spec evidence-custody audit; this batch did not remove this worktree."
+      },
+      {
+        "worktree": "/home/agent/wt/fn232-simulation",
+        "HEAD": "1c9a79255bca2e6468c780da78b6cfe4f2b620ab",
+        "branch": "refs/heads/fn232-simulation",
+        "retention_reason": "Preserved pending owner and open-spec evidence-custody audit; this batch did not remove this worktree."
+      },
+      {
+        "worktree": "/home/agent/wt/fn232-sweep-receiver",
+        "HEAD": "27811042002a27f8d73c04f2f60890d8c6d9f88a",
+        "branch": "refs/heads/fn232-sweep-receiver",
+        "retention_reason": "Preserved pending owner and open-spec evidence-custody audit; this batch did not remove this worktree."
+      },
+      {
+        "worktree": "/home/agent/wt/fn232-world-codec",
+        "HEAD": "13dbbf69e4a53097ee18c8f76e804fff2d02ac94",
+        "branch": "refs/heads/fn232-world-codec",
+        "retention_reason": "Preserved pending owner and open-spec evidence-custody audit; this batch did not remove this worktree."
+      },
+      {
+        "worktree": "/home/agent/wt/fn233-interception",
+        "HEAD": "4939d87c16c93de978b694934943d11c7ed655df",
+        "branch": "refs/heads/fn233-interception",
+        "retention_reason": "Preserved pending owner and open-spec evidence-custody audit; this batch did not remove this worktree."
+      }
+    ],
+    "scratch_and_evidence": [
+      {
+        "path": "/home/agent/evidence",
+        "reason": "Open-owner current actual runtime/counterfactual/reference evidence; no blanket cleanup."
+      },
+      {
+        "path": "/home/agent/wt/evidence",
+        "reason": "Open-owner retained source, guest and original-reference custody; no blanket cleanup."
+      },
+      {
+        "path": "/home/agent/.cache/codex-build",
+        "reason": "Separately assigned build targets; root owns only fn232-retirement-integration."
+      }
+    ],
+    "checkout_free_gib_observed": 109,
+    "home_free_gib_observed": 21,
+    "untracked_user_paths": [
+      "tools/gomad/.turbo/",
+      "tools/gomad/internal/backends/wasm/wasmhost/"
+    ]
+  }
 }

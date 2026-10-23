@@ -81,18 +81,39 @@ impl Conditions {
         Ok(())
     }
 
+    #[cfg(any(test, not(feature = "determinism-fixture")))]
     pub(crate) fn enter(self) -> Result<Scope> {
-        self.attach(
-            &Session {
-                conditions: self,
-                closed: Arc::new(AtomicBool::new(false)),
-                #[cfg(feature = "diagnostic-profile")]
-                profile: crate::diagnostic::LinkedSink::current(),
-                #[cfg(any(feature = "determinism-fixture", feature = "stress-jitter"))]
-                events: crate::event_order::LinkedSession::new(),
-            },
-            true,
-        )
+        self.attach(&self.new_session(), true)
+    }
+
+    fn new_session(self) -> Session {
+        Session {
+            conditions: self,
+            #[cfg(feature = "diagnostic-profile")]
+            profile: crate::diagnostic::LinkedSink::current(),
+            closed: Arc::new(AtomicBool::new(false)),
+            #[cfg(any(feature = "determinism-fixture", feature = "stress-jitter"))]
+            events: crate::event_order::LinkedSession::new(),
+            #[cfg(feature = "determinism-fixture")]
+            fixture: None,
+        }
+    }
+
+    #[cfg(feature = "determinism-fixture")]
+    pub(crate) fn enter_with_fault(
+        self,
+        kind: Option<crate::determinism_fixture::Kind>,
+        owner: Option<crate::model::inspection::Handle>,
+    ) -> Result<Scope> {
+        if kind.is_some() && self != Self::DeterminismFixtureReplay {
+            return Err(Error::msg(
+                "fixture fault requires the compiled determinism fixture role",
+            ));
+        }
+        let mut session = self.new_session();
+        session.fixture =
+            kind.map(|kind| crate::determinism_fixture::control::Control::new(kind, owner));
+        self.attach(&session, true)
     }
 
     pub(crate) fn enter_shared(self, session: &Session) -> Result<Scope> {
@@ -112,6 +133,8 @@ impl Conditions {
         #[cfg(any(feature = "determinism-fixture", feature = "stress-jitter"))]
         crate::event_order::start_linked(&session.events).map_err(Error::msg)?;
         CURRENT.with(|current| current.set(Some(self)));
+        #[cfg(feature = "determinism-fixture")]
+        crate::determinism_fixture::control::attach(session.fixture.clone());
         Ok(Scope {
             finished: false,
             owner,
@@ -129,6 +152,8 @@ pub(crate) struct Session {
     closed: Arc<AtomicBool>,
     #[cfg(any(feature = "determinism-fixture", feature = "stress-jitter"))]
     events: crate::event_order::LinkedSession,
+    #[cfg(feature = "determinism-fixture")]
+    fixture: Option<Arc<crate::determinism_fixture::control::Control>>,
 }
 
 #[cfg(feature = "diagnostic-profile")]
@@ -186,6 +211,8 @@ impl Drop for Scope {
             }
         }
         CURRENT.with(|current| current.set(None));
+        #[cfg(feature = "determinism-fixture")]
+        crate::determinism_fixture::control::attach(None);
     }
 }
 

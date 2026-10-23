@@ -14,6 +14,7 @@ import time
 
 sys.dont_write_bytecode = True
 import workloads
+import source_custody
 
 
 def write(path, value):
@@ -246,16 +247,17 @@ def main():
         cache = args.cache.resolve()
     capture = None
     source = None
+    source_working_dir = None
     if args.workload != "sqlite":
         if not args.captured_config:
             raise ValueError("receiver-owned configuration preimage required")
         capture = captured(repo, args.captured_config)
         if args.workload in ("replication","recovery","retry"):
-            names={"replication":["temporal_storage/recovery_test.go","temporal_broker/replication_test.go"],"recovery":["temporal_storage/recovery_test.go"],"retry":["network_streams/temporal_retry_test.go"]}[args.workload]
-            body=b"".join((repo/workloads.WASM/"testdata"/name).read_bytes() for name in names)
-            stage=repo/".tmp"/("fn232-temporal-"+args.workload+"-"+hashlib.sha256(body).hexdigest()[:16])
-            write(root/"unchanged-source-inputs.json",workloads.stage_temporal(repo,stage,args.workload))
-            source="./"+str(stage.relative_to(repo))
+            if private is None or args.source_manifest is None:
+                raise ValueError("frozen source manifest and private configuration required for Temporal source custody")
+            source, source_working_dir, original_pins = source_custody.stage(
+                root, repo, private['files'], args.workload, args.source_manifest)
+            write(root/"unchanged-source-inputs.json", original_pins)
     policy = root/"policy.json"
     write(policy, workloads.support_policy(args.workload,capture) if args.workload in workloads.SUPPORT_ROWS else workloads.policy(args.workload, capture))
     installation = root/"installation.json"
@@ -263,7 +265,7 @@ def main():
         "--cache", str(cache), "--output", str(installation), "--profile", "gomad.wasi-cooperative/v1", "--config", str(policy),
         "--fuel", str(1 << 50 if args.workload != "sqlite" else 4_000_000_000), "--memory-bytes", str(4 << 30 if args.workload != "sqlite" else 256 << 20)], 0, json_output=False)
     spec = root/"qualification-spec.json"
-    write(spec, (workloads.support_spec if args.workload in workloads.SUPPORT_ROWS else workloads.qualification_spec)(repo, root/"cell", args.workload, args.mode == "canary", source, args.source_manifest, guest_profile=guest_profile))
+    write(spec, (workloads.support_spec if args.workload in workloads.SUPPORT_ROWS else workloads.qualification_spec)(repo, root/"cell", args.workload, args.mode == "canary", source, args.source_manifest, guest_profile=guest_profile, source_working_dir=source_working_dir))
     response = run(root, "qualify", [str(binary), "--installation", str(installation), "qualify", "--spec", str(spec)], 1 if args.mode == "canary" else 0, **({'private_observations': private} if private is not None else {}))
     result_path = Path(response["result_path"])
     report = run(root, "report", [str(binary), "report", "--result", str(result_path)], 0)

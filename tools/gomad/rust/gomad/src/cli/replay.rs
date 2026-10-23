@@ -1,7 +1,4 @@
-use crate::{
-    evidence::canonical,
-    replay::{divergence, inspection, preflight},
-};
+use crate::replay::{divergence, inspection, preflight};
 use std::{io::Write, path::Path};
 
 fn incompatible(message: &str) -> super::Error {
@@ -241,22 +238,7 @@ pub(crate) fn run_prepared(
         });
     }
     if let Some(directory) = observed_directory {
-        std::fs::create_dir_all(directory).map_err(|error| write_error(&error))?;
-        for name in ["stdout", "stderr"] {
-            std::fs::write(
-                directory.join(name),
-                observed
-                    .evidence
-                    .get(name)
-                    .map_or(&[] as &[u8], Vec::as_slice),
-            )
-            .map_err(|error| write_error(&error))?;
-        }
-        std::fs::write(
-            directory.join("backend-evidence.bin"),
-            canonical::encode(&observed.outcome)?,
-        )
-        .map_err(|error| write_error(&error))?;
+        retain_observed(directory, &observed)?;
     }
     let divergence = divergence::first(record, &observed);
     let choice = if observed.outcome.divergence.is_some() {
@@ -282,6 +264,28 @@ pub(crate) fn run_prepared(
     )
     .map_err(|error| write_error(&error))?;
     Ok(i32::from(!success))
+}
+
+pub(crate) fn retain_observed(
+    directory: &Path,
+    observed: &crate::execute::Execution,
+) -> Result<(), super::Error> {
+    std::fs::create_dir_all(directory).map_err(|error| write_error(&error))?;
+    for name in ["stdout", "stderr"] {
+        std::fs::write(
+            directory.join(name),
+            observed
+                .evidence
+                .get(name)
+                .map_or(&[] as &[u8], Vec::as_slice),
+        )
+        .map_err(|error| write_error(&error))?;
+    }
+    let (evidence, metrics) = crate::execute::backend_observation(&observed.outcome)?;
+    std::fs::write(directory.join("backend-evidence.bin"), evidence)
+        .and_then(|()| std::fs::write(directory.join("backend-metrics.json"), metrics))
+        .map_err(|error| write_error(&error))?;
+    Ok(())
 }
 
 fn write_error(error: &std::io::Error) -> super::Error {

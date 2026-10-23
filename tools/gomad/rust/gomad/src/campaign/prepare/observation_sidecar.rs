@@ -14,7 +14,7 @@ use std::{
     sync::atomic::{AtomicU64, Ordering},
 };
 
-const DIRECTORY: &str = "preparation-observations";
+const DIRECTORY: &str = super::OBSERVATION_DIRECTORY;
 const SCHEMA: &str = "gomad.native-preparation-observation-receipt/v1";
 const RECEIPT_LIMIT: u64 = 16 << 20;
 const BLOB_LIMIT: u64 = 128 << 20;
@@ -194,13 +194,21 @@ pub(super) fn open(
     prepared_record_sha256: &str,
 ) -> Result<BTreeMap<String, Vec<u8>>, String> {
     let campaign = store_open::pin(campaign)?;
-    match fs::statat(&campaign, DIRECTORY, AtFlags::SYMLINK_NOFOLLOW) {
+    open_at(&campaign, prepared, prepared_record_sha256)
+}
+
+pub(super) fn open_at(
+    campaign: &File,
+    prepared: &Prepared,
+    prepared_record_sha256: &str,
+) -> Result<BTreeMap<String, Vec<u8>>, String> {
+    match fs::statat(campaign, DIRECTORY, AtFlags::SYMLINK_NOFOLLOW) {
         Err(rustix::io::Errno::NOENT) => return Ok(BTreeMap::new()),
         Err(error) => return Err(error.to_string()),
         Ok(_) => (),
     }
     read(
-        &store_open::child(&campaign, DIRECTORY, true, false)?,
+        &store_open::child(campaign, DIRECTORY, true, false)?,
         prepared,
         prepared_record_sha256,
         None,

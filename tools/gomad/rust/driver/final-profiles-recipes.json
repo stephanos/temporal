@@ -1,0 +1,104 @@
+{
+  "schema": "gomad.final-profile-original-recipes/v1",
+  "original_revision": "81660e841106a59ed26f7cb227462d1a85a93a9f",
+  "original_sources": {
+    "tools/gomad/internal/backends/wasm/internal/measure/producers.go": "7209420f43185caae926c2f4ae3397e1107181eaac2bdce0e13cdfd54a8666d0"
+  },
+  "recipes": {
+    "terminal": {
+      "producer": "measureTerminalToProcessExit",
+      "assertions": "terminalExitCollect",
+      "package": "./tests",
+      "selection": "^TestWorkflowTypeEncodingSuite$/^TestPlainASCII$/^Succeeds$",
+      "seed": 0,
+      "fuel": 1125899906842624,
+      "memory_bytes": 4294967296,
+      "wall_nanos": 1800000000000,
+      "terminal_to_reap_nanos_maximum": 1000000000,
+      "required_variants": [
+        "success",
+        "post-load-authorization-mismatch"
+      ],
+      "required_host": "linux/arm64",
+      "cpuinfo_bytes_maximum": 1048576
+    },
+    "runtime": {
+      "producer": "measureRuntimeCostProfile",
+      "assertions": "sameEvidence",
+      "package": "./testdata/runtime_cost",
+      "seed": 7,
+      "fuel": 1099511627776,
+      "memory_bytes": 268435456,
+      "wall_nanos": 180000000000,
+      "calls": 1048576,
+      "transcript_bytes": 67108864,
+      "choice_bytes": 67108864,
+      "select_poll_minimum": 100000,
+      "stdout_witness": "runtime-cost 100000",
+      "owners": [
+        "remote-model",
+        "helper-model"
+      ]
+    },
+    "qualified": {
+      "assertions": "requireDiagnosticEvidence",
+      "package": "./tests",
+      "selections": [
+        "^TestWorkflowTypeEncodingSuite$/^TestPlainASCII$/^Succeeds$",
+        "^TestActivityTestSuite$"
+      ],
+      "fuel": 1125899906842624,
+      "memory_bytes": 4294967296,
+      "wall_nanos": 1800000000000,
+      "exact_fields": [
+        "stdout",
+        "stderr",
+        "wasi",
+        "choices",
+        "network",
+        "terminal",
+        "termination",
+        "exit_code",
+        "calls",
+        "time_advances",
+        "environment_identity",
+        "fuel_remaining"
+      ]
+    }
+  },
+  "pending_native_gaps": [
+    "actual frozen current-module runtime-cost original-owner pair and native release comparison",
+    "actual frozen current ./tests terminal release successes and diagnostic admission controls with CPU/process timing",
+    "actual full ActivityTestSuite and workflow release/diagnostic preservation at original limits",
+    "actual same-cycle qualification Result cost and publication attribution"
+  ],
+  "qualification": "UNEXECUTED: recipe and source checks supply no actual final gate pass",
+  "reference_revision": "1d695061b6382009d0659238c652a5a765b1d5f5",
+  "reference_original_source_sha256": "7209420f43185caae926c2f4ae3397e1107181eaac2bdce0e13cdfd54a8666d0",
+  "native_receiving": {
+    "terminal": {
+      "schema": "gomad.native-terminal-exit/v2",
+      "release_successes": 6,
+      "diagnostic_controls": [
+        "module-digest",
+        "loaded-module-descriptor"
+      ],
+      "process_clock": "CLOCK_MONOTONIC",
+      "process_bound_nanos": 1000000000,
+      "scope": "actual classified terminal through observed child reap, including raw publication; linked return separately retained",
+      "original_wire_fields": "Started and original external-helper error frames are not fabricated on the linked path"
+    },
+    "runtime": {
+      "reference_schema": "gomad.runtime-reference-pair/v1",
+      "original_owners": [
+        "go",
+        "helper"
+      ],
+      "candidate": "actual same-module ordinary native linked execution"
+    },
+    "attribution": {
+      "scope": "same-cycle mandatory ten-cell qualification Results, independently recomputed linked costs and publication tails",
+      "native_terminal_scope": "separate native terminal/process timestamps; other Results do not substitute for the terminal process bound"
+    }
+  }
+}

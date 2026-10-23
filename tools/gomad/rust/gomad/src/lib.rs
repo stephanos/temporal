@@ -4,6 +4,7 @@ compile_error!("diagnostic profiling cannot be combined with host fixture contro
 pub mod backstop;
 pub mod campaign;
 pub mod cli;
+pub(crate) mod config;
 pub mod evidence;
 pub mod execute;
 #[cfg(feature = "determinism-fixture")]
@@ -35,6 +36,7 @@ pub mod profile;
 pub(crate) mod qualify;
 pub mod replay;
 pub mod runtime_qualification;
+pub mod shim;
 pub mod slots;
 pub(crate) mod stress;
 pub mod sweep;

@@ -30,6 +30,7 @@ fn broker_config() -> Config {
             max_string_bytes: 1024,
         },
         pause_on_settle: false,
+        transition_bytes: None,
     }
 }
 

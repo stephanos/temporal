@@ -106,4 +106,13 @@ mod network_corpus;
 #[cfg(all(test, not(feature = "conformance")))]
 mod world_conformance;
 
+#[cfg(all(test, not(feature = "conformance")))]
+mod model_preservation;
+
+#[cfg(all(test, not(feature = "conformance")))]
+mod storage_preservation;
+
+#[cfg(not(feature = "conformance"))]
 pub mod profile_inventory;
+#[cfg(not(feature = "conformance"))]
+mod storage_evidence_bounds;

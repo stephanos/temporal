@@ -1,4 +1,6 @@
 pub(crate) mod choice;
+#[cfg(all(test, feature = "helper-determinism-fixture"))]
+mod counterfactual;
 pub(crate) mod execution;
 pub(crate) mod exploration;
 mod failure_policy;
@@ -245,6 +247,30 @@ pub(crate) fn retain_prepared(
         .to_string_lossy()
         .into_owned()
         .into();
+    Ok(())
+}
+
+pub(crate) fn authenticate_preparation_observations(
+    root: &std::fs::File,
+    plan: &Value,
+) -> Result<(), String> {
+    use rustix::fs::{self, AtFlags};
+    match fs::statat(
+        root,
+        prepare::OBSERVATION_DIRECTORY,
+        AtFlags::SYMLINK_NOFOLLOW,
+    ) {
+        Err(rustix::io::Errno::NOENT) => return Ok(()),
+        Err(error) => return Err(error.to_string()),
+        Ok(_) => (),
+    }
+    let reference = plan["prepared_artifact"]
+        .as_str()
+        .filter(|reference| reference.starts_with("prepared/"))
+        .ok_or("preparation observations require the plan's prepared artifact")?;
+    let opened = ledger::open_artifact(root, reference)?;
+    let prepared = restore_from_plan(plan, &opened)?;
+    prepare::open_observations_at(root, &prepared, &opened.manifest().record_sha256)?;
     Ok(())
 }
 
@@ -518,6 +544,7 @@ fn run_observed(
         .ok_or("campaign overall timeout overflows")?;
     let mut failure = None;
     let mut failed_assertions = None;
+    let mut failed_completion = None;
     let mut pending_publications = BTreeMap::new();
     let cancellations = (0..parallel)
         .map(|_| gomad_wasmhost::linked::Cancellation::default())
@@ -676,7 +703,17 @@ fn run_observed(
             free.insert(slot);
             running.remove(&job.ordinal);
             match result {
-                Ok(result) => {
+                Ok(execution::Completion::Failed(failed_result)) => {
+                    if failure.is_none() {
+                        failure = Some(failed_result.message());
+                        failed_completion = Some(failed_result);
+                    }
+                    cancel();
+                }
+                Ok(execution::Completion::Finalized(result)) => {
+                    if failure.is_some() {
+                        continue;
+                    }
                     metrics.insert(job.ordinal, result.metrics);
                     let mut execution = result.execution;
                     if execution.record.outcome.class == "runner_failure"
@@ -708,6 +745,13 @@ fn run_observed(
                                 .into_owned(),
                         );
                         execution.stored_bytes = published.stored_bytes;
+                        execution::retain_backend_metrics(
+                            journal.path(),
+                            &execution,
+                            metrics
+                                .get(&job.ordinal)
+                                .ok_or("missing execution metrics")?,
+                        )?;
                     }
                     journal.append(Event::Receipt {
                         execution: execution.clone(),
@@ -762,6 +806,9 @@ fn run_observed(
         drop(slots);
         Ok(())
     })?;
+    if let Some(observed) = failed_completion {
+        return observed.report(json, output);
+    }
     if let Some(error) = failure {
         if let Some(report) = failed_assertions {
             if json {

@@ -139,6 +139,8 @@ pub struct Prepared {
     wall_timeout: Duration,
     evidence_bytes: u64,
     conditions: linked::Conditions,
+    #[cfg(feature = "determinism-fixture")]
+    fixture_fault: Option<(linked::FixtureFault, Option<Handle>)>,
     cancellation: linked::Cancellation,
     simulation: Option<crate::linked_simulation::Shared>,
     observations: BTreeMap<Handle, Observation>,
@@ -348,6 +350,23 @@ impl Prepared {
         self.cancellation = cancellation;
     }
 
+    #[cfg(feature = "determinism-fixture")]
+    pub fn fixture_fault(
+        &mut self,
+        fault: linked::FixtureFault,
+        owner: Option<Handle>,
+    ) -> Result<()> {
+        let owner = owner.or_else(|| self.incarnations.keys().next().cloned());
+        if owner
+            .as_ref()
+            .is_some_and(|owner| !self.incarnations.contains_key(owner))
+        {
+            return Err(Error::msg("unknown fixture fault logical owner"));
+        }
+        self.fixture_fault = Some((fault, owner));
+        Ok(())
+    }
+
     pub fn conditions(&mut self, conditions: linked::Conditions) {
         self.conditions = conditions;
     }
@@ -548,6 +567,8 @@ pub fn prepare(mut request: Request) -> Result<Prepared> {
         wall_timeout: request.wall_timeout,
         evidence_bytes: request.evidence_bytes,
         conditions: linked::Conditions::default(),
+        #[cfg(feature = "determinism-fixture")]
+        fixture_fault: None,
         cancellation: linked::Cancellation::default(),
         simulation: None,
         observations: BTreeMap::new(),
@@ -621,7 +642,8 @@ fn instance_state(
     activity: &Activity,
 ) -> Result<(engine::State, linked::Sink)> {
     let limits = &sealed.execution.request.limits;
-    let sink = linked::Sink::new(limits.evidence_bytes);
+    let sink = linked::Sink::new(limits.evidence_bytes)
+        .with_storage_bounds(sealed.execution.storage_bounds.clone());
     let mut model = sealed
         .execution
         .model
@@ -629,12 +651,14 @@ fn instance_state(
         .ok_or_else(|| Error::msg("missing cluster model"))?;
     model.linked_evidence = Some(sink.clone());
     model.inspection.handle = handle.clone();
+    #[cfg(feature = "determinism-fixture")]
+    model.bind_fixture_control();
     model.inspection.recorder = broker.inspection.clone();
     #[cfg(any(feature = "determinism-fixture", feature = "stress-jitter"))]
     {
         model.event_owner = Some(handle.clone());
     }
-    let endpoint = match (network, &sealed.network) {
+    let mut endpoint = match (network, &sealed.network) {
         (Some(shared), Some(profile)) => Some(
             Endpoint::new(
                 shared.clone(),
@@ -649,6 +673,11 @@ fn instance_state(
         ),
         _ => None,
     };
+    if let Some(endpoint) = &mut endpoint {
+        endpoint
+            .limit_transition_bytes(broker.transition_bytes())
+            .map_err(|failure| Error::msg(failure.message()))?;
+    }
     let mut state = engine::new_state(
         Box::new(Cursor::new(Vec::<u8>::new())),
         Box::new(NoRemote(activity.clone())),
@@ -1422,7 +1451,16 @@ pub fn execute_prepared(prepared: Prepared) -> Result<Execution> {
     if cancellation.cancelled() {
         return Ok(cancelled_execution());
     }
+    #[cfg(not(feature = "determinism-fixture"))]
     let mut conditions = prepared.conditions.enter()?;
+    #[cfg(feature = "determinism-fixture")]
+    let mut conditions = {
+        let (fault, owner) = prepared
+            .fixture_fault
+            .as_ref()
+            .map_or((None, None), |(fault, owner)| (Some(*fault), owner.clone()));
+        prepared.conditions.enter_with_fault(fault, owner)?
+    };
     let session = conditions.session();
     let engine = Engine::new(&engine::configuration(true))?;
     let network = prepared
@@ -1500,7 +1538,7 @@ fn cancelled_execution() -> Execution {
 /// # Errors
 /// Rejects malformed, noncanonical or foreign model state before guest admission.
 pub fn validate_world(bytes: &[u8], broker: &BrokerConfig) -> Result<(), String> {
-    crate::world::retained::validate(
+    crate::world::retained::validate_with_transition_limit(
         bytes,
         &crate::world::Config {
             seed: broker.seed,
@@ -1513,6 +1551,7 @@ pub fn validate_world(bytes: &[u8], broker: &BrokerConfig) -> Result<(), String>
                 max_string_bytes: broker.limits.max_string_bytes,
             },
         },
+        broker.transition_bytes,
     )
 }
 

@@ -90,7 +90,9 @@ pub(super) fn prepare_journal(
             },
             remaining,
             &linked::Cancellation::default(),
-        )?;
+        )?
+        .finalized()
+        .map_err(|failure| failure.message())?;
         let mut resolution = exploration::site_scope::Resolution::default();
         if let Some(raw) = completion.publication.payloads.get("evidence/choice") {
             resolution.observe(&prepared.module, raw, &config.execution, patterns)?;
@@ -185,7 +187,7 @@ fn run(
             if state.logical_executions != 0 || round.candidates.len() != 1 {
                 return Err("scoped base execution differs from its root round".into());
             }
-            vec![completion]
+            vec![Ok(execution::Completion::Finalized(completion))]
         } else {
             crate::slots::run(&indices, state.config.parallel, |index| {
                 let result = (|| {
@@ -208,12 +210,30 @@ fn run(
                         replay.as_ref().map(|_| candidate.source_trace.as_slice()),
                     )
                 })();
-                if result.is_err() {
+                if result.is_err()
+                    || result.as_ref().is_ok_and(|completed| {
+                        matches!(completed, execution::Completion::Failed(_))
+                    })
+                {
                     cancellation.cancel();
                 }
-                result
+                Ok(result)
             })?
         };
+        if let Some(failure) = execution::batch_failure(&completions) {
+            return failure.report(json_output, output);
+        }
+        let completions = completions.into_iter().collect::<Result<Vec<_>, _>>()?;
+        let mut finalized = Vec::with_capacity(completions.len());
+        for completion in completions {
+            match completion {
+                execution::Completion::Finalized(result) => finalized.push(result),
+                execution::Completion::Failed(failure) => {
+                    return failure.report(json_output, output);
+                }
+            }
+        }
+        let completions = finalized;
         let context = journal
             .search_context(completions.first().and_then(|completion| {
                 completion
@@ -282,6 +302,13 @@ fn run(
                 &mut retention,
                 base_only,
             )?;
+            if completion.execution.artifact.is_some() {
+                execution::retain_backend_metrics(
+                    journal.path(),
+                    &completion.execution,
+                    &completion.metrics,
+                )?;
+            }
             executions.push(completion.execution);
             results.push(result);
         }

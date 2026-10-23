@@ -107,7 +107,7 @@ fmt-rust:
 	cargo +1.99.1 fmt --manifest-path rust/Cargo.toml --all -- --check
 
 lint-rust: fmt-rust
-	@for features in '' determinism-fixture helper-stress-jitter helper-determinism-fixture determinism-fixture,helper-stress-jitter determinism-fixture,helper-determinism-fixture; do \
+	@for features in '' determinism-fixture helper-stress-jitter helper-determinism-fixture determinism-fixture,helper-stress-jitter determinism-fixture,helper-determinism-fixture helper-diagnostic-profile helper-guest-profile helper-diagnostic-fuel-off; do \
 		cargo +1.99.1 clippy --manifest-path rust/Cargo.toml --release --locked -p gomad --all-targets --no-deps \
 			--features "$$features" -- -D warnings || exit $$?; \
 	done

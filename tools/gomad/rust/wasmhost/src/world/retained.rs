@@ -89,7 +89,16 @@ impl<'a> Reader<'a> {
 
 /// Validates caller-owned expanded World evidence by replaying only its model transitions.
 /// No guest code, engine, filesystem or host callback participates in admission.
+#[cfg(test)]
 pub(crate) fn validate(bytes: &[u8], config: &Config) -> Result<(), String> {
+    validate_with_transition_limit(bytes, config, None)
+}
+
+pub(crate) fn validate_with_transition_limit(
+    bytes: &[u8],
+    config: &Config,
+    limit: Option<u64>,
+) -> Result<(), String> {
     if bytes.is_empty() || bytes.len() > MAXIMUM_BYTES {
         return Err("World expanded byte bound".into());
     }
@@ -135,6 +144,9 @@ pub(crate) fn validate(bytes: &[u8], config: &Config) -> Result<(), String> {
         input.text()?;
     }
     let mut model = Model::new(config.clone()).map_err(|error| error.to_string())?;
+    model
+        .limit_transition_bytes(limit)
+        .map_err(|error| error.to_string())?;
     for _ in 0..input.count(config.limits.max_transitions)? {
         input.take(72)?;
         match input.number(1)? {

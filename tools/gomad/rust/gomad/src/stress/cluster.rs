@@ -179,7 +179,7 @@ pub(super) fn execute(
     prepared: &Prepared,
     seed: u64,
     timeout: Duration,
-) -> Result<execution::Result, String> {
+) -> Result<execution::Completion, String> {
     let mut bound = scenario::bind(
         prepared
             .scenario
@@ -204,13 +204,19 @@ pub(super) fn execute(
     })
     .map_err(|error| error.to_string())?;
     let oracle = verify(&observed);
-    let mut result = scenario::publication(
+    let result = scenario::publication(
         prepared,
         &Job { ordinal: 1, seed },
         bound.configuration,
         observed,
         false,
     )?;
+    let mut result = match result {
+        execution::Completion::Finalized(result) => result,
+        execution::Completion::Failed(failure) => {
+            return Ok(execution::Completion::Failed(failure));
+        }
+    };
     let raw = crate::evidence::canonical::encode(
         &json!({"passed":oracle.is_ok(),"reason":oracle.err()}),
     )?;
@@ -230,7 +236,7 @@ pub(super) fn execute(
         .publication
         .payloads
         .insert("record.json".into(), result.publication.record.bytes()?);
-    Ok(result)
+    Ok(execution::Completion::Finalized(result))
 }
 
 pub(crate) fn observation(stdout: &[u8]) -> Result<Value, String> {

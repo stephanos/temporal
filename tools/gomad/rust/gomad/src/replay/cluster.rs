@@ -248,6 +248,7 @@ impl Projection {
             observed,
             self.configuration.workload.as_ref(),
             &self.world_encoding,
+            &self.configuration.broker,
         )?;
         oracles::apply(&mut projected, &oracle_report)?;
         if let Some(primary) = primary {
@@ -448,10 +449,12 @@ fn incarnation(
     control: Option<&inspection::Request>,
 ) -> Result<helper::Incarnation, String> {
     let module = item.module.read(opened, 512 << 20)?;
-    if let Some(imports) = &item.imports
-        && module_imports(&module)? != *imports
-    {
-        return Err("retained cluster import binding mismatch".into());
+    if let Some(imports) = &item.imports {
+        let metadata = linked::module_metadata(&module).map_err(|error| error.to_string())?;
+        if metadata.imports != *imports {
+            return Err("retained cluster import binding mismatch".into());
+        }
+        super::preflight::validate_profile_imports(&inputs.configuration.profile, &metadata)?;
     }
     let identity = &item.choice_identity;
     if identity.toolchain_build_key != inputs.toolchain_sha256
@@ -694,8 +697,11 @@ pub fn authenticate_inspection(
 
 /// # Errors
 /// Projects typed cluster observations into a single identity-bound comparison stream.
-pub fn project(observed: helper::Execution) -> Result<linked::Execution, String> {
-    project_encoded(observed, "")
+pub fn project(
+    observed: helper::Execution,
+    broker: &helper::BrokerConfig,
+) -> Result<linked::Execution, String> {
+    project_encoded(observed, "", broker)
 }
 
 /// # Errors
@@ -703,8 +709,12 @@ pub fn project(observed: helper::Execution) -> Result<linked::Execution, String>
 pub fn project_encoded(
     mut observed: helper::Execution,
     encoding: &str,
+    broker: &helper::BrokerConfig,
 ) -> Result<linked::Execution, String> {
-    if !observed.world.is_empty() {
+    if !observed.world.is_empty()
+        || matches!(observed.outcome.termination, "exit" | "trap" | "capacity")
+    {
+        helper::validate_world(&observed.world, broker)?;
         observed.world = helper::encode_world(&observed.world, encoding)?;
     }
     let mut rows = Vec::new();
@@ -785,8 +795,9 @@ pub(crate) fn project_workload(
     observed: helper::Execution,
     workload: Option<&crate::qualify::workloads::Workload>,
     encoding: &str,
+    broker: &helper::BrokerConfig,
 ) -> Result<linked::Execution, String> {
-    let mut projected = project_encoded(observed, encoding)?;
+    let mut projected = project_encoded(observed, encoding, broker)?;
     if let Some(workload) = workload {
         crate::qualify::workloads::project(workload, &mut projected)?;
     }
@@ -888,6 +899,57 @@ mod projection_tests {
             inspection: vec![],
             virtual_elapsed_nanos: 0,
             event_order: None,
+        }
+    }
+
+    #[test]
+    fn inspection_metadata_cannot_replace_the_actual_session_world() {
+        let (configuration, raw_world) = configuration();
+        for terminal in ["exit", "trap", "capacity"] {
+            for invalid in [
+                Vec::new(),
+                b"not a World".to_vec(),
+                raw_world[..16].to_vec(),
+            ] {
+                let mut missing = observe(&invalid, false, false);
+                missing.outcome.termination = terminal;
+                missing.inspection = br#"{"schema":"retained"}"#.to_vec();
+                assert!(
+                    project_encoded(missing, "", &configuration.broker).is_err(),
+                    "{terminal}"
+                );
+            }
+        }
+        let mut present = observe(&raw_world, false, false);
+        present.inspection = br#"{"schema":"retained"}"#.to_vec();
+        let projected = project_encoded(present, "", &configuration.broker).unwrap();
+        assert_eq!(projected.evidence["world"], raw_world);
+        assert_eq!(
+            projected.evidence["inspection"],
+            br#"{"schema":"retained"}"#
+        );
+        let summary: Value =
+            serde_json::from_slice(&projected.evidence["cluster_summary"]).unwrap();
+        assert_eq!(summary["world_sha256"], canonical::digest(&raw_world));
+        assert_ne!(
+            summary["world_sha256"],
+            canonical::digest(&projected.evidence["inspection"])
+        );
+        let mut foreign = configuration.broker.clone();
+        foreign.seed += 1;
+        assert!(project_encoded(observe(&raw_world, false, false), "", &foreign).is_err());
+        let mut foreign = configuration.broker.clone();
+        foreign.limits.max_events += 1;
+        assert!(project_encoded(observe(&raw_world, false, false), "", &foreign).is_err());
+        for terminal in ["cancelled", "infrastructure"] {
+            let mut early = observe(&[], false, false);
+            early.outcome.termination = terminal;
+            assert_eq!(
+                project_encoded(early, "", &configuration.broker)
+                    .unwrap()
+                    .evidence["world"],
+                [] as [u8; 0]
+            );
         }
     }
 

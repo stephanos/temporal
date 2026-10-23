@@ -70,6 +70,7 @@ fn publication(corpus: &Path, seed: u64) -> Result<Publication, String> {
     let broker = helper::BrokerConfig {
         seed,
         pause_on_settle: false,
+        transition_bytes: None,
         limits: helper::WorldLimits {
             max_requests: 100,
             max_events: 100,
@@ -218,7 +219,11 @@ pub(crate) fn execute_configuration(
         ));
     }
     let oracle_report = cluster::oracles::assess(&execution, &configuration)?;
-    let mut observed = cluster::project_encoded(execution, configuration.encoded_world_format()?)?;
+    let mut observed = cluster::project_encoded(
+        execution,
+        configuration.encoded_world_format()?,
+        &configuration.broker,
+    )?;
     cluster::oracles::apply(&mut observed, &oracle_report)?;
     for item in &retained {
         observed
@@ -487,4 +492,81 @@ pub(crate) fn bundle(root: &Path, corpus: &Path) -> Result<(), String> {
         .map(|seed| publication(corpus, seed))
         .collect::<Result<Vec<_>, _>>()?;
     crate::fixture::publish_bundle_with_budget(root, "replay-cluster", publications, 1 << 30)
+}
+
+#[cfg(all(
+    test,
+    not(any(
+        feature = "helper-determinism-fixture",
+        feature = "helper-stress-jitter"
+    ))
+))]
+mod world_limit_tests {
+    use super::*;
+    use crate::evidence::store::{Opened, Store};
+
+    #[test]
+    fn retained_cluster_world_byte_bound_survives_actual_public_replay() {
+        let corpus =
+            std::path::PathBuf::from(env!("CARGO_MANIFEST_DIR")).join("../../testdata/parity");
+        let initial = publication(&corpus, 7).unwrap();
+        let original: Inputs = serde_json::from_slice(&initial.payloads[cluster::FILE]).unwrap();
+        let modules = initial
+            .payloads
+            .into_iter()
+            .filter(|(name, _)| name.starts_with("target/"))
+            .collect::<BTreeMap<_, _>>();
+        let root = std::env::temp_dir().join(format!(
+            "gomad-world-cap-replay-{}-{}",
+            std::process::id(),
+            std::time::SystemTime::now()
+                .duration_since(std::time::UNIX_EPOCH)
+                .unwrap()
+                .as_nanos()
+        ));
+        for limit in [1 << 20, 32 << 20] {
+            let mut configuration = original.configuration.clone();
+            configuration.broker.transition_bytes = Some(limit);
+            let publication = execute_configuration(
+                configuration,
+                original.toolchain_sha256.clone(),
+                modules.clone(),
+            )
+            .unwrap();
+            let published = Store {
+                root: root.join(limit.to_string()),
+                maximum_bytes: 64 << 20,
+                target_pool: None,
+                fault: None,
+            }
+            .publish(publication)
+            .unwrap();
+            let opened = Opened::open(&published.path).unwrap();
+            let raw = opened.payload(cluster::FILE, 16 << 20).unwrap();
+            let retained: Inputs = serde_json::from_slice(&raw).unwrap();
+            assert_eq!(retained.configuration.broker.transition_bytes, Some(limit));
+            let world = opened.payload("evidence/world", 64 << 20).unwrap();
+            helper::validate_encoded_world(
+                &world,
+                retained.configuration.encoded_world_format().unwrap(),
+                &retained.configuration.broker,
+            )
+            .unwrap();
+            let mut output = Vec::new();
+            let status =
+                crate::cli::replay::run(&[published.path.to_str().unwrap().into()], &mut output)
+                    .unwrap_or_else(|error| panic!("{}", error.message));
+            assert_eq!(
+                status,
+                i32::from(opened.manifest().record.outcome.class != "success")
+            );
+            assert!(
+                String::from_utf8(output)
+                    .unwrap()
+                    .contains("reproduced=true")
+            );
+            assert_eq!(opened.payload(cluster::FILE, 16 << 20).unwrap(), raw);
+        }
+        std::fs::remove_dir_all(root).unwrap();
+    }
 }

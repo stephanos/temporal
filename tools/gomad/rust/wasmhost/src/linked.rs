@@ -13,6 +13,8 @@ use std::{
 };
 use wasmtime::{Engine, Error, Store};
 
+#[cfg(feature = "determinism-fixture")]
+pub use crate::determinism_fixture::Kind as FixtureFault;
 #[cfg(feature = "guest-profile")]
 pub use crate::guest_profile::Config as GuestProfileConfig;
 pub use crate::linked_cancellation::Cancellation;
@@ -140,12 +142,16 @@ pub struct Prepared {
     pub(crate) execute: protocol::Execute,
     pub(crate) model: Option<model::Model>,
     pub(crate) namespace: Option<namespace::Namespace>,
+    pub(crate) storage_bounds: Option<crate::storage_evidence_bounds::Bounds>,
     pub(crate) conditions: Conditions,
+    #[cfg(feature = "determinism-fixture")]
+    fixture_fault: Option<FixtureFault>,
     cancellation: Cancellation,
     #[cfg(feature = "determinism-fixture")]
     fixture_timing_delays: [Duration; 2],
     output: Option<Arc<dyn OutputConsumer>>,
     network: Option<crate::cluster::network::Endpoint>,
+    world_transition_bytes: Option<u64>,
     #[cfg(feature = "guest-profile")]
     guest_profile: Option<GuestProfileConfig>,
 }
@@ -216,9 +222,28 @@ impl Prepared {
         if self.network.is_some() {
             return Err(Error::msg("linked network already configured"));
         }
-        self.network = Some(crate::linked_network::prepare(configuration, model)?);
+        let mut network = crate::linked_network::prepare(configuration, model)?;
+        network
+            .limit_transition_bytes(self.world_transition_bytes)
+            .map_err(crate::linked_network::error)?;
+        self.network = Some(network);
         Ok(())
     }
+    /// # Errors
+    /// Refuses zero capacity and bounds each local World's retained native transition bytes.
+    pub fn world_transition_bytes(&mut self, limit: Option<u64>) -> wasmtime::Result<()> {
+        if limit == Some(0) {
+            return Err(Error::msg("World transition byte limit must be positive"));
+        }
+        if let Some(network) = &mut self.network {
+            network
+                .limit_transition_bytes(limit)
+                .map_err(crate::linked_network::error)?;
+        }
+        self.world_transition_bytes = limit;
+        Ok(())
+    }
+
     pub fn cancellation(&mut self, cancellation: Cancellation) {
         self.cancellation = cancellation;
     }
@@ -230,6 +255,11 @@ impl Prepared {
     pub fn conditions(&mut self, conditions: Conditions) {
         self.conditions = conditions;
     }
+    #[cfg(feature = "determinism-fixture")]
+    pub fn fixture_fault(&mut self, fault: FixtureFault) {
+        self.fixture_fault = Some(fault);
+    }
+
     /// # Errors
     /// Refuses an exhausted caller budget; a remaining budget may only shorten the original bound.
     pub fn bound_wall_timeout(&mut self, remaining: Duration) -> wasmtime::Result<()> {
@@ -245,6 +275,7 @@ impl Prepared {
 pub(crate) struct Sink {
     streams: Arc<Mutex<BTreeMap<String, Vec<u8>>>>,
     maximum: u64,
+    storage_bounds: Option<crate::storage_evidence_bounds::Bounds>,
     output: Option<Arc<Output>>,
 }
 
@@ -259,8 +290,17 @@ impl Sink {
         Self {
             streams: Arc::new(Mutex::new(BTreeMap::new())),
             maximum,
+            storage_bounds: None,
             output: None,
         }
+    }
+
+    pub(crate) fn with_storage_bounds(
+        mut self,
+        bounds: Option<crate::storage_evidence_bounds::Bounds>,
+    ) -> Self {
+        self.storage_bounds = bounds;
+        self
     }
 
     fn with_output(
@@ -326,6 +366,13 @@ impl Sink {
             .streams
             .lock()
             .map_err(|_| Error::msg("linked evidence lock poisoned"))?;
+        if let Some(bounds) = &self.storage_bounds {
+            bounds.admit(
+                stream,
+                streams.get(stream).map_or(&[], Vec::as_slice),
+                bytes,
+            )?;
+        }
         let retained = Self::retained_bytes(&streams, bytes.len() as u64)?;
         if retained > self.maximum {
             return Err(Error::new(model::RemoteCapacity(
@@ -482,18 +529,23 @@ pub fn validate(request: Request) -> wasmtime::Result<()> {
 /// # Errors
 /// Authenticates helper-owned inputs and replay projection without creating an engine.
 pub fn prepare(mut request: Request) -> wasmtime::Result<Prepared> {
+    let storage_bounds = crate::storage_evidence_bounds::Bounds::for_request(&request);
     let (execute, model, namespace) = admitted(&mut request)?;
     Ok(Prepared {
         request,
         execute,
         model,
         namespace,
+        storage_bounds,
         conditions: Conditions::default(),
+        #[cfg(feature = "determinism-fixture")]
+        fixture_fault: None,
         cancellation: Cancellation::default(),
         #[cfg(feature = "determinism-fixture")]
         fixture_timing_delays: [Duration::ZERO; 2],
         output: None,
         network: None,
+        world_transition_bytes: None,
         #[cfg(feature = "guest-profile")]
         guest_profile: None,
     })
@@ -509,7 +561,7 @@ pub fn execute(request: Request) -> wasmtime::Result<Execution> {
 /// Executes previously authenticated inputs with a fresh engine and store.
 #[expect(
     clippy::too_many_lines,
-    reason = "Authorization, terminal classification and cleanup share the native timing scope"
+    reason = "Admission, cancellation, diagnostic timing and final evidence share the native execution lifetime"
 )]
 pub fn execute_prepared(prepared: Prepared) -> wasmtime::Result<Execution> {
     let Prepared {
@@ -517,22 +569,33 @@ pub fn execute_prepared(prepared: Prepared) -> wasmtime::Result<Execution> {
         execute,
         mut model,
         namespace,
+        storage_bounds,
         conditions,
+        #[cfg(feature = "determinism-fixture")]
+        fixture_fault,
         cancellation,
         #[cfg(feature = "determinism-fixture")]
         fixture_timing_delays,
         output,
         network,
+        world_transition_bytes: _,
         #[cfg(feature = "guest-profile")]
         guest_profile,
     } = prepared;
     if cancellation.cancelled() {
         return Ok(Cancellation::execution());
     }
+    #[cfg(not(feature = "determinism-fixture"))]
     let mut conditions = conditions.enter()?;
-    let sink = Sink::new(request.limits.evidence_bytes).with_output(output, cancellation.clone());
+    #[cfg(feature = "determinism-fixture")]
+    let mut conditions = conditions.enter_with_fault(fixture_fault, None)?;
+    let sink = Sink::new(request.limits.evidence_bytes)
+        .with_storage_bounds(storage_bounds)
+        .with_output(output, cancellation.clone());
     if let Some(model) = &mut model {
         model.linked_evidence = Some(sink.clone());
+        #[cfg(feature = "determinism-fixture")]
+        model.bind_fixture_control();
     }
     let preparation = std::time::Instant::now();
     let engine = Engine::new(&engine::configuration(true))?;
@@ -886,7 +949,7 @@ mod timing_tests {
                     receiver.recv_timeout(Duration::from_millis(20)),
                     Err(std::sync::mpsc::RecvTimeoutError::Timeout)
                 );
-            }))
+            }));
         });
         let module = b"(module (memory (export \"memory\") 1) (func (export \"_start\")))".to_vec();
         let mut prepared = prepare(Request {

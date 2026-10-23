@@ -1,0 +1,224 @@
+{
+  "schema": "gomad.core-native-checks/v1",
+  "checks": [
+    {
+      "log": "/home/agent/evidence/fn232-core-integration/baseline.log",
+      "sha256": "83173937e97465c5b93389d7824e93eb6c1fa7384333685872228bb2092003c3",
+      "results": [],
+      "qualification": false
+    },
+    {
+      "log": "/home/agent/evidence/fn232-core-integration/baseline-compiled.log",
+      "sha256": "374a942fbb7187ed344e4759edfe4749c6936beb132d0d6a9e25664dcca0d494",
+      "results": [
+        "test result: FAILED. 298 passed; 2 failed; 1 ignored; 0 measured; 0 filtered out; finished in 20.76s"
+      ],
+      "qualification": false
+    },
+    {
+      "log": "/home/agent/evidence/fn232-core-integration/runtime-red.log",
+      "sha256": "d2133ee6f808192c04ac1ce87adab6b3c2bd4cfcfb6dc6187e3e2176971c9533",
+      "results": [
+        "test result: FAILED. 3 passed; 3 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.06s"
+      ],
+      "qualification": false
+    },
+    {
+      "log": "/home/agent/evidence/fn232-core-integration/core-green.log",
+      "sha256": "a674429966dd6cc8b1df82f8d4baebbf18b2dcd815bbd1132eaa8b86cbecef06",
+      "results": [
+        "test result: ok. 302 passed; 0 failed; 1 ignored; 0 measured; 0 filtered out; finished in 26.64s",
+        "test result: ok. 204 passed; 0 failed; 12 ignored; 0 measured; 0 filtered out; finished in 31.82s"
+      ],
+      "qualification": false
+    },
+    {
+      "log": "/home/agent/evidence/fn232-core-integration/runtime-green.log",
+      "sha256": "e291936d39b251c21e6f94d74f0283471c4aeb297bec97eccd1d98c2a2adae61",
+      "results": [
+        "test result: ok. 6 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.07s"
+      ],
+      "qualification": false
+    },
+    {
+      "log": "/home/agent/evidence/fn232-core-integration/review-green.log",
+      "sha256": "c764f919795547df149852eff185b2e2ebac859dad930a96409c25d4219c8cf9",
+      "results": [
+        "test result: ok. 304 passed; 0 failed; 1 ignored; 0 measured; 0 filtered out; finished in 17.12s",
+        "test result: ok. 205 passed; 0 failed; 12 ignored; 0 measured; 0 filtered out; finished in 26.49s"
+      ],
+      "qualification": false
+    },
+    {
+      "log": "/home/agent/evidence/fn232-core-integration/storage-guard-disabled-red.log",
+      "sha256": "18ce5af9e3b416591d134635b85489e58c44130fa873d23ce011d4df1a7d358f",
+      "results": [
+        "test result: FAILED. 5 passed; 2 failed; 0 ignored; 0 measured; 210 filtered out; finished in 0.00s"
+      ],
+      "qualification": false
+    },
+    {
+      "log": "/home/agent/evidence/fn232-core-integration/storage-restored-green.log",
+      "sha256": "299eedabffedef2c6db94b8d3adedfca0dba42d2c52436e4c2049c1376dcdc13",
+      "results": [
+        "test result: ok. 7 passed; 0 failed; 0 ignored; 0 measured; 210 filtered out; finished in 0.03s"
+      ],
+      "qualification": false
+    },
+    {
+      "log": "/home/agent/evidence/fn232-core-integration/profile-boundary.log",
+      "sha256": "344c1b1258c4a4a689e646705cf13e7e1db62daa21d5b108ce8044ae20652672",
+      "results": [
+        "test result: ok. 305 passed; 0 failed; 1 ignored; 0 measured; 0 filtered out; finished in 15.14s",
+        "test result: ok. 205 passed; 0 failed; 12 ignored; 0 measured; 0 filtered out; finished in 28.04s"
+      ],
+      "qualification": false
+    }
+  ],
+  "qualification": false,
+  "final_source_head": "b50a13115d62b3ecb44bc84c625feb882276d545",
+  "final_checks": [
+    {
+      "name": "final-native-libs",
+      "command": [
+        "cargo",
+        "+1.99.1",
+        "test",
+        "--locked",
+        "--workspace",
+        "--lib"
+      ],
+      "cwd": "/home/agent/wt/fn232-core-reach/tools/gomad/rust",
+      "source_head": "b50a13115d62b3ecb44bc84c625feb882276d545",
+      "exit_code": 0,
+      "log": "/home/agent/evidence/fn232-core-integration/final-native-libs.log",
+      "log_sha256": "a9dfa32c78c278eb15e4e6d0f8cb09d5ce956b07f10dd727986beb76dbe19ffd",
+      "results": [
+        "test result: ok. 369 passed; 0 failed; 2 ignored; 0 measured; 0 filtered out; finished in 20.40s",
+        "test result: ok. 211 passed; 0 failed; 12 ignored; 0 measured; 0 filtered out; finished in 24.05s"
+      ],
+      "qualification": false
+    },
+    {
+      "name": "final-core-runtime",
+      "command": [
+        "cargo",
+        "+1.99.1",
+        "test",
+        "--locked",
+        "-p",
+        "gomad-wasmhost",
+        "--test",
+        "core_runtime_preservation"
+      ],
+      "cwd": "/home/agent/wt/fn232-core-reach/tools/gomad/rust",
+      "source_head": "b50a13115d62b3ecb44bc84c625feb882276d545",
+      "exit_code": 0,
+      "log": "/home/agent/evidence/fn232-core-integration/final-core-runtime.log",
+      "log_sha256": "1fdea25f0e503d35fa66343922e0ce86fb9790e36f7f2d0f12bab18fc8ea3b41",
+      "results": [
+        "test result: ok. 6 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.05s"
+      ],
+      "qualification": false
+    },
+    {
+      "name": "final-core-faults",
+      "command": [
+        "cargo",
+        "+1.99.1",
+        "test",
+        "--locked",
+        "-p",
+        "gomad-wasmhost",
+        "--features",
+        "determinism-fixture",
+        "--test",
+        "core_fault_preservation"
+      ],
+      "cwd": "/home/agent/wt/fn232-core-reach/tools/gomad/rust",
+      "source_head": "b50a13115d62b3ecb44bc84c625feb882276d545",
+      "exit_code": 0,
+      "log": "/home/agent/evidence/fn232-core-integration/final-core-faults.log",
+      "log_sha256": "525853f9ba8e62ea79e776de6067f661e1e94a253379422e3e286f1a8944212e",
+      "results": [
+        "test result: ok. 1 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.06s"
+      ],
+      "qualification": false
+    },
+    {
+      "name": "final-counterfactual-source",
+      "command": [
+        "cargo",
+        "+1.99.1",
+        "test",
+        "--locked",
+        "-p",
+        "gomad",
+        "--lib",
+        "--features",
+        "helper-determinism-fixture",
+        "campaign::counterfactual"
+      ],
+      "cwd": "/home/agent/wt/fn232-core-reach/tools/gomad/rust",
+      "source_head": "b50a13115d62b3ecb44bc84c625feb882276d545",
+      "exit_code": 0,
+      "log": "/home/agent/evidence/fn232-core-integration/final-counterfactual-source.log",
+      "log_sha256": "54b993bb0a410a933ac8eaf5687750e37ce637255a52653a5745564e9a906fa0",
+      "results": [
+        "test result: ok. 2 passed; 0 failed; 1 ignored; 0 measured; 371 filtered out; finished in 9.99s"
+      ],
+      "qualification": false
+    },
+    {
+      "name": "final-world-public-replay",
+      "command": [
+        "cargo",
+        "+1.99.1",
+        "test",
+        "--locked",
+        "-p",
+        "gomad",
+        "--lib",
+        "--features",
+        "determinism-fixture",
+        "world_limit_tests"
+      ],
+      "cwd": "/home/agent/wt/fn232-core-reach/tools/gomad/rust",
+      "source_head": "b50a13115d62b3ecb44bc84c625feb882276d545",
+      "exit_code": 0,
+      "log": "/home/agent/evidence/fn232-core-integration/final-world-public-replay.log",
+      "log_sha256": "f2ff6081821e2fceab06a4b1a4aed235a55b667bfe9016f7b1eb1c42d72e2533",
+      "results": [
+        "test result: ok. 1 passed; 0 failed; 0 ignored; 0 measured; 373 filtered out; finished in 0.11s"
+      ],
+      "qualification": false
+    },
+    {
+      "name": "strict-all-target-clippy",
+      "command": [
+        "cargo",
+        "+1.99.1",
+        "clippy",
+        "--locked",
+        "--workspace",
+        "--all-targets",
+        "--",
+        "-D",
+        "warnings"
+      ],
+      "source_head": "b50a13115d62b3ecb44bc84c625feb882276d545",
+      "exit_code": 0,
+      "log": "/home/agent/evidence/fn232-core-integration/merged-strict-clippy.log",
+      "log_sha256": "045c2e8e20a02225a35645846a17da6508fa39777b043a8b36f8ec9ed769fef0",
+      "qualification": false
+    }
+  ],
+  "independent_review": {
+    "agent": "core_review",
+    "same_model_family": true,
+    "read_only": true,
+    "source_verdict": "no remaining blocking finding",
+    "qualification": false
+  },
+  "original_counterfactual_pairs": "PENDING_GENUINE_PREPARATIONS_AND_EXECUTION"
+}

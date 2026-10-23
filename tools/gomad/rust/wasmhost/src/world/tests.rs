@@ -388,3 +388,134 @@ fn state_digest_past_the_frame_bound_keeps_the_retained_prefix() {
         assert_eq!(frames.bytes, retained, "{step}");
     }
 }
+
+#[test]
+fn transition_byte_limit_refuses_before_mutation_at_the_exact_native_record_boundary() {
+    let config = Config {
+        seed: 4,
+        limits: limits(),
+    };
+    let mut baseline = Model::new(config.clone()).unwrap();
+    baseline.register(request("a")).unwrap();
+    let mut size = WireSize::default();
+    wire_generated::write_transitions(baseline.transitions(), &mut size).unwrap();
+    for maximum in [1, size.0 - 1, size.0] {
+        let mut model = Model::new(config.clone()).unwrap();
+        model.limit_transition_bytes(Some(maximum)).unwrap();
+        let before = model.state_digest();
+        let result = model.register(request("a"));
+        if maximum == size.0 {
+            assert_eq!(result.unwrap(), 1);
+            assert_eq!(model.state_digest(), baseline.state_digest());
+        } else {
+            assert!(matches!(
+                result,
+                Err(Error::Capacity {
+                    dimension: "transition-bytes",
+                    ..
+                })
+            ));
+            assert_eq!(model.state_digest(), before);
+            assert_eq!(model.transitions(), []);
+        }
+    }
+}
+
+#[test]
+fn every_world_transition_byte_refusal_preserves_the_accepted_prefix() {
+    for stage in [
+        "register",
+        "ready",
+        "cancel",
+        "delivered",
+        "deadlock",
+        "idle",
+    ] {
+        let config = Config {
+            seed: 7,
+            limits: limits(),
+        };
+        let prefix = || {
+            let mut model = Model::new(config.clone()).unwrap();
+            if !matches!(stage, "register" | "idle") {
+                model.register(request("a")).unwrap();
+            }
+            if matches!(stage, "cancel" | "delivered") {
+                model
+                    .ready(Readiness {
+                        request_id: 1,
+                        at: INITIAL_TIME + 10,
+                        kind: "ready".into(),
+                        payload: vec![1, 2],
+                        equivalence_class: "same".into(),
+                    })
+                    .unwrap();
+            }
+            model
+        };
+        let execute = |model: &mut Model| -> Result<()> {
+            match stage {
+                "register" => {
+                    model.register(request("a"))?;
+                }
+                "ready" => {
+                    model.ready(Readiness {
+                        request_id: 1,
+                        at: INITIAL_TIME + 10,
+                        kind: "ready".into(),
+                        payload: vec![1, 2],
+                        equivalence_class: "same".into(),
+                    })?;
+                }
+                "cancel" => {
+                    model.cancel(1)?;
+                }
+                _ => {
+                    model.quiesce()?;
+                }
+            }
+            Ok(())
+        };
+        let mut expected = prefix();
+        execute(&mut expected).unwrap();
+        let exact = expected.transition_bytes;
+        for bound in [exact - 1, exact] {
+            let mut model = prefix();
+            model.limit_transition_bytes(Some(bound)).unwrap();
+            let before = model.state_digest();
+            let prefix_bytes = model.transition_bytes;
+            let history = model.transitions().to_vec();
+            let snapshot_bytes = model.snapshot_bytes();
+            let observed = execute(&mut model);
+            if bound == exact {
+                observed.unwrap();
+                assert_eq!(model.state_digest(), expected.state_digest(), "{stage}");
+                assert_eq!(model.transition_bytes, exact);
+                #[cfg(not(feature = "conformance"))]
+                {
+                    let mut retained = Vec::new();
+                    wire_generated::write_snapshot(&model, &mut retained).unwrap();
+                    retained::validate_with_transition_limit(&retained, &config, Some(exact))
+                        .unwrap();
+                    assert!(
+                        retained::validate_with_transition_limit(
+                            &retained,
+                            &config,
+                            Some(exact - 1)
+                        )
+                        .is_err()
+                    );
+                }
+            } else {
+                assert!(
+                    matches!(observed, Err(Error::Capacity { dimension:"transition-bytes",used,limit,.. }) if used==prefix_bytes && limit==bound),
+                    "{stage}"
+                );
+                assert_eq!(model.state_digest(), before, "{stage}");
+                assert_eq!(model.transitions(), history);
+                assert_eq!(model.transition_bytes, prefix_bytes);
+                assert_eq!(model.snapshot_bytes(), snapshot_bytes);
+            }
+        }
+    }
+}
