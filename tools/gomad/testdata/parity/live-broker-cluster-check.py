@@ -293,7 +293,20 @@ def compare(output, row, process_exit=None):
 
 
 def independent_stream_recording(row):
-    return row['steps'][0]['runtime']['Choice']['Mode'] == 1
+    starts = [step for step in row['steps'] if step['action'] in ('start', 'restart')]
+    assert [(step['node'], step['incarnation']) for step in starts] == [('a', 1), ('b', 1)], 'root36 requires unique original Start a1/b1 controls'
+    modes = []
+    for step in starts:
+        assert step['action'] == 'start', 'root36 requires initial guest starts'
+        runtime = step.get('runtime')
+        assert isinstance(runtime, dict), 'root36 requires explicit original runtime'
+        choice = runtime.get('Choice')
+        assert isinstance(choice, dict), 'root36 requires explicit original Choice'
+        mode = choice.get('Mode')
+        assert type(mode) is int and mode in (1, 2), 'root36 requires record or forced replay mode'
+        modes.append(mode)
+    assert modes[0] == modes[1], 'root36 guest replay modes differ'
+    return modes[0] == 1
 
 
 def main():

@@ -5,6 +5,7 @@ import hashlib
 import importlib.util
 import json
 import os
+import tempfile
 from pathlib import Path
 import unittest
 
@@ -46,6 +47,25 @@ class IndependentStreams(unittest.TestCase):
         self.assertEqual(modes.count(1), 9)
         self.assertEqual(modes.count(2), 9)
         self.assertEqual(leading_links, 6)
+
+    def test_original_replay_controls_still_force_both_actual_guest_traces(self):
+        replay_rows = [row for row in self.rows if not check.independent_stream_recording(row)]
+        self.assertEqual(len(replay_rows), 9)
+        with tempfile.TemporaryDirectory() as directory:
+            for row in replay_rows:
+                with self.subTest(ordinal=row['ordinal']):
+                    payload = check.raw_input(row, dict(configuration={}, modules={}), Path(directory), row['ordinal'])
+                    self.assertEqual(set(payload['forcing']), {'a/1', 'b/1'})
+                    for step in [step for step in row['steps'] if step['action'] == 'start']:
+                        state = next(state for state in row['states'] if state['handle'] == dict(ID=step['node'], Incarnation=1))
+                        choice = step['runtime']['Choice']
+                        self.assertEqual(choice['Mode'], 2)
+                        forced = payload['forcing'][step['node'] + '/1']
+                        self.assertEqual(forced['mode'], 2)
+                        self.assertEqual(forced['identity'], choice['ExecutionIdentity'])
+                        expected = check.b64(choice.get('Trace') or state['result']['ChoiceTrace']['Bytes'])
+                        self.assertNotEqual(expected, b'')
+                        self.assertEqual(Path(forced['trace_path']).read_bytes(), expected)
 
     def test_missing_ambiguous_and_changed_runtime_controls_fail_closed(self):
         original = next(row for row in self.rows if row['steps'][0]['action'] == 'link'
