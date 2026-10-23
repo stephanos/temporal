@@ -596,3 +596,24 @@ installation, execution, replay or qualification is inferred from those inputs.
 The preparatory main build also cleared independent scoped receipt review.
 
 The broad receiving batch and full milestone qualification remain open.
+
+
+## Genuine runtime policy and campaign receiving source
+
+At `04546a1f44`, the actual original typed runtime policy is retained: three
+pinned Go commands exited0 and independent review checked source and process
+custody. Its typed zero CapturedInputs exposed a real projection bug. The fix
+preserves Rust empty-capture semantics and rejects nonempty malformed claims.
+Root receiving23, source-map5 and terminal-module9 tests pass; the worker's
+joined339 tests pass. Thirteen source anchors moved by coordinates only.
+
+Executed-divergence receiving now uses the production campaign scheduler,
+journal and retention path with the original failure/artifact counts and
+budgets. Independent source review is clear; Rust tests and new actual pairs
+remain unexecuted. The historical handoff assertion remains an observed FAIL.
+
+The broad real Go run exited101: all five tests failed during scenario
+normalization and no live variant ran. The unchanged-source command, reaped
+process and raw failures are pinned. Fixing the fixture envelope and remaining
+production predicates precedes its rerun. The terminal producer is still live;
+its result and all frozen qualification remain pending.
