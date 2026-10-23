@@ -13049,53 +13049,53 @@
   },
   "native_anchors": {
     "tools/gomad/rust/driver/adapters.py#corpus": {
-      "path": "tools/gomad/rust/driver/adapters.py",
-      "symbol": "corpus",
-      "start_line": 240,
       "end_line": 263,
-      "sha256": "71772e5dbd9b04dd324474e6f3f7f44f38827f94590dc7acc2463b8207bcd3bf"
+      "path": "tools/gomad/rust/driver/adapters.py",
+      "sha256": "71772e5dbd9b04dd324474e6f3f7f44f38827f94590dc7acc2463b8207bcd3bf",
+      "start_line": 240,
+      "symbol": "corpus"
     },
     "tools/gomad/rust/driver/adapters.py#result_report": {
-      "path": "tools/gomad/rust/driver/adapters.py",
-      "symbol": "result_report",
-      "start_line": 157,
       "end_line": 185,
-      "sha256": "4920dc72c4d08af0eb494c740a199e2a36f5b522d6a21979588790d51c29e961"
+      "path": "tools/gomad/rust/driver/adapters.py",
+      "sha256": "4920dc72c4d08af0eb494c740a199e2a36f5b522d6a21979588790d51c29e961",
+      "start_line": 157,
+      "symbol": "result_report"
     },
     "tools/gomad/rust/driver/adapters.py#validate_budget": {
-      "path": "tools/gomad/rust/driver/adapters.py",
-      "symbol": "validate_budget",
-      "start_line": 123,
       "end_line": 154,
-      "sha256": "5a65f4272d7eee6999aba0c787d30a009fae365ddb5a2b793386b7d35c23bdf5"
+      "path": "tools/gomad/rust/driver/adapters.py",
+      "sha256": "5a65f4272d7eee6999aba0c787d30a009fae365ddb5a2b793386b7d35c23bdf5",
+      "start_line": 123,
+      "symbol": "validate_budget"
     },
     "tools/gomad/rust/driver/adapters.py#validate_cell_spec": {
-      "path": "tools/gomad/rust/driver/adapters.py",
-      "symbol": "validate_cell_spec",
-      "start_line": 105,
       "end_line": 120,
-      "sha256": "0a0bfdcf8abe8c39ad1ac999dfb99afd4e0efbad331f205c84abb9c3ccdd2eb4"
+      "path": "tools/gomad/rust/driver/adapters.py",
+      "sha256": "0a0bfdcf8abe8c39ad1ac999dfb99afd4e0efbad331f205c84abb9c3ccdd2eb4",
+      "start_line": 105,
+      "symbol": "validate_cell_spec"
     },
     "tools/gomad/rust/driver/receiving.py#artifact": {
-      "path": "tools/gomad/rust/driver/receiving.py",
-      "symbol": "artifact",
-      "start_line": 490,
       "end_line": 511,
-      "sha256": "b9e79b25cb54e2b6c3edf2d2520ad4d0466472e917c11a30d27d1df9f46051a6"
+      "path": "tools/gomad/rust/driver/receiving.py",
+      "sha256": "b9e79b25cb54e2b6c3edf2d2520ad4d0466472e917c11a30d27d1df9f46051a6",
+      "start_line": 490,
+      "symbol": "artifact"
     },
     "tools/gomad/rust/driver/receiving.py#catalogue": {
+      "end_line": 1052,
       "path": "tools/gomad/rust/driver/receiving.py",
-      "symbol": "catalogue",
-      "start_line": 1029,
-      "end_line": 1051,
-      "sha256": "8b00a5bfdfbf2a7ca78daa3c3f753b7040d7a4d65b95ebe3d2558e4048ecce49"
+      "sha256": "8b00a5bfdfbf2a7ca78daa3c3f753b7040d7a4d65b95ebe3d2558e4048ecce49",
+      "start_line": 1030,
+      "symbol": "catalogue"
     },
     "tools/gomad/rust/driver/receiving.py#mandatory": {
+      "end_line": 950,
       "path": "tools/gomad/rust/driver/receiving.py",
-      "symbol": "mandatory",
-      "start_line": 945,
-      "end_line": 949,
-      "sha256": "abf131e4250acc8dd41901e9722a099d912b163ef50341b9a28fd010fd213f1b"
+      "sha256": "abf131e4250acc8dd41901e9722a099d912b163ef50341b9a28fd010fd213f1b",
+      "start_line": 946,
+      "symbol": "mandatory"
     },
     "tools/gomad/rust/driver/receiving.py#memory_observation": {
       "end_line": 419,
@@ -13105,11 +13105,11 @@
       "symbol": "memory_observation"
     },
     "tools/gomad/rust/driver/receiving.py#native_catalogue": {
+      "end_line": 974,
       "path": "tools/gomad/rust/driver/receiving.py",
-      "symbol": "native_catalogue",
-      "start_line": 951,
-      "end_line": 973,
-      "sha256": "791685810f7e59f90da8c1e2161751ddec44e828e58db6948e6c5f278ccc8858"
+      "sha256": "791685810f7e59f90da8c1e2161751ddec44e828e58db6948e6c5f278ccc8858",
+      "start_line": 952,
+      "symbol": "native_catalogue"
     },
     "tools/gomad/rust/driver/receiving.py#native_state": {
       "end_line": 218,
@@ -13119,39 +13119,39 @@
       "symbol": "native_state"
     },
     "tools/gomad/rust/driver/receiving.py#private_controls": {
+      "end_line": 1171,
       "path": "tools/gomad/rust/driver/receiving.py",
-      "symbol": "private_controls",
-      "start_line": 1131,
-      "end_line": 1170,
-      "sha256": "a3c577bd388e5fbe661e7093119fb425323d7e6feab9c1792ee8a60f4e8a6614"
+      "sha256": "a3c577bd388e5fbe661e7093119fb425323d7e6feab9c1792ee8a60f4e8a6614",
+      "start_line": 1132,
+      "symbol": "private_controls"
     },
     "tools/gomad/rust/driver/receiving.py#producer": {
+      "end_line": 1240,
       "path": "tools/gomad/rust/driver/receiving.py",
-      "symbol": "producer",
-      "start_line": 1172,
-      "end_line": 1239,
-      "sha256": "0475eeadb160ebb00ff848a7da59f1c21da674f368f8501a8793d69e4d6d1fec"
+      "sha256": "0475eeadb160ebb00ff848a7da59f1c21da674f368f8501a8793d69e4d6d1fec",
+      "start_line": 1173,
+      "symbol": "producer"
     },
     "tools/gomad/rust/driver/receiving.py#replication": {
+      "end_line": 1274,
       "path": "tools/gomad/rust/driver/receiving.py",
-      "symbol": "replication",
-      "start_line": 1246,
-      "end_line": 1273,
-      "sha256": "f6acf4c36f0a39f6e199c398ea4fbcd9ffc0751bf90c9a1f0a7e6749b38f50ef"
+      "sha256": "f6acf4c36f0a39f6e199c398ea4fbcd9ffc0751bf90c9a1f0a7e6749b38f50ef",
+      "start_line": 1247,
+      "symbol": "replication"
     },
     "tools/gomad/rust/driver/receiving.py#result": {
+      "end_line": 791,
       "path": "tools/gomad/rust/driver/receiving.py",
-      "symbol": "result",
+      "sha256": "21412a5dddae0f76704da1099e2ce2cf5a63dfe301a82d7028b5a408f8377960",
       "start_line": 681,
-      "end_line": 790,
-      "sha256": "f5bbde6e171f6359da1438ab1fc491c620e2f12ec25205dec84c4cf02c52d2f7"
+      "symbol": "result"
     },
     "tools/gomad/rust/driver/receiving.py#selected": {
+      "end_line": 1028,
       "path": "tools/gomad/rust/driver/receiving.py",
-      "symbol": "selected",
-      "start_line": 1004,
-      "end_line": 1027,
-      "sha256": "b2f8c7299a414736787acdae82be3bfd6be11123111ec4c184788235edddb6e3"
+      "sha256": "b2f8c7299a414736787acdae82be3bfd6be11123111ec4c184788235edddb6e3",
+      "start_line": 1005,
+      "symbol": "selected"
     },
     "tools/gomad/rust/driver/receiving.py#selected_marker": {
       "end_line": 233,
@@ -13161,25 +13161,25 @@
       "symbol": "selected_marker"
     },
     "tools/gomad/rust/driver/receiving.py#smoke": {
+      "end_line": 1245,
       "path": "tools/gomad/rust/driver/receiving.py",
-      "symbol": "smoke",
-      "start_line": 1241,
-      "end_line": 1244,
-      "sha256": "9b6ffad7a170ad454b243a92bb738d1935bdeb69b92746dcdc49f5217a980734"
+      "sha256": "9b6ffad7a170ad454b243a92bb738d1935bdeb69b92746dcdc49f5217a980734",
+      "start_line": 1242,
+      "symbol": "smoke"
     },
     "tools/gomad/rust/driver/receiving.py#sources": {
+      "end_line": 1124,
       "path": "tools/gomad/rust/driver/receiving.py",
-      "symbol": "sources",
-      "start_line": 1116,
-      "end_line": 1123,
-      "sha256": "d94225592acbb62c80288566fbccc0b24da52913632789a619ce252724c9e269"
+      "sha256": "d94225592acbb62c80288566fbccc0b24da52913632789a619ce252724c9e269",
+      "start_line": 1117,
+      "symbol": "sources"
     },
     "tools/gomad/rust/driver/receiving.py#sqlite_primary": {
+      "end_line": 1003,
       "path": "tools/gomad/rust/driver/receiving.py",
-      "symbol": "sqlite_primary",
-      "start_line": 992,
-      "end_line": 1002,
-      "sha256": "ca67980abb539b223c6d19b02f2f1176c18f7d48715fda2ce5aa6a22aa6849b9"
+      "sha256": "ca67980abb539b223c6d19b02f2f1176c18f7d48715fda2ce5aa6a22aa6849b9",
+      "start_line": 993,
+      "symbol": "sqlite_primary"
     },
     "tools/gomad/rust/driver/receiving.py#state_identity": {
       "end_line": 196,
@@ -13203,11 +13203,11 @@
       "symbol": "matched_inputs"
     },
     "tools/gomad/rust/driver/sqlite.py#native_input": {
-      "path": "tools/gomad/rust/driver/sqlite.py",
-      "symbol": "native_input",
-      "start_line": 97,
       "end_line": 121,
-      "sha256": "8c28d94ddc1e2f25c9702026e9a5121dc1a9eaedb5dece9638922c500ceb9f55"
+      "path": "tools/gomad/rust/driver/sqlite.py",
+      "sha256": "8c28d94ddc1e2f25c9702026e9a5121dc1a9eaedb5dece9638922c500ceb9f55",
+      "start_line": 97,
+      "symbol": "native_input"
     },
     "tools/gomad/rust/driver/sqlite.py#selection_spec": {
       "end_line": 47,
@@ -13259,87 +13259,87 @@
       "symbol": "test_self_reported_available_bytes_cannot_replace_raw_measurement"
     },
     "tools/gomad/rust/driver/tests/test_sqlite.py#test_actual_catalogue_is_complete_exact_four_states_and_context_bound": {
-      "path": "tools/gomad/rust/driver/tests/test_sqlite.py",
-      "symbol": "test_actual_catalogue_is_complete_exact_four_states_and_context_bound",
-      "start_line": 73,
       "end_line": 89,
-      "sha256": "7b96b6c22b17aaba495207498d8d8b6906a00fce1bc64369276e833a67e6d7c4"
+      "path": "tools/gomad/rust/driver/tests/test_sqlite.py",
+      "sha256": "7b96b6c22b17aaba495207498d8d8b6906a00fce1bc64369276e833a67e6d7c4",
+      "start_line": 73,
+      "symbol": "test_actual_catalogue_is_complete_exact_four_states_and_context_bound"
     },
     "tools/gomad/rust/gomad/src/qualify/cells.rs#complete_workload": {
-      "end_line": 783,
+      "end_line": 799,
       "path": "tools/gomad/rust/gomad/src/qualify/cells.rs",
       "sha256": "f3ca42588a66a6061544f0311cee0c6a7edb5e8ac6003ed802c4ef3578573bc3",
-      "start_line": 719,
+      "start_line": 735,
       "symbol": "complete_workload"
     },
     "tools/gomad/rust/gomad/src/qualify/cells.rs#execute": {
-      "end_line": 783,
+      "end_line": 511,
       "path": "tools/gomad/rust/gomad/src/qualify/cells.rs",
-      "sha256": "4e421fefe4e276e05b39b74fd41aa5b46773d72a40248aabed2ca876da54a59f",
-      "start_line": 461,
+      "sha256": "b7b83b103c639571f95f6ec6202d386f721123d35fb53c88bcb6e5f4fd0f82d3",
+      "start_line": 462,
       "symbol": "execute"
     },
     "tools/gomad/rust/gomad/src/qualify/cells.rs#failure": {
-      "end_line": 783,
+      "end_line": 634,
       "path": "tools/gomad/rust/gomad/src/qualify/cells.rs",
-      "sha256": "fe2e2a8c941b70633ece2fef14ec51b0a0ce7f1cd0411cacea622efc7f9bcab7",
-      "start_line": 617,
+      "sha256": "cb09368aff5585abfbb8bf2adeafaf7a969b07cebe1601c1975f7f17dcb59dea",
+      "start_line": 627,
       "symbol": "failure"
     },
     "tools/gomad/rust/gomad/src/qualify/cells.rs#freeze": {
-      "end_line": 783,
+      "end_line": 424,
       "path": "tools/gomad/rust/gomad/src/qualify/cells.rs",
-      "sha256": "fc139048d9c0ba50c557133a4884a6a4ccab0e27c5e0d8abf4d11044592fd865",
+      "sha256": "9741c78244787b72bf4d19bbae36e3fb694875a91b81bb01a3edd5b7e341c525",
       "start_line": 256,
       "symbol": "freeze"
     },
     "tools/gomad/rust/gomad/src/qualify/cells.rs#replay": {
-      "end_line": 783,
+      "end_line": 605,
       "path": "tools/gomad/rust/gomad/src/qualify/cells.rs",
-      "sha256": "195508bb86c46e7c846f83af8a08c8af14cf7a229276af9bcbc0b9bfe8c9a5d5",
-      "start_line": 514,
+      "sha256": "b4b21f75ea6a395d0293df34e6346fe3496a9afd136e592a4b90b826a8056da1",
+      "start_line": 515,
       "symbol": "replay"
     },
     "tools/gomad/rust/gomad/src/qualify/cells.rs#run": {
-      "end_line": 783,
+      "end_line": 733,
       "path": "tools/gomad/rust/gomad/src/qualify/cells.rs",
-      "sha256": "7af5d5d49eaa2930b6663ad91aa50d3d87c9bc43292577f946dae207e905fabf",
-      "start_line": 628,
+      "sha256": "0c987d05a80cdfb256d5b6a9632fdf2af5ca8e945e6b18a23bdd9396b7d15582",
+      "start_line": 638,
       "symbol": "run"
     },
     "tools/gomad/rust/gomad/src/qualify/cost.rs#budget": {
-      "end_line": 744,
+      "end_line": 503,
       "path": "tools/gomad/rust/gomad/src/qualify/cost.rs",
-      "sha256": "aa90709261f1546b00ad9f1f0b6960be35fb782af4352f809193347b501d2791",
-      "start_line": 411,
+      "sha256": "56009ba1f0c4749297eaa8e55008a40d39fb3c60093beb347e71845f29932fd5",
+      "start_line": 418,
       "symbol": "budget"
     },
     "tools/gomad/rust/gomad/src/qualify/cost.rs#cost": {
-      "end_line": 744,
+      "end_line": 395,
       "path": "tools/gomad/rust/gomad/src/qualify/cost.rs",
-      "sha256": "d9248714618e0277a3b83f4a1a9d7bf1f73328bc21f5eeff0a09fb85be3d3719",
-      "start_line": 295,
+      "sha256": "523ac68e752879b14aa80e3c78ad8d5071bd665e9aa78c7d7aa72b897a28a092",
+      "start_line": 302,
       "symbol": "cost"
     },
     "tools/gomad/rust/gomad/src/qualify/cost.rs#groups": {
-      "end_line": 744,
+      "end_line": 279,
       "path": "tools/gomad/rust/gomad/src/qualify/cost.rs",
-      "sha256": "34c9a5a08c210bf3ad52ff5ffeab9395327aa09bf55907304c4f7f7ec211b283",
-      "start_line": 175,
+      "sha256": "0e76f6295f8e0cf8d3bbac8e21ab069d353e41321e15dfbc68125192971411b1",
+      "start_line": 180,
       "symbol": "groups"
     },
     "tools/gomad/rust/gomad/src/qualify/cost.rs#interval": {
-      "end_line": 744,
+      "end_line": 160,
       "path": "tools/gomad/rust/gomad/src/qualify/cost.rs",
-      "sha256": "6ebd71f1dd8f8183e77fad93ef45b807fcc7802cda5caab22ecabebb9cddc62b",
-      "start_line": 138,
+      "sha256": "0e250cff63ca2cfebc559ac5d63ed3c2b6673290472bffcb9698021d86ae5a27",
+      "start_line": 142,
       "symbol": "interval"
     },
     "tools/gomad/rust/gomad/src/qualify/cost.rs#terminal": {
-      "end_line": 744,
+      "end_line": 777,
       "path": "tools/gomad/rust/gomad/src/qualify/cost.rs",
       "sha256": "f3cb7298aaed4d00a35caaa9ba77580cf8c9471021acc758f2d63feb22702611",
-      "start_line": 694,
+      "start_line": 727,
       "symbol": "terminal"
     },
     "tools/gomad/rust/gomad/src/qualify/receiving_depth_tests.rs#original_depth_128_scalar_edge_is_accepted": {
@@ -13441,109 +13441,109 @@
       "symbol": "validate"
     },
     "tools/gomad/rust/gomad/src/qualify/result.rs#derive": {
-      "end_line": 930,
+      "end_line": 211,
       "path": "tools/gomad/rust/gomad/src/qualify/result.rs",
-      "sha256": "9414624d6e1966823d64ced28c3b1b16417cb49f696a824f0f7cb63e42802560",
+      "sha256": "b7ea8648e06650f3e4305c3514d06e1394cf30f3807ed4b83a2985af8aca9618",
       "start_line": 107,
       "symbol": "derive"
     },
     "tools/gomad/rust/gomad/src/qualify/result.rs#directory": {
-      "end_line": 930,
+      "end_line": 715,
       "path": "tools/gomad/rust/gomad/src/qualify/result.rs",
-      "sha256": "375f7b3258a934ccd37182c44e1f0bf7e31cb497f137d13c26534c342eadbc35",
-      "start_line": 705,
+      "sha256": "9b8bb0a94d4efb32be46941441bf9b3323ae54dec07a297ca185e89709011da3",
+      "start_line": 706,
       "symbol": "directory"
     },
     "tools/gomad/rust/gomad/src/qualify/result.rs#open": {
-      "end_line": 930,
+      "end_line": 873,
       "path": "tools/gomad/rust/gomad/src/qualify/result.rs",
-      "sha256": "ca9e88e2c81d0ded5f5cfd0f3a290818a5a99b79a42bd33edc3d92ef531b6fea",
-      "start_line": 859,
+      "sha256": "8af2fabeca42c7ab1cd342cf927d31736b5d14bc3b5c209e3e1bb7343c1f469c",
+      "start_line": 858,
       "symbol": "open"
     },
     "tools/gomad/rust/gomad/src/qualify/result.rs#open_receipt": {
-      "end_line": 930,
+      "end_line": 905,
       "path": "tools/gomad/rust/gomad/src/qualify/result.rs",
-      "sha256": "05487f62deaabcbd5e91e704e78105241bfb27fa2647695dad4e50e95d4aa613",
-      "start_line": 876,
+      "sha256": "8c61bd90189fd06f271d4509ae38d341cf7c5647e4f623d4cf8ce3704a54acc2",
+      "start_line": 875,
       "symbol": "open_receipt"
     },
     "tools/gomad/rust/gomad/src/qualify/result.rs#publish_bytes": {
-      "end_line": 930,
+      "end_line": 763,
       "path": "tools/gomad/rust/gomad/src/qualify/result.rs",
-      "sha256": "6c9c5f0c5f96bdedbae2bc10204067a85a7186ce8a9735fbd9dd2e6c78d8e29b",
-      "start_line": 720,
+      "sha256": "847318492c409249b3776764b34041ed0baab92832e8c3dd1c39f2a12db70513",
+      "start_line": 719,
       "symbol": "publish_bytes"
     },
     "tools/gomad/rust/gomad/src/qualify/result.rs#publish_receipt": {
-      "end_line": 930,
+      "end_line": 856,
       "path": "tools/gomad/rust/gomad/src/qualify/result.rs",
-      "sha256": "3ed3ab880d55db2e9d071826dfcd75cf774c56f30b20dbd2862805dcef02a229",
-      "start_line": 839,
+      "sha256": "9ca9d25929eff459ebefa28f768b6db41394f7c6030047bf03779fb571f51c37",
+      "start_line": 838,
       "symbol": "publish_receipt"
     },
     "tools/gomad/rust/gomad/src/qualify/result.rs#receipt_names": {
-      "end_line": 930,
+      "end_line": 836,
       "path": "tools/gomad/rust/gomad/src/qualify/result.rs",
-      "sha256": "9b40221e6a75774e2913c96d30ca0769a63f37c9e7b812dae28a15f1cdd068ca",
-      "start_line": 818,
+      "sha256": "59c1d5fb274f88a58fa00fecc6dd49a7e529a452eea4450ba46120e3b6ac5dd3",
+      "start_line": 817,
       "symbol": "receipt_names"
     },
     "tools/gomad/rust/gomad/src/qualify/result.rs#result_identity": {
-      "end_line": 930,
+      "end_line": 800,
       "path": "tools/gomad/rust/gomad/src/qualify/result.rs",
-      "sha256": "1c088ec403105e5f329220b93a05635f210f5afafbcd10ec878a963043c297c9",
-      "start_line": 791,
+      "sha256": "d42a5d3979a2523c36dde780d7554063595fa99aacce7bc66bfdb10bb38e6ecc",
+      "start_line": 792,
       "symbol": "result_identity"
     },
     "tools/gomad/rust/gomad/src/qualify/result.rs#validate": {
-      "end_line": 930,
+      "end_line": 657,
       "path": "tools/gomad/rust/gomad/src/qualify/result.rs",
-      "sha256": "c2ccf85193b18560bc9517c18c1547fb1b7c7e051da3a91e7488bafd15eb5a53",
-      "start_line": 548,
+      "sha256": "b1ea03792f0335092725e159b461c427d21e054e9d434d4a667bcbfbaf61b30b",
+      "start_line": 547,
       "symbol": "validate"
     },
     "tools/gomad/rust/gomad/src/qualify/result.rs#validate_receipt": {
-      "end_line": 930,
+      "end_line": 923,
       "path": "tools/gomad/rust/gomad/src/qualify/result.rs",
-      "sha256": "81f9ea108cd1ed1266dcc32ff814969837ea9d42d008818536b75d8ef8218773",
-      "start_line": 906,
+      "sha256": "208e935d577e6f1e5db781889430798911f0d5a8ab3b48570102c1fb96b78570",
+      "start_line": 907,
       "symbol": "validate_receipt"
     },
     "tools/gomad/rust/gomad/src/qualify/result.rs#validate_source_manifest": {
-      "end_line": 930,
+      "end_line": 512,
       "path": "tools/gomad/rust/gomad/src/qualify/result.rs",
-      "sha256": "6a7b492923a1cc733e0b4b1b70a3cfae452fab974ae10fca113e420f4d5753d2",
-      "start_line": 459,
+      "sha256": "73613bb5356029dc1aeee9bcf15694cbf696760bc3aaa24f7545e10e89437b9c",
+      "start_line": 458,
       "symbol": "validate_source_manifest"
     },
     "tools/gomad/rust/gomad/src/qualify/spec.rs#decode_first": {
-      "path": "tools/gomad/rust/gomad/src/qualify/spec.rs",
-      "symbol": "decode_first",
-      "start_line": 162,
       "end_line": 331,
-      "sha256": "c8a6d9ab72b87f81848f9e8e8fc580136d6b925c9e7d03c41d7beff74be5625f"
+      "path": "tools/gomad/rust/gomad/src/qualify/spec.rs",
+      "sha256": "c8a6d9ab72b87f81848f9e8e8fc580136d6b925c9e7d03c41d7beff74be5625f",
+      "start_line": 162,
+      "symbol": "decode_first"
     },
     "tools/gomad/rust/gomad/src/qualify/spec.rs#read": {
-      "path": "tools/gomad/rust/gomad/src/qualify/spec.rs",
-      "symbol": "read",
-      "start_line": 276,
       "end_line": 331,
-      "sha256": "904126da7f6bbe0c06ea7c441a2229c34436fd7688867b50ff2508925226f7f9"
+      "path": "tools/gomad/rust/gomad/src/qualify/spec.rs",
+      "sha256": "904126da7f6bbe0c06ea7c441a2229c34436fd7688867b50ff2508925226f7f9",
+      "start_line": 276,
+      "symbol": "read"
     },
     "tools/gomad/rust/gomad/src/qualify/spec.rs#read_bounded": {
-      "path": "tools/gomad/rust/gomad/src/qualify/spec.rs",
-      "symbol": "read_bounded",
-      "start_line": 251,
       "end_line": 331,
-      "sha256": "c4a8023adf4478d71721520c6d97eab6a076ca426d3993c45f53755253e3fcd5"
+      "path": "tools/gomad/rust/gomad/src/qualify/spec.rs",
+      "sha256": "c4a8023adf4478d71721520c6d97eab6a076ca426d3993c45f53755253e3fcd5",
+      "start_line": 251,
+      "symbol": "read_bounded"
     },
     "tools/gomad/rust/gomad/src/qualify/spec.rs#strict": {
-      "path": "tools/gomad/rust/gomad/src/qualify/spec.rs",
-      "symbol": "strict",
-      "start_line": 138,
       "end_line": 331,
-      "sha256": "f2f19c8dac7afd5963922ccbb37bc98aee641649dcbfb1c51eb82fbf5b577732"
+      "path": "tools/gomad/rust/gomad/src/qualify/spec.rs",
+      "sha256": "f2f19c8dac7afd5963922ccbb37bc98aee641649dcbfb1c51eb82fbf5b577732",
+      "start_line": 138,
+      "symbol": "strict"
     },
     "tools/gomad/rust/gomad/src/qualify/spec/preflight.rs#first": {
       "end_line": 164,
@@ -13630,39 +13630,39 @@
       "symbol": "temporal_bound_seals_role_entropy_peer_services_and_grouped_crash"
     },
     "tools/gomad/rust/workload_tools/producer.py#captured": {
-      "path": "tools/gomad/rust/workload_tools/producer.py",
-      "symbol": "captured",
-      "start_line": 117,
       "end_line": 154,
-      "sha256": "77db983844b8859a7ce725de76b1c085153a887f7a58accd54dceb37e10e654a"
+      "path": "tools/gomad/rust/workload_tools/producer.py",
+      "sha256": "77db983844b8859a7ce725de76b1c085153a887f7a58accd54dceb37e10e654a",
+      "start_line": 117,
+      "symbol": "captured"
     },
     "tools/gomad/rust/workload_tools/producer.py#main": {
-      "path": "tools/gomad/rust/workload_tools/producer.py",
-      "symbol": "main",
-      "start_line": 207,
       "end_line": 287,
-      "sha256": "0ab82ec9e4092f54ad63ab8e70a18332ff4a18b4805988ef8b588482d4841721"
+      "path": "tools/gomad/rust/workload_tools/producer.py",
+      "sha256": "0ab82ec9e4092f54ad63ab8e70a18332ff4a18b4805988ef8b588482d4841721",
+      "start_line": 207,
+      "symbol": "main"
     },
     "tools/gomad/rust/workload_tools/producer.py#memory_admission": {
-      "path": "tools/gomad/rust/workload_tools/producer.py",
-      "symbol": "memory_admission",
-      "start_line": 170,
       "end_line": 204,
-      "sha256": "7a7aa4f8aabc808e8489e87a24ea73f4f2bb1dc3455d688b425e7158f3d1b85f"
+      "path": "tools/gomad/rust/workload_tools/producer.py",
+      "sha256": "7a7aa4f8aabc808e8489e87a24ea73f4f2bb1dc3455d688b425e7158f3d1b85f",
+      "start_line": 170,
+      "symbol": "memory_admission"
     },
     "tools/gomad/rust/workload_tools/producer.py#memory_decimal": {
-      "path": "tools/gomad/rust/workload_tools/producer.py",
-      "symbol": "memory_decimal",
-      "start_line": 164,
       "end_line": 167,
-      "sha256": "b97bc3c2c6232799759a392636f1de6bb1c93bef4ed91bfc66d9f7809621c67d"
+      "path": "tools/gomad/rust/workload_tools/producer.py",
+      "sha256": "b97bc3c2c6232799759a392636f1de6bb1c93bef4ed91bfc66d9f7809621c67d",
+      "start_line": 164,
+      "symbol": "memory_decimal"
     },
     "tools/gomad/rust/workload_tools/producer.py#qualification_build_cache": {
-      "path": "tools/gomad/rust/workload_tools/producer.py",
-      "symbol": "qualification_build_cache",
-      "start_line": 157,
       "end_line": 161,
-      "sha256": "40428fb9651c6ef8b18f5edead1abf6d5028da2212806b81f3338f85a30e178f"
+      "path": "tools/gomad/rust/workload_tools/producer.py",
+      "sha256": "40428fb9651c6ef8b18f5edead1abf6d5028da2212806b81f3338f85a30e178f",
+      "start_line": 157,
+      "symbol": "qualification_build_cache"
     },
     "tools/gomad/rust/workload_tools/temporal-support.py#main": {
       "end_line": 56,
@@ -13763,11 +13763,11 @@
       "symbol": "guest_build_tags"
     },
     "tools/gomad/rust/workload_tools/workloads.py#qualification_spec": {
+      "end_line": 182,
       "path": "tools/gomad/rust/workload_tools/workloads.py",
-      "symbol": "qualification_spec",
+      "sha256": "b1d8d78068aa5397c91ca7e31ce57b943cee0867b29afb4a45e639ecd0bce1c8",
       "start_line": 155,
-      "end_line": 181,
-      "sha256": "b0d4683489426b05ab5ebfafb8d647dbf1e8887c15ece6059ab8a07a5ec75bcf"
+      "symbol": "qualification_spec"
     },
     "tools/gomad/rust/workload_tools/workloads.py#sqlite_scenario": {
       "end_line": 67,
@@ -13784,18 +13784,18 @@
       "symbol": "stage_temporal"
     },
     "tools/gomad/rust/workload_tools/workloads.py#support_policy": {
-      "end_line": 271,
+      "end_line": 272,
       "path": "tools/gomad/rust/workload_tools/workloads.py",
       "sha256": "c8669949f39eeebcd85976a8157c59d462a023da85be61feb12cfbe1a175b08a",
-      "start_line": 259,
+      "start_line": 260,
       "symbol": "support_policy"
     },
     "tools/gomad/rust/workload_tools/workloads.py#support_spec": {
+      "end_line": 290,
       "path": "tools/gomad/rust/workload_tools/workloads.py",
-      "symbol": "support_spec",
-      "start_line": 274,
-      "end_line": 289,
-      "sha256": "0eab417bc41630dbfd655e44a2b9482d44650269e7efedc8f7902b5d70507fe1"
+      "sha256": "0eab417bc41630dbfd655e44a2b9482d44650269e7efedc8f7902b5d70507fe1",
+      "start_line": 275,
+      "symbol": "support_spec"
     },
     "tools/gomad/rust/workload_tools/workloads.py#temporal_replication_scenario": {
       "end_line": 90,
@@ -13805,10 +13805,10 @@
       "symbol": "temporal_replication_scenario"
     },
     "tools/gomad/testdata/parity/qualify-accounting-check.py#check": {
-      "end_line": 240,
+      "end_line": 244,
       "path": "tools/gomad/testdata/parity/qualify-accounting-check.py",
       "sha256": "65fd327b91aa328fe8d00bac8f9117afa5e2f4c8eb10a5ff429d1395a97b06e9",
-      "start_line": 180,
+      "start_line": 184,
       "symbol": "check"
     },
     "tools/gomad/testdata/parity/qualify-accounting-check.py#interval_failure": {
@@ -13819,9 +13819,9 @@
       "symbol": "interval_failure"
     },
     "tools/gomad/testdata/parity/qualify-accounting-check.py#oracle": {
-      "end_line": 173,
+      "end_line": 177,
       "path": "tools/gomad/testdata/parity/qualify-accounting-check.py",
-      "sha256": "198fca8ad9e6f4a16e0cba4c1b61bb173d50b821909435392a292eca95a3cee0",
+      "sha256": "0bbdd0d0b907e5037da0338cfb5db1a6121c4b457eff6885274244a42ffb8f23",
       "start_line": 90,
       "symbol": "oracle"
     },

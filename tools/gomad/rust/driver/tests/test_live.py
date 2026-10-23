@@ -227,6 +227,23 @@ class RawBindingGuards(unittest.TestCase):
             argv=original[:];argv[index]=value
             with self.subTest(index=index),self.assertRaises(driver.Refusal):live.slim_command(argv)
 
+    def test_reach_retirement_and_collapse_need_reasons_and_an_evidenced_target(self):
+        import live
+        root, sub, gone = 'a_test.go#TestRoot', 'a_test.go#TestRoot@1/case', 'b_test.go#TestGoOnly'
+        original = {root, sub, gone}
+        good = {root: dict(evidence=['rust/gomad/receiver']),
+                sub: dict(collapsed_into=root, reason='Named variant runs inside the root receiver.'),
+                gone: dict(retired='Go-host-only implementation detail deleted with its code.')}
+        live.reach_coverage(original, good, {'rust/gomad/receiver'})
+        for key, bad in ((gone, dict(retired='')), (gone, dict(retired='two\nlines')),
+                         (gone, dict(retired='reason', evidence=['rust/gomad/receiver'])),
+                         (sub, dict(collapsed_into=gone, reason='retired target')),
+                         (sub, dict(collapsed_into=root)), (sub, dict(collapsed_into='missing', reason='x')),
+                         (root, dict(evidence=[], gap='port'))):
+            entries = dict(good); entries[key] = bad
+            with self.subTest(key=key, bad=bad), self.assertRaises(driver.Refusal):
+                live.reach_coverage(original, entries, {'rust/gomad/receiver'})
+
     def test_original_double_selected_tests_need_distinct_actual_commands(self):
         import live
         root='original_test.go#TestVolumeConformanceCorpus'

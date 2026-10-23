@@ -357,7 +357,15 @@ fn shared_input_lease_prevents_collection_until_released() {
         .unwrap();
     assert!(path.exists());
     drop(lease);
-    reclaim(path.parent().unwrap()).unwrap();
+    // A concurrent test's fork can hold the inherited lease until its exec closes it, so collection
+    // after release is eventual: reclaim skips a still-locked run and a later pass collects it.
+    let deadline = Instant::now() + Duration::from_secs(10);
+    while path.exists() && Instant::now() < deadline {
+        reclaim(path.parent().unwrap()).unwrap();
+        if path.exists() {
+            std::thread::sleep(Duration::from_millis(20));
+        }
+    }
     assert!(!path.exists());
 }
 

@@ -355,3 +355,24 @@ fn terminal_network_raw_stream_cannot_be_replaced_by_an_unrelated_state_commitme
         }),
     );
 }
+
+/// Original `TestInspectionOutputBoundsIncludeJSONAndHeap`: one aggregate
+/// bound covers the JSON document and heap profile, truncation is reported in
+/// both flags and the dump status, and a bound too small for the truncation
+/// metadata refuses.
+#[test]
+fn inspection_output_bound_includes_json_and_heap() {
+    let diagnostics = || Diagnostics {
+        output: json!({"dumps": [{"name": "snapshot", "status": "ok", "data_base64": STANDARD.encode([2u8; 4096])}]}),
+        heap: vec![1; 1024],
+    };
+    let (encoded, heap, truncated) = diagnostics().bound(512).unwrap();
+    assert!(truncated);
+    assert!(encoded.len() + heap.len() <= 512);
+    let result: Value = serde_json::from_slice(&encoded).unwrap();
+    assert_eq!(result["truncated"], true);
+    assert_eq!(result["heap_truncated"], true);
+    assert_eq!(result["dumps"].as_array().unwrap().len(), 1);
+    assert_eq!(result["dumps"][0]["status"], "truncated");
+    assert!(diagnostics().bound(1).is_err());
+}

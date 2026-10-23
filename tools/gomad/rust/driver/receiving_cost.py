@@ -56,6 +56,7 @@ def groups(observations):
         require(all(sample[field] > 0 for field in ('wall_nanos','guest_peak_memory_bytes','guest_memory_limit_bytes')),
                 'actual store wall and guest memory required')
         if sample.get('store_peak_rss_bytes') is not None: integer(sample['store_peak_rss_bytes'])
+        require(sample.get('cache_hit') in (None, True, False), 'invalid store cache-hit observation')
         key = sample['phase'],sample['iteration']
         if windows and (windows[-1][0]['phase'],windows[-1][0]['iteration']) == key:
             windows[-1].append(sample)
@@ -71,7 +72,7 @@ def groups(observations):
         names,nodes = set(),set()
         for sample in window:
             require(all(sample.get(field) == first.get(field) for field in ('wall_nanos','virtual_time_nanos',
-                    'linked_before','linked_after','store_peak_rss_bytes')), 'concurrent stores disagree on raw shared window')
+                    'linked_before','linked_after','store_peak_rss_bytes','cache_hit')), 'concurrent stores disagree on raw shared window')
             name = sample.get('incarnation')
             if name is None:
                 require(len(window) == 1,'concurrent stores require original incarnation handles')
@@ -168,8 +169,11 @@ def budget(observations):
         require(linked <= max(previous,operator) and largest <= linked <= max(largest,operator),
                 'raw phase peaks do not explain actual linked lifetime peak')
         single = max([window[0]['store_peak_rss_bytes'] for window in windows if window[0].get('incarnation') is None] or [0])
+        warm = [window[0]['store_peak_rss_bytes'] for window in windows
+                if window[0].get('incarnation') is None and window[0].get('cache_hit') is True]
         clusters = [window[0]['store_peak_rss_bytes'] for window in windows if window[0].get('incarnation') is not None]
         checks.extend([check('operator lifetime peak RSS','operator phases',operator,2*GIB,True),
+                       check('individual warm helper peak RSS','single cache-hit store window',max(warm),4*GIB,True) if warm else
                        check('individual warm helper peak RSS','single store window upper bound',single,4*GIB,False),
                        check('individual cold helper peak RSS','single store window',single,6*GIB,True)])
         if clusters:

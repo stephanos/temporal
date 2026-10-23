@@ -154,6 +154,26 @@ Development and provisioning only. No final qualification pass is claimed.
 - **fn-233 evidence on fixed binary 12ae1f83…** All 81 shim cases pass in two generations, and the comparison writes the golden (`/home/agent/evidence/fn233-final-shim-v3`). All six Make stages pass in two byte-identical generations, and the three positive artifacts replay exactly (`/home/agent/evidence/fn233-final-make-v2`). For R5, a run with no explicit installation passes, and the derived configuration equals the `install` configuration (`/home/agent/evidence/fn233-final-r5-v1`).
 - **Open finding: identity depends on cache location.** Go test source inventories record `-compiled` files under the caller's GOCACHE path, so the runtime/configuration identity differs between GOCACHE locations. The second generation reused the first generation's cache path, with a fresh empty cache. The first cache is retained as `shim-cache-first.gen1`.
 
+### Worker A cycle-closure batch, 2026-10-23 (branch fn232-cycle-closure)
+
+Development evidence only; no frozen cycle.
+
+- **Ruling 4:** `8cdaa8db61` records cache-resident compiled sources under a content-addressed `/$GOCACHE/<shard>/<digest>-d` key, so a guest identity no longer depends on the caller's cache path. Regression: `campaign::prepare::inventory::tests`.
+- **Timing blockers found and fixed:**
+  - `e154f663d3`: generated durable-cell campaigns no longer set the reserved TZ.
+  - `63c8f3d5a3`: qualification replays use the installation compile cache; samples carry `cache_hit`, so the 4 GiB warm ceiling is exact on cache-hit windows. The accounting corpus gains two cases, and the golden was regenerated twice.
+  - `ce0a868119`: cluster evidence is bounded per incarnation, not by the 64 MiB oracle evidence bound.
+  - `ed04d3625d`: seed scenarios no longer journal cluster choice features. Go recorded them only for choice coverage.
+- **Timing (item e)**, on the branch release binary under host load 8–10. Evidence: `.build-cache/fn232-timing-v{1..4}`.
+  - Onebox success cell: 300 s, exit 0. It was 562 s and failed its budget before the fixes; the Go estimate was 247 s.
+  - Multi-instance success cell: 290 s, exit 0. It failed twice before the fixes; the Go estimate was 729 s.
+  - Not yet measured in Rust: temporal-inspection (Go estimate 1,296 s), ordinary (1,151 s) and storage (404 s). They need the composed primary-stage inputs.
+- **Reach map (items b and c):** `tools/gomad/testdata/parity/test-wasm-reach-map.json`. Of its 901 entries, 504 are mapped (stage subgate, live root, retained Go test, final obligation or Rust test with correlation of at least 0.35), 54 manual, 79 weak (correlation below 0.35, marked in `basis`), 131 collapsed named subtests and 104 retired with reasons. 29 are explicit port gaps, which refuse completion. The 253 dynamic sites resolve at their root. The 41 qualification-map roots with gaps are dispositioned in this map, and 9 of them remain port gaps. `qualification-map.json` stays source correlation only.
+- **Still open:**
+  - Item d: compose bindings for live_corpus families, final_profiles, final_retained, stress, public_verbs, private_observations, terminal_controls_reference, primary and fn222.
+  - Port the 29 gaps.
+  - Run the dry run after the corpus fix lands.
+
 ### Worker B notes (2026-10-23): helper corpus fix and parked retirement-gap branch
 
 - Corpus root cause, found by first-parent bisect of `helper_corpus` (b64f3dcb89 good, gomad bad): cae886df69 moved two linked-only decisions into the shared helper. Those were the `sock_accept`/`sock_shutdown` namespace refusal and the conversion of an exit with an unfinished runtime trace to `invalid`. The reference transport forwards sockets to its remote host and leaves trace collection to it. Fix 807520bc96 adds `State::helper_owned`, set only by linked standalone and cluster execution. No corpus expectation changed.
@@ -161,7 +181,7 @@ Development and provisioning only. No final qualification pass is claimed.
 - `make validate` (also run inside test-wasm) was red on two retained Go tests whose fixture paths b64f3dcb89 had relocated. Commit e4d3e68f42 fixes the paths only.
 - Gate on branch `fn232-corpus-fix` (e4d3e68f42, rebased on 10763834f0, stock Go 1.27.1 first on PATH): `make -C tools/gomad test-harness test-rust-engine validate-wasm-determinism` exited 0 on 24f1403f80. On e4d3e68f42, `make validate` and `make test-wasm` both exited 0.
 - Parked branch `fn232-retirement-v2`, rebased on the corpus fix. It adds the archcheck `retired-host-import` finding and its test, rewrites the ARCHITECTURE.md module map, makes small CLI.md/README edits, removes the orphaned `diagnostic-identity-plain*` baselines, resolves the darwin note and records the pre-freeze size row above.
-  - Open: `rust/driver/static_stages.py` pins `internal/archcheck/inventory.go` in `GO_SCOPE_SOURCES`. The archcheck edit therefore fails `test_original_scope_skip_is_source_bound_and_never_pass` (gate and validate exit 2). Before merging, rebind that pin or move the new check out of `inventory.go`.
+  - Resolved (worker C): the pin in `GO_SCOPE_SOURCES` is `internal/archcheck/defaultset_test.go`, the source of the skipped `TestNoDefaultSourceNamesNestedTree`. The new `retired-host-import` test moved to `internal/archcheck/retired_test.go`, so the pinned file is byte-identical to gomad and the pin stays unchanged.
   - Verified: Go build/vet exits 0 and `make build` exits 0.
   - Already on gomad before this branch: CI/Make on cargo and the single workspace.
 - Worktrees kept: `/home/agent/wt/fn232-corpus-fix` (merge source) and `/home/agent/wt/fn232-retirement-v2` (parked). Cargo target kept: `/home/agent/.cache/codex-build/fn232-corpus-target` (seeded from a copy of fn188-gates-target). Size evidence kept: `/home/agent/wt/evidence/fn232/source-size-2026-10-23/`.

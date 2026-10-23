@@ -19,10 +19,14 @@ CANONICAL = CHECK.parity.canonical
 MODULE = HERE.parents[1]
 FIXTURES = MODULE / 'internal/backends/wasm/command/testdata/scenario'
 SCHEMA = 'gomad.installed-cluster-failure/v1'
+# Original TestInstalledOperatorClusterFailureEndsPromptly (deadlock, capacity) and
+# TestInstalledOperatorAsymmetricGuestFailureEndsPromptly (two, three).
+PROMPT = ('deadlock', 'capacity', 'two', 'three')
+ASYMMETRIC = ('two', 'three')
 
 
 def explore_arguments(root, case):
-    require(case in ('deadlock', 'capacity'), 'unreviewed installed failure scenario')
+    require(case in PROMPT, 'unreviewed installed failure scenario')
     return ['explore', '--json', '--scenario', str(root / (case + '.json')), '--seeds=7',
             '--parallel=1', '--on-failure=all', '--keep-successes=all', '--success-limit=32',
             '--success-bytes=536870912', '--execution-timeout=3m', '--overall-timeout=4m',
@@ -97,6 +101,9 @@ def original_inputs(root, recipe, build):
     for case in ('deadlock', 'capacity'):
         require(read(root / (case + '.json')) == read(FIXTURES / (case + '.json')),
                 'original scenario actions/topology/limits changed')
+    for case in ASYMMETRIC:
+        require(read(root / (case + '.json')) == LIFECYCLE.asymmetric(read(FIXTURES / 'deadlock.json'), case == 'three'),
+                'original asymmetric scenario derivation changed')
     guest = read(root / 'guest-config.json')
     LIFECYCLE.guest_base(guest, 'gomad.wasi-cooperative/v1', True)
     LIFECYCLE.captured_input(guest, b'retained typed input')
@@ -137,15 +144,15 @@ class Run:
             before = dict(start_ns=time.time_ns(), started_monotonic_nanos=time.monotonic_ns())
             command(self.config, self.root, name, argv, accepted=(status,), timeout=180,
                     exact_environment=environment(self.root),
-                    private_observations=self.config if name in ('deadlock', 'capacity') else None)
-            if name in ('deadlock', 'capacity'):
+                    private_observations=self.config if name in PROMPT else None)
+            if name in PROMPT:
                 write(self.root / (name + '.wall.json'), dict(before, end_ns=time.time_ns(),
                       reaped_monotonic_nanos=time.monotonic_ns()))
         row = read(receiving.regular(self.root / (name + '.command.json')))
         process = read(receiving.regular(self.root / (name + '.process.json')))
         command_identity(row, process, self.owner, argv, self.recipe['repo'], status, environment(self.root), self.seen)
         require(row['end_ns'] - row['start_ns'] <= 180_000_000_000, 'original operator command watchdog exceeded')
-        if name in ('deadlock', 'capacity'):
+        if name in PROMPT:
             wall = read(self.root / (name + '.wall.json'))
             prompt_interval(row, wall)
             require('private_observations' in row, 'actual original preparation observation is missing')
@@ -179,8 +186,8 @@ def evaluate(root, recipe, build, reread):
         require(run.config['files'][name] == expected, 'installation compiler inventory differs from original input')
     LIFECYCLE.discovery(CHECK.parity.decode(run.call('discover', ['discover'], installed=True)))
     artifacts = {}
-    for case in ('deadlock', 'capacity'):
-        output = run.call(case, explore_arguments(root, case), 3, installed=True)
+    for case in PROMPT:
+        output = run.call(case, explore_arguments(root, case), 1 if case in ASYMMETRIC else 3, installed=True)
         wall = read(root / (case + '.wall.json'))
         LIFECYCLE.prompt(output, wall['reaped_monotonic_nanos'] - wall['started_monotonic_nanos'], case)
         campaigns_observed = [value for key, value in run.receiver.preparations.items()
@@ -194,6 +201,9 @@ def evaluate(root, recipe, build, reread):
         preparation.Inventory(run.config).project(observed['sidecar'], installed, provenance['inputs'],
                                                    owner_pid=observed['receipt']['owner_pid'])
         if case == 'deadlock':
+            continue
+        if case in ASYMMETRIC:
+            artifacts.update(asymmetric_case(run, root, case, provenance, build))
             continue
         campaigns = list((root / 'capacity-artifacts/campaigns').glob('campaign-*'))
         require(len(campaigns) == 1, 'capacity requires exactly one retained campaign')
@@ -233,6 +243,37 @@ def evaluate(root, recipe, build, reread):
     return dict(commands=run.names, artifacts=artifacts)
 
 
+def asymmetric_case(run, root, case, provenance, build):
+    declared = read(root / (case + '.json'))
+    campaigns = list((root / (case + '-artifacts/campaigns')).glob('campaign-*'))
+    require(len(campaigns) == 1, 'asymmetric failure requires exactly one retained campaign')
+    validated = CHECK.authenticate_campaign(campaigns[0])
+    require(len(validated['executions']) == 1, 'asymmetric failure requires exactly one retained artifact')
+    execution = validated['executions'][0]
+    require(execution['seed'] == 7 and execution['ordinal'] == 0, 'original seed/ordinal changed')
+    artifact = CHECK.parity.contained(campaigns[0], execution['artifact'])
+    before = LIFECYCLE.tree(artifact)
+    inputs, _, streams = LIFECYCLE.cluster(artifact, declared)
+    require(CHECK.authenticate_artifact(artifact)['identity']['target'] == provenance['module_sha256']
+            and inputs['host_sha256'] == build['host_sha256'] and inputs['helper_sha256'] == build['helper_sha256'],
+            'asymmetric artifact belongs to another guest or candidate')
+    require(len(inputs['retained']) == len(declared['spec']['nodes']), 'asymmetric failure lost peer')
+    for node in declared['spec']['nodes']:
+        marker = b'failing peer started' if node['id'] == 'a' else b'waiting peer started'
+        require(any(marker in raw for key, raw in streams.items() if key[0] == node['id']),
+                'asymmetric failure lost node stream')
+    stderr = b''.join(raw for key, raw in streams.items() if key[2] == 'stderr')
+    require(len(stderr) <= 64 << 10, 'asymmetric stderr exceeds original read bound')
+    for marker in (b'failing peer started', b'waiting peer started', b'intentional asymmetric peer failure'):
+        require(marker in stderr, 'asymmetric combined stderr omitted marker')
+    report = CHECK.parity.decode(run.call(case + '-inspect-json', ['inspect', '--json', artifact]))
+    require(isinstance(report, dict) and report.get('artifact') is not None, 'asymmetric failure inspection lost its artifact')
+    replay = run.call(case + '-replay', ['replay', artifact], 1, installed=True)
+    require(b'reproduced=true' in replay, 'asymmetric failure failed fresh replay')
+    require(before == LIFECYCLE.tree(artifact), 'inspection/replay mutated retained evidence')
+    return {str(artifact): before}
+
+
 def read_result(path, expected_build=None):
     import main_cli_build
     path = receiving.regular(path)
@@ -269,6 +310,8 @@ def produce(main_build, compiler_root, guest_config, module_cache, root):
         shutil.copyfile(MODULE / 'internal/model/runtimesource' / name, root / 'runtime' / name)
     for case in ('deadlock', 'capacity'):
         (root / (case + '.json')).write_bytes(CANONICAL(read(FIXTURES / (case + '.json'))))
+    for case in ASYMMETRIC:
+        (root / (case + '.json')).write_bytes(CANONICAL(LIFECYCLE.asymmetric(read(FIXTURES / 'deadlock.json'), case == 'three')))
     shutil.copyfile(guest_config, root / 'guest-config.json')
     dependency_inventory = installed_cluster_cache.snapshot(module_cache, root / 'module-cache', MODULE / 'go.sum')
     recipe = dict(main_build=str(main_build), compiler_root=str(compiler_root), guest_config=str(guest_config),

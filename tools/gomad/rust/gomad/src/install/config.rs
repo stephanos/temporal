@@ -1,6 +1,8 @@
 mod decode;
 #[cfg(test)]
 mod preservation_tests;
+#[cfg(test)]
+mod reach_port_tests;
 
 use gomad_wasmhost::{linked, linked_cluster};
 use serde_json::Value;

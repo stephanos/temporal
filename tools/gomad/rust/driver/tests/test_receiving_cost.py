@@ -24,10 +24,10 @@ def report(case):
 
 
 class RawAccountingContract(unittest.TestCase):
-    def test_all_original_51_native_accounting_corpus_cases_match_every_golden_cost_and_budget_field(self):
+    def test_all_53_native_accounting_corpus_cases_match_every_golden_cost_and_budget_field(self):
         cases=json.loads((PARITY/'qualify-accounting-corpus.json').read_bytes())['cases']
         goldens={row['name']:row for row in json.loads((PARITY/'goldens-qualify/accounting.json').read_bytes())['cases']}
-        self.assertEqual(len(cases),51)
+        self.assertEqual(len(cases),53)
         for case in cases:
             expected=goldens[case['name']]
             for field,derive in [('cost',lambda:receiving_cost.cost(case['observations'],report(case))),

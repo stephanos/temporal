@@ -87,20 +87,7 @@ pub fn run(
     let qualified = cells::run(&frozen).map_err(|error| status(3, error))?;
     let published = cells::publish(&frozen, qualified).map_err(|error| status(3, error))?;
     let result_path = published.path.to_string_lossy().into_owned();
-    if !published.path.is_absolute() || result_path.len() > 1024 {
-        return Err(status(
-            3,
-            "qualification result_path must be absolute and at most 1024 bytes",
-        ));
-    }
-    let mut encoded = canonical::encode(&serde_json::json!({
-        "result_path": result_path,
-        "operator_receipt": published.receipt,
-    }))?;
-    encoded.push(b'\n');
-    if encoded.len() > 8 << 10 {
-        return Err(status(3, "qualification response exceeds 8KiB limit"));
-    }
+    let encoded = response(&published.path, &published.receipt)?;
     output
         .write_all(&encoded)
         .map_err(|error| status(3, format!("qualification response output failed: {error}")))?;
@@ -160,6 +147,27 @@ pub fn report(arguments: &[String], output: &mut dyn Write) -> Result<i32, super
     Ok(0)
 }
 
+/// The bounded single-line response: an absolute Result path of at most 1024
+/// bytes and the operator receipt, at most 8 KiB encoded.
+fn response(path: &Path, receipt: &impl serde::Serialize) -> Result<Vec<u8>, super::Error> {
+    let result_path = path.to_string_lossy();
+    if !path.is_absolute() || result_path.len() > 1024 {
+        return Err(status(
+            3,
+            "qualification result_path must be absolute and at most 1024 bytes",
+        ));
+    }
+    let mut encoded = canonical::encode(&serde_json::json!({
+        "result_path": result_path,
+        "operator_receipt": receipt,
+    }))?;
+    encoded.push(b'\n');
+    if encoded.len() > 8 << 10 {
+        return Err(status(3, "qualification response exceeds 8KiB limit"));
+    }
+    Ok(encoded)
+}
+
 fn publication_error(error: &str) -> super::Error {
     let mut end = error.len().min(1024);
     while !error.is_char_boundary(end) {
@@ -181,7 +189,58 @@ fn publication_error(error: &str) -> super::Error {
 
 #[cfg(test)]
 mod receiving_response_tests {
-    use super::publication_error;
+    use super::{publication_error, response};
+
+    /// Original `TestReportRejectsInvalidResultWithoutResolvingInstallation`:
+    /// report takes no installation, refuses grammar with 2 and unreadable or
+    /// invented Results with 3, and writes nothing on refusal.
+    #[test]
+    fn report_rejects_invalid_results_without_an_installation() {
+        let root =
+            crate::campaign::prepare::process::Temporary::new(&std::env::temp_dir()).unwrap();
+        let invalid = root.0.join("invalid-result.json");
+        std::fs::write(&invalid, br#"{"schema":"invented"}"#).unwrap();
+        let invalid = invalid.to_string_lossy().into_owned();
+        for (arguments, expected) in [
+            (vec![], 2),
+            (vec!["--result", "/missing/qualification-result"], 3),
+            (vec!["--result", invalid.as_str()], 3),
+            (
+                vec!["--result", "/missing/qualification-result", "extra"],
+                2,
+            ),
+        ] {
+            let arguments = arguments.into_iter().map(str::to_owned).collect::<Vec<_>>();
+            let mut output = Vec::new();
+            let Err(error) = super::report(&arguments, &mut output) else {
+                panic!("{arguments:?} reported an invalid Result");
+            };
+            assert_eq!(error.status, expected, "{arguments:?}: {}", error.message);
+            assert!(output.is_empty() && !error.message.contains("installation"));
+        }
+    }
+
+    /// Original `TestQualificationResponseBoundsAbsolutePathAndEncodedBytes`.
+    #[test]
+    fn response_bounds_absolute_path_and_encoded_bytes() {
+        let receipt = serde_json::json!({});
+        for path in [
+            "relative/result.json".to_owned(),
+            format!("/{}", "x".repeat(1024)),
+        ] {
+            let Err(error) = response(std::path::Path::new(&path), &receipt) else {
+                panic!("unbounded or relative response path accepted");
+            };
+            assert_eq!(error.status, 3);
+        }
+        let Ok(encoded) = response(
+            std::path::Path::new(&format!("/{}", "<".repeat(1023))),
+            &receipt,
+        ) else {
+            panic!("bounded escaped path refused");
+        };
+        assert!(encoded.len() <= 8 << 10);
+    }
 
     #[test]
     fn publication_error_output_is_bounded_and_marks_truncation() {

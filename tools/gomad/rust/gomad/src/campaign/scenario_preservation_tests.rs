@@ -708,3 +708,22 @@ fn output_capacity_failure_retains_the_selected_actual_static_message() {
 
 #[path = "scenario_sqlite_predicate_tests.rs"]
 mod scenario_sqlite_predicate_tests;
+
+#[test]
+fn cluster_evidence_bound_is_per_incarnation_not_the_oracle_evidence_bound() {
+    let mut scenario = operator_fixture();
+    scenario["spec"]["limits"]["scenario_evidence_bytes"] = 1.into();
+    let starts = scenario["actions"]
+        .as_array()
+        .unwrap()
+        .iter()
+        .filter(|step| matches!(step["action"].as_str(), Some("start" | "restart")))
+        .count() as u64;
+    assert!(starts > 1);
+    let raw = canonical::encode(&scenario).unwrap();
+    assert_eq!(
+        evidence_limit(&raw, 208 << 20).unwrap(),
+        starts * (208 << 20)
+    );
+    assert!(evidence_limit(&raw, u64::MAX).is_err());
+}

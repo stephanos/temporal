@@ -442,6 +442,32 @@ fn retained_raw_authentication_binds_bytes_length_digest_and_path() {
     );
 }
 
+/// Original `TestRetainedTargetModuleIsBoundedBeforeCopy`: the retained
+/// module's 512 MiB bound is checked from the listed size alone, before the
+/// manifest entry is consulted or any byte is read.
+#[test]
+fn retained_target_module_is_bounded_before_read() {
+    let fixture = ReaderFixture::new(metadata_publication());
+    let opened = fixture.open();
+    let mut listed = Payload {
+        file: "target/unlisted-module.wasm".into(),
+        bytes: (512 << 20) + 1,
+        sha256: canonical::digest(b""),
+        limit: (512 << 20) + 1,
+    };
+    assert_eq!(
+        listed.read(&opened, 512 << 20).unwrap_err(),
+        "cluster payload exceeds caller bound or has invalid identity"
+    );
+    listed.bytes = 512 << 20;
+    listed.limit = 512 << 20;
+    assert_eq!(
+        listed.bind(&opened, 512 << 20).unwrap_err(),
+        "missing retained cluster payload",
+        "bounded module listing must pass the size bound"
+    );
+}
+
 fn native_decoder_mutation(case: &str, raw: &[u8]) -> Vec<u8> {
     let mut value: Value = serde_json::from_slice(raw).unwrap();
     match case {
