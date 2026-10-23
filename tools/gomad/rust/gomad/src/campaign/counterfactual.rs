@@ -203,6 +203,59 @@ fn write(path: &Path, value: &Value) {
     file.sync_all().unwrap();
 }
 
+fn produce_pair(
+    prepared: &Prepared,
+    case: &Case,
+    root: &Path,
+    kind: linked::FixtureFault,
+) -> Vec<Value> {
+    let store = super::store(root.join(&case.name).join("artifacts"), u64::MAX);
+    let mut pair = Vec::new();
+    for fault in [linked::FixtureFault::None, kind] {
+        let result = run(
+            &prepared,
+            &ledger::Job {
+                ordinal: 0,
+                seed: 7,
+            },
+            &linked::Cancellation::default(),
+            Fault {
+                kind: fault,
+                owner: None,
+            },
+        )
+        .unwrap();
+        if prepared.scenario.is_some() {
+            let summary: Value =
+                serde_json::from_slice(&result.publication.payloads["evidence/cluster_summary"])
+                    .unwrap();
+            let incarnations = summary["incarnations"].as_array().unwrap();
+            assert_eq!(incarnations.len(), 2);
+            assert!(
+                incarnations
+                    .iter()
+                    .all(|incarnation| incarnation["termination"] == "exit")
+            );
+        } else {
+            assert_eq!(result.execution.record.outcome.termination, "exit");
+            assert_eq!(result.execution.record.outcome.exit_code, Some(1));
+        }
+        assert_eq!(result.execution.record.outcome.class, "target_failure");
+        assert!(
+            result
+                .publication
+                .payloads
+                .contains_key("evidence/event-order")
+        );
+        let published = store.publish(result.publication).unwrap();
+        let opened = crate::evidence::store::open(&published.path).unwrap();
+        opened.authenticate_all().unwrap();
+        pair.push(json!({"artifact":published.path,"record_sha256":published.record_sha256,"bytes":published.stored_bytes}));
+    }
+    assert_ne!(pair[0]["record_sha256"], pair[1]["record_sha256"]);
+    pair
+}
+
 #[test]
 #[ignore = "requires original authenticated fixture-runtime preparations and an explicitly granted genuine Go guest slot"]
 fn produce_the_four_original_counterfactual_artifact_pairs() {
@@ -261,51 +314,7 @@ fn produce_the_four_original_counterfactual_artifact_pairs() {
             "output-clock" => linked::FixtureFault::OutputClock,
             _ => unreachable!(),
         };
-        let store = super::store(root.join(&case.name).join("artifacts"), u64::MAX);
-        let mut pair = Vec::new();
-        for fault in [linked::FixtureFault::None, kind] {
-            let result = run(
-                &prepared,
-                &ledger::Job {
-                    ordinal: 0,
-                    seed: 7,
-                },
-                &linked::Cancellation::default(),
-                Fault {
-                    kind: fault,
-                    owner: None,
-                },
-            )
-            .unwrap();
-            if prepared.scenario.is_some() {
-                let summary: Value = serde_json::from_slice(
-                    &result.publication.payloads["evidence/cluster_summary"],
-                )
-                .unwrap();
-                let incarnations = summary["incarnations"].as_array().unwrap();
-                assert_eq!(incarnations.len(), 2);
-                assert!(
-                    incarnations
-                        .iter()
-                        .all(|incarnation| incarnation["termination"] == "exit")
-                );
-            } else {
-                assert_eq!(result.execution.record.outcome.termination, "exit");
-                assert_eq!(result.execution.record.outcome.exit_code, Some(1));
-            }
-            assert_eq!(result.execution.record.outcome.class, "target_failure");
-            assert!(
-                result
-                    .publication
-                    .payloads
-                    .contains_key("evidence/event-order")
-            );
-            let published = store.publish(result.publication).unwrap();
-            let opened = crate::evidence::store::open(&published.path).unwrap();
-            opened.authenticate_all().unwrap();
-            pair.push(json!({"artifact":published.path,"record_sha256":published.record_sha256,"bytes":published.stored_bytes}));
-        }
-        assert_ne!(pair[0]["record_sha256"], pair[1]["record_sha256"]);
+        let pair = produce_pair(&prepared, &case, &root, kind);
         rows.push(json!({"name":case.name,"receipt":case.receipt,"receipt_sha256":case.receipt_sha256,"original_requested_choice_bytes":case.original_requested_choice_bytes,"effective_runtime_trace_bytes":1 << 20,"diagnostics":true,"baseline":pair[0],"fault":pair[1]}));
     }
     write(

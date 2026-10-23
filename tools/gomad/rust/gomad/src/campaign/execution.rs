@@ -179,42 +179,14 @@ pub(super) fn run_counterfactual(
     )
 }
 
-fn run_with_controls(
+fn model_input(
     prepared: &Prepared,
     job: &ledger::Job,
-    timeout: Duration,
-    cancellation: &linked::Cancellation,
-    controls: Controls<'_>,
-) -> std::result::Result<Result, String> {
-    let Controls {
-        replay,
-        raw_trace,
-        output,
-        #[cfg(all(test, feature = "helper-determinism-fixture"))]
-        fault,
-    } = controls;
-    #[cfg(feature = "determinism-fixture")]
-    crate::live_backend::before_execution(job.seed, cancellation)?;
-    if prepared.scenario.is_some() {
-        if replay.is_some() || raw_trace.is_some() {
-            return Err(
-                "unsupported_target: scenario runtime prefix forcing is unsupported".into(),
-            );
-        }
-        #[cfg(all(test, feature = "helper-determinism-fixture"))]
-        if let Some(fault) = fault {
-            return super::scenario::execute_counterfactual(
-                prepared,
-                job,
-                timeout,
-                cancellation,
-                fault,
-            );
-        }
-        return super::scenario::execute(prepared, job, timeout, cancellation);
-    }
+    replay: Option<&linked::ReplayRequest>,
+    raw_trace: Option<&[u8]>,
+) -> std::result::Result<Option<linked::ModelInput>, String> {
     let configuration = &prepared.configuration;
-    let model = configuration
+    configuration
         .model
         .as_ref()
         .map(|value| {
@@ -263,7 +235,45 @@ fn run_with_controls(
                 replay_trace: raw_trace.map(<[u8]>::to_vec),
             })
         })
-        .transpose()?;
+        .transpose()
+}
+
+fn run_with_controls(
+    prepared: &Prepared,
+    job: &ledger::Job,
+    timeout: Duration,
+    cancellation: &linked::Cancellation,
+    controls: Controls<'_>,
+) -> std::result::Result<Result, String> {
+    let Controls {
+        replay,
+        raw_trace,
+        output,
+        #[cfg(all(test, feature = "helper-determinism-fixture"))]
+        fault,
+    } = controls;
+    #[cfg(feature = "determinism-fixture")]
+    crate::live_backend::before_execution(job.seed, cancellation)?;
+    if prepared.scenario.is_some() {
+        if replay.is_some() || raw_trace.is_some() {
+            return Err(
+                "unsupported_target: scenario runtime prefix forcing is unsupported".into(),
+            );
+        }
+        #[cfg(all(test, feature = "helper-determinism-fixture"))]
+        if let Some(fault) = fault {
+            return super::scenario::execute_counterfactual(
+                prepared,
+                job,
+                timeout,
+                cancellation,
+                fault,
+            );
+        }
+        return super::scenario::execute(prepared, job, timeout, cancellation);
+    }
+    let configuration = &prepared.configuration;
+    let model = model_input(prepared, job, replay, raw_trace)?;
     let request = linked::Request {
         module: prepared.module.clone(),
         module_sha256: canonical::digest(&prepared.module),
