@@ -292,6 +292,10 @@ def compare(output, row, process_exit=None):
         assert row['result']['Frames']['GuestCallbacks'] == 0
 
 
+def independent_stream_recording(row):
+    return row['steps'][0]['runtime']['Choice']['Mode'] == 1
+
+
 def main():
     parser = argparse.ArgumentParser(description=__doc__)
     for name in ('binary', 'observation', 'work'):
@@ -343,7 +347,7 @@ def main():
         assert result.returncode == 0, (row['test'], result.stderr)
         receipts[-1]['comparison'] = compare(output, row, process_exit=result.returncode)
         (work / 'commands.json').write_bytes(canonical(receipts))
-        if row['test'].startswith(observe.ROOTS[36] + '/') and row['steps'][0]['runtime']['Choice']['Mode'] == 1:
+        if row['test'].startswith(observe.ROOTS[36] + '/') and independent_stream_recording(row):
             fixture = row['test'].split('/')[-1]
             raw = (output / 'incarnations/a/1/choice').read_bytes()
             stdout = (output / 'incarnations/a/1/stdout').read_bytes()
