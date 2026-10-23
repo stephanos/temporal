@@ -242,7 +242,7 @@ fn external_search_cancellation_joins_active_evaluator_store_before_return() {
                         "seed":7,"mode":1,"limit":4096,"diagnostics":false,"epoch_nanos":0,"read_step_nanos":0,"now":1,
                         "limits":{"calls":100,"transcript_bytes":4096,"pending_events":16}
                     })).unwrap(),
-                    arguments:Vec::new(),environment:Vec::new(),replay_trace:None,
+                    arguments:Vec::new(),environment:vec!["PWD=/".into()],replay_trace:None,
                 }),
                 namespace:Some(linked::NamespaceImage {
                     entries:Vec::new(),writable_directories:Vec::new(),preopens:vec![b"/".to_vec()],working_directory:b"/".to_vec(),stdin:Vec::new(),epoch_nanos:0,
