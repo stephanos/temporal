@@ -131,6 +131,64 @@ class InspectionTests(unittest.TestCase):
         with self.assertRaisesRegex(ValueError, 'trace bound'):
             gate.authenticate_payloads(artifact)
 
+    def preparation(self):
+        campaign = self.root / 'artifacts/campaign'
+        prepared = campaign / 'prepared/artifact'
+        (prepared / 'target').mkdir(parents=True)
+        compiler = self.root / 'original/compiler/bin/go'
+        compiler.parent.mkdir(parents=True)
+        compiler.write_bytes(b'compiler')
+        runtime = self.root / 'original/runtime'
+        runtime.mkdir()
+        cache = self.root / 'cache'
+        cache.mkdir()
+        overlay = cache / 'overlay.json'
+        raw_overlay = b'{"Replace":{"/original/source":"/private/replacement"}}'
+        overlay.write_bytes(raw_overlay)
+        module = prepared / 'target/module.wasm'
+        module.write_bytes(b'module')
+        module_hash = gate.digest(module)
+        toolchain = 'b' * 64
+        compiler_map = {str(overlay): gate.digest(overlay), str(self.root / 'private-inputs/compiler/bin/go'): gate.digest(compiler)}
+        provenance = dict(module_sha256=module_hash, build_key=toolchain,
+                          inputs=dict(compiler=compiler_map, compiler_path=str(self.root / 'private-inputs/compiler/bin/go'),
+                                      compiler_sha256=gate.digest(compiler)))
+        provenance_raw = gate.workloads.canonical(provenance)
+        (prepared / 'target/provenance.json').write_bytes(provenance_raw)
+        record = dict(outcome={'class': 'prepared'}, identity=dict(target=module_hash, toolchain=toolchain))
+        record_raw = gate.workloads.canonical(record)
+        (prepared / 'record.json').write_bytes(record_raw)
+        manifest = dict(record=record, record_sha256=gate.hashlib.sha256(record_raw).hexdigest(),
+                        files={'target/provenance.json': dict(bytes=len(provenance_raw), sha256=gate.hashlib.sha256(provenance_raw).hexdigest())})
+        (prepared / 'manifest.json').write_text(json.dumps(manifest))
+        (campaign / 'plan.json').write_text(json.dumps(dict(prepared_artifact='prepared/artifact')))
+        failure = dict(record=dict(identity=dict(target=module_hash, toolchain=toolchain)))
+        return campaign, compiler, runtime, cache, overlay, raw_overlay, failure
+
+    def test_complete_overlay_descriptor_is_retained_without_rewriting_raw_hashes(self):
+        campaign, compiler, runtime, cache, overlay, raw_overlay, failure = self.preparation()
+        bindings = gate.preparation_bindings(self.root, campaign, failure, compiler, runtime, cache)
+        self.assertEqual(bindings['compiler_origin'], str(compiler))
+        self.assertEqual(bindings['runtime_origin'], str(runtime))
+        self.assertEqual(bindings['cache_origin'], str(cache))
+        self.assertEqual(base64.b64decode(bindings['compiler_overlay']['bytes_base64']), raw_overlay)
+        self.assertEqual(bindings['compiler_overlay']['sha256'], gate.digest(overlay))
+        self.assertEqual(bindings['preparation']['artifact'], str(campaign / 'prepared/artifact'))
+        overlay.unlink()
+        self.assertEqual(base64.b64decode(bindings['compiler_overlay']['bytes_base64']), raw_overlay)
+        with self.assertRaises(FileNotFoundError):
+            gate.preparation_bindings(self.root, campaign, failure, compiler, runtime, cache)
+
+    def test_changed_overlay_descriptor_or_prepared_module_cannot_be_adopted(self):
+        campaign, compiler, runtime, cache, overlay, raw_overlay, failure = self.preparation()
+        overlay.write_bytes(b'{"Replace":{}}')
+        with self.assertRaisesRegex(ValueError, 'descriptor changed'):
+            gate.preparation_bindings(self.root, campaign, failure, compiler, runtime, cache)
+        overlay.write_bytes(raw_overlay)
+        failure['record']['identity']['target'] = 'f' * 64
+        with self.assertRaisesRegex(ValueError, 'module/toolchain differs'):
+            gate.preparation_bindings(self.root, campaign, failure, compiler, runtime, cache)
+
     def test_failure_selection_excludes_synthetic_preparation(self):
         artifact, manifest, _ = self.artifact()
         prepared = self.root / 'prepared'
@@ -179,10 +237,11 @@ class InspectionTests(unittest.TestCase):
                            ('compiler', self.root), ('runtime-root', self.root), ('cache', self.root),
                            ('captured-config', self.root), ('private-observation-config', self.root / 'config')]:
             arguments += ['--' + name, str(path)]
-        with mock.patch.object(sys, 'argv', arguments), mock.patch.object(gate.producer, 'private_configuration',
+        with mock.patch.object(sys, 'argv', ['temporal-inspection.py', '--owner', 'onebox']), mock.patch.object(gate.producer, 'private_configuration',
                 side_effect=ValueError('frozen candidate mismatch'), create=True):
             with self.assertRaisesRegex(ValueError, 'frozen candidate mismatch'):
-                gate.main()
+                gate.main(arguments[1:])
+            self.assertEqual(sys.argv, ['temporal-inspection.py', '--owner', 'onebox'])
         self.assertFalse(root.exists())
 
     def test_only_existing_qualification_controls_survive_environment_filter(self):
