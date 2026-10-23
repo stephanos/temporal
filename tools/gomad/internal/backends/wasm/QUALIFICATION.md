@@ -359,23 +359,20 @@ explore, inspect, replay, recover and resume commands using those same files.
 | Detached replay | Inspection and fresh replay work with original application, compiler, runtime sources, captured-input originals and scenario files unavailable; retained evidence and helper identities validate |
 | Interrupted recovery/resume | Kill after completed work, recover the campaign and resume from retained preparation; completed evidence and logical ordinal results match the uninterrupted control |
 
-The former Go selectors `TestInstalledOperatorTypedScenarioDetachedReplay` and
-`TestInstalledOperatorTypedScenarioKillResume` (package `command`, 20 min,
-SIGKILL/recovery cell Linux-only) were retired with the Go host. The reach map
-(`testdata/parity/test-wasm-reach-map.json`) currently maps both to the Rust unit test
-`campaign::scenario::preservation_tests::operator_strict_preflight_preserves_every_original_refusal`.
-That test covers preflight refusals only, and the KillResume mapping is marked weak.
-The Rust guest lane already exists:
-`python3 tools/gomad/testdata/parity/installed-lifecycle-check.py --config CONFIG --work DIR --family typed-detached|kill-12|kill-24`.
-It covers recover/canary/network boots and the kill/resume cell, and
-`installed-lifecycle-corpus.json` declares it. **No frozen-cycle stage invokes
-these families, so no stage runs this five-cell guest matrix.** The nearest stage is
-`operator` (`rust/driver/final_retained.py --section operator`, 1,800 s, final subgate
-`operator/detached-installed-discover-inspect-replay`). It runs installed
-`discover`, `explore`, `inspect`, `qualify` and detached `replay` on the
-io-failure fixture, not on the `config.json`/`durable.json`/`network.json`
-scenarios. Until a stage runs these cells, the matrix rows below are unqualified on
-the Rust binary.
+The former Go selectors `TestInstalledOperatorTypedScenarioDetachedReplay`,
+`TestInstalledOperatorKillResume` and `TestInstalledOperatorTypedScenarioKillResume`
+(package `command`, 20 min, SIGKILL/recovery cells Linux-only) were retired with
+the Go host. The `artifact` stage now runs their unchanged Rust guest lane:
+`rust/driver/installed_lifecycle_families.py` installs the frozen release CLI in
+a fresh private root and executes the `installed-lifecycle-check.py` families
+`typed-detached` (recover, canary and network boots, detached replay, damaged
+evidence refusals), `kill-12` and `kill-24` (SIGSTOP/SIGKILL, recover and resume),
+then rereads the retained raw evidence. The three roots are `artifact` subgates,
+and the reach map (`testdata/parity/test-wasm-reach-map.json`) cites them as
+`stage/artifact/<root>`. The stage reuses the `installed_cluster_failure` typed
+guest configuration and dependency cache. The matrix rows below are qualified on
+the Rust binary only by a passing frozen `artifact` stage record; until a cycle
+supplies one they remain unqualified.
 
 Qualification is established only by the retained current-candidate gate record
 with its numeric exits, actual host OS/architecture, source/helper/module/model
