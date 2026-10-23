@@ -494,18 +494,47 @@ fn run(
     run_observed(journal, prepared, duration, json, output, None)
 }
 
-#[expect(
-    clippy::too_many_lines,
-    reason = "The scoped scheduler keeps durable admission, receipt, ordered policy and cancellation in one lifetime"
-)]
 fn run_observed(
     journal: &mut Journal,
     prepared: &prepare::Prepared,
     duration: Duration,
     json: bool,
     output: &mut dyn Write,
-    mut observer: Option<Observer<'_>>,
+    observer: Option<Observer<'_>>,
 ) -> Result<i32, String> {
+    run_observed_using(
+        journal,
+        prepared,
+        duration,
+        json,
+        output,
+        observer,
+        execution::run,
+    )
+}
+
+#[expect(
+    clippy::too_many_lines,
+    reason = "The scoped scheduler keeps durable admission, receipt, ordered policy and cancellation in one lifetime"
+)]
+fn run_observed_using<F>(
+    journal: &mut Journal,
+    prepared: &prepare::Prepared,
+    duration: Duration,
+    json: bool,
+    output: &mut dyn Write,
+    mut observer: Option<Observer<'_>>,
+    execute: F,
+) -> Result<i32, String>
+where
+    F: Fn(
+            &prepare::Prepared,
+            &Job,
+            Duration,
+            &gomad_wasmhost::linked::Cancellation,
+        ) -> Result<execution::Completion, String>
+        + Sync,
+{
     let mut metrics = BTreeMap::new();
     let plan = journal.plan().clone();
     let selection = seeds::SeedSelection::parse(
@@ -568,6 +597,7 @@ fn run_observed(
         let (completion_tx, completion_rx) = mpsc::channel();
         let mut slots = Vec::new();
         for (slot, cancellation) in cancellations.iter().enumerate() {
+            let execute = &execute;
             let (tx, rx) = mpsc::channel::<Job>();
             let completed = completion_tx.clone();
             scope.spawn(move || {
@@ -585,7 +615,7 @@ fn run_observed(
                         if remaining.is_zero() {
                             return Err("overall_timeout: campaign deadline exceeded".into());
                         }
-                        execution::run(prepared, &job, remaining, cancellation)
+                        execute(prepared, &job, remaining, cancellation)
                     }))
                     .unwrap_or_else(|_| {
                         Err("runner_failure: host panic in execution slot; campaign aborted".into())
@@ -1031,6 +1061,76 @@ fn report(
 #[cfg(test)]
 mod installed_report_tests {
     use super::*;
+
+    #[test]
+    fn shared_scheduler_retains_one_failure_and_artifact_then_stops_admission() {
+        let fixture = crate::installed_lifecycle_tests::retained(false);
+        let opened = Opened::open(&fixture.published.path).unwrap();
+        let inputs: Inputs =
+            serde_json::from_slice(&opened.payload(preflight::FILE, 1 << 20).unwrap()).unwrap();
+        let prepared = prepare::Prepared {
+            module:
+                br#"(module (memory (export "memory") 1) (func (export "_start") unreachable))"#
+                    .to_vec(),
+            configuration: inputs.configuration,
+            toolchain: fixture.record.identity.toolchain.clone(),
+            choice_identity: None,
+            scenario: None,
+            provenance: b"{}".to_vec(),
+            network: None,
+            soft_assertion_report_only: false,
+            compile_cache_root: None,
+            auxiliary: BTreeMap::new(),
+        };
+        let arguments = [
+            "--seeds=7-9",
+            "--parallel=1",
+            "--overall-timeout=5m",
+            "go-run",
+            ".",
+        ]
+        .map(str::to_owned);
+        let mut options = crate::cli::explore::parse(&arguments, &mut false).unwrap();
+        options.artifacts = fixture.root.join("real-campaign");
+        let mut journal = seed_journal(&options, &prepared).unwrap();
+        let mut output = Vec::new();
+        let executions = std::sync::atomic::AtomicUsize::new(0);
+        assert_eq!(
+            run_observed_using(
+                &mut journal,
+                &prepared,
+                options.overall_timeout,
+                true,
+                &mut output,
+                None,
+                |prepared, job, remaining, cancellation| {
+                    executions.fetch_add(1, std::sync::atomic::Ordering::SeqCst);
+                    assert!(remaining <= Duration::from_secs(300));
+                    execution::run(prepared, job, remaining, cancellation)
+                },
+            )
+            .unwrap(),
+            1
+        );
+        assert_eq!(executions.load(std::sync::atomic::Ordering::SeqCst), 1);
+        let result: Value = serde_json::from_slice(&output).unwrap();
+        assert_eq!(result["attempted"], 1);
+        assert_eq!(result["failures"], 1);
+        assert_eq!(result["stop_reason"], "first_failure");
+        let artifacts = result["artifacts"].as_array().unwrap();
+        assert_eq!(artifacts.len(), 1);
+        Opened::open(Path::new(artifacts[0]["path"].as_str().unwrap()))
+            .unwrap()
+            .authenticate_all()
+            .unwrap();
+        let path = journal.path().to_path_buf();
+        drop(journal);
+        let journal = Journal::open(&path, false).unwrap();
+        assert_eq!(journal.plan()["overall_nanos"], 300_000_000_000_u64);
+        assert!(
+            matches!(journal.events().last(), Some(Event::Complete { stop_reason }) if stop_reason == "first_failure")
+        );
+    }
 
     #[test]
     fn installed_lifecycle_report_advertises_only_authenticated_retained_artifacts() {
