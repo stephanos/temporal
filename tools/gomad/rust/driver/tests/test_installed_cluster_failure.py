@@ -55,7 +55,7 @@ class OriginalOperatorFailure(unittest.TestCase):
         import native_observations
         with tempfile.TemporaryDirectory() as temporary:
             root = Path(temporary)
-            for name in ('compiler', 'source', 'runtime'):
+            for name in ('compiler', 'source', 'runtime', 'module-cache'):
                 (root / name).mkdir()
                 (root / name / 'input').write_bytes(b'input')
             binary = root / 'gomad'
@@ -69,6 +69,12 @@ class OriginalOperatorFailure(unittest.TestCase):
             run = gate.Run(root, dict(repo=str(root)), build, True)
             with self.assertRaisesRegex(ValueError, 'empty/duplicate private campaign'):
                 native_observations.capture(run.config, 2, [])
+
+    def test_dependency_cache_is_explicit_and_guest_object_cache_is_not_prewarmed(self):
+        environment = gate.environment(Path('/private'))
+        self.assertEqual(environment['GOMODCACHE'], '/private/module-cache')
+        self.assertEqual(environment['HOME'], '/private/home')
+        self.assertNotIn('GOCACHE', environment)
 
     def test_actual_command_requires_completed_owned_distinct_pid(self):
         owner = dict(pid=70, start_ns=99, started_monotonic_nanos=40)

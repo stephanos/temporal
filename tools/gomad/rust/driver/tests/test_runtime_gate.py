@@ -4,6 +4,11 @@ import json
 from pathlib import Path
 import tempfile
 import unittest
+
+import sys
+sys.path.insert(0,str(Path(__file__).parents[1]))
+import main_cli_build
+from driver import Refusal
 from unittest.mock import patch
 
 spec = importlib.util.spec_from_file_location('runtime_gate', Path(__file__).parents[1] / 'runtime_gate.py')
@@ -46,7 +51,7 @@ class RuntimeGateTests(unittest.TestCase):
         for index in range(32):
             stage = self.root / 'stages' / f'runtime-{index}'
             paths = [str(stage / 'recordings' / f'instance-{number:02}' / 'artifact') for number in range(25)]
-            self.config['stages'][f'runtime-{index}'] = dict(installation='runtime')
+            self.config['stages'][f'runtime-{index}'] = dict(installation='runtime',harness='harness',harness_build_receipt='receipt')
             baseline = dict(summary=dict(peak_goroutines=3), streams=dict(choice=f'choices-{index}'), outcome=dict(exit_code=17 if index % 2 else 0))
             stdout = '\n'.join(prefix + str(index) for prefix in ('map ', 'runq ', 'timer callbacks ', 'canary ')).encode()
             witness = dict(choice=f'choice-{index}', stdout=gate.digest(stdout), exit=17 if index % 2 else 0)
@@ -85,14 +90,17 @@ class RuntimeGateTests(unittest.TestCase):
     def test_harness_freeze_and_release_failure_matrix(self):
         entry = dict(harness='harness', harness_build_receipt='receipt', installation='runtime')
         self.config['files'] = dict(harness='hash', receipt='hash')
-        receipt = dict(profile='release', features=[], exit=0, binary_sha256='harness', role=self.config['identity'])
+        receipt = dict(profile='release', features=[], exit=0, binary_sha256='harness', binary='harness',
+            role='runtime-harness', host_sha256='host', helper_sha256='helper')
         installation = dict(runtime_implementation_sha256='runtime', go_version='go1.27.1')
         self.reports.update({Path('receipt'): receipt, Path('installation'): installation})
+        selected=patch.object(main_cli_build,'read_build',side_effect=lambda *args,**kwargs:self.reports[Path('receipt')])
+        selected.start();self.addCleanup(selected.stop)
         identity = dict(**self.linked, engine='cranelift-fuel-nan-canonical-nounwind-epoch-v1', release_role=True)
         self.api['command'] = lambda *args, **kwargs: json.dumps(identity)
         gate.harness(self.config, self.root, entry, self.api)
         for field, value in dict(profile='debug', features=['determinism-fixture'], exit=1,
-                                binary_sha256='foreign', role={}).items():
+                                binary_sha256='foreign', role={}, binary='foreign', host_sha256='foreign', helper_sha256='foreign').items():
             self.reports[Path('receipt')] = dict(receipt, **{field: value})
             with self.subTest(receipt=field), self.assertRaises(ValueError):
                 gate.harness(self.config, self.root, entry, self.api)
@@ -102,6 +110,21 @@ class RuntimeGateTests(unittest.TestCase):
             self.api['command'] = lambda *args, **kwargs: json.dumps(changed)
             with self.subTest(identity=field), self.assertRaises(ValueError):
                 gate.harness(self.config, self.root, entry, self.api)
+
+    def test_release_label_without_actual_harness_build_evidence_refuses(self):
+        entry = dict(harness='harness', harness_build_receipt='receipt', installation='runtime')
+        self.config['files'] = dict(harness='hash', receipt='hash')
+        self.reports[Path('receipt')] = dict(profile='release', features=[], exit=0,
+            binary_sha256='harness', role=self.config['identity'])
+        self.reports[Path('installation')] = dict(go_version='go1.27.1', runtime_implementation_sha256='runtime')
+        self.api['command'] = lambda *args, **kwargs: json.dumps(dict(**self.linked,
+            engine='cranelift-fuel-nan-canonical-nounwind-epoch-v1', release_role=True))
+        path=self.root/'wrapper.json'
+        path.write_text(json.dumps(self.reports[Path('receipt')]))
+        entry['harness_build_receipt']=str(path)
+        self.config['files'][str(path)]='wrapper'
+        with self.assertRaises(Refusal):
+            gate.harness(self.config, self.root, entry, self.api)
 
     def aggregate(self):
         with patch.object(gate, 'harness', return_value=('harness', self.linked)), \
@@ -128,6 +151,11 @@ class RuntimeGateTests(unittest.TestCase):
         self.reports = copy.deepcopy(original)
         del self.reports[path]
         with self.assertRaises(KeyError):
+            self.aggregate()
+
+    def test_aggregate_refuses_different_harness_bindings_across_shards(self):
+        self.config['stages']['runtime-31']['harness']='foreign'
+        with self.assertRaisesRegex(ValueError,'harness binding'):
             self.aggregate()
 
     def test_duplicate_and_foreign_artifacts(self):

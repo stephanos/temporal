@@ -16,7 +16,7 @@ import native_gnu
 import native_roles
 
 SCHEMA = 'gomad.driver-main-build/v1'
-ROLES = {'release': [], 'host-fixture': ['determinism-fixture']}
+ROLES = {'release': [], 'host-fixture': ['determinism-fixture'], 'runtime-harness': []}
 COMMANDS = ('rustc-version', 'rustc-verbose', 'cargo-version', 'cargo-build')
 
 
@@ -70,7 +70,8 @@ def provision_config(tools_path, gnu_path, sent_epoch):
 def build_command(config):
     _, plan = harness.plan(config)
     result = [plan['tools']['cargo'], 'build', '--release', '--locked', '--offline', '--no-default-features',
-            '-p', 'gomad', '--bin', 'gomad', '--message-format=json', '--manifest-path',
+            '-p', 'gomad', *(['--example', 'runtime-qualification-replay'] if config['main_role'] == 'runtime-harness' else ['--bin', 'gomad']),
+            '--message-format=json', '--manifest-path',
             str(Path(config['repo']) / 'tools/gomad/rust/Cargo.toml')]
     values = ROLES[config['main_role']]
     return result + (['--features', ','.join(values)] if values else [])
@@ -98,13 +99,15 @@ def artifact(config, root, context):
     crates = {kind: repo / 'tools/gomad/rust' / name for kind, name in (('host', 'gomad'), ('helper', 'wasmhost'))}
     packages = {kind: 'path+' + path.as_uri() + ('#0.1.0' if kind == 'host' else '#' + name + '@0.1.0')
                 for kind, path, name in ((kind, crates[kind], name) for kind, name in (('host', 'gomad'), ('helper', 'gomad-wasmhost')))}
+    example = config['main_role'] == 'runtime-harness'
+    name = 'runtime-qualification-replay' if example else 'gomad'
     rows = [row for row in frames if row.get('reason') == 'compiler-artifact' and row.get('package_id') == packages['host']
-            and row.get('target', {}).get('kind') == ['bin'] and row['target'].get('name') == 'gomad']
+            and row.get('target', {}).get('kind') == (['example'] if example else ['bin']) and row['target'].get('name') == name]
     require(len(rows) == 1, 'main CLI Cargo artifact is missing or duplicated')
     row = rows[0]
-    executable = root / 'target/release/gomad'
+    executable = root / ('target/release/examples/' + name if example else 'target/release/gomad')
     require(row['manifest_path'] == str(crates['host'] / 'Cargo.toml') and row['target']['crate_types'] == ['bin']
-            and row['target']['src_path'] == str(crates['host'] / 'src/main.rs') and row['features'] == ROLES[config['main_role']]
+            and row['target']['src_path'] == str(crates['host'] / ('examples/runtime-qualification-replay.rs' if example else 'src/main.rs')) and row['features'] == ROLES[config['main_role']]
             and row['profile']['opt_level'] == '3' and row['profile']['debug_assertions'] is False
             and row['profile']['test'] is False and row.get('fresh') is False and row['executable'] == str(executable),
             'main CLI artifact is not its actual ordinary release executable')
@@ -175,7 +178,7 @@ def evidence(config, root):
         for suffix in ('command.json', 'process.json', 'stdout', 'stderr'):
             path = root / (name + '.' + suffix)
             inputs[str(path)] = sha(path)
-    binary = root / 'admitted/gomad'
+    binary = root / ('admitted/runtime-qualification-replay' if config['main_role'] == 'runtime-harness' else 'admitted/gomad')
     native_roles.regular(binary)
     require(binary.resolve() == binary and binary.stat().st_nlink == 1 and stat.S_IMODE(binary.stat().st_mode) == 0o755
             and sha(binary) == sha(executable), 'main CLI published copy differs from its actual Cargo artifact')
@@ -211,6 +214,11 @@ def read_build(path, frozen=None, expected_role=None):
         if receipt['role'] == 'release':
             require(frozen['binary'] == receipt['binary'] and frozen['binary_sha256'] == receipt['binary_sha256']
                     and frozen['identity']['host'] == receipt['host_sha256'], 'main CLI build differs from the frozen candidate')
+        elif receipt['role'] == 'runtime-harness':
+            require(frozen['identity']['host'] == receipt['host_sha256'], 'runtime harness host differs from the frozen ordinary candidate')
+            require(all(frozen.get('stages', {}).get(f'runtime-{index}', {}).get('harness') == receipt['binary']
+                    and frozen['stages'][f'runtime-{index}'].get('harness_build_receipt') == str(path) for index in range(32)),
+                    'runtime harness is not bound to all 32 original shards')
         else:
             selected = frozen.get('live_corpus', {}).get('roles', {}).get('host-fixture')
             require(selected == dict(binary=receipt['binary'], build_receipt=str(path)), 'fixture main CLI is not its separately bound role')
@@ -245,7 +253,7 @@ def build(tools_path, gnu_path, root, role='release'):
     command(dict(config, environment=env), root, 'cargo-build', build_command(config), timeout=3600, exact_environment=env)
     executable, _, _, _ = artifact(config, root, context)
     (root / 'admitted').mkdir(mode=0o700)
-    with (root / 'admitted/gomad').open('xb') as output:
+    with (root / ('admitted/runtime-qualification-replay' if role == 'runtime-harness' else 'admitted/gomad')).open('xb') as output:
         os.chmod(output.fileno(), 0o755)
         with executable.open('rb') as source:
             import shutil

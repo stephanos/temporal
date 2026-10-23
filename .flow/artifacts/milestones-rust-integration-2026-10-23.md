@@ -550,3 +550,49 @@ acceptance. No performance or final qualification claim is made.
 
 Broad native receiving, the five unresolved references, final96stage cycle and
 the full milestone objective remain open.
+
+
+## Exact source rerun and actual main CLI build
+
+At `33477970e7`, the archive repair and fresh original runtime development proof
+are integrated. Independent review verifies the original archive payloads,
+literal symlinks and modes, actual reference rebuild, and equality of all six
+Go/helper/native streams. This supplies the scoped runtime comparison; it does
+not establish an original test-function pass or frozen qualification.
+
+The preparatory ordinary main CLI build from immutable `e4a68df78e` completed
+with exit zero, no host or helper features, and independently reopened source,
+GNU, Cargo and process evidence. All331 joined Python driver tests pass. Later
+integration changes do not modify this immutable build checkout or its receipts.
+
+The first actual installed-cluster attempt stopped during installation with
+exit2: its private HOME lacks the pinned golang.org/x/sys v0.48.0 module, while
+the compiler correctly refuses network module lookup. The producer exited1;
+no scenario ran. The causal command and stderr remain intact. A genuine
+module-cache prerequisite repair is in progress. Both original scenarios,
+inspection totals, replay assertions and the10-second bound remain required.
+
+Broad receiving, the five unresolved references, full96-stage cycle and the
+remaining milestone requirements stay open.
+
+
+## Dependency prerequisite and runtime harness received
+
+At `1e1bd58862`, the installed producer accepts an explicit private dependency
+cache. Genuine extracted x/sys bytes match the retained module archive and
+candidate go.sum. Root verifies all559 files and11,676,159 bytes; nine focused
+tests pass. There is no guest precompilation or Go object-cache warming. The
+actual installed retry requires a fresh candidate build and remains pending.
+
+The runtime qualification harness now has its own closed actual Cargo build
+role, typed receipt and complete freezer input closure. Independent source
+review is clear; six focused root tests and335 joined worker Python tests pass.
+The actual harness build and all32-by25 runtime executions remain pending.
+
+Three real typed Go captures and the unchanged ringpop config are ready as
+candidate-independent retained inputs. Independent review is clear. Root
+reopened all782 sealed files and their hashes. No candidate-dependent
+installation, execution, replay or qualification is inferred from those inputs.
+The preparatory main build also cleared independent scoped receipt review.
+
+The broad receiving batch and full milestone qualification remain open.

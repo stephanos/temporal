@@ -88,9 +88,12 @@ def harness(config, root, entry, api, name='harness-identity'):
     require, read = api['require'], api['read']
     executable, receipt = entry['harness'], entry['harness_build_receipt']
     require(executable in config['files'] and receipt in config['files'], 'unsealed runtime release harness')
-    build = read(receipt)
+    import main_cli_build
+    build = main_cli_build.read_build(receipt, config, expected_role='runtime-harness')
+    require(build['binary'] == executable and build['host_sha256'] == config['identity']['host']
+            and build['helper_sha256'] == config['identity']['helper'], 'runtime harness differs from its actual build')
     require(build['profile'] == 'release' and build['features'] == [] and build['exit'] == 0
-            and build['binary_sha256'] == api['sha'](executable) and build['role'] == config['identity'],
+            and build['binary_sha256'] == api['sha'](executable) and build['role'] == 'runtime-harness',
             'runtime harness is not the same ordinary release library')
     identity = json.loads(api['command'](config, root, name, [executable, 'identity']))
     installation = read(config['installations'][entry['installation']])
@@ -213,6 +216,9 @@ def runtime_aggregate(config, root, label, api):
     choices, outputs, exits = set(), set(), set()
     domains = {name: set() for name in ('map ', 'runq ', 'timer callbacks ', 'canary ')}
     first, all_paths = None, set()
+    entry = config['stages']['runtime-0']
+    executable, linked = harness(config, root, entry, api, 'harness-identity')
+    binding = (entry['harness'], entry['harness_build_receipt'])
     for index in range(32):
         stage = Path(config['root']) / 'stages' / f'runtime-{index}'
         report = read(stage / 'runtime.json')
@@ -222,7 +228,8 @@ def runtime_aggregate(config, root, label, api):
                 'stale runtime shard')
         require(not all_paths.intersection(report['artifacts']), 'runtime shards borrowed artifacts')
         all_paths.update(report['artifacts'])
-        executable, linked = harness(config, root, config['stages'][f'runtime-{index}'], api, f'harness-identity-{index}')
+        selected = config['stages'][f'runtime-{index}']
+        require((selected['harness'], selected['harness_build_receipt']) == binding, 'runtime aggregate harness binding changed')
         require(report['linked'] == linked and report['harness_sha256'] == api['sha'](executable), 'stale runtime harness')
         for number, artifact in enumerate(report['artifacts']):
             require(Path(artifact).parent == stage / 'recordings' / f'instance-{number:02}', 'runtime artifact borrowed')

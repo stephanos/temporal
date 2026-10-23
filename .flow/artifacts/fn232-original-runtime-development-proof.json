@@ -1,0 +1,285 @@
+{
+  "acceptance": {
+    "development_runtime_comparison": true,
+    "final_frozen_qualification": false,
+    "fn185_postqualification_profiles": false,
+    "full_temporal_qualified_execution": false,
+    "original_test_function_pass": false
+  },
+  "actual_read": {
+    "controller_source": "187792871a42e4be76efae2a0b7d5e2dd9d0b2ff",
+    "declared_glue": {
+      "tools/gomad/cmd/gomad-reference/main.go": "199697bb94c39de34bed8d4f592f8ee29a8f611265eec72d8cd5308a0366cee2"
+    },
+    "module_sha256": "fe8765b6c1711ea8b092688d060416e071c34fa457366ae47f02d37d45be0d6e",
+    "native_parent_command": "/home/agent/evidence/fn232-measurement-original-runtime-v2/native-uncached-v4-command.json",
+    "native_report": "/home/agent/evidence/fn232-measurement-original-runtime-v2/native-uncached-v4/report.json",
+    "original_runtime_host_revision": "1d695061b6382009d0659238c652a5a765b1d5f5",
+    "original_source_archive": {
+      "bytes": 251658240,
+      "path": "/Users/stephan/Workspace/skunkworks/gomad/.build-cache/fn232-measurement-original-runtime-v2/derived-v3/original.tar",
+      "sha256": "0fe611f861437081c2c1776d810e733579c6a84edfdef870c31aac4c183cc88a"
+    },
+    "original_source_closed_verifier": "PASS",
+    "original_source_git_custody": "/Users/stephan/Workspace/skunkworks/gomad/.build-cache/fn232-measurement-original-runtime-v2/derived-v3-git-archive-source-custody.json",
+    "original_source_manifest": {
+      "bytes": 1772411,
+      "path": "/Users/stephan/Workspace/skunkworks/gomad/.build-cache/fn232-measurement-original-runtime-v2/derived-v3/source.json",
+      "sha256": "32c9ecebff82f2aa92fae95dcba3a38083d0aaf74a14b3db96ee6ce877538ce3"
+    },
+    "pair_manifest": "/home/agent/evidence/fn232-measurement-original-runtime-v2/original-reference-pair-v4/manifest.json",
+    "prior_v3_scope_correction": "/home/agent/evidence/fn232-measurement-original-runtime-v2/three-leg-v3-source-custody-scope.json",
+    "profile_recipe_catalogue_revision": "81660e841106a59ed26f7cb227462d1a85a93a9f",
+    "reference_catalogue_revision": "1d695061b6382009d0659238c652a5a765b1d5f5",
+    "reference_harness_build_receipt": {
+      "bytes": 1007,
+      "path": "/Users/stephan/Workspace/skunkworks/gomad/.build-cache/fn232-measurement-original-runtime-v2/reference-build-v3/build.json",
+      "sha256": "31ae76e97f8b726092245a51f7c58ba87fbe6a37248064acbbc18bb69e307a74"
+    },
+    "reference_helper_receipt": "/Users/stephan/Workspace/skunkworks/gomad/.build-cache/fn232-measurement-original-runtime-v2/reference-helper-v1/helper-build.json",
+    "reference_helper_rust_source": "cda65407c6ab0d72d8c3061bca8b87b32def7b40",
+    "request_sha256": "9335663302d356eb66b7cc928ed6a37c1a8e387fd0c13475cd4cab02f5b59ac6",
+    "runs": {
+      "go": {
+        "authorization_to_terminal_nanos": 14096531382,
+        "calls": 200037,
+        "exit_code": 0,
+        "reaped": true,
+        "select_poll": 100000,
+        "streams": {
+          "choice": {
+            "bytes": 19200000,
+            "sha256": "c25c65d470200b04222c4ec569867309db8ab39b3ea0b038401208dc69625c63"
+          },
+          "network": {
+            "bytes": 0,
+            "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+          },
+          "stderr": {
+            "bytes": 0,
+            "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+          },
+          "stdout": {
+            "bytes": 20,
+            "sha256": "17bb715c4dfe4e6979893650d80d98fcef441289df70bb7690f5d94c21a840e9"
+          },
+          "terminal": {
+            "bytes": 16,
+            "sha256": "e12133edec5de27e4d577f21bdf6f7eea3d1ec7f8ba458e667990b61a8cc3107"
+          },
+          "wasi": {
+            "bytes": 778,
+            "sha256": "f6b374b7322317fbb53747ff791d37d960a94f1bf4e15838438c88e005b7a9e7"
+          }
+        },
+        "termination": "exit"
+      },
+      "helper": {
+        "authorization_to_terminal_nanos": 3378483877,
+        "calls": 200037,
+        "exit_code": 0,
+        "reaped": true,
+        "select_poll": 100000,
+        "streams": {
+          "choice": {
+            "bytes": 19200000,
+            "sha256": "c25c65d470200b04222c4ec569867309db8ab39b3ea0b038401208dc69625c63"
+          },
+          "network": {
+            "bytes": 0,
+            "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+          },
+          "stderr": {
+            "bytes": 0,
+            "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+          },
+          "stdout": {
+            "bytes": 20,
+            "sha256": "17bb715c4dfe4e6979893650d80d98fcef441289df70bb7690f5d94c21a840e9"
+          },
+          "terminal": {
+            "bytes": 16,
+            "sha256": "e12133edec5de27e4d577f21bdf6f7eea3d1ec7f8ba458e667990b61a8cc3107"
+          },
+          "wasi": {
+            "bytes": 778,
+            "sha256": "f6b374b7322317fbb53747ff791d37d960a94f1bf4e15838438c88e005b7a9e7"
+          }
+        },
+        "termination": "exit"
+      },
+      "native": {
+        "authorization_to_terminal_nanos": 709432750,
+        "calls": 200037,
+        "exit_code": 0,
+        "reaped": true,
+        "select_poll": 100000,
+        "streams": {
+          "choice": {
+            "bytes": 19200000,
+            "sha256": "c25c65d470200b04222c4ec569867309db8ab39b3ea0b038401208dc69625c63"
+          },
+          "network": {
+            "bytes": 0,
+            "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+          },
+          "stderr": {
+            "bytes": 0,
+            "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+          },
+          "stdout": {
+            "bytes": 20,
+            "sha256": "17bb715c4dfe4e6979893650d80d98fcef441289df70bb7690f5d94c21a840e9"
+          },
+          "terminal": {
+            "bytes": 16,
+            "sha256": "e12133edec5de27e4d577f21bdf6f7eea3d1ec7f8ba458e667990b61a8cc3107"
+          },
+          "wasi": {
+            "bytes": 778,
+            "sha256": "f6b374b7322317fbb53747ff791d37d960a94f1bf4e15838438c88e005b7a9e7"
+          }
+        },
+        "termination": "exit"
+      }
+    },
+    "rust_source": "cda65407c6ab0d72d8c3061bca8b87b32def7b40",
+    "schema": "gomad.original-runtime-development-three-leg-read/v1",
+    "scope": "Original runtime tuple behavioral comparison in development; standalone Release copy; not frozen role qualification, full Temporal, or fn185 qualification",
+    "spec": {
+      "arguments": [
+        "guest",
+        "literal $arg"
+      ],
+      "assertions": "sameEvidence",
+      "calls": 1048576,
+      "choice_bytes": 67108864,
+      "clock_read_step_nanos": 0,
+      "fuel": 1099511627776,
+      "memory_bytes": 268435456,
+      "owners": [
+        "remote-model",
+        "helper-model"
+      ],
+      "package": "./internal/model/wasi/testdata/runtime_cost",
+      "producer": "measureRuntimeCostProfile",
+      "profile": "gomad.wasi-cooperative/v1",
+      "runtime_diagnostics": false,
+      "seed": 7,
+      "select_poll_minimum": 100000,
+      "stdout_witness": "runtime-cost 100000",
+      "transcript_bytes": 67108864,
+      "wall_nanos": 180000000000
+    },
+    "status": "PASS"
+  },
+  "independent_review": {
+    "actual_reaped_exit_zero_pids": [
+      846815,
+      846899,
+      846490
+    ],
+    "agent": "/root/namespace_reference_migration_review",
+    "archive_directories": 1045,
+    "launch_input_hashes": 133,
+    "ordinary_build_input_hashes": 414,
+    "reference_helper_source_inputs": 119,
+    "scope": "Original source custody and actual three-leg runtime behavior; read-only, no source/evidence edits",
+    "source_payloads": 9690,
+    "verdict": "CLEAR"
+  },
+  "receipts": {
+    "native_parent": {
+      "bytes": 1110,
+      "path": "/home/agent/evidence/fn232-measurement-original-runtime-v2/native-uncached-v4-command.json",
+      "sha256": "9fca4c84213eec8f66d1a8f7bcb77c65ec3b2e1ceaefd5d08d7261b4b1644aa2"
+    },
+    "ordinary_original_admission": {
+      "bytes": 39489,
+      "path": "/Users/stephan/Workspace/skunkworks/gomad/.build-cache/fn232-measurement-original-runtime-v2/release-role-v1/.gomad-measure/terminal-exit-helper-build/run-812720-1792753191465365647-0/release-native-812720-0/admitted-native-812720-1/helper-admission.json",
+      "sha256": "42d487d3b8c66c9e15b39abc7898e1ccc9be75d3d0da9512fb439ed4a02dd0f9"
+    },
+    "ordinary_release_build": {
+      "bytes": 111630,
+      "path": "/Users/stephan/Workspace/skunkworks/gomad/.build-cache/fn232-measurement-original-runtime-v2/release-role-v1/.gomad-measure/terminal-exit-helper-build/run-812720-1792753191465365647-0/release-native-812720-0/helper-build.json",
+      "sha256": "9664d5483c268342791426c238d47fcecb8c974cecc9e9a05022b21d52d6757a"
+    },
+    "raw_read": {
+      "bytes": 5319,
+      "path": "/home/agent/evidence/fn232-measurement-original-runtime-v2/three-leg-v4-read.json",
+      "sha256": "fde8d3b173439aa9f0ee412bb703cf9bf0de9bfff7d916dc0f390808871997f0"
+    },
+    "reference_pair_manifest": {
+      "bytes": 3473,
+      "path": "/home/agent/evidence/fn232-measurement-original-runtime-v2/original-reference-pair-v4/manifest.json",
+      "sha256": "e3cbdf9db913ea4c185ca62e8afc8e9715af689896f611d6bb9126635482cf1c"
+    },
+    "standalone_development_copy": {
+      "bytes": 40061,
+      "path": "/home/agent/evidence/fn232-measurement-original-runtime-v2/standalone-copy-custody.json",
+      "sha256": "141b84516f9b5abe803c67db1ee4d7cc174dd102bec01be86feee7cedb03c493"
+    },
+    "whole_git_archive_source": {
+      "bytes": 2315746,
+      "path": "/Users/stephan/Workspace/skunkworks/gomad/.build-cache/fn232-measurement-original-runtime-v2/derived-v3-git-archive-source-custody.json",
+      "sha256": "653b8bf7441aba0e4977d1639d08af8aaaf0a50297a9a201efdab5e7cf12340a"
+    }
+  },
+  "remaining": [
+    "Full original Temporal Workflow and Activity qualified executions",
+    "Actual final primary terminal eight-attempt producer on full module",
+    "Final same-frozen-candidate qualification cycle and its complete role/configuration closure",
+    "Post-fn232 fn185 wall/CPU profile qualification"
+  ],
+  "schema": "gomad.fn232-original-runtime-development-proof/v1",
+  "source_checks": {
+    "controller_revision": "187792871a42e4be76efae2a0b7d5e2dd9d0b2ff",
+    "python_driver_exit": 0,
+    "python_driver_tests": 319,
+    "restrictive_umask_actual_archive_exit": 0,
+    "source_review": "/root/measurement_exact_recipes_review: SOURCE READY"
+  },
+  "source_gitlinks": [
+    {
+      "git_commit": "590cbf37af8cef99387b2a1f88c163728b003ea4",
+      "mode": "160000",
+      "path": "develop/docker-compose/grafana/provisioning/temporalio-dashboards",
+      "state": "intentionally-unexpanded-gitlink"
+    }
+  ],
+  "status": "SCOPED_DEVELOPMENT_ACCEPTED",
+  "superseded_evidence": {
+    "native_producer_v1": "EXDEV retention refusal before Go/guest; unchanged",
+    "native_producer_v2": "Actual cached ordinary pair; not uncached original ownership comparison; unchanged",
+    "old_derived_v2_pair_v3": "Raw behavior MATCH with original-source custody gap; unchanged",
+    "old_source_51": "Modified request transport consistency only; unchanged"
+  },
+  "terminal_module_preparation": {
+    "descriptor": {
+      "bytes": 2268,
+      "path": "/Users/stephan/Workspace/skunkworks/gomad/.build-cache/fn232-measurement-original-runtime-v2/terminal-module-v1/terminal-module.json",
+      "sha256": "752761b357cdebc7d4e77b00bd38291d1b862e3d4930cf67b1b8dfa4531bf751"
+    },
+    "fuel": 1125899906842624,
+    "guest_executed": false,
+    "memory_bytes": 4294967296,
+    "module_bytes": 342575376,
+    "process": {
+      "bytes": 1086,
+      "path": "/Users/stephan/Workspace/skunkworks/gomad/.build-cache/fn232-measurement-original-runtime-v2/terminal-module-command.json",
+      "sha256": "05b3ccac2283f44ece3a33794976f4a49637620d1207ee6e1ec05b23554ef772"
+    },
+    "recipe": {
+      "build_tags": [
+        "disable_grpc_modules",
+        "test_dep",
+        "sqlite3_dotlk"
+      ],
+      "directory": "/home/agent/wt/fn232-measurement-completion",
+      "kind": "go-test",
+      "source": "./tests",
+      "target_arguments": []
+    },
+    "status": "ACTUAL_ENDPOINT_EXIT_ZERO"
+  }
+}

@@ -11,6 +11,7 @@ from driver import HERE, command, read, require, sha, write
 import live
 import receiving
 import preparation
+import installed_cluster_cache
 
 LIFECYCLE = live.load('installed-lifecycle-check')
 CHECK = LIFECYCLE.check
@@ -63,7 +64,7 @@ def command_identity(row, process, owner, argv, repo, status, environment, seen)
 def environment(root):
     return dict(PATH='/usr/bin:/bin', HOME=str(root / 'home'), TMPDIR=str(root / 'tmp'),
                 LC_ALL='C', TZ='UTC', GOENV='off', GOTOOLCHAIN='local', GOWORK='off',
-                GOFLAGS='', CGO_ENABLED='0')
+                GOFLAGS='', CGO_ENABLED='0', GOMODCACHE=str(root / 'module-cache'))
 
 
 def source_manifest(build, repo):
@@ -103,6 +104,9 @@ def original_inputs(root, recipe, build):
     require(live.inventory(root / 'compiler') == recipe['compiler_inventory'], 'private stock compiler changed')
     require(recipe['compiler_inventory'] == live.inventory(Path(recipe['compiler_root'])),
             'private stock compiler differs from admitted original compiler')
+    require(installed_cluster_cache.verify(root / 'module-cache', MODULE / 'go.sum') == recipe['module_cache_inventory']
+            and live.inventory(root / 'module-cache') == recipe['module_cache_inventory'],
+            'private genuine dependency cache changed')
     require(sha(root / 'guest-config.json') == sha(recipe['guest_config']), 'private guest configuration changed')
     for name in ('gomad_semantics.go.txt', 'gomad_choicewire_generated.go.txt'):
         require((root / 'runtime' / name).read_bytes() == (MODULE / 'internal/model/runtimesource' / name).read_bytes(),
@@ -116,7 +120,7 @@ class Run:
         self.root, self.recipe, self.build, self.reread = root, recipe, build, reread
         self.names, self.seen = [], set()
         files = dict(build['inputs'])
-        for name in ('compiler', 'source', 'runtime'):
+        for name in ('compiler', 'source', 'runtime', 'module-cache'):
             for relative, entry in live.inventory(root / name).items():
                 files[str(root / name / relative)] = entry['sha256']
         files[str(root / 'source-inputs.tsv')] = build['source_sha256']
@@ -246,7 +250,7 @@ def read_result(path, expected_build=None):
     return result
 
 
-def produce(main_build, compiler_root, guest_config, root):
+def produce(main_build, compiler_root, guest_config, module_cache, root):
     import main_cli_build
     build = main_cli_build.read_build(main_build, expected_role='release')
     require(root.is_absolute() and root.resolve() == root and not root.exists(), 'operator output root must be fresh/canonical')
@@ -266,7 +270,9 @@ def produce(main_build, compiler_root, guest_config, root):
     for case in ('deadlock', 'capacity'):
         (root / (case + '.json')).write_bytes(CANONICAL(read(FIXTURES / (case + '.json'))))
     shutil.copyfile(guest_config, root / 'guest-config.json')
+    dependency_inventory = installed_cluster_cache.snapshot(module_cache, root / 'module-cache', MODULE / 'go.sum')
     recipe = dict(main_build=str(main_build), compiler_root=str(compiler_root), guest_config=str(guest_config),
+                  module_cache_source=str(module_cache), module_cache_inventory=dependency_inventory,
                   compiler_inventory=live.inventory(compiler_root), repo=str(MODULE.parents[1]))
     write(root / 'recipe.json', recipe)
     observed = evaluate(root, recipe, build, False)
@@ -283,13 +289,13 @@ def main():
     parser = argparse.ArgumentParser(description=__doc__)
     sub = parser.add_subparsers(dest='mode', required=True)
     producer = sub.add_parser('produce')
-    for name in ('main-build', 'compiler-root', 'guest-config', 'root'):
+    for name in ('main-build', 'compiler-root', 'guest-config', 'module-cache', 'root'):
         producer.add_argument('--' + name, type=Path, required=True)
     reader = sub.add_parser('verify')
     reader.add_argument('--receipt', type=Path, required=True)
     args = parser.parse_args()
     if args.mode == 'produce':
-        print(produce(args.main_build, args.compiler_root, args.guest_config, args.root))
+        print(produce(args.main_build, args.compiler_root, args.guest_config, args.module_cache, args.root))
     else:
         read_result(args.receipt)
         print('installed cluster failure raw evidence verified')

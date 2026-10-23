@@ -1,6 +1,7 @@
 """Fixed release CLI build receipt counterexamples; no compiler or CLI is executed."""
 import copy
 import json
+import itertools
 from pathlib import Path
 import sys
 import tempfile
@@ -25,7 +26,8 @@ def fixture(base,role='release'):
         symlinks={},stages=dict(validate=dict(argv=[sys.executable,'static','--plan',str(plan)])),identity_harness=dict(toolchain_plan=str(base/'gnu-plan.json')))
     config['files'][str(plan)]=sha(plan)
     version='rustc 1.99.1 (synthetic)\n';context=dict(compiler_utf8=version,bindings=dict(PROFILE='release',TARGET='aarch64-unknown-linux-gnu'))
-    executable=work/'target/release/gomad';executable.parent.mkdir(parents=True);executable.write_bytes(b'synthetic compiled CLI');executable.chmod(0o755)
+    target='runtime-qualification-replay' if role=='runtime-harness' else 'gomad'
+    executable=work/('target/release/examples/'+target if role=='runtime-harness' else 'target/release/gomad');executable.parent.mkdir(parents=True);executable.write_bytes(b'synthetic compiled CLI');executable.chmod(0o755)
     identity,runtime,inventories=gate.identities(config,context);frames=[]
     for kind,name,package in (('host','gomad','gomad'),('helper','wasmhost','gomad-wasmhost')):
         crate=repo/'tools/gomad/rust'/name;pkg='path+'+crate.as_uri()+('#0.1.0' if kind=='host' else '#'+package+'@0.1.0')
@@ -38,7 +40,8 @@ def fixture(base,role='release'):
         frames.append(dict(reason='build-script-executed',package_id=pkg,out_dir=str(generated),env=env))
         frames.append(dict(reason='compiler-artifact',package_id=pkg,target=dict(kind=['lib'],src_path=str(crate/'src/lib.rs')),features=gate.ROLES[role] if kind=='host' else []))
         if kind=='host':frames.append(dict(reason='compiler-artifact',package_id=pkg,manifest_path=str(crate/'Cargo.toml'),
-            target=dict(name='gomad',kind=['bin'],crate_types=['bin'],src_path=str(crate/'src/main.rs')),features=gate.ROLES[role],fresh=False,
+            target=dict(name=target,kind=['example'] if role=='runtime-harness' else ['bin'],crate_types=['bin'],
+                src_path=str(crate/('examples/runtime-qualification-replay.rs' if role=='runtime-harness' else 'src/main.rs'))),features=gate.ROLES[role],fresh=False,
             profile=dict(opt_level='3',debug_assertions=False,test=False),executable=str(executable)))
     frames.append(dict(reason='build-finished',success=True))
     def observed(name,argv,output,pid):
@@ -55,7 +58,7 @@ def fixture(base,role='release'):
         ('cargo-version',[tools['cargo'],'--version'],'cargo 1.99.1 (synthetic)\n'),
         ('cargo-build',gate.build_command(config),'\n'.join(json.dumps(row) for row in frames)))):observed(name,argv,output,201+index)
     (work/'producer.json').write_text(json.dumps(dict(pid=300,start_monotonic_nanos=10,end_monotonic_nanos=100,started_epoch_ns=1_000_000_000)))
-    (work/'admitted').mkdir();binary=work/'admitted/gomad';binary.write_bytes(executable.read_bytes());binary.chmod(0o755)
+    (work/'admitted').mkdir();binary=work/'admitted'/target;binary.write_bytes(executable.read_bytes());binary.chmod(0o755)
     receipt=gate.evidence(config,work);path=work/'main-build.json';path.write_text(json.dumps(receipt))
     return config,path
 
@@ -106,19 +109,59 @@ class MainCliBuild(unittest.TestCase):
                     files=dict(receipt['inputs'],**{str(path):sha(path)}))
                 with patch.object(gate,'provision_config',return_value=config):
                     if role=='release':gate.read_build(path,frozen)
+                    elif role=='runtime-harness':
+                        with self.assertRaises(Refusal):gate.read_build(path,frozen)
+                        frozen['stages']={f'runtime-{index}':dict(harness=receipt['binary'],harness_build_receipt=str(path)) for index in range(32)}
+                        gate.read_build(path,frozen)
+                        with self.assertRaises(Refusal):gate.read_build(path,frozen,expected_role='release')
                     else:
                         with self.assertRaises(Refusal):gate.read_build(path,frozen)
                         frozen['live_corpus']=dict(roles={'host-fixture':dict(binary=receipt['binary'],build_receipt=str(path))})
                         gate.read_build(path,frozen)
                         with self.assertRaises(Refusal):gate.read_build(path,frozen,expected_role='release')
 
+    def test_runtime_harness_is_a_fixed_example_with_ordinary_libraries(self):
+        self.assertIn('runtime-harness',gate.ROLES)
+        with tempfile.TemporaryDirectory() as temporary:
+            config,path=fixture(Path(temporary),'runtime-harness')
+            with patch.object(gate,'provision_config',return_value=config):
+                receipt=gate.read_build(path,expected_role='runtime-harness')
+            self.assertEqual(receipt['features'],[])
+            self.assertEqual(receipt['helper_features'],[])
+            self.assertEqual(receipt['command'][receipt['command'].index('--example')+1],'runtime-qualification-replay')
+            self.assertNotIn('--bin',receipt['command'])
+            self.assertTrue(receipt['binary'].endswith('/admitted/runtime-qualification-replay'))
+            self.assertTrue(receipt['cargo_artifact'].endswith('/target/release/examples/runtime-qualification-replay'))
+            root=path.parent;raw=root/'cargo-build.stdout';frames=[json.loads(line) for line in raw.read_text().splitlines()]
+            artifact=next(row for row in frames if row.get('executable'))
+            artifact['target']['kind']=['bin']
+            raw.write_text('\n'.join(json.dumps(row) for row in frames))
+            with patch.object(gate,'provision_config',return_value=config),self.assertRaises(Refusal):
+                gate.read_build(path)
+
+    def test_freezer_includes_complete_one_harness_custody_for_all_original_shards(self):
+        import configure
+        with tempfile.TemporaryDirectory() as temporary:
+            config,path=fixture(Path(temporary),'runtime-harness')
+            receipt=json.loads(path.read_text())
+            config['stages'].update({f'runtime-{index}':dict(adapter='runtime',harness=receipt['binary'],harness_build_receipt=str(path)) for index in range(32)})
+            with patch.object(gate,'provision_config',return_value=config):
+                self.assertEqual(configure.runtime_harness_inputs(config),set(receipt['inputs'])|{str(path)})
+                config['stages']['runtime-31']['harness']='/foreign/harness'
+                with self.assertRaises(Refusal):configure.runtime_harness_inputs(config)
+                config['stages']['runtime-31']['harness']=receipt['binary']
+                config['stages']['runtime-31']['harness_build_receipt']='/foreign/receipt'
+                with self.assertRaises(Refusal):configure.runtime_harness_inputs(config)
+
     def test_artifact_compiler_features_source_and_identity_tampering(self):
-        for mutation in ('features','helper-features','source','profile','package','executable','duplicate','completion','compiled-id','compiler','capture'):
-            with self.subTest(mutation=mutation),tempfile.TemporaryDirectory() as temporary:
-                config,path=fixture(Path(temporary));root=path.parent;raw=root/'cargo-build.stdout';frames=[json.loads(line) for line in raw.read_text().splitlines()]
+        for role,mutation in itertools.product(gate.ROLES,('features','helper-features','source','profile','package','executable','duplicate','completion','compiled-id','compiler','capture','name','fresh')):
+            with self.subTest(role=role,mutation=mutation),tempfile.TemporaryDirectory() as temporary:
+                config,path=fixture(Path(temporary),role);root=path.parent;raw=root/'cargo-build.stdout';frames=[json.loads(line) for line in raw.read_text().splitlines()]
                 artifact=next(row for row in frames if row.get('executable'))
-                if mutation=='features':artifact['features']=['determinism-fixture']
+                if mutation=='features':artifact['features']=['foreign-feature']
                 if mutation=='helper-features':frames[-2]['features']=['diagnostic-profile']
+                if mutation=='name':artifact['target']['name']='foreign'
+                if mutation=='fresh':artifact['fresh']=True
                 if mutation=='source':artifact['target']['src_path']='/caller/main.rs'
                 if mutation=='profile':artifact['profile']['test']=True
                 if mutation=='package':artifact['package_id']='foreign#gomad@0.1.0'

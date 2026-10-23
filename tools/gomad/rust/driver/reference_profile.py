@@ -6,6 +6,7 @@ import copy
 import hashlib
 import shutil
 import os
+import stat
 from pathlib import Path
 import subprocess
 import tarfile
@@ -58,7 +59,15 @@ def extract_original(bundle, source):
     # The data filter validates destinations but normalizes relative link spelling.
     bundle.extractall(source, filter='data')
     for member in bundle.getmembers():
-        if member.issym():
+        if member.isdir():
+            relative = Path(member.name)
+            path = source / relative
+            custody.require(not relative.is_absolute() and '..' not in relative.parts
+                            and path.is_dir() and not path.is_symlink()
+                            and path.resolve().is_relative_to(source.resolve()),
+                            'original archive directory escapes source')
+            path.chmod(member.mode & 0o755)
+        elif member.issym():
             path = source / member.name
             custody.require(path.is_symlink()
                             and (path.parent / member.linkname).resolve().is_relative_to(source.resolve()),
@@ -78,6 +87,39 @@ def tree(root):
     return files
 
 
+
+def archive_binding(root):
+    from original_ringpop import archive_inventory, inventory
+    source = root / 'source'
+    archive = root / 'original.tar'
+    expected = archive_inventory(archive)
+    custody.require(GLUE not in expected['files'] and GLUE not in expected['symlinks'],
+                    'original archive already contains invocation glue')
+    expected['files'][GLUE] = custody.digest((HERE / 'reference/main.go.txt').read_bytes())
+    custody.require(inventory(source) == expected, 'derived source differs from original archive and invocation glue')
+    directories, seen = set(), set()
+    with tarfile.open(archive) as bundle:
+        custody.require(bundle.pax_headers.get('comment') == ORIGINAL, 'original archive revision differs')
+        for member in bundle:
+            name = member.name.rstrip('/')
+            relative = Path(name)
+            custody.require(name and not relative.is_absolute() and '..' not in relative.parts
+                            and str(relative) == name and name not in seen, 'invalid original archive member')
+            seen.add(name)
+            directories.update(str(path) for path in relative.parents if str(path) != '.')
+            path = source / relative
+            if member.isdir():
+                directories.add(name)
+                custody.require(path.is_dir() and not path.is_symlink(), 'original archive directory changed')
+            if member.isfile() or member.isdir():
+                custody.require(stat.S_IMODE(path.stat().st_mode) == member.mode & 0o755,
+                                'original archive source mode changed: ' + name)
+    directories.update(str(path) for path in Path(GLUE).parents if str(path) != '.')
+    actual_directories = {str(path.relative_to(source)) for path in source.rglob('*')
+                          if path.is_dir() and not path.is_symlink()}
+    custody.require(actual_directories == directories, 'derived directories differ from original archive and glue')
+
+
 def verify(root):
     root = custody.absolute(root)
     manifest, _ = custody.document(root / 'source.json')
@@ -92,6 +134,7 @@ def verify(root):
     expected[GLUE] = dict(kind='file', bytes=(HERE / 'reference/main.go.txt').stat().st_size,
                           sha256=manifest['glue'][GLUE])
     custody.require(actual == expected, 'derived source changed outside declared invocation glue')
+    archive_binding(root)
     return manifest
 
 

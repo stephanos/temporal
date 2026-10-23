@@ -56,6 +56,31 @@ class RequestMapping(unittest.TestCase):
             self.assertEqual(os.readlink(source / 'value'), './versioned/value')
             self.assertEqual((source / 'value').read_bytes(), b'x')
 
+    def test_archive_directory_modes_survive_restrictive_umask(self):
+        with tempfile.TemporaryDirectory(dir='/home/agent/wt', prefix='fn232-reference-umask-') as temporary:
+            root = Path(temporary)
+            archive = root / 'original.tar'
+            with tarfile.open(archive, 'w') as bundle:
+                directory = tarfile.TarInfo('versioned')
+                directory.type, directory.mode = tarfile.DIRTYPE, 0o775
+                bundle.addfile(directory)
+                for name, mode in [('value', 0o664), ('executable', 0o775)]:
+                    item = tarfile.TarInfo('versioned/' + name)
+                    item.size, item.mode = 1, mode
+                    bundle.addfile(item, io.BytesIO(b'x'))
+            source = root / 'source'
+            source.mkdir(mode=0o700)
+            previous = os.umask(0o077)
+            try:
+                with tarfile.open(archive) as bundle:
+                    reference.extract_original(bundle, source)
+            finally:
+                os.umask(previous)
+            self.assertEqual(source.stat().st_mode & 0o777, 0o700)
+            self.assertEqual((source / 'versioned').stat().st_mode & 0o777, 0o755)
+            self.assertEqual((source / 'versioned/value').stat().st_mode & 0o777, 0o644)
+            self.assertEqual((source / 'versioned/executable').stat().st_mode & 0o777, 0o755)
+
     def test_build_cli_dispatches_to_builder_without_starting_go(self):
         with tempfile.TemporaryDirectory(dir='/home/agent/wt', prefix='fn232-reference-cli-') as temporary:
             files = Path(temporary) / 'files.json'
@@ -230,6 +255,42 @@ class OriginalSourceCustody(unittest.TestCase):
             with self.assertRaisesRegex(ValueError, 'outside declared'):
                 reference.verify(directory)
             extra.unlink()
+            reference.verify(directory)
+            manifest_path = directory / 'source.json'
+            manifest_raw = manifest_path.read_bytes()
+            literal = source / 'schema/elasticsearch/visibility/index_template_v7.json'
+            original_target = os.readlink(literal)
+            self.assertTrue(original_target.startswith('./'))
+            literal.unlink()
+            literal.symlink_to(original_target[2:])
+            modified = copy.deepcopy(manifest)
+            modified['original_files'][str(literal.relative_to(source))]['target'] = original_target[2:]
+            manifest_path.write_bytes(reference.custody.canonical(modified))
+            with self.assertRaisesRegex(ValueError, 'archive'):
+                reference.verify(directory)
+            literal.unlink()
+            literal.symlink_to(original_target)
+            manifest_path.write_bytes(manifest_raw)
+            original_raw = original.read_bytes()
+            original.write_bytes(original_raw + b'\n')
+            modified = copy.deepcopy(manifest)
+            modified['original_files'][str(original.relative_to(source))] = dict(kind='file',
+                **reference.custody.snapshot(original, 1 << 20))
+            manifest_path.write_bytes(reference.custody.canonical(modified))
+            with self.assertRaisesRegex(ValueError, 'archive'):
+                reference.verify(directory)
+            original.write_bytes(original_raw)
+            manifest_path.write_bytes(manifest_raw)
+            mode = original.stat().st_mode & 0o777
+            original.chmod(mode ^ 0o100)
+            with self.assertRaisesRegex(ValueError, 'mode'):
+                reference.verify(directory)
+            original.chmod(mode)
+            extra_directory = source / 'undeclared-empty-directory'
+            extra_directory.mkdir()
+            with self.assertRaisesRegex(ValueError, 'archive'):
+                reference.verify(directory)
+            extra_directory.rmdir()
             reference.verify(directory)
 
 class HelperCopyCustody(unittest.TestCase):

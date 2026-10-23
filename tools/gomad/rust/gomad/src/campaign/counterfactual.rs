@@ -11,27 +11,12 @@ use std::{
     io::Write as _,
     os::unix::fs::{DirBuilderExt as _, OpenOptionsExt as _, PermissionsExt as _},
     path::{Path, PathBuf},
-    time::Duration,
+    time::{Duration, Instant},
 };
 
 pub(super) struct Fault {
     pub kind: linked::FixtureFault,
     pub owner: Option<Handle>,
-}
-
-pub(super) fn run(
-    prepared: &Prepared,
-    job: &ledger::Job,
-    cancellation: &linked::Cancellation,
-    fault: Fault,
-) -> Result<execution::Result, String> {
-    if linked::Conditions::compiled() != linked::Conditions::DeterminismFixtureReplay {
-        return Err("counterfactual producer requires the compiled fixture role".into());
-    }
-    validate_preparation(prepared)?;
-    execution::run_counterfactual(prepared, job, Duration::from_secs(60), cancellation, fault)?
-        .finalized()
-        .map_err(|failure| failure.message())
 }
 
 const SEMANTICS_SHA256: &str = "5ed9d769d7d97109f79896368e40a0469d219bd6819fde247914bad140ab4266";
@@ -199,6 +184,92 @@ struct Case {
     receipt: PathBuf,
     receipt_sha256: String,
     original_requested_choice_bytes: u64,
+    campaign: crate::cli::explore::ExploreOptions,
+}
+
+fn validate_campaign(
+    options: &crate::cli::explore::ExploreOptions,
+    clustered: bool,
+) -> Result<(), String> {
+    if options.seeds != "7"
+        || options.parallel != 1
+        || options.execution_timeout != Duration::from_secs(60)
+        || options.overall_timeout != Duration::from_secs(300)
+        || options.terminate_grace != Duration::from_millis(100)
+        || options.on_failure != "first"
+        || options.failure_budget != 1
+        || options.coverage != "none"
+        || options.keep_successes != "none"
+        || options.success_limit != 0
+        || options.success_bytes != 0
+        || options.output_limit != 1 << 20
+        || options.world_transition_limit != 4 << 20
+        || options.choice_bytes != if clustered { 0 } else { 4 << 20 }
+        || options.choices == clustered
+        || options.diagnostics == clustered
+        || options.scenario.is_some() != clustered
+        || options.soft_assertion_report_only
+        || !options.environment.is_empty()
+        || options.build_tags != ["gomad", "test_dep"]
+        || options.target_kind != "go-run"
+        || options.source != "."
+        || !options.target_args.is_empty()
+    {
+        return Err("original Explore campaign options changed".into());
+    }
+    Ok(())
+}
+
+#[test]
+fn original_campaign_options_refuse_deadline_policy_and_recording_relaxations() {
+    let arguments = [
+        "--seeds=7",
+        "--parallel=1",
+        "--execution-timeout=1m",
+        "--overall-timeout=5m",
+        "--terminate-grace=100ms",
+        "--output-limit=1MiB",
+        "--world-transition-limit=4MiB",
+        "--diagnostics",
+        "--choice-bytes=4MiB",
+        "--build-tag=gomad",
+        "--build-tag=test_dep",
+        "go-run",
+        ".",
+    ]
+    .map(str::to_owned);
+    let options = crate::cli::explore::parse(&arguments, &mut false).unwrap();
+    validate_campaign(&options, false).unwrap();
+    let value = serde_json::to_value(&options).unwrap();
+    for (field, changed) in [
+        ("seeds", json!("8")),
+        ("parallel", json!(2)),
+        ("execution_timeout", json!({"secs":61,"nanos":0})),
+        ("overall_timeout", json!({"secs":301,"nanos":0})),
+        ("terminate_grace", json!({"secs":0,"nanos":101_000_000})),
+        ("on_failure", json!("all")),
+        ("failure_budget", json!(2)),
+        ("keep_successes", json!("all")),
+        ("choice_bytes", json!(1 << 20)),
+        ("diagnostics", json!(false)),
+        ("world_transition_limit", json!(8 << 20)),
+        ("build_tags", json!(["gomad"])),
+    ] {
+        let mut changed_options = value.clone();
+        changed_options[field] = changed;
+        let changed_options = serde_json::from_value(changed_options).unwrap();
+        assert!(
+            validate_campaign(&changed_options, false).is_err(),
+            "{field}"
+        );
+    }
+    let mut clustered = options;
+    clustered.scenario = Some(vec![]);
+    clustered.choices = false;
+    clustered.diagnostics = false;
+    clustered.choice_bytes = 0;
+    validate_campaign(&clustered, true).unwrap();
+    assert!(validate_campaign(&clustered, false).is_err());
 }
 
 fn authenticate_cli(path: &Path, expected: &str) -> Result<(), String> {
@@ -251,35 +322,172 @@ fn write(path: &Path, value: &Value) {
     file.sync_all().unwrap();
 }
 
+fn assert_preparation_matches(expected: &Prepared, actual: &Prepared) {
+    assert_eq!(actual.module, expected.module);
+    assert_eq!(
+        canonical::encode(&actual.configuration).unwrap(),
+        canonical::encode(&expected.configuration).unwrap()
+    );
+    assert_eq!(actual.scenario, expected.scenario);
+    assert_eq!(actual.toolchain, expected.toolchain);
+    assert_eq!(actual.provenance, expected.provenance);
+    assert_eq!(
+        actual.soft_assertion_report_only,
+        expected.soft_assertion_report_only
+    );
+    assert_eq!(
+        canonical::encode(&actual.choice_identity).unwrap(),
+        canonical::encode(&expected.choice_identity).unwrap()
+    );
+    assert_eq!(
+        canonical::encode(&actual.network).unwrap(),
+        canonical::encode(&expected.network).unwrap()
+    );
+}
+
+#[test]
+fn repreparation_binds_scenario_without_reusing_admission_observations() {
+    let fixture = crate::installed_lifecycle_tests::retained(false);
+    let opened = crate::evidence::store::Opened::open(&fixture.published.path).unwrap();
+    let raw = opened
+        .payload(crate::replay::preflight::FILE, 1 << 20)
+        .unwrap();
+    let prepared = || {
+        let inputs: crate::replay::preflight::Inputs = serde_json::from_slice(&raw).unwrap();
+        Prepared {
+            module: vec![1, 2, 3],
+            configuration: inputs.configuration,
+            toolchain: fixture.record.identity.toolchain.clone(),
+            choice_identity: None,
+            scenario: Some(br#"{"boots":[{"args":["original"]}]}"#.to_vec()),
+            provenance: b"{}".to_vec(),
+            network: None,
+            soft_assertion_report_only: false,
+            compile_cache_root: None,
+            auxiliary: Default::default(),
+        }
+    };
+    let expected = prepared();
+    let mut actual = prepared();
+    actual.auxiliary.insert(
+        "target/preparation-inputs/admission/current".into(),
+        b"fresh command PID and times".to_vec(),
+    );
+    assert_preparation_matches(&expected, &actual);
+    actual.scenario = Some(br#"{"boots":[{"args":["changed"]}]}"#.to_vec());
+    assert!(
+        std::panic::catch_unwind(std::panic::AssertUnwindSafe(|| {
+            assert_preparation_matches(&expected, &actual);
+        }))
+        .is_err()
+    );
+}
+
+fn run_campaign(
+    prepared: &Prepared,
+    case: &Case,
+    root: &Path,
+    fault: linked::FixtureFault,
+    baseline: bool,
+) -> Value {
+    let cell = root.join(&case.name).join(if baseline {
+        "baseline-campaign"
+    } else {
+        "fault-campaign"
+    });
+    let mut options = case.campaign.clone();
+    validate_campaign(&options, case.name == "handoff").unwrap();
+    options.artifacts = cell;
+    let started = Instant::now();
+    // The original StressExecution override requested diagnostics even for
+    // the cluster and capped its runtime trace independently of campaign retention.
+    let mut effective = options.clone();
+    effective.choice_bytes = 1 << 20;
+    effective.diagnostics = true;
+    let actual_prepared = super::prepare::prepare(&effective).unwrap();
+    validate_preparation(&actual_prepared).unwrap();
+    assert_preparation_matches(prepared, &actual_prepared);
+    let mut journal = super::seed_journal(&options, &actual_prepared).unwrap();
+    let remaining = options
+        .overall_timeout
+        .checked_sub(started.elapsed())
+        .unwrap();
+    let mut output = Vec::new();
+    let exit = super::run_observed_using(
+        &mut journal,
+        &actual_prepared,
+        remaining,
+        true,
+        &mut output,
+        None,
+        |prepared, job, timeout, cancellation| {
+            execution::run_counterfactual(
+                prepared,
+                job,
+                timeout,
+                cancellation,
+                Fault {
+                    kind: fault,
+                    owner: None,
+                },
+            )
+        },
+    )
+    .unwrap();
+    assert_eq!(exit, 1);
+    assert!(started.elapsed() <= options.overall_timeout);
+    let report: Value = serde_json::from_slice(
+        output
+            .split(|byte| *byte == b'\n')
+            .filter(|line| !line.is_empty())
+            .last()
+            .unwrap(),
+    )
+    .unwrap();
+    assert_eq!(report["type"], "result");
+    assert_eq!(report["failures"], 1);
+    assert_eq!(report["attempted"], 1);
+    let artifacts = report["artifacts"].as_array().unwrap();
+    assert_eq!(artifacts.len(), 1);
+    let artifact = PathBuf::from(artifacts[0]["path"].as_str().unwrap());
+    let campaign = journal.path().to_path_buf();
+    drop(journal);
+    let journal = ledger::Journal::open(&campaign, false).unwrap();
+    assert_eq!(journal.plan()["overall_nanos"], 300_000_000_000_u64);
+    let outcomes = journal
+        .events()
+        .iter()
+        .filter_map(|event| match event {
+            ledger::Event::Outcome { executions, .. } => Some(executions),
+            _ => None,
+        })
+        .flatten()
+        .collect::<Vec<_>>();
+    assert_eq!(outcomes.len(), 1);
+    assert_eq!(outcomes[0].seed, 7);
+    assert_eq!(outcomes[0].record.outcome.class, "target_failure");
+    let opened = crate::evidence::store::Opened::open(&artifact).unwrap();
+    opened.authenticate_all().unwrap();
+    assert_eq!(opened.manifest().record, outcomes[0].record);
+    assert!(opened.manifest().files.contains_key("evidence/event-order"));
+    write(&campaign.join("original-explore-result.json"), &report);
+    json!({"artifact":artifact,"record_sha256":opened.manifest().record_sha256,
+        "bytes":outcomes[0].stored_bytes,"campaign":campaign,"campaign_result":report,
+        "wall_nanos":started.elapsed().as_nanos()})
+}
+
 fn produce_pair(
     prepared: &Prepared,
     case: &Case,
     root: &Path,
     kind: linked::FixtureFault,
 ) -> (Vec<Value>, Vec<Value>) {
-    let store = super::store(root.join(&case.name).join("artifacts"), u64::MAX);
     let mut pair = Vec::new();
     let mut failures = Vec::new();
     for fault in [linked::FixtureFault::None, kind] {
-        let result = run(
-            prepared,
-            &ledger::Job {
-                ordinal: 0,
-                seed: 7,
-            },
-            &linked::Cancellation::default(),
-            Fault {
-                kind: fault,
-                owner: None,
-            },
-        )
-        .unwrap();
-        let has_event_order = result
-            .publication
-            .payloads
-            .contains_key("evidence/event-order");
-        let published = store.publish(result.publication).unwrap();
-        let opened = crate::evidence::store::Opened::open(&published.path).unwrap();
+        let row = run_campaign(prepared, case, root, fault, pair.is_empty());
+        let artifact = PathBuf::from(row["artifact"].as_str().unwrap());
+        let opened = crate::evidence::store::Opened::open(&artifact).unwrap();
         opened.authenticate_all().unwrap();
         if prepared.scenario.is_some() {
             let summary: Value = serde_json::from_slice(
@@ -291,11 +499,26 @@ fn produce_pair(
             let incarnations = summary["incarnations"].as_array().unwrap();
             assert_eq!(incarnations.len(), 2);
             for incarnation in incarnations {
+                let handle = &incarnation["handle"];
+                let diagnostic = opened
+                    .payload(
+                        &format!(
+                            "evidence/cluster/{}/{}/diagnostic",
+                            handle["node"].as_str().unwrap(),
+                            handle["incarnation"].as_u64().unwrap()
+                        ),
+                        1 << 20,
+                    )
+                    .unwrap();
+                assert!(
+                    !diagnostic.is_empty(),
+                    "original fixture requires a nonempty diagnostic trace for {handle}"
+                );
                 if incarnation["termination"] != "exit" {
                     failures.push(json!({
                         "original_root":"TestDeterminismExecutedDivergenceArtifacts/handoff",
                         "predicate":"every reported incarnation termination equals exit",
-                        "artifact":published.path,
+                        "artifact":artifact,
                         "handle":incarnation["handle"],
                         "expected":"exit",
                         "actual":incarnation["termination"],
@@ -304,12 +527,17 @@ fn produce_pair(
                 }
             }
         } else {
-            assert_eq!(result.execution.record.outcome.termination, "exit");
-            assert_eq!(result.execution.record.outcome.exit_code, Some(1));
+            assert_eq!(opened.manifest().record.outcome.termination, "exit");
+            assert_eq!(opened.manifest().record.outcome.exit_code, Some(1));
+            assert!(
+                !opened
+                    .payload("evidence/diagnostic", 1 << 20)
+                    .unwrap()
+                    .is_empty(),
+                "original fixture requires a nonempty diagnostic trace"
+            );
         }
-        assert_eq!(result.execution.record.outcome.class, "target_failure");
-        assert!(has_event_order);
-        pair.push(json!({"artifact":published.path,"record_sha256":published.record_sha256,"bytes":published.stored_bytes}));
+        pair.push(row);
     }
     assert_ne!(pair[0]["record_sha256"], pair[1]["record_sha256"]);
     write(
@@ -465,14 +693,20 @@ fn prepare_the_four_original_counterfactual_requests() {
                 ],
             )
             .unwrap();
+        let mut campaign = case.options;
+        campaign.choice_bytes = if case.name == "handoff" { 0 } else { 4 << 20 };
+        campaign.choices = case.name != "handoff";
+        campaign.diagnostics = case.name != "handoff";
+        validate_campaign(&campaign, case.name == "handoff").unwrap();
         cases.push(
             json!({"name":case.name,"receipt":receipt,"receipt_sha256":receipt_sha256,
-            "original_requested_choice_bytes":if case.name == "handoff" {0} else {4 << 20}}),
+            "original_requested_choice_bytes":if case.name == "handoff" {0} else {4 << 20},
+            "campaign": campaign}),
         );
     }
     write(
         &input.output,
-        &json!({"schema":"gomad.core-counterfactual-producer/v1",
+        &json!({"schema":"gomad.core-counterfactual-producer/v2",
         "cli":input.cli,"cli_sha256":input.cli_sha256,"cases":cases}),
     );
 }
@@ -489,7 +723,7 @@ fn produce_the_four_original_counterfactual_artifact_pairs() {
     );
     assert!(path.is_absolute() && root.is_absolute());
     let input: Inputs = serde_json::from_slice(&std::fs::read(path).unwrap()).unwrap();
-    assert_eq!(input.schema, "gomad.core-counterfactual-producer/v1");
+    assert_eq!(input.schema, "gomad.core-counterfactual-producer/v2");
     authenticate_cli(&input.cli, &input.cli_sha256).unwrap();
     let expected = BTreeSet::from(["draw", "clock", "handoff", "output-clock"]);
     assert_eq!(input.cases.len(), 4);

@@ -1,0 +1,75 @@
+{
+  "schema": "gomad.original-executed-divergence-preservation/v1",
+  "owner": "fn-232 R12/task .13",
+  "original_reference": "go:internal/backends/wasm/backend:TestDeterminismExecutedDivergenceArtifacts",
+  "status": "FAIL_ORIGINAL_PREDICATE",
+  "qualification": false,
+  "inventory_migration": false,
+  "original_pass": false,
+  "scope": "Original four deliberate-fault fixture cases and their retained prefix reproducers.",
+  "actual_audit": {
+    "path": "/home/agent/evidence/fn232-executed-divergence-audit-v1/audit.json",
+    "sha256": "9c5fde6b87e59c0abee7f704007f5b1f7b929dfd00ff729b3200d03a17dba28b"
+  },
+  "original_execution": [
+    {
+      "path": "/home/agent/evidence/fn232-core-original-handoff/command.json",
+      "sha256": "275cee814d1f66278b1f789061267d2df9200e3f650b6ea9603bee799558a794"
+    },
+    {
+      "path": "/home/agent/evidence/fn232-core-original-handoff/test.stdout",
+      "sha256": "14d90d6497c81bf4d3eea130ddb23dade7cc7a2bafa8706df09ea42b8e535a5f"
+    },
+    {
+      "path": "/home/agent/evidence/fn232-core-original-handoff/test.stderr",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    }
+  ],
+  "source_change": "Restore nonempty authenticated diagnostics for every incarnation; execute each original baseline/fault through actual preparation, the production campaign scheduler, durable journal, retention and report under the original five-minute overall deadline. A private executor seam supplies only the existing private fixture fault; ordinary execution still uses execution::run.",
+  "retained_contracts": [
+    "Original byte-identical runtime injection and original Go guest with gomad,test_dep tags.",
+    "Four baseline/fault artifact pairs: draw,clock,handoff,output-clock.",
+    "Identical module,seed7,declared identity and private fixture conditions.",
+    "Complete helper-event ordering; expected first difference kind,nonempty owner,incarnation1,unequal values,positive shared coordinate.",
+    "Draw runq counter increments exactly once; first diagnostic difference changes only runq_draws or virtual_time by one.",
+    "At least9baseline boundaries for draw/clock; output precedes later clock in same retained interval.",
+    "Provider prefix replay and emitted literal public CLI replay verify prefix,witness and resolved choice.",
+    "Every reported incarnation must terminate exit and retain nonempty diagnostics."
+  ],
+  "actual_observation": {
+    "artifacts": 8,
+    "diagnostic_payloads": 10,
+    "diagnostic_payloads_nonempty": true,
+    "handoff_failed_predicates": 2
+  },
+  "remaining": [
+    "The unchanged original Go handoff test fails because failure of a/1 stops b/1. Retained Rust artifacts independently reproduce this original failed predicate. No assertion waiver or production fail-fast change is made.",
+    "New campaign receiving source is implemented but not yet executed. It requires fresh version2 preparation inputs and current fixture libtest/public CLI roles after the shared Cargo and Go lease is released. Historical direct-run pairs-v11 do not prove this new campaign path.",
+    "Updated producer source requires execution after the current shared build/guest lease is released. Rustfmt and diff checks pass; no updated Cargo execution is claimed.",
+    "Final frozen96stages/146obligations and complete current-candidate qualification remain required."
+  ],
+  "verification": {
+    "rustfmt": "rustfmt --edition 2024 --check tools/gomad/rust/gomad/src/campaign/counterfactual.rs: exit0",
+    "diff": "git diff --check: exit0",
+    "raw_audit": "8 existing artifacts, 10 nonempty diagnostic payloads; all 110 manifest payloads reopened and hash/length checked",
+    "updated_rust_execution": "NOT_RUN: core owns frozen2c73 Release Cargo and Go guest lease. New receiving tests and actual four campaign pairs remain to run."
+  },
+  "receiving_inputs": "gomad.core-counterfactual-producer/v2: retains original ExploreOptions separately from the original StressExecution effective diagnostic override; original v1 evidence remains immutable.",
+  "source_regressions": [
+    "shared_scheduler_retains_one_failure_and_artifact_then_stops_admission: executes a real tiny failing WASM guest through the shared scheduler; checks first-failure admission, durable one-failure/one-artifact accounting and reopened journal.",
+    "original_campaign_options_refuse_deadline_policy_and_recording_relaxations: checks original tuple and twelve deadline/policy/recording/tag mutations.",
+    "repreparation_binds_scenario_without_reusing_admission_observations: accepts fresh observation bytes and rejects a scenario-only boot argument change."
+  ],
+  "review": {
+    "verdict": "SOURCE_READY",
+    "reviewer": "/root/executed_divergence_preservation/campaign_receiving_review",
+    "model": "gpt-6.1-sol",
+    "effort": "high",
+    "same_family": true,
+    "findings_addressed": [
+      "Bind fresh scenario and declared execution inputs to authenticated preparation, beyond module and configuration.",
+      "Allow fresh admission observation bytes; do not compare PID/timestamp-bearing auxiliary observations."
+    ],
+    "execution_credit": false
+  }
+}

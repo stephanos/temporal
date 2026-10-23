@@ -6,6 +6,14 @@ closed `host-fixture` role adds only `determinism-fixture`; its linked helper
 remains ordinary. The two roles have distinct host identities and cannot be
 substituted for one another. Neither role is a measurement-helper build.
 
+The third closed role, `runtime-harness`, builds only the ordinary release
+`--example runtime-qualification-replay`, with empty host and helper features.
+Its Cargo artifact is `target/release/examples/runtime-qualification-replay`
+and its published copy is `admitted/runtime-qualification-replay`. The same
+source, GNU toolchain, build-script, Cargo and process readers apply. Its
+receipt binds the ordinary candidate host/helper identities and all 32 runtime
+shard harness bindings; a main executable cannot substitute for this example.
+
 The fixed Rust 1.99.1 command is `cargo build --release --locked --offline
 --no-default-features -p gomad --bin gomad --message-format=json --manifest-path
 REPO/tools/gomad/rust/Cargo.toml`. Only the fixture recipe adds its one fixed
