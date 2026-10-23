@@ -1,4 +1,7 @@
 use super::preflight;
+
+#[path = "inspection_search.rs"]
+mod search;
 use crate::{cli, evidence::store::Opened};
 use gomad_wasmhost::{linked, linked_inspection as helper};
 use serde::Serialize;
@@ -646,10 +649,6 @@ fn write_private(path: &Path, bytes: &[u8]) -> Result<(), cli::Error> {
         .map_err(execution_error)
 }
 
-#[expect(
-    clippy::too_many_lines,
-    reason = "The bounded scan and monotonic bisect retain one shared evaluation and result state"
-)]
 fn search_run(
     opened: &Opened,
     evidence: &helper::Evidence,
@@ -684,152 +683,51 @@ fn search_run(
             "bisect requires a retained monotonic failure declaration",
         ));
     }
-    let mut result = json!({"status":"", "evaluations":null,"remaining":{"first":search.first,"last":search.last},"conditional_on_monotonicity":search.mode == "bisect"});
-    let mut evaluations = Vec::new();
-    let mut cache = BTreeMap::new();
-    let mut evaluate_choice = |choice: u64, result: &mut Value| -> Option<bool> {
-        if let Some(value) = cache.get(&choice) {
-            return Some(*value);
-        }
-        let elapsed = started.elapsed();
-        let wall = Duration::from_nanos(search.wall_time);
-        if evaluations.len() as u64 >= search.attempt_budget || elapsed >= wall {
-            result["status"] = "incomplete".into();
-            return None;
-        }
-        let evaluation = resolve(evidence, request, Some(choice)).and_then(|control| {
-            evaluate(
-                opened,
-                evidence,
-                control,
-                request,
-                Some(wall.saturating_sub(elapsed)),
-            )
-        });
-        let (outcome, detail, verified) = match evaluation {
-            Ok(output) => {
-                let checks = output.output["checks"].as_array();
-                if let Some(checks) = checks
-                    && checks.len() == 1
-                    && checks[0]["name"] == search.check
-                {
-                    let status = checks[0]["status"].as_str().unwrap_or("");
+    Ok(search::run(
+        search,
+        || started.elapsed(),
+        |choice, remaining| {
+            let evaluation = resolve(evidence, request, Some(choice))
+                .and_then(|control| evaluate(opened, evidence, control, request, Some(remaining)));
+            let (outcome, detail, verified) = match evaluation {
+                Ok(output) => {
+                    let checks = output.output["checks"].as_array();
+                    if let Some(checks) = checks
+                        && checks.len() == 1
+                        && checks[0]["name"] == search.check
+                    {
+                        let status = checks[0]["status"].as_str().unwrap_or("");
+                        (
+                            match status {
+                                "true" => "pass",
+                                "false" => "fail",
+                                _ => "error",
+                            },
+                            status.to_owned(),
+                            true,
+                        )
+                    } else {
+                        (
+                            "error",
+                            "inspection did not return exactly one invariant result".into(),
+                            false,
+                        )
+                    }
+                }
+                Err(error) => {
+                    let divergence = error.message.contains("instrumentation divergence");
                     (
-                        match status {
-                            "true" => "pass",
-                            "false" => "fail",
-                            _ => "error",
-                        },
-                        status.to_owned(),
-                        true,
-                    )
-                } else {
-                    (
-                        "error",
-                        "inspection did not return exactly one invariant result".into(),
+                        if divergence { "divergence" } else { "error" },
+                        error.message,
                         false,
                     )
                 }
-            }
-            Err(error) => {
-                let divergence = error.message.contains("instrumentation divergence");
-                (
-                    if divergence { "divergence" } else { "error" },
-                    error.message,
-                    false,
-                )
-            }
-        };
-        let timeout = started.elapsed() >= wall;
-        evaluations.push(json!({"choice":choice,"outcome":if timeout { "timeout" } else { outcome },"prefix_verified":verified,"detail":if timeout { "context deadline exceeded" } else { &detail }}));
-        result["evaluations"] = evaluations.clone().into();
-        if timeout {
-            result["status"] = "incomplete".into();
-            return None;
-        }
-        if outcome == "divergence" {
-            result["status"] = "replay_divergence".into();
-            return None;
-        }
-        if !matches!(outcome, "pass" | "fail") {
-            result["status"] = "invariant_evaluation_failure".into();
-            return None;
-        }
-        let passed = outcome == "pass";
-        cache.insert(choice, passed);
-        if search.mode == "bisect"
-            && cache.iter().any(|(position, value)| {
-                !*value && passed && *position < choice || *value && !passed && *position > choice
-            })
-        {
-            result["status"] = "monotonicity_violation".into();
-            return None;
-        }
-        Some(passed)
-    };
-    let finish = |result: &mut Value, failure: Option<u64>| {
-        result.as_object_mut().unwrap().remove("remaining");
-        if let Some(failure) = failure {
-            result["first_failure"] = failure.into();
-            result["status"] = if failure == search.first {
-                "already_failing_at_first"
-            } else {
-                "first_failure"
-            }
-            .into();
-        } else {
-            result["status"] = "no_failure".into();
-        }
-    };
-    if search.mode == "scan" {
-        let mut choice = search.first;
-        loop {
-            result["remaining"] = json!({"first":choice,"last":search.last});
-            let Some(passed) = evaluate_choice(choice, &mut result) else {
-                return Ok(result);
             };
-            if !passed {
-                finish(&mut result, Some(choice));
-                return Ok(result);
+            search::Evaluation {
+                outcome,
+                detail,
+                prefix_verified: verified,
             }
-            if choice == search.last {
-                finish(&mut result, None);
-                return Ok(result);
-            }
-            choice += 1;
-        }
-    }
-    let (mut lower, mut upper) = (search.first, search.last);
-    let Some(low_pass) = evaluate_choice(lower, &mut result) else {
-        return Ok(result);
-    };
-    if lower == upper {
-        finish(&mut result, if low_pass { None } else { Some(lower) });
-        return Ok(result);
-    }
-    let Some(high_pass) = evaluate_choice(upper, &mut result) else {
-        return Ok(result);
-    };
-    if !low_pass {
-        finish(&mut result, Some(lower));
-        return Ok(result);
-    }
-    if high_pass {
-        finish(&mut result, None);
-        return Ok(result);
-    }
-    while upper - lower > 1 {
-        result["remaining"] = json!({"first":lower + 1,"last":upper});
-        let middle = lower + (upper - lower) / 2;
-        let Some(passed) = evaluate_choice(middle, &mut result) else {
-            return Ok(result);
-        };
-        if passed {
-            lower = middle;
-        } else {
-            upper = middle;
-        }
-    }
-    finish(&mut result, Some(upper));
-    Ok(result)
+        },
+    ))
 }
