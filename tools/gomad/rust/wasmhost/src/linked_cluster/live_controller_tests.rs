@@ -787,3 +787,6 @@ fn one_and_thirty_two_mib_world_transition_bounds_change_the_same_actual_guest()
         assert_ne!(observed.world, [] as [u8; 0]);
     }
 }
+
+#[path = "lifecycle_predicate_tests.rs"]
+mod lifecycle_predicate_tests;

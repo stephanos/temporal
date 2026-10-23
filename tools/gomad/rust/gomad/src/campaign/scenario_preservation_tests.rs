@@ -696,3 +696,6 @@ fn output_capacity_failure_retains_the_selected_actual_static_message() {
         }
     );
 }
+
+#[path = "scenario_sqlite_predicate_tests.rs"]
+mod scenario_sqlite_predicate_tests;
