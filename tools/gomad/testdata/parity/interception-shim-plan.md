@@ -101,6 +101,13 @@ The input file is retained verbatim. Commands retain complete argv/environment
 bytes, producer PID, raw stdout/stderr, status and stream hashes. Evidence roots
 are private because complete environments may contain private operator values.
 
+Plan discovery distinguishes storage-backed launcher campaigns, unfinished zero-guest
+preparation campaigns, and published admission plans. Preparations require an empty
+journal and are authenticated with `complete=False`; launchers must complete. Each
+published admission needs its canonical receipt, exact copied plan, record/module/
+provenance commitments and a matching preparation campaign. Publications are never
+opened as independent campaign directories or silently skipped.
+
 Every real execution authenticates preparation, campaign plan, hash-chained
 journal, record/manifests, retained payloads, sealed origin/provenance and exact
 stored-byte accounting before projection. Original argv must match the actual
@@ -128,6 +135,20 @@ provenance retains that mapping after wrapper-private files disappear.
 | `guest-build` | Existing accepted registered main, `build -o $BUILD_OUTPUT`; require executable launcher and actual `.wasm` bytes. Invoke the published launcher after the wrapper exits, retaining a successful campaign. This stage includes that separate actual guest and needs its resource grant. |
 | `explicit-excluded-tag` | A genuinely admitted explicit manifest with a stricter `excluded_build_tags` policy and a caller requesting one of those tags. Require status2/no campaign. The fixture must retain all existing compiler/source/configuration admission; do not manufacture an installed fake compiler. |
 | `concurrent-identities` | Supply two distinct `commands` arrays of accepted `go test` invocations. A barrier releases both under one wrapper. Require both actual driver statuses0, two successful campaigns, one wrapper identity, two distinct driver identities and two distinct launch identities. Prewarm the admitted inputs sequentially under separate grants; no concurrent heavy preparation is authorized by this plan. |
+
+The external case additionally requires `launcher_arguments`: the exact ordered
+Go-translated arguments expected after the temporary module operand, established
+from the pinned driver contract and approved with the input declaration. The
+capture must contain exactly one invocation. Its canonical original caller argv
+(including `go` and every original flag in order), rewritten driver argv, effective
+external launcher, compiler bytes/path, ordered installation mapping and actual
+manifest bytes must match the supplied inputs. Canonical invocation and recipe
+bytes are retained with their digests and inherited wrapper/digest bindings. The
+fixture hashes compiler/source inventories while private generated inputs still
+exist, then the checker compares those observations to all recipe/input bindings.
+Wrong metadata cannot pass merely because an external process ran and no Gomad
+campaign exists. These observations remain caller-owned compilation evidence,
+never a Gomad guest execution/admission claim.
 
 The external-launcher path and build output placeholders are expanded directly as
 OS arguments; no shell interpretation is introduced. `commands` is used only by

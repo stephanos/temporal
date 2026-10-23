@@ -106,13 +106,14 @@ def authenticate_positive(artifacts, binary, compiler_sha256, installation_sha25
     checker = load_checker()
     rows = []
     wrappers, invocations, launches = set(), set(), set()
-    for path in sorted(artifacts.rglob('plan.json')):
-        root = path.parent
-        validated = checker.campaign.authenticate_campaign(root)
+    mapping_checker = load_checker_module('make_shim_mapping', HERE / 'interception-shim-check.py')
+    for retained in mapping_checker.authenticated_plans(artifacts):
+        root = retained['root']
+        validated = retained['validated']
         plan = validated['plan']
-        prepared_path = root / plan['prepared_artifact']
-        prepared = checker.campaign.authenticate_artifact(prepared_path)
-        origin = checker.authenticate_origin(prepared_path, prepared, plan['origin'])
+        prepared_path = retained['artifact']
+        prepared = retained['prepared']
+        origin = retained['origin']
         executions = validated['executions']
         if not executions:
             continue
@@ -140,7 +141,6 @@ def authenticate_positive(artifacts, binary, compiler_sha256, installation_sha25
                 raise ValueError('make retained stdout lacks selected test PASS')
         driver = origin['invocation']
         checker.equal(driver['compiler_sha256'], compiler_sha256, 'make.compiler_binding')
-        mapping_checker = load_checker_module('make_shim_mapping', HERE / 'interception-shim-check.py')
         provenance = checker.campaign.canonical_file(prepared_path / 'target/provenance.json')
         mapping_checker.authenticate_installations(provenance, origin,
             [['go.temporal.io/server/tests/gomadfunctional', installation_sha256]])

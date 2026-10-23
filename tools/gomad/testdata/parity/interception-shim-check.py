@@ -14,6 +14,7 @@ import os
 import re
 from pathlib import Path
 import signal
+import shlex
 import subprocess
 import sys
 import threading
@@ -107,10 +108,18 @@ def fixture():
         for prepared in shared['packages']:
             for key, value in dict(GOOS='wasip1', GOARCH='wasm', CGO_ENABLED='0', GOTOOLCHAIN='local').items():
                 equal(prepared['environment'][key], value, 'external.prepared_guest_environment.' + key)
+        inventories = []
+        for prepared in shared['packages']:
+            observed = {}
+            for kind in ('compiler','sources'):
+                observed[kind] = {path: file_sha(path) for path in prepared[kind]}
+                equal(observed[kind], prepared[kind], 'external.current_' + kind + '_inventory')
+            inventories.append(observed)
         save(root / ('external-' + str(os.getpid()) + '.json'),
              dict(module_sha256=file_sha(module), module_bytes=module.stat().st_size,
                   argv=[os.fsencode(arg).hex() for arg in args], environment=bytes_environment(),
-                  invocation=metadata, invocation_sha256=sha(raw),
+                  invocation=metadata, invocation_sha256=sha(raw), invocation_base64=base64.b64encode(raw).decode(),
+                  inventories=inventories,
                   recipe_base64=base64.b64encode(recipe_raw).decode(), pid=os.getpid()))
         return 0
     raise ValueError('unknown internal fixture mode')
@@ -260,15 +269,75 @@ def authenticate_cache(cache, binary, compiler, checkout, previous_binary=None):
     return result
 
 
+def authenticated_plans(root):
+    checker = load('shim_plan_authentication', HERE / 'interception-check.py')
+    campaigns, publications = {}, []
+    for path in sorted(root.rglob('plan.json')):
+        if path.is_symlink() or not path.resolve().is_relative_to(root.resolve()):
+            raise ValueError('unsafe retained plan path')
+        if not (path.parent / 'storage.json').exists():
+            publications.append(path)
+            continue
+        plan = checker.campaign.canonical_file(path)
+        complete = 'launcher' in plan
+        if complete:
+            if type(plan['launcher']) is not bool or not plan['launcher']:
+                raise ValueError('campaign.launcher_role must be true')
+        validated = checker.campaign.authenticate_campaign(path.parent, complete=complete)
+        artifact = path.parent / plan['prepared_artifact']
+        record = checker.campaign.authenticate_artifact(artifact)
+        origin = checker.authenticate_origin(artifact, record, plan['origin'])
+        if not complete:
+            equal((validated['journal'], validated['executions']), ([], []), 'preparation.zero_guest_journal')
+            equal((record['outcome']['class'], record['outcome']['termination']),
+                  ('prepared','prepared'), 'preparation.record_role')
+        campaigns[path.parent.resolve()] = dict(root=path.parent, validated=validated, prepared=record,
+                                                artifact=artifact, origin=origin, complete=complete)
+    admitted = set()
+    for path in publications:
+        relative = path.relative_to(root)
+        if len(relative.parts) != 4 or relative.parts[0] != 'admissions':
+            raise ValueError('unknown noncampaign plan publication')
+        receipt_path = path.with_name(path.name + '.preparation.json')
+        if not receipt_path.is_file() or receipt_path.is_symlink():
+            raise ValueError('admission publication missing preparation receipt')
+        receipt = checker.campaign.canonical_file(receipt_path)
+        equal((receipt['schema'], receipt['guest_executions'], receipt['exit_code']),
+              ('gomad.rust-preparation-receipt/v1', 0, 0), 'receipt.zero_guest_admission')
+        target = Path(receipt['campaign']).resolve()
+        if target not in campaigns or campaigns[target]['complete'] or target in admitted:
+            raise ValueError('admission receipt references unknown, completed or duplicate preparation')
+        prepared = campaigns[target]
+        equal(Path(receipt['plan']), path.resolve(), 'receipt.published_plan_path')
+        equal(checker.parity.digest(path.read_bytes()), receipt['plan_sha256'], 'receipt.plan_digest')
+        equal(path.read_bytes(), (target / 'plan.json').read_bytes(), 'receipt.published_plan_bytes')
+        equal(receipt['prepared_artifact'], prepared['validated']['plan']['prepared_artifact'], 'receipt.prepared_artifact')
+        manifest = checker.campaign.canonical_file(prepared['artifact'] / 'manifest.json')
+        equal(receipt['record_sha256'], manifest['record_sha256'], 'receipt.record_digest')
+        for prefix, filename in [('module','target/module.wasm'), ('provenance','target/provenance.json')]:
+            equal(receipt[prefix + '_file'], filename, 'receipt.payload_path')
+            raw = (prepared['artifact'] / filename).read_bytes()
+            equal((len(raw), checker.parity.digest(raw)),
+                  (receipt[prefix + '_bytes'], receipt[prefix + '_sha256']), 'receipt.payload_binding')
+        admitted.add(target)
+    preparations = {path for path, value in campaigns.items() if not value['complete']}
+    equal(admitted, preparations, 'preparation.exact_admission_receipts')
+    origins = [value['origin'] for value in campaigns.values() if not value['complete']]
+    for value in campaigns.values():
+        if value['complete'] and value['origin'] not in origins:
+            raise ValueError('launcher campaign has no matching authenticated preparation')
+    return list(campaigns.values())
+
+
 def authenticate_campaigns(root, expected, compiler_sha256):
     checker = load('shim_interception', HERE / 'interception-check.py')
     observations = []
-    for path in sorted(root.rglob('plan.json')):
-        campaign = checker.campaign.authenticate_campaign(path.parent)
+    for retained in authenticated_plans(root):
+        campaign = retained['validated']
         plan = campaign['plan']
-        prepared_path = path.parent / plan['prepared_artifact']
-        prepared = checker.campaign.authenticate_artifact(prepared_path)
-        origin = checker.authenticate_origin(prepared_path, prepared, plan['origin'])
+        prepared_path = retained['artifact']
+        prepared = retained['prepared']
+        origin = retained['origin']
         if not campaign['executions']:
             continue
         equal(origin['invocation']['compiler_sha256'], compiler_sha256, 'real.compiler_binding')
@@ -294,7 +363,7 @@ def authenticate_campaigns(root, expected, compiler_sha256):
         for execution in campaign['executions']:
             if execution['artifact'] is None:
                 raise ValueError('real execution missing retained artifact')
-            artifact = path.parent / execution['artifact']
+            artifact = retained['root'] / execution['artifact']
             record = checker.campaign.authenticate_artifact(artifact)
             equal(checker.authenticate_origin(artifact, record, plan['origin']), origin, 'real.execution_origin')
             for key, expected_limit in expected['limits'].items():
@@ -405,8 +474,11 @@ def validate_real(case, inputs):
         raise ValueError('effective false repeated race flags required')
     if name == 'empty-effective-exec' and not {'-exec=false','-exec='} <= set(argv):
         raise ValueError('overridden nonempty exec and final empty exec required')
-    if name == 'external-launcher' and not any('$EXTERNAL_LAUNCHER' in value for value in argv):
-        raise ValueError('actual external fixture launcher required')
+    if name == 'external-launcher':
+        if not any('$EXTERNAL_LAUNCHER' in value for value in argv):
+            raise ValueError('actual external fixture launcher required')
+        if not isinstance(inputs.get('launcher_arguments'), list) or not inputs.get('installation_bindings'):
+            raise ValueError('external exact launcher arguments and installation mapping required')
     if name == 'exec-true-count0' and not {'-exec=true','-count=0'} <= set(argv):
         raise ValueError('literal caller-owned true/count0 case required')
     if name == 'multi-package-json':
@@ -429,6 +501,77 @@ def validate_real(case, inputs):
         equal(inputs.get('outcome_classes'), ['success'] * count, 'real.required_actual_successes')
     if inputs['campaigns'] and not inputs.get('installation_bindings'):
         raise ValueError('exact retained installation mapping expectations required')
+
+
+def authenticate_external(captures, expected, compiler):
+    equal(len(captures), 1, 'external.exactly_one_capture')
+    captured = captures[0]
+    raw = base64.b64decode(captured['invocation_base64'], validate=True)
+    invocation = json.loads(raw)
+    canonical = lambda value: json.dumps(value, sort_keys=True, separators=(',', ':'), ensure_ascii=False).encode()
+    equal(canonical(invocation), raw, 'external.canonical_invocation')
+    equal(invocation, captured['invocation'], 'external.captured_invocation_object')
+    equal(sha(raw), captured['invocation_sha256'], 'external.invocation_commitment')
+    equal(invocation['schema'], 'gomad.intercepted-invocation/v1', 'external.invocation_schema')
+    equal(invocation['recipe_file'], 'driver-recipe.json', 'external.exact_recipe_file')
+    for key in ('wrapper_run_id','invocation_id','compiler_sha256','installation_sha256','recipe_sha256'):
+        value = invocation[key]
+        if not isinstance(value, str) or not re.fullmatch('[0-9a-f]{64}', value):
+            raise ValueError('external invalid invocation digest: ' + key)
+    if invocation['wrapper_run_id'] == invocation['invocation_id']:
+        raise ValueError('external driver aliases wrapper identity')
+    equal(invocation['original_argv'], [os.fsencode(value).hex() for value in ['go', *expected['argv']]],
+          'external.exact_original_caller_argv')
+    equal(invocation['compiler_sha256'], expected['compiler_sha256'], 'external.expected_compiler')
+    equal(file_sha(compiler), expected['compiler_sha256'], 'external.actual_compiler_bytes')
+    env = {bytes.fromhex(key): bytes.fromhex(value) for key, value in captured['environment'].items()}
+    equal(env[b'GOMAD_SHIM_INVOCATION_SHA256'].decode(), sha(raw), 'external.inherited_invocation_commitment')
+    equal(env[b'GOMAD_SHIM_RUN'].decode(), invocation['wrapper_run_id'], 'external.inherited_wrapper_identity')
+    driver = [bytes.fromhex(value).decode('utf-8') for value in invocation['driver_argv']]
+    equal(driver[:2], [str(compiler), 'test'], 'external.exact_driver_compiler_subcommand')
+    equal(shlex.split(driver_flags(driver[2:])['exec']), [expected['external_launcher']], 'external.effective_caller_launcher')
+    received = [bytes.fromhex(value) for value in captured['argv']]
+    if not received or not Path(os.fsdecode(received[0])).is_absolute():
+        raise ValueError('external missing actual Go module operand')
+    equal(received[1:], [os.fsencode(value) for value in expected['launcher_arguments']], 'external.exact_launcher_arguments')
+    if type(captured['module_bytes']) is not int or captured['module_bytes'] < 8 or not re.fullmatch('[0-9a-f]{64}', captured['module_sha256']):
+        raise ValueError('external invalid actual module commitment')
+    recipe_raw = base64.b64decode(captured['recipe_base64'], validate=True)
+    shared = json.loads(recipe_raw)
+    equal(canonical(shared), recipe_raw, 'external.canonical_recipe')
+    equal(sha(recipe_raw), invocation['recipe_sha256'], 'external.recipe_commitment')
+    equal(shared['schema'], 'gomad.shim-driver/v1', 'external.recipe_schema')
+    equal(shared['driver_argv'], invocation['driver_argv'], 'external.exact_driver_argv')
+    bindings = expected['installation_bindings']
+    equal(len(shared['packages']), len(bindings), 'external.exact_package_count')
+    equal(shared['installations'], [binding['sha256'] for binding in bindings], 'external.exact_installation_digests')
+    ordered = [[binding['import_path'], binding['sha256']] for binding in bindings]
+    if len({binding[0] for binding in ordered}) != len(ordered):
+        raise ValueError('external duplicate installation package')
+    equal(sha(canonical(ordered)), invocation['installation_sha256'], 'external.installation_mapping_commitment')
+    equal(len(captured['inventories']), len(bindings), 'external.inventory_capture_count')
+    for prepared, binding, observed in zip(shared['packages'], bindings, captured['inventories']):
+        equal(prepared['schema'], 'gomad.driver-recipe/v1', 'external.package_recipe_schema')
+        equal(prepared['import_path'], binding['import_path'], 'external.exact_package_order')
+        equal(prepared['options']['target_kind'], 'go-test', 'external.prepared_target_kind')
+        equal(prepared['options']['source'], binding['import_path'], 'external.prepared_source')
+        for key, value in [('source', prepared['options']['source']), ('kind', prepared['options']['target_kind']),
+                           ('directory', prepared['directory']), ('configuration', prepared['configuration'])]:
+            equal(prepared['inputs'][key], value, 'external.recipe_input.' + key)
+        equal(file_sha(binding['path']), binding['sha256'], 'external.actual_installation_bytes')
+        equal(prepared['installed'], json.loads(Path(binding['path']).read_bytes()), 'external.exact_installed_manifest')
+        equal(prepared['installed']['compiler_path'], str(compiler), 'external.recipe_compiler_path')
+        equal(prepared['installed']['compiler_sha256'], expected['compiler_sha256'], 'external.recipe_compiler_identity')
+        equal(prepared['options']['installation'], binding['path'], 'external.recipe_installation_selection')
+        for kind in ('compiler','sources'):
+            if not prepared[kind]:
+                raise ValueError('external empty ' + kind + ' inventory')
+            equal(prepared['inputs'][kind], prepared[kind], 'external.recipe_' + kind + '_commitment')
+            equal(observed[kind], prepared[kind], 'external.observed_' + kind + '_inventory')
+        equal(prepared['compiler'].get(str(compiler)), expected['compiler_sha256'], 'external.compiler_listed')
+        for key, value in dict(GOOS='wasip1', GOARCH='wasm', CGO_ENABLED='0', GOTOOLCHAIN='local').items():
+            equal(prepared['environment'][key], value, 'external.guest_environment.' + key)
+    return captured
 
 
 def real_case(case, binary, output, timeout, inputs):
@@ -462,7 +605,7 @@ def real_case(case, binary, output, timeout, inputs):
     launcher = output / 'external-launcher'
     program(launcher, 'external-launcher')
     argv = [os.fsdecode(value) for value in expand(inputs['argv'], {'EXTERNAL_LAUNCHER':launcher, 'BUILD_OUTPUT':output / 'published-main'})]
-    actual_expected = dict(inputs, argv=argv)
+    actual_expected = dict(inputs, argv=argv, external_launcher=str(launcher))
     before = schema_inventory(checkout)
     save(output / 'schema-before.json', before)
     cache_before = {str(path): dict(sha256=file_sha(path), mtime_ns=path.stat().st_mtime_ns)
@@ -502,7 +645,7 @@ def real_case(case, binary, output, timeout, inputs):
                            if event.get('Action') in ('start','run','pass','fail','skip'))
     external = [json.loads(path.read_bytes()) for path in sorted(output.glob('external-*.json'))]
     if case['name'] == 'external-launcher':
-        equal(bool(external), True, 'real.external_launcher_was_invoked')
+        authenticate_external(external, actual_expected, compiler)
         equal(observations, [], 'real.external_launcher_has_no_gomad_execution_claim')
     if case['name'] == 'exec-true-count0':
         equal((external, observations), ([], []), 'real.compile_only_no_guest')

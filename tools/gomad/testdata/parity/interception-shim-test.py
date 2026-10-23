@@ -1,6 +1,7 @@
 #!/usr/bin/env python3
 """Offline checker/byte-capture regressions, with no real Go or Gomad execution."""
 import copy
+import base64
 from importlib.machinery import SourceFileLoader
 from importlib.util import module_from_spec, spec_from_loader
 import json
@@ -57,6 +58,147 @@ class ByteCapture(unittest.TestCase):
                      'exec-true-count0','multi-package-json','auto-schema-mutation','auto-schema-missing',
                      'auto-changed-executable','concurrent-identities','explicit-excluded-tag'):
             self.assertTrue(check.CASES[name]['requires_real_inputs'])
+
+
+class PublishedPlans(unittest.TestCase):
+    def fixture(self, root):
+        fixtures = check.load('shim_plan_fixtures', HERE / 'interception-check-test.py')
+        artifact, receipt = fixtures.sealed_preparation(root)
+        return artifact, receipt
+
+    def test_public_shim_accepts_published_admission_and_incomplete_zero_guest_campaign(self):
+        with tempfile.TemporaryDirectory() as directory:
+            root = Path(directory)
+            self.fixture(root)
+            expected = dict(argv=['test','./supported'], campaigns=0, outcome_classes=[], limits={})
+            self.assertEqual(check.authenticate_campaigns(root, expected, '1' * 64), [])
+
+    def test_public_make_reaches_expected_count_after_authenticating_preparation(self):
+        make = check.load('shim_make_plan_test', HERE / 'interception-make-check.py')
+        with tempfile.TemporaryDirectory() as directory:
+            root = Path(directory)
+            self.fixture(root)
+            with self.assertRaisesRegex(ValueError, 'make.three_sequential_recipes'):
+                make.authenticate_positive(root, Path('/actual/gomad'), '1' * 64, '2' * 64)
+
+    def test_complete_launcher_and_preparation_are_both_authenticated(self):
+        with tempfile.TemporaryDirectory() as directory:
+            root = Path(directory)
+            self.fixture(root)
+            fixtures = check.load('shim_complete_fixtures', HERE / 'interception-check-test.py')
+            executed = root / 'campaigns/campaign-executed'
+            fixtures.sealed_campaign(executed)
+            fixtures.check.campaign.rechain(executed, lambda plan: plan.update(launcher=True))
+            rows = check.authenticated_plans(root)
+            self.assertEqual(sorted(row['complete'] for row in rows), [False, True])
+            self.assertEqual([len(row['validated']['executions']) for row in rows if row['complete']], [1])
+
+    def test_published_receipt_digest_tamper_is_refused(self):
+        with tempfile.TemporaryDirectory() as directory:
+            root = Path(directory)
+            _, receipt = self.fixture(root)
+            value = json.loads(receipt.read_bytes())
+            value['plan_sha256'] = '0' * 64
+            receipt.write_bytes(check.encode(value))
+            with self.assertRaisesRegex(ValueError, 'receipt.plan_digest'):
+                check.authenticated_plans(root)
+
+
+class ExternalCapture(unittest.TestCase):
+    def candidate(self, root):
+        compiler, source, installation = [root / name for name in ('compiler','source.go','install.json')]
+        compiler.write_bytes(b'offline compiler fixture, never Go')
+        source.write_bytes(b'offline source inventory fixture')
+        installed = dict(compiler_path=str(compiler), compiler_sha256=check.file_sha(compiler))
+        installation.write_bytes(check.encode(installed))
+        original = ['test','./supported','-run=^TestA$','-v','-count=1','-exec=/actual/external']
+        driver = [str(compiler), *original]
+        bindings = [dict(import_path='example/supported', path=str(installation), sha256=check.file_sha(installation))]
+        package = dict(schema='gomad.driver-recipe/v1', import_path='example/supported', installed=installed,
+                       directory=str(root), configuration={},
+                       options=dict(installation=str(installation), target_kind='go-test', source='example/supported'),
+                       compiler={str(compiler):check.file_sha(compiler)}, sources={str(source):check.file_sha(source)},
+                       environment=dict(GOOS='wasip1', GOARCH='wasm', CGO_ENABLED='0', GOTOOLCHAIN='local'))
+        package['inputs'] = dict(compiler=package['compiler'], sources=package['sources'],
+                                 source='example/supported', kind='go-test', directory=str(root), configuration={})
+        shared = dict(schema='gomad.shim-driver/v1', packages=[package],
+                      installations=[bindings[0]['sha256']], driver_argv=[value.encode().hex() for value in driver])
+        invocation = dict(schema='gomad.intercepted-invocation/v1', wrapper_run_id='a'*64, invocation_id='b'*64,
+                          compiler_sha256=check.file_sha(compiler), recipe_file='driver-recipe.json',
+                          original_argv=[value.encode().hex() for value in ['go',*original]], driver_argv=shared['driver_argv'],
+                          installation_sha256=check.sha(check.encode([[bindings[0]['import_path'],bindings[0]['sha256']]])))
+        captured = dict(invocation=invocation, argv=[value.encode().hex() for value in
+                        ['/actual/temporary.wasm','-test.run=^TestA$','-test.v=true']],
+                        module_bytes=8, module_sha256='c'*64,
+                        inventories=[dict(compiler=package['compiler'],sources=package['sources'])])
+        expected = dict(argv=original, compiler_sha256=check.file_sha(compiler), external_launcher='/actual/external',
+                        launcher_arguments=['-test.run=^TestA$','-test.v=true'], installation_bindings=bindings)
+        self.seal(captured, shared)
+        return compiler, captured, shared, expected
+
+    def seal(self, captured, shared):
+        recipe_raw = check.encode(shared)
+        captured['recipe_base64'] = base64.b64encode(recipe_raw).decode()
+        captured['invocation']['recipe_sha256'] = check.sha(recipe_raw)
+        raw = check.encode(captured['invocation'])
+        captured['invocation_base64'] = base64.b64encode(raw).decode()
+        captured['invocation_sha256'] = check.sha(raw)
+        captured['environment'] = {key.encode().hex():value.encode().hex() for key,value in dict(
+            GOMAD_SHIM_INVOCATION_SHA256=check.sha(raw), GOMAD_SHIM_RUN='a'*64).items()}
+
+    def test_exact_external_capture_is_accepted_without_a_guest_claim(self):
+        with tempfile.TemporaryDirectory() as directory:
+            compiler, captured, _, expected = self.candidate(Path(directory))
+            self.assertEqual(check.authenticate_external([captured], expected, compiler), captured)
+
+    def test_external_fixture_captures_inventory_before_private_inputs_disappear(self):
+        with tempfile.TemporaryDirectory() as directory:
+            root = Path(directory)
+            compiler, captured, shared, expected = self.candidate(root)
+            invocation = root / 'invocation.json'
+            invocation.write_bytes(base64.b64decode(captured['invocation_base64']))
+            recipe = root / 'driver-recipe.json'
+            recipe.write_bytes(base64.b64decode(captured['recipe_base64']))
+            module = root / 'actual.wasm'
+            module.write_bytes(b'\0asm\x01\0\0\0')
+            launcher = root / 'fixture-launcher'
+            check.program(launcher, 'external-launcher')
+            env = dict(os.environ, INTERCEPTION_CAPTURE_ROOT=str(root), GOMAD_SHIM_INVOCATION=str(invocation),
+                       GOMAD_SHIM_INVOCATION_SHA256=captured['invocation_sha256'], GOMAD_SHIM_RUN='a'*64)
+            result = subprocess.run([launcher, module, *expected['launcher_arguments']], env=env,
+                                    stdout=subprocess.PIPE, stderr=subprocess.PIPE)
+            self.assertEqual(result.returncode, 0, result.stderr)
+            observed = [json.loads(path.read_bytes()) for path in root.glob('external-*.json')]
+            recipe.unlink()
+            invocation.unlink()
+            (root / 'source.go').unlink()
+            check.authenticate_external(observed, expected, compiler)
+
+    def test_self_consistent_wrong_original_order_compiler_installation_or_received_arguments_are_refused(self):
+        for mode in ('original-order','compiler','installation','received-order','invocation','inventory'):
+            with self.subTest(mode=mode), tempfile.TemporaryDirectory() as directory:
+                compiler, captured, shared, expected = self.candidate(Path(directory))
+                if mode == 'original-order':
+                    values = captured['invocation']['original_argv']
+                    values[3],values[4] = values[4],values[3]
+                elif mode == 'compiler':
+                    captured['invocation']['compiler_sha256'] = 'f'*64
+                elif mode == 'installation':
+                    shared['installations'] = ['f'*64]
+                    captured['invocation']['installation_sha256'] = check.sha(check.encode([['example/supported','f'*64]]))
+                elif mode == 'received-order':
+                    captured['argv'][1],captured['argv'][2] = captured['argv'][2],captured['argv'][1]
+                elif mode == 'inventory':
+                    captured['inventories'][0] = dict(compiler={str(compiler):'f'*64}, sources=shared['packages'][0]['sources'])
+                self.seal(captured, shared)
+                if mode == 'invocation':
+                    captured['invocation_sha256'] = 'f'*64
+                with self.assertRaises(ValueError):
+                    check.authenticate_external([captured], expected, compiler)
+
+    def test_missing_exact_capture_cannot_pass_as_external_execution(self):
+        with self.assertRaisesRegex(ValueError, 'external.exactly_one_capture'):
+            check.authenticate_external([], dict(argv=['test','./supported']), Path('/actual/compiler'))
 
 
 class DriverFlags(unittest.TestCase):

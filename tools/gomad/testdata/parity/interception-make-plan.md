@@ -78,7 +78,10 @@ Every command retains argv/cwd, selected environment controls, producer PID, raw
 stdout/stderr, numeric status, timeout disposition and stream hashes. Stage
 receipts distinguish rejected/incomplete observations from accepted stage data.
 The supplied binary/compiler/installation and unchanged Makefile hashes are
-recorded independently. Successful campaigns are checked through the existing
+recorded independently. Admission plan publications are authenticated through their canonical receipts and
+matching empty-journal preparation campaigns (`complete=False`); only storage-backed
+launcher campaigns require completion. Unknown publications and mismatched receipts
+refuse. Successful campaigns are checked through the existing
 campaign checker and sealed-origin authenticator: preparation, every execution,
 manifest/record/payload hashes, journal chaining and exact stored-byte accounting
 must pass before projection. Guest records must retain the original 4 GiB memory,
