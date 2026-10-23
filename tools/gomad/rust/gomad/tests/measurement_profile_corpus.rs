@@ -128,7 +128,7 @@ fn assert_variant_artifacts(root: &Path) -> Value {
             assert!(entry["source"].as_str().is_some());
         } else {
             assert_eq!(entry["status"], "unavailable");
-            assert!(!entry["cause"].as_str().unwrap().is_empty());
+            assert_ne!(entry["cause"].as_str().unwrap(), "");
             assert!(entry.get("file").is_none());
             assert!(entry.get("bytes").is_none());
             assert!(entry.get("sha256").is_none());
@@ -668,7 +668,7 @@ fn actual_closed_native_run_publishes_explicit_canonical_stream_sources() {
                 .as_str()
                 .unwrap()
                 .to_owned();
-            assert!(!terminal.is_empty());
+            assert_ne!(terminal, "");
             assert_eq!(std::fs::read(output.join("terminal")).unwrap().len(), 16);
             assert_eq!(
                 receipt["streams"]["terminal"]["source"],

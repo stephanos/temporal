@@ -713,17 +713,39 @@ pub(super) fn execute_admitted(
         }),
         64 << 20,
     );
-    role.verify(proof)?;
+    let after = role.verify(proof);
     let result = evidence::read_profile_run(&output, evidence::ReadLimits::default());
-    match (command, result) {
-        (Ok(_), Ok(result)) => Ok(result),
-        (Err(error), _) | (_, Err(error)) => Err(format!(
-            "{}: {error}; actual failed tail retained in {}",
+    let mut failures = Vec::new();
+    for failure in [
+        command.as_ref().err(),
+        after.as_ref().err(),
+        result.as_ref().err(),
+    ]
+    .into_iter()
+    .flatten()
+    {
+        if !failures.contains(failure) {
+            failures.push(failure.clone());
+        }
+    }
+    let primary = (!failures.is_empty()).then(|| {
+        format!(
+            "{}: {}; actual failed tail retained in {}",
             row.name,
+            failures.join("; "),
             output.display()
-        )),
+        )
+    });
+    let catalog =
+        super::artifacts::retain_supervised(&evidence_root, &row.name, primary.as_deref());
+    match (primary, catalog) {
+        (Some(primary), Err(catalog)) => Err(format!("{primary}; {catalog}")),
+        (Some(primary), Ok(())) => Err(primary),
+        (None, Err(catalog)) => Err(catalog),
+        (None, Ok(())) => result,
     }
 }
+
 pub(super) fn success(run: &NativeRun, row: &RunSpec) -> Result<(), String> {
     if run.root.outcome["termination"] != "exit" || run.root.outcome["exit_code"] != 0 {
         return Err(format!(

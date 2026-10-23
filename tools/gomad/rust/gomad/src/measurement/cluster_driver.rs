@@ -518,7 +518,26 @@ fn execute_replayed(
             executable,
             request,
             Some(&path),
-        )?;
+        );
+        let result = match result {
+            Ok(result) => result,
+            Err(error) => {
+                let retained = profile_pair::retain_failed_capture(
+                    root,
+                    &row.name,
+                    executable
+                        .role
+                        .features()?
+                        .iter()
+                        .any(|feature| feature == "diagnostic-profile"),
+                    &error,
+                );
+                return Err(match retained {
+                    Ok(()) => error,
+                    Err(retained) => format!("{error}; {retained}"),
+                });
+            }
+        };
         admission::check_observations(&root.join("evidence").join(&row.name), replay)?;
         module::authenticate_prepared(prepared)?;
         executable.verify(proof)?;

@@ -789,6 +789,70 @@ fn one_and_thirty_two_mib_world_transition_bounds_change_the_same_actual_guest()
     }
 }
 
+fn phase_schedule_request(slow_first: bool) -> Request {
+    let mut request = output_wait_request(1, "", &["a", "b"], Action::Stop);
+    request.boundaries.clear();
+    let second = output_wait_request(1, "", &["a", "b"], Action::Stop)
+        .incarnations
+        .into_iter()
+        .map(|mut item| {
+            item.handle.incarnation = 2;
+            item
+        })
+        .collect::<Vec<_>>();
+    request.incarnations.extend(second);
+    for (index, incarnation) in request.incarnations.iter_mut().enumerate() {
+        let busy = if (index % 2 == 0) == slow_first {
+            "(loop $loop local.get $i i32.const 1 i32.add local.tee $i i32.const 10000 i32.lt_u br_if $loop)"
+        } else {
+            ""
+        };
+        let body = format!(
+            "i32.const 512 i32.const 16 call $config drop {busy} i32.const 995 i32.const 1 i32.store8 i32.const 992 i32.const 16 call $finish drop"
+        );
+        let mut module = output_wait_request(1, &body, &["a"], Action::Stop)
+            .incarnations
+            .remove(0)
+            .request
+            .module;
+        let text = String::from_utf8(module).unwrap().replace(
+            "(func (export \"_start\")",
+            "(func (export \"_start\") (local $i i32)",
+        );
+        module = text.into_bytes();
+        incarnation.request.module_sha256 = format!("{:x}", Sha256::digest(&module));
+        incarnation.request.module = module;
+    }
+    request.steps = [(1, Action::Start), (2, Action::Restart)]
+        .into_iter()
+        .flat_map(|(incarnation, start)| {
+            let order = if slow_first {
+                [
+                    ("a", start),
+                    ("b", start),
+                    ("a", Action::Wait),
+                    ("b", Action::Wait),
+                ]
+            } else {
+                [
+                    ("a", start),
+                    ("a", Action::Wait),
+                    ("b", start),
+                    ("b", Action::Wait),
+                ]
+            };
+            order.map(move |(node, action)| Step {
+                action,
+                handle: Handle {
+                    node: node.into(),
+                    incarnation,
+                },
+            })
+        })
+        .collect();
+    request
+}
+
 #[test]
 fn measurement_phase_callbacks_guard_actual_store_dispatch_and_join_for_both_schedules() {
     use std::sync::Mutex;
@@ -822,55 +886,7 @@ fn measurement_phase_callbacks_guard_actual_store_dispatch_and_join_for_both_sch
             Some((2, true)),
             Some((2, false)),
         ] {
-            let mut request = output_wait_request(1, "", &["a", "b"], Action::Stop);
-            request.boundaries.clear();
-            let second = output_wait_request(1, "", &["a", "b"], Action::Stop)
-                .incarnations
-                .into_iter()
-                .map(|mut item| {
-                    item.handle.incarnation = 2;
-                    item
-                })
-                .collect::<Vec<_>>();
-            request.incarnations.extend(second);
-            for (index, incarnation) in request.incarnations.iter_mut().enumerate() {
-                let module = if (index % 2 == 0) == slow_first {
-                    br#"(module (memory (export "memory") 1) (func (export "_start") (local $i i32)
-                    (loop $loop local.get $i i32.const 1 i32.add local.tee $i i32.const 10000 i32.lt_u br_if $loop)))"#.to_vec()
-                } else {
-                    br#"(module (memory (export "memory") 1) (func (export "_start")))"#.to_vec()
-                };
-                incarnation.request.module_sha256 = format!("{:x}", Sha256::digest(&module));
-                incarnation.request.module = module;
-                incarnation.request.model = None;
-            }
-            request.steps = [(1, Action::Start), (2, Action::Restart)]
-                .into_iter()
-                .flat_map(|(incarnation, start)| {
-                    let order = if slow_first {
-                        [
-                            ("a", start),
-                            ("b", start),
-                            ("a", Action::Wait),
-                            ("b", Action::Wait),
-                        ]
-                    } else {
-                        [
-                            ("a", start),
-                            ("a", Action::Wait),
-                            ("b", start),
-                            ("b", Action::Wait),
-                        ]
-                    };
-                    order.map(move |(node, action)| Step {
-                        action,
-                        handle: Handle {
-                            node: node.into(),
-                            incarnation,
-                        },
-                    })
-                })
-                .collect();
+            let request = phase_schedule_request(slow_first);
             let observer = Observer {
                 calls: Mutex::new(Vec::new()),
                 refuse,

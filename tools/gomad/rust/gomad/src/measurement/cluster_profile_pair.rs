@@ -219,3 +219,57 @@ pub(super) fn summarize(run: &NativeRun) -> Result<Value, String> {
 #[cfg(test)]
 #[path = "cluster_profile_pair_tests.rs"]
 mod tests;
+
+pub(super) fn retain_failed_capture(
+    root: &std::path::Path,
+    name: &str,
+    diagnostic: bool,
+    execution_error: &str,
+) -> Result<(), String> {
+    use crate::evidence::store::open;
+    let evidence = open::pin(&root.join("evidence"))?;
+    let journal: super::super::build::CommandObservation = crate::qualify::spec::strict(
+        &open::read(&evidence, &format!("{name}-driver.json"), 1 << 20, false)?,
+    )?;
+    if journal.schema != "gomad.native-process-observation/v1" || journal.pid.is_none() {
+        return Err("cluster failed capture lacks actual process custody".into());
+    }
+    let mut summary = if diagnostic {
+        let path = root.join("evidence").join(name).join("profile.json");
+        let raw = match std::fs::symlink_metadata(&path) {
+            Err(error) if error.kind() == std::io::ErrorKind::NotFound => Vec::new(),
+            Err(error) => return Err(error.to_string()),
+            Ok(_) => open::read(
+                &open::child(&evidence, name, true, false)?,
+                "profile.json",
+                64 << 10,
+                false,
+            )?,
+        };
+        let capture = Capture {
+            raw: &raw,
+            crashed: journal.signal.is_some(),
+            reaped: journal.reaped_monotonic_nanos.is_some() && journal.cleanup_errors.is_empty(),
+        };
+        match decode(&[capture]) {
+            Ok(summary) => summary,
+            Err(failure) => {
+                let mut summary = failure.summary;
+                summary["capture_failure"] = json!(failure.error);
+                summary
+            }
+        }
+    } else {
+        json!({"complete":false,"measured_captures":0,"measured_sum":null,"unavailable":"ordinary process has no diagnostic capture"})
+    };
+    summary["schema"] = json!("gomad.failed-cluster-profile-pair/v1");
+    summary["capture_scope"] =
+        json!("one actual native process capture; not per-store helper aliases");
+    summary["execution_error"] = json!(execution_error);
+    summary["process_id"] = json!(journal.pid);
+    summary["passed"] = json!(false);
+    super::write(
+        &root.join(format!("{name}-profile-pair-failure.json")),
+        &canonical::encode(&summary)?,
+    )
+}

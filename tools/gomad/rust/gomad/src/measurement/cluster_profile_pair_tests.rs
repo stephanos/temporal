@@ -1,4 +1,5 @@
 use super::*;
+use std::collections::BTreeMap;
 
 fn fixture() -> Value {
     let mut profile = json!({"schema":"gomad.wasm-profile/v2","diagnostic_only":true,"backend":"cranelift-jit","host_os":"linux","host_arch":"aarch64",
@@ -205,14 +206,14 @@ fn linked_store_identity_and_single_process_resource_scope_are_explicit() {
         profile,
         root: NativeExecution {
             outcome: json!({"termination":"exit","exit_code":0}),
-            streams: Default::default(),
+            streams: BTreeMap::new(),
             handle: None,
         },
         incarnations: handles
             .into_iter()
             .map(|handle| NativeExecution {
                 outcome: json!({"termination":"exit","exit_code":0}),
-                streams: Default::default(),
+                streams: BTreeMap::new(),
                 handle: Some(handle),
             })
             .collect(),
@@ -261,4 +262,53 @@ fn linked_store_identity_and_single_process_resource_scope_are_explicit() {
             .unwrap_err()
             .contains("no execute interval")
     );
+}
+
+#[test]
+fn actual_reaped_capture_failure_retains_availability_without_fabricated_aggregate() {
+    use std::os::unix::fs::DirBuilderExt;
+    let root = std::env::temp_dir().join(format!(
+        "gomad-profile-pair-reap-{}-{}",
+        std::process::id(),
+        std::time::SystemTime::now()
+            .duration_since(std::time::UNIX_EPOCH)
+            .unwrap()
+            .as_nanos()
+    ));
+    std::fs::DirBuilder::new()
+        .mode(0o700)
+        .create(&root)
+        .unwrap();
+    let evidence = root.join("evidence");
+    std::fs::DirBuilder::new()
+        .mode(0o700)
+        .create(&evidence)
+        .unwrap();
+    for (name, script, killed) in [
+        ("killed", "kill -KILL $$", true),
+        ("successful-missing", "exit 0", false),
+    ] {
+        let actual = super::super::super::build::command_bounded(
+            &evidence,
+            &format!("{name}-driver"),
+            &root,
+            &BTreeMap::new(),
+            &["/bin/sh".into(), "-c".into(), script.into()],
+            std::time::Duration::from_secs(5),
+            1 << 20,
+        );
+        assert_eq!(actual.is_err(), killed);
+        retain_failed_capture(&root, name, true, "controlled process capture failure").unwrap();
+        let result: Value = serde_json::from_slice(
+            &std::fs::read(root.join(format!("{name}-profile-pair-failure.json"))).unwrap(),
+        )
+        .unwrap();
+        assert_eq!(result["passed"], false);
+        assert_eq!(result["measured_captures"], 0);
+        assert!(result["measured_sum"].is_null());
+        assert_eq!(result["complete"], false);
+        assert_eq!(!result["capture_failure"].is_null(), !killed);
+        assert!(result["process_id"].as_u64().is_some_and(|pid| pid > 0));
+    }
+    std::fs::remove_dir_all(root).unwrap();
 }

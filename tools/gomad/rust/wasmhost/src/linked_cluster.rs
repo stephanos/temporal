@@ -928,10 +928,6 @@ impl<'a> PhaseObservations<'a> {
     clippy::too_many_lines,
     reason = "Lifecycle ordering shares the existing broker activation, run, restart and terminal transitions"
 )]
-#[expect(
-    clippy::too_many_arguments,
-    reason = "Observer extends the existing linked lifecycle context"
-)]
 fn execute_inner(
     engine: &Engine,
     mut prepared: Prepared,
@@ -939,9 +935,9 @@ fn execute_inner(
     network: Option<&Arc<Mutex<Shared>>>,
     timed_out: &AtomicBool,
     session: &crate::linked_conditions::Session,
-    observer: Option<&dyn LifecycleObserver>,
+    phase_listener: Option<&dyn LifecycleObserver>,
 ) -> Result<Execution> {
-    let mut phase_observations = PhaseObservations::new(&prepared, observer);
+    let mut phase_observations = PhaseObservations::new(&prepared, phase_listener);
     let execution_started = std::time::Instant::now();
     let mut metrics = Metrics::default();
     let modules = compile(engine, &prepared, &mut metrics)?;
