@@ -24,6 +24,12 @@ fn pure_imports(source: &str) -> Result<(), String> {
         .split(|c: char| !c.is_alphanumeric() && c != '_')
         .filter(|word| !word.is_empty())
         .collect();
+    if let Some(host) = words
+        .iter()
+        .find(|word| matches!(**word, "rustix" | "libc"))
+    {
+        return Err(format!("modeled state imports host {host}"));
+    }
     for pair in words.windows(2) {
         if pair[0] == "std"
             && !matches!(
@@ -53,14 +59,14 @@ fn pure_imports(source: &str) -> Result<(), String> {
         {
             return Err(format!("modeled state imports host std::{}", pair[1]));
         }
-        if matches!(pair[0], "rustix" | "libc") {
-            return Err(format!("modeled state imports host {}", pair[0]));
-        }
     }
     // A grouped std root can hide a second host module after the first allowed
     // entry. Require explicit module-qualified paths instead of guessing imports.
     let compact: String = source.chars().filter(|c| !c.is_whitespace()).collect();
-    if compact.contains("std::{") || compact.contains("externcratestd") {
+    if compact.contains("std::{")
+        || compact.contains("std::*")
+        || compact.contains("externcratestd")
+    {
         return Err("modeled state requires explicit std module paths".into());
     }
     Ok(())
@@ -100,6 +106,8 @@ fn native_modeled_state_rejects_host_imports_on_both_source_platforms() {
                 "fn read() { std :: time :: Instant::now(); }",
                 "use rustix::fs as host;",
                 "extern crate std as host;",
+                "extern crate libc;",
+                "use std::*;",
             ] {
                 assert!(pure_imports(source).is_err(), "{platform} {name}: {source}");
             }
