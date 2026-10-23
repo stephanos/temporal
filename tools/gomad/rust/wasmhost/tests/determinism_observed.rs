@@ -1,3 +1,5 @@
+#![cfg(not(feature = "conformance"))]
+
 use base64::{Engine as _, engine::general_purpose::STANDARD};
 use gomad_wasmhost::linked_inspection::{self, Evidence};
 use serde_json::{Value, json};
@@ -25,7 +27,7 @@ fn fixture(change: &str) -> Vec<u8> {
         if action == 2 {
             life_cuts.push(lifecycle.len() as u64);
             number(&mut world, 32);
-            world.extend([incarnation as u8; 32]);
+            world.extend([u8::try_from(incarnation).unwrap(); 32]);
         }
     }
     let mut frames = b"GMWIB\x01\0\0".to_vec();
@@ -40,11 +42,11 @@ fn fixture(change: &str) -> Vec<u8> {
             2 + index * 2,
             100 + index,
             world_header_bytes + (index + 1) * 40,
-            life_cuts[index as usize],
+            life_cuts[usize::try_from(index).unwrap()],
         ] {
             number(&mut boundary, value);
         }
-        word(&mut boundary, (index + 1) as u32);
+        word(&mut boundary, u32::try_from(index + 1).unwrap());
         for incarnation in 1..=index + 1 {
             handle(&mut boundary, incarnation);
             let records = if incarnation == 1 { 17 } else { 0 };
@@ -70,7 +72,7 @@ fn fixture(change: &str) -> Vec<u8> {
             }
             boundary.extend(witness);
         }
-        word(&mut frames, boundary.len() as u32);
+        word(&mut frames, u32::try_from(boundary.len()).unwrap());
         frames.extend(boundary);
     }
     let owners:Vec<Value>=(1..=2).map(|incarnation| {
@@ -116,7 +118,7 @@ fn native_inspection_rejects_unknown_schema_and_tracks_zero_choice_incarnation()
     let zero = &retained.incarnations[1];
     assert_eq!(zero.handle.incarnation, 2);
     assert_eq!(zero.started_order, 3);
-    assert!(zero.streams.choice.is_empty());
+    assert_eq!(zero.streams.choice, [] as [u8; 0]);
     let boundary = &retained.boundaries[1];
     assert_eq!(boundary.handle.incarnation, 2);
     assert_eq!(boundary.trace, 0);
