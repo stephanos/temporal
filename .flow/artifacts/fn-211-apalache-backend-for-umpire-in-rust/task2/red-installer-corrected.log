@@ -1,0 +1,83 @@
+...FFF
+======================================================================
+FAIL: test_symlink_in_each_install_component_is_refused (test_apalache.Installer.test_symlink_in_each_install_component_is_refused) (component='model')
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/Users/stephan/Workspace/skunkworks/umpire/temporal/model/scripts/tests/test_apalache.py", line 54, in test_symlink_in_each_install_component_is_refused
+    apalache.install(root)
+    ~~~~~~~~~~~~~~~~^^^^^^
+  File "/Users/stephan/Workspace/skunkworks/umpire/temporal/model/scripts/fetch-apalache.py", line 48, in install
+    subprocess.run(["curl", "--proto", "=https", "--tlsv1.2", "--fail", "--location",
+    ~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+                    "--retry", "2", "--max-time", "180",
+                    ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+                    f"https://github.com/apalache-mc/apalache/releases/download/v{VERSION}/apalache-{VERSION}.tgz",
+                    ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+                    "-o", str(archive)], check=True)
+                    ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/usr/lib/python3.14/unittest/mock.py", line 1176, in __call__
+    return self._mock_call(*args, **kwargs)
+           ~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^
+  File "/usr/lib/python3.14/unittest/mock.py", line 1180, in _mock_call
+    return self._execute_mock_call(*args, **kwargs)
+           ~~~~~~~~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^
+  File "/usr/lib/python3.14/unittest/mock.py", line 1241, in _execute_mock_call
+    raise effect
+AssertionError: download
+
+======================================================================
+FAIL: test_symlink_in_each_install_component_is_refused (test_apalache.Installer.test_symlink_in_each_install_component_is_refused) (component='model/build')
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/Users/stephan/Workspace/skunkworks/umpire/temporal/model/scripts/tests/test_apalache.py", line 54, in test_symlink_in_each_install_component_is_refused
+    apalache.install(root)
+    ~~~~~~~~~~~~~~~~^^^^^^
+  File "/Users/stephan/Workspace/skunkworks/umpire/temporal/model/scripts/fetch-apalache.py", line 48, in install
+    subprocess.run(["curl", "--proto", "=https", "--tlsv1.2", "--fail", "--location",
+    ~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+                    "--retry", "2", "--max-time", "180",
+                    ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+                    f"https://github.com/apalache-mc/apalache/releases/download/v{VERSION}/apalache-{VERSION}.tgz",
+                    ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+                    "-o", str(archive)], check=True)
+                    ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/usr/lib/python3.14/unittest/mock.py", line 1176, in __call__
+    return self._mock_call(*args, **kwargs)
+           ~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^
+  File "/usr/lib/python3.14/unittest/mock.py", line 1180, in _mock_call
+    return self._execute_mock_call(*args, **kwargs)
+           ~~~~~~~~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^
+  File "/usr/lib/python3.14/unittest/mock.py", line 1241, in _execute_mock_call
+    raise effect
+AssertionError: download
+
+======================================================================
+FAIL: test_symlink_in_each_install_component_is_refused (test_apalache.Installer.test_symlink_in_each_install_component_is_refused) (component='model/build/apalache')
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/Users/stephan/Workspace/skunkworks/umpire/temporal/model/scripts/tests/test_apalache.py", line 54, in test_symlink_in_each_install_component_is_refused
+    apalache.install(root)
+    ~~~~~~~~~~~~~~~~^^^^^^
+  File "/Users/stephan/Workspace/skunkworks/umpire/temporal/model/scripts/fetch-apalache.py", line 48, in install
+    subprocess.run(["curl", "--proto", "=https", "--tlsv1.2", "--fail", "--location",
+    ~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+                    "--retry", "2", "--max-time", "180",
+                    ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+                    f"https://github.com/apalache-mc/apalache/releases/download/v{VERSION}/apalache-{VERSION}.tgz",
+                    ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+                    "-o", str(archive)], check=True)
+                    ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/usr/lib/python3.14/unittest/mock.py", line 1176, in __call__
+    return self._mock_call(*args, **kwargs)
+           ~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^
+  File "/usr/lib/python3.14/unittest/mock.py", line 1180, in _mock_call
+    return self._execute_mock_call(*args, **kwargs)
+           ~~~~~~~~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^
+  File "/usr/lib/python3.14/unittest/mock.py", line 1241, in _execute_mock_call
+    raise effect
+AssertionError: download
+
+----------------------------------------------------------------------
+Ran 4 tests in 0.011s
+
+FAILED (failures=3)

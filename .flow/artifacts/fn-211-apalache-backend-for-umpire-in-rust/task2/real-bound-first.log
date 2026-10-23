@@ -1,0 +1,161 @@
+   Compiling umpire-tlc v0.0.1 (/Users/stephan/Workspace/skunkworks/umpire/temporal/model/umpire/backends/tlc)
+   Compiling umpire-apalache v0.0.1 (/Users/stephan/Workspace/skunkworks/umpire/temporal/model/umpire/backends/apalache)
+warning: unreachable `pub` item
+ --> umpire/backends/apalache/tests/../../../tests/fixtures/sample_kettle/model.rs:7:1
+  |
+7 | pub mod kettle {
+  | ---^^^^^^^^^^^
+  | |
+  | help: consider restricting its visibility: `pub(crate)`
+  |
+  = help: or consider exporting it for use by other crates
+  = note: requested on the command line with `-W unreachable-pub`
+
+warning: unreachable `pub` item
+  --> umpire/backends/apalache/tests/../../../tests/fixtures/sample_kettle/model.rs:15:5
+   |
+15 |     pub struct Model {
+   |     ---^^^^^^^^^^^^^
+   |     |
+   |     help: consider restricting its visibility: `pub(crate)`
+   |
+   = help: or consider exporting it for use by other crates
+
+warning: unreachable `pub` item
+  --> umpire/backends/apalache/tests/../../../tests/fixtures/sample_kettle/model.rs:27:5
+   |
+27 |     pub enum User {
+   |     ---^^^^^^^^^^
+   |     |
+   |     help: consider restricting its visibility: `pub(crate)`
+   |
+   = help: or consider exporting it for use by other crates
+
+warning: unreachable `pub` item
+  --> umpire/backends/apalache/tests/../../../tests/fixtures/sample_kettle/model.rs:37:5
+   |
+37 |     pub enum Heater {
+   |     ---^^^^^^^^^^^^
+   |     |
+   |     help: consider restricting its visibility: `pub(crate)`
+   |
+   = help: or consider exporting it for use by other crates
+
+warning: `umpire-apalache` (test "controls") generated 4 warnings (run `cargo fix --test "controls" -p umpire-apalache` to apply 4 suggestions)
+    Finished `test` profile [unoptimized + debuginfo] target(s) in 0.91s
+     Running tests/controls.rs (/home/agent/.cache/codex-build/cargo-target/debug/deps/controls-2c4acfaea06e35c9)
+
+running 9 tests
+
+thread 'real_start_evaluation_respects_field_order_before_empty_domains' (3511944) panicked at umpire/backends/apalache/tests/fixtures/start_fault_first.rs:10:22:
+attempt to add with overflow
+test pinned_installer_and_runner_agree ... note: run with `RUST_BACKTRACE=1` environment variable to display a backtrace
+ok
+
+thread 'real_arithmetic_faults_are_reachable_and_guards_remain_total' (3511938) panicked at umpire/backends/apalache/tests/fixtures/arithmetic.rs:37:25:
+attempt to add with overflow
+Apalache Kettle property=Invariant_beeps_only_when_off bound=63 start
+Apalache Inputs property=Post_answer bound=2 start
+Apalache Arithmetic property=ArithmeticSafe bound=0 start
+
+thread 'real_discarded_condition_keeps_its_evaluation_guard' (3511939) panicked at umpire/backends/apalache/tests/fixtures/empty_condition.rs:25:28:
+attempt to divide by zero
+Apalache EmptyCondition property=ArithmeticSafe bound=1 start
+Apalache Collection property=Invariant_contents bound=2 start
+Apalache FaultyFirst property=ArithmeticSafe bound=0 start
+Apalache History property=Post_fails bound=2 start
+Apalache Starts property=ArithmeticSafe bound=0 start
+Apalache FaultyFirst property=ArithmeticSafe bound=0 finish bound=0 Violation
+Apalache EmptyFirst property=ArithmeticSafe bound=0 start
+Apalache Starts property=ArithmeticSafe bound=0 finish bound=0 Violation
+test real_evaluated_start_failure_cannot_disappear_into_an_empty_range ... ok
+Apalache EmptyCondition property=ArithmeticSafe bound=1 finish bound=1 Violation
+Apalache EmptyCondition property=ArithmeticSafe bound=1 start
+Apalache History property=Post_fails bound=2 finish bound=2 Violation
+Apalache History property=Post_fails bound=2 start
+Apalache Inputs property=Post_answer bound=2 finish bound=2 NoViolation
+Apalache Inputs property=ArithmeticSafe bound=2 start
+Apalache Arithmetic property=ArithmeticSafe bound=0 finish bound=0 NoViolation
+Apalache Arithmetic property=ArithmeticSafe bound=1 start
+Apalache EmptyFirst property=ArithmeticSafe bound=0 finish bound=0 NoViolation
+test real_start_evaluation_respects_field_order_before_empty_domains ... ok
+Apalache Collection property=Invariant_contents bound=2 finish bound=2 NoViolation
+Apalache Collection property=Invariant_never_two bound=2 start
+Apalache EmptyCondition property=ArithmeticSafe bound=1 finish bound=1 NoViolation
+test real_discarded_condition_keeps_its_evaluation_guard ... ok
+Apalache History property=Post_fails bound=2 finish bound=2 NoViolation
+Apalache History property=Post_fails bound=2 start
+Apalache Inputs property=ArithmeticSafe bound=2 finish bound=2 NoViolation
+Apalache Inputs property=ValidStep bound=2 start
+Apalache Arithmetic property=ArithmeticSafe bound=1 finish bound=1 Violation
+
+thread 'real_arithmetic_faults_are_reachable_and_guards_remain_total' (3511938) panicked at umpire/backends/apalache/tests/fixtures/arithmetic.rs:40:38:
+attempt to add with overflow
+Apalache Arithmetic property=ArithmeticSafe bound=1 start
+Apalache Collection property=Invariant_never_two bound=2 finish bound=2 Violation
+Apalache Collection property=ArithmeticSafe bound=2 start
+Apalache History property=Post_fails bound=2 finish bound=2 Violation
+test real_postcondition_filter_excludes_unrelated_actions ... ok
+Apalache Inputs property=ValidStep bound=2 finish bound=2 NoViolation
+Apalache Inputs property=ValidStep bound=1 start
+Apalache Arithmetic property=ArithmeticSafe bound=1 finish bound=1 Violation
+
+thread 'real_arithmetic_faults_are_reachable_and_guards_remain_total' (3511938) panicked at umpire/backends/apalache/tests/fixtures/arithmetic.rs:43:38:
+attempt to divide by zero
+Apalache Arithmetic property=ArithmeticSafe bound=1 start
+Apalache Collection property=ArithmeticSafe bound=2 finish bound=2 NoViolation
+Apalache Fallback property=ArithmeticSafe bound=1 start
+Apalache Inputs property=ValidStep bound=1 finish bound=1 Violation
+test real_payload_identity_and_outcome_history_are_typed ... ok
+Apalache Fallback property=ArithmeticSafe bound=1 finish bound=1 Violation
+test real_typed_vector_projection_keeps_eager_fallback_errors ... ok
+Apalache Arithmetic property=ArithmeticSafe bound=1 finish bound=1 Violation
+
+thread 'real_arithmetic_faults_are_reachable_and_guards_remain_total' (3511938) panicked at umpire/backends/apalache/tests/fixtures/arithmetic.rs:46:38:
+attempt to calculate the remainder with a divisor of zero
+Apalache Arithmetic property=ArithmeticSafe bound=1 start
+Apalache Arithmetic property=ArithmeticSafe bound=1 finish bound=1 Violation
+
+thread 'real_arithmetic_faults_are_reachable_and_guards_remain_total' (3511938) panicked at umpire/backends/apalache/tests/fixtures/arithmetic.rs:43:38:
+attempt to divide with overflow
+Apalache Arithmetic property=ArithmeticSafe bound=1 start
+Apalache Arithmetic property=ArithmeticSafe bound=1 finish bound=1 Violation
+
+thread 'real_arithmetic_faults_are_reachable_and_guards_remain_total' (3511938) panicked at umpire/backends/apalache/tests/fixtures/arithmetic.rs:46:38:
+attempt to calculate the remainder with overflow
+Apalache Arithmetic property=ArithmeticSafe bound=1 start
+Apalache Arithmetic property=ArithmeticSafe bound=1 finish bound=1 Violation
+Apalache Arithmetic property=ArithmeticSafe bound=1 start
+Apalache Arithmetic property=ArithmeticSafe bound=1 finish bound=1 NoViolation
+Apalache Arithmetic property=ArithmeticSafe bound=1 start
+Apalache Arithmetic property=ArithmeticSafe bound=1 finish bound=1 NoViolation
+
+thread 'real_arithmetic_faults_are_reachable_and_guards_remain_total' (3511938) panicked at umpire/backends/apalache/tests/fixtures/arithmetic.rs:63:24:
+attempt to divide by zero
+Apalache Arithmetic property=ArithmeticSafe bound=0 start
+Apalache Arithmetic property=ArithmeticSafe bound=0 finish bound=0 Violation
+Apalache Arithmetic property=ArithmeticSafe bound=1 start
+Apalache Arithmetic property=ArithmeticSafe bound=1 finish bound=1 Violation
+
+thread 'real_arithmetic_faults_are_reachable_and_guards_remain_total' (3511938) panicked at umpire/backends/apalache/tests/fixtures/arithmetic.rs:72:24:
+attempt to divide by zero
+Apalache Arithmetic property=ArithmeticSafe bound=1 start
+Apalache Arithmetic property=ArithmeticSafe bound=1 finish bound=1 Violation
+Apalache Arithmetic property=ArithmeticSafe bound=1 start
+Apalache Arithmetic property=ArithmeticSafe bound=1 finish bound=1 NoViolation
+test real_arithmetic_faults_are_reachable_and_guards_remain_total ... ok
+test real_kettle_checks_source_safety_and_history has been running for over 60 seconds
+Apalache Kettle property=Invariant_beeps_only_when_off bound=63 finish bound=63 NoViolation
+Apalache Kettle property=ValidStep bound=63 start
+Apalache Kettle property=ValidStep bound=63 failure
+Error: Refusal("inconclusive or malformed pinned Apalache outcome")
+test real_kettle_checks_source_safety_and_history ... FAILED
+
+failures:
+
+failures:
+    real_kettle_checks_source_safety_and_history
+
+test result: FAILED. 8 passed; 1 failed; 0 ignored; 0 measured; 0 filtered out; finished in 116.65s
+
+error: test failed, to rerun pass `-p umpire-apalache --test controls`

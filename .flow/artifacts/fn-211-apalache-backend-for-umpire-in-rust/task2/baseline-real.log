@@ -1,0 +1,16 @@
+    Finished `test` profile [unoptimized + debuginfo] target(s) in 0.02s
+     Running tests/controls.rs (/home/agent/.cache/codex-build/cargo-target/debug/deps/controls-ceac350a66435165)
+
+running 9 tests
+test pinned_installer_and_runner_agree ... ok
+test real_evaluated_start_failure_cannot_disappear_into_an_empty_range ... ok
+test real_discarded_condition_keeps_its_evaluation_guard ... ok
+test real_start_evaluation_respects_field_order_before_empty_domains ... ok
+test real_postcondition_filter_excludes_unrelated_actions ... ok
+test real_payload_identity_and_outcome_history_are_typed ... ok
+test real_typed_vector_projection_keeps_eager_fallback_errors ... ok
+test real_kettle_checks_source_safety_and_history ... ok
+test real_arithmetic_faults_are_reachable_and_guards_remain_total ... ok
+
+test result: ok. 9 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 37.21s
+

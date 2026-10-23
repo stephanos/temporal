@@ -1,0 +1,24 @@
+   Compiling umpire-tlc v0.0.1 (/Users/stephan/Workspace/skunkworks/umpire/temporal/model/umpire/backends/tlc)
+   Compiling umpire-apalache v0.0.1 (/Users/stephan/Workspace/skunkworks/umpire/temporal/model/umpire/backends/apalache)
+    Finished `test` profile [unoptimized + debuginfo] target(s) in 0.76s
+     Running unittests src/lib.rs (/home/agent/.cache/codex-build/cargo-target/debug/deps/umpire_apalache-72236881ac6fd1a5)
+
+running 1 test
+test tests::unchanged_monitor_can_omit_redundant_per_state_checks ... FAILED
+
+failures:
+
+---- tests::unchanged_monitor_can_omit_redundant_per_state_checks stdout ----
+
+thread 'tests::unchanged_monitor_can_omit_redundant_per_state_checks' (3517081) panicked at umpire/backends/apalache/src/lib.rs:452:9:
+assertion failed: matches!(parse_output(Some(0), output, vec![], "ArithmeticSafe", 1),
+    Bounded::NoViolation { .. })
+note: run with `RUST_BACKTRACE=1` environment variable to display a backtrace
+
+
+failures:
+    tests::unchanged_monitor_can_omit_redundant_per_state_checks
+
+test result: FAILED. 0 passed; 1 failed; 0 ignored; 0 measured; 6 filtered out; finished in 0.00s
+
+error: test failed, to rerun pass `-p umpire-apalache --lib`

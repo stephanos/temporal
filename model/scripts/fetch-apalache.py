@@ -5,6 +5,7 @@ import hashlib
 import io
 import os
 from pathlib import Path
+import stat
 import subprocess
 import tarfile
 import tempfile
@@ -17,22 +18,25 @@ JAR_SHA256 = "e5223915507b65cc5f1638bd037ede60f8a4fc1644aff46355779f9b05df9262"
 def install(root):
     root = root.resolve(strict=True)
     cache = root / "model/build/apalache"
-    ancestor = cache
-    while not ancestor.exists():
-        ancestor = ancestor.parent
-    if not ancestor.resolve().is_relative_to(root):
-        raise RuntimeError("Apalache build root escapes workspace")
-    cache.mkdir(parents=True, exist_ok=True)
-    if not cache.resolve().is_relative_to(root):
-        raise RuntimeError("Apalache build root escapes workspace")
+    current = root
+    for part in ["model", "build", "apalache"]:
+        current = current / part
+        if current.is_symlink():
+            raise RuntimeError("Apalache build root contains a symlink")
+        current.mkdir(exist_ok=True)
+        if not current.is_dir() or current.resolve() != current:
+            raise RuntimeError("Apalache build root escapes workspace")
     lock = cache / ".install.lock"
     if lock.is_symlink():
         raise RuntimeError("Apalache lock is a symlink")
-    with lock.open("a") as stream:
+    fd = os.open(lock, os.O_CREAT | os.O_WRONLY | os.O_NOFOLLOW | os.O_NONBLOCK, 0o600)
+    with os.fdopen(fd, "w") as stream:
+        if not stat.S_ISREG(os.fstat(stream.fileno()).st_mode):
+            raise RuntimeError("Apalache lock is not a regular file")
         fcntl.flock(stream, fcntl.LOCK_EX)
         destination = cache / f"apalache-{VERSION}"
         jar = destination / "lib/apalache.jar"
-        if destination.is_symlink() or jar.is_symlink():
+        if any(p.is_symlink() for p in [destination, destination / "lib", jar]):
             raise RuntimeError("Apalache installation is a symlink")
         if jar.is_file():
             if not jar.resolve().is_relative_to(cache.resolve()):

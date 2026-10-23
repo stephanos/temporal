@@ -1,0 +1,22 @@
+   Compiling umpire-tlc v0.0.1 (/Users/stephan/Workspace/skunkworks/umpire/temporal/model/umpire/backends/tlc)
+    Finished `test` profile [unoptimized + debuginfo] target(s) in 0.90s
+     Running unittests src/lib.rs (/home/agent/.cache/codex-build/cargo-target/debug/deps/umpire_tlc-bc63fc652fe8d782)
+
+running 1 test
+test process::tests::timeout_cleans_descendants_before_return ... FAILED
+
+failures:
+
+---- process::tests::timeout_cleans_descendants_before_return stdout ----
+
+thread 'process::tests::timeout_cleans_descendants_before_return' (3505651) panicked at umpire/backends/tlc/src/process.rs:146:9:
+descendant survived timeout
+note: run with `RUST_BACKTRACE=1` environment variable to display a backtrace
+
+
+failures:
+    process::tests::timeout_cleans_descendants_before_return
+
+test result: FAILED. 0 passed; 1 failed; 0 ignored; 0 measured; 9 filtered out; finished in 0.42s
+
+error: test failed, to rerun pass `-p umpire-tlc --lib`

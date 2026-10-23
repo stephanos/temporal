@@ -1,0 +1,15 @@
+   Compiling umpire-apalache v0.0.1 (/Users/stephan/Workspace/skunkworks/umpire/temporal/model/umpire/backends/apalache)
+    Finished `test` profile [unoptimized + debuginfo] target(s) in 0.63s
+     Running unittests src/lib.rs (/home/agent/.cache/codex-build/cargo-target/debug/deps/umpire_apalache-72236881ac6fd1a5)
+
+running 7 tests
+test tests::native_depth_is_checked_and_truncation_never_establishes_a_bound ... ok
+test tests::unchanged_monitor_can_omit_redundant_per_state_checks ... ok
+test tests::pinned_outcomes_require_consistent_property_bound_exit_and_completion ... ok
+test tests::traces_have_one_aggregate_budget_and_deterministic_order ... ok
+test tests::successful_substring_is_not_a_bounded_proof ... ok
+test tests::missing_changed_and_symlinked_installations_refuse_before_model_execution ... ok
+test tests::fake_execution_failures_never_pass_and_scratch_is_removed ... ok
+
+test result: ok. 7 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.22s
+

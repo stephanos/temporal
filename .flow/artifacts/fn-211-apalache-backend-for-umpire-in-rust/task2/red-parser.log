@@ -1,0 +1,28 @@
+   Compiling umpire-tlc v0.0.1 (/Users/stephan/Workspace/skunkworks/umpire/temporal/model/umpire/backends/tlc)
+   Compiling umpire-apalache v0.0.1 (/Users/stephan/Workspace/skunkworks/umpire/temporal/model/umpire/backends/apalache)
+    Finished `test` profile [unoptimized + debuginfo] target(s) in 0.72s
+     Running unittests src/lib.rs (/home/agent/.cache/codex-build/cargo-target/debug/deps/umpire_apalache-72236881ac6fd1a5)
+
+running 2 tests
+test tests::traces_have_one_aggregate_budget_and_deterministic_order ... FAILED
+test tests::successful_substring_is_not_a_bounded_proof ... FAILED
+
+failures:
+
+---- tests::traces_have_one_aggregate_budget_and_deterministic_order stdout ----
+
+thread 'tests::traces_have_one_aggregate_budget_and_deterministic_order' (3505198) panicked at umpire/backends/apalache/src/lib.rs:210:9:
+assertion failed: collect_itf(&scratch.0, &mut Vec::new(), 3).is_err()
+note: run with `RUST_BACKTRACE=1` environment variable to display a backtrace
+
+---- tests::successful_substring_is_not_a_bounded_proof stdout ----
+Error: Refusal("control.rs:5:1: warning: declared World requires a selected World and complete-start binding; TLA+ emission refused")
+
+
+failures:
+    tests::successful_substring_is_not_a_bounded_proof
+    tests::traces_have_one_aggregate_budget_and_deterministic_order
+
+test result: FAILED. 0 passed; 2 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.00s
+
+error: test failed, to rerun pass `-p umpire-apalache --lib`

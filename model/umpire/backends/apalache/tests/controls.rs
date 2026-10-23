@@ -1,24 +1,30 @@
 //! Actual pinned-release safety and checked-arithmetic controls, never native-edge emission.
-use std::{fs, path::Path};
-use umpire_apalache::Apalache;
+use std::{
+    fs,
+    path::{Path, PathBuf},
+};
+use umpire_apalache::{Apalache, native_bound};
+#[allow(unreachable_pub, reason = "the canonical fixture is also included by public host crates")]
+#[path = "../../../tests/fixtures/sample_kettle/model.rs"]
+mod selected_kettle;
 use umpire_lift::{Lift, Tla};
 const KETTLE: &str = include_str!("../../../tests/fixtures/sample_kettle/model.rs");
 fn required() -> bool {
     std::env::var("UMPIRE_BACKENDS").as_deref() == Ok("require")
+}
+fn evidence_root() -> PathBuf {
+    Path::new(env!("CARGO_MANIFEST_DIR")).join("../../../..").join(".flow/tmp/apalache-controls")
 }
 fn retain(
     label: &str,
     module: &umpire_lift::Module,
     result: &umpire_apalache::Bounded,
 ) -> Result<(), Box<dyn std::error::Error>> {
-    let root = Path::new(env!("CARGO_MANIFEST_DIR"))
-        .join("../../../..")
-        .join(".flow/tmp/apalache-controls")
-        .join(label);
+    let root = evidence_root().join(label);
     fs::create_dir_all(&root)?;
     fs::write(root.join(format!("{}.tla", module.name)), &module.tla)?;
-    fs::write(root.join("output.txt"), &result.output)?;
-    for (i, trace) in result.traces.iter().enumerate() {
+    fs::write(root.join("output.txt"), result.output())?;
+    for (i, trace) in result.traces().iter().enumerate() {
         fs::write(root.join(format!("trace-{i}.itf.json")), trace)?;
     }
     Ok(())
@@ -30,6 +36,23 @@ fn real_kettle_checks_source_safety_and_history() -> Result<(), Box<dyn std::err
     }
     let root = Path::new(env!("CARGO_MANIFEST_DIR")).join("../../../..");
     let tool = Apalache::discover(&root)?;
+    let native = umpire_checker::Checker::explore(
+        &selected_kettle::kettle::world(),
+        umpire_checker::Checker::BUDGET,
+    )?;
+    let length = native_bound(native.counts)?;
+    assert_eq!(
+        (native.counts.reached, native.counts.depth, native.counts.cut, length),
+        (283, 62, false, 63)
+    );
+    fs::create_dir_all(evidence_root())?;
+    fs::write(
+        evidence_root().join("kettle-native-bound.json"),
+        format!(
+            "{{\"reached\":{},\"depth\":{},\"cut\":{},\"transition_bound\":{length}}}\n",
+            native.counts.reached, native.counts.depth, native.counts.cut
+        ),
+    )?;
     let module = Tla::safety(&Lift::parse("kettle.rs", KETTLE)?)?;
     for p in module
         .metadata
@@ -38,9 +61,9 @@ fn real_kettle_checks_source_safety_and_history() -> Result<(), Box<dyn std::err
         .chain(&module.metadata.postconditions)
         .chain(&module.metadata.arithmetic)
     {
-        let result = tool.check(&module, &p.operator, 3)?;
+        let result = tool.check(&module, &p.operator, length)?;
         retain(&format!("kettle-{}", p.operator), &module, &result)?;
-        assert!(!result.violated, "{}: {}", p.name, result.output);
+        assert!(!result.violated()?, "{}: {}", p.name, result.output());
     }
     Ok(())
 }
@@ -104,7 +127,12 @@ fn real_arithmetic_faults_are_reachable_and_guards_remain_total()
             let result = tool.check(&module, "ArithmeticSafe", length)?;
             let expected = fails && (length > 0 || mode == 8);
             retain(&format!("arithmetic-{mode}-{length}"), &module, &result)?;
-            assert_eq!(result.violated, expected, "mode={mode} length={length}: {}", result.output);
+            assert_eq!(
+                result.violated()?,
+                expected,
+                "mode={mode} length={length}: {}",
+                result.output()
+            );
         }
         fs::create_dir_all(root.join(".flow/tmp/apalache-controls"))?;
         fs::write(root.join(format!(".flow/tmp/apalache-controls/native-{mode}.txt")), native)?;
@@ -143,7 +171,7 @@ fn real_postcondition_filter_excludes_unrelated_actions() -> Result<(), Box<dyn 
         let module = Tla::safety(&Lift::parse("history.rs", &source)?)?;
         let result = tool.check(&module, "Post_fails", 2)?;
         retain(label, &module, &result)?;
-        assert_eq!(result.violated, expected, "{label}: {}", result.output);
+        assert_eq!(result.violated()?, expected, "{label}: {}", result.output());
     }
     Ok(())
 }
@@ -168,7 +196,7 @@ fn real_evaluated_start_failure_cannot_disappear_into_an_empty_range()
     let module = Tla::safety(&Lift::parse("starts.rs", source)?)?;
     let result = tool.check(&module, "ArithmeticSafe", 0)?;
     retain("start-overflow", &module, &result)?;
-    assert!(result.violated, "evaluated invalid range disappeared: {}", result.output);
+    assert!(result.violated()?, "evaluated invalid range disappeared: {}", result.output());
     Ok(())
 }
 
@@ -187,13 +215,13 @@ fn real_typed_vector_projection_keeps_eager_fallback_errors()
     {
         let result = tool.check(&module, property, 2)?;
         retain(&format!("vector-{property}"), &module, &result)?;
-        assert_eq!(result.violated, violated, "{}", result.output);
+        assert_eq!(result.violated()?, violated, "{}", result.output());
     }
     let source = include_str!("../../../lift/tests/fixtures/vector_fallback.rs");
     let module = Tla::safety(&Lift::parse("fallback.rs", source)?)?;
     let result = tool.check(&module, "ArithmeticSafe", 1)?;
     retain("eager-vector-fallback", &module, &result)?;
-    assert!(result.violated, "{}", result.output);
+    assert!(result.violated()?, "{}", result.output());
     Ok(())
 }
 
@@ -249,14 +277,14 @@ fn real_payload_identity_and_outcome_history_are_typed() -> Result<(), Box<dyn s
     for property in ["Post_answer", "ArithmeticSafe", "ValidStep"] {
         let result = tool.check(&module, property, 2)?;
         retain(&format!("payload-{property}"), &module, &result)?;
-        assert!(!result.violated, "{}", result.output);
+        assert!(!result.violated()?, "{}", result.output());
     }
     let mutant = source
         .replace("reject!(Rejection::NotFound);", "self.done=true; reject!(Rejection::NotFound);");
     let module = Tla::safety(&Lift::parse("inputs-mutant.rs", &mutant)?.bind(&binding)?)?;
     let result = tool.check(&module, "ValidStep", 1)?;
     retain("rejecting-mutant", &module, &result)?;
-    assert!(result.violated, "{}", result.output);
+    assert!(result.violated()?, "{}", result.output());
     Ok(())
 }
 
@@ -287,7 +315,7 @@ fn real_start_evaluation_respects_field_order_before_empty_domains()
         let module = Tla::safety(&Lift::parse(label, source)?)?;
         let result = tool.check(&module, "ArithmeticSafe", 0)?;
         retain(label, &module, &result)?;
-        assert_eq!(result.violated, fails, "{label}: {}", result.output);
+        assert_eq!(result.violated()?, fails, "{label}: {}", result.output());
     }
     Ok(())
 }
@@ -316,7 +344,7 @@ fn real_discarded_condition_keeps_its_evaluation_guard() -> Result<(), Box<dyn s
         )?;
         let result = tool.check(&module, "ArithmeticSafe", 1)?;
         retain(&format!("discarded-condition-{enabled}"), &module, &result)?;
-        assert_eq!(result.violated, enabled, "{}", result.output);
+        assert_eq!(result.violated()?, enabled, "{}", result.output());
     }
     Ok(())
 }

@@ -1,0 +1,31 @@
+   Compiling umpire-apalache v0.0.1 (/Users/stephan/Workspace/skunkworks/umpire/temporal/model/umpire/backends/apalache)
+    Finished `test` profile [unoptimized + debuginfo] target(s) in 0.60s
+     Running unittests src/lib.rs (/home/agent/.cache/codex-build/cargo-target/debug/deps/umpire_apalache-72236881ac6fd1a5)
+
+running 2 tests
+test tests::traces_have_one_aggregate_budget_and_deterministic_order ... FAILED
+test tests::successful_substring_is_not_a_bounded_proof ... FAILED
+
+failures:
+
+---- tests::traces_have_one_aggregate_budget_and_deterministic_order stdout ----
+
+thread 'tests::traces_have_one_aggregate_budget_and_deterministic_order' (3505458) panicked at umpire/backends/apalache/src/lib.rs:210:9:
+assertion failed: collect_itf(&scratch.0, &mut Vec::new(), 3).is_err()
+note: run with `RUST_BACKTRACE=1` environment variable to display a backtrace
+
+---- tests::successful_substring_is_not_a_bounded_proof stdout ----
+Apalache Kettle property=ArithmeticSafe bound=1 start
+Apalache Kettle property=ArithmeticSafe bound=1 finish violated=false
+
+thread 'tests::successful_substring_is_not_a_bounded_proof' (3505457) panicked at umpire/backends/apalache/src/lib.rs:200:9:
+incomplete tool output was admitted
+
+
+failures:
+    tests::successful_substring_is_not_a_bounded_proof
+    tests::traces_have_one_aggregate_budget_and_deterministic_order
+
+test result: FAILED. 0 passed; 2 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.01s
+
+error: test failed, to rerun pass `-p umpire-apalache --lib`

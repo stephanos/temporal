@@ -13,7 +13,7 @@ pub const JAR_VERSION: &str = "1.7.4";
 /// SHA-256 of the official v1.7.4 release asset.
 pub const JAR_SHA256: &str = "936a262061c914694dfd669a543be24573c45d5aa0ff20a8b96b23d01e050e88";
 const TLC_VERSION: &str = "Version 2.19 of 08 August 2024";
-use crate::process::{Scratch, bounded_text, run_process};
+use crate::process::{Scratch, bounded_text, java_command, pinned_java, run_process};
 
 /// Hard subprocess admission limits. A limit produces a refusal, never a verdict.
 #[derive(Clone, Copy, Debug)]
@@ -135,12 +135,6 @@ impl Tlc {
         if !cache.starts_with(&root) || !jar.starts_with(&cache) {
             return Err(Refusal("pinned jar escapes the repository cache".into()));
         }
-        if !fs::read_to_string(root.join("mise.toml"))?
-            .lines()
-            .any(|line| line.trim() == "java = \"temurin-27\"")
-        {
-            return Err(Refusal("expected repository mise Java pin temurin-27".into()));
-        }
         let scratch = Scratch::new(&root)?;
         let admitted = (|| {
             let mut digest = Command::new("shasum");
@@ -153,29 +147,7 @@ impl Tlc {
                     jar.display()
                 )));
             }
-            let mut resolve = Command::new("mise");
-            resolve.args(["which", "java"]).current_dir(&root);
-            let (status, output) =
-                run_process(&mut resolve, &scratch.0, "mise", Limits::default(), None)?;
-            if !status.success() {
-                return Err(Refusal(format!("mise Java resolution failed: {output}")));
-            }
-            let java = PathBuf::from(output.trim());
-            if !java.is_absolute() || !java.is_file() {
-                return Err(Refusal(format!(
-                    "mise did not resolve an absolute Java executable: {output}"
-                )));
-            }
-            let mut version = java_command(&java);
-            version.arg("-version").current_dir(&root);
-            let (status, output) =
-                run_process(&mut version, &scratch.0, "java", Limits::default(), None)?;
-            if !status.success()
-                || !output.contains("openjdk version \"27\"")
-                || !output.contains("Temurin-27+")
-            {
-                return Err(Refusal(format!("mise Java is not pinned Temurin 27: {output}")));
-            }
+            let java = pinned_java(&root, &scratch.0)?;
             let mut version = java_command(&java);
             version.args(["-cp"]).arg(&jar).args(["tlc2.TLC", "-h"]).current_dir(&root);
             let (status, output) =
@@ -306,16 +278,6 @@ impl Tlc {
         }
         Ok((output, bounded_text(&dump, self.limits.dump_bytes)?))
     }
-}
-
-fn java_command(java: &Path) -> Command {
-    let mut command = Command::new(java);
-    for name in
-        ["JAVA_TOOL_OPTIONS", "JDK_JAVA_OPTIONS", "_JAVA_OPTIONS", "CLASSPATH", "TLA_LIBRARY"]
-    {
-        command.env_remove(name);
-    }
-    command
 }
 
 fn selected_violation(
