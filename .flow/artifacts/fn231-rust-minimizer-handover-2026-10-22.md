@@ -483,3 +483,78 @@ completed with numeric exit 0; no owned target process remains. No Go, public
 guest, runtime controller or new fixture ran. Independent source review and
 integrated checks remain with the conductor, including its separate pending
 broker aggregate fix.
+
+
+## Genuine legacy-parent provenance presence correction
+
+The fresh semantic01 generation under immutable host 8336643f failed its first
+shared-output reduction assertion: the CLI returned 0, unchanged, two rejected
+attempts and `minimal`, at the original 6406161-byte bound. The bound was not
+reached: publication-cap checks happen after a reduction passes the predicate.
+Original raw generation remains in
+`/home/agent/wt/evidence/fn231-public-storagewait-01/{semantic01,minimize-01}`.
+Its successful 55-command scope01 remains separate evidence, not acceptance of
+the failed semantic generation. No checked golden changed.
+
+Focused frozen Go minimization of the exact original seed7 parent exited 0,
+changed true in one attempt, accepting cutoff0. Existing host833 executions of
+the same module/configuration/seed under cutoff0 and cutoff1 reproduced the
+original Rust parent record byte-for-byte (28c00513...) and the identical raw
+choice trace. Evidence is `/home/agent/wt/evidence/fn231-minimize-focused-01`;
+Go session10956 and prefix capture53363 both exited 0. The module SHA-256 is
+`1f89ca1f54fbcc46ff01f4793c83e979d84e1af3bc486233e235e99676382e7c`.
+
+Controlled detached copies investigated only `{}` preparation-payload presence.
+Two early construction errors (missing typed file `module` flag and private file
+mode) were preserved rather than treated as causal evidence. The final correctly
+typed/private copy, under `fn231-provenance-controlled-01`, passed actual833
+`fixture-open` with full payload authentication, then minimize refused the
+present `{}` payload with status2/missing schema before any attempt. That strict
+admission refusal remains intact; no schema was forged to reach execution.
+
+The decisive test produced a fresh genuine parent using the existing fixture
+publisher, the unchanged original module/config values and the same freshly
+compiled host as its candidate. RED38038 exited101 at strict `Parent::matches`.
+Full canonical field comparison found exactly one difference: candidate streams
+included `target/provenance.json` with bytes2, records1 and SHA-256
+`44136fa355b3678a1146ad16f7e8649e94fb4fc21fe77e8310c060f61caaff8a`.
+Parent and candidate had identical outcomes, identities, environment, arguments,
+all other streams and raw choice bytes. The Parent fallback `{}` was being
+accidentally promoted into a new retained stream by ordinary publication.
+Raw full records/diff are in `fn231-provenance-host-red-02`. Its predecessor test
+run picked a target-pool entry rather than the manifest-bearing artifact; that
+lookup failure was corrected before the meaningful RED and remains recorded.
+
+The narrow Parent-local correction preserves authenticated absence when building
+a trial. It removes only a generated payload exactly equal to canonical `{}`,
+only when the authenticated original manifest has no preparation payload, and
+only after checking the complete corresponding stream descriptor plus consistency
+of publication record, ledger record and record.json. Unexpected payloads or
+descriptors refuse. All three record representations are updated together.
+Authenticated present provenance stays byte-identical, and strict full-record
+`Parent::matches` has no exemptions. No minimization evidence schema, acceptance
+predicate, byte cap, replay requirement, guest source or dependency changed.
+
+Genuine same-build GREEN53027 exited0. Parent and cutoff0 candidate both hashed
+to 458c254d... with strict match true and no extra streams. The same test ran the
+actual full minimizer at attempts64/bytes6406161: changed true in one attempt,
+then exact replay of its final artifact passed. Raw records, traces and result
+are in `fn231-provenance-host-green-01`. The absolute-path forensic test was
+removed from shipped source and saved externally as
+`/home/agent/evidence/fn231-provenance-genuine-green-test.rs`.
+
+Five portable regressions cover authenticated absent/present provenance, valid
+typed ordinary provenance, preserved invalid-schema refusal, unexpected generated
+payload/descriptor/coherence failures, unchanged strict binding of other metadata
+and retained payload tampering. Final affected minimize tests exited0 (23 passed);
+replay tests exited0 (7 passed). Strict fixture all-target Clippy with warnings
+denied, workspace format and diff checks exited0. One test-only useless String
+conversion was fixed before the passing Clippy run, without allowances. Logs:
+`/home/agent/evidence/fn231-provenance-host-red-2.log`,
+`fn231-provenance-host-green.log`, `fn231-provenance-minimize-tests-final.log`,
+`fn231-provenance-replay-tests.log`, `fn231-provenance-clippy-final.log`.
+Commands used +1.99.1 release/locked/offline/jobs2, exclusive fn232-live-corpus;
+its removed library intermediates were regenerated under the explicit lease.
+No Go compilation, full generation retry or golden overwrite ran. Independent
+review, integrated gates and two fresh complete public generations remain with
+the conductor.
