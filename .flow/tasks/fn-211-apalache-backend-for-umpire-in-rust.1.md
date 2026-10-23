@@ -38,9 +38,26 @@ At source checkpoint `141df3cc41`, the correctness audit walked two required ari
 - [ ] Actual checksum-pinned Apalache checks Kettle and the required arithmetic/history controls from workspace-owned build scratch; source/property metadata and offending prefix/action evidence support task .3 typed replay.
 - [ ] Focused tests, strict lint and one final required model-time pass; retained native/TLC artifacts and guest/production proof justify every changed output and any explicit live-evidence reuse. Timings retain soft-target misses.
 ## Done summary
-TBD
+Implemented source-derived typed Apalache safety Init/Next, preserving tagged stutter, ordered total arithmetic/error latching, and exact typed previous-state/action/outcome history for invariants and postconditions. Pinned official Apalache 0.62.4 with verified archive/jar checksums, reused TLC process support, and retained actual Kettle/arithmetic/history controls; reusable lifecycle, typed replay, fixture consumer, and symbolic Worlds remain tasks .2–.5.
 
+Tier: session (jev-unavailable(no_key)); AGENTS implementer override gpt-6.1-sol medium.
+
+Baseline: green, fresh `mise exec -- cargo test -p umpire-lift --tests` before edits. No execution-model metadata is available; no actual-model claim is made. Implementer and Codex reviewers are from the same model family, so the review is not an independent-family review.
+
+stage: impl-review - ran [2026-10-23T00:25:22.319838Z..2026-10-23T00:44:21.524137Z]; SHIP at 26dd66814f951daccabad762372de6674f84acf3, same-cycle follow-up after ordered-initialization fix.
+
+Review receipt: `.flow/artifacts/fn-211-apalache-backend-for-umpire-in-rust/task1/impl-review-receipt.json`. Both periodic audit axes accepted all five findings as resolved, with no new findings; original reports and addenda are retained beside that receipt. The subsequent exact typed-LET fixture expectation correction changes no emitter/runtime behavior and required no supplemental review (conductor decision).
+
+Focused verification passed: lift tests including sequential-return and wide-initialization linearity; strict changed-crate clippy; nine actual pinned-tool controls (37.07s). Red arithmetic start-order/discarded-condition controls and all earlier non-green tool observations remain retained. The corrected typed-LET expectation passed one selected test; a diagnostic run confirmed it was the sole original full-gate failure (25 passed/1 failed; fixture agreement itself passed).
+
+Rebuilt the current Temporal guest (46.05s); its final 3,408,639 bytes retain SHA256 f832a33c3024a8752976d146be839b62a95afde4790fa0db60f1dac9004b4e7e. Because the front-end checks-root correction changed relevant source, fresh live evidence was run: seven slice scenarios passed (Go 5.917s), and gap conformance plus privacy-preserving failure logging passed (Go 358.318s). No live-evidence reuse or cross-OS claim is made. All 541 non-TLA baseline artifacts remain byte exact; the 17 changed TLA artifacts carry typed annotations and the justified guarded-condition checks roots. Current proof supersedes the historical unchanged-front checkpoint claim.
+
+Final full gate: corrected session 61707 passed with exit 0 using exact command `timeout 3600 env UMPIRE_BACKENDS=require make model-time`. All 17 stages passed; gate total 562.098s exceeded the 60s soft target, while inner 7.893s met the 10s target. Workspace tests 395.890s and guest build 58.006s dominate. All stage times are retained in `full-gate-green.json`; receipt is `full-gate-receipt.json` (original `.flow/tmp/green-receipts/7eaf02df-unittest.json`). Original session 32240 failed at workspace tests (exit 101; outer 2) solely on the annotation-sensitive assertion and has no green receipt. The corrected run was justified by that concrete test fix; both runs and the sole-failure diagnosis remain retained.
+
+Evidence directory: `.flow/artifacts/fn-211-apalache-backend-for-umpire-in-rust/task1/`. Baseline inventories are losslessly compacted; tool admission, controls, review, audits, failure logs, final compatibility, fresh live proof and full-gate observations are retained there. No production Model was changed; original Activity/native/TLC result artifacts remain exact, and the final required gate passed against them. Tracker sync and PlanSync are inactive; conductor owns parent and MILESTONES closure.
+
+stage: plan-sync - skipped(config: planSync.enabled != true)
 ## Evidence
-- Commits:
-- Tests:
+- Commits: 141df3cc41d6e3cc732fc3884ccab4ab03205878, 95a373ac053a9de54eee020cfce4c4a0d96facc7, 26dd66814f951daccabad762372de6674f84acf3, 0e564495164728d3f97fed0a88eb4bd79f8459cc, 7eaf02df4883a9ab0489395e6683b1ef3173a782, 092181bbd543c8ae24346cd930304706ecd854b3
+- Tests: cd model && mise exec -- cargo test -p umpire-lift --tests, cd model && mise exec -- cargo clippy -p umpire-front -p umpire-lift -p umpire-tlc -p umpire-apalache -p umpire-testing --all-targets -- -D warnings, cd model && UMPIRE_BACKENDS=require mise exec -- cargo test -p umpire-apalache --test controls -- --nocapture, make umpire-guest, make umpire-check-model-slice, make umpire-check-model-gaps, timeout 3600 env UMPIRE_BACKENDS=require make model-time
 - PRs:
