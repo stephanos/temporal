@@ -1,6 +1,6 @@
 {
   "schema": "gomad.integration-development-evidence/v1",
-  "observed_at": "2026-10-23T14:23:24.217049+00:00",
+  "observed_at": "2026-10-23T14:38:44.003272+00:00",
   "integration_head": "13ecf9f40526eec15497a951b6e8167c1a43bdb9",
   "final_qualification": false,
   "logs": [
@@ -3162,6 +3162,107 @@
         "scope": "Authentic static prerequisites only; no future output hash or executable final configuration invented"
       },
       "remaining_acceptance": "Complete genuine candidate roles/installations/input bindings; actual original Go/wire/root19 ABI, full runtime, ten workload cells, stress, counterfactuals, full terminal8, retained/operator/inspection/public verbs and 3600-second cycle; later support/sweep/profiling milestones remain open"
+    },
+    {
+      "observed_at": "2026-10-23T14:38:44.003272+00:00",
+      "integration_head": "13ecf9f40526eec15497a951b6e8167c1a43bdb9",
+      "final_qualification": false,
+      "scope": "Actual three frozen candidate role builds and independent typed reads; original module-cache custody after Go build",
+      "logs": [
+        {
+          "path": "/home/agent/evidence/fn232-final-role-release-launch-v1/command.json",
+          "bytes": 1110,
+          "sha256": "5dc5bb6ed80b0316beaa86eda3b19da71d317c7efc0ebdc09ee211adf5e1fcd3"
+        },
+        {
+          "path": "/home/agent/evidence/fn232-final-role-release-launch-v1/independent-inspection.json",
+          "bytes": 1179,
+          "sha256": "b12b5522acea94effd9a94f2f5fc1d712363969b032474faa7230ac471297cc8"
+        },
+        {
+          "path": "/home/agent/evidence/fn232-final-role-host-fixture-launch-v1/independent-read.json",
+          "bytes": 843,
+          "sha256": "d1513a44ab5a6dd52c4dd3cad26d9c48e308dbb197e876ef1ee0e8fe00fbb2c4"
+        },
+        {
+          "path": "/home/agent/evidence/fn232-final-role-reference-transport-launch-v1/independent-verification.json",
+          "bytes": 1258,
+          "sha256": "d610a943ed314dc950fe2b80bceb6b9b387b9df2bfafdb5bbb1cc7c452b83272"
+        },
+        {
+          "path": "/home/agent/evidence/fn232-final-sqlite-go-build-v1/cache-output-custody.json",
+          "bytes": 1190,
+          "sha256": "c929980e1672d28ca1fe2f33186a21731c4cbc325ed1278d7462853675a84ccb"
+        },
+        {
+          "path": "/Users/stephan/Workspace/skunkworks/gomad/.build-cache/fn232-final-role-release-v1/main-build.json",
+          "bytes": 21204958,
+          "sha256": "795e9ff683a89bcb8a94347483c68c932dbef25ab15992102d50ca474b4a4e06"
+        },
+        {
+          "path": "/Users/stephan/Workspace/skunkworks/gomad/.build-cache/fn232-final-role-host-fixture-v1/main-build.json",
+          "bytes": 21205169,
+          "sha256": "3389d44b7c58b95a1a4d2a9c1a9beb82acd9faabf8cda5d8de7179888c51a835"
+        },
+        {
+          "path": "/Users/stephan/Workspace/skunkworks/gomad/.build-cache/fn232-final-role-reference-transport-v1/main-build.json",
+          "bytes": 21204844,
+          "sha256": "0f60276549a861c2bf320e3490a603980b3fbf831bf3792ea213609666a7ee28"
+        }
+      ],
+      "roles": {
+        "release": {
+          "head": "13ecf9f40526eec15497a951b6e8167c1a43bdb9",
+          "source_sha256": "37a83bc6ca7b25b4a4802b9477c121d7ee556be72f0d0dce5373d0aeca1483dd",
+          "binary": "/Users/stephan/Workspace/skunkworks/gomad/.build-cache/fn232-final-role-release-v1/admitted/gomad",
+          "binary_sha256": "b5cb66d39995281e608b3a1452e6d926391b345f377efc298829cd1bbb3d8bae",
+          "host_sha256": "974c09c3ab0f94dc44ed74ecf74698606f0cf375bdda3f8d43a4b738efeb0de6",
+          "helper_sha256": "3dfd81b7f777aa5a5900f1f4209a3bd125fcd46e9d944a066fc495ddd1c2b2a8",
+          "build_receipt": "/Users/stephan/Workspace/skunkworks/gomad/.build-cache/fn232-final-role-release-v1/main-build.json",
+          "build_receipt_sha256": "795e9ff683a89bcb8a94347483c68c932dbef25ab15992102d50ca474b4a4e06",
+          "build_exit": 0,
+          "separate_typed_read_exit": 0
+        },
+        "host-fixture": {
+          "head": "13ecf9f40526eec15497a951b6e8167c1a43bdb9",
+          "source_sha256": "37a83bc6ca7b25b4a4802b9477c121d7ee556be72f0d0dce5373d0aeca1483dd",
+          "binary": "/Users/stephan/Workspace/skunkworks/gomad/.build-cache/fn232-final-role-host-fixture-v1/admitted/gomad",
+          "binary_sha256": "4532d82e31b623f91cdd19abd29d65ea96289e7eb651bbd18e58a494eb14e496",
+          "host_sha256": "69ec01c1231193833908210478886aa801b60007a9bb907af9236c4af92acce8",
+          "helper_sha256": "3dfd81b7f777aa5a5900f1f4209a3bd125fcd46e9d944a066fc495ddd1c2b2a8",
+          "build_receipt": "/Users/stephan/Workspace/skunkworks/gomad/.build-cache/fn232-final-role-host-fixture-v1/main-build.json",
+          "build_receipt_sha256": "3389d44b7c58b95a1a4d2a9c1a9beb82acd9faabf8cda5d8de7179888c51a835",
+          "build_exit": 0,
+          "separate_typed_read_exit": 0
+        },
+        "reference-transport": {
+          "head": "13ecf9f40526eec15497a951b6e8167c1a43bdb9",
+          "source_sha256": "37a83bc6ca7b25b4a4802b9477c121d7ee556be72f0d0dce5373d0aeca1483dd",
+          "binary": "/Users/stephan/Workspace/skunkworks/gomad/.build-cache/fn232-final-role-reference-transport-v1/admitted/gomad-wasmhost",
+          "binary_sha256": "38672ad274cc77765fdc60314f5d8e7061c80553638838300e8f9a374da14764",
+          "host_sha256": null,
+          "helper_sha256": "a7f6103ac8ca7d537bd96893dbaca56bec86b2282b4885934f78f4dd0f7fa8aa",
+          "build_receipt": "/Users/stephan/Workspace/skunkworks/gomad/.build-cache/fn232-final-role-reference-transport-v1/main-build.json",
+          "build_receipt_sha256": "0f60276549a861c2bf320e3490a603980b3fbf831bf3792ea213609666a7ee28",
+          "build_exit": 0,
+          "separate_typed_read_exit": 0
+        }
+      },
+      "runtime_harness": "Actual Cargo compile exited0/reaped; producer completed0; independent typed reader still active owner qualification_composition session22576",
+      "in_flight": {
+        "counterfactual_fixture_then_harness": "executed_divergence_preservation sequential controller session9981; second role starts only after first build+read0",
+        "conformance_reference": "runtime_qualification_preservation session54281",
+        "six_ordinary_installations": "remaining_model_predicates actual CLI/Go compiler-only provisioning, no guest execution; exact original qualification policies rather than TemporalInstallation defaults"
+      },
+      "sqlite_cache_custody": {
+        "actual_generated_metadata_bytes": 174,
+        "preserved_output": "/home/agent/evidence/fn232-final-sqlite-go-build-v1/generated-module-metadata.info",
+        "original_wire_cache_restored_exact_files": 806,
+        "all_original_hashes_unchanged": true,
+        "separate_sqlite_receipt_reinspection_exit": 0,
+        "scope": "Generated Go module version output preserved; no source/receipt rewrite or qualification credit"
+      },
+      "remaining_acceptance": "Finish all13 main roles, native measurement/broad/identity roles and genuine installation/input provisioning; all actual guests/original Go ABI/wire/runtime/workloads/stress/terminal/counterpairs/replay/public and3600s final cycle plus later milestones remain open"
     }
   ],
   "resource_snapshot": {
