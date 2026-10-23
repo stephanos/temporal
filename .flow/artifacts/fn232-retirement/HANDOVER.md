@@ -530,3 +530,67 @@ source-bound scope skip and actual bounded Python child receipt environment.
 AST/JSON parsing and diffchecks exit0. No Cargo/Go/build/guest/golden/qualification
 or main sync occurred. All72 runtime endpoints, receiving proofs/reach map,
 sourcefreeze and main retirement remain pending with their original owners.
+
+### Reviewed minimizer + live/final reader source integration
+
+Merged exact main5fc1290c3dcc913bbe3f0b88074dc801eacd09a4, then cherry-picked
+all8reviewed live-owner commits in supplied order:8ceec3e57b,f7f9745a33,
+6efb396649,30e1fdde44,f49e98544a,04fbbef3c7,3aa7bfffe0,aafbcad938.
+Two conflicts were solely driver.guard's required frozen-module list; resolved
+by retaining approved host_admission plus incoming live/final/reach modules.
+No other semantic conflict or source substitution. Incoming live.py/final.py/
+reach.py/adapters.py/reach manifest exactly match reviewed aaf bytes. Shared
+static reader/environment receipt hook preserved. The independent receiving.py
+owner's13-ID endpoint remains unbound; no placeholder claims its obligations.
+
+Main Rust delta is only reviewed minimize/predicate.rs + predicate_tests.rs;
+all host Rust sources match exact main5fc. Helper source/test/build/workspace
+bytes are unchanged from previously reviewed retirementb0, with original127
+helper lock records (versions/checksums/dependency arrays) exact and only gomad
+as128thworkspace package. No new dependency/toolchain/sourceidentitypin/golden
+rotation was introduced by relocation integration. Incoming reviewed minimizer
+fixture/golden files were preserved verbatim as part of main source merge.
+Provider source guard now uses the reviewed independently pinned full original
+live-broker-provider.go.txt snapshot; its blob matches this branch's existing
+snapshot, no historical source or receipt rewritten.
+
+Integrated portable driver suite70tests exit0; incoming site-minimizer display
+reader16tests exit0. Direct pinned1.99.1 rustfmt checks on2incoming Rust files
+exit0. AST parse of all driver/incoming parity Python files, exact14static ignore
+and original Go scope witnesses, Rust literal include/path resolution, incoming
+source equality, lock equality and diffchecks exit0. An initial directory-level
+deletion assertion was too broad because original fixtures/empty directories
+remain intentionally; corrected guards verify deleted Go producer/package source
+and obsolete helper manifest/lock absent while retaining fixture-only directories.
+No Go/Cargo/build/guest/runtime/golden execution/qualification or active-cache
+cleanup occurred. Root main and unrelated worktrees untouched.
+
+Live reader covers124of unchanged145final IDs in source; all are UNEXECUTED until
+actual input receipts/reader results exist. Corrected original test-wasm AST
+inventory source1d695 records752real roots/756required command selections,
+including4distinct originalMake repeated roots; the checked-in reach manifest
+is source obligations only. Static reader keeps exact original known-scope
+exclusion UNEXECUTED, not a fabricated semantic mapping. Original3slim native
+refusal tests require actual exacttags/15m raw proof; current static recipes do
+not yet produce that separate selection, and no blanket retainedGo alias is
+claimed. Exact21remaining receiving IDs are final.required minus live.required:
+fn185-R4/{qualified-workload-choice-wasi-network-stdout-stderr-preservation,
+runtime-cost-equivalent-release-behavior}; inspection/rotated-three-node-ringpop-120s-fresh-exact-replay;
+mandatory/exact-ten-final-result-receipt-pairs;
+operator/detached-installed-discover-inspect-replay;
+public-verbs/fresh-differential-and-raw-golden-integrity;
+retained/20-fresh-observed-replays;
+runtime/32x25-fresh-and-32-forced-full-replays;
+sqlite/{actual-catalogue-reader,actual-durable-four-state-primary,actual-selected-0,
+actual-selected-1,actual-selected-2,actual-selected-3};
+stress/41-cases-four-axes-original-repetitions;
+temporal/{actual-committed-storage-all-states,actual-independent-replication,
+actual-named-reset-retry,inspection-shard-workflow-onebox,unchanged-workflow-type-smoke};
+terminal/current-host-admission-and-linked-attribution.
+
+Future receiving/fn233/source synchronization, explicit endpoint composition,
+actual static/lint/guest/parity/full test-reach proof, independent receiving
+executions, immutable final source/role freeze, final code-size comparison and
+main retirement acceptance remain root-owned and pending. Prior proofs remain
+bound to their original source and cannot qualify this prospective consolidated
+source by this source-only integration checkpoint.
