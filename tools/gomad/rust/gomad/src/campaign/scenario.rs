@@ -1585,7 +1585,12 @@ pub(crate) fn publication(
     }
     features.sort();
     features.dedup();
-    let mut observed = cluster::project_workload(execution, configuration.workload.as_ref(), "")?;
+    let mut observed = cluster::project_workload(
+        execution,
+        configuration.workload.as_ref(),
+        "",
+        &configuration.broker,
+    )?;
     if let Some(raw) = observed.event_order.take() {
         observed.evidence.insert("event-order".into(), raw);
     }

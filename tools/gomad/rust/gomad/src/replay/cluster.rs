@@ -243,6 +243,7 @@ impl Projection {
             observed,
             self.configuration.workload.as_ref(),
             &self.world_encoding,
+            &self.configuration.broker,
         )?;
         oracles::apply(&mut projected, &oracle_report)?;
         if let Some(primary) = primary {
@@ -689,8 +690,11 @@ pub fn authenticate_inspection(
 
 /// # Errors
 /// Projects typed cluster observations into a single identity-bound comparison stream.
-pub fn project(observed: helper::Execution) -> Result<linked::Execution, String> {
-    project_encoded(observed, "")
+pub fn project(
+    observed: helper::Execution,
+    broker: &helper::BrokerConfig,
+) -> Result<linked::Execution, String> {
+    project_encoded(observed, "", broker)
 }
 
 /// # Errors
@@ -698,6 +702,7 @@ pub fn project(observed: helper::Execution) -> Result<linked::Execution, String>
 pub fn project_encoded(
     mut observed: helper::Execution,
     encoding: &str,
+    _broker: &helper::BrokerConfig,
 ) -> Result<linked::Execution, String> {
     if !observed.world.is_empty() {
         observed.world = helper::encode_world(&observed.world, encoding)?;
@@ -773,8 +778,9 @@ pub(crate) fn project_workload(
     observed: helper::Execution,
     workload: Option<&crate::qualify::workloads::Workload>,
     encoding: &str,
+    broker: &helper::BrokerConfig,
 ) -> Result<linked::Execution, String> {
-    let mut projected = project_encoded(observed, encoding)?;
+    let mut projected = project_encoded(observed, encoding, broker)?;
     if let Some(workload) = workload {
         crate::qualify::workloads::project(workload, &mut projected)?;
     }
@@ -874,14 +880,25 @@ mod projection_tests {
 
     #[test]
     fn inspection_metadata_cannot_replace_the_actual_session_world() {
-        let (_, raw_world) = configuration();
-        let mut missing = observe(&[], false, false);
-        missing.inspection = br#"{"schema":"retained"}"#.to_vec();
-        assert!(project_encoded(missing, "").is_err());
-
+        let (configuration, raw_world) = configuration();
+        for terminal in ["exit", "trap", "capacity"] {
+            for invalid in [
+                Vec::new(),
+                b"not a World".to_vec(),
+                raw_world[..16].to_vec(),
+            ] {
+                let mut missing = observe(&invalid, false, false);
+                missing.outcome.termination = terminal;
+                missing.inspection = br#"{"schema":"retained"}"#.to_vec();
+                assert!(
+                    project_encoded(missing, "", &configuration.broker).is_err(),
+                    "{terminal}"
+                );
+            }
+        }
         let mut present = observe(&raw_world, false, false);
         present.inspection = br#"{"schema":"retained"}"#.to_vec();
-        let projected = project_encoded(present, "").unwrap();
+        let projected = project_encoded(present, "", &configuration.broker).unwrap();
         assert_eq!(projected.evidence["world"], raw_world);
         assert_eq!(
             projected.evidence["inspection"],
@@ -894,6 +911,16 @@ mod projection_tests {
             summary["world_sha256"],
             canonical::digest(&projected.evidence["inspection"])
         );
+        for terminal in ["cancelled", "infrastructure"] {
+            let mut early = observe(&[], false, false);
+            early.outcome.termination = terminal;
+            assert!(
+                project_encoded(early, "", &configuration.broker)
+                    .unwrap()
+                    .evidence["world"]
+                    .is_empty()
+            );
+        }
     }
 
     #[test]

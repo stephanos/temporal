@@ -275,8 +275,11 @@ pub(crate) fn input(root: &Path, path: &Path) -> Result<(), String> {
                 })
                 .collect();
             let oracle_report = cluster::oracles::assess(&observed, &inputs.configuration)?;
-            let mut observed =
-                cluster::project_encoded(observed, inputs.configuration.encoded_world_format()?)?;
+            let mut observed = cluster::project_encoded(
+                observed,
+                inputs.configuration.encoded_world_format()?,
+                &inputs.configuration.broker,
+            )?;
             cluster::oracles::apply(&mut observed, &oracle_report)?;
             for (name, bytes) in &observed.evidence {
                 let stream = expected

@@ -218,7 +218,11 @@ pub(crate) fn execute_configuration(
         ));
     }
     let oracle_report = cluster::oracles::assess(&execution, &configuration)?;
-    let mut observed = cluster::project_encoded(execution, configuration.encoded_world_format()?)?;
+    let mut observed = cluster::project_encoded(
+        execution,
+        configuration.encoded_world_format()?,
+        &configuration.broker,
+    )?;
     cluster::oracles::apply(&mut observed, &oracle_report)?;
     for item in &retained {
         observed
