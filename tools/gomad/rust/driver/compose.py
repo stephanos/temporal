@@ -87,7 +87,8 @@ def validate_stages(config):
                 require(entry['checker'] == [config['python'], str(HERE / 'cell_reader.py'), '--config',
                                              config['_future_config'], '--stage', label], 'foreign durable cell reader')
         elif adapter == 'sqlite-catalogue':
-            require(entry.get('oracle'), 'actual independent SQLite oracle required')
+            sqlite_binding(config)
+            require(set(entry) == {'adapter'}, 'fixed SQLite catalogue adapter required')
         elif adapter in ('retained', 'plan'):
             require(False, 'missing closed original primary recipe: ' + label)
     require(not gaps, 'unbound original stage endpoints: ' + ', '.join(gaps))
@@ -112,12 +113,16 @@ def bind_primitives(config, config_path):
         config['stages'][label] = dict(adapter='corpus')
     for index in range(4):
         config['stages'][f'sqlite-selection-{index}'] = dict(adapter='sqlite-selection', installation='sqlite-cooperative')
+    sqlite_binding(config)
+    config['stages']['sqlite-catalogue'] = dict(adapter='sqlite-catalogue')
+
+
+def sqlite_binding(config):
     oracle = config.get('sqlite_oracle')
     require(isinstance(oracle, dict) and set(oracle) == {'build_receipt'}
             and isinstance(oracle['build_receipt'], str) and Path(oracle['build_receipt']).is_absolute(),
             'authentic fixed Go SQLite oracle build receipt required; caller argv forbidden')
     require('oracle' not in config['stages'].get('sqlite-catalogue', {}), 'legacy SQLite oracle stage argv forbidden')
-    config['stages']['sqlite-catalogue'] = dict(adapter='sqlite-catalogue')
 
 
 

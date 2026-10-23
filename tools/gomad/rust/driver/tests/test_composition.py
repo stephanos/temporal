@@ -81,6 +81,40 @@ class CompositionTests(unittest.TestCase):
         with self.assertRaisesRegex(Refusal, 'Go SQLite oracle build receipt'):
             compose.bind_primitives(config, Path('/sealed/config.json'))
 
+    def test_bound_sqlite_receipt_passes_stage_validation_without_legacy_argv(self):
+        import tempfile
+        with tempfile.TemporaryDirectory() as directory:
+            runtime = Path(directory) / 'runtime'
+            receipt = Path(directory) / 'runtime-build.json'
+            runtime.touch()
+            receipt.touch()
+            config = self.base()
+            config_path = Path(directory) / 'config.json'
+            config.update(runtime=dict(harness=str(runtime), harness_build_receipt=str(receipt)),
+                          installations={value['workload'] + '-' + value['profile']: '/sealed/installation'
+                                         for value in compose.CELLS.values()},
+                          sqlite_oracle=dict(build_receipt='/sealed/sqlite-oracle-build.json'),
+                          _future_config=str(config_path))
+            compose.bind_primitives(config, config_path)
+            for label in compose.primary_stages.OWNED:
+                config['stages'][label] = dict(adapter='primary')
+            for label in set(compose.static_stages.LABELS) - compose.primary_stages.OWNED:
+                config['stages'][label] = dict(adapter='checked-command', timeout_s=900,
+                    argv=[sys.executable, str(compose.HERE / 'static_stages.py')],
+                    checker=[sys.executable, str(compose.HERE / 'static_stages.py')])
+            compose.validate_stages(config)
+            self.assertEqual(len(config['stages']), 96)
+            self.assertEqual(config['stages']['sqlite-catalogue'], dict(adapter='sqlite-catalogue'))
+            for invalid in (['/caller/oracle'], {}, dict(build_receipt='relative.json'),
+                            dict(build_receipt='/sealed/build.json', argv=['/caller/oracle'])):
+                config['sqlite_oracle'] = invalid
+                with self.assertRaisesRegex(Refusal, 'Go SQLite oracle build receipt'):
+                    compose.validate_stages(config)
+            config['sqlite_oracle'] = dict(build_receipt='/sealed/sqlite-oracle-build.json')
+            config['stages']['sqlite-catalogue']['oracle'] = ['/caller/oracle']
+            with self.assertRaisesRegex(Refusal, 'legacy SQLite oracle stage argv forbidden'):
+                compose.validate_stages(config)
+
     def test_unknown_runtime_role_and_missing_installation_refused(self):
         config = self.base()
         config['runtime'] = dict(harness='/unadmitted')
