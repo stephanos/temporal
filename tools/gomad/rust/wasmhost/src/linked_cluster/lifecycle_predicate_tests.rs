@@ -584,7 +584,8 @@ fn refused_restart_preserves_owner_and_allows_retry_on_same_broker() {
             .unwrap()
             .reference_image(1 << 20)
             .unwrap();
-        assert!(!recovered.is_empty());
+        let no_recovery_bytes: &[u8] = &[];
+        assert_ne!(recovered.as_slice(), no_recovery_bytes);
         assert_eq!(
             serde_json::to_value(&sealed.execution.request.storage).unwrap()["image"],
             serde_json::to_value(&images["a"]).unwrap()
@@ -1091,7 +1092,11 @@ fn actual_storage_engine_selection_and_divergence_retain_peak_memory_and_enumera
         assert!(result.outcome.peak_memory_bytes > 0);
         let sections = storage_state_sections(&result.evidence["storage_state"]);
         let context: Value = serde_json::from_slice(&sections[&6]).unwrap();
-        assert!(!context["data"]["Operations"].as_array().unwrap().is_empty());
+        let no_operations: &[Value] = &[];
+        assert_ne!(
+            context["data"]["Operations"].as_array().unwrap().as_slice(),
+            no_operations
+        );
         let enumerations: Value = serde_json::from_slice(&sections[&3]).unwrap();
         assert_eq!(enumerations["data"]["Complete"], true);
         assert!(enumerations["data"]["States"].as_array().unwrap().len() >= 2);
