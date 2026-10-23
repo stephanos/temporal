@@ -302,6 +302,22 @@ def decode_network(raw, limit=1 << 20, limits=LIMITS, world=True):
     return dict(record=record, log=log, world=wire, entries=entries)
 
 
+def semantic_mutation(record, mutation):
+    expected = copy.deepcopy(record)
+    expected_limits = dict(LIMITS)
+    if mutation == 'unknown_transition_kind': expected['transitions'][0]['kind'] = 'unknown'
+    elif mutation == 'ordinal_gap': expected['transitions'][0]['ordinal'] += 1
+    elif mutation == 'listener_port_zero': expected['snapshot']['listeners'][0]['endpoint'].pop('port')
+    elif mutation == 'reset_retains_bytes': expected['snapshot']['connections'][0].update(reset=True, client_bytes=1)
+    elif mutation == 'connection_byte_bound': expected['snapshot']['connections'][0]['client_bytes'] = LIMITS['connection_bytes'] + 1
+    elif mutation == 'total_byte_bound':
+        expected_limits['bytes'] = 1
+        expected['snapshot']['connections'][0]['client_bytes'] = 2
+    expected['snapshot']['transition_sha256'] = record_hashes(expected)[0]
+    expected['snapshot']['identity'] = record_hashes(expected)[1]
+    return expected, expected_limits
+
+
 def refused(raw, limit=1 << 20, limits=LIMITS):
     try:
         decode_network(raw, limit, limits)
@@ -447,19 +463,7 @@ def observations(config, stdout):
             require(raw[:record_start] == fixture[:record_start] and r.flag(), "network semantic mutant changed original header/operations")
             retained_world = r.blob()
             require(r.at == len(raw) and retained_world == decode_network(fixture)["world"], "network semantic mutant changed original World/tail")
-            expected = copy.deepcopy(decode_network(fixture)['record'])
-            expected_limits = dict(LIMITS)
-            mutation = inputs['mutation']
-            if mutation == 'unknown_transition_kind': expected['transitions'][0]['kind'] = 'unknown'
-            elif mutation == 'ordinal_gap': expected['transitions'][0]['ordinal'] += 1
-            elif mutation == 'listener_port_zero': expected['snapshot']['listeners'][0]['endpoint']['port'] = 0
-            elif mutation == 'reset_retains_bytes': expected['snapshot']['connections'][0].update(reset=True, client_bytes=1)
-            elif mutation == 'connection_byte_bound': expected['snapshot']['connections'][0]['client_bytes'] = LIMITS['connection_bytes'] + 1
-            elif mutation == 'total_byte_bound':
-                expected_limits['bytes'] = 1
-                expected['snapshot']['connections'][0]['client_bytes'] = 2
-            expected['snapshot']['transition_sha256'] = record_hashes(expected)[0]
-            expected['snapshot']['identity'] = record_hashes(expected)[1]
+            expected, expected_limits = semantic_mutation(decode_network(fixture)['record'], inputs['mutation'])
             require(same(record, inputs['record']) and same(record, expected) and inputs['shared']['limits'] == expected_limits and inputs['local']['limits'] == LIMITS and record_hashes(record) == (record['snapshot']['transition_sha256'], record['snapshot']['identity']), 'network resealed hashes or exact semantic mutation differ')
             require(refused(raw, limits=inputs['shared']['limits']) and observed['error'] and 'identity or bound' not in observed['error'], 'network resealed semantics admitted or hash-only refused')
         elif case == 'cluster_network_decoder_refusal':

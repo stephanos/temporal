@@ -121,6 +121,26 @@ class NetworkReader(unittest.TestCase):
                 with self.assertRaises(Refusal):
                     gate.corpus_inputs(config())
 
+    def test_zero_port_mutation_matches_native_omitted_endpoint_field(self):
+        original = gate.decode_network((DATA / 'cluster_network/b.gmnetev1').read_bytes(), world=False)['record']
+        expected, limits = gate.semantic_mutation(original, 'listener_port_zero')
+        endpoint = expected['snapshot']['listeners'][0]['endpoint']
+        self.assertNotIn('port', endpoint)
+        self.assertEqual(expected['snapshot']['identity'], 'sha256:3efd21f68454242dd6c427a5fcd567e5ff989f381035ea7c474a14612ce96a02')
+        self.assertNotEqual(endpoint, dict(endpoint, port=0))
+        self.assertIn('port', original['snapshot']['listeners'][0]['endpoint'])
+        with self.assertRaises(Refusal):
+            gate.validate_record(expected, limits)
+
+    def test_stdout_uses_physical_lf_preserving_json_unicode_separators(self):
+        config = dict(repo=str(DATA.parents[5]))
+        row = dict(schema='gomad.core-predicate-observation/v1', case='unrelated', inputs=dict(text='a\u2028b\u2029c'), observed={})
+        raw = json.dumps(row, ensure_ascii=False)
+        with mock.patch.object(gate.native_roles, 'pinned', side_effect=lambda config, path: path), mock.patch.object(gate.native_roles, 'decode', wraps=gate.native_roles.decode) as decode:
+            with self.assertRaises(Refusal):
+                gate.observations(config, gate.MARKER + raw + '\n')
+        self.assertEqual([call.args for call in decode.call_args_list if call.args == (raw,)], [(raw,)])
+
     def test_go_json_html_unicode_and_control_escapes(self):
         self.assertEqual(gate.canonical({'text':'<&>\u2028\u2029\n\0é'}), b'{"text":"\\u003c\\u0026\\u003e\\u2028\\u2029\\n\\u0000\xc3\xa9"}')
 
