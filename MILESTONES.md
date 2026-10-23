@@ -50,6 +50,14 @@ Record a deferred task's revival trigger in its owning Flow task before implemen
 
 ## Immediate delivery order
 
+### fn-232 first (owner decision, 2026-10-23)
+
+The owner asked, "why aren't we focused on fn-232 to get merged?" and approved the conductor's plan to focus on it. Until fn-232.13 closes, both worker slots serve it:
+- One drives the final frozen qualification cycle.
+- The other finishes inputs that must land before the freeze (fn-188.6 gate wiring, fn-233 shim fixes). It then prepares the .13 retirement change on a branch: Go host packages out of the default build, archcheck, Make/CI on the Rust binary, ARCHITECTURE.md/CLI.md and the size comparison. That branch merges as soon as the cycle passes.
+
+No other milestone work starts before fn-232.13 closes. This changes ordering only: no stage, bound or acceptance item is waived.
+
 ### Native backend hibernation (owner decision, 2026-10-14)
 
 The owner asked, "why is there a native gate anyway; we can declare the native backend as deferred/hibernating for now". Native backend execution acceptance was deferred while the WASM section was completed. This waiver superseded the earlier exception for newly introduced fn-153/fn-154/fn-179 native gates and inherited native gates. It waived those gates as conditions of WASM/source completion without recording an execution pass or completing native qualification. The ledger below is historical; retirement and removal superseded its revival conditions.
@@ -286,7 +294,7 @@ CI, PR, or push authority.
 | Name / ID | Status | Description |
 | --- | --- | --- |
 | [fn-188.5](.flow/tasks/fn-188-gomad-wasm-determinism-boundary-audit.5.md) | ⏸ Parked | Rust stress producer and linked jitter implemented; full matrix pending integrated candidate |
-| [fn-188.6](.flow/tasks/fn-188-gomad-wasm-determinism-boundary-audit.6.md) | ⬜ Todo | Regression gates, version pinning, validate wiring and the documented contract |
+| [fn-188.6](.flow/tasks/fn-188-gomad-wasm-determinism-boundary-audit.6.md) | 🚧 Running | Regression gates, version pinning, validate wiring and the documented contract |
 
 ### Map-order determinism repairs — [fn-227](.flow/specs/fn-227-gomad-close-wasm-map-order-determinism.md)
 
@@ -298,7 +306,7 @@ CI, PR, or push authority.
 
 | Name / ID | Status | Description |
 | --- | --- | --- |
-| [fn-185.1](.flow/tasks/fn-185-gomad-wasm-host-side-execution-cost.1.md) | ⏸ Parked | Attribute host imports to exact ops and model owners in the diagnostic profile with reconciliation |
+| [fn-185.1](.flow/tasks/fn-185-gomad-wasm-host-side-execution-cost.1.md) | ⏸ Parked | Attribution, reconciliation and witness proven; R4 release-preservation proof pending fn-232.13's cycle |
 | [fn-185.2](.flow/tasks/fn-185-gomad-wasm-host-side-execution-cost.2.md) | ⬜ Todo | Capture wall and CPU profiles on the cluster and single-guest workloads |
 | [fn-185.3](.flow/tasks/fn-185-gomad-wasm-host-side-execution-cost.3.md) | ⬜ Todo | Rank cost centers and record the single optimization verdict |
 
@@ -308,7 +316,7 @@ First in the delivery order (owner decision 2026-10-20). New evidence lineage; b
 
 | Name / ID | Status | Description |
 | --- | --- | --- |
-| [fn-232-gomad-rewrite-the-host-side-in-rust.13](.flow/tasks/fn-232-gomad-rewrite-the-host-side-in-rust.13.md) | ⏸ Parked | Rust workspace/default host integrated; final qualification, behavioral reach and retirement acceptance pending ([development checkpoint](.flow/artifacts/milestones-rust-integration-2026-10-23.md)) |
+| [fn-232-gomad-rewrite-the-host-side-in-rust.13](.flow/tasks/fn-232-gomad-rewrite-the-host-side-in-rust.13.md) | 🚧 Running | Rust workspace/default host integrated; final qualification, behavioral reach and retirement acceptance pending ([development checkpoint](.flow/artifacts/milestones-rust-integration-2026-10-23.md)) |
 
 ### Go-command interception — [fn-233](.flow/specs/fn-233-gomad-intercept-the-go-command-so-make.md)
 
@@ -316,7 +324,7 @@ Owner request 2026-10-20: a Go one-liner and `gomad -- make <target>` intercepti
 
 | Name / ID | Status | Description |
 | --- | --- | --- |
-| [fn-233-gomad-intercept-the-go-command-so-make.1](.flow/tasks/fn-233-gomad-intercept-the-go-command-so-make.1.md) | ⏸ Parked | run-guest launcher verb behind go -exec with intercepted-origin evidence |
+| [fn-233-gomad-intercept-the-go-command-so-make.1](.flow/tasks/fn-233-gomad-intercept-the-go-command-so-make.1.md) | 🚧 Running | run-guest launcher verb behind go -exec with intercepted-origin evidence |
 | [fn-233-gomad-intercept-the-go-command-so-make.2](.flow/tasks/fn-233-gomad-intercept-the-go-command-so-make.2.md) | ⬜ Todo | go shim: argv[0] dispatch, classification, guest build environment, refusals, host passthrough |
 | [fn-233-gomad-intercept-the-go-command-so-make.3](.flow/tasks/fn-233-gomad-intercept-the-go-command-so-make.3.md) | ⬜ Todo | gomad -- wrapper, gomad.toml and auto-derived installation |
 | [fn-233-gomad-intercept-the-go-command-so-make.4](.flow/tasks/fn-233-gomad-intercept-the-go-command-so-make.4.md) | ⬜ Todo | Temporal Makefile through the wrapper and operator documentation |
