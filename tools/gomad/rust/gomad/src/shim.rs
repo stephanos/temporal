@@ -444,6 +444,8 @@ fn packages(
 ) -> Result<Vec<Package>, String> {
     let scratch = process::Temporary::new(&cache_root()?)?;
     let mut list = vec!["list".into(), "-e".into(), "-json".into(), "-find".into()];
+    // These modes can fail Go's platform checks before package identity is returned.
+    // Guest admission still checks the original flags after target main selection.
     list.extend(
         parsed
             .build_arguments(arguments)?
@@ -452,7 +454,16 @@ fn packages(
                 !query.identity_only
                     || !matches!(
                         flag.split('=').next(),
-                        Some("-race" | "-msan" | "-asan" | "-cover" | "-covermode" | "-coverpkg")
+                        Some(
+                            "-race"
+                                | "-msan"
+                                | "-asan"
+                                | "-cover"
+                                | "-covermode"
+                                | "-coverpkg"
+                                | "-buildmode"
+                                | "-linkshared"
+                        )
                     )
             }),
     );
