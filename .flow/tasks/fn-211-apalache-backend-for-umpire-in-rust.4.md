@@ -4,6 +4,8 @@ satisfies: [R4, R5]
 # fn-211-apalache-backend-for-umpire-in-rust.4 Apalache consumer in the fixture runner; Kettle agreement golden
 
 ## Description
+Owner deferred fn-211 on 2026-10-22: "defer fn-211: Apalache work and move on for now". Do not execute until reactivated. Unfinished consumer source, tests, guest and handoff are preserved at local branch `work/fn2114-deferred`, commit `fee5fc56ae`; its `.flow/artifacts/fn-211.4-deferred/summary.md` records completed checks and missing proof. Raw diagnostics remain in `.flow/tmp/fn-211.4` and ignored `model/build/apalache`. This is an unfinished checkpoint, not task completion; integrate and reanchor it only after reactivation.
+
 Integrate the completed bounded runner and typed replay as an Apalache fixture consumer under parent R4/R5. Task .3 is done at committed closure 023c6c7bc13e2cc65fc880a30c7db8a99fadade2, with final gate e17871d6 independently honored. Reanchor its API before editing; reuse the existing Consumer registry, logical-file ownership, skipped-artifact preservation, Bound/native exploration and generated fixture dispatch instead of creating a second runner.
 
 **Size:** L. **Dependencies:** .3 done and its closure committed on umpire before admission. **Touches:** [model/umpire/testing/**, model/umpire/checker/**, model/umpire/tests/**, model/umpire/backends/apalache/**, model/Cargo.toml, model/Cargo.lock, Makefile]
@@ -29,8 +31,8 @@ Focused registry/ownership/replay suites in default and required modes, strict c
 - [ ] Every required refusal, incomplete result, malformed/non-replayable witness or disagreement fails independently of golden equality/update; failed execution cannot be blessed.
 - [ ] Deterministic new backend goldens contain no timings/absolute paths, previous source/native/TLC artifacts remain exact, and focused tests/lint/actual tool controls/review/audits/final required gate pass with honest scoped evidence.
 ## Done summary
-TBD
-
+Blocked:
+Owner deferred fn-211: "defer fn-211: Apalache work and move on for now". Unfinished work retained at work/fn2114-deferred, fee5fc56ae. This is a scheduling deferral, not a technical blocker or completion.
 ## Evidence
 - Commits:
 - Tests:
