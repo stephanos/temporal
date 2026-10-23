@@ -167,6 +167,8 @@ class InspectionTests(unittest.TestCase):
             self.assertEqual(receipt['timed_out'], name == 'timeout')
             self.assertEqual(receipt['stdout_sha256'], gate.digest(self.root / (name + '.stdout')))
             self.assertEqual(receipt['environment_intent'], dict(mandatory_workloads=False, detached=False))
+            self.assertEqual((self.root / (name + '.stdout')).stat().st_mode & 0o777, 0o600)
+            self.assertEqual((self.root / (name + '.stderr')).stat().st_mode & 0o777, 0o600)
             self.assertIn('started', receipt)
             self.assertIn('ended', receipt)
 

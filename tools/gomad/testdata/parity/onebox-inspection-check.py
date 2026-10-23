@@ -138,6 +138,8 @@ class Gate:
         clock = time.monotonic()
         timed_out = False
         with stdout.open('xb') as out, stderr.open('xb') as err:
+            os.fchmod(out.fileno(), 0o600)
+            os.fchmod(err.fileno(), 0o600)
             process = subprocess.Popen(command, stdout=out, stderr=err, cwd=self.repo,
                                        env=environment, start_new_session=True)
             try:
