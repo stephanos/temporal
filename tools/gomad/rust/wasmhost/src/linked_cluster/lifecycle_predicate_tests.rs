@@ -974,12 +974,29 @@ fn storage_engine_request(descriptor: &Value, context: Option<&Value>) -> linked
 
 fn storage_engine_input_facts(input: &linked::Request) -> Value {
     let model = input.model.as_ref().unwrap();
+    let configuration = &model.configuration;
+    assert!(configuration.tape.is_none());
+    assert!(configuration.replay.is_none());
+    assert!(configuration.inspection.is_none());
+    let configuration = json!({
+        "entropy_key":configuration.entropy_key,
+        "working_directory_sha256":configuration.working_directory_sha256,
+        "arguments":{"bytes":0,"count":0,"chunks":0},
+        "environment":{"bytes":0,"count":0,"chunks":0},
+        "seed":configuration.seed,"mode":configuration.mode,"limit":configuration.limit,
+        "diagnostics":configuration.diagnostics,"replay":null,
+        "epoch_nanos":configuration.epoch_nanos,"read_step_nanos":configuration.read_step_nanos,
+        "now":configuration.now,"limits":{"calls":configuration.limits.calls,
+            "transcript_bytes":configuration.limits.transcript_bytes,
+            "pending_events":configuration.limits.pending_events},
+        "digest_only":configuration.digest_only,"split":configuration.split,"inspection":null
+    });
     json!({
         "module_bytes":input.module,"wat_utf8":std::str::from_utf8(&input.module).unwrap(),
         "request":{"limits":{"memory_bytes":input.limits.memory_bytes,"fuel":input.limits.fuel,
             "output_bytes":input.limits.output_bytes,"evidence_bytes":input.limits.evidence_bytes,
             "wall_timeout_millis":input.limits.wall_timeout.as_millis()},
-            "model_configuration":model.configuration,"arguments":model.arguments,
+            "model_configuration":configuration,"arguments":model.arguments,
             "environment":model.environment,"replay_trace":model.replay_trace,
             "namespace":input.namespace,"storage":input.storage}
     })
