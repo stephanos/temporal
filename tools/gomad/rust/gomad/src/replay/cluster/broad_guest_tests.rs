@@ -263,6 +263,7 @@ fn publish_replay(
     producer: &Producer,
     case: &str,
     configuration: &Configuration,
+    replay_requested: bool,
 ) -> (Value, Value) {
     let publication = crate::fixture_cluster::execute_configuration(
         configuration.clone(),
@@ -291,20 +292,25 @@ fn publish_replay(
     assert!(!producer.root.join("prepared-module.wasm").exists());
     assert!(!producer.root.join("installation.json").exists());
     let mut output = Vec::new();
-    let status = crate::cli::replay::run(
-        &[published.path.to_string_lossy().into_owned()],
-        &mut output,
-    )
-    .unwrap_or_else(|error| panic!("{}", error.message));
+    let status = replay_requested.then(|| {
+        let status = crate::cli::replay::run(
+            &[published.path.to_string_lossy().into_owned()],
+            &mut output,
+        )
+        .unwrap_or_else(|error| panic!("{}", error.message));
+        assert_eq!(
+            status,
+            i32::from(opened.manifest().record.outcome.class != "success")
+        );
+        status
+    });
     let output = String::from_utf8(output).unwrap();
-    assert_eq!(
-        status,
-        i32::from(opened.manifest().record.outcome.class != "success")
-    );
-    assert!(
-        output.contains("reproduced=true") && output.contains("choice-replay=exact"),
-        "{output}"
-    );
+    if replay_requested {
+        assert!(
+            output.contains("reproduced=true") && output.contains("choice-replay=exact"),
+            "{output}"
+        );
+    }
     assert_eq!(
         Opened::open(&published.path)
             .unwrap()
@@ -383,13 +389,8 @@ fn actual_soft_assertion_cluster_original_seeds_policies_and_retained_replay() {
             signature = Some(report["failure_identity"].clone());
         }
         let case = format!("soft/seed={seed}/report-only={report_only}");
-        let replay = if seed == 7 {
-            let (retained, proof) = publish_replay(&producer, &case, &configuration);
-            assert_eq!(retained, report);
-            proof
-        } else {
-            Value::Null
-        };
+        let (retained, replay) = publish_replay(&producer, &case, &configuration, seed == 7);
+        assert_eq!(retained, report);
         observation(
             &producer,
             "TestSoftAssertionActualClusterGuestAndRetainedReplay",
@@ -495,9 +496,10 @@ fn observe_execution(
     let outcomes=execution.incarnations.iter().map(|item|json!({"handle":item.handle,"interrupted":item.interrupted,
         "outcome":item.execution.outcome,"stdout_base64":crate::campaign::exploration::base64(&item.execution.evidence["stdout"]),
         "evidence":item.execution.evidence.iter().map(|(name,bytes)|(name,json!({"bytes":bytes.len(),"sha256":canonical::digest(bytes)}))).collect::<BTreeMap<_,_>>()})).collect::<Vec<_>>();
+    let executed_steps = serde_json::to_value(&execution.executed_steps).unwrap();
     (
         execution,
-        json!({"activity":activity,"incarnations":outcomes}),
+        json!({"activity":activity,"incarnations":outcomes,"executed_steps":executed_steps}),
     )
 }
 
@@ -554,7 +556,7 @@ fn actual_independent_go_guests_preserve_plain_and_compressed_lifecycle_replay()
             );
         }
         let case = format!("lifecycle/compressed={compressed}");
-        let (report, replay) = publish_replay(&producer, &case, &configuration);
+        let (report, replay) = publish_replay(&producer, &case, &configuration, true);
         assert_eq!(report["outcome"], "completed");
         assert_eq!(
             replay["retained_inputs"]["configuration"]["world_profile"],
@@ -604,7 +606,7 @@ fn actual_go_history_oracle_canary_preserves_detached_retained_replay() {
         );
         assert_eq!(report["oracles"].as_array().unwrap().len(), 4);
         let case = format!("canary/enabled={canary}");
-        let (retained, replay) = publish_replay(&producer, &case, &configuration);
+        let (retained, replay) = publish_replay(&producer, &case, &configuration, true);
         assert_eq!(retained, report);
         observation(
             &producer,
@@ -664,7 +666,7 @@ fn actual_go_grouped_acknowledgment_crash_preserves_independent_durable_recovery
             );
         }
     }
-    let (report, replay) = publish_replay(&producer, "grouped/replay", &configuration);
+    let (report, replay) = publish_replay(&producer, "grouped/replay", &configuration, true);
     assert_eq!(report["outcome"], "completed");
     observation(
         &producer,
