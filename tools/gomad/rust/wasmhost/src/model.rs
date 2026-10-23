@@ -10,6 +10,8 @@ pub mod inspection;
 pub mod replay;
 pub mod replay_plan;
 mod reply;
+#[cfg(test)]
+mod runtime_preservation;
 
 const CHUNK: usize = 64 * 1024;
 const MAX_TIME: u64 = i64::MAX as u64;
