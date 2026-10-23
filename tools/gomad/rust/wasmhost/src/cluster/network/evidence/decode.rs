@@ -322,6 +322,7 @@ pub(crate) fn decode(
 #[cfg(test)]
 mod tests {
     use super::*;
+    use base64::Engine as _;
     use sha2::{Digest, Sha256};
 
     fn world_config() -> world::Config {
@@ -394,7 +395,7 @@ mod tests {
             serde_json::json!({
                 "schema":"gomad.core-predicate-observation/v1",
                 "case":"network_shared_record_local_world_limits",
-                "inputs":{"evidence_sha256":format!("{:x}",Sha256::digest(bytes)),"shared":shared,"local":local,"small_shared":too_small_shared,"foreign_local":foreign_local},
+                "inputs":{"evidence_base64":base64::prelude::BASE64_STANDARD.encode(bytes),"evidence_sha256":format!("{:x}",Sha256::digest(bytes)),"shared":shared,"local":local,"small_shared":too_small_shared,"foreign_local":foreign_local},
                 "observed":{"shared_error":shared_error,"local_error":local_error,"admitted_world_sha256":format!("{:x}",Sha256::digest(decode(bytes,1 << 20,&owner_limits(&shared.limits),&world_config()).unwrap().world))}
             })
         );
@@ -437,7 +438,7 @@ mod tests {
             "unknown_transition_kind",
             "ordinal_gap",
             "listener_port_zero",
-            "reset_open_connection",
+            "reset_retains_bytes",
             "connection_byte_bound",
             "total_byte_bound",
         ] {
@@ -451,10 +452,10 @@ mod tests {
                 "listener_port_zero" => {
                     record.snapshot.listeners.as_mut().unwrap()[0].endpoint.port = 0;
                 }
-                "reset_open_connection" => {
+                "reset_retains_bytes" => {
                     let connection = &mut record.snapshot.connections.as_mut().unwrap()[0];
                     connection.reset = true;
-                    connection.closed = false;
+                    connection.client_bytes = 1;
                 }
                 "connection_byte_bound" => {
                     record.snapshot.connections.as_mut().unwrap()[0].client_bytes =
@@ -491,7 +492,7 @@ mod tests {
                 "GOMAD_CORE_OBSERVATION {}",
                 serde_json::json!({
                     "schema":"gomad.core-predicate-observation/v1","case":"network_resealed_semantic_refusal",
-                    "inputs":{"mutation":mutation,"evidence_sha256":format!("{:x}",Sha256::digest(&changed)),"record":record,"shared":shared,"local":local},
+                    "inputs":{"mutation":mutation,"evidence_base64":base64::prelude::BASE64_STANDARD.encode(&changed),"evidence_sha256":format!("{:x}",Sha256::digest(&changed)),"record":record,"shared":shared,"local":local},
                     "observed":{"error":error}
                 })
             );
@@ -512,7 +513,7 @@ mod tests {
         let valid = decode(bytes, 1 << 20, &owner_limits(&limits), &config).unwrap();
         println!(
             "GOMAD_CORE_OBSERVATION {}",
-            serde_json::json!({"schema":"gomad.core-predicate-observation/v1","case":"cluster_network_decoder_valid_fixture","inputs":{"path":"tests/testdata/cluster_network/b.gmnetev1","sha256":format!("{:x}",Sha256::digest(bytes))},"observed":{"record":valid.record,"log_sha256":format!("{:x}",Sha256::digest(&valid.log)),"world_sha256":format!("{:x}",Sha256::digest(&valid.world))}})
+            serde_json::json!({"schema":"gomad.core-predicate-observation/v1","case":"cluster_network_decoder_valid_fixture","inputs":{"evidence_base64":base64::prelude::BASE64_STANDARD.encode(bytes),"path":"tests/testdata/cluster_network/b.gmnetev1","sha256":format!("{:x}",Sha256::digest(bytes))},"observed":{"record":valid.record,"log_sha256":format!("{:x}",Sha256::digest(&valid.log)),"world_sha256":format!("{:x}",Sha256::digest(&valid.world))}})
         );
         let refused = |name: &str, changed: &[u8], bound| {
             let error =
@@ -520,10 +521,11 @@ mod tests {
                     .expect_err(name);
             println!(
                 "GOMAD_CORE_OBSERVATION {}",
-                serde_json::json!({"schema":"gomad.core-predicate-observation/v1","case":"cluster_network_decoder_refusal","inputs":{"mutation":name,"bytes":changed.len(),"sha256":format!("{:x}",Sha256::digest(changed)),"transcript_limit":bound},"observed":{"error":error}})
+                serde_json::json!({"schema":"gomad.core-predicate-observation/v1","case":"cluster_network_decoder_refusal","inputs":{"mutation":name,"evidence_base64":base64::prelude::BASE64_STANDARD.encode(changed),"bytes":changed.len(),"sha256":format!("{:x}",Sha256::digest(changed)),"transcript_limit":bound},"observed":{"error":error}})
             );
         };
         let mut prefix_errors = sha2::Sha256::new();
+        let mut raw_prefix_errors = Vec::new();
         for length in 0..bytes.len() {
             let error = crate::linked_cluster::validate_network_evidence(
                 &bytes[..length],
@@ -533,13 +535,14 @@ mod tests {
             )
             .err()
             .unwrap_or_else(|| panic!("prefix {length} admitted"));
+            raw_prefix_errors.push(error.clone());
             prefix_errors.update((length as u64).to_be_bytes());
             prefix_errors.update(error.as_bytes());
             prefix_errors.update([0]);
         }
         println!(
             "GOMAD_CORE_OBSERVATION {}",
-            serde_json::json!({"schema":"gomad.core-predicate-observation/v1","case":"cluster_network_decoder_all_prefixes","inputs":{"path":"tests/testdata/cluster_network/b.gmnetev1","sha256":format!("{:x}",Sha256::digest(bytes)),"prefix_end_exclusive":bytes.len()},"observed":{"ordered_error_sha256":format!("{:x}",prefix_errors.finalize())}})
+            serde_json::json!({"schema":"gomad.core-predicate-observation/v1","case":"cluster_network_decoder_all_prefixes","inputs":{"evidence_base64":base64::prelude::BASE64_STANDARD.encode(bytes),"path":"tests/testdata/cluster_network/b.gmnetev1","sha256":format!("{:x}",Sha256::digest(bytes)),"prefix_end_exclusive":bytes.len()},"observed":{"errors":raw_prefix_errors,"ordered_error_sha256":format!("{:x}",prefix_errors.finalize())}})
         );
         let mut trailing = bytes.to_vec();
         trailing.push(0);
