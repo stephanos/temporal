@@ -816,3 +816,65 @@ remaining release/source/admission/reader/support predecessors, and current
 qualification acceptance changes. Root still owns candidate freeze, build and
 actual run grants, main cut, Flow and final acceptance. All remaining eight final
 IDs and all actual145 receiving proof obligations remain pending as recorded.
+
+
+## Root synchronization and focused integration verification (2026-10-22)
+
+Merged current root `0fee7dcb2b` into the clean existing retirement candidate as
+`baed0b5308` without conflicts. This carries current milestone/custody records;
+no Flow lifecycle was changed by this worker. Cargo audit commit `38f82464bf`
+reuses the existing workspace relocation, binds the centralized toolchain file
+into the host implementation identity, and updates current source ownership docs.
+The union lock remains exactly the 128 existing package name/version/source/
+checksum tuples; no dependency resolution changed.
+
+Fresh retained-Go tests exposed real retirement integration errors. Generic
+structural `Check` was incorrectly applying the module-default retirement guard
+to arbitrary fixture trees; the refusal now remains on exported default-set
+`Discover`, whose existing negative retired-host tests are preserved. The subtree
+fixture now selects its actual relocated model directory. Removed the exclusion
+for deleted `internal/runner/testdata` rather than retaining an empty placeholder.
+The native SQLite reference observer gets only its exact strict-JSON import edge,
+with a positive owner test; no developer-wide strict-JSON permission was added.
+The unchanged original-scope exclusion reason/status remains source authenticated;
+its architecture-test digest is rebound for that exact added owner-test row.
+
+The driver process test exposed a real scheduler cleanup race: SIGKILL delivery
+preceded process death, while cleanup immediately wrote `active=false`. Two
+controlled regressions failed before repair (RED2), proving a still-live group
+was ignored and timeout did not refuse. Cleanup now observes every Linux procfs
+member of the registered group, accepts only absent/zombie/dead members, and
+waits at most five seconds before refusal. Only actual quiescence permits the
+inactive registration; timeout keeps the registration active. Focused process
+suite GREEN6 includes actual stage-kill execution. Full portable driver GREEN126
+includes these regressions and the exact authenticated source-pin refresh.
+
+All logs for this focused wave are under
+`/home/agent/.cache/codex-build/fn232-retirement-*`. These checks compile/check the
+prospective source; they are not final runtime/workload/parity qualification or
+retirement acceptance. The candidate remains unfrozen and receives other owners'
+source deltas before root's integrated wave. No guest command, final measured
+qualification, source-size closeout, push, PR or history rewrite ran here.
+
+Owned worktree `/home/agent/wt/fn232-retirement` remains necessary for root
+integration; assigned Cargo target
+`/home/agent/.cache/codex-build/fn232-retirement-integration` remains reusable.
+Other workers' worktrees/caches/evidence were untouched; no cleanup/deletion ran.
+
+
+Final focused commands, all exit 0 (explicit checkout cwd for every invocation):
+
+- `CARGO_TARGET_DIR=/home/agent/.cache/codex-build/fn232-retirement-integration cargo +1.99.1 check --manifest-path tools/gomad/rust/Cargo.toml --workspace --all-targets --locked --offline -j 4`: dev check 79s, log `fn232-retirement-integration-check.log`.
+- Same target, `cargo +1.99.1 clippy --manifest-path tools/gomad/rust/Cargo.toml --workspace --all-targets --locked --offline --no-deps -j 4 -- -D warnings`: 43s, log `fn232-retirement-integration-clippy.log`. This recompiled the host after the toolchain-binding edit. Nondefault feature-role matrix remains root's integrated check wave.
+- In `tools/gomad`, `GOTOOLCHAIN=go1.27.1 GOMAXPROCS=4 go test -tags test_dep -count=1 ./internal/archcheck ./internal/support/...`: archcheck 168.030s including complete host vets for Darwin/arm64, Linux/amd64 and Linux/arm64; support/fs passed, temporalinput has no tests; log `fn232-retirement-integration-go-final.log`.
+- Same Go selection, `go test -tags test_dep -run '^$' ./...`: all retained default packages compile, log `fn232-retirement-integration-go-compile.log`; no test execution claim from this command.
+- `PYTHONDONTWRITEBYTECODE=1 python3 -m unittest discover -s tools/gomad/rust/driver/tests -q`: 126 passed in 8.135s, log `fn232-retirement-integration-driver-final.log`. Initial whole run exposed the process race; controlled RED2 and GREEN6 logs `fn232-retirement-process-{red,green}.log` remain retained. An intermediate run correctly refused the stale architecture-test source hash before its exact refresh.
+- Workload-tools portable suite: 23 passed, log `fn232-retirement-integration-workloads.log`.
+- Workspace rustfmt check, all-verb negative selftest 13, source-size utility tests 3, Make build/validation/harness/parity/lint dry expansion, historical/current reference model hash script and `git diff --check` all exit 0. Current retained logical reference hash `sha256:bd45d4831ca0f417b6411a29b70cf1070a779e5f04591a679c180d925b586d15`; historical hash reproduced unchanged. No final source-size measurement ran.
+
+Every invoked process from this focused wave is terminal. Disk after builds:
+112GiB available on the shared overlay. No acceptance blocker was waived: pending
+nondefault feature-role integrated checks, every-verb actual parity, full source/
+subvariant receiving reach, mandatory runtime/workload/replay/inspection/stress
+proofs, private resource admission, final immutable freeze and measured final
+qualification remain with root and their assigned owners.

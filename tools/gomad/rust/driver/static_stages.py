@@ -203,7 +203,7 @@ def parse_go_inventory(raw):
 
 GO_SCOPE_SOURCES = {
     'tools/gomad/internal/archcheck/defaultset_test.go': '245b52ae2b3d33d8f734c7a6c83a3ceda053abeee66ad23876584ee2fb3d9425',
-    'tools/gomad/internal/archcheck/architecture_test.go': 'ad46ab118e62dbf1bbe3777e67449760f435d54d9e5aa6ff9f76b67478399f12',
+    'tools/gomad/internal/archcheck/architecture_test.go': 'b0e2aeb1a56835776148f94b112fc523a1e6dabdeef0e88d911f5f33d25c5e19',
     'tools/gomad/go.mod': '7951085bb6063ae8925c395345ee8997644cb83c9c9c55963e62cbad6bbf4511',
 }
 GO_SCOPE_ROOT = ('go.temporal.io/server/tools/gomad/internal/archcheck', 'TestNoDefaultSourceNamesNestedTree')

@@ -249,6 +249,31 @@ def command(config, root, name, argv, accepted=(0,), timeout=None, private_obser
     return (root / (name + '.stdout')).read_bytes()
 
 
+def process_group_live(group):
+    require(sys.platform.startswith('linux') and Path('/proc').is_dir(),
+            'process group quiescence requires Linux procfs')
+    for process in Path('/proc').iterdir():
+        if not process.name.isdecimal():
+            continue
+        try:
+            fields = (process/'stat').read_text().rsplit(') ', 1)[1].split()
+        except (FileNotFoundError, ProcessLookupError):
+            continue
+        except (OSError, IndexError) as error:
+            raise Refusal('cannot observe process group quiescence') from error
+        require(len(fields) >= 3, 'invalid process group observation')
+        if int(fields[2]) == group and fields[0] not in ('Z', 'X'):
+            return True
+    return False
+
+
+def wait_process_group(group):
+    deadline = time.monotonic()+5
+    while process_group_live(group):
+        require(time.monotonic() < deadline, 'process group did not quiesce after SIGKILL')
+        time.sleep(0.01)
+
+
 class StageExecutor(scheduler.RealExecutor):
     def __init__(self, runner, state_dir, env):
         super().__init__(runner, state_dir, env)
@@ -269,6 +294,7 @@ class StageExecutor(scheduler.RealExecutor):
                 os.killpg(record['pid'], signal.SIGKILL)
             except ProcessLookupError:
                 pass
+            wait_process_group(record['pid'])
             record.update(active=False, observation='inconclusive', cleanup_signal=int(signal.SIGKILL))
             save_process(path, record)
             found = True
