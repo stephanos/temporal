@@ -1,7 +1,7 @@
 {
   "schema": "gomad.integration-development-evidence/v1",
-  "observed_at": "2026-10-23T13:50:55.389291+00:00",
-  "integration_head": "e21a00b26848dea71bcb09b4ed46b16cea76171c",
+  "observed_at": "2026-10-23T13:59:18.857710+00:00",
+  "integration_head": "6d610a3fcfabf5119f4b915582743e49a8d64e4f",
   "final_qualification": false,
   "logs": [
     {
@@ -2947,6 +2947,60 @@
         ".": 80189341696,
         "/home/agent": 21882458112
       }
+    },
+    {
+      "observed_at": "2026-10-23T13:59:18.857710+00:00",
+      "integration_head": "6d610a3fcfabf5119f4b915582743e49a8d64e4f",
+      "final_qualification": false,
+      "scope": "Reviewed original ordinary/clusters route integration and prerequisite custody audit",
+      "logs": [
+        {
+          "path": "/home/agent/evidence/fn232-root-joined-primary-v5/tests.json",
+          "bytes": 622,
+          "sha256": "84665b87c86098982f0af462f4610091e2e99c941f4422376b9e305ed544c8d7"
+        },
+        {
+          "path": "/home/agent/evidence/fn232-root-joined-primary-v5/tests.log",
+          "bytes": 88823,
+          "sha256": "6a2dd5da442fc4983d3f40ba429a4ac3926f9822b1c06465512ee0b5821a5d6d"
+        },
+        {
+          "path": "/home/agent/evidence/fn232-root-prerequisite-tool-audit-v1.json",
+          "bytes": 4340,
+          "sha256": "48a3289b5778cd8b6a473017d94a83200a732d89b901eb408c463a8114def160"
+        },
+        {
+          "path": "/home/agent/evidence/fn232-final-target-assignment-v1.json",
+          "bytes": 555,
+          "sha256": "69be941a0f6827bba456a0b1972ea35a93267de7cc6d827dae5b7165e29af6e8"
+        }
+      ],
+      "joined_python": {
+        "tests": 521,
+        "exit": 0,
+        "source_unchanged": true,
+        "elapsed_s": 55.608
+      },
+      "source_integration": {
+        "source_commit": "7226f375d1e8503573a4e8b4305c69bbd502b925",
+        "root_commit": "6d610a3fcfabf5119f4b915582743e49a8d64e4f",
+        "fresh_review": "Same-family high SOURCE_READY",
+        "ordinary": "Exact original Go selections and duplicate execution accounting; actual execution pending",
+        "clusters": "Both interrupted prefixes and both reopened full histories, independent incarnation streams/shared World/network; actual execution pending",
+        "stage_count": 96,
+        "final_obligations": 146
+      },
+      "prerequisite_tools": {
+        "actual_pins_rehashed": 13,
+        "all_match": true,
+        "final_compiler_plan": false
+      },
+      "source_remaining": [
+        "Six-root wire applicability plus explicit genuine archived Go module dependency custody",
+        "Fixed independently built Go SQLite oracle and paired composer/freezer hooks",
+        "Runtime-cost cached native request versus uncached original reference request coupling"
+      ],
+      "remaining_acceptance": "New immutable candidate and genuine roles/installations/inputs; all original runtime, workload, replay, receiving, counterfactual and 3600-second gates; later support/sweep/profiling milestones remain open"
     }
   ],
   "resource_snapshot": {

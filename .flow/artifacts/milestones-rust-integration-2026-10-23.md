@@ -1,15 +1,17 @@
 # Current joined development checkpoint
 
-Source `e21a00b268`. **Development evidence only; milestone completion remains open.**
+Source `6d610a3fcf`. **Development evidence only; milestone completion remains open.**
 The companion JSON authenticates the exact source, commands, numeric exits and raw logs.
 
-- Joined Python driver: **512 passed** on unchanged source, exit 0.
+- Joined Python driver: **521 passed** on unchanged source, exit 0.
 - Native runtime repair source `eaf70ae46d`: **715 host tests passed** (9 ignored), 27 focused tests passed, strict Clippy exited 0. The independent reader accepted 91 facts including 20 capacity cases. Root independently reopened all eleven command/process/raw-log sets. Optional oracle absence and both output-capacity messages accepted by the original Go implementation are handled without weakening artifact validation or changing production outcomes.
 - The corrected native counterfactual parser selector passed all **5 active tests** (2 explicit original-Go producer tests remain ignored), exit 0 on unchanged source `2c5b50f6be`. Its actual executable was copied and SHA-verified before reuse of the build target. Original four-pair execution remains required.
 - All twelve fixed native build roles now have closed source/compiler/Cargo/process/generated-identity provisioning and receiving routes. Actual candidate builds remain pending. The root19 reference requires its genuine transport helper role; the old historical helper is never promoted from a SHA claim into a build receipt. Its actual original-Go ABI run is still required.
 - The historical broker instrumentation test now loads its SHA-verified original Git fixture. Its original predicates are unchanged. A reviewer accidentally ran extra Go unit probes and lost their temporary child receipts; the discrepancy is retained and earns no qualification credit.
 
-The complete eighteen-group readiness audit still reports no runnable final configuration. Remaining source prerequisites are the ordinary/clusters stage routes with their exact repeated selections and replay phases, explicit six-root wire applicability with genuine original-Go dependencies, and the independent fixed Go SQLite oracle. These have isolated owners. Then freeze a new immutable candidate, regenerate GNU/source envelopes, build genuine roles and inputs, and run all original receiving, runtime, workload, replay and 3,600-second qualification gates. Later support, suite sweep and profiling milestones remain required. No stage count, obligation, failure or support claim is waived.
+The original ordinary/clusters routes are integrated: original repeated Go selections, both interrupted-prefix replays, both reopened full-history replays, and shared World/network comparisons remain required. Their actual execution is pending. All thirteen retained prerequisite tool pins were reopened and match. A real empty stage build cache is assigned on the checkout filesystem; future closed role builds require separate fresh roots there to preserve native-disk headroom.
+
+The complete eighteen-group readiness audit still reports no runnable final configuration. Remaining source prerequisites are explicit six-root wire applicability with genuine original-Go dependencies, the independent fixed Go SQLite oracle, and a demonstrated coupling between cached native runtime-cost requests and the uncached original reference request. These have isolated owners. Then freeze a new immutable candidate, regenerate GNU/source envelopes, build genuine roles and inputs, and run all original receiving, runtime, workload, replay and 3,600-second qualification gates. Later support, suite sweep and profiling milestones remain required. No stage count, obligation, failure or support claim is waived.
 
 ## Earlier development checkpoints
 
