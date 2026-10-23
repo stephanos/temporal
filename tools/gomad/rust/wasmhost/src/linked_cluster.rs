@@ -1392,7 +1392,6 @@ fn execute_inner(
     }
     if let Err(error) = driven
         && !divergent
-        && !prepared.cancellation.cancelled()
     {
         return Err(error);
     }

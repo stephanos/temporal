@@ -372,3 +372,60 @@ fn cancellation_after_actual_output_keeps_joined_incarnations_and_start_prefix()
         }),
     );
 }
+
+#[test]
+fn synchronous_observer_cancellation_preserves_before_and_after_refusals() {
+    struct Observer {
+        cancellation: linked::Cancellation,
+        activity: Activity,
+        calls: Mutex<Vec<(u64, bool)>>,
+        refuse: (u64, bool),
+    }
+    impl Observer {
+        fn observe(
+            &self,
+            phase: &LifecyclePhase,
+            before: bool,
+        ) -> std::result::Result<(), String> {
+            assert_eq!(phase.handles.len(), 2);
+            self.calls.lock().unwrap().push((phase.incarnation, before));
+            if self.refuse == (phase.incarnation, before) {
+                assert_eq!(
+                    self.activity.snapshot().launched_stores,
+                    if self.refuse == (1, true) { 0 } else { 2 }
+                );
+                self.cancellation.cancel();
+                return Err("admission refused".into());
+            }
+            Ok(())
+        }
+    }
+    impl LifecycleObserver for Observer {
+        fn before(&self, phase: &LifecyclePhase) -> std::result::Result<(), String> {
+            self.observe(phase, true)
+        }
+        fn after(&self, phase: &LifecyclePhase) -> std::result::Result<(), String> {
+            self.observe(phase, false)
+        }
+    }
+    for slow_first in [false, true] {
+        for refuse in [(1, true), (1, false), (2, true)] {
+            let prepared = prepare(phase_schedule_request(slow_first)).unwrap();
+            let observer = Observer {
+                cancellation: prepared.cancellation.clone(),
+                activity: prepared.activity(),
+                calls: Mutex::new(Vec::new()),
+                refuse,
+            };
+            let error = execute_prepared_observed(prepared, Some(&observer))
+                .err()
+                .unwrap();
+            assert_eq!(error.to_string(), "admission refused");
+            assert!(observer.cancellation.cancelled());
+            let expected = [(1, true), (1, false), (2, true)];
+            let through = expected.iter().position(|value| *value == refuse).unwrap() + 1;
+            assert_eq!(*observer.calls.lock().unwrap(), expected[..through]);
+            assert_eq!(observer.activity.snapshot().remote_callback_attempts, 0);
+        }
+    }
+}
