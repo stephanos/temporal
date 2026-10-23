@@ -1,0 +1,10 @@
+{
+  "reviewed_source": "26dd66814f951daccabad762372de6674f84acf3",
+  "corrected_gate_source": "7eaf02df4883a9ab0489395e6683b1ef3173a782",
+  "production_delta": [],
+  "test_only_delta": [
+    "model/umpire/tests/fixtures/shared_returns/tests.rs"
+  ],
+  "diff_sha256": "f91acdeb064badae4c5b6dd0a207abdf8bf835e1d5357a56bb0445ef1b397160",
+  "finding": "Exact typed LET expectation; shared identifier and equality checks preserved. No runtime/emitter delta."
+}
