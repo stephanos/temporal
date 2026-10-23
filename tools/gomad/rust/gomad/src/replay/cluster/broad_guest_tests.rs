@@ -702,12 +702,14 @@ fn grouped_latest_storage(execution: &helper::Execution) -> Value {
         .map(|item| {
             let state = &item.execution.evidence["storage_state"];
             let log = &item.execution.evidence["storage"];
-            json!({"handle":item.handle,"state_bytes":state.len(),"log_bytes":log.len(),
+            let image = &item.execution.evidence["storage_image"];
+            json!({"handle":item.handle,"state_bytes":state.len(),"log_bytes":log.len(),"image_bytes":image.len(),
             "storage_state_base64":crate::campaign::exploration::base64(state),
-            "storage_log_base64":crate::campaign::exploration::base64(log)})
+            "storage_log_base64":crate::campaign::exploration::base64(log),
+            "storage_image_base64":crate::campaign::exploration::base64(image)})
         })
         .collect::<Vec<_>>();
-    json!({"schema":"gomad.grouped-latest-storage/v1","incarnations":rows})
+    json!({"schema":"gomad.grouped-latest-storage/v2","incarnations":rows})
 }
 
 #[test]

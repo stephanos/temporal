@@ -307,9 +307,9 @@ def artifact_outputs(artifact):
 def grouped_snapshots(value, artifact, configuration):
     """Merge only the latest actual per-owner snapshot streams, never configured models."""
     import re
-    from core_codec import pending_identity, snapshot_identity, state_raw_sections
+    from core_codec import pending_identity, snapshot_identity, state_raw_sections, recovery_image, recovered_snapshots, observed_operation
     fields(value, ('schema', 'incarnations'))
-    require(value['schema'] == 'gomad.grouped-latest-storage/v1' and isinstance(value['incarnations'], list),
+    require(value['schema'] == 'gomad.grouped-latest-storage/v2' and isinstance(value['incarnations'], list),
             'missing actual grouped storage snapshot schema')
     latest = {}
     for item in configuration['incarnations']:
@@ -321,18 +321,20 @@ def grouped_snapshots(value, artifact, configuration):
             'grouped snapshots omitted, duplicated or selected a stale actual owner')
     snapshots = []
     for item in value['incarnations']:
-        fields(item, ('handle', 'state_bytes', 'log_bytes', 'storage_state_base64', 'storage_log_base64'))
+        fields(item, ('handle', 'state_bytes', 'log_bytes', 'image_bytes', 'storage_state_base64', 'storage_log_base64', 'storage_image_base64'))
         node = item['handle']['node']
         owner = node + '/' + str(item['handle']['incarnation'])
         state, log = b64(item['storage_state_base64']), b64(item['storage_log_base64'])
-        require(uint(item['state_bytes']) == len(state) and uint(item['log_bytes']) == len(log),
+        image_raw = b64(item['storage_image_base64'])
+        require(uint(item['state_bytes']) == len(state) and uint(item['log_bytes']) == len(log) and uint(item['image_bytes']) == len(image_raw),
                 'grouped actual storage byte counts differ from preimages')
         require(state == artifact['payloads'][f'evidence/cluster/{owner}/storage_state']
-                and log == artifact['payloads'][f'evidence/cluster/{owner}/storage'],
+                and log == artifact['payloads'][f'evidence/cluster/{owner}/storage']
+                and image_raw == artifact['payloads'].get(f'evidence/cluster/{owner}/storage_image'),
                 'grouped producer snapshots differ from their actual retained owner streams')
         version, sections = state_raw_sections(state)
         require(version == 1 and len(sections) == 5 and decode(sections[2]) is None
-                and re.fullmatch(b'[0-9a-f]{64}', sections[3])
+                and sections[3] == digest(image_raw).encode('ascii')
                 and sections[4] == len(log).to_bytes(8, 'little') + bytes.fromhex(digest(log)),
                 'grouped storage snapshot lost complete original framing, image or log binding')
         volumes, history = decode(sections[0]), decode(sections[1])
@@ -395,8 +397,18 @@ def grouped_snapshots(value, artifact, configuration):
                     and durable[0]['DataSHA256'] == 'sha256:' + digest(b'durable-a'),
                     'grouped actual snapshot does not preserve acknowledged durable bytes')
         require(snapshot['Identity'] == snapshot_identity(snapshot), 'grouped actual snapshot identity differs from its raw entries/history counters')
-        snapshots.append(dict(handle=item['handle'], snapshot=snapshot, state_bytes=len(state), log_bytes=len(log),
-                              storage_state_sha256=digest(state), storage_log_sha256=digest(log)))
+        image = recovery_image(image_raw)
+        declared = next(boot for boot in configuration['incarnations'] if boot['handle'] == item['handle'])
+        require(image['model'] == declared['storage']['descriptor']['model_identity'] and set(image['volumes']) == {node},
+                'grouped actual storage image belongs to a foreign model or volume owner')
+        volume = image['volumes'][node]
+        require(snapshot['PendingOperations'] == 0 and volume['pending'] == []
+                and same(snapshot, recovered_snapshots(image)[0]),
+                'grouped read-only recovered snapshot differs from actual retained storage image')
+        require(same(history[node], [observed_operation(operation) for operation in volume['history']]),
+                'grouped actual snapshot history differs from decoded retained storage image')
+        snapshots.append(dict(handle=item['handle'], snapshot=snapshot, state_bytes=len(state), log_bytes=len(log), image_bytes=len(image_raw),
+                              storage_state_sha256=digest(state), storage_log_sha256=digest(log), storage_image_sha256=digest(image_raw)))
     require([item['snapshot']['ID'] for item in snapshots] == ['a', 'b'],
             'grouped latest actual snapshots do not contain the original two distinct volumes')
     return snapshots

@@ -222,22 +222,28 @@ class GuestReader(unittest.TestCase):
 
 
 def grouped_storage():
-    from core_codec import pending_identity, snapshot_identity, state_envelope, struct_json
-    value=dict(schema='gomad.grouped-latest-storage/v1',incarnations=[])
+    from core_codec import recovered_snapshots, state_envelope, struct_json
+    from test_core_codec import encoded_image
+    value=dict(schema='gomad.grouped-latest-storage/v2',incarnations=[])
     artifact=dict(payloads={})
+    configured=config('grouped/replay')
     for node in ('a','b'):
         owner=node+'/2';log=('actual storage '+node).encode()
-        entry=dict(Path='/value',Mode=420,Kind='file',ModTime=123,Size=9,DataSHA256='sha256:'+digest(b'durable-a'))
-        root=dict(Path='/',Mode=2147484141,Kind='directory',ModTime=123,Size=0,DataSHA256='')
-        snapshot=dict(ID=node,Mount='/workspace',CapacityBytes=8<<20,Persisted=[root,entry],Volatile=[root,entry],
-            PendingOperations=0,PendingSHA256=pending_identity(node,[]),NextOperation=1,Identity='')
-        snapshot['Identity']=snapshot_identity(snapshot)
-        parts=[struct_json([snapshot]),struct_json({node:[]}),b'null',digest(('actual image '+node).encode()).encode(),len(log).to_bytes(8,'little')+bytes.fromhex(digest(log))]
+        declared=next(item for item in configured['incarnations'] if item['handle']==gate.handle(node,2))
+        image=dict(model=declared['storage']['descriptor']['model_identity'],occurrences={},next_inode=5,generation=1,
+            volumes={node:dict(mount='/workspace',capacity=8<<20,
+                objects={3:dict(inode=3,mode=2147484141,kind=2,mod_time=123,data=b''),
+                         4:dict(inode=4,mode=420,kind=1,mod_time=123,data=b'durable-a')},
+                paths={'/':3,'/value':4},owned=[3,4],pending=[],history=[],next_operation=1,last={})})
+        image_raw=encoded_image(image)
+        snapshot=recovered_snapshots(image)[0]
+        parts=[struct_json([snapshot]),struct_json({node:[]}),b'null',digest(image_raw).encode(),len(log).to_bytes(8,'little')+bytes.fromhex(digest(log))]
         state=state_envelope(1,parts)
-        value['incarnations'].append(dict(handle=gate.handle(node,2),state_bytes=len(state),log_bytes=len(log),
-            storage_state_base64=base64.b64encode(state).decode(),storage_log_base64=base64.b64encode(log).decode()))
+        value['incarnations'].append(dict(handle=gate.handle(node,2),state_bytes=len(state),log_bytes=len(log),image_bytes=len(image_raw),
+            storage_state_base64=base64.b64encode(state).decode(),storage_log_base64=base64.b64encode(log).decode(),storage_image_base64=base64.b64encode(image_raw).decode()))
         artifact['payloads'][f'evidence/cluster/{owner}/storage_state']=state
         artifact['payloads'][f'evidence/cluster/{owner}/storage']=log
+        artifact['payloads'][f'evidence/cluster/{owner}/storage_image']=image_raw
     return value,artifact
 
 
@@ -304,6 +310,66 @@ class GroupedSnapshotReader(unittest.TestCase):
                 else:snapshot['PendingSHA256']='sha256:'+'0'*64;snapshot['Identity']=snapshot_identity(snapshot)
             reseal_grouped(value,artifact,0,mutate)
             with self.subTest(edit=edit),self.assertRaises(Refusal):gate.grouped_snapshots(value,artifact,config('grouped/replay'))
+
+    def test_resealed_image_commitment_must_authenticate_actual_owned_image_bytes(self):
+        from core_codec import recovery_image
+        from test_core_codec import encoded_image
+        for edit in ('legacy-schema','missing-image','arbitrary-section-hash','trailing-image','other-owner-image','foreign-model'):
+            value,artifact=grouped_storage();item=value['incarnations'][0]
+            if edit=='legacy-schema':value['schema']='gomad.grouped-latest-storage/v1'
+            elif edit=='missing-image':
+                del artifact['payloads']['evidence/cluster/a/2/storage_image']
+            elif edit=='arbitrary-section-hash':
+                reseal_grouped(value,artifact,0,lambda snapshots,history,parts:parts.__setitem__(3,digest(b'arbitrary image').encode()))
+            else:
+                raw=base64.b64decode(item['storage_image_base64'])
+                if edit=='trailing-image':raw+=b'\0'
+                elif edit=='other-owner-image':raw=base64.b64decode(value['incarnations'][1]['storage_image_base64'])
+                else:
+                    image=recovery_image(raw);image['model']='sha256:'+'0'*64;raw=encoded_image(image)
+                item['storage_image_base64']=base64.b64encode(raw).decode();item['image_bytes']=len(raw)
+                artifact['payloads']['evidence/cluster/a/2/storage_image']=raw
+                reseal_grouped(value,artifact,0,lambda snapshots,history,parts:parts.__setitem__(3,digest(raw).encode()))
+            with self.subTest(edit=edit),self.assertRaises(Refusal):gate.grouped_snapshots(value,artifact,config('grouped/replay'))
+
+    def test_valid_image_and_snapshot_digests_do_not_hide_cross_preimage_mismatch(self):
+        from core_codec import recovery_image,snapshot_identity
+        from test_core_codec import encoded_image
+        for edit in ('image-changed','snapshot-changed'):
+            value,artifact=grouped_storage();item=value['incarnations'][0]
+            if edit=='image-changed':
+                image=recovery_image(base64.b64decode(item['storage_image_base64']))
+                image['volumes']['a']['objects'][4]['mod_time']=124
+                raw=encoded_image(image)
+                item['storage_image_base64']=base64.b64encode(raw).decode();item['image_bytes']=len(raw)
+                artifact['payloads']['evidence/cluster/a/2/storage_image']=raw
+                reseal_grouped(value,artifact,0,lambda snapshots,history,parts:parts.__setitem__(3,digest(raw).encode()))
+            else:
+                def change_snapshot(snapshots,history,parts):
+                    for key in ('Persisted','Volatile'):snapshots[0][key][1]['ModTime']=124
+                    snapshots[0]['Identity']=snapshot_identity(snapshots[0])
+                reseal_grouped(value,artifact,0,change_snapshot)
+            with self.subTest(edit=edit),self.assertRaisesRegex(Refusal,'snapshot differs from actual retained storage image'):
+                gate.grouped_snapshots(value,artifact,config('grouped/replay'))
+
+    def test_complete_image_history_must_match_raw_snapshot_history(self):
+        from core_codec import recovery_image,snapshot_identity
+        from test_core_codec import encoded_image
+        value,artifact=grouped_storage();item=value['incarnations'][0]
+        image=recovery_image(base64.b64decode(item['storage_image_base64']))
+        volume=image['volumes']['a']
+        volume['history']=[dict(id=1,kind='write',deps=[],stores=[],effect=dict(kind='write',inode=4,parent=0,parents=[],
+            offset=0,size=9,mode=420,mod_time=123,data=b'durable-a',object=None,namespace=[]))]
+        volume['next_operation']=2
+        raw=encoded_image(image)
+        item['storage_image_base64']=base64.b64encode(raw).decode();item['image_bytes']=len(raw)
+        artifact['payloads']['evidence/cluster/a/2/storage_image']=raw
+        def change_counter(snapshots,history,parts):
+            snapshots[0]['NextOperation']=2;snapshots[0]['Identity']=snapshot_identity(snapshots[0])
+            parts[3]=digest(raw).encode()
+        reseal_grouped(value,artifact,0,change_counter)
+        with self.assertRaisesRegex(Refusal,'history differs from decoded retained storage image'):
+            gate.grouped_snapshots(value,artifact,config('grouped/replay'))
 
     def test_old_grouped_rows_without_actual_storage_preimages_refuse(self):
         row=dict(schema='gomad.retained-reader-observation/v1',original_root=gate.GROUPED,case='grouped/replay',
