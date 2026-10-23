@@ -1,9 +1,6 @@
 """Reconstruct native retained admission and oracle facts from actual raw preimages."""
 import base64
 import copy
-import hashlib
-import json
-from pathlib import PurePosixPath
 
 from driver import require
 from native_roles import decode
@@ -11,19 +8,7 @@ from native_observations import canonical, digest
 
 FILE = 'evidence/cluster-replay.json'
 MARKER = 'GOMAD_RETAINED_OBSERVATION '
-MATRIX_MARKER = 'GOMAD_RETAINED_LIFECYCLE_MATRIX '
-MUTATIONS = ('missing-action', 'mutated-action', 'missing-module', 'foreign-module',
-             'boot-module-differs', 'changed-limits', 'changed-environment', 'changed-helper-budget',
-             'changed-choice-budget', 'malformed-storage-selection', 'changed-imports',
-             'missing-model-implementation', 'changed-model-implementation', 'changed-world-profile',
-             'changed-world-encoding', 'trailing-world-byte', 'invalid-world-header',
-             'corrupt-world-digest', 'changed-runtime-binding', 'changed-original-record', 'changed-root-identity')
-BOUNDARIES = {'verify', 'storage-projection', 'prepare-reopen', 'public-cli-replay'}
 ORDINARY = {'canonical', 'indented', 'member-order', 'escaped-member', 'escaped-value', 'trailing-space', 'explicit-optional-null'}
-INPUT_FIELDS = {'configuration', 'helper_sha256', 'host_sha256', 'retained',
-                'runtime_implementation_sha256', 'schema', 'toolchain_sha256'}
-
-
 def b64(text, maximum=128 << 20):
     require(isinstance(text, str) and len(text) <= (maximum + 2) // 3 * 4, 'retained preimage exceeds byte bound')
     value = base64.b64decode(text, validate=True)
@@ -31,18 +16,8 @@ def b64(text, maximum=128 << 20):
     return value
 
 
-def fields(value, expected, message):
-    require(isinstance(value, dict) and set(value) == set(expected), message)
-
-
 def same(left, right):
     return canonical(left) == canonical(right)
-
-
-def safe_name(name):
-    require(isinstance(name, str) and name and not name.startswith('/') and '\\' not in name
-            and all(part not in ('', '.', '..') for part in name.split('/'))
-            and str(PurePosixPath(name)) == name, 'foreign retained payload path')
 
 
 def ordinary(rows):
