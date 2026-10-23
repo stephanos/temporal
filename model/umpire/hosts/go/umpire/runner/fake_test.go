@@ -87,15 +87,24 @@ type fakeDriver struct {
 	respondErr   error
 	hangClose    chan struct{}
 	delay        time.Duration
-	onStart      func()
+	// onStart runs inside Start with Start's ctx, before the exchange exists.
+	onStart func(ctx context.Context, clock *testClock, made int)
+	// whenWaiting runs once the Runner waits for the exchange's first event; the exchange then
+	// stays silent until it is closed.
+	whenWaiting func(clock *testClock)
+	clock       *testClock
 
 	mu        sync.Mutex
 	exchanges []*fakeExchange
 }
 
 func (d *fakeDriver) Start(ctx context.Context, request uint64, payload *anypb.Any) (Exchange, error) {
+	made := 0
+	if d.clock != nil {
+		made = d.clock.count(readDeadline)
+	}
 	if d.onStart != nil {
-		d.onStart()
+		d.onStart(ctx, d.clock, made)
 	}
 	if d.startErr != nil {
 		return nil, d.startErr
@@ -115,7 +124,11 @@ func (d *fakeDriver) Start(ctx context.Context, request uint64, payload *anypb.A
 	d.mu.Lock()
 	d.exchanges = append(d.exchanges, x)
 	d.mu.Unlock()
-	go x.run(steps)
+	if d.whenWaiting != nil {
+		go x.silent(made)
+	} else {
+		go x.run(steps)
+	}
 	return x, nil
 }
 
@@ -203,6 +216,15 @@ func (x *fakeExchange) run(steps []step) {
 	}
 }
 
+// silent waits until the Runner's read deadline after Start exists, acts, and sends nothing.
+func (x *fakeExchange) silent(made int) {
+	defer close(x.done)
+	defer close(x.events)
+	x.driver.clock.await(readDeadline, made+1)
+	x.driver.whenWaiting(x.driver.clock)
+	<-x.ctx.Done()
+}
+
 func (x *fakeExchange) Events() <-chan Event { return x.events }
 
 func (x *fakeExchange) Respond(ctx context.Context, event uint64, decision Decision) error {
@@ -218,6 +240,7 @@ func (x *fakeExchange) Respond(ctx context.Context, event uint64, decision Decis
 	delete(x.outstanding, event)
 	x.mu.Unlock()
 	if x.driver.blockRespond {
+		x.driver.clock.expire(readDeadline)
 		<-ctx.Done()
 		return ctx.Err()
 	}
@@ -238,6 +261,7 @@ func (x *fakeExchange) Close() error {
 	x.mu.Unlock()
 	x.cancel()
 	if x.driver.hangClose != nil {
+		x.driver.clock.expire(readDeadline)
 		<-x.driver.hangClose
 	}
 	<-x.done
@@ -264,13 +288,14 @@ type harness struct {
 	t       *testing.T
 	wasm    []byte
 	hosts   atomic.Int32
+	clock   *testClock
 	drivers []*fakeDriver
 	mu      sync.Mutex
 	make    func(run int) *fakeDriver
 }
 
 func newHarness(t *testing.T, wasm []byte, makeDriver func(run int) *fakeDriver) *harness {
-	return &harness{t: t, wasm: wasm, make: makeDriver}
+	return &harness{t: t, wasm: wasm, make: makeDriver, clock: newTestClock()}
 }
 
 func (h *harness) runner() *Runner {
@@ -278,12 +303,14 @@ func (h *harness) runner() *Runner {
 		h.mu.Lock()
 		defer h.mu.Unlock()
 		driver := h.make(len(h.drivers))
+		driver.clock = h.clock
 		h.drivers = append(h.drivers, driver)
 		return driver, nil
 	})
 	if h.make == nil {
 		r = New(h.wasm, nil)
 	}
+	r.deadline = h.clock.deadline
 	r.newHost = func(ctx context.Context, wasm []byte) (*model.Host, error) {
 		h.hosts.Add(1)
 		return model.New(ctx, wasm)

@@ -108,13 +108,30 @@ type Runner struct {
 	hash      string
 	newDriver NewDriver
 	newHost   func(context.Context, []byte) (*model.Host, error)
+	deadline  deadline
+}
+
+// deadlineKind says which budget bounds a wait: the read timeout or the run timeout.
+type deadlineKind int
+
+const (
+	readDeadline deadlineKind = iota
+	runDeadline
+)
+
+// deadline derives a context that ends after d. Every wait the Runner bounds goes through it, so
+// tests can end a wait exactly when they choose instead of racing a clock.
+type deadline func(ctx context.Context, kind deadlineKind, d time.Duration) (context.Context, context.CancelFunc)
+
+func wallClock(ctx context.Context, _ deadlineKind, d time.Duration) (context.Context, context.CancelFunc) {
+	return context.WithTimeout(ctx, d)
 }
 
 // New returns a Runner for the guest bytes. The Driver factory may be nil for question and
 // replay, which make no Driver.
 func New(wasm []byte, driver NewDriver) *Runner {
 	sum := sha256.Sum256(wasm)
-	return &Runner{wasm: wasm, hash: hex.EncodeToString(sum[:]), newDriver: driver, newHost: model.New}
+	return &Runner{wasm: wasm, hash: hex.EncodeToString(sum[:]), newDriver: driver, newHost: model.New, deadline: wallClock}
 }
 
 // ModelHash is the lower-case hex SHA-256 of the guest bytes.

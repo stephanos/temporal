@@ -6,7 +6,6 @@ import (
 	"fmt"
 	"io"
 	"slices"
-	"time"
 
 	"google.golang.org/protobuf/proto"
 	"google.golang.org/protobuf/types/known/anypb"
@@ -26,6 +25,7 @@ type session struct {
 	limit       uint64
 	stopped     bool
 	progress    progress
+	deadline    deadline
 }
 
 func (r *Runner) newSession(ctx context.Context, mode Mode, iteration int, opts Options, world *anypb.Any, seed uint64) (*session, error) {
@@ -34,9 +34,10 @@ func (r *Runner) newSession(ctx context.Context, mode Mode, iteration int, opts 
 		return nil, fmt.Errorf("model host: %w", err)
 	}
 	return &session{
-		host: host,
-		run:  &Run{ModelHash: r.hash, ProtocolVersion: ProtocolVersion, World: world, Seed: seed},
-		opts: opts,
+		host:     host,
+		run:      &Run{ModelHash: r.hash, ProtocolVersion: ProtocolVersion, World: world, Seed: seed},
+		opts:     opts,
+		deadline: r.deadline,
 		progress: progress{
 			out: opts.Progress, mode: mode, iteration: iteration, seed: seed,
 		},
@@ -238,7 +239,7 @@ func (r *Runner) execute(ctx context.Context, mode Mode, iteration int, opts Opt
 		return nil, err
 	}
 	defer func() { err = s.close(ctx, err) }()
-	runCtx, cancel := context.WithTimeout(ctx, opts.RunTimeout)
+	runCtx, cancel := s.deadline(ctx, runDeadline, opts.RunTimeout)
 	defer cancel()
 	if _, err := s.call(ctx, 0, 0, &modelv1.ResetRequest{Configuration: world}); err != nil {
 		return nil, err
@@ -345,7 +346,7 @@ func (s *session) exchange(parent, ctx context.Context, driver Driver, proposal 
 			return err
 		}
 		final = final || accepted
-		respondCtx, cancel := context.WithTimeout(ctx, s.opts.EventTimeout)
+		respondCtx, cancel := s.deadline(ctx, readDeadline, s.opts.EventTimeout)
 		err = exchange.Respond(respondCtx, event.ID, decision)
 		cancel()
 		if err != nil {
@@ -370,7 +371,7 @@ func (s *session) start(parent, ctx context.Context, driver Driver, payload *any
 		exchange Exchange
 		err      error
 	}
-	startCtx, cancel := context.WithTimeout(ctx, s.opts.EventTimeout)
+	startCtx, cancel := s.deadline(ctx, readDeadline, s.opts.EventTimeout)
 	defer cancel()
 	done := make(chan started, 1)
 	request := s.request
@@ -386,14 +387,14 @@ func (s *session) start(parent, ctx context.Context, driver Driver, payload *any
 	if parent.Err() == nil {
 		s.fault(0, "start did not return within the read timeout")
 	}
-	grace := time.NewTimer(s.opts.EventTimeout)
-	defer grace.Stop()
+	grace, stop := s.deadline(context.WithoutCancel(ctx), readDeadline, s.opts.EventTimeout)
+	defer stop()
 	select {
 	case got := <-done:
 		if got.exchange != nil {
 			s.closeExchange(got.exchange)
 		}
-	case <-grace.C:
+	case <-grace.Done():
 		// Nothing more can be joined; close whatever it starts once it returns.
 		s.fault(0, "start did not return after its context ended")
 		go func() {
@@ -455,31 +456,32 @@ func (s *session) serve(ctx context.Context, event Event) (Decision, bool, error
 
 // next waits for the exchange's next event, at most the read timeout.
 func (s *session) next(ctx context.Context, exchange Exchange) (Event, bool, string) {
-	timer := time.NewTimer(s.opts.EventTimeout)
-	defer timer.Stop()
+	read, cancel := s.deadline(ctx, readDeadline, s.opts.EventTimeout)
+	defer cancel()
 	select {
 	case event, open := <-exchange.Events():
 		return event, open, ""
-	case <-timer.C:
+	case <-read.Done():
+		if ctx.Err() != nil {
+			return Event{}, false, "the run time budget ended without Model acceptance"
+		}
 		return Event{}, false, "no event within the read timeout without Model acceptance"
-	case <-ctx.Done():
-		return Event{}, false, "the run time budget ended without Model acceptance"
 	}
 }
 
 // closeExchange cancels and joins the exchange, waiting at most the read timeout for a Driver
 // that does not return.
 func (s *session) closeExchange(exchange Exchange) {
+	wait, cancel := s.deadline(context.Background(), readDeadline, s.opts.EventTimeout)
+	defer cancel()
 	done := make(chan error, 1)
 	go func() { done <- exchange.Close() }()
-	timer := time.NewTimer(s.opts.EventTimeout)
-	defer timer.Stop()
 	select {
 	case err := <-done:
 		if err != nil {
 			s.fault(0, "close: "+err.Error())
 		}
-	case <-timer.C:
+	case <-wait.Done():
 		s.fault(0, "close did not return within the read timeout")
 	}
 }

@@ -16,20 +16,19 @@ import (
 
 func TestWaitsEndInDriverFaults(t *testing.T) {
 	wasm := statefulGuest(t)
+	silent := func(act func(*testClock)) func(int) *fakeDriver {
+		return func(int) *fakeDriver { return &fakeDriver{script: good, whenWaiting: act} }
+	}
 	t.Run("read timeout", func(t *testing.T) {
-		h := newHarness(t, wasm, func(int) *fakeDriver { return &fakeDriver{script: good, delay: time.Second} })
-		opts := configured(1)
-		opts.EventTimeout = 20 * time.Millisecond
-		run := h.run(ModeExplore, opts)
+		h := newHarness(t, wasm, silent(func(clock *testClock) { clock.expire(readDeadline) }))
+		run := h.run(ModeExplore, configured(1))
 		requireShape(t, run, "reset", "propose:", "fault")
 		requireRefused(t, run, 2, "read timeout without Model acceptance")
 		requireReplays(t, wasm, run)
 	})
 	t.Run("run time budget", func(t *testing.T) {
-		h := newHarness(t, wasm, func(int) *fakeDriver { return &fakeDriver{script: good, delay: time.Second} })
-		opts := configured(1)
-		opts.RunTimeout = 20 * time.Millisecond
-		run := h.run(ModeExplore, opts)
+		h := newHarness(t, wasm, silent(func(clock *testClock) { clock.expire(runDeadline) }))
+		run := h.run(ModeExplore, configured(1))
 		requireRefused(t, run, 2, "run time budget")
 	})
 	t.Run("driver unavailable", func(t *testing.T) {
@@ -42,34 +41,31 @@ func TestWaitsEndInDriverFaults(t *testing.T) {
 		requireRefused(t, run, 1, "driver: no deployment")
 		requireReplays(t, wasm, run)
 	})
-	t.Run("interrupted while starting", func(t *testing.T) {
-		for range 50 {
-			ctx, cancel := context.WithCancel(context.Background())
-			h := newHarness(t, wasm, func(int) *fakeDriver { return &fakeDriver{script: good, delay: time.Second, onStart: cancel} })
-			_, err := h.runner().Run(ctx, ModeExplore, configured(1))
-			cancel()
-			if !errors.Is(err, context.Canceled) {
-				t.Fatalf("interrupted Run: %v", err)
-			}
-			exchanges := h.drivers[0].all()
-			if len(exchanges) != 1 || !exchanges[0].joined() {
-				t.Fatalf("the interrupted exchange was not closed and joined when Run returned (%d exchanges)", len(exchanges))
-			}
-		}
-	})
-	t.Run("interrupted while waiting", func(t *testing.T) {
-		ctx, cancel := context.WithCancel(context.Background())
-		defer cancel()
-		interrupt := func() { time.AfterFunc(10*time.Millisecond, cancel) }
-		h := newHarness(t, wasm, func(int) *fakeDriver { return &fakeDriver{script: good, delay: time.Second, onStart: interrupt} })
+	interrupted := func(t *testing.T, cancel context.CancelFunc, h *harness, ctx context.Context) {
+		t.Helper()
 		_, err := h.runner().Run(ctx, ModeExplore, configured(1))
+		cancel()
 		if !errors.Is(err, context.Canceled) {
 			t.Fatalf("interrupted Run: %v", err)
 		}
-		for _, exchange := range h.drivers[0].all() {
-			if !exchange.joined() {
-				t.Fatal("the interrupted exchange was not joined")
-			}
+		exchanges := h.drivers[0].all()
+		if len(exchanges) != 1 || !exchanges[0].joined() {
+			t.Fatalf("the interrupted exchange was not closed and joined when Run returned (%d exchanges)", len(exchanges))
+		}
+	}
+	t.Run("interrupted while starting", func(t *testing.T) {
+		for range 50 {
+			ctx, cancel := context.WithCancel(context.Background())
+			h := newHarness(t, wasm, func(int) *fakeDriver {
+				return &fakeDriver{script: good, onStart: func(context.Context, *testClock, int) { cancel() }}
+			})
+			interrupted(t, cancel, h, ctx)
+		}
+	})
+	t.Run("interrupted while waiting", func(t *testing.T) {
+		for range 50 {
+			ctx, cancel := context.WithCancel(context.Background())
+			interrupted(t, cancel, newHarness(t, wasm, silent(func(*testClock) { cancel() })), ctx)
 		}
 	})
 }

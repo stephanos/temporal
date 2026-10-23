@@ -7,7 +7,6 @@ import (
 	"slices"
 	"strings"
 	"testing"
-	"time"
 
 	"google.golang.org/protobuf/proto"
 	runv1 "umpire.local/model/umpire/run/v1"
@@ -202,31 +201,51 @@ func TestBudgetsEndExplainedRuns(t *testing.T) {
 
 func TestStartMustReturnOnceSent(t *testing.T) {
 	wasm := statefulGuest(t)
-	release := make(chan struct{})
-	h := newHarness(t, wasm, func(int) *fakeDriver {
-		return &fakeDriver{script: good, onStart: func() { <-release }}
-	})
-	opts := configured(1)
-	opts.EventTimeout = 50 * time.Millisecond
-	run := h.run(ModeExplore, opts)
-	close(release)
-	requireShape(t, run, "reset", "propose:", "fault", "fault")
-	requireRefused(t, run, 2, "start did not return within the read timeout")
-	if reason := run.GetEvents()[3].GetDriverFault().GetReason(); reason != "start did not return after its context ended" {
-		t.Fatalf("second fault: %q", reason)
+	start := func(t *testing.T, onStart func(ctx context.Context, clock *testClock, made int)) (*Run, *harness) {
+		t.Helper()
+		h := newHarness(t, wasm, func(int) *fakeDriver { return &fakeDriver{script: good, onStart: onStart} })
+		run := h.run(ModeExplore, configured(1))
+		requireRefused(t, run, 2, "start did not return within the read timeout")
+		requireReplays(t, wasm, run)
+		return run, h
 	}
-	requireReplays(t, wasm, run)
-
-	// A Start that returns once its context ends has its exchange closed and joined.
-	late := newHarness(t, wasm, func(int) *fakeDriver {
-		return &fakeDriver{script: good, onStart: func() { <-time.After(80 * time.Millisecond) }}
+	t.Run("late within the grace", func(t *testing.T) {
+		run, h := start(t, func(ctx context.Context, clock *testClock, made int) {
+			clock.expire(readDeadline)
+			<-ctx.Done()
+			clock.await(readDeadline, made+1)
+		})
+		requireShape(t, run, "reset", "propose:", "fault")
+		if exchanges := h.drivers[0].all(); len(exchanges) != 1 || !exchanges[0].joined() {
+			t.Fatal("the late exchange was not closed and joined")
+		}
 	})
-	run = late.run(ModeExplore, opts)
-	requireShape(t, run, "reset", "propose:", "fault")
-	requireRefused(t, run, 2, "start did not return within the read timeout")
-	if exchanges := late.drivers[0].all(); len(exchanges) != 1 || !exchanges[0].joined() {
-		t.Fatal("the late exchange was not closed and joined")
-	}
+	t.Run("past the grace", func(t *testing.T) {
+		release := make(chan struct{})
+		run, _ := start(t, func(ctx context.Context, clock *testClock, made int) {
+			clock.expire(readDeadline)
+			<-ctx.Done()
+			clock.await(readDeadline, made+1)
+			clock.expire(readDeadline)
+			<-release
+		})
+		close(release)
+		requireShape(t, run, "reset", "propose:", "fault", "fault")
+		if reason := run.GetEvents()[3].GetDriverFault().GetReason(); reason != "start did not return after its context ended" {
+			t.Fatalf("second fault: %q", reason)
+		}
+	})
+	t.Run("ignoring its context", func(t *testing.T) {
+		release := make(chan struct{})
+		run, _ := start(t, func(_ context.Context, clock *testClock, made int) {
+			clock.expire(readDeadline)
+			clock.await(readDeadline, made+1)
+			clock.expire(readDeadline)
+			<-release
+		})
+		close(release)
+		requireShape(t, run, "reset", "propose:", "fault", "fault")
+	})
 }
 
 func TestRefusedResetReplays(t *testing.T) {
@@ -251,7 +270,6 @@ func TestDriverFaultsRefuseTheRun(t *testing.T) {
 	deliver := func(steps ...step) map[byte][]step {
 		return map[byte][]step{0: good[0], 1: steps, 3: good[3]}
 	}
-	const fast = 50 * time.Millisecond
 	for _, tc := range []struct {
 		name   string
 		driver *fakeDriver
@@ -272,9 +290,7 @@ func TestDriverFaultsRefuseTheRun(t *testing.T) {
 	} {
 		t.Run(tc.name, func(t *testing.T) {
 			h := newHarness(t, wasm, func(int) *fakeDriver { return tc.driver })
-			opts := configured(1)
-			opts.EventTimeout = fast
-			run := h.run(ModeExplore, opts)
+			run := h.run(ModeExplore, configured(1))
 			requireShape(t, run, tc.shape...)
 			requireRefused(t, run, uint64(len(tc.shape)-1), tc.reason)
 			requireReplays(t, wasm, run)
