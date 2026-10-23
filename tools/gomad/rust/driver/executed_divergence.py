@@ -19,9 +19,9 @@ PRODUCE = 'campaign::counterfactual::produce_the_four_original_counterfactual_ar
 CASES = {'draw': 'draw-counter', 'clock': 'clock', 'handoff': 'world-order', 'output-clock': 'output'}
 
 
-def roles(cli_path, harness_path):
-    cli = main_cli_build.read_build(cli_path, expected_role='counterfactual-fixture')
-    harness = main_cli_build.read_build(harness_path, expected_role='counterfactual-harness')
+def roles(cli_path, harness_path, frozen=None):
+    cli = main_cli_build.read_build(cli_path, frozen=frozen, expected_role='counterfactual-fixture')
+    harness = main_cli_build.read_build(harness_path, frozen=frozen, expected_role='counterfactual-harness')
     for key in ('source_sha256', 'head', 'symlinks', 'host_sha256', 'helper_sha256', 'runtime_implementation_sha256', 'context'):
         require(cli[key] == harness[key], 'counterfactual public CLI and libtest differ: ' + key)
     require(cli['binary'] != harness['binary'] and cli['binary_sha256'] != harness['binary_sha256'],

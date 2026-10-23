@@ -710,6 +710,19 @@ def test_wasm_reach(config, actual):
     reports = set(actual)
     for endpoint in entry.get('reports', []): reports.update(receiving_report(config, endpoint))
     require(SLIM_IDS <= reports, 'three original slim-refusal executions are missing')
+    import counterfactual_receiving
+    stage = counterfactual_receiving.STAGE
+    base = Path(config['root']) / 'stages' / stage
+    receipt = read(base / 'receipt.json')
+    require(receipt['stage'] == stage and receipt['status'] == 'PASS' and receipt['exit'] == 0
+            and receipt['source'] == config['source_sha256'] and receipt['identity'] == config['identity']
+            and receipt['config_sha256'] == config['_config_sha256'],
+            'original divergence requires its same-cycle completed owning stage')
+    coverage(subgates(stage), receipt['subgates'])
+    proof = counterfactual_receiving.final_read(config)
+    import counterfactual_lineage
+    counterfactual_lineage.mapping(mapping['entries'], proof['assertion_applicability'])
+    reports.update(proof['actual_cases'])
     reach_coverage(original, mapping['entries'], reports)
 
 

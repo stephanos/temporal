@@ -107,4 +107,87 @@ class OriginalExecutedDivergence(unittest.TestCase):
             with self.assertRaises(Refusal):gate.retained_tree(root)
 
 
+class NarrowAssertionLineage(unittest.TestCase):
+    def report(self):
+        import counterfactual_lineage as lineage
+        failures = []
+        for artifact in ('baseline', 'fault'):
+            peer = dict(handle=dict(node='b', incarnation=1), termination='stop', exit_code=None,
+                        interrupted=True, reason='WASI stop: cluster failed')
+            failures.append(dict(original_root=lineage.ROOT + '/handoff', predicate=lineage.ASSERTION['predicate'],
+                artifact=artifact, handle=peer['handle'], expected='exit', actual='stop', observation=peer))
+        return dict(status='FAIL_ORIGINAL_PREDICATE', original_predicate_failures=failures,
+            pairs=[dict(name=name, baseline=dict(artifact='baseline'), fault=dict(artifact='fault')) for name in gate.CASES])
+
+    def test_only_exact_authorized_peer_assertion_has_superseded_applicability(self):
+        import counterfactual_lineage as lineage
+        report = self.report()
+        disposition = lineage.reconcile(report)
+        self.assertEqual(disposition['original_status'], 'FAIL_ORIGINAL_PREDICATE')
+        self.assertEqual(disposition['owner_reference']['requirement'], 'R2')
+        self.assertEqual(disposition['assertion']['case'], 'handoff')
+        self.assertNotIn('PASS', disposition.values())
+        for key, value in [('original_root', 'another-test'), ('predicate', 'missing replay'),
+                           ('handle', dict(node='a', incarnation=1)), ('actual', 'watchdog')]:
+            changed = copy.deepcopy(report)
+            changed['original_predicate_failures'][0][key] = value
+            with self.subTest(key=key), self.assertRaises(Refusal):lineage.reconcile(changed)
+        for key, value in [('reason', 'watchdog'), ('interrupted', False), ('exit_code', 1)]:
+            changed = copy.deepcopy(report)
+            changed['original_predicate_failures'][0]['observation'][key] = value
+            with self.subTest(key=key), self.assertRaises(Refusal):lineage.reconcile(changed)
+        for mutation in ('original-pass', 'missing-case', 'extra-failure', 'missing-fault'):
+            changed = copy.deepcopy(report)
+            if mutation == 'original-pass':changed['status'] = 'PASS'
+            if mutation == 'missing-case':changed['pairs'].pop()
+            if mutation == 'extra-failure':changed['original_predicate_failures'].append(copy.deepcopy(changed['original_predicate_failures'][0]))
+            if mutation == 'missing-fault':changed['original_predicate_failures'].pop()
+            with self.subTest(mutation=mutation), self.assertRaises(Refusal):lineage.reconcile(changed)
+    def test_final_map_cannot_apply_the_lineage_to_another_root_or_omit_a_pair(self):
+        import counterfactual_lineage as lineage
+        applicability = lineage.reconcile(self.report())
+        key = lineage.SOURCE + '#' + lineage.ROOT
+        entries = {key: dict(evidence=sorted('original-divergence/' + name for name in gate.CASES),
+                             assertion_applicability=applicability)}
+        entries.update({key + '@9714/' + case: dict(evidence=['original-divergence/' + case]) for case in gate.CASES})
+        lineage.mapping(entries, applicability)
+        for mutation in ('another-root', 'one-pair', 'authority', 'original-pass', 'missing-subcase'):
+            changed = copy.deepcopy(entries)
+            if mutation == 'another-root':changed['another-test'] = dict(assertion_applicability=applicability)
+            if mutation == 'one-pair':changed[key]['evidence'].pop()
+            if mutation == 'missing-subcase':del changed[key + '@9714/handoff']
+            if mutation == 'authority':changed[key]['assertion_applicability']['owner_reference']['requirement'] = 'unowned'
+            if mutation == 'original-pass':changed[key]['assertion_applicability']['original_status'] = 'PASS'
+            with self.subTest(mutation=mutation), self.assertRaises(Refusal):lineage.mapping(changed, applicability)
+
+
+
+class SameStageCounterfactual(unittest.TestCase):
+    def test_endpoint_has_fixed_owning_stage_and_explicit_inputs(self):
+        import counterfactual_receiving as receiving
+        config = dict(root='/evidence', live_corpus=dict(test_wasm_reach={}))
+        with self.assertRaises(Refusal):receiving.selection(config)
+        selected = dict(cli_build='/cli.json', harness_build='/harness.json', compiler_root='/compiler', module_cache='/modules')
+        config['live_corpus']['test_wasm_reach']['executed_divergence'] = selected
+        _, stage, root = receiving.selection(config)
+        self.assertEqual(stage, Path('/evidence/stages/cluster-functional'))
+        self.assertEqual(root, stage / 'executed-divergence')
+        for changed in (dict(selected, root='/old-result'), dict(selected, cli_build='relative')):
+            config['live_corpus']['test_wasm_reach']['executed_divergence'] = changed
+            with self.assertRaises(Refusal):receiving.selection(config)
+
+    def test_stronger_same_stage_drain_is_required_before_any_divergence_credit(self):
+        import counterfactual_receiving as receiving
+        import broad_stages
+        import core_lifecycle
+        config = dict(root='/evidence', live_corpus=dict(test_wasm_reach=dict(executed_divergence=
+            dict(cli_build='/cli', harness_build='/harness', compiler_root='/compiler', module_cache='/modules'))))
+        for variants in ([], ['trap'], ['trap', 'exit'], ['trap', 'exit', 'unknown']):
+            facts = dict(readers=dict(lifecycle=dict(roots={core_lifecycle.DRAIN:
+                dict(cases=[dict(variant=name) for name in variants], native_receive={'joined':True})})))
+            with patch.object(broad_stages,'read',return_value=facts), patch.object(receiving,'observations') as original_reader:
+                with self.subTest(variants=variants), self.assertRaises(Refusal):receiving.final_read(config)
+                original_reader.assert_not_called()
+
+
 if __name__ == '__main__':unittest.main()

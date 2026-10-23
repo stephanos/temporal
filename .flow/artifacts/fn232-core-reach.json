@@ -1677,6 +1677,40 @@
   },
   "priority_receiving_refs": {
     "go:internal/backends/wasm/backend:TestDeterminismExecutedDivergenceArtifacts": {
+      "assertion_applicability": {
+        "applicability": "SUPERSEDED_BY_ACCEPTED_OWNER_CONTRACT",
+        "assertion": {
+          "case": "handoff",
+          "handle": {
+            "incarnation": 1,
+            "node": "b"
+          },
+          "helper": "recordDeterminismArtifact",
+          "line": 170,
+          "predicate": "every reported incarnation termination equals exit",
+          "source": "tools/gomad/internal/backends/wasm/backend/determinism_integration_test.go",
+          "source_sha256": "d3c75d7057a21567cf2bbf29d4cf2080d65288a83084e307eb09ff395d07afe5"
+        },
+        "current_receiving_status": "UNEXECUTED",
+        "historical_research": {
+          "path": "/home/agent/evidence/fn232-executed-divergence-audit-v1/handoff-lineage-v1.json",
+          "sha256": "93a662ecca549be98c6ba392dbfd7163d890b98b54cf1a348a2022a7e11ddf86"
+        },
+        "original_status": "FAIL_ORIGINAL_PREDICATE",
+        "owner_reference": {
+          "implementation": "a959c074baca3624107f159a8a6aeddd3070c4c6",
+          "requirement": "R2",
+          "sha256": "e91e343c4b58881e098774eb93c6baab947b57be90b94968a451ba68536e23d0",
+          "spec": ".flow/specs/fn-235-gomad-fail-cluster-runs-fast-and.md",
+          "task": "fn-235-gomad-fail-cluster-runs-fast-and.1"
+        },
+        "remaining_obligations": [
+          "fresh same-stage four campaign pairs",
+          "all original divergence/campaign/provider/public-prefix predicates",
+          "same-stage native trap/exit/held-peer-release drain"
+        ],
+        "schema": "gomad.original-assertion-applicability/v1"
+      },
       "evidence": [],
       "native_assertions": [],
       "original_inventory_sites": [
@@ -1701,7 +1735,7 @@
           "site": "fixture:cluster-handoff"
         }
       ],
-      "owner": "/root/live_corpus_impl",
+      "owner": "/root/executed_divergence_preservation",
       "status": "UNEXECUTED"
     },
     "go:internal/backends/wasm/command:TestInstalledOperatorClusterFailureEndsPromptly": {
@@ -3172,16 +3206,50 @@
         ]
       },
       "source_mapping": {
+        "assertion_applicability": {
+          "applicability": "SUPERSEDED_BY_ACCEPTED_OWNER_CONTRACT",
+          "assertion": {
+            "case": "handoff",
+            "handle": {
+              "incarnation": 1,
+              "node": "b"
+            },
+            "helper": "recordDeterminismArtifact",
+            "line": 170,
+            "predicate": "every reported incarnation termination equals exit",
+            "source": "tools/gomad/internal/backends/wasm/backend/determinism_integration_test.go",
+            "source_sha256": "d3c75d7057a21567cf2bbf29d4cf2080d65288a83084e307eb09ff395d07afe5"
+          },
+          "current_receiving_status": "UNEXECUTED",
+          "historical_research": {
+            "path": "/home/agent/evidence/fn232-executed-divergence-audit-v1/handoff-lineage-v1.json",
+            "sha256": "93a662ecca549be98c6ba392dbfd7163d890b98b54cf1a348a2022a7e11ddf86"
+          },
+          "original_status": "FAIL_ORIGINAL_PREDICATE",
+          "owner_reference": {
+            "implementation": "a959c074baca3624107f159a8a6aeddd3070c4c6",
+            "requirement": "R2",
+            "sha256": "e91e343c4b58881e098774eb93c6baab947b57be90b94968a451ba68536e23d0",
+            "spec": ".flow/specs/fn-235-gomad-fail-cluster-runs-fast-and.md",
+            "task": "fn-235-gomad-fail-cluster-runs-fast-and.1"
+          },
+          "remaining_obligations": [
+            "fresh same-stage four campaign pairs",
+            "all original divergence/campaign/provider/public-prefix predicates",
+            "same-stage native trap/exit/held-peer-release drain"
+          ],
+          "schema": "gomad.original-assertion-applicability/v1"
+        },
         "gaps": [
-          "Parent owns actual executed divergence artifact port and raw record/tape/reason comparison."
+          "Fresh same-stage four-pair execution and independently reopened campaign/divergence/replay evidence remain pending; historical original all-exit FAIL stays explicit."
         ],
         "helper_subvariant_sites": {},
         "native_assertions": [],
         "native_production_or_lane_candidates": [],
         "owner": "parent",
-        "raw_proof_requirement": "Run exact native receiving assertion with numeric exit and nonzero selected count on integrated frozen candidate; retain raw output/identity/replay/prefix evidence for every original assertion and loop/table variant. No current Rust run has been authorized for this worker.",
+        "raw_proof_requirement": "Run all four genuine native campaign pairs within original budgets on the integrated frozen candidate; retain actual one-failure/one-artifact accounting, raw diagnostics and literal provider/public prefix replays. Reopen same-stage native trap/exit/held-peer-release drain observations and actual parent/PID/clock custody. Source readiness supplies no execution credit.",
         "resolved_native_subvariants": [],
-        "semantic_contract": "exact original assertions remain required",
+        "semantic_contract": "Retain every original assertion and its actual outcome. Only handoff b/1 all-exit applicability is superseded by the pinned accepted fn235 R2 contract; all four campaign/divergence/provider/public-prefix obligations and same-stage current drain behavior remain required.",
         "status": "SOURCE_ONLY_PARTIAL",
         "subvariant_sites": {
           "tools/gomad/internal/backends/wasm/backend/determinism_integration_test.go#TestDeterminismExecutedDivergenceArtifacts@9714": {

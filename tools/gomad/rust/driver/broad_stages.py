@@ -219,6 +219,9 @@ def collect(config, label, root):
     raw = broad_harness.read(config, stage)
     build = broad_harness.read_build(config)
     readers, errors = typed_readers(config, stage, raw, build)
+    if label == 'cluster-functional':
+        import counterfactual_receiving
+        readers['executed-divergence'] = counterfactual_receiving.observations(config)
     observed, complete = closure(expected, readers, errors)
     return dict(schema=SCHEMA, label=label, source_sha256=config['source_sha256'],
                 config_sha256=config['_config_sha256'], identity=config['identity'],
@@ -242,6 +245,9 @@ def run(config, label, root):
         else:
             broad_harness.execute_build(config)
         broad_harness.execute(config, stage)
+        if label == 'cluster-functional':
+            import counterfactual_receiving
+            counterfactual_receiving.run(config)
         facts = collect(config, label, root)
     except ERRORS as error:
         facts = dict(schema=SCHEMA, label=label, source_sha256=config['source_sha256'],
