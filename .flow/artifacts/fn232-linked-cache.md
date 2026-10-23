@@ -1,6 +1,6 @@
 # Installed linked compiled-cache preservation — fn-232.13
 
-Base `9d54dfc9dc`; branch/worktree `fn232-linked-cache`, `/home/agent/wt/fn232-linked-cache`. Source checkpoint `79b018aafa`; lifecycle guard checkpoint `08cffa8c73` integrated as `68bcc7c69f`. Final caller/refinement checkpoint follows this handover. R9/R12 remain open; no qualification or review verdict is claimed.
+Base `9d54dfc9dc`; branch/worktree `fn232-linked-cache`, `/home/agent/wt/fn232-linked-cache`. Source checkpoint `79b018aafa`; lifecycle guard checkpoint `08cffa8c73` integrated as `68bcc7c69f`. Caller/refinement checkpoints `ca2f6d0a66` and `450471f913` complete the implementation source. R9/R12 remain open; no qualification or review verdict is claimed.
 
 ## Behavior and identity
 
@@ -30,11 +30,13 @@ The three helper tests execute actual small WAT modules: default disabled/relati
 
 Early RED1/2 exposed a missing PWD in the new cluster fixture, corrected before meaningful RED3. Initial host RED exposed an omitted new constructor field, corrected before meaningful RED2. One GREEN attempt exposed the lifecycle fixture's 1-second wall bound being shorter than debug executable hashing; the new cache-specific WAT fixture has its own 10-second bound, while existing lifecycle fixtures remain at 1 second. No production/operator/qualification bound changed.
 
-Strict Clippy's owned issues were resolved by borrowed `Option<&str>` setters, a read-only authenticated `installation_cache` helper, and a short local cache accessor in inspection. Final strict/affected reruns remain required after these source refinements.
+Strict Clippy's owned issues were resolved by borrowed `Option<&str>` setters, a read-only authenticated `installation_cache` helper, a short local cache accessor in inspection, and an existing linked/cache/conditions/network admission extraction into `campaign::execution::admit`. Further metadata passes `fn232-linked-cache-clippy-final{,2,3}.log` (each exit 101) caught the extraction-local configuration reference and three test-style issues; all source fixes are in `450471f913`. The last pass reached helper integration tests and reported only the nonempty-byte assertion; it is now `assert_ne!(original, [])`. Final strict/affected reruns remain required. `fn232-linked-cache-rustfmt-final.log` exited 0 across 24 changed Rust files; diff checks pass.
+
+Causal evidence caveat: the earlier replay poison-status RED used the 1-second fixture and can be confounded by debug executable hashing/watchdog precedence. The clean missing-cache REDs and 10-second fixture GREEN are retained. Before claiming an isolated replay-classification RED, temporarily omit only the status-3 branch on the current 10-second fixture, retain the expected failure, restore source, and rerun GREEN.
 
 ## Resources and remaining gates
 
-Initial target debug size 4.1 GiB grew to 7.0 GiB; the original 2-GiB estimate was exceeded, explicitly reported, and root revised the existing-profile replacement allocation after root-owned cleanup. Global free space reached 2.4 GiB; compilation paused before another link could cross the 2-GiB floor. No other owner's files, target, binary, evidence or worktree was removed.
+Initial target debug size 4.1 GiB grew to at least 7.0 GiB; the original 2-GiB estimate was exceeded, explicitly reported, and root revised the existing-profile replacement allocation after root-owned cleanup. Global free space reached 2.4 GiB, then 1.9 GiB during the final all-tests metadata pass. Compilation stopped immediately when the floor breach was observed. No final link ran below the 2-GiB floor. Root was notified of the actual growth and offered ownership-confirmed reclamation of this worker's newly built helper/cache test executables, with hashes/logs retained; no cleanup ran without that coordination. No other owner's files, target, binary, evidence or worktree was removed.
 
 - Final strict Clippy, formatting/diff checks and affected native reruns after borrowed API / resume / inspection refinements.
 - Root integration and independent batch review; exact installed two-profile Go/runtime cache matrix, resume/inspection runtime reach, CPU/resource ceilings, and changed-candidate receiving/qualification gates remain root-owned and unrun here.
