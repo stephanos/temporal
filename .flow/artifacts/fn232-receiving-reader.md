@@ -196,3 +196,15 @@ produces that metadata; missing fields, changed PATH and unknown fields refuse.
 This is producer/reader receipt conformance, not a guest inspection run. The
 updated portable driver suite passes65 tests; its RED/GREEN logs are
 `fn232-inspection-controls-red.log` and `fn232-inspection-controls-green.log`.
+
+Review also found an accepted compiler-cache alias inconsistency: metadata used
+the requested path while install used its resolved path. The producer now
+resolves once, retains `requested_build_cache` for the raw argv/frozen private
+environment, and uses one canonical `build_cache` value for metadata and install.
+The independent reader binds both names to their actual observations and sealed
+installation without resolving historical aliases or requiring caches to exist.
+A bounded filesystem-alias fixture reproduces the previous mismatch before the
+fix; another removes both alias and cache before independent reading. These
+fixtures invoke no compiler or cache operations. Both review findings are now
+covered by66 driver and17 workload/control passing portable tests. Retained
+RED/GREEN logs: `fn232-cache-alias-{producer,reader}-{red,green}.log`.

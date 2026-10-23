@@ -835,7 +835,11 @@ class Retained:
                 'private compiler cache is not clean, absolute and non-root')
         require(not override or override == cache, 'private cache differs from frozen explicit cache')
         controls = read(regular(root/'qualification-controls.json'))
-        expected = dict(guest_profile=profile,build_cache=cache,memory_minimum=minimum,
+        canonical_cache = controls.get('build_cache')
+        require(isinstance(canonical_cache,str) and canonical_cache.startswith('/') and not canonical_cache.startswith('//')
+                and str(Path(canonical_cache)) == canonical_cache and '..' not in Path(canonical_cache).parts and canonical_cache != '/',
+                'observed canonical compiler cache is not clean, absolute and non-root')
+        expected = dict(guest_profile=profile,requested_build_cache=cache,build_cache=canonical_cache,memory_minimum=minimum,
                         memory_platform=sys.platform,memory_path='/proc/meminfo')
         require(set(controls) == set(expected)|{'memory'} and all(controls[key] == value for key,value in expected.items()),
                 'private controls differ from frozen host, path, profile, cache or threshold')
@@ -850,6 +854,10 @@ class Retained:
                 'private memory summary differs from independent raw observation')
         for stage in ('install','qualify','report'):
             command = read(regular(root/(stage+'.command.json')))
+            if stage == 'install':
+                require(command['argv'].count('--cache') == 1
+                        and command['argv'][command['argv'].index('--cache')+1] == canonical_cache,
+                        'observed install argv differs from canonical compiler cache')
             require(all(flag in command['environment'] and command['environment'][flag] == environment.get(flag) for flag in flags),
                     'nested command private controls differ from frozen environment')
         return controls

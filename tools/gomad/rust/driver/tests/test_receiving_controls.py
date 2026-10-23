@@ -22,7 +22,7 @@ class ReceivingControls(unittest.TestCase):
         self.root = Path(self.temporary.name)
         self.config = dict(root=str(self.root), environment={FLAGS[2]: '8192'})
         self.owner = dict(argv=['producer.py', '--cache', '/private/cache'])
-        self.controls = dict(guest_profile='', build_cache='/private/cache', memory_minimum='8192', memory_platform=sys.platform,
+        self.controls = dict(guest_profile='', requested_build_cache='/private/cache', build_cache='/private/cache', memory_minimum='8192', memory_platform=sys.platform,
                              memory_path='/proc/meminfo', memory=dict(minimum_bytes=8192, available_bytes=8192))
         (self.root/'host-memory.raw').write_bytes(b'MemAvailable: 8 kB\n')
         self.save()
@@ -30,7 +30,8 @@ class ReceivingControls(unittest.TestCase):
     def save(self):
         (self.root/'qualification-controls.json').write_bytes(receiving.canonical(self.controls))
         for stage in ['install', 'qualify', 'report']:
-            value = dict(environment={flag: self.config['environment'].get(flag) for flag in FLAGS})
+            value = dict(environment={flag: self.config['environment'].get(flag) for flag in FLAGS},
+                         argv=['/sealed/release', 'install', '--cache', '/private/cache'] if stage == 'install' else ['/sealed/release', stage])
             (self.root/(stage+'.command.json')).write_bytes(receiving.canonical(value))
 
     def verify(self):
@@ -57,7 +58,7 @@ class ReceivingControls(unittest.TestCase):
 
     def test_metadata_cannot_replace_frozen_env_or_cache_pin(self):
         original = copy.deepcopy(self.controls)
-        for field, value in [('guest_profile', 'full'), ('build_cache', '/shared/other'), ('memory_minimum', '1'), ('memory_path', '/foreign'), ('memory_platform', 'foreign')]:
+        for field, value in [('guest_profile', 'full'), ('requested_build_cache', '/forged/requested'), ('build_cache', '/shared/other'), ('memory_minimum', '1'), ('memory_path', '/foreign'), ('memory_platform', 'foreign')]:
             with self.subTest(field=field):
                 self.controls = dict(original, **{field: value})
                 self.save()
@@ -115,3 +116,21 @@ class ReceivingControls(unittest.TestCase):
         for changed in [dict(actual, PATH='/borrowed'), dict(actual, unknown='forged'), {key:value for key,value in actual.items() if key not in FLAGS}]:
             with self.assertRaises(driver.Refusal):
                 receiving.inspection_environment(self.config, self.root, changed)
+
+    def test_canonical_cache_alias_binding_survives_alias_and_cache_detachment(self):
+        real = self.root/'actual-cache'
+        real.mkdir()
+        alias = self.root/'requested-cache'
+        alias.symlink_to(real, target_is_directory=True)
+        self.owner['argv'][-1] = str(alias)
+        self.config['environment'][FLAGS[1]] = str(alias)
+        self.controls['requested_build_cache'] = str(alias)
+        self.controls['build_cache'] = str(real)
+        self.save()
+        path = self.root/'install.command.json'
+        command = driver.read(path)
+        command['argv'] = ['/sealed/release', 'install', '--cache', str(real)]
+        path.write_bytes(receiving.canonical(command))
+        alias.unlink()
+        real.rmdir()
+        self.assertEqual(self.verify(), self.controls)

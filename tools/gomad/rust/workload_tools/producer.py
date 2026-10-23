@@ -173,11 +173,13 @@ def main():
     if args.workload != "sqlite":
         workloads.guest_build_tags(guest_profile)
         override = os.environ.get("GOMAD_WASM_TEMPORAL_BUILD_CACHE", "")
-        cache = qualification_build_cache(root, override or str(args.cache))
-        if override and cache != args.cache:
+        requested_cache = qualification_build_cache(root, override or str(args.cache))
+        if override and requested_cache != args.cache:
             raise ValueError("private compiler-cache override differs from frozen --cache")
+        cache = requested_cache.resolve()
         minimum = os.environ.get("GOMAD_WASM_TEMPORAL_MIN_AVAILABLE_BYTES", "")
-        controls = dict(guest_profile=guest_profile, build_cache=str(cache), memory_minimum=minimum,
+        controls = dict(guest_profile=guest_profile, requested_build_cache=str(requested_cache),
+                        build_cache=str(cache), memory_minimum=minimum,
                         memory_platform=sys.platform, memory_path="/proc/meminfo")
         try:
             controls["memory"] = memory_admission(sys.platform, Path("/proc/meminfo"), minimum,
@@ -188,7 +190,7 @@ def main():
             raise
         write(root/"qualification-controls.json", controls)
     else:
-        cache = args.cache
+        cache = args.cache.resolve()
     capture = None
     source = None
     if args.workload != "sqlite":
@@ -205,7 +207,7 @@ def main():
     write(policy, workloads.support_policy(args.workload,capture) if args.workload in workloads.SUPPORT_ROWS else workloads.policy(args.workload, capture))
     installation = root/"installation.json"
     run(root, "install", [str(binary), "install", "--compiler", str(args.compiler.resolve()), "--runtime-root", str(args.runtime_root.resolve()),
-        "--cache", str(cache.resolve()), "--output", str(installation), "--profile", "gomad.wasi-cooperative/v1", "--config", str(policy),
+        "--cache", str(cache), "--output", str(installation), "--profile", "gomad.wasi-cooperative/v1", "--config", str(policy),
         "--fuel", str(1 << 50 if args.workload != "sqlite" else 4_000_000_000), "--memory-bytes", str(4 << 30 if args.workload != "sqlite" else 256 << 20)], 0, json_output=False)
     spec = root/"qualification-spec.json"
     write(spec, (workloads.support_spec if args.workload in workloads.SUPPORT_ROWS else workloads.qualification_spec)(repo, root/"cell", args.workload, args.mode == "canary", source, args.source_manifest, guest_profile=guest_profile))

@@ -13119,24 +13119,24 @@
       "symbol": "native_state"
     },
     "tools/gomad/rust/driver/receiving.py#private_controls": {
-      "end_line": 855,
+      "end_line": 863,
       "path": "tools/gomad/rust/driver/receiving.py",
-      "sha256": "c0946924b719fe56501e8b7083f7fdae03c4418cc17d62ae8a203e712dd58318",
+      "sha256": "a3c577bd388e5fbe661e7093119fb425323d7e6feab9c1792ee8a60f4e8a6614",
       "start_line": 824,
       "symbol": "private_controls"
     },
     "tools/gomad/rust/driver/receiving.py#producer": {
-      "end_line": 919,
+      "end_line": 927,
       "path": "tools/gomad/rust/driver/receiving.py",
       "sha256": "cd1d7345cbc41ad3e1e9db142f10962d14de2cca860fd51790528d3d3f6b119c",
-      "start_line": 857,
+      "start_line": 865,
       "symbol": "producer"
     },
     "tools/gomad/rust/driver/receiving.py#replication": {
-      "end_line": 953,
+      "end_line": 961,
       "path": "tools/gomad/rust/driver/receiving.py",
       "sha256": "f6acf4c36f0a39f6e199c398ea4fbcd9ffc0751bf90c9a1f0a7e6749b38f50ef",
-      "start_line": 926,
+      "start_line": 934,
       "symbol": "replication"
     },
     "tools/gomad/rust/driver/receiving.py#result": {
@@ -13161,10 +13161,10 @@
       "symbol": "selected_marker"
     },
     "tools/gomad/rust/driver/receiving.py#smoke": {
-      "end_line": 924,
+      "end_line": 932,
       "path": "tools/gomad/rust/driver/receiving.py",
       "sha256": "9b6ffad7a170ad454b243a92bb738d1935bdeb69b92746dcdc49f5217a980734",
-      "start_line": 921,
+      "start_line": 929,
       "symbol": "smoke"
     },
     "tools/gomad/rust/driver/receiving.py#sources": {
@@ -13238,24 +13238,24 @@
       "symbol": "test_selected_marker_full_metadata_and_absence_preserve_original_variants"
     },
     "tools/gomad/rust/driver/tests/test_receiving_controls.py#test_bound_raw_admission_and_frozen_private_controls": {
-      "end_line": 40,
+      "end_line": 41,
       "path": "tools/gomad/rust/driver/tests/test_receiving_controls.py",
       "sha256": "635f57aeb1002a34b33c9e3712dc734985bf64a10c89e351d848dae5e464340c",
-      "start_line": 39,
+      "start_line": 40,
       "symbol": "test_bound_raw_admission_and_frozen_private_controls"
     },
     "tools/gomad/rust/driver/tests/test_receiving_controls.py#test_nested_command_env_cannot_disagree_with_frozen_controls": {
-      "end_line": 71,
+      "end_line": 72,
       "path": "tools/gomad/rust/driver/tests/test_receiving_controls.py",
       "sha256": "d518f3ab236a61c1fca8d749cc193b42ea46f6d2dfe4f188f18dee78b5893ad0",
-      "start_line": 67,
+      "start_line": 68,
       "symbol": "test_nested_command_env_cannot_disagree_with_frozen_controls"
     },
     "tools/gomad/rust/driver/tests/test_receiving_controls.py#test_self_reported_available_bytes_cannot_replace_raw_measurement": {
-      "end_line": 56,
+      "end_line": 57,
       "path": "tools/gomad/rust/driver/tests/test_receiving_controls.py",
       "sha256": "ea6df217a54e8b715e28d41e4d33f0114e5b048fc08f2350cf50f7b464653c64",
-      "start_line": 52,
+      "start_line": 53,
       "symbol": "test_self_reported_available_bytes_cannot_replace_raw_measurement"
     },
     "tools/gomad/rust/driver/tests/test_sqlite.py#test_actual_catalogue_is_complete_exact_four_states_and_context_bound": {
@@ -13637,9 +13637,9 @@
       "symbol": "captured"
     },
     "tools/gomad/rust/workload_tools/producer.py#main": {
-      "end_line": 227,
+      "end_line": 229,
       "path": "tools/gomad/rust/workload_tools/producer.py",
-      "sha256": "9d2618836deede751114fccade549746034535f5c7840beac4489827441d0093",
+      "sha256": "765ccc9bd08fd0c28aba721ca3299813d23d82f27fa5306a54497567f31837a0",
       "start_line": 156,
       "symbol": "main"
     },
