@@ -93,6 +93,93 @@ class PublishedPlans(unittest.TestCase):
             self.assertEqual(sorted(row['complete'] for row in rows), [False, True])
             self.assertEqual([len(row['validated']['executions']) for row in rows if row['complete']], [1])
 
+    def build_fixture(self, root, wrong=None):
+        fixtures = check.load('shim_build_plan_fixtures', HERE / 'interception-check-test.py')
+        artifact, old_receipt = fixtures.sealed_preparation(root)
+        canonical = fixtures.check.parity.canonical
+        record = json.loads((artifact / 'record.json').read_bytes())
+        provenance = json.loads((artifact / 'target/provenance.json').read_bytes())
+        origin = provenance.pop('origin')
+        invocation = origin['invocation']
+        invocation['original_argv'] = [value.encode().hex() for value in ['go','build','./main']]
+        invocation['driver_argv'] = [value.encode().hex() for value in ['/stock/go','build','./main']]
+        bindings = [['example/main','2'*64]]
+        invocation['installation_sha256'] = check.sha(canonical(bindings))
+        marker = dict(schema='gomad.build-launcher/v1', module_sha256=origin['module_sha256'],
+                      installation_sha256='2'*64, invocation_sha256=check.sha(canonical(invocation)),
+                      catalog_sha256=invocation['installation_sha256'], recipe_sha256=invocation['recipe_sha256'])
+        if wrong:
+            marker[wrong] = 'f'*64
+        provenance['inputs'] = dict(shared_driver_installations=bindings, go_build_info=dict(path='example/main'),
+             build_launcher=marker, build_driver_registration=dict(schema='gomad.driver-registration/v1', process_id=7,
+             invocation_sha256=check.sha(canonical(invocation)), compiler_sha256=invocation['compiler_sha256'],
+             driver_argv_sha256=check.sha(canonical(invocation['driver_argv'])), module_root='/private/outputs'))
+        origin['preparation_sha256'] = check.sha(canonical(provenance))
+        provenance['origin'] = origin
+        raw_origin = canonical(origin)
+        record['streams']['target/intercepted-origin.json'] = dict(bytes=len(raw_origin),sha256=check.sha(raw_origin),records=1)
+        payloads = {'target/module.wasm':(artifact / 'target/module.wasm').read_bytes(),
+                    'target/provenance.json':canonical(provenance), 'target/intercepted-origin.json':raw_origin}
+        fixtures.seal_artifact(artifact, record, payloads)
+        campaign = artifact.parent
+        plan = json.loads((campaign / 'plan.json').read_bytes())
+        plan['origin'] = origin
+        (campaign / 'plan.json').write_bytes(canonical(plan))
+        storage = json.loads((campaign / 'storage.json').read_bytes())
+        storage['plan_sha256'] = check.sha(canonical(plan))
+        (campaign / 'storage.json').write_bytes(canonical(storage))
+        receipt = json.loads(old_receipt.read_bytes())
+        old_receipt.unlink()
+        old_receipt.with_name('plan.json').unlink()
+        published = root / 'build-launchers' / invocation['invocation_id'] / ('d'*64) / 'plan.json'
+        published.parent.mkdir(parents=True)
+        published.write_bytes(canonical(plan))
+        receipt.update(plan=str(published), plan_sha256=check.sha(canonical(plan)),
+                       record_sha256=check.sha(canonical(record)), command=['os-hex:'+value for value in invocation['original_argv']])
+        receipt.update(provenance_bytes=len(payloads['target/provenance.json']),provenance_sha256=check.sha(payloads['target/provenance.json']))
+        published.with_name('plan.json.preparation.json').write_bytes(canonical(receipt))
+        return published
+
+    def test_public_shim_accepts_authenticated_build_launcher_publication(self):
+        with tempfile.TemporaryDirectory() as directory:
+            root = Path(directory)
+            self.build_fixture(root)
+            self.assertEqual(check.authenticate_campaigns(root, dict(argv=[], campaigns=0,outcome_classes=[]), '1'*64), [])
+
+    def test_self_consistent_wrong_build_module_installation_or_invocation_marker_is_refused(self):
+        for key in ('module_sha256','installation_sha256','invocation_sha256'):
+            with self.subTest(key=key), tempfile.TemporaryDirectory() as directory:
+                root = Path(directory)
+                self.build_fixture(root,key)
+                with self.assertRaisesRegex(ValueError, 'build_launcher'):
+                    check.authenticated_plans(root)
+
+    def test_build_publication_invocation_and_original_command_cannot_be_rebound(self):
+        for mode in ('invocation-directory','original-command'):
+            with self.subTest(mode=mode), tempfile.TemporaryDirectory() as directory:
+                root = Path(directory)
+                published = self.build_fixture(root)
+                receipt = json.loads(published.with_name('plan.json.preparation.json').read_bytes())
+                if mode == 'invocation-directory':
+                    original = published.parent.parent
+                    changed = original.with_name('e'*64)
+                    original.rename(changed)
+                    published = changed / published.parent.name / 'plan.json'
+                    receipt['plan'] = str(published)
+                else:
+                    receipt['command'] = ['os-hex:wrong-original-command']
+                published.with_name('plan.json.preparation.json').write_bytes(check.encode(receipt))
+                with self.assertRaisesRegex(ValueError, 'build_launcher'):
+                    check.authenticated_plans(root)
+
+    def test_unknown_publication_namespace_is_not_skipped(self):
+        with tempfile.TemporaryDirectory() as directory:
+            root = Path(directory)
+            self.build_fixture(root)
+            (root / 'build-launchers').rename(root / 'unknown-publications')
+            with self.assertRaisesRegex(ValueError, 'unknown noncampaign'):
+                check.authenticated_plans(root)
+
     def test_published_receipt_digest_tamper_is_refused(self):
         with tempfile.TemporaryDirectory() as directory:
             root = Path(directory)

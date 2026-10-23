@@ -108,6 +108,15 @@ published admission needs its canonical receipt, exact copied plan, record/modul
 provenance commitments and a matching preparation campaign. Publications are never
 opened as independent campaign directories or silently skipped.
 
+Build publications under `build-launchers/INVOCATION/ID/plan.json` use the same
+receipt authentication plus the exact `inputs.build_launcher` marker contract.
+The checker binds module digest, selected raw installation/catalog membership,
+original invocation/recipe commitments, actual original Go PID/compiler/driver
+registration, namespace invocation ID and lossless original receipt command.
+Unknown namespaces or marker/mapping changes refuse. A later launched build
+artifact has its own renewed origin and matching preparation/admission pair;
+the original build origin is not substituted for that new runtime origin.
+
 Every real execution authenticates preparation, campaign plan, hash-chained
 journal, record/manifests, retained payloads, sealed origin/provenance and exact
 stored-byte accounting before projection. Original argv must match the actual

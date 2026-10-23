@@ -269,6 +269,47 @@ def authenticate_cache(cache, binary, compiler, checkout, previous_binary=None):
     return result
 
 
+def authenticate_build_marker(provenance, origin, record):
+    inputs = provenance['inputs']
+    marker = inputs['build_launcher']
+    expected = dict(schema='gomad.build-launcher/v1', module_sha256=record['identity']['target'],
+                    invocation_sha256=sha(encode(origin['invocation'])),
+                    catalog_sha256=origin['invocation']['installation_sha256'],
+                    recipe_sha256=origin['invocation']['recipe_sha256'])
+    equal(set(marker), {*expected, 'installation_sha256'}, 'build_launcher.marker_fields')
+    for key, value in expected.items():
+        equal(marker[key], value, 'build_launcher.' + key)
+    bindings = inputs['shared_driver_installations']
+    if len(bindings) > 65536:
+        raise ValueError('build_launcher catalog exceeds bound')
+    authenticate_installations(provenance, origin, bindings)
+    selected = [inputs['go_build_info']['path'], marker['installation_sha256']]
+    if selected not in bindings:
+        raise ValueError('build_launcher selected installation differs from retained catalog')
+    registration = inputs['build_driver_registration']
+    equal(set(registration), {'schema','process_id','invocation_sha256','compiler_sha256',
+                              'driver_argv_sha256','module_root'}, 'build_launcher.registration_fields')
+    equal(registration['schema'], 'gomad.driver-registration/v1', 'build_launcher.registration_schema')
+    equal(registration['invocation_sha256'], marker['invocation_sha256'], 'build_launcher.registered_invocation')
+    equal(registration['compiler_sha256'], origin['invocation']['compiler_sha256'], 'build_launcher.registered_compiler')
+    equal(registration['driver_argv_sha256'], sha(encode(origin['invocation']['driver_argv'])), 'build_launcher.registered_driver_argv')
+    if type(registration['process_id']) is not int or not 0 < registration['process_id'] < 1 << 32:
+        raise ValueError('build_launcher invalid original Go PID')
+    if not isinstance(registration['module_root'], str) or not Path(registration['module_root']).is_absolute():
+        raise ValueError('build_launcher original module root is not absolute')
+    driver = [bytes.fromhex(value) for value in origin['invocation']['driver_argv']]
+    index = 1
+    while index < len(driver):
+        if driver[index] == b'-C':
+            index += 2
+        elif driver[index].startswith(b'-C='):
+            index += 1
+        else:
+            break
+    if index >= len(driver) or driver[index] != b'build':
+        raise ValueError('build_launcher original driver is not go build')
+
+
 def authenticated_plans(root):
     checker = load('shim_plan_authentication', HERE / 'interception-check.py')
     campaigns, publications = {}, []
@@ -287,6 +328,9 @@ def authenticated_plans(root):
         artifact = path.parent / plan['prepared_artifact']
         record = checker.campaign.authenticate_artifact(artifact)
         origin = checker.authenticate_origin(artifact, record, plan['origin'])
+        provenance = checker.campaign.canonical_file(artifact / 'target/provenance.json')
+        if 'build_launcher' in provenance['inputs']:
+            authenticate_build_marker(provenance, origin, record)
         if not complete:
             equal((validated['journal'], validated['executions']), ([], []), 'preparation.zero_guest_journal')
             equal((record['outcome']['class'], record['outcome']['termination']),
@@ -296,7 +340,7 @@ def authenticated_plans(root):
     admitted = set()
     for path in publications:
         relative = path.relative_to(root)
-        if len(relative.parts) != 4 or relative.parts[0] != 'admissions':
+        if len(relative.parts) != 4 or relative.parts[0] not in ('admissions','build-launchers'):
             raise ValueError('unknown noncampaign plan publication')
         receipt_path = path.with_name(path.name + '.preparation.json')
         if not receipt_path.is_file() or receipt_path.is_symlink():
@@ -308,6 +352,15 @@ def authenticated_plans(root):
         if target not in campaigns or campaigns[target]['complete'] or target in admitted:
             raise ValueError('admission receipt references unknown, completed or duplicate preparation')
         prepared = campaigns[target]
+        if relative.parts[0] == 'build-launchers':
+            origin = prepared['origin']
+            equal(relative.parts[1], origin['invocation']['invocation_id'], 'build_launcher.publication_invocation')
+            if not re.fullmatch('[0-9a-f]{64}', relative.parts[2]):
+                raise ValueError('build_launcher invalid publication identity')
+            provenance = checker.campaign.canonical_file(prepared['artifact'] / 'target/provenance.json')
+            authenticate_build_marker(provenance, origin, prepared['prepared'])
+            equal(receipt['command'], ['os-hex:' + value for value in origin['invocation']['original_argv']],
+                  'build_launcher.exact_original_command')
         equal(Path(receipt['plan']), path.resolve(), 'receipt.published_plan_path')
         equal(checker.parity.digest(path.read_bytes()), receipt['plan_sha256'], 'receipt.plan_digest')
         equal(path.read_bytes(), (target / 'plan.json').read_bytes(), 'receipt.published_plan_bytes')
