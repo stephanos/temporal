@@ -17,7 +17,7 @@ PUBLIC_VERBS = ('inspect', 'replay', 'explore', 'resume', 'execute-shard', 'merg
                 'qualify', 'report', 'qualify-set', 'merge-set', 'compare-support', 'install',
                 'doctor', 'discover', 'plan', 'recover', 'analyze', 'stress')
 FILES = {'release', 'fixture', 'stress', 'stress-release', 'determinism', 'divergence', 'reference-helper',
-         'compiler', 'rust-compiler', 'replay-input', 'go-base', 'build-receipts'}
+         'compiler', 'rust-compiler', 'replay-input', 'go-base', 'build-receipts', 'stress-cycle'}
 TREES = {'baseline', 'source', 'cluster-baseline', 'cluster-source', 'candidate-source', 'compiler-root'}
 ENDPOINTS = ('foundation-check.py', 'foundation-release-check.py', 'inspect-lane.py', 'replay-lane.py',
              'exploration-lane.py', 'campaign-lane.py', 'minimize-reference-lane.py',
@@ -315,7 +315,8 @@ def run_all(bindings, binding_sha256, work):
     lane('stress-roles', 'stress-role-check.py', flags(dict(ordinary=files['release'], stress=files['stress-release'],
          diagnostic=files['determinism'])))
     lane('stress', 'stress-parity-lane.py', flags(dict(go, binary=files['stress-release'], input=files['replay-input'],
-         **{'ordinary-binary': files['release'], 'work': work / 'stress'})), ('stress',),
+         **{'ordinary-binary': files['release'], 'stress-cycle': files['stress-cycle'],
+            'stress-cycle-sha256': digest(files['stress-cycle'].read_bytes()), 'work': work / 'stress'})), ('stress',),
          ('stress-parity-result.json', 'gomad.stress-semantic-parity/v1'), '')
     require(set(coverage) == set(PUBLIC_VERBS), 'incomplete public verb coverage')
     load_bindings(bindings, binding_sha256)
