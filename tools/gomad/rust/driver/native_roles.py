@@ -143,6 +143,10 @@ def validate_identity(config, identity, role, executable_sha256, rustc_version):
 
 def observation(path, argv, directory, environment):
     value = read(regular(path))
+    require(isinstance(value, dict) and {'schema', 'command', 'directory', 'environment', 'pid', 'exit_code', 'signal',
+            'termination', 'error', 'cleanup_errors', 'duration_nanos', 'clock', 'parent_pid', 'started_monotonic_nanos',
+            'reaped_monotonic_nanos', 'stdout', 'stderr', 'stdout_sha256', 'stderr_sha256'} <= set(value),
+            'native command observation is missing required process or lifecycle fields')
     require(value['schema'] == 'gomad.native-process-observation/v1' and value['command'] == argv
             and value['directory'] == str(directory) and value['environment'] == environment
             and type(value['pid']) is int and value['pid'] > 0 and value['exit_code'] == 0 and value['signal'] is None

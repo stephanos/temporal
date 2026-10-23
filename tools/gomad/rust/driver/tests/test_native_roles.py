@@ -117,6 +117,14 @@ class NativeRoles(unittest.TestCase):
             config['files'][str(raw)]=sha(raw);config['files'][str(path)]=sha(path)
             with self.assertRaises(Refusal):native.validate_build(config,path,role)
 
+    def test_missing_native_lifecycle_fields_refuse_without_key_errors(self):
+        for field in ('clock','parent_pid','started_monotonic_nanos','reaped_monotonic_nanos'):
+            with self.subTest(field=field),tempfile.TemporaryDirectory() as temporary:
+                config,path,receipt,role=self.fixture(Path(temporary))
+                raw=path.parent/'cargo-build.json';row=json.loads(raw.read_text());row.pop(field)
+                raw.write_text(json.dumps(row))
+                with self.assertRaises(Refusal):native.observation(raw,row['command'],row['directory'],row['environment'])
+
     def test_admission_reopens_copy_identity_and_refuses_changed_publication(self):
         with tempfile.TemporaryDirectory() as temporary:
             config, path, receipt, role = self.fixture(Path(temporary))
