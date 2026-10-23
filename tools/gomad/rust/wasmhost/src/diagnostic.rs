@@ -119,26 +119,8 @@ pub enum Owner {
     HandoffWait,
 }
 const OWNERS: usize = 18;
-const OWNER_NAMES: [&str; OWNERS] = [
-    "clock",
-    "scheduler",
-    "scheduler_handoff",
-    "namespace",
-    "volume",
-    "network",
-    "world",
-    "storage_transport",
-    "cache",
-    "transcript",
-    "evidence",
-    "encoding",
-    "remote",
-    "inputs",
-    "inspection",
-    "lifecycle",
-    "instrumentation",
-    "handoff_wait",
-];
+use crate::profile_inventory::OWNER_NAMES;
+pub use crate::profile_inventory::{operation_names, owner_names};
 const OPS: usize = crate::abi::Operation::COUNT;
 /// Log-linear per-call histogram: 16 exact buckets below 16 ns, then 16
 /// sub-buckets per power of two up to 2^40 ns (the last bucket saturates).
@@ -1596,16 +1578,4 @@ mod tests {
         assert_eq!(decoded, report);
         assert_eq!(decoded["schema"], "gomad.wasm-profile/v2");
     }
-}
-
-#[must_use]
-pub fn operation_names() -> Vec<String> {
-    crate::abi::Operation::ALL
-        .iter()
-        .map(|op| format!("{}.{}", op.module(), op.name()))
-        .collect()
-}
-#[must_use]
-pub fn owner_names() -> &'static [&'static str] {
-    &OWNER_NAMES
 }

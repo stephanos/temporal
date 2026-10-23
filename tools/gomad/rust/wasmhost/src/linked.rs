@@ -91,7 +91,25 @@ impl ExecutionTiming {
     }
 }
 
+/// Reads the kernel monotonic clock shared by parent and child processes.
+/// # Errors
+/// Refuses negative or overflowing kernel clock values.
+pub fn monotonic_nanos() -> Result<u64, String> {
+    let time = rustix::time::clock_gettime(rustix::time::ClockId::Monotonic);
+    u64::try_from(time.tv_sec)
+        .ok()
+        .and_then(|seconds| seconds.checked_mul(1_000_000_000))
+        .and_then(|nanos| {
+            u64::try_from(time.tv_nsec)
+                .ok()
+                .and_then(|part| nanos.checked_add(part))
+        })
+        .ok_or_else(|| "kernel CLOCK_MONOTONIC value exceeds unsigned nanosecond range".into())
+}
+
 pub struct Execution {
+    pub terminal_monotonic_nanos: Option<u64>,
+    pub admission_terminal_to_return_nanos: Option<u64>,
     pub timing: Option<ExecutionTiming>,
     #[cfg(feature = "guest-profile")]
     pub guest_profile_error: Option<String>,
@@ -524,6 +542,8 @@ pub fn execute_prepared(prepared: Prepared) -> wasmtime::Result<Execution> {
     let external_owner_attempts = Arc::new(std::sync::atomic::AtomicU64::new(0));
     let mut authorization_started = None;
     let mut terminal_classified = None;
+    let mut admission_terminal_classified = None;
+    let mut terminal_monotonic_nanos = None;
     #[cfg(feature = "guest-profile")]
     let mut guest_profile_error = None;
     let mut outcome = thread::scope(|scope| -> wasmtime::Result<Outcome> {
@@ -535,6 +555,8 @@ pub fn execute_prepared(prepared: Prepared) -> wasmtime::Result<Execution> {
             let module = match compile_module(&engine, &execute, &request.module, &mut metrics) {
                 Ok((module, _)) => module,
                 Err(mut outcome) => {
+                    terminal_monotonic_nanos = monotonic_nanos().ok();
+                    admission_terminal_classified = Some(std::time::Instant::now());
                     metrics.prepare_nanos = crate::metrics::elapsed(preparation);
                     metrics.sample_process();
                     outcome.metrics = Some(Box::new(metrics));
@@ -595,6 +617,7 @@ pub fn execute_prepared(prepared: Prepared) -> wasmtime::Result<Execution> {
                 start_instance(&linker, &mut store, &module, &mut metrics)
             };
             let mut outcome = finish_outcome(&mut store, executed, &request, &timed_out)?;
+            terminal_monotonic_nanos = monotonic_nanos().ok();
             terminal_classified = Some(std::time::Instant::now());
             #[cfg(feature = "determinism-fixture")]
             fixture_timing_delay(fixture_timing_delays[1]);
@@ -638,6 +661,10 @@ pub fn execute_prepared(prepared: Prepared) -> wasmtime::Result<Execution> {
         .as_ref()
         .map(ExecutionTiming::authorization_to_terminal_nanos);
     Ok(Execution {
+        terminal_monotonic_nanos,
+        admission_terminal_to_return_nanos: admission_terminal_classified.map(|classified| {
+            u64::try_from(returned.duration_since(classified).as_nanos()).unwrap_or(u64::MAX)
+        }),
         timing,
         #[cfg(feature = "guest-profile")]
         guest_profile_error,

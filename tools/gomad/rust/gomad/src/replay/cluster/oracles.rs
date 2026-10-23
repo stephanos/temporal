@@ -534,6 +534,8 @@ mod replay_tests {
         let mut outcome = linked::Outcome::new("exit", "");
         outcome.exit_code = Some(0);
         let mut observed = linked::Execution {
+            terminal_monotonic_nanos: None,
+            admission_terminal_to_return_nanos: None,
             timing: None,
             #[cfg(feature = "helper-guest-profile")]
             guest_profile_error: None,

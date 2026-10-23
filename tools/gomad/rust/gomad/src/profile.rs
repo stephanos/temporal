@@ -1,5 +1,7 @@
 //! Diagnostic-only linked execution capture and independent attribution validation.
-use gomad_wasmhost::diagnostic::{self, LinkedProfile};
+#[cfg(feature = "helper-diagnostic-profile")]
+use gomad_wasmhost::diagnostic::LinkedProfile;
+use gomad_wasmhost::profile_inventory as diagnostic;
 use serde_json::Value;
 use std::collections::BTreeSet;
 mod json;
@@ -217,6 +219,24 @@ fn series(
 /// # Errors
 /// Refuses incomplete attribution, malformed distributions and reconciliation misses.
 pub fn validate(report: &Value) -> Result<(), String> {
+    validate_inner(report, false)
+}
+
+/// # Errors
+/// Refuses malformed refusal attribution or any recorded instantiation, execution or import.
+pub(crate) fn validate_admission_refusal(report: &Value) -> Result<(), String> {
+    if ["instantiate", "execute"].into_iter().any(|phase| {
+        report["phases"][phase]["count"] != 0 || report["phases"][phase]["wall_nanos"] != 0
+    }) || report["abi_ops"]
+        .as_object()
+        .is_none_or(|ops| !ops.is_empty())
+    {
+        return Err("diagnostic admission refusal entered guest execution".into());
+    }
+    validate_inner(report, true)
+}
+
+fn validate_inner(report: &Value, admission_refusal: bool) -> Result<(), String> {
     if report["schema"] != "gomad.wasm-profile/v2" || report["diagnostic_only"] != true {
         return Err("diagnostic attribution schema".into());
     }
@@ -290,7 +310,7 @@ pub fn validate(report: &Value) -> Result<(), String> {
     {
         return Err("diagnostic elapsed wall basis".into());
     }
-    if totals[0] == 0 {
+    if totals[0] == 0 && !admission_refusal {
         return Err("diagnostic no execute interval".into());
     }
     Ok(())
@@ -300,6 +320,7 @@ pub fn validate(report: &Value) -> Result<(), String> {
 /// execution errors; callers retain the raw profile before enforcing validation.
 /// # Errors
 /// Refuses overlapping capture scopes or an oversized report.
+#[cfg(feature = "helper-diagnostic-profile")]
 pub fn capture<T>(execution: impl FnOnce() -> T) -> Result<(T, Value), String> {
     let session = LinkedProfile::start()?;
     let result = execution();
@@ -307,7 +328,7 @@ pub fn capture<T>(execution: impl FnOnce() -> T) -> Result<(T, Value), String> {
     Ok((result, report))
 }
 
-#[cfg(test)]
+#[cfg(all(test, feature = "helper-diagnostic-profile"))]
 mod tests {
     use super::*;
     use gomad_wasmhost::diagnostic::{ImportBoundary, Phase, PhaseSpan};

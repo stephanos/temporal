@@ -32,6 +32,7 @@ struct CommonReceipt {
     installation: PathBuf,
     module_sha256: String,
     provenance_sha256: String,
+    preparation_receipt_sha256: String,
     choice_identity: linked::ChoiceIdentity,
     environment_identity: String,
     requests: BTreeMap<u64, Value>,
@@ -264,6 +265,14 @@ fn common(
         module_sha256: canonical::digest(&prepared.guest.module),
         provenance: prepared.provenance_path.clone(),
         provenance_sha256: canonical::digest(&prepared.guest.provenance),
+        preparation_receipt_sha256: canonical::digest(&read(
+            &prepared
+                .provenance_path
+                .parent()
+                .ok_or("module root absent")?
+                .join("preparation-observations/receipt.json"),
+            16 << 20,
+        )?),
         installation: prepared.installation_path.clone(),
         choice_identity: identity,
         environment_identity,
@@ -595,7 +604,8 @@ fn load_prepared(common: &CommonReceipt) -> Result<module::Prepared, String> {
     if canonical::digest(&module) != common.module_sha256 {
         return Err("native namespace common module bytes changed".into());
     }
-    let prepared = module::Prepared {
+    let mut prepared = module::Prepared {
+        observation_receipt_sha256: Some(common.preparation_receipt_sha256.clone()),
         guest: crate::campaign::prepare::Prepared {
             auxiliary: BTreeMap::new(),
             compile_cache_root: crate::campaign::prepare::compile_cache_root(
@@ -627,6 +637,15 @@ fn load_prepared(common: &CommonReceipt) -> Result<module::Prepared, String> {
         preparation_arguments: Vec::new(),
         scenario_path: None,
     };
+    prepared.guest.auxiliary = crate::campaign::prepare::open_observations_from_receipt(
+        common.provenance.parent().ok_or("module root absent")?,
+        &prepared.guest,
+        &common.provenance_sha256,
+        &common.preparation_receipt_sha256,
+    )?;
+    if prepared.guest.auxiliary.is_empty() {
+        return Err("namespace sample preparation observations absent".into());
+    }
     module::authenticate_prepared(&prepared)?;
     if canonical::encode(
         prepared

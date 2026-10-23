@@ -37,6 +37,8 @@ fn observation(index: usize) -> Observation {
     let terminal = Instant::now();
     Observation {
         execution: Execution {
+            terminal_monotonic_nanos: None,
+            admission_terminal_to_return_nanos: None,
             timing: Some(gomad_wasmhost::linked::ExecutionTiming {
                 authorization_started: terminal.checked_sub(Duration::from_nanos(10)).unwrap(),
                 terminal_classified: terminal,

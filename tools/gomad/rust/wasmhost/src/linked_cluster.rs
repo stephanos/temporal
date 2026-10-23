@@ -754,6 +754,8 @@ fn run_instance(
             handle,
             interrupted: interrupted(&outcome),
             execution: linked::Execution {
+                terminal_monotonic_nanos: None,
+                admission_terminal_to_return_nanos: None,
                 timing: None,
                 #[cfg(feature = "guest-profile")]
                 guest_profile_error: None,
@@ -1005,6 +1007,8 @@ fn execute_inner(
                                     handle,
                                     interrupted: false,
                                     execution: linked::Execution {
+                                        terminal_monotonic_nanos: None,
+                                        admission_terminal_to_return_nanos: None,
                                         timing: None,
                                         #[cfg(feature = "guest-profile")]
                                         guest_profile_error: None,

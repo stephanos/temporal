@@ -201,3 +201,16 @@ observation/supervisor corpus again passed 14 tests with exit 0. Fresh independe
 review read those completed outputs and returned source READY after green for the
 final feature lint repairs. Source hashes for the final repaired Rust files are
 retained at `/home/agent/measurement-source-checkpoint-sha256.txt`.
+
+## Terminal/publication and custody follow-up
+
+The additive source and actual evidence are recorded in
+[fn232-measurement-terminal-custody-2026-10-23.md](fn232-measurement-terminal-custody-2026-10-23.md).
+This supersedes the earlier source TODOs for typed admission-refusal controls,
+actual terminal-to-child-reap publication timing, and preparation observation
+publication/reconstructed-consumer custody. It does not replace the separately
+pending immutable transport proofs, full Temporal named endpoint execution,
+runtime-owner oracle or frozen qualification. The follow-up passed 462 native
+library tests (3 ignored), all five strict feature builds, all public profile
+variants and the actual compiler/runtime custody probes, with fresh independent
+source READY after green.

@@ -235,13 +235,8 @@ fn validate_outcome(value: &Value) -> Result<(), String> {
     Ok(())
 }
 
-#[cfg(feature = "helper-diagnostic-profile")]
 fn validate_profile(profile: &Value) -> Result<(), String> {
     crate::profile::validate(profile)
-}
-#[cfg(not(feature = "helper-diagnostic-profile"))]
-fn validate_profile(_: &Value) -> Result<(), String> {
-    Err("diagnostic evidence validation requires the diagnostic reader role".into())
 }
 
 /// Reads private retained native artifacts without requiring their source module to remain present.
@@ -1027,3 +1022,7 @@ pub fn compare_sampling(
 #[cfg(test)]
 #[path = "evidence_tests.rs"]
 mod tests;
+
+pub(super) fn validate_admission_profile(profile: &Value) -> Result<(), String> {
+    crate::profile::validate_admission_refusal(profile)
+}

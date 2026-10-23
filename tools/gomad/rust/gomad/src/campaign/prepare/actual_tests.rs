@@ -2,6 +2,10 @@ use super::*;
 use std::os::unix::fs::DirBuilderExt as _;
 
 #[test]
+#[expect(
+    clippy::too_many_lines,
+    reason = "Retain the actual compiler/cache/custody probe in one bounded transaction."
+)]
 #[ignore = "requires an explicitly selected pinned Go compiler and an empty retained probe root"]
 fn actual_scoped_compiler_and_cached_output_preserve_raw_proofs() {
     let compiler = std::env::var("GOMAD_TEST_PREPARATION_COMPILER").expect("pinned compiler");
@@ -101,6 +105,33 @@ fn actual_scoped_compiler_and_cached_output_preserve_raw_proofs() {
             canonical::encode(&plan).unwrap(),
         )
         .unwrap();
+        let measurement = root.join(format!("{name}-measurement"));
+        fs::DirBuilder::new()
+            .mode(0o700)
+            .create(&measurement)
+            .unwrap();
+        crate::measurement::module::retain_preparation_observations(&measurement, prepared)
+            .unwrap();
+        let record = canonical::digest(&prepared.provenance);
+        assert_eq!(
+            open_observations(&measurement, prepared, &record).unwrap(),
+            prepared.auxiliary
+        );
+        let descriptor: Value = serde_json::from_slice(
+            &fs::read(measurement.join("preparation-observations.json")).unwrap(),
+        )
+        .unwrap();
+        assert_eq!(
+            descriptor["artifact_root"],
+            json!(measurement.join("preparation-observations"))
+        );
+        assert_eq!(descriptor["record_sha256"], record);
+        for (path, raw) in &prepared.auxiliary {
+            assert_eq!(
+                fs::read(measurement.join("preparation-observations").join(path)).unwrap(),
+                *raw
+            );
+        }
     }
     println!("retained compiler/cache probe: {}", root.display());
 }

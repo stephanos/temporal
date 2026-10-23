@@ -29,7 +29,6 @@ macro_rules! operations {
         #[derive(Clone, Copy, Debug, PartialEq, Eq)]
         pub enum Operation { $($variant,)+ }
         impl Operation {
-            #[cfg(any(test, feature = "diagnostic-profile"))]
             pub const ALL: &'static [Self] = &[$(Self::$variant,)+];
             #[cfg(feature = "diagnostic-profile")]
             pub const COUNT: usize = Self::ALL.len();
@@ -44,11 +43,9 @@ macro_rules! operations {
                     $(Self::$variant => (&[$(stringify!($ty)),*], result_types!($result)),)+
                 }
             }
-            #[cfg(feature = "diagnostic-profile")]
             pub fn module(self) -> &'static str {
                 match self { $(Self::$variant => $module,)+ }
             }
-            #[cfg(feature = "diagnostic-profile")]
             pub fn name(self) -> &'static str {
                 match self { $(Self::$variant => $name,)+ }
             }

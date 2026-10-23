@@ -252,7 +252,8 @@ pub fn run(call: &Invocation, proof: &CheckoutProof, root: &Path) -> Result<Path
                 &input,
             )?);
         }
-        for run in &observations {
+        let mut process_exit_observations = Vec::new();
+        for (index, run) in observations.iter().enumerate() {
             if run.root.outcome["termination"] != "exit"
                 || run.root.outcome["exit_code"] != 0
                 || run.report["terminal_to_return_nanos"]
@@ -265,11 +266,45 @@ pub fn run(call: &Invocation, proof: &CheckoutProof, root: &Path) -> Result<Path
                 );
             }
             evidence::compare(&observations[0], run, evidence::ComparisonMask::Exact)?;
+            let label = if index == 0 {
+                "prime".into()
+            } else {
+                format!("terminal-{}", index - 1)
+            };
+            process_exit_observations.push(process_exit_interval(root, &label, &run.report)?);
         }
+        let receipt = value(call, "GOMAD_WASM_TERMINAL_EXIT_DIAGNOSTIC_HELPER_RECEIPT");
+        let diagnostic_path = value(call, "GOMAD_WASM_TERMINAL_EXIT_DIAGNOSTIC_HELPER");
+        if !Path::new(receipt).is_absolute() || !Path::new(diagnostic_path).is_absolute() {
+            return Err(
+                "terminal refusal controls require explicit admitted diagnostic helper and receipt"
+                    .into(),
+            );
+        }
+        let diagnostic_role = build::Role::Diagnostic(vec!["diagnostic-profile".into()]);
+        let diagnostic_admission =
+            build::validate_admission(proof, Path::new(receipt), &diagnostic_role)?;
+        if diagnostic_admission.executable != Path::new(diagnostic_path) {
+            return Err("terminal diagnostic helper differs from admitted executable".into());
+        }
+        let diagnostic = workloads::Executable {
+            path: diagnostic_admission.executable.clone(),
+            sha256: diagnostic_admission.executable_sha256.clone(),
+            role: diagnostic_role,
+            receipt: Some(receipt.into()),
+        };
+        let refusals = admission_refusals(
+            call,
+            proof,
+            root,
+            &diagnostic,
+            &input,
+            &prepared.module_metadata,
+        )?;
         let path = root.join("terminal-exit.json");
         write(
             &path,
-            &json!({"schema":"gomad.native-terminal-exit/v1","bound_nanos":1_000_000_000u64,"boundary":"actual classified native Outcome through completed linked Store/engine/watchdog cleanup; child supervisor wait retained separately","observations":observations,"helper_admission":admission,"module_provenance":prepared.provenance_path}),
+            &json!({"schema":"gomad.native-terminal-exit/v2","admission_refusals":refusals,"process_exit_observations":process_exit_observations,"diagnostic_control_admission":diagnostic_admission,"bound_nanos":1_000_000_000u64,"boundary":"actual classified native Outcome through completed linked Store/engine/watchdog cleanup; child supervisor wait retained separately","observations":observations,"helper_admission":admission,"module_provenance":prepared.provenance_path}),
         )?;
         return Ok(path);
     }
@@ -398,6 +433,159 @@ pub fn run(call: &Invocation, proof: &CheckoutProof, root: &Path) -> Result<Path
     )?;
     comparison?;
     Ok(path)
+}
+
+#[expect(
+    clippy::too_many_lines,
+    reason = "Keep both actual admission controls and their raw phase/timing checks in one producer transaction."
+)]
+fn admission_refusals(
+    call: &Invocation,
+    proof: &CheckoutProof,
+    root: &Path,
+    executable: &workloads::Executable,
+    input: &Value,
+    metadata: &Value,
+) -> Result<Vec<Value>, String> {
+    if metadata["initial_memory_pages"]
+        .as_u64()
+        .is_none_or(|pages| pages <= 1)
+    {
+        return Err("loaded-module descriptor refusal requires the actual module to declare more than one initial memory page".into());
+    }
+    let mut observations = Vec::new();
+    for stage in ["module-digest", "loaded-module-descriptor"] {
+        let mut controlled = input.clone();
+        controlled
+            .as_object_mut()
+            .ok_or("native request object absent")?
+            .remove("compile_cache");
+        if stage == "module-digest" {
+            let expected = controlled["guest"]["module_sha256"]
+                .as_str()
+                .ok_or("module digest absent")?;
+            controlled["guest"]["module_sha256"] = json!(if expected == "0".repeat(64) {
+                "1".repeat(64)
+            } else {
+                "0".repeat(64)
+            });
+        } else {
+            controlled["guest"]["limits"]["memory_bytes"] = json!(65536);
+        }
+        let mut row = RunSpec::new(stage, WORKFLOW, 0, "diagnostic");
+        row.warm = false;
+        let _attempt = workloads::execute(call, proof, root, &row, executable, &controlled);
+        executable.verify(proof)?;
+        let native_root = root.join("evidence").join(stage);
+        let raw_request = read(&native_root.join("request.json"), 8 << 20)?;
+        if crate::qualify::spec::strict::<Value>(&raw_request)? != controlled {
+            return Err("admission control changed its retained actual request".into());
+        }
+        let report: Value = crate::qualify::spec::strict::<Value>(&read(
+            &native_root.join("report.json"),
+            8 << 20,
+        )?)?;
+        let profile = crate::qualify::spec::strict::<Value>(&read(
+            &native_root.join("profile.json"),
+            48 << 10,
+        )?)?;
+        evidence::validate_admission_profile(&profile)?;
+        if report["schema"] != "gomad.linked-profile-run/v1"
+            || report["host_sha256"] != executable.sha256
+            || report["request_sha256"] != canonical::digest(&raw_request)
+            || report["features"] != json!(executable.role.features()?)
+            || report["diagnostic_only"] != true
+        {
+            return Err("admission control lost its actual helper/request/profile binding".into());
+        }
+        let refusal = &report["admission_refusal"];
+        if refusal["schema"] != "gomad.native-admission-refusal/v1"
+            || refusal["clock"] != "monotonic"
+            || refusal["terminal_to_return_nanos"]
+                .as_u64()
+                .is_none_or(|nanos| nanos == 0 || nanos > 1_000_000_000)
+            || ["instantiate", "execute"]
+                .into_iter()
+                .any(|phase| profile["phases"][phase]["count"] != 0)
+        {
+            return Err(
+                "actual admission refusal exceeded cleanup bound or entered guest execution".into(),
+            );
+        }
+        if stage == "module-digest" {
+            if refusal["stage"] != "request-admission"
+                || refusal["error"] != "module SHA-256 mismatch"
+                || report["execution"]["Err"] != "module SHA-256 mismatch"
+                || ["engine_init", "compile", "deserialize"]
+                    .into_iter()
+                    .any(|phase| profile["phases"][phase]["count"] != 0)
+                || native_root.join("outcome.json").exists()
+            {
+                return Err("actual digest control was not refused before engine creation".into());
+            }
+        } else {
+            let outcome = &refusal["outcome"];
+            if refusal["stage"] != "loaded-module-descriptor"
+                || outcome["termination"] != "capacity"
+                || outcome["message"] != "initial guest memory exceeds limit"
+                || outcome["metrics"]["prepare_nanos"]
+                    .as_u64()
+                    .is_none_or(|nanos| nanos == 0)
+                || outcome["metrics"]["compile_nanos"]
+                    .as_u64()
+                    .is_none_or(|nanos| nanos == 0)
+                || outcome["metrics"]["instantiate_nanos"] != 0
+                || outcome["metrics"]["execute_nanos"] != 0
+                || profile["phases"]["compile"]["count"] != 1
+                || crate::qualify::spec::strict::<Value>(&read(
+                    &native_root.join("outcome.json"),
+                    8 << 20,
+                )?)? != *outcome
+            {
+                return Err(
+                    "actual loaded module descriptor control was not refused before instantiation"
+                        .into(),
+                );
+            }
+        }
+        let process_exit = process_exit_interval(root, stage, &report)?;
+        observations.push(json!({"stage":stage,"native_root":native_root,
+            "request_sha256":report["request_sha256"],"refusal":refusal,"profile":profile,"process_exit":process_exit,
+            "terminal_to_return_nanos":refusal["terminal_to_return_nanos"]}));
+    }
+    Ok(observations)
+}
+
+pub(super) fn process_exit_interval(
+    root: &Path,
+    label: &str,
+    report: &Value,
+) -> Result<Value, String> {
+    let path = root.join("evidence").join(format!("{label}-driver.json"));
+    let command: build::CommandObservation = crate::qualify::spec::strict(&read(&path, 8 << 20)?)?;
+    let terminal = report["terminal_monotonic_nanos"]
+        .as_u64()
+        .ok_or("native terminal kernel timestamp absent")?;
+    let reaped = command
+        .reaped_monotonic_nanos
+        .ok_or("actual child reap kernel timestamp absent")?;
+    let elapsed = reaped.checked_sub(terminal).filter(|nanos| *nanos > 0 && *nanos <= 1_000_000_000)
+        .ok_or("actual terminal-to-process-exit interval exceeds original one-second bound or clocks reversed")?;
+    if report["terminal_clock"] != "CLOCK_MONOTONIC"
+        || command.pid.map(u64::from) != report["fresh_store_id"].as_u64()
+        || !command.cleanup_errors.is_empty()
+        || !matches!(command.termination.as_str(), "exit" | "exit_failure")
+        || command.signal.is_some()
+    {
+        return Err("native terminal-to-reap clock/process/cleanup binding changed".into());
+    }
+    Ok(
+        json!({"schema":"gomad.native-terminal-process-exit/v1","sample":label,
+        "clock":"CLOCK_MONOTONIC","pid":command.pid,"driver_observation":path,
+        "terminal_monotonic_nanos":terminal,"reaped_monotonic_nanos":reaped,
+        "terminal_to_reap_nanos":elapsed,"bound_nanos":1_000_000_000u64,
+        "boundary":"actual child terminal classification through observed child exit/reap, including raw report/stream/profile publication"}),
+    )
 }
 
 #[cfg(test)]
