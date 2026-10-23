@@ -276,39 +276,7 @@ CI, PR, or push authority.
 
 ## Open specs
 
-### Functional-suite triage sweep — [fn-221](.flow/specs/fn-221-gomad-functional-suite-triage-sweep-on.md)
-
-| Name / ID | Status | Description |
-| --- | --- | --- |
-| [fn-221.2](.flow/tasks/fn-221-gomad-functional-suite-triage-sweep-on.2.md) | ⏸ Parked | Run the full sweep and retain the support matrix |
-| [fn-221.3](.flow/tasks/fn-221-gomad-functional-suite-triage-sweep-on.3.md) | ⬜ Todo | Rank reasons and recommend follow-on specs |
-
-### One-box qualification and per-test support claim — [fn-222](.flow/specs/fn-222-gomad-qualify-the-one-box-cell-and.md)
-
-| Name / ID | Status | Description |
-| --- | --- | --- |
-| [fn-222.1](.flow/tasks/fn-222-gomad-qualify-the-one-box-cell-and.1.md) | ⏸ Parked | Wire prepare-only, workload-intent and support-list validation, then run both one-box cells and every inspection/replay gate on the frozen Rust candidate |
-
-### WASM determinism boundary audit — [fn-188](.flow/specs/fn-188-gomad-wasm-determinism-boundary-audit.md)
-
-| Name / ID | Status | Description |
-| --- | --- | --- |
-| [fn-188.5](.flow/tasks/fn-188-gomad-wasm-determinism-boundary-audit.5.md) | ⏸ Parked | Rust stress producer and linked jitter implemented; full matrix pending integrated candidate |
-| [fn-188.6](.flow/tasks/fn-188-gomad-wasm-determinism-boundary-audit.6.md) | 🚧 Running | Regression gates, version pinning, validate wiring and the documented contract |
-
-### Map-order determinism repairs — [fn-227](.flow/specs/fn-227-gomad-close-wasm-map-order-determinism.md)
-
-| Name / ID | Status | Description |
-| --- | --- | --- |
-| [fn-227.1](.flow/tasks/fn-227-gomad-close-wasm-map-order-determinism.1.md) | ⏸ Parked | Sort live-node shutdown and invalid-volume validation with behavioral regressions and qualification |
-
-### WASM host-side execution cost profile — [fn-185](.flow/specs/fn-185-gomad-wasm-host-side-execution-cost.md)
-
-| Name / ID | Status | Description |
-| --- | --- | --- |
-| [fn-185.1](.flow/tasks/fn-185-gomad-wasm-host-side-execution-cost.1.md) | ⏸ Parked | Attribution, reconciliation and witness proven; R4 release-preservation proof pending fn-232.13's cycle |
-| [fn-185.2](.flow/tasks/fn-185-gomad-wasm-host-side-execution-cost.2.md) | ⬜ Todo | Capture wall and CPU profiles on the cluster and single-guest workloads |
-| [fn-185.3](.flow/tasks/fn-185-gomad-wasm-host-side-execution-cost.3.md) | ⬜ Todo | Rank cost centers and record the single optimization verdict |
+Listed in delivery order (2026-10-23). fn-232 comes first. fn-233 and fn-188 are next because they land in its final freeze. The rest follow its candidate.
 
 ### Rust host rewrite — [fn-232](.flow/specs/fn-232-gomad-rewrite-the-host-side-in-rust.md)
 
@@ -328,3 +296,37 @@ Owner request 2026-10-20: a Go one-liner and `gomad -- make <target>` intercepti
 | [fn-233-gomad-intercept-the-go-command-so-make.2](.flow/tasks/fn-233-gomad-intercept-the-go-command-so-make.2.md) | ⬜ Todo | go shim: argv[0] dispatch, classification, guest build environment, refusals, host passthrough |
 | [fn-233-gomad-intercept-the-go-command-so-make.3](.flow/tasks/fn-233-gomad-intercept-the-go-command-so-make.3.md) | ⬜ Todo | gomad -- wrapper, gomad.toml and auto-derived installation |
 | [fn-233-gomad-intercept-the-go-command-so-make.4](.flow/tasks/fn-233-gomad-intercept-the-go-command-so-make.4.md) | ⬜ Todo | Temporal Makefile through the wrapper and operator documentation |
+
+### WASM determinism boundary audit — [fn-188](.flow/specs/fn-188-gomad-wasm-determinism-boundary-audit.md)
+
+| Name / ID | Status | Description |
+| --- | --- | --- |
+| [fn-188.5](.flow/tasks/fn-188-gomad-wasm-determinism-boundary-audit.5.md) | ⏸ Parked | Rust stress producer and linked jitter implemented; full matrix pending integrated candidate |
+| [fn-188.6](.flow/tasks/fn-188-gomad-wasm-determinism-boundary-audit.6.md) | 🚧 Running | Regression gates, version pinning, validate wiring and the documented contract |
+
+### Map-order determinism repairs — [fn-227](.flow/specs/fn-227-gomad-close-wasm-map-order-determinism.md)
+
+| Name / ID | Status | Description |
+| --- | --- | --- |
+| [fn-227.1](.flow/tasks/fn-227-gomad-close-wasm-map-order-determinism.1.md) | ⏸ Parked | Sort live-node shutdown and invalid-volume validation with behavioral regressions and qualification |
+
+### One-box qualification and per-test support claim — [fn-222](.flow/specs/fn-222-gomad-qualify-the-one-box-cell-and.md)
+
+| Name / ID | Status | Description |
+| --- | --- | --- |
+| [fn-222.1](.flow/tasks/fn-222-gomad-qualify-the-one-box-cell-and.1.md) | ⏸ Parked | Wire prepare-only, workload-intent and support-list validation, then run both one-box cells and every inspection/replay gate on the frozen Rust candidate |
+
+### WASM host-side execution cost profile — [fn-185](.flow/specs/fn-185-gomad-wasm-host-side-execution-cost.md)
+
+| Name / ID | Status | Description |
+| --- | --- | --- |
+| [fn-185.1](.flow/tasks/fn-185-gomad-wasm-host-side-execution-cost.1.md) | ⏸ Parked | Attribution, reconciliation and witness proven; R4 release-preservation proof pending fn-232.13's cycle |
+| [fn-185.2](.flow/tasks/fn-185-gomad-wasm-host-side-execution-cost.2.md) | ⬜ Todo | Capture wall and CPU profiles on the cluster and single-guest workloads |
+| [fn-185.3](.flow/tasks/fn-185-gomad-wasm-host-side-execution-cost.3.md) | ⬜ Todo | Rank cost centers and record the single optimization verdict |
+
+### Functional-suite triage sweep — [fn-221](.flow/specs/fn-221-gomad-functional-suite-triage-sweep-on.md)
+
+| Name / ID | Status | Description |
+| --- | --- | --- |
+| [fn-221.2](.flow/tasks/fn-221-gomad-functional-suite-triage-sweep-on.2.md) | ⏸ Parked | Run the full sweep and retain the support matrix |
+| [fn-221.3](.flow/tasks/fn-221-gomad-functional-suite-triage-sweep-on.3.md) | ⬜ Todo | Rank reasons and recommend follow-on specs |
