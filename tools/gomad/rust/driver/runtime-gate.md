@@ -39,6 +39,8 @@ the admitted original guest policy and compiler/runtime inputs. This creates a
 fresh installation bound to the harness executable, whose host/helper library
 identities must equal the operator's. Existing sealed installations remain
 unchanged. The installation command and producer share the 600 s shard bound.
+The 25 authenticated inspections and final report publication also share that
+same bound; a late inspection prevents the shard report from being published.
 
 Each runtime stage binding needs `harness` and `harness_build_receipt`, both
 sealed in the driver `files` inventory. The harness receipt uses the existing
@@ -64,9 +66,17 @@ def runtime_aggregate(config, root, label):
 
 Passing the adapter globals preserves the independent receiving reader's
 substitution of `command` and `write`: it authenticates retained raw commands
-and recomputes reports without executing guests. `receiving.Reader.runtime`
+and recomputes reports without executing guests. Its runtime artifact callback
+independently validates the build-key preimage, compiler and selected source
+inventories, current compiler/runtime/collector, module metadata, exact
+configuration and choice identity against raw retained bytes and admitted
+inputs. It decodes choice wire records to recompute hook and branching counts;
+edited inspection stdout cannot supply those counts. Fully resealed negative
+fixtures verify refusal after ordinary artifact integrity checks succeed.
+`receiving.Retained.runtime`
 validates each stage's `producer.command.json` as a distinct producer PID,
-the 600 s bound, its 25 unique `recordings/instance-NN` artifacts, and each
+the 600 s bound through the last inspection, its 25 unique
+`recordings/instance-NN` artifacts, and each
 artifact through the raw manifest reader. This internal producer has no public
 campaign journal: its 25 separate stores reuse the production execution and
 publication owners directly. The original gate required fresh stores within

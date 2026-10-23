@@ -64,6 +64,7 @@ def freeze(bindings, output, source_manifest):
     inputs.update(str(path) for path in FROZEN.glob('*.sh'))
     inputs.update((str(FROZEN / 'dag.tsv'), str(FROZEN.parent / 'q1-serial/run-qualification.sh')))
     inputs.update(config['installations'].values())
+    inputs.update(read(path)['compiler_path'] for path in config['installations'].values())
     inputs.update((config['binary'], config['build_receipt']))
     for index in range(32):
         entry = config['stages'][f'runtime-{index}']

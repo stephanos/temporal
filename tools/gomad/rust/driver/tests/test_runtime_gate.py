@@ -16,6 +16,23 @@ def require(condition, message):
         raise ValueError(message)
 
 
+def original_configuration():
+    configuration = dict(arguments=['guest', 'literal $arg'],
+        environment=dict(PWD='/workspace', TZ='UTC', ONLY='captured', EXTRA_ENTROPY='no_'),
+        profile='gomad.wasi-cooperative/v1', engine='cranelift-fuel-nan-canonical-nounwind-epoch-v1',
+        runtime_sha256='runtime', limits=dict(fuel=4_000_000_000, memory_bytes=256 << 20,
+        wall_millis=60000, output_bytes=1 << 20, evidence_bytes=128 << 20),
+        model=dict(entropy_key=[1, 2, 3]+[0]*29, working_directory_sha256=gate.digest(b'/workspace'),
+            arguments=dict(bytes=0, count=0, chunks=0), environment=dict(bytes=0, count=0, chunks=0),
+            mode=1, limit=1 << 20, diagnostics=True, epoch_nanos=946684800000000000,
+            read_step_nanos=1000, now=0, limits=dict(calls=10000, transcript_bytes=8 << 20, pending_events=4096)),
+        namespace=dict(entries=[], writable_directories=[list(b'/workspace'), list(b'/tmp')],
+            preopens=[list(b'/tmp'), list(b'/workspace')], working_directory=list(b'/workspace'), stdin=[],
+            epoch_nanos=946684800000000000,
+            limits=dict(files=1000, descriptors=64, filesystem_bytes=8 << 20, output_bytes=1 << 20)))
+    return configuration
+
+
 class RuntimeGateTests(unittest.TestCase):
     def setUp(self):
         self.temporary = tempfile.TemporaryDirectory()
@@ -44,19 +61,7 @@ class RuntimeGateTests(unittest.TestCase):
             write=lambda path, value: self.writes.update({Path(path): value}), passed=lambda label: ['PASS'])
 
     def test_exact_original_configuration_failure_matrix(self):
-        configuration = dict(arguments=['guest', 'literal $arg'],
-            environment=dict(PWD='/workspace', TZ='UTC', ONLY='captured', EXTRA_ENTROPY='no_'),
-            profile='gomad.wasi-cooperative/v1', engine='cranelift-fuel-nan-canonical-nounwind-epoch-v1',
-            runtime_sha256='runtime', limits=dict(fuel=4_000_000_000, memory_bytes=256 << 20,
-            wall_millis=60000, output_bytes=1 << 20, evidence_bytes=128 << 20),
-            model=dict(entropy_key=[1, 2, 3]+[0]*29, working_directory_sha256=gate.digest(b'/workspace'),
-                arguments=dict(bytes=0, count=0, chunks=0), environment=dict(bytes=0, count=0, chunks=0),
-                mode=1, limit=1 << 20, diagnostics=True, epoch_nanos=946684800000000000,
-                read_step_nanos=1000, now=0, limits=dict(calls=10000, transcript_bytes=8 << 20, pending_events=4096)),
-            namespace=dict(entries=[], writable_directories=[list(b'/workspace'), list(b'/tmp')],
-                preopens=[list(b'/tmp'), list(b'/workspace')], working_directory=list(b'/workspace'), stdin=[],
-                epoch_nanos=946684800000000000,
-                limits=dict(files=1000, descriptors=64, filesystem_bytes=8 << 20, output_bytes=1 << 20)))
+        configuration = original_configuration()
         gate.exact_configuration(configuration, require)
         for field, changed in dict(arguments=['gomad-target', 'literal $arg'], environment={}, profile='stock',
                 engine='diagnostic', derive_seed_environment=True, storage={}, network={}, limits={}, wall_nanos=1,
@@ -204,6 +209,21 @@ class RuntimeGateTests(unittest.TestCase):
                 self.reports[root / 'recordings/artifacts.json'] = changed
                 with self.assertRaises(ValueError):
                     gate.runtime(self.config, root, 'runtime-0', entry, self.api)
+            self.reports[root / 'recordings/artifacts.json'] = report['artifacts']
+            for exhausted_after in (1,25):
+                observed=[]
+                self.writes.clear()
+                def observe(*args,**kwargs):
+                    self.assertGreater(kwargs['timeout'],0)
+                    self.assertLessEqual(kwargs['timeout'],600)
+                    observed.append(args)
+                    return self.records[0]
+                with self.subTest(deadline_after_inspection=exhausted_after), \
+                     patch.object(gate,'observation',side_effect=observe), \
+                     patch.object(gate.time,'monotonic',side_effect=lambda:601 if len(observed)>=exhausted_after else 0), \
+                     self.assertRaisesRegex(ValueError,'ten-minute'):
+                    gate.runtime(self.config,root,'runtime-0',entry,self.api)
+                self.assertNotIn(root/'runtime.json',self.writes)
 
 
 if __name__ == '__main__':
