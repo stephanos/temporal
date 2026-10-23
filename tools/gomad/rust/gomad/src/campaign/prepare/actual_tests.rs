@@ -1,4 +1,5 @@
 use super::*;
+use std::os::unix::fs::DirBuilderExt as _;
 
 #[test]
 #[ignore = "requires an explicitly selected pinned Go compiler and an empty retained probe root"]
@@ -85,5 +86,16 @@ fn actual_scoped_compiler_and_cached_output_preserve_raw_proofs() {
     let changed = prepare_with_compiler_controls(&options, &controls).unwrap();
     assert_ne!(features.module, changed.module);
     assert_ne!(features.toolchain, changed.toolchain);
+    for (name, prepared) in [("first", &first), ("second", &second)] {
+        let campaign = root.join(name);
+        fs::DirBuilder::new().mode(0o700).create(&campaign).unwrap();
+        let mut plan = json!({});
+        crate::campaign::retain_prepared(&campaign, prepared, &mut plan).unwrap();
+        fs::write(
+            campaign.join("plan.json"),
+            canonical::encode(&plan).unwrap(),
+        )
+        .unwrap();
+    }
     println!("retained compiler/cache probe: {}", root.display());
 }

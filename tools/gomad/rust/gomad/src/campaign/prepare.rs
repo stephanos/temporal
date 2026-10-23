@@ -10,6 +10,7 @@ use sha2::{Digest as _, Sha256};
 use std::{
     collections::BTreeMap,
     fs,
+    os::unix::fs::PermissionsExt as _,
     path::{Path, PathBuf},
     time::Instant,
 };
@@ -213,7 +214,6 @@ fn prepare_before_deadline(
     if options.target_kind == "exec" {
         return prepared_exec(options, &installation(options)?);
     }
-    use std::os::unix::fs::PermissionsExt as _;
     let mut recipe = if controls.environment.is_empty() && controls.parallelism.is_none() {
         driver::prepare(options, deadline)?
     } else {
@@ -537,7 +537,7 @@ mod receiving_compilation_contract {
             match changed {
                 "selector" => recipe.inputs["arguments"] = json!(["-test.run=^Other$"]),
                 "wasi-config" => {
-                    recipe.inputs["configuration"]["environment"]["ONLY"] = json!("new")
+                    recipe.inputs["configuration"]["environment"]["ONLY"] = json!("new");
                 }
                 "helper" => recipe.inputs["helper"] = json!("f".repeat(64)),
                 "fuel" => recipe.inputs["configuration"]["limits"]["fuel"] = json!(999),
@@ -572,24 +572,24 @@ mod receiving_compilation_contract {
             let original = compilation_cache::key(&recipe.compilation_inputs()).unwrap();
             match changed {
                 "source-bytes" => {
-                    recipe.inputs["sources"]["/source/probe/test.go"] = json!("f".repeat(64))
+                    recipe.inputs["sources"]["/source/probe/test.go"] = json!("f".repeat(64));
                 }
                 "tags" => recipe.inputs["tags"] = json!(["changed"]),
                 "compiler" => recipe.inputs["compiler_sha256"] = json!("f".repeat(64)),
                 "tool" => {
-                    recipe.inputs["compiler"]["/pinned/pkg/tool/compile"] = json!("f".repeat(64))
+                    recipe.inputs["compiler"]["/pinned/pkg/tool/compile"] = json!("f".repeat(64));
                 }
                 "header" => {
                     recipe.inputs["compiler"]["/pinned/pkg/include/textflag.h"] =
-                        json!("f".repeat(64))
+                        json!("f".repeat(64));
                 }
                 "runtime" => recipe.inputs["runtime"] = json!("f".repeat(64)),
                 "runtime-implementation" => {
-                    recipe.inputs["runtime_implementation"] = json!("f".repeat(64))
+                    recipe.inputs["runtime_implementation"] = json!("f".repeat(64));
                 }
                 "overlay" => {
                     recipe.inputs["compiler"]["/cache/runtime-overlay/overlay.json"] =
-                        json!("f".repeat(64))
+                        json!("f".repeat(64));
                 }
                 "environment" => recipe.inputs["environment"]["GOWASM"] = json!("satconv,signext"),
                 "kind" => recipe.inputs["kind"] = json!("go-run"),
@@ -605,7 +605,7 @@ mod receiving_compilation_contract {
     }
     #[test]
     fn receiving_measurement_compiler_controls_are_scoped_and_default_environment_is_unchanged() {
-        let baseline = BTreeMap::from([
+        let mut baseline = BTreeMap::from([
             ("GOFLAGS".into(), String::new()),
             ("GOOS".into(), "wasip1".into()),
         ]);
@@ -643,7 +643,7 @@ mod receiving_compilation_contract {
                 environment: BTreeMap::new(),
                 parallelism: Some(2)
             }
-            .apply(&mut baseline.clone())
+            .apply(&mut baseline)
             .is_err()
         );
     }

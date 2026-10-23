@@ -5,7 +5,7 @@ use crate::{
     evidence::{canonical, store::Opened},
     replay::{divergence, preflight},
 };
-use std::path::Path;
+use std::{os::unix::fs::DirBuilderExt as _, path::Path};
 
 /// Linked component identities emitted by the harness before admitting evidence.
 #[must_use]
@@ -60,7 +60,6 @@ pub fn produce(
     let options = options(installation, source)?;
     let prepared = crate::campaign::prepare::prepare_runtime_qualification(&options)?;
     let preparation = output.join("preparation");
-    use std::os::unix::fs::DirBuilderExt as _;
     std::fs::DirBuilder::new()
         .mode(0o700)
         .create(&preparation)

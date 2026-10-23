@@ -60,7 +60,7 @@ fn prepared() -> (Prepared, Publication) {
         .insert("target/module.wasm".into(), module.clone());
     publication.payloads.remove(search_context::FILE);
     let prepared = Prepared {
-        auxiliary: Default::default(),
+        auxiliary: std::collections::BTreeMap::new(),
         compile_cache_root: None,
         module,
         configuration,
