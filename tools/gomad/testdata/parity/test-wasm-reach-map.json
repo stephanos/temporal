@@ -150,14 +150,13 @@
    ]
   },
   "tools/gomad/internal/backends/wasm/backend/integration_test.go#TestAssemblyHeaderChangesInvalidateCompilationCache": {
-   "basis": "weak name correlation within the owning domain; confirm in review",
    "evidence": [
-    "rust/gomad/campaign::prepare::receiving_compilation_contract::receiving_compilation_key_excludes_exact_five_execution_only_changes_but_full_provenance_changes"
+    "rust/gomad/campaign::prepare::stock_reach_tests::assembly_header_changes_invalidate_compilation_cache"
    ]
   },
   "tools/gomad/internal/backends/wasm/backend/integration_test.go#TestBuildSelectionChangesInvalidateCompilationCache": {
    "evidence": [
-    "rust/gomad/campaign::prepare::receiving_compilation_contract::receiving_compilation_key_excludes_exact_five_execution_only_changes_but_full_provenance_changes"
+    "rust/gomad/campaign::prepare::stock_reach_tests::build_selection_changes_invalidate_compilation_cache"
    ]
   },
   "tools/gomad/internal/backends/wasm/backend/integration_test.go#TestIntegratedCooperativeFailureArtifactDetachedReplay": {
@@ -444,9 +443,8 @@
    ]
   },
   "tools/gomad/internal/backends/wasm/backend/provider_test.go#TestProviderAdmitsPinnedCooperativeProfile": {
-   "basis": "weak name correlation within the owning domain; confirm in review",
    "evidence": [
-    "rust/gomad/shim::tests::shim_options_match_stock_and_cooperative_driver_profile_admission"
+    "rust/gomad/install::config::reach_port_tests::cooperative_installation_refuses_a_compiler_outside_its_pinned_version"
    ]
   },
   "tools/gomad/internal/backends/wasm/backend/provider_test.go#TestProviderRequiresAbsoluteCompiledModuleCache": {
@@ -1257,9 +1255,8 @@
    ]
   },
   "tools/gomad/internal/backends/wasm/command/command_test.go#TestFinalQualificationCostGatePreservesPublishedSupportOutcome": {
-   "basis": "weak name correlation within the owning domain; confirm in review",
    "evidence": [
-    "rust/gomad/qualify::support::tests::preparation_gate_authenticates_receipt_instead_of_only_hash"
+    "rust/gomad/cli::qualify::receiving_response_tests::final_cost_gate_preserves_published_support_outcome"
    ]
   },
   "tools/gomad/internal/backends/wasm/command/command_test.go#TestInstalledOperatorDiscoversInspectsAndReplaysWithoutBuildInputs": {
@@ -1296,13 +1293,12 @@
   },
   "tools/gomad/internal/backends/wasm/command/command_test.go#TestQualificationResponseRetainsReceiptBeforePublicationFailure": {
    "evidence": [
-    "rust/gomad/cli::run_guest::admission_tests::compiled_output_callback_failure_retains_partial_publication_and_origin"
+    "rust/gomad/cli::qualify::receiving_response_tests::response_retains_receipt_before_publication_failure"
    ]
   },
   "tools/gomad/internal/backends/wasm/command/command_test.go#TestQualifyValidatesSpecBeforeResolvingInstallation": {
-   "basis": "weak name correlation within the owning domain; confirm in review",
    "evidence": [
-    "rust/gomad/qualify::support::inspection_driver::tests::standalone_candidate_refuses_foreign_executable_source_installation_and_driver"
+    "rust/operator_cli/qualify_validates_spec_before_resolving_installation"
    ]
   },
   "tools/gomad/internal/backends/wasm/command/command_test.go#TestReportRejectsInvalidResultWithoutResolvingInstallation": {
@@ -1314,9 +1310,8 @@
    "retired": "Go-lineage v1 retained replay; the Rust lineage refuses every Go artifact (owner decision 2026-10-20), as for the other Go-lineage retirements."
   },
   "tools/gomad/internal/backends/wasm/command/discover_test.go#TestDiscoverAdvertisesOnlyExecutableScenarioSupport": {
-   "basis": "weak name correlation within the owning domain; confirm in review",
    "evidence": [
-    "rust/gomad/campaign::installed_report_tests::installed_lifecycle_report_advertises_only_authenticated_retained_artifacts"
+    "rust/gomad/install::config::reach_port_tests::discover_advertises_only_executable_scenario_support"
    ]
   },
   "tools/gomad/internal/backends/wasm/command/kill_resume_linux_test.go#TestInstalledOperatorKillResume": {
@@ -1557,9 +1552,8 @@
    ]
   },
   "tools/gomad/internal/backends/wasm/installation/installation_test.go#TestResolveInstallationPrecedenceAndSourceLessReplayInputs": {
-   "basis": "weak name correlation within the owning domain; confirm in review",
    "evidence": [
-    "rust/gomad/cli::wrapper::tests::wrapper_installation_prefix_precedence_is_explicit"
+    "rust/gomad/install::config::reach_port_tests::installation_precedence_selects_one_manifest_and_resolves_source_less"
    ]
   },
   "tools/gomad/internal/backends/wasm/installation/installation_test.go#TestResolveRejectsChangedIdentityAndUnsafeManifest": {

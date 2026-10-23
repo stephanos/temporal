@@ -671,14 +671,78 @@ mod tests {
         let layout = "WASI invalid: runtime decision alternatives or layout";
         let site = "WASI invalid: runtime creation site";
         let cases: [(&str, Vec<u8>, &str); 8] = [
-            ("header-3", { let mut d = valid(); set32(&mut d, 0, 3); d }, header),
-            ("v2-runnable-without-sites", { let mut d = v1(1); set32(&mut d, 0, 2); d }, layout),
-            ("v1-runnable-with-sites", { let mut d = valid(); set32(&mut d, 0, 1); d }, layout),
-            ("v2-select-poll-with-sites", { let mut d = valid(); set32(&mut d, 4, 2); d }, layout),
-            ("truncated-site", { let mut d = valid(); d.pop(); d }, layout),
-            ("site-flag", { let mut d = valid(); d[96 + 8] = 1; d }, site),
-            ("site-padding", { let mut d = valid(); d[96 + 15] = 1; d }, site),
-            ("missing-site-offset", { let mut d = valid(); d[96 + 16 + 7] = 1; d }, site),
+            (
+                "header-3",
+                {
+                    let mut d = valid();
+                    set32(&mut d, 0, 3);
+                    d
+                },
+                header,
+            ),
+            (
+                "v2-runnable-without-sites",
+                {
+                    let mut d = v1(1);
+                    set32(&mut d, 0, 2);
+                    d
+                },
+                layout,
+            ),
+            (
+                "v1-runnable-with-sites",
+                {
+                    let mut d = valid();
+                    set32(&mut d, 0, 1);
+                    d
+                },
+                layout,
+            ),
+            (
+                "v2-select-poll-with-sites",
+                {
+                    let mut d = valid();
+                    set32(&mut d, 4, 2);
+                    d
+                },
+                layout,
+            ),
+            (
+                "truncated-site",
+                {
+                    let mut d = valid();
+                    d.pop();
+                    d
+                },
+                layout,
+            ),
+            (
+                "site-flag",
+                {
+                    let mut d = valid();
+                    d[96 + 8] = 1;
+                    d
+                },
+                site,
+            ),
+            (
+                "site-padding",
+                {
+                    let mut d = valid();
+                    d[96 + 15] = 1;
+                    d
+                },
+                site,
+            ),
+            (
+                "missing-site-offset",
+                {
+                    let mut d = valid();
+                    d[96 + 16 + 7] = 1;
+                    d
+                },
+                site,
+            ),
         ];
         for (name, input, dimension) in cases {
             let mut m = model();
@@ -701,9 +765,7 @@ mod tests {
         let mut capacity = model();
         capacity.config.limit = 64 + 2 * 96;
         bootstrap(&mut capacity);
-        let error = capacity
-            .runtime("runtime_decision", valid())
-            .unwrap_err();
+        let error = capacity.runtime("runtime_decision", valid()).unwrap_err();
         assert_eq!(error.to_string(), "WASI capacity: runtime-choice-bytes");
         assert_eq!(capacity.records, 0);
         assert!(capacity.pending.get("choice").is_none_or(Vec::is_empty));

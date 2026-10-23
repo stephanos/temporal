@@ -126,14 +126,27 @@ pub(crate) fn executable(path: &Path, expected: &str) -> Result<(), String> {
 }
 
 pub(crate) fn selected(explicit: Option<&Path>) -> Result<(PathBuf, &'static str), String> {
+    select(
+        explicit,
+        std::env::var_os("GOMAD_WASM_INSTALLATION"),
+        std::env::current_exe,
+    )
+}
+
+/// Selects exactly one manifest: a nonempty explicit path, else a nonempty
+/// `GOMAD_WASM_INSTALLATION`, else `gomad-wasm.json` beside the executable.
+pub(super) fn select(
+    explicit: Option<&Path>,
+    environment: Option<std::ffi::OsString>,
+    executable: impl FnOnce() -> std::io::Result<PathBuf>,
+) -> Result<(PathBuf, &'static str), String> {
     let (path, source) = if let Some(path) = explicit.filter(|path| !path.as_os_str().is_empty()) {
         (path.to_path_buf(), "explicit")
-    } else if let Some(path) = std::env::var_os("GOMAD_WASM_INSTALLATION").filter(|s| !s.is_empty())
-    {
+    } else if let Some(path) = environment.filter(|s| !s.is_empty()) {
         (PathBuf::from(path), "environment")
     } else {
         (
-            std::env::current_exe()
+            executable()
                 .map_err(failure)?
                 .with_file_name("gomad-wasm.json"),
             "executable-sibling",
@@ -146,6 +159,10 @@ pub(crate) fn selected(explicit: Option<&Path>) -> Result<(PathBuf, &'static str
 /// Refuses a selected incompatible manifest without trying another installation.
 pub fn resolve(explicit: Option<&Path>) -> Result<Description, String> {
     let (path, source) = selected(explicit)?;
+    resolve_selected(path, source)
+}
+
+pub(super) fn resolve_selected(path: PathBuf, source: &'static str) -> Result<Description, String> {
     let raw = read(&path, 16 << 20)?;
     let header: Value = crate::qualify::spec::strict(&raw).map_err(failure)?;
     if header["schema"] != SCHEMA {

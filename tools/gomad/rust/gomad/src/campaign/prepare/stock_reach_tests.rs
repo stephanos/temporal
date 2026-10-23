@@ -403,3 +403,133 @@ fn stock_go_guest_repeats_in_100_fresh_instances() {
         }
     }
 }
+
+fn write_tree(root: &Path, files: &[(&str, &str)]) {
+    for (path, data) in files {
+        let path = root.join(path);
+        fs::create_dir_all(path.parent().unwrap()).unwrap();
+        fs::write(path, data).unwrap();
+    }
+}
+
+fn source_inputs(prepared: &Prepared) -> serde_json::Map<String, Value> {
+    let provenance: Value = serde_json::from_slice(&prepared.provenance).unwrap();
+    provenance["inputs"]["sources"].as_object().unwrap().clone()
+}
+
+/// Original `backend.TestAssemblyHeaderChangesInvalidateCompilationCache`:
+/// for a selected, nested, adjacent, comment-split and locally shadowed
+/// generated assembler include, a changed header never reuses the cached
+/// build identity or module.
+#[test]
+fn assembly_header_changes_invalidate_compilation_cache() {
+    let compiler = stock_go();
+    for (name, directive, nested, shadow) in [
+        ("selected-header", "#include \"value.h\"", false, false),
+        ("nested-include", "#include \"value.h\"", true, false),
+        ("adjacent-include", "#include\"value.h\"", true, false),
+        ("comment-include", "#/**/include \"value.h\"", true, false),
+        (
+            "local-generated-header-shadow",
+            "#include \"go_asm.h\"",
+            true,
+            true,
+        ),
+    ] {
+        let root = process::Temporary::new(&std::env::temp_dir()).unwrap();
+        let source = root.0.join("source");
+        let assembly = format!(
+            "#include \"textflag.h\"\n{directive}\nDATA ·Value+0(SB)/8, $FIXTURE_VALUE\nGLOBL ·Value(SB), NOPTR, $8\n"
+        );
+        let mut files = vec![
+            ("go.mod", "module cache.header.fixture\n\ngo 1.27.1\n"),
+            (
+                "main.go",
+                "package main\nimport \"fmt\"\nvar Value uint64\nfunc main(){fmt.Println(Value)}\n",
+            ),
+            ("value.s", assembly.as_str()),
+        ];
+        let header_name = if shadow { "go_asm.h" } else { "value.h" };
+        let header = if nested {
+            files.push(("nested/value.h", "#define FIXTURE_VALUE 1\n"));
+            files.push((header_name, "#include \"nested/value.h\"\n"));
+            "nested/value.h"
+        } else {
+            files.push((header_name, "#define FIXTURE_VALUE 1\n"));
+            header_name
+        };
+        write_tree(&source, &files);
+        let installation = root.0.join("installation.json");
+        install(&compiler, &root.0.join("cache"), None, &installation);
+        let prepare_once = || {
+            let mut options = go_run(&installation, &source, ".");
+            options.build_tags = vec!["test_dep".into()];
+            prepare(&options).unwrap_or_else(|error| panic!("{name}: {error}"))
+        };
+        let first = prepare_once();
+        assert!(
+            source_inputs(&first).contains_key(source.join(header).to_str().unwrap()),
+            "{name}: assembler header not captured"
+        );
+        fs::write(source.join(header), "#define FIXTURE_VALUE 2\n").unwrap();
+        let second = prepare_once();
+        assert!(
+            first.toolchain != second.toolchain && first.module != second.module,
+            "{name}: changed assembly header reused stale compilation cache"
+        );
+    }
+}
+
+/// Original `backend.TestBuildSelectionChangesInvalidateCompilationCache`,
+/// without its module-proxy dependency half: a build-tag selection change,
+/// even one selecting no different file, keys a separate cache entry, and the
+/// provenance names exactly the selected source closure.
+#[test]
+fn build_selection_changes_invalidate_compilation_cache() {
+    let compiler = stock_go();
+    let root = process::Temporary::new(&std::env::temp_dir()).unwrap();
+    let source = root.0.join("source");
+    write_tree(
+        &source,
+        &[
+            ("go.mod", "module cache.fixture\n\ngo 1.27.1\n"),
+            (
+                "main.go",
+                "package main\nfunc main(){ println(selected) }\n",
+            ),
+            (
+                "selected_full.go",
+                "//go:build !fixture_slim\n\npackage main\nvar selected = \"full provider\"\n",
+            ),
+            (
+                "selected_slim.go",
+                "//go:build fixture_slim\n\npackage main\nvar selected = \"slim\"\n",
+            ),
+        ],
+    );
+    let installation = root.0.join("installation.json");
+    install(&compiler, &root.0.join("cache"), None, &installation);
+    let prepare_with = |tags: &[&str]| {
+        let mut options = go_run(&installation, &source, ".");
+        options.build_tags = tags.iter().map(|tag| (*tag).into()).collect();
+        prepare(&options).unwrap()
+    };
+    let has = |prepared: &Prepared, file: &str| {
+        source_inputs(prepared).contains_key(source.join(file).to_str().unwrap())
+    };
+    let full = prepare_with(&["test_dep"]);
+    let slim = prepare_with(&["fixture_slim", "test_dep"]);
+    assert!(
+        full.toolchain != slim.toolchain && full.module != slim.module,
+        "changed selection reused a compilation cache entry"
+    );
+    assert!(has(&full, "selected_full.go") && !has(&full, "selected_slim.go"));
+    assert!(!has(&slim, "selected_full.go") && has(&slim, "selected_slim.go"));
+    let tag_only = prepare_with(&["fixture_unused", "test_dep"]);
+    assert_ne!(
+        tag_only.toolchain, full.toolchain,
+        "tag-only selection change shared the build key"
+    );
+    assert_eq!(source_inputs(&tag_only), source_inputs(&full));
+    assert_eq!(prepare_with(&["test_dep"]).toolchain, full.toolchain);
+}
