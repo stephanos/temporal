@@ -305,6 +305,46 @@ def original_backend_metrics(artifact, root):
     return dict(path=str(path), sha256=sha(path))
 
 
+def retained_backend(artifact, record):
+    name = 'evidence/backend-outcome.json'
+    raw = bounded(artifact / name, 1 << 20)
+    stable = read(artifact / name)
+    require(stable['schema'] in ('gomad.backend-outcome/v1', 'gomad.backend-outcome/v2')
+            and stable['type'] == 'result' and 'metrics' not in stable,
+            'retained original backend evidence schema/metrics boundary changed')
+    if stable['schema'] == 'gomad.backend-outcome/v1':
+        return raw
+    manifest = read(artifact / 'manifest.json')
+    anchor_name = 'evidence/native-output-accounting'
+    anchor_raw = bounded(artifact / anchor_name, 4096)
+    anchor = read(artifact / anchor_name)
+    for key, payload in ((name, raw), (anchor_name, anchor_raw)):
+        entry = manifest['files'][key]
+        require(entry['bytes'] == len(payload) and entry['sha256'] == receiving.digest(payload),
+                'retained backend accounting raw payload identity changed')
+    digest = receiving.digest(anchor_raw)
+    stream = record['streams'].get(anchor_name, {})
+    require(stable.get('output_accounting_sha256') == digest
+            and stream.get('sha256') == digest and stream.get('bytes') == len(anchor_raw),
+            'retained backend accounting Record/hash binding changed')
+    require(set(anchor) == {'schema', 'offered_output_bytes'}
+            and anchor['schema'] == 'gomad.native-output-accounting/v1'
+            and CANONICAL(anchor) == anchor_raw and CANONICAL(stable) == raw,
+            'retained backend accounting is not canonical')
+    offered, fuel = stable['output_bytes'], stable['fuel_remaining']
+    retained_bytes = sum(len(bounded(artifact / ('output/' + stream), 1 << 20)) for stream in ('stdout', 'stderr'))
+    require(type(offered) is int and type(fuel) is int and type(anchor['offered_output_bytes']) is int
+            and offered == anchor['offered_output_bytes']
+            and 0 <= retained_bytes <= offered <= record['limits']['output_bytes']
+            and 0 <= fuel <= record['limits']['fuel'], 'retained backend accounting counters changed')
+    require(stable['termination'] == record['outcome']['termination']
+            and stable.get('exit_code') == record['outcome']['exit_code'],
+            'retained backend terminal claim changed')
+    observation = dict(stable, schema='gomad.backend-outcome/v1')
+    observation.pop('output_accounting_sha256')
+    return CANONICAL(observation)
+
+
 def retained(config, root, reader=None):
     run, selected, installation = install(config, root, 'retained', reader)
     arguments = ['explore', '--json', '--seeds=7', '--parallel=1', '--on-failure=first', '--failure-budget=1',
@@ -321,12 +361,10 @@ def retained(config, root, reader=None):
     before = live.inventory(path)
     detach(root, selected, reader)
     original_metrics = original_backend_metrics(path, root)
-    stable = read(path / 'evidence/backend-outcome.json')
-    require(stable['schema'] == 'gomad.backend-outcome/v1' and stable['type'] == 'result' and 'metrics' not in stable,
-            'retained original backend evidence schema/metrics boundary changed')
+    backend_observation = retained_backend(path, record)
     expected = {'stdout': bounded(path / 'output/stdout', 1 << 20),
                 'stderr': bounded(path / 'output/stderr', 1 << 20),
-                'backend-evidence.bin': bounded(path / 'evidence/backend-outcome.json', 1 << 20)}
+                'backend-evidence.bin': backend_observation}
     pids, observations = set(), []
     for index in range(20):
         name = f'replay-{index + 1:02d}'
