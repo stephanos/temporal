@@ -41,6 +41,7 @@ fn derived() -> Result<(SourceInventory, Scratch), String> {
         let mut command = Command::new(&go);
         command
             .current_dir(&module)
+            .env_remove("GOROOT")
             .env("GOTOOLCHAIN", "local")
             .env("GOENV", "off")
             .env("GOWORK", "off")
@@ -59,6 +60,28 @@ fn derived() -> Result<(SourceInventory, Scratch), String> {
         std::str::from_utf8(&root.stdout)
             .map_err(|e| e.to_string())?
             .trim(),
+    );
+    let version = command()
+        .arg("version")
+        .output()
+        .map_err(|e| e.to_string())?;
+    let compiler_version = std::str::from_utf8(&version.stdout)
+        .map_err(|e| e.to_string())?
+        .trim()
+        .to_string();
+    let reviewed = parse(INVENTORY)?.reviewed;
+    if !version.status.success()
+        || compiler_version.split_whitespace().nth(2) != Some(reviewed.go_toolchain.as_str())
+    {
+        return Err("pinned compiler executable version mismatch".into());
+    }
+    let compiler = root
+        .join("bin/go")
+        .canonicalize()
+        .map_err(|e| e.to_string())?;
+    let compiler_sha256 = format!(
+        "{:x}",
+        Sha256::digest(fs::read(&compiler).map_err(|e| e.to_string())?)
     );
     let retained = std::env::var_os("GOMAD_INVENTORY_EVIDENCE_ROOT");
     let scratch = Scratch(
@@ -91,7 +114,7 @@ fn derived() -> Result<(SourceInventory, Scratch), String> {
     let deadline = Instant::now() + Duration::from_secs(120);
     loop {
         if let Some(status) = child.try_wait().map_err(|e| e.to_string())? {
-            fs::write(scratch.0.join("exit.json"), serde_json::to_vec(&serde_json::json!({"exit": status.code(), "go": go, "stock":root,"source_sha256":format!("{:x}",Sha256::digest(include_bytes!("runtime.rs")))})).map_err(|e|e.to_string())?).map_err(|e|e.to_string())?;
+            fs::write(scratch.0.join("exit.json"), serde_json::to_vec(&serde_json::json!({"exit": status.code(), "go": go, "stock":root,"compiler":compiler,"compiler_version":compiler_version,"compiler_sha256":compiler_sha256,"argv":[go.clone(),"run".into(),"-mod=readonly".into(),"-p=1".into(),"./internal/backends/wasm/toolchain/cmd/runtimeinventory".into(),root.as_os_str().to_owned(),module.join("internal/model/runtimesource").into_os_string(),scratch.0.join("overlay").into_os_string()],"source_sha256":format!("{:x}",Sha256::digest(include_bytes!("runtime.rs")))})).map_err(|e|e.to_string())?).map_err(|e|e.to_string())?;
             if !status.success() {
                 return Err(format!(
                     "runtime source derivation failed: {}",
@@ -137,6 +160,7 @@ fn authenticate(source: &SourceInventory, stock: &Path, module: &Path) -> Result
     {
         return Err("runtime source/toolchain identity mismatch".into());
     }
+    collector_patch_policy(&source.overlay_inputs)?;
     for required in [
         stock.join("VERSION"),
         module.join("internal/backends/wasm/toolchain/overlay.go"),
@@ -206,6 +230,46 @@ fn authenticate(source: &SourceInventory, stock: &Path, module: &Path) -> Result
         }
     }
     Ok(())
+}
+
+fn collector_patch_policy(inputs: &BTreeMap<String, PathBuf>) -> Result<(), String> {
+    for name in inputs.keys() {
+        if let Some(path) = name
+            .strip_prefix("output/")
+            .or_else(|| name.strip_prefix("stock/"))
+        {
+            let file = path.rsplit('/').next().unwrap();
+            if file.starts_with("mgc") && file.ends_with(".go") {
+                return Err(format!("collector-file patch policy forbids {name}"));
+            }
+        }
+    }
+    Ok(())
+}
+
+#[test]
+fn source_inventory_preserves_the_collector_file_patch_prohibition() {
+    for file in [
+        "mgc.go",
+        "mgcpacer.go",
+        "mgcsweep.go",
+        "mgcmark.go",
+        "runtime/mgcscavenge.go",
+    ] {
+        for kind in ["output", "stock"] {
+            let name = format!("{kind}/{file}");
+            assert!(
+                collector_patch_policy(&BTreeMap::from([(name.clone(), PathBuf::from("unused"))]))
+                    .unwrap_err()
+                    .contains(&name)
+            );
+        }
+    }
+    collector_patch_policy(&BTreeMap::from([(
+        "output/gomad_wasm.go".into(),
+        PathBuf::from("unused"),
+    )]))
+    .unwrap();
 }
 
 fn reviewed(kind: &str, table: &str) -> BTreeMap<String, u64> {
@@ -403,4 +467,54 @@ fn runtime_historical_retirement_keeps_appended_sites_active() {
                 .contains("runtime/new.go")
         );
     }
+}
+
+#[test]
+fn wasip1_seed_finding_and_seeded_draw_decision_premises() {
+    let inventory = parse(INVENTORY).unwrap();
+    let row = inventory
+        .entries
+        .iter()
+        .find(|row| row.site == "runtime-decision:gomadDiagnosticCheckSeededDraw")
+        .unwrap();
+    assert_eq!(row.disposition, "controlled");
+    let glue = include_str!("../../../../internal/backends/wasm/toolchain/runtime_wasm.go.txt");
+    assert!(glue.contains("//go:nosplit\nfunc gomadDiagnosticCheckSeededDraw(*m) {}\n"));
+    for forbidden in ["gomadHostTimed", "gomadHostDraw"] {
+        assert!(!glue.contains(forbidden), "{forbidden}");
+    }
+    assert_eq!(inventory.reviewed.go_toolchain, "go1.27.1");
+    let go = std::env::var_os("GOMAD_STOCK_GO").unwrap_or_else(|| "go".into());
+    let output = Command::new(go)
+        .args(["env", "GOROOT"])
+        .env("GOTOOLCHAIN", "local")
+        .env("GOENV", "off")
+        .env("GOWORK", "off")
+        .output()
+        .unwrap();
+    assert!(output.status.success());
+    let root = PathBuf::from(std::str::from_utf8(&output.stdout).unwrap().trim());
+    assert!(
+        fs::read_to_string(root.join("VERSION"))
+            .unwrap()
+            .starts_with("go1.27.1\n")
+    );
+    let proc = fs::read_to_string(root.join("src/runtime/proc.go")).unwrap();
+    assert!(proc.contains("const haveSysmon = GOARCH != \"wasm\""));
+    let os = fs::read_to_string(root.join("src/runtime/os_wasm.go")).unwrap();
+    assert!(os.contains("func newosproc(mp *m) {\n\tthrow(\"newosproc: not implemented\")\n}"));
+    assert!(os.contains("func cputicks() int64 {\n\t// runtime·nanotime() is a poor approximation of CPU ticks that is enough for the profiler.\n\treturn nanotime()\n}"));
+    let pacer = fs::read_to_string(root.join("src/runtime/mgcpacer.go")).unwrap();
+    let body = pacer
+        .split_once("func (c *gcControllerState) enlistWorker() {")
+        .unwrap()
+        .1
+        .split_once("\n}\n")
+        .unwrap()
+        .0;
+    let guard = body.find("if gomaxprocs <= 1 {\n\t\treturn\n\t}").unwrap();
+    let draw = body.find("cheaprandn(").unwrap();
+    assert!(guard < draw);
+    let overlay = include_str!("../../../../internal/backends/wasm/toolchain/overlay.go");
+    assert!(overlay.contains(r"\tif gomadEnabled {\n\t\tprocs = 1\n"));
 }

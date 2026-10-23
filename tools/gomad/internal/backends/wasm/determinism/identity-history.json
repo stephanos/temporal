@@ -1114,5 +1114,289 @@
  {
   "id": "helper.linked-cluster.bounded-receives",
   "site": "helper-source:linked_cluster.rs|recv_timeout|3"
+ },
+ {
+  "id": "host.rust.gomad.src.campaign.execution.rs.measured.elapsed.1",
+  "site": "host-rust:gomad/src/campaign/execution.rs|measured|.elapsed()|1"
+ },
+ {
+  "id": "host.rust.gomad.src.campaign.execution.rs.measured.instant.now.1",
+  "site": "host-rust:gomad/src/campaign/execution.rs|measured|Instant::now|1"
+ },
+ {
+  "id": "host.rust.gomad.src.campaign.prepare.rs.prepare.instant.now.1",
+  "site": "host-rust:gomad/src/campaign/prepare.rs|prepare|Instant::now|1"
+ },
+ {
+  "id": "host.rust.gomad.src.campaign.prepare.process.rs.check.deadline.instant.now.1",
+  "site": "host-rust:gomad/src/campaign/prepare/process.rs|check_deadline|Instant::now|1"
+ },
+ {
+  "id": "host.rust.gomad.src.campaign.prepare.process.rs.command.spawn.1",
+  "site": "host-rust:gomad/src/campaign/prepare/process.rs|command|.spawn(|1"
+ },
+ {
+  "id": "host.rust.gomad.src.campaign.prepare.process.rs.command.command.new.1",
+  "site": "host-rust:gomad/src/campaign/prepare/process.rs|command|Command::new|1"
+ },
+ {
+  "id": "host.rust.gomad.src.campaign.prepare.process.rs.command.instant.now.3",
+  "site": "host-rust:gomad/src/campaign/prepare/process.rs|command|Instant::now|3"
+ },
+ {
+  "id": "host.rust.gomad.src.campaign.prepare.process.rs.command.thread.sleep.1",
+  "site": "host-rust:gomad/src/campaign/prepare/process.rs|command|thread::sleep|1"
+ },
+ {
+  "id": "host.rust.gomad.src.campaign.scenario.rs.execute.elapsed.1",
+  "site": "host-rust:gomad/src/campaign/scenario.rs|execute|.elapsed()|1"
+ },
+ {
+  "id": "host.rust.gomad.src.campaign.scenario.rs.execute.instant.now.1",
+  "site": "host-rust:gomad/src/campaign/scenario.rs|execute|Instant::now|1"
+ },
+ {
+  "id": "host.rust.wasmhost.src.cache.rs.module.instant.now.2",
+  "site": "host-rust:wasmhost/src/cache.rs|module|Instant::now|2"
+ },
+ {
+  "id": "host.rust.wasmhost.src.cache.rs.staging.name.dev.urandom.1",
+  "site": "host-rust:wasmhost/src/cache.rs|staging_name|/dev/urandom|1"
+ },
+ {
+  "id": "host.rust.wasmhost.src.cache.rs.staging.name.systemtime.1",
+  "site": "host-rust:wasmhost/src/cache.rs|staging_name|SystemTime|1"
+ },
+ {
+  "id": "host.rust.wasmhost.src.cluster.execution.manual.rs.control.reader.spawn.1",
+  "site": "host-rust:wasmhost/src/cluster/execution/manual.rs|control_reader|.spawn(|1"
+ },
+ {
+  "id": "host.rust.wasmhost.src.cluster.execution.manual.rs.control.reader.thread.builder.1",
+  "site": "host-rust:wasmhost/src/cluster/execution/manual.rs|control_reader|thread::Builder|1"
+ },
+ {
+  "id": "host.rust.wasmhost.src.cluster.execution.manual.rs.execute.spawn.1",
+  "site": "host-rust:wasmhost/src/cluster/execution/manual.rs|execute|.spawn(|1"
+ },
+ {
+  "id": "host.rust.wasmhost.src.cluster.execution.manual.rs.execute.instant.now.1",
+  "site": "host-rust:wasmhost/src/cluster/execution/manual.rs|execute|Instant::now|1"
+ },
+ {
+  "id": "host.rust.wasmhost.src.cluster.execution.manual.rs.execute.thread.builder.1",
+  "site": "host-rust:wasmhost/src/cluster/execution/manual.rs|execute|thread::Builder|1"
+ },
+ {
+  "id": "host.rust.wasmhost.src.cluster.execution.mod.rs.execute.spawn.1",
+  "site": "host-rust:wasmhost/src/cluster/execution/mod.rs|execute|.spawn(|1"
+ },
+ {
+  "id": "host.rust.wasmhost.src.cluster.execution.mod.rs.execute.instant.now.1",
+  "site": "host-rust:wasmhost/src/cluster/execution/mod.rs|execute|Instant::now|1"
+ },
+ {
+  "id": "host.rust.wasmhost.src.cluster.execution.mod.rs.execute.thread.builder.1",
+  "site": "host-rust:wasmhost/src/cluster/execution/mod.rs|execute|thread::Builder|1"
+ },
+ {
+  "id": "host.rust.wasmhost.src.cluster.execution.mod.rs.run.instance.instant.now.2",
+  "site": "host-rust:wasmhost/src/cluster/execution/mod.rs|run_instance|Instant::now|2"
+ },
+ {
+  "id": "host.rust.wasmhost.src.cluster.handoff.broker.rs.new.instant.now.1",
+  "site": "host-rust:wasmhost/src/cluster/handoff/broker.rs|new|Instant::now|1"
+ },
+ {
+  "id": "host.rust.wasmhost.src.cluster.handoff.broker.rs.observe.instant.now.1",
+  "site": "host-rust:wasmhost/src/cluster/handoff/broker.rs|observe|Instant::now|1"
+ },
+ {
+  "id": "host.rust.wasmhost.src.cluster.handoff.broker.rs.schedule.instant.now.1",
+  "site": "host-rust:wasmhost/src/cluster/handoff/broker.rs|schedule|Instant::now|1"
+ },
+ {
+  "id": "host.rust.wasmhost.src.diagnostic.rs.drop.3.instant.now.1",
+  "site": "host-rust:wasmhost/src/diagnostic.rs|drop[3]|Instant::now|1"
+ },
+ {
+  "id": "host.rust.wasmhost.src.diagnostic.rs.drop.4.instant.now.1",
+  "site": "host-rust:wasmhost/src/diagnostic.rs|drop[4]|Instant::now|1"
+ },
+ {
+  "id": "host.rust.wasmhost.src.diagnostic.rs.drop.5.instant.now.1",
+  "site": "host-rust:wasmhost/src/diagnostic.rs|drop[5]|Instant::now|1"
+ },
+ {
+  "id": "host.rust.wasmhost.src.diagnostic.rs.drop.6.instant.now.1",
+  "site": "host-rust:wasmhost/src/diagnostic.rs|drop[6]|Instant::now|1"
+ },
+ {
+  "id": "host.rust.wasmhost.src.diagnostic.rs.drop.7.instant.now.1",
+  "site": "host-rust:wasmhost/src/diagnostic.rs|drop[7]|Instant::now|1"
+ },
+ {
+  "id": "host.rust.wasmhost.src.diagnostic.rs.new.2.instant.now.1",
+  "site": "host-rust:wasmhost/src/diagnostic.rs|new[2]|Instant::now|1"
+ },
+ {
+  "id": "host.rust.wasmhost.src.diagnostic.rs.new.3.instant.now.1",
+  "site": "host-rust:wasmhost/src/diagnostic.rs|new[3]|Instant::now|1"
+ },
+ {
+  "id": "host.rust.wasmhost.src.diagnostic.rs.new.4.instant.now.1",
+  "site": "host-rust:wasmhost/src/diagnostic.rs|new[4]|Instant::now|1"
+ },
+ {
+  "id": "host.rust.wasmhost.src.diagnostic.rs.new.instant.now.1",
+  "site": "host-rust:wasmhost/src/diagnostic.rs|new|Instant::now|1"
+ },
+ {
+  "id": "host.rust.wasmhost.src.diagnostic.rs.open.instant.now.1",
+  "site": "host-rust:wasmhost/src/diagnostic.rs|open|Instant::now|1"
+ },
+ {
+  "id": "host.rust.wasmhost.src.engine.rs.compile.instant.now.1",
+  "site": "host-rust:wasmhost/src/engine.rs|compile|Instant::now|1"
+ },
+ {
+  "id": "host.rust.wasmhost.src.engine.rs.execute.instant.now.3",
+  "site": "host-rust:wasmhost/src/engine.rs|execute|Instant::now|3"
+ },
+ {
+  "id": "host.rust.wasmhost.src.engine.rs.linker.hashset.1",
+  "site": "host-rust:wasmhost/src/engine.rs|linker|HashSet|1"
+ },
+ {
+  "id": "host.rust.wasmhost.src.engine.rs.model.operation.instant.now.1",
+  "site": "host-rust:wasmhost/src/engine.rs|model_operation|Instant::now|1"
+ },
+ {
+  "id": "host.rust.wasmhost.src.engine.rs.package.hashset.1",
+  "site": "host-rust:wasmhost/src/engine.rs|package|HashSet|1"
+ },
+ {
+  "id": "host.rust.wasmhost.src.guest.profile.rs.start.spawn.1",
+  "site": "host-rust:wasmhost/src/guest_profile.rs|start|.spawn(|1"
+ },
+ {
+  "id": "host.rust.wasmhost.src.guest.profile.rs.start.instant.now.3",
+  "site": "host-rust:wasmhost/src/guest_profile.rs|start|Instant::now|3"
+ },
+ {
+  "id": "host.rust.wasmhost.src.guest.profile.rs.start.recv.timeout.1",
+  "site": "host-rust:wasmhost/src/guest_profile.rs|start|recv_timeout|1"
+ },
+ {
+  "id": "host.rust.wasmhost.src.guest.profile.rs.start.thread.builder.1",
+  "site": "host-rust:wasmhost/src/guest_profile.rs|start|thread::Builder|1"
+ },
+ {
+  "id": "host.rust.wasmhost.src.linked.rs.execute.prepared.spawn.1",
+  "site": "host-rust:wasmhost/src/linked.rs|execute_prepared|.spawn(|1"
+ },
+ {
+  "id": "host.rust.wasmhost.src.linked.rs.execute.prepared.instant.now.2",
+  "site": "host-rust:wasmhost/src/linked.rs|execute_prepared|Instant::now|2"
+ },
+ {
+  "id": "host.rust.wasmhost.src.linked.rs.execute.prepared.thread.scope.1",
+  "site": "host-rust:wasmhost/src/linked.rs|execute_prepared|thread::scope|1"
+ },
+ {
+  "id": "host.rust.wasmhost.src.linked.rs.start.instance.instant.now.2",
+  "site": "host-rust:wasmhost/src/linked.rs|start_instance|Instant::now|2"
+ },
+ {
+  "id": "host.rust.wasmhost.src.linked.rs.watch.recv.timeout.1",
+  "site": "host-rust:wasmhost/src/linked.rs|watch|recv_timeout|1"
+ },
+ {
+  "id": "host.rust.wasmhost.src.linked.cluster.rs.execute.inner.elapsed.2",
+  "site": "host-rust:wasmhost/src/linked_cluster.rs|execute_inner|.elapsed()|2"
+ },
+ {
+  "id": "host.rust.wasmhost.src.linked.cluster.rs.execute.inner.spawn.1",
+  "site": "host-rust:wasmhost/src/linked_cluster.rs|execute_inner|.spawn(|1"
+ },
+ {
+  "id": "host.rust.wasmhost.src.linked.cluster.rs.execute.inner.instant.now.1",
+  "site": "host-rust:wasmhost/src/linked_cluster.rs|execute_inner|Instant::now|1"
+ },
+ {
+  "id": "host.rust.wasmhost.src.linked.cluster.rs.execute.inner.recv.timeout.2",
+  "site": "host-rust:wasmhost/src/linked_cluster.rs|execute_inner|recv_timeout|2"
+ },
+ {
+  "id": "host.rust.wasmhost.src.linked.cluster.rs.execute.inner.thread.builder.1",
+  "site": "host-rust:wasmhost/src/linked_cluster.rs|execute_inner|thread::Builder|1"
+ },
+ {
+  "id": "host.rust.wasmhost.src.linked.cluster.rs.execute.prepared.spawn.1",
+  "site": "host-rust:wasmhost/src/linked_cluster.rs|execute_prepared|.spawn(|1"
+ },
+ {
+  "id": "host.rust.wasmhost.src.linked.cluster.rs.execute.prepared.recv.timeout.1",
+  "site": "host-rust:wasmhost/src/linked_cluster.rs|execute_prepared|recv_timeout|1"
+ },
+ {
+  "id": "host.rust.wasmhost.src.linked.cluster.rs.execute.prepared.thread.scope.1",
+  "site": "host-rust:wasmhost/src/linked_cluster.rs|execute_prepared|thread::scope|1"
+ },
+ {
+  "id": "host.rust.wasmhost.src.linked.cluster.rs.run.instance.instant.now.3",
+  "site": "host-rust:wasmhost/src/linked_cluster.rs|run_instance|Instant::now|3"
+ },
+ {
+  "id": "host.rust.wasmhost.src.metrics.rs.elapsed.elapsed.1",
+  "site": "host-rust:wasmhost/src/metrics.rs|elapsed|.elapsed()|1"
+ },
+ {
+  "id": "host.rust.wasmhost.src.model.rs.package.hashmap.2",
+  "site": "host-rust:wasmhost/src/model.rs|package|HashMap|2"
+ },
+ {
+  "id": "host.rust.wasmhost.src.model.guest.state.rs.construct.hashmap.1",
+  "site": "host-rust:wasmhost/src/model/guest_state.rs|construct|HashMap|1"
+ },
+ {
+  "id": "host.rust.wasmhost.src.model.guest.state.rs.package.hashmap.1",
+  "site": "host-rust:wasmhost/src/model/guest_state.rs|package|HashMap|1"
+ },
+ {
+  "id": "host.rust.wasmhost.src.model.guest.state.rs.validate.environment.hashset.1",
+  "site": "host-rust:wasmhost/src/model/guest_state.rs|validate_environment|HashSet|1"
+ },
+ {
+  "id": "host.rust.wasmhost.src.model.imports.rs.runtime.typed.sort.unstable.2",
+  "site": "host-rust:wasmhost/src/model/imports.rs|runtime_typed|.sort_unstable|2"
+ },
+ {
+  "id": "host.rust.wasmhost.src.model.inspection.rs.validate.pending.sort.unstable.1",
+  "site": "host-rust:wasmhost/src/model/inspection.rs|validate_pending|.sort_unstable|1"
+ },
+ {
+  "id": "host.rust.wasmhost.src.network.mod.rs.expire.dials.sort.unstable.1",
+  "site": "host-rust:wasmhost/src/network/mod.rs|expire_dials|.sort_unstable|1"
+ },
+ {
+  "id": "host.rust.wasmhost.src.stress.jitter.rs.delay.dev.urandom.1",
+  "site": "host-rust:wasmhost/src/stress_jitter.rs|delay|/dev/urandom|1"
+ },
+ {
+  "id": "host.rust.wasmhost.src.stress.jitter.rs.delay.thread.sleep.1",
+  "site": "host-rust:wasmhost/src/stress_jitter.rs|delay|thread::sleep|1"
+ },
+ {
+  "id": "host.rust.wasmhost.src.world.deflate.huffman.rs.generate.sort.unstable.2",
+  "site": "host-rust:wasmhost/src/world/deflate/huffman.rs|generate|.sort_unstable|2"
+ },
+ {
+  "id": "host.rust.gomad.src.replay.inspection.rs.search.run.instant.now.1",
+  "site": "host-rust:gomad/src/replay/inspection.rs|search_run|Instant::now|1"
+ },
+ {
+  "id": "host.rust.gomad.src.replay.inspection.rs.search.run.elapsed.2",
+  "site": "host-rust:gomad/src/replay/inspection.rs|search_run|.elapsed()|2"
  }
 ]

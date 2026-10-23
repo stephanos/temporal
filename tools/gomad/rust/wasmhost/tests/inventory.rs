@@ -17,7 +17,7 @@ const ABI: &str = include_str!("../src/abi.rs");
 const SCHEMA: &str = "gomad.wasm-determinism-inventory/v1";
 const IDENTITY_HISTORY: &str =
     include_str!("../../../internal/backends/wasm/determinism/identity-history.json");
-// The accepted 276-record prefix is reviewed in fn232-determinism-reach.
+// Candidate 276-record trust prefix; independent fn232-determinism-reach review required.
 const ACCEPTED_IDENTITY_COUNT: usize = 276;
 const ACCEPTED_IDENTITY_SHA256: &str =
     "6ae785f83f0b8325df082e577699059728954b9b9efcf0c2637fca72aaf92f55";
@@ -159,6 +159,26 @@ fn calendar_date(text: &str) -> bool {
     (1..=12).contains(&month) && day > 0 && day <= days[month - 1]
 }
 
+fn reference_shape(reference: &str) -> bool {
+    let Some((kind, tail)) = reference.split_once(':') else {
+        return false;
+    };
+    let path = match kind {
+        "go" | "rust" => {
+            let Some((path, name)) = tail.split_once(':') else {
+                return false;
+            };
+            if name.is_empty() {
+                return false;
+            }
+            path
+        }
+        "corpus" => tail,
+        _ => return false,
+    };
+    !path.is_empty() && !std::path::Path::new(path).is_absolute() && !path.contains("..")
+}
+
 fn parse(text: &str) -> Result<Inventory, String> {
     let inventory: Inventory = serde_json::from_str(text).map_err(|error| error.to_string())?;
     if inventory.schema != SCHEMA {
@@ -171,6 +191,9 @@ fn parse(text: &str) -> Result<Inventory, String> {
     if reviewed.go_toolchain.is_empty() || reviewed.wasmtime.is_empty() || reviewed.rust.is_empty()
     {
         return Err("inventory reviewed versions incomplete".into());
+    }
+    if inventory.entries.is_empty() {
+        return Err("inventory has no entries".into());
     }
     let mut ids = BTreeSet::new();
     let mut sites = BTreeSet::new();
@@ -192,6 +215,23 @@ fn parse(text: &str) -> Result<Inventory, String> {
         ];
         if required.iter().any(|field| field.is_empty()) || entry.evidence.is_empty() {
             return Err(format!("inventory row {:?} incomplete", entry.id));
+        }
+        let mut parts = entry.id.split(['.', '-']);
+        if !parts.next().is_some_and(|part| {
+            !part.is_empty()
+                && part
+                    .bytes()
+                    .all(|byte| byte.is_ascii_lowercase() || byte.is_ascii_digit())
+        }) || parts.any(|part| {
+            part.is_empty()
+                || !part
+                    .bytes()
+                    .all(|byte| byte.is_ascii_lowercase() || byte.is_ascii_digit() || byte == b'_')
+        }) {
+            return Err(format!(
+                "inventory row {:?} id is not a stable lower-case identifier",
+                entry.id
+            ));
         }
         let known = [
             (
@@ -233,13 +273,11 @@ fn parse(text: &str) -> Result<Inventory, String> {
                 entry.id
             ));
         }
-        if entry.evidence.iter().any(|reference| {
-            !["go:", "rust:", "corpus:"].iter().any(|kind| {
-                reference
-                    .strip_prefix(kind)
-                    .is_some_and(|tail| !tail.trim().is_empty())
-            })
-        }) {
+        if entry
+            .evidence
+            .iter()
+            .any(|reference| !reference_shape(reference))
+        {
             return Err(format!("inventory row {:?} evidence kind", entry.id));
         }
         if if entry.disposition == "escape" {
@@ -868,12 +906,15 @@ fn production_lines(text: &str) -> Result<ProductionLines, String> {
 /// through `mod` declarations outside `#[cfg(test)]` items; test-only modules
 /// are never reached.
 fn source_sites(src: &std::path::Path) -> Result<BTreeSet<String>, String> {
+    source_scan(src, &["main.rs", "lib.rs", "../build.rs"]).map(|(sites, _)| sites)
+}
+
+fn source_scan(
+    src: &std::path::Path,
+    roots: &[&str],
+) -> Result<(BTreeSet<String>, BTreeSet<String>), String> {
     let mut sites = BTreeSet::new();
-    let mut pending = vec![
-        "main.rs".to_string(),
-        "lib.rs".to_string(),
-        "../build.rs".to_string(),
-    ];
+    let mut pending: Vec<String> = roots.iter().map(|root| (*root).to_string()).collect();
     let mut seen = BTreeSet::new();
     while let Some(relative) = pending.pop() {
         if !seen.insert(relative.clone()) {
@@ -946,12 +987,17 @@ fn source_sites(src: &std::path::Path) -> Result<BTreeSet<String>, String> {
             }
         }
     }
-    Ok(sites)
+    Ok((sites, seen))
 }
 
 fn source_gaps(entries: &[Entry], sites: &BTreeSet<String>) -> Vec<String> {
     let rows: BTreeSet<&str> = entries
         .iter()
+        .filter_map(|entry| entry.site.strip_prefix("helper-source:"))
+        .collect();
+    let active_rows: BTreeSet<&str> = entries
+        .iter()
+        .filter(|entry| entry.disposition != "rejected")
         .filter_map(|entry| entry.site.strip_prefix("helper-source:"))
         .collect();
     let allowed: BTreeSet<&str> = entries
@@ -966,7 +1012,7 @@ fn source_gaps(entries: &[Entry], sites: &BTreeSet<String>) -> Vec<String> {
     let mut gaps = Vec::new();
     for site in sites {
         let file = site.split('|').next().unwrap();
-        if !allowed.contains(file) && !rows.contains(site.as_str()) {
+        if !allowed.contains(file) && !active_rows.contains(site.as_str()) {
             gaps.push(format!("helper source site {site} has no inventory row"));
         }
     }
@@ -1198,6 +1244,7 @@ fn timestamp_key(text: &str) -> Result<[u32; 7], String> {
     };
     let bytes = body.as_bytes();
     if bytes.len() < 19
+        || !bytes[..19].is_ascii()
         || !calendar_date(&body[..10])
         || bytes[10] != b'T'
         || bytes[13] != b':'
@@ -1305,7 +1352,8 @@ fn inventory_pins_require_append_only_dated_reviews() {
 
 #[test]
 fn review_history_rejects_stale_dates_and_non_utc_timestamps() {
-    let base: serde_json::Value = serde_json::from_str(REVIEW_HISTORY).unwrap();
+    let mut base: serde_json::Value = serde_json::from_str(REVIEW_HISTORY).unwrap();
+    base.as_array_mut().unwrap().truncate(1);
     for (timestamp, expected) in [
         ("2026-10-20T15:00:00Z", "timestamp must advance"),
         ("2026-10-20T16:00:00Z", ""),
@@ -1401,3 +1449,193 @@ fn every_escape_resolves_a_readme_heading() {
 
 #[path = "inventory/runtime.rs"]
 mod runtime_inventory;
+
+#[path = "inventory/host.rs"]
+mod host_inventory;
+
+fn diagnostic_streams() -> BTreeSet<String> {
+    let wire = include_str!("../../../internal/model/choice/internal/wire/wire_generated.go");
+    let model = include_str!("../src/model.rs");
+    let body = wire
+        .split_once("type DiagnosticRecord struct {")
+        .unwrap()
+        .1
+        .split_once("\n}")
+        .unwrap()
+        .0;
+    let state = [
+        "Ordinal",
+        "VirtualTime",
+        "Allocations",
+        "GCCycle",
+        "GCPhase",
+        "RunQueueLength",
+    ];
+    let mut streams = BTreeSet::new();
+    for line in body.lines().filter(|line| !line.trim().is_empty()) {
+        let field = line.split_whitespace().next().unwrap();
+        if state.contains(&field) {
+            continue;
+        }
+        assert!(
+            field.ends_with("Draws"),
+            "unclassified diagnostic record field {field}"
+        );
+        let mut name = String::new();
+        for (index, c) in field.chars().enumerate() {
+            if index > 0 && c.is_ascii_uppercase() {
+                name.push('_');
+            }
+            name.extend(c.to_lowercase());
+        }
+        let native_name = name.replace("cheap_rand", "cheaprand");
+        let encoded = wire
+            .lines()
+            .find(|line| line.contains(&format!(", value.{field})")))
+            .unwrap();
+        let offset = encoded
+            .split_once("record[")
+            .unwrap()
+            .1
+            .split_once(':')
+            .unwrap()
+            .0;
+        assert!(
+            model.contains(&format!("\"{native_name}\":get64(state,{offset})")),
+            "draw-counter event omits or misdecodes {field}"
+        );
+        assert!(streams.insert(name));
+    }
+    assert!(!streams.is_empty());
+    streams
+}
+
+fn stream_gaps(entries: &[Entry], streams: &BTreeSet<String>) -> Vec<String> {
+    let rows: BTreeSet<&str> = entries
+        .iter()
+        .filter_map(|entry| entry.site.strip_prefix("stream:"))
+        .collect();
+    streams
+        .iter()
+        .filter(|stream| !rows.contains(stream.as_str()))
+        .map(|stream| format!("stream {stream:?} has no inventory row"))
+        .chain(
+            rows.iter()
+                .filter(|row| !streams.contains(**row))
+                .map(|row| format!("inventory stream {row} no longer has a source")),
+        )
+        .collect()
+}
+
+#[test]
+fn inventory_covers_every_diagnostic_draw_stream() {
+    let streams = diagnostic_streams();
+    let inventory = parse(INVENTORY).unwrap();
+    assert_eq!(
+        stream_gaps(&inventory.entries, &streams),
+        Vec::<String>::new()
+    );
+    for stream in &streams {
+        let entries: Vec<Entry> = inventory
+            .entries
+            .iter()
+            .filter(|entry| entry.site != format!("stream:{stream}"))
+            .cloned()
+            .collect();
+        assert!(
+            stream_gaps(&entries, &streams)
+                .iter()
+                .any(|gap| gap.contains(stream))
+        );
+        let mut removed = streams.clone();
+        removed.remove(stream);
+        assert!(
+            stream_gaps(&inventory.entries, &removed)
+                .iter()
+                .any(|gap| gap.contains("no longer has"))
+        );
+    }
+    let mut added = streams;
+    added.insert("gc_pacer_draws".into());
+    assert!(
+        stream_gaps(&inventory.entries, &added)
+            .iter()
+            .any(|gap| gap.contains("gc_pacer_draws"))
+    );
+}
+
+#[test]
+fn appended_retired_identity_cannot_reuse_an_existing_site() {
+    let mut inventory = parse(INVENTORY).unwrap();
+    let mut history: serde_json::Value = serde_json::from_str(IDENTITY_HISTORY).unwrap();
+    let mut appended = inventory.entries[0].clone();
+    appended.id = "appended.retired".into();
+    appended.site = "retired:appended".into();
+    appended.disposition = "rejected".into();
+    history
+        .as_array_mut()
+        .unwrap()
+        .push(serde_json::json!({"id":appended.id,"site":appended.site}));
+    inventory.entries.push(appended);
+    check_identity_history(&history.to_string(), &inventory.entries).unwrap();
+    let last = history.as_array().unwrap().len() - 1;
+    history[last]["site"] = history[0]["site"].clone();
+    inventory.entries.last_mut().unwrap().site = inventory.entries[0].site.clone();
+    assert!(
+        check_identity_history(&history.to_string(), &inventory.entries)
+            .unwrap_err()
+            .contains("reuses id or site")
+    );
+}
+
+#[path = "inventory/evidence.rs"]
+mod evidence_inventory;
+
+#[test]
+fn inventory_rejects_invalid_stable_ids_and_reference_paths() {
+    let base: serde_json::Value = serde_json::from_str(INVENTORY).unwrap();
+    for id in [
+        "Uppercase",
+        "two..parts",
+        "_first",
+        "trailing-",
+        "white space",
+    ] {
+        let mut document = base.clone();
+        document["entries"][0]["id"] = id.into();
+        assert!(
+            parse(&document.to_string())
+                .unwrap_err()
+                .contains("stable lower-case"),
+            "{id}"
+        );
+    }
+    for reference in [
+        "rust:tests/inventory.rs",
+        "rust:/absolute.rs:test",
+        "rust:../escape.rs:test",
+        "rust:tests/inventory.rs:",
+        "go::TestMissing",
+        "corpus:../escape.json",
+        "corpus:/absolute.json",
+    ] {
+        let mut document = base.clone();
+        document["entries"][0]["evidence"] = serde_json::json!([reference]);
+        assert!(
+            parse(&document.to_string())
+                .unwrap_err()
+                .contains("evidence kind"),
+            "{reference}"
+        );
+    }
+    let mut document = base;
+    document["entries"] = serde_json::json!([]);
+    assert!(
+        parse(&document.to_string())
+            .unwrap_err()
+            .contains("no entries")
+    );
+}
+
+#[path = "inventory/architecture.rs"]
+mod architecture_inventory;
