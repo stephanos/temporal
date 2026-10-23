@@ -14,6 +14,8 @@ pub struct Configuration {
     pub profile: String,
     pub limits: crate::evidence::record::Limits,
     #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub world_transition_bytes: Option<u64>,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
     pub wall_nanos: Option<u64>,
     pub arguments: Vec<String>,
     pub environment: BTreeMap<String, String>,
