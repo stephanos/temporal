@@ -789,7 +789,7 @@ fn retained_artifact(module: &[u8]) -> (Cleanup, crate::evidence::store::Manifes
         virtual_time_nanos: 0,
         outcome: Outcome {
             class: "success".into(),
-            termination: "exited".into(),
+            termination: "exit".into(),
             exit_code: Some(0),
             reason: String::new(),
         },

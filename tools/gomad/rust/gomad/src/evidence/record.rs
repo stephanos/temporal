@@ -21,6 +21,47 @@ pub struct Outcome {
     pub reason: String,
 }
 
+impl Outcome {
+    fn validate(&self) -> Result<(), String> {
+        if !matches!(
+            self.class.as_str(),
+            "success" | "target_failure" | "runner_failure" | "watchdog" | "prepared"
+        ) || !matches!(
+            self.termination.as_str(),
+            "exit"
+                | "trap"
+                | "capacity"
+                | "invalid"
+                | "unsupported"
+                | "infrastructure"
+                | "watchdog_timeout"
+                | "cancelled"
+                | "storage_crash"
+                | "scenario_failure"
+                | "divergence"
+                | "diverged"
+                | "debug_error"
+                | "instrumentation_divergence"
+                | "prepared"
+        ) {
+            return Err("invalid record outcome class or termination".into());
+        }
+        if (self.termination == "exit") != self.exit_code.is_some() {
+            return Err("invalid record outcome exit status".into());
+        }
+        let consistent = match self.class.as_str() {
+            "success" => self.termination == "exit" && self.exit_code == Some(0),
+            "prepared" => self.termination == "prepared",
+            "watchdog" => self.termination == "watchdog_timeout",
+            _ => self.termination != "prepared",
+        };
+        if !consistent {
+            return Err("invalid record outcome class and termination combination".into());
+        }
+        Ok(())
+    }
+}
+
 #[derive(Clone, Debug, Deserialize, Eq, PartialEq, Serialize)]
 #[serde(deny_unknown_fields)]
 pub struct Stream {
@@ -47,7 +88,7 @@ pub struct Record {
 
 impl Record {
     /// # Errors
-    /// Refuses unsupported schemas, identity mismatches and invalid stream digests.
+    /// Refuses unsupported schemas, identity mismatches, inconsistent outcomes and invalid stream digests.
     pub fn validate(&self) -> Result<(), String> {
         if self.schema != "gomad.execution-record/v2" {
             return Err("unsupported execution record schema".into());
@@ -55,6 +96,7 @@ impl Record {
         if self.execution_identity != self.identity.digest()? {
             return Err("execution identity mismatch".into());
         }
+        self.outcome.validate()?;
         for stream in self.streams.values() {
             if !canonical::valid_digest(&stream.sha256) {
                 return Err("invalid stream digest".into());
@@ -97,6 +139,95 @@ impl Record {
 
 #[cfg(test)]
 mod tests {
+    use super::Outcome;
+
+    fn outcome(class: &str, termination: &str, exit_code: Option<u32>) -> Outcome {
+        Outcome {
+            class: class.into(),
+            termination: termination.into(),
+            exit_code,
+            reason: String::new(),
+        }
+    }
+
+    #[test]
+    fn outcomes_preserve_actual_publication_class_projections_and_preparation() {
+        for (class, termination, exit_code) in [
+            ("success", "exit", Some(0)),
+            ("target_failure", "exit", Some(0)),
+            ("target_failure", "exit", Some(7)),
+            ("runner_failure", "exit", Some(7)),
+            ("target_failure", "exit", Some(u32::MAX)),
+            ("prepared", "prepared", None),
+            ("watchdog", "watchdog_timeout", None),
+        ] {
+            outcome(class, termination, exit_code).validate().unwrap();
+        }
+        for termination in [
+            "trap",
+            "capacity",
+            "invalid",
+            "unsupported",
+            "infrastructure",
+            "watchdog_timeout",
+            "cancelled",
+            "storage_crash",
+            "scenario_failure",
+            "divergence",
+            "diverged",
+            "debug_error",
+            "instrumentation_divergence",
+        ] {
+            for class in ["target_failure", "runner_failure"] {
+                outcome(class, termination, None).validate().unwrap();
+            }
+        }
+    }
+
+    #[test]
+    fn outcomes_refuse_unknown_root_kinds_and_contradictory_exit_or_class_claims() {
+        for termination in [
+            "future_reply",
+            "exited",
+            "crash",
+            "stop",
+            "inspected_prefix",
+            "inspection_aborted",
+            "probe_fuel_limit",
+            "oracle_failed",
+        ] {
+            assert!(
+                outcome("runner_failure", termination, None)
+                    .validate()
+                    .is_err(),
+                "{termination}"
+            );
+        }
+        for (class, termination, exit_code) in [
+            ("future_class", "exit", Some(0)),
+            ("success", "exit", Some(7)),
+            ("success", "trap", None),
+            ("success", "prepared", None),
+            ("success", "exit", None),
+            ("target_failure", "exit", None),
+            ("runner_failure", "exit", None),
+            ("target_failure", "trap", Some(0)),
+            ("runner_failure", "capacity", Some(7)),
+            ("prepared", "prepared", Some(0)),
+            ("prepared", "exit", Some(0)),
+            ("prepared", "trap", None),
+            ("target_failure", "prepared", None),
+            ("runner_failure", "prepared", None),
+            ("watchdog", "exit", Some(0)),
+            ("watchdog", "trap", None),
+        ] {
+            assert!(
+                outcome(class, termination, exit_code).validate().is_err(),
+                "{class}/{termination}/{exit_code:?}"
+            );
+        }
+    }
+
     // A codec round trip protects integer width and canonical key ordering, which CLI views cannot distinguish after JSON parsing.
     #[test]
     fn native_integer_round_trip() {
