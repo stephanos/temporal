@@ -917,370 +917,433 @@
           "same_family": true
         }
       ]
+    },
+    {
+      "observed_at": "2026-10-23T10:03:50.264877+00:00",
+      "integration_head": "2efbbaae3bf84f3c3fb9fcf7525d3d34d07a9b5d",
+      "final_qualification": false,
+      "logs": [
+        {
+          "path": "/home/agent/.cache/codex-build/fn232-root-final-cluster-clippy.log",
+          "bytes": 279,
+          "sha256": "248d5efddbf7fef65fd2faa118ca2054e41957a0071851f33e6bc5f595d29e1c",
+          "exit": 0,
+          "scope": "Integrated strict release gomad lib/tests Clippy"
+        },
+        {
+          "path": "/home/agent/.cache/codex-build/fn232-root-model-predicate-receiving-tests.log",
+          "bytes": 1487,
+          "sha256": "46f10a7c72e4133b34af314e756bf2c6ffa713eefaf1ac22dedf72a12645cf16",
+          "exit": 0,
+          "scope": "10 actual model-preservation tests before typed socket review fix"
+        },
+        {
+          "path": "/home/agent/.cache/codex-build/fn232-root-four-pointer-cooperative-test.log",
+          "bytes": 532,
+          "sha256": "fe7a094d0d3b5803d4f8762f52d7605a1a71bcb931f7188774160015515bd763",
+          "exit": 0,
+          "scope": "1 actual original complete cooperative import boundary test"
+        },
+        {
+          "path": "/home/agent/.cache/codex-build/fn232-root-typed-namespace-predicate-test.log",
+          "bytes": 548,
+          "sha256": "176e3efad083a7ca44fe5b857fe2046ce68e705a15f09f12ffd7e82685782a88",
+          "exit": 0,
+          "scope": "1 actual typed socket namespace sequence after review fix"
+        },
+        {
+          "path": "/home/agent/.cache/codex-build/fn232-root-four-reference-inventory-test.log",
+          "bytes": 3962,
+          "sha256": "118818e2580137fb4e06b38594e5d3ee83cfd3a4dfab51885b590f69d99ab76c",
+          "exit": 101,
+          "scope": "Selected evidence resolver still fails:20 unique unresolved original references, reduced from24; other34 inventory tests filtered"
+        }
+      ],
+      "completed_scope": [
+        "Four exact original predicate references now point to actual Rust tests (16 pointer occurrences). All508 IDs/sites unchanged; protected history untouched.",
+        "Fresh independent source review found namespace test bypassed typed socket dispatch.2efbbaae3b replaces stub with production SockAccept; selected actualtestPASS and reviewclosed. Otherthree mappings have no findings.",
+        "Workspace rustfmt and git diff checks pass. Integrated terminal/profile/cluster joins fresh same-family review found no additional blocker beyond explicit native producer dependency."
+      ],
+      "pending": [
+        "Cluster source fixture repair still running and being extended for root host/overlay filesystem separation; root9test result remains8PASS1FAIL until received.",
+        "Remaining20 original evidence references unresolved. Fresh full originalpredicate audit assigned coherent capture/identity/runtime/lifecycle receiving implementation in isolated worktree.",
+        "Native terminal module recipe binding, warm/prime external-module reuse, actual fresh runtime tuple and complete final frozen qualification remain outstanding."
+      ],
+      "reviews": [
+        {
+          "agent": "/root/terminal_cluster_join_review",
+          "scope": "6caa50a040..82cb6755c8 integrated joins",
+          "status": "no additional blocker; explicitly provisional native dependencies",
+          "same_family": true
+        },
+        {
+          "agent": "/root/inventory_four_predicate_review",
+          "scope": "7bca64bfc2 plus2efbbaae3b four exact predicates",
+          "status": "finding fixed; no remaining findings",
+          "same_family": true
+        }
+      ]
     }
   ],
   "resource_snapshot": {
-    "observed_at": "2026-10-23T09:48:51.680930+00:00",
-    "root_target": "/home/agent/.cache/codex-build/fn232-retirement-integration",
-    "root_processes": "All root verification handles terminal. Source workers continue independently; no final qualification or root Go/guest process running.",
+    "observed_at": "2026-10-23T10:03:50.287392+00:00",
     "worktrees": [
       {
         "worktree": "/Users/stephan/Workspace/skunkworks/gomad/temporal",
-        "HEAD": "459b844e2a0b97bf25062c9e72820d2cf716fbb9",
+        "HEAD": "2efbbaae3bf84f3c3fb9fcf7525d3d34d07a9b5d",
         "branch": "refs/heads/gomad",
-        "retention_reason": "Active root integration checkout."
+        "retention_reason": "Existing open-spec source/evidence custody or active isolated worker; no ownership release inferred from inactivity."
       },
       {
         "worktree": "/home/agent/wt/fn185-attribution-fix",
         "HEAD": "0ee0ebd6ef7b55d4ae12e3e63b3db4075b277da9",
         "branch": "refs/heads/fn185-attribution-fix",
-        "retention_reason": "Retained for existing open-spec source/evidence ownership; cleanup requires owner release and actual live-reference audit."
+        "retention_reason": "Existing open-spec source/evidence custody or active isolated worker; no ownership release inferred from inactivity."
       },
       {
         "worktree": "/home/agent/wt/fn185-rust-attribution",
         "HEAD": "cac5b294eb6de2985d0d529a793c73927feb171a",
         "branch": "refs/heads/fn185-rust-attribution",
-        "retention_reason": "Retained for existing open-spec source/evidence ownership; cleanup requires owner release and actual live-reference audit."
+        "retention_reason": "Existing open-spec source/evidence custody or active isolated worker; no ownership release inferred from inactivity."
       },
       {
         "worktree": "/home/agent/wt/fn188-measurement-stress",
         "HEAD": "d14494a5da1c64439c3519fe9e3c07e3b5ebec20",
         "branch": "refs/heads/fn188-measurement-stress",
-        "retention_reason": "Retained for existing open-spec source/evidence ownership; cleanup requires owner release and actual live-reference audit."
+        "retention_reason": "Existing open-spec source/evidence custody or active isolated worker; no ownership release inferred from inactivity."
       },
       {
         "worktree": "/home/agent/wt/fn188-rust-stress",
         "HEAD": "175d69612f685c19881648011f18e230e6d99c73",
         "branch": "refs/heads/fn188-rust-stress",
-        "retention_reason": "Retained for existing open-spec source/evidence ownership; cleanup requires owner release and actual live-reference audit."
+        "retention_reason": "Existing open-spec source/evidence custody or active isolated worker; no ownership release inferred from inactivity."
       },
       {
         "worktree": "/home/agent/wt/fn221",
         "HEAD": "fff7a9575e10bd391b1c44e506d1bf57a8986d34",
         "branch": "refs/heads/fn221-sweep",
-        "retention_reason": "Retained for existing open-spec source/evidence ownership; cleanup requires owner release and actual live-reference audit."
+        "retention_reason": "Existing open-spec source/evidence custody or active isolated worker; no ownership release inferred from inactivity."
       },
       {
         "worktree": "/home/agent/wt/fn221-matrix",
         "HEAD": "d414f0fda7dd429ed5dd6afbe9842ade8bdb5c97",
         "branch": "refs/heads/fn221-matrix",
-        "retention_reason": "Retained for existing open-spec source/evidence ownership; cleanup requires owner release and actual live-reference audit."
+        "retention_reason": "Existing open-spec source/evidence custody or active isolated worker; no ownership release inferred from inactivity."
       },
       {
         "worktree": "/home/agent/wt/fn221-rerun-src",
         "HEAD": "1d7b37f00a74a85399993f1edcad6fe742e778e3",
-        "detached": true,
-        "retention_reason": "Retained for existing open-spec source/evidence ownership; cleanup requires owner release and actual live-reference audit."
+        "retention_reason": "Existing open-spec source/evidence custody or active isolated worker; no ownership release inferred from inactivity."
       },
       {
         "worktree": "/home/agent/wt/fn222-driver",
         "HEAD": "b573067ee32c6bdac9c9772acc6a0505be4c4e49",
         "branch": "refs/heads/fn222-driver",
-        "retention_reason": "Retained for existing open-spec source/evidence ownership; cleanup requires owner release and actual live-reference audit."
+        "retention_reason": "Existing open-spec source/evidence custody or active isolated worker; no ownership release inferred from inactivity."
       },
       {
         "worktree": "/home/agent/wt/fn222-inspection",
         "HEAD": "c030316863ef3b18a96a28ea58cb988a66a589a0",
         "branch": "refs/heads/fn222-inspection",
-        "retention_reason": "Retained for existing open-spec source/evidence ownership; cleanup requires owner release and actual live-reference audit."
+        "retention_reason": "Existing open-spec source/evidence custody or active isolated worker; no ownership release inferred from inactivity."
       },
       {
         "worktree": "/home/agent/wt/fn222-support",
         "HEAD": "64f987af5b7b42d56f4ec9f3bb2ecd127531bf9f",
         "branch": "refs/heads/fn222-support-v2",
-        "retention_reason": "Retained for existing open-spec source/evidence ownership; cleanup requires owner release and actual live-reference audit."
+        "retention_reason": "Existing open-spec source/evidence custody or active isolated worker; no ownership release inferred from inactivity."
       },
       {
         "worktree": "/home/agent/wt/fn230-sites",
         "HEAD": "aa0e2af51459e541e8dddaa6c53b762b239f879c",
         "branch": "refs/heads/fn230-sites",
-        "retention_reason": "Retained for existing open-spec source/evidence ownership; cleanup requires owner release and actual live-reference audit."
+        "retention_reason": "Existing open-spec source/evidence custody or active isolated worker; no ownership release inferred from inactivity."
       },
       {
         "worktree": "/home/agent/wt/fn232-broker-observe",
         "HEAD": "1d695061b6382009d0659238c652a5a765b1d5f5",
-        "detached": true,
-        "retention_reason": "Retained for existing open-spec source/evidence ownership; cleanup requires owner release and actual live-reference audit."
+        "retention_reason": "Existing open-spec source/evidence custody or active isolated worker; no ownership release inferred from inactivity."
       },
       {
         "worktree": "/home/agent/wt/fn232-broker-observe-v3",
         "HEAD": "412dc2488c4c63b8951f1abcf011fd7b96d2ee33",
-        "detached": true,
-        "retention_reason": "Retained for existing open-spec source/evidence ownership; cleanup requires owner release and actual live-reference audit."
+        "retention_reason": "Existing open-spec source/evidence custody or active isolated worker; no ownership release inferred from inactivity."
       },
       {
         "worktree": "/home/agent/wt/fn232-broker-observe-v4",
         "HEAD": "a1e0bdf513e074c8b9b19062fef4dfd5356393a2",
-        "detached": true,
-        "retention_reason": "Retained for existing open-spec source/evidence ownership; cleanup requires owner release and actual live-reference audit."
+        "retention_reason": "Existing open-spec source/evidence custody or active isolated worker; no ownership release inferred from inactivity."
       },
       {
         "worktree": "/home/agent/wt/fn232-broker-observe-v5",
         "HEAD": "5fb6056cf351416bacd541ec59fdb04006d944c1",
-        "detached": true,
-        "retention_reason": "Retained for existing open-spec source/evidence ownership; cleanup requires owner release and actual live-reference audit."
+        "retention_reason": "Existing open-spec source/evidence custody or active isolated worker; no ownership release inferred from inactivity."
       },
       {
         "worktree": "/home/agent/wt/fn232-broker-observe-v6",
         "HEAD": "d392dec327c5573da9076e9cd50054c3b15125e6",
-        "detached": true,
-        "retention_reason": "Retained for existing open-spec source/evidence ownership; cleanup requires owner release and actual live-reference audit."
+        "retention_reason": "Existing open-spec source/evidence custody or active isolated worker; no ownership release inferred from inactivity."
       },
       {
         "worktree": "/home/agent/wt/fn232-cluster-pairs",
-        "HEAD": "43ccd25f94a19d40b953bebbcd55e7235a0c657a",
+        "HEAD": "3c1bcc290674575efdffb2af9134039a4f2fcb10",
         "branch": "refs/heads/fn232-cluster-pairs",
-        "retention_reason": "Retained for existing open-spec source/evidence ownership; cleanup requires owner release and actual live-reference audit."
+        "retention_reason": "Existing open-spec source/evidence custody or active isolated worker; no ownership release inferred from inactivity."
       },
       {
         "worktree": "/home/agent/wt/fn232-controls-reference",
         "HEAD": "96b353793c77851065da3996e9555647e47e8e34",
-        "detached": true,
-        "retention_reason": "Retained for existing open-spec source/evidence ownership; cleanup requires owner release and actual live-reference audit."
+        "retention_reason": "Existing open-spec source/evidence custody or active isolated worker; no ownership release inferred from inactivity."
       },
       {
         "worktree": "/home/agent/wt/fn232-core-functional-predicates",
         "HEAD": "1c944d4fbf993ab612abe7d276db4b6e8b9d7824",
         "branch": "refs/heads/fn232-core-functional-predicates",
-        "retention_reason": "Retained for existing open-spec source/evidence ownership; cleanup requires owner release and actual live-reference audit."
+        "retention_reason": "Existing open-spec source/evidence custody or active isolated worker; no ownership release inferred from inactivity."
       },
       {
         "worktree": "/home/agent/wt/fn232-core-host-reach",
         "HEAD": "e2708ad8f1f5588c5651059dab28cea7e096d95b",
         "branch": "refs/heads/fn232-core-host-reach",
-        "retention_reason": "Retained for existing open-spec source/evidence ownership; cleanup requires owner release and actual live-reference audit."
+        "retention_reason": "Existing open-spec source/evidence custody or active isolated worker; no ownership release inferred from inactivity."
       },
       {
         "worktree": "/home/agent/wt/fn232-core-inspection-predicates",
         "HEAD": "f04f9ae764bbead7cb224774b55f435ff57f2021",
         "branch": "refs/heads/fn232-core-inspection-predicates",
-        "retention_reason": "Retained for existing open-spec source/evidence ownership; cleanup requires owner release and actual live-reference audit."
+        "retention_reason": "Existing open-spec source/evidence custody or active isolated worker; no ownership release inferred from inactivity."
       },
       {
         "worktree": "/home/agent/wt/fn232-core-lifecycle-predicates",
         "HEAD": "c7df0ffae1e86964edb50fef50819221f1669c93",
         "branch": "refs/heads/fn232-core-lifecycle-predicates",
-        "retention_reason": "Retained for existing open-spec source/evidence ownership; cleanup requires owner release and actual live-reference audit."
+        "retention_reason": "Existing open-spec source/evidence custody or active isolated worker; no ownership release inferred from inactivity."
       },
       {
         "worktree": "/home/agent/wt/fn232-core-model-reach",
         "HEAD": "eb31d29eb8ca7aeaf482ea338b84e82ea6fde5c1",
         "branch": "refs/heads/fn232-core-model-reach",
-        "retention_reason": "Retained for existing open-spec source/evidence ownership; cleanup requires owner release and actual live-reference audit."
+        "retention_reason": "Existing open-spec source/evidence custody or active isolated worker; no ownership release inferred from inactivity."
       },
       {
         "worktree": "/home/agent/wt/fn232-core-reach",
-        "HEAD": "5ba7d6c3ad46287939e5aa129c1710c72e598902",
+        "HEAD": "6d15b1ecf3eccbfa5b2fccf410321ab0e18dcde3",
         "branch": "refs/heads/fn232-core-reach",
-        "retention_reason": "Retained for existing open-spec source/evidence ownership; cleanup requires owner release and actual live-reference audit."
+        "retention_reason": "Existing open-spec source/evidence custody or active isolated worker; no ownership release inferred from inactivity."
       },
       {
         "worktree": "/home/agent/wt/fn232-core-retained-predicates",
-        "HEAD": "dae3ffbe467aa7a677204586607e1e9795c78bbe",
+        "HEAD": "fc986986abd9b66e082fdfc0c64c01f54fab792f",
         "branch": "refs/heads/fn232-core-retained-predicates",
-        "retention_reason": "Retained for existing open-spec source/evidence ownership; cleanup requires owner release and actual live-reference audit."
+        "retention_reason": "Existing open-spec source/evidence custody or active isolated worker; no ownership release inferred from inactivity."
       },
       {
         "worktree": "/home/agent/wt/fn232-determinism-exact",
         "HEAD": "27f89abb2cb2e18181d24ed6c455f4bfa5818cf6",
         "branch": "refs/heads/fn232-determinism-exact",
-        "retention_reason": "Retained for existing open-spec source/evidence ownership; cleanup requires owner release and actual live-reference audit."
+        "retention_reason": "Existing open-spec source/evidence custody or active isolated worker; no ownership release inferred from inactivity."
       },
       {
         "worktree": "/home/agent/wt/fn232-determinism-reach",
         "HEAD": "f776ad0e015fa46683c3311fb0750fc73fccecf9",
         "branch": "refs/heads/fn232-determinism-reach",
-        "retention_reason": "Retained for existing open-spec source/evidence ownership; cleanup requires owner release and actual live-reference audit."
+        "retention_reason": "Existing open-spec source/evidence custody or active isolated worker; no ownership release inferred from inactivity."
       },
       {
         "worktree": "/home/agent/wt/fn232-final-composition",
         "HEAD": "dd1670b4896c905186ad5982405f925128323a42",
         "branch": "refs/heads/fn232-final-composition",
-        "retention_reason": "Retained for existing open-spec source/evidence ownership; cleanup requires owner release and actual live-reference audit."
+        "retention_reason": "Existing open-spec source/evidence custody or active isolated worker; no ownership release inferred from inactivity."
       },
       {
         "worktree": "/home/agent/wt/fn232-final-profiles",
         "HEAD": "f43b2abc7280781f4b9274ff813675196ac253f6",
         "branch": "refs/heads/fn232-final-profiles",
-        "retention_reason": "Retained for existing open-spec source/evidence ownership; cleanup requires owner release and actual live-reference audit."
+        "retention_reason": "Existing open-spec source/evidence custody or active isolated worker; no ownership release inferred from inactivity."
       },
       {
         "worktree": "/home/agent/wt/fn232-final-retained",
         "HEAD": "5ec7a1f9f66e784798f2cb278045572f2da6b3df",
         "branch": "refs/heads/fn232-final-retained",
-        "retention_reason": "Retained for existing open-spec source/evidence ownership; cleanup requires owner release and actual live-reference audit."
+        "retention_reason": "Existing open-spec source/evidence custody or active isolated worker; no ownership release inferred from inactivity."
       },
       {
         "worktree": "/home/agent/wt/fn232-final-role-validation",
-        "HEAD": "38ad71fbc67a7defa33b743ec9369d084e5fdcf3",
+        "HEAD": "e8d1c1a054f893b2064ea101f81bcd6f81b30837",
         "branch": "refs/heads/fn232-final-role-validation",
-        "retention_reason": "Retained for existing open-spec source/evidence ownership; cleanup requires owner release and actual live-reference audit."
+        "retention_reason": "Existing open-spec source/evidence custody or active isolated worker; no ownership release inferred from inactivity."
       },
       {
         "worktree": "/home/agent/wt/fn232-foundation",
         "HEAD": "8f47d368fcc3e6a5a82058f02d8ae8f650c1d740",
         "branch": "refs/heads/fn-232-gomad-rewrite-the-host-side-in-rust",
-        "retention_reason": "Retained for existing open-spec source/evidence ownership; cleanup requires owner release and actual live-reference audit."
+        "retention_reason": "Existing open-spec source/evidence custody or active isolated worker; no ownership release inferred from inactivity."
       },
       {
         "worktree": "/home/agent/wt/fn232-inspection-admission",
         "HEAD": "bdafd0973c056b5a938ef7295ae1f9590e18b094",
         "branch": "refs/heads/fn232-inspection-admission",
-        "retention_reason": "Retained for existing open-spec source/evidence ownership; cleanup requires owner release and actual live-reference audit."
+        "retention_reason": "Existing open-spec source/evidence custody or active isolated worker; no ownership release inferred from inactivity."
       },
       {
         "worktree": "/home/agent/wt/fn232-install",
         "HEAD": "fbb99949b82ccb5ea4d5dafa08732f829ef20467",
         "branch": "refs/heads/fn232-install",
-        "retention_reason": "Retained for existing open-spec source/evidence ownership; cleanup requires owner release and actual live-reference audit."
+        "retention_reason": "Existing open-spec source/evidence custody or active isolated worker; no ownership release inferred from inactivity."
       },
       {
         "worktree": "/home/agent/wt/fn232-installed-lifecycle",
         "HEAD": "63c5510aadf934012e1484782355889205dfae4a",
         "branch": "refs/heads/fn232-installed-lifecycle",
-        "retention_reason": "Retained for existing open-spec source/evidence ownership; cleanup requires owner release and actual live-reference audit."
+        "retention_reason": "Existing open-spec source/evidence custody or active isolated worker; no ownership release inferred from inactivity."
       },
       {
         "worktree": "/home/agent/wt/fn232-linked-cache",
         "HEAD": "c07df2cc6872e1735f8b8d871df027017271ae3b",
         "branch": "refs/heads/fn232-linked-cache",
-        "retention_reason": "Retained for existing open-spec source/evidence ownership; cleanup requires owner release and actual live-reference audit."
+        "retention_reason": "Existing open-spec source/evidence custody or active isolated worker; no ownership release inferred from inactivity."
       },
       {
         "worktree": "/home/agent/wt/fn232-live-corpus",
         "HEAD": "aafbcad9381bcb57c1e7d33852dc5c5709aa5e2a",
         "branch": "refs/heads/fn232-live-corpus",
-        "retention_reason": "Retained for existing open-spec source/evidence ownership; cleanup requires owner release and actual live-reference audit."
+        "retention_reason": "Existing open-spec source/evidence custody or active isolated worker; no ownership release inferred from inactivity."
       },
       {
         "worktree": "/home/agent/wt/fn232-mandatory-workloads",
         "HEAD": "cc907477eb7b8fbfa29dcb0a0abf8835687018e4",
         "branch": "refs/heads/fn232-mandatory-workloads",
-        "retention_reason": "Retained for existing open-spec source/evidence ownership; cleanup requires owner release and actual live-reference audit."
+        "retention_reason": "Existing open-spec source/evidence custody or active isolated worker; no ownership release inferred from inactivity."
       },
       {
         "worktree": "/home/agent/wt/fn232-measurement-artifacts",
         "HEAD": "234e6d2234c83651eab2ecd91d0151bbf4b29c71",
         "branch": "refs/heads/fn232-measurement-artifacts",
-        "retention_reason": "Retained for existing open-spec source/evidence ownership; cleanup requires owner release and actual live-reference audit."
+        "retention_reason": "Existing open-spec source/evidence custody or active isolated worker; no ownership release inferred from inactivity."
       },
       {
         "worktree": "/home/agent/wt/fn232-measurement-completion",
         "HEAD": "e9d345202d6192cc2af1bc4d41f9aabeb6ea26db",
         "branch": "refs/heads/fn232-measurement-completion",
-        "retention_reason": "Retained for existing open-spec source/evidence ownership; cleanup requires owner release and actual live-reference audit."
+        "retention_reason": "Existing open-spec source/evidence custody or active isolated worker; no ownership release inferred from inactivity."
       },
       {
         "worktree": "/home/agent/wt/fn232-measurement-digest-only",
         "HEAD": "a9d99890100e5298479028e6adee8903608b7fff",
         "branch": "refs/heads/fn232-measurement-digest-only",
-        "retention_reason": "Retained for existing open-spec source/evidence ownership; cleanup requires owner release and actual live-reference audit."
+        "retention_reason": "Existing open-spec source/evidence custody or active isolated worker; no ownership release inferred from inactivity."
       },
       {
         "worktree": "/home/agent/wt/fn232-measurement-lint",
         "HEAD": "ca8fce5aad35fbc7abe8c9681401f2b96c5b8ad6",
         "branch": "refs/heads/fn232-measurement-lint",
-        "retention_reason": "Retained for existing open-spec source/evidence ownership; cleanup requires owner release and actual live-reference audit."
+        "retention_reason": "Existing open-spec source/evidence custody or active isolated worker; no ownership release inferred from inactivity."
       },
       {
         "worktree": "/home/agent/wt/fn232-measurement-memory",
         "HEAD": "11634cea1b86b9e7182218edb662f0c44dfc559c",
         "branch": "refs/heads/fn232-measurement-memory",
-        "retention_reason": "Retained for existing open-spec source/evidence ownership; cleanup requires owner release and actual live-reference audit."
+        "retention_reason": "Existing open-spec source/evidence custody or active isolated worker; no ownership release inferred from inactivity."
       },
       {
         "worktree": "/home/agent/wt/fn232-measurement-migration",
         "HEAD": "99a05923af27ce4d38dbdc08354b128082f363b7",
         "branch": "refs/heads/fn232-measurement-migration",
-        "retention_reason": "Retained for existing open-spec source/evidence ownership; cleanup requires owner release and actual live-reference audit."
+        "retention_reason": "Existing open-spec source/evidence custody or active isolated worker; no ownership release inferred from inactivity."
       },
       {
         "worktree": "/home/agent/wt/fn232-measurement-reach",
         "HEAD": "51b566a2ba19d3d012af5e0b38489e5ee64840e7",
         "branch": "refs/heads/fn232-measurement-reach",
-        "retention_reason": "Retained for existing open-spec source/evidence ownership; cleanup requires owner release and actual live-reference audit."
+        "retention_reason": "Existing open-spec source/evidence custody or active isolated worker; no ownership release inferred from inactivity."
       },
       {
         "worktree": "/home/agent/wt/fn232-measurement-terminal-collection",
         "HEAD": "75e33dd5376ebc902f06f7675ca500d062d7fc85",
         "branch": "refs/heads/fn232-measurement-terminal-collection",
-        "retention_reason": "Retained for existing open-spec source/evidence ownership; cleanup requires owner release and actual live-reference audit."
+        "retention_reason": "Existing open-spec source/evidence custody or active isolated worker; no ownership release inferred from inactivity."
       },
       {
         "worktree": "/home/agent/wt/fn232-minimize",
         "HEAD": "92ef3e3403e3e66e9192b7d07bb950f1d56716c8",
         "branch": "refs/heads/fn232-minimize",
-        "retention_reason": "Retained for existing open-spec source/evidence ownership; cleanup requires owner release and actual live-reference audit."
+        "retention_reason": "Existing open-spec source/evidence custody or active isolated worker; no ownership release inferred from inactivity."
       },
       {
         "worktree": "/home/agent/wt/fn232-native-import",
         "HEAD": "dc7fa146194e715fb5fc94a1b6218fc68453b6bc",
         "branch": "refs/heads/fn232-native-import",
-        "retention_reason": "Retained for existing open-spec source/evidence ownership; cleanup requires owner release and actual live-reference audit."
+        "retention_reason": "Existing open-spec source/evidence custody or active isolated worker; no ownership release inferred from inactivity."
       },
       {
         "worktree": "/home/agent/wt/fn232-primary-terminal",
         "HEAD": "568a21b6186794ef0d9f454e5cafb92a0d783fcc",
         "branch": "refs/heads/fn232-primary-terminal",
-        "retention_reason": "Retained for existing open-spec source/evidence ownership; cleanup requires owner release and actual live-reference audit."
+        "retention_reason": "Existing open-spec source/evidence custody or active isolated worker; no ownership release inferred from inactivity."
       },
       {
         "worktree": "/home/agent/wt/fn232-profile-reference",
         "HEAD": "619f03c6cac21b3f34414510ffdde2d90cbdfecb",
         "branch": "refs/heads/fn232-profile-reference",
-        "retention_reason": "Retained for existing open-spec source/evidence ownership; cleanup requires owner release and actual live-reference audit."
+        "retention_reason": "Existing open-spec source/evidence custody or active isolated worker; no ownership release inferred from inactivity."
       },
       {
         "worktree": "/home/agent/wt/fn232-receiving-reader",
         "HEAD": "ba4958663f46d796611b382eec90d55116ffb9d1",
         "branch": "refs/heads/fn232-receiving-reader",
-        "retention_reason": "Retained for existing open-spec source/evidence ownership; cleanup requires owner release and actual live-reference audit."
+        "retention_reason": "Existing open-spec source/evidence custody or active isolated worker; no ownership release inferred from inactivity."
+      },
+      {
+        "worktree": "/home/agent/wt/fn232-remaining-model-predicates",
+        "HEAD": "2efbbaae3bf84f3c3fb9fcf7525d3d34d07a9b5d",
+        "branch": "refs/heads/fn232-remaining-model-predicates",
+        "retention_reason": "Active isolated exact-original capture, immutable identity, runtime and lifecycle predicate implementation worker."
       },
       {
         "worktree": "/home/agent/wt/fn232-retirement",
         "HEAD": "f0e8b834f49f27cb452c43c7bbaaca27c4a1fbcd",
         "branch": "refs/heads/fn232-retirement",
-        "retention_reason": "Retained for existing open-spec source/evidence ownership; cleanup requires owner release and actual live-reference audit."
+        "retention_reason": "Existing open-spec source/evidence custody or active isolated worker; no ownership release inferred from inactivity."
       },
       {
         "worktree": "/home/agent/wt/fn232-runtime-qualification",
         "HEAD": "50a22fb6d9e0339f266f0f2d6611ebf581ac0091",
         "branch": "refs/heads/fn232-runtime-qualification",
-        "retention_reason": "Retained for existing open-spec source/evidence ownership; cleanup requires owner release and actual live-reference audit."
+        "retention_reason": "Existing open-spec source/evidence custody or active isolated worker; no ownership release inferred from inactivity."
       },
       {
         "worktree": "/home/agent/wt/fn232-rust-driver",
         "HEAD": "dd2c39b5b464d0a120c089ea59fb1d06b8671067",
         "branch": "refs/heads/fn232-rust-driver",
-        "retention_reason": "Retained for existing open-spec source/evidence ownership; cleanup requires owner release and actual live-reference audit."
+        "retention_reason": "Existing open-spec source/evidence custody or active isolated worker; no ownership release inferred from inactivity."
       },
       {
         "worktree": "/home/agent/wt/fn232-simulation",
         "HEAD": "1c9a79255bca2e6468c780da78b6cfe4f2b620ab",
         "branch": "refs/heads/fn232-simulation",
-        "retention_reason": "Retained for existing open-spec source/evidence ownership; cleanup requires owner release and actual live-reference audit."
+        "retention_reason": "Existing open-spec source/evidence custody or active isolated worker; no ownership release inferred from inactivity."
       },
       {
         "worktree": "/home/agent/wt/fn232-sweep-receiver",
         "HEAD": "27811042002a27f8d73c04f2f60890d8c6d9f88a",
         "branch": "refs/heads/fn232-sweep-receiver",
-        "retention_reason": "Retained for existing open-spec source/evidence ownership; cleanup requires owner release and actual live-reference audit."
+        "retention_reason": "Existing open-spec source/evidence custody or active isolated worker; no ownership release inferred from inactivity."
       },
       {
         "worktree": "/home/agent/wt/fn232-world-codec",
         "HEAD": "13dbbf69e4a53097ee18c8f76e804fff2d02ac94",
         "branch": "refs/heads/fn232-world-codec",
-        "retention_reason": "Retained for existing open-spec source/evidence ownership; cleanup requires owner release and actual live-reference audit."
+        "retention_reason": "Existing open-spec source/evidence custody or active isolated worker; no ownership release inferred from inactivity."
       },
       {
         "worktree": "/home/agent/wt/fn233-interception",
         "HEAD": "4939d87c16c93de978b694934943d11c7ed655df",
         "branch": "refs/heads/fn233-interception",
-        "retention_reason": "Retained for existing open-spec source/evidence ownership; cleanup requires owner release and actual live-reference audit."
+        "retention_reason": "Existing open-spec source/evidence custody or active isolated worker; no ownership release inferred from inactivity."
       }
     ],
-    "free_space": "Filesystem      Size  Used Avail Use% Mounted on\nhost            927G  825G  103G  89% /Users/stephan/Workspace/skunkworks\noverlay         196G  173G   14G  93% /\n",
-    "cleanup": "No additional root cleanup after earlier900411392-byte own-cache reclamation. Measurement owner reclaimed only18stale owned .rlib compiler caches3911829870bytes with evidence manifest; all binaries/source/receipts/51admission artifact preserved.",
+    "free_space": "Filesystem      Size  Used Avail Use% Mounted on\nhost            927G  825G  102G  90% /Users/stephan/Workspace/skunkworks\noverlay         196G  173G   13G  94% /\n",
+    "cleanup": "No cache/evidence cleanup this update; all root test/build handles terminal.",
     "preserved_user_paths": [
       "tools/gomad/.turbo/",
       "tools/gomad/internal/backends/wasm/wasmhost/"

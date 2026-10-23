@@ -398,3 +398,16 @@ fixture rejected the preserved user untracked paths as a dirty checkout. The
 worker is isolating its real checkout fixture without weakening production
 clean-source admission. Root Cargo handles are terminal. All milestone scope
 and original qualification obligations remain open.
+
+## Exact original inventory evidence receiving
+
+At `2efbbaae3bf84f3c3fb9fcf7525d3d34d07a9b5d`, four original test references are mapped to equivalent
+Rust predicates across 16 evidence entries; all 508 identities/sites remain
+unchanged. Ten model tests and the cooperative import test pass. Independent
+review found the namespace socket check bypassed production dispatch; the
+receiving test now invokes typed SockAccept, passes, and review is closed.
+The evidence resolver now reports 20 unresolved original references, down from
+24; its selected test still exits 101. No full inventory pass is claimed.
+Strict integrated release Clippy, workspace formatting and diff checks pass.
+The remaining capture/identity/runtime/lifecycle predicates are assigned as one
+isolated implementation batch. Full frozen qualification stays outstanding.
