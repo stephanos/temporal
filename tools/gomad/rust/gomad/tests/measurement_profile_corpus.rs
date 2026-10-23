@@ -94,6 +94,54 @@ impl Drop for Scratch {
 fn read(path: &Path) -> Value {
     serde_json::from_slice(&std::fs::read(path).unwrap()).unwrap()
 }
+fn assert_variant_artifacts(root: &Path) -> Value {
+    let catalog = read(&root.join("variant-artifacts.json"));
+    assert_eq!(catalog["schema"], "gomad.native-variant-artifacts/v1");
+    assert_eq!(catalog["availability_only"], true);
+    assert_eq!(catalog["catalog_errors"], json!([]));
+    let entries = catalog["artifacts"].as_object().unwrap();
+    assert_eq!(
+        entries.keys().map(String::as_str).collect::<Vec<_>>(),
+        vec![
+            "canonical-wasi",
+            "choice",
+            "guest-stderr",
+            "guest-stdout",
+            "helper-stderr",
+            "network"
+        ]
+    );
+    for (name, suffix) in [
+        ("canonical-wasi", "-canonical.bin"),
+        ("choice", "-choice.bin"),
+        ("network", "-network.jsonl"),
+        ("helper-stderr", "-helper-stderr.txt"),
+        ("guest-stdout", "-guest-stdout.txt"),
+        ("guest-stderr", "-guest-stderr.txt"),
+    ] {
+        let entry = &entries[name];
+        assert_eq!(entry["original_suffix"], suffix);
+        if entry["status"] == "available" {
+            let raw = std::fs::read(root.join(entry["file"].as_str().unwrap())).unwrap();
+            assert_eq!(entry["bytes"], raw.len());
+            assert_eq!(entry["sha256"], canonical::digest(&raw));
+            assert!(entry["source"].as_str().is_some());
+        } else {
+            assert_eq!(entry["status"], "unavailable");
+            assert!(!entry["cause"].as_str().unwrap().is_empty());
+            assert!(entry.get("file").is_none());
+            assert!(entry.get("bytes").is_none());
+            assert!(entry.get("sha256").is_none());
+        }
+    }
+    for (file, binding) in catalog["files"].as_object().unwrap() {
+        let raw = std::fs::read(root.join(file)).unwrap();
+        assert_eq!(binding["bytes"], raw.len());
+        assert_eq!(binding["sha256"], canonical::digest(&raw));
+    }
+    catalog
+}
+
 fn private_tree(path: &Path) {
     assert_eq!(
         std::fs::metadata(path).unwrap().permissions().mode() & 0o777,
@@ -139,6 +187,19 @@ fn actual_public_native_run_retains_authenticated_raw_observation() {
     assert_eq!(observed.root.outcome["termination"], "exit");
     assert_eq!(observed.modules.len(), 1);
     compare_self(&observed);
+    let catalog = assert_variant_artifacts(&output);
+    for name in ["guest-stdout", "guest-stderr", "network"] {
+        assert_eq!(catalog["artifacts"][name]["status"], "available");
+        assert!(
+            catalog["artifacts"][name]["source"]
+                .as_str()
+                .unwrap()
+                .starts_with("closed-sink-empty:")
+        );
+    }
+    for name in ["canonical-wasi", "choice", "helper-stderr"] {
+        assert_eq!(catalog["artifacts"][name]["status"], "unavailable");
+    }
     let report = read(&output.join("report.json"));
     assert_eq!(
         report["diagnostic_only"],
@@ -382,6 +443,18 @@ fn actual_measure_retained_command_preserves_requested_root_and_failed_diagnosti
             .as_str()
             .is_some_and(|error| !error.is_empty())
     );
+    let catalog = assert_variant_artifacts(&failed);
+    assert_eq!(catalog["failure"], report["execution"]["Err"]);
+    assert_eq!(catalog["transport"], "in-process-linked-run");
+    for entry in catalog["artifacts"].as_object().unwrap().values() {
+        assert_eq!(entry["status"], "unavailable");
+    }
+    for name in ["wasi", "choice", "network", "stdout", "stderr"] {
+        assert!(
+            !failed.join(name).exists(),
+            "invented absent stream: {name}"
+        );
+    }
     private_tree(&failed);
 }
 

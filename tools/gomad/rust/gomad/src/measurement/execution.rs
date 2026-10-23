@@ -258,11 +258,23 @@ pub fn run_retained_command(
     super::combine(result, finish).map(|()| output)
 }
 
+fn execute(
+    raw: &[u8],
+    request: Input,
+    root: &Path,
+    observer: Option<&dyn linked_cluster::LifecycleObserver>,
+) -> Result<(), String> {
+    let result = execute_inner(raw, request, root, observer);
+    let catalog =
+        super::artifacts::retain_execution(root, result.as_ref().err().map(String::as_str));
+    super::combine(result, catalog)
+}
+
 #[expect(
     clippy::too_many_lines,
     reason = "Keep standalone and cluster execution retention and diagnostic reporting in the same transaction."
 )]
-fn execute(
+fn execute_inner(
     raw: &[u8],
     request: Input,
     root: &Path,
@@ -532,3 +544,7 @@ fn capture<T>(run: impl FnOnce() -> T) -> Result<(T, Option<Value>), String> {
         Ok((run(), None))
     }
 }
+
+#[cfg(test)]
+#[path = "execution_artifacts_tests.rs"]
+mod artifacts_tests;

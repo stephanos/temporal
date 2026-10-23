@@ -1,3 +1,4 @@
+mod artifacts;
 pub mod build;
 pub mod cluster_driver;
 pub mod evidence;
