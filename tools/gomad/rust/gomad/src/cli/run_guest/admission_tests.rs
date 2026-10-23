@@ -858,10 +858,10 @@ fn cache_installation(root: &Path, cache: &Path) -> PathBuf {
     let profile = "gomad.wasi-stock-exploratory/v1";
     let configured = crate::install::config::build(profile, None, None).unwrap();
     let compiler = root.join("unavailable-go/bin/go");
-    let compiler_inputs = BTreeMap::from([(compiler.clone(), "3".repeat(64))]);
+    let compiler_inputs = BTreeMap::from([(compiler.clone(), "2".repeat(64))]);
     let value = json!({
         "schema":"gomad.rust-wasm-installation/v1", "compiler_path":compiler,
-        "compiler_sha256":"3".repeat(64), "go_version":"go1.27.1", "runtime_root":"",
+        "compiler_sha256":"2".repeat(64), "go_version":"go1.27.1", "runtime_root":"",
         "cache_root":root.join("unavailable-preparation"), "profile":profile,
         "fuel":1000, "memory_bytes":1<<20, "helper_sha256":gomad_wasmhost::linked::IMPLEMENTATION_SHA256,
         "host_sha256":env!("GOMAD_HOST_IMPLEMENTATION_SHA256"), "runtime_implementation_sha256":null,
@@ -912,7 +912,7 @@ fn receipt_admission_restores_authenticated_selected_cache_and_detached_receipt_
     );
     let arguments = Arguments {
         module: root.join("retained.wasm"),
-        argv: Vec::new(),
+        argv: vec!["receipt".into()],
         seeds: Some("1".into()),
         artifacts: Some(root.join("admitted")),
         json: true,
@@ -950,6 +950,65 @@ fn receipt_admission_restores_authenticated_selected_cache_and_detached_receipt_
             &mut deadline
         )
         .is_err()
+    );
+    fs::remove_dir_all(root).unwrap();
+}
+
+#[test]
+fn selected_cache_resume_executes_retained_module_without_compiler_or_source() {
+    let root = std::env::temp_dir().join(format!(
+        "gomad-resume-cache-{}",
+        origin::identity().unwrap()
+    ));
+    fs::create_dir(&root).unwrap();
+    fs::set_permissions(&root, fs::Permissions::from_mode(0o700)).unwrap();
+    let cache = root.join("engine-cache");
+    let installation = cache_installation(&root, &cache);
+    let selected = crate::install::manifest::resolve(Some(&installation)).unwrap();
+    let mut invocation = invocation();
+    invocation.installation_sha256 = selected.sha256;
+    let module = br#"(module (memory (export "memory") 1) (func (export "_start")))"#.to_vec();
+    let prepared = prepared_module_with_wall("resume", &invocation, module, 10_000);
+    let mut ignored = false;
+    let mut options = super::super::explore::parse(
+        &["--seeds=7".into(), "go-run".into(), "fixture".into()],
+        &mut ignored,
+    )
+    .unwrap();
+    options.artifacts = root.join("artifacts");
+    let retained = preparation::retain_admitted(&options, prepared).unwrap();
+    assert!(!cache.exists());
+    let mut output = Vec::new();
+    assert_eq!(
+        crate::cli::resume::run_with_installation(
+            &["--json".into(), retained.campaign.to_str().unwrap().into()],
+            &mut output,
+            Some(&installation),
+        )
+        .unwrap_or_else(|error| panic!("{}", error.message)),
+        0,
+        "{}",
+        String::from_utf8_lossy(&output)
+    );
+    assert_eq!(
+        fs::read_dir(&cache)
+            .unwrap()
+            .filter(|entry| entry
+                .as_ref()
+                .unwrap()
+                .path()
+                .extension()
+                .is_some_and(|suffix| suffix == "gomad-cache-v3"))
+            .count(),
+        1
+    );
+    assert!(!root.join("unavailable-go").exists());
+    assert!(!root.join("unavailable-preparation").exists());
+    let journal = crate::campaign::ledger::Journal::open(&retained.campaign, false).unwrap();
+    assert!(
+        !String::from_utf8(canonical::encode(journal.plan()).unwrap())
+            .unwrap()
+            .contains(cache.to_str().unwrap())
     );
     fs::remove_dir_all(root).unwrap();
 }
