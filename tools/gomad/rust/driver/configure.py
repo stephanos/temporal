@@ -200,6 +200,13 @@ def freeze(bindings, output, source_manifest):
     inputs.add(config['public_verbs']['bindings'])
     inputs.update(config['stress'][key] for key in ('spec', 'binary', 'build_receipt'))
     config['files'] = {str(Path(path).resolve()): sha(path) for path in sorted(inputs)}
+    import terminal_inputs
+    terminal_spec = output.parent / 'terminal-module-input.json'
+    require(not terminal_spec.exists(), 'terminal preparation request must be fresh')
+    write(terminal_spec, terminal_inputs.preparation_spec(config))
+    config['terminal_module_spec'] = str(terminal_spec)
+    config['files'][str(terminal_spec)] = sha(terminal_spec)
+    inputs.add(str(terminal_spec))
     freeze_final_cycle(config, output)
     import final_public_verbs
     final_public_verbs.binding(config)
@@ -210,6 +217,8 @@ def freeze(bindings, output, source_manifest):
         native_roles.validate_build(config, entry['build_receipt'], role)
         if entry.get('admission'):
             native_roles.validate_admission(config, entry['admission'], role)
+    import final_profiles
+    final_profiles.preflight(config)
     import primary_stages
     observed = dict(config, _config_path=str(output))
     for label, entry in config['stages'].items():

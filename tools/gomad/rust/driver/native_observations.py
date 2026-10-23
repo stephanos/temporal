@@ -200,6 +200,9 @@ def option(argv, name):
 
 
 def from_command(config, command_pid, argv, stdout):
+    if len(argv) > 1 and argv[1] == '--prepare-terminal-module':
+        import terminal_module_receiving
+        return terminal_module_receiving.capture(config, command_pid, argv, stdout)
     if len(argv) == 6 and argv[1] == 'produce':
         require(any(entry.get('harness') == argv[0] for entry in config['stages'].values())
                 and config['files'].get(argv[0]) == snapshot(argv[0], MODULE_LIMIT)['sha256'],

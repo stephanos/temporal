@@ -1998,5 +1998,37 @@
  {
   "id": "host.rust.wasmhost.src.linked.rs.monotonic.nanos.clock.gettime.1",
   "site": "host-rust:wasmhost/src/linked.rs|monotonic_nanos|clock_gettime(|1"
+ },
+ {
+  "id": "host.rust.gomad.src.measurement.execution.rs.execute.inner.elapsed.1",
+  "site": "host-rust:gomad/src/measurement/execution.rs|execute_inner|.elapsed()|1"
+ },
+ {
+  "id": "host.rust.gomad.src.measurement.execution.rs.execute.inner.instant.now.1",
+  "site": "host-rust:gomad/src/measurement/execution.rs|execute_inner|Instant::now|1"
+ },
+ {
+  "id": "host.rust.gomad.src.measurement.execution.rs.execute.inner.linked.monotonic.nanos.1",
+  "site": "host-rust:gomad/src/measurement/execution.rs|execute_inner|linked::monotonic_nanos(|1"
+ },
+ {
+  "id": "host.rust.wasmhost.src.linked.cluster.rs.execute.prepared.observed.spawn.1",
+  "site": "host-rust:wasmhost/src/linked_cluster.rs|execute_prepared_observed|.spawn(|1"
+ },
+ {
+  "id": "host.rust.wasmhost.src.linked.cluster.rs.execute.prepared.observed.recv.timeout.1",
+  "site": "host-rust:wasmhost/src/linked_cluster.rs|execute_prepared_observed|recv_timeout|1"
+ },
+ {
+  "id": "host.rust.wasmhost.src.linked.cluster.rs.execute.prepared.observed.thread.scope.1",
+  "site": "host-rust:wasmhost/src/linked_cluster.rs|execute_prepared_observed|thread::scope|1"
+ },
+ {
+  "id": "host.rust.gomad.src.measurement.cluster.admission.rs.observe.systemtime.1",
+  "site": "host-rust:gomad/src/measurement/cluster_admission.rs|observe|SystemTime|1"
+ },
+ {
+  "id": "host.rust.gomad.src.fixture.cluster.lifecycle.tests.rs.public.replay.systemtime.1",
+  "site": "host-rust:gomad/src/fixture_cluster_lifecycle_tests.rs|public_replay|SystemTime|1"
  }
 ]

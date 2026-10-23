@@ -66,6 +66,18 @@ def events(raw):
     return list(observed)
 
 
+def compiler_identity(goroot, version, raw):
+    compiler = json.loads(raw)
+    version_fields = version.decode().strip().split()
+    require(len(version_fields) == 4 and version_fields[:3] == ['go', 'version', 'go1.27.1'], 'foreign stock compiler version')
+    target = version_fields[3].split('/')
+    require(len(target) == 2 and all(value and value.replace('_', '').isalnum() for value in target), 'malformed actual stock compiler host')
+    require(compiler == dict(GOROOT=str(goroot), GOVERSION='go1.27.1',
+                             GOTOOLDIR=str(goroot / ('pkg/tool/' + '_'.join(target)))),
+            'foreign stock compiler installation/host')
+    return compiler
+
+
 def collect(config, root, produce):
     entry = config['terminal_controls_reference']
     execute = run if produce else retained
@@ -86,10 +98,7 @@ def collect(config, root, produce):
     version, _ = execute(child, root, 'go-version', [go, 'version'])
     require(version.startswith(b'go version go1.27.1 '), 'changed original Go version')
     compiler, _ = execute(child, root, 'go-environment', [go, 'env', '-json', 'GOROOT', 'GOVERSION', 'GOTOOLDIR'])
-    compiler = json.loads(compiler)
-    require(compiler == dict(GOROOT=str(goroot), GOVERSION='go1.27.1',
-                             GOTOOLDIR=str(goroot / 'pkg/tool/linux_arm64')),
-            'foreign stock compiler installation/host')
+    compiler = compiler_identity(goroot, version, compiler)
     argv = [go, 'test', '-json', '-v', '-tags', 'test_dep', '-count=1', '-timeout=15m',
             '-run', '^TestTerminalExit', './wasi']
     raw, process = execute(child, root, 'original-terminal-controls', argv)

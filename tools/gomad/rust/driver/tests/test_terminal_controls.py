@@ -20,6 +20,16 @@ class OriginalTerminalControls(unittest.TestCase):
     def encode(self, rows):
         return b'\n'.join(json.dumps(row).encode() for row in rows)
 
+    def test_stock_compiler_receipt_matches_actual_target_without_platform_selector(self):
+        root = Path('/frozen/stock-go')
+        for target in ('linux/arm64', 'linux/amd64', 'darwin/arm64'):
+            version = ('go version go1.27.1 ' + target + '\n').encode()
+            receipt = dict(GOROOT=str(root), GOVERSION='go1.27.1', GOTOOLDIR=str(root / ('pkg/tool/' + target.replace('/', '_'))))
+            with self.subTest(target=target):
+                self.assertEqual(controls.compiler_identity(root, version, json.dumps(receipt)), receipt)
+                receipt['GOTOOLDIR'] = str(root / 'pkg/tool/foreign')
+                with self.assertRaises(Refusal): controls.compiler_identity(root, version, json.dumps(receipt))
+
     def test_complete_original_five_and_twelve_subcases(self):
         self.assertEqual(len(controls.events(self.encode(self.rows()))), 17)
 

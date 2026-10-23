@@ -134,5 +134,53 @@
   "new_site": "host-rust:wasmhost/src/linked.rs|execute_prepared|Instant::now|5",
   "reason": "Retired exact effect coordinate after reviewed phase instrumentation change to host-rust:wasmhost/src/linked.rs|execute_prepared|Instant::now|5. The replacement explicitly inventories the new sample/receive count; this is not a same-count relocation. Typed linked admission/execution monotonic samples and bounded worker receives enforce host deadlines and measure phases. Terminal scheduling/fixture delay observations remain outside modeled clocks and canonical execution evidence; compiled role controls are explicit.",
   "kind": "multiplicity"
+ },
+ {
+  "old_id": "host.rust.gomad.src.measurement.execution.rs.execute.elapsed.1",
+  "old_site": "host-rust:gomad/src/measurement/execution.rs|execute|.elapsed()|1",
+  "new_id": "host.rust.gomad.src.measurement.execution.rs.execute.inner.elapsed.1",
+  "new_site": "host-rust:gomad/src/measurement/execution.rs|execute_inner|.elapsed()|1",
+  "reason": "Exact same-count relocation from execute to execute_inner; .elapsed() remains one controlled host effect in gomad/src/measurement/execution.rs. Owned measurement compiler processes are admitted, polled, killed and reaped under explicit preparation and cleanup bounds. Monotonic observations measure host phases only and remain private auxiliary evidence; they do not enter guest canonical streams.",
+  "kind": "relocation"
+ },
+ {
+  "old_id": "host.rust.gomad.src.measurement.execution.rs.execute.instant.now.1",
+  "old_site": "host-rust:gomad/src/measurement/execution.rs|execute|Instant::now|1",
+  "new_id": "host.rust.gomad.src.measurement.execution.rs.execute.inner.instant.now.1",
+  "new_site": "host-rust:gomad/src/measurement/execution.rs|execute_inner|Instant::now|1",
+  "reason": "Exact same-count relocation from execute to execute_inner; Instant::now remains one controlled host effect in gomad/src/measurement/execution.rs. Owned measurement compiler processes are admitted, polled, killed and reaped under explicit preparation and cleanup bounds. Monotonic observations measure host phases only and remain private auxiliary evidence; they do not enter guest canonical streams.",
+  "kind": "relocation"
+ },
+ {
+  "old_id": "host.rust.gomad.src.measurement.execution.rs.execute.linked.monotonic.nanos.1",
+  "old_site": "host-rust:gomad/src/measurement/execution.rs|execute|linked::monotonic_nanos(|1",
+  "new_id": "host.rust.gomad.src.measurement.execution.rs.execute.inner.linked.monotonic.nanos.1",
+  "new_site": "host-rust:gomad/src/measurement/execution.rs|execute_inner|linked::monotonic_nanos(|1",
+  "reason": "Exact same-count relocation from execute to execute_inner; linked::monotonic_nanos( remains one controlled host effect in gomad/src/measurement/execution.rs. Kernel CLOCK_MONOTONIC samples bind actual terminal/refusal classification and parent reaping in one clock domain. They bound cleanup and preserve raw phase timing only; they never supply guest model time or enter canonical execution streams. Missing or invalid terminal observations fail measurement admission.",
+  "kind": "relocation"
+ },
+ {
+  "old_id": "host.rust.wasmhost.src.linked.cluster.rs.execute.prepared.spawn.1",
+  "old_site": "host-rust:wasmhost/src/linked_cluster.rs|execute_prepared|.spawn(|1",
+  "new_id": "host.rust.wasmhost.src.linked.cluster.rs.execute.prepared.observed.spawn.1",
+  "new_site": "host-rust:wasmhost/src/linked_cluster.rs|execute_prepared_observed|.spawn(|1",
+  "reason": "Exact same-count relocation from execute_prepared to execute_prepared_observed; .spawn( remains one controlled host effect in wasmhost/src/linked_cluster.rs. Owned host workers or compiler subprocesses are joined or reaped under a declared bound; the broker serializes modeled commits and diagnostic receipts independently of host scheduling.",
+  "kind": "relocation"
+ },
+ {
+  "old_id": "host.rust.wasmhost.src.linked.cluster.rs.execute.prepared.recv.timeout.1",
+  "old_site": "host-rust:wasmhost/src/linked_cluster.rs|execute_prepared|recv_timeout|1",
+  "new_id": "host.rust.wasmhost.src.linked.cluster.rs.execute.prepared.observed.recv.timeout.1",
+  "new_site": "host-rust:wasmhost/src/linked_cluster.rs|execute_prepared_observed|recv_timeout|1",
+  "reason": "Exact same-count relocation from execute_prepared to execute_prepared_observed; recv_timeout remains one controlled host effect in wasmhost/src/linked_cluster.rs. Monotonic wall samples, polling delays and bounded receives enforce host deadlines or collect metrics; model clocks remain virtual and these measurements do not enter canonical streams.",
+  "kind": "relocation"
+ },
+ {
+  "old_id": "host.rust.wasmhost.src.linked.cluster.rs.execute.prepared.thread.scope.1",
+  "old_site": "host-rust:wasmhost/src/linked_cluster.rs|execute_prepared|thread::scope|1",
+  "new_id": "host.rust.wasmhost.src.linked.cluster.rs.execute.prepared.observed.thread.scope.1",
+  "new_site": "host-rust:wasmhost/src/linked_cluster.rs|execute_prepared_observed|thread::scope|1",
+  "reason": "Exact same-count relocation from execute_prepared to execute_prepared_observed; thread::scope remains one controlled host effect in wasmhost/src/linked_cluster.rs. Owned host workers or compiler subprocesses are joined or reaped under a declared bound; the broker serializes modeled commits and diagnostic receipts independently of host scheduling.",
+  "kind": "relocation"
  }
 ]

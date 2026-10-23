@@ -34,10 +34,43 @@ class ChildResourceContract(unittest.TestCase):
             self.assertGreaterEqual(resources[field], 0)
         process = driver.read(root / (name + '.process.json'))
         self.assertEqual(process['resources'], resources)
+        self.assertEqual(receipt['clock'], 'CLOCK_MONOTONIC')
+        self.assertEqual(receipt['parent_pid'], os.getpid())
+        self.assertLess(receipt['started_monotonic_nanos'], receipt['reaped_monotonic_nanos'])
+        for field in ('clock', 'parent_pid', 'started_monotonic_nanos', 'reaped_monotonic_nanos'):
+            self.assertEqual(receipt[field], process[field])
         self.assertFalse(process['active'])
         with self.assertRaises(ProcessLookupError):
             os.kill(receipt['pid'], 0)
         return receipt
+
+    def test_nested_actual_child_ancestry_and_shared_clock_enclosure(self):
+        import copy
+        import json
+        import primary_stages
+        program = """import json,os,subprocess,sys,time
+start=time.clock_gettime_ns(time.CLOCK_MONOTONIC)
+child=subprocess.Popen([sys.executable,'-c','pass'])
+child.wait()
+print(json.dumps(dict(pid=child.pid,parent_pid=os.getpid(),clock='CLOCK_MONOTONIC',started_monotonic_nanos=start,reaped_monotonic_nanos=time.clock_gettime_ns(time.CLOCK_MONOTONIC))))
+"""
+        with tempfile.TemporaryDirectory() as directory:
+            root=Path(directory)
+            driver.command({'repo':directory},root,'outer',[sys.executable,'-c',program],timeout=5)
+            receipt=self.check(root,'outer',0)
+            process=driver.read(root/'outer.process.json')
+            path=root/'probe.json';path.write_bytes((root/'outer.stdout').read_bytes())
+            observed=driver.read(path)
+            entry=dict(observed,path=str(path),sha256=driver.sha(path))
+            primary_stages.enclose_host_commands(receipt,process,{'actual':entry})
+            for field,value in (('parent_pid',receipt['pid']+1),('started_monotonic_nanos',receipt['started_monotonic_nanos']-1),
+                                ('reaped_monotonic_nanos',receipt['reaped_monotonic_nanos']+1),('clock','CLOCK_REALTIME')):
+                altered=dict(observed,**{field:value});path.write_text(json.dumps(altered))
+                changed=dict(altered,path=str(path),sha256=driver.sha(path))
+                with self.subTest(field=field),self.assertRaises(driver.Refusal):
+                    primary_stages.enclose_host_commands(receipt,process,{'copied':changed})
+            stale=copy.deepcopy(process);stale['reaped_monotonic_nanos']+=1
+            with self.assertRaises(driver.Refusal):primary_stages.enclose_host_commands(receipt,stale,{'actual':entry})
 
     def test_success_stdout_stderr_actual_pid_and_exact_single_wait4(self):
         program = "import os,sys,time; data=bytearray(32<<20); print(os.getpid(),flush=True); print('retained stderr',file=sys.stderr); end=time.process_time()+0.03\nwhile time.process_time()<end: pass\n"

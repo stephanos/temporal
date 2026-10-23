@@ -15,11 +15,11 @@ from driver import (HERE, Refusal, busy_host, command, configured, coverage,
 import live
 
 OWNED = {'retained-durable-restart', 'busy-grouped', 'busy-boundaries', 'network-streams',
-         'storage', 'network', 'temporal-inspection', 'artifact', 'operator', 'conformance-helper-build', 'terminal-controls', 'wasmmeasure-build', 'helper-build', 'ordinary-helper-publication'}
+         'storage', 'network', 'temporal-inspection', 'artifact', 'operator', 'conformance-helper-build', 'terminal-controls', 'wasmmeasure-build', 'helper-build', 'ordinary-helper-publication', 'terminal-module', 'terminal-host-admission', 'terminal-exit'}
 WORKLOAD_TOOLS = HERE.parent / 'workload_tools'
 TIMEOUTS = {'retained-durable-restart': 900, 'busy-grouped': 1800, 'busy-boundaries': 1800,
             'network-streams': 1800, 'storage': 3600, 'network': 3600, 'temporal-inspection': 3600,
-            'artifact': 900, 'operator': 1800, 'conformance-helper-build': 3600, 'terminal-controls': 900, 'wasmmeasure-build': 3600, 'helper-build': 3600, 'ordinary-helper-publication': 900}
+            'artifact': 900, 'operator': 1800, 'conformance-helper-build': 3600, 'terminal-controls': 900, 'wasmmeasure-build': 3600, 'helper-build': 3600, 'ordinary-helper-publication': 900, 'terminal-module': 3600, 'terminal-host-admission': 900, 'terminal-exit': 3600}
 MISSING = {
     'ordinary': 'complete original make test-wasm callable/subtest map, including duplicate selections',
     'cluster-provider': 'complete original 78 selected roots; decoder/writer/preflight/search/cleanup/model predicates beyond transferred roots18..28',
@@ -40,13 +40,13 @@ def native_bootstrap(config):
     return admission['executable']
 
 
-def managed_native_run(root, response, producer, filename):
+def managed_native_run(root, response, producer, filename, *, direct=False):
     require(set(response) == {'result', 'requested_root'} and response['requested_root'] == str(root / 'primary'),
             'native producer changed requested output root')
     path = Path(response['result'])
     command_receipt = read(root / 'primary-final.command.json')
     pid = command_receipt['pid']
-    run = path.parent.parent
+    run = path.parent if direct else path.parent.parent
     require(path.name == filename and run.parent == root / 'primary/.gomad-measure' / producer,
             'native producer borrowed another managed store')
     match = re.fullmatch('run-' + str(pid) + r'-([0-9]+)-[0-9]+', run.name)
@@ -78,7 +78,17 @@ def native_build(config, root):
 
 
 def preflight(config, label, root):
-    if label == 'ordinary-helper-publication':
+    if label in ('terminal-module', 'terminal-host-admission', 'terminal-exit'):
+        import terminal_inputs
+        native_bootstrap(config)
+        if label != 'terminal-host-admission':
+            live.sealed_input(config, config['terminal_module_spec'])
+            require(read(config['terminal_module_spec']) == terminal_inputs.preparation_spec(config), 'terminal preparation spec differs from actual sealed admission')
+        if label == 'terminal-exit':
+            terminal_diagnostic(config)
+            require(all(config['stages'][stage]['adapter'] == 'primary' for stage in
+                        ('terminal-module', 'ordinary-helper-publication', 'terminal-host-admission')), 'terminal exit requires real primary prerequisite stages')
+    elif label == 'ordinary-helper-publication':
         native_bootstrap(config)
         require(config['stages']['helper-build']['adapter'] == config['stages']['conformance-helper-build']['adapter'] == 'primary',
                 'ordinary publication requires distinct actual helper/conformance producers')
@@ -153,6 +163,102 @@ def native_publication(config, root):
             and discovered['manifest']['host_sha256'] == config['identity']['host'], 'installed ordinary discovery differs from actual published native role')
 
 
+def completed_stage(config, label):
+    root = Path(config['root']) / 'stages' / label
+    row = read(root / 'receipt.json')
+    require(row['schema'] == 'gomad.rust-driver-stage/v1' and row['stage'] == label
+            and row['status'] == 'PASS' and row['exit'] == 0
+            and row['source'] == config['source_sha256'] and row['identity'] == config['identity']
+            and row['config_sha256'] == config['_config_sha256'], 'missing/stale primary stage: ' + label)
+    coverage(subgates(label), row['subgates'])
+    producer = read(root / 'producer.command.json')
+    require(row['start_ns'] <= producer['start_ns'] <= producer['end_ns'] <= row['end_ns'],
+            'primary stage borrowed a producer outside its actual interval')
+    return root
+
+
+def terminal_diagnostic(config):
+    import native_roles
+    entry = config['final_profiles']['diagnostic']
+    require(entry.get('admission'), 'terminal diagnostic role requires its immutable admission')
+    admission = native_roles.validate_admission(config, entry['admission'], dict(kind='diagnostic', features=['diagnostic-profile']))
+    require(admission['build_receipt'] == entry['build_receipt'] and admission['executable'] == entry['binary'],
+            'terminal diagnostic admission borrowed another role')
+    return admission
+
+
+def read_terminal_module(config, root):
+    import terminal_module_receiving
+    require(root == Path(config['root']), 'foreign terminal module cycle')
+    stage = completed_stage(config, 'terminal-module')
+    actual_commands(config, 'terminal-module', stage)
+    response = json.loads((stage / 'primary-final.stdout').read_text())
+    path = stage / 'primary/module/terminal-module.json'
+    require(response == dict(result=str(path)), 'terminal module producer changed its fixed descriptor path')
+    descriptor = terminal_module_receiving.read_module(config, stage, path)
+    return dict(root=str(stage), path=str(path), descriptor=descriptor)
+
+
+def terminal_output(config, stage):
+    import native_roles
+    module = read_terminal_module(config, Path(config['root']))
+    publication_root = completed_stage(config, 'ordinary-helper-publication')
+    read_stage(config, 'ordinary-helper-publication', publication_root)
+    publication = json.loads((publication_root / 'primary-final.stdout').read_text())['result']
+    ordinary = native_roles.validate_admission(config, publication, dict(kind='release'))
+    diagnostic = terminal_diagnostic(config)
+    response = json.loads((stage / 'primary-final.stdout').read_text())
+    path, _, _ = managed_native_run(stage, response, 'terminal-exit', 'terminal-exit.json', direct=True)
+    entry = dict(config['final_profiles'], terminal_module=module['descriptor']['module'],
+                 terminal_module_receipt=module['path'], terminal_helper_receipt=publication,
+                 terminal_diagnostic_helper_receipt=config['final_profiles']['diagnostic']['admission'])
+    identities = config.setdefault('_final_profile_role_identities', {})
+    for admission in (ordinary, diagnostic):
+        identities[admission['executable']] = admission['identity']
+    return dict(terminal_path=str(path), work=str(stage / 'primary'), ordinary=ordinary['executable'],
+                diagnostic=diagnostic['executable'], entry=entry, module=module,
+                producer=dict(argv=recipes(config, 'terminal-exit', stage)[0]['argv'],
+                              command=str(stage / 'primary-final.command.json'),
+                              process=str(stage / 'primary-final.process.json')))
+
+
+def enclose_child(receipt, process, child):
+    """Bind an actual child to its parent and the shared kernel clock."""
+    for field in ('pid', 'parent_pid', 'clock', 'started_monotonic_nanos', 'reaped_monotonic_nanos'):
+        require(receipt[field] == process[field], 'host outer command/process lifecycle differs')
+    require(receipt['clock'] == 'CLOCK_MONOTONIC' and type(receipt['pid']) is int and receipt['pid'] > 0
+            and type(receipt['parent_pid']) is int and receipt['parent_pid'] > 0
+            and type(receipt['started_monotonic_nanos']) is int and type(receipt['reaped_monotonic_nanos']) is int
+            and 0 < receipt['started_monotonic_nanos'] < receipt['reaped_monotonic_nanos'],
+            'host outer process lacks its actual monotonic lifecycle')
+    require(child['clock'] == receipt['clock']
+            and all(type(child[field]) is int for field in ('pid', 'parent_pid', 'started_monotonic_nanos', 'reaped_monotonic_nanos'))
+            and child['pid'] > 0 and child['pid'] != receipt['pid'] and child['parent_pid'] == receipt['pid']
+            and receipt['started_monotonic_nanos'] <= child['started_monotonic_nanos']
+            < child['reaped_monotonic_nanos'] <= receipt['reaped_monotonic_nanos'],
+            'child borrowed another parent or process interval')
+
+
+def enclose_host_commands(receipt, process, commands):
+    require(commands, 'host capture lacks actual probe commands')
+    require(len({entry['pid'] for entry in commands.values()}) == len(commands), 'host probes reused an actual child PID')
+    for entry in commands.values():
+        observed = read(entry['path'])
+        require(sha(entry['path']) == entry['sha256'] and observed['clock'] == 'CLOCK_MONOTONIC',
+                'host probe raw clock/journal changed')
+        for field in ('pid', 'parent_pid', 'started_monotonic_nanos', 'reaped_monotonic_nanos'):
+            require(entry[field] == observed[field] and type(observed[field]) is int, 'host probe lifecycle changed')
+        enclose_child(receipt, process, observed)
+
+
+def read_terminal(config, root):
+    """Authenticate the same-cycle primary producer; final profiles rederive its raw semantics."""
+    require(root == Path(config['root']), 'foreign terminal cycle')
+    stage = completed_stage(config, 'terminal-exit')
+    actual_commands(config, 'terminal-exit', stage)
+    return terminal_output(config, stage)
+
+
 def canonical_argv(config, label, root, mode):
     require(mode in ('run', 'read') and label in OWNED, 'unknown primary recipe/mode')
     return [config['python'], str(HERE / 'primary_stages.py'), mode, '--config', config['_config_path'],
@@ -168,6 +274,28 @@ def recipes(config, label, root):
     def recipe(name, script, flags):
         live.sealed_input(config, str(script))
         return dict(name=name, argv=[python, str(script), *flags])
+    if label == 'terminal-module':
+        import terminal_inputs
+        spec = config['terminal_module_spec']
+        live.sealed_input(config, spec)
+        require(read(spec) == terminal_inputs.preparation_spec(config), 'terminal module spec differs from frozen compiler admission')
+        return [dict(name='primary-final', argv=[native_bootstrap(config), '--prepare-terminal-module', spec, str(work / 'module')],
+                     private_observations=True)]
+    if label == 'terminal-host-admission':
+        return [dict(name='primary-final', argv=[native_bootstrap(config), '--capture-host-evidence', str(work / 'host-evidence')])]
+    if label == 'terminal-exit':
+        module = read_terminal_module(config, Path(config['root']))
+        publication_root = completed_stage(config, 'ordinary-helper-publication')
+        response = json.loads((publication_root / 'primary-final.stdout').read_text())
+        import native_roles
+        ordinary = native_roles.validate_admission(config, response['result'], dict(kind='release'))
+        diagnostic = terminal_diagnostic(config)
+        return [dict(name='primary-final', argv=[native_bootstrap(config), 'terminal-exit', '--repo', config['repo'],
+            '--stock-go', config['final_profiles']['stock_go'], '--test-helper', ordinary['executable'],
+            '--terminal-exit-root', str(work), '--terminal-exit-helper-receipt', response['result'],
+            '--terminal-exit-module', module['descriptor']['module'], '--terminal-exit-module-receipt', module['path'],
+            '--terminal-exit-diagnostic-helper', diagnostic['executable'],
+            '--terminal-exit-diagnostic-helper-receipt', config['final_profiles']['diagnostic']['admission']])]
     if label == 'ordinary-helper-publication':
         binary = native_bootstrap(config)
         build, _ = native_build(config, Path(config['root']) / 'stages/helper-build')
@@ -265,7 +393,8 @@ def run(config, label, root):
     with busy_host(label):
         for item in recipes(config, label, root):
             observed = dict(config, environment=dict(config.get('environment', {}), **item.get('environment', {})))
-            command(observed, root, item['name'], item['argv'], timeout=TIMEOUTS[label])
+            command(observed, root, item['name'], item['argv'], timeout=TIMEOUTS[label],
+                    private_observations=observed if item.get('private_observations') else None)
     guard(config)
 
 
@@ -273,6 +402,8 @@ def actual_commands(config, label, root):
     import receiving
     reader = receiving.Retained(config)
     reader.command(config, root, 'producer', canonical_argv(config, label, root, 'run'), timeout=TIMEOUTS[label])
+    producer = read(root / 'producer.command.json')
+    producer_process = read(root / 'producer.process.json')
     pids = []
     for item in recipes(config, label, root):
         if label == 'ordinary-helper-publication' and item['name'] == 'primary-discover':
@@ -280,6 +411,11 @@ def actual_commands(config, label, root):
         else:
             reader.command(config, root, item['name'], item['argv'], timeout=TIMEOUTS[label])
         receipt = read(root / (item['name'] + '.command.json'))
+        process = read(root / (item['name'] + '.process.json'))
+        for field in ('clock', 'parent_pid', 'started_monotonic_nanos', 'reaped_monotonic_nanos'):
+            require(process[field] == receipt[field], 'primary subcommand lifecycle differs from actual process')
+        require(process['stage_pid'] == receipt['parent_pid'] == producer['pid'], 'primary subcommand borrowed another stage producer')
+        enclose_child(producer, producer_process, receipt)
         require(receipt['environment'] == dict(config.get('environment', {}), **item.get('environment', {})),
                 'changed primary command environment')
         pids.append(receipt['pid'])
@@ -468,7 +604,26 @@ def conformance(config, root):
 def read_stage(config, label, root):
     guard(config)
     reader = actual_commands(config, label, root)
-    if label in ('wasmmeasure-build', 'helper-build'):
+    if label == 'terminal-module':
+        import terminal_module_receiving
+        response = json.loads((root / 'primary-final.stdout').read_text())
+        path = root / 'primary/module/terminal-module.json'
+        require(response == dict(result=str(path)), 'foreign terminal module descriptor')
+        terminal_module_receiving.read_module(config, root, path)
+    elif label == 'terminal-host-admission':
+        import final_profiles
+        base = root / 'primary/host-evidence'
+        require(json.loads((root / 'primary-final.stdout').read_text()) == dict(result=str(base / 'host.json')),
+                'host producer changed its fixed raw witness root')
+        observed = final_profiles.current_host_evidence(config, base)
+        enclose_host_commands(read(root / 'primary-final.command.json'), read(root / 'primary-final.process.json'),
+                              observed['evidence']['commands'])
+    elif label == 'terminal-exit':
+        import final_profiles
+        result = terminal_output(config, root)
+        final_profiles.native_terminal(config, Path(config['root']), Path(result['work']), result['entry'],
+                                       Path(result['terminal_path']), result['ordinary'], result['diagnostic'], producer=result['producer'])
+    elif label in ('wasmmeasure-build', 'helper-build'):
         native_build(config, root)
     elif label == 'ordinary-helper-publication':
         native_publication(config, root)
