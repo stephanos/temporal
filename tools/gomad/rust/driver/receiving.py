@@ -149,6 +149,21 @@ def native_state(state, context, volume, maximum):
                 if dep in operations),'native selection is not dependency closed')
 
 
+def selected_marker(snapshots, state):
+    owners = [row for row in snapshots if row['ID'] == 'sqlite']
+    require(len(owners) == 1,'recovered SQLite snapshot owner missing/duplicate')
+    expected = [row for row in state['Entries'] if row['Path'] == '/marker']
+    actual = [row for row in owners[0]['Persisted'] if row['Path'] == '/marker']
+    require(len(expected) <= 1 and len(actual) <= 1 and bool(expected) == bool(actual), 'selected marker presence mismatch')
+    if expected:
+        entry = expected[0]
+        raw = base64.b64decode(entry['Data'],validate=True) if entry['Data'] is not None else b''
+        require(entry['Kind'] in (1,2),'selected marker kind not supported')
+        wanted = dict(Kind='file' if entry['Kind'] == 1 else 'directory',Mode=entry['Mode'],ModTime=entry['ModTime'],
+                      Size=len(raw),DataSHA256='sha256:'+digest(raw) if entry['Kind'] == 1 else '')
+        require(all(actual[0][key] == value for key,value in wanted.items()), 'selected marker metadata/content mismatch')
+
+
 def retry_witness(stdout, network):
     value = decoded(line(stdout,'GOMAD_NETWORK_TEMPORAL_OBSERVATION '),object_pairs_hook=unique)
     ids = value['event_ids']
@@ -304,14 +319,20 @@ class Retained:
 
     def result(self, path, reported):
         path = self.contained(path)
-        raw = regular(path).read_bytes()
+        details = regular(path).stat()
+        require(details.st_nlink == 1 and details.st_mode & 0o077 == 0 and details.st_size <= 64<<20,
+                'Result must be bounded private regular single-link publication')
+        raw = path.read_bytes()
         result = read(path)
         require(raw == canonical(result)+b'\n' and path.name == 'result-'+digest(raw)+'.json',
                 'Result canonical bytes/content address mismatch')
         require(reported['result'] == result, 'public report differs from raw Result')
         pairs = list(path.parent.glob(path.name+'.publication-*.json'))
         require(len(pairs) == 1, 'exactly one publication receipt required')
-        receipt_raw = regular(pairs[0]).read_bytes()
+        details = regular(pairs[0]).stat()
+        require(details.st_nlink == 1 and details.st_mode & 0o077 == 0 and details.st_size <= 8<<10,
+                'receipt must be bounded private regular single-link publication')
+        receipt_raw = pairs[0].read_bytes()
         receipt = read(pairs[0])
         require(receipt_raw == canonical(receipt)+b'\n'
                 and pairs[0].name == path.name+'.publication-'+digest(receipt_raw)+'.json', 'receipt canonical/content identity mismatch')
@@ -455,6 +476,9 @@ class Retained:
         sqlite.matched_inputs(primary,result,spec['RuntimeWorkload'])
         require(sqlite.catalogue(result) == native, 'selected native catalogue changed')
         self.sqlite_oracle(result)
+        for execution in result['report']['executions']:
+            raw = regular(Path(execution['artifact_path'])/'evidence/cluster/sqlite/3/storage_state').read_bytes()
+            selected_marker(decoded(storage_sections(raw)[1]),expected['state'])
         return row, result
 
     def catalogue(self):

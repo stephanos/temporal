@@ -234,10 +234,13 @@ class ReceivingContract(unittest.TestCase):
         raw=receiving.canonical(result)+b'\n'
         path=self.root/('result-'+receiving.digest(raw)+'.json')
         path.write_bytes(raw)
+        path.chmod(0o600)
         receipt=dict(schema='gomad.rust-qualification-receipt/v1',result_sha256=receiving.digest(raw),operator_process_id=123,
                      linked_after=dict(user_nanos=11,system_nanos=11,peak_rss_bytes=20),operator_peak_rss_bytes=20)
         raw_receipt=receiving.canonical(receipt)+b'\n'
-        (self.root/(path.name+'.publication-'+receiving.digest(raw_receipt)+'.json')).write_bytes(raw_receipt)
+        receipt_path=self.root/(path.name+'.publication-'+receiving.digest(raw_receipt)+'.json')
+        receipt_path.write_bytes(raw_receipt)
+        receipt_path.chmod(0o600)
         self.config.update(source_sha256='f'*64,identity=dict(host='e'*64,helper='d'*64))
         return path,dict(result=result,receipt=receipt,publication=dict(cpu_nanos=2,peak_rss_bytes=20,status='within'))
 
@@ -269,3 +272,28 @@ class ReceivingContract(unittest.TestCase):
         duplicate.unlink()
         (self.root/'campaign-1/journal.jsonl').unlink()
         with self.assertRaises(driver.Refusal): reader.result(path,report)
+
+    def test_selected_marker_full_metadata_and_absence_preserve_original_variants(self):
+        for kind in (1,2):
+            data='bWFya2Vy' if kind == 1 else None
+            entry=dict(Path='/marker',Kind=kind,Mode=0o600,ModTime=7,Data=data)
+            marker=dict(Path='/marker',Kind='file' if kind == 1 else 'directory',Mode=0o600,ModTime=7,
+                        Size=6 if kind == 1 else 0,DataSHA256='sha256:'+receiving.digest(b'marker') if kind == 1 else '')
+            state=dict(Entries=[entry])
+            receiving.selected_marker([dict(ID='sqlite',Persisted=[marker])],state)
+            for key,value in dict(Kind='wrong',Mode=1,ModTime=8,Size=10,DataSHA256='changed',Path='/other').items():
+                with self.subTest(kind=kind,field=key), self.assertRaises(driver.Refusal):
+                    receiving.selected_marker([dict(ID='sqlite',Persisted=[dict(marker,**{key:value})])],state)
+            with self.assertRaises(driver.Refusal):
+                receiving.selected_marker([dict(ID='sqlite',Persisted=[marker])],dict(Entries=[]))
+        receiving.selected_marker([dict(ID='sqlite',Persisted=[])],dict(Entries=[]))
+
+    def test_result_refuses_persistent_hardlink_and_public_file_mode(self):
+        import os
+        path,report=self.result_fixture()
+        alias=self.root/'foreign-hardlink'
+        os.link(path,alias)
+        with self.assertRaises(driver.Refusal): receiving.Retained(self.config).result(path,report)
+        alias.unlink()
+        path.chmod(0o644)
+        with self.assertRaises(driver.Refusal): receiving.Retained(self.config).result(path,report)
