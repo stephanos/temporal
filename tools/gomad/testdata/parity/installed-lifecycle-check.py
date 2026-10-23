@@ -162,8 +162,7 @@ def tree(root):
 
 def instance_stream(artifact, row, name):
     descriptors = row['streams']
-    require(isinstance(descriptors, dict) and set(descriptors) <= {'stdout', 'stderr'},
-            'unsupported native instance streams')
+    require(isinstance(descriptors, dict), 'missing native instance streams')
     handle = row['handle']
     file = artifact / f"evidence/cluster/{handle['node']}/{handle['incarnation']}/{name}"
     descriptor = descriptors.get(name)
@@ -176,6 +175,38 @@ def instance_stream(artifact, row, name):
     require((len(raw), check.parity.digest(raw)) == (descriptor['bytes'], descriptor['sha256']),
             'per-instance stream identity changed')
     return raw
+
+
+
+def instance_catalogue(artifact, row, limits):
+    descriptors = row['streams']
+    require(isinstance(descriptors, dict), 'missing native instance streams')
+    handle = row['handle']
+    prefix = f"evidence/cluster/{handle['node']}/{handle['incarnation']}/"
+    directory = artifact / prefix
+    require(directory.resolve().is_relative_to(artifact.resolve()), 'native catalogue escapes artifact')
+    evidence_bytes, output_bytes = 0, 0
+    for name, descriptor in descriptors.items():
+        require(isinstance(name, str) and name and '\\' not in name and '\0' not in name
+                and all(part not in ('', '.', '..') for part in name.split('/')),
+                'unsafe native evidence path')
+        require(isinstance(descriptor, dict) and type(descriptor.get('bytes')) is int
+                and descriptor['bytes'] >= 0, 'missing native stream byte count')
+        evidence_bytes += descriptor['bytes']
+        require(evidence_bytes <= limits['evidence_bytes'], 'native evidence exceeds retained evidence budget')
+        if name in ('stdout', 'stderr'):
+            output_bytes += descriptor['bytes']
+            require(output_bytes <= limits['output_bytes'], 'native output exceeds retained output budget')
+        file = check.parity.contained(artifact, prefix + name)
+        require((file.stat().st_size, driver.sha(file)) == (descriptor['bytes'], descriptor['sha256']),
+                'native stream descriptor/payload identity mismatch')
+    present = set()
+    if directory.exists():
+        for file in directory.rglob('*'):
+            require(not file.is_symlink(), 'native catalogue contains symlink')
+            if file.is_file():
+                present.add(str(file.relative_to(directory)))
+    require(present == set(descriptors), 'native stream descriptor/payload catalogue mismatch')
 
 
 def cluster(artifact, declared=None):
@@ -191,12 +222,13 @@ def cluster(artifact, declared=None):
     for row in summary['incarnations']:
         key = row['handle']['node'], row['handle']['incarnation']
         require(key in retained, 'summary not bound to retained incarnation')
+        instance_catalogue(artifact, row, record['limits'])
         for name in ('stdout', 'stderr'):
             streams[*key, name] = instance_stream(artifact, row, name)
         for descriptor in retained[key]['evidence'].values():
             require(0 <= descriptor['bytes'] <= descriptor['limit'], 'unbounded incarnation payload')
-            raw = check.parity.contained(artifact, descriptor['file']).read_bytes()
-            require((len(raw), check.parity.digest(raw)) == (descriptor['bytes'], descriptor['sha256']),
+            file = check.parity.contained(artifact, descriptor['file'])
+            require((file.stat().st_size, driver.sha(file)) == (descriptor['bytes'], descriptor['sha256']),
                     'retained incarnation payload changed')
     require(record['profile'] != 'gomad-choice-trace/v4', 'cluster mislabeled as global exact choice tape')
     if declared is not None:

@@ -79,7 +79,7 @@ journal chains, outcomes, receipts, prepared identity and execution bounds.
 
 ## Source/portable verification and remaining execution
 
-All 25 portable tests pass. They exercise malformed/incomplete/public-prefix rejection, exact wall
+All 26 portable tests pass. They exercise malformed/incomplete/public-prefix rejection, exact wall
 and capacity limits, discovery command omissions, asymmetric node ordering,
 source-byte changes, evidence mutation/symlinks, transitive process ownership,
 record/step semantics, advertisement/path/hash/argv/command mismatches and guest
@@ -100,7 +100,7 @@ modules are unavailable; no feature was enabled implicitly.
 
 Evidence is retained under `/home/agent/evidence/fn232-installed-lifecycle-*`:
 `native-red2.log` (causal RED), `native-final.log` (seven native tests),
-`volume-final.log` (helper volume test), `portable-final.log` (25 tests),
+`volume-final.log` (helper volume test), `portable-final.log` (26 tests),
 `qualification-red.log`, `volume-red.log`, `volume-owner-red.log`,
 `volume-inspect-red.log`, `clippy3.log` and `main-check.log` (before the final
 storage additions), the portable RED logs and help output. The initial
@@ -290,3 +290,73 @@ exclusive development compile window was explicitly released to root. These are
 development unit checks only: the host filesystem is not being admitted for
 qualification evidence, final binary gates, actual guest execution or their
 native-storage requirements.
+
+
+## Actual producer stream catalogue correction
+
+A further cache re-review found the earlier closed stdout/stderr name predicate
+incorrect. The actual `replay::cluster::project_encoded` producer iterates every
+entry of each linked execution's evidence map into the incarnation `streams`
+object and corresponding retained files. Choice, transcript, network, storage
+and storage-image evidence are legitimate entries. The prior unknown-name
+negative and restrictive predicate are removed, superseding that part of the
+previous source/verification checkpoints.
+
+Native-only correction `bd81e2869d` plus fixture follow-up `f3af92e1c0`:
+
+* Inspector checks every descriptor against the actual manifest via the same
+  typed `Payload::bind` logic extracted from existing `Payload::read`. The public
+  read path retains its previous admission and error behavior. Safe evidence
+  paths use the existing `store::open::components` contract; there is no closed
+  kind-name vocabulary or new fixed evidence-size cap.
+* Every actual payload is authenticated by the existing `authenticate_all`
+  streaming verifier before inspection. That verifier is narrowly factored and
+  reused for `payload_tail`: 16 KiB read buffers, before/after pinned metadata
+  checks, exact byte/hash verification, and at most the requested 4096-byte
+  stdout suffix retained. Nonoutput evidence is never materialized by the new
+  display path. Hash/size checks are not skipped for nonoutput entries.
+* Per incarnation, checked sums include **all** streams against the retained
+  native evidence budget and combined stdout+stderr against its output budget.
+  Each descriptor also binds its appropriate native bound. The actual catalogue
+  must match declared paths in both directions. Only absent stdout/stderr
+  descriptors with absent payloads map to empty displayed output.
+* The new native fixture constructs a linked cluster execution and calls actual
+  `project_encoded`, then publishes its actual projected files via `Store`.
+  The only original fixture payload reused is the target module; unrelated
+  global output files are excluded. The positive case contains choice,
+  transcript, network, storage, storage-image and stdout entries, with transcript
+  larger than the output budget but within the evidence budget. Stdout spans a
+  streaming-buffer boundary and its authenticated tail is exactly 4096 bytes.
+  Stream bytes are unit-test data, not claimed executed Go/model/tape evidence.
+* Negative native cases preserve actual projection and authenticated native
+  publication while independently changing hash, byte count, payload presence,
+  descriptor presence and unsafe catalogue paths. Separate cases exceed the
+  combined evidence and combined output budgets while each relevant individual
+  stream remains within its own bound. The largest native fixture is about
+  17 MiB; no guest or engine execution is required.
+
+Exact native functions are:
+
+* `installed_lifecycle_tests::installed_lifecycle_inspect_accepts_actual_project_encoded_nonoutput_streams`
+* `installed_lifecycle_tests::installed_lifecycle_inspect_authenticates_actual_project_encoded_catalogue_and_budgets`
+
+The existing sparse negative is now
+`installed_lifecycle_tests::installed_lifecycle_inspect_refuses_inconsistent_cluster_streams`.
+These changes are **source pending** on this branch. Cache owner received both
+exact native-only checkpoints and owns the causal native RED/GREEN and affected
+strict gate after Det's exclusive window. Minimal causal reversal is reinserting
+the prior `streams.keys().any(name != stdout && name != stderr)` refusal at the
+start of `cluster_output`, running the new actual-producer positive, then
+restoring the correction before GREEN. No Cargo was run here during Det's lease.
+
+The Python checker independently removed the same invented allowlist and now
+stream-hashes each actual descriptor/catalogue entry, validates complete path
+presence, and checks native evidence/combined-output budgets. Only stdout/stderr
+bytes are returned to output-marker predicates, so markers in nonoutput evidence
+cannot satisfy output assertions. The retained-incarnation evidence loop also
+hashes files incrementally. A portable causal RED rejected a legitimate broader
+catalogue through the old existing predicate; all 26 portable tests now pass,
+including missing payload/descriptor/hash/size and aggregate-bound negatives.
+Logs are `producer-catalogue-red.log` and updated `portable-final.log` under the
+same native evidence prefix. This does not replace actual lifecycle campaigns,
+SIGSTOP/SIGKILL, guest replay or qualification receipt proof.

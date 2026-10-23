@@ -296,5 +296,43 @@ class LifecycleTests(unittest.TestCase):
                 self.check.instance_stream(root, row, 'stdout')
 
 
+    def test_actual_evidence_catalogue_is_not_a_closed_output_name_list(self):
+        with tempfile.TemporaryDirectory() as private:
+            root = Path(private)
+            directory = root / 'evidence/cluster/a/1'
+            directory.mkdir(parents=True)
+            data = {'stdout': b'visible', 'choice': b'choices', 'transcript': b't' * 65,
+                    'network': b'network', 'storage': b'storage', 'storage_image': b'image'}
+            descriptors = {}
+            for name, raw in data.items():
+                (directory / name).write_bytes(raw)
+                descriptors[name] = {'bytes': len(raw), 'sha256': self.check.check.parity.digest(raw)}
+            row = {'handle': {'node': 'a', 'incarnation': 1}, 'streams': descriptors}
+            self.assertEqual(self.check.instance_stream(root, row, 'stdout'), b'visible')
+            self.assertEqual(self.check.instance_stream(root, row, 'stderr'), b'')
+            limits = {'output_bytes': 64, 'evidence_bytes': 256}
+            self.check.instance_catalogue(root, row, limits)
+            for damage in ('hash', 'size', 'descriptor', 'payload', 'output-budget', 'evidence-budget'):
+                changed, bound = copy.deepcopy(row), dict(limits)
+                if damage == 'hash':
+                    changed['streams']['network']['sha256'] = '0' * 64
+                elif damage == 'size':
+                    changed['streams']['network']['bytes'] += 1
+                elif damage == 'descriptor':
+                    changed['streams'].pop('network')
+                elif damage == 'payload':
+                    (directory / 'network').rename(directory / 'network-held')
+                elif damage == 'output-budget':
+                    bound['output_bytes'] = 6
+                else:
+                    bound['evidence_bytes'] = 66
+                try:
+                    with self.assertRaises((ValueError, self.check.check.parity.Refusal), msg=damage):
+                        self.check.instance_catalogue(root, changed, bound)
+                finally:
+                    if damage == 'payload':
+                        (directory / 'network-held').rename(directory / 'network')
+
+
 if __name__ == '__main__':
     unittest.main()
