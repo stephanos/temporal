@@ -10,6 +10,9 @@ Reduce the retained temporal/* driver to a runner.Driver: send the proposed requ
 
 Integrate the incremental Exchange contract and Model-owned continue_polling signal with the real Temporal Driver. Start uses bootstrap and same-invocation World admission from fn-227; callbacks are serviced while the RPC/poll is active. Prove retry/completion/cancellation and an intermediate read with intervening callback before completion. Record the real Run and replay all protocol events without a live server. Preserve guest embedding/freshness and keep poll timing/backoff as transport mechanics.
 
+### Carried from fn-228.3 (2026-10-23)
+
+fn-228.3 retired four live tests that built the deleted commands; see `.flow/tmp/fn-228.3/retired-coverage.md`. This task owns their live replacements: `umpire explore` run as a separate process with the Temporal Driver, which exits 0 for an Explained Run and leaves the Run as the only artifact; resource provisioning and cleanup in the Temporal Driver; a live control where an unreachable endpoint is a DriverFault and exits 2; and a real callback-bearing Run recorded and then replayed without a server.
 ## Acceptance
 - [ ] Temporal Driver implements runner.Driver without interpreting Temporal messages
 - [ ] Live slice passes through umpire explore; Run is the only artifact

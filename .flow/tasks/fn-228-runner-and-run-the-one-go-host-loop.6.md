@@ -12,6 +12,14 @@ Map every removed feature/test to the parent R6 replacement coverage before dele
 
 **Touches:** common/testing/testpilot/**, tools/umpire/**, tools/canary/**, tests/testcore/testpilot/**, model/umpire/hosts/go/umpire/runner/**, go.{mod,sum}, model/umpire/hosts/go/go.{mod,sum}, Makefile and generated Case trees. Runs after .5; re-anchor imports/manifests after its handoff.
 
+### Carried from fn-228.3 (2026-10-23)
+
+See `.flow/tmp/fn-228.3/retired-coverage.md`. In addition to the original scope:
+- Reduce `tools/canary` to `controller` lease and fencing plus `policy`, and have it publish Runs with `runner.Publish`.
+- Retire `common/testing/testpilot/publish` and its eight listed importers.
+- Remove stale prose that still names the deleted commands, the inert `UMPIRE_REPEAT_RUN_DIR` hook, the pinned control record and the `UMPIRE_CONTROL_RECORD` hook.
+- Map the coverage of the retired Nexus control and the IR-bridge minimization, which have no Runner equivalent.
+- Four live failures pre-exist at 0c7822bc43 and must be retired or mapped together with the seven legacy failures: `TestTestpilotExplorationDiscoversUnpinnedExecution` and `TestTestpilotGeneratedCases` (both read the retired Scala-era tree), `TestTestpilotNexusControlForgedCompletionIsViolated` (malformed contract) and `TestTestpilotNexusPairCase` (`observe_failed` dereference).
 ## Acceptance
 - [ ] Listed packages gone; ir and execution shrunk; cel-go out of go.mod
 - [ ] Case trees and seven legacy failures removed; umbrella green
