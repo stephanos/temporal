@@ -233,7 +233,8 @@ pub(crate) fn prepare_observed(
     let deadline = Instant::now()
         .checked_add(options.overall_timeout)
         .ok_or("overall_timeout: preparation deadline exceeds clock range")?;
-    let result = prepare_observed_before_deadline(options, &CompilerControls::default(), deadline, false);
+    let result =
+        prepare_observed_before_deadline(options, &CompilerControls::default(), deadline, false);
     process::check_deadline(deadline)?;
     result
 }

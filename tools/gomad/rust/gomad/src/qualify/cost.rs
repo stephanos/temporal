@@ -452,7 +452,9 @@ pub(crate) fn budget(observations: &Observations) -> Result<Budget, String> {
         return Err("measured budget requires preparation wall and compiler peak RSS".into());
     }
     if warm_residents(&groups) != observations.resident_stores {
-        return Err("actual warm helper peak measurement is required for each resident guest".into());
+        return Err(
+            "actual warm helper peak measurement is required for each resident guest".into(),
+        );
     }
     let largest_wall = groups
         .iter()
@@ -962,7 +964,10 @@ mod warm_window_tests {
             initial_preparation(&cell)
         };
         let listed: &[&str] = &["list", "-json", "./tests"];
-        for build in [&["test", "-c", "-o", "m.wasm"][..], &["build", "-o", "m.wasm"][..]] {
+        for build in [
+            &["test", "-c", "-o", "m.wasm"][..],
+            &["build", "-o", "m.wasm"][..],
+        ] {
             assert_eq!(classify(&[listed, build], true), Ok(()));
             assert_eq!(classify(&[listed, build], false), refused);
         }
