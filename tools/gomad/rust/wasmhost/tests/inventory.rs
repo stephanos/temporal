@@ -671,7 +671,7 @@ fn retired_import_requires_historical_identity_and_refusal_evidence() {
     let retired = row.clone();
     assert_eq!(retired.disposition, "rejected");
     assert!(retired.evidence.iter().any(|reference| reference
-        == "go:internal/backends/wasm/wasi:TestDeterminismInventoryRejectedImportsAreRefused"));
+        == "rust:tests/core_runtime_preservation.rs:rejected_stock_import_inventory_has_an_actual_ordinary_refusal_for_every_site"));
     assert_eq!(
         import_gaps(std::slice::from_ref(&retired), &[], IDENTITY_HISTORY),
         Vec::<String>::new()

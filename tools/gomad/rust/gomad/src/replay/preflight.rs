@@ -589,8 +589,11 @@ mod profile_import_tests {
             .iter()
             .filter_map(|entry| {
                 let site = entry["site"].as_str().unwrap().strip_prefix("import:")?;
+                if !site.starts_with("gomad_") {
+                    return None;
+                }
                 let (module, name) = site.split_once("::").unwrap();
-                module.starts_with("gomad_").then(|| linked::ModuleImport {
+                Some(linked::ModuleImport {
                     module: module.into(),
                     name: name.into(),
                     params: vec!["i32".into(), "i32".into()],

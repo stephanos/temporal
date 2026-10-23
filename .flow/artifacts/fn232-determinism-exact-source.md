@@ -23,3 +23,33 @@ Run without helper diagnostic/conformance/determinism fixture features so the or
 Worktree `/home/agent/wt/fn232-determinism-exact` and branch `fn232-determinism-exact` remain for root integration; no other scratch checkout or build output was created. `/home/agent/determinism-required-docs.txt` is a disposable documentation read capture. Approximately 12 GiB free was observed before handover.
 
 Fresh independent source review: `gpt-6.1-sol` at high, same family as the writer, fresh context `/root/determinism_exact_receiving/exact_review`. Verdict: no actionable findings; accepted the narrowed two-test source scope. Reviewer independently checked the inventory include path, original negative matrix, native `engine.rs` operation prefix and both exact test filters. Caller ordering and runtime qualification remain unresolved; the reviewer performed no builds or execution.
+
+
+## Root executed receiving followup
+
+After clean integration of the cluster lifecycle/artifact batch as `d9ee410266`,
+combined release libraries pass 599 native and 215 helper tests (3 and 12 existing
+ignored tests), whole command exit zero. Source `27f89abb2c` is received as
+`07255534c0`. The exact ordinary rejected-import test actually selects one test,
+executes all four ordinary guests and passes with exit zero. The cooperative
+matrix initially selects one test and fails (101): its parser splits the existing
+`import:*` wildcard before filtering the cooperative boundary. The root repair
+filters `gomad_` before strict module/function parsing, preserving failure on
+malformed cooperative rows. The same actual test now passes, exit zero.
+
+Only the four rejected-import evidence pointers now move from the original
+missing Go test to that actual exact native counterpart. All 500 IDs/sites and
+all other row data are identical, including the protected 276-entry identity
+prefix. The refusal-history test checks the same precise native reference.
+Cooperative caller ordering remains unresolved and its legacy pointer is kept.
+The root followup delta still awaits fresh independent source review because
+the agent thread limit refused dispatch; the original checkpoint review does
+not purport to cover this later delta. No final qualification is claimed.
+
+The unfiltered inventory gate honestly fails: 31 pass and four fail. Its resolver
+now reports 24 unique legacy references; the host guard reports six exact
+function migrations and two new clock sites, assigned to the receiving owner.
+Two runtime checks used the ambient compiler and failed its pin. Rerunning those
+two with the actual stock Go 1.27.1 executable passes both, exit zero; the derived
+source inventory is retained at `/home/agent/evidence/fn232-root-runtime-inventory-v1`.
+The full inventory gate remains red until its real remaining obligations close.

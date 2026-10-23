@@ -689,7 +689,7 @@
    "rule": "Outside the stock WASI profile: refused as unsupported (operation outside stock WASI profile) and transcribed, never forwarded to the host.",
    "evidence": [
     "rust:tests/inventory.rs:inventory_covers_every_operation",
-    "go:internal/backends/wasm/wasi:TestDeterminismInventoryRejectedImportsAreRefused",
+    "rust:tests/core_runtime_preservation.rs:rejected_stock_import_inventory_has_an_actual_ordinary_refusal_for_every_site",
     "go:internal/backends/wasm/wasi:TestNamespaceRightsOffsetsDirectoryCookiesAndClosure",
     "go:internal/backends/wasm/wasi:TestGuestTransportClassifiesCapacityMalformedAndUnsupported"
    ]
@@ -704,7 +704,7 @@
    "rule": "Outside the stock WASI profile: refused as unsupported (operation outside stock WASI profile) and transcribed, never forwarded to the host.",
    "evidence": [
     "rust:tests/inventory.rs:inventory_covers_every_operation",
-    "go:internal/backends/wasm/wasi:TestDeterminismInventoryRejectedImportsAreRefused",
+    "rust:tests/core_runtime_preservation.rs:rejected_stock_import_inventory_has_an_actual_ordinary_refusal_for_every_site",
     "go:internal/backends/wasm/wasi:TestNamespaceRightsOffsetsDirectoryCookiesAndClosure",
     "go:internal/backends/wasm/wasi:TestGuestTransportClassifiesCapacityMalformedAndUnsupported"
    ]
@@ -719,7 +719,7 @@
    "rule": "Outside the stock WASI profile: refused as unsupported (operation outside stock WASI profile) and transcribed, never forwarded to the host.",
    "evidence": [
     "rust:tests/inventory.rs:inventory_covers_every_operation",
-    "go:internal/backends/wasm/wasi:TestDeterminismInventoryRejectedImportsAreRefused",
+    "rust:tests/core_runtime_preservation.rs:rejected_stock_import_inventory_has_an_actual_ordinary_refusal_for_every_site",
     "go:internal/backends/wasm/wasi:TestNamespaceRightsOffsetsDirectoryCookiesAndClosure",
     "go:internal/backends/wasm/wasi:TestGuestTransportClassifiesCapacityMalformedAndUnsupported"
    ]
@@ -734,7 +734,7 @@
    "rule": "Outside the stock WASI profile: refused as unsupported (operation outside stock WASI profile) and transcribed, never forwarded to the host.",
    "evidence": [
     "rust:tests/inventory.rs:inventory_covers_every_operation",
-    "go:internal/backends/wasm/wasi:TestDeterminismInventoryRejectedImportsAreRefused",
+    "rust:tests/core_runtime_preservation.rs:rejected_stock_import_inventory_has_an_actual_ordinary_refusal_for_every_site",
     "go:internal/backends/wasm/wasi:TestNamespaceRightsOffsetsDirectoryCookiesAndClosure",
     "go:internal/backends/wasm/wasi:TestGuestTransportClassifiesCapacityMalformedAndUnsupported"
    ]

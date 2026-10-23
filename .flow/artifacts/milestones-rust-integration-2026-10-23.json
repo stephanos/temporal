@@ -680,6 +680,65 @@
           "runtime_credit": false
         }
       ]
+    },
+    {
+      "observed_at": "2026-10-23T09:26:04.262752+00:00",
+      "integration_head": "07255534c0",
+      "uncommitted_delta": [
+        "replay/preflight.rs cooperative wildcard filter",
+        "inventory.json four exact rejected-import native evidence pointers",
+        "inventory.rs precise native refusal pointer assertion"
+      ],
+      "final_qualification": false,
+      "logs": [
+        {
+          "path": "/home/agent/.cache/codex-build/fn232-root-cluster-profile-integrated-lib.log",
+          "bytes": 85726,
+          "sha256": "b741e999e71c3e02ead7422c7032b696dacc5ef31cf357e28caf4ac0cf04d7bc",
+          "exit": 0
+        },
+        {
+          "path": "/home/agent/.cache/codex-build/fn232-root-exact-stock-import-test.log",
+          "bytes": 544,
+          "sha256": "20acf89b70184ae7f6da3ee843923620c1c1a6ba18df686e127bc46044aa7172",
+          "exit": 0
+        },
+        {
+          "path": "/home/agent/.cache/codex-build/fn232-root-inventory-cooperative-import-test.log",
+          "bytes": 1154,
+          "sha256": "2425787d2be39b78900756ad5a29cbc9acea327d56db2d386ebc96d80526435d",
+          "exit": 101
+        },
+        {
+          "path": "/home/agent/.cache/codex-build/fn232-root-inventory-cooperative-import-test-fixed.log",
+          "bytes": 532,
+          "sha256": "4c9577e6775344e04e47ebdf83901ada4ca228b413b8532866694dfb2818213f",
+          "exit": 0
+        },
+        {
+          "path": "/home/agent/.cache/codex-build/fn232-root-inventory-exact-stock-receiving.log",
+          "bytes": 9643,
+          "sha256": "1186fe1858fadef8861181c21c7d6d93bb7f20a7bc8c8d7fc269f58ef2089b9b",
+          "exit": 101
+        },
+        {
+          "path": "/home/agent/.cache/codex-build/fn232-root-runtime-inventory-pinned.log",
+          "bytes": 480,
+          "sha256": "08cc09f5ce0d9de180d5678a9114079bf23d0e684ae0453c3e26425b5de537f7",
+          "exit": 0
+        }
+      ],
+      "completed_scope": [
+        "Cluster source batch d9 combined release libs599 native/215 helper pass.",
+        "Exact ordinary rejected-import1selected PASS; cooperative inventory matrix causalFAIL101 then1selected PASS after rootfilterrepair.",
+        "Pinned stockGo runtimeinventory2selected PASS.",
+        "All500 identity/site pairs and protected276 prefix unchanged; exactlyfour evidence-only row changes."
+      ],
+      "remaining": [
+        "Fresh independent review of later rootfilter/pointerdelta pending: dispatch refused agent thread limit. Original27 source review remains valid only for its bytes.",
+        "Inventory gate stillred:24 legacy references and actual host-effect migrations/newrows; source ownerassigned.",
+        "Original handoff failed predicate, exact module/request receiving, digest-only Temporal evidence and all final qualification/milestone requirements remain open."
+      ]
     }
   ],
   "resource_snapshot": {
