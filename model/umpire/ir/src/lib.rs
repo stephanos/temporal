@@ -7,6 +7,8 @@ pub mod expr;
 pub mod print;
 #[doc(hidden)]
 pub mod tree;
+#[doc(hidden)]
+pub mod value;
 use std::collections::BTreeMap;
 pub use tree::Lifted;
 

@@ -52,6 +52,22 @@ pub mod __lifted {
         /// The embedded Model, or its located subset refusal.
         fn __umpire_lifted() -> Embedded;
     }
+    /// A `#[machine]` World whose module the front end admitted: typed access to its state
+    /// and outcomes by the embedded Model's field order, for the interpreted checker.
+    pub trait Interprets: Lifts + crate::Machine {
+        /// The state field at `slot`, in declaration order.
+        fn __umpire_get(state: &Self::State, slot: usize) -> value::Value;
+        /// Replaces the state field at `slot`.
+        fn __umpire_set(state: &mut Self::State, slot: usize, value: &value::Value);
+        /// A state from every field's value, in declaration order.
+        fn __umpire_state(values: &[value::Value]) -> Self::State;
+        /// An edge outcome from its value.
+        fn __umpire_outcome(value: &value::Value) -> Self::Outcome;
+        /// An edge outcome's value.
+        fn __umpire_outcome_value(outcome: &Self::Outcome) -> value::Value;
+        /// Each `check!` the embedded Model's claims index, as its failure reports it.
+        fn __umpire_checks() -> &'static [&'static str];
+    }
 }
 
 /// The checker's aggregate claim result, distinct from a domain's step outcome.

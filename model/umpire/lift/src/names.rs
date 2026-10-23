@@ -217,7 +217,9 @@ fn rename(expr: &mut Expr, renamed: &dyn Fn(&ExprKind) -> Option<ExprKind>) {
         return;
     }
     match &mut expr.kind {
-        ExprKind::Unary(_, value) | ExprKind::Length(value) => rename(value, renamed),
+        ExprKind::Unary(_, value) | ExprKind::Length(value) | ExprKind::Check(_, value) => {
+            rename(value, renamed);
+        }
         ExprKind::Binary(_, left, right) | ExprKind::Append(left, right) => {
             rename(left, renamed);
             rename(right, renamed);

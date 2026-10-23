@@ -783,6 +783,23 @@ let module = lifted(std::path::Path::new("fixtures/counter/model.rs"))?;
 let result = umpire_tlc::Tlc::discover(repository_root)?.check_module(&module)?;
 ```
 
+Both also define `interpreted()`, the differential check (fn-238.5). For a World whose
+`#[machine]` module is admitted, it explores the Model twice under the fixture's budget:
+compiled, and as `umpire_checker::Interpreted`, which evaluates the embedded tree on the
+compiled typed state through accessors `#[machine]` generates beside it. Every checker file,
+the report, states, rows, negative report and paths, must be identical, and so must any
+refusal, including a panic while enumerating starts. A failed `check!` reports the text
+`check!` itself spells, which `#[machine]` records for each one the tree indexes. The shared
+runner's `interpreted_agrees_with_compiled` runs it for every shared fixture and fails if an
+admitted one is not interpreted. The Temporal activity's `run()` and the admitted checker
+controls call `umpire_testing::interpreted` themselves. The `interpreted` test of
+`umpire-fixtures` adds the lifter's and the backends' own Models (the Apalache arithmetic
+fixture across 220 Worlds), lazy start domains, `usize` lengths, checked-arithmetic failures,
+the claim cap and seeded mutant trees that must disagree. The interpreter does not replace the compiled checker, and the guest
+and typed replay keep running the compiled bodies. The catalog, claim order, computed starts
+and declared-World starts stay the compiled Model's; a fixture's negative claim is judged by
+the compiled World on interpreted states.
+
 For a declared World, `lifted.bind(&binding)` precedes emission. `Binding` holds the same
 compiled Model's named World values, complete start rows and checked catalog; a value outside
 its admitted type refuses at the source declaration. TLC

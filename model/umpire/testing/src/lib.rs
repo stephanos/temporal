@@ -5,10 +5,14 @@ pub mod boundary;
 pub mod discovery;
 
 mod bound;
+mod interpreted;
 mod render;
 mod runner;
 
 pub use bound::{Bound, Declared, bound};
+#[doc(hidden)]
+pub use interpreted::probe as __interpreted_probe;
+pub use interpreted::{Agreement, compare, interpreted};
 
 pub use render::{add_paths, render, render_rows};
 pub use runner::{
@@ -87,9 +91,19 @@ pub mod __probe {
 
 /// Define a fixture's lift hooks for `world`: `lifted(source)` emits the Model its
 /// `#[machine]` embeds, and `check(folder, source, run)` checks it with TLC. The fixture
-/// runner calls both; `fixture!` defines them for its World.
+/// runner calls both; `fixture!` defines them for its World. Also defines `interpreted()`, the
+/// differential check of [`interpreted`](crate::interpreted) under the default state budget.
 #[macro_export]
 macro_rules! lifted {
+    ($world:expr) => {
+        $crate::__lift_hooks!($world);
+        $crate::__interpreted_hook!($world, $crate::Checker::BUDGET);
+    };
+}
+
+#[doc(hidden)]
+#[macro_export]
+macro_rules! __lift_hooks {
     ($world:expr) => {
         #[allow(dead_code)]
         pub(crate) fn lifted(
@@ -104,6 +118,28 @@ macro_rules! lifted {
             run: fn() -> $crate::RunResult,
         ) -> $crate::RunResult {
             $crate::check(&$world, $crate::__embedded!($world).as_ref(), folder, source, run)
+        }
+    };
+}
+
+/// `interpreted()`: the differential check of `world` when its `#[machine]` module was
+/// admitted, otherwise `None`.
+#[doc(hidden)]
+#[macro_export]
+macro_rules! __interpreted_hook {
+    ($world:expr, $budget:expr $(, $negative:expr)?) => {
+        #[allow(dead_code)]
+        pub(crate) fn interpreted() -> ::core::result::Result<
+            ::core::option::Option<$crate::Agreement>,
+            ::std::boxed::Box<dyn ::std::error::Error>,
+        > {
+            #[allow(unused_imports)]
+            use $crate::__interpreted_probe::{Admitted as _, Unadmitted as _};
+            (&$crate::__probe::of(&$world)).interpreted(
+                || $world,
+                $budget,
+                None $(.or(Some(($negative, $negative))))?,
+            )
         }
     };
 }
@@ -138,6 +174,7 @@ macro_rules! fixture {
         pub(crate) fn run() -> $crate::RunResult {
             bound().run()
         }
+        $crate::__interpreted_hook!($world, $budget $(, $negative)?);
         #[allow(dead_code)]
         pub(crate) fn lifted(source: &::std::path::Path) -> ::core::result::Result<$crate::Module, ::std::string::String> {
             bound().lift(source)
@@ -152,7 +189,8 @@ macro_rules! fixture {
         }
     };
     ($world:expr, $budget:expr) => {
-        $crate::lifted!($world);
+        $crate::__lift_hooks!($world);
+        $crate::__interpreted_hook!($world, $budget);
         pub(crate) fn run() -> $crate::RunResult {
             Ok($crate::render(&$crate::Checker::explore(&$world, $budget)?)?)
         }
@@ -161,7 +199,8 @@ macro_rules! fixture {
         $crate::fixture!($world, $budget, $negative, extra = $crate::Files::new());
     };
     ($world:expr, $budget:expr, $negative:expr, extra = $extra:expr) => {
-        $crate::lifted!($world);
+        $crate::__lift_hooks!($world);
+        $crate::__interpreted_hook!($world, $budget, $negative);
         pub(crate) fn run() -> $crate::RunResult {
             let mut files = $crate::render(&$crate::Checker::explore(&$world, $budget)?)?;
             let negative = $crate::Checker::refuted(&$world, $negative)?;

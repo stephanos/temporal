@@ -55,6 +55,7 @@ impl<'a> Values<'a> {
             ExprKind::Unit => leaf("<<>>".into()),
             ExprKind::World(n) | ExprKind::Input(n) => leaf(n.clone()),
             ExprKind::Local(n) => self.locals[n].clone(),
+            ExprKind::Check(_, inner) => return self.emit(inner),
             ExprKind::Var(n, primed) => leaf(if self.post && !primed {
                 format!("__umpire_before_{n}{}", if self.successor { "'" } else { "" })
             } else {

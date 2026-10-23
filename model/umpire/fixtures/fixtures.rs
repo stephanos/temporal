@@ -2,6 +2,7 @@
 
 include!(concat!(env!("OUT_DIR"), "/fixtures.rs"));
 include!(concat!(env!("OUT_DIR"), "/lifted.rs"));
+include!(concat!(env!("OUT_DIR"), "/interpreted.rs"));
 
 fn fixture_name(folder: &std::path::Path) -> Result<&str, Box<dyn std::error::Error>> {
     folder.file_name().and_then(|name| name.to_str()).ok_or_else(|| "invalid fixture folder".into())
@@ -62,4 +63,36 @@ fn fixtures() -> umpire_testing::TestResult {
         &[umpire_testing::CHECKER, umpire_testing::SUITE, LIFT, TLC],
         if required { &[] } else { &["tlc"] },
     )
+}
+
+/// Every fixture whose Model the front end admits explores identically when its embedded tree
+/// is interpreted: the same states, edges, outcomes, claim verdicts and counterexamples.
+#[test]
+#[allow(clippy::print_stderr)]
+fn interpreted_agrees_with_compiled() -> umpire_testing::TestResult {
+    let root = std::path::Path::new(env!("CARGO_MANIFEST_DIR")).join("fixtures");
+    let mut checked = Vec::new();
+    let mut failures = Vec::new();
+    for (name, _) in registered() {
+        match interpreted(name) {
+            Ok(Some(agreement)) => {
+                eprintln!(
+                    "interpreted {name}: {} states, {} edges agree; compiled {:?}, interpreted {:?}",
+                    agreement.states, agreement.edges, agreement.compiled, agreement.interpreted
+                );
+                checked.push(name);
+            }
+            Ok(None) => {}
+            Err(error) => failures.push(format!("{name}: {error}")),
+        }
+    }
+    if !failures.is_empty() {
+        return Err(failures.join("\n").into());
+    }
+    for name in admitted(&root) {
+        if !checked.contains(&name) {
+            return Err(format!("admitted fixture {name} was not interpreted").into());
+        }
+    }
+    Ok(())
 }
