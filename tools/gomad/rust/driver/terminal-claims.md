@@ -22,6 +22,11 @@ output counter after retaining output, so v2's retained-output comparison does n
 apply to v1. Synthetic and early-cancelled executions without a native snapshot
 continue to use v1.
 
+Observed replay's `backend-evidence.bin` retains its v1 format. The final retained
+reader authenticates a v2 artifact and derives that v1 observation by removing
+the output snapshot digest and restoring the v1 schema before comparing raw
+observations. Original v1 artifact observations remain byte-for-byte comparisons.
+
 This checks the trusted native producer's Store-to-Outcome publication boundary
 and artifact consistency. It does not attest execution origin: an attacker able
 to rewrite and reseal all artifact inputs can change both counters, or construct

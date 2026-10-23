@@ -136,7 +136,10 @@ fn retain(root: &Path, execution: &linked::Execution, digest_only: bool) -> Resu
         }
         write_raw(&root.join(name), bytes)?;
     }
-    canonical_streams(root, execution, digest_only)?;
+    // Admission can terminate before any model or Sink exists; retain the actual refusal only.
+    if execution.admission_terminal_to_return_nanos.is_none() {
+        canonical_streams(root, execution, digest_only)?;
+    }
     Ok(())
 }
 fn canonical_streams(

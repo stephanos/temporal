@@ -6,15 +6,15 @@ use std::path::PathBuf;
 #[derive(Clone, Serialize)]
 pub(crate) struct Attempt {
     pub(crate) label: String,
-    pub(crate) role: String,
     pub(crate) native_root: PathBuf,
+    pub(crate) role: String,
 }
 #[derive(Serialize)]
-pub(crate) struct Record {
+pub(crate) struct Record<O = Value> {
     pub(crate) attempt: Attempt,
-    pub(crate) retained_paths: Vec<PathBuf>,
-    pub(crate) observation: Option<Value>,
     pub(crate) execution_failure: Option<String>,
+    pub(crate) observation: Option<O>,
+    pub(crate) retained_paths: Vec<PathBuf>,
     pub(crate) verification_failure: Option<String>,
 }
 fn retained_paths(attempt: &Attempt) -> Result<Vec<PathBuf>, String> {
@@ -53,11 +53,11 @@ fn retained_paths(attempt: &Attempt) -> Result<Vec<PathBuf>, String> {
 
 /// # Errors
 /// Collects every admitted attempt, then joins execution, verification and publication failures.
-pub(crate) fn collect<T>(
+pub(crate) fn collect<T, O: Serialize>(
     attempts: &[Attempt],
-    mut execute: impl FnMut(&Attempt) -> Result<Value, String>,
+    mut execute: impl FnMut(&Attempt) -> Result<O, String>,
     mut verify: impl FnMut(&Attempt) -> Result<(), String>,
-    publish: impl FnOnce(&[Record], Option<&str>) -> Result<T, String>,
+    publish: impl FnOnce(&[Record<O>], Option<&str>) -> Result<T, String>,
 ) -> Result<T, String> {
     let mut failures = FailureReasons::default();
     let mut observations = Vec::new();

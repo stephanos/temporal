@@ -84,3 +84,117 @@ fn bounded_opened_file() {
     );
     assert!(facts.allocated_bytes <= 2 * (1 << 20) + (64 << 10));
 }
+
+#[test]
+fn terminal_publication_allocation() {
+    use measurement::terminal_publication::{
+        publish,
+        tests::{fixtures, output_path},
+    };
+    allocation_measure::self_check();
+    for bytes in [1 << 20, 4 << 20] {
+        let (records, admission) = fixtures(bytes);
+        let path = output_path("allocation");
+        let (result, facts) = allocation_measure::capture(|| {
+            publish(
+                &path,
+                &records,
+                None,
+                &admission,
+                None,
+                std::path::Path::new("/fixture/provenance.json"),
+            )
+        });
+        result.unwrap();
+        let length = std::fs::metadata(&path).unwrap().len();
+        allocation_measure::row(
+            &format!("terminal-publication-{bytes}"),
+            serde_json::json!({"release_records":6,"raw_stream_bytes_each":bytes}),
+            facts,
+            serde_json::json!({"ledger_bytes":length}),
+        );
+        assert!(
+            facts.allocated_bytes < 1 << 20,
+            "publication allocated {} bytes",
+            facts.allocated_bytes
+        );
+        assert!(length > (bytes * 12) as u64);
+        std::fs::remove_file(path).unwrap();
+    }
+}
+
+#[test]
+#[ignore = "explicit retained terminal publication replay; no guest execution"]
+fn terminal_publication_retained_replay() {
+    use measurement::{
+        build, evidence,
+        terminal_collection::{Attempt, Record},
+        terminal_publication::{Observation, publish},
+    };
+    use std::path::{Path, PathBuf};
+    let root = PathBuf::from(
+        std::env::var_os("GOMAD_TERMINAL_REPLAY_ROOT").expect("retained terminal root"),
+    );
+    let output = PathBuf::from(
+        std::env::var_os("GOMAD_TERMINAL_REPLAY_OUTPUT").expect("fresh ledger output"),
+    );
+    let admission: build::Admission = serde_json::from_slice(
+        &std::fs::read(
+            std::env::var_os("GOMAD_TERMINAL_REPLAY_ADMISSION")
+                .expect("original release admission"),
+        )
+        .unwrap(),
+    )
+    .unwrap();
+    let provenance = PathBuf::from(
+        std::env::var_os("GOMAD_TERMINAL_REPLAY_PROVENANCE").expect("original module provenance"),
+    );
+    let mut records = Vec::new();
+    for label in [
+        "prime",
+        "terminal-0",
+        "terminal-1",
+        "terminal-2",
+        "terminal-3",
+        "terminal-4",
+    ] {
+        let native_root = root.join("evidence").join(label);
+        let request =
+            serde_json::from_slice(&std::fs::read(native_root.join("request.json")).unwrap())
+                .unwrap();
+        let run = evidence::read_profile_run(
+            &native_root,
+            evidence::ReadLimits::for_request(&request).unwrap(),
+        )
+        .unwrap();
+        records.push(Record {attempt:Attempt {label:label.into(),native_root,role:"release".into()},execution_failure:None,
+            observation:Some(Observation::Release {observation:Box::new(run),process_exit:serde_json::json!({"publication_replay_only":true,"original_driver":root.join("evidence").join(format!("{label}-driver.json"))})}),
+            retained_paths:vec![],verification_failure:None});
+    }
+    // These original controls were not both publishable. Replay must remain a nonpass.
+    for label in ["module-digest", "loaded-module-descriptor"] {
+        records.push(Record {attempt:Attempt {label:label.into(),native_root:root.join("evidence").join(label),role:"diagnostic-profile".into()},
+            execution_failure:Some("original failed collection control is not re-executed or promoted by publication replay".into()),observation:None,retained_paths:vec![],verification_failure:None});
+    }
+    allocation_measure::self_check();
+    let (result, facts) = allocation_measure::capture(|| {
+        publish(
+            &output,
+            &records,
+            Some(
+                "publication replay only; original collection failed and controls remain unaccepted",
+            ),
+            &admission,
+            None,
+            Path::new(&provenance),
+        )
+    });
+    result.unwrap();
+    allocation_measure::row(
+        "terminal-publication-retained-replay",
+        serde_json::json!({"release_records":6,"original_root":root}),
+        facts,
+        serde_json::json!({"ledger_bytes":std::fs::metadata(&output).unwrap().len(),"accepted":false}),
+    );
+    assert!(facts.allocated_bytes < 1 << 20);
+}

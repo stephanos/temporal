@@ -1,7 +1,7 @@
 {
   "schema": "gomad.integration-development-evidence/v1",
-  "observed_at": "2026-10-23T06:23:55Z",
-  "integration_head": "292b8f8848e91ec0dade547044bb7ef668b5fba6",
+  "observed_at": "2026-10-23T12:57:38.799355+00:00",
+  "integration_head": "50dc1929efd2da3dfbd3212756efa0cf10182a99",
   "final_qualification": false,
   "logs": [
     {
@@ -2209,6 +2209,371 @@
         "Five unresolved original references",
         "Frozen 96-stage/146-obligation qualification and remaining milestone work"
       ]
+    },
+    {
+      "observed_at": "2026-10-23T12:57:38.799355+00:00",
+      "integration_head": "50dc1929efd2da3dfbd3212756efa0cf10182a99",
+      "final_qualification": false,
+      "scope": "Joined development checkpoint; all frozen qualification, original-reference closure and later milestones remain required",
+      "joined_python": {
+        "tests": 491,
+        "exit": 0,
+        "proofs": [
+          {
+            "path": "/home/agent/evidence/fn232-root-joined-receiving-v2/tests.json",
+            "bytes": 551,
+            "sha256": "281a73191b14298389899ff2405e5affaf0c4fd9a680f2ea584d87561d44af3e"
+          },
+          {
+            "path": "/home/agent/evidence/fn232-root-joined-receiving-v2/tests.log",
+            "bytes": 83358,
+            "sha256": "533bc0984ba734f873b22d23018d08580d96e90cb5bc008736acd57e43ccecd3"
+          }
+        ]
+      },
+      "native_accounting": {
+        "source": "e46867dffc2e455bb7b381b79eb52a0a5e8f68f1",
+        "build": {
+          "exit": 0,
+          "proofs": [
+            {
+              "path": "/home/agent/evidence/fn232-core-counterfactual/broad-combined-release-build-v5/command.json",
+              "bytes": 54997,
+              "sha256": "1bd9e10ed33cf3f09fdbf6f130e2fc0f084e6ecd795349ff74a16493a5a6071f"
+            },
+            {
+              "path": "/home/agent/evidence/fn232-core-counterfactual/broad-combined-release-build-v5/process.json",
+              "bytes": 425,
+              "sha256": "725f180734a3cae352c0adb4a941cdd29c748d7c538fb75c2a9912c96986dcdd"
+            },
+            {
+              "path": "/home/agent/evidence/fn232-core-counterfactual/broad-combined-release-build-v5/stdout",
+              "bytes": 133149,
+              "sha256": "3813f58c72d3738088cf381ff164f5f4cdfa5d8ff43b98c44e313a261406f1c4"
+            },
+            {
+              "path": "/home/agent/evidence/fn232-core-counterfactual/broad-combined-release-build-v5/stderr",
+              "bytes": 241,
+              "sha256": "48a0995f0a206f6c6294b05d1923b55fd99cacb63c306d2bdb49d6a662717a63"
+            }
+          ]
+        },
+        "causal_red": [
+          {
+            "exit": 101,
+            "proofs": [
+              {
+                "path": "/home/agent/evidence/fn232-core-counterfactual/broad-backend-red-v3-1/command.json",
+                "bytes": 54654,
+                "sha256": "0cc0b0b16eb78a46a1434a84ac703f50656d6691925f5f87242fafbe133bff09"
+              },
+              {
+                "path": "/home/agent/evidence/fn232-core-counterfactual/broad-backend-red-v3-1/process.json",
+                "bytes": 427,
+                "sha256": "633554b38cff3d4b75a70538bc856199288605d2dd9af4ed428dd822e95bb54a"
+              },
+              {
+                "path": "/home/agent/evidence/fn232-core-counterfactual/broad-backend-red-v3-1/stdout",
+                "bytes": 366,
+                "sha256": "c5a818c662ef898373f3588bbafdc419f0e4d12d98c64780027698a116468fff"
+              },
+              {
+                "path": "/home/agent/evidence/fn232-core-counterfactual/broad-backend-red-v3-1/stderr",
+                "bytes": 319,
+                "sha256": "553f6d96cda3103971a4328a82d8f872152d2b35b708b266b7597fc2bfa3a3e6"
+              }
+            ]
+          },
+          {
+            "exit": 101,
+            "proofs": [
+              {
+                "path": "/home/agent/evidence/fn232-core-counterfactual/broad-backend-red-v3-2/command.json",
+                "bytes": 54663,
+                "sha256": "5784f64fb6f816f09721f29d50ce8c7c90cf66650760ba90bc658020446ac04b"
+              },
+              {
+                "path": "/home/agent/evidence/fn232-core-counterfactual/broad-backend-red-v3-2/process.json",
+                "bytes": 427,
+                "sha256": "942d3e96b02bff3ccf09c870818eec83ea56349cef2baaae1bd6259cc2187076"
+              },
+              {
+                "path": "/home/agent/evidence/fn232-core-counterfactual/broad-backend-red-v3-2/stdout",
+                "bytes": 384,
+                "sha256": "79205d21c9cd95a97ab79784512fdbebfb916270e55ccf61df04d8c8f6723ac7"
+              },
+              {
+                "path": "/home/agent/evidence/fn232-core-counterfactual/broad-backend-red-v3-2/stderr",
+                "bytes": 341,
+                "sha256": "ba1defaf3c39a29ccbaaab6b85efc09497ea00cc6a70b2cdcc347316608d8c5d"
+              }
+            ]
+          },
+          {
+            "exit": 101,
+            "proofs": [
+              {
+                "path": "/home/agent/evidence/fn232-core-counterfactual/broad-backend-red-v3-3/command.json",
+                "bytes": 54644,
+                "sha256": "842986992ad0d3e4d2baf6982889a9074ba6cbd33c30c8c9ab36e8858a1ff500"
+              },
+              {
+                "path": "/home/agent/evidence/fn232-core-counterfactual/broad-backend-red-v3-3/process.json",
+                "bytes": 427,
+                "sha256": "223b9388b3a30241c6457e9889c133156510fef37bde4dcb676364343a000fa5"
+              },
+              {
+                "path": "/home/agent/evidence/fn232-core-counterfactual/broad-backend-red-v3-3/stdout",
+                "bytes": 346,
+                "sha256": "d4fe410f5352386d5f90fe7274eab6588e15c63408fe81531a7c05ddbbed184c"
+              },
+              {
+                "path": "/home/agent/evidence/fn232-core-counterfactual/broad-backend-red-v3-3/stderr",
+                "bytes": 309,
+                "sha256": "3359710e3281d5af9d3e5f24dc2a84ebebcfb8d3566cec9f708ba055835a3e12"
+              }
+            ]
+          }
+        ],
+        "green": [
+          {
+            "exit": 0,
+            "proofs": [
+              {
+                "path": "/home/agent/evidence/fn232-core-counterfactual/broad-backend-green-v5-1/command.json",
+                "bytes": 54921,
+                "sha256": "78f6d9bd29059d97265cd4f0ee4fbf171cb886e2ea30634f16e36a6f1f3dd80b"
+              },
+              {
+                "path": "/home/agent/evidence/fn232-core-counterfactual/broad-backend-green-v5-1/process.json",
+                "bytes": 425,
+                "sha256": "8f1bd43caac40a41b90b2271590bb9ea6ebfa09e8e7eb6efb7873efd5e9bc546"
+              },
+              {
+                "path": "/home/agent/evidence/fn232-core-counterfactual/broad-backend-green-v5-1/stdout",
+                "bytes": 229,
+                "sha256": "10041963b952074f356356563e90ec9cd937889bdc49258aae9692e09c18147c"
+              },
+              {
+                "path": "/home/agent/evidence/fn232-core-counterfactual/broad-backend-green-v5-1/stderr",
+                "bytes": 0,
+                "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+              }
+            ]
+          },
+          {
+            "exit": 0,
+            "proofs": [
+              {
+                "path": "/home/agent/evidence/fn232-core-counterfactual/broad-backend-green-v5-2/command.json",
+                "bytes": 54930,
+                "sha256": "e0011bee40a45d819c2a311e8332b40d4e0e4dbc813bb8cd652451c0f589259b"
+              },
+              {
+                "path": "/home/agent/evidence/fn232-core-counterfactual/broad-backend-green-v5-2/process.json",
+                "bytes": 425,
+                "sha256": "8778782e6daa27283d7793c6fbc3707327816846e09ec1a8e5fdc9d09860824e"
+              },
+              {
+                "path": "/home/agent/evidence/fn232-core-counterfactual/broad-backend-green-v5-2/stdout",
+                "bytes": 238,
+                "sha256": "69e39701ae3690f9ea520aa0f8af4d66ca0552b60f5d5fc845583316697170bf"
+              },
+              {
+                "path": "/home/agent/evidence/fn232-core-counterfactual/broad-backend-green-v5-2/stderr",
+                "bytes": 0,
+                "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+              }
+            ]
+          },
+          {
+            "exit": 0,
+            "proofs": [
+              {
+                "path": "/home/agent/evidence/fn232-core-counterfactual/broad-backend-green-v5-3/command.json",
+                "bytes": 54911,
+                "sha256": "d301e2426c9dc575b54aca7fd9f4fc34a558b0fbdd359db4ef31eb9c78ffce54"
+              },
+              {
+                "path": "/home/agent/evidence/fn232-core-counterfactual/broad-backend-green-v5-3/process.json",
+                "bytes": 425,
+                "sha256": "01bc3e8adf4fde4ed60fc2cbdf7a76d801c74cd1175e294d6335c71f782c366e"
+              },
+              {
+                "path": "/home/agent/evidence/fn232-core-counterfactual/broad-backend-green-v5-3/stdout",
+                "bytes": 219,
+                "sha256": "9461590a7af4ddec1627060f7a5cf9dfa0603f6129a95207ba3f1a7c39ba2676"
+              },
+              {
+                "path": "/home/agent/evidence/fn232-core-counterfactual/broad-backend-green-v5-3/stderr",
+                "bytes": 0,
+                "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+              }
+            ]
+          }
+        ],
+        "host": {
+          "passed": 711,
+          "ignored": 9,
+          "evidence": {
+            "exit": 0,
+            "proofs": [
+              {
+                "path": "/home/agent/evidence/fn232-core-counterfactual/broad-host-baseline-v5/command.json",
+                "bytes": 54799,
+                "sha256": "55c3a31752461d040ffff0dffda5ccdb274d0b2e5f23aa607e7923c83932acd5"
+              },
+              {
+                "path": "/home/agent/evidence/fn232-core-counterfactual/broad-host-baseline-v5/process.json",
+                "bytes": 425,
+                "sha256": "23f259cb153368ea46d3d69b719ce67ded6eeae4138d3d478edc9911cb0ac1ce"
+              },
+              {
+                "path": "/home/agent/evidence/fn232-core-counterfactual/broad-host-baseline-v5/stdout",
+                "bytes": 28383648,
+                "sha256": "f03618b9030af8f7eef54ee4b1bc803801aa31c59445bd4f63f9b827a312c0e6"
+              },
+              {
+                "path": "/home/agent/evidence/fn232-core-counterfactual/broad-host-baseline-v5/stderr",
+                "bytes": 565,
+                "sha256": "0376539098d99a250b6e4a5fb90bc389691e2dcc17e4e6a6e83da08453a8f188"
+              }
+            ]
+          }
+        },
+        "helper": {
+          "passed": 257,
+          "ignored": 14,
+          "evidence": {
+            "exit": 0,
+            "proofs": [
+              {
+                "path": "/home/agent/evidence/fn232-core-counterfactual/broad-helper-baseline-v5/command.json",
+                "bytes": 54808,
+                "sha256": "b292249c8ca929013a707785d31b4baa1bf3efe44fa3696281a2bf1f13f3a444"
+              },
+              {
+                "path": "/home/agent/evidence/fn232-core-counterfactual/broad-helper-baseline-v5/process.json",
+                "bytes": 425,
+                "sha256": "9edd6e0d1e9ef7c05790406d12ffe4607f4bb20c978d336c39f0131a5d6c44bc"
+              },
+              {
+                "path": "/home/agent/evidence/fn232-core-counterfactual/broad-helper-baseline-v5/stdout",
+                "bytes": 57168898,
+                "sha256": "14531f61518e8d88e256cd26156fd6f09bbe7a123e3fec326f9be12096e0321f"
+              },
+              {
+                "path": "/home/agent/evidence/fn232-core-counterfactual/broad-helper-baseline-v5/stderr",
+                "bytes": 246,
+                "sha256": "8f285534e7f06ccf8d024c4897a78f018f80cce4c5ed23dbbffd872367ee6436"
+              }
+            ]
+          }
+        },
+        "consumer_fix": "fa94b9698d",
+        "consumer_scope": "v2 counter anchor authenticated; replay compared through actual v1 projection; legacy v1 bytes preserved",
+        "review": "Fresh independent same-family source reviews CLEAR",
+        "remaining": "Default-feature/example/strict checks and actual five Go guests / eleven variants pending current rerun; prior 0/11 RED retained"
+      },
+      "terminal_full_eight": {
+        "status": "NONPASS",
+        "source": "cda65407c6ab0d72d8c3061bca8b87b32def7b40",
+        "collector_exit": -9,
+        "reason": "Kernel OOM during JSON Value report publication; separate loaded-descriptor preinstantiation refusal incorrectly required WASI digest metadata",
+        "six_release_runs": "Each exited 0 and exact streams independently read; aggregate acceptance not earned",
+        "proofs": [
+          {
+            "path": "/home/agent/evidence/fn232-terminal-controls-development-v1/terminal-producer.command.json",
+            "bytes": 2605,
+            "sha256": "7701cacca174033863aa00135bcca1cde7fa83c1d98c885b7ee68cd17609e6bb"
+          },
+          {
+            "path": "/home/agent/evidence/fn232-terminal-controls-development-v1/kernel-after-publication.log",
+            "bytes": 38987,
+            "sha256": "f685dcf3d3f0667f5f235be2b627938834d4d26eaa20448fa2048f5a363f02c5"
+          },
+          {
+            "path": "/home/agent/evidence/fn232-terminal-controls-development-v1/six-release-read.json",
+            "bytes": 6654,
+            "sha256": "0140a2adab498fb75e4ccc82745944aa7634d46d18e20989e40955e8f4a29084"
+          },
+          {
+            "path": "/home/agent/evidence/fn232-terminal-controls-development-v1/collector-memory-watchdog.json",
+            "bytes": 403,
+            "sha256": "d78c01188940d1f8cf5e36436b6933c97c8b18687891f0f1b9168db0d01728c4"
+          }
+        ],
+        "fix": "Streaming typed canonical publication and narrow preinstantiation retention under independent review; not yet integrated",
+        "publication_only": {
+          "scope": "Reopens six retained authentic reports, no guest execution, acceptance remains false",
+          "ledger_bytes": 673995959,
+          "allocated_bytes": 108021,
+          "peak_extra_bytes": 107573,
+          "log": {
+            "path": "/home/agent/evidence/fn232-terminal-controls-development-v1/publication-only-replay.log",
+            "bytes": 1550,
+            "sha256": "4c1f7bb4e986eb7292c43de6981dcb2cd156ef804544af34508674c896938351"
+          }
+        }
+      },
+      "original_wire": {
+        "scope": "Original immutable five Go roots and twelve subcases only; not current Rust qualification",
+        "proof": {
+          "path": "/home/agent/evidence/fn232-terminal-controls-development-v1/original-wire/proof.json",
+          "bytes": 2740,
+          "sha256": "c3d5b373c6320d4c6720441603e291a3361b8dda11fed65f655faf6255179c53"
+        }
+      },
+      "interception": {
+        "commit": "50dc1929ef",
+        "scope": "Closed-consumer source/reader lifecycle repairs and ordinary controlled-Go harness integrated; actual compiled-Go proof pending",
+        "offline_checker_tests": 17,
+        "actual_qualification": false
+      },
+      "metadata_optimization": {
+        "commit": "68922f30fe",
+        "scope": "Actual three-campaign admission metadata comparison only; no whole-cycle performance claim",
+        "result": {
+          "path": "/home/agent/evidence/fn232-live-role-metadata-v2/result.json",
+          "bytes": 1731,
+          "sha256": "12ab77dec20f37c33e2ebe5668e5f0072f2a564f1b05d67d4de0416557f02e35"
+        }
+      },
+      "resource_offload": {
+        "scope": "Retired build target, verified content retained via original path symlink; redundant native copy removed",
+        "proofs": [
+          {
+            "path": "/home/agent/evidence/fn232-core-counterfactual/debug-target-offload-v1/result.json",
+            "bytes": 724,
+            "sha256": "e539e8a49423130cb9af116c79d4394eee6b97d283359c014baec1629fb0388e"
+          },
+          {
+            "path": "/home/agent/evidence/fn232-core-counterfactual/debug-target-offload-v1/switched.json",
+            "bytes": 272,
+            "sha256": "edc3cf9bed7299a1b7014383b0bc131288d26b0a46bd36a94ae6ac5d5d155f42"
+          },
+          {
+            "path": "/home/agent/evidence/fn232-core-counterfactual/debug-target-offload-v1/audit-before.json",
+            "bytes": 117,
+            "sha256": "5b1b429cb0f318a9bd21e55314a03c13445f0971879422f692ff3fb94253cefc"
+          },
+          {
+            "path": "/home/agent/evidence/fn232-core-counterfactual/debug-target-offload-v1/audit-before-switch.json",
+            "bytes": 117,
+            "sha256": "951d0880d66a0b90bcf9ecc84a2c702ce132d278645c860adc19530da25cdc40"
+          }
+        ],
+        "retained_bytes": 15270936701,
+        "retained_entries": 3423
+      },
+      "pending": [
+        "Reviewed terminal source integration and actual full-eight rerun",
+        "Fresh immutable integrated candidate, GNU envelope, actual typed role builds and installed operator retry",
+        "Executed divergence original four pairs; historical handoff predicate remains FAIL",
+        "Actual 32-by-25 runtime plus aggregate/stress/four-axis and original reference closures",
+        "Unchanged frozen 96-stage/146-obligation qualification within 3600 seconds",
+        "Remaining MILESTONES suite sweep, one-box support, profiling and delivery requirements"
+      ]
     }
   ],
   "resource_snapshot": {
@@ -3234,5 +3599,13 @@
         }
       }
     }
-  ]
+  ],
+  "resource_snapshot_latest": {
+    ".": {
+      "available_bytes": 85162102784
+    },
+    "/home/agent": {
+      "available_bytes": 27149373440
+    }
+  }
 }

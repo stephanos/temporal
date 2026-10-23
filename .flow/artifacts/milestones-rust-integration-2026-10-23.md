@@ -1,3 +1,19 @@
+# Current joined development checkpoint
+
+Source `50dc1929ef`. **Development evidence only; milestone completion remains open.**
+The companion JSON pins exact command, process and raw log files for this checkpoint.
+
+- Joined Python driver: **491 passed**, exit 0. Closed-consumer offline checker: 17 passed.
+- Native source `e46867dffc`: **711 host tests passed** (9 ignored), **257 ordinary-helper tests passed** (14 ignored). All three terminal-accounting regressions failed on the prior source and pass after the repair. The retained reader now authenticates v2 accounting and compares the actual v1 replay observation while preserving legacy v1 bytes.
+- The actual eight-run terminal collector remains **NONPASS**: kernel OOM during publication, plus a separate loaded-descriptor refusal handling error. Six individual release executions passed. A publication-only replay of those authentic reports writes 673,995,959 bytes while allocating 108,021 bytes, preserves `accepted=false`, and earns no fresh guest qualification. The source repair remains under review.
+- Original immutable Go terminal wire tests passed five roots and twelve subcases; that proves only the original reference scope.
+- Actual metadata admission comparison: 175.776 s to 138.284 s, a 37.492 s saving. This is not a whole-cycle performance result.
+- The retired core debug target was fully verified and moved to checkout storage: 3,423 entries / 15,270,936,701 bytes preserved through its original-path symlink. The active retirement target remains exclusively assigned to the core worker.
+
+Next: integrate reviewed terminal and interception receiving repairs, finish native/Go receiving checks, then freeze a new candidate and regenerate source-bound GNU/build envelopes. Actual installed-operator retry, counterfactual campaigns, runtime 32-by-25 matrix, aggregate/stress/four-axis gates and the complete 96-stage/146-obligation cycle remain required. No original reference, support claim or milestone is closed by this checkpoint.
+
+## Earlier development checkpoints
+
 # Rust integration development checkpoint
 
 Current source: `e89dc0a247`, retained by `gomad` head `e944295e58`.

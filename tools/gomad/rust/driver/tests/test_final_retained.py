@@ -33,7 +33,7 @@ class FinalRetained(unittest.TestCase):
             with self.assertRaises(driver.Refusal):
                 gate.bounded(path, 5)
 
-    def exercise_observed(self, mutation=None):
+    def exercise_observed(self, mutation=None, version='v1'):
         with tempfile.TemporaryDirectory() as directory:
             root = Path(directory)
             artifact = root / 'campaign/evidence/artifact'
@@ -54,8 +54,40 @@ class FinalRetained(unittest.TestCase):
             (artifact / 'output/stdout').write_bytes(b'deterministic failure after reading "pending"')
             (artifact / 'output/stderr').write_bytes(b'')
             record = dict(profile=gate.PROFILES['stock'], streams={'output/stdout': {}}, outcome={'class': 'target_failure'})
+            if version.startswith('v2'):
+                retained = len((artifact / 'output/stdout').read_bytes())
+                offered = retained + (7 if version == 'v2-attempts' else 0)
+                anchor = dict(schema='gomad.native-output-accounting/v1', offered_output_bytes=offered)
+                if mutation == 'v2-extra': anchor['extra'] = True
+                raw_anchor = gate.CANONICAL(anchor)
+                anchor_name = 'evidence/native-output-accounting'
+                (artifact / anchor_name).write_bytes(raw_anchor)
+                descriptor = dict(bytes=len(raw_anchor), sha256=gate.receiving.digest(raw_anchor), records=0)
+                record['streams'][anchor_name] = descriptor
+                record['limits'] = dict(fuel=100, output_bytes=1048576)
+                record['outcome'].update(termination='exit', exit_code=1)
+                stable = dict(schema='gomad.backend-outcome/v2', type='result', termination='exit', exit_code=1,
+                    output_bytes=offered, fuel_remaining=50, output_accounting_sha256=descriptor['sha256'])
+                if mutation == 'v2-output': stable['output_bytes'] += 1
+                if mutation == 'v2-fuel': stable['fuel_remaining'] = 101
+                if mutation == 'v2-terminal': stable['exit_code'] = 0
+                if mutation == 'v2-hash': stable['output_accounting_sha256'] = '0' * 64
+                if mutation == 'v2-stream': record['streams'][anchor_name]['sha256'] = '0' * 64
+                raw_backend = gate.CANONICAL(stable)
+                (artifact / 'evidence/backend-outcome.json').write_bytes(raw_backend)
+                manifest = driver.read(artifact / 'manifest.json')
+                manifest['files'] = {anchor_name: dict(bytes=len(raw_anchor), sha256=gate.receiving.digest(raw_anchor)),
+                    'evidence/backend-outcome.json': dict(bytes=len(raw_backend), sha256=gate.receiving.digest(raw_backend))}
+                (artifact / 'manifest.json').write_bytes(gate.CANONICAL(manifest))
+                if mutation == 'v2-raw': (artifact / anchor_name).write_bytes(raw_anchor + b' ')
+                if mutation == 'v2-backend-raw': (artifact / 'evidence/backend-outcome.json').write_bytes(raw_backend + b' ')
+                if mutation == 'v2-missing': (artifact / anchor_name).unlink()
             expected = {'stdout': (artifact / 'output/stdout').read_bytes(), 'stderr': b'',
                         'backend-evidence.bin': (artifact / 'evidence/backend-outcome.json').read_bytes()}
+            if version.startswith('v2'):
+                backend_observation = dict(stable, schema='gomad.backend-outcome/v1')
+                backend_observation.pop('output_accounting_sha256')
+                expected['backend-evidence.bin'] = gate.CANONICAL(backend_observation)
             if mutation == 'original-metrics':
                 next(observation.iterdir()).unlink()
             if mutation == 'stable-schema':
@@ -90,6 +122,14 @@ class FinalRetained(unittest.TestCase):
 
     def test_twenty_distinct_fresh_observed_processes_and_original_selector(self):
         self.exercise_observed()
+
+    def test_v2_preserves_twenty_raw_replays_and_checks_native_accounting(self):
+        self.exercise_observed(version='v2')
+        self.exercise_observed(version='v2-attempts')
+        for mutation in ('v2-output', 'v2-fuel', 'v2-terminal', 'v2-hash', 'v2-stream', 'v2-raw',
+                         'v2-backend-raw', 'v2-extra', 'v2-missing'):
+            with self.subTest(mutation=mutation), self.assertRaises(driver.Refusal):
+                self.exercise_observed(mutation, version='v2')
 
     def test_last_replay_changed_raw_missing_payload_reused_pid_or_mutation_refuses(self):
         for mutation in ('raw', 'missing', 'pid', 'immutable', 'metrics', 'original-metrics', 'stable-schema'):
