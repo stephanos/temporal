@@ -335,6 +335,22 @@ fn real_start_evaluation_respects_field_order_before_empty_domains()
         let result = tool.check(&module, "ArithmeticSafe", 0)?;
         retain(label, &module, &result)?;
         assert_eq!(result.violated()?, fails, "{label}: {}", result.output());
+        if fails {
+            let world = start_fault_first::faulty_first::World;
+            let actions = world.actions();
+            let replay = Replay { world: &world, starts: &[], actions: &actions, negative: &[] };
+            for raw in result.traces() {
+                let confirmed = replay.violation(&module, "ArithmeticSafe", 0, raw)?;
+                assert!(matches!(
+                    confirmed.confirmation,
+                    Confirmation::Arithmetic { index: 0, .. }
+                ));
+                fs::write(
+                    evidence_root().join("start-fault-first/replay.txt"),
+                    confirmed.to_string(),
+                )?;
+            }
+        }
     }
     Ok(())
 }
@@ -385,6 +401,60 @@ fn real_discarded_condition_keeps_its_evaluation_guard() -> Result<(), Box<dyn s
     Ok(())
 }
 
+#[test]
+fn real_kettle_negative_is_replayed_and_tampering_fails() -> Result<(), Box<dyn std::error::Error>>
+{
+    if !required() {
+        return Ok(());
+    }
+    let root = Path::new(env!("CARGO_MANIFEST_DIR")).join("../../../..");
+    let tool = Apalache::discover(&root)?;
+    let world = selected_kettle::kettle::world();
+    let starts = world.starts();
+    let catalog = world.checked_catalog(umpire_dsl::CATALOG_LIMIT)?;
+    let native = umpire_checker::Checker::explore_within(
+        &world,
+        starts.clone(),
+        umpire_checker::Checker::BUDGET,
+        umpire_dsl::CATALOG_LIMIT,
+    )?;
+    let length = native_bound(native.counts)?;
+    assert_eq!(
+        (native.counts.reached, native.counts.depth, native.counts.cut, length),
+        (283, 62, false, 63)
+    );
+    let source = format!(
+        r#"{KETTLE}
+        umpire_testing::fixture!(kettle::world(),1000,Claim::new("never_beeps",|_,s:&kettle::Model|(!s.beeping).into()));
+    "#
+    );
+    let module = Tla::safety(&Lift::parse("kettle.rs", &source)?)?;
+    let negative =
+        [umpire_dsl::Claim::new("never_beeps", |_, s: &selected_kettle::kettle::Model| {
+            (!s.beeping).into()
+        })];
+    let replay =
+        Replay { world: &world, starts: &starts, actions: catalog.actions(), negative: &negative };
+    let result = tool.check(&module, "Negative_never_beeps", length)?;
+    retain("kettle-negative", &module, &result)?;
+    assert!(result.violated()?, "{}", result.output());
+    for raw in result.traces() {
+        let confirmed = replay.violation(&module, "Negative_never_beeps", length, raw)?;
+        assert_eq!(confirmed.confirmation, Confirmation::Violation);
+        fs::write(evidence_root().join("kettle-negative/replay.txt"), confirmed.to_string())?;
+        assert_eq!(confirmed.to_string(), include_str!("expected/kettle-negative.txt"));
+        let mut tampered: serde_json::Value = serde_json::from_str(raw)?;
+        tampered["states"][1]["__umpire_action"] = serde_json::json!("User::DepressButton");
+        assert!(
+            replay
+                .violation(&module, "Negative_never_beeps", length, &tampered.to_string())
+                .is_err()
+        );
+        assert!(replay.violation(&module, "Invariant_beeps_only_when_off", length, raw).is_err());
+    }
+    Ok(())
+}
+
 #[path = "fixtures/arithmetic_prefix.rs"]
 mod prefix_fixture;
 #[test]
@@ -395,21 +465,11 @@ fn real_arithmetic_refusal_follows_a_replayed_valid_prefix()
     }
     let root = Path::new(env!("CARGO_MANIFEST_DIR")).join("../../../..");
     let tool = Apalache::discover(&root)?;
-    let world = prefix_fixture::prefix::World::new();
+    let world = prefix_fixture::prefix::World;
     let starts = world.starts();
     let actions = world.actions();
-    let module = Tla::safety(
-        &Lift::parse("prefix.rs", include_str!("fixtures/arithmetic_prefix.rs"))?.bind(
-            &umpire_lift::Binding {
-                world: vec![],
-                starts: vec![vec![("value".into(), umpire_lift::Literal::Int(254))]],
-                actions: vec![umpire_lift::Concrete {
-                    action: "User::Advance".into(),
-                    fields: vec![],
-                }],
-            },
-        )?,
-    )?;
+    let module =
+        Tla::safety(&Lift::parse("prefix.rs", include_str!("fixtures/arithmetic_prefix.rs"))?)?;
     let result = tool.check(&module, "ArithmeticSafe", 2)?;
     retain("arithmetic-prefix", &module, &result)?;
     assert!(result.violated()?, "{}", result.output());
@@ -478,6 +538,78 @@ fn real_typed_payload_rejection_and_after_claims_replay() -> Result<(), Box<dyn 
                 serde_json::json!("Outcome::Rejected(Unavailable)");
             assert!(replay.violation(&module, property, 1, &tampered.to_string()).is_err());
         }
+    }
+    Ok(())
+}
+
+#[path = "fixtures/start_later_fault.rs"]
+mod start_later_fault;
+#[test]
+fn real_later_start_fault_preserves_partial_binding() -> Result<(), Box<dyn std::error::Error>> {
+    let world = start_later_fault::later_fault::World;
+    assert!(std::panic::catch_unwind(|| world.starts()).is_err());
+    if !required() {
+        return Ok(());
+    }
+    let root = Path::new(env!("CARGO_MANIFEST_DIR")).join("../../../..");
+    let tool = Apalache::discover(&root)?;
+    let module =
+        Tla::safety(&Lift::parse("later.rs", include_str!("fixtures/start_later_fault.rs"))?)?;
+    let result = tool.check(&module, "ArithmeticSafe", 0)?;
+    retain("start-later-fault", &module, &result)?;
+    assert!(result.violated()?, "{}", result.output());
+    assert_ne!(result.traces().len(), 0);
+    let actions = world.actions();
+    let replay = Replay { world: &world, starts: &[], actions: &actions, negative: &[] };
+    for raw in result.traces() {
+        let confirmed = replay.violation(&module, "ArithmeticSafe", 0, raw)?;
+        assert!(matches!(confirmed.confirmation, Confirmation::Arithmetic { index: 0, .. }));
+        fs::write(evidence_root().join("start-later-fault/replay.txt"), confirmed.to_string())?;
+        let mut alternate: serde_json::Value = serde_json::from_str(raw)?;
+        alternate["states"][0]["earlier"]["#bigint"] = "8".into();
+        replay.violation(&module, "ArithmeticSafe", 0, &alternate.to_string())?;
+        for (field, value) in [("earlier", "0"), ("later", "1")] {
+            let mut tampered: serde_json::Value = serde_json::from_str(raw)?;
+            tampered["states"][0][field]["#bigint"] = value.into();
+            assert!(replay.violation(&module, "ArithmeticSafe", 0, &tampered.to_string()).is_err());
+        }
+    }
+    Ok(())
+}
+
+#[path = "../../../lift/tests/fixtures/vector.rs"]
+mod vector_fixture;
+#[test]
+fn real_vector_witness_replays_typed_sequence() -> Result<(), Box<dyn std::error::Error>> {
+    use umpire_dsl::{Value, Values};
+    let world = vector_fixture::collection::World;
+    let starts = world.starts();
+    assert_eq!(starts[0].values(), [("values", Value::Sequence(vec![]))]);
+    let actions = world.actions();
+    if !required() {
+        return Ok(());
+    }
+    let root = Path::new(env!("CARGO_MANIFEST_DIR")).join("../../../..");
+    let tool = Apalache::discover(&root)?;
+    let module = Tla::safety(&Lift::parse(
+        "vector.rs",
+        include_str!("../../../lift/tests/fixtures/vector.rs"),
+    )?)?;
+    let result = tool.check(&module, "Invariant_never_two", 2)?;
+    retain("vector-replay", &module, &result)?;
+    assert!(result.violated()?, "{}", result.output());
+    assert_ne!(result.traces().len(), 0);
+    let replay = Replay { world: &world, starts: &starts, actions: &actions, negative: &[] };
+    for raw in result.traces() {
+        let confirmed = replay.violation(&module, "Invariant_never_two", 2, raw)?;
+        assert!(matches!(confirmed.confirmation, Confirmation::Violation));
+        assert_eq!(confirmed.steps.len(), 2);
+        fs::write(evidence_root().join("vector-replay/replay.txt"), confirmed.to_string())?;
+        let mut tampered: serde_json::Value = serde_json::from_str(raw)?;
+        tampered["states"][2]["values"][1]["#bigint"] = "6".into();
+        assert!(
+            replay.violation(&module, "Invariant_never_two", 2, &tampered.to_string()).is_err()
+        );
     }
     Ok(())
 }

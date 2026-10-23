@@ -266,6 +266,53 @@ fn bind_worlds(items: &mut [Item], state: &syn::Ident, actors: &[syn::Ident]) {
     }
 }
 
+fn value_exports(machine: &Machine, items: &mut [Item]) -> TokenStream {
+    let state = &machine.state;
+    let actors = machine.actor_idents();
+    if machine.world {
+        bind_worlds(items, state, &actors);
+    } else {
+        for item in items.iter_mut() {
+            match item {
+                Item::Enum(item) if actors.contains(&item.ident) => {
+                    item.attrs.push(syn::parse_quote!(#[__umpire_values]));
+                }
+                Item::Struct(item) if item.ident == *state => {
+                    item.attrs.push(syn::parse_quote!(#[__umpire_values]));
+                }
+                _ => {}
+            }
+        }
+    }
+    let enums = enum_values(machine);
+    let actions = action_values(&actors);
+    let failures = machine.starts().is_none().then(|| {
+        quote! {
+            #[cfg(not(target_arch = "wasm32"))]
+            fn start_failures(&self) -> ::std::vec::Vec<::umpire_dsl::StartFailure> {
+                #state::__umpire_start_failures()
+            }
+        }
+    });
+    let field_types = items
+        .iter()
+        .filter_map(|item| match item {
+            Item::Struct(item) if item.ident == *state => Some(item.fields.iter().map(|f| &f.ty)),
+            _ => None,
+        })
+        .flatten();
+    let bounds = super::state::deferred(&syn::Generics::default(), field_types);
+    let (_, _, constraints) = bounds.split_for_impl();
+    let world = (!machine.world).then(|| quote! {
+            #[doc(hidden)]
+            impl ::umpire_dsl::Values for World #constraints {
+                fn values(&self) -> ::std::vec::Vec<(&'static str, ::umpire_dsl::Value)> { ::std::vec![] }
+                #failures
+            }
+        });
+    quote!(#world #actions #(#enums)*)
+}
+
 /// A local fieldless enum, as the lifter admits it, exports its variant as a value unless its
 /// `derive(Finite)` already does.
 fn enum_values(machine: &Machine) -> Vec<TokenStream> {
@@ -658,12 +705,7 @@ pub(crate) fn generate(machine: &Machine, input: &ItemMod) -> manyhow::Result<It
     if machine.starts().is_some() {
         mark_computed_starts(items, state);
     }
-    let values = machine.world.then(|| {
-        bind_worlds(items, state, &actors);
-        let enums = enum_values(machine);
-        let actions = action_values(&actors);
-        quote!(#actions #(#enums)*)
-    });
+    let values = value_exports(machine, items);
     let post_tokens = postconditions(machine);
     let progress_tokens = progress_claims(machine);
     let invariant_tokens = invariant_claims(machine);

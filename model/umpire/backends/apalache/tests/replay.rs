@@ -1,13 +1,19 @@
 //! Counterexamples are executed from retained starts, without a reached graph.
 use umpire_apalache::Replay;
 use umpire_dsl::{Claim, Machine};
+#[allow(unreachable_pub, reason = "shared public fixture")]
+#[path = "../../../tests/fixtures/sample_kettle/model.rs"]
+mod selected;
 #[test]
 fn replay_refuses_an_undeclared_property_before_reading_a_witness()
 -> Result<(), Box<dyn std::error::Error>> {
-    let world = authored::inputs::World::new(2);
+    let world = selected::kettle::world();
     let starts = world.starts();
     let catalog = world.checked_catalog(umpire_dsl::CATALOG_LIMIT)?;
-    let module = module()?;
+    let module = umpire_lift::Tla::safety(&umpire_lift::Lift::parse(
+        "kettle.rs",
+        include_str!("../../../tests/fixtures/sample_kettle/model.rs"),
+    )?)?;
     let negatives: Vec<Claim<_>> = Vec::new();
     let replay =
         Replay { world: &world, starts: &starts, actions: catalog.actions(), negative: &negatives };
@@ -199,6 +205,32 @@ fn exact_payload_outcome_history_and_specific_claim_are_replayed()
     Ok(())
 }
 
+#[test]
+fn retained_pinned_kettle_witness_replays_deterministically()
+-> Result<(), Box<dyn std::error::Error>> {
+    let world = selected::kettle::world();
+    let starts = world.starts();
+    let actions = world.actions();
+    let source = format!(
+        r#"{}
+        umpire_testing::fixture!(kettle::world(),1000,Claim::new("never_beeps",|_,s:&kettle::Model|(!s.beeping).into()));
+    "#,
+        include_str!("../../../tests/fixtures/sample_kettle/model.rs")
+    );
+    let module = umpire_lift::Tla::safety(&umpire_lift::Lift::parse("kettle.rs", &source)?)?;
+    let negatives =
+        [Claim::new("never_beeps", |_, s: &selected::kettle::Model| (!s.beeping).into())];
+    let replay = Replay { world: &world, starts: &starts, actions: &actions, negative: &negatives };
+    let result = replay.violation(
+        &module,
+        "Negative_never_beeps",
+        63,
+        include_str!("fixtures/kettle-0.62.4.itf.json"),
+    )?;
+    assert_eq!(result.to_string(), include_str!("expected/kettle-negative.txt"));
+    Ok(())
+}
+
 #[derive(Clone, PartialEq, Eq, Hash)]
 struct Colliding(authored::inputs::Model);
 impl std::fmt::Display for Colliding {
@@ -328,17 +360,13 @@ mod prefix_fixture;
 #[test]
 fn arithmetic_refusal_is_distinct_and_requires_the_exact_native_boundary()
 -> Result<(), Box<dyn std::error::Error>> {
-    let world = prefix_fixture::prefix::World::new();
+    let world = prefix_fixture::prefix::World;
     let starts = world.starts();
     let actions = world.actions();
-    let module = umpire_lift::Tla::safety(
-        &umpire_lift::Lift::parse("prefix.rs", include_str!("fixtures/arithmetic_prefix.rs"))?
-            .bind(&Binding {
-                world: vec![],
-                starts: vec![vec![("value".into(), Literal::Int(254))]],
-                actions: vec![Concrete { action: "User::Advance".into(), fields: vec![] }],
-            })?,
-    )?;
+    let module = umpire_lift::Tla::safety(&umpire_lift::Lift::parse(
+        "prefix.rs",
+        include_str!("fixtures/arithmetic_prefix.rs"),
+    )?)?;
     let first = initial(&module, 254);
     let mut next = event(&first, 255, 0, "User::Advance", "");
     next["__umpire_outcome"] = json!([]);

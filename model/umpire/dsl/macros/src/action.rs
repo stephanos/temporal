@@ -40,7 +40,15 @@ pub(crate) fn expand(input: &syn::DeriveInput) -> manyhow::Result<TokenStream> {
             }
         }
     }
-    let exported = world.as_ref().map(|world| action_values(input, data, &variant_domains, world));
+    let export_world = world.clone().or_else(|| {
+        input
+            .attrs
+            .iter()
+            .any(|attr| attr.path().is_ident("__umpire_values"))
+            .then(|| syn::parse_quote!(World))
+    });
+    let exported =
+        export_world.as_ref().map(|world| action_values(input, data, &variant_domains, world));
     let dependent = world.is_some()
         && variant_domains.iter().flatten().any(|domain| matches!(domain, FieldDomain::World(_)));
     let world = world.filter(|_| dependent);

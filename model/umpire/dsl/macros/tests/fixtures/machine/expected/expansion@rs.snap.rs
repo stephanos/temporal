@@ -4,11 +4,13 @@ mod counter {
     use std::sync::atomic::{AtomicUsize, Ordering};
     pub static PROGRESS_CALLS: AtomicUsize = AtomicUsize::new(0);
     #[derive(State)]
+    #[__umpire_values]
     pub struct Counter {
         #[starts(0..= 1)]
         pub value: u8,
     }
     #[derive(Action, Copy)]
+    #[__umpire_values]
     pub enum User {
         Increment,
         Reset,
@@ -16,6 +18,7 @@ mod counter {
     }
     #[derive(Action, Copy)]
     #[internal]
+    #[__umpire_values]
     pub enum Clock {
         Tick,
     }
@@ -515,6 +518,48 @@ mod counter {
         type World = World;
         fn world() -> World {
             World
+        }
+    }
+    #[doc(hidden)]
+    impl ::umpire_dsl::Values for World
+    where
+        for<'__umpire> u8: ::umpire_dsl::IntoValue,
+    {
+        fn values(&self) -> ::std::vec::Vec<(&'static str, ::umpire_dsl::Value)> {
+            ::std::vec![]
+        }
+        #[cfg(not(target_arch = "wasm32"))]
+        fn start_failures(&self) -> ::std::vec::Vec<::umpire_dsl::StartFailure> {
+            Counter::__umpire_start_failures()
+        }
+    }
+    #[doc(hidden)]
+    impl ::umpire_dsl::ActionValues<World> for Action
+    where
+        for<'__umpire> User: ::umpire_dsl::ActionValues<World>,
+        for<'__umpire> Clock: ::umpire_dsl::ActionValues<World>,
+    {
+        fn action_value(
+            &self,
+        ) -> (&'static str, ::std::vec::Vec<(&'static str, ::umpire_dsl::Value)>) {
+            match self {
+                Self::User(value) => {
+                    ::umpire_dsl::ActionValues::<World>::action_value(value)
+                }
+                Self::Clock(value) => {
+                    ::umpire_dsl::ActionValues::<World>::action_value(value)
+                }
+            }
+        }
+        fn domains(
+            world: &World,
+        ) -> ::std::vec::Vec<
+            (&'static str, &'static str, ::std::vec::Vec<::umpire_dsl::Value>),
+        > {
+            let mut domains = ::std::vec::Vec::new();
+            domains.extend(<User as ::umpire_dsl::ActionValues<World>>::domains(world));
+            domains.extend(<Clock as ::umpire_dsl::ActionValues<World>>::domains(world));
+            domains
         }
     }
 }

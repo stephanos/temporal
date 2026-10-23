@@ -18,7 +18,7 @@ pub fn __path_parse(input: proc_macro2::TokenStream) -> syn::Result<proc_macro2:
 /// Derive state value traits, Debug/Display formatting and ordered initial states.
 #[manyhow::manyhow(proc_macro_derive(
     State,
-    attributes(starts, __umpire_computed_starts, __umpire_world)
+    attributes(starts, __umpire_computed_starts, __umpire_world, __umpire_values)
 ))]
 pub fn state(input: proc_macro2::TokenStream) -> manyhow::Result<proc_macro2::TokenStream> {
     state::expand(&syn::parse2(input)?)
@@ -33,7 +33,7 @@ pub fn world(input: proc_macro2::TokenStream) -> manyhow::Result<proc_macro2::To
 /// Derive action value traits, Debug/Display formatting and a complete ordered catalog.
 #[manyhow::manyhow(proc_macro_derive(
     Action,
-    attributes(internal, fault, inputs, domain, __umpire_world)
+    attributes(internal, fault, inputs, domain, __umpire_world, __umpire_values)
 ))]
 pub fn action(input: proc_macro2::TokenStream) -> manyhow::Result<proc_macro2::TokenStream> {
     action::expand(&syn::parse2(input)?)

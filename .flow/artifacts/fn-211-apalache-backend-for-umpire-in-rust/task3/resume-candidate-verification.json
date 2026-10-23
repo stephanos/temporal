@@ -1,0 +1,10 @@
+{
+  "terminal_session": 82153,
+  "suite_rc": 0,
+  "focused_harness_cases": 209,
+  "log": "resume-candidate-focused.log.gz",
+  "source_inventory": "resume-candidate-source.json",
+  "live_scope": "Archived guest/slice/gaps proof is historical for the archived full source; no current-source live execution claim. Fresh guest/slice/gaps will follow audit/review corrections.",
+  "start_boundary": "One macro start_domains owner emits unchanged ordinary starts and host-only failed-domain prefix capture; captures typed prior field bindings with original panic payload, preserves domain order and empty-domain suppression, fills only remaining emitted wire defaults, emits no native fallback edge.",
+  "vector_boundary": "Existing locked imbl 7.0.2, direct DSL dependency and IntoValue implementation host-only; backend imbl dependency is test-only. No package/version changes."
+}

@@ -42,15 +42,21 @@ macro_rules! integers {
 
 integers!(i8, i16, i32, i64, u8, u16, u32, u64);
 
-/// A declared World's or state's named field values in declaration order, private fields
-/// included. `derive(World)` and `derive(State)` implement it inside a declared-World
+/// A `#[machine]` World's or state's named field values in declaration order, private fields
+/// included. `derive(World)` and `derive(State)` implement it inside
 /// `#[machine]`; it exposes what their derived `Debug` already prints.
 pub trait Values {
     /// Field names and values in declaration order.
     fn values(&self) -> Vec<(&'static str, Value)>;
+
+    /// Captures failed native start-domain evaluations with only their already bound fields.
+    /// Generated implicit Worlds provide this host-side projection for witness replay.
+    fn start_failures(&self) -> Vec<StartFailure> {
+        Vec::new()
+    }
 }
 
-/// A declared-World actor's concrete action values and its World-bound input domains.
+/// An actor's concrete action values and its World-bound input domains.
 pub trait ActionValues<W> {
     /// The qualified variant, such as `Worker::Poll`, and its payload fields in declaration
     /// order; tuple fields are named by position.
@@ -83,4 +89,19 @@ impl IntoValue for crate::Outcome {
             Outcome::Rejected(Rejection::Unavailable) => "Outcome::Rejected(Unavailable)",
         })
     }
+}
+
+#[cfg(not(target_arch = "wasm32"))]
+impl<T: IntoValue + Clone> IntoValue for imbl::Vector<T> {
+    fn value(&self) -> Value {
+        Value::Sequence(self.iter().map(IntoValue::value).collect())
+    }
+}
+
+/// A native start-domain refusal and the fields bound before that domain was evaluated.
+pub struct StartFailure {
+    /// Concrete fields in declaration order, excluding the failed and subsequent fields.
+    pub prefix: Vec<(&'static str, Value)>,
+    /// The original native panic payload, kept for arithmetic classification by the caller.
+    pub panic: Box<dyn std::any::Any + Send>,
 }

@@ -849,6 +849,7 @@ dependencies = [
 name = "umpire-apalache"
 version = "0.0.1"
 dependencies = [
+ "imbl",
  "serde",
  "serde_json",
  "umpire-checker",
@@ -936,6 +937,7 @@ name = "umpire-dsl"
 version = "0.0.1"
 dependencies = [
  "enum-iterator",
+ "imbl",
  "smallvec",
  "trybuild",
  "umpire-dsl-macros",

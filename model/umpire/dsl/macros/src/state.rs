@@ -22,15 +22,14 @@ fn expand_struct(input: &syn::DeriveInput, world: bool) -> manyhow::Result<Token
     let bindings: Vec<_> =
         (0..fields.len()).map(|index| format_ident!("__umpire_field_{index}")).collect();
     let values = bindings.iter().map(|binding| quote!(::core::clone::Clone::clone(&#binding)));
-    let mut starts = quote! { __umpire_starts.push(Self { #(#names: #values),* }); };
-    for ((field, range), binding) in fields.iter().zip(&ranges).zip(&bindings).rev() {
-        let ty = &field.ty;
-        starts = if let Some(range) = range {
-            quote! { for #binding in #range { #starts } }
-        } else {
-            quote! { let #binding: #ty = ::core::default::Default::default(); #starts }
-        };
-    }
+    let starts = start_domains(
+        &fields,
+        &ranges,
+        &names,
+        &bindings,
+        quote! { __umpire_starts.push(Self { #(#names: #values),* }); },
+        false,
+    );
     let name = &input.ident;
     let (_, type_generics, _) = input.generics.split_for_impl();
     let clone = bounded(&input.generics, &fields, &quote!(::core::clone::Clone));
@@ -69,6 +68,8 @@ fn expand_struct(input: &syn::DeriveInput, world: bool) -> manyhow::Result<Token
             }
         }
     });
+    let failures = (!computed && input.attrs.iter().any(|a| a.path().is_ident("__umpire_values")))
+        .then(|| failure_projection(input, &fields, &ranges, &names, &bindings, &start_bounds));
     let constructor = world.then(|| constructor(input, &fields, &names));
     let exported = exported_values(input, &fields, &names);
 
@@ -106,30 +107,103 @@ fn expand_struct(input: &syn::DeriveInput, world: bool) -> manyhow::Result<Token
         #starts
         #constructor
         #exported
+        #failures
     })
 }
 
-/// Inside a declared-World `#[machine]`, exports the named field values to the source lifter's
-/// binding.
+fn start_domains(
+    fields: &[&Field],
+    ranges: &[Option<syn::ExprRange>],
+    names: &[&syn::Ident],
+    bindings: &[syn::Ident],
+    mut visit: TokenStream,
+    capture: bool,
+) -> TokenStream {
+    for (index, ((field, range), binding)) in
+        fields.iter().zip(ranges).zip(bindings).enumerate().rev()
+    {
+        let ty = &field.ty;
+        let evaluate = range
+            .as_ref()
+            .map_or_else(|| quote!(::core::default::Default::default()), |range| quote!(#range));
+        let domain = if capture { quote!(__umpire_domain) } else { evaluate.clone() };
+        let success = if range.is_some() {
+            quote!(for #binding in #domain { #visit })
+        } else {
+            quote!(let #binding: #ty = #domain; #visit)
+        };
+        visit = if capture {
+            let prefix_names = names[..index].iter().map(ToString::to_string);
+            let prefix_bindings = &bindings[..index];
+            quote! {
+                match ::std::panic::catch_unwind(::std::panic::AssertUnwindSafe(|| #evaluate)) {
+                    Ok(__umpire_domain) => { #success }
+                    Err(__umpire_panic) => {
+                        __umpire_failures.push(::umpire_dsl::StartFailure {
+                            prefix: ::std::vec![#((#prefix_names, ::umpire_dsl::IntoValue::value(&#prefix_bindings))),*],
+                            panic: __umpire_panic,
+                        });
+                    }
+                }
+            }
+        } else {
+            success
+        };
+    }
+    visit
+}
+
+fn failure_projection(
+    input: &syn::DeriveInput,
+    fields: &[&Field],
+    ranges: &[Option<syn::ExprRange>],
+    names: &[&syn::Ident],
+    bindings: &[syn::Ident],
+    start_bounds: &Generics,
+) -> TokenStream {
+    let visit = start_domains(fields, ranges, names, bindings, quote! {}, true);
+    let bounds = deferred(start_bounds, fields.iter().map(|f| &f.ty));
+    let (implementation, arguments, constraints) = bounds.split_for_impl();
+    let name = &input.ident;
+    quote! {
+        #[cfg(not(target_arch = "wasm32"))]
+        impl #implementation #name #arguments #constraints {
+            #[doc(hidden)]
+            pub fn __umpire_start_failures() -> ::std::vec::Vec<::umpire_dsl::StartFailure> {
+                let mut __umpire_failures = ::std::vec::Vec::new();
+                #visit
+                __umpire_failures
+            }
+        }
+    }
+}
+
+/// Inside `#[machine]`, exports named field values to the source lifter's binding and replay.
 fn exported_values(
     input: &syn::DeriveInput,
     fields: &[&Field],
     names: &[&syn::Ident],
 ) -> Option<TokenStream> {
     let name = &input.ident;
-    input.attrs.iter().any(|attr| attr.path().is_ident("__umpire_world")).then(|| {
-        let exportable = deferred(&input.generics, fields.iter().map(|field| &field.ty));
-        let (implementation, type_generics, constraints) = exportable.split_for_impl();
-        let keys = names.iter().map(ToString::to_string);
-        quote! {
-            #[doc(hidden)]
-            impl #implementation ::umpire_dsl::Values for #name #type_generics #constraints {
-                fn values(&self) -> ::std::vec::Vec<(&'static str, ::umpire_dsl::Value)> {
-                    ::std::vec![#((#keys, ::umpire_dsl::IntoValue::value(&self.#names))),*]
+    input
+        .attrs
+        .iter()
+        .any(|attr| {
+            attr.path().is_ident("__umpire_world") || attr.path().is_ident("__umpire_values")
+        })
+        .then(|| {
+            let exportable = deferred(&input.generics, fields.iter().map(|field| &field.ty));
+            let (implementation, type_generics, constraints) = exportable.split_for_impl();
+            let keys = names.iter().map(ToString::to_string);
+            quote! {
+                #[doc(hidden)]
+                impl #implementation ::umpire_dsl::Values for #name #type_generics #constraints {
+                    fn values(&self) -> ::std::vec::Vec<(&'static str, ::umpire_dsl::Value)> {
+                        ::std::vec![#((#keys, ::umpire_dsl::IntoValue::value(&self.#names))),*]
+                    }
                 }
             }
-        }
-    })
+        })
 }
 
 fn constructor(input: &syn::DeriveInput, fields: &[&Field], names: &[&syn::Ident]) -> TokenStream {

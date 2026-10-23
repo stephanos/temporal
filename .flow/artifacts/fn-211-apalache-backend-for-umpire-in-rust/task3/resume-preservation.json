@@ -1,0 +1,11 @@
+{
+  "task_base": "218901134e4fa84c2a3d3812d0ab61138a6f8da2",
+  "prior_artifact_count": 558,
+  "changed_artifacts": {
+    "model/umpire/dsl/macros/tests/fixtures/machine/expected/expansion@rs.snap.rs": "deaa173aa9bd7c3e79b9c4019dd72566b6a66a523eb80efb2b58daa221085aaf",
+    "model/umpire/dsl/macros/tests/fixtures/rejecting_machine/expected/expansion@rs.snap.rs": "9d395964033aaaf7ccec6d5633cdd8c2f2610b5e02750d19098d58fd888749e3",
+    "model/umpire/dsl/macros/tests/fixtures/staying_machine/expected/expansion@rs.snap.rs": "e7b980414a2407d7a4ca0f8cdcc274e77625a56e9003800c50f922e4c82d9f4d"
+  },
+  "unchanged_package_versions": 135,
+  "dependency_boundary": "imbl is existing locked 7.0.2; DSL direct dependency and IntoValue implementation are cfg(not(wasm32)); Apalache dev dependency is test-only."
+}

@@ -40,7 +40,7 @@ pub use scope::{Assumption, AssumptionExt, Scope};
 pub use umpire_dsl_macros::__path_parse;
 pub use umpire_dsl_macros::{Action, Finite, State, World, machine};
 #[doc(hidden)]
-pub use value::{ActionValues, IntoValue, Value, Values};
+pub use value::{ActionValues, IntoValue, StartFailure, Value, Values};
 
 /// The admitted Model a `#[machine]` macro embeds, for the lifted back ends; never in the guest.
 #[cfg(not(target_arch = "wasm32"))]

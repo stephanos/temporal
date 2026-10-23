@@ -210,11 +210,21 @@ where
             let arithmetic = if let Some(state) = &current {
                 self.state_claims(state).err()
             } else {
-                let failure = native(|| self.world.starts()).err();
-                if initial.state != defaults(&schema.fields) {
-                    return Err(reject("start failure fallback differs"));
+                let mut matched = None;
+                for failure in self.world.start_failures() {
+                    let mut expected = defaults(&schema.fields);
+                    for (name, value) in fields(failure.prefix)? {
+                        if !schema.fields.contains_key(&name) {
+                            return Err(reject("native start prefix has an unknown field"));
+                        }
+                        expected.insert(name, value);
+                    }
+                    if initial.state == expected {
+                        matched = Some(native_panic(failure.panic.as_ref()));
+                        break;
+                    }
                 }
-                failure
+                matched
             }
             .ok_or_else(|| reject("initial arithmetic flag has no native refusal"))?;
             confirmation =
@@ -488,25 +498,26 @@ fn selected_property<'a>(
 }
 
 fn native<T>(evaluate: impl FnOnce() -> T) -> Result<T, String> {
-    catch_unwind(AssertUnwindSafe(evaluate)).map_err(|error| {
-        let message = panic_text(error.as_ref());
-        if [
-            "attempt to add with overflow",
-            "attempt to subtract with overflow",
-            "attempt to multiply with overflow",
-            "attempt to divide with overflow",
-            "attempt to calculate the remainder with overflow",
-            "attempt to negate with overflow",
-            "attempt to divide by zero",
-            "attempt to calculate the remainder with a divisor of zero",
-        ]
-        .contains(&message.as_str())
-        {
-            message
-        } else {
-            format!("non-arithmetic native panic: {message}")
-        }
-    })
+    catch_unwind(AssertUnwindSafe(evaluate)).map_err(|error| native_panic(error.as_ref()))
+}
+fn native_panic(error: &(dyn Any + Send)) -> String {
+    let message = panic_text(error);
+    if [
+        "attempt to add with overflow",
+        "attempt to subtract with overflow",
+        "attempt to multiply with overflow",
+        "attempt to divide with overflow",
+        "attempt to calculate the remainder with overflow",
+        "attempt to negate with overflow",
+        "attempt to divide by zero",
+        "attempt to calculate the remainder with a divisor of zero",
+    ]
+    .contains(&message.as_str())
+    {
+        message
+    } else {
+        format!("non-arithmetic native panic: {message}")
+    }
 }
 fn arithmetic_reason(reason: String) -> Result<String, Refusal> {
     if reason.starts_with("non-arithmetic native panic:") {

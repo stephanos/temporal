@@ -17,6 +17,7 @@ umpire-dsl-macros.workspace = true
 
 [target.'cfg(not(target_arch = "wasm32"))'.dependencies]
 umpire-ir.workspace = true
+imbl.workspace = true
 
 [dev-dependencies]
 trybuild.workspace = true

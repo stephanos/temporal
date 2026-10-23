@@ -3,11 +3,13 @@
 pub mod counter {
     use umpire_dsl::{Action, Outcome, Rejection, State, check, reject, stay};
     #[derive(State)]
+    #[__umpire_values]
     pub struct Model {
         #[starts(0..= 0)]
         pub value: u8,
     }
     #[derive(Action, Copy)]
+    #[__umpire_values]
     pub enum User {
         Advance,
         Ping,
@@ -173,6 +175,43 @@ pub mod counter {
         type World = World;
         fn world() -> World {
             World
+        }
+    }
+    #[doc(hidden)]
+    impl ::umpire_dsl::Values for World
+    where
+        for<'__umpire> u8: ::umpire_dsl::IntoValue,
+    {
+        fn values(&self) -> ::std::vec::Vec<(&'static str, ::umpire_dsl::Value)> {
+            ::std::vec![]
+        }
+        #[cfg(not(target_arch = "wasm32"))]
+        fn start_failures(&self) -> ::std::vec::Vec<::umpire_dsl::StartFailure> {
+            Model::__umpire_start_failures()
+        }
+    }
+    #[doc(hidden)]
+    impl ::umpire_dsl::ActionValues<World> for Action
+    where
+        for<'__umpire> User: ::umpire_dsl::ActionValues<World>,
+    {
+        fn action_value(
+            &self,
+        ) -> (&'static str, ::std::vec::Vec<(&'static str, ::umpire_dsl::Value)>) {
+            match self {
+                Self::User(value) => {
+                    ::umpire_dsl::ActionValues::<World>::action_value(value)
+                }
+            }
+        }
+        fn domains(
+            world: &World,
+        ) -> ::std::vec::Vec<
+            (&'static str, &'static str, ::std::vec::Vec<::umpire_dsl::Value>),
+        > {
+            let mut domains = ::std::vec::Vec::new();
+            domains.extend(<User as ::umpire_dsl::ActionValues<World>>::domains(world));
+            domains
         }
     }
 }

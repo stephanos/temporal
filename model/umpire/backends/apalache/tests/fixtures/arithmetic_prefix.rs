@@ -2,9 +2,7 @@
 use umpire_dsl::machine;
 #[machine]
 pub(crate) mod prefix {
-    use umpire_dsl::{Action, State, World};
-    #[derive(World)]
-    pub(crate) struct World {}
+    use umpire_dsl::{Action, State};
     #[derive(State)]
     pub(crate) struct Model {
         #[starts(254..=254)]
