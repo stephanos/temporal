@@ -5,7 +5,9 @@ use serde_json::{Value, json};
 use sha2::{Digest, Sha256};
 use std::{collections::BTreeMap, fs, path::Path};
 
-fn captured() -> (BTreeMap<String, Vec<u8>>, BTreeMap<String, String>, Vec<u8>) {
+type Captured = (BTreeMap<String, Vec<u8>>, BTreeMap<String, String>, Vec<u8>);
+
+fn captured() -> Captured {
     let root = Path::new(env!("CARGO_MANIFEST_DIR"));
     let mut files = BTreeMap::new();
     for line in include_str!(concat!(env!("OUT_DIR"), "/measurement-source-inputs.tsv")).lines() {
@@ -26,7 +28,7 @@ fn captured() -> (BTreeMap<String, Vec<u8>>, BTreeMap<String, String>, Vec<u8>) 
     (files, bindings, compiler)
 }
 
-fn observe(case: &str, inputs: Value, observed: Value) {
+fn observe(case: &str, inputs: &Value, observed: &Value) {
     println!(
         "GOMAD_CORE_OBSERVATION {}",
         json!({
@@ -60,8 +62,8 @@ fn compiled_identity_matches_the_exact_captured_native_source_and_build_context(
     let (files, bindings, compiler) = captured();
     observe(
         "identity.compiled-native",
-        source_inputs(&files, &bindings, &compiler),
-        json!({"recomputed":build_identity::implementation(&files, &bindings, &compiler).unwrap(),
+        &source_inputs(&files, &bindings, &compiler),
+        &json!({"recomputed":build_identity::implementation(&files, &bindings, &compiler).unwrap(),
             "compiled":env!("GOMAD_LINKED_IMPLEMENTATION_SHA256")}),
     );
     assert_eq!(
@@ -99,8 +101,8 @@ fn mutation_and_missing_refusal(case: &str, owners: &[&str]) {
         inputs["mutation_append_utf8"] = json!("changed implementation");
         observe(
             case,
-            inputs,
-            json!({"before":before,"after":after,"missing_error":missing}),
+            &inputs,
+            &json!({"before":before,"after":after,"missing_error":missing}),
         );
         assert_eq!(
             build_identity::implementation(&changed, &bindings, &compiler).unwrap_err(),
@@ -154,8 +156,8 @@ fn empty_source_closure_refuses_before_producing_an_identity() {
     let error = build_identity::implementation(&BTreeMap::new(), &bindings, &compiler).unwrap_err();
     observe(
         "identity.empty-closure",
-        source_inputs(&BTreeMap::new(), &bindings, &compiler),
-        json!({"error":error}),
+        &source_inputs(&BTreeMap::new(), &bindings, &compiler),
+        &json!({"error":error}),
     );
     assert!(build_identity::implementation(&BTreeMap::new(), &bindings, &compiler).is_err());
 }

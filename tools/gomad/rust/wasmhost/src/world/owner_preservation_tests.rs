@@ -137,7 +137,7 @@ fn compressed_world_owner_measured_cardinality() {
         return;
     }
     let requests = match std::env::var("GOMAD_COMPRESSED_WORLD_PROBE_REQUESTS").as_deref() {
-        Err(_) | Ok("") | Ok("20000") => 20_000,
+        Err(_) | Ok("" | "20000") => 20_000,
         Ok("200000") => 200_000,
         _ => panic!("probe cardinality must be explicitly 20000 or 200000"),
     };

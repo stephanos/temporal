@@ -42,10 +42,10 @@ fn fixture(records: &[Vec<u8>], coordinates: &[u64]) -> (Evidence, Vec<u8>) {
     let mut recorder = Recorder::default();
     let mut previous = 0;
     for (decision, coordinate) in coordinates.iter().copied().enumerate() {
-        for bytes in &records[previous..coordinate as usize] {
+        for bytes in &records[previous..usize::try_from(coordinate).unwrap()] {
             recorder.stream(&handle, "choice", bytes);
         }
-        previous = coordinate as usize;
+        previous = usize::try_from(coordinate).unwrap();
         let mut runtime_state = vec![0; 128];
         runtime_state[..8].copy_from_slice(&coordinate.to_be_bytes());
         runtime_state[104..112].copy_from_slice(&(decision as u64).to_be_bytes());
@@ -89,11 +89,11 @@ fn fixture(records: &[Vec<u8>], coordinates: &[u64]) -> (Evidence, Vec<u8>) {
 }
 
 fn raw(root: &str, variant: &str, value: Value) {
-    println!(
-        "{}",
-        json!({"schema":"gomad.native-inspection-predicate/v1",
-        "original_root":root,"variant":variant,"observed":value})
-    );
+    let mut row = json!({"schema":"gomad.native-inspection-predicate/v1","original_root":root,"variant":variant});
+    row.as_object_mut()
+        .unwrap()
+        .insert("observed".into(), value);
+    println!("{row}");
 }
 
 #[test]
@@ -110,7 +110,7 @@ fn decision_mapping_skips_observations_and_refuses_missing_or_relabelled_boundar
     let mut missing = retained.clone();
     missing.boundaries.truncate(1);
     assert!(validate_choice_mapping(&missing).is_err());
-    let mut wrong_bytes = retained.clone();
+    let mut wrong_bytes = retained;
     wrong_bytes.boundaries[1].cuts[0].choice_bytes -= 1;
     assert!(validate_choice_mapping(&wrong_bytes).is_err());
     raw(
@@ -149,7 +149,7 @@ fn creation_records_use_the_first_creation_coordinate_not_the_decision_record() 
         .collect::<Vec<_>>();
     let (retained, _) = fixture(&records, &[0, 3, 6, 9, 12]);
     validate_choice_mapping(&retained).unwrap();
-    let mut wrong = retained.clone();
+    let mut wrong = retained;
     wrong.boundaries[1].trace = 5;
     wrong.boundaries[1].cuts[0].choice_records = 5;
     wrong.boundaries[1].cuts[0].choice_bytes = 5 * 96;
@@ -188,12 +188,13 @@ fn inspection_control_binds_raw_prefix_registry_and_exact_boundary() {
     let boundary = &control.expected;
     assert_eq!(
         control.world_sha256,
-        inspection::digest(&retained.world[..boundary.world_bytes as usize])
+        inspection::digest(&retained.world[..usize::try_from(boundary.world_bytes).unwrap()])
     );
     assert_eq!(
         control.stream_sha256[0]["choice"],
         inspection::digest(
-            &retained.incarnations[0].streams.choice[..boundary.cuts[0].choice_bytes as usize]
+            &retained.incarnations[0].streams.choice
+                [..usize::try_from(boundary.cuts[0].choice_bytes).unwrap()]
         )
     );
     assert_eq!(control.registries[0].entries[0].name, "healthy");
@@ -228,7 +229,7 @@ fn inspection_control_binds_raw_prefix_registry_and_exact_boundary() {
         .to_string()
         .contains("unknown or unavailable")
     );
-    let mut incomplete = retained.clone();
+    let mut incomplete = retained;
     incomplete.complete = false;
     assert!(
         resolve(
@@ -295,6 +296,21 @@ fn terminal_network_raw_stream_cannot_be_replaced_by_an_unrelated_state_commitme
             .boundary(&handle, witness, 10, vec![], &[0; 32])
             .unwrap();
         recorder.stream(&handle, "choice", &record(0, 1, 0));
+        state[..8].copy_from_slice(&1u64.to_be_bytes());
+        state[104..112].copy_from_slice(&1u64.to_be_bytes());
+        recorder
+            .snapshot(
+                Cut {
+                    handle: handle.clone(),
+                    choice_records: 1,
+                    choice_bytes: 96,
+                    witness: Witness::decode(&state).unwrap(),
+                    ..Cut::default()
+                },
+                &[],
+                &[],
+            )
+            .unwrap();
         if node == "a" {
             recorder.terminal_network(&handle, network.to_vec());
         }

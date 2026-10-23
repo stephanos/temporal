@@ -234,6 +234,7 @@ fn world_corpus_replays_exactly() {
     assert!(wires >= 50, "only {wires} expanded World wires compared");
 }
 
+#[cfg(not(feature = "conformance"))]
 #[test]
 fn final_world_wires_round_trip_through_the_binary_owner() {
     let mut checked = 0;

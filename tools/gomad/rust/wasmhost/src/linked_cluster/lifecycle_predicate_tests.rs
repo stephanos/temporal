@@ -11,13 +11,11 @@ fn request(nodes: &[&str], body: &str) -> Request {
 }
 
 fn raw(root: &str, variant: &str, observed: Value) {
-    println!(
-        "{}",
-        json!({
-            "schema":"gomad.native-lifecycle-predicate/v1",
-            "original_root":root,"variant":variant,"observed":observed
-        })
-    );
+    let mut row = json!({"schema":"gomad.native-lifecycle-predicate/v1","original_root":root,"variant":variant});
+    row.as_object_mut()
+        .unwrap()
+        .insert("observed".into(), observed);
+    println!("{row}");
 }
 
 #[test]
@@ -82,9 +80,9 @@ fn requested_stores_are_lazy_and_cancellation_before_execution_has_no_actions() 
     let execution = execute_prepared(prepared).unwrap();
     assert_eq!(execution.outcome.termination, "cancelled");
     assert_eq!(execution.outcome.exit_code, None);
-    assert!(execution.executed_steps.is_empty());
+    assert_eq!(execution.executed_steps.len(), 0);
     assert!(execution.incarnations.is_empty());
-    assert!(execution.world.is_empty());
+    assert_eq!(execution.world, [] as [u8; 0]);
     assert_eq!(activity.snapshot().launched_stores, 0);
     raw(
         "TestClusterHostTerminationStatus",
@@ -150,8 +148,8 @@ fn mandatory_cleanup_keeps_only_authored_start_actions() {
             assert_eq!(execution.outcome.exit_code, None);
             assert_eq!(execution.incarnations[0].handle.node, "a");
             assert_eq!(execution.incarnations[1].handle.node, "b");
-            assert!(execution.world.is_empty());
-            assert!(execution.network.is_empty());
+            assert_eq!(execution.world, [] as [u8; 0]);
+            assert_eq!(execution.network, [] as [u8; 0]);
         } else {
             let terminal = match mode {
                 "scenario-error" => "scenario_failure",
@@ -171,7 +169,7 @@ fn mandatory_cleanup_keeps_only_authored_start_actions() {
             }
             if mode == "shutdown" || mode == "action-limit" {
                 validate_world(&execution.world, &broker).unwrap();
-                assert!(!execution.world.is_empty());
+                assert_ne!(execution.world, [] as [u8; 0]);
             }
         }
         raw(
@@ -225,9 +223,8 @@ fn typed_owner_admission_refuses_missing_model_namespace_and_unattributable_hand
             }
             _ => unreachable!(),
         };
-        let error = match prepare(input) {
-            Ok(_) => panic!("accepted {variant}"),
-            Err(error) => error,
+        let Err(error) = prepare(input) else {
+            panic!("accepted {variant}")
         };
         assert_eq!(error.to_string(), expected);
         raw(
@@ -297,20 +294,18 @@ fn observed_failure_drains_prestarted_peers_without_executing_their_waits() {
 #[test]
 fn sealed_deadline_is_bounded_before_mutation_and_cannot_be_extended() {
     let mut input = request(&["a"], FINISH);
-    input.wall_timeout = Duration::from_secs(11 * 60);
+    input.wall_timeout = Duration::from_mins(11);
     let mut prepared = prepare(input).unwrap();
     let activity = prepared.activity();
-    assert_eq!(prepared.wall_timeout(), Duration::from_secs(11 * 60));
+    assert_eq!(prepared.wall_timeout(), Duration::from_mins(11));
+    prepared.bound_wall_timeout(Duration::from_mins(7)).unwrap();
+    assert_eq!(prepared.wall_timeout(), Duration::from_mins(7));
     prepared
-        .bound_wall_timeout(Duration::from_secs(7 * 60))
+        .bound_wall_timeout(Duration::from_mins(11))
         .unwrap();
-    assert_eq!(prepared.wall_timeout(), Duration::from_secs(7 * 60));
-    prepared
-        .bound_wall_timeout(Duration::from_secs(11 * 60))
-        .unwrap();
-    assert_eq!(prepared.wall_timeout(), Duration::from_secs(7 * 60));
+    assert_eq!(prepared.wall_timeout(), Duration::from_mins(7));
     assert!(prepared.bound_wall_timeout(Duration::ZERO).is_err());
-    assert_eq!(prepared.wall_timeout(), Duration::from_secs(7 * 60));
+    assert_eq!(prepared.wall_timeout(), Duration::from_mins(7));
     assert_eq!(activity.snapshot().launched_stores, 0);
     raw(
         "TestOpenClusterRecordsHelperExecutionDeadline",
@@ -324,7 +319,7 @@ fn sealed_deadline_is_bounded_before_mutation_and_cannot_be_extended() {
 
 #[test]
 fn cancellation_after_actual_output_keeps_joined_incarnations_and_start_prefix() {
-    let mut input = request(&["b", "a"], "(loop br 0)");
+    let mut input = request(&["b", "a"], FINISH);
     input.steps.retain(|step| step.action == Action::Start);
     let declared = input.steps.clone();
     for incarnation in &mut input.incarnations {
@@ -357,10 +352,16 @@ fn cancellation_after_actual_output_keeps_joined_incarnations_and_start_prefix()
             .authorization_to_terminal_nanos
             .is_some()
     );
-    assert!(activity.snapshot().launched_stores >= 1);
+    assert_eq!(activity.snapshot().launched_stores, 2);
+    assert!(
+        execution
+            .incarnations
+            .iter()
+            .all(|item| item.execution.authorization_to_terminal_nanos.is_some())
+    );
     assert_eq!(activity.snapshot().remote_callback_attempts, 0);
-    assert!(execution.world.is_empty());
-    assert!(execution.network.is_empty());
+    assert_eq!(execution.world, [] as [u8; 0]);
+    assert_eq!(execution.network, [] as [u8; 0]);
     raw(
         "TestProviderMandatoryCleanupReapsWithoutLifecycleActions",
         "context-cancel-after-actual-output",
@@ -382,11 +383,7 @@ fn synchronous_observer_cancellation_preserves_before_and_after_refusals() {
         refuse: (u64, bool),
     }
     impl Observer {
-        fn observe(
-            &self,
-            phase: &LifecyclePhase,
-            before: bool,
-        ) -> std::result::Result<(), String> {
+        fn observe(&self, phase: &LifecyclePhase, before: bool) -> std::result::Result<(), String> {
             assert_eq!(phase.handles.len(), 2);
             self.calls.lock().unwrap().push((phase.incarnation, before));
             if self.refuse == (phase.incarnation, before) {

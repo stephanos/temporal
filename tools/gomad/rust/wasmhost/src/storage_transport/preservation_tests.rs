@@ -18,7 +18,7 @@ fn operation(id: u64) -> Value {
         "Bytes":0,"PayloadSHA256":"","EffectSHA256":"","Path":"","Destination":""})
 }
 
-fn context(operations: Vec<Value>) -> Value {
+fn context(operations: &[Value]) -> Value {
     json!({"data":{"PendingSHA256":format!("sha256:{}", "a".repeat(64)),
         "Operations":operations}})
 }
@@ -38,7 +38,7 @@ fn attach(descriptor: &mut StorageDescriptor, context: &Value) -> Result<()> {
 fn original_crash_context_admission_positive_and_negative_predicates() {
     let mut second = operation(2);
     second["Dependencies"] = json!([1]);
-    let base = context(vec![operation(1), second]);
+    let base = context(&[operation(1), second]);
     for (name, selection, edit, want) in [
         ("future-operations", json!([1, 2]), "", ""),
         ("unknown-operation", json!([3]), "", "unknown operation"),
@@ -101,7 +101,7 @@ fn original_crash_context_admission_positive_and_negative_predicates() {
 #[test]
 fn original_crash_context_equality_preserves_every_operation_field_and_null_shape() {
     let base: StorageCrashContext =
-        serde_json::from_value(context(vec![operation(2)])["data"].clone()).unwrap();
+        serde_json::from_value(context(&[operation(2)])["data"].clone()).unwrap();
     assert_eq!(base, base.clone());
     let encoded = serde_json::to_value(&base).unwrap();
     assert_eq!(encoded["Operations"][0].as_object().unwrap().len(), 10);
@@ -139,7 +139,7 @@ fn original_crash_context_equality_preserves_every_operation_field_and_null_shap
     }
     let mut null = encoded.clone();
     null["Operations"] = Value::Null;
-    let mut empty = encoded.clone();
+    let mut empty = encoded;
     empty["Operations"] = json!([]);
     assert_ne!(
         serde_json::from_value::<StorageCrashContext>(null).unwrap(),
@@ -148,19 +148,19 @@ fn original_crash_context_equality_preserves_every_operation_field_and_null_shap
     let mut changed = base.clone();
     changed.pending_sha256 = format!("sha256:{}", "b".repeat(64));
     assert_ne!(base, changed);
-    assert_ne!(BTreeMap::from([("data", base.clone())]), BTreeMap::new());
+    assert_ne!(BTreeMap::from([("data", base)]), BTreeMap::new());
 }
 
 #[test]
 fn original_large_context_transport_round_trips_five_thousand_operations() {
-    let operations = (1..=5000)
+    let operations: Vec<_> = (1..=5000)
         .map(|id| {
             let mut op = operation(id);
             op["Path"] = json!("x".repeat(256));
             op
         })
         .collect();
-    let input = context(operations);
+    let input = context(&operations);
     let bytes = serde_json::to_vec(&input).unwrap();
     let mut direct = descriptor(5000);
     direct.crash_selection = serde_json::from_value(json!({"data":[1]})).unwrap();
@@ -170,7 +170,7 @@ fn original_large_context_transport_round_trips_five_thousand_operations() {
     assert!(declared.chunks >= 17);
     assert!(serde_json::to_vec(&direct).unwrap().len() <= 8192);
     let mut wire = Vec::new();
-    for (sequence, chunk) in bytes.chunks(CHUNK as usize).enumerate() {
+    for (sequence, chunk) in bytes.chunks(usize::try_from(CHUNK).unwrap()).enumerate() {
         let frame = json!({"type":"storage_context_input","sequence":sequence,
             "data_base64":STANDARD.encode(chunk)});
         wire.extend(serde_json::to_vec(&frame).unwrap());

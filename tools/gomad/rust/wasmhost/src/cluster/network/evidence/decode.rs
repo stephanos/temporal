@@ -445,11 +445,11 @@ mod tests {
             let mut record = valid.record.clone();
             match mutation {
                 "unknown_transition_kind" => {
-                    record.transitions.as_mut().unwrap()[0].kind = "unknown".into()
+                    record.transitions.as_mut().unwrap()[0].kind = "unknown".into();
                 }
                 "ordinal_gap" => record.transitions.as_mut().unwrap()[0].ordinal += 1,
                 "listener_port_zero" => {
-                    record.snapshot.listeners.as_mut().unwrap()[0].endpoint.port = 0
+                    record.snapshot.listeners.as_mut().unwrap()[0].endpoint.port = 0;
                 }
                 "reset_open_connection" => {
                     let connection = &mut record.snapshot.connections.as_mut().unwrap()[0];
@@ -458,7 +458,7 @@ mod tests {
                 }
                 "connection_byte_bound" => {
                     record.snapshot.connections.as_mut().unwrap()[0].client_bytes =
-                        shared.limits.connection_bytes + 1
+                        shared.limits.connection_bytes + 1;
                 }
                 "total_byte_bound" => {
                     shared.limits.bytes = 1;
@@ -517,8 +517,7 @@ mod tests {
         let refused = |name: &str, changed: &[u8], bound| {
             let error =
                 crate::linked_cluster::validate_network_evidence(changed, bound, &model, &model)
-                    .err()
-                    .expect(name);
+                    .expect_err(name);
             println!(
                 "GOMAD_CORE_OBSERVATION {}",
                 serde_json::json!({"schema":"gomad.core-predicate-observation/v1","case":"cluster_network_decoder_refusal","inputs":{"mutation":name,"bytes":changed.len(),"sha256":format!("{:x}",Sha256::digest(changed)),"transcript_limit":bound},"observed":{"error":error}})

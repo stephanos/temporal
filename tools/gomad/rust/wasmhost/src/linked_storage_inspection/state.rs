@@ -413,7 +413,7 @@ mod tests {
             let mut context = original.clone();
             match edit {
                 "snapshot-hash" => {
-                    context["data"]["PendingSHA256"] = json!(format!("sha256:{}", "b".repeat(64)))
+                    context["data"]["PendingSHA256"] = json!(format!("sha256:{}", "b".repeat(64)));
                 }
                 "operation-history" => context["data"]["Operations"][0]["Kind"] = json!("forged"),
                 "missing-inventory" => context["data"]["Operations"] = Value::Null,
@@ -496,10 +496,14 @@ mod tests {
                 json!({"schema":"gomad.core-predicate-observation/v1","case":"storage.native-partial-state","inputs":{"stage":stage,"state_base64":base64::Engine::encode(&base64::engine::general_purpose::STANDARD,&partial),"log_base64":base64::Engine::encode(&base64::engine::general_purpose::STANDARD,&evidence.log),"storage":input},"observed":{"error":result.as_ref().err()}})
             );
         }
-        let mut corrupted = evidence.state.clone();
+        assert_corrupted_state_refused(&input, &evidence.state, &evidence.log);
+    }
+
+    fn assert_corrupted_state_refused(input: &StorageInput, state: &[u8], log: &[u8]) {
+        let mut corrupted = state.to_vec();
         corrupted[20] ^= 1;
         assert_eq!(
-            validate(&input, &corrupted, &evidence.log, 8 << 20).unwrap_err(),
+            validate(input, &corrupted, log, 8 << 20).unwrap_err(),
             "retained storage state integrity"
         );
     }
