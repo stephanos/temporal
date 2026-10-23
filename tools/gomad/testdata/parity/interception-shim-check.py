@@ -621,7 +621,8 @@ def authenticate_external(captures, expected, compiler):
                 raise ValueError('external empty ' + kind + ' inventory')
             equal(prepared['inputs'][kind], prepared[kind], 'external.recipe_' + kind + '_commitment')
             equal(observed[kind], prepared[kind], 'external.observed_' + kind + '_inventory')
-        equal(prepared['compiler'].get(str(compiler)), expected['compiler_sha256'], 'external.compiler_listed')
+        equal(prepared['inputs']['compiler_path'], str(compiler), 'external.recipe_input.compiler_path')
+        equal(prepared['inputs']['compiler_sha256'], expected['compiler_sha256'], 'external.recipe_input.compiler_sha256')
         for key, value in dict(GOOS='wasip1', GOARCH='wasm', CGO_ENABLED='0', GOTOOLCHAIN='local').items():
             equal(prepared['environment'][key], value, 'external.guest_environment.' + key)
     return captured
