@@ -39,6 +39,7 @@ def derive(rows, target, artifact_root=None):
     by_key = {}
     for row in rows:
         require(row.get("schema") == "gomad.native-allocation-observation/v1", "unexpected allocation schema")
+        require(row.get("allocation_scope") == "selected-test-thread" and row.get("live_scope") == "whole-process", "foreign allocator measurement scope")
         key = (row["case"], row["inputs"].get("requests"))
         require(key in expected and key not in by_key, f"unexpected/duplicate allocation row: {key}")
         facts = row["allocator"]

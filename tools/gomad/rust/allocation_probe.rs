@@ -1,4 +1,5 @@
 use std::alloc::{GlobalAlloc, Layout, System};
+use std::cell::Cell;
 use std::sync::atomic::{AtomicBool, AtomicU64, Ordering};
 
 struct MeasuredAllocator;
@@ -6,17 +7,38 @@ struct MeasuredAllocator;
 #[global_allocator]
 static ALLOCATOR: MeasuredAllocator = MeasuredAllocator;
 static ACTIVE: AtomicBool = AtomicBool::new(false);
-static ALLOCATED: AtomicU64 = AtomicU64::new(0);
-static ALLOCATIONS: AtomicU64 = AtomicU64::new(0);
+#[derive(Clone, Copy)]
+struct Scope {
+    active: bool,
+    allocated_bytes: u64,
+    allocation_calls: u64,
+}
+
+thread_local! {
+    static SCOPE: Cell<Scope> = const { Cell::new(Scope {
+        active: false,
+        allocated_bytes: 0,
+        allocation_calls: 0,
+    }) };
+}
 static LIVE: AtomicU64 = AtomicU64::new(0);
 static PEAK: AtomicU64 = AtomicU64::new(0);
 
 fn allocated(bytes: usize) {
     let live = LIVE.fetch_add(bytes as u64, Ordering::Relaxed) + bytes as u64;
     if ACTIVE.load(Ordering::Relaxed) {
-        ALLOCATED.fetch_add(bytes as u64, Ordering::Relaxed);
-        ALLOCATIONS.fetch_add(1, Ordering::Relaxed);
         PEAK.fetch_max(live, Ordering::Relaxed);
+        // TLS can be gone during thread teardown; teardown never belongs to a capture.
+        SCOPE
+            .try_with(|cell| {
+                let mut scope = cell.get();
+                if scope.active {
+                    scope.allocated_bytes += bytes as u64;
+                    scope.allocation_calls += 1;
+                    cell.set(scope);
+                }
+            })
+            .unwrap_or(());
     }
 }
 
@@ -68,23 +90,35 @@ pub(crate) struct Facts {
 
 pub(crate) fn capture<T>(operation: impl FnOnce() -> T) -> (T, Facts) {
     assert!(!ACTIVE.load(Ordering::Relaxed), "nested allocation capture");
-    ALLOCATED.store(0, Ordering::Relaxed);
-    ALLOCATIONS.store(0, Ordering::Relaxed);
+    SCOPE.with(|cell| {
+        assert!(!cell.get().active, "nested thread allocation capture");
+        cell.set(Scope {
+            active: true,
+            allocated_bytes: 0,
+            allocation_calls: 0,
+        });
+    });
     let before = LIVE.load(Ordering::Relaxed);
     PEAK.store(before, Ordering::Relaxed);
     struct Guard;
     impl Drop for Guard {
         fn drop(&mut self) {
             ACTIVE.store(false, Ordering::Relaxed);
+            SCOPE.with(|cell| {
+                let mut scope = cell.get();
+                scope.active = false;
+                cell.set(scope);
+            });
         }
     }
     ACTIVE.store(true, Ordering::Relaxed);
     let guard = Guard;
     let result = std::hint::black_box(operation());
     drop(guard);
+    let scope = SCOPE.with(Cell::get);
     let facts = Facts {
-        allocated_bytes: ALLOCATED.load(Ordering::Relaxed),
-        allocation_calls: ALLOCATIONS.load(Ordering::Relaxed),
+        allocated_bytes: scope.allocated_bytes,
+        allocation_calls: scope.allocation_calls,
         live_requested_bytes_before: before,
         live_requested_bytes_after: LIVE.load(Ordering::Relaxed),
         peak_live_requested_bytes: PEAK.load(Ordering::Relaxed),
@@ -101,6 +135,7 @@ pub(crate) fn row(
     println!(
         "GOMAD_ALLOCATION_OBSERVATION {}",
         serde_json::json!({"schema":"gomad.native-allocation-observation/v1", "case":case,
+            "allocation_scope":"selected-test-thread","live_scope":"whole-process",
             "inputs":inputs,"allocator":facts,"observed":observed})
     );
 }

@@ -2,12 +2,9 @@ include!("../src/lib.rs");
 #[path = "../../allocation_probe.rs"]
 mod allocation_measure;
 
-fn main() {
-    assert_eq!(
-        std::env::args_os().len(),
-        1,
-        "fixed allocation harness takes no arguments"
-    );
+#[test]
+#[ignore = "explicit allocation receiving operator harness"]
+fn allocation_receiving() {
     allocation_measure::self_check();
     allocation_metadata_probe(|read| {
         let (sizes, facts) = allocation_measure::capture(|| {

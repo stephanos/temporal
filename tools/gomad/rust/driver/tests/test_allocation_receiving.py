@@ -10,6 +10,7 @@ from allocation_receiving import derive
 
 def row(case, inputs, allocated, observed):
     return {"schema": "gomad.native-allocation-observation/v1", "case": case,
+            "allocation_scope": "selected-test-thread", "live_scope": "whole-process",
             "inputs": inputs, "observed": observed, "allocator": {
                 "allocated_bytes": allocated, "allocation_calls": 1,
                 "live_requested_bytes_before": 100,
@@ -56,6 +57,12 @@ class AllocationReceivingTests(unittest.TestCase):
         rows = host_rows()
         rows[-1]["observed"]["sha256"] = "sha256:"+"a"*64
         with self.assertRaisesRegex(ValueError, "read changed retained bytes"):
+            derive(rows, "gomad")
+
+    def test_other_thread_or_process_counters_are_not_selected_operation_metrics(self):
+        rows = host_rows()
+        rows[0]["allocation_scope"] = "whole-process"
+        with self.assertRaisesRegex(ValueError, "measurement scope"):
             derive(rows, "gomad")
 
     def test_allocator_control_is_required_and_typed(self):

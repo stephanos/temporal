@@ -9,11 +9,11 @@
   },
   "execution_contract": [
     "Parent serial build lease owns every Cargo/compiler invocation; worker performed source-only checks.",
-    "Launch each generated executable directly with no arguments from a fresh harness-owned evidence working directory. Cargo test itself changes CWD to the package root; direct execution keeps large wire files outside source.",
-    "No harness accepts fixture switches, alternate cardinalities, paths, byte budgets, or fixture replacement inputs. World helper harness requires Linux /proc.",
-    "Both standalone executables emit a successful8192-byte/one-call allocator control. All scoped counters operate only in this explicit executable; ordinary library tests do not mutate shared allocator fixtures.",
-    "Each measured closure counts all successful System alloc/alloc_zeroed/realloc requested sizes and calls across the whole process. Every successful realloc counts its full requested new size, including in-place realloc; failed requests do not count. Deallocation decrements requested-live bytes.",
-    "These are native requested-byte/allocation-call metrics, not Go TotalAlloc/HeapAlloc, libc usable size, RSS, or GC metrics. RSS and process peak RSS are independently read from /proc/self/status.",
+    "Launch each generated normal libtest executable directly with exactly --ignored --exact allocation_receiving --nocapture --test-threads=1 from a fresh harness-owned evidence working directory. Cargo test itself changes CWD to the package root; direct execution keeps large wire files outside source.",
+    "The fixed test accepts no fixture switches, alternate cardinalities, paths, byte budgets, or fixture replacement inputs. Its explicit ignore attribute keeps 200000-request operator work and large wire outputs out of default workspace test execution. The checked role owns the exact libtest filter and single test thread. World helper harness requires Linux /proc.",
+    "Both integration test executables emit a successful8192-byte/one-call allocator control. The global allocator is specific to these targets; allocation capture activation and byte/call counters are thread-local to the selected test. No package-global fixture switch is mutated.",
+    "Each synchronous measured closure counts successful System alloc/alloc_zeroed/realloc requested sizes and calls on the selected libtest thread, excluding unrelated libtest threads. Every successful realloc counts its full requested new size, including in-place realloc; failed requests do not count. None of the measured owner operations dispatches work to another thread. Process-wide requested-live bytes count all successful allocations and deallocations; their scoped peak and /proc RSS remain whole-process metrics. Each observation explicitly declares these two distinct scopes.",
+    "These are native requested-byte/allocation-call metrics, not Go TotalAlloc/HeapAlloc, libc usable size, RSS, or GC metrics. Requested-byte totals and allocation calls are selected-thread metrics; requested-live and /proc RSS/peak are explicitly whole-process. The independent reader refuses scope substitutions.",
     "Logging, workload preparation where prescribed by the original ceiling, artifact writes and digests run outside measured closures. World model construction is itself measured; cumulative totals sum the declared measured stages.",
     "Closed create_new artifact filenames are {binary-world|compressed-world}-{20000|200000}.{expanded|restored|compressed}.wire relative to harness CWD. Never overwrite/delete existing outputs; retained rows carry paths and actual SHA256. RawWorld has no compressed artifact.",
     "Read each raw log with driver/allocation_receiving.py --target gomad|wasmhost LOG. The reader enforces the complete target-specific row inventory, numeric types, self-control, workload sizes, exact original bounds, byte digests, cumulative arithmetic and terminal cardinalities.",
@@ -60,7 +60,8 @@
         "No invented byte/count or RSS ceiling substitutes for the original diagnostic-only stages. Go snapshot-copy/HeapAlloc/GC-accounting semantics remain distinct from native requested allocator live/total metrics."
       ],
       "execution": "UNEXECUTED source-only implementation; final parent serial gates and independent review pending",
-      "claim": "No root PASS or qualification certification"
+      "claim": "No root PASS or qualification certification",
+      "fixed_native_test_selector": "allocation_receiving (normal libtest target, explicit --ignored --exact)"
     },
     {
       "original_root": "tools/gomad/internal/backends/wasm/cluster/world_compressed_probe_test.go#TestCompressedWorldOwnerMeasuredCardinality",
@@ -83,7 +84,8 @@
         "Both original accepted cardinalities execute unconditionally in a closed explicit executable. Ordinary unit probes are ignored by default and fail when explicitly run without their activation variable."
       ],
       "execution": "UNEXECUTED source-only implementation; final parent serial gates and independent review pending",
-      "claim": "No root PASS or qualification certification"
+      "claim": "No root PASS or qualification certification",
+      "fixed_native_test_selector": "allocation_receiving (normal libtest target, explicit --ignored --exact)"
     },
     {
       "original_root": "tools/gomad/internal/model/volume/metadata_test.go#TestMetadataAllocationsDoNotCopyLargeFile",
@@ -162,5 +164,11 @@
       "claim": "No root PASS or qualification certification"
     }
   ],
-  "independent_world_reader": "driver/core_world.py::decode_measured_world and expand (broad World receiving source; integration dependency69d4a40e87)"
+  "independent_world_reader": "driver/core_world.py::decode_measured_world and expand (broad World receiving source; integration dependency69d4a40e87)",
+  "fixed_selector": "--ignored --exact allocation_receiving --nocapture --test-threads=1",
+  "test_harness": "Normal libtest integration target; library source is included so existing private owners and their test declarations keep their original visibility and liveness.",
+  "observation_scopes": {
+    "allocation_scope": "selected-test-thread",
+    "live_scope": "whole-process"
+  }
 }

@@ -46,4 +46,4 @@ undocumented_unsafe_blocks = "warn"
 [[test]]
 name = "allocation_receiving"
 path = "tests/allocation_receiving.rs"
-harness = false
+harness = true
