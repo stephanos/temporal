@@ -81,7 +81,7 @@ class HostAdmission(unittest.TestCase):
         observed = subprocess.CompletedProcess([], 0, stdout='virtiofs\n', stderr='')
         with patch.object(admission.subprocess, 'run', return_value=observed) as probe:
             self.assertEqual(admission.host_fact(self.parent)['filesystem'], 'virtiofs')
-        probe.assert_called_once_with(['/usr/bin/stat', '-f', '-c', '%T', str(self.parent)],
+        probe.assert_called_once_with([str(admission.STAT), '-f', '-c', '%T', str(self.parent)],
                                       check=True, capture_output=True, text=True,
                                       env={'LC_ALL': 'C'}, timeout=5)
         def facts(path):

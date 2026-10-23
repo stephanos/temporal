@@ -8,7 +8,9 @@ import time
 from driver import REPO, Refusal, read, require, write
 
 MIN_FREE_BYTES = 12 * 1024 ** 3
-STAT = Path('/usr/bin/stat')
+# The probe is a frozen regular file; some hosts ship /usr/bin/stat as a coreutils multicall symlink.
+STAT = next((path for path in (Path('/usr/bin/stat'), Path('/usr/bin/gnustat')) if path.is_file() and not path.is_symlink()),
+            Path('/usr/bin/stat'))
 
 
 def bindings(config):
