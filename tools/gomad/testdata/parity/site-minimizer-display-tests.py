@@ -87,6 +87,16 @@ class DisplayGoldenTests(unittest.TestCase):
         with self.assertRaisesRegex(ValueError, 'exact removed identities'):
             self.compare()
 
+    def test_boolean_to_integer_metadata_change_refuses(self):
+        self.fixture['inspect']['predicate']['replay_match'] = 1
+        with self.assertRaisesRegex(ValueError, 'complete retained minimization block'):
+            self.compare()
+
+    def test_integer_to_float_metadata_change_refuses(self):
+        self.fixture['inspect']['attempt_budget'] = 64.0
+        with self.assertRaisesRegex(ValueError, 'complete retained minimization block'):
+            self.compare()
+
     def test_changed_raw_predicate_metadata_refuses(self):
         self.fixture['retained']['predicate']['failure_signature'] = '0' * 64
         with self.assertRaisesRegex(ValueError, 'complete retained minimization block'):

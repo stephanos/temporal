@@ -628,3 +628,27 @@ portable tests SHA-256 is
 The original `semantic.json` remains byte-identical in this isolated checkout
 (SHA-256 d8f7795d...). No Rust, Cargo, Go, guest, complete generation, lifecycle
 transition or push ran for this Python-only coverage addition.
+
+### Display review followup: JSON type-sensitive raw-block authentication
+
+The complete retained minimization block comparison now compares canonical JSON
+bytes before selecting display fields. This closes Python equality accepting
+`true == 1` and `64 == 64.0` in omitted predicate/budget fields. Two portable
+regressions mutate the actual copied inspect predicate `replay_match` to integer
+1 and `attempt_budget` to float 64.0 while leaving retained metadata unchanged.
+Both failed with “ValueError not raised” before the fix (16 tests, 2 failures,
+exit1), then all 16 passed after the one-line canonical comparison (exit0).
+Logs: `/home/agent/evidence/fn231-display-types-red.log` and
+`fn231-display-types-green.log`.
+
+The offline authenticated two-scope checker passed (exit0), as did Python AST
+parsing for checker/tests/live hook and `git diff --check`. The explicit
+canonical-type proof and projection hashes are in
+`/home/agent/evidence/fn231-display-types-proof.json`; actual checker log is
+`fn231-display-types-actual.log`. Both actual projections remain 938 bytes with
+SHA-256 `4d50ea6bf4def5cee39e09755672f23d99dc52e2f62642b0e2090fc8a365549d`.
+Checked scoped golden and semantic golden are unchanged. Checker SHA-256:
+`fd78be2e9e73eaf6fd5a77b4262e8f409a9fe691436bf869600ee5bf49e5eea2`;
+tests SHA-256:
+`f884829d0e6ad448d0cade2bf83176bb86cbb48cdcfa1c3a1cc472bfa89f84bc`.
+This followup ran no Go, Cargo, Rust, guest or runtime generation commands.

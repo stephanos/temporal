@@ -28,7 +28,7 @@ def projection(minimized, inspected, retained):
             symbol = decision.pop('symbol')
             if not isinstance(symbol, dict) or not symbol:
                 raise ValueError('removed symbol absent')
-    equal(raw_view, retained, 'inspect report versus complete retained minimization block')
+    equal(canonical(raw_view), canonical(retained), 'inspect report versus complete retained minimization block')
     equal(minimized['attempts'], retained['attempts'], 'attempt count')
     equal(minimized['attempt_budget'], retained['attempt_budget'], 'attempt budget')
     equal(len(minimized['accepted']), len(retained['accepted']), 'accepted count')
