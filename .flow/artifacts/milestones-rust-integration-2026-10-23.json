@@ -40,5 +40,50 @@
       "sha256": "ba524a15bb40d1ddce6d9b36078e7d0bd46741a27def15ab633207f6f232510d",
       "exit": 0
     }
+  ],
+  "verification_updates": [
+    {
+      "observed_at": "2026-10-23T06:48:53.137146+00:00",
+      "integration_head": "e325783f6c",
+      "final_qualification": false,
+      "logs": [
+        {
+          "path": "/home/agent/.cache/codex-build/fn232-root-cache-determinism-integrated.log",
+          "bytes": 32366,
+          "sha256": "c340e67dcc75234a19161ec0b714988a7a856e9fc570a9485c77483cfe01bcb9",
+          "exit": 0
+        },
+        {
+          "path": "/home/agent/.cache/codex-build/fn232-root-cache-python-driver.log",
+          "bytes": 254,
+          "sha256": "b83e7baffe6344bc81a38945979fe4361ff1a3e761fa3f52f2a382eed646849f",
+          "exit": 0
+        },
+        {
+          "path": "/home/agent/.cache/codex-build/fn232-root-cache-python-workloads.log",
+          "bytes": 119,
+          "sha256": "22ec392c7edf6c49d9b26317e05d6c3c7e706a2b3fd3b563d230e9a3fad80ab1",
+          "exit": 0
+        },
+        {
+          "path": "/home/agent/.cache/codex-build/fn232-root-cache-determinism-clippy.log",
+          "bytes": 6346,
+          "sha256": "81a1034d381b6a37f7a12f118bc427282ea177a793b66a6c90bfeeac414aa0a5",
+          "exit": 101
+        },
+        {
+          "path": "/home/agent/.cache/codex-build/fn232-root-stress-lint-fixed.log",
+          "bytes": 164,
+          "sha256": "6c88837cf204a50f267e56170e71985dc477692146d39f57db890b2074a560ef",
+          "exit": 0
+        },
+        {
+          "path": "/home/agent/.cache/codex-build/fn232-root-stress-lint-tests.log",
+          "bytes": 2947,
+          "sha256": "bf3499fe443f00ca13c34c07b838f978630f358103f6c99047b90d5db6937202",
+          "exit": 0
+        }
+      ]
+    }
   ]
 }
