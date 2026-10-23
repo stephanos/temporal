@@ -1,6 +1,6 @@
 {
   "schema": "gomad.integration-development-evidence/v1",
-  "observed_at": "2026-10-23T13:10:24.102466+00:00",
+  "observed_at": "2026-10-23T13:17:13.996337+00:00",
   "integration_head": "e055d3856dd69cfc41d53dad51615cb4e92b8930",
   "final_qualification": false,
   "logs": [
@@ -2770,6 +2770,73 @@
         "Fresh immutable candidate, GNU envelope, authentic role builds and original root19 observation",
         "Full terminal eight / installed operator / four divergence pairs / runtime 32-by-25 and aggregate/stress/four-axis",
         "Frozen 96-stage/146-obligation cycle within3600seconds, support/sweep/profiling and remaining MILESTONES requirements"
+      ]
+    },
+    {
+      "observed_at": "2026-10-23T13:17:13.996337+00:00",
+      "integration_head": "af61bea655c51b016871aed295021e3501bb24e9",
+      "final_qualification": false,
+      "scope": "Actual development Go receiving run; no final or complete-original-root acceptance",
+      "source": "740af4fbfc73bcbc11167fb1324f5965fbddf476",
+      "proofs": [
+        {
+          "path": "/home/agent/evidence/fn232-core-counterfactual/broad-guests-v2/command.json",
+          "bytes": 55459,
+          "sha256": "46e200e84460dd4cdacb3617abd61851e13f9af97e3c8da2f28709834a7ced7d"
+        },
+        {
+          "path": "/home/agent/evidence/fn232-core-counterfactual/broad-guests-v2/process.json",
+          "bytes": 603,
+          "sha256": "e40573673828813557dda12648195e3ad596a50388d66db33d1849055a87deb6"
+        },
+        {
+          "path": "/home/agent/evidence/fn232-core-counterfactual/broad-guests-v2/stdout",
+          "bytes": 197272,
+          "sha256": "2253cf720badacadee5e5619210d1c5853e504e66b076d2cf7c84516d112cd86"
+        },
+        {
+          "path": "/home/agent/evidence/fn232-core-counterfactual/broad-guests-v2/stderr",
+          "bytes": 908,
+          "sha256": "f41f679624fb41dc978ebc29d320fd963fc7a317c2cf5c33c4932266c9d1070f"
+        }
+      ],
+      "exit": 101,
+      "tests_passed": 2,
+      "tests_failed": 3,
+      "emitted_completed_observations": [
+        {
+          "case": "canary/enabled=false",
+          "original_root": "TestProviderDetachedOracleCanarySourceLessReplay"
+        },
+        {
+          "case": "canary/enabled=true",
+          "original_root": "TestProviderDetachedOracleCanarySourceLessReplay"
+        },
+        {
+          "case": "soft/seed=7/report-only=false",
+          "original_root": "TestSoftAssertionActualClusterGuestAndRetainedReplay"
+        },
+        {
+          "case": "soft/seed=19/report-only=false",
+          "original_root": "TestSoftAssertionActualClusterGuestAndRetainedReplay"
+        },
+        {
+          "case": "soft/seed=7/report-only=true",
+          "original_root": "TestSoftAssertionActualClusterGuestAndRetainedReplay"
+        }
+      ],
+      "failed_roots": {
+        "actual_go_grouped_acknowledgment_crash_preserves_independent_durable_recovery": "Production retained reopen refused unlisted artifact payload",
+        "actual_independent_go_guests_preserve_plain_and_compressed_lifecycle_replay": "Production retained reopen refused unlisted artifact payload",
+        "actual_output_capacity_guest_preserves_original_three_policies": "Actual WASI capacity: offered-output-bytes differs from expected output capacity; original model/engine budget precedence requires diagnosis"
+      },
+      "all_eleven_variants_passed": false,
+      "source_repair": "Pending under core owner; no assertions relaxed",
+      "pre_freeze_blockers": [
+        "Genuine stress/stress-release/reference typed build role provisioning and feature-bearing helper binding reader repair",
+        "Actual unlisted retained payload / output budget policy failures",
+        "Narrow fn235 applicability and actual same-stage four-pair divergence producer integration",
+        "Callback closed-consumer proof requires host-fixture installation; controlled streaming remains ordinary; scoped receiving fix under review"
       ]
     }
   ],
