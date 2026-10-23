@@ -522,51 +522,13 @@ These diagnostics cover static admission, including correlated Contracts. ProtoJ
 and runtime Run/Driver failures keep their own error contracts. No diagnostic wire format is added.
 See [the public error contract](preparation_error.go) and [Temporal Driver ownership](temporal/README.md).
 
-## Running a Case from the command line
+## Command line
 
-`tools/umpire/cmd/umpire-run` is the black-box consumer of these bytes. Given a fixture path, a gRPC
-address, an HTTP address, and the namespace, task queue and optional Nexus endpoint the Case binds
-to, it derives the Profile the Case implies through `temporal.DeriveProfile`, prepares the unchanged
-bytes, opens a composite Driver with its own SDK worker, runs once, and prints the Run disposition, the
-cleanup status, the Verdict status, and one line per rule Verdict.
+No command runs or assesses a Case any more. The `umpire` command (`tools/umpire/cmd/umpire`) runs
+the Runner loop over a Model guest instead; see `model/umpire/hosts/go/README.md`. The live tests
+still run Cases in process until this package is retired.
 
-Its exit codes separate the answer from the infrastructure: `0` satisfied, `1` violated, `2`
-inconclusive, `3` preparation, infrastructure, or Run error. That is why a CI caller can tell an
-unreachable server from a Run that really was inconclusive.
-
-With `--model <dir>` (the `model/` directory) it also runs the Model's assessment beside the
-Contract, as the live tests do. It finds the Case among the lowered Cases of `<dir>/cases` by
-`CaseFingerprint`, loads its Query's Model from `<dir>/ir`, and prepares the assessment with
-`conformance.Prepare` under `conformance.DefaultLimits()`, the ceilings the live tests use. All of
-this happens before anything is opened, so a Case the Model does not lower exits `3` with no Run.
-After the Run's lines the report adds `conformance <status> [<reason>]` and one `property <id>
-<status> [<reason>]` line per property, each by its reason id and never its prose. A failed
-assessment adds `assessment failed <code> at event <n>`. Then comes `expected match`, or one
-`expected differs: …` line per difference from the Query's expected Run (`lower.ExpectedRun.Check`,
-the live tests' comparison).
-
-The exit code is then the worse of the Verdict and the assessment:
-
-- `1` when either found a violation: a violated Verdict, a nonconformant Run, or a violated
-  property. This includes a violation the assessment established before it failed.
-- Otherwise `3` when the assessment failed.
-- Otherwise `2` when the Verdict, the conformance or any property is inconclusive.
-- Otherwise `0`.
-
-Whether the Run matches its expectation is reported, never folded into the exit code. A Query
-that expects an inconclusive property exits `2` and reports `expected match`. Without `--model`,
-the output and exit codes are as above.
-
-`tools/umpire/cmd/umpire-assess` is the offline judge of a recorded Run. It decides the recorded
-Verdict under an Evaluation Profile and publishes a canonical receipt. With `--model <dir>` it
-finds the Case in the same way and prepares it offline. Offline means under the Profile name the
-Run was recorded with, every setting the Program requires, and delivery control, since nothing is
-driven. It then replays the recorded events through `AssessedCase.Evaluate`, which is what the
-live test does with its Run, so the Assessment is the one the live test produced. A recorded Run
-that does not read back to its recorded Verdict is refused. The Assessment decides beside the
-Verdict, and the receipt records it (`assessment`: the Model and Query identities, the
-conformance and each property by status, reason id and supporting sequences, and the failure by
-code).
+## Evaluation Profiles
 
 A Profile states only the policy that differs between deployments: its claim, the trust it
 asserts, which Known Gap kinds block, and whether an unsupported rule rejects or leaves the
@@ -581,13 +543,3 @@ subject incomplete. `evaluation.Assess` decides by one fixed precedence:
 The receipt lists every reason that holds by its fixed id. A Run stopped by its Monitor is its
 violated Verdict, and a Run that did not close complete its inconclusive one; neither is a reason
 of its own.
-
-With `--create` it provisions the resources it names and deletes them on exit; without it they must
-already exist and none is ever deleted. Only Cases whose Profile `DeriveProfile` derives are
-runnable; a typed fixture rejects with its admission category on stderr. It links the Driver and the
-SDK, never the functional test cluster.
-
-It links no functional test cluster at all, and the only server packages in its transitive closure
-are the three the Driver's own Nexus support already pulled in through `common/dynamicconfig`,
-`common/persistence` and `chasm`. A unit test pins both halves of that, so a new coupling is a
-failing test rather than a silent regression.

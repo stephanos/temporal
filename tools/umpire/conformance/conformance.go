@@ -67,9 +67,9 @@ type Limits struct {
 	MaxReadings int
 }
 
-// DefaultLimits are the ceilings a generated Case is assessed under wherever it runs: the live tests,
-// umpire-run and umpire-assess. Sharing them keeps the binding's Query identity, which covers the
-// candidate and work ceilings, the same for a live Run and an offline assessment of its record.
+// DefaultLimits are the ceilings a generated Case is assessed under wherever it runs. Sharing them
+// keeps the binding's Query identity, which covers the candidate and work ceilings, the same for a
+// live Run and an offline assessment of its record.
 func DefaultLimits() Limits {
 	return Limits{MaxEvents: 2048, MaxProperties: 16, MaxDuration: time.Minute, MaxCandidates: 1 << 16, MaxWork: 1 << 22, MaxReadings: 1 << 22}
 }

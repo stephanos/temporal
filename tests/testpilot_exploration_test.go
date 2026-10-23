@@ -6,6 +6,7 @@ import (
 	"context"
 	"encoding/json"
 	"os"
+	"os/exec"
 	"path/filepath"
 	"testing"
 	"time"
@@ -32,6 +33,18 @@ func writeExplorationArtifact(t *testing.T, name string, data []byte) {
 	}
 	require.NoError(t, os.MkdirAll(root, 0700))
 	require.NoError(t, os.WriteFile(filepath.Join(root, name), data, 0600))
+}
+
+// buildUmpireCommand builds one command under tools/umpire/cmd into the test's temporary
+// directory.
+func buildUmpireCommand(t *testing.T, name string) string {
+	t.Helper()
+	binary := filepath.Join(t.TempDir(), name)
+	build := exec.Command("go", "build", "-o", binary, "go.temporal.io/server/tools/umpire/cmd/"+name)
+	build.Env = os.Environ()
+	output, err := build.CombinedOutput()
+	require.NoError(t, err, "build %s: %s", name, output)
+	return binary
 }
 
 func TestTestpilotExplorationDiscoversUnpinnedExecution(t *testing.T) {
