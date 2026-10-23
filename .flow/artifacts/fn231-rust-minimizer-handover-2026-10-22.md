@@ -652,3 +652,7 @@ Checked scoped golden and semantic golden are unchanged. Checker SHA-256:
 tests SHA-256:
 `f884829d0e6ad448d0cade2bf83176bb86cbb48cdcfa1c3a1cc472bfa89f84bc`.
 This followup ran no Go, Cargo, Rust, guest or runtime generation commands.
+
+### Integrated reporting closeout
+
+Integrated display checkpoints a4cfdf5ab7/c63cfc2999 passed all16 portable tests, authenticated both retained actual scope outputs, AST3 and diff checks (all exit0). Independent same-family reviewer returned SHIP for6506164bda after inspecting actual RED/GREEN logs and unchanged938B projections. Flow task2 was completed and its done status independently read back before this closeout commit. The checked semantic golden is the actual repeated3095bc851f9fa9f821dac792e585f16228975a0ebd0d8dd0a0cafeaedf05f61e output (38237B); previous fields and refusal entries remain unchanged, with only scoped cases/report blocks added. No Rust/Go inputs changed after the four acceptance phases. Formal full-spec completion review remains pending.
