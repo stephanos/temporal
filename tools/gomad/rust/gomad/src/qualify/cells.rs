@@ -124,7 +124,10 @@ fn explore_options(
         arguments.extend([
             "--choices".into(),
             "--choice-bytes".into(),
-            campaign.choice_trace_limit.max(1 << 20).to_string(),
+            campaign
+                .choice_trace_limit
+                .clamp(1 << 20, 64 << 20)
+                .to_string(),
             "--coverage".into(),
             "choice".into(),
         ]);
@@ -147,7 +150,39 @@ fn explore_options(
     let mut options = crate::cli::explore::parse(&arguments, &mut json)?;
     options.installation = installation.map(Path::to_path_buf);
     options.scenario = scenario;
+    original_choice_bound(spec, &mut options)?;
     Ok(options)
+}
+
+fn original_choice_bound(spec: &Spec, options: &mut ExploreOptions) -> Result<(), String> {
+    if spec.manifest.id == "temporal-committed-workflow-crash-reopen" {
+        if spec.campaign.choice_trace_limit != 1 << 30
+            || options.scenario.as_ref().is_none_or(|raw| {
+                serde_json::from_slice::<Value>(raw)
+                    .ok()
+                    .is_none_or(|scenario| {
+                        scenario["workload"]["kind"] != "temporal-committed-workflow-crash-reopen"
+                    })
+            })
+        {
+            return Err("committed Temporal recovery requires its exact registered original 1GiB choice bound".into());
+        }
+        options.choice_bytes = 1 << 30;
+    }
+    if matches!(
+        spec.runtime_workload,
+        Some(super::workloads::recovery::Request::TemporalRetry)
+    ) {
+        if spec.manifest.id != "temporal-named-network-reset"
+            || spec.campaign.choice_trace_limit != 1 << 30
+        {
+            return Err(
+                "named Temporal reset requires its original registered 1GiB choice bound".into(),
+            );
+        }
+        options.choice_bytes = 1 << 30;
+    }
+    Ok(())
 }
 
 /// The owner spec carries `Target.Scenario` as Go's base64 `[]byte` encoding of
@@ -252,11 +287,30 @@ pub(crate) fn freeze(
         Some(String::from_utf8(encoded).map_err(|_| "integrated source manifest is not UTF-8")?)
     };
     // The installation's pinned profile selects the cooperative choice grammar.
+    if let Some(request) = &spec.runtime_workload {
+        let expected = match request {
+            super::workloads::recovery::Request::SQLiteSelection { .. } => {
+                "sqlite-durable-recovery"
+            }
+            super::workloads::recovery::Request::TemporalRecovery { .. } => {
+                "temporal-committed-workflow-crash-reopen"
+            }
+            super::workloads::recovery::Request::TemporalRetry => "temporal-named-network-reset",
+        };
+        if declared_manifest.id != expected {
+            return Err(
+                "runtime workload requires its exact registered qualification identity".into(),
+            );
+        }
+    }
     let probe = explore_options(spec, installation, declared_manifest.seed, false)?;
     let cooperative = prepare::installation_profile(&probe)? == "gomad.wasi-cooperative/v1";
     let options = explore_options(spec, installation, declared_manifest.seed, cooperative)?;
     let started = Instant::now();
-    let prepared = prepare::prepare(&options)?;
+    let mut prepared = prepare::prepare(&options)?;
+    if let Some(request) = &spec.runtime_workload {
+        super::workloads::recovery::attach(&mut prepared, request)?;
+    }
     let preparation_wall_nanos = u64::try_from(started.elapsed().as_nanos()).unwrap_or(u64::MAX);
     let prepared_usage = usage::snapshot();
     let configuration = &prepared.configuration;
@@ -476,6 +530,7 @@ fn replay(path: &Path, iteration: u64) -> Result<(Replay, Vec<Sample>), String> 
     let started = Instant::now();
     let (observed, metrics, virtual_time) = match prepared.execution {
         preflight::Execution::Cluster(cluster) => {
+            let projection = cluster.projection();
             usage::store_begin();
             let observed = crate::replay::cluster::execute(*cluster);
             let store_peak = usage::store_end();
@@ -496,7 +551,8 @@ fn replay(path: &Path, iteration: u64) -> Result<(Replay, Vec<Sample>), String> 
                 campaign::scenario::store_metrics(&observed, &limits, started.elapsed());
             metrics.store_peak_rss_bytes = store_peak;
             let virtual_time = observed.virtual_elapsed_nanos;
-            let projected = crate::replay::cluster::project(observed)
+            let projected = projection
+                .project(observed)
                 .map_err(|error| format!("runner_failure: project cluster replay: {error}"))?;
             (projected, metrics, virtual_time)
         }
@@ -657,10 +713,18 @@ pub(crate) fn run(frozen: &Frozen) -> Result<QualificationResult, String> {
         samples,
         operator_peak_rss_bytes: usage::operator_peak(),
     };
+    complete_workload(frozen, report, observations)
+}
+
+fn complete_workload(
+    frozen: &Frozen,
+    report: report::Report,
+    observations: Observations,
+) -> Result<QualificationResult, String> {
     let (cost, cost_failure, budget, budget_failure) = cost::evaluate(&observations, &report);
-    Ok(QualificationResult {
+    let mut result = QualificationResult {
         schema: result::RESULT_SCHEMA.into(),
-        manifest: manifest.clone(),
+        manifest: frozen.manifest.clone(),
         report,
         observations,
         cost,
@@ -669,7 +733,14 @@ pub(crate) fn run(frozen: &Frozen) -> Result<QualificationResult, String> {
         budget_failure,
         integrated_source_manifest: frozen.integrated_source_manifest.clone(),
         provenance: frozen.provenance.clone(),
-    })
+        native_crash_catalogues: Vec::new(),
+        native_crash_selection: None,
+    };
+    (
+        result.native_crash_catalogues,
+        result.native_crash_selection,
+    ) = super::workloads::retained(&result)?;
+    Ok(result)
 }
 
 /// Publishes the Result, then observes and publishes the terminal receipt.

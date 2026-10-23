@@ -10,7 +10,7 @@
   "priority": null,
   "spec": "fn-230-gomad-explore-site-scope-for-choice",
   "spec_path": ".flow/tasks/fn-230-gomad-explore-site-scope-for-choice.2.md",
-  "status": "todo",
+  "status": "done",
   "title": "Frontier filtering, per-round counts and resume refusal",
   "updated_at": "2026-10-20T21:10:07.837895Z"
 }

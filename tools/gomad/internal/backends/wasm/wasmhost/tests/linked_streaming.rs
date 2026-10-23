@@ -134,28 +134,28 @@ fn short_output_callbacks_apply_backpressure_to_completion() {
 fn concurrent_requests_keep_streams_arguments_and_completion_isolated() {
     let mut first = linked::prepare(request("first", "")).unwrap();
     let mut second = linked::prepare(request("second", "")).unwrap();
-    let (observe_a, observed_a) = mpsc::sync_channel(2);
-    let (observe_b, observed_b) = mpsc::sync_channel(2);
-    let (release_a, released_a) = mpsc::sync_channel(1);
-    let (release_b, released_b) = mpsc::sync_channel(1);
+    let (observe_a, output_a) = mpsc::sync_channel(2);
+    let (observe_b, output_b) = mpsc::sync_channel(2);
+    let (release_a, permission_a) = mpsc::sync_channel(1);
+    let (release_b, permission_b) = mpsc::sync_channel(1);
     first.output(Arc::new(Gate {
         observed: observe_a,
-        release: Mutex::new(released_a),
+        release: Mutex::new(permission_a),
     }));
     second.output(Arc::new(Gate {
         observed: observe_b,
-        release: Mutex::new(released_b),
+        release: Mutex::new(permission_b),
     }));
     thread::scope(|scope| {
         let first = scope.spawn(move || linked::execute_prepared(first).unwrap());
         let second = scope.spawn(move || linked::execute_prepared(second).unwrap());
         for stream in [OutputStream::Stdout, OutputStream::Stderr] {
             assert_eq!(
-                observed_a.recv_timeout(WAIT).unwrap(),
+                output_a.recv_timeout(WAIT).unwrap(),
                 (stream, b"first".to_vec())
             );
             assert_eq!(
-                observed_b.recv_timeout(WAIT).unwrap(),
+                output_b.recv_timeout(WAIT).unwrap(),
                 (stream, b"second".to_vec())
             );
             release_b.send(()).unwrap();

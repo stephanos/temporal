@@ -172,6 +172,63 @@ pub(crate) fn validate(bytes: &[u8], config: &Config) -> Result<(), String> {
     Ok(())
 }
 
+pub(crate) const COMPRESSED: &str = "gomad/world/compressed-snapshot/v2";
+
+pub(crate) fn compress(raw: &[u8]) -> Result<Vec<u8>, String> {
+    use sha2::{Digest, Sha256};
+    if raw.is_empty() || raw.len() > MAXIMUM_BYTES {
+        return Err("World expanded byte bound".into());
+    }
+    let gzip = super::gzip::encode(raw, 64 << 20)?;
+    let mut envelope = b"GMWORLD2".to_vec();
+    envelope.extend_from_slice(&64u32.to_be_bytes());
+    envelope.extend_from_slice(&0u32.to_be_bytes());
+    envelope.extend_from_slice(&(raw.len() as u64).to_be_bytes());
+    envelope.extend_from_slice(&(gzip.len() as u64).to_be_bytes());
+    envelope.extend_from_slice(&Sha256::digest(raw));
+    envelope.extend_from_slice(&gzip);
+    Ok(envelope)
+}
+
+pub(crate) fn expand(bytes: &[u8]) -> Result<Vec<u8>, String> {
+    use sha2::{Digest, Sha256};
+    let config = Config {
+        seed: 0,
+        limits: super::Limits {
+            max_requests: 0,
+            max_events: 0,
+            max_queued_events: 0,
+            max_transitions: 0,
+            max_payload_bytes: 0,
+            max_string_bytes: 0,
+        },
+    };
+    let mut reader = Reader {
+        bytes,
+        at: 0,
+        config: &config,
+    };
+    if reader.take(8)? != b"GMWORLD2" || reader.number(4)? != 64 || reader.number(4)? != 0 {
+        return Err("World compressed envelope header".into());
+    }
+    let expanded = usize::try_from(reader.number(8)?).map_err(|error| error.to_string())?;
+    let compressed = usize::try_from(reader.number(8)?).map_err(|error| error.to_string())?;
+    if expanded == 0
+        || expanded > MAXIMUM_BYTES
+        || compressed > 64 << 20
+        || compressed != bytes.len().saturating_sub(64)
+    {
+        return Err("World compressed envelope bounds".into());
+    }
+    let digest = reader.take(32)?;
+    let (raw, consumed) = super::gzip::decode(&bytes[64..], expanded)?;
+    if consumed != compressed || raw.len() != expanded || Sha256::digest(&raw).as_slice() != digest
+    {
+        return Err("World compressed envelope digest or expanded identity".into());
+    }
+    Ok(raw)
+}
+
 #[cfg(test)]
 mod tests {
     use super::*;
@@ -238,61 +295,4 @@ mod tests {
             assert!(validate(&raw[..end], &config).is_err(), "prefix {end}");
         }
     }
-}
-
-pub(crate) const COMPRESSED: &str = "gomad/world/compressed-snapshot/v2";
-
-pub(crate) fn compress(raw: &[u8]) -> Result<Vec<u8>, String> {
-    use sha2::{Digest, Sha256};
-    if raw.is_empty() || raw.len() > MAXIMUM_BYTES {
-        return Err("World expanded byte bound".into());
-    }
-    let gzip = super::gzip::encode(raw, 64 << 20)?;
-    let mut envelope = b"GMWORLD2".to_vec();
-    envelope.extend_from_slice(&64u32.to_be_bytes());
-    envelope.extend_from_slice(&0u32.to_be_bytes());
-    envelope.extend_from_slice(&(raw.len() as u64).to_be_bytes());
-    envelope.extend_from_slice(&(gzip.len() as u64).to_be_bytes());
-    envelope.extend_from_slice(&Sha256::digest(raw));
-    envelope.extend_from_slice(&gzip);
-    Ok(envelope)
-}
-
-pub(crate) fn expand(bytes: &[u8]) -> Result<Vec<u8>, String> {
-    let config = Config {
-        seed: 0,
-        limits: super::Limits {
-            max_requests: 0,
-            max_events: 0,
-            max_queued_events: 0,
-            max_transitions: 0,
-            max_payload_bytes: 0,
-            max_string_bytes: 0,
-        },
-    };
-    let mut reader = Reader {
-        bytes,
-        at: 0,
-        config: &config,
-    };
-    if reader.take(8)? != b"GMWORLD2" || reader.number(4)? != 64 || reader.number(4)? != 0 {
-        return Err("World compressed envelope header".into());
-    }
-    let expanded = usize::try_from(reader.number(8)?).map_err(|error| error.to_string())?;
-    let compressed = usize::try_from(reader.number(8)?).map_err(|error| error.to_string())?;
-    if expanded == 0
-        || expanded > MAXIMUM_BYTES
-        || compressed > 64 << 20
-        || compressed != bytes.len().saturating_sub(64)
-    {
-        return Err("World compressed envelope bounds".into());
-    }
-    let digest = reader.take(32)?;
-    let (raw, consumed) = super::gzip::decode(&bytes[64..], expanded)?;
-    use sha2::{Digest, Sha256};
-    if consumed != compressed || raw.len() != expanded || Sha256::digest(&raw).as_slice() != digest
-    {
-        return Err("World compressed envelope digest or expanded identity".into());
-    }
-    Ok(raw)
 }

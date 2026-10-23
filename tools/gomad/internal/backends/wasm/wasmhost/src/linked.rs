@@ -451,40 +451,9 @@ pub fn execute_prepared(prepared: Prepared) -> wasmtime::Result<Execution> {
             } else if timed_out.load(Ordering::Acquire) {
                 Err(Error::msg("execution watchdog timeout"))
             } else {
-                (|| {
-                    let phase = std::time::Instant::now();
-                    let instance = linker.instantiate(&mut store, &module);
-                    metrics.instantiate_nanos = crate::metrics::elapsed(phase);
-                    let instance = instance?;
-                    let start = instance.get_typed_func::<(), ()>(&mut store, "_start")?;
-                    let phase = std::time::Instant::now();
-                    let executed = start.call(&mut store, ());
-                    metrics.execute_nanos = crate::metrics::elapsed(phase);
-                    executed
-                })()
+                start_instance(&linker, &mut store, &module, &mut metrics)
             };
-            let mut outcome = engine::terminal_outcome(&mut store, executed, request.limits.fuel)?;
-            if let Some(storage) = &request.storage {
-                storage.finish(store.data_mut(), &mut outcome);
-            }
-            if outcome.termination == "storage_crash"
-                && let Some(model) = &mut store.data_mut().model
-                && let Err(error) = model.interrupted()
-            {
-                outcome.termination = if model.divergence.is_some() {
-                    "divergence"
-                } else {
-                    "invalid"
-                };
-                outcome.message = error.to_string();
-                outcome.exit_code = None;
-            }
-            apply_watchdog(&timed_out, &mut outcome);
-            if let Err(error) = engine::finish_model(store.data_mut(), &mut outcome) {
-                outcome.termination = protocol::classification(&error);
-                outcome.exit_code = None;
-                outcome.message = error.to_string();
-            }
+            let mut outcome = finish_outcome(&mut store, executed, &request, &timed_out)?;
             metrics.sample_process();
             outcome.metrics = Some(Box::new(metrics));
             Ok(outcome)
@@ -514,6 +483,54 @@ pub fn execute_prepared(prepared: Prepared) -> wasmtime::Result<Execution> {
         evidence,
         event_order,
     })
+}
+
+fn start_instance(
+    linker: &wasmtime::Linker<engine::State>,
+    store: &mut Store<engine::State>,
+    module: &wasmtime::Module,
+    metrics: &mut Metrics,
+) -> wasmtime::Result<()> {
+    let phase = std::time::Instant::now();
+    let instance = linker.instantiate(&mut *store, module);
+    metrics.instantiate_nanos = crate::metrics::elapsed(phase);
+    let instance = instance?;
+    let start = instance.get_typed_func::<(), ()>(&mut *store, "_start")?;
+    let phase = std::time::Instant::now();
+    let executed = start.call(store, ());
+    metrics.execute_nanos = crate::metrics::elapsed(phase);
+    executed
+}
+
+fn finish_outcome(
+    store: &mut Store<engine::State>,
+    executed: wasmtime::Result<()>,
+    request: &Request,
+    timed_out: &AtomicBool,
+) -> wasmtime::Result<Outcome> {
+    let mut outcome = engine::terminal_outcome(store, executed, request.limits.fuel)?;
+    if let Some(storage) = &request.storage {
+        storage.finish(store.data_mut(), &mut outcome);
+    }
+    if outcome.termination == "storage_crash"
+        && let Some(model) = &mut store.data_mut().model
+        && let Err(error) = model.interrupted()
+    {
+        outcome.termination = if model.divergence.is_some() {
+            "divergence"
+        } else {
+            "invalid"
+        };
+        outcome.message = error.to_string();
+        outcome.exit_code = None;
+    }
+    apply_watchdog(timed_out, &mut outcome);
+    if let Err(error) = engine::finish_model(store.data_mut(), &mut outcome) {
+        outcome.termination = protocol::classification(&error);
+        outcome.exit_code = None;
+        outcome.message = error.to_string();
+    }
+    Ok(outcome)
 }
 
 fn watch(

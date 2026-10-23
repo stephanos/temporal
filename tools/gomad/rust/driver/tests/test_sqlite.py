@@ -9,6 +9,49 @@ import driver
 
 
 class SQLiteReceiverContract(unittest.TestCase):
+    def test_native_oracle_uses_authenticated_raw_precrash_image_and_actual_model(self):
+        import sqlite
+        import hashlib
+        import tempfile
+        import copy
+        configuration = dict(incarnations=[dict(handle=dict(node='sqlite', incarnation=2),
+            storage=dict(descriptor=dict(model_identity='sha256:'+'c'*64)))])
+        with tempfile.TemporaryDirectory() as temporary:
+            root = Path(temporary)
+            bodies = {'evidence/cluster/sqlite/2/storage_state': b'actual-state',
+                      'evidence/cluster/sqlite/2/storage': b'actual-log',
+                      'evidence/cluster/sqlite/2/storage_precrash_image': b'actual-precrash-image',
+                      'evidence/cluster-replay.json': json.dumps(dict(configuration=configuration)).encode()}
+            files = {}
+            for name, raw in bodies.items():
+                path = root/name
+                path.parent.mkdir(parents=True, exist_ok=True)
+                path.write_bytes(raw)
+                files[name] = dict(bytes=len(raw), sha256=hashlib.sha256(raw).hexdigest())
+            digest = hashlib.sha256(json.dumps(configuration,sort_keys=True,separators=(',', ':')).encode()).hexdigest()
+            inspected = dict(artifact=dict(files=files,record=dict(identity=dict(configuration=digest))))
+            native = dict(storage_state_sha256=files['evidence/cluster/sqlite/2/storage_state']['sha256'])
+            request = sqlite.native_input(root, inspected, native)
+            self.assertEqual(request['precrash_image_path'], str(root/'evidence/cluster/sqlite/2/storage_precrash_image'))
+            self.assertEqual(request['precrash_image_sha256'], files['evidence/cluster/sqlite/2/storage_precrash_image']['sha256'])
+            self.assertEqual(request['storage_log_sha256'], files['evidence/cluster/sqlite/2/storage']['sha256'])
+            self.assertEqual(request['model_identity'], 'sha256:'+'c'*64)
+            for mutation in ('missing-image','changed-image','missing-model','configuration'):
+                wrong = copy.deepcopy(inspected)
+                if mutation == 'missing-image': del wrong['artifact']['files']['evidence/cluster/sqlite/2/storage_precrash_image']
+                if mutation == 'changed-image': wrong['artifact']['files']['evidence/cluster/sqlite/2/storage_precrash_image']['sha256'] = '0'*64
+                if mutation == 'missing-model':
+                    changed = copy.deepcopy(configuration)
+                    del changed['incarnations'][0]['storage']['descriptor']['model_identity']
+                    raw = json.dumps(dict(configuration=changed)).encode()
+                    (root/'evidence/cluster-replay.json').write_bytes(raw)
+                    wrong['artifact']['files']['evidence/cluster-replay.json'] = dict(bytes=len(raw),sha256=hashlib.sha256(raw).hexdigest())
+                    wrong['artifact']['record']['identity']['configuration'] = hashlib.sha256(json.dumps(changed,sort_keys=True,separators=(',', ':')).encode()).hexdigest()
+                if mutation == 'configuration': wrong['artifact']['record']['identity']['configuration'] = '0'*64
+                with self.subTest(mutation=mutation), self.assertRaises((driver.Refusal, driver.Unexecuted)):
+                    sqlite.native_input(root, wrong, native)
+                (root/'evidence/cluster-replay.json').write_bytes(bodies['evidence/cluster-replay.json'])
+
     def test_actual_catalogue_is_complete_exact_four_states_and_context_bound(self):
         import sqlite
         context = {'PendingSHA256': 'sha256:'+'a'*64, 'Operations': []}
@@ -70,8 +113,17 @@ class SQLiteReceiverContract(unittest.TestCase):
         self.assertEqual(selected['RuntimeWorkload'], dict(kind='sqlite-durable-selection',
                          primary_result='/primary/result.json',
                          selection=dict(primary_result_sha256='b'*64, state=state, context=context)))
-        self.assertEqual(selected['Manifest']['ID'], 'sqlite-durable-selection-'+'1'*64)
+        self.assertEqual(selected['Manifest']['ID'], 'sqlite-durable-recovery')
         self.assertEqual(source['Manifest']['ID'], 'sqlite-durable-recovery')
+        another = dict(state, Identity='sha256:'+'2'*64, SelectedOperations=[])
+        other = sqlite.selection_spec(source, '/primary/result.json', 'b'*64, another, context, '/another-fresh')
+        self.assertEqual(other['Manifest'], selected['Manifest'])
+        self.assertNotEqual(other['RuntimeWorkload'], selected['RuntimeWorkload'])
+        self.assertNotEqual(other['ArtifactRoot'], selected['ArtifactRoot'])
+        foreign = dict(source, Manifest=dict(source['Manifest'], ID='sqlite-durable-selection-'+'1'*64))
+        with self.assertRaises(driver.Refusal):
+            sqlite.selection_spec(foreign, '/primary/result.json', 'b'*64, state, context, '/foreign')
+
 
 
 if __name__ == '__main__':

@@ -86,20 +86,33 @@ def check_retained(binary, installation, root, working_dir, environment):
     assert receipt['command'] == list(map(str, vector))
     opener = [binary, 'fixture-preparation-open', '--receipt', receipt_path, '--sha256', response['preparation_receipt_sha256']]
     admitted = json.loads(run('open-before-removal', opener))
+    campaigns = root / 'artifacts/campaigns'
+    campaign_entries = sorted(path.name for path in campaigns.iterdir())
+    assert list(campaigns.glob('campaign-*')) == [Path(receipt['campaign'])]
+    journal = Path(receipt['campaign']) / 'journal.jsonl'
+    assert journal.read_bytes() == b''
     shutil.rmtree(alias)
     shutil.rmtree(source)
     assert not alias.exists() and not source.exists()
-    error = json.loads(run('existing-plan-before-missing-tools', vector, 2))
+    collision_working_dir = root / 'collision-working-dir'
+    collision_working_dir.mkdir()
+    shutil.copy2(working_dir / 'internal/backends/wasm/qualification/testdata/fixture/go.mod',
+        collision_working_dir / 'go.mod')
+    collision_command = list(vector)
+    collision_command[collision_command.index('--working-dir') + 1] = collision_working_dir
+    error = json.loads(run('existing-plan-before-missing-tools', collision_command, 2))
     assert 'output already exists' in error['message']
     receipt_collision = root / 'receipt-collision.json.preparation.json'
     receipt_collision.write_bytes(b'existing receipt')
-    collision_vector = list(vector)
+    collision_vector = list(collision_command)
     collision_vector[collision_vector.index('--output') + 1] = root / 'receipt-collision.json'
     error = json.loads(run('existing-receipt-before-missing-tools', collision_vector, 2))
     assert 'output already exists' in error['message']
     assert receipt_collision.read_bytes() == b'existing receipt'
     assert not (root / 'receipt-collision.json').exists()
-    assert len(list((root / 'artifacts/campaigns').iterdir())) == 1
+    assert sorted(path.name for path in campaigns.iterdir()) == campaign_entries
+    assert list(campaigns.glob('campaign-*')) == [Path(receipt['campaign'])]
+    assert journal.read_bytes() == b''
     assert json.loads(run('open-after-removal', opener)) == admitted
     assert admitted['guest_executions'] == 0 and admitted['module_sha256'] == response['module_sha256']
     wrong_hash = [*opener[:-1], '0' * 64]
@@ -291,7 +304,8 @@ def check_scope(binary, installation, root, working_dir, environment):
     return observations
 
 
-def check(binary, installation, root, working_dir, package='./...', go_binary=None, go_installation=None, go_working_dir=None, kind='go-run'):
+def check(binary, installation, root, working_dir, package='./...', go_binary=None, go_installation=None, go_working_dir=None, kind='go-run', support_dir=None):
+    support_dir = support_dir or working_dir
     root.mkdir(parents=True)
     output = root / 'plan.json'
     profile = json.loads(installation.read_bytes())['profile']
@@ -344,8 +358,8 @@ def check(binary, installation, root, working_dir, package='./...', go_binary=No
     assert repeated.returncode != 0
     assert prior == (output.read_bytes(), receipt_path.read_bytes())
     assert output.stat().st_mode & 0o777 == receipt_path.stat().st_mode & 0o777 == 0o600
-    retained_view = check_retained(binary, installation, root / 'retained-open', working_dir, environment) if trace_flags else None
-    scope_view = check_scope(binary, installation, root / 'site-scope', working_dir, environment) if trace_flags else None
+    retained_view = check_retained(binary, installation, root / 'retained-open', support_dir, environment) if trace_flags else None
+    scope_view = check_scope(binary, installation, root / 'site-scope', support_dir, environment) if trace_flags else None
     go_view = None
     if go_binary is not None:
         if go_installation is None:
@@ -382,11 +396,44 @@ def check(binary, installation, root, working_dir, package='./...', go_binary=No
             go_artifact = roots[0] / go_artifact
         go_manifest = reference['authenticate_artifact'](go_artifact)
         go_target = reference['contained'](go_artifact, go_manifest['target']['file']).read_bytes()
-        assert digest(go_target) == receipt['module_sha256']
+        go_provenance = json.loads(reference['contained'](go_artifact,
+            go_manifest['target']['backend']['provenance']['file']).read_bytes())
+        assert go_provenance['ModuleSHA256'] == 'sha256:' + digest(go_target)
+        assert provenance['module_sha256'] == receipt['module_sha256'] == digest(module)
+        assert go_provenance['CompilerSHA256'] == 'sha256:' + provenance['inputs']['compiler_sha256']
+        assert go_provenance['GoVersion'] == provenance['inputs']['go_version']
+        go_choice = rust_choice = go_overlay_sha = rust_overlay_sha = None
+        go_flags = go_provenance['BuildFlags']
+        rust_overlays = [(Path(path), sha) for path, sha in provenance['inputs']['compiler'].items()
+            if Path(path).name == 'overlay.json']
+        if trace_flags:
+            go_choice = go_manifest['choice_profile']['name']
+            rust_choice = provenance['configuration']['environment']['GOMAD_CHOICE_PROFILE']
+            assert go_choice == 'gomad-choice-trace/v3'
+            assert rust_choice == 'gomad-choice-trace/v4'
+            go_overlay = Path(go_flags[go_flags.index('-overlay') + 1])
+            go_overlay_sha = 'sha256:' + digest(go_overlay.read_bytes())
+            assert any(row['Path'] == str(go_overlay) and row['SHA256'] == go_overlay_sha
+                for row in go_provenance['Sources'])
+            assert len(rust_overlays) == 1
+            rust_overlay, rust_overlay_sha = rust_overlays[0]
+            assert digest(rust_overlay.read_bytes()) == rust_overlay_sha
+        else:
+            assert not go_manifest.get('choice_profile')
+            assert 'GOMAD_CHOICE_PROFILE' not in provenance['configuration']['environment']
+            assert '-overlay' not in go_flags and not rust_overlays
+        lineages = dict(
+            go=dict(choice_profile=go_choice, module_sha256=go_provenance['ModuleSHA256'],
+                runtime_sha256=go_provenance.get('RuntimeSHA256'),
+                runtime_implementation_sha256=go_provenance.get('RuntimeImplementationSHA256'), overlay_sha256=go_overlay_sha),
+            rust=dict(choice_profile=rust_choice,
+                module_sha256=provenance['module_sha256'], runtime_sha256=provenance['inputs']['runtime'],
+                runtime_implementation_sha256=provenance['inputs']['runtime_implementation'], overlay_sha256=rust_overlay_sha))
         assert go_manifest['target']['argv'] == plan['configuration']['arguments']
         go_view = {'public_plan_status': 2, 'public_explore_status': 0,
             'selection': plan['selection'], 'selection_count': plan['selection_count'],
-            'module_sha256': digest(go_target), 'argv': go_manifest['target']['argv'], 'executed_seed': int(execution['seed'])}
+            'module_sha256': digest(go_target), 'argv': go_manifest['target']['argv'], 'executed_seed': int(execution['seed']),
+            'preparation_lineages': lineages}
     return {'schema': response['schema'], 'guest_executions': receipt['guest_executions'],
         'prepared_record': record, 'prepared_record_sha256': receipt['record_sha256'],
         'module_sha256': receipt['module_sha256'], 'module_bytes': receipt['module_bytes'],

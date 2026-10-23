@@ -91,6 +91,7 @@ impl Model {
                 "storage",
                 "storage_state",
                 "storage_image",
+                "storage_precrash_image",
                 "network",
                 "inspection",
                 "debug",
@@ -131,6 +132,9 @@ impl Model {
     pub fn storage_evidence(&mut self, evidence: crate::storage_transport::Evidence) {
         self.queue("storage", &evidence.log);
         self.queue("storage_state", &evidence.state);
+        if let Some(image) = evidence.precrash_image {
+            self.queue("storage_precrash_image", &image);
+        }
         if let Some(image) = evidence.image {
             self.queue("storage_image", &image);
         }

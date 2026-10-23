@@ -216,11 +216,37 @@ fn staging(root: &File) -> Result<(String, File), String> {
     }
 }
 
-fn artifact_name(name: &str) -> bool {
-    canonical::valid_digest(name)
-        || name
-            .strip_prefix("execution-")
-            .is_some_and(canonical::valid_digest)
+pub(crate) fn artifact_name(name: &str) -> bool {
+    if canonical::valid_digest(name) {
+        return true;
+    }
+    let Some(execution) = name.strip_prefix("execution-") else {
+        return false;
+    };
+    execution.split_once("-context-").map_or_else(
+        || canonical::valid_digest(execution),
+        |(record, context)| canonical::valid_digest(record) && canonical::valid_digest(context),
+    )
+}
+
+fn context_name(manifest: &Manifest) -> Option<String> {
+    manifest
+        .files
+        .get(crate::evidence::search_context::FILE)
+        .map(|entry| {
+            format!(
+                "execution-{}-context-{}",
+                manifest.record_sha256, entry.sha256
+            )
+        })
+}
+
+pub(crate) fn matches_name(name: &str, manifest: &Manifest) -> Result<bool, String> {
+    if let Some(qualified) = context_name(manifest) {
+        return Ok(name == qualified);
+    }
+    Ok(name == manifest.record.failure_signature()?
+        || name == format!("execution-{}", manifest.record_sha256))
 }
 
 fn unlink_checked(root: &File, name: &str, file: &File, directory: bool) -> Result<(), String> {
@@ -320,10 +346,7 @@ fn retire_pending(root: &File, name: &str) -> Result<(), String> {
     };
     let manifest: Manifest = serde_json::from_slice(&bytes).map_err(|error| error.to_string())?;
     manifest.validate()?;
-    if canonical::encode(&manifest)? != bytes
-        || (original != manifest.record.failure_signature()?
-            && original != format!("execution-{}", manifest.record_sha256))
-    {
+    if canonical::encode(&manifest)? != bytes || !matches_name(original, &manifest)? {
         return Err("retiring artifact manifest identity mismatch".into());
     }
     match open::read(&directory, "storage.json", 4096, false) {
@@ -476,17 +499,15 @@ impl Store {
             if !artifact_name(&name) {
                 return Err("unexpected artifact store entry during retirement".into());
             }
-            if live.contains(&name) {
-                continue;
-            }
             let directory = open::child(root, &name, true, false)?;
             let before = fs::fstat(&directory).map_err(|error| error.to_string())?;
             let opened = Opened::from_root_with_pool(directory, Some(&pool))?;
             opened.authenticate_all()?;
-            if name != opened.manifest().record.failure_signature()?
-                && name != format!("execution-{}", opened.manifest().record_sha256)
-            {
+            if !matches_name(&name, opened.manifest())? {
                 return Err("retiring artifact name does not match its record".into());
+            }
+            if live.contains(&name) {
+                continue;
             }
             let after = fs::statat(root, name.as_str(), AtFlags::SYMLINK_NOFOLLOW)
                 .map_err(|error| error.to_string())?;
@@ -674,9 +695,16 @@ impl Store {
             return Err("manifest exceeds bound".into());
         }
         let stored_bytes = manifest.stored_bytes(manifest_bytes.len() as u64)?;
-        let first_name = manifest.record.failure_signature()?;
-        let fallback_name = format!("execution-{}", manifest.record_sha256);
-        for name in [&first_name, &fallback_name] {
+        let names = context_name(&manifest).map_or_else(
+            || {
+                Ok(vec![
+                    manifest.record.failure_signature()?,
+                    format!("execution-{}", manifest.record_sha256),
+                ])
+            },
+            |name| Ok::<_, String>(vec![name]),
+        )?;
+        for name in &names {
             match open::child(&root, name, true, false) {
                 Ok(directory) => {
                     let existing = Opened::from_root_with_pool(directory, Some(&pool_root))?;
@@ -706,6 +734,9 @@ impl Store {
                 Some(&pool_root),
             )?;
             existing.authenticate_all()?;
+            if !matches_name(&name, existing.manifest())? {
+                return Err("artifact store name does not match its manifest".into());
+            }
             retained = retained
                 .checked_add(existing.stored_bytes())
                 .ok_or("retained bytes overflow")?;
@@ -744,7 +775,11 @@ impl Store {
         self.checkpoint("manifest_durable")?;
         sync_tree(&stage)?;
         self.checkpoint("staging_durable")?;
-        for name in [&first_name, &fallback_name] {
+        Opened::from_root_with_pool(
+            stage.try_clone().map_err(|error| error.to_string())?,
+            Some(&pool_root),
+        )?;
+        for name in &names {
             self.checkpoint("before_rename")?;
             match self.rename(&root, &stage_name, name) {
                 Ok(()) => {
@@ -789,6 +824,21 @@ impl Store {
 mod tests {
     use super::*;
     use std::{sync::mpsc, thread, time::Duration};
+
+    #[test]
+    fn context_qualified_names_require_two_exact_digests() {
+        let record = "1".repeat(64);
+        let context = "2".repeat(64);
+        assert!(super::artifact_name(&format!(
+            "execution-{record}-context-{context}"
+        )));
+        for name in [
+            format!("execution-{record}-context-unknown"),
+            format!("execution-{record}-other-{context}"),
+        ] {
+            assert!(!super::artifact_name(&name));
+        }
+    }
 
     struct PoolFixture {
         root: PathBuf,

@@ -179,24 +179,148 @@ def main():
         run('scope-resume', [*prefix, 'resume', '--json', '--site-scope=main', interrupted], (0, 1))
         assert events(interrupted) == events(scoped_root)
 
+        # Retain scope on a real failure, then discard its campaign before minimizing.
+        failure_destination = args.work / 'scope-failure'
+        invocation = command(failure_destination, executions=8, depth=1024, scope='main')
+        failure_directory = MODULE / 'testdata/parity/live_backend/minimization'
+        assert (failure_directory / 'go.mod').is_file()
+        invocation[invocation.index('--working-dir') + 1] = failure_directory
+        invocation[invocation.index('go-run') + 1] = '.'
+        run('scope-failure', invocation, (1,))
+        failure_root = locate(failure_destination)
+        failure_checked = rounds['authenticate'](failure_root)
+        failure_prepared = failure_root / failure_checked['plan']['prepared']['prepared_artifact']
+        failure_provenance = json.loads((failure_prepared / 'target/provenance.json').read_bytes())
+        snapshots = []
+        detached = args.work / 'scope-failure-detached'
+        for ordinal, event in enumerate(failure_checked['events']):
+            expected_resolution = failure_checked['plan']['strategy']['config']['site_scope'] if ordinal == 0 else previous_resolution
+            for execution in event['executions']:
+                if not execution.get('artifact'):
+                    continue
+                artifact = failure_root / execution['artifact']
+                manifest = json.loads((artifact / 'manifest.json').read_bytes())
+                context_raw = (artifact / 'provenance/search-context.json').read_bytes()
+                entry = manifest['files']['provenance/search-context.json']
+                assert (len(context_raw), digest(context_raw)) == (entry['bytes'], entry['sha256'])
+                context = json.loads(context_raw)
+                assert context['plan_sha256'] == digest(encode(failure_checked['plan']))
+                assert context['round'] == ordinal and context['scope'] == expected_resolution
+                assert 'provenance/search-context.json' not in manifest['record']['streams']
+                snapshots.append(dict(round=ordinal, payload_sha256=digest(context_raw), scope=context['scope']))
+                if not detached.exists() and manifest['record']['outcome']['class'] == 'target_failure':
+                    shutil.copytree(artifact, detached)
+            previous_resolution = dict(patterns=['main'], resolved_sha256=event['segment']['site_scope']['resolved_sha256'], resolved_count=event['segment']['site_scope']['resolved_count'])
+        assert detached.exists() and len(snapshots) >= 2, snapshots
+        shutil.rmtree(failure_destination)
+        minimized_root = args.work / 'scope-failure-minimized'
+        minimize_command = [args.binary, 'minimize', '--json', '--artifacts', minimized_root, detached]
+        minimize_controls = args.work / 'scope-failure-minimize-controls.jsonl'
+        minimized = json.loads(run('scope-failure-minimize', minimize_command,
+            extra={'GOMAD_FIXTURE_MINIMIZE_CONTROLS': str(minimize_controls)}))
+        assert minimized['site_scope']['patterns'] == ['main'] and minimized['changed'], minimized
+        assert all(row['removed_in_scope'] + row['removed_out_of_scope'] == len(row['removed']) for row in minimized['accepted'])
+        assert json.loads(run('scope-failure-minimize-resume', [*minimize_command[:3], '--resume', *minimize_command[3:]])) == minimized
+        run('scope-failure-minimize-changed-scope', [args.binary, 'minimize', '--resume', '--site-scope=runtime', '--artifacts', minimized_root, detached], (3,))
+        override = json.loads(run('scope-failure-minimize-override', [args.binary, 'minimize', '--json', '--site-scope=runtime', '--artifacts', args.work / 'scope-failure-override', detached]))
+        assert override['site_scope']['patterns'] == ['runtime']
+        parent_before = rounds['snapshot'](detached)
+        for index, pattern in enumerate(('', 'main,', 'main/ child', 'main/*')):
+            name = 'scope-minimize-invalid-' + str(index)
+            destination = args.work / name
+            controls = args.work / (name + '-controls.jsonl')
+            run(name, [args.binary, 'minimize', '--site-scope=' + pattern,
+                '--artifacts', destination, detached], (2,),
+                {'GOMAD_FIXTURE_MINIMIZE_CONTROLS': str(controls)})
+            assert not destination.exists() and not controls.exists(), name
+        empty_minimum = json.loads(run('scope-minimize-empty', [args.binary, 'minimize', '--json',
+            '--site-scope=gomad.invalid/no-match/...', '--artifacts', args.work / 'scope-minimize-empty', detached]))
+        assert empty_minimum['changed'] and empty_minimum['accepted'], empty_minimum
+        assert empty_minimum['site_scope']['resolved_count'] == 0, empty_minimum
+        assert all(row['removed_in_scope'] == 0 and row['removed_out_of_scope'] == len(row['removed'])
+                   for row in empty_minimum['accepted']), empty_minimum
+        recovery = {}
+        for mode in ('after accepted', 'after publication'):
+            name = 'scope-minimize-' + mode.replace(' ', '-')
+            destination = args.work / name
+            controls = args.work / (name + '-controls.jsonl')
+            invocation = [args.binary, 'minimize', '--json', '--artifacts', destination, detached]
+            run(name, invocation, (3,), {'GOMAD_FIXTURE_MINIMIZE_CONTROLS': str(controls),
+                'GOMAD_FIXTURE_MINIMIZE_INTERRUPT': mode})
+            assert ('interrupted ' + mode).encode() in (args.work / (name + '.stderr')).read_bytes()
+            resumed = json.loads(run(name + '-resume', [*invocation[:3], '--resume', *invocation[3:]],
+                extra={'GOMAD_FIXTURE_MINIMIZE_CONTROLS': str(controls)}))
+            assert all(resumed[key] == minimized[key] for key in ('attempts', 'record_hash', 'accepted')), resumed
+            if mode == 'after accepted':
+                assert controls.read_bytes() == minimize_controls.read_bytes(), controls
+            recovery[mode] = resumed
+        changed_context = args.work / 'scope-failure-changed-context'
+        shutil.copytree(detached, changed_context)
+        changed_path = changed_context / 'provenance/search-context.json'
+        changed = json.loads(changed_path.read_bytes())
+        changed['round'] += 1
+        changed_path.write_bytes(encode(changed))
+        changed_manifest_path = changed_context / 'manifest.json'
+        changed_manifest = json.loads(changed_manifest_path.read_bytes())
+        changed_manifest['files']['provenance/search-context.json'].update(
+            bytes=changed_path.stat().st_size, sha256=digest(changed_path.read_bytes()))
+        changed_manifest_path.write_bytes(encode(changed_manifest))
+        assert (changed_context / 'record.json').read_bytes() == (detached / 'record.json').read_bytes()
+        checkpoint_before = rounds['snapshot'](minimized_root)
+        run('scope-minimize-changed-context', [args.binary, 'minimize', '--resume',
+            '--artifacts', minimized_root, changed_context], (3,))
+        assert b'checkpoint binding changed' in (args.work / 'scope-minimize-changed-context.stderr').read_bytes()
+        assert rounds['snapshot'](minimized_root) == checkpoint_before
+        assert rounds['snapshot'](detached) == parent_before
+        raw_before = (Path(minimized['artifact_path']) / 'evidence/inspection.json').read_bytes()
+        inspected_minimum = json.loads(run('scope-failure-minimum-inspect', [args.binary, 'inspect', '--json', minimized['artifact_path']]))['artifact']['minimization']
+        assert sum(group['count'] for group in inspected_minimum['final_forced_by_symbol']) == inspected_minimum['final_forced_decisions']
+        assert all('symbol' in decision for reduction in inspected_minimum['accepted'] for decision in reduction['removed'])
+        assert (Path(minimized['artifact_path']) / 'evidence/inspection.json').read_bytes() == raw_before
+        replayed = run('scope-failure-minimum-replay', [args.binary, 'replay', minimized['artifact_path']], (1,))
+        assert b'reproduced=true' in replayed
+        malformed = args.work / 'scope-failure-invalid-context'
+        shutil.copytree(detached, malformed)
+        context_path = malformed / 'provenance/search-context.json'
+        context = json.loads(context_path.read_bytes())
+        context['round'] = -1
+        context_path.write_bytes(encode(context))
+        manifest_path = malformed / 'manifest.json'
+        manifest = json.loads(manifest_path.read_bytes())
+        manifest['files']['provenance/search-context.json'].update(bytes=context_path.stat().st_size, sha256=digest(context_path.read_bytes()))
+        manifest_path.write_bytes(encode(manifest))
+        invalid_output = args.work / 'scope-failure-invalid-output'
+        run('scope-failure-invalid-context-minimize', [args.binary, 'minimize', '--site-scope=main', '--artifacts', invalid_output, malformed], (2,))
+        assert str(malformed).encode() in (args.work / 'scope-failure-invalid-context-minimize.stderr').read_bytes()
+        assert not invalid_output.exists()
+        observations['minimize'] = dict(snapshots=snapshots, result=minimized, override=override,
+            empty=empty_minimum, recovery=recovery, inspection=inspected_minimum)
+
         rounds['scope_digest_refusal'](run, prefix, scoped_root, args.work / 'scope-changed-digest')
         rounds['scope_block_refusals'](run, prefix, scoped_root, args.work)
 
         prepared = rounds['authenticate'](scoped_root)['plan']['prepared']
         provenance = json.loads((scoped_root / prepared['prepared_artifact'] / 'target/provenance.json').read_bytes())
-        stripped = args.work / 'stripped.wasm'
-        build_environment = dict(provenance['inputs']['environment'], GOCACHE=str(args.go_cache.resolve()))
-        run('scope-build-stripped', [args.go_compiler, 'build', '-mod=readonly', '-pgo=off',
-            '-overlay', current_overlay['path'], '-trimpath', '-buildvcs=false', '-ldflags=-s -w', '-o', stripped,
-            './testdata/parity/site_scope'], extra=build_environment, cwd=MODULE)
-        stripped_provenance = copy.deepcopy(provenance)
-        stripped_provenance['inputs']['build_flags'].append('-ldflags=-s -w')
-        stripped_provenance['build_key'] = digest(encode(stripped_provenance['inputs']))
-        stripped_provenance['module_sha256'] = digest(stripped.read_bytes())
-        stripped_provenance['choice_identity']['TargetSHA256'] = list(bytes.fromhex(stripped_provenance['module_sha256']))
-        stripped_provenance['choice_identity']['ToolchainBuildKey'] = stripped_provenance['build_key']
-        provenance_path = args.work / 'stripped-provenance.json'
-        provenance_path.write_bytes(encode(stripped_provenance))
+
+        def build_stripped(name, original_provenance):
+            directory = Path(original_provenance['inputs']['directory'])
+            package = original_provenance['inputs']['source']
+            stripped = args.work / (name + '.wasm')
+            build_environment = dict(original_provenance['inputs']['environment'], GOCACHE=str(args.go_cache.resolve()))
+            run(name + '-build', [args.go_compiler, 'build', '-mod=readonly', '-pgo=off',
+                '-overlay', current_overlay['path'], '-trimpath', '-buildvcs=false', '-ldflags=-s -w',
+                '-o', stripped, package], extra=build_environment, cwd=directory)
+            stripped_provenance = copy.deepcopy(original_provenance)
+            stripped_provenance['inputs']['build_flags'].append('-ldflags=-s -w')
+            stripped_provenance['build_key'] = digest(encode(stripped_provenance['inputs']))
+            stripped_provenance['module_sha256'] = digest(stripped.read_bytes())
+            stripped_provenance['choice_identity']['TargetSHA256'] = list(bytes.fromhex(stripped_provenance['module_sha256']))
+            stripped_provenance['choice_identity']['ToolchainBuildKey'] = stripped_provenance['build_key']
+            provenance_path = args.work / (name + '-provenance.json')
+            provenance_path.write_bytes(encode(stripped_provenance))
+            return stripped, provenance_path
+
+        stripped, provenance_path = build_stripped('stripped', provenance)
         destination = args.work / 'scope-no-symbols'
         invocation = scoped_command(destination, scope='main')
         invocation[invocation.index('exec'):] = ['exec', '--provenance', provenance_path, '--', stripped]
@@ -204,6 +328,34 @@ def main():
         assert 'symbol information' in error['message'] and 'no_symbols' in error['message'], error
         assert not destination.exists(), destination
         observations['no_symbols'] = dict(module_sha256=digest(stripped.read_bytes()), error=error)
+        stripped_failure, stripped_failure_provenance = build_stripped('stripped-failure', failure_provenance)
+        stripped_destination = args.work / 'scope-stripped-failure'
+        invocation = command(stripped_destination, executions=8, depth=1024)
+        target = invocation.index('go-run')
+        invocation[target:] = ['exec', '--provenance', stripped_failure_provenance, '--', stripped_failure]
+        run('scope-stripped-failure', invocation, (1,))
+        stripped_root = locate(stripped_destination)
+        stripped_checked = rounds['authenticate'](stripped_root)
+        assert 'site_scope' not in stripped_checked['plan']['strategy']['config']
+        retained_failure = next(stripped_root / execution['artifact']
+            for event in stripped_checked['events'] for execution in event['executions']
+            if execution.get('artifact') and json.loads((stripped_root / execution['artifact'] / 'record.json').read_bytes())['outcome']['class'] == 'target_failure')
+        assert (retained_failure / 'target/module.wasm').read_bytes() == stripped_failure.read_bytes()
+        stripped_detached = args.work / 'scope-stripped-failure-detached'
+        shutil.copytree(retained_failure, stripped_detached)
+        stripped_before = rounds['snapshot'](stripped_detached)
+        stripped_output = args.work / 'scope-stripped-minimize'
+        stripped_controls = args.work / 'scope-stripped-minimize-controls.jsonl'
+        run('scope-stripped-minimize', [args.binary, 'minimize', '--site-scope=main',
+            '--artifacts', stripped_output, stripped_detached], (2,),
+            {'GOMAD_FIXTURE_MINIMIZE_CONTROLS': str(stripped_controls)})
+        stripped_error = (args.work / 'scope-stripped-minimize.stderr').read_bytes()
+        assert b'no_symbols' in stripped_error and b'symbol information' in stripped_error, stripped_error
+        assert str(stripped_detached).encode() in stripped_error, stripped_error
+        assert not stripped_output.exists() and not stripped_controls.exists()
+        assert rounds['snapshot'](stripped_detached) == stripped_before
+        observations['no_symbols']['minimize'] = dict(module_sha256=digest(stripped_failure.read_bytes()),
+            parent_record_sha256=digest((stripped_detached / 'record.json').read_bytes()), status=2)
         (args.work / 'site-scope-observations.json').write_bytes(encode(dict(
             schema='gomad.site-scope-public-check/v1', binary_sha256=digest(args.binary.read_bytes()),
             driver_sha256=digest(Path(__file__).read_bytes()), observations=observations)))

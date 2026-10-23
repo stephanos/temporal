@@ -344,6 +344,7 @@ impl Recipe {
         let provenance = canonical::encode(&Provenance {
             schema: "gomad.rust-wasm-provenance/v1".into(),
             origin: None,
+            runtime_workload: None,
             inputs,
             build_key: toolchain.clone(),
             module_sha256: canonical::digest(&module),

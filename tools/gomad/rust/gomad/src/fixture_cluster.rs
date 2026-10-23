@@ -25,30 +25,7 @@ fn descriptor(file: String, bytes: &[u8], limit: u64) -> Payload {
     }
 }
 
-fn publication(corpus: &Path, seed: u64) -> Result<Publication, String> {
-    let module = std::fs::read(corpus.join("targets/inspect-choice.wat"))
-        .map_err(|error| error.to_string())?;
-    let toolchain = canonical::digest(b"gomad.fixture-wat-source/v1");
-    let runtime = canonical::digest(b"inspect-runtime-implementation/v1");
-    let limits = Limits {
-        memory_bytes: 65_536,
-        fuel: 100_000,
-        wall_millis: 1000,
-        output_bytes: 1024,
-        evidence_bytes: 1 << 20,
-    };
-    let broker = helper::BrokerConfig {
-        seed,
-        pause_on_settle: false,
-        limits: helper::WorldLimits {
-            max_requests: 100,
-            max_events: 100,
-            max_queued_events: 100,
-            max_transitions: 1000,
-            max_payload_bytes: 4096,
-            max_string_bytes: 1024,
-        },
-    };
+fn inspection_lifecycle() -> (Vec<helper::Handle>, Vec<helper::Step>) {
     let handles: Vec<_> = [("a", 1), ("b", 1), ("a", 2)]
         .into_iter()
         .map(|(node, incarnation)| helper::Handle {
@@ -75,6 +52,34 @@ fn publication(corpus: &Path, seed: u64) -> Result<Publication, String> {
             ]
         })
         .collect();
+    (handles, steps)
+}
+
+fn publication(corpus: &Path, seed: u64) -> Result<Publication, String> {
+    let module = std::fs::read(corpus.join("targets/inspect-choice.wat"))
+        .map_err(|error| error.to_string())?;
+    let toolchain = canonical::digest(b"gomad.fixture-wat-source/v1");
+    let runtime = canonical::digest(b"inspect-runtime-implementation/v1");
+    let limits = Limits {
+        memory_bytes: 65_536,
+        fuel: 100_000,
+        wall_millis: 1000,
+        output_bytes: 1024,
+        evidence_bytes: 1 << 20,
+    };
+    let broker = helper::BrokerConfig {
+        seed,
+        pause_on_settle: false,
+        limits: helper::WorldLimits {
+            max_requests: 100,
+            max_events: 100,
+            max_queued_events: 100,
+            max_transitions: 1000,
+            max_payload_bytes: 4096,
+            max_string_bytes: 1024,
+        },
+    };
+    let (handles, steps) = inspection_lifecycle();
     let mut incarnations = Vec::new();
     for handle in handles {
         let mut model = crate::fixture_execute::model_configuration(seed, 4096, 0);
@@ -107,6 +112,7 @@ fn publication(corpus: &Path, seed: u64) -> Result<Publication, String> {
     let configuration = Configuration {
         original_limits: None,
         oracle_plan: None,
+        workload: None,
         simulation_original: None,
         world_encoding: String::new(),
         world_profile: None,
@@ -213,7 +219,7 @@ pub(crate) fn execute_configuration(
     }
     let oracle_report = cluster::oracles::assess(&execution, &configuration)?;
     let mut observed = cluster::project_encoded(execution, configuration.encoded_world_format()?)?;
-    cluster::oracles::apply(&mut observed, oracle_report)?;
+    cluster::oracles::apply(&mut observed, &oracle_report)?;
     for item in &retained {
         observed
             .evidence
@@ -312,6 +318,31 @@ pub(crate) fn prepare_configuration(
     prepare_configuration_forced(configuration, modules, &BTreeMap::new())
 }
 
+fn forced_trace(
+    item: &Incarnation,
+    model: &mut serde_json::Value,
+    forced: Option<&Forcing>,
+) -> Result<Option<Vec<u8>>, String> {
+    Ok(if let Some(forced) = forced {
+        if !matches!(forced.mode, 2 | 3)
+            || !Path::new(&forced.trace_path).is_absolute()
+            || canonical::encode(&forced.identity)? != canonical::encode(&item.choice_identity)?
+        {
+            return Err("invalid live cluster forcing binding".into());
+        }
+        let raw = std::fs::read(&forced.trace_path).map_err(|error| error.to_string())?;
+        let trace = linked::inspect_choices(&raw, &forced.identity).map_err(str::to_owned)?;
+        model["mode"] = json!(forced.mode);
+        model["replay"] = json!({"schema":"gomad.replay-trace/v1", "execution_identity":forced.identity,
+                "trace_sha256":canonical::digest(&raw),"tape_sha256":trace.tape_sha256,"decisions":trace.decisions,
+                "trace_bytes":raw.len(),"trace_frames":(raw.len() as u64).div_ceil(65536),
+                "prefix_control":if forced.mode == 3 {Some(json!({"cutoff":trace.decisions,"override":null}))} else {None}});
+        Some(raw)
+    } else {
+        None
+    })
+}
+
 pub(crate) fn prepare_configuration_forced(
     configuration: &Configuration,
     modules: &BTreeMap<String, Vec<u8>>,
@@ -360,26 +391,11 @@ pub(crate) fn prepare_configuration_forced(
         {
             return Err("fixture cluster seed must derive from broker".into());
         }
-        let replay_trace = if let Some(forced) =
-            forcing.get(&format!("{}/{}", item.handle.node, item.handle.incarnation))
-        {
-            if !matches!(forced.mode, 2 | 3)
-                || !Path::new(&forced.trace_path).is_absolute()
-                || canonical::encode(&forced.identity)? != canonical::encode(&item.choice_identity)?
-            {
-                return Err("invalid live cluster forcing binding".into());
-            }
-            let raw = std::fs::read(&forced.trace_path).map_err(|error| error.to_string())?;
-            let trace = linked::inspect_choices(&raw, &forced.identity).map_err(str::to_owned)?;
-            model["mode"] = json!(forced.mode);
-            model["replay"] = json!({"schema":"gomad.replay-trace/v1", "execution_identity":forced.identity,
-                "trace_sha256":canonical::digest(&raw),"tape_sha256":trace.tape_sha256,"decisions":trace.decisions,
-                "trace_bytes":raw.len(),"trace_frames":(raw.len() as u64).div_ceil(65536),
-                "prefix_control":if forced.mode == 3 {Some(json!({"cutoff":trace.decisions,"override":null}))} else {None}});
-            Some(raw)
-        } else {
-            None
-        };
+        let replay_trace = forced_trace(
+            item,
+            &mut model,
+            forcing.get(&format!("{}/{}", item.handle.node, item.handle.incarnation)),
+        )?;
         executions.push(helper::Incarnation {
             handle: item.handle.clone(),
             network: item.network.clone(),
@@ -420,7 +436,7 @@ pub(crate) fn prepare_configuration_forced(
         steps: configuration.steps.clone(),
         boundaries: configuration.boundaries.clone(),
         crash_groups: configuration.crash_groups.clone(),
-        wall_timeout: crate::replay::preflight::wall_timeout(&limits, configuration.wall_nanos)?,
+        wall_timeout: crate::replay::preflight::wall_timeout(limits, configuration.wall_nanos)?,
         evidence_bytes: limits.evidence_bytes,
     })
     .map_err(|error| error.to_string())

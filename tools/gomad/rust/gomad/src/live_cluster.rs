@@ -84,6 +84,50 @@ fn write_private(path: &Path, raw: &[u8]) -> Result<(), String> {
     file.write_all(raw).map_err(|error| error.to_string())
 }
 
+fn apply_controls(prepared: &mut helper::Prepared, controls: Controls) -> Result<(), String> {
+    if let Some(maximum) = controls.action_limit {
+        prepared
+            .action_limit(maximum)
+            .map_err(|error| error.to_string())?;
+    }
+    for link in controls.initial_links {
+        prepared
+            .link_before_start(
+                serde_json::from_value(
+                    serde_json::to_value(link).map_err(|error| error.to_string())?,
+                )
+                .map_err(|error| error.to_string())?,
+            )
+            .map_err(|error| error.to_string())?;
+    }
+    for observation in controls.observations {
+        prepared
+            .observe_revocation(observation.handle, observation.marker)
+            .map_err(|error| error.to_string())?;
+    }
+    if let Some(cleanup) = controls.cleanup {
+        let mode = match cleanup.mode.as_str() {
+            "shutdown" | "action_capacity" => helper::CleanupMode::Shutdown,
+            "scenario_error" => helper::CleanupMode::Error("actual scenario failure".into()),
+            "context_cancellation" => helper::CleanupMode::ContextCancellation,
+            _ => return Err("invalid live scenario callback result".into()),
+        };
+        if let Some(after) = cleanup.after {
+            if cleanup.reverse_insertion {
+                return Err("output cleanup insertion override".into());
+            }
+            prepared
+                .cleanup_after_output(after.handle, after.marker, mode)
+                .map_err(|error| error.to_string())?;
+        } else {
+            prepared
+                .cleanup_after_starts(mode)
+                .map_err(|error| error.to_string())?;
+        }
+    }
+    Ok(())
+}
+
 fn observation(root: &Path, mut input: ObservationInput) -> Result<(), String> {
     if input.schema != "gomad.live-cluster-observation/v1" || root.exists() {
         return Err("invalid or existing live cluster observation root".into());
@@ -110,52 +154,12 @@ fn observation(root: &Path, mut input: ObservationInput) -> Result<(), String> {
         input.configuration.incarnations.reverse();
         input.configuration.nodes.reverse();
     }
-    let prepared = crate::fixture_cluster::prepare_configuration_forced(
+    let mut prepared = crate::fixture_cluster::prepare_configuration_forced(
         &input.configuration,
         &modules,
         &input.forcing,
     )?;
-    let mut prepared = prepared;
-    if let Some(maximum) = input.controls.action_limit {
-        prepared
-            .action_limit(maximum)
-            .map_err(|error| error.to_string())?;
-    }
-    for link in input.controls.initial_links {
-        prepared
-            .link_before_start(
-                serde_json::from_value(
-                    serde_json::to_value(link).map_err(|error| error.to_string())?,
-                )
-                .map_err(|error| error.to_string())?,
-            )
-            .map_err(|error| error.to_string())?;
-    }
-    for observation in input.controls.observations {
-        prepared
-            .observe_revocation(observation.handle, observation.marker)
-            .map_err(|error| error.to_string())?;
-    }
-    if let Some(cleanup) = input.controls.cleanup {
-        let mode = match cleanup.mode.as_str() {
-            "shutdown" | "action_capacity" => helper::CleanupMode::Shutdown,
-            "scenario_error" => helper::CleanupMode::Error("actual scenario failure".into()),
-            "context_cancellation" => helper::CleanupMode::ContextCancellation,
-            _ => return Err("invalid live scenario callback result".into()),
-        };
-        if let Some(after) = cleanup.after {
-            if cleanup.reverse_insertion {
-                return Err("output cleanup insertion override".into());
-            }
-            prepared
-                .cleanup_after_output(after.handle, after.marker, mode)
-                .map_err(|error| error.to_string())?;
-        } else {
-            prepared
-                .cleanup_after_starts(mode)
-                .map_err(|error| error.to_string())?;
-        }
-    }
+    apply_controls(&mut prepared, input.controls)?;
     let activity = prepared.activity();
     let prepared_activity = activity.snapshot();
     crate::fixture::execution_started().map_err(|error| error.message)?;
@@ -273,7 +277,7 @@ pub(crate) fn input(root: &Path, path: &Path) -> Result<(), String> {
             let oracle_report = cluster::oracles::assess(&observed, &inputs.configuration)?;
             let mut observed =
                 cluster::project_encoded(observed, inputs.configuration.encoded_world_format()?)?;
-            cluster::oracles::apply(&mut observed, oracle_report)?;
+            cluster::oracles::apply(&mut observed, &oracle_report)?;
             for (name, bytes) in &observed.evidence {
                 let stream = expected
                     .streams

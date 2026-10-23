@@ -17,6 +17,9 @@ CORPUS = Path(__file__).resolve().parent
 loader = SourceFileLoader('campaign_check', str(CORPUS / 'campaign-check.py'))
 check = module_from_spec(spec_from_loader(loader.name, loader))
 loader.exec_module(check)
+storage_loader = SourceFileLoader('storage_model', str(CORPUS / 'storage-model.py'))
+storage_model = module_from_spec(spec_from_loader(storage_loader.name, storage_loader))
+storage_loader.exec_module(storage_model)
 
 
 def authenticate_scenario(root, declared):
@@ -50,25 +53,9 @@ def authenticate_scenario(root, declared):
             if storage is None:
                 check.equal(item['storage'], None, 'cluster.boot_storage')
             else:
-                go_model = dict(volumes=[dict(ID=volume['ID'], Path=volume['Path'], CapacityBytes=volume['CapacityBytes'])
-                                        for volume in storage['volumes']],
-                    limits=dict(PendingOperations=storage['limits']['PendingOperations'],
-                                Transitions=storage['limits']['Transitions']))
-                if storage.get('faults'):
-                    go_model['faults'] = []
-                    for fault in storage['faults']:
-                        row = {name: fault[name] for name in ('name', 'resource', 'operation', 'occurrence', 'action')}
-                        if fault.get('bytes'):
-                            row['bytes'] = fault['bytes']
-                        go_model['faults'].append(row)
-                if storage.get('sqlite_lock_databases'):
-                    go_model['sqlite_lock_databases'] = storage['sqlite_lock_databases']
-                encoded = json.dumps(go_model, ensure_ascii=False, separators=(',', ':'))
-                for character, escaped in (('&', '\\u0026'), ('<', '\\u003c'), ('>', '\\u003e'),
-                                           ('\u2028', '\\u2028'), ('\u2029', '\\u2029')):
-                    encoded = encoded.replace(character, escaped)
+                encoded = storage_model.encode(storage)
                 check.equal(item['storage']['descriptor']['model_identity'],
-                    'sha256:' + check.parity.digest(encoded.encode()), 'cluster.original_go_storage_model_identity')
+                    'sha256:' + check.parity.digest(encoded), 'cluster.original_go_storage_model_identity')
             module = item['module']
             raw = check.parity.contained(artifact, module['file']).read_bytes()
             check.equal((len(raw), check.parity.digest(raw)), (module['bytes'], module['sha256']), 'cluster.module')
