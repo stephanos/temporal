@@ -12,6 +12,26 @@ from driver import Refusal
 
 
 class OriginalExecutedDivergence(unittest.TestCase):
+    def test_setup_rejects_a_guest_compiled_before_its_baseline_deadline(self):
+        with tempfile.TemporaryDirectory() as temporary:
+            root = Path(temporary)
+            (root / 'prepared').mkdir()
+            cli = dict(host_sha256='host', helper_sha256='fixture-helper')
+            cases = []
+            for name in gate.CASES:
+                installation = root / 'prepared' / (name + '-installation.json')
+                cache = root / 'prepared/cache' / name
+                cache.mkdir(parents=True)
+                gate.write(installation, dict(cache_root=str(cache), **cli))
+                cases.append(dict(name=name, campaign=dict(installation=str(installation)), original_requested_choice_bytes=0 if name=='handoff' else 4<<20))
+            gate.write(root / 'prepared/producer-input.json', dict(schema='gomad.core-counterfactual-producer/v2', cases=cases))
+            observed = gate.setup(root, cli, True)
+            self.assertEqual(len(observed['case_caches']), 4)
+            self.assertEqual(observed['guest_compilations'], 0)
+            (root / 'prepared/cache/draw/module.wasm').write_bytes(b'precompiled guest')
+            with self.assertRaisesRegex(Refusal,'outside its baseline deadline'):gate.setup(root, cli, True)
+            self.assertEqual(observed, gate.setup(root, cli, False))
+
     def test_dependency_cache_is_explicit_private_and_required_before_execution(self):
         env = gate.environment(Path('/private'), Path('/compiler/bin/go'))
         self.assertEqual(env['GOMODCACHE'], '/private/module-cache')

@@ -81,6 +81,29 @@ def dependency_cache(root, recipe, repo):
             'original private dependency cache changed')
 
 
+def setup(root, cli, cold):
+    source = read(root / 'prepared/producer-input.json')
+    require(source['schema'] == 'gomad.core-counterfactual-producer/v2'
+            and len(source['cases']) == 4 and {case['name'] for case in source['cases']} == set(CASES),
+            'original setup did not construct four recipe-only cases')
+    caches = []
+    for case in source['cases']:
+        require(set(case) == {'name', 'campaign', 'original_requested_choice_bytes'},
+                'original setup supplied a precompiled preparation receipt')
+        installation = read(root / 'prepared' / (case['name'] + '-installation.json'))
+        cache = root / 'prepared/cache' / case['name']
+        require(installation['cache_root'] == str(cache)
+                and installation['host_sha256'] == cli['host_sha256']
+                and installation['helper_sha256'] == cli['helper_sha256']
+                and case['campaign']['installation'] == str(root / 'prepared' / (case['name'] + '-installation.json')),
+                'original case installation/cache/compiled role changed')
+        caches.append(str(cache))
+    require(len(set(caches)) == 4, 'original fault cases share a prewarmed guest compilation cache')
+    if cold:
+        require(not list((root / 'prepared').rglob('*.wasm')), 'original setup compiled a guest outside its baseline deadline')
+    return dict(schema='gomad.original-counterfactual-setup/v1', guest_compilations=0, guest_executions=0, case_caches=caches)
+
+
 def pairs(root, cli):
     report = read(root / 'pairs/artifact-pairs.json')
     require(report['schema'] == 'gomad.core-counterfactual-artifact-pairs/v1' and report['qualification'] is False
@@ -97,7 +120,7 @@ def pairs(root, cli):
                 'original campaign choice retention bound changed')
         for role in ('baseline', 'fault'):
             cell = row[role]
-            require({'artifact', 'campaign', 'campaign_result', 'wall_nanos'} <= set(cell),
+            require({'artifact', 'campaign', 'campaign_result', 'wall_nanos', 'preparation_receipt', 'preparation_sha256'} <= set(cell),
                     'historical direct-run pairs cannot prove original campaign accounting')
             artifact, campaign = Path(cell['artifact']), Path(cell['campaign'])
             require(artifact.is_relative_to(root / 'pairs' / case) and campaign.is_relative_to(root / 'pairs' / case),
@@ -119,6 +142,17 @@ def pairs(root, cli):
             record = CHECK.authenticate_artifact(artifact)
             require(record['identity']['target'] == plan['module_sha256'] and record['seed'] == 7,
                     'original retained artifact differs from campaign execution')
+            preparation_path = Path(cell['preparation_receipt'])
+            require(preparation_path.is_relative_to(root / 'pairs' / case)
+                    and sha(preparation_path) == cell['preparation_sha256'], 'original actual preparation receipt changed')
+            prepared = read(preparation_path)
+            retained_preparation = CHECK.authenticate_campaign(Path(prepared['campaign']), complete=False)
+            require(prepared['schema'] == 'gomad.rust-preparation-receipt/v1' and prepared['guest_executions'] == 0
+                    and not retained_preparation['executions'] and prepared['module_sha256'] == record['identity']['target']
+                    and retained_preparation['plan']['configuration'] == plan['configuration']
+                    and 0 <= prepared['elapsed_nanos'] <= cell['wall_nanos']
+                    and prepared['process_id'] == read(root / 'produce.command.json')['pid'],
+                    'original baseline deadline excludes its actual guest preparation')
             diagnostics = [(name, stream) for name, stream in record['streams'].items() if name.endswith('/diagnostic')]
             require(len(diagnostics) == (2 if case == 'handoff' else 1)
                     and all(stream['bytes'] > 0 for _, stream in diagnostics),
@@ -179,6 +213,7 @@ def verify(path):
     require(live.inventory(compiler.parent.parent) == recipe['compiler_inventory'], 'original stock compiler tree changed')
     dependency_cache(root, recipe, Path(read(cli['tools_plan'])['repo']))
     owner = read(root / 'producer.json')
+    require(read(root / 'before-produce.json') == setup(root, cli, False), 'original cold setup disposition changed')
     env = environment(root, compiler)
     first = dict(env, GOMAD_CORE_COUNTERFACTUAL_PREPARATION=str(root / 'preparation-recipe.json'))
     second = dict(env, GOMAD_CORE_COUNTERFACTUAL_INPUT=str(root / 'prepared/producer-input.json'),
@@ -219,6 +254,7 @@ def produce(cli_build, harness_build, compiler_root, module_cache, root):
             exact_environment=dict(env, GOMAD_CORE_COUNTERFACTUAL_PREPARATION=str(root / 'preparation-recipe.json')))
     check_files(inputs)
     dependency_cache(root, read(root / 'recipe.json'), repo)
+    write(root / 'before-produce.json', setup(root, cli, True))
     command(config, root, 'produce', invocation(harness['binary'], PRODUCE), accepted=(0, 101), timeout=3000,
             exact_environment=dict(env, GOMAD_CORE_COUNTERFACTUAL_INPUT=str(root / 'prepared/producer-input.json'),
                                    GOMAD_CORE_COUNTERFACTUAL_ROOT=str(root / 'pairs')))

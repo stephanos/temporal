@@ -55,6 +55,17 @@ fn configuration() -> (serde_json::Value, serde_json::Value) {
     (original, effective)
 }
 
+pub(super) fn validate_installation(options: &ExploreOptions) {
+    let installed = crate::install::manifest::resolve(options.installation.as_deref())
+        .unwrap()
+        .manifest;
+    crate::install::manifest::admit_build(&installed).unwrap();
+    assert_eq!(
+        installed.admission.as_ref().unwrap().guest_configuration,
+        configuration().1
+    );
+}
+
 fn options(root: &Path, source: &Path, name: &str) -> ExploreOptions {
     let mut arguments = vec![
         "--json".into(),
@@ -87,14 +98,12 @@ fn options(root: &Path, source: &Path, name: &str) -> ExploreOptions {
     }
     arguments.extend(["go-run".into(), ".".into()]);
     let mut options = crate::cli::explore::parse(&arguments, &mut false).unwrap();
-    options.installation = Some(root.join("installation.json"));
+    options.installation = Some(root.join(format!("{name}-installation.json")));
     super::validate_campaign(&options, name == "handoff").unwrap();
     super::write(
         &root.join(format!("{name}-original-options.json")),
         &json!({"argv":arguments,"options":options}),
     );
-    options.choice_bytes = 1 << 20;
-    options.diagnostics = true;
     options
 }
 
@@ -110,8 +119,11 @@ fn original_recipe_uses_parser_and_preserves_raw_options_beside_effective_overri
     assert_eq!(effective["Limits"]["TranscriptBytes"], 64 << 20);
     for name in ["draw", "clock", "handoff", "output-clock"] {
         let options = options(&root.0, Path::new("/original-source"), name);
-        assert_eq!(options.choice_bytes, 1 << 20);
-        assert!(options.diagnostics);
+        assert_eq!(
+            options.choice_bytes,
+            if name == "handoff" { 0 } else { 4 << 20 }
+        );
+        assert_eq!(options.diagnostics, name != "handoff");
         let raw: serde_json::Value = serde_json::from_slice(
             &std::fs::read(root.0.join(format!("{name}-original-options.json"))).unwrap(),
         )
@@ -123,7 +135,67 @@ fn original_recipe_uses_parser_and_preserves_raw_options_beside_effective_overri
             if name == "handoff" { 0 } else { 4 << 20 }
         );
         assert_eq!(original.diagnostics, name != "handoff");
+        assert_eq!(
+            original.installation,
+            Some(root.0.join(format!("{name}-installation.json")))
+        );
     }
+    let recipe = Recipe {
+        schema: "gomad.original-counterfactual-recipe/v1".into(),
+        root: root.0.clone(),
+        compiler: PathBuf::from("/compiler/bin/go"),
+        compiler_sha256: "pinned".into(),
+        cli: PathBuf::from("/actual-cli"),
+        cli_sha256: "pinned".into(),
+    };
+    let commands = installations(&recipe, &root.0.join("runtime"));
+    let caches = commands
+        .iter()
+        .map(|arguments| {
+            let index = arguments
+                .iter()
+                .position(|value| value == "--cache")
+                .unwrap();
+            arguments[index + 1].clone()
+        })
+        .collect::<std::collections::BTreeSet<_>>();
+    assert_eq!(caches.len(), 4);
+}
+
+fn installations(recipe: &Recipe, runtime: &Path) -> Vec<Vec<String>> {
+    ["draw", "clock", "handoff", "output-clock"]
+        .map(|case| {
+            let values = [
+                ("compiler", recipe.compiler.clone()),
+                ("runtime-root", runtime.to_path_buf()),
+                ("cache", recipe.root.join("cache").join(case)),
+                (
+                    "output",
+                    recipe.root.join(format!("{case}-installation.json")),
+                ),
+                ("config", recipe.root.join("effective-config.json")),
+            ];
+            let mut arguments = values
+                .into_iter()
+                .flat_map(|(name, path)| [format!("--{name}"), path.to_string_lossy().into_owned()])
+                .collect::<Vec<_>>();
+            arguments.extend(
+                [
+                    "--profile",
+                    "gomad.wasi-cooperative/v1",
+                    "--go-version",
+                    "go1.27.1",
+                    "--memory-bytes",
+                    "268435456",
+                    "--fuel",
+                    "1152921504606846976",
+                ]
+                .map(str::to_owned),
+            );
+            arguments
+        })
+        .into_iter()
+        .collect()
 }
 
 pub(super) fn materialize(path: &Path) -> PreparationInputs {
@@ -179,33 +251,9 @@ pub(super) fn materialize(path: &Path) -> PreparationInputs {
         .map(|name| PreparationCase {
             name: name.into(),
             options: options(&recipe.root, &source, name),
-            plan: recipe.root.join(format!("{name}-plan.json")),
         })
         .collect();
-    let values = [
-        ("compiler", recipe.compiler),
-        ("runtime-root", runtime),
-        ("cache", recipe.root.join("cache")),
-        ("output", recipe.root.join("installation.json")),
-        ("config", recipe.root.join("effective-config.json")),
-    ];
-    let mut installation_arguments = values
-        .into_iter()
-        .flat_map(|(name, path)| [format!("--{name}"), path.to_string_lossy().into_owned()])
-        .collect::<Vec<_>>();
-    installation_arguments.extend(
-        [
-            "--profile",
-            "gomad.wasi-cooperative/v1",
-            "--go-version",
-            "go1.27.1",
-            "--memory-bytes",
-            "268435456",
-            "--fuel",
-            "1152921504606846976",
-        ]
-        .map(str::to_owned),
-    );
+    let installation_arguments = installations(&recipe, &runtime);
     PreparationInputs {
         installation_arguments,
         cli: recipe.cli,

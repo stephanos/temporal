@@ -22,6 +22,13 @@ The original provider's 8 MiB transcript policy and the campaign's effective
 64 MiB override remain separate evidence. No serialized campaign receipt is
 supplied by the launcher.
 
+Setup performs four genuine installations with separate compilation caches and
+constructs their requests; it does not compile a Go guest. The controller refuses
+a precompiled WASM module before starting the campaign producer. Each baseline
+creates its actual preparation receipt inside its five-minute clock. That
+receipt's separate preparation journal remains untouched while the real campaign
+journal executes, and the fault run binds to the actual baseline preparation.
+
 `--module-cache` supplies the genuine `golang.org/x/sys v0.48.0` source and Go
 download metadata needed by the compiler overlay helper. The archive is checked
 against the candidate's `go.sum`, copied into the private run root and checked
