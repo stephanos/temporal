@@ -661,3 +661,29 @@ fn output_capacity_reporting_does_not_reclassify_other_global_failures() {
         );
     }
 }
+
+#[test]
+fn output_capacity_failure_retains_the_selected_actual_static_message() {
+    let (_, configuration, mut observed) = capacity_finalization_case("capacity-later", true);
+    let selected = observed
+        .incarnations
+        .iter_mut()
+        .find(|owner| owner.handle.node == "b")
+        .unwrap();
+    selected.execution.evidence.insert(
+        "stderr".into(),
+        b"failed assertion: invalid {state}".to_vec(),
+    );
+    let failure = output_capacity_failure(&observed, &configuration, true, 16, 4096)
+        .unwrap()
+        .unwrap();
+    assert_eq!(failure.termination, "capacity");
+    assert_eq!(
+        serde_json::from_value::<Report>(failure.soft_assertions.unwrap()).unwrap(),
+        Report {
+            messages: vec!["invalid {state}".into()],
+            report_only: true,
+            inconclusive: true
+        }
+    );
+}
