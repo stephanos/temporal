@@ -602,7 +602,7 @@ mod profile_import_tests {
             })
             .collect();
         imports.sort_by(|a, b| (&a.module, &a.name).cmp(&(&b.module, &b.name)));
-        assert!(!imports.is_empty());
+        assert_ne!(imports.len(), 0);
         linked::ModuleMetadata {
             imports,
             initial_memory_pages: 1,

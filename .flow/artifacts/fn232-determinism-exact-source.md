@@ -42,9 +42,10 @@ missing Go test to that actual exact native counterpart. All 500 IDs/sites and
 all other row data are identical, including the protected 276-entry identity
 prefix. The refusal-history test checks the same precise native reference.
 Cooperative caller ordering remains unresolved and its legacy pointer is kept.
-The root followup delta still awaits fresh independent source review because
-the agent thread limit refused dispatch; the original checkpoint review does
-not purport to cover this later delta. No final qualification is claimed.
+The first fresh-review dispatch was refused by the agent thread limit. Once a
+slot became available, a fresh independent same-family high reviewer inspected
+the root filter, all four pointers and the assertion style followup and found
+no actionable issue. No final qualification is claimed.
 
 The unfiltered inventory gate honestly fails: 31 pass and four fail. Its resolver
 now reports 24 unique legacy references; the host guard reports six exact
@@ -53,3 +54,9 @@ Two runtime checks used the ambient compiler and failed its pin. Rerunning those
 two with the actual stock Go 1.27.1 executable passes both, exit zero; the derived
 source inventory is retained at `/home/agent/evidence/fn232-root-runtime-inventory-v1`.
 The full inventory gate remains red until its real remaining obligations close.
+
+After receiving the separately reviewed 508-row host-effect reconciliation, the
+full pinned-Go inventory has 34 passes and one failure: exactly the 24 legacy
+evidence references. All host-site migrations and runtime source checks pass.
+The entire sixteen-configuration lint matrix passes after replacing the test
+nonempty assertion with its diagnostic equivalent; no lint is suppressed.

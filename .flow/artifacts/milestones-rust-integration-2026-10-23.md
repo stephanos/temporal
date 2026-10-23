@@ -348,3 +348,40 @@ only its own regenerable debug incremental files (679,829,504 bytes) and debug
 compiler libraries/metadata (220,581,888 bytes). Binaries, test executables,
 source and required evidence remain intact. Exact ownership/process audits are
 hashed in the companion JSON. No new target or original evidence was removed.
+
+
+## Cluster phase pins, inventory508 and original-input audit
+
+Current source checkpoint `459b844e2a0b97bf25062c9e72820d2cf716fbb9` includes the terminal-module pure reader
+and independent raw writer reader. After cluster/import integration, all sixteen
+admitted feature configurations pass. The explicit perphase Go executable pin
+passes eight cluster tests and strict package/test Clippy; fresh independent
+same-family review found no issue. The full pinned-Go inventory now passes 34
+tests and fails only its 24 unresolved legacy evidence references. All 508 rows,
+six new exact migrations and two clock sites satisfy source/history guards;
+the original 500 identities/sites and protected 276-entry prefix are preserved.
+The full integrated Python driver passes 272 tests. The additional pure writer
+reader passes three negative groups and supplies derived facts, no stage verdict.
+
+A later exact-input audit corrects the scope of the old source51 runtime-cost
+development comparison: all transports received the same modified input, whose
+argv0 is `gomad-target` and whose environment includes GOMAD choice/I/O/seed
+flags. The immutable original uses argv0 `guest` and exactly its three declared
+environment entries. Root reopened both actual request files and the original
+source. Agreement therefore proves supplied-request transport consistency only,
+not receipt of the original tuple. Existing hashes/results remain intact; a fresh
+correct-tuple comparison is still required.
+
+Fresh review of measurement checkpoint `2e8cee0c34` found two real blockers:
+terminal descriptor labels were not tied to actual preparation/installation
+inputs, and warm/prime recompiled Workflow instead of consuming the externally
+prepared terminal module. The owner is repairing both before source acceptance
+and actual compiler/three-leg execution. Broad core testing also exposed loss of
+started-store completion observations during cancellation; repair is in review.
+None of these obligations is waived by narrow passing tests.
+
+The primary terminal routes, authenticated host timing/ancestry and expanded
+profile readers remain a coupled source batch awaiting those dependencies.
+Complete final qualification and the full MILESTONES objective stay open. All
+root verification handles are terminal; isolated source work continues. The
+companion JSON records current worktrees, capacity and reviewed cleanup.
