@@ -1,0 +1,248 @@
+{
+  "actual_go_before_repair": {
+    "passed_case_rows": 5,
+    "required_case_rows": 11,
+    "source_commit": "740af4fbfc73bcbc11167fb1324f5965fbddf476",
+    "test_functions_failed": 3,
+    "test_functions_passed": 2
+  },
+  "commands": [
+    {
+      "command_sha256": "46e200e84460dd4cdacb3617abd61851e13f9af97e3c8da2f28709834a7ced7d",
+      "process": {
+        "active": false,
+        "binary_sha256": "4d422a39d43ab4d600a37a20b007b17a2adbdeae2b9d1cb5780d79c87e9ce232",
+        "clock": "CLOCK_MONOTONIC",
+        "compiler_sha256": "1675694ef690db0f18fbe7046a886170904bede1d9db6ec96ae27945c1705c64",
+        "exit": 101,
+        "parent_pid": 919163,
+        "pid": 919165,
+        "reaped_monotonic_nanos": 26979265407445,
+        "rust_sources_unchanged": true,
+        "started_monotonic_nanos": 26779508138808,
+        "stderr_sha256": "f41f679624fb41dc978ebc29d320fd963fc7a317c2cf5c33c4932266c9d1070f",
+        "stdout_sha256": "2253cf720badacadee5e5619210d1c5853e504e66b076d2cf7c84516d112cd86",
+        "timed_out": false
+      },
+      "process_sha256": "e40573673828813557dda12648195e3ad596a50388d66db33d1849055a87deb6",
+      "root": "/home/agent/evidence/fn232-core-counterfactual/broad-guests-v2"
+    },
+    {
+      "command_sha256": "918ab0c23bfbbd9341df5227e680a6a30304d939c844de80d9690ac987a97fbe",
+      "process": {
+        "active": false,
+        "clock": "CLOCK_MONOTONIC",
+        "exit": 0,
+        "parent_pid": 936879,
+        "pid": 936881,
+        "reaped_monotonic_nanos": 27586926272652,
+        "rust_sources_unchanged": true,
+        "started_monotonic_nanos": 27554508846595,
+        "stderr_sha256": "21ead668dc3b21e9cdd8560e914bf6b6316cee6da9e84f41806a9a1efa7d4e67",
+        "stdout_sha256": "058a378dc7b2188a07275a40d6efa28b1ba6361daf897fb4a8cca1cc1e6087ce",
+        "timed_out": false
+      },
+      "process_sha256": "29202353573c3b59fa33793afd52cb054e7594dd859419ab826f28d669e1b9c4",
+      "root": "/home/agent/evidence/fn232-core-counterfactual/broad-combined-release-build-v10"
+    },
+    {
+      "command_sha256": "aba3df1d89b82359e01d44e6de1d335a9d0e2817e9e09e39690a9f778985b5fe",
+      "process": {
+        "active": false,
+        "clock": "CLOCK_MONOTONIC",
+        "exit": 101,
+        "parent_pid": 937239,
+        "pid": 937240,
+        "reaped_monotonic_nanos": 27607751262037,
+        "rust_sources_unchanged": true,
+        "started_monotonic_nanos": 27607747728828,
+        "stderr_sha256": "0934e9f9bd00cdb7613e26bca60420f10371ae1c1f12a59f0c2050cf7d9f7f22",
+        "stdout_sha256": "23bb8c42a08e9b7892a5be4ebb12b5272abf5b64aeb9d6f1d8113630b0491874",
+        "timed_out": false
+      },
+      "process_sha256": "bc290da9a2193effa6c588194eb6db772bd7248598d97d6ade7a279c3fdfbd66",
+      "root": "/home/agent/evidence/fn232-core-counterfactual/broad-capacity-annotation-red-v10"
+    },
+    {
+      "command_sha256": "01a69b693d08686150250605541cec15560a39bbe0a706aa0ba89263195a4c11",
+      "process": {
+        "active": false,
+        "clock": "CLOCK_MONOTONIC",
+        "exit": 0,
+        "parent_pid": 938071,
+        "pid": 938073,
+        "reaped_monotonic_nanos": 27716364075589,
+        "rust_sources_unchanged": true,
+        "started_monotonic_nanos": 27681318903238,
+        "stderr_sha256": "9bc400eeaeda4eda9bdf08cdb63dc6d18b4fc8d8723c27dfec214d510d349152",
+        "stdout_sha256": "ac3ec54321088088aa6ae1d985b7f95ecdd1151bf645054095cf6c6b26fff984",
+        "timed_out": false
+      },
+      "process_sha256": "601ad15bf85b03a113e0db09c4f72f607fb902ff9243e8611b8abbc9bf95d19b",
+      "root": "/home/agent/evidence/fn232-core-counterfactual/broad-combined-release-build-v11"
+    },
+    {
+      "command_sha256": "d7b4e1bd72f0b21123332f402330388cb2678d94e62553acce8b15817b3a4f2e",
+      "process": {
+        "active": false,
+        "clock": "CLOCK_MONOTONIC",
+        "exit": 101,
+        "parent_pid": 938554,
+        "pid": 938555,
+        "reaped_monotonic_nanos": 27728385002344,
+        "rust_sources_unchanged": true,
+        "started_monotonic_nanos": 27727189765302,
+        "stderr_sha256": "65f3e4afbade5c8a30b9b131b8071f2290fb0396d43529b52041de4608879a5e",
+        "stdout_sha256": "247dd7e87c39ba353bd68cad8e62d94bb3ae844b4c3fafb870bf0acfc2ae4d9a",
+        "timed_out": false
+      },
+      "process_sha256": "4fc81fcb1f155443e63c8bb4b20d15a5541eabd085cafaa6ffaeef14ca4b15a1",
+      "root": "/home/agent/evidence/fn232-core-counterfactual/broad-regressions-green-v11"
+    },
+    {
+      "command_sha256": "104733b723ed40f3c9bf4934ef4bf6440e2a8eaad5c96e60f1366b528061fcd3",
+      "process": {
+        "active": false,
+        "clock": "CLOCK_MONOTONIC",
+        "exit": 0,
+        "parent_pid": 939009,
+        "pid": 939012,
+        "reaped_monotonic_nanos": 27804882893297,
+        "rust_sources_unchanged": true,
+        "started_monotonic_nanos": 27771192787615,
+        "stderr_sha256": "a1cf739a23ea2d9fa47fee458ae8e325f466e7ab876d8f0dc93e5159726652c5",
+        "stdout_sha256": "302f685ac99f119f4b71f14d1ddd1f8125b718e5761a82eeb8a709840fe37726",
+        "timed_out": false
+      },
+      "process_sha256": "6b841baaa9030b0b21ec7b72ddb457479c6c381f1e9c69190327c3c1b4a9c4dd",
+      "root": "/home/agent/evidence/fn232-core-counterfactual/broad-combined-release-build-v12"
+    },
+    {
+      "command_sha256": "cf1e3f8ac71895e3f800f3665de4e98170f3a455ee8b1bd867245b40528cedb9",
+      "process": {
+        "active": false,
+        "clock": "CLOCK_MONOTONIC",
+        "exit": 0,
+        "parent_pid": 939233,
+        "pid": 939234,
+        "reaped_monotonic_nanos": 27811578099051,
+        "rust_sources_unchanged": true,
+        "started_monotonic_nanos": 27810415214217,
+        "stderr_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+        "stdout_sha256": "25b965e498247f802481e7b16c71bfa0a7cdf169859fcbc6d6936315874e0289",
+        "timed_out": false
+      },
+      "process_sha256": "1c0e324e5483d789433f0fe2df8540d326f6023635abe5712f7b52f323f67a9e",
+      "root": "/home/agent/evidence/fn232-core-counterfactual/broad-regressions-green-v12"
+    },
+    {
+      "command_sha256": "495891272a65feb0c3bab9e28483d8ed6103d82b5ce8be9affb854a98ab09478",
+      "process": {
+        "active": false,
+        "clock": "CLOCK_MONOTONIC",
+        "exit": 0,
+        "parent_pid": 939690,
+        "pid": 939691,
+        "reaped_monotonic_nanos": 27880624610625,
+        "rust_sources_unchanged": true,
+        "started_monotonic_nanos": 27855873414655,
+        "stderr_sha256": "4a71140f021046c3b131f5fa745b6b5fe948cef4b3a96cb2bab7333ad0260d91",
+        "stdout_sha256": "9f02a061e5aa77b5d383a0fad5c53511c17684b80f065cb9f7bdcabda9868fca",
+        "timed_out": false
+      },
+      "process_sha256": "f29661504ad228ac2b3dce48c7db8c884c3ba015be0cfda774db3829f1269511",
+      "root": "/home/agent/evidence/fn232-core-counterfactual/broad-host-baseline-v12"
+    },
+    {
+      "command_sha256": "f719d714137db228fc8fe1ecc55eb98ca806b330ba29128ae90f5edad450c065",
+      "process": {
+        "active": false,
+        "clock": "CLOCK_MONOTONIC",
+        "exit": 0,
+        "parent_pid": 939466,
+        "pid": 939468,
+        "reaped_monotonic_nanos": 27843384164941,
+        "rust_sources_unchanged": true,
+        "started_monotonic_nanos": 27824686290640,
+        "stderr_sha256": "bd9b42e41b00f54ff25275ba977576fc7a4189968d46f7fab0ffbfed99898ef8",
+        "stdout_sha256": "4cb5899b2784879fff3fe218b5c31a74bd5d0befa85a78643e0f22251e683f2f",
+        "timed_out": false
+      },
+      "process_sha256": "a7421ccee2581ff0c8e2037b8653b78845383cce7a2870947d0e9e88e1b4ee8e",
+      "root": "/home/agent/evidence/fn232-core-counterfactual/broad-host-clippy-v13"
+    },
+    {
+      "command_sha256": "7b14ea1f5924065bcf78c3acd1970039be7307a523b3973f5cc26464a7b63e4c",
+      "process": {
+        "active": false,
+        "clock": "CLOCK_MONOTONIC",
+        "exit": 0,
+        "parent_pid": 941140,
+        "pid": 941142,
+        "reaped_monotonic_nanos": 27919949231602,
+        "rust_sources_unchanged": true,
+        "started_monotonic_nanos": 27886327589461,
+        "stderr_sha256": "34f77b0f1b54e6d2b8aba2ce8541fb0ac0537206d8f2ee8773a81e7e93213d2a",
+        "stdout_sha256": "829033e94c7559871ac578842b562d351917bae1e541e2c6fa4df0e963247dee",
+        "timed_out": false
+      },
+      "process_sha256": "683a3a2cb7bed7d0a9fd1342513512faeca6ae488816b3a6a3bda811a2b2ba62",
+      "root": "/home/agent/evidence/fn232-core-counterfactual/broad-counter-role-build-v13"
+    },
+    {
+      "command_sha256": "3aad9ec47b2c4e66dce958af9e1f08db2f47bf5511cf2803cafc0b04cdc2a8d0",
+      "process": {
+        "active": false,
+        "clock": "CLOCK_MONOTONIC",
+        "exit": 101,
+        "parent_pid": 941287,
+        "pid": 941289,
+        "reaped_monotonic_nanos": 27932546690150,
+        "rust_sources_unchanged": true,
+        "started_monotonic_nanos": 27932426985025,
+        "stderr_sha256": "e5d7c13645acf795a00fb5cbcd183dae392adc23616d3f3bb4b0e0174c30dcc0",
+        "stdout_sha256": "53db5120b189f50e0805a670ac0138bc9128949689b29176c7505ea5a00a0297",
+        "timed_out": false
+      },
+      "process_sha256": "fa461369792598da2bdeaa5d3a5f610bc91b47cf18b549e2b7e0960ef3220add",
+      "root": "/home/agent/evidence/fn232-core-counterfactual/broad-counter-tests-v13"
+    }
+  ],
+  "fixed_native_regressions": {
+    "focused_failed": 0,
+    "focused_ignored": 5,
+    "focused_passed": 27,
+    "full_host_failed": 0,
+    "full_host_ignored": 9,
+    "full_host_passed": 715,
+    "independently_read_capacity_facts": 20,
+    "independently_read_retained_facts": 91,
+    "python_tests_passed": 496
+  },
+  "retained_files": [
+    {
+      "bytes": 41740,
+      "path": "/home/agent/evidence/fn232-core-counterfactual/broad-capacity-retained-independent-v12.json",
+      "sha256": "20e256bf47337fe10b63c15000c796cec60c44b5148ed2574593fc7a2f5cb64b"
+    },
+    {
+      "bytes": 687,
+      "path": "/home/agent/evidence/fn232-core-counterfactual/broad-python-v7.log",
+      "sha256": "82be8ae9e34fbc98799cae85071d59997d0dc38b521b0904a171a91c4f89de76"
+    },
+    {
+      "bytes": 738,
+      "path": "/home/agent/evidence/fn232-core-counterfactual/broad-combined-release-build-v12/binary-copies.json",
+      "sha256": "cf9b0155ea0ebf90c5551e17128e0c197ac1fca12418ec5e257b0b5146e9923e"
+    }
+  ],
+  "schema": "gomad.core-development-evidence/v1",
+  "scope": "Fixture receiving repair; no final qualification or broad-stage pass",
+  "separate_private_counter_role": {
+    "failed": 1,
+    "failure": "Existing recipe test reaches strict module-root admission and its temporary source has no regular go.mod; counterfactual owner assigned fixture repair. Production parser remains strict.",
+    "ignored": 2,
+    "passed": 4
+  },
+  "source_commit": "eaf70ae46dad352b015dadb0964ce0409e09fd50"
+}
