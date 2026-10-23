@@ -1,0 +1,118 @@
+syntax = "proto3";
+
+package umpire.run.v1;
+option go_package = "umpire.local/model/umpire/run/v1;runv1";
+
+import "google/protobuf/any.proto";
+import "umpire/model/v1/model.proto";
+
+// One Run: every protocol call the Runner made to one Model instance and every Driver fault, in
+// publication order, and the verdict they decide. It is the only artifact a Run writes.
+message Run {
+  // Lower-case hex SHA-256 of the guest bytes.
+  string model_hash = 1;
+  uint32 protocol_version = 2;
+  // The Reset configuration selecting the world; absent for an unconfigured Model.
+  google.protobuf.Any world = 3;
+  // Every Propose seed derives from this seed and the proposal's request number.
+  uint64 seed = 4;
+  repeated Event events = 5;
+  Verdict verdict = 6;
+}
+
+message Event {
+  // The event's position in the Run, from 0.
+  uint64 sequence = 1;
+  // The proposal the event belongs to, numbered from 1; 0 before the first proposal.
+  uint64 request = 2;
+  // The Driver's event ID; 0 when no Driver event caused the call.
+  uint64 driver_event = 3;
+  // Set when rendering removed evidence; such a Run cannot be replayed.
+  bool redacted = 4;
+  oneof kind {
+    Reset reset = 5;
+    Proposal proposal = 6;
+    Judgment judgment = 7;
+    Answer answer = 8;
+    Annotation annotation = 9;
+    Refusal refusal = 10;
+    DriverFault driver_fault = 11;
+  }
+}
+
+message Reset {
+  umpire.model.v1.ResetRequest request = 1;
+  umpire.model.v1.ResetResponse response = 2;
+}
+
+message Proposal {
+  umpire.model.v1.ProposeRequest request = 1;
+  umpire.model.v1.ProposeResponse response = 2;
+}
+
+// An Observation and the Model's judgment of it.
+message Judgment {
+  umpire.model.v1.JudgeRequest request = 1;
+  umpire.model.v1.JudgeResponse response = 2;
+}
+
+// A Callback and the Model's reply to it.
+message Answer {
+  umpire.model.v1.AnswerRequest request = 1;
+  umpire.model.v1.AnswerResponse response = 2;
+  // The Driver's correlation of the worker call the callback came from.
+  uint64 call = 3;
+}
+
+message Annotation {
+  umpire.model.v1.AnnotateRequest request = 1;
+  umpire.model.v1.AnnotateResponse response = 2;
+}
+
+// A call the Model refused: the method, the exact request bytes and the refusal.
+message Refusal {
+  umpire.model.v1.Method method = 1;
+  bytes request = 2;
+  umpire.model.v1.Refusal refusal = 3;
+  uint64 call = 4;
+}
+
+// A transport failure: an unreachable endpoint, a timeout without Model acceptance, a crossed
+// or duplicate event, a stream closed without completion. It is never a verdict about the system.
+message DriverFault {
+  string reason = 1;
+}
+
+enum Termination {
+  TERMINATION_UNSPECIFIED = 0;
+  // The Model proposed nothing more.
+  TERMINATION_QUIESCENT = 1;
+  // The proposal budget was spent.
+  TERMINATION_PROPOSAL_BUDGET = 2;
+  // The event budget was spent.
+  TERMINATION_EVENT_BUDGET = 3;
+  // A question was answered.
+  TERMINATION_QUESTION = 4;
+}
+
+message Verdict {
+  oneof outcome {
+    Explained explained = 1;
+    Unexplained unexplained = 2;
+    Refused refused = 3;
+  }
+}
+
+// Every recorded event was explained; it says nothing about behavior beyond the termination.
+message Explained {
+  Termination termination = 1;
+}
+
+message Unexplained {
+  uint64 event = 1;
+}
+
+message Refused {
+  uint64 event = 1;
+  string reason = 2;
+}

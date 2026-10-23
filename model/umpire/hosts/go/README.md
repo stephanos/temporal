@@ -80,3 +80,59 @@ instantiation and closure; benchmark results use separate instances.
 resolves to a service, and sends the selected typed request through the provided
 connection. `ExpandProbeRecipe` and `ObserveProbe` preserve bounded recipe decoding
 and value-free result classification independently of a system's probe controls.
+
+## Runner
+
+Package `umpire.local/model/umpire/runner` is the one host loop. A `Runner` holds one guest's
+bytes and a Driver factory. Each Run gets a fresh `Host` and a fresh Driver: Reset with the
+selected world, then Propose, have the Driver act, Judge every observation and Answer every
+callback, until the Model answers `QUIESCENT`, a proposal or event budget is spent, or an
+event ends the Run. Propose seeds derive from the Run's seed and the request number.
+The Runner serves one exchange's events from one goroutine in receive order, so every Host
+call is serialized, and answers a callback while the request is still active.
+
+A `Driver` starts one proposed request and returns an `Exchange`. Its events carry strictly
+increasing IDs and the request number: Observation, Callback, Annotate, then Done or Fault.
+The Driver waits for each event's `Decision` (the JudgeResponse with its continue flag, the
+Answer reply, the Annotate output or a Refusal) before its next dependent read or worker
+response. A start error, Fault event, read or run timeout, crossed or repeated event, unknown
+kind, stream closed without Done, Done before a final Explained observation, failed
+`Respond`, or `Close` that fails or does not return within the read timeout is a DriverFault
+event, and the Run is Refused.
+
+`umpire.run.v1.Run` (`../../proto/umpire/run/v1/run.proto`) is the only artifact. It records
+the model hash (SHA-256 of the guest bytes), protocol version, world, seed, every Reset,
+Propose, Judge, Answer and Annotate request and response or Refusal in publication order with
+its request and Driver correlation, every DriverFault, and the verdict. The first terminal
+event decides it: an Unexplained judgment (Unexplained at that event), a Refusal other than
+Propose's `QUIESCENT` or a DriverFault (Refused at that event). Otherwise the Run is
+Explained with its termination: quiescent, proposal budget, event budget or question. An
+Explained Run says only that every recorded event was explained.
+
+The modes are arguments to the loop. `question` replays a recorded prefix, or only Resets
+without one, then asks one Propose or Judge. `explore` runs seeds 1..n. `repeat` runs that
+seed set `count` times, each an independent Run. `reduce` reruns a recorded Unexplained Run
+with proposal budgets 1..n, n being its proposal count, and returns the first that is
+Unexplained again: the shortest reproduction found, not a minimum. `replay` replays every
+recorded call against a fresh Host, without a Driver, and requires each output and the
+verdict to match; an altered model, protocol, world or seed, a missing, reordered,
+duplicated, crossed, redacted or tampered event is a Refused Run.
+
+`Publish` stores a Run under `<model hash>/<seed>/<SHA-256 of its canonical bytes>.binpb`
+by hard-linking a synced temporary file. The same Run published again is already published;
+any other content under its key is a conflict and is never overwritten. `Load` requires
+canonical bytes and, under a digest name, the matching digest. Batch modes write one line of
+progress per proposal and per Run to stderr, naming only the mode, iteration, seed, event
+position and verdict.
+
+The `umpire` command (`tools/umpire/cmd/umpire`, `make umpire`) runs `runner.Main` over the
+Drivers its build registers:
+
+```sh
+umpire <question|explore|reduce|replay|repeat> --model <guest.wasm> [--seed n] [--budget n] [--run <path>] \
+  [--world <any.binpb>] [--observation <any.binpb>] [--events n] [--count n] [--store <dir>] [--driver <name>]
+```
+
+It exits 0 when the deciding Run is Explained, 1 when Unexplained, 2 when Refused, and 3 when
+the loop could not run. Explore, reduce and repeat need a Driver and `--store`. The tests drive
+the stateful control guest through a fake Driver; stock Kettle refuses Propose.

@@ -26,7 +26,9 @@ fi
 mise exec -- protoc --plugin="protoc-gen-go=$plugin" --proto_path=umpire/proto \
   --go_out="$output" --go_opt=paths=source_relative umpire/proto/umpire/model/v1/model.proto \
   umpire/proto/umpire/realization/v1/realization.proto \
-  umpire/proto/umpire/annotations/v1/annotations.proto
+  umpire/proto/umpire/annotations/v1/annotations.proto \
+  umpire/proto/umpire/run/v1/run.proto
 if [ "${1:-}" = --check ]; then
-  diff -ru umpire/hosts/go/umpire "$output/umpire"
+  # The hand-written runner package shares the generated tree's import prefix.
+  diff -ru --exclude=runner umpire/hosts/go/umpire "$output/umpire"
 fi

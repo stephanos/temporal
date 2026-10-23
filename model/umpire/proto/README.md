@@ -96,3 +96,10 @@ Replay must retain this exact Reset call. Existing wire vectors remain unchanged
 Judge response with both a judgment and continue_polling has separate literal Rust/Go
 vectors: protobuf permits field ordering differences (prost writes the oneof first; Go
 writes the scalar first). Both decode to the same message.
+
+`umpire.run.v1.Run` (`umpire/run/v1/run.proto`) is the Go Runner's record of one Run: model
+hash, protocol version, world, seed, ordered events and verdict. Each event embeds the exact
+`umpire.model.v1` request and response, or the refused request bytes and Refusal, so a Run
+replays against a fresh instance without a Driver. It is generated for Go only; no guest
+reads it. Its canonical bytes are Go's deterministic encoding, and its store key carries
+their SHA-256 outside the payload.
