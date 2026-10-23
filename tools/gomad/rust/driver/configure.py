@@ -217,6 +217,8 @@ def freeze(bindings, output, source_manifest):
         native_roles.validate_build(config, entry['build_receipt'], role)
         if entry.get('admission'):
             native_roles.validate_admission(config, entry['admission'], role)
+    import final_profiles
+    final_profiles.preflight(config)
     import primary_stages
     observed = dict(config, _config_path=str(output))
     for label, entry in config['stages'].items():

@@ -192,6 +192,29 @@ class PrimaryRecipes(unittest.TestCase):
             for output in (str(run/'nested/terminal-exit.json'),str(run).replace('run-123','run-456')+'/terminal-exit.json'):
                 with self.assertRaises(Refusal):primary.managed_native_run(root,dict(response,result=output),'terminal-exit','terminal-exit.json',direct=True)
 
+    def test_primary_subcommands_are_owned_by_actual_stage_producer(self):
+        import receiving
+        from unittest.mock import Mock
+        with tempfile.TemporaryDirectory() as temporary:
+            root=Path(temporary)
+            config=self.config(root,root/'unused')
+            producer=dict(pid=101,parent_pid=99,clock='CLOCK_MONOTONIC',started_monotonic_nanos=10,reaped_monotonic_nanos=100)
+            (root/'producer.command.json').write_text(json.dumps(producer))
+            (root/'producer.process.json').write_text(json.dumps(producer))
+            child=dict(pid=102,parent_pid=101,clock='CLOCK_MONOTONIC',started_monotonic_nanos=20,reaped_monotonic_nanos=90,environment={})
+            process=dict(child,stage_pid=101)
+            recipe=[dict(name='primary-final',argv=['/sealed/exe'])]
+            for field,bad in ((None,None),('stage_pid',777),('parent_pid',777),('started_monotonic_nanos',1),('reaped_monotonic_nanos',200),('clock','CLOCK_REALTIME')):
+                observed=dict(child);actual=dict(process)
+                if field=='stage_pid':actual[field]=bad
+                elif field is not None:observed[field]=bad;actual[field]=bad
+                (root/'primary-final.command.json').write_text(json.dumps(observed))
+                (root/'primary-final.process.json').write_text(json.dumps(actual))
+                with patch.object(receiving,'Retained',return_value=Mock()),patch.object(primary,'recipes',return_value=recipe):
+                    if field is None:primary.actual_commands(config,'helper-build',root)
+                    else:
+                        with self.subTest(field=field),self.assertRaises(Refusal):primary.actual_commands(config,'helper-build',root)
+
     def test_native_publication_physically_copies_distinct_roles(self):
         with tempfile.TemporaryDirectory() as temporary:
             root = Path(temporary)

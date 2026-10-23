@@ -222,8 +222,8 @@ def terminal_output(config, stage):
                               process=str(stage / 'primary-final.process.json')))
 
 
-def enclose_host_commands(receipt, process, commands):
-    """Bind retained host probes to their actual parent and shared kernel clock."""
+def enclose_child(receipt, process, child):
+    """Bind an actual child to its parent and the shared kernel clock."""
     for field in ('pid', 'parent_pid', 'clock', 'started_monotonic_nanos', 'reaped_monotonic_nanos'):
         require(receipt[field] == process[field], 'host outer command/process lifecycle differs')
     require(receipt['clock'] == 'CLOCK_MONOTONIC' and type(receipt['pid']) is int and receipt['pid'] > 0
@@ -231,17 +231,24 @@ def enclose_host_commands(receipt, process, commands):
             and type(receipt['started_monotonic_nanos']) is int and type(receipt['reaped_monotonic_nanos']) is int
             and 0 < receipt['started_monotonic_nanos'] < receipt['reaped_monotonic_nanos'],
             'host outer process lacks its actual monotonic lifecycle')
+    require(child['clock'] == receipt['clock']
+            and all(type(child[field]) is int for field in ('pid', 'parent_pid', 'started_monotonic_nanos', 'reaped_monotonic_nanos'))
+            and child['pid'] > 0 and child['pid'] != receipt['pid'] and child['parent_pid'] == receipt['pid']
+            and receipt['started_monotonic_nanos'] <= child['started_monotonic_nanos']
+            < child['reaped_monotonic_nanos'] <= receipt['reaped_monotonic_nanos'],
+            'child borrowed another parent or process interval')
+
+
+def enclose_host_commands(receipt, process, commands):
     require(commands, 'host capture lacks actual probe commands')
+    require(len({entry['pid'] for entry in commands.values()}) == len(commands), 'host probes reused an actual child PID')
     for entry in commands.values():
         observed = read(entry['path'])
         require(sha(entry['path']) == entry['sha256'] and observed['clock'] == 'CLOCK_MONOTONIC',
                 'host probe raw clock/journal changed')
         for field in ('pid', 'parent_pid', 'started_monotonic_nanos', 'reaped_monotonic_nanos'):
             require(entry[field] == observed[field] and type(observed[field]) is int, 'host probe lifecycle changed')
-        require(observed['pid'] > 0 and observed['parent_pid'] == receipt['pid']
-                and receipt['started_monotonic_nanos'] <= observed['started_monotonic_nanos']
-                < observed['reaped_monotonic_nanos'] <= receipt['reaped_monotonic_nanos'],
-                'host probe borrowed another parent or process interval')
+        enclose_child(receipt, process, observed)
 
 
 def read_terminal(config, root):
@@ -395,6 +402,8 @@ def actual_commands(config, label, root):
     import receiving
     reader = receiving.Retained(config)
     reader.command(config, root, 'producer', canonical_argv(config, label, root, 'run'), timeout=TIMEOUTS[label])
+    producer = read(root / 'producer.command.json')
+    producer_process = read(root / 'producer.process.json')
     pids = []
     for item in recipes(config, label, root):
         if label == 'ordinary-helper-publication' and item['name'] == 'primary-discover':
@@ -402,6 +411,11 @@ def actual_commands(config, label, root):
         else:
             reader.command(config, root, item['name'], item['argv'], timeout=TIMEOUTS[label])
         receipt = read(root / (item['name'] + '.command.json'))
+        process = read(root / (item['name'] + '.process.json'))
+        for field in ('clock', 'parent_pid', 'started_monotonic_nanos', 'reaped_monotonic_nanos'):
+            require(process[field] == receipt[field], 'primary subcommand lifecycle differs from actual process')
+        require(process['stage_pid'] == receipt['parent_pid'] == producer['pid'], 'primary subcommand borrowed another stage producer')
+        enclose_child(producer, producer_process, receipt)
         require(receipt['environment'] == dict(config.get('environment', {}), **item.get('environment', {})),
                 'changed primary command environment')
         pids.append(receipt['pid'])
