@@ -319,8 +319,9 @@ fn run_inner(call: &Invocation, proof: &CheckoutProof, root: &Path) -> Result<Pa
     {
         return Err("unsupported native cluster producer".into());
     }
-    super::host::current(root, &call.environ)?;
-    super::host::source_snapshot(proof, root, &call.environ)?;
+    let host = super::host::current(root, &call.environ)?;
+    let source = super::host::source_snapshot(proof, root, &call.environ)?;
+    let baseline = admission::Baseline::admitted(&host, &source)?;
     let mut seeds = vec![7, 19, 42];
     let mut repetitions = 3;
     if call.name == "cluster-owner-profile" {
@@ -376,7 +377,7 @@ fn run_inner(call: &Invocation, proof: &CheckoutProof, root: &Path) -> Result<Pa
                 &row,
                 reference,
                 &native_input(&prepared, seed)?,
-                &prepared,
+                (&prepared, &baseline),
             )?;
             Some(result)
         } else {
@@ -490,8 +491,9 @@ fn execute_replayed(
     row: &super::workloads::RunSpec,
     executable: &super::workloads::Executable,
     request: &Value,
-    prepared: &module::Prepared,
+    context: (&module::Prepared, &admission::Baseline),
 ) -> Result<super::evidence::NativeRun, String> {
+    let (prepared, baseline) = context;
     let identity = prepared
         .guest
         .choice_identity
@@ -504,6 +506,7 @@ fn execute_replayed(
             executable,
             input(call, "GOMAD_WASM_MATCHED_COLD_MEMORY_GUARD"),
             replay,
+            baseline,
         )?;
         let path = root.join(format!("{}-phase-inputs.json", row.name));
         write(

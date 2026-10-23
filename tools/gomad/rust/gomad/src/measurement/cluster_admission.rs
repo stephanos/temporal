@@ -9,6 +9,80 @@ use std::{
     path::{Path, PathBuf},
 };
 
+#[derive(Clone, Debug, PartialEq, Eq, Serialize, Deserialize)]
+#[serde(deny_unknown_fields)]
+struct HostIdentity {
+    os: String,
+    arch: String,
+    boot_id: String,
+    witness: host::HostWitness,
+}
+
+#[derive(Clone, Debug, PartialEq, Eq, Serialize, Deserialize)]
+#[serde(deny_unknown_fields)]
+struct SourceIdentity {
+    schema: String,
+    #[serde(rename = "source_commit")]
+    head: String,
+    #[serde(rename = "source_dirty")]
+    dirty: bool,
+    status: String,
+    #[serde(rename = "source_inputs")]
+    inputs: BTreeMap<PathBuf, String>,
+}
+impl SourceIdentity {
+    fn captured(source: &host::SourceSnapshot) -> Result<Self, String> {
+        serde_json::from_value(serde_json::to_value(source).map_err(|error| error.to_string())?)
+            .map_err(|error| error.to_string())
+    }
+}
+
+#[derive(Clone, Debug, Serialize, Deserialize)]
+#[serde(deny_unknown_fields)]
+pub(super) struct Baseline {
+    host: HostIdentity,
+    source: SourceIdentity,
+    host_inputs: BTreeMap<PathBuf, String>,
+}
+impl Baseline {
+    pub(super) fn admitted(
+        host: &host::HostEvidence,
+        source: &host::SourceSnapshot,
+    ) -> Result<Self, String> {
+        Self::observed(host, SourceIdentity::captured(source)?)
+    }
+    fn observed(host: &host::HostEvidence, source: SourceIdentity) -> Result<Self, String> {
+        if host.schema != "gomad.native-measurement-host/v1"
+            || host.boot_id.is_empty()
+            || source.schema != "gomad.native-measurement-source/v1"
+            || source.dirty
+            || !source.status.is_empty()
+            || source.head.len() != 40
+            || !source.head.bytes().all(|byte| byte.is_ascii_hexdigit())
+            || source.inputs.is_empty()
+        {
+            return Err("diagnostic CPU/boot/source identity changed or worktree is dirty".into());
+        }
+        Ok(Self {
+            host: HostIdentity {
+                os: host.host_os.clone(),
+                arch: host.host_arch.clone(),
+                boot_id: host.boot_id.clone(),
+                witness: host.witness.clone(),
+            },
+            source,
+            host_inputs: host.inputs.clone(),
+        })
+    }
+    fn matches(&self, host: &host::HostEvidence, source: SourceIdentity) -> Result<(), String> {
+        let actual = Self::observed(host, source)?;
+        if self.host != actual.host || self.source != actual.source {
+            return Err("diagnostic CPU/boot/source identity changed or worktree is dirty".into());
+        }
+        Ok(())
+    }
+}
+
 #[derive(Serialize, Deserialize)]
 #[serde(deny_unknown_fields)]
 pub(crate) struct Spec {
@@ -21,6 +95,7 @@ pub(crate) struct Spec {
     receipt: Option<PathBuf>,
     memory_mode: String,
     replay: bool,
+    baseline: Baseline,
 }
 impl Spec {
     pub(super) fn prepared(
@@ -29,9 +104,11 @@ impl Spec {
         helper: &workloads::Executable,
         memory_mode: &str,
         replay: bool,
+        baseline: &Baseline,
     ) -> Result<Self, String> {
         let provenance = module::authenticate_prepared(prepared)?;
         let mut files = prepared_inputs(&provenance)?;
+        files.extend(baseline.host_inputs.clone());
         for path in [
             &prepared.module_path,
             &prepared.provenance_path,
@@ -55,6 +132,7 @@ impl Spec {
             receipt: helper.receipt.clone(),
             memory_mode: memory_mode.into(),
             replay,
+            baseline: baseline.clone(),
         })
     }
     pub(crate) fn read(path: &Path) -> Result<Self, String> {

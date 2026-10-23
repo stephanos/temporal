@@ -153,3 +153,83 @@ fn separate_go_executable_pin_refuses_real_drift_before_every_phase_dispatch() {
         }
     }
 }
+
+#[test]
+fn actual_host_drift_is_rejected_at_every_before_and_after_callback() {
+    let directory = Temporary::new();
+    let repo = Path::new(env!("CARGO_MANIFEST_DIR"))
+        .ancestors()
+        .nth(4)
+        .unwrap();
+    let proof = inputs::authenticate_checkout(repo).unwrap();
+    let environment: Vec<_> = std::env::vars()
+        .map(|(name, value)| format!("{name}={value}"))
+        .collect();
+    let host = host::current(&directory.0.join("baseline"), &environment).unwrap();
+    let source =
+        host::source_snapshot(&proof, &directory.0.join("baseline"), &environment).unwrap();
+    let baseline = Baseline::admitted(&host, &source).unwrap();
+    baseline
+        .matches(&host, SourceIdentity::captured(&source).unwrap())
+        .unwrap();
+    let helper = std::env::current_exe().unwrap();
+    let helper_sha256 = canonical::digest(&std::fs::read(&helper).unwrap());
+    for replay in [false, true] {
+        for incarnation in [1, 2] {
+            for before in [true, false] {
+                let output = Temporary::new();
+                let phase = LifecyclePhase {
+                    incarnation,
+                    handles: ["active", "standby"]
+                        .map(|node| Handle {
+                            node: node.into(),
+                            incarnation,
+                        })
+                        .into(),
+                };
+                let label = phase_label(&phase, replay).unwrap();
+                let mut bad = baseline.clone();
+                bad.host
+                    .witness
+                    .cpuinfo
+                    .push_str("\nnot the admitted physical CPU bytes\n");
+                let observer = Observer::new(
+                    Spec {
+                        schema: "gomad.cluster-phase-admission/v1".into(),
+                        repo: repo.into(),
+                        files: baseline.host_inputs.clone(),
+                        helper: helper.clone(),
+                        helper_sha256: helper_sha256.clone(),
+                        role: build::Role::Release,
+                        receipt: None,
+                        memory_mode: String::new(),
+                        replay,
+                        baseline: bad,
+                    },
+                    &output.0,
+                )
+                .unwrap();
+                let result = observer.observe(&phase, before);
+                assert!(
+                    result.is_err(),
+                    "{label}/{before}: CPU drift published a phase observation"
+                );
+                assert!(
+                    result
+                        .unwrap_err()
+                        .contains("CPU/boot/source identity changed")
+                );
+                assert!(
+                    !output
+                        .0
+                        .join("phase-admission")
+                        .join(format!(
+                            "{label}-{}.json",
+                            if before { "before" } else { "after" }
+                        ))
+                        .exists()
+                );
+            }
+        }
+    }
+}
