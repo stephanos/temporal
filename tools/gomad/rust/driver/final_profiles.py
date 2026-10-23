@@ -135,8 +135,9 @@ def bound_native_request(config, path, spec, *, runtime=False, dynamic_root=None
         cwd = spec['working_directory'].encode()
         require(model['configuration']['working_directory_sha256'] == hashlib.sha256(cwd).hexdigest()
                 and guest['namespace']['working_directory'] == list(cwd), 'native original Temporal working directory changed')
-        preparation_proof(config, spec, guest)
-        require(guest['module'] == spec['module'] and guest['module_sha256'] == spec['module_sha256'],
+        preparation_proof(config, spec, guest, dynamic_root=dynamic_root)
+        require((dynamic_root is not None or guest['module'] == spec['module'])
+                and guest['module_sha256'] == spec['module_sha256'],
                 'native original Temporal module changed')
     return request
 
@@ -246,17 +247,48 @@ def native_run(root):
 
 
 def sealed_role(config, entry, expected):
+    import json
     import live
+    from driver import sha
     for field in ('binary', 'build_receipt'):
         live.sealed_input(config, entry[field])
     build = read(entry['build_receipt'])
-    from driver import sha
-    require(build['profile'] == 'release' and build['exit'] == 0
-            and build['source_sha256'] == config['source_sha256']
-            and build['binary_sha256'] == sha(entry['binary'])
-            and build['helper_sha256'] == config['identity']['helper']
-            and build['helper_features'] == expected, 'foreign/nonmatching native producer role')
-    return entry['binary']
+    binary = entry['binary']
+    if build.get('schema') == 'gomad.native-measurement-build/v1':
+        require(build['executable'] == binary and build['executable_sha256'] == sha(binary)
+                and build['role'] == (dict(kind='diagnostic', features=expected) if expected else dict(kind='release')),
+                'foreign native role build receipt')
+        for path, digest in build['inputs'].items():
+            live.sealed_input(config, path)
+            require(sha(path) == digest, 'native role build input changed')
+    else:
+        require(build['profile'] == 'release' and build['exit'] == 0
+                and build['source_sha256'] == config['source_sha256']
+                and build['binary_sha256'] == sha(binary) and build['helper_features'] == expected,
+                'foreign/nonmatching native producer build')
+    identities = config.setdefault('_final_profile_role_identities', {})
+    if binary not in identities:
+        raw, _ = invoke(config, Path(config['root']), 'final-profile-role-' + str(len(identities)), [binary, '--identity'])
+        identity = json.loads(raw)
+        require(identity['schema'] == 'gomad.native-measurement-identity/v1'
+                and identity['executable_sha256'] == sha(binary) and identity['features'] == expected
+                and identity['role'] == ('diagnostic-profile' if expected else 'ordinary'), 'foreign actual native role identity')
+        if not expected:
+            require(identity['host_implementation_sha256'] == config['identity']['host']
+                    and identity['linked_implementation_sha256'] == config['identity']['helper'],
+                    'ordinary measurement implementation differs from frozen release')
+            config['_final_profile_release_identity'] = identity
+        else:
+            release = config['_final_profile_release_identity']
+            require(identity['source_inputs'] == release['source_inputs']
+                    and identity['runtime_implementation_sha256'] == release['runtime_implementation_sha256']
+                    and identity['configuration'] == release['configuration'] + '-diagnostic-profile',
+                    'diagnostic role source/runtime differs from ordinary release')
+        if build.get('schema') == 'gomad.native-measurement-build/v1':
+            require(identity == build['identity'], 'native build identity differs from actual executable')
+        identities[binary] = identity
+    require(identities[binary]['features'] == expected, 'native executable borrowed a different role')
+    return binary
 
 
 def invoke(config, root, name, argv):
@@ -266,6 +298,211 @@ def invoke(config, root, name, argv):
     receipt, process = read(root / (name + '.command.json')), read(root / (name + '.process.json'))
     live.completed_command(receipt, process, argv, config['repo'])
     return raw, process
+
+
+def native_child(config, attempt_root, native_root, binary, features, exit_code=0):
+    from driver import sha
+    report = read(bounded_path(attempt_root, str(native_root / 'report.json')))
+    journal = read(bounded_path(attempt_root, str(native_root.parent / (native_root.name + '-driver.json'))))
+    input_path = native_root.parent / (native_root.name + '.input.json')
+    require(journal['schema'] == 'gomad.native-process-observation/v1' and not report.get('synthetic', False)
+            and journal['command'] == [binary, '--linked-run', str(input_path), str(native_root)]
+            and journal['directory'] == config['repo'] and journal['exit_code'] == exit_code
+            and journal['signal'] is None and journal['cleanup_errors'] == []
+            and journal['termination'] == ('exit' if exit_code == 0 else 'exit_failure')
+            and type(journal['pid']) is int and journal['pid'] > 0
+            and report['fresh_store_id'] == journal['pid'], 'foreign/incomplete actual native child')
+    require(report['host_sha256'] == sha(binary) and report['features'] == features
+            and report['linked_implementation_sha256'] == config['_final_profile_role_identities'][binary]['linked_implementation_sha256']
+            and report['host_implementation_sha256'] == config['_final_profile_role_identities'][binary]['host_implementation_sha256']
+            and report['request_sha256'] == sha(input_path) == sha(native_root / 'request.json'),
+            'native child role/request identity changed')
+    for name in ('stdout', 'stderr'):
+        stream = journal[name]
+        path = bounded_path(attempt_root, stream['path'])
+        require(stream['error'] is None and stream['truncated'] is False
+                and stream['bytes'] == stream['captured_bytes'] == path.stat().st_size
+                and stream['sha256'] == sha(path) == journal[name + '_sha256'],
+                'native child lost actual command stream')
+    return report, journal
+
+
+def terminal_clock(report, journal):
+    terminal, reaped = report['terminal_monotonic_nanos'], journal['reaped_monotonic_nanos']
+    require(type(terminal) is int and type(reaped) is int and 0 < terminal <= reaped
+            and 0 < reaped - terminal <= 1_000_000_000,
+            'original terminal-to-child-reap bound missing/exceeded')
+    require(report['terminal_clock'] == 'CLOCK_MONOTONIC', 'foreign native terminal clock')
+    linked = report['terminal_to_return_nanos']
+    if linked is None:
+        linked = report['admission_refusal']['terminal_to_return_nanos']
+    require(type(linked) is int and 0 < linked <= reaped - terminal,
+            'linked return is not bounded by actual terminal/reap observations')
+    return reaped - terminal
+
+
+def process_exit_observation(observed, report, journal, native_root, elapsed):
+    require(observed['schema'] == 'gomad.native-terminal-process-exit/v1'
+            and observed['sample'] == native_root.name and observed['clock'] == 'CLOCK_MONOTONIC'
+            and observed['pid'] == journal['pid']
+            and observed['driver_observation'] == str(native_root.parent / (native_root.name + '-driver.json'))
+            and observed['terminal_monotonic_nanos'] == report['terminal_monotonic_nanos']
+            and observed['reaped_monotonic_nanos'] == journal['reaped_monotonic_nanos']
+            and observed['terminal_to_reap_nanos'] == elapsed and observed['bound_nanos'] == 1_000_000_000,
+            'terminal-to-process-exit differs from actual clocks/child')
+
+
+def admission_attribution(profile):
+    require(profile['schema'] == 'gomad.wasm-profile/v2' and profile['diagnostic_only'] is True,
+            'missing actual admission profile')
+    for field in ('abi_overlap_errors', 'span_errors', 'unattributed_imports', 'unframed_imports',
+                  'threads_omitted', 'report_rows_dropped'):
+        require(type(profile[field]) is int and profile[field] == 0, 'incomplete admission attribution')
+    for phase in ('instantiate', 'execute'):
+        require(profile['phases'][phase]['count'] == profile['phases'][phase]['wall_nanos'] == 0,
+                'admission refusal entered guest execution')
+    require(not profile['abi_ops'] and not profile['owners'] and not profile['threads']
+            and all(bucket['count'] == 0 for bucket in profile['abi'].values())
+            and profile['abi_excluded']['count'] == 0, 'admission refusal executed guest imports')
+    row = profile['reconciliation']
+    require(all(row[field] == 0 for field in ('execute_wall_nanos', 'attributed_host_wall_nanos',
+            'guest_residual_wall_nanos', 'outer_host_wall_nanos', 'difference_nanos'))
+            and row['tolerance_nanos'] == 50000, 'admission attribution reconciliation differs from actual empty execution')
+
+
+def native_terminal(config, root, work, entry, terminal_path, ordinary, diagnostic):
+    from driver import Unexecuted, sha
+    terminal = read(terminal_path)
+    if terminal['schema'] != 'gomad.native-terminal-exit/v2':
+        raise Unexecuted('terminal producer lacks actual pre-engine/loaded-module admission observations')
+    base = terminal_path.parent
+    host = read(base / 'host.json')
+    require(host['schema'] == 'gomad.native-measurement-host/v1' and host['host_os'] == 'linux'
+            and host['host_arch'] == 'aarch64', 'terminal current host must be Linux/arm64')
+    cpu_path = bounded_path(base, str(base / 'host/host-cpuinfo.txt'))
+    cpu = cpu_path.read_bytes()
+    require(host_admission('linux', 'arm64', cpu) == host['inputs'][str(cpu_path)]
+            and host['witness']['cpuinfo'].encode() == cpu, 'current raw CPU capture changed')
+    require(terminal['helper_admission'] == read(entry['terminal_helper_receipt'])
+            and terminal['diagnostic_control_admission'] == read(entry['terminal_diagnostic_helper_receipt']),
+            'foreign terminal release/diagnostic admission')
+    require(len(terminal['observations']) == 6, 'missing exact terminal success observations')
+    recipe = read(entry['qualified']['workflow']['recipe'])
+    actual, pids = [], set()
+    require(len(terminal['process_exit_observations']) == 6, 'missing actual terminal-to-reap publications')
+    for index, (name, inline) in enumerate(zip(['prime'] + ['terminal-' + str(index) for index in range(5)], terminal['observations'])):
+        native_root = base / 'evidence' / name
+        report, journal = native_child(config, base, native_root, ordinary, [])
+        elapsed = terminal_clock(report, journal)
+        process_exit_observation(terminal['process_exit_observations'][index], report, journal, native_root, elapsed)
+        require(journal['pid'] not in pids, 'borrowed terminal success process')
+        pids.add(journal['pid'])
+        require(inline['report'] == report and inline['request'] == read(native_root / 'request.json')
+                and inline['root']['outcome'] == read(native_root / 'outcome.json'), 'inline terminal observation differs from raw execution')
+        bound_native_request(config, native_root / 'request.json', recipe, dynamic_root=base)
+        _, run = native_run(native_root)
+        streams = evidence(work, run)
+        require(run['termination'] == 'exit' and run['exit_code'] == 0
+                and b'--- PASS: TestWorkflowTypeEncodingSuite' in streams['stdout']
+                and b'TestPlainASCII/Succeeds' in streams['stdout'], 'actual terminal workflow did not pass')
+        actual.append(run)
+    for run in actual[1:]:
+        same_evidence(work, actual[0], run, qualified=True)
+    rows = terminal['admission_refusals']
+    require([row['stage'] for row in rows] == ['module-digest', 'loaded-module-descriptor'],
+            'missing actual original admission controls')
+    baseline = read(base / 'evidence/prime/request.json')
+    for row in rows:
+        stage = row['stage']
+        native_root = Path(row['native_root'])
+        report, journal = native_child(config, base, native_root, diagnostic, ['diagnostic-profile'],
+                                       exit_code=1 if stage == 'module-digest' else 0)
+        elapsed = terminal_clock(report, journal)
+        process_exit_observation(row['process_exit'], report, journal, native_root, elapsed)
+        require(journal['pid'] not in pids, 'borrowed terminal refusal process')
+        pids.add(journal['pid'])
+        request = read(native_root / 'request.json')
+        expected = copy.deepcopy(baseline)
+        expected.pop('compile_cache', None)
+        if stage == 'module-digest':
+            expected['guest']['module_sha256'] = '1' * 64 if baseline['guest']['module_sha256'] == '0' * 64 else '0' * 64
+        else:
+            expected['guest']['limits']['memory_bytes'] = 65536
+        require(request == expected and row['request_sha256'] == sha(native_root / 'request.json'),
+                'terminal admission control changed undeclared original inputs')
+        refusal = report['admission_refusal']
+        profile = read(native_root / 'profile.json')
+        require(row['refusal'] == refusal and row['profile'] == profile and profile['schema'] == 'gomad.wasm-profile/v2'
+                and report['diagnostic_only'] is True and refusal['schema'] == 'gomad.native-admission-refusal/v1'
+                and refusal['clock'] == 'monotonic' and row['terminal_to_return_nanos'] == refusal['terminal_to_return_nanos']
+                and type(refusal['terminal_to_return_nanos']) is int and 0 < refusal['terminal_to_return_nanos'] <= elapsed,
+                'foreign actual refusal timing/profile')
+        admission_attribution(profile)
+        require(report['attribution'] == dict(Ok=None), 'native admission attribution did not validate')
+        if stage == 'module-digest':
+            require(refusal['stage'] == 'request-admission' and refusal['error'] == 'module SHA-256 mismatch'
+                    and report['execution'] == dict(Err='module SHA-256 mismatch')
+                    and not (native_root / 'outcome.json').exists(), 'module digest control was not refused before engine')
+            for phase in ('engine_init', 'compile', 'deserialize'):
+                require(profile['phases'][phase]['count'] == 0, 'digest refusal created an engine')
+        else:
+            outcome = read(native_root / 'outcome.json')
+            metrics = outcome['metrics']
+            require(refusal['stage'] == 'loaded-module-descriptor' and refusal['outcome'] == outcome
+                    and outcome['termination'] == 'capacity' and outcome['message'] == 'initial guest memory exceeds limit'
+                    and metrics['prepare_nanos'] > 0 and metrics['compile_nanos'] > 0
+                    and metrics['instantiate_nanos'] == metrics['execute_nanos'] == 0
+                    and profile['phases']['compile']['count'] == 1, 'loaded-module descriptor control did not refuse before instantiation')
+
+
+def linked_attribution(config, root):
+    import adapters
+    import receiving
+    import receiving_cost
+    from driver import coverage, sha, subgates
+    receiving.read_receiving(config)
+    stage = root / 'stages/workload-corpus'
+    receipt = read(stage / 'receipt.json')
+    require(receipt['stage'] == 'workload-corpus' and receipt['status'] == 'PASS' and receipt['exit'] == 0
+            and receipt['source'] == config['source_sha256'] and receipt['identity'] == config['identity']
+            and receipt['config_sha256'] == config['_config_sha256'], 'foreign/unexecuted attribution corpus')
+    coverage(subgates('workload-corpus'), receipt['subgates'])
+    corpus = read(stage / 'corpus.json')
+    require(len(corpus['results']) == len(set(corpus['results'])) == 10, 'missing exact ten-cell attribution corpus')
+    for path, digest in corpus['files'].items():
+        require(bounded_path(root, path).is_file() and sha(path) == digest, 'changed same-cycle attribution input')
+    observed, pids = set(), set()
+    for index, path in enumerate(corpus['results']):
+        result = adapters.result_report(config, root, 'final-profile-attribution-' + str(index), path)
+        raw = read(path)
+        require(raw == {key: value for key, value in result.items() if key != '_driver_publication'},
+                'attribution public report differs from actual Result')
+        receiving_cost.validate(raw)
+        manifest = raw['manifest']
+        key = tuple(manifest[field] for field in ('workload', 'profile', 'id', 'cell'))
+        observed.add(key)
+        pid = raw['observations']['operator_process_id']
+        require(pid not in pids, 'borrowed attribution operator')
+        pids.add(pid)
+        publications = list(Path(path).parent.glob(Path(path).name + '.publication-*.json'))
+        require(len(publications) == 1 and str(publications[0]) in corpus['files'], 'unbound attribution publication')
+        publication = read(publications[0])
+        require(publication['result_sha256'] == sha(path) and publication['operator_process_id'] == pid,
+                'foreign attribution publication operator')
+        executed = raw['observations']['executed']['linked']
+        after, peak = publication['linked_after'], publication['operator_peak_rss_bytes']
+        require(all(type(after[field]) is int and after[field] >= executed[field]
+                    for field in ('user_nanos', 'system_nanos', 'peak_rss_bytes'))
+                and type(peak) is int and 0 < raw['observations']['operator_peak_rss_bytes'] <= peak <= 2 << 30
+                and after['peak_rss_bytes'] <= max(peak, executed['peak_rss_bytes']),
+                'publication tail is not attributed to actual operator')
+        require(result['_driver_publication'] == dict(cpu_nanos=after['user_nanos'] + after['system_nanos']
+                - executed['user_nanos'] - executed['system_nanos'], peak_rss_bytes=peak, status='within'),
+                'publication tail differs from raw actual counters')
+    expected = {tuple(wanted[field] for field in ('workload', 'profile', 'id', 'cell'))
+                for wanted in adapters.CELLS.values()}
+    require(observed == expected and set(corpus['producer_pids']) == pids,
+            'missing/foreign original attributed workload cell')
 
 
 def reference_result(output, item, owner, original):
@@ -296,11 +533,69 @@ def reference_result(output, item, owner, original):
     return run
 
 
+def reference_helper_custody(config, entry):
+    import json
+    import live
+    from driver import sha
+    receipt = read(entry['helper_receipt'])
+    binary = receipt['binary']
+    artifact = receipt['artifact_executable']
+    require(receipt['schema'] == 'gomad.reference-helper-build/v1'
+            and binary['path'] == entry['helper'] and binary['sha256'] == sha(entry['helper'])
+            and receipt['copy'] == dict(method='copyfile', source=artifact, destination=binary)
+            and artifact['path'] == receipt['cargo_artifact']['executable']
+            and {key: value for key, value in artifact.items() if key != 'path'}
+                == {key: value for key, value in binary.items() if key != 'path'},
+            'reference helper is not the actual copied Cargo artifact')
+    for binding in (artifact, receipt['cargo_stdout'], receipt['command_file'], receipt['process_file']):
+        path = binding['path']
+        live.sealed_input(config, path)
+        require(sha(path) == binding['sha256'] and Path(path).stat().st_size == binding['bytes'],
+                'changed reference helper build custody')
+    source = receipt['source']
+    require(source['source_root'] == config['repo'] and source['source_commit'] == config['head'],
+            'reference bridge helper was not built from frozen candidate')
+    package = Path(config['repo']) / 'tools/gomad/rust/wasmhost'
+    expected = {str(path) for path in package.joinpath('src').rglob('*.rs')}
+    expected.update(str(path) for path in (package / 'build.rs', package / 'Cargo.toml', package.parent / 'Cargo.toml',
+                                         package.parent / 'Cargo.lock', package.parent / 'rust-toolchain.toml'))
+    require(set(source['files']) == expected, 'reference helper source closure is incomplete')
+    for path, identity in source['files'].items():
+        live.sealed_input(config, path)
+        raw = Path(path).read_bytes()
+        blob = b'blob ' + str(len(raw)).encode() + b'\0' + raw
+        require(identity['relative'] == str(Path(path).relative_to(config['repo']))
+                and len(raw) == identity['bytes'] and sha(path) == identity['sha256']
+                and hashlib.sha1(blob, usedforsecurity=False).hexdigest() == identity['git_blob'],
+                'reference helper source differs from frozen Git bytes')
+    command = read(receipt['command_file']['path'])
+    process = read(receipt['process_file']['path'])
+    cargo = command['argv'][0]
+    rustc = command['environment']['RUSTC']
+    argv = [cargo, 'build', '--offline', '--locked', '--manifest-path', str(package.parent / 'Cargo.toml'),
+            '-p', 'gomad-wasmhost', '--features', 'reference-helper', '--bin', 'gomad-wasmhost',
+            '--message-format=json-render-diagnostics']
+    require(command == receipt['command'] and cargo in receipt['toolchain'] and rustc in receipt['toolchain'],
+            'reference helper build toolchain binding changed')
+    live.completed_command(command, process, argv, config['repo'])
+    for path, identity in receipt['toolchain'].items():
+        live.sealed_input(config, path)
+        require(sha(path) == identity['sha256'] and Path(path).stat().st_size == identity['bytes'],
+                'reference helper compiler changed')
+    artifacts = [value for line in Path(receipt['cargo_stdout']['path']).read_bytes().splitlines()
+                 if (value := json.loads(line)).get('reason') == 'compiler-artifact'
+                 and value.get('target', {}).get('name') == 'gomad-wasmhost' and value.get('executable')]
+    require(artifacts == [receipt['cargo_artifact']] and artifacts[0]['features'] == ['reference-helper']
+            and artifacts[0]['target']['required-features'] == ['reference-helper'],
+            'reference helper has foreign Cargo feature/target output')
+
+
 def reference_runtime(config, root, work, native_root, runtime_spec):
+    import json
     import live
     from driver import sha
     entry = config['final_profiles']['runtime_reference']
-    for field in ('python', 'script', 'git', 'files', 'build_receipt', 'binary', 'helper'):
+    for field in ('python', 'script', 'git', 'files', 'build_receipt', 'binary', 'helper', 'helper_receipt'):
         live.sealed_input(config, entry[field])
     derived = Path(entry['derived'])
     source_path = derived / 'source.json'
@@ -379,6 +674,7 @@ def reference_runtime(config, root, work, native_root, runtime_spec):
         else:
             require(path.is_file() and not path.is_symlink() and path.stat().st_size == item['bytes']
                     and sha(path) == item['sha256'], 'changed immutable original source')
+    reference_helper_custody(config, entry)
     request_path = native_root / 'request.json'
     native = read(request_path)
     provenance = Path(native['guest']['module']).parent / 'module-provenance.json'
@@ -387,7 +683,8 @@ def reference_runtime(config, root, work, native_root, runtime_spec):
             '--native-request', str(request_path), '--request-sha256', sha(request_path),
             '--provenance', str(provenance), '--provenance-sha256', sha(provenance),
             '--files', entry['files'], '--build-receipt', entry['build_receipt'],
-            '--reference-binary', entry['binary'], '--helper', entry['helper'], '--output', str(output)]
+            '--reference-binary', entry['binary'], '--helper', entry['helper'],
+            '--helper-receipt', entry['helper_receipt'], '--output', str(output)]
     invoke(config, root, 'final-profile-runtime-reference', argv)
     manifest = read(output / 'manifest.json')
     require(manifest['schema'] == 'gomad.runtime-reference-pair/v1' and manifest['original_commit'] == original
@@ -456,7 +753,7 @@ def collect(config, root):
     measure = sealed_role(config, entry['measure'], [])
     ordinary = sealed_role(config, entry['ordinary'], [])
     diagnostic = sealed_role(config, entry['diagnostic'], ['diagnostic-profile'])
-    for field in ('stock_go', 'terminal_module', 'terminal_module_receipt', 'terminal_helper_receipt'):
+    for field in ('stock_go', 'terminal_module', 'terminal_module_receipt', 'terminal_helper_receipt', 'terminal_diagnostic_helper_receipt'):
         live.sealed_input(config, entry[field])
     work = root / 'final-profiles'
     require(not work.exists(), 'final profile outputs must be fresh')
@@ -492,17 +789,11 @@ def collect(config, root):
     same_evidence(work, references[0], observed[0][1], qualified=False)
     terminal_argv = [measure, 'terminal-exit', *common, '--terminal-exit-root', str(terminal_root),
         '--terminal-exit-module', entry['terminal_module'], '--terminal-exit-module-receipt',
-        entry['terminal_module_receipt'], '--terminal-exit-helper-receipt', entry['terminal_helper_receipt']]
+        entry['terminal_module_receipt'], '--terminal-exit-helper-receipt', entry['terminal_helper_receipt'],
+        '--terminal-exit-diagnostic-helper', diagnostic, '--terminal-exit-diagnostic-helper-receipt',
+        entry['terminal_diagnostic_helper_receipt']]
     raw, process = invoke(config, root, 'final-profile-terminal', terminal_argv)
-    terminal = read(bounded_path(terminal_root, json.loads(raw)['result']))
-    require(terminal['schema'] == 'gomad.native-terminal-exit/v1', 'foreign native terminal report')
-    if len(terminal['observations']) != 2 or any('root' in item for item in terminal['observations']):
-        raise Unexecuted('native terminal producer lacks original post-load authorization-mismatch observation')
-    cpu = bounded_path(terminal_root, terminal['cpuinfo_path']).read_bytes()
-    require(host_admission(terminal['host_os'], terminal['host_arch'], cpu) == terminal['cpuinfo_sha256'],
-            'changed current host CPU capture')
-    require(terminal['operator_process_id'] == process['pid'], 'foreign terminal observation PID')
-    terminal_observations(terminal['observations'])
+    native_terminal(config, root, work, entry, bounded_path(terminal_root, json.loads(raw)['result']), ordinary, diagnostic)
     pairs = entry['qualified']
     require(set(pairs) == {'workflow', 'activity'}, 'missing original qualified workload')
     for name, pair in pairs.items():
@@ -516,40 +807,25 @@ def collect(config, root):
             live.sealed_input(config, pair[role + '_input'])
             output = work / (name + '-' + role)
             _, process = invoke(config, root, 'final-profile-' + name + '-' + role,
-                                ([binary, '--linked-run', pair[role + '_input'], str(output)] if role == 'release'
-                                 else [binary, pair[role + '_input'], str(output)]))
+                                [binary, '--linked-run', pair[role + '_input'], str(output)])
             report, run = native_run(output)
             require(read(output / 'request.json') == bound_native_request(config, pair[role + '_input'], recipe),
                     'retained native request differs from actual original input')
             require(report['fresh_store_id'] == process['pid']
                     and report['request_sha256'] == sha(pair[role + '_input'])
                     and report['host_sha256'] == sha(binary)
-                    and report['linked_implementation_sha256'] == config['identity']['helper']
+                    and report['linked_implementation_sha256'] == config['_final_profile_role_identities'][binary]['linked_implementation_sha256']
+                    and report['host_implementation_sha256'] == config['_final_profile_role_identities'][binary]['host_implementation_sha256']
                     and report['features'] == ([] if role == 'release' else ['diagnostic-profile']),
                     'foreign qualified native execution')
             if role == 'diagnostic':
                 attribution(read(output / 'profile.json'))
             actual.append(run)
         same_evidence(work, *actual, qualified=True)
+    linked_attribution(config, root)
     guard(config)
     return dict(schema='gomad.rust-driver-final-section/v1', source_sha256=config['source_sha256'],
                 identity=config['identity'], subgates=[dict(id=name, status='PASS', executed=True, exit=0) for name in OWNED])
-
-
-def terminal_observations(observations):
-    require(len(observations) == 2, 'missing original success/authorization-mismatch terminal pair')
-    success, mismatch = observations
-    for item in observations:
-        require(item['reaped'] is True and type(item['terminal_to_reap_nanos']) is int
-                and 0 < item['terminal_to_reap_nanos'] <= 1_000_000_000,
-                'original terminal-to-reap one-second bound exceeded/unmeasured')
-    require(success['termination'] == 'exit' and success['exit_code'] == 0
-            and '--- PASS: TestWorkflowTypeEncodingSuite' in success['stdout']
-            and 'TestPlainASCII/Succeeds' in success['stdout'], 'original terminal workflow did not pass')
-    require(mismatch['authorization_changed'] is True and mismatch['termination'] == 'invalid'
-            and mismatch['message'] == 'execution authorization identity mismatch'
-            and mismatch['started'] is not None and mismatch['instantiate_nanos'] == 0
-            and mismatch['execute_nanos'] == 0, 'original post-load authorization refusal changed')
 
 
 def main():

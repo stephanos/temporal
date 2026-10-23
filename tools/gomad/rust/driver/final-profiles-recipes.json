@@ -67,10 +67,38 @@
     }
   },
   "pending_native_gaps": [
-    "runtime-cost-profile repeats ordinary linked owner instead of original remote-model/helper-model comparison",
-    "terminal-exit lacks original post-load authorization mismatch execution"
+    "actual frozen current-module runtime-cost original-owner pair and native release comparison",
+    "actual frozen current ./tests terminal release successes and diagnostic admission controls with CPU/process timing",
+    "actual full ActivityTestSuite and workflow release/diagnostic preservation at original limits",
+    "actual same-cycle qualification Result cost and publication attribution"
   ],
   "qualification": "UNEXECUTED: recipe and source checks supply no actual final gate pass",
   "reference_revision": "1d695061b6382009d0659238c652a5a765b1d5f5",
-  "reference_original_source_sha256": "7209420f43185caae926c2f4ae3397e1107181eaac2bdce0e13cdfd54a8666d0"
+  "reference_original_source_sha256": "7209420f43185caae926c2f4ae3397e1107181eaac2bdce0e13cdfd54a8666d0",
+  "native_receiving": {
+    "terminal": {
+      "schema": "gomad.native-terminal-exit/v2",
+      "release_successes": 6,
+      "diagnostic_controls": [
+        "module-digest",
+        "loaded-module-descriptor"
+      ],
+      "process_clock": "CLOCK_MONOTONIC",
+      "process_bound_nanos": 1000000000,
+      "scope": "actual classified terminal through observed child reap, including raw publication; linked return separately retained",
+      "original_wire_fields": "Started and original external-helper error frames are not fabricated on the linked path"
+    },
+    "runtime": {
+      "reference_schema": "gomad.runtime-reference-pair/v1",
+      "original_owners": [
+        "go",
+        "helper"
+      ],
+      "candidate": "actual same-module ordinary native linked execution"
+    },
+    "attribution": {
+      "scope": "same-cycle mandatory ten-cell qualification Results, independently recomputed linked costs and publication tails",
+      "native_terminal_scope": "separate native terminal/process timestamps; other Results do not substitute for the terminal process bound"
+    }
+  }
 }

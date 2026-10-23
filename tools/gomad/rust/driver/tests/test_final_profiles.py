@@ -102,22 +102,6 @@ class FinalProfiles(unittest.TestCase):
         with self.assertRaises(Refusal):
             gate.select_polls(raw)
 
-    def test_terminal_requires_actual_post_load_mismatch_and_original_one_second_bound(self):
-        success = dict(reaped=True, terminal_to_reap_nanos=1_000_000_000,
-                       termination='exit', exit_code=0,
-                       stdout='--- PASS: TestWorkflowTypeEncodingSuite TestPlainASCII/Succeeds')
-        mismatch = dict(reaped=True, terminal_to_reap_nanos=1, authorization_changed=True,
-                        termination='invalid', message='execution authorization identity mismatch',
-                        started={}, instantiate_nanos=0, execute_nanos=0)
-        gate.terminal_observations([success, mismatch])
-        for field, value in [('authorization_changed', False), ('instantiate_nanos', 1),
-                             ('execute_nanos', 1), ('started', None),
-                             ('message', 'different'), ('terminal_to_reap_nanos', 1_000_000_001)]:
-            with self.subTest(field=field), self.assertRaises(Refusal):
-                gate.terminal_observations([success, dict(mismatch, **{field: value})])
-        with self.assertRaises(Refusal):
-            gate.terminal_observations([success] * 6)
-
     def test_actual_cwd_and_module_provenance_are_required(self):
         module = self.root / 'tests.wasm'
         module.write_bytes(b'actual-module')
@@ -194,6 +178,83 @@ class FinalProfiles(unittest.TestCase):
         Path(run['streams']['stdout']['path']).write_bytes(b'forged')
         with self.assertRaises(Refusal):
             gate.reference_result(self.root, dict(path=str(path)), 'go', 'original')
+
+    def test_terminal_clock_includes_child_publication_and_refuses_missing_reap(self):
+        report = dict(terminal_monotonic_nanos=100, terminal_clock='CLOCK_MONOTONIC', terminal_to_return_nanos=20)
+        journal = dict(reaped_monotonic_nanos=1_000_000_100)
+        self.assertEqual(gate.terminal_clock(report, journal), 1_000_000_000)
+        for reaped in (None, 99, 100, 1_000_000_101):
+            with self.subTest(reaped=reaped), self.assertRaises(Refusal):
+                gate.terminal_clock(report, dict(reaped_monotonic_nanos=reaped))
+        with self.assertRaises(Refusal):
+            gate.terminal_clock(dict(report, terminal_clock='wall'), journal)
+        with self.assertRaises(Refusal):
+            gate.terminal_clock(dict(report, terminal_to_return_nanos=1_000_000_001), journal)
+        refusal = dict(report, terminal_to_return_nanos=None,
+                       admission_refusal=dict(terminal_to_return_nanos=20))
+        self.assertEqual(gate.terminal_clock(refusal, journal), 1_000_000_000)
+
+    def test_admission_profile_cannot_hide_execution_or_imports(self):
+        profile = dict(schema='gomad.wasm-profile/v2', diagnostic_only=True,
+                       abi_overlap_errors=0, span_errors=0, unattributed_imports=0, unframed_imports=0,
+                       threads_omitted=0, report_rows_dropped=0, abi_ops={}, owners={}, threads=[],
+                       abi=dict(clock=dict(count=0)), abi_excluded=dict(count=0),
+                       phases={phase: dict(count=0, wall_nanos=0) for phase in ('instantiate', 'execute')},
+                       reconciliation=dict(execute_wall_nanos=0, attributed_host_wall_nanos=0,
+                           guest_residual_wall_nanos=0, outer_host_wall_nanos=0, difference_nanos=0, tolerance_nanos=50000))
+        gate.admission_attribution(profile)
+        for field in ('abi_overlap_errors', 'unattributed_imports', 'report_rows_dropped'):
+            with self.subTest(field=field), self.assertRaises(Refusal):
+                gate.admission_attribution(dict(profile, **{field: 1}))
+        for phase in ('instantiate', 'execute'):
+            changed = copy.deepcopy(profile)
+            changed['phases'][phase]['count'] = 1
+            with self.subTest(phase=phase), self.assertRaises(Refusal):
+                gate.admission_attribution(changed)
+
+    def test_reference_helper_rejects_unrelated_cargo_artifact_with_coherent_copy_claim(self):
+        helper, artifact = self.root / 'helper', self.root / 'cargo-artifact'
+        helper.write_bytes(b'candidate')
+        artifact.write_bytes(b'unrelated')
+        def binding(path):
+            return dict(path=str(path), bytes=path.stat().st_size, sha256=hashlib.sha256(path.read_bytes()).hexdigest())
+        binary = binding(helper)
+        claimed = dict(binary, path=str(artifact))
+        receipt = dict(schema='gomad.reference-helper-build/v1', binary=binary,
+                       artifact_executable=claimed, cargo_artifact=dict(executable=str(artifact)),
+                       copy=dict(method='copyfile', source=claimed, destination=binary),
+                       cargo_stdout=binary, command_file=binary, process_file=binary)
+        path = self.root / 'receipt.json'
+        path.write_text(json.dumps(receipt))
+        config = dict(files={str(file): hashlib.sha256(file.read_bytes()).hexdigest() for file in (helper, artifact, path)})
+        with self.assertRaisesRegex(Refusal, 'build custody'):
+            gate.reference_helper_custody(config, dict(helper_receipt=str(path), helper=str(helper)))
+
+    def test_diagnostic_identity_remains_distinct_and_binds_same_frozen_source(self):
+        config = dict(root=str(self.root), source_sha256='source', identity=dict(host='host-release', helper='helper-release'))
+        entries, identities = [], []
+        for role, features in (('ordinary', []), ('diagnostic-profile', ['diagnostic-profile'])):
+            binary = self.root / role
+            binary.write_bytes(role.encode())
+            receipt = self.root / (role + '.json')
+            digest = hashlib.sha256(binary.read_bytes()).hexdigest()
+            receipt.write_text(json.dumps(dict(profile='release', exit=0, source_sha256='source',
+                                              binary_sha256=digest, helper_features=features)))
+            entries.append(dict(binary=str(binary), build_receipt=str(receipt)))
+            identities.append(dict(schema='gomad.native-measurement-identity/v1', role=role, features=features,
+                executable_sha256=digest, host_implementation_sha256='host-release' if not features else 'host-diagnostic',
+                linked_implementation_sha256='helper-release' if not features else 'helper-diagnostic',
+                source_inputs=dict(host='actual-host-preimage', helper='actual-helper-preimage'),
+                runtime_implementation_sha256='runtime', configuration='engine' if not features else 'engine-diagnostic-profile'))
+        with patch('live.sealed_input'), patch.object(gate, 'invoke', side_effect=[(json.dumps(value).encode(), {}) for value in identities]):
+            gate.sealed_role(config, entries[0], [])
+            gate.sealed_role(config, entries[1], ['diagnostic-profile'])
+        self.assertEqual(config['_final_profile_role_identities'][entries[1]['binary']]['linked_implementation_sha256'], 'helper-diagnostic')
+        config['_final_profile_role_identities'].pop(entries[1]['binary'])
+        changed = copy.deepcopy(identities[1])
+        changed['source_inputs']['helper'] = 'foreign-preimage'
+        with patch('live.sealed_input'), patch.object(gate, 'invoke', return_value=(json.dumps(changed).encode(), {})), self.assertRaises(Refusal):
+            gate.sealed_role(config, entries[1], ['diagnostic-profile'])
 
     def test_changed_hash_and_foreign_output_are_refused(self):
         run = self.run_evidence('run')
