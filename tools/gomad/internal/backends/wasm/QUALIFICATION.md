@@ -395,95 +395,205 @@ unsupported. The removed native backend supplies no WASM qualification evidence.
 
 ## Measured costs
 
-Raw helper observations separate engine preparation, cold compilation, warm
-cache loading/writing, fresh instantiation and guest execution wall time.
-Helper process user/system CPU and peak RSS are actual platform resource usage;
-they are not guest-only CPU or aggregate concurrent process-tree RSS. Guest
-linear-memory high water and its enforced limit are separate per-store observations. Compiler preparation commands use the
-existing process supervisor's opt-in wait resource accounting. This includes
-only descendant usage credited by the OS to the waited leader, not arbitrary
-detached/unwaited processes. Linux wait peak RSS is converted from KiB; Darwin
-already reports bytes. Other platforms have no admitted accounting projection.
-On Linux, ru_maxrss also folds in the high-water RSS of the image replaced by
-execve; Go starts children with CLONE_VM|CLONE_VFORK, so a helper's or
-compiler's wait peak is at least the operator's peak at spawn. Helper peak RSS
-therefore uses the helper's own image high water (`VmHWM`) from telemetry, and
-each sample also retains the raw wait figure. An image high water above that
-wait figure is rejected rather than reported. A helper without telemetry, such
-as a per-process reference incarnation ended by a modeled crash or stop, keeps only the wait figure,
-marked `HostPeakRSSUpperBound`. Such upper bounds are excluded from helper,
-cold-helper and warm-helper peaks and are reported separately as
-`HelperUpperBoundSamples` and `HelperUpperBoundPeakRSSBytes` in both cost and
-budget. Compiler peaks remain wait upper bounds.
+The Rust host links the helper. One `gomad qualify` process therefore holds the
+operator, every Wasmtime engine and every guest store. Its only separately
+measured children are the Go compiler processes that preparation waits for. The
+owners are `rust/gomad/src/qualify/usage.rs` (observations),
+`qualify/cost.rs` (cost, budget and terminal checks), `qualify/cells.rs`
+(collection) and `qualify/result.rs` (retention and re-validation). The driver
+recomputes all of it independently in `rust/driver/receiving_cost.py`.
 
-Cold preparation and steady-state preparation remain separate from helper
-execution. Compile-cache hits never imply guest-memory, stack or store reuse.
-`InitialPreparationWallNanos` is initial backend preparation in the cell, not an
-assertion of a cold build. `InitialPreparationCompiled` is checked against its
-observed compiler command prefix. A fresh warm cell records only commands that
-actually ran; it never imports the previous process's cold build metrics.
-`FreezeRetainedCluster` shares a genuine frozen preparation only within one
-producer and marks that reuse with its provenance reference. It is not a custom
-producer adoption or cross-process receipt protocol.
-Replay CPU contributes to replayable-bug yield; repeated sightings of the same
-semantic failure do not inflate distinct bug counts. Trace bytes, fuel consumed,
-virtual/wall ratio, distinct observed outcomes and actual retained matched
-failure replay are counted separately. Missing wall/CPU/guest/host memory
-measurements produce `CostFailure`, never a cost pass.
+### Raw observations (`Result.observations`)
 
-The fresh operator samples its own OS CPU baseline before spec/installation
-decoding and input capture. Its final self CPU delta includes preparation, models,
-retained artifacts and replay, including setup between preparation and execution.
-Process initialization before that baseline and the final cost-report encoding
-are excluded. Operator lifetime RSS is measured separately and includes setup,
-models/capture/artifact allocations; it is not model-only memory or an aggregate
-of helper processes. Compiler, helper and operator CPU are summed without counting
-child CPU again as operator self CPU. The global virtual/wall ratio uses the
-existing logical execution report wall and the selected broker's single exact
-clock (Rust in-process, Go in the per-process reference);
-per-incarnation virtual time is retained separately as a guest-weighted ratio.
-In-process cluster samples count process CPU/RSS once. Every store sample must
-have exactly one matching phase/iteration helper measurement, and every resident named by
-the helper must have a measured store peak. Replays cannot borrow recording CPU
-or RSS observations.
+| Field | Source |
+| --- | --- |
+| `operator_process_id` | this process's PID; nonzero for a final Result |
+| `start`, `prepared`, `executed` | `getrusage` snapshots, each holding `linked` (self: user/system CPU and peak RSS) and `children` (every waited compiler process). `start` is taken before the spec is read, `prepared` after preparation, and `executed` after the last replay |
+| `preparation_wall_nanos` | wall time of the in-process preparation (`prepare::prepare`) |
+| `samples[]` | one per fresh guest store: `phase` (`execute`/`replay`), `iteration`, `incarnation` (`node/incarnation` for cluster stores only), store-window `wall_nanos`, `fuel_used`, `guest_peak_memory_bytes`, `guest_memory_limit_bytes`, `trace_bytes`, `virtual_time_nanos`, `linked_before`/`linked_after` (self counters at the window boundaries), `store_peak_rss_bytes` and `cache_hit` |
+| `resident_stores` | largest number of concurrently resident guests |
+| `operator_peak_rss_bytes` | largest image high water of the operator phases outside every store window |
 
-The agreed 16 GiB-host protocol requires serial heavy preparation, at most two
-resident guests and one visible continuation: preparation <=10 minutes,
-individual execution/replay <=15 minutes, compiler peak <=6 GiB, cold-cache-miss
-helper peak <=6 GiB, warm-cache-hit helper peak <=4 GiB, fresh operator lifetime
-peak <=2 GiB. Single-guest helpers retain the 4 GiB warm and 6 GiB cold limits.
-For an in-process cluster, one actual helper image peak covers every resident
-guest at once and must be <=8 GiB; it includes retained boot templates and is
-not subject to the single-guest helper limits. A warm cluster sample must name
-every resident. Each store must report a nonzero linear-memory peak within its
-own `memory_bytes`. The per-process reference retains the conservative sum of
-each resident's observed warm helper maximum, also <=8 GiB. Helper wait upper bounds
-are not checked against these helper limits. The originally proposed
-4 GiB cold-helper ceiling was exceeded by an actual large module; that historical
-breach is retained explicitly, not relabeled as a warm-cache pass.
+Linked peak RSS is `VmHWM`, the high water of this image only, from
+`/proc/self/status`. It is not `ru_maxrss`, which also folds in the image
+replaced by `execve`. Qualification enables phase attribution once per process.
+At each store boundary it reads `VmHWM`, folds that value into the lifetime peak,
+returns freed glibc heap (`malloc_trim`) and restarts the counter (`clear_refs` 5).
+Each store window's own high water and the operator-phase high water are
+therefore measured separately. Phase attribution is Linux-only. Elsewhere, or
+after any failed read or reset, attribution stays off and the memory checks below
+fall back to unattributed upper bounds.
 
-`Matched` rejects differences in workload, candidate/application source, host,
-seed, repetitions, fuel and memory budget. Profile-owned runtime and engine/model
-identities may differ explicitly. A final comparison must also use a retained
-matched run order and agreed execution budget; fixture microbenchmarks alone do
-not establish adoption cost.
+Compiler figures are `RUSAGE_CHILDREN`. They cover only descendants that the OS
+credits to waited children, not detached processes. The peak is the largest
+single waited child's `ru_maxrss`, in KiB on Linux and bytes on Darwin. It may
+include the image a child replaced at `execve`, so it is an upper bound. Only
+64-bit Linux and macOS on aarch64/x86_64 have an admitted accounting projection;
+other platforms record no observation. Compiler counters are deltas inside this
+process, so a warm cell can never import an earlier process's cold build.
+
+Per-phase helper timings (`prepare_nanos`, `compile_nanos`, `cache_load_nanos`,
+`cache_write_nanos`, `instantiate_nanos`, `execute_nanos`, `cache_hit`) are
+retained outside the Result. They live beside each campaign execution as
+`gomad.backend-metrics-observation/v1` files and are neither summed into the cost
+nor checked against a budget.
+
+### Cost (`Result.cost`, recomputed by `cost::cost`)
+
+`compiler_cpu_nanos` is the children user+system delta from `start` to
+`executed`. `linked_cpu_nanos` is the self delta over the same interval: setup,
+preparation, models, retained artifacts and every execution and replay.
+`cpu_nanos` is their sum, with each process counted exactly once. There is no
+separate helper CPU. `compiler_peak_rss_bytes` and `linked_peak_rss_bytes` are the
+`executed` peaks.
+
+Samples are grouped into one window per `phase`/`iteration`. A group must:
+- appear in iteration order;
+- have the stores inside it share one window (wall, virtual time, boundary counters, store peak and cache flag);
+- not overlap other windows;
+- fit inside the measured interval;
+- carry nonzero wall time, guest peak and guest limit.
+
+`executions`, `replays`, `execution_wall_nanos`, `replay_wall_nanos`, `fuel_used`,
+`trace_bytes`, `virtual_time_nanos` and `guest_peak_memory_bytes` come from those
+windows. `distinct_outcomes` counts distinct record hashes. `replayable_bugs`
+counts distinct failure signatures of matched replays, so repeats do not inflate
+it. `virtual_to_wall` and `replayable_bugs_per_compute_hour` are exact integer
+ratios. The window counts must equal the report's executions and replays. Each
+execution window's virtual time must equal its record. A standalone store's limit
+must equal the record's memory limit. A missing observation produces
+`cost_failure` and never a cost. Result validation also requires each execution
+and matched replay to measure exactly the record's trace bytes, every store limit
+to equal the manifest `memory_bytes`, and cluster windows to name exactly the
+record's `node/incarnation` handles.
+
+### Budget (`Result.budget`, recomputed by `cost::budget`)
+
+The agreed 16 GiB-host protocol becomes typed checks. Each check records `name`,
+`quantity`, `observed`, `limit` and `status` (`within`, `exceeded` or
+`unattributed`). `exceeded` checks go into `violations` and `unattributed` checks
+go into `pending`. `within_budget` holds only when both lists are empty.
+
+| Check | Quantity | Limit |
+| --- | --- | --- |
+| preparation wall | exact `preparation_wall_nanos` | 10 min |
+| execution/replay store wall | largest window wall | 15 min |
+| individual compiler peak RSS | largest waited compiler child | 6 GiB |
+| resident guests | exact `resident_stores` | 2 |
+| guest linear memory `<phase>:<iteration>[ <store>]` | added only for a store whose peak exceeds its own limit | the store's `memory_bytes` |
+| operator lifetime peak RSS | operator phases | 2 GiB |
+| individual warm helper peak RSS | largest single-guest window with `cache_hit` true; with no such window, the largest single-guest window, `unattributed` if above the limit | 4 GiB |
+| individual cold helper peak RSS | largest single-guest window | 6 GiB |
+| conservative resident helper peak upper bound | largest cluster window, which holds every resident guest at once | 8 GiB |
+
+A cluster window is any window whose stores carry `node/incarnation` handles,
+even when it has a single node. Only standalone windows meet the single-guest
+ceilings. Attributed phases must account for the lifetime peak:
+- every window lies within the peaks around and after it;
+- every rise across a boundary is explained by that window or by operator work;
+- the largest phase reaches the lifetime peak.
+
+Otherwise the budget is refused with `budget_failure`. When any window or the
+operator figure lacks attribution, each memory check uses the lifetime linked
+peak as an `unattributed` upper bound. A measured phase that already exceeds its
+ceiling stays a violation.
+
+### Publication receipt (`cost::terminal`)
+
+After the sealed Result is published, the operator records a receipt
+(`linked_after`, `operator_peak_rss_bytes`, bound to the Result digest and PID).
+`cost::terminal` refuses missing or backward counters, a backward operator phase
+peak, and a lifetime-peak rise not attributed to the operator phase. It reports
+`cpu_nanos` (the self delta after `executed`), `peak_rss_bytes` and a `status`
+against the 2 GiB operator ceiling. A known overrun stays `exceeded`; without
+attribution the lifetime peak is `unattributed`.
+
+### Enforcement
+
+- `gomad qualify` exits 3 when a non-provisional Result has `cost_failure`,
+  `budget_failure` or `within_budget` false (pending names are printed). It also
+  exits 3 when the terminal status is not `within` or the receipt fails. These
+  checks precede the classification exits 0/1/2. Provisional Results skip the gate.
+- `gomad report` and `result::open` recompute cost and budget from the raw
+  observations and refuse any difference, including a cost or budget claimed for
+  missing measurements. `report` itself exits 0 for a valid Result whose budget
+  or terminal status failed; it only reports those fields.
+- The driver's `result_report` (`rust/driver/adapters.py`) requires no
+  `cost_failure` or `budget_failure`, `within_budget` true, an empty `pending`, a
+  terminal `status` of `within`, and attributed operator peaks in both the Result
+  and the receipt. `fn222-support check-result` and `validate-inspection` require
+  the same budget and terminal status.
+
+`FreezeRetainedCluster`-style reuse no longer exists: every Rust `qualify` process
+prepares its own module. A final freeze without the operator's own baseline is
+refused.
+
+`Matched` comparisons need identical workload, integrated and workload source,
+host, seed, repetitions, fuel and memory budget. A final comparison also needs a
+retained matched run order and agreed execution budget; fixture microbenchmarks
+alone do not establish adoption cost. The Rust qualification owner has no
+manifest-matching function (see the gaps below).
 
 Cluster acceptance retains the independent-clusters partition/heal/whole-cluster
 crash gate and the broker network-stream replay fixture on the Rust network
 owner, with distinct choice traces across seeds and byte-equal World evidence
 on full and prefix replay. Gate reports must identify the selected network
-owner and its implementation digest; a helper digest binds the Rust owner,
-while Go reference measurements bind the Go implementation. A success/canary
-qualification report or a unit-test pass alone does not establish these gates.
+owner and its implementation digest; a helper digest binds the Rust owner. A
+success/canary qualification report or a unit-test pass alone does not establish
+these gates.
 
 The cluster speedup comparison requires fresh baseline and candidate release
 measurements on the same host at each measured seed, retaining
-the fn-172 baseline revision, inputs, identities and rerun commands. Record
-authorization-to-terminal wall, full wall, parent Go self CPU, helper CPU and
-compiler CPU separately. Diagnostic-profile helpers can
-attribute cluster execution, but diagnostic timings cannot substitute for
-matched release costs. Guest-profile and diagnostic fuel-off helpers refuse clusters.
-Missing measurements remain open acceptance work.
+the fn-172 baseline revision, inputs, identities and rerun commands. On the Rust
+host, record store-window wall, full wall, linked self CPU and compiler CPU
+separately; the fn-172 Go baseline additionally had separate parent and helper
+CPU. Diagnostic-profile helpers can attribute cluster execution, but diagnostic
+timings cannot substitute for matched release costs. Guest-profile and diagnostic
+fuel-off helpers refuse clusters. Missing measurements remain open acceptance work.
+
+### Go-era cost gates without Rust enforcement
+
+These checks existed in the retired Go owner (`internal/backends/wasm/qualification`,
+retained at baseline `1d7b37f00a`) and have no Rust counterpart. They remain open:
+
+1. **Warm measurement for every resident guest, including clusters.** Go
+   `EvaluateBudget` (`budget.go`) failed with "actual warm helper peak measurement
+   is required for each resident guest" unless `len(warmResidents) ==
+   residentGuests`. Cache-hit cluster samples counted for every resident. Rust
+   never requires a cache-hit measurement. Without a cache-hit window, any
+   single-guest window at or under 4 GiB satisfies the warm check as an upper
+   bound. With attributed phases, a cell that has only cluster windows passes it
+   with observed 0. The 4 GiB, 6 GiB and 8 GiB limits themselves are unchanged;
+   only Go's requirement that each resident have an actual warm measurement is gone.
+2. **Mandatory corpus and SQLite catalogue reader self-measurement.** The Go
+   `TestActualMandatoryWorkloadCorpus` and `TestActualSQLiteSelectionCatalogue`
+   failed when `checkerAfter.PeakRSSBytes == 0 || checkerAfter.PeakRSSBytes >
+   2<<30` or the reader's CPU counters decreased. The corpus also summed
+   `result.Cost.CPUNanos` plus each receipt's terminal CPU exactly once. The
+   driver's `workload-corpus`, `workload-corpus-after-relocation` and
+   `sqlite-catalogue` readers neither measure their own CPU/RSS nor enforce
+   2 GiB, and nothing aggregates corpus CPU.
+3. **`Matched` manifest comparison.** Go `manifest.go` `Matched(a, b)` returned
+   "WASM comparison cells are not matched" unless `Workload`,
+   `IntegratedSourceSHA256`, `WorkloadSourceSHA256`, `HostOS`, `HostArch`,
+   `Seed`, `Repeat`, `Fuel` and `MemoryBytes` were all equal. No Rust function
+   compares two qualification Results. Only producer-specific `gomad-measure`
+   checks exist, such as separate matched caches and warm roles.
+4. **Per-phase helper costs in the Result.** Go `Summarize` (`cost.go`) summed
+   `EngineCompileNanos`, `InstantiationNanos`, per-sample `PreparationWallNanos`
+   and `CompileCacheHits` into the authenticated cost. Its `measuredCost`
+   (`result.go`) refused "initial preparation command classification differs from
+   actual observations" when `preparationCompiled(CompilerCommands[:InitialCompilerCommandCount])
+   != InitialPreparationCompiled`. Rust keeps the helper phase timings only in
+   unauthenticated-by-Result campaign files. It also has no per-command compiler
+   record and no cold-or-warm preparation flag. This is a recording gap, not a
+   relaxed limit.
+
+The following Go facts were declared but never checked in Go either: one visible
+continuation, serial heavy preparation, and the `ColdHelperExceededOriginal4GiBLimit`
+flag. Rust does not record them. The originally proposed 4 GiB cold-helper ceiling
+was exceeded by an actual large module; that historical breach is retained
+explicitly, not relabeled as a warm-cache pass.
 
 ## Measurement producers
 
@@ -569,12 +679,12 @@ but precede final Result encoding and publication. Receipt publication
 (`qualify/result.rs` `publish_receipt`) captures actual operator-self CPU and
 lifetime RSS after that large work. It retains a bounded immutable publication
 receipt beside the unchanged Result and fails unavailable, nonmonotone or
-over-2-GiB observations. The final corpus requires its
-exact Result hash/PID binding and adds the measured terminal self CPU delta once.
-Only bounded receipt/response emission follows that snapshot; process exit-tail
-cost is not claimed. The separate corpus reader measures its own CPU/RSS and
-enforces the same operator peak limit. Neither measurement is child CPU or an
-aggregate concurrent RSS measurement.
+over-2-GiB observations (see [Publication receipt](#publication-receipt-costterminal)).
+Driver readers require the exact Result hash/PID binding and a `within` terminal
+status. Only bounded receipt/response emission follows that snapshot; process
+exit-tail cost is not claimed. The terminal figure is not child CPU or an
+aggregate concurrent RSS measurement. Corpus reader self-measurement is a
+recorded gap (see [Measured costs](#go-era-cost-gates-without-rust-enforcement)).
 
 The mandatory final gate, formerly `make qualify-workloads`, is the ten
 `workload-<workload>-<profile>-{success,canary}` driver stages plus
