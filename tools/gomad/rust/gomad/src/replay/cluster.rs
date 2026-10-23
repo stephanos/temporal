@@ -810,7 +810,7 @@ mod projection_tests {
 
     const ENCODING: &str = "gomad/world/compressed-snapshot/v2";
 
-    fn configuration() -> (Configuration, Vec<u8>) {
+    pub(super) fn configuration() -> (Configuration, Vec<u8>) {
         // Expanded bytes from the unchanged compressed-world-single-terminal-owner corpus.
         let raw_world = crate::qualify::cells::base64("R01XU05BUDEAAAABAAAAAAAAAAAAAAAAACAAAAAAAAAAIAAAAAAAAAAD0JAAAAAAAIAAAAAAAAAEAAAA/////w0jTM9SQwAAAAAAAAAAAAEAAAAAAAAAAQAAAAAAAAABAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA47DEQpj8HBSa+/TImW+5JCeuQeRkm5NMpJWZG3hSuFVkPwAshKEN5wBwZmobp69AiLehiWr2Xs5nRltJYTzTVQAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA==").unwrap();
         let limits = json!({"fuel":100_000,"memory_bytes":65_536,"wall_millis":1000,
@@ -841,7 +841,11 @@ mod projection_tests {
         (configuration, raw_world)
     }
 
-    fn observe(raw_world: &[u8], bad_live: bool, bad_mandatory: bool) -> helper::Execution {
+    pub(super) fn observe(
+        raw_world: &[u8],
+        bad_live: bool,
+        bad_mandatory: bool,
+    ) -> helper::Execution {
         let history = |payload| {
             format!(
                 "LIVE {}\n",
@@ -1011,3 +1015,7 @@ mod projection_tests {
         }
     }
 }
+
+#[cfg(test)]
+#[path = "cluster/retained_tests.rs"]
+mod retained_tests;

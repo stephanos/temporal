@@ -360,26 +360,22 @@ pub(crate) fn assess(
         if incarnation.workload_kind != "go-test" {
             continue;
         }
-        let Some(item) = execution
+        let item = execution
             .incarnations
             .iter()
-            .find(|item| item.handle == incarnation.handle)
-        else {
-            continue;
-        };
+            .find(|item| item.handle == incarnation.handle);
         if let Some(report) = soft_assertions::observe(
-            item.execution
-                .evidence
-                .get("stdout")
+            item.and_then(|item| item.execution.evidence.get("stdout"))
                 .map_or(&[], Vec::as_slice),
-            item.execution
-                .evidence
-                .get("stderr")
+            item.and_then(|item| item.execution.evidence.get("stderr"))
                 .map_or(&[], Vec::as_slice),
-            scenario::complete_output(&item.execution),
-            policy(configuration, &item.handle),
+            item.is_some_and(|item| scenario::complete_output(&item.execution)),
+            policy(configuration, &incarnation.handle),
         ) {
-            let instance = format!("{}/{}", item.handle.node, item.handle.incarnation);
+            let instance = format!(
+                "{}/{}",
+                incarnation.handle.node, incarnation.handle.incarnation
+            );
             let mut result = oracle(
                 format!(
                     "soft-assertion.instance-{}",
